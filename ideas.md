@@ -38,6 +38,7 @@ https://www.codementor.io/gmuresan/building-a-chrome-extension-reactjs-broccoli-
 https://developer.chrome.com/extensions/commands
 https://github.com/lydell/webextension-keyboard
 https://developer.mozilla.org/en-US/Add-ons/WebExtensions/Anatomy_of_a_WebExtension#Background_scripts
+https://github.com/shinglyu/QuantumVim - Vimium style stuff in WebExtensions
 
 
 # Names
