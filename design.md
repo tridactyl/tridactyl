@@ -25,13 +25,13 @@ Non-objectives for v1:
 Prior art:
 
     * pentadactyl/vimperator - dying with XUL
-    * cVim
-    * vimfx - no ex commands
-    * qutebrowser/zathura - see standalone route.
+    * cVim/vimium
+    * vimfx - transitioning to WebExtensions, but no ex commands
+    * qutebrowser/jumanji - see standalone route.
 
 ## Standalone route
 
-Some small browsers exist that use webkit/webengine for the heavy lifting. Two notable examples even have vim-like interfaces: qutebrowser and zathura's cousin.
+Some small browsers exist that use webkit/webengine for the heavy lifting. Two notable examples even have vim-like interfaces: qutebrowser and jumanji.
 
 Extending them *might* be easy, depending on the quality of the existing code base. We also need to evaluate these projects for maintainability: they're obviously going to have much less development power.
 
