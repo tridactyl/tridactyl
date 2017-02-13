@@ -8,8 +8,6 @@
     "scripts": ["main.js"]
   },
 
-  "permissions": ["experiments.gcli"],
-
   "browser_action": {
     "default_title": "Tridactyl",
     "browser_style": true
