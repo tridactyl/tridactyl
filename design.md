@@ -3,6 +3,7 @@
 Replace ff's default control mechanism with one modelled on the one true editor, Vim.
 
 Principles:
+
     * Keyboard > mouse
     * default keybinds should be Vim-like
     * actions should be composable and repeatable
@@ -11,15 +12,18 @@ Principles:
     * users can map actions and commands to other keys
 
 Other objectives:
+
     * be fast - the whole point of a keyboard interface is to be more efficient, don't compromise that with slow code
     * don't crash - we're the new UI and we shouldn't crash
     * be maintainable - code should be well documented, reasoned about and tested.
 
 Non-objectives for v1:
+
     * insert mode (embedded (n)vim would be good for future)
     * caret or visual mode - I'm not good enough at vim to find these easier than selecting with the mouse, and they require text motions, which I would prefer to delegate to vim.
 
 Prior art:
+
     * pentadactyl/vimperator - dying with XUL
     * cVim
     * vimfx - no ex commands
@@ -52,11 +56,13 @@ We also lose access to the existing addon/extension repos. Maybe if we implement
 What addons do I use and would I miss them?
 
 Should be part of the browser anyway:
+
     * stylish --> :style, or maybe .vimperator/styles/ (with magic comments?)
     * greasemonkey --> builtin/extensions/autocmds
     * site blocker --> /etc/hosts
 
 Maybe not:
+
     * element hiding rules (ublock) not supported
     * tree tabs --> better :buffer?
     * lazarus form recovery is brilliant...
@@ -96,35 +102,35 @@ Do exist:
 
 ### Stuff we want to do that I know how to do:
 
-Show hints:
-	For each link in viewport (how to restrict to viewport?):
-		Add an element styled to appear on top of it
-		Listen for keystrokes.
-	Does vimperator just go for <a> tags? I think it probably knows about elements that can be clicked for other effects.
-Change tab
-	tabs.update(tabtodisplay, {active: true})
-Change window focus
-	windows.update(windowtofocus, {focused: true})
+    * Show hints:
+	    * For each link in viewport (how to restrict to viewport?):
+		    * Add an element styled to appear on top of it
+		    * Listen for keystrokes.
+	    * Does vimperator just go for <a> tags? I think it probably knows about elements that can be clicked for other effects.
+    * Change tab
+	    * tabs.update(tabtodisplay, {active: true})
+    * Change window focus
+	    * windows.update(windowtofocus, {focused: true})
 
 ### Stuff I don't know how to do:
 
-Use promises properly.
-Use promises from a sane language (coffeescript, livescript, elm, etc).
-Find promises to cancel their chain.
-Communication between background and content scripts.
-
-Access a single tab's history
-scroll
-print
-zoom
-access OS clipboards
-
-redo/undo (in text boxes)
-
-ff elctrolysis framework (concurrency)
-	Do we automatically use it with we're using webextensions? Seems unlikely...
-	How to store state?
-		e.g. command history, marks, mappings, configuration, autocmd registry, 
+* Use promises properly.
+* Use promises from a sane language (coffeescript, livescript, elm, etc).
+* Find promises to cancel their chain.
+* Communication between background and content scripts.
+ 
+* Access a single tab's history
+* scroll
+* print
+* zoom
+* access OS clipboards
+ 
+* redo/undo (in text boxes)
+ 
+* ff elctrolysis framework (concurrency)
+	* Do we automatically use it with we're using webextensions? Seems unlikely...
+	* How to store state?
+		* e.g. command history, marks, mappings, configuration, autocmd registry, 
 
 ## Vimperator features in sort of priority order for a MVP
 
@@ -163,42 +169,44 @@ autocmd
 ## Architecture
 
 ex-commands as functions (typed and with helper functions in some other scope):
-    open(url)
-    scroll(x=+10)
-    mark(<elem>)
-    map(actions, keys)
-    ...
+
+    * open(url)
+    * scroll(x=+10)
+    * mark(<elem>)
+    * map(actions, keys)
+    * ...
 
 helper functions for actions:
-    scroll-x, scroll-y
-    jumplist.get/getrelative/store
-    undo-tab-deletion
+
+    * scroll-x, scroll-y
+    * jumplist.get/getrelative/store
+    * undo-tab-deletion
 
 Count and range:
+
     * given as arguments?
     * just repeat the call 'count' times?
 
 for default actions, a mapping from key to helper function.
 
 Generated parsers (command and normal mode):
-    command mode pretty conventional. Include type checking.
-	For auto-complete to work, need to be able to parse partial results sensibly.
-    actions will be a slightly weirder grammar:
-	More permissive
-	Time sensitive
 
-	In vim, actions compose as you write them (d takes a motion as an argument, for example), I can't think of any examples of this in vimperator: actions sometimes take a count or argument, but that argument is never an action.
+    * command mode pretty conventional. Include type checking.
+	* For auto-complete to work, need to be able to parse partial results sensibly.
+    * actions will be a slightly weirder grammar:
+	* More permissive
+	* Time sensitive
 
-	If actions did compose, we would have to give them types, as vim does for motions, and the parsing would be less trivial.
+	* In vim, actions compose as you write them (d takes a motion as an argument, for example), I can't think of any examples of this in vimperator: actions sometimes take a count or argument, but that argument is never an action.
+
+	* If actions did compose, we would have to give them types, as vim does for motions, and the parsing would be less trivial.
     
 Autocomplete functions for commands:
+
     * Split from implementation of command.
     * Could perhaps be automatic from command's parameter types?
 
 Some actions have their own interactive mini-mode:
-    hints
-    searching
 
-They will have to be handled differently to simpler actions (they also don't sensibly take e.g. counts.
-
-
+    * hints
+    * searching
