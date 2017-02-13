@@ -11,4 +11,24 @@ handleBrowserAction = () ->
 # the real thing.
 browser.browserAction.onClicked.addListener(handleBrowserAction)
 
+nextTab = () ->
+    browser.tabs.query({active:true}).then((tabs) ->
+        id = tabs[0].id
+        index = tabs[0].index
+        desIndex = index + 1
+        browser.tabs.query({}).then((tabs) ->
+            desId = tab for tab in tabs when tab.index == desIndex
+            setTab(desId.id)
+        )
+    )
+
+setTab = (id) ->
+    browser.tabs.update(id,{active:true})
+
+tabByIndex = (index) ->
+    browser.tabs.query({}).then((tabs) ->
+            desiredTab = tab for tab in tabs when tab.index == desIndex
+    )
+
+
 console.log("Loaded Tridactyl")
