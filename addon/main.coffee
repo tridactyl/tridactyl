@@ -33,6 +33,9 @@ nextTab1 = () ->
 # TODO: limit to focused window.
 nextTab2 = () ->
     # Alternative implementation without list comprehensions.
+    #
+    # If querying all tabs to get number of tabs is too slow (as if), could
+    # query for index+1 and then test if result array.length == 0.
     browser.tabs.query({}).then(
         (tabs) ->
             browser.tabs.query({active: true}).then(
