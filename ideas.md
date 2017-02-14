@@ -39,6 +39,7 @@ https://developer.chrome.com/extensions/commands
 https://github.com/lydell/webextension-keyboard
 https://developer.mozilla.org/en-US/Add-ons/WebExtensions/Anatomy_of_a_WebExtension#Background_scripts
 https://github.com/shinglyu/QuantumVim - Vimium style stuff in WebExtensions
+https://developer.mozilla.org/en-US/Add-ons/WebExtensions/Getting_started_with_web-ext - web-ext will automatically reload a changed extension
 
 
 # Names
