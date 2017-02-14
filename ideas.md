@@ -65,5 +65,10 @@ Loading into firefox doesn't give any errors / doesn't seem to expose any functi
 
 # Other stuff
 Would be nice to have self-writing documentation, for autocmd use etc?
+Could use .litcoffee for markdown comments in code.
 
 History seems to be window.history.go(), presumably in a content script?
+
+https://news.ycombinator.com/item?id=10120773 -- people complaining, could be handy
+
+https://developer.mozilla.org/en-US/Add-ons/WebExtensions/API/tabs/executeScript -- we aren't allowed to inject JS into, e.g. about: pages. This means no searching, no back/forward, no commandline: a user navigating to such a page would get trapped.

@@ -77,9 +77,20 @@ tabByIndex = (index) ->
             desiredTab = tab for tab in tabs when tab.index == desIndex
     )
 
+goHistory = (n) ->
+    browser.tabs.query({active:true}).then(
+        (tabs) ->
+            activeTab = tabs[0]
+            browser.tabs.executeScript(activeTab.id, {file:"content.js"})
+            # We could use null in executeScript, and it would default to active tab
+            # but I think that is less readable
+            browser.tabs.sendMessage(activeTab.id,{number:n})
+    )
+
+
+
 Number.prototype.mod = (n) ->
     ((this%n)+n)%n
     # Javascript doens't understand maths
-    # Lots of people use myFunc: ()-> \\ rather than \\ myFunc = () -> \\ do we care?
 
 console.log("Loaded Tridactyl")

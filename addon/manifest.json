@@ -11,6 +11,30 @@
   "browser_action": {
     "default_title": "Tridactyl",
     "browser_style": true
-  }
+  },
+
+  "permissions": [
+      "activeTab",
+      "alarms",
+      "bookmarks",
+      "contextMenus",
+      "cookies",
+      "downloads",
+      "downloads.open",
+      "history",
+      "identity",
+      "idle",
+      "management",
+      "nativeMessaging",
+      "notifications",
+      "sessions",
+      "storage",
+      "tabs",
+      "topSites",
+      "webNavigation",
+      "webRequest",
+      "webRequestBlocking",
+      "<all_urls>"
+    ]
 
 }
