@@ -104,6 +104,9 @@ sendMessageToFilteredTabs = (filter,message) ->
     )
 
 
+doArbitraryCodeInWindow = (object, args) ->
+    sendMessageToActiveTab({command:"arbitrary",object,args})
+    # example: doArbitraryCodeInWindow("scrollBy",[0,100])
 
 
 console.log("Loaded Tridactyl")
