@@ -56,3 +56,14 @@ Tridactyl (like Pentadactyl, but worse, last cuturally relevant in 2005 like Sal
 # Features we need less?
 autocmds?
 macros?
+
+
+# Vimium notes
+Uses descriptors a lot - what even are they?
+Loading into firefox doesn't give any errors / doesn't seem to expose any functions?
+
+
+# Other stuff
+Would be nice to have self-writing documentation, for autocmd use etc?
+
+History seems to be window.history.go(), presumably in a content script?

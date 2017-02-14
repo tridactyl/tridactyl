@@ -57,14 +57,14 @@ displayTab = (tab_id) ->
 # the real thing.
 browser.browserAction.onClicked.addListener(handleBrowserAction)
 
-nextTab = () ->
+incTab = (inc) ->
     browser.windows.getCurrent().then(
         (window) ->
             browser.tabs.query({windowId:window.id}).then(
                 (tabs) ->
-                    active = (tab for tab in tabs when tab.active)[0]
-                    nextIndex = (active.index + 1) % tabs.length
-                    desiredTab = (tab for tab in tabs when tab.index == nextIndex)[0]
+                    activeTab = (tab for tab in tabs when tab.active)[0]
+                    desiredIndex = (activeTab.index + inc).mod(tabs.length)
+                    desiredTab = (tab for tab in tabs when tab.index == desiredIndex)[0]
                     setTab(desiredTab.id)
             ).catch(console.error)
     ).catch(console.error)
@@ -77,5 +77,9 @@ tabByIndex = (index) ->
             desiredTab = tab for tab in tabs when tab.index == desIndex
     )
 
+Number.prototype.mod = (n) ->
+    ((this%n)+n)%n
+    # Javascript doens't understand maths
+    # Lots of people use myFunc: ()-> \\ rather than \\ myFunc = () -> \\ do we care?
 
 console.log("Loaded Tridactyl")
