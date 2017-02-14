@@ -77,12 +77,79 @@ Maybe not:
 
 Firefox, Chrome, Opera, and probably more support WebExtensions and there seems to be some interest in standardising. If we can get what we want with WebExtensions then we get a free ride on browser development and there's a bigger pool of developers who could contribute to the project.
 
-cVim and vimium implement some kind of vim experience using webextensions, but (allegedly) this gives a poor experience. Definitely neither allow you to modify the browser UI. Possibly the statusline and keyboard input mechanism is a bit shonky because it has to run in the tab's context rather than the browser's (in any case, can't override Chrome's own keybinds).
+### Evaluating prior art
+
+cVim and vimium implement some kind of vim experience using webextensions, but (allegedly) this gives a poor experience. Definitely neither allow you to modify the browser UI. Possibly the statusline and keyboard input mechanism is a bit shonky because it has to run in the tab's context rather than the browser's.
 
 TODO:
 
 * Test cVim and vimium
 * Look for UI WebExtension proposals
+* Test if an HTML element added by a page script can be seen by a content-script.
+
+#### Common issues
+
+1. can't operate on some URLs (chrome store, chrome://, view-source://)
+2. can't escape location bar
+3. can't hide chrome UI
+4. can't suppress all chrome keybinds
+5. can't override some browser shortcuts
+6. bad js kills the UI (but the same bad js locks up the whole of firefox, so y'know...)
+
+In conclusion, a privileged keyboard webextension will help with #1,2,4,5; #3,#1 (for visual changes) and maybe #2 need a ui API. #1 might not be applicable to ff content scripts.
+
+#### Vimium
+
+https://github.com/philc/vimium
+
+Very lightweight, but what is there is actually really nice. Easily fixable issues: no command mode for the features they do have; some odd default maps; mappings are done by function name rather than key ('map b Vomnibar.activateTabSelection' rather than 'map b T'). Possibly fixable issues: plugin support (source), arbitrary js eval for mappings, marks are per tab, jumplist.
+
+Missing:
+
+* command mode
+* jumplist
+* marks
+* :js
+* lots more.
+
+Improvements over vimperator:
+
+* regex search
+* buffer switch between windows
+
+#### vrome
+
+https://github.com/jinzhu/vrome
+
+Vim mode chromium plugin written at least partly in coffeescript. Source is not documented, but it's not so bad either (at least it's in coffeescript). Default maps are not to my liking, but that's hardly surprising. I don't see how to make new maps, tho. UI appearance is poor, appears to be influenced by context's css.
+
+Missing:
+
+* map!
+* sensible default maps
+* UI style
+* documentation for users or developers
+* plugin/eval support
+* jumplist, etc
+
+May be worth taking code from, could consider forking it, but would need to review code more carefully for quality issues.
+
+#### cVim
+
+https://github.com/1995eaton/chromium-vim
+
+Written in uncommented javascript. But user experience is pretty good. Autocompletion in command mode is very good and it has a decent chunk of the vimperator features implemented.
+
+Missing:
+
+* decent documentation
+* can't map some characters that vimium can
+* jumplist
+
+Improvements over vimperator:
+
+* autocompletion is much faster
+* allegedly lets you edit with vim
 
 ### Required WebExtension APIs
 
