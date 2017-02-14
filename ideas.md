@@ -39,9 +39,13 @@ https://developer.chrome.com/extensions/commands
 https://github.com/lydell/webextension-keyboard
 https://developer.mozilla.org/en-US/Add-ons/WebExtensions/Anatomy_of_a_WebExtension#Background_scripts
 https://github.com/shinglyu/QuantumVim - Vimium style stuff in WebExtensions
+<<<<<<< HEAD
 https://github.com/mishoo/UglifyJS2 - Minify JS: check that compiling to Firefox addon doesn't already do this
 https://developer.mozilla.org/en-US/Add-ons/WebExtensions/API
 http://arcturo.github.io/library/coffeescript/ - Coffee Script textbook
+=======
+https://developer.mozilla.org/en-US/Add-ons/WebExtensions/Getting_started_with_web-ext - web-ext will automatically reload a changed extension
+>>>>>>> 4bd7e642517d1a067c8409d64913f103ad91b0e5
 
 
 # Names
@@ -58,3 +62,19 @@ Tridactyl (like Pentadactyl, but worse, last cuturally relevant in 2005 like Sal
 # Features we need less?
 autocmds?
 macros?
+
+
+# Vimium notes
+Uses descriptors a lot - what even are they?
+Loading into firefox doesn't give any errors / doesn't seem to expose any functions?
+
+
+# Other stuff
+Would be nice to have self-writing documentation, for autocmd use etc?
+Could use .litcoffee for markdown comments in code.
+
+History seems to be window.history.go(), presumably in a content script?
+
+https://news.ycombinator.com/item?id=10120773 -- people complaining, could be handy
+
+https://developer.mozilla.org/en-US/Add-ons/WebExtensions/API/tabs/executeScript -- we aren't allowed to inject JS into, e.g. about: pages. This means no searching, no back/forward, no commandline: a user navigating to such a page would get trapped.
