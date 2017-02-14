@@ -77,20 +77,33 @@ tabByIndex = (index) ->
             desiredTab = tab for tab in tabs when tab.index == desIndex
     )
 
+Number.prototype.mod = (n) ->
+    ((this%n)+n)%n
+    # Javascript doens't understand maths
+
+##
+#
+#       First attempt at message parsing wrapper to avoid duplication of code
+#
+##
+
+# The following functions all talk to the content.js script
 goHistory = (n) ->
-    browser.tabs.query({active:true}).then(
+    sendMessageToActiveTab({command:"history", number:n})
+
+goScroll = (n) ->
+    sendMessageToActiveTab({command:"scroll",number:n})
+
+sendMessageToActiveTab = (message) ->
+    sendMessageToFilteredTabs({active:true},message)
+
+sendMessageToFilteredTabs = (filter,message) ->
+    browser.tabs.query(filter).then(
         (tabs) ->
-            activeTab = tabs[0]
-            browser.tabs.executeScript(activeTab.id, {file:"content.js"})
-            # We could use null in executeScript, and it would default to active tab
-            # but I think that is less readable
-            browser.tabs.sendMessage(activeTab.id,{number:n})
+            browser.tabs.sendMessage(tab.id,message) for tab in tabs
     )
 
 
 
-Number.prototype.mod = (n) ->
-    ((this%n)+n)%n
-    # Javascript doens't understand maths
 
 console.log("Loaded Tridactyl")
