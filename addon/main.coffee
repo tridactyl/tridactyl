@@ -77,9 +77,17 @@ tabByIndex = (index) ->
             desiredTab = tab for tab in tabs when tab.index == desIndex
     )
 
+# modulus that always returns a non-negative number, as mathematicians expect.
+#
+# In mathematics, mod usually returns the remainder of euclidean division of
+# two numbers and the remainder is always positive.
+#
+# In most programming languages, mod can return a negative number and the
+# return value of mod always matches the sign of one or the other of the
+# arguments. In JS the built-in % operator's returned value always has the same
+# sign as the dividend, in python, the divisor.
 Number.prototype.mod = (n) ->
-    ((this%n)+n)%n
-    # Javascript doens't understand maths
+    Math.abs(this % n)
 
 ##
 #
