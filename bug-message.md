@@ -20,7 +20,7 @@ Users of Vimperator-like addons cannot:
     3. Use any commands or shortcuts that need to access the page's DOM.
         * Includes: history control, scrolling, searching, hint mode, etc.
 2. Hide UI elements
-    * {{Olie waffle here.}}
+    *  Vimperator aims to replace the entire UI, so the old Firefox UI is not used at all. This frees up valuable real estate on small screens, such as laptops.
 3. Escape from browser UI elements (especially the location bar)
 4. Suppress/shadow all browser keybinds
 5. Configure vimperator from the kind of config files they expect from other unix programs (and especially vim)
