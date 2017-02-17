@@ -42,7 +42,7 @@ Issues 3 and 4 should be solved by the proposed keyboard API.
 
 Issue 5 would be solved by a filesystem API, the current storage API would require editing the config and plugins either in firefox or in their favoured editor and then copy/pasting. A filesystem API that allows access to only a sandboxed dir in .mozilla/firefox/[random profile string] would be less bad, but still a bit problematic: common user behaviour like storing their config files in a git repo are made rather more complicated.
 
-Issue 6 could be solved by a new permission and is being discussed in bug []
+Issue 6 could be solved by a new permission to allow a WebExtension to navigate to URI_DANGEROUS_TO_LOAD pages.
 
 ## Problems with restricted pages
 
