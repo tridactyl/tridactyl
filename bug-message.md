@@ -1,3 +1,6 @@
+(Note to self: make this block https://bugzilla.mozilla.org/show_bug.cgi?id=1215059 )
+
+
 Vimperator and pentadactyl are addons that replace most of the firefox UX with a keyboard-focused interface inspired by Vim. They enjoy moderate popularity and are particularly highlighted as "interesting add-ons" for porting on the mozilla wiki[0].
 
 From now on I'll just say "Vimperator" instead of "Vimperator and pentadactyl" or similar.
