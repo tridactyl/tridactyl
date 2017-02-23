@@ -1,7 +1,7 @@
 (Note to self: make this block https://bugzilla.mozilla.org/show_bug.cgi?id=1215059 )
 
 
-Vimperator and pentadactyl are addons that replace most of the firefox UX with a keyboard-focused interface inspired by Vim. They enjoy moderate popularity and are particularly highlighted as "interesting add-ons" for porting on the mozilla wiki[0].
+Vimperator and pentadactyl are addons that replace most of the Firefox UX with a keyboard-focused interface inspired by Vim. They enjoy moderate popularity and are particularly highlighted as "interesting add-ons" for porting on the Mozilla wiki[0].
 
 From now on I'll just say "Vimperator" instead of "Vimperator and pentadactyl" or similar.
 
@@ -35,7 +35,7 @@ In Firefox there is a new, sixth problem:
 
 The issues are in rough importance order, apart from 6, which should be higher.
 
-# How vimperator could work in firefox
+# How vimperator could work in Firefox
 
 Issue 1 is the trickiest and most important issue and is addressed in "Problems with restricted pages".
 
@@ -43,7 +43,7 @@ Issue 2 might be fixed by a theming API?
 
 Issues 3 and 4 should be solved by the proposed keyboard API.
 
-Issue 5 would be solved by a filesystem API, the current storage API would require editing the config and plugins either in firefox or in their favoured editor and then copy/pasting. A filesystem API that allows access to only a sandboxed dir in .mozilla/firefox/[random profile string] would be less bad, but still a bit problematic: common user behaviour like storing their config files in a git repo are made rather more complicated.
+Issue 5 would be solved by a filesystem API, the current storage API would require editing the config and plugins either in Firefox or in their favoured editor and then copy/pasting. A filesystem API that allows access to only a sandboxed dir in .mozilla/Firefox/[random profile string] would be less bad, but still a bit problematic: common user behaviour like storing their config files in a git repo are made rather more complicated.
 
 Issue 6 could be solved by a new permission to allow a WebExtension to navigate to URI_DANGEROUS_TO_LOAD pages.
 
@@ -55,7 +55,7 @@ If content scripts are permitted to run in all pages, if some suitably scary per
 
 Leechblock is another addon that has a legitimate reason to access a restricted page (it hides itself to prevent its uninstallation when activated). {{MORE EXAMPLES}}
 
-My understanding is that firefox developers do not want to permit content scripts to run on restricted pages because of the possibility of privilege escalation. This is normally bad for two reasons:
+My understanding is that Firefox developers do not want to permit content scripts to run on restricted pages because of the possibility of privilege escalation. This is normally bad for two reasons:
 
 1. Security of the user
 2. Stability of the browser: addons using exposed APIs they shouldn't will break more on updates, etc.
@@ -68,7 +68,7 @@ Regarding stability, the risk of exposing APIs that shouldn't be used only reall
 
 ### Workaround if we can't have content scripts
 
-If the firefox developers are adamant that no addon be permitted to access the DOM of restricted pages, then we have to work around that limitation with new APIs. This is the best I can come up with:
+If the Firefox developers are adamant that no addon be permitted to access the DOM of restricted pages, then we have to work around that limitation with new APIs. This is the best I can come up with:
 
 1. The command line/statusline moves into a toolbar. Toolbar must be permitted to expand or overlay page content to show autocompletion and to talk to content and background scripts.
 2. The proposed keyboard API allows vimperator to capture keypresses within restricted pages, so we can still call most vimperator functions, but any that need to access the DOM of the restricted page won't work.
@@ -76,7 +76,7 @@ If the firefox developers are adamant that no addon be permitted to access the D
 
 These three fix the main problem in the chrome addons of getting stuck and having to use a different UI on some pages is mostly removed (remember, the whole point of vimperator is to replace the default UI/UX). It is important to highlight, however, that users losing hint mode on about: pages is a real UX hit because hint mode is the main way that users select and follow links in vimperator. 
 
-I can't think of an easy way of allowing hinting without DOM access. A built-in hinting API is probably the only sensible way; but seems like a high maintenance burden on firefox (unless you want to enable hinting mode in normal firefox, which would be cool). A less sensible proposal would be to tell us where and what the anchor tags are and let us overlay the page with just the labels in a new, mostly transparent window.
+I can't think of an easy way of allowing hinting without DOM access. A built-in hinting API is probably the only sensible way; but seems like a high maintenance burden on Firefox (unless you want to enable hinting mode in normal Firefox, which would be cool). A less sensible proposal would be to tell us where and what the anchor tags are and let us overlay the page with just the labels in a new, mostly transparent window.
 
 # Appendix
 
