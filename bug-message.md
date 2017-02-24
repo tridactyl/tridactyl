@@ -1,5 +1,7 @@
 (Note to self: make this block https://bugzilla.mozilla.org/show_bug.cgi?id=1215059 )
 
+See also [content-scripts-bug.md](content-scripts-bug.md).
+
 
 Vimperator and pentadactyl are addons that replace most of the Firefox UX with a keyboard-focused interface inspired by Vim. They enjoy moderate popularity and are particularly highlighted as "interesting add-ons" for porting on the Mozilla wiki[0].
 
