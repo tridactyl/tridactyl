@@ -41,7 +41,7 @@ Issue 1 is the trickiest and most important issue and is addressed in "Problems 
 
 Issue 2 might be fixed by a theming API?
 
-Issues 3 and 4 should be solved by the proposed keyboard API.
+Issues 3 and 4 would be solved by the keyboard API proposed by lydell for vimfx, but those APIs have been abandoned.
 
 Issue 5 would be solved by a filesystem API, the current storage API would require editing the config and plugins either in Firefox or in their favoured editor and then copy/pasting. A filesystem API that allows access to only a sandboxed dir in .mozilla/Firefox/[random profile string] would be less bad, but still a bit problematic: common user behaviour like storing their config files in a git repo are made rather more complicated.
 
@@ -50,6 +50,10 @@ Issue 6 could be solved by a new permission to allow a WebExtension to navigate 
 ## Problems with restricted pages
 
 ### A plea for a new permission allowing content scripts on restricted pages
+
+**Firefox devs seem dead against this, but we won't know for sure until we get a proper answer on bugzilla or the mailing lists (haven't asked yet, want to cut the question down).**
+
+**This section needs revision after my chat with andym.**
 
 If content scripts are permitted to run in all pages, if some suitably scary permission is accepted, issue 1, the most problematic issue, is dealt with entirely and simply, with, I argue, no significant loss of security for the user.
 
@@ -68,7 +72,7 @@ Regarding stability, the risk of exposing APIs that shouldn't be used only reall
 
 ### Workaround if we can't have content scripts
 
-If the Firefox developers are adamant that no addon be permitted to access the DOM of restricted pages, then we have to work around that limitation with new APIs. This is the best I can come up with:
+If the Firefox developers are adamant that no addon be permitted to access the DOM of restricted pages, then we have to work around that limitation with new APIs. This is the best I can come up with, but it relies again on lydell's abandoned keyboard API:
 
 1. The command line/statusline moves into a toolbar. Toolbar must be permitted to expand or overlay page content to show autocompletion and to talk to content and background scripts.
 2. The proposed keyboard API allows vimperator to capture keypresses within restricted pages, so we can still call most vimperator functions, but any that need to access the DOM of the restricted page won't work.
