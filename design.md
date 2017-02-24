@@ -9,7 +9,7 @@ Principles:
 * actions should be composable and repeatable
 * ex mode should expose all the browser functionality anyone might want
 * Arguable: most (all?) actions should have an ex mode version (departure from Vim?)
-* users can map actions and commands to other keys
+* users can map and define their own actions and commands
 
 Other objectives:
 
@@ -156,6 +156,8 @@ Do exist:
     :!
 
 ## Architecture
+
+*This is an early draft and may be entirely replaced.*
 
 ex-commands as functions (typed and with helper functions in some other scope):
 
