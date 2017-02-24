@@ -23,7 +23,7 @@ nextTab1 = () ->
             target_index = (active.index + 1) % tabs.length
             target = (tab for tab in tabs when tab.index == target_index)[0]
             displayTab(target.id)
-        , console.error)
+        console.error)
 
 # Change to the next tab in window, wrapping back to the start, if req.
 #
