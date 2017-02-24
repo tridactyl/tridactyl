@@ -27,11 +27,16 @@ arbitraryHandler = (message) ->
     # I don't understand why it is needed, isn't "window" "this"?
     # only works with direct methods e.g. "scrollBy", not "history.go"
 
+# Testing function for really arbitrary evaluation in the context of the content script.
+evalHandler = (message) ->
+    eval(message.string)
+
 messageHandler = (message) ->
     switch(message.command)
         when "history" then historyHandler(message)
         when "scroll" then scrollHandler(message)
         when "arbitrary" then arbitraryHandler(message)
+        when "eval" then evalHandler(message)
 
 browser.runtime.onMessage.addListener(messageHandler)
 
