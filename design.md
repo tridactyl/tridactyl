@@ -151,6 +151,11 @@ Improvements over vimperator:
 * autocompletion is much faster
 * allegedly lets you edit with vim
 
+### Surfing keys
+
+TODO: Look into this
+https://github.com/brookhong/Surfingkeys
+
 ### Required WebExtension APIs
 
 Don't exist:
