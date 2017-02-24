@@ -1,0 +1,4 @@
+# Test
+
+test = () ->
+    "hello"
