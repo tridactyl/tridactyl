@@ -2,4 +2,4 @@
 
 # Watches the current directory's .coffee files for timestamp changes and
 # recompiles them as javascript.
-coffee -cbw .
+coffee -cbwo ../ .
