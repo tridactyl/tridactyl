@@ -81,12 +81,6 @@ Firefox, Chrome, Opera, and probably more support WebExtensions and there seems 
 
 cVim and vimium implement some kind of vim experience using webextensions, but (allegedly) this gives a poor experience. Definitely neither allow you to modify the browser UI. Possibly the statusline and keyboard input mechanism is a bit shonky because it has to run in the tab's context rather than the browser's.
 
-TODO:
-
-* Test cVim and vimium
-* Look for UI WebExtension proposals
-* Test if an HTML element added by a page script can be seen by a content-script.
-
 #### Common issues
 
 1. can't operate on some URLs (chrome store, chrome://, view-source://)
@@ -160,8 +154,7 @@ https://github.com/brookhong/Surfingkeys
 
 Don't exist:
 
-* keyboard (not yet existent) (if content script isn't nice enough)
-* ui (for hiding and for non-content-script statusline, tho not so important)
+* See [bug-message.md](bug-message.md).
 
 Do exist:
 
@@ -171,38 +164,6 @@ Do exist:
 * bookmarks (auto completion, obvious)
 * windows (buffers)
 * webNavigation (autocmds) - maybe content script would just do this for us.
-
-### Stuff we want to do that I know how to do:
-
-* Show hints:
-    * For each link in viewport (how to restrict to viewport?):
-        * Add an element styled to appear on top of it
-        * Listen for keystrokes.
-    * Does vimperator just go for <a> tags? I think it probably knows about elements that can be clicked for other effects.
-* Change tab
-    * tabs.update(tabtodisplay, {active: true})
-* Change window focus
-    * windows.update(windowtofocus, {focused: true})
-
-### Stuff I don't know how to do:
-
-* Use promises properly.
-* Use promises from a sane language (coffeescript, livescript, elm, etc).
-* Find promises to cancel their chain.
-* Communication between background and content scripts.
-
-* Access a single tab's history
-* scroll
-* print
-* zoom
-* access OS clipboards
-
-* redo/undo (in text boxes)
-
-* ff elctrolysis framework (concurrency)
-    * Do we automatically use it with we're using webextensions? Seems unlikely...
-    * How to store state?
-        * e.g. command history, marks, mappings, configuration, autocmd registry, 
 
 ## Vimperator features in sort of priority order for a MVP
 
