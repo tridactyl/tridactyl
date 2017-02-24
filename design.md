@@ -29,13 +29,13 @@ Prior art:
 * vimfx - transitioning to WebExtensions, but no ex commands
 * qutebrowser/jumanji - see [standalone.md](standalone.md).
 
-## WebExtension option
+## WebExtensions
 
-Firefox, Chrome, Opera, and probably more support WebExtensions and there seems to be some interest in standardising. If we can get what we want with WebExtensions then we get a free ride on browser development and there's a bigger pool of developers who could contribute to the project.
+What we learnt from these notes has been condensed in [bug-message.md](bug-message.md).
 
 ### Evaluating prior art
 
-cVim and vimium implement some kind of vim experience using webextensions, but (allegedly) this gives a poor experience. Definitely neither allow you to modify the browser UI. Possibly the statusline and keyboard input mechanism is a bit shonky because it has to run in the tab's context rather than the browser's.
+cVim and vimium implement some kind of vim experience using webextensions. Neither allow you to modify the browser UI.
 
 #### Common issues
 
