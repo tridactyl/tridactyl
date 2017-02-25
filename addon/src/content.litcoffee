@@ -1,7 +1,4 @@
 # Just a test
-#
-#
-#
 
     config =
         scrollDown: "j"
