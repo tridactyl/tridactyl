@@ -14,9 +14,23 @@ This is a todolist
      - stop coffeescript vim thing from making newline # in markdown
      - update vim-coffeescript to highlight await keywords, etc.
 
-code follows
+The following is an attempt at namespacing in CoffeeScript:
 
-    incTab = (inc) ->
+    tridactyl = {}
+    tridactyl.functions ?= {}
+
+
+This should allow us to use setTab in this file, and the entire name outside, but it doesn't yet (need to check `export`, `return` and `coffee -b`).
+
+    tridactyl.functions.setTab = setTab = (id) ->
+        browser.tabs.update(id,{active:true})
+
+    tridactyl.functions.tabByIndex = (index) ->
+        browser.tabs.query({}).then((tabs) ->
+                desiredTab = tab for tab in tabs when tab.index == desIndex
+        )
+
+    tridactyl.functions.incTab = (inc) ->
         try
             window = await browser.windows.getCurrent()
             tabs = await browser.tabs.query({windowId:window.id})
@@ -26,15 +40,6 @@ code follows
             setTab(desiredTab.id)
         catch error
             console.log(error)
-
-    setTab = (id) ->
-        browser.tabs.update(id,{active:true})
-
-    tabByIndex = (index) ->
-        browser.tabs.query({}).then((tabs) ->
-                desiredTab = tab for tab in tabs when tab.index == desIndex
-        )
-
 
 #       First attempt at message parsing wrapper to avoid duplication of code
 
@@ -88,3 +93,5 @@ sign as the dividend, in python, the divisor.
 ## Check to see that the addon has been loaded successfully
 
     console.log("Loaded Tridactyl")
+
+
