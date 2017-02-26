@@ -17,63 +17,70 @@ This is a todolist
 The following is an attempt at namespacing in CoffeeScript:
 
     tridactyl = {}
-    tridactyl.functions ?= {}
+    tridactyl.func ?= {}
+
+    tridactyl.func.__init__ = () ->
 
 
-This should allow us to use setTab in this file, and the entire name outside, but it doesn't yet (need to check `export`, `return` and `coffee -b`).
+This should allow us to use setTab in this file, and the entire name outside.
 
-    tridactyl.functions.setTab = setTab = (id) ->
-        browser.tabs.update(id,{active:true})
+        tridactyl.func.setTab = setTab = (id) ->
+            browser.tabs.update(id,{active:true})
 
-    tridactyl.functions.tabByIndex = (index) ->
-        browser.tabs.query({}).then((tabs) ->
-                desiredTab = tab for tab in tabs when tab.index == desIndex
-        )
+        tridactyl.func.tabByIndex = tabByIndex = (index) ->
+            browser.tabs.query({}).then((tabs) ->
+                    desiredTab = tab for tab in tabs when tab.index == desIndex
+            )
 
-    tridactyl.functions.incTab = (inc) ->
-        try
-            window = await browser.windows.getCurrent()
-            tabs = await browser.tabs.query({windowId:window.id})
-            activeTab = (tab for tab in tabs when tab.active)[0]
-            desiredIndex = (activeTab.index + inc).mod(tabs.length)
-            desiredTab = (tab for tab in tabs when tab.index == desiredIndex)[0]
-            setTab(desiredTab.id)
-        catch error
-            console.log(error)
+        tridactyl.func.incTab = incTab = (inc) ->
+            try
+                window = await browser.windows.getCurrent()
+                tabs = await browser.tabs.query({windowId:window.id})
+                activeTab = (tab for tab in tabs when tab.active)[0]
+                desiredIndex = (activeTab.index + inc).mod(tabs.length)
+                desiredTab = (tab for tab in tabs when tab.index == desiredIndex)[0]
+                setTab(desiredTab.id)
+            catch error
+                console.log(error)
 
 #       First attempt at message parsing wrapper to avoid duplication of code
 
 The following functions all talk to the content.js script to perform functions that need to operate on, e.g., the `window.history` object.
 
-    goHistory = (n) ->
-        sendMessageToActiveTab({command:"history", number:n})
 
-    goScroll = (n) ->
-        sendMessageToActiveTab({command:"scroll",number:n})
+        tridactyl.func.goHistory = goHistory = (n) ->
+            sendMessageToActiveTab({command:"history", number:n})
 
-    sendMessageToActiveTab = (message) ->
-        sendMessageToFilteredTabs({active:true},message)
+        tridactyl.func.goScroll = goScroll = (n) ->
+            sendMessageToActiveTab({command:"scroll",number:n})
 
-    sendMessageToFilteredTabs = (filter,message) ->
-        filtTabs = await browser.tabs.query(filter)
-        browser.tabs.sendMessage(tab.id,message) for tab in filtTabs
+        tridactyl.func.sendMessageToActiveTab = sendMessageToActiveTab = (message) ->
+            sendMessageToFilteredTabs({active:true},message)
 
-    doArbitraryCodeInWindow = (object, args) ->
-        sendMessageToActiveTab({command:"arbitrary",object,args})
-        # example: doArbitraryCodeInWindow("scrollBy",[0,100])
+        tridactyl.func.sendMessageToFilteredTabs = sendMessageToFilteredTabs = (filter,message) ->
+            filtTabs = await browser.tabs.query(filter)
+            browser.tabs.sendMessage(tab.id,message) for tab in filtTabs
+
+        tridactyl.func.doArbitraryCodeInWindow = doArbitraryCodeInWindow = (object, args) ->
+            sendMessageToActiveTab({command:"arbitrary",object,args})
+            # example: doArbitraryCodeInWindow("scrollBy",[0,100])
 
 ## Listener test
 
-    handleBrowserAction = () ->
-        # .then takes a function that consumes at least one argument.  this is an
-        # example of a named function, but anonymous functions are fine, too.
-        x = await browser.tabs.query({active: true}).then(console.log)
+        tridactyl.func.handleBrowserAction = handleBrowserAction = () ->
+            # .then takes a function that consumes at least one argument.  this is an
+            # example of a named function, but anonymous functions are fine, too.
+            x = await browser.tabs.query({active: true}).then(console.log)
 
 
-    # Example of a listener. Presumably we wouldn't use the browserAction button in
-    # the real thing.
+        # Example of a listener. Presumably we wouldn't use the browserAction button in
+        # the real thing.
 
-    browser.browserAction.onClicked.addListener(handleBrowserAction)
+        browser.browserAction.onClicked.addListener(handleBrowserAction)
+
+## Finish the Tridactyl namespace and initialise it
+
+    tridactyl.func.__init__()
 
 # Misc helper functions
 ## Modulus
