@@ -78,6 +78,19 @@ The following functions all talk to the content.js script to perform functions t
 
         browser.browserAction.onClicked.addListener(handleBrowserAction)
 
+## Regex test
+
+Adapted from http://www.dustindiaz.com/autocomplete-fuzzy-matching
+
+        tridactyl.mystrings = mystrings = ["colin", "olie", "jake", "harri"]
+        tridactyl.func.matchString = matchString = (input) ->
+            search = new RegExp(input.split('').join('\\w*').replace(/\W/, ""), 'i')
+            mystrings.filter((string) ->
+                if string.match(search)
+                    return string
+            )
+
+
 ## Finish the Tridactyl namespace and initialise it
 
     tridactyl.func.__init__()
