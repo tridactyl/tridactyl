@@ -3,13 +3,16 @@
 BACKGROUND_COLOUR = "yellow"
 
 highlight_links = () ->
-    links = document.querySelector('a') # Just handles links, not buttons/inputs etc.
+    links = document.querySelectorAll('a') # Just handles links, not buttons/inputs etc.
     code = 0
     for link in links
         link_highlight(link, code)
         code +=1
 
+    console.log(LINK_CODES)
     return code
+
+LINK_CODES = {}
 
 link_highlight = (elem, code) ->
     elem._background = elem.style.backgroundColor
@@ -19,11 +22,10 @@ link_highlight = (elem, code) ->
     elem.style.position="relative"
     codehint = generate_codehint(code)
     elem.appendChild(codehint)
-    gLinkCodes[String(code)] = {
+    LINK_CODES[String(code)] = {
         element: elem
         codehint
     }
-# This is really ugly, surely we can create an object with the properties of codehint?
 
 generate_codehint = (code) ->
     codehint = document.createElement('span')
@@ -37,3 +39,9 @@ generate_codehint = (code) ->
     codehint.style.left="0"
     codehint.style.padding="0.1em"
     codehint
+
+linkMessageHandler = (message) ->
+    switch(message.command)
+        when "hint" then highlight_links()
+
+browser.runtime.onMessage.addListener(linkMessageHandler)
