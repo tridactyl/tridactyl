@@ -19,7 +19,7 @@ The following is an attempt at namespacing in CoffeeScript. If we used TypeScrip
     tridactyl = {}
     tridactyl.func ?= {}
 
-    tridactyl.func.__init__ = () ->
+    tridactyl.func.__init__ = ->
 
 This allows us to use setTab in this file, but requires us to use the entire name outside.
 
@@ -28,7 +28,7 @@ This allows us to use setTab in this file, but requires us to use the entire nam
 
         tridactyl.func.tabByIndex = tabByIndex = (index) ->
             browser.tabs.query({}).then((tabs) ->
-                    desiredTab = tab for tab in tabs when tab.index == desIndex
+                desiredTab = (tab for tab in tabs when tab.index == desIndex)[0]
             )
 
         tridactyl.func.incTab = incTab = (inc) ->
