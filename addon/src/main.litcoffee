@@ -11,18 +11,17 @@ Functions declared here can be called in the debug window in ff. This is the mai
 This is a todolist
  - get web-ext to run FF dev (~/bin/firefox)
  - adapt vim-coffeescript to work with litcoffee2
-     - stop coffeescript vim thing from making newline # in markdown
-     - update vim-coffeescript to highlight await keywords, etc.
+   - stop coffeescript vim thing from making newline # in markdown
+   - update vim-coffeescript to highlight await keywords, etc.
 
-The following is an attempt at namespacing in CoffeeScript:
+The following is an attempt at namespacing in CoffeeScript. If we used TypeScript instead we could just use modules, but Olie is squeamish about the syntax (no list comprehensions and too much that can be implied, like `let` and all the damn braces). I sympathise, but the compile time errors are really useful. For now, we'll stick with Coffee.
 
     tridactyl = {}
     tridactyl.func ?= {}
 
     tridactyl.func.__init__ = () ->
 
-
-This should allow us to use setTab in this file, and the entire name outside.
+This allows us to use setTab in this file, but requires us to use the entire name outside.
 
         tridactyl.func.setTab = setTab = (id) ->
             browser.tabs.update(id,{active:true})
@@ -43,10 +42,9 @@ This should allow us to use setTab in this file, and the entire name outside.
             catch error
                 console.log(error)
 
-#       First attempt at message parsing wrapper to avoid duplication of code
+## First attempt at message parsing wrapper to avoid duplication of code
 
 The following functions all talk to the content.js script to perform functions that need to operate on, e.g., the `window.history` object.
-
 
         tridactyl.func.goHistory = goHistory = (n) ->
             sendMessageToActiveTab({command:"history", number:n})
@@ -90,14 +88,15 @@ Adapted from http://www.dustindiaz.com/autocomplete-fuzzy-matching
                     return string
             )
 
-
 ## Finish the Tridactyl namespace and initialise it
 
     tridactyl.func.__init__()
 
 # Misc helper functions
+
 ## Modulus
-modulus that always returns a non-negative number, as mathematicians expect.
+
+Modulus that always returns a non-negative number, as mathematicians expect.
 
 In mathematics, mod usually returns the remainder of euclidean division of
 two numbers and the remainder is always positive.
@@ -110,8 +109,6 @@ sign as the dividend, in python, the divisor.
     Number.prototype.mod = (n) ->
         Math.abs(this % n)
 
-## Check to see that the addon has been loaded successfully
+Let the console know we got home safely.
 
     console.log("Loaded Tridactyl")
-
-
