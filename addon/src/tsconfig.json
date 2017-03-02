@@ -1,0 +1,9 @@
+{
+  "include": ["./*"],
+  "compilerOptions": {
+    "noImplicitAny": false,
+    "noEmitOnError": true,
+    "target": "ES2017",
+    "lib": ["ES2017","dom"]
+  }
+}
