@@ -37,6 +37,12 @@
       "webRequest",
       "webRequestBlocking",
       "<all_urls>"
-    ]
+    ],
+
+    "applications": {
+      "gecko": {
+        "id": "tridactyl@cmcaine.co.uk"
+      }
+    }
 
 }
