@@ -14,7 +14,7 @@
           "js":["content.js", "link_hinting.js"]
       }
   ],
- 
+
   "permissions": [
       "activeTab",
       "alarms",
