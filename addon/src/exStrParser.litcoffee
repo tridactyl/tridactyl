@@ -9,6 +9,7 @@ TODO: get litcoffee highlighting off @cmcaine
         command = strArray[0]
         func = commands[command]
         args = strArray.slice(1)
+        args = ((if Number(a) then Number(a) else a) for a in args) # more concise way of doing this?
         return {func, args}
 
 
