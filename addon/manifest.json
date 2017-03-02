@@ -5,7 +5,7 @@
   "version": "1.0",
 
   "background" : {
-    "scripts": ["main.js"]
+    "scripts": ["main.js", "exStrParser.js", "funcParser.js"]
   },
 
   "content_scripts": [
@@ -14,7 +14,7 @@
           "js":["content.js", "link_hinting.js"]
       }
   ],
-  
+ 
   "permissions": [
       "activeTab",
       "alarms",
