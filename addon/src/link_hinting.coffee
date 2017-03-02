@@ -29,7 +29,7 @@ link_highlight = (elem, code) ->
 
 generate_codehint = (code) ->
     codehint = document.createElement('span')
-    codehint.textContent = code
+    codehint.textContent = "" + code
     codehint.style.border = "solid 1 px black"
     codehint.style.backgroundColor="white"
     codehint.style.font="12px/14px bold sans-serif"
