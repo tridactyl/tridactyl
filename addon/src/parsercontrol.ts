@@ -48,17 +48,29 @@ interface NormalResponse {
     ex_str?: string
 }
 
-const ex_strs = {
-    t:   "tabopen",
-    j:   "scrolldown",
-    k:   "scrollup",
-    gt:  "nextab",
-    gT:  "prevtab",
-    gr:  "reader",
-    ":": "colon",
-    s:   "o google",
+const key_strs_to_ex_strs = {
+    t:              "tabopen",
+    j:              "scrolldown",
+    k:              "scrollup",
+    gt:             "nextab",
+    gT:             "prevtab",
+    gr:             "reader",
+    ":":            "exmode",
+    s:              "open google",
+    xx:             "something",
 }
 
+const ex_str_to_func = {
+    tabopen:        console.log,
+    scrolldown:     console.log,
+    scrollup:       console.log,
+    nextab:         console.log,
+    prevtab:        console.log,
+    reader:         console.log,
+    exmode:         console.log,
+    open:           console.log,
+    something:      console.log,
+}
 
 // Extracts the first number with capturing parentheses
 const FIRST_NUM_REGEX = /^([0-9]+)/
@@ -73,7 +85,7 @@ function keyarr_from_keys(keys: string[]){
 }
 
 function get_ex_str_from_key_str(keystr): string {
-    return ex_strs[keystr]
+    return key_strs_to_ex_strs[keystr]
     //return "olie is the best"
 }
 
@@ -88,28 +100,29 @@ function get_ex_str(keys): string {
 
 function get_poss_ex_str(keys): string[] {
     let [count, keystr] = keyarr_from_keys(keys)
-    let posskeystrs = Object.keys(ex_strs)
-    let atstart = RegExp("^" + keystr)
-    return posskeystrs.filter((key)=>atstart.exec(key))
+    let posskeystrs = Object.keys(key_strs_to_ex_strs)
+    return posskeystrs.filter((key)=>key.startsWith(keystr))
 }
 
 function normal_mode_parser(keys): NormalResponse {
+    // If there aren't any possible matches, throw away keys until there are
+    while ((get_poss_ex_str(keys).length == 0) && (keys.length)) {
+        keys = keys.slice(1)
+    }
+
+    // If keys map to an ex_str, send it
     let ex_str = get_ex_str(keys)
     if (ex_str){
-        // if keys maps to an ex_str, send it
         return {ex_str}
-    } else if (get_poss_ex_str(keys)) {
-        // if match possible, keep collecting keys
-        return {}
-    } else {
-        // otherwise delete keys (eg if ESC is pressed, provided no-body binds it)
-        return {keys: []}
-    }
+    } 
+    // Otherwise, return the keys that might be used in a future command
+    return {keys}
 }
 
 function ex_str_parser(ex_str){
     let [func,...args] = ex_str.split(" ")
-    return [func, args]
+    // Todo: work out how to map these to functions that can be executed
+    return [ex_str_to_func[func], args]
 }
 
 function *ParserController () {
@@ -118,27 +131,27 @@ function *ParserController () {
         let keys = []
         while (true) {
 
-            console.log("waitin4push")
-            // keys.push(yield)
-            console.log(yield)
+            keys.push(yield)
             let response = normal_mode_parser(keys)
-            console.log(response)
+            console.log(keys, response)
 
             if (response.ex_str){
                 ex_str = response.ex_str
                 break
-            } else if (response.keys){
+            } else {
                 keys = response.keys
             }
         }
         
         let [func, args] = ex_str_parser(ex_str)
 
-        // func(...args)
-        console.log(func, args)
+        func(...args)
+        // console.log("Executing: ", args)
     }
 
 }
 
-let generator = ParserController()
+var generator = ParserController() // var rather than let stops weirdness in repl.
 generator.next()
+
+// test using "keysinput".split("").map((x)=>generator.next(x))
