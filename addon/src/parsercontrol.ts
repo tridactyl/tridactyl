@@ -59,7 +59,7 @@ const key_strs_to_ex_strs = {
     s:              "open google",
     xx:             "something",
     // Special keys must be prepended with 🄰
-    "🄰Backspace":      "something",
+    //"🄰Backspace":      "something",
 }
 
 const ex_str_to_func = {
@@ -71,7 +71,7 @@ const ex_str_to_func = {
     reader:         console.log,
     exmode:         console.log,
     open:           console.log,
-    something:      console.log,
+    //something:      console.log,
 }
 
 // Extracts the first number with capturing parentheses
@@ -102,8 +102,12 @@ function get_ex_str(keys): string {
 
 function get_poss_ex_str(keys): string[] {
     let [count, keystr] = keyarr_from_keys(keys)
-    let posskeystrs = Object.keys(key_strs_to_ex_strs)
-    return posskeystrs.filter((key)=>key.startsWith(keystr))
+    return get_completions(keystr, key_strs_to_ex_strs)
+}
+
+function get_completions(fragment, mapping_dict): string[] {
+    let posskeystrs = Object.keys(mapping_dict)
+    return posskeystrs.filter((key)=>key.startsWith(fragment))
 }
 
 function normal_mode_parser(keys): NormalResponse {
@@ -131,28 +135,39 @@ function *ParserController () {
     while (true) {
         let ex_str = ""
         let keys = []
-        while (true) {
+        try {
+            while (true) {
 
-            let keypress = yield
-            // If the keypress is a special key, e.g. "Backspace"
-            // denote it as such by appending a special character
-            keypress = (keypress.length > 1) ? "🄰" + keypress : keypress
-            keys.push(keypress)
-            let response = normal_mode_parser(keys)
-            console.log(keys, response)
+                let keypress = yield
+                // If the keypress is a special key, e.g. "Backspace"
+                // denote it as such by appending a special character
+                // should assert that keypress is correct type
+                keypress = (keypress.length > 1) ? "🄰" + keypress : keypress
+                keys.push(keypress)
+                let response = normal_mode_parser(keys)
+                console.log(keys, response)
 
-            if (response.ex_str){
-                ex_str = response.ex_str
-                break
-            } else {
-                keys = response.keys
+                if (response.ex_str){
+                    ex_str = response.ex_str
+                    break
+                } else {
+                    keys = response.keys
+                }
             }
-        }
-        
-        let [func, args] = ex_str_parser(ex_str)
+            
+            let [func, args] = ex_str_parser(ex_str)
 
-        func(...args)
-        // console.log("Executing: ", args)
+            try {
+                func(...args)
+            } catch (e) {
+                // Errors from func are caught here (e.g. no next tab)
+                console.log(e)
+            }
+            // console.log("Executing: ", args)
+        } catch (e) {
+            // Rumsfeldian errors are caught here
+            console.log(e)
+        }
     }
 
 }
