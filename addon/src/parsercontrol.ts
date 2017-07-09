@@ -58,6 +58,8 @@ const key_strs_to_ex_strs = {
     ":":            "exmode",
     s:              "open google",
     xx:             "something",
+    // Special keys must be prepended with 🄰
+    "🄰Backspace":      "something",
 }
 
 const ex_str_to_func = {
@@ -131,7 +133,11 @@ function *ParserController () {
         let keys = []
         while (true) {
 
-            keys.push(yield)
+            let keypress = yield
+            // If the keypress is a special key, e.g. "Backspace"
+            // denote it as such by appending a special character
+            keypress = (keypress.length > 1) ? "🄰" + keypress : keypress
+            keys.push(keypress)
             let response = normal_mode_parser(keys)
             console.log(keys, response)
 
