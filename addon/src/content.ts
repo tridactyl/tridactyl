@@ -8,6 +8,7 @@ function historyHandler(message: Message) {
     window.history.go(message.number)
 }
 
+
 function scrollHandler(message: Message) {
     window.scrollBy(0, message.number)
 }
@@ -16,7 +17,7 @@ function evalHandler(message: Message) {
     eval(message.string)
 }
 
-function messageHandler(message: Message) {
+function messageHandler(message: Message): boolean {
     switch(message.command) {
         case "history":
             historyHandler(message)
@@ -28,6 +29,7 @@ function messageHandler(message: Message) {
             evalHandler(message)
             break
     }
+    return true
 }
 
 function sleep(ms: Number) {
@@ -37,3 +39,5 @@ function sleep(ms: Number) {
 }
 
 console.log("Tridactyl content script loaded, boss!")
+
+browser.runtime.onMessage.addListener(messageHandler)
