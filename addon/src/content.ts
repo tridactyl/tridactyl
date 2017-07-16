@@ -1,7 +1,7 @@
 interface Message {
-    command: string
-    string: string
-    number: number
+    command?: string
+    string?: string
+    number?: number
 }
 
 function historyHandler(message: Message) {
@@ -35,50 +35,5 @@ function sleep(ms: Number) {
         setTimeout(resolve, ms)
     })
 }
-
-class AsyncQueue {
-
-    private _queue: Array<Event>
-
-    constructor() {
-        this._queue = []
-    }
-            
-    push(v: Event) {
-        this._queue.push(v)
-    }
-
-    pop() {
-        let _queue = this._queue
-        new Promise(async (resolve) => {
-            while (true) {
-                let value = _queue.pop()
-                if (value != undefined) {
-                    resolve(value)
-                    break
-                }
-                else {
-                    await sleep(10)
-                }
-            }
-        })
-    }
-}
-
-let parserController = async function () {
-    while (true) {
-        let someevent = await queue.pop()
-        await sleep(15)
-        console.log(someevent)
-    }
-}
-
-function keyHandler(ev: KeyboardEvent) {
-    queue.push(ev)
-}
-
-let queue = new AsyncQueue()
-document.addEventListener("keydown", keyHandler)
-parserController()
 
 console.log("Tridactyl content script loaded, boss!")
