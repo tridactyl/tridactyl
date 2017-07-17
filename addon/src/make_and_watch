@@ -1,10 +1,5 @@
 #!/bin/sh
 
-# Watches the current directory's .coffee files for timestamp changes and
-# recompiles them as javascript.
-coffee -cbwo ../ .
-
-# TODO
-# - integrate with flow (e.g. flow check --all)
-# - need to figure out how to tell flow that the browser exists
-# - alternatives: typescript, google closure
+# Watches the current directory's .tsc files for timestamp changes and
+# compiles them to javascript.
+tsc --outDir "../" -w
