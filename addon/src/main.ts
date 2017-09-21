@@ -2,6 +2,12 @@ interface Number {
     mod(n: number): number
 }
 
+interface Message {
+    command?: string
+    string?: string
+    number?: number
+}
+
 module tridactyl {
 
     // Dunno how to export this
@@ -13,10 +19,10 @@ module tridactyl {
         try {
             let current_window = await browser.windows.getCurrent()
             let tabs = await browser.tabs.query({windowId:current_window.id})
-            let activeTab = tabs.filter((tab: any) => {tab.active})[0]
+            let activeTab = tabs.filter((tab: any) => {return tab.active})[0]
             let desiredIndex = (activeTab.index + increment).mod(tabs.length)
-            let desiredTab = tabs.filter((tab: any) => {tab.index == desiredIndex})
-            //setTab(desiredTab.id)
+            let desiredTab = tabs.filter((tab: any) => {return tab.index == desiredIndex})[0]
+            setTab(desiredTab.id)
         }
         catch(error) {
             console.log(error)

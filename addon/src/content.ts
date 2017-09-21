@@ -1,3 +1,5 @@
+import './main'
+
 interface Message {
     command?: string
     string?: string
