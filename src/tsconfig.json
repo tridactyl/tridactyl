@@ -1,12 +1,11 @@
 {
-  "include": ["./*"],
   "compilerOptions": {
     "noImplicitAny": false,
     "noEmitOnError": true,
+    "outDir": "../build",
     "target": "ES2017",
     "lib": ["ES2017","dom"],
-    // web-ext-types package https://www.npmjs.com/package/web-ext-types (doesn't seem to work)
-    "typeRoots": ["@types", "/usr/lib/node_modules/web-ext-types"]
+    // Use the local copy, or a system installed version.
+    "typeRoots": ["@types", "node_modules/web-ext-types/", "/usr/lib/node_modules/web-ext-types"]
   }
 }
-

@@ -1,0 +1,13 @@
+#!/bin/sh
+
+# Stop on error.
+set -e
+
+target=../build
+mkdir -p $target
+
+# Links manifest.json into the build dir if it's not already there.
+[ -e $target/manifest.json ] || ln -sr manifest.json $target
+
+# See tsconfig.json. Pass '-w' to watch for changes.
+tsc "$@"
