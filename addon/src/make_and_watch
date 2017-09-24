@@ -1,5 +1,0 @@
-#!/bin/sh
-
-# Watches the current directory's .tsc files for timestamp changes and
-# compiles them to javascript.
-tsc --outDir "../" -w
