@@ -2,6 +2,21 @@
 
 Replace ff's default control mechanism with one modelled on the one true editor, Vim.
 
+## Contributing
+
+### Building and installing
+
+```
+git clone https://github.com/cmcaine/tridactyl.git
+cd tridactyl/src
+npm install
+./make
+```
+
+Addon is built in tridactyl/build. Load it as a temporary addon in firefox with `about:debugging` or the `web-ext` CLI (`web-ext run -s build --firefox path/to/nightly/firefox`). The addon may work in older versions of Firefox, but it's targetting Firefox 57+.
+
+## Principles and objectives
+
 Principles:
 
 * Keyboard > mouse
