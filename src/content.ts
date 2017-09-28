@@ -6,9 +6,10 @@ namespace content {
         window.history.go(message.number)
     }
 
-
-    function scrollHandler(message: Message) {
-        window.scrollBy(0, message.number)
+    function scrollHandler(message: Message, scope?: string) {
+        if (!scope) window.scrollBy(0, message.number)
+        else if (scope === "lines") window.scrollByLines(message.number)
+        else if (scope === "pages") window.scrollByPages(message.number)
     }
 
     function evalHandler(message: Message) {
@@ -22,6 +23,12 @@ namespace content {
                 break
             case "scroll":
                 scrollHandler(message)
+                break
+            case "scroll_lines":
+                scrollHandler(message, "lines")
+                break
+            case "scroll_pages":
+                scrollHandler(message, "pages")
                 break
             case "eval":
                 evalHandler(message)

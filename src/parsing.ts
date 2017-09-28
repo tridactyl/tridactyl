@@ -99,15 +99,21 @@ namespace Parsing {
         // ex_str function names
         // TODO: These should be automatically discovered with introspection of the ExCmd object.
         const ex_str_to_func = {
-            tabopen:        console.log,
-            scrolldown:     ExCmds.scrolldown,
-            scrollup:       ExCmds.scrollup,
-            nextab:         console.log,
-            prevtab:        console.log,
-            reader:         console.log,
-            exmode:         console.log,
-            open:           console.log,
-            //something:      console.log,
+            tabopen:             console.log,
+            scrolldown:          ExCmds.scrolldown,
+            scrollup:            ExCmds.scrollup,
+            scrolldownline:      ExCmds.scrolldownline,
+            scrollupline:        ExCmds.scrollupline,
+            scrolldownpage:      ExCmds.scrolldownpage,
+            scrolluppage:        ExCmds.scrolluppage,
+            scrolldownhalfpage:  ExCmds.scrolldownhalfpage,
+            scrolluphalfpage:    ExCmds.scrolluphalfpage,
+            nextab:              console.log,
+            prevtab:             console.log,
+            reader:              console.log,
+            exmode:              console.log,
+            open:                console.log,
+            //something:           console.log,
         }
 
         // Simplistic Ex command line parser.

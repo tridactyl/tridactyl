@@ -13,4 +13,8 @@ interface Message {
     number?: number
 }
 
+interface Window {
+    scrollByLines(n: number): void
+    scrollByPages(n: number):  void
+}
 
