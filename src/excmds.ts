@@ -26,7 +26,7 @@ namespace ExCmds {
         scroll(n)
     }
         
-    export let scrollup = function (n: number) { scrolldown(n*-1) }
+    export let scrollup = function (n = 1) { scrolldown(n*-1) }
 
 }
 
