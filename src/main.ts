@@ -1,4 +1,8 @@
-// Common functionality
+interface Number {
+    mod(n: number): number
+}
+
+/** Conventional definition of modulo that never gives a -ve result. */
 Number.prototype.mod = function (n: number): number {
     return Math.abs(this % n)
 }
