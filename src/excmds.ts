@@ -30,7 +30,7 @@ namespace ExCmds {
 
     export const scrollup = function (n = 1) { scrolldown(n*-1) }
     export const scrollupline = function (n = 1) { scrolldownline(n*-1) }
-    export const scrolluppage = funciton (n = 1) { scrolluppage(n*-1) }
+    export const scrolluppage = function (n = 1) { scrolluppage(n*-1) }
 
     export const scrolldownhalfpage = async function (n = 1) {
       const current_window = await browser.windows.getCurrent()
