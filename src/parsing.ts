@@ -4,19 +4,19 @@ namespace Parsing {
     // Tridactyl normal mode:
     //
     // differs from Vim in that no map may be a prefix of another map (e.g. 'g' and 'gg' cannot both be maps). This simplifies the parser.
-    namespace normalmode {
+    export namespace normalmode {
 
         // Normal-mode mappings.
         // keystr -> ex_str
         // TODO: Move these into a tridactyl-wide state namespace
         const nmaps = new Map<string, string>([
             ["t", "tabopen"],
-            ["j", "scrolldown"],
-            ["k", "scrollup"],
+            ["j", "scrolldownline"],
+            ["k", "scrollupline"],
             ["gt", "nextab"],
             ["gT", "prevtab"],
             ["gr", "reader"],
-            [":", "exmode"],
+            [":", "focuscmdline"],
             ["s", "open google"],
             ["xx", "something"],
             // Special keys must be prepended with 🄰
@@ -94,7 +94,7 @@ namespace Parsing {
     }
 
     // Ex Mode (AKA cmd mode)
-    namespace exmode {
+    export namespace exmode {
 
         // ex_str function names
         // TODO: These should be automatically discovered with introspection of the ExCmd object.
@@ -108,10 +108,10 @@ namespace Parsing {
             scrolluppage:        ExCmds.scrolluppage,
             scrolldownhalfpage:  ExCmds.scrolldownhalfpage,
             scrolluphalfpage:    ExCmds.scrolluphalfpage,
-            nextab:              console.log,
+            tabnext:             ExCmds.tabnext,
             prevtab:             console.log,
             reader:              console.log,
-            exmode:              console.log,
+            focuscmdline:        ExCmds.focuscmdline,
             open:                console.log,
             //something:           console.log,
         }
@@ -123,55 +123,5 @@ namespace Parsing {
             let [func,...args] = ex_str.split(" ")
             return [ex_str_to_func[func], args]
         }
-    }
-
-    function *ParserController () {
-        while (true) {
-            let ex_str = ""
-            let keys = []
-            try {
-                while (true) {
-
-                    let keyevent = yield
-                    let keypress = keyevent.key
-
-                    // If the keypress is a special key, e.g. "Backspace"
-                    // denote it as such by appending a special character that
-                    // will never match a valid map.
-                    keypress = (keypress.length > 1) ? "🄰" + keypress : keypress
-                    keys.push(keypress)
-                    let response = normalmode.parser(keys)
-
-                    console.debug(keys, response)
-
-                    if (response.ex_str){
-                        ex_str = response.ex_str
-                        break
-                    } else {
-                        keys = response.keys
-                    }
-                }
-                
-                let [func, args] = exmode.parser(ex_str)
-
-                try {
-                    func(...args)
-                } catch (e) {
-                    // Errors from func are caught here (e.g. no next tab)
-                    console.error(e)
-                }
-            } catch (e) {
-                // Rumsfeldian errors are caught here
-                console.error("Tridactyl ParserController fatally wounded:", e)
-            }
-        }
-    }
-
-    let generator = ParserController() // var rather than let stops weirdness in repl.
-    generator.next()
-
-    // Feed keys to the controller.
-    export function acceptKey(keyevent: Event) {
-        generator.next(keyevent)
     }
 }

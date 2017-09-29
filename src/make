@@ -4,10 +4,14 @@
 set -e
 
 target=../build
+rm -rf $target
 mkdir -p $target
 
-# Links manifest.json into the build dir if it's not already there.
-[ -e $target/manifest.json ] || ln -sr manifest.json $target
+# Links manifest.json into build dir
+ln -sr manifest.json $target
+
+# Web-accessible resources must be copied rather than linked.
+cp -r commandline $target
 
 # See tsconfig.json. Pass '-w' to watch for changes.
 tsc "$@"
