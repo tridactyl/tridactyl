@@ -109,7 +109,7 @@ namespace Parsing {
             scrolldownhalfpage:  ExCmds.scrolldownhalfpage,
             scrolluphalfpage:    ExCmds.scrolluphalfpage,
             tabnext:             ExCmds.tabnext,
-            prevtab:             console.log,
+            tabprev:             ExCmds.tabprev,
             reader:              console.log,
             focuscmdline:        ExCmds.focuscmdline,
             open:                console.log,
