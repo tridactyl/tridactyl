@@ -59,6 +59,7 @@ namespace ExCmds {
         return (await browser.tabs.query({active: true}))[0].id
     }
 
+    // NB: it is unclear how to undo tab closure.
     export async function tabclose(n = 1){
         let activeTabID = await getactivetabid()
         closetabs(await getnexttabs(activeTabID,n))
@@ -70,6 +71,12 @@ namespace ExCmds {
         tabstoreload.map(
             (n)=>browser.tabs.reload(n, reloadProperties)
         )
+    }
+
+    // TODO: address should default to some page to which we have access
+    //          and focus the location bar
+    export async function tabopen(address = "about:blank"){
+        browser.tabs.create({url: address})
     }
 
     export async function reloadhard(n = 1){
