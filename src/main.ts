@@ -19,10 +19,14 @@ namespace Controller {
                     let keyevent = yield
                     let keypress = keyevent.key
 
-                    // If the keypress is a special key, e.g. "Backspace"
-                    // denote it as such by appending a special character that
-                    // will never match a valid map.
-                    keypress = (keypress.length > 1) ? "🄰" + keypress : keypress
+                    // Special keys (e.g. Backspace) are not handled properly
+                    // yet. So drop them. This also drops all modifier keys.
+                    // When we put in handling for other special keys, remember
+                    // to continue to ban modifiers.
+                    if (keypress.length > 1) {
+                        continue
+                    }
+
                     keys.push(keypress)
                     let response = Parsing.normalmode.parser(keys)
 
