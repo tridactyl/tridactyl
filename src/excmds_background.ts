@@ -72,6 +72,10 @@ namespace ExCmds {
     }
     export function tabprev(increment = 1) { tabnext(increment*-1) }
 
+    // History functions
+    export function history(n = 1) {messageActiveTab("history",[n])}
+    export function historyback(n = 1) {history(n*-1)}
+    export function historyforward(n = 1) {history(n)}
 
     // Misc functions
     export function focuscmdline() { messageActiveTab("focuscmdline") }

@@ -12,6 +12,8 @@ namespace Parsing {
         const nmaps = new Map<string, string>([
             ["t", "tabopen"],
             ["j", "scrolldownline"],
+            ["H", "historyback"],
+            ["L", "historyforward"],
             ["k", "scrollupline"],
             ["gt", "tabnext"],
             ["gT", "tabprev"],
