@@ -43,7 +43,7 @@ namespace ExCmds {
     // Tab functions
     
     // TODO: to be implemented!
-    export function getnexttabs(tabid: number, n: number){
+    export async function getnexttabs(tabid: number, n: number){
         return [tabid]
     }
 
@@ -61,9 +61,20 @@ namespace ExCmds {
 
     export async function tabclose(n = 1){
         let activeTabID = await getactivetabid()
-        closetabs(getnexttabs(activeTabID,n))
+        closetabs(await getnexttabs(activeTabID,n))
     }
 
+    export async function reload(n = 1, hard = false){
+        let tabstoreload = await getnexttabs(await getactivetabid(),n)
+        let reloadProperties = {bypassCache: hard}
+        tabstoreload.map(
+            (n)=>browser.tabs.reload(n, reloadProperties)
+        )
+    }
+
+    export async function reloadhard(n = 1){
+        reload(n, true)
+    }
 
     /** Switch to the next tab by index (position on tab bar), wrapping round.
 

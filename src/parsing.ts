@@ -15,6 +15,8 @@ namespace Parsing {
             ["H", "historyback"],
             ["L", "historyforward"],
             ["d", "tabclose"],
+            ["r", "reload"],
+            ["R", "reloadhard"],
             ["k", "scrollupline"],
             ["gt", "tabnext"],
             ["gT", "tabprev"],
