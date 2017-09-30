@@ -40,20 +40,21 @@ namespace ExCmds {
     export function scrollupline(n = 1) { scrolldownline(n*-1) }
 
     // Tab functions
-    
-    export async function tabnext(increment: number) {
+
+    export async function tabnext(increment = 1) {
         try {
             let current_window = await browser.windows.getCurrent()
             let tabs = await browser.tabs.query({windowId:current_window.id})
             let activeTab = tabs.filter((tab: any) => {return tab.active})[0]
             let desiredIndex = (activeTab.index + increment).mod(tabs.length)
-            let desiredTab = tabs.filter((tab: any) => {return tab.index == desiredIndex})[0]
+            let desiredTab = tabs.filter((tab: any) => {return tab.index === desiredIndex})[0]
             tabgo(desiredTab.id)
         }
         catch(error) {
             console.log(error)
         }
     }
+    export function tabprev() { tabnext(-1) }
 
     export function tabgo(id: number) {
         browser.tabs.update(id,{active:true})
