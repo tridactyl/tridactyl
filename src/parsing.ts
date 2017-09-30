@@ -96,32 +96,16 @@ namespace Parsing {
     // Ex Mode (AKA cmd mode)
     export namespace exmode {
 
-        // ex_str function names
-        // TODO: These should be automatically discovered with introspection of the ExCmd object.
-        const ex_str_to_func = {
-            tabopen:             console.log,
-            scrolldown:          ExCmds.scrolldown,
-            scrollup:            ExCmds.scrollup,
-            scrolldownline:      ExCmds.scrolldownline,
-            scrollupline:        ExCmds.scrollupline,
-            scrolldownpage:      ExCmds.scrolldownpage,
-            scrolluppage:        ExCmds.scrolluppage,
-            scrolldownhalfpage:  ExCmds.scrolldownhalfpage,
-            scrolluphalfpage:    ExCmds.scrolluphalfpage,
-            tabnext:             ExCmds.tabnext,
-            tabprev:             ExCmds.tabprev,
-            reader:              console.log,
-            focuscmdline:        ExCmds.focuscmdline,
-            open:                console.log,
-            //something:           console.log,
-        }
-
         // Simplistic Ex command line parser.
         // TODO: Quoting arguments
         // TODO: Pipe to separate commands
         export function parser(ex_str){
             let [func,...args] = ex_str.split(" ")
-            return [ex_str_to_func[func], args]
+            if (func in ExCmds) {
+                return [ExCmds[func], args]
+            } else {
+                throw `Not an excmd: ${func}`
+            }
         }
     }
 }
