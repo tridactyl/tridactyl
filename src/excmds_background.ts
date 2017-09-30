@@ -39,25 +39,38 @@ namespace ExCmds {
     export function scrolldownline(n = 1) { messageActiveTab("scrollline", [n]) }
     export function scrollupline(n = 1) { scrolldownline(n*-1) }
 
+
     // Tab functions
-    
-    export async function tabnext(increment: number) {
+
+    function tabSetActive(id: number) {
+        browser.tabs.update(id,{active:true})
+    }
+
+    /** Switch to the next tab by index (position on tab bar), wrapping round.
+
+        optional increment is number of tabs forwards to move.
+    */
+    export async function tabnext(increment = 1) {
         try {
+            // Get an array of tabs in the current window
             let current_window = await browser.windows.getCurrent()
             let tabs = await browser.tabs.query({windowId:current_window.id})
+
+            // Find the active tab (this is safe: there will only ever be one)
             let activeTab = tabs.filter((tab: any) => {return tab.active})[0]
+
+            // Derive the index we want
             let desiredIndex = (activeTab.index + increment).mod(tabs.length)
-            let desiredTab = tabs.filter((tab: any) => {return tab.index == desiredIndex})[0]
-            tabgo(desiredTab.id)
+
+            // Find and switch to the tab with that index
+            let desiredTab = tabs.filter((tab: any) => {return tab.index === desiredIndex})[0]
+            tabSetActive(desiredTab.id)
         }
         catch(error) {
             console.log(error)
         }
     }
-
-    export function tabgo(id: number) {
-        browser.tabs.update(id,{active:true})
-    }
+    export function tabprev(increment = 1) { tabnext(increment*-1) }
 
 
     // Misc functions
