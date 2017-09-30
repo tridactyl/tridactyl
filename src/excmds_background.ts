@@ -55,9 +55,12 @@ namespace ExCmds {
         browser.tabs.remove(ids)
     }
 
+    export async function getactivetabid(){
+        return (await browser.tabs.query({active: true}))[0].id
+    }
+
     export async function tabclose(n = 1){
-        let filtTabs = await browser.tabs.query({active: true})
-        let activeTabID = filtTabs[0].id
+        let activeTabID = await getactivetabid()
         closetabs(getnexttabs(activeTabID,n))
     }
 
