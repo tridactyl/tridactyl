@@ -46,6 +46,17 @@ namespace ExCmds {
         browser.tabs.update(id,{active:true})
     }
 
+    export function closetabs(ids: number[]){
+        browser.tabs.remove(ids)
+    }
+
+    export async function tabclose(n = 1){
+        let filtTabs = await browser.tabs.query({active: true})
+        let activeTabID = filtTabs[0].id
+        // TODO: work out what the ids of the next n tabs are and close them also
+        closetabs([activeTabID])
+    }
+
     /** Switch to the next tab by index (position on tab bar), wrapping round.
 
         optional increment is number of tabs forwards to move.
