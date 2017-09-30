@@ -5,7 +5,6 @@
     "outDir": "../build",
     "target": "ES2017",
     "lib": ["ES2017","dom"],
-    // Use the local copy, or a system installed version.
-    "typeRoots": ["@types", "node_modules/web-ext-types/", "/usr/lib/node_modules/web-ext-types"]
+    "typeRoots": ["@types", "node_modules/web-ext-types/"]
   }
 }

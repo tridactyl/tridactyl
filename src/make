@@ -14,4 +14,5 @@ ln -sr manifest.json $target
 cp -r commandline $target
 
 # See tsconfig.json. Pass '-w' to watch for changes.
+PATH=node_modules/.bin:"$PATH"
 tsc "$@"
