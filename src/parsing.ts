@@ -9,6 +9,8 @@ namespace Parsing {
         // Normal-mode mappings.
         // keystr -> ex_str
         // TODO: Move these into a tridactyl-wide state namespace
+        // TODO: stop stealing keys from "insert mode"
+        //          r -> refresh page is particularly unhelpful
         const nmaps = new Map<string, string>([
             ["t", "tabopen"],
             ["j", "scrolldownline"],
