@@ -1,4 +1,5 @@
 /** Script used in the commandline iframe. Communicates with background. */
+
 let clInput = window.document.getElementById("tridactyl-input") as HTMLInputElement
 clInput.focus()
 
@@ -16,3 +17,6 @@ function process() {
     browser.runtime.sendMessage({command: "commandline", exStr: clInput.value})
     clInput.value = ""
 }
+
+// Dummy export to ensure this is treated as a module
+export {}

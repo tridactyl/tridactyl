@@ -1,0 +1,22 @@
+{
+  "name": "tridactyl",
+  "version": "0.1.0",
+  "description": "Vimperator/Pentadactyl successor",
+  "dependencies": {},
+  "devDependencies": {
+    "web-ext-types": "github:michael-zapata/web-ext-types",
+    "typescript": "^2.5.3",
+    "webpack": "^3.6.0",
+    "awesome-typescript-loader": "^3.2.3",
+    "copy-webpack-plugin": "^4.1.0",
+    "source-map-loader": "^0.2.2",
+    "uglify-es": "^3.1.2",
+    "uglifyjs-webpack-plugin": "^1.0.0-beta.2"
+  },
+  "scripts": {
+    "build": "webpack",
+    "clean": "rm -rf build",
+    "test": "npm run build; echo; echo No other tests yet"
+  },
+  "author": "Colin Caine"
+}

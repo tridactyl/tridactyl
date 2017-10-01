@@ -4,8 +4,7 @@
   "description": "Vimperator/Pentadactyl successor",
   "dependencies": {},
   "devDependencies": {
-    "typescript": "^2.5.3",
-    "web-ext-types": "github:michael-zapata/web-ext-types"
+    "web-ext-types": "0.3.1"
   },
   "scripts": {
     "test": "./make"

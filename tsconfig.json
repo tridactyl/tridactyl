@@ -2,9 +2,14 @@
   "compilerOptions": {
     "noImplicitAny": false,
     "noEmitOnError": true,
-    "outDir": "../build",
+    // outDir not used by webpack, just for debugging.
+    "outDir": "build/tsc-out",
+    "sourceMap": true,
     "target": "ES2017",
     "lib": ["ES2017","dom"],
     "typeRoots": ["@types", "node_modules/web-ext-types/"]
-  }
+  },
+  "include": [
+    "./src/**/*"
+  ]
 }
