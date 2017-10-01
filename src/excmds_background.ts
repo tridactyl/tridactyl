@@ -75,7 +75,7 @@ namespace ExCmds {
 
     // TODO: address should default to some page to which we have access
     //          and focus the location bar
-    export async function tabopen(address = "about:blank"){
+    export async function tabopen(address?: string){
         browser.tabs.create({url: address})
     }
 
