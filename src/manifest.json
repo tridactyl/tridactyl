@@ -5,18 +5,18 @@
   "version": "1.0",
 
   "background" : {
-    "scripts": ["keydown_background.js", "commandline_background.js", "excmds_background.js", "parsing.js", "main.js"]
+    "scripts": ["background.js"]
   },
 
   "content_scripts": [
       {
           "matches":["<all_urls>"],
-          "js":["keydown_content.js", "commandline_content.js", "excmds_content.js"]
+          "js":["content.js"]
       }
   ],
 
   "web_accessible_resources": [
-    "commandline/commandline.html"
+    "static/commandline.html"
   ],
 
 
