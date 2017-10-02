@@ -14,13 +14,17 @@ export namespace normalmode {
     //          r -> refresh page is particularly unhelpful
     const nmaps = new Map<string, string>([
         ["t", "tabopen"],
+        ["k", "scrollupline"],
         ["j", "scrolldownline"],
+        ["h", "scrollleft"],
+        ["l", "scrollright"],
+        ["G", "scrolltobottom"],
+        ["gg", "scrolltotop"],
         ["H", "historyback"],
         ["L", "historyforward"],
         ["d", "tabclose"],
         ["r", "reload"],
         ["R", "reloadhard"],
-        ["k", "scrollupline"],
         ["gt", "tabnext"],
         ["gT", "tabprev"],
         ["gr", "reader"],
@@ -64,7 +68,7 @@ export namespace normalmode {
     // A list of maps that keys could potentially map to.
     function possible_maps(keys): string[] {
         let [count, keystr] = keys_split_count(keys)
-        
+
         // Short circuit or search maps.
         if (nmaps.has(keystr)) {
             return [keystr,]
@@ -95,7 +99,7 @@ export namespace normalmode {
         let ex_str = get_ex_str(keys)
         if (ex_str){
             return {ex_str}
-        } 
+        }
         // Otherwise, return the keys that might be used in a future command
         return {keys}
     }

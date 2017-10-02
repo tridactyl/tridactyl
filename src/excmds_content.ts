@@ -8,14 +8,17 @@ type ContentCommand = (...any) => void
 // Could build these with a factory, but that breaks introspection because
 // .name is a read-only value.
 const commands = new Map<string, ContentCommand>([
-    function scrollpx(n: number) {
-        window.scrollBy(0, n)
+    function scrollpx(x: number, y: number) {
+        window.scrollBy(x, y)
     },
     function scrollline(n: number) {
         window.scrollByLines(n)
     },
     function scrollpage(n: number) {
         window.scrollByPages(n)
+    },
+    function scrollto(x: number, y: number) {
+        window.scrollTo(x, y)
     },
     function history(n: number) {
         window.history.go(n)

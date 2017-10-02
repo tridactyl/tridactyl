@@ -28,8 +28,14 @@ async function messageFilteredTabs(filter, command: string, args?: Array<any>) {
 }
 
 // Scrolling functions
-export function scrolldown(n = 1) { messageActiveTab("scrollpx", [n]) }
+export function scrollby(x: number, y: number ) { messageActiveTab("scrollpx", [x, y]) }
+export function scrolldown(n = 1) { scrollby(0, n) }
 export function scrollup(n = 1) { scrolldown(n*-1) }
+export function scrollright(n = 1) { scrollby(n, 0) }
+export function scrollleft(n = 1) { scrollright(n*-1) }
+
+export function scrolldownline(n = 1) { messageActiveTab("scrollline", [n]) }
+export function scrollupline(n = 1) { scrolldownline(n*-1) }
 
 export function scrolldownpage(n = 1) { messageActiveTab("scrollpage", [n]) }
 export function scrolluppage(n = 1) { scrolldownpage(n*-1) }
@@ -40,9 +46,11 @@ export async function scrolldownhalfpage(n = 1) {
 }
 export function scrolluphalfpage(n = 1) { scrolldownhalfpage(n*-1) }
 
-export function scrolldownline(n = 1) { messageActiveTab("scrollline", [n]) }
-export function scrollupline(n = 1) { scrolldownline(n*-1) }
-
+export function scrolltobottom() { scrolldown(999999999) } // maximum value scrolldown would respond to
+export async function scrolltotop() {
+  const current_window = await browser.windows.getCurrent()
+  messageActiveTab("scrollto", [current_window.left, 0])
+}
 
 // Tab functions
 
