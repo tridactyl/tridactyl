@@ -1,6 +1,6 @@
 /** Conventional definition of modulo that never gives a -ve result. */
 Number.prototype.mod = function (n: number): number {
-    return Math.abs(this % n)
+    return Math.abs(this % n + (this > 0 ? 0 : n))
 }
 
 // Implementation for all built-in ExCmds
