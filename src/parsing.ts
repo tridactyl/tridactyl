@@ -1,6 +1,22 @@
 import * as ExCmds from "./excmds_background"
 
+
 // Simple implementations of a normal and ex mode parsers
+export namespace insertmode  {
+    // WIP
+    const pmaps = new Map<string,string>([
+        // Special keys must be prepended with 🄰
+        ["🄰Escape", "normalmode"],
+    ])
+
+
+    // Placeholder - should be moved into generic parser
+    export function parser(keys){
+        return keys
+    }
+
+}
+
 
 // Tridactyl normal mode:
 //
@@ -31,6 +47,7 @@ export namespace normalmode {
         [":", "focuscmdline"],
         ["s", "open google"],
         ["xx", "something"],
+        ["i", "insertmode"],
         // Special keys must be prepended with 🄰
         // ["🄰Backspace", "something"],
     ])

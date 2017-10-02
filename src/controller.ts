@@ -1,4 +1,5 @@
 import * as Parsing from "./parsing"
+import * as state from "./state"
 
 /** Accepts keyevents, resolves them to maps, maps to exstrs, executes exstrs */
 function *ParserController () {
@@ -20,6 +21,15 @@ function *ParserController () {
 
                 keys.push(keypress)
                 let response = Parsing.normalmode.parser(keys)
+                switch(state.MODE){
+                    case "NORMAL":
+                        response = Parsing.normalmode.parser(keys)
+                        break
+
+                    case "INSERT":
+                        response = Parsing.insertmode.parser(keys)
+                        break
+                }
 
                 console.debug(keys, response)
 
