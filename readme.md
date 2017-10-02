@@ -13,7 +13,7 @@ npm install
 npm run build # or add the `npm bin` to your path and just run webpack directly
 ```
 
-Addon is built in tridactyl/build. Load it as a temporary addon in firefox with `about:debugging` or the `web-ext` CLI (`web-ext run -s build --firefox path/to/nightly/firefox`). The addon may work in older versions of Firefox, but it's targetting Firefox 57+.
+Addon is built in tridactyl/build. Load it as a temporary addon in firefox with `about:debugging` or see [Development loop](#Development-loop). The addon may work in older versions of Firefox, but it's targetting Firefox 57+.
 
 If you're updating from the older buildsystem, run this as well:
 
