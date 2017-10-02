@@ -1,4 +1,4 @@
-# Tridactyl
+# Tridactyl [![Build Status](https://travis-ci.org/cmcaine/tridactyl.svg?branch=master)](https://travis-ci.org/cmcaine/tridactyl)
 
 Replace ff's default control mechanism with one modelled on the one true editor, Vim.
 
