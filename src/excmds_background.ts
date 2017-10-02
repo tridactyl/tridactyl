@@ -27,6 +27,10 @@ async function messageFilteredTabs(filter, command: string, args?: Array<any>) {
     })
 }
 
+function hasScheme(uri: string) {
+    return uri.match(/^(\w+):/)
+}
+
 // Scrolling functions
 export function scrolldown(n = 1) { messageActiveTab("scrollpx", [n]) }
 export function scrollup(n = 1) { scrolldown(n*-1) }
@@ -80,6 +84,7 @@ export async function reload(n = 1, hard = false){
 // TODO: address should default to some page to which we have access
 //          and focus the location bar
 export async function tabopen(address?: string){
+    if (address) address = (hasScheme(address)? "" : "http://") + address
     browser.tabs.create({url: address})
 }
 
