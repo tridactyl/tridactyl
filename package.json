@@ -17,7 +17,8 @@
   "scripts": {
     "build": "webpack",
     "clean": "rm -rf build",
-    "test": "npm run build"
+    "test": "npm run build",
+    "update-buildsystem": "rm -rf src/node_modules; npm run clean"
   },
   "author": "Colin Caine"
 }

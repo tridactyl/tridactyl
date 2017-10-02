@@ -8,12 +8,31 @@ Replace ff's default control mechanism with one modelled on the one true editor,
 
 ```
 git clone https://github.com/cmcaine/tridactyl.git
-cd tridactyl/src
+cd tridactyl
 npm install
-./make
+npm run build # or add the `npm bin` to your path and just run webpack directly
 ```
 
 Addon is built in tridactyl/build. Load it as a temporary addon in firefox with `about:debugging` or the `web-ext` CLI (`web-ext run -s build --firefox path/to/nightly/firefox`). The addon may work in older versions of Firefox, but it's targetting Firefox 57+.
+
+If you're updating from the older buildsystem, run this as well:
+
+```
+npm run update-buildsystem
+```
+
+### Development loop
+
+```
+npm run build -- -w &
+web-ext run -s build --firefox path/to/nightly/firefox
+```
+
+This will compile and deploy your files each time you save them.
+
+### Committing
+
+A pre-commit hook is added by `npm install` that simply runs `npm test`. If you know that your commit doesn't break the tests you can commit with `git commit -n` to ignore the hooks. If you're making a PR, travis will check your build anyway.
 
 ### Documentation
 
