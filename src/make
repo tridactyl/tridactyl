@@ -4,14 +4,14 @@
 set -e
 
 target=../build
-rm -rf $target
+rm -rf $target/*
 mkdir -p $target
 
 # Links manifest.json into build dir
 ln -sr manifest.json $target
 
 # Web-accessible resources must be copied rather than linked.
-cp -r commandline $target
+cp -r static $target
 
 # See tsconfig.json. Pass '-w' to watch for changes.
 PATH=node_modules/.bin:"$PATH"
