@@ -6,6 +6,7 @@ Useful workarounds and methods to get the power we want in the brave new world o
     - [chrome_url_overrides](https://developer.mozilla.org/en-US/Add-ons/WebExtensions/manifest.json/chrome_url_overrides)
  - Function in home page
     - [chrome_settings_overrides](https://developer.mozilla.org/en-US/Add-ons/WebExtensions/manifest.json/chrome_settings_overrides)
+ - (Downside for both is that we need to reimplement a useful home and newtab page)
 
  - Shell and write access to filesystem
     - [Native_messaging](https://developer.mozilla.org/en-US/Add-ons/WebExtensions/Native_messaging)
@@ -22,6 +23,6 @@ Useful workarounds and methods to get the power we want in the brave new world o
     - As currently envisioned, size is fixed, I think
  - Commandline thru HTML injection into webcontent
     - Dangerous, see [Bug 1287590](https://bugzilla.mozilla.org/show_bug.cgi?id=1287590)
-    - Shadow DOM would probably be easier than iframe, but not implemented yet [Bug 1205323](https://bugzilla.mozilla.org/show_bug.cgi?id=1205323)
+    - Shadow DOM would probably be simpler than iframe, but not implemented yet [Bug 1205323](https://bugzilla.mozilla.org/show_bug.cgi?id=1205323)
  - Commandline thru search suggestions on the omnibar (this is a bit mad)
     - [chrome_settings_overrides](https://developer.mozilla.org/en-US/Add-ons/WebExtensions/manifest.json/chrome_settings_overrides)
