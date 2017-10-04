@@ -44,7 +44,7 @@ export namespace normalmode {
         ["gt", "tabnext"],
         ["gT", "tabprev"],
         ["gr", "reader"],
-        [":", "focuscmdline"],
+        [":", "showcommandline"],
         ["s", "open google"],
         ["xx", "something"],
         ["i", "insertmode"],
