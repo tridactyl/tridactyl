@@ -1,4 +1,5 @@
 /** Conventional definition of modulo that never gives a -ve result. */
+
 Number.prototype.mod = function (n: number): number {
     return Math.abs(this % n)
 }
@@ -87,6 +88,12 @@ export async function reload(n = 1, hard = false){
     tabstoreload.map(
         (n)=>browser.tabs.reload(n, reloadProperties)
     )
+}
+
+// Commandline function
+
+export function showcommandline(){
+    messageActiveTab("showcommandline")
 }
 
 // TODO: address should default to some page to which we have access

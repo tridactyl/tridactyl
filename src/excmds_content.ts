@@ -24,7 +24,7 @@ const commands = new Map<string, ContentCommand>([
         window.history.go(n)
     },
     function focuscmdline() {
-        CommandLineContent.focus()
+        CommandLineContent.showcommandline()
     }
 ].map((command):any => [command.name, command]))
 
