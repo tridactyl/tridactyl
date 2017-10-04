@@ -14,7 +14,7 @@ clInput.addEventListener("keydown", function (keyevent) {
 function process() {
     // TODO.
     console.log(clInput.value)
-    browser.runtime.sendMessage({command: "commandline", exStr: clInput.value})
+    browser.runtime.sendMessage({type: "commandline", exStr: clInput.value})
     clInput.value = ""
 }
 

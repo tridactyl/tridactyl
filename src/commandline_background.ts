@@ -1,6 +1,6 @@
 /** CommandLine API for inclusion in background script
 
-  Receives messages from CommandLinePage
+  Receives messages from commandline_frame
 */
 export namespace onLine {
 
@@ -12,9 +12,9 @@ export namespace onLine {
         return () => { listeners.delete(cb) }
     }
 
-    // Receive events from CommandLinePage and pass to listeners
+    /** Receive events from commandline_frame and pass to listeners */
     function handler(message: any) {
-        if (message.command === "commandline") {
+        if (message.type === "commandline") {
             for (let listener of listeners) {
                 listener(message.exStr)
             }

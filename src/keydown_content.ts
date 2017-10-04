@@ -27,12 +27,12 @@ function keyeventHandler(ke: KeyboardEvent) {
     if (stopPropagation) {
       ke.stopPropagation()
     }
-    browser.runtime.sendMessage({command: "keydown", event: shallowKeyboardEvent(ke)})
+    browser.runtime.sendMessage({type: "keydown", event: shallowKeyboardEvent(ke)})
 }
 
 // Listen for suppression messages from bg script.
 function backgroundListener(message) {
-    if (message.command === "keydown-suppress") {
+    if (message.type === "keydown-suppress") {
       if ('preventDefault' in message.data) {
         preventDefault = message.data.preventDefault
       }
