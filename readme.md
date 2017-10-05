@@ -67,11 +67,11 @@ Prior art:
 * pentadactyl/vimperator - dying with XUL
 * cVim/vimium
 * vimfx - transitioning to WebExtensions, but no ex commands
-* qutebrowser/jumanji - see [standalone.md](standalone.md).
+* qutebrowser/jumanji - see [standalone.md](doc/standalone.md).
 
 ## WebExtensions
 
-What we learnt from these notes has been condensed in [bug-message.md](bug-message.md).
+What we learnt from these notes has been condensed in [bug-message.md](doc/bug-message.md).
 
 ### Evaluating prior art
 
@@ -150,7 +150,7 @@ https://github.com/brookhong/Surfingkeys
 
 Don't exist:
 
-* See [bug-message.md](bug-message.md).
+* See [bug-message.md](doc/bug-message.md).
 
 Do exist:
 
