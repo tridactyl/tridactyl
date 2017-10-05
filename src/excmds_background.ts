@@ -9,6 +9,14 @@ interface ContentCommandMessage extends Message {
     args?: Array<any>
 }
 
+function messageCommandline(command: string, args?: Array<any>) {
+    browser.runtime.sendMessage({
+        type: 'commandline_frame',
+        command,
+        args,
+    })
+}
+
 function messageActiveTab(command: string, args?: Array<any>) {
     messageFilteredTabs({active:true}, command, args)
 }
@@ -92,7 +100,8 @@ export async function reload(n = 1, hard = false){
 
 // Commandline function
 
-export function showcommandline(){
+export function showcommandline(exstr?){
+    messageCommandline("changecommand", [exstr,])
     messageActiveTab("showcommandline")
 }
 

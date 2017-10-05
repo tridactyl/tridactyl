@@ -1,5 +1,7 @@
 /** Script used in the commandline iframe. Communicates with background. */
 
+import * as Messaging from './messaging'
+
 let clInput = window.document.getElementById("tridactyl-input") as HTMLInputElement
 clInput.focus()
 
@@ -18,5 +20,19 @@ function process() {
     clInput.value = ""
 }
 
-// Dummy export to ensure this is treated as a module
-export {}
+function changecommand(newcommand?: string){
+    clInput.value = newcommand
+    console.log(newcommand, clInput.value)
+}
+
+function handler(message) {
+    console.log(message)
+    // this[message.command](...message.args)
+    changecommand(...message.args)
+}
+
+try {
+    Messaging.addListener('commandline_frame', handler)
+} catch(e) {
+    console.error("WAHWAH", e)
+}

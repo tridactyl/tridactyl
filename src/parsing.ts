@@ -36,6 +36,7 @@ export namespace normalmode {
         ["l", "scrollright"],
         ["G", "scrolltobottom"],
         ["gg", "scrolltotop"],
+        ["o", "showcommandline open"],
         ["H", "historyback"],
         ["L", "historyforward"],
         ["d", "tabclose"],

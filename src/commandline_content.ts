@@ -23,7 +23,7 @@ export function show(){
     if (cmdline_iframe === undefined) {
         init()
     }
-    cmdline_iframe.setAttribute("style", "position: fixed; top: 0; left: 0; z-index: 10000; width: 100%; height: 36px; border: 0; padding: 0; margin: 0;");
+    cmdline_iframe.setAttribute("style", "position: fixed; top: 0; left: 0; z-index: 10000; width: 100%; height: 36px; border: 0; padding: 0; margin: 1;");
 }
 
 export function hide(){
