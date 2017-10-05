@@ -43,7 +43,7 @@ for (let [a, b, ans] of testcases) {
 
 
 /** Test with mixed dividend, positive divisor */
-for (let i=0; i<1000; i++) {
+for (let i=0; i<100; i++) {
     let a = (Math.random()-0.5) * 10000|0
     let b = Math.random() * 10000|0
     b = b === 0 ? 17 : b // Don't be 0.
@@ -55,7 +55,7 @@ for (let i=0; i<1000; i++) {
 }
 
 /** Test with a mix of +ve and -ve */
-for (let i=0; i<1000; i++) {
+for (let i=0; i<100; i++) {
     let a = (Math.random()-0.5) * 10000|0
     let b = (Math.random()-0.5) * 10000|0
     b = b === 0 ? 17 : b // Don't be 0.
