@@ -1,6 +1,7 @@
 // Implementation for all built-in ExCmds
 
 import './number.mod'
+import state from "./state"
 
 interface ContentCommandMessage {
     type: string
@@ -25,6 +26,11 @@ async function messageFilteredTabs(filter, command: string, args?: Array<any>) {
 function hasScheme(uri: string) {
     return uri.match(/^(\w+):/)
 }
+
+// Mode changing commands
+// TODO: Generalise this
+export function insertmode() {state.mode = "INSERT"}
+export function normalmode() {state.mode = "NORMAL"}
 
 // Scrolling functions
 export function scrollby(x: number, y: number ) { messageActiveTab("scrollpx", [x, y]) }

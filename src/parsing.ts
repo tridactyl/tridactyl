@@ -101,7 +101,7 @@ export namespace normalmode {
         return posskeystrs.filter((key)=>key.startsWith(fragment))
     }
 
-    interface NormalResponse {
+    export interface NormalResponse {
         keys?: string[]
         ex_str?: string
     }

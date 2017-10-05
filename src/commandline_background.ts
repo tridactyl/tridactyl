@@ -4,7 +4,7 @@
 */
 export namespace onLine {
 
-    type onLineCallback = (exStr: string) => void
+    export type onLineCallback = (exStr: string) => void
 
     const listeners = new Set<onLineCallback>()
     export function addListener(cb: onLineCallback) {

@@ -3,7 +3,7 @@
 // {{{ Helper functions
 
 function pick (o, ...props) {
-  return Object.assign({}, ...props.map(prop => ({[prop]: o[prop]})))
+    return Object.assign({}, ...props.map(prop => ({[prop]: o[prop]})))
 }
 
 // Shallow copy of keyevent.
@@ -14,7 +14,11 @@ function shallowKeyboardEvent (ke): Event {
     'bubbles', 'composed', 'defaultPrevented', 'eventPhase',
     'timeStamp', 'type', 'isTrusted'
   )
-  shallow.target = pick(ke.target, 'tagName')
+  shallow.target = pick(
+    ke.target,
+    'type', 'nodeName', 'role', 'contentEditable',
+    'tagName', 
+  )
   shallow.target.ownerDocument = pick(ke.target.ownerDocument, 'URL')
   return shallow
 } // }}}
