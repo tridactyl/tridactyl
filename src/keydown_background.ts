@@ -2,7 +2,7 @@
 
 // Type for messages sent from keydown_content
 interface KeydownShimMessage {
-    command: string
+    type: string
     event: Event
 }
 
@@ -18,7 +18,7 @@ export const onKeydown = { addListener }
 
 // Receive events from content and pass to listeners
 function handler(message: KeydownShimMessage) {
-    if (message.command === "keydown") {
+    if (message.type === "keydown") {
         for (let listener of listeners) {
             listener(message.event)
         }

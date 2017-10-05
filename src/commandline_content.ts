@@ -10,16 +10,23 @@
 */
 
 // inject the commandline iframe into a content page
-export function showcommandline(){
-    let clFrame = window.document.createElement("iframe")
-    clFrame.setAttribute("src", browser.extension.getURL("static/commandline.html"))
-    clFrame.setAttribute("style", "position: fixed; top: 0; left: 0; z-index: 10000; width: 100%; height: 36px; border: 0; padding: 0; margin: 0;");
-    window.document.body.appendChild(clFrame)
+
+export let COMMANDLINE = null
+
+export function show(){
+    COMMANDLINE = window.document.createElement("iframe")
+    COMMANDLINE.setAttribute("src", browser.extension.getURL("static/commandline.html"))
+    COMMANDLINE.setAttribute("style", "position: fixed; top: 0; left: 0; z-index: 10000; width: 100%; height: 36px; border: 0; padding: 0; margin: 0;");
+    window.document.body.appendChild(COMMANDLINE)
 
     /** Focus the commandline input: not required **/
-    // let focus = ():void => clFrame.focus()
+    // let focus = ():void => COMMANDLINE.focus()
     // line below doesn't work
-    clFrame.addEventListener("blur",clFrame.remove)
+    COMMANDLINE.addEventListener("blur",COMMANDLINE.remove)
     // Why were we returning focus? It's a void, surely?
     // return focus
+}
+
+export function focus(){
+    COMMANDLINE.focus()
 }

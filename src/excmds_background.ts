@@ -1,12 +1,6 @@
-/** Conventional definition of modulo that never gives a -ve result. */
-
-Number.prototype.mod = function (n: number): number {
-    return Math.abs(this % n)
-}
-
 // Implementation for all built-in ExCmds
-//
-// Example code. Needs to be replaced
+
+import './number.mod'
 
 interface ContentCommandMessage {
     type: string
