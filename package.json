@@ -2,12 +2,17 @@
   "name": "tridactyl",
   "version": "0.1.0",
   "description": "Vimperator/Pentadactyl successor",
-  "dependencies": {},
+  "dependencies": {
+    "@sweet-js/cli": "^3.0.13"
+  },
   "devDependencies": {
+    "@types/jest": "^21.1.1",
     "awesome-typescript-loader": "^3.2.3",
     "copy-webpack-plugin": "^4.1.0",
+    "jest": "^21.2.1",
     "shared-git-hooks": "^1.2.1",
     "source-map-loader": "^0.2.2",
+    "ts-jest": "^21.0.1",
     "typescript": "^2.5.3",
     "uglify-es": "^3.1.2",
     "uglifyjs-webpack-plugin": "^1.0.0-beta.2",
@@ -19,6 +24,19 @@
     "clean": "rm -rf build",
     "test": "npm run build",
     "update-buildsystem": "rm -rf src/node_modules; npm run clean"
+  },
+  "jest": {
+    "transform": {
+      "^.+\\.tsx?$": "<rootDir>/node_modules/ts-jest/preprocessor.js"
+    },
+    "testRegex": "(/__tests__/.*|(\\.|/)(test|spec))\\.(jsx?|tsx?)$",
+    "moduleFileExtensions": [
+      "ts",
+      "tsx",
+      "js",
+      "jsx",
+      "json"
+    ]
   },
   "author": "Colin Caine"
 }
