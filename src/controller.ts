@@ -58,13 +58,17 @@ export function acceptKey(keyevent: Event) {
 
 /** Parse and execute ExCmds */
 export function acceptExCmd(ex_str: string) {
-    let [func, args] = Parsing.exmode.parser(ex_str)
-
+    // TODO: Errors should go to CommandLine.
     try {
-        func(...args)
+        let [func, args] = Parsing.exmode.parser(ex_str)
+        try {
+            func(...args)
+        } catch (e) {
+            // Errors from func are caught here (e.g. no next tab)
+            console.error(e)
+        }
     } catch (e) {
-        // Errors from func are caught here (e.g. no next tab)
-        // TODO: Errors should go to CommandLine.
+        // Errors from parser caught here
         console.error(e)
     }
 }
