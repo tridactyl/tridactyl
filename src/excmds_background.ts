@@ -90,6 +90,10 @@ export function showcommandline(){
     messageActiveTab("showcommandline")
 }
 
+export function hidecommandline(){
+    messageActiveTab("hidecommandline")
+}
+
 // TODO: address should default to some page to which we have access
 //          and focus the location bar
 export async function tabopen(address?: string){

@@ -12,9 +12,9 @@ clInput.addEventListener("keydown", function (keyevent) {
 
 /* Send the commandline to the background script and await response. */
 function process() {
-    // TODO.
     console.log(clInput.value)
     browser.runtime.sendMessage({type: "commandline", exStr: clInput.value})
+    browser.runtime.sendMessage({type: "commandline", exStr: "hidecommandline"})
     clInput.value = ""
 }
 

@@ -24,9 +24,11 @@ const commands = new Map<string, ContentCommand>([
         window.history.go(n)
     },
     function showcommandline() {
-        CommandLineContent.show()
         CommandLineContent.focus()
-    }
+    },
+    function hidecommandline() {
+        CommandLineContent.hide()
+    },
 ].map((command):any => [command.name, command]))
 
 function messageReceiver(message) {
