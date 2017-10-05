@@ -32,3 +32,7 @@ Useful workarounds and methods to get the power we want in the brave new world o
     - [Demo](https://github.com/Allasso/Find_API_demo_WE_advanced)
     - How to replicate find links? Do we care?
     - Can this be used to exfiltrate info about about pages?
+
+ - Can't navigate to restricted URLs
+    - [about:](https://bugzilla.mozilla.org/show_bug.cgi?id=1371793)
+    - [file:](https://bugzilla.mozilla.org/show_bug.cgi?id=1266960)
