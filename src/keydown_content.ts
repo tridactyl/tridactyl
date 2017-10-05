@@ -8,28 +8,28 @@ function pick (o, ...props) {
 
 // Shallow copy of keyevent.
 function shallowKeyboardEvent (ke): Event {
-  let shallow = pick(
-    ke,
-    'shiftKey', 'metaKey', 'altKey', 'ctrlKey', 'repeat', 'key',
-    'bubbles', 'composed', 'defaultPrevented', 'eventPhase',
-    'timeStamp', 'type', 'isTrusted'
-  )
-  shallow.target = pick(
-    ke.target,
-    'type', 'nodeName', 'role', 'contentEditable',
-    'tagName', 
-  )
-  shallow.target.ownerDocument = pick(ke.target.ownerDocument, 'URL')
-  return shallow
+    let shallow = pick(
+        ke,
+        'shiftKey', 'metaKey', 'altKey', 'ctrlKey', 'repeat', 'key',
+        'bubbles', 'composed', 'defaultPrevented', 'eventPhase',
+        'timeStamp', 'type', 'isTrusted'
+    )
+    shallow.target = pick(
+        ke.target,
+        'type', 'nodeName', 'role', 'contentEditable',
+        'tagName', 
+    )
+    shallow.target.ownerDocument = pick(ke.target.ownerDocument, 'URL')
+    return shallow
 } // }}}
 
 function keyeventHandler(ke: KeyboardEvent) {
     // Suppress events, if requested
     if (preventDefault) {
-      ke.preventDefault()
+        ke.preventDefault()
     }
     if (stopPropagation) {
-      ke.stopPropagation()
+        ke.stopPropagation()
     }
     browser.runtime.sendMessage({type: "keydown", event: shallowKeyboardEvent(ke)})
 }
@@ -37,12 +37,12 @@ function keyeventHandler(ke: KeyboardEvent) {
 // Listen for suppression messages from bg script.
 function backgroundListener(message) {
     if (message.type === "keydown-suppress") {
-      if ('preventDefault' in message.data) {
-        preventDefault = message.data.preventDefault
-      }
-      if ('stopPropagation' in message.data) {
-        stopPropagation = message.data.stopPropagation
-      }
+        if ('preventDefault' in message.data) {
+            preventDefault = message.data.preventDefault
+        }
+        if ('stopPropagation' in message.data) {
+            stopPropagation = message.data.stopPropagation
+        }
     }
 }
 
