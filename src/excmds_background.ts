@@ -137,10 +137,14 @@ export async function tabnext(increment = 1) {
 }
 export function tabprev(increment = 1) { tabnext(increment*-1) }
 
-// History functions
+// History/navigation functions
 export function history(n = 1) {messageActiveTab("history",[n])}
 export function historyback(n = 1) {history(n*-1)}
 export function historyforward(n = 1) {history(n)}
+export function open(url: string) {
+    url = (hasScheme(url)? "" : "http://") + url
+    messageActiveTab("open", [url])
+}
 
 // Misc functions
 export function focuscmdline() { messageActiveTab("focuscmdline") }

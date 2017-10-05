@@ -23,6 +23,9 @@ const commands = new Map<string, ContentCommand>([
     function history(n: number) {
         window.history.go(n)
     },
+    function open(url: string) {
+        window.location.href = url
+    },
     function showcommandline() {
         CommandLineContent.focus()
     },
