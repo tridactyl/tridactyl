@@ -47,7 +47,7 @@ export namespace normalmode {
         ["gT", "tabprev"],
         ["gr", "reader"],
         [":", "showcommandline"],
-        ["s", "open google"],
+        ["s", "showcommandline google"],
         ["xx", "something"],
         ["i", "insertmode"],
         // Special keys must be prepended with 🄰

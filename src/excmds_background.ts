@@ -178,5 +178,11 @@ export function open(url: string) {
     messageActiveTab("open", [url])
 }
 
+// Hard coded search but lack thereof was annoying
+export function google(query: string[]){
+    let url = "https://www.google.co.uk/search?q=" + query//.join(" ")
+    messageActiveTab("open", [url])
+}
+
 // Misc functions
 export function focuscmdline() { messageActiveTab("focuscmdline") }
