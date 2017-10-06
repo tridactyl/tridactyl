@@ -73,10 +73,11 @@ export async function scrolldownhalfpage(n = 1) {
 }
 export function scrolluphalfpage(n = 1) { scrolldownhalfpage(n*-1) }
 
+export function scrollto(x: number, y: number) { messageActiveTab("scrollto", [x, y]) }
 export function scrolltobottom() { scrolldown(999999999) } // maximum value scrolldown would respond to
 export async function scrolltotop() {
     const current_window = await browser.windows.getCurrent()
-    messageActiveTab("scrollto", [current_window.left, 0])
+    scrollto(current_window.left, 0)
 }
 
 // Tab functions
@@ -104,12 +105,31 @@ export async function tabclose(n = 1){
     closetabs(await getnexttabs(activeTabID,n))
 }
 
+export async function tabmove(n?: string){
+    let activeTab = (await browser.tabs.query({active: true}))[0], m: number
+    if (!n) { browser.tabs.move(activeTab.id, {index: -1}); return; }
+    else if (n.startsWith("+") || n.startsWith("-")) {
+        m = Math.max(0, Number(n) + activeTab.index)
+    }
+    else m = Number(n)
+    browser.tabs.move(activeTab.id, {index: m})
+}
+
+export async function pin(){
+    let activeTab = (await browser.tabs.query({active: true}))[0]
+    browser.tabs.update(activeTab.id, {pinned: !activeTab.pinned})
+}
+
 export async function reload(n = 1, hard = false){
     let tabstoreload = await getnexttabs(await getactivetabid(),n)
     let reloadProperties = {bypassCache: hard}
     tabstoreload.map(
         (n)=>browser.tabs.reload(n, reloadProperties)
     )
+}
+
+export async function reloadhard(n = 1){
+    reload(n, true)
 }
 
 // Commandline function
@@ -123,15 +143,23 @@ export function hidecommandline(){
     messageActiveTab("hidecommandline")
 }
 
+export async function winopen(...args){
+    let address: string
+    const createData = {}
+    if (args[0] === "-private") {
+        createData['incognito'] = true
+        if (args[1]) address = args[1]
+    }
+    else if (args[0]) address = args[0]
+    if (address) createData['url'] = (hasScheme(address)? "" : "http://") + address
+    browser.windows.create(createData)
+}
+
 // TODO: address should default to some page to which we have access
 //          and focus the location bar
 export async function tabopen(address?: string){
     if (address) address = (hasScheme(address)? "" : "http://") + address
     browser.tabs.create({url: address})
-}
-
-export async function reloadhard(n = 1){
-    reload(n, true)
 }
 
 /** Switch to the next tab by index (position on tab bar), wrapping round.
