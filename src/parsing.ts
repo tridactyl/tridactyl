@@ -12,7 +12,7 @@ export namespace insertmode  {
 
     // Placeholder - should be moved into generic parser
     export function parser(keys){
-        return keys
+        return {keys: []}
     }
 
 }
