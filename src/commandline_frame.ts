@@ -21,8 +21,11 @@ function process() {
 }
 
 function changecommand(newcommand?: string){
-    clInput.value = newcommand
-    console.log(newcommand, clInput.value)
+    if (newcommand !== undefined) {
+        clInput.value = newcommand
+    }
+    // Focus is lost for some reason.
+    clInput.focus()
 }
 
 function handler(message) {

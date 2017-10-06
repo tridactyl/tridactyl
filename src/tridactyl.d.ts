@@ -13,7 +13,8 @@ interface Message {
         "excmd_contentcommand" |
         "keydown" |
         "keydown_suppress" |
-        "commandline"
+        "commandline" |
+        "commandline_frame"
     // And other unknown attributes...
     [key: string]: any
 }

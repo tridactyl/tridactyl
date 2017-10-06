@@ -9,12 +9,23 @@ interface ContentCommandMessage extends Message {
     args?: Array<any>
 }
 
-function messageCommandline(command: string, args?: Array<any>) {
-    browser.runtime.sendMessage({
+/** The first active tab in the currentWindow.
+ *
+ * TODO: Highlander theory: Can there ever be more than one?
+ *
+ */
+async function activeTab() {
+    return (await browser.tabs.query({active:true, currentWindow:true}))[0]
+}
+
+async function messageCommandline(command: string, args?: Array<any>) {
+    let message: Message = {
         type: 'commandline_frame',
         command,
         args,
-    })
+    }
+    // For commandlines not in iframes on content scripts, use runtime
+    browser.tabs.sendMessage((await activeTab()).id, message)
 }
 
 function messageActiveTab(command: string, args?: Array<any>) {
@@ -25,10 +36,13 @@ async function messageFilteredTabs(filter, command: string, args?: Array<any>) {
     let message: ContentCommandMessage = {type: "excmd_contentcommand", command: command}
     if (!(args == undefined)) message.args = args
 
-    let filtTabs = await browser.tabs.query(filter)
-    filtTabs.map((tab) => {
-        browser.tabs.sendMessage(tab.id,message)
-    })
+    browser.tabs.sendMessage((await activeTab()).id, message)
+
+    // Old code for reference in case more than one tab can be active...
+    // let filtTabs = await browser.tabs.query(filter)
+    // filtTabs.map((tab) => {
+    //     browser.tabs.sendMessage(tab.id,message)
+    // })
 }
 
 function hasScheme(uri: string) {
@@ -54,15 +68,15 @@ export function scrolldownpage(n = 1) { messageActiveTab("scrollpage", [n]) }
 export function scrolluppage(n = 1) { scrolldownpage(n*-1) }
 
 export async function scrolldownhalfpage(n = 1) {
-  const current_window = await browser.windows.getCurrent()
-  scrolldown(n*0.5*current_window.height)
+    const current_window = await browser.windows.getCurrent()
+    scrolldown(n*0.5*current_window.height)
 }
 export function scrolluphalfpage(n = 1) { scrolldownhalfpage(n*-1) }
 
 export function scrolltobottom() { scrolldown(999999999) } // maximum value scrolldown would respond to
 export async function scrolltotop() {
-  const current_window = await browser.windows.getCurrent()
-  messageActiveTab("scrollto", [current_window.left, 0])
+    const current_window = await browser.windows.getCurrent()
+    messageActiveTab("scrollto", [current_window.left, 0])
 }
 
 // Tab functions
@@ -101,8 +115,8 @@ export async function reload(n = 1, hard = false){
 // Commandline function
 
 export function showcommandline(exstr?){
-    messageCommandline("changecommand", [exstr,])
     messageActiveTab("showcommandline")
+    messageCommandline("changecommand", [exstr,])
 }
 
 export function hidecommandline(){
@@ -123,7 +137,7 @@ export async function reloadhard(n = 1){
 /** Switch to the next tab by index (position on tab bar), wrapping round.
 
     optional increment is number of tabs forwards to move.
-*/
+ */
 export async function tabnext(increment = 1) {
     try {
         // Get an array of tabs in the current window
