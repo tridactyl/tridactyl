@@ -180,7 +180,7 @@ export function open(url: string) {
 
 // Hard coded search but lack thereof was annoying
 export function google(query: string[]){
-    let url = "https://www.google.co.uk/search?q=" + query//.join(" ")
+    let url = "https://www.google.co.uk/search?q=" + query//.join("+")
     messageActiveTab("open", [url])
 }
 
