@@ -29,14 +29,15 @@ export namespace normalmode {
     // TODO: stop stealing keys from "insert mode"
     //          r -> refresh page is particularly unhelpful
     const nmaps = new Map<string, string>([
-        ["t", "tabopen"],
-        ["k", "scrollupline 10"],
+        ["o", "showcommandline open"],
+        ["w", "showcommandline winopen"],
+        ["t", "showcommandline tabopen"],
         ["j", "scrolldownline 10"],
+        ["k", "scrollupline 10"],
         ["h", "scrollleft"],
         ["l", "scrollright"],
         ["G", "scrolltobottom"],
         ["gg", "scrolltotop"],
-        ["o", "showcommandline open"],
         ["H", "historyback"],
         ["L", "historyforward"],
         ["d", "tabclose"],
