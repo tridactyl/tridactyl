@@ -36,13 +36,10 @@ async function messageFilteredTabs(filter, command: string, args?: Array<any>) {
     let message: ContentCommandMessage = {type: "excmd_contentcommand", command: command}
     if (!(args == undefined)) message.args = args
 
-    browser.tabs.sendMessage((await activeTab()).id, message)
-
-    // Old code for reference in case more than one tab can be active...
-    // let filtTabs = await browser.tabs.query(filter)
-    // filtTabs.map((tab) => {
-    //     browser.tabs.sendMessage(tab.id,message)
-    // })
+    let filtTabs = await browser.tabs.query(filter)
+    filtTabs.map((tab) => {
+        browser.tabs.sendMessage(tab.id,message)
+    })
 }
 
 function hasScheme(uri: string) {
