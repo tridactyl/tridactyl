@@ -1,12 +1,14 @@
 // Interface: onKeydown.addListener(func)
 
+import {MsgSafeKeyboardEvent} from './msgsafe'
+
 // Type for messages sent from keydown_content
-interface KeydownShimMessage {
-    type: string
-    event: Event
+export interface KeydownShimMessage extends Message {
+    type: "keydown"
+    event: MsgSafeKeyboardEvent
 }
 
-type KeydownCallback = (keyevent: Event) => void
+type KeydownCallback = (keyevent: MsgSafeKeyboardEvent) => void
 
 const listeners = new Set<KeydownCallback>()
 function addListener(cb: KeydownCallback) {

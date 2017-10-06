@@ -13,7 +13,7 @@ export namespace onLine {
     }
 
     /** Receive events from commandline_frame and pass to listeners */
-    function handler(message: any) {
+    function handler(message: Message) {
         if (message.type === "commandline") {
             for (let listener of listeners) {
                 listener(message.exStr)

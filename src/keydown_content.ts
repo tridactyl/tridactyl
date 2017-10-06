@@ -1,27 +1,6 @@
 /** Shim for the keyboard API because it won't hit in FF57. */
 
-// {{{ Helper functions
-
-function pick (o, ...props) {
-    return Object.assign({}, ...props.map(prop => ({[prop]: o[prop]})))
-}
-
-// Shallow copy of keyevent.
-function shallowKeyboardEvent (ke): Event {
-    let shallow = pick(
-        ke,
-        'shiftKey', 'metaKey', 'altKey', 'ctrlKey', 'repeat', 'key',
-        'bubbles', 'composed', 'defaultPrevented', 'eventPhase',
-        'timeStamp', 'type', 'isTrusted'
-    )
-    shallow.target = pick(
-        ke.target,
-        'type', 'nodeName', 'role', 'contentEditable',
-        'tagName', 
-    )
-    shallow.target.ownerDocument = pick(ke.target.ownerDocument, 'URL')
-    return shallow
-} // }}}
+import * as msgsafe from './msgsafe'
 
 function keyeventHandler(ke: KeyboardEvent) {
     // Suppress events, if requested
@@ -31,12 +10,12 @@ function keyeventHandler(ke: KeyboardEvent) {
     if (stopPropagation) {
         ke.stopPropagation()
     }
-    browser.runtime.sendMessage({type: "keydown", event: shallowKeyboardEvent(ke)})
+    browser.runtime.sendMessage({type: "keydown", event: msgsafe.KeyboardEvent(ke)})
 }
 
 // Listen for suppression messages from bg script.
-function backgroundListener(message) {
-    if (message.type === "keydown-suppress") {
+function backgroundListener(message: Message) {
+    if (message.type === "keydown_suppress") {
         if ('preventDefault' in message.data) {
             preventDefault = message.data.preventDefault
         }

@@ -31,7 +31,7 @@ const commands = new Map<string, ContentCommand>([
     },
 ].map((command):any => [command.name, command]))
 
-function messageReceiver(message) {
+function messageReceiver(message: Message) {
     if (message.type === "excmd_contentcommand") {
         console.log(message)
         if (commands.has(message.command)) {

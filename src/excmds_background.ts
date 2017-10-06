@@ -3,8 +3,8 @@
 import './number.mod'
 import state from "./state"
 
-interface ContentCommandMessage {
-    type: string
+interface ContentCommandMessage extends Message {
+    type: "excmd_contentcommand"
     command: string
     args?: Array<any>
 }

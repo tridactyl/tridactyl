@@ -1,3 +1,4 @@
+import {MsgSafeKeyboardEvent, MsgSafeNode} from './msgsafe'
 import * as Parsing from "./parsing"
 import state from "./state"
 
@@ -12,7 +13,7 @@ import state from "./state"
  * @param {HTMLElement} element
  * @returns {boolean}
  */
-export function isTextEditable (element) {
+export function isTextEditable (element: MsgSafeNode) {
   if (element) {
     switch (element.nodeName) {
       case 'INPUT':
@@ -34,7 +35,7 @@ export function isTextEditable (element) {
  * Returns whether the passed HTML input element is editable
  * @param {HTMLInputElement} element
  */
-function isEditableHTMLInput (element) {
+function isEditableHTMLInput (element: MsgSafeNode) {
   if (element.disabled || element.readonly) return false
   switch (element.type) {
     case undefined:
@@ -60,7 +61,7 @@ function *ParserController () {
         let keys = []
         try {
             while (true) { 
-                let keyevent = yield
+                let keyevent: MsgSafeKeyboardEvent = yield
                 let keypress = keyevent.key
 
                 if (isTextEditable(keyevent.target)) {
@@ -68,7 +69,7 @@ function *ParserController () {
                 } else {
                     state.mode = "NORMAL"
                 }
-                console.log(keypress, state.mode)
+                console.log(keyevent, state.mode)
 
                 // Special keys (e.g. Backspace) are not handled properly
                 // yet. So drop them. This also drops all modifier keys.
@@ -111,7 +112,7 @@ let generator = ParserController() // var rather than let stops weirdness in rep
 generator.next()
 
 /** Feed keys to the ParserController */
-export function acceptKey(keyevent: Event) {
+export function acceptKey(keyevent: MsgSafeKeyboardEvent) {
     generator.next(keyevent)
 }
 

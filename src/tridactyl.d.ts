@@ -9,9 +9,13 @@ interface Number {
 
 // For content.ts
 interface Message {
-    command?: string
-    string?: string
-    number?: number
+    type:
+        "excmd_contentcommand" |
+        "keydown" |
+        "keydown_suppress" |
+        "commandline"
+    // And other unknown attributes...
+    [key: string]: any
 }
 
 // Firefox-specific dom properties
@@ -19,4 +23,3 @@ interface Window {
     scrollByLines(n: number): void
     scrollByPages(n: number):  void
 }
-
