@@ -5,6 +5,7 @@
 
 interface Number {
     mod(n: number): number
+    clamp(lo: number, hi: number): number
 }
 
 // For content.ts
@@ -18,6 +19,8 @@ interface Message {
     // And other unknown attributes...
     [key: string]: any
 }
+
+declare var content: any
 
 // Firefox-specific dom properties
 interface Window {

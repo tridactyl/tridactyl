@@ -53,29 +53,13 @@ export function normalmode() {state.mode = "NORMAL"}
 
 // Scrolling functions
 export function scrollby(x: number, y: number ) { messageActiveTab("scrollpx", [x, y]) }
-export function scrolldown(n = 1) { scrollby(0, n) }
-export function scrollup(n = 1) { scrolldown(n*-1) }
-export function scrollright(n = 1) { scrollby(n, 0) }
-export function scrollleft(n = 1) { scrollright(n*-1) }
-
-export function scrolldownline(n = 1) { messageActiveTab("scrollline", [n]) }
-export function scrollupline(n = 1) { scrolldownline(n*-1) }
-
-export function scrolldownpage(n = 1) { messageActiveTab("scrollpage", [n]) }
-export function scrolluppage(n = 1) { scrolldownpage(n*-1) }
-
-export async function scrolldownhalfpage(n = 1) {
-    const current_window = await browser.windows.getCurrent()
-    scrolldown(n*0.5*current_window.height)
+export function scroll(n = 1) { scrollby(0, n) }
+export function scrollx(n = 1) { scrollby(n, 0) }
+export function scrollline(n = 1) { messageActiveTab("scrollline", [n]) }
+export async function scrollpage(n = 1) {
+    messageActiveTab("scrollpage", [n*(await browser.windows.getCurrent()).height])
 }
-export function scrolluphalfpage(n = 1) { scrolldownhalfpage(n*-1) }
-
-export function scrollto(x: number, y: number) { messageActiveTab("scrollto", [x, y]) }
-export function scrolltobottom() { scrolldown(999999999) } // maximum value scrolldown would respond to
-export async function scrolltotop() {
-    const current_window = await browser.windows.getCurrent()
-    scrollto(current_window.left, 0)
-}
+export function scrollto(amount: number | [number, number]) { messageActiveTab("scrollto", [amount]) }
 
 // Tab functions
 

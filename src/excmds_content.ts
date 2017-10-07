@@ -15,10 +15,14 @@ const commands = new Map<string, ContentCommand>([
         window.scrollByLines(n)
     },
     function scrollpage(n: number) {
-        window.scrollByPages(n)
+        window.scrollBy(0, n)
     },
-    function scrollto(x: number, y: number) {
-        window.scrollTo(x, y)
+    function scrollto(a: number, b?: number) {
+        console.log(eval('content.document.scrollingElement.scrollHeight'))
+        window.scrollTo(b ? a : window.scrollX,
+            b ? b : a.clamp(-100, 100) * eval("content.document.scrollingElement.scrollHeight") / 100)
+        // window.scrollTo(amount[0] || 0,
+        //     (amount[1] ? amount[1] : amount * eval('content.document.scrollingElement.scrollHeight'))
     },
     function history(n: number) {
         window.history.go(n)
