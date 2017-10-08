@@ -27,7 +27,7 @@ const commands = new Map<string, ContentCommand>([
         b = Number(b)
         window.scrollTo(
             b ? a : window.scrollX,
-            b ? b : a.clamp(-100, 100) * (window.document.scrollingElement.scrollHeight / 100)
+            b ? b : a.clamp(0, 100) * (window.document.scrollingElement.scrollHeight / 100)
         )
     },
     function history(n: number) {
