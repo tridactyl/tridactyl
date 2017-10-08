@@ -1,4 +1,5 @@
 import * as CommandLineContent from './commandline_content'
+import './number.clamp'
 
 // Some supporting stuff for ExCmds.
 
@@ -17,12 +18,17 @@ const commands = new Map<string, ContentCommand>([
     function scrollpage(n: number) {
         window.scrollBy(0, n)
     },
+    /** If one argument is given, scroll to that percentage down the page.
+        If two arguments are given, treat as x and y values to give to window.scrollTo
+    */
     function scrollto(a: number, b?: number) {
-        console.log(eval('content.document.scrollingElement.scrollHeight'))
-        window.scrollTo(b ? a : window.scrollX,
-            b ? b : a.clamp(-100, 100) * eval("content.document.scrollingElement.scrollHeight") / 100)
-        // window.scrollTo(amount[0] || 0,
-        //     (amount[1] ? amount[1] : amount * eval('content.document.scrollingElement.scrollHeight'))
+        a = Number(a)
+        // if b is undefined, Number(b) is NaN.
+        b = Number(b)
+        window.scrollTo(
+            b ? a : window.scrollX,
+            b ? b : a.clamp(-100, 100) * (window.document.scrollingElement.scrollHeight / 100)
+        )
     },
     function history(n: number) {
         window.history.go(n)
@@ -42,10 +48,14 @@ function messageReceiver(message: Message) {
     if (message.type === "excmd_contentcommand") {
         console.log(message)
         if (commands.has(message.command)) {
-            if (message.args == null) {
-                commands.get(message.command)()
-            } else {
-                commands.get(message.command)(...message.args)
+            try {
+                if (message.args == null) {
+                    commands.get(message.command)()
+                } else {
+                    commands.get(message.command)(...message.args)
+                }
+            } catch (e) {
+                console.error(`${message.command} failed!`, e)
             }
         } else {
             console.error("Invalid excmd_contentcommand!", message)
