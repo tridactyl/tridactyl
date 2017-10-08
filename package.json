@@ -5,6 +5,7 @@
   "dependencies": {},
   "devDependencies": {
     "@types/jest": "^21.1.2",
+    "@types/node": "^8.0.33",
     "awesome-typescript-loader": "^3.2.3",
     "copy-webpack-plugin": "^4.1.1",
     "jest": "^21.2.1",
