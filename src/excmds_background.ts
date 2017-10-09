@@ -186,3 +186,37 @@ export function google(query: string[]){
 
 // Misc functions
 export function focuscmdline() { messageActiveTab("focuscmdline") }
+export async function openbuffer() {
+    showcommandline("buffer")
+    messageCommandline("changecompletions", [await listTabs(),])
+
+}
+export async function buffer(n?: number) {
+    // Vimperator index starts at 1
+    if (!n || Number(n) == 0) return
+    tabSetActive((await browser.tabs.query({currentWindow: true, index: Number(n) - 1}))[0].id)
+}
+async function getTabs() {
+    const tabs = await browser.tabs.query({currentWindow: true})
+    tabs.sort((a, b) => { return (a.index < b.index ? -1 : 1) })
+    return tabs
+}
+function formatTab(tab: browser.tabs.Tab) {
+    let formatted = "<p>"
+    if (tab.active) formatted += "%"
+    if (tab.pinned) formatted += "@"
+    // TODO: previous tab mark with "#"
+    // consider: tab with 2nd smallest time since lastAccessed
+    formatted.padEnd(3)
+    // TODO: favicons tab.favIconUrl
+    // TODO: modularize; z-index of url > title like Vimperator
+    formatted += `${tab.index}: ${tab.title} ${tab.url}</p>`
+    return formatted
+}
+async function listTabs() {
+    let buffers: string = ""
+    for (let tab of await getTabs()) {
+        buffers += formatTab(tab)
+    }
+    return buffers
+}

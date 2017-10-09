@@ -10,6 +10,17 @@ input {
   font-size: 8pt;
 }
 
+#completions {
+  font-family: mono;
+  font-size: .75em;
+  height: auto;
+  padding: 0;
+  overflow: auto;
+  margin: 0;
+  bottom: 36px;
+  width: 100%;
+}
+
 #rainbow {
   background: linear-gradient(0deg, rgba(217,26,18,0.70) 15%, rgba(225,51,0,0.70) 15%, rgba(255, 127, 20, 0.70) 16%, rgba(242, 171, 3, 0.70) 32%, rgba(235, 192, 0, 0.70) 32%, rgba(250, 222, 0, 0.70) 33%, rgba(239, 255, 3, 0.70) 48%, rgba(86, 252, 2, 0.70) 49%, rgba(82, 255, 1, 0.70) 66%, rgba(74, 222, 126, 0.70) 67%, rgba(59, 170, 242, 0.70) 67%, rgba(59, 170, 242, 0.70) 84%, rgba(115, 55, 247, 0.70) 84%, rgba(107, 64, 242, 0.70) 100%);
   position: fixed;

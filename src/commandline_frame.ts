@@ -2,6 +2,7 @@
 
 import * as Messaging from './messaging'
 
+let completions = window.document.getElementById("completions") as HTMLElement
 let clInput = window.document.getElementById("tridactyl-input") as HTMLInputElement
 clInput.focus()
 
@@ -26,6 +27,16 @@ function changecommand(newcommand?: string){
     }
     // Focus is lost for some reason.
     clInput.focus()
+}
+
+function changecompletions(newcompletions: string) {
+    completions.innerHTML = newcompletions
+    // completions.childNodes[0].nodeValue = newcompletions
+}
+
+function hidecompletions() {
+    completions.innerHTML = "<p></p>"
+    // completions.childNodes[0].nodeValue = ""
 }
 
 function handler(message) {
