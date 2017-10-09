@@ -10,6 +10,10 @@ clInput.addEventListener("keydown", function (keyevent) {
     if (keyevent.key === "Enter") {
         process()
     }
+    if (keyevent.key === "Escape") {
+        browser.runtime.sendMessage({type: "commandline", exStr: "hidecommandline"})
+        clInput.value = ""
+    }
 })
 
 /* Send the commandline to the background script and await response. */
