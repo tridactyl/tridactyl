@@ -1,5 +1,6 @@
 const UglifyJSPlugin = require('uglifyjs-webpack-plugin')
 const CopyWebPackPlugin = require('copy-webpack-plugin')
+const WebpackShellPlugin = require('webpack-shell-plugin')
 
 module.exports = {
     entry: {
@@ -36,6 +37,9 @@ module.exports = {
         //         ecma: 8
         //     }
         // }),
+        new WebpackShellPlugin({onBuildStart: [
+            'python3 src/excmds_macros.py'
+        ]}),
         new CopyWebPackPlugin([
             { from: "src/manifest.json" },
             { from: "src/static", to: "static" },

@@ -11,7 +11,7 @@ interface Number {
 // For content.ts
 interface Message {
     type:
-        "excmd_contentcommand" |
+        "excmd_content" |
         "keydown" |
         "keydown_suppress" |
         "commandline" |
@@ -37,3 +37,5 @@ declare namespace browser.sessions{
     function getRecentlyClosed(filter: any): any
     function restore(sessionId: number): any
 }
+
+type ModeType = "NORMAL" | "INSERT"

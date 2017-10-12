@@ -29,12 +29,12 @@ export namespace normalmode {
     // TODO: stop stealing keys from "insert mode"
     //          r -> refresh page is particularly unhelpful
     const nmaps = new Map<string, string>([
-        ["o", "showcommandline open"],
+        ["o", "fillcmdline open"],
         ["O", "current-url open"],
-        ["w", "showcommandline winopen"],
+        ["w", "fillcmdline winopen"],
         ["W", "current-url winopen"],
         ["t", "tabopen"],
-        //["t", "showcommandline tabopen"], // for now, use mozilla completion
+        //["t", "fillcmdline tabopen"], // for now, use mozilla completion
         ["]]", "clicknext"], 
         ["[[", "clicknext prev"], 
         ["T", "current-url tab"],
@@ -44,8 +44,8 @@ export namespace normalmode {
         ["l", "scrollx 5"],
         ["G", "scrollto 100"],
         ["gg", "scrollto 0"],
-        ["H", "historyback"],
-        ["L", "historyforward"],
+        ["H", "back"],
+        ["L", "forward"],
         ["d", "tabclose"],
         ["u", "undo"],
         ["r", "reload"],
@@ -53,8 +53,8 @@ export namespace normalmode {
         ["gt", "tabnext"],
         ["gT", "tabprev"],
         ["gr", "reader"],
-        [":", "showcommandline"],
-        ["s", "showcommandline google"],
+        [":", "fillcmdline"],
+        ["s", "fillcmdline google"],
         ["xx", "something"],
         ["i", "insertmode"],
         ["b", "openbuffer"],

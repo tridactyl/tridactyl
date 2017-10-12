@@ -1,4 +1,4 @@
-const state = {
+const state: { mode: ModeType } = {
     mode: "NORMAL",
 }
 

@@ -5,7 +5,8 @@ import * as SELF from './commandline_frame'
 
 let completions = window.document.getElementById("completions") as HTMLElement
 let clInput = window.document.getElementById("tridactyl-input") as HTMLInputElement
-clInput.focus()
+
+export let focus = () => clInput.focus()
 
 /* Process the commandline on enter. */
 clInput.addEventListener("keydown", function (keyevent) {
@@ -21,25 +22,25 @@ clInput.addEventListener("keydown", function (keyevent) {
         */
         completions.innerHTML = ""
         setTimeout(()=>{clInput.value = ""}, 0)
-        browser.runtime.sendMessage({type: "commandline", exStr: "hidecommandline"})
+        browser.runtime.sendMessage({type: "commandline", exStr: "hidecmdline"})
     }
 })
 
 /* Send the commandline to the background script and await response. */
 function process() {
     console.log(clInput.value)
-    browser.runtime.sendMessage({type: "commandline", exStr: "hidecommandline"})
+    browser.runtime.sendMessage({type: "commandline", exStr: "hidecmdline"})
     browser.runtime.sendMessage({type: "commandline", exStr: clInput.value})
     completions.innerHTML = ""
     clInput.value = ""
 }
 
-export function changecommand(newcommand?: string){
+export function fillcmdline(newcommand?: string){
     if (newcommand !== undefined) {
         clInput.value = newcommand
     }
     // Focus is lost for some reason.
-    clInput.focus()
+    focus()
 }
 
 export function changecompletions(newcompletions: string) {
