@@ -98,7 +98,6 @@ Missing:
 
 * command mode
 * jumplist
-* marks
 * :js
 * lots more.
 
