@@ -1,6 +1,7 @@
 /** Script used in the commandline iframe. Communicates with background. */
 
 import * as Messaging from './messaging'
+import * as SELF from './commandline_frame'
 
 let completions = window.document.getElementById("completions") as HTMLElement
 let clInput = window.document.getElementById("tridactyl-input") as HTMLInputElement
@@ -31,7 +32,7 @@ function process() {
     clInput.value = ""
 }
 
-function changecommand(newcommand?: string){
+export function changecommand(newcommand?: string){
     if (newcommand !== undefined) {
         clInput.value = newcommand + " "
     }
@@ -39,20 +40,19 @@ function changecommand(newcommand?: string){
     clInput.focus()
 }
 
-function changecompletions(newcompletions: string) {
+export function changecompletions(newcompletions: string) {
+    console.log("Hello!")
     completions.innerHTML = newcompletions
     // completions.childNodes[0].nodeValue = newcompletions
 }
 
-function hidecompletions() {
+export function hidecompletions() {
     completions.innerHTML = "<p></p>"
     // completions.childNodes[0].nodeValue = ""
 }
 
 function handler(message) {
-    console.log(message)
-    // this[message.command](...message.args)
-    changecommand(...message.args)
+    SELF[message.command](...message.args)
 }
 
 try {

@@ -50,6 +50,7 @@ export namespace normalmode {
         ["s", "showcommandline google"],
         ["xx", "something"],
         ["i", "insertmode"],
+        ["b", "openbuffer"],
         // Special keys must be prepended with 🄰
         // ["🄰Backspace", "something"],
     ])
