@@ -45,6 +45,10 @@ const commands = new Map<string, ContentCommand>([
     function hidecommandline() {
         CommandLineContent.hide()
     },
+    // Todo - send message to background
+    function getCurrentURL(){
+        return window.location.href
+    }
 ].map((command):any => [command.name, command]))
 
 function messageReceiver(message: Message) {

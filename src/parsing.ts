@@ -30,8 +30,11 @@ export namespace normalmode {
     //          r -> refresh page is particularly unhelpful
     const nmaps = new Map<string, string>([
         ["o", "showcommandline open"],
+        ["O", "current-url open"],
         ["w", "showcommandline winopen"],
+        ["W", "current-url winopen"],
         ["t", "showcommandline tabopen"],
+        ["T", "current-url tab"],
         ["j", "scrollline 10"],
         ["k", "scrollline -10"],
         ["h", "scrollx -5"],
