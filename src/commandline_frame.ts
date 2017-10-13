@@ -32,7 +32,7 @@ function process() {
 
 function changecommand(newcommand?: string){
     if (newcommand !== undefined) {
-        clInput.value = newcommand + " "
+        clInput.value = newcommand
     }
     // Focus is lost for some reason.
     clInput.focus()
