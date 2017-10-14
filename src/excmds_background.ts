@@ -9,6 +9,8 @@ interface ContentCommandMessage extends Message {
     args?: Array<any>
 }
 
+const DEFAULT_FAVICON = browser.extension.getURL("static/defaultFavicon.svg")
+
 /** The first active tab in the currentWindow.
  *
  * TODO: Highlander theory: Can there ever be more than one?
@@ -189,34 +191,42 @@ export function focuscmdline() { messageActiveTab("focuscmdline") }
 export async function openbuffer() {
     showcommandline("buffer")
     messageCommandline("changecompletions", [await listTabs(),])
+    messageActiveTab("resizecommandline")
 
 }
-export async function buffer(n?: number) {
-    // Vimperator index starts at 1
-    if (!n || Number(n) == 0) return
+export async function buffer(n?: number | string) {
+    if (!n || Number(n) == 0) return // Vimperator index starts at 1
+    if (n === "#") {
+        n = (await browser.tabs.query({currentWindow: true}))
+            .sort((a, b) => { return (a.lastAccessed < b.lastAccessed ? 1 : -1) })[1].index + 1
+    }
     tabSetActive((await browser.tabs.query({currentWindow: true, index: Number(n) - 1}))[0].id)
 }
 async function getTabs() {
     const tabs = await browser.tabs.query({currentWindow: true})
+    const lastActive = tabs.sort((a, b) => { return (a.lastAccessed < b.lastAccessed ? 1 : -1) })[1]
     tabs.sort((a, b) => { return (a.index < b.index ? -1 : 1) })
-    return tabs
+    console.log(tabs)
+    return [tabs, lastActive]
 }
-function formatTab(tab: browser.tabs.Tab) {
-    let formatted = "<p>"
+function formatTab(tab: browser.tabs.Tab, prev?: boolean) {
+    let formatted = `<div> `, url = `<div class="url">`
     if (tab.active) formatted += "%"
+    else if (prev) formatted +="#"
     if (tab.pinned) formatted += "@"
-    // TODO: previous tab mark with "#"
-    // consider: tab with 2nd smallest time since lastAccessed
-    formatted.padEnd(3)
-    // TODO: favicons tab.favIconUrl
-    // TODO: modularize; z-index of url > title like Vimperator
-    formatted += `${tab.index}: ${tab.title} ${tab.url}</p>`
-    return formatted
+    formatted = formatted.padEnd(9)
+    // TODO: Dynamically set favicon dimensions.
+    formatted += (tab.favIconUrl
+        ? `<img src="${tab.favIconUrl}" height="10px" width="10px"> `
+        : `<img src="${DEFAULT_FAVICON}" height="10px" width="10px"> `)
+    formatted += `${tab.index + 1}: ${tab.title}`
+    url += `<a href="${tab.url}" target="_blank">${tab.url}</a></div></div>`
+    return formatted + url
 }
 async function listTabs() {
-    let buffers: string = ""
-    for (let tab of await getTabs()) {
-        buffers += formatTab(tab)
+    let buffers: string = "", tabs = await getTabs()
+    for (let tab of tabs[0] as Array<browser.tabs.Tab>) {
+        buffers += (tab === tabs[1] ? formatTab(tab, true) : formatTab(tab))
     }
     return buffers
 }

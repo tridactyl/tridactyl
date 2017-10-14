@@ -36,6 +36,9 @@ const commands = new Map<string, ContentCommand>([
     function open(url: string) {
         window.location.href = url
     },
+    function resizecommandline() {
+        CommandLineContent.resize()
+    },
     function showcommandline() {
         CommandLineContent.focus()
     },

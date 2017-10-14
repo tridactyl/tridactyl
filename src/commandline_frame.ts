@@ -19,6 +19,7 @@ clInput.addEventListener("keydown", function (keyevent) {
          *
          * TODO: Report this on bugzilla.
         */
+        completions.innerHTML = ""
         setTimeout(()=>{clInput.value = ""}, 0)
         browser.runtime.sendMessage({type: "commandline", exStr: "hidecommandline"})
     }
@@ -29,6 +30,7 @@ function process() {
     console.log(clInput.value)
     browser.runtime.sendMessage({type: "commandline", exStr: "hidecommandline"})
     browser.runtime.sendMessage({type: "commandline", exStr: clInput.value})
+    completions.innerHTML = ""
     clInput.value = ""
 }
 
@@ -41,14 +43,7 @@ export function changecommand(newcommand?: string){
 }
 
 export function changecompletions(newcompletions: string) {
-    console.log("Hello!")
     completions.innerHTML = newcompletions
-    // completions.childNodes[0].nodeValue = newcompletions
-}
-
-export function hidecompletions() {
-    completions.innerHTML = "<p></p>"
-    // completions.childNodes[0].nodeValue = ""
 }
 
 function handler(message) {

@@ -11,14 +11,35 @@ input {
 }
 
 #completions {
+  background: black;
+  color: white;
+  display: inline-block;
   font-family: mono;
-  font-size: .75em;
+  font-size: 8pt;
   height: auto;
-  padding: 0;
-  overflow: auto;
-  margin: 0;
+  line-height: 1.5em;
+  overflow: hidden;
   bottom: 36px;
+  white-space: pre;
   width: 100%;
+  z-index: 9998;
+}
+
+.url, a.url, a.url:link, a.url:visited {
+  background: black;
+  color: #d0ffd0 !important;
+  display: inline;
+  left: 50%;
+  overflow: hidden;
+  padding: 0 2px;
+  position: absolute;
+  text-decoration: none !important;
+  z-index: 9999;
+}
+
+a.url:hover {
+  cursor: pointer;
+  text-decoration: underline !important;
 }
 
 #rainbow {

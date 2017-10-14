@@ -1,6 +1,6 @@
 /** Inject an input element into unsuspecting webpages and provide an API for interaction with tridactyl */
 
-/* TODO: 
+/* TODO:
     CSS
     Friendliest-to-webpage way of injecting commandline bar?
     Security: how to prevent other people's JS from seeing or accessing the bar or its output?
@@ -26,10 +26,12 @@ function init(){
 init()
 
 export function show(){
-    // if (cmdline_iframe === undefined) {
-    //     init()
-    // }
-    cmdline_iframe.setAttribute("style", "position: fixed; bottom: 0; left: 0; z-index: 10000; width: 100%; height: auto; resize: vertical; border: 0; padding: 0; margin: 1;");
+    cmdline_iframe.setAttribute("style", "position: fixed; bottom: 0; left: 0; z-index: 10000; width: 100%; height: 36px; border: 0; padding: 0; margin: 1;");
+}
+
+export function resize() {
+    const height = cmdline_iframe.contentWindow.document.body.offsetHeight + 'px'
+    cmdline_iframe.setAttribute("style", `position: fixed; bottom: 0; left: 0; z-index: 10000; width: 100%; height: ${height}; border: 0; padding: 0; margin: 1;`);
 }
 
 export function hide(){
