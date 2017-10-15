@@ -230,3 +230,24 @@ async function listTabs() {
     }
     return buffers
 }
+
+// Moderately slow; should load in results as they arrive, perhaps
+// Todo: allow jumping to buffers once they are found
+// Consider adding to buffers with incremental search
+//      maybe only if no other results in URL etc?
+// Find out how to return context of each result
+export async function findintabs(query: string){
+    const tabs = await browser.tabs.query({currentWindow: true})
+    console.log(query)
+    const findintab = async (tab) => await browser.find.find(query,{tabId: tab.id})
+    let results = []
+    for (let tab of tabs) {
+        let result = await findintab(tab)
+        if (result.count > 0) {
+            results.push({tab, result})
+        }
+    }
+    results.sort((r) => r.result.count)
+    console.log(results)
+    return results
+}

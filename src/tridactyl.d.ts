@@ -27,3 +27,7 @@ interface Window {
     scrollByLines(n: number): void
     scrollByPages(n: number):  void
 }
+
+declare namespace browser.find {
+    function find(query, object): any
+}
