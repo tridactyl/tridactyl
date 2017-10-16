@@ -16,7 +16,7 @@ const DEFAULT_FAVICON = browser.extension.getURL("static/defaultFavicon.svg")
  * TODO: Highlander theory: Can there ever be more than one?
  *
  */
-async function activeTab() {
+async function getActiveTab() {
     return (await browser.tabs.query({active:true, currentWindow:true}))[0]
 }
 
@@ -27,11 +27,11 @@ async function messageCommandline(command: string, args?: Array<any>) {
         args,
     }
     // For commandlines not in iframes on content scripts, use runtime
-    browser.tabs.sendMessage((await activeTab()).id, message)
+    browser.tabs.sendMessage((await getActiveTab()).id, message)
 }
 
 function messageActiveTab(command: string, args?: Array<any>) {
-    messageFilteredTabs({active:true}, command, args)
+    messageFilteredTabs({active:true, currentWindow: true}, command, args)
 }
 
 async function messageFilteredTabs(filter, command: string, args?: Array<any>) {
@@ -79,7 +79,7 @@ export function closetabs(ids: number[]){
 }
 
 export async function getactivetabid(){
-    return (await browser.tabs.query({active: true}))[0].id
+    return (await getActiveTab()).id
 }
 
 // NB: it is unclear how to undo tab closure.
@@ -89,7 +89,7 @@ export async function tabclose(n = 1){
 }
 
 export async function tabmove(n?: string){
-    let activeTab = (await browser.tabs.query({active: true}))[0], m: number
+    let activeTab = await getActiveTab(), m: number
     if (!n) { browser.tabs.move(activeTab.id, {index: -1}); return; }
     else if (n.startsWith("+") || n.startsWith("-")) {
         m = Math.max(0, Number(n) + activeTab.index)
@@ -98,8 +98,23 @@ export async function tabmove(n?: string){
     browser.tabs.move(activeTab.id, {index: m})
 }
 
+export async function tabdetach(id?: number){
+    id = id ? id : (await getactivetabid())
+    browser.windows.create({tabId: id})
+}
+
+export async function tabduplicate(id?: number){
+    id = id ? id : (await getactivetabid())
+    browser.tabs.duplicate(id)
+}
+
+export async function undo(){
+    let id = (await browser.sessions.getRecentlyClosed({maxResults: 1}))[0].id
+    browser.sessions.restore(id)
+}
+
 export async function pin(){
-    let activeTab = (await browser.tabs.query({active: true}))[0]
+    let activeTab = await getActiveTab()
     browser.tabs.update(activeTab.id, {pinned: !activeTab.pinned})
 }
 

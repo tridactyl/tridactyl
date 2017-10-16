@@ -45,6 +45,7 @@ export namespace normalmode {
         ["H", "historyback"],
         ["L", "historyforward"],
         ["d", "tabclose"],
+        ["u", "undo"],
         ["r", "reload"],
         ["R", "reloadhard"],
         ["gt", "tabnext"],

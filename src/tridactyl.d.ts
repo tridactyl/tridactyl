@@ -28,6 +28,12 @@ interface Window {
     scrollByPages(n: number):  void
 }
 
+// Web extension types not in web-ext-types yet
 declare namespace browser.find {
     function find(query, object): any
+}
+
+declare namespace browser.sessions{
+    function getRecentlyClosed(filter: any): any
+    function restore(sessionId: number): any
 }
