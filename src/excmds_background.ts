@@ -119,7 +119,8 @@ export async function reloadhard(n = 1){
 
 export function showcommandline(exstr = "", ...args){
     messageActiveTab("showcommandline")
-    messageCommandline("changecommand", [exstr+" "+args.join(" "),])
+    exstr = exstr == "" ? exstr : exstr + " " + args.join(" ")
+    messageCommandline("changecommand", [exstr,])
 }
 
 export function hidecommandline(){
