@@ -147,6 +147,9 @@ export async function winopen(...args){
     if (address) createData['url'] = (hasScheme(address)? "" : "http://") + address
     browser.windows.create(createData)
 }
+export async function winclose() {
+    browser.windows.remove((await browser.windows.getCurrent()).id)
+}
 export async function tabopen(address?: string){
     if (address) address = (hasScheme(address)? "" : "http://") + address
     browser.tabs.create({url: address})
