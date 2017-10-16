@@ -1,5 +1,4 @@
 // Implementation for all built-in ExCmds
-
 import './number.mod'
 import state from "./state"
 
@@ -12,9 +11,7 @@ interface ContentCommandMessage extends Message {
 const DEFAULT_FAVICON = browser.extension.getURL("static/defaultFavicon.svg")
 
 /** The first active tab in the currentWindow.
- *
  * TODO: Highlander theory: Can there ever be more than one?
- *
  */
 async function activeTab() {
     return (await browser.tabs.query({active:true, currentWindow:true}))[0]
@@ -64,7 +61,6 @@ export async function scrollpage(n = 1) {
 export function scrollto(amount: number | [number, number]) { messageActiveTab("scrollto", [amount]) }
 
 // Tab functions
-
 // TODO: to be implemented!
 export async function getnexttabs(tabid: number, n: number){
     return [tabid]
@@ -82,12 +78,6 @@ export async function getactivetabid(){
     return (await browser.tabs.query({active: true}))[0].id
 }
 
-// NB: it is unclear how to undo tab closure.
-export async function tabclose(n = 1){
-    let activeTabID = await getactivetabid()
-    closetabs(await getnexttabs(activeTabID,n))
-}
-
 export async function tabmove(n?: string){
     let activeTab = (await browser.tabs.query({active: true}))[0], m: number
     if (!n) { browser.tabs.move(activeTab.id, {index: -1}); return; }
@@ -101,48 +91,6 @@ export async function tabmove(n?: string){
 export async function pin(){
     let activeTab = (await browser.tabs.query({active: true}))[0]
     browser.tabs.update(activeTab.id, {pinned: !activeTab.pinned})
-}
-
-export async function reload(n = 1, hard = false){
-    let tabstoreload = await getnexttabs(await getactivetabid(),n)
-    let reloadProperties = {bypassCache: hard}
-    tabstoreload.map(
-        (n)=>browser.tabs.reload(n, reloadProperties)
-    )
-}
-
-export async function reloadhard(n = 1){
-    reload(n, true)
-}
-
-// Commandline function
-
-export function showcommandline(exstr = "", ...args){
-    messageActiveTab("showcommandline")
-    messageCommandline("changecommand", [exstr+" "+args.join(" "),])
-}
-
-export function hidecommandline(){
-    messageActiveTab("hidecommandline")
-}
-
-export async function winopen(...args){
-    let address: string
-    const createData = {}
-    if (args[0] === "-private") {
-        createData['incognito'] = true
-        if (args[1]) address = args[1]
-    }
-    else if (args[0]) address = args[0]
-    if (address) createData['url'] = (hasScheme(address)? "" : "http://") + address
-    browser.windows.create(createData)
-}
-
-// TODO: address should default to some page to which we have access
-//          and focus the location bar
-export async function tabopen(address?: string){
-    if (address) address = (hasScheme(address)? "" : "http://") + address
-    browser.tabs.create({url: address})
 }
 
 /** Switch to the next tab by index (position on tab bar), wrapping round.
@@ -171,6 +119,15 @@ export async function tabnext(increment = 1) {
 }
 export function tabprev(increment = 1) { tabnext(increment*-1) }
 
+// Commandline function
+export function showcommandline(exstr = "", ...args){
+    messageActiveTab("showcommandline")
+    messageCommandline("changecommand", [exstr+" "+args.join(" "),])
+}
+export function hidecommandline(){
+    messageActiveTab("hidecommandline")
+}
+
 // History/navigation functions
 export function history(n = 1) {messageActiveTab("history",[n])}
 export function historyback(n = 1) {history(n*-1)}
@@ -178,6 +135,40 @@ export function historyforward(n = 1) {history(n)}
 export function open(url: string) {
     url = (hasScheme(url)? "" : "http://") + url
     messageActiveTab("open", [url])
+}
+export async function winopen(...args){
+    let address: string
+    const createData = {}
+    if (args[0] === "-private") {
+        createData['incognito'] = true
+        if (args[1]) address = args[1]
+    }
+    else if (args[0]) address = args[0]
+    if (address) createData['url'] = (hasScheme(address)? "" : "http://") + address
+    browser.windows.create(createData)
+}
+export async function winclose() {
+    browser.windows.remove((await browser.windows.getCurrent()).id)
+}
+export async function tabopen(address?: string){
+    if (address) address = (hasScheme(address)? "" : "http://") + address
+    browser.tabs.create({url: address})
+}
+// NB: it is unclear how to undo tab closure.
+export async function tabclose(n = 1){
+    let activeTabID = await getactivetabid()
+    closetabs(await getnexttabs(activeTabID,n))
+}
+
+export async function reload(n = 1, hard = false){
+    let tabstoreload = await getnexttabs(await getactivetabid(),n)
+    let reloadProperties = {bypassCache: hard}
+    tabstoreload.map(
+        (n)=>browser.tabs.reload(n, reloadProperties)
+    )
+}
+export async function reloadhard(n = 1){
+    reload(n, true)
 }
 
 // Hard coded search but lack thereof was annoying
