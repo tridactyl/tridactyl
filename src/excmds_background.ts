@@ -65,11 +65,13 @@ export function scrollto(amount: number | [number, number]) { messageActiveTab("
 
 // Tab functions
 
-export async function getnexttabs(tabid: number, n: number = 1) {
-    const curIndex = (await browser.tabs.get(tabid)).index
-    const tabs = (await browser.tabs.query({currentWindow: true }))
-    return tabs.filter((tab: browser.tabs.Tab) => { return tab.index >= curIndex })
-        .slice(0,n).map((tab: browser.tabs.Tab) => { return tab.id })
+export async function getnexttabs(tabid: number, n?: number) {
+    const curIndex: number = (await browser.tabs.get(tabid)).index
+    const tabs: browser.tabs.Tab[] = (await browser.tabs.query({currentWindow: true}))
+    const indexFilter =
+        ((tab: browser.tabs.Tab) => { return curIndex <= tab.index && (n ? tab.index < curIndex + Number(n) : true) })
+        .bind(n)
+    return tabs.filter(indexFilter).map((tab: browser.tabs.Tab) => { return tab.id })
 }
 
 function tabSetActive(id: number) {
