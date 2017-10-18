@@ -51,17 +51,18 @@ const commands = new Map<string, ContentCommand>([
     },
     function clicknext(dir = "next"){
         let linkarray = Array.from(getlinks())
-        // The desired one
         let regarray = [/\bnext|^>$|^(>>|»)$|^(>|»)|(>|»)$|\bmore\b/i, /\bprev\b|\bprevious\b|^<$|^(<<|«)$|^(<|«)|(<|«)$/i]
 
-        // RPS is hardcoded because it never worked in Vimperator and it always annoyed me
         regarray = window.location.href.match(/rockpapershotgun/) ? [/newer/i,/older/i] : regarray
-
         let nextreg = (dir == "next") ? regarray[0] : regarray[1]
 
         // Might need to add more cases to this as we look at more sites
         let nextlinks = linkarray.filter((link) => (link.innerText.match(nextreg) || link.rel.match(nextreg)))
-        window.location.href = nextlinks[0].href
+
+        // Use the last link that matches because next/prev buttons tend to be at the end of the page
+        // whereas lots of blogs have "VIEW MORE" etc. plastered all over their pages.
+        // Stops us from having to hardcode in RPS and reddit, for example.
+        window.location.href = nextlinks.slice(-1)[0].href
     }
 ].map((command):any => [command.name, command]))
 
