@@ -195,6 +195,7 @@ export function open(url: string) {
     url = (hasScheme(url)? "" : "http://") + url
     messageActiveTab("open", [url])
 }
+export function clicknext(dir = "next") {messageActiveTab("clicknext",[dir])}
 
 // Hard coded search but lack thereof was annoying
 export function google(query: string[]){

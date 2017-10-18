@@ -35,7 +35,8 @@ export namespace normalmode {
         ["W", "current-url winopen"],
         ["t", "tabopen"],
         //["t", "showcommandline tabopen"], // for now, use mozilla completion
-        ["]]", "follow-next"], 
+        ["]]", "clicknext"], 
+        ["[[", "clicknext prev"], 
         ["T", "current-url tab"],
         ["j", "scrollline 10"],
         ["k", "scrollline -10"],
