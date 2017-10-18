@@ -45,9 +45,20 @@ const commands = new Map<string, ContentCommand>([
     function hidecommandline() {
         CommandLineContent.hide()
     },
+    function follow-next(){
+        // Vimperator just clicks first a tag that matches below
+        // 'nextpattern'stringlist(default: \bnext,^>$,^(>>|»)$,^(>|»),(>|»)$,\bmore\b)
+    },
     // Todo - send message to background
     function getCurrentURL(){
         return window.location.href
+        ,
+    function getLinks(){
+        return document.getElementsByTagName('a')
+    }
+    function clickNext(next = true){
+        // filter getlinks .innerhtml for something like vimerator
+
     }
 ].map((command):any => [command.name, command]))
 
