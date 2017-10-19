@@ -151,8 +151,8 @@ export function open(url: string) {
 /** Custom open. Remove later */
 // Hard coded search but lack thereof was annoying
 //#content
-export function google(query: string[]) {
-    window.location.href = "https://www.google.co.uk/search?q=" + query //.join("+")
+export function google(...query: string[]) {
+    window.location.href = "https://www.google.co.uk/search?q=" + query.join("+")
 }
 
 //#content_helper
@@ -359,6 +359,57 @@ export function fillcmdline(str?: string) {
 }
 
 //#content
+<<<<<<< Updated upstream
+||||||| merged common ancestors
+export function clipboard(excmd = "open"){
+    let scratchpad = document.createElement("input")
+    scratchpad.contentEditable = "true"
+    document.documentElement.appendChild(scratchpad)
+    if (excmd == "yank"){
+        scratchpad.value = window.location.href
+        scratchpad.select()
+        document.execCommand("Copy")
+        scratchpad.select()
+    // open is broken - fails with Failed to execute excmd: clipboard(...open)! 
+    } else if (excmd == "open"){
+        scratchpad.focus()
+        document.execCommand("Paste")
+        let url = scratchpad.textContent
+        console.log(url)
+        open(url)
+    }
+    document.documentElement.removeChild(scratchpad)
+    // let pastecontent = scratchpad.textContent
+    // console.log(pastecontent)
+}
+
+//#content
+=======
+export function clipboard(excmd = "open"){
+    let scratchpad = document.createElement("input")
+    scratchpad.contentEditable = "true"
+    document.documentElement.appendChild(scratchpad)
+    if (excmd == "yank"){
+        scratchpad.value = window.location.href
+        scratchpad.select()
+        document.execCommand("Copy")
+    // open is broken - fails with Failed to execute excmd: clipboard(...open)! 
+    } else if (excmd == "open"){
+        console.log("blah")
+        scratchpad.focus()
+        scratchpad.select()
+        // document.execCommand("Paste")
+        let url = scratchpad.textContent
+        console.log(url)
+        // open(url)
+    }
+    // document.documentElement.removeChild(scratchpad)
+    // let pastecontent = scratchpad.textContent
+    // console.log(pastecontent)
+}
+
+//#content
+>>>>>>> Stashed changes
 export function resizecmdline() {
     CommandLineContent.resize()
 }
