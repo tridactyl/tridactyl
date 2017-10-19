@@ -50,9 +50,9 @@ class Signature:
                     elif default[0] == default[-1] and default[0] in ('"', "'"):
                         typ = "string"
                     else:
-                        raise Exception(f"Edit me! Only number, string and boolean defaults supported at the mo!\n\t{raw}")
+                        raise Exception("Edit me! Only number, string and boolean defaults supported at the mo!\n\t{raw}".format(**locals()))
             else:
-                raise Exception(f"All parameters must be typed!\n\t{raw}")
+                raise Exception("All parameters must be typed!\n\t{raw}".format(**locals()))
 
             if name.endswith('?'): name = name[:-1]
             self.params[name] = typ
@@ -86,14 +86,14 @@ def content(lines, context):
         # Consume and replace this block.
         block = get_block(lines)
         sig = Signature(block.split('\n')[0])
-        return f"""cmd_params.set('{sig.name}', {dict_to_js(sig.params)})
+        return "cmd_params.set('{sig.name}', ".format(**locals()) + dict_to_js(sig.params) + """)
 {sig.raw}
     message(
         "excmd_content", 
         "{sig.name}",
-        {str(list(sig.params.keys())).replace("'","")},
+        """.format(**locals()) + str(list(sig.params.keys())).replace("'","") + """,
     )
-}}\n"""
+}\n"""
     else:
         # Do nothing
         return ""
@@ -103,8 +103,8 @@ def background(lines, context):
     "Extract params if context is background, else omit"
     if context == "background":
         sig = Signature(next(lines))
-        return f"""cmd_params.set('{sig.name}', {dict_to_js(sig.params)})
-{sig.raw}"""
+        return "cmd_params.set('{sig.name}', ".format(**locals()) + dict_to_js(sig.params) + """)
+{sig.raw}""".format(**locals())
     else:
         # Omit
         get_block(lines)
@@ -158,11 +158,11 @@ def main():
                     if macrocmd in macros:
                         output += macros[macrocmd](lines, context)
                     else:
-                        raise Exception(f"Unknown macrocmd! {macrocmd}")
+                        raise Exception("Unknown macrocmd! {macrocmd}".format(**locals()))
                 else:
                     output += line
             # print(output.rstrip())
-            with open(f"excmds_{context}.ts", "w") as sink:
+            with open("excmds_{context}.ts".format(**locals()), "w") as sink:
                 print(output.rstrip(), file=sink)
 
 
