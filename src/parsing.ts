@@ -38,6 +38,7 @@ export namespace normalmode {
         ["]]", "clicknext"], 
         ["[[", "clicknext prev"], 
         ["T", "current-url tab"],
+        ["yy", "clipboard yank"],
         ["p", "clipboard open"],
         ["P", "clipboard tabopen"],
         ["j", "scrollline 10"],

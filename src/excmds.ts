@@ -362,12 +362,23 @@ export function fillcmdline(str?: string) {
 export function clipboard(excmd = "open"){
     let scratchpad = document.createElement("input")
     scratchpad.contentEditable = "true"
-    scratchpad.textContent = window.location.href
-    scratchpad.select()
-    document.execCommand("Copy")
-    console.log(scratchpad)
-    let pastecontent = scratchpad.textContent
-    console.log(pastecontent)
+    document.documentElement.appendChild(scratchpad)
+    if (excmd == "yank"){
+        scratchpad.value = window.location.href
+        scratchpad.select()
+        document.execCommand("Copy")
+        scratchpad.select()
+    // open is broken - fails with Failed to execute excmd: clipboard(...open)! 
+    } else if (excmd == "open"){
+        scratchpad.focus()
+        document.execCommand("Paste")
+        let url = scratchpad.textContent
+        console.log(url)
+        open(url)
+    }
+    document.documentElement.removeChild(scratchpad)
+    // let pastecontent = scratchpad.textContent
+    // console.log(pastecontent)
 }
 
 //#content
