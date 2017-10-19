@@ -151,8 +151,8 @@ export function open(url: string) {
 /** Custom open. Remove later */
 // Hard coded search but lack thereof was annoying
 //#content
-export function google(query: string[]) {
-    window.location.href = "https://www.google.co.uk/search?q=" + query //.join("+")
+export function google(...query: string[]) {
+    window.location.href = "https://www.google.co.uk/search?q=" + query.join("+")
 }
 
 //#content_helper
