@@ -26,6 +26,8 @@
       "bookmarks",
       "contextMenus",
       "cookies",
+      "clipboardWrite",
+      "clipboardRead",
       "downloads",
       "downloads.open",
       "find",

@@ -359,6 +359,18 @@ export function fillcmdline(str?: string) {
 }
 
 //#content
+export function clipboard(excmd = "open"){
+    let scratchpad = document.createElement("input")
+    scratchpad.contentEditable = "true"
+    scratchpad.textContent = window.location.href
+    scratchpad.select()
+    document.execCommand("Copy")
+    console.log(scratchpad)
+    let pastecontent = scratchpad.textContent
+    console.log(pastecontent)
+}
+
+//#content
 export function resizecmdline() {
     CommandLineContent.resize()
 }
