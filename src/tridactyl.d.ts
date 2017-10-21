@@ -34,7 +34,7 @@ declare namespace browser.find {
 }
 
 declare namespace browser.sessions{
-    function getRecentlyClosed(filter: any): any
+    function getRecentlyClosed(filter?: any): any
     function restore(sessionId: number): any
 }
 
