@@ -1,6 +1,6 @@
 @namespace url("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul");
 
-/* Move this file to %appdata%/Mozilla/[your-profile]/chrome/userChrome.css 
+/* Move this file to %appdata%/Mozilla/Firefox/[your-profile]/chrome/userChrome.css 
  * Currently, it reduces the amount of padding around the UI and moves the tab
  * and navigation bar to the same line.
  *

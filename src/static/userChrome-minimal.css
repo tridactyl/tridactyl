@@ -1,0 +1,37 @@
+@namespace url("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul");
+
+/* Move this file to %appdata%/Mozilla/[your-profile]/chrome/userChrome.css 
+ * Currently, it reduces the amount of padding around the UI and moves the tab
+ * and navigation bar to the same line.
+ *
+ * If you're not on Windows, you can find your profile folder on
+ * about:support 
+ *
+ * Borrowed from https://www.reddit.com/r/FirefoxCSS/comments/73359a/my_firefox_57_setup/?utm_content=title&utm_medium=browse&utm_source=reddit&utm_name=FirefoxCSS
+ *
+ * This file is a work in progress.
+ *
+ * Any information on where to find documentation on valid properties we can edit here would be appreciated.
+ *
+ */
+
+#nav-bar{
+    padding-top: 1px !important;
+    padding-bottom: 0 !important;
+}
+
+
+#main-window[sizemode="maximized"] #nav-bar{
+    /* We need more padding when maximised because reasons */
+    padding-top: 7px !important;
+}
+
+/*Removal of black bottom 1px line*/
+#navigator-toolbox::after {
+    display: none !important;}
+
+
+#TabsToolbar { visibility: collapse; }
+/* Remove window buttons (Close, Minimize, Fullscreen) */
+#titlebar {display: none !important;}
+#TabsToolbar .titlebar-placeholder {display: none !important; }
