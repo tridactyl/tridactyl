@@ -195,9 +195,9 @@ export async function tabnext(increment = 1) {
     let desiredIndex = ((await activeTab()).index + increment).mod(tabs.length)
 
     // Find and switch to the tab with that index
-    let desiredTab = tabs.filter((tab: any) => {
+    let desiredTab = tabs.find((tab: any) => {
         return tab.index === desiredIndex
-    })[0]
+    })
     tabSetActive(desiredTab.id)
 }
 
@@ -236,10 +236,24 @@ export async function tabclose(ids?: number[] | number) {
     }
 }
 
+/** restore most recently closed tab in this window unless the most recently closed item was a window */
 //#background
 export async function undo(){
-    let id = (await browser.sessions.getRecentlyClosed({maxResults: 1}))[0].id
-    browser.sessions.restore(id)
+    const current_win_id : number = (await browser.windows.getCurrent()).id
+    const sessions = await browser.sessions.getRecentlyClosed()
+
+    // The first session object that's a window or a tab from this window. Or undefined if sessions is empty.
+    let closed = sessions.find((s) => {
+        return (s.window || s.tab && (s.tab.windowId == current_win_id))
+    })
+    if (closed) {
+        if (closed.tab) {
+            browser.sessions.restore(closed.tab.sessionId)
+        }
+        else if (closed.window) {
+            browser.sessions.restore(closed.window.sessionId)
+        }
+    }
 }
 
 //#background
