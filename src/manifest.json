@@ -8,6 +8,10 @@
     "scripts": ["background.js"]
   },
 
+  "chrome_url_overrides" : {
+    "newtab": "static/newtab.html"
+  },
+
   "content_scripts": [
       {
           "matches":["<all_urls>"],
