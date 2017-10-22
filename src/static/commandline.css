@@ -15,6 +15,11 @@ input {
   padding-left: 0.5ex;
 }
 
+img {
+    height: 1em;
+    width: 1em;
+}
+
 #completions {
   background: white;
   color: black;
