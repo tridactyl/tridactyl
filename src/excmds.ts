@@ -19,6 +19,8 @@ import state from "./state"
 //#background_helper
 const cmd_params = new Map<string, Map<string, string>>()
 
+const SEARCH_URL = "https://www.google.co.uk/search?q="
+
 function hasScheme(uri: string) {
     return uri.match(/^(\w+):/)
 }
@@ -27,8 +29,11 @@ function hasScheme(uri: string) {
 function forceURI(maybeURI: string) {
     if (hasScheme(maybeURI)) {
         return maybeURI
-    } else {
+    } else if (maybeURI.includes(".")) {
+        // If you want to access something on the local network, just use .lan
         return "http://" + maybeURI
+    } else {
+        return SEARCH_URL + maybeURI
     }
 }
 
@@ -144,7 +149,8 @@ export async function reloadhard(n = 1) {
 }
 
 //#content
-export function open(url: string) {
+export function open(...urlarr: string[]) {
+    let url = urlarr.join("%20")
     window.location.href = forceURI(url)
 }
 
@@ -152,7 +158,7 @@ export function open(url: string) {
 // Hard coded search but lack thereof was annoying
 //#content
 export function google(...query: string[]) {
-    window.location.href = "https://www.google.co.uk/search?q=" + query.join("+")
+    window.location.href = SEARCH_URL + query.join("+")
 }
 
 //#content_helper
