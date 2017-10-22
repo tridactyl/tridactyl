@@ -454,7 +454,7 @@ function formatTab(tab: browser.tabs.Tab, prev?: boolean) {
     else if (prev) formatted += "#"
     if (tab.pinned) formatted += "@"
     formatted = formatted.padEnd(9)
-    // TODO: Dynamically set favicon dimensions.
+    // TODO: Dynamically set favicon dimensions. Should be able to use em.
     formatted += tab.favIconUrl
         ? `<img src="${tab.favIconUrl}" height="10px" width="10px"> `
         : `<img src="${DEFAULT_FAVICON}" height="10px" width="10px"> `

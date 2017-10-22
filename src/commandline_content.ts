@@ -25,13 +25,17 @@ function init(){
 // every time.
 init()
 
+// The CSS in this file should probably go in static/
 export function show(){
-    cmdline_iframe.setAttribute("style", "position: fixed; bottom: 0; left: 0; z-index: 10000; width: 100%; height: 36px; border: 0; padding: 0; margin: 1;");
+    // I don't understand how CSS works - but this ensures that the commandline is always at the bottom of the page.
+    cmdline_iframe.setAttribute("style", "position: fixed; bottom: 0; left: 0; z-index: 10000; width: 100%; height: 24px; border: 0; padding: 0; margin: 0;");
+    const height = cmdline_iframe.contentWindow.document.body.offsetHeight + 'px'
+    cmdline_iframe.setAttribute("style", `position: fixed; bottom: 0; left: 0; z-index: 10000; width: 100%; height: ${height}; border: 0; padding: 0; margin: 0;`);
 }
 
 export function resize() {
     const height = cmdline_iframe.contentWindow.document.body.offsetHeight + 'px'
-    cmdline_iframe.setAttribute("style", `position: fixed; bottom: 0; left: 0; z-index: 10000; width: 100%; height: ${height}; border: 0; padding: 0; margin: 1;`);
+    cmdline_iframe.setAttribute("style", `position: fixed; bottom: 0; left: 0; z-index: 10000; width: 100%; height: ${height}; border: 0; padding: 0; margin: 0;`);
 }
 
 export function hide(){
