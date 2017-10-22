@@ -33,9 +33,4 @@ declare namespace browser.find {
     function find(query, object): any
 }
 
-declare namespace browser.sessions{
-    function getRecentlyClosed(filter?: any): any
-    function restore(sessionId: number): any
-}
-
 type ModeType = "NORMAL" | "INSERT"

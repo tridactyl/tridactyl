@@ -250,7 +250,7 @@ export async function undo(){
 
     // The first session object that's a window or a tab from this window. Or undefined if sessions is empty.
     let closed = sessions.find((s) => {
-        return (s.window || s.tab && (s.tab.windowId == current_win_id))
+        return ('window' in s || s.tab && (s.tab.windowId == current_win_id))
     })
     if (closed) {
         if (closed.tab) {
