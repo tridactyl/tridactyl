@@ -140,6 +140,13 @@ export function open(...urlarr: string[]) {
     window.location.href = forceURI(url)
 }
 
+//#background
+export function help(...urlarr: string[]) {
+    let url = urlarr.join("%20")
+    // window.location.href = "docs/modules/_excmds_.html#" + url
+    browser.tabs.create({url: "static/docs/modules/_excmds_.html#" + url})
+}
+
 //#content_helper
 function getlinks(){
     return document.getElementsByTagName('a')
