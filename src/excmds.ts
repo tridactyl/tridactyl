@@ -378,22 +378,25 @@ export function fillcmdline(str?: string) {
     message("commandline_frame", "fillcmdline", [str])
 }
 
+// TODO: For security, this should really be in the background.
+// Extensions to the macros and messaging systems required, however.
 //#content
 export function clipboard(excmd = "open"){
-    let scratchpad = document.createElement("input")
+    let scratchpad = document.createElement("textarea")
+    // Scratchpad must be `display`ed, but can be tiny and invisible.
+    // Being tiny and invisible means it won't make the parent page move.
+    scratchpad.style.cssText = 'visible: invisible; width: 0; height: 0; position: fixed'
     scratchpad.contentEditable = "true"
     document.documentElement.appendChild(scratchpad)
     if (excmd == "yank"){
         scratchpad.value = window.location.href
         scratchpad.select()
         document.execCommand("Copy")
-    // open is broken - fails with Failed to execute excmd: clipboard(...open)! 
     } else if (excmd == "open"){
         scratchpad.focus()
         document.execCommand("Paste")
-        let url = scratchpad.textContent
-        console.log(url)
-        open(url)
+        const url = scratchpad.textContent
+        if (url) open(url)
     }
     document.documentElement.removeChild(scratchpad)
     // let pastecontent = scratchpad.textContent
