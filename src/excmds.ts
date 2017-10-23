@@ -142,6 +142,13 @@ export function open(...urlarr: string[]) {
     window.location.href = forceURI(url)
 }
 
+//#background
+export function help(...urlarr: string[]) {
+    let url = urlarr.join("%20")
+    // window.location.href = "docs/modules/_excmds_.html#" + url
+    browser.tabs.create({url: "static/docs/modules/_excmds_.html#" + url})
+}
+
 /** Custom open. Remove later */
 // Hard coded search but lack thereof was annoying
 //#content
