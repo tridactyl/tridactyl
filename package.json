@@ -7,6 +7,7 @@
     "@types/jest": "^21.1.4",
     "@types/node": "^8.0.46",
     "awesome-typescript-loader": "^3.2.3",
+    "chokidar-cli": "^1.2.0",
     "copy-webpack-plugin": "^4.2.0",
     "jest": "^21.2.1",
     "shared-git-hooks": "^1.2.1",
@@ -23,6 +24,7 @@
   },
   "scripts": {
     "build": "webpack",
+    "watch": "chokidar src --initial -i 'src/excmds_{background,content}.ts' -c webpack",
     "clean": "rm -rf build",
     "test": "npm run build && jest --silent",
     "update-buildsystem": "rm -rf src/node_modules; npm run clean"

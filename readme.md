@@ -24,7 +24,7 @@ npm run update-buildsystem
 ### Development loop
 
 ```
-npm run build -- -w &
+npm run watch &
 web-ext run -s build --firefox path/to/nightly/firefox
 ```
 
