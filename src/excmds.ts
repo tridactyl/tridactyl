@@ -461,7 +461,7 @@ function formatTab(tab: browser.tabs.Tab, prev?: boolean) {
     formatted += tab.favIconUrl
         ? `<img src="${tab.favIconUrl}">`
         : `<img src="${DEFAULT_FAVICON}">`
-    formatted += `${tab.index + 1}: ${tab.title}`
+    formatted += ` ${tab.index + 1}: ${tab.title}`
     url += `<a href="${tab.url}" target="_blank">${tab.url}</a></div></div>`
     return formatted + url
 }
