@@ -23,7 +23,7 @@ function init(){
 // TODO: Propagate awaits back through messaging system or resend
 // commandline_frame messages from excmd_content if you want to avoid init'ing
 // every time.
-init()
+document.addEventListener("DOMContentLoaded", init)
 
 // The CSS in this file should probably go in static/
 export function show(){
