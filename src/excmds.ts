@@ -2,22 +2,26 @@
 
 // {{{ setup
 
+import * as Messaging from "./messaging"
+
 //#content_omit_line
 import * as CommandLineContent from "./commandline_content"
 //#content_omit_line
 import "./number.clamp"
-//#content_omit_line
-import * as Messaging from "./messaging"
 //#content_helper
 import * as SELF from "./excmds_content"
+//#content_helper
+Messaging.addListener('excmd_content', Messaging.attributeCaller(SELF))
 
 //#background_helper
 import "./number.mod"
 //#background_helper
 import state from "./state"
+//#background_helper
+import * as keydown from "./keydown_background"
 
 //#background_helper
-const cmd_params = new Map<string, Map<string, string>>()
+export const cmd_params = new Map<string, Map<string, string>>()
 
 const SEARCH_URL = "https://www.google.co.uk/search?q="
 
@@ -67,22 +71,6 @@ async function message( type: "excmd_content" | "commandline_frame", command: st
 function tabSetActive(id: number) {
     browser.tabs.update(id, {active: true})
 }
-
-//#content_helper
-function handler(message: Message) {
-    console.log(message)
-    try {
-        SELF[message.command](...message.args)
-    } catch (e) {
-        console.error(
-            `Failed to execute excmd: ${message.command}(...${message.args})!`,
-            e
-        )
-    }
-}
-
-//#content_omit_line
-Messaging.addListener("excmd_content", handler)
 
 // }}}
 
@@ -215,9 +203,10 @@ export function tabprev(increment = 1) {
 // TODO: address should default to some page to which we have access
 //          and focus the location bar
 //#background
-export async function tabopen(address?: string) {
-    if (address) address = forceURI(address)
-    browser.tabs.create({url: address})
+export async function tabopen(address?: string[]) {
+    let uri
+    if (address) uri = forceURI(address.join(' '))
+    browser.tabs.create({url: uri})
 }
 
 //#background
@@ -306,6 +295,11 @@ export async function winclose() {
 // }}}
 
 // {{{ MISC
+
+//#background
+export function suppress(preventDefault?: boolean, stopPropagation?: boolean) {
+    keydown.suppress(preventDefault, stopPropagation)
+}
 
 //#background
 export function mode(mode: ModeType) {

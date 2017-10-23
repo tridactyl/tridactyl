@@ -111,25 +111,25 @@ export interface MsgSafeNode {
     readonly nodeValue: string
     readonly nodeType: number
     readonly namespaceURI: string
-    readonly prefix: string
+    readonly prefix?: string
     readonly localName: string
     readonly baseURI: string
     readonly textContent: string
 
     // w3 Element interface
-    readonly tagName: string
+    readonly tagName?: string
 
     // InputElement
-    readonly type: string
+    readonly type?: string
 
     // WAI-ARIA
-    readonly role: string
+    readonly role?: string
 
     // unknown spec
-    readonly contentEditable: string
-    readonly isContentEditable: boolean
-    readonly disabled: boolean
-    readonly readonly: boolean
+    readonly contentEditable?: string
+    readonly isContentEditable?: boolean
+    readonly disabled?: boolean
+    readonly readonly?: boolean
 }
 
 export function Node(node: HTMLElement): MsgSafeNode {

@@ -14,16 +14,25 @@
 let cmdline_iframe: HTMLIFrameElement = undefined
 
 function init(){
-    cmdline_iframe = window.document.createElement("iframe")
-    cmdline_iframe.setAttribute("src", browser.extension.getURL("static/commandline.html"))
-    hide()
-    window.document.body.appendChild(cmdline_iframe)
+    if (cmdline_iframe === undefined && window.document.body !== null) {
+        try {
+            console.log("INIT")
+            cmdline_iframe = window.document.createElement("iframe")
+            cmdline_iframe.setAttribute("src", browser.extension.getURL("static/commandline.html"))
+            hide()
+            window.document.body.appendChild(cmdline_iframe)
+        } catch (e) {
+            console.error("Couldn't initialise cmdline_iframe!", e)
+        }
+    }
 }
 
 // TODO: Propagate awaits back through messaging system or resend
 // commandline_frame messages from excmd_content if you want to avoid init'ing
 // every time.
 document.addEventListener("DOMContentLoaded", init)
+// This second call will fail in the most common case, but makes web-ext reloads effective.
+init()
 
 // The CSS in this file should probably go in static/
 export function show(){

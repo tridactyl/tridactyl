@@ -4,12 +4,6 @@ import * as Messaging from './messaging'
 
 import {MsgSafeKeyboardEvent} from './msgsafe'
 
-// Type for messages sent from keydown_content
-export interface KeydownShimMessage extends Message {
-    type: "keydown"
-    event: MsgSafeKeyboardEvent
-}
-
 type KeydownCallback = (keyevent: MsgSafeKeyboardEvent) => void
 
 const listeners = new Set<KeydownCallback>()
@@ -21,10 +15,27 @@ function addListener(cb: KeydownCallback) {
 export const onKeydown = { addListener }
 
 // Receive events from content and pass to listeners
-function handler(message: KeydownShimMessage) {
+export function recvEvent(event: MsgSafeKeyboardEvent) {
     for (let listener of listeners) {
-        listener(message.event)
+        listener(event)
     }
 }
 
-Messaging.addListener('keydown', handler)
+// Sledgehammer keyevent suppression
+export function suppress(pD?: boolean, sP?: boolean) {
+    if (pD !== undefined) { preventDefault = pD }
+    if (sP !== undefined) { stopPropagation = sP }
+    Messaging.messageAllTabs("keydown_content", "suppress", [preventDefault, stopPropagation])
+}
+
+export function state() {
+    return [preventDefault, stopPropagation]
+}
+
+// State
+let preventDefault = false
+let stopPropagation = false
+
+// Get messages from content
+import * as SELF from './keydown_background'
+Messaging.addListener('keydown_background', Messaging.attributeCaller(SELF))

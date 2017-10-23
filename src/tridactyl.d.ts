@@ -12,8 +12,8 @@ interface Number {
 interface Message {
     type:
         "excmd_content" |
-        "keydown" |
-        "keydown_suppress" |
+        "keydown_content" |
+        "keydown_background" |
         "commandline" |
         "commandline_frame"
     // And other unknown attributes...
