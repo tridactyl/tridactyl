@@ -24,7 +24,7 @@
   },
   "scripts": {
     "build": "webpack",
-    "watch": "chokidar src --initial -i 'src/excmds_{background,content}.ts' -c webpack",
+    "watch": "chokidar src --initial --silent -i 'src/excmds_{background,content}.ts' -c 'webpack --display errors-only'",
     "clean": "rm -rf build",
     "test": "npm run build && jest --silent",
     "update-buildsystem": "rm -rf src/node_modules; npm run clean"
