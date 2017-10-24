@@ -202,9 +202,10 @@ export function tabprev(increment = 1) {
 // TODO: address should default to some page to which we have access
 //          and focus the location bar
 //#background
-export async function tabopen(...address: string[]) {
+export async function tabopen(...addressarr: string[]) {
     let uri
-    if (address) uri = forceURI(address.join('%20'))
+    let address = addressarr.join('%20')
+    if (address != "") uri = forceURI(address)
     browser.tabs.create({url: uri})
 }
 
@@ -279,10 +280,9 @@ export async function winopen(...args: string[]) {
     const createData = {}
     if (args[0] === "-private") {
         createData["incognito"] = true
-        if (args[1]) address = args[1]
-    } else if (args[0]) address = args[0]
-    if (address)
-        createData["url"] = forceURI(address)
+        address = args.slice(1,args.length).join('%20')
+    } else address = args.join('%20')
+    createData["url"] = forceURI(address)
     browser.windows.create(createData)
 }
 
