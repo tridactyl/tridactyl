@@ -36,7 +36,7 @@ function process() {
 }
 
 export function fillcmdline(newcommand?: string){
-    if (newcommand !== undefined) {
+    if (newcommand != "") {
         clInput.value = newcommand + " "
     }
     // Focus is lost for some reason.
