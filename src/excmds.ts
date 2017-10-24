@@ -37,7 +37,13 @@ function forceURI(maybeURI: string) {
         // If you want to access something on the local network, just use .lan
         return "http://" + maybeURI
     } else {
-        return SEARCH_URL + maybeURI
+        let urlarr = maybeURI.split("%20")
+        // TODO: make this more generic
+        if (urlarr[0] == "google"){
+            return SEARCH_URL + urlarr.slice(1,urlarr.length).join("%20")
+        } else {
+            return SEARCH_URL + maybeURI
+        }
     }
 }
 
@@ -142,13 +148,6 @@ export function open(...urlarr: string[]) {
     window.location.href = forceURI(url)
 }
 
-/** Custom open. Remove later */
-// Hard coded search but lack thereof was annoying
-//#content
-export function google(...query: string[]) {
-    window.location.href = SEARCH_URL + query.join("+")
-}
-
 //#content_helper
 function getlinks(){
     return document.getElementsByTagName('a')
@@ -203,9 +202,9 @@ export function tabprev(increment = 1) {
 // TODO: address should default to some page to which we have access
 //          and focus the location bar
 //#background
-export async function tabopen(address?: string[]) {
+export async function tabopen(...address: string[]) {
     let uri
-    if (address) uri = forceURI(address.join(' '))
+    if (address) uri = forceURI(address.join('%20'))
     browser.tabs.create({url: uri})
 }
 
@@ -367,7 +366,8 @@ export function hidecmdline() {
 
 /** Set the current value of the commandline to string */
 //#background
-export function fillcmdline(str?: string) {
+export function fillcmdline(...strarr: string[]) {
+    let str = strarr.join(" ")
     showcmdline()
     message("commandline_frame", "fillcmdline", [str])
 }
