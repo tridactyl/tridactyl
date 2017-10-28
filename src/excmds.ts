@@ -351,6 +351,7 @@ export function showcmdline() {
 //#content
 export function hidecmdline() {
     CommandLineContent.hide()
+    CommandLineContent.blur()
 }
 
 /* //#background */
@@ -364,29 +365,23 @@ export function fillcmdline(...strarr: string[]) {
     messageActiveTab("commandline_frame", "fillcmdline", [str])
 }
 
-// TODO: For security, this should really be in the background.
-// Extensions to the macros and messaging systems required, however.
-//#content
-export function clipboard(excmd = "open"){
-    let scratchpad = document.createElement("textarea")
-    // Scratchpad must be `display`ed, but can be tiny and invisible.
-    // Being tiny and invisible means it won't make the parent page move.
-    scratchpad.style.cssText = 'visible: invisible; width: 0; height: 0; position: fixed'
-    scratchpad.contentEditable = "true"
-    document.documentElement.appendChild(scratchpad)
-    if (excmd == "yank"){
-        scratchpad.value = window.location.href
-        scratchpad.select()
-        document.execCommand("Copy")
-    } else if (excmd == "open"){
-        scratchpad.focus()
-        document.execCommand("Paste")
-        const url = scratchpad.textContent
-        if (url) open(url)
+//#background
+export async function clipboard(excmd = "open"){
+    switch (excmd) {
+        case 'yank':
+            const atab = await activeTab()
+            messageActiveTab("commandline_frame", "setClipboard", [atab.url])
+            break
+        case 'open':
+            const url = await messageActiveTab("commandline_frame", "getClipboard", [])
+            // todo: some url format and security check?
+            url && browser.tabs.update(await activeTabID(), {url: url})
+            break
+        default:
+            // todo: maybe we should have some common error and error handler
+            throw new Error(`[clipboard] unknown excmd: ${excmd}`)
     }
-    document.documentElement.removeChild(scratchpad)
-    // let pastecontent = scratchpad.textContent
-    // console.log(pastecontent)
+    hidecmdline()
 }
 
 //#content

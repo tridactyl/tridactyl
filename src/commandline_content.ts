@@ -48,10 +48,13 @@ export function resize() {
 }
 
 export function hide(){
-    cmdline_iframe.setAttribute("style", "display: none")
+    cmdline_iframe.setAttribute("style", `position: fixed; bottom: 0; left: 0; z-index: 10000; width: 100%; height: 0px; border: 0; padding: 0; margin: 0;`);
 }
 
 export function focus(){
-    show()
     cmdline_iframe.focus()
+}
+
+export function blur() {
+    cmdline_iframe.blur()
 }
