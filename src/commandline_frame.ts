@@ -8,6 +8,10 @@ let clInput = window.document.getElementById("tridactyl-input") as HTMLInputElem
 
 export let focus = () => clInput.focus()
 
+async function sendExstr(exstr) {
+    Messaging.message("commandline_background", "recvExStr", [exstr])
+}
+
 /* Process the commandline on enter. */
 clInput.addEventListener("keydown", function (keyevent) {
     if (keyevent.key === "Enter") {
@@ -22,15 +26,15 @@ clInput.addEventListener("keydown", function (keyevent) {
         */
         completions.innerHTML = ""
         setTimeout(()=>{clInput.value = ""}, 0)
-        browser.runtime.sendMessage({type: "commandline", exStr: "hidecmdline"})
+        sendExstr("hidecmdline")
     }
 })
 
 /* Send the commandline to the background script and await response. */
 function process() {
     console.log(clInput.value)
-    browser.runtime.sendMessage({type: "commandline", exStr: "hidecmdline"})
-    browser.runtime.sendMessage({type: "commandline", exStr: clInput.value})
+    sendExstr("hidecmdline")
+    sendExstr(clInput.value)
     completions.innerHTML = ""
     clInput.value = ""
 }

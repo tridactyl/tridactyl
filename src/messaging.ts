@@ -1,8 +1,26 @@
-export type listener = (message: Message, sender?, sendResponse?) => void|any
+export type TabMessageType = 
+    "excmd_content" |
+    "keydown_content" |
+    "commandline_frame"
+export type NonTabMessageType = 
+    "keydown_background" |
+    "commandline_background"
+export type MessageType = TabMessageType | NonTabMessageType
+
+export interface Message {
+    type: MessageType
+    // and other unknown attributes...
+    [key: string]: any
+}
+
+export type listener = (message: Message, sender?, sendResponse?) => void|Promise<any>
 
 /** await a promise and console.error and rethrow if it errors
 
     Errors from promises don't get logged unless you seek them out.
+
+    There's an event for catching these, but it's not implemented in firefox
+    yet: https://bugzilla.mozilla.org/show_bug.cgi?id=1269371
 */
 async function l(promise) {
     try {
@@ -13,24 +31,6 @@ async function l(promise) {
     }
 }
 
-const listeners = new Map<string, Set<listener>>()
-
-/** Register a listener to be called for each message with type */
-export function addListener(type, callback: listener) {
-    if (!listeners.get(type)) {
-        listeners.set(type, new Set())
-    }
-    listeners.get(type).add(callback)
-    return () => { listeners.get(type).delete(callback) }
-}
-
-function onMessage(message, sender, sendResponse) {
-    if (listeners.get(message.type)) {
-        for (let listener of listeners.get(message.type)) {
-            listener(message, sender, sendResponse)
-        }
-    }
-}
 
 // Calls methods on obj that match .command and sends responses back
 export function attributeCaller(obj) {
@@ -41,22 +41,27 @@ export function attributeCaller(obj) {
         if (message.args === undefined) message.args = []
 
         // Call command on obj
-        let response = obj[message.command](...message.args)
+        try {
+            let response = obj[message.command](...message.args)
 
-        // Return response to sender
-        if (response instanceof Promise) {
-            return response
-        } else {
-            sendResponse(response)
+            // Return response to sender
+            if (response instanceof Promise) {
+                return response
+            } else {
+                sendResponse(response)
+            }
+        } catch (e) {
+            return new Promise((resolve, error)=>error(e))
         }
     }
     return handler
 }
 
+
 /** Send a message to non-content scripts */
-export async function message(type, command, args?) {
+export async function message(type: NonTabMessageType, command, args?) {
     // One day typescript will be smart enough to back propagate this cast.
-    return await l(browser.runtime.sendMessage({type, command, args} as Message))
+    return l(browser.runtime.sendMessage({type, command, args} as Message))
 }
 
 /** The first active tab in the currentWindow.
@@ -76,22 +81,46 @@ async function activeTabID() {
 
 /** Message the active tab of the currentWindow */
 //#background_helper
-export async function messageActiveTab(type, command: string, args?: any[]) {
-    messageTab(await activeTabID(), type, command, args)
+export async function messageActiveTab(type: TabMessageType, command: string, args?: any[]) {
+    return messageTab(await activeTabID(), type, command, args)
 }
 
-export async function messageTab(tabId, type, command, args?) {
+export async function messageTab(tabId, type: TabMessageType, command, args?) {
     let message: Message = {
         type,
         command,
         args,
     }
-    l(browser.tabs.sendMessage(tabId, message))
+    return l(browser.tabs.sendMessage(tabId, message))
 }
 
-export async function messageAllTabs(type, command: string, args?: any[]) {
+export async function messageAllTabs(type: TabMessageType, command: string, args?: any[]) {
+    let responses = []
     for (let tab of await browser.tabs.query({})) {
-        messageTab(tab.id, type, command, args)
+        try { responses.push(await messageTab(tab.id, type, command, args)) }
+        catch (e) { console.error(e) }
+    }
+    return responses
+}
+
+
+const listeners = new Map<string, Set<listener>>()
+
+/** Register a listener to be called for each message with type */
+export function addListener(type: MessageType, callback: listener) {
+    if (!listeners.get(type)) {
+        listeners.set(type, new Set())
+    }
+    listeners.get(type).add(callback)
+    return () => { listeners.get(type).delete(callback) }
+}
+
+/** Recv a message from runtime.onMessage and send to all listeners */
+function onMessage(message, sender, sendResponse) {
+    if (listeners.get(message.type)) {
+        for (let listener of listeners.get(message.type)) {
+            listener(message, sender, sendResponse)
+        }
     }
 }
 

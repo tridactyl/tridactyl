@@ -3,24 +3,12 @@
 // For some obscure reason, tsc doesn't like .d.ts files to share a name with
 // .ts files. So don't do that.
 
+// Ill-advised monkeypatching
 interface Number {
     mod(n: number): number
     clamp(lo: number, hi: number): number
 }
 
-// For content.ts
-interface Message {
-    type:
-        "excmd_content" |
-        "keydown_content" |
-        "keydown_background" |
-        "commandline" |
-        "commandline_frame"
-    // And other unknown attributes...
-    [key: string]: any
-}
-
-declare var content: any
 
 // Firefox-specific dom properties
 interface Window {

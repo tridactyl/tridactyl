@@ -1,3 +1,5 @@
+import * as Messaging from './messaging'
+
 /** CommandLine API for inclusion in background script
 
   Receives messages from commandline_frame
@@ -13,16 +15,11 @@ export namespace onLine {
     }
 
     /** Receive events from commandline_frame and pass to listeners */
-    function handler(message: Message) {
-        if (message.type === "commandline") {
-            for (let listener of listeners) {
-                listener(message.exStr)
-            }
+    function recvExStr(exstr: string) {
+        for (let listener of listeners) {
+            listener(exstr)
         }
-        // This is req. to shut typescript up.
-        // TODO: Fix onMessageBool in web-ext-types
-        return false
     }
 
-    browser.runtime.onMessage.addListener(handler)
+    Messaging.addListener("commandline_background", Messaging.attributeCaller({recvExStr}))
 }

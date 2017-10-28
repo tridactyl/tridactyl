@@ -12,6 +12,9 @@ import "./number.clamp"
 import * as SELF from "./excmds_content"
 //#content_helper
 Messaging.addListener('excmd_content', Messaging.attributeCaller(SELF))
+/** Message excmds_content.ts in the active tab of the currentWindow */
+//#background_helper
+import {messageActiveTab} from './messaging'
 
 //#background_helper
 import "./number.mod"
@@ -60,17 +63,6 @@ async function activeTab() {
 //#background_helper
 async function activeTabID() {
     return (await activeTab()).id
-}
-
-/** Message excmds_content.ts in the active tab of the currentWindow */
-//#background_helper
-async function message( type: "excmd_content" | "commandline_frame", command: string, args?: any[]) {
-    let message: Message = {
-        type,
-        command,
-        args,
-    }
-    browser.tabs.sendMessage(await activeTabID(), message)
 }
 
 //#background_helper
@@ -369,7 +361,7 @@ export function hidecmdline() {
 export function fillcmdline(...strarr: string[]) {
     let str = strarr.join(" ")
     showcmdline()
-    message("commandline_frame", "fillcmdline", [str])
+    messageActiveTab("commandline_frame", "fillcmdline", [str])
 }
 
 // TODO: For security, this should really be in the background.
@@ -412,7 +404,7 @@ const DEFAULT_FAVICON = browser.extension.getURL("static/defaultFavicon.svg")
 //#background
 export async function openbuffer() {
     fillcmdline("buffer")
-    message("commandline_frame", "changecompletions", [await listTabs()])
+    messageActiveTab("commandline_frame", "changecompletions", [await listTabs()])
     resizecmdline()
 }
 
