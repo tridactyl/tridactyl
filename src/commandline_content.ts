@@ -19,6 +19,7 @@ function init(){
             console.log("INIT")
             cmdline_iframe = window.document.createElement("iframe")
             cmdline_iframe.setAttribute("src", browser.extension.getURL("static/commandline.html"))
+            cmdline_iframe.setAttribute("id", "cmdline_iframe")
             hide()
             window.document.body.appendChild(cmdline_iframe)
         } catch (e) {
@@ -34,21 +35,13 @@ document.addEventListener("DOMContentLoaded", init)
 // This second call will fail in the most common case, but makes web-ext reloads effective.
 init()
 
-// The CSS in this file should probably go in static/
 export function show(){
-    // I don't understand how CSS works - but this ensures that the commandline is always at the bottom of the page.
-    cmdline_iframe.setAttribute("style", "position: fixed; bottom: 0; left: 0; z-index: 10000; width: 100%; height: 24px; border: 0; padding: 0; margin: 0;");
     const height = cmdline_iframe.contentWindow.document.body.offsetHeight + 'px'
-    cmdline_iframe.setAttribute("style", `position: fixed; bottom: 0; left: 0; z-index: 10000; width: 100%; height: ${height}; border: 0; padding: 0; margin: 0;`);
-}
-
-export function resize() {
-    const height = cmdline_iframe.contentWindow.document.body.offsetHeight + 'px'
-    cmdline_iframe.setAttribute("style", `position: fixed; bottom: 0; left: 0; z-index: 10000; width: 100%; height: ${height}; border: 0; padding: 0; margin: 0;`);
+    cmdline_iframe.setAttribute("style", `height: ${height};`)
 }
 
 export function hide(){
-    cmdline_iframe.setAttribute("style", `position: fixed; bottom: 0; left: 0; z-index: 10000; width: 100%; height: 0px; border: 0; padding: 0; margin: 0;`);
+    cmdline_iframe.setAttribute("style", "height: 0px;")
 }
 
 export function focus(){

@@ -383,11 +383,6 @@ export async function clipboard(excmd = "open"){
     hidecmdline()
 }
 
-//#content
-export function resizecmdline() {
-    CommandLineContent.resize()
-}
-
 // {{{ Buffer/completion stuff
 // TODO: Move autocompletions out of excmds.
 
@@ -399,7 +394,7 @@ const DEFAULT_FAVICON = browser.extension.getURL("static/defaultFavicon.svg")
 export async function openbuffer() {
     fillcmdline("buffer")
     messageActiveTab("commandline_frame", "changecompletions", [await listTabs()])
-    resizecmdline()
+    showcmdline()
 }
 
 /** Change active tab */
