@@ -58,3 +58,7 @@ export function focus(){
 export function blur() {
     cmdline_iframe.blur()
 }
+
+import * as Messaging from './messaging'
+import * as SELF from './commandline_content'
+Messaging.addListener('commandline_content', Messaging.attributeCaller(SELF))

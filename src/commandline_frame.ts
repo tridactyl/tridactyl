@@ -51,42 +51,39 @@ export function changecompletions(newcompletions: string) {
     completions.innerHTML = newcompletions
 }
 
-function applyWithTmpTextArea(fn, context = null) {
-    let textarea = document.createElement("textarea")
-    // Scratchpad must be `display`ed, but can be tiny and invisible.
-    // Being tiny and invisible means it won't make the parent page move.
-    textarea.style.cssText = 'visible: invisible; width: 0; height: 0; position: fixed'
-    textarea.contentEditable = "true"
-    document.documentElement.appendChild(textarea)
-    fn && fn.call(context, textarea)
-    document.documentElement.removeChild(textarea)
+function applyWithTmpTextArea(fn) {
+    let textarea
+    try {
+        textarea = document.createElement("textarea")
+        // Scratchpad must be `display`ed, but can be tiny and invisible.
+        // Being tiny and invisible means it won't make the parent page move.
+        textarea.style.cssText = 'visible: invisible; width: 0; height: 0; position: fixed'
+        textarea.contentEditable = "true"
+        document.documentElement.appendChild(textarea)
+        return fn(textarea)
+    } finally {
+        document.documentElement.removeChild(textarea)
+    }
 }
 
 export function setClipboard(content: string) {
-    applyWithTmpTextArea(scratchpad => {
+    return applyWithTmpTextArea(scratchpad => {
         scratchpad.value = content
         scratchpad.select()
-        document.execCommand("Copy")
-        // // todo: Maybe we can consider to using some logger and show it with status bar in the future
-        console.log('set clipboard:', scratchpad.value)
+        if (document.execCommand("Copy")) {
+            // // todo: Maybe we can consider to using some logger and show it with status bar in the future
+            console.log('set clipboard:', scratchpad.value)
+        } else throw "Failed to copy!"
     })
 }
 
-export function getClipboard(sender, sendResponse) {
-    applyWithTmpTextArea(scratchpad => {
+export function getClipboard() {
+    return applyWithTmpTextArea(scratchpad => {
         scratchpad.focus()
         document.execCommand("Paste")
         console.log('get clipboard', scratchpad.textContent)
-        sendResponse(scratchpad.textContent)
+        return scratchpad.textContent
     })
 }
 
-function handler(message, sender, sendResponse) {
-    return SELF[message.command](...message.args, sender, sendResponse)
-}
-
-try {
-    Messaging.addListener('commandline_frame', handler)
-} catch(e) {
-    console.error("WAHWAH", e)
-}
+Messaging.addListener('commandline_frame', Messaging.attributeCaller(SELF))

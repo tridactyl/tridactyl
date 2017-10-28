@@ -1,6 +1,7 @@
 export type TabMessageType = 
     "excmd_content" |
     "keydown_content" |
+    "commandline_content" |
     "commandline_frame"
 export type NonTabMessageType = 
     "keydown_background" |

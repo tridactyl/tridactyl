@@ -345,7 +345,7 @@ export async function getnexttabs(tabid: number, n?: number) {
 //#content
 export function showcmdline() {
     CommandLineContent.show()
-    /* CommandLineContent.focus() */
+    CommandLineContent.focus()
 }
 
 //#content
@@ -353,9 +353,6 @@ export function hidecmdline() {
     CommandLineContent.hide()
     CommandLineContent.blur()
 }
-
-/* //#background */
-/* export let focuscmdline = fillcmdline */
 
 /** Set the current value of the commandline to string */
 //#background
@@ -369,11 +366,13 @@ export function fillcmdline(...strarr: string[]) {
 export async function clipboard(excmd = "open"){
     switch (excmd) {
         case 'yank':
+            await messageActiveTab("commandline_content", "focus")
             const atab = await activeTab()
             messageActiveTab("commandline_frame", "setClipboard", [atab.url])
             break
         case 'open':
-            const url = await messageActiveTab("commandline_frame", "getClipboard", [])
+            await messageActiveTab("commandline_content", "focus")
+            const url = await messageActiveTab("commandline_frame", "getClipboard")
             // todo: some url format and security check?
             url && browser.tabs.update(await activeTabID(), {url: url})
             break
