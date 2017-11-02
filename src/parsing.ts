@@ -63,6 +63,7 @@ export namespace normalmode {
         ["xx", "something"],
         ["i", "insertmode"],
         ["b", "openbuffer"],
+        ["ZZ", "qall"],
         // Special keys must be prepended with 🄰
         // ["🄰Backspace", "something"],
     ])

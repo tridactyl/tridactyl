@@ -283,6 +283,15 @@ export async function winclose() {
     browser.windows.remove((await browser.windows.getCurrent()).id)
 }
 
+
+// It's unclear if this will leave a session that can be restored.
+// We might have to do it ourselves.
+//#background
+export async function qall(){
+    let windows = await browser.windows.getAll()
+    windows.map((window) => browser.windows.remove(window.id))
+}
+
 // }}}
 
 // {{{ MISC
