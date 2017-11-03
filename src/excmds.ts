@@ -153,6 +153,7 @@ export function help(...urlarr: string[]) {
     let url = urlarr.join("%20")
     // window.location.href = "docs/modules/_excmds_.html#" + url
     browser.tabs.create({url: "static/docs/modules/_excmds_.html#" + url})
+
 }
 
 /** @hidden */
