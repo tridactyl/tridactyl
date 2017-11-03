@@ -23,16 +23,20 @@ import state from "./state"
 //#background_helper
 import * as keydown from "./keydown_background"
 
+/** @hidden */
 //#background_helper
 export const cmd_params = new Map<string, Map<string, string>>()
 
+/** @hidden */
 const SEARCH_URL = "https://www.google.co.uk/search?q="
 
+/** @hidden */
 function hasScheme(uri: string) {
     return uri.match(/^(\w+):/)
 }
 
 /** If maybeURI doesn't have a schema, affix http:// */
+/** @hidden */
 function forceURI(maybeURI: string) {
     if (hasScheme(maybeURI)) {
         return maybeURI
@@ -55,16 +59,19 @@ function forceURI(maybeURI: string) {
  * TODO: Highlander theory: Can there ever be more than one?
  *
  */
+/** @hidden */
 //#background_helper
 async function activeTab() {
     return (await browser.tabs.query({active: true, currentWindow: true}))[0]
 }
 
+/** @hidden */
 //#background_helper
 async function activeTabID() {
     return (await activeTab()).id
 }
 
+/** @hidden */
 //#background_helper
 function tabSetActive(id: number) {
     browser.tabs.update(id, {active: true})
@@ -105,6 +112,7 @@ export function scrollpage(n = 1) {
     window.scrollBy(0, n)
 }
 
+/** @hidden */
 //#content_helper
 function history(n: number) {
     window.history.go(n)
@@ -147,6 +155,7 @@ export function help(...urlarr: string[]) {
     browser.tabs.create({url: "static/docs/modules/_excmds_.html#" + url})
 }
 
+/** @hidden */
 //#content_helper
 function getlinks(){
     return document.getElementsByTagName('a')
@@ -402,6 +411,7 @@ export async function clipboard(excmd = "open"){
 // {{{ Buffer/completion stuff
 // TODO: Move autocompletions out of excmds.
 
+/** @hidden */
 //#background_helper
 const DEFAULT_FAVICON = browser.extension.getURL("static/defaultFavicon.svg")
 
@@ -432,6 +442,7 @@ export async function buffer(n?: number | string) {
 }
 
 /** List of tabs in window and the last active tab. */
+/** @hidden */
 //#background_helper
 async function getTabs() {
     const tabs = await browser.tabs.query({currentWindow: true})
@@ -446,6 +457,7 @@ async function getTabs() {
 }
 
 /** innerHTML for a single Tab's representation in autocompletion */
+/** @hidden */
 //#background_helper
 function formatTab(tab: browser.tabs.Tab, prev?: boolean) {
     let formatted = `<div> `,
@@ -464,6 +476,7 @@ function formatTab(tab: browser.tabs.Tab, prev?: boolean) {
 }
 
 /** innerHTML for tab autocompletion div */
+/** @hidden */
 //#background_helper
 async function listTabs() {
     let buffers: string = "",
