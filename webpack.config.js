@@ -38,7 +38,7 @@ module.exports = {
         //     }
         // }),
         new WebpackShellPlugin({onBuildStart: [
-            'python3 src/excmds_macros.py'
+            'python3 src/excmds_macros.py', './src/commandline_injector.sh src/static/docs/modules/_excmds_.html'
         ]}),
         new CopyWebPackPlugin([
             { from: "src/manifest.json" },
