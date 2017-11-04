@@ -389,12 +389,12 @@ export function fillcmdline(...strarr: string[]) {
 }
 
 //#background
-export async function clipboard(excmd = "open"){
+export async function clipboard(excmd = "open", content = ""){
     switch (excmd) {
         case 'yank':
             await messageActiveTab("commandline_content", "focus")
-            const atab = await activeTab()
-            messageActiveTab("commandline_frame", "setClipboard", [atab.url])
+            content = (content == "") ? (await activeTab()).url : content
+            messageActiveTab("commandline_frame", "setClipboard", [content])
             break
         case 'open':
             await messageActiveTab("commandline_content", "focus")
