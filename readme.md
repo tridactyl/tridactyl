@@ -1,4 +1,7 @@
-# Tridactyl [![Build Status](https://travis-ci.org/cmcaine/tridactyl.svg?branch=master)](https://travis-ci.org/cmcaine/tridactyl)
+[gitter-badge]: https://badges.gitter.im/Join%20Chat.svg
+[gitter-link]: https://gitter.im/tridactyl/Lobby
+
+# Tridactyl [![Build Status](https://travis-ci.org/cmcaine/tridactyl.svg?branch=master)](https://travis-ci.org/cmcaine/tridactyl) [![Gitter Chat][gitter-badge]][gitter-link]
 
 Replace ff's default control mechanism with one modelled on the one true editor, Vim.
 
@@ -36,7 +39,7 @@ A pre-commit hook is added by `npm install` that simply runs `npm test`. If you 
 
 ### Documentation
 
-Ask in `#tridactyl` on [matrix.org](https://riot.im/app/#/room/#tridactyl:matrix.org), freenode, or [gitter](https://gitter.im/tridactyl/Lobby).
+Ask in `#tridactyl` on [matrix.org](https://riot.im/app/#/room/#tridactyl:matrix.org), freenode, or [gitter][gitter-link]
 
 Development notes are in the doc directory, but they're somewhat out of date. Code is quite short and not *too* badly commented, though.
 
