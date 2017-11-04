@@ -24,7 +24,7 @@ function *ParserController () {
                 // yet. So drop them. This also drops all modifier keys.
                 // When we put in handling for other special keys, remember
                 // to continue to ban modifiers.
-                if (keypress.length > 1) {
+                if (keypress.length > 1 || keyevent.ctrlKey || keyevent.altKey) {
                     continue
                 }
 

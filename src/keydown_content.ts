@@ -6,7 +6,8 @@ import {isTextEditable} from './dom'
 
 function keyeventHandler(ke: KeyboardEvent) {
     // Bad workaround: never suppress events in an editable field
-    if (! isTextEditable(ke.target as Node)) {
+    // and never suppress keys pressed with modifiers
+    if (! (isTextEditable(ke.target as Node) || ke.ctrlKey || ke.altKey)) {
         suppressKey(ke)
     }
     Messaging.message("keydown_background", "recvEvent", [msgsafe.KeyboardEvent(ke)])
