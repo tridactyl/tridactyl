@@ -71,6 +71,10 @@
     padding-top: 7px !important;
 }
 
+/* Hide URL notifications that aren't particularly useful and cover up the command line
+ * TODO: move it above the command line / bring functionality into status line like Vimperator */
+statuspanel[type="overLink"]{display: none !important;}
+
 /* Partial removal of black bottom 1px line shown in fullscreen mode */
 #navigator-toolbox::after { display: none !important; }
 
