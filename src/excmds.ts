@@ -491,4 +491,32 @@ async function listTabs() {
 // }}}
 
 // }}}
+
+/* SETTINGS */
+//#background
+export async function bind(...bindarr: string[]){
+    let exstring = bindarr.slice(1,bindarr.length).join(" ")
+    let key = bindarr[0]
+    let nmaps = (await browser.storage.sync.get("nmaps"))["nmaps"]
+    nmaps = (nmaps == undefined) ? {} : nmaps
+    nmaps[key] = exstring
+    browser.storage.sync.set({nmaps})
+}
+
+//#background
+export async function unbind(key: string){
+    bind(key)
+}
+
+/* Currently, only resets key to default after extension is reloaded */
+//#background
+export async function reset(key: string){
+    bind(key)
+    let nmaps = (await browser.storage.sync.get("nmaps"))["nmaps"]
+    nmaps = (nmaps == undefined) ? {} : nmaps
+    delete nmaps[key]
+    browser.storage.sync.set({nmaps})
+}
+
+
 // vim: tabstop=4 shiftwidth=4 expandtab

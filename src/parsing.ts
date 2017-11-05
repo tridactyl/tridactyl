@@ -29,44 +29,71 @@ export namespace normalmode {
     // TODO: Move these into a tridactyl-wide state namespace
     // TODO: stop stealing keys from "insert mode"
     //          r -> refresh page is particularly unhelpful
-    const nmaps = new Map<string, string>([
-        ["o", "fillcmdline open"],
-        ["O", "current-url open"],
-        ["w", "fillcmdline winopen"],
-        ["W", "current-url winopen"],
-        ["t", "tabopen"],
-        //["t", "fillcmdline tabopen"], // for now, use mozilla completion
-        ["]]", "clicknext"], 
-        ["[[", "clicknext prev"], 
-        ["T", "current-url tab"],
-        ["yy", "clipboard yank"],
-        ["p", "clipboard open"],
-        ["P", "clipboard tabopen"],
-        ["j", "scrollline 10"],
-        ["k", "scrollline -10"],
-        ["h", "scrollpx -50"],
-        ["l", "scrollpx 50"],
-        ["G", "scrollto 100"],
-        ["gg", "scrollto 0"],
-        ["H", "back"],
-        ["L", "forward"],
-        ["d", "tabclose"],
-        ["u", "undo"],
-        ["r", "reload"],
-        ["R", "reloadhard"],
-        ["gt", "tabnext"],
-        ["gT", "tabprev"],
-        ["gr", "reader"],
-        [":", "fillcmdline"],
-        ["s", "fillcmdline open google"],
-        ["S", "fillcmdline tabopen google"],
-        ["xx", "something"],
-        ["i", "insertmode"],
-        ["b", "openbuffer"],
-        ["ZZ", "qall"],
+    //  Can't stringify a map -> just use an object
+    let nmaps = {
+        "o": "fillcmdline open",
+        "O": "current-url open",
+        "w": "fillcmdline winopen",
+        "W": "current-url winopen",
+        "t": "tabopen",
+        //["t": "fillcmdline tabopen", // for now, use mozilla completion
+        "]]": "clicknext", 
+        "[[": "clicknext prev", 
+        "T": "current-url tab",
+        "yy": "clipboard yank",
+        "p": "clipboard open",
+        "P": "clipboard tabopen",
+        "j": "scrollline 10",
+        "k": "scrollline -10",
+        "h": "scrollpx -50",
+        "l": "scrollpx 50",
+        "G": "scrollto 100",
+        "gg": "scrollto 0",
+        "H": "back",
+        "L": "forward",
+        "d": "tabclose",
+        "u": "undo",
+        "r": "reload",
+        "R": "reloadhard",
+        "gt": "tabnext",
+        "gT": "tabprev",
+        "gr": "reader",
+        ":": "fillcmdline",
+        "s": "fillcmdline open google",
+        "S": "fillcmdline tabopen google",
+        "xx": "something",
+        "i": "insertmode",
+        "b": "openbuffer",
+        "ZZ": "qall",
         // Special keys must be prepended with 🄰
         // ["🄰Backspace", "something"],
-    ])
+    }
+
+    // Allow config to be changed in settings
+    // TODO: make this more general
+    browser.storage.sync.get("nmaps").then(lazyloadconfig)
+    async function lazyloadconfig(config_obj){
+        let nmaps_config = config_obj["nmaps"]
+        nmaps_config = (nmaps_config == undefined) ? {} : nmaps_config
+        nmaps = merge_objects(nmaps,nmaps_config)
+        console.log(nmaps)
+    }
+
+    browser.storage.onChanged.addListener(
+        (changes, areaname) => {
+            if (areaname == "sync") {
+                // Brute force it because programmer time is valuable
+                // A more sensible approach would use the "changes" object
+                browser.storage.sync.get("nmaps").then(lazyloadconfig)
+                console.log(changes)
+            }
+        })
+
+    // Shamelessly copied from https://plainjs.com/javascript/utilities/merge-two-javascript-objects-19/
+    function merge_objects(obj,src){
+	    Object.keys(src).forEach(function(key) { obj[key] = src[key]; });
+	    return obj;
+    }
 
     // Split a string into a number prefix and some following keys.
     function keys_split_count(keys: string[]){
@@ -83,7 +110,7 @@ export namespace normalmode {
     // Given a valid keymap, resolve it to an ex_str
     function resolve_map(map) {
         // TODO: This needs to become recursive to allow maps to be defined in terms of other maps.
-        return nmaps.get(map)
+        return nmaps[map]
     }
 
     // Valid keystr to ex_str by splitting count, resolving keystr and appending count as final argument.
@@ -103,7 +130,7 @@ export namespace normalmode {
         let [count, keystr] = keys_split_count(keys)
 
         // Short circuit or search maps.
-        if (nmaps.has(keystr)) {
+        if (nmaps.hasOwnProperty(keystr)) {
             return [keystr,]
         } else {
             // Efficiency: this can be short-circuited.
@@ -113,7 +140,7 @@ export namespace normalmode {
 
     // A list of maps that start with the fragment.
     export function completions(fragment): string[] {
-        let posskeystrs = Array.from(nmaps.keys())
+        let posskeystrs = Array.from(Object.keys(nmaps))
         return posskeystrs.filter((key)=>key.startsWith(fragment))
     }
 
