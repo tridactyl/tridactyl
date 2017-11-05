@@ -12,31 +12,77 @@ async function sendExstr(exstr) {
     Messaging.message("commandline_background", "recvExStr", [exstr])
 }
 
+
+
 /* Process the commandline on enter. */
 clInput.addEventListener("keydown", function (keyevent) {
-    if (keyevent.key === "Enter") {
-        process()
-    }
-    if (keyevent.key === "Escape") {
-        /** Bug workaround: clInput cannot be cleared during an "Escape"
-         * keydown event, presumably due to Firefox's internal handler for
-         * Escape. So clear clInput just after :)
-         *
-         * TODO: Report this on bugzilla.
-        */
-        completions.innerHTML = ""
-        setTimeout(()=>{clInput.value = ""}, 0)
-        sendExstr("hidecmdline")
+    switch (keyevent.key) {
+        case "Enter":
+            process()
+            break
+
+        case "Escape":
+            hide_and_clear()
+            break
+
+        // Todo: fish-style history search
+        // persistent history
+        case "ArrowUp":
+            history(-1)
+            break
+
+        case "ArrowDown":
+            history(1)
+            break
+
+        // Clear input on ^C
+        // Todo: hard mode: vi style editing on cli, like set -o mode vi
+        // should probably just defer to another library
+        case "c":
+            if (keyevent.ctrlKey) hide_and_clear()
+
     }
 })
+
+let cmdline_history = []
+let cmdline_history_position = 0
+let cmdline_history_current = ""
+
+function hide_and_clear(){
+            /** Bug workaround: clInput cannot be cleared during an "Escape"
+             * keydown event, presumably due to Firefox's internal handler for
+             * Escape. So clear clInput just after :)
+             *
+             * TODO: Report this on bugzilla.
+            */
+            completions.innerHTML = ""
+            setTimeout(()=>{clInput.value = ""}, 0)
+            sendExstr("hidecmdline")
+}
+
+function history(n){
+    completions.innerHTML = ""
+    if (cmdline_history_position == 0){
+        cmdline_history_current = clInput.value 
+    }
+    let wrapped_ind = cmdline_history.length + n - cmdline_history_position
+    wrapped_ind = Math.min(cmdline_history.length,wrapped_ind)
+    wrapped_ind = Math.max(0,wrapped_ind)
+    let pot_history = cmdline_history[wrapped_ind]
+    clInput.value = pot_history == undefined ? cmdline_history_current : pot_history
+    cmdline_history_position = - n + cmdline_history_position
+}
 
 /* Send the commandline to the background script and await response. */
 function process() {
     console.log(clInput.value)
     sendExstr("hidecmdline")
     sendExstr(clInput.value)
+    cmdline_history.push(clInput.value)
+    console.log(cmdline_history)
     completions.innerHTML = ""
     clInput.value = ""
+    cmdline_history_position = 0
 }
 
 export function fillcmdline(newcommand?: string){
