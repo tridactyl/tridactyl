@@ -26,7 +26,7 @@
   },
   "scripts": {
     "build": "typedoc --out src/static/docs src --ignoreCompilerErrors; webpack",
-    "watch": "chokidar src --initial --silent -i 'src/excmds_{background,content}.ts' -c 'webpack --display errors-only'",
+    "watch": "chokidar src --initial --silent -i 'src/excmds_{background,content}.ts' -i 'src/static/docs/modules/_excmds_.html' -c 'webpack --display errors-only'",
     "clean": "rm -rf build",
     "test": "npm run build && jest --silent",
     "update-buildsystem": "rm -rf src/node_modules; npm run clean"
