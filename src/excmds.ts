@@ -109,7 +109,7 @@ export function scrollline(n = 1) {
 }
 //#content
 export function scrollpage(n = 1) {
-    window.scrollBy(0, n)
+    window.scrollBy(0, window.innerHeight * n)
 }
 
 /** @hidden */
