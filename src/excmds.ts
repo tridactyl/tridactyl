@@ -434,12 +434,19 @@ export async function buffer(n?: number | string) {
                 return a.lastAccessed < b.lastAccessed ? 1 : -1
             })[1].index + 1
     }
-    tabSetActive(
-        (await browser.tabs.query({
-            currentWindow: true,
-            index: Number(n) - 1,
-        }))[0].id
-    )
+    if (Number.isInteger(Number(n))) {
+        tabSetActive(
+            (await browser.tabs.query({
+                currentWindow: true,
+                index: Number(n) - 1,
+            }))[0].id
+        )
+    // hacky search by url
+    } else {
+        let currtabs = await browser.tabs.query({currentWindow: true})
+        // todo: choose best match
+        tabSetActive(currtabs.filter((t)=> (t["url"].includes(String(n)) || t["title"].toLowerCase().includes(String(n).toLowerCase())))[0].id)
+    }
 }
 
 /** List of tabs in window and the last active tab. */
