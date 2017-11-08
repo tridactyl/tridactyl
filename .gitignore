@@ -2,3 +2,5 @@ build
 node_modules
 src/excmds_background.ts
 src/excmds_content.ts
+generated
+web-ext-artifacts

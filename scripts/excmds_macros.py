@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 """Force reflection upon an unwilling world.
 
 Processes a single excmds.ts to produce a background and content version.
@@ -134,11 +134,6 @@ def omit_line_factory(desired_context):
 def main():
     """Iterate over the file, dispatching to appropriate macro handlers."""
 
-    import os
-    abspath = os.path.abspath(__file__)
-    dname = os.path.dirname(abspath)
-    os.chdir(dname)
-
     macros = {
             "content": content,
             "background": background,
@@ -149,8 +144,8 @@ def main():
             }
 
     for context in ("background", "content"):
-        with open("excmds.ts") as source:
-            output = ""
+        with open("src/excmds.ts") as source:
+            output = PRELUDE
             lines = iter(source)
             for line in lines:
                 if line.startswith("//#"):
@@ -162,8 +157,9 @@ def main():
                 else:
                     output += line
             # print(output.rstrip())
-            with open("excmds_{context}.ts".format(**locals()), "w") as sink:
+            with open("src/excmds_{context}.ts".format(**locals()), "w") as sink:
                 print(output.rstrip(), file=sink)
 
 
+PRELUDE = "/** Generated from excmds.ts. Don't edit this file! */"
 main()
