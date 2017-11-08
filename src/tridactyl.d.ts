@@ -20,5 +20,3 @@ interface Window {
 declare namespace browser.find {
     function find(query, object): any
 }
-
-type ModeType = "NORMAL" | "INSERT"

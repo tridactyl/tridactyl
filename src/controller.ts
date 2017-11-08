@@ -13,10 +13,11 @@ function *ParserController () {
                 let keyevent: MsgSafeKeyboardEvent = yield
                 let keypress = keyevent.key
 
+                // TODO: think about if this is robust
                 if (isTextEditable(keyevent.target)) {
-                    state.mode = "INSERT"
-                } else {
-                    state.mode = "NORMAL"
+                    state.mode = "insert"
+                } else if (state.mode === 'insert') {
+                    state.mode = "normal"
                 }
                 console.log(keyevent, state.mode)
 
@@ -29,16 +30,7 @@ function *ParserController () {
                 }
 
                 keys.push(keypress)
-                let response = Parsing.normalmode.parser(keys)
-                switch(state.mode){
-                    case "NORMAL":
-                        response = Parsing.normalmode.parser(keys)
-                        break
-
-                    case "INSERT":
-                        response = Parsing.insertmode.parser(keys)
-                        break
-                }
+                let response = state.modes[state.mode](keys)
 
                 console.debug(keys, response)
 
