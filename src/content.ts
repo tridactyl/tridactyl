@@ -26,6 +26,7 @@ import * as msgsafe from "./msgsafe"
 import state from "./state"
 import * as webext from "./lib/webext"
 import Mark from "mark.js"
+import * as keyseq from "./keyseq"
 ;(window as any).tri = Object.assign(Object.create(null), {
     browserBg: webext.browserBg,
     commandline_content,
@@ -38,6 +39,7 @@ import Mark from "mark.js"
     itertools,
     keydown_content,
     Mark,
+    keyseq,
     messaging,
     msgsafe,
     state,

@@ -12,6 +12,7 @@ scripts/excmds_macros.py
 scripts/newtab.md.sh
 scripts/make_tutorial.sh
 scripts/make_docs.sh &
+nearleyc src/grammars/bracketexpr.ne > src/grammars/bracketexpr.ts
 
 (webpack --display errors-only && scripts/git_version.sh)&
 
