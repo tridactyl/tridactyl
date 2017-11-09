@@ -488,9 +488,8 @@ async function listTabs() {
 // {{{ SETTINGS
 
 //#background
-export async function bind(...bindarr: string[]){
-    let exstring = bindarr.slice(1,bindarr.length).join(" ")
-    let key = bindarr[0]
+export async function bind(key: string, ...bindarr: string[]){
+    let exstring = bindarr.join(" ")
     let nmaps = (await browser.storage.sync.get("nmaps"))["nmaps"]
     nmaps = (nmaps == undefined) ? {} : nmaps
     nmaps[key] = exstring
