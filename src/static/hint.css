@@ -1,7 +1,7 @@
 span.TridactylHint {
     position: absolute;
-    font-family: monospace;
-    font-size: 10px;
+    font-family: sans-serif;
+    font-size: 12px;
     font-weight: bold;
     text-transform: uppercase;
     color: white;
@@ -9,7 +9,7 @@ span.TridactylHint {
     border-color: ButtonShadow;
     border-width: 0px;
     border-style: solid;
-    padding: 0px 1px 0px 1px;
+    padding: 1pt;
     z-index: 2147483647;
 }
 
