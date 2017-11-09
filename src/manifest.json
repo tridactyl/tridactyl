@@ -32,21 +32,11 @@
 
   "permissions": [
       "activeTab",
-      "alarms",
       "bookmarks",
       "contextMenus",
-      "cookies",
       "clipboardWrite",
       "clipboardRead",
-      "downloads",
-      "downloads.open",
-      "find",
       "history",
-      "identity",
-      "idle",
-      "management",
-      "nativeMessaging",
-      "notifications",
       "sessions",
       "storage",
       "tabs",
@@ -59,7 +49,7 @@
 
     "applications": {
       "gecko": {
-        "id": "tridactyl@cmcaine.co.uk"
+        "id": "tridactyl.vim@cmcaine.co.uk"
       }
     }
 
