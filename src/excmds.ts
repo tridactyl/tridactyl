@@ -44,17 +44,16 @@ function hasScheme(uri: string) {
 function forceURI(maybeURI: string) {
     if (hasScheme(maybeURI)) {
         return maybeURI
-    } else if (maybeURI.includes(".")) {
-        // If you want to access something on the local network, just use .lan
+    }
+    
+    let urlarr = maybeURI.split("%20")
+    // TODO: make this more generic
+    if (urlarr[0] == "google"){
+        return SEARCH_URL + urlarr.slice(1,urlarr.length).join("%20")
+    } else if (urlarr[0].includes('.')) {
         return "http://" + maybeURI
     } else {
-        let urlarr = maybeURI.split("%20")
-        // TODO: make this more generic
-        if (urlarr[0] == "google"){
-            return SEARCH_URL + urlarr.slice(1,urlarr.length).join("%20")
-        } else {
-            return SEARCH_URL + maybeURI
-        }
+        return SEARCH_URL + maybeURI
     }
 }
 
