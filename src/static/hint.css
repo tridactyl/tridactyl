@@ -8,8 +8,10 @@ span.TridactylHint {
     background-color: red;
     border-color: ButtonShadow;
     border-width: 0px;
+    min-width: .75em;
     border-style: solid;
-    padding: 1pt;
+    padding: 0 1pt;
+    text-align: center;
     z-index: 2147483647;
 }
 
