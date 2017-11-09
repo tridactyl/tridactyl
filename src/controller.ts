@@ -1,6 +1,6 @@
 import {MsgSafeKeyboardEvent, MsgSafeNode} from './msgsafe'
 import {isTextEditable} from './dom'
-import * as Parsing from "./parsing"
+import {parser as exmode_parser} from './parsers/exmode'
 import state from "./state"
 
 /** Accepts keyevents, resolves them to maps, maps to exstrs, executes exstrs */
@@ -61,7 +61,7 @@ export function acceptKey(keyevent: MsgSafeKeyboardEvent) {
 export function acceptExCmd(ex_str: string) {
     // TODO: Errors should go to CommandLine.
     try {
-        let [func, args] = Parsing.exmode.parser(ex_str)
+        let [func, args] = exmode_parser(ex_str)
         try {
             func(...args)
         } catch (e) {
