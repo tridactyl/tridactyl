@@ -8,15 +8,22 @@
     <title>Tridactyl Top Tips & New Tab Page</title>
     <body>
         <h1>Tridactyl's Top Tips Page!</h1>
-        <p> - Do not try to navigate to any about:* pages using :open. They are not useful for anything anyway.<br />
-- If you want your browser to look less ELC [1], move the supplied userChrome-minimal.css to chrome/userChrome.css in your user profile folder, which can be found on the about:support page.<br />
-- Use yy to copy the current page URL to your clipboard (also works pages other than this).<br />
-- Press ]] and [[ to navigate comics and the like.<br />
+        <p>
+- Tridactyl is in a pretty early stage of development. Please report any issues and make requests for missing features on the GitHub project page [1]<br />
+- Do not try to navigate to any about:* pages using :open as it will fail silently.<br />
+- Firefox will not load Tridactyl on the addons.mozilla.org and some raw text files; in this case, Ctrl-L, Ctrl-Tab and Ctrl-W are your escape hatches.<br />
+- Tridactyl does not currently support changing/hiding the Firefox GUI, but you can do it yourself by changing your userChrome. There is an example file available on our repository [2].<br />
+- Use yy to copy the current page URL to your clipboard.<br />
+- Press b to bring up a list of open tabs in the current window; you can type the tab ID or part of the title or URL to choose a tab.<br />
+- Press ]] and [[ to navigate through the pages comics, etc.<br />
 - Press s to search Google.<br />
-- If you want your user interface to be less janky, consider using Firefox ESR [2] and Vimperator instead.<br />
+- Pressing ZZ will close all tabs and windows, but it will only "save" them if your about:preferences are set to "show your tabs and windows from last time".<br />
+- Press f to start "hint mode". <br />
+- If you want your user interface to be less janky, consider using Firefox ESR [3] and Vimperator instead.<br />
 <br />
-[1]: <a href="http://www.elc.co.uk/">http://www.elc.co.uk/</a><br />
-[2]: <a href="https://www.mozilla.org/en-US/firefox/organizations/">https://www.mozilla.org/en-US/firefox/organizations/</a><br />
+[1]: <a href="https://github.com/cmcaine/tridactyl/issues">https://github.com/cmcaine/tridactyl/issues</a><br />
+[2]: <a href="https://github.com/cmcaine/tridactyl/blob/master/src/static/userChrome-minimal.css">https://github.com/cmcaine/tridactyl/blob/master/src/static/userChrome-minimal.css</a><br />
+[3]: <a href="https://www.mozilla.org/en-US/firefox/organizations/">https://www.mozilla.org/en-US/firefox/organizations/</a><br />
         </p>
         <script src="../content.js"></script>
     </body>
