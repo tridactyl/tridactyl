@@ -36,18 +36,18 @@ function *ParserController () {
                 // yet. So drop them. This also drops all modifier keys.
                 // When we put in handling for other special keys, remember
                 // to continue to ban modifiers.
-                if (state.mode !== 'hint' && (keypress.length > 1 || keyevent.ctrlKey || keyevent.altKey)) {
+                if (state.mode === 'normal' && (keypress.length > 1 || keyevent.ctrlKey || keyevent.altKey)) {
                     continue
                 }
 
                 keys.push(keypress)
                 let response = undefined
                 switch (state.mode) {
-                    case 'hint':
-                        response = parsers[state.mode]([keyevent])
+                    case 'normal':
+                        response = (parsers[state.mode] as any)(keys)
                         break
                     default:
-                        response = parsers[state.mode](keys)
+                        response = (parsers[state.mode] as any)([keyevent])
                         break
                 }
                 console.debug(keys, response)

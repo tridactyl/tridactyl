@@ -67,6 +67,12 @@ function tabSetActive(id: number) {
 
 // {{{ PAGE CONTEXT
 
+/** Blur (unfocus) the active element */
+//#content
+export function unfocus() {
+    (document.activeElement as HTMLInputElement).blur()
+}
+
 //#content
 export function scrollpx(a: number, b: number) {
     window.scrollBy(a, b)
