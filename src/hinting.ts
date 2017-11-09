@@ -223,7 +223,10 @@ const HINTTAGS = `
 
 function hintPageSimple() {
     console.log("Hinting!")
-    hintPage(hintables(), hint=>mouseEvent(hint.target, 'click'))
+    hintPage(hintables(), hint=>{
+        hint.target.focus()
+        mouseEvent(hint.target, 'click')
+    })
 }
 
 function selectFocusedHint() {
