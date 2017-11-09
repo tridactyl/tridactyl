@@ -2,7 +2,7 @@
 
   "manifest_version": 2,
   "name": "Tridactyl",
-  "version": "1.0",
+  "version": "VERSIONHERE",
 
   "background" : {
     "scripts": ["background.js"]

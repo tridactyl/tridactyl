@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+
+bump_version() {
+    sed "s/VERSIONHERE/8374.$(git rev-list --count HEAD)pre/" -i build/manifest.json
+}
+
+sign_and_submit() {
+    (source AMOKEYS && web-ext sign -s build --api-key $AMOKEY --api-secret $AMOSECRET)
+}
+
+publish_beta() {
+    npm run build
+    bump_version
+    sign_and_submit
+}
+
+publish_sideload() {
+    npm run build
+    bump_version
+    sed 's/"name": "Tridactyl"/"name": "Tridactyl Sideload"/' -i build/manifest.json
+    sed 's/tridactyl.vim@cmcaine/tridactyl.vim.betas@cmcaine/' -i build/manifest.json
+    sign_and_submit
+}
+
+publish_beta
