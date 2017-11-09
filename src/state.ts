@@ -15,12 +15,13 @@
 */
 
 export type ModeName = 'normal'|'insert'|'hint'
-class State2 {
+class State {
     mode: ModeName = 'normal'
+    cmdHistory: string[] = []
 }
 
 // Don't change these from const or you risk breaking the Proxy below.
-const defaults = Object.freeze(new State2())
+const defaults = Object.freeze(new State())
 
 const overlay = {} as any
 browser.storage.local.get('state').then(res=>{
@@ -49,7 +50,7 @@ const state = new Proxy(overlay, {
         return true
     }
 
-}) as any as State2
+}) as any as State
 
 browser.storage.onChanged.addListener(
     (changes, areaname) => {

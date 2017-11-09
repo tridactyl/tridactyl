@@ -2,6 +2,8 @@
 
 import * as Messaging from './messaging'
 import * as SELF from './commandline_frame'
+import './number.clamp'
+import state from './state'
 
 let completions = window.document.getElementById("completions") as HTMLElement
 let clInput = window.document.getElementById("tridactyl-input") as HTMLInputElement
@@ -44,20 +46,17 @@ clInput.addEventListener("keydown", function (keyevent) {
     }
 })
 
-let cmdline_history = []
 let cmdline_history_position = 0
 let cmdline_history_current = ""
 
 function hide_and_clear(){
-            /** Bug workaround: clInput cannot be cleared during an "Escape"
-             * keydown event, presumably due to Firefox's internal handler for
-             * Escape. So clear clInput just after :)
-             *
-             * TODO: Report this on bugzilla.
-            */
-            completions.innerHTML = ""
-            setTimeout(()=>{clInput.value = ""}, 0)
-            sendExstr("hidecmdline")
+    /** Bug workaround: clInput cannot be cleared during an "Escape"
+     * keydown event, presumably due to Firefox's internal handler for
+     * Escape. So clear clInput just after :)
+     */
+    completions.innerHTML = ""
+    setTimeout(()=>{clInput.value = ""}, 0)
+    sendExstr("hidecmdline")
 }
 
 function history(n){
@@ -65,12 +64,12 @@ function history(n){
     if (cmdline_history_position == 0){
         cmdline_history_current = clInput.value 
     }
-    let wrapped_ind = cmdline_history.length + n - cmdline_history_position
-    wrapped_ind = Math.min(cmdline_history.length,wrapped_ind)
-    wrapped_ind = Math.max(0,wrapped_ind)
-    let pot_history = cmdline_history[wrapped_ind]
+    let wrapped_ind = state.cmdHistory.length + n - cmdline_history_position
+    wrapped_ind = wrapped_ind.clamp(0, state.cmdHistory.length)
+
+    const pot_history = state.cmdHistory[wrapped_ind]
     clInput.value = pot_history == undefined ? cmdline_history_current : pot_history
-    cmdline_history_position = - n + cmdline_history_position
+    cmdline_history_position = cmdline_history_position - n
 }
 
 /* Send the commandline to the background script and await response. */
@@ -78,8 +77,8 @@ function process() {
     console.log(clInput.value)
     sendExstr("hidecmdline")
     sendExstr(clInput.value)
-    cmdline_history.push(clInput.value)
-    console.log(cmdline_history)
+    state.cmdHistory = state.cmdHistory.concat([clInput.value])
+    console.log(state.cmdHistory)
     completions.innerHTML = ""
     clInput.value = ""
     cmdline_history_position = 0
