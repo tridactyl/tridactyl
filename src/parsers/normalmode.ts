@@ -11,14 +11,14 @@
 //  Can't stringify a map -> just use an object
 let nmaps = {
     "o": "fillcmdline open",
-    "O": "current-url open",
+    "O": "current_url open",
     "w": "fillcmdline winopen",
-    "W": "current-url winopen",
+    "W": "current_url winopen",
     "t": "tabopen",
     //["t": "fillcmdline tabopen", // for now, use mozilla completion
     "]]": "clicknext", 
     "[[": "clicknext prev", 
-    "T": "current-url tab",
+    "T": "current_url tabopen",
     "yy": "clipboard yank",
     "p": "clipboard open",
     "P": "clipboard tabopen",

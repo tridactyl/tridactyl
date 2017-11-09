@@ -46,10 +46,10 @@ function forceURI(maybeURI: string) {
         return maybeURI
     }
     
-    let urlarr = maybeURI.split("%20")
+    let urlarr = maybeURI.split(" ")
     // TODO: make this more generic
     if (urlarr[0] == "google"){
-        return SEARCH_URL + urlarr.slice(1,urlarr.length).join("%20")
+        return SEARCH_URL + urlarr.slice(1,urlarr.length).join(" ")
     } else if (urlarr[0].includes('.')) {
         return "http://" + maybeURI
     } else {
@@ -136,13 +136,13 @@ export async function reloadhard(n = 1) {
 
 //#content
 export function open(...urlarr: string[]) {
-    let url = urlarr.join("%20")
+    let url = urlarr.join(" ")
     window.location.href = forceURI(url)
 }
 
 //#background
 export function help(...urlarr: string[]) {
-    let url = urlarr.join("%20")
+    let url = urlarr.join(" ")
     // window.location.href = "docs/modules/_excmds_.html#" + url
     browser.tabs.create({url: "static/docs/modules/_excmds_.html#" + url})
 
@@ -205,7 +205,7 @@ export function tabprev(increment = 1) {
 //#background
 export async function tabopen(...addressarr: string[]) {
     let uri
-    let address = addressarr.join('%20')
+    let address = addressarr.join(' ')
     if (address != "") uri = forceURI(address)
     browser.tabs.create({url: uri})
 }
@@ -281,8 +281,8 @@ export async function winopen(...args: string[]) {
     const createData = {}
     if (args[0] === "-private") {
         createData["incognito"] = true
-        address = args.slice(1,args.length).join('%20')
-    } else address = args.join('%20')
+        address = args.slice(1,args.length).join(' ')
+    } else address = args.join(' ')
     createData["url"] = forceURI(address)
     browser.windows.create(createData)
 }
@@ -378,6 +378,19 @@ export function fillcmdline(...strarr: string[]) {
     let str = strarr.join(" ")
     showcmdline()
     messageActiveTab("commandline_frame", "fillcmdline", [str])
+}
+
+//#background
+export function fillcmdline_notrail(...strarr: string[]) {
+    let str = strarr.join(" ")
+    let trailspace = false
+    showcmdline()
+    messageActiveTab("commandline_frame", "fillcmdline", [str, trailspace])
+}
+
+//#background
+export async function current_url(...strarr: string[]){
+    fillcmdline(...strarr, (await activeTab()).url)
 }
 
 //#background
