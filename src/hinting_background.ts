@@ -12,12 +12,19 @@ async function reset() {
     return await messageActiveTab('hinting_content', 'reset')
 }
 
+export async function hintPageSimple() {
+    return await messageActiveTab('hinting_content', 'hintPageSimple')
+}
+
+import {MsgSafeKeyboardEvent} from './msgsafe'
+
 /** At some point, this might be turned into a real keyseq parser
 
     if Enter, select focusedHint and reset, or reset on Escape.
     else give to the hintfilter
 */
-export function parser(keys) {
+export function parser(keys: MsgSafeKeyboardEvent[]) {
+    console.log("hintparser", keys)
     const key = keys[0].key
     if (key === 'Enter' || key === 'Escape') {
         if (key === 'Enter') selectFocusedHint()

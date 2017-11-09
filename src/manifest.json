@@ -16,7 +16,10 @@
       {
           "matches":["<all_urls>"],
           "js":["content.js"],
-          "css":["static/content.css"],
+          "css":[
+            "static/content.css",
+            "static/hint.css"
+          ],
           "run_at":"document_start",
           "match_about_blank": true
       }

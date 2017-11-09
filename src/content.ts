@@ -6,5 +6,6 @@
 import "./keydown_content"
 import "./commandline_content"
 import "./excmds_content"
+import "./hinting"
 
 console.log("Tridactyl content script loaded, boss!")

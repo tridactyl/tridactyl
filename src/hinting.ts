@@ -14,6 +14,7 @@ import {elementsByXPath, isVisible, mouseEvent} from './dom'
 import {log} from './math'
 import {permutationsWithReplacement, islice, izip, map} from './itertools'
 import {hasModifiers} from './keyseq'
+import state from './state'
 
 /** Simple container for the state of a single frame's hints. */
 class HintState {
@@ -21,6 +22,7 @@ class HintState {
     readonly hintHost = document.createElement('div')
     readonly hints: Hint[] = []
     public filter = ''
+    public hintchars = ''
 
     destructor() {
         // Undo any alterations of the hinted elements
@@ -39,9 +41,12 @@ let modeState: HintState = undefined
 export function hintPage(hintableElements: Element[], onSelect: HintSelectedCallback) {
     modeState = new HintState()
     for (let [el, name] of izip(hintableElements, hintnames())) {
+        modeState.hintchars += name
         modeState.hints.push(new Hint(el, name, onSelect))
     }
+    console.log("HINTS", modeState.hints)
     modeState.focusedHint = modeState.hints[0]
+    modeState.focusedHint.focused = true
     document.body.appendChild(modeState.hintHost)
 }
 
@@ -67,13 +72,17 @@ class Hint {
     ) {
         const rect = target.getClientRects()[0]
         this.flag.textContent = name
-        this.flag.className = 'Hint'
+        this.flag.className = 'TridactylHint'
+        /* this.flag.style.cssText = ` */
+        /*     top: ${rect.top}px; */
+        /*     left: ${rect.left}px; */
+        /* ` */
         this.flag.style.cssText = `
-            top: ${rect.top}px;
-            left: ${rect.left}px;
+            top: ${window.scrollY + rect.top}px;
+            left: ${window.scrollX + rect.left}px;
         `
         modeState.hintHost.appendChild(this.flag)
-        target.classList.add('HintElem')
+        target.classList.add('TridactylHintElem')
     }
 
     // These styles would be better with pseudo selectors. Can we do custom ones?
@@ -82,18 +91,18 @@ class Hint {
         this.flag.hidden = hide
         if (hide) {
             this.focused = false
-            this.target.classList.remove('HintElem')
+            this.target.classList.remove('TridactylHintElem')
         } else
-            this.target.classList.add('HintElem')
+            this.target.classList.add('TridactylHintElem')
     }
 
     set focused(focus: boolean) {
         if (focus) {
-            this.target.classList.add('HintActive')
-            this.target.classList.remove('HintElem')
+            this.target.classList.add('TridactylHintActive')
+            this.target.classList.remove('TridactylHintElem')
         } else {
-            this.target.classList.add('HintElem')
-            this.target.classList.remove('HintActive')
+            this.target.classList.add('TridactylHintElem')
+            this.target.classList.remove('TridactylHintActive')
         }
     }
 
@@ -114,10 +123,12 @@ function* hintnames_uniform(n: number, hintchars = HINTCHARS) {
     }
 }
 
-/* const HINTCHARS = 'hjklasdfgyuiopqwertnmzxcvb' */
-const HINTCHARS = 'asdf'
+const HINTCHARS = 'hjklasdfgyuiopqwertnmzxcvb'
+/* const HINTCHARS = 'asdf' */
 
+/** Show only hints prefixed by fstr. Focus first match */
 function filter(fstr) {
+    console.log(fstr)
     const active: Hint[] = []
     let foundMatch
     for (let h of modeState.hints) {
@@ -128,12 +139,14 @@ function filter(fstr) {
                 modeState.focusedHint = h
                 foundMatch = true
             }
+            h.hidden = false
             active.push(h)
         }
 
     }
-    if (active.length == 1)
-        active[0].select()
+    if (active.length == 1) {
+        selectFocusedHint()
+    }
 }
 
 /** Remove all hints, reset STATE. */
@@ -151,7 +164,7 @@ function pushKey(ke) {
         filter(modeState.filter)
     } else if (ke.key.length > 1) {
         return
-    } else {
+    } else if (modeState.hintchars.includes(ke.key)) {
         modeState.filter += ke.key
         filter(modeState.filter)
     }
@@ -208,9 +221,22 @@ const HINTTAGS = `
 /* hintPage(hintables(), hint=>mouseEvent(hint.target, 'click')) */
 /* addEventListener('keydown', pushKey) */
 
+function hintPageSimple() {
+    console.log("Hinting!")
+    hintPage(hintables(), hint=>mouseEvent(hint.target, 'click'))
+}
+
 function selectFocusedHint() {
+    console.log("Selecting hint.", state.mode)
+    state.mode = 'normal'
     modeState.focusedHint.select()
+    reset()
 }
 
 import {addListener, attributeCaller} from './messaging'
-addListener('hinting_content', attributeCaller({pushKey, selectFocusedHint, reset}))
+addListener('hinting_content', attributeCaller({
+    pushKey,
+    selectFocusedHint,
+    reset,
+    hintPageSimple,
+}))

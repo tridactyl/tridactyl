@@ -1,3 +1,5 @@
+import {l, activeTabId} from './lib/webext'
+
 export type TabMessageType = 
     "excmd_content" |
     "keydown_content" |
@@ -16,23 +18,6 @@ export interface Message {
 }
 
 export type listener = (message: Message, sender?, sendResponse?) => void|Promise<any>
-
-/** await a promise and console.error and rethrow if it errors
-
-    Errors from promises don't get logged unless you seek them out.
-
-    There's an event for catching these, but it's not implemented in firefox
-    yet: https://bugzilla.mozilla.org/show_bug.cgi?id=1269371
-*/
-async function l(promise) {
-    try {
-        return await promise
-    } catch (e) {
-        console.error(e)
-        throw e
-    }
-}
-
 
 // Calls methods on obj that match .command and sends responses back
 export function attributeCaller(obj) {
@@ -66,25 +51,10 @@ export async function message(type: NonTabMessageType, command, args?) {
     return l(browser.runtime.sendMessage({type, command, args} as Message))
 }
 
-/** The first active tab in the currentWindow.
- *
- * TODO: Highlander theory: Can there ever be more than one?
- *
- */
-//#background_helper
-async function activeTab() {
-    return (await l(browser.tabs.query({active: true, currentWindow: true})))[0]
-}
-
-//#background_helper
-async function activeTabID() {
-    return (await activeTab()).id
-}
-
 /** Message the active tab of the currentWindow */
 //#background_helper
 export async function messageActiveTab(type: TabMessageType, command: string, args?: any[]) {
-    return messageTab(await activeTabID(), type, command, args)
+    return messageTab(await activeTabId(), type, command, args)
 }
 
 export async function messageTab(tabId, type: TabMessageType, command, args?) {

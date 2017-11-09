@@ -44,6 +44,7 @@ let nmaps = {
     "i": "insertmode",
     "b": "openbuffer",
     "ZZ": "qall",
+    "f": "hint",
     // Special keys must be prepended with 🄰
     // ["🄰Backspace", "something"],
 }
@@ -54,21 +55,22 @@ browser.storage.sync.get("nmaps").then(lazyloadconfig)
 async function lazyloadconfig(config_obj){
     let nmaps_config = config_obj["nmaps"]
     nmaps_config = (nmaps_config == undefined) ? {} : nmaps_config
-    nmaps = merge_objects(nmaps,nmaps_config)
+    nmaps = merge_objects(nmaps, nmaps_config)
     console.log(nmaps)
 }
 
 browser.storage.onChanged.addListener(
     (changes, areaname) => {
         if (areaname == "sync") {
-            // Brute force it because programmer time is valuable
-            // A more sensible approach would use the "changes" object
-            browser.storage.sync.get("nmaps").then(lazyloadconfig)
+            if ('nmaps' in changes) {
+                lazyloadconfig(changes.nmaps.newValue)
+            }
             console.log(changes)
         }
     })
 
 // Shamelessly copied from https://plainjs.com/javascript/utilities/merge-two-javascript-objects-19/
+// It should be possible to replace this with Object.assign, but that doesn't seem to work :/
 function merge_objects(obj,src){
         Object.keys(src).forEach(function(key) { obj[key] = src[key]; });
         return obj;

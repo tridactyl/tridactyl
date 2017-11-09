@@ -21,7 +21,11 @@ import "./number.mod"
 //#background_helper
 import state from "./state"
 //#background_helper
+import {ModeName} from './state'
+//#background_helper
 import * as keydown from "./keydown_background"
+//#background_helper
+import {activeTab, activeTabId} from './lib/webext'
 
 /** @hidden */
 //#background_helper
@@ -52,23 +56,6 @@ function forceURI(maybeURI: string) {
             return SEARCH_URL + maybeURI
         }
     }
-}
-
-/** The first active tab in the currentWindow.
- *
- * TODO: Highlander theory: Can there ever be more than one?
- *
- */
-/** @hidden */
-//#background_helper
-async function activeTab() {
-    return (await browser.tabs.query({active: true, currentWindow: true}))[0]
-}
-
-/** @hidden */
-//#background_helper
-async function activeTabID() {
-    return (await activeTab()).id
 }
 
 /** @hidden */
@@ -131,7 +118,7 @@ export function back(n = 1) {
 /** Reload the next n tabs, starting with activeTab, possibly bypassingCache */
 //#background
 export async function reload(n = 1, hard = false) {
-    let tabstoreload = await getnexttabs(await activeTabID(), n)
+    let tabstoreload = await getnexttabs(await activeTabId(), n)
     let reloadProperties = {bypassCache: hard}
     tabstoreload.map(n => browser.tabs.reload(n, reloadProperties))
 }
@@ -220,13 +207,13 @@ export async function tabopen(...addressarr: string[]) {
 
 //#background
 export async function tabduplicate(id?: number){
-    id = id ? id : (await activeTabID())
+    id = id ? id : (await activeTabId())
     browser.tabs.duplicate(id)
 }
 
 //#background
 export async function tabdetach(id?: number){
-    id = id ? id : (await activeTabID())
+    id = id ? id : (await activeTabId())
     browser.windows.create({tabId: id})
 }
 
@@ -236,7 +223,7 @@ export async function tabclose(ids?: number[] | number) {
         browser.tabs.remove(ids)
     } else {
         // Close the current tab
-        browser.tabs.remove(await activeTabID())
+        browser.tabs.remove(await activeTabId())
     }
 }
 
@@ -319,7 +306,7 @@ export function suppress(preventDefault?: boolean, stopPropagation?: boolean) {
 }
 
 //#background
-export function mode(mode: ModeType) {
+export function mode(mode: ModeName) {
     state.mode = mode
 }
 
@@ -400,7 +387,7 @@ export async function clipboard(excmd = "open", content = ""){
             await messageActiveTab("commandline_content", "focus")
             const url = await messageActiveTab("commandline_frame", "getClipboard")
             // todo: some url format and security check?
-            url && browser.tabs.update(await activeTabID(), {url: url})
+            url && browser.tabs.update(await activeTabId(), {url: url})
             break
         default:
             // todo: maybe we should have some common error and error handler
@@ -499,7 +486,8 @@ async function listTabs() {
 
 // }}}
 
-/* SETTINGS */
+// {{{ SETTINGS
+
 //#background
 export async function bind(...bindarr: string[]){
     let exstring = bindarr.slice(1,bindarr.length).join(" ")
@@ -524,6 +512,21 @@ export async function reset(key: string){
     delete nmaps[key]
     browser.storage.sync.set({nmaps})
 }
+
+// }}}
+
+// {{{ HINTMODE
+
+//#background_helper
+import {hintPageSimple} from './hinting_background'
+
+//#background
+export function hint() {
+    hintPageSimple()
+    mode('hint')
+}
+
+// }}}
 
 
 // vim: tabstop=4 shiftwidth=4 expandtab

@@ -3,8 +3,19 @@ import {isTextEditable} from './dom'
 import {parser as exmode_parser} from './parsers/exmode'
 import state from "./state"
 
+import {parser as hintmode_parser} from './hinting_background'
+import * as normalmode from "./parsers/normalmode"
+import * as insertmode from "./parsers/insertmode"
+
+
 /** Accepts keyevents, resolves them to maps, maps to exstrs, executes exstrs */
 function *ParserController () {
+    const parsers = {
+        normal: normalmode.parser,
+        insert: insertmode.parser,
+        hint: hintmode_parser,
+    }
+
     while (true) {
         let ex_str = ""
         let keys = []
@@ -25,13 +36,20 @@ function *ParserController () {
                 // yet. So drop them. This also drops all modifier keys.
                 // When we put in handling for other special keys, remember
                 // to continue to ban modifiers.
-                if (keypress.length > 1 || keyevent.ctrlKey || keyevent.altKey) {
+                if (state.mode !== 'hint' && (keypress.length > 1 || keyevent.ctrlKey || keyevent.altKey)) {
                     continue
                 }
 
                 keys.push(keypress)
-                let response = state.modes[state.mode](keys)
-
+                let response = undefined
+                switch (state.mode) {
+                    case 'hint':
+                        response = parsers[state.mode]([keyevent])
+                        break
+                    default:
+                        response = parsers[state.mode](keys)
+                        break
+                }
                 console.debug(keys, response)
 
                 if (response.ex_str){
@@ -73,3 +91,11 @@ export function acceptExCmd(ex_str: string) {
         console.error(e)
     }
 }
+
+import {activeTabId} from './lib/webext'
+browser.webNavigation.onBeforeNavigate.addListener(async function (details) {
+    if (details.tabId == await activeTabId()) {
+        state.mode = 'normal'
+    }
+})
+browser.tabs.onActivated.addListener(()=>state.mode = 'normal')
