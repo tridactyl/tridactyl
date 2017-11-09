@@ -42,6 +42,23 @@ clInput.addEventListener("keydown", function (keyevent) {
         // should probably just defer to another library
         case "c":
             if (keyevent.ctrlKey) hide_and_clear()
+            break
+
+        case "f":
+            if (keyevent.ctrlKey){
+                // Stop ctrl+f from doing find
+                keyevent.preventDefault()
+                keyevent.stopPropagation()
+                tabcomplete()
+            }
+            break
+
+        case "Tab":
+            // Stop tab from losing focus
+            keyevent.preventDefault()
+            keyevent.stopPropagation()
+            tabcomplete()
+            break
 
     }
 })
@@ -57,6 +74,13 @@ function hide_and_clear(){
     completions.innerHTML = ""
     setTimeout(()=>{clInput.value = ""}, 0)
     sendExstr("hidecmdline")
+}
+
+function tabcomplete(){
+    let fragment = clInput.value
+    let matches = state.cmdHistory.filter((key)=>key.startsWith(fragment))
+    let mostrecent = matches[matches.length - 1]
+    if (mostrecent != undefined) clInput.value = mostrecent
 }
 
 function history(n){
