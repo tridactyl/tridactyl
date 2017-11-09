@@ -390,7 +390,7 @@ export function fillcmdline_notrail(...strarr: string[]) {
 
 //#background
 export async function current_url(...strarr: string[]){
-    fillcmdline(...strarr, (await activeTab()).url)
+    fillcmdline_notrail(...strarr, (await activeTab()).url)
 }
 
 //#background

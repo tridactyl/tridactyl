@@ -110,9 +110,10 @@ function process() {
     cmdline_history_position = 0
 }
 
-export function fillcmdline(newcommand?: string){
-    if (newcommand != "") {
-        clInput.value = newcommand + " "
+export function fillcmdline(newcommand?: string, trailspace = true){
+    if (newcommand !== "") {
+        if (trailspace) clInput.value = newcommand + " "
+        else clInput.value = newcommand
     }
     // Focus is lost for some reason.
     focus()
