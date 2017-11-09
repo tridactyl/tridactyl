@@ -44,7 +44,6 @@ module.exports = {
         new CopyWebPackPlugin([
             { from: "src/manifest.json" },
             { from: "src/static", to: "static" },
-            { from: "generated/static", to: "static" },
         ]),
     ]
 }

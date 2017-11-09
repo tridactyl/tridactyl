@@ -1,3 +1,5 @@
 #!/bin/sh
-typedoc --out generated/static/docs/ src --ignoreCompilerErrors
-./scripts/commandline_injector.sh generated/static/docs/modules/_excmds_.html
+dest=generated/static/docs
+typedoc --out $dest src --ignoreCompilerErrors
+./scripts/commandline_injector.sh $dest/modules/_excmds_.html
+cp -r $dest build/static/
