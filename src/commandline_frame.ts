@@ -77,7 +77,9 @@ function process() {
     console.log(clInput.value)
     sendExstr("hidecmdline")
     sendExstr(clInput.value)
-    state.cmdHistory = state.cmdHistory.concat([clInput.value])
+    if (! browser.extension.inIncognitoContext) {
+        state.cmdHistory = state.cmdHistory.concat([clInput.value])
+    }
     console.log(state.cmdHistory)
     completions.innerHTML = ""
     clInput.value = ""
