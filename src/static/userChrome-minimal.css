@@ -4,9 +4,11 @@
  *
  * Contributors: aplaice, Oliver Blanthorn, Colin Caine
  *
- * Move this file to %appdata%/Mozilla/[your-profile]/chrome/userChrome.css 
- * Currently, it reduces the amount of padding around the UI and moves the tab
- * and navigation bar to the same line.
+ * Move this file to %appdata%/Mozilla/Firefox/[your-profile]/chrome/userChrome.css 
+ * Currently, it reduces the amount of padding around the UI, removes the tab bar
+ * and autohides the navigation bar. If you want to drag the window around press
+ * "alt" and then use the menu bar to move it, but you're better off pressing 
+ * the Windows key + an arrow key to move the window where you want it.
  *
  * If you're not on Windows, you can find your profile folder on
  * about:support 
