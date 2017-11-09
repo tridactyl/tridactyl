@@ -14,7 +14,7 @@ module.exports = {
     },
 
     // Enable sourcemaps for debugging webpack's output.
-    devtool: "source-map",
+    devtool: "inline-source-map",
 
     resolve: {
         // Add '.ts' and '.tsx' as resolvable extensions.
@@ -44,6 +44,7 @@ module.exports = {
         new CopyWebPackPlugin([
             { from: "src/manifest.json" },
             { from: "src/static", to: "static" },
+            { from: "generated/static", to: "static" },
         ]),
     ]
 }
