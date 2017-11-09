@@ -5,11 +5,15 @@ import * as msgsafe from './msgsafe'
 import {isTextEditable} from './dom'
 
 function keyeventHandler(ke: KeyboardEvent) {
+    // Ignore JS-generated events for security reasons.
+    if (! ke.isTrusted) return
+
     // Bad workaround: never suppress events in an editable field
     // and never suppress keys pressed with modifiers
     if (! (isTextEditable(ke.target as Node) || ke.ctrlKey || ke.altKey)) {
         suppressKey(ke)
     }
+
     Messaging.message("keydown_background", "recvEvent", [msgsafe.KeyboardEvent(ke)])
 }
 
