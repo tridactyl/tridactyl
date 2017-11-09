@@ -17,7 +17,8 @@ function convertArgs(params, argv) {
     const conversions = {
         number: convert.toNumber,
         boolean: convert.toBoolean,
-        string: (s)=>s,
+        string: s=>s,
+        ModeName: s=>s,
     }
 
     const typedArgs = []

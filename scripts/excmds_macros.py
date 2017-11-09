@@ -38,6 +38,8 @@ class Signature:
             # Type declaration
             if ':' in param:
                 name, typ = map(str.strip, param.split(':'))
+                if typ not in ('number', 'boolean', 'string', 'string[]', 'ModeName') and '|' not in typ:
+                    raise Exception("Edit me! " + typ + " is not a supported type!")
             # Default argument
             elif '=' in param:
                 name, default = map(str.strip, param.split('='))
