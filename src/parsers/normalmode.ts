@@ -62,10 +62,7 @@ async function lazyloadconfig(config_obj){
 browser.storage.onChanged.addListener(
     (changes, areaname) => {
         if (areaname == "sync") {
-            if ('nmaps' in changes) {
-                lazyloadconfig(changes.nmaps.newValue)
-            }
-            console.log(changes)
+            browser.storage.sync.get("nmaps").then(lazyloadconfig)
         }
     })
 
