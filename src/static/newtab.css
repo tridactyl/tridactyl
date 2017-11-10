@@ -1,1 +1,33 @@
-body {font-family: sans-serif}
+body {
+    font-family: sans-serif;
+    max-width: 40em;
+    margin: auto;
+}
+
+@media screen and (max-width: 38em) {
+    body {
+        max-width: 100%;
+        margin: 20px;
+    }
+}
+
+ul {
+    padding-right: 20px;
+}
+
+p,li {
+    hyphens: auto;
+    text-align: justify;
+}
+
+div.align-left * {
+    text-align: left;
+    hyphens: none;
+}
+
+code {
+  background-color: rgba(27,31,35,0.05);
+  padding: 0.2em;
+  font-size: 85%;
+  border-radius: 3px;
+}

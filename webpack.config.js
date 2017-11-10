@@ -38,12 +38,15 @@ module.exports = {
         //     }
         // }),
         new WebpackShellPlugin({onBuildStart: [
+            'mkdir -p generated/static',
             'scripts/excmds_macros.py',
+            'scripts/newtab.md.sh',
             'scripts/make_docs.sh &',
         ]}),
         new CopyWebPackPlugin([
             { from: "src/manifest.json" },
             { from: "src/static", to: "static" },
+            { from: "generated/static", to: "static" },
         ]),
     ]
 }
