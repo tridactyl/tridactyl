@@ -41,7 +41,7 @@ module.exports = {
             'mkdir -p generated/static',
             'scripts/excmds_macros.py',
             'scripts/newtab.md.sh',
-            'scripts/make_docs.sh &',
+            'scripts/make_docs.sh',
         ]}),
         new CopyWebPackPlugin([
             { from: "src/manifest.json" },
