@@ -1,12 +1,12 @@
 import {l, activeTabId} from './lib/webext'
 
-export type TabMessageType = 
+export type TabMessageType =
     "excmd_content" |
     "keydown_content" |
     "commandline_content" |
     "commandline_frame" |
     "hinting_content"
-export type NonTabMessageType = 
+export type NonTabMessageType =
     "keydown_background" |
     "commandline_background"
 export type MessageType = TabMessageType | NonTabMessageType
@@ -22,7 +22,7 @@ export type listener = (message: Message, sender?, sendResponse?) => void|Promis
 // Calls methods on obj that match .command and sends responses back
 export function attributeCaller(obj) {
     function handler(message: Message, sender, sendResponse) {
-        console.log(message)
+        console.log("Message:", message)
 
         // Args may be undefined, but you can't spread undefined...
         if (message.args === undefined) message.args = []
@@ -33,11 +33,17 @@ export function attributeCaller(obj) {
 
             // Return response to sender
             if (response instanceof Promise) {
-                return response
-            } else {
+                console.log("Returning promise...", response)
+                sendResponse(response)
+                // Docs say you should be able to return a promise, but that
+                // doesn't work.
+                /* return response */
+            } else if (response !== undefined) {
+                console.log("Returning synchronously...", response)
                 sendResponse(response)
             }
         } catch (e) {
+            console.error(`Error processing ${message.command}(${message.args})`, e)
             return new Promise((resolve, error)=>error(e))
         }
     }
