@@ -1,3 +1,5 @@
+![Tridactyl logo](src/static/logo/Tridactyl_200px.png)
+
 # Tridactyl [![Build Status](https://travis-ci.org/cmcaine/tridactyl.svg?branch=master)](https://travis-ci.org/cmcaine/tridactyl) [![Matrix Chat][matrix-badge]][matrix-link] [![Gitter Chat][gitter-badge]][gitter-link]
 
 Replace ff's default control mechanism with one modelled on the one true editor, Vim.
@@ -203,6 +205,10 @@ Some actions have their own interactive mini-mode:
 
 * hints
 * searching
+
+## Logo acknowledgement
+
+The logo was designed by Jake Beazley using free vector art by <a target="_blank" href="https://www.Vecteezy.com">www.Vecteezy.com</a> 
 
 [gitter-badge]: https://badges.gitter.im/Join%20Chat.svg
 [gitter-link]: https://gitter.im/tridactyl/Lobby
