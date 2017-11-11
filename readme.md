@@ -2,6 +2,23 @@
 
 Replace ff's default control mechanism with one modelled on the one true editor, Vim.
 
+## Installing
+
+[Get our "beta" builds!][amo-betas] (updated on AMO with each commit to master on this repo)
+
+## Highlighted features
+
+- Press `b` to bring up a list of open tabs in the current window; you can type the tab ID or part of the title or URL to choose a tab (the buffer list doesn't show which one you've selected yet, but it does work)
+- Press `f` to start "hint mode". 
+- Press `o` to `:open` a different page
+- Press `s` if you want to search for something that looks like a domain name or URL
+- Bind new commands with e.g. `:bind J tabprev`
+- If you want a bind to insert something on the commandline and wait, use `:bind <whatever> fillcmdline <whatever>` (observe the difference between `:bind t tabopen` and `:bind t fillcmdline tabopen`
+- Type `:help` to see a list of available excmds.
+- Use `yy` to copy the current page URL to your clipboard.
+- `]]` and `[[` to navigate through the pages of comics, paginated articles, etc.
+- Pressing `ZZ` will close all tabs and windows, but it will only "save" them if your about:preferences are set to "show your tabs and windows from last time".
+
 ## Contributing
 
 ### Building and installing
@@ -36,9 +53,9 @@ A pre-commit hook is added by `npm install` that simply runs `npm test`. If you 
 
 ### Documentation
 
-Ask in `#tridactyl` on [matrix.org][matrix-link], freenode, or [gitter][gitter-link]
+Ask in `#tridactyl` on [matrix.org][matrix-link], freenode, or [gitter][gitter-link]. We're friendly!
 
-Development notes are in the doc directory, but they're somewhat out of date. Code is quite short and not *too* badly commented, though.
+Development notes are in the doc directory, but they're mostly out of date now. Code is quite short and not *too* badly commented, though.
 
 ## Principles and objectives
 
@@ -65,7 +82,7 @@ Non-objectives for v1:
 Prior art:
 
 * pentadactyl/vimperator - dying with XUL
-* cVim/vimium
+* cVim/vimium/saka-key
 * vimfx - transitioning to WebExtensions, but no ex commands
 * qutebrowser/jumanji - see [standalone.md](doc/standalone.md).
 
@@ -140,60 +157,6 @@ Improvements over vimperator:
 * autocompletion is much faster
 * allegedly lets you edit with vim
 
-### Surfing keys
-
-TODO: Look into this
-https://github.com/brookhong/Surfingkeys
-
-### Required WebExtension APIs
-
-Don't exist:
-
-* See [bug-message.md](doc/bug-message.md).
-
-Do exist:
-
-* storage (.vimperatorrc)
-* tabs
-* history (for auto completion of open, etc)
-* bookmarks (auto completion, obvious)
-* windows (buffers)
-* webNavigation (autocmds) - maybe content script would just do this for us.
-
-## Vimperator features in sort of priority order for a MVP
-
-### Normal mode
-
-    j/k
-    gt/gT
-    H/L
-    b
-    /
-    n
-    N
-    f
-    y
-    ]]
-    rapid hint mode?
-
-### Ex commands
-
-    o
-    t
-    w
-    nnoremap
-    h
-    source
-    save
-    autocmd
-
-+autocomplete
-
-### Hard mode
-
-    :js
-    :!
-
 ## Architecture
 
 *This is an early draft and may be entirely replaced.*
@@ -245,3 +208,4 @@ Some actions have their own interactive mini-mode:
 [gitter-link]: https://gitter.im/tridactyl/Lobby
 [matrix-badge]: https://matrix.to/img/matrix-badge.svg
 [matrix-link]: https://riot.im/app/#/room/#tridactyl:matrix.org
+[amo-betas]: https://addons.mozilla.org/en-US/firefox/addon/tridactyl-vim/versions/beta
