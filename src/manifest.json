@@ -1,56 +1,58 @@
 {
-
-  "manifest_version": 2,
-  "name": "Tridactyl",
-  "version": "VERSIONHERE",
-
-  "background" : {
-    "scripts": ["background.js"]
-  },
-
-  "chrome_url_overrides" : {
-    "newtab": "static/newtab.html"
-  },
-
-  "content_scripts": [
-      {
-          "matches":["<all_urls>"],
-          "js":["content.js"],
-          "css":[
-            "static/content.css",
-            "static/hint.css"
-          ],
-          "run_at":"document_start",
-          "match_about_blank": true
-      }
-  ],
-
-  "web_accessible_resources": [
-    "static/commandline.html"
-  ],
-
-
-  "permissions": [
-      "activeTab",
-      "bookmarks",
-      "contextMenus",
-      "clipboardWrite",
-      "clipboardRead",
-      "history",
-      "sessions",
-      "storage",
-      "tabs",
-      "topSites",
-      "webNavigation",
-      "webRequest",
-      "webRequestBlocking",
-      "<all_urls>"
+    "manifest_version": 2,
+    "name": "Tridactyl",
+    "version": "1.0.6",
+    "icons": {
+        "64": "static/logo/Tridactyl_64px.png",
+        "100": "static/logo/Tridactyl_100px.png",
+        "150": "static/logo/Tridactyl_150px.png"
+    },
+    "background": {
+        "scripts": [
+            "background.js"
+        ]
+    },
+    "chrome_url_overrides": {
+        "newtab": "static/newtab.html"
+    },
+    "content_scripts": [
+        {
+            "matches": [
+                "<all_urls>"
+            ],
+            "js": [
+                "content.js"
+            ],
+            "css": [
+                "static/content.css",
+                "static/hint.css"
+            ],
+            "run_at": "document_start",
+            "match_about_blank": true
+        }
     ],
-
+    "web_accessible_resources": [
+        "static/commandline.html"
+    ],
+    "permissions": [
+        "activeTab",
+        "bookmarks",
+        "contextMenus",
+        "clipboardWrite",
+        "clipboardRead",
+        "history",
+        "sessions",
+        "storage",
+        "tabs",
+        "topSites",
+        "webNavigation",
+        "webRequest",
+        "webRequestBlocking",
+        "<all_urls>"
+    ],
     "applications": {
-      "gecko": {
-        "id": "tridactyl.vim@cmcaine.co.uk"
-      }
+        "gecko": {
+            "id": "tridactyl.vim@cmcaine.co.uk"
+        }
     }
-
 }
