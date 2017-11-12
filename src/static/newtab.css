@@ -31,3 +31,7 @@ code {
   font-size: 85%;
   border-radius: 3px;
 }
+
+img {
+  max-width: 100%
+}
