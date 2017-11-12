@@ -179,10 +179,11 @@ function pushKey(ke) {
             2. Not hidden by another element
 */
 function hintables() {
-    return [...elementsByXPath(HINTTAGS)].filter(isVisible) as any as Element[]
+    /* return [...elementsByXPath(HINTTAGS)].filter(isVisible) as any as Element[] */
+    return Array.from(document.querySelectorAll(HINTTAGS_selectors)).filter(isVisible)
 }
 
-// XPath.
+// XPath. Doesn't work properly for xhtml unless you double each element.
 const HINTTAGS = `
 //input[not(@type='hidden' or @disabled)] |
 //a |
@@ -216,6 +217,40 @@ const HINTTAGS = `
     @role='treeitem' or
     @tabindex
 ]`
+
+// CSS selectors. More readable for web developers. Not dead. Leaves browser to care about XML.
+const HINTTAGS_selectors = `
+input:not([type=hidden]):not([disabled]),
+a,
+area,
+iframe,
+textarea,
+button,
+select,
+[onclick],
+[onmouseover],
+[onmousedown],
+[onmouseup],
+[oncommand],
+[role='link'],
+[role='button'],
+[role='checkbox'],
+[role='combobox'],
+[role='listbox'],
+[role='listitem'],
+[role='menuitem'],
+[role='menuitemcheckbox'],
+[role='menuitemradio'],
+[role='option'],
+[role='radio'],
+[role='scrollbar'],
+[role='slider'],
+[role='spinbutton'],
+[role='tab'],
+[role='textbox'],
+[role='treeitem'],
+[tabindex]
+`
 
 // DEBUGGING
 /* hintPage(hintables(), hint=>mouseEvent(hint.target, 'click')) */
