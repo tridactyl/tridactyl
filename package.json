@@ -21,11 +21,10 @@
     "uglifyjs-webpack-plugin": "^1.0.0-rc.0",
     "web-ext": "^1.8.1",
     "web-ext-types": "github:michael-zapata/web-ext-types",
-    "webpack": "^3.8.1",
-    "webpack-shell-plugin": "^0.5.0"
+    "webpack": "^3.8.1"
   },
   "scripts": {
-    "build": "webpack",
+    "build": "scripts/build.sh",
     "watch": "chokidar src scripts --initial --silent -i 'src/excmds_{background,content}.ts' -i 'src/static/docs' -c 'webpack --display errors-only'",
     "clean": "rm -rf build generated",
     "test": "npm run build && jest --silent",

@@ -1,3 +1,5 @@
+![Tridactyl logo](logo/Tridactyl_100px.png)
+
 # Tridactyl new tab page
 
 Tridactyl overrides your newtab page because it cannot insert its content script on the default about:newtab. Without the content script, our shortcuts won't work, even if you're just passing through the page.
@@ -38,5 +40,3 @@ If you want a more fully-featured vimperator-alike, your best option is Firefox 
 \[2]: https://github.com/cmcaine/tridactyl/blob/master/src/static/userChrome-minimal.css<br />
 \[3]: https://www.mozilla.org/en-US/firefox/organizations/<br />
 </div>
-
-![Tridactyl logo](logo/Tridactyl_1024px.png)

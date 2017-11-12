@@ -1,6 +1,6 @@
 const UglifyJSPlugin = require('uglifyjs-webpack-plugin')
 const CopyWebPackPlugin = require('copy-webpack-plugin')
-const WebpackShellPlugin = require('webpack-shell-plugin')
+// const WebpackShellPlugin = require('webpack-shell-plugin')
 
 module.exports = {
     entry: {
@@ -37,15 +37,15 @@ module.exports = {
         //         ecma: 8
         //     }
         // }),
-        new WebpackShellPlugin({onBuildStart: [
-            'mkdir -p generated/static',
-            'scripts/excmds_macros.py',
-            'scripts/newtab.md.sh',
-            'scripts/make_docs.sh',
-        ]}),
+        // new WebpackShellPlugin({onBuildStart: [
+        //     'mkdir -p generated/static',
+        //     'scripts/excmds_macros.py',
+        //     'scripts/newtab.md.sh',
+        //     'scripts/make_docs.sh',
+        // ]}),
         new CopyWebPackPlugin([
             { from: "src/manifest.json" },
-            { from: "src/static", to: "static" },
+            { from: "src/static", to: "static", ignore: ['*.psd', '*1024px.png'] },
             { from: "generated/static", to: "static" },
         ]),
     ]
