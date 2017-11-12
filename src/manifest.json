@@ -52,7 +52,8 @@
     ],
     "applications": {
         "gecko": {
-            "id": "tridactyl.vim@cmcaine.co.uk"
+            "id": "tridactyl.vim@cmcaine.co.uk",
+            "strict_min_version": "54.0"
         }
     }
 }
