@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+set -e
+
 sign_and_submit() {
     (source AMOKEYS && web-ext sign -s build --api-key $AMOKEY --api-secret $AMOSECRET)
 }
@@ -7,14 +9,14 @@ sign_and_submit() {
 publish_beta() {
     npm run clean
     npm run build
-    scripts/version beta
+    scripts/version.js beta
     sign_and_submit
 }
 
 publish_sideload() {
     npm run clean
     npm run build
-    scripts/version beta
+    scripts/version.js beta
     sed 's/"name": "Tridactyl"/"name": "Tridactyl Sideload"/' -i build/manifest.json
     sed 's/tridactyl.vim@cmcaine/tridactyl.vim.betas@cmcaine/' -i build/manifest.json
     sign_and_submit
