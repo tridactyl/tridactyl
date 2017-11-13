@@ -3,7 +3,8 @@
 set -e
 
 sign_and_submit() {
-    (source AMOKEYS && web-ext sign -s build --api-key $AMOKEY --api-secret $AMOSECRET)
+    # Don't trust the return value of web-ext sign.
+    (source AMOKEYS && (web-ext sign -s build --api-key $AMOKEY --api-secret $AMOSECRET || true))
 }
 
 publish_beta() {
