@@ -283,7 +283,7 @@ export async function winopen(...args: string[]) {
         createData["incognito"] = true
         address = args.slice(1,args.length).join(' ')
     } else address = args.join(' ')
-    createData["url"] = forceURI(address)
+    createData["url"] = address != "" ? forceURI(address) : null
     browser.windows.create(createData)
 }
 
