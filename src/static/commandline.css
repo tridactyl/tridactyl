@@ -48,7 +48,7 @@ img {
 }
 
 /* Hide the URLs if the screen is small */
-@media all and (max-width: 980px) {
+@media all and (max-width: 500px) {
     .url, a.url, a.url:link, a.url:visited {
         display: none;
     }
