@@ -32,7 +32,15 @@ import {activeTab, activeTabId} from './lib/webext'
 export const cmd_params = new Map<string, Map<string, string>>()
 
 /** @hidden */
-const SEARCH_URL = "https://www.google.co.uk/search?q="
+const SEARCH_URLS = new Map<string, string>()
+SEARCH_URLS.set("google","https://www.google.com/search?q=")
+SEARCH_URLS.set("bing","https://www.bing.com/search?q=")
+SEARCH_URLS.set("duckduckgo","https://duckduckgo.com/?q=")
+SEARCH_URLS.set("yahoo","https://search.yahoo.com/search?p=")
+SEARCH_URLS.set("twitter","https://twitter.com/search?q=")
+SEARCH_URLS.set("wikipedia","https://en.wikipedia.org/wiki/")
+SEARCH_URLS.set("youtube","https://www.youtube.com/results?search_query=")
+SEARCH_URLS.set("amazon","https://www.amazon.com/s/ref=nb_sb_noss?url=search-alias%3Daps&field-keywords=")
 
 /** @hidden */
 function hasScheme(uri: string) {
@@ -45,15 +53,14 @@ function forceURI(maybeURI: string) {
     if (hasScheme(maybeURI)) {
         return maybeURI
     }
-    
+
     let urlarr = maybeURI.split(" ")
-    // TODO: make this more generic
-    if (urlarr[0] == "google"){
-        return SEARCH_URL + urlarr.slice(1,urlarr.length).join(" ")
+    if (SEARCH_URLS.get(urlarr[0]) != null){
+        return SEARCH_URLS.get(urlarr[0]) + urlarr.slice(1,urlarr.length).join(" ")
     } else if (urlarr[0].includes('.')) {
         return "http://" + maybeURI
     } else {
-        return SEARCH_URL + maybeURI
+        return SEARCH_URLS.get("google") + maybeURI
     }
 }
 
