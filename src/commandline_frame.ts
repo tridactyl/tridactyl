@@ -1,20 +1,31 @@
 /** Script used in the commandline iframe. Communicates with background. */
 
+import "./lib/html-tagged-template"
+
+import * as Completions from './completions'
 import * as Messaging from './messaging'
 import * as SELF from './commandline_frame'
 import './number.clamp'
 import state from './state'
 
+let completionsrc: Completions.CompletionSource = undefined
 let completions = window.document.getElementById("completions") as HTMLElement
 let clInput = window.document.getElementById("tridactyl-input") as HTMLInputElement
+
+/* This is to handle Escape key which, while the cmdline is focused,
+ * ends up firing both keydown and input listeners. In the worst case
+ * hides the cmdline, shows and refocuses it and replaces its text
+ * which could be the prefix to generate a completion.
+ * tl;dr TODO: delete this and better resolve race condition
+ */
+let isVisible = false
+function resizeArea() { if (isVisible) sendExstr("showcmdline") }
 
 export let focus = () => clInput.focus()
 
 async function sendExstr(exstr) {
     Messaging.message("commandline_background", "recvExStr", [exstr])
 }
-
-
 
 /* Process the commandline on enter. */
 clInput.addEventListener("keydown", function (keyevent) {
@@ -63,6 +74,27 @@ clInput.addEventListener("keydown", function (keyevent) {
     }
 })
 
+clInput.addEventListener("input", async () => {
+    // TODO: Handle this in parser
+    if (clInput.value.startsWith("buffer ") || clInput.value.startsWith("tabclose ") ||
+        clInput.value.startsWith("tabmove ")) {
+            const tabs: browser.tabs.Tab[] = await Messaging.message("commandline_background", "currentWindowTabs")
+            completionsrc = Completions.BufferCompletionSource.fromTabs(tabs)
+            completionsrc = await completionsrc.filter(clInput.value)
+            completions.innerHTML = ""
+            completions.appendChild(completionsrc.node)
+            resizeArea()
+    }
+    else if (clInput.value.startsWith("bufferall ")) {
+        // TODO
+    }
+    else if (completionsrc) {
+        completionsrc = undefined
+        completions.innerHTML = ""
+        resizeArea()
+    }
+})
+
 let cmdline_history_position = 0
 let cmdline_history_current = ""
 
@@ -71,9 +103,11 @@ function hide_and_clear(){
      * keydown event, presumably due to Firefox's internal handler for
      * Escape. So clear clInput just after :)
      */
+    completionsrc = undefined
     completions.innerHTML = ""
     setTimeout(()=>{clInput.value = ""}, 0)
     sendExstr("hidecmdline")
+    isVisible = false
 }
 
 function tabcomplete(){
@@ -86,7 +120,7 @@ function tabcomplete(){
 function history(n){
     completions.innerHTML = ""
     if (cmdline_history_position == 0){
-        cmdline_history_current = clInput.value 
+        cmdline_history_current = clInput.value
     }
     let wrapped_ind = state.cmdHistory.length + n - cmdline_history_position
     wrapped_ind = wrapped_ind.clamp(0, state.cmdHistory.length)
@@ -110,7 +144,7 @@ function process() {
         state.cmdHistory = state.cmdHistory.concat([clInput.value])
     }
     console.log(state.cmdHistory)
-
+    completionsrc = undefined
     completions.innerHTML = ""
     clInput.value = ""
     cmdline_history_position = 0
@@ -123,10 +157,8 @@ export function fillcmdline(newcommand?: string, trailspace = true){
     }
     // Focus is lost for some reason.
     focus()
-}
-
-export function changecompletions(newcompletions: string) {
-    completions.innerHTML = newcompletions
+    isVisible = true
+    clInput.dispatchEvent(new Event('input')) // dirty hack for completions
 }
 
 function applyWithTmpTextArea(fn) {
