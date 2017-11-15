@@ -3,6 +3,7 @@
 // {{{ setup
 
 import * as Messaging from "./messaging"
+import {l} from './lib/webext'
 
 //#content_omit_line
 import * as CommandLineContent from "./commandline_content"
@@ -435,7 +436,7 @@ const DEFAULT_FAVICON = browser.extension.getURL("static/defaultFavicon.svg")
 //#background
 export async function openbuffer() {
     fillcmdline("buffer")
-    messageActiveTab("commandline_frame", "changecompletions", [await listTabs()])
+    messageActiveTab("commandline_frame", "changecompletions", [await l(listTabs())])
     showcmdline()
 }
 
@@ -483,19 +484,35 @@ async function getTabs() {
 /** @hidden */
 //#background_helper
 function formatTab(tab: browser.tabs.Tab, prev?: boolean) {
-    let formatted = `<div> `,
-        url = `<div class="url">`
-    if (tab.active) formatted += "%"
-    else if (prev) formatted += "#"
-    if (tab.pinned) formatted += "@"
-    formatted = formatted.padEnd(9)
+    // This, like all this completion logic, needs to move.
+    const tabline = window.document.createElement('div')
+    tabline.className = "tabline"
+
+    const prefix = window.document.createElement('span')
+    if (tab.active) prefix.textContent += "%"
+    else if (prev) prefix.textContent += "#"
+    if (tab.pinned) prefix.textContent += "@"
+    prefix.textContent = prefix.textContent.padEnd(2)
+    tabline.appendChild(prefix)
+
     // TODO: Dynamically set favicon dimensions. Should be able to use em.
-    formatted += tab.favIconUrl
-        ? `<img src="${tab.favIconUrl}">`
-        : `<img src="${DEFAULT_FAVICON}">`
-    formatted += ` ${tab.index + 1}: ${tab.title}`
-    url += `<a href="${tab.url}" target="_blank">${tab.url}</a></div></div>`
-    return formatted + url
+    const favicon = window.document.createElement('img')
+    favicon.src = tab.favIconUrl ? tab.favIconUrl : DEFAULT_FAVICON
+    tabline.appendChild(favicon)
+
+    const titlespan = window.document.createElement('span')
+    titlespan.textContent=`${tab.index + 1}: ${tab.title}`
+    tabline.appendChild(titlespan)
+
+    const url = window.document.createElement('a')
+    url.className = 'url'
+    url.href = tab.url
+    url.text = tab.url
+    url.target = '_blank'
+    tabline.appendChild(url)
+
+    console.log(tabline)
+    return tabline.outerHTML
 }
 
 /** innerHTML for tab autocompletion div */

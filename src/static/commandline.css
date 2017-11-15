@@ -58,3 +58,12 @@ a.url:hover {
   cursor: pointer;
   text-decoration: underline !important;
 }
+
+div.tabline span {
+  margin: 0 .5em;
+}
+
+div.tabline img {
+  display: inline;
+  vertical-align: middle;
+}
