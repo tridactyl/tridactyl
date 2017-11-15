@@ -41,10 +41,10 @@ let nmaps = {
     "s": "fillcmdline open google",
     "S": "fillcmdline tabopen google",
     "xx": "something",
-    "i": "insertmode",
     "b": "openbuffer",
     "ZZ": "qall",
     "f": "hint",
+    "I": "mode ignore",
     // Special keys must be prepended with 🄰
     // ["🄰Backspace", "something"],
 }

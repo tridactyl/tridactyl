@@ -6,6 +6,7 @@ import state from "./state"
 import {parser as hintmode_parser} from './hinting_background'
 import * as normalmode from "./parsers/normalmode"
 import * as insertmode from "./parsers/insertmode"
+import * as ignoremode from "./parsers/ignoremode"
 
 
 /** Accepts keyevents, resolves them to maps, maps to exstrs, executes exstrs */
@@ -13,6 +14,7 @@ function *ParserController () {
     const parsers = {
         normal: normalmode.parser,
         insert: insertmode.parser,
+        ignore: ignoremode.parser,
         hint: hintmode_parser,
     }
 
@@ -25,10 +27,12 @@ function *ParserController () {
                 let keypress = keyevent.key
 
                 // TODO: think about if this is robust
-                if (isTextEditable(keyevent.target)) {
-                    state.mode = "insert"
-                } else if (state.mode === 'insert') {
-                    state.mode = "normal"
+                if (state.mode != "ignore"){
+                    if (isTextEditable(keyevent.target)) {
+                        state.mode = "insert"
+                    } else if (state.mode === 'insert') {
+                        state.mode = "normal"
+                    }
                 }
                 console.log(keyevent, state.mode)
 

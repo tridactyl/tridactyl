@@ -14,7 +14,7 @@
     If this turns out to be expensive there are improvements available.
 */
 
-export type ModeName = 'normal'|'insert'|'hint'
+export type ModeName = 'normal'|'insert'|'hint'|'ignore'
 class State {
     mode: ModeName = 'normal'
     cmdHistory: string[] = []
