@@ -8,6 +8,6 @@ scripts/excmds_macros.py
 scripts/newtab.md.sh
 scripts/make_docs.sh &
 
-webpack &
+webpack --display errors-only &
 
 wait
