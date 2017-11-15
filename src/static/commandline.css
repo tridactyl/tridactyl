@@ -37,14 +37,13 @@ img {
 
 .url, a.url, a.url:link, a.url:visited {
   background: white;
-  color: #d0ffd0 !important;
+  color: #1f9947;
   display: inline;
   left: 50%;
   overflow: hidden;
   padding: 0 2px;
   position: absolute;
-  text-decoration: none !important;
-  z-index: 9999;
+  text-decoration: none;
 }
 
 /* Hide the URLs if the screen is small */
