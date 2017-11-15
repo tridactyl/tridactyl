@@ -65,17 +65,21 @@ clInput.addEventListener("keydown", function (keyevent) {
 
 clInput.addEventListener("input", async () => {
     // TODO: Handle this in parser
-    if (!clInput.value.startsWith("buffer ")) {
+    if (clInput.value.startsWith("buffer") ||
+        clInput.value.startsWith("tabclose") || clInput.value.startsWith("tabmove")) {
+        if (completionsrc === undefined && completions.innerHTML !== "") changecompletions("buffers")
+        else {
+            completionsrc = await completionsrc.filter(clInput.value.split(/\s+/)[1])
+            completions.innerHTML = ""
+            completions.appendChild(completionsrc.activate())
+            sendExstr("showcmdline")
+        }
+    }
+    else if (completionsrc) {
         completionsrc = undefined
         completions.innerHTML = ""
+        sendExstr("showcmdline")
     }
-    else if (completionsrc === undefined) sendExstr("buffers")
-    else if (completionsrc) {
-        completionsrc = await completionsrc.filter(clInput.value.slice(7))
-        completions.innerHTML = ""
-        completions.appendChild(completionsrc.activate())
-    }
-    sendExstr("showcmdline")
 })
 
 let cmdline_history_position = 0
