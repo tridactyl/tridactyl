@@ -572,10 +572,8 @@ const DEFAULT_FAVICON = browser.extension.getURL("static/defaultFavicon.svg")
 
 /** Soon to be deprecated way of showing buffer completions */
 //#background
-export async function openbuffer() {
+export async function buffers() {
     fillcmdline("buffer")
-    messageActiveTab("commandline_frame", "changecompletions", [await l(listTabs())])
-    showcmdline()
 }
 
 /** Change active tab */
@@ -601,68 +599,6 @@ export async function buffer(n?: number | string) {
         // todo: choose best match
         tabSetActive(currtabs.filter((t)=> (t["url"].includes(String(n)) || t["title"].toLowerCase().includes(String(n).toLowerCase())))[0].id)
     }
-}
-
-/** List of tabs in window and the last active tab. */
-/** @hidden */
-//#background_helper
-async function getTabs() {
-    const tabs = await browser.tabs.query({currentWindow: true})
-    const lastActive = tabs.sort((a, b) => {
-        return a.lastAccessed < b.lastAccessed ? 1 : -1
-    })[1]
-    tabs.sort((a, b) => {
-        return a.index < b.index ? -1 : 1
-    })
-    console.log(tabs)
-    return [tabs, lastActive]
-}
-
-/** innerHTML for a single Tab's representation in autocompletion */
-/** @hidden */
-//#background_helper
-function formatTab(tab: browser.tabs.Tab, prev?: boolean) {
-    // This, like all this completion logic, needs to move.
-    const tabline = window.document.createElement('div')
-    tabline.className = "tabline"
-
-    const prefix = window.document.createElement('span')
-    if (tab.active) prefix.textContent += "%"
-    else if (prev) prefix.textContent += "#"
-    if (tab.pinned) prefix.textContent += "@"
-    prefix.textContent = prefix.textContent.padEnd(2)
-    tabline.appendChild(prefix)
-
-    // TODO: Dynamically set favicon dimensions. Should be able to use em.
-    const favicon = window.document.createElement('img')
-    favicon.src = tab.favIconUrl ? tab.favIconUrl : DEFAULT_FAVICON
-    tabline.appendChild(favicon)
-
-    const titlespan = window.document.createElement('span')
-    titlespan.textContent=`${tab.index + 1}: ${tab.title}`
-    tabline.appendChild(titlespan)
-
-    const url = window.document.createElement('a')
-    url.className = 'url'
-    url.href = tab.url
-    url.text = tab.url
-    url.target = '_blank'
-    tabline.appendChild(url)
-
-    console.log(tabline)
-    return tabline.outerHTML
-}
-
-/** innerHTML for tab autocompletion div */
-/** @hidden */
-//#background_helper
-async function listTabs() {
-    let buffers: string = "",
-        [tabs, lastActive] = await getTabs()
-    for (let tab of tabs as Array<browser.tabs.Tab>) {
-        buffers += tab === lastActive ? formatTab(tab, true) : formatTab(tab)
-    }
-    return buffers
 }
 
 // }}}
@@ -760,7 +696,6 @@ export function hint(option?: "-b") {
     if (option === '-b') hinting.hintPageOpenInBackground()
     else hinting.hintPageSimple()
 }
-
 
 // }}}
 

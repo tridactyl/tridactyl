@@ -1,10 +1,12 @@
 /** Script used in the commandline iframe. Communicates with background. */
 
+import * as Completions from './completions'
 import * as Messaging from './messaging'
 import * as SELF from './commandline_frame'
 import './number.clamp'
 import state from './state'
 
+let completionsrc: Completions.CompletionSource = undefined
 let completions = window.document.getElementById("completions") as HTMLElement
 let clInput = window.document.getElementById("tridactyl-input") as HTMLInputElement
 
@@ -13,8 +15,6 @@ export let focus = () => clInput.focus()
 async function sendExstr(exstr) {
     Messaging.message("commandline_background", "recvExStr", [exstr])
 }
-
-
 
 /* Process the commandline on enter. */
 clInput.addEventListener("keydown", function (keyevent) {
@@ -63,6 +63,21 @@ clInput.addEventListener("keydown", function (keyevent) {
     }
 })
 
+clInput.addEventListener("input", async () => {
+    // TODO: Handle this in parser
+    if (!clInput.value.startsWith("buffer ")) {
+        completionsrc = undefined
+        completions.innerHTML = ""
+    }
+    else if (completionsrc === undefined) sendExstr("buffers")
+    else if (completionsrc) {
+        completionsrc = await completionsrc.filter(clInput.value.slice(7))
+        completions.innerHTML = ""
+        completions.appendChild(completionsrc.activate())
+    }
+    sendExstr("showcmdline")
+})
+
 let cmdline_history_position = 0
 let cmdline_history_current = ""
 
@@ -71,6 +86,7 @@ function hide_and_clear(){
      * keydown event, presumably due to Firefox's internal handler for
      * Escape. So clear clInput just after :)
      */
+    completionsrc = undefined
     completions.innerHTML = ""
     setTimeout(()=>{clInput.value = ""}, 0)
     sendExstr("hidecmdline")
@@ -86,7 +102,7 @@ function tabcomplete(){
 function history(n){
     completions.innerHTML = ""
     if (cmdline_history_position == 0){
-        cmdline_history_current = clInput.value 
+        cmdline_history_current = clInput.value
     }
     let wrapped_ind = state.cmdHistory.length + n - cmdline_history_position
     wrapped_ind = wrapped_ind.clamp(0, state.cmdHistory.length)
@@ -110,7 +126,7 @@ function process() {
         state.cmdHistory = state.cmdHistory.concat([clInput.value])
     }
     console.log(state.cmdHistory)
-
+    completionsrc = undefined
     completions.innerHTML = ""
     clInput.value = ""
     cmdline_history_position = 0
@@ -125,8 +141,18 @@ export function fillcmdline(newcommand?: string, trailspace = true){
     focus()
 }
 
-export function changecompletions(newcompletions: string) {
-    completions.innerHTML = newcompletions
+/* Rebind completionsrc and re-render. */
+export async function changecompletions(completiontype: string): Promise<void> {
+    completionsrc = undefined
+    completions.innerHTML = ""
+    switch (completiontype) {
+        case "buffers":
+            const tabs: browser.tabs.Tab[] = await Messaging.message("commandline_background", "currentWindowTabs")
+            completionsrc = Completions.getBuffersFromTabs(tabs)
+            break
+    }
+    if (completionsrc) completions.appendChild(completionsrc.activate())
+    sendExstr("showcmdline")
 }
 
 function applyWithTmpTextArea(fn) {
