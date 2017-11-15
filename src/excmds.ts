@@ -182,6 +182,13 @@ export function clicknext(dir = "next"){
     // Stops us from having to hardcode in RPS and reddit, for example.
     window.location.href = nextlinks.slice(-1)[0].href
 }
+
+//#background
+export function zoom(level=0){
+    level = level > 3 ? level / 100 : level
+    browser.tabs.setZoom(level)
+}
+
 // }}}
 
 // {{{ TABS

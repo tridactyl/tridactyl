@@ -20,3 +20,8 @@ interface Window {
 declare namespace browser.find {
     function find(query, object): any
 }
+
+// setZoom has an optional first argument of tabId. Unclear how first argument can be optional.
+declare namespace browser.tabs {
+    function setZoom(number): any
+}
