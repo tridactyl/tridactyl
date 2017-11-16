@@ -1,63 +1,166 @@
+/*
+
+Have an array of all completion sources. Completion sources display nothing if the filter doesn't match for them.
+
+On each input event, call updateCompletions on the array. That will mutate the array and update the display as required.
+
+How to handle cached e.g. buffer information going out of date?
+
+*/
+
+
+import * as Fuse from 'fuse.js'
 import {enumerate} from './itertools'
+
 const DEFAULT_FAVICON = browser.extension.getURL("static/defaultFavicon.svg")
 
-// HIGH LEVEL OBJECTS
+// {{{ INTERFACES
+
 interface CompletionOption {
     // Highlight this option
     focus: () => void
+    blur: () => void
+
     // What to fill into cmdline
     value: string
 }
+
 export abstract class CompletionSource {
     private obsolete = false
+
     readonly options = new Array<CompletionOption>()
+
     public node: HTMLElement
+
     // Called by updateCompletions on the child that succeeds its parent
-    abstract activate()
+    abstract activate(): void
         // this.node now belongs to you, update it or something :)
         // Example: Mutate node or call replaceChild on its parent
+
     abstract async filter(exstr): Promise<CompletionSource>
         // <Do some async work that doesn't mutate any non-local vars>
         // Make a new CompletionOptions and return it
 }
 
-// CONTEXT SPECIFIC
+// }}}
+
+// {{{ IMPLEMENTATIONS
+
 class BufferCompletionOption implements CompletionOption {
-    constructor(public favIconUrl: string, public index: number, public title: string, public pre: string, public url: string, public value: string) {}
-    html: HTMLElement // keep a reference to our markup so we can change it
-    render(highlight: boolean = false): void {
-        const html = document.createElement("div")
-        if (highlight) html.setAttribute("class", "highlighted")
-        html.innerHTML = `<span></span><span></span><span></span><span></span><a href="${this.url}" class="url" target="_blank"><span></span></a>`
-        html.childNodes[0].textContent = ` ${this.pre.padEnd(2)} `
-        html.childNodes[1].nodeValue = `<img src="${this.favIconUrl}"> `
-        if (this.index) html.childNodes[2].textContent = `${this.index}: `
-        html.childNodes[3].textContent = `${this.title} `
-        html.childNodes[4].textContent = `${this.url} `
-        this.html = html
-    }
-    focus(): void { this.render(true) }
-}
-class BufferCompletionSource extends CompletionSource {
-    constructor(readonly options: BufferCompletionOption[], public node: HTMLElement) { super() }
-    activate(): HTMLElement { return this.node }
-    async filter(exstr: string): Promise<BufferCompletionSource> {
-        const match = function(queries: string[], option): boolean {
-            return queries.every((query) => {
-                return (/[A-Z]/.test(query)
-                    ? option.title.includes(query) || option.url.includes(query)
-                    : option.title.toLowerCase().includes(query) || option.url.toLowerCase().includes(query)
-        )})}.bind(null, exstr.split(/\s+/))
-        const filtered: HTMLElement = window.document.createElement("div")
-        filtered.setAttribute("id", "completions")
-        for (const option of this.options) {
-            if (match(option)) { option.render(); filtered.appendChild(option.html) }
+    // keep a reference to our markup so we can highlight it on focus().
+    html: HTMLElement
+
+    // For fuzzy matching
+    matchStrings: string[]
+
+    constructor(public value: string, tab: browser.tabs.Tab, isAlternative = false) {
+        // Two character buffer properties prefix
+        let pre = ""
+        if (tab.active) pre += "%"
+        else if (isAlternative) pre += "#"
+
+        if (tab.pinned) {
+            pre += "@"
+            this.matchStrings.push('@')
         }
-        return new BufferCompletionSource(this.options, filtered)
+
+        pre = pre.padEnd(2)
+
+        this.matchStrings = [tab.title, tab.url]
+
+        const favIconUrl = tab.favIconUrl ? tab.favIconUrl : DEFAULT_FAVICON
+
+        this.html = html`
+        <div>
+            <span>${pre}</span>
+            <img src=${favIconUrl}></img>
+            <span>${tab.index + 1}: ${tab.title}</span>
+            <a class="url" href=${tab.url}>${tab.url}</a>
+        </div>`
+    }
+
+    focus() {
+        this.html.classList.add("focused")
+    }
+
+    blur() {
+        this.html.classList.remove("focused")
     }
 }
 
-// MANAGING ASYNC CHANGES
+export class BufferCompletionSource extends CompletionSource {
+    private fuse: Fuse
+    public prefixes = [ "buffer " ]
+
+    constructor(
+        readonly options: BufferCompletionOption[],
+        public node: HTMLElement,
+        private selection?: BufferCompletionOption
+    ) {
+        super()
+        const fuseOptions = {
+            shouldSort: true,
+            includeScore: true,
+            keys: ["matchStrings"],
+        }
+        this.fuse = new Fuse(options, fuseOptions)
+    }
+
+    static fromTabs(tabs: browser.tabs.Tab[]) {
+        const node = html`<div class="BufferCompletionSource">`
+
+        // Get alternative tab, defined as last accessed tab.
+        const alt = tabs.sort((a, b) => { return a.lastAccessed < b.lastAccessed ? 1 : -1 })[1]
+        tabs.sort((a, b) => { return a.index < b.index ? -1 : 1 })
+
+        const options: BufferCompletionOption[] = []
+
+        for (const tab of tabs) {
+            options.push(new BufferCompletionOption(
+                (tab.index + 1).toString(),
+                tab,
+                tab === alt)
+            )
+        }
+
+        for (const option of options) {
+            node.appendChild(option.html)
+        }
+
+        return new BufferCompletionSource(options, node)
+    }
+
+    activate() {
+        // TODO... this bit of the interface isn't super clear to me yet.
+    }
+
+    async filter(exstr: string) {
+        if (! exstr.startsWith('buffer ')) {
+            // Disable
+        }
+
+        // Remove the 'buffer ' bit.
+        const query = exstr.slice(exstr.indexOf(' '))
+
+        /** If query is a number, focus corresponding index.
+            Else fuzzy search
+        */
+        let match: BufferCompletionOption = undefined
+        if (! isNaN(Number(query)) && Number(query) <= this.options.length) {
+            match = this.options[Number(query)]
+        } else {
+            // Fuzzy search!
+            match = this.fuse.search('query')[0] as BufferCompletionOption
+        }
+
+        return new BufferCompletionSource(this.options, this.node, match)
+    }
+}
+
+// }}}
+
+// {{{ MANAGING ASYNC CHANGES
+
 /* If first to modify completions, update it. */
 async function commitIfCurrent(epochref: any, asyncFunc: Function, commitFunc: Function, ...args: any[]): Promise<any> {
     // I *think* sync stuff in here is guaranteed to happen immediately after
@@ -66,8 +169,9 @@ async function commitIfCurrent(epochref: any, asyncFunc: Function, commitFunc: F
     const epoch = epochref
     const res = await asyncFunc(...args)
     if (epoch === epochref) return commitFunc(res)
-    else throw "Update failed: epoch out of date!"
+    else console.error(new Error("Update failed: epoch out of date!"))
 }
+
 /* Indicate changes to completions we would like. */
 function updateCompletions(filter: string, sources: CompletionSource[]) {
     for (let [index, source] of enumerate(sources)) {
@@ -88,29 +192,4 @@ function updateCompletions(filter: string, sources: CompletionSource[]) {
     }
 }
 
-// BUFFER SPECIFIC HELPERS
-/** Create completion item from given tab. */
-function optionFromTab(tab: browser.tabs.Tab, prev: boolean = false): BufferCompletionOption {
-    let pre: string = ""
-    if (tab.active) pre += "%"
-    else if (prev) pre += "#"
-    if (tab.pinned) pre += "@"
-    return new BufferCompletionOption(
-        tab.favIconUrl ? tab.favIconUrl : DEFAULT_FAVICON,
-        tab.index + 1,
-        tab.title,
-        pre,
-        tab.url,
-        `${tab.index + 1}: ${tab.title}`
-    )
-}
-export function getBuffersFromTabs(tabs: browser.tabs.Tab[]): BufferCompletionSource {
-    const buffers: BufferCompletionOption[] = []
-    const markup: HTMLElement = window.document.createElement("div")
-    const prev = tabs.sort((a, b) => { return a.lastAccessed < b.lastAccessed ? 1 : -1 })[1]
-    tabs.sort((a, b) => { return a.index < b.index ? -1 : 1 })
-    for (const tab of tabs) { buffers.push(optionFromTab(tab, tab === prev)) }
-    markup.setAttribute("id", "completions")
-    for (const buffer of buffers) { buffer.render(); markup.appendChild(buffer.html) }
-    return new BufferCompletionSource(buffers, markup)
-}
+// }}}

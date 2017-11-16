@@ -14,8 +14,6 @@ interface Number {
 interface Window {
     scrollByLines(n: number): void
     scrollByPages(n: number):  void
-
-    html(strings: TemplateStringsArray, ...values: any[]): HTMLElement
 }
 
 // Fix typescript bugs
@@ -32,3 +30,6 @@ declare namespace browser.find {
 declare namespace browser.tabs {
     function setZoom(number): any
 }
+
+// html-tagged-template.js
+declare function html(strings: TemplateStringsArray, ...values: any[]): HTMLElement
