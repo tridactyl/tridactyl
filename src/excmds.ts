@@ -413,6 +413,7 @@ export async function current_url(...strarr: string[]){
 
 //#background
 export async function clipboard(excmd = "open", content = ""){
+    let url = ""
     switch (excmd) {
         case 'yank':
             await messageActiveTab("commandline_content", "focus")
@@ -421,9 +422,13 @@ export async function clipboard(excmd = "open", content = ""){
             break
         case 'open':
             await messageActiveTab("commandline_content", "focus")
-            const url = await messageActiveTab("commandline_frame", "getClipboard")
-            // todo: some url format and security check?
-            url && browser.tabs.update(await activeTabId(), {url: url})
+            url = await messageActiveTab("commandline_frame", "getClipboard")
+            url && open(url)
+            break
+        case 'tabopen':
+            await messageActiveTab("commandline_content", "focus")
+            url = await messageActiveTab("commandline_frame", "getClipboard")
+            url && tabopen(url)
             break
         default:
             // todo: maybe we should have some common error and error handler
