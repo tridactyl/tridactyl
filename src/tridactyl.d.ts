@@ -14,6 +14,13 @@ interface Number {
 interface Window {
     scrollByLines(n: number): void
     scrollByPages(n: number):  void
+
+    html(strings: TemplateStringsArray, ...values: any[]): HTMLElement
+}
+
+// Fix typescript bugs
+interface StringConstructor {
+    toLowerCase(): string;
 }
 
 // Web extension types not in web-ext-types yet
