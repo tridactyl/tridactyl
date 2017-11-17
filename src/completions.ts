@@ -135,9 +135,10 @@ export class BufferCompletionSource extends CompletionSource {
     }
 
     async filter(exstr: string) {
-        if (! exstr.startsWith('buffer ')) {
-            // Disable
-        }
+        // We populate completions with buffer on more than buffer
+        // if (! exstr.startsWith('buffer ')) {
+        //     // Disable
+        // }
 
         // Remove the 'buffer ' bit.
         const query = exstr.slice(exstr.indexOf(' '))

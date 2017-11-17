@@ -65,15 +65,17 @@ clInput.addEventListener("keydown", function (keyevent) {
 
 clInput.addEventListener("input", async () => {
     // TODO: Handle this in parser
-    if (clInput.value.startsWith("buffer") ||
-        clInput.value.startsWith("tabclose") || clInput.value.startsWith("tabmove")) {
-        if (completionsrc === undefined && completions.innerHTML !== "") changecompletions("buffers")
-        else {
+    if (clInput.value.startsWith("buffer") || clInput.value.startsWith("tabclose") ||
+        clInput.value.startsWith("tabmove")) {
+            const tabs: browser.tabs.Tab[] = await Messaging.message("commandline_background", "currentWindowTabs")
+            completionsrc = Completions.BufferCompletionSource.fromTabs(tabs)
             completionsrc = await completionsrc.filter(clInput.value.split(/\s+/)[1])
             completions.innerHTML = ""
-            completions.appendChild(completionsrc.activate())
+            completions.appendChild(completionsrc.node)
             sendExstr("showcmdline")
-        }
+    }
+    else if (clInput.value.startsWith("bufferall")) {
+        // TODO
     }
     else if (completionsrc) {
         completionsrc = undefined
@@ -143,20 +145,6 @@ export function fillcmdline(newcommand?: string, trailspace = true){
     }
     // Focus is lost for some reason.
     focus()
-}
-
-/* Rebind completionsrc and re-render. */
-export async function changecompletions(completiontype: string): Promise<void> {
-    completionsrc = undefined
-    completions.innerHTML = ""
-    switch (completiontype) {
-        case "buffers":
-            const tabs: browser.tabs.Tab[] = await Messaging.message("commandline_background", "currentWindowTabs")
-            completionsrc = Completions.getBuffersFromTabs(tabs)
-            break
-    }
-    if (completionsrc) completions.appendChild(completionsrc.activate())
-    sendExstr("showcmdline")
 }
 
 function applyWithTmpTextArea(fn) {

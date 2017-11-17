@@ -570,7 +570,6 @@ export async function clipboard(excmd: "open"|"yank"|"tabopen" = "open", ...toYa
 //#background_helper
 const DEFAULT_FAVICON = browser.extension.getURL("static/defaultFavicon.svg")
 
-/** Soon to be deprecated way of showing buffer completions */
 //#background
 export async function buffers() {
     fillcmdline("buffer")
@@ -599,6 +598,12 @@ export async function buffer(n?: number | string) {
         // todo: choose best match
         tabSetActive(currtabs.filter((t)=> (t["url"].includes(String(n)) || t["title"].toLowerCase().includes(String(n).toLowerCase())))[0].id)
     }
+}
+
+/** Set tab with index of n belonging to window with id of m to active */
+//#background
+export async function bufferall(m?: number, n?: number) {
+    // TODO
 }
 
 // }}}
