@@ -16,6 +16,10 @@ export async function hintPageSimple() {
     return await messageActiveTab('hinting_content', 'hintPageSimple')
 }
 
+export async function hintPageOpenInBackground() {
+    return await messageActiveTab('hinting_content', 'hintPageOpenInBackground')
+}
+
 import {MsgSafeKeyboardEvent} from './msgsafe'
 
 /** At some point, this might be turned into a real keyseq parser

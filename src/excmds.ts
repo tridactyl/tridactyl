@@ -574,11 +574,12 @@ export async function reset(key: string){
 // {{{ HINTMODE
 
 //#background_helper
-import {hintPageSimple} from './hinting_background'
+import * as hinting from './hinting_background'
 
 //#background
-export function hint() {
-    hintPageSimple()
+export function hint(option: string) {
+    if (option === '-b') hinting.hintPageOpenInBackground()
+    else hinting.hintPageSimple()
     mode('hint')
 }
 

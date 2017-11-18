@@ -252,9 +252,22 @@ select,
 [tabindex]
 `
 
-// DEBUGGING
-/* hintPage(hintables(), hint=>mouseEvent(hint.target, 'click')) */
-/* addEventListener('keydown', pushKey) */
+import browserBg from './lib/browser_proxy'
+
+function hintPageOpenInBackground() {
+    hintPage(hintables(), hint=>{
+        hint.target.focus()
+        if (hint.target.href && ! hint.target.href.startsWith('#')) {
+            browserBg.tabs.create({
+                active: false,
+                url: hint.target.href
+            })
+        } else {
+            // This is to mirror vimperator behaviour.
+            mouseEvent(hint.target, "click")
+        }
+    })
+}
 
 function hintPageSimple() {
     console.log("Hinting!")
@@ -277,4 +290,5 @@ addListener('hinting_content', attributeCaller({
     selectFocusedHint,
     reset,
     hintPageSimple,
+    hintPageOpenInBackground,
 }))
