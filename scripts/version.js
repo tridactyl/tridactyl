@@ -5,6 +5,9 @@ const {exec} = require('child_process')
 function bump_version(versionstr, component = 2) {
     const versionarr = versionstr.split('.')
     versionarr[component] = Number(versionarr[component]) + 1
+    for (let smaller = component + 1; smaller <= 2; smaller++) {
+        versionarr[smaller] = 0
+    }
     return versionarr.join('.')
 }
 
