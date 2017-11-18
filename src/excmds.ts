@@ -576,6 +576,7 @@ export async function reset(key: string){
 //#background_helper
 import * as hinting from './hinting_background'
 
+/** Hint a page. Pass -b as first argument to open hinted page in background. */
 //#background
 export function hint(option: string) {
     if (option === '-b') hinting.hintPageOpenInBackground()

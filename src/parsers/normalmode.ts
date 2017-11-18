@@ -44,6 +44,7 @@ let nmaps = {
     "b": "openbuffer",
     "ZZ": "qall",
     "f": "hint",
+    "F": "hint -b",
     "I": "mode ignore",
     // Special keys must be prepended with 🄰
     // ["🄰Backspace", "something"],
