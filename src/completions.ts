@@ -51,41 +51,23 @@ class BufferCompletionOption implements CompletionOption {
     html: HTMLElement
 
     // For fuzzy matching
-    matchStrings: string[]
+    matchStrings: string[] = []
 
     constructor(public value: string, tab: browser.tabs.Tab, isAlternative = false) {
         // Two character buffer properties prefix
         let pre = ""
         if (tab.active) pre += "%"
         else if (isAlternative) pre += "#"
-
-        if (tab.pinned) {
-            pre += "@"
-            this.matchStrings.push('@')
-        }
-
+        if (tab.pinned) { pre += "@" }
+        this.matchStrings.push(pre) // before pad so we don't match whitespace
         pre = pre.padEnd(2)
-
-        this.matchStrings = [tab.title, tab.url]
-
+        this.matchStrings.push(String(tab.index + 1), tab.title, tab.url)
         const favIconUrl = tab.favIconUrl ? tab.favIconUrl : DEFAULT_FAVICON
-
-        this.html = html`
-        <div>
-            <span>${pre}</span>
-            <img src=${favIconUrl}></img>
-            <span>${tab.index + 1}: ${tab.title}</span>
-            <a class="url" href=${tab.url}>${tab.url}</a>
-        </div>`
+        this.html = html`<div> <span>${pre}</span> <img src=${favIconUrl}></img> <span>${tab.index + 1}: ${tab.title}</span><a class="url" href=${tab.url}>${tab.url}</a></div>`
     }
 
-    focus() {
-        this.html.classList.add("focused")
-    }
-
-    blur() {
-        this.html.classList.remove("focused")
-    }
+    blur() { this.html.classList.remove("focused") }
+    focus() { this.html.classList.add("focused") }
 }
 
 export class BufferCompletionSource extends CompletionSource {
@@ -99,9 +81,10 @@ export class BufferCompletionSource extends CompletionSource {
     ) {
         super()
         const fuseOptions = {
-            shouldSort: true,
             includeScore: true,
             keys: ["matchStrings"],
+            shouldSort: true,
+
         }
         this.fuse = new Fuse(options, fuseOptions)
     }
@@ -135,26 +118,20 @@ export class BufferCompletionSource extends CompletionSource {
     }
 
     async filter(exstr: string) {
-        // We populate completions with buffer on more than buffer
-        // if (! exstr.startsWith('buffer ')) {
-        //     // Disable
-        // }
+        // Remove the `${prefix} ` bit.
+        const query = exstr.slice(exstr.indexOf(' ') + 1)
+        let node = this.node, matches: BufferCompletionOption[] = []
+        if (query) {
+            console.log(query, this.fuse.search(query))
+            node = html`<div class="BufferCompletionSource">`
+            for (const match of this.fuse.search(query)) {
 
-        // Remove the 'buffer ' bit.
-        const query = exstr.slice(exstr.indexOf(' '))
-
-        /** If query is a number, focus corresponding index.
-            Else fuzzy search
-        */
-        let match: BufferCompletionOption = undefined
-        if (! isNaN(Number(query)) && Number(query) <= this.options.length) {
-            match = this.options[Number(query)]
-        } else {
-            // Fuzzy search!
-            match = this.fuse.search('query')[0] as BufferCompletionOption
+            }
+            matches = this.fuse.search(query) as BufferCompletionOption[]
+            for (const match of matches) node.appendChild(match.html)
         }
 
-        return new BufferCompletionSource(this.options, this.node, match)
+        return new BufferCompletionSource(this.options, node, (matches && matches[0]) || null)
     }
 }
 

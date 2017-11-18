@@ -565,14 +565,14 @@ export async function clipboard(excmd: "open"|"yank"|"tabopen" = "open", ...toYa
 
 // {{{ Buffer/completion stuff
 // TODO: Move autocompletions out of excmds.
-
-/** @hidden */
-//#background_helper
-const DEFAULT_FAVICON = browser.extension.getURL("static/defaultFavicon.svg")
-
+/** Ported from Vimperator. */
+//#background
+export async function tabs() {
+    fillcmdline("buffer")
+}
 //#background
 export async function buffers() {
-    fillcmdline("buffer")
+    tabs()
 }
 
 /** Change active tab */

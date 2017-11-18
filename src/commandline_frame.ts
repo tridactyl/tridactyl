@@ -1,5 +1,7 @@
 /** Script used in the commandline iframe. Communicates with background. */
 
+import "./lib/html-tagged-template"
+
 import * as Completions from './completions'
 import * as Messaging from './messaging'
 import * as SELF from './commandline_frame'
@@ -9,6 +11,15 @@ import state from './state'
 let completionsrc: Completions.CompletionSource = undefined
 let completions = window.document.getElementById("completions") as HTMLElement
 let clInput = window.document.getElementById("tridactyl-input") as HTMLInputElement
+
+/* This is to handle Escape key which, while the cmdline is focused,
+ * ends up firing both keydown and input listeners. In the worst case
+ * hides the cmdline, shows and refocuses it and replaces its text
+ * which could be the prefix to generate a completion.
+ * tl;dr TODO: delete this and better resolve race condition
+ */
+let isVisible = false
+function resizeArea() { if (isVisible) sendExstr("showcmdline") }
 
 export let focus = () => clInput.focus()
 
@@ -65,22 +76,22 @@ clInput.addEventListener("keydown", function (keyevent) {
 
 clInput.addEventListener("input", async () => {
     // TODO: Handle this in parser
-    if (clInput.value.startsWith("buffer") || clInput.value.startsWith("tabclose") ||
-        clInput.value.startsWith("tabmove")) {
+    if (clInput.value.startsWith("buffer ") || clInput.value.startsWith("tabclose ") ||
+        clInput.value.startsWith("tabmove ")) {
             const tabs: browser.tabs.Tab[] = await Messaging.message("commandline_background", "currentWindowTabs")
             completionsrc = Completions.BufferCompletionSource.fromTabs(tabs)
-            completionsrc = await completionsrc.filter(clInput.value.split(/\s+/)[1])
+            completionsrc = await completionsrc.filter(clInput.value)
             completions.innerHTML = ""
             completions.appendChild(completionsrc.node)
-            sendExstr("showcmdline")
+            resizeArea()
     }
-    else if (clInput.value.startsWith("bufferall")) {
+    else if (clInput.value.startsWith("bufferall ")) {
         // TODO
     }
     else if (completionsrc) {
         completionsrc = undefined
         completions.innerHTML = ""
-        sendExstr("showcmdline")
+        resizeArea()
     }
 })
 
@@ -96,6 +107,7 @@ function hide_and_clear(){
     completions.innerHTML = ""
     setTimeout(()=>{clInput.value = ""}, 0)
     sendExstr("hidecmdline")
+    isVisible = false
 }
 
 function tabcomplete(){
@@ -145,6 +157,8 @@ export function fillcmdline(newcommand?: string, trailspace = true){
     }
     // Focus is lost for some reason.
     focus()
+    isVisible = true
+    clInput.dispatchEvent(new Event('input')) // dirty hack for completions
 }
 
 function applyWithTmpTextArea(fn) {
