@@ -27,6 +27,8 @@ import {ModeName} from './state'
 import * as keydown from "./keydown_background"
 //#background_helper
 import {activeTab, activeTabId} from './lib/webext'
+//#content_helper
+import {incrementUrl} from "./url_util"
 
 /** @hidden */
 //#background_helper
@@ -181,6 +183,19 @@ export function clicknext(dir = "next"){
     // whereas lots of blogs have "VIEW MORE" etc. plastered all over their pages.
     // Stops us from having to hardcode in RPS and reddit, for example.
     window.location.href = nextlinks.slice(-1)[0].href
+}
+
+/** Increment the current tab URL
+ *
+ * @param count   the increment step, can be positive or negative
+*/
+//#content
+export function incrementurl(count = 1){
+    let newUrl = incrementUrl(window.location.href, count)
+
+    if (newUrl !== null) {
+        window.location.href = newUrl
+    }
 }
 
 //#background
