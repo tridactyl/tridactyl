@@ -9,3 +9,12 @@ import "./excmds_content"
 import "./hinting"
 
 console.log("Tridactyl content script loaded, boss!")
+
+// Add various useful modules to the window for debugging
+import browserBg from './lib/browser_proxy'
+import * as messaging from './messaging'
+
+(window as any).tri = Object.assign(Object.create(null), {
+    browserBg,
+    messaging,
+})
