@@ -377,6 +377,19 @@ export async function getnexttabs(tabid: number, n?: number) {
 
 // {{{ CMDLINE
 
+//#background_helper
+import * as controller from './controller'
+
+/** Split the input on pipes (|) and treat each as it's own command.
+
+    Workaround: this should clearly be in the parser
+*/
+//#background
+export function composite(...cmds: string[]) {
+    cmds = cmds.join(" ").split("|")
+    cmds.forEach(controller.acceptExCmd)
+}
+
 // TODO: These two don't really make sense as excmds, they're internal things.
 //#content
 export function showcmdline() {
