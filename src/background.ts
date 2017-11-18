@@ -3,6 +3,7 @@
 import * as Controller from "./controller"
 import * as keydown_background from "./keydown_background"
 import * as CommandLine from "./commandline_background"
+import './lib/browser_proxy_background'
 
 // Send keys to controller
 keydown_background.onKeydown.addListener(Controller.acceptKey)

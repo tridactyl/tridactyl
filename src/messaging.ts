@@ -8,7 +8,8 @@ export type TabMessageType =
     "hinting_content"
 export type NonTabMessageType =
     "keydown_background" |
-    "commandline_background"
+    "commandline_background" |
+    "browser_proxy_background"
 export type MessageType = TabMessageType | NonTabMessageType
 
 export interface Message {
