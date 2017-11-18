@@ -254,17 +254,40 @@ select,
 
 import browserBg from './lib/browser_proxy'
 
+function openInBackground(url: string) {
+    return browserBg.tabs.create({
+        active: false,
+        url,
+    })
+}
+
+/** if `target === _blank` clicking the link is treated as opening a popup and is blocked. Use webext API to avoid that. */
+function simulateClick(target: HTMLElement) {
+    // target can be set to other stuff, and we'll fail in annoying ways.
+    // There's no easy way around that while this code executes outside of the
+    // magic 'short lived event handler' context.
+    //
+    // OTOH, hardly anyone uses that functionality any more.
+    if ((target as HTMLAnchorElement).target === '_blank' ||
+        (target as HTMLAnchorElement).target === '_new'
+    ) {
+        browserBg.tabs.create({url: (target as HTMLAnchorElement).href})
+    } else {
+        mouseEvent(target, "click")
+        // Sometimes clicking the element doesn't focus it sufficiently.
+        target.focus()
+    }
+}
+
 function hintPageOpenInBackground() {
     hintPage(hintables(), hint=>{
         hint.target.focus()
-        if (hint.target.href && ! hint.target.href.startsWith('#')) {
-            browserBg.tabs.create({
-                active: false,
-                url: hint.target.href
-            })
+        if (hint.target.href) {
+            // Try to open with the webext API. If that fails, simulate a click on this page anyway.
+            openInBackground(hint.target.href).catch(()=>simulateClick(hint.target))
         } else {
             // This is to mirror vimperator behaviour.
-            mouseEvent(hint.target, "click")
+            simulateClick(hint.target)
         }
     })
 }
@@ -272,8 +295,7 @@ function hintPageOpenInBackground() {
 function hintPageSimple() {
     console.log("Hinting!")
     hintPage(hintables(), hint=>{
-        hint.target.focus()
-        mouseEvent(hint.target, 'click')
+        simulateClick(hint.target)
     })
 }
 
