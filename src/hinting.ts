@@ -251,8 +251,7 @@ select,
 [tabindex]
 `
 
-import browserBg from './lib/browser_proxy'
-import {activeTab, l, firefoxVersionAtLeast} from './lib/webext'
+import {activeTab, browserBg, l, firefoxVersionAtLeast} from './lib/webext'
 
 async function openInBackground(url: string) {
     const thisTab = await activeTab()

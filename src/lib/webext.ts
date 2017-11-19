@@ -5,7 +5,7 @@ export function inContentScript() {
     return ! ('tabs' in browser)
 }
 
-let browserBg
+export let browserBg
 
 // Make this library work for both content and background.
 if (inContentScript()) {
