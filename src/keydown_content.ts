@@ -25,11 +25,7 @@ function suppressKey(ke: KeyboardEvent) {
     if (stopPropagation) ke.stopPropagation()
 
     // Else if in known maps.
-    // StartsWith happens to work for our maps so far. Obviously won't in the future.
-    if ([...nmaps.keys()].find((map) => map.startsWith(ke.key))) {
-        ke.preventDefault()
-        ke.stopPropagation()
-    }
+    TerribleModeSpecificSuppression(ke)
 }
 
 /** Suppressing all keys from page load means scrolling by arrow key doesn't work until page is reloaded with suppression off. IDK why. Maybe a bug? */
@@ -48,43 +44,84 @@ export function suppress(pD?: boolean, sP?: boolean) {
 let preventDefault = false
 let stopPropagation = false
 
-/* let nmaps: Map<string, string> */
-const nmaps = new Map<string, string>([
-    ["o", "fillcmdline open"],
-    ["O", "current-url open"],
-    ["w", "fillcmdline winopen"],
-    ["W", "current-url winopen"],
-    ["t", "tabopen"],
-    //["t", "fillcmdline tabopen"], // for now, use mozilla completion
-    ["]]", "clicknext"], 
-    ["[[", "clicknext prev"], 
-    ["T", "current-url tab"],
-    ["yy", "clipboard yank"],
-    ["p", "clipboard open"],
-    ["P", "clipboard tabopen"],
-    ["j", "scrollline 10"],
-    ["k", "scrollline -10"],
-    ["h", "scrollpx -50"],
-    ["l", "scrollpx 50"],
-    ["G", "scrollto 100"],
-    ["gg", "scrollto 0"],
-    ["H", "back"],
-    ["L", "forward"],
-    ["d", "tabclose"],
-    ["u", "undo"],
-    ["r", "reload"],
-    ["R", "reloadhard"],
-    ["gt", "tabnext"],
-    ["gT", "tabprev"],
-    ["gr", "reader"],
-    [":", "fillcmdline"],
-    ["s", "fillcmdline google"],
-    ["xx", "something"],
-    ["i", "insertmode"],
-    ["b", "openbuffer"],
+// {{{ Shitty key suppression workaround.
+
+import state from './state'
+
+function TerribleModeSpecificSuppression(ke: KeyboardEvent) {
+    switch (state.mode) {
+        case "normal":
+            // StartsWith happens to work for our maps so far. Obviously won't in the future.
+            if (Object.getOwnPropertyNames(nmaps).find((map) => map.startsWith(ke.key))) {
+                ke.preventDefault()
+                ke.stopPropagation()
+            }
+            break
+        case "hint":
+            ke.preventDefault()
+            ke.stopImmediatePropagation()
+            break;
+    }
+}
+
+// Normal-mode mappings.
+// keystr -> ex_str
+// TODO: Move these into a tridactyl-wide state namespace
+// TODO: stop stealing keys from "insert mode"
+//          r -> refresh page is particularly unhelpful
+//  Can't stringify a map -> just use an object
+let nmaps = {
+    "o": "fillcmdline open",
+    "O": "current_url open",
+    "w": "fillcmdline winopen",
+    "W": "current_url winopen",
+    "t": "tabopen",
+    //["t": "fillcmdline tabopen", // for now, use mozilla completion
+    "]]": "clicknext", 
+    "[[": "clicknext prev", 
+    "T": "current_url tabopen",
+    "yy": "clipboard yank",
+    "p": "clipboard open",
+    "P": "clipboard tabopen",
+    "j": "scrollline 10",
+    "k": "scrollline -10",
+    "h": "scrollpx -50",
+    "l": "scrollpx 50",
+    "G": "scrollto 100",
+    "gg": "scrollto 0",
+    "H": "back",
+    "L": "forward",
+    "d": "tabclose",
+    "u": "undo",
+    "r": "reload",
+    "R": "reloadhard",
+    "gt": "tabnext",
+    "gT": "tabprev",
+    "gr": "reader",
+    ":": "fillcmdline",
+    "s": "fillcmdline open google",
+    "S": "fillcmdline tabopen google",
+    "xx": "something",
+    "b": "openbuffer",
+    "ZZ": "qall",
+    "f": "hint",
+    "F": "hint -b",
+    "I": "mode ignore",
     // Special keys must be prepended with 🄰
     // ["🄰Backspace", "something"],
-])
+}
+
+// Allow config to be changed in settings
+// TODO: make this more general
+browser.storage.sync.get("nmaps").then(lazyloadconfig)
+async function lazyloadconfig(config_obj){
+    let nmaps_config = config_obj["nmaps"]
+    nmaps_config = (nmaps_config == undefined) ? {} : nmaps_config
+    nmaps = Object.assign(nmaps, nmaps_config)
+    console.log(nmaps)
+}
+
+// }}}
 
 // Add listeners
 window.addEventListener("keydown", keyeventHandler, true)

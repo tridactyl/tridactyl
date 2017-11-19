@@ -27,7 +27,7 @@ function *ParserController () {
                 let keypress = keyevent.key
 
                 // TODO: think about if this is robust
-                if (state.mode != "ignore"){
+                if (state.mode != "ignore" && state.mode != "hint") {
                     if (isTextEditable(keyevent.target)) {
                         state.mode = "insert"
                     } else if (state.mode === 'insert') {
