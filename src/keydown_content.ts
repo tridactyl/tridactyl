@@ -31,6 +31,7 @@ import state from './state'
 const normalmodewhitelist = [
     '/',
     "'",
+    ' ',
 ]
 
 
