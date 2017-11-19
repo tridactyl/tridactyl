@@ -39,6 +39,7 @@ let modeState: HintState = undefined
 
 /** For each hintable element, add a hint */
 export function hintPage(hintableElements: Element[], onSelect: HintSelectedCallback) {
+    state.mode = 'hint'
     modeState = new HintState()
     for (let [el, name] of izip(hintableElements, hintnames())) {
         modeState.hintchars += name
@@ -152,6 +153,7 @@ function filter(fstr) {
 function reset() {
     modeState.destructor()
     modeState = undefined
+    state.mode = 'normal'
 }
 
 /** If key is in hintchars, add it to filtstr and filter */
@@ -303,7 +305,6 @@ function hintPageSimple() {
 
 function selectFocusedHint() {
     console.log("Selecting hint.", state.mode)
-    state.mode = 'normal'
     modeState.focusedHint.select()
     reset()
 }

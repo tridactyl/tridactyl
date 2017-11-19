@@ -389,7 +389,7 @@ export function suppress(preventDefault?: boolean, stopPropagation?: boolean) {
 //#background
 export function mode(mode: ModeName) {
     // TODO: event emition on mode change.
-    if (state.mode === "hint") {
+    if (mode === "hint") {
         hint()
     } else {
         state.mode = mode
@@ -704,7 +704,6 @@ import * as hinting from './hinting_background'
 export function hint(option?: "-b") {
     if (option === '-b') hinting.hintPageOpenInBackground()
     else hinting.hintPageSimple()
-    mode('hint')
 }
 
 
