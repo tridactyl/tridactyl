@@ -34,6 +34,11 @@ const normalmodewhitelist = [
     ' ',
 ]
 
+const hintmodewhitelist = [
+    'F3',
+    'F5',
+    'F12',
+]
 
 function TerribleModeSpecificSuppression(ke: KeyboardEvent) {
     switch (state.mode) {
@@ -50,8 +55,10 @@ function TerribleModeSpecificSuppression(ke: KeyboardEvent) {
             }
             break
         case "hint":
-            ke.preventDefault()
-            ke.stopImmediatePropagation()
+            if (! hintmodewhitelist.includes(ke.key)) {
+                ke.preventDefault()
+                ke.stopImmediatePropagation()
+            }
             break;
         case "ignore":
             break;

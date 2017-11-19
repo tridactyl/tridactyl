@@ -33,7 +33,7 @@ export function parser(keys: MsgSafeKeyboardEvent[]) {
     const key = keys[0].key
     if (key === 'Escape') {
         reset()
-    } else if (['Enter', 'Space'].includes(key)) {
+    } else if (['Enter', ' '].includes(key)) {
         selectFocusedHint()
     } else {
         pushKey(keys[0])
