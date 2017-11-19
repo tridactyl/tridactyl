@@ -26,7 +26,7 @@ function convertArgs(params, argv) {
     for ([type, [i, arg]] of izip(params.values(), enumerate(argv))) {
         if (type in conversions) {
             typedArgs.push(conversions[type](arg))
-        } else if (type.includes('|')) {
+        } else if (type.includes('|') || ["'", '"'].includes(type[0])) {
             // Do your own conversions!
             typedArgs.push(arg)
         } else if (type === "string[]") {

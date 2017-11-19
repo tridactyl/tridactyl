@@ -9,7 +9,7 @@
 // TODO: stop stealing keys from "insert mode"
 //          r -> refresh page is particularly unhelpful
 //  Can't stringify a map -> just use an object
-let nmaps = {
+export const DEFAULTNMAPS = {
     "o": "fillcmdline open",
     "O": "current_url open",
     "w": "fillcmdline winopen",
@@ -50,13 +50,13 @@ let nmaps = {
     // ["🄰Backspace", "something"],
 }
 
+let nmaps = Object.assign(Object.create(null), DEFAULTNMAPS)
+
 // Allow config to be changed in settings
 // TODO: make this more general
 browser.storage.sync.get("nmaps").then(lazyloadconfig)
-async function lazyloadconfig(config_obj){
-    let nmaps_config = config_obj["nmaps"]
-    nmaps_config = (nmaps_config == undefined) ? {} : nmaps_config
-    nmaps = merge_objects(nmaps, nmaps_config)
+async function lazyloadconfig(storageResult){
+    nmaps = Object.assign(Object.create(null), DEFAULTNMAPS, storageResult.nmaps)
     console.log(nmaps)
 }
 
@@ -66,13 +66,6 @@ browser.storage.onChanged.addListener(
             browser.storage.sync.get("nmaps").then(lazyloadconfig)
         }
     })
-
-// Shamelessly copied from https://plainjs.com/javascript/utilities/merge-two-javascript-objects-19/
-// It should be possible to replace this with Object.assign, but that doesn't seem to work :/
-function merge_objects(obj,src){
-        Object.keys(src).forEach(function(key) { obj[key] = src[key]; });
-        return obj;
-}
 
 // Split a string into a number prefix and some following keys.
 function keys_split_count(keys: string[]){
@@ -109,7 +102,7 @@ function possible_maps(keys): string[] {
     let [count, keystr] = keys_split_count(keys)
 
     // Short circuit or search maps.
-    if (nmaps.hasOwnProperty(keystr)) {
+    if (Object.getOwnPropertyNames(nmaps).includes(keystr)) {
         return [keystr,]
     } else {
         // Efficiency: this can be short-circuited.

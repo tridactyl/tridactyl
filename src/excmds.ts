@@ -1,5 +1,39 @@
 // '//#' is a start point for a simple text-replacement-type macro. See excmds_macros.py
 
+/** # Tridactyl help page
+
+    Use `:help <excmd>` or scroll down to show [[help]] for a particular excmd.
+
+    Tridactyl is in a pretty early stage of development. Please report any issues and make requests for missing features on the GitHub project page [[1]].
+
+    Highlighted features:
+
+    - Press `b` to bring up a list of open tabs in the current window; you can type the tab ID or part of the title or URL to choose a tab (the buffer list doesn't show which one you've selected yet, but it does work)
+    - Press `I` to enter ignore mode. `Shift` + `Escape` to return to normal mode.
+    - Press `f` to start "hint mode", `F` to open in background
+    - Press `o` to `:open` a different page
+    - Press `s` if you want to search for something that looks like a domain name or URL
+    - [[bind]] new commands with e.g. `:bind J tabnext`
+    - Type `:help` to see a list of available excmds
+    - Use `yy` to copy the current page URL to your clipboard
+    - `]]` and `[[` to navigate through the pages of comics, paginated articles, etc
+    - Pressing `ZZ` will close all tabs and windows, but it will only "save" them if your about:preferences are set to "show your tabs and windows from last time"
+
+    There are some caveats common to all webextension vimperator-alikes:
+
+    - Do not try to navigate to any about:\* pages using `:open` as it will fail silently
+    - Firefox will not load Tridactyl on addons.mozilla.org, about:\*, some file:\* URIs, view-source:\*, or data:\*. On these pages Ctrl-L (or F6), Ctrl-Tab and Ctrl-W are your escape hatches
+    - Tridactyl does not currently support changing/hiding the Firefox GUI, but you can do it yourself by changing your userChrome. There is an example file available on our repository [[2]]
+
+    If you want a more fully-featured vimperator-alike, your best option is Firefox ESR [[3]] and Vimperator :)
+
+    [1]: https://github.com/cmcaine/tridactyl/issues
+    [2]: https://github.com/cmcaine/tridactyl/blob/master/src/static/userChrome-minimal.css
+    [3]: https://www.mozilla.org/en-US/firefox/organizations/
+
+*/
+/** ignore this line */
+
 // {{{ setup
 
 import * as Messaging from "./messaging"
@@ -32,7 +66,6 @@ import {activeTab, activeTabId} from './lib/webext'
 //#background_helper
 export const cmd_params = new Map<string, Map<string, string>>()
 
-/** @hidden */
 const SEARCH_URLS = new Map<string, string>([
     ["google","https://www.google.com/search?q="],
     ["googleuk","https://www.google.co.uk/search?q="],
@@ -48,7 +81,7 @@ const SEARCH_URLS = new Map<string, string>([
 
 /** @hidden */
 function hasScheme(uri: string) {
-    return uri.match(/^(\w+):/)
+    return uri.match(/^([\w-]+):/)
 }
 
 /** If maybeURI doesn't have a schema, affix http:// */
@@ -121,11 +154,13 @@ function history(n: number) {
     window.history.go(n)
 }
 
+/** Navigate forward one page in history. */
 //#content
 export function forward(n = 1) {
     history(n)
 }
 
+/** Navigate back one page in history. */
 //#content
 export function back(n = 1) {
     history(n * -1)
@@ -145,18 +180,35 @@ export async function reloadhard(n = 1) {
     reload(n, true)
 }
 
+/** Open a new page in the current tab.
+
+    @param urlarr
+        - if first word looks like it has a schema, treat as a URI
+        - else if the first word contains a dot, treat as a domain name
+        - else if the first word is a key of [[SEARCH_URLS]], treat all following terms as search parameters for that provider
+        - else treat as search parameters for google
+*/
 //#content
 export function open(...urlarr: string[]) {
     let url = urlarr.join(" ")
     window.location.href = forceURI(url)
 }
 
-//#background
-export function help(...urlarr: string[]) {
-    let url = urlarr.join(" ")
-    // window.location.href = "docs/modules/_excmds_.html#" + url
-    browser.tabs.create({url: "static/docs/modules/_excmds_.html#" + url})
+/** Show this page.
 
+    `:help <excmd>` jumps to the entry for that command.
+
+    e.g. `:help bind`
+*/
+//#background
+export async function help(excmd?: string) {
+    const docpage = browser.extension.getURL("static/docs/modules/_excmds_.html#")
+    if (excmd === undefined) excmd = "tridactyl-help-page"
+    if ((await activeTab()).url.startsWith(docpage)) {
+        open(docpage + excmd)
+    } else {
+        tabopen(docpage + excmd)
+    }
 }
 
 /** @hidden */
@@ -167,7 +219,7 @@ function getlinks(){
 
 /** Find a likely next/previous link and follow it */
 //#content
-export function clicknext(dir = "next"){
+export function clicknext(dir: "next"|"prev" = "next"){
     let linkarray = Array.from(getlinks())
     let regarray = [/\bnext|^>$|^(>>|»)$|^(>|»)|(>|»)$|\bmore\b/i, /\bprev\b|\bprevious\b|^<$|^(<<|«)$|^(<|«)|(<|«)$/i]
 
@@ -218,8 +270,7 @@ export function tabprev(increment = 1) {
     tabnext(increment * -1)
 }
 
-// TODO: address should default to some page to which we have access
-//          and focus the location bar
+/** Like [[open]], but in a new tab */
 //#background
 export async function tabopen(...addressarr: string[]) {
     let uri
@@ -283,6 +334,7 @@ export async function tabmove(n?: string) {
     browser.tabs.move(aTab.id, {index: m})
 }
 
+/** Pin the current tab */
 //#background
 export async function pin() {
     let aTab = await activeTab()
@@ -293,6 +345,7 @@ export async function pin() {
 
 // {{{ WINDOWS
 
+/** Like [[open]], but in a new window */
 //#background
 export async function winopen(...args: string[]) {
     let address: string
@@ -311,6 +364,7 @@ export async function winclose() {
 }
 
 
+/** Close all windows */
 // It's unclear if this will leave a session that can be restored.
 // We might have to do it ourselves.
 //#background
@@ -323,19 +377,27 @@ export async function qall(){
 
 // {{{ MISC
 
-/** Deprecated! */
+/** Deprecated */
 //#background
 export function suppress(preventDefault?: boolean, stopPropagation?: boolean) {
     mode("ignore")
 }
 
+/** Example:
+        - `mode ignore` to ignore all keys.
+*/
 //#background
 export function mode(mode: ModeName) {
-    state.mode = mode
+    // TODO: event emition on mode change.
+    if (state.mode === "hint") {
+        hint()
+    } else {
+        state.mode = mode
+    }
 }
 
-//#background
-export async function getnexttabs(tabid: number, n?: number) {
+//#background_helper
+async function getnexttabs(tabid: number, n?: number) {
     const curIndex: number = (await browser.tabs.get(tabid)).index
     const tabs: browser.tabs.Tab[] = await browser.tabs.query({
         currentWindow: true,
@@ -381,9 +443,9 @@ export async function getnexttabs(tabid: number, n?: number) {
 //#background_helper
 import * as controller from './controller'
 
-/** Split the input on pipes (|) and treat each as it's own command.
+/** Split `cmds` on pipes (|) and treat each as it's own command.
 
-    Workaround: this should clearly be in the parser
+    Workaround: this should clearly be in the parser, but we haven't come up with a good way to deal with |s in URLs, search terms, etc. yet.
 */
 //#background
 export function composite(...cmds: string[]) {
@@ -391,6 +453,7 @@ export function composite(...cmds: string[]) {
     cmds.forEach(controller.acceptExCmd)
 }
 
+/** Don't use this */
 // TODO: These two don't really make sense as excmds, they're internal things.
 //#content
 export function showcmdline() {
@@ -398,13 +461,14 @@ export function showcmdline() {
     CommandLineContent.focus()
 }
 
+/** Don't use this */
 //#content
 export function hidecmdline() {
     CommandLineContent.hide()
     CommandLineContent.blur()
 }
 
-/** Set the current value of the commandline to string */
+/** Set the current value of the commandline to string *with* a trailing space */
 //#background
 export function fillcmdline(...strarr: string[]) {
     let str = strarr.join(" ")
@@ -412,6 +476,7 @@ export function fillcmdline(...strarr: string[]) {
     messageActiveTab("commandline_frame", "fillcmdline", [str])
 }
 
+/** Set the current value of the commandline to string *without* a trailing space */
 //#background
 export function fillcmdline_notrail(...strarr: string[]) {
     let str = strarr.join(" ")
@@ -420,13 +485,27 @@ export function fillcmdline_notrail(...strarr: string[]) {
     messageActiveTab("commandline_frame", "fillcmdline", [str, trailspace])
 }
 
+/** Equivalent to `fillcmdline_notrail <yourargs><current URL>`
+
+    See also [[fillcmdline_notrail]]
+*/
 //#background
 export async function current_url(...strarr: string[]){
     fillcmdline_notrail(...strarr, (await activeTab()).url)
 }
 
+/** Use the system clipboard.
+
+    If `excmd == "open"`, call [[open]] with the contents of the clipboard. Similarly for [[tabopen]].
+
+    If `excmd == "yank"`, copy the current URL, or if given, the value of toYank, into the system clipboard.
+
+    Unfortunately, javascript can only give us the `clipboard` clipboard, not e.g. the X selection clipboard.
+
+*/
 //#background
-export async function clipboard(excmd = "open", content = ""){
+export async function clipboard(excmd: "open"|"yank"|"tabopen" = "open", ...toYank: string[]) {
+    let content = toYank.join(" ")
     let url = ""
     switch (excmd) {
         case 'yank':
@@ -458,12 +537,10 @@ export async function clipboard(excmd = "open", content = ""){
 //#background_helper
 const DEFAULT_FAVICON = browser.extension.getURL("static/defaultFavicon.svg")
 
-/** Buffer + autocompletions */
+/** Deprecated */
 //#background
 export async function openbuffer() {
     fillcmdline("buffer")
-    messageActiveTab("commandline_frame", "changecompletions", [await l(listTabs())])
-    showcmdline()
 }
 
 /** Change active tab */
@@ -559,24 +636,56 @@ async function listTabs() {
 
 // {{{ SETTINGS
 
+/** Bind a sequence of keys to an excmd.
+
+    This is an easier-to-implement bodge while we work on vim-style maps.
+
+    Examples:
+
+        - `bind G fillcmdline tabopen google`
+        - `bind D composite tabclose | tabprev`
+        - `bind j scrollline 20`
+        - `bind F hint -b`
+
+    Use [[composite]] if you want to execute multiple excmds. Use
+    [[fillcmdline]] to put a string in the cmdline and focus the cmdline
+    (otherwise the string is executed immediately).
+
+    See also:
+
+        - [[unbind]]
+        - [[reset]]
+*/
 //#background
 export async function bind(key: string, ...bindarr: string[]){
     let exstring = bindarr.join(" ")
     let nmaps = (await browser.storage.sync.get("nmaps"))["nmaps"]
-    nmaps = (nmaps == undefined) ? {} : nmaps
+    nmaps = (nmaps == undefined) ? Object.create(null) : nmaps
     nmaps[key] = exstring
     browser.storage.sync.set({nmaps})
 }
 
+/** Unbind a sequence of keys so that they do nothing at all.
+
+    See also:
+
+        - [[bind]]
+        - [[reset]]
+*/
 //#background
 export async function unbind(key: string){
-    bind(key)
+    bind(key, "")
 }
 
-/* Currently, only resets key to default after extension is reloaded */
+/** Restores a sequence of keys to their default value.
+
+    See also:
+
+        - [[bind]]
+        - [[unbind]]
+*/
 //#background
 export async function reset(key: string){
-    bind(key)
     let nmaps = (await browser.storage.sync.get("nmaps"))["nmaps"]
     nmaps = (nmaps == undefined) ? {} : nmaps
     delete nmaps[key]
@@ -592,7 +701,7 @@ import * as hinting from './hinting_background'
 
 /** Hint a page. Pass -b as first argument to open hinted page in background. */
 //#background
-export function hint(option: string) {
+export function hint(option?: "-b") {
     if (option === '-b') hinting.hintPageOpenInBackground()
     else hinting.hintPageSimple()
     mode('hint')

@@ -1,5 +1,5 @@
 #!/bin/sh
 dest=generated/static/docs
 typedoc --out $dest src --ignoreCompilerErrors
-./scripts/commandline_injector.sh $dest/modules/_excmds_.html
+find $dest -name *.html -exec ./scripts/commandline_injector.sh '{}' \;
 cp -r $dest build/static/
