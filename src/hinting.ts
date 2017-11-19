@@ -128,7 +128,6 @@ const HINTCHARS = 'hjklasdfgyuiopqwertnmzxcvb'
 
 /** Show only hints prefixed by fstr. Focus first match */
 function filter(fstr) {
-    console.log(fstr)
     const active: Hint[] = []
     let foundMatch
     for (let h of modeState.hints) {
@@ -298,7 +297,6 @@ function hintPageOpenInBackground() {
 }
 
 function hintPageSimple() {
-    console.log("Hinting!")
     hintPage(hintables(), hint=>{
         simulateClick(hint.target)
     })
