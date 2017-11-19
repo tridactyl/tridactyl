@@ -40,6 +40,7 @@ export const DEFAULTNMAPS = {
     ":": "fillcmdline",
     "s": "fillcmdline open google",
     "S": "fillcmdline tabopen google",
+    "M": "gobble 1 quickmark",
     "xx": "something",
     "b": "openbuffer",
     "ZZ": "qall",

@@ -727,6 +727,19 @@ export async function reset(key: string){
     browser.storage.sync.set({nmaps})
 }
 
+/** Bind quickmark to a key. Available with gn[key] and go[key].*/
+//#background
+export async function quickmark(key: string) {
+    // ensure we're binding to a single key
+    if (key.length !== 1) {
+        return
+    }
+
+    let address = (await activeTab()).url
+    await bind("gn" + key, "tabopen", address)
+    bind("go" + key, "open", address)
+}
+
 // }}}
 
 // {{{ HINTMODE
@@ -744,5 +757,18 @@ export function hint(option?: "-b") {
 
 // }}}
 
+// {{{ GOBBLE mode
+
+//#background_helper
+import * as gobbleMode from './parsers/gobblemode'
+
+/** Initialize gobble mode. It will read `nChars` input keys and append them to
+`endCmd`. */
+//#background
+export async function gobble(nChars: number, endCmd: string) {
+    gobbleMode.init(nChars, endCmd)
+}
+
+// }}}
 
 // vim: tabstop=4 shiftwidth=4 expandtab

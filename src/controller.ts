@@ -7,6 +7,7 @@ import {parser as hintmode_parser} from './hinting_background'
 import * as normalmode from "./parsers/normalmode"
 import * as insertmode from "./parsers/insertmode"
 import * as ignoremode from "./parsers/ignoremode"
+import { parser as gobblemode_parser } from './parsers/gobblemode'
 
 
 /** Accepts keyevents, resolves them to maps, maps to exstrs, executes exstrs */
@@ -16,6 +17,7 @@ function *ParserController () {
         insert: insertmode.parser,
         ignore: ignoremode.parser,
         hint: hintmode_parser,
+        gobble: gobblemode_parser,
     }
 
     while (true) {
