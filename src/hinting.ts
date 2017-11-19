@@ -253,12 +253,17 @@ select,
 `
 
 import browserBg from './lib/browser_proxy'
+import {activeTab, l, firefoxVersionAtLeast} from './lib/webext'
 
-function openInBackground(url: string) {
-    return browserBg.tabs.create({
+async function openInBackground(url: string) {
+    const thisTab = await activeTab()
+    const options: any = {
         active: false,
         url,
-    })
+        index: thisTab.index + 1,
+    }
+    if (await l(firefoxVersionAtLeast(57))) options.openerTabId = thisTab.id
+    return browserBg.tabs.create(options)
 }
 
 /** if `target === _blank` clicking the link is treated as opening a popup and is blocked. Use webext API to avoid that. */
