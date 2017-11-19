@@ -62,7 +62,7 @@ import * as keydown from "./keydown_background"
 //#background_helper
 import {activeTab, activeTabId} from './lib/webext'
 //#content_helper
-import {incrementUrl} from "./url_util"
+import {incrementUrl, getUrlRoot} from "./url_util"
 
 /** @hidden */
 //#background_helper
@@ -280,6 +280,17 @@ export function urlincrement(count = 1){
 
     if (newUrl !== null) {
         window.location.href = newUrl
+    }
+}
+
+/** Go to the root domain of the current URL
+ */
+//#content
+export function urlroot (){
+    let rootUrl = getUrlRoot(window.location)
+
+    if (rootUrl !== null) {
+        window.location.href = rootUrl.href
     }
 }
 

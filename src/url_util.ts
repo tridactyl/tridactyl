@@ -33,3 +33,19 @@ export function incrementUrl(url, count) {
 
     return pre + newNumberStr + post
 }
+
+/** Get the root of a URL
+ *
+ * @param url   the url to find the root of
+ * @return      the root of the URL, or the original URL when the URL isn't
+ *              suitable for finding the root of.
+ */
+export function getUrlRoot(url) {
+    // exclude these special protocols for now;
+    if (/(about|mailto):/.test(url.protocol)) {
+        return null
+    }
+
+    // this works even for file:/// where the root is ""
+    return new URL(url.protocol + "//" + (url.host || ""))
+}

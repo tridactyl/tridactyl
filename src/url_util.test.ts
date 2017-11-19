@@ -1,6 +1,6 @@
 /** Some tests for URL utilities */
 
-import {incrementUrl} from './url_util'
+import {incrementUrl, getUrlRoot} from './url_util'
 
 function test_increment() {
 
@@ -27,4 +27,25 @@ function test_increment() {
     }
 }
 
+function test_root() {
+
+    let cases = [
+        // simple URL
+        ["http://example.com/dir/page.html", "http://example.com/"],
+        // already root, with subdir
+        ["http://www.example.com/", "http://www.example.com/"],
+        // unsupported protocol
+        ["about:config", null],
+    ]
+
+    for (let [url, exp_root] of cases) {
+        let root = getUrlRoot(new URL(url))
+
+        test(`root of ${url} --> ${exp_root}`,
+            () => expect(root ? root.href : root).toEqual(exp_root)
+        )
+    }
+}
+
 test_increment()
+test_root()
