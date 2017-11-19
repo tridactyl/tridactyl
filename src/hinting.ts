@@ -305,8 +305,9 @@ function hintPageSimple() {
 
 function selectFocusedHint() {
     console.log("Selecting hint.", state.mode)
-    modeState.focusedHint.select()
+    const focused = modeState.focusedHint
     reset()
+    focused.select()
 }
 
 import {addListener, attributeCaller} from './messaging'
