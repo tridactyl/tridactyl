@@ -323,9 +323,10 @@ export async function qall(){
 
 // {{{ MISC
 
+/** Deprecated! */
 //#background
 export function suppress(preventDefault?: boolean, stopPropagation?: boolean) {
-    keydown.suppress(preventDefault, stopPropagation)
+    mode("ignore")
 }
 
 //#background
