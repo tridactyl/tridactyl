@@ -25,6 +25,7 @@ import * as itertools from './itertools'
 import * as keyseq from './keyseq'
 import * as msgsafe from './msgsafe'
 import * as state from './state'
+import * as webext from './lib/webext'
 
 (window as any).tri = Object.assign(Object.create(null), {
     messaging,
@@ -39,4 +40,6 @@ import * as state from './state'
     keyseq,
     msgsafe,
     state,
+    webext,
+    l: prom => prom.then(console.log).catch(console.error),
 })
