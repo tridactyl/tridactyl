@@ -28,7 +28,11 @@ function suppressKey(ke: KeyboardEvent) {
 import state from './state'
 
 // Keys not to suppress in normal mode.
-const normalmodewhitelist = ['/']
+const normalmodewhitelist = [
+    '/',
+    "'",
+]
+
 
 function TerribleModeSpecificSuppression(ke: KeyboardEvent) {
     switch (state.mode) {
@@ -36,7 +40,10 @@ function TerribleModeSpecificSuppression(ke: KeyboardEvent) {
             // StartsWith happens to work for our maps so far. Obviously won't in the future.
             /* if (Object.getOwnPropertyNames(nmaps).find((map) => map.startsWith(ke.key))) { */
 
-            if (! ke.ctrlKey && ! ke.metaKey && ! ke.altKey && ! normalmodewhitelist.includes(ke.key)) {
+            if (! ke.ctrlKey && ! ke.metaKey && ! ke.altKey
+                && ke.key.length === 1
+                && ! normalmodewhitelist.includes(ke.key)
+            ) {
                 ke.preventDefault()
                 ke.stopImmediatePropagation()
             }
