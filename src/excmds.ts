@@ -537,10 +537,12 @@ export async function clipboard(excmd: "open"|"yank"|"tabopen" = "open", ...toYa
 //#background_helper
 const DEFAULT_FAVICON = browser.extension.getURL("static/defaultFavicon.svg")
 
-/** Deprecated */
+/** Soon to be deprecated way of showing buffer completions */
 //#background
 export async function openbuffer() {
     fillcmdline("buffer")
+    messageActiveTab("commandline_frame", "changecompletions", [await l(listTabs())])
+    showcmdline()
 }
 
 /** Change active tab */
