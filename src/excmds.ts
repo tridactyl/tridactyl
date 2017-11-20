@@ -84,21 +84,53 @@ function hasScheme(uri: string) {
     return uri.match(/^([\w-]+):/)
 }
 
+/** We use this over encodeURIComponent so that '+'s in non queries are not encoded. */
+/** @hidden */
+function searchURL(provider: string, query: string) {
+    if (SEARCH_URLS.has(provider)) {
+        const url = new URL(SEARCH_URLS.get(provider) + query)
+        // URL constructor doesn't convert +s because they're valid literals in
+        // the standard it adheres to. But they are special characters in
+        // x-www-form-urlencoded and e.g. google excepts query parameters in
+        // that format.
+        url.search = url.search.replace(/\+/g, '%2B')
+        return url
+    } else {
+        throw new TypeError(`Unknown provider: '${provider}'`)
+    }
+}
+
 /** If maybeURI doesn't have a schema, affix http:// */
 /** @hidden */
-function forceURI(maybeURI: string) {
-    if (hasScheme(maybeURI)) {
-        return maybeURI
+function forceURI(maybeURI: string): string {
+    try {
+        return new URL(maybeURI).href
+    } catch (e) {
+        if (e.name !== 'TypeError') throw e
     }
 
-    let urlarr = maybeURI.split(" ")
-    if (SEARCH_URLS.get(urlarr[0]) != null){
-        return SEARCH_URLS.get(urlarr[0]) + urlarr.slice(1,urlarr.length).join(" ")
-    } else if (urlarr[0].includes('.')) {
-        return "http://" + maybeURI
-    } else {
-        return SEARCH_URLS.get("google") + maybeURI
+    // Else if search keyword:
+    try {
+        const args = maybeURI.split(' ')
+        return searchURL(args[0], args.slice(1).join(' ')).href
+    } catch (e) {
+        console.log(e)
+        if (e.name !== 'TypeError') throw e
     }
+
+    // Else if it's a domain or something
+    try {
+        const url = new URL('http://' + maybeURI)
+        // Ignore unlikely domains
+        if (url.hostname.includes('.') || url.port || url.password) {
+            return url.href
+        }
+    } catch (e) {
+        if (e.name !== 'TypeError') throw e
+    }
+
+    // Else search google
+    return searchURL('google', maybeURI).href
 }
 
 /** @hidden */
