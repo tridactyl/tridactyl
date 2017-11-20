@@ -13,15 +13,15 @@ In the meantime, here are some notes about Tridactyl:
 Highlighted features:
 
 - Press `b` to bring up a list of open tabs in the current window; you can type the tab ID or part of the title or URL to choose a tab (the buffer list doesn't show which one you've selected yet, but it does work)
-- Press `f` to start "hint mode". 
+- Press `I` to enter ignore mode. `Shift` + `Escape` to return to normal mode.
+- Press `f` to start "hint mode", `F` to open in background
 - Press `o` to `:open` a different page
 - Press `s` if you want to search for something that looks like a domain name or URL
-- Bind new commands with e.g. `:bind J tabprev`
-- If you want a bind to insert something on the commandline and wait, use `:bind <whatever> fillcmdline <whatever>` (observe the difference between `:bind t tabopen` and `:bind t fillcmdline tabopen`
-- Type `:help` to see a list of available excmds.
-- Use `yy` to copy the current page URL to your clipboard.
+- Bind new commands with e.g. `:bind J tabprev`. Type `:help bind` to see help on custom binds.
+- Type `:help` for online help
+- Use `yy` to copy the current page URL to your clipboard
 - `]]` and `[[` to navigate through the pages of comics, paginated articles, etc.
-- Pressing `ZZ` will close all tabs and windows, but it will only "save" them if your about:preferences are set to "show your tabs and windows from last time".
+- Pressing `ZZ` will close all tabs and windows, but it will only "save" them if your about:preferences are set to "show your tabs and windows from last time"
 
 There are some caveats common to all webextension vimperator-alikes:
 

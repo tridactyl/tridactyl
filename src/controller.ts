@@ -27,7 +27,7 @@ function *ParserController () {
                 let keypress = keyevent.key
 
                 // TODO: think about if this is robust
-                if (state.mode != "ignore"){
+                if (state.mode != "ignore" && state.mode != "hint") {
                     if (isTextEditable(keyevent.target)) {
                         state.mode = "insert"
                     } else if (state.mode === 'insert') {
@@ -40,7 +40,7 @@ function *ParserController () {
                 // yet. So drop them. This also drops all modifier keys.
                 // When we put in handling for other special keys, remember
                 // to continue to ban modifiers.
-                if (state.mode === 'normal' && (keypress.length > 1 || keyevent.ctrlKey || keyevent.altKey)) {
+                if (state.mode === 'normal' && (keypress.length > 1 || keyevent.ctrlKey || keyevent.altKey || keyevent.metaKey)) {
                     continue
                 }
 

@@ -39,6 +39,7 @@ let modeState: HintState = undefined
 
 /** For each hintable element, add a hint */
 export function hintPage(hintableElements: Element[], onSelect: HintSelectedCallback) {
+    state.mode = 'hint'
     modeState = new HintState()
     for (let [el, name] of izip(hintableElements, hintnames())) {
         modeState.hintchars += name
@@ -128,7 +129,6 @@ const HINTCHARS = 'hjklasdfgyuiopqwertnmzxcvb'
 
 /** Show only hints prefixed by fstr. Focus first match */
 function filter(fstr) {
-    console.log(fstr)
     const active: Hint[] = []
     let foundMatch
     for (let h of modeState.hints) {
@@ -153,6 +153,7 @@ function filter(fstr) {
 function reset() {
     modeState.destructor()
     modeState = undefined
+    state.mode = 'normal'
 }
 
 /** If key is in hintchars, add it to filtstr and filter */
@@ -252,23 +253,61 @@ select,
 [tabindex]
 `
 
-// DEBUGGING
-/* hintPage(hintables(), hint=>mouseEvent(hint.target, 'click')) */
-/* addEventListener('keydown', pushKey) */
+import {activeTab, browserBg, l, firefoxVersionAtLeast} from './lib/webext'
 
-function hintPageSimple() {
-    console.log("Hinting!")
+async function openInBackground(url: string) {
+    const thisTab = await activeTab()
+    const options: any = {
+        active: false,
+        url,
+        index: thisTab.index + 1,
+    }
+    if (await l(firefoxVersionAtLeast(57))) options.openerTabId = thisTab.id
+    return browserBg.tabs.create(options)
+}
+
+/** if `target === _blank` clicking the link is treated as opening a popup and is blocked. Use webext API to avoid that. */
+function simulateClick(target: HTMLElement) {
+    // target can be set to other stuff, and we'll fail in annoying ways.
+    // There's no easy way around that while this code executes outside of the
+    // magic 'short lived event handler' context.
+    //
+    // OTOH, hardly anyone uses that functionality any more.
+    if ((target as HTMLAnchorElement).target === '_blank' ||
+        (target as HTMLAnchorElement).target === '_new'
+    ) {
+        browserBg.tabs.create({url: (target as HTMLAnchorElement).href})
+    } else {
+        mouseEvent(target, "click")
+        // Sometimes clicking the element doesn't focus it sufficiently.
+        target.focus()
+    }
+}
+
+function hintPageOpenInBackground() {
     hintPage(hintables(), hint=>{
         hint.target.focus()
-        mouseEvent(hint.target, 'click')
+        if (hint.target.href) {
+            // Try to open with the webext API. If that fails, simulate a click on this page anyway.
+            openInBackground(hint.target.href).catch(()=>simulateClick(hint.target))
+        } else {
+            // This is to mirror vimperator behaviour.
+            simulateClick(hint.target)
+        }
+    })
+}
+
+function hintPageSimple() {
+    hintPage(hintables(), hint=>{
+        simulateClick(hint.target)
     })
 }
 
 function selectFocusedHint() {
     console.log("Selecting hint.", state.mode)
-    state.mode = 'normal'
-    modeState.focusedHint.select()
+    const focused = modeState.focusedHint
     reset()
+    focused.select()
 }
 
 import {addListener, attributeCaller} from './messaging'
@@ -277,4 +316,5 @@ addListener('hinting_content', attributeCaller({
     selectFocusedHint,
     reset,
     hintPageSimple,
+    hintPageOpenInBackground,
 }))

@@ -26,7 +26,7 @@ function convertArgs(params, argv) {
     for ([type, [i, arg]] of izip(params.values(), enumerate(argv))) {
         if (type in conversions) {
             typedArgs.push(conversions[type](arg))
-        } else if (type.includes('|')) {
+        } else if (type.includes('|') || ["'", '"'].includes(type[0])) {
             // Do your own conversions!
             typedArgs.push(arg)
         } else if (type === "string[]") {
@@ -42,7 +42,7 @@ function convertArgs(params, argv) {
 // TODO: Pipe to separate commands
 // TODO: Abbreviated commands
 export function parser(ex_str){
-    let [func,...args] = ex_str.split(" ")
+    let [func,...args] = ex_str.trim().split(/\s+/)
     if (ExCmds.cmd_params.has(func)) {
         try {
             let typedArgs = convertArgs(ExCmds.cmd_params.get(func), args)

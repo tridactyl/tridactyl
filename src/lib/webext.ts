@@ -1,3 +1,19 @@
+import * as convert from '../convert'
+import browserProxy from './browser_proxy'
+
+export function inContentScript() {
+    return ! ('tabs' in browser)
+}
+
+export let browserBg
+
+// Make this library work for both content and background.
+if (inContentScript()) {
+    browserBg = browserProxy
+} else {
+    browserBg = browser
+}
+
 /** await a promise and console.error and rethrow if it errors
 
     Errors from promises don't get logged unless you seek them out.
@@ -22,10 +38,17 @@ export async function l(promise) {
  */
 //#background_helper
 export async function activeTab() {
-    return (await l(browser.tabs.query({active: true, currentWindow: true})))[0]
+    return (await l(browserBg.tabs.query({active: true, currentWindow: true})))[0]
 }
 
 //#background_helper
 export async function activeTabId() {
     return (await activeTab()).id
+}
+
+/** Compare major firefox versions */
+export async function firefoxVersionAtLeast(desiredmajor: number) {
+    const versionstr = (await browserBg.runtime.getBrowserInfo()).version
+    const actualmajor = convert.toNumber(versionstr.split('.')[0])
+    return actualmajor >= desiredmajor
 }

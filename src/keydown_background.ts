@@ -21,21 +21,6 @@ export function recvEvent(event: MsgSafeKeyboardEvent) {
     }
 }
 
-// Sledgehammer keyevent suppression
-export function suppress(pD?: boolean, sP?: boolean) {
-    if (pD !== undefined) { preventDefault = pD }
-    if (sP !== undefined) { stopPropagation = sP }
-    Messaging.messageAllTabs("keydown_content", "suppress", [preventDefault, stopPropagation])
-}
-
-export function state() {
-    return [preventDefault, stopPropagation]
-}
-
-// State
-let preventDefault = false
-let stopPropagation = false
-
 // Get messages from content
 import * as SELF from './keydown_background'
 Messaging.addListener('keydown_background', Messaging.attributeCaller(SELF))
