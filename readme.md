@@ -6,7 +6,7 @@ Replace ff's default control mechanism with one modelled on the one true editor,
 
 ## Installing
 
-[Get our "beta" builds!][amo-betas] (updated on AMO with each commit to master on this repo)
+[Get our "beta" builds!][amo-betas] These are updated on AMO with each commit to master on this repo; your browser will automatically update from there once a day. If you want more frequent updates, you can change `extensions.update.interval` in `about:config` to whatever time you want, say, 15 minutes (900 seconds).
 
 ## Highlighted features
 
