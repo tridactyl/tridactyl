@@ -77,6 +77,7 @@ const SEARCH_URLS = new Map<string, string>([
     ["youtube","https://www.youtube.com/results?search_query="],
     ["amazon","https://www.amazon.com/s/ref=nb_sb_noss?url=search-alias%3Daps&field-keywords="],
     ["amazonuk","https://www.amazon.co.uk/s/ref=nb_sb_noss?url=search-alias%3Daps&field-keywords="],
+    ["startpage","https://www.startpage.com/do/search?query="],
 ])
 
 /** @hidden */
