@@ -2,49 +2,68 @@
 
 # Tridactyl [![Build Status](https://travis-ci.org/cmcaine/tridactyl.svg?branch=master)](https://travis-ci.org/cmcaine/tridactyl) [![Matrix Chat][matrix-badge]][matrix-link] [![Gitter Chat][gitter-badge]][gitter-link]
 
-Replace ff's default control mechanism with one modelled on the one true editor, Vim.
+Replace Firefox's default control mechanism with one modelled on the one true editor, Vim.
 
 ## Installing
 
 [Get our "beta" builds!][amo-betas] These are updated on AMO with each commit to master on this repo; your browser will automatically update from there once a day. If you want more frequent updates, you can change `extensions.update.interval` in `about:config` to whatever time you want, say, 15 minutes (900 seconds).
 
-## Highlighted features
+Type `:help` for online help once you're in :)
+
+Remember that tridactyl cannot run on any page on addons.mozilla.org, about:\*, data:\*, view-source:\* and file:\*. We're sorry about that and we're working with Firefox to improve this situation by removing restrictions on existing APIs and developing a new API.
+
+## Highlighted features:
 
 - Press `b` to bring up a list of open tabs in the current window; you can type the tab ID or part of the title or URL to choose a tab (the buffer list doesn't show which one you've selected yet, but it does work)
-- Press `f` to start "hint mode". 
+- Press `I` to enter ignore mode. `Shift` + `Escape` to return to normal mode.
+- Press `f` to start "hint mode", `F` to open in background
 - Press `o` to `:open` a different page
 - Press `s` if you want to search for something that looks like a domain name or URL
-- Bind new commands with e.g. `:bind J tabprev`
-- If you want a bind to insert something on the commandline and wait, use `:bind <whatever> fillcmdline <whatever>` (observe the difference between `:bind t tabopen` and `:bind t fillcmdline tabopen`
-- Type `:help` to see a list of available excmds.
-- Use `yy` to copy the current page URL to your clipboard.
+- Bind new commands with e.g. `:bind J tabprev`. Type `:help bind` to see help on custom binds.
+- Type `:help` for online help
+- Use `yy` to copy the current page URL to your clipboard
 - `]]` and `[[` to navigate through the pages of comics, paginated articles, etc.
-- Pressing `ZZ` will close all tabs and windows, but it will only "save" them if your about:preferences are set to "show your tabs and windows from last time".
+- Pressing `ZZ` will close all tabs and windows, but it will only "save" them if your about:preferences are set to "show your tabs and windows from last time"
+
+## WebExtension-related issues
+
+- Do not try to navigate to any about:\* pages using `:open` as it will fail silently.
+- Firefox will not load Tridactyl on addons.mozilla.org, about:\*, some file:\* URIs, view-source:\*, or data:\*. On these pages Ctrl-L (or F6), Ctrl-Tab and Ctrl-W are your escape hatches.
+- Tridactyl does not currently support changing/hiding the Firefox GUI, but you can do it yourself by changing your userChrome. We've developed [quite a good one](src/static/userChrome-minimal.css) that makes windowed Firefox behave more like full-screen mode, but it's well commented, so you can make your own.
 
 ## Contributing
 
 ### Building and installing
 
+Onboarding:
+
 ```
 git clone https://github.com/cmcaine/tridactyl.git
 cd tridactyl
 npm install
-npm run build # or add the `npm bin` to your path and just run webpack directly
+npm run build
 ```
 
-Addon is built in tridactyl/build. Load it as a temporary addon in firefox with `about:debugging` or see [Development loop](#Development-loop). The addon may work in older versions of Firefox, but it's targetting Firefox 57+.
+Each time package.json or package-lock.json change after you checkout or pull, you should run `npm install` again.
 
-If you're updating from the older buildsystem, run this as well:
+Addon is built in tridactyl/build. Load it as a temporary addon in firefox with `about:debugging` or see [Development loop](#Development-loop). The addon should work in Firefox 52+, but we're only deliberately supporting >=57.
+
+If you want to install a local copy of the add-on into your developer or nightly build of firefox then you can enable installing unsigned add-ons and then build it like so:
 
 ```
-npm run update-buildsystem
+# Build tridactyl if you haven't done that yet
+npm run build
+# Package for a browser
+$(npm bin)/web-ext build -s build
 ```
+
+If you want to build a signed copy (e.g. for the non-developer release), you can do that with `web-ext sign`. You'll need some keys for AMO and to edit the application id in `src/manifest.json`. There's a helper script in `scripts/sign` that's used by our build bot and for manual releases.
 
 ### Development loop
 
 ```
 npm run watch &
-web-ext run -s build --firefox path/to/nightly/firefox
+$(npm bin)/web-ext run -s build
 ```
 
 This will compile and deploy your files each time you save them.
