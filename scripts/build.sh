@@ -1,5 +1,7 @@
 #!/bin/sh
 
+set -e
+
 PATH=$(npm bin):"$PATH"
 export PATH
 
