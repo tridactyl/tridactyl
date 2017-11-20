@@ -101,10 +101,16 @@ function process() {
     console.log(clInput.value)
     sendExstr("hidecmdline")
     sendExstr(clInput.value)
-    if (! browser.extension.inIncognitoContext) {
+
+    // Save non-secret commandlines to the history.
+    const [func,...args] = clInput.value.trim().split(/\s+/)
+    if (! browser.extension.inIncognitoContext &&
+        ! (func === 'winopen' && args[0] === '-private')
+    ) {
         state.cmdHistory = state.cmdHistory.concat([clInput.value])
     }
     console.log(state.cmdHistory)
+
     completions.innerHTML = ""
     clInput.value = ""
     cmdline_history_position = 0
