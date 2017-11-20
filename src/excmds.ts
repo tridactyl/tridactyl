@@ -73,7 +73,7 @@ const SEARCH_URLS = new Map<string, string>([
     ["duckduckgo","https://duckduckgo.com/?q="],
     ["yahoo","https://search.yahoo.com/search?p="],
     ["twitter","https://twitter.com/search?q="],
-    ["wikipedia","https://en.wikipedia.org/wiki/"],
+    ["wikipedia","https://en.wikipedia.org/wiki/Special:Search/"],
     ["youtube","https://www.youtube.com/results?search_query="],
     ["amazon","https://www.amazon.com/s/ref=nb_sb_noss?url=search-alias%3Daps&field-keywords="],
     ["amazonuk","https://www.amazon.co.uk/s/ref=nb_sb_noss?url=search-alias%3Daps&field-keywords="],
