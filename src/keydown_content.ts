@@ -3,6 +3,7 @@
 import * as Messaging from './messaging'
 import * as msgsafe from './msgsafe'
 import {isTextEditable} from './dom'
+import {isSimpleKey} from './keyseq'
 
 function keyeventHandler(ke: KeyboardEvent) {
     // Ignore JS-generated events for security reasons.
@@ -46,20 +47,26 @@ function TerribleModeSpecificSuppression(ke: KeyboardEvent) {
             // StartsWith happens to work for our maps so far. Obviously won't in the future.
             /* if (Object.getOwnPropertyNames(nmaps).find((map) => map.startsWith(ke.key))) { */
 
-            if (! ke.ctrlKey && ! ke.metaKey && ! ke.altKey
-                && ke.key.length === 1
+            if (! isSimpleKey(ke)
                 && ! normalmodewhitelist.includes(ke.key)
             ) {
                 ke.preventDefault()
                 ke.stopImmediatePropagation()
             }
             break
+        // Hintmode can't clean up after itself yet, so it needs to block more FF shortcuts.
         case "hint":
             if (! hintmodewhitelist.includes(ke.key)) {
                 ke.preventDefault()
                 ke.stopImmediatePropagation()
             }
             break;
+        case "gobble":
+            if (! isSimpleKey(ke) || ke.key === "Escape") {
+                ke.preventDefault()
+                ke.stopImmediatePropagation()
+            }
+            break
         case "ignore":
             break;
         case "insert":

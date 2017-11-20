@@ -1,4 +1,6 @@
 import state from '../state'
+import {isSimpleKey} from '../keyseq'
+import {MsgSafeKeyboardEvent} from '../msgsafe'
 
 /** Simple container for the gobble state. */
 class GobbleState {
@@ -25,16 +27,13 @@ function reset() {
     state.mode = 'normal'
 }
 
-import { MsgSafeKeyboardEvent } from '../msgsafe'
-
 /** Receive keypress. If applicable, execute a command. */
 export function parser(keys: MsgSafeKeyboardEvent[]) {
     const key = keys[0].key
 
     if (key === 'Escape') {
         reset()
-    } else if (key.length == 1) {
-        // Workaround to avoid modifier keys, mainly Shift.
+    } else if (isSimpleKey(keys[0])) {
         modeState.chars += key
         if (modeState.chars.length >= modeState.numChars) {
             const ex_str = modeState.endCommand + ' ' + modeState.chars

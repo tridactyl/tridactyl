@@ -156,10 +156,6 @@ export function bracketexprToKey(be: string): [MinimalKey, string] {
     }
 }
 
-export function hasModifiers(keyEvent: MinimalKey) {
-    return keyEvent.ctrlKey || keyEvent.altKey || keyEvent.metaKey || keyEvent.shiftKey
-}
-
 export function mapstrToKeyseq(mapstr: string): MinimalKey[] {
     const keyseq: MinimalKey[] = []
     let key: MinimalKey
@@ -173,4 +169,23 @@ export function mapstrToKeyseq(mapstr: string): MinimalKey[] {
         }
     }
     return keyseq
+}
+
+// {{{ Utility functions for dealing with KeyboardEvents
+
+import {MsgSafeKeyboardEvent} from './msgsafe'
+
+type KeyEventLike = MinimalKey | MsgSafeKeyboardEvent | KeyboardEvent
+
+export function hasModifiers(keyEvent: KeyEventLike) {
+    return keyEvent.ctrlKey || keyEvent.altKey || keyEvent.metaKey || keyEvent.shiftKey
+}
+
+/** shiftKey is true for any capital letter, most numbers, etc. Generally care about other modifiers. */
+export function hasNonShiftModifiers(keyEvent: KeyEventLike) {
+    return keyEvent.ctrlKey || keyEvent.altKey || keyEvent.metaKey
+}
+
+export function isSimpleKey(keyEvent: KeyEventLike) {
+    return keyEvent.key.length === 1 && ! hasNonShiftModifiers(keyEvent)
 }

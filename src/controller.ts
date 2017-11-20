@@ -1,13 +1,14 @@
 import {MsgSafeKeyboardEvent, MsgSafeNode} from './msgsafe'
 import {isTextEditable} from './dom'
 import {parser as exmode_parser} from './parsers/exmode'
+import {isSimpleKey} from './keyseq'
 import state from "./state"
 
 import {parser as hintmode_parser} from './hinting_background'
 import * as normalmode from "./parsers/normalmode"
 import * as insertmode from "./parsers/insertmode"
 import * as ignoremode from "./parsers/ignoremode"
-import { parser as gobblemode_parser } from './parsers/gobblemode'
+import * as gobblemode from './parsers/gobblemode'
 
 
 /** Accepts keyevents, resolves them to maps, maps to exstrs, executes exstrs */
@@ -17,7 +18,7 @@ function *ParserController () {
         insert: insertmode.parser,
         ignore: ignoremode.parser,
         hint: hintmode_parser,
-        gobble: gobblemode_parser,
+        gobble: gobblemode.parser,
     }
 
     while (true) {
@@ -42,7 +43,7 @@ function *ParserController () {
                 // yet. So drop them. This also drops all modifier keys.
                 // When we put in handling for other special keys, remember
                 // to continue to ban modifiers.
-                if (state.mode === 'normal' && (keypress.length > 1 || keyevent.ctrlKey || keyevent.altKey || keyevent.metaKey)) {
+                if (state.mode === 'normal' && ! isSimpleKey(keyevent)) {
                     continue
                 }
 
