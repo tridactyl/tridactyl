@@ -727,7 +727,12 @@ export async function reset(key: string){
     browser.storage.sync.set({nmaps})
 }
 
-/** Bind quickmark to a key. Available with gn[key] and go[key].*/
+/** Bind a quickmark for the current URL to a key.
+
+    Afterwards use go[key], gn[key], or gw[key] to [[open]], [[tabopen]], or
+    [[winopen]] the URL respectively.
+    
+*/
 //#background
 export async function quickmark(key: string) {
     // ensure we're binding to a single key
@@ -763,8 +768,12 @@ export function hint(option?: "-b") {
 //#background_helper
 import * as gobbleMode from './parsers/gobblemode'
 
-/** Initialize gobble mode. It will read `nChars` input keys and append them to
-`endCmd`. */
+/** Initialize gobble mode.
+
+    It will read `nChars` input keys, append them to `endCmd` and execute that
+    string.
+
+*/
 //#background
 export async function gobble(nChars: number, endCmd: string) {
     gobbleMode.init(nChars, endCmd)
