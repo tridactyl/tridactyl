@@ -187,5 +187,5 @@ export function hasNonShiftModifiers(keyEvent: KeyEventLike) {
 }
 
 export function isSimpleKey(keyEvent: KeyEventLike) {
-    return keyEvent.key.length === 1 && ! hasNonShiftModifiers(keyEvent)
+    return ! (keyEvent.key.length > 1 || hasNonShiftModifiers(keyEvent))
 }
