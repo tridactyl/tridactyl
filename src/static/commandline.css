@@ -7,7 +7,8 @@ input {
   width: 100%;
   padding: 0;
   font-family: "monospace", "Courier New";
-  font-size: 10pt;
+  font-size: 9pt;
+  line-height: 1.5;
   color: black;
   border: unset;
   /* we currently have a border from the completions */
@@ -15,35 +16,58 @@ input {
   padding-left: 0.5ex;
 }
 
-img {
-    height: 1em;
-    width: 1em;
+.hidden {
+  display: none
 }
 
+.focused {
+  background: darkgrey;
+  color: white;
+}
+
+/* COMPLETIONS */
+
 #completions {
+  --option-height: 1.4em;
   background: white;
   color: black;
   display: inline-block;
   font-size: 10pt;
-  height: auto;
-  /* line-height: 1.5em; */
-  font-family: "monospace", "Courier New";
+  height: calc(10 * var(--option-height));
+  font-family: "monospace";
   overflow: hidden;
-  white-space: pre;
   width: 100%;
-  z-index: 9998;
-  border-top: 1px solid lightgray;
+  border-top: 1px solid grey;
 }
 
-.url, a.url, a.url:link, a.url:visited {
-  background: white;
-  color: #1f9947;
+#completions img {
   display: inline;
+  vertical-align: middle;
+  height: 1em;
+  width: 1em;
+}
+
+#completions .sectionHeader {
+  background: linear-gradient(lightgrey, #ddd, lightgrey);
+  font-weight: bold;
+  border-bottom: 1px solid grey;
+}
+
+#completions .sectionHeader, #completions .option {
+  height: --option-height;
+  line-height: --option-height;
+}
+
+/* #completions, but I can't be bothered to write it a bunch of times */
+.url, a.url, a.url:link, a.url:visited {
+  color: #1f9947;
   left: 50%;
   overflow: hidden;
-  padding: 0 2px;
+  margin-left: 10px;
   position: absolute;
   text-decoration: none;
+  /* Without this the last URL flows over onto a second line if it's long enough */
+  white-space: pre;
 }
 
 /* Hide the URLs if the screen is small */
@@ -58,11 +82,7 @@ a.url:hover {
   text-decoration: underline !important;
 }
 
-div.tabline span {
+.BufferCompletionOption span {
+  white-space: pre;
   margin: 0 .5em;
-}
-
-div.tabline img {
-  display: inline;
-  vertical-align: middle;
 }

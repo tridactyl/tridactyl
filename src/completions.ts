@@ -11,18 +11,19 @@ How to handle cached e.g. buffer information going out of date?
 
 import * as Fuse from 'fuse.js'
 import {enumerate} from './itertools'
+import {toNumber} from './convert'
 
 const DEFAULT_FAVICON = browser.extension.getURL("static/defaultFavicon.svg")
 
 // {{{ INTERFACES
 
 interface CompletionOption {
-    // Highlight this option
-    focus: () => void
-    blur: () => void
-
     // What to fill into cmdline
     value: string
+
+    // Highlight and blur element, 
+    blur(): void
+    focus(): void
 }
 
 export abstract class CompletionSource {
@@ -63,12 +64,17 @@ class BufferCompletionOption implements CompletionOption {
         pre = pre.padEnd(2)
         this.matchStrings.push(String(tab.index + 1), tab.title, tab.url)
         const favIconUrl = tab.favIconUrl ? tab.favIconUrl : DEFAULT_FAVICON
-        this.html = html`<div><span>${pre}</span><img src=${favIconUrl}></img><span>${tab.index + 1}: ${tab.title}</span><a class="url" href=${tab.url}>${tab.url}</a></div>`
+        this.html = html`<div class="BufferCompletionOption option">
+            <span>${pre}</span>
+            <img src=${favIconUrl} />
+            <span>${tab.index + 1}: ${tab.title}</span>
+            <a class="url" href=${tab.url}>${tab.url}</a>
+        </div>`
     }
 
     blur() { this.html.classList.remove("focused") }
-    focus() { this.html.classList.add("focused") }
-    hide() { this.html.classList.add("hidden") }
+    focus() { this.html.classList.add("focused"); this.show() }
+    hide() { this.html.classList.add("hidden"); this.blur() }
     show() { this.html.classList.remove("hidden") }
 }
 
@@ -79,7 +85,6 @@ export class BufferCompletionSource extends CompletionSource {
     constructor(
         readonly options: BufferCompletionOption[],
         public node: HTMLElement,
-        private selection?: BufferCompletionOption
     ) {
         super()
         const fuseOptions = {
@@ -90,12 +95,12 @@ export class BufferCompletionSource extends CompletionSource {
 
         // Can't sort the real options array because Fuse loses class information.
         const searchThis = options.map((elem, index) => {return {index, matchStrings: elem.matchStrings}})
-        console.log(searchThis)
         this.fuse = new Fuse(searchThis, fuseOptions)
     }
 
     static fromTabs(tabs: browser.tabs.Tab[]) {
-        const node = html`<div class="BufferCompletionSource">`
+        const node = html`<div class="BufferCompletionSource">
+            <div class="sectionHeader">Buffers</div>`
 
         // Get alternative tab, defined as last accessed tab.
         const alt = tabs.sort((a, b) => { return a.lastAccessed < b.lastAccessed ? 1 : -1 })[1]
@@ -126,21 +131,22 @@ export class BufferCompletionSource extends CompletionSource {
         // Remove the `${prefix} ` bit.
         const query = exstr.slice(exstr.indexOf(' ') + 1)
 
-        let matches: number[]
         if (query) {
-            console.log(query, this.fuse.search(query))
-            matches = this.fuse.search(query) as number[]
+            let matches = this.fuse.search(query).map(toNumber) as number[]
+
+            for (const [index, option] of enumerate(this.options)) {
+                if (! matches.includes(index)) option.hide()
+                else option.show()
+            }
+
+            if (matches.length) this.options[matches[0]].focus()
+        } else {
+            for (const option of this.options) {
+                option.show()
+            }
         }
 
-        for (const [index, option] of enumerate(this.options)) {
-            if (! matches.includes(index)) option.hide()
-            else option.show()
-        }
-
-        let bestMatch
-        if (matches.length) bestMatch = this.options[matches[0]]
-
-        return new BufferCompletionSource(this.options, this.node, (matches.length && this.options[matches[0]]) || null)
+        return this
     }
 }
 
