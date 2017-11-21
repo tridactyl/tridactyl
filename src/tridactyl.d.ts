@@ -35,3 +35,7 @@ declare namespace browser.tabs {
 
 // html-tagged-template.js
 declare function html(strings: TemplateStringsArray, ...values: any[]): HTMLElement
+
+declare namespace browser.webRequest {
+    function filterResponseData(requestId: string): any
+}
