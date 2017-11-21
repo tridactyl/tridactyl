@@ -741,9 +741,10 @@ export async function quickmark(key: string) {
     }
 
     let address = (await activeTab()).url
-    bind("gn" + key, "tabopen", address)
-    bind("go" + key, "open", address)
-    bind("gw" + key, "winopen", address)
+    // Have to await these or they race!
+    await bind("gn" + key, "tabopen", address)
+    await bind("go" + key, "open", address)
+    await bind("gw" + key, "winopen", address)
 }
 
 // }}}
