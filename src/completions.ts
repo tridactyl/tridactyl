@@ -63,11 +63,13 @@ class BufferCompletionOption implements CompletionOption {
         pre = pre.padEnd(2)
         this.matchStrings.push(String(tab.index + 1), tab.title, tab.url)
         const favIconUrl = tab.favIconUrl ? tab.favIconUrl : DEFAULT_FAVICON
-        this.html = html`<div> <span>${pre}</span> <img src=${favIconUrl}></img> <span>${tab.index + 1}: ${tab.title}</span><a class="url" href=${tab.url}>${tab.url}</a></div>`
+        this.html = html`<div><span>${pre}</span><img src=${favIconUrl}></img><span>${tab.index + 1}: ${tab.title}</span><a class="url" href=${tab.url}>${tab.url}</a></div>`
     }
 
     blur() { this.html.classList.remove("focused") }
     focus() { this.html.classList.add("focused") }
+    hide() { this.html.classList.add("hidden") }
+    show() { this.html.classList.remove("hidden") }
 }
 
 export class BufferCompletionSource extends CompletionSource {
@@ -81,12 +83,15 @@ export class BufferCompletionSource extends CompletionSource {
     ) {
         super()
         const fuseOptions = {
-            includeScore: true,
             keys: ["matchStrings"],
             shouldSort: true,
-
+            id: "index",
         }
-        this.fuse = new Fuse(options, fuseOptions)
+
+        // Can't sort the real options array because Fuse loses class information.
+        const searchThis = options.map((elem, index) => {return {index, matchStrings: elem.matchStrings}})
+        console.log(searchThis)
+        this.fuse = new Fuse(searchThis, fuseOptions)
     }
 
     static fromTabs(tabs: browser.tabs.Tab[]) {
@@ -120,24 +125,28 @@ export class BufferCompletionSource extends CompletionSource {
     async filter(exstr: string) {
         // Remove the `${prefix} ` bit.
         const query = exstr.slice(exstr.indexOf(' ') + 1)
-        let node = this.node, matches: BufferCompletionOption[] = []
+
+        let matches: number[]
         if (query) {
             console.log(query, this.fuse.search(query))
-            node = html`<div class="BufferCompletionSource">`
-            for (const match of this.fuse.search(query)) {
-
-            }
-            matches = this.fuse.search(query) as BufferCompletionOption[]
-            for (const match of matches) node.appendChild(match.html)
+            matches = this.fuse.search(query) as number[]
         }
 
-        return new BufferCompletionSource(this.options, node, (matches && matches[0]) || null)
+        for (const [index, option] of enumerate(this.options)) {
+            if (! matches.includes(index)) option.hide()
+            else option.show()
+        }
+
+        let bestMatch
+        if (matches.length) bestMatch = this.options[matches[0]]
+
+        return new BufferCompletionSource(this.options, this.node, (matches.length && this.options[matches[0]]) || null)
     }
 }
 
 // }}}
 
-// {{{ MANAGING ASYNC CHANGES
+// {{{ UNUSED: MANAGING ASYNC CHANGES
 
 /* If first to modify completions, update it. */
 async function commitIfCurrent(epochref: any, asyncFunc: Function, commitFunc: Function, ...args: any[]): Promise<any> {
