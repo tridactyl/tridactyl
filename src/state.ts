@@ -14,10 +14,55 @@
     If this turns out to be expensive there are improvements available.
 */
 
+
+const normal_nmaps_default = new Map<string, string>([
+    ["o",  "fillcmdline open"],
+    ["O",  "current_url open"],
+    ["w",  "fillcmdline winopen"],
+    ["W",  "current_url winopen"],
+    ["t",  "tabopen"],
+ // ["t",  "fillcmdline tabopen", // for now, use mozilla completion
+    ["]]", "clicknext"],
+    ["[[", "clicknext prev"],
+    ["T",  "current_url tabopen"],
+    ["yy", "clipboard yank"],
+    ["p",  "clipboard open"],
+    ["P",  "clipboard tabopen"],
+    ["j",  "scrollline 10"],
+    ["k",  "scrollline -10"],
+    ["h",  "scrollpx -50"],
+    ["l",  "scrollpx 50"],
+    ["G",  "scrollto 100"],
+    ["gg", "scrollto 0"],
+    ["H",  "back"],
+    ["L",  "forward"],
+    ["d",  "tabclose"],
+    ["u",  "undo"],
+    ["r",  "reload"],
+    ["R",  "reloadhard"],
+    ["gt", "tabnext"],
+    ["gT", "tabprev"],
+    ["gr", "reader"],
+    [":",  "fillcmdline"],
+    ["s",  "fillcmdline open #SEARCH#"],
+    ["S",  "fillcmdline tabopen #SEARCH#"],
+    ["M",  "gobble 1 quickmark"],
+    ["xx", "something"],
+    ["b",  "openbuffer"],
+    ["ZZ", "qall"],
+    ["f",  "hint"],
+    ["F",  "hint -b"],
+    ["I",  "mode ignore"],
+    // Special keys must be prepended with ðŸ„°
+    // ["ðŸ„°Backspace", "something"]],
+])
+
 export type ModeName = 'normal' | 'insert' | 'hint' | 'ignore' | 'gobble'
 class State {
     mode: ModeName = 'normal'
     cmdHistory: string[] = []
+    search: string = "google"
+    normal_nmaps: Map<string, string> = normal_nmaps_default
 }
 
 // Don't change these from const or you risk breaking the Proxy below.

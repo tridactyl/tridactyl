@@ -50,6 +50,9 @@
         "webRequestBlocking",
         "<all_urls>"
     ],
+    "options_ui": {
+        "page": "static/settings.html"
+    },
     "applications": {
         "gecko": {
             "id": "tridactyl.vim@cmcaine.co.uk",
