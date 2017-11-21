@@ -25,3 +25,7 @@ declare namespace browser.find {
 declare namespace browser.tabs {
     function setZoom(number): any
 }
+
+declare namespace browser.webRequest {
+    function filterResponseData(requestId: string): any
+}

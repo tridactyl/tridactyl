@@ -26,6 +26,7 @@ import * as itertools from './itertools'
 import * as keyseq from './keyseq'
 import * as msgsafe from './msgsafe'
 import state from './state'
+import * as request from './requests'
 import * as webext from './lib/webext'
 
 (window as any).tri = Object.assign(Object.create(null), {
@@ -40,6 +41,7 @@ import * as webext from './lib/webext'
     itertools,
     keydown_background,
     keyseq,
+    request,
     msgsafe,
     state,
     webext,
