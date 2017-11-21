@@ -25,7 +25,7 @@ import * as gobble_mode from './parsers/gobblemode'
 import * as itertools from './itertools'
 import * as keyseq from './keyseq'
 import * as msgsafe from './msgsafe'
-import * as state from './state'
+import state from './state'
 import * as webext from './lib/webext'
 
 (window as any).tri = Object.assign(Object.create(null), {
