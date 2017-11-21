@@ -362,13 +362,20 @@ export async function tabdetach(id?: number){
 }
 
 //#background
-export async function tabclose(ids?: number[] | number) {
+export async function tabclose(ids?: number[] | number, flag?: string) {
     if (ids !== undefined) {
         browser.tabs.remove(ids)
     } else {
         // Close the current tab
         browser.tabs.remove(await activeTabId())
     }
+}
+
+//#background
+export async function tabclosethenprev(){
+    let tabid = await activeTabId()
+    buffer("#")
+    tabclose([tabid])
 }
 
 /** restore most recently closed tab in this window unless the most recently closed item was a window */
