@@ -33,11 +33,11 @@ input {
   color: black;
   display: inline-block;
   font-size: 10pt;
-  height: calc(10 * var(--option-height));
+  max-height: calc(10 * var(--option-height));
   font-family: "monospace";
   overflow: hidden;
   width: 100%;
-  border-top: 1px solid grey;
+  border-top: 0.5px solid grey;
 }
 
 #completions img {
@@ -50,7 +50,8 @@ input {
 #completions .sectionHeader {
   background: linear-gradient(lightgrey, #ddd, lightgrey);
   font-weight: bold;
-  border-bottom: 1px solid grey;
+  border-bottom: 0.5px solid grey;
+  padding-left: 0.5ex;
 }
 
 #completions .sectionHeader, #completions .option {
