@@ -76,6 +76,8 @@ A pre-commit hook is added by `npm install` that simply runs `npm test`. If you 
 
 Ask in `#tridactyl` on [matrix.org][matrix-link], freenode, or [gitter][gitter-link]. We're friendly!
 
+Default keybindings are currently best discovered by reading the source for the [normal mode parser](./src/parsers/normalmode.ts).
+
 Development notes are in the doc directory, but they're mostly out of date now. Code is quite short and not *too* badly commented, though.
 
 ## Principles and objectives
