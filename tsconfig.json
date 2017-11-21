@@ -1,12 +1,14 @@
 {
   "compilerOptions": {
+    "moduleResolution": "Node",
     "noImplicitAny": false,
     "noEmitOnError": true,
     "outDir": "build/tsc-out",
     "sourceMap": true,
     "target": "ES2017",
     "lib": ["ES2017","dom"],
-    "typeRoots": ["node_modules/@types", "node_modules/web-ext-types/"]
+    "typeRoots": ["node_modules/@types", "node_modules/web-ext-types/"],
+    "alwaysStrict": true
   },
   "include": [
     "./src/**/*"
