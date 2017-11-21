@@ -23,5 +23,6 @@ declare namespace browser.find {
 
 // setZoom has an optional first argument of tabId. Unclear how first argument can be optional.
 declare namespace browser.tabs {
-    function setZoom(number): any
+    function setZoom(zoomFactor: number): Promise<void>;
+    function setZoom(tabId: number, zoomFactor: number): Promise<void>;
 }
