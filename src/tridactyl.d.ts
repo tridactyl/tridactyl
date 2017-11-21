@@ -25,4 +25,5 @@ declare namespace browser.find {
 declare namespace browser.tabs {
     function setZoom(zoomFactor: number): Promise<void>;
     function setZoom(tabId: number, zoomFactor: number): Promise<void>;
+    function toggleReaderMode(tabId?: number): Promise<void>;
 }
