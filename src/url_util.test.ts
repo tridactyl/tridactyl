@@ -1,6 +1,6 @@
 /** Some tests for URL utilities */
 
-import {incrementUrl} from './url_util'
+import {incrementUrl, getUrlRoot, getUrlParent} from './url_util'
 
 function test_increment() {
 
@@ -27,4 +27,56 @@ function test_increment() {
     }
 }
 
+function test_root() {
+
+    let cases = [
+        // simple URL
+        ["http://example.com/dir/page.html", "http://example.com/"],
+        // already root, with subdir
+        ["http://www.example.com/", "http://www.example.com/"],
+        // unsupported protocol
+        ["about:config", null],
+    ]
+
+    for (let [url, exp_root] of cases) {
+        let root = getUrlRoot(new URL(url))
+
+        test(`root of ${url} --> ${exp_root}`,
+            () => expect(root ? root.href : root).toEqual(exp_root)
+        )
+    }
+}
+
+function test_parent() {
+
+    let cases = [
+        // root URL, nothing to do!
+        ["http://example.com", null],
+        // URL with query string
+        ["http://example.com?key=value", "http://example.com/"],
+        // url with hash/anchor - strip the fragment
+        ["http://example.com#anchor", "http://example.com/"],
+        // query + hash: lose the hash only
+        ["http://example.com?key=val#hash", "http://example.com/?key=val"],
+        // single level path
+        ["http://example.com/path", "http://example.com/"],
+        // multi-level path
+        ["http://example.com/path1/path2", "http://example.com/path1"],
+        // subdomains
+        ["http://sub.example.com", "http://example.com/"],
+        // subdom with path, leave subdom
+        ["http://sub.example.com/path", "http://sub.example.com/"],
+    ]
+
+    for (let [url, exp_parent] of cases) {
+        let parent = getUrlParent(new URL(url))
+
+        test (`parent of ${url} --> ${exp_parent}`,
+            () => expect(parent ? parent.href : parent).toEqual(exp_parent)
+        )
+    }
+}
+
 test_increment()
+test_root()
+test_parent()
