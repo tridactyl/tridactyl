@@ -21,19 +21,5 @@ export namespace onLine {
         }
     }
 
-    /** Helpers for completions */
-    async function currentWindowTabs(): Promise<browser.tabs.Tab[]> {
-        return await browser.tabs.query({currentWindow:true})
-    }
-
-    async function allWindowTabs(): Promise<browser.tabs.Tab[]> {
-        let allTabs: browser.tabs.Tab[] = []
-        for (const window of await browser.windows.getAll()) {
-            const tabs = await browser.tabs.query({windowId:window.id})
-            allTabs = allTabs.concat(tabs)
-        }
-        return allTabs
-    }
-
-    Messaging.addListener("commandline_background", Messaging.attributeCaller({currentWindowTabs, recvExStr}))
+    Messaging.addListener("commandline_background", Messaging.attributeCaller({recvExStr}))
 }
