@@ -275,7 +275,7 @@ export function clicknext(dir: "next"|"prev" = "next"){
  * @param count   the increment step, can be positive or negative
 */
 //#content
-export function incrementurl(count = 1){
+export function urlincrement(count = 1){
     let newUrl = incrementUrl(window.location.href, count)
 
     if (newUrl !== null) {
