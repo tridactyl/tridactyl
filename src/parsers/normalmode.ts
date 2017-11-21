@@ -39,6 +39,7 @@ export const DEFAULTNMAPS = {
     "gt": "tabnext",
     "gT": "tabprev",
     "gr": "reader",
+    "gu": "urlparent",
     "gU": "urlroot",
     ":": "fillcmdline",
     "s": "fillcmdline open google",

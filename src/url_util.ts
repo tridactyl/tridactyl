@@ -3,7 +3,7 @@
 
 /** Increment the last number in a URL.
  *
- * (perhaps this could be made so you can select the "nth" number in a 
+ * (perhaps this could be made so you can select the "nth" number in a
  * URL rather than just the last one?)
  *
  * @param url       the URL to increment
@@ -25,7 +25,7 @@ export function incrementUrl(url, count) {
 
     // Re-pad numbers that were zero-padded to be the same length:
     // 0009 + 1 => 0010
-    if (number.match(/^0/)) { 
+    if (number.match(/^0/)) {
         while (newNumberStr.length < number.length) {
             newNumberStr = "0" + newNumberStr;
         }
@@ -48,4 +48,57 @@ export function getUrlRoot(url) {
 
     // this works even for file:/// where the root is ""
     return new URL(url.protocol + "//" + (url.host || ""))
+}
+
+/** Get the parent of the current URL. Parent is determined as:
+ *
+ * * if there is a hash fragment, strip that, or
+ * * If there is a query string, strip that, or
+ * * Remove one level from the path if there is one, or
+ * * Remove one subdomain from the front if there is one
+ *
+ * @param url   the URL to get the parent of
+ * @return      the parent of the URL, or null if there is no parent
+ */
+export function getUrlParent(url) {
+    // exclude these special protocols where parents don't really make sense
+    if (/(about|mailto):/.test(url.protocol)) {
+        return null
+    }
+
+    let parent = new URL(url)
+
+    // strip, in turn, hash/fragment and query/search
+    if (parent.hash) {
+        parent.hash = ''
+        return parent
+    }
+
+    if (parent.search) {
+        parent.search = ''
+        return parent
+    }
+
+    // pathname always starts '/'
+    if (parent.pathname !== '/') {
+        let path = parent.pathname.substring(1).split('/')
+        path.pop()
+        parent.pathname = path.join('/')
+        return parent
+    }
+
+    // strip off the first subdomain if there is one
+    {
+        let domains = parent.host.split('.')
+
+        // more than domain + TLD
+        if (domains.length > 2) {
+            //domains.pop()
+            parent.host = domains.slice(1).join('.')
+            return parent
+        }
+    }
+
+    // nothing to trim off URL, so no parent
+    return null
 }

@@ -62,7 +62,7 @@ import * as keydown from "./keydown_background"
 //#background_helper
 import {activeTab, activeTabId} from './lib/webext'
 //#content_helper
-import {incrementUrl, getUrlRoot} from "./url_util"
+import {incrementUrl, getUrlRoot, getUrlParent} from "./url_util"
 
 /** @hidden */
 //#background_helper
@@ -291,6 +291,17 @@ export function urlroot (){
 
     if (rootUrl !== null) {
         window.location.href = rootUrl.href
+    }
+}
+
+/** Go to the parent URL of the current tab's URL
+ */
+//#content
+export function urlparent (){
+    let parentUrl = getUrlParent(window.location)
+
+    if (parentUrl !== null) {
+        window.location.href = parentUrl.href
     }
 }
 
