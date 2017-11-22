@@ -842,6 +842,12 @@ export async function gobble(nChars: number, endCmd: string) {
 //
 
 // unsupported on android
+/** Add or remove a bookmark.
+*
+* Optionally, you may give the bookmark a title. If no URL is given, a bookmark is added for the current page.
+* 
+* If a bookmark already exists for the URL, it is removed.
+*/
 //#background
 export async function bmark(url?: string, title = ""){
     url = url === undefined ? (await activeTab()).url : url
