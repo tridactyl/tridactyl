@@ -837,5 +837,15 @@ export async function gobble(nChars: number, endCmd: string) {
 }
 
 // }}}
+//
+
+// unsupported on android
+//#background
+export async function bmark(url?: string, title = ""){
+    url = url === undefined ? (await activeTab()).url : url
+    let dupbmarks = await browser.bookmarks.search({url})
+    dupbmarks.map((bookmark) => browser.bookmarks.remove(bookmark.id))
+    if (dupbmarks.length == 0 ) {browser.bookmarks.create({url, title})}
+}
 
 // vim: tabstop=4 shiftwidth=4 expandtab

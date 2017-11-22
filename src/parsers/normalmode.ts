@@ -51,6 +51,8 @@ export const DEFAULTNMAPS = {
     "f": "hint",
     "F": "hint -b",
     "I": "mode ignore",
+    "a": "current_url bmark",
+    "A": "bmark",
     // Special keys must be prepended with 🄰
     // ["🄰Backspace", "something"],
 }
