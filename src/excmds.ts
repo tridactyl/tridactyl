@@ -211,6 +211,14 @@ export async function reload(n = 1, hard = false) {
     tabstoreload.map(n => browser.tabs.reload(n, reloadProperties))
 }
 
+/** Reloads all tabs, bypassing the cache if hard is set to true */
+//#background
+export async function reloadall(hard = false){
+    let tabs = await browser.tabs.query({})
+    let reloadprops = {bypassCache: hard}
+    tabs.map(tab => browser.tabs.reload(tab.id, reloadprops))
+}
+
 /** Reload the next n tabs, starting with activeTab. bypass cache for all */
 //#background
 export async function reloadhard(n = 1) {
