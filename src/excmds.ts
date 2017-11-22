@@ -60,7 +60,7 @@ import {ModeName} from './state'
 //#background_helper
 import * as keydown from "./keydown_background"
 //#background_helper
-import {activeTab, activeTabId} from './lib/webext'
+import {activeTab, activeTabId, firefoxVersionAtLeast} from './lib/webext'
 //#content_helper
 import {incrementUrl, getUrlRoot, getUrlParent} from "./url_util"
 
@@ -309,6 +309,18 @@ export function urlparent (){
 export function zoom(level=0){
     level = level > 3 ? level / 100 : level
     browser.tabs.setZoom(level)
+}
+
+//#background
+export async function reader() {
+    if (await l(firefoxVersionAtLeast(58))) {
+	let aTab = await activeTab()
+	if (aTab.isArticle) {
+	    browser.tabs.toggleReaderMode()
+	} // else {
+	//  // once a statusbar exists an error can be displayed there
+	// }
+    }
 }
 
 // }}}
