@@ -185,6 +185,15 @@ function hintables() {
     return Array.from(document.querySelectorAll(HINTTAGS_selectors)).filter(isVisible)
 }
 
+function elementswithtext() {
+    /* return [...elementsByXPath(HINTTAGS)].filter(isVisible) as any as Element[] */
+    return Array.from(document.querySelectorAll(HINTTAGS_text_selectors)).filter(
+        isVisible
+    ).filter(hint => {
+        return hint.textContent != ""
+    })
+}
+
 // XPath. Doesn't work properly for xhtml unless you double each element.
 const HINTTAGS = `
 //input[not(@type='hidden' or @disabled)] |
@@ -254,6 +263,17 @@ select,
 [tabindex]
 `
 
+const HINTTAGS_text_selectors = `
+input:not([type=hidden]):not([disabled]),
+a,
+area,
+iframe,
+textarea,
+button,
+p,
+div
+`
+
 import {activeTab, browserBg, l, firefoxVersionAtLeast} from './lib/webext'
 
 async function openInBackground(url: string) {
@@ -304,6 +324,12 @@ function hintPageSimple() {
     })
 }
 
+function hintPageTextYank() {
+    hintPage(elementswithtext(), hint=>{
+        messageActiveTab("commandline_frame", "setClipboard", [hint.target.textContent])
+    })
+}
+
 function hintPageYank() {
     hintPage(hintables(), hint=>{
         messageActiveTab("commandline_frame", "setClipboard", [hint.target.href])
@@ -324,5 +350,6 @@ addListener('hinting_content', attributeCaller({
     reset,
     hintPageSimple,
     hintPageYank,
+    hintPageTextYank,
     hintPageOpenInBackground,
 }))
