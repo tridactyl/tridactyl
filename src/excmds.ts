@@ -84,6 +84,12 @@ const SEARCH_URLS = new Map<string, string>([
     ["startpage","https://www.startpage.com/do/search?query="],
 ])
 
+// map a page-relation (next or previous) to a fallback pattern to match link texts against
+const REL_PATTERN = {
+    next: /^(?:next|newer)\b|»|>>/i,
+    prev: /^(?:prev(?:ious)?|older)\b|«|<</i,
+}
+
 /** @hidden */
 function hasScheme(uri: string) {
     return uri.match(/^([\w-]+):/)
@@ -258,27 +264,57 @@ export async function help(excmd?: string) {
 }
 
 /** @hidden */
-//#content_helper
-function getlinks(){
-    return document.getElementsByTagName('a')
+// Find clickable next-page/previous-page links whose text matches the supplied pattern,
+// and return the last such link.
+//
+// If no matching link is found, return null.
+//
+// We return the last link that matches because next/prev buttons tend to be at the end of the page
+// whereas lots of blogs have "VIEW MORE" etc. plastered all over their pages.
+function findRelLink(pattern: RegExp): HTMLAnchorElement | null {
+    const links = <NodeListOf<HTMLAnchorElement>>document.querySelectorAll('a[href]')
+
+    let lastLink = null
+
+    for (const link of links) {
+        // `innerText` gives better (i.e. less surprising) results than `textContent`
+        // at the expense of being much slower, but that shouldn't be an issue here
+        // as it's a one-off operation that's only performed when we're leaving a page
+        if (pattern.test(link.innerText)) {
+            lastLink = link
+        }
+    }
+
+    return lastLink
 }
 
-/** Find a likely next/previous link and follow it */
+/** @hidden */
+// Return the last element in the document matching the supplied selector,
+// or null if there are no matches.
+function selectLast(selector: string): HTMLElement | null {
+    const nodes = <NodeListOf<HTMLElement>>document.querySelectorAll(selector)
+    return nodes.length ? nodes[nodes.length - 1] : null
+}
+
+/** Find a likely next/previous link and follow it
+ *
+ * @param rel   the relation of the target page to the current page: "next" or "prev"
+ */
 //#content
-export function clicknext(dir: "next"|"prev" = "next"){
-    let linkarray = Array.from(getlinks())
-    let regarray = [/\bnext|^>$|^(>>|»)$|^(>|»)|(>|»)$|\bmore\b/i, /\bprev\b|\bprevious\b|^<$|^(<<|«)$|^(<|«)|(<|«)$/i]
+export function followpage(rel: 'next'|'prev' = 'next') {
+    const link = <HTMLLinkElement>selectLast(`link[rel~=${rel}][href]`)
 
-    regarray = window.location.href.match(/rockpapershotgun/) ? [/newer/i,/older/i] : regarray
-    let nextreg = (dir == "next") ? regarray[0] : regarray[1]
+    if (link) {
+        window.location.href = link.href
+        return
+    }
 
-    // Might need to add more cases to this as we look at more sites
-    let nextlinks = linkarray.filter((link) => (link.innerText.match(nextreg) || link.rel.match(nextreg)))
+    const anchor = <HTMLAnchorElement>selectLast(`a[rel~=${rel}][href]`) ||
+        findRelLink(REL_PATTERN[rel])
 
-    // Use the last link that matches because next/prev buttons tend to be at the end of the page
-    // whereas lots of blogs have "VIEW MORE" etc. plastered all over their pages.
-    // Stops us from having to hardcode in RPS and reddit, for example.
-    window.location.href = nextlinks.slice(-1)[0].href
+    if (anchor) {
+        anchor.click()
+    }
 }
 
 /** Increment the current tab URL
