@@ -181,53 +181,16 @@ function pushKey(ke) {
             2. Not hidden by another element
 */
 function hintables() {
-    /* return [...elementsByXPath(HINTTAGS)].filter(isVisible) as any as Element[] */
     return Array.from(document.querySelectorAll(HINTTAGS_selectors)).filter(isVisible)
 }
 
 function elementswithtext() {
-    /* return [...elementsByXPath(HINTTAGS)].filter(isVisible) as any as Element[] */
     return Array.from(document.querySelectorAll(HINTTAGS_text_selectors)).filter(
         isVisible
     ).filter(hint => {
         return hint.textContent != ""
     })
 }
-
-// XPath. Doesn't work properly for xhtml unless you double each element.
-const HINTTAGS = `
-//input[not(@type='hidden' or @disabled)] |
-//a |
-//area |
-//iframe  |
-//textarea  |
-//button |
-//select |
-//*[
-    @onclick or
-    @onmouseover or
-    @onmousedown or
-    @onmouseup or
-    @oncommand or
-    @role='link'or
-    @role='button' or
-    @role='checkbox' or
-    @role='combobox' or
-    @role='listbox' or
-    @role='listitem' or
-    @role='menuitem' or
-    @role='menuitemcheckbox' or
-    @role='menuitemradio' or
-    @role='option' or
-    @role='radio' or
-    @role='scrollbar' or
-    @role='slider' or
-    @role='spinbutton' or
-    @role='tab' or
-    @role='textbox' or
-    @role='treeitem' or
-    @tabindex
-]`
 
 // CSS selectors. More readable for web developers. Not dead. Leaves browser to care about XML.
 const HINTTAGS_selectors = `
@@ -260,6 +223,7 @@ select,
 [role='tab'],
 [role='textbox'],
 [role='treeitem'],
+[class*='button'],
 [tabindex]
 `
 
