@@ -6,6 +6,6 @@ export function toBoolean(s: string) {
 
 export function toNumber(s: string) {
     let n = Number(s)
-    if (isNaN(n)) throw "Not a number!"
+    if (isNaN(n)) throw "Not a number! " + s
     else return n
 }
