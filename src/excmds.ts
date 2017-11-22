@@ -643,11 +643,6 @@ export async function buffer(n?: number | string) {
                 index: Number(n) - 1,
             }))[0].id
         )
-    // hacky search by url
-    } else {
-        let currtabs = await browser.tabs.query({currentWindow: true})
-        // todo: choose best match
-        tabSetActive(currtabs.filter((t)=> (t["url"].includes(String(n)) || t["title"].toLowerCase().includes(String(n).toLowerCase())))[0].id)
     }
 }
 

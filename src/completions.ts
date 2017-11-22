@@ -66,6 +66,7 @@ abstract class CompletionOptionHTML extends CompletionOption {
 
     /** Control presentation of element */
     set state(newstate: OptionState) {
+        console.log("state from to", this._state, newstate)
         switch (newstate) {
             case 'focused':
                 this.html.classList.add('focused')
@@ -83,7 +84,7 @@ abstract class CompletionOptionHTML extends CompletionOption {
     }
 }
 
-interface CompletionOptionFuse extends CompletionOption {
+interface CompletionOptionFuse extends CompletionOptionHTML {
     // For fuzzy matching
     fuseKeys: any[]
 }
@@ -97,6 +98,7 @@ type ScoredOption = {
 abstract class CompletionSourceFuse extends CompletionSource {
     public node
     public options: CompletionOptionFuse[]
+    protected lastExstr: string
 
     protected optionContainer = html`<div class="optionContainer">`
 
@@ -107,33 +109,79 @@ abstract class CompletionSourceFuse extends CompletionSource {
                 <div class="sectionHeader">${title || className}</div>
             </div>`
         this.node.appendChild(this.optionContainer)
+        this.state = 'hidden'
     }
 
-    abstract onFilter(query: string, exstr?: string)
+    /* abstract onUpdate(query: string, prefix: string, options: CompletionOptionFuse[]) */
+    abstract onInput(exstr: string)
 
-    async filter(exstr: string) {
-        let prefix, query
-        for (const pre of this.prefixes) {
-            if (exstr.startsWith(pre)) {
-                prefix = pre
-                query = exstr.replace(pre, '')
-            }
+    // Helpful default implementations
+
+    public async filter(exstr: string) {
+        this.lastExstr = exstr
+        this.onInput(exstr)
+        this.updateChain()
+    }
+
+    updateChain(exstr = this.lastExstr, options = this.options) {
+        if (options === undefined) {
+            this.state = 'hidden'
+            return
         }
 
-        // Hide self if prefixes don't match
+        const [prefix, query] = this.splitOnPrefix(exstr)
+
+        console.log(prefix, query, options)
+
+        // Hide self and stop if prefixes don't match
         if (prefix) {
-            this.state = 'normal'
+            // Show self if prefix and currently hidden
+            if (this.state === 'hidden') {
+                this.state = 'normal'
+            }
         } else {
             this.state = 'hidden'
             return
         }
 
+        // Filter by query if query is not empty
+        if (query) {
+            this.setStateFromScore(this.scoredOptions(query))
+        // Else show all options
+        } else {
+            options.forEach(option => option.state = 'normal')
+        }
+
         // Call concrete class
-        this.onFilter(query, prefix)
+        this.updateDisplay()
+    }
+
+    select(option: CompletionOption) {
+        if (this.lastExstr !== undefined && option !== undefined) {
+            const [prefix, _] = this.splitOnPrefix(this.lastExstr)
+            this.completion = prefix + option.value
+            option.state = 'focused'
+        } else {
+            throw new Error("lastExstr and option must be defined!")
+        }
+    }
+
+    deselect() {
+        this.completion = undefined
+    }
+
+    splitOnPrefix(exstr: string) {
+        for (const prefix of this.prefixes) {
+            if (exstr.startsWith(prefix)) {
+                const query = exstr.replace(prefix, '')
+                return [prefix, query]
+            }
+        }
+        return [undefined, undefined]
     }
 
     /** Rtn sorted array of {option, score} */
-    protected scoredOptions(query: string, options = this.options): ScoredOption[] {
+    scoredOptions(query: string, options = this.options): ScoredOption[] {
         const fuseOptions = {
             keys: ["fuseKeys"],
             shouldSort: true,
@@ -167,7 +215,7 @@ abstract class CompletionSourceFuse extends CompletionSource {
         For now just displays all scored elements (see threshold in fuse) and
         focus the best match.
     */
-    protected setStateFromScore(scoredOpts: ScoredOption[]) {
+    setStateFromScore(scoredOpts: ScoredOption[]) {
         let matches = scoredOpts.map(res => res.index)
 
         for (const [index, option] of enumerate(this.options)) {
@@ -176,10 +224,33 @@ abstract class CompletionSourceFuse extends CompletionSource {
         }
 
         if (matches.length) {
-            // TODO: use prefix of last exstr.
-            this.completion = "buffer " + this.options[matches[0]].value
-            this.options[matches[0]].state = 'focused'
+            this.select(this.options[matches[0]])
+        } else {
+            this.deselect()
         }
+    }
+
+    /** Call to replace the current display */
+    // TODO: optionContainer.replaceWith and optionContainer.remove don't work.
+    // I don't know why, but it means we can't replace the div in one go. Maybe
+    // an iframe thing.
+    updateDisplay() {
+        /* const newContainer = html`<div>` */
+
+        while (this.optionContainer.hasChildNodes()) {
+            this.optionContainer.removeChild(this.optionContainer.lastChild)
+        }
+
+        for (const option of this.options) {
+            /* newContainer.appendChild(option.html) */
+            this.optionContainer.appendChild(option.html)
+        }
+
+        /* console.log('updateDisplay', this.optionContainer, newContainer) */
+
+        /* let result1 = this.optionContainer.remove() */
+        /* let res2 = this.node.appendChild(newContainer) */
+        /* console.log('results', result1, res2) */
     }
 }
 
@@ -207,10 +278,10 @@ class BufferCompletionOption extends CompletionOptionHTML implements CompletionO
         // Create HTMLElement
         const favIconUrl = tab.favIconUrl ? tab.favIconUrl : DEFAULT_FAVICON
         this.html = html`<div class="BufferCompletionOption option">
-            <span>${pre.padEnd(2)}</span>
+            <span class="prefix">${pre.padEnd(2)}</span>
             <img src=${favIconUrl} />
             <span>${tab.index + 1}: ${tab.title}</span>
-            <a class="url" href=${tab.url}>${tab.url}</a>
+            <a class="url" target="_blank" href=${tab.url}>${tab.url}</a>
         </div>`
     }
 }
@@ -223,11 +294,18 @@ export class BufferCompletionSource extends CompletionSourceFuse {
     //       callback faffery
     //     - sort out the element redrawing.
 
-    // Callback
-    private waiting
-
     constructor(private _parent) {
-        super(["buffer ", "tabmove "], "BufferCompletionOption", "Buffers")
+        super(
+            [
+                "buffer ",
+                "tabclose ",
+                "tabdetach ",
+                "tabduplicate ",
+                "tabmove ",
+            ],
+            "BufferCompletionSource", "Buffers"
+        )
+
         this.updateOptions()
         this._parent.appendChild(this.node)
     }
@@ -253,56 +331,13 @@ export class BufferCompletionSource extends CompletionSourceFuse {
 
         /* console.log('updateOptions end', this.waiting, this.optionContainer) */
         this.options = options
-        if (this.waiting) this.waiting()
+        this.updateChain()
     }
 
-    /** Call to replace the current display */
-    // TODO: optionContainer.replaceWith and optionContainer.remove don't work.
-    // I don't know why, but it means we can't replace the div in one go. Maybe
-    // an iframe thing.
-    private updateDisplay() {
-        /* const newContainer = html`<div>` */
-
-        while (this.optionContainer.hasChildNodes()) {
-            this.optionContainer.removeChild(this.optionContainer.lastChild)
-        }
-
-        for (const option of this.options) {
-            /* newContainer.appendChild(option.html) */
-            this.optionContainer.appendChild(option.html)
-        }
-
-        /* console.log('updateDisplay', this.optionContainer, newContainer) */
-
-        /* let result1 = this.optionContainer.remove() */
-        /* let res2 = this.node.appendChild(newContainer) */
-        /* console.log('results', result1, res2) */
-    }
-
-    async onFilter(query, exstr) {
-        // Wait if options is not populated yet. It's possible that it will
-        // never resolve if this.waiting is overridden with a different
-        // callback. That's intended behaviour.
-        let needsCommit
-        if (! this.options) {
-            await new Promise(resolve => this.waiting = () => resolve())
-            needsCommit = true
-        }
-
-        // Else filter by query if query is not empty
-        if (query) {
-            this.setStateFromScore(this.scoredOptions(query))
-        // Else show all options
-        } else {
-            this.options.forEach(option => option.state = 'normal')
-        }
-
-        //
-        this.updateDisplay()
-
+    async onInput(exstr) {
         // Schedule an update, if you like. Not very useful for buffers, but
         // will be for other things.
-        setTimeout(() => this.updateOptions(), 0)
+        this.updateOptions()
     }
 }
 

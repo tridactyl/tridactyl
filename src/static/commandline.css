@@ -6,7 +6,7 @@ body {
 input {
   width: 100%;
   padding: 0;
-  font-family: "monospace", "Courier New";
+  font-family: "monospace";
   font-size: 9pt;
   line-height: 1.5;
   color: black;
@@ -14,15 +14,6 @@ input {
   /* we currently have a border from the completions */
   /* border-top: solid 1px lightgray; */
   padding-left: 0.5ex;
-}
-
-.hidden {
-  display: none
-}
-
-.focused {
-  background: darkgrey;
-  color: white;
 }
 
 /* COMPLETIONS */
@@ -42,6 +33,11 @@ input {
 #completions .BufferCompletionSource {
   max-height: calc(20 * var(--option-height));
   min-height: calc(10 * var(--option-height));
+}
+
+#completions .BufferCompletionOption {
+  white-space: nowrap;
+  overflow: hidden;
 }
 
 #completions img {
@@ -64,30 +60,41 @@ input {
 }
 
 /* #completions, but I can't be bothered to write it a bunch of times */
-.url, a.url, a.url:link, a.url:visited {
-  color: #1f9947;
+.url {
   left: 50%;
   overflow: hidden;
-  margin-left: 10px;
   position: absolute;
   text-decoration: none;
-  /* Without this the last URL flows over onto a second line if it's long enough */
-  white-space: pre;
+  padding-left: 2px;
 }
 
-/* Hide the URLs if the screen is small */
-@media all and (max-width: 500px) {
-    .url, a.url, a.url:link, a.url:visited {
-        display: none;
-    }
+.url:not(.focused) {
+  color: #1f9947;
+  background: white;
 }
 
 a.url:hover {
   cursor: pointer;
-  text-decoration: underline !important;
+  text-decoration: underline;
+}
+
+/* Hide the URLs if the screen is small */
+@media all and (max-width: 500px) {
+    .url {
+        display: none;
+    }
 }
 
 .BufferCompletionOption span {
   white-space: pre;
   margin: 0 .5em;
+}
+
+.hidden {
+  display: none;
+}
+
+.focused {
+  background: darkgrey;
+  color: white;
 }

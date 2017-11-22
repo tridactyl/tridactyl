@@ -25,16 +25,33 @@ function resizeArea() {
     }
 }
 
-export function focus() {
-    clInput.focus()
-    console.log(activeCompletions)
+// This is a bit loosely defined at the moment.
+// Should work so long as there's only one completion source per prefix.
+function getCompletion() {
+    for (const comp of activeCompletions) {
+        if (comp.state === 'normal' && comp.completion !== undefined) {
+            return comp.completion
+        }
+    }
+}
+
+function enableCompletions() {
     if (! activeCompletions) {
         activeCompletions = [
             new Completions.BufferCompletionSource(completionsDiv),
         ]
 
-        activeCompletions.forEach(comp => completionsDiv.appendChild(comp.node))
+        const fragment = document.createDocumentFragment()
+        activeCompletions.forEach(comp => fragment.appendChild(comp.node))
+        completionsDiv.appendChild(fragment)
     }
+}
+/* document.addEventListener("DOMContentLoaded", enableCompletions) */
+
+export function focus() {
+    enableCompletions()
+    document.body.classList.remove('hidden')
+    clInput.focus()
 }
 
 async function sendExstr(exstr) {
@@ -105,7 +122,10 @@ async function hide_and_clear(){
      * Escape. So clear clInput just after :)
      */
     setTimeout(()=>{clInput.value = ""}, 0)
-    await Messaging.message('commandline_background', 'hide')
+
+    // Try to make the close cmdline animation as smooth as possible.
+    document.body.classList.add('hidden')
+    Messaging.message('commandline_background', 'hide')
     // Delete all completion sources - I don't think this is required, but this
     // way if there is a transient bug in completions it shouldn't persist.
     activeCompletions.forEach(comp => completionsDiv.removeChild(comp.node))
@@ -134,6 +154,8 @@ function history(n){
 
 /* Send the commandline to the background script and await response. */
 function process() {
+    console.log(clInput.value)
+    clInput.value = getCompletion() || clInput.value
     console.log(clInput.value)
     sendExstr(clInput.value)
 
