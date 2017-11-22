@@ -74,7 +74,7 @@ export function* islice(iterable, stop) {
     while (index++ < stop) {
         const res = iter.next()
         if (res.done) return index - 1
-        else yield res
+        else yield res.value
     }
     return index - 1
 }
