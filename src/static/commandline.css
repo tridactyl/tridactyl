@@ -68,7 +68,7 @@ input {
   padding-left: 2px;
 }
 
-.url:not(.focused) {
+.option:not(.focused) .url {
   color: #1f9947;
   background: white;
 }
@@ -94,7 +94,8 @@ a.url:hover {
   display: none;
 }
 
-.focused {
+/* Pick the .url out especially because otherwise its link styles dominate. */
+.focused, .focused .url {
   background: darkgrey;
   color: white;
 }
