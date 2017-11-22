@@ -33,12 +33,15 @@ input {
   color: black;
   display: inline-block;
   font-size: 10pt;
-  max-height: calc(20 * var(--option-height));
-  min-height: calc(10 * var(--option-height));
   font-family: "monospace";
   overflow: hidden;
   width: 100%;
   border-top: 0.5px solid grey;
+}
+
+#completions .BufferCompletionSource {
+  max-height: calc(20 * var(--option-height));
+  min-height: calc(10 * var(--option-height));
 }
 
 #completions img {

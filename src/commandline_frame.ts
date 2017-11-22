@@ -8,8 +8,8 @@ import * as SELF from './commandline_frame'
 import './number.clamp'
 import state from './state'
 
-let completionsrc: Completions.CompletionSource = undefined
-let completions = window.document.getElementById("completions") as HTMLElement
+let activeCompletions: Completions.CompletionSource[] = undefined
+let completionsDiv = window.document.getElementById("completions") as HTMLElement
 let clInput = window.document.getElementById("tridactyl-input") as HTMLInputElement
 
 /* This is to handle Escape key which, while the cmdline is focused,
@@ -19,9 +19,23 @@ let clInput = window.document.getElementById("tridactyl-input") as HTMLInputElem
  * tl;dr TODO: delete this and better resolve race condition
  */
 let isVisible = false
-function resizeArea() { if (isVisible) sendExstr("showcmdline") }
+function resizeArea() {
+    if (isVisible) {
+        Messaging.message("commandline_background", "show")
+    }
+}
 
-export let focus = () => clInput.focus()
+export function focus() {
+    clInput.focus()
+    console.log(activeCompletions)
+    if (! activeCompletions) {
+        activeCompletions = [
+            new Completions.BufferCompletionSource(completionsDiv),
+        ]
+
+        activeCompletions.forEach(comp => completionsDiv.appendChild(comp.node))
+    }
+}
 
 async function sendExstr(exstr) {
     Messaging.message("commandline_background", "recvExStr", [exstr])
@@ -74,39 +88,28 @@ clInput.addEventListener("keydown", function (keyevent) {
     }
 })
 
-clInput.addEventListener("input", async () => {
-    // TODO: Handle this in parser
-    if (clInput.value.startsWith("buffer ") || clInput.value.startsWith("tabclose ") ||
-        clInput.value.startsWith("tabmove ")) {
-            const tabs: browser.tabs.Tab[] = await Messaging.message("commandline_background", "currentWindowTabs")
-            completionsrc = Completions.BufferCompletionSource.fromTabs(tabs)
-            completionsrc = await completionsrc.filter(clInput.value)
-            completions.innerHTML = ""
-            completions.appendChild(completionsrc.node)
-            resizeArea()
-    }
-    else if (clInput.value.startsWith("bufferall ")) {
-        // TODO
-    }
-    else if (completionsrc) {
-        completionsrc = undefined
-        completions.innerHTML = ""
-        resizeArea()
-    }
+clInput.addEventListener("input", () => {
+    // Fire each completion and add a callback to resize area
+    console.log(activeCompletions)
+    activeCompletions.forEach(comp =>
+        comp.filter(clInput.value).then(() => resizeArea())
+    )
 })
 
 let cmdline_history_position = 0
 let cmdline_history_current = ""
 
-function hide_and_clear(){
+async function hide_and_clear(){
     /** Bug workaround: clInput cannot be cleared during an "Escape"
      * keydown event, presumably due to Firefox's internal handler for
      * Escape. So clear clInput just after :)
      */
-    completionsrc = undefined
-    completions.innerHTML = ""
     setTimeout(()=>{clInput.value = ""}, 0)
-    sendExstr("hidecmdline")
+    await Messaging.message('commandline_background', 'hide')
+    // Delete all completion sources - I don't think this is required, but this
+    // way if there is a transient bug in completions it shouldn't persist.
+    activeCompletions.forEach(comp => completionsDiv.removeChild(comp.node))
+    activeCompletions = undefined
     isVisible = false
 }
 
@@ -118,7 +121,6 @@ function tabcomplete(){
 }
 
 function history(n){
-    completions.innerHTML = ""
     if (cmdline_history_position == 0){
         cmdline_history_current = clInput.value
     }
@@ -133,7 +135,6 @@ function history(n){
 /* Send the commandline to the background script and await response. */
 function process() {
     console.log(clInput.value)
-    sendExstr("hidecmdline")
     sendExstr(clInput.value)
 
     // Save non-secret commandlines to the history.
@@ -144,10 +145,9 @@ function process() {
         state.cmdHistory = state.cmdHistory.concat([clInput.value])
     }
     console.log(state.cmdHistory)
-    completionsrc = undefined
-    completions.innerHTML = ""
-    clInput.value = ""
     cmdline_history_position = 0
+
+    hide_and_clear()
 }
 
 export function fillcmdline(newcommand?: string, trailspace = true){

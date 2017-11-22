@@ -42,8 +42,6 @@ import * as Messaging from "./messaging"
 import {l} from './lib/webext'
 
 //#content_omit_line
-import * as CommandLineContent from "./commandline_content"
-//#content_omit_line
 import "./number.clamp"
 //#content_helper
 import * as SELF from "./excmds_content"
@@ -65,6 +63,8 @@ import * as keydown from "./keydown_background"
 import {activeTab, activeTabId, firefoxVersionAtLeast} from './lib/webext'
 //#content_helper
 import {incrementUrl, getUrlRoot, getUrlParent} from "./url_util"
+//#background_helper
+import * as CommandLineBackground from './commandline_background'
 
 /** @hidden */
 //#background_helper
@@ -145,6 +145,7 @@ function tabSetActive(id: number) {
 }
 
 // }}}
+
 
 // {{{ PAGE CONTEXT
 
@@ -545,19 +546,10 @@ export function composite(...cmds: string[]) {
     cmds.forEach(controller.acceptExCmd)
 }
 
-/** Don't use this */
-// TODO: These two don't really make sense as excmds, they're internal things.
-//#content
+/** Please use fillcmdline instead */
+//#background
 export function showcmdline() {
-    CommandLineContent.show()
-    CommandLineContent.focus()
-}
-
-/** Don't use this */
-//#content
-export function hidecmdline() {
-    CommandLineContent.hide()
-    CommandLineContent.blur()
+    CommandLineBackground.show()
 }
 
 /** Set the current value of the commandline to string *with* a trailing space */
@@ -619,7 +611,7 @@ export async function clipboard(excmd: "open"|"yank"|"tabopen" = "open", ...toYa
             // todo: maybe we should have some common error and error handler
             throw new Error(`[clipboard] unknown excmd: ${excmd}`)
     }
-    hidecmdline()
+    CommandLineBackground.hide()
 }
 
 // {{{ Buffer/completion stuff
