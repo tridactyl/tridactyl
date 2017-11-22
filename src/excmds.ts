@@ -363,6 +363,19 @@ export async function tabmove(n?: string) {
         return
     } else if (n.startsWith("+") || n.startsWith("-")) {
         m = Math.max(0, Number(n) + aTab.index)
+        if (m === aTab.index) return
+        let targets = await browser.tabs.query({windowId: aTab.windowId})
+        m = Math.min(m, targets.length)
+        targets.sort((a, b) => {
+            return a.index < b.index ? -1 : 1
+        })
+        targets = m < aTab.index ? targets.slice(m, aTab.index): targets.slice(aTab.index + 1, m + 1).reverse()
+        for (const target of targets) {
+            if (aTab.pinned === target.pinned) {
+                m = target.index
+                break
+            }
+        }
     } else m = Number(n)
     browser.tabs.move(aTab.id, {index: m})
 }
@@ -731,7 +744,7 @@ export async function reset(key: string){
 
     Afterwards use go[key], gn[key], or gw[key] to [[open]], [[tabopen]], or
     [[winopen]] the URL respectively.
-    
+
 */
 //#background
 export async function quickmark(key: string) {
