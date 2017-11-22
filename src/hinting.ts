@@ -39,10 +39,15 @@ class HintState {
 let modeState: HintState = undefined
 
 /** For each hintable element, add a hint */
-export function hintPage(hintableElements: Element[], onSelect: HintSelectedCallback) {
+export function hintPage(
+    hintableElements: Element[],
+    onSelect: HintSelectedCallback,
+    names = hintnames_uniform(hintableElements.length),
+) {
     state.mode = 'hint'
     modeState = new HintState()
-    for (let [el, name] of izip(hintableElements, hintnames())) {
+    for (let [el, name] of izip( hintableElements, names)) {
+        console.log({el, name})
         modeState.hintchars += name
         modeState.hints.push(new Hint(el, name, onSelect))
     }
@@ -53,11 +58,24 @@ export function hintPage(hintableElements: Element[], onSelect: HintSelectedCall
 }
 
 /** vimperator-style minimal hint names */
-function* hintnames(hintchars = HINTCHARS) {
+function* hintnames(hintchars = HINTCHARS): IterableIterator<string> {
     let taglen = 1
     while (true) {
         yield* map(permutationsWithReplacement(hintchars, taglen), e=>e.join(''))
         taglen++
+    }
+}
+
+/** Uniform length hintnames */
+function* hintnames_uniform(n: number, hintchars = HINTCHARS): IterableIterator<string> {
+    if (n <= hintchars.length)
+        yield* islice(hintchars[Symbol.iterator](), n)
+    else {
+        // else calculate required length of each tag
+        const taglen = Math.ceil(log(n, hintchars.length))
+        // And return first n permutations
+        yield* map(islice(permutationsWithReplacement(hintchars, taglen), n),
+            perm => perm.join(''))
     }
 }
 
@@ -110,18 +128,6 @@ class Hint {
 
     select() {
         this.onSelect(this)
-    }
-}
-
-/** Uniform length hintnames */
-function* hintnames_uniform(n: number, hintchars = HINTCHARS) {
-    if (n <= hintchars.length)
-        yield* islice(hintchars[Symbol.iterator](), n)
-    else {
-        // else calculate required length of each tag
-        const taglen = Math.ceil(log(n, hintchars.length))
-        // And return first n permutations
-        yield* islice(permutationsWithReplacement(hintchars, taglen), n)
     }
 }
 
