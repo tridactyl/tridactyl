@@ -18,6 +18,8 @@ export const DEFAULTNMAPS = {
     //["t": "fillcmdline tabopen", // for now, use mozilla completion
     "]]": "clicknext", 
     "[[": "clicknext prev", 
+    "[c": "urlincrement -1", 
+    "]c": "urlincrement 1", 
     "T": "current_url tabopen",
     "yy": "clipboard yank",
     "p": "clipboard open",
@@ -37,6 +39,8 @@ export const DEFAULTNMAPS = {
     "gt": "tabnext",
     "gT": "tabprev",
     "gr": "reader",
+    "gu": "urlparent",
+    "gU": "urlroot",
     ":": "fillcmdline",
     "s": "fillcmdline open google",
     "S": "fillcmdline tabopen google",

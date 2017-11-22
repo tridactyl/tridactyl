@@ -61,6 +61,8 @@ import {ModeName} from './state'
 import * as keydown from "./keydown_background"
 //#background_helper
 import {activeTab, activeTabId} from './lib/webext'
+//#content_helper
+import {incrementUrl, getUrlRoot, getUrlParent} from "./url_util"
 
 /** @hidden */
 //#background_helper
@@ -268,6 +270,41 @@ export function clicknext(dir: "next"|"prev" = "next"){
     window.location.href = nextlinks.slice(-1)[0].href
 }
 
+/** Increment the current tab URL
+ *
+ * @param count   the increment step, can be positive or negative
+*/
+//#content
+export function urlincrement(count = 1){
+    let newUrl = incrementUrl(window.location.href, count)
+
+    if (newUrl !== null) {
+        window.location.href = newUrl
+    }
+}
+
+/** Go to the root domain of the current URL
+ */
+//#content
+export function urlroot (){
+    let rootUrl = getUrlRoot(window.location)
+
+    if (rootUrl !== null) {
+        window.location.href = rootUrl.href
+    }
+}
+
+/** Go to the parent URL of the current tab's URL
+ */
+//#content
+export function urlparent (){
+    let parentUrl = getUrlParent(window.location)
+
+    if (parentUrl !== null) {
+        window.location.href = parentUrl.href
+    }
+}
+
 //#background
 export function zoom(level=0){
     level = level > 3 ? level / 100 : level
@@ -325,13 +362,20 @@ export async function tabdetach(id?: number){
 }
 
 //#background
-export async function tabclose(ids?: number[] | number) {
+export async function tabclose(ids?: number[] | number, flag?: string) {
     if (ids !== undefined) {
         browser.tabs.remove(ids)
     } else {
         // Close the current tab
         browser.tabs.remove(await activeTabId())
     }
+}
+
+//#background
+export async function tabclosethenprev(){
+    let tabid = await activeTabId()
+    buffer("#")
+    tabclose([tabid])
 }
 
 /** restore most recently closed tab in this window unless the most recently closed item was a window */
@@ -754,9 +798,10 @@ export async function quickmark(key: string) {
     }
 
     let address = (await activeTab()).url
-    bind("gn" + key, "tabopen", address)
-    bind("go" + key, "open", address)
-    bind("gw" + key, "winopen", address)
+    // Have to await these or they race!
+    await bind("gn" + key, "tabopen", address)
+    await bind("go" + key, "open", address)
+    await bind("gw" + key, "winopen", address)
 }
 
 // }}}
