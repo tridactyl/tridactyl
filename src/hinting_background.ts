@@ -12,6 +12,10 @@ async function reset() {
     return await messageActiveTab('hinting_content', 'reset')
 }
 
+export async function hintPageYank() {
+    return await messageActiveTab('hinting_content', 'hintPageYank')
+}
+
 export async function hintPageSimple() {
     return await messageActiveTab('hinting_content', 'hintPageSimple')
 }

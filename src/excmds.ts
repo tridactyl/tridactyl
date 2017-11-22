@@ -817,6 +817,7 @@ import * as hinting from './hinting_background'
 //#background
 export function hint(option?: "-b") {
     if (option === '-b') hinting.hintPageOpenInBackground()
+    else if (option === "-y") hinting.hintPageYank()
     else hinting.hintPageSimple()
 }
 

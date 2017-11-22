@@ -15,6 +15,7 @@ import {log} from './math'
 import {permutationsWithReplacement, islice, izip, map} from './itertools'
 import {hasModifiers} from './keyseq'
 import state from './state'
+import {messageActiveTab} from './messaging'
 
 /** Simple container for the state of a single frame's hints. */
 class HintState {
@@ -303,6 +304,12 @@ function hintPageSimple() {
     })
 }
 
+function hintPageYank() {
+    hintPage(hintables(), hint=>{
+        messageActiveTab("commandline_frame", "setClipboard", [hint.target.href])
+    })
+}
+
 function selectFocusedHint() {
     console.log("Selecting hint.", state.mode)
     const focused = modeState.focusedHint
@@ -316,5 +323,6 @@ addListener('hinting_content', attributeCaller({
     selectFocusedHint,
     reset,
     hintPageSimple,
+    hintPageYank,
     hintPageOpenInBackground,
 }))
