@@ -66,6 +66,7 @@ clInput.addEventListener("keydown", function (keyevent) {
             break
 
         case "Escape":
+            keyevent.preventDefault()
             hide_and_clear()
             break
 
@@ -117,11 +118,7 @@ let cmdline_history_position = 0
 let cmdline_history_current = ""
 
 async function hide_and_clear(){
-    /** Bug workaround: clInput cannot be cleared during an "Escape"
-     * keydown event, presumably due to Firefox's internal handler for
-     * Escape. So clear clInput just after :)
-     */
-    setTimeout(()=>{clInput.value = ""}, 0)
+    clInput.value = ""
 
     // Try to make the close cmdline animation as smooth as possible.
     document.body.classList.add('hidden')
