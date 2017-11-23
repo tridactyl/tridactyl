@@ -65,6 +65,9 @@ import {activeTab, activeTabId, firefoxVersionAtLeast} from './lib/webext'
 import {incrementUrl, getUrlRoot, getUrlParent} from "./url_util"
 //#background_helper
 import * as CommandLineBackground from './commandline_background'
+//#content_helper
+import * as DOM from './dom'
+
 
 /** @hidden */
 //#background_helper
@@ -367,6 +370,106 @@ export async function reader() {
 	} // else {
 	//  // once a statusbar exists an error can be displayed there
 	// }
+    }
+}
+
+/** The kinds of input elements that we want to be included in the "focusinput"
+ * command (gi)
+ */
+export const INPUTTAGS_selectors = `
+input:not([disabled]):not([readonly]):-moz-any(
+ :not([type]),
+ [type='text'],
+ [type='search'],
+ [type='password'],
+ [type='datetime'],
+ [type='datetime-local'],
+ [type='date'],
+ [type='month'],
+ [type='time'],
+ [type='week'],
+ [type='number'],
+ [type='range'],
+ [type='email'],
+ [type='url'],
+ [type='tel'],
+ [type='color']
+),
+textarea:not([disabled]):not([readonly]),
+object,
+[role='application']
+`
+
+/** Password field selectors */
+const INPUTPASSWORD_selectors = `
+input[type='password']
+`
+
+/** DOM reference to the last used Input field
+ */
+let lastUsedInput: HTMLElement = null
+
+
+/** Focus the last used input on the page
+ *
+ * @param nth   focus the nth input on the page, or "special" inputs:
+ *                  "-l": last focussed input
+ *                  "-p": first password field
+ *                  "-b": biggest input field
+ */
+//#content
+export function focusinput(nth: number|string) {
+
+    let inputToFocus: HTMLElement = null
+
+    // set to false to avoid falling back on the first available input
+    // if a special finder fails
+    let fallbackToNumeric = true
+
+    // nth = "-l" -> use the last used input for this page
+    if (nth === "-l") {
+        // try to recover the last used input stored as a
+        // DOM node, which should be exactly the one used before (or null)
+        inputToFocus = lastUsedInput
+
+        // failed to find that? - look up in sessionStorage?
+        // will need to serialise the last used input to a string that
+        // we can look up in future (tabindex, selector?), perhaps along with
+        // a way to remember the page it was on?
+    }
+    else if (nth === "-p") {
+        // attempt to find a password input
+        fallbackToNumeric = false
+
+        let inputs = DOM.getElemsBySelector(INPUTPASSWORD_selectors,
+                                            DOM.isSubstantial)
+
+        if (inputs.length) {
+            inputToFocus = <HTMLElement>inputs[0]
+        }
+    }
+    else if (nth === "-b") {
+
+        let inputs = DOM.getElemsBySelector(INPUTTAGS_selectors,
+            DOM.isSubstantial) as HTMLElement[]
+
+        inputToFocus = inputs.sort(DOM.compareElementArea).slice(-1)[0]
+    }
+
+    // either a number (not special) or we failed to find a special input when
+    // asked and falling back is acceptable
+    if (!inputToFocus  && fallbackToNumeric) {
+
+        let index = isNaN(<number>nth) ? 0 : <number>nth
+        inputToFocus = DOM.getNthElement(INPUTTAGS_selectors,
+                                         index, DOM.isSubstantial)
+    }
+
+    if (inputToFocus) {
+        inputToFocus.focus()
+
+        // keep for next time
+        lastUsedInput = inputToFocus
     }
 }
 

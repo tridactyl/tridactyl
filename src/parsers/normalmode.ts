@@ -36,6 +36,7 @@ export const DEFAULTNMAPS = {
     "u": "undo",
     "r": "reload",
     "R": "reloadhard",
+    "gi": "focusinput -l",
     "gt": "tabnext",
     "gT": "tabprev",
     "gr": "reader",
