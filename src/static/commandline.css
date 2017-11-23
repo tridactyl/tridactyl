@@ -50,8 +50,8 @@ input {
 #completions table tr {
   white-space: nowrap;
   overflow: hidden;
-  height: --option-height;
-  line-height: --option-height;
+  height: var(--option-height);
+  line-height: var(--option-height);
 }
 
 #completions img {
