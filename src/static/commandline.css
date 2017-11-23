@@ -32,6 +32,20 @@ input {
   border-top: 0.5px solid grey;
 }
 
+/* Olie doesn't know how CSS inheritance works */
+#completions .HistoryCompletionSource {
+  max-height: calc(20 * var(--option-height));
+  min-height: calc(10 * var(--option-height));
+}
+
+#completions .HistoryCompletionSource table {
+  width: 100%;
+  font-size: 9pt;
+  border-spacing: 0;
+  table-layout: fixed;
+}
+/* redundancy ends */
+
 #completions .BufferCompletionSource {
   max-height: calc(20 * var(--option-height));
   min-height: calc(10 * var(--option-height));

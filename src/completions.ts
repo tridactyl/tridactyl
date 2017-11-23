@@ -258,6 +258,83 @@ abstract class CompletionSourceFuse extends CompletionSource {
 
 // {{{ IMPLEMENTATIONS
 
+class HistoryCompletionOption extends CompletionOptionHTML implements CompletionOptionFuse {
+    public fuseKeys = []
+
+    constructor(public value: string, page: browser.history.HistoryItem) {
+        super()
+        // Two character buffer properties prefix
+        let pre = ""
+        // Push prefix before padding so we don't match on whitespace
+        this.fuseKeys.push(pre)
+
+        // Push properties we want to fuzmatch on
+        this.fuseKeys.push(page.title, page.url) // weight by page.visitCount
+
+        // Create HTMLElement
+        // need to download favicon
+        const favIconUrl = DEFAULT_FAVICON
+        // const favIconUrl = tab.favIconUrl ? tab.favIconUrl : DEFAULT_FAVICON
+        this.html = html`<tr class="HistoryCompletionOption option">
+            <td class="prefix">${pre.padEnd(2)}</td>
+            <td><img src=${favIconUrl} /></td>
+            <td>$${page.title}</td>
+            <td><a class="url" target="_blank" href=${page.url}>${page.url}</a></td>
+        </tr>`
+    }
+}
+
+export class HistoryCompletionSource extends CompletionSourceFuse {
+    public options: HistoryCompletionOption[]
+
+    // TODO:
+    //     - store the exstr and trigger redraws on user or data input without
+    //       callback faffery
+    //     - sort out the element redrawing.
+
+    constructor(private _parent) {
+        super(
+            [
+                "open ",
+                "tabopen ",
+                "winopen ",
+            ],
+            "HistoryCompletionSource", "History"
+        )
+
+        this.updateOptions()
+        this._parent.appendChild(this.node)
+    }
+
+    private async updateOptions(exstr?: string) {
+        /* console.log('updateOptions', this.optionContainer) */
+        const history: browser.history.HistoryItem[] =
+            await Messaging.message("commandline_background", "history")
+
+        const options = []
+
+        // Get alternative tab, defined as last accessed tab.
+        history.sort((a, b) => { return a.lastVisitTime < b.lastVisitTime ? 1 : -1 })
+
+        for (const page of history) {
+            options.push(new HistoryCompletionOption(
+                page.url,
+                page,
+            ))
+        }
+
+        /* console.log('updateOptions end', this.waiting, this.optionContainer) */
+        this.options = options
+        this.updateChain()
+    }
+
+    async onInput(exstr) {
+        // Schedule an update, if you like. Not very useful for buffers, but
+        // will be for other things.
+        this.updateOptions()
+    }
+}
+
 class BufferCompletionOption extends CompletionOptionHTML implements CompletionOptionFuse {
     public fuseKeys = []
 

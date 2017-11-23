@@ -39,6 +39,7 @@ function enableCompletions() {
     if (! activeCompletions) {
         activeCompletions = [
             new Completions.BufferCompletionSource(completionsDiv),
+            new Completions.HistoryCompletionSource(completionsDiv),
         ]
 
         const fragment = document.createDocumentFragment()

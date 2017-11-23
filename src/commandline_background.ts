@@ -27,6 +27,9 @@ async function currentWindowTabs(): Promise<browser.tabs.Tab[]> {
     return await browser.tabs.query({currentWindow:true})
 }
 
+async function history(): Promise<browser.history.HistoryItem[]> {
+    return await browser.history.search({text:"",maxResults:100})
+}
 async function allWindowTabs(): Promise<browser.tabs.Tab[]> {
     let allTabs: browser.tabs.Tab[] = []
     for (const window of await browser.windows.getAll()) {
@@ -49,6 +52,7 @@ export async function hide() {
 
 Messaging.addListener("commandline_background", Messaging.attributeCaller({
     currentWindowTabs,
+    history,
     recvExStr,
     show,
     hide,
