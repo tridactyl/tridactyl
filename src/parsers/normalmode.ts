@@ -51,6 +51,8 @@ export const DEFAULTNMAPS = {
     "ZZ": "qall",
     "f": "hint",
     "F": "hint -b",
+    ";i": "hint -i",
+    ";I": "hint -I",
     ";y": "hint -y",
     ";p": "hint -p",
     "I": "mode ignore",

@@ -203,6 +203,14 @@ function elementswithtext() {
     })
 }
 
+/** Get array of images in the viewport
+ */
+function hintableImages() {
+    /* return [...elementsByXPath(HINTTAGS)].filter(isVisible) as any as Element[] */
+    return Array.from(document.querySelectorAll(HINTTAGS_img_selectors)).filter(
+        isVisible)
+}
+
 // CSS selectors. More readable for web developers. Not dead. Leaves browser to care about XML.
 const HINTTAGS_selectors = `
 input:not([type=hidden]):not([disabled]),
@@ -250,6 +258,11 @@ div,
 pre,
 code,
 span
+`
+
+const HINTTAGS_img_selectors = `
+img,
+[src]
 `
 
 import {activeTab, browserBg, l, firefoxVersionAtLeast} from './lib/webext'
@@ -314,6 +327,23 @@ function hintPageYank() {
     })
 }
 
+/** Hint images, opening in the same tab, or in a background tab
+ *
+ * @param inBackground  opens the image source URL in a background tab,
+ *                      as opposed to the current tab
+ */
+function hintImage(inBackground) {
+    hintPage(hintableImages(), hint=>{
+        let img_src = hint.target.getAttribute("src")
+
+        if (inBackground) {
+            openInBackground(new URL(img_src, window.location.href).href)
+        } else {
+            window.location.href = img_src
+        }
+    })
+}
+
 function selectFocusedHint() {
     console.log("Selecting hint.", state.mode)
     const focused = modeState.focusedHint
@@ -330,4 +360,5 @@ addListener('hinting_content', attributeCaller({
     hintPageYank,
     hintPageTextYank,
     hintPageOpenInBackground,
+    hintImage,
 }))

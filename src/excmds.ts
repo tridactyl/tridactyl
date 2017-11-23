@@ -751,6 +751,8 @@ export function hint(option?: "-b") {
     if (option === '-b') hinting.hintPageOpenInBackground()
     else if (option === "-y") hinting.hintPageYank()
     else if (option === "-p") hinting.hintPageTextYank()
+    else if (option === "-i") hinting.hintImage(false)
+    else if (option === "-I") hinting.hintImage(true)
     else hinting.hintPageSimple()
 }
 

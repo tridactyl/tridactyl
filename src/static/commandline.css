@@ -6,7 +6,8 @@ body {
 input {
   width: 100%;
   padding: 0;
-  font-family: "monospace";
+  /* MS doesn't know what monospace is */
+  font-family: "monospace", "Courier New";
   font-size: 9pt;
   line-height: 1.5;
   color: black;
@@ -24,7 +25,8 @@ input {
   color: black;
   display: inline-block;
   font-size: 10pt;
-  font-family: "monospace";
+  /* MS doesn't know what monospace is */
+  font-family: "monospace", "Courier New";
   overflow: hidden;
   width: 100%;
   border-top: 0.5px solid grey;
