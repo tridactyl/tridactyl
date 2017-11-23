@@ -35,9 +35,23 @@ input {
   min-height: calc(10 * var(--option-height));
 }
 
-#completions .BufferCompletionOption {
+#completions .BufferCompletionSource table {
+  width: 100%;
+  font-size: 9pt;
+  border-spacing: 0;
+  table-layout: fixed;
+}
+
+#completions table tr td:nth-of-type(1) { width: 1.5em; }
+#completions table tr td:nth-of-type(2) { width: 1.5em; }
+/* #completions table tr td:nth-of-type(3) { width: 5em; } */
+#completions table tr td:nth-of-type(4) { width: 50%; }
+
+#completions table tr {
   white-space: nowrap;
   overflow: hidden;
+  height: --option-height;
+  line-height: --option-height;
 }
 
 #completions img {
@@ -59,13 +73,9 @@ input {
   line-height: --option-height;
 }
 
-/* #completions, but I can't be bothered to write it a bunch of times */
 .url {
-  left: 50%;
-  overflow: hidden;
-  position: absolute;
   text-decoration: none;
-  padding-left: 2px;
+  padding-left: 7px;
 }
 
 .option:not(.focused) .url {
@@ -85,10 +95,10 @@ a.url:hover {
     }
 }
 
-.BufferCompletionOption span {
-  white-space: pre;
-  margin: 0 .5em;
-}
+/* .BufferCompletionOption span { */
+/*   white-space: pre; */
+/*   margin: 0 .5em; */
+/* } */
 
 .hidden {
   display: none;

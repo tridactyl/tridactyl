@@ -100,7 +100,7 @@ abstract class CompletionSourceFuse extends CompletionSource {
     public options: CompletionOptionFuse[]
     protected lastExstr: string
 
-    protected optionContainer = html`<div class="optionContainer">`
+    protected optionContainer = html`<table class="optionContainer">`
 
     constructor(private prefixes, className: string, title?: string) {
         super()
@@ -277,12 +277,12 @@ class BufferCompletionOption extends CompletionOptionHTML implements CompletionO
 
         // Create HTMLElement
         const favIconUrl = tab.favIconUrl ? tab.favIconUrl : DEFAULT_FAVICON
-        this.html = html`<div class="BufferCompletionOption option">
-            <span class="prefix">${pre.padEnd(2)}</span>
-            <img src=${favIconUrl} />
-            <span>${tab.index + 1}: ${tab.title}</span>
-            <a class="url" target="_blank" href=${tab.url}>${tab.url}</a>
-        </div>`
+        this.html = html`<tr class="BufferCompletionOption option">
+            <td class="prefix">${pre.padEnd(2)}</td>
+            <td><img src=${favIconUrl} /></td>
+            <td>${tab.index + 1}: ${tab.title}</td>
+            <td><a class="url" target="_blank" href=${tab.url}>${tab.url}</a></td>
+        </tr>`
     }
 }
 
