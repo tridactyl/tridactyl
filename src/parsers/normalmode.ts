@@ -14,7 +14,7 @@ export const DEFAULTNMAPS = {
     "O": "current_url open",
     "w": "fillcmdline winopen",
     "W": "current_url winopen",
-    "t": "tabopen",
+    "t": "fillcmdline tabopen",
     //["t": "fillcmdline tabopen", // for now, use mozilla completion
     "]]": "followpage next",
     "[[": "followpage prev",
