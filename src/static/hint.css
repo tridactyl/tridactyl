@@ -15,5 +15,11 @@ span.TridactylHint {
     z-index: 2147483647;
 }
 
-.TridactylHintElem { background-color: yellow;  color: black; }
-.TridactylHintActive { background-color: #88FF00; color: black; }
+.TridactylHintElem, .TridactylHintActive {
+    color: black !important;
+    animation: none;
+    transition: unset;
+}
+
+.TridactylHintElem { background-color: yellow;  }
+.TridactylHintActive { background-color: #88FF00; }
