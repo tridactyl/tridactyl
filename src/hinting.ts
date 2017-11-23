@@ -246,7 +246,10 @@ iframe,
 textarea,
 button,
 p,
-div
+div,
+pre,
+code,
+span
 `
 
 import {activeTab, browserBg, l, firefoxVersionAtLeast} from './lib/webext'
