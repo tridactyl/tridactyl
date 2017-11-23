@@ -51,10 +51,15 @@ export function hintPage(
         modeState.hintchars += name
         modeState.hints.push(new Hint(el, name, onSelect))
     }
-    console.log("HINTS", modeState.hints)
-    modeState.focusedHint = modeState.hints[0]
-    modeState.focusedHint.focused = true
-    document.body.appendChild(modeState.hintHost)
+
+    if (modeState.hints.length) {
+        console.log("HINTS", modeState.hints)
+        modeState.focusedHint = modeState.hints[0]
+        modeState.focusedHint.focused = true
+        document.body.appendChild(modeState.hintHost)
+    } else {
+        reset()
+    }
 }
 
 /** vimperator-style minimal hint names */
