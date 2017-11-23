@@ -28,7 +28,7 @@ async function currentWindowTabs(): Promise<browser.tabs.Tab[]> {
 }
 
 async function history(): Promise<browser.history.HistoryItem[]> {
-    return await browser.history.search({text:"",maxResults:100})
+    return await browser.history.search({text:"",maxResults:50})
 }
 async function allWindowTabs(): Promise<browser.tabs.Tab[]> {
     let allTabs: browser.tabs.Tab[] = []

@@ -101,7 +101,10 @@ clInput.addEventListener("keydown", function (keyevent) {
             // Stop tab from losing focus
             keyevent.preventDefault()
             keyevent.stopPropagation()
-            tabcomplete()
+            activeCompletions.forEach(comp =>
+                comp.next()
+            )
+            // tabcomplete()
             break
 
     }

@@ -54,6 +54,11 @@ export abstract class CompletionSource {
     get state() {
         return this._state
     }
+
+    next() {
+        return false
+    }
+
 }
 
 // Default classes
@@ -122,7 +127,7 @@ abstract class CompletionSourceFuse extends CompletionSource {
         this.onInput(exstr)
         this.updateChain()
     }
-
+    
     updateChain(exstr = this.lastExstr, options = this.options) {
         if (options === undefined) {
             this.state = 'hidden'
@@ -188,26 +193,45 @@ abstract class CompletionSourceFuse extends CompletionSource {
             id: "index",
             includeScore: true,
         }
+        // This is about as slow.
+        let USE_FUSE = true
+        if (!USE_FUSE){
+            const searchThis = this.options.map(
+                (elem, index) => {
+                    return {index, fuseKeys: elem.fuseKeys[0]}
+                })
 
-        // Can't sort the real options array because Fuse loses class information.
-        const searchThis = this.options.map(
-            (elem, index) => {
-                return {index, fuseKeys: elem.fuseKeys}
-            })
-
-        // PERF: Could be expensive not to cache Fuse()
-        const fuse = new Fuse(searchThis, fuseOptions)
-        return fuse.search(query).map(
-            res => {
-                let result = res as any
-                console.log(result, result.item, query)
-                let index = toNumber(result.item)
+            return searchThis.map(r => {
                 return {
-                    index,
-                    option: this.options[index],
-                    score: result.score as number
+                    index: r.index,
+                    option: this.options[r.index],
+                    score: r.fuseKeys.length
                 }
             })
+        } else {
+
+            // Can't sort the real options array because Fuse loses class information.
+            const searchThis = this.options.map(
+                (elem, index) => {
+                    return {index, fuseKeys: elem.fuseKeys}
+                }
+            )
+
+            // PERF: Could be expensive not to cache Fuse()
+            const fuse = new Fuse(searchThis, fuseOptions)
+            return fuse.search(query).map(
+                res => {
+                    let result = res as any
+                    console.log(result, result.item, query)
+                    let index = toNumber(result.item)
+                    return {
+                        index,
+                        option: this.options[index],
+                        score: result.score as number
+                    }
+                }
+            )
+        }
     }
 
     /** Set option state by score
@@ -252,6 +276,14 @@ abstract class CompletionSourceFuse extends CompletionSource {
         /* let res2 = this.node.appendChild(newContainer) */
         /* console.log('results', result1, res2) */
     }
+
+    next(forward=true){
+        let visopts = this.options.filter((o) => o.state != "hidden")
+        let currind = visopts.findIndex((o) => o.state == "focused")
+        this.select(visopts[currind + 1])
+    }
+
+    prev = () => this.next(false)
 }
 
 // }}}
@@ -264,9 +296,7 @@ class HistoryCompletionOption extends CompletionOptionHTML implements Completion
     constructor(public value: string, page: browser.history.HistoryItem) {
         super()
         // Two character buffer properties prefix
-        let pre = ""
         // Push prefix before padding so we don't match on whitespace
-        this.fuseKeys.push(pre)
 
         // Push properties we want to fuzmatch on
         this.fuseKeys.push(page.title, page.url) // weight by page.visitCount
@@ -276,9 +306,9 @@ class HistoryCompletionOption extends CompletionOptionHTML implements Completion
         const favIconUrl = DEFAULT_FAVICON
         // const favIconUrl = tab.favIconUrl ? tab.favIconUrl : DEFAULT_FAVICON
         this.html = html`<tr class="HistoryCompletionOption option">
-            <td class="prefix">${pre.padEnd(2)}</td>
-            <td><img src=${favIconUrl} /></td>
-            <td>$${page.title}</td>
+            <td class="prefix">${"".padEnd(2)}</td>
+            <td></td>
+            <td>${page.title}</td>
             <td><a class="url" target="_blank" href=${page.url}>${page.url}</a></td>
         </tr>`
     }
