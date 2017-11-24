@@ -31,6 +31,10 @@ export async function hintImage(inBackground) {
     return await messageActiveTab('hinting_content', 'hintImage', [inBackground])
 }
 
+export async function hintFocus() {
+    return await messageActiveTab('hinting_content', 'hintFocus')
+}
+
 import {MsgSafeKeyboardEvent} from './msgsafe'
 
 /** At some point, this might be turned into a real keyseq parser
