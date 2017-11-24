@@ -95,11 +95,10 @@ function hasScheme(uri: string) {
     return uri.match(/^([\w-]+):/)
 }
 
-/** We use this over encodeURIComponent so that '+'s in non queries are not encoded. */
 /** @hidden */
 function searchURL(provider: string, query: string) {
     if (SEARCH_URLS.has(provider)) {
-        const url = new URL(SEARCH_URLS.get(provider) + query)
+        const url = new URL(SEARCH_URLS.get(provider) + encodeURIComponent(query))
         // URL constructor doesn't convert +s because they're valid literals in
         // the standard it adheres to. But they are special characters in
         // x-www-form-urlencoded and e.g. google excepts query parameters in
