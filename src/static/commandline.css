@@ -78,7 +78,7 @@ input {
 #completions .sectionHeader {
   background: linear-gradient(lightgrey, #ddd, lightgrey);
   font-weight: bold;
-  border-bottom: 0.5px solid grey;
+  border-bottom: 0.5px solid bottom;
   padding-left: 0.5ex;
 }
 
@@ -120,6 +120,6 @@ a.url:hover {
 
 /* Pick the .url out especially because otherwise its link styles dominate. */
 .focused, .focused .url {
-  background: darkgrey;
-  color: white;
+  background: #FFEC8B;
+  color: black;
 }
