@@ -55,8 +55,12 @@ export abstract class CompletionSource {
         return this._state
     }
 
-    next(forward = true): boolean {
+    next(inc = 1): boolean {
         return false
+    }
+
+    prev(inc = 1): boolean {
+        return this.next(-1*inc)
     }
 
 }
@@ -294,17 +298,16 @@ abstract class CompletionSourceFuse extends CompletionSource {
         /* console.log('results', result1, res2) */
     }
 
-    next(forward=true){
+    next(inc=1){
         if (this.state != "hidden"){
             let visopts = this.options.filter((o) => o.state != "hidden")
             let currind = visopts.findIndex((o) => o.state == "focused")
             this.deselect()
-            this.select(visopts[currind + 1])
+            this.select(visopts[currind + inc])
             return true
         } else return false
     }
 
-    prev = () => this.next(false)
 }
 
 // }}}
