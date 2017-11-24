@@ -55,7 +55,7 @@ export abstract class CompletionSource {
         return this._state
     }
 
-    next() {
+    next(forward = true): boolean {
         return false
     }
 
@@ -71,7 +71,7 @@ abstract class CompletionOptionHTML extends CompletionOption {
 
     /** Control presentation of element */
     set state(newstate: OptionState) {
-        console.log("state from to", this._state, newstate)
+        // console.log("state from to", this._state, newstate)
         switch (newstate) {
             case 'focused':
                 this.html.classList.add('focused')
@@ -86,6 +86,11 @@ abstract class CompletionOptionHTML extends CompletionOption {
                 this.html.classList.add('hidden')
                 break;
         }
+        this._state = newstate
+    }
+
+    get state() {
+        return this._state
     }
 }
 
@@ -104,6 +109,7 @@ abstract class CompletionSourceFuse extends CompletionSource {
     public node
     public options: CompletionOptionFuse[]
     protected lastExstr: string
+    protected lastFocused: CompletionOption
 
     protected optionContainer = html`<table class="optionContainer">`
 
@@ -136,7 +142,7 @@ abstract class CompletionSourceFuse extends CompletionSource {
 
         const [prefix, query] = this.splitOnPrefix(exstr)
 
-        console.log(prefix, query, options)
+        // console.log(prefix, query, options)
 
         // Hide self and stop if prefixes don't match
         if (prefix) {
@@ -166,6 +172,7 @@ abstract class CompletionSourceFuse extends CompletionSource {
             const [prefix, _] = this.splitOnPrefix(this.lastExstr)
             this.completion = prefix + option.value
             option.state = 'focused'
+            this.lastFocused = option
         } else {
             throw new Error("lastExstr and option must be defined!")
         }
@@ -173,6 +180,7 @@ abstract class CompletionSourceFuse extends CompletionSource {
 
     deselect() {
         this.completion = undefined
+        if (this.lastFocused != undefined) this.lastFocused.state = "normal"
     }
 
     splitOnPrefix(exstr: string) {
@@ -184,15 +192,21 @@ abstract class CompletionSourceFuse extends CompletionSource {
         }
         return [undefined, undefined]
     }
+    
+
+    fuseOptions = {
+        keys: ["fuseKeys"],
+        shouldSort: true,
+        id: "index",
+        includeScore: true,
+    }
+
+    // PERF: Could be expensive not to cache Fuse()
+    // yeah, it was.
+    fuse = undefined
 
     /** Rtn sorted array of {option, score} */
     scoredOptions(query: string, options = this.options): ScoredOption[] {
-        const fuseOptions = {
-            keys: ["fuseKeys"],
-            shouldSort: true,
-            id: "index",
-            includeScore: true,
-        }
         // This is about as slow.
         let USE_FUSE = true
         if (!USE_FUSE){
@@ -211,18 +225,20 @@ abstract class CompletionSourceFuse extends CompletionSource {
         } else {
 
             // Can't sort the real options array because Fuse loses class information.
-            const searchThis = this.options.map(
-                (elem, index) => {
-                    return {index, fuseKeys: elem.fuseKeys}
-                }
-            )
+            
+            if (!this.fuse){
+                let searchThis = this.options.map(
+                    (elem, index) => {
+                        return {index, fuseKeys: elem.fuseKeys}
+                    }
+                )
 
-            // PERF: Could be expensive not to cache Fuse()
-            const fuse = new Fuse(searchThis, fuseOptions)
-            return fuse.search(query).map(
+                this.fuse = new Fuse(searchThis, this.fuseOptions)
+            }
+            return this.fuse.search(query).map(
                 res => {
                     let result = res as any
-                    console.log(result, result.item, query)
+                    // console.log(result, result.item, query)
                     let index = toNumber(result.item)
                     return {
                         index,
@@ -239,7 +255,7 @@ abstract class CompletionSourceFuse extends CompletionSource {
         For now just displays all scored elements (see threshold in fuse) and
         focus the best match.
     */
-    setStateFromScore(scoredOpts: ScoredOption[]) {
+    setStateFromScore(scoredOpts: ScoredOption[], autoselect = false) {
         let matches = scoredOpts.map(res => res.index)
 
         for (const [index, option] of enumerate(this.options)) {
@@ -247,7 +263,8 @@ abstract class CompletionSourceFuse extends CompletionSource {
             else option.state = 'hidden'
         }
 
-        if (matches.length) {
+        // ideally, this would not deselect anything unless it fell off the list of matches
+        if (matches.length && autoselect) {
             this.select(this.options[matches[0]])
         } else {
             this.deselect()
@@ -278,9 +295,13 @@ abstract class CompletionSourceFuse extends CompletionSource {
     }
 
     next(forward=true){
-        let visopts = this.options.filter((o) => o.state != "hidden")
-        let currind = visopts.findIndex((o) => o.state == "focused")
-        this.select(visopts[currind + 1])
+        if (this.state != "hidden"){
+            let visopts = this.options.filter((o) => o.state != "hidden")
+            let currind = visopts.findIndex((o) => o.state == "focused")
+            this.deselect()
+            this.select(visopts[currind + 1])
+            return true
+        } else return false
     }
 
     prev = () => this.next(false)
@@ -446,6 +467,7 @@ export class BufferCompletionSource extends CompletionSourceFuse {
         // will be for other things.
         this.updateOptions()
     }
+    setStateFromScore(scoredOpts: ScoredOption[]){super.setStateFromScore(scoredOpts, true)}
 }
 
 // {{{ UNUSED: MANAGING ASYNC CHANGES
