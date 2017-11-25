@@ -68,13 +68,16 @@ clInput.addEventListener("keydown", function (keyevent) {
 
         case "j":
             if (keyevent.ctrlKey){
-               process()
+                // stop Firefox from giving focus to the omnibar
+                keyevent.preventDefault()
+                keyevent.stopPropagation()
+                process()
             }
             break
 
         case "m":
             if (keyevent.ctrlKey){
-               process()
+                process()
             }
             break
 
