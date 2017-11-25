@@ -97,6 +97,18 @@ clInput.addEventListener("keydown", function (keyevent) {
             }
             break
 
+       case "j":
+            if (keyevent.ctrlKey){
+	       process()
+	    }
+            break
+
+       case "m":
+            if (keyevent.ctrlKey){
+	       process()
+	    }
+            break
+
         case "Tab":
             // Stop tab from losing focus
             keyevent.preventDefault()
