@@ -49,10 +49,13 @@ function enableCompletions() {
 }
 /* document.addEventListener("DOMContentLoaded", enableCompletions) */
 
+let noblur = e =>  setTimeout(() => clInput.focus(), 0)
+
 export function focus() {
     enableCompletions()
     document.body.classList.remove('hidden')
     clInput.focus()
+    clInput.addEventListener("blur",noblur)
 }
 
 async function sendExstr(exstr) {
@@ -60,6 +63,7 @@ async function sendExstr(exstr) {
 }
 
 /* Process the commandline on enter. */
+
 clInput.addEventListener("keydown", function (keyevent) {
     switch (keyevent.key) {
         case "Enter":
@@ -144,6 +148,7 @@ let cmdline_history_position = 0
 let cmdline_history_current = ""
 
 async function hide_and_clear(){
+    clInput.removeEventListener("blur",noblur)
     clInput.value = ""
 
     // Try to make the close cmdline animation as smooth as possible.
