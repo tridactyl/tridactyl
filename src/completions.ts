@@ -288,7 +288,7 @@ abstract class CompletionSourceFuse extends CompletionSource {
 
         for (const option of this.options) {
             /* newContainer.appendChild(option.html) */
-            this.optionContainer.appendChild(option.html)
+            if (option.state != "hidden") this.optionContainer.appendChild(option.html)
         }
 
         /* console.log('updateDisplay', this.optionContainer, newContainer) */
@@ -338,6 +338,11 @@ class HistoryCompletionOption extends CompletionOptionHTML implements Completion
     }
 }
 
+function sleep(ms: number) {
+    return new Promise(resolve => setTimeout(resolve, ms))
+}
+
+
 export class HistoryCompletionSource extends CompletionSourceFuse {
     public options: HistoryCompletionOption[]
 
@@ -362,6 +367,8 @@ export class HistoryCompletionSource extends CompletionSourceFuse {
 
     private async updateOptions(exstr?: string) {
         /* console.log('updateOptions', this.optionContainer) */
+        // this sleep stops input from being blocked, but also breaks :open until something is typed
+        await sleep(0)
         const history: browser.history.HistoryItem[] =
             await Messaging.message("commandline_background", "history")
 
