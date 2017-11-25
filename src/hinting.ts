@@ -344,6 +344,13 @@ function hintImage(inBackground) {
     })
 }
 
+/** Hint elements to focus */
+function hintFocus() {
+    hintPage(hintables(), hint=>{
+        hint.target.focus()
+    })
+}
+
 function selectFocusedHint() {
     console.log("Selecting hint.", state.mode)
     const focused = modeState.focusedHint
@@ -361,4 +368,5 @@ addListener('hinting_content', attributeCaller({
     hintPageTextYank,
     hintPageOpenInBackground,
     hintImage,
+    hintFocus,
 }))

@@ -776,7 +776,7 @@ export async function quickmark(key: string) {
 //#background_helper
 import * as hinting from './hinting_background'
 
-/** Hint a page. 
+/** Hint a page.
 *
 * Pass -b as first argument to open hinted page in background.
 * -y copies the link's target to the clipboard.
@@ -788,6 +788,7 @@ export function hint(option?: "-b") {
     else if (option === "-p") hinting.hintPageTextYank()
     else if (option === "-i") hinting.hintImage(false)
     else if (option === "-I") hinting.hintImage(true)
+    else if (option === "-;") hinting.hintFocus()
     else hinting.hintPageSimple()
 }
 
