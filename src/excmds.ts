@@ -85,6 +85,12 @@ const SEARCH_URLS = new Map<string, string>([
     ["amazon","https://www.amazon.com/s/ref=nb_sb_noss?url=search-alias%3Daps&field-keywords="],
     ["amazonuk","https://www.amazon.co.uk/s/ref=nb_sb_noss?url=search-alias%3Daps&field-keywords="],
     ["startpage","https://www.startpage.com/do/search?query="],
+    ["github","https://github.com/search?utf8=✓&q="],
+    ["searx","https://searx.me/?category_general=on&q="],
+    ["cnrtl","http://www.cnrtl.fr/lexicographie/"],
+    ["osm","https://www.openstreetmap.org/search?query="],
+    ["mdn","https://developer.mozilla.org/en-US/search?q="],
+    ["gentoo_wiki","https://wiki.gentoo.org/index.php?title=Special%3ASearch&profile=default&fulltext=Search&search="],
 ])
 
 // map a page-relation (next or previous) to a fallback pattern to match link texts against
