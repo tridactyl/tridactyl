@@ -407,7 +407,8 @@ input[type='password']
 
 /** DOM reference to the last used Input field
  */
-let lastUsedInput: HTMLElement = null
+//#content_helper
+let LAST_USED_INPUT: HTMLElement = null
 
 
 /** Focus the last used input on the page
@@ -430,7 +431,7 @@ export function focusinput(nth: number|string) {
     if (nth === "-l") {
         // try to recover the last used input stored as a
         // DOM node, which should be exactly the one used before (or null)
-        inputToFocus = lastUsedInput
+        inputToFocus = LAST_USED_INPUT
 
         // failed to find that? - look up in sessionStorage?
         // will need to serialise the last used input to a string that
@@ -465,13 +466,12 @@ export function focusinput(nth: number|string) {
                                          index, DOM.isSubstantial)
     }
 
-    if (inputToFocus) {
-        inputToFocus.focus()
-
-        // keep for next time
-        lastUsedInput = inputToFocus
-    }
+    if (inputToFocus) inputToFocus.focus()
 }
+
+// Store the last focused element
+//#content_helper
+document.addEventListener("focusin",e=>{LAST_USED_INPUT = e.target as HTMLElement})
 
 // }}}
 
