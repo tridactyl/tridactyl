@@ -470,7 +470,7 @@ export function focusinput(nth: number|string) {
 
 // Store the last focused element
 //#content_helper
-document.addEventListener("focusin",e=>{LAST_USED_INPUT = e.target as HTMLElement})
+document.addEventListener("focusin",e=>{if (DOM.isTextEditable(e.target as HTMLElement)) LAST_USED_INPUT = e.target as HTMLElement})
 
 // }}}
 
