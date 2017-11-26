@@ -10,6 +10,8 @@ In the meantime, here are some notes about Tridactyl:
 
 - Tridactyl is in a pretty early stage of development. Please report any issues and make requests for missing features on the GitHub project page [[1]]
 
+- You can view the main help page [here](/static/docs/modules/_excmds_.html).
+
 Highlighted features:
 
 - Press `b` to bring up a list of open tabs in the current window; you can type the tab ID or part of the title or URL to choose a tab (the buffer list doesn't show which one you've selected yet, but it does work)

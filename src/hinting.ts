@@ -15,6 +15,7 @@ import {log} from './math'
 import {permutationsWithReplacement, islice, izip, map} from './itertools'
 import {hasModifiers} from './keyseq'
 import state from './state'
+import {messageActiveTab} from './messaging'
 
 /** Simple container for the state of a single frame's hints. */
 class HintState {
@@ -38,25 +39,48 @@ class HintState {
 let modeState: HintState = undefined
 
 /** For each hintable element, add a hint */
-export function hintPage(hintableElements: Element[], onSelect: HintSelectedCallback) {
+export function hintPage(
+    hintableElements: Element[],
+    onSelect: HintSelectedCallback,
+    names = hintnames_uniform(hintableElements.length),
+) {
     state.mode = 'hint'
     modeState = new HintState()
-    for (let [el, name] of izip(hintableElements, hintnames())) {
+    for (let [el, name] of izip( hintableElements, names)) {
+        console.log({el, name})
         modeState.hintchars += name
         modeState.hints.push(new Hint(el, name, onSelect))
     }
-    console.log("HINTS", modeState.hints)
-    modeState.focusedHint = modeState.hints[0]
-    modeState.focusedHint.focused = true
-    document.body.appendChild(modeState.hintHost)
+
+    if (modeState.hints.length) {
+        console.log("HINTS", modeState.hints)
+        modeState.focusedHint = modeState.hints[0]
+        modeState.focusedHint.focused = true
+        document.body.appendChild(modeState.hintHost)
+    } else {
+        reset()
+    }
 }
 
 /** vimperator-style minimal hint names */
-function* hintnames(hintchars = HINTCHARS) {
+function* hintnames(hintchars = HINTCHARS): IterableIterator<string> {
     let taglen = 1
     while (true) {
         yield* map(permutationsWithReplacement(hintchars, taglen), e=>e.join(''))
         taglen++
+    }
+}
+
+/** Uniform length hintnames */
+function* hintnames_uniform(n: number, hintchars = HINTCHARS): IterableIterator<string> {
+    if (n <= hintchars.length)
+        yield* islice(hintchars[Symbol.iterator](), n)
+    else {
+        // else calculate required length of each tag
+        const taglen = Math.ceil(log(n, hintchars.length))
+        // And return first n permutations
+        yield* map(islice(permutationsWithReplacement(hintchars, taglen), n),
+            perm => perm.join(''))
     }
 }
 
@@ -109,18 +133,6 @@ class Hint {
 
     select() {
         this.onSelect(this)
-    }
-}
-
-/** Uniform length hintnames */
-function* hintnames_uniform(n: number, hintchars = HINTCHARS) {
-    if (n <= hintchars.length)
-        yield* islice(hintchars[Symbol.iterator](), n)
-    else {
-        // else calculate required length of each tag
-        const taglen = Math.ceil(log(n, hintchars.length))
-        // And return first n permutations
-        yield* islice(permutationsWithReplacement(hintchars, taglen), n)
     }
 }
 
@@ -180,44 +192,24 @@ function pushKey(ke) {
             2. Not hidden by another element
 */
 function hintables() {
-    /* return [...elementsByXPath(HINTTAGS)].filter(isVisible) as any as Element[] */
     return Array.from(document.querySelectorAll(HINTTAGS_selectors)).filter(isVisible)
 }
 
-// XPath. Doesn't work properly for xhtml unless you double each element.
-const HINTTAGS = `
-//input[not(@type='hidden' or @disabled)] |
-//a |
-//area |
-//iframe  |
-//textarea  |
-//button |
-//select |
-//*[
-    @onclick or
-    @onmouseover or
-    @onmousedown or
-    @onmouseup or
-    @oncommand or
-    @role='link'or
-    @role='button' or
-    @role='checkbox' or
-    @role='combobox' or
-    @role='listbox' or
-    @role='listitem' or
-    @role='menuitem' or
-    @role='menuitemcheckbox' or
-    @role='menuitemradio' or
-    @role='option' or
-    @role='radio' or
-    @role='scrollbar' or
-    @role='slider' or
-    @role='spinbutton' or
-    @role='tab' or
-    @role='textbox' or
-    @role='treeitem' or
-    @tabindex
-]`
+function elementswithtext() {
+    return Array.from(document.querySelectorAll(HINTTAGS_text_selectors)).filter(
+        isVisible
+    ).filter(hint => {
+        return hint.textContent != ""
+    })
+}
+
+/** Get array of images in the viewport
+ */
+function hintableImages() {
+    /* return [...elementsByXPath(HINTTAGS)].filter(isVisible) as any as Element[] */
+    return Array.from(document.querySelectorAll(HINTTAGS_img_selectors)).filter(
+        isVisible)
+}
 
 // CSS selectors. More readable for web developers. Not dead. Leaves browser to care about XML.
 const HINTTAGS_selectors = `
@@ -250,7 +242,27 @@ select,
 [role='tab'],
 [role='textbox'],
 [role='treeitem'],
+[class*='button'],
 [tabindex]
+`
+
+const HINTTAGS_text_selectors = `
+input:not([type=hidden]):not([disabled]),
+a,
+area,
+iframe,
+textarea,
+button,
+p,
+div,
+pre,
+code,
+span
+`
+
+const HINTTAGS_img_selectors = `
+img,
+[src]
 `
 
 import {activeTab, browserBg, l, firefoxVersionAtLeast} from './lib/webext'
@@ -303,6 +315,42 @@ function hintPageSimple() {
     })
 }
 
+function hintPageTextYank() {
+    hintPage(elementswithtext(), hint=>{
+        messageActiveTab("commandline_frame", "setClipboard", [hint.target.textContent])
+    })
+}
+
+function hintPageYank() {
+    hintPage(hintables(), hint=>{
+        messageActiveTab("commandline_frame", "setClipboard", [hint.target.href])
+    })
+}
+
+/** Hint images, opening in the same tab, or in a background tab
+ *
+ * @param inBackground  opens the image source URL in a background tab,
+ *                      as opposed to the current tab
+ */
+function hintImage(inBackground) {
+    hintPage(hintableImages(), hint=>{
+        let img_src = hint.target.getAttribute("src")
+
+        if (inBackground) {
+            openInBackground(new URL(img_src, window.location.href).href)
+        } else {
+            window.location.href = img_src
+        }
+    })
+}
+
+/** Hint elements to focus */
+function hintFocus() {
+    hintPage(hintables(), hint=>{
+        hint.target.focus()
+    })
+}
+
 function selectFocusedHint() {
     console.log("Selecting hint.", state.mode)
     const focused = modeState.focusedHint
@@ -316,5 +364,9 @@ addListener('hinting_content', attributeCaller({
     selectFocusedHint,
     reset,
     hintPageSimple,
+    hintPageYank,
+    hintPageTextYank,
     hintPageOpenInBackground,
+    hintImage,
+    hintFocus,
 }))

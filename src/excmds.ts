@@ -4,6 +4,8 @@
 
     Use `:help <excmd>` or scroll down to show [[help]] for a particular excmd.
 
+    The default keybinds can be found [here](/static/docs/modules/_parsers_normalmode_.html#defaultnmaps).
+
     Tridactyl is in a pretty early stage of development. Please report any issues and make requests for missing features on the GitHub project page [[1]].
 
     Highlighted features:
@@ -40,8 +42,6 @@ import * as Messaging from "./messaging"
 import {l} from './lib/webext'
 
 //#content_omit_line
-import * as CommandLineContent from "./commandline_content"
-//#content_omit_line
 import "./number.clamp"
 //#content_helper
 import * as SELF from "./excmds_content"
@@ -60,9 +60,11 @@ import {ModeName} from './state'
 //#background_helper
 import * as keydown from "./keydown_background"
 //#background_helper
-import {activeTab, activeTabId} from './lib/webext'
+import {activeTab, activeTabId, firefoxVersionAtLeast} from './lib/webext'
 //#content_helper
 import {incrementUrl, getUrlRoot, getUrlParent} from "./url_util"
+//#background_helper
+import * as CommandLineBackground from './commandline_background'
 
 /** @hidden */
 //#background_helper
@@ -82,16 +84,21 @@ const SEARCH_URLS = new Map<string, string>([
     ["startpage","https://www.startpage.com/do/search?query="],
 ])
 
+// map a page-relation (next or previous) to a fallback pattern to match link texts against
+const REL_PATTERN = {
+    next: /^(?:next|newer)\b|»|>>/i,
+    prev: /^(?:prev(?:ious)?|older)\b|«|<</i,
+}
+
 /** @hidden */
 function hasScheme(uri: string) {
     return uri.match(/^([\w-]+):/)
 }
 
-/** We use this over encodeURIComponent so that '+'s in non queries are not encoded. */
 /** @hidden */
 function searchURL(provider: string, query: string) {
     if (SEARCH_URLS.has(provider)) {
-        const url = new URL(SEARCH_URLS.get(provider) + query)
+        const url = new URL(SEARCH_URLS.get(provider) + encodeURIComponent(query))
         // URL constructor doesn't convert +s because they're valid literals in
         // the standard it adheres to. But they are special characters in
         // x-www-form-urlencoded and e.g. google excepts query parameters in
@@ -143,6 +150,7 @@ function tabSetActive(id: number) {
 }
 
 // }}}
+
 
 // {{{ PAGE CONTEXT
 
@@ -209,6 +217,14 @@ export async function reload(n = 1, hard = false) {
     tabstoreload.map(n => browser.tabs.reload(n, reloadProperties))
 }
 
+/** Reloads all tabs, bypassing the cache if hard is set to true */
+//#background
+export async function reloadall(hard = false){
+    let tabs = await browser.tabs.query({})
+    let reloadprops = {bypassCache: hard}
+    tabs.map(tab => browser.tabs.reload(tab.id, reloadprops))
+}
+
 /** Reload the next n tabs, starting with activeTab. bypass cache for all */
 //#background
 export async function reloadhard(n = 1) {
@@ -247,27 +263,57 @@ export async function help(excmd?: string) {
 }
 
 /** @hidden */
-//#content_helper
-function getlinks(){
-    return document.getElementsByTagName('a')
+// Find clickable next-page/previous-page links whose text matches the supplied pattern,
+// and return the last such link.
+//
+// If no matching link is found, return null.
+//
+// We return the last link that matches because next/prev buttons tend to be at the end of the page
+// whereas lots of blogs have "VIEW MORE" etc. plastered all over their pages.
+function findRelLink(pattern: RegExp): HTMLAnchorElement | null {
+    const links = <NodeListOf<HTMLAnchorElement>>document.querySelectorAll('a[href]')
+
+    let lastLink = null
+
+    for (const link of links) {
+        // `innerText` gives better (i.e. less surprising) results than `textContent`
+        // at the expense of being much slower, but that shouldn't be an issue here
+        // as it's a one-off operation that's only performed when we're leaving a page
+        if (pattern.test(link.innerText)) {
+            lastLink = link
+        }
+    }
+
+    return lastLink
 }
 
-/** Find a likely next/previous link and follow it */
+/** @hidden */
+// Return the last element in the document matching the supplied selector,
+// or null if there are no matches.
+function selectLast(selector: string): HTMLElement | null {
+    const nodes = <NodeListOf<HTMLElement>>document.querySelectorAll(selector)
+    return nodes.length ? nodes[nodes.length - 1] : null
+}
+
+/** Find a likely next/previous link and follow it
+ *
+ * @param rel   the relation of the target page to the current page: "next" or "prev"
+ */
 //#content
-export function clicknext(dir: "next"|"prev" = "next"){
-    let linkarray = Array.from(getlinks())
-    let regarray = [/\bnext|^>$|^(>>|»)$|^(>|»)|(>|»)$|\bmore\b/i, /\bprev\b|\bprevious\b|^<$|^(<<|«)$|^(<|«)|(<|«)$/i]
+export function followpage(rel: 'next'|'prev' = 'next') {
+    const link = <HTMLLinkElement>selectLast(`link[rel~=${rel}][href]`)
 
-    regarray = window.location.href.match(/rockpapershotgun/) ? [/newer/i,/older/i] : regarray
-    let nextreg = (dir == "next") ? regarray[0] : regarray[1]
+    if (link) {
+        window.location.href = link.href
+        return
+    }
 
-    // Might need to add more cases to this as we look at more sites
-    let nextlinks = linkarray.filter((link) => (link.innerText.match(nextreg) || link.rel.match(nextreg)))
+    const anchor = <HTMLAnchorElement>selectLast(`a[rel~=${rel}][href]`) ||
+        findRelLink(REL_PATTERN[rel])
 
-    // Use the last link that matches because next/prev buttons tend to be at the end of the page
-    // whereas lots of blogs have "VIEW MORE" etc. plastered all over their pages.
-    // Stops us from having to hardcode in RPS and reddit, for example.
-    window.location.href = nextlinks.slice(-1)[0].href
+    if (anchor) {
+        anchor.click()
+    }
 }
 
 /** Increment the current tab URL
@@ -309,6 +355,18 @@ export function urlparent (){
 export function zoom(level=0){
     level = level > 3 ? level / 100 : level
     browser.tabs.setZoom(level)
+}
+
+//#background
+export async function reader() {
+    if (await l(firefoxVersionAtLeast(58))) {
+	let aTab = await activeTab()
+	if (aTab.isArticle) {
+	    browser.tabs.toggleReaderMode()
+	} // else {
+	//  // once a statusbar exists an error can be displayed there
+	// }
+    }
 }
 
 // }}}
@@ -362,20 +420,13 @@ export async function tabdetach(id?: number){
 }
 
 //#background
-export async function tabclose(ids?: number[] | number, flag?: string) {
+export async function tabclose(ids?: number[] | number) {
     if (ids !== undefined) {
         browser.tabs.remove(ids)
     } else {
         // Close the current tab
         browser.tabs.remove(await activeTabId())
     }
-}
-
-//#background
-export async function tabclosethenprev(){
-    let tabid = await activeTabId()
-    buffer("#")
-    tabclose([tabid])
 }
 
 /** restore most recently closed tab in this window unless the most recently closed item was a window */
@@ -473,6 +524,13 @@ export function suppress(preventDefault?: boolean, stopPropagation?: boolean) {
     mode("ignore")
 }
 
+//#background
+export function version(){
+    clipboard("yank","REPLACE_ME_WITH_THE_VERSION_USING_SED")
+    fillcmdline_notrail("REPLACE_ME_WITH_THE_VERSION_USING_SED")
+
+}
+
 /** Example:
         - `mode ignore` to ignore all keys.
 */
@@ -543,19 +601,10 @@ export function composite(...cmds: string[]) {
     cmds.forEach(controller.acceptExCmd)
 }
 
-/** Don't use this */
-// TODO: These two don't really make sense as excmds, they're internal things.
-//#content
+/** Please use fillcmdline instead */
+//#background
 export function showcmdline() {
-    CommandLineContent.show()
-    CommandLineContent.focus()
-}
-
-/** Don't use this */
-//#content
-export function hidecmdline() {
-    CommandLineContent.hide()
-    CommandLineContent.blur()
+    CommandLineBackground.show()
 }
 
 /** Set the current value of the commandline to string *with* a trailing space */
@@ -617,22 +666,19 @@ export async function clipboard(excmd: "open"|"yank"|"tabopen" = "open", ...toYa
             // todo: maybe we should have some common error and error handler
             throw new Error(`[clipboard] unknown excmd: ${excmd}`)
     }
-    hidecmdline()
+    CommandLineBackground.hide()
 }
 
 // {{{ Buffer/completion stuff
 // TODO: Move autocompletions out of excmds.
-
-/** @hidden */
-//#background_helper
-const DEFAULT_FAVICON = browser.extension.getURL("static/defaultFavicon.svg")
-
-/** Soon to be deprecated way of showing buffer completions */
+/** Ported from Vimperator. */
 //#background
-export async function openbuffer() {
+export async function tabs() {
     fillcmdline("buffer")
-    messageActiveTab("commandline_frame", "changecompletions", [await l(listTabs())])
-    showcmdline()
+}
+//#background
+export async function buffers() {
+    tabs()
 }
 
 /** Change active tab */
@@ -652,75 +698,14 @@ export async function buffer(n?: number | string) {
                 index: Number(n) - 1,
             }))[0].id
         )
-    // hacky search by url
-    } else {
-        let currtabs = await browser.tabs.query({currentWindow: true})
-        // todo: choose best match
-        tabSetActive(currtabs.filter((t)=> (t["url"].includes(String(n)) || t["title"].toLowerCase().includes(String(n).toLowerCase())))[0].id)
     }
 }
 
-/** List of tabs in window and the last active tab. */
-/** @hidden */
-//#background_helper
-async function getTabs() {
-    const tabs = await browser.tabs.query({currentWindow: true})
-    const lastActive = tabs.sort((a, b) => {
-        return a.lastAccessed < b.lastAccessed ? 1 : -1
-    })[1]
-    tabs.sort((a, b) => {
-        return a.index < b.index ? -1 : 1
-    })
-    console.log(tabs)
-    return [tabs, lastActive]
-}
-
-/** innerHTML for a single Tab's representation in autocompletion */
-/** @hidden */
-//#background_helper
-function formatTab(tab: browser.tabs.Tab, prev?: boolean) {
-    // This, like all this completion logic, needs to move.
-    const tabline = window.document.createElement('div')
-    tabline.className = "tabline"
-
-    const prefix = window.document.createElement('span')
-    if (tab.active) prefix.textContent += "%"
-    else if (prev) prefix.textContent += "#"
-    if (tab.pinned) prefix.textContent += "@"
-    prefix.textContent = prefix.textContent.padEnd(2)
-    tabline.appendChild(prefix)
-
-    // TODO: Dynamically set favicon dimensions. Should be able to use em.
-    const favicon = window.document.createElement('img')
-    favicon.src = tab.favIconUrl ? tab.favIconUrl : DEFAULT_FAVICON
-    tabline.appendChild(favicon)
-
-    const titlespan = window.document.createElement('span')
-    titlespan.textContent=`${tab.index + 1}: ${tab.title}`
-    tabline.appendChild(titlespan)
-
-    const url = window.document.createElement('a')
-    url.className = 'url'
-    url.href = tab.url
-    url.text = tab.url
-    url.target = '_blank'
-    tabline.appendChild(url)
-
-    console.log(tabline)
-    return tabline.outerHTML
-}
-
-/** innerHTML for tab autocompletion div */
-/** @hidden */
-//#background_helper
-async function listTabs() {
-    let buffers: string = "",
-        [tabs, lastActive] = await getTabs()
-    for (let tab of tabs as Array<browser.tabs.Tab>) {
-        buffers += tab === lastActive ? formatTab(tab, true) : formatTab(tab)
-    }
-    return buffers
-}
+/*/1** Set tab with index of n belonging to window with id of m to active *1/ */
+/*//#background */
+/*export async function bufferall(m?: number, n?: number) { */
+/*    // TODO */
+/*} */
 
 // }}}
 
@@ -811,10 +796,19 @@ export async function quickmark(key: string) {
 //#background_helper
 import * as hinting from './hinting_background'
 
-/** Hint a page. Pass -b as first argument to open hinted page in background. */
+/** Hint a page.
+*
+* Pass -b as first argument to open hinted page in background.
+* -y copies the link's target to the clipboard.
+* -p copies an element's text to the clipboard.*/
 //#background
 export function hint(option?: "-b") {
     if (option === '-b') hinting.hintPageOpenInBackground()
+    else if (option === "-y") hinting.hintPageYank()
+    else if (option === "-p") hinting.hintPageTextYank()
+    else if (option === "-i") hinting.hintImage(false)
+    else if (option === "-I") hinting.hintImage(true)
+    else if (option === "-;") hinting.hintFocus()
     else hinting.hintPageSimple()
 }
 
@@ -838,5 +832,21 @@ export async function gobble(nChars: number, endCmd: string) {
 }
 
 // }}}
+//
+
+// unsupported on android
+/** Add or remove a bookmark.
+*
+* Optionally, you may give the bookmark a title. If no URL is given, a bookmark is added for the current page.
+* 
+* If a bookmark already exists for the URL, it is removed.
+*/
+//#background
+export async function bmark(url?: string, title = ""){
+    url = url === undefined ? (await activeTab()).url : url
+    let dupbmarks = await browser.bookmarks.search({url})
+    dupbmarks.map((bookmark) => browser.bookmarks.remove(bookmark.id))
+    if (dupbmarks.length == 0 ) {browser.bookmarks.create({url, title})}
+}
 
 // vim: tabstop=4 shiftwidth=4 expandtab

@@ -1,29 +1,92 @@
 /** Script used in the commandline iframe. Communicates with background. */
 
+import "./lib/html-tagged-template"
+
+import * as Completions from './completions'
 import * as Messaging from './messaging'
 import * as SELF from './commandline_frame'
 import './number.clamp'
 import state from './state'
 
-let completions = window.document.getElementById("completions") as HTMLElement
+let activeCompletions: Completions.CompletionSource[] = undefined
+let completionsDiv = window.document.getElementById("completions") as HTMLElement
 let clInput = window.document.getElementById("tridactyl-input") as HTMLInputElement
 
-export let focus = () => clInput.focus()
+/* This is to handle Escape key which, while the cmdline is focused,
+ * ends up firing both keydown and input listeners. In the worst case
+ * hides the cmdline, shows and refocuses it and replaces its text
+ * which could be the prefix to generate a completion.
+ * tl;dr TODO: delete this and better resolve race condition
+ */
+let isVisible = false
+function resizeArea() {
+    if (isVisible) {
+        Messaging.message("commandline_background", "show")
+    }
+}
+
+// This is a bit loosely defined at the moment.
+// Should work so long as there's only one completion source per prefix.
+function getCompletion() {
+    for (const comp of activeCompletions) {
+        if (comp.state === 'normal' && comp.completion !== undefined) {
+            return comp.completion
+        }
+    }
+}
+
+function enableCompletions() {
+    if (! activeCompletions) {
+        activeCompletions = [
+            new Completions.BufferCompletionSource(completionsDiv),
+            new Completions.HistoryCompletionSource(completionsDiv),
+        ]
+
+        const fragment = document.createDocumentFragment()
+        activeCompletions.forEach(comp => fragment.appendChild(comp.node))
+        completionsDiv.appendChild(fragment)
+    }
+}
+/* document.addEventListener("DOMContentLoaded", enableCompletions) */
+
+let noblur = e =>  setTimeout(() => clInput.focus(), 0)
+
+export function focus() {
+    enableCompletions()
+    document.body.classList.remove('hidden')
+    clInput.focus()
+    clInput.addEventListener("blur",noblur)
+}
 
 async function sendExstr(exstr) {
     Messaging.message("commandline_background", "recvExStr", [exstr])
 }
 
-
-
 /* Process the commandline on enter. */
+
 clInput.addEventListener("keydown", function (keyevent) {
     switch (keyevent.key) {
         case "Enter":
             process()
             break
 
+        case "j":
+            if (keyevent.ctrlKey){
+                // stop Firefox from giving focus to the omnibar
+                keyevent.preventDefault()
+                keyevent.stopPropagation()
+                process()
+            }
+            break
+
+        case "m":
+            if (keyevent.ctrlKey){
+                process()
+            }
+            break
+
         case "Escape":
+            keyevent.preventDefault()
             hide_and_clear()
             break
 
@@ -57,23 +120,45 @@ clInput.addEventListener("keydown", function (keyevent) {
             // Stop tab from losing focus
             keyevent.preventDefault()
             keyevent.stopPropagation()
-            tabcomplete()
+            if (keyevent.shiftKey){
+                activeCompletions.forEach(comp =>
+                    comp.prev()
+                )
+            } else {
+                activeCompletions.forEach(comp =>
+                    comp.next()
+                )
+
+            }
+            // tabcomplete()
             break
 
     }
 })
 
+clInput.addEventListener("input", () => {
+    // Fire each completion and add a callback to resize area
+    console.log(activeCompletions)
+    activeCompletions.forEach(comp =>
+        comp.filter(clInput.value).then(() => resizeArea())
+    )
+})
+
 let cmdline_history_position = 0
 let cmdline_history_current = ""
 
-function hide_and_clear(){
-    /** Bug workaround: clInput cannot be cleared during an "Escape"
-     * keydown event, presumably due to Firefox's internal handler for
-     * Escape. So clear clInput just after :)
-     */
-    completions.innerHTML = ""
-    setTimeout(()=>{clInput.value = ""}, 0)
-    sendExstr("hidecmdline")
+async function hide_and_clear(){
+    clInput.removeEventListener("blur",noblur)
+    clInput.value = ""
+
+    // Try to make the close cmdline animation as smooth as possible.
+    document.body.classList.add('hidden')
+    Messaging.message('commandline_background', 'hide')
+    // Delete all completion sources - I don't think this is required, but this
+    // way if there is a transient bug in completions it shouldn't persist.
+    activeCompletions.forEach(comp => completionsDiv.removeChild(comp.node))
+    activeCompletions = undefined
+    isVisible = false
 }
 
 function tabcomplete(){
@@ -84,9 +169,8 @@ function tabcomplete(){
 }
 
 function history(n){
-    completions.innerHTML = ""
     if (cmdline_history_position == 0){
-        cmdline_history_current = clInput.value 
+        cmdline_history_current = clInput.value
     }
     let wrapped_ind = state.cmdHistory.length + n - cmdline_history_position
     wrapped_ind = wrapped_ind.clamp(0, state.cmdHistory.length)
@@ -99,7 +183,8 @@ function history(n){
 /* Send the commandline to the background script and await response. */
 function process() {
     console.log(clInput.value)
-    sendExstr("hidecmdline")
+    clInput.value = getCompletion() || clInput.value
+    console.log(clInput.value)
     sendExstr(clInput.value)
 
     // Save non-secret commandlines to the history.
@@ -110,10 +195,9 @@ function process() {
         state.cmdHistory = state.cmdHistory.concat([clInput.value])
     }
     console.log(state.cmdHistory)
-
-    completions.innerHTML = ""
-    clInput.value = ""
     cmdline_history_position = 0
+
+    hide_and_clear()
 }
 
 export function fillcmdline(newcommand?: string, trailspace = true){
@@ -123,10 +207,8 @@ export function fillcmdline(newcommand?: string, trailspace = true){
     }
     // Focus is lost for some reason.
     focus()
-}
-
-export function changecompletions(newcompletions: string) {
-    completions.innerHTML = newcompletions
+    isVisible = true
+    clInput.dispatchEvent(new Event('input')) // dirty hack for completions
 }
 
 function applyWithTmpTextArea(fn) {

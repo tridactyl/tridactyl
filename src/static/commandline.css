@@ -6,8 +6,9 @@ body {
 input {
   width: 100%;
   padding: 0;
-  font-family: "monospace", "Courier New";
-  font-size: 10pt;
+  font-family: monospace;
+  font-size: 9pt;
+  line-height: 1.5;
   color: black;
   border: unset;
   /* we currently have a border from the completions */
@@ -15,54 +16,108 @@ input {
   padding-left: 0.5ex;
 }
 
-img {
-    height: 1em;
-    width: 1em;
-}
+/* COMPLETIONS */
 
 #completions {
+  --option-height: 1.4em;
   background: white;
   color: black;
   display: inline-block;
   font-size: 10pt;
-  height: auto;
-  /* line-height: 1.5em; */
-  font-family: "monospace", "Courier New";
+  font-family: monospace;
   overflow: hidden;
-  white-space: pre;
   width: 100%;
-  z-index: 9998;
-  border-top: 1px solid lightgray;
+  border-top: 0.5px solid grey;
 }
 
-.url, a.url, a.url:link, a.url:visited {
-  background: white;
-  color: #1f9947;
-  display: inline;
-  left: 50%;
+/* Olie doesn't know how CSS inheritance works */
+#completions .HistoryCompletionSource {
+  max-height: calc(20 * var(--option-height));
+  min-height: calc(10 * var(--option-height));
+}
+
+#completions .HistoryCompletionSource table {
+  width: 100%;
+  font-size: 9pt;
+  border-spacing: 0;
+  table-layout: fixed;
+}
+/* redundancy ends */
+
+#completions .BufferCompletionSource {
+  max-height: calc(20 * var(--option-height));
+  min-height: calc(10 * var(--option-height));
+}
+
+#completions .BufferCompletionSource table {
+  width: 100%;
+  font-size: 9pt;
+  border-spacing: 0;
+  table-layout: fixed;
+}
+
+#completions table tr td:nth-of-type(1) { width: 1.5em; padding-left: 0.5em}
+#completions table tr td:nth-of-type(2) { width: 1.5em; }
+/* #completions table tr td:nth-of-type(3) { width: 5em; } */
+#completions table tr td:nth-of-type(4) { width: 50%; }
+
+#completions table tr {
+  white-space: nowrap;
   overflow: hidden;
-  padding: 0 2px;
-  position: absolute;
-  text-decoration: none;
 }
 
-/* Hide the URLs if the screen is small */
-@media all and (max-width: 500px) {
-    .url, a.url, a.url:link, a.url:visited {
-        display: none;
-    }
+#completions img {
+  display: inline;
+  vertical-align: middle;
+  height: 1em;
+  width: 1em;
+}
+
+#completions .sectionHeader {
+  background: linear-gradient(lightgrey, #ddd, lightgrey);
+  font-weight: bold;
+  border-bottom: 0.5px solid bottom;
+  padding-left: 0.5ex;
+}
+
+#completions .sectionHeader, #completions .option {
+  height: var(--option-height);
+  line-height: var(--option-height);
+}
+
+.url {
+  text-decoration: none;
+  padding-left: 7px;
+}
+
+.option:not(.focused) .url {
+  color: #1f9947;
+  background: white;
 }
 
 a.url:hover {
   cursor: pointer;
-  text-decoration: underline !important;
+  text-decoration: underline;
 }
 
-div.tabline span {
-  margin: 0 .5em;
+/* Hide the URLs if the screen is small */
+@media all and (max-width: 500px) {
+    .url {
+        display: none;
+    }
 }
 
-div.tabline img {
-  display: inline;
-  vertical-align: middle;
+/* .BufferCompletionOption span { */
+/*   white-space: pre; */
+/*   margin: 0 .5em; */
+/* } */
+
+.hidden {
+  display: none;
+}
+
+/* Pick the .url out especially because otherwise its link styles dominate. */
+.focused, .focused .url {
+  background: #FFEC8B;
+  color: black;
 }

@@ -16,6 +16,11 @@ interface Window {
     scrollByPages(n: number):  void
 }
 
+// Fix typescript bugs
+interface StringConstructor {
+    toLowerCase(): string;
+}
+
 // Web extension types not in web-ext-types yet
 declare namespace browser.find {
     function find(query, object): any
@@ -25,4 +30,8 @@ declare namespace browser.find {
 declare namespace browser.tabs {
     function setZoom(zoomFactor: number): Promise<void>;
     function setZoom(tabId: number, zoomFactor: number): Promise<void>;
+    function toggleReaderMode(tabId?: number): Promise<void>;
 }
+
+// html-tagged-template.js
+declare function html(strings: TemplateStringsArray, ...values: any[]): HTMLElement

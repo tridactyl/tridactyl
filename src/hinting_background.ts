@@ -12,12 +12,27 @@ async function reset() {
     return await messageActiveTab('hinting_content', 'reset')
 }
 
+export async function hintPageYank() {
+    return await messageActiveTab('hinting_content', 'hintPageYank')
+}
+
+export async function hintPageTextYank() {
+    return await messageActiveTab('hinting_content', 'hintPageTextYank')
+}
 export async function hintPageSimple() {
     return await messageActiveTab('hinting_content', 'hintPageSimple')
 }
 
 export async function hintPageOpenInBackground() {
     return await messageActiveTab('hinting_content', 'hintPageOpenInBackground')
+}
+
+export async function hintImage(inBackground) {
+    return await messageActiveTab('hinting_content', 'hintImage', [inBackground])
+}
+
+export async function hintFocus() {
+    return await messageActiveTab('hinting_content', 'hintFocus')
 }
 
 import {MsgSafeKeyboardEvent} from './msgsafe'
