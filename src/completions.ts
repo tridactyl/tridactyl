@@ -54,6 +54,15 @@ export abstract class CompletionSource {
     get state() {
         return this._state
     }
+
+    next(inc = 1): boolean {
+        return false
+    }
+
+    prev(inc = 1): boolean {
+        return this.next(-1*inc)
+    }
+
 }
 
 // Default classes
@@ -66,7 +75,7 @@ abstract class CompletionOptionHTML extends CompletionOption {
 
     /** Control presentation of element */
     set state(newstate: OptionState) {
-        console.log("state from to", this._state, newstate)
+        // console.log("state from to", this._state, newstate)
         switch (newstate) {
             case 'focused':
                 this.html.classList.add('focused')
@@ -81,6 +90,11 @@ abstract class CompletionOptionHTML extends CompletionOption {
                 this.html.classList.add('hidden')
                 break;
         }
+        this._state = newstate
+    }
+
+    get state() {
+        return this._state
     }
 }
 
@@ -99,6 +113,7 @@ abstract class CompletionSourceFuse extends CompletionSource {
     public node
     public options: CompletionOptionFuse[]
     protected lastExstr: string
+    protected lastFocused: CompletionOption
 
     protected optionContainer = html`<table class="optionContainer">`
 
@@ -122,7 +137,7 @@ abstract class CompletionSourceFuse extends CompletionSource {
         this.onInput(exstr)
         this.updateChain()
     }
-
+    
     updateChain(exstr = this.lastExstr, options = this.options) {
         if (options === undefined) {
             this.state = 'hidden'
@@ -131,7 +146,7 @@ abstract class CompletionSourceFuse extends CompletionSource {
 
         const [prefix, query] = this.splitOnPrefix(exstr)
 
-        console.log(prefix, query, options)
+        // console.log(prefix, query, options)
 
         // Hide self and stop if prefixes don't match
         if (prefix) {
@@ -161,6 +176,7 @@ abstract class CompletionSourceFuse extends CompletionSource {
             const [prefix, _] = this.splitOnPrefix(this.lastExstr)
             this.completion = prefix + option.value
             option.state = 'focused'
+            this.lastFocused = option
         } else {
             throw new Error("lastExstr and option must be defined!")
         }
@@ -168,6 +184,7 @@ abstract class CompletionSourceFuse extends CompletionSource {
 
     deselect() {
         this.completion = undefined
+        if (this.lastFocused != undefined) this.lastFocused.state = "normal"
     }
 
     splitOnPrefix(exstr: string) {
@@ -179,35 +196,62 @@ abstract class CompletionSourceFuse extends CompletionSource {
         }
         return [undefined, undefined]
     }
+    
+
+    fuseOptions = {
+        keys: ["fuseKeys"],
+        shouldSort: true,
+        id: "index",
+        includeScore: true,
+    }
+
+    // PERF: Could be expensive not to cache Fuse()
+    // yeah, it was.
+    fuse = undefined
 
     /** Rtn sorted array of {option, score} */
     scoredOptions(query: string, options = this.options): ScoredOption[] {
-        const fuseOptions = {
-            keys: ["fuseKeys"],
-            shouldSort: true,
-            id: "index",
-            includeScore: true,
-        }
+        // This is about as slow.
+        let USE_FUSE = true
+        if (!USE_FUSE){
+            const searchThis = this.options.map(
+                (elem, index) => {
+                    return {index, fuseKeys: elem.fuseKeys[0]}
+                })
 
-        // Can't sort the real options array because Fuse loses class information.
-        const searchThis = this.options.map(
-            (elem, index) => {
-                return {index, fuseKeys: elem.fuseKeys}
-            })
-
-        // PERF: Could be expensive not to cache Fuse()
-        const fuse = new Fuse(searchThis, fuseOptions)
-        return fuse.search(query).map(
-            res => {
-                let result = res as any
-                console.log(result, result.item, query)
-                let index = toNumber(result.item)
+            return searchThis.map(r => {
                 return {
-                    index,
-                    option: this.options[index],
-                    score: result.score as number
+                    index: r.index,
+                    option: this.options[r.index],
+                    score: r.fuseKeys.length
                 }
             })
+        } else {
+
+            // Can't sort the real options array because Fuse loses class information.
+            
+            if (!this.fuse){
+                let searchThis = this.options.map(
+                    (elem, index) => {
+                        return {index, fuseKeys: elem.fuseKeys}
+                    }
+                )
+
+                this.fuse = new Fuse(searchThis, this.fuseOptions)
+            }
+            return this.fuse.search(query).map(
+                res => {
+                    let result = res as any
+                    // console.log(result, result.item, query)
+                    let index = toNumber(result.item)
+                    return {
+                        index,
+                        option: this.options[index],
+                        score: result.score as number
+                    }
+                }
+            )
+        }
     }
 
     /** Set option state by score
@@ -215,7 +259,7 @@ abstract class CompletionSourceFuse extends CompletionSource {
         For now just displays all scored elements (see threshold in fuse) and
         focus the best match.
     */
-    setStateFromScore(scoredOpts: ScoredOption[]) {
+    setStateFromScore(scoredOpts: ScoredOption[], autoselect = false) {
         let matches = scoredOpts.map(res => res.index)
 
         for (const [index, option] of enumerate(this.options)) {
@@ -223,7 +267,8 @@ abstract class CompletionSourceFuse extends CompletionSource {
             else option.state = 'hidden'
         }
 
-        if (matches.length) {
+        // ideally, this would not deselect anything unless it fell off the list of matches
+        if (matches.length && autoselect) {
             this.select(this.options[matches[0]])
         } else {
             this.deselect()
@@ -243,7 +288,7 @@ abstract class CompletionSourceFuse extends CompletionSource {
 
         for (const option of this.options) {
             /* newContainer.appendChild(option.html) */
-            this.optionContainer.appendChild(option.html)
+            if (option.state != "hidden") this.optionContainer.appendChild(option.html)
         }
 
         /* console.log('updateDisplay', this.optionContainer, newContainer) */
@@ -252,11 +297,104 @@ abstract class CompletionSourceFuse extends CompletionSource {
         /* let res2 = this.node.appendChild(newContainer) */
         /* console.log('results', result1, res2) */
     }
+
+    next(inc=1){
+        if (this.state != "hidden"){
+            let visopts = this.options.filter((o) => o.state != "hidden")
+            let currind = visopts.findIndex((o) => o.state == "focused")
+            this.deselect()
+            this.select(visopts[currind + inc])
+            return true
+        } else return false
+    }
+
 }
 
 // }}}
 
 // {{{ IMPLEMENTATIONS
+
+class HistoryCompletionOption extends CompletionOptionHTML implements CompletionOptionFuse {
+    public fuseKeys = []
+
+    constructor(public value: string, page: browser.history.HistoryItem) {
+        super()
+        // Two character buffer properties prefix
+        // Push prefix before padding so we don't match on whitespace
+
+        // Push properties we want to fuzmatch on
+        this.fuseKeys.push(page.title, page.url) // weight by page.visitCount
+
+        // Create HTMLElement
+        // need to download favicon
+        const favIconUrl = DEFAULT_FAVICON
+        // const favIconUrl = tab.favIconUrl ? tab.favIconUrl : DEFAULT_FAVICON
+        this.html = html`<tr class="HistoryCompletionOption option">
+            <td class="prefix">${"".padEnd(2)}</td>
+            <td></td>
+            <td>${page.title}</td>
+            <td><a class="url" target="_blank" href=${page.url}>${page.url}</a></td>
+        </tr>`
+    }
+}
+
+function sleep(ms: number) {
+    return new Promise(resolve => setTimeout(resolve, ms))
+}
+
+
+export class HistoryCompletionSource extends CompletionSourceFuse {
+    public options: HistoryCompletionOption[]
+
+    // TODO:
+    //     - store the exstr and trigger redraws on user or data input without
+    //       callback faffery
+    //     - sort out the element redrawing.
+
+    constructor(private _parent) {
+        super(
+            [
+                "open ",
+                "tabopen ",
+                "winopen ",
+            ],
+            "HistoryCompletionSource", "History"
+        )
+
+        this.updateOptions()
+        this._parent.appendChild(this.node)
+    }
+
+    private async updateOptions(exstr?: string) {
+        /* console.log('updateOptions', this.optionContainer) */
+        // this sleep stops input from being blocked, but also breaks :open until something is typed
+        // await sleep(0)
+        const history: browser.history.HistoryItem[] =
+            await Messaging.message("commandline_background", "history")
+
+        const options = []
+
+        // Get alternative tab, defined as last accessed tab.
+        history.sort((a, b) => { return a.lastVisitTime < b.lastVisitTime ? 1 : -1 })
+
+        for (const page of history) {
+            options.push(new HistoryCompletionOption(
+                page.url,
+                page,
+            ))
+        }
+
+        /* console.log('updateOptions end', this.waiting, this.optionContainer) */
+        this.options = options
+        this.updateChain()
+    }
+
+    async onInput(exstr) {
+        // Schedule an update, if you like. Not very useful for buffers, but
+        // will be for other things.
+        this.updateOptions()
+    }
+}
 
 class BufferCompletionOption extends CompletionOptionHTML implements CompletionOptionFuse {
     public fuseKeys = []
@@ -339,6 +477,7 @@ export class BufferCompletionSource extends CompletionSourceFuse {
         // will be for other things.
         this.updateOptions()
     }
+    setStateFromScore(scoredOpts: ScoredOption[]){super.setStateFromScore(scoredOpts, true)}
 }
 
 // {{{ UNUSED: MANAGING ASYNC CHANGES

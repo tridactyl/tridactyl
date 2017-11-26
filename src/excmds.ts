@@ -98,11 +98,10 @@ function hasScheme(uri: string) {
     return uri.match(/^([\w-]+):/)
 }
 
-/** We use this over encodeURIComponent so that '+'s in non queries are not encoded. */
 /** @hidden */
 function searchURL(provider: string, query: string) {
     if (SEARCH_URLS.has(provider)) {
-        const url = new URL(SEARCH_URLS.get(provider) + query)
+        const url = new URL(SEARCH_URLS.get(provider) + encodeURIComponent(query))
         // URL constructor doesn't convert +s because they're valid literals in
         // the standard it adheres to. But they are special characters in
         // x-www-form-urlencoded and e.g. google excepts query parameters in
@@ -615,6 +614,13 @@ export function suppress(preventDefault?: boolean, stopPropagation?: boolean) {
     mode("ignore")
 }
 
+//#background
+export function version(){
+    clipboard("yank","REPLACE_ME_WITH_THE_VERSION_USING_SED")
+    fillcmdline_notrail("REPLACE_ME_WITH_THE_VERSION_USING_SED")
+
+}
+
 /** Example:
         - `mode ignore` to ignore all keys.
 */
@@ -880,7 +886,7 @@ export async function quickmark(key: string) {
 //#background_helper
 import * as hinting from './hinting_background'
 
-/** Hint a page. 
+/** Hint a page.
 *
 * Pass -b as first argument to open hinted page in background.
 * -y copies the link's target to the clipboard.
@@ -892,6 +898,7 @@ export function hint(option?: "-b") {
     else if (option === "-p") hinting.hintPageTextYank()
     else if (option === "-i") hinting.hintImage(false)
     else if (option === "-I") hinting.hintImage(true)
+    else if (option === "-;") hinting.hintFocus()
     else hinting.hintPageSimple()
 }
 

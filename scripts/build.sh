@@ -10,6 +10,6 @@ scripts/excmds_macros.py
 scripts/newtab.md.sh
 scripts/make_docs.sh &
 
-webpack --display errors-only &
+(webpack --display errors-only && scripts/git_version.sh)&
 
 wait

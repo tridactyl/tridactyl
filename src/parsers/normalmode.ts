@@ -14,7 +14,7 @@ export const DEFAULTNMAPS = {
     "O": "current_url open",
     "w": "fillcmdline winopen",
     "W": "current_url winopen",
-    "t": "tabopen",
+    "t": "fillcmdline tabopen",
     //["t": "fillcmdline tabopen", // for now, use mozilla completion
     "]]": "followpage next",
     "[[": "followpage prev",
@@ -56,6 +56,7 @@ export const DEFAULTNMAPS = {
     ";I": "hint -I",
     ";y": "hint -y",
     ";p": "hint -p",
+    ";;": "hint -;",
     "I": "mode ignore",
     "a": "current_url bmark",
     "A": "bmark",

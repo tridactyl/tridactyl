@@ -39,6 +39,7 @@ function enableCompletions() {
     if (! activeCompletions) {
         activeCompletions = [
             new Completions.BufferCompletionSource(completionsDiv),
+            new Completions.HistoryCompletionSource(completionsDiv),
         ]
 
         const fragment = document.createDocumentFragment()
@@ -48,10 +49,13 @@ function enableCompletions() {
 }
 /* document.addEventListener("DOMContentLoaded", enableCompletions) */
 
+let noblur = e =>  setTimeout(() => clInput.focus(), 0)
+
 export function focus() {
     enableCompletions()
     document.body.classList.remove('hidden')
     clInput.focus()
+    clInput.addEventListener("blur",noblur)
 }
 
 async function sendExstr(exstr) {
@@ -59,10 +63,26 @@ async function sendExstr(exstr) {
 }
 
 /* Process the commandline on enter. */
+
 clInput.addEventListener("keydown", function (keyevent) {
     switch (keyevent.key) {
         case "Enter":
             process()
+            break
+
+        case "j":
+            if (keyevent.ctrlKey){
+                // stop Firefox from giving focus to the omnibar
+                keyevent.preventDefault()
+                keyevent.stopPropagation()
+                process()
+            }
+            break
+
+        case "m":
+            if (keyevent.ctrlKey){
+                process()
+            }
             break
 
         case "Escape":
@@ -100,7 +120,17 @@ clInput.addEventListener("keydown", function (keyevent) {
             // Stop tab from losing focus
             keyevent.preventDefault()
             keyevent.stopPropagation()
-            tabcomplete()
+            if (keyevent.shiftKey){
+                activeCompletions.forEach(comp =>
+                    comp.prev()
+                )
+            } else {
+                activeCompletions.forEach(comp =>
+                    comp.next()
+                )
+
+            }
+            // tabcomplete()
             break
 
     }
@@ -118,6 +148,7 @@ let cmdline_history_position = 0
 let cmdline_history_current = ""
 
 async function hide_and_clear(){
+    clInput.removeEventListener("blur",noblur)
     clInput.value = ""
 
     // Try to make the close cmdline animation as smooth as possible.
