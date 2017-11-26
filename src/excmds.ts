@@ -511,6 +511,13 @@ export function suppress(preventDefault?: boolean, stopPropagation?: boolean) {
     mode("ignore")
 }
 
+//#background
+export function version(){
+    clipboard("yank","REPLACE_ME_WITH_THE_VERSION_USING_SED")
+    fillcmdline_notrail("REPLACE_ME_WITH_THE_VERSION_USING_SED")
+
+}
+
 /** Example:
         - `mode ignore` to ignore all keys.
 */
