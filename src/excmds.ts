@@ -810,7 +810,7 @@ export async function buffer(n?: number | string) {
     Examples:
 
         - `bind G fillcmdline tabopen google`
-        - `bind D composite tabclose | tabprev`
+        - `bind D composite tabclose | buffer #`
         - `bind j scrollline 20`
         - `bind F hint -b`
 
