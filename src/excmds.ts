@@ -493,29 +493,52 @@ document.addEventListener("focusin",e=>{if (DOM.isTextEditable(e.target as HTMLE
 
 // {{{ TABS
 
-/** Switch to the next tab by index (position on tab bar), wrapping round.
+/** Switch to the tab by index (position on tab bar), wrapping round.
 
-    optional increment is number of tabs forwards to move.
+    Note: all internal indices should start at 0.
  */
-//#background
-export async function tabnext(increment = 1) {
+/** @hidden */
+//#background_helper
+async function tabindex(index: number) {
     // Get an array of tabs in the current window
     let current_window = await browser.windows.getCurrent()
     let tabs = await browser.tabs.query({windowId: current_window.id})
 
-    // Derive the index we want
-    let desiredIndex = ((await activeTab()).index + increment).mod(tabs.length)
-
     // Find and switch to the tab with that index
     let desiredTab = tabs.find((tab: any) => {
-        return tab.index === desiredIndex
+        return tab.index === index.mod(tabs.length)
     })
     tabSetActive(desiredTab.id)
 }
 
+/** Switch to the next tab, wrapping round.
+
+    If increment is specified, move that many tabs forwards.
+ */
 //#background
-export function tabprev(increment = 1) {
-    tabnext(increment * -1)
+export async function tabnext(increment = 1) {
+    tabindex((await activeTab()).index + increment)
+}
+
+/** Switch to the previous tab, wrapping round.
+
+    If increment is specified, move that many tabs backwards.
+ */
+//#background
+export async function tabprev(increment = 1) {
+    tabindex((await activeTab()).index - increment)
+}
+
+/** Switch to the first tab. */
+//#background
+export async function tabfirst() {
+    tabindex(0)
+}
+
+/** Switch to the last tab. */
+//#background
+export async function tablast() {
+    tabindex(-1)
 }
 
 /** Like [[open]], but in a new tab */
@@ -805,23 +828,26 @@ export async function buffers() {
     tabs()
 }
 
-/** Change active tab */
+/** Change active tab.
+
+    The buffer index starts at 1.
+ */
 //#background
 export async function buffer(n?: number | string) {
-    if (!n || Number(n) == 0) return // Vimperator index starts at 1
+    if (!n)
+        return
+
     if (n === "#") {
-        n =
+        // Switch to the most recently accessed buffer
+        tabindex(
             (await browser.tabs.query({currentWindow: true})).sort((a, b) => {
                 return a.lastAccessed < b.lastAccessed ? 1 : -1
-            })[1].index + 1
-    }
-    if (Number.isInteger(Number(n))) {
-        tabSetActive(
-            (await browser.tabs.query({
-                currentWindow: true,
-                index: Number(n) - 1,
-            }))[0].id
+            })[1].index
         )
+    }
+    else if (Number.isInteger(Number(n))) {
+        // Internal indices start at 0.
+        tabindex(Number(n) - 1)
     }
 }
 
