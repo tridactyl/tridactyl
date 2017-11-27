@@ -3,4 +3,9 @@
 # Combine newtab markdown and template
 
 cd src/static
-sed "/REPLACETHIS/s/REPLACETHIS/marked newtab.md/e" newtab.template.html > ../../generated/static/newtab.html
+
+newtab="../../generated/static/newtab.html"
+
+sed "/REPLACETHIS/,$ d" newtab.template.html > "$newtab"
+marked newtab.md >> "$newtab"
+sed "1,/REPLACETHIS/ d" newtab.template.html >> "$newtab"
