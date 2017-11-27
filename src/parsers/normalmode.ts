@@ -39,6 +39,8 @@ export const DEFAULTNMAPS = {
     "gi": "focusinput -l",
     "gt": "tabnext",
     "gT": "tabprev",
+    "g^": "tabfirst",
+    "g$": "tablast",
     "gr": "reader",
     "gu": "urlparent",
     "gU": "urlroot",
