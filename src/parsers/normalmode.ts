@@ -22,6 +22,8 @@ export const DEFAULTNMAPS = {
     "]c": "urlincrement 1",
     "T": "current_url tabopen",
     "yy": "clipboard yank",
+    "ys": "clipboard yankshort",
+    "yc": "clipboard yankcanon",
     "p": "clipboard open",
     "P": "clipboard tabopen",
     "j": "scrollline 10",
