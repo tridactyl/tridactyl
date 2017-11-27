@@ -482,7 +482,10 @@ document.addEventListener("focusin",e=>{if (DOM.isTextEditable(e.target as HTMLE
 
 // {{{ TABS
 
-/** Switch to the tab by index (position on tab bar), wrapping round. */
+/** Switch to the tab by index (position on tab bar), wrapping round.
+
+    Note: all internal indices should start at 0.
+ */
 /** @hidden */
 //#background_helper
 async function tabindex(index: number) {
@@ -797,23 +800,26 @@ export async function buffers() {
     tabs()
 }
 
-/** Change active tab */
+/** Change active tab.
+
+    The buffer index starts at 1.
+ */
 //#background
 export async function buffer(n?: number | string) {
-    if (!n || Number(n) == 0) return // Vimperator index starts at 1
+    if (!n)
+        return
+
     if (n === "#") {
-        n =
+        // Switch to the most recently accessed buffer
+        tabindex(
             (await browser.tabs.query({currentWindow: true})).sort((a, b) => {
                 return a.lastAccessed < b.lastAccessed ? 1 : -1
-            })[1].index + 1
-    }
-    if (Number.isInteger(Number(n))) {
-        tabSetActive(
-            (await browser.tabs.query({
-                currentWindow: true,
-                index: Number(n) - 1,
-            }))[0].id
+            })[1].index
         )
+    }
+    else if (Number.isInteger(Number(n))) {
+        // Internal indices start at 0.
+        tabindex(Number(n) - 1)
     }
 }
 
