@@ -493,29 +493,49 @@ document.addEventListener("focusin",e=>{if (DOM.isTextEditable(e.target as HTMLE
 
 // {{{ TABS
 
-/** Switch to the next tab by index (position on tab bar), wrapping round.
-
-    optional increment is number of tabs forwards to move.
- */
-//#background
-export async function tabnext(increment = 1) {
+/** Switch to the tab by index (position on tab bar), wrapping round. */
+/** @hidden */
+//#background_helper
+async function tabindex(index: number) {
     // Get an array of tabs in the current window
     let current_window = await browser.windows.getCurrent()
     let tabs = await browser.tabs.query({windowId: current_window.id})
 
-    // Derive the index we want
-    let desiredIndex = ((await activeTab()).index + increment).mod(tabs.length)
-
     // Find and switch to the tab with that index
     let desiredTab = tabs.find((tab: any) => {
-        return tab.index === desiredIndex
+        return tab.index === index.mod(tabs.length)
     })
     tabSetActive(desiredTab.id)
 }
 
+/** Switch to the next tab, wrapping round.
+
+    If increment is specified, move that many tabs forwards.
+ */
 //#background
-export function tabprev(increment = 1) {
-    tabnext(increment * -1)
+export async function tabnext(increment = 1) {
+    tabindex((await activeTab()).index + increment)
+}
+
+/** Switch to the previous tab, wrapping round.
+
+    If increment is specified, move that many tabs backwards.
+ */
+//#background
+export async function tabprev(increment = 1) {
+    tabindex((await activeTab()).index - increment)
+}
+
+/** Switch to the first tab. */
+//#background
+export async function tabfirst() {
+    tabindex(0)
+}
+
+/** Switch to the last tab. */
+//#background
+export async function tablast() {
+    tabindex(-1)
 }
 
 /** Like [[open]], but in a new tab */
