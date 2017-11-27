@@ -833,10 +833,7 @@ export async function buffers() {
     The buffer index starts at 1.
  */
 //#background
-export async function buffer(n?: number | string) {
-    if (!n)
-        return
-
+export async function buffer(n: number | '#') {
     if (n === "#") {
         // Switch to the most recently accessed buffer
         tabindex(
@@ -844,8 +841,7 @@ export async function buffer(n?: number | string) {
                 return a.lastAccessed < b.lastAccessed ? 1 : -1
             })[1].index
         )
-    }
-    else if (Number.isInteger(Number(n))) {
+    } else if (Number.isInteger(Number(n))) {
         // Internal indices start at 0.
         tabindex(Number(n) - 1)
     }
