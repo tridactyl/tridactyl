@@ -360,6 +360,17 @@ export function urlparent (){
     }
 }
 
+/** Returns the url of links that have a matching rel.
+ */
+//#content
+export function geturlsforlinks(rel: string){
+    let elems = document.querySelectorAll("link[rel='" + rel + "']") as NodeListOf<HTMLLinkElement>
+    console.log(rel, elems)
+    if (elems)
+        return Array.prototype.map.call(elems, x => x.href)
+    return []
+}
+
 //#background
 export function zoom(level=0){
     level = level > 3 ? level / 100 : level
@@ -739,10 +750,23 @@ export async function current_url(...strarr: string[]){
 
 */
 //#background
-export async function clipboard(excmd: "open"|"yank"|"tabopen" = "open", ...toYank: string[]) {
+export async function clipboard(excmd: "open"|"yank"|"yankshort"|"yankcanon"|"tabopen" = "open", ...toYank: string[]) {
     let content = toYank.join(" ")
     let url = ""
+    let urls = []
     switch (excmd) {
+        case 'yankshort':
+            urls = await messageActiveTab("excmd_content", "geturlsforlinks", ["shortlink"]);
+            if (urls.length > 0) {
+                messageActiveTab("commandline_frame", "setClipboard", [urls[0]])
+                break
+            }
+        case 'yankcanon':
+            urls = await messageActiveTab("excmd_content", "geturlsforlinks", ["canonical"]);
+            if (urls.length > 0) {
+                messageActiveTab("commandline_frame", "setClipboard", [urls[0]])
+                break
+            }
         case 'yank':
             await messageActiveTab("commandline_content", "focus")
             content = (content == "") ? (await activeTab()).url : content
