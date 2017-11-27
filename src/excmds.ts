@@ -746,6 +746,10 @@ export async function current_url(...strarr: string[]){
 
     If `excmd == "yank"`, copy the current URL, or if given, the value of toYank, into the system clipboard.
 
+    If `excmd == "yankcanon"`, copy the canonical URL of the current page if it exists, otherwise copy the current URL.
+
+    If `excmd == "yankshort"`, copy the shortlink version of the current URL, and fall back to the canonical then actual URL. Known to work on https://yankshort.neocities.org/.
+
     Unfortunately, javascript can only give us the `clipboard` clipboard, not e.g. the X selection clipboard.
 
 */
