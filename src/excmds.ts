@@ -830,20 +830,23 @@ export async function buffers() {
 
 /** Change active tab.
 
-    The buffer index starts at 1.
+    @param index
+        Starts at 1. 0 refers to last tab, -1 to penultimate tab, etc.
+
+        "#" means the tab that was last accessed in this window
  */
 //#background
-export async function buffer(n: number | '#') {
-    if (n === "#") {
+export async function buffer(index: number | '#') {
+    if (index === "#") {
         // Switch to the most recently accessed buffer
         tabindex(
             (await browser.tabs.query({currentWindow: true})).sort((a, b) => {
                 return a.lastAccessed < b.lastAccessed ? 1 : -1
             })[1].index
         )
-    } else if (Number.isInteger(Number(n))) {
+    } else if (Number.isInteger(Number(index))) {
         // Internal indices start at 0.
-        tabindex(Number(n) - 1)
+        tabindex(Number(index) - 1)
     }
 }
 
