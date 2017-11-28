@@ -594,6 +594,18 @@ async function idFromIndex(index?: number): Promise<number> {
     }
 }
 
+/** Close all tabs but current */
+//#background
+export async function tabonly() {
+    let tabs = browser.tabs.query({pinned: false, active: false})
+    let tabsIds = []
+    for (let id of await tabs) {
+        tabsIds.push(id.id)
+    }
+    browser.tabs.remove(tabsIds)
+}
+
+
 /** Duplicate a tab.
 
     @param index
