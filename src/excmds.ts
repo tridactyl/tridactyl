@@ -495,20 +495,16 @@ document.addEventListener("focusin",e=>{if (DOM.isTextEditable(e.target as HTMLE
 
 /** Switch to the tab by index (position on tab bar), wrapping round.
 
-    Note: all internal indices should start at 0.
- */
+    @param index
+        1-based index of the tab to target. Wraps such that 0 = last tab, -1 =
+        penultimate tab, etc.
+
+        if undefined, return activeTabId()
+*/
 /** @hidden */
 //#background_helper
-async function tabindex(index: number) {
-    // Get an array of tabs in the current window
-    let current_window = await browser.windows.getCurrent()
-    let tabs = await browser.tabs.query({windowId: current_window.id})
-
-    // Find and switch to the tab with that index
-    let desiredTab = tabs.find((tab: any) => {
-        return tab.index === index.mod(tabs.length)
-    })
-    tabSetActive(desiredTab.id)
+async function tabIndexSetActive(index: number) {
+    tabSetActive(await idFromIndex(index))
 }
 
 /** Switch to the next tab, wrapping round.
@@ -517,7 +513,7 @@ async function tabindex(index: number) {
  */
 //#background
 export async function tabnext(increment = 1) {
-    tabindex((await activeTab()).index + increment)
+    tabIndexSetActive((await activeTab()).index + increment + 1)
 }
 
 /** Switch to the previous tab, wrapping round.
@@ -526,19 +522,19 @@ export async function tabnext(increment = 1) {
  */
 //#background
 export async function tabprev(increment = 1) {
-    tabindex((await activeTab()).index - increment)
+    tabIndexSetActive((await activeTab()).index - increment + 1)
 }
 
 /** Switch to the first tab. */
 //#background
 export async function tabfirst() {
-    tabindex(0)
+    tabIndexSetActive(1)
 }
 
 /** Switch to the last tab. */
 //#background
 export async function tablast() {
-    tabindex(-1)
+    tabIndexSetActive(0)
 }
 
 /** Like [[open]], but in a new tab */
@@ -550,24 +546,70 @@ export async function tabopen(...addressarr: string[]) {
     browser.tabs.create({url: uri})
 }
 
-//#background
-export async function tabduplicate(id?: number){
-    id = id ? id : (await activeTabId())
-    browser.tabs.duplicate(id)
-}
+/** Resolve a tab index to the tab id of the corresponding tab in this window.
 
-//#background
-export async function tabdetach(id?: number){
-    id = id ? id : (await activeTabId())
-    browser.windows.create({tabId: id})
-}
+    @param index
+        1-based index of the tab to target. Wraps such that 0 = last tab, -1 =
+        penultimate tab, etc.
 
-//#background
-export async function tabclose(ids?: number[] | number) {
-    if (ids !== undefined) {
-        browser.tabs.remove(ids)
+        if undefined, return activeTabId()
+
+    @hidden
+*/
+//#background_helper
+async function idFromIndex(index?: number): Promise<number> {
+    if (index) {
+        // Wrap if required
+        if (index <= 0) {
+            index = (index - 1).mod(
+                (await browser.tabs.query({currentWindow: true})).length)
+                + 1
+        }
+
+        // Return id of tab with that index.
+        return (await browser.tabs.query({
+            currentWindow: true,
+            index: index - 1,
+        }))[0].id
     } else {
-        // Close the current tab
+        return await activeTabId()
+    }
+}
+
+/** Duplicate a tab.
+
+    @param index
+        The 1-based index of the tab to target. index < 1 wraps. If omitted, this tab.
+*/
+//#background
+export async function tabduplicate(index?: number) {
+    browser.tabs.duplicate(await idFromIndex(index))
+}
+
+/** Detach a tab, opening it in a new window.
+
+    @param index
+        The 1-based index of the tab to target. index < 1 wraps. If omitted, this tab.
+*/
+//#background
+export async function tabdetach(index?: number) {
+    browser.windows.create({tabId: await idFromIndex(index)})
+}
+
+/** Close a tab.
+
+    Known bug: autocompletion will make it impossible to close more than one tab at once if the list of numbers looks enough like an open tab's title or URL.
+
+    @param indexes
+        The 1-based indexes of the tabs to target. indexes < 1 wrap. If omitted, this tab.
+*/
+//#background
+export async function tabclose(...indexes: string[]) {
+    if (indexes.length > 0) {
+        const idsPromise = indexes.map(index => idFromIndex(Number(index)))
+        browser.tabs.remove(await Promise.all(idsPromise))
+    } else {
+        // Close current tab
         browser.tabs.remove(await activeTabId())
     }
 }
@@ -592,17 +634,29 @@ export async function undo(){
     }
 }
 
+/** Move the current tab to be just in front of the index specified.
+
+    Known bug: This supports relative movement, but autocomple doesn't know
+    that yet and will override positive and negative indexes.
+
+    Put a space in front of tabmove if you want to disable completion and have
+    the relative indexes at the command line.
+
+    Binds are unaffected.
+
+    @param index
+        New index for the current tab.
+
+        1 is the first index. 0 is the last index. -1 is the penultimate, etc.
+*/
 //#background
-export async function tabmove(n?: string) {
-    let aTab = await activeTab(),
-        m: number
-    if (!n) {
-        browser.tabs.move(aTab.id, {index: -1})
-        return
-    } else if (n.startsWith("+") || n.startsWith("-")) {
-        m = Math.max(0, Number(n) + aTab.index)
-    } else m = Number(n)
-    browser.tabs.move(aTab.id, {index: m})
+export async function tabmove(index = "0") {
+    const aTab = await activeTab()
+    let newindex: number
+    if (index.startsWith("+") || index.startsWith("-")) {
+        newindex = Math.max(0, Number(index) + aTab.index)
+    } else newindex = Number(index) - 1
+    browser.tabs.move(aTab.id, {index: newindex})
 }
 
 /** Pin the current tab */
@@ -839,14 +893,13 @@ export async function buffers() {
 export async function buffer(index: number | '#') {
     if (index === "#") {
         // Switch to the most recently accessed buffer
-        tabindex(
+        tabIndexSetActive(
             (await browser.tabs.query({currentWindow: true})).sort((a, b) => {
                 return a.lastAccessed < b.lastAccessed ? 1 : -1
-            })[1].index
+            })[1].index + 1
         )
     } else if (Number.isInteger(Number(index))) {
-        // Internal indices start at 0.
-        tabindex(Number(index) - 1)
+        tabIndexSetActive(Number(index))
     }
 }
 
