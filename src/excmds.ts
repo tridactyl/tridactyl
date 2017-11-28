@@ -529,6 +529,15 @@ export async function tabprev(increment = 1) {
     tabIndexSetActive((await activeTab()).index - increment + 1)
 }
 
+//#background
+export async function tabchoose(n: number | string = "next"){
+    if (n == "next") tabnext()
+    else if (n == "prev") tabprev()
+    else {
+        tabIndexSetActive(n as number)
+    }
+}
+
 /** Switch to the first tab. */
 //#background
 export async function tabfirst() {
