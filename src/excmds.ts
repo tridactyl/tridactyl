@@ -520,6 +520,22 @@ export async function tabnext(increment = 1) {
     tabIndexSetActive((await activeTab()).index + increment + 1)
 }
 
+/** Switch to the next tab, wrapping round.
+
+    If an index is specified, go to the tab with that number (this mimics the
+    behaviour of `{count}gt` in vim, except that this command will accept a
+    count that is out of bounds (and will mod it so that it is within bounds as
+    per [[tabmove]], etc)).
+ */
+//#background
+export async function tabnext_gt(index?: number) {
+    if (index === undefined) {
+        tabnext()
+    } else {
+        tabIndexSetActive(index)
+    }
+}
+
 /** Switch to the previous tab, wrapping round.
 
     If increment is specified, move that many tabs backwards.
@@ -527,15 +543,6 @@ export async function tabnext(increment = 1) {
 //#background
 export async function tabprev(increment = 1) {
     tabIndexSetActive((await activeTab()).index - increment + 1)
-}
-
-//#background
-export async function tabchoose(n: number | string = "next"){
-    if (n == "next") tabnext()
-    else if (n == "prev") tabprev()
-    else {
-        tabIndexSetActive(n as number)
-    }
 }
 
 /** Switch to the first tab. */
