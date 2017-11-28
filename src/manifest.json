@@ -51,6 +51,7 @@
         "webNavigation",
         "webRequest",
         "webRequestBlocking",
+        "nativeMessaging",
         "<all_urls>"
     ],
     "applications": {

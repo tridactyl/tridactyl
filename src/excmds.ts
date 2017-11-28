@@ -1307,6 +1307,13 @@ export function unset(target: string, property?: string){
 //    saveconfig()
 //}
 
+import * as Native from "./native_background"
+
+//#background
+export async function ping() {
+    Native.connectNM()
+    Native.pingNM()
+}
 
 // }}}
 
