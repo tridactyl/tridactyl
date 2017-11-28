@@ -234,6 +234,12 @@ function anchors() {
     return DOM.getElemsBySelector(HINTTAGS_anchor_selectors, [DOM.isVisible])
 }
 
+/** Array of items that can be killed with hint kill
+ */
+function killables() {
+    return DOM.getElemsBySelector(HINTTAGS_killable_selectors, [DOM.isVisible])
+}
+
 // CSS selectors. More readable for web developers. Not dead. Leaves browser to care about XML.
 const HINTTAGS_selectors = `
 input:not([type=hidden]):not([disabled]),
@@ -278,6 +284,16 @@ img,
 const HINTTAGS_anchor_selectors = `
 [id],
 [name]
+`
+
+const HINTTAGS_killable_selectors = `
+span,
+div,
+iframe,
+img,
+button,
+article,
+summary
 `
 
 import {activeTab, browserBg, l, firefoxVersionAtLeast} from './lib/webext'
@@ -387,6 +403,14 @@ function hintRead() {
     })
 }
 
+/** Hint elements and delete the selection from the page
+ */
+function hintKill() {
+    hintPage(killables(), hint=>{
+        hint.target.remove();
+    })
+}
+
 function selectFocusedHint() {
     console.log("Selecting hint.", state.mode)
     const focused = modeState.focusedHint
@@ -407,4 +431,5 @@ addListener('hinting_content', attributeCaller({
     hintImage,
     hintFocus,
     hintRead,
+    hintKill,
 }))

@@ -1301,6 +1301,7 @@ import * as hinting from './hinting_background'
         - -r read an element's text with text-to-speech
         - -i view an image
         - -I view an image in a new tab
+        - -k delete an element from the page
         - -; focus an element
         - -# yank an element's anchor URL to clipboard
         - -c [selector] hint links that match the css selector
@@ -1316,6 +1317,7 @@ export function hint(option?: string, selectors="") {
     else if (option === "-p") hinting.hintPageTextYank()
     else if (option === "-i") hinting.hintImage(false)
     else if (option === "-I") hinting.hintImage(true)
+    else if (option === "-k") hinting.hintKill()
     else if (option === "-;") hinting.hintFocus()
     else if (option === "-#") hinting.hintPageAnchorYank()
     else if (option === "-c") hinting.hintPageSimple(selectors)
