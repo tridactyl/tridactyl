@@ -1,41 +1,71 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import json
 import sys
-import struct
+
+import nm_comms
+import user_config
+import nm_utils
 
 
-# Read a message from stdin and decode it.
-def get_message():
-    raw_length = sys.stdin.buffer.read(4)
-    if not raw_length:
-        sys.exit(0)
-    message_length = struct.unpack('@I', raw_length)[0]
-    message = sys.stdin.buffer.read(message_length)
-    return json.loads(message)
+VERSION = "1.6.0"
 
 
-# Encode a message for transmission, given its content.
-def encode_message(message_content):
-    encoded_content = json.dumps(message_content).encode("utf8")
-    encoded_length = struct.pack('@I', len(encoded_content))
-    return {'length': encoded_length, 'content': encoded_content}
+class NativeMessenger(object):
 
+    def __init__(self):
 
-# Send an encoded message to stdout.
-def send_message(encoded_message):
-    sys.stdout.buffer.write(encoded_message['length'])
-    sys.stdout.buffer.write(encoded_message['content'])
-    sys.stdout.flush()
+        self.config_mgr = user_config.ConfigManager()
+
+    def handle_message(self, message):
+        """ Handles an incoming message and returns a reply
+        """
+
+        if message["cmd"] == "version":
+            reply = {
+                "cmd": "version",
+                "version": VERSION
+            }
+
+        elif message['cmd'] == 'getconfig':
+            file_content = self.config_mgr.get_user_config()
+
+            reply = {
+                "cmd": "getconfig"
+            }
+
+            if file_content:
+                reply["content"] = file_content
+            else:
+                reply["error"] = "File not found"
+
+        else:
+            reply = {
+                "cmd": "error",
+                "error": "Unhandled messsage"
+            }
+            nm_utils.eprint("Unhandled message: {}".format(message))
+
+        return reply
 
 
 def main():
 
+    nm = NativeMessenger()
+    comms = nm_comms.StdioComms()
+
+    nm_utils.eprint("Starting Native Messenger")
+
     while True:
-        message = get_message()
-        if message == "ping":
-            send_message(encode_message("pong"))
+
+        try:
+            message = comms.get_message()
+        except comms.NoConnectionError:
+            sys.exit(0)
+
+        reply = nm.handle_message(message)
+
+        comms.send_message(reply)
 
 
 if __name__ == "__main__":

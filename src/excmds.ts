@@ -1315,6 +1315,12 @@ export async function ping() {
     Native.pingNM()
 }
 
+//#background
+export async function loadconfig() {
+    Native.connectNM()
+    Native.getUserConfig()
+}
+
 // }}}
 
 // {{{ HINTMODE

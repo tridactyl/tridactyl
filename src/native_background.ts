@@ -34,6 +34,26 @@ export function connectNM() {
 
 function handleNMResponse(response) {
     console.log("Received: " + response);
+
+    switch (response.cmd)
+    {
+        case "version":
+            console.log("Version", response.version)
+            break
+        case "getconfig":
+
+            if (response.content && !response.error) {
+                console.log("Config:", response.content)
+            } else {
+                console.log("Config error:", response.error)
+            }
+            break
+        case "error":
+            console.log("Error in native messenger:", response.error)
+            break
+        default:
+            console.log("Unrecognised reponsed from native messenger")
+    }
 }
 
 
@@ -42,5 +62,10 @@ On a click on the browser action, send the app a message.
 */
 export function pingNM() {
   console.log("Sending:  ping");
-  NM_PORT.postMessage("ping");
+    NM_PORT.postMessage({"cmd": "version"});
+}
+
+export function getUserConfig() {
+    console.log("Sending user config request")
+    NM_PORT.postMessage({"cmd": "getconfig"})
 }
