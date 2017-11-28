@@ -61,6 +61,7 @@ export const DEFAULTNMAPS = {
     ";y": "hint -y",
     ";p": "hint -p",
     ";;": "hint -;",
+    ";#": "hint -#",
     "I": "mode ignore",
     "a": "current_url bmark",
     "A": "bmark",

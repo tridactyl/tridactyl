@@ -19,6 +19,11 @@ export async function hintPageYank() {
 export async function hintPageTextYank() {
     return await messageActiveTab('hinting_content', 'hintPageTextYank')
 }
+
+export async function hintPageAnchorYank() {
+    return await messageActiveTab('hinting_content', 'hintPageAnchorYank')
+}
+
 export async function hintPageSimple() {
     return await messageActiveTab('hinting_content', 'hintPageSimple')
 }

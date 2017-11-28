@@ -1027,6 +1027,7 @@ import * as hinting from './hinting_background'
         - -i view an image
         - -I view an image in a new tab
         - -; focus an element
+        - -# yank an element's anchor URL to clipboard
 */
 //#background
 export function hint(option?: string) {
@@ -1036,6 +1037,7 @@ export function hint(option?: string) {
     else if (option === "-i") hinting.hintImage(false)
     else if (option === "-I") hinting.hintImage(true)
     else if (option === "-;") hinting.hintFocus()
+    else if (option === "-#") hinting.hintPageAnchorYank()
     else hinting.hintPageSimple()
 }
 

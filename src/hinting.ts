@@ -211,6 +211,14 @@ function hintableImages() {
         isVisible)
 }
 
+/** Get arrat of "anchors": elements which have id or name and can be addressed
+ * with the hash/fragment in the URL
+ */
+function anchors() {
+    return Array.from(document.querySelectorAll(HINTTAGS_anchor_selectors))
+        .filter(isVisible)
+}
+
 // CSS selectors. More readable for web developers. Not dead. Leaves browser to care about XML.
 const HINTTAGS_selectors = `
 input:not([type=hidden]):not([disabled]),
@@ -263,6 +271,11 @@ span
 const HINTTAGS_img_selectors = `
 img,
 [src]
+`
+
+const HINTTAGS_anchor_selectors = `
+[id],
+[name]
 `
 
 import {activeTab, browserBg, l, firefoxVersionAtLeast} from './lib/webext'
@@ -327,6 +340,20 @@ function hintPageYank() {
     })
 }
 
+/** Hint anchors and yank the URL on selection
+ */
+function hintPageAnchorYank() {
+
+    hintPage(anchors(), hint=>{
+
+        let anchorUrl = new URL(window.location.href)
+
+        anchorUrl.hash = hint.target.id || hint.target.name;
+
+        messageActiveTab("commandline_frame", "setClipboard", [anchorUrl.href])
+    })
+}
+
 /** Hint images, opening in the same tab, or in a background tab
  *
  * @param inBackground  opens the image source URL in a background tab,
@@ -366,6 +393,7 @@ addListener('hinting_content', attributeCaller({
     hintPageSimple,
     hintPageYank,
     hintPageTextYank,
+    hintPageAnchorYank,
     hintPageOpenInBackground,
     hintImage,
     hintFocus,
