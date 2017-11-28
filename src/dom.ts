@@ -183,23 +183,31 @@ export function isVisible (element: Element) {
 /** Get all elements that match the given selector
  *
  * @param selector   `the CSS selector to choose elements with
- * @param filter      filter to use to further chose items, or null for all
+ * @param filters     filter to use (in thre given order) to further chose
+ *                    items, or [] for all
  */
-export function getElemsBySelector(selector: string, filter: ElementFilter) {
+export function getElemsBySelector(selector: string,
+    filters: Array<ElementFilter>) {
+
     let elems = Array.from(document.querySelectorAll(selector))
 
-    return filter ? elems.filter(filter) : elems
+    for (let filter of filters) {
+        elems = elems.filter(filter)
+    }
+
+    return elems
 }
 
 /** Get the nth input element on a page
  *
  * @param nth         the element index, can be negative to start at the end
- * @param filter      filter to use to further chose items, or null for all
+ * @param filters     filter to use (in thre given order) to further chose
+ *                    items, or [] for all
  */
 export function getNthElement(selectors: string, nth: number,
-    filter: ElementFilter) {
+    filters: Array<ElementFilter>): HTMLElement {
 
-    let inputs = getElemsBySelector(selectors, filter)
+    let inputs = getElemsBySelector(selectors, filters)
 
     if (inputs.length) {
         let index = Number(nth).clamp(-inputs.length, inputs.length - 1)

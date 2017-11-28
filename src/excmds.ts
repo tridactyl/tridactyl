@@ -463,7 +463,7 @@ export function focusinput(nth: number|string) {
         fallbackToNumeric = false
 
         let inputs = DOM.getElemsBySelector(INPUTPASSWORD_selectors,
-                                            DOM.isSubstantial)
+                                            [DOM.isSubstantial])
 
         if (inputs.length) {
             inputToFocus = <HTMLElement>inputs[0]
@@ -472,7 +472,7 @@ export function focusinput(nth: number|string) {
     else if (nth === "-b") {
 
         let inputs = DOM.getElemsBySelector(INPUTTAGS_selectors,
-            DOM.isSubstantial) as HTMLElement[]
+            [DOM.isSubstantial]) as HTMLElement[]
 
         inputToFocus = inputs.sort(DOM.compareElementArea).slice(-1)[0]
     }
@@ -483,7 +483,7 @@ export function focusinput(nth: number|string) {
 
         let index = isNaN(<number>nth) ? 0 : <number>nth
         inputToFocus = DOM.getNthElement(INPUTTAGS_selectors,
-                                         index, DOM.isSubstantial)
+                                         index, [DOM.isSubstantial])
     }
 
     if (inputToFocus) inputToFocus.focus()

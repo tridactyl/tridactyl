@@ -10,7 +10,7 @@
         Redraw on reflow
 */
 
-import {elementsByXPath, isVisible, mouseEvent} from './dom'
+import * as DOM from './dom'
 import {log} from './math'
 import {permutationsWithReplacement, islice, izip, map} from './itertools'
 import {hasModifiers} from './keyseq'
@@ -192,31 +192,29 @@ function pushKey(ke) {
             2. Not hidden by another element
 */
 function hintables() {
-    return Array.from(document.querySelectorAll(HINTTAGS_selectors)).filter(isVisible)
+    return DOM.getElemsBySelector(HINTTAGS_selectors, [DOM.isVisible])
 }
 
 function elementswithtext() {
-    return Array.from(document.querySelectorAll(HINTTAGS_text_selectors)).filter(
-        isVisible
-    ).filter(hint => {
-        return hint.textContent != ""
-    })
+
+    return DOM.getElemsBySelector(HINTTAGS_text_selectors,
+        [DOM.isVisible, hint => {
+            return hint.textContent != ""
+        }]
+    )
 }
 
 /** Get array of images in the viewport
  */
 function hintableImages() {
-    /* return [...elementsByXPath(HINTTAGS)].filter(isVisible) as any as Element[] */
-    return Array.from(document.querySelectorAll(HINTTAGS_img_selectors)).filter(
-        isVisible)
+    return DOM.getElemsBySelector(HINTTAGS_img_selectors, [DOM.isVisible])
 }
 
 /** Get arrat of "anchors": elements which have id or name and can be addressed
  * with the hash/fragment in the URL
  */
 function anchors() {
-    return Array.from(document.querySelectorAll(HINTTAGS_anchor_selectors))
-        .filter(isVisible)
+    return DOM.getElemsBySelector(HINTTAGS_anchor_selectors, [DOM.isVisible])
 }
 
 // CSS selectors. More readable for web developers. Not dead. Leaves browser to care about XML.
@@ -303,7 +301,7 @@ function simulateClick(target: HTMLElement) {
     ) {
         browserBg.tabs.create({url: (target as HTMLAnchorElement).href})
     } else {
-        mouseEvent(target, "click")
+        DOM.mouseEvent(target, "click")
         // Sometimes clicking the element doesn't focus it sufficiently.
         target.focus()
     }
