@@ -875,12 +875,20 @@ export async function clipboard(excmd: "open"|"yank"|"yankshort"|"yankcanon"|"ta
 }
 
 // {{{ Buffer/completion stuff
-// TODO: Move autocompletions out of excmds.
-/** Ported from Vimperator. */
+
+/** Equivalent to `fillcmdline buffer`
+
+    Sort of Vimperator alias
+*/
 //#background
 export async function tabs() {
     fillcmdline("buffer")
 }
+
+/** Equivalent to `fillcmdline buffer`
+
+    Sort of Vimperator alias
+*/
 //#background
 export async function buffers() {
     tabs()
@@ -906,12 +914,6 @@ export async function buffer(index: number | '#') {
         tabIndexSetActive(Number(index))
     }
 }
-
-/*/1** Set tab with index of n belonging to window with id of m to active *1/ */
-/*//#background */
-/*export async function bufferall(m?: number, n?: number) { */
-/*    // TODO */
-/*} */
 
 // }}}
 
