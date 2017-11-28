@@ -361,6 +361,10 @@ export function urlparent (){
 }
 
 /** Returns the url of links that have a matching rel.
+
+    Don't bind to this: it's an internal function.
+
+    @hidden
  */
 //#content
 export function geturlsforlinks(rel: string){
@@ -837,13 +841,13 @@ export async function clipboard(excmd: "open"|"yank"|"yankshort"|"yankcanon"|"ta
     let urls = []
     switch (excmd) {
         case 'yankshort':
-            urls = await messageActiveTab("excmd_content", "geturlsforlinks", ["shortlink"]);
+            urls = await geturlsforlinks("shortlink")
             if (urls.length > 0) {
                 messageActiveTab("commandline_frame", "setClipboard", [urls[0]])
                 break
             }
         case 'yankcanon':
-            urls = await messageActiveTab("excmd_content", "geturlsforlinks", ["canonical"]);
+            urls = await geturlsforlinks("canonical")
             if (urls.length > 0) {
                 messageActiveTab("commandline_frame", "setClipboard", [urls[0]])
                 break

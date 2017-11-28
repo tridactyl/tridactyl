@@ -93,7 +93,7 @@ def content(lines, context):
         sig = Signature(block.split('\n')[0])
         return "cmd_params.set('{sig.name}', ".format(**locals()) + dict_to_js(sig.params) + """)
 {sig.raw}
-    messageActiveTab(
+    return messageActiveTab(
         "excmd_content", 
         "{sig.name}",
         """.format(**locals()) + str(list(sig.params.keys())).replace("'","") + """,
