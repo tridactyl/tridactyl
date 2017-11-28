@@ -35,9 +35,3 @@ declare namespace browser.tabs {
 
 // html-tagged-template.js
 declare function html(strings: TemplateStringsArray, ...values: any[]): HTMLElement
-
-// Stub declaration to allow importing JSON.
-declare module "*.json" {
-    const value: any;
-    export default value;
-}
