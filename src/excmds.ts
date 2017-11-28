@@ -572,16 +572,16 @@ export async function tabopen(...addressarr: string[]) {
 //#background_helper
 async function idFromIndex(index?: number): Promise<number> {
     if (index !== undefined) {
-        // Wrap if required
-        let tabs = (await browser.tabs.query({currentWindow: true}))
-        if (index < 0) index += tabs.length
-        index = (index - 1).mod(tabs.length) + 1
+        // Wrap
+        index = (index - 1).mod(
+            (await l(browser.tabs.query({currentWindow: true}))).length)
+            + 1
 
         // Return id of tab with that index.
-        return (await browser.tabs.query({
+        return (await l(browser.tabs.query({
             currentWindow: true,
             index: index - 1,
-        }))[0].id
+        })))[0].id
     } else {
         return await activeTabId()
     }
