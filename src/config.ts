@@ -17,6 +17,7 @@ function o(object){
     return Object.assign(Object.create(null),object)
 }
 
+// TODO: have list of possibilities for settings, e.g. hintmode: reverse | normal
 let USERCONFIG = o({})
 const DEFAULTS = o({
     "nmaps": o({
@@ -25,7 +26,6 @@ const DEFAULTS = o({
         "w": "fillcmdline winopen",
         "W": "current_url winopen",
         "t": "fillcmdline tabopen",
-        //["t": "fillcmdline tabopen", // for now, use mozilla completion
         "]]": "followpage next",
         "[[": "followpage prev",
         "[c": "urlincrement -1",
@@ -78,11 +78,12 @@ const DEFAULTS = o({
     }),
     "searchengine": "google",
     "storageloc": "sync",
+    "hintchars": "hjklasdfgyuiopqwertnmzxcvb",
+    "hintorder": "normal",
 })
 
 // currently only supports 2D or 1D storage
 export function get(target, property?){
-    console.log(DEFAULTS)
     if (property !== undefined){
         if (USERCONFIG[target] !== undefined){
             return USERCONFIG[target][property] || DEFAULTS[target][property]

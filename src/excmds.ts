@@ -250,6 +250,9 @@ export async function reloadhard(n = 1) {
         - else if the first word contains a dot, treat as a domain name
         - else if the first word is a key of [[SEARCH_URLS]], treat all following terms as search parameters for that provider
         - else treat as search parameters for google
+
+    Related settings:
+        "searchengine": "google" or any of [[SEARCH_URLS]]
 */
 //#content
 export function open(...urlarr: string[]) {
@@ -1032,10 +1035,18 @@ export function get(target: string, property?: string){
     console.log(config.get(target,property))
 }
 
+/** Set a setting to a value
+
+    Currently, this only supports string settings without any whitespace
+    (i.e. not nmaps.)
+
+    It can be used on any string <-> string settings found [here](/static/docs/modules/_config_.html#defaults)
+ 
+*/
 //#background
-export function set(target: string, value: string){
+export function set(setting: string, value: string){
     // We don't support setting objects yet
-    if (target != "nmaps") config.set(target,value)
+    if (setting != "nmaps") config.set(setting,value)
 }
 
 //#background
@@ -1074,6 +1085,10 @@ import * as hinting from './hinting_background'
         - -# yank an element's anchor URL to clipboard
         - -c [selector] hint links that match the css selector
           - `bind ;c hint -c [class*="expand"],[class="togg"]` works particularly well on reddit and HN
+
+    Related settings:
+        "hintchars": "hjklasdfgyuiopqwertnmzxcvb"
+        "hintorder": "normal" or "reverse"
 */
 //#background
 export function hint(option?: string, selectors="") {

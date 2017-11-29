@@ -16,6 +16,7 @@ import {permutationsWithReplacement, islice, izip, map} from './itertools'
 import {hasModifiers} from './keyseq'
 import state from './state'
 import {messageActiveTab} from './messaging'
+import * as config from './config'
 
 /** Simple container for the state of a single frame's hints. */
 class HintState {
@@ -63,16 +64,19 @@ export function hintPage(
 }
 
 /** vimperator-style minimal hint names */
-function* hintnames(hintchars = HINTCHARS): IterableIterator<string> {
+function* hintnames(hintchars = config.get("hintchars")): IterableIterator<string> {
     let taglen = 1
     while (true) {
-        yield* map(permutationsWithReplacement(hintchars, taglen), e=>e.join(''))
+        yield* map(permutationsWithReplacement(hintchars, taglen), e=>{
+            if (config.get("hintorder") == "reverse") e = e.reverse()
+            return e.join('')
+        })
         taglen++
     }
 }
 
 /** Uniform length hintnames */
-function* hintnames_uniform(n: number, hintchars = HINTCHARS): IterableIterator<string> {
+function* hintnames_uniform(n: number, hintchars = config.get("hintchars")): IterableIterator<string> {
     if (n <= hintchars.length)
         yield* islice(hintchars[Symbol.iterator](), n)
     else {
@@ -80,7 +84,10 @@ function* hintnames_uniform(n: number, hintchars = HINTCHARS): IterableIterator<
         const taglen = Math.ceil(log(n, hintchars.length))
         // And return first n permutations
         yield* map(islice(permutationsWithReplacement(hintchars, taglen), n),
-            perm => perm.join(''))
+            perm => {
+                if (config.get("hintorder") == "reverse") perm = perm.reverse()
+                return perm.join('')
+            })
     }
 }
 
@@ -135,9 +142,6 @@ class Hint {
         this.onSelect(this)
     }
 }
-
-const HINTCHARS = 'hjklasdfgyuiopqwertnmzxcvb'
-/* const HINTCHARS = 'asdf' */
 
 /** Show only hints prefixed by fstr. Focus first match */
 function filter(fstr) {
