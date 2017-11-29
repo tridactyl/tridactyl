@@ -384,12 +384,12 @@ export function zoom(level=0){
 //#background
 export async function reader() {
     if (await l(firefoxVersionAtLeast(58))) {
-	let aTab = await activeTab()
-	if (aTab.isArticle) {
-	    browser.tabs.toggleReaderMode()
-	} // else {
-	//  // once a statusbar exists an error can be displayed there
-	// }
+    let aTab = await activeTab()
+    if (aTab.isArticle) {
+        browser.tabs.toggleReaderMode()
+    } // else {
+    //  // once a statusbar exists an error can be displayed there
+    // }
     }
 }
 
@@ -593,6 +593,19 @@ async function idFromIndex(index?: number): Promise<number> {
         return await activeTabId()
     }
 }
+
+/** Close all other tabs in this window */
+//#background
+export async function tabonly() {
+    const tabs = await browser.tabs.query({
+        pinned: false,
+        active: false,
+        currentWindow: true
+    })
+    const tabsIds = tabs.map(tab => tab.id)
+    browser.tabs.remove(tabsIds)
+}
+
 
 /** Duplicate a tab.
 
