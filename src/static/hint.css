@@ -5,7 +5,7 @@ span.TridactylHint {
     font-weight: bold;
     text-transform: uppercase;
     color: white;
-    background-color: red;
+    background-color: #CC0000;
     border-color: ButtonShadow;
     border-width: 0px;
     min-width: .75em;
@@ -21,8 +21,15 @@ span.TridactylHint {
     transition: unset;
 }
 
-.TridactylHintElem { background-color: yellow;  }
-.TridactylHintActive { background-color: #88FF00; }
+.TridactylHintElem {
+    background-color: rgba(255, 240, 0, 0.5);
+    outline: 1px solid #8F5902;
+}
+
+.TridactylHintActive {
+    background-color: #88FF00;
+    outline: 1px solid #CC0000;
+}
 
 div.TridactylHintHost {
     position: static !important;
