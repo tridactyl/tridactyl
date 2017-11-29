@@ -684,15 +684,17 @@ export async function undo(){
 export async function tabmove(index = "0") {
     const aTab = await activeTab()
     let newindex: number
-    if ((index.startsWith("+") || index.startsWith("-")) && Number(index) !== 0) {
+    if (index.startsWith("+") || index.startsWith("-")) {
         newindex = Math.max(0, Number(index) + aTab.index)
+        if (newindex === aTab.index) return
         let candidates = await browser.tabs.query({windowId: aTab.windowId})
+        newindex = Math.min(newindex, candidates.length)
         candidates.sort((a,b) => {
             return a.index < b.index ? -1 : 1
         })
         candidates = newindex < aTab.index
             ? candidates.slice(newindex, aTab.index)
-            : candidates.slice(aTab.index + 1, m + 1).reverse()
+            : candidates.slice(aTab.index + 1, newindex + 1).reverse()
         for (const candidate of candidates) {
             if (aTab.pinned === candidate.pinned) {
                 newindex = candidate.index
