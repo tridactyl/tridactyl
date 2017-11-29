@@ -3,88 +3,10 @@
     differs from Vim in that no map may be a prefix of another map (e.g. 'g' and 'gg' cannot both be maps). This simplifies the parser.
 */
 
-// Normal-mode mappings.
-// keystr -> ex_str
-// TODO: Move these into a tridactyl-wide state namespace
-// TODO: stop stealing keys from "insert mode"
-//          r -> refresh page is particularly unhelpful
-//  Can't stringify a map -> just use an object
-export const DEFAULTNMAPS = {
-    "o": "fillcmdline open",
-    "O": "current_url open",
-    "w": "fillcmdline winopen",
-    "W": "current_url winopen",
-    "t": "fillcmdline tabopen",
-    //["t": "fillcmdline tabopen", // for now, use mozilla completion
-    "]]": "followpage next",
-    "[[": "followpage prev",
-    "[c": "urlincrement -1",
-    "]c": "urlincrement 1",
-    "T": "current_url tabopen",
-    "yy": "clipboard yank",
-    "ys": "clipboard yankshort",
-    "yc": "clipboard yankcanon",
-    "p": "clipboard open",
-    "P": "clipboard tabopen",
-    "j": "scrollline 10",
-    "k": "scrollline -10",
-    "h": "scrollpx -50",
-    "l": "scrollpx 50",
-    "G": "scrollto 100",
-    "gg": "scrollto 0",
-    "H": "back",
-    "L": "forward",
-    "d": "tabclose",
-    "u": "undo",
-    "r": "reload",
-    "R": "reloadhard",
-    "gi": "focusinput -l",
-    "gt": "tabnext_gt",
-    "gT": "tabprev",
-    "g^": "tabfirst",
-    "g$": "tablast",
-    "gr": "reader",
-    "gu": "urlparent",
-    "gU": "urlroot",
-    ":": "fillcmdline",
-    "s": "fillcmdline open google",
-    "S": "fillcmdline tabopen google",
-    "M": "gobble 1 quickmark",
-    "xx": "something",
-    // "B": "fillcmdline bufferall",
-    "b": "fillcmdline buffer",
-    "ZZ": "qall",
-    "f": "hint",
-    "F": "hint -b",
-    ";i": "hint -i",
-    ";I": "hint -I",
-    ";y": "hint -y",
-    ";p": "hint -p",
-    ";;": "hint -;",
-    ";#": "hint -#",
-    "I": "mode ignore",
-    "a": "current_url bmark",
-    "A": "bmark",
-    // Special keys must be prepended with 🄰
-    // ["🄰Backspace", "something"],
-}
+import * as config from '../config'
 
-let nmaps = Object.assign(Object.create(null), DEFAULTNMAPS)
+let nmaps = config.get("nmaps")
 
-// Allow config to be changed in settings
-// TODO: make this more general
-browser.storage.sync.get("nmaps").then(lazyloadconfig)
-async function lazyloadconfig(storageResult){
-    nmaps = Object.assign(Object.create(null), DEFAULTNMAPS, storageResult.nmaps)
-    console.log(nmaps)
-}
-
-browser.storage.onChanged.addListener(
-    (changes, areaname) => {
-        if (areaname == "sync") {
-            browser.storage.sync.get("nmaps").then(lazyloadconfig)
-        }
-    })
 
 // Split a string into a number prefix and some following keys.
 function keys_split_count(keys: string[]){
@@ -101,7 +23,7 @@ function keys_split_count(keys: string[]){
 // Given a valid keymap, resolve it to an ex_str
 function resolve_map(map) {
     // TODO: This needs to become recursive to allow maps to be defined in terms of other maps.
-    return nmaps[map]
+    return config.get("nmaps")[map]
 }
 
 // Valid keystr to ex_str by splitting count, resolving keystr and appending count as final argument.
@@ -121,7 +43,7 @@ function possible_maps(keys): string[] {
     let [count, keystr] = keys_split_count(keys)
 
     // Short circuit or search maps.
-    if (Object.getOwnPropertyNames(nmaps).includes(keystr)) {
+    if (Object.getOwnPropertyNames(config.get("nmaps")).includes(keystr)) {
         return [keystr,]
     } else {
         // Efficiency: this can be short-circuited.
@@ -131,7 +53,7 @@ function possible_maps(keys): string[] {
 
 // A list of maps that start with the fragment.
 export function completions(fragment): string[] {
-    let posskeystrs = Array.from(Object.keys(nmaps))
+    let posskeystrs = Array.from(Object.keys(config.get("nmaps")))
     return posskeystrs.filter((key)=>key.startsWith(fragment))
 }
 

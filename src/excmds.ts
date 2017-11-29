@@ -1024,6 +1024,25 @@ export async function quickmark(key: string) {
     await bind("gw" + key, "winopen", address)
 }
 
+//#background_helper
+import * as config from './config'
+
+//#background
+export function get(target: string, property?: string){
+    console.log(config.get(target,property))
+}
+
+//#background
+export function set(target: string, value: string){
+    config.set(target,value)
+}
+
+//#background
+export function bind2(key: string, ...bindarr: string[]){
+    let exstring = bindarr.join(" ")
+    config.set("nmaps",exstring,key)
+}
+
 // }}}
 
 // {{{ HINTMODE
