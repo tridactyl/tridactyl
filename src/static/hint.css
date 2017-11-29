@@ -5,7 +5,7 @@ span.TridactylHint {
     font-weight: bold;
     text-transform: uppercase;
     color: white;
-    background-color: #CC0000;
+    background-color: red;
     border-color: ButtonShadow;
     border-width: 0px;
     min-width: .75em;
@@ -22,7 +22,7 @@ span.TridactylHint {
 }
 
 .TridactylHintElem {
-    background-color: rgba(255, 240, 0, 0.5);
+    background-color: rgba(255, 255, 0, 0.25);
     outline: 1px solid #8F5902;
 }
 
