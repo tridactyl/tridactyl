@@ -191,8 +191,8 @@ function pushKey(ke) {
             1. Within viewport
             2. Not hidden by another element
 */
-function hintables() {
-    return DOM.getElemsBySelector(HINTTAGS_selectors, [DOM.isVisible])
+function hintables(selectors=HINTTAGS_selectors) {
+    return DOM.getElemsBySelector(selectors, [DOM.isVisible])
 }
 
 function elementswithtext() {
@@ -306,8 +306,8 @@ function hintPageOpenInBackground() {
     })
 }
 
-function hintPageSimple() {
-    hintPage(hintables(), hint=>{
+function hintPageSimple(selectors=HINTTAGS_selectors) {
+    hintPage(hintables(selectors), hint=>{
         simulateClick(hint.target)
     })
 }

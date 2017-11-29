@@ -24,8 +24,8 @@ export async function hintPageAnchorYank() {
     return await messageActiveTab('hinting_content', 'hintPageAnchorYank')
 }
 
-export async function hintPageSimple() {
-    return await messageActiveTab('hinting_content', 'hintPageSimple')
+export async function hintPageSimple(selectors?) {
+    return await messageActiveTab('hinting_content', 'hintPageSimple',[selectors])
 }
 
 export async function hintPageOpenInBackground() {

@@ -1041,9 +1041,11 @@ import * as hinting from './hinting_background'
         - -I view an image in a new tab
         - -; focus an element
         - -# yank an element's anchor URL to clipboard
+        - -c [selector] hint links that match the css selector
+          - `bind ;c hint -c [class*="expand"],[class="togg"]` works particularly well on reddit and HN
 */
 //#background
-export function hint(option?: string) {
+export function hint(option?: string, selectors="") {
     if (option === '-b') hinting.hintPageOpenInBackground()
     else if (option === "-y") hinting.hintPageYank()
     else if (option === "-p") hinting.hintPageTextYank()
@@ -1051,6 +1053,7 @@ export function hint(option?: string) {
     else if (option === "-I") hinting.hintImage(true)
     else if (option === "-;") hinting.hintFocus()
     else if (option === "-#") hinting.hintPageAnchorYank()
+    else if (option === "-c") hinting.hintPageSimple(selectors)
     else hinting.hintPageSimple()
 }
 
