@@ -77,6 +77,7 @@ const DEFAULTS = o({
         "A": "bmark",
     }),
     "search_engine": "google",
+    "storage_location": "sync",
 })
 
 // currently only supports 2D or 1D storage
@@ -103,10 +104,13 @@ export function set(target, value, property?){
 }
 
 export async function save(storage: "local" | "sync" = "sync"){
-    let storageobj = storage == "local" ? browser.storage.local : browser.storage.sync
-    storageobj.set({CONFIGNAME: USERCONFIG}).then(schlepp)
+    // let storageobj = storage == "local" ? browser.storage.local : browser.storage.sync
+    // storageobj.set({CONFIGNAME: USERCONFIG})
+    let settingsobj = o({})
+    settingsobj[CONFIGNAME] = USERCONFIG
+    if (storage == "local") browser.storage.local.set(settingsobj)
+    else browser.storage.sync.set(settingsobj)
 }
-
 
 // Read all user configuration on start
 // Local storage overrides sync

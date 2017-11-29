@@ -1034,7 +1034,8 @@ export function get(target: string, property?: string){
 
 //#background
 export function set(target: string, value: string){
-    config.set(target,value)
+    // We don't support setting objects yet
+    if (target != "nmaps") config.set(target,value)
 }
 
 //#background
@@ -1042,6 +1043,17 @@ export function bind2(key: string, ...bindarr: string[]){
     let exstring = bindarr.join(" ")
     config.set("nmaps",exstring,key)
 }
+
+//#background
+export function saveconfig(){
+    config.save(config.get("storage_location"))
+}
+
+//#background
+export function mktridactylrc(){
+    saveconfig()
+}
+
 
 // }}}
 
