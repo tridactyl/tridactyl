@@ -108,7 +108,7 @@ function hasScheme(uri: string) {
 
 /** @hidden */
 function searchURL(provider: string, query: string) {
-    if (provider == "search") provider = config.get("search_engine")
+    if (provider == "search") provider = config.get("searchengine")
     if (SEARCH_URLS.has(provider)) {
         const url = new URL(SEARCH_URLS.get(provider) + encodeURIComponent(query))
         // URL constructor doesn't convert +s because they're valid literals in
@@ -151,7 +151,7 @@ function forceURI(maybeURI: string): string {
         if (e.name !== 'TypeError') throw e
     }
 
-    // Else search $search_engine
+    // Else search $searchengine
     return searchURL('search', maybeURI).href
 }
 
@@ -972,12 +972,9 @@ export async function buffer(index: number | '#') {
         - [[reset]]
 */
 //#background
-export async function bind(key: string, ...bindarr: string[]){
+export function bind(key: string, ...bindarr: string[]){
     let exstring = bindarr.join(" ")
-    let nmaps = (await browser.storage.sync.get("nmaps"))["nmaps"]
-    nmaps = (nmaps == undefined) ? Object.create(null) : nmaps
-    nmaps[key] = exstring
-    browser.storage.sync.set({nmaps})
+    config.set("nmaps",exstring,key)
 }
 
 /** Unbind a sequence of keys so that they do nothing at all.
@@ -1001,6 +998,9 @@ export async function unbind(key: string){
 */
 //#background
 export async function reset(key: string){
+    config.unset("nmaps",key)
+
+    // Code for dealing with legacy binds
     let nmaps = (await browser.storage.sync.get("nmaps"))["nmaps"]
     nmaps = (nmaps == undefined) ? {} : nmaps
     delete nmaps[key]
@@ -1039,25 +1039,20 @@ export function set(target: string, value: string){
 }
 
 //#background
-export function bind2(key: string, ...bindarr: string[]){
-    let exstring = bindarr.join(" ")
-    config.set("nmaps",exstring,key)
-}
-
-//#background
 export function unset(target: string, property?: string){
     config.unset(target,property)
 }
 
-//#background
-export function saveconfig(){
-    config.save(config.get("storage_location"))
-}
+// not required as we automatically save all config
+////#background
+//export function saveconfig(){
+//    config.save(config.get("storageloc"))
+//}
 
-//#background
-export function mktridactylrc(){
-    saveconfig()
-}
+////#background
+//export function mktridactylrc(){
+//    saveconfig()
+//}
 
 
 // }}}

@@ -76,8 +76,8 @@ const DEFAULTS = o({
         "a": "current_url bmark",
         "A": "bmark",
     }),
-    "search_engine": "google",
-    "storage_location": "sync",
+    "searchengine": "google",
+    "storageloc": "sync",
 })
 
 // currently only supports 2D or 1D storage
@@ -97,15 +97,17 @@ export function get(target, property?){
 export function set(target, value, property?){
     if (property !== undefined){
         if (USERCONFIG[target] === undefined) USERCONFIG[target] = o({})
-        return USERCONFIG[target][property] = value
-    }
-    USERCONFIG[target] = value
+        USERCONFIG[target][property] = value
+    } else USERCONFIG[target] = value
+    // Always save
+    save(get("storageloc"))
 }
 
 export function unset(target, property?){
     if (property !== undefined){
         delete USERCONFIG[target][property]
     } else delete USERCONFIG[target]
+    save(get("storageloc"))
 }
 
 export async function save(storage: "local" | "sync" = "sync"){
@@ -118,13 +120,21 @@ export async function save(storage: "local" | "sync" = "sync"){
 }
 
 // Read all user configuration on start
-// Local storage overrides sync
-browser.storage.sync.get(CONFIGNAME).then(settings => {
-    schlepp(settings)
-    browser.storage.local.get(CONFIGNAME).then(schlepp)
+// Legacy config gets loaded first
+let legacy_nmaps = {}
+browser.storage.sync.get("nmaps").then(nmaps => {
+    legacy_nmaps = nmaps["nmaps"]
+    browser.storage.sync.get(CONFIGNAME).then(settings => {
+        schlepp(settings[CONFIGNAME])
+        // Local storage overrides sync
+        browser.storage.local.get(CONFIGNAME).then(settings => {
+            schlepp(settings[CONFIGNAME])
+            USERCONFIG["nmaps"] = Object.assign(legacy_nmaps, USERCONFIG["nmaps"])
+        })
+    })
 })
 
 function schlepp(settings){
     // "Import" is a reserved word so this will have to do
-    Object.assign(USERCONFIG,settings[CONFIGNAME])
+    Object.assign(USERCONFIG,settings)
 }
