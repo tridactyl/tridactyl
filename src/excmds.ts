@@ -1044,9 +1044,13 @@ export function get(target: string, property?: string){
  
 */
 //#background
-export function set(setting: string, value: string){
+export function set(setting: string, value?: string){
     // We don't support setting objects yet
-    if (setting != "nmaps") config.set(setting,value)
+    if (setting != "nmaps"){
+        if (value !== undefined){
+            config.set(setting,value)
+        } else fillcmdline_notrail("set " + setting + " " + config.get(setting))
+    }
 }
 
 //#background
