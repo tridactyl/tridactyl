@@ -65,6 +65,9 @@ import {activeTab, activeTabId, firefoxVersionAtLeast} from './lib/webext'
 import {incrementUrl, getUrlRoot, getUrlParent} from "./url_util"
 //#background_helper
 import * as CommandLineBackground from './commandline_background'
+//#content_helper
+import * as DOM from './dom'
+
 
 /** @hidden */
 //#background_helper
@@ -82,6 +85,12 @@ const SEARCH_URLS = new Map<string, string>([
     ["amazon","https://www.amazon.com/s/ref=nb_sb_noss?url=search-alias%3Daps&field-keywords="],
     ["amazonuk","https://www.amazon.co.uk/s/ref=nb_sb_noss?url=search-alias%3Daps&field-keywords="],
     ["startpage","https://www.startpage.com/do/search?query="],
+    ["github","https://github.com/search?utf8=✓&q="],
+    ["searx","https://searx.me/?category_general=on&q="],
+    ["cnrtl","http://www.cnrtl.fr/lexicographie/"],
+    ["osm","https://www.openstreetmap.org/search?query="],
+    ["mdn","https://developer.mozilla.org/en-US/search?q="],
+    ["gentoo_wiki","https://wiki.gentoo.org/index.php?title=Special%3ASearch&profile=default&fulltext=Search&search="],
 ])
 
 // map a page-relation (next or previous) to a fallback pattern to match link texts against
@@ -351,6 +360,21 @@ export function urlparent (){
     }
 }
 
+/** Returns the url of links that have a matching rel.
+
+    Don't bind to this: it's an internal function.
+
+    @hidden
+ */
+//#content
+export function geturlsforlinks(rel: string){
+    let elems = document.querySelectorAll("link[rel='" + rel + "']") as NodeListOf<HTMLLinkElement>
+    console.log(rel, elems)
+    if (elems)
+        return Array.prototype.map.call(elems, x => x.href)
+    return []
+}
+
 //#background
 export function zoom(level=0){
     level = level > 3 ? level / 100 : level
@@ -360,42 +384,177 @@ export function zoom(level=0){
 //#background
 export async function reader() {
     if (await l(firefoxVersionAtLeast(58))) {
-	let aTab = await activeTab()
-	if (aTab.isArticle) {
-	    browser.tabs.toggleReaderMode()
-	} // else {
-	//  // once a statusbar exists an error can be displayed there
-	// }
+    let aTab = await activeTab()
+    if (aTab.isArticle) {
+        browser.tabs.toggleReaderMode()
+    } // else {
+    //  // once a statusbar exists an error can be displayed there
+    // }
     }
 }
+
+/** The kinds of input elements that we want to be included in the "focusinput"
+ * command (gi)
+ */
+export const INPUTTAGS_selectors = `
+input:not([disabled]):not([readonly]):-moz-any(
+ :not([type]),
+ [type='text'],
+ [type='search'],
+ [type='password'],
+ [type='datetime'],
+ [type='datetime-local'],
+ [type='date'],
+ [type='month'],
+ [type='time'],
+ [type='week'],
+ [type='number'],
+ [type='range'],
+ [type='email'],
+ [type='url'],
+ [type='tel'],
+ [type='color']
+),
+textarea:not([disabled]):not([readonly]),
+object,
+[role='application']
+`
+
+/** Password field selectors */
+const INPUTPASSWORD_selectors = `
+input[type='password']
+`
+
+/** DOM reference to the last used Input field
+ */
+//#content_helper
+let LAST_USED_INPUT: HTMLElement = null
+
+
+/** Focus the last used input on the page
+ *
+ * @param nth   focus the nth input on the page, or "special" inputs:
+ *                  "-l": last focussed input
+ *                  "-p": first password field
+ *                  "-b": biggest input field
+ */
+//#content
+export function focusinput(nth: number|string) {
+
+    let inputToFocus: HTMLElement = null
+
+    // set to false to avoid falling back on the first available input
+    // if a special finder fails
+    let fallbackToNumeric = true
+
+    // nth = "-l" -> use the last used input for this page
+    if (nth === "-l") {
+        // try to recover the last used input stored as a
+        // DOM node, which should be exactly the one used before (or null)
+        inputToFocus = LAST_USED_INPUT
+
+        // failed to find that? - look up in sessionStorage?
+        // will need to serialise the last used input to a string that
+        // we can look up in future (tabindex, selector?), perhaps along with
+        // a way to remember the page it was on?
+    }
+    else if (nth === "-p") {
+        // attempt to find a password input
+        fallbackToNumeric = false
+
+        let inputs = DOM.getElemsBySelector(INPUTPASSWORD_selectors,
+                                            DOM.isSubstantial)
+
+        if (inputs.length) {
+            inputToFocus = <HTMLElement>inputs[0]
+        }
+    }
+    else if (nth === "-b") {
+
+        let inputs = DOM.getElemsBySelector(INPUTTAGS_selectors,
+            DOM.isSubstantial) as HTMLElement[]
+
+        inputToFocus = inputs.sort(DOM.compareElementArea).slice(-1)[0]
+    }
+
+    // either a number (not special) or we failed to find a special input when
+    // asked and falling back is acceptable
+    if (!inputToFocus  && fallbackToNumeric) {
+
+        let index = isNaN(<number>nth) ? 0 : <number>nth
+        inputToFocus = DOM.getNthElement(INPUTTAGS_selectors,
+                                         index, DOM.isSubstantial)
+    }
+
+    if (inputToFocus) inputToFocus.focus()
+}
+
+// Store the last focused element
+//#content_helper
+document.addEventListener("focusin",e=>{if (DOM.isTextEditable(e.target as HTMLElement)) LAST_USED_INPUT = e.target as HTMLElement})
 
 // }}}
 
 // {{{ TABS
 
-/** Switch to the next tab by index (position on tab bar), wrapping round.
+/** Switch to the tab by index (position on tab bar), wrapping round.
 
-    optional increment is number of tabs forwards to move.
+    @param index
+        1-based index of the tab to target. Wraps such that 0 = last tab, -1 =
+        penultimate tab, etc.
+
+        if undefined, return activeTabId()
+*/
+/** @hidden */
+//#background_helper
+async function tabIndexSetActive(index: number) {
+    tabSetActive(await idFromIndex(index))
+}
+
+/** Switch to the next tab, wrapping round.
+
+    If increment is specified, move that many tabs forwards.
  */
 //#background
 export async function tabnext(increment = 1) {
-    // Get an array of tabs in the current window
-    let current_window = await browser.windows.getCurrent()
-    let tabs = await browser.tabs.query({windowId: current_window.id})
-
-    // Derive the index we want
-    let desiredIndex = ((await activeTab()).index + increment).mod(tabs.length)
-
-    // Find and switch to the tab with that index
-    let desiredTab = tabs.find((tab: any) => {
-        return tab.index === desiredIndex
-    })
-    tabSetActive(desiredTab.id)
+    tabIndexSetActive((await activeTab()).index + increment + 1)
 }
 
+/** Switch to the next tab, wrapping round.
+
+    If an index is specified, go to the tab with that number (this mimics the
+    behaviour of `{count}gt` in vim, except that this command will accept a
+    count that is out of bounds (and will mod it so that it is within bounds as
+    per [[tabmove]], etc)).
+ */
 //#background
-export function tabprev(increment = 1) {
-    tabnext(increment * -1)
+export async function tabnext_gt(index?: number) {
+    if (index === undefined) {
+        tabnext()
+    } else {
+        tabIndexSetActive(index)
+    }
+}
+
+/** Switch to the previous tab, wrapping round.
+
+    If increment is specified, move that many tabs backwards.
+ */
+//#background
+export async function tabprev(increment = 1) {
+    tabIndexSetActive((await activeTab()).index - increment + 1)
+}
+
+/** Switch to the first tab. */
+//#background
+export async function tabfirst() {
+    tabIndexSetActive(1)
+}
+
+/** Switch to the last tab. */
+//#background
+export async function tablast() {
+    tabIndexSetActive(0)
 }
 
 /** Like [[open]], but in a new tab */
@@ -407,24 +566,81 @@ export async function tabopen(...addressarr: string[]) {
     browser.tabs.create({url: uri})
 }
 
-//#background
-export async function tabduplicate(id?: number){
-    id = id ? id : (await activeTabId())
-    browser.tabs.duplicate(id)
-}
+/** Resolve a tab index to the tab id of the corresponding tab in this window.
 
-//#background
-export async function tabdetach(id?: number){
-    id = id ? id : (await activeTabId())
-    browser.windows.create({tabId: id})
-}
+    @param index
+        1-based index of the tab to target. Wraps such that 0 = last tab, -1 =
+        penultimate tab, etc.
 
-//#background
-export async function tabclose(ids?: number[] | number) {
-    if (ids !== undefined) {
-        browser.tabs.remove(ids)
+        if undefined, return activeTabId()
+
+    @hidden
+*/
+//#background_helper
+async function idFromIndex(index?: number): Promise<number> {
+    if (index !== undefined) {
+        // Wrap
+        index = (index - 1).mod(
+            (await l(browser.tabs.query({currentWindow: true}))).length)
+            + 1
+
+        // Return id of tab with that index.
+        return (await l(browser.tabs.query({
+            currentWindow: true,
+            index: index - 1,
+        })))[0].id
     } else {
-        // Close the current tab
+        return await activeTabId()
+    }
+}
+
+/** Close all other tabs in this window */
+//#background
+export async function tabonly() {
+    const tabs = await browser.tabs.query({
+        pinned: false,
+        active: false,
+        currentWindow: true
+    })
+    const tabsIds = tabs.map(tab => tab.id)
+    browser.tabs.remove(tabsIds)
+}
+
+
+/** Duplicate a tab.
+
+    @param index
+        The 1-based index of the tab to target. index < 1 wraps. If omitted, this tab.
+*/
+//#background
+export async function tabduplicate(index?: number) {
+    browser.tabs.duplicate(await idFromIndex(index))
+}
+
+/** Detach a tab, opening it in a new window.
+
+    @param index
+        The 1-based index of the tab to target. index < 1 wraps. If omitted, this tab.
+*/
+//#background
+export async function tabdetach(index?: number) {
+    browser.windows.create({tabId: await idFromIndex(index)})
+}
+
+/** Close a tab.
+
+    Known bug: autocompletion will make it impossible to close more than one tab at once if the list of numbers looks enough like an open tab's title or URL.
+
+    @param indexes
+        The 1-based indexes of the tabs to target. indexes < 1 wrap. If omitted, this tab.
+*/
+//#background
+export async function tabclose(...indexes: string[]) {
+    if (indexes.length > 0) {
+        const idsPromise = indexes.map(index => idFromIndex(Number(index)))
+        browser.tabs.remove(await Promise.all(idsPromise))
+    } else {
+        // Close current tab
         browser.tabs.remove(await activeTabId())
     }
 }
@@ -449,30 +665,42 @@ export async function undo(){
     }
 }
 
+/** Move the current tab to be just in front of the index specified.
+
+    Known bug: This supports relative movement, but autocomple doesn't know
+    that yet and will override positive and negative indexes.
+
+    Put a space in front of tabmove if you want to disable completion and have
+    the relative indexes at the command line.
+
+    Binds are unaffected.
+
+    @param index
+        New index for the current tab.
+
+        1 is the first index. 0 is the last index. -1 is the penultimate, etc.
+*/
 //#background
-export async function tabmove(n?: string) {
-    let aTab = await activeTab(),
-        m: number
-    if (!n) {
-        browser.tabs.move(aTab.id, {index: -1})
-        return
-    } else if (n.startsWith("+") || n.startsWith("-")) {
-        m = Math.max(0, Number(n) + aTab.index)
-        if (m === aTab.index) return
-        let targets = await browser.tabs.query({windowId: aTab.windowId})
-        m = Math.min(m, targets.length)
-        targets.sort((a, b) => {
+export async function tabmove(index = "0") {
+    const aTab = await activeTab()
+    let newindex: number
+    if ((index.startsWith("+") || index.startsWith("-")) && Number(index) !== 0) {
+        newindex = Math.max(0, Number(index) + aTab.index)
+        let candidates = await browser.tabs.query({windowId: aTab.windowId})
+        candidates.sort((a,b) => {
             return a.index < b.index ? -1 : 1
         })
-        targets = m < aTab.index ? targets.slice(m, aTab.index): targets.slice(aTab.index + 1, m + 1).reverse()
-        for (const target of targets) {
-            if (aTab.pinned === target.pinned) {
-                m = target.index
+        candidates = newindex < aTab.index
+            ? candidates.slice(newindex, aTab.index)
+            : candidates.slice(aTab.index + 1, m + 1).reverse()
+        for (const candidate of candidates) {
+            if (aTab.pinned === candidate.pinned) {
+                newindex = candidate.index
                 break
             }
         }
-    } else m = Number(n)
-    browser.tabs.move(aTab.id, {index: m})
+    } else newindex = Number(index) - 1
+    browser.tabs.move(aTab.id, {index: newindex})
 }
 
 /** Pin the current tab */
@@ -639,14 +867,31 @@ export async function current_url(...strarr: string[]){
 
     If `excmd == "yank"`, copy the current URL, or if given, the value of toYank, into the system clipboard.
 
+    If `excmd == "yankcanon"`, copy the canonical URL of the current page if it exists, otherwise copy the current URL.
+
+    If `excmd == "yankshort"`, copy the shortlink version of the current URL, and fall back to the canonical then actual URL. Known to work on https://yankshort.neocities.org/.
+
     Unfortunately, javascript can only give us the `clipboard` clipboard, not e.g. the X selection clipboard.
 
 */
 //#background
-export async function clipboard(excmd: "open"|"yank"|"tabopen" = "open", ...toYank: string[]) {
+export async function clipboard(excmd: "open"|"yank"|"yankshort"|"yankcanon"|"tabopen" = "open", ...toYank: string[]) {
     let content = toYank.join(" ")
     let url = ""
+    let urls = []
     switch (excmd) {
+        case 'yankshort':
+            urls = await geturlsforlinks("shortlink")
+            if (urls.length > 0) {
+                messageActiveTab("commandline_frame", "setClipboard", [urls[0]])
+                break
+            }
+        case 'yankcanon':
+            urls = await geturlsforlinks("canonical")
+            if (urls.length > 0) {
+                messageActiveTab("commandline_frame", "setClipboard", [urls[0]])
+                break
+            }
         case 'yank':
             await messageActiveTab("commandline_content", "focus")
             content = (content == "") ? (await activeTab()).url : content
@@ -670,42 +915,45 @@ export async function clipboard(excmd: "open"|"yank"|"tabopen" = "open", ...toYa
 }
 
 // {{{ Buffer/completion stuff
-// TODO: Move autocompletions out of excmds.
-/** Ported from Vimperator. */
+
+/** Equivalent to `fillcmdline buffer`
+
+    Sort of Vimperator alias
+*/
 //#background
 export async function tabs() {
     fillcmdline("buffer")
 }
+
+/** Equivalent to `fillcmdline buffer`
+
+    Sort of Vimperator alias
+*/
 //#background
 export async function buffers() {
     tabs()
 }
 
-/** Change active tab */
+/** Change active tab.
+
+    @param index
+        Starts at 1. 0 refers to last tab, -1 to penultimate tab, etc.
+
+        "#" means the tab that was last accessed in this window
+ */
 //#background
-export async function buffer(n?: number | string) {
-    if (!n || Number(n) == 0) return // Vimperator index starts at 1
-    if (n === "#") {
-        n =
+export async function buffer(index: number | '#') {
+    if (index === "#") {
+        // Switch to the most recently accessed buffer
+        tabIndexSetActive(
             (await browser.tabs.query({currentWindow: true})).sort((a, b) => {
                 return a.lastAccessed < b.lastAccessed ? 1 : -1
             })[1].index + 1
-    }
-    if (Number.isInteger(Number(n))) {
-        tabSetActive(
-            (await browser.tabs.query({
-                currentWindow: true,
-                index: Number(n) - 1,
-            }))[0].id
         )
+    } else if (Number.isInteger(Number(index))) {
+        tabIndexSetActive(Number(index))
     }
 }
-
-/*/1** Set tab with index of n belonging to window with id of m to active *1/ */
-/*//#background */
-/*export async function bufferall(m?: number, n?: number) { */
-/*    // TODO */
-/*} */
 
 // }}}
 
@@ -720,7 +968,7 @@ export async function buffer(n?: number | string) {
     Examples:
 
         - `bind G fillcmdline tabopen google`
-        - `bind D composite tabclose | tabprev`
+        - `bind D composite tabclose | buffer #`
         - `bind j scrollline 20`
         - `bind F hint -b`
 
@@ -797,12 +1045,17 @@ export async function quickmark(key: string) {
 import * as hinting from './hinting_background'
 
 /** Hint a page.
-*
-* Pass -b as first argument to open hinted page in background.
-* -y copies the link's target to the clipboard.
-* -p copies an element's text to the clipboard.*/
+
+    @param option
+        - -b open in background
+        - -y copy (yank) link's target to clipboard
+        - -p copy an element's text to the clipboard
+        - -i view an image
+        - -I view an image in a new tab
+        - -; focus an element
+*/
 //#background
-export function hint(option?: "-b") {
+export function hint(option?: string) {
     if (option === '-b') hinting.hintPageOpenInBackground()
     else if (option === "-y") hinting.hintPageYank()
     else if (option === "-p") hinting.hintPageTextYank()
@@ -838,7 +1091,7 @@ export async function gobble(nChars: number, endCmd: string) {
 /** Add or remove a bookmark.
 *
 * Optionally, you may give the bookmark a title. If no URL is given, a bookmark is added for the current page.
-* 
+*
 * If a bookmark already exists for the URL, it is removed.
 */
 //#background

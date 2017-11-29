@@ -20,7 +20,7 @@ import {messageActiveTab} from './messaging'
 /** Simple container for the state of a single frame's hints. */
 class HintState {
     public focusedHint: Hint
-    readonly hintHost = document.createElement('div')
+    readonly hintHost = html`<div class="TridactylHintHost">`
     readonly hints: Hint[] = []
     public filter = ''
     public hintchars = ''

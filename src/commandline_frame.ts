@@ -62,7 +62,9 @@ async function sendExstr(exstr) {
     Messaging.message("commandline_background", "recvExStr", [exstr])
 }
 
-/* Process the commandline on enter. */
+let HISTORY_SEARCH_STRING: string
+
+/* Command line keybindings */
 
 clInput.addEventListener("keydown", function (keyevent) {
     switch (keyevent.key) {
@@ -134,6 +136,11 @@ clInput.addEventListener("keydown", function (keyevent) {
             break
 
     }
+
+    // If a key other than the arrow keys was pressed, clear the history search string
+    if (!(keyevent.key == "ArrowUp" || keyevent.key == "ArrowDown")){
+        HISTORY_SEARCH_STRING = undefined
+    }
 })
 
 clInput.addEventListener("input", () => {
@@ -150,6 +157,8 @@ let cmdline_history_current = ""
 async function hide_and_clear(){
     clInput.removeEventListener("blur",noblur)
     clInput.value = ""
+    cmdline_history_position = 0
+    cmdline_history_current = ""
 
     // Try to make the close cmdline animation as smooth as possible.
     document.body.classList.add('hidden')
@@ -169,15 +178,20 @@ function tabcomplete(){
 }
 
 function history(n){
+    HISTORY_SEARCH_STRING = HISTORY_SEARCH_STRING === undefined? clInput.value : HISTORY_SEARCH_STRING
+    let matches = state.cmdHistory.filter((key)=>key.startsWith(HISTORY_SEARCH_STRING))
     if (cmdline_history_position == 0){
         cmdline_history_current = clInput.value
     }
-    let wrapped_ind = state.cmdHistory.length + n - cmdline_history_position
-    wrapped_ind = wrapped_ind.clamp(0, state.cmdHistory.length)
+    let clamped_ind = matches.length + n - cmdline_history_position
+    clamped_ind = clamped_ind.clamp(0, matches.length)
 
-    const pot_history = state.cmdHistory[wrapped_ind]
+    const pot_history = matches[clamped_ind]
     clInput.value = pot_history == undefined ? cmdline_history_current : pot_history
-    cmdline_history_position = cmdline_history_position - n
+
+    // if there was no clampage, update history position
+    // there's a more sensible way of doing this but that would require more programmer time
+    if (clamped_ind == matches.length + n - cmdline_history_position) cmdline_history_position = cmdline_history_position - n
 }
 
 /* Send the commandline to the background script and await response. */

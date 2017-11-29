@@ -23,3 +23,7 @@ span.TridactylHint {
 
 .TridactylHintElem { background-color: yellow;  }
 .TridactylHintActive { background-color: #88FF00; }
+
+div.TridactylHintHost {
+    position: static !important;
+}

@@ -95,6 +95,27 @@ export function* elementsByXPath(xpath, parent?)
     }
 }
 
+/** Type for functions that can filter element arrays */
+interface ElementFilter { (element: Element): boolean }
+
+/** Is the element of "substantial" size and shown on the page. The element
+ * doesn't need to be in the viewport. This is useful when you want to
+ * scroll to something, but still want to exclude tiny and useless items
+ */
+export function isSubstantial (element: Element) {
+    const clientRect = element.getClientRects()[0]
+    const computedStyle = getComputedStyle(element)
+   // remove elements that are barely within the viewport, tiny, or invisible
+    switch (true) {
+        case !clientRect:
+        case clientRect.width < 3:
+        case clientRect.height < 3:
+        case computedStyle.visibility !== 'visible':
+        case computedStyle.display === 'none':
+            return false
+    }
+    return true
+}
 
 // Saka-key caches getComputedStyle. Maybe it's a good idea!
 /* let cgetComputedStyle = cacheDecorator(getComputedStyle) */
@@ -157,4 +178,45 @@ export function isVisible (element: Element) {
     /*     return false */
     /* } */
     /* return true */
+}
+
+/** Get all elements that match the given selector
+ *
+ * @param selector   `the CSS selector to choose elements with
+ * @param filter      filter to use to further chose items, or null for all
+ */
+export function getElemsBySelector(selector: string, filter: ElementFilter) {
+    let elems = Array.from(document.querySelectorAll(selector))
+
+    return filter ? elems.filter(filter) : elems
+}
+
+/** Get the nth input element on a page
+ *
+ * @param nth         the element index, can be negative to start at the end
+ * @param filter      filter to use to further chose items, or null for all
+ */
+export function getNthElement(selectors: string, nth: number,
+    filter: ElementFilter) {
+
+    let inputs = getElemsBySelector(selectors, filter)
+
+    if (inputs.length) {
+        let index = Number(nth).clamp(-inputs.length, inputs.length - 1)
+            .mod(inputs.length)
+
+        return <HTMLElement>inputs[index]
+    }
+
+    return null
+}
+
+/** Comparison function by offsetWidth/Height, used for sorting elements by their
+ *  area on the page
+ */
+export function compareElementArea(a: HTMLElement, b: HTMLElement): number {
+    const aArea = a.offsetWidth * a.offsetHeight
+    const bArea = b.offsetWidth * b.offsetHeight
+
+    return aArea - bArea
 }

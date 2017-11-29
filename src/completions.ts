@@ -399,7 +399,7 @@ export class HistoryCompletionSource extends CompletionSourceFuse {
 class BufferCompletionOption extends CompletionOptionHTML implements CompletionOptionFuse {
     public fuseKeys = []
 
-    constructor(public value: string, tab: browser.tabs.Tab, isAlternative = false) {
+    constructor(public value: string, tab: browser.tabs.Tab, public isAlternative = false) {
         super()
         // Two character buffer properties prefix
         let pre = ""
@@ -477,7 +477,38 @@ export class BufferCompletionSource extends CompletionSourceFuse {
         // will be for other things.
         this.updateOptions()
     }
-    setStateFromScore(scoredOpts: ScoredOption[]){super.setStateFromScore(scoredOpts, true)}
+
+    setStateFromScore(scoredOpts: ScoredOption[]){
+        super.setStateFromScore(scoredOpts, true)
+    }
+
+    /** Score with fuse unless query is an integer or a single # */
+    scoredOptions(query: string, options = this.options): ScoredOption[] {
+        const args = query.split(/\s+/gu)
+        if (args.length === 1) {
+            if (Number.isInteger(Number(args[0]))) {
+                const index = (Number(args[0]) - 1).mod(options.length)
+                return [{
+                    index,
+                    option: options[index],
+                    score: 0,
+                }]
+            } else if (args[0] === '#') {
+                for (const [index, option] of enumerate(options)) {
+                    if (option.isAlternative) {
+                        return [{
+                            index,
+                            option,
+                            score: 0,
+                        }]
+                    }
+                }
+            }
+        }
+
+        // If not yet returned...
+        return super.scoredOptions(query, options)
+    }
 }
 
 // {{{ UNUSED: MANAGING ASYNC CHANGES
