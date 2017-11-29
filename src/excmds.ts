@@ -1045,6 +1045,11 @@ export function bind2(key: string, ...bindarr: string[]){
 }
 
 //#background
+export function unset(target: string, property?: string){
+    config.unset(target,property)
+}
+
+//#background
 export function saveconfig(){
     config.save(config.get("storage_location"))
 }

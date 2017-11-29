@@ -89,8 +89,7 @@ export function get(target, property?){
         }
         else return DEFAULTS[target][property]
     }
-    // god knows what happens if it isn't an object
-    if (typeof DEFAULTS[target] === "object") return Object.assign(DEFAULTS[target],USERCONFIG[target])
+    if (typeof DEFAULTS[target] === "object") return Object.assign(o({}),DEFAULTS[target],USERCONFIG[target])
     else return USERCONFIG[target] || DEFAULTS[target]
 }
 
@@ -101,6 +100,12 @@ export function set(target, value, property?){
         return USERCONFIG[target][property] = value
     }
     USERCONFIG[target] = value
+}
+
+export function unset(target, property?){
+    if (property !== undefined){
+        delete USERCONFIG[target][property]
+    } else delete USERCONFIG[target]
 }
 
 export async function save(storage: "local" | "sync" = "sync"){
