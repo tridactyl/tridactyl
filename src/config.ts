@@ -139,3 +139,11 @@ function schlepp(settings){
     // "Import" is a reserved word so this will have to do
     Object.assign(USERCONFIG,settings)
 }
+
+browser.storage.onChanged.addListener(
+    (changes, areaname) => {
+        if (CONFIGNAME in changes) {
+            Object.assign(USERCONFIG, changes[CONFIGNAME].newValue)
+        }
+    }
+)
