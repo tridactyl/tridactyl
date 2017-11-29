@@ -197,7 +197,7 @@ function hintables() {
 
 function elementswithtext() {
 
-    return DOM.getElemsBySelector(HINTTAGS_text_selectors,
+    return DOM.getElemsBySelector("*",
         [DOM.isVisible, hint => {
             return hint.textContent != ""
         }]
@@ -250,20 +250,6 @@ select,
 [role='treeitem'],
 [class*='button'],
 [tabindex]
-`
-
-const HINTTAGS_text_selectors = `
-input:not([type=hidden]):not([disabled]),
-a,
-area,
-iframe,
-textarea,
-button,
-p,
-div,
-pre,
-code,
-span
 `
 
 const HINTTAGS_img_selectors = `
