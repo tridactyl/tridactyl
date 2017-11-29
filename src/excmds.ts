@@ -68,6 +68,8 @@ import * as CommandLineBackground from './commandline_background'
 //#content_helper
 import * as DOM from './dom'
 
+import * as config from './config'
+
 
 /** @hidden */
 //#background_helper
@@ -106,6 +108,7 @@ function hasScheme(uri: string) {
 
 /** @hidden */
 function searchURL(provider: string, query: string) {
+    if (provider == "search") provider = config.get("search_engine")
     if (SEARCH_URLS.has(provider)) {
         const url = new URL(SEARCH_URLS.get(provider) + encodeURIComponent(query))
         // URL constructor doesn't convert +s because they're valid literals in
@@ -148,8 +151,8 @@ function forceURI(maybeURI: string): string {
         if (e.name !== 'TypeError') throw e
     }
 
-    // Else search google
-    return searchURL('google', maybeURI).href
+    // Else search $search_engine
+    return searchURL('search', maybeURI).href
 }
 
 /** @hidden */
@@ -1023,9 +1026,6 @@ export async function quickmark(key: string) {
     await bind("go" + key, "open", address)
     await bind("gw" + key, "winopen", address)
 }
-
-//#background_helper
-import * as config from './config'
 
 //#background
 export function get(target: string, property?: string){

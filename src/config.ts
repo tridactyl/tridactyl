@@ -57,8 +57,8 @@ const DEFAULTS = o({
         "gu": "urlparent",
         "gU": "urlroot",
         ":": "fillcmdline",
-        "s": "fillcmdline open google",
-        "S": "fillcmdline tabopen google",
+        "s": "fillcmdline open search",
+        "S": "fillcmdline tabopen search",
         "M": "gobble 1 quickmark",
         "xx": "something",
         // "B": "fillcmdline bufferall",
@@ -75,7 +75,8 @@ const DEFAULTS = o({
         "I": "mode ignore",
         "a": "current_url bmark",
         "A": "bmark",
-    })
+    }),
+    "search_engine": "google",
 })
 
 // currently only supports 2D or 1D storage
@@ -89,7 +90,7 @@ export function get(target, property?){
     }
     // god knows what happens if it isn't an object
     if (typeof DEFAULTS[target] === "object") return Object.assign(DEFAULTS[target],USERCONFIG[target])
-    else return DEFAULTS[target] || USERCONFIG[target]
+    else return USERCONFIG[target] || DEFAULTS[target]
 }
 
 // if you don't specify a property and you should, this will wipe everything
@@ -115,6 +116,6 @@ browser.storage.sync.get(CONFIGNAME).then(settings => {
 })
 
 function schlepp(settings){
-    // "Import" is a reserved so this will have to do
+    // "Import" is a reserved word so this will have to do
     Object.assign(USERCONFIG,settings[CONFIGNAME])
 }
