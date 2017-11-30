@@ -21,5 +21,16 @@ span.TridactylHint {
     transition: unset;
 }
 
-.TridactylHintElem { background-color: yellow;  }
-.TridactylHintActive { background-color: #88FF00; }
+.TridactylHintElem {
+    background-color: rgba(255, 255, 0, 0.25);
+    outline: 1px solid #8F5902;
+}
+
+.TridactylHintActive {
+    background-color: #88FF00;
+    outline: 1px solid #CC0000;
+}
+
+div.TridactylHintHost {
+    position: static !important;
+}

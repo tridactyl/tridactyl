@@ -66,6 +66,10 @@ input {
   overflow: hidden;
 }
 
+#completions table tr td {
+  overflow: hidden;
+}
+
 #completions img {
   display: inline;
   vertical-align: middle;

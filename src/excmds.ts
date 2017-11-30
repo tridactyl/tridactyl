@@ -68,6 +68,8 @@ import * as CommandLineBackground from './commandline_background'
 //#content_helper
 import * as DOM from './dom'
 
+import * as config from './config'
+
 
 /** @hidden */
 //#background_helper
@@ -106,6 +108,7 @@ function hasScheme(uri: string) {
 
 /** @hidden */
 function searchURL(provider: string, query: string) {
+    if (provider == "search") provider = config.get("searchengine")
     if (SEARCH_URLS.has(provider)) {
         const url = new URL(SEARCH_URLS.get(provider) + encodeURIComponent(query))
         // URL constructor doesn't convert +s because they're valid literals in
@@ -148,8 +151,8 @@ function forceURI(maybeURI: string): string {
         if (e.name !== 'TypeError') throw e
     }
 
-    // Else search google
-    return searchURL('google', maybeURI).href
+    // Else search $searchengine
+    return searchURL('search', maybeURI).href
 }
 
 /** @hidden */
@@ -247,6 +250,9 @@ export async function reloadhard(n = 1) {
         - else if the first word contains a dot, treat as a domain name
         - else if the first word is a key of [[SEARCH_URLS]], treat all following terms as search parameters for that provider
         - else treat as search parameters for google
+
+    Related settings:
+        "searchengine": "google" or any of [[SEARCH_URLS]]
 */
 //#content
 export function open(...urlarr: string[]) {
@@ -360,6 +366,21 @@ export function urlparent (){
     }
 }
 
+/** Returns the url of links that have a matching rel.
+
+    Don't bind to this: it's an internal function.
+
+    @hidden
+ */
+//#content
+export function geturlsforlinks(rel: string){
+    let elems = document.querySelectorAll("link[rel='" + rel + "']") as NodeListOf<HTMLLinkElement>
+    console.log(rel, elems)
+    if (elems)
+        return Array.prototype.map.call(elems, x => x.href)
+    return []
+}
+
 //#background
 export function zoom(level=0){
     level = level > 3 ? level / 100 : level
@@ -369,12 +390,12 @@ export function zoom(level=0){
 //#background
 export async function reader() {
     if (await l(firefoxVersionAtLeast(58))) {
-	let aTab = await activeTab()
-	if (aTab.isArticle) {
-	    browser.tabs.toggleReaderMode()
-	} // else {
-	//  // once a statusbar exists an error can be displayed there
-	// }
+    let aTab = await activeTab()
+    if (aTab.isArticle) {
+        browser.tabs.toggleReaderMode()
+    } // else {
+    //  // once a statusbar exists an error can be displayed there
+    // }
     }
 }
 
@@ -448,7 +469,7 @@ export function focusinput(nth: number|string) {
         fallbackToNumeric = false
 
         let inputs = DOM.getElemsBySelector(INPUTPASSWORD_selectors,
-                                            DOM.isSubstantial)
+                                            [DOM.isSubstantial])
 
         if (inputs.length) {
             inputToFocus = <HTMLElement>inputs[0]
@@ -457,7 +478,7 @@ export function focusinput(nth: number|string) {
     else if (nth === "-b") {
 
         let inputs = DOM.getElemsBySelector(INPUTTAGS_selectors,
-            DOM.isSubstantial) as HTMLElement[]
+            [DOM.isSubstantial]) as HTMLElement[]
 
         inputToFocus = inputs.sort(DOM.compareElementArea).slice(-1)[0]
     }
@@ -468,7 +489,7 @@ export function focusinput(nth: number|string) {
 
         let index = isNaN(<number>nth) ? 0 : <number>nth
         inputToFocus = DOM.getNthElement(INPUTTAGS_selectors,
-                                         index, DOM.isSubstantial)
+                                         index, [DOM.isSubstantial])
     }
 
     if (inputToFocus) inputToFocus.focus()
@@ -482,29 +503,64 @@ document.addEventListener("focusin",e=>{if (DOM.isTextEditable(e.target as HTMLE
 
 // {{{ TABS
 
-/** Switch to the next tab by index (position on tab bar), wrapping round.
+/** Switch to the tab by index (position on tab bar), wrapping round.
 
-    optional increment is number of tabs forwards to move.
+    @param index
+        1-based index of the tab to target. Wraps such that 0 = last tab, -1 =
+        penultimate tab, etc.
+
+        if undefined, return activeTabId()
+*/
+/** @hidden */
+//#background_helper
+async function tabIndexSetActive(index: number) {
+    tabSetActive(await idFromIndex(index))
+}
+
+/** Switch to the next tab, wrapping round.
+
+    If increment is specified, move that many tabs forwards.
  */
 //#background
 export async function tabnext(increment = 1) {
-    // Get an array of tabs in the current window
-    let current_window = await browser.windows.getCurrent()
-    let tabs = await browser.tabs.query({windowId: current_window.id})
-
-    // Derive the index we want
-    let desiredIndex = ((await activeTab()).index + increment).mod(tabs.length)
-
-    // Find and switch to the tab with that index
-    let desiredTab = tabs.find((tab: any) => {
-        return tab.index === desiredIndex
-    })
-    tabSetActive(desiredTab.id)
+    tabIndexSetActive((await activeTab()).index + increment + 1)
 }
 
+/** Switch to the next tab, wrapping round.
+
+    If an index is specified, go to the tab with that number (this mimics the
+    behaviour of `{count}gt` in vim, except that this command will accept a
+    count that is out of bounds (and will mod it so that it is within bounds as
+    per [[tabmove]], etc)).
+ */
 //#background
-export function tabprev(increment = 1) {
-    tabnext(increment * -1)
+export async function tabnext_gt(index?: number) {
+    if (index === undefined) {
+        tabnext()
+    } else {
+        tabIndexSetActive(index)
+    }
+}
+
+/** Switch to the previous tab, wrapping round.
+
+    If increment is specified, move that many tabs backwards.
+ */
+//#background
+export async function tabprev(increment = 1) {
+    tabIndexSetActive((await activeTab()).index - increment + 1)
+}
+
+/** Switch to the first tab. */
+//#background
+export async function tabfirst() {
+    tabIndexSetActive(1)
+}
+
+/** Switch to the last tab. */
+//#background
+export async function tablast() {
+    tabIndexSetActive(0)
 }
 
 /** Like [[open]], but in a new tab */
@@ -516,24 +572,81 @@ export async function tabopen(...addressarr: string[]) {
     browser.tabs.create({url: uri})
 }
 
-//#background
-export async function tabduplicate(id?: number){
-    id = id ? id : (await activeTabId())
-    browser.tabs.duplicate(id)
-}
+/** Resolve a tab index to the tab id of the corresponding tab in this window.
 
-//#background
-export async function tabdetach(id?: number){
-    id = id ? id : (await activeTabId())
-    browser.windows.create({tabId: id})
-}
+    @param index
+        1-based index of the tab to target. Wraps such that 0 = last tab, -1 =
+        penultimate tab, etc.
 
-//#background
-export async function tabclose(ids?: number[] | number) {
-    if (ids !== undefined) {
-        browser.tabs.remove(ids)
+        if undefined, return activeTabId()
+
+    @hidden
+*/
+//#background_helper
+async function idFromIndex(index?: number): Promise<number> {
+    if (index !== undefined) {
+        // Wrap
+        index = (index - 1).mod(
+            (await l(browser.tabs.query({currentWindow: true}))).length)
+            + 1
+
+        // Return id of tab with that index.
+        return (await l(browser.tabs.query({
+            currentWindow: true,
+            index: index - 1,
+        })))[0].id
     } else {
-        // Close the current tab
+        return await activeTabId()
+    }
+}
+
+/** Close all other tabs in this window */
+//#background
+export async function tabonly() {
+    const tabs = await browser.tabs.query({
+        pinned: false,
+        active: false,
+        currentWindow: true
+    })
+    const tabsIds = tabs.map(tab => tab.id)
+    browser.tabs.remove(tabsIds)
+}
+
+
+/** Duplicate a tab.
+
+    @param index
+        The 1-based index of the tab to target. index < 1 wraps. If omitted, this tab.
+*/
+//#background
+export async function tabduplicate(index?: number) {
+    browser.tabs.duplicate(await idFromIndex(index))
+}
+
+/** Detach a tab, opening it in a new window.
+
+    @param index
+        The 1-based index of the tab to target. index < 1 wraps. If omitted, this tab.
+*/
+//#background
+export async function tabdetach(index?: number) {
+    browser.windows.create({tabId: await idFromIndex(index)})
+}
+
+/** Close a tab.
+
+    Known bug: autocompletion will make it impossible to close more than one tab at once if the list of numbers looks enough like an open tab's title or URL.
+
+    @param indexes
+        The 1-based indexes of the tabs to target. indexes < 1 wrap. If omitted, this tab.
+*/
+//#background
+export async function tabclose(...indexes: string[]) {
+    if (indexes.length > 0) {
+        const idsPromise = indexes.map(index => idFromIndex(Number(index)))
+        browser.tabs.remove(await Promise.all(idsPromise))
+    } else {
+        // Close current tab
         browser.tabs.remove(await activeTabId())
     }
 }
@@ -558,17 +671,29 @@ export async function undo(){
     }
 }
 
+/** Move the current tab to be just in front of the index specified.
+
+    Known bug: This supports relative movement, but autocomple doesn't know
+    that yet and will override positive and negative indexes.
+
+    Put a space in front of tabmove if you want to disable completion and have
+    the relative indexes at the command line.
+
+    Binds are unaffected.
+
+    @param index
+        New index for the current tab.
+
+        1 is the first index. 0 is the last index. -1 is the penultimate, etc.
+*/
 //#background
-export async function tabmove(n?: string) {
-    let aTab = await activeTab(),
-        m: number
-    if (!n) {
-        browser.tabs.move(aTab.id, {index: -1})
-        return
-    } else if (n.startsWith("+") || n.startsWith("-")) {
-        m = Math.max(0, Number(n) + aTab.index)
-    } else m = Number(n)
-    browser.tabs.move(aTab.id, {index: m})
+export async function tabmove(index = "0") {
+    const aTab = await activeTab()
+    let newindex: number
+    if (index.startsWith("+") || index.startsWith("-")) {
+        newindex = Math.max(0, Number(index) + aTab.index)
+    } else newindex = Number(index) - 1
+    browser.tabs.move(aTab.id, {index: newindex})
 }
 
 /** Pin the current tab */
@@ -735,14 +860,31 @@ export async function current_url(...strarr: string[]){
 
     If `excmd == "yank"`, copy the current URL, or if given, the value of toYank, into the system clipboard.
 
+    If `excmd == "yankcanon"`, copy the canonical URL of the current page if it exists, otherwise copy the current URL.
+
+    If `excmd == "yankshort"`, copy the shortlink version of the current URL, and fall back to the canonical then actual URL. Known to work on https://yankshort.neocities.org/.
+
     Unfortunately, javascript can only give us the `clipboard` clipboard, not e.g. the X selection clipboard.
 
 */
 //#background
-export async function clipboard(excmd: "open"|"yank"|"tabopen" = "open", ...toYank: string[]) {
+export async function clipboard(excmd: "open"|"yank"|"yankshort"|"yankcanon"|"tabopen" = "open", ...toYank: string[]) {
     let content = toYank.join(" ")
     let url = ""
+    let urls = []
     switch (excmd) {
+        case 'yankshort':
+            urls = await geturlsforlinks("shortlink")
+            if (urls.length > 0) {
+                messageActiveTab("commandline_frame", "setClipboard", [urls[0]])
+                break
+            }
+        case 'yankcanon':
+            urls = await geturlsforlinks("canonical")
+            if (urls.length > 0) {
+                messageActiveTab("commandline_frame", "setClipboard", [urls[0]])
+                break
+            }
         case 'yank':
             await messageActiveTab("commandline_content", "focus")
             content = (content == "") ? (await activeTab()).url : content
@@ -766,42 +908,45 @@ export async function clipboard(excmd: "open"|"yank"|"tabopen" = "open", ...toYa
 }
 
 // {{{ Buffer/completion stuff
-// TODO: Move autocompletions out of excmds.
-/** Ported from Vimperator. */
+
+/** Equivalent to `fillcmdline buffer`
+
+    Sort of Vimperator alias
+*/
 //#background
 export async function tabs() {
     fillcmdline("buffer")
 }
+
+/** Equivalent to `fillcmdline buffer`
+
+    Sort of Vimperator alias
+*/
 //#background
 export async function buffers() {
     tabs()
 }
 
-/** Change active tab */
+/** Change active tab.
+
+    @param index
+        Starts at 1. 0 refers to last tab, -1 to penultimate tab, etc.
+
+        "#" means the tab that was last accessed in this window
+ */
 //#background
-export async function buffer(n?: number | string) {
-    if (!n || Number(n) == 0) return // Vimperator index starts at 1
-    if (n === "#") {
-        n =
+export async function buffer(index: number | '#') {
+    if (index === "#") {
+        // Switch to the most recently accessed buffer
+        tabIndexSetActive(
             (await browser.tabs.query({currentWindow: true})).sort((a, b) => {
                 return a.lastAccessed < b.lastAccessed ? 1 : -1
             })[1].index + 1
-    }
-    if (Number.isInteger(Number(n))) {
-        tabSetActive(
-            (await browser.tabs.query({
-                currentWindow: true,
-                index: Number(n) - 1,
-            }))[0].id
         )
+    } else if (Number.isInteger(Number(index))) {
+        tabIndexSetActive(Number(index))
     }
 }
-
-/*/1** Set tab with index of n belonging to window with id of m to active *1/ */
-/*//#background */
-/*export async function bufferall(m?: number, n?: number) { */
-/*    // TODO */
-/*} */
 
 // }}}
 
@@ -830,12 +975,9 @@ export async function buffer(n?: number | string) {
         - [[reset]]
 */
 //#background
-export async function bind(key: string, ...bindarr: string[]){
+export function bind(key: string, ...bindarr: string[]){
     let exstring = bindarr.join(" ")
-    let nmaps = (await browser.storage.sync.get("nmaps"))["nmaps"]
-    nmaps = (nmaps == undefined) ? Object.create(null) : nmaps
-    nmaps[key] = exstring
-    browser.storage.sync.set({nmaps})
+    config.set("nmaps",exstring,key)
 }
 
 /** Unbind a sequence of keys so that they do nothing at all.
@@ -859,6 +1001,9 @@ export async function unbind(key: string){
 */
 //#background
 export async function reset(key: string){
+    config.unset("nmaps",key)
+
+    // Code for dealing with legacy binds
     let nmaps = (await browser.storage.sync.get("nmaps"))["nmaps"]
     nmaps = (nmaps == undefined) ? {} : nmaps
     delete nmaps[key]
@@ -885,6 +1030,46 @@ export async function quickmark(key: string) {
     await bind("gw" + key, "winopen", address)
 }
 
+//#background
+export function get(target: string, property?: string){
+    console.log(config.get(target,property))
+}
+
+/** Set a setting to a value
+
+    Currently, this only supports string settings without any whitespace
+    (i.e. not nmaps.)
+
+    It can be used on any string <-> string settings found [here](/static/docs/modules/_config_.html#defaults)
+ 
+*/
+//#background
+export function set(setting: string, value?: string){
+    // We don't support setting objects yet
+    if (setting != "nmaps"){
+        if (value !== undefined){
+            config.set(setting,value)
+        } else fillcmdline_notrail("set " + setting + " " + config.get(setting))
+    }
+}
+
+//#background
+export function unset(target: string, property?: string){
+    config.unset(target,property)
+}
+
+// not required as we automatically save all config
+////#background
+//export function saveconfig(){
+//    config.save(config.get("storageloc"))
+//}
+
+////#background
+//export function mktridactylrc(){
+//    saveconfig()
+//}
+
+
 // }}}
 
 // {{{ HINTMODE
@@ -893,18 +1078,32 @@ export async function quickmark(key: string) {
 import * as hinting from './hinting_background'
 
 /** Hint a page.
-*
-* Pass -b as first argument to open hinted page in background.
-* -y copies the link's target to the clipboard.
-* -p copies an element's text to the clipboard.*/
+
+    @param option
+        - -b open in background
+        - -y copy (yank) link's target to clipboard
+        - -p copy an element's text to the clipboard
+        - -i view an image
+        - -I view an image in a new tab
+        - -; focus an element
+        - -# yank an element's anchor URL to clipboard
+        - -c [selector] hint links that match the css selector
+          - `bind ;c hint -c [class*="expand"],[class="togg"]` works particularly well on reddit and HN
+
+    Related settings:
+        "hintchars": "hjklasdfgyuiopqwertnmzxcvb"
+        "hintorder": "normal" or "reverse"
+*/
 //#background
-export function hint(option?: "-b") {
+export function hint(option?: string, selectors="") {
     if (option === '-b') hinting.hintPageOpenInBackground()
     else if (option === "-y") hinting.hintPageYank()
     else if (option === "-p") hinting.hintPageTextYank()
     else if (option === "-i") hinting.hintImage(false)
     else if (option === "-I") hinting.hintImage(true)
     else if (option === "-;") hinting.hintFocus()
+    else if (option === "-#") hinting.hintPageAnchorYank()
+    else if (option === "-c") hinting.hintPageSimple(selectors)
     else hinting.hintPageSimple()
 }
 

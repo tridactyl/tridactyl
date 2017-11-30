@@ -20,6 +20,12 @@ async function add_beta(versionstr) {
     })
 }
 
+function save_manifest(filename, manifest) {
+    // Save file
+    const fs = require('fs')
+    fs.writeFileSync(filename, JSON.stringify(manifest, null, 4))
+}
+
 async function main() {
     let filename, manifest
     switch (process.argv[2]) {
@@ -28,19 +34,18 @@ async function main() {
             filename = './src/manifest.json'
             manifest = require('.' + filename)
             manifest.version = bump_version(manifest.version, Number(process.argv[3]))
+            save_manifest(filename, manifest)
+            exec(`git add ${filename} && git commit -m 'release ${manifest.version}' && git tag ${manifest.version}`)
             break
         case 'beta':
             filename = './build/manifest.json'
             manifest = require('.' + filename)
             manifest.version = await add_beta(manifest.version)
+            save_manifest(filename, manifest)
             break
         default:
             throw "Unknown command!"
     }
-
-    // Save file
-    const fs = require('fs')
-    fs.writeFile(filename, JSON.stringify(manifest, null, 4), err=>err && console.error(err))
 }
 
 main()
