@@ -1250,8 +1250,9 @@ export async function ttscontrol(action: string) {
 * If a bookmark already exists for the URL, it is removed.
 */
 //#background
-export async function bmark(url?: string, title = ""){
+export async function bmark(url?: string, ...titlearr: string[] ){
     url = url === undefined ? (await activeTab()).url : url
+    let title = titlearr.join(" ") 
     let dupbmarks = await browser.bookmarks.search({url})
     dupbmarks.map((bookmark) => browser.bookmarks.remove(bookmark.id))
     if (dupbmarks.length == 0 ) {browser.bookmarks.create({url, title})}
