@@ -70,6 +70,7 @@ const DEFAULTS = o({
         ";I": "hint -I",
         ";y": "hint -y",
         ";p": "hint -p",
+        ";r": "hint -r",
         ";;": "hint -;",
         ";#": "hint -#",
         "I": "mode ignore",
@@ -80,6 +81,11 @@ const DEFAULTS = o({
     "storageloc": "sync",
     "hintchars": "hjklasdfgyuiopqwertnmzxcvb",
     "hintorder": "normal",
+
+    "ttsvoice": "default",  // chosen from the listvoices list, or "default"
+    "ttsvolume": 1,         // 0 to 1
+    "ttsrate": 1,           // 0.1 to 10
+    "ttspitch": 1,          // 0 to 2
 })
 
 // currently only supports 2D or 1D storage

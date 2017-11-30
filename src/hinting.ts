@@ -17,6 +17,7 @@ import {hasModifiers} from './keyseq'
 import state from './state'
 import {messageActiveTab} from './messaging'
 import * as config from './config'
+import * as TTS from './text_to_speech'
 
 /** Simple container for the state of a single frame's hints. */
 class HintState {
@@ -366,6 +367,13 @@ function hintFocus() {
     })
 }
 
+/** Hint items and read out the content of the selection */
+function hintRead() {
+    hintPage(elementswithtext(), hint=>{
+        TTS.readText(hint.target.textContent)
+    })
+}
+
 function selectFocusedHint() {
     console.log("Selecting hint.", state.mode)
     const focused = modeState.focusedHint
@@ -385,4 +393,5 @@ addListener('hinting_content', attributeCaller({
     hintPageOpenInBackground,
     hintImage,
     hintFocus,
+    hintRead,
 }))

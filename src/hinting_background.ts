@@ -40,6 +40,10 @@ export async function hintFocus() {
     return await messageActiveTab('hinting_content', 'hintFocus')
 }
 
+export async function hintRead() {
+    return await messageActiveTab('hinting_content', 'hintRead')
+}
+
 import {MsgSafeKeyboardEvent} from './msgsafe'
 
 /** At some point, this might be turned into a real keyseq parser

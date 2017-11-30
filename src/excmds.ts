@@ -1083,6 +1083,7 @@ import * as hinting from './hinting_background'
         - -b open in background
         - -y copy (yank) link's target to clipboard
         - -p copy an element's text to the clipboard
+        - -r read an element's text with text-to-speech
         - -i view an image
         - -I view an image in a new tab
         - -; focus an element
@@ -1104,6 +1105,7 @@ export function hint(option?: string, selectors="") {
     else if (option === "-;") hinting.hintFocus()
     else if (option === "-#") hinting.hintPageAnchorYank()
     else if (option === "-c") hinting.hintPageSimple(selectors)
+    else if (option === "-r") hinting.hintRead()
     else hinting.hintPageSimple()
 }
 
@@ -1128,6 +1130,92 @@ export async function gobble(nChars: number, endCmd: string) {
 
 // }}}
 //
+
+// {{{TEXT TO SPEECH
+
+import * as TTS from './text_to_speech'
+
+/**
+ * Read text content of elements matching the given selector
+ *
+ * @param selector the selector to match elements
+ */
+//#content_helper
+function tssReadFromCss(selector: string): void {
+    let elems = DOM.getElemsBySelector(selector, [])
+
+    elems.forEach(e=>{
+        TTS.readText(e.textContent)
+    })
+}
+
+/**
+ * Read the given text using the browser's text to speech functionality and
+ * the settings currently set
+ *
+ * @param mode      the command mode
+ *                      -t read the following args as text
+ *                      -c read the content of elements matching the selector
+ */
+//#content
+export async function ttsread(mode: "-t" | "-c", ...args: string[]) {
+
+    if (mode === "-t") {
+        // really should quote args, but for now, join
+        TTS.readText(args.join(" "))
+    }
+    else if (mode === "-c") {
+
+        if (args.length > 0) {
+            tssReadFromCss(args[0])
+        } else {
+            console.log("Error: no CSS selector supplied")
+        }
+    } else {
+        console.log("Unknown mode for ttsread command: " + mode)
+    }
+}
+
+/**
+ * Show a list of the voices available to the TTS system. These can be
+ * set in the config using `ttsvoice`
+ */
+//#background
+export async function ttsvoices() {
+    let voices = TTS.listVoices()
+
+    // need a better way to show this to the user
+    fillcmdline_notrail(voices.sort().join(", "))
+}
+
+/**
+ * Cancel current reading and clear pending queue
+ *
+ * Arguments:
+ *   - stop:    cancel current and pending utterances
+ */
+//#content
+export async function ttscontrol(action: string) {
+
+    let ttsAction: TTS.Action = null
+
+    // convert user input to TTS.Action
+    // only pause seems to be working, so only provide access to that
+    // to avoid exposing users to things that won't work
+    switch (action) {
+        case "stop":
+            ttsAction = "stop"
+            break
+    }
+
+    if (ttsAction) {
+        TTS.doAction(ttsAction)
+    } else {
+        console.log("Unknown text-to-speech action: " + action)
+    }
+}
+
+//}}}
 
 // unsupported on android
 /** Add or remove a bookmark.
