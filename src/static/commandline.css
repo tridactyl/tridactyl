@@ -42,6 +42,19 @@ input {
   border-spacing: 0;
   table-layout: fixed;
 }
+
+/* redundancy 2: redundancy 2: more redundancy */
+#completions .BmarkCompletionSource {
+  max-height: calc(20 * var(--option-height));
+  min-height: calc(10 * var(--option-height));
+}
+
+#completions .BmarkCompletionSource table {
+  width: 100%;
+  font-size: 9pt;
+  border-spacing: 0;
+  table-layout: fixed;
+}
 /* redundancy ends */
 
 #completions .BufferCompletionSource {

@@ -394,9 +394,8 @@ export function urlparent (){
     @hidden
  */
 //#content
-export function geturlsforlinks(rel: string){
-    let elems = document.querySelectorAll("link[rel='" + rel + "']") as NodeListOf<HTMLLinkElement>
-    console.log(rel, elems)
+export function geturlsforlinks(reltype = "rel", rel: string){
+    let elems = document.querySelectorAll("link[" + reltype + "='" + rel + "']") as NodeListOf<HTMLLinkElement>
     if (elems)
         return Array.prototype.map.call(elems, x => x.href)
     return []
@@ -896,13 +895,16 @@ export async function clipboard(excmd: "open"|"yank"|"yankshort"|"yankcanon"|"ta
     let urls = []
     switch (excmd) {
         case 'yankshort':
-            urls = await geturlsforlinks("shortlink")
+            urls = await geturlsforlinks("rel", "shortlink")
+            if (urls.length == 0) {
+                urls = await geturlsforlinks("rev", "canonical")
+            }
             if (urls.length > 0) {
                 messageActiveTab("commandline_frame", "setClipboard", [urls[0]])
                 break
             }
         case 'yankcanon':
-            urls = await geturlsforlinks("canonical")
+            urls = await geturlsforlinks("rel", "canonical")
             if (urls.length > 0) {
                 messageActiveTab("commandline_frame", "setClipboard", [urls[0]])
                 break
