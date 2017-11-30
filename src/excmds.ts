@@ -827,6 +827,32 @@ async function getnexttabs(tabid: number, n?: number) {
 /*     return results */
 /* } */
 
+/** Clear private browser data. 
+*
+* Item could one or multiple items from the list following (hopefully): 
+*
+* - cache
+* - cookies
+* - formdata
+* - history
+* - marks
+* 
+* 
+*/
+//#background
+export async function sanitize(item?: string){
+    //switch(item) {
+    //    case 'history':
+    //        //await not resolving deletingAll
+    //        let deletingAll = browser.history.deleteAll()
+    //        console.log("Deleting history...")
+    //        deletingAll.then(function(){console.log("History deleted.")})
+    //    default:
+    //        console.log("Sanitize everything on default?")
+    //}	
+    console.log("Tdçlgkajdçglak jdçglakjdgç alkdjgça")
+}
+
 // }}}
 
 // {{{ CMDLINE
@@ -1257,5 +1283,6 @@ export async function bmark(url?: string, ...titlearr: string[] ){
     dupbmarks.map((bookmark) => browser.bookmarks.remove(bookmark.id))
     if (dupbmarks.length == 0 ) {browser.bookmarks.create({url, title})}
 }
+
 
 // vim: tabstop=4 shiftwidth=4 expandtab
