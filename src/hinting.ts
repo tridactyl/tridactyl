@@ -22,7 +22,10 @@ import * as TTS from './text_to_speech'
 /** Simple container for the state of a single frame's hints. */
 class HintState {
     public focusedHint: Hint
-    readonly hintHost = html`<div class="TridactylHintHost">`
+    readonly hintHost = document.createElement('div')
+    constructor(){
+        this.hintHost.classList.add("TridactylHintHost")
+    }
     readonly hints: Hint[] = []
     public filter = ''
     public hintchars = ''
