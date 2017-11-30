@@ -40,6 +40,7 @@ function enableCompletions() {
         activeCompletions = [
             new Completions.BufferCompletionSource(completionsDiv),
             new Completions.HistoryCompletionSource(completionsDiv),
+            new Completions.BmarkCompletionSource(completionsDiv),
         ]
 
         const fragment = document.createDocumentFragment()
