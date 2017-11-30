@@ -125,6 +125,7 @@ function searchURL(provider: string, query: string) {
 /** If maybeURI doesn't have a schema, affix http:// */
 /** @hidden */
 function forceURI(maybeURI: string): string {
+    if (maybeURI === undefined) return maybeURI
     try {
         return new URL(maybeURI).href
     } catch (e) {
@@ -563,12 +564,13 @@ export async function tablast() {
     tabIndexSetActive(0)
 }
 
-/** Like [[open]], but in a new tab */
+/** Like [[open]], but in a new tab. If no address is given, it will open the newtab page, which can be set with `set newtab [url]` */
 //#background
 export async function tabopen(...addressarr: string[]) {
     let uri
     let address = addressarr.join(' ')
     if (address != "") uri = forceURI(address)
+    else uri = forceURI(config.get("newtab"))
     browser.tabs.create({url: uri})
 }
 
@@ -707,7 +709,7 @@ export async function pin() {
 
 // {{{ WINDOWS
 
-/** Like [[open]], but in a new window */
+/** Like [[tabopen]], but in a new window */
 //#background
 export async function winopen(...args: string[]) {
     let address: string
@@ -716,7 +718,7 @@ export async function winopen(...args: string[]) {
         createData["incognito"] = true
         address = args.slice(1,args.length).join(' ')
     } else address = args.join(' ')
-    createData["url"] = address != "" ? forceURI(address) : null
+    createData["url"] = address != "" ? forceURI(address) : forceURI(config.get("newtab"))
     browser.windows.create(createData)
 }
 

@@ -78,6 +78,7 @@ const DEFAULTS = o({
         "A": "bmark",
     }),
     "searchengine": "google",
+    "newtab": undefined,
     "storageloc": "sync",
     "hintchars": "hjklasdfgyuiopqwertnmzxcvb",
     "hintorder": "normal",
