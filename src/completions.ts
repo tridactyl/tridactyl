@@ -301,8 +301,10 @@ abstract class CompletionSourceFuse extends CompletionSource {
         if (this.state != "hidden"){
             let visopts = this.options.filter((o) => o.state != "hidden")
             let currind = visopts.findIndex((o) => o.state == "focused")
+            if ((inc < 0) && (currind == -1)) inc += 1
             this.deselect()
-            this.select(visopts[(currind + inc + visopts.length) % visopts.length])
+            this.select(visopts[(currind + inc + visopts.length) % visopts.length
+])
             return true
         } else return false
     }
