@@ -261,6 +261,26 @@ export function open(...urlarr: string[]) {
     window.location.href = forceURI(url)
 }
 
+
+/** Go to your homepage(s)
+ 
+    @param all
+        - if "true", opens all homepages in new tabs
+        - if "false" or not given, opens the last homepage in the current tab
+
+*/
+//#background
+export function home(all: "false" | "true" = "false"){
+    let homepages = config.get("homepages")
+    console.log(homepages)
+    if (homepages.length > 0){
+        if (all === "false") open(homepages[-1])
+        else {
+            homepages.map(t=>tabopen(t))
+        }
+    }
+}
+
 /** Show this page.
 
     `:help <excmd>` jumps to the entry for that command.
@@ -1046,11 +1066,14 @@ export function get(target: string, property?: string){
  
 */
 //#background
-export function set(setting: string, value?: string){
-    // We don't support setting objects yet
-    if (setting != "nmaps"){
-        if (value !== undefined){
-            config.set(setting,value)
+export function set(setting: string, ...value: string[]){
+    // We only support setting strings or arrays: not objects
+    let current = config.get(setting)
+    if ((Array.isArray(current) || typeof current == "string")) {
+        if (value.length > 0){
+            if (!Array.isArray(current)){
+                config.set(setting,value[0])
+            } else config.set(setting,value)
         } else fillcmdline_notrail("set " + setting + " " + config.get(setting))
     }
 }

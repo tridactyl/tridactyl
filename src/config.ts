@@ -34,6 +34,8 @@ const DEFAULTS = o({
         "yy": "clipboard yank",
         "ys": "clipboard yankshort",
         "yc": "clipboard yankcanon",
+        "gh": "home",
+        "gH": "home true",
         "p": "clipboard open",
         "P": "clipboard tabopen",
         "j": "scrollline 10",
@@ -80,6 +82,7 @@ const DEFAULTS = o({
     "searchengine": "google",
     "newtab": undefined,
     "storageloc": "sync",
+    "homepages": [],
     "hintchars": "hjklasdfgyuiopqwertnmzxcvb",
     "hintorder": "normal",
 
@@ -97,6 +100,8 @@ export function get(target, property?){
         }
         else return DEFAULTS[target][property]
     }
+    // only merge "proper" objects, not arrays
+    if (Array.isArray(DEFAULTS[target])) return USERCONFIG[target] || DEFAULTS[target]
     if (typeof DEFAULTS[target] === "object") return Object.assign(o({}),DEFAULTS[target],USERCONFIG[target])
     else return USERCONFIG[target] || DEFAULTS[target]
 }
