@@ -3,12 +3,16 @@
   "version": "0.1.0",
   "description": "Vimperator/Pentadactyl successor",
   "dependencies": {
-    "fuse.js": "^3.2.0"
+    "fuse.js": "^3.2.0",
+    "inferno": "^3.10.1",
+    "inferno-component": "^3.10.1"
   },
   "devDependencies": {
     "@types/jest": "^21.1.4",
     "@types/node": "^8.0.46",
     "awesome-typescript-loader": "^3.2.3",
+    "babel-loader": "^7.1.2",
+    "babel-plugin-inferno": "^3.3.0",
     "chokidar-cli": "^1.2.0",
     "copy-webpack-plugin": "^4.2.0",
     "jest": "^21.2.1",
@@ -60,5 +64,17 @@
   "bugs": {
     "url": "https://github.com/cmcaine/tridactyl/issues"
   },
-  "homepage": "https://github.com/cmcaine/tridactyl#readme"
+  "homepage": "https://github.com/cmcaine/tridactyl#readme",
+  "babel": {
+    "compact": false,
+    "plugins": [
+      "babel-plugin-syntax-jsx",
+      [
+        "babel-plugin-inferno",
+        {
+          "imports": true
+        }
+      ]
+    ]
+  }
 }

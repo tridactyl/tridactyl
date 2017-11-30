@@ -8,7 +8,8 @@
     "target": "ES2017",
     "lib": ["ES2017","dom", "dom.iterable"],
     "typeRoots": ["node_modules/@types", "node_modules/web-ext-types/"],
-    "alwaysStrict": true
+    "alwaysStrict": true,
+    "jsx": "preserve"
   },
   "include": [
     "./src/**/*"
