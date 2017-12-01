@@ -1034,6 +1034,102 @@ export async function reset(key: string){
     browser.storage.sync.set({nmaps})
 }
 
+/** Deletes various privacy-related items.
+
+    The list of possible arguments can be found here:
+    https://developer.mozilla.org/en-US/Add-ons/WebExtensions/API/browsingData/DataTypeSet
+
+    Additional, tridactyl-specific arguments are:
+    - commandline: Removes the in-memory commandline history.
+    - tridactyllocal: Removes all tridactyl state settings. Use it with
+        commandline if you want to delete your commandline history.
+    - tridactylsync: Removes all tridactyl settings.
+    These arguments aren't affected by the timespan parameter.
+
+    Timespan parameter:
+    -t [0-9]+(m|h|d|w)
+
+    Examples:
+    `sanitize history` -> Deletes all history
+    `sanitize commandline tridactyllocal tridactylsync` -> Deletes every bit of data Tridactyl holds
+    `sanitize cookies -t 3d` -> Deletes cookies that were set during the last three days.
+
+*/
+//#background
+export async function sanitize(...args: string[]) {
+    let flagpos = args.indexOf("-t")
+    let since = {}
+    // If the -t flag has been given and there is an arg after it
+    if (flagpos > -1) {
+        if (flagpos < args.length - 1) {
+            let match = args[flagpos + 1].match('^([0-9])+(m|h|d|w)$')
+            // If the arg of the flag matches Pentadactyl's sanitizetimespan format
+            if (match !== null && match.length == 3) {
+                // Compute the timespan in milliseconds and get a Date object
+                let millis = parseInt(match[1]) * 1000
+                switch (match[2]) {
+                    case 'w': millis *= 7
+                    case 'd': millis *= 24
+                    case 'h': millis *= 60
+                    case 'm': millis *= 60
+                }
+                since = { "since": (new Date()).getTime() - millis }
+            } else {
+                console.log(":sanitize error: expected time format: ^([0-9])+(m|h|d|w)$, given format:" + args[flagpos+1])
+                return
+            }
+        } else {
+            console.log(":sanitize error: -t given but no following arguments")
+            return
+        }
+    }
+
+    let dts = {
+        "cache": false,
+        "cookies": false,
+        "downloads": false,
+        "formData": false,
+        "history": false,
+        "localStorage": false,
+        "passwords": false,
+        "serviceWorkers": false,
+        // These are Tridactyl-specific
+        "commandline": false,
+        "tridactyllocal": false,
+        "tridactylsync": false,
+        /* When this one is activated, a lot of errors seem to pop up in
+           the console. Keeping it disabled is probably a good idea.
+        "pluginData": false,
+         */
+        /* These 3 are supported by Chrome and Opera but not by Firefox yet.
+        "fileSystems": false,
+        "indexedDB": false,
+        "serverBoundCertificates": false,
+         */
+    }
+    if (args.find(x => x == "all") !== undefined) {
+        for (let attr in dts)
+            dts[attr] = true
+    } else {
+        // We bother checking if dts[x] is false because
+        // browser.browsingData.remove() is very strict on the format of the
+        // object it expects
+        args.map(x => { if (dts[x] === false) dts[x] = true })
+    }
+    // Tridactyl-specific items
+    if (dts.commandline === true)
+        state.cmdHistory = []
+    delete dts.commandline
+    if (dts.tridactyllocal === true)
+        browser.storage.local.clear()
+    delete dts.tridactyllocal
+    if (dts.tridactylsync === true)
+        browser.storage.sync.clear()
+    delete dts.tridactylsync
+    // Global items
+    browser.browsingData.remove(since, dts)
+}
+
 /** Bind a quickmark for the current URL to a key.
 
     Afterwards use go[key], gn[key], or gw[key] to [[open]], [[tabopen]], or
