@@ -22,5 +22,4 @@
  - Allow `;p` to yank any element which contains text
  - Add `;#` hint yank anchor mode
  - Improve hint CSS by adding a border and making background semi-transparent
- - Add yank anchor hint submode (;#)
  - Add `tabonly` command
