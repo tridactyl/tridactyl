@@ -198,21 +198,22 @@ function history(n){
 /* Send the commandline to the background script and await response. */
 function process() {
     console.log(clInput.value)
-    clInput.value = getCompletion() || clInput.value
-    console.log(clInput.value)
-    sendExstr(clInput.value)
+    const command = getCompletion() || clInput.value
+    console.log(command)
+
+    hide_and_clear()
 
     // Save non-secret commandlines to the history.
-    const [func,...args] = clInput.value.trim().split(/\s+/)
+    const [func,...args] = command.trim().split(/\s+/)
     if (! browser.extension.inIncognitoContext &&
         ! (func === 'winopen' && args[0] === '-private')
     ) {
-        state.cmdHistory = state.cmdHistory.concat([clInput.value])
+        state.cmdHistory = state.cmdHistory.concat([command])
     }
     console.log(state.cmdHistory)
     cmdline_history_position = 0
 
-    hide_and_clear()
+    sendExstr(command)
 }
 
 export function fillcmdline(newcommand?: string, trailspace = true){
