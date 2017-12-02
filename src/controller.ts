@@ -68,6 +68,8 @@ function *ParserController () {
                     keys = response.keys
                 }
             }
+            if (ex_str != "repeat")
+                state.last_ex_str = ex_str
             acceptExCmd(ex_str)
         } catch (e) {
             // Rumsfeldian errors are caught here

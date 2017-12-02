@@ -81,6 +81,7 @@ const DEFAULTS = o({
         "zi": "zoom 0.1 true",
         "zo": "zoom -0.1 true",
         "zz": "zoom 1",
+        ".": "repeat",
     }),
     "searchengine": "google",
     "searchurls": o({

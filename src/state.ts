@@ -18,6 +18,7 @@ export type ModeName = 'normal' | 'insert' | 'hint' | 'ignore' | 'gobble' | 'inp
 class State {
     mode: ModeName = 'normal'
     cmdHistory: string[] = []
+    last_ex_str: string = ""
 }
 
 // Don't change these from const or you risk breaking the Proxy below.
