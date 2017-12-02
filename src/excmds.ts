@@ -6,33 +6,58 @@
 
     The default keybinds can be found [here](/static/docs/modules/_parsers_normalmode_.html#defaultnmaps).
 
-    Tridactyl is in a pretty early stage of development. Please report any issues and make requests for missing features on the GitHub project page [[1]].
+    Tridactyl is in a pretty early stage of development. Please report any
+    issues and make requests for missing features on the GitHub [project page](1).
+    You can also get in touch using Matrix or Gitter chat clients:
 
-    Highlighted features:
+    [![Freenode Chat][freenode-badge]][freenode-link]
+    [![Matrix Chat][matrix-badge]][matrix-link]
+    [![Gitter Chat][gitter-badge]][gitter-link]
 
-    - Press `b` to bring up a list of open tabs in the current window; you can type the tab ID or part of the title or URL to choose a tab (the buffer list doesn't show which one you've selected yet, but it does work)
-    - Press `I` to enter ignore mode. `Shift` + `Escape` to return to normal mode.
+    ## Highlighted features:
+
+    - Press `b` to bring up a list of open tabs in the current window; you can
+      type the tab ID or part of the title or URL to choose a tab (the buffer
+      list doesn't show which one you've selected yet, but it does work)
+    - Press `I` to enter ignore mode. `Shift` + `Escape` to return to normal
+      mode.
     - Press `f` to start "hint mode", `F` to open in background
     - Press `o` to `:open` a different page
-    - Press `s` if you want to search for something that looks like a domain name or URL
+    - Press `s` if you want to search for something that looks like a domain
+      name or URL
     - [[bind]] new commands with e.g. `:bind J tabnext`
     - Type `:help` to see a list of available excmds
     - Use `yy` to copy the current page URL to your clipboard
-    - `]]` and `[[` to navigate through the pages of comics, paginated articles, etc
-    - Pressing `ZZ` will close all tabs and windows, but it will only "save" them if your about:preferences are set to "show your tabs and windows from last time"
+    - `]]` and `[[` to navigate through the pages of comics, paginated
+      articles, etc
+    - Pressing `ZZ` will close all tabs and windows, but it will only "save"
+      them if your about:preferences are set to "show your tabs and windows
+      from last time"
 
     There are some caveats common to all webextension vimperator-alikes:
 
-    - Do not try to navigate to any about:\* pages using `:open` as it will fail silently
-    - Firefox will not load Tridactyl on addons.mozilla.org, about:\*, some file:\* URIs, view-source:\*, or data:\*. On these pages Ctrl-L (or F6), Ctrl-Tab and Ctrl-W are your escape hatches
-    - Tridactyl does not currently support changing/hiding the Firefox GUI, but you can do it yourself by changing your userChrome. There is an example file available on our repository [[2]]
+    - Do not try to navigate to any about:\* pages using `:open` as it will
+      fail silently
+    - Firefox will not load Tridactyl on addons.mozilla.org, about:\*, some
+      file:\* URIs, view-source:\*, or data:\*. On these pages Ctrl-L (or F6),
+      Ctrl-Tab and Ctrl-W are your escape hatches
+    - Tridactyl does not currently support changing/hiding the Firefox GUI, but
+      you can do it yourself by changing your userChrome. There is an [example
+      file](2) available in our repository.
 
-    If you want a more fully-featured vimperator-alike, your best option is Firefox ESR [[3]] and Vimperator :)
+    If you want a more fully-featured vimperator-alike, your best option is
+    [Firefox ESR](3) and Vimperator :)
 
     [1]: https://github.com/cmcaine/tridactyl/issues
     [2]: https://github.com/cmcaine/tridactyl/blob/master/src/static/userChrome-minimal.css
     [3]: https://www.mozilla.org/en-US/firefox/organizations/
 
+    [gitter-badge]: /static/badges/gitter-badge.svg
+    [gitter-link]: https://gitter.im/tridactyl/Lobby
+    [freenode-badge]: /static/badges/freenode-badge.svg
+    [freenode-link]: https://webchat.freenode.net/?channels=%23tridactyl
+    [matrix-badge]: https://matrix.to/img/matrix-badge.svg
+    [matrix-link]: https://riot.im/app/#/room/#tridactyl:matrix.org
 */
 /** ignore this line */
 
