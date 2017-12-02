@@ -21,6 +21,13 @@ function getVoiceFromName(name: string | "default"): SpeechSynthesisVoice {
  */
 export function readText(text: string): void {
 
+    if (window.speechSynthesis.getVoices().length === 0) {
+        // should try to warn user? This apparently can happen on some machines
+        // TODO: Implement when there's an error feedback mechanism
+        console.log("No voice found: cannot use Text-To-Speech API")
+        return
+    }
+
     let utterance = new SpeechSynthesisUtterance(text);
 
     let pitch = Config.get("ttspitch")
