@@ -827,6 +827,62 @@ async function getnexttabs(tabid: number, n?: number) {
 /*     return results */
 /* } */
 
+/** Clear private browser data. 
+*
+* Item could be one or multiple items from the list following:
+*
+* - cache
+* - cookies
+* - downloads
+* - passwords
+* - formdata
+* - history
+* 
+* E.g: To clear cookes and browsing cache
+* :sanitize cookies cache
+*
+* E.g: To sanitize all browsing cache (from the listed above)
+* :sanitize
+*/
+//#background
+export async function sanitize(...strarr: string[]){
+
+    /* 
+     * Timespan not applied for cache, indexedDB, localStorage and serviceWorkers
+     * https://developer.mozilla.org/en-US/Add-ons/WebExtensions/API/browsingData/RemovalOptions
+     *
+     */
+
+    //TODO: 
+    //  . better way of showing the work is done
+    function onRemoved() { fillcmdline_notrail("Browsing sanitized sucessufully.") }
+    function onError(error) { fillcmdline_notrail(error) }
+    
+    //setting which data will be cleanned
+    strarr.forEach(function(dttype){
+        switch(dttype){
+            case "cache":
+                browser.browsingData.removeCache({}).then(onRemoved, onError)     
+            case "cookies":
+                browser.browsingData.removeCookies({}).then(onRemoved, onError)     
+            case "downloads":
+                browser.browsingData.removeDownloads({}).then(onRemoved, onError)     
+            case "formdata":
+                browser.browsingData.removeFormData({}).then(onRemoved, onError)     
+            case "history":
+                browser.browsingData.removeHistory({}).then(onRemoved, onError)     
+            case "passwords":
+                browser.browsingData.removePasswords({}).then(onRemoved, onError)     
+
+            //should default be Remove All?
+            default:
+                browser.browsingData.remove({},
+                    {cache: true, history: true, downloads: true, formData: true,
+                        cookies: true, passwords: true}).then(onRemoved, onError)
+        }
+    })
+}
+
 // }}}
 
 // {{{ CMDLINE
@@ -1357,5 +1413,6 @@ export async function bmark(url?: string, ...titlearr: string[] ){
     dupbmarks.map((bookmark) => browser.bookmarks.remove(bookmark.id))
     if (dupbmarks.length == 0 ) {browser.bookmarks.create({url, title})}
 }
+
 
 // vim: tabstop=4 shiftwidth=4 expandtab
