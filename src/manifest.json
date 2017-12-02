@@ -38,6 +38,7 @@
     "permissions": [
         "activeTab",
         "bookmarks",
+        "browsingData",
         "contextMenus",
         "clipboardWrite",
         "clipboardRead",
