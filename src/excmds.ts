@@ -1041,15 +1041,16 @@ export async function reset(key: string){
 
     Additional, tridactyl-specific arguments are:
     - commandline: Removes the in-memory commandline history.
-    - tridactyllocal: Removes all tridactyl state settings. Use it with
+    - tridactyllocal: Removes all tridactyl storage local to this machine. Use it with
         commandline if you want to delete your commandline history.
-    - tridactylsync: Removes all tridactyl settings.
+    - tridactylsync: Removes all tridactyl storage associated with your Firefox Account (i.e, all user configuration, by default).
     These arguments aren't affected by the timespan parameter.
 
     Timespan parameter:
     -t [0-9]+(m|h|d|w)
 
     Examples:
+    `sanitize all` -> Deletes everything
     `sanitize history` -> Deletes all history
     `sanitize commandline tridactyllocal tridactylsync` -> Deletes every bit of data Tridactyl holds
     `sanitize cookies -t 3d` -> Deletes cookies that were set during the last three days.
