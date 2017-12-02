@@ -258,6 +258,7 @@ export async function reloadhard(n = 1) {
 //#content
 export function open(...urlarr: string[]) {
     let url = urlarr.join(" ")
+    console.log("open url:" + url)
     window.location.href = forceURI(url)
 }
 
@@ -274,7 +275,7 @@ export function home(all: "false" | "true" = "false"){
     let homepages = config.get("homepages")
     console.log(homepages)
     if (homepages.length > 0){
-        if (all === "false") open(homepages[-1])
+        if (all === "false") open(homepages[homepages.length - 1])
         else {
             homepages.map(t=>tabopen(t))
         }
