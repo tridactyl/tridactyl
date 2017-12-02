@@ -68,14 +68,24 @@ export function hintPage(
 }
 
 /** vimperator-style minimal hint names */
-function* hintnames(hintchars = config.get("hintchars")): IterableIterator<string> {
+function* hintnames(n: number, hintchars = config.get("hintchars")): IterableIterator<string> {
     let taglen = 1
+    var source = permutationsWithReplacement(hintchars, taglen)
+    for (let i = 0;i < n / hintchars.length;i++) {
+        // drop hints that will be used as the prefix of longer hints
+        if (source.next()['done'])
+            // if the current taglen tags are exhausted, increase the length
+            taglen++
+            source = permutationsWithReplacement(hintchars, taglen)
+            source.next()
+        }
     while (true) {
-        yield* map(permutationsWithReplacement(hintchars, taglen), e=>{
+        yield* map(source, e=>{
             if (config.get("hintorder") == "reverse") e = e.reverse()
             return e.join('')
         })
         taglen++
+        source = permutationsWithReplacement(hintchars, taglen)
     }
 }
 
