@@ -47,7 +47,7 @@ let modeState: HintState = undefined
 export function hintPage(
     hintableElements: Element[],
     onSelect: HintSelectedCallback,
-    names = hintnames_uniform(hintableElements.length),
+    names = hintnames(hintableElements.length),
 ) {
     state.mode = 'hint'
     modeState = new HintState()
