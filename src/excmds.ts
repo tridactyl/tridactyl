@@ -471,6 +471,8 @@ let LAST_USED_INPUT: HTMLElement = null
  *
  * @param nth   focus the nth input on the page, or "special" inputs:
  *                  "-l": last focussed input
+ *                  "-n": input after last focussed one
+ *                  "-N": input before last focussed one
  *                  "-p": first password field
  *                  "-b": biggest input field
  */
@@ -493,6 +495,22 @@ export function focusinput(nth: number|string) {
         // will need to serialise the last used input to a string that
         // we can look up in future (tabindex, selector?), perhaps along with
         // a way to remember the page it was on?
+    }
+    else if (nth === "-n" || nth === "-N") {
+        // attempt to find next/previous input
+        let inputs = DOM.getElemsBySelector(INPUTTAGS_selectors,
+            [DOM.isSubstantial]) as HTMLElement[]
+        if (inputs.length) {
+            let index = inputs.indexOf(LAST_USED_INPUT)
+            if (nth === "-n") {
+                index++
+            } else {
+                if (LAST_USED_INPUT === null) index = -1
+                else index--
+            }
+            index = index.mod(inputs.length)
+            inputToFocus = <HTMLElement>inputs[index]
+        }
     }
     else if (nth === "-p") {
         // attempt to find a password input
@@ -522,7 +540,10 @@ export function focusinput(nth: number|string) {
                                          index, [DOM.isSubstantial])
     }
 
-    if (inputToFocus) inputToFocus.focus()
+    if (inputToFocus) {
+        inputToFocus.focus()
+        if (nth === "-l") input_mode()
+    }
 }
 
 // Store the last focused element
@@ -1265,6 +1286,21 @@ import * as gobbleMode from './parsers/gobblemode'
 //#background
 export async function gobble(nChars: number, endCmd: string) {
     gobbleMode.init(nChars, endCmd)
+}
+
+// }}}
+//
+
+// {{{ INPUT mode
+
+//#content_helper
+import * as inputMode from './parsers/inputmode'
+
+/** Initialize input mode.
+*/
+//#content
+function input_mode() {
+    inputMode.init()
 }
 
 // }}}

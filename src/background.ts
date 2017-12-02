@@ -23,6 +23,7 @@ import * as config from './config'
 import * as dom from './dom'
 import * as hinting_background from './hinting_background'
 import * as gobble_mode from './parsers/gobblemode'
+import * as input_mode from './parsers/inputmode'
 import * as itertools from './itertools'
 import * as keyseq from './keyseq'
 import * as msgsafe from './msgsafe'
@@ -39,6 +40,7 @@ import * as webext from './lib/webext'
     dom,
     hinting_background,
     gobble_mode,
+    input_mode,
     itertools,
     keydown_background,
     keyseq,
