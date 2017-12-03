@@ -75,26 +75,6 @@ import * as config from './config'
 //#background_helper
 export const cmd_params = new Map<string, Map<string, string>>()
 
-const SEARCH_URLS = new Map<string, string>([
-    ["google","https://www.google.com/search?q="],
-    ["googleuk","https://www.google.co.uk/search?q="],
-    ["bing","https://www.bing.com/search?q="],
-    ["duckduckgo","https://duckduckgo.com/?q="],
-    ["yahoo","https://search.yahoo.com/search?p="],
-    ["twitter","https://twitter.com/search?q="],
-    ["wikipedia","https://en.wikipedia.org/wiki/Special:Search/"],
-    ["youtube","https://www.youtube.com/results?search_query="],
-    ["amazon","https://www.amazon.com/s/ref=nb_sb_noss?url=search-alias%3Daps&field-keywords="],
-    ["amazonuk","https://www.amazon.co.uk/s/ref=nb_sb_noss?url=search-alias%3Daps&field-keywords="],
-    ["startpage","https://www.startpage.com/do/search?query="],
-    ["github","https://github.com/search?utf8=✓&q="],
-    ["searx","https://searx.me/?category_general=on&q="],
-    ["cnrtl","http://www.cnrtl.fr/lexicographie/"],
-    ["osm","https://www.openstreetmap.org/search?query="],
-    ["mdn","https://developer.mozilla.org/en-US/search?q="],
-    ["gentoo_wiki","https://wiki.gentoo.org/index.php?title=Special%3ASearch&profile=default&fulltext=Search&search="],
-])
-
 // map a page-relation (next or previous) to a fallback pattern to match link texts against
 const REL_PATTERN = {
     next: /^(?:next|newer)\b|»|>>/i,
@@ -109,8 +89,9 @@ function hasScheme(uri: string) {
 /** @hidden */
 function searchURL(provider: string, query: string) {
     if (provider == "search") provider = config.get("searchengine")
-    if (SEARCH_URLS.has(provider)) {
-        const url = new URL(SEARCH_URLS.get(provider) + encodeURIComponent(query))
+    let searchurlprovider = config.get("searchurls", provider)
+    if (searchurlprovider !== undefined){
+        const url = new URL(searchurlprovider + encodeURIComponent(query))
         // URL constructor doesn't convert +s because they're valid literals in
         // the standard it adheres to. But they are special characters in
         // x-www-form-urlencoded and e.g. google excepts query parameters in
@@ -258,6 +239,7 @@ export async function reloadhard(n = 1) {
 //#content
 export function open(...urlarr: string[]) {
     let url = urlarr.join(" ")
+    console.log("open url:" + url)
     window.location.href = forceURI(url)
 }
 
@@ -274,7 +256,7 @@ export function home(all: "false" | "true" = "false"){
     let homepages = config.get("homepages")
     console.log(homepages)
     if (homepages.length > 0){
-        if (all === "false") open(homepages[-1])
+        if (all === "false") open(homepages[homepages.length - 1])
         else {
             homepages.map(t=>tabopen(t))
         }
@@ -394,9 +376,8 @@ export function urlparent (){
     @hidden
  */
 //#content
-export function geturlsforlinks(rel: string){
-    let elems = document.querySelectorAll("link[rel='" + rel + "']") as NodeListOf<HTMLLinkElement>
-    console.log(rel, elems)
+export function geturlsforlinks(reltype = "rel", rel: string){
+    let elems = document.querySelectorAll("link[" + reltype + "='" + rel + "']") as NodeListOf<HTMLLinkElement>
     if (elems)
         return Array.prototype.map.call(elems, x => x.href)
     return []
@@ -896,13 +877,16 @@ export async function clipboard(excmd: "open"|"yank"|"yankshort"|"yankcanon"|"ta
     let urls = []
     switch (excmd) {
         case 'yankshort':
-            urls = await geturlsforlinks("shortlink")
+            urls = await geturlsforlinks("rel", "shortlink")
+            if (urls.length == 0) {
+                urls = await geturlsforlinks("rev", "canonical")
+            }
             if (urls.length > 0) {
                 messageActiveTab("commandline_frame", "setClipboard", [urls[0]])
                 break
             }
         case 'yankcanon':
-            urls = await geturlsforlinks("canonical")
+            urls = await geturlsforlinks("rel", "canonical")
             if (urls.length > 0) {
                 messageActiveTab("commandline_frame", "setClipboard", [urls[0]])
                 break
@@ -1002,6 +986,12 @@ export function bind(key: string, ...bindarr: string[]){
     config.set("nmaps",exstring,key)
 }
 
+/** Set a search engine keyword for use with *open or `set searchengine` */
+//#background
+export function searchsetkeyword(keyword: string, url: string){
+    config.set("searchurls",forceURI(url),keyword)
+}
+
 /** Unbind a sequence of keys so that they do nothing at all.
 
     See also:
@@ -1030,6 +1020,103 @@ export async function reset(key: string){
     nmaps = (nmaps == undefined) ? {} : nmaps
     delete nmaps[key]
     browser.storage.sync.set({nmaps})
+}
+
+/** Deletes various privacy-related items.
+
+    The list of possible arguments can be found here:
+    https://developer.mozilla.org/en-US/Add-ons/WebExtensions/API/browsingData/DataTypeSet
+
+    Additional, tridactyl-specific arguments are:
+    - commandline: Removes the in-memory commandline history.
+    - tridactyllocal: Removes all tridactyl storage local to this machine. Use it with
+        commandline if you want to delete your commandline history.
+    - tridactylsync: Removes all tridactyl storage associated with your Firefox Account (i.e, all user configuration, by default).
+    These arguments aren't affected by the timespan parameter.
+
+    Timespan parameter:
+    -t [0-9]+(m|h|d|w)
+
+    Examples:
+    `sanitize all` -> Deletes everything
+    `sanitize history` -> Deletes all history
+    `sanitize commandline tridactyllocal tridactylsync` -> Deletes every bit of data Tridactyl holds
+    `sanitize cookies -t 3d` -> Deletes cookies that were set during the last three days.
+
+*/
+//#background
+export async function sanitize(...args: string[]) {
+    let flagpos = args.indexOf("-t")
+    let since = {}
+    // If the -t flag has been given and there is an arg after it
+    if (flagpos > -1) {
+        if (flagpos < args.length - 1) {
+            let match = args[flagpos + 1].match('^([0-9])+(m|h|d|w)$')
+            // If the arg of the flag matches Pentadactyl's sanitizetimespan format
+            if (match !== null && match.length == 3) {
+                // Compute the timespan in milliseconds and get a Date object
+                let millis = parseInt(match[1]) * 1000
+                switch (match[2]) {
+                    case 'w': millis *= 7
+                    case 'd': millis *= 24
+                    case 'h': millis *= 60
+                    case 'm': millis *= 60
+                }
+                since = { "since": (new Date()).getTime() - millis }
+            } else {
+                console.log(":sanitize error: expected time format: ^([0-9])+(m|h|d|w)$, given format:" + args[flagpos+1])
+                return
+            }
+        } else {
+            console.log(":sanitize error: -t given but no following arguments")
+            return
+        }
+    }
+
+    let dts = {
+        "cache": false,
+        "cookies": false,
+        "downloads": false,
+        "formData": false,
+        "history": false,
+        "localStorage": false,
+        "passwords": false,
+        "serviceWorkers": false,
+        // These are Tridactyl-specific
+        "commandline": false,
+        "tridactyllocal": false,
+        "tridactylsync": false,
+        /* When this one is activated, a lot of errors seem to pop up in
+           the console. Keeping it disabled is probably a good idea.
+        "pluginData": false,
+         */
+        /* These 3 are supported by Chrome and Opera but not by Firefox yet.
+        "fileSystems": false,
+        "indexedDB": false,
+        "serverBoundCertificates": false,
+         */
+    }
+    if (args.find(x => x == "all") !== undefined) {
+        for (let attr in dts)
+            dts[attr] = true
+    } else {
+        // We bother checking if dts[x] is false because
+        // browser.browsingData.remove() is very strict on the format of the
+        // object it expects
+        args.map(x => { if (dts[x] === false) dts[x] = true })
+    }
+    // Tridactyl-specific items
+    if (dts.commandline === true)
+        state.cmdHistory = []
+    delete dts.commandline
+    if (dts.tridactyllocal === true)
+        browser.storage.local.clear()
+    delete dts.tridactyllocal
+    if (dts.tridactylsync === true)
+        browser.storage.sync.clear()
+    delete dts.tridactylsync
+    // Global items
+    browser.browsingData.remove(since, dts)
 }
 
 /** Bind a quickmark for the current URL to a key.
