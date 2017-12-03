@@ -1204,7 +1204,7 @@ import * as hinting from './hinting_background'
           - `bind ;c hint -c [class*="expand"],[class="togg"]` works particularly well on reddit and HN
 
     Related settings:
-        "hintchars": "hjklasdfgyuiopqwertnmzxcvb"
+        "hintchars": "HJKLASDFGYUIOPQWERTNMZXCVB"
 */
 //#background
 export function hint(option?: string, selectors="") {
