@@ -82,6 +82,7 @@ const DEFAULTS = o({
     "searchengine": "google",
     "searchurls": o({
         "google":"https://www.google.com/search?q=",
+        "scholar":"https://scholar.google.com/scholar?q=",
         "googleuk":"https://www.google.co.uk/search?q=",
         "bing":"https://www.bing.com/search?q=",
         "duckduckgo":"https://duckduckgo.com/?q=",
