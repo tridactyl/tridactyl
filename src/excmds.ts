@@ -1118,7 +1118,6 @@ import * as hinting from './hinting_background'
 
     Related settings:
         "hintchars": "hjklasdfgyuiopqwertnmzxcvb"
-        "hintorder": "normal" or "reverse"
 */
 //#background
 export function hint(option?: string, selectors="") {

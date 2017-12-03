@@ -82,7 +82,6 @@ function* hintnames(n: number, hintchars = config.get("hintchars")): IterableIte
     }
     while (true) {
         yield* map(source, e=>{
-            if (config.get("hintorder") == "reverse") e = e.reverse()
             return e.join('')
         })
         taglen++
@@ -100,7 +99,6 @@ function* hintnames_uniform(n: number, hintchars = config.get("hintchars")): Ite
         // And return first n permutations
         yield* map(islice(permutationsWithReplacement(hintchars, taglen), n),
             perm => {
-                if (config.get("hintorder") == "reverse") perm = perm.reverse()
                 return perm.join('')
             })
     }
