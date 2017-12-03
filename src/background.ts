@@ -19,6 +19,7 @@ import * as excmds from './excmds_background'
 import * as commandline_background from './commandline_background'
 import * as controller from './controller'
 import * as convert from './convert'
+import * as config from './config'
 import * as dom from './dom'
 import * as hinting_background from './hinting_background'
 import * as gobble_mode from './parsers/gobblemode'
@@ -34,6 +35,7 @@ import * as webext from './lib/webext'
     commandline_background,
     controller,
     convert,
+    config,
     dom,
     hinting_background,
     gobble_mode,

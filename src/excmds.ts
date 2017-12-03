@@ -75,26 +75,6 @@ import * as config from './config'
 //#background_helper
 export const cmd_params = new Map<string, Map<string, string>>()
 
-const SEARCH_URLS = new Map<string, string>([
-    ["google","https://www.google.com/search?q="],
-    ["googleuk","https://www.google.co.uk/search?q="],
-    ["bing","https://www.bing.com/search?q="],
-    ["duckduckgo","https://duckduckgo.com/?q="],
-    ["yahoo","https://search.yahoo.com/search?p="],
-    ["twitter","https://twitter.com/search?q="],
-    ["wikipedia","https://en.wikipedia.org/wiki/Special:Search/"],
-    ["youtube","https://www.youtube.com/results?search_query="],
-    ["amazon","https://www.amazon.com/s/ref=nb_sb_noss?url=search-alias%3Daps&field-keywords="],
-    ["amazonuk","https://www.amazon.co.uk/s/ref=nb_sb_noss?url=search-alias%3Daps&field-keywords="],
-    ["startpage","https://www.startpage.com/do/search?query="],
-    ["github","https://github.com/search?utf8=✓&q="],
-    ["searx","https://searx.me/?category_general=on&q="],
-    ["cnrtl","http://www.cnrtl.fr/lexicographie/"],
-    ["osm","https://www.openstreetmap.org/search?query="],
-    ["mdn","https://developer.mozilla.org/en-US/search?q="],
-    ["gentoo_wiki","https://wiki.gentoo.org/index.php?title=Special%3ASearch&profile=default&fulltext=Search&search="],
-])
-
 // map a page-relation (next or previous) to a fallback pattern to match link texts against
 const REL_PATTERN = {
     next: /^(?:next|newer)\b|»|>>/i,
@@ -109,8 +89,9 @@ function hasScheme(uri: string) {
 /** @hidden */
 function searchURL(provider: string, query: string) {
     if (provider == "search") provider = config.get("searchengine")
-    if (SEARCH_URLS.has(provider)) {
-        const url = new URL(SEARCH_URLS.get(provider) + encodeURIComponent(query))
+    let searchurlprovider = config.get("searchurls", provider)
+    if (searchurlprovider !== undefined){
+        const url = new URL(searchurlprovider + encodeURIComponent(query))
         // URL constructor doesn't convert +s because they're valid literals in
         // the standard it adheres to. But they are special characters in
         // x-www-form-urlencoded and e.g. google excepts query parameters in
@@ -1003,6 +984,12 @@ export async function buffer(index: number | '#') {
 export function bind(key: string, ...bindarr: string[]){
     let exstring = bindarr.join(" ")
     config.set("nmaps",exstring,key)
+}
+
+/** Set a search engine keyword for use with *open or `set searchengine` */
+//#background
+export function searchsetkeyword(keyword: string, url: string){
+    config.set("searchurls",forceURI(url),keyword)
 }
 
 /** Unbind a sequence of keys so that they do nothing at all.
