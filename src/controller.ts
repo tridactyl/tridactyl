@@ -68,8 +68,6 @@ function *ParserController () {
                     keys = response.keys
                 }
             }
-            if (ex_str != "repeat")
-                state.last_ex_str = ex_str
             acceptExCmd(ex_str)
         } catch (e) {
             // Rumsfeldian errors are caught here
@@ -91,6 +89,8 @@ export function acceptExCmd(ex_str: string) {
     // TODO: Errors should go to CommandLine.
     try {
         let [func, args] = exmode_parser(ex_str)
+        if (!ex_str.startsWith("repeat"))
+            state.last_ex_str = ex_str
         try {
             func(...args)
         } catch (e) {

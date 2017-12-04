@@ -897,25 +897,13 @@ import * as controller from './controller'
     Executes the command once if `n` isn't defined either.
 */
 //#background
-export function repeat(...args: string[]) {
-    let n = 1
-    let cmd = getLastExstr()
-    if (args.length > 0)
-        n = parseInt(args[0])
-    if (isNaN(n)) {
-        console.log(":repeat error: " + args[0] + " is not a number")
-        return
-    }
-    if (args.length > 1)
-        cmd = args.slice(1).join(" ")
+export function repeat(n = 1, ...exstr: string[]) {
+    let cmd = state.last_ex_str
+    if (exstr.length > 0)
+        cmd = exstr.join(" ")
     console.log("repeating " + cmd + " " + n + " times")
-    for (let i = 0; i < n; ++i)
+    for (let i = 0; i < n; i++)
         controller.acceptExCmd(cmd)
-}
-
-//#background_helper
-export function getLastExstr() {
-    return state.last_ex_str
 }
 
 /** Split `cmds` on pipes (|) and treat each as it's own command.
