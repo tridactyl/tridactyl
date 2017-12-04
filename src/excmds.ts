@@ -8,11 +8,13 @@
 
     Tridactyl is in a pretty early stage of development. Please report any
     issues and make requests for missing features on the GitHub [project page](1).
-    You can also get in touch using Matrix or Gitter chat clients:
+    You can also get in touch using Matrix, Gitter, or IRC chat clients:
 
-    [![Freenode Chat][freenode-badge]][freenode-link]
     [![Matrix Chat][matrix-badge]][matrix-link]
     [![Gitter Chat][gitter-badge]][gitter-link]
+    [![Freenode Chat][freenode-badge]][freenode-link]
+
+    All three channels are mirrored together, so it doesn't matter which one you use.
 
     ## Highlighted features:
 
@@ -55,7 +57,7 @@
     [gitter-badge]: /static/badges/gitter-badge.svg
     [gitter-link]: https://gitter.im/tridactyl/Lobby
     [freenode-badge]: /static/badges/freenode-badge.svg
-    [freenode-link]: https://webchat.freenode.net/?channels=%23tridactyl
+    [freenode-link]: ircs://chat.freenode.net/tridactyl
     [matrix-badge]: https://matrix.to/img/matrix-badge.svg
     [matrix-link]: https://riot.im/app/#/room/#tridactyl:matrix.org
 */

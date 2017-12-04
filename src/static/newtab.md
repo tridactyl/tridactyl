@@ -8,19 +8,22 @@ We're working with Firefox on improvements to the WebExtension APIs that will re
 
 In the meantime, here are some notes about Tridactyl:
 
-- Tridactyl is in a pretty early stage of development. Please report any issues and make requests for missing features on the GitHub project page [[1]]
+- Tridactyl is in a pretty early stage of development. Please report any issues and make requests for missing features on the GitHub project page [[1]].
 
-- You can view the main help page [here](/static/docs/modules/_excmds_.html).
+- You can view the main help page by typing [`:help`][help]
+
+- You can contact the developers and other users and contributors for support, to discuss pull requests or whatever on [Matrix][matrix-link], [Gitter][gitter-link], or [IRC][freenode-link].
 
 Highlighted features:
 
-- Press `b` to bring up a list of open tabs in the current window; you can type the tab ID or part of the title or URL to choose a tab (the buffer list doesn't show which one you've selected yet, but it does work)
+- Press `b` to bring up a list of open tabs in the current window; you can type the tab ID or part of the title or URL to choose a tab
 - Press `I` to enter ignore mode. `Shift` + `Escape` to return to normal mode.
 - Press `f` to start "hint mode", `F` to open in background
+- Type [`:help hint`][help-hint] to see all the other useful hint modes
 - Press `o` to `:open` a different page
 - Press `s` if you want to search for something that looks like a domain name or URL
 - Bind new commands with e.g. `:bind J tabprev`. Type `:help bind` to see help on custom binds.
-- Type `:help` for online help
+- Type [`:help`][help] for online help
 - Use `yy` to copy the current page URL to your clipboard
 - `]]` and `[[` to navigate through the pages of comics, paginated articles, etc.
 - Pressing `ZZ` will close all tabs and windows, but it will only "save" them if your about:preferences are set to "show your tabs and windows from last time"
@@ -42,3 +45,12 @@ If you want a more fully-featured vimperator-alike, your best option is Firefox 
 \[2]: https://github.com/cmcaine/tridactyl/blob/master/src/static/userChrome-minimal.css<br />
 \[3]: https://www.mozilla.org/en-US/firefox/organizations/<br />
 </div>
+
+[help]: /static/docs/modules/_excmds_.html
+[help-hint]: /static/docs/modules/_excmds_.html#hint
+[gitter-badge]: /static/badges/gitter-badge.svg
+[gitter-link]: https://gitter.im/tridactyl/Lobby
+[freenode-badge]: /static/badges/freenode-badge.svg
+[freenode-link]: ircs://chat.freenode.net/tridactyl
+[matrix-badge]: https://matrix.to/img/matrix-badge.svg
+[matrix-link]: https://riot.im/app/#/room/#tridactyl:matrix.org
