@@ -8,6 +8,7 @@
 //
 // Really, we'd like a way of just letting things use the variables
 //
+
 const CONFIGNAME = "userconfig"
 
 type StorageMap = browser.storage.StorageMap
@@ -124,6 +125,13 @@ const DEFAULTS = o({
     "ttsrate": 1,           // 0.1 to 10
     "ttspitch": 1,          // 0 to 2
     "vimium-gi": true,
+
+    // Default logging levels - generally 2 == WARNING
+    "logging": o({
+        "message": 2,
+        "cmdline": 2,
+        "controller": 2,
+    }),
 })
 
 // currently only supports 2D or 1D storage

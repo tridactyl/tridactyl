@@ -95,6 +95,8 @@ import * as CommandLineBackground from './commandline_background'
 import * as DOM from './dom'
 
 import * as config from './config'
+//#background_helper
+import * as Logging from "./logging"
 
 
 /** @hidden */
@@ -171,6 +173,33 @@ function tabSetActive(id: number) {
 
 // }}}
 
+// {{{ INTERNAL/DEBUG
+
+/**
+ * Set the logging level for a given logging module.
+ *
+ * @param logModule     the logging module to set the level on
+ * @param level         the level to log at: in increasing verbosity, one of
+ *                      "never", "error", "warning", "info", "debug"
+ */
+//#background
+export function loggingsetlevel(logModule: string, level: string) {
+    const map = {
+        "never": Logging.LEVEL.NEVER,
+        "error": Logging.LEVEL.ERROR,
+        "warning": Logging.LEVEL.WARNING,
+        "info": Logging.LEVEL.INFO,
+        "debug": Logging.LEVEL.DEBUG,
+    }
+
+    let newLevel = map[level]
+
+    if (newLevel !== undefined) {
+        config.set("logging", newLevel, logModule)
+    }
+}
+
+// }}}
 
 // {{{ PAGE CONTEXT
 

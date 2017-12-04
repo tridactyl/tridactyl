@@ -7,6 +7,7 @@ import * as Messaging from './messaging'
 import * as SELF from './commandline_frame'
 import './number.clamp'
 import state from './state'
+import * as Logging from "./logging"
 
 let activeCompletions: Completions.CompletionSource[] = undefined
 let completionsDiv = window.document.getElementById("completions") as HTMLElement
@@ -146,7 +147,7 @@ clInput.addEventListener("keydown", function (keyevent) {
 
 clInput.addEventListener("input", () => {
     // Fire each completion and add a callback to resize area
-    console.log(activeCompletions)
+    Logging.log("cmdline", Logging.LEVEL.DEBUG)(activeCompletions)
     activeCompletions.forEach(comp =>
         comp.filter(clInput.value).then(() => resizeArea())
     )
