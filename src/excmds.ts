@@ -384,8 +384,9 @@ export function geturlsforlinks(reltype = "rel", rel: string){
 }
 
 //#background
-export function zoom(level=0){
+export async function zoom(level=0, rel="false"){
     level = level > 3 ? level / 100 : level
+    if(rel=="true") level += (await browser.tabs.getZoom())
     browser.tabs.setZoom(level)
 }
 

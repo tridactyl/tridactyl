@@ -78,6 +78,9 @@ const DEFAULTS = o({
         "I": "mode ignore",
         "a": "current_url bmark",
         "A": "bmark",
+        "zi": "zoom 0.1 true",
+        "zo": "zoom -0.1 true",
+        "zz": "zoom 1",
     }),
     "searchengine": "google",
     "searchurls": o({
