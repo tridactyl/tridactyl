@@ -766,6 +766,23 @@ export async function qall(){
     windows.map((window) => browser.windows.remove(window.id))
 }
 
+/** Close the current tab, and close the current window if no tabs remain. */
+//#background
+export async function quit() {
+    let tabs = await browser.tabs.query({currentWindow: true})
+    if (tabs.length > 1) {
+        tabclose()
+    } else {
+        winclose()
+    }
+}
+
+/** Convenience shortcut for [[quit]] */
+//#background
+export async function q() {
+    quit()
+}
+
 // }}}
 
 // {{{ MISC
