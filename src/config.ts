@@ -179,7 +179,7 @@ function schlepp(settings){
 browser.storage.onChanged.addListener(
     (changes, areaname) => {
         if (CONFIGNAME in changes) {
-            Object.assign(USERCONFIG, changes[CONFIGNAME].newValue)
+            USERCONFIG = changes[CONFIGNAME].newValue
         }
     }
 )
