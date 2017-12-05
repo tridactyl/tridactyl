@@ -67,6 +67,7 @@
 
 import * as Messaging from "./messaging"
 import {l} from './lib/webext'
+import state from "./state"
 
 //#content_omit_line
 import "./number.clamp"
@@ -80,8 +81,6 @@ import {messageActiveTab} from './messaging'
 
 //#background_helper
 import "./number.mod"
-//#background_helper
-import state from "./state"
 //#background_helper
 import {ModeName} from './state'
 //#background_helper
@@ -489,12 +488,16 @@ export function focusinput(nth: number|string) {
     if (nth === "-l") {
         // try to recover the last used input stored as a
         // DOM node, which should be exactly the one used before (or null)
-        inputToFocus = LAST_USED_INPUT
+        if (LAST_USED_INPUT) {
+            inputToFocus = LAST_USED_INPUT
+        } else {
+            // Pick the first input in the DOM.
+            inputToFocus = DOM.getElemsBySelector(INPUTTAGS_selectors,
+                [DOM.isSubstantial])[0] as HTMLElement
 
-        // failed to find that? - look up in sessionStorage?
-        // will need to serialise the last used input to a string that
-        // we can look up in future (tabindex, selector?), perhaps along with
-        // a way to remember the page it was on?
+            // We could try to save the last used element on page exit, but
+            // that seems like a lot of faff for little gain.
+        }
     }
     else if (nth === "-n" || nth === "-N") {
         // attempt to find next/previous input
@@ -502,14 +505,17 @@ export function focusinput(nth: number|string) {
             [DOM.isSubstantial]) as HTMLElement[]
         if (inputs.length) {
             let index = inputs.indexOf(LAST_USED_INPUT)
-            if (nth === "-n") {
-                index++
+            if (LAST_USED_INPUT) {
+                if (nth === "-n") {
+                    index++
+                } else {
+                    index--
+                }
+                index = index.mod(inputs.length)
             } else {
-                if (LAST_USED_INPUT === null) index = -1
-                else index--
+                index = 0
             }
-            index = index.mod(inputs.length)
-            inputToFocus = <HTMLElement>inputs[index]
+            inputToFocus = inputs[index]
         }
     }
     else if (nth === "-p") {
@@ -542,8 +548,11 @@ export function focusinput(nth: number|string) {
 
     if (inputToFocus) {
         inputToFocus.focus()
-        if (nth === "-l") input_mode()
+        if (config.get('vimium-gi') && state.mode !== 'input') {
+            state.mode = 'input'
+        }
     }
+
 }
 
 // Store the last focused element
@@ -1289,22 +1298,7 @@ export async function gobble(nChars: number, endCmd: string) {
 }
 
 // }}}
-//
 
-// {{{ INPUT mode
-
-//#content_helper
-import * as inputMode from './parsers/inputmode'
-
-/** Initialize input mode.
-*/
-//#content
-function input_mode() {
-    inputMode.init()
-}
-
-// }}}
-//
 
 // {{{TEXT TO SPEECH
 

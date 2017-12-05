@@ -114,6 +114,7 @@ const DEFAULTS = o({
     "ttsvolume": 1,         // 0 to 1
     "ttsrate": 1,           // 0.1 to 10
     "ttspitch": 1,          // 0 to 2
+    "vimium-gi": true,
 })
 
 // currently only supports 2D or 1D storage
