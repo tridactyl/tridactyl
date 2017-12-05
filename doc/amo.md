@@ -1,4 +1,4 @@
-##Control your browser with your keyboard *only*.
+## Control your browser with your keyboard *only*.
 
 Replace Firefox's control mechanism with one modelled on VIM.
 Most common tasks you want your browser to perform are bind to a single key
@@ -13,8 +13,10 @@ Go back in time? `H`.
 Notice that this tab is rubbish and you want to close it? `d`.
 Regret that decision? `u` restores it.
 Temporarily disable all that magic because you can't stand it? `I`.
+But how do you use your browser now? `Shift-Esc` and we're back on.
 
-The list could go on a bit here, but I guess you'll get the point.
+The list could go on a bit here, but I guess you'll get the point. If you feel
+lost sometimes `:help` might help you a lot.
 
 **Highlighted features:**
 
