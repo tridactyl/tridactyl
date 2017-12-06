@@ -497,8 +497,12 @@ export class HistoryCompletionSource extends CompletionSourceFuse {
     }
 
     private async scoreOptions(query: string, n: number) {
+        const newtab = browser.runtime.getManifest()['chrome_url_overrides'].newtab
+        const newtaburl = browser.extension.getURL(newtab)
 	if (! query) {
-	    return (await browserBg.topSites.get()).slice(0, n)
+            return (await browserBg.topSites.get()).filter(page =>
+                page.url !== newtaburl
+            ).slice(0, n)
 	} else {
 	    // Search history, dedupe and sort by frecency
 	    let history = await browserBg.history.search({
@@ -510,13 +514,15 @@ export class HistoryCompletionSource extends CompletionSourceFuse {
 	    // Remove entries with duplicate URLs
 	    const dedupe = new Map()
 	    for (const page of history) {
-		if (dedupe.has(page.url)) {
-		    if (dedupe.get(page.url).title.length < page.title.length) {
-			dedupe.set(page.url, page)
-		    }
-		} else {
-		    dedupe.set(page.url, page)
-		}
+                if (page.url !== newtaburl) {
+	            if (dedupe.has(page.url)) {
+	                if (dedupe.get(page.url).title.length < page.title.length) {
+                            dedupe.set(page.url, page)
+	                }
+	            } else {
+	                dedupe.set(page.url, page)
+	            }
+                }
 	    }
 	    history = [...dedupe.values()]
 
