@@ -732,6 +732,18 @@ export async function undo(){
     }
 }
 
+/** Synonym for [[tabclose]]. */
+//#background
+export async function quit() {
+    tabclose()
+}
+
+/** Convenience shortcut for [[quit]]. */
+//#background
+export async function q() {
+    tabclose()
+}
+
 /** Move the current tab to be just in front of the index specified.
 
     Known bug: This supports relative movement, but autocomple doesn't know
@@ -794,6 +806,12 @@ export async function winclose() {
 export async function qall(){
     let windows = await browser.windows.getAll()
     windows.map((window) => browser.windows.remove(window.id))
+}
+
+/** Convenience shortcut for [[qall]]. */
+//#background
+export async function qa() {
+    qall()
 }
 
 // }}}
