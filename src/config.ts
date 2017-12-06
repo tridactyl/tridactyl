@@ -47,6 +47,7 @@ const DEFAULTS = o({
         "H": "back",
         "L": "forward",
         "d": "tabclose",
+        "D": "tabonly",
         "u": "undo",
         "r": "reload",
         "R": "reloadhard",
