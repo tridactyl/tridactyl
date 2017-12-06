@@ -105,7 +105,7 @@ const DEFAULTS = o({
         "qwant":"https://www.qwant.com/?q=",
 
     }),
-    "newtab": undefined,
+    "newtab": "",
     "storageloc": "sync",
     "homepages": [],
     "hintchars": "hjklasdfgyuiopqwertnmzxcvb",

@@ -132,7 +132,8 @@ function searchURL(provider: string, query: string) {
 /** If maybeURI doesn't have a schema, affix http:// */
 /** @hidden */
 function forceURI(maybeURI: string): string {
-    if (maybeURI === undefined) return maybeURI
+    // Need undefined to be able to open about:newtab
+    if (maybeURI == "") return undefined
     try {
         return new URL(maybeURI).href
     } catch (e) {
