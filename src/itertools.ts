@@ -87,7 +87,7 @@ export function* permutationsWithReplacement(arr, n) {
     for (let _ of range(Math.pow(len, n))) {
         yield counters.map(i=>arr[i])
         for (let i of range(counters.length)) {
-            if (index.mod(Math.pow(len, i)) === 0)
+            if (index.mod(Math.pow(len, counters.length - 1 - i)) === 0)
                 counters[i] = (counters[i] + 1).mod(len)
         }
         index++

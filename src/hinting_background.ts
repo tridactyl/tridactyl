@@ -19,8 +19,13 @@ export async function hintPageYank() {
 export async function hintPageTextYank() {
     return await messageActiveTab('hinting_content', 'hintPageTextYank')
 }
-export async function hintPageSimple() {
-    return await messageActiveTab('hinting_content', 'hintPageSimple')
+
+export async function hintPageAnchorYank() {
+    return await messageActiveTab('hinting_content', 'hintPageAnchorYank')
+}
+
+export async function hintPageSimple(selectors?) {
+    return await messageActiveTab('hinting_content', 'hintPageSimple',[selectors])
 }
 
 export async function hintPageOpenInBackground() {
@@ -33,6 +38,10 @@ export async function hintImage(inBackground) {
 
 export async function hintFocus() {
     return await messageActiveTab('hinting_content', 'hintFocus')
+}
+
+export async function hintRead() {
+    return await messageActiveTab('hinting_content', 'hintRead')
 }
 
 import {MsgSafeKeyboardEvent} from './msgsafe'

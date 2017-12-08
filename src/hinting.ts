@@ -10,17 +10,22 @@
         Redraw on reflow
 */
 
-import {elementsByXPath, isVisible, mouseEvent} from './dom'
+import * as DOM from './dom'
 import {log} from './math'
 import {permutationsWithReplacement, islice, izip, map} from './itertools'
 import {hasModifiers} from './keyseq'
 import state from './state'
 import {messageActiveTab} from './messaging'
+import * as config from './config'
+import * as TTS from './text_to_speech'
 
 /** Simple container for the state of a single frame's hints. */
 class HintState {
     public focusedHint: Hint
-    readonly hintHost = html`<div class="TridactylHintHost">`
+    readonly hintHost = document.createElement('div')
+    constructor(){
+        this.hintHost.classList.add("TridactylHintHost")
+    }
     readonly hints: Hint[] = []
     public filter = ''
     public hintchars = ''
@@ -42,7 +47,7 @@ let modeState: HintState = undefined
 export function hintPage(
     hintableElements: Element[],
     onSelect: HintSelectedCallback,
-    names = hintnames_uniform(hintableElements.length),
+    names = hintnames(hintableElements.length),
 ) {
     state.mode = 'hint'
     modeState = new HintState()
@@ -63,16 +68,29 @@ export function hintPage(
 }
 
 /** vimperator-style minimal hint names */
-function* hintnames(hintchars = HINTCHARS): IterableIterator<string> {
+function* hintnames(n: number, hintchars = config.get("hintchars")): IterableIterator<string> {
     let taglen = 1
+    var source = permutationsWithReplacement(hintchars, taglen)
+    for (let i = 0;i < Math.floor(n / hintchars.length);i++) {
+        // drop hints that will be used as the prefix of longer hints
+        if (source.next()['done']) {
+            // if the current taglen tags are exhausted, increase the length
+            taglen++
+            source = permutationsWithReplacement(hintchars, taglen)
+            source.next()
+        }
+    }
     while (true) {
-        yield* map(permutationsWithReplacement(hintchars, taglen), e=>e.join(''))
+        yield* map(source, e=>{
+            return e.join('')
+        })
         taglen++
+        source = permutationsWithReplacement(hintchars, taglen)
     }
 }
 
 /** Uniform length hintnames */
-function* hintnames_uniform(n: number, hintchars = HINTCHARS): IterableIterator<string> {
+function* hintnames_uniform(n: number, hintchars = config.get("hintchars")): IterableIterator<string> {
     if (n <= hintchars.length)
         yield* islice(hintchars[Symbol.iterator](), n)
     else {
@@ -80,7 +98,9 @@ function* hintnames_uniform(n: number, hintchars = HINTCHARS): IterableIterator<
         const taglen = Math.ceil(log(n, hintchars.length))
         // And return first n permutations
         yield* map(islice(permutationsWithReplacement(hintchars, taglen), n),
-            perm => perm.join(''))
+            perm => {
+                return perm.join('')
+            })
     }
 }
 
@@ -136,9 +156,6 @@ class Hint {
     }
 }
 
-const HINTCHARS = 'hjklasdfgyuiopqwertnmzxcvb'
-/* const HINTCHARS = 'asdf' */
-
 /** Show only hints prefixed by fstr. Focus first match */
 function filter(fstr) {
     const active: Hint[] = []
@@ -191,24 +208,30 @@ function pushKey(ke) {
             1. Within viewport
             2. Not hidden by another element
 */
-function hintables() {
-    return Array.from(document.querySelectorAll(HINTTAGS_selectors)).filter(isVisible)
+function hintables(selectors=HINTTAGS_selectors) {
+    return DOM.getElemsBySelector(selectors, [DOM.isVisible])
 }
 
 function elementswithtext() {
-    return Array.from(document.querySelectorAll(HINTTAGS_text_selectors)).filter(
-        isVisible
-    ).filter(hint => {
-        return hint.textContent != ""
-    })
+
+    return DOM.getElemsBySelector("*",
+        [DOM.isVisible, hint => {
+            return hint.textContent != ""
+        }]
+    )
 }
 
 /** Get array of images in the viewport
  */
 function hintableImages() {
-    /* return [...elementsByXPath(HINTTAGS)].filter(isVisible) as any as Element[] */
-    return Array.from(document.querySelectorAll(HINTTAGS_img_selectors)).filter(
-        isVisible)
+    return DOM.getElemsBySelector(HINTTAGS_img_selectors, [DOM.isVisible])
+}
+
+/** Get arrat of "anchors": elements which have id or name and can be addressed
+ * with the hash/fragment in the URL
+ */
+function anchors() {
+    return DOM.getElemsBySelector(HINTTAGS_anchor_selectors, [DOM.isVisible])
 }
 
 // CSS selectors. More readable for web developers. Not dead. Leaves browser to care about XML.
@@ -220,6 +243,7 @@ iframe,
 textarea,
 button,
 select,
+summary,
 [onclick],
 [onmouseover],
 [onmousedown],
@@ -246,23 +270,14 @@ select,
 [tabindex]
 `
 
-const HINTTAGS_text_selectors = `
-input:not([type=hidden]):not([disabled]),
-a,
-area,
-iframe,
-textarea,
-button,
-p,
-div,
-pre,
-code,
-span
-`
-
 const HINTTAGS_img_selectors = `
 img,
 [src]
+`
+
+const HINTTAGS_anchor_selectors = `
+[id],
+[name]
 `
 
 import {activeTab, browserBg, l, firefoxVersionAtLeast} from './lib/webext'
@@ -290,7 +305,7 @@ function simulateClick(target: HTMLElement) {
     ) {
         browserBg.tabs.create({url: (target as HTMLAnchorElement).href})
     } else {
-        mouseEvent(target, "click")
+        DOM.mouseEvent(target, "click")
         // Sometimes clicking the element doesn't focus it sufficiently.
         target.focus()
     }
@@ -309,8 +324,8 @@ function hintPageOpenInBackground() {
     })
 }
 
-function hintPageSimple() {
-    hintPage(hintables(), hint=>{
+function hintPageSimple(selectors=HINTTAGS_selectors) {
+    hintPage(hintables(selectors), hint=>{
         simulateClick(hint.target)
     })
 }
@@ -324,6 +339,20 @@ function hintPageTextYank() {
 function hintPageYank() {
     hintPage(hintables(), hint=>{
         messageActiveTab("commandline_frame", "setClipboard", [hint.target.href])
+    })
+}
+
+/** Hint anchors and yank the URL on selection
+ */
+function hintPageAnchorYank() {
+
+    hintPage(anchors(), hint=>{
+
+        let anchorUrl = new URL(window.location.href)
+
+        anchorUrl.hash = hint.target.id || hint.target.name;
+
+        messageActiveTab("commandline_frame", "setClipboard", [anchorUrl.href])
     })
 }
 
@@ -351,6 +380,13 @@ function hintFocus() {
     })
 }
 
+/** Hint items and read out the content of the selection */
+function hintRead() {
+    hintPage(elementswithtext(), hint=>{
+        TTS.readText(hint.target.textContent)
+    })
+}
+
 function selectFocusedHint() {
     console.log("Selecting hint.", state.mode)
     const focused = modeState.focusedHint
@@ -366,7 +402,9 @@ addListener('hinting_content', attributeCaller({
     hintPageSimple,
     hintPageYank,
     hintPageTextYank,
+    hintPageAnchorYank,
     hintPageOpenInBackground,
     hintImage,
     hintFocus,
+    hintRead,
 }))

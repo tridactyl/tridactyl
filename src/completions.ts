@@ -13,6 +13,7 @@ import * as Fuse from 'fuse.js'
 import {enumerate} from './itertools'
 import {toNumber} from './convert'
 import * as Messaging from './messaging'
+import {browserBg} from './lib/webext'
 
 const DEFAULT_FAVICON = browser.extension.getURL("static/defaultFavicon.svg")
 
@@ -55,9 +56,7 @@ export abstract class CompletionSource {
         return this._state
     }
 
-    next(inc = 1): boolean {
-        return false
-    }
+    abstract next(inc?: number): boolean
 
     prev(inc = 1): boolean {
         return this.next(-1*inc)
@@ -302,8 +301,10 @@ abstract class CompletionSourceFuse extends CompletionSource {
         if (this.state != "hidden"){
             let visopts = this.options.filter((o) => o.state != "hidden")
             let currind = visopts.findIndex((o) => o.state == "focused")
+            if ((inc < 0) && (currind == -1)) inc += 1
             this.deselect()
-            this.select(visopts[currind + inc])
+            this.select(visopts[(currind + inc + visopts.length) % visopts.length
+])
             return true
         } else return false
     }
@@ -319,8 +320,9 @@ class HistoryCompletionOption extends CompletionOptionHTML implements Completion
 
     constructor(public value: string, page: browser.history.HistoryItem) {
         super()
-        // Two character buffer properties prefix
-        // Push prefix before padding so we don't match on whitespace
+        if (! page.title) {
+            page.title = new URL(page.url).host
+        }
 
         // Push properties we want to fuzmatch on
         this.fuseKeys.push(page.title, page.url) // weight by page.visitCount
@@ -338,18 +340,111 @@ class HistoryCompletionOption extends CompletionOptionHTML implements Completion
     }
 }
 
+class BmarkCompletionOption extends CompletionOptionHTML implements CompletionOptionFuse {
+    public fuseKeys = []
+
+    constructor(public value: string, bmark: browser.bookmarks.BookmarkTreeNode) {
+        super()
+        if (! bmark.title) {
+            bmark.title = new URL(bmark.url).host
+        }
+
+        // Push properties we want to fuzmatch on
+        this.fuseKeys.push(bmark.title, bmark.url)
+
+        // Create HTMLElement
+        // need to download favicon
+        const favIconUrl = DEFAULT_FAVICON
+        // const favIconUrl = tab.favIconUrl ? tab.favIconUrl : DEFAULT_FAVICON
+        this.html = html`<tr class="HistoryCompletionOption option">
+            <td class="prefix">${"".padEnd(2)}</td>
+            <td></td>
+            <td>${bmark.title}</td>
+            <td><a class="url" target="_blank" href=${bmark.url}>${bmark.url}</a></td>
+        </tr>`
+    }
+}
+
 function sleep(ms: number) {
     return new Promise(resolve => setTimeout(resolve, ms))
 }
 
 
+export class BmarkCompletionSource extends CompletionSourceFuse {
+    public options: BmarkCompletionOption[]
+
+    constructor(private _parent) {
+        super(
+            [
+                "bmarks ",
+            ],
+            "BmarkCompletionSource", "Bookmarks"
+        )
+
+        this._parent.appendChild(this.node)
+    }
+
+    public async filter(exstr: string) {
+        this.lastExstr = exstr
+        const [prefix, query] = this.splitOnPrefix(exstr)
+
+        // Hide self and stop if prefixes don't match
+        if (prefix) {
+            // Show self if prefix and currently hidden
+            if (this.state === 'hidden') {
+                this.state = 'normal'
+            }
+        } else {
+            this.state = 'hidden'
+            return
+        }
+
+	this.options = (await this.scoreOptions(query, 10)).map(
+	    page => new BmarkCompletionOption(page.url, page)
+	)
+
+        this.updateChain()
+    }
+
+    updateChain() {
+        // Options are pre-trimmed to the right length.
+        this.options.forEach(option => option.state = 'normal')
+
+        // Call concrete class
+        this.updateDisplay()
+    }
+
+    onInput() {}
+
+    private async scoreOptions(query: string, n: number) {
+        // Search bookmarks, dedupe and sort by frecency
+        let bookmarks = await browserBg.bookmarks.search({query})
+        bookmarks = bookmarks.filter(b=>{
+            try {
+                return new URL(b.url)
+            } catch (e) {
+                return false;
+            }
+        })
+
+        bookmarks.sort((a, b) => b.dateAdded - a.dateAdded)
+
+        return bookmarks.slice(0, n)
+    }
+
+    select(option: CompletionOption) {
+        if (this.lastExstr !== undefined && option !== undefined) {
+            this.completion = "open " + option.value
+            option.state = 'focused'
+            this.lastFocused = option
+        } else {
+            throw new Error("lastExstr and option must be defined!")
+        }
+    }
+}
+
 export class HistoryCompletionSource extends CompletionSourceFuse {
     public options: HistoryCompletionOption[]
-
-    // TODO:
-    //     - store the exstr and trigger redraws on user or data input without
-    //       callback faffery
-    //     - sort out the element redrawing.
 
     constructor(private _parent) {
         super(
@@ -361,38 +456,74 @@ export class HistoryCompletionSource extends CompletionSourceFuse {
             "HistoryCompletionSource", "History"
         )
 
-        this.updateOptions()
         this._parent.appendChild(this.node)
     }
 
-    private async updateOptions(exstr?: string) {
-        /* console.log('updateOptions', this.optionContainer) */
-        // this sleep stops input from being blocked, but also breaks :open until something is typed
-        // await sleep(0)
-        const history: browser.history.HistoryItem[] =
-            await Messaging.message("commandline_background", "history")
+    public async filter(exstr: string) {
+        this.lastExstr = exstr
+        const [prefix, query] = this.splitOnPrefix(exstr)
 
-        const options = []
-
-        // Get alternative tab, defined as last accessed tab.
-        history.sort((a, b) => { return a.lastVisitTime < b.lastVisitTime ? 1 : -1 })
-
-        for (const page of history) {
-            options.push(new HistoryCompletionOption(
-                page.url,
-                page,
-            ))
+        // Hide self and stop if prefixes don't match
+        if (prefix) {
+            // Show self if prefix and currently hidden
+            if (this.state === 'hidden') {
+                this.state = 'normal'
+            }
+        } else {
+            this.state = 'hidden'
+            return
         }
 
-        /* console.log('updateOptions end', this.waiting, this.optionContainer) */
-        this.options = options
+	this.options = (await this.scoreOptions(query, 10)).map(
+	    page => new HistoryCompletionOption(page.url, page)
+	)
+
         this.updateChain()
     }
 
-    async onInput(exstr) {
-        // Schedule an update, if you like. Not very useful for buffers, but
-        // will be for other things.
-        this.updateOptions()
+    updateChain() {
+        // Options are pre-trimmed to the right length.
+        this.options.forEach(option => option.state = 'normal')
+
+        // Call concrete class
+        this.updateDisplay()
+    }
+
+    onInput() {}
+
+    private frecency(item: browser.history.HistoryItem) {
+	// Doesn't actually care about recency yet.
+	return item.visitCount * -1
+    }
+
+    private async scoreOptions(query: string, n: number) {
+	if (! query) {
+	    return (await browserBg.topSites.get()).slice(0, n)
+	} else {
+	    // Search history, dedupe and sort by frecency
+	    let history = await browserBg.history.search({
+		text: query,
+		maxResults: 500,
+		startTime: 0
+	    })
+
+	    // Remove entries with duplicate URLs
+	    const dedupe = new Map()
+	    for (const page of history) {
+		if (dedupe.has(page.url)) {
+		    if (dedupe.get(page.url).title.length < page.title.length) {
+			dedupe.set(page.url, page)
+		    }
+		} else {
+		    dedupe.set(page.url, page)
+		}
+	    }
+	    history = [...dedupe.values()]
+
+	    history.sort((a, b) => this.frecency(a) - this.frecency(b))
+
+	    return history.slice(0, n)
+	}
     }
 }
 

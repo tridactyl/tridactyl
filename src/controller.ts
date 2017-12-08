@@ -1,14 +1,17 @@
 import {MsgSafeKeyboardEvent, MsgSafeNode} from './msgsafe'
 import {isTextEditable} from './dom'
-import {parser as exmode_parser} from './parsers/exmode'
 import {isSimpleKey} from './keyseq'
 import state from "./state"
+import {repeat} from './excmds_background'
 
+import {parser as exmode_parser} from './parsers/exmode'
 import {parser as hintmode_parser} from './hinting_background'
 import * as normalmode from "./parsers/normalmode"
 import * as insertmode from "./parsers/insertmode"
 import * as ignoremode from "./parsers/ignoremode"
 import * as gobblemode from './parsers/gobblemode'
+import * as inputmode from './parsers/inputmode'
+
 
 
 /** Accepts keyevents, resolves them to maps, maps to exstrs, executes exstrs */
@@ -19,6 +22,7 @@ function *ParserController () {
         ignore: ignoremode.parser,
         hint: hintmode_parser,
         gobble: gobblemode.parser,
+        input: inputmode.parser,
     }
 
     while (true) {
@@ -30,7 +34,7 @@ function *ParserController () {
                 let keypress = keyevent.key
 
                 // TODO: think about if this is robust
-                if (state.mode != "ignore" && state.mode != "hint") {
+                if (state.mode != "ignore" && state.mode != "hint" && state.mode != "input") {
                     if (isTextEditable(keyevent.target)) {
                         state.mode = "insert"
                     } else if (state.mode === 'insert') {
@@ -87,6 +91,9 @@ export function acceptExCmd(ex_str: string) {
     // TODO: Errors should go to CommandLine.
     try {
         let [func, args] = exmode_parser(ex_str)
+        // Stop the repeat excmd from recursing.
+        if (func !== repeat)
+            state.last_ex_str = ex_str
         try {
             func(...args)
         } catch (e) {
