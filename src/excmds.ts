@@ -272,7 +272,7 @@ export function open(...urlarr: string[]) {
 
 
 /** Go to your homepage(s)
- 
+
     @param all
         - if "true", opens all homepages in new tabs
         - if "false" or not given, opens the last homepage in the current tab
@@ -766,22 +766,18 @@ export async function tabmove(index = "0") {
     let newindex: number
     if (index.startsWith("+") || index.startsWith("-")) {
         newindex = Math.max(0, Number(index) + aTab.index)
-        if (newindex === aTab.index) return
-        let candidates = await browser.tabs.query({windowId: aTab.windowId})
-        newindex = Math.min(newindex, candidates.length)
-        candidates.sort((a,b) => {
-            return a.index < b.index ? -1 : 1
-        })
-        candidates = newindex < aTab.index
-            ? candidates.slice(newindex, aTab.index)
-            : candidates.slice(aTab.index + 1, newindex + 1).reverse()
-        for (const candidate of candidates) {
-            if (aTab.pinned === candidate.pinned) {
-                newindex = candidate.index
-                break
-            }
-        }
     } else newindex = Number(index) - 1
+    let newtab = (await browser.tabs.query({windowId: aTab.windowId, index: newindex}))[0]
+    // Because a non-pinned tab cannot have index lower than any pinned tab,
+    // newtab must have the same pinned-ness as aTab.
+    // Otherwise find closest valid candidate in the same direction.
+    if (newtab === undefined || newtab.pinned !== aTab.pinned) {
+        const candidates = await browser.tabs.query({windowId: aTab.windowId, pinned: aTab.pinned})
+        candidates.sort((a,b) => {
+            return a.index - b.index
+        })
+        newindex = newindex <= aTab.index ? candidates[0].index : candidates[candidates.length - 1].index
+    }
     browser.tabs.move(aTab.id, {index: newindex})
 }
 
@@ -1256,7 +1252,7 @@ export function get(target: string, property?: string){
     (i.e. not nmaps.)
 
     It can be used on any string <-> string settings found [here](/static/docs/modules/_config_.html#defaults)
- 
+
 */
 //#background
 export function set(setting: string, ...value: string[]){
@@ -1444,7 +1440,7 @@ export async function ttscontrol(action: string) {
 //#background
 export async function bmark(url?: string, ...titlearr: string[] ){
     url = url === undefined ? (await activeTab()).url : url
-    let title = titlearr.join(" ") 
+    let title = titlearr.join(" ")
     let dupbmarks = await browser.bookmarks.search({url})
     dupbmarks.map((bookmark) => browser.bookmarks.remove(bookmark.id))
     if (dupbmarks.length == 0 ) {browser.bookmarks.create({url, title})}
