@@ -1217,17 +1217,25 @@ export async function sanitize(...args: string[]) {
     
 */
 //#background
-export async function quickmark(key: string) {
+export async function quickmark(key: string, ...addressarr: string[]) {
     // ensure we're binding to a single key
     if (key.length !== 1) {
         return
     }
 
-    let address = (await activeTab()).url
-    // Have to await these or they race!
-    await bind("gn" + key, "tabopen", address)
-    await bind("go" + key, "open", address)
-    await bind("gw" + key, "winopen", address)
+    if (addressarr.length <= 1) {
+        let address = addressarr.length == 0 ? (await activeTab()).url : addressarr[0]
+        // Have to await these or they race!
+        await bind("gn" + key, "tabopen", address)
+        await bind("go" + key, "open", address)
+        await bind("gw" + key, "winopen", address)
+    } else {
+        let compstring = addressarr.join(" | tabopen ")
+        let compstringwin = addressarr.join(" | winopen ")
+        await bind("gn" + key, "composite tabopen", compstring)
+        await bind("go" + key, "composite open", compstring)
+        await bind("gw" + key, "composite winopen", compstringwin)
+    }
 }
 
 //#background
