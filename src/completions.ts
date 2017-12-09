@@ -616,7 +616,7 @@ export class BufferCompletionSource extends CompletionSourceFuse {
     /** Score with fuse unless query is an integer or a single # */
     scoredOptions(query: string, options = this.options): ScoredOption[] {
         const args = query.split(/\s+/gu)
-        if (args.length === 1) {
+        if (args.length <= 2) {
             if (Number.isInteger(Number(args[0]))) {
                 const index = (Number(args[0]) - 1).mod(options.length)
                 return [{
