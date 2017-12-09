@@ -186,21 +186,25 @@ export function scrollpx(a: number, b: number) {
     window.scrollBy(a, b)
 }
 
-/** If one argument is given, scroll to that percentage down the page.
-    If two arguments are given, treat as x and y values to give to window.scrollTo
+/** If two numbers are given, treat as x and y values to give to window.scrollTo
+    If one number is given, scroll to that percentage along a chosen axis,
+        defaulting to the y-axis
 */
 //#content
-export function scrollto(a: number, b?: number) {
+export function scrollto(a: number, b: number | "x" | "y" = "y") {
     a = Number(a)
-    // if b is undefined, Number(b) is NaN.
-    b = Number(b)
-    window.scrollTo(
-        b ? a : window.scrollX,
-        b
-            ? b
-            : a.clamp(0, 100) *
-              (window.document.scrollingElement.scrollHeight / 100)
-    )
+    if (b === "y") {
+        window.scrollTo(
+            window.scrollX,
+            a.clamp(0, 100) * window.document.scrollingElement.scrollHeight / 100)
+    }
+    else if (b === "x") {
+        window.scrollTo(
+            a.clamp(0, 100) * window.document.scrollingElement.scrollWidth / 100,
+            window.scrollY)
+    } else {
+        window.scrollTo(a, Number(b)) // a,b numbers
+    }
 }
 
 //#content
@@ -272,7 +276,7 @@ export function open(...urlarr: string[]) {
 
 
 /** Go to your homepage(s)
- 
+
     @param all
         - if "true", opens all homepages in new tabs
         - if "false" or not given, opens the last homepage in the current tab
@@ -1214,7 +1218,7 @@ export async function sanitize(...args: string[]) {
 
     Afterwards use go[key], gn[key], or gw[key] to [[open]], [[tabopen]], or
     [[winopen]] the URL respectively.
-    
+
 */
 //#background
 export async function quickmark(key: string, ...addressarr: string[]) {
@@ -1249,7 +1253,7 @@ export function get(target: string, property?: string){
     (i.e. not nmaps.)
 
     It can be used on any string <-> string settings found [here](/static/docs/modules/_config_.html#defaults)
- 
+
 */
 //#background
 export function set(setting: string, ...value: string[]){
@@ -1431,13 +1435,13 @@ export async function ttscontrol(action: string) {
 /** Add or remove a bookmark.
 *
 * Optionally, you may give the bookmark a title. If no URL is given, a bookmark is added for the current page.
-* 
+*
 * If a bookmark already exists for the URL, it is removed.
 */
 //#background
 export async function bmark(url?: string, ...titlearr: string[] ){
     url = url === undefined ? (await activeTab()).url : url
-    let title = titlearr.join(" ") 
+    let title = titlearr.join(" ")
     let dupbmarks = await browser.bookmarks.search({url})
     dupbmarks.map((bookmark) => browser.bookmarks.remove(bookmark.id))
     if (dupbmarks.length == 0 ) {browser.bookmarks.create({url, title})}
