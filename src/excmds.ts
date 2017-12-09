@@ -132,7 +132,8 @@ function searchURL(provider: string, query: string) {
 /** If maybeURI doesn't have a schema, affix http:// */
 /** @hidden */
 function forceURI(maybeURI: string): string {
-    if (maybeURI === undefined) return maybeURI
+    // Need undefined to be able to open about:newtab
+    if (maybeURI == "") return undefined
     try {
         return new URL(maybeURI).href
     } catch (e) {
@@ -732,6 +733,18 @@ export async function undo(){
     }
 }
 
+/** Synonym for [[tabclose]]. */
+//#background
+export async function quit() {
+    tabclose()
+}
+
+/** Convenience shortcut for [[quit]]. */
+//#background
+export async function q() {
+    tabclose()
+}
+
 /** Move the current tab to be just in front of the index specified.
 
     Known bug: This supports relative movement, but autocomple doesn't know
@@ -794,6 +807,12 @@ export async function winclose() {
 export async function qall(){
     let windows = await browser.windows.getAll()
     windows.map((window) => browser.windows.remove(window.id))
+}
+
+/** Convenience shortcut for [[qall]]. */
+//#background
+export async function qa() {
+    qall()
 }
 
 // }}}
@@ -872,6 +891,20 @@ async function getnexttabs(tabid: number, n?: number) {
 
 //#background_helper
 import * as controller from './controller'
+
+/** Repeats a `cmd` `n` times.
+    Falls back to the last executed command if `cmd` doesn't exist.
+    Executes the command once if `n` isn't defined either.
+*/
+//#background
+export function repeat(n = 1, ...exstr: string[]) {
+    let cmd = state.last_ex_str
+    if (exstr.length > 0)
+        cmd = exstr.join(" ")
+    console.log("repeating " + cmd + " " + n + " times")
+    for (let i = 0; i < n; i++)
+        controller.acceptExCmd(cmd)
+}
 
 /** Split `cmds` on pipes (|) and treat each as it's own command.
 
@@ -1184,17 +1217,25 @@ export async function sanitize(...args: string[]) {
     
 */
 //#background
-export async function quickmark(key: string) {
+export async function quickmark(key: string, ...addressarr: string[]) {
     // ensure we're binding to a single key
     if (key.length !== 1) {
         return
     }
 
-    let address = (await activeTab()).url
-    // Have to await these or they race!
-    await bind("gn" + key, "tabopen", address)
-    await bind("go" + key, "open", address)
-    await bind("gw" + key, "winopen", address)
+    if (addressarr.length <= 1) {
+        let address = addressarr.length == 0 ? (await activeTab()).url : addressarr[0]
+        // Have to await these or they race!
+        await bind("gn" + key, "tabopen", address)
+        await bind("go" + key, "open", address)
+        await bind("gw" + key, "winopen", address)
+    } else {
+        let compstring = addressarr.join(" | tabopen ")
+        let compstringwin = addressarr.join(" | winopen ")
+        await bind("gn" + key, "composite tabopen", compstring)
+        await bind("go" + key, "composite open", compstring)
+        await bind("gw" + key, "composite winopen", compstringwin)
+    }
 }
 
 //#background
