@@ -108,7 +108,7 @@ export function acceptExCmd(ex_str: string) {
 
 import {activeTabId} from './lib/webext'
 browser.webNavigation.onBeforeNavigate.addListener(async function (details) {
-    if (details.tabId == await activeTabId()) {
+    if (details.frameId === 0 && details.tabId === await activeTabId()) {
         state.mode = 'normal'
     }
 })
