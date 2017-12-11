@@ -541,7 +541,10 @@ class BufferCompletionOption extends CompletionOptionHTML implements CompletionO
         // Two character buffer properties prefix
         let pre = ""
         if (tab.active) pre += "%"
-        else if (isAlternative) pre += "#"
+        else if (isAlternative) {
+            pre += "#"
+            this.value = "#"
+        }
         if (tab.pinned) pre += "@"
 
         // Push prefix before padding so we don't match on whitespace
