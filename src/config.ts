@@ -73,6 +73,7 @@ const DEFAULTS = o({
         "F": "hint -b",
         ";i": "hint -i",
         ";I": "hint -I",
+        ";k": "hint -k",
         ";y": "hint -y",
         ";p": "hint -p",
         ";r": "hint -r",
