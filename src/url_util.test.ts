@@ -69,7 +69,7 @@ function test_parent() {
     ]
 
     for (let [url, exp_parent] of cases) {
-        let parent = getUrlParent(new URL(url))
+        let parent = getUrlParent(new URL(url), 1)
 
         test (`parent of ${url} --> ${exp_parent}`,
             () => expect(parent ? parent.href : parent).toEqual(exp_parent)

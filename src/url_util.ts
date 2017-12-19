@@ -59,46 +59,54 @@ export function getUrlRoot(url) {
  *
  * @param url   the URL to get the parent of
  * @return      the parent of the URL, or null if there is no parent
+ * @count       how many times you want to get the parent.
  */
-export function getUrlParent(url) {
+export function getUrlParent(url, count) {
+
+    // Helper function.
+    function gup(parent, count) {
+        if (count < 1) {
+            return parent
+        }
+        // strip, in turn, hash/fragment and query/search
+        if (parent.hash) {
+            parent.hash = ''
+            return gup(parent, count - 1)
+        }
+        if (parent.search) {
+            parent.search = ''
+            return gup(parent, count - 1)
+        }
+
+        // pathname always starts '/'
+        if (parent.pathname !== '/') {
+            let path = parent.pathname.substring(1).split('/')
+            path.pop()
+            parent.pathname = path.join('/')
+            return gup(parent, count - 1)
+        }
+
+        // strip off the first subdomain if there is one
+        {
+            let domains = parent.host.split('.')
+
+            // more than domain + TLD
+            if (domains.length > 2) {
+                //domains.pop()
+                parent.host = domains.slice(1).join('.')
+                return gup(parent, count - 1)
+            }
+        }
+
+        // nothing to trim off URL, so no parent
+        return null
+    }
+
     // exclude these special protocols where parents don't really make sense
     if (/(about|mailto):/.test(url.protocol)) {
         return null
     }
 
     let parent = new URL(url)
-
-    // strip, in turn, hash/fragment and query/search
-    if (parent.hash) {
-        parent.hash = ''
-        return parent
-    }
-
-    if (parent.search) {
-        parent.search = ''
-        return parent
-    }
-
-    // pathname always starts '/'
-    if (parent.pathname !== '/') {
-        let path = parent.pathname.substring(1).split('/')
-        path.pop()
-        parent.pathname = path.join('/')
-        return parent
-    }
-
-    // strip off the first subdomain if there is one
-    {
-        let domains = parent.host.split('.')
-
-        // more than domain + TLD
-        if (domains.length > 2) {
-            //domains.pop()
-            parent.host = domains.slice(1).join('.')
-            return parent
-        }
-    }
-
-    // nothing to trim off URL, so no parent
-    return null
+    return gup(parent, count)
 }

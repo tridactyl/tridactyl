@@ -392,8 +392,8 @@ export function urlroot (){
 /** Go to the parent URL of the current tab's URL
  */
 //#content
-export function urlparent (){
-    let parentUrl = getUrlParent(window.location)
+export function urlparent (count = 1){
+    let parentUrl = getUrlParent(window.location, count)
 
     if (parentUrl !== null) {
         window.location.href = parentUrl.href
