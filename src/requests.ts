@@ -7,10 +7,7 @@ export function addurltocsp(response){
 
         headers[cspind]["value"] = "default-src 'self' moz-extension://1da95d91-ca7f-4cda-abee-36e926a5e2a1; style-src 'unsafe-inline'"
         //
-        //if (headers[cspind]["value"].search("*default-src 'none'*")) {
-        //    console.log("**NONE FOUND**")
-        //}
-        // Got this thing working but rn I'm just looking at what I can get working.
+        // Got this thing working but I want to see what I can enable without compromising csp.
         //headers[cspind]["value"] = headers[cspind]["value"].replace(
         //     "script-src ","script-src moz: ").replace(
         //         "default-src ","default-src moz: ").replace(
