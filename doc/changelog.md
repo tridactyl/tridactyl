@@ -1,6 +1,6 @@
 # Tridactyl changelogs
 
-## Release 1.7.1
+## Release 1.7.3
 
 - Hint tags are much better:
     - Hint tags are now as short as possible
