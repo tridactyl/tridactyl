@@ -6,7 +6,7 @@ Replace Firefox's default control mechanism with one modelled on the one true ed
 
 ## Installing
 
-[Get our "beta" builds!][amo-betas] These are updated on AMO with each commit to master on this repo; your browser will automatically update from there once a day. If you want more frequent updates, you can change `extensions.update.interval` in `about:config` to whatever time you want, say, 15 minutes (900 seconds).
+[Get our "beta" builds!][amo-betas] These are updated on AMO with each commit to master on this repo; your browser will automatically update from there once a day. If you want more frequent updates, you can change `extensions.update.interval` in `about:config` to whatever time you want, say, 15 minutes (900 seconds). Changelogs for the stable versions on the AMO can be found [here](https://github.com/cmcaine/tridactyl/blob/master/doc/changelog.md).
 
 Type `:help` for online help once you're in :)
 
@@ -75,6 +75,8 @@ A pre-commit hook is added by `npm install` that simply runs `npm test`. If you 
 ### Documentation
 
 Ask in `#tridactyl` on [matrix.org][matrix-link], freenode, or [gitter][gitter-link]. We're friendly!
+
+Default keybindings are currently best discovered by reading the [default config](./src/config.ts).
 
 Development notes are in the doc directory, but they're mostly out of date now. Code is quite short and not *too* badly commented, though.
 

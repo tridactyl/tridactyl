@@ -4,33 +4,62 @@
 
     Use `:help <excmd>` or scroll down to show [[help]] for a particular excmd.
 
-    Tridactyl is in a pretty early stage of development. Please report any issues and make requests for missing features on the GitHub project page [[1]].
+    The default keybinds can be found [here](/static/docs/modules/_parsers_normalmode_.html#defaultnmaps).
 
-    Highlighted features:
+    Tridactyl is in a pretty early stage of development. Please report any
+    issues and make requests for missing features on the GitHub [project page](1).
+    You can also get in touch using Matrix, Gitter, or IRC chat clients:
 
-    - Press `b` to bring up a list of open tabs in the current window; you can type the tab ID or part of the title or URL to choose a tab (the buffer list doesn't show which one you've selected yet, but it does work)
-    - Press `I` to enter ignore mode. `Shift` + `Escape` to return to normal mode.
+    [![Matrix Chat][matrix-badge]][matrix-link]
+    [![Gitter Chat][gitter-badge]][gitter-link]
+    [![Freenode Chat][freenode-badge]][freenode-link]
+
+    All three channels are mirrored together, so it doesn't matter which one you use.
+
+    ## Highlighted features:
+
+    - Press `b` to bring up a list of open tabs in the current window; you can
+      type the tab ID or part of the title or URL to choose a tab (the buffer
+      list doesn't show which one you've selected yet, but it does work)
+    - Press `I` to enter ignore mode. `Shift` + `Escape` to return to normal
+      mode.
     - Press `f` to start "hint mode", `F` to open in background
     - Press `o` to `:open` a different page
-    - Press `s` if you want to search for something that looks like a domain name or URL
+    - Press `s` if you want to search for something that looks like a domain
+      name or URL
     - [[bind]] new commands with e.g. `:bind J tabnext`
     - Type `:help` to see a list of available excmds
     - Use `yy` to copy the current page URL to your clipboard
-    - `]]` and `[[` to navigate through the pages of comics, paginated articles, etc
-    - Pressing `ZZ` will close all tabs and windows, but it will only "save" them if your about:preferences are set to "show your tabs and windows from last time"
+    - `]]` and `[[` to navigate through the pages of comics, paginated
+      articles, etc
+    - Pressing `ZZ` will close all tabs and windows, but it will only "save"
+      them if your about:preferences are set to "show your tabs and windows
+      from last time"
 
     There are some caveats common to all webextension vimperator-alikes:
 
-    - Do not try to navigate to any about:\* pages using `:open` as it will fail silently
-    - Firefox will not load Tridactyl on addons.mozilla.org, about:\*, some file:\* URIs, view-source:\*, or data:\*. On these pages Ctrl-L (or F6), Ctrl-Tab and Ctrl-W are your escape hatches
-    - Tridactyl does not currently support changing/hiding the Firefox GUI, but you can do it yourself by changing your userChrome. There is an example file available on our repository [[2]]
+    - Do not try to navigate to any about:\* pages using `:open` as it will
+      fail silently
+    - Firefox will not load Tridactyl on addons.mozilla.org, about:\*, some
+      file:\* URIs, view-source:\*, or data:\*. On these pages Ctrl-L (or F6),
+      Ctrl-Tab and Ctrl-W are your escape hatches
+    - Tridactyl does not currently support changing/hiding the Firefox GUI, but
+      you can do it yourself by changing your userChrome. There is an [example
+      file](2) available in our repository.
 
-    If you want a more fully-featured vimperator-alike, your best option is Firefox ESR [[3]] and Vimperator :)
+    If you want a more fully-featured vimperator-alike, your best option is
+    [Firefox ESR](3) and Vimperator :)
 
     [1]: https://github.com/cmcaine/tridactyl/issues
     [2]: https://github.com/cmcaine/tridactyl/blob/master/src/static/userChrome-minimal.css
     [3]: https://www.mozilla.org/en-US/firefox/organizations/
 
+    [gitter-badge]: /static/badges/gitter-badge.svg
+    [gitter-link]: https://gitter.im/tridactyl/Lobby
+    [freenode-badge]: /static/badges/freenode-badge.svg
+    [freenode-link]: ircs://chat.freenode.net/tridactyl
+    [matrix-badge]: https://matrix.to/img/matrix-badge.svg
+    [matrix-link]: https://riot.im/app/#/room/#tridactyl:matrix.org
 */
 /** ignore this line */
 
@@ -38,9 +67,8 @@
 
 import * as Messaging from "./messaging"
 import {l} from './lib/webext'
+import state from "./state"
 
-//#content_omit_line
-import * as CommandLineContent from "./commandline_content"
 //#content_omit_line
 import "./number.clamp"
 //#content_helper
@@ -54,44 +82,42 @@ import {messageActiveTab} from './messaging'
 //#background_helper
 import "./number.mod"
 //#background_helper
-import state from "./state"
-//#background_helper
 import {ModeName} from './state'
 //#background_helper
 import * as keydown from "./keydown_background"
 //#background_helper
-import {activeTab, activeTabId} from './lib/webext'
+import {activeTab, activeTabId, firefoxVersionAtLeast} from './lib/webext'
 //#content_helper
-import {incrementUrl} from "./url_util"
+import {incrementUrl, getUrlRoot, getUrlParent} from "./url_util"
+//#background_helper
+import * as CommandLineBackground from './commandline_background'
+//#content_helper
+import * as DOM from './dom'
+
+import * as config from './config'
+
 
 /** @hidden */
 //#background_helper
 export const cmd_params = new Map<string, Map<string, string>>()
 
-const SEARCH_URLS = new Map<string, string>([
-    ["google","https://www.google.com/search?q="],
-    ["googleuk","https://www.google.co.uk/search?q="],
-    ["bing","https://www.bing.com/search?q="],
-    ["duckduckgo","https://duckduckgo.com/?q="],
-    ["yahoo","https://search.yahoo.com/search?p="],
-    ["twitter","https://twitter.com/search?q="],
-    ["wikipedia","https://en.wikipedia.org/wiki/Special:Search/"],
-    ["youtube","https://www.youtube.com/results?search_query="],
-    ["amazon","https://www.amazon.com/s/ref=nb_sb_noss?url=search-alias%3Daps&field-keywords="],
-    ["amazonuk","https://www.amazon.co.uk/s/ref=nb_sb_noss?url=search-alias%3Daps&field-keywords="],
-    ["startpage","https://www.startpage.com/do/search?query="],
-])
+// map a page-relation (next or previous) to a fallback pattern to match link texts against
+const REL_PATTERN = {
+    next: /^(?:next|newer)\b|»|>>/i,
+    prev: /^(?:prev(?:ious)?|older)\b|«|<</i,
+}
 
 /** @hidden */
 function hasScheme(uri: string) {
     return uri.match(/^([\w-]+):/)
 }
 
-/** We use this over encodeURIComponent so that '+'s in non queries are not encoded. */
 /** @hidden */
 function searchURL(provider: string, query: string) {
-    if (SEARCH_URLS.has(provider)) {
-        const url = new URL(SEARCH_URLS.get(provider) + query)
+    if (provider == "search") provider = config.get("searchengine")
+    let searchurlprovider = config.get("searchurls", provider)
+    if (searchurlprovider !== undefined){
+        const url = new URL(searchurlprovider + encodeURIComponent(query))
         // URL constructor doesn't convert +s because they're valid literals in
         // the standard it adheres to. But they are special characters in
         // x-www-form-urlencoded and e.g. google excepts query parameters in
@@ -106,6 +132,8 @@ function searchURL(provider: string, query: string) {
 /** If maybeURI doesn't have a schema, affix http:// */
 /** @hidden */
 function forceURI(maybeURI: string): string {
+    // Need undefined to be able to open about:newtab
+    if (maybeURI == "") return undefined
     try {
         return new URL(maybeURI).href
     } catch (e) {
@@ -132,8 +160,8 @@ function forceURI(maybeURI: string): string {
         if (e.name !== 'TypeError') throw e
     }
 
-    // Else search google
-    return searchURL('google', maybeURI).href
+    // Else search $searchengine
+    return searchURL('search', maybeURI).href
 }
 
 /** @hidden */
@@ -143,6 +171,7 @@ function tabSetActive(id: number) {
 }
 
 // }}}
+
 
 // {{{ PAGE CONTEXT
 
@@ -157,21 +186,25 @@ export function scrollpx(a: number, b: number) {
     window.scrollBy(a, b)
 }
 
-/** If one argument is given, scroll to that percentage down the page.
-    If two arguments are given, treat as x and y values to give to window.scrollTo
+/** If two numbers are given, treat as x and y values to give to window.scrollTo
+    If one number is given, scroll to that percentage along a chosen axis,
+        defaulting to the y-axis
 */
 //#content
-export function scrollto(a: number, b?: number) {
+export function scrollto(a: number, b: number | "x" | "y" = "y") {
     a = Number(a)
-    // if b is undefined, Number(b) is NaN.
-    b = Number(b)
-    window.scrollTo(
-        b ? a : window.scrollX,
-        b
-            ? b
-            : a.clamp(0, 100) *
-              (window.document.scrollingElement.scrollHeight / 100)
-    )
+    if (b === "y") {
+        window.scrollTo(
+            window.scrollX,
+            a.clamp(0, 100) * window.document.scrollingElement.scrollHeight / 100)
+    }
+    else if (b === "x") {
+        window.scrollTo(
+            a.clamp(0, 100) * window.document.scrollingElement.scrollWidth / 100,
+            window.scrollY)
+    } else {
+        window.scrollTo(a, Number(b)) // a,b numbers
+    }
 }
 
 //#content
@@ -209,6 +242,14 @@ export async function reload(n = 1, hard = false) {
     tabstoreload.map(n => browser.tabs.reload(n, reloadProperties))
 }
 
+/** Reloads all tabs, bypassing the cache if hard is set to true */
+//#background
+export async function reloadall(hard = false){
+    let tabs = await browser.tabs.query({})
+    let reloadprops = {bypassCache: hard}
+    tabs.map(tab => browser.tabs.reload(tab.id, reloadprops))
+}
+
 /** Reload the next n tabs, starting with activeTab. bypass cache for all */
 //#background
 export async function reloadhard(n = 1) {
@@ -222,11 +263,35 @@ export async function reloadhard(n = 1) {
         - else if the first word contains a dot, treat as a domain name
         - else if the first word is a key of [[SEARCH_URLS]], treat all following terms as search parameters for that provider
         - else treat as search parameters for google
+
+    Related settings:
+        "searchengine": "google" or any of [[SEARCH_URLS]]
 */
 //#content
 export function open(...urlarr: string[]) {
     let url = urlarr.join(" ")
+    console.log("open url:" + url)
     window.location.href = forceURI(url)
+}
+
+
+/** Go to your homepage(s)
+
+    @param all
+        - if "true", opens all homepages in new tabs
+        - if "false" or not given, opens the last homepage in the current tab
+
+*/
+//#background
+export function home(all: "false" | "true" = "false"){
+    let homepages = config.get("homepages")
+    console.log(homepages)
+    if (homepages.length > 0){
+        if (all === "false") open(homepages[homepages.length - 1])
+        else {
+            homepages.map(t=>tabopen(t))
+        }
+    }
 }
 
 /** Show this page.
@@ -247,27 +312,57 @@ export async function help(excmd?: string) {
 }
 
 /** @hidden */
-//#content_helper
-function getlinks(){
-    return document.getElementsByTagName('a')
+// Find clickable next-page/previous-page links whose text matches the supplied pattern,
+// and return the last such link.
+//
+// If no matching link is found, return null.
+//
+// We return the last link that matches because next/prev buttons tend to be at the end of the page
+// whereas lots of blogs have "VIEW MORE" etc. plastered all over their pages.
+function findRelLink(pattern: RegExp): HTMLAnchorElement | null {
+    const links = <NodeListOf<HTMLAnchorElement>>document.querySelectorAll('a[href]')
+
+    let lastLink = null
+
+    for (const link of links) {
+        // `innerText` gives better (i.e. less surprising) results than `textContent`
+        // at the expense of being much slower, but that shouldn't be an issue here
+        // as it's a one-off operation that's only performed when we're leaving a page
+        if (pattern.test(link.innerText)) {
+            lastLink = link
+        }
+    }
+
+    return lastLink
 }
 
-/** Find a likely next/previous link and follow it */
+/** @hidden */
+// Return the last element in the document matching the supplied selector,
+// or null if there are no matches.
+function selectLast(selector: string): HTMLElement | null {
+    const nodes = <NodeListOf<HTMLElement>>document.querySelectorAll(selector)
+    return nodes.length ? nodes[nodes.length - 1] : null
+}
+
+/** Find a likely next/previous link and follow it
+ *
+ * @param rel   the relation of the target page to the current page: "next" or "prev"
+ */
 //#content
-export function clicknext(dir: "next"|"prev" = "next"){
-    let linkarray = Array.from(getlinks())
-    let regarray = [/\bnext|^>$|^(>>|»)$|^(>|»)|(>|»)$|\bmore\b/i, /\bprev\b|\bprevious\b|^<$|^(<<|«)$|^(<|«)|(<|«)$/i]
+export function followpage(rel: 'next'|'prev' = 'next') {
+    const link = <HTMLLinkElement>selectLast(`link[rel~=${rel}][href]`)
 
-    regarray = window.location.href.match(/rockpapershotgun/) ? [/newer/i,/older/i] : regarray
-    let nextreg = (dir == "next") ? regarray[0] : regarray[1]
+    if (link) {
+        window.location.href = link.href
+        return
+    }
 
-    // Might need to add more cases to this as we look at more sites
-    let nextlinks = linkarray.filter((link) => (link.innerText.match(nextreg) || link.rel.match(nextreg)))
+    const anchor = <HTMLAnchorElement>selectLast(`a[rel~=${rel}][href]`) ||
+        findRelLink(REL_PATTERN[rel])
 
-    // Use the last link that matches because next/prev buttons tend to be at the end of the page
-    // whereas lots of blogs have "VIEW MORE" etc. plastered all over their pages.
-    // Stops us from having to hardcode in RPS and reddit, for example.
-    window.location.href = nextlinks.slice(-1)[0].href
+    if (anchor) {
+        anchor.click()
+    }
 }
 
 /** Increment the current tab URL
@@ -283,68 +378,341 @@ export function urlincrement(count = 1){
     }
 }
 
+/** Go to the root domain of the current URL
+ */
+//#content
+export function urlroot (){
+    let rootUrl = getUrlRoot(window.location)
+
+    if (rootUrl !== null) {
+        window.location.href = rootUrl.href
+    }
+}
+
+/** Go to the parent URL of the current tab's URL
+ */
+//#content
+export function urlparent (){
+    let parentUrl = getUrlParent(window.location)
+
+    if (parentUrl !== null) {
+        window.location.href = parentUrl.href
+    }
+}
+
+/** Returns the url of links that have a matching rel.
+
+    Don't bind to this: it's an internal function.
+
+    @hidden
+ */
+//#content
+export function geturlsforlinks(reltype = "rel", rel: string){
+    let elems = document.querySelectorAll("link[" + reltype + "='" + rel + "']") as NodeListOf<HTMLLinkElement>
+    if (elems)
+        return Array.prototype.map.call(elems, x => x.href)
+    return []
+}
+
 //#background
-export function zoom(level=0){
+export async function zoom(level=0, rel="false"){
     level = level > 3 ? level / 100 : level
+    if(rel=="true") level += (await browser.tabs.getZoom())
     browser.tabs.setZoom(level)
 }
+
+//#background
+export async function reader() {
+    if (await l(firefoxVersionAtLeast(58))) {
+    let aTab = await activeTab()
+    if (aTab.isArticle) {
+        browser.tabs.toggleReaderMode()
+    } // else {
+    //  // once a statusbar exists an error can be displayed there
+    // }
+    }
+}
+
+/** The kinds of input elements that we want to be included in the "focusinput"
+ * command (gi)
+ */
+export const INPUTTAGS_selectors = `
+input:not([disabled]):not([readonly]):-moz-any(
+ :not([type]),
+ [type='text'],
+ [type='search'],
+ [type='password'],
+ [type='datetime'],
+ [type='datetime-local'],
+ [type='date'],
+ [type='month'],
+ [type='time'],
+ [type='week'],
+ [type='number'],
+ [type='range'],
+ [type='email'],
+ [type='url'],
+ [type='tel'],
+ [type='color']
+),
+textarea:not([disabled]):not([readonly]),
+object,
+[role='application']
+`
+
+/** Password field selectors */
+const INPUTPASSWORD_selectors = `
+input[type='password']
+`
+
+/** DOM reference to the last used Input field
+ */
+//#content_helper
+let LAST_USED_INPUT: HTMLElement = null
+
+
+/** Focus the last used input on the page
+ *
+ * @param nth   focus the nth input on the page, or "special" inputs:
+ *                  "-l": last focussed input
+ *                  "-n": input after last focussed one
+ *                  "-N": input before last focussed one
+ *                  "-p": first password field
+ *                  "-b": biggest input field
+ */
+//#content
+export function focusinput(nth: number|string) {
+
+    let inputToFocus: HTMLElement = null
+
+    // set to false to avoid falling back on the first available input
+    // if a special finder fails
+    let fallbackToNumeric = true
+
+    // nth = "-l" -> use the last used input for this page
+    if (nth === "-l") {
+        // try to recover the last used input stored as a
+        // DOM node, which should be exactly the one used before (or null)
+        if (LAST_USED_INPUT) {
+            inputToFocus = LAST_USED_INPUT
+        } else {
+            // Pick the first input in the DOM.
+            inputToFocus = DOM.getElemsBySelector(INPUTTAGS_selectors,
+                [DOM.isSubstantial])[0] as HTMLElement
+
+            // We could try to save the last used element on page exit, but
+            // that seems like a lot of faff for little gain.
+        }
+    }
+    else if (nth === "-n" || nth === "-N") {
+        // attempt to find next/previous input
+        let inputs = DOM.getElemsBySelector(INPUTTAGS_selectors,
+            [DOM.isSubstantial]) as HTMLElement[]
+        if (inputs.length) {
+            let index = inputs.indexOf(LAST_USED_INPUT)
+            if (LAST_USED_INPUT) {
+                if (nth === "-n") {
+                    index++
+                } else {
+                    index--
+                }
+                index = index.mod(inputs.length)
+            } else {
+                index = 0
+            }
+            inputToFocus = inputs[index]
+        }
+    }
+    else if (nth === "-p") {
+        // attempt to find a password input
+        fallbackToNumeric = false
+
+        let inputs = DOM.getElemsBySelector(INPUTPASSWORD_selectors,
+                                            [DOM.isSubstantial])
+
+        if (inputs.length) {
+            inputToFocus = <HTMLElement>inputs[0]
+        }
+    }
+    else if (nth === "-b") {
+
+        let inputs = DOM.getElemsBySelector(INPUTTAGS_selectors,
+            [DOM.isSubstantial]) as HTMLElement[]
+
+        inputToFocus = inputs.sort(DOM.compareElementArea).slice(-1)[0]
+    }
+
+    // either a number (not special) or we failed to find a special input when
+    // asked and falling back is acceptable
+    if (!inputToFocus  && fallbackToNumeric) {
+
+        let index = isNaN(<number>nth) ? 0 : <number>nth
+        inputToFocus = DOM.getNthElement(INPUTTAGS_selectors,
+                                         index, [DOM.isSubstantial])
+    }
+
+    if (inputToFocus) {
+        inputToFocus.focus()
+        if (config.get('vimium-gi') && state.mode !== 'input') {
+            state.mode = 'input'
+        }
+    }
+
+}
+
+// Store the last focused element
+//#content_helper
+document.addEventListener("focusin",e=>{if (DOM.isTextEditable(e.target as HTMLElement)) LAST_USED_INPUT = e.target as HTMLElement})
 
 // }}}
 
 // {{{ TABS
 
-/** Switch to the next tab by index (position on tab bar), wrapping round.
+/** Switch to the tab by index (position on tab bar), wrapping round.
 
-    optional increment is number of tabs forwards to move.
+    @param index
+        1-based index of the tab to target. Wraps such that 0 = last tab, -1 =
+        penultimate tab, etc.
+
+        if undefined, return activeTabId()
+*/
+/** @hidden */
+//#background_helper
+async function tabIndexSetActive(index: number) {
+    tabSetActive(await idFromIndex(index))
+}
+
+/** Switch to the next tab, wrapping round.
+
+    If increment is specified, move that many tabs forwards.
  */
 //#background
 export async function tabnext(increment = 1) {
-    // Get an array of tabs in the current window
-    let current_window = await browser.windows.getCurrent()
-    let tabs = await browser.tabs.query({windowId: current_window.id})
-
-    // Derive the index we want
-    let desiredIndex = ((await activeTab()).index + increment).mod(tabs.length)
-
-    // Find and switch to the tab with that index
-    let desiredTab = tabs.find((tab: any) => {
-        return tab.index === desiredIndex
-    })
-    tabSetActive(desiredTab.id)
+    tabIndexSetActive((await activeTab()).index + increment + 1)
 }
 
+/** Switch to the next tab, wrapping round.
+
+    If an index is specified, go to the tab with that number (this mimics the
+    behaviour of `{count}gt` in vim, except that this command will accept a
+    count that is out of bounds (and will mod it so that it is within bounds as
+    per [[tabmove]], etc)).
+ */
 //#background
-export function tabprev(increment = 1) {
-    tabnext(increment * -1)
+export async function tabnext_gt(index?: number) {
+    if (index === undefined) {
+        tabnext()
+    } else {
+        tabIndexSetActive(index)
+    }
 }
 
-/** Like [[open]], but in a new tab */
+/** Switch to the previous tab, wrapping round.
+
+    If increment is specified, move that many tabs backwards.
+ */
+//#background
+export async function tabprev(increment = 1) {
+    tabIndexSetActive((await activeTab()).index - increment + 1)
+}
+
+/** Switch to the first tab. */
+//#background
+export async function tabfirst() {
+    tabIndexSetActive(1)
+}
+
+/** Switch to the last tab. */
+//#background
+export async function tablast() {
+    tabIndexSetActive(0)
+}
+
+/** Like [[open]], but in a new tab. If no address is given, it will open the newtab page, which can be set with `set newtab [url]` */
 //#background
 export async function tabopen(...addressarr: string[]) {
     let uri
     let address = addressarr.join(' ')
     if (address != "") uri = forceURI(address)
+    else uri = forceURI(config.get("newtab"))
     browser.tabs.create({url: uri})
 }
 
-//#background
-export async function tabduplicate(id?: number){
-    id = id ? id : (await activeTabId())
-    browser.tabs.duplicate(id)
-}
+/** Resolve a tab index to the tab id of the corresponding tab in this window.
 
-//#background
-export async function tabdetach(id?: number){
-    id = id ? id : (await activeTabId())
-    browser.windows.create({tabId: id})
-}
+    @param index
+        1-based index of the tab to target. Wraps such that 0 = last tab, -1 =
+        penultimate tab, etc.
 
-//#background
-export async function tabclose(ids?: number[] | number) {
-    if (ids !== undefined) {
-        browser.tabs.remove(ids)
+        if undefined, return activeTabId()
+
+    @hidden
+*/
+//#background_helper
+async function idFromIndex(index?: number): Promise<number> {
+    if (index !== undefined) {
+        // Wrap
+        index = (index - 1).mod(
+            (await l(browser.tabs.query({currentWindow: true}))).length)
+            + 1
+
+        // Return id of tab with that index.
+        return (await l(browser.tabs.query({
+            currentWindow: true,
+            index: index - 1,
+        })))[0].id
     } else {
-        // Close the current tab
+        return await activeTabId()
+    }
+}
+
+/** Close all other tabs in this window */
+//#background
+export async function tabonly() {
+    const tabs = await browser.tabs.query({
+        pinned: false,
+        active: false,
+        currentWindow: true
+    })
+    const tabsIds = tabs.map(tab => tab.id)
+    browser.tabs.remove(tabsIds)
+}
+
+
+/** Duplicate a tab.
+
+    @param index
+        The 1-based index of the tab to target. index < 1 wraps. If omitted, this tab.
+*/
+//#background
+export async function tabduplicate(index?: number) {
+    browser.tabs.duplicate(await idFromIndex(index))
+}
+
+/** Detach a tab, opening it in a new window.
+
+    @param index
+        The 1-based index of the tab to target. index < 1 wraps. If omitted, this tab.
+*/
+//#background
+export async function tabdetach(index?: number) {
+    browser.windows.create({tabId: await idFromIndex(index)})
+}
+
+/** Close a tab.
+
+    Known bug: autocompletion will make it impossible to close more than one tab at once if the list of numbers looks enough like an open tab's title or URL.
+
+    @param indexes
+        The 1-based indexes of the tabs to target. indexes < 1 wrap. If omitted, this tab.
+*/
+//#background
+export async function tabclose(...indexes: string[]) {
+    if (indexes.length > 0) {
+        const idsPromise = indexes.map(index => idFromIndex(Number(index)))
+        browser.tabs.remove(await Promise.all(idsPromise))
+    } else {
+        // Close current tab
         browser.tabs.remove(await activeTabId())
     }
 }
@@ -369,17 +737,41 @@ export async function undo(){
     }
 }
 
+/** Synonym for [[tabclose]]. */
 //#background
-export async function tabmove(n?: string) {
-    let aTab = await activeTab(),
-        m: number
-    if (!n) {
-        browser.tabs.move(aTab.id, {index: -1})
-        return
-    } else if (n.startsWith("+") || n.startsWith("-")) {
-        m = Math.max(0, Number(n) + aTab.index)
-    } else m = Number(n)
-    browser.tabs.move(aTab.id, {index: m})
+export async function quit() {
+    tabclose()
+}
+
+/** Convenience shortcut for [[quit]]. */
+//#background
+export async function q() {
+    tabclose()
+}
+
+/** Move the current tab to be just in front of the index specified.
+
+    Known bug: This supports relative movement, but autocomple doesn't know
+    that yet and will override positive and negative indexes.
+
+    Put a space in front of tabmove if you want to disable completion and have
+    the relative indexes at the command line.
+
+    Binds are unaffected.
+
+    @param index
+        New index for the current tab.
+
+        1 is the first index. 0 is the last index. -1 is the penultimate, etc.
+*/
+//#background
+export async function tabmove(index = "0") {
+    const aTab = await activeTab()
+    let newindex: number
+    if (index.startsWith("+") || index.startsWith("-")) {
+        newindex = Math.max(0, Number(index) + aTab.index)
+    } else newindex = Number(index) - 1
+    browser.tabs.move(aTab.id, {index: newindex})
 }
 
 /** Pin the current tab */
@@ -393,7 +785,7 @@ export async function pin() {
 
 // {{{ WINDOWS
 
-/** Like [[open]], but in a new window */
+/** Like [[tabopen]], but in a new window */
 //#background
 export async function winopen(...args: string[]) {
     let address: string
@@ -402,7 +794,7 @@ export async function winopen(...args: string[]) {
         createData["incognito"] = true
         address = args.slice(1,args.length).join(' ')
     } else address = args.join(' ')
-    createData["url"] = address != "" ? forceURI(address) : null
+    createData["url"] = address != "" ? forceURI(address) : forceURI(config.get("newtab"))
     browser.windows.create(createData)
 }
 
@@ -421,6 +813,12 @@ export async function qall(){
     windows.map((window) => browser.windows.remove(window.id))
 }
 
+/** Convenience shortcut for [[qall]]. */
+//#background
+export async function qa() {
+    qall()
+}
+
 // }}}
 
 // {{{ MISC
@@ -429,6 +827,13 @@ export async function qall(){
 //#background
 export function suppress(preventDefault?: boolean, stopPropagation?: boolean) {
     mode("ignore")
+}
+
+//#background
+export function version(){
+    clipboard("yank","REPLACE_ME_WITH_THE_VERSION_USING_SED")
+    fillcmdline_notrail("REPLACE_ME_WITH_THE_VERSION_USING_SED")
+
 }
 
 /** Example:
@@ -491,6 +896,20 @@ async function getnexttabs(tabid: number, n?: number) {
 //#background_helper
 import * as controller from './controller'
 
+/** Repeats a `cmd` `n` times.
+    Falls back to the last executed command if `cmd` doesn't exist.
+    Executes the command once if `n` isn't defined either.
+*/
+//#background
+export function repeat(n = 1, ...exstr: string[]) {
+    let cmd = state.last_ex_str
+    if (exstr.length > 0)
+        cmd = exstr.join(" ")
+    console.log("repeating " + cmd + " " + n + " times")
+    for (let i = 0; i < n; i++)
+        controller.acceptExCmd(cmd)
+}
+
 /** Split `cmds` on pipes (|) and treat each as it's own command.
 
     Workaround: this should clearly be in the parser, but we haven't come up with a good way to deal with |s in URLs, search terms, etc. yet.
@@ -501,19 +920,10 @@ export function composite(...cmds: string[]) {
     cmds.forEach(controller.acceptExCmd)
 }
 
-/** Don't use this */
-// TODO: These two don't really make sense as excmds, they're internal things.
-//#content
+/** Please use fillcmdline instead */
+//#background
 export function showcmdline() {
-    CommandLineContent.show()
-    CommandLineContent.focus()
-}
-
-/** Don't use this */
-//#content
-export function hidecmdline() {
-    CommandLineContent.hide()
-    CommandLineContent.blur()
+    CommandLineBackground.show()
 }
 
 /** Set the current value of the commandline to string *with* a trailing space */
@@ -548,14 +958,34 @@ export async function current_url(...strarr: string[]){
 
     If `excmd == "yank"`, copy the current URL, or if given, the value of toYank, into the system clipboard.
 
+    If `excmd == "yankcanon"`, copy the canonical URL of the current page if it exists, otherwise copy the current URL.
+
+    If `excmd == "yankshort"`, copy the shortlink version of the current URL, and fall back to the canonical then actual URL. Known to work on https://yankshort.neocities.org/.
+
     Unfortunately, javascript can only give us the `clipboard` clipboard, not e.g. the X selection clipboard.
 
 */
 //#background
-export async function clipboard(excmd: "open"|"yank"|"tabopen" = "open", ...toYank: string[]) {
+export async function clipboard(excmd: "open"|"yank"|"yankshort"|"yankcanon"|"tabopen" = "open", ...toYank: string[]) {
     let content = toYank.join(" ")
     let url = ""
+    let urls = []
     switch (excmd) {
+        case 'yankshort':
+            urls = await geturlsforlinks("rel", "shortlink")
+            if (urls.length == 0) {
+                urls = await geturlsforlinks("rev", "canonical")
+            }
+            if (urls.length > 0) {
+                messageActiveTab("commandline_frame", "setClipboard", [urls[0]])
+                break
+            }
+        case 'yankcanon':
+            urls = await geturlsforlinks("rel", "canonical")
+            if (urls.length > 0) {
+                messageActiveTab("commandline_frame", "setClipboard", [urls[0]])
+                break
+            }
         case 'yank':
             await messageActiveTab("commandline_content", "focus")
             content = (content == "") ? (await activeTab()).url : content
@@ -575,109 +1005,48 @@ export async function clipboard(excmd: "open"|"yank"|"tabopen" = "open", ...toYa
             // todo: maybe we should have some common error and error handler
             throw new Error(`[clipboard] unknown excmd: ${excmd}`)
     }
-    hidecmdline()
+    CommandLineBackground.hide()
 }
 
 // {{{ Buffer/completion stuff
-// TODO: Move autocompletions out of excmds.
 
-/** @hidden */
-//#background_helper
-const DEFAULT_FAVICON = browser.extension.getURL("static/defaultFavicon.svg")
+/** Equivalent to `fillcmdline buffer`
 
-/** Soon to be deprecated way of showing buffer completions */
+    Sort of Vimperator alias
+*/
 //#background
-export async function openbuffer() {
+export async function tabs() {
     fillcmdline("buffer")
-    messageActiveTab("commandline_frame", "changecompletions", [await l(listTabs())])
-    showcmdline()
 }
 
-/** Change active tab */
+/** Equivalent to `fillcmdline buffer`
+
+    Sort of Vimperator alias
+*/
 //#background
-export async function buffer(n?: number | string) {
-    if (!n || Number(n) == 0) return // Vimperator index starts at 1
-    if (n === "#") {
-        n =
+export async function buffers() {
+    tabs()
+}
+
+/** Change active tab.
+
+    @param index
+        Starts at 1. 0 refers to last tab, -1 to penultimate tab, etc.
+
+        "#" means the tab that was last accessed in this window
+ */
+//#background
+export async function buffer(index: number | '#') {
+    if (index === "#") {
+        // Switch to the most recently accessed buffer
+        tabIndexSetActive(
             (await browser.tabs.query({currentWindow: true})).sort((a, b) => {
                 return a.lastAccessed < b.lastAccessed ? 1 : -1
             })[1].index + 1
-    }
-    if (Number.isInteger(Number(n))) {
-        tabSetActive(
-            (await browser.tabs.query({
-                currentWindow: true,
-                index: Number(n) - 1,
-            }))[0].id
         )
-    // hacky search by url
-    } else {
-        let currtabs = await browser.tabs.query({currentWindow: true})
-        // todo: choose best match
-        tabSetActive(currtabs.filter((t)=> (t["url"].includes(String(n)) || t["title"].toLowerCase().includes(String(n).toLowerCase())))[0].id)
+    } else if (Number.isInteger(Number(index))) {
+        tabIndexSetActive(Number(index))
     }
-}
-
-/** List of tabs in window and the last active tab. */
-/** @hidden */
-//#background_helper
-async function getTabs() {
-    const tabs = await browser.tabs.query({currentWindow: true})
-    const lastActive = tabs.sort((a, b) => {
-        return a.lastAccessed < b.lastAccessed ? 1 : -1
-    })[1]
-    tabs.sort((a, b) => {
-        return a.index < b.index ? -1 : 1
-    })
-    console.log(tabs)
-    return [tabs, lastActive]
-}
-
-/** innerHTML for a single Tab's representation in autocompletion */
-/** @hidden */
-//#background_helper
-function formatTab(tab: browser.tabs.Tab, prev?: boolean) {
-    // This, like all this completion logic, needs to move.
-    const tabline = window.document.createElement('div')
-    tabline.className = "tabline"
-
-    const prefix = window.document.createElement('span')
-    if (tab.active) prefix.textContent += "%"
-    else if (prev) prefix.textContent += "#"
-    if (tab.pinned) prefix.textContent += "@"
-    prefix.textContent = prefix.textContent.padEnd(2)
-    tabline.appendChild(prefix)
-
-    // TODO: Dynamically set favicon dimensions. Should be able to use em.
-    const favicon = window.document.createElement('img')
-    favicon.src = tab.favIconUrl ? tab.favIconUrl : DEFAULT_FAVICON
-    tabline.appendChild(favicon)
-
-    const titlespan = window.document.createElement('span')
-    titlespan.textContent=`${tab.index + 1}: ${tab.title}`
-    tabline.appendChild(titlespan)
-
-    const url = window.document.createElement('a')
-    url.className = 'url'
-    url.href = tab.url
-    url.text = tab.url
-    url.target = '_blank'
-    tabline.appendChild(url)
-
-    console.log(tabline)
-    return tabline.outerHTML
-}
-
-/** innerHTML for tab autocompletion div */
-/** @hidden */
-//#background_helper
-async function listTabs() {
-    let buffers: string = "",
-        [tabs, lastActive] = await getTabs()
-    for (let tab of tabs as Array<browser.tabs.Tab>) {
-        buffers += tab === lastActive ? formatTab(tab, true) : formatTab(tab)
-    }
-    return buffers
 }
 
 // }}}
@@ -693,7 +1062,7 @@ async function listTabs() {
     Examples:
 
         - `bind G fillcmdline tabopen google`
-        - `bind D composite tabclose | tabprev`
+        - `bind D composite tabclose | buffer #`
         - `bind j scrollline 20`
         - `bind F hint -b`
 
@@ -707,12 +1076,15 @@ async function listTabs() {
         - [[reset]]
 */
 //#background
-export async function bind(key: string, ...bindarr: string[]){
+export function bind(key: string, ...bindarr: string[]){
     let exstring = bindarr.join(" ")
-    let nmaps = (await browser.storage.sync.get("nmaps"))["nmaps"]
-    nmaps = (nmaps == undefined) ? Object.create(null) : nmaps
-    nmaps[key] = exstring
-    browser.storage.sync.set({nmaps})
+    config.set("nmaps",exstring,key)
+}
+
+/** Set a search engine keyword for use with *open or `set searchengine` */
+//#background
+export function searchsetkeyword(keyword: string, url: string){
+    config.set("searchurls",forceURI(url),keyword)
 }
 
 /** Unbind a sequence of keys so that they do nothing at all.
@@ -736,31 +1108,182 @@ export async function unbind(key: string){
 */
 //#background
 export async function reset(key: string){
+    config.unset("nmaps",key)
+
+    // Code for dealing with legacy binds
     let nmaps = (await browser.storage.sync.get("nmaps"))["nmaps"]
     nmaps = (nmaps == undefined) ? {} : nmaps
     delete nmaps[key]
     browser.storage.sync.set({nmaps})
 }
 
+/** Deletes various privacy-related items.
+
+    The list of possible arguments can be found here:
+    https://developer.mozilla.org/en-US/Add-ons/WebExtensions/API/browsingData/DataTypeSet
+
+    Additional, tridactyl-specific arguments are:
+    - commandline: Removes the in-memory commandline history.
+    - tridactyllocal: Removes all tridactyl storage local to this machine. Use it with
+        commandline if you want to delete your commandline history.
+    - tridactylsync: Removes all tridactyl storage associated with your Firefox Account (i.e, all user configuration, by default).
+    These arguments aren't affected by the timespan parameter.
+
+    Timespan parameter:
+    -t [0-9]+(m|h|d|w)
+
+    Examples:
+    `sanitize all` -> Deletes everything
+    `sanitize history` -> Deletes all history
+    `sanitize commandline tridactyllocal tridactylsync` -> Deletes every bit of data Tridactyl holds
+    `sanitize cookies -t 3d` -> Deletes cookies that were set during the last three days.
+
+*/
+//#background
+export async function sanitize(...args: string[]) {
+    let flagpos = args.indexOf("-t")
+    let since = {}
+    // If the -t flag has been given and there is an arg after it
+    if (flagpos > -1) {
+        if (flagpos < args.length - 1) {
+            let match = args[flagpos + 1].match('^([0-9])+(m|h|d|w)$')
+            // If the arg of the flag matches Pentadactyl's sanitizetimespan format
+            if (match !== null && match.length == 3) {
+                // Compute the timespan in milliseconds and get a Date object
+                let millis = parseInt(match[1]) * 1000
+                switch (match[2]) {
+                    case 'w': millis *= 7
+                    case 'd': millis *= 24
+                    case 'h': millis *= 60
+                    case 'm': millis *= 60
+                }
+                since = { "since": (new Date()).getTime() - millis }
+            } else {
+                console.log(":sanitize error: expected time format: ^([0-9])+(m|h|d|w)$, given format:" + args[flagpos+1])
+                return
+            }
+        } else {
+            console.log(":sanitize error: -t given but no following arguments")
+            return
+        }
+    }
+
+    let dts = {
+        "cache": false,
+        "cookies": false,
+        "downloads": false,
+        "formData": false,
+        "history": false,
+        "localStorage": false,
+        "passwords": false,
+        "serviceWorkers": false,
+        // These are Tridactyl-specific
+        "commandline": false,
+        "tridactyllocal": false,
+        "tridactylsync": false,
+        /* When this one is activated, a lot of errors seem to pop up in
+           the console. Keeping it disabled is probably a good idea.
+        "pluginData": false,
+         */
+        /* These 3 are supported by Chrome and Opera but not by Firefox yet.
+        "fileSystems": false,
+        "indexedDB": false,
+        "serverBoundCertificates": false,
+         */
+    }
+    if (args.find(x => x == "all") !== undefined) {
+        for (let attr in dts)
+            dts[attr] = true
+    } else {
+        // We bother checking if dts[x] is false because
+        // browser.browsingData.remove() is very strict on the format of the
+        // object it expects
+        args.map(x => { if (dts[x] === false) dts[x] = true })
+    }
+    // Tridactyl-specific items
+    if (dts.commandline === true)
+        state.cmdHistory = []
+    delete dts.commandline
+    if (dts.tridactyllocal === true)
+        browser.storage.local.clear()
+    delete dts.tridactyllocal
+    if (dts.tridactylsync === true)
+        browser.storage.sync.clear()
+    delete dts.tridactylsync
+    // Global items
+    browser.browsingData.remove(since, dts)
+}
+
 /** Bind a quickmark for the current URL to a key.
 
     Afterwards use go[key], gn[key], or gw[key] to [[open]], [[tabopen]], or
     [[winopen]] the URL respectively.
-    
+
 */
 //#background
-export async function quickmark(key: string) {
+export async function quickmark(key: string, ...addressarr: string[]) {
     // ensure we're binding to a single key
     if (key.length !== 1) {
         return
     }
 
-    let address = (await activeTab()).url
-    // Have to await these or they race!
-    await bind("gn" + key, "tabopen", address)
-    await bind("go" + key, "open", address)
-    await bind("gw" + key, "winopen", address)
+    if (addressarr.length <= 1) {
+        let address = addressarr.length == 0 ? (await activeTab()).url : addressarr[0]
+        // Have to await these or they race!
+        await bind("gn" + key, "tabopen", address)
+        await bind("go" + key, "open", address)
+        await bind("gw" + key, "winopen", address)
+    } else {
+        let compstring = addressarr.join(" | tabopen ")
+        let compstringwin = addressarr.join(" | winopen ")
+        await bind("gn" + key, "composite tabopen", compstring)
+        await bind("go" + key, "composite open", compstring)
+        await bind("gw" + key, "composite winopen", compstringwin)
+    }
 }
+
+//#background
+export function get(target: string, property?: string){
+    console.log(config.get(target,property))
+}
+
+/** Set a setting to a value
+
+    Currently, this only supports string settings without any whitespace
+    (i.e. not nmaps.)
+
+    It can be used on any string <-> string settings found [here](/static/docs/modules/_config_.html#defaults)
+
+*/
+//#background
+export function set(setting: string, ...value: string[]){
+    // We only support setting strings or arrays: not objects
+    let current = config.get(setting)
+    if ((Array.isArray(current) || typeof current == "string")) {
+        if (value.length > 0){
+            if (!Array.isArray(current)){
+                config.set(setting,value[0])
+            } else config.set(setting,value)
+        } else fillcmdline_notrail("set " + setting + " " + config.get(setting))
+    }
+}
+
+//#background
+export function unset(target: string, property?: string){
+    config.unset(target,property)
+}
+
+// not required as we automatically save all config
+////#background
+//export function saveconfig(){
+//    config.save(config.get("storageloc"))
+//}
+
+////#background
+//export function mktridactylrc(){
+//    saveconfig()
+//}
+
 
 // }}}
 
@@ -769,10 +1292,36 @@ export async function quickmark(key: string) {
 //#background_helper
 import * as hinting from './hinting_background'
 
-/** Hint a page. Pass -b as first argument to open hinted page in background. */
+/** Hint a page.
+
+    @param option
+        - -b open in background
+        - -y copy (yank) link's target to clipboard
+        - -p copy an element's text to the clipboard
+        - -r read an element's text with text-to-speech
+        - -i view an image
+        - -I view an image in a new tab
+        - -k delete an element from the page
+        - -; focus an element
+        - -# yank an element's anchor URL to clipboard
+        - -c [selector] hint links that match the css selector
+          - `bind ;c hint -c [class*="expand"],[class="togg"]` works particularly well on reddit and HN
+
+    Related settings:
+        "hintchars": "hjklasdfgyuiopqwertnmzxcvb"
+*/
 //#background
-export function hint(option?: "-b") {
+export function hint(option?: string, selectors="") {
     if (option === '-b') hinting.hintPageOpenInBackground()
+    else if (option === "-y") hinting.hintPageYank()
+    else if (option === "-p") hinting.hintPageTextYank()
+    else if (option === "-i") hinting.hintImage(false)
+    else if (option === "-I") hinting.hintImage(true)
+    else if (option === "-k") hinting.hintKill()
+    else if (option === "-;") hinting.hintFocus()
+    else if (option === "-#") hinting.hintPageAnchorYank()
+    else if (option === "-c") hinting.hintPageSimple(selectors)
+    else if (option === "-r") hinting.hintRead()
     else hinting.hintPageSimple()
 }
 
@@ -796,5 +1345,108 @@ export async function gobble(nChars: number, endCmd: string) {
 }
 
 // }}}
+
+
+// {{{TEXT TO SPEECH
+
+import * as TTS from './text_to_speech'
+
+/**
+ * Read text content of elements matching the given selector
+ *
+ * @param selector the selector to match elements
+ */
+//#content_helper
+function tssReadFromCss(selector: string): void {
+    let elems = DOM.getElemsBySelector(selector, [])
+
+    elems.forEach(e=>{
+        TTS.readText(e.textContent)
+    })
+}
+
+/**
+ * Read the given text using the browser's text to speech functionality and
+ * the settings currently set
+ *
+ * @param mode      the command mode
+ *                      -t read the following args as text
+ *                      -c read the content of elements matching the selector
+ */
+//#content
+export async function ttsread(mode: "-t" | "-c", ...args: string[]) {
+
+    if (mode === "-t") {
+        // really should quote args, but for now, join
+        TTS.readText(args.join(" "))
+    }
+    else if (mode === "-c") {
+
+        if (args.length > 0) {
+            tssReadFromCss(args[0])
+        } else {
+            console.log("Error: no CSS selector supplied")
+        }
+    } else {
+        console.log("Unknown mode for ttsread command: " + mode)
+    }
+}
+
+/**
+ * Show a list of the voices available to the TTS system. These can be
+ * set in the config using `ttsvoice`
+ */
+//#background
+export async function ttsvoices() {
+    let voices = TTS.listVoices()
+
+    // need a better way to show this to the user
+    fillcmdline_notrail(voices.sort().join(", "))
+}
+
+/**
+ * Cancel current reading and clear pending queue
+ *
+ * Arguments:
+ *   - stop:    cancel current and pending utterances
+ */
+//#content
+export async function ttscontrol(action: string) {
+
+    let ttsAction: TTS.Action = null
+
+    // convert user input to TTS.Action
+    // only pause seems to be working, so only provide access to that
+    // to avoid exposing users to things that won't work
+    switch (action) {
+        case "stop":
+            ttsAction = "stop"
+            break
+    }
+
+    if (ttsAction) {
+        TTS.doAction(ttsAction)
+    } else {
+        console.log("Unknown text-to-speech action: " + action)
+    }
+}
+
+//}}}
+
+// unsupported on android
+/** Add or remove a bookmark.
+*
+* Optionally, you may give the bookmark a title. If no URL is given, a bookmark is added for the current page.
+*
+* If a bookmark already exists for the URL, it is removed.
+*/
+//#background
+export async function bmark(url?: string, ...titlearr: string[] ){
+    url = url === undefined ? (await activeTab()).url : url
+    let title = titlearr.join(" ")
+    let dupbmarks = await browser.bookmarks.search({url})
+    dupbmarks.map((bookmark) => browser.bookmarks.remove(bookmark.id))
+    if (dupbmarks.length == 0 ) {browser.bookmarks.create({url, title})}
+}
 
 // vim: tabstop=4 shiftwidth=4 expandtab

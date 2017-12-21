@@ -1,7 +1,7 @@
 {
     "manifest_version": 2,
     "name": "Tridactyl",
-    "version": "1.4.3",
+    "version": "1.7.0",
     "icons": {
         "64": "static/logo/Tridactyl_64px.png",
         "100": "static/logo/Tridactyl_100px.png",
@@ -32,11 +32,13 @@
         }
     ],
     "web_accessible_resources": [
-        "static/commandline.html"
+        "static/commandline.html",
+        "static/defaultFavicon"
     ],
     "permissions": [
         "activeTab",
         "bookmarks",
+        "browsingData",
         "contextMenus",
         "clipboardWrite",
         "clipboardRead",

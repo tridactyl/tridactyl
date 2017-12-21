@@ -1,4 +1,4 @@
-import {l, activeTabId} from './lib/webext'
+import {l, browserBg, activeTabId} from './lib/webext'
 
 export type TabMessageType =
     "excmd_content" |
@@ -70,12 +70,12 @@ export async function messageTab(tabId, type: TabMessageType, command, args?) {
         command,
         args,
     }
-    return l(browser.tabs.sendMessage(tabId, message))
+    return l(browserBg.tabs.sendMessage(tabId, message))
 }
 
 export async function messageAllTabs(type: TabMessageType, command: string, args?: any[]) {
     let responses = []
-    for (let tab of await browser.tabs.query({})) {
+    for (let tab of await browserBg.tabs.query({})) {
         try { responses.push(await messageTab(tab.id, type, command, args)) }
         catch (e) { console.error(e) }
     }

@@ -16,6 +16,11 @@ interface Window {
     scrollByPages(n: number):  void
 }
 
+// Fix typescript bugs
+interface StringConstructor {
+    toLowerCase(): string;
+}
+
 // Web extension types not in web-ext-types yet
 declare namespace browser.find {
     function find(query, object): any
@@ -23,7 +28,16 @@ declare namespace browser.find {
 
 // setZoom has an optional first argument of tabId. Unclear how first argument can be optional.
 declare namespace browser.tabs {
-    function setZoom(number): any
+    function setZoom(zoomFactor: number): Promise<void>;
+    function setZoom(tabId: number, zoomFactor: number): Promise<void>;
+    function toggleReaderMode(tabId?: number): Promise<void>;
+}
+
+// html-tagged-template.js
+declare function html(strings: TemplateStringsArray, ...values: any[]): HTMLElement
+
+declare namespace browser.webRequest {
+    function filterResponseData(requestId: string): any
 }
 
 declare namespace browser.webRequest {

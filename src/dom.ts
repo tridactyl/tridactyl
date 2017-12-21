@@ -95,6 +95,68 @@ export function* elementsByXPath(xpath, parent?)
     }
 }
 
+/** Type for functions that can filter element arrays */
+interface ElementFilter { (element: Element): boolean }
+
+/** Is the element of "substantial" size and shown on the page. The element
+ * doesn't need to be in the viewport. This is useful when you want to
+ * scroll to something, but still want to exclude tiny and useless items
+ */
+export function isSubstantial (element: Element) {
+    const clientRect = element.getClientRects()[0]
+    const computedStyle = getComputedStyle(element)
+   // remove elements that are barely within the viewport, tiny, or invisible
+    switch (true) {
+        case !clientRect:
+        case clientRect.width < 3:
+        case clientRect.height < 3:
+        case computedStyle.visibility !== 'visible':
+        case computedStyle.display === 'none':
+            return false
+    }
+    return true
+}
+
+
+/** This function decides whether the height attribute contained in a
+   ComputedStyle matters.  For example, the height attribute doesn't matter for
+   elements that have "display: inline" because their height is overriden by
+   the height of the node they are in. */
+export function heightMatters (style: CSSStyleDeclaration) {
+   switch (style.display) {
+      case "inline":
+      case "table-column":
+      case "table-column-group":
+      /* These two depend on other factors such as the element's type (span,
+         div...) or its parent's style. If the previous cases aren't enough to
+         decide whether the width attribute of the element matters, we should
+         maybe try to test for them.
+      case "initial":
+      case "inherit":*/
+         return false
+   }
+   return true
+}
+
+/* See [[heightMatters]] */
+export function widthMatters (style: CSSStyleDeclaration) {
+   switch (style.display) {
+      case "inline":
+      case "table-column":
+      case "table-column-group":
+      case "table-header-group":
+      case "table-footer-group":
+      case "table-row-group":
+      case "table-cell":
+      case "table-row":
+      /* Take a look at [[heightMatters]] in order to understand why these two
+         cases are commented
+      case "initial":
+      case "inherit?:*/
+         return false
+   }
+   return true
+}
 
 // Saka-key caches getComputedStyle. Maybe it's a good idea!
 /* let cgetComputedStyle = cacheDecorator(getComputedStyle) */
@@ -115,8 +177,8 @@ export function isVisible (element: Element) {
         case clientRect.top >= innerHeight - 4:
         case clientRect.left < 0:
         case clientRect.left >= innerWidth - 4:
-        case clientRect.width < 3:
-        case clientRect.height < 3:
+        case widthMatters(computedStyle) && clientRect.width < 3:
+        case heightMatters(computedStyle) && clientRect.height < 3:
         case computedStyle.visibility !== 'visible':
         case computedStyle.display === 'none':
             return false
@@ -157,4 +219,53 @@ export function isVisible (element: Element) {
     /*     return false */
     /* } */
     /* return true */
+}
+
+/** Get all elements that match the given selector
+ *
+ * @param selector   `the CSS selector to choose elements with
+ * @param filters     filter to use (in thre given order) to further chose
+ *                    items, or [] for all
+ */
+export function getElemsBySelector(selector: string,
+    filters: Array<ElementFilter>) {
+
+    let elems = Array.from(document.querySelectorAll(selector))
+
+    for (let filter of filters) {
+        elems = elems.filter(filter)
+    }
+
+    return elems
+}
+
+/** Get the nth input element on a page
+ *
+ * @param nth         the element index, can be negative to start at the end
+ * @param filters     filter to use (in thre given order) to further chose
+ *                    items, or [] for all
+ */
+export function getNthElement(selectors: string, nth: number,
+    filters: Array<ElementFilter>): HTMLElement {
+
+    let inputs = getElemsBySelector(selectors, filters)
+
+    if (inputs.length) {
+        let index = Number(nth).clamp(-inputs.length, inputs.length - 1)
+            .mod(inputs.length)
+
+        return <HTMLElement>inputs[index]
+    }
+
+    return null
+}
+
+/** Comparison function by offsetWidth/Height, used for sorting elements by their
+ *  area on the page
+ */
+export function compareElementArea(a: HTMLElement, b: HTMLElement): number {
+    const aArea = a.offsetWidth * a.offsetHeight
+    const bArea = b.offsetWidth * b.offsetHeight
+
+    return aArea - bArea
 }

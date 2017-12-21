@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+
+# stolen from https://gist.github.com/sindresorhus/7996717
+
+changed_files="$(git diff-tree -r --name-only --no-commit-id ORIG_HEAD HEAD)"
+
+
+file_changed() {
+	echo "$changed_files" | grep --quiet "$1"
+}
+
+if file_changed package.json || file_changed package-lock.json; then
+	npm install
+fi
