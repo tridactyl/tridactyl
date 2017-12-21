@@ -31,6 +31,71 @@ Remember that tridactyl cannot run on any page on addons.mozilla.org, about:\*, 
 - Firefox will not load Tridactyl on addons.mozilla.org, about:\*, some file:\* URIs, view-source:\*, or data:\*. On these pages Ctrl-L (or F6), Ctrl-Tab and Ctrl-W are your escape hatches.
 - Tridactyl does not currently support changing/hiding the Firefox GUI, but you can do it yourself by changing your userChrome. We've developed [quite a good one](src/static/userChrome-minimal.css) that makes windowed Firefox behave more like full-screen mode, but it's well commented, so you can make your own.
 
+## Frequently asked questions
+
+
+- How can I change the search engine?
+
+`set searchengine duckduckgo`
+
+- How can I add a search engine?
+
+`searchsetkeyword esa http://www.esa.int/esasearch?q=`
+
+- How can I import/export settings, and does Tridactyl use an external configuration file just like Vimperator?
+
+Sort of. <!-- expand, about:support etc -->
+
+- How can I bind to modifiers?
+
+You can't, yet. See issue #XXX <!-- fill me in -->
+
+- How can I tab complete from bookmarks?
+
+`bmarks `. Bookmarks are not currently supported on `*open`: see issue #XXX <!-- fill me -->
+
+- When I type 'f', can I type link names (like vimperator) in order to narrow down number of highlighted links?
+
+Not yet. See issue #XXX <!-- do me -->
+
+- How to remap keybindings in both normal mode and ex mode?
+
+You cannot. We only support normal mode bindings for now, with `bind [key] [excmd]`
+
+- Where can I find a changelog for the different versions (to see what is new in the latest version)?
+
+docs/changelog.md
+
+- Why can't I use my bookmark keywords?
+
+Mozilla doesnt give us access to them. See issue #XXX <!-- fill me-->
+
+- Why doesn't Tridactyl work on websites with frames?
+
+It should work on some frames now. See #XXX etc. <!-- -->
+
+- Can I change proxy via commands?
+
+No. #XXX
+
+- How do I disable Tridactyl on certain sites?
+
+You can't yet, see #XXX. The 
+
+- How can I list the current bindings?
+
+There is no easy way, #XXX.
+
+- Why doesn't Tridactyl work on some pages? (CSP)
+
+ #112
+
+- How can I know which mode I'm in/have a statusline?
+
+Press `j` and see if you scroll down :) There's no status line yet, #XXX.
+
+
+
 ## Contributing
 
 ### Building and installing
