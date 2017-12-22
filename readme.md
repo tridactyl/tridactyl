@@ -42,11 +42,11 @@ Remember that tridactyl cannot run on any page on addons.mozilla.org, about:\*, 
 
 `searchsetkeyword esa http://www.esa.int/esasearch?q=`
 
-- How can I import/export settings, and does Tridactyl use an external configuration file just like Vimperator?
+- Can I import/export settings, and does Tridactyl use an external configuration file just like Vimperator?
 
 Sort of: if you do `set storageloc local`, a JSON file will appear at `<your firefox profile>\browser-extension-data\tridactyl.vim@cmcaine.co.uk\storage.js`. You can find you profile folder by going to `about:support`. 
 
-You can edit this file to your hearts content. A more traditional rc file is planned but will require a native messenger. For more information, see issue #79.
+You can edit this file to your heart's content. A more traditional rc file is planned but will require a native messenger. For more information, see issue #79.
 
 - How can I bind to modifiers?
 
@@ -66,7 +66,7 @@ You cannot. We only support normal mode bindings for now, with `bind [key] [excm
 
 - Where can I find a changelog for the different versions (to see what is new in the latest version)?
 
-docs/changelog.md
+[Here.](https://github.com/cmcaine/tridactyl/blob/master/doc/changelog.md)
 
 - Why can't I use my bookmark keywords?
 
