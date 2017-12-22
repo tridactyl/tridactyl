@@ -59,7 +59,7 @@ export function getUrlRoot(url) {
  *
  * @param url   the URL to get the parent of
  * @return      the parent of the URL, or null if there is no parent
- * @count       how many times you want to get the parent.
+ * @count       how many "generations" you wish to go back (1 = parent, 2 = grandparent, etc.)
  */
 export function getUrlParent(url, count) {
 
