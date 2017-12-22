@@ -44,19 +44,21 @@ Remember that tridactyl cannot run on any page on addons.mozilla.org, about:\*, 
 
 - How can I import/export settings, and does Tridactyl use an external configuration file just like Vimperator?
 
-Sort of. <!-- expand, about:support etc -->
+Sort of: if you do `set storageloc local`, a JSON file will appear at `<your firefox profile>\browser-extension-data\tridactyl.vim@cmcaine.co.uk\storage.js`. You can find you profile folder by going to `about:support`. 
+
+You can edit this file to your hearts content. A more traditional rc file is planned but will require a native messenger. For more information, see issue #79.
 
 - How can I bind to modifiers?
 
-You can't, yet. See issue #XXX <!-- fill me in -->
+You can't, yet. See issue #41.
 
 - How can I tab complete from bookmarks?
 
-`bmarks `. Bookmarks are not currently supported on `*open`: see issue #XXX <!-- fill me -->
+`bmarks `. Bookmarks are not currently supported on `*open`: see issue #214.
 
-- When I type 'f', can I type link names (like vimperator) in order to narrow down number of highlighted links?
+- When I type 'f', can I type link names (like Vimperator) in order to narrow down the number of highlighted links?
 
-Not yet. See issue #XXX <!-- do me -->
+Not yet. See issue #28.
 
 - How to remap keybindings in both normal mode and ex mode?
 
@@ -68,31 +70,31 @@ docs/changelog.md
 
 - Why can't I use my bookmark keywords?
 
-Mozilla doesnt give us access to them. See issue #XXX <!-- fill me-->
+Mozilla doesn't give us access to them. See issue #73.
 
 - Why doesn't Tridactyl work on websites with frames?
 
-It should work on some frames now. See #XXX etc. <!-- -->
+It should work on some frames now. See #122. <!-- expand -->
 
 - Can I change proxy via commands?
 
-No. #XXX
+No, this is a limitation of WebExtensions.
 
 - How do I disable Tridactyl on certain sites?
 
-You can't yet, see #XXX. The 
+You can't yet, see #158.
 
 - How can I list the current bindings?
 
-There is no easy way, #XXX.
+There is no easy way. See #98.
 
-- Why doesn't Tridactyl work on some pages? (CSP)
+- Why doesn't Tridactyl work on some pages?
 
- #112
+One possible reason is that the site has a strict content security policy. We can rewrite these to make Tridactyl work, but we do not want to worsen the security of sensitive pages, so it is taking us a little while. See #112.
 
-- How can I know which mode I'm in/have a statusline?
+- How can I know which mode I'm in/have a status line?
 
-Press `j` and see if you scroll down :) There's no status line yet, #XXX.
+Press `j` and see if you scroll down :) There's no status line yet: see #210.
 
 
 
