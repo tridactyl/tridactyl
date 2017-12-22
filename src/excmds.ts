@@ -4,7 +4,7 @@
 
     Use `:help <excmd>` or scroll down to show [[help]] for a particular excmd.
 
-    The default keybinds can be found [here](/static/docs/modules/_parsers_normalmode_.html#defaultnmaps).
+    The default keybinds can be found [here](/static/docs/modules/_config_.html#defaults)
 
     Tridactyl is in a pretty early stage of development. Please report any
     issues and make requests for missing features on the GitHub [project page](1).
