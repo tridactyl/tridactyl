@@ -74,7 +74,7 @@ Mozilla doesn't give us access to them. See [issue #73](https://github.com/cmcai
 
 - Why doesn't Tridactyl work on websites with frames?
 
-It should work on some frames now. See [#122](https://github.com/cmcaine/tridactyl/issues/122).
+It should work on some frames now. See [#158](https://github.com/cmcaine/tridactyl/issues/158).
 
 - Can I change proxy via commands?
 
