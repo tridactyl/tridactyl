@@ -449,8 +449,11 @@ export class HistoryCompletionSource extends CompletionSourceFuse {
     constructor(private _parent) {
         super(
             [
+                "o ",
                 "open ",
+                "t ",
                 "tabopen ",
+                "w ",
                 "winopen ",
             ],
             "HistoryCompletionSource", "History"
@@ -575,6 +578,7 @@ export class BufferCompletionSource extends CompletionSourceFuse {
     constructor(private _parent) {
         super(
             [
+                "b ",
                 "buffer ",
                 "tabclose ",
                 "tabdetach ",
