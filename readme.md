@@ -48,7 +48,7 @@ Sort of: if you do `set storageloc local`, a JSON file will appear at `<your fir
 
 You can edit this file to your heart's content. A more traditional rc file is planned but will require a native messenger. For more information, see [issue #79](https://github.com/cmcaine/tridactyl/issues/79).
 
-- How can I bind to modifiers?
+- How can I bind keys using the control/alt key modifiers (eg: `ctrl+^`)?
 
 You can't, yet. See [issue #41](https://github.com/cmcaine/tridactyl/issues/41).
 
