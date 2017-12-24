@@ -4,10 +4,10 @@ import "./lib/html-tagged-template"
 
 import * as Completions from './completions'
 import * as Messaging from './messaging'
+import * as Config from './config'
 import * as SELF from './commandline_frame'
 import './number.clamp'
 import state from './state'
-import * as Config from './config'
 import Logger from './logging'
 import * as aliases from './aliases'
 const logger = new Logger('cmdline')
@@ -55,10 +55,22 @@ function enableCompletions() {
 /* document.addEventListener("DOMContentLoaded", enableCompletions) */
 
 let noblur = e =>  setTimeout(() => clInput.focus(), 0)
+let lastTheme: string
 
 export function focus() {
     enableCompletions()
     document.body.classList.remove('hidden')
+
+    // update theme of command line
+    let theme = Config.get("theme")
+    if (theme !== lastTheme) {
+        if (lastTheme) {
+            document.querySelector(':root').classList.remove(lastTheme)
+        }
+        document.querySelector(':root').classList.add(theme)
+        lastTheme = theme
+    }
+
     clInput.focus()
     clInput.addEventListener("blur",noblur)
 }
