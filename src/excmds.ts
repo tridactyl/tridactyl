@@ -1302,10 +1302,20 @@ import * as hinting from './hinting_background'
         - -i view an image
         - -I view an image in a new tab
         - -k delete an element from the page
+        - -s save (download) the linked resource
+        - -S save the linked image
+        - -a save-as the linked resource
+        - -A save-as the linked image
         - -; focus an element
         - -# yank an element's anchor URL to clipboard
         - -c [selector] hint links that match the css selector
           - `bind ;c hint -c [class*="expand"],[class="togg"]` works particularly well on reddit and HN
+
+    Excepting the custom selector mode and background hint mode, each of these
+    hint modes is available by default as `;<option character>`, so e.g. `;y`
+    to yank a link's target.
+
+    To open a hint in the background, the default bind is `F`.
 
     Related settings:
         "hintchars": "hjklasdfgyuiopqwertnmzxcvb"
