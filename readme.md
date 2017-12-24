@@ -74,7 +74,7 @@ Mozilla doesn't give us access to them. See [issue #73](https://github.com/cmcai
 
 - Why doesn't Tridactyl work on websites with frames?
 
-It should work on some frames now. See [#158](https://github.com/cmcaine/tridactyl/issues/158).
+It should work on some frames now. See [#122](https://github.com/cmcaine/tridactyl/issues/122).
 
 - Can I change proxy via commands?
 
@@ -82,7 +82,7 @@ No, this is a limitation of WebExtensions.
 
 - How do I disable Tridactyl on certain sites?
 
-You can't yet, see [#122](https://github.com/cmcaine/tridactyl/issues/122).
+You can't yet, see [#158](https://github.com/cmcaine/tridactyl/issues/158).
 
 - How can I list the current bindings?
 
