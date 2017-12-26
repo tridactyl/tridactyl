@@ -80,7 +80,9 @@ export function getUrlParent(url, count = 1) {
 
         // pathname always starts '/'
         if (parent.pathname !== '/') {
-            let path = parent.pathname.substring(1).split('/')
+            // Split on '/' and remove empty substrings
+            // (handles initial and trailing slashes, repeated slashes, etc.)
+            let path = parent.pathname.split('/').filter(sub => sub !== "")
             path.pop()
             parent.pathname = path.join('/')
             return gup(parent, count - 1)

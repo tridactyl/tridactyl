@@ -66,6 +66,12 @@ function test_parent() {
         ["http://sub.example.com", "http://example.com/"],
         // subdom with path, leave subdom
         ["http://sub.example.com/path", "http://sub.example.com/"],
+        // trailing slash
+        ["http://sub.example.com/path/", "http://sub.example.com/"],
+        // repeated slash
+        ["http://example.com/path//", "http://example.com/"],
+        // repeated slash
+        ["http://example.com//path//", "http://example.com/"],
     ]
 
     for (let [url, exp_parent] of cases) {
