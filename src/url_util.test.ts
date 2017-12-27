@@ -61,17 +61,19 @@ function test_parent() {
         // single level path
         ["http://example.com/path", "http://example.com/"],
         // multi-level path
-        ["http://example.com/path1/path2", "http://example.com/path1"],
+        ["http://example.com/path1/path2", "http://example.com/path1/"],
+        ["http://example.com/path1/path2/path3", "http://example.com/path1/path2/"],
         // subdomains
         ["http://sub.example.com", "http://example.com/"],
         // subdom with path, leave subdom
         ["http://sub.example.com/path", "http://sub.example.com/"],
         // trailing slash
         ["http://sub.example.com/path/", "http://sub.example.com/"],
+        ["http://sub.example.com/path/to/", "http://sub.example.com/path/"],
         // repeated slash
         ["http://example.com/path//", "http://example.com/"],
-        // repeated slash
-        ["http://example.com//path//", "http://example.com/"],
+        ["http://example.com//path//", "http://example.com//"],
+        ["http://example.com//path//", "http://example.com//"],
     ]
 
     for (let [url, exp_parent] of cases) {
