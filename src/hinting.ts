@@ -15,9 +15,10 @@ import {log} from './math'
 import {permutationsWithReplacement, islice, izip, map} from './itertools'
 import {hasModifiers} from './keyseq'
 import state from './state'
-import {messageActiveTab} from './messaging'
+import {messageActiveTab, message} from './messaging'
 import * as config from './config'
 import * as TTS from './text_to_speech'
+import {HintSaveType} from './hinting_background'
 
 /** Simple container for the state of a single frame's hints. */
 class HintState {
@@ -221,6 +222,12 @@ function elementswithtext() {
     )
 }
 
+/** Returns elements that point to a saveable resource
+ */
+function saveableElements() {
+    return DOM.getElemsBySelector(HINTTAGS_saveable, [DOM.isVisible])
+}
+
 /** Get array of images in the viewport
  */
 function hintableImages() {
@@ -294,6 +301,12 @@ img,
 button,
 article,
 summary
+`
+
+/** CSS selector for elements which point to a saveable resource
+ */
+const HINTTAGS_saveable = `
+[href]:not([href='#'])
 `
 
 import {activeTab, browserBg, l, firefoxVersionAtLeast} from './lib/webext'
@@ -411,6 +424,36 @@ function hintKill() {
     })
 }
 
+/** Hint link elements to save
+ *
+ * @param hintType  the type of elements to hint and save:
+ *                      - "link": elements that point to another resource (eg
+ *                        links to pages/files) - the link targer is saved
+ *                      - "img": image elements
+ * @param saveAs    prompt for save location
+ */
+function hintSave(hintType: HintSaveType, saveAs: boolean) {
+
+    function saveHintElems(hintType) {
+        return (hintType === "link") ? saveableElements() : hintableImages()
+    }
+
+    function urlFromElem(hintType, elem) {
+        return (hintType === "link") ? elem.href : elem.src
+    }
+
+    hintPage(saveHintElems(hintType), hint=>{
+
+        const urlToSave = new URL(urlFromElem(hintType, hint.target),
+            window.location.href)
+
+        // Pass to background context to allow saving from data URLs.
+        // Convert to href because can't clone URL across contexts
+        message('download_background', "downloadUrl",
+            [urlToSave.href, saveAs])
+    })
+}
+
 function selectFocusedHint() {
     console.log("Selecting hint.", state.mode)
     const focused = modeState.focusedHint
@@ -432,4 +475,5 @@ addListener('hinting_content', attributeCaller({
     hintFocus,
     hintRead,
     hintKill,
+    hintSave,
 }))

@@ -25,6 +25,8 @@ Remember that tridactyl cannot run on any page on addons.mozilla.org, about:\*, 
 - `]]` and `[[` to navigate through the pages of comics, paginated articles, etc.
 - Pressing `ZZ` will close all tabs and windows, but it will only "save" them if your about:preferences are set to "show your tabs and windows from last time"
 
+NOTE: key modifiers (eg: control, alt) are not supported yet. See the FAQ below.
+
 ## WebExtension-related issues
 
 - Do not try to navigate to any about:\* pages using `:open` as it will fail silently.
@@ -36,65 +38,65 @@ Remember that tridactyl cannot run on any page on addons.mozilla.org, about:\*, 
 
 - How can I change the search engine?
 
-`set searchengine duckduckgo`
+    `set searchengine duckduckgo`
 
 - How can I add a search engine?
 
-`searchsetkeyword esa http://www.esa.int/esasearch?q=`
+    `searchsetkeyword esa http://www.esa.int/esasearch?q=`
 
 - Can I import/export settings, and does Tridactyl use an external configuration file just like Vimperator?
 
-Sort of: if you do `set storageloc local`, a JSON file will appear at `<your firefox profile>\browser-extension-data\tridactyl.vim@cmcaine.co.uk\storage.js`. You can find you profile folder by going to `about:support`. 
+    Sort of: if you do `set storageloc local`, a JSON file will appear at `<your firefox profile>\browser-extension-data\tridactyl.vim@cmcaine.co.uk\storage.js`. You can find you profile folder by going to `about:support`. 
 
-You can edit this file to your heart's content. A more traditional rc file is planned but will require a native messenger. For more information, see issue #79.
+    You can edit this file to your heart's content. A more traditional rc file is planned but will require a native messenger. For more information, see [issue #79](https://github.com/cmcaine/tridactyl/issues/79).
 
-- How can I bind to modifiers?
+- How can I bind keys using the control/alt key modifiers (eg: `ctrl+^`)?
 
-You can't, yet. See issue #41.
+    You can't, yet. See [issue #41](https://github.com/cmcaine/tridactyl/issues/41).
 
 - How can I tab complete from bookmarks?
 
-`bmarks `. Bookmarks are not currently supported on `*open`: see issue #214.
+    `bmarks `. Bookmarks are not currently supported on `*open`: see [issue #214](https://github.com/cmcaine/tridactyl/issues/214).
 
 - When I type 'f', can I type link names (like Vimperator) in order to narrow down the number of highlighted links?
 
-Not yet. See issue #28.
+    Not yet. See [issue #28](https://github.com/cmcaine/tridactyl/issues/28).
 
 - How to remap keybindings in both normal mode and ex mode?
 
-You cannot. We only support normal mode bindings for now, with `bind [key] [excmd]`
+    You cannot. We only support normal mode bindings for now, with `bind [key] [excmd]`
 
 - Where can I find a changelog for the different versions (to see what is new in the latest version)?
 
-[Here.](https://github.com/cmcaine/tridactyl/blob/master/doc/changelog.md)
+    [Here.](https://github.com/cmcaine/tridactyl/blob/master/doc/changelog.md)
 
 - Why can't I use my bookmark keywords?
 
-Mozilla doesn't give us access to them. See issue #73.
+    Mozilla doesn't give us access to them. See [issue #73](https://github.com/cmcaine/tridactyl/issues/73).
 
 - Why doesn't Tridactyl work on websites with frames?
 
-It should work on some frames now. See #122. <!-- expand -->
+    It should work on some frames now. See [#122](https://github.com/cmcaine/tridactyl/issues/122).
 
 - Can I change proxy via commands?
 
-No, this is a limitation of WebExtensions.
+    No, this is a limitation of WebExtensions.
 
 - How do I disable Tridactyl on certain sites?
 
-You can't yet, see #158.
+    You can't yet, see [#158](https://github.com/cmcaine/tridactyl/issues/158).
 
 - How can I list the current bindings?
 
-There is no easy way. See #98.
+    There is no easy way. See [#98](https://github.com/cmcaine/tridactyl/issues/98).
 
 - Why doesn't Tridactyl work on some pages?
 
-One possible reason is that the site has a strict content security policy. We can rewrite these to make Tridactyl work, but we do not want to worsen the security of sensitive pages, so it is taking us a little while. See #112.
+    One possible reason is that the site has a strict content security policy. We can rewrite these to make Tridactyl work, but we do not want to worsen the security of sensitive pages, so it is taking us a little while. See #112.
 
 - How can I know which mode I'm in/have a status line?
 
-Press `j` and see if you scroll down :) There's no status line yet: see #210.
+    Press `j` and see if you scroll down :) There's no status line yet: see [#210](https://github.com/cmcaine/tridactyl/issues/210).
 
 
 
