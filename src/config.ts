@@ -152,6 +152,7 @@ const DEFAULTS = o({
     "storageloc": "sync",
     "homepages": [],
     "hintchars": "hjklasdfgyuiopqwertnmzxcvb",
+	"hintmode": "simple",   // "simple" or "vimperator"
 
     "ttsvoice": "default",  // chosen from the listvoices list, or "default"
     "ttsvolume": 1,         // 0 to 1

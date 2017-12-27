@@ -26,12 +26,15 @@ const logger = new Logger('hinting')
 class HintState {
     public focusedHint: Hint
     readonly hintHost = document.createElement('div')
-    constructor(){
-        this.hintHost.classList.add("TridactylHintHost")
-    }
     readonly hints: Hint[] = []
     public filter = ''
     public hintchars = ''
+
+    constructor(
+        public filterFunc: HintFilter = defaultHintFilters[config.get('hintmode')],
+    ){
+        this.hintHost.classList.add("TridactylHintHost")
+    }
 
     destructor() {
         // Undo any alterations of the hinted elements
@@ -50,15 +53,12 @@ let modeState: HintState = undefined
 export function hintPage(
     hintableElements: Element[],
     onSelect: HintSelectedCallback,
-    names = hintnames(hintableElements.length),
+    buildHints: HintBuilder = defaultHintBuilders[config.get('hintmode')],
+    filterHints: HintFilter = defaultHintFilters[config.get('hintmode')],
 ) {
     state.mode = 'hint'
-    modeState = new HintState()
-    for (let [el, name] of izip( hintableElements, names)) {
-        logger.debug({el, name})
-        modeState.hintchars += name
-        modeState.hints.push(new Hint(el, name, onSelect))
-    }
+    modeState = new HintState(filterHints)
+    buildHints(hintableElements, onSelect)
 
     if (modeState.hints.length) {
         logger.debug("hints", modeState.hints)
@@ -68,6 +68,16 @@ export function hintPage(
     } else {
         reset()
     }
+}
+
+let defaultHintBuilders = {
+    'simple': buildHintsSimple,
+    'vimperator': buildHintsVimperator,
+}
+
+let defaultHintFilters = {
+    'simple': filterHintsSimple,
+    'vimperator': filterHintsVimperator,
 }
 
 /** vimperator-style minimal hint names */
@@ -116,6 +126,7 @@ class Hint {
     constructor(
         private readonly target: Element,
         public readonly name: string,
+        public readonly filterData: any,
         private readonly onSelect: HintSelectedCallback
     ) {
         const rect = target.getClientRects()[0]
@@ -159,8 +170,54 @@ class Hint {
     }
 }
 
-/** Show only hints prefixed by fstr. Focus first match */
+type HintBuilder = (els: Element[], onSelect: HintSelectedCallback) => void
+
+function buildHintsSimple(els: Element[], onSelect: HintSelectedCallback) {
+    let names = hintnames(els.length)
+    for (let [el, name] of izip(els, names)) {
+        logger.debug({el, name})
+        modeState.hintchars += name
+        modeState.hints.push(new Hint(el, name, null, onSelect))
+    }
+}
+
+function buildHintsVimperator(els: Element[], onSelect: HintSelectedCallback) {
+    let names = hintnames(els.length)
+    for (let [el, name] of izip(els, names)) {
+        let ft = elementFilterableText(el)
+		// strip out non-alphanumeric characters and hintchars.
+		ft = ft.replace(new RegExp('[' + config.get('hintchars') + ']|[^[:alnum:]]', 'gi'), '')
+        logger.debug({el, name, ft})
+        modeState.hintchars += name + ft
+        modeState.hints.push(new Hint(el, name, ft, onSelect))
+    }
+}
+
+function elementFilterableText(el: Element): string {
+    let nodename = el.nodeName.toLowerCase()
+    if (nodename == 'input') {
+        // } else if (nodename == 'a'
+        //            && !el.textContent.trim()
+        //            && el.firstElementChild
+        //            && el.firstElementChild.nodeName.toLowerCase() == 'img') {
+        //     return el.firstElementChild.alt || el.firstElementChild.title
+    } else if (0 < el.textContent.length) {
+        return el.textContent.toLowerCase()
+    } else if (el.hasAttribute('title')) {
+        return el.getAttribute('title').toLowerCase()
+    } else {
+        return el.innerHTML.toLowerCase()
+    }
+}
+
 function filter(fstr) {
+    modeState.filterFunc(fstr)
+}
+
+type HintFilter = (string) => void
+
+/** Show only hints prefixed by fstr. Focus first match */
+function filterHintsSimple(fstr) {
     const active: Hint[] = []
     let foundMatch
     for (let h of modeState.hints) {
@@ -179,6 +236,55 @@ function filter(fstr) {
     if (active.length == 1) {
         selectFocusedHint()
     }
+}
+
+/** Show only hints:
+    - prefixed by the subset of fstr in the hintchars config.
+    - containing the rest of fstr as a subsequence in a dwim-type
+      chunk of their html.
+    Focus the first match.
+**/
+function filterHintsVimperator(fstr) {
+    const active: Hint[] = []
+    let foundMatch
+    for (let h of modeState.hints) {
+        if (!filterHintsVimperatorPredicate(fstr, h)) {
+            h.hidden = true
+        } else {
+            if (! foundMatch) {
+                h.focused = true
+                modeState.focusedHint = h
+                foundMatch = true
+            }
+            h.hidden = false
+            active.push(h)
+        }
+
+    }
+    if (active.length == 1) {
+        selectFocusedHint()
+    }
+}
+
+function filterHintsVimperatorPredicate(fstr, h) {
+    let configHintchars = config.get("hintchars")
+    let fstrName = ''
+
+    let curIdx = 0
+    for (let c of fstr) {
+        if (configHintchars.includes(c)) {
+            fstrName = fstrName + c
+            if (!h.name.startsWith(fstrName)) {
+                return false
+            }
+        } else {
+            curIdx = h.filterData.indexOf(c.toLowerCase(), curIdx)
+            if (-1 == curIdx) {
+                return false
+            }
+        }
+    }
+    return true
 }
 
 /** Remove all hints, reset STATE. */
