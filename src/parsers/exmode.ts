@@ -2,6 +2,7 @@
 
 import * as ExCmds from "../excmds_background"
 import * as convert from "../convert"
+import * as Config from "../config"
 import {enumerate, head, izip} from "../itertools"
 
 /* Converts numbers, boolean, string[].
@@ -41,7 +42,7 @@ function convertArgs(params, argv) {
 // TODO: Quoting arguments
 // TODO: Pipe to separate commands
 // TODO: Abbreviated commands
-export function parser(ex_str){
+export function parser(ex_str: string) {
     let [func,...args] = ex_str.trim().split(/\s+/)
     if (ExCmds.cmd_params.has(func)) {
         try {
@@ -52,6 +53,9 @@ export function parser(ex_str){
             console.error("Error executing or parsing:", ex_str, e)
             throw e
         }
+    } else if (Config.get("exaliases").has(func)) {
+        let aliasedCmd = [func, Config.get("exaliases").get(func), ...args]
+        parser(aliasedCmd.join(" "))
     } else {
         throw `Not an excmd: ${func}`
     }
