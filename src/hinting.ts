@@ -53,8 +53,8 @@ let modeState: HintState = undefined
 export function hintPage(
     hintableElements: Element[],
     onSelect: HintSelectedCallback,
-    buildHints: HintBuilder = defaultHintBuilders[config.get('hintfiltermode')],
-    filterHints: HintFilter = defaultHintFilters[config.get('hintfiltermode')],
+    buildHints: HintBuilder = defaultHintBuilder(),
+    filterHints: HintFilter = defaultHintFilter(),
 ) {
     state.mode = 'hint'
     modeState = new HintState(filterHints)
@@ -70,16 +70,24 @@ export function hintPage(
     }
 }
 
-const defaultHintBuilders = {
-    'simple': buildHintsSimple,
-    'vimperator': buildHintsVimperator,
-    'vimperator-reflow': buildHintsVimperator,
+function defaultHintBuilder() {
+    if ('simple' == config.get('hintfiltermode')) {
+        return buildHintsSimple
+    } else if ('vimperator' == config.get('hintfiltermode')) {
+        return buildHintsVimperator
+    } else if ('vimperator-reflow' == config.get('hintfiltermode')) {
+        return buildHintsVimperator
+    }
 }
 
-const defaultHintFilters = {
-    'simple': filterHintsSimple,
-    'vimperator': filterHintsVimperator,
-    'vimperator-reflow': filterHintsVimperatorReflow,
+function defaultHintFilter() {
+    if ('simple' == config.get('hintfiltermode')) {
+        return filterHintsSimple
+    } else if ('vimperator' == config.get('hintfiltermode')) {
+        return filterHintsVimperator
+    } else if ('vimperator-reflow' == config.get('hintfiltermode')) {
+        return (fstr) => filterHintsVimperator(fstr, true)
+    }
 }
 
 /** vimperator-style minimal hint names */
@@ -240,10 +248,6 @@ function filterHintsSimple(fstr) {
     if (active.length == 1) {
         selectFocusedHint()
     }
-}
-
-function filterHintsVimperatorReflow(fstr) {
-    filterHintsVimperator(fstr, true)
 }
 
 function filterHintsVimperator(fstr, reflow=false) {
