@@ -274,13 +274,6 @@ export function open(...urlarr: string[]) {
     window.location.href = forceURI(url)
 }
 
-/** Convenience function for [[ open ]] */
-//#background
-export function o(...urlarr: string[]) {
-    open(...urlarr)
-}
-
-
 /** Go to your homepage(s)
 
     @param all
@@ -634,12 +627,6 @@ export async function tablast() {
     tabIndexSetActive(0)
 }
 
-/** Convenience function for [[tabopen]] */
-//#background
-export async function t(...addressarr: string[]) {
-    tabopen(...addressarr)
-}
-
 /** Like [[open]], but in a new tab. If no address is given, it will open the newtab page, which can be set with `set newtab [url]` */
 //#background
 export async function tabopen(...addressarr: string[]) {
@@ -796,12 +783,6 @@ export async function pin() {
 // }}}
 
 // {{{ WINDOWS
-
-/** Alias for [[winopen]] */
-//#background
-export async function w(...args: string[]) {
-    winopen(...args)
-}
 
 /** Like [[tabopen]], but in a new window */
 //#background
@@ -1044,12 +1025,6 @@ export async function tabs() {
 //#background
 export async function buffers() {
     tabs()
-}
-
-/** Alias for [[buffer]] */
-//#background
-export async function b(index: number | '#') {
-    buffer(index)
 }
 
 /** Change active tab.
