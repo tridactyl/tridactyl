@@ -125,11 +125,6 @@ function searchURL(provider: string, query: string) {
         new URL(searchurlprovider.replace("%s", encodeURIComponent(query))) :
         new URL(searchurlprovider + encodeURIComponent(query))
 
-    // URL constructor doesn't convert +s because they're valid literals in
-    // the standard it adheres to. But they are special characters in
-    // x-www-form-urlencoded and e.g. google excepts query parameters in
-    // that format.
-    url.search = url.search.replace(/\+/g, '%2B')
     return url
 }
 
