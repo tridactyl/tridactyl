@@ -243,6 +243,10 @@ function filterHintsSimple(fstr) {
 }
 
 function filterHintsVimperatorReflow(fstr) {
+    filterHintsVimperator(fstr, true)
+}
+
+function filterHintsVimperator(fstr, reflow=false) {
     let active = modeState.hints.map(h => {
         return {
             'hint': h,
@@ -274,11 +278,13 @@ function filterHintsVimperatorReflow(fstr) {
                     act.hint.hidden = true
                 }
             }
-            // ...and then reflow the remaining active hints
-            let names = hintnames(nextActive.length)
-            for (let [act, name] of izip(nextActive, names)) {
-                act.name = name
-                act.hint.flag.textContent = name
+            if (reflow) {
+                // ...and then reflow the remaining active hints
+                let names = hintnames(nextActive.length)
+                for (let [act, name] of izip(nextActive, names)) {
+                    act.name = name
+                    act.hint.flag.textContent = name
+                }
             }
         }
         active = nextActive
@@ -300,54 +306,6 @@ function filterHintsVimperatorReflow(fstr) {
     if (active.length == 1) {
         selectFocusedHint()
     }
-}
-
-/** Show only hints:
-    - prefixed by the subset of fstr in the hintchars config.
-    - containing the rest of fstr as a subsequence in a dwim-type
-      chunk of their html.
-    Focus the first match.
-**/
-function filterHintsVimperator(fstr) {
-    const active: Hint[] = []
-    let foundMatch
-    for (let h of modeState.hints) {
-        if (!filterHintsVimperatorPredicate(fstr, h)) {
-            h.hidden = true
-        } else {
-            if (! foundMatch) {
-                h.focused = true
-                modeState.focusedHint = h
-                foundMatch = true
-            }
-            h.hidden = false
-            active.push(h)
-        }
-
-    }
-    if (active.length == 1) {
-        selectFocusedHint()
-    }
-}
-
-function filterHintsVimperatorPredicate(fstr, h) {
-    let fstrName = ''
-
-    let curIdx = 0
-    for (let c of fstr) {
-        if (config.get("hintchars").includes(c)) {
-            fstrName = fstrName + c
-            if (!h.name.startsWith(fstrName)) {
-                return false
-            }
-        } else {
-            curIdx = h.filterData.indexOf(c.toLowerCase(), curIdx)
-            if (-1 == curIdx) {
-                return false
-            }
-        }
-    }
-    return true
 }
 
 /** Remove all hints, reset STATE. */
