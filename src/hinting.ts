@@ -31,7 +31,7 @@ class HintState {
     public hintchars = ''
 
     constructor(
-        public filterFunc: HintFilter = defaultHintFilters[config.get('hintmode')],
+        public filterFunc: HintFilter,
     ){
         this.hintHost.classList.add("TridactylHintHost")
     }
@@ -53,8 +53,8 @@ let modeState: HintState = undefined
 export function hintPage(
     hintableElements: Element[],
     onSelect: HintSelectedCallback,
-    buildHints: HintBuilder = defaultHintBuilders[config.get('hintmode')],
-    filterHints: HintFilter = defaultHintFilters[config.get('hintmode')],
+    buildHints: HintBuilder = defaultHintBuilders[config.get('hintfiltermode')],
+    filterHints: HintFilter = defaultHintFilters[config.get('hintfiltermode')],
 ) {
     state.mode = 'hint'
     modeState = new HintState(filterHints)
@@ -70,14 +70,16 @@ export function hintPage(
     }
 }
 
-let defaultHintBuilders = {
+const defaultHintBuilders = {
     'simple': buildHintsSimple,
     'vimperator': buildHintsVimperator,
+    'vimperator-reflow': buildHintsVimperator,
 }
 
-let defaultHintFilters = {
+const defaultHintFilters = {
     'simple': filterHintsSimple,
     'vimperator': filterHintsVimperator,
+    'vimperator-reflow': filterHintsVimperatorReflow,
 }
 
 /** vimperator-style minimal hint names */
@@ -183,10 +185,11 @@ function buildHintsSimple(els: Element[], onSelect: HintSelectedCallback) {
 
 function buildHintsVimperator(els: Element[], onSelect: HintSelectedCallback) {
     let names = hintnames(els.length)
+    const filterableTextFilter = new RegExp('[' + config.get('hintchars') + ']|[^[:alnum:]]', 'gi')
     for (let [el, name] of izip(els, names)) {
         let ft = elementFilterableText(el)
-		// strip out non-alphanumeric characters and hintchars.
-		ft = ft.replace(new RegExp('[' + config.get('hintchars') + ']|[^[:alnum:]]', 'gi'), '')
+        // strip out non-alphanumeric characters and hintchars.
+        ft = ft.replace(filterableTextFilter, '')
         logger.debug({el, name, ft})
         modeState.hintchars += name + ft
         modeState.hints.push(new Hint(el, name, ft, onSelect))
@@ -194,19 +197,20 @@ function buildHintsVimperator(els: Element[], onSelect: HintSelectedCallback) {
 }
 
 function elementFilterableText(el: Element): string {
-    let nodename = el.nodeName.toLowerCase()
+    const nodename = el.nodeName.toLowerCase()
     if (nodename == 'input') {
-        // } else if (nodename == 'a'
-        //            && !el.textContent.trim()
-        //            && el.firstElementChild
-        //            && el.firstElementChild.nodeName.toLowerCase() == 'img') {
-        //     return el.firstElementChild.alt || el.firstElementChild.title
+        return (<HTMLInputElement>el).value.toLowerCase()
+    // } else if (nodename == 'a'
+    //            && !el.textContent.trim()
+    //            && el.firstElementChild
+    //            && el.firstElementChild.nodeName.toLowerCase() == 'img') {
+    //     return el.firstElementChild.alt || el.firstElementChild.title
     } else if (0 < el.textContent.length) {
-        return el.textContent.toLowerCase()
+        return el.textContent.toLowerCase() || ''
     } else if (el.hasAttribute('title')) {
-        return el.getAttribute('title').toLowerCase()
+        return el.getAttribute('title').toLowerCase() || ''
     } else {
-        return el.innerHTML.toLowerCase()
+        return el.innerHTML.toLowerCase() || ''
     }
 }
 
@@ -233,6 +237,66 @@ function filterHintsSimple(fstr) {
         }
 
     }
+    if (active.length == 1) {
+        selectFocusedHint()
+    }
+}
+
+function filterHintsVimperatorReflow(fstr) {
+    let active = modeState.hints.map(h => {
+        return {
+            'hint': h,
+            'name': h.name,
+            'data': h.filterData,
+        }
+    })
+
+    for (let c of fstr) {
+        const nextActive = []
+        if (config.get("hintchars").includes(c)) {
+            // if this is a hintchar, don't reflow, just filter
+            for (let act of active) {
+                if (act.name.startsWith(c)) {
+                    act.name = act.name.slice(c.length)
+                    nextActive.push(act)
+                } else {
+                    act.hint.hidden = true
+                }
+            }
+        } else {
+            // if this is a non-hintchar, filter...
+            for (let act of active) {
+                const idx = act.data.indexOf(c.toLowerCase())
+                if (-1 != idx) {
+                    act.data = act.data.slice(idx)
+                    nextActive.push(act)
+                } else {
+                    act.hint.hidden = true
+                }
+            }
+            // ...and then reflow the remaining active hints
+            let names = hintnames(nextActive.length)
+            for (let [act, name] of izip(nextActive, names)) {
+                act.name = name
+                act.hint.flag.textContent = name
+            }
+        }
+        active = nextActive
+    }
+
+    for (let act of active) {
+        act.hint.hidden = false
+    }
+
+    if (active.length > 0) {
+        const firstActiveHint = active[0].hint
+        if (modeState.focusedHint) {
+            modeState.focusedHint.focused = false
+        }
+        firstActiveHint.focused = true
+        modeState.focusedHint = firstActiveHint
+    }
+
     if (active.length == 1) {
         selectFocusedHint()
     }
@@ -267,12 +331,11 @@ function filterHintsVimperator(fstr) {
 }
 
 function filterHintsVimperatorPredicate(fstr, h) {
-    let configHintchars = config.get("hintchars")
     let fstrName = ''
 
     let curIdx = 0
     for (let c of fstr) {
-        if (configHintchars.includes(c)) {
+        if (config.get("hintchars").includes(c)) {
             fstrName = fstrName + c
             if (!h.name.startsWith(fstrName)) {
                 return false

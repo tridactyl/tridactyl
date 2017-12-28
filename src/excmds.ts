@@ -1591,6 +1591,7 @@ import * as hinting from './hinting_background'
 
     Related settings:
         "hintchars": "hjklasdfgyuiopqwertnmzxcvb"
+        "hintfiltermode": "simple" | "vimperator" | "vimperator-reflow"
 */
 //#background
 export function hint(option?: string, selectors="") {
