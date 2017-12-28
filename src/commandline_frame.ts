@@ -7,6 +7,7 @@ import * as Messaging from './messaging'
 import * as SELF from './commandline_frame'
 import './number.clamp'
 import state from './state'
+import * as Config from './config'
 
 let activeCompletions: Completions.CompletionSource[] = undefined
 let completionsDiv = window.document.getElementById("completions") as HTMLElement
@@ -145,10 +146,21 @@ clInput.addEventListener("keydown", function (keyevent) {
 })
 
 clInput.addEventListener("input", () => {
+    let exstr = clInput.value
+    var newCmd = undefined
+
+    // Hacky implementation of aliases for autocompletions
+    let [func,...args] = exstr.trim().split(/\s+/)
+    if (func in Config.get("exaliases")) {
+        newCmd = exstr.replace(func, Config.get("exaliases")[func])
+    } else {
+        newCmd = exstr
+    }
+
     // Fire each completion and add a callback to resize area
     console.log(activeCompletions)
     activeCompletions.forEach(comp =>
-        comp.filter(clInput.value).then(() => resizeArea())
+        comp.filter(newCmd).then(() => resizeArea())
     )
 })
 
