@@ -53,9 +53,10 @@ export function parser(ex_str: string) {
             console.error("Error executing or parsing:", ex_str, e)
             throw e
         }
-    } else if (Config.get("exaliases").has(func)) {
-        let aliasedCmd = [func, Config.get("exaliases").get(func), ...args]
-        parser(aliasedCmd.join(" "))
+    // Replace alias with actual command if it exists
+    } else if (func in Config.get("exaliases")) {
+        let newCmd = [Config.get("exaliases")[func], ...args]
+        return parser(newCmd.join(" "))
     } else {
         throw `Not an excmd: ${func}`
     }
