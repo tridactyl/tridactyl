@@ -42,8 +42,7 @@ function *ParserController () {
                         state.mode = "normal"
                     }
                 }
-                Logging.log("controller", Logging.LEVEL.DEBUG)(
-                    keyevent, state.mode)
+                Logging.debug("controller", keyevent, state.mode)
 
                 // Special keys (e.g. Backspace) are not handled properly
                 // yet. So drop them. This also drops all modifier keys.
@@ -63,8 +62,7 @@ function *ParserController () {
                         response = (parsers[state.mode] as any)([keyevent])
                         break
                 }
-                Logging.log("controller", Logging.LEVEL.DEBUG)(
-                    keys, response)
+                Logging.debug("controller", keys, response)
 
                 if (response.ex_str){
                     ex_str = response.ex_str

@@ -191,7 +191,7 @@ export function loggingsetlevel(logModule: string, level: string) {
         "debug": Logging.LEVEL.DEBUG,
     }
 
-    let newLevel = map[level]
+    let newLevel = map[level.toLowerCase()]
 
     if (newLevel !== undefined) {
         config.set("logging", newLevel, logModule)
@@ -930,7 +930,7 @@ export function repeat(n = 1, ...exstr: string[]) {
     let cmd = state.last_ex_str
     if (exstr.length > 0)
         cmd = exstr.join(" ")
-    console.log("repeating " + cmd + " " + n + " times")
+    Logging.debug('excmd', "repeating " + cmd + " " + n + " times")
     for (let i = 0; i < n; i++)
         controller.acceptExCmd(cmd)
 }

@@ -26,7 +26,7 @@ export type listener = (message: Message, sender?, sendResponse?) => void|Promis
 export function attributeCaller(obj) {
     function handler(message: Message, sender, sendResponse) {
 
-        Logging.log("message", Logging.LEVEL.DEBUG)(message)
+        Logging.debug("messaging", message)
 
         // Args may be undefined, but you can't spread undefined...
         if (message.args === undefined) message.args = []
@@ -37,17 +37,17 @@ export function attributeCaller(obj) {
 
             // Return response to sender
             if (response instanceof Promise) {
-                Logging.log("Returning promise...", Logging.LEVEL.DEBUG)(response)
+                Logging.debug("messaging", "Returning promise...", response)
                 sendResponse(response)
                 // Docs say you should be able to return a promise, but that
                 // doesn't work.
                 /* return response */
             } else if (response !== undefined) {
-                Logging.log("Returning synchronously...", Logging.LEVEL.DEBUG)(response)
+                Logging.debug("messaging", "Returning synchronously...", response)
                 sendResponse(response)
             }
         } catch (e) {
-            console.error(`Error processing ${message.command}(${message.args})`, e)
+            Logging.error('messaging', `Error processing ${message.command}(${message.args})`, e)
             return new Promise((resolve, error)=>error(e))
         }
     }
@@ -80,7 +80,7 @@ export async function messageAllTabs(type: TabMessageType, command: string, args
     let responses = []
     for (let tab of await browserBg.tabs.query({})) {
         try { responses.push(await messageTab(tab.id, type, command, args)) }
-        catch (e) { console.error(e) }
+        catch (e) { Logging.error('messaging', e) }
     }
     return responses
 }

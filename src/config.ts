@@ -126,11 +126,14 @@ const DEFAULTS = o({
     "ttspitch": 1,          // 0 to 2
     "vimium-gi": true,
 
-    // Default logging levels - generally 2 == WARNING
+    // Default logging levels - 2 === WARNING
     "logging": o({
-        "message": 2,
+        "messaging": 2,
         "cmdline": 2,
         "controller": 2,
+        "hinting": 2,
+        "state": 2,
+        "excmd": 1,
     }),
 })
 

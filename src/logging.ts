@@ -24,7 +24,7 @@ export enum LEVEL {
  * @return              logging function: this is returned as a function to
  *                      retain the call site
  */
-export function log(logModule: string, level: LEVEL) {
+function log(logModule: string, level: LEVEL) {
 
     let configedLevel = Config.get("logging", logModule) || LEVEL.WARNING
 
@@ -45,4 +45,17 @@ export function log(logModule: string, level: LEVEL) {
 
     // do nothing with the message
     return function(...args) {}
+}
+
+export function debug(logModule: string, ...args) {
+    log(logModule, LEVEL.DEBUG)(...args)
+}
+export function info(logModule: string, ...args) {
+    log(logModule, LEVEL.INFO)(...args)
+}
+export function warning(logModule: string, ...args) {
+    log(logModule, LEVEL.WARNING)(...args)
+}
+export function error(logModule: string, ...args) {
+    log(logModule, LEVEL.ERROR)(...args)
 }
