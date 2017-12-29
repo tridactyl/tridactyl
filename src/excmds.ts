@@ -146,7 +146,6 @@ function forceURI(maybeURI: string): string {
         const args = maybeURI.split(' ')
         return searchURL(args[0], args.slice(1).join(' ')).href
     } catch (e) {
-        console.log(e)
         if (e.name !== 'TypeError') throw e
     }
 
@@ -298,7 +297,6 @@ export async function reloadhard(n = 1) {
 //#content
 export function open(...urlarr: string[]) {
     let url = urlarr.join(" ")
-    console.log("open url:" + url)
     window.location.href = forceURI(url)
 }
 
@@ -313,7 +311,6 @@ export function open(...urlarr: string[]) {
 //#background
 export function home(all: "false" | "true" = "false"){
     let homepages = config.get("homepages")
-    console.log(homepages)
     if (homepages.length > 0){
         if (all === "false") open(homepages[homepages.length - 1])
         else {
@@ -1187,12 +1184,10 @@ export async function sanitize(...args: string[]) {
                 }
                 since = { "since": (new Date()).getTime() - millis }
             } else {
-                console.log(":sanitize error: expected time format: ^([0-9])+(m|h|d|w)$, given format:" + args[flagpos+1])
-                return
+                throw new Error(":sanitize error: expected time format: ^([0-9])+(m|h|d|w)$, given format:" + args[flagpos+1])
             }
         } else {
-            console.log(":sanitize error: -t given but no following arguments")
-            return
+            throw new Error(":sanitize error: -t given but no following arguments")
         }
     }
 
@@ -1427,10 +1422,10 @@ export async function ttsread(mode: "-t" | "-c", ...args: string[]) {
         if (args.length > 0) {
             tssReadFromCss(args[0])
         } else {
-            console.log("Error: no CSS selector supplied")
+            throw "Error: no CSS selector supplied"
         }
     } else {
-        console.log("Unknown mode for ttsread command: " + mode)
+        throw "Unknown mode for ttsread command: " + mode
     }
 }
 
@@ -1469,7 +1464,7 @@ export async function ttscontrol(action: string) {
     if (ttsAction) {
         TTS.doAction(ttsAction)
     } else {
-        console.log("Unknown text-to-speech action: " + action)
+        throw new Error("Unknown text-to-speech action: " + action)
     }
 }
 
