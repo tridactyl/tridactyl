@@ -59,16 +59,15 @@ function isEditableHTMLInput (element: MsgSafeNode) {
  * @param {{ ctrlKey, shiftKey, altKey, metaKey }} modifierKeys
  */
 export function mouseEvent (element: Element, type: 'hover'|'unhover'|'click', modifierKeys = {}) {
-    let events
+    let events = []
     switch (type) {
-        case 'hover':
-            events = ['mouseover', 'mouseenter', 'mousemove']
-            break
         case 'unhover':
             events = ['mousemove', 'mouseout', 'mouseleave']
             break
         case 'click':
-            events = ['mouseover', 'mousedown', 'mouseup', 'click']
+            events = ['mousedown', 'mouseup', 'click']
+        case 'hover':
+            events = ['mouseover', 'mouseenter', 'mousemove'].concat(events)
             break
     }
     events.forEach(type => {
