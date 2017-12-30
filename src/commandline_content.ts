@@ -1,6 +1,7 @@
 /** Inject an input element into unsuspecting webpages and provide an API for interaction with tridactyl */
 
-import * as Logging from './logging'
+import Logger from './logging'
+const logger = new Logger('messaging')
 
 /* TODO:
     CSS
@@ -24,7 +25,7 @@ function init(){
             hide()
             window.document.body.appendChild(cmdline_iframe)
         } catch (e) {
-            Logging.error('cmdline', "Couldn't initialise cmdline_iframe!", e)
+            logger.error("Couldn't initialise cmdline_iframe!", e)
         }
     }
 }

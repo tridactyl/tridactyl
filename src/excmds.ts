@@ -95,8 +95,8 @@ import * as CommandLineBackground from './commandline_background'
 import * as DOM from './dom'
 
 import * as config from './config'
-//#background_helper
 import * as Logging from "./logging"
+const logger = new Logging.Logger('excmds')
 
 
 /** @hidden */
@@ -930,7 +930,7 @@ export function repeat(n = 1, ...exstr: string[]) {
     let cmd = state.last_ex_str
     if (exstr.length > 0)
         cmd = exstr.join(" ")
-    Logging.debug('excmd', "repeating " + cmd + " " + n + " times")
+    logger.debug("repeating " + cmd + " " + n + " times")
     for (let i = 0; i < n; i++)
         controller.acceptExCmd(cmd)
 }

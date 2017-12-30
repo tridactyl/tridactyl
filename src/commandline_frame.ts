@@ -7,7 +7,8 @@ import * as Messaging from './messaging'
 import * as SELF from './commandline_frame'
 import './number.clamp'
 import state from './state'
-import * as Logging from "./logging"
+import Logger from './logging'
+const logger = new Logger('cmdline')
 
 let activeCompletions: Completions.CompletionSource[] = undefined
 let completionsDiv = window.document.getElementById("completions") as HTMLElement
@@ -147,7 +148,7 @@ clInput.addEventListener("keydown", function (keyevent) {
 
 clInput.addEventListener("input", () => {
     // Fire each completion and add a callback to resize area
-    Logging.debug("cmdline", activeCompletions)
+    logger.debug(activeCompletions)
     activeCompletions.forEach(comp =>
         comp.filter(clInput.value).then(() => resizeArea())
     )
@@ -246,7 +247,7 @@ export function setClipboard(content: string) {
         scratchpad.select()
         if (document.execCommand("Copy")) {
             // // todo: Maybe we can consider to using some logger and show it with status bar in the future
-            Logging.info('cmdline', 'set clipboard:', scratchpad.value)
+            logger.info('set clipboard:', scratchpad.value)
         } else throw "Failed to copy!"
     })
 }
