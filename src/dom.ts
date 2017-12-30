@@ -270,3 +270,69 @@ export function compareElementArea(a: HTMLElement, b: HTMLElement): number {
 
     return aArea - bArea
 }
+
+export const hintworthy_js_elems = []
+
+/** Adds or removes an element from the hintworthy_js_elems array of the
+ *  current tab.
+ *  This function is made available to the page. We should be very careful
+ *  about the input it accepts and what it does with it. It should especially
+ *  be tested again when Custom elements land in Firefox.
+ *  https://bugzilla.mozilla.org/show_bug.cgi?id=1406825
+ *  @param {EventTarget} elem  The element add/removeEventListener is called on
+ *  @param {boolean} add       true when called from addEventListener,
+ *                             false from removeEventListener
+ *  @param {string} event      The event name given to add/removeEventListener
+ */
+export function registerEvListenerAction(elem: EventTarget, add: boolean, event: string) {
+   // Make sure elem is can exist in a document
+   try {
+      // We need to clone elem here otherwise it will be removed frome the page
+      document.createDocumentFragment().appendChild((elem as Node).cloneNode())
+   } catch (e) {
+      return
+   }
+
+   switch (event) {
+      case "click":
+      case "mousedown":
+      case "mouseup":
+      case "mouseover":
+         if (add) {
+               hintworthy_js_elems.push(elem)
+         } else {
+            // Possible bug: If a page adds an event listener for "click" and
+            // "mousedown" and removes "mousedown" twice, we lose track of the
+            // elem even though it still has a "click" listener.
+            // Fixing this might not be worth the added complexity.
+            let index = hintworthy_js_elems.indexOf(elem)
+            if (index >= 0)
+               hintworthy_js_elems.splice(index, 1)
+         }
+   }
+}
+
+/** Replace the page's addEventListener with a closure containing a reference
+ *  to the original addEventListener and [[registerEvListenerAction]]. Do the
+ *  same with removeEventListener.
+ */
+export function hijackPageListenerFunctions(): void {
+   let exportedName = 'registerEvListenerAction'
+   exportFunction(registerEvListenerAction, window, {defineAs: exportedName})
+
+   let eval_str = ["addEventListener", "removeEventListener"].reduce((acc, cur) => `${acc};
+      EventTarget.prototype.${cur} = ((realFunction, register) => {
+         return function (...args) {
+               let result = realFunction.apply(this, args)
+               try {
+                  register(this, ${cur === "addEventListener"}, args[0])
+               } catch (e) {
+                  // Don't let the page know something wrong happened here
+               }
+               return result
+         }
+      })(EventTarget.prototype.${cur}, ${exportedName})`
+   , "")
+
+   window.eval(eval_str + `;delete ${exportedName}`)
+}

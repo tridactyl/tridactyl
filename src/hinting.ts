@@ -12,7 +12,7 @@
 
 import * as DOM from './dom'
 import {log} from './math'
-import {permutationsWithReplacement, islice, izip, map} from './itertools'
+import {permutationsWithReplacement, islice, izip, map, unique} from './itertools'
 import {hasModifiers} from './keyseq'
 import state from './state'
 import {messageActiveTab, message} from './messaging'
@@ -371,7 +371,10 @@ function pushKey(ke) {
             2. Not hidden by another element
 */
 function hintables(selectors=HINTTAGS_selectors) {
-    return DOM.getElemsBySelector(selectors, [DOM.isVisible])
+    let elems = DOM.getElemsBySelector(selectors, [])
+    elems = elems.concat(DOM.hintworthy_js_elems)
+    elems = unique(elems)
+    return elems.filter(DOM.isVisible)
 }
 
 function elementswithtext() {

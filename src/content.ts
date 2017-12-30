@@ -41,3 +41,5 @@ import * as webext from './lib/webext'
     webext,
     l: prom => prom.then(console.log).catch(console.error),
 })
+
+dom.hijackPageListenerFunctions()
