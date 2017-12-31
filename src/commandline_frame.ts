@@ -146,12 +146,12 @@ clInput.addEventListener("keydown", function (keyevent) {
 })
 
 clInput.addEventListener("input", () => {
-    let exstr = clInput.value
-    var newCmd = undefined
+    const exstr = clInput.value
+    let newCmd = undefined
 
     // Hacky implementation of aliases for autocompletions
-    // Replaced an alias with its command defined in `config.ts` if it exists
-    let [func,...args] = exstr.trim().split(/\s+/)
+    // Replace an alias with its command defined in `config.ts` if it exists
+    const [func,...args] = exstr.trim().split(/\s+/)
     if (func in Config.get("exaliases")) {
         // JS by default only replaces the first occurence of the searchstr,
         // so this should only replace the command and nothing else
