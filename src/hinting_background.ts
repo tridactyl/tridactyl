@@ -70,7 +70,6 @@ import {MsgSafeKeyboardEvent} from './msgsafe'
 
 */
 export function parser(keys: MsgSafeKeyboardEvent[]) {
-    console.log("hintparser", keys)
     const key = keys[0].key
     if (key === 'Escape') {
         reset()

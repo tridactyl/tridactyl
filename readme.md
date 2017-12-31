@@ -76,7 +76,7 @@ NOTE: key modifiers (eg: control, alt) are not supported yet. See the FAQ below.
 
 - Why doesn't Tridactyl work on websites with frames?
 
-    It should work on some frames now. See [#122](https://github.com/cmcaine/tridactyl/issues/122).
+    It should work on some frames now. See [#122](https://github.com/cmcaine/tridactyl/issues/122).
 
 - Can I change proxy via commands?
 
@@ -92,7 +92,7 @@ NOTE: key modifiers (eg: control, alt) are not supported yet. See the FAQ below.
 
 - Why doesn't Tridactyl work on some pages?
 
-    One possible reason is that the site has a strict content security policy. We can rewrite these to make Tridactyl work, but we do not want to worsen the security of sensitive pages, so it is taking us a little while. See #112.
+    One possible reason is that the site has a strict content security policy. We can rewrite these to make Tridactyl work, but we do not want to worsen the security of sensitive pages, so it is taking us a little while. See [#112](https://github.com/cmcaine/tridactyl/issues/112).
 
 - How can I know which mode I'm in/have a status line?
 

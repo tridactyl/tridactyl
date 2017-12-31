@@ -1,5 +1,8 @@
 /** Inject an input element into unsuspecting webpages and provide an API for interaction with tridactyl */
 
+import Logger from './logging'
+const logger = new Logger('messaging')
+
 /* TODO:
     CSS
     Friendliest-to-webpage way of injecting commandline bar?
@@ -16,14 +19,13 @@ let cmdline_iframe: HTMLIFrameElement = undefined
 function init(){
     if (cmdline_iframe === undefined && window.document.body !== null) {
         try {
-            console.log("INIT")
             cmdline_iframe = window.document.createElement("iframe")
             cmdline_iframe.setAttribute("src", browser.extension.getURL("static/commandline.html"))
             cmdline_iframe.setAttribute("id", "cmdline_iframe")
             hide()
             window.document.body.appendChild(cmdline_iframe)
         } catch (e) {
-            console.error("Couldn't initialise cmdline_iframe!", e)
+            logger.error("Couldn't initialise cmdline_iframe!", e)
         }
     }
 }

@@ -19,6 +19,8 @@ import {messageActiveTab, message} from './messaging'
 import * as config from './config'
 import * as TTS from './text_to_speech'
 import {HintSaveType} from './hinting_background'
+import Logger from './logging'
+const logger = new Logger('hinting')
 
 /** Simple container for the state of a single frame's hints. */
 class HintState {
@@ -53,13 +55,13 @@ export function hintPage(
     state.mode = 'hint'
     modeState = new HintState()
     for (let [el, name] of izip( hintableElements, names)) {
-        console.log({el, name})
+        logger.debug({el, name})
         modeState.hintchars += name
         modeState.hints.push(new Hint(el, name, onSelect))
     }
 
     if (modeState.hints.length) {
-        console.log("HINTS", modeState.hints)
+        logger.debug("hints", modeState.hints)
         modeState.focusedHint = modeState.hints[0]
         modeState.focusedHint.focused = true
         document.body.appendChild(modeState.hintHost)
@@ -455,7 +457,7 @@ function hintSave(hintType: HintSaveType, saveAs: boolean) {
 }
 
 function selectFocusedHint() {
-    console.log("Selecting hint.", state.mode)
+    logger.debug("Selecting hint.", state.mode)
     const focused = modeState.focusedHint
     reset()
     focused.select()

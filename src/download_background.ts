@@ -66,13 +66,9 @@ export async function downloadUrl(url: string, saveAs: boolean) {
 
     // TODO: at this point, could give feeback using the promise returned
     // by downloads.download(), needs status bar to show it (#90)
-    downloadPromise.then(id => {
-        //console.log("Downloaded OK: ", urlToSave)
-        },
-        error => {
-            console.log("Failed to download: ", urlToDownload, error)
-        }
-    )
+    // By awaiting the promise, we ensure that if it errors, the error will be
+    // thrown by this function too.
+    await downloadPromise
 }
 
 import * as Messaging from "./messaging"

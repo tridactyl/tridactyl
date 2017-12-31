@@ -8,6 +8,8 @@ import * as SELF from './commandline_frame'
 import './number.clamp'
 import state from './state'
 import * as Config from './config'
+import Logger from './logging'
+const logger = new Logger('cmdline')
 
 let activeCompletions: Completions.CompletionSource[] = undefined
 let completionsDiv = window.document.getElementById("completions") as HTMLElement
@@ -161,7 +163,7 @@ clInput.addEventListener("input", () => {
     }
 
     // Fire each completion and add a callback to resize area
-    console.log(activeCompletions)
+    logger.debug(activeCompletions)
     activeCompletions.forEach(comp =>
         comp.filter(newCmd).then(() => resizeArea())
     )
@@ -212,9 +214,7 @@ function history(n){
 
 /* Send the commandline to the background script and await response. */
 function process() {
-    console.log(clInput.value)
     const command = getCompletion() || clInput.value
-    console.log(command)
 
     hide_and_clear()
 
@@ -225,7 +225,6 @@ function process() {
     ) {
         state.cmdHistory = state.cmdHistory.concat([command])
     }
-    console.log(state.cmdHistory)
     cmdline_history_position = 0
 
     sendExstr(command)
@@ -263,7 +262,7 @@ export function setClipboard(content: string) {
         scratchpad.select()
         if (document.execCommand("Copy")) {
             // // todo: Maybe we can consider to using some logger and show it with status bar in the future
-            console.log('set clipboard:', scratchpad.value)
+            logger.info('set clipboard:', scratchpad.value)
         } else throw "Failed to copy!"
     })
 }
@@ -272,7 +271,6 @@ export function getClipboard() {
     return applyWithTmpTextArea(scratchpad => {
         scratchpad.focus()
         document.execCommand("Paste")
-        console.log('get clipboard', scratchpad.textContent)
         return scratchpad.textContent
     })
 }
