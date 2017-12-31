@@ -152,7 +152,7 @@ clInput.addEventListener("input", () => {
     // Hacky implementation of aliases for autocompletions
     // Replace an alias with its command defined in `config.ts` if it exists
     const [func,...args] = exstr.trim().split(/\s+/)
-    if (func in Config.get("exaliases")) {
+    if (Config.get("exaliases", func) !== undefined) {
         // JS by default only replaces the first occurence of the searchstr,
         // so this should only replace the command and nothing else
         newCmd = exstr.replace(func, Config.get("exaliases")[func])

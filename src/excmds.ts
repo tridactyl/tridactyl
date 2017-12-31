@@ -1054,6 +1054,25 @@ export async function buffer(index: number | '#') {
 
 // {{{ SETTINGS
 
+/** Equivalent to vim's `:command`. Maps one ex-mode command to another.
+ * 
+ * Examples:
+ *  - `command t tabopen`
+ *  - `command tn tabnext_gt`
+ * 
+ * Note that this is only for excmd->excmd mappings. To map a normal-mode
+ * command to an excommand, see [[bind]].
+ * 
+ * See also:
+ *  - [[bind]]
+ *  - [[reset]]
+ */
+//#background
+export function command(name: string, ...definition: string[]) {
+    const def = definition.join(" ")
+    config.set("exaliases", name, def)
+}
+
 /** Bind a sequence of keys to an excmd.
 
     This is an easier-to-implement bodge while we work on vim-style maps.
@@ -1363,6 +1382,7 @@ export async function gobble(nChars: number, endCmd: string) {
 // {{{TEXT TO SPEECH
 
 import * as TTS from './text_to_speech'
+import { Exception } from "handlebars";
 
 /**
  * Read text content of elements matching the given selector

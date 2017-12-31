@@ -92,6 +92,7 @@ const DEFAULTS = o({
         ".": "repeat",
     }),
     "exaliases": o({
+        "alias": "command",
         "b": "buffer",
         "o": "open",
         "w": "winopen",
