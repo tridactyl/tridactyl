@@ -195,7 +195,10 @@ function buildHintsSimple(els: Element[], onSelect: HintSelectedCallback) {
 
 function buildHintsVimperator(els: Element[], onSelect: HintSelectedCallback) {
     let names = hintnames(els.length)
-    const filterableTextFilter = new RegExp('[' + config.get('hintchars') + ']|[^[:alnum:]]', 'gi')
+    // escape the hintchars string so that strange things don't happen
+    // when special characters are used as hintchars (for example, ']')
+    const escapedHintChars = config.get('hintchars').replace(/^\^|[-\\\]]/g, "\\$&")
+    const filterableTextFilter = new RegExp('[' + escapedHintChars + ']', 'gi')
     for (let [el, name] of izip(els, names)) {
         let ft = elementFilterableText(el)
         // strip out non-alphanumeric characters and hintchars.
