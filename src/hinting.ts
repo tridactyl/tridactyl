@@ -71,22 +71,24 @@ export function hintPage(
 }
 
 function defaultHintBuilder() {
-    if ('simple' == config.get('hintfiltermode')) {
-        return buildHintsSimple
-    } else if ('vimperator' == config.get('hintfiltermode')) {
-        return buildHintsVimperator
-    } else if ('vimperator-reflow' == config.get('hintfiltermode')) {
-        return buildHintsVimperator
+    switch (config.get('hintfiltermode')) {
+        case 'simple':
+            return buildHintsSimple
+        case 'vimperator':
+            return buildHintsVimperator
+        case 'vimperator-reflow':
+            return buildHintsVimperator
     }
 }
 
 function defaultHintFilter() {
-    if ('simple' == config.get('hintfiltermode')) {
-        return filterHintsSimple
-    } else if ('vimperator' == config.get('hintfiltermode')) {
-        return filterHintsVimperator
-    } else if ('vimperator-reflow' == config.get('hintfiltermode')) {
-        return (fstr) => filterHintsVimperator(fstr, true)
+    switch (config.get('hintfiltermode')) {
+        case 'simple':
+            return filterHintsSimple
+        case 'vimperator':
+            return filterHintsVimperator
+        case 'vimperator-reflow':
+            return (fstr) => filterHintsVimperator(fstr, true)
     }
 }
 
