@@ -275,21 +275,45 @@ export const hintworthy_js_elems = []
 
 /** Adds or removes an element from the hintworthy_js_elems array of the
  *  current tab.
- *  This function is made available to the page. We should be very careful
- *  about the input it accepts and what it does with it. It should especially
- *  be tested again when Custom elements land in Firefox.
- *  https://bugzilla.mozilla.org/show_bug.cgi?id=1406825
+ *
  *  @param {EventTarget} elem  The element add/removeEventListener is called on
  *  @param {boolean} add       true when called from addEventListener,
  *                             false from removeEventListener
  *  @param {string} event      The event name given to add/removeEventListener
+ *
+ *  This function must be security reviewed when Custom Elements land in Firefox
+ *  https://bugzilla.mozilla.org/show_bug.cgi?id=1406825
+ *
+ *  This function is exported to the web content window but should only be
+ *  callable from our modified add/removeEventListener because we remove the
+ *  reference to it before web content runs (if added afterwards a
+ *  mutationobserver on the window object would probably capture a reference to
+ *  this function).
+ *
+ *  Just in case web content does get a direct reference or the built-in
+ *  add/removeEventListener code doesn't validate elem correctly, this function
+ *  must assume that its inputs are potentially malicious.
  */
 export function registerEvListenerAction(elem: EventTarget, add: boolean, event: string) {
-   // Make sure elem is can exist in a document
+   // We're only interested in the subset of EventTargets that are Elements.
+   if (!(elem instanceof Element)) {
+      return
+   }
+
+   // Prevent bad elements from being processed
+   //
+   // This is defence in depth: we should never receive an invalid elem here
+   // because add/removeEventListener currently throws a TypeError if the given
+   // element is not a standard library EventTarget subclass.
    try {
-      // We need to clone elem here otherwise it will be removed frome the page
-      document.createDocumentFragment().appendChild((elem as Node).cloneNode())
+      // Node prototype functions work on the C++ representation of the
+      // Node, which a faked JS object won't have.
+      // hasChildNodes() is chosen because it should be cheap.
+      Node.prototype.hasChildNodes.apply(elem as Node)
    } catch (e) {
+      // Don't throw a real exception because addEventListener wouldn't and we
+      // don't want to break content code.
+      console.error("Elem is not a real Node", elem)
       return
    }
 
