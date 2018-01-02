@@ -175,7 +175,7 @@ class Hint {
             left: ${window.scrollX + rect.left}px !important;
         `
         modeState.hintHost.appendChild(this.flag)
-        target.classList.add('TridactylHintElem')
+        this.hidden = false
     }
 
     // These styles would be better with pseudo selectors. Can we do custom ones?
@@ -185,8 +185,17 @@ class Hint {
         if (hide) {
             this.focused = false
             this.target.classList.remove('TridactylHintElem')
-        } else
+            if (config.get("theme") === "dark")
+            {
+                document.querySelector(':root').classList.remove("TridactylThemeDark")
+            }
+        } else {
             this.target.classList.add('TridactylHintElem')
+            if (config.get("theme") === "dark")
+            {
+                document.querySelector(':root').classList.add("TridactylThemeDark")
+            }
+        }
     }
 
     set focused(focus: boolean) {
