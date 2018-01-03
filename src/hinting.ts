@@ -370,10 +370,12 @@ function pushKey(ke) {
             1. Within viewport
             2. Not hidden by another element
 */
-function hintables(selectors=HINTTAGS_selectors) {
+function hintables(selectors=HINTTAGS_selectors, withjs=false) {
     let elems = DOM.getElemsBySelector(selectors, [])
-    elems = elems.concat(DOM.hintworthy_js_elems)
-    elems = unique(elems)
+    if (withjs) {
+        elems = elems.concat(DOM.hintworthy_js_elems)
+        elems = unique(elems)
+    }
     return elems.filter(DOM.isVisible)
 }
 
@@ -493,8 +495,8 @@ function simulateClick(target: HTMLElement) {
     }
 }
 
-function hintPageOpenInBackground() {
-    hintPage(hintables(), hint=>{
+function hintPageOpenInBackground(selectors=HINTTAGS_selectors) {
+    hintPage(hintables(selectors, true), hint=>{
         hint.target.focus()
         if (hint.target.href) {
             // Try to open with the webext API. If that fails, simulate a click on this page anyway.
@@ -507,7 +509,7 @@ function hintPageOpenInBackground() {
 }
 
 function hintPageSimple(selectors=HINTTAGS_selectors) {
-    hintPage(hintables(selectors), hint=>{
+    hintPage(hintables(selectors, true), hint=>{
         simulateClick(hint.target)
     })
 }
