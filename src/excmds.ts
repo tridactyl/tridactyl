@@ -1095,7 +1095,7 @@ export async function buffer(index: number | '#') {
 //#background
 export function command(name: string, ...definition: string[]) {
     const def = definition.join(" ")
-    config.set("exaliases", name, def)
+    config.set("exaliases", def, name)
 }
 
 /** Bind a sequence of keys to an excmd.
