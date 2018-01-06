@@ -105,11 +105,47 @@ clInput.addEventListener("keydown", function (keyevent) {
             history(1)
             break
 
-        // Clear input on ^C
+        case "a":
+            if (keyevent.ctrlKey) {
+                keyevent.preventDefault()
+                keyevent.stopPropagation()
+                setCursor()
+            }
+            break
+
+        case "e":
+            if (keyevent.ctrlKey){
+                keyevent.preventDefault()
+                keyevent.stopPropagation()
+                setCursor(clInput.value.length)
+            }
+            break
+
+        case "u":
+            if (keyevent.ctrlKey){
+                keyevent.preventDefault()
+                keyevent.stopPropagation()
+                clInput.value = clInput.value.slice(clInput.selectionStart, clInput.value.length)
+                setCursor()
+            }
+            break
+
+        case "k":
+            if (keyevent.ctrlKey){
+                keyevent.preventDefault()
+                keyevent.stopPropagation()
+                clInput.value = clInput.value.slice(0, clInput.selectionStart)
+            }
+            break
+
+        // Clear input on ^C if there is no selection
         // Todo: hard mode: vi style editing on cli, like set -o mode vi
         // should probably just defer to another library
         case "c":
-            if (keyevent.ctrlKey) hide_and_clear()
+            if (keyevent.ctrlKey &&
+                ! clInput.value.substring(clInput.selectionStart, clInput.selectionEnd)) {
+                hide_and_clear()
+            }
             break
 
         case "f":
@@ -171,6 +207,10 @@ async function hide_and_clear(){
     activeCompletions.forEach(comp => completionsDiv.removeChild(comp.node))
     activeCompletions = undefined
     isVisible = false
+}
+
+function setCursor(n = 0) {
+    clInput.setSelectionRange(n, n, "none")
 }
 
 function tabcomplete(){
