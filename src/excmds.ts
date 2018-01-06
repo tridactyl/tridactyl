@@ -19,8 +19,7 @@
     ## Highlighted features:
 
     - Press `b` to bring up a list of open tabs in the current window; you can
-      type the tab ID or part of the title or URL to choose a tab (the buffer
-      list doesn't show which one you've selected yet, but it does work)
+      type the tab ID or part of the title or URL to choose a tab
     - Press `I` to enter ignore mode. `Shift` + `Escape` to return to normal
       mode.
     - Press `f` to start "hint mode", `F` to open in background
