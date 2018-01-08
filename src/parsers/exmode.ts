@@ -3,6 +3,7 @@
 import * as ExCmds from "../excmds_background"
 import * as convert from "../convert"
 import * as Config from "../config"
+import * as aliases from "../aliases"
 import {enumerate, head, izip} from "../itertools"
 
 /* Converts numbers, boolean, string[].
@@ -42,9 +43,14 @@ function convertArgs(params, argv) {
 // TODO: Quoting arguments
 // TODO: Pipe to separate commands
 // TODO: Abbreviated commands
-export function parser(ex_str: string) {
+export function parser(ex_str: string): any[] {
     let [func,...args] = ex_str.trim().split(/\s+/)
-    if (ExCmds.cmd_params.has(func)) {
+
+    // Expand aliases first so they override normal excmds
+    if(aliases.commandIsAlias(func)) {
+        const newExstr = aliases.expandExstr(ex_str)
+        return parser(newExstr)
+    } else if (ExCmds.cmd_params.has(func)) {
         try {
             let typedArgs = convertArgs(ExCmds.cmd_params.get(func), args)
             console.log(ex_str, typedArgs)
@@ -54,9 +60,6 @@ export function parser(ex_str: string) {
             throw e
         }
     // Replace alias with actual command if it exists
-    } else if (Config.get("exaliases", func) !== undefined) {
-        let newCmd = [Config.get("exaliases", func), ...args]
-        return parser(newCmd.join(" "))
     } else {
         throw `Not an excmd: ${func}`
     }

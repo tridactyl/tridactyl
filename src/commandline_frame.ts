@@ -9,6 +9,7 @@ import './number.clamp'
 import state from './state'
 import * as Config from './config'
 import Logger from './logging'
+import * as aliases from './aliases'
 const logger = new Logger('cmdline')
 
 let activeCompletions: Completions.CompletionSource[] = undefined
@@ -149,23 +150,12 @@ clInput.addEventListener("keydown", function (keyevent) {
 
 clInput.addEventListener("input", () => {
     const exstr = clInput.value
-    let newCmd = undefined
-
-    // Hacky implementation of aliases for autocompletions
-    // Replace an alias with its command defined in `config.ts` if it exists
-    const [func,...args] = exstr.trim().split(/\s+/)
-    if (Config.get("exaliases", func) !== undefined) {
-        // JS by default only replaces the first occurence of the searchstr,
-        // so this should only replace the command and nothing else
-        newCmd = exstr.replace(func, Config.get("exaliases")[func])
-    } else {
-        newCmd = exstr
-    }
+    let expandedCmd = aliases.expandExstr(exstr)
 
     // Fire each completion and add a callback to resize area
     logger.debug(activeCompletions)
     activeCompletions.forEach(comp =>
-        comp.filter(newCmd).then(() => resizeArea())
+        comp.filter(expandedCmd).then(() => resizeArea())
     )
 })
 
