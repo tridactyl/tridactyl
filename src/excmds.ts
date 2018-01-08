@@ -1079,18 +1079,18 @@ export async function buffer(index: number | '#') {
 
 // {{{ SETTINGS
 
-/** Equivalent to vim's `:command`. Maps one ex-mode command to another.
+/** Similar to vim's `:command`. Maps one ex-mode command to another.
+ * If command already exists, this will override it, and any new commands
+ * added in a future release will be SILENTLY overridden. Aliases are
+ * expanded recursively.
  * 
  * Examples:
  *  - `command t tabopen`
  *  - `command tn tabnext_gt`
+ *  = `command hello t` This will expand recursively into 'hello'->'tabopen'
  * 
  * Note that this is only for excmd->excmd mappings. To map a normal-mode
  * command to an excommand, see [[bind]].
- * 
- * See also:
- *  - [[bind]]
- *  - [[reset]]
  */
 //#background
 export function command(name: string, ...definition: string[]) {
@@ -1405,7 +1405,6 @@ export async function gobble(nChars: number, endCmd: string) {
 // {{{TEXT TO SPEECH
 
 import * as TTS from './text_to_speech'
-import { Exception } from "handlebars";
 
 /**
  * Read text content of elements matching the given selector
