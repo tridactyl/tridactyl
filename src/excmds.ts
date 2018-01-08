@@ -1098,6 +1098,18 @@ export function command(name: string, ...definition: string[]) {
     config.set("exaliases", def, name)
 }
 
+/**
+ * Similar to vim's `comclear` command. Clears an excmd alias defined by
+ * `command`. 
+ * 
+ * For example: `comclear helloworld` will reverse any changes caused 
+ * by `command helloworld xxx`
+ */
+//#background
+export function comclear(name: string) {
+    config.unset("exaliases", name)
+}
+
 /** Bind a sequence of keys to an excmd.
 
     This is an easier-to-implement bodge while we work on vim-style maps.
