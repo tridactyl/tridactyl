@@ -150,7 +150,7 @@ clInput.addEventListener("keydown", function (keyevent) {
 
 clInput.addEventListener("input", () => {
     const exstr = clInput.value
-    let expandedCmd = aliases.expandExstr(exstr)
+    const expandedCmd = aliases.expandExstr(exstr)
 
     // Fire each completion and add a callback to resize area
     logger.debug(activeCompletions)
