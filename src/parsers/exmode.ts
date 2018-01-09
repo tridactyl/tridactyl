@@ -57,7 +57,6 @@ export function parser(ex_str: string): any[] {
             console.error("Error executing or parsing:", ex_str, e)
             throw e
         }
-    // Replace alias with actual command if it exists
     } else {
         throw `Not an excmd: ${func}`
     }
