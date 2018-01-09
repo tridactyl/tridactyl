@@ -44,13 +44,11 @@ function convertArgs(params, argv) {
 // TODO: Pipe to separate commands
 // TODO: Abbreviated commands
 export function parser(ex_str: string): any[] {
-    let [func,...args] = ex_str.trim().split(/\s+/)
+    // Expand aliases
+    const expandedExstr = aliases.expandExstr(ex_str)
+    const [func,...args] = expandedExstr.trim().split(/\s+/)
 
-    // Expand aliases first so they override normal excmds
-    if(aliases.commandIsAlias(func)) {
-        const newExstr = aliases.expandExstr(ex_str)
-        return parser(newExstr)
-    } else if (ExCmds.cmd_params.has(func)) {
+    if (ExCmds.cmd_params.has(func)) {
         try {
             let typedArgs = convertArgs(ExCmds.cmd_params.get(func), args)
             console.log(ex_str, typedArgs)
