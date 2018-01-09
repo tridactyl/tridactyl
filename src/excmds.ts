@@ -98,6 +98,7 @@ import * as config from './config'
 import * as Logging from "./logging"
 const logger = new Logging.Logger('excmds')
 
+import * as aliases from './aliases'
 
 /** @hidden */
 //#background_helper
@@ -1079,7 +1080,8 @@ export async function buffer(index: number | '#') {
 
 // {{{ SETTINGS
 
-/** Similar to vim's `:command`. Maps one ex-mode command to another.
+/** 
+ * Similar to vim's `:command`. Maps one ex-mode command to another.
  * If command already exists, this will override it, and any new commands
  * added in a future release will be SILENTLY overridden. Aliases are
  * expanded recursively.
@@ -1091,11 +1093,23 @@ export async function buffer(index: number | '#') {
  * 
  * Note that this is only for excmd->excmd mappings. To map a normal-mode
  * command to an excommand, see [[bind]].
+ * 
+ * See also:
+ *  - [[comclear]]
  */
 //#background
 export function command(name: string, ...definition: string[]) {
     const def = definition.join(" ")
     config.set("exaliases", def, name)
+
+    // Warn user about infinite loops
+    try {
+        aliases.getAliasExpandRecur(name)
+    } catch(e) {
+        fillcmdline_notrail(e, ' Alias unset.')
+        config.unset("exaliases", def)
+        return
+    }
 }
 
 /**
@@ -1104,6 +1118,9 @@ export function command(name: string, ...definition: string[]) {
  * 
  * For example: `comclear helloworld` will reverse any changes caused 
  * by `command helloworld xxx`
+ * 
+ * See also:
+ *  - [[command]]
  */
 //#background
 export function comclear(name: string) {

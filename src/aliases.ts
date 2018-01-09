@@ -26,13 +26,23 @@ export function expandExstr(exstr: string): string {
  * 
  * @param command The command portion of the exstr
  */
-export function getAliasExpandRecur(command: string): string {
+export function getAliasExpandRecur(
+    command: string, prevExpansions: string[] = []): string {
+
     // Base case: alias not found; return original command
     if(!commandIsAlias(command)) {
         return command
     }
 
+    // Infinite loop detected
+    if(prevExpansions.includes(command)) {
+        throw `Infinite loop detected while expanding aliases. Stack: ${prevExpansions}.`
+    }
+
+    // Add command to expansions used so far
+    prevExpansions.push(command)
+
     // Alias exists; expand it recursively
     const expanded = Config.get("exaliases", command)
-    return getAliasExpandRecur(expanded)
+    return getAliasExpandRecur(expanded, prevExpansions)
 }
