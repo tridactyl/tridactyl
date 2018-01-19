@@ -4,7 +4,7 @@
 
     Use `:help <excmd>` or scroll down to show [[help]] for a particular excmd.
 
-    The default keybinds can be found [here](/static/docs/modules/_parsers_normalmode_.html#defaultnmaps).
+    The default keybinds can be found [here](/static/docs/modules/_config_.html#defaults)
 
     Tridactyl is in a pretty early stage of development. Please report any
     issues and make requests for missing features on the GitHub [project page](1).
@@ -19,8 +19,7 @@
     ## Highlighted features:
 
     - Press `b` to bring up a list of open tabs in the current window; you can
-      type the tab ID or part of the title or URL to choose a tab (the buffer
-      list doesn't show which one you've selected yet, but it does work)
+      type the tab ID or part of the title or URL to choose a tab
     - Press `I` to enter ignore mode. `Shift` + `Escape` to return to normal
       mode.
     - Press `f` to start "hint mode", `F` to open in background
@@ -95,6 +94,8 @@ import * as CommandLineBackground from './commandline_background'
 import * as DOM from './dom'
 
 import * as config from './config'
+import * as Logging from "./logging"
+const logger = new Logging.Logger('excmds')
 
 
 /** @hidden */
@@ -115,18 +116,17 @@ function hasScheme(uri: string) {
 /** @hidden */
 function searchURL(provider: string, query: string) {
     if (provider == "search") provider = config.get("searchengine")
-    let searchurlprovider = config.get("searchurls", provider)
-    if (searchurlprovider !== undefined){
-        const url = new URL(searchurlprovider + encodeURIComponent(query))
-        // URL constructor doesn't convert +s because they're valid literals in
-        // the standard it adheres to. But they are special characters in
-        // x-www-form-urlencoded and e.g. google excepts query parameters in
-        // that format.
-        url.search = url.search.replace(/\+/g, '%2B')
-        return url
-    } else {
+    const searchurlprovider = config.get("searchurls", provider)
+    if (searchurlprovider === undefined){
         throw new TypeError(`Unknown provider: '${provider}'`)
     }
+
+    // build search URL: either replace "%s" in URL with query or append query to URL
+    const url = searchurlprovider.includes("%s") ?
+        new URL(searchurlprovider.replace("%s", encodeURIComponent(query))) :
+        new URL(searchurlprovider + encodeURIComponent(query))
+
+    return url
 }
 
 /** If maybeURI doesn't have a schema, affix http:// */
@@ -145,7 +145,6 @@ function forceURI(maybeURI: string): string {
         const args = maybeURI.split(' ')
         return searchURL(args[0], args.slice(1).join(' ')).href
     } catch (e) {
-        console.log(e)
         if (e.name !== 'TypeError') throw e
     }
 
@@ -172,6 +171,33 @@ function tabSetActive(id: number) {
 
 // }}}
 
+// {{{ INTERNAL/DEBUG
+
+/**
+ * Set the logging level for a given logging module.
+ *
+ * @param logModule     the logging module to set the level on
+ * @param level         the level to log at: in increasing verbosity, one of
+ *                      "never", "error", "warning", "info", "debug"
+ */
+//#background
+export function loggingsetlevel(logModule: string, level: string) {
+    const map = {
+        "never": Logging.LEVEL.NEVER,
+        "error": Logging.LEVEL.ERROR,
+        "warning": Logging.LEVEL.WARNING,
+        "info": Logging.LEVEL.INFO,
+        "debug": Logging.LEVEL.DEBUG,
+    }
+
+    let newLevel = map[level.toLowerCase()]
+
+    if (newLevel !== undefined) {
+        config.set("logging", newLevel, logModule)
+    }
+}
+
+// }}}
 
 // {{{ PAGE CONTEXT
 
@@ -270,7 +296,6 @@ export async function reloadhard(n = 1) {
 //#content
 export function open(...urlarr: string[]) {
     let url = urlarr.join(" ")
-    console.log("open url:" + url)
     window.location.href = forceURI(url)
 }
 
@@ -285,7 +310,6 @@ export function open(...urlarr: string[]) {
 //#background
 export function home(all: "false" | "true" = "false"){
     let homepages = config.get("homepages")
-    console.log(homepages)
     if (homepages.length > 0){
         if (all === "false") open(homepages[homepages.length - 1])
         else {
@@ -392,8 +416,8 @@ export function urlroot (){
 /** Go to the parent URL of the current tab's URL
  */
 //#content
-export function urlparent (){
-    let parentUrl = getUrlParent(window.location)
+export function urlparent (count = 1){
+    let parentUrl = getUrlParent(window.location, count)
 
     if (parentUrl !== null) {
         window.location.href = parentUrl.href
@@ -905,7 +929,7 @@ export function repeat(n = 1, ...exstr: string[]) {
     let cmd = state.last_ex_str
     if (exstr.length > 0)
         cmd = exstr.join(" ")
-    console.log("repeating " + cmd + " " + n + " times")
+    logger.debug("repeating " + cmd + " " + n + " times")
     for (let i = 0; i < n; i++)
         controller.acceptExCmd(cmd)
 }
@@ -1159,12 +1183,10 @@ export async function sanitize(...args: string[]) {
                 }
                 since = { "since": (new Date()).getTime() - millis }
             } else {
-                console.log(":sanitize error: expected time format: ^([0-9])+(m|h|d|w)$, given format:" + args[flagpos+1])
-                return
+                throw new Error(":sanitize error: expected time format: ^([0-9])+(m|h|d|w)$, given format:" + args[flagpos+1])
             }
         } else {
-            console.log(":sanitize error: -t given but no following arguments")
-            return
+            throw new Error(":sanitize error: -t given but no following arguments")
         }
     }
 
@@ -1302,10 +1324,20 @@ import * as hinting from './hinting_background'
         - -i view an image
         - -I view an image in a new tab
         - -k delete an element from the page
+        - -s save (download) the linked resource
+        - -S save the linked image
+        - -a save-as the linked resource
+        - -A save-as the linked image
         - -; focus an element
         - -# yank an element's anchor URL to clipboard
         - -c [selector] hint links that match the css selector
           - `bind ;c hint -c [class*="expand"],[class="togg"]` works particularly well on reddit and HN
+
+    Excepting the custom selector mode and background hint mode, each of these
+    hint modes is available by default as `;<option character>`, so e.g. `;y`
+    to yank a link's target.
+
+    To open a hint in the background, the default bind is `F`.
 
     Related settings:
         "hintchars": "hjklasdfgyuiopqwertnmzxcvb"
@@ -1318,6 +1350,10 @@ export function hint(option?: string, selectors="") {
     else if (option === "-i") hinting.hintImage(false)
     else if (option === "-I") hinting.hintImage(true)
     else if (option === "-k") hinting.hintKill()
+    else if (option === "-s") hinting.hintSave("link", false)
+    else if (option === "-S") hinting.hintSave("img", false)
+    else if (option === "-a") hinting.hintSave("link", true)
+    else if (option === "-A") hinting.hintSave("img", true)
     else if (option === "-;") hinting.hintFocus()
     else if (option === "-#") hinting.hintPageAnchorYank()
     else if (option === "-c") hinting.hintPageSimple(selectors)
@@ -1385,10 +1421,10 @@ export async function ttsread(mode: "-t" | "-c", ...args: string[]) {
         if (args.length > 0) {
             tssReadFromCss(args[0])
         } else {
-            console.log("Error: no CSS selector supplied")
+            throw "Error: no CSS selector supplied"
         }
     } else {
-        console.log("Unknown mode for ttsread command: " + mode)
+        throw "Unknown mode for ttsread command: " + mode
     }
 }
 
@@ -1427,7 +1463,7 @@ export async function ttscontrol(action: string) {
     if (ttsAction) {
         TTS.doAction(ttsAction)
     } else {
-        console.log("Unknown text-to-speech action: " + action)
+        throw new Error("Unknown text-to-speech action: " + action)
     }
 }
 

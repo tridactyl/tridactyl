@@ -24,8 +24,7 @@ export function readText(text: string): void {
     if (window.speechSynthesis.getVoices().length === 0) {
         // should try to warn user? This apparently can happen on some machines
         // TODO: Implement when there's an error feedback mechanism
-        console.log("No voice found: cannot use Text-To-Speech API")
-        return
+        throw new Error("No voice found: cannot use Text-To-Speech API")
     }
 
     let utterance = new SpeechSynthesisUtterance(text);

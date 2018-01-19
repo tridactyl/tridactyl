@@ -3,6 +3,7 @@ import {isTextEditable} from './dom'
 import {isSimpleKey} from './keyseq'
 import state from "./state"
 import {repeat} from './excmds_background'
+import Logger from "./logging"
 
 import {parser as exmode_parser} from './parsers/exmode'
 import {parser as hintmode_parser} from './hinting_background'
@@ -13,6 +14,7 @@ import * as gobblemode from './parsers/gobblemode'
 import * as inputmode from './parsers/inputmode'
 
 
+const logger = new Logger('controller')
 
 /** Accepts keyevents, resolves them to maps, maps to exstrs, executes exstrs */
 function *ParserController () {
@@ -41,7 +43,7 @@ function *ParserController () {
                         state.mode = "normal"
                     }
                 }
-                console.log(keyevent, state.mode)
+                logger.debug(keyevent, state.mode)
 
                 // Special keys (e.g. Backspace) are not handled properly
                 // yet. So drop them. This also drops all modifier keys.
@@ -61,7 +63,7 @@ function *ParserController () {
                         response = (parsers[state.mode] as any)([keyevent])
                         break
                 }
-                console.debug(keys, response)
+                logger.debug(keys, response)
 
                 if (response.ex_str){
                     ex_str = response.ex_str

@@ -1,4 +1,6 @@
 import {l, browserBg, activeTabId} from './lib/webext'
+import Logger from './logging'
+const logger = new Logger('messaging')
 
 export type TabMessageType =
     "excmd_content" |
@@ -9,7 +11,8 @@ export type TabMessageType =
 export type NonTabMessageType =
     "keydown_background" |
     "commandline_background" |
-    "browser_proxy_background"
+    "browser_proxy_background" |
+    "download_background"
 export type MessageType = TabMessageType | NonTabMessageType
 
 export interface Message {
@@ -23,7 +26,8 @@ export type listener = (message: Message, sender?, sendResponse?) => void|Promis
 // Calls methods on obj that match .command and sends responses back
 export function attributeCaller(obj) {
     function handler(message: Message, sender, sendResponse) {
-        console.log("Message:", message)
+
+        logger.debug(message)
 
         // Args may be undefined, but you can't spread undefined...
         if (message.args === undefined) message.args = []
@@ -34,17 +38,17 @@ export function attributeCaller(obj) {
 
             // Return response to sender
             if (response instanceof Promise) {
-                console.log("Returning promise...", response)
+                logger.debug("Returning promise...", response)
                 sendResponse(response)
                 // Docs say you should be able to return a promise, but that
                 // doesn't work.
                 /* return response */
             } else if (response !== undefined) {
-                console.log("Returning synchronously...", response)
+                logger.debug("Returning synchronously...", response)
                 sendResponse(response)
             }
         } catch (e) {
-            console.error(`Error processing ${message.command}(${message.args})`, e)
+            logger.error(`Error processing ${message.command}(${message.args})`, e)
             return new Promise((resolve, error)=>error(e))
         }
     }
@@ -77,7 +81,7 @@ export async function messageAllTabs(type: TabMessageType, command: string, args
     let responses = []
     for (let tab of await browserBg.tabs.query({})) {
         try { responses.push(await messageTab(tab.id, type, command, args)) }
-        catch (e) { console.error(e) }
+        catch (e) { logger.error(e) }
     }
     return responses
 }

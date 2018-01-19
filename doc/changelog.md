@@ -1,6 +1,35 @@
- # Tridactyl changelogs
+# Tridactyl changelogs
 
- ## Release 1.7.0
+## Release 1.7.3
+
+- Hint tags are much better:
+    - Hint tags are now as short as possible
+    - Remove now disused `hintorder` setting
+- Add `.` to repeat last action
+- Add inputmode: `gi` and then `Tab` will cycle you between all input fields on a page
+- Add hint kill submode `;k` for removing elements of a webpage such as dickbars
+- Add relative zoom and `z{i,z,o}` binds
+- Add `sanitize` excmd for deleting browsing/Tridactyl data
+- Search engines:
+    - Add `searchsetkeyword [keyword] [url]`: define your own search engines (#194)
+    - Add Qwant and update startpage URL (#198)
+    - Add Google Scholar search engine
+- Fix problems where ignore mode would revert to normal mode on some websites with iframes (#176)
+- Add ^ and $ in normal mode for navigation to 0% or 100% in x-direction
+- Buffer completion fixes
+    - Use tab ID even if buffer has a trailing space (#223)
+    - completions: passthrough # in buffercompletion
+- Support multiple URLs for quickmarks
+- Blacklist default newtab url from history completions
+- Fix `set newtab` failing to set newtab
+- Add `q`, `qa`, and `quit` synonyms
+- Fix `unset` failing to take effect without reloading page
+- Minor improvements to `help` preface
+- Add <summary> tags to standard hinting
+- Log an error to browser console if no TTS voices are found
+
+
+## Release 1.7.0
 
  - History completion is massively improved: much faster, more relevant results, and less janky as you type.
  - User configuration

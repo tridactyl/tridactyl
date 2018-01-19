@@ -59,46 +59,150 @@ export function getUrlRoot(url) {
  *
  * @param url   the URL to get the parent of
  * @return      the parent of the URL, or null if there is no parent
+ * @count       how many "generations" you wish to go back (1 = parent, 2 = grandparent, etc.)
  */
-export function getUrlParent(url) {
+export function getUrlParent(url, count = 1) {
+
+    // Helper function.
+    function gup(parent, count) {
+        if (count < 1) {
+            return parent
+        }
+        // strip, in turn, hash/fragment and query/search
+        if (parent.hash) {
+            parent.hash = ''
+            return gup(parent, count - 1)
+        }
+        if (parent.search) {
+            parent.search = ''
+            return gup(parent, count - 1)
+        }
+
+        // empty path is '/'
+        if (parent.pathname !== '/') {
+            // Remove trailing slashes and everything to the next slash:
+            parent.pathname = parent.pathname.replace(/\/[^\/]*?\/*$/, '/')
+            return gup(parent, count - 1)
+        }
+
+        // strip off the first subdomain if there is one
+        {
+            let domains = parent.host.split('.')
+
+            // more than domain + TLD
+            if (domains.length > 2) {
+                //domains.pop()
+                parent.host = domains.slice(1).join('.')
+                return gup(parent, count - 1)
+            }
+        }
+
+        // nothing to trim off URL, so no parent
+        return null
+    }
+
     // exclude these special protocols where parents don't really make sense
     if (/(about|mailto):/.test(url.protocol)) {
         return null
     }
 
     let parent = new URL(url)
+    return gup(parent, count)
+}
 
-    // strip, in turn, hash/fragment and query/search
-    if (parent.hash) {
-        parent.hash = ''
-        return parent
+/** Very incomplete lookup of extension for common mime types that might be
+ * encountered when saving elements on a page. There are NPM libs for this,
+ * but this should cover 99% of basic cases
+ *
+ * @param mime  mime type to get extension for (eg 'image/png')
+ *
+ * @return an extension for that mimetype, or undefined if that type is not
+ * supported
+ */
+function getExtensionForMimetype(mime: string): string {
+
+    const types = {
+        "image/png": ".png",
+        "image/jpeg": ".jpg",
+        "image/gif": ".gif",
+        "image/x-icon": ".ico",
+        "image/svg+xml": ".svg",
+        "image/tiff": ".tiff",
+        "image/webp": ".webp",
+
+        "text/plain": ".txt",
+        "text/html": ".html",
+        "text/css": ".css",
+        "text/csv": ".csv",
+        "text/calendar": ".ics",
+
+        "application/octet-stream": ".bin",
+        "application/javascript": ".js",
+        "application/xhtml+xml": ".xhtml",
+
+        "font/otf": ".otf",
+        "font/woff": ".woff",
+        "font/woff2": ".woff2",
+        "font/ttf": ".ttf",
     }
 
-    if (parent.search) {
-        parent.search = ''
-        return parent
+    return types[mime] || ""
+}
+
+/** Get a suitable default filename for a given URL
+ *
+ * If the URL:
+ *  - is a data URL, construct from the data and mimetype
+ *  - has a path, use the last part of that (eg image.png, index.html)
+ *  - otherwise, use the hostname of the URL
+ *  - if that fails, "download"
+ *
+ * @param URL   the URL to make a filename for
+ * @return      the filename according to the above rules
+ */
+export function getDownloadFilenameForUrl(url: URL): string {
+
+    // for a data URL, we have no really useful naming data intrinsic to the
+    // data, so we construct one using the data and guessing an extension
+    // from any mimetype
+    if (url.protocol === "data:") {
+
+        // data:[<mediatype>][;base64],<data>
+        const [prefix, data] = url.pathname.split(",", 2)
+
+        const [mediatype, b64] = prefix.split(";", 2)
+
+        // take a 15-char prefix of the data as a reasonably unique name
+        // sanitize in a very rough manner
+        let filename = data.slice(0, 15)
+            .replace(/[^a-zA-Z0-9_\-]/g, '_')
+            .replace(/_{2,}/g, '_')
+
+        // add a base64 prefix and the extension
+        filename = (b64 ? (b64 + "-") : "")
+            + filename
+            + getExtensionForMimetype(mediatype)
+
+        return filename
     }
 
-    // pathname always starts '/'
-    if (parent.pathname !== '/') {
-        let path = parent.pathname.substring(1).split('/')
-        path.pop()
-        parent.pathname = path.join('/')
-        return parent
-    }
+    // if there's a useful path, use that directly
+    if (url.pathname !== "/") {
 
-    // strip off the first subdomain if there is one
-    {
-        let domains = parent.host.split('.')
+        let paths = url.pathname.split("/").slice(1)
 
-        // more than domain + TLD
-        if (domains.length > 2) {
-            //domains.pop()
-            parent.host = domains.slice(1).join('.')
-            return parent
+        // pop off empty pat bh tails
+        // e.g. https://www.mozilla.org/en-GB/firefox/new/
+        while (paths.length && !paths[paths.length - 1]) {
+            paths.pop()
+        }
+
+        if (paths.length) {
+            return paths.slice(-1)[0]
         }
     }
 
-    // nothing to trim off URL, so no parent
-    return null
+    // if there's no path, use the domain (otherwise the FF-provided
+    // default is just "download"
+    return url.hostname || "download"
 }

@@ -622,17 +622,21 @@ export class BufferCompletionSource extends CompletionSourceFuse {
         super.setStateFromScore(scoredOpts, true)
     }
 
-    /** Score with fuse unless query is an integer or a single # */
+    /** Score with fuse unless query is a single # or looks like a buffer index */
     scoredOptions(query: string, options = this.options): ScoredOption[] {
-        const args = query.split(/\s+/gu)
-        if (args.length <= 2) {
+        const args = query.trim().split(/\s+/gu)
+        if (args.length === 1) {
+            // if query is an integer n and |n| < options.length
             if (Number.isInteger(Number(args[0]))) {
-                const index = (Number(args[0]) - 1).mod(options.length)
-                return [{
-                    index,
-                    option: options[index],
-                    score: 0,
-                }]
+                let index = Number(args[0]) - 1
+                if (Math.abs(index) < options.length) {
+                    index = index.mod(options.length)
+                    return [{
+                        index,
+                        option: options[index],
+                        score: 0,
+                    }]
+                }
             } else if (args[0] === '#') {
                 for (const [index, option] of enumerate(options)) {
                     if (option.isAlternative) {
