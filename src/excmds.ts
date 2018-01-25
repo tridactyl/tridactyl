@@ -271,7 +271,7 @@ export async function reload(n = 1, hard = false) {
 /** Reloads all tabs, bypassing the cache if hard is set to true */
 //#background
 export async function reloadall(hard = false){
-    let tabs = await browser.tabs.query({})
+    let tabs = await browser.tabs.query({currentWindow: true})
     let reloadprops = {bypassCache: hard}
     tabs.map(tab => browser.tabs.reload(tab.id, reloadprops))
 }
