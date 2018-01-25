@@ -7,7 +7,7 @@
     The default keybinds can be found [here](/static/docs/modules/_config_.html#defaults)
 
     Tridactyl is in a pretty early stage of development. Please report any
-    issues and make requests for missing features on the GitHub [project page](1).
+    issues and make requests for missing features on the GitHub [project page][1].
     You can also get in touch using Matrix, Gitter, or IRC chat clients:
 
     [![Matrix Chat][matrix-badge]][matrix-link]
