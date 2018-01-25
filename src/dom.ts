@@ -16,6 +16,7 @@ export function isTextEditable (element: MsgSafeNode) {
         switch (element.nodeName.toUpperCase()) {
             case 'INPUT':
                 return isEditableHTMLInput(element)
+            case 'SELECT':
             case 'TEXTAREA':
             case 'OBJECT':
                 return true
