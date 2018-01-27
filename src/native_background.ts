@@ -8,7 +8,14 @@ import Logger from "./logging"
 const logger = new Logger("native")
 
 const NATIVE_NAME = "tridactyl"
-type MessageCommand = "version" | "run" | "read" | "write" | "temp" | "mkdir"
+type MessageCommand =
+    | "version"
+    | "run"
+    | "read"
+    | "write"
+    | "temp"
+    | "mkdir"
+    | "getconfig"
 interface MessageResp {
     cmd: string
     version: number | null
@@ -38,6 +45,18 @@ async function sendNativeMsg(
             logger.error(`Error sending native message:`, e)
             throw e
         }
+    }
+}
+
+export async function getFilesystemUserConfig(): Promise<string> {
+    const res = await sendNativeMsg("getconfig", {})
+
+    if (res.content && !res.error) {
+        console.info(`Successfully retrieved fs config:\n${res.content}`)
+        return res.content
+    } else {
+        console.error(`Error in retrieving config: ${res.error}`)
+        throw Error(`Error retrieving config: ${res.error}`)
     }
 }
 

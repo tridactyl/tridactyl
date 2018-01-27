@@ -333,6 +333,11 @@ export async function installnative() {
     fillcmdline("# Installation command copied to clipboard. Please paste and run it in your shell to install the native messenger.")
 }
 
+//#background
+export async function getFilesystemRc(): Promise<string> {
+    return Native.getFilesystemUserConfig()
+}
+
 /**
  * Updates the native messenger if it is installed, using our GitHub repo. This is run every time Tridactyl is updated.
  *
@@ -719,6 +724,14 @@ export async function tutor(newtab?: string) {
     const tutor = browser.extension.getURL("static/clippy/tutor.html")
     if (newtab) tabopen(tutor)
     else open(tutor)
+}
+
+/**
+ * Navigate to the settings page.
+ */
+//#background
+export async function settings(): Promise<void> {
+    return browser.runtime.openOptionsPage()
 }
 
 /** @hidden */
@@ -1470,12 +1483,6 @@ export async function qall() {
     windows.map(window => browser.windows.remove(window.id))
 }
 
-/** Convenience shortcut for [[qall]]. */
-//#background
-export async function qa() {
-    qall()
-}
-
 // }}}
 
 // {{{ MISC
@@ -1866,6 +1873,14 @@ export function set(key: string, ...values: string[]) {
     } else {
         throw "Unsupported setting type!"
     }
+}
+
+/**
+ * Resets everything except the rc and rc loading options to default.
+ */
+//#background
+export async function resetConfigToDefault(): Promise<void> {
+    config.resetToDefaults()
 }
 
 /** Set autocmds to run when certain events happen.

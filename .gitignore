@@ -8,3 +8,4 @@ generated
 web-ext-artifacts
 yarn.lock
 .vscode/
+readme.html

@@ -66,6 +66,45 @@ def sendMessage(encodedMessage):
     sys.stdout.buffer.flush()
 
 
+def findUserConfigFile():
+    """ Find a user config file, if it exists. Return the file path, or None
+    if not found
+    """
+    home = os.path.expanduser('~')
+    config_dir = _getenv('XDG_CONFIG_HOME', os.path.expanduser('~/.config'))
+
+    # Will search for files in this order
+    candidate_files = [
+        os.path.join(config_dir, "tridactyl", "tridactylrc"),
+        os.path.join(home, '.tridactylrc')
+    ]
+
+    eprint(candidate_files)
+    config_path = None
+
+    # find the first path in the list that exists
+    for path in candidate_files:
+        eprint("Checking file {}".format(path))
+        if os.path.isfile(path):
+            config_path = path
+            break
+
+    return config_path
+
+
+def getUserConfig():
+    # look it up freshly each time - the user could have moved or killed it
+    cfg_file = findUserConfigFile()
+
+    # no file, return
+    if not cfg_file:
+        return None
+
+    # for now, this is a simple file read, but if the files can
+    # include other files, that will need more work
+    return open(cfg_file, 'r').read()
+
+
 def handleMessage(message):
     """ Generate reply from incoming message. """
     cmd = message["cmd"]
@@ -73,6 +112,13 @@ def handleMessage(message):
 
     if cmd == 'version':
         reply = {'version': VERSION}
+
+    elif cmd == 'getconfig':
+        file_content = getUserConfig()
+        if file_content:
+            reply['content'] = file_content
+        else:
+            reply['error'] = 'File not found'
 
     elif cmd == 'run':
         commands = message["command"]

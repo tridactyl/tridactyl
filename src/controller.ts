@@ -96,6 +96,14 @@ export function acceptKey(keyevent: MsgSafeKeyboardEvent) {
     generator.next(keyevent)
 }
 
+export function acceptRcFile(rcText: string): void {
+    // Poor man's excmd parsing; do it properly later
+    const excmds = rcText.split("\n")
+    for (let cmd of excmds) {
+        acceptExCmd(cmd)
+    }
+}
+
 /** Parse and execute ExCmds */
 export async function acceptExCmd(exstr: string) {
     // TODO: Errors should go to CommandLine.

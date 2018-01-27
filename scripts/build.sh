@@ -11,6 +11,7 @@ mkdir -p generated/static/clippy
 scripts/excmds_macros.py
 scripts/newtab.md.sh
 scripts/make_tutorial.sh
+scripts/settings_page.sh
 scripts/make_docs.sh &
 nearleyc src/grammars/bracketexpr.ne > src/grammars/.bracketexpr.generated.ts
 native/install.sh local

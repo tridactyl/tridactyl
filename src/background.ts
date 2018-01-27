@@ -32,6 +32,10 @@ import * as native from "./native_background"
 import * as msgsafe from "./msgsafe"
 import state from "./state"
 import * as webext from "./lib/webext"
+
+import * as RC from "./config_rc"
+console.log("Loading RC and initialising config")
+RC.initConfigFromRc()
 ;(window as any).tri = Object.assign(Object.create(null), {
     messaging,
     excmds,

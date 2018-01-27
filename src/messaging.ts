@@ -14,6 +14,8 @@ export type NonTabMessageType =
     | "commandline_background"
     | "browser_proxy_background"
     | "download_background"
+    | "config_rc"
+
 export type MessageType = TabMessageType | NonTabMessageType
 
 export interface Message {

@@ -1,0 +1,77 @@
+<html lang="en">
+
+<head>
+  <meta charset="utf8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <link rel="stylesheet" href="settings.css" type="text/css">
+  <link rel="stylesheet" href="content.css" type="text/css">
+  <link rel="stylesheet" href="hint.css" type="text/css">
+  <link rel="shortcut icon" href="logo/Tridactyl_64px.png" type="img/png">
+  <title>Tridactyl Settings</title>
+</head>
+
+<body class="container">
+  <h1 class="title">Tridactyl Settings</h1>
+  <nav>
+    <ul id="tabbar" class="nav nav-tabs" role="tablist">
+      <li class="nav-item">
+        <a class="nav-link" role="tab" href="#current-settings">Current Settings</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" role="tab" href="#rc-text">.tridactylrc</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" role="tab" href="#about">About</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" role="tab" href="#license">Licence</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" role="tab" href="#changelog">Changelog</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" role="tab" href="#readme">Readme</a>
+      </li>
+    </ul>
+  </nav>
+  <div id="tab-container" class="tab-content">
+    <div class="tab-panel" role="tabpanel" id="current-settings"></div>
+    <div class="tab-panel" role="tabpanel" id="rc-text">
+      <div>
+        <p>
+          If the button to load from filesystem is not working, check the
+          console to see the error you are getting. Make sure the
+          following are true:
+        </p>
+        <ul>
+          <li>You have the native script installed.</li>
+          <li>Either ~/.tridactylrc or ~/.config/tridactyl/tridactylrc exists.</li>
+        </ul>
+      </div>
+      <button id="btn-save-rc">Save from textbox to browser.storage</button>
+      <button id="btn-load-rc">Load from browser.storage to textbox</button>
+      <button id="btn-load-fs-rc">Load from filesystem to textbox</button>
+      <button id="btn-run-rc">Run RC from textbox</button>
+      <br>
+      <input id="toggle-fs-rc" type="checkbox">
+      <span>Load and run RC from filesystem on start</span>
+      <textarea id="rc-textarea"></textarea>
+    </div>
+    <div class="tab-panel" role="tabpanel" id="about">
+      REPLACE_WITH_ABOUT_VIA_SED
+    </div>
+    <div class="tab-panel" role="tabpanel" id="license">
+      REPLACE_WITH_LICENSE_VIA_SED
+    </div>
+    <div class="tab-panel" role="tabpanel" id="changelog">
+      REPLACE_WITH_CHANGELOG_VIA_SED
+    </div>
+    <div class="tab-panel" role="tabpanel" id="readme">
+      REPLACE_WITH_README_VIA_SED
+    </div>
+  </div>
+  <script src="../content.js"></script>
+  <script src="../settings_page.js"></script>
+</body>
+
+</html>
