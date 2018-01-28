@@ -77,6 +77,7 @@ import * as config from './config'
 import * as aliases from './aliases'
 import * as Logging from "./logging"
 const logger = new Logging.Logger('excmds')
+import Mark from 'mark.js'
 
 //#content_helper
 // {
@@ -231,6 +232,15 @@ export function scrollline(n = 1) {
 //#content
 export function scrollpage(n = 1) {
     window.scrollBy(0, window.innerHeight * n)
+}
+
+//#content
+export function find(query: string) {
+    // Proof of concept
+    // Obviously we need a new mode really; probably copy-paste hinting mode
+    const MARK_INSTANCE = new Mark(window.document)
+    MARK_INSTANCE.unmark()
+    MARK_INSTANCE.mark(query)
 }
 
 /** @hidden */
