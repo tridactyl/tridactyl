@@ -15,22 +15,20 @@
     "chrome_url_overrides": {
         "newtab": "static/newtab.html"
     },
-    "content_scripts": [
-        {
-            "matches": [
-                "<all_urls>"
-            ],
-            "js": [
-                "content.js"
-            ],
-            "css": [
-                "static/content.css",
-                "static/hint.css"
-            ],
-            "run_at": "document_start",
-            "match_about_blank": true
-        }
-    ],
+    "content_scripts": [{
+        "matches": [
+            "<all_urls>"
+        ],
+        "js": [
+            "content.js"
+        ],
+        "css": [
+            "static/content.css",
+            "static/hint.css"
+        ],
+        "run_at": "document_start",
+        "match_about_blank": true
+    }],
     "web_accessible_resources": [
         "static/commandline.html",
         "static/defaultFavicon"
@@ -58,5 +56,8 @@
             "id": "tridactyl.vim@cmcaine.co.uk",
             "strict_min_version": "54.0"
         }
+    },
+    "options_ui": {
+        "page": "static/settings.html"
     }
 }
