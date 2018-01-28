@@ -463,9 +463,10 @@ export function urlmodify(mode: "-t" | "-r" | "-q" | "-Q" | "-g", ...args: strin
                     + "<regexp> <new> [flags]")
             }
 
-            if (args[2] && args[2].search('/^[gi]+$/') === -1)
+            if (args[2] && args[2].search(/^[gi]+$/) === -1)
             {
-                throw new Error("RegExp replacement flags can only include 'g', 'i'")
+                throw new Error("RegExp replacement flags can only include 'g', 'i'"
+                    + ", Got '" + args[2] + "'")
             }
 
             let regexp = new RegExp(args[0], args[2])
