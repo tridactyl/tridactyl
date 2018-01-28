@@ -1180,16 +1180,16 @@ export async function buffer(index: number | '#') {
  */
 //#background
 export function command(name: string, ...definition: string[]) {
-    const def = definition.join(" ")
-    config.set("exaliases", def, name)
-
-    // Warn user about infinite loops
+    // Test if alias creates an alias loop.
     try {
+        const def = definition.join(" ")
+        // Set alias
+        config.set("exaliases", def, name)
         aliases.getAliasExpandRecur(name)
     } catch(e) {
+        // Warn user about infinite loops
         fillcmdline_notrail(e, ' Alias unset.')
-        config.unset("exaliases", def)
-        return
+        config.unset("exaliases", name)
     }
 }
 
