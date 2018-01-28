@@ -71,7 +71,7 @@ const DEFAULTS = o({
         ":": "fillcmdline",
         "s": "fillcmdline open search",
         "S": "fillcmdline tabopen search",
-        "/": "fillcmdline find",
+        "/": "find",
         "M": "gobble 1 quickmark",
         // "B": "fillcmdline bufferall",
         "b": "fillcmdline buffer",

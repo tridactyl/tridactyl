@@ -44,13 +44,18 @@ let findModeState: findState = undefined
 
 /** Show only finds prefixed by fstr. Focus first match */
 function filter(fstr) {
-    findModeState.mark.unmark()
-    findModeState.mark.mark(fstr)
+    // for some reason, doing the mark in the done function speeds this up immensely
+    // nb: https://jsfiddle.net/julmot/973gdh8g/ is pretty much what we want
+    findModeState.mark.unmark({done: () => {
+        findModeState.mark.mark(fstr, {
+            separateWordSearch: false,
+        })
+    }})
 }
 
 /** Remove all finds, reset STATE. */
-function reset() {
-    findModeState.mark.unmark()
+function reset(args = {leavemarks: "false"}) {
+    if (args.leavemarks == "false") findModeState.mark.unmark()
     findModeState.destructor()
     findModeState = undefined
     state.mode = 'normal'

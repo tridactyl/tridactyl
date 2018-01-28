@@ -9,8 +9,8 @@ export async function findPage() {
     console.log("tried to call finding")
     return await messageActiveTab('finding_content', 'findPage')
 }
-async function reset() {
-    return await messageActiveTab('finding_content', 'reset')
+async function reset(args = {leavemarks: "false"}) {
+    return await messageActiveTab('finding_content', 'reset', [args])
 }
 
 import {MsgSafeKeyboardEvent} from './msgsafe'
@@ -25,6 +25,8 @@ export function parser(keys: MsgSafeKeyboardEvent[]) {
     const key = keys[0].key
     if (key === 'Escape') {
         reset()
+    } else if (key === 'Enter') {
+        reset({leavemarks: "true"})
     } else {
         pushKey(keys[0])
     }

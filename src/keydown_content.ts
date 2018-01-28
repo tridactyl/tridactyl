@@ -54,6 +54,7 @@ function TerribleModeSpecificSuppression(ke: KeyboardEvent) {
             break
         // Hintmode can't clean up after itself yet, so it needs to block more FF shortcuts.
         case "hint":
+        case "find":
             if (! hintmodewhitelist.includes(ke.key)) {
                 ke.preventDefault()
                 ke.stopImmediatePropagation()
