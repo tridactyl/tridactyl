@@ -12,9 +12,11 @@ import {MsgSafeNode} from './msgsafe'
  */
 export function isTextEditable (element: MsgSafeNode) {
     if (element) {
-        switch (element.nodeName) {
+        // HTML is always upper case, but XHTML is not necessarily upper case
+        switch (element.nodeName.toUpperCase()) {
             case 'INPUT':
                 return isEditableHTMLInput(element)
+            case 'SELECT':
             case 'TEXTAREA':
             case 'OBJECT':
                 return true

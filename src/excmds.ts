@@ -7,7 +7,7 @@
     The default keybinds can be found [here](/static/docs/modules/_config_.html#defaults)
 
     Tridactyl is in a pretty early stage of development. Please report any
-    issues and make requests for missing features on the GitHub [project page](1).
+    issues and make requests for missing features on the GitHub [project page][1].
     You can also get in touch using Matrix, Gitter, or IRC chat clients:
 
     [![Matrix Chat][matrix-badge]][matrix-link]
@@ -19,8 +19,7 @@
     ## Highlighted features:
 
     - Press `b` to bring up a list of open tabs in the current window; you can
-      type the tab ID or part of the title or URL to choose a tab (the buffer
-      list doesn't show which one you've selected yet, but it does work)
+      type the tab ID or part of the title or URL to choose a tab
     - Press `I` to enter ignore mode. `Shift` + `Escape` to return to normal
       mode.
     - Press `f` to start "hint mode", `F` to open in background
@@ -88,7 +87,7 @@ import * as keydown from "./keydown_background"
 //#background_helper
 import {activeTab, activeTabId, firefoxVersionAtLeast} from './lib/webext'
 //#content_helper
-import {incrementUrl, getUrlRoot, getUrlParent} from "./url_util"
+import * as UrlUtil from "./url_util"
 //#background_helper
 import * as CommandLineBackground from './commandline_background'
 //#content_helper
@@ -273,7 +272,7 @@ export async function reload(n = 1, hard = false) {
 /** Reloads all tabs, bypassing the cache if hard is set to true */
 //#background
 export async function reloadall(hard = false){
-    let tabs = await browser.tabs.query({})
+    let tabs = await browser.tabs.query({currentWindow: true})
     let reloadprops = {bypassCache: hard}
     tabs.map(tab => browser.tabs.reload(tab.id, reloadprops))
 }
@@ -396,7 +395,7 @@ export function followpage(rel: 'next'|'prev' = 'next') {
 */
 //#content
 export function urlincrement(count = 1){
-    let newUrl = incrementUrl(window.location.href, count)
+    let newUrl = UrlUtil.incrementUrl(window.location.href, count)
 
     if (newUrl !== null) {
         window.location.href = newUrl
@@ -407,7 +406,7 @@ export function urlincrement(count = 1){
  */
 //#content
 export function urlroot (){
-    let rootUrl = getUrlRoot(window.location)
+    let rootUrl = UrlUtil.getUrlRoot(window.location)
 
     if (rootUrl !== null) {
         window.location.href = rootUrl.href
@@ -418,10 +417,92 @@ export function urlroot (){
  */
 //#content
 export function urlparent (count = 1){
-    let parentUrl = getUrlParent(window.location, count)
+    let parentUrl = UrlUtil.getUrlParent(window.location, count)
 
     if (parentUrl !== null) {
         window.location.href = parentUrl.href
+    }
+}
+
+/**
+ * Open a URL made by modifying the current URL
+ *
+ * @param mode      -t text replace
+ *                  -r regexp replace
+ *                  -q replace the value of the given query
+ *                  -Q delete the given query
+ *                  -g graft a new path onto URL or parent path of it
+ * @param replacement the replacement arguments:
+ *                  -t <old> <new>
+ *                  -r <regexp> <new> [flags]
+ *                  -q <query> <new_val>
+ *                  -Q <query>
+ *                  -g <graftPoint> <newPathTail>
+ *                      - graftPoint > 1 to count from left
+ *                      - graftPoint < 0 to count from right
+ */
+//#content
+export function urlmodify(mode: "-t" | "-r" | "-q" | "-Q" | "-g", ...args: string[]) {
+
+    let oldUrl = new URL(window.location.href)
+    let newUrl = undefined
+
+    switch(mode) {
+
+        case "-t":
+            if (args.length !== 2) {
+                throw new Error("Text replacement needs 2 arguments:"
+                    + "<old> <new>")
+            }
+
+            newUrl = oldUrl.href.replace(args[0], args[1])
+            break
+
+        case "-r":
+            if (args.length < 2 || args.length > 3) {
+                throw new Error("RegExp replacement takes 2 or 3 arguments: "
+                    + "<regexp> <new> [flags]")
+            }
+
+            if (args[2] && args[2].search('/^[gi]+$/') === -1)
+            {
+                throw new Error("RegExp replacement flags can only include 'g', 'i'")
+            }
+
+            let regexp = new RegExp(args[0], args[2])
+            newUrl = oldUrl.href.replace(regexp, args[1])
+            break
+
+        case "-q":
+            if (args.length !== 2) {
+                throw new Error("Query replacement needs 2 arguments:"
+                    + "<query> <new_val>")
+            }
+
+            newUrl = UrlUtil.replaceQueryValue(oldUrl, args[0],
+                args[1])
+            break
+        case "-Q":
+            if (args.length !== 1) {
+                throw new Error("Query deletion needs 1 argument:"
+                    + "<query>")
+            }
+
+            newUrl = UrlUtil.deleteQuery(oldUrl, args[0])
+            break
+
+        case "-g":
+            if (args.length !== 2) {
+                throw new Error("URL path grafting needs 2 arguments:"
+                    + "<graft point> <new path tail>")
+            }
+
+            newUrl = UrlUtil.graftUrlPath(oldUrl, args[1], Number(args[0]))
+            break
+    }
+
+    if (newUrl && newUrl !== oldUrl) {
+        window.location.href = newUrl
     }
 }
 

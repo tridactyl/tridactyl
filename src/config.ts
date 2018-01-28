@@ -66,7 +66,6 @@ const DEFAULTS = o({
         "s": "fillcmdline open search",
         "S": "fillcmdline tabopen search",
         "M": "gobble 1 quickmark",
-        "xx": "something",
         // "B": "fillcmdline bufferall",
         "b": "fillcmdline buffer",
         "ZZ": "qall",
