@@ -1185,7 +1185,7 @@ export function command(name: string, ...definition: string[]) {
         const def = definition.join(" ")
         // Set alias
         config.set("exaliases", def, name)
-        aliases.getAliasExpandRecur(name)
+        aliases.expandExstr(name)
     } catch(e) {
         // Warn user about infinite loops
         fillcmdline_notrail(e, ' Alias unset.')
