@@ -18,6 +18,7 @@ import * as config from './config'
 import * as dom from './dom'
 import * as excmds from './excmds_content'
 import * as hinting_content from './hinting'
+import * as finding_content from './finding'
 import * as itertools from './itertools'
 import * as keydown_content from "./keydown_content"
 import * as messaging from './messaging'
@@ -34,6 +35,7 @@ import Mark from 'mark.js'
     dom,
     excmds,
     hinting_content,
+    finding_content,
     itertools,
     keydown_content,
     Mark,

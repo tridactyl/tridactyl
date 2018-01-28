@@ -234,13 +234,21 @@ export function scrollpage(n = 1) {
     window.scrollBy(0, window.innerHeight * n)
 }
 
-//#content
-export function find(query: string) {
-    // Proof of concept
-    // Obviously we need a new mode really; probably copy-paste hinting mode
-    const MARK_INSTANCE = new Mark(window.document)
-    MARK_INSTANCE.unmark()
-    MARK_INSTANCE.mark(query)
+//export function find(query: string) {
+//    // Proof of concept
+//    // Obviously we need a new mode really; probably copy-paste hinting mode
+//    const MARK_INSTANCE = new Mark(window.document)
+//    MARK_INSTANCE.unmark()
+//    MARK_INSTANCE.mark(query)
+//}
+
+//#background_helper
+import * as finding from './finding_background'
+
+//#background
+export function find(){
+    console.log("something happened")
+    finding.findPage()
 }
 
 /** @hidden */
@@ -1049,6 +1057,8 @@ export function mode(mode: ModeName) {
     // TODO: event emition on mode change.
     if (mode === "hint") {
         hint()
+    } else if (mode === "find") {
+        find()
     } else {
         state.mode = mode
     }

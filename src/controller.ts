@@ -7,6 +7,7 @@ import Logger from "./logging"
 
 import {parser as exmode_parser} from './parsers/exmode'
 import {parser as hintmode_parser} from './hinting_background'
+import {parser as findmode_parser} from './finding_background'
 import * as normalmode from "./parsers/normalmode"
 import * as insertmode from "./parsers/insertmode"
 import * as ignoremode from "./parsers/ignoremode"
@@ -23,6 +24,7 @@ function *ParserController () {
         insert: insertmode.parser,
         ignore: ignoremode.parser,
         hint: hintmode_parser,
+        find: findmode_parser,
         gobble: gobblemode.parser,
         input: inputmode.parser,
     }
@@ -38,7 +40,7 @@ function *ParserController () {
                 // This code was sort of the cause of the most serious bug in Tridactyl
                 // to date (March 2018).
                 // https://github.com/cmcaine/tridactyl/issues/311
-                if (state.mode != "ignore" && state.mode != "hint" && state.mode != "input") {
+                if (state.mode != "ignore" && state.mode != "hint" && state.mode != "input" && state.mode != "find") {
                     if (isTextEditable(keyevent.target)) {
                         if (state.mode !== 'insert') {
                             state.mode = "insert"
