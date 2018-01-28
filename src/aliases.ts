@@ -7,7 +7,7 @@ export function commandIsAlias(command: string): boolean {
 /**
  * Expands the alias in the provided exstr recursively. Does nothing if
  * the command is not aliased, including when the command is invalid.
- * 
+ *
  * @param exstr :exstr typed by the user on the commantd line
  */
 export function expandExstr(exstr: string): string {
@@ -22,8 +22,8 @@ export function expandExstr(exstr: string): string {
 
 /**
  * Expands the given command recursively. Does nothing if the command is not
- * aliased, including when it is invalid. 
- * 
+ * aliased, including when it is invalid.
+ *
  * @param command The command portion of the exstr
  */
 export function getAliasExpandRecur(

@@ -1161,20 +1161,20 @@ export async function buffer(index: number | '#') {
 
 // {{{ SETTINGS
 
-/** 
+/**
  * Similar to vim's `:command`. Maps one ex-mode command to another.
  * If command already exists, this will override it, and any new commands
  * added in a future release will be SILENTLY overridden. Aliases are
  * expanded recursively.
- * 
+ *
  * Examples:
  *  - `command t tabopen`
  *  - `command tn tabnext_gt`
  *  = `command hello t` This will expand recursively into 'hello'->'tabopen'
- * 
+ *
  * Note that this is only for excmd->excmd mappings. To map a normal-mode
  * command to an excommand, see [[bind]].
- * 
+ *
  * See also:
  *  - [[comclear]]
  */
@@ -1195,11 +1195,11 @@ export function command(name: string, ...definition: string[]) {
 
 /**
  * Similar to vim's `comclear` command. Clears an excmd alias defined by
- * `command`. 
- * 
- * For example: `comclear helloworld` will reverse any changes caused 
+ * `command`.
+ *
+ * For example: `comclear helloworld` will reverse any changes caused
  * by `command helloworld xxx`
- * 
+ *
  * See also:
  *  - [[command]]
  */
