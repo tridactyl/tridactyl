@@ -7,7 +7,9 @@ import * as Messaging from './messaging'
 import * as SELF from './commandline_frame'
 import './number.clamp'
 import state from './state'
+import * as Config from './config'
 import Logger from './logging'
+import * as aliases from './aliases'
 const logger = new Logger('cmdline')
 
 let activeCompletions: Completions.CompletionSource[] = undefined
@@ -183,10 +185,13 @@ clInput.addEventListener("keydown", function (keyevent) {
 })
 
 clInput.addEventListener("input", () => {
+    const exstr = clInput.value
+    const expandedCmd = aliases.expandExstr(exstr)
+
     // Fire each completion and add a callback to resize area
     logger.debug(activeCompletions)
     activeCompletions.forEach(comp =>
-        comp.filter(clInput.value).then(() => resizeArea())
+        comp.filter(expandedCmd).then(() => resizeArea())
     )
 })
 
