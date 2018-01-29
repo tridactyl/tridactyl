@@ -77,8 +77,9 @@ function mode(mode: "nav" | "search"){
         // really, this should happen all the time when in search - we always want first result to be green and the window to move to it (if not already on screen)
         findModeState.markedels = Array.from(window.document.getElementsByTagName("mark"))
         findModeState.markpos = 0
-        findModeState.markedels[0].scrollIntoView()
-        findModeState.markedels[0].style.background = "greenyellow"
+        let el = findModeState.markedels[0]
+        if (!DOM.isVisible(el)) el.scrollIntoView()
+        el.style.background = "greenyellow"
     }
 }
 
@@ -90,8 +91,9 @@ function navigate(n: number = 1){
     findModeState.markedels[findModeState.markpos].style.background = "yellow"
     findModeState.markpos += n*findModeState.direction
     // obvs need to do mod to wrap indices
-    findModeState.markedels[findModeState.markpos].scrollIntoView()
-    findModeState.markedels[findModeState.markpos].style.background = "greenyellow"
+    let el = findModeState.markedels[findModeState.markpos]
+    if (!DOM.isVisible(el)) el.scrollIntoView()
+    el.style.background = "greenyellow"
 }
 
 export function findPage(direction?: 1|-1) {
