@@ -97,6 +97,7 @@ import * as config from './config'
 import * as Logging from "./logging"
 const logger = new Logging.Logger('excmds')
 
+import * as aliases from './aliases'
 
 /** @hidden */
 //#background_helper
@@ -426,19 +427,69 @@ export function urlparent (count = 1){
 /**
  * Open a URL made by modifying the current URL
  *
- * @param mode      -t text replace
- *                  -r regexp replace
- *                  -q replace the value of the given query
- *                  -Q delete the given query
- *                  -g graft a new path onto URL or parent path of it
- * @param replacement the replacement arguments:
- *                  -t <old> <new>
- *                  -r <regexp> <new> [flags]
- *                  -q <query> <new_val>
- *                  -Q <query>
- *                  -g <graftPoint> <newPathTail>
- *                      - graftPoint > 1 to count from left
- *                      - graftPoint < 0 to count from right
+ * There are several modes:
+ *
+ * * Text replace mode:   `urlmodify -t <old> <new>`
+ *
+ *   Replaces the first instance of the text `old` with `new`.
+ *      * `http://example.com` -> (`-t exa peta`) -> `http://petample.com`
+ *
+ * * Regex replacment mode: `urlmodify -r <regexp> <new> [flags]`
+ *
+ *   Replaces the first match of the `regexp` with `new`. You can use
+ *   flags `i` and `g` to match case-insensitively and to match
+ *   all instances respectively
+ *      * `http://example.com` -> (`-r [ea] X g`) -> `http://XxXmplX.com`
+ *
+ * * Query replace mode: `urlmodify -q <query> <new_val>`
+ *
+ *   Replace the value of a query with a new one:
+ *      * `http://e.com?id=foo` -> (`-q id bar`) -> `http://e.com?id=bar
+ *
+ * * Query delete mode: `urlmodify -Q <query>`
+ *
+ *   Deletes the given query (and the value if any):
+ *      * `http://e.com?id=foo&page=1` -> (`-Q id`) -> `http://e.com?page=1`
+ *
+ * * Graft mode: `urlmodify -g <graft_point> <new_path_tail>`
+ *
+ *   "Grafts" a new tail on the URL path, possibly removing some of the old
+ *   tail. Graft point indicates where the old URL is truncated before adding
+ *   the new path.
+ *
+ *   * `graft_point` >= 0 counts path levels, starting from the left
+ *   (beginning). 0 will append from the "root", and no existing path will
+ *   remain, 1 will keep one path level, and so on.
+ *   * `graft_point` < 0 counts from the right (i.e. the end of the current
+ *   path). -1 will append to the existing path, -2 will remove the last path
+ *   level, and so on.
+ *
+ *   ```text
+ *   http://website.com/this/is/the/path/component
+ *   Graft point:       ^    ^  ^   ^    ^        ^
+ *   From left:         0    1  2   3    4        5
+ *   From right:       -6   -5 -4  -3   -2       -1
+ *   ```
+ *
+ *   Examples:
+ *
+ *   * `http://e.com/issues/42` -> (`-g 0 foo`) -> `http://e.com/foo`
+ *   * `http://e.com/issues/42` -> (`-g 1 foo`) -> `http://e.com/issues/foo`
+ *   * `http://e.com/issues/42` -> (`-g -1 foo`) -> `http://e.com/issues/42/foo`
+ *   * `http://e.com/issues/42` -> (`-g -2 foo`) -> `http://e.com/issues/foo`
+ *
+ * @param mode      The replace mode:
+ *  * -t text replace
+ *  * -r regexp replace
+ *  * -q replace the value of the given query
+ *  * -Q delete the given query
+ *  * -g graft a new path onto URL or parent path of it
+ * @param replacement the replacement arguments (depends on mode):
+ *  * -t <old> <new>
+ *  * -r <regexp> <new> [flags]
+ *  * -q <query> <new_val>
+ *  * -Q <query>
+ *  * -g <graftPoint> <newPathTail>
  */
 //#content
 export function urlmodify(mode: "-t" | "-r" | "-q" | "-Q" | "-g", ...args: string[]) {
@@ -463,9 +514,10 @@ export function urlmodify(mode: "-t" | "-r" | "-q" | "-Q" | "-g", ...args: strin
                     + "<regexp> <new> [flags]")
             }
 
-            if (args[2] && args[2].search('/^[gi]+$/') === -1)
+            if (args[2] && args[2].search(/^[gi]+$/) === -1)
             {
-                throw new Error("RegExp replacement flags can only include 'g', 'i'")
+                throw new Error("RegExp replacement flags can only include 'g', 'i'"
+                    + ", Got '" + args[2] + "'")
             }
 
             let regexp = new RegExp(args[0], args[2])
@@ -1159,6 +1211,53 @@ export async function buffer(index: number | '#') {
 // }}}
 
 // {{{ SETTINGS
+
+/**
+ * Similar to vim's `:command`. Maps one ex-mode command to another.
+ * If command already exists, this will override it, and any new commands
+ * added in a future release will be SILENTLY overridden. Aliases are
+ * expanded recursively.
+ *
+ * Examples:
+ *  - `command t tabopen`
+ *  - `command tn tabnext_gt`
+ *  = `command hello t` This will expand recursively into 'hello'->'tabopen'
+ *
+ * Note that this is only for excmd->excmd mappings. To map a normal-mode
+ * command to an excommand, see [[bind]].
+ *
+ * See also:
+ *  - [[comclear]]
+ */
+//#background
+export function command(name: string, ...definition: string[]) {
+    // Test if alias creates an alias loop.
+    try {
+        const def = definition.join(" ")
+        // Set alias
+        config.set("exaliases", def, name)
+        aliases.expandExstr(name)
+    } catch(e) {
+        // Warn user about infinite loops
+        fillcmdline_notrail(e, ' Alias unset.')
+        config.unset("exaliases", name)
+    }
+}
+
+/**
+ * Similar to vim's `comclear` command. Clears an excmd alias defined by
+ * `command`.
+ *
+ * For example: `comclear helloworld` will reverse any changes caused
+ * by `command helloworld xxx`
+ *
+ * See also:
+ *  - [[command]]
+ */
+//#background
+export function comclear(name: string) {
+    config.unset("exaliases", name)
+}
 
 /** Bind a sequence of keys to an excmd.
 

@@ -2,6 +2,8 @@
 
 import * as ExCmds from "../excmds_background"
 import * as convert from "../convert"
+import * as Config from "../config"
+import * as aliases from "../aliases"
 import {enumerate, head, izip} from "../itertools"
 
 /* Converts numbers, boolean, string[].
@@ -41,8 +43,11 @@ function convertArgs(params, argv) {
 // TODO: Quoting arguments
 // TODO: Pipe to separate commands
 // TODO: Abbreviated commands
-export function parser(ex_str){
-    let [func,...args] = ex_str.trim().split(/\s+/)
+export function parser(ex_str: string): any[] {
+    // Expand aliases
+    const expandedExstr = aliases.expandExstr(ex_str)
+    const [func,...args] = expandedExstr.trim().split(/\s+/)
+
     if (ExCmds.cmd_params.has(func)) {
         try {
             let typedArgs = convertArgs(ExCmds.cmd_params.get(func), args)
