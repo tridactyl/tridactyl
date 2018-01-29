@@ -23,12 +23,12 @@ import {MsgSafeKeyboardEvent} from './msgsafe'
 */
 export function parser(keys: MsgSafeKeyboardEvent[]) {
     const key = keys[0].key
-    if (key === 'Escape') {
-        reset()
-    } else if (key === 'Enter') {
-        reset({leavemarks: "true"})
-    } else {
-        pushKey(keys[0])
-    }
+    // if (key === 'Escape') {
+    //     reset()
+    // } else if (key === 'Enter') {
+    //     reset({leavemarks: "true"})
+    // } else {
+    pushKey(keys[0])
+    // }
     return {keys: [], ex_str: ''}
 }
