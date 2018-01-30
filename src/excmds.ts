@@ -928,6 +928,17 @@ export async function tabmove(index = "0") {
     if (index.startsWith("+") || index.startsWith("-")) {
         newindex = Math.max(0, Number(index) + aTab.index)
     } else newindex = Number(index) - 1
+    let newtab = (await browser.tabs.query({windowId: aTab.windowId, index: newindex}))[0]
+    // Because a non-pinned tab cannot have index lower than any pinned tab,
+    // newtab must have the same pinned-ness as aTab.
+    // Otherwise find closest valid candidate in the same direction.
+    if (newtab === undefined || newtab.pinned !== aTab.pinned) {
+        const candidates = await browser.tabs.query({windowId: aTab.windowId, pinned: aTab.pinned})
+        candidates.sort((a,b) => {
+            return a.index - b.index
+        })
+        newindex = newindex <= aTab.index ? candidates[0].index : candidates[candidates.length - 1].index
+    }
     browser.tabs.move(aTab.id, {index: newindex})
 }
 
