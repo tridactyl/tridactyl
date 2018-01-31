@@ -590,6 +590,26 @@ export async function reader() {
     }
 }
 
+//@hidden
+//#content_helper
+loadaucmds()
+
+//@hidden
+//#content
+export async function loadaucmds(){
+    console.log("AUCMDS TRIED TO RUN")
+    // for some reason, this never changes from the default, even when there is user config (e.g. set via `aucmd bbc.co.uk mode ignore`)
+    let aucmds = config.get("aucmds")
+    console.log(aucmds)
+    const ausites = Object.keys(aucmds)
+    // yes, this is lazy
+    const aukey = ausites.find(e=>window.document.location.href.includes(e))
+    if (aukey !== undefined){
+        console.log(aukey)
+        Messaging.message("commandline_background", "recvExStr", [aucmds[aukey]])
+    }
+}
+
 /** The kinds of input elements that we want to be included in the "focusinput"
  * command (gi)
  */
@@ -1289,6 +1309,12 @@ export function bind(key: string, ...bindarr: string[]){
 //#background
 export function searchsetkeyword(keyword: string, url: string){
     config.set("searchurls",forceURI(url),keyword)
+}
+
+/** Set aucmds to run when page loads */
+//#background
+export function aucmd(url: string, ...excmd: string[]){
+    config.set("aucmds",excmd.join(" "),url)
 }
 
 /** Unbind a sequence of keys so that they do nothing at all.

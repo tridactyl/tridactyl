@@ -91,6 +91,9 @@ const DEFAULTS = o({
         "zz": "zoom 1",
         ".": "repeat",
     }),
+    "aucmds": o({
+        "memrise.com": "mode ignore"
+    }),
     "exaliases": o({
         "alias": "command",
         "b": "buffer",
