@@ -194,9 +194,12 @@ export function loggingsetlevel(logModule: string, level: string) {
     let newLevel = map[level.toLowerCase()]
 
     if (newLevel !== undefined) {
-        config.set("logging", newLevel, logModule)
+        config.set("logging", logModule, newLevel)
+    } else {
+        throw "Bad log level!"
     }
 }
+
 
 // }}}
 
@@ -599,7 +602,7 @@ loadaucmds()
 export async function loadaucmds(){
     console.log("AUCMDS TRIED TO RUN")
     // for some reason, this never changes from the default, even when there is user config (e.g. set via `aucmd bbc.co.uk mode ignore`)
-    let aucmds = config.get("aucmds")
+    let aucmds = await config.getAsync("autocmds")
     console.log(aucmds)
     const ausites = Object.keys(aucmds)
     // yes, this is lazy
@@ -1255,7 +1258,7 @@ export function command(name: string, ...definition: string[]) {
     try {
         const def = definition.join(" ")
         // Set alias
-        config.set("exaliases", def, name)
+        config.set("exaliases", name, def)
         aliases.expandExstr(name)
     } catch(e) {
         // Warn user about infinite loops
@@ -1302,19 +1305,67 @@ export function comclear(name: string) {
 //#background
 export function bind(key: string, ...bindarr: string[]){
     let exstring = bindarr.join(" ")
-    config.set("nmaps",exstring,key)
+    config.set("nmaps", key, exstring)
 }
 
-/** Set a search engine keyword for use with *open or `set searchengine` */
+/** Set a search engine keyword for use with *open or `set searchengine`
+
+    @deprecated use `set searchurls.KEYWORD URL` instead
+*/
 //#background
 export function searchsetkeyword(keyword: string, url: string){
-    config.set("searchurls",forceURI(url),keyword)
+    config.set("searchurls", keyword, forceURI(url))
+}
+
+/** Set a key value pair in config.
+
+    Use to set any string values found [here](/static/docs/modules/_config_.html#defaults)
+
+    e.g.
+        set searchurls.google https://www.google.com/search?q=
+        set logging.messaging info
+*/
+//#background
+export function setnew(key: string, ...values: string[]) {
+    if (! key || ! values[0]) {
+        throw "Both key and value must be provided!"
+    }
+
+    const target = key.split('.')
+
+    // Special case conversions
+    // TODO: Should we do any special case shit here?
+    switch (target[0]) {
+        case "logging":
+            const map = {
+                "never": Logging.LEVEL.NEVER,
+                "error": Logging.LEVEL.ERROR,
+                "warning": Logging.LEVEL.WARNING,
+                "info": Logging.LEVEL.INFO,
+                "debug": Logging.LEVEL.DEBUG,
+            }
+            let level = map[values[0].toLowerCase()]
+            if (level === undefined) throw "Bad log level!"
+            else config.set(...target, level)
+            return
+    }
+
+    const currentValue = config.get(...target)
+
+    if (Array.isArray(currentValue)) {
+        config.set(...target, values)
+    } else if (typeof currentValue === "string") {
+        config.set(...target, values.join(' '))
+    } else {
+        throw "Unsupported setting type!"
+    }
 }
 
 /** Set aucmds to run when page loads */
+// TODO: Decide on autocmd event names
 //#background
-export function aucmd(url: string, ...excmd: string[]){
-    config.set("aucmds",excmd.join(" "),url)
+export function autocmd(event: 'DocStart', url: string, ...excmd: string[]){
+    config.set("autocmds", event, excmd.join(" "),url)
 }
 
 /** Unbind a sequence of keys so that they do nothing at all.
@@ -1473,27 +1524,6 @@ export async function quickmark(key: string, ...addressarr: string[]) {
 //#background
 export function get(target: string, property?: string){
     console.log(config.get(target,property))
-}
-
-/** Set a setting to a value
-
-    Currently, this only supports string settings without any whitespace
-    (i.e. not nmaps.)
-
-    It can be used on any string <-> string settings found [here](/static/docs/modules/_config_.html#defaults)
-
-*/
-//#background
-export function set(setting: string, ...value: string[]){
-    // We only support setting strings or arrays: not objects
-    let current = config.get(setting)
-    if ((Array.isArray(current) || typeof current == "string")) {
-        if (value.length > 0){
-            if (!Array.isArray(current)){
-                config.set(setting,value[0])
-            } else config.set(setting,value)
-        } else fillcmdline_notrail("set " + setting + " " + config.get(setting))
-    }
 }
 
 //#background
