@@ -5,30 +5,29 @@ export function addurltocsp(response){
     if (cspind > -1) {
         
         // Split the csp header up so we can manage it individually.
-        let csparr = headers[cspind]["value"].split("; ")
-        console.log(headers[cspind]["value"])
+        let csparr = [headers[cspind]["value"].split("; ")][0]
+
+        // TODO: this was part of an attempt to add the extension to the allowed csp, 
+        // never worked properly.
+        // Extension URL
+        //let ext_url = browser.extension.getURL("./").slice(0,-1)
         
-        // Turbo agressive, definitely not secure
+        // Lets clobber CSP
         let i = 0;
         for (i = 0; i < csparr.length; i++) {
-            if (csparr[i] == "sandbox") {
+            // Add 'unsafe-inline' as a directive since we 
+            if (csparr[i].indexOf("style-src") > -1) {
+                if (csparr[i].indexOf("'self'") > -1) {
+                    csparr[i] = csparr[i].replace("'self'","'self' 'unsafe-inline'")
+                }
+            }
+            // Remove the element if it's a sandbox directive
+            if (csparr[i] === "sandbox") {
                 csparr.splice(i,1)
             }
-            if (csparr[i].indexOf("style-src") != -1) {
-                if(csparr[i].indexOf("'self'") != -1) {
-                    csparr[i].replace("'self'","'unsafe-inline'")
-                } else {
-                    csparr[i].concat(" 'unsafe-inline'")
-                }
-            } else if (csparr[i].indexOf("style-src") > -1) {
-                csparr.splice(i,1, "style-src 'unsafe-inline'")
-            }
         }
-
-        console.log(csparr)
+        // Join the header up after clobberin'
         headers[cspind]["value"] = csparr.join("; ")
-        console.log(headers[cspind]["value"])
-
     }
     // min version FF57
     // headers is an array of objects with name, value
