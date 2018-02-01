@@ -341,3 +341,40 @@ export function graftUrlPath(url: URL, newTail: string, level: number) {
 
     return newUrl
 }
+
+/**
+ * Interpolates a query or other search item into a URL
+ *
+ * If the URL pattern contains "%s", the query is interpolated there. If not,
+ * it is appended to the end of the pattern.
+ *
+ * If the interpolation point is in the query string of the URL, it is
+ * percent encoded, otherwise it is is inserted verbatim.
+ *
+ * @param urlPattern        a URL to interpolate/append a query to
+ * @param query             a query to interpolate/append into the URL
+ *
+ * @return                  the URL with the query encoded (if needed) and
+ *                          inserted at the relevant point
+ */
+export function interpolateSearchItem(urlPattern: URL, query: string): URL {
+    const hasInterpolationPoint = urlPattern.href.includes("%s")
+
+    // percent-encode if theres a %s in the query string, or if we're apppending
+    // and there's a query string
+    if (hasInterpolationPoint && (urlPattern.search.includes("%s"))
+            || urlPattern.search !== "") {
+        query = encodeURIComponent(query)
+    }
+
+    let newUrl
+
+    // replace or append as needed
+    if (hasInterpolationPoint) {
+        newUrl = new URL(urlPattern.href.replace("%s", query))
+    } else {
+        newUrl = new URL(urlPattern.href + query)
+    }
+
+    return newUrl
+}
