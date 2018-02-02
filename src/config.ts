@@ -98,7 +98,7 @@ const DEFAULTS = o({
     }),
     "autocmds": o({
         "DocStart": o({
-            "memrise.com": "mode ignore"
+            "addons.mozilla.org": "mode ignore"
         }),
     }),
     "exaliases": o({

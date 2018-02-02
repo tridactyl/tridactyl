@@ -1361,10 +1361,20 @@ export function set(key: string, ...values: string[]) {
     }
 }
 
-/** Set aucmds to run when page loads */
-// TODO: Decide on autocmd event names
+/** Set autocmds to run when certain events happen.
+
+ @param event Curently, only 'DocStart' is supported.
+
+ @param url The URL on which the events will trigger (currently just uses "contains")
+
+ @param excmd The excmd to run (use [[composite]] to run multiple commands)
+
+*/
 //#background
-export function autocmd(event: 'DocStart', url: string, ...excmd: string[]){
+export function autocmd(event: string, url: string, ...excmd: string[]){
+    // rudimentary run time type checking
+    // TODO: Decide on autocmd event names
+    if(!['DocStart'].includes(event)) throw (event + " is not a supported event.")
     config.set("autocmds", event, url, excmd.join(" "))
 }
 
