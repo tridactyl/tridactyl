@@ -1326,7 +1326,7 @@ export function searchsetkeyword(keyword: string, url: string){
         set logging.messaging info
 */
 //#background
-export function setnew(key: string, ...values: string[]) {
+export function set(key: string, ...values: string[]) {
     if (! key || ! values[0]) {
         throw "Both key and value must be provided!"
     }
@@ -1365,7 +1365,7 @@ export function setnew(key: string, ...values: string[]) {
 // TODO: Decide on autocmd event names
 //#background
 export function autocmd(event: 'DocStart', url: string, ...excmd: string[]){
-    config.set("autocmds", event, excmd.join(" "),url)
+    config.set("autocmds", event, url, excmd.join(" "))
 }
 
 /** Unbind a sequence of keys so that they do nothing at all.
@@ -1528,6 +1528,7 @@ export function get(target: string, property?: string){
 
 //#background
 export function unset(target: string, property?: string){
+    if(target === undefined) throw("You must define a target!")
     config.unset(target,property)
 }
 
