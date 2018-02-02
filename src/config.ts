@@ -103,6 +103,7 @@ const DEFAULTS = o({
     }),
     "exaliases": o({
         "alias": "command",
+        "au": "autocmd",
         "b": "buffer",
         "o": "open",
         "w": "winopen",
@@ -224,10 +225,10 @@ export function get(...target) {
 */
 export async function getAsync(...target) {
     if (INITIALISED) {
-        return get(target)
+        return get(...target)
     } else {
         return new Promise((resolve) =>
-            WAITERS.push(() => resolve(get(target)))
+            WAITERS.push(() => resolve(get(...target)))
         )
     }
 }

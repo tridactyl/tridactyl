@@ -602,7 +602,7 @@ loadaucmds()
 export async function loadaucmds(){
     console.log("AUCMDS TRIED TO RUN")
     // for some reason, this never changes from the default, even when there is user config (e.g. set via `aucmd bbc.co.uk mode ignore`)
-    let aucmds = await config.getAsync("autocmds")
+    let aucmds = await config.getAsync("autocmds", "DocStart")
     console.log(aucmds)
     const ausites = Object.keys(aucmds)
     // yes, this is lazy
@@ -1527,9 +1527,10 @@ export function get(target: string, property?: string){
 }
 
 //#background
-export function unset(target: string, property?: string){
+export function unset(...keys: string[]){
+    const target = keys.join('.').split('.')
     if(target === undefined) throw("You must define a target!")
-    config.unset(target,property)
+    config.unset(...target)
 }
 
 // not required as we automatically save all config
