@@ -187,7 +187,7 @@ function getDeepProperty(obj, target) {
 
     @param target path of properties as an array
 */
-function setDeepProperty(obj, value, ...target) {
+function setDeepProperty(obj, value, target) {
     if (target.length > 1) {
         // If necessary antecedent objects don't exist, create them.
         if (obj[target[0]] === undefined) {
