@@ -367,14 +367,10 @@ export function interpolateSearchItem(urlPattern: URL, query: string): URL {
         query = encodeURIComponent(query)
     }
 
-    let newUrl
-
     // replace or append as needed
     if (hasInterpolationPoint) {
-        newUrl = new URL(urlPattern.href.replace("%s", query))
+        return new URL(urlPattern.href.replace("%s", query))
     } else {
-        newUrl = new URL(urlPattern.href + query)
+        return new URL(urlPattern.href + query)
     }
-
-    return newUrl
 }
