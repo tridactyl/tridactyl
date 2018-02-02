@@ -86,8 +86,8 @@ import {ModeName} from './state'
 import * as keydown from "./keydown_background"
 //#background_helper
 import {activeTab, activeTabId, firefoxVersionAtLeast} from './lib/webext'
-//#content_helper
 import * as UrlUtil from "./url_util"
+
 //#background_helper
 import * as CommandLineBackground from './commandline_background'
 //#content_helper
@@ -122,12 +122,7 @@ function searchURL(provider: string, query: string) {
         throw new TypeError(`Unknown provider: '${provider}'`)
     }
 
-    // build search URL: either replace "%s" in URL with query or append query to URL
-    const url = searchurlprovider.includes("%s") ?
-        new URL(searchurlprovider.replace("%s", encodeURIComponent(query))) :
-        new URL(searchurlprovider + encodeURIComponent(query))
-
-    return url
+    return UrlUtil.interpolateSearchItem(new URL(searchurlprovider), query)
 }
 
 /** If maybeURI doesn't have a schema, affix http:// */
@@ -1308,10 +1303,17 @@ export function bind(key: string, ...bindarr: string[]){
     config.set("nmaps", key, exstring)
 }
 
-/** Set a search engine keyword for use with *open or `set searchengine`
-
-    @deprecated use `set searchurls.KEYWORD URL` instead
-*/
+/** 
+ * Set a search engine keyword for use with *open or `set searchengine`
+ *
+ * @deprecated use `set searchurls.KEYWORD URL` instead
+ *
+ * @param keyword   the keyword to use for this search (e.g. 'esa')
+ * @param url       the URL to interpolate the query into. If %s is found in
+ *                  the URL, the query is inserted there, else it is appended.
+ *                  If the insertion point is in the "query string" of the URL,
+ *                  the query is percent-encoded, else it is verbatim.
+ **/
 //#background
 export function searchsetkeyword(keyword: string, url: string){
     config.set("searchurls", keyword, forceURI(url))
