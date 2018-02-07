@@ -151,7 +151,7 @@ const DEFAULTS = o({
     "newtab": "",
     "storageloc": "sync",
     "homepages": [],
-    "hintchars": "hjklasdfgyuiopqwertnmzxcvb",
+    "hintchars": "HJKLASDFGYUIOPQWERTNMZXCVB",
 
     "ttsvoice": "default",  // chosen from the listvoices list, or "default"
     "ttsvolume": 1,         // 0 to 1

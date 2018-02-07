@@ -1590,7 +1590,7 @@ import * as hinting from './hinting_background'
     To open a hint in the background, the default bind is `F`.
 
     Related settings:
-        "hintchars": "hjklasdfgyuiopqwertnmzxcvb"
+        "hintchars": "HJKLASDFGYUIOPQWERTNMZXCVB"
 */
 //#background
 export function hint(option?: string, selectors="") {

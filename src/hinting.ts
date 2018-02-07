@@ -13,7 +13,7 @@
 import * as DOM from './dom'
 import {log} from './math'
 import {permutationsWithReplacement, islice, izip, map} from './itertools'
-import {hasModifiers} from './keyseq'
+import {hasNonShiftModifiers} from './keyseq'
 import state from './state'
 import {messageActiveTab, message} from './messaging'
 import * as config from './config'
@@ -190,7 +190,7 @@ function reset() {
 
 /** If key is in hintchars, add it to filtstr and filter */
 function pushKey(ke) {
-    if (hasModifiers(ke)) {
+    if (hasNonShiftModifiers(ke)) {
         return
     } else if (ke.key === 'Backspace') {
         modeState.filter = modeState.filter.slice(0,-1)
@@ -200,6 +200,13 @@ function pushKey(ke) {
     } else if (modeState.hintchars.includes(ke.key)) {
         modeState.filter += ke.key
         filter(modeState.filter)
+    } else {
+        let regexp = new RegExp(ke.key, "i")
+        let m = modeState.hintchars.match(regexp)
+        if (m) {
+            modeState.filter += m
+            filter(modeState.filter)
+        }
     }
 }
 
