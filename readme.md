@@ -12,18 +12,103 @@ Type `:help` for online help once you're in :)
 
 Remember that tridactyl cannot run on any page on addons.mozilla.org, about:\*, data:\*, view-source:\* and file:\*. We're sorry about that and we're working with Firefox to improve this situation by removing restrictions on existing APIs and developing a new API.
 
-## Highlighted features:
+## Highlighted features
 
-- Press `b` to bring up a list of open tabs in the current window; you can type the tab ID or part of the title or URL to choose a tab
-- Press `I` to enter ignore mode. `Shift` + `Escape` to return to normal mode.
-- Press `f` to start "hint mode", `F` to open in background
-- Press `o` to `:open` a different page
-- Press `s` if you want to search for something that looks like a domain name or URL
-- Bind new commands with e.g. `:bind J tabprev`. Type `:help bind` to see help on custom binds.
-- Type `:help` for online help
-- Use `yy` to copy the current page URL to your clipboard
-- `]]` and `[[` to navigate through the pages of comics, paginated articles, etc.
-- Pressing `ZZ` will close all tabs and windows, but it will only "save" them if your about:preferences are set to "show your tabs and windows from last time"
+Like Vim, Tridactyl is modal, with the default mode being "normal mode". In
+"normal mode", many functions are available using keybindings. In "command
+mode" (when the command line is shown), you can execute more complex commands,
+known as "ex-commands". All Tridactyl functionality can be accessed by 
+ex-commands. You can bind any ex-command to a normal-mode shortcut.
+
+### Default normal-mode bindings
+
+This is a (non-exhaustive) list of the most command normal-mode bindings. Type
+`:help` to open the online help for more details.
+
+- `:` — activate the command line
+- `I` — enter ignore mode. `Shift-Escape` to return to normal mode
+- `ZZ` — close all tabs and windows, but only "save" them if your
+  about:preferences are set to "show your tabs and windows from last time"
+- `.` — repeat the last command
+
+#### Navigating with the current page
+
+- `j`/`k` — scroll down/up
+- `h`/`l` — scroll left/right
+- `^`/`$` — scroll to left/right margin
+- `gg`/`G` — scroll to start/end of page
+- `f`/`F` — enter "hint mode" to select a link to follow. `F` to open in a
+  background tab
+- `gi` — scroll to and focus the last-used input on the page
+- `r`/`R` — reload page or hard reload page
+- `yy` — copy the current page URL to the clipboard
+- `[[`/`]]` — navigate forward/backward though paginated pages, for example
+  comics, multi-part articles, search result pages, etc.
+- `]c`/`[c` — increment/decrement the current URL by 1
+- `gu` — go to the parent of the current URL
+- `gU` — go to the root domain of the current URL
+- `gr` — open Firefox reader mode (note: Tridactyl will not work in this mode)
+- `zi`/`zo`/`zz` — zoom in/out/reset zoom
+
+#### Find mode
+
+Find mode is still incomplete and uses the built-in Firefox search. This will
+be improved eventually.
+
+- `/` — open the find search box
+- `C-g`/`C-G` — find the next/previous instance of the last find operation
+  (note: these are the standard Firefox shortcuts)
+
+#### Bookmarks and quickmarks
+
+- `A` — bookmark the current page
+- `a` — bookmark the current page, but allow the URL to be modified first
+- `M<key>` — bind a quickmark to the given key
+- `go<key>`/`gn<key>`/`gw<key>` — open a given quickmark in current tab/new tab/new window
+
+#### Navigating to new pages:
+
+- `o`/`O` — open a URL (or default search) in this tab (`O` to pre-load current URL)
+- `t`/`T` — open a URL (or default search) in a new tab (`T` to pre-load current URL)
+- `w`/`W` — open a URL (or default search) in a new window (`W` to pre-load current URL)
+- `p`/`P` — open the clipboard contents in the current/new tab
+- `s`/`S` — force a search using the default Tridactyl search engine, opening
+  in the current/new tab. This is useful when searching for something that
+  would otherwise be treated as a URL by `o` or `t`
+- `H`/`L` — go back/forward in the tab history
+- `gh`/`gH` — go to the home page (in a new tab)
+
+#### Handling tabs
+
+- `d` — close the current tab
+- `u` — undo the last tab/window closure
+- `gt`/`gT` — go to the next/previous tab
+- `g^`/`g$` — go to the first/last tab
+- `b` — bring up a list of open tabs in the current window; you can type the 
+  tab ID or part of the title or URL to choose a tab
+
+#### Extended hint mode
+
+Extended hint modes allow you to perform actions on page items:
+
+- `;i`/`;I` — open an image (in current/new tab)
+- `;s`/`;a` — save/save-as the linked resource
+- `;S`/`;A` — save/save-as the selected image
+- `;p` — copy an element's text to the clipboard
+- `;y` — copy an element's link URL to the clipboard
+- `;#` — copy an element's anchor URL to the clipboard
+- `;r` — read the element's text with text-to-speech
+- `;k` — delete an element from the page
+- `;;` — focus an element
+
+Additionally, you can bind to a custom CSS selector with `:hint -c [selector]`
+which is useful for site-specific versions of the standard `f` hint mode.
+
+### Binding custom commands
+
+You can bind your own shortcuts in normal mode with the `:bind` command.
+For example `:bind J tabprev` to bind `J` to switch to the previous tab.
+See `:help bind` for details about this command.
 
 NOTE: key modifiers (eg: control, alt) are not supported yet. See the FAQ below.
 
