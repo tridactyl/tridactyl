@@ -144,7 +144,7 @@ type HintSelectedCallback = (Hint) => any
 
 /** Place a flag by each hintworthy element */
 class Hint {
-    private readonly flag = document.createElement('span')
+    public readonly flag = document.createElement('span')
 
     constructor(
         private readonly target: Element,
@@ -212,7 +212,7 @@ function buildHintsVimperator(els: Element[], onSelect: HintSelectedCallback) {
     const filterableTextFilter = new RegExp('[' + escapedHintChars + ']', 'gi')
     for (let [el, name] of izip(els, names)) {
         let ft = elementFilterableText(el)
-        // strip out non-alphanumeric characters and hintchars.
+        // strip out hintchars
         ft = ft.replace(filterableTextFilter, '')
         logger.debug({el, name, ft})
         modeState.hintchars += name + ft
@@ -260,63 +260,85 @@ function filterHintsSimple(fstr) {
     }
 }
 
+/** Partition the filter string into hintchars and content filter strings.
+    Apply each part in sequence, reducing the list of active hints.
+
+    Update display after all filtering, adjusting labels if appropriate.
+
+    Consider: This is a poster child for separating data and display. If they
+    weren't so tied here we could do a neat dynamic programming thing and just
+    throw the data at a reactalike.
+*/
 function filterHintsVimperator(fstr, reflow=false) {
-    let active = modeState.hints.map(h => {
-        return {
-            'hint': h,
-            'name': h.name,
-            'data': h.filterData,
-        }
-    })
 
-    for (let c of fstr) {
-        const nextActive = []
-        if (config.get("hintchars").includes(c)) {
-            // if this is a hintchar, don't reflow, just filter
-            for (let act of active) {
-                if (act.name.startsWith(c)) {
-                    act.name = act.name.slice(c.length)
-                    nextActive.push(act)
-                } else {
-                    act.hint.hidden = true
-                }
+    /** Partition a fstr into a tagged array of substrings */
+    function partitionFstr(fstr) {
+        const peek = (a) => a[a.length - 1]
+        const hintChars = config.get('hintchars')
+
+        // For each char, either add it to the existing run if there is one and
+        // it's a matching type or start a new run
+        const runs = []
+        for (const char of fstr) {
+            const isHintChar = hintChars.includes(char)
+            if (! peek(runs) || peek(runs).isHintChar !== isHintChar) {
+                runs.push({str: char, isHintChar})
+            } else {
+                peek(runs).str += char
             }
+        }
+        return runs
+    }
+
+    function rename(hints) {
+        const names = hintnames(hints.length)
+        for (const [hint, name] of izip(hints, names)) {
+            hint.name = name
+        }
+    }
+
+    // Start with all hints
+    let active = modeState.hints
+
+    // If we're reflowing, the names may be wrong at this point, so apply the original names.
+    if (reflow) rename(active)
+
+    // Filter down (renaming as required)
+    for (const run of partitionFstr(fstr)) {
+        if (run.isHintChar) {
+            // Filter by label
+            active = active.filter(hint => hint.name.startsWith(run.str))
         } else {
-            // if this is a non-hintchar, filter...
-            for (let act of active) {
-                const idx = act.data.indexOf(c.toLowerCase())
-                if (-1 != idx) {
-                    act.data = act.data.slice(idx)
-                    nextActive.push(act)
-                } else {
-                    act.hint.hidden = true
-                }
-            }
-            if (reflow) {
-                // ...and then reflow the remaining active hints
-                let names = hintnames(nextActive.length)
-                for (let [act, name] of izip(nextActive, names)) {
-                    act.name = name
-                    act.hint.flag.textContent = name
-                }
-            }
+            // By text
+            active = active.filter(hint => hint.filterData.includes(run.str))
         }
-        active = nextActive
+
+        if (reflow && ! run.isHintChars) {
+            rename(active)
+        }
     }
 
-    for (let act of active) {
-        act.hint.hidden = false
+    // Update display
+    // Hide all hints
+    for (const hint of modeState.hints) {
+        // Warning: this could cause flickering.
+        hint.hidden = true
     }
-
-    if (active.length > 0) {
-        const firstActiveHint = active[0].hint
+    // Show and update labels of active
+    for (const hint of active) {
+        hint.hidden = false
+        hint.flag.textContent = hint.name
+    }
+    // Focus first hint
+    if (active.length) {
         if (modeState.focusedHint) {
             modeState.focusedHint.focused = false
         }
-        firstActiveHint.focused = true
-        modeState.focusedHint = firstActiveHint
+        active[0].focused = true
+        modeState.focusedHint = active[0]
     }
 
+    // Select focused hint if it's the only match
     if (active.length == 1) {
         selectFocusedHint()
     }
@@ -335,12 +357,12 @@ function pushKey(ke) {
         return
     } else if (ke.key === 'Backspace') {
         modeState.filter = modeState.filter.slice(0,-1)
-        filter(modeState.filter)
+        modeState.filterFunc(modeState.filter)
     } else if (ke.key.length > 1) {
         return
     } else if (modeState.hintchars.includes(ke.key)) {
         modeState.filter += ke.key
-        filter(modeState.filter)
+        modeState.filterFunc(modeState.filter)
     }
 }
 
