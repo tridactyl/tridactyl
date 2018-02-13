@@ -92,26 +92,37 @@ function defaultHintFilter() {
     }
 }
 
-/** vimperator-style minimal hint names */
+/** An infinite stream of hints
+
+    Earlier hints prefix later hints
+*/
+function* hintnames_simple(hintchars = config.get("hintchars")): IterableIterator<string> {
+    for (let taglen = 1; true; taglen++) {
+        yield* map(
+            permutationsWithReplacement(hintchars, taglen),
+            e => e.join('')
+        )
+    }
+}
+
+/** Shorter hints
+
+    Hints that are prefixes of other hints are a bit annoying because you have to select them with Enter or Space.
+
+    This function removes hints that prefix other hints by observing that:
+        let h = hintchars.length
+        if n < h ** 2
+        then n / h = number of single character hintnames that would prefix later hints
+
+    So it removes them. This function is not yet clever enough to realise that if n > h ** 2 it should remove
+        h + (n - h**2 - h) / h ** 2
+    and so on, but we hardly ever see that many hints, so whatever.
+    
+*/
 function* hintnames(n: number, hintchars = config.get("hintchars")): IterableIterator<string> {
-    let taglen = 1
-    var source = permutationsWithReplacement(hintchars, taglen)
-    for (let i = 0;i < Math.floor(n / hintchars.length);i++) {
-        // drop hints that will be used as the prefix of longer hints
-        if (source.next()['done']) {
-            // if the current taglen tags are exhausted, increase the length
-            taglen++
-            source = permutationsWithReplacement(hintchars, taglen)
-            source.next()
-        }
-    }
-    while (true) {
-        yield* map(source, e=>{
-            return e.join('')
-        })
-        taglen++
-        source = permutationsWithReplacement(hintchars, taglen)
-    }
+    let source = hintnames_simple(hintchars)
+    const num2skip = Math.floor(n / hintchars.length)
+    yield* islice(source, num2skip, n + num2skip)
 }
 
 /** Uniform length hintnames */
