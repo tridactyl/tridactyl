@@ -222,24 +222,18 @@ function buildHintsVimperator(els: Element[], onSelect: HintSelectedCallback) {
 
 function elementFilterableText(el: Element): string {
     const nodename = el.nodeName.toLowerCase()
+    let text: string
     if (nodename == 'input') {
-        return (<HTMLInputElement>el).value.toLowerCase()
-    // } else if (nodename == 'a'
-    //            && !el.textContent.trim()
-    //            && el.firstElementChild
-    //            && el.firstElementChild.nodeName.toLowerCase() == 'img') {
-    //     return el.firstElementChild.alt || el.firstElementChild.title
+        text = (<HTMLInputElement>el).value
     } else if (0 < el.textContent.length) {
-        return el.textContent.toLowerCase() || ''
+        text = el.textContent
     } else if (el.hasAttribute('title')) {
-        return el.getAttribute('title').toLowerCase() || ''
+        text = el.getAttribute('title')
     } else {
-        return el.innerHTML.toLowerCase() || ''
+        text = el.innerHTML
     }
-}
-
-function filter(fstr) {
-    modeState.filterFunc(fstr)
+    // Truncate very long text values
+    return text.slice(0,2048).toLowerCase() || ''
 }
 
 type HintFilter = (string) => void
