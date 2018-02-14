@@ -268,7 +268,7 @@ function filterHintsSimple(fstr) {
 function filterHintsVimperator(fstr, reflow=false) {
 
     /** Partition a fstr into a tagged array of substrings */
-    function partitionFstr(fstr) {
+    function partitionFstr(fstr): {str: string, isHintChar: boolean}[] {
         const peek = (a) => a[a.length - 1]
         const hintChars = config.get('hintchars')
 
@@ -309,7 +309,7 @@ function filterHintsVimperator(fstr, reflow=false) {
             active = active.filter(hint => hint.filterData.includes(run.str))
         }
 
-        if (reflow && ! run.isHintChars) {
+        if (reflow && ! run.isHintChar) {
             rename(active)
         }
     }
