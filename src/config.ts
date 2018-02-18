@@ -125,6 +125,10 @@ const DEFAULTS = o({
         "bd": "tabclose",
         "bdelete": "tabclose",
     }),
+    followpagepatterns: o({
+        next: "^(next|newer)\\b|»|>>",
+        prev: "^(prev(ious)?|older)\\b|«|<<",
+    }),
     "searchengine": "google",
     "searchurls": o({
         "google":"https://www.google.com/search?q=",

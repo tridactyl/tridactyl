@@ -103,12 +103,6 @@ import * as aliases from './aliases'
 //#background_helper
 export const cmd_params = new Map<string, Map<string, string>>()
 
-// map a page-relation (next or previous) to a fallback pattern to match link texts against
-const REL_PATTERN = {
-    next: /^(?:next|newer)\b|»|>>/i,
-    prev: /^(?:prev(?:ious)?|older)\b|«|<</i,
-}
-
 /** @hidden */
 function hasScheme(uri: string) {
     return uri.match(/^([\w-]+):/)
@@ -365,9 +359,18 @@ function selectLast(selector: string): HTMLElement | null {
 }
 
 /** Find a likely next/previous link and follow it
- *
- * @param rel   the relation of the target page to the current page: "next" or "prev"
- */
+
+    If a link or anchor element with rel=rel exists, use that, otherwise find the last anchor on the page with innerText matching the appropriate `followpagepattern`.
+
+    If you want to support e.g. French:
+
+    ```
+    set followpagepatterns.next ^(next|newer|prochain)\b|»|>>
+    set followpagepatterns.prev ^(prev(ious)?|older|précédent)\b|»|>>
+    ```
+
+    @param rel   the relation of the target page to the current page: "next" or "prev"
+*/
 //#content
 export function followpage(rel: 'next'|'prev' = 'next') {
     const link = <HTMLLinkElement>selectLast(`link[rel~=${rel}][href]`)
@@ -378,10 +381,10 @@ export function followpage(rel: 'next'|'prev' = 'next') {
     }
 
     const anchor = <HTMLAnchorElement>selectLast(`a[rel~=${rel}][href]`) ||
-        findRelLink(REL_PATTERN[rel])
+        findRelLink(new RegExp(config.get("followpagepatterns", rel), "i"))
 
     if (anchor) {
-        anchor.click()
+        DOM.mouseEvent(anchor, "click")
     }
 }
 
