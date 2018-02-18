@@ -60,7 +60,7 @@ export function hintPage(
         logger.debug("hints", modeState.hints)
         modeState.focusedHint = modeState.hints[0]
         modeState.focusedHint.focused = true
-        document.body.appendChild(modeState.hintHost)
+        document.documentElement.appendChild(modeState.hintHost)
     } else {
         reset()
     }
