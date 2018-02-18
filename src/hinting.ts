@@ -470,18 +470,7 @@ const HINTTAGS_saveable = `
 [href]:not([href='#'])
 `
 
-import {activeTab, browserBg, l, firefoxVersionAtLeast} from './lib/webext'
-
-async function openInBackground(url: string) {
-    const thisTab = await activeTab()
-    const options: any = {
-        active: false,
-        url,
-        index: thisTab.index + 1,
-    }
-    if (await l(firefoxVersionAtLeast(57))) options.openerTabId = thisTab.id
-    return browserBg.tabs.create(options)
-}
+import {openInNewTab} from './lib/webext'
 
 /** if `target === _blank` clicking the link is treated as opening a popup and is blocked. Use webext API to avoid that. */
 function simulateClick(target: HTMLElement) {
@@ -493,7 +482,7 @@ function simulateClick(target: HTMLElement) {
     if ((target as HTMLAnchorElement).target === '_blank' ||
         (target as HTMLAnchorElement).target === '_new'
     ) {
-        browserBg.tabs.create({url: (target as HTMLAnchorElement).href})
+        openInNewTab((target as HTMLAnchorElement).href)
     } else {
         DOM.mouseEvent(target, "click")
         // Sometimes clicking the element doesn't focus it sufficiently.
@@ -506,7 +495,7 @@ function hintPageOpenInBackground() {
         hint.target.focus()
         if (hint.target.href) {
             // Try to open with the webext API. If that fails, simulate a click on this page anyway.
-            openInBackground(hint.target.href).catch(()=>simulateClick(hint.target))
+            openInNewTab(hint.target.href, false).catch(()=>simulateClick(hint.target))
         } else {
             // This is to mirror vimperator behaviour.
             simulateClick(hint.target)
@@ -556,7 +545,7 @@ function hintImage(inBackground) {
         let img_src = hint.target.getAttribute("src")
 
         if (inBackground) {
-            openInBackground(new URL(img_src, window.location.href).href)
+            openInNewTab(new URL(img_src, window.location.href).href, false)
         } else {
             window.location.href = img_src
         }

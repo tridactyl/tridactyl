@@ -803,14 +803,22 @@ export async function tablast() {
     tabIndexSetActive(0)
 }
 
-/** Like [[open]], but in a new tab. If no address is given, it will open the newtab page, which can be set with `set newtab [url]` */
+/** Like [[open]], but in a new tab. If no address is given, it will open the newtab page, which can be set with `set newtab [url]`
+
+    Unlike Firefox's Ctrl-t shortcut, this opens tabs immediately after the
+    currently active tab rather than at the end of the tab list because that is
+    the author's preference. Open an issue if you don't like it :)
+*/
 //#background
 export async function tabopen(...addressarr: string[]) {
     let uri
     let address = addressarr.join(' ')
     if (address != "") uri = forceURI(address)
     else uri = forceURI(config.get("newtab"))
-    browser.tabs.create({url: uri})
+    browser.tabs.create({
+        url: uri,
+        index: (await activeTabId()) + 1
+    })
 }
 
 /** Resolve a tab index to the tab id of the corresponding tab in this window.
@@ -1303,7 +1311,7 @@ export function bind(key: string, ...bindarr: string[]){
     config.set("nmaps", key, exstring)
 }
 
-/** 
+/**
  * Set a search engine keyword for use with *open or `set searchengine`
  *
  * @deprecated use `set searchurls.KEYWORD URL` instead

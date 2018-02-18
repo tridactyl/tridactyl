@@ -52,3 +52,18 @@ export async function firefoxVersionAtLeast(desiredmajor: number) {
     const actualmajor = convert.toNumber(versionstr.split('.')[0])
     return actualmajor >= desiredmajor
 }
+
+/** Open a new tab with a URL as if that URL had been middle clicked on the current tab
+
+    i.e. place that tab just after the current tab and set openerTabId
+*/
+export async function openInNewTab(url: string, active = true) {
+    const thisTab = await activeTab()
+    const options: any = {
+        active,
+        url,
+        index: thisTab.index + 1,
+    }
+    if (await l(firefoxVersionAtLeast(57))) options.openerTabId = thisTab.id
+    return browserBg.tabs.create(options)
+}
