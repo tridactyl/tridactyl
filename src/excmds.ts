@@ -337,25 +337,23 @@ export async function help(excmd?: string) {
 // Find clickable next-page/previous-page links whose text matches the supplied pattern,
 // and return the last such link.
 //
-// If no matching link is found, return null.
+// If no matching link is found, return undefined.
 //
 // We return the last link that matches because next/prev buttons tend to be at the end of the page
 // whereas lots of blogs have "VIEW MORE" etc. plastered all over their pages.
+//#content_helper
 function findRelLink(pattern: RegExp): HTMLAnchorElement | null {
-    const links = <NodeListOf<HTMLAnchorElement>>document.querySelectorAll('a[href]')
+    // querySelectorAll returns a "non-live NodeList" which is just a shit array without working reverse() or find() calls, so convert it.
+    const links = Array.from(
+        <NodeListOf<HTMLAnchorElement>>document.querySelectorAll('a[href]'))
 
-    let lastLink = null
+    // Find the last link that matches the test
+    return links.reverse().find(link => pattern.test(link.innerText))
 
-    for (const link of links) {
-        // `innerText` gives better (i.e. less surprising) results than `textContent`
-        // at the expense of being much slower, but that shouldn't be an issue here
-        // as it's a one-off operation that's only performed when we're leaving a page
-        if (pattern.test(link.innerText)) {
-            lastLink = link
-        }
-    }
-
-    return lastLink
+    // Note:
+    // `innerText` gives better (i.e. less surprising) results than `textContent`
+    // at the expense of being much slower, but that shouldn't be an issue here
+    // as it's a one-off operation that's only performed when we're leaving a page
 }
 
 /** @hidden */
