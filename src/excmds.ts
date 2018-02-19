@@ -4,7 +4,8 @@
 
     Use `:help <excmd>` or scroll down to show [[help]] for a particular excmd.
 
-    The default keybinds can be found [here](/static/docs/modules/_config_.html#defaults)
+    The default keybinds can be found [here](/static/docs/modules/_config_.html#defaults).
+    You can also view them with [[bind]]. Try `bind j`.
 
     Tridactyl is in a pretty early stage of development. Please report any
     issues and make requests for missing features on the GitHub [project page][1].
@@ -1286,7 +1287,7 @@ export function comclear(name: string) {
     config.unset("exaliases", name)
 }
 
-/** Bind a sequence of keys to an excmd.
+/** Bind a sequence of keys to an excmd or view bound sequence.
 
     This is an easier-to-implement bodge while we work on vim-style maps.
 
@@ -1296,6 +1297,11 @@ export function comclear(name: string) {
         - `bind D composite tabclose | buffer #`
         - `bind j scrollline 20`
         - `bind F hint -b`
+
+    You can view binds by omitting the command line:
+
+        - `bind j`
+        - `bind k`
 
     Use [[composite]] if you want to execute multiple excmds. Use
     [[fillcmdline]] to put a string in the cmdline and focus the cmdline
@@ -1308,8 +1314,13 @@ export function comclear(name: string) {
 */
 //#background
 export function bind(key: string, ...bindarr: string[]){
-    let exstring = bindarr.join(" ")
-    config.set("nmaps", key, exstring)
+    if (bindarr.length) {
+        let exstring = bindarr.join(" ")
+        config.set("nmaps", key, exstring)
+    } else {
+        // Display the existing bind
+        fillcmdline_notrail("#", key, "=", config.get("nmaps", key))
+    }
 }
 
 /**
@@ -1542,10 +1553,22 @@ export async function quickmark(key: string, ...addressarr: string[]) {
     }
 }
 
+/** Puts the contents of config value with keys `keys` into the commandline and the background page console
+
+    It's a bit rubbish, but we don't have a good way to provide feedback to the commandline yet.
+
+    You can view the log entry in the browser console (Ctrl-Shift-j).
+*/
 //#background
 export function get(...keys: string[]) {
     const target = keys.join('.').split('.')
-    console.log(config.get(...target))
+    const value = config.get(...target)
+    console.log(value)
+    if (typeof value === "object") {
+        fillcmdline_notrail(`# ${keys.join('.')} = ${JSON.stringify(value)}`)
+    } else {
+        fillcmdline_notrail(`# ${keys.join('.')} = ${value}`)
+    }
 }
 
 //#background
@@ -1698,7 +1721,7 @@ export async function ttsvoices() {
     let voices = TTS.listVoices()
 
     // need a better way to show this to the user
-    fillcmdline_notrail(voices.sort().join(", "))
+    fillcmdline_notrail("#", voices.sort().join(", "))
 }
 
 /**
