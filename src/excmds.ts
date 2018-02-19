@@ -1414,7 +1414,7 @@ export function autocmd(event: string, url: string, ...excmd: string[]){
 */
 //#background
 export async function unbind(key: string){
-    bind(key, "")
+    config.set("nmaps", key, "")
 }
 
 /** Restores a sequence of keys to their default value.
