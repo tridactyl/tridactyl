@@ -361,7 +361,10 @@ function selectLast(selector: string): HTMLElement | null {
 
 /** Find a likely next/previous link and follow it
 
-    If a link or anchor element with rel=rel exists, use that, otherwise find the last anchor on the page with innerText matching the appropriate `followpagepattern`.
+    If a link or anchor element with rel=rel exists, use that, otherwise fall back to:
+    
+        1) find the last anchor on the page with innerText matching the appropriate `followpagepattern`.
+        2) call [[urlincrement]] with 1 or -1
 
     If you want to support e.g. French:
 
@@ -386,6 +389,8 @@ export function followpage(rel: 'next'|'prev' = 'next') {
 
     if (anchor) {
         DOM.mouseEvent(anchor, "click")
+    } else {
+        urlincrement(rel === "next" ? 1 : -1)
     }
 }
 
