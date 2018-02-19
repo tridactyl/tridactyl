@@ -219,7 +219,11 @@ export function get(...target) {
     if (defult && (! Array.isArray(defult) && typeof defult === "object")) {
         return Object.assign(o({}), defult, user)
     } else {
-        return user || defult
+        if (user !== undefined) {
+            return user
+        } else {
+            return defult
+        }
     }
 }
 
@@ -246,12 +250,12 @@ export async function getAsync(...target) {
         set("aucmd", "BufRead", "memrise.com", "open memrise.com")
 */
 export function set(...args) {
-    const target = args.slice(0, args.length - 1)
-    const value = args[args.length - 1]
-
     if (args.length < 2) {
         throw "You must provide at least two arguments!"
     }
+
+    const target = args.slice(0, args.length - 1)
+    const value = args[args.length - 1]
 
     setDeepProperty(USERCONFIG, value, target)
     save()
@@ -260,7 +264,7 @@ export function set(...args) {
 /** Delete the key at target if it exists */
 export function unset(...target) {
     const parent = getDeepProperty(USERCONFIG, target.slice(0, -1))
-    if (parent) delete parent[target[target.length - 1]]
+    if (parent !== undefined) delete parent[target[target.length - 1]]
     save()
 }
 
