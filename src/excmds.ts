@@ -1543,8 +1543,9 @@ export async function quickmark(key: string, ...addressarr: string[]) {
 }
 
 //#background
-export function get(target: string, property?: string){
-    console.log(config.get(target,property))
+export function get(...keys: string[]) {
+    const target = keys.join('.').split('.')
+    console.log(config.get(...target))
 }
 
 //#background
