@@ -1317,7 +1317,7 @@ export function bind(key: string, ...bindarr: string[]){
     if (bindarr.length) {
         let exstring = bindarr.join(" ")
         config.set("nmaps", key, exstring)
-    } else {
+    } else if (key.length) {
         // Display the existing bind
         fillcmdline_notrail("#", key, "=", config.get("nmaps", key))
     }
