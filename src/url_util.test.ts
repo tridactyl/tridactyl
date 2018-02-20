@@ -306,6 +306,45 @@ function test_url_graft_path() {
     }
 }
 
+function test_url_query_interpolation() {
+
+    let cases = [
+        [
+            // not percent-encoded and appended
+            "http://example.com",
+            "a/query",
+            "http://example.com/a/query"
+        ],
+        [
+            // not percent-encoded and interpolated
+            "http://example.com/%s/path",
+            "a/query",
+            "http://example.com/a/query/path"
+        ],
+        [
+            // percent-encoded and appended
+            "http://example.com/?query=",
+            "a/query",
+            "http://example.com/?query=a%2Fquery"
+        ],
+        [
+            // percent-encoded and interpolated
+            "http://example.com/?query=%s&q2=v2",
+            "a/query",
+            "http://example.com/?query=a%2Fquery&q2=v2"
+        ]
+    ]
+
+    for (let [url, qy, exp_res] of cases) {
+
+        let modified = UrlUtil.interpolateSearchItem(new URL(url), qy)
+
+        test(`interpolate ${qy} into ${url} --> ${exp_res}`,
+            () => expect(modified.href).toEqual(exp_res)
+        )
+    }
+}
+
 test_increment()
 test_root()
 test_parent()
@@ -313,3 +352,4 @@ test_download_filename()
 test_query_delete()
 test_query_replace()
 test_url_graft_path()
+test_url_query_interpolation()

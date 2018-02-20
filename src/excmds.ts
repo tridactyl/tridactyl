@@ -4,7 +4,8 @@
 
     Use `:help <excmd>` or scroll down to show [[help]] for a particular excmd.
 
-    The default keybinds can be found [here](/static/docs/modules/_config_.html#defaults)
+    The default keybinds can be found [here](/static/docs/modules/_config_.html#defaults).
+    You can also view them with [[bind]]. Try `bind j`.
 
     Tridactyl is in a pretty early stage of development. Please report any
     issues and make requests for missing features on the GitHub [project page][1].
@@ -86,8 +87,8 @@ import {ModeName} from './state'
 import * as keydown from "./keydown_background"
 //#background_helper
 import {activeTab, activeTabId, firefoxVersionAtLeast} from './lib/webext'
-//#content_helper
 import * as UrlUtil from "./url_util"
+
 //#background_helper
 import * as CommandLineBackground from './commandline_background'
 //#content_helper
@@ -103,12 +104,6 @@ import * as aliases from './aliases'
 //#background_helper
 export const cmd_params = new Map<string, Map<string, string>>()
 
-// map a page-relation (next or previous) to a fallback pattern to match link texts against
-const REL_PATTERN = {
-    next: /^(?:next|newer)\b|»|>>/i,
-    prev: /^(?:prev(?:ious)?|older)\b|«|<</i,
-}
-
 /** @hidden */
 function hasScheme(uri: string) {
     return uri.match(/^([\w-]+):/)
@@ -122,12 +117,7 @@ function searchURL(provider: string, query: string) {
         throw new TypeError(`Unknown provider: '${provider}'`)
     }
 
-    // build search URL: either replace "%s" in URL with query or append query to URL
-    const url = searchurlprovider.includes("%s") ?
-        new URL(searchurlprovider.replace("%s", encodeURIComponent(query))) :
-        new URL(searchurlprovider + encodeURIComponent(query))
-
-    return url
+    return UrlUtil.interpolateSearchItem(new URL(searchurlprovider), query)
 }
 
 /** If maybeURI doesn't have a schema, affix http:// */
@@ -194,9 +184,12 @@ export function loggingsetlevel(logModule: string, level: string) {
     let newLevel = map[level.toLowerCase()]
 
     if (newLevel !== undefined) {
-        config.set("logging", newLevel, logModule)
+        config.set("logging", logModule, newLevel)
+    } else {
+        throw "Bad log level!"
     }
 }
+
 
 // }}}
 
@@ -339,25 +332,23 @@ export async function help(excmd?: string) {
 // Find clickable next-page/previous-page links whose text matches the supplied pattern,
 // and return the last such link.
 //
-// If no matching link is found, return null.
+// If no matching link is found, return undefined.
 //
 // We return the last link that matches because next/prev buttons tend to be at the end of the page
 // whereas lots of blogs have "VIEW MORE" etc. plastered all over their pages.
+//#content_helper
 function findRelLink(pattern: RegExp): HTMLAnchorElement | null {
-    const links = <NodeListOf<HTMLAnchorElement>>document.querySelectorAll('a[href]')
+    // querySelectorAll returns a "non-live NodeList" which is just a shit array without working reverse() or find() calls, so convert it.
+    const links = Array.from(
+        <NodeListOf<HTMLAnchorElement>>document.querySelectorAll('a[href]'))
 
-    let lastLink = null
+    // Find the last link that matches the test
+    return links.reverse().find(link => pattern.test(link.innerText))
 
-    for (const link of links) {
-        // `innerText` gives better (i.e. less surprising) results than `textContent`
-        // at the expense of being much slower, but that shouldn't be an issue here
-        // as it's a one-off operation that's only performed when we're leaving a page
-        if (pattern.test(link.innerText)) {
-            lastLink = link
-        }
-    }
-
-    return lastLink
+    // Note:
+    // `innerText` gives better (i.e. less surprising) results than `textContent`
+    // at the expense of being much slower, but that shouldn't be an issue here
+    // as it's a one-off operation that's only performed when we're leaving a page
 }
 
 /** @hidden */
@@ -369,9 +360,21 @@ function selectLast(selector: string): HTMLElement | null {
 }
 
 /** Find a likely next/previous link and follow it
- *
- * @param rel   the relation of the target page to the current page: "next" or "prev"
- */
+
+    If a link or anchor element with rel=rel exists, use that, otherwise fall back to:
+    
+        1) find the last anchor on the page with innerText matching the appropriate `followpagepattern`.
+        2) call [[urlincrement]] with 1 or -1
+
+    If you want to support e.g. French:
+
+    ```
+    set followpagepatterns.next ^(next|newer|prochain)\b|»|>>
+    set followpagepatterns.prev ^(prev(ious)?|older|précédent)\b|»|>>
+    ```
+
+    @param rel   the relation of the target page to the current page: "next" or "prev"
+*/
 //#content
 export function followpage(rel: 'next'|'prev' = 'next') {
     const link = <HTMLLinkElement>selectLast(`link[rel~=${rel}][href]`)
@@ -382,10 +385,12 @@ export function followpage(rel: 'next'|'prev' = 'next') {
     }
 
     const anchor = <HTMLAnchorElement>selectLast(`a[rel~=${rel}][href]`) ||
-        findRelLink(REL_PATTERN[rel])
+        findRelLink(new RegExp(config.get("followpagepatterns", rel), "i"))
 
     if (anchor) {
-        anchor.click()
+        DOM.mouseEvent(anchor, "click")
+    } else {
+        urlincrement(rel === "next" ? 1 : -1)
     }
 }
 
@@ -590,6 +595,26 @@ export async function reader() {
     }
 }
 
+//@hidden
+//#content_helper
+loadaucmds()
+
+//@hidden
+//#content
+export async function loadaucmds(){
+    console.log("AUCMDS TRIED TO RUN")
+    // for some reason, this never changes from the default, even when there is user config (e.g. set via `aucmd bbc.co.uk mode ignore`)
+    let aucmds = await config.getAsync("autocmds", "DocStart")
+    console.log(aucmds)
+    const ausites = Object.keys(aucmds)
+    // yes, this is lazy
+    const aukey = ausites.find(e=>window.document.location.href.includes(e))
+    if (aukey !== undefined){
+        console.log(aukey)
+        Messaging.message("commandline_background", "recvExStr", [aucmds[aukey]])
+    }
+}
+
 /** The kinds of input elements that we want to be included in the "focusinput"
  * command (gi)
  */
@@ -785,14 +810,22 @@ export async function tablast() {
     tabIndexSetActive(0)
 }
 
-/** Like [[open]], but in a new tab. If no address is given, it will open the newtab page, which can be set with `set newtab [url]` */
+/** Like [[open]], but in a new tab. If no address is given, it will open the newtab page, which can be set with `set newtab [url]`
+
+    Unlike Firefox's Ctrl-t shortcut, this opens tabs immediately after the
+    currently active tab rather than at the end of the tab list because that is
+    the author's preference. Open an issue if you don't like it :)
+*/
 //#background
 export async function tabopen(...addressarr: string[]) {
     let uri
     let address = addressarr.join(' ')
     if (address != "") uri = forceURI(address)
     else uri = forceURI(config.get("newtab"))
-    browser.tabs.create({url: uri})
+    browser.tabs.create({
+        url: uri,
+        index: (await activeTabId()) + 1
+    })
 }
 
 /** Resolve a tab index to the tab id of the corresponding tab in this window.
@@ -1235,7 +1268,7 @@ export function command(name: string, ...definition: string[]) {
     try {
         const def = definition.join(" ")
         // Set alias
-        config.set("exaliases", def, name)
+        config.set("exaliases", name, def)
         aliases.expandExstr(name)
     } catch(e) {
         // Warn user about infinite loops
@@ -1259,7 +1292,7 @@ export function comclear(name: string) {
     config.unset("exaliases", name)
 }
 
-/** Bind a sequence of keys to an excmd.
+/** Bind a sequence of keys to an excmd or view bound sequence.
 
     This is an easier-to-implement bodge while we work on vim-style maps.
 
@@ -1269,6 +1302,11 @@ export function comclear(name: string) {
         - `bind D composite tabclose | buffer #`
         - `bind j scrollline 20`
         - `bind F hint -b`
+
+    You can view binds by omitting the command line:
+
+        - `bind j`
+        - `bind k`
 
     Use [[composite]] if you want to execute multiple excmds. Use
     [[fillcmdline]] to put a string in the cmdline and focus the cmdline
@@ -1281,14 +1319,90 @@ export function comclear(name: string) {
 */
 //#background
 export function bind(key: string, ...bindarr: string[]){
-    let exstring = bindarr.join(" ")
-    config.set("nmaps",exstring,key)
+    if (bindarr.length) {
+        let exstring = bindarr.join(" ")
+        config.set("nmaps", key, exstring)
+    } else if (key.length) {
+        // Display the existing bind
+        fillcmdline_notrail("#", key, "=", config.get("nmaps", key))
+    }
 }
 
-/** Set a search engine keyword for use with *open or `set searchengine` */
+/**
+ * Set a search engine keyword for use with *open or `set searchengine`
+ *
+ * @deprecated use `set searchurls.KEYWORD URL` instead
+ *
+ * @param keyword   the keyword to use for this search (e.g. 'esa')
+ * @param url       the URL to interpolate the query into. If %s is found in
+ *                  the URL, the query is inserted there, else it is appended.
+ *                  If the insertion point is in the "query string" of the URL,
+ *                  the query is percent-encoded, else it is verbatim.
+ **/
 //#background
 export function searchsetkeyword(keyword: string, url: string){
-    config.set("searchurls",forceURI(url),keyword)
+    config.set("searchurls", keyword, forceURI(url))
+}
+
+/** Set a key value pair in config.
+
+    Use to set any string values found [here](/static/docs/modules/_config_.html#defaults)
+
+    e.g.
+        set searchurls.google https://www.google.com/search?q=
+        set logging.messaging info
+*/
+//#background
+export function set(key: string, ...values: string[]) {
+    if (! key || ! values[0]) {
+        throw "Both key and value must be provided!"
+    }
+
+    const target = key.split('.')
+
+    // Special case conversions
+    // TODO: Should we do any special case shit here?
+    switch (target[0]) {
+        case "logging":
+            const map = {
+                "never": Logging.LEVEL.NEVER,
+                "error": Logging.LEVEL.ERROR,
+                "warning": Logging.LEVEL.WARNING,
+                "info": Logging.LEVEL.INFO,
+                "debug": Logging.LEVEL.DEBUG,
+            }
+            let level = map[values[0].toLowerCase()]
+            if (level === undefined) throw "Bad log level!"
+            else config.set(...target, level)
+            return
+    }
+
+    const currentValue = config.get(...target)
+
+    if (Array.isArray(currentValue)) {
+        config.set(...target, values)
+    } else if (typeof currentValue === "string") {
+        config.set(...target, values.join(' '))
+    } else {
+        throw "Unsupported setting type!"
+    }
+}
+
+/** Set autocmds to run when certain events happen.
+
+ @param event Curently, only 'DocStart' is supported.
+
+ @param url The URL on which the events will trigger (currently just uses "contains")
+
+ @param excmd The excmd to run (use [[composite]] to run multiple commands)
+
+*/
+//#background
+export function autocmd(event: string, url: string, ...excmd: string[]){
+    // rudimentary run time type checking
+    // TODO: Decide on autocmd event names
+    if(!['DocStart'].includes(event)) throw (event + " is not a supported event.")
+    config.set("autocmds", event, url, excmd.join(" "))
 }
 
 /** Unbind a sequence of keys so that they do nothing at all.
@@ -1300,7 +1414,7 @@ export function searchsetkeyword(keyword: string, url: string){
 */
 //#background
 export async function unbind(key: string){
-    bind(key, "")
+    config.set("nmaps", key, "")
 }
 
 /** Restores a sequence of keys to their default value.
@@ -1444,35 +1558,29 @@ export async function quickmark(key: string, ...addressarr: string[]) {
     }
 }
 
-//#background
-export function get(target: string, property?: string){
-    console.log(config.get(target,property))
-}
+/** Puts the contents of config value with keys `keys` into the commandline and the background page console
 
-/** Set a setting to a value
+    It's a bit rubbish, but we don't have a good way to provide feedback to the commandline yet.
 
-    Currently, this only supports string settings without any whitespace
-    (i.e. not nmaps.)
-
-    It can be used on any string <-> string settings found [here](/static/docs/modules/_config_.html#defaults)
-
+    You can view the log entry in the browser console (Ctrl-Shift-j).
 */
 //#background
-export function set(setting: string, ...value: string[]){
-    // We only support setting strings or arrays: not objects
-    let current = config.get(setting)
-    if ((Array.isArray(current) || typeof current == "string")) {
-        if (value.length > 0){
-            if (!Array.isArray(current)){
-                config.set(setting,value[0])
-            } else config.set(setting,value)
-        } else fillcmdline_notrail("set " + setting + " " + config.get(setting))
+export function get(...keys: string[]) {
+    const target = keys.join('.').split('.')
+    const value = config.get(...target)
+    console.log(value)
+    if (typeof value === "object") {
+        fillcmdline_notrail(`# ${keys.join('.')} = ${JSON.stringify(value)}`)
+    } else {
+        fillcmdline_notrail(`# ${keys.join('.')} = ${value}`)
     }
 }
 
 //#background
-export function unset(target: string, property?: string){
-    config.unset(target,property)
+export function unset(...keys: string[]){
+    const target = keys.join('.').split('.')
+    if(target === undefined) throw("You must define a target!")
+    config.unset(...target)
 }
 
 // not required as we automatically save all config
@@ -1521,6 +1629,7 @@ import * as hinting from './hinting_background'
 
     Related settings:
         "hintchars": "hjklasdfgyuiopqwertnmzxcvb"
+        "hintfiltermode": "simple" | "vimperator" | "vimperator-reflow"
 */
 //#background
 export function hint(option?: string, selectors="") {
@@ -1617,7 +1726,7 @@ export async function ttsvoices() {
     let voices = TTS.listVoices()
 
     // need a better way to show this to the user
-    fillcmdline_notrail(voices.sort().join(", "))
+    fillcmdline_notrail("#", voices.sort().join(", "))
 }
 
 /**

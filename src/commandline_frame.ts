@@ -271,6 +271,10 @@ export function fillcmdline(newcommand?: string, trailspace = true){
     clInput.dispatchEvent(new Event('input')) // dirty hack for completions
 }
 
+/** Create a temporary textarea and give it to fn. Remove the textarea afterwards
+
+    Useful for document.execCommand
+*/
 function applyWithTmpTextArea(fn) {
     let textarea
     try {
@@ -287,7 +291,7 @@ function applyWithTmpTextArea(fn) {
 }
 
 export function setClipboard(content: string) {
-    return applyWithTmpTextArea(scratchpad => {
+    applyWithTmpTextArea(scratchpad => {
         scratchpad.value = content
         scratchpad.select()
         if (document.execCommand("Copy")) {
@@ -295,14 +299,19 @@ export function setClipboard(content: string) {
             logger.info('set clipboard:', scratchpad.value)
         } else throw "Failed to copy!"
     })
+    // Return focus to the document
+    Messaging.message('commandline_background', 'hide')
 }
 
 export function getClipboard() {
-    return applyWithTmpTextArea(scratchpad => {
+    const result = applyWithTmpTextArea(scratchpad => {
         scratchpad.focus()
         document.execCommand("Paste")
         return scratchpad.textContent
     })
+    // Return focus to the document
+    Messaging.message('commandline_background', 'hide')
+    return result
 }
 
 Messaging.addListener('commandline_frame', Messaging.attributeCaller(SELF))

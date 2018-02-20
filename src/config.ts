@@ -10,12 +10,17 @@
 //
 
 const CONFIGNAME = "userconfig"
-
-type StorageMap = browser.storage.StorageMap
+const WAITERS = []
+let INITIALISED = false
 
 // make a naked object
 function o(object){
     return Object.assign(Object.create(null),object)
+}
+
+// "Import" is a reserved word so this will have to do
+function schlepp(settings){
+    Object.assign(USERCONFIG,settings)
 }
 
 // TODO: have list of possibilities for settings, e.g. hintmode: reverse | normal
@@ -91,8 +96,14 @@ const DEFAULTS = o({
         "zz": "zoom 1",
         ".": "repeat",
     }),
+    "autocmds": o({
+        "DocStart": o({
+            "addons.mozilla.org": "mode ignore"
+        }),
+    }),
     "exaliases": o({
         "alias": "command",
+        "au": "autocmd",
         "b": "buffer",
         "o": "open",
         "w": "winopen",
@@ -113,6 +124,10 @@ const DEFAULTS = o({
         "tlast": "tablast",
         "bd": "tabclose",
         "bdelete": "tabclose",
+    }),
+    followpagepatterns: o({
+        next: "^(next|newer)\\b|»|>>",
+        prev: "^(prev(ious)?|older)\\b|«|<<",
     }),
     "searchengine": "google",
     "searchurls": o({
@@ -141,6 +156,7 @@ const DEFAULTS = o({
     "storageloc": "sync",
     "homepages": [],
     "hintchars": "hjklasdfgyuiopqwertnmzxcvb",
+	"hintfiltermode": "simple",   // "simple", "vimperator", "vimperator-reflow"
 
     "ttsvoice": "default",  // chosen from the listvoices list, or "default"
     "ttsvolume": 1,         // 0 to 1
@@ -164,38 +180,105 @@ export function getAllConfig(): object {
     return DEFAULTS
 }
 
-// currently only supports 2D or 1D storage
-export function get(target, property?){
-    if (property !== undefined){
-        if (USERCONFIG[target] !== undefined){
-            return USERCONFIG[target][property] || DEFAULTS[target][property]
-        }
-        else return DEFAULTS[target][property]
+/** Given an object and a target, extract the target if it exists, else return undefined
+
+    @param target path of properties as an array
+*/
+function getDeepProperty(obj, target) {
+    if (obj !== undefined && target.length) {
+        return getDeepProperty(obj[target[0]], target.slice(1))
+    } else {
+        return obj
     }
-    // only merge "proper" objects, not arrays
-    if (Array.isArray(DEFAULTS[target])) return USERCONFIG[target] || DEFAULTS[target]
-    if (typeof DEFAULTS[target] === "object") return Object.assign(o({}),DEFAULTS[target],USERCONFIG[target])
-    else return USERCONFIG[target] || DEFAULTS[target]
 }
 
-// if you don't specify a property and you should, this will wipe everything
-export function set(target, value, property?){
-    if (property !== undefined){
-        if (USERCONFIG[target] === undefined) USERCONFIG[target] = o({})
-        USERCONFIG[target][property] = value
-    } else USERCONFIG[target] = value
-    // Always save
-    save(get("storageloc"))
+/** Create the key path target if it doesn't exist and set the final property to value.
+
+    If the path is an empty array, replace the obj.
+
+    @param target path of properties as an array
+*/
+function setDeepProperty(obj, value, target) {
+    if (target.length > 1) {
+        // If necessary antecedent objects don't exist, create them.
+        if (obj[target[0]] === undefined) {
+            obj[target[0]] = o({})
+        }
+        return setDeepProperty(obj[target[0]], value, target.slice(1))
+    } else {
+        obj[target[0]] = value
+    }
 }
 
-export function unset(target, property?){
-    if (property !== undefined){
-        delete USERCONFIG[target][property]
-    } else delete USERCONFIG[target]
-    save(get("storageloc"))
+
+/** Get the value of the key target.
+
+    If the user has not specified a key, use the corresponding key from
+    defaults, if one exists, else undefined.
+*/
+export function get(...target) {
+    const user = getDeepProperty(USERCONFIG, target)
+    const defult = getDeepProperty(DEFAULTS, target)
+
+    // Merge results if there's a default value and it's not an Array or primitive.
+    if (defult && (! Array.isArray(defult) && typeof defult === "object")) {
+        return Object.assign(o({}), defult, user)
+    } else {
+        if (user !== undefined) {
+            return user
+        } else {
+            return defult
+        }
+    }
 }
 
-export async function save(storage: "local" | "sync" = "sync"){
+/** Get the value of the key target, but wait for config to be loaded from the
+    database first if it has not been at least once before.
+
+    This is useful if you are a content script and you've just been loaded.
+*/
+export async function getAsync(...target) {
+    if (INITIALISED) {
+        return get(...target)
+    } else {
+        return new Promise((resolve) =>
+            WAITERS.push(() => resolve(get(...target)))
+        )
+    }
+}
+
+/** Full target specification, then value
+
+    e.g.
+        set("nmaps", "o", "open")
+        set("search", "default", "google")
+        set("aucmd", "BufRead", "memrise.com", "open memrise.com")
+*/
+export function set(...args) {
+    if (args.length < 2) {
+        throw "You must provide at least two arguments!"
+    }
+
+    const target = args.slice(0, args.length - 1)
+    const value = args[args.length - 1]
+
+    setDeepProperty(USERCONFIG, value, target)
+    save()
+}
+
+/** Delete the key at target if it exists */
+export function unset(...target) {
+    const parent = getDeepProperty(USERCONFIG, target.slice(0, -1))
+    if (parent !== undefined) delete parent[target[target.length - 1]]
+    save()
+}
+
+/** Save the config back to storage API.
+
+    Config is not synchronised between different instances of this module until
+    sometime after this happens.
+*/
+export async function save(storage: "local" | "sync" = get("storageloc")){
     // let storageobj = storage == "local" ? browser.storage.local : browser.storage.sync
     // storageobj.set({CONFIGNAME: USERCONFIG})
     let settingsobj = o({})
@@ -204,26 +287,34 @@ export async function save(storage: "local" | "sync" = "sync"){
     else browser.storage.sync.set(settingsobj)
 }
 
-// Read all user configuration on start
-// Legacy config gets loaded first
-let legacy_nmaps = {}
-browser.storage.sync.get("nmaps").then(nmaps => {
-    legacy_nmaps = nmaps["nmaps"]
-    browser.storage.sync.get(CONFIGNAME).then(settings => {
-        schlepp(settings[CONFIGNAME])
-        // Local storage overrides sync
-        browser.storage.local.get(CONFIGNAME).then(settings => {
-            schlepp(settings[CONFIGNAME])
-            USERCONFIG["nmaps"] = Object.assign(legacy_nmaps, USERCONFIG["nmaps"])
-        })
-    })
-})
+/** Read all user configuration from storage API then notify any waiting asynchronous calls
 
-function schlepp(settings){
-    // "Import" is a reserved word so this will have to do
-    Object.assign(USERCONFIG,settings)
+    asynchronous calls generated by getAsync.
+*/
+async function init() {
+    try {
+        let syncConfig = await browser.storage.sync.get(CONFIGNAME)
+        schlepp(syncConfig[CONFIGNAME])
+        // Local storage overrides sync
+        let localConfig = await browser.storage.local.get(CONFIGNAME)
+        schlepp(localConfig[CONFIGNAME])
+
+        // Before we had a config system, we had nmaps, and we put them in the
+        // root namespace because we were young and bold.
+        let legacy_nmaps = await browser.storage.sync.get("nmaps")
+        if (legacy_nmaps) {
+            USERCONFIG["nmaps"] = Object.assign(legacy_nmaps["nmaps"], USERCONFIG["nmaps"])
+        }
+    } finally {
+        INITIALISED = true
+        for (let waiter of WAITERS) {
+            waiter()
+        }
+    }
 }
 
+// Listen for changes to the storage and update the USERCONFIG if appropriate.
+// TODO: BUG! Sync and local storage are merged at startup, but not by this thing.
 browser.storage.onChanged.addListener(
     (changes, areaname) => {
         if (CONFIGNAME in changes) {
@@ -231,3 +322,5 @@ browser.storage.onChanged.addListener(
         }
     }
 )
+
+init()

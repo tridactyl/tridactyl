@@ -1,3 +1,5 @@
+import './number.mod'
+
 export function head(iter) {
     let result = iter.next()
     if (result.done) throw RangeError("Iterable is so done.")
@@ -16,6 +18,7 @@ export function zip(...arrays) {
 }
 
 export function* range(length) {
+    if (length < 0) return
     for (let index = 0; index < length; index++) {
         yield index
     }
@@ -59,24 +62,44 @@ export function zeros(n) {
     return new Array(n).fill(0)
 }
 
-Number.prototype.mod = function (n: number): number {
-    return knuth_mod(this, n)
-}
+/** islice(iter, stop) = Give the first `stop` elements 
+    islice(iter, start, stop)
+        skip `start` elements, then give `stop - start` elements,
+        unless `stop` is null, then emit indefinitely
 
-/** Takes sign of divisor -- incl. returning -0 */
-export function knuth_mod(dividend, divisor) {
-    return dividend - divisor * Math.floor(dividend/divisor)
-}
-
-export function* islice(iterable, stop) {
-    let index = 0
+    If the iterator runs out early so will this.
+*/
+export function* islice(iterable, start: number, stop?: number) {
     const iter = iterable[Symbol.iterator]()
-    while (index++ < stop) {
-        const res = iter.next()
-        if (res.done) return index - 1
-        else yield res.value
+
+    // If stop is not defined then they're using the two argument variant
+    if (stop === undefined) {
+        stop = start
+        start = 0
     }
-    return index - 1
+
+    // Skip elements until start
+    for (let _ of range(start)) {
+        const res = iter.next()
+        if (res.done) return
+    }
+
+    // Emit elements
+    if (stop === null) {
+        yield* iter
+    } else {
+        for (let i = start; i < stop; i ++) {
+            const res = iter.next()
+            if (res.done) return
+            else yield res.value
+        }
+    }
+}
+
+export function* chain(...iterables) {
+    for (const iter of iterables) {
+        yield* iter[Symbol.iterator]()
+    }
 }
 
 /** All permutations of n items from array */
