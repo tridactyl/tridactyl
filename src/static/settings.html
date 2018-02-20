@@ -1,31 +1,41 @@
-<doctype html>
 <html lang="en">
-    <head>
-        <meta charset="utf8">
-        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-        <link rel="stylesheet" href="settings.css" type="text/css">
-        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
-        <link rel="shortcut icon" href="logo/Tridactyl_64px.png" type="img/png">
-        <title>Tridactyl Settings</title>
-    </head>
-    <body class="container">
-        <nav class="navbar navbar-light bg-light">
-            <a class="navbar-brand" href="#">Tridactyl Settings</a>
-            <div class="navbar-collapse">
-                <ul class="navbar-nav">
-                    <li class="nav-item"><a class="nav-link">Current Settings</a></li>
-                    <li class="nav-item"><a class="nav-link">.tridactylrc</a></li>
-                    <li class="nav-item"><a class="nav-link">About</a></li>
-                    <li class="nav-item"><a class="nav-link">License</a></li>
-                </ul>
-            </div>
-        </nav>
-        <textarea id="userSettings" spellcheck="false" dir="auto"></textarea>
-        <div id="currentSettings"></div>
 
-        <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
-        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
-        <script src="../settings_page.js"></script>
-    </body>
+<head>
+  <meta charset="utf8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <link rel="stylesheet" href="settings.css" type="text/css">
+  <link rel="shortcut icon" href="logo/Tridactyl_64px.png" type="img/png">
+  <title>Tridactyl Settings</title>
+</head>
+
+<body class="container">
+  <h1 class="title">Tridactyl Settings</h1>
+  <nav class="nav nav-tabs" role="tablist">
+    <li class="nav-item active">
+      <a class="nav-link" href="#current-setings">Current Settings</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" href="#rc-text">.tridactylrc</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" href="#about">About</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" href="#license">License</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" href="#changelog">Changelog</a>
+    </li>
+  </nav>
+  <div class="tab-content">
+    <div class="tab-panel" id="tab-cursettings">
+      <textarea id="userSettings" spellcheck="false" dir="auto"></textarea>
+    </div>
+    <div class="tab-panel" id="tab-rcsettings"></div>
+    <div class="tab-panel" id="tab-about"></div>
+    <div class="tab-panel" id="tab-license"></div>
+  </div>
+  <div id="currentSettings"></div>
+</body>
+
 </html>
