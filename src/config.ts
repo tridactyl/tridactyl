@@ -159,6 +159,11 @@ const DEFAULTS = o({
     }),
 })
 
+// TEMP: get active userconfig
+export function getAllConfig(): object {
+    return DEFAULTS
+}
+
 // currently only supports 2D or 1D storage
 export function get(target, property?){
     if (property !== undefined){

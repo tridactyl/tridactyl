@@ -1,5 +1,7 @@
 // Script used by the settings page.
 
+import * as config from './config'
+
 // Switch tab when a its clicked on the tabbar
 document.querySelectorAll('.nav-link').forEach(link => {
     link.addEventListener('click', event => {
@@ -22,3 +24,7 @@ function activateTab(id: string) {
     Array.from(navtabs).forEach(nt => nt.classList.remove('active'))
     document.querySelector(`a[href="${id}"]`).parentElement.classList.add('active')
 }
+
+// Fill in current config
+const cfgStr = JSON.stringify(config.getAllConfig(), null, 2)
+document.querySelector('#current-settings').textContent = cfgStr

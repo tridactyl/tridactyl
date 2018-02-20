@@ -13,6 +13,7 @@ body {
 .nav-tabs {
     list-style: none;
     border-bottom: 1px solid #ddd;
+    padding: 0;
 }
 
 .nav-tabs>li {
@@ -52,4 +53,12 @@ body {
 
 .tab-panel.active {
     display: block;
+}
+
+#current-settings {
+    white-space: pre;
+    overflow: scroll;
+    font-family: 'Courier New', Courier, monospace;
+    border: 1px #eee solid;
+    border-radius: 4px;
 }
