@@ -176,8 +176,10 @@ const DEFAULTS = o({
 })
 
 // TEMP: get active userconfig
-export function getAllConfig(): object {
-    return DEFAULTS
+export async function getAllConfig(): Promise<object> {
+    if(INITIALISED) return USERCONFIG
+
+    return new Promise(resolve => WAITERS.push(() => resolve(USERCONFIG)))
 }
 
 /** Given an object and a target, extract the target if it exists, else return undefined

@@ -1,9 +1,10 @@
 // Script used by the settings page.
 
-import * as config from './config'
+import * as Config from './config'
 
 // Start by showing current settings
 activateTab('#current-settings')
+fillCurrentConfig()
 
 // Switch tab when a its clicked on the tabbar
 document.querySelectorAll('.nav-link').forEach(link => {
@@ -16,11 +17,13 @@ document.querySelectorAll('.nav-link').forEach(link => {
     })
 })
 
-// Fill in current config
-const cfgStr = JSON.stringify(config.getAllConfig(), null, 2)
-document.querySelector('#current-settings').textContent = cfgStr
+async function fillCurrentConfig(): Promise<void> {
+    const config = await Config.getAllConfig()
+    const cfgStr = JSON.stringify(config, null, 2)
+    document.querySelector('#current-settings').textContent = cfgStr
+}
 
-function activateTab(id: string) {
+function activateTab(id: string): void {
     // Switch container active state
     const tabpanes = document.querySelector('#tab-container').children
     Array.from(tabpanes).forEach(tab => tab.classList.remove('active'))
