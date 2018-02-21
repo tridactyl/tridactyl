@@ -13,25 +13,30 @@
   <nav>
     <ul id="tabbar" class="nav nav-tabs" role="tablist">
       <li class="nav-item">
-        <a class="nav-link" href="#current-settings">Current Settings</a>
+        <a class="nav-link" role="tab" href="#current-settings">Current Settings</a>
       </li>
       <li class="nav-item">
-        <a class="nav-link" href="#rc-text">.tridactylrc</a>
+        <a class="nav-link" role="tab" href="#rc-text">.tridactylrc</a>
       </li>
       <li class="nav-item">
-        <a class="nav-link" href="#about">About</a>
+        <a class="nav-link" role="tab" href="#about">About</a>
       </li>
       <li class="nav-item">
-        <a class="nav-link" href="#license">License</a>
+        <a class="nav-link" role="tab" href="#license">License</a>
       </li>
       <li class="nav-item">
-        <a class="nav-link" href="#changelog">Changelog</a>
+        <a class="nav-link" role="tab" href="#changelog">Changelog</a>
       </li>
     </ul>
   </nav>
   <div id="tab-container" class="tab-content">
     <div class="tab-panel" role="tabpanel" id="current-settings"></div>
-    <div class="tab-panel" role="tabpanel" id="rc-text"></div>
+    <div class="tab-panel" role="tabpanel" id="rc-text">
+      <button id="btn-load-fs-rc" onclick="">Load from .tridactylrc (NOT IMPLEMENTED)</button>
+      <input id="toggle-fs-rc" type="checkbox">
+      <span>Use .tridactylrc saved on filesystem (NOT IMPLEMENTED)</span>
+      <textarea id="rc-textarea"></textarea>
+    </div>
     <div class="tab-panel" role="tabpanel" id="about"></div>
     <div class="tab-panel" role="tabpanel" id="license"></div>
     <div class="tab-panel" role="tabpanel" id="changelog"></div>

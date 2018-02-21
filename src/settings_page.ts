@@ -2,16 +2,23 @@
 
 import * as config from './config'
 
+// Start by showing current settings
+activateTab('#current-settings')
+
 // Switch tab when a its clicked on the tabbar
 document.querySelectorAll('.nav-link').forEach(link => {
     link.addEventListener('click', event => {
+        // Prevent default behaviour of scrolling to the node
+        event.preventDefault()
+
         const tabref = link.getAttribute('href')
         activateTab(tabref)
     })
 })
 
-// Start by showing current settings
-activateTab('#current-settings')
+// Fill in current config
+const cfgStr = JSON.stringify(config.getAllConfig(), null, 2)
+document.querySelector('#current-settings').textContent = cfgStr
 
 function activateTab(id: string) {
     // Switch container active state
@@ -24,7 +31,3 @@ function activateTab(id: string) {
     Array.from(navtabs).forEach(nt => nt.classList.remove('active'))
     document.querySelector(`a[href="${id}"]`).parentElement.classList.add('active')
 }
-
-// Fill in current config
-const cfgStr = JSON.stringify(config.getAllConfig(), null, 2)
-document.querySelector('#current-settings').textContent = cfgStr
