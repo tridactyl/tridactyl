@@ -11,11 +11,9 @@
 import { DEFAULTS } from './config-defaults'
 
 const CONFIGNAME = "userconfig"
-const WAITERS = []
-let INITIALISED = false
-
-// TODO: have list of possibilities for settings, e.g. hintmode: reverse | normal
-let USERCONFIG = o({})
+const asyncGetters = []
+let initialised = false
+let userConfig = o({})
 
 // TEMP: get active userconfig
 export function getAllConfig(): object {
@@ -27,7 +25,7 @@ export function getAllConfig(): object {
     If the user has not specified a key, use the corresponding key from
     defaults, if one exists, else undefined.
 */
-export function get(...target) { return getDeepProperty(USERCONFIG, target) }
+export function get(...target) { return getDeepProperty(userConfig, target) }
 
 /** Given an object and a target, extract the target if it exists,
  * else return undefined */
@@ -42,8 +40,8 @@ function getDeepProperty(obj, target) {
     database first if it has not been at least once before. This is useful
     if you are a content script and you've just been loaded. */
 export async function getAsync(...target) {
-    if (INITIALISED) { return get(...target) }
-    return new Promise(resolve => WAITERS.push(() => resolve(get(...target))))
+    if (initialised) { return get(...target) }
+    return new Promise(resolve => asyncGetters.push(() => resolve(get(...target))))
 }
 
 /** Full target specification, then value
@@ -58,7 +56,7 @@ export function set(...args) {
     const target = args.slice(0, args.length - 1)
     const value = args[args.length - 1]
 
-    setDeepProperty(USERCONFIG, value, target)
+    setDeepProperty(userConfig, value, target)
 
     /** Create the key path target if it doesn't exist and set the final
      * property to value. If the path is an empty array, replace the obj. */
@@ -75,7 +73,7 @@ export function set(...args) {
 
 /** Delete the key at target if it exists */
 export function unset(...target) {
-    const parent = getDeepProperty(USERCONFIG, target.slice(0, -1))
+    const parent = getDeepProperty(userConfig, target.slice(0, -1))
     if (parent !== undefined) delete parent[target[target.length - 1]]
 }
 
@@ -95,13 +93,13 @@ async function init() {
         //     USERCONFIG["nmaps"] = Object.assign(legacy_nmaps["nmaps"], USERCONFIG["nmaps"])
         // }
     } finally {
-        INITIALISED = true
-        for (let waiter of WAITERS) {
+        initialised = true
+        for (let waiter of asyncGetters) {
             waiter()
         }
     }
 
-    function schlepp(settings) { Object.assign(USERCONFIG, settings) }
+    function schlepp(settings) { Object.assign(userConfig, settings) }
 }
 
 // make a naked object
@@ -112,7 +110,7 @@ function o(object) { return Object.assign(Object.create(null), object) }
 browser.storage.onChanged.addListener(
     (changes, areaname) => {
         if (CONFIGNAME in changes) {
-            USERCONFIG = changes[CONFIGNAME].newValue
+            userConfig = changes[CONFIGNAME].newValue
         }
     }
 )
