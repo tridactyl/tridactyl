@@ -8,7 +8,7 @@
 //
 // Really, we'd like a way of just letting things use the variables
 //
-import { DEFAULTS } from './config-defaults'
+import { DEFAULTS } from './config_defaults'
 import * as controller from './controller'
 
 const CONFIGNAME = "userconfig"
@@ -95,7 +95,9 @@ async function init(): Promise<void> {
         Object.assign(userConfig, DEFAULTS)
 
         const rcText = await getSyncStorage(RC_NAME) as string
-        if(rcText) { controller.acceptRcFile(rcText) }
+        // Figure out separation between background and content
+        // DO THIS ON BACKGROUND ONLY
+        // if(rcText) { controller.acceptRcFile(rcText) }
 
         // Before we had a config system, we had nmaps, and we put them in the
         // root namespace because we were young and bold.
