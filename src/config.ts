@@ -9,6 +9,7 @@
 // Really, we'd like a way of just letting things use the variables
 //
 import { DEFAULTS } from './config-defaults'
+import * as controller from './controller'
 
 const CONFIGNAME = "userconfig"
 const RC_NAME = "rc-text"
@@ -93,6 +94,9 @@ async function init(): Promise<void> {
         // Merge defaults into config
         Object.assign(userConfig, DEFAULTS)
 
+        const rcText = await getSyncStorage(RC_NAME) as string
+        if(rcText) { controller.acceptRcFile(rcText) }
+
         // Before we had a config system, we had nmaps, and we put them in the
         // root namespace because we were young and bold.
         // let legacy_nmaps = await browser.storage.sync.get("nmaps")
@@ -105,6 +109,10 @@ async function init(): Promise<void> {
             waiter()
         }
     }
+}
+
+async function getSyncStorage(key: string): Promise<any> {
+    return browser.storage.sync.get(key)[key]
 }
 
 // make a naked object
