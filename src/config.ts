@@ -14,9 +14,6 @@ const CONFIGNAME = "userconfig"
 const WAITERS = []
 let INITIALISED = false
 
-// make a naked object
-function o(object) { return Object.assign(Object.create(null), object) }
-
 // TODO: have list of possibilities for settings, e.g. hintmode: reverse | normal
 let USERCONFIG = o({})
 
@@ -30,40 +27,20 @@ export function getAllConfig(): object {
     If the user has not specified a key, use the corresponding key from
     defaults, if one exists, else undefined.
 */
-export function get(...target) {
-    const user = getDeepProperty(USERCONFIG, target)
-    const defult = getDeepProperty(DEFAULTS, target)
-
-    // Merge results if there's a default value and it's not an Array or primitive.
-    if (defult && (!Array.isArray(defult) && typeof defult === "object")) {
-        return Object.assign(o({}), defult, user)
-    } else {
-        if (user !== undefined) {
-            return user
-        } else {
-            return defult
-        }
-    }
-}
+export function get(...target) { return getDeepProperty(USERCONFIG, target) }
 
 /** Given an object and a target, extract the target if it exists,
- * else return undefined
-
-    @param target path of properties as an array
-*/
+ * else return undefined */
 function getDeepProperty(obj, target) {
     if (obj !== undefined && target.length) {
         return getDeepProperty(obj[target[0]], target.slice(1))
-    } else {
-        return obj
     }
+    return obj
 }
 
 /** Get the value of the key target, but wait for config to be loaded from the
-    database first if it has not been at least once before.
-
-    This is useful if you are a content script and you've just been loaded.
-*/
+    database first if it has not been at least once before. This is useful
+    if you are a content script and you've just been loaded. */
 export async function getAsync(...target) {
     if (INITIALISED) { return get(...target) }
     return new Promise(resolve => WAITERS.push(() => resolve(get(...target))))
@@ -74,30 +51,22 @@ export async function getAsync(...target) {
     e.g.
         set("nmaps", "o", "open")
         set("search", "default", "google")
-        set("aucmd", "BufRead", "memrise.com", "open memrise.com")
-*/
+        set("aucmd", "BufRead", "memrise.com", "open memrise.com") */
 export function set(...args) {
-    if (args.length < 2) {
-        throw "You must provide at least two arguments!"
-    }
+    if (args.length < 2) { throw "You must provide at least two arguments!" }
 
     const target = args.slice(0, args.length - 1)
     const value = args[args.length - 1]
 
     setDeepProperty(USERCONFIG, value, target)
 
-    /** Create the key path target if it doesn't exist and set the final property
-     * to value. If the path is an empty array, replace the obj.
-
-        @param target path of properties as an array
-    */
+    /** Create the key path target if it doesn't exist and set the final
+     * property to value. If the path is an empty array, replace the obj. */
     function setDeepProperty(obj, value, target) {
         if (target.length > 1) {
             // If necessary antecedent objects don't exist, create them.
-            if (obj[target[0]] === undefined) {
-                obj[target[0]] = o({})
-            }
-            return setDeepProperty(obj[target[0]], value, target.slice(1))
+            if (obj[target[0]] === undefined) { obj[target[0]] = o({}) }
+            setDeepProperty(obj[target[0]], value, target.slice(1))
         } else {
             obj[target[0]] = value
         }
@@ -116,18 +85,15 @@ export function unset(...target) {
 */
 async function init() {
     try {
-        let syncConfig = await browser.storage.sync.get(CONFIGNAME)
-        schlepp(syncConfig[CONFIGNAME])
-        // Local storage overrides sync
-        let localConfig = await browser.storage.local.get(CONFIGNAME)
-        schlepp(localConfig[CONFIGNAME])
+        // Merge defaults into config
+        schlepp(DEFAULTS)
 
         // Before we had a config system, we had nmaps, and we put them in the
         // root namespace because we were young and bold.
-        let legacy_nmaps = await browser.storage.sync.get("nmaps")
-        if (legacy_nmaps) {
-            USERCONFIG["nmaps"] = Object.assign(legacy_nmaps["nmaps"], USERCONFIG["nmaps"])
-        }
+        // let legacy_nmaps = await browser.storage.sync.get("nmaps")
+        // if (legacy_nmaps) {
+        //     USERCONFIG["nmaps"] = Object.assign(legacy_nmaps["nmaps"], USERCONFIG["nmaps"])
+        // }
     } finally {
         INITIALISED = true
         for (let waiter of WAITERS) {
@@ -137,6 +103,9 @@ async function init() {
 
     function schlepp(settings) { Object.assign(USERCONFIG, settings) }
 }
+
+// make a naked object
+function o(object) { return Object.assign(Object.create(null), object) }
 
 // Listen for changes to the storage and update the USERCONFIG if appropriate.
 // TODO: BUG! Sync and local storage are merged at startup, but not by this thing.
