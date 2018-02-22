@@ -15,14 +15,7 @@ const WAITERS = []
 let INITIALISED = false
 
 // make a naked object
-function o(object){
-    return Object.assign(Object.create(null),object)
-}
-
-// "Import" is a reserved word so this will have to do
-function schlepp(settings){
-    Object.assign(USERCONFIG,settings)
-}
+function o(object) { return Object.assign(Object.create(null), object) }
 
 // TODO: have list of possibilities for settings, e.g. hintmode: reverse | normal
 let USERCONFIG = o({})
@@ -31,37 +24,6 @@ let USERCONFIG = o({})
 export function getAllConfig(): object {
     return DEFAULTS
 }
-
-/** Given an object and a target, extract the target if it exists, else return undefined
-
-    @param target path of properties as an array
-*/
-function getDeepProperty(obj, target) {
-    if (obj !== undefined && target.length) {
-        return getDeepProperty(obj[target[0]], target.slice(1))
-    } else {
-        return obj
-    }
-}
-
-/** Create the key path target if it doesn't exist and set the final property to value.
-
-    If the path is an empty array, replace the obj.
-
-    @param target path of properties as an array
-*/
-function setDeepProperty(obj, value, target) {
-    if (target.length > 1) {
-        // If necessary antecedent objects don't exist, create them.
-        if (obj[target[0]] === undefined) {
-            obj[target[0]] = o({})
-        }
-        return setDeepProperty(obj[target[0]], value, target.slice(1))
-    } else {
-        obj[target[0]] = value
-    }
-}
-
 
 /** Get the value of the key target.
 
@@ -73,7 +35,7 @@ export function get(...target) {
     const defult = getDeepProperty(DEFAULTS, target)
 
     // Merge results if there's a default value and it's not an Array or primitive.
-    if (defult && (! Array.isArray(defult) && typeof defult === "object")) {
+    if (defult && (!Array.isArray(defult) && typeof defult === "object")) {
         return Object.assign(o({}), defult, user)
     } else {
         if (user !== undefined) {
@@ -84,19 +46,27 @@ export function get(...target) {
     }
 }
 
+/** Given an object and a target, extract the target if it exists,
+ * else return undefined
+
+    @param target path of properties as an array
+*/
+function getDeepProperty(obj, target) {
+    if (obj !== undefined && target.length) {
+        return getDeepProperty(obj[target[0]], target.slice(1))
+    } else {
+        return obj
+    }
+}
+
 /** Get the value of the key target, but wait for config to be loaded from the
     database first if it has not been at least once before.
 
     This is useful if you are a content script and you've just been loaded.
 */
 export async function getAsync(...target) {
-    if (INITIALISED) {
-        return get(...target)
-    } else {
-        return new Promise((resolve) =>
-            WAITERS.push(() => resolve(get(...target)))
-        )
-    }
+    if (INITIALISED) { return get(...target) }
+    return new Promise(resolve => WAITERS.push(() => resolve(get(...target))))
 }
 
 /** Full target specification, then value
@@ -115,28 +85,29 @@ export function set(...args) {
     const value = args[args.length - 1]
 
     setDeepProperty(USERCONFIG, value, target)
-    save()
+
+    /** Create the key path target if it doesn't exist and set the final property
+     * to value. If the path is an empty array, replace the obj.
+
+        @param target path of properties as an array
+    */
+    function setDeepProperty(obj, value, target) {
+        if (target.length > 1) {
+            // If necessary antecedent objects don't exist, create them.
+            if (obj[target[0]] === undefined) {
+                obj[target[0]] = o({})
+            }
+            return setDeepProperty(obj[target[0]], value, target.slice(1))
+        } else {
+            obj[target[0]] = value
+        }
+    }
 }
 
 /** Delete the key at target if it exists */
 export function unset(...target) {
     const parent = getDeepProperty(USERCONFIG, target.slice(0, -1))
     if (parent !== undefined) delete parent[target[target.length - 1]]
-    save()
-}
-
-/** Save the config back to storage API.
-
-    Config is not synchronised between different instances of this module until
-    sometime after this happens.
-*/
-export async function save(storage: "local" | "sync" = get("storageloc")){
-    // let storageobj = storage == "local" ? browser.storage.local : browser.storage.sync
-    // storageobj.set({CONFIGNAME: USERCONFIG})
-    let settingsobj = o({})
-    settingsobj[CONFIGNAME] = USERCONFIG
-    if (storage == "local") browser.storage.local.set(settingsobj)
-    else browser.storage.sync.set(settingsobj)
 }
 
 /** Read all user configuration from storage API then notify any waiting asynchronous calls
@@ -163,6 +134,8 @@ async function init() {
             waiter()
         }
     }
+
+    function schlepp(settings) { Object.assign(USERCONFIG, settings) }
 }
 
 // Listen for changes to the storage and update the USERCONFIG if appropriate.
