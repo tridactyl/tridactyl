@@ -203,7 +203,10 @@ export function unfocus() {
 
 //#content
 export function scrollpx(a: number, b: number) {
-    window.scrollBy(a, b)
+    let top = document.body.getClientRects()[0].top;
+    window.scrollBy(a, b);
+    if (top == document.body.getClientRects()[0].top)
+        recursiveScroll(a, b, [document.body])
 }
 
 /** If two numbers are given, treat as x and y values to give to window.scrollTo
@@ -227,13 +230,32 @@ export function scrollto(a: number, b: number | "x" | "y" = "y") {
     }
 }
 
+//#content_helper
+function recursiveScroll(x: number, y: number, nodes: Element[]) {
+    let rect = null;
+    let node = null;
+    do {
+        node = nodes.splice(0, 1)[0]
+        if (!node)
+            return
+        rect = node.getClientRects()[0]
+    } while (!rect)
+    let top = rect.top
+    node.scrollBy(x, y);
+    if (top == node.getClientRects()[0].top) {
+        let children = Array.prototype.slice.call(node.children).filter(DOM.isVisible)
+        recursiveScroll(x, y, nodes.concat(children))
+    }
+}
+
 //#content
 export function scrollline(n = 1) {
     window.scrollByLines(n)
 }
+
 //#content
 export function scrollpage(n = 1) {
-    window.scrollBy(0, window.innerHeight * n)
+    scrollpx(0, window.innerHeight * n)
 }
 
 /** @hidden */
