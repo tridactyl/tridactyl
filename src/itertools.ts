@@ -130,3 +130,15 @@ export function unique(arr) {
         return acc
     }, []);
 }
+
+export function flatten(arr) {
+    let result = []
+    for (let elem of arr) {
+        if (elem instanceof Array) {
+            result = result.concat(flatten(elem))
+        } else {
+            result.push(elem)
+        }
+    }
+    return result
+}
