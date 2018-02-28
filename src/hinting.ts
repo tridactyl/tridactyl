@@ -57,6 +57,17 @@ export function hintPage(
     buildHints(hintableElements, onSelect)
 
     if (modeState.hints.length) {
+        let sameLinks = false
+        for (let hint of modeState.hints) {
+            sameLinks = hint.target instanceof HTMLAnchorElement
+                && hint.target.href === (<HTMLAnchorElement>modeState.hints[0].target).href
+            if (!sameLinks)
+                break
+        }
+        if (sameLinks) {
+            modeState.hints[0].select()
+            reset()
+        }
         logger.debug("hints", modeState.hints)
         modeState.focusedHint = modeState.hints[0]
         modeState.focusedHint.focused = true
@@ -143,7 +154,7 @@ class Hint {
     public readonly flag = document.createElement('span')
 
     constructor(
-        private readonly target: Element,
+        public readonly target: Element,
         public readonly name: string,
         public readonly filterData: any,
         private readonly onSelect: HintSelectedCallback
