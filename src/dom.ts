@@ -1,5 +1,7 @@
 import {MsgSafeNode} from './msgsafe'
 import * as config from './config'
+import {flatten} from './itertools'
+
 // From saka-key lib/dom.js, under Apachev2
 
 /**
@@ -223,6 +225,18 @@ export function isVisible (element: Element) {
     /* return true */
 }
 
+/** Return all frames that belong to the document (frames that belong to
+ * extensions are ignored).
+ *
+ * @param doc   The document the frames should be fetched from
+ */
+export function getAllDocumentFrames(doc = document) {
+    let frames = Array.from(doc.getElementsByTagName("iframe"))
+        .concat(Array.from(doc.getElementsByTagName("frame")))
+        .filter((frame) => !frame.src.startsWith("moz-extension://"))
+    return frames.concat(flatten(frames.map((x) => getAllDocumentFrames(x.contentDocument))))
+}
+
 /** Get all elements that match the given selector
  *
  * @param selector   `the CSS selector to choose elements with
@@ -233,6 +247,9 @@ export function getElemsBySelector(selector: string,
     filters: Array<ElementFilter>) {
 
     let elems = Array.from(document.querySelectorAll(selector))
+    let frameElems = flatten(getAllDocumentFrames()
+        .map((frame) => Array.from(frame.contentDocument.querySelectorAll(selector))))
+    elems = elems.concat(frameElems)
 
     for (let filter of filters) {
         elems = elems.filter(filter)

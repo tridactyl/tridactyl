@@ -171,6 +171,17 @@ class Hint {
         public readonly filterData: any,
         private readonly onSelect: HintSelectedCallback
     ) {
+        // We need to compute the offset for elements that are in an iframe
+        let offsetTop = 0
+        let offsetLeft = 0
+        if (target.ownerDocument !== document) {
+            let iframe = DOM.getAllDocumentFrames()
+                .find((frame) => frame.contentDocument == target.ownerDocument)
+            let rect = iframe.getClientRects()[0]
+            offsetTop += rect.top
+            offsetLeft += rect.left
+        }
+
         const rect = target.getClientRects()[0]
         this.flag.textContent = name
         this.flag.className = 'TridactylHint'
@@ -179,8 +190,8 @@ class Hint {
         /*     left: ${rect.left}px; */
         /* ` */
         this.flag.style.cssText = `
-            top: ${window.scrollY + rect.top}px !important;
-            left: ${window.scrollX + rect.left}px !important;
+            top: ${window.scrollY + offsetTop + rect.top}px !important;
+            left: ${window.scrollX + offsetLeft + rect.left}px !important;
         `
         modeState.hintHost.appendChild(this.flag)
         this.hidden = false
