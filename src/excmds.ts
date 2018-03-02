@@ -1381,7 +1381,7 @@ export function set(key: string, ...values: string[]) {
 
     if (Array.isArray(currentValue)) {
         config.set(...target, values)
-    } else if (typeof currentValue === "string") {
+    } else if (currentValue === undefined || typeof currentValue === "string") {
         config.set(...target, values.join(' '))
     } else {
         throw "Unsupported setting type!"
