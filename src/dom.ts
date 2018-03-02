@@ -231,8 +231,8 @@ export function isVisible (element: Element) {
  * @param doc   The document the frames should be fetched from
  */
 export function getAllDocumentFrames(doc = document) {
-    let frames = Array.from(doc.getElementsByTagName("iframe"))
-        .concat(Array.from(doc.getElementsByTagName("frame")))
+    let frames = (<HTMLIFrameElement[] & HTMLFrameElement[]>Array.from(doc.getElementsByTagName("iframe")))
+        .concat((Array.from(doc.getElementsByTagName("frame"))))
         .filter((frame) => !frame.src.startsWith("moz-extension://"))
     return frames.concat(flatten(frames.map((x) => getAllDocumentFrames(x.contentDocument))))
 }
