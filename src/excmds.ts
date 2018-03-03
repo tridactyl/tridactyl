@@ -750,12 +750,6 @@ const INPUTPASSWORD_selectors = `
 input[type='password']
 `
 
-/** DOM reference to the last used Input field
- * @hidden
- */
-//#content_helper
-let LAST_USED_INPUT: HTMLElement = null
-
 /** Focus the last used input on the page
  *
  * @param nth   focus the nth input on the page, or "special" inputs:
@@ -777,8 +771,8 @@ export function focusinput(nth: number | string) {
     if (nth === "-l") {
         // try to recover the last used input stored as a
         // DOM node, which should be exactly the one used before (or null)
-        if (LAST_USED_INPUT) {
-            inputToFocus = LAST_USED_INPUT
+        if (DOM.getLastUsedInput()) {
+            inputToFocus = DOM.getLastUsedInput()
         } else {
             // Pick the first input in the DOM.
             inputToFocus = DOM.getElemsBySelector(INPUTTAGS_selectors, [DOM.isSubstantial])[0] as HTMLElement
@@ -790,8 +784,8 @@ export function focusinput(nth: number | string) {
         // attempt to find next/previous input
         let inputs = DOM.getElemsBySelector(INPUTTAGS_selectors, [DOM.isSubstantial]) as HTMLElement[]
         if (inputs.length) {
-            let index = inputs.indexOf(LAST_USED_INPUT)
-            if (LAST_USED_INPUT) {
+            let index = inputs.indexOf(DOM.getLastUsedInput())
+            if (DOM.getLastUsedInput()) {
                 if (nth === "-n") {
                     index++
                 } else {
@@ -832,12 +826,6 @@ export function focusinput(nth: number | string) {
         }
     }
 }
-
-// Store the last focused element
-//#content_helper
-document.addEventListener("focusin", e => {
-    if (DOM.isTextEditable(e.target as HTMLElement)) LAST_USED_INPUT = e.target as HTMLElement
-})
 
 // }}}
 

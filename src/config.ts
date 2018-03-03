@@ -168,12 +168,15 @@ const DEFAULTS = o({
             "https://wiki.gentoo.org/index.php?title=Special%3ASearch&profile=default&fulltext=Search&search=",
         qwant: "https://www.qwant.com/?q=",
     }),
+
     newtab: "",
     viewsource: "tridactyl", // "tridactyl" or "default"
     storageloc: "sync",
     homepages: [],
     hintchars: "hjklasdfgyuiopqwertnmzxcvb",
     hintfiltermode: "simple", // "simple", "vimperator", "vimperator-reflow"
+
+    allowautofocus: false,
 
     tabopenpos: "next",
     relatedopenpos: "related",
