@@ -41,3 +41,10 @@ import * as webext from './lib/webext'
     webext,
     l: prom => prom.then(console.log).catch(console.error),
 })
+
+if (window.location.protocol === "moz-extension:" && window.location.pathname === "/static/newtab.html") {
+    (window as any).tri.config.getAsync("newtab").then((newtab) => {
+        if (newtab !== "")
+            window.location.href = (window as any).tri.excmds.forceURI(newtab)
+    })
+}
