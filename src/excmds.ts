@@ -122,7 +122,7 @@ function searchURL(provider: string, query: string) {
 
 /** If maybeURI doesn't have a schema, affix http:// */
 /** @hidden */
-function forceURI(maybeURI: string): string {
+export function forceURI(maybeURI: string): string {
     // Need undefined to be able to open about:newtab
     if (maybeURI == "") return undefined
     try {
