@@ -24,6 +24,7 @@
                 "content.js"
             ],
             "css": [
+                "static/cleanslate.css",
                 "static/content.css",
                 "static/hint.css"
             ],
