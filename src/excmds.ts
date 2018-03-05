@@ -362,7 +362,7 @@ function selectLast(selector: string): HTMLElement | null {
 /** Find a likely next/previous link and follow it
 
     If a link or anchor element with rel=rel exists, use that, otherwise fall back to:
-    
+
         1) find the last anchor on the page with innerText matching the appropriate `followpagepattern`.
         2) call [[urlincrement]] with 1 or -1
 
@@ -915,7 +915,8 @@ export async function undo(){
 
     // The first session object that's a window or a tab from this window. Or undefined if sessions is empty.
     let closed = sessions.find((s) => {
-        return ('window' in s || s.tab && (s.tab.windowId == current_win_id))
+        if(s.window) return true
+        else return s.tab && (s.tab.windowId == current_win_id)
     })
     if (closed) {
         if (closed.tab) {
