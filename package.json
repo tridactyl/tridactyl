@@ -10,6 +10,7 @@
     "@types/node": "^8.0.46",
     "awesome-typescript-loader": "^3.2.3",
     "chokidar-cli": "^1.2.0",
+    "cleanslate": "^0.10.1",
     "copy-webpack-plugin": "^4.2.0",
     "jest": "^21.2.1",
     "shared-git-hooks": "^1.2.1",
