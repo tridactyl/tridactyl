@@ -448,7 +448,7 @@ function onPageFocus(elem: HTMLElement, args: any[]): void {
     if (isTextEditable(elem)) {
         LAST_USED_INPUT = elem
         config.getAsync("allowautofocus").then((allow) => {
-            if (allow)
+            if (allow === "true")
                 elem.focus(args)
         });
     }

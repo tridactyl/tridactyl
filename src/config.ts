@@ -176,7 +176,7 @@ const DEFAULTS = o({
     hintchars: "hjklasdfgyuiopqwertnmzxcvb",
     hintfiltermode: "simple", // "simple", "vimperator", "vimperator-reflow"
 
-    allowautofocus: false,
+    allowautofocus: "true",
 
     tabopenpos: "next",
     relatedopenpos: "related",
