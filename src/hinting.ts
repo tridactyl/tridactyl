@@ -25,7 +25,7 @@ const logger = new Logger('hinting')
 /** Simple container for the state of a single frame's hints. */
 class HintState {
     public focusedHint: Hint
-    readonly hintHost = html`<div class="TridactylHintHost">`
+    readonly hintHost = html`<div class="TridactylHintHost cleanslate">`
     readonly hints: Hint[] = []
     public filter = ''
     public hintchars = ''
@@ -167,8 +167,8 @@ class Hint {
         /*     left: ${rect.left}px; */
         /* ` */
         this.flag.style.cssText = `
-            top: ${window.scrollY + rect.top}px;
-            left: ${window.scrollX + rect.left}px;
+            top: ${window.scrollY + rect.top}px !important;
+            left: ${window.scrollX + rect.left}px !important;
         `
         modeState.hintHost.appendChild(this.flag)
         target.classList.add('TridactylHintElem')
