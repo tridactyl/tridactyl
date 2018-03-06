@@ -1,0 +1,11 @@
+#!/bin/sh
+
+filetypes="*.js *.jsx *.ts"
+
+# Run prettier on the diffs
+$(npm bin)/precise-commits $filetypes
+# Re-add the modified files
+files=$(git diff --cached --name-only --diff-filter=ACM $filetypes)
+if [ "" != "$files" ]; then
+    echo "$files" | xargs git add
+fi
