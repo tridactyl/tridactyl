@@ -1,6 +1,6 @@
 ![Tridactyl logo](logo/Tridactyl_100px.png)
 
-# Tridactyl new tab page
+# Tridactyl REPLACE_ME_WITH_THE_VERSION_USING_SED
 
 Tridactyl overrides your newtab page because it cannot insert its content script on the default about:newtab. Without the content script, our shortcuts won't work, even if you're just passing through the page.
 
