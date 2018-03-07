@@ -35,10 +35,14 @@ function *ParserController () {
                 let keyevent: MsgSafeKeyboardEvent = yield
                 let keypress = keyevent.key
 
-                // TODO: think about if this is robust
+                // This code was sort of the cause of the most serious bug in Tridactyl
+                // to date (March 2018).
+                // https://github.com/cmcaine/tridactyl/issues/311
                 if (state.mode != "ignore" && state.mode != "hint" && state.mode != "input") {
                     if (isTextEditable(keyevent.target)) {
-                        state.mode = "insert"
+                        if (state.mode !== 'insert') {
+                            state.mode = "insert"
+                        }
                     } else if (state.mode === 'insert') {
                         state.mode = "normal"
                     }

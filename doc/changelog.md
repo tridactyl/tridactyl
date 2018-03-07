@@ -1,6 +1,6 @@
 # Tridactyl changelogs
 
-## Release 1.8.1
+## Release 1.8.2
 
 - Improve config API
     - `set key.subkey.subsubkey value` now works

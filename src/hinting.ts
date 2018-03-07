@@ -25,12 +25,16 @@ const logger = new Logger('hinting')
 /** Simple container for the state of a single frame's hints. */
 class HintState {
     public focusedHint: Hint
-    readonly hintHost = html`<div class="TridactylHintHost cleanslate">`
+    readonly hintHost = document.createElement('div')
     readonly hints: Hint[] = []
     public filter = ''
     public hintchars = ''
 
-    constructor(public filterFunc: HintFilter) {}
+    constructor(
+        public filterFunc: HintFilter,
+    ){
+        this.hintHost.classList.add("TridactylHintHost", "cleanslate")
+    }
 
     destructor() {
         // Undo any alterations of the hinted elements
