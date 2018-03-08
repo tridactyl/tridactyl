@@ -300,7 +300,7 @@ export function viewsource(url = "") {
     if (url === "")
         url = window.location.href
     if (config.get("viewsource") === "default") {
-        window.location.href = "view-source:" + window.location.href
+        window.location.href = "view-source:" + url
         return
     }
     if (!sourceElement) {
