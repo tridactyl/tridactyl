@@ -7,6 +7,8 @@
     The default keybinds can be found [here](/static/docs/modules/_config_.html#defaults).
     You can also view them with [[bind]]. Try `bind j`.
 
+    For more information, and FAQs, check out our [readme][4] on github.
+
     Tridactyl is in a pretty early stage of development. Please report any
     issues and make requests for missing features on the GitHub [project page][1].
     You can also get in touch using Matrix, Gitter, or IRC chat clients:
@@ -48,11 +50,12 @@
       file](2) available in our repository.
 
     If you want a more fully-featured vimperator-alike, your best option is
-    [Firefox ESR](3) and Vimperator :)
+    [Firefox ESR][3] and Vimperator :)
 
     [1]: https://github.com/cmcaine/tridactyl/issues
     [2]: https://github.com/cmcaine/tridactyl/blob/master/src/static/userChrome-minimal.css
     [3]: https://www.mozilla.org/en-US/firefox/organizations/
+    [4]: https://github.com/cmcaine/tridactyl#readme
 
     [gitter-badge]: /static/badges/gitter-badge.svg
     [gitter-link]: https://gitter.im/tridactyl/Lobby
