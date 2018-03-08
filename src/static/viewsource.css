@@ -1,0 +1,9 @@
+
+#TridactylViewsourceElement {
+  position: absolute !important;
+  top: 0px !important;
+  font-family: monospace !important;
+  background-color: #F0F0F2 !important;
+  white-space: pre !important;
+  width: 100% !important;
+}

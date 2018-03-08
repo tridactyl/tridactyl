@@ -154,6 +154,7 @@ const DEFAULTS = o({
 
     }),
     "newtab": "",
+    "viewsource": "tridactyl", // "tridactyl" or "default"
     "storageloc": "sync",
     "homepages": [],
     "hintchars": "hjklasdfgyuiopqwertnmzxcvb",

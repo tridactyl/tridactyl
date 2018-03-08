@@ -84,6 +84,7 @@ import "./number.clamp"
 import * as SELF from "./excmds_content"
 Messaging.addListener('excmd_content', Messaging.attributeCaller(SELF))
 import * as DOM from './dom'
+import { executeWithoutCommandLine } from "./commandline_content"
 // }
 
 //#background_helper
@@ -292,11 +293,29 @@ export function open(...urlarr: string[]) {
     window.location.href = forceURI(url)
 }
 
+//#content_helper
+let sourceElement = undefined
 //#content
 export function viewsource(url = "") {
     if (url === "")
         url = window.location.href
-    window.location.href = "view-source:" + window.location.href
+    if (config.get("viewsource") === "default") {
+        window.location.href = "view-source:" + window.location.href
+        return
+    }
+    if (!sourceElement) {
+        sourceElement = executeWithoutCommandLine(() => {
+            let pre = document.createElement("pre")
+            pre.id = "TridactylViewsourceElement"
+            pre.className = "cleanslate"
+            pre.innerText = document.documentElement.innerHTML
+            document.documentElement.appendChild(pre)
+            return pre
+        })
+    } else {
+        sourceElement.parentNode.removeChild(sourceElement)
+        sourceElement = undefined
+    }
 }
 
 /** Go to your homepage(s)
