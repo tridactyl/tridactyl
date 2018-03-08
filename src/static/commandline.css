@@ -10,6 +10,7 @@ input {
   font-size: 9pt;
   line-height: 1.5;
   color: black;
+  background:  white;
   border: unset;
   /* we currently have a border from the completions */
   /* border-top: solid 1px lightgray; */
@@ -20,8 +21,8 @@ input {
 
 #completions {
   --option-height: 1.4em;
-  background: white;
   color: black;
+  background: white;
   display: inline-block;
   font-size: 10pt;
   font-family: monospace;
@@ -135,6 +136,6 @@ a.url:hover {
 
 /* Pick the .url out especially because otherwise its link styles dominate. */
 .focused, .focused .url {
-  background: #FFEC8B;
   color: black;
+  background: #FFEC8B;
 }

@@ -1112,7 +1112,7 @@ export function composite(...cmds: string[]) {
 
 /** Please use fillcmdline instead */
 //#background
-export function showcmdline() {
+function showcmdline() {
     CommandLineBackground.show()
 }
 

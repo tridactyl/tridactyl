@@ -162,6 +162,7 @@ const DEFAULTS = o({
     "ttsvolume": 1,         // 0 to 1
     "ttsrate": 1,           // 0.1 to 10
     "ttspitch": 1,          // 0 to 2
+    "theme": "default",     // currently available: "default", "dark"
     "vimium-gi": true,
 
     // Default logging levels - 2 === WARNING

@@ -26,6 +26,7 @@
             "css": [
                 "static/cleanslate.css",
                 "static/content.css",
+                "static/content-dark.css",
                 "static/hint.css"
             ],
             "run_at": "document_start",
