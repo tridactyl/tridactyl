@@ -292,6 +292,13 @@ export function open(...urlarr: string[]) {
     window.location.href = forceURI(url)
 }
 
+//#content
+export function viewsource(url = "") {
+    if (url === "")
+        url = window.location.href
+    window.location.href = "view-source:" + window.location.href
+}
+
 /** Go to your homepage(s)
 
     @param all
