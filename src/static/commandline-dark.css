@@ -29,7 +29,7 @@
   background: #333;
 }
 
-:root.dark .focused, .focused .url {
+:root.dark .focused, :root.dark .focused .url {
   color: var(--foreground-bright);
   background: #204e8a;
 }
