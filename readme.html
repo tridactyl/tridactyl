@@ -1,0 +1,313 @@
+<p><img src="src/static/logo/Tridactyl_200px.png" alt="Tridactyl logo"></p>
+<h1 id="tridactyl-build-status-https-travis-ci-org-cmcaine-tridactyl-svg-branch-master-https-travis-ci-org-cmcaine-tridactyl-matrix-chat-matrix-badge-matrix-link-gitter-chat-gitter-badge-gitter-link-">Tridactyl <a href="https://travis-ci.org/cmcaine/tridactyl"><img src="https://travis-ci.org/cmcaine/tridactyl.svg?branch=master" alt="Build Status"></a> <a href="https://riot.im/app/#/room/#tridactyl:matrix.org"><img src="https://matrix.to/img/matrix-badge.svg" alt="Matrix Chat"></a> <a href="https://gitter.im/tridactyl/Lobby"><img src="https://badges.gitter.im/Join%20Chat.svg" alt="Gitter Chat"></a></h1>
+<p>Replace Firefox&#39;s default control mechanism with one modelled on the one true editor, Vim.</p>
+<h2 id="installing">Installing</h2>
+<p><a href="https://addons.mozilla.org/en-US/firefox/addon/tridactyl-vim/versions/beta">Get our &quot;beta&quot; builds!</a> These are updated on AMO with each commit to master on this repo; your browser will automatically update from there once a day. If you want more frequent updates, you can change <code>extensions.update.interval</code> in <code>about:config</code> to whatever time you want, say, 15 minutes (900 seconds). Changelogs for the stable versions on the AMO can be found <a href="https://github.com/cmcaine/tridactyl/blob/master/doc/changelog.md">here</a>.</p>
+<p>Type <code>:help</code> for online help once you&#39;re in :)</p>
+<p>Remember that tridactyl cannot run on any page on addons.mozilla.org, about:*, data:*, view-source:* and file:*. We&#39;re sorry about that and we&#39;re working with Firefox to improve this situation by removing restrictions on existing APIs and developing a new API.</p>
+<h2 id="highlighted-features">Highlighted features</h2>
+<p>Like Vim, Tridactyl is modal, with the default mode being &quot;normal mode&quot;. In
+&quot;normal mode&quot;, many functions are available using keybindings. In &quot;command
+mode&quot; (when the command line is shown), you can execute more complex commands,
+known as &quot;ex-commands&quot;. All Tridactyl functionality can be accessed by 
+ex-commands. You can bind any ex-command to a normal-mode shortcut.</p>
+<h3 id="default-normal-mode-bindings">Default normal-mode bindings</h3>
+<p>This is a (non-exhaustive) list of the most command normal-mode bindings. Type
+<code>:help</code> to open the online help for more details.</p>
+<ul>
+<li><code>:</code> — activate the command line</li>
+<li><code>I</code> — enter ignore mode. <code>Shift-Escape</code> to return to normal mode</li>
+<li><code>ZZ</code> — close all tabs and windows, but only &quot;save&quot; them if your
+about:preferences are set to &quot;show your tabs and windows from last time&quot;</li>
+<li><code>.</code> — repeat the last command</li>
+</ul>
+<h4 id="navigating-with-the-current-page">Navigating with the current page</h4>
+<ul>
+<li><code>j</code>/<code>k</code> — scroll down/up</li>
+<li><code>h</code>/<code>l</code> — scroll left/right</li>
+<li><code>^</code>/<code>$</code> — scroll to left/right margin</li>
+<li><code>gg</code>/<code>G</code> — scroll to start/end of page</li>
+<li><code>f</code>/<code>F</code> — enter &quot;hint mode&quot; to select a link to follow. <code>F</code> to open in a
+background tab</li>
+<li><code>gi</code> — scroll to and focus the last-used input on the page</li>
+<li><code>r</code>/<code>R</code> — reload page or hard reload page</li>
+<li><code>yy</code> — copy the current page URL to the clipboard</li>
+<li><code>[[</code>/<code>]]</code> — navigate forward/backward though paginated pages, for example
+comics, multi-part articles, search result pages, etc.</li>
+<li><code>]c</code>/<code>[c</code> — increment/decrement the current URL by 1</li>
+<li><code>gu</code> — go to the parent of the current URL</li>
+<li><code>gU</code> — go to the root domain of the current URL</li>
+<li><code>gr</code> — open Firefox reader mode (note: Tridactyl will not work in this mode)</li>
+<li><code>zi</code>/<code>zo</code>/<code>zz</code> — zoom in/out/reset zoom</li>
+</ul>
+<h4 id="find-mode">Find mode</h4>
+<p>Find mode is still incomplete and uses the built-in Firefox search. This will
+be improved eventually.</p>
+<ul>
+<li><code>/</code> — open the find search box</li>
+<li><code>C-g</code>/<code>C-G</code> — find the next/previous instance of the last find operation
+(note: these are the standard Firefox shortcuts)</li>
+</ul>
+<h4 id="bookmarks-and-quickmarks">Bookmarks and quickmarks</h4>
+<ul>
+<li><code>A</code> — bookmark the current page</li>
+<li><code>a</code> — bookmark the current page, but allow the URL to be modified first</li>
+<li><code>M&lt;key&gt;</code> — bind a quickmark to the given key</li>
+<li><code>go&lt;key&gt;</code>/<code>gn&lt;key&gt;</code>/<code>gw&lt;key&gt;</code> — open a given quickmark in current tab/new tab/new window</li>
+</ul>
+<h4 id="navigating-to-new-pages-">Navigating to new pages:</h4>
+<ul>
+<li><code>o</code>/<code>O</code> — open a URL (or default search) in this tab (<code>O</code> to pre-load current URL)</li>
+<li><code>t</code>/<code>T</code> — open a URL (or default search) in a new tab (<code>T</code> to pre-load current URL)</li>
+<li><code>w</code>/<code>W</code> — open a URL (or default search) in a new window (<code>W</code> to pre-load current URL)</li>
+<li><code>p</code>/<code>P</code> — open the clipboard contents in the current/new tab</li>
+<li><code>s</code>/<code>S</code> — force a search using the default Tridactyl search engine, opening
+in the current/new tab. This is useful when searching for something that
+would otherwise be treated as a URL by <code>o</code> or <code>t</code></li>
+<li><code>H</code>/<code>L</code> — go back/forward in the tab history</li>
+<li><code>gh</code>/<code>gH</code> — go to the home page (in a new tab)</li>
+</ul>
+<h4 id="handling-tabs">Handling tabs</h4>
+<ul>
+<li><code>d</code> — close the current tab</li>
+<li><code>u</code> — undo the last tab/window closure</li>
+<li><code>gt</code>/<code>gT</code> — go to the next/previous tab</li>
+<li><code>g^</code>/<code>g$</code> — go to the first/last tab</li>
+<li><code>b</code> — bring up a list of open tabs in the current window; you can type the 
+tab ID or part of the title or URL to choose a tab</li>
+</ul>
+<h4 id="extended-hint-mode">Extended hint mode</h4>
+<p>Extended hint modes allow you to perform actions on page items:</p>
+<ul>
+<li><code>;i</code>/<code>;I</code> — open an image (in current/new tab)</li>
+<li><code>;s</code>/<code>;a</code> — save/save-as the linked resource</li>
+<li><code>;S</code>/<code>;A</code> — save/save-as the selected image</li>
+<li><code>;p</code> — copy an element&#39;s text to the clipboard</li>
+<li><code>;y</code> — copy an element&#39;s link URL to the clipboard</li>
+<li><code>;#</code> — copy an element&#39;s anchor URL to the clipboard</li>
+<li><code>;r</code> — read the element&#39;s text with text-to-speech</li>
+<li><code>;k</code> — delete an element from the page</li>
+<li><code>;;</code> — focus an element</li>
+</ul>
+<p>Additionally, you can bind to a custom CSS selector with <code>:hint -c [selector]</code>
+which is useful for site-specific versions of the standard <code>f</code> hint mode.</p>
+<h3 id="binding-custom-commands">Binding custom commands</h3>
+<p>You can bind your own shortcuts in normal mode with the <code>:bind</code> command.
+For example <code>:bind J tabprev</code> to bind <code>J</code> to switch to the previous tab.
+See <code>:help bind</code> for details about this command.</p>
+<p>NOTE: key modifiers (eg: control, alt) are not supported yet. See the FAQ below.</p>
+<h2 id="webextension-related-issues">WebExtension-related issues</h2>
+<ul>
+<li>Do not try to navigate to any about:* pages using <code>:open</code> as it will fail silently.</li>
+<li>Firefox will not load Tridactyl on addons.mozilla.org, about:*, some file:* URIs, view-source:*, or data:*. On these pages Ctrl-L (or F6), Ctrl-Tab and Ctrl-W are your escape hatches.</li>
+<li>Tridactyl does not currently support changing/hiding the Firefox GUI, but you can do it yourself by changing your userChrome. We&#39;ve developed <a href="src/static/userChrome-minimal.css">quite a good one</a> that makes windowed Firefox behave more like full-screen mode, but it&#39;s well commented, so you can make your own.</li>
+</ul>
+<h2 id="frequently-asked-questions">Frequently asked questions</h2>
+<ul>
+<li><p>How can I change the search engine?</p>
+<p>  <code>set searchengine duckduckgo</code></p>
+</li>
+<li><p>How can I add a search engine?</p>
+<p>  <code>searchsetkeyword esa http://www.esa.int/esasearch?q=</code></p>
+</li>
+<li><p>Can I import/export settings, and does Tridactyl use an external configuration file just like Vimperator?</p>
+<p>  Sort of: if you do <code>set storageloc local</code>, a JSON file will appear at <code>&lt;your firefox profile&gt;\browser-extension-data\tridactyl.vim@cmcaine.co.uk\storage.js</code>. You can find you profile folder by going to <code>about:support</code>. </p>
+<p>  You can edit this file to your heart&#39;s content. A more traditional rc file is planned but will require a native messenger. For more information, see <a href="https://github.com/cmcaine/tridactyl/issues/79">issue #79</a>.</p>
+</li>
+<li><p>I hate the light, can I get a dark theme/dark mode?</p>
+<p>  Yes! <code>set theme dark</code>. Thanks to @fugerf.</p>
+</li>
+<li><p>How can I bind keys using the control/alt key modifiers (eg: <code>ctrl+^</code>)?</p>
+<p>  You can&#39;t, yet. See <a href="https://github.com/cmcaine/tridactyl/issues/41">issue #41</a>.</p>
+</li>
+<li><p>How can I tab complete from bookmarks?</p>
+<p>  <code>bmarks</code>. Bookmarks are not currently supported on <code>*open</code>: see <a href="https://github.com/cmcaine/tridactyl/issues/214">issue #214</a>.</p>
+</li>
+<li><p>When I type &#39;f&#39;, can I type link names (like Vimperator) in order to narrow down the number of highlighted links?</p>
+<p>  Not yet. See <a href="https://github.com/cmcaine/tridactyl/issues/28">issue #28</a>.</p>
+</li>
+<li><p>How to remap keybindings in both normal mode and ex mode?</p>
+<p>  You cannot. We only support normal mode bindings for now, with <code>bind [key] [excmd]</code></p>
+</li>
+<li><p>Where can I find a changelog for the different versions (to see what is new in the latest version)?</p>
+<p>  <a href="https://github.com/cmcaine/tridactyl/blob/master/doc/changelog.md">Here.</a></p>
+</li>
+<li><p>Why can&#39;t I use my bookmark keywords?</p>
+<p>  Mozilla doesn&#39;t give us access to them. See <a href="https://github.com/cmcaine/tridactyl/issues/73">issue #73</a>.</p>
+</li>
+<li><p>Why doesn&#39;t Tridactyl work on websites with frames?</p>
+<p>  It should work on some frames now. See <a href="https://github.com/cmcaine/tridactyl/issues/122">#122</a>.</p>
+</li>
+<li><p>Can I change proxy via commands?</p>
+<p>  No, this is a limitation of WebExtensions.</p>
+</li>
+<li><p>How do I disable Tridactyl on certain sites?</p>
+<p>  You can&#39;t yet, see <a href="https://github.com/cmcaine/tridactyl/issues/158">#158</a>.</p>
+</li>
+<li><p>How can I list the current bindings?</p>
+<p>  There is no easy way. See <a href="https://github.com/cmcaine/tridactyl/issues/98">#98</a>.</p>
+</li>
+<li><p>Why doesn&#39;t Tridactyl work on some pages?</p>
+<p>  One possible reason is that the site has a strict content security policy. We can rewrite these to make Tridactyl work, but we do not want to worsen the security of sensitive pages, so it is taking us a little while. See <a href="https://github.com/cmcaine/tridactyl/issues/112">#112</a>.</p>
+</li>
+<li><p>How can I know which mode I&#39;m in/have a status line?</p>
+<p>  Press <code>j</code> and see if you scroll down :) There&#39;s no status line yet: see <a href="https://github.com/cmcaine/tridactyl/issues/210">#210</a>.</p>
+</li>
+</ul>
+<h2 id="contributing">Contributing</h2>
+<h3 id="building-and-installing">Building and installing</h3>
+<p>Onboarding:</p>
+<pre><code>git clone https://github.com/cmcaine/tridactyl.git
+cd tridactyl
+npm install
+npm run build
+</code></pre><p>Each time package.json or package-lock.json change after you checkout or pull, you should run <code>npm install</code> again.</p>
+<p>Addon is built in tridactyl/build. Load it as a temporary addon in firefox with <code>about:debugging</code> or see <a href="#Development-loop">Development loop</a>. The addon should work in Firefox 52+, but we&#39;re only deliberately supporting &gt;=57.</p>
+<p>If you want to install a local copy of the add-on into your developer or nightly build of firefox then you can enable installing unsigned add-ons and then build it like so:</p>
+<pre><code># Build tridactyl if you haven&#39;t done that yet
+npm run build
+# Package for a browser
+$(npm bin)/web-ext build -s build
+</code></pre><p>If you want to build a signed copy (e.g. for the non-developer release), you can do that with <code>web-ext sign</code>. You&#39;ll need some keys for AMO and to edit the application id in <code>src/manifest.json</code>. There&#39;s a helper script in <code>scripts/sign</code> that&#39;s used by our build bot and for manual releases.</p>
+<h3 id="development-loop">Development loop</h3>
+<pre><code>npm run watch &amp;
+$(npm bin)/web-ext run -s build
+</code></pre><p>This will compile and deploy your files each time you save them.</p>
+<h3 id="committing">Committing</h3>
+<p>A pre-commit hook is added by <code>npm install</code> that simply runs <code>npm test</code>. If you know that your commit doesn&#39;t break the tests you can commit with <code>git commit -n</code> to ignore the hooks. If you&#39;re making a PR, travis will check your build anyway.</p>
+<h3 id="documentation">Documentation</h3>
+<p>Ask in <code>#tridactyl</code> on <a href="https://riot.im/app/#/room/#tridactyl:matrix.org">matrix.org</a>, freenode, or <a href="https://gitter.im/tridactyl/Lobby">gitter</a>. We&#39;re friendly!</p>
+<p>Default keybindings are currently best discovered by reading the <a href="./src/config.ts">default config</a>.</p>
+<p>Development notes are in the doc directory, but they&#39;re mostly out of date now. Code is quite short and not <em>too</em> badly commented, though.</p>
+<h2 id="principles-and-objectives">Principles and objectives</h2>
+<p>Principles:</p>
+<ul>
+<li>Keyboard &gt; mouse</li>
+<li>default keybinds should be Vim-like</li>
+<li>actions should be composable and repeatable</li>
+<li>ex mode should expose all the browser functionality anyone might want</li>
+<li>Arguable: most (all?) actions should have an ex mode version (departure from Vim?)</li>
+<li>users can map and define their own actions and commands</li>
+</ul>
+<p>Other objectives:</p>
+<ul>
+<li>be fast - the whole point of a keyboard interface is to be more efficient, don&#39;t compromise that with slow code</li>
+<li>don&#39;t crash - we&#39;re the new UI and we shouldn&#39;t crash</li>
+<li>be maintainable - code should be well documented, reasoned about and tested.</li>
+</ul>
+<p>Non-objectives for v1:</p>
+<ul>
+<li>insert mode (embedded (n)vim would be good for future)</li>
+<li>caret or visual mode - I&#39;m not good enough at vim to find these easier than selecting with the mouse, and they require text motions, which I would prefer to delegate to vim.</li>
+</ul>
+<p>Prior art:</p>
+<ul>
+<li>pentadactyl/vimperator - dying with XUL</li>
+<li>cVim/vimium/saka-key</li>
+<li>vimfx - transitioning to WebExtensions, but no ex commands</li>
+<li>qutebrowser/jumanji - see <a href="doc/standalone.md">standalone.md</a>.</li>
+</ul>
+<h2 id="webextensions">WebExtensions</h2>
+<p>What we learnt from these notes has been condensed in <a href="doc/bug-message.md">bug-message.md</a>.</p>
+<h3 id="evaluating-prior-art">Evaluating prior art</h3>
+<p>cVim and vimium implement some kind of vim experience using webextensions. Neither allow you to modify the browser UI.</p>
+<h4 id="common-issues">Common issues</h4>
+<ol>
+<li>can&#39;t operate on some URLs (chrome store, chrome://, view-source://)</li>
+<li>can&#39;t escape location bar</li>
+<li>can&#39;t hide chrome UI</li>
+<li>can&#39;t suppress all chrome keybinds</li>
+<li>can&#39;t override some browser shortcuts</li>
+<li>bad js kills the UI (but the same bad js locks up the whole of firefox, so y&#39;know...)</li>
+</ol>
+<p>In conclusion, a privileged keyboard webextension will help with #1,2,4,5; #3,#1 (for visual changes) and maybe #2 need a ui API. #1 might not be applicable to ff content scripts.</p>
+<h4 id="vimium">Vimium</h4>
+<p><a href="https://github.com/philc/vimium">https://github.com/philc/vimium</a></p>
+<p>Very lightweight, but what is there is actually really nice. Easily fixable issues: no command mode for the features they do have; some odd default maps; mappings are done by function name rather than key (&#39;map b Vomnibar.activateTabSelection&#39; rather than &#39;map b T&#39;). Possibly fixable issues: plugin support (source), arbitrary js eval for mappings, marks are per tab, jumplist.</p>
+<p>Missing:</p>
+<ul>
+<li>command mode</li>
+<li>jumplist</li>
+<li>:js</li>
+<li>lots more.</li>
+</ul>
+<p>Improvements over vimperator:</p>
+<ul>
+<li>regex search</li>
+<li>buffer switch between windows</li>
+</ul>
+<h4 id="vrome">vrome</h4>
+<p><a href="https://github.com/jinzhu/vrome">https://github.com/jinzhu/vrome</a></p>
+<p>Vim mode chromium plugin written at least partly in coffeescript. Source is not documented, but it&#39;s not so bad either (at least it&#39;s in coffeescript). Default maps are not to my liking, but that&#39;s hardly surprising. I don&#39;t see how to make new maps, tho. UI appearance is poor, appears to be influenced by context&#39;s css.</p>
+<p>Missing:</p>
+<ul>
+<li>map!</li>
+<li>sensible default maps</li>
+<li>UI style</li>
+<li>documentation for users or developers</li>
+<li>plugin/eval support</li>
+<li>jumplist, etc</li>
+</ul>
+<p>May be worth taking code from, could consider forking it, but would need to review code more carefully for quality issues.</p>
+<h4 id="cvim">cVim</h4>
+<p><a href="https://github.com/1995eaton/chromium-vim">https://github.com/1995eaton/chromium-vim</a></p>
+<p>Written in uncommented javascript. But user experience is pretty good. Autocompletion in command mode is very good and it has a decent chunk of the vimperator features implemented.</p>
+<p>Missing:</p>
+<ul>
+<li>decent documentation</li>
+<li>can&#39;t map some characters that vimium can</li>
+<li>jumplist</li>
+</ul>
+<p>Improvements over vimperator:</p>
+<ul>
+<li>autocompletion is much faster</li>
+<li>allegedly lets you edit with vim</li>
+</ul>
+<h2 id="architecture">Architecture</h2>
+<p><em>This is an early draft and may be entirely replaced.</em></p>
+<p>ex-commands as functions (typed and with helper functions in some other scope):</p>
+<ul>
+<li>open(url)</li>
+<li>scroll(x=+10)</li>
+<li>mark(<elem>)</li>
+<li>map(actions, keys)</li>
+<li>...</li>
+</ul>
+<p>helper functions for actions:</p>
+<ul>
+<li>scroll-x, scroll-y</li>
+<li>jumplist.get/getrelative/store</li>
+<li>undo-tab-deletion</li>
+</ul>
+<p>Count and range:</p>
+<ul>
+<li>given as arguments?</li>
+<li>just repeat the call &#39;count&#39; times?</li>
+</ul>
+<p>for default actions, a mapping from key to helper function.</p>
+<p>Generated parsers (command and normal mode):</p>
+<ul>
+<li>command mode pretty conventional. Include type checking.</li>
+<li>For auto-complete to work, need to be able to parse partial results sensibly.</li>
+<li>actions will be a slightly weirder grammar:</li>
+<li>More permissive</li>
+<li><p>Time sensitive</p>
+</li>
+<li><p>In vim, actions compose as you write them (d takes a motion as an argument, for example), I can&#39;t think of any examples of this in vimperator: actions sometimes take a count or argument, but that argument is never an action.</p>
+</li>
+<li><p>If actions did compose, we would have to give them types, as vim does for motions, and the parsing would be less trivial.</p>
+</li>
+</ul>
+<p>Autocomplete functions for commands:</p>
+<ul>
+<li>Split from implementation of command.</li>
+<li>Could perhaps be automatic from command&#39;s parameter types?</li>
+</ul>
+<p>Some actions have their own interactive mini-mode:</p>
+<ul>
+<li>hints</li>
+<li>searching</li>
+</ul>
+<h2 id="logo-acknowledgement">Logo acknowledgement</h2>
+<p>The logo was designed by Jake Beazley using free vector art by <a target="_blank" href="https://www.Vecteezy.com">www.Vecteezy.com</a> </p>
+
