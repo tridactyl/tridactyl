@@ -6,7 +6,6 @@ const asyncGetters = []
 let initialised = false
 let userConfig = Object.create(null)
 
-resetToDefaults()
 init()
 browser.storage.onChanged.addListener((changes, area) => {
     if (CONFIG_NAME in changes) userConfig = changes[CONFIG_NAME].newValue
@@ -84,8 +83,11 @@ export async function getAsync(...path: string[]): Promise<any> {
     }
 }
 
-export function getAllConfig(): object {
-    return userConfig
+export async function getAllConfig(): Promise<object> {
+    if(initialised) return userConfig
+    return new Promise(res =>
+        asyncGetters.push(() => res(userConfig))
+    )
 }
 
 async function init() {
