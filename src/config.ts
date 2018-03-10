@@ -1,13 +1,35 @@
-import { DEFAULTS } from './config_defaults'
-import * as Background from './config_background'
-import * as Content from './config_content'
+import DEFAULTS from './config_defaults'
+import * as Utils from './utils'
 
-const isContent = inContentScript()
+export const CONFIG_NAME = 'config'
+const asyncGetters = []
+let initialised = false
+let userConfig = Object.create(null)
+
+resetToDefaults()
+init()
+browser.storage.onChanged.addListener((changes, area) => {
+    if (CONFIG_NAME in changes) userConfig = changes[CONFIG_NAME].newValue
+})
+
+export function resetToDefaults(): void {
+    Utils.setStorage(CONFIG_NAME, DEFAULTS)
+    userConfig = DEFAULTS
+}
 
 /** * Get the value of the key target. */
 export function get(...path: string[]): any {
-    // if(isContent) return Content.getFromCache(path)
-    return Background.get(path)
+    return getDeepProperty(userConfig, path)
+}
+
+function getDeepProperty(obj: object, path: string[]): any {
+    if (obj !== undefined && path.length)
+        return getDeepProperty(obj[path[0]], path.slice(1))
+    return obj
+}
+
+async function save(): Promise<void> {
+    Utils.setStorage(CONFIG_NAME, userConfig)
 }
 
 /** Full target specification, then value.
@@ -24,14 +46,27 @@ export function set(...args: any[]): void {
     const path = args.slice(0, args.length - 1)
     const newVal = args[args.length - 1]
 
-    // if(isContent) return Content.set(path, newVal)
-    return Background.set(path, newVal)
+    setDeepProperty(userConfig, newVal, path)
+    save()
+
+    function setDeepProperty(obj: object, newVal: any, path: string[]): void {
+        if (path.length > 1) {
+            // If necessary antecedent objects don't exist, create them.
+            if (obj[path[0]] === undefined) {
+                obj[path[0]] = Object.create(null)
+            }
+            return setDeepProperty(obj[path[0]], newVal, path.slice(1))
+        } else {
+            obj[path[0]] = newVal
+        }
+    }
 }
 
 /** Delete key at path if it exists. */
 export function unset(...path: string[]): void {
-    // if(isContent) return Content.unset(path)
-    return Background.unset(path)
+    const parent = getDeepProperty(userConfig, path.slice(0, -1))
+    if (parent !== undefined) delete parent[path.slice(-1)[0]]
+    save()
 }
 
 /**
@@ -40,15 +75,27 @@ export function unset(...path: string[]): void {
  * are a content script and you've just been loaded.
  */
 export async function getAsync(...path: string[]): Promise<any> {
-    // if(isContent) return Content.getAsync(path)
-    return Background.getAsync(path)
+    if (initialised) {
+        return get(...path)
+    } else {
+        return new Promise(resolve =>
+            asyncGetters.push(() => resolve(get(...path)))
+        )
+    }
 }
 
 export function getAllConfig(): object {
-    // if(isContent) return Content.getAllFromCache()
-    return Background.getAllConfig()
+    return userConfig
 }
 
-function inContentScript(): boolean {
-    return !('tabs' in browser)
+async function init() {
+    try {
+        const storage = await Utils.getStorage(CONFIG_NAME)
+        userConfig = storage ? storage : DEFAULTS
+    } finally {
+        if (!initialised) {
+            initialised = true
+            asyncGetters.forEach(get => get())
+        }
+    }
 }

@@ -2,7 +2,7 @@ function o(object){
     return Object.assign(Object.create(null),object)
 }
 
-export const DEFAULTS = o({
+const DEFAULTS = o({
     "nmaps": o({
         "o": "fillcmdline open",
         "O": "current_url open",
@@ -151,3 +151,5 @@ export const DEFAULTS = o({
         "excmd": 1,
     }),
 })
+
+export default DEFAULTS
