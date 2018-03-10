@@ -1,5 +1,37 @@
 # Tridactyl changelogs
 
+## Release 1.8.2
+
+- Improve config API
+    - `set key.subkey.subsubkey value` now works
+    - Add user feedback to `bind` and `get`
+- Add save link/img hint submode (;s, ;S, ;a, ;A) (#148)
+- Add `autocmd [event] [filter] [ex command]`
+    - Currently, only supports the event `DocStart`
+    - Most useful for entering ignore mode on certain websites: `autocmd DocStart mail.google.com mode ignore`
+- Add exmode aliases with `command [alias] [ex_command]`. Many aliases have been ported from Pentadactyl. (#236)
+- Add urlmodify command (#286, #298)
+- Support Emacs-style C-(a|e|k|u) in cmdline (#277)
+- Support changing followpage pattern used in `]]` and `[[` to allow use with foreign languages
+- Add logging levels and make logging less verbose by default (#206)
+- Support %s magic string for search providers (#253)
+- Add hintfiltermode config and new "vimperator, vimperator-reflow" hinting modes
+    - Make hintPage follow link if there's only 1 option
+- Fix high resource usage when typing under some circumstances (#311)
+- `set newtab foo.bar` now changes all new tab pages (#235)
+- Fix hints on some sites via cleanslate.css (#220)
+- Fix new config system (#321)
+- followpage now falls back to urlincrement
+- `tabopen` now opens tabs to the right of the curent tab
+- Fix floating commandline iframe on some sites (#289)
+- Enter insert mode on drop down menus (#281)
+- Support hinting on some dodgy old websites (#287)
+- Make :reloadall only refresh current window tabs (#288)
+- Remove `xx` binding (#262)
+- Fix gu in directories (#256)
+- Fix various typos (#247, #228)
+- Add FAQ and other updates to readme.md (#232)
+
 ## Release 1.7.3
 
 - Hint tags are much better:

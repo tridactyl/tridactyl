@@ -25,12 +25,16 @@ const logger = new Logger('hinting')
 /** Simple container for the state of a single frame's hints. */
 class HintState {
     public focusedHint: Hint
-    readonly hintHost = html`<div class="TridactylHintHost">`
+    readonly hintHost = document.createElement('div')
     readonly hints: Hint[] = []
     public filter = ''
     public hintchars = ''
 
-    constructor(public filterFunc: HintFilter) {}
+    constructor(
+        public filterFunc: HintFilter,
+    ){
+        this.hintHost.classList.add("TridactylHintHost", "cleanslate")
+    }
 
     destructor() {
         // Undo any alterations of the hinted elements
@@ -57,6 +61,17 @@ export function hintPage(
     buildHints(hintableElements, onSelect)
 
     if (modeState.hints.length) {
+        let sameLinks = false
+        for (let hint of modeState.hints) {
+            sameLinks = hint.target instanceof HTMLAnchorElement
+                && hint.target.href === (<HTMLAnchorElement>modeState.hints[0].target).href
+            if (!sameLinks)
+                break
+        }
+        if (sameLinks) {
+            modeState.hints[0].select()
+            reset()
+        }
         logger.debug("hints", modeState.hints)
         modeState.focusedHint = modeState.hints[0]
         modeState.focusedHint.focused = true
@@ -143,7 +158,7 @@ class Hint {
     public readonly flag = document.createElement('span')
 
     constructor(
-        private readonly target: Element,
+        public readonly target: Element,
         public readonly name: string,
         public readonly filterData: any,
         private readonly onSelect: HintSelectedCallback
@@ -156,11 +171,11 @@ class Hint {
         /*     left: ${rect.left}px; */
         /* ` */
         this.flag.style.cssText = `
-            top: ${window.scrollY + rect.top}px;
-            left: ${window.scrollX + rect.left}px;
+            top: ${window.scrollY + rect.top}px !important;
+            left: ${window.scrollX + rect.left}px !important;
         `
         modeState.hintHost.appendChild(this.flag)
-        target.classList.add('TridactylHintElem')
+        this.hidden = false
     }
 
     // These styles would be better with pseudo selectors. Can we do custom ones?
@@ -170,8 +185,17 @@ class Hint {
         if (hide) {
             this.focused = false
             this.target.classList.remove('TridactylHintElem')
-        } else
+            if (config.get("theme") === "dark")
+            {
+                document.querySelector(':root').classList.remove("TridactylThemeDark")
+            }
+        } else {
             this.target.classList.add('TridactylHintElem')
+            if (config.get("theme") === "dark")
+            {
+                document.querySelector(':root').classList.add("TridactylThemeDark")
+            }
+        }
     }
 
     set focused(focus: boolean) {
