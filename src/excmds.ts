@@ -735,7 +735,7 @@ export function focusinput(nth: number|string) {
 
     if (inputToFocus) {
         inputToFocus.focus()
-        if (config.get('vimium-gi') && state.mode !== 'input') {
+        if (config.get('gistyle') === 'nextinput' && state.mode !== 'input') {
             state.mode = 'input'
         }
     }

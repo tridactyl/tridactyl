@@ -163,7 +163,11 @@ const DEFAULTS = o({
     "ttsvolume": 1,         // 0 to 1
     "ttsrate": 1,           // 0.1 to 10
     "ttspitch": 1,          // 0 to 2
-    "vimium-gi": true,
+
+    // either "nextinput" or "default"
+    // If nextinput, <Tab> after gi brings selects the next input
+    // If default, <Tab> selects the next selectable element, e.g. a link
+    "gistyle": "nextinput", // either "nextinput" or "default"
 
     // Default logging levels - 2 === WARNING
     "logging": o({
@@ -283,7 +287,15 @@ export async function save(storage: "local" | "sync" = get("storageloc")){
     else browser.storage.sync.set(settingsobj)
 }
 
-/** Updates the config to the latest version. */
+/** Updates the config to the latest version.
+    Proposed semantic for config versionning:
+     - x.y -> x+1.0 : major architectural changes
+     - x.y -> x.y+1 : renaming settings/changing their types
+    There's no need for an updater if you're only adding a new setting/changing
+    a default setting
+
+    When adding updaters, don't forget to set("version", newversionnumber)!
+*/
 export async function update() {
     let updaters = {
         "0.0": async () => {
@@ -298,6 +310,15 @@ export async function update() {
                 set("version", "1.0")
             }
         },
+        "1.0": () => {
+            let vimiumgi = getDeepProperty(USERCONFIG, "vimium-gi")
+            if (vimiumgi === true)
+                set("gistyle", "nextinput")
+            else if (vimiumgi === false)
+                set("gistyle", "default")
+            unset("vimium-gi")
+            set("version", "1.1")
+        }
     }
     if (!get("version"))
         set("version", "0.0")
