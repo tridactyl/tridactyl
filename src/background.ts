@@ -1,8 +1,8 @@
 /** Background script entry point. */
 
-import * as Controller from "./controller"
-import * as keydown_background from "./keydown_background"
-import * as CommandLine from "./commandline_background"
+import * as Controller from './controller'
+import * as keydown_background from './keydown_background'
+import * as CommandLine from './commandline_background'
 import './lib/browser_proxy_background'
 
 // Send keys to controller
@@ -30,8 +30,12 @@ import * as keyseq from './keyseq'
 import * as msgsafe from './msgsafe'
 import state from './state'
 import * as webext from './lib/webext'
+import * as RC from './config_rc'
 
-(window as any).tri = Object.assign(Object.create(null), {
+console.log('Loading RC and initialising config')
+RC.initConfigFromRc()
+
+;(window as any).tri = Object.assign(Object.create(null), {
     messaging,
     excmds,
     commandline_background,
