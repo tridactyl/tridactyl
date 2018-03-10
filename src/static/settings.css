@@ -72,3 +72,8 @@ body {
     height: 80%;
     padding: 10px;
 }
+
+#license {
+    white-space: pre;
+    font-family: monospace;
+}
