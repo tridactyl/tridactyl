@@ -1,10 +1,12 @@
 #!/bin/sh
 
 echo 'Replacing settings page static options'
-page='build/static/settings.html'
 
 marked doc/changelog.md > changelog.html
 marked src/static/about.md > about.html
+
+page='generated/static/settings.html'
+cp 'src/static/settings.html' $page
 
 sed -e '/REPLACE_WITH_ABOUT_VIA_SED/{r about.html
        d;}' -i.bak $page

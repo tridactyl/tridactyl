@@ -47,7 +47,7 @@ module.exports = {
         new CopyWebPackPlugin([
             { from: "src/manifest.json" },
             { from: "src/static", to: "static", ignore: ['*.psd', '*1024px.png'] },
-            { from: "generated/static", to: "static" },
+            { from: "generated/static", to: "static", force: true },
         ]),
     ]
 }
