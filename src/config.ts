@@ -169,6 +169,8 @@ const DEFAULTS = o({
     // If default, <Tab> selects the next selectable element, e.g. a link
     "gistyle": "nextinput", // either "nextinput" or "default"
 
+    "theme": "default",     // currently available: "default", "dark"
+
     // Default logging levels - 2 === WARNING
     "logging": o({
         "messaging": 2,

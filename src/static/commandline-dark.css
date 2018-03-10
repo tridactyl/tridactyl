@@ -1,0 +1,35 @@
+:root.dark {
+  --foreground: #ccc;
+  --foreground-bright: #fff;
+  --background: #111;
+}
+
+:root.dark input {
+  color: var(--foreground-bright);
+  background: var(--background);
+}
+
+:root.dark #completions {
+  color: var(--foreground);
+  background: #474747;
+  border-top: 0.5px solid var(--background);
+}
+
+:root.dark #completions table tr td {
+  color: var(--foreground);
+}
+
+:root.dark #completions .sectionHeader {
+  color: var(--foreground-bright);
+  background: linear-gradient(#333, #222, #111);
+}
+
+:root.dark .option:not(.focused) .url {
+  color: var(--foreground);
+  background: #333;
+}
+
+:root.dark .focused, :root.dark .focused .url {
+  color: var(--foreground-bright);
+  background: #204e8a;
+}

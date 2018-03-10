@@ -135,6 +135,10 @@ NOTE: key modifiers (eg: control, alt) are not supported yet. See the FAQ below.
 
     You can edit this file to your heart's content. A more traditional rc file is planned but will require a native messenger. For more information, see [issue #79](https://github.com/cmcaine/tridactyl/issues/79).
 
+- I hate the light, can I get a dark theme/dark mode?
+
+    Yes! `set theme dark`. Thanks to @fugerf.
+
 - How can I bind keys using the control/alt key modifiers (eg: `ctrl+^`)?
 
     You can't, yet. See [issue #41](https://github.com/cmcaine/tridactyl/issues/41).

@@ -25,12 +25,16 @@ const logger = new Logger('hinting')
 /** Simple container for the state of a single frame's hints. */
 class HintState {
     public focusedHint: Hint
-    readonly hintHost = html`<div class="TridactylHintHost cleanslate">`
+    readonly hintHost = document.createElement('div')
     readonly hints: Hint[] = []
     public filter = ''
     public hintchars = ''
 
-    constructor(public filterFunc: HintFilter) {}
+    constructor(
+        public filterFunc: HintFilter,
+    ){
+        this.hintHost.classList.add("TridactylHintHost", "cleanslate")
+    }
 
     destructor() {
         // Undo any alterations of the hinted elements
@@ -171,7 +175,7 @@ class Hint {
             left: ${window.scrollX + rect.left}px !important;
         `
         modeState.hintHost.appendChild(this.flag)
-        target.classList.add('TridactylHintElem')
+        this.hidden = false
     }
 
     // These styles would be better with pseudo selectors. Can we do custom ones?
@@ -181,8 +185,17 @@ class Hint {
         if (hide) {
             this.focused = false
             this.target.classList.remove('TridactylHintElem')
-        } else
+            if (config.get("theme") === "dark")
+            {
+                document.querySelector(':root').classList.remove("TridactylThemeDark")
+            }
+        } else {
             this.target.classList.add('TridactylHintElem')
+            if (config.get("theme") === "dark")
+            {
+                document.querySelector(':root').classList.add("TridactylThemeDark")
+            }
+        }
     }
 
     set focused(focus: boolean) {

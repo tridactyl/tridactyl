@@ -7,6 +7,8 @@
     The default keybinds can be found [here](/static/docs/modules/_config_.html#defaults).
     You can also view them with [[bind]]. Try `bind j`.
 
+    For more information, and FAQs, check out our [readme][4] on github.
+
     Tridactyl is in a pretty early stage of development. Please report any
     issues and make requests for missing features on the GitHub [project page][1].
     You can also get in touch using Matrix, Gitter, or IRC chat clients:
@@ -48,11 +50,12 @@
       file](2) available in our repository.
 
     If you want a more fully-featured vimperator-alike, your best option is
-    [Firefox ESR](3) and Vimperator :)
+    [Firefox ESR][3] and Vimperator :)
 
     [1]: https://github.com/cmcaine/tridactyl/issues
     [2]: https://github.com/cmcaine/tridactyl/blob/master/src/static/userChrome-minimal.css
     [3]: https://www.mozilla.org/en-US/firefox/organizations/
+    [4]: https://github.com/cmcaine/tridactyl#readme
 
     [gitter-badge]: /static/badges/gitter-badge.svg
     [gitter-link]: https://gitter.im/tridactyl/Lobby
@@ -122,7 +125,7 @@ function searchURL(provider: string, query: string) {
 
 /** If maybeURI doesn't have a schema, affix http:// */
 /** @hidden */
-function forceURI(maybeURI: string): string {
+export function forceURI(maybeURI: string): string {
     // Need undefined to be able to open about:newtab
     if (maybeURI == "") return undefined
     try {
@@ -290,6 +293,8 @@ export async function reloadhard(n = 1) {
 //#content
 export function open(...urlarr: string[]) {
     let url = urlarr.join(" ")
+    if (url === "")
+        url = config.get("newtab") || browser.extension.getURL("static/newtab.html")
     window.location.href = forceURI(url)
 }
 
@@ -1021,9 +1026,7 @@ export function suppress(preventDefault?: boolean, stopPropagation?: boolean) {
 
 //#background
 export function version(){
-    clipboard("yank","REPLACE_ME_WITH_THE_VERSION_USING_SED")
     fillcmdline_notrail("REPLACE_ME_WITH_THE_VERSION_USING_SED")
-
 }
 
 /** Example:
@@ -1112,7 +1115,7 @@ export function composite(...cmds: string[]) {
 
 /** Please use fillcmdline instead */
 //#background
-export function showcmdline() {
+function showcmdline() {
     CommandLineBackground.show()
 }
 
