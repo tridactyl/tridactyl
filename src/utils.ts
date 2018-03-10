@@ -3,7 +3,8 @@ export function isContentScript(): boolean {
 }
 
 export async function getStorage(key: string): Promise<any> {
-    return browser.storage.sync.get(key)[key]
+    const store = await browser.storage.sync.get(key)
+    return store[key]
 }
 
 export async function setStorage(
