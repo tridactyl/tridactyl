@@ -527,6 +527,44 @@ function hintPageOpenInBackground() {
     })
 }
 
+// lazily copied from excmds.ts - really ought to be moved to lib/webext
+async function winopen(...args: string[]) {
+    let address: string
+    const createData = {}
+    if (args[0] === "-private") {
+        createData["incognito"] = true
+        address = args.slice(1,args.length).join(' ')
+    } else address = args.join(' ')
+    browser.windows.create(createData)
+}
+
+
+function hintPageWindow() {
+    hintPage(hintables(), hint=>{
+        hint.target.focus()
+        if (hint.target.href) {
+            winopen(hint.target.href)
+        } else {
+            // This is to mirror vimperator behaviour.
+            simulateClick(hint.target)
+        }
+    })
+}
+
+function hintPageWindowPrivate() {
+    hintPage(hintables(), hint=>{
+        hint.target.focus()
+        if (hint.target.href) {
+            // Try to open with the webext API.
+            winopen("--private",hint.target.href)
+        } else {
+            // Private window, so never fall back to opening in current tab
+            // This is to mirror vimperator behaviour.
+            // simulateClick(hint.target)
+        }
+    })
+}
+
 function hintPageSimple(selectors=HINTTAGS_selectors) {
     hintPage(hintables(selectors), hint=>{
         simulateClick(hint.target)
