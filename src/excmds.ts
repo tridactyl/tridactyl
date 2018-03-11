@@ -513,6 +513,56 @@ export function loggingsetlevel(logModule: string, level: string) {
 
 // {{{ PAGE CONTEXT
 
+//#content_helper
+export let JUMPLIST = []
+//#content_helper
+export let JUMPCURRENT : number
+//#content_helper
+export let JUMPTIMEOUT : number
+//#content_helper
+export let JUMPED : boolean
+
+//#content
+export function jumpnext(n = 1) {
+    jumpback(-n)
+}
+
+/** Similar to Pentadactyl or vim's jump list.
+    Should be bound to <C-o> when modifiers are implemented
+*/
+//#content
+export function jumpback(n = 1) {
+    JUMPCURRENT = (JUMPCURRENT - n).clamp(0, JUMPLIST.length - 1)
+    let p = JUMPLIST[JUMPCURRENT]
+    JUMPED = true
+    window.scrollTo(p.x, p.y)
+}
+
+/** Called on 'scroll' events.
+    If you want to have a function that moves within the page but doesn't add a
+    location to the jumplist, make sure to set JUMPED to true before moving
+    around.
+    The setTimeout call is required because sometimes a user wants to move
+    somewhere by pressing 'j' multiple times and we don't want to add the
+    in-between locations to the jump list
+*/
+//#content_helper
+export function addJump(scrollEvent: UIEvent) {
+    if (JUMPED) {
+        JUMPED = false
+        return
+    }
+    clearTimeout(JUMPTIMEOUT)
+    JUMPTIMEOUT = setTimeout(() => {
+        JUMPLIST.push({'x': scrollEvent.pageX, 'y': scrollEvent.pageY})
+        JUMPCURRENT = JUMPLIST.length - 1
+    } , config.get("jumpdelay"))
+}
+
+//#content_helper
+document.addEventListener("scroll", addJump); addJump(new UIEvent("scroll"))
+
+
 /** Blur (unfocus) the active element */
 //#content
 export function unfocus() {
