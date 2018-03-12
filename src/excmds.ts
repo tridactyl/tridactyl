@@ -103,9 +103,17 @@ const logger = new Logging.Logger('excmds')
 
 import * as aliases from './aliases'
 
+//#background_helper
+import * as Native from './native_background'
+
 /** @hidden */
 //#background_helper
 export const cmd_params = new Map<string, Map<string, string>>()
+
+//#background
+export async function getNativeVersion(): Promise<void> {
+    Native.getNativeMessengerVersion()
+}
 
 /** @hidden */
 function hasScheme(uri: string) {

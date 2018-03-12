@@ -13,7 +13,6 @@ export type RcLocation = 'filesystem' | 'browser'
 
 export async function initConfigFromRc(): Promise<void> {
     Config.resetToDefaults()
-    loadRc()
 
     const isAutoload = await getAutoload()
     const location = await getLocation()
@@ -33,12 +32,6 @@ export async function initConfigFromRc(): Promise<void> {
 
     console.info(`RC file loaded: \n${rcText}`)
     Controller.acceptRcFile(rcText)
-}
-
-async function loadRc(): Promise<void> {
-    const rcFile = await getRc()
-    console.info(`RC file found: ${rcFile}`)
-    if (rcFile) Controller.acceptRcFile(rcFile)
 }
 
 export async function getRc(): Promise<string> {

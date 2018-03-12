@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 import sys
@@ -8,8 +8,10 @@ import struct
 
 VERSION = "0.1.1"
 
+
 class NoConnectionError(Exception):
     """ Exception thrown when stdin cannot be read """
+
 
 def eprint(*args, **kwargs):
     """ Print to stderr, which gets echoed in the browser console when run
@@ -17,37 +19,46 @@ def eprint(*args, **kwargs):
     """
     print(*args, file=sys.stderr, flush=True, **kwargs)
 
+
 def _getenv(variable, default):
     """ Get an environment variable value, or use the default provided """
     return os.environ.get(variable) or default
 
-def get_message():
+
+def getMessage():
     """ Read a message from stdin and decode it."""
-    raw_length = sys.stdin.read(4)
-    if not raw_length:
-        raise NoConnectionError
-    message_length = struct.unpack('@I', raw_length)[0]
-    message = sys.stdin.read(message_length)
+    rawLength = sys.stdin.buffer.read(4)
+    if len(rawLength) == 0:
+        sys.exit(0)
+    messageLength = struct.unpack('@I', rawLength)[0]
+    message = sys.stdin.buffer.read(messageLength).decode('utf-8')
     return json.loads(message)
 
-def encode_message(message_content):
+
+# Encode a message for transmission,
+# given its content.
+def encodeMessage(messageContent):
     """ Encode a message for transmission, given its content."""
-    encoded_content = json.dumps(message_content)
-    encoded_length = struct.pack('@I', len(encoded_content))
-    return {'length': encoded_length, 'content': encoded_content}
+    encodedContent = json.dumps(messageContent).encode('utf-8')
+    encodedLength = struct.pack('@I', len(encodedContent))
+    return {'length': encodedLength, 'content': encodedContent}
 
-def send_message(encoded_message):
+
+# Send an encoded message to stdout
+def sendMessage(encodedMessage):
     """ Send an encoded message to stdout."""
-    sys.stdout.write(encoded_message['length'])
-    sys.stdout.write(encoded_message['content'])
-    sys.stdout.flush()
+    sys.stdout.buffer.write(encodedMessage['length'])
+    sys.stdout.buffer.write(encodedMessage['content'])
+    sys.stdout.buffer.flush()
 
-def _find_user_config_file():
+
+def findUserConfigFile():
     """ Find a user config file, if it exists. Return the file path, or None
     if not found
     """
-    config_dir = _getenv("XDG_CONFIG_HOME", os.path.expandvars('$HOME/.config'))
-    candidate_files = [ os.path.join(config_dir, "tridactyl", "tridactylrc") ]
+    config_dir = _getenv("XDG_CONFIG_HOME",
+                         os.path.expandvars('$HOME/.config'))
+    candidate_files = [os.path.join(config_dir, "tridactyl", "tridactylrc")]
 
     eprint(candidate_files)
     config_path = None
@@ -61,9 +72,10 @@ def _find_user_config_file():
 
     return config_path
 
-def get_user_config():
+
+def getUserConfig():
     # look it up freshly each time - the user could have moved or killed it
-    cfg_file = _find_user_config_file()
+    cfg_file = findUserConfigFile()
 
     # no file, return
     if not cfg_file:
@@ -73,36 +85,31 @@ def get_user_config():
     # include other files, that will need more work
     return open(cfg_file, 'r').read()
 
-def handle_message(message):
+
+def handleMessage(message):
     """ Generate reply from incoming message. """
     cmd = message["cmd"]
-    reply = { 'cmd': cmd }
+    reply = {'cmd': cmd}
 
     if cmd == 'version':
-        reply = { 'version': VERSION }
+        reply = {'version': VERSION}
 
     elif cmd == 'getconfig':
-        file_content = get_user_config()
+        file_content = getUserConfig()
         if file_content:
             reply['content'] = file_content
         else:
             reply['error'] = 'File not found'
 
     else:
-        reply = {
-            'cmd': 'error',
-            'error': 'Unhandled message'
-        }
+        reply = {'cmd': 'error', 'error': 'Unhandled message'}
         eprint('Unhandled message: {}'.format(message))
 
     return reply
 
+
 eprint('Starting Native Messenger')
 while True:
-    try:
-        message = get_message()
-    except NoConnectionError:
-        sys.exit(0)
-
-    reply = handle_message(message)
-    send_message(encode_message(reply))
+    message = getMessage()
+    reply = handleMessage(message)
+    sendMessage(encodeMessage(reply))
