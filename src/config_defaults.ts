@@ -142,7 +142,6 @@ const DEFAULTS = o({
     }),
 
     newtab: '',
-    storageloc: 'sync',
     homepages: [],
     hintchars: 'hjklasdfgyuiopqwertnmzxcvb',
     hintfiltermode: 'simple', // "simple", "vimperator", "vimperator-reflow"
