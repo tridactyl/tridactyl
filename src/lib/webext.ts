@@ -67,3 +67,9 @@ export async function openInNewTab(url: string, active = true) {
     if (await l(firefoxVersionAtLeast(57))) options.openerTabId = thisTab.id
     return browserBg.tabs.create(options)
 }
+
+// lazily copied from excmds.ts' winopen - forceURI really ought to be moved to lib/webext
+// Should consider changing interface of this to match openInNewTab or vice versa
+export async function openInNewWindow(createData = {}) {
+    browserBg.windows.create(createData)
+}

@@ -1623,6 +1623,8 @@ import * as hinting from './hinting_background'
         - -# yank an element's anchor URL to clipboard
         - -c [selector] hint links that match the css selector
           - `bind ;c hint -c [class*="expand"],[class="togg"]` works particularly well on reddit and HN
+        - -w open in new window
+            -wp open in new private window
 
     Excepting the custom selector mode and background hint mode, each of these
     hint modes is available by default as `;<option character>`, so e.g. `;y`
@@ -1650,6 +1652,8 @@ export function hint(option?: string, selectors="") {
     else if (option === "-#") hinting.hintPageAnchorYank()
     else if (option === "-c") hinting.hintPageSimple(selectors)
     else if (option === "-r") hinting.hintRead()
+    else if (option === "-w") hinting.hintPageWindow()
+    else if (option === "-wp") hinting.hintPageWindowPrivate()
     else hinting.hintPageSimple()
 }
 
