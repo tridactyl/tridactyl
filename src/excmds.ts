@@ -337,9 +337,8 @@ export async function help(excmd?: string) {
  * Navigate to the settings page.
  */
 //#background
-export function settings(): void {
-    const settingsPage = browser.extension.getURL('static/settings.html')
-    tabopen(settingsPage)
+export async function settings(): Promise<void> {
+    return browser.runtime.openOptionsPage()
 }
 
 /** @hidden */
@@ -1576,31 +1575,6 @@ export function unset(...keys: string[]){
     const target = keys.join('.').split('.')
     if(target === undefined) throw("You must define a target!")
     config.unset(...target)
-}
-
-// not required as we automatically save all config
-////#background
-//export function saveconfig(){
-//    config.save(config.get("storageloc"))
-//}
-
-////#background
-//export function mktridactylrc(){
-//    saveconfig()
-//}
-
-import * as Native from "./native_background"
-
-//#background
-export async function ping() {
-    Native.connectNM()
-    Native.pingNM()
-}
-
-//#background
-export async function loadconfig() {
-    Native.connectNM()
-    Native.getUserConfig()
 }
 
 // }}}

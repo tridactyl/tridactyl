@@ -2,7 +2,7 @@ import DEFAULTS from './config_defaults'
 import * as Utils from './utils'
 
 export const CONFIG_NAME = 'config'
-const asyncGetters = []
+const asyncGetters: (() => void)[] = []
 let initialised = false
 let userConfig = Object.create(null)
 

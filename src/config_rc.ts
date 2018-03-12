@@ -1,6 +1,7 @@
 import * as Controller from './controller'
 import * as Util from './utils'
 import * as Config from './config'
+import * as Native from './native_background'
 import DEFAULTS from './config_defaults'
 import Logger from './logging'
 
@@ -20,7 +21,7 @@ export async function initConfigFromRc(): Promise<void> {
 
     switch(location) {
         case 'filesystem':
-            rcText = await getFilesystemRc()
+            rcText = await Native.getFilesystemUserConfig()
             break
         case 'browser':
             rcText = await getRc()
@@ -32,10 +33,6 @@ export async function initConfigFromRc(): Promise<void> {
 
     console.info(`RC file loaded: \n${rcText}`)
     Controller.acceptRcFile(rcText)
-}
-
-export async function getFilesystemRc(): Promise<string> {
-    return 'testing'
 }
 
 async function loadRc(): Promise<void> {
