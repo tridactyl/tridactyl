@@ -506,7 +506,7 @@ function simulateClick(target: HTMLElement) {
     if ((target as HTMLAnchorElement).target === '_blank' ||
         (target as HTMLAnchorElement).target === '_new'
     ) {
-        openInNewTab((target as HTMLAnchorElement).href)
+        openInNewTab((target as HTMLAnchorElement).href, {related: true})
     } else {
         DOM.mouseEvent(target, "click")
         // Sometimes clicking the element doesn't focus it sufficiently.
@@ -519,7 +519,7 @@ function hintPageOpenInBackground() {
         hint.target.focus()
         if (hint.target.href) {
             // Try to open with the webext API. If that fails, simulate a click on this page anyway.
-            openInNewTab(hint.target.href, false).catch(()=>simulateClick(hint.target))
+            openInNewTab(hint.target.href, {active: false, related: true}).catch(()=>simulateClick(hint.target))
         } else {
             // This is to mirror vimperator behaviour.
             simulateClick(hint.target)
@@ -592,7 +592,7 @@ function hintImage(inBackground) {
         let img_src = hint.target.getAttribute("src")
 
         if (inBackground) {
-            openInNewTab(new URL(img_src, window.location.href).href, false)
+            openInNewTab(new URL(img_src, window.location.href).href, {active: false, related: true})
         } else {
             window.location.href = img_src
         }

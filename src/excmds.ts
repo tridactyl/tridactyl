@@ -813,18 +813,26 @@ export async function tablast() {
 
     Unlike Firefox's Ctrl-t shortcut, this opens tabs immediately after the
     currently active tab rather than at the end of the tab list because that is
-    the author's preference. Open an issue if you don't like it :)
+    the author's preference.
+
+    If you would rather the Firefox behaviour `set tabopenpos last`. This
+    preference also affects the clipboard, quickmarks, home, help, etc.
+
+    If you would rather the URL be opened as if you'd middle clicked it, `set
+    tabopenpos related`.
+
+    Hinting is controlled by `relatedopenlast`
+
 */
 //#background
 export async function tabopen(...addressarr: string[]) {
-    let uri
+    let url: string
     let address = addressarr.join(' ')
-    if (address != "") uri = forceURI(address)
-    else uri = forceURI(config.get("newtab"))
-    browser.tabs.create({
-        url: uri,
-        index: (await activeTabId()) + 1
-    })
+
+    if (address != "") url = forceURI(address)
+    else url = forceURI(config.get("newtab"))
+
+    openInNewTab(url)
 }
 
 /** Resolve a tab index to the tab id of the corresponding tab in this window.
@@ -1629,6 +1637,7 @@ import * as hinting from './hinting_background'
     Related settings:
         "hintchars": "hjklasdfgyuiopqwertnmzxcvb"
         "hintfiltermode": "simple" | "vimperator" | "vimperator-reflow"
+        "relatedopenpos": "related" | "next" | "last"
 */
 //#background
 export function hint(option?: string, selectors="") {

@@ -1,5 +1,6 @@
 import * as convert from '../convert'
 import browserProxy from './browser_proxy'
+import * as config from '../config'
 
 export function inContentScript() {
     return ! ('tabs' in browser)
@@ -53,18 +54,48 @@ export async function firefoxVersionAtLeast(desiredmajor: number) {
     return actualmajor >= desiredmajor
 }
 
-/** Open a new tab with a URL as if that URL had been middle clicked on the current tab
+/** Simpler tabs.create option.
+
+    If related = true && relatedopenpos = 'related' then open a new tab with
+    some URL as if that URL had been middle clicked on the current tab. If
+    relatedopenpos = 'next', open it as the next tab. If 'last', open it last
+    and don't tell Firefox who opened it.
+
+    Similarly for tabopenpos, but only tell FF that the newtab is related to
+    the activeTab if tabopenpos == 'related'.
 
     i.e. place that tab just after the current tab and set openerTabId
 */
-export async function openInNewTab(url: string, active = true) {
+export async function openInNewTab(url: string, kwargs: {active?, related?} = {active: true, related: false}) {
     const thisTab = await activeTab()
     const options: any = {
-        active,
+        active: kwargs.active,
         url,
-        index: thisTab.index + 1,
     }
-    if (await l(firefoxVersionAtLeast(57))) options.openerTabId = thisTab.id
+
+    // Be nice to behrmann, #342
+    let pos
+    if (kwargs.related) pos = config.get('relatedopenpos')
+    else pos = config.get('tabopenpos')
+    switch (pos) {
+        case 'next':
+            options.index = thisTab.index + 1
+            if (kwargs.related && await l(firefoxVersionAtLeast(57)))
+                options.openerTabId = thisTab.id
+            break
+        case 'last':
+            // Infinity can't be serialised, apparently.
+            options.index = 99999
+            break
+        case 'related':
+            if (await l(firefoxVersionAtLeast(57))) {
+                options.openerTabId = thisTab.id
+            } else {
+                options.index = thisTab.index + 1
+            }
+            break
+    }
+
     return browserBg.tabs.create(options)
 }
 
