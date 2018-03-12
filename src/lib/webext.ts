@@ -3,7 +3,23 @@ import browserProxy from './browser_proxy'
 import * as config from '../config'
 
 export function inContentScript() {
-    return ! ('tabs' in browser)
+    return getContext() == 'content'
+}
+
+/** WebExt code can be run from three contexts:
+
+    Content script
+    Extension page
+    Background page
+*/
+export function getContext() {
+    if (! ('tabs' in browser)) {
+        return 'content'
+    } else if (browser.runtime.getURL('_generated_background_page.html') == window.location.href) {
+        return 'background'
+    } else {
+        return 'extension'
+    }
 }
 
 export let browserBg
