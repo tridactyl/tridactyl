@@ -68,44 +68,38 @@
 
 // {{{ setup
 
+// Shared
 import * as Messaging from "./messaging"
 import {l} from './lib/webext'
 import state from "./state"
-
-//#content_omit_line
-import "./number.clamp"
-//#content_helper
-import * as SELF from "./excmds_content"
-//#content_helper
-Messaging.addListener('excmd_content', Messaging.attributeCaller(SELF))
-/** Message excmds_content.ts in the active tab of the currentWindow */
-//#background_helper
-import {messageActiveTab} from './messaging'
-
-//#background_helper
-import "./number.mod"
-//#background_helper
-import {ModeName} from './state'
-//#background_helper
-import * as keydown from "./keydown_background"
-//#background_helper
-import {activeTab, activeTabId, firefoxVersionAtLeast} from './lib/webext'
 import * as UrlUtil from "./url_util"
-
-//#background_helper
-import * as CommandLineBackground from './commandline_background'
-//#content_helper
-import * as DOM from './dom'
-
 import * as config from './config'
+import * as aliases from './aliases'
 import * as Logging from "./logging"
 const logger = new Logging.Logger('excmds')
 
-import * as aliases from './aliases'
+//#content_helper
+// {
+import "./number.clamp"
+import * as SELF from "./excmds_content"
+Messaging.addListener('excmd_content', Messaging.attributeCaller(SELF))
+import * as DOM from './dom'
+// }
+
+//#background_helper
+// {
+/** Message excmds_content.ts in the active tab of the currentWindow */
+import {messageActiveTab} from './messaging'
+
+import "./number.mod"
+import {ModeName} from './state'
+import * as keydown from "./keydown_background"
+import {activeTab, activeTabId, firefoxVersionAtLeast, openInNewTab} from './lib/webext'
+import * as CommandLineBackground from './commandline_background'
 
 /** @hidden */
-//#background_helper
 export const cmd_params = new Map<string, Map<string, string>>()
+// }
 
 /** @hidden */
 function hasScheme(uri: string) {
