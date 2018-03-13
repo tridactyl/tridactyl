@@ -26,7 +26,7 @@ function schlepp(settings){
 // TODO: have list of possibilities for settings, e.g. hintmode: reverse | normal
 let USERCONFIG = o({})
 const DEFAULTS = o({
-    "version": "0.0",
+    "configversion": "0.0",
     "nmaps": o({
         "o": "fillcmdline open",
         "O": "current_url open",
@@ -164,10 +164,10 @@ const DEFAULTS = o({
     "ttsrate": 1,           // 0.1 to 10
     "ttspitch": 1,          // 0 to 2
 
-    // either "nextinput" or "default"
+    // either "nextinput" or "firefox"
     // If nextinput, <Tab> after gi brings selects the next input
-    // If default, <Tab> selects the next selectable element, e.g. a link
-    "gistyle": "nextinput", // either "nextinput" or "default"
+    // If firefox, <Tab> selects the next selectable element, e.g. a link
+    "gimode": "nextinput", // either "nextinput" or "firefox"
 
     "theme": "default",     // currently available: "default", "dark"
 
@@ -296,7 +296,7 @@ export async function save(storage: "local" | "sync" = get("storageloc")){
     There's no need for an updater if you're only adding a new setting/changing
     a default setting
 
-    When adding updaters, don't forget to set("version", newversionnumber)!
+    When adding updaters, don't forget to set("configversion", newversionnumber)!
 */
 export async function update() {
     let updaters = {
@@ -309,23 +309,23 @@ export async function update() {
                     USERCONFIG["nmaps"] = Object.assign(legacy_nmaps["nmaps"], USERCONFIG["nmaps"])
                 }
             } finally {
-                set("version", "1.0")
+                set("configversion", "1.0")
             }
         },
         "1.0": () => {
             let vimiumgi = getDeepProperty(USERCONFIG, "vimium-gi")
-            if (vimiumgi === true)
-                set("gistyle", "nextinput")
-            else if (vimiumgi === false)
-                set("gistyle", "default")
+            if (vimiumgi === true || vimiumgi === "true")
+                set("gimode", "nextinput")
+            else if (vimiumgi === false || vimiumgi === "false")
+                set("gimode", "firefox")
             unset("vimium-gi")
-            set("version", "1.1")
+            set("configversion", "1.1")
         }
     }
-    if (!get("version"))
-        set("version", "0.0")
-    while (updaters[get("version")] instanceof Function) {
-        await updaters[get("version")]()
+    if (!get("configversion"))
+        set("configversion", "0.0")
+    while (updaters[get("configversion")] instanceof Function) {
+        await updaters[get("configversion")]()
     }
 }
 

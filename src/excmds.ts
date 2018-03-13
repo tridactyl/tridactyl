@@ -740,7 +740,7 @@ export function focusinput(nth: number|string) {
 
     if (inputToFocus) {
         inputToFocus.focus()
-        if (config.get('gistyle') === 'nextinput' && state.mode !== 'input') {
+        if (config.get('gimode') === 'nextinput' && state.mode !== 'input') {
             state.mode = 'input'
         }
     }
