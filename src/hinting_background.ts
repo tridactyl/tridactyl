@@ -32,6 +32,14 @@ export async function hintPageOpenInBackground() {
     return await messageActiveTab('hinting_content', 'hintPageOpenInBackground')
 }
 
+export async function hintPageWindow() {
+    return await messageActiveTab('hinting_content', 'hintPageWindow')
+}
+
+export async function hintPageWindowPrivate() {
+    return await messageActiveTab('hinting_content', 'hintPageWindowPrivate')
+}
+
 export async function hintImage(inBackground) {
     return await messageActiveTab('hinting_content', 'hintImage', [inBackground])
 }

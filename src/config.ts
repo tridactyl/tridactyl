@@ -159,6 +159,8 @@ const DEFAULTS = o({
     "hintchars": "hjklasdfgyuiopqwertnmzxcvb",
 	"hintfiltermode": "simple",   // "simple", "vimperator", "vimperator-reflow"
 
+    tabopenpos: 'next',
+    relatedopenpos: 'related',
     "ttsvoice": "default",  // chosen from the listvoices list, or "default"
     "ttsvolume": 1,         // 0 to 1
     "ttsrate": 1,           // 0.1 to 10
