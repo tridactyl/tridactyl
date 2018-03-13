@@ -194,6 +194,12 @@ clInput.addEventListener("keydown", function(keyevent) {
             }
             // tabcomplete()
             break
+
+        case " ":
+            const command = getCompletion()
+            if (command)
+                fillcmdline(command, false)
+            break
     }
 
     // If a key other than the arrow keys was pressed, clear the history search string
