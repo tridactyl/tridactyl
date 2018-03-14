@@ -361,7 +361,7 @@ function selectLast(selector: string): HTMLElement | null {
 /** Find a likely next/previous link and follow it
 
     If a link or anchor element with rel=rel exists, use that, otherwise fall back to:
-    
+
         1) find the last anchor on the page with innerText matching the appropriate `followpagepattern`.
         2) call [[urlincrement]] with 1 or -1
 
@@ -896,6 +896,13 @@ export async function tabdetach(index?: number) {
     browser.windows.create({tabId: await idFromIndex(index)})
 }
 
+//#background_helper
+async function getSortedWinTabs(): Promise<browser.tabs.Tab[]> {
+    const tabs = await browser.tabs.query({currentWindow: true})
+    tabs.sort((a, b) => a.lastAccessed < b.lastAccessed ? 1 : -1)
+    return tabs
+}
+
 /** Close a tab.
 
     Known bug: autocompletion will make it impossible to close more than one tab at once if the list of numbers looks enough like an open tab's title or URL.
@@ -906,8 +913,14 @@ export async function tabdetach(index?: number) {
 //#background
 export async function tabclose(...indexes: string[]) {
     if (indexes.length > 0) {
-        const idsPromise = indexes.map(index => idFromIndex(Number(index)))
-        browser.tabs.remove(await Promise.all(idsPromise))
+        let ids: number[]
+
+        if(indexes.length === 1 && indexes[0] === '#')
+            ids = [(await getSortedWinTabs())[1].id]
+        else
+            ids = await Promise.all(indexes.map(index => idFromIndex(Number(index))))
+
+        browser.tabs.remove(ids)
     } else {
         // Close current tab
         browser.tabs.remove(await activeTabId())
@@ -1234,11 +1247,7 @@ export async function buffers() {
 export async function buffer(index: number | '#') {
     if (index === "#") {
         // Switch to the most recently accessed buffer
-        tabIndexSetActive(
-            (await browser.tabs.query({currentWindow: true})).sort((a, b) => {
-                return a.lastAccessed < b.lastAccessed ? 1 : -1
-            })[1].index + 1
-        )
+        tabIndexSetActive((await getSortedWinTabs())[1].index + 1)
     } else if (Number.isInteger(Number(index))) {
         tabIndexSetActive(Number(index))
     }
