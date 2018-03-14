@@ -53,7 +53,7 @@ export async function initConfigFromRc(): Promise<void> {
             if (!rcText) rcText = FSRC_NOT_FOUND
             break
         case 'browser':
-            rcText = await getRc()
+            rcText = await getBrowserRc()
             break
         default:
             throw `Location '${location} is not valid. Please contact a dev
@@ -62,22 +62,22 @@ export async function initConfigFromRc(): Promise<void> {
 
     // If we are autoloading and we actually loaded something from
     // the filesystem, then set the rc as the thing
-    if (isAutoload && location === 'filesystem') setRc(rcText)
+    if (isAutoload && location === 'filesystem') setBrowserRc(rcText)
 
     console.info(`RC file loaded: \n${rcText}`)
     Controller.acceptRcFile(rcText)
 }
 
 async function detectAndSetDefaultBrowserRc(): Promise<void> {
-    const browserRc = await getRc()
-    if (!browserRc) await setRc(RC_DEFAULT)
+    const browserRc = await getBrowserRc()
+    if (!browserRc) await setBrowserRc(RC_DEFAULT)
 }
 
-export async function getRc(): Promise<string> {
+export async function getBrowserRc(): Promise<string> {
     return Util.getStorage(RC_NAME)
 }
 
-export async function setRc(newRc: string): Promise<void> {
+export async function setBrowserRc(newRc: string): Promise<void> {
     console.info(`Setting new RC file: \n${newRc}`)
     await Util.setStorage(RC_NAME, newRc)
 }

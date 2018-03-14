@@ -4,6 +4,8 @@ import * as Config from './config'
 import * as RC from './config_rc'
 
 const rctextarea = <HTMLTextAreaElement>document.querySelector('#rc-textarea')
+const isAutoloadCheckbox =
+    <HTMLInputElement>document.querySelector('#toggle-fs-rc')
 
 // Start by showing current settings
 activateTab('#current-settings')
@@ -20,18 +22,23 @@ document.querySelectorAll('.nav-link').forEach(link =>
     })
 )
 
-document
-    .querySelector('#btn-save-rc')
-    .addEventListener('click', e => RC.setRc(rctextarea.value))
+// Register settings toggle
+rctextarea.addEventListener('click', _ =>
+    RC.setBrowserRc(rctextarea.value))
+isAutoloadCheckbox.addEventListener('click', _ =>
+    RC.setAutoload(isAutoloadCheckbox.checked))
 
 async function fillCurrentConfig(): Promise<void> {
     const config = await Config.getAllConfig()
     const cfgStr = JSON.stringify(config, null, 2)
     document.querySelector('#current-settings').textContent = cfgStr
+
+    const isAutoload = await RC.getAutoload()
+    isAutoloadCheckbox.checked = isAutoload
 }
 
 async function fillRc(): Promise<void> {
-    const rc = await RC.getRc()
+    const rc = await RC.getBrowserRc()
     rctextarea.value = rc
 }
 
