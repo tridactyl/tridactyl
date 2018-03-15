@@ -292,11 +292,12 @@ abstract class CompletionSourceFuse extends CompletionSource {
         if (this.state != "hidden") {
             let visopts = this.options.filter(o => o.state != "hidden")
             let currind = visopts.findIndex(o => o.state == "focused")
-            if (inc < 0 && currind == -1) inc += 1
             this.deselect()
-            this.select(
-                visopts[(currind + inc + visopts.length) % visopts.length],
-            )
+            // visopts.length + 1 because we want an empty completion at the end
+            let max = visopts.length + 1
+            let opt = visopts[(currind + inc + max) % max]
+            if (opt)
+                this.select(opt)
             return true
         } else return false
     }
