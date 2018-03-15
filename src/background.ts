@@ -1,8 +1,8 @@
 /** Background script entry point. */
 
-import * as Controller from "./controller"
-import * as keydown_background from "./keydown_background"
-import * as CommandLine from "./commandline_background"
+import * as Controller from './controller'
+import * as keydown_background from './keydown_background'
+import * as CommandLine from './commandline_background'
 import './lib/browser_proxy_background'
 
 // Send keys to controller
@@ -31,7 +31,10 @@ import * as msgsafe from './msgsafe'
 import state from './state'
 import * as webext from './lib/webext'
 
-(window as any).tri = Object.assign(Object.create(null), {
+// Load autocommand triggers
+import './autocmd_background'
+
+;(window as any).tri = Object.assign(Object.create(null), {
     messaging,
     excmds,
     commandline_background,

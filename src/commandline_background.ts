@@ -16,7 +16,7 @@ export const onLine = {
 const listeners = new Set<onLineCallback>()
 
 /** Receive events from commandline_frame and pass to listeners */
-function recvExStr(exstr: string) {
+export function recvExStr(exstr: string) {
     for (let listener of listeners) {
         listener(exstr)
     }
