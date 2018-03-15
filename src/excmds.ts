@@ -361,7 +361,7 @@ function selectLast(selector: string): HTMLElement | null {
 /** Find a likely next/previous link and follow it
 
     If a link or anchor element with rel=rel exists, use that, otherwise fall back to:
-    
+
         1) find the last anchor on the page with innerText matching the appropriate `followpagepattern`.
         2) call [[urlincrement]] with 1 or -1
 
@@ -591,26 +591,6 @@ export async function reader() {
     } // else {
     //  // once a statusbar exists an error can be displayed there
     // }
-    }
-}
-
-//@hidden
-//#content_helper
-loadaucmds()
-
-//@hidden
-//#content
-export async function loadaucmds(){
-    console.log("AUCMDS TRIED TO RUN")
-    // for some reason, this never changes from the default, even when there is user config (e.g. set via `aucmd bbc.co.uk mode ignore`)
-    let aucmds = await config.getAsync("autocmds", "DocStart")
-    console.log(aucmds)
-    const ausites = Object.keys(aucmds)
-    // yes, this is lazy
-    const aukey = ausites.find(e=>window.document.location.href.includes(e))
-    if (aukey !== undefined){
-        console.log(aukey)
-        Messaging.message("commandline_background", "recvExStr", [aucmds[aukey]])
     }
 }
 
@@ -1393,6 +1373,11 @@ export function set(key: string, ...values: string[]) {
     }
 }
 
+const validAcmdTriggers = [
+    'DocStart',
+    'TabSwitch'
+]
+
 /** Set autocmds to run when certain events happen.
 
  @param event Curently, only 'DocStart' is supported.
@@ -1404,10 +1389,10 @@ export function set(key: string, ...values: string[]) {
 */
 //#background
 export function autocmd(event: string, url: string, ...excmd: string[]){
-    // rudimentary run time type checking
-    // TODO: Decide on autocmd event names
-    if(!['DocStart'].includes(event)) throw (event + " is not a supported event.")
-    config.set("autocmds", event, url, excmd.join(" "))
+    if(! validAcmdTriggers.includes(event))
+        throw `${event} is not supported.`
+
+    config.set('autocmds', event, url, excmd.join(' '))
 }
 
 /** Unbind a sequence of keys so that they do nothing at all.
