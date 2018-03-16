@@ -11,6 +11,7 @@ export type TabMessageType =
     "hinting_content"
 
 export type NonTabMessageType =
+    "config_rc" |
     "keydown_background" |
     "config_background" |
     "commandline_background" |

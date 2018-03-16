@@ -2,6 +2,7 @@
 
 import * as Config from './config'
 import * as RC from './config_rc'
+import * as Messaging from './messaging'
 
 const rctextarea = <HTMLTextAreaElement>document.querySelector('#rc-textarea')
 const isAutoloadCheckbox =
@@ -27,6 +28,10 @@ rctextarea.addEventListener('click', _ =>
     RC.setBrowserRc(rctextarea.value))
 isAutoloadCheckbox.addEventListener('click', _ =>
     RC.setAutoload(isAutoloadCheckbox.checked))
+document.querySelector('#btn-load-fs-rc').addEventListener('click', async(_) => {
+    const rc = await Messaging.message('config_rc', 'getFilesystemRc')
+    rctextarea.value = rc
+})
 
 async function fillCurrentConfig(): Promise<void> {
     const config = await Config.getAllConfig()

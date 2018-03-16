@@ -109,6 +109,11 @@ export async function getNativeVersion(): Promise<void> {
     Native.getNativeMessengerVersion()
 }
 
+//#background
+export async function getFilesystemRc(): Promise<string> {
+    return Native.getFilesystemUserConfig()
+}
+
 /** @hidden */
 function hasScheme(uri: string) {
     return uri.match(/^([\w-]+):/)

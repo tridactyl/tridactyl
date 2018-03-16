@@ -2,6 +2,7 @@ import * as Controller from './controller'
 import * as Util from './utils'
 import * as Config from './config'
 import * as Native from './native_background'
+import * as Messaging from './messaging'
 import DEFAULTS from './config_defaults'
 import Logger from './logging'
 
@@ -51,8 +52,7 @@ export async function initConfigFromRc(): Promise<void> {
 
     switch (location) {
         case 'filesystem':
-            rcText = await Native.getFilesystemUserConfig()
-            if (!rcText) rcText = FSRC_NOT_FOUND
+            rcText = await getFilesystemRc()
             break
         case 'browser':
             rcText = await getBrowserRc()
@@ -73,6 +73,12 @@ export async function initConfigFromRc(): Promise<void> {
 async function detectAndSetDefaultBrowserRc(): Promise<void> {
     const browserRc = await getBrowserRc()
     if (!browserRc) await setBrowserRc(RC_DEFAULT)
+}
+
+export async function getFilesystemRc(): Promise<string> {
+    let rc = await Native.getFilesystemUserConfig()
+    if(!rc) rc = FSRC_NOT_FOUND
+    return rc
 }
 
 export async function getBrowserRc(): Promise<string> {
@@ -101,3 +107,6 @@ export async function getLocation(): Promise<RcLocation> {
 export async function setLocation(newVal: RcLocation): Promise<void> {
     Util.setStorage(RC_LOC_NAME, newVal)
 }
+
+import * as SELF from './config_rc'
+Messaging.addListener('config_rc', Messaging.attributeCaller(SELF))
