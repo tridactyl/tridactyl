@@ -11,9 +11,9 @@ browser.storage.onChanged.addListener((changes, area) => {
     if (CONFIG_NAME in changes) userConfig = changes[CONFIG_NAME].newValue
 })
 
-export function resetToDefaults(): void {
-    Utils.setStorage(CONFIG_NAME, DEFAULTS)
+export async function resetToDefaults(): Promise<void> {
     userConfig = DEFAULTS
+    save()
 }
 
 /** * Get the value of the key target. */

@@ -9,9 +9,12 @@ const RC_NAME = 'rc-text'
 const RC_LOC_NAME = 'rc-location'
 const RC_AUTOLOAD_FS_NAME = 'rc-autoload'
 const RC_DEFAULT = `
-; This is the default RC file. Settings not set here will be wiped upon restart.
+; This is the default RC file.
 ; Just like vim, comments start with ';'
 ; Because I am a nice guy, here are some commented settings for you.
+
+; Wipe addon settings every time this file is loaded
+; resetConfigToDefault
 
 ; Use dark mode
 ; set theme dark
@@ -34,7 +37,6 @@ const FSRC_NOT_FOUND = `
 export type RcLocation = 'filesystem' | 'browser'
 
 export async function initConfigFromRc(): Promise<void> {
-    Config.resetToDefaults()
     await detectAndSetDefaultBrowserRc()
 
     let isAutoload = await getAutoload()

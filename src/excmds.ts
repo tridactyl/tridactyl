@@ -1392,6 +1392,14 @@ export function set(key: string, ...values: string[]) {
     }
 }
 
+/**
+ * Resets everything except the rc and rc loading options to default.
+ */
+//#background
+export async function resetConfigToDefault(): Promise<void> {
+    config.resetToDefaults()
+}
+
 /** Set autocmds to run when certain events happen.
 
  @param event Curently, only 'DocStart' is supported.
