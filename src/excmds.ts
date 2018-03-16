@@ -68,47 +68,41 @@
 
 // {{{ setup
 
+// Shared
 import * as Messaging from "./messaging"
 import {l} from './lib/webext'
 import state from "./state"
-
-//#content_omit_line
-import "./number.clamp"
-//#content_helper
-import * as SELF from "./excmds_content"
-//#content_helper
-Messaging.addListener('excmd_content', Messaging.attributeCaller(SELF))
-/** Message excmds_content.ts in the active tab of the currentWindow */
-//#background_helper
-import {messageActiveTab} from './messaging'
-
-//#background_helper
-import "./number.mod"
-//#background_helper
-import {ModeName} from './state'
-//#background_helper
-import * as keydown from "./keydown_background"
-//#background_helper
-import {activeTab, activeTabId, firefoxVersionAtLeast} from './lib/webext'
 import * as UrlUtil from "./url_util"
-
-//#background_helper
-import * as CommandLineBackground from './commandline_background'
-//#content_helper
-import * as DOM from './dom'
-
 import * as config from './config'
+import * as aliases from './aliases'
 import * as Logging from "./logging"
 const logger = new Logging.Logger('excmds')
 
-import * as aliases from './aliases'
+//#content_helper
+// {
+import "./number.clamp"
+import * as SELF from "./excmds_content"
+Messaging.addListener('excmd_content', Messaging.attributeCaller(SELF))
+import * as DOM from './dom'
+// }
+
+//#background_helper
+// {
+/** Message excmds_content.ts in the active tab of the currentWindow */
+import {messageActiveTab} from './messaging'
+
+import "./number.mod"
+import {ModeName} from './state'
+import * as keydown from "./keydown_background"
+import {activeTab, activeTabId, firefoxVersionAtLeast, openInNewTab} from './lib/webext'
+import * as CommandLineBackground from './commandline_background'
 
 //#background_helper
 import * as Native from './native_background'
 
 /** @hidden */
-//#background_helper
 export const cmd_params = new Map<string, Map<string, string>>()
+// }
 
 //#background
 export async function getNativeVersion(): Promise<void> {
@@ -756,7 +750,7 @@ export function focusinput(nth: number|string) {
 
     if (inputToFocus) {
         inputToFocus.focus()
-        if (config.get('vimium-gi') && state.mode !== 'input') {
+        if (config.get('gimode') === 'nextinput' && state.mode !== 'input') {
             state.mode = 'input'
         }
     }
@@ -835,18 +829,26 @@ export async function tablast() {
 
     Unlike Firefox's Ctrl-t shortcut, this opens tabs immediately after the
     currently active tab rather than at the end of the tab list because that is
-    the author's preference. Open an issue if you don't like it :)
+    the author's preference.
+
+    If you would rather the Firefox behaviour `set tabopenpos last`. This
+    preference also affects the clipboard, quickmarks, home, help, etc.
+
+    If you would rather the URL be opened as if you'd middle clicked it, `set
+    tabopenpos related`.
+
+    Hinting is controlled by `relatedopenlast`
+
 */
 //#background
 export async function tabopen(...addressarr: string[]) {
-    let uri
+    let url: string
     let address = addressarr.join(' ')
-    if (address != "") uri = forceURI(address)
-    else uri = forceURI(config.get("newtab"))
-    browser.tabs.create({
-        url: uri,
-        index: (await activeTabId()) + 1
-    })
+
+    if (address != "") url = forceURI(address)
+    else url = forceURI(config.get("newtab"))
+
+    openInNewTab(url)
 }
 
 /** Resolve a tab index to the tab id of the corresponding tab in this window.
@@ -1610,6 +1612,8 @@ import * as hinting from './hinting_background'
         - -# yank an element's anchor URL to clipboard
         - -c [selector] hint links that match the css selector
           - `bind ;c hint -c [class*="expand"],[class="togg"]` works particularly well on reddit and HN
+        - -w open in new window
+            -wp open in new private window
 
     Excepting the custom selector mode and background hint mode, each of these
     hint modes is available by default as `;<option character>`, so e.g. `;y`
@@ -1620,6 +1624,7 @@ import * as hinting from './hinting_background'
     Related settings:
         "hintchars": "hjklasdfgyuiopqwertnmzxcvb"
         "hintfiltermode": "simple" | "vimperator" | "vimperator-reflow"
+        "relatedopenpos": "related" | "next" | "last"
 */
 //#background
 export function hint(option?: string, selectors="") {
@@ -1637,6 +1642,8 @@ export function hint(option?: string, selectors="") {
     else if (option === "-#") hinting.hintPageAnchorYank()
     else if (option === "-c") hinting.hintPageSimple(selectors)
     else if (option === "-r") hinting.hintRead()
+    else if (option === "-w") hinting.hintPageWindow()
+    else if (option === "-wp") hinting.hintPageWindowPrivate()
     else hinting.hintPageSimple()
 }
 

@@ -151,7 +151,11 @@ const DEFAULTS = o({
     ttsrate: 1, // 0.1 to 10
     ttspitch: 1, // 0 to 2
     theme: 'default', // currently available: "default", "dark"
-    'vimium-gi': true,
+
+    // either "nextinput" or "firefox"
+    // If 'nextinput', <Tab> after gi brings selects the next input
+    // If 'firefox', <Tab> selects the next selectable element, e.g. a link
+    gimode: 'nextinput',
 
     // Default logging levels - 2 === WARNING
     logging: o({
