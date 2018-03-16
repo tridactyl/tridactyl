@@ -27,13 +27,15 @@ const RC_DEFAULT = `
 ; bind i mode ignore
 
 ; Access this page with ':st'
-: command st settings`
+; command st settings`
 
 const FSRC_NOT_FOUND = `
-; We didn't find a RC file at XDG_CONFIG_HOME/tridactyl/tridactyl[rc]
-; Please fix it. It may also be the case you haven't installed the native
-; messenger, in which case, do that. If this message is still here, file a
-; bug on GitHub.`
+; Something went wrong with loading the file from the filesystem. Please make
+; sure that all of the following are true:
+;  - You have a file at XDG_CONFIG_HOME/tridactyl/tridactylrc
+;  - You have installed the native app
+;  - No unusual errors are being reported in the console
+; If you are still lost, file a bug on GitHub or contact us on Gitter/Matrix. `
 
 export type RcLocation = 'filesystem' | 'browser'
 

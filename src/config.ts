@@ -120,7 +120,7 @@ export async function migrate(cfgObj: object): Promise<object> {
                     cfgObj['nmaps']
                 )
         } catch (e) {
-            console.error('Error while migration from 0.0 -> 1.0')
+            console.error('Error while migration from 0.0 -> 1.0', e)
         }
         return cfgObj
     }

@@ -27,10 +27,10 @@ async function sendNativeMsg(
 
     try {
         resp = await browser.runtime.sendNativeMessage(NATIVE_NAME, send)
-        console.log(`Received response: ${resp}`)
+        console.log(`Received response:`, resp)
         return resp as MessageResp
     } catch(e) {
-        console.error(`Error sending native message: ${e}`)
+        console.error(`Error sending native message:`, e)
         throw e
     }
 }

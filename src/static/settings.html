@@ -37,11 +37,17 @@
   <div id="tab-container" class="tab-content">
     <div class="tab-panel" role="tabpanel" id="current-settings"></div>
     <div class="tab-panel" role="tabpanel" id="rc-text">
-      <button id="btn-save-rc">Save RC file</button>
-      <button id="btn-load-fs-rc">Load from RC file</button>
+      <p>
+        If the button to load from filesystem is not working, check the console
+        to see the error you are getting. Yes, we don't have an error reporting
+        mechanism right now.
+      </p>
+      <button id="btn-save-rc">Save to browser</button>
+      <button id="btn-load-rc">Load from browser</button>
+      <button id="btn-load-fs-rc">Load from filesystem</button>
       <br>
       <input id="toggle-fs-rc" type="checkbox">
-      <span>Automatically use filesystem RC file</span>
+      <span>Load and run RC from filesystem on start</span>
       <textarea id="rc-textarea"></textarea>
     </div>
     <div class="tab-panel" role="tabpanel" id="about">

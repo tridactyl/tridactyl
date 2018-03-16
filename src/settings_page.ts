@@ -24,12 +24,17 @@ document.querySelectorAll('.nav-link').forEach(link =>
 )
 
 // Register settings toggle
-rctextarea.addEventListener('click', _ =>
-    RC.setBrowserRc(rctextarea.value))
 isAutoloadCheckbox.addEventListener('click', _ =>
     RC.setAutoload(isAutoloadCheckbox.checked))
+document.querySelector('#btn-save-rc').addEventListener('click', _ =>
+    RC.setBrowserRc(rctextarea.value))
 document.querySelector('#btn-load-fs-rc').addEventListener('click', async(_) => {
     const rc = await Messaging.message('config_rc', 'getFilesystemRc')
+    if(!rc) return
+    rctextarea.value = rc
+})
+document.querySelector('#btn-load-rc').addEventListener('click', async(_) => {
+    const rc = await RC.getBrowserRc()
     rctextarea.value = rc
 })
 
