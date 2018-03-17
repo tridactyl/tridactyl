@@ -307,7 +307,7 @@ export function viewsource(url = "") {
         sourceElement = executeWithoutCommandLine(() => {
             let pre = document.createElement("pre")
             pre.id = "TridactylViewsourceElement"
-            pre.className = "cleanslate"
+            pre.className = "cleanslate " + config.get("theme")
             pre.innerText = document.documentElement.innerHTML
             document.documentElement.appendChild(pre)
             return pre
