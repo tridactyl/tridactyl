@@ -32,12 +32,41 @@ export async function hintPageOpenInBackground() {
     return await messageActiveTab('hinting_content', 'hintPageOpenInBackground')
 }
 
+export async function hintPageWindow() {
+    return await messageActiveTab('hinting_content', 'hintPageWindow')
+}
+
+export async function hintPageWindowPrivate() {
+    return await messageActiveTab('hinting_content', 'hintPageWindowPrivate')
+}
+
 export async function hintImage(inBackground) {
     return await messageActiveTab('hinting_content', 'hintImage', [inBackground])
 }
 
 export async function hintFocus() {
     return await messageActiveTab('hinting_content', 'hintFocus')
+}
+
+export async function hintRead() {
+    return await messageActiveTab('hinting_content', 'hintRead')
+}
+
+export async function hintKill() {
+    return await messageActiveTab('hinting_content', 'hintKill')
+}
+
+/** Type for "hint save" actions:
+ *    - "link": elements that point to another resource (eg
+ *              links to pages/files) - the link target is saved
+ *    - "img":  image elements
+ */
+export type HintSaveType = "link" | "img"
+
+export async function hintSave(hintType: HintSaveType, saveAs: boolean) {
+
+    return await messageActiveTab('hinting_content', 'hintSave',
+        [hintType, saveAs])
 }
 
 import {MsgSafeKeyboardEvent} from './msgsafe'
@@ -49,7 +78,6 @@ import {MsgSafeKeyboardEvent} from './msgsafe'
 
 */
 export function parser(keys: MsgSafeKeyboardEvent[]) {
-    console.log("hintparser", keys)
     const key = keys[0].key
     if (key === 'Escape') {
         reset()

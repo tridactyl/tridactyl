@@ -10,6 +10,7 @@ input {
   font-size: 9pt;
   line-height: 1.5;
   color: black;
+  background:  white;
   border: unset;
   /* we currently have a border from the completions */
   /* border-top: solid 1px lightgray; */
@@ -20,8 +21,8 @@ input {
 
 #completions {
   --option-height: 1.4em;
-  background: white;
   color: black;
+  background: white;
   display: inline-block;
   font-size: 10pt;
   font-family: monospace;
@@ -37,6 +38,19 @@ input {
 }
 
 #completions .HistoryCompletionSource table {
+  width: 100%;
+  font-size: 9pt;
+  border-spacing: 0;
+  table-layout: fixed;
+}
+
+/* redundancy 2: redundancy 2: more redundancy */
+#completions .BmarkCompletionSource {
+  max-height: calc(20 * var(--option-height));
+  min-height: calc(10 * var(--option-height));
+}
+
+#completions .BmarkCompletionSource table {
   width: 100%;
   font-size: 9pt;
   border-spacing: 0;
@@ -122,6 +136,6 @@ a.url:hover {
 
 /* Pick the .url out especially because otherwise its link styles dominate. */
 .focused, .focused .url {
-  background: #FFEC8B;
   color: black;
+  background: #FFEC8B;
 }

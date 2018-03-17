@@ -1,7 +1,7 @@
 {
     "manifest_version": 2,
     "name": "Tridactyl",
-    "version": "1.6.1",
+    "version": "1.8.2",
     "icons": {
         "64": "static/logo/Tridactyl_64px.png",
         "100": "static/logo/Tridactyl_100px.png",
@@ -24,7 +24,9 @@
                 "content.js"
             ],
             "css": [
+                "static/cleanslate.css",
                 "static/content.css",
+                "static/content-dark.css",
                 "static/hint.css"
             ],
             "run_at": "document_start",
@@ -38,9 +40,11 @@
     "permissions": [
         "activeTab",
         "bookmarks",
+        "browsingData",
         "contextMenus",
         "clipboardWrite",
         "clipboardRead",
+        "downloads",
         "history",
         "sessions",
         "storage",

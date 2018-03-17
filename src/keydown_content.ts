@@ -11,7 +11,7 @@ function keyeventHandler(ke: KeyboardEvent) {
 
     // Bad workaround: never suppress events in an editable field
     // and never suppress keys pressed with modifiers
-    if (! (isTextEditable(ke.target as Node) || ke.ctrlKey || ke.altKey)) {
+    if (state.mode === 'input' || ! (isTextEditable(ke.target as Node) || ke.ctrlKey || ke.altKey)) {
         suppressKey(ke)
     }
 
@@ -61,6 +61,12 @@ function TerribleModeSpecificSuppression(ke: KeyboardEvent) {
             break;
         case "gobble":
             if (isSimpleKey(ke) || ke.key === "Escape") {
+                ke.preventDefault()
+                ke.stopImmediatePropagation()
+            }
+            break
+        case "input":
+            if (ke.key === "Tab") {
                 ke.preventDefault()
                 ke.stopImmediatePropagation()
             }

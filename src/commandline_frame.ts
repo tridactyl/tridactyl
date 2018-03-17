@@ -4,9 +4,13 @@ import "./lib/html-tagged-template"
 
 import * as Completions from './completions'
 import * as Messaging from './messaging'
+import * as Config from './config'
 import * as SELF from './commandline_frame'
 import './number.clamp'
 import state from './state'
+import Logger from './logging'
+import * as aliases from './aliases'
+const logger = new Logger('cmdline')
 
 let activeCompletions: Completions.CompletionSource[] = undefined
 let completionsDiv = window.document.getElementById("completions") as HTMLElement
@@ -40,6 +44,7 @@ function enableCompletions() {
         activeCompletions = [
             new Completions.BufferCompletionSource(completionsDiv),
             new Completions.HistoryCompletionSource(completionsDiv),
+            new Completions.BmarkCompletionSource(completionsDiv),
         ]
 
         const fragment = document.createDocumentFragment()
@@ -50,10 +55,22 @@ function enableCompletions() {
 /* document.addEventListener("DOMContentLoaded", enableCompletions) */
 
 let noblur = e =>  setTimeout(() => clInput.focus(), 0)
+let lastTheme: string
 
 export function focus() {
     enableCompletions()
     document.body.classList.remove('hidden')
+
+    // update theme of command line
+    let theme = Config.get("theme")
+    if (theme !== lastTheme) {
+        if (lastTheme) {
+            document.querySelector(':root').classList.remove(lastTheme)
+        }
+        document.querySelector(':root').classList.add(theme)
+        lastTheme = theme
+    }
+
     clInput.focus()
     clInput.addEventListener("blur",noblur)
 }
@@ -102,11 +119,47 @@ clInput.addEventListener("keydown", function (keyevent) {
             history(1)
             break
 
-        // Clear input on ^C
+        case "a":
+            if (keyevent.ctrlKey) {
+                keyevent.preventDefault()
+                keyevent.stopPropagation()
+                setCursor()
+            }
+            break
+
+        case "e":
+            if (keyevent.ctrlKey){
+                keyevent.preventDefault()
+                keyevent.stopPropagation()
+                setCursor(clInput.value.length)
+            }
+            break
+
+        case "u":
+            if (keyevent.ctrlKey){
+                keyevent.preventDefault()
+                keyevent.stopPropagation()
+                clInput.value = clInput.value.slice(clInput.selectionStart, clInput.value.length)
+                setCursor()
+            }
+            break
+
+        case "k":
+            if (keyevent.ctrlKey){
+                keyevent.preventDefault()
+                keyevent.stopPropagation()
+                clInput.value = clInput.value.slice(0, clInput.selectionStart)
+            }
+            break
+
+        // Clear input on ^C if there is no selection
         // Todo: hard mode: vi style editing on cli, like set -o mode vi
         // should probably just defer to another library
         case "c":
-            if (keyevent.ctrlKey) hide_and_clear()
+            if (keyevent.ctrlKey &&
+                ! clInput.value.substring(clInput.selectionStart, clInput.selectionEnd)) {
+                hide_and_clear()
+            }
             break
 
         case "f":
@@ -144,10 +197,13 @@ clInput.addEventListener("keydown", function (keyevent) {
 })
 
 clInput.addEventListener("input", () => {
+    const exstr = clInput.value
+    const expandedCmd = aliases.expandExstr(exstr)
+
     // Fire each completion and add a callback to resize area
-    console.log(activeCompletions)
+    logger.debug(activeCompletions)
     activeCompletions.forEach(comp =>
-        comp.filter(clInput.value).then(() => resizeArea())
+        comp.filter(expandedCmd).then(() => resizeArea())
     )
 })
 
@@ -168,6 +224,10 @@ async function hide_and_clear(){
     activeCompletions.forEach(comp => completionsDiv.removeChild(comp.node))
     activeCompletions = undefined
     isVisible = false
+}
+
+function setCursor(n = 0) {
+    clInput.setSelectionRange(n, n, "none")
 }
 
 function tabcomplete(){
@@ -196,22 +256,20 @@ function history(n){
 
 /* Send the commandline to the background script and await response. */
 function process() {
-    console.log(clInput.value)
-    clInput.value = getCompletion() || clInput.value
-    console.log(clInput.value)
-    sendExstr(clInput.value)
+    const command = getCompletion() || clInput.value
+
+    hide_and_clear()
 
     // Save non-secret commandlines to the history.
-    const [func,...args] = clInput.value.trim().split(/\s+/)
+    const [func,...args] = command.trim().split(/\s+/)
     if (! browser.extension.inIncognitoContext &&
         ! (func === 'winopen' && args[0] === '-private')
     ) {
-        state.cmdHistory = state.cmdHistory.concat([clInput.value])
+        state.cmdHistory = state.cmdHistory.concat([command])
     }
-    console.log(state.cmdHistory)
     cmdline_history_position = 0
 
-    hide_and_clear()
+    sendExstr(command)
 }
 
 export function fillcmdline(newcommand?: string, trailspace = true){
@@ -225,6 +283,10 @@ export function fillcmdline(newcommand?: string, trailspace = true){
     clInput.dispatchEvent(new Event('input')) // dirty hack for completions
 }
 
+/** Create a temporary textarea and give it to fn. Remove the textarea afterwards
+
+    Useful for document.execCommand
+*/
 function applyWithTmpTextArea(fn) {
     let textarea
     try {
@@ -241,23 +303,27 @@ function applyWithTmpTextArea(fn) {
 }
 
 export function setClipboard(content: string) {
-    return applyWithTmpTextArea(scratchpad => {
+    applyWithTmpTextArea(scratchpad => {
         scratchpad.value = content
         scratchpad.select()
         if (document.execCommand("Copy")) {
             // // todo: Maybe we can consider to using some logger and show it with status bar in the future
-            console.log('set clipboard:', scratchpad.value)
+            logger.info('set clipboard:', scratchpad.value)
         } else throw "Failed to copy!"
     })
+    // Return focus to the document
+    Messaging.message('commandline_background', 'hide')
 }
 
 export function getClipboard() {
-    return applyWithTmpTextArea(scratchpad => {
+    const result = applyWithTmpTextArea(scratchpad => {
         scratchpad.focus()
         document.execCommand("Paste")
-        console.log('get clipboard', scratchpad.textContent)
         return scratchpad.textContent
     })
+    // Return focus to the document
+    Messaging.message('commandline_background', 'hide')
+    return result
 }
 
 Messaging.addListener('commandline_frame', Messaging.attributeCaller(SELF))

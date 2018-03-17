@@ -14,10 +14,14 @@
     If this turns out to be expensive there are improvements available.
 */
 
-export type ModeName = 'normal' | 'insert' | 'hint' | 'ignore' | 'gobble'
+import Logger from './logging'
+const logger = new Logger('state')
+
+export type ModeName = 'normal' | 'insert' | 'hint' | 'ignore' | 'gobble' | 'input'
 class State {
     mode: ModeName = 'normal'
     cmdHistory: string[] = []
+    last_ex_str: string = ""
 }
 
 // Don't change these from const or you risk breaking the Proxy below.
@@ -26,10 +30,10 @@ const defaults = Object.freeze(new State())
 const overlay = {} as any
 browser.storage.local.get('state').then(res=>{
     if ('state' in res) {
-        console.log("Loaded initial state:", res.state)
+        logger.debug("Loaded initial state:", res.state)
         Object.assign(overlay, res.state)
     }
-}).catch(console.error)
+}).catch((...args) => logger.error(...args))
 
 const state = new Proxy(overlay, {
 
@@ -44,7 +48,7 @@ const state = new Proxy(overlay, {
 
     /** Persist sets to storage immediately */
     set: function(target, property, value) {
-        console.log("State changed!", property, value)
+        logger.debug("State changed!", property, value)
         target[property] = value
         browser.storage.local.set({state: target})
         return true

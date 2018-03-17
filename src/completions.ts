@@ -301,8 +301,10 @@ abstract class CompletionSourceFuse extends CompletionSource {
         if (this.state != "hidden"){
             let visopts = this.options.filter((o) => o.state != "hidden")
             let currind = visopts.findIndex((o) => o.state == "focused")
+            if ((inc < 0) && (currind == -1)) inc += 1
             this.deselect()
-            this.select(visopts[currind + inc])
+            this.select(visopts[(currind + inc + visopts.length) % visopts.length
+])
             return true
         } else return false
     }
@@ -338,10 +340,108 @@ class HistoryCompletionOption extends CompletionOptionHTML implements Completion
     }
 }
 
+class BmarkCompletionOption extends CompletionOptionHTML implements CompletionOptionFuse {
+    public fuseKeys = []
+
+    constructor(public value: string, bmark: browser.bookmarks.BookmarkTreeNode) {
+        super()
+        if (! bmark.title) {
+            bmark.title = new URL(bmark.url).host
+        }
+
+        // Push properties we want to fuzmatch on
+        this.fuseKeys.push(bmark.title, bmark.url)
+
+        // Create HTMLElement
+        // need to download favicon
+        const favIconUrl = DEFAULT_FAVICON
+        // const favIconUrl = tab.favIconUrl ? tab.favIconUrl : DEFAULT_FAVICON
+        this.html = html`<tr class="HistoryCompletionOption option">
+            <td class="prefix">${"".padEnd(2)}</td>
+            <td></td>
+            <td>${bmark.title}</td>
+            <td><a class="url" target="_blank" href=${bmark.url}>${bmark.url}</a></td>
+        </tr>`
+    }
+}
+
 function sleep(ms: number) {
     return new Promise(resolve => setTimeout(resolve, ms))
 }
 
+
+export class BmarkCompletionSource extends CompletionSourceFuse {
+    public options: BmarkCompletionOption[]
+
+    constructor(private _parent) {
+        super(
+            [
+                "bmarks ",
+            ],
+            "BmarkCompletionSource", "Bookmarks"
+        )
+
+        this._parent.appendChild(this.node)
+    }
+
+    public async filter(exstr: string) {
+        this.lastExstr = exstr
+        const [prefix, query] = this.splitOnPrefix(exstr)
+
+        // Hide self and stop if prefixes don't match
+        if (prefix) {
+            // Show self if prefix and currently hidden
+            if (this.state === 'hidden') {
+                this.state = 'normal'
+            }
+        } else {
+            this.state = 'hidden'
+            return
+        }
+
+	this.options = (await this.scoreOptions(query, 10)).map(
+	    page => new BmarkCompletionOption(page.url, page)
+	)
+
+        this.updateChain()
+    }
+
+    updateChain() {
+        // Options are pre-trimmed to the right length.
+        this.options.forEach(option => option.state = 'normal')
+
+        // Call concrete class
+        this.updateDisplay()
+    }
+
+    onInput() {}
+
+    private async scoreOptions(query: string, n: number) {
+        // Search bookmarks, dedupe and sort by frecency
+        let bookmarks = await browserBg.bookmarks.search({query})
+        bookmarks = bookmarks.filter(b=>{
+            try {
+                return new URL(b.url)
+            } catch (e) {
+                return false;
+            }
+        })
+
+        bookmarks.sort((a, b) => b.dateAdded - a.dateAdded)
+
+        return bookmarks.slice(0, n)
+    }
+
+    select(option: CompletionOption) {
+        if (this.lastExstr !== undefined && option !== undefined) {
+            this.completion = "open " + option.value
+            option.state = 'focused'
+            this.lastFocused = option
+        } else {
+            throw new Error("lastExstr and option must be defined!")
+        }
+    }
+}
 
 export class HistoryCompletionSource extends CompletionSourceFuse {
     public options: HistoryCompletionOption[]
@@ -397,8 +497,12 @@ export class HistoryCompletionSource extends CompletionSourceFuse {
     }
 
     private async scoreOptions(query: string, n: number) {
+        const newtab = browser.runtime.getManifest()['chrome_url_overrides'].newtab
+        const newtaburl = browser.extension.getURL(newtab)
 	if (! query) {
-	    return (await browserBg.topSites.get()).slice(0, n)
+            return (await browserBg.topSites.get()).filter(page =>
+                page.url !== newtaburl
+            ).slice(0, n)
 	} else {
 	    // Search history, dedupe and sort by frecency
 	    let history = await browserBg.history.search({
@@ -410,13 +514,15 @@ export class HistoryCompletionSource extends CompletionSourceFuse {
 	    // Remove entries with duplicate URLs
 	    const dedupe = new Map()
 	    for (const page of history) {
-		if (dedupe.has(page.url)) {
-		    if (dedupe.get(page.url).title.length < page.title.length) {
-			dedupe.set(page.url, page)
-		    }
-		} else {
-		    dedupe.set(page.url, page)
-		}
+                if (page.url !== newtaburl) {
+	            if (dedupe.has(page.url)) {
+	                if (dedupe.get(page.url).title.length < page.title.length) {
+                            dedupe.set(page.url, page)
+	                }
+	            } else {
+	                dedupe.set(page.url, page)
+	            }
+                }
 	    }
 	    history = [...dedupe.values()]
 
@@ -435,7 +541,10 @@ class BufferCompletionOption extends CompletionOptionHTML implements CompletionO
         // Two character buffer properties prefix
         let pre = ""
         if (tab.active) pre += "%"
-        else if (isAlternative) pre += "#"
+        else if (isAlternative) {
+            pre += "#"
+            this.value = "#"
+        }
         if (tab.pinned) pre += "@"
 
         // Push prefix before padding so we don't match on whitespace
@@ -513,17 +622,21 @@ export class BufferCompletionSource extends CompletionSourceFuse {
         super.setStateFromScore(scoredOpts, true)
     }
 
-    /** Score with fuse unless query is an integer or a single # */
+    /** Score with fuse unless query is a single # or looks like a buffer index */
     scoredOptions(query: string, options = this.options): ScoredOption[] {
-        const args = query.split(/\s+/gu)
+        const args = query.trim().split(/\s+/gu)
         if (args.length === 1) {
+            // if query is an integer n and |n| < options.length
             if (Number.isInteger(Number(args[0]))) {
-                const index = (Number(args[0]) - 1).mod(options.length)
-                return [{
-                    index,
-                    option: options[index],
-                    score: 0,
-                }]
+                let index = Number(args[0]) - 1
+                if (Math.abs(index) < options.length) {
+                    index = index.mod(options.length)
+                    return [{
+                        index,
+                        option: options[index],
+                        score: 0,
+                    }]
+                }
             } else if (args[0] === '#') {
                 for (const [index, option] of enumerate(options)) {
                     if (option.isAlternative) {

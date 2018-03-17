@@ -12,9 +12,11 @@ import {MsgSafeNode} from './msgsafe'
  */
 export function isTextEditable (element: MsgSafeNode) {
     if (element) {
-        switch (element.nodeName) {
+        // HTML is always upper case, but XHTML is not necessarily upper case
+        switch (element.nodeName.toUpperCase()) {
             case 'INPUT':
                 return isEditableHTMLInput(element)
+            case 'SELECT':
             case 'TEXTAREA':
             case 'OBJECT':
                 return true
@@ -117,6 +119,47 @@ export function isSubstantial (element: Element) {
     return true
 }
 
+
+/** This function decides whether the height attribute contained in a
+   ComputedStyle matters.  For example, the height attribute doesn't matter for
+   elements that have "display: inline" because their height is overriden by
+   the height of the node they are in. */
+export function heightMatters (style: CSSStyleDeclaration) {
+   switch (style.display) {
+      case "inline":
+      case "table-column":
+      case "table-column-group":
+      /* These two depend on other factors such as the element's type (span,
+         div...) or its parent's style. If the previous cases aren't enough to
+         decide whether the width attribute of the element matters, we should
+         maybe try to test for them.
+      case "initial":
+      case "inherit":*/
+         return false
+   }
+   return true
+}
+
+/* See [[heightMatters]] */
+export function widthMatters (style: CSSStyleDeclaration) {
+   switch (style.display) {
+      case "inline":
+      case "table-column":
+      case "table-column-group":
+      case "table-header-group":
+      case "table-footer-group":
+      case "table-row-group":
+      case "table-cell":
+      case "table-row":
+      /* Take a look at [[heightMatters]] in order to understand why these two
+         cases are commented
+      case "initial":
+      case "inherit?:*/
+         return false
+   }
+   return true
+}
+
 // Saka-key caches getComputedStyle. Maybe it's a good idea!
 /* let cgetComputedStyle = cacheDecorator(getComputedStyle) */
 
@@ -136,8 +179,8 @@ export function isVisible (element: Element) {
         case clientRect.top >= innerHeight - 4:
         case clientRect.left < 0:
         case clientRect.left >= innerWidth - 4:
-        case clientRect.width < 3:
-        case clientRect.height < 3:
+        case widthMatters(computedStyle) && clientRect.width < 3:
+        case heightMatters(computedStyle) && clientRect.height < 3:
         case computedStyle.visibility !== 'visible':
         case computedStyle.display === 'none':
             return false
