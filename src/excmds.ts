@@ -2434,6 +2434,12 @@ import * as hinting from "./hinting_background"
         - "hintchars": "hjklasdfgyuiopqwertnmzxcvb"
         - "hintfiltermode": "simple" | "vimperator" | "vimperator-reflow"
         - "relatedopenpos": "related" | "next" | "last"
+        - "hintnames": "short" | "uniform"
+
+          With "short" names, Tridactyl will generate short hints that
+          are never prefixes of each other. With "uniform", Tridactyl
+          will generate hints of uniform length. In either case, the
+          hints are generated from the set in "hintchars".
 */
 //#background
 export function hint(option?: string, selectors?: string, ...rest: string[]) {

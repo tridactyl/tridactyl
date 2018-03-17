@@ -151,7 +151,7 @@ function* hintnames_simple(
     and so on, but we hardly ever see that many hints, so whatever.
     
 */
-function* hintnames(
+function* hintnames_short(
     n: number,
     hintchars = defaultHintChars(),
 ): IterableIterator<string> {
@@ -176,6 +176,18 @@ function* hintnames_uniform(
                 return perm.join("")
             },
         )
+    }
+}
+
+function* hintnames(
+    n: number,
+    hintchars = defaultHintChars(),
+): IterableIterator<string> {
+    switch (config.get("hintnames")) {
+        case "uniform":
+            yield* hintnames_uniform(n, hintchars)
+        default:
+            yield* hintnames_short(n, hintchars)
     }
 }
 
