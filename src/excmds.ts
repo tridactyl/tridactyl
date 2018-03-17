@@ -2434,12 +2434,21 @@ import * as hinting from "./hinting_background"
         - "hintchars": "hjklasdfgyuiopqwertnmzxcvb"
         - "hintfiltermode": "simple" | "vimperator" | "vimperator-reflow"
         - "relatedopenpos": "related" | "next" | "last"
-        - "hintnames": "short" | "uniform"
+        - "hintnames": "short" | "uniform" | "numeric"
 
           With "short" names, Tridactyl will generate short hints that
           are never prefixes of each other. With "uniform", Tridactyl
           will generate hints of uniform length. In either case, the
           hints are generated from the set in "hintchars".
+
+          With "numeric" names, hints are always assigned using
+          sequential integers, and "hintchars" is ignored. This has the
+          disadvantage that some hints are prefixes of others (and you
+          need to hit space or enter to select such a hint). But it has
+          the advantage that the hints tend to be more predictable
+          (e.g., a news site will have the same hints for its
+          boilerplate each time you visit it, even if the number of
+          links in the main body changes).
 */
 //#background
 export function hint(option?: string, selectors?: string, ...rest: string[]) {

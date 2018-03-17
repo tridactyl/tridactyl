@@ -120,7 +120,12 @@ function defaultHintFilter() {
 }
 
 function defaultHintChars() {
-    return config.get("hintchars")
+    switch (config.get("hintnames")) {
+        case "numeric":
+            return "1234567890"
+        default:
+            return config.get("hintchars")
+    }
 }
 
 /** An infinite stream of hints
@@ -179,11 +184,19 @@ function* hintnames_uniform(
     }
 }
 
+function* hintnames_numeric(n: number): IterableIterator<string> {
+    for (let i = 1; i <= n; i++) {
+        yield String(i)
+    }
+}
+
 function* hintnames(
     n: number,
     hintchars = defaultHintChars(),
 ): IterableIterator<string> {
     switch (config.get("hintnames")) {
+        case "numeric":
+            yield* hintnames_numeric(n)
         case "uniform":
             yield* hintnames_uniform(n, hintchars)
         default:
