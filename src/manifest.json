@@ -53,6 +53,7 @@
         "webNavigation",
         "webRequest",
         "webRequestBlocking",
+        "nativeMessaging",
         "<all_urls>"
     ],
     "applications": {
@@ -60,5 +61,9 @@
             "id": "tridactyl.vim@cmcaine.co.uk",
             "strict_min_version": "54.0"
         }
+    },
+    "options_ui": {
+        "page": "static/settings.html",
+        "open_in_tab": true
     }
 }

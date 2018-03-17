@@ -9,6 +9,7 @@ CLEANSLATE="node_modules/cleanslate/docs/files/cleanslate.css"
 mkdir -p generated/static
 scripts/excmds_macros.py
 scripts/newtab.md.sh
+scripts/settings_page.sh
 scripts/make_docs.sh &
 
 (webpack --display errors-only && scripts/git_version.sh)&

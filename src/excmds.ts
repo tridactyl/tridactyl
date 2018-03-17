@@ -97,9 +97,22 @@ import * as keydown from "./keydown_background"
 import {activeTab, activeTabId, firefoxVersionAtLeast, openInNewTab} from './lib/webext'
 import * as CommandLineBackground from './commandline_background'
 
+//#background_helper
+import * as Native from './native_background'
+
 /** @hidden */
 export const cmd_params = new Map<string, Map<string, string>>()
 // }
+
+//#background
+export async function getNativeVersion(): Promise<void> {
+    Native.getNativeMessengerVersion()
+}
+
+//#background
+export async function getFilesystemRc(): Promise<string> {
+    return Native.getFilesystemUserConfig()
+}
 
 /** @hidden */
 function hasScheme(uri: string) {
@@ -327,6 +340,14 @@ export async function help(excmd?: string) {
     }
 }
 
+/**
+ * Navigate to the settings page.
+ */
+//#background
+export async function settings(): Promise<void> {
+    return browser.runtime.openOptionsPage()
+}
+
 /** @hidden */
 // Find clickable next-page/previous-page links whose text matches the supplied pattern,
 // and return the last such link.
@@ -361,7 +382,7 @@ function selectLast(selector: string): HTMLElement | null {
 /** Find a likely next/previous link and follow it
 
     If a link or anchor element with rel=rel exists, use that, otherwise fall back to:
-    
+
         1) find the last anchor on the page with innerText matching the appropriate `followpagepattern`.
         2) call [[urlincrement]] with 1 or -1
 
@@ -922,7 +943,8 @@ export async function undo(){
 
     // The first session object that's a window or a tab from this window. Or undefined if sessions is empty.
     let closed = sessions.find((s) => {
-        return ('window' in s || s.tab && (s.tab.windowId == current_win_id))
+        if(s.window) return true
+        else return s.tab && (s.tab.windowId == current_win_id)
     })
     if (closed) {
         if (closed.tab) {
@@ -932,18 +954,6 @@ export async function undo(){
             browser.sessions.restore(closed.window.sessionId)
         }
     }
-}
-
-/** Synonym for [[tabclose]]. */
-//#background
-export async function quit() {
-    tabclose()
-}
-
-/** Convenience shortcut for [[quit]]. */
-//#background
-export async function q() {
-    tabclose()
 }
 
 /** Move the current tab to be just in front of the index specified.
@@ -1008,12 +1018,6 @@ export async function winclose() {
 export async function qall(){
     let windows = await browser.windows.getAll()
     windows.map((window) => browser.windows.remove(window.id))
-}
-
-/** Convenience shortcut for [[qall]]. */
-//#background
-export async function qa() {
-    qall()
 }
 
 // }}}
@@ -1393,6 +1397,14 @@ export function set(key: string, ...values: string[]) {
     }
 }
 
+/**
+ * Resets everything except the rc and rc loading options to default.
+ */
+//#background
+export async function resetConfigToDefault(): Promise<void> {
+    config.resetToDefaults()
+}
+
 /** Set autocmds to run when certain events happen.
 
  @param event Curently, only 'DocStart' is supported.
@@ -1587,18 +1599,6 @@ export function unset(...keys: string[]){
     if(target === undefined) throw("You must define a target!")
     config.unset(...target)
 }
-
-// not required as we automatically save all config
-////#background
-//export function saveconfig(){
-//    config.save(config.get("storageloc"))
-//}
-
-////#background
-//export function mktridactylrc(){
-//    saveconfig()
-//}
-
 
 // }}}
 

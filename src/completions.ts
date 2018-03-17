@@ -1,13 +1,8 @@
-/*
-
-Have an array of all completion sources. Completion sources display nothing if the filter doesn't match for them.
-
-On each input event, call updateCompletions on the array. That will mutate the array and update the display as required.
-
-How to handle cached e.g. buffer information going out of date?
-
-*/
-
+/** Have an array of all completion sources. Completion sources display nothing
+if the filter doesn't match for them. On each input event, call
+updateCompletions on the array. That will mutate the array and update the
+display as required. How to handle cached e.g. buffer information going out of
+date? */
 
 import * as Fuse from 'fuse.js'
 import {enumerate} from './itertools'
@@ -136,7 +131,7 @@ abstract class CompletionSourceFuse extends CompletionSource {
         this.onInput(exstr)
         this.updateChain()
     }
-    
+
     updateChain(exstr = this.lastExstr, options = this.options) {
         if (options === undefined) {
             this.state = 'hidden'
@@ -195,7 +190,7 @@ abstract class CompletionSourceFuse extends CompletionSource {
         }
         return [undefined, undefined]
     }
-    
+
 
     fuseOptions = {
         keys: ["fuseKeys"],
@@ -228,7 +223,7 @@ abstract class CompletionSourceFuse extends CompletionSource {
         } else {
 
             // Can't sort the real options array because Fuse loses class information.
-            
+
             if (!this.fuse){
                 let searchThis = this.options.map(
                     (elem, index) => {

@@ -1,0 +1,7 @@
+{
+    "name": "tridactyl",
+    "description": "Tridactyl native command handler",
+    "path": "REPLACE_ME_WITH_SED",
+    "type": "stdio",
+    "allowed_extensions": [ "tridactyl.vim@cmcaine.co.uk" ]
+}

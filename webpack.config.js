@@ -7,7 +7,11 @@ module.exports = {
         background: "./src/background.ts",
         content: "./src/content.ts",
         commandline_frame: "./src/commandline_frame.ts",
+<<<<<<< HEAD
 	inferno_completions: "./src/inferno_completions.tsx",
+=======
+        settings_page: "./src/settings_page.ts"
+>>>>>>> i280-config-page
     },
     output: {
         filename: "[name].js",
@@ -51,7 +55,7 @@ module.exports = {
         new CopyWebPackPlugin([
             { from: "src/manifest.json" },
             { from: "src/static", to: "static", ignore: ['*.psd', '*1024px.png'] },
-            { from: "generated/static", to: "static" },
+            { from: "generated/static", to: "static", force: true },
         ]),
     ]
 }
