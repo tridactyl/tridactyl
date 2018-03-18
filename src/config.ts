@@ -53,7 +53,7 @@ const DEFAULTS = o({
         "gg": "scrollto 0",
         "$": "scrollto 100 x",
         // "0": "scrollto 0 x", // will get interpreted as a count
-        "^": "scrollto 0 x",
+        "^": "buffer #",
         "H": "back",
         "L": "forward",
         "d": "tabclose",
