@@ -30,7 +30,8 @@ import state from './state'
 
 // Keys not to suppress in normal mode.
 const normalmodewhitelist = [
-    // '/',
+    // comment line below out once find mode is done
+    '/',
     "'",
     ' ',
 ]

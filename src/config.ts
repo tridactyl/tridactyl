@@ -71,7 +71,11 @@ const DEFAULTS = o({
         ":": "fillcmdline",
         "s": "fillcmdline open search",
         "S": "fillcmdline tabopen search",
-        "/": "find",
+        // find mode not suitable for general consumption yet.
+        // "/": "find",
+        // "?": "find -1",
+        // "n": "findnext 1",
+        // "N": "findnext -1",
         "M": "gobble 1 quickmark",
         // "B": "fillcmdline bufferall",
         "b": "fillcmdline buffer",

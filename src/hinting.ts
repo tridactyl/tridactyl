@@ -373,7 +373,6 @@ function reset() {
 
 /** If key is in hintchars, add it to filtstr and filter */
 function pushKey(ke) {
-    console.log("wrong pushkey called")
     if (hasModifiers(ke)) {
         return
     } else if (ke.key === 'Backspace') {

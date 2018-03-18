@@ -1,14 +1,17 @@
 import {messageActiveTab} from './messaging'
 
 async function pushKey(key) {
-    console.log("tried to call the real pushkey")
     return await messageActiveTab('finding_content', 'pushKey', [key])
 }
 
-export async function findPage() {
-    console.log("tried to call finding")
-    return await messageActiveTab('finding_content', 'findPage')
+export async function findPage(direction) {
+    return await messageActiveTab('finding_content', 'findPage', [direction])
 }
+
+export async function findPageNavigate(n: number) {
+    return await messageActiveTab('finding_content', 'navigate', [n])
+}
+
 async function reset(args = {leavemarks: "false"}) {
     return await messageActiveTab('finding_content', 'reset', [args])
 }

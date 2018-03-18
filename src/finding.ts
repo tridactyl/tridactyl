@@ -34,7 +34,6 @@ class findState {
     public markedels = []
     public markpos = 0
     public direction: 1 | -1 = 1
-    public submode: "search" | "nav" = "search"
     constructor(){
         this.findHost.classList.add("TridactylfindHost")
     }
@@ -64,40 +63,44 @@ function filter(fstr) {
 }
 
 /** Remove all finds, reset STATE. */
-function reset(args = {leavemarks: "false"}) {
+function reset(args?) {
     if (args.leavemarks == "false") findModeState.mark.unmark()
-    findModeState.destructor()
-    findModeState = undefined
+    if (args.unfind == "true") {
+        findModeState.mark.unmark()
+        findModeState.destructor()
+        findModeState = undefined
+    }
     state.mode = 'normal'
 }
 
 function mode(mode: "nav" | "search"){
-    findModeState.submode = mode
     if (mode == "nav"){
         // really, this should happen all the time when in search - we always want first result to be green and the window to move to it (if not already on screen)
         findModeState.markedels = Array.from(window.document.getElementsByTagName("mark"))
         findModeState.markpos = 0
         let el = findModeState.markedels[0]
         if (!DOM.isVisible(el)) el.scrollIntoView()
-        el.style.background = "greenyellow"
+        // colour of the selected link
+        el.style.background = "lawngreen"
     }
 }
 
+import "./number.mod"
 function navigate(n: number = 1){
     // also - really - should probably actually make this be an excmd
     // people will want to be able to scroll and stuff.
     // should probably move this to an update function?
     // don't hardcode this colour
     findModeState.markedels[findModeState.markpos].style.background = "yellow"
-    findModeState.markpos += n*findModeState.direction
+    findModeState.markpos = (findModeState.markpos + n*findModeState.direction).mod(findModeState.markedels.length)
     // obvs need to do mod to wrap indices
     let el = findModeState.markedels[findModeState.markpos]
     if (!DOM.isVisible(el)) el.scrollIntoView()
-    el.style.background = "greenyellow"
+    el.style.background = "lawngreen"
 }
 
 export function findPage(direction?: 1|-1) {
-    console.log("finding got called in content")
+    if (findModeState !== undefined) reset({unfind:"true"})
     state.mode = 'find'
     findModeState = new findState()
     if (direction !== undefined) findModeState.direction = direction
@@ -106,37 +109,20 @@ export function findPage(direction?: 1|-1) {
 
 /** If key is in findchars, add it to filtstr and filter */
 function pushKey(ke) {
-    console.log("the right pushkey got ccalled")
-    switch (findModeState.submode) {
-        case "search":
-            if (ke.key === 'Backspace') {
-                findModeState.filter = findModeState.filter.slice(0,-1)
-                filter(findModeState.filter)
-            } else if (ke.key === 'Enter') {
-                mode("nav")
-            } else if (ke.key === 'Escape'){
-                reset()
-            } else if (ke.key.length > 1) {
-                return
-            } else {
-                findModeState.filter += ke.key
-                filter(findModeState.filter)
-            }
-            break
-        case "nav":
-            if (ke.key === 'n') {
-                navigate(1)
-            } else if (ke.key === 'N') {
-                navigate(-1)
-            } else if (ke.key === 'Escape'){
-                mode("search")
-            } else if (ke.key === 'Enter'){
-                reset({leavemarks: "true"})
-            } else if (ke.key.length > 1) {
-                return
-            }
-            break
-    }
+        if (ke.key === 'Backspace') {
+            findModeState.filter = findModeState.filter.slice(0,-1)
+            filter(findModeState.filter)
+        } else if (ke.key === 'Enter') {
+            mode("nav")
+            reset({leavemarks: "true"})
+        } else if (ke.key === 'Escape'){
+            reset({unfind: "true"})
+        } else if (ke.key.length > 1) {
+            return
+        } else {
+            findModeState.filter += ke.key
+            filter(findModeState.filter)
+        }
 }
 
 
@@ -146,4 +132,5 @@ addListener('finding_content', attributeCaller({
     mode,
     reset,
     findPage,
+    navigate,
 }))

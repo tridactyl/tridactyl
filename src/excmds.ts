@@ -246,9 +246,14 @@ export function scrollpage(n = 1) {
 import * as finding from './finding_background'
 
 //#background
-export function find(){
-    console.log("something happened")
-    finding.findPage()
+export function find(direction?: number){
+    if (direction === undefined) direction = 1
+    finding.findPage(direction)
+}
+
+//#background
+export function findnext(n: number){
+    finding.findPageNavigate(n)
 }
 
 /** @hidden */
