@@ -61,17 +61,25 @@ export function hintPage(
     buildHints(hintableElements, onSelect)
 
     if (modeState.hints.length) {
-        let sameLinks = false
-        for (let hint of modeState.hints) {
-            sameLinks = hint.target instanceof HTMLAnchorElement
-                && hint.target.href === (<HTMLAnchorElement>modeState.hints[0].target).href
-            if (!sameLinks)
-                break
+        let firstTarget = modeState.hints[0].target
+        let shouldSelect = firstTarget instanceof HTMLAnchorElement
+            && firstTarget.href !== ""
+            && !firstTarget.href.startsWith("javascript:")
+        if (shouldSelect) {
+            // Try to find an element that is not a link or that doesn't point
+            // to the same URL as the first hint
+            let different = modeState.hints.find(h => { 
+                return !(h.target instanceof HTMLAnchorElement)
+                    || (h.target.href !== (<HTMLAnchorElement>firstTarget).href)
+            })
+
+            if (different === undefined) {
+                modeState.hints[0].select()
+                reset()
+                return
+            }
         }
-        if (sameLinks) {
-            modeState.hints[0].select()
-            reset()
-        }
+
         logger.debug("hints", modeState.hints)
         modeState.focusedHint = modeState.hints[0]
         modeState.focusedHint.focused = true
