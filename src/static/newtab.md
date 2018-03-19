@@ -2,39 +2,41 @@
 
 # Tridactyl REPLACE_ME_WITH_THE_VERSION_USING_SED
 
-Tridactyl overrides your newtab page because it cannot insert its content script on the default about:newtab. Without the content script, our shortcuts won't work, even if you're just passing through the page.
+Welcome highly productive friend of VIM (and Evil Mode in EMACS)! Glad that you are giving Tridactyl a shot. :) If you are wondering, why you don't see your usual *new tab* page here, have a look at the bottom of this page. If you are happy to get some early help, just follow the lines!
 
-We're working with Firefox on improvements to the WebExtension APIs that will remove this restriction.
+- You can view the main help page by typing [`:help`][help].
 
-In the meantime, here are some notes about Tridactyl:
+- You can contact the developers and other users and contributors for support, to discuss pull requests or whatever on [Matrix][matrix-link], [Gitter][gitter-link], or [IRC][freenode-link]. We are happy about every voice. You will be heard.
 
-- Tridactyl is in a pretty early stage of development. Please report any issues and make requests for missing features on the GitHub project page [[1]].
+- Or you can simply get going directly by having a look at the ...
 
-- You can view the main help page by typing [`:help`][help]
+## Highlighted features:
 
-- You can contact the developers and other users and contributors for support, to discuss pull requests or whatever on [Matrix][matrix-link], [Gitter][gitter-link], or [IRC][freenode-link].
-
-Highlighted features:
-
-- Press `b` to bring up a list of open tabs in the current window; you can type the tab ID or part of the title or URL to choose a tab
-- Press `I` to enter ignore mode. `Shift` + `Escape` to return to normal mode.
-- Press `f` to start "hint mode", `F` to open in background
-- Type [`:help hint`][help-hint] to see all the other useful hint modes
-- Press `o` to `:open` a different page
+- `f`/`F` — enter the magical "hint mode" to select a link to follow. `F` to open it in a background tab. Try it! :-)
+- `I` to ignore all the features. And `Shift` + `Escape` to return back to the highly productive normal mode.
+- `o`/`O` — open a URL in this tab (`O` to pre-load current URL).
+- `t`/`T` — open a URL in a new tab (`T` to pre-load current URL).
+- `w`/`W` — open a URL in a new window (`W` to pre-load current URL).
+- `b` to bring up a list of open tabs in the current window.
+<!-- TODO: TO BE CONTINUED HERE -->
 - Press `s` if you want to search for something that looks like a domain name or URL
 - Bind new commands with e.g. `:bind J tabprev`. Type `:help bind` to see help on custom binds.
 - Type [`:help`][help] for online help
 - Use `yy` to copy the current page URL to your clipboard
 - `]]` and `[[` to navigate through the pages of comics, paginated articles, etc.
 - Pressing `ZZ` will close all tabs and windows, but it will only "save" them if your about:preferences are set to "show your tabs and windows from last time"
+- Type [`:help hint`][help-hint] to see all the other useful hint modes
 
-There are some caveats common to all webextension vimperator-alikes:
+## Feeling more advanced? Pay attention to the following:
 
 - Do not try to navigate to any about:\* pages using `:open` as it will fail silently.
 - Firefox will not load Tridactyl on addons.mozilla.org, about:\*, some file:\* URIs, view-source:\*, or data:\*. On these pages Ctrl-L (or F6), Ctrl-Tab and Ctrl-W are your escape hatches.
 - Tridactyl does not currently support changing/hiding the Firefox GUI, but you can do it yourself by changing your userChrome. There is an example file available on our repository [[2]].
 
-If you want a more fully-featured vimperator-alike, your best option is Firefox ESR [[3]] and Vimperator :)
+## Why do I see this here?
+
+Tridactyl overrides your newtab page because it cannot insert its content script on the default about:newtab. Without the content script, our shortcuts won't work, even if you're just passing through the page. We're working with Firefox on improvements to the WebExtension APIs that will remove this restriction. Sorry. :/
+
 
 [1]: https://github.com/cmcaine/tridactyl/issues
 [2]: https://github.com/cmcaine/tridactyl/blob/master/src/static/userChrome-minimal.css
