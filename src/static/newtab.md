@@ -2,19 +2,24 @@
 
 # Tridactyl REPLACE_ME_WITH_THE_VERSION_USING_SED
 
-Welcome highly productive friend of VIM (and Evil Mode in EMACS)! Glad that you are giving Tridactyl a shot. :)
-Wondering, why you don't see your usual *new tab* page here? Have a look at the bottom of this page. If you are happy to get some early help, just follow the lines!
+Wondering, why you don't see your usual *new tab* page here? Have a look at the
+bottom of this page. If you are happy to get some early help, just follow the
+lines!
 
 - You can view the main help page by typing [`:help`][help].
 
-- You can contact the developers, other users and contributors for support or whatever on [Matrix][matrix-link], [Gitter][gitter-link], or [IRC][freenode-link]. We are happy about every voice. You will be heard.
+- You can contact the developers, other users and contributors for support or
+  whatever on [Matrix][matrix-link], [Gitter][gitter-link], or
+  [IRC][freenode-link].
 
 - Or you can simply get going directly by having a look at the ...
 
 ## Highlighted features:
 
-- `f`/`F` — enter the magical "hint mode" to select a link to follow. `F` to open it in a background tab. Try it! :-)
-- `I` — ignore all the features. And `Shift` + `Escape` to return back to the highly productive normal mode.
+- `f`/`F` — enter the "hint mode" to select a link to follow. `F` to open it in
+  a background tab.
+- `I` — ignore all the features. And `Shift` + `Escape` to return back to the
+  highly productive normal mode.
 - `H`/`L` — go back/forward in the history.
 - `o`/`O` — open a URL in this tab (`O` to pre-load current URL).
 - `t`/`T` — open a URL in a new tab (`T` to pre-load current URL).
@@ -23,24 +28,37 @@ Wondering, why you don't see your usual *new tab* page here? Have a look at the 
 - `/` — open the find search box.
 - `A` — bookmark the current page
 - `b` — bring up a list of open tabs in the current window.
-- `s` — if you want to search for something that looks like a domain name or URL.
+- `s` — if you want to search for something that looks like a domain name or
+  URL.
 - `gi` — scroll to and focus the last-used input on the page.
 - `gr` — open Firefox reader mode (note: Tridactyl will not work in this mode).
-- Bind your own commands with, e.g., `:bind J tabprev`. Type `:help bind` to see help on custom binds.
+- Bind your own commands with, e.g., `:bind J tabprev`. Type `:help bind` to
+  see help on custom binds.
 - `yy` — copy the current page URL to your clipboard.
 - `[[`/`]]` — navigate forward/backward though paginated pages.
-- `ZZ`—  close all tabs and windows, but it will only "save" them if your about:preferences are set to "show your tabs and windows from last time".
-- [`:help hint`][help-hint] to see all the other useful hint modes (this is the `f` magic. :).
+- `ZZ` — close all tabs and windows, but it will only "save" them if your
+  about:preferences are set to "show your tabs and windows from last time".
+- [`:help hint`][help-hint] to see all the other useful hint modes (this is the
+  `f` magic. :).
 
-## Feeling more advanced? Pay attention to the following:
+## Pay attention to the following:
 
-- Do not try to navigate to any about:\* pages using `:open` as it will fail silently.
-- Firefox will not load Tridactyl on addons.mozilla.org, about:\*, some file:\* URIs, view-source:\*, or data:\*. On these pages Ctrl-L (or F6), Ctrl-Tab and Ctrl-W are your escape hatches.
-- Tridactyl does not currently support changing/hiding the Firefox GUI, but you can do it yourself by changing your userChrome. There is an example file available on our repository [[2]].
+- Do not try to navigate to any about:\* pages using `:open` as it will fail
+  silently.
+- Firefox will not load Tridactyl on addons.mozilla.org, about:\*, some file:\*
+  URIs, view-source:\*, or data:\*. On these pages Ctrl-L (or F6), Ctrl-Tab and
+  Ctrl-W are your escape hatches.
+- Tridactyl does not currently support changing/hiding the Firefox GUI, but you
+  can do it yourself by changing your userChrome. There is an example file
+  available on our repository [[2]].
 
 ## Why do I see this here?
 
-Tridactyl overrides your newtab page because it cannot insert its content script on the default about:newtab. Without the content script, our shortcuts won't work, even if you're just passing through the page. We're working with Firefox on improvements to the WebExtension APIs that will remove this restriction. Sorry. :/
+Tridactyl overrides your newtab page because it cannot insert its content
+script on the default about:newtab. Without the content script, our shortcuts
+won't work, even if you're just passing through the page. We're working with
+Firefox on improvements to the WebExtension APIs that will remove this
+restriction.
 
 ## FAQ?
 
