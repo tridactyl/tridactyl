@@ -13,3 +13,8 @@ export async function setStorage(
 ): Promise<void> {
     browser.storage.sync.set({[key]: store})
 }
+
+export function toArray<T>(arg: T|T[]|null): T[] {
+    if(!arg) return []
+    return Array.isArray(arg) ? arg : [arg]
+}

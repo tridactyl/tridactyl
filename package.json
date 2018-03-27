@@ -3,16 +3,17 @@
   "version": "0.1.0",
   "description": "Vimperator/Pentadactyl successor",
   "dependencies": {
-    "fuse.js": "^3.2.0",
-    "inferno": "^3.10.1",
-    "inferno-component": "^3.10.1"
+    "immutable": "^4.0.0-rc.9",
+    "linkstate": "^1.1.1",
+    "minimist": "^1.2.0",
+    "preact": "^8.2.7"
   },
   "devDependencies": {
     "@types/jest": "^21.1.4",
+    "@types/minimist": "^1.2.0",
     "@types/node": "^8.0.46",
     "awesome-typescript-loader": "^3.2.3",
     "babel-loader": "^7.1.2",
-    "babel-plugin-inferno": "^3.3.0",
     "chokidar-cli": "^1.2.0",
     "cleanslate": "^0.10.1",
     "copy-webpack-plugin": "^4.2.0",

@@ -7,11 +7,9 @@ module.exports = {
         background: "./src/background.ts",
         content: "./src/content.ts",
         commandline_frame: "./src/commandline_frame.ts",
-<<<<<<< HEAD
-	inferno_completions: "./src/inferno_completions.tsx",
-=======
+        inferno_completions: "./src/inferno_completions.tsx",
+        gui: "./src/gui/gui.tsx",
         settings_page: "./src/settings_page.ts"
->>>>>>> i280-config-page
     },
     output: {
         filename: "[name].js",

@@ -1,0 +1,18 @@
+image: node:9.7.1
+
+cache:
+  paths:
+  - node_modules/
+
+artifacts:
+  paths:
+  - web-ext-artifacts/
+
+build:
+  script:
+    - npm install
+    - npm run build
+
+deploy:
+  script:
+    - web-ext build -s build/ --overwrite-dest

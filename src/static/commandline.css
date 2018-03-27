@@ -3,18 +3,32 @@ body {
   margin: 0;
 }
 
-input {
+.hide {
+  display: none;
+}
+
+.trigui {
   width: 100%;
   padding: 0;
   font-family: monospace;
   font-size: 9pt;
-  line-height: 1.5;
+  line-height: 1.5em;
   color: black;
-  background:  white;
+  background: white;
   border: unset;
-  /* we currently have a border from the completions */
-  /* border-top: solid 1px lightgray; */
   padding-left: 0.5ex;
+}
+
+.trigui > input {
+  border: unset;
+}
+
+.mode-ind {
+  background: darkgreen;
+  color: white;
+  padding: 0 4px;
+  border-radius: 2px;
+  display: inline-block;
 }
 
 /* COMPLETIONS */

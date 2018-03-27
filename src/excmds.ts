@@ -830,7 +830,8 @@ export async function tablast() {
     tabIndexSetActive(0)
 }
 
-/** Like [[open]], but in a new tab. If no address is given, it will open the newtab page, which can be set with `set newtab [url]`
+/** Like [[open]], but in a new tab. If no address is given, it will open the
+    newtab page, which can be set with `set newtab [url]`
 
     Unlike Firefox's Ctrl-t shortcut, this opens tabs immediately after the
     currently active tab rather than at the end of the tab list because that is
@@ -843,7 +844,6 @@ export async function tablast() {
     tabopenpos related`.
 
     Hinting is controlled by `relatedopenlast`
-
 */
 //#background
 export async function tabopen(...addressarr: string[]) {
