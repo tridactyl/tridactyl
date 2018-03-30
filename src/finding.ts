@@ -21,7 +21,11 @@ const logger = new Logger('finding')
 
 function elementswithtext() {
     return DOM.getElemsBySelector("*",
+        // offsetHeight tells us which elements are drawn
         [hint => {
+            return ((hint as any).offsetHeight > 0 && (hint as any).offsetHeight !== undefined)
+        },
+        hint => {
             return hint.textContent != ""
         }]
     )
@@ -31,6 +35,7 @@ function elementswithtext() {
 class findState {
     readonly findHost = document.createElement('div')
     public mark = new Mark(elementswithtext())
+    // ^ why does filtering by offsetHeight NOT work here
     public markedels = []
     public markpos = 0
     public direction: 1 | -1 = 1
@@ -76,7 +81,8 @@ function reset(args?) {
 function mode(mode: "nav" | "search"){
     if (mode == "nav"){
         // really, this should happen all the time when in search - we always want first result to be green and the window to move to it (if not already on screen)
-        findModeState.markedels = Array.from(window.document.getElementsByTagName("mark"))
+        findModeState.markedels = Array.from(window.document.getElementsByTagName("mark")).filter(el => el.offsetHeight > 0)
+        // ^ why does filtering by offsetHeight work here
         findModeState.markpos = 0
         let el = findModeState.markedels[0]
         if (!DOM.isVisible(el)) el.scrollIntoView()
