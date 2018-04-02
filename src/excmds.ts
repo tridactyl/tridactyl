@@ -779,7 +779,7 @@ export function focusinput(nth: number|string) {
     }
 
     if (inputToFocus) {
-        inputToFocus.focus()
+        DOM.focus(inputToFocus)
         if (config.get('gimode') === 'nextinput' && state.mode !== 'input') {
             state.mode = 'input'
         }

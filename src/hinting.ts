@@ -522,8 +522,8 @@ function simulateClick(target: HTMLElement) {
         openInNewTab((target as HTMLAnchorElement).href, {related: true})
     } else {
         DOM.mouseEvent(target, "click")
-        // Sometimes clicking the element doesn't focus it sufficiently.
-        target.focus()
+        // DOM.focus has additional logic for focusing inputs
+        DOM.focus(target)
     }
 }
 
