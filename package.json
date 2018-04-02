@@ -41,7 +41,6 @@
     "transform": {
       "^.+\\.tsx?$": "<rootDir>/node_modules/ts-jest/preprocessor.js"
     },
-    "testRegex": "(/__tests__/.*|(\\.|/)(test|spec))\\.(jsx?|tsx?)$",
     "moduleFileExtensions": [
       "ts",
       "tsx",
@@ -62,20 +61,6 @@
     "firefox"
   ],
   "license": "Apache-2.0",
-  "bugs": {
-    "url": "https://github.com/cmcaine/tridactyl/issues"
-  },
-  "homepage": "https://github.com/cmcaine/tridactyl#readme",
-  "babel": {
-    "compact": false,
-    "plugins": [
-      "babel-plugin-syntax-jsx",
-      [
-        "babel-plugin-inferno",
-        {
-          "imports": true
-        }
-      ]
-    ]
-  }
+  "bugs": { "url": "https://github.com/cmcaine/tridactyl/issues" },
+  "homepage": "https://github.com/cmcaine/tridactyl#readme"
 }

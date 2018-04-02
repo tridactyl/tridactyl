@@ -1,19 +1,19 @@
 {
   "compilerOptions": {
-    "moduleResolution": "Node",
-    "noImplicitAny": false,
-    "noEmitOnError": true,
-    "outDir": "build/tsc-out",
-    "sourceMap": true,
-    "strictNullChecks": true,
-    "strict": true,
-    "target": "es2017",
-    "lib": ["es2017","dom", "dom.iterable"],
-    "typeRoots": ["node_modules/@types", "node_modules/web-ext-types"],
     "alwaysStrict": true,
+    "experimentalDecorators": true,
     "jsx": "react",
     "jsxFactory": "h",
-    "experimentalDecorators": true
+    "lib": ["es2017","dom", "dom.iterable"],
+    "moduleResolution": "Node",
+    "noEmitOnError": true,
+    "noImplicitAny": false,
+    "outDir": "build/tsc-out",
+    "sourceMap": true,
+    "strict": true,
+    "strictNullChecks": true,
+    "target": "es2017",
+    "typeRoots": ["node_modules/@types", "node_modules/web-ext-types"],
   },
   "include": [
     "./src/**/*"

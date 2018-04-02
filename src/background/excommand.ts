@@ -1,134 +1,89 @@
-import * as C from './completion'
-import * as I from 'immutable'
-import * as G from './globalState'
+import { List, Map } from 'immutable'
+import * as C from '../common'
+import * as U from '../util'
 
-export type CommandAction = (
-    count: number,
-    opts: Option,
-    state: G.GlobalState,
-    ...args: any[]
-) => any | [any, G.GlobalState]
+let commandRegistry = Map<string, Command>()
 
-export type SingleAction = (
-    opts: Option,
-    state: G.GlobalState,
-    ...args: any[]
-) => [any, G.GlobalState]
+export function registerCommand(name: string, arg: CommandSpec) {
+    const command = specifyCommand(name, arg)
+    const nr = commandRegistry.set(command.name, command)
+    commandRegistry = nr
 
-export type Tokeniser = (argstring: string) => I.List<string>
-
-export abstract class Command {
-    readonly name: string
-    readonly allNames: I.Set<string>
-    readonly description: string
-    readonly docstring: string
-    readonly multAction: CommandAction
-    readonly options: I.List<OptionSpec>
-
-    constructor(
-        name: string,
-        allNames: I.Set<string>,
-        description: string,
-        docstring: string,
-        options: I.List<OptionSpec>,
-        multAction: CommandAction,
-    ) {
-        this.name = name
-        this.allNames = allNames
-        this.description = description
-        this.docstring = docstring
-        this.multAction = multAction
-        this.options = options
-    }
-
-    abstract tokenise(argstring: string): I.List<string>
-    abstract getCompletions(state: G.GlobalState, query: string): C.Completed
-    abstract excecute(state: G.GlobalState, query: string): [any, G.GlobalState]
-
-    completionForm(): C.Completion {
+    function specifyCommand(name: string, arg: CommandSpec): Command {
+        const specs = List(U.toArray(arg.specs))
         return {
-            name: this.name,
-            description: this.description,
+            name: name,
+            specs,
+            allNames: U.flattenList(specs.map(parseCommandSpec)),
+            description: arg.description,
+            documentation: arg.documentation || 'No documentation provided',
+            options: arg.options ? List(arg.options.map(toOptionSpec)) : List(),
+            argumentsSpec: List(arg.argumentsSpec || []),
+            action: arg.action,
         }
     }
-}
 
-export class SimpleCommand extends Command {
-    constructor(
-        specs: string[],
-        description: string,
-        docstring: string,
-        options: OptionSpec[],
-        action: SingleAction
-    ) {
-        const all = parseSpecs(specs)
-
-        super(
-            all[0],
-            all.toSet(),
-            description,
-            docstring,
-            I.List(options),
-            (count, opts, state, ...args) => {
-                for(let i=0; i<count; i++)
-                    action(opts, state, ...args)
-            }
-        )
-    }
-
-    tokenise(argstring: string): I.List<string> {
-        throw new Error("Method not implemented.");
-    }
-    getCompletions(state: G.GlobalState, query: string): C.Completed {
-        throw new Error("Method not implemented.");
-    }
-    excecute(state: G.GlobalState, query: string): [any, G.GlobalState] {
-        throw new Error("Method not implemented.");
+    function toOptionSpec(x: ShortOptSpec): OptionSpec {
+        return { short: x[0], long: x[1], input: x[2] }
     }
 }
 
-export interface InputSpec {
-    /** Name of this input type. Used in completions. */
-    readonly name: string
-    /** The completion provider. Used to, well, provide completions. */
-    readonly completer: C.Completer
-    /** Parses the argument the user entered into one that will be passed into
-     * the excommand action. For example, a tabid can be mapped into a
-     * browser.tab instance. */
-    readonly parser?: ((expansion: string) => Promise<any>) | undefined
+export type ParsedOpts = Map<string, any>
+export type CommandResult = U.MayPromise<Result | void>
+export type CommandAction = (cofx: Coeffects, ...args: any[]) => CommandResult
+
+interface _Coeffects {
+    count: number
+    state: C.GlobalState
+    options: ParsedOpts
+}
+export type Coeffects = Readonly<_Coeffects>
+
+interface _Result {
+    showResult?: any
+    newState?: C.GlobalState
+}
+export type Result = Readonly<_Result>
+
+export type InputCompleter = (token: string) => U.MayPromise<C.AllComps>
+export type InputParser = (token: string) => any
+
+interface _InputSpec {
+    name: string
+    complete: InputCompleter
+    parse: InputParser
+}
+export type InputSpec = Readonly<_InputSpec>
+
+interface _OptionSpec {
+    short: string
+    long: string
+    input: InputSpec
+}
+export type OptionSpec = Readonly<_OptionSpec>
+
+interface _Command {
+    name: string
+    specs: List<string>
+    allNames: List<string>
+    description: string
+    documentation: string
+    options: List<OptionSpec>
+    argumentsSpec: List<InputSpec>
+    action: CommandAction
+}
+export type Command = Readonly<_Command>
+
+type ShortOptSpec = [string, string, InputSpec]
+type CommandSpec = {
+    specs: string | string[]
+    description: string
+    documentation?: string
+    options?: ShortOptSpec[]
+    argumentsSpec?: InputSpec[]
+    action: CommandAction
 }
 
-export interface Option {
-    [name: string]: any
-}
-
-export interface OptionSpec {
-    readonly name: string
-    readonly short: string
-    readonly type: InputSpec
-    readonly description: string
-}
-
-export function commandToCompletion(c: Command): C.Completion {
-    return {
-        name: c.name,
-        description: c.description,
-    }
-}
-
-function parseSpecs(specs: string[]): I.List<string> {
-    const mapped = specs.map(parseNameSpec)
-    const flat = Array.prototype.concat(...mapped)
-    return I.List(flat)
-}
-
-function parseNameSpec(spec: string): [string, string] | [string] {
-    const match = spec.match(/([^[]+)(?:\[(.*)])?/)
-    if (!match) throw `Spec ${spec} invalid`
-    const [, head, tail] = match
-    return tail ? [head + tail] : [head]
-}
-
-function whitespaceTokeniser(exstr: string): I.List<string> {
-    return I.List(exstr.split(' '))
+function parseCommandSpec(spec: string): List<string> {
+    throw 'unimplemnet'
 }
