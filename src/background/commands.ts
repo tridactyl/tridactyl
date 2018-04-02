@@ -21,6 +21,15 @@ function makeCmdRes(x: any): E.Result {
 // Tab manipulation
 // ================
 
+E.registerCommand('open', {
+    specs: 'o[pen]',
+    description: 'Navigate the current tab to the specified url',
+    argumentsSpec: [P.HIST_BMARK],
+    action: (cofx, url: string) => {
+        U.unimplemented()
+    }
+})
+
 E.registerCommand('tabopen', {
     specs: ['tabo[pen]', 'to[pen]'],
     description: 'Opens a tab',
@@ -128,6 +137,35 @@ E.registerCommand('fillcmdline', {
     action: (cofx, ...a: string[]) => {
         throw 'unimplemented'
     },
+})
+
+// =======
+// Hinting
+// =======
+
+E.registerCommand('hint', {
+    specs: 'h[int]',
+    description: 'Enter hint mode',
+    options: [
+        // Filters
+        ['r', 'resource', P.BOOLEAN],
+        ['i', 'image', P.BOOLEAN],
+        ['t', 'text', P.BOOLEAN],
+        ['#', 'anchor', P.BOOLEAN],
+        ['c', 'selector', P.IDENTITY],
+
+        // Modifiers
+        ['b', 'background', P.BOOLEAN],
+        ['y', 'yank', P.BOOLEAN],
+        ['s', 'save', P.BOOLEAN],
+        ['a', 'saveas', P.BOOLEAN],
+        [';', 'focus', P.BOOLEAN],
+        ['w', 'new-win', P.BOOLEAN],
+        ['k', 'kill', P.BOOLEAN],
+    ],
+    action: cofx => {
+        U.unimplemented()
+    }
 })
 
 // ================
