@@ -25,12 +25,16 @@ const logger = new Logger('hinting')
 /** Simple container for the state of a single frame's hints. */
 class HintState {
     public focusedHint: Hint
-    readonly hintHost = html`<div class="TridactylHintHost">`
+    readonly hintHost = document.createElement('div')
     readonly hints: Hint[] = []
     public filter = ''
     public hintchars = ''
 
-    constructor(public filterFunc: HintFilter) {}
+    constructor(
+        public filterFunc: HintFilter,
+    ){
+        this.hintHost.classList.add("TridactylHintHost", "cleanslate")
+    }
 
     destructor() {
         // Undo any alterations of the hinted elements
@@ -57,6 +61,25 @@ export function hintPage(
     buildHints(hintableElements, onSelect)
 
     if (modeState.hints.length) {
+        let firstTarget = modeState.hints[0].target
+        let shouldSelect = firstTarget instanceof HTMLAnchorElement
+            && firstTarget.href !== ""
+            && !firstTarget.href.startsWith("javascript:")
+        if (shouldSelect) {
+            // Try to find an element that is not a link or that doesn't point
+            // to the same URL as the first hint
+            let different = modeState.hints.find(h => { 
+                return !(h.target instanceof HTMLAnchorElement)
+                    || (h.target.href !== (<HTMLAnchorElement>firstTarget).href)
+            })
+
+            if (different === undefined) {
+                modeState.hints[0].select()
+                reset()
+                return
+            }
+        }
+
         logger.debug("hints", modeState.hints)
         modeState.focusedHint = modeState.hints[0]
         modeState.focusedHint.focused = true
@@ -143,7 +166,7 @@ class Hint {
     public readonly flag = document.createElement('span')
 
     constructor(
-        private readonly target: Element,
+        public readonly target: Element,
         public readonly name: string,
         public readonly filterData: any,
         private readonly onSelect: HintSelectedCallback
@@ -156,11 +179,11 @@ class Hint {
         /*     left: ${rect.left}px; */
         /* ` */
         this.flag.style.cssText = `
-            top: ${window.scrollY + rect.top}px;
-            left: ${window.scrollX + rect.left}px;
+            top: ${window.scrollY + rect.top}px !important;
+            left: ${window.scrollX + rect.left}px !important;
         `
         modeState.hintHost.appendChild(this.flag)
-        target.classList.add('TridactylHintElem')
+        this.hidden = false
     }
 
     // These styles would be better with pseudo selectors. Can we do custom ones?
@@ -170,8 +193,17 @@ class Hint {
         if (hide) {
             this.focused = false
             this.target.classList.remove('TridactylHintElem')
-        } else
+            if (config.get("theme") === "dark")
+            {
+                document.querySelector(':root').classList.remove("TridactylThemeDark")
+            }
+        } else {
             this.target.classList.add('TridactylHintElem')
+            if (config.get("theme") === "dark")
+            {
+                document.querySelector(':root').classList.add("TridactylThemeDark")
+            }
+        }
     }
 
     set focused(focus: boolean) {
@@ -487,7 +519,7 @@ function simulateClick(target: HTMLElement) {
     if ((target as HTMLAnchorElement).target === '_blank' ||
         (target as HTMLAnchorElement).target === '_new'
     ) {
-        openInNewTab((target as HTMLAnchorElement).href)
+        openInNewTab((target as HTMLAnchorElement).href, {related: true})
     } else {
         DOM.mouseEvent(target, "click")
         // Sometimes clicking the element doesn't focus it sufficiently.
@@ -500,10 +532,33 @@ function hintPageOpenInBackground(selectors=HINTTAGS_selectors) {
         hint.target.focus()
         if (hint.target.href) {
             // Try to open with the webext API. If that fails, simulate a click on this page anyway.
-            openInNewTab(hint.target.href, false).catch(()=>simulateClick(hint.target))
+            openInNewTab(hint.target.href, {active: false, related: true}).catch(()=>simulateClick(hint.target))
         } else {
             // This is to mirror vimperator behaviour.
             simulateClick(hint.target)
+        }
+    })
+}
+
+import {openInNewWindow} from './lib/webext'
+
+function hintPageWindow() {
+    hintPage(hintables(), hint=>{
+        hint.target.focus()
+        if (hint.target.href) {
+            openInNewWindow({url: hint.target.href})
+        } else {
+            // This is to mirror vimperator behaviour.
+            simulateClick(hint.target)
+        }
+    })
+}
+
+function hintPageWindowPrivate() {
+    hintPage(hintables(), hint=>{
+        hint.target.focus()
+        if (hint.target.href) {
+            openInNewWindow({url: hint.target.href, incognito: true})
         }
     })
 }
@@ -550,7 +605,7 @@ function hintImage(inBackground) {
         let img_src = hint.target.getAttribute("src")
 
         if (inBackground) {
-            openInNewTab(new URL(img_src, window.location.href).href, false)
+            openInNewTab(new URL(img_src, window.location.href).href, {active: false, related: true})
         } else {
             window.location.href = img_src
         }
@@ -626,6 +681,8 @@ addListener('hinting_content', attributeCaller({
     hintPageTextYank,
     hintPageAnchorYank,
     hintPageOpenInBackground,
+    hintPageWindow,
+    hintPageWindowPrivate,
     hintImage,
     hintFocus,
     hintRead,

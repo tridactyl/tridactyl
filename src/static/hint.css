@@ -1,36 +1,36 @@
 span.TridactylHint {
-    position: absolute;
-    font-family: sans-serif;
-    font-size: 12px;
-    font-weight: bold;
-    text-transform: uppercase;
-    color: white;
-    background-color: red;
-    border-color: ButtonShadow;
-    border-width: 0px;
-    min-width: .75em;
-    border-style: solid;
-    padding: 0 1pt;
-    text-align: center;
-    z-index: 2147483647;
+    position: absolute !important;
+    font-family: sans-serif !important;
+    font-size: 12px !important;
+    font-weight: bold !important;
+    text-transform: uppercase !important;
+    color: white !important;
+    background-color: red !important;
+    border-color: ButtonShadow !important;
+    border-width: 0px !important;
+    min-width: .75em !important;
+    border-style: solid !important;
+    padding: 0 1pt !important;
+    text-align: center !important;
+    z-index: 2147483647 !important;
 }
 
 .TridactylHintElem, .TridactylHintActive {
-    color: black !important;
-    animation: none;
-    transition: unset;
+    color: black !important !important;
+    animation: none !important;
+    transition: unset !important;
 }
 
 .TridactylHintElem {
-    background-color: rgba(255, 255, 0, 0.25);
-    outline: 1px solid #8F5902;
+    background-color: rgba(255, 255, 0, 0.25) !important;
+    outline: 1px solid #8F5902 !important;
 }
 
 .TridactylHintActive {
-    background-color: #88FF00;
-    outline: 1px solid #CC0000;
+    background-color: #88FF00 !important;
+    outline: 1px solid #CC0000 !important;
 }
 
 div.TridactylHintHost {
-    position: static !important;
+    position: static !important !important;
 }
