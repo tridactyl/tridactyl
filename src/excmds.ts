@@ -77,6 +77,7 @@ import * as config from './config'
 import * as aliases from './aliases'
 import * as Logging from "./logging"
 const logger = new Logging.Logger('excmds')
+import Mark from 'mark.js'
 
 //#content_helper
 // {
@@ -232,6 +233,28 @@ export function scrollline(n = 1) {
 //#content
 export function scrollpage(n = 1) {
     window.scrollBy(0, window.innerHeight * n)
+}
+
+//export function find(query: string) {
+//    // Proof of concept
+//    // Obviously we need a new mode really; probably copy-paste hinting mode
+//    const MARK_INSTANCE = new Mark(window.document)
+//    MARK_INSTANCE.unmark()
+//    MARK_INSTANCE.mark(query)
+//}
+
+//#background_helper
+import * as finding from './finding_background'
+
+//#background
+export function find(direction?: number){
+    if (direction === undefined) direction = 1
+    finding.findPage(direction)
+}
+
+//#background
+export function findnext(n: number){
+    finding.findPageNavigate(n)
 }
 
 /** @hidden */
@@ -627,15 +650,12 @@ loadaucmds()
 //@hidden
 //#content
 export async function loadaucmds(){
-    console.log("AUCMDS TRIED TO RUN")
     // for some reason, this never changes from the default, even when there is user config (e.g. set via `aucmd bbc.co.uk mode ignore`)
     let aucmds = await config.getAsync("autocmds", "DocStart")
-    console.log(aucmds)
     const ausites = Object.keys(aucmds)
     // yes, this is lazy
     const aukey = ausites.find(e=>window.document.location.href.includes(e))
     if (aukey !== undefined){
-        console.log(aukey)
         Messaging.message("commandline_background", "recvExStr", [aucmds[aukey]])
     }
 }
@@ -1065,6 +1085,8 @@ export function mode(mode: ModeName) {
     // TODO: event emition on mode change.
     if (mode === "hint") {
         hint()
+    } else if (mode === "find") {
+        find()
     } else {
         state.mode = mode
     }

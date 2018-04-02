@@ -17,7 +17,7 @@
 import Logger from './logging'
 const logger = new Logger('state')
 
-export type ModeName = 'normal' | 'insert' | 'hint' | 'ignore' | 'gobble' | 'input'
+export type ModeName = 'normal' | 'insert' | 'hint' | 'ignore' | 'gobble' | 'input' | 'find'
 class State {
     mode: ModeName = 'normal'
     cmdHistory: string[] = []

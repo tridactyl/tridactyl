@@ -30,6 +30,7 @@ import state from './state'
 
 // Keys not to suppress in normal mode.
 const normalmodewhitelist = [
+    // comment line below out once find mode is done
     '/',
     "'",
     ' ',
@@ -54,6 +55,7 @@ function TerribleModeSpecificSuppression(ke: KeyboardEvent) {
             break
         // Hintmode can't clean up after itself yet, so it needs to block more FF shortcuts.
         case "hint":
+        case "find":
             if (! hintmodewhitelist.includes(ke.key)) {
                 ke.preventDefault()
                 ke.stopImmediatePropagation()
