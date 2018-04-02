@@ -1,4 +1,5 @@
 import {MsgSafeNode} from './msgsafe'
+import * as config from './config'
 // From saka-key lib/dom.js, under Apachev2
 
 /**
@@ -360,3 +361,16 @@ export function hijackPageListenerFunctions(): void {
 
    window.eval(eval_str + `;delete ${exportedName}`)
 }
+
+/** Focuses an input element and makes sure the cursor is put at the end of the input */
+export function focus(e: HTMLElement): void {
+   e.focus()
+   if (e instanceof HTMLInputElement) {
+      let pos = 0
+      if (config.get("cursorpos") === "end")
+         pos = e.value.length
+      e.selectionStart = pos
+      e.selectionEnd = e.selectionStart
+   }
+}
+

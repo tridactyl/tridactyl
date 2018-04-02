@@ -177,6 +177,10 @@ const DEFAULTS = o({
     // If firefox, <Tab> selects the next selectable element, e.g. a link
     "gimode": "nextinput", // either "nextinput" or "firefox"
 
+    // either "beginning" or "end"
+    // Decides where to place the cursor when selecting non-empty input fields
+    "cursorpos": "end",
+
     "theme": "default",     // currently available: "default", "dark"
 
     // Default logging levels - 2 === WARNING
