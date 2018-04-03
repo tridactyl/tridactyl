@@ -10,32 +10,31 @@ const RC_NAME = 'rc-text'
 const RC_LOC_NAME = 'rc-location'
 const RC_AUTOLOAD_FS_NAME = 'rc-autoload'
 const RC_DEFAULT = `
-; This is the default RC file.
-; Just like vim, comments start with ';'
-; Because I am a nice guy, here are some commented settings for you.
+# This is the default RC file.
+# Because I am a nice guy, here are some commented settings for you.
 
-; Wipe addon settings every time this file is loaded
-; resetConfigToDefault
+# Wipe addon settings every time this file is loaded
+# resetConfigToDefault
 
-; Use dark mode
-; set theme dark
+# Use dark mode
+# set theme dark
 
-; Disable on reddit because RES
-; autocmd DocStart reddit.com mode ignore
+# Disable on reddit because RES
+# autocmd DocStart reddit.com mode ignore
 
-; Bind i to ':mode ignore'
-; bind i mode ignore
+# Bind i to ':mode ignore'
+# bind i mode ignore
 
-; Access this page with ':st'
-; command st settings`
+# Access this page with ':st'
+# command st settings`
 
 const FSRC_NOT_FOUND = `
-; Something went wrong with loading the file from the filesystem. Please make
-; sure that all of the following are true:
-;  - You have a file at XDG_CONFIG_HOME/tridactyl/tridactylrc
-;  - You have installed the native app
-;  - No unusual errors are being reported in the console
-; If you are still lost, file a bug on GitHub or contact us on Gitter/Matrix. `
+# Something went wrong with loading the file from the filesystem. Please make
+# sure that all of the following are true:
+#  - You have a file at XDG_CONFIG_HOME/tridactyl/tridactylrc
+#  - You have installed the native app
+#  - No unusual errors are being reported in the console
+# If you are still lost, file a bug on GitHub or contact us on Gitter/Matrix. `
 
 export type RcLocation = 'filesystem' | 'browser'
 
@@ -60,7 +59,7 @@ export async function initConfigFromRc(): Promise<void> {
             rcText = await getBrowserRc()
             break
         default:
-            throw `Location '${location} is not valid. Please contact a dev
+            throw `Location '${location}' is not valid. Please contact a dev
             and tell them to use either 'filesystem' or 'browser'.`
     }
 
@@ -68,8 +67,12 @@ export async function initConfigFromRc(): Promise<void> {
     // the filesystem, then set the rc as the thing
     if (isAutoload && location === 'filesystem') setBrowserRc(rcText)
 
-    console.info(`RC file loaded: \n${rcText}`)
-    Controller.acceptRcFile(rcText)
+    runRc(rcText)
+}
+
+export function runRc(rc: string): void {
+    console.info('Running RC file: \n', rc)
+    Controller.acceptRcFile(rc)
 }
 
 async function detectAndSetDefaultBrowserRc(): Promise<void> {
@@ -94,7 +97,7 @@ export async function setBrowserRc(newRc: string): Promise<void> {
 
 export async function getAutoload(): Promise<boolean> {
     const store = Util.getStorage(RC_AUTOLOAD_FS_NAME)
-    return store ? store : false
+    return store || false
 }
 
 export async function setAutoload(newVal: boolean): Promise<void> {

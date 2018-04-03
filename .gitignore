@@ -6,3 +6,4 @@ src/excmds_background.ts
 src/excmds_content.ts
 web-ext-artifacts
 yarn.lock
+readme.html

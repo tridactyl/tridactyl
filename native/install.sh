@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# To install, curl -fsSl 'url to this script' | bash
+# To install, curl -fsSl 'url to this script' | sh
 
 XDG_CONFIG_HOME="${XDG_CONFIG_HOME:-$HOME/.config/tridactyl}"
 XDG_DATA_HOME="${XDG_LOCAL_HOME:-$HOME/.local/share/tridactyl}"
