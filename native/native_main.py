@@ -56,9 +56,14 @@ def findUserConfigFile():
     """ Find a user config file, if it exists. Return the file path, or None
     if not found
     """
-    config_dir = _getenv("XDG_CONFIG_HOME",
-                         os.path.expandvars('$HOME/.config'))
-    candidate_files = [os.path.join(config_dir, "tridactyl", "tridactylrc")]
+    home = os.path.expanduser('~')
+    config_dir = _getenv('XDG_CONFIG_HOME', os.path.expanduser('~/.config'))
+
+    # Will search for files in this order
+    candidate_files = [
+        os.path.join(config_dir, "tridactyl", "tridactylrc"),
+        os.path.join(home, '.tridactylrc')
+    ]
 
     eprint(candidate_files)
     config_path = None
