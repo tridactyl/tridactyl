@@ -39,7 +39,7 @@ async function save(): Promise<void> {
 */
 export function set(...args: any[]): void {
     if (args.length < 2) {
-        throw `Must provide > 2 arguments!`
+        throw 'You must provide at least two arguments!'
     }
 
     const path = args.slice(0, args.length - 1)
@@ -114,7 +114,7 @@ export async function migrate(cfgObj: object): Promise<object> {
             // Before we had a config system, we had nmaps, and we put them in the
             // root namespace because we were young and bold.
             let legacy_nmaps = await browser.storage.sync.get('nmaps')
-            if (legacy_nmaps)
+            if (legacy_nmaps['nmaps'])
                 cfgObj['nmaps'] = Object.assign(
                     legacy_nmaps['nmaps'],
                     cfgObj['nmaps']
