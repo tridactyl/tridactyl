@@ -43,7 +43,7 @@ export async function getFilesystemUserConfig(): Promise<string> {
         return res.content
     } else {
         console.error(`Error in retrieving config: ${res.error}`)
-        throw `Error retrieving config: ${res.error}`
+        throw Error(`Error retrieving config: ${res.error}`)
     }
 }
 

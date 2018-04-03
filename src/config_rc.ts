@@ -81,9 +81,7 @@ async function detectAndSetDefaultBrowserRc(): Promise<void> {
 }
 
 export async function getFilesystemRc(): Promise<string> {
-    let rc = await Native.getFilesystemUserConfig()
-    if(!rc) rc = FSRC_NOT_FOUND
-    return rc
+    return Native.getFilesystemUserConfig()
 }
 
 export async function getBrowserRc(): Promise<string> {

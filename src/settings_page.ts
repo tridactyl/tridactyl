@@ -32,9 +32,8 @@ document
     .querySelector('#btn-save-rc')
     .addEventListener('click', _ => RC.setBrowserRc(getTextboxValue()))
 document.querySelector('#btn-load-fs-rc').addEventListener('click', async _ => {
-    const rc = await Messaging.message('config_rc', 'getFilesystemRc')
-    if (!rc) return
-    rctextarea.value = rc
+    const rc = Messaging.message('config_rc', 'getFilesystemRc')
+    rc.then(r => (rctextarea.value = r)).catch(e => alert(e))
 })
 document.querySelector('#btn-load-rc').addEventListener('click', async _ => {
     const rc = await RC.getBrowserRc()

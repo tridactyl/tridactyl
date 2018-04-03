@@ -37,11 +37,17 @@
   <div id="tab-container" class="tab-content">
     <div class="tab-panel" role="tabpanel" id="current-settings"></div>
     <div class="tab-panel" role="tabpanel" id="rc-text">
-      <p>
-        If the button to load from filesystem is not working, check the console
-        to see the error you are getting. We don't have an error reporting
-        mechanism right now.
-      </p>
+      <div>
+        <p>
+          If the button to load from filesystem is not working, check the
+          console to see the error you are getting. Make sure the
+          following are true:
+        </p>
+        <ul>
+          <li>You have the native script installed.</li>
+          <li>Either ~/.tridactylrc or ~/.config/tridactyl/tridactylrc exists.</li>
+        </ul>
+      </div>
       <button id="btn-save-rc">Save from textbox to browser.storage</button>
       <button id="btn-load-rc">Load from browser.storage to textbox</button>
       <button id="btn-load-fs-rc">Load from filesystem to textbox</button>
