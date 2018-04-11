@@ -250,10 +250,10 @@ function recursiveScroll(x: number, y: number, nodes: Element[]) {
         // http://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html
         // and
         // https://stripe.com/docs/api#intro
-        // These two checks on rect.top speed things up on the aforementioned
-        // website while still letting scrolling work on twitch so we'll
+        // This check speeds things up on the aforementioned website while
+        // still letting scrolling work on twitch/website with frames so we'll
         // consider it good enough for now.
-        while (!rect || rect.top < 0 || rect.top >= innerHeight - 4) {
+        while (!rect || rect.top >= innerHeight - 4) {
             node = nodes[index++];
             // No node means we've reached the end of the array
             if (!node)
@@ -268,6 +268,8 @@ function recursiveScroll(x: number, y: number, nodes: Element[]) {
         if (top != rect.top || left != rect.left)
             return
         nodes = nodes.concat(Array.prototype.slice.call(node.children))
+        if (node.contentDocument)
+            nodes.push(node.contentDocument.body)
     } while (index < nodes.length)
 }
 
