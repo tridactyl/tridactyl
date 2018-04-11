@@ -29,7 +29,7 @@ lost sometimes `:help` might help you a lot.
 This add-on is very usable, but is in an early stage of development. We intend
 to implement the majority of Vimperator's features.
 
-We recommend that you use the beta versions below.
+You can get beta builds from [our website][betas].
 
 **Permissions:**
 
@@ -72,3 +72,5 @@ permissions and why we need them.
  - Access browser activity during navigation:
    * This is needed for Tridactyl to be able to go back to normal mode every
      time you open a new page. In the future we may use it for autocommands.
+
+[betas]: https://tridactyl.cmcaine.co.uk/betas/?sort=time&order=desc
