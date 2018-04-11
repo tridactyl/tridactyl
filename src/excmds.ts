@@ -202,7 +202,10 @@ export function unfocus() {
 
 //#content
 export function scrollpx(a: number, b: number) {
-    window.scrollBy(a, b)
+    let top = document.body.getClientRects()[0].top;
+    window.scrollBy(a, b);
+    if (top == document.body.getClientRects()[0].top)
+        recursiveScroll(a, b, [document.body])
 }
 
 /** If two numbers are given, treat as x and y values to give to window.scrollTo
@@ -226,13 +229,43 @@ export function scrollto(a: number, b: number | "x" | "y" = "y") {
     }
 }
 
+//#content_helper
+function recursiveScroll(x: number, y: number, nodes: Element[]) {
+    let rect = null;
+    let node = null;
+    do {
+        node = nodes.splice(0, 1)[0]
+        if (!node)
+            return
+        rect = node.getClientRects()[0]
+    } while (!rect)
+    let top = rect.top
+    node.scrollBy(x, y);
+    if (top == node.getClientRects()[0].top) {
+        // children used to be .filter(DOM.isVisible)'d but apparently nodes
+        // that are !DOM.isVisible can have children that are DOM.isVisible
+        let children = Array.prototype.slice.call(node.childNodes)
+        recursiveScroll(x, y, nodes.concat(children))
+    }
+}
+
 //#content
 export function scrollline(n = 1) {
+    let top = document.body.getClientRects()[0].top
     window.scrollByLines(n)
+    if (top == document.body.getClientRects()[0].top) {
+        const cssHeight = window.getComputedStyle(document.body).getPropertyValue('line-height')
+        // Remove the "px" at the end
+        const lineHeight = parseInt(cssHeight.substr(0, cssHeight.length - 2))
+        // lineHeight probably can't be NaN but let's make sure
+        if (lineHeight)
+            recursiveScroll(0, lineHeight * n, [window.document.body])
+    }
 }
+
 //#content
 export function scrollpage(n = 1) {
-    window.scrollBy(0, window.innerHeight * n)
+    scrollpx(0, window.innerHeight * n)
 }
 
 //export function find(query: string) {
