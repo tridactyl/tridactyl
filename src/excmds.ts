@@ -975,6 +975,19 @@ export async function tabdetach(index?: number) {
     browser.windows.create({tabId: await idFromIndex(index)})
 }
 
+/** Toggle fullscreen state 
+
+*/
+//#background
+export async function fullscreen() {
+    // Could easily extend this to fullscreen / minimise any window but seems like that would be a tiny use-case.
+    const currwin = await browser.windows.getCurrent()
+    const wid = currwin.id
+    // This might have odd behaviour on non-tiling window managers, but no-one uses those, right?
+    const state = currwin.state == "fullscreen" ? "normal" : "fullscreen"
+    browser.windows.update(wid,{state})
+}
+
 /** Close a tab.
 
     Known bug: autocompletion will make it impossible to close more than one tab at once if the list of numbers looks enough like an open tab's title or URL.
