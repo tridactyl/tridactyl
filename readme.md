@@ -6,7 +6,7 @@ Replace Firefox's default control mechanism with one modelled on the one true ed
 
 ## Installing
 
-[Get our "beta" builds!][amo-betas] These are updated on AMO with each commit to master on this repo; your browser will automatically update from there once a day. If you want more frequent updates, you can change `extensions.update.interval` in `about:config` to whatever time you want, say, 15 minutes (900 seconds). Changelogs for the stable versions on the AMO can be found [here](https://github.com/cmcaine/tridactyl/blob/master/doc/changelog.md).
+[Get our "beta" builds!][betas] These are updated with each commit to master on this repo. Soon, your browser will automatically update from there once a day. If you want more frequent updates, you can change `extensions.update.interval` in `about:config` to whatever time you want, say, 15 minutes (900 seconds). Changelogs for the stable versions on the AMO can be found [here](https://github.com/cmcaine/tridactyl/blob/master/doc/changelog.md).
 
 Type `:help` for online help once you're in :)
 
@@ -120,6 +120,9 @@ NOTE: key modifiers (eg: control, alt) are not supported yet. See the FAQ below.
 
 ## Frequently asked questions
 
+- Why doesn't Tridactyl respect my search engine settings?
+
+    It's a webextension limitation. Firefox doesn't allow reading user preferences.
 
 - How can I change the search engine?
 
@@ -135,6 +138,10 @@ NOTE: key modifiers (eg: control, alt) are not supported yet. See the FAQ below.
 
     You can edit this file to your heart's content. A more traditional rc file is planned but will require a native messenger. For more information, see [issue #79](https://github.com/cmcaine/tridactyl/issues/79).
 
+- I hate the light, can I get a dark theme/dark mode?
+
+    Yes! `set theme dark`. Thanks to @fugerf.
+
 - How can I bind keys using the control/alt key modifiers (eg: `ctrl+^`)?
 
     You can't, yet. See [issue #41](https://github.com/cmcaine/tridactyl/issues/41).
@@ -145,7 +152,7 @@ NOTE: key modifiers (eg: control, alt) are not supported yet. See the FAQ below.
 
 - When I type 'f', can I type link names (like Vimperator) in order to narrow down the number of highlighted links?
 
-    Not yet. See [issue #28](https://github.com/cmcaine/tridactyl/issues/28).
+    You can, thanks to @saulrh. First `set hintfiltermode vimperator` and then `set hintchars 1234567890`.
 
 - How to remap keybindings in both normal mode and ex mode?
 
@@ -161,11 +168,11 @@ NOTE: key modifiers (eg: control, alt) are not supported yet. See the FAQ below.
 
 - Why doesn't Tridactyl work on websites with frames?
 
-    It should work on some frames now. See [#122](https://github.com/cmcaine/tridactyl/issues/122).
+    It should work on some frames now. See [#122](https://github.com/cmcaine/tridactyl/issues/122).
 
 - Can I change proxy via commands?
 
-    No, this is a limitation of WebExtensions.
+    Not yet, but this feature will eventually be implemented.
 
 - How do I disable Tridactyl on certain sites?
 
@@ -389,4 +396,4 @@ The logo was designed by Jake Beazley using free vector art by <a target="_blank
 [gitter-link]: https://gitter.im/tridactyl/Lobby
 [matrix-badge]: https://matrix.to/img/matrix-badge.svg
 [matrix-link]: https://riot.im/app/#/room/#tridactyl:matrix.org
-[amo-betas]: https://addons.mozilla.org/en-US/firefox/addon/tridactyl-vim/versions/beta
+[betas]: https://tridactyl.cmcaine.co.uk/betas

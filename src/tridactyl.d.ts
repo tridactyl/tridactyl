@@ -9,12 +9,14 @@ interface Number {
     clamp(lo: number, hi: number): number
 }
 
-
 // Firefox-specific dom properties
 interface Window {
     scrollByLines(n: number): void
-    scrollByPages(n: number):  void
+    scrollByPages(n: number): void
+    eval(str: string): any
 }
+
+declare function exportFunction(func: Function, targetScope: object, options?: {defineAs?: string, allowCrossOriginArguments?: boolean}): Function
 
 // Fix typescript bugs
 interface StringConstructor {

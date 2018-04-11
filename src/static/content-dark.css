@@ -1,0 +1,18 @@
+:root.TridactylThemeDark span.TridactylHint {
+    color: white !important;
+    background-color: #204e8a !important;
+}
+
+:root.TridactylThemeDark .TridactylHintElem, :root.TridactylThemeDark .TridactylHintActive {
+    color: #333 !important !important;
+}
+
+:root.TridactylThemeDark .TridactylHintElem {
+    background-color: rgba(13, 31, 54, 0.25) !important;
+    outline: 1px solid #204e8a !important;
+}
+
+:root.TridactylThemeDark .TridactylHintActive {
+    background-color: #88FF00 !important;
+    outline: 1px solid #000 !important;
+}

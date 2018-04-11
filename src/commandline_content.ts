@@ -20,6 +20,7 @@ function init(){
     if (cmdline_iframe === undefined) {
         try {
             cmdline_iframe = window.document.createElement("iframe")
+            cmdline_iframe.className = "cleanslate"
             cmdline_iframe.setAttribute("src", browser.extension.getURL("static/commandline.html"))
             cmdline_iframe.setAttribute("id", "cmdline_iframe")
             hide()
@@ -36,11 +37,11 @@ init()
 
 export function show(){
     const height = cmdline_iframe.contentWindow.document.body.offsetHeight + 'px'
-    cmdline_iframe.setAttribute("style", `height: ${height};`)
+    cmdline_iframe.setAttribute("style", `height: ${height} !important;`)
 }
 
 export function hide(){
-    cmdline_iframe.setAttribute("style", "height: 0px;")
+    cmdline_iframe.setAttribute("style", "height: 0px !important;")
 }
 
 export function focus(){
@@ -50,6 +51,23 @@ export function focus(){
 export function blur() {
     cmdline_iframe.blur()
 }
+
+export function executeWithoutCommandLine(fn) {
+    let parent
+    if (cmdline_iframe) {
+        parent = cmdline_iframe.parentNode
+        parent.removeChild(cmdline_iframe)
+    }
+    let result
+    try {
+        result = fn()
+    } catch (e) {
+        console.log(e)
+    }
+    if (cmdline_iframe) parent.appendChild(cmdline_iframe)
+    return result
+}
+
 
 import * as Messaging from './messaging'
 import * as SELF from './commandline_content'

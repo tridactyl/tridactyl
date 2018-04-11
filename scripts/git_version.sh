@@ -5,4 +5,6 @@ manversion=$(grep '"version":' ./src/manifest.json | cut -d":" -f2 | tr -d \" | 
 version=$manversion-$gitversion
 
 sed -i.bak 's/REPLACE_ME_WITH_THE_VERSION_USING_SED/'$version'/' ./build/background.js
+sed -i.bak 's/REPLACE_ME_WITH_THE_VERSION_USING_SED/'$version'/' ./build/static/newtab.html
 rm ./build/background.js.bak
+rm ./build/static/newtab.html.bak
