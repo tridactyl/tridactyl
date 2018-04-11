@@ -229,24 +229,46 @@ export function scrollto(a: number, b: number | "x" | "y" = "y") {
     }
 }
 
+/** Tries to find a node which can be scrolled either x pixels to the right or
+ *  y pixels down among the Elements in {nodes} and children of these Elements.
+ *
+ *  This function used to be recursive but isn't anymore due to various
+ *  attempts at optimizing the function in order to reduce GC pressure.
+*/
 //#content_helper
 function recursiveScroll(x: number, y: number, nodes: Element[]) {
-    let rect = null;
-    let node = null;
+    let index = 0
     do {
-        node = nodes.splice(0, 1)[0]
-        if (!node)
-            return
+        let node = nodes[index++] as any
+        let rect = node.getClientRects()[0]
+
+        // This check is quite arbitrary and even possibly wrong.
+        // We can't use DOM.isVisible because it breaks scrolling on some
+        // sites (e.g. twitch.com)
+        // We can't not check anything because it makes scrolling unbearably
+        // slow on some other sites, e.g.
+        // http://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html
+        // and
+        // https://stripe.com/docs/api#intro
+        // These two checks on rect.top speed things up on the aforementioned
+        // website while still letting scrolling work on twitch so we'll
+        // consider it good enough for now.
+        while (!rect || rect.top < 0 || rect.top >= innerHeight - 4) {
+            node = nodes[index++];
+            // No node means we've reached the end of the array
+            if (!node)
+                return
+            rect = node.getClientRects()[0]
+        }
+        let top = rect.top
+        let left = rect.left
+        node.scrollBy(x, y);
         rect = node.getClientRects()[0]
-    } while (!rect)
-    let top = rect.top
-    node.scrollBy(x, y);
-    if (top == node.getClientRects()[0].top) {
-        // children used to be .filter(DOM.isVisible)'d but apparently nodes
-        // that are !DOM.isVisible can have children that are DOM.isVisible
-        let children = Array.prototype.slice.call(node.childNodes)
-        recursiveScroll(x, y, nodes.concat(children))
-    }
+        // if the node moved, stop
+        if (top != rect.top || left != rect.left)
+            return
+        nodes = nodes.concat(Array.prototype.slice.call(node.children))
+    } while (index < nodes.length)
 }
 
 //#content
