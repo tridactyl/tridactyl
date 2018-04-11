@@ -120,6 +120,9 @@ NOTE: key modifiers (eg: control, alt) are not supported yet. See the FAQ below.
 
 ## Frequently asked questions
 
+- Why doesn't Tridactyl respect my search engine settings?
+
+    It's a webextension limitation. Firefox doesn't allow reading user preferences.
 
 - How can I change the search engine?
 
@@ -149,7 +152,7 @@ NOTE: key modifiers (eg: control, alt) are not supported yet. See the FAQ below.
 
 - When I type 'f', can I type link names (like Vimperator) in order to narrow down the number of highlighted links?
 
-    Not yet. See [issue #28](https://github.com/cmcaine/tridactyl/issues/28).
+    You can, thanks to @saulrh. First `set hintfiltermode vimperator` and then `set hintchars 1234567890`.
 
 - How to remap keybindings in both normal mode and ex mode?
 
@@ -165,11 +168,11 @@ NOTE: key modifiers (eg: control, alt) are not supported yet. See the FAQ below.
 
 - Why doesn't Tridactyl work on websites with frames?
 
-    It should work on some frames now. See [#122](https://github.com/cmcaine/tridactyl/issues/122).
+    It should work on some frames now. See [#122](https://github.com/cmcaine/tridactyl/issues/122).
 
 - Can I change proxy via commands?
 
-    No, this is a limitation of WebExtensions.
+    Not yet, but this feature will eventually be implemented.
 
 - How do I disable Tridactyl on certain sites?
 
