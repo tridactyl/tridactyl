@@ -243,14 +243,25 @@ function recursiveScroll(x: number, y: number, nodes: Element[]) {
     let top = rect.top
     node.scrollBy(x, y);
     if (top == node.getClientRects()[0].top) {
-        let children = Array.prototype.slice.call(node.children).filter(DOM.isVisible)
+        // children used to be .filter(DOM.isVisible)'d but apparently nodes
+        // that are !DOM.isVisible can have children that are DOM.isVisible
+        let children = Array.prototype.slice.call(node.childNodes)
         recursiveScroll(x, y, nodes.concat(children))
     }
 }
 
 //#content
 export function scrollline(n = 1) {
+    let top = document.body.getClientRects()[0].top
     window.scrollByLines(n)
+    if (top == document.body.getClientRects()[0].top) {
+        const cssHeight = window.getComputedStyle(document.body).getPropertyValue('line-height')
+        // Remove the "px" at the end
+        const lineHeight = parseInt(cssHeight.substr(0, cssHeight.length - 2))
+        // lineHeight probably can't be NaN but let's make sure
+        if (lineHeight)
+            recursiveScroll(0, lineHeight * n, [window.document.body])
+    }
 }
 
 //#content
