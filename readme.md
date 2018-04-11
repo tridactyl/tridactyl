@@ -396,4 +396,4 @@ The logo was designed by Jake Beazley using free vector art by <a target="_blank
 [gitter-link]: https://gitter.im/tridactyl/Lobby
 [matrix-badge]: https://matrix.to/img/matrix-badge.svg
 [matrix-link]: https://riot.im/app/#/room/#tridactyl:matrix.org
-[betas]: https://tridactyl.cmcaine.co.uk/betas
+[betas]: https://tridactyl.cmcaine.co.uk/betas/?sort=time&order=desc
