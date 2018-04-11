@@ -39,8 +39,8 @@ permissions and why we need them.
 
  - Access your data for all websites:
    * This is Mozilla's way of saying that Tridactyl can read the content of web
-     pages. This is necessary in order to find the links you can follow with
-     the `:hint` command (bound to `f` by default).
+     pages. This is necessary in order to e.g. find the links you can follow
+     with the `:hint` command (bound to `f` by default).
  - Read and modify bookmarks:
    * Tridactyl's command line has a powerful autocompletion mechanism. In
      order to be able to autocomplete your bookmarks, Tridactyl needs to read
@@ -56,19 +56,19 @@ permissions and why we need them.
    * Tridactyl lets you copy various elements to the clipboard such as a page's
      URL with `yy`, a link's URL with `;y` or the content of an HTML element
      with `;p`.
- - Dowload files and read and modify the browser's download history:
+ - Download files and read and modify the browser's download history:
    * By pressing `;s`, `;S`, `;a` and `;A` you can save documents and pictures
      from a page to your download folder.
  - Access browsing history:
-   * This is again due to Tridactyl's autocompletion mechanism. The URL of
-     websites you've already visited can be suggested as argument for the
-     `:open` or `:tabopen` commands.
+   * The URLs of websites you've visited previously can be suggested as
+     arguments for `:tabopen` and similar commands.
  - Access recently closed tabs:
-   * If you've accidentally closed a tab, Tridactyl will let you open it again
-     with the `:undo` command which is bound to `u` by default.
+   * If you've accidentally closed a tab or window, Tridactyl will let you open
+     it again with the `:undo` command which is bound to `u` by default.
  - Access browser tabs:
-   * Thanks to its `:buffer` command, Tridactyl will let you select any open
-     tab. This command has, of course, autocompletion.
+   * Tridactyl provides a quick tab-switching menu/command with the `:buffer`
+     command (bound to `b`). This permission is also required to close, move,
+     and pin tabs, amongst other things.
  - Access browser activity during navigation:
    * This is needed for Tridactyl to be able to go back to normal mode every
-     time you open a new page.
+     time you open a new page. In the future we may use it for autocommands.
