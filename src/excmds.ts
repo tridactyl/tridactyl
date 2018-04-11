@@ -1251,11 +1251,15 @@ export async function current_url(...strarr: string[]){
 
     If `excmd == "yankshort"`, copy the shortlink version of the current URL, and fall back to the canonical then actual URL. Known to work on https://yankshort.neocities.org/.
 
+    If `excmd == "yanktitle"`, copy the title of the open page.
+
+    If `excmd == "yankmd"`, copy the title and url of the open page formatted in Markdown for easy use on sites such as reddit.
+
     Unfortunately, javascript can only give us the `clipboard` clipboard, not e.g. the X selection clipboard.
 
 */
 //#background
-export async function clipboard(excmd: "open"|"yank"|"yankshort"|"yankcanon"|"tabopen" = "open", ...toYank: string[]) {
+export async function clipboard(excmd: "open"|"yank"|"yankshort"|"yankcanon"|"yanktitle"|"yankmd"|"tabopen" = "open", ...toYank: string[]) {
     let content = toYank.join(" ")
     let url = ""
     let urls = []
@@ -1278,6 +1282,13 @@ export async function clipboard(excmd: "open"|"yank"|"yankshort"|"yankcanon"|"ta
         case 'yank':
             await messageActiveTab("commandline_content", "focus")
             content = (content == "") ? (await activeTab()).url : content
+            messageActiveTab("commandline_frame", "setClipboard", [content])
+            break
+        case 'yanktitle':
+            messageActiveTab("commandline_frame", "setClipboard", [content])
+            break
+        case 'yankmd':
+            content = "[" + (await activeTab()).title + "](" + (await activeTab()).url + ")"
             messageActiveTab("commandline_frame", "setClipboard", [content])
             break
         case 'open':
