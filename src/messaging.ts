@@ -7,7 +7,8 @@ export type TabMessageType =
     "keydown_content" |
     "commandline_content" |
     "commandline_frame" |
-    "hinting_content"
+    "hinting_content" |
+    "finding_content"
 export type NonTabMessageType =
     "keydown_background" |
     "commandline_background" |

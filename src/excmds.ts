@@ -77,6 +77,7 @@ import * as config from './config'
 import * as aliases from './aliases'
 import * as Logging from "./logging"
 const logger = new Logging.Logger('excmds')
+import Mark from 'mark.js'
 
 //#content_helper
 // {
@@ -84,6 +85,7 @@ import "./number.clamp"
 import * as SELF from "./excmds_content"
 Messaging.addListener('excmd_content', Messaging.attributeCaller(SELF))
 import * as DOM from './dom'
+import { executeWithoutCommandLine } from "./commandline_content"
 // }
 
 //#background_helper
@@ -200,7 +202,10 @@ export function unfocus() {
 
 //#content
 export function scrollpx(a: number, b: number) {
-    window.scrollBy(a, b)
+    let top = document.body.getClientRects()[0].top;
+    window.scrollBy(a, b);
+    if (top == document.body.getClientRects()[0].top)
+        recursiveScroll(a, b, [document.body])
 }
 
 /** If two numbers are given, treat as x and y values to give to window.scrollTo
@@ -224,13 +229,89 @@ export function scrollto(a: number, b: number | "x" | "y" = "y") {
     }
 }
 
+/** Tries to find a node which can be scrolled either x pixels to the right or
+ *  y pixels down among the Elements in {nodes} and children of these Elements.
+ *
+ *  This function used to be recursive but isn't anymore due to various
+ *  attempts at optimizing the function in order to reduce GC pressure.
+*/
+//#content_helper
+function recursiveScroll(x: number, y: number, nodes: Element[]) {
+    let index = 0
+    do {
+        let node = nodes[index++] as any
+        let rect = node.getClientRects()[0]
+
+        // This check is quite arbitrary and even possibly wrong.
+        // We can't use DOM.isVisible because it breaks scrolling on some
+        // sites (e.g. twitch.com)
+        // We can't not check anything because it makes scrolling unbearably
+        // slow on some other sites, e.g.
+        // http://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html
+        // and
+        // https://stripe.com/docs/api#intro
+        // This check speeds things up on the aforementioned website while
+        // still letting scrolling work on twitch/website with frames so we'll
+        // consider it good enough for now.
+        while (!rect || rect.top >= innerHeight - 4) {
+            node = nodes[index++];
+            // No node means we've reached the end of the array
+            if (!node)
+                return
+            rect = node.getClientRects()[0]
+        }
+        let top = rect.top
+        let left = rect.left
+        node.scrollBy(x, y);
+        rect = node.getClientRects()[0]
+        // if the node moved, stop
+        if (top != rect.top || left != rect.left)
+            return
+        nodes = nodes.concat(Array.prototype.slice.call(node.children))
+        if (node.contentDocument)
+            nodes.push(node.contentDocument.body)
+    } while (index < nodes.length)
+}
+
 //#content
 export function scrollline(n = 1) {
+    let top = document.body.getClientRects()[0].top
     window.scrollByLines(n)
+    if (top == document.body.getClientRects()[0].top) {
+        const cssHeight = window.getComputedStyle(document.body).getPropertyValue('line-height')
+        // Remove the "px" at the end
+        const lineHeight = parseInt(cssHeight.substr(0, cssHeight.length - 2))
+        // lineHeight probably can't be NaN but let's make sure
+        if (lineHeight)
+            recursiveScroll(0, lineHeight * n, [window.document.body])
+    }
 }
+
 //#content
 export function scrollpage(n = 1) {
-    window.scrollBy(0, window.innerHeight * n)
+    scrollpx(0, window.innerHeight * n)
+}
+
+//export function find(query: string) {
+//    // Proof of concept
+//    // Obviously we need a new mode really; probably copy-paste hinting mode
+//    const MARK_INSTANCE = new Mark(window.document)
+//    MARK_INSTANCE.unmark()
+//    MARK_INSTANCE.mark(query)
+//}
+
+//#background_helper
+import * as finding from './finding_background'
+
+//#background
+export function find(direction?: number){
+    if (direction === undefined) direction = 1
+    finding.findPage(direction)
+}
+
+//#background
+export function findnext(n: number){
+    finding.findPageNavigate(n)
 }
 
 /** @hidden */
@@ -290,6 +371,31 @@ export function open(...urlarr: string[]) {
     if (url === "")
         url = config.get("newtab") || browser.extension.getURL("static/newtab.html")
     window.location.href = forceURI(url)
+}
+
+//#content_helper
+let sourceElement = undefined
+//#content
+export function viewsource(url = "") {
+    if (url === "")
+        url = window.location.href
+    if (config.get("viewsource") === "default") {
+        window.location.href = "view-source:" + url
+        return
+    }
+    if (!sourceElement) {
+        sourceElement = executeWithoutCommandLine(() => {
+            let pre = document.createElement("pre")
+            pre.id = "TridactylViewsourceElement"
+            pre.className = "cleanslate " + config.get("theme")
+            pre.innerText = document.documentElement.innerHTML
+            document.documentElement.appendChild(pre)
+            return pre
+        })
+    } else {
+        sourceElement.parentNode.removeChild(sourceElement)
+        sourceElement = undefined
+    }
 }
 
 /** Go to your homepage(s)
@@ -601,15 +707,12 @@ loadaucmds()
 //@hidden
 //#content
 export async function loadaucmds(){
-    console.log("AUCMDS TRIED TO RUN")
     // for some reason, this never changes from the default, even when there is user config (e.g. set via `aucmd bbc.co.uk mode ignore`)
     let aucmds = await config.getAsync("autocmds", "DocStart")
-    console.log(aucmds)
     const ausites = Object.keys(aucmds)
     // yes, this is lazy
     const aukey = ausites.find(e=>window.document.location.href.includes(e))
     if (aukey !== undefined){
-        console.log(aukey)
         Messaging.message("commandline_background", "recvExStr", [aucmds[aukey]])
     }
 }
@@ -733,7 +836,7 @@ export function focusinput(nth: number|string) {
     }
 
     if (inputToFocus) {
-        inputToFocus.focus()
+        DOM.focus(inputToFocus)
         if (config.get('gimode') === 'nextinput' && state.mode !== 'input') {
             state.mode = 'input'
         }
@@ -903,11 +1006,28 @@ export async function tabdetach(index?: number) {
     browser.windows.create({tabId: await idFromIndex(index)})
 }
 
+/** Get list of tabs sorted by most recent use
+
+    @hidden
+*/
 //#background_helper
 async function getSortedWinTabs(): Promise<browser.tabs.Tab[]> {
     const tabs = await browser.tabs.query({currentWindow: true})
     tabs.sort((a, b) => a.lastAccessed < b.lastAccessed ? 1 : -1)
     return tabs
+}
+
+/** Toggle fullscreen state 
+
+*/
+//#background
+export async function fullscreen() {
+    // Could easily extend this to fullscreen / minimise any window but seems like that would be a tiny use-case.
+    const currwin = await browser.windows.getCurrent()
+    const wid = currwin.id
+    // This might have odd behaviour on non-tiling window managers, but no-one uses those, right?
+    const state = currwin.state == "fullscreen" ? "normal" : "fullscreen"
+    browser.windows.update(wid,{state})
 }
 
 /** Close a tab.
@@ -1054,6 +1174,8 @@ export function mode(mode: ModeName) {
     // TODO: event emition on mode change.
     if (mode === "hint") {
         hint()
+    } else if (mode === "find") {
+        find()
     } else {
         state.mode = mode
     }
@@ -1172,11 +1294,15 @@ export async function current_url(...strarr: string[]){
 
     If `excmd == "yankshort"`, copy the shortlink version of the current URL, and fall back to the canonical then actual URL. Known to work on https://yankshort.neocities.org/.
 
+    If `excmd == "yanktitle"`, copy the title of the open page.
+
+    If `excmd == "yankmd"`, copy the title and url of the open page formatted in Markdown for easy use on sites such as reddit.
+
     Unfortunately, javascript can only give us the `clipboard` clipboard, not e.g. the X selection clipboard.
 
 */
 //#background
-export async function clipboard(excmd: "open"|"yank"|"yankshort"|"yankcanon"|"tabopen" = "open", ...toYank: string[]) {
+export async function clipboard(excmd: "open"|"yank"|"yankshort"|"yankcanon"|"yanktitle"|"yankmd"|"tabopen" = "open", ...toYank: string[]) {
     let content = toYank.join(" ")
     let url = ""
     let urls = []
@@ -1199,6 +1325,13 @@ export async function clipboard(excmd: "open"|"yank"|"yankshort"|"yankcanon"|"ta
         case 'yank':
             await messageActiveTab("commandline_content", "focus")
             content = (content == "") ? (await activeTab()).url : content
+            messageActiveTab("commandline_frame", "setClipboard", [content])
+            break
+        case 'yanktitle':
+            messageActiveTab("commandline_frame", "setClipboard", [content])
+            break
+        case 'yankmd':
+            content = "[" + (await activeTab()).title + "](" + (await activeTab()).url + ")"
             messageActiveTab("commandline_frame", "setClipboard", [content])
             break
         case 'open':

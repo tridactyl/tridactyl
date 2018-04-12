@@ -2,7 +2,7 @@
 
 import * as Messaging from './messaging'
 import * as msgsafe from './msgsafe'
-import {isTextEditable} from './dom'
+import {isTextEditable,getAllDocumentFrames} from './dom'
 import {isSimpleKey} from './keyseq'
 
 function keyeventHandler(ke: KeyboardEvent) {
@@ -30,6 +30,7 @@ import state from './state'
 
 // Keys not to suppress in normal mode.
 const normalmodewhitelist = [
+    // comment line below out once find mode is done
     '/',
     "'",
     ' ',
@@ -54,6 +55,7 @@ function TerribleModeSpecificSuppression(ke: KeyboardEvent) {
             break
         // Hintmode can't clean up after itself yet, so it needs to block more FF shortcuts.
         case "hint":
+        case "find":
             if (! hintmodewhitelist.includes(ke.key)) {
                 ke.preventDefault()
                 ke.stopImmediatePropagation()
@@ -82,6 +84,11 @@ function TerribleModeSpecificSuppression(ke: KeyboardEvent) {
 
 // Add listeners
 window.addEventListener("keydown", keyeventHandler, true)
+document.addEventListener("readystatechange", ev =>
+    getAllDocumentFrames().map(frame => {
+        frame.contentWindow.removeEventListener("keydown", keyeventHandler, true)
+        frame.contentWindow.addEventListener("keydown", keyeventHandler, true)
+    }));
 import * as SELF from './keydown_content'
 Messaging.addListener('keydown_content', Messaging.attributeCaller(SELF))
 

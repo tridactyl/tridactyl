@@ -53,7 +53,7 @@ const DEFAULTS = o({
         "gg": "scrollto 0",
         "$": "scrollto 100 x",
         // "0": "scrollto 0 x", // will get interpreted as a count
-        "^": "scrollto 0 x",
+        "^": "buffer #",
         "H": "back",
         "L": "forward",
         "d": "tabclose",
@@ -71,6 +71,11 @@ const DEFAULTS = o({
         ":": "fillcmdline",
         "s": "fillcmdline open search",
         "S": "fillcmdline tabopen search",
+        // find mode not suitable for general consumption yet.
+        // "/": "find",
+        // "?": "find -1",
+        // "n": "findnext 1",
+        // "N": "findnext -1",
         "M": "gobble 1 quickmark",
         // "B": "fillcmdline bufferall",
         "b": "fillcmdline buffer",
@@ -154,6 +159,7 @@ const DEFAULTS = o({
 
     }),
     "newtab": "",
+    "viewsource": "tridactyl", // "tridactyl" or "default"
     "storageloc": "sync",
     "homepages": [],
     "hintchars": "hjklasdfgyuiopqwertnmzxcvb",
@@ -170,6 +176,10 @@ const DEFAULTS = o({
     // If nextinput, <Tab> after gi brings selects the next input
     // If firefox, <Tab> selects the next selectable element, e.g. a link
     "gimode": "nextinput", // either "nextinput" or "firefox"
+
+    // either "beginning" or "end"
+    // Decides where to place the cursor when selecting non-empty input fields
+    "cursorpos": "end",
 
     "theme": "default",     // currently available: "default", "dark"
 

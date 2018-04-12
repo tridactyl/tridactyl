@@ -121,3 +121,24 @@ export function* map(arr, func) {
     for (const v of arr)
         yield func(v)
 }
+
+// Returns an array of unique elements.
+export function unique(arr) {
+    return arr.reduce((acc, cur) => {
+        if (acc.indexOf(cur) == -1)
+            acc.push(cur)
+        return acc
+    }, []);
+}
+
+export function flatten(arr) {
+    let result = []
+    for (let elem of arr) {
+        if (elem instanceof Array) {
+            result = result.concat(flatten(elem))
+        } else {
+            result.push(elem)
+        }
+    }
+    return result
+}

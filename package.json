@@ -3,7 +3,8 @@
   "version": "0.1.0",
   "description": "Vimperator/Pentadactyl successor",
   "dependencies": {
-    "fuse.js": "^3.2.0"
+    "fuse.js": "^3.2.0",
+    "mark.js": "^8.11.1"
   },
   "devDependencies": {
     "@types/jest": "^21.1.4",
