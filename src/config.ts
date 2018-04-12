@@ -9,6 +9,12 @@
 // Really, we'd like a way of just letting things use the variables
 //
 
+/** # Tridactyl Configuration
+ *
+ * We very strongly recommend that you pretty much ignore this page and instead follow the link below DEFAULTS that will take you to our own source code which is formatted in a marginally more sane fashion.
+ *
+ */
+
 const CONFIGNAME = "userconfig"
 const WAITERS = []
 let INITIALISED = false
@@ -130,6 +136,7 @@ const DEFAULTS = o({
         "tlast": "tablast",
         "bd": "tabclose",
         "bdelete": "tabclose",
+        "sanitize": "sanitise",
     }),
     followpagepatterns: o({
         next: "^(next|newer)\\b|»|>>",

@@ -19,6 +19,23 @@
 
     All three channels are mirrored together, so it doesn't matter which one you use.
 
+    ## How to use this help page
+
+    We've hackily re-purposed TypeDoc which is designed for internal documentation. Every function (excmd) on this page can be called via Tridactyl's command line which we call "ex". There is a slight change in syntax, however. Wherever you see:
+
+    `function(arg1,arg2)`
+
+    You should instead type
+
+    `function arg1 arg2` into the Tridactyl command line (accessed via `:`)
+
+    A "splat" operator (...) means that the excmd will accept any number of space-delimited arguments into that parameter.
+
+    You do not need to worry about types or return values.
+
+    At the bottom of each function's help page, you can click on a link that will take you straight to that function's definition in our code. This is especially recommended for browsing the [config](/static/docs/modules/_config_.html#defaults) which is nigh-on unreadable on these pages.
+    
+
     ## Highlighted features:
 
     - Press `b` to bring up a list of open tabs in the current window; you can
@@ -76,6 +93,7 @@ import * as UrlUtil from "./url_util"
 import * as config from './config'
 import * as aliases from './aliases'
 import * as Logging from "./logging"
+/** @hidden */
 const logger = new Logging.Logger('excmds')
 import Mark from 'mark.js'
 
@@ -292,23 +310,25 @@ export function scrollpage(n = 1) {
     scrollpx(0, window.innerHeight * n)
 }
 
-//export function find(query: string) {
-//    // Proof of concept
-//    // Obviously we need a new mode really; probably copy-paste hinting mode
-//    const MARK_INSTANCE = new Mark(window.document)
-//    MARK_INSTANCE.unmark()
-//    MARK_INSTANCE.mark(query)
-//}
-
 //#background_helper
 import * as finding from './finding_background'
 
+/** Start find mode. Work in progress.
+ *
+ * @param direction - the direction to search in: 1 is forwards, -1 is backwards.
+ * 
+ */
 //#background
 export function find(direction?: number){
     if (direction === undefined) direction = 1
     finding.findPage(direction)
 }
 
+/** Highlight the next occurence of the previously searched for word.
+ *
+ * @param number - number of words to advance down the page (use 1 for next word, -1 for previous)
+ * 
+ */
 //#background
 export function findnext(n: number){
     finding.findPageNavigate(n)
@@ -373,6 +393,7 @@ export function open(...urlarr: string[]) {
     window.location.href = forceURI(url)
 }
 
+/** @hidden */
 //#content_helper
 let sourceElement = undefined
 //#content
@@ -688,6 +709,9 @@ export async function zoom(level=0, rel="false"){
     browser.tabs.setZoom(level)
 }
 
+/** Opens the current page in Firefox's reader mode.
+ * You currently cannot use Tridactyl while in reader mode.
+ */
 //#background
 export async function reader() {
     if (await l(firefoxVersionAtLeast(58))) {
@@ -704,7 +728,7 @@ export async function reader() {
 //#content_helper
 loadaucmds()
 
-//@hidden
+/** @hidden */
 //#content
 export async function loadaucmds(){
     // for some reason, this never changes from the default, even when there is user config (e.g. set via `aucmd bbc.co.uk mode ignore`)
@@ -719,6 +743,7 @@ export async function loadaucmds(){
 
 /** The kinds of input elements that we want to be included in the "focusinput"
  * command (gi)
+ * @hidden
  */
 export const INPUTTAGS_selectors = `
 input:not([disabled]):not([readonly]):-moz-any(
@@ -744,12 +769,15 @@ object,
 [role='application']
 `
 
-/** Password field selectors */
+/** Password field selectors 
+ * @hidden 
+ */
 const INPUTPASSWORD_selectors = `
 input[type='password']
 `
 
 /** DOM reference to the last used Input field
+ * @hidden
  */
 //#content_helper
 let LAST_USED_INPUT: HTMLElement = null
@@ -1155,7 +1183,9 @@ export async function qa() {
 
 // {{{ MISC
 
-/** Deprecated */
+/** Deprecated
+ * @hidden
+ */
 //#background
 export function suppress(preventDefault?: boolean, stopPropagation?: boolean) {
     mode("ignore")
@@ -1242,7 +1272,7 @@ export function repeat(n = 1, ...exstr: string[]) {
         controller.acceptExCmd(cmd)
 }
 
-/** Split `cmds` on pipes (|) and treat each as it's own command.
+/** Split `cmds` on pipes (|) and treat each as its own command.
 
     Workaround: this should clearly be in the parser, but we haven't come up with a good way to deal with |s in URLs, search terms, etc. yet.
 */
@@ -1252,7 +1282,7 @@ export function composite(...cmds: string[]) {
     cmds.forEach(controller.acceptExCmd)
 }
 
-/** Please use fillcmdline instead */
+/** @hidden */
 //#background
 function showcmdline() {
     CommandLineBackground.show()
@@ -1595,21 +1625,21 @@ export async function reset(key: string){
     -t [0-9]+(m|h|d|w)
 
     Examples:
-    `sanitize all` -> Deletes everything
-    `sanitize history` -> Deletes all history
-    `sanitize commandline tridactyllocal tridactylsync` -> Deletes every bit of data Tridactyl holds
-    `sanitize cookies -t 3d` -> Deletes cookies that were set during the last three days.
+    `sanitise all` -> Deletes everything
+    `sanitise history` -> Deletes all history
+    `sanitise commandline tridactyllocal tridactylsync` -> Deletes every bit of data Tridactyl holds
+    `sanitise cookies -t 3d` -> Deletes cookies that were set during the last three days.
 
 */
 //#background
-export async function sanitize(...args: string[]) {
+export async function sanitise(...args: string[]) {
     let flagpos = args.indexOf("-t")
     let since = {}
     // If the -t flag has been given and there is an arg after it
     if (flagpos > -1) {
         if (flagpos < args.length - 1) {
             let match = args[flagpos + 1].match('^([0-9])+(m|h|d|w)$')
-            // If the arg of the flag matches Pentadactyl's sanitizetimespan format
+            // If the arg of the flag matches Pentadactyl's sanitisetimespan format
             if (match !== null && match.length == 3) {
                 // Compute the timespan in milliseconds and get a Date object
                 let millis = parseInt(match[1]) * 1000
@@ -1621,10 +1651,10 @@ export async function sanitize(...args: string[]) {
                 }
                 since = { "since": (new Date()).getTime() - millis }
             } else {
-                throw new Error(":sanitize error: expected time format: ^([0-9])+(m|h|d|w)$, given format:" + args[flagpos+1])
+                throw new Error(":sanitise error: expected time format: ^([0-9])+(m|h|d|w)$, given format:" + args[flagpos+1])
             }
         } else {
-            throw new Error(":sanitize error: -t given but no following arguments")
+            throw new Error(":sanitise error: -t given but no following arguments")
         }
     }
 
@@ -1674,7 +1704,7 @@ export async function sanitize(...args: string[]) {
     browser.browsingData.remove(since, dts)
 }
 
-/** Bind a quickmark for the current URL to a key.
+/** Bind a quickmark for the current URL or space-separated list of URLs to a key on the keyboard.
 
     Afterwards use go[key], gn[key], or gw[key] to [[open]], [[tabopen]], or
     [[winopen]] the URL respectively.
@@ -1707,6 +1737,8 @@ export async function quickmark(key: string, ...addressarr: string[]) {
     It's a bit rubbish, but we don't have a good way to provide feedback to the commandline yet.
 
     You can view the log entry in the browser console (Ctrl-Shift-j).
+
+    For example, you might try `get nmaps` to see all of your current binds.
 */
 //#background
 export function get(...keys: string[]) {
@@ -1922,5 +1954,23 @@ export async function bmark(url?: string, ...titlearr: string[] ){
     dupbmarks.map((bookmark) => browser.bookmarks.remove(bookmark.id))
     if (dupbmarks.length == 0 ) {browser.bookmarks.create({url, title})}
 }
+
+/**  Open a welcome page on first install.
+ *
+ * @hidden
+ */
+//#background_helper
+browser.runtime.onInstalled.addListener((details) => {
+  if (details.reason == "install") tabopen()
+  // could add elif "update" and show a changelog. Hide it behind a setting to make it less annoying?
+    // const docpage = browser.extension.getURL("static/docs/modules/_excmds_.html#")
+    // if (excmd === undefined) excmd = "tridactyl-help-page"
+    // if ((await activeTab()).url.startsWith(docpage)) {
+    //     open(docpage + excmd)
+    // } else {
+    //     tabopen(docpage + excmd)
+    // }
+})
+
 
 // vim: tabstop=4 shiftwidth=4 expandtab

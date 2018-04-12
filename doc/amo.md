@@ -46,7 +46,7 @@ permissions and why we need them.
      order to be able to autocomplete your bookmarks, Tridactyl needs to read
      them.
  - Clear recent browsing history, cookies, and related data:
-   * Tridactyl implements the `:sanitize` command Vimperator and Pentadactyl
+   * Tridactyl implements the `:sanitise` command Vimperator and Pentadactyl
      had. It works a bit like the "Clear All History" dialog you can access by
      pressing `Ctrl+Shift+Del` on default Firefox.
  - Get data from the clipboard:

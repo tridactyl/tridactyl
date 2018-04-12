@@ -2,7 +2,7 @@
 
 # Tridactyl REPLACE_ME_WITH_THE_VERSION_USING_SED
 
-Tridactyl has to override your new tab page due to WebExtension limitations. You can learn how to change it at the bottom of the page, otherwise please read on for some tips and tricks.
+Tridactyl has to override your new tab page due to WebExtension limitations. You can learn how to change it at the bottom of the page, otherwise please read on for some tips and tricks. (If you've just installed Tridactyl for the first time and are seeing this page, hello! Welcome! You'll probably be seeing this page a lot until you figure out how to disable it or uninstall the addon).
 
 - You can view the main help page by typing [`:help`][help].
 
