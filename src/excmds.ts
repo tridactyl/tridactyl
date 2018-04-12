@@ -759,7 +759,7 @@ document.addEventListener("focusin",e=>{if (DOM.isTextEditable(e.target as HTMLE
 */
 /** @hidden */
 //#background_helper
-async function tabIndexSetActive(index: number) {
+async function tabIndexSetActive(index: number|string) {
     tabSetActive(await idFromIndex(index))
 }
 
@@ -841,14 +841,21 @@ export async function tabopen(...addressarr: string[]) {
         1-based index of the tab to target. Wraps such that 0 = last tab, -1 =
         penultimate tab, etc.
 
+        also supports # for previous tab, % for current tab.
+
         if undefined, return activeTabId()
 
     @hidden
 */
 //#background_helper
-async function idFromIndex(index?: number): Promise<number> {
-    if (index !== undefined) {
+async function idFromIndex(index?: number|"%"|"#"|string): Promise<number> {
+    if (index === "#") {
+        // Support magic previous/current tab syntax everywhere
+        return (await getSortedWinTabs())[1].id
+    }
+    else if (index !== undefined && index !== "%") {
         // Wrap
+        index = Number(index)
         index = (index - 1).mod(
             (await l(browser.tabs.query({currentWindow: true}))).length)
             + 1
@@ -914,12 +921,7 @@ async function getSortedWinTabs(): Promise<browser.tabs.Tab[]> {
 export async function tabclose(...indexes: string[]) {
     if (indexes.length > 0) {
         let ids: number[]
-
-        if(indexes.length === 1 && indexes[0] === '#')
-            ids = [(await getSortedWinTabs())[1].id]
-        else
-            ids = await Promise.all(indexes.map(index => idFromIndex(Number(index))))
-
+        ids = await Promise.all(indexes.map(index => idFromIndex(index)))
         browser.tabs.remove(ids)
     } else {
         // Close current tab
@@ -1245,12 +1247,7 @@ export async function buffers() {
  */
 //#background
 export async function buffer(index: number | '#') {
-    if (index === "#") {
-        // Switch to the most recently accessed buffer
-        tabIndexSetActive((await getSortedWinTabs())[1].index + 1)
-    } else if (Number.isInteger(Number(index))) {
-        tabIndexSetActive(Number(index))
-    }
+    tabIndexSetActive(index)
 }
 
 // }}}
