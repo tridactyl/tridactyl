@@ -12,7 +12,7 @@
 
 import * as DOM from './dom'
 import {log} from './math'
-import {permutationsWithReplacement, islice, izip, map} from './itertools'
+import {permutationsWithReplacement, islice, izip, map, unique} from './itertools'
 import {hasModifiers} from './keyseq'
 import state from './state'
 import {messageActiveTab, message} from './messaging'
@@ -61,17 +61,25 @@ export function hintPage(
     buildHints(hintableElements, onSelect)
 
     if (modeState.hints.length) {
-        let sameLinks = false
-        for (let hint of modeState.hints) {
-            sameLinks = hint.target instanceof HTMLAnchorElement
-                && hint.target.href === (<HTMLAnchorElement>modeState.hints[0].target).href
-            if (!sameLinks)
-                break
+        let firstTarget = modeState.hints[0].target
+        let shouldSelect = firstTarget instanceof HTMLAnchorElement
+            && firstTarget.href !== ""
+            && !firstTarget.href.startsWith("javascript:")
+        if (shouldSelect) {
+            // Try to find an element that is not a link or that doesn't point
+            // to the same URL as the first hint
+            let different = modeState.hints.find(h => { 
+                return !(h.target instanceof HTMLAnchorElement)
+                    || (h.target.href !== (<HTMLAnchorElement>firstTarget).href)
+            })
+
+            if (different === undefined) {
+                modeState.hints[0].select()
+                reset()
+                return
+            }
         }
-        if (sameLinks) {
-            modeState.hints[0].select()
-            reset()
-        }
+
         logger.debug("hints", modeState.hints)
         modeState.focusedHint = modeState.hints[0]
         modeState.focusedHint.focused = true
@@ -163,6 +171,17 @@ class Hint {
         public readonly filterData: any,
         private readonly onSelect: HintSelectedCallback
     ) {
+        // We need to compute the offset for elements that are in an iframe
+        let offsetTop = 0
+        let offsetLeft = 0
+        if (target.ownerDocument !== document) {
+            let iframe = DOM.getAllDocumentFrames()
+                .find((frame) => frame.contentDocument == target.ownerDocument)
+            let rect = iframe.getClientRects()[0]
+            offsetTop += rect.top
+            offsetLeft += rect.left
+        }
+
         const rect = target.getClientRects()[0]
         this.flag.textContent = name
         this.flag.className = 'TridactylHint'
@@ -171,8 +190,8 @@ class Hint {
         /*     left: ${rect.left}px; */
         /* ` */
         this.flag.style.cssText = `
-            top: ${window.scrollY + rect.top}px !important;
-            left: ${window.scrollX + rect.left}px !important;
+            top: ${window.scrollY + offsetTop + rect.top}px !important;
+            left: ${window.scrollX + offsetLeft + rect.left}px !important;
         `
         modeState.hintHost.appendChild(this.flag)
         this.hidden = false
@@ -394,8 +413,13 @@ function pushKey(ke) {
             1. Within viewport
             2. Not hidden by another element
 */
-function hintables(selectors=HINTTAGS_selectors) {
-    return DOM.getElemsBySelector(selectors, [DOM.isVisible])
+function hintables(selectors=HINTTAGS_selectors, withjs=false) {
+    let elems = DOM.getElemsBySelector(selectors, [])
+    if (withjs) {
+        elems = elems.concat(DOM.hintworthy_js_elems)
+        elems = unique(elems)
+    }
+    return elems.filter(DOM.isVisible)
 }
 
 function elementswithtext() {
@@ -509,13 +533,13 @@ function simulateClick(target: HTMLElement) {
         openInNewTab((target as HTMLAnchorElement).href, {related: true})
     } else {
         DOM.mouseEvent(target, "click")
-        // Sometimes clicking the element doesn't focus it sufficiently.
-        target.focus()
+        // DOM.focus has additional logic for focusing inputs
+        DOM.focus(target)
     }
 }
 
-function hintPageOpenInBackground() {
-    hintPage(hintables(), hint=>{
+function hintPageOpenInBackground(selectors=HINTTAGS_selectors) {
+    hintPage(hintables(selectors, true), hint=>{
         hint.target.focus()
         if (hint.target.href) {
             // Try to open with the webext API. If that fails, simulate a click on this page anyway.
@@ -551,7 +575,7 @@ function hintPageWindowPrivate() {
 }
 
 function hintPageSimple(selectors=HINTTAGS_selectors) {
-    hintPage(hintables(selectors), hint=>{
+    hintPage(hintables(selectors, true), hint=>{
         simulateClick(hint.target)
     })
 }

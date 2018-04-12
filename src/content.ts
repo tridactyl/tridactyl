@@ -46,6 +46,8 @@ import Mark from 'mark.js'
     l: prom => prom.then(console.log).catch(console.error),
 })
 
+dom.hijackPageListenerFunctions()
+
 if (window.location.protocol === "moz-extension:" && window.location.pathname === "/static/newtab.html") {
     (window as any).tri.config.getAsync("newtab").then((newtab) => {
         if (newtab !== "")

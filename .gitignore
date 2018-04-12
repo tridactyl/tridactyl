@@ -5,3 +5,4 @@ src/excmds_content.ts
 generated
 web-ext-artifacts
 yarn.lock
+.vscode/
