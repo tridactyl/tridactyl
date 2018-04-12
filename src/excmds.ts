@@ -1738,6 +1738,19 @@ export function unset(...keys: string[]){
 //    saveconfig()
 //}
 
+import * as Native from "./native_background"
+
+//#background
+export async function ping() {
+    Native.connectNM()
+    Native.pingNM()
+}
+
+//#background
+export async function loadconfig() {
+    Native.connectNM()
+    Native.getUserConfig()
+}
 
 // }}}
 
