@@ -242,7 +242,7 @@ export function getAllDocumentFrames(doc = document) {
         try {
            let doc = f.contentDocument || f.contentWindow.document
            newFrames = getAllDocumentFrames(doc)
-        } catch {}
+        } catch (e){}
         return acc.concat(newFrames)
     }, []))
 }
@@ -263,7 +263,7 @@ export function getElemsBySelector(selector: string,
             try {
                 let doc = frame.contentDocument || frame.contentWindow.document
                 newElems = Array.from(doc.querySelectorAll(selector))
-            } catch {}
+            } catch (e){}
             return acc.concat(newElems)
         }, [])
 
