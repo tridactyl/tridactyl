@@ -20,6 +20,20 @@ async function add_beta(versionstr) {
     })
 }
 
+function make_update_json(versionstr){
+    updatejson = {
+      "addons": {
+        "tridactyl.vim.betas@cmcaine.co.uk": {
+          "updates": [{
+              "version": versionstr,
+              "update_link": "https://tridactyl.cmcaine.co.uk/betas/tridactyl-" + versionstr + "-an+fx.xpi"
+          },]
+        }
+      }
+    }
+    return updatejson
+}
+
 function save_manifest(filename, manifest) {
     // Save file
     const fs = require('fs')
@@ -41,6 +55,12 @@ async function main() {
             filename = './build/manifest.json'
             manifest = require('.' + filename)
             manifest.version = await add_beta(manifest.version)
+            manifest.applications.gecko.update_url = "https://tridactyl.cmcaine.co.uk/betas/updates.json"
+
+            // Make and write updates.json
+            save_manifest("../public_html/betas/updates.json",make_update_json(manifest.version))
+
+            // Save manifest.json
             save_manifest(filename, manifest)
             break
         default:
