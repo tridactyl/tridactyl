@@ -2,7 +2,7 @@
  * Background download-related functions
  */
 
-import {getDownloadFilenameForUrl} from "./url_util"
+import { getDownloadFilenameForUrl } from "./url_util"
 
 /** Construct an object URL string from a given data URL
  *
@@ -14,15 +14,14 @@ import {getDownloadFilenameForUrl} from "./url_util"
  *
  */
 function objectUrlFromDataUrl(dataUrl: URL): string {
-
     const b64 = dataUrl.pathname.split(",", 2)[1]
 
     const binaryF = atob(b64)
 
-    const dataArray = new Uint8Array(binaryF.length);
+    const dataArray = new Uint8Array(binaryF.length)
 
-    for(let i = 0, len = binaryF.length; i < len; ++i ) {
-        dataArray[i] = binaryF.charCodeAt(i);
+    for (let i = 0, len = binaryF.length; i < len; ++i) {
+        dataArray[i] = binaryF.charCodeAt(i)
     }
 
     return URL.createObjectURL(new Blob([dataArray]))
@@ -38,7 +37,6 @@ function objectUrlFromDataUrl(dataUrl: URL): string {
  * @param saveAs    prompt user for a filename
  */
 export async function downloadUrl(url: string, saveAs: boolean) {
-
     const urlToSave = new URL(url)
 
     let urlToDownload
@@ -61,7 +59,7 @@ export async function downloadUrl(url: string, saveAs: boolean) {
     let downloadPromise = browser.downloads.download({
         url: urlToDownload,
         filename: fileName,
-        saveAs: saveAs
+        saveAs: saveAs,
     })
 
     // TODO: at this point, could give feeback using the promise returned
@@ -74,6 +72,9 @@ export async function downloadUrl(url: string, saveAs: boolean) {
 import * as Messaging from "./messaging"
 
 // Get messages from content
-Messaging.addListener('download_background', Messaging.attributeCaller({
-    downloadUrl,
-}))
+Messaging.addListener(
+    "download_background",
+    Messaging.attributeCaller({
+        downloadUrl,
+    }),
+)

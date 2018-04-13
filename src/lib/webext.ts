@@ -1,9 +1,9 @@
-import * as convert from '../convert'
-import browserProxy from './browser_proxy'
-import * as config from '../config'
+import * as convert from "../convert"
+import browserProxy from "./browser_proxy"
+import * as config from "../config"
 
 export function inContentScript() {
-    return getContext() == 'content'
+    return getContext() == "content"
 }
 
 /** WebExt code can be run from three contexts:
@@ -13,12 +13,15 @@ export function inContentScript() {
     Background page
 */
 export function getContext() {
-    if (! ('tabs' in browser)) {
-        return 'content'
-    } else if (browser.runtime.getURL('_generated_background_page.html') == window.location.href) {
-        return 'background'
+    if (!("tabs" in browser)) {
+        return "content"
+    } else if (
+        browser.runtime.getURL("_generated_background_page.html") ==
+        window.location.href
+    ) {
+        return "background"
     } else {
-        return 'extension'
+        return "extension"
     }
 }
 
@@ -47,7 +50,6 @@ export async function l(promise) {
     }
 }
 
-
 /** The first active tab in the currentWindow.
  *
  * TODO: Highlander theory: Can there ever be more than one?
@@ -55,7 +57,9 @@ export async function l(promise) {
  */
 //#background_helper
 export async function activeTab() {
-    return (await l(browserBg.tabs.query({active: true, currentWindow: true})))[0]
+    return (await l(
+        browserBg.tabs.query({ active: true, currentWindow: true }),
+    ))[0]
 }
 
 //#background_helper
@@ -66,7 +70,7 @@ export async function activeTabId() {
 /** Compare major firefox versions */
 export async function firefoxVersionAtLeast(desiredmajor: number) {
     const versionstr = (await browserBg.runtime.getBrowserInfo()).version
-    const actualmajor = convert.toNumber(versionstr.split('.')[0])
+    const actualmajor = convert.toNumber(versionstr.split(".")[0])
     return actualmajor >= desiredmajor
 }
 
@@ -82,7 +86,10 @@ export async function firefoxVersionAtLeast(desiredmajor: number) {
 
     i.e. place that tab just after the current tab and set openerTabId
 */
-export async function openInNewTab(url: string, kwargs: {active?, related?} = {active: true, related: false}) {
+export async function openInNewTab(
+    url: string,
+    kwargs: { active?; related? } = { active: true, related: false },
+) {
     const thisTab = await activeTab()
     const options: any = {
         active: kwargs.active,
@@ -91,19 +98,19 @@ export async function openInNewTab(url: string, kwargs: {active?, related?} = {a
 
     // Be nice to behrmann, #342
     let pos
-    if (kwargs.related) pos = config.get('relatedopenpos')
-    else pos = config.get('tabopenpos')
+    if (kwargs.related) pos = config.get("relatedopenpos")
+    else pos = config.get("tabopenpos")
     switch (pos) {
-        case 'next':
+        case "next":
             options.index = thisTab.index + 1
-            if (kwargs.related && await l(firefoxVersionAtLeast(57)))
+            if (kwargs.related && (await l(firefoxVersionAtLeast(57))))
                 options.openerTabId = thisTab.id
             break
-        case 'last':
+        case "last":
             // Infinity can't be serialised, apparently.
             options.index = 99999
             break
-        case 'related':
+        case "related":
             if (await l(firefoxVersionAtLeast(57))) {
                 options.openerTabId = thisTab.id
             } else {

@@ -8,18 +8,17 @@ How to handle cached e.g. buffer information going out of date?
 
 */
 
-
-import * as Fuse from 'fuse.js'
-import {enumerate} from './itertools'
-import {toNumber} from './convert'
-import * as Messaging from './messaging'
-import {browserBg} from './lib/webext'
+import * as Fuse from "fuse.js"
+import { enumerate } from "./itertools"
+import { toNumber } from "./convert"
+import * as Messaging from "./messaging"
+import { browserBg } from "./lib/webext"
 
 const DEFAULT_FAVICON = browser.extension.getURL("static/defaultFavicon.svg")
 
 // {{{ INTERFACES
 
-type OptionState = 'focused' | 'hidden' | 'normal'
+type OptionState = "focused" | "hidden" | "normal"
 
 abstract class CompletionOption {
     /** What to fill into cmdline */
@@ -41,13 +40,13 @@ export abstract class CompletionSource {
     /** Control presentation of Source */
     set state(newstate: OptionState) {
         switch (newstate) {
-            case 'normal':
-                this.node.classList.remove('hidden')
+            case "normal":
+                this.node.classList.remove("hidden")
                 this.completion = undefined
                 break
-            case 'hidden':
-                this.node.classList.add('hidden')
-                break;
+            case "hidden":
+                this.node.classList.add("hidden")
+                break
         }
         this._state = newstate
     }
@@ -59,9 +58,8 @@ export abstract class CompletionSource {
     abstract next(inc?: number): boolean
 
     prev(inc = 1): boolean {
-        return this.next(-1*inc)
+        return this.next(-1 * inc)
     }
-
 }
 
 // Default classes
@@ -70,24 +68,24 @@ abstract class CompletionOptionHTML extends CompletionOption {
     public html: HTMLElement
     public value
 
-    private _state: OptionState = 'hidden'
+    private _state: OptionState = "hidden"
 
     /** Control presentation of element */
     set state(newstate: OptionState) {
         // console.log("state from to", this._state, newstate)
         switch (newstate) {
-            case 'focused':
-                this.html.classList.add('focused')
-                this.html.classList.remove('hidden')
+            case "focused":
+                this.html.classList.add("focused")
+                this.html.classList.remove("hidden")
                 break
-            case 'normal':
-                this.html.classList.remove('focused')
-                this.html.classList.remove('hidden')
+            case "normal":
+                this.html.classList.remove("focused")
+                this.html.classList.remove("hidden")
                 break
-            case 'hidden':
-                this.html.classList.remove('focused')
-                this.html.classList.add('hidden')
-                break;
+            case "hidden":
+                this.html.classList.remove("focused")
+                this.html.classList.add("hidden")
+                break
         }
         this._state = newstate
     }
@@ -103,8 +101,8 @@ interface CompletionOptionFuse extends CompletionOptionHTML {
 }
 
 type ScoredOption = {
-    index: number,
-    option: CompletionOptionFuse,
+    index: number
+    option: CompletionOptionFuse
     score: number
 }
 
@@ -118,12 +116,11 @@ abstract class CompletionSourceFuse extends CompletionSource {
 
     constructor(private prefixes, className: string, title?: string) {
         super()
-        this.node = html
-            `<div class="${className} hidden">
+        this.node = html`<div class="${className} hidden">
                 <div class="sectionHeader">${title || className}</div>
             </div>`
         this.node.appendChild(this.optionContainer)
-        this.state = 'hidden'
+        this.state = "hidden"
     }
 
     /* abstract onUpdate(query: string, prefix: string, options: CompletionOptionFuse[]) */
@@ -136,10 +133,10 @@ abstract class CompletionSourceFuse extends CompletionSource {
         this.onInput(exstr)
         this.updateChain()
     }
-    
+
     updateChain(exstr = this.lastExstr, options = this.options) {
         if (options === undefined) {
-            this.state = 'hidden'
+            this.state = "hidden"
             return
         }
 
@@ -150,20 +147,20 @@ abstract class CompletionSourceFuse extends CompletionSource {
         // Hide self and stop if prefixes don't match
         if (prefix) {
             // Show self if prefix and currently hidden
-            if (this.state === 'hidden') {
-                this.state = 'normal'
+            if (this.state === "hidden") {
+                this.state = "normal"
             }
         } else {
-            this.state = 'hidden'
+            this.state = "hidden"
             return
         }
 
         // Filter by query if query is not empty
         if (query) {
             this.setStateFromScore(this.scoredOptions(query))
-        // Else show all options
+            // Else show all options
         } else {
-            options.forEach(option => option.state = 'normal')
+            options.forEach(option => (option.state = "normal"))
         }
 
         // Call concrete class
@@ -174,7 +171,7 @@ abstract class CompletionSourceFuse extends CompletionSource {
         if (this.lastExstr !== undefined && option !== undefined) {
             const [prefix, _] = this.splitOnPrefix(this.lastExstr)
             this.completion = prefix + option.value
-            option.state = 'focused'
+            option.state = "focused"
             this.lastFocused = option
         } else {
             throw new Error("lastExstr and option must be defined!")
@@ -189,13 +186,12 @@ abstract class CompletionSourceFuse extends CompletionSource {
     splitOnPrefix(exstr: string) {
         for (const prefix of this.prefixes) {
             if (exstr.startsWith(prefix)) {
-                const query = exstr.replace(prefix, '')
+                const query = exstr.replace(prefix, "")
                 return [prefix, query]
             }
         }
         return [undefined, undefined]
     }
-    
 
     fuseOptions = {
         keys: ["fuseKeys"],
@@ -212,44 +208,38 @@ abstract class CompletionSourceFuse extends CompletionSource {
     scoredOptions(query: string, options = this.options): ScoredOption[] {
         // This is about as slow.
         let USE_FUSE = true
-        if (!USE_FUSE){
-            const searchThis = this.options.map(
-                (elem, index) => {
-                    return {index, fuseKeys: elem.fuseKeys[0]}
-                })
+        if (!USE_FUSE) {
+            const searchThis = this.options.map((elem, index) => {
+                return { index, fuseKeys: elem.fuseKeys[0] }
+            })
 
             return searchThis.map(r => {
                 return {
                     index: r.index,
                     option: this.options[r.index],
-                    score: r.fuseKeys.length
+                    score: r.fuseKeys.length,
                 }
             })
         } else {
-
             // Can't sort the real options array because Fuse loses class information.
-            
-            if (!this.fuse){
-                let searchThis = this.options.map(
-                    (elem, index) => {
-                        return {index, fuseKeys: elem.fuseKeys}
-                    }
-                )
+
+            if (!this.fuse) {
+                let searchThis = this.options.map((elem, index) => {
+                    return { index, fuseKeys: elem.fuseKeys }
+                })
 
                 this.fuse = new Fuse(searchThis, this.fuseOptions)
             }
-            return this.fuse.search(query).map(
-                res => {
-                    let result = res as any
-                    // console.log(result, result.item, query)
-                    let index = toNumber(result.item)
-                    return {
-                        index,
-                        option: this.options[index],
-                        score: result.score as number
-                    }
+            return this.fuse.search(query).map(res => {
+                let result = res as any
+                // console.log(result, result.item, query)
+                let index = toNumber(result.item)
+                return {
+                    index,
+                    option: this.options[index],
+                    score: result.score as number,
                 }
-            )
+            })
         }
     }
 
@@ -262,8 +252,8 @@ abstract class CompletionSourceFuse extends CompletionSource {
         let matches = scoredOpts.map(res => res.index)
 
         for (const [index, option] of enumerate(this.options)) {
-            if (matches.includes(index)) option.state = 'normal'
-            else option.state = 'hidden'
+            if (matches.includes(index)) option.state = "normal"
+            else option.state = "hidden"
         }
 
         // ideally, this would not deselect anything unless it fell off the list of matches
@@ -287,7 +277,8 @@ abstract class CompletionSourceFuse extends CompletionSource {
 
         for (const option of this.options) {
             /* newContainer.appendChild(option.html) */
-            if (option.state != "hidden") this.optionContainer.appendChild(option.html)
+            if (option.state != "hidden")
+                this.optionContainer.appendChild(option.html)
         }
 
         /* console.log('updateDisplay', this.optionContainer, newContainer) */
@@ -297,30 +288,31 @@ abstract class CompletionSourceFuse extends CompletionSource {
         /* console.log('results', result1, res2) */
     }
 
-    next(inc=1){
-        if (this.state != "hidden"){
-            let visopts = this.options.filter((o) => o.state != "hidden")
-            let currind = visopts.findIndex((o) => o.state == "focused")
-            if ((inc < 0) && (currind == -1)) inc += 1
+    next(inc = 1) {
+        if (this.state != "hidden") {
+            let visopts = this.options.filter(o => o.state != "hidden")
+            let currind = visopts.findIndex(o => o.state == "focused")
+            if (inc < 0 && currind == -1) inc += 1
             this.deselect()
-            this.select(visopts[(currind + inc + visopts.length) % visopts.length
-])
+            this.select(
+                visopts[(currind + inc + visopts.length) % visopts.length],
+            )
             return true
         } else return false
     }
-
 }
 
 // }}}
 
 // {{{ IMPLEMENTATIONS
 
-class HistoryCompletionOption extends CompletionOptionHTML implements CompletionOptionFuse {
+class HistoryCompletionOption extends CompletionOptionHTML
+    implements CompletionOptionFuse {
     public fuseKeys = []
 
     constructor(public value: string, page: browser.history.HistoryItem) {
         super()
-        if (! page.title) {
+        if (!page.title) {
             page.title = new URL(page.url).host
         }
 
@@ -335,17 +327,23 @@ class HistoryCompletionOption extends CompletionOptionHTML implements Completion
             <td class="prefix">${"".padEnd(2)}</td>
             <td></td>
             <td>${page.title}</td>
-            <td><a class="url" target="_blank" href=${page.url}>${page.url}</a></td>
+            <td><a class="url" target="_blank" href=${page.url}>${
+            page.url
+        }</a></td>
         </tr>`
     }
 }
 
-class BmarkCompletionOption extends CompletionOptionHTML implements CompletionOptionFuse {
+class BmarkCompletionOption extends CompletionOptionHTML
+    implements CompletionOptionFuse {
     public fuseKeys = []
 
-    constructor(public value: string, bmark: browser.bookmarks.BookmarkTreeNode) {
+    constructor(
+        public value: string,
+        bmark: browser.bookmarks.BookmarkTreeNode,
+    ) {
         super()
-        if (! bmark.title) {
+        if (!bmark.title) {
             bmark.title = new URL(bmark.url).host
         }
 
@@ -360,7 +358,9 @@ class BmarkCompletionOption extends CompletionOptionHTML implements CompletionOp
             <td class="prefix">${"".padEnd(2)}</td>
             <td></td>
             <td>${bmark.title}</td>
-            <td><a class="url" target="_blank" href=${bmark.url}>${bmark.url}</a></td>
+            <td><a class="url" target="_blank" href=${bmark.url}>${
+            bmark.url
+        }</a></td>
         </tr>`
     }
 }
@@ -369,17 +369,11 @@ function sleep(ms: number) {
     return new Promise(resolve => setTimeout(resolve, ms))
 }
 
-
 export class BmarkCompletionSource extends CompletionSourceFuse {
     public options: BmarkCompletionOption[]
 
     constructor(private _parent) {
-        super(
-            [
-                "bmarks ",
-            ],
-            "BmarkCompletionSource", "Bookmarks"
-        )
+        super(["bmarks "], "BmarkCompletionSource", "Bookmarks")
 
         this._parent.appendChild(this.node)
     }
@@ -391,24 +385,24 @@ export class BmarkCompletionSource extends CompletionSourceFuse {
         // Hide self and stop if prefixes don't match
         if (prefix) {
             // Show self if prefix and currently hidden
-            if (this.state === 'hidden') {
-                this.state = 'normal'
+            if (this.state === "hidden") {
+                this.state = "normal"
             }
         } else {
-            this.state = 'hidden'
+            this.state = "hidden"
             return
         }
 
-	this.options = (await this.scoreOptions(query, 10)).map(
-	    page => new BmarkCompletionOption(page.url, page)
-	)
+        this.options = (await this.scoreOptions(query, 10)).map(
+            page => new BmarkCompletionOption(page.url, page),
+        )
 
         this.updateChain()
     }
 
     updateChain() {
         // Options are pre-trimmed to the right length.
-        this.options.forEach(option => option.state = 'normal')
+        this.options.forEach(option => (option.state = "normal"))
 
         // Call concrete class
         this.updateDisplay()
@@ -418,12 +412,12 @@ export class BmarkCompletionSource extends CompletionSourceFuse {
 
     private async scoreOptions(query: string, n: number) {
         // Search bookmarks, dedupe and sort by frecency
-        let bookmarks = await browserBg.bookmarks.search({query})
-        bookmarks = bookmarks.filter(b=>{
+        let bookmarks = await browserBg.bookmarks.search({ query })
+        bookmarks = bookmarks.filter(b => {
             try {
                 return new URL(b.url)
             } catch (e) {
-                return false;
+                return false
             }
         })
 
@@ -435,7 +429,7 @@ export class BmarkCompletionSource extends CompletionSourceFuse {
     select(option: CompletionOption) {
         if (this.lastExstr !== undefined && option !== undefined) {
             this.completion = "open " + option.value
-            option.state = 'focused'
+            option.state = "focused"
             this.lastFocused = option
         } else {
             throw new Error("lastExstr and option must be defined!")
@@ -448,12 +442,9 @@ export class HistoryCompletionSource extends CompletionSourceFuse {
 
     constructor(private _parent) {
         super(
-            [
-                "open ",
-                "tabopen ",
-                "winopen ",
-            ],
-            "HistoryCompletionSource", "History"
+            ["open ", "tabopen ", "winopen "],
+            "HistoryCompletionSource",
+            "History",
         )
 
         this._parent.appendChild(this.node)
@@ -466,24 +457,24 @@ export class HistoryCompletionSource extends CompletionSourceFuse {
         // Hide self and stop if prefixes don't match
         if (prefix) {
             // Show self if prefix and currently hidden
-            if (this.state === 'hidden') {
-                this.state = 'normal'
+            if (this.state === "hidden") {
+                this.state = "normal"
             }
         } else {
-            this.state = 'hidden'
+            this.state = "hidden"
             return
         }
 
-	this.options = (await this.scoreOptions(query, 10)).map(
-	    page => new HistoryCompletionOption(page.url, page)
-	)
+        this.options = (await this.scoreOptions(query, 10)).map(
+            page => new HistoryCompletionOption(page.url, page),
+        )
 
         this.updateChain()
     }
 
     updateChain() {
         // Options are pre-trimmed to the right length.
-        this.options.forEach(option => option.state = 'normal')
+        this.options.forEach(option => (option.state = "normal"))
 
         // Call concrete class
         this.updateDisplay()
@@ -492,51 +483,60 @@ export class HistoryCompletionSource extends CompletionSourceFuse {
     onInput() {}
 
     private frecency(item: browser.history.HistoryItem) {
-	// Doesn't actually care about recency yet.
-	return item.visitCount * -1
+        // Doesn't actually care about recency yet.
+        return item.visitCount * -1
     }
 
     private async scoreOptions(query: string, n: number) {
-        const newtab = browser.runtime.getManifest()['chrome_url_overrides'].newtab
+        const newtab = browser.runtime.getManifest()["chrome_url_overrides"]
+            .newtab
         const newtaburl = browser.extension.getURL(newtab)
-	if (! query) {
-            return (await browserBg.topSites.get()).filter(page =>
-                page.url !== newtaburl
-            ).slice(0, n)
-	} else {
-	    // Search history, dedupe and sort by frecency
-	    let history = await browserBg.history.search({
-		text: query,
-		maxResults: 500,
-		startTime: 0
-	    })
+        if (!query) {
+            return (await browserBg.topSites.get())
+                .filter(page => page.url !== newtaburl)
+                .slice(0, n)
+        } else {
+            // Search history, dedupe and sort by frecency
+            let history = await browserBg.history.search({
+                text: query,
+                maxResults: 500,
+                startTime: 0,
+            })
 
-	    // Remove entries with duplicate URLs
-	    const dedupe = new Map()
-	    for (const page of history) {
+            // Remove entries with duplicate URLs
+            const dedupe = new Map()
+            for (const page of history) {
                 if (page.url !== newtaburl) {
-	            if (dedupe.has(page.url)) {
-	                if (dedupe.get(page.url).title.length < page.title.length) {
+                    if (dedupe.has(page.url)) {
+                        if (
+                            dedupe.get(page.url).title.length <
+                            page.title.length
+                        ) {
                             dedupe.set(page.url, page)
-	                }
-	            } else {
-	                dedupe.set(page.url, page)
-	            }
+                        }
+                    } else {
+                        dedupe.set(page.url, page)
+                    }
                 }
-	    }
-	    history = [...dedupe.values()]
+            }
+            history = [...dedupe.values()]
 
-	    history.sort((a, b) => this.frecency(a) - this.frecency(b))
+            history.sort((a, b) => this.frecency(a) - this.frecency(b))
 
-	    return history.slice(0, n)
-	}
+            return history.slice(0, n)
+        }
     }
 }
 
-class BufferCompletionOption extends CompletionOptionHTML implements CompletionOptionFuse {
+class BufferCompletionOption extends CompletionOptionHTML
+    implements CompletionOptionFuse {
     public fuseKeys = []
 
-    constructor(public value: string, tab: browser.tabs.Tab, public isAlternative = false) {
+    constructor(
+        public value: string,
+        tab: browser.tabs.Tab,
+        public isAlternative = false,
+    ) {
         super()
         // Two character buffer properties prefix
         let pre = ""
@@ -559,7 +559,9 @@ class BufferCompletionOption extends CompletionOptionHTML implements CompletionO
             <td class="prefix">${pre.padEnd(2)}</td>
             <td><img src=${favIconUrl} /></td>
             <td>${tab.index + 1}: ${tab.title}</td>
-            <td><a class="url" target="_blank" href=${tab.url}>${tab.url}</a></td>
+            <td><a class="url" target="_blank" href=${tab.url}>${
+            tab.url
+        }</a></td>
         </tr>`
     }
 }
@@ -574,14 +576,9 @@ export class BufferCompletionSource extends CompletionSourceFuse {
 
     constructor(private _parent) {
         super(
-            [
-                "buffer ",
-                "tabclose ",
-                "tabdetach ",
-                "tabduplicate ",
-                "tabmove ",
-            ],
-            "BufferCompletionSource", "Buffers"
+            ["buffer ", "tabclose ", "tabdetach ", "tabduplicate ", "tabmove "],
+            "BufferCompletionSource",
+            "Buffers",
         )
 
         this.updateOptions()
@@ -590,20 +587,28 @@ export class BufferCompletionSource extends CompletionSourceFuse {
 
     private async updateOptions(exstr?: string) {
         /* console.log('updateOptions', this.optionContainer) */
-        const tabs: browser.tabs.Tab[] =
-            await Messaging.message("commandline_background", "currentWindowTabs")
+        const tabs: browser.tabs.Tab[] = await Messaging.message(
+            "commandline_background",
+            "currentWindowTabs",
+        )
 
         const options = []
 
         // Get alternative tab, defined as last accessed tab.
-        const alt = tabs.sort((a, b) => { return a.lastAccessed < b.lastAccessed ? 1 : -1 })[1]
-        tabs.sort((a, b) => { return a.index < b.index ? -1 : 1 })
+        const alt = tabs.sort((a, b) => {
+            return a.lastAccessed < b.lastAccessed ? 1 : -1
+        })[1]
+        tabs.sort((a, b) => {
+            return a.index < b.index ? -1 : 1
+        })
 
         for (const tab of tabs) {
-            options.push(new BufferCompletionOption(
-                (tab.index + 1).toString(),
-                tab,
-                tab === alt)
+            options.push(
+                new BufferCompletionOption(
+                    (tab.index + 1).toString(),
+                    tab,
+                    tab === alt,
+                ),
             )
         }
 
@@ -618,7 +623,7 @@ export class BufferCompletionSource extends CompletionSourceFuse {
         this.updateOptions()
     }
 
-    setStateFromScore(scoredOpts: ScoredOption[]){
+    setStateFromScore(scoredOpts: ScoredOption[]) {
         super.setStateFromScore(scoredOpts, true)
     }
 
@@ -631,20 +636,24 @@ export class BufferCompletionSource extends CompletionSourceFuse {
                 let index = Number(args[0]) - 1
                 if (Math.abs(index) < options.length) {
                     index = index.mod(options.length)
-                    return [{
-                        index,
-                        option: options[index],
-                        score: 0,
-                    }]
+                    return [
+                        {
+                            index,
+                            option: options[index],
+                            score: 0,
+                        },
+                    ]
                 }
-            } else if (args[0] === '#') {
+            } else if (args[0] === "#") {
                 for (const [index, option] of enumerate(options)) {
                     if (option.isAlternative) {
-                        return [{
-                            index,
-                            option,
-                            score: 0,
-                        }]
+                        return [
+                            {
+                                index,
+                                option,
+                                score: 0,
+                            },
+                        ]
                     }
                 }
             }
@@ -658,7 +667,12 @@ export class BufferCompletionSource extends CompletionSourceFuse {
 // {{{ UNUSED: MANAGING ASYNC CHANGES
 
 /** If first to modify epoch, commit change. May want to change epoch after commiting. */
-async function commitIfCurrent(epochref: any, asyncFunc: Function, commitFunc: Function, ...args: any[]): Promise<any> {
+async function commitIfCurrent(
+    epochref: any,
+    asyncFunc: Function,
+    commitFunc: Function,
+    ...args: any[]
+): Promise<any> {
     // I *think* sync stuff in here is guaranteed to happen immediately after
     // being called, up to the first await, despite this being an async
     // function. But I don't know. Should check.
@@ -679,14 +693,15 @@ function updateCompletions(filter: string, sources: CompletionSource[]) {
         //      1. Take over their parent's slot in compOpts
         //      2. Update their display
         commitIfCurrent(
-            source.obsolete,                   // Flag/epoch
-            source.filter,                     // asyncFunc
-            (childSource) => {                 // commitFunc
+            source.obsolete, // Flag/epoch
+            source.filter, // asyncFunc
+            childSource => {
+                // commitFunc
                 source.obsolete = true
                 sources[index] = childSource
                 childSource.activate()
             },
-            filter                              // argument to asyncFunc
+            filter, // argument to asyncFunc
         )
     }
 }

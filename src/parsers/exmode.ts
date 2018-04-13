@@ -4,7 +4,7 @@ import * as ExCmds from "../excmds_background"
 import * as convert from "../convert"
 import * as Config from "../config"
 import * as aliases from "../aliases"
-import {enumerate, head, izip} from "../itertools"
+import { enumerate, head, izip } from "../itertools"
 
 /* Converts numbers, boolean, string[].
 
@@ -19,8 +19,8 @@ function convertArgs(params, argv) {
     const conversions = {
         number: convert.toNumber,
         boolean: convert.toBoolean,
-        string: s=>s,
-        ModeName: s=>s,
+        string: s => s,
+        ModeName: s => s,
     }
 
     const typedArgs = []
@@ -28,7 +28,7 @@ function convertArgs(params, argv) {
     for ([type, [i, arg]] of izip(params.values(), enumerate(argv))) {
         if (type in conversions) {
             typedArgs.push(conversions[type](arg))
-        } else if (type.includes('|') || ["'", '"'].includes(type[0])) {
+        } else if (type.includes("|") || ["'", '"'].includes(type[0])) {
             // Do your own conversions!
             typedArgs.push(arg)
         } else if (type === "string[]") {
@@ -46,11 +46,14 @@ function convertArgs(params, argv) {
 export function parser(ex_str: string): any[] {
     // Expand aliases
     const expandedExstr = aliases.expandExstr(ex_str)
-    const [func,...args] = expandedExstr.trim().split(/\s+/)
+    const [func, ...args] = expandedExstr.trim().split(/\s+/)
 
     if (ExCmds.cmd_params.has(func)) {
         try {
-            return [ExCmds[func], convertArgs(ExCmds.cmd_params.get(func), args)]
+            return [
+                ExCmds[func],
+                convertArgs(ExCmds.cmd_params.get(func), args),
+            ]
         } catch (e) {
             console.error("Error executing or parsing:", ex_str, e)
             throw e

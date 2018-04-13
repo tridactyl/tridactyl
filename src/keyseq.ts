@@ -15,10 +15,10 @@
  */
 
 export type KeyModifiers = {
-    altKey?: boolean,
-    ctrlKey?: boolean,
-    metaKey?: boolean,
-    shiftKey?: boolean,
+    altKey?: boolean
+    ctrlKey?: boolean
+    metaKey?: boolean
+    shiftKey?: boolean
 }
 
 export class MinimalKey {
@@ -27,10 +27,7 @@ export class MinimalKey {
     readonly metaKey = false
     readonly shiftKey = false
 
-    constructor(
-        readonly key: string,
-        modifiers?: KeyModifiers,
-    ) {
+    constructor(readonly key: string, modifiers?: KeyModifiers) {
         for (let mod in modifiers) {
             this[mod] = modifiers[mod]
         }
@@ -96,7 +93,6 @@ export class MinimalKey {
 
 */
 export function bracketexprToKey(be: string): [MinimalKey, string] {
-
     function extractModifiers(be: string): [string, any] {
         const modifiers = new Map([
             ["A-", "altKey"],
@@ -110,20 +106,20 @@ export function bracketexprToKey(be: string): [MinimalKey, string] {
         if (mod) {
             extracted[mod] = true
             // Remove modifier prefix
-            be = '<' + be.slice(3)
+            be = "<" + be.slice(3)
         }
         return [be, extracted]
     }
 
     let modifiers: KeyModifiers
     let beWithoutModifiers: string
-    [beWithoutModifiers, modifiers] = extractModifiers(be)
+    ;[beWithoutModifiers, modifiers] = extractModifiers(be)
 
     // Special cases:
-    if (be === '<<>') {
-        return [new MinimalKey('<', modifiers), be.slice(3)]
-    } else if (beWithoutModifiers === '<>>') {
-        return [new MinimalKey('<', modifiers), be.slice(3)]
+    if (be === "<<>") {
+        return [new MinimalKey("<", modifiers), be.slice(3)]
+    } else if (beWithoutModifiers === "<>>") {
+        return [new MinimalKey("<", modifiers), be.slice(3)]
     }
 
     // General case:
@@ -131,13 +127,13 @@ export function bracketexprToKey(be: string): [MinimalKey, string] {
 
     // Vim compatibility aliases
     const aliases = {
-        cr: 'Enter',
-        return: 'Enter',
-        space: 'Enter',
-        bar: '|',
-        del: 'Delete',
-        bs: 'Backspace',
-        lt: '<',
+        cr: "Enter",
+        return: "Enter",
+        space: "Enter",
+        bar: "|",
+        del: "Delete",
+        bs: "Backspace",
+        lt: "<",
     }
     if (beRegex.exec(be) !== null) {
         // Extract complete bracket expression and remove
@@ -152,7 +148,7 @@ export function bracketexprToKey(be: string): [MinimalKey, string] {
         return [new MinimalKey(key, modifiers), be]
     } else {
         // Wasn't a bracket expression. Treat it as a literal <
-        return [new MinimalKey('<'), be.slice(1)]
+        return [new MinimalKey("<"), be.slice(1)]
     }
 }
 
@@ -160,8 +156,8 @@ export function mapstrToKeyseq(mapstr: string): MinimalKey[] {
     const keyseq: MinimalKey[] = []
     let key: MinimalKey
     while (mapstr.length) {
-        if (mapstr[0] === '<') {
-            [key, mapstr] = bracketexprToKey(mapstr)
+        if (mapstr[0] === "<") {
+            ;[key, mapstr] = bracketexprToKey(mapstr)
             keyseq.push(key)
         } else {
             keyseq.push(new MinimalKey(mapstr[0]))
@@ -173,12 +169,17 @@ export function mapstrToKeyseq(mapstr: string): MinimalKey[] {
 
 // {{{ Utility functions for dealing with KeyboardEvents
 
-import {MsgSafeKeyboardEvent} from './msgsafe'
+import { MsgSafeKeyboardEvent } from "./msgsafe"
 
 type KeyEventLike = MinimalKey | MsgSafeKeyboardEvent | KeyboardEvent
 
 export function hasModifiers(keyEvent: KeyEventLike) {
-    return keyEvent.ctrlKey || keyEvent.altKey || keyEvent.metaKey || keyEvent.shiftKey
+    return (
+        keyEvent.ctrlKey ||
+        keyEvent.altKey ||
+        keyEvent.metaKey ||
+        keyEvent.shiftKey
+    )
 }
 
 /** shiftKey is true for any capital letter, most numbers, etc. Generally care about other modifiers. */
@@ -187,5 +188,5 @@ export function hasNonShiftModifiers(keyEvent: KeyEventLike) {
 }
 
 export function isSimpleKey(keyEvent: KeyEventLike) {
-    return ! (keyEvent.key.length > 1 || hasNonShiftModifiers(keyEvent))
+    return !(keyEvent.key.length > 1 || hasNonShiftModifiers(keyEvent))
 }

@@ -1,7 +1,7 @@
 /** Inject an input element into unsuspecting webpages and provide an API for interaction with tridactyl */
 
-import Logger from './logging'
-const logger = new Logger('messaging')
+import Logger from "./logging"
+const logger = new Logger("messaging")
 
 /* TODO:
     CSS
@@ -16,12 +16,15 @@ const logger = new Logger('messaging')
 
 let cmdline_iframe: HTMLIFrameElement = undefined
 
-function init(){
+function init() {
     if (cmdline_iframe === undefined) {
         try {
             cmdline_iframe = window.document.createElement("iframe")
             cmdline_iframe.className = "cleanslate"
-            cmdline_iframe.setAttribute("src", browser.extension.getURL("static/commandline.html"))
+            cmdline_iframe.setAttribute(
+                "src",
+                browser.extension.getURL("static/commandline.html"),
+            )
             cmdline_iframe.setAttribute("id", "cmdline_iframe")
             hide()
             window.document.documentElement.appendChild(cmdline_iframe)
@@ -35,16 +38,17 @@ function init(){
 // every time.
 init()
 
-export function show(){
-    const height = cmdline_iframe.contentWindow.document.body.offsetHeight + 'px'
+export function show() {
+    const height =
+        cmdline_iframe.contentWindow.document.body.offsetHeight + "px"
     cmdline_iframe.setAttribute("style", `height: ${height} !important;`)
 }
 
-export function hide(){
+export function hide() {
     cmdline_iframe.setAttribute("style", "height: 0px !important;")
 }
 
-export function focus(){
+export function focus() {
     cmdline_iframe.focus()
 }
 
@@ -68,7 +72,6 @@ export function executeWithoutCommandLine(fn) {
     return result
 }
 
-
-import * as Messaging from './messaging'
-import * as SELF from './commandline_content'
-Messaging.addListener('commandline_content', Messaging.attributeCaller(SELF))
+import * as Messaging from "./messaging"
+import * as SELF from "./commandline_content"
+Messaging.addListener("commandline_content", Messaging.attributeCaller(SELF))

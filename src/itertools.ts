@@ -1,4 +1,4 @@
-import './number.mod'
+import "./number.mod"
 
 export function head(iter) {
     let result = iter.next()
@@ -14,7 +14,7 @@ export function head(iter) {
 export function zip(...arrays) {
     // Make an array of length values
     // TODO: Explain how this works
-    return [...Array(arrays[0].length)].map((_, i) => arrays.map((a) => a[i]))
+    return [...Array(arrays[0].length)].map((_, i) => arrays.map(a => a[i]))
 }
 
 export function* range(length) {
@@ -34,7 +34,7 @@ export function* enumerate(iterable) {
 
 /* Zip arbitrary iterators together */
 export function* izip(...arrays) {
-    let iterators = arrays.map(e=>e[Symbol.iterator]())
+    let iterators = arrays.map(e => e[Symbol.iterator]())
     let box = Array(arrays.length)
     for (let v of iterators[0]) {
         box[0] = v
@@ -53,7 +53,7 @@ export function* izip(...arrays) {
 /* Test if two iterables are equal */
 export function iterEq(...arrays) {
     for (let a of zip(...arrays)) {
-        if (! a.reduce((x,y)=>(x===y))) return false
+        if (!a.reduce((x, y) => x === y)) return false
     }
     return true
 }
@@ -88,7 +88,7 @@ export function* islice(iterable, start: number, stop?: number) {
     if (stop === null) {
         yield* iter
     } else {
-        for (let i = start; i < stop; i ++) {
+        for (let i = start; i < stop; i++) {
             const res = iter.next()
             if (res.done) return
             else yield res.value
@@ -108,7 +108,7 @@ export function* permutationsWithReplacement(arr, n) {
     const counters = zeros(n)
     let index = 1
     for (let _ of range(Math.pow(len, n))) {
-        yield counters.map(i=>arr[i])
+        yield counters.map(i => arr[i])
         for (let i of range(counters.length)) {
             if (index.mod(Math.pow(len, counters.length - 1 - i)) === 0)
                 counters[i] = (counters[i] + 1).mod(len)
@@ -118,17 +118,15 @@ export function* permutationsWithReplacement(arr, n) {
 }
 
 export function* map(arr, func) {
-    for (const v of arr)
-        yield func(v)
+    for (const v of arr) yield func(v)
 }
 
 // Returns an array of unique elements.
 export function unique(arr) {
     return arr.reduce((acc, cur) => {
-        if (acc.indexOf(cur) == -1)
-            acc.push(cur)
+        if (acc.indexOf(cur) == -1) acc.push(cur)
         return acc
-    }, []);
+    }, [])
 }
 
 export function flatten(arr) {

@@ -1,17 +1,16 @@
 /** Functions to deal with text to speech in Tridactyl
  */
 
-import * as Config from './config'
+import * as Config from "./config"
 
 /** Find the voice object for a voice name
  *
  * @return voice from the TTS API, or undefined
  */
 function getVoiceFromName(name: string | "default"): SpeechSynthesisVoice {
-
     let voices = window.speechSynthesis.getVoices()
 
-    return voices.find(voice=>(voice.name === name))
+    return voices.find(voice => voice.name === name)
 }
 
 /**
@@ -20,35 +19,31 @@ function getVoiceFromName(name: string | "default"): SpeechSynthesisVoice {
  * @param text      the text to read out
  */
 export function readText(text: string): void {
-
     if (window.speechSynthesis.getVoices().length === 0) {
         // should try to warn user? This apparently can happen on some machines
         // TODO: Implement when there's an error feedback mechanism
         throw new Error("No voice found: cannot use Text-To-Speech API")
     }
 
-    let utterance = new SpeechSynthesisUtterance(text);
+    let utterance = new SpeechSynthesisUtterance(text)
 
     let pitch = Config.get("ttspitch")
     let voice = Config.get("ttsvoice")
     let volume = Config.get("ttsvolume")
     let rate = Config.get("ttsrate")
 
-    if (pitch >= 0 && pitch < 2)
-        utterance.pitch = pitch
+    if (pitch >= 0 && pitch < 2) utterance.pitch = pitch
 
-    if (volume >= 0 && volume <= 1)
-        utterance.volume = volume
+    if (volume >= 0 && volume <= 1) utterance.volume = volume
 
-    if (rate >= 0.1 && rate <= 10)
-        utterance.rate = rate
+    if (rate >= 0.1 && rate <= 10) utterance.rate = rate
 
     let voiceObj = getVoiceFromName(voice)
     if (voiceObj) {
         utterance.voice = voiceObj
     }
 
-    window.speechSynthesis.speak(utterance);
+    window.speechSynthesis.speak(utterance)
 }
 
 /**
@@ -63,7 +58,6 @@ export type Action = "stop" | "play" | "pause" | "playpause"
  * to be very useful right now
  */
 export function doAction(action: Action): void {
-
     let synth = window.speechSynthesis
 
     switch (action) {
@@ -89,8 +83,7 @@ export function doAction(action: Action): void {
  * @return list of voice names
  */
 export function listVoices(): string[] {
-
     let voices = window.speechSynthesis.getVoices()
 
-    return voices.map(voice=>voice.name)
+    return voices.map(voice => voice.name)
 }

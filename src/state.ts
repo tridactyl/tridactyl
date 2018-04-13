@@ -14,12 +14,19 @@
     If this turns out to be expensive there are improvements available.
 */
 
-import Logger from './logging'
-const logger = new Logger('state')
+import Logger from "./logging"
+const logger = new Logger("state")
 
-export type ModeName = 'normal' | 'insert' | 'hint' | 'ignore' | 'gobble' | 'input' | 'find'
+export type ModeName =
+    | "normal"
+    | "insert"
+    | "hint"
+    | "ignore"
+    | "gobble"
+    | "input"
+    | "find"
 class State {
-    mode: ModeName = 'normal'
+    mode: ModeName = "normal"
     cmdHistory: string[] = []
     last_ex_str: string = ""
 }
@@ -28,17 +35,19 @@ class State {
 const defaults = Object.freeze(new State())
 
 const overlay = {} as any
-browser.storage.local.get('state').then(res=>{
-    if ('state' in res) {
-        logger.debug("Loaded initial state:", res.state)
-        Object.assign(overlay, res.state)
-    }
-}).catch((...args) => logger.error(...args))
+browser.storage.local
+    .get("state")
+    .then(res => {
+        if ("state" in res) {
+            logger.debug("Loaded initial state:", res.state)
+            Object.assign(overlay, res.state)
+        }
+    })
+    .catch((...args) => logger.error(...args))
 
-const state = new Proxy(overlay, {
-
+const state = (new Proxy(overlay, {
     /** Give defaults if overlay doesn't have the key */
-    get: function (target, property) {
+    get: function(target, property) {
         if (property in target) {
             return target[property]
         } else {
@@ -50,18 +59,15 @@ const state = new Proxy(overlay, {
     set: function(target, property, value) {
         logger.debug("State changed!", property, value)
         target[property] = value
-        browser.storage.local.set({state: target})
+        browser.storage.local.set({ state: target })
         return true
+    },
+}) as any) as State
+
+browser.storage.onChanged.addListener((changes, areaname) => {
+    if (areaname === "local" && "state" in changes) {
+        Object.assign(overlay, changes.state.newValue)
     }
+})
 
-}) as any as State
-
-browser.storage.onChanged.addListener(
-    (changes, areaname) => {
-        if (areaname === "local" && 'state' in changes) {
-            Object.assign(overlay, changes.state.newValue)
-        }
-    }
-)
-
-export {state as default}
+export { state as default }

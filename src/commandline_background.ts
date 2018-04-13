@@ -1,4 +1,4 @@
-import * as Messaging from './messaging'
+import * as Messaging from "./messaging"
 
 export type onLineCallback = (exStr: string) => void
 
@@ -7,9 +7,11 @@ export type onLineCallback = (exStr: string) => void
   Receives messages from commandline_frame
 */
 export const onLine = {
-    addListener: function (cb: onLineCallback) {
+    addListener: function(cb: onLineCallback) {
         listeners.add(cb)
-        return () => { listeners.delete(cb) }
+        return () => {
+            listeners.delete(cb)
+        }
     },
 }
 
@@ -24,36 +26,43 @@ function recvExStr(exstr: string) {
 
 /** Helpers for completions */
 async function currentWindowTabs(): Promise<browser.tabs.Tab[]> {
-    return await browser.tabs.query({currentWindow:true})
+    return await browser.tabs.query({ currentWindow: true })
 }
 
 async function history(): Promise<browser.history.HistoryItem[]> {
-    return await browser.history.search({text:"",maxResults:50,startTime:0})
+    return await browser.history.search({
+        text: "",
+        maxResults: 50,
+        startTime: 0,
+    })
 }
 async function allWindowTabs(): Promise<browser.tabs.Tab[]> {
     let allTabs: browser.tabs.Tab[] = []
     for (const window of await browser.windows.getAll()) {
-        const tabs = await browser.tabs.query({windowId:window.id})
+        const tabs = await browser.tabs.query({ windowId: window.id })
         allTabs = allTabs.concat(tabs)
     }
     return allTabs
 }
 
 export async function show() {
-    Messaging.messageActiveTab('commandline_content', 'show')
-    Messaging.messageActiveTab('commandline_content', 'focus')
-    Messaging.messageActiveTab('commandline_frame', 'focus')
+    Messaging.messageActiveTab("commandline_content", "show")
+    Messaging.messageActiveTab("commandline_content", "focus")
+    Messaging.messageActiveTab("commandline_frame", "focus")
 }
 
 export async function hide() {
-    Messaging.messageActiveTab('commandline_content', 'hide')
-    Messaging.messageActiveTab('commandline_content', 'blur')
+    Messaging.messageActiveTab("commandline_content", "hide")
+    Messaging.messageActiveTab("commandline_content", "blur")
 }
 
-Messaging.addListener("commandline_background", Messaging.attributeCaller({
-    currentWindowTabs,
-    history,
-    recvExStr,
-    show,
-    hide,
-}))
+Messaging.addListener(
+    "commandline_background",
+    Messaging.attributeCaller({
+        currentWindowTabs,
+        history,
+        recvExStr,
+        show,
+        hide,
+    }),
+)

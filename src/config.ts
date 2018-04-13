@@ -20,74 +20,74 @@ const WAITERS = []
 let INITIALISED = false
 
 // make a naked object
-function o(object){
-    return Object.assign(Object.create(null),object)
+function o(object) {
+    return Object.assign(Object.create(null), object)
 }
 
 // "Import" is a reserved word so this will have to do
-function schlepp(settings){
-    Object.assign(USERCONFIG,settings)
+function schlepp(settings) {
+    Object.assign(USERCONFIG, settings)
 }
 
 // TODO: have list of possibilities for settings, e.g. hintmode: reverse | normal
 let USERCONFIG = o({})
 const DEFAULTS = o({
-    "configversion": "0.0",
-    "nmaps": o({
-        "o": "fillcmdline open",
-        "O": "current_url open",
-        "w": "fillcmdline winopen",
-        "W": "current_url winopen",
-        "t": "fillcmdline tabopen",
+    configversion: "0.0",
+    nmaps: o({
+        o: "fillcmdline open",
+        O: "current_url open",
+        w: "fillcmdline winopen",
+        W: "current_url winopen",
+        t: "fillcmdline tabopen",
         "]]": "followpage next",
         "[[": "followpage prev",
         "[c": "urlincrement -1",
         "]c": "urlincrement 1",
-        "T": "current_url tabopen",
-        "yy": "clipboard yank",
-        "ys": "clipboard yankshort",
-        "yc": "clipboard yankcanon",
-        "gh": "home",
-        "gH": "home true",
-        "p": "clipboard open",
-        "P": "clipboard tabopen",
-        "j": "scrollline 10",
-        "k": "scrollline -10",
-        "h": "scrollpx -50",
-        "l": "scrollpx 50",
-        "G": "scrollto 100",
-        "gg": "scrollto 0",
-        "$": "scrollto 100 x",
+        T: "current_url tabopen",
+        yy: "clipboard yank",
+        ys: "clipboard yankshort",
+        yc: "clipboard yankcanon",
+        gh: "home",
+        gH: "home true",
+        p: "clipboard open",
+        P: "clipboard tabopen",
+        j: "scrollline 10",
+        k: "scrollline -10",
+        h: "scrollpx -50",
+        l: "scrollpx 50",
+        G: "scrollto 100",
+        gg: "scrollto 0",
+        $: "scrollto 100 x",
         // "0": "scrollto 0 x", // will get interpreted as a count
         "^": "buffer #",
-        "H": "back",
-        "L": "forward",
-        "d": "tabclose",
-        "u": "undo",
-        "r": "reload",
-        "R": "reloadhard",
-        "gi": "focusinput -l",
-        "gt": "tabnext_gt",
-        "gT": "tabprev",
+        H: "back",
+        L: "forward",
+        d: "tabclose",
+        u: "undo",
+        r: "reload",
+        R: "reloadhard",
+        gi: "focusinput -l",
+        gt: "tabnext_gt",
+        gT: "tabprev",
         "g^": "tabfirst",
-        "g$": "tablast",
-        "gr": "reader",
-        "gu": "urlparent",
-        "gU": "urlroot",
+        g$: "tablast",
+        gr: "reader",
+        gu: "urlparent",
+        gU: "urlroot",
         ":": "fillcmdline",
-        "s": "fillcmdline open search",
-        "S": "fillcmdline tabopen search",
+        s: "fillcmdline open search",
+        S: "fillcmdline tabopen search",
         // find mode not suitable for general consumption yet.
         // "/": "find",
         // "?": "find -1",
         // "n": "findnext 1",
         // "N": "findnext -1",
-        "M": "gobble 1 quickmark",
+        M: "gobble 1 quickmark",
         // "B": "fillcmdline bufferall",
-        "b": "fillcmdline buffer",
-        "ZZ": "qall",
-        "f": "hint",
-        "F": "hint -b",
+        b: "fillcmdline buffer",
+        ZZ: "qall",
+        f: "hint",
+        F: "hint -b",
         ";i": "hint -i",
         ";I": "hint -I",
         ";k": "hint -k",
@@ -100,104 +100,107 @@ const DEFAULTS = o({
         ";A": "hint -A",
         ";;": "hint -;",
         ";#": "hint -#",
-        "I": "mode ignore",
-        "a": "current_url bmark",
-        "A": "bmark",
-        "zi": "zoom 0.1 true",
-        "zo": "zoom -0.1 true",
-        "zz": "zoom 1",
+        I: "mode ignore",
+        a: "current_url bmark",
+        A: "bmark",
+        zi: "zoom 0.1 true",
+        zo: "zoom -0.1 true",
+        zz: "zoom 1",
         ".": "repeat",
     }),
-    "autocmds": o({
-        "DocStart": o({
-            "addons.mozilla.org": "mode ignore"
+    autocmds: o({
+        DocStart: o({
+            "addons.mozilla.org": "mode ignore",
         }),
     }),
-    "exaliases": o({
-        "alias": "command",
-        "au": "autocmd",
-        "b": "buffer",
-        "o": "open",
-        "w": "winopen",
-        "t": "tabopen",
-        "tn": "tabnext_gt",
-        "bn": "tabnext_gt",
-        "tnext": "tabnext_gt",
-        "bnext": "tabnext_gt",
-        "tp": "tabprev",
-        "tN": "tabprev",
-        "bp": "tabprev",
-        "bN": "tabprev",
-        "tprev": "tabprev",
-        "bprev": "tabprev",
-        "bfirst": "tabfirst",
-        "blast": "tablast",
-        "tfirst": "tabfirst",
-        "tlast": "tablast",
-        "bd": "tabclose",
-        "bdelete": "tabclose",
-        "sanitize": "sanitise",
+    exaliases: o({
+        alias: "command",
+        au: "autocmd",
+        b: "buffer",
+        o: "open",
+        w: "winopen",
+        t: "tabopen",
+        tn: "tabnext_gt",
+        bn: "tabnext_gt",
+        tnext: "tabnext_gt",
+        bnext: "tabnext_gt",
+        tp: "tabprev",
+        tN: "tabprev",
+        bp: "tabprev",
+        bN: "tabprev",
+        tprev: "tabprev",
+        bprev: "tabprev",
+        bfirst: "tabfirst",
+        blast: "tablast",
+        tfirst: "tabfirst",
+        tlast: "tablast",
+        bd: "tabclose",
+        bdelete: "tabclose",
+        sanitize: "sanitise",
     }),
     followpagepatterns: o({
         next: "^(next|newer)\\b|»|>>|more",
         prev: "^(prev(ious)?|older)\\b|«|<<",
     }),
-    "searchengine": "google",
-    "searchurls": o({
-        "google":"https://www.google.com/search?q=",
-        "scholar":"https://scholar.google.com/scholar?q=",
-        "googleuk":"https://www.google.co.uk/search?q=",
-        "bing":"https://www.bing.com/search?q=",
-        "duckduckgo":"https://duckduckgo.com/?q=",
-        "yahoo":"https://search.yahoo.com/search?p=",
-        "twitter":"https://twitter.com/search?q=",
-        "wikipedia":"https://en.wikipedia.org/wiki/Special:Search/",
-        "youtube":"https://www.youtube.com/results?search_query=",
-        "amazon":"https://www.amazon.com/s/ref=nb_sb_noss?url=search-alias%3Daps&field-keywords=",
-        "amazonuk":"https://www.amazon.co.uk/s/ref=nb_sb_noss?url=search-alias%3Daps&field-keywords=",
-        "startpage":"https://startpage.com/do/search?language=english&cat=web&query=",
-        "github":"https://github.com/search?utf8=✓&q=",
-        "searx":"https://searx.me/?category_general=on&q=",
-        "cnrtl":"http://www.cnrtl.fr/lexicographie/",
-        "osm":"https://www.openstreetmap.org/search?query=",
-        "mdn":"https://developer.mozilla.org/en-US/search?q=",
-        "gentoo_wiki":"https://wiki.gentoo.org/index.php?title=Special%3ASearch&profile=default&fulltext=Search&search=",
-        "qwant":"https://www.qwant.com/?q=",
-
+    searchengine: "google",
+    searchurls: o({
+        google: "https://www.google.com/search?q=",
+        scholar: "https://scholar.google.com/scholar?q=",
+        googleuk: "https://www.google.co.uk/search?q=",
+        bing: "https://www.bing.com/search?q=",
+        duckduckgo: "https://duckduckgo.com/?q=",
+        yahoo: "https://search.yahoo.com/search?p=",
+        twitter: "https://twitter.com/search?q=",
+        wikipedia: "https://en.wikipedia.org/wiki/Special:Search/",
+        youtube: "https://www.youtube.com/results?search_query=",
+        amazon:
+            "https://www.amazon.com/s/ref=nb_sb_noss?url=search-alias%3Daps&field-keywords=",
+        amazonuk:
+            "https://www.amazon.co.uk/s/ref=nb_sb_noss?url=search-alias%3Daps&field-keywords=",
+        startpage:
+            "https://startpage.com/do/search?language=english&cat=web&query=",
+        github: "https://github.com/search?utf8=✓&q=",
+        searx: "https://searx.me/?category_general=on&q=",
+        cnrtl: "http://www.cnrtl.fr/lexicographie/",
+        osm: "https://www.openstreetmap.org/search?query=",
+        mdn: "https://developer.mozilla.org/en-US/search?q=",
+        gentoo_wiki:
+            "https://wiki.gentoo.org/index.php?title=Special%3ASearch&profile=default&fulltext=Search&search=",
+        qwant: "https://www.qwant.com/?q=",
     }),
-    "newtab": "",
-    "viewsource": "tridactyl", // "tridactyl" or "default"
-    "storageloc": "sync",
-    "homepages": [],
-    "hintchars": "hjklasdfgyuiopqwertnmzxcvb",
-	"hintfiltermode": "simple",   // "simple", "vimperator", "vimperator-reflow"
+    newtab: "",
+    viewsource: "tridactyl", // "tridactyl" or "default"
+    storageloc: "sync",
+    homepages: [],
+    hintchars: "hjklasdfgyuiopqwertnmzxcvb",
+    hintfiltermode: "simple", // "simple", "vimperator", "vimperator-reflow"
 
-    tabopenpos: 'next',
-    relatedopenpos: 'related',
-    "ttsvoice": "default",  // chosen from the listvoices list, or "default"
-    "ttsvolume": 1,         // 0 to 1
-    "ttsrate": 1,           // 0.1 to 10
-    "ttspitch": 1,          // 0 to 2
+    tabopenpos: "next",
+    relatedopenpos: "related",
+    ttsvoice: "default", // chosen from the listvoices list, or "default"
+    ttsvolume: 1, // 0 to 1
+    ttsrate: 1, // 0.1 to 10
+    ttspitch: 1, // 0 to 2
 
     // either "nextinput" or "firefox"
     // If nextinput, <Tab> after gi brings selects the next input
     // If firefox, <Tab> selects the next selectable element, e.g. a link
-    "gimode": "nextinput", // either "nextinput" or "firefox"
+    gimode: "nextinput", // either "nextinput" or "firefox"
 
     // either "beginning" or "end"
     // Decides where to place the cursor when selecting non-empty input fields
-    "cursorpos": "end",
+    cursorpos: "end",
 
-    "theme": "default",     // currently available: "default", "dark"
+    theme: "default", // currently available: "default", "dark"
 
     // Default logging levels - 2 === WARNING
-    "logging": o({
-        "messaging": 2,
-        "cmdline": 2,
-        "controller": 2,
-        "hinting": 2,
-        "state": 2,
-        "excmd": 1,
+    logging: o({
+        messaging: 2,
+        cmdline: 2,
+        controller: 2,
+        hinting: 2,
+        state: 2,
+        excmd: 1,
     }),
 })
 
@@ -231,7 +234,6 @@ function setDeepProperty(obj, value, target) {
     }
 }
 
-
 /** Get the value of the key target.
 
     If the user has not specified a key, use the corresponding key from
@@ -242,7 +244,7 @@ export function get(...target) {
     const defult = getDeepProperty(DEFAULTS, target)
 
     // Merge results if there's a default value and it's not an Array or primitive.
-    if (defult && (! Array.isArray(defult) && typeof defult === "object")) {
+    if (defult && (!Array.isArray(defult) && typeof defult === "object")) {
         return Object.assign(o({}), defult, user)
     } else {
         if (user !== undefined) {
@@ -262,8 +264,8 @@ export async function getAsync(...target) {
     if (INITIALISED) {
         return get(...target)
     } else {
-        return new Promise((resolve) =>
-            WAITERS.push(() => resolve(get(...target)))
+        return new Promise(resolve =>
+            WAITERS.push(() => resolve(get(...target))),
         )
     }
 }
@@ -299,7 +301,7 @@ export function unset(...target) {
     Config is not synchronised between different instances of this module until
     sometime after this happens.
 */
-export async function save(storage: "local" | "sync" = get("storageloc")){
+export async function save(storage: "local" | "sync" = get("storageloc")) {
     // let storageobj = storage == "local" ? browser.storage.local : browser.storage.sync
     // storageobj.set({CONFIGNAME: USERCONFIG})
     let settingsobj = o({})
@@ -325,7 +327,10 @@ export async function update() {
                 // root namespace because we were young and bold.
                 let legacy_nmaps = await browser.storage.sync.get("nmaps")
                 if (legacy_nmaps) {
-                    USERCONFIG["nmaps"] = Object.assign(legacy_nmaps["nmaps"], USERCONFIG["nmaps"])
+                    USERCONFIG["nmaps"] = Object.assign(
+                        legacy_nmaps["nmaps"],
+                        USERCONFIG["nmaps"],
+                    )
                 }
             } finally {
                 set("configversion", "1.0")
@@ -339,10 +344,9 @@ export async function update() {
                 set("gimode", "firefox")
             unset("vimium-gi")
             set("configversion", "1.1")
-        }
+        },
     }
-    if (!get("configversion"))
-        set("configversion", "0.0")
+    if (!get("configversion")) set("configversion", "0.0")
     while (updaters[get("configversion")] instanceof Function) {
         await updaters[get("configversion")]()
     }
@@ -367,12 +371,10 @@ async function init() {
 
 // Listen for changes to the storage and update the USERCONFIG if appropriate.
 // TODO: BUG! Sync and local storage are merged at startup, but not by this thing.
-browser.storage.onChanged.addListener(
-    (changes, areaname) => {
-        if (CONFIGNAME in changes) {
-            USERCONFIG = changes[CONFIGNAME].newValue
-        }
+browser.storage.onChanged.addListener((changes, areaname) => {
+    if (CONFIGNAME in changes) {
+        USERCONFIG = changes[CONFIGNAME].newValue
     }
-)
+})
 
 init()

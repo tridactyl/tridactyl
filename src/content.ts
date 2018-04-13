@@ -12,22 +12,21 @@ import "./lib/html-tagged-template"
 console.log("Tridactyl content script loaded, boss!")
 
 // Add various useful modules to the window for debugging
-import * as commandline_content from './commandline_content'
-import * as convert from './convert'
-import * as config from './config'
-import * as dom from './dom'
-import * as excmds from './excmds_content'
-import * as hinting_content from './hinting'
-import * as finding_content from './finding'
-import * as itertools from './itertools'
+import * as commandline_content from "./commandline_content"
+import * as convert from "./convert"
+import * as config from "./config"
+import * as dom from "./dom"
+import * as excmds from "./excmds_content"
+import * as hinting_content from "./hinting"
+import * as finding_content from "./finding"
+import * as itertools from "./itertools"
 import * as keydown_content from "./keydown_content"
-import * as messaging from './messaging'
-import * as msgsafe from './msgsafe'
-import state from './state'
-import * as webext from './lib/webext'
-import Mark from 'mark.js'
-
-(window as any).tri = Object.assign(Object.create(null), {
+import * as messaging from "./messaging"
+import * as msgsafe from "./msgsafe"
+import state from "./state"
+import * as webext from "./lib/webext"
+import Mark from "mark.js"
+;(window as any).tri = Object.assign(Object.create(null), {
     browserBg: webext.browserBg,
     commandline_content,
     convert,
@@ -48,8 +47,11 @@ import Mark from 'mark.js'
 
 dom.hijackPageListenerFunctions()
 
-if (window.location.protocol === "moz-extension:" && window.location.pathname === "/static/newtab.html") {
-    (window as any).tri.config.getAsync("newtab").then((newtab) => {
+if (
+    window.location.protocol === "moz-extension:" &&
+    window.location.pathname === "/static/newtab.html"
+) {
+    ;(window as any).tri.config.getAsync("newtab").then(newtab => {
         if (newtab !== "")
             window.location.href = (window as any).tri.excmds.forceURI(newtab)
     })

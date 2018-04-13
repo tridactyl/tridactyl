@@ -1,21 +1,26 @@
 /** Shim for the keyboard API because it won't hit in FF57. */
 
-import * as Messaging from './messaging'
-import * as msgsafe from './msgsafe'
-import {isTextEditable,getAllDocumentFrames} from './dom'
-import {isSimpleKey} from './keyseq'
+import * as Messaging from "./messaging"
+import * as msgsafe from "./msgsafe"
+import { isTextEditable, getAllDocumentFrames } from "./dom"
+import { isSimpleKey } from "./keyseq"
 
 function keyeventHandler(ke: KeyboardEvent) {
     // Ignore JS-generated events for security reasons.
-    if (! ke.isTrusted) return
+    if (!ke.isTrusted) return
 
     // Bad workaround: never suppress events in an editable field
     // and never suppress keys pressed with modifiers
-    if (state.mode === 'input' || ! (isTextEditable(ke.target as Node) || ke.ctrlKey || ke.altKey)) {
+    if (
+        state.mode === "input" ||
+        !(isTextEditable(ke.target as Node) || ke.ctrlKey || ke.altKey)
+    ) {
         suppressKey(ke)
     }
 
-    Messaging.message("keydown_background", "recvEvent", [msgsafe.KeyboardEvent(ke)])
+    Messaging.message("keydown_background", "recvEvent", [
+        msgsafe.KeyboardEvent(ke),
+    ])
 }
 
 /** Choose to suppress a key or not */
@@ -26,21 +31,17 @@ function suppressKey(ke: KeyboardEvent) {
 
 // {{{ Shitty key suppression workaround.
 
-import state from './state'
+import state from "./state"
 
 // Keys not to suppress in normal mode.
 const normalmodewhitelist = [
     // comment line below out once find mode is done
-    '/',
+    "/",
     "'",
-    ' ',
+    " ",
 ]
 
-const hintmodewhitelist = [
-    'F3',
-    'F5',
-    'F12',
-]
+const hintmodewhitelist = ["F3", "F5", "F12"]
 
 function TerribleModeSpecificSuppression(ke: KeyboardEvent) {
     switch (state.mode) {
@@ -48,7 +49,7 @@ function TerribleModeSpecificSuppression(ke: KeyboardEvent) {
             // StartsWith happens to work for our maps so far. Obviously won't in the future.
             /* if (Object.getOwnPropertyNames(nmaps).find((map) => map.startsWith(ke.key))) { */
 
-            if (isSimpleKey(ke) && ! normalmodewhitelist.includes(ke.key)) {
+            if (isSimpleKey(ke) && !normalmodewhitelist.includes(ke.key)) {
                 ke.preventDefault()
                 ke.stopImmediatePropagation()
             }
@@ -56,11 +57,11 @@ function TerribleModeSpecificSuppression(ke: KeyboardEvent) {
         // Hintmode can't clean up after itself yet, so it needs to block more FF shortcuts.
         case "hint":
         case "find":
-            if (! hintmodewhitelist.includes(ke.key)) {
+            if (!hintmodewhitelist.includes(ke.key)) {
                 ke.preventDefault()
                 ke.stopImmediatePropagation()
             }
-            break;
+            break
         case "gobble":
             if (isSimpleKey(ke) || ke.key === "Escape") {
                 ke.preventDefault()
@@ -74,9 +75,9 @@ function TerribleModeSpecificSuppression(ke: KeyboardEvent) {
             }
             break
         case "ignore":
-            break;
+            break
         case "insert":
-            break;
+            break
     }
 }
 
@@ -86,11 +87,16 @@ function TerribleModeSpecificSuppression(ke: KeyboardEvent) {
 window.addEventListener("keydown", keyeventHandler, true)
 document.addEventListener("readystatechange", ev =>
     getAllDocumentFrames().map(frame => {
-        frame.contentWindow.removeEventListener("keydown", keyeventHandler, true)
+        frame.contentWindow.removeEventListener(
+            "keydown",
+            keyeventHandler,
+            true,
+        )
         frame.contentWindow.addEventListener("keydown", keyeventHandler, true)
-    }));
-import * as SELF from './keydown_content'
-Messaging.addListener('keydown_content', Messaging.attributeCaller(SELF))
+    }),
+)
+import * as SELF from "./keydown_content"
+Messaging.addListener("keydown_content", Messaging.attributeCaller(SELF))
 
 // Dummy export so that TS treats this as a module.
 export {}

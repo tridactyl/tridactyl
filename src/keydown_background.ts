@@ -1,15 +1,17 @@
 // Interface: onKeydown.addListener(func)
 //
-import * as Messaging from './messaging'
+import * as Messaging from "./messaging"
 
-import {MsgSafeKeyboardEvent} from './msgsafe'
+import { MsgSafeKeyboardEvent } from "./msgsafe"
 
 type KeydownCallback = (keyevent: MsgSafeKeyboardEvent) => void
 
 const listeners = new Set<KeydownCallback>()
 function addListener(cb: KeydownCallback) {
     listeners.add(cb)
-    return () => { listeners.delete(cb) }
+    return () => {
+        listeners.delete(cb)
+    }
 }
 
 export const onKeydown = { addListener }
@@ -22,5 +24,5 @@ export function recvEvent(event: MsgSafeKeyboardEvent) {
 }
 
 // Get messages from content
-import * as SELF from './keydown_background'
-Messaging.addListener('keydown_background', Messaging.attributeCaller(SELF))
+import * as SELF from "./keydown_background"
+Messaging.addListener("keydown_background", Messaging.attributeCaller(SELF))

@@ -1,6 +1,6 @@
-import {MsgSafeNode} from './msgsafe'
-import * as config from './config'
-import {flatten} from './itertools'
+import { MsgSafeNode } from "./msgsafe"
+import * as config from "./config"
+import { flatten } from "./itertools"
 
 // From saka-key lib/dom.js, under Apachev2
 
@@ -13,20 +13,20 @@ import {flatten} from './itertools'
  * @param {HTMLElement} element
  * @returns {boolean}
  */
-export function isTextEditable (element: MsgSafeNode) {
+export function isTextEditable(element: MsgSafeNode) {
     if (element) {
         // HTML is always upper case, but XHTML is not necessarily upper case
         switch (element.nodeName.toUpperCase()) {
-            case 'INPUT':
+            case "INPUT":
                 return isEditableHTMLInput(element)
-            case 'SELECT':
-            case 'TEXTAREA':
-            case 'OBJECT':
+            case "SELECT":
+            case "TEXTAREA":
+            case "OBJECT":
                 return true
         }
         switch (true) {
-            case element.contentEditable.toUpperCase() === 'TRUE':
-            case element.role === 'application':
+            case element.contentEditable.toUpperCase() === "TRUE":
+            case element.role === "application":
                 return true
         }
     }
@@ -37,18 +37,18 @@ export function isTextEditable (element: MsgSafeNode) {
  * Returns whether the passed HTML input element is editable
  * @param {HTMLInputElement} element
  */
-function isEditableHTMLInput (element: MsgSafeNode) {
+function isEditableHTMLInput(element: MsgSafeNode) {
     if (element.disabled || element.readonly) return false
     switch (element.type) {
         case undefined:
-        case 'text':
-        case 'search':
-        case 'email':
-        case 'url':
-        case 'number':
-        case 'password':
-        case 'date':
-        case 'tel':
+        case "text":
+        case "search":
+        case "email":
+        case "url":
+        case "number":
+        case "password":
+        case "date":
+        case "tel":
             return true
     }
     return false
@@ -61,16 +61,20 @@ function isEditableHTMLInput (element: MsgSafeNode) {
  * @param {'hover' | 'unhover' | 'click'} type
  * @param {{ ctrlKey, shiftKey, altKey, metaKey }} modifierKeys
  */
-export function mouseEvent (element: Element, type: 'hover'|'unhover'|'click', modifierKeys = {}) {
+export function mouseEvent(
+    element: Element,
+    type: "hover" | "unhover" | "click",
+    modifierKeys = {},
+) {
     let events = []
     switch (type) {
-        case 'unhover':
-            events = ['mousemove', 'mouseout', 'mouseleave']
+        case "unhover":
+            events = ["mousemove", "mouseout", "mouseleave"]
             break
-        case 'click':
-            events = ['mousedown', 'mouseup', 'click']
-        case 'hover':
-            events = ['mouseover', 'mouseenter', 'mousemove'].concat(events)
+        case "click":
+            events = ["mousedown", "mouseup", "click"]
+        case "hover":
+            events = ["mouseover", "mouseenter", "mousemove"].concat(events)
             break
     }
     events.forEach(type => {
@@ -79,7 +83,7 @@ export function mouseEvent (element: Element, type: 'hover'|'unhover'|'click', m
             cancelable: true,
             view: window,
             detail: 1, // usually the click count
-            ...modifierKeys
+            ...modifierKeys,
         })
         element.dispatchEvent(event)
     })
@@ -89,77 +93,81 @@ export function mouseEvent (element: Element, type: 'hover'|'unhover'|'click', m
 
     Adapted from stackoverflow
  */
-export function* elementsByXPath(xpath, parent?)
-{
-    let query = document.evaluate(xpath,
+export function* elementsByXPath(xpath, parent?) {
+    let query = document.evaluate(
+        xpath,
         parent || document,
-        null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
-    for (let i=0, length=query.snapshotLength; i<length; ++i) {
-        yield query.snapshotItem(i);
+        null,
+        XPathResult.ORDERED_NODE_SNAPSHOT_TYPE,
+        null,
+    )
+    for (let i = 0, length = query.snapshotLength; i < length; ++i) {
+        yield query.snapshotItem(i)
     }
 }
 
 /** Type for functions that can filter element arrays */
-interface ElementFilter { (element: Element): boolean }
+interface ElementFilter {
+    (element: Element): boolean
+}
 
 /** Is the element of "substantial" size and shown on the page. The element
  * doesn't need to be in the viewport. This is useful when you want to
  * scroll to something, but still want to exclude tiny and useless items
  */
-export function isSubstantial (element: Element) {
+export function isSubstantial(element: Element) {
     const clientRect = element.getClientRects()[0]
     const computedStyle = getComputedStyle(element)
-   // remove elements that are barely within the viewport, tiny, or invisible
+    // remove elements that are barely within the viewport, tiny, or invisible
     switch (true) {
         case !clientRect:
         case clientRect.width < 3:
         case clientRect.height < 3:
-        case computedStyle.visibility !== 'visible':
-        case computedStyle.display === 'none':
+        case computedStyle.visibility !== "visible":
+        case computedStyle.display === "none":
             return false
     }
     return true
 }
 
-
 /** This function decides whether the height attribute contained in a
    ComputedStyle matters.  For example, the height attribute doesn't matter for
    elements that have "display: inline" because their height is overriden by
    the height of the node they are in. */
-export function heightMatters (style: CSSStyleDeclaration) {
-   switch (style.display) {
-      case "inline":
-      case "table-column":
-      case "table-column-group":
-      /* These two depend on other factors such as the element's type (span,
+export function heightMatters(style: CSSStyleDeclaration) {
+    switch (style.display) {
+        case "inline":
+        case "table-column":
+        case "table-column-group":
+            /* These two depend on other factors such as the element's type (span,
          div...) or its parent's style. If the previous cases aren't enough to
          decide whether the width attribute of the element matters, we should
          maybe try to test for them.
       case "initial":
       case "inherit":*/
-         return false
-   }
-   return true
+            return false
+    }
+    return true
 }
 
 /* See [[heightMatters]] */
-export function widthMatters (style: CSSStyleDeclaration) {
-   switch (style.display) {
-      case "inline":
-      case "table-column":
-      case "table-column-group":
-      case "table-header-group":
-      case "table-footer-group":
-      case "table-row-group":
-      case "table-cell":
-      case "table-row":
-      /* Take a look at [[heightMatters]] in order to understand why these two
+export function widthMatters(style: CSSStyleDeclaration) {
+    switch (style.display) {
+        case "inline":
+        case "table-column":
+        case "table-column-group":
+        case "table-header-group":
+        case "table-footer-group":
+        case "table-row-group":
+        case "table-cell":
+        case "table-row":
+            /* Take a look at [[heightMatters]] in order to understand why these two
          cases are commented
       case "initial":
       case "inherit?:*/
-         return false
-   }
-   return true
+            return false
+    }
+    return true
 }
 
 // Saka-key caches getComputedStyle. Maybe it's a good idea!
@@ -171,7 +179,7 @@ export function widthMatters (style: CSSStyleDeclaration) {
     Based on https://github.com/guyht/vimari/blob/master/vimari.safariextension/linkHints.js
 
  */
-export function isVisible (element: Element) {
+export function isVisible(element: Element) {
     const clientRect = element.getClientRects()[0]
     const computedStyle = getComputedStyle(element)
     // remove elements that are barely within the viewport, tiny, or invisible
@@ -183,12 +191,11 @@ export function isVisible (element: Element) {
         case clientRect.left >= innerWidth - 4:
         case widthMatters(computedStyle) && clientRect.width < 3:
         case heightMatters(computedStyle) && clientRect.height < 3:
-        case computedStyle.visibility !== 'visible':
-        case computedStyle.display === 'none':
+        case computedStyle.visibility !== "visible":
+        case computedStyle.display === "none":
             return false
     }
     return true
-
 
     /* // Eliminate elements hidden by another overlapping element. */
     /* // To do that, get topmost element at some offset from upper-left corner of clientRect */
@@ -231,20 +238,23 @@ export function isVisible (element: Element) {
  * @param doc   The document the frames should be fetched from
  */
 export function getAllDocumentFrames(doc = document) {
-    if (!(doc instanceof HTMLDocument))
-        return []
-    let frames = (<HTMLIFrameElement[] & HTMLFrameElement[]>Array.from(doc.getElementsByTagName("iframe")))
-        .concat((Array.from(doc.getElementsByTagName("frame"))))
-        .filter((frame) => !frame.src.startsWith("moz-extension://"))
-    return frames.concat(frames.reduce((acc, f) => {
-        // Errors could be thrown because of CSP
-        let newFrames = []
-        try {
-           let doc = f.contentDocument || f.contentWindow.document
-           newFrames = getAllDocumentFrames(doc)
-        } catch (e){}
-        return acc.concat(newFrames)
-    }, []))
+    if (!(doc instanceof HTMLDocument)) return []
+    let frames = (<HTMLIFrameElement[] & HTMLFrameElement[]>Array.from(
+        doc.getElementsByTagName("iframe"),
+    ))
+        .concat(Array.from(doc.getElementsByTagName("frame")))
+        .filter(frame => !frame.src.startsWith("moz-extension://"))
+    return frames.concat(
+        frames.reduce((acc, f) => {
+            // Errors could be thrown because of CSP
+            let newFrames = []
+            try {
+                let doc = f.contentDocument || f.contentWindow.document
+                newFrames = getAllDocumentFrames(doc)
+            } catch (e) {}
+            return acc.concat(newFrames)
+        }, []),
+    )
 }
 
 /** Get all elements that match the given selector
@@ -253,19 +263,20 @@ export function getAllDocumentFrames(doc = document) {
  * @param filters     filter to use (in thre given order) to further chose
  *                    items, or [] for all
  */
-export function getElemsBySelector(selector: string,
-    filters: Array<ElementFilter>) {
-
+export function getElemsBySelector(
+    selector: string,
+    filters: Array<ElementFilter>,
+) {
     let elems = Array.from(document.querySelectorAll(selector))
     let frameElems = getAllDocumentFrames().reduce((acc, frame) => {
-            let newElems = []
-            // Errors could be thrown by CSP
-            try {
-                let doc = frame.contentDocument || frame.contentWindow.document
-                newElems = Array.from(doc.querySelectorAll(selector))
-            } catch (e){}
-            return acc.concat(newElems)
-        }, [])
+        let newElems = []
+        // Errors could be thrown by CSP
+        try {
+            let doc = frame.contentDocument || frame.contentWindow.document
+            newElems = Array.from(doc.querySelectorAll(selector))
+        } catch (e) {}
+        return acc.concat(newElems)
+    }, [])
 
     elems = elems.concat(frameElems)
 
@@ -282,13 +293,16 @@ export function getElemsBySelector(selector: string,
  * @param filters     filter to use (in thre given order) to further chose
  *                    items, or [] for all
  */
-export function getNthElement(selectors: string, nth: number,
-    filters: Array<ElementFilter>): HTMLElement {
-
+export function getNthElement(
+    selectors: string,
+    nth: number,
+    filters: Array<ElementFilter>,
+): HTMLElement {
     let inputs = getElemsBySelector(selectors, filters)
 
     if (inputs.length) {
-        let index = Number(nth).clamp(-inputs.length, inputs.length - 1)
+        let index = Number(nth)
+            .clamp(-inputs.length, inputs.length - 1)
             .mod(inputs.length)
 
         return <HTMLElement>inputs[index]
@@ -330,46 +344,49 @@ export const hintworthy_js_elems = []
  *  add/removeEventListener code doesn't validate elem correctly, this function
  *  must assume that its inputs are potentially malicious.
  */
-export function registerEvListenerAction(elem: EventTarget, add: boolean, event: string) {
-   // We're only interested in the subset of EventTargets that are Elements.
-   if (!(elem instanceof Element)) {
-      return
-   }
+export function registerEvListenerAction(
+    elem: EventTarget,
+    add: boolean,
+    event: string,
+) {
+    // We're only interested in the subset of EventTargets that are Elements.
+    if (!(elem instanceof Element)) {
+        return
+    }
 
-   // Prevent bad elements from being processed
-   //
-   // This is defence in depth: we should never receive an invalid elem here
-   // because add/removeEventListener currently throws a TypeError if the given
-   // element is not a standard library EventTarget subclass.
-   try {
-      // Node prototype functions work on the C++ representation of the
-      // Node, which a faked JS object won't have.
-      // hasChildNodes() is chosen because it should be cheap.
-      Node.prototype.hasChildNodes.apply(elem as Node)
-   } catch (e) {
-      // Don't throw a real exception because addEventListener wouldn't and we
-      // don't want to break content code.
-      console.error("Elem is not a real Node", elem)
-      return
-   }
+    // Prevent bad elements from being processed
+    //
+    // This is defence in depth: we should never receive an invalid elem here
+    // because add/removeEventListener currently throws a TypeError if the given
+    // element is not a standard library EventTarget subclass.
+    try {
+        // Node prototype functions work on the C++ representation of the
+        // Node, which a faked JS object won't have.
+        // hasChildNodes() is chosen because it should be cheap.
+        Node.prototype.hasChildNodes.apply(elem as Node)
+    } catch (e) {
+        // Don't throw a real exception because addEventListener wouldn't and we
+        // don't want to break content code.
+        console.error("Elem is not a real Node", elem)
+        return
+    }
 
-   switch (event) {
-      case "click":
-      case "mousedown":
-      case "mouseup":
-      case "mouseover":
-         if (add) {
-               hintworthy_js_elems.push(elem)
-         } else {
-            // Possible bug: If a page adds an event listener for "click" and
-            // "mousedown" and removes "mousedown" twice, we lose track of the
-            // elem even though it still has a "click" listener.
-            // Fixing this might not be worth the added complexity.
-            let index = hintworthy_js_elems.indexOf(elem)
-            if (index >= 0)
-               hintworthy_js_elems.splice(index, 1)
-         }
-   }
+    switch (event) {
+        case "click":
+        case "mousedown":
+        case "mouseup":
+        case "mouseover":
+            if (add) {
+                hintworthy_js_elems.push(elem)
+            } else {
+                // Possible bug: If a page adds an event listener for "click" and
+                // "mousedown" and removes "mousedown" twice, we lose track of the
+                // elem even though it still has a "click" listener.
+                // Fixing this might not be worth the added complexity.
+                let index = hintworthy_js_elems.indexOf(elem)
+                if (index >= 0) hintworthy_js_elems.splice(index, 1)
+            }
+    }
 }
 
 /** Replace the page's addEventListener with a closure containing a reference
@@ -377,10 +394,11 @@ export function registerEvListenerAction(elem: EventTarget, add: boolean, event:
  *  same with removeEventListener.
  */
 export function hijackPageListenerFunctions(): void {
-   let exportedName = 'registerEvListenerAction'
-   exportFunction(registerEvListenerAction, window, {defineAs: exportedName})
+    let exportedName = "registerEvListenerAction"
+    exportFunction(registerEvListenerAction, window, { defineAs: exportedName })
 
-   let eval_str = ["addEventListener", "removeEventListener"].reduce((acc, cur) => `${acc};
+    let eval_str = ["addEventListener", "removeEventListener"].reduce(
+        (acc, cur) => `${acc};
       EventTarget.prototype.${cur} = ((realFunction, register) => {
          return function (...args) {
                let result = realFunction.apply(this, args)
@@ -391,21 +409,20 @@ export function hijackPageListenerFunctions(): void {
                }
                return result
          }
-      })(EventTarget.prototype.${cur}, ${exportedName})`
-   , "")
+      })(EventTarget.prototype.${cur}, ${exportedName})`,
+        "",
+    )
 
-   window.eval(eval_str + `;delete ${exportedName}`)
+    window.eval(eval_str + `;delete ${exportedName}`)
 }
 
 /** Focuses an input element and makes sure the cursor is put at the end of the input */
 export function focus(e: HTMLElement): void {
-   e.focus()
-   if (e instanceof HTMLInputElement) {
-      let pos = 0
-      if (config.get("cursorpos") === "end")
-         pos = e.value.length
-      e.selectionStart = pos
-      e.selectionEnd = e.selectionStart
-   }
+    e.focus()
+    if (e instanceof HTMLInputElement) {
+        let pos = 0
+        if (config.get("cursorpos") === "end") pos = e.value.length
+        e.selectionStart = pos
+        e.selectionEnd = e.selectionStart
+    }
 }
-

@@ -2,19 +2,23 @@
 
 import "./lib/html-tagged-template"
 
-import * as Completions from './completions'
-import * as Messaging from './messaging'
-import * as Config from './config'
-import * as SELF from './commandline_frame'
-import './number.clamp'
-import state from './state'
-import Logger from './logging'
-import * as aliases from './aliases'
-const logger = new Logger('cmdline')
+import * as Completions from "./completions"
+import * as Messaging from "./messaging"
+import * as Config from "./config"
+import * as SELF from "./commandline_frame"
+import "./number.clamp"
+import state from "./state"
+import Logger from "./logging"
+import * as aliases from "./aliases"
+const logger = new Logger("cmdline")
 
 let activeCompletions: Completions.CompletionSource[] = undefined
-let completionsDiv = window.document.getElementById("completions") as HTMLElement
-let clInput = window.document.getElementById("tridactyl-input") as HTMLInputElement
+let completionsDiv = window.document.getElementById(
+    "completions",
+) as HTMLElement
+let clInput = window.document.getElementById(
+    "tridactyl-input",
+) as HTMLInputElement
 
 /* This is to handle Escape key which, while the cmdline is focused,
  * ends up firing both keydown and input listeners. In the worst case
@@ -33,14 +37,14 @@ function resizeArea() {
 // Should work so long as there's only one completion source per prefix.
 function getCompletion() {
     for (const comp of activeCompletions) {
-        if (comp.state === 'normal' && comp.completion !== undefined) {
+        if (comp.state === "normal" && comp.completion !== undefined) {
             return comp.completion
         }
     }
 }
 
 function enableCompletions() {
-    if (! activeCompletions) {
+    if (!activeCompletions) {
         activeCompletions = [
             new Completions.BufferCompletionSource(completionsDiv),
             new Completions.HistoryCompletionSource(completionsDiv),
@@ -54,25 +58,25 @@ function enableCompletions() {
 }
 /* document.addEventListener("DOMContentLoaded", enableCompletions) */
 
-let noblur = e =>  setTimeout(() => clInput.focus(), 0)
+let noblur = e => setTimeout(() => clInput.focus(), 0)
 let lastTheme: string
 
 export function focus() {
     enableCompletions()
-    document.body.classList.remove('hidden')
+    document.body.classList.remove("hidden")
 
     // update theme of command line
     let theme = Config.get("theme")
     if (theme !== lastTheme) {
         if (lastTheme) {
-            document.querySelector(':root').classList.remove(lastTheme)
+            document.querySelector(":root").classList.remove(lastTheme)
         }
-        document.querySelector(':root').classList.add(theme)
+        document.querySelector(":root").classList.add(theme)
         lastTheme = theme
     }
 
     clInput.focus()
-    clInput.addEventListener("blur",noblur)
+    clInput.addEventListener("blur", noblur)
 }
 
 async function sendExstr(exstr) {
@@ -83,14 +87,14 @@ let HISTORY_SEARCH_STRING: string
 
 /* Command line keybindings */
 
-clInput.addEventListener("keydown", function (keyevent) {
+clInput.addEventListener("keydown", function(keyevent) {
     switch (keyevent.key) {
         case "Enter":
             process()
             break
 
         case "j":
-            if (keyevent.ctrlKey){
+            if (keyevent.ctrlKey) {
                 // stop Firefox from giving focus to the omnibar
                 keyevent.preventDefault()
                 keyevent.stopPropagation()
@@ -99,7 +103,7 @@ clInput.addEventListener("keydown", function (keyevent) {
             break
 
         case "m":
-            if (keyevent.ctrlKey){
+            if (keyevent.ctrlKey) {
                 process()
             }
             break
@@ -128,7 +132,7 @@ clInput.addEventListener("keydown", function (keyevent) {
             break
 
         case "e":
-            if (keyevent.ctrlKey){
+            if (keyevent.ctrlKey) {
                 keyevent.preventDefault()
                 keyevent.stopPropagation()
                 setCursor(clInput.value.length)
@@ -136,16 +140,19 @@ clInput.addEventListener("keydown", function (keyevent) {
             break
 
         case "u":
-            if (keyevent.ctrlKey){
+            if (keyevent.ctrlKey) {
                 keyevent.preventDefault()
                 keyevent.stopPropagation()
-                clInput.value = clInput.value.slice(clInput.selectionStart, clInput.value.length)
+                clInput.value = clInput.value.slice(
+                    clInput.selectionStart,
+                    clInput.value.length,
+                )
                 setCursor()
             }
             break
 
         case "k":
-            if (keyevent.ctrlKey){
+            if (keyevent.ctrlKey) {
                 keyevent.preventDefault()
                 keyevent.stopPropagation()
                 clInput.value = clInput.value.slice(0, clInput.selectionStart)
@@ -156,14 +163,19 @@ clInput.addEventListener("keydown", function (keyevent) {
         // Todo: hard mode: vi style editing on cli, like set -o mode vi
         // should probably just defer to another library
         case "c":
-            if (keyevent.ctrlKey &&
-                ! clInput.value.substring(clInput.selectionStart, clInput.selectionEnd)) {
+            if (
+                keyevent.ctrlKey &&
+                !clInput.value.substring(
+                    clInput.selectionStart,
+                    clInput.selectionEnd,
+                )
+            ) {
                 hide_and_clear()
             }
             break
 
         case "f":
-            if (keyevent.ctrlKey){
+            if (keyevent.ctrlKey) {
                 // Stop ctrl+f from doing find
                 keyevent.preventDefault()
                 keyevent.stopPropagation()
@@ -175,23 +187,17 @@ clInput.addEventListener("keydown", function (keyevent) {
             // Stop tab from losing focus
             keyevent.preventDefault()
             keyevent.stopPropagation()
-            if (keyevent.shiftKey){
-                activeCompletions.forEach(comp =>
-                    comp.prev()
-                )
+            if (keyevent.shiftKey) {
+                activeCompletions.forEach(comp => comp.prev())
             } else {
-                activeCompletions.forEach(comp =>
-                    comp.next()
-                )
-
+                activeCompletions.forEach(comp => comp.next())
             }
             // tabcomplete()
             break
-
     }
 
     // If a key other than the arrow keys was pressed, clear the history search string
-    if (!(keyevent.key == "ArrowUp" || keyevent.key == "ArrowDown")){
+    if (!(keyevent.key == "ArrowUp" || keyevent.key == "ArrowDown")) {
         HISTORY_SEARCH_STRING = undefined
     }
 })
@@ -203,22 +209,22 @@ clInput.addEventListener("input", () => {
     // Fire each completion and add a callback to resize area
     logger.debug(activeCompletions)
     activeCompletions.forEach(comp =>
-        comp.filter(expandedCmd).then(() => resizeArea())
+        comp.filter(expandedCmd).then(() => resizeArea()),
     )
 })
 
 let cmdline_history_position = 0
 let cmdline_history_current = ""
 
-async function hide_and_clear(){
-    clInput.removeEventListener("blur",noblur)
+async function hide_and_clear() {
+    clInput.removeEventListener("blur", noblur)
     clInput.value = ""
     cmdline_history_position = 0
     cmdline_history_current = ""
 
     // Try to make the close cmdline animation as smooth as possible.
-    document.body.classList.add('hidden')
-    Messaging.message('commandline_background', 'hide')
+    document.body.classList.add("hidden")
+    Messaging.message("commandline_background", "hide")
     // Delete all completion sources - I don't think this is required, but this
     // way if there is a transient bug in completions it shouldn't persist.
     activeCompletions.forEach(comp => completionsDiv.removeChild(comp.node))
@@ -230,28 +236,35 @@ function setCursor(n = 0) {
     clInput.setSelectionRange(n, n, "none")
 }
 
-function tabcomplete(){
+function tabcomplete() {
     let fragment = clInput.value
-    let matches = state.cmdHistory.filter((key)=>key.startsWith(fragment))
+    let matches = state.cmdHistory.filter(key => key.startsWith(fragment))
     let mostrecent = matches[matches.length - 1]
     if (mostrecent != undefined) clInput.value = mostrecent
 }
 
-function history(n){
-    HISTORY_SEARCH_STRING = HISTORY_SEARCH_STRING === undefined? clInput.value : HISTORY_SEARCH_STRING
-    let matches = state.cmdHistory.filter((key)=>key.startsWith(HISTORY_SEARCH_STRING))
-    if (cmdline_history_position == 0){
+function history(n) {
+    HISTORY_SEARCH_STRING =
+        HISTORY_SEARCH_STRING === undefined
+            ? clInput.value
+            : HISTORY_SEARCH_STRING
+    let matches = state.cmdHistory.filter(key =>
+        key.startsWith(HISTORY_SEARCH_STRING),
+    )
+    if (cmdline_history_position == 0) {
         cmdline_history_current = clInput.value
     }
     let clamped_ind = matches.length + n - cmdline_history_position
     clamped_ind = clamped_ind.clamp(0, matches.length)
 
     const pot_history = matches[clamped_ind]
-    clInput.value = pot_history == undefined ? cmdline_history_current : pot_history
+    clInput.value =
+        pot_history == undefined ? cmdline_history_current : pot_history
 
     // if there was no clampage, update history position
     // there's a more sensible way of doing this but that would require more programmer time
-    if (clamped_ind == matches.length + n - cmdline_history_position) cmdline_history_position = cmdline_history_position - n
+    if (clamped_ind == matches.length + n - cmdline_history_position)
+        cmdline_history_position = cmdline_history_position - n
 }
 
 /* Send the commandline to the background script and await response. */
@@ -261,9 +274,10 @@ function process() {
     hide_and_clear()
 
     // Save non-secret commandlines to the history.
-    const [func,...args] = command.trim().split(/\s+/)
-    if (! browser.extension.inIncognitoContext &&
-        ! (func === 'winopen' && args[0] === '-private')
+    const [func, ...args] = command.trim().split(/\s+/)
+    if (
+        !browser.extension.inIncognitoContext &&
+        !(func === "winopen" && args[0] === "-private")
     ) {
         state.cmdHistory = state.cmdHistory.concat([command])
     }
@@ -272,7 +286,7 @@ function process() {
     sendExstr(command)
 }
 
-export function fillcmdline(newcommand?: string, trailspace = true){
+export function fillcmdline(newcommand?: string, trailspace = true) {
     if (newcommand !== "") {
         if (trailspace) clInput.value = newcommand + " "
         else clInput.value = newcommand
@@ -280,7 +294,7 @@ export function fillcmdline(newcommand?: string, trailspace = true){
     // Focus is lost for some reason.
     focus()
     isVisible = true
-    clInput.dispatchEvent(new Event('input')) // dirty hack for completions
+    clInput.dispatchEvent(new Event("input")) // dirty hack for completions
 }
 
 /** Create a temporary textarea and give it to fn. Remove the textarea afterwards
@@ -293,7 +307,8 @@ function applyWithTmpTextArea(fn) {
         textarea = document.createElement("textarea")
         // Scratchpad must be `display`ed, but can be tiny and invisible.
         // Being tiny and invisible means it won't make the parent page move.
-        textarea.style.cssText = 'visible: invisible; width: 0; height: 0; position: fixed'
+        textarea.style.cssText =
+            "visible: invisible; width: 0; height: 0; position: fixed"
         textarea.contentEditable = "true"
         document.documentElement.appendChild(textarea)
         return fn(textarea)
@@ -308,11 +323,11 @@ export function setClipboard(content: string) {
         scratchpad.select()
         if (document.execCommand("Copy")) {
             // // todo: Maybe we can consider to using some logger and show it with status bar in the future
-            logger.info('set clipboard:', scratchpad.value)
+            logger.info("set clipboard:", scratchpad.value)
         } else throw "Failed to copy!"
     })
     // Return focus to the document
-    Messaging.message('commandline_background', 'hide')
+    Messaging.message("commandline_background", "hide")
 }
 
 export function getClipboard() {
@@ -322,8 +337,8 @@ export function getClipboard() {
         return scratchpad.textContent
     })
     // Return focus to the document
-    Messaging.message('commandline_background', 'hide')
+    Messaging.message("commandline_background", "hide")
     return result
 }
 
-Messaging.addListener('commandline_frame', Messaging.attributeCaller(SELF))
+Messaging.addListener("commandline_frame", Messaging.attributeCaller(SELF))

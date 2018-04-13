@@ -5,7 +5,7 @@
 import * as Config from "./config"
 
 export enum LEVEL {
-    NEVER = 0,      // don't use this in calls to log()
+    NEVER = 0, // don't use this in calls to log()
     ERROR = 1,
     WARNING = 2,
     INFO = 3,
@@ -31,12 +31,12 @@ export class Logger {
      *                      retain the call site
      */
     private log(level: LEVEL) {
-        let configedLevel = Config.get("logging", this.logModule) || LEVEL.WARNING
+        let configedLevel =
+            Config.get("logging", this.logModule) || LEVEL.WARNING
 
         if (level <= configedLevel) {
             // hand over to console.log, error or debug as needed
             switch (level) {
-
                 case LEVEL.ERROR:
                     return console.error
                 case LEVEL.WARNING:

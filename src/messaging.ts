@@ -1,19 +1,19 @@
-import {l, browserBg, activeTabId} from './lib/webext'
-import Logger from './logging'
-const logger = new Logger('messaging')
+import { l, browserBg, activeTabId } from "./lib/webext"
+import Logger from "./logging"
+const logger = new Logger("messaging")
 
 export type TabMessageType =
-    "excmd_content" |
-    "keydown_content" |
-    "commandline_content" |
-    "commandline_frame" |
-    "hinting_content" |
-    "finding_content"
+    | "excmd_content"
+    | "keydown_content"
+    | "commandline_content"
+    | "commandline_frame"
+    | "hinting_content"
+    | "finding_content"
 export type NonTabMessageType =
-    "keydown_background" |
-    "commandline_background" |
-    "browser_proxy_background" |
-    "download_background"
+    | "keydown_background"
+    | "commandline_background"
+    | "browser_proxy_background"
+    | "download_background"
 export type MessageType = TabMessageType | NonTabMessageType
 
 export interface Message {
@@ -22,12 +22,15 @@ export interface Message {
     [key: string]: any
 }
 
-export type listener = (message: Message, sender?, sendResponse?) => void|Promise<any>
+export type listener = (
+    message: Message,
+    sender?,
+    sendResponse?,
+) => void | Promise<any>
 
 // Calls methods on obj that match .command and sends responses back
 export function attributeCaller(obj) {
     function handler(message: Message, sender, sendResponse) {
-
         logger.debug(message)
 
         // Args may be undefined, but you can't spread undefined...
@@ -49,23 +52,29 @@ export function attributeCaller(obj) {
                 sendResponse(response)
             }
         } catch (e) {
-            logger.error(`Error processing ${message.command}(${message.args})`, e)
-            return new Promise((resolve, error)=>error(e))
+            logger.error(
+                `Error processing ${message.command}(${message.args})`,
+                e,
+            )
+            return new Promise((resolve, error) => error(e))
         }
     }
     return handler
 }
 
-
 /** Send a message to non-content scripts */
 export async function message(type: NonTabMessageType, command, args?) {
     // One day typescript will be smart enough to back propagate this cast.
-    return l(browser.runtime.sendMessage({type, command, args} as Message))
+    return l(browser.runtime.sendMessage({ type, command, args } as Message))
 }
 
 /** Message the active tab of the currentWindow */
 //#background_helper
-export async function messageActiveTab(type: TabMessageType, command: string, args?: any[]) {
+export async function messageActiveTab(
+    type: TabMessageType,
+    command: string,
+    args?: any[],
+) {
     return messageTab(await activeTabId(), type, command, args)
 }
 
@@ -78,15 +87,21 @@ export async function messageTab(tabId, type: TabMessageType, command, args?) {
     return l(browserBg.tabs.sendMessage(tabId, message))
 }
 
-export async function messageAllTabs(type: TabMessageType, command: string, args?: any[]) {
+export async function messageAllTabs(
+    type: TabMessageType,
+    command: string,
+    args?: any[],
+) {
     let responses = []
     for (let tab of await browserBg.tabs.query({})) {
-        try { responses.push(await messageTab(tab.id, type, command, args)) }
-        catch (e) { logger.error(e) }
+        try {
+            responses.push(await messageTab(tab.id, type, command, args))
+        } catch (e) {
+            logger.error(e)
+        }
     }
     return responses
 }
-
 
 const listeners = new Map<string, Set<listener>>()
 
@@ -96,7 +111,9 @@ export function addListener(type: MessageType, callback: listener) {
         listeners.set(type, new Set())
     }
     listeners.get(type).add(callback)
-    return () => { listeners.get(type).delete(callback) }
+    return () => {
+        listeners.get(type).delete(callback)
+    }
 }
 
 /** Recv a message from runtime.onMessage and send to all listeners */
@@ -107,6 +124,5 @@ function onMessage(message, sender, sendResponse) {
         }
     }
 }
-
 
 browser.runtime.onMessage.addListener(onMessage)

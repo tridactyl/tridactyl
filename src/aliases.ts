@@ -9,18 +9,18 @@ import * as config from "./config"
 export function expandExstr(
     exstr: string,
     aliases = config.get("exaliases"),
-    prevExpansions: string[] = []
+    prevExpansions: string[] = [],
 ): string {
     // Split on whitespace
     const [command, ...args] = exstr.trim().split(/\s+/)
 
     // Base case: alias not found; return original command
-    if(aliases[command] === undefined) {
+    if (aliases[command] === undefined) {
         return exstr
     }
 
     // Infinite loop detected
-    if(prevExpansions.includes(command)) {
+    if (prevExpansions.includes(command)) {
         throw `Infinite loop detected while expanding aliases. Stack: ${prevExpansions}.`
     }
 
@@ -28,5 +28,9 @@ export function expandExstr(
     prevExpansions.push(command)
 
     // Alias exists; expand it recursively
-    return expandExstr(exstr.replace(command, aliases[command]), aliases, prevExpansions)
+    return expandExstr(
+        exstr.replace(command, aliases[command]),
+        aliases,
+        prevExpansions,
+    )
 }

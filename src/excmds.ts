@@ -87,35 +87,35 @@
 
 // Shared
 import * as Messaging from "./messaging"
-import {l} from './lib/webext'
+import { l } from "./lib/webext"
 import state from "./state"
 import * as UrlUtil from "./url_util"
-import * as config from './config'
-import * as aliases from './aliases'
+import * as config from "./config"
+import * as aliases from "./aliases"
 import * as Logging from "./logging"
 /** @hidden */
-const logger = new Logging.Logger('excmds')
-import Mark from 'mark.js'
+const logger = new Logging.Logger("excmds")
+import Mark from "mark.js"
 
 //#content_helper
 // {
 import "./number.clamp"
 import * as SELF from "./excmds_content"
-Messaging.addListener('excmd_content', Messaging.attributeCaller(SELF))
-import * as DOM from './dom'
+Messaging.addListener("excmd_content", Messaging.attributeCaller(SELF))
+import * as DOM from "./dom"
 import { executeWithoutCommandLine } from "./commandline_content"
 // }
 
 //#background_helper
 // {
 /** Message excmds_content.ts in the active tab of the currentWindow */
-import {messageActiveTab} from './messaging'
+import { messageActiveTab } from "./messaging"
 
 import "./number.mod"
-import {ModeName} from './state'
+import { ModeName } from "./state"
 import * as keydown from "./keydown_background"
-import {activeTab, activeTabId, firefoxVersionAtLeast, openInNewTab} from './lib/webext'
-import * as CommandLineBackground from './commandline_background'
+import { activeTab, activeTabId, firefoxVersionAtLeast, openInNewTab } from "./lib/webext"
+import * as CommandLineBackground from "./commandline_background"
 
 /** @hidden */
 export const cmd_params = new Map<string, Map<string, string>>()
@@ -130,7 +130,7 @@ function hasScheme(uri: string) {
 function searchURL(provider: string, query: string) {
     if (provider == "search") provider = config.get("searchengine")
     const searchurlprovider = config.get("searchurls", provider)
-    if (searchurlprovider === undefined){
+    if (searchurlprovider === undefined) {
         throw new TypeError(`Unknown provider: '${provider}'`)
     }
 
@@ -145,36 +145,36 @@ export function forceURI(maybeURI: string): string {
     try {
         return new URL(maybeURI).href
     } catch (e) {
-        if (e.name !== 'TypeError') throw e
+        if (e.name !== "TypeError") throw e
     }
 
     // Else if search keyword:
     try {
-        const args = maybeURI.split(' ')
-        return searchURL(args[0], args.slice(1).join(' ')).href
+        const args = maybeURI.split(" ")
+        return searchURL(args[0], args.slice(1).join(" ")).href
     } catch (e) {
-        if (e.name !== 'TypeError') throw e
+        if (e.name !== "TypeError") throw e
     }
 
     // Else if it's a domain or something
     try {
-        const url = new URL('http://' + maybeURI)
+        const url = new URL("http://" + maybeURI)
         // Ignore unlikely domains
-        if (url.hostname.includes('.') || url.port || url.password) {
+        if (url.hostname.includes(".") || url.port || url.password) {
             return url.href
         }
     } catch (e) {
-        if (e.name !== 'TypeError') throw e
+        if (e.name !== "TypeError") throw e
     }
 
     // Else search $searchengine
-    return searchURL('search', maybeURI).href
+    return searchURL("search", maybeURI).href
 }
 
 /** @hidden */
 //#background_helper
 function tabSetActive(id: number) {
-    browser.tabs.update(id, {active: true})
+    browser.tabs.update(id, { active: true })
 }
 
 // }}}
@@ -191,11 +191,11 @@ function tabSetActive(id: number) {
 //#background
 export function loggingsetlevel(logModule: string, level: string) {
     const map = {
-        "never": Logging.LEVEL.NEVER,
-        "error": Logging.LEVEL.ERROR,
-        "warning": Logging.LEVEL.WARNING,
-        "info": Logging.LEVEL.INFO,
-        "debug": Logging.LEVEL.DEBUG,
+        never: Logging.LEVEL.NEVER,
+        error: Logging.LEVEL.ERROR,
+        warning: Logging.LEVEL.WARNING,
+        info: Logging.LEVEL.INFO,
+        debug: Logging.LEVEL.DEBUG,
     }
 
     let newLevel = map[level.toLowerCase()]
@@ -207,7 +207,6 @@ export function loggingsetlevel(logModule: string, level: string) {
     }
 }
 
-
 // }}}
 
 // {{{ PAGE CONTEXT
@@ -215,15 +214,14 @@ export function loggingsetlevel(logModule: string, level: string) {
 /** Blur (unfocus) the active element */
 //#content
 export function unfocus() {
-    (document.activeElement as HTMLInputElement).blur()
+    ;(document.activeElement as HTMLInputElement).blur()
 }
 
 //#content
 export function scrollpx(a: number, b: number) {
-    let top = document.body.getClientRects()[0].top;
-    window.scrollBy(a, b);
-    if (top == document.body.getClientRects()[0].top)
-        recursiveScroll(a, b, [document.body])
+    let top = document.body.getClientRects()[0].top
+    window.scrollBy(a, b)
+    if (top == document.body.getClientRects()[0].top) recursiveScroll(a, b, [document.body])
 }
 
 /** If two numbers are given, treat as x and y values to give to window.scrollTo
@@ -234,14 +232,9 @@ export function scrollpx(a: number, b: number) {
 export function scrollto(a: number, b: number | "x" | "y" = "y") {
     a = Number(a)
     if (b === "y") {
-        window.scrollTo(
-            window.scrollX,
-            a.clamp(0, 100) * window.document.scrollingElement.scrollHeight / 100)
-    }
-    else if (b === "x") {
-        window.scrollTo(
-            a.clamp(0, 100) * window.document.scrollingElement.scrollWidth / 100,
-            window.scrollY)
+        window.scrollTo(window.scrollX, a.clamp(0, 100) * window.document.scrollingElement.scrollHeight / 100)
+    } else if (b === "x") {
+        window.scrollTo(a.clamp(0, 100) * window.document.scrollingElement.scrollWidth / 100, window.scrollY)
     } else {
         window.scrollTo(a, Number(b)) // a,b numbers
     }
@@ -252,7 +245,7 @@ export function scrollto(a: number, b: number | "x" | "y" = "y") {
  *
  *  This function used to be recursive but isn't anymore due to various
  *  attempts at optimizing the function in order to reduce GC pressure.
-*/
+ */
 //#content_helper
 function recursiveScroll(x: number, y: number, nodes: Element[]) {
     let index = 0
@@ -272,22 +265,19 @@ function recursiveScroll(x: number, y: number, nodes: Element[]) {
         // still letting scrolling work on twitch/website with frames so we'll
         // consider it good enough for now.
         while (!rect || rect.top >= innerHeight - 4) {
-            node = nodes[index++];
+            node = nodes[index++]
             // No node means we've reached the end of the array
-            if (!node)
-                return
+            if (!node) return
             rect = node.getClientRects()[0]
         }
         let top = rect.top
         let left = rect.left
-        node.scrollBy(x, y);
+        node.scrollBy(x, y)
         rect = node.getClientRects()[0]
         // if the node moved, stop
-        if (top != rect.top || left != rect.left)
-            return
+        if (top != rect.top || left != rect.left) return
         nodes = nodes.concat(Array.prototype.slice.call(node.children))
-        if (node.contentDocument)
-            nodes.push(node.contentDocument.body)
+        if (node.contentDocument) nodes.push(node.contentDocument.body)
     } while (index < nodes.length)
 }
 
@@ -296,12 +286,11 @@ export function scrollline(n = 1) {
     let top = document.body.getClientRects()[0].top
     window.scrollByLines(n)
     if (top == document.body.getClientRects()[0].top) {
-        const cssHeight = window.getComputedStyle(document.body).getPropertyValue('line-height')
+        const cssHeight = window.getComputedStyle(document.body).getPropertyValue("line-height")
         // Remove the "px" at the end
         const lineHeight = parseInt(cssHeight.substr(0, cssHeight.length - 2))
         // lineHeight probably can't be NaN but let's make sure
-        if (lineHeight)
-            recursiveScroll(0, lineHeight * n, [window.document.body])
+        if (lineHeight) recursiveScroll(0, lineHeight * n, [window.document.body])
     }
 }
 
@@ -311,15 +300,15 @@ export function scrollpage(n = 1) {
 }
 
 //#background_helper
-import * as finding from './finding_background'
+import * as finding from "./finding_background"
 
 /** Start find mode. Work in progress.
  *
  * @param direction - the direction to search in: 1 is forwards, -1 is backwards.
- * 
+ *
  */
 //#background
-export function find(direction?: number){
+export function find(direction?: number) {
     if (direction === undefined) direction = 1
     finding.findPage(direction)
 }
@@ -327,10 +316,10 @@ export function find(direction?: number){
 /** Highlight the next occurence of the previously searched for word.
  *
  * @param number - number of words to advance down the page (use 1 for next word, -1 for previous)
- * 
+ *
  */
 //#background
-export function findnext(n: number){
+export function findnext(n: number) {
     finding.findPageNavigate(n)
 }
 
@@ -356,15 +345,15 @@ export function back(n = 1) {
 //#background
 export async function reload(n = 1, hard = false) {
     let tabstoreload = await getnexttabs(await activeTabId(), n)
-    let reloadProperties = {bypassCache: hard}
+    let reloadProperties = { bypassCache: hard }
     tabstoreload.map(n => browser.tabs.reload(n, reloadProperties))
 }
 
 /** Reloads all tabs, bypassing the cache if hard is set to true */
 //#background
-export async function reloadall(hard = false){
-    let tabs = await browser.tabs.query({currentWindow: true})
-    let reloadprops = {bypassCache: hard}
+export async function reloadall(hard = false) {
+    let tabs = await browser.tabs.query({ currentWindow: true })
+    let reloadprops = { bypassCache: hard }
     tabs.map(tab => browser.tabs.reload(tab.id, reloadprops))
 }
 
@@ -388,8 +377,7 @@ export async function reloadhard(n = 1) {
 //#content
 export function open(...urlarr: string[]) {
     let url = urlarr.join(" ")
-    if (url === "")
-        url = config.get("newtab") || browser.extension.getURL("static/newtab.html")
+    if (url === "") url = config.get("newtab") || browser.extension.getURL("static/newtab.html")
     window.location.href = forceURI(url)
 }
 
@@ -398,8 +386,7 @@ export function open(...urlarr: string[]) {
 let sourceElement = undefined
 //#content
 export function viewsource(url = "") {
-    if (url === "")
-        url = window.location.href
+    if (url === "") url = window.location.href
     if (config.get("viewsource") === "default") {
         window.location.href = "view-source:" + url
         return
@@ -427,12 +414,12 @@ export function viewsource(url = "") {
 
 */
 //#background
-export function home(all: "false" | "true" = "false"){
+export function home(all: "false" | "true" = "false") {
     let homepages = config.get("homepages")
-    if (homepages.length > 0){
+    if (homepages.length > 0) {
         if (all === "false") open(homepages[homepages.length - 1])
         else {
-            homepages.map(t=>tabopen(t))
+            homepages.map(t => tabopen(t))
         }
     }
 }
@@ -465,8 +452,7 @@ export async function help(excmd?: string) {
 //#content_helper
 function findRelLink(pattern: RegExp): HTMLAnchorElement | null {
     // querySelectorAll returns a "non-live NodeList" which is just a shit array without working reverse() or find() calls, so convert it.
-    const links = Array.from(
-        <NodeListOf<HTMLAnchorElement>>document.querySelectorAll('a[href]'))
+    const links = Array.from(<NodeListOf<HTMLAnchorElement>>document.querySelectorAll("a[href]"))
 
     // Find the last link that matches the test
     return links.reverse().find(link => pattern.test(link.innerText))
@@ -502,7 +488,7 @@ function selectLast(selector: string): HTMLElement | null {
     @param rel   the relation of the target page to the current page: "next" or "prev"
 */
 //#content
-export function followpage(rel: 'next'|'prev' = 'next') {
+export function followpage(rel: "next" | "prev" = "next") {
     const link = <HTMLLinkElement>selectLast(`link[rel~=${rel}][href]`)
 
     if (link) {
@@ -510,8 +496,7 @@ export function followpage(rel: 'next'|'prev' = 'next') {
         return
     }
 
-    const anchor = <HTMLAnchorElement>selectLast(`a[rel~=${rel}][href]`) ||
-        findRelLink(new RegExp(config.get("followpagepatterns", rel), "i"))
+    const anchor = <HTMLAnchorElement>selectLast(`a[rel~=${rel}][href]`) || findRelLink(new RegExp(config.get("followpagepatterns", rel), "i"))
 
     if (anchor) {
         DOM.mouseEvent(anchor, "click")
@@ -523,9 +508,9 @@ export function followpage(rel: 'next'|'prev' = 'next') {
 /** Increment the current tab URL
  *
  * @param count   the increment step, can be positive or negative
-*/
+ */
 //#content
-export function urlincrement(count = 1){
+export function urlincrement(count = 1) {
     let newUrl = UrlUtil.incrementUrl(window.location.href, count)
 
     if (newUrl !== null) {
@@ -536,7 +521,7 @@ export function urlincrement(count = 1){
 /** Go to the root domain of the current URL
  */
 //#content
-export function urlroot (){
+export function urlroot() {
     let rootUrl = UrlUtil.getUrlRoot(window.location)
 
     if (rootUrl !== null) {
@@ -547,7 +532,7 @@ export function urlroot (){
 /** Go to the parent URL of the current tab's URL
  */
 //#content
-export function urlparent (count = 1){
+export function urlparent(count = 1) {
     let parentUrl = UrlUtil.getUrlParent(window.location, count)
 
     if (parentUrl !== null) {
@@ -624,16 +609,13 @@ export function urlparent (count = 1){
  */
 //#content
 export function urlmodify(mode: "-t" | "-r" | "-q" | "-Q" | "-g", ...args: string[]) {
-
     let oldUrl = new URL(window.location.href)
     let newUrl = undefined
 
-    switch(mode) {
-
+    switch (mode) {
         case "-t":
             if (args.length !== 2) {
-                throw new Error("Text replacement needs 2 arguments:"
-                    + "<old> <new>")
+                throw new Error("Text replacement needs 2 arguments:" + "<old> <new>")
             }
 
             newUrl = oldUrl.href.replace(args[0], args[1])
@@ -641,14 +623,11 @@ export function urlmodify(mode: "-t" | "-r" | "-q" | "-Q" | "-g", ...args: strin
 
         case "-r":
             if (args.length < 2 || args.length > 3) {
-                throw new Error("RegExp replacement takes 2 or 3 arguments: "
-                    + "<regexp> <new> [flags]")
+                throw new Error("RegExp replacement takes 2 or 3 arguments: " + "<regexp> <new> [flags]")
             }
 
-            if (args[2] && args[2].search(/^[gi]+$/) === -1)
-            {
-                throw new Error("RegExp replacement flags can only include 'g', 'i'"
-                    + ", Got '" + args[2] + "'")
+            if (args[2] && args[2].search(/^[gi]+$/) === -1) {
+                throw new Error("RegExp replacement flags can only include 'g', 'i'" + ", Got '" + args[2] + "'")
             }
 
             let regexp = new RegExp(args[0], args[2])
@@ -657,17 +636,14 @@ export function urlmodify(mode: "-t" | "-r" | "-q" | "-Q" | "-g", ...args: strin
 
         case "-q":
             if (args.length !== 2) {
-                throw new Error("Query replacement needs 2 arguments:"
-                    + "<query> <new_val>")
+                throw new Error("Query replacement needs 2 arguments:" + "<query> <new_val>")
             }
 
-            newUrl = UrlUtil.replaceQueryValue(oldUrl, args[0],
-                args[1])
+            newUrl = UrlUtil.replaceQueryValue(oldUrl, args[0], args[1])
             break
         case "-Q":
             if (args.length !== 1) {
-                throw new Error("Query deletion needs 1 argument:"
-                    + "<query>")
+                throw new Error("Query deletion needs 1 argument:" + "<query>")
             }
 
             newUrl = UrlUtil.deleteQuery(oldUrl, args[0])
@@ -675,8 +651,7 @@ export function urlmodify(mode: "-t" | "-r" | "-q" | "-Q" | "-g", ...args: strin
 
         case "-g":
             if (args.length !== 2) {
-                throw new Error("URL path grafting needs 2 arguments:"
-                    + "<graft point> <new path tail>")
+                throw new Error("URL path grafting needs 2 arguments:" + "<graft point> <new path tail>")
             }
 
             newUrl = UrlUtil.graftUrlPath(oldUrl, args[1], Number(args[0]))
@@ -695,17 +670,16 @@ export function urlmodify(mode: "-t" | "-r" | "-q" | "-Q" | "-g", ...args: strin
     @hidden
  */
 //#content
-export function geturlsforlinks(reltype = "rel", rel: string){
+export function geturlsforlinks(reltype = "rel", rel: string) {
     let elems = document.querySelectorAll("link[" + reltype + "='" + rel + "']") as NodeListOf<HTMLLinkElement>
-    if (elems)
-        return Array.prototype.map.call(elems, x => x.href)
+    if (elems) return Array.prototype.map.call(elems, x => x.href)
     return []
 }
 
 //#background
-export async function zoom(level=0, rel="false"){
+export async function zoom(level = 0, rel = "false") {
     level = level > 3 ? level / 100 : level
-    if(rel=="true") level += (await browser.tabs.getZoom())
+    if (rel == "true") level += await browser.tabs.getZoom()
     browser.tabs.setZoom(level)
 }
 
@@ -715,12 +689,12 @@ export async function zoom(level=0, rel="false"){
 //#background
 export async function reader() {
     if (await l(firefoxVersionAtLeast(58))) {
-    let aTab = await activeTab()
-    if (aTab.isArticle) {
-        browser.tabs.toggleReaderMode()
-    } // else {
-    //  // once a statusbar exists an error can be displayed there
-    // }
+        let aTab = await activeTab()
+        if (aTab.isArticle) {
+            browser.tabs.toggleReaderMode()
+        } // else {
+        //  // once a statusbar exists an error can be displayed there
+        // }
     }
 }
 
@@ -730,13 +704,13 @@ loadaucmds()
 
 /** @hidden */
 //#content
-export async function loadaucmds(){
+export async function loadaucmds() {
     // for some reason, this never changes from the default, even when there is user config (e.g. set via `aucmd bbc.co.uk mode ignore`)
     let aucmds = await config.getAsync("autocmds", "DocStart")
     const ausites = Object.keys(aucmds)
     // yes, this is lazy
-    const aukey = ausites.find(e=>window.document.location.href.includes(e))
-    if (aukey !== undefined){
+    const aukey = ausites.find(e => window.document.location.href.includes(e))
+    if (aukey !== undefined) {
         Messaging.message("commandline_background", "recvExStr", [aucmds[aukey]])
     }
 }
@@ -769,8 +743,8 @@ object,
 [role='application']
 `
 
-/** Password field selectors 
- * @hidden 
+/** Password field selectors
+ * @hidden
  */
 const INPUTPASSWORD_selectors = `
 input[type='password']
@@ -782,7 +756,6 @@ input[type='password']
 //#content_helper
 let LAST_USED_INPUT: HTMLElement = null
 
-
 /** Focus the last used input on the page
  *
  * @param nth   focus the nth input on the page, or "special" inputs:
@@ -793,8 +766,7 @@ let LAST_USED_INPUT: HTMLElement = null
  *                  "-b": biggest input field
  */
 //#content
-export function focusinput(nth: number|string) {
-
+export function focusinput(nth: number | string) {
     let inputToFocus: HTMLElement = null
 
     // set to false to avoid falling back on the first available input
@@ -809,17 +781,14 @@ export function focusinput(nth: number|string) {
             inputToFocus = LAST_USED_INPUT
         } else {
             // Pick the first input in the DOM.
-            inputToFocus = DOM.getElemsBySelector(INPUTTAGS_selectors,
-                [DOM.isSubstantial])[0] as HTMLElement
+            inputToFocus = DOM.getElemsBySelector(INPUTTAGS_selectors, [DOM.isSubstantial])[0] as HTMLElement
 
             // We could try to save the last used element on page exit, but
             // that seems like a lot of faff for little gain.
         }
-    }
-    else if (nth === "-n" || nth === "-N") {
+    } else if (nth === "-n" || nth === "-N") {
         // attempt to find next/previous input
-        let inputs = DOM.getElemsBySelector(INPUTTAGS_selectors,
-            [DOM.isSubstantial]) as HTMLElement[]
+        let inputs = DOM.getElemsBySelector(INPUTTAGS_selectors, [DOM.isSubstantial]) as HTMLElement[]
         if (inputs.length) {
             let index = inputs.indexOf(LAST_USED_INPUT)
             if (LAST_USED_INPUT) {
@@ -834,47 +803,41 @@ export function focusinput(nth: number|string) {
             }
             inputToFocus = inputs[index]
         }
-    }
-    else if (nth === "-p") {
+    } else if (nth === "-p") {
         // attempt to find a password input
         fallbackToNumeric = false
 
-        let inputs = DOM.getElemsBySelector(INPUTPASSWORD_selectors,
-                                            [DOM.isSubstantial])
+        let inputs = DOM.getElemsBySelector(INPUTPASSWORD_selectors, [DOM.isSubstantial])
 
         if (inputs.length) {
             inputToFocus = <HTMLElement>inputs[0]
         }
-    }
-    else if (nth === "-b") {
-
-        let inputs = DOM.getElemsBySelector(INPUTTAGS_selectors,
-            [DOM.isSubstantial]) as HTMLElement[]
+    } else if (nth === "-b") {
+        let inputs = DOM.getElemsBySelector(INPUTTAGS_selectors, [DOM.isSubstantial]) as HTMLElement[]
 
         inputToFocus = inputs.sort(DOM.compareElementArea).slice(-1)[0]
     }
 
     // either a number (not special) or we failed to find a special input when
     // asked and falling back is acceptable
-    if (!inputToFocus  && fallbackToNumeric) {
-
+    if (!inputToFocus && fallbackToNumeric) {
         let index = isNaN(<number>nth) ? 0 : <number>nth
-        inputToFocus = DOM.getNthElement(INPUTTAGS_selectors,
-                                         index, [DOM.isSubstantial])
+        inputToFocus = DOM.getNthElement(INPUTTAGS_selectors, index, [DOM.isSubstantial])
     }
 
     if (inputToFocus) {
         DOM.focus(inputToFocus)
-        if (config.get('gimode') === 'nextinput' && state.mode !== 'input') {
-            state.mode = 'input'
+        if (config.get("gimode") === "nextinput" && state.mode !== "input") {
+            state.mode = "input"
         }
     }
-
 }
 
 // Store the last focused element
 //#content_helper
-document.addEventListener("focusin",e=>{if (DOM.isTextEditable(e.target as HTMLElement)) LAST_USED_INPUT = e.target as HTMLElement})
+document.addEventListener("focusin", e => {
+    if (DOM.isTextEditable(e.target as HTMLElement)) LAST_USED_INPUT = e.target as HTMLElement
+})
 
 // }}}
 
@@ -890,7 +853,7 @@ document.addEventListener("focusin",e=>{if (DOM.isTextEditable(e.target as HTMLE
 */
 /** @hidden */
 //#background_helper
-async function tabIndexSetActive(index: number|string) {
+async function tabIndexSetActive(index: number | string) {
     tabSetActive(await idFromIndex(index))
 }
 
@@ -958,7 +921,7 @@ export async function tablast() {
 //#background
 export async function tabopen(...addressarr: string[]) {
     let url: string
-    let address = addressarr.join(' ')
+    let address = addressarr.join(" ")
 
     if (address != "") url = forceURI(address)
     else url = forceURI(config.get("newtab"))
@@ -979,23 +942,22 @@ export async function tabopen(...addressarr: string[]) {
     @hidden
 */
 //#background_helper
-async function idFromIndex(index?: number|"%"|"#"|string): Promise<number> {
+async function idFromIndex(index?: number | "%" | "#" | string): Promise<number> {
     if (index === "#") {
         // Support magic previous/current tab syntax everywhere
         return (await getSortedWinTabs())[1].id
-    }
-    else if (index !== undefined && index !== "%") {
+    } else if (index !== undefined && index !== "%") {
         // Wrap
         index = Number(index)
-        index = (index - 1).mod(
-            (await l(browser.tabs.query({currentWindow: true}))).length)
-            + 1
+        index = (index - 1).mod((await l(browser.tabs.query({ currentWindow: true }))).length) + 1
 
         // Return id of tab with that index.
-        return (await l(browser.tabs.query({
-            currentWindow: true,
-            index: index - 1,
-        })))[0].id
+        return (await l(
+            browser.tabs.query({
+                currentWindow: true,
+                index: index - 1,
+            }),
+        ))[0].id
     } else {
         return await activeTabId()
     }
@@ -1007,12 +969,11 @@ export async function tabonly() {
     const tabs = await browser.tabs.query({
         pinned: false,
         active: false,
-        currentWindow: true
+        currentWindow: true,
     })
     const tabsIds = tabs.map(tab => tab.id)
     browser.tabs.remove(tabsIds)
 }
-
 
 /** Duplicate a tab.
 
@@ -1031,7 +992,7 @@ export async function tabduplicate(index?: number) {
 */
 //#background
 export async function tabdetach(index?: number) {
-    browser.windows.create({tabId: await idFromIndex(index)})
+    browser.windows.create({ tabId: await idFromIndex(index) })
 }
 
 /** Get list of tabs sorted by most recent use
@@ -1040,8 +1001,8 @@ export async function tabdetach(index?: number) {
 */
 //#background_helper
 async function getSortedWinTabs(): Promise<browser.tabs.Tab[]> {
-    const tabs = await browser.tabs.query({currentWindow: true})
-    tabs.sort((a, b) => a.lastAccessed < b.lastAccessed ? 1 : -1)
+    const tabs = await browser.tabs.query({ currentWindow: true })
+    tabs.sort((a, b) => (a.lastAccessed < b.lastAccessed ? 1 : -1))
     return tabs
 }
 
@@ -1055,7 +1016,7 @@ export async function fullscreen() {
     const wid = currwin.id
     // This might have odd behaviour on non-tiling window managers, but no-one uses those, right?
     const state = currwin.state == "fullscreen" ? "normal" : "fullscreen"
-    browser.windows.update(wid,{state})
+    browser.windows.update(wid, { state })
 }
 
 /** Close a tab.
@@ -1079,19 +1040,18 @@ export async function tabclose(...indexes: string[]) {
 
 /** restore most recently closed tab in this window unless the most recently closed item was a window */
 //#background
-export async function undo(){
-    const current_win_id : number = (await browser.windows.getCurrent()).id
+export async function undo() {
+    const current_win_id: number = (await browser.windows.getCurrent()).id
     const sessions = await browser.sessions.getRecentlyClosed()
 
     // The first session object that's a window or a tab from this window. Or undefined if sessions is empty.
-    let closed = sessions.find((s) => {
-        return ('window' in s || s.tab && (s.tab.windowId == current_win_id))
+    let closed = sessions.find(s => {
+        return "window" in s || (s.tab && s.tab.windowId == current_win_id)
     })
     if (closed) {
         if (closed.tab) {
             browser.sessions.restore(closed.tab.sessionId)
-        }
-        else if (closed.window) {
+        } else if (closed.window) {
             browser.sessions.restore(closed.window.sessionId)
         }
     }
@@ -1131,14 +1091,14 @@ export async function tabmove(index = "0") {
     if (index.startsWith("+") || index.startsWith("-")) {
         newindex = Math.max(0, Number(index) + aTab.index)
     } else newindex = Number(index) - 1
-    browser.tabs.move(aTab.id, {index: newindex})
+    browser.tabs.move(aTab.id, { index: newindex })
 }
 
 /** Pin the current tab */
 //#background
 export async function pin() {
     let aTab = await activeTab()
-    browser.tabs.update(aTab.id, {pinned: !aTab.pinned})
+    browser.tabs.update(aTab.id, { pinned: !aTab.pinned })
 }
 
 // }}}
@@ -1152,8 +1112,8 @@ export async function winopen(...args: string[]) {
     const createData = {}
     if (args[0] === "-private") {
         createData["incognito"] = true
-        address = args.slice(1,args.length).join(' ')
-    } else address = args.join(' ')
+        address = args.slice(1, args.length).join(" ")
+    } else address = args.join(" ")
     createData["url"] = address != "" ? forceURI(address) : forceURI(config.get("newtab"))
     browser.windows.create(createData)
 }
@@ -1163,14 +1123,13 @@ export async function winclose() {
     browser.windows.remove((await browser.windows.getCurrent()).id)
 }
 
-
 /** Close all windows */
 // It's unclear if this will leave a session that can be restored.
 // We might have to do it ourselves.
 //#background
-export async function qall(){
+export async function qall() {
     let windows = await browser.windows.getAll()
-    windows.map((window) => browser.windows.remove(window.id))
+    windows.map(window => browser.windows.remove(window.id))
 }
 
 /** Convenience shortcut for [[qall]]. */
@@ -1192,7 +1151,7 @@ export function suppress(preventDefault?: boolean, stopPropagation?: boolean) {
 }
 
 //#background
-export function version(){
+export function version() {
     fillcmdline_notrail("REPLACE_ME_WITH_THE_VERSION_USING_SED")
 }
 
@@ -1218,10 +1177,7 @@ async function getnexttabs(tabid: number, n?: number) {
         currentWindow: true,
     })
     const indexFilter = ((tab: browser.tabs.Tab) => {
-        return (
-            curIndex <= tab.index &&
-            (n ? tab.index < curIndex + Number(n) : true)
-        )
+        return curIndex <= tab.index && (n ? tab.index < curIndex + Number(n) : true)
     }).bind(n)
     return tabs.filter(indexFilter).map((tab: browser.tabs.Tab) => {
         return tab.id
@@ -1256,7 +1212,7 @@ async function getnexttabs(tabid: number, n?: number) {
 // {{{ CMDLINE
 
 //#background_helper
-import * as controller from './controller'
+import * as controller from "./controller"
 
 /** Repeats a `cmd` `n` times.
     Falls back to the last executed command if `cmd` doesn't exist.
@@ -1265,11 +1221,9 @@ import * as controller from './controller'
 //#background
 export function repeat(n = 1, ...exstr: string[]) {
     let cmd = state.last_ex_str
-    if (exstr.length > 0)
-        cmd = exstr.join(" ")
+    if (exstr.length > 0) cmd = exstr.join(" ")
     logger.debug("repeating " + cmd + " " + n + " times")
-    for (let i = 0; i < n; i++)
-        controller.acceptExCmd(cmd)
+    for (let i = 0; i < n; i++) controller.acceptExCmd(cmd)
 }
 
 /** Split `cmds` on pipes (|) and treat each as its own command.
@@ -1310,7 +1264,7 @@ export function fillcmdline_notrail(...strarr: string[]) {
     See also [[fillcmdline_notrail]]
 */
 //#background
-export async function current_url(...strarr: string[]){
+export async function current_url(...strarr: string[]) {
     fillcmdline_notrail(...strarr, (await activeTab()).url)
 }
 
@@ -1332,12 +1286,12 @@ export async function current_url(...strarr: string[]){
 
 */
 //#background
-export async function clipboard(excmd: "open"|"yank"|"yankshort"|"yankcanon"|"yanktitle"|"yankmd"|"tabopen" = "open", ...toYank: string[]) {
+export async function clipboard(excmd: "open" | "yank" | "yankshort" | "yankcanon" | "yanktitle" | "yankmd" | "tabopen" = "open", ...toYank: string[]) {
     let content = toYank.join(" ")
     let url = ""
     let urls = []
     switch (excmd) {
-        case 'yankshort':
+        case "yankshort":
             urls = await geturlsforlinks("rel", "shortlink")
             if (urls.length == 0) {
                 urls = await geturlsforlinks("rev", "canonical")
@@ -1346,30 +1300,30 @@ export async function clipboard(excmd: "open"|"yank"|"yankshort"|"yankcanon"|"ya
                 messageActiveTab("commandline_frame", "setClipboard", [urls[0]])
                 break
             }
-        case 'yankcanon':
+        case "yankcanon":
             urls = await geturlsforlinks("rel", "canonical")
             if (urls.length > 0) {
                 messageActiveTab("commandline_frame", "setClipboard", [urls[0]])
                 break
             }
-        case 'yank':
+        case "yank":
             await messageActiveTab("commandline_content", "focus")
-            content = (content == "") ? (await activeTab()).url : content
+            content = content == "" ? (await activeTab()).url : content
             messageActiveTab("commandline_frame", "setClipboard", [content])
             break
-        case 'yanktitle':
+        case "yanktitle":
             messageActiveTab("commandline_frame", "setClipboard", [content])
             break
-        case 'yankmd':
+        case "yankmd":
             content = "[" + (await activeTab()).title + "](" + (await activeTab()).url + ")"
             messageActiveTab("commandline_frame", "setClipboard", [content])
             break
-        case 'open':
+        case "open":
             await messageActiveTab("commandline_content", "focus")
             url = await messageActiveTab("commandline_frame", "getClipboard")
             url && open(url)
             break
-        case 'tabopen':
+        case "tabopen":
             await messageActiveTab("commandline_content", "focus")
             url = await messageActiveTab("commandline_frame", "getClipboard")
             url && tabopen(url)
@@ -1409,7 +1363,7 @@ export async function buffers() {
         "#" means the tab that was last accessed in this window
  */
 //#background
-export async function buffer(index: number | '#') {
+export async function buffer(index: number | "#") {
     tabIndexSetActive(index)
 }
 
@@ -1444,9 +1398,9 @@ export function command(name: string, ...definition: string[]) {
         // Set alias
         config.set("exaliases", name, def)
         aliases.expandExstr(name)
-    } catch(e) {
+    } catch (e) {
         // Warn user about infinite loops
-        fillcmdline_notrail(e, ' Alias unset.')
+        fillcmdline_notrail(e, " Alias unset.")
         config.unset("exaliases", name)
     }
 }
@@ -1492,7 +1446,7 @@ export function comclear(name: string) {
         - [[reset]]
 */
 //#background
-export function bind(key: string, ...bindarr: string[]){
+export function bind(key: string, ...bindarr: string[]) {
     if (bindarr.length) {
         let exstring = bindarr.join(" ")
         config.set("nmaps", key, exstring)
@@ -1514,7 +1468,7 @@ export function bind(key: string, ...bindarr: string[]){
  *                  the query is percent-encoded, else it is verbatim.
  **/
 //#background
-export function searchsetkeyword(keyword: string, url: string){
+export function searchsetkeyword(keyword: string, url: string) {
     config.set("searchurls", keyword, forceURI(url))
 }
 
@@ -1528,22 +1482,22 @@ export function searchsetkeyword(keyword: string, url: string){
 */
 //#background
 export function set(key: string, ...values: string[]) {
-    if (! key || ! values[0]) {
+    if (!key || !values[0]) {
         throw "Both key and value must be provided!"
     }
 
-    const target = key.split('.')
+    const target = key.split(".")
 
     // Special case conversions
     // TODO: Should we do any special case shit here?
     switch (target[0]) {
         case "logging":
             const map = {
-                "never": Logging.LEVEL.NEVER,
-                "error": Logging.LEVEL.ERROR,
-                "warning": Logging.LEVEL.WARNING,
-                "info": Logging.LEVEL.INFO,
-                "debug": Logging.LEVEL.DEBUG,
+                never: Logging.LEVEL.NEVER,
+                error: Logging.LEVEL.ERROR,
+                warning: Logging.LEVEL.WARNING,
+                info: Logging.LEVEL.INFO,
+                debug: Logging.LEVEL.DEBUG,
             }
             let level = map[values[0].toLowerCase()]
             if (level === undefined) throw "Bad log level!"
@@ -1556,7 +1510,7 @@ export function set(key: string, ...values: string[]) {
     if (Array.isArray(currentValue)) {
         config.set(...target, values)
     } else if (currentValue === undefined || typeof currentValue === "string") {
-        config.set(...target, values.join(' '))
+        config.set(...target, values.join(" "))
     } else {
         throw "Unsupported setting type!"
     }
@@ -1572,10 +1526,10 @@ export function set(key: string, ...values: string[]) {
 
 */
 //#background
-export function autocmd(event: string, url: string, ...excmd: string[]){
+export function autocmd(event: string, url: string, ...excmd: string[]) {
     // rudimentary run time type checking
     // TODO: Decide on autocmd event names
-    if(!['DocStart'].includes(event)) throw (event + " is not a supported event.")
+    if (!["DocStart"].includes(event)) throw event + " is not a supported event."
     config.set("autocmds", event, url, excmd.join(" "))
 }
 
@@ -1587,7 +1541,7 @@ export function autocmd(event: string, url: string, ...excmd: string[]){
         - [[reset]]
 */
 //#background
-export async function unbind(key: string){
+export async function unbind(key: string) {
     config.set("nmaps", key, "")
 }
 
@@ -1599,14 +1553,14 @@ export async function unbind(key: string){
         - [[unbind]]
 */
 //#background
-export async function reset(key: string){
-    config.unset("nmaps",key)
+export async function reset(key: string) {
+    config.unset("nmaps", key)
 
     // Code for dealing with legacy binds
     let nmaps = (await browser.storage.sync.get("nmaps"))["nmaps"]
-    nmaps = (nmaps == undefined) ? {} : nmaps
+    nmaps = nmaps == undefined ? {} : nmaps
     delete nmaps[key]
-    browser.storage.sync.set({nmaps})
+    browser.storage.sync.set({ nmaps })
 }
 
 /** Deletes various privacy-related items.
@@ -1638,20 +1592,24 @@ export async function sanitise(...args: string[]) {
     // If the -t flag has been given and there is an arg after it
     if (flagpos > -1) {
         if (flagpos < args.length - 1) {
-            let match = args[flagpos + 1].match('^([0-9])+(m|h|d|w)$')
+            let match = args[flagpos + 1].match("^([0-9])+(m|h|d|w)$")
             // If the arg of the flag matches Pentadactyl's sanitisetimespan format
             if (match !== null && match.length == 3) {
                 // Compute the timespan in milliseconds and get a Date object
                 let millis = parseInt(match[1]) * 1000
                 switch (match[2]) {
-                    case 'w': millis *= 7
-                    case 'd': millis *= 24
-                    case 'h': millis *= 60
-                    case 'm': millis *= 60
+                    case "w":
+                        millis *= 7
+                    case "d":
+                        millis *= 24
+                    case "h":
+                        millis *= 60
+                    case "m":
+                        millis *= 60
                 }
-                since = { "since": (new Date()).getTime() - millis }
+                since = { since: new Date().getTime() - millis }
             } else {
-                throw new Error(":sanitise error: expected time format: ^([0-9])+(m|h|d|w)$, given format:" + args[flagpos+1])
+                throw new Error(":sanitise error: expected time format: ^([0-9])+(m|h|d|w)$, given format:" + args[flagpos + 1])
             }
         } else {
             throw new Error(":sanitise error: -t given but no following arguments")
@@ -1659,18 +1617,18 @@ export async function sanitise(...args: string[]) {
     }
 
     let dts = {
-        "cache": false,
-        "cookies": false,
-        "downloads": false,
-        "formData": false,
-        "history": false,
-        "localStorage": false,
-        "passwords": false,
-        "serviceWorkers": false,
+        cache: false,
+        cookies: false,
+        downloads: false,
+        formData: false,
+        history: false,
+        localStorage: false,
+        passwords: false,
+        serviceWorkers: false,
         // These are Tridactyl-specific
-        "commandline": false,
-        "tridactyllocal": false,
-        "tridactylsync": false,
+        commandline: false,
+        tridactyllocal: false,
+        tridactylsync: false,
         /* When this one is activated, a lot of errors seem to pop up in
            the console. Keeping it disabled is probably a good idea.
         "pluginData": false,
@@ -1682,23 +1640,21 @@ export async function sanitise(...args: string[]) {
          */
     }
     if (args.find(x => x == "all") !== undefined) {
-        for (let attr in dts)
-            dts[attr] = true
+        for (let attr in dts) dts[attr] = true
     } else {
         // We bother checking if dts[x] is false because
         // browser.browsingData.remove() is very strict on the format of the
         // object it expects
-        args.map(x => { if (dts[x] === false) dts[x] = true })
+        args.map(x => {
+            if (dts[x] === false) dts[x] = true
+        })
     }
     // Tridactyl-specific items
-    if (dts.commandline === true)
-        state.cmdHistory = []
+    if (dts.commandline === true) state.cmdHistory = []
     delete dts.commandline
-    if (dts.tridactyllocal === true)
-        browser.storage.local.clear()
+    if (dts.tridactyllocal === true) browser.storage.local.clear()
     delete dts.tridactyllocal
-    if (dts.tridactylsync === true)
-        browser.storage.sync.clear()
+    if (dts.tridactylsync === true) browser.storage.sync.clear()
     delete dts.tridactylsync
     // Global items
     browser.browsingData.remove(since, dts)
@@ -1742,20 +1698,20 @@ export async function quickmark(key: string, ...addressarr: string[]) {
 */
 //#background
 export function get(...keys: string[]) {
-    const target = keys.join('.').split('.')
+    const target = keys.join(".").split(".")
     const value = config.get(...target)
     console.log(value)
     if (typeof value === "object") {
-        fillcmdline_notrail(`# ${keys.join('.')} = ${JSON.stringify(value)}`)
+        fillcmdline_notrail(`# ${keys.join(".")} = ${JSON.stringify(value)}`)
     } else {
-        fillcmdline_notrail(`# ${keys.join('.')} = ${value}`)
+        fillcmdline_notrail(`# ${keys.join(".")} = ${value}`)
     }
 }
 
 //#background
-export function unset(...keys: string[]){
-    const target = keys.join('.').split('.')
-    if(target === undefined) throw("You must define a target!")
+export function unset(...keys: string[]) {
+    const target = keys.join(".").split(".")
+    if (target === undefined) throw "You must define a target!"
     config.unset(...target)
 }
 
@@ -1770,13 +1726,12 @@ export function unset(...keys: string[]){
 //    saveconfig()
 //}
 
-
 // }}}
 
 // {{{ HINTMODE
 
 //#background_helper
-import * as hinting from './hinting_background'
+import * as hinting from "./hinting_background"
 
 /** Hint a page.
 
@@ -1811,8 +1766,8 @@ import * as hinting from './hinting_background'
         "relatedopenpos": "related" | "next" | "last"
 */
 //#background
-export function hint(option?: string, selectors="") {
-    if (option === '-b') hinting.hintPageOpenInBackground()
+export function hint(option?: string, selectors = "") {
+    if (option === "-b") hinting.hintPageOpenInBackground()
     else if (option === "-y") hinting.hintPageYank()
     else if (option === "-p") hinting.hintPageTextYank()
     else if (option === "-i") hinting.hintImage(false)
@@ -1831,13 +1786,12 @@ export function hint(option?: string, selectors="") {
     else hinting.hintPageSimple()
 }
 
-
 // }}}
 
 // {{{ GOBBLE mode
 
 //#background_helper
-import * as gobbleMode from './parsers/gobblemode'
+import * as gobbleMode from "./parsers/gobblemode"
 
 /** Initialize gobble mode.
 
@@ -1852,10 +1806,9 @@ export async function gobble(nChars: number, endCmd: string) {
 
 // }}}
 
-
 // {{{TEXT TO SPEECH
 
-import * as TTS from './text_to_speech'
+import * as TTS from "./text_to_speech"
 
 /**
  * Read text content of elements matching the given selector
@@ -1866,7 +1819,7 @@ import * as TTS from './text_to_speech'
 function tssReadFromCss(selector: string): void {
     let elems = DOM.getElemsBySelector(selector, [])
 
-    elems.forEach(e=>{
+    elems.forEach(e => {
         TTS.readText(e.textContent)
     })
 }
@@ -1881,13 +1834,10 @@ function tssReadFromCss(selector: string): void {
  */
 //#content
 export async function ttsread(mode: "-t" | "-c", ...args: string[]) {
-
     if (mode === "-t") {
         // really should quote args, but for now, join
         TTS.readText(args.join(" "))
-    }
-    else if (mode === "-c") {
-
+    } else if (mode === "-c") {
         if (args.length > 0) {
             tssReadFromCss(args[0])
         } else {
@@ -1918,7 +1868,6 @@ export async function ttsvoices() {
  */
 //#content
 export async function ttscontrol(action: string) {
-
     let ttsAction: TTS.Action = null
 
     // convert user input to TTS.Action
@@ -1941,18 +1890,20 @@ export async function ttscontrol(action: string) {
 
 // unsupported on android
 /** Add or remove a bookmark.
-*
-* Optionally, you may give the bookmark a title. If no URL is given, a bookmark is added for the current page.
-*
-* If a bookmark already exists for the URL, it is removed.
-*/
+ *
+ * Optionally, you may give the bookmark a title. If no URL is given, a bookmark is added for the current page.
+ *
+ * If a bookmark already exists for the URL, it is removed.
+ */
 //#background
-export async function bmark(url?: string, ...titlearr: string[] ){
+export async function bmark(url?: string, ...titlearr: string[]) {
     url = url === undefined ? (await activeTab()).url : url
     let title = titlearr.join(" ")
-    let dupbmarks = await browser.bookmarks.search({url})
-    dupbmarks.map((bookmark) => browser.bookmarks.remove(bookmark.id))
-    if (dupbmarks.length == 0 ) {browser.bookmarks.create({url, title})}
+    let dupbmarks = await browser.bookmarks.search({ url })
+    dupbmarks.map(bookmark => browser.bookmarks.remove(bookmark.id))
+    if (dupbmarks.length == 0) {
+        browser.bookmarks.create({ url, title })
+    }
 }
 
 /**  Open a welcome page on first install.
@@ -1960,9 +1911,9 @@ export async function bmark(url?: string, ...titlearr: string[] ){
  * @hidden
  */
 //#background_helper
-browser.runtime.onInstalled.addListener((details) => {
-  if (details.reason == "install") tabopen()
-  // could add elif "update" and show a changelog. Hide it behind a setting to make it less annoying?
+browser.runtime.onInstalled.addListener(details => {
+    if (details.reason == "install") tabopen()
+    // could add elif "update" and show a changelog. Hide it behind a setting to make it less annoying?
     // const docpage = browser.extension.getURL("static/docs/modules/_excmds_.html#")
     // if (excmd === undefined) excmd = "tridactyl-help-page"
     // if ((await activeTab()).url.startsWith(docpage)) {
@@ -1971,6 +1922,5 @@ browser.runtime.onInstalled.addListener((details) => {
     //     tabopen(docpage + excmd)
     // }
 })
-
 
 // vim: tabstop=4 shiftwidth=4 expandtab

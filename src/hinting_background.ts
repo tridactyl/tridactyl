@@ -1,59 +1,63 @@
-import {messageActiveTab} from './messaging'
+import { messageActiveTab } from "./messaging"
 
 async function pushKey(key) {
-    return await messageActiveTab('hinting_content', 'pushKey', [key])
+    return await messageActiveTab("hinting_content", "pushKey", [key])
 }
 
 async function selectFocusedHint() {
-    return await messageActiveTab('hinting_content', 'selectFocusedHint')
+    return await messageActiveTab("hinting_content", "selectFocusedHint")
 }
 
 async function reset() {
-    return await messageActiveTab('hinting_content', 'reset')
+    return await messageActiveTab("hinting_content", "reset")
 }
 
 export async function hintPageYank() {
-    return await messageActiveTab('hinting_content', 'hintPageYank')
+    return await messageActiveTab("hinting_content", "hintPageYank")
 }
 
 export async function hintPageTextYank() {
-    return await messageActiveTab('hinting_content', 'hintPageTextYank')
+    return await messageActiveTab("hinting_content", "hintPageTextYank")
 }
 
 export async function hintPageAnchorYank() {
-    return await messageActiveTab('hinting_content', 'hintPageAnchorYank')
+    return await messageActiveTab("hinting_content", "hintPageAnchorYank")
 }
 
 export async function hintPageSimple(selectors?) {
-    return await messageActiveTab('hinting_content', 'hintPageSimple',[selectors])
+    return await messageActiveTab("hinting_content", "hintPageSimple", [
+        selectors,
+    ])
 }
 
 export async function hintPageOpenInBackground() {
-    return await messageActiveTab('hinting_content', 'hintPageOpenInBackground')
+    return await messageActiveTab("hinting_content", "hintPageOpenInBackground")
 }
 
 export async function hintPageWindow() {
-    return await messageActiveTab('hinting_content', 'hintPageWindow')
+    return await messageActiveTab("hinting_content", "hintPageWindow")
 }
 
 export async function hintPageWindowPrivate() {
-    return await messageActiveTab('hinting_content', 'hintPageWindowPrivate')
+    return await messageActiveTab("hinting_content", "hintPageWindowPrivate")
 }
 
 export async function hintImage(inBackground) {
-    return await messageActiveTab('hinting_content', 'hintImage', [inBackground])
+    return await messageActiveTab("hinting_content", "hintImage", [
+        inBackground,
+    ])
 }
 
 export async function hintFocus() {
-    return await messageActiveTab('hinting_content', 'hintFocus')
+    return await messageActiveTab("hinting_content", "hintFocus")
 }
 
 export async function hintRead() {
-    return await messageActiveTab('hinting_content', 'hintRead')
+    return await messageActiveTab("hinting_content", "hintRead")
 }
 
 export async function hintKill() {
-    return await messageActiveTab('hinting_content', 'hintKill')
+    return await messageActiveTab("hinting_content", "hintKill")
 }
 
 /** Type for "hint save" actions:
@@ -64,12 +68,13 @@ export async function hintKill() {
 export type HintSaveType = "link" | "img"
 
 export async function hintSave(hintType: HintSaveType, saveAs: boolean) {
-
-    return await messageActiveTab('hinting_content', 'hintSave',
-        [hintType, saveAs])
+    return await messageActiveTab("hinting_content", "hintSave", [
+        hintType,
+        saveAs,
+    ])
 }
 
-import {MsgSafeKeyboardEvent} from './msgsafe'
+import { MsgSafeKeyboardEvent } from "./msgsafe"
 
 /** At some point, this might be turned into a real keyseq parser
 
@@ -79,12 +84,12 @@ import {MsgSafeKeyboardEvent} from './msgsafe'
 */
 export function parser(keys: MsgSafeKeyboardEvent[]) {
     const key = keys[0].key
-    if (key === 'Escape') {
+    if (key === "Escape") {
         reset()
-    } else if (['Enter', ' '].includes(key)) {
+    } else if (["Enter", " "].includes(key)) {
         selectFocusedHint()
     } else {
         pushKey(keys[0])
     }
-    return {keys: [], ex_str: ''}
+    return { keys: [], ex_str: "" }
 }

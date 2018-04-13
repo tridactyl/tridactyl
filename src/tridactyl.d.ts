@@ -16,11 +16,15 @@ interface Window {
     eval(str: string): any
 }
 
-declare function exportFunction(func: Function, targetScope: object, options?: {defineAs?: string, allowCrossOriginArguments?: boolean}): Function
+declare function exportFunction(
+    func: Function,
+    targetScope: object,
+    options?: { defineAs?: string; allowCrossOriginArguments?: boolean },
+): Function
 
 // Fix typescript bugs
 interface StringConstructor {
-    toLowerCase(): string;
+    toLowerCase(): string
 }
 
 // Web extension types not in web-ext-types yet
@@ -30,10 +34,13 @@ declare namespace browser.find {
 
 // setZoom has an optional first argument of tabId. Unclear how first argument can be optional.
 declare namespace browser.tabs {
-    function setZoom(zoomFactor: number): Promise<void>;
-    function setZoom(tabId: number, zoomFactor: number): Promise<void>;
-    function toggleReaderMode(tabId?: number): Promise<void>;
+    function setZoom(zoomFactor: number): Promise<void>
+    function setZoom(tabId: number, zoomFactor: number): Promise<void>
+    function toggleReaderMode(tabId?: number): Promise<void>
 }
 
 // html-tagged-template.js
-declare function html(strings: TemplateStringsArray, ...values: any[]): HTMLElement
+declare function html(
+    strings: TemplateStringsArray,
+    ...values: any[]
+): HTMLElement

@@ -25,11 +25,11 @@ const messageSafeTypes = new Set([
     "undefined",
 ])
 
-function pick (o, ...props) {
-    return Object.assign({}, ...props.map(prop => ({[prop]: o[prop]})))
+function pick(o, ...props) {
+    return Object.assign({}, ...props.map(prop => ({ [prop]: o[prop] })))
 }
 
-/** Messaging-safe, one level copy of obj 
+/** Messaging-safe, one level copy of obj
  *
  *  Doesn't work for special objects like Events: Object.keys() is too
  *  parsimonious.
@@ -92,9 +92,19 @@ export interface MsgSafeKeyboardEvent {
 export function KeyboardEvent(ke): MsgSafeKeyboardEvent {
     let copy = pick(
         ke,
-        'shiftKey', 'metaKey', 'altKey', 'ctrlKey', 'repeat', 'key',
-        'bubbles', 'composed', 'defaultPrevented', 'eventPhase',
-        'timeStamp', 'type', 'isTrusted'
+        "shiftKey",
+        "metaKey",
+        "altKey",
+        "ctrlKey",
+        "repeat",
+        "key",
+        "bubbles",
+        "composed",
+        "defaultPrevented",
+        "eventPhase",
+        "timeStamp",
+        "type",
+        "isTrusted",
     )
     copy.target = Node(ke.target)
 
@@ -136,28 +146,28 @@ export function Node(node: HTMLElement): MsgSafeNode {
     return pick(
         node,
         // w3 Node interface
-        'nodeName',
-        'nodeValue',
-        'nodeType',
-        'namespaceURI',
-        'prefix',
-        'localName',
-        'baseURI',
-        'textContent',
+        "nodeName",
+        "nodeValue",
+        "nodeType",
+        "namespaceURI",
+        "prefix",
+        "localName",
+        "baseURI",
+        "textContent",
 
         // w3 Element interface
-        'tagName',
+        "tagName",
 
         // InputElement
-        'type',
+        "type",
 
         // WAI-ARIA
-        'role',
+        "role",
 
         // unknown spec
-        'contentEditable',
-        'isContentEditable',
-        'disabled',
-        'readonly',
+        "contentEditable",
+        "isContentEditable",
+        "disabled",
+        "readonly",
     )
 }
