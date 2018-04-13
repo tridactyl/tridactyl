@@ -231,10 +231,20 @@ export function isVisible (element: Element) {
  * @param doc   The document the frames should be fetched from
  */
 export function getAllDocumentFrames(doc = document) {
+    if (!(doc instanceof HTMLDocument))
+        return []
     let frames = (<HTMLIFrameElement[] & HTMLFrameElement[]>Array.from(doc.getElementsByTagName("iframe")))
         .concat((Array.from(doc.getElementsByTagName("frame"))))
         .filter((frame) => !frame.src.startsWith("moz-extension://"))
-    return frames.concat(flatten(frames.map((x) => getAllDocumentFrames(x.contentDocument))))
+    return frames.concat(frames.reduce((acc, f) => {
+        // Errors could be thrown because of CSP
+        let newFrames = []
+        try {
+           let doc = f.contentDocument || f.contentWindow.document
+           newFrames = getAllDocumentFrames(doc)
+        } catch {}
+        return acc.concat(newFrames)
+    }, []))
 }
 
 /** Get all elements that match the given selector
@@ -247,8 +257,16 @@ export function getElemsBySelector(selector: string,
     filters: Array<ElementFilter>) {
 
     let elems = Array.from(document.querySelectorAll(selector))
-    let frameElems = flatten(getAllDocumentFrames()
-        .map((frame) => Array.from(frame.contentDocument.querySelectorAll(selector))))
+    let frameElems = getAllDocumentFrames().reduce((acc, frame) => {
+            let newElems = []
+            // Errors could be thrown by CSP
+            try {
+                let doc = frame.contentDocument || frame.contentWindow.document
+                newElems = Array.from(doc.querySelectorAll(selector))
+            } catch {}
+            return acc.concat(newElems)
+        }, [])
+
     elems = elems.concat(frameElems)
 
     for (let filter of filters) {
