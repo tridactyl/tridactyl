@@ -1,9 +1,7 @@
 #!/bin/sh
 
-filetypes="*.js *.jsx *.ts"
-
 # Run prettier on the diffs
-$(npm bin)/precise-commits $filetypes
+$(npm bin)/precise-commits
 # Re-add the modified files
 files=$(git diff --cached --name-only --diff-filter=ACM $filetypes)
 if [ "" != "$files" ]; then
