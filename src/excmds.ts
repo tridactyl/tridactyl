@@ -441,6 +441,16 @@ export async function help(excmd?: string) {
     }
 }
 
+/** Start the tutorial
+ * CURRENTLY BROKEN. FAILS SILENTLY WITH NO ERROR GIVEN.
+*/
+//#background
+export async function tutor() {
+    const tutor = browser.extension.getURL("static/clippy/tutor.html")
+    console.log(tutor)
+    open(tutor)
+}
+
 /** @hidden */
 // Find clickable next-page/previous-page links whose text matches the supplied pattern,
 // and return the last such link.
