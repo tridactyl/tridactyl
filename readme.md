@@ -6,7 +6,7 @@ Replace Firefox's default control mechanism with one modelled on the one true ed
 
 ## Installing
 
-[Get our "beta" builds!][betas] These are updated with each commit to master on this repo. Soon, your browser will automatically update from there once a day. If you want more frequent updates, you can change `extensions.update.interval` in `about:config` to whatever time you want, say, 15 minutes (900 seconds). Changelogs for the stable versions on the AMO can be found [here](https://github.com/cmcaine/tridactyl/blob/master/doc/changelog.md).
+[Get our "beta" builds!][betas] These are updated with each commit to master on this repo. Your browser will automatically update from there once a day. If you want more frequent updates, you can change `extensions.update.interval` in `about:config` to whatever time you want, say, 15 minutes (900 seconds). Changelogs for the stable versions on the AMO can be found [here](https://github.com/cmcaine/tridactyl/blob/master/doc/changelog.md).
 
 Type `:help` for online help once you're in :)
 
