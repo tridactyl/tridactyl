@@ -139,7 +139,7 @@ const DEFAULTS = o({
         "sanitize": "sanitise",
     }),
     followpagepatterns: o({
-        next: "^(next|newer)\\b|»|>>",
+        next: "^(next|newer)\\b|»|>>|more",
         prev: "^(prev(ious)?|older)\\b|«|<<",
     }),
     "searchengine": "google",
