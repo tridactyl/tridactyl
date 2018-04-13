@@ -1,5 +1,52 @@
 # Tridactyl changelogs
 
+## Release 1.9.0
+
+- Allow binds with modifiers (e.g. `<C-u>`) and binds of special keys (e.g. `<F1>`) and both together (e.g. `<SA-Escape>`)
+- Normal mode now only hides keypresses that you've told it to listen to from the web page
+- Improve documentation
+    - Update readme
+    - Improve help on excmds.ts
+    - Update AMO text (includes explanation of why various permissions are demanded)
+    - Add tutorial on `tutor`
+        - Shown on first install of Tridactyl
+    - Add `viewconfig` command to open the current configuration in Firefox's native JSON viewer (which Tridactyl doesn't work in)
+- [Move betas to our own site](https://tridactyl.cmcaine.co.uk/betas) as addons.mozilla.org stopped supporting them (#307)
+    - Add automatic updates for betas
+        - If you downloaded a beta before pre778, you will need to update manually to a later beta.
+- Small new features
+    - Fix #370: add `clipboard yanktitle|yankmd`
+    - Add `fullscreen` command (not quite #376)
+    - Add `viewsource` command
+    - `set allowautofocus false` to stop pages stealing focus on load (#266, #369)
+    - `^` now switches to last used tab by default
+    - In command mode, `Space` now puts the URL from the selected completion into the command line (#224)
+    - Add find mode, left unbound by default
+        - Not ready for widespread usage: slow and probably buggy.
+    - `hint -wp` to open hint in a private window (#317)
+    - Configuration can now upgrade itself to allow us to rename settings
+    - Add dark theme: `set theme dark` (#230)
+    - Tab opening settings for `tabopen` (#342)
+        - `set {related,tab}openpos next|last`
+- Stuff only collaborators will care about
+    - Code is now run through the prettier formatter before each commit
+- Moderately large bug fixes
+    - Fix scrolling on sites that use frames (#372, #63, #107, #273, #218)
+    - Fix hinting on sites with frames (#67)
+    - Hijack event listeners to put hints on more JavaScript links (#204, #163, #215)
+- Small bug fixes
+    - Fix #276: ]] on Hacker News
+    - Support #/% index for tabs everywhere internally
+        - Fix #341: `tabclose #` now works
+    - Reduce logging
+    - Rename some config:
+        - Rename vimium-gi to gimode, default to firefox, version to configversion
+    - Fix hinting following JavaScript links because they look the same
+- Introduce new bugs
+    - Show useless hints on some sites (#225)
+    - and more!
+
+
 ## Release 1.8.2
 
 - Improve config API
