@@ -50,8 +50,6 @@ export function parser(ex_str: string): any[] {
 
     if (ExCmds.cmd_params.has(func)) {
         try {
-            let typedArgs = convertArgs(ExCmds.cmd_params.get(func), args)
-            console.log(ex_str, typedArgs)
             return [ExCmds[func], convertArgs(ExCmds.cmd_params.get(func), args)]
         } catch (e) {
             console.error("Error executing or parsing:", ex_str, e)

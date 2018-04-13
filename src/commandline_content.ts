@@ -52,6 +52,23 @@ export function blur() {
     cmdline_iframe.blur()
 }
 
+export function executeWithoutCommandLine(fn) {
+    let parent
+    if (cmdline_iframe) {
+        parent = cmdline_iframe.parentNode
+        parent.removeChild(cmdline_iframe)
+    }
+    let result
+    try {
+        result = fn()
+    } catch (e) {
+        console.log(e)
+    }
+    if (cmdline_iframe) parent.appendChild(cmdline_iframe)
+    return result
+}
+
+
 import * as Messaging from './messaging'
 import * as SELF from './commandline_content'
 Messaging.addListener('commandline_content', Messaging.attributeCaller(SELF))

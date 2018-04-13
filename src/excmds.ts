@@ -7,6 +7,8 @@
     The default keybinds can be found [here](/static/docs/modules/_config_.html#defaults).
     You can also view them with [[bind]]. Try `bind j`.
 
+    For more information, and FAQs, check out our [readme][4] on github.
+
     Tridactyl is in a pretty early stage of development. Please report any
     issues and make requests for missing features on the GitHub [project page][1].
     You can also get in touch using Matrix, Gitter, or IRC chat clients:
@@ -16,6 +18,23 @@
     [![Freenode Chat][freenode-badge]][freenode-link]
 
     All three channels are mirrored together, so it doesn't matter which one you use.
+
+    ## How to use this help page
+
+    We've hackily re-purposed TypeDoc which is designed for internal documentation. Every function (excmd) on this page can be called via Tridactyl's command line which we call "ex". There is a slight change in syntax, however. Wherever you see:
+
+    `function(arg1,arg2)`
+
+    You should instead type
+
+    `function arg1 arg2` into the Tridactyl command line (accessed via `:`)
+
+    A "splat" operator (...) means that the excmd will accept any number of space-delimited arguments into that parameter.
+
+    You do not need to worry about types or return values.
+
+    At the bottom of each function's help page, you can click on a link that will take you straight to that function's definition in our code. This is especially recommended for browsing the [config](/static/docs/modules/_config_.html#defaults) which is nigh-on unreadable on these pages.
+    
 
     ## Highlighted features:
 
@@ -48,11 +67,12 @@
       file](2) available in our repository.
 
     If you want a more fully-featured vimperator-alike, your best option is
-    [Firefox ESR](3) and Vimperator :)
+    [Firefox ESR][3] and Vimperator :)
 
     [1]: https://github.com/cmcaine/tridactyl/issues
     [2]: https://github.com/cmcaine/tridactyl/blob/master/src/static/userChrome-minimal.css
     [3]: https://www.mozilla.org/en-US/firefox/organizations/
+    [4]: https://github.com/cmcaine/tridactyl#readme
 
     [gitter-badge]: /static/badges/gitter-badge.svg
     [gitter-link]: https://gitter.im/tridactyl/Lobby
@@ -65,44 +85,41 @@
 
 // {{{ setup
 
+// Shared
 import * as Messaging from "./messaging"
 import {l} from './lib/webext'
 import state from "./state"
+import * as UrlUtil from "./url_util"
+import * as config from './config'
+import * as aliases from './aliases'
+import * as Logging from "./logging"
+/** @hidden */
+const logger = new Logging.Logger('excmds')
+import Mark from 'mark.js'
 
-//#content_omit_line
+//#content_helper
+// {
 import "./number.clamp"
-//#content_helper
 import * as SELF from "./excmds_content"
-//#content_helper
 Messaging.addListener('excmd_content', Messaging.attributeCaller(SELF))
-/** Message excmds_content.ts in the active tab of the currentWindow */
+import * as DOM from './dom'
+import { executeWithoutCommandLine } from "./commandline_content"
+// }
+
 //#background_helper
+// {
+/** Message excmds_content.ts in the active tab of the currentWindow */
 import {messageActiveTab} from './messaging'
 
-//#background_helper
 import "./number.mod"
-//#background_helper
 import {ModeName} from './state'
-//#background_helper
 import * as keydown from "./keydown_background"
-//#background_helper
-import {activeTab, activeTabId, firefoxVersionAtLeast} from './lib/webext'
-import * as UrlUtil from "./url_util"
-
-//#background_helper
+import {activeTab, activeTabId, firefoxVersionAtLeast, openInNewTab} from './lib/webext'
 import * as CommandLineBackground from './commandline_background'
-//#content_helper
-import * as DOM from './dom'
-
-import * as config from './config'
-import * as Logging from "./logging"
-const logger = new Logging.Logger('excmds')
-
-import * as aliases from './aliases'
 
 /** @hidden */
-//#background_helper
 export const cmd_params = new Map<string, Map<string, string>>()
+// }
 
 /** @hidden */
 function hasScheme(uri: string) {
@@ -203,7 +220,10 @@ export function unfocus() {
 
 //#content
 export function scrollpx(a: number, b: number) {
-    window.scrollBy(a, b)
+    let top = document.body.getClientRects()[0].top;
+    window.scrollBy(a, b);
+    if (top == document.body.getClientRects()[0].top)
+        recursiveScroll(a, b, [document.body])
 }
 
 /** If two numbers are given, treat as x and y values to give to window.scrollTo
@@ -227,13 +247,91 @@ export function scrollto(a: number, b: number | "x" | "y" = "y") {
     }
 }
 
+/** Tries to find a node which can be scrolled either x pixels to the right or
+ *  y pixels down among the Elements in {nodes} and children of these Elements.
+ *
+ *  This function used to be recursive but isn't anymore due to various
+ *  attempts at optimizing the function in order to reduce GC pressure.
+*/
+//#content_helper
+function recursiveScroll(x: number, y: number, nodes: Element[]) {
+    let index = 0
+    do {
+        let node = nodes[index++] as any
+        let rect = node.getClientRects()[0]
+
+        // This check is quite arbitrary and even possibly wrong.
+        // We can't use DOM.isVisible because it breaks scrolling on some
+        // sites (e.g. twitch.com)
+        // We can't not check anything because it makes scrolling unbearably
+        // slow on some other sites, e.g.
+        // http://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html
+        // and
+        // https://stripe.com/docs/api#intro
+        // This check speeds things up on the aforementioned website while
+        // still letting scrolling work on twitch/website with frames so we'll
+        // consider it good enough for now.
+        while (!rect || rect.top >= innerHeight - 4) {
+            node = nodes[index++];
+            // No node means we've reached the end of the array
+            if (!node)
+                return
+            rect = node.getClientRects()[0]
+        }
+        let top = rect.top
+        let left = rect.left
+        node.scrollBy(x, y);
+        rect = node.getClientRects()[0]
+        // if the node moved, stop
+        if (top != rect.top || left != rect.left)
+            return
+        nodes = nodes.concat(Array.prototype.slice.call(node.children))
+        if (node.contentDocument)
+            nodes.push(node.contentDocument.body)
+    } while (index < nodes.length)
+}
+
 //#content
 export function scrollline(n = 1) {
+    let top = document.body.getClientRects()[0].top
     window.scrollByLines(n)
+    if (top == document.body.getClientRects()[0].top) {
+        const cssHeight = window.getComputedStyle(document.body).getPropertyValue('line-height')
+        // Remove the "px" at the end
+        const lineHeight = parseInt(cssHeight.substr(0, cssHeight.length - 2))
+        // lineHeight probably can't be NaN but let's make sure
+        if (lineHeight)
+            recursiveScroll(0, lineHeight * n, [window.document.body])
+    }
 }
+
 //#content
 export function scrollpage(n = 1) {
-    window.scrollBy(0, window.innerHeight * n)
+    scrollpx(0, window.innerHeight * n)
+}
+
+//#background_helper
+import * as finding from './finding_background'
+
+/** Start find mode. Work in progress.
+ *
+ * @param direction - the direction to search in: 1 is forwards, -1 is backwards.
+ * 
+ */
+//#background
+export function find(direction?: number){
+    if (direction === undefined) direction = 1
+    finding.findPage(direction)
+}
+
+/** Highlight the next occurence of the previously searched for word.
+ *
+ * @param number - number of words to advance down the page (use 1 for next word, -1 for previous)
+ * 
+ */
+//#background
+export function findnext(n: number){
+    finding.findPageNavigate(n)
 }
 
 /** @hidden */
@@ -293,6 +391,32 @@ export function open(...urlarr: string[]) {
     if (url === "")
         url = config.get("newtab") || browser.extension.getURL("static/newtab.html")
     window.location.href = forceURI(url)
+}
+
+/** @hidden */
+//#content_helper
+let sourceElement = undefined
+//#content
+export function viewsource(url = "") {
+    if (url === "")
+        url = window.location.href
+    if (config.get("viewsource") === "default") {
+        window.location.href = "view-source:" + url
+        return
+    }
+    if (!sourceElement) {
+        sourceElement = executeWithoutCommandLine(() => {
+            let pre = document.createElement("pre")
+            pre.id = "TridactylViewsourceElement"
+            pre.className = "cleanslate " + config.get("theme")
+            pre.innerText = document.documentElement.innerHTML
+            document.documentElement.appendChild(pre)
+            return pre
+        })
+    } else {
+        sourceElement.parentNode.removeChild(sourceElement)
+        sourceElement = undefined
+    }
 }
 
 /** Go to your homepage(s)
@@ -364,7 +488,7 @@ function selectLast(selector: string): HTMLElement | null {
 /** Find a likely next/previous link and follow it
 
     If a link or anchor element with rel=rel exists, use that, otherwise fall back to:
-    
+
         1) find the last anchor on the page with innerText matching the appropriate `followpagepattern`.
         2) call [[urlincrement]] with 1 or -1
 
@@ -585,6 +709,9 @@ export async function zoom(level=0, rel="false"){
     browser.tabs.setZoom(level)
 }
 
+/** Opens the current page in Firefox's reader mode.
+ * You currently cannot use Tridactyl while in reader mode.
+ */
 //#background
 export async function reader() {
     if (await l(firefoxVersionAtLeast(58))) {
@@ -601,24 +728,22 @@ export async function reader() {
 //#content_helper
 loadaucmds()
 
-//@hidden
+/** @hidden */
 //#content
 export async function loadaucmds(){
-    console.log("AUCMDS TRIED TO RUN")
     // for some reason, this never changes from the default, even when there is user config (e.g. set via `aucmd bbc.co.uk mode ignore`)
     let aucmds = await config.getAsync("autocmds", "DocStart")
-    console.log(aucmds)
     const ausites = Object.keys(aucmds)
     // yes, this is lazy
     const aukey = ausites.find(e=>window.document.location.href.includes(e))
     if (aukey !== undefined){
-        console.log(aukey)
         Messaging.message("commandline_background", "recvExStr", [aucmds[aukey]])
     }
 }
 
 /** The kinds of input elements that we want to be included in the "focusinput"
  * command (gi)
+ * @hidden
  */
 export const INPUTTAGS_selectors = `
 input:not([disabled]):not([readonly]):-moz-any(
@@ -644,12 +769,15 @@ object,
 [role='application']
 `
 
-/** Password field selectors */
+/** Password field selectors 
+ * @hidden 
+ */
 const INPUTPASSWORD_selectors = `
 input[type='password']
 `
 
 /** DOM reference to the last used Input field
+ * @hidden
  */
 //#content_helper
 let LAST_USED_INPUT: HTMLElement = null
@@ -736,8 +864,8 @@ export function focusinput(nth: number|string) {
     }
 
     if (inputToFocus) {
-        inputToFocus.focus()
-        if (config.get('vimium-gi') && state.mode !== 'input') {
+        DOM.focus(inputToFocus)
+        if (config.get('gimode') === 'nextinput' && state.mode !== 'input') {
             state.mode = 'input'
         }
     }
@@ -762,7 +890,7 @@ document.addEventListener("focusin",e=>{if (DOM.isTextEditable(e.target as HTMLE
 */
 /** @hidden */
 //#background_helper
-async function tabIndexSetActive(index: number) {
+async function tabIndexSetActive(index: number|string) {
     tabSetActive(await idFromIndex(index))
 }
 
@@ -816,18 +944,26 @@ export async function tablast() {
 
     Unlike Firefox's Ctrl-t shortcut, this opens tabs immediately after the
     currently active tab rather than at the end of the tab list because that is
-    the author's preference. Open an issue if you don't like it :)
+    the author's preference.
+
+    If you would rather the Firefox behaviour `set tabopenpos last`. This
+    preference also affects the clipboard, quickmarks, home, help, etc.
+
+    If you would rather the URL be opened as if you'd middle clicked it, `set
+    tabopenpos related`.
+
+    Hinting is controlled by `relatedopenlast`
+
 */
 //#background
 export async function tabopen(...addressarr: string[]) {
-    let uri
+    let url: string
     let address = addressarr.join(' ')
-    if (address != "") uri = forceURI(address)
-    else uri = forceURI(config.get("newtab"))
-    browser.tabs.create({
-        url: uri,
-        index: (await activeTabId()) + 1
-    })
+
+    if (address != "") url = forceURI(address)
+    else url = forceURI(config.get("newtab"))
+
+    openInNewTab(url)
 }
 
 /** Resolve a tab index to the tab id of the corresponding tab in this window.
@@ -836,14 +972,21 @@ export async function tabopen(...addressarr: string[]) {
         1-based index of the tab to target. Wraps such that 0 = last tab, -1 =
         penultimate tab, etc.
 
+        also supports # for previous tab, % for current tab.
+
         if undefined, return activeTabId()
 
     @hidden
 */
 //#background_helper
-async function idFromIndex(index?: number): Promise<number> {
-    if (index !== undefined) {
+async function idFromIndex(index?: number|"%"|"#"|string): Promise<number> {
+    if (index === "#") {
+        // Support magic previous/current tab syntax everywhere
+        return (await getSortedWinTabs())[1].id
+    }
+    else if (index !== undefined && index !== "%") {
         // Wrap
+        index = Number(index)
         index = (index - 1).mod(
             (await l(browser.tabs.query({currentWindow: true}))).length)
             + 1
@@ -891,6 +1034,30 @@ export async function tabdetach(index?: number) {
     browser.windows.create({tabId: await idFromIndex(index)})
 }
 
+/** Get list of tabs sorted by most recent use
+
+    @hidden
+*/
+//#background_helper
+async function getSortedWinTabs(): Promise<browser.tabs.Tab[]> {
+    const tabs = await browser.tabs.query({currentWindow: true})
+    tabs.sort((a, b) => a.lastAccessed < b.lastAccessed ? 1 : -1)
+    return tabs
+}
+
+/** Toggle fullscreen state 
+
+*/
+//#background
+export async function fullscreen() {
+    // Could easily extend this to fullscreen / minimise any window but seems like that would be a tiny use-case.
+    const currwin = await browser.windows.getCurrent()
+    const wid = currwin.id
+    // This might have odd behaviour on non-tiling window managers, but no-one uses those, right?
+    const state = currwin.state == "fullscreen" ? "normal" : "fullscreen"
+    browser.windows.update(wid,{state})
+}
+
 /** Close a tab.
 
     Known bug: autocompletion will make it impossible to close more than one tab at once if the list of numbers looks enough like an open tab's title or URL.
@@ -901,8 +1068,9 @@ export async function tabdetach(index?: number) {
 //#background
 export async function tabclose(...indexes: string[]) {
     if (indexes.length > 0) {
-        const idsPromise = indexes.map(index => idFromIndex(Number(index)))
-        browser.tabs.remove(await Promise.all(idsPromise))
+        let ids: number[]
+        ids = await Promise.all(indexes.map(index => idFromIndex(index)))
+        browser.tabs.remove(ids)
     } else {
         // Close current tab
         browser.tabs.remove(await activeTabId())
@@ -1015,7 +1183,9 @@ export async function qa() {
 
 // {{{ MISC
 
-/** Deprecated */
+/** Deprecated
+ * @hidden
+ */
 //#background
 export function suppress(preventDefault?: boolean, stopPropagation?: boolean) {
     mode("ignore")
@@ -1023,9 +1193,7 @@ export function suppress(preventDefault?: boolean, stopPropagation?: boolean) {
 
 //#background
 export function version(){
-    clipboard("yank","REPLACE_ME_WITH_THE_VERSION_USING_SED")
     fillcmdline_notrail("REPLACE_ME_WITH_THE_VERSION_USING_SED")
-
 }
 
 /** Example:
@@ -1036,6 +1204,8 @@ export function mode(mode: ModeName) {
     // TODO: event emition on mode change.
     if (mode === "hint") {
         hint()
+    } else if (mode === "find") {
+        find()
     } else {
         state.mode = mode
     }
@@ -1102,7 +1272,7 @@ export function repeat(n = 1, ...exstr: string[]) {
         controller.acceptExCmd(cmd)
 }
 
-/** Split `cmds` on pipes (|) and treat each as it's own command.
+/** Split `cmds` on pipes (|) and treat each as its own command.
 
     Workaround: this should clearly be in the parser, but we haven't come up with a good way to deal with |s in URLs, search terms, etc. yet.
 */
@@ -1112,9 +1282,9 @@ export function composite(...cmds: string[]) {
     cmds.forEach(controller.acceptExCmd)
 }
 
-/** Please use fillcmdline instead */
+/** @hidden */
 //#background
-export function showcmdline() {
+function showcmdline() {
     CommandLineBackground.show()
 }
 
@@ -1154,11 +1324,15 @@ export async function current_url(...strarr: string[]){
 
     If `excmd == "yankshort"`, copy the shortlink version of the current URL, and fall back to the canonical then actual URL. Known to work on https://yankshort.neocities.org/.
 
+    If `excmd == "yanktitle"`, copy the title of the open page.
+
+    If `excmd == "yankmd"`, copy the title and url of the open page formatted in Markdown for easy use on sites such as reddit.
+
     Unfortunately, javascript can only give us the `clipboard` clipboard, not e.g. the X selection clipboard.
 
 */
 //#background
-export async function clipboard(excmd: "open"|"yank"|"yankshort"|"yankcanon"|"tabopen" = "open", ...toYank: string[]) {
+export async function clipboard(excmd: "open"|"yank"|"yankshort"|"yankcanon"|"yanktitle"|"yankmd"|"tabopen" = "open", ...toYank: string[]) {
     let content = toYank.join(" ")
     let url = ""
     let urls = []
@@ -1181,6 +1355,13 @@ export async function clipboard(excmd: "open"|"yank"|"yankshort"|"yankcanon"|"ta
         case 'yank':
             await messageActiveTab("commandline_content", "focus")
             content = (content == "") ? (await activeTab()).url : content
+            messageActiveTab("commandline_frame", "setClipboard", [content])
+            break
+        case 'yanktitle':
+            messageActiveTab("commandline_frame", "setClipboard", [content])
+            break
+        case 'yankmd':
+            content = "[" + (await activeTab()).title + "](" + (await activeTab()).url + ")"
             messageActiveTab("commandline_frame", "setClipboard", [content])
             break
         case 'open':
@@ -1229,16 +1410,7 @@ export async function buffers() {
  */
 //#background
 export async function buffer(index: number | '#') {
-    if (index === "#") {
-        // Switch to the most recently accessed buffer
-        tabIndexSetActive(
-            (await browser.tabs.query({currentWindow: true})).sort((a, b) => {
-                return a.lastAccessed < b.lastAccessed ? 1 : -1
-            })[1].index + 1
-        )
-    } else if (Number.isInteger(Number(index))) {
-        tabIndexSetActive(Number(index))
-    }
+    tabIndexSetActive(index)
 }
 
 // }}}
@@ -1453,21 +1625,21 @@ export async function reset(key: string){
     -t [0-9]+(m|h|d|w)
 
     Examples:
-    `sanitize all` -> Deletes everything
-    `sanitize history` -> Deletes all history
-    `sanitize commandline tridactyllocal tridactylsync` -> Deletes every bit of data Tridactyl holds
-    `sanitize cookies -t 3d` -> Deletes cookies that were set during the last three days.
+    `sanitise all` -> Deletes everything
+    `sanitise history` -> Deletes all history
+    `sanitise commandline tridactyllocal tridactylsync` -> Deletes every bit of data Tridactyl holds
+    `sanitise cookies -t 3d` -> Deletes cookies that were set during the last three days.
 
 */
 //#background
-export async function sanitize(...args: string[]) {
+export async function sanitise(...args: string[]) {
     let flagpos = args.indexOf("-t")
     let since = {}
     // If the -t flag has been given and there is an arg after it
     if (flagpos > -1) {
         if (flagpos < args.length - 1) {
             let match = args[flagpos + 1].match('^([0-9])+(m|h|d|w)$')
-            // If the arg of the flag matches Pentadactyl's sanitizetimespan format
+            // If the arg of the flag matches Pentadactyl's sanitisetimespan format
             if (match !== null && match.length == 3) {
                 // Compute the timespan in milliseconds and get a Date object
                 let millis = parseInt(match[1]) * 1000
@@ -1479,10 +1651,10 @@ export async function sanitize(...args: string[]) {
                 }
                 since = { "since": (new Date()).getTime() - millis }
             } else {
-                throw new Error(":sanitize error: expected time format: ^([0-9])+(m|h|d|w)$, given format:" + args[flagpos+1])
+                throw new Error(":sanitise error: expected time format: ^([0-9])+(m|h|d|w)$, given format:" + args[flagpos+1])
             }
         } else {
-            throw new Error(":sanitize error: -t given but no following arguments")
+            throw new Error(":sanitise error: -t given but no following arguments")
         }
     }
 
@@ -1532,7 +1704,7 @@ export async function sanitize(...args: string[]) {
     browser.browsingData.remove(since, dts)
 }
 
-/** Bind a quickmark for the current URL to a key.
+/** Bind a quickmark for the current URL or space-separated list of URLs to a key on the keyboard.
 
     Afterwards use go[key], gn[key], or gw[key] to [[open]], [[tabopen]], or
     [[winopen]] the URL respectively.
@@ -1565,6 +1737,8 @@ export async function quickmark(key: string, ...addressarr: string[]) {
     It's a bit rubbish, but we don't have a good way to provide feedback to the commandline yet.
 
     You can view the log entry in the browser console (Ctrl-Shift-j).
+
+    For example, you might try `get nmaps` to see all of your current binds.
 */
 //#background
 export function get(...keys: string[]) {
@@ -1622,6 +1796,8 @@ import * as hinting from './hinting_background'
         - -# yank an element's anchor URL to clipboard
         - -c [selector] hint links that match the css selector
           - `bind ;c hint -c [class*="expand"],[class="togg"]` works particularly well on reddit and HN
+        - -w open in new window
+            -wp open in new private window
 
     Excepting the custom selector mode and background hint mode, each of these
     hint modes is available by default as `;<option character>`, so e.g. `;y`
@@ -1632,6 +1808,7 @@ import * as hinting from './hinting_background'
     Related settings:
         "hintchars": "hjklasdfgyuiopqwertnmzxcvb"
         "hintfiltermode": "simple" | "vimperator" | "vimperator-reflow"
+        "relatedopenpos": "related" | "next" | "last"
 */
 //#background
 export function hint(option?: string, selectors="") {
@@ -1649,6 +1826,8 @@ export function hint(option?: string, selectors="") {
     else if (option === "-#") hinting.hintPageAnchorYank()
     else if (option === "-c") hinting.hintPageSimple(selectors)
     else if (option === "-r") hinting.hintRead()
+    else if (option === "-w") hinting.hintPageWindow()
+    else if (option === "-wp") hinting.hintPageWindowPrivate()
     else hinting.hintPageSimple()
 }
 
@@ -1775,5 +1954,23 @@ export async function bmark(url?: string, ...titlearr: string[] ){
     dupbmarks.map((bookmark) => browser.bookmarks.remove(bookmark.id))
     if (dupbmarks.length == 0 ) {browser.bookmarks.create({url, title})}
 }
+
+/**  Open a welcome page on first install.
+ *
+ * @hidden
+ */
+//#background_helper
+browser.runtime.onInstalled.addListener((details) => {
+  if (details.reason == "install") tabopen()
+  // could add elif "update" and show a changelog. Hide it behind a setting to make it less annoying?
+    // const docpage = browser.extension.getURL("static/docs/modules/_excmds_.html#")
+    // if (excmd === undefined) excmd = "tridactyl-help-page"
+    // if ((await activeTab()).url.startsWith(docpage)) {
+    //     open(docpage + excmd)
+    // } else {
+    //     tabopen(docpage + excmd)
+    // }
+})
+
 
 // vim: tabstop=4 shiftwidth=4 expandtab

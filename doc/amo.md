@@ -29,4 +29,48 @@ lost sometimes `:help` might help you a lot.
 This add-on is very usable, but is in an early stage of development. We intend
 to implement the majority of Vimperator's features.
 
-We recommend that you use the beta versions below.
+You can get beta builds from [our website][betas].
+
+**Permissions:**
+
+Since Tridactyl aims to provide all the features Vimperator and Pentadactyl
+had, it requires quite a few permissions. Here we describe the specific
+permissions and why we need them.
+
+ - Access your data for all websites:
+   * This is Mozilla's way of saying that Tridactyl can read the content of web
+     pages. This is necessary in order to e.g. find the links you can follow
+     with the `:hint` command (bound to `f` by default).
+ - Read and modify bookmarks:
+   * Tridactyl's command line has a powerful autocompletion mechanism. In
+     order to be able to autocomplete your bookmarks, Tridactyl needs to read
+     them.
+ - Clear recent browsing history, cookies, and related data:
+   * Tridactyl implements the `:sanitise` command Vimperator and Pentadactyl
+     had. It works a bit like the "Clear All History" dialog you can access by
+     pressing `Ctrl+Shift+Del` on default Firefox.
+ - Get data from the clipboard:
+   * If your clipboard contains a URL, pressing `p` will make Tridactyl follow
+     this URL in the current tab.
+ - Input data to the clipboard:
+   * Tridactyl lets you copy various elements to the clipboard such as a page's
+     URL with `yy`, a link's URL with `;y` or the content of an HTML element
+     with `;p`.
+ - Download files and read and modify the browser's download history:
+   * By pressing `;s`, `;S`, `;a` and `;A` you can save documents and pictures
+     from a page to your download folder.
+ - Access browsing history:
+   * The URLs of websites you've visited previously can be suggested as
+     arguments for `:tabopen` and similar commands.
+ - Access recently closed tabs:
+   * If you've accidentally closed a tab or window, Tridactyl will let you open
+     it again with the `:undo` command which is bound to `u` by default.
+ - Access browser tabs:
+   * Tridactyl provides a quick tab-switching menu/command with the `:buffer`
+     command (bound to `b`). This permission is also required to close, move,
+     and pin tabs, amongst other things.
+ - Access browser activity during navigation:
+   * This is needed for Tridactyl to be able to go back to normal mode every
+     time you open a new page. In the future we may use it for autocommands.
+
+[betas]: https://tridactyl.cmcaine.co.uk/betas/?sort=time&order=desc
