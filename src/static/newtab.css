@@ -6,6 +6,10 @@ body {
     margin: auto;
 }
 
+h1 {
+    padding-top: 1em;
+}
+
 @media screen and (max-width: 38em) {
     body {
         max-width: 100%;
