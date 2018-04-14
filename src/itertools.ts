@@ -6,6 +6,17 @@ export function head(iter) {
     else return result.value
 }
 
+/** Get the last item of an array or iterable */
+export function tail(iter) {
+    if (Array.isArray(iter)) {
+        return iter[iter.length - 1]
+    } else {
+        let last
+        for (last of iter) {}
+        return last
+    }
+}
+
 /** Zip some arrays together
 
     If you need variable length args, you need izip for now.
