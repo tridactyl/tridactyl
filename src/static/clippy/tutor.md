@@ -33,4 +33,4 @@ Almost all of the modes are controlled by series of keypresses. In this tutorial
 
 ## Normal mode
 
-The tutorial for normal mode starts on the [next page](./normal_mode.html). You could try following the link by using hint mode: press `f` and then type the characters that appear above the link.
+The tutorial for normal mode starts on the [next page](./normal_mode.html). You could try following the link by using hint mode: press `f` (if there is only a single link on the screen, it will be followed; otherwise type the characters that appear above the desired link).
