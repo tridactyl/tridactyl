@@ -286,6 +286,11 @@ export function mapstrMapToKeyMap(mapstrMap: Map<string, MapTarget>): KeyMap {
     return newKeyMap
 }
 
+export function mapstrObjToKeyMap(mapstrObj): KeyMap {
+    const mapstrMap = new Map(Object.entries(mapstrObj))
+    return mapstrMapToKeyMap(mapstrMap)
+}
+
 // }}}
 
 // {{{ Utility functions for dealing with KeyboardEvents
