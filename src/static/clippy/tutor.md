@@ -2,7 +2,7 @@
 
 Hello.
 
-Welcome to the Tridactyl tutorial. Here, you will learn how to get started with this extension.
+Welcome to the Tridactyl tutorial. Here, you will learn how to get started with this extension. If you ever want to get back to this page, just type `:tutor`.
 
 It will not cover advanced topics. For those, [`:help`](../docs/modules/_excmds_.html) is always at hand.
 
@@ -10,7 +10,7 @@ It will not cover advanced topics. For those, [`:help`](../docs/modules/_excmds_
 
 ## Basics
 
-Tridactyl turns Firefox into a modal browser, meaning it has several different modes of operation. It can only ever be in one mode at a time, and each of these modes could have a wildly different operation. You can think of it a bit like a Transformer, if you like. There are four main modes you will want to be familiar with:
+The idea behind Tridactyl is to allow you to navigate the web more efficiently with just the keyboard. Tridactyl turns Firefox into a modal browser, meaning it has several different modes of operation, like Vim. It can only ever be in one mode at a time, and each of these modes could have a wildly different operation. You can think of it a bit like a Transformer, if you like. There are four main modes you will want to be familiar with:
 
 - Normal mode
     - This mode is used for navigating around single pages and starting other modes.
@@ -27,7 +27,7 @@ Tridactyl turns Firefox into a modal browser, meaning it has several different m
     - This mode passes all keypresses through to the web page. It is useful for websites that have their own keybinds, such as games and Gmail.
     - You can enter the mode with `I` and leave it with `Shift-Esc`.
 
-Almost all of the modes are controlled by series of keypresses. In this tutorial, a sequence of keys such as `zz` should be entered by pressing the key `z`, letting go, and then pressing the key `z`. There is no need to hold both keys at once, if that were even possible. (`zz` resets the zoom level to the default, so it probably didn't seem to do anything).
+Almost all of the modes are controlled by series of keypresses. In this tutorial, a sequence of keys such as `zz` should be entered by pressing the key `z`, letting go, and then pressing the key `z`. There is no need to hold both keys at once, if that were even possible. (`zz` resets the zoom level to the default, so it probably didn't seem to do anything). Sometimes `help` refers to a command that must be entered in command mode; it should hopefully always be clear from context which we mean.
 
 ---
 
