@@ -442,8 +442,7 @@ export async function help(excmd?: string) {
 }
 
 /** Start the tutorial
- * CURRENTLY BROKEN. FAILS SILENTLY WITH NO ERROR GIVEN.
-*/
+ */
 //#background
 export async function tutor() {
     const tutor = browser.extension.getURL("static/clippy/tutor.html")
@@ -1180,6 +1179,7 @@ export function mode(mode: ModeName) {
     }
 }
 
+/** @hidden */
 //#background_helper
 async function getnexttabs(tabid: number, n?: number) {
     const curIndex: number = (await browser.tabs.get(tabid)).index
