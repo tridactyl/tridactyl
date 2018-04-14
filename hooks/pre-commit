@@ -3,7 +3,7 @@
 # Run prettier on the diffs
 $(npm bin)/precise-commits
 # Re-add the modified files
-files=$(git diff --cached --name-only --diff-filter=ACM $filetypes)
+files=$(git diff --cached --name-only --diff-filter=ACM)
 if [ "" != "$files" ]; then
     echo "$files" | xargs git add
 fi
