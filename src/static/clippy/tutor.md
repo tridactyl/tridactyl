@@ -1,6 +1,6 @@
 # Tridactyl tutorial
 
-Hello.
+Hello. If you've just installed Tridactyl for the first time, welcome! Tridactyl has something of a learning cliff. If you haven't used an add-on like it before, such as Pentadactyl or Vimperator, we strongly recommend you spend the 10-15 minutes it will take you to read through this tutorial. If you're already familiar with add-ons like this, we still suggest you skim through everything as there are a few things we do differently. Without further ado:
 
 Welcome to the Tridactyl tutorial. Here, you will learn how to get started with this extension. If you ever want to get back to this page, just type `:tutor`.
 

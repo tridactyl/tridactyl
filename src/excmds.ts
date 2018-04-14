@@ -442,12 +442,13 @@ export async function help(excmd?: string) {
 }
 
 /** Start the tutorial
+ * @param newtab - whether to start the tutorial in a newtab. Defaults to current tab.
  */
 //#background
-export async function tutor() {
+export async function tutor(newtab?: string) {
     const tutor = browser.extension.getURL("static/clippy/tutor.html")
-    console.log(tutor)
-    open(tutor)
+    if (newtab) tabopen(tutor)
+    else open(tutor)
 }
 
 /** @hidden */
@@ -1922,15 +1923,8 @@ export async function bmark(url?: string, ...titlearr: string[]) {
  */
 //#background_helper
 browser.runtime.onInstalled.addListener(details => {
-    if (details.reason == "install") tabopen()
+    if (details.reason == "install") tutor("newtab")
     // could add elif "update" and show a changelog. Hide it behind a setting to make it less annoying?
-    // const docpage = browser.extension.getURL("static/docs/modules/_excmds_.html#")
-    // if (excmd === undefined) excmd = "tridactyl-help-page"
-    // if ((await activeTab()).url.startsWith(docpage)) {
-    //     open(docpage + excmd)
-    // } else {
-    //     tabopen(docpage + excmd)
-    // }
 })
 
 // vim: tabstop=4 shiftwidth=4 expandtab
