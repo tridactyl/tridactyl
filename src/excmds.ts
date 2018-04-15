@@ -1590,10 +1590,11 @@ export async function reset(key: string) {
     -t [0-9]+(m|h|d|w)
 
     Examples:
-    `sanitise all` -> Deletes everything
-    `sanitise history` -> Deletes all history
-    `sanitise commandline tridactyllocal tridactylsync` -> Deletes every bit of data Tridactyl holds
-    `sanitise cookies -t 3d` -> Deletes cookies that were set during the last three days.
+
+    - `sanitise all` -> Deletes everything
+    - `sanitise history` -> Deletes all history
+    - `sanitise commandline tridactyllocal tridactylsync` -> Deletes every bit of data Tridactyl holds
+    - `sanitise cookies -t 3d` -> Deletes cookies that were set during the last three days.
 
 */
 //#background
