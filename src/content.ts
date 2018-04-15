@@ -45,6 +45,7 @@ import Mark from "mark.js"
     l: prom => prom.then(console.log).catch(console.error),
 })
 
+dom.setupFocusHandler()
 dom.hijackPageListenerFunctions()
 
 if (

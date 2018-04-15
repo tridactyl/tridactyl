@@ -137,6 +137,7 @@ const DEFAULTS = o({
         bd: "tabclose",
         bdelete: "tabclose",
         sanitize: "sanitise",
+        tutorial: "tutor",
     }),
     followpagepatterns: o({
         next: "^(next|newer)\\b|»|>>|more",
@@ -168,12 +169,19 @@ const DEFAULTS = o({
             "https://wiki.gentoo.org/index.php?title=Special%3ASearch&profile=default&fulltext=Search&search=",
         qwant: "https://www.qwant.com/?q=",
     }),
+
     newtab: "",
     viewsource: "tridactyl", // "tridactyl" or "default"
     storageloc: "sync",
     homepages: [],
     hintchars: "hjklasdfgyuiopqwertnmzxcvb",
     hintfiltermode: "simple", // "simple", "vimperator", "vimperator-reflow"
+
+    // Controls whether the page can focus elements for you via js
+    // Remember to also change browser.autofocus (autofocusing elements via
+    // HTML) in about:config
+    // Maybe have a nice user-vicible message when the setting is changed?
+    allowautofocus: "true",
 
     tabopenpos: "next",
     relatedopenpos: "related",

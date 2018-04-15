@@ -16,6 +16,12 @@ interface Window {
     eval(str: string): any
 }
 
+interface HTMLElement {
+    // Let's be future proof:
+    // https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement/focus
+    focus(options: any): void
+}
+
 declare function exportFunction(
     func: Function,
     targetScope: object,

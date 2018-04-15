@@ -4,7 +4,7 @@
 
 Tridactyl has to override your new tab page due to WebExtension limitations. You can learn how to change it at the bottom of the page, otherwise please read on for some tips and tricks. (If you've just installed Tridactyl for the first time and are seeing this page, hello! Welcome! You'll probably be seeing this page a lot until you figure out how to disable it or uninstall the addon).
 
-- You can view the main help page by typing [`:help`][help].
+- You can view the main help page by typing [`:help`][help], and access the tutorial with [`:tutor`][tutor].
 
 - You can contact the developers, other users and contributors for support or whatever on [Matrix][matrix-link], [Gitter][gitter-link], or [IRC][freenode-link].
 
@@ -62,6 +62,7 @@ You have more questions? Have a look at our [FAQ][faq-link].
 
 [faq-link]: https://github.com/cmcaine/tridactyl#frequently-asked-questions
 [help]: /static/docs/modules/_excmds_.html
+[tutor]: /static/clippy/tutor.html
 [help-hint]: /static/docs/modules/_excmds_.html#hint
 [gitter-badge]: /static/badges/gitter-badge.svg
 [gitter-link]: https://gitter.im/tridactyl/Lobby

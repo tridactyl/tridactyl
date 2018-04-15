@@ -432,13 +432,23 @@ export function home(all: "false" | "true" = "false") {
 */
 //#background
 export async function help(excmd?: string) {
-    const docpage = browser.extension.getURL("static/docs/modules/_excmds_.html#")
+    const docpage = browser.extension.getURL("static/docs/modules/_excmds_.html")
     if (excmd === undefined) excmd = "tridactyl-help-page"
     if ((await activeTab()).url.startsWith(docpage)) {
-        open(docpage + excmd)
+        open(docpage + "#" + excmd)
     } else {
-        tabopen(docpage + excmd)
+        tabopen(docpage + "#" + excmd)
     }
+}
+
+/** Start the tutorial
+ * @param newtab - whether to start the tutorial in a newtab. Defaults to current tab.
+ */
+//#background
+export async function tutor(newtab?: string) {
+    const tutor = browser.extension.getURL("static/clippy/tutor.html")
+    if (newtab) tabopen(tutor)
+    else open(tutor)
 }
 
 /** @hidden */
@@ -750,12 +760,6 @@ const INPUTPASSWORD_selectors = `
 input[type='password']
 `
 
-/** DOM reference to the last used Input field
- * @hidden
- */
-//#content_helper
-let LAST_USED_INPUT: HTMLElement = null
-
 /** Focus the last used input on the page
  *
  * @param nth   focus the nth input on the page, or "special" inputs:
@@ -777,8 +781,8 @@ export function focusinput(nth: number | string) {
     if (nth === "-l") {
         // try to recover the last used input stored as a
         // DOM node, which should be exactly the one used before (or null)
-        if (LAST_USED_INPUT) {
-            inputToFocus = LAST_USED_INPUT
+        if (DOM.getLastUsedInput()) {
+            inputToFocus = DOM.getLastUsedInput()
         } else {
             // Pick the first input in the DOM.
             inputToFocus = DOM.getElemsBySelector(INPUTTAGS_selectors, [DOM.isSubstantial])[0] as HTMLElement
@@ -790,8 +794,8 @@ export function focusinput(nth: number | string) {
         // attempt to find next/previous input
         let inputs = DOM.getElemsBySelector(INPUTTAGS_selectors, [DOM.isSubstantial]) as HTMLElement[]
         if (inputs.length) {
-            let index = inputs.indexOf(LAST_USED_INPUT)
-            if (LAST_USED_INPUT) {
+            let index = inputs.indexOf(DOM.getLastUsedInput())
+            if (DOM.getLastUsedInput()) {
                 if (nth === "-n") {
                     index++
                 } else {
@@ -832,12 +836,6 @@ export function focusinput(nth: number | string) {
         }
     }
 }
-
-// Store the last focused element
-//#content_helper
-document.addEventListener("focusin", e => {
-    if (DOM.isTextEditable(e.target as HTMLElement)) LAST_USED_INPUT = e.target as HTMLElement
-})
 
 // }}}
 
@@ -1170,6 +1168,7 @@ export function mode(mode: ModeName) {
     }
 }
 
+/** @hidden */
 //#background_helper
 async function getnexttabs(tabid: number, n?: number) {
     const curIndex: number = (await browser.tabs.get(tabid)).index
@@ -1579,10 +1578,11 @@ export async function reset(key: string) {
     -t [0-9]+(m|h|d|w)
 
     Examples:
-    `sanitise all` -> Deletes everything
-    `sanitise history` -> Deletes all history
-    `sanitise commandline tridactyllocal tridactylsync` -> Deletes every bit of data Tridactyl holds
-    `sanitise cookies -t 3d` -> Deletes cookies that were set during the last three days.
+
+    - `sanitise all` -> Deletes everything
+    - `sanitise history` -> Deletes all history
+    - `sanitise commandline tridactyllocal tridactylsync` -> Deletes every bit of data Tridactyl holds
+    - `sanitise cookies -t 3d` -> Deletes cookies that were set during the last three days.
 
 */
 //#background
@@ -1912,15 +1912,8 @@ export async function bmark(url?: string, ...titlearr: string[]) {
  */
 //#background_helper
 browser.runtime.onInstalled.addListener(details => {
-    if (details.reason == "install") tabopen()
+    if (details.reason == "install") tutor("newtab")
     // could add elif "update" and show a changelog. Hide it behind a setting to make it less annoying?
-    // const docpage = browser.extension.getURL("static/docs/modules/_excmds_.html#")
-    // if (excmd === undefined) excmd = "tridactyl-help-page"
-    // if ((await activeTab()).url.startsWith(docpage)) {
-    //     open(docpage + excmd)
-    // } else {
-    //     tabopen(docpage + excmd)
-    // }
 })
 
 // vim: tabstop=4 shiftwidth=4 expandtab

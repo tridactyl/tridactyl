@@ -426,3 +426,54 @@ export function focus(e: HTMLElement): void {
         e.selectionEnd = e.selectionStart
     }
 }
+
+/** DOM reference to the last used Input field
+ */
+//#content_helper
+let LAST_USED_INPUT: HTMLElement = null
+
+export function getLastUsedInput () {
+   return LAST_USED_INPUT
+}
+
+/** WARNING: This function can potentially recieve malicious input! For the
+ *  whole discussion about this, see
+ *  https://github.com/cmcaine/tridactyl/pull/225
+ *
+ *  Remember to check whether WebComponents change anything security-wise:
+ *  https://developer.mozilla.org/en-US/docs/Web/Web_Components/Custom_Elements
+ *  https://bugzilla.mozilla.org/show_bug.cgi?id=1406825
+ * */
+function onPageFocus(elem: HTMLElement, args: any[]): void {
+    if (isTextEditable(elem)) {
+        LAST_USED_INPUT = elem
+        config.getAsync("allowautofocus").then((allow) => {
+            if (allow === "true")
+                elem.focus(args)
+        });
+    }
+}
+
+/** Replaces the page's HTMLElement.prototype.focus with our own, onPageFocus */
+function hijackPageFocusFunction(): void {
+    let exportedName = "onPageFocus";
+    exportFunction(onPageFocus, window, {defineAs: exportedName})
+
+    let eval_str = `HTMLElement.prototype.focus = ((realFocus, ${exportedName}) => {
+        return function (...args) {
+            ${exportedName}(this, args)
+        }
+     })(HTMLElement.prototype.focus, ${exportedName})`
+
+     window.eval(eval_str + `;delete ${exportedName}`)
+}
+
+export function setupFocusHandler(): void {
+    // Handles when a user selects an input
+    document.addEventListener("focusin", e => {
+        if (isTextEditable(e.target as HTMLElement))
+            LAST_USED_INPUT = e.target as HTMLElement
+    })
+    // Handles when the page tries to select an input
+    hijackPageFocusFunction()
+}
