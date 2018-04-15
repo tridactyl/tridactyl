@@ -1708,6 +1708,34 @@ export function get(...keys: string[]) {
     }
 }
 
+/** Opens the current configuration in Firefox's native JSON viewer in the current tab.
+ *
+ * NB: Tridactyl cannot run on this page!
+ *
+ * @param key - The specific key you wish to view (e.g, nmaps).
+ *
+ */
+//#content
+export function viewconfig(key?: string) {
+    // # and white space don't agree with FF's JSON viewer.
+    // Probably other symbols too.
+    if (!key)
+        window.location.href =
+            "data:application/json," +
+            JSON.stringify(config.get())
+                .replace(/#/g, "%23")
+                .replace(/ /g, "%20")
+    // I think JS casts key to the string "undefined" if it isn't given.
+    else
+        window.location.href =
+            "data:application/json," +
+            JSON.stringify(config.get(key))
+                .replace(/#/g, "%23")
+                .replace(/ /g, "%20")
+    // base 64 encoding is a cleverer way of doing this, but it doesn't seem to work for the whole config.
+    //window.location.href = "data:application/json;base64," + btoa(JSON.stringify(config.get()))
+}
+
 //#background
 export function unset(...keys: string[]) {
     const target = keys.join(".").split(".")

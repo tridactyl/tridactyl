@@ -6,6 +6,8 @@ Tridactyl has to override your new tab page due to WebExtension limitations. You
 
 - You can view the main help page by typing [`:help`][help], and access the tutorial with [`:tutor`][tutor].
 
+- You can view your current configuration with `:viewconfig`.
+
 - You can contact the developers, other users and contributors for support or whatever on [Matrix][matrix-link], [Gitter][gitter-link], or [IRC][freenode-link].
 
 ## Highlighted features:
