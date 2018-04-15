@@ -905,7 +905,7 @@ export async function tablast() {
 
     Unlike Firefox's Ctrl-t shortcut, this opens tabs immediately after the
     currently active tab rather than at the end of the tab list because that is
-    the author's preference.
+    the authors' preference.
 
     If you would rather the Firefox behaviour `set tabopenpos last`. This
     preference also affects the clipboard, quickmarks, home, help, etc.
@@ -913,7 +913,7 @@ export async function tablast() {
     If you would rather the URL be opened as if you'd middle clicked it, `set
     tabopenpos related`.
 
-    Hinting is controlled by `relatedopenlast`
+    Hinting is controlled by `relatedopenpos`
 
 */
 //#background
