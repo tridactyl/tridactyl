@@ -14,5 +14,6 @@ We support a handful of keybinds in the console:
 - `Up`/`Down` to search in command history: e.g. `:tabopen` `Up` will show you the most recent tabopen command.
 - `Tab`/`Shift-Tab` cycle completion, enter to select
 - `Ctrl-F` to complete the command from command history
+- `Space` to insert the URL of the highlighted completion into the command line
 
 The [next page](./settings.html) will talk about the various settings available.
