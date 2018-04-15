@@ -13,15 +13,28 @@ function mk(k, mod?: ks.KeyModifiers) {
         [[mk("u", { ctrlKey: true }), mk("j")], "scrollline 10"],
         [[mk("g"), mk("g")], "scrolltop"],
         [mks("<SA-Escape>"), "rarelyusedcommand"],
+        // Test shiftKey ignoring
+        [mks(":"), "fillcmdline"],
+        [mks("Av"), "whatever"],
     ])
 
     // This one actually found a bug once!
     testAllObject(ks.parse, [
-        [[[mk("g")], keymap], { keys: [mk("g")] }],
-        [[[mk("g"), mk("g")], keymap], { exstr: "scrolltop" }],
+        [[[mk("g")], keymap], { keys: [mk("g")], isMatch: true }],
+        [[[mk("g"), mk("g")], keymap], { value: "scrolltop", isMatch: true }],
         [
             [[mk("Escape", { shiftKey: true, altKey: true })], keymap],
-            { exstr: "rarelyusedcommand" },
+            { value: "rarelyusedcommand", isMatch: true },
+        ],
+        [
+            [[mk(":", { shiftKey: true })], keymap],
+
+            { value: "fillcmdline", isMatch: true },
+            ,
+        ],
+        [
+            [[mk("A", { shiftKey: true }), mk("v")], keymap],
+            { value: "whatever", isMatch: true },
         ],
     ])
 

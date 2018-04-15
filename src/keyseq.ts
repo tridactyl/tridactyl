@@ -15,6 +15,9 @@
     in the parser. Vimperator, Pentadactyl, saka-key, etc, all share this
     limitation.
 
+    If a key is represented by a single character then the shift modifier state
+    is ignored unless other modifiers are also present.
+
 */
 
 /** */
@@ -48,6 +51,8 @@ export class MinimalKey {
     public match(keyevent) {
         // 'in' doesn't include prototypes, so it's safe for this object.
         for (let attr in this) {
+            // Don't check shiftKey for normal keys.
+            if (attr === "shiftKey" && this.key.length === 1) continue
             if (this[attr] !== keyevent[attr]) return false
         }
         return true
@@ -97,11 +102,14 @@ type KeyMap = Map<MinimalKey[], MapTarget>
 
 export type ParserResponse = {
     keys?: KeyEventLike[]
-    exstr?: string
-    action?: Function
+    value?: any
+    isMatch: boolean
 }
 
 export function parse(keyseq: KeyEventLike[], map: KeyMap): ParserResponse {
+    // Don't modify the given array.
+    keyseq = keyseq.slice()
+
     // If keyseq is a prefix of a key in map, proceed, else try dropping keys
     // from keyseq until it is empty or is a prefix.
     let possibleMappings = completions(keyseq, map)
@@ -114,16 +122,12 @@ export function parse(keyseq: KeyEventLike[], map: KeyMap): ParserResponse {
         const map = possibleMappings.keys().next().value
         if (map.length === keyseq.length) {
             const target = possibleMappings.values().next().value
-            if (typeof target === "string") {
-                return { exstr: target }
-            } else {
-                return { action: target }
-            }
+            return { value: target, isMatch: true }
         }
     }
 
     // else
-    return { keys: keyseq }
+    return { keys: keyseq, isMatch: keyseq.length > 0 }
 }
 
 /** True if seq1 is a prefix or equal to seq2 */
@@ -309,6 +313,7 @@ export function hasNonShiftModifiers(keyEvent: KeyEventLike) {
     return keyEvent.ctrlKey || keyEvent.altKey || keyEvent.metaKey
 }
 
+/** A simple key event is a non-special key (length 1) that is not modified by ctrl, alt, or shift. */
 export function isSimpleKey(keyEvent: KeyEventLike) {
     return !(keyEvent.key.length > 1 || hasNonShiftModifiers(keyEvent))
 }
