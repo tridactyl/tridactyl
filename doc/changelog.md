@@ -1,5 +1,9 @@
 # Tridactyl changelogs
 
+## Release 1.9.1
+
+- Fix buffer switch bind
+
 ## Release 1.9.0
 
 - Allow binds with modifiers (e.g. `<C-u>`) and binds of special keys (e.g. `<F1>`) and both together (e.g. `<SA-Escape>`)
