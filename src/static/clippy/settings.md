@@ -16,4 +16,4 @@ Here we will briefly summarise some of the main settings:
 - theme
     - dark or default
 
-The [final page](./help.html) describes how you can get further help.
+The <a href='./help.html' rel='next'>final page</a> describes how you can get further help.
