@@ -432,12 +432,12 @@ export function home(all: "false" | "true" = "false") {
 */
 //#background
 export async function help(excmd?: string) {
-    const docpage = browser.extension.getURL("static/docs/modules/_excmds_.html#")
+    const docpage = browser.extension.getURL("static/docs/modules/_excmds_.html")
     if (excmd === undefined) excmd = "tridactyl-help-page"
     if ((await activeTab()).url.startsWith(docpage)) {
-        open(docpage + excmd)
+        open(docpage + "#" + excmd)
     } else {
-        tabopen(docpage + excmd)
+        tabopen(docpage + "#" + excmd)
     }
 }
 
