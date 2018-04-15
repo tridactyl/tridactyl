@@ -67,7 +67,7 @@ const DEFAULTS = o({
         $: "scrollto 100 x",
         // "0": "scrollto 0 x", // will get interpreted as a count
         "^": "buffer #",
-        "<c-^>": "buffer #",
+        "<c-6>": "buffer #",
         H: "back",
         L: "forward",
         d: "tabclose",
