@@ -52,14 +52,22 @@ const DEFAULTS = o({
         p: "clipboard open",
         P: "clipboard tabopen",
         j: "scrollline 10",
+        "<c-e>": "scrollline 10",
         k: "scrollline -10",
+        "<c-y>": "scrollline 10",
         h: "scrollpx -50",
         l: "scrollpx 50",
         G: "scrollto 100",
         gg: "scrollto 0",
+        "<c-u>": "scrollpage -0.5",
+        "<c-d>": "scrollpage 0.5",
+        "<c-b>": "scrollpage -1",
+        // Disabled while our find mode is bad
+        /* "<c-f>": "scrollpage -1", */
         $: "scrollto 100 x",
         // "0": "scrollto 0 x", // will get interpreted as a count
         "^": "buffer #",
+        "<c-^>": "buffer #",
         H: "back",
         L: "forward",
         d: "tabclose",
@@ -107,6 +115,8 @@ const DEFAULTS = o({
         zo: "zoom -0.1 true",
         zz: "zoom 1",
         ".": "repeat",
+        "<SA-ArrowUp><SA-ArrowUp><SA-ArrowDown><SA-ArrowDown><SA-ArrowLeft><SA-ArrowRight><SA-ArrowLeft><SA-ArrowRight>ba":
+            "open https://www.youtube.com/watch?v=M3iOROuTuMA",
     }),
     autocmds: o({
         DocStart: o({
