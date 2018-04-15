@@ -137,6 +137,7 @@ const DEFAULTS = o({
         bd: "tabclose",
         bdelete: "tabclose",
         sanitize: "sanitise",
+        tutorial: "tutor",
     }),
     followpagepatterns: o({
         next: "^(next|newer)\\b|»|>>|more",
