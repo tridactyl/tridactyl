@@ -36,10 +36,10 @@ export function parser(keys: MsgSafeKeyboardEvent[]) {
     } else if (isSimpleKey(keys[0])) {
         modeState.chars += key
         if (modeState.chars.length >= modeState.numChars) {
-            const ex_str = modeState.endCommand + " " + modeState.chars
+            const exstr = modeState.endCommand + " " + modeState.chars
             reset()
-            return { keys: [], ex_str }
+            return { keys: [], exstr }
         }
     }
-    return { keys: [], ex_str: "" }
+    return { keys: [], exstr: "" }
 }

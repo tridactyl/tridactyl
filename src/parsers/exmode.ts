@@ -43,9 +43,9 @@ function convertArgs(params, argv) {
 // TODO: Quoting arguments
 // TODO: Pipe to separate commands
 // TODO: Abbreviated commands
-export function parser(ex_str: string): any[] {
+export function parser(exstr: string): any[] {
     // Expand aliases
-    const expandedExstr = aliases.expandExstr(ex_str)
+    const expandedExstr = aliases.expandExstr(exstr)
     const [func, ...args] = expandedExstr.trim().split(/\s+/)
 
     if (ExCmds.cmd_params.has(func)) {
@@ -55,7 +55,7 @@ export function parser(ex_str: string): any[] {
                 convertArgs(ExCmds.cmd_params.get(func), args),
             ]
         } catch (e) {
-            console.error("Error executing or parsing:", ex_str, e)
+            console.error("Error executing or parsing:", exstr, e)
             throw e
         }
     } else {

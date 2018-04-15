@@ -29,12 +29,11 @@ function* ParserController() {
     }
 
     while (true) {
-        let ex_str = ""
-        let keys = []
+        let exstr = ""
+        let keyEvents = []
         try {
             while (true) {
                 let keyevent: MsgSafeKeyboardEvent = yield
-                let keypress = keyevent.key
 
                 // This code was sort of the cause of the most serious bug in Tridactyl
                 // to date (March 2018).
@@ -55,34 +54,28 @@ function* ParserController() {
                 }
                 logger.debug(keyevent, state.mode)
 
-                // Special keys (e.g. Backspace) are not handled properly
-                // yet. So drop them. This also drops all modifier keys.
-                // When we put in handling for other special keys, remember
-                // to continue to ban modifiers.
-                if (state.mode === "normal" && !isSimpleKey(keyevent)) {
-                    continue
-                }
-
-                keys.push(keypress)
+                keyEvents.push(keyevent)
                 let response = undefined
                 switch (state.mode) {
                     case "normal":
-                        response = (parsers[state.mode] as any)(keys)
+                        response = (parsers[state.mode] as any)(keyEvents)
+                        // Compatibility with other parsers.
+                        response.exstr = response.value
                         break
                     default:
                         response = (parsers[state.mode] as any)([keyevent])
                         break
                 }
-                logger.debug(keys, response)
+                logger.debug(keyEvents, response)
 
-                if (response.ex_str) {
-                    ex_str = response.ex_str
+                if (response.exstr) {
+                    exstr = response.exstr
                     break
                 } else {
-                    keys = response.keys
+                    keyEvents = response.keys
                 }
             }
-            acceptExCmd(ex_str)
+            acceptExCmd(exstr)
         } catch (e) {
             // Rumsfeldian errors are caught here
             console.error("Tridactyl ParserController fatally wounded:", e)
@@ -99,12 +92,12 @@ export function acceptKey(keyevent: MsgSafeKeyboardEvent) {
 }
 
 /** Parse and execute ExCmds */
-export function acceptExCmd(ex_str: string) {
+export function acceptExCmd(exstr: string) {
     // TODO: Errors should go to CommandLine.
     try {
-        let [func, args] = exmode_parser(ex_str)
+        let [func, args] = exmode_parser(exstr)
         // Stop the repeat excmd from recursing.
-        if (func !== repeat) state.last_ex_str = ex_str
+        if (func !== repeat) state.last_ex_str = exstr
         try {
             func(...args)
         } catch (e) {

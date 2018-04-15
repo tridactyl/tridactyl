@@ -31,6 +31,8 @@ function suppressKey(ke: KeyboardEvent) {
 
 // {{{ Shitty key suppression workaround.
 
+// This is all awful and will go away when we move the parsers and stuff to content properly.
+
 import state from "./state"
 
 // Keys not to suppress in normal mode.
@@ -43,16 +45,23 @@ const normalmodewhitelist = [
 
 const hintmodewhitelist = ["F3", "F5", "F12"]
 
+import * as normalmode from "./parsers/normalmode"
+let keys = []
+
 function TerribleModeSpecificSuppression(ke: KeyboardEvent) {
     switch (state.mode) {
         case "normal":
-            // StartsWith happens to work for our maps so far. Obviously won't in the future.
-            /* if (Object.getOwnPropertyNames(nmaps).find((map) => map.startsWith(ke.key))) { */
+            keys.push(ke)
+            const response = normalmode.parser(keys)
 
-            if (isSimpleKey(ke) && !normalmodewhitelist.includes(ke.key)) {
+            // Suppress if there's a match.
+            if (response.isMatch) {
                 ke.preventDefault()
                 ke.stopImmediatePropagation()
             }
+
+            // Update keys array.
+            keys = response.keys || []
             break
         // Hintmode can't clean up after itself yet, so it needs to block more FF shortcuts.
         case "hint":

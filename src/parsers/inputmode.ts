@@ -10,10 +10,10 @@ export function parser(keys: MsgSafeKeyboardEvent[]) {
 
     if (key === "Escape") {
         state.mode = "normal"
-        return { keys: [], ex_str: "unfocus" }
+        return { keys: [], exstr: "unfocus" }
     } else if (key === "Tab") {
-        if (keys[0].shiftKey) return { keys: [], ex_str: "focusinput -N" }
-        else return { keys: [], ex_str: "focusinput -n" }
+        if (keys[0].shiftKey) return { keys: [], exstr: "focusinput -N" }
+        else return { keys: [], exstr: "focusinput -n" }
     }
-    return { keys: [], ex_str: "" }
+    return { keys: [], exstr: "" }
 }
