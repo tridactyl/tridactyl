@@ -9,13 +9,9 @@ function keyeventHandler(ke: KeyboardEvent) {
     // Ignore JS-generated events for security reasons.
     if (!ke.isTrusted) return
 
-    // Bad workaround: never suppress events in an editable field
-    // and never suppress keys pressed with modifiers
-    if (
-        state.mode === "input" ||
-        !(isTextEditable(ke.target as Node) || ke.ctrlKey || ke.altKey)
-    ) {
-        suppressKey(ke)
+    // Mode is changed based on ke target in the bg.
+    if (state.mode === "input" || !isTextEditable(ke.target as Node)) {
+        modeSpecificSuppression(ke)
     }
 
     Messaging.message("keydown_background", "recvEvent", [
@@ -23,32 +19,17 @@ function keyeventHandler(ke: KeyboardEvent) {
     ])
 }
 
-/** Choose to suppress a key or not */
-function suppressKey(ke: KeyboardEvent) {
-    // Mode specific suppression
-    TerribleModeSpecificSuppression(ke)
-}
-
-// {{{ Shitty key suppression workaround.
+// {{{ Bad key suppression system
 
 // This is all awful and will go away when we move the parsers and stuff to content properly.
 
 import state from "./state"
 
-// Keys not to suppress in normal mode.
-const normalmodewhitelist = [
-    // comment line below out once find mode is done
-    "/",
-    "'",
-    " ",
-]
-
-const hintmodewhitelist = ["F3", "F5", "F12"]
-
 import * as normalmode from "./parsers/normalmode"
 let keys = []
 
-function TerribleModeSpecificSuppression(ke: KeyboardEvent) {
+/** Choose to suppress a key or not */
+function modeSpecificSuppression(ke: KeyboardEvent) {
     switch (state.mode) {
         case "normal":
             keys.push(ke)
@@ -66,7 +47,7 @@ function TerribleModeSpecificSuppression(ke: KeyboardEvent) {
         // Hintmode can't clean up after itself yet, so it needs to block more FF shortcuts.
         case "hint":
         case "find":
-            if (!hintmodewhitelist.includes(ke.key)) {
+            if (isSimpleKey(ke)) {
                 ke.preventDefault()
                 ke.stopImmediatePropagation()
             }
