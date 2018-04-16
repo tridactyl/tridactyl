@@ -903,6 +903,8 @@ export async function tablast() {
 
 /** Like [[open]], but in a new tab. If no address is given, it will open the newtab page, which can be set with `set newtab [url]`
 
+    Use the `-b` flag as the first argument to open the tab in the background.
+
     Unlike Firefox's Ctrl-t shortcut, this opens tabs immediately after the
     currently active tab rather than at the end of the tab list because that is
     the authors' preference.
@@ -918,13 +920,19 @@ export async function tablast() {
 */
 //#background
 export async function tabopen(...addressarr: string[]) {
+    let active
+    if (addressarr[0] === "-b") {
+        addressarr.shift()
+        active = false
+    }
+
     let url: string
     let address = addressarr.join(" ")
 
     if (address != "") url = forceURI(address)
     else url = forceURI(config.get("newtab"))
 
-    openInNewTab(url)
+    openInNewTab(url, { active })
 }
 
 /** Resolve a tab index to the tab id of the corresponding tab in this window.
