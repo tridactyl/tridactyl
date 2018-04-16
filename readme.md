@@ -144,7 +144,11 @@ NOTE: key modifiers (eg: control, alt) are not supported yet. See the FAQ below.
 
 - How can I bind keys using the control/alt key modifiers (eg: `ctrl+^`)?
 
-    You can't, yet. See [issue #41](https://github.com/cmcaine/tridactyl/issues/41).
+    `:bind <C-f> scrollpage 1`. Special keys can be bound too: `:bind <F3> set theme dark` and with modifiers: `:bind <S-F3> set theme default` and with multiple modifiers: `:bind <SA-F3> composite set hintchars 1234567890 | set hintfiltermode vimperator-reflow`
+    
+    The modifiers are case insensitive. Special key names are not. The names used are those reported by Javascript with a limited number of vim compatibility aliases (e.g. `CR == Enter`).
+
+    If you want to bind <C-^> you'll find that you'll probably need to press Control+Shift+6 to trigger it. The default bind is <C-6> which does not require you to press shift.
 
 - How can I tab complete from bookmarks?
 
@@ -180,7 +184,7 @@ NOTE: key modifiers (eg: control, alt) are not supported yet. See the FAQ below.
 
 - How can I list the current bindings?
 
-    There is no easy way. See [#98](https://github.com/cmcaine/tridactyl/issues/98).
+    `viewconfig nmaps` works OK, but Tridactyl commands won't work on the shown page for "security reasons". We'll eventually provide a better way. See [#98](https://github.com/cmcaine/tridactyl/issues/98).
 
 - Why doesn't Tridactyl work on some pages?
 
