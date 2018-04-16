@@ -110,7 +110,7 @@ import { executeWithoutCommandLine } from "./commandline_content"
 // {
 /** Message excmds_content.ts in the active tab of the currentWindow */
 import { messageActiveTab } from "./messaging"
-
+import { flatten } from "./itertools"
 import "./number.mod"
 import { ModeName } from "./state"
 import * as keydown from "./keydown_background"
@@ -1931,21 +1931,51 @@ export async function ttscontrol(action: string) {
 //}}}
 
 // unsupported on android
-/** Add or remove a bookmark.
+/**
+ * Add or remove a bookmark.
  *
  * Optionally, you may give the bookmark a title. If no URL is given, a bookmark is added for the current page.
  *
- * If a bookmark already exists for the URL, it is removed.
+ * If a bookmark already exists for the URL, it is removed, even if a title is given.
+ *
+ * Does not support creation of folders: you'll need to use the Firefox menus for that.
+ *
+ * @param titlearr Title for the bookmark (can include spaces but not forward slashes, as these are interpreted as folders). If you want to put the bookmark in a folder, you can:
+ *  - Specify it exactly: `/Bookmarks Menu/Mozilla Firefox/My New Bookmark Title`
+ *  - Specify it by a subset: `Firefox/My New Bookmark Title`
+ *  - and leave out the title if you want: `Firefox/`
  */
 //#background
 export async function bmark(url?: string, ...titlearr: string[]) {
     url = url === undefined ? (await activeTab()).url : url
     let title = titlearr.join(" ")
-    let dupbmarks = await browser.bookmarks.search({ url })
+    // if titlearr is given and we have duplicates, we probably want to give an error here.
+    const dupbmarks = await browser.bookmarks.search({ url })
     dupbmarks.map(bookmark => browser.bookmarks.remove(bookmark.id))
-    if (dupbmarks.length == 0) {
-        browser.bookmarks.create({ url, title })
+    if (dupbmarks.length != 0) return
+    const path = title.substring(0, title.lastIndexOf("/") + 1)
+    // TODO: if title is blank, get it from the page.
+    if (path != "") {
+        const tree = (await browser.bookmarks.getTree())[0] // Why would getTree return a tree? Obviously it returns an array of unit length.
+        // I hate recursion.
+        const treeClimber = (tree, treestr) => {
+            if (tree.type !== "folder") return {}
+            treestr += tree.title + "/"
+            if (!("children" in tree) || tree.children.length === 0) return { path: treestr, id: tree.id }
+            return [{ path: treestr, id: tree.id }, tree.children.map(child => treeClimber(child, treestr))]
+        }
+        const validpaths = flatten(treeClimber(tree, "")).filter(x => "path" in x)
+        title = title.substring(title.lastIndexOf("/") + 1)
+        let pathobj = validpaths.find(p => p.path == path)
+        // If strict look doesn't find it, be a bit gentler
+        if (pathobj === undefined) pathobj = validpaths.find(p => p.path.includes(path))
+        if (pathobj !== undefined) {
+            browser.bookmarks.create({ url, title, parentId: pathobj.id })
+            return
+        } // otherwise, give the user an error, probably with [v.path for v in validpaths]
     }
+
+    browser.bookmarks.create({ url, title })
 }
 
 /**  Open a welcome page on first install.
