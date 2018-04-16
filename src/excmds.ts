@@ -4,7 +4,7 @@
 
     Use `:help <excmd>` or scroll down to show [[help]] for a particular excmd.
 
-    The default keybinds can be found [here](/static/docs/modules/_config_.html#defaults).
+    The default keybinds can be found [here](/static/docs/modules/_config_.html#defaults) or all active binds can be seen with `:viewconfig nmaps`.
     You can also view them with [[bind]]. Try `bind j`.
 
     For more information, and FAQs, check out our [readme][4] on github.
@@ -1442,6 +1442,12 @@ export function comclear(name: string) {
 
         - `bind j`
         - `bind k`
+
+    You can bind to modifiers and special keys by enclosing them with space, for example `bind <C-\>z fullscreen`, or `bind <Backspace> forward`.
+
+    Modifiers are truncated to a single character, so Ctrl -> C, Alt -> A, and Shift -> S. Shift is a bit special as it is only required if Shift does not change the key inputted, e.g. `<S-ArrowDown>` is OK, but `<S-a>` should just be `A`.
+
+    You can view all special key names here: https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/key/Key_Values
 
     Use [[composite]] if you want to execute multiple excmds. Use
     [[fillcmdline]] to put a string in the cmdline and focus the cmdline
