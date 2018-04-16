@@ -1,5 +1,9 @@
 # Tridactyl changelogs
 
+## Release 1.9.2
+
+- Fix #392 (bug with keyseq)
+
 ## Release 1.9.1
 
 - Fix buffer switch bind
