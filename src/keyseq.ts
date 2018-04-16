@@ -107,8 +107,10 @@ export type ParserResponse = {
 }
 
 export function parse(keyseq: KeyEventLike[], map: KeyMap): ParserResponse {
-    // Don't modify the given array.
-    keyseq = keyseq.slice()
+    // Remove bare modifiers
+    keyseq = keyseq.filter(
+        key => !["Control", "Shift", "Alt", "Meta"].includes(key.key),
+    )
 
     // If keyseq is a prefix of a key in map, proceed, else try dropping keys
     // from keyseq until it is empty or is a prefix.
