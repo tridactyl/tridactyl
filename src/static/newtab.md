@@ -10,6 +10,8 @@ Tridactyl has to override your new tab page due to WebExtension limitations. You
 
 - You can contact the developers, other users and contributors for support or whatever on [Matrix][matrix-link], [Gitter][gitter-link], or [IRC][freenode-link].
 
+- If you're enjoying Tridactyl (or not), please leave a review on [addons.mozilla.org][amo].
+
 ## Highlighted features:
 
 - `f`/`F` — enter the "hint mode" to select a link to follow. `F` to open it in a background tab.
@@ -72,3 +74,4 @@ You have more questions? Have a look at our [FAQ][faq-link].
 [freenode-link]: ircs://chat.freenode.net/tridactyl
 [matrix-badge]: https://matrix.to/img/matrix-badge.svg
 [matrix-link]: https://riot.im/app/#/room/#tridactyl:matrix.org
+[amo]: https://addons.mozilla.org/en-US/firefox/addon/tridactyl-vim/reviews/

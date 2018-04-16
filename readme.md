@@ -12,6 +12,8 @@ Type `:help` for online help once you're in :)
 
 Remember that tridactyl cannot run on any page on addons.mozilla.org, about:\*, data:\*, view-source:\* and file:\*. We're sorry about that and we're working with Firefox to improve this situation by removing restrictions on existing APIs and developing a new API.
 
+If you're enjoying Tridactyl, or not, please leave a review on the [AMO](https://addons.mozilla.org/en-US/firefox/addon/tridactyl-vim/reviews/).
+
 ## Highlighted features
 
 Like Vim, Tridactyl is modal, with the default mode being "normal mode". In
