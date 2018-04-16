@@ -2,6 +2,7 @@ build
 node_modules
 src/excmds_background.ts
 src/excmds_content.ts
+src/grammars/*.ts
 generated
 web-ext-artifacts
 yarn.lock
