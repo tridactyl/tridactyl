@@ -28,10 +28,13 @@ echo "XDG_DATA_HOME: $XDG_DATA_HOME"
 # inexplicable reasons
 # Until this PR is merged into master, we'll be copying the local version over
 # instead of downloading it
-# curl --create-dirs -o $manifest_file $manifest_loc
-# curl --create-dirs -o $native_file $native_loc
-cp -f tridactyl.json "$manifest_file"
-cp -f native_main.py "$native_file"
+if [[ "$1" == "local" ]]; then
+    cp -f native/tridactyl.json "$manifest_file"
+    cp -f native/native_main.py "$native_file"
+else
+    curl --create-dirs -o $manifest_file $manifest_loc
+    curl --create-dirs -o $native_file $native_loc
+fi
 
 native_file_escaped=$(sed 's/[&/\]/\\&/g' <<< "$native_file")
 
