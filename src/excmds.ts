@@ -117,9 +117,22 @@ import * as keydown from "./keydown_background"
 import { activeTab, activeTabId, firefoxVersionAtLeast, openInNewTab } from "./lib/webext"
 import * as CommandLineBackground from "./commandline_background"
 
+//#background_helper
+import * as Native from "./native_background"
+
 /** @hidden */
 export const cmd_params = new Map<string, Map<string, string>>()
 // }
+
+//#background
+export async function getNativeVersion(): Promise<void> {
+    Native.getNativeMessengerVersion()
+}
+
+//#background
+export async function getFilesystemRc(): Promise<string> {
+    return Native.getFilesystemUserConfig()
+}
 
 /** @hidden */
 function hasScheme(uri: string) {
