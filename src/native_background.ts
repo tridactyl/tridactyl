@@ -6,7 +6,7 @@ const GET_CFG_CMD = "getconfig"
 const GET_VER_CMD = "version"
 
 const NATIVE_NAME = "tridactyl"
-type MessageCommand = "getconfig" | "version"
+type MessageCommand = "getconfig" | "version" | "run" | "read" | "write"
 interface MessageResp {
     cmd: string
     version: number | null
@@ -54,4 +54,28 @@ export async function getNativeMessengerVersion(): Promise<number> {
         return res.version
     }
     throw `Error retrieving version: ${res.error}`
+}
+
+export async function editor(file: string, content?: string) {
+    // -f makes gvim stay in foreground so that we know when it is exited
+    // does this mean that the native messenger can't be used for anything
+    // till it returns?
+    // should probably think about this harder.
+    if (content !== undefined) await write(file, content)
+    await run("gvim -f " + file)
+    return await read(file)
+}
+
+export async function read(file: string) {
+    return sendNativeMsg("read", { file })
+}
+
+export async function write(file: string, content: string) {
+    return sendNativeMsg("write", { file, content })
+}
+
+export async function run(command: string) {
+    const res = await sendNativeMsg("run", { command })
+    console.log("command finished")
+    return res
 }

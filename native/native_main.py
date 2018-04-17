@@ -5,6 +5,7 @@ import sys
 import os
 import json
 import struct
+import subprocess
 
 VERSION = "0.1.1"
 
@@ -105,6 +106,19 @@ def handleMessage(message):
             reply['content'] = file_content
         else:
             reply['error'] = 'File not found'
+
+    elif cmd == 'run':
+        output = subprocess.check_output(message["command"].split(" "))
+        reply['content'] = output if output else ""
+
+    elif cmd == 'read':
+        with open(message["file"],"r") as file:
+            reply['content'] = file.read()
+
+    elif cmd == 'write':
+        with open(message["file"],"w") as file:
+            file.write(message["content"])
+
 
     else:
         reply = {'cmd': 'error', 'error': 'Unhandled message'}

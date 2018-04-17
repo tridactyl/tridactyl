@@ -124,16 +124,75 @@ import * as Native from "./native_background"
 export const cmd_params = new Map<string, Map<string, string>>()
 // }
 
+// Native messenger stuff
+
+/** @hidden **/
 //#background
 export async function getNativeVersion(): Promise<void> {
     Native.getNativeMessengerVersion()
 }
 
+/**
+ * Get RC from filesystem. Currently unused.
+ * @hidden
+ */
 //#background
 export async function getFilesystemRc(): Promise<string> {
     return Native.getFilesystemUserConfig()
 }
 
+/**
+ * Fills the last used input box with content. You probably don't want this; it's used internally for [[editor]].
+ *
+ * That said, `bind gs fillinput [Tridactyl](https://addons.mozilla.org/en-US/firefox/addon/tridactyl-vim/) is my favourite add-on` could probably come in handy.
+ */
+//#content
+export async function fillinput(...content: string[]) {
+    let inputToFill = DOM.getLastUsedInput() as HTMLInputElement
+    inputToFill.value = content.join(" ")
+}
+
+/** @hidden */
+//#content
+export async function getinput() {
+    // this should probably be subsumed by the focusinput code
+    let input = DOM.getLastUsedInput() as HTMLInputElement
+    return input.value
+}
+
+/**
+ * Opens your favourite editor (which is currently gVim) and fills the last used input with whatever you write into that file.
+ * **Requires that the native messenger is installed, see [[native]]**.
+ *
+ * You're probably better off using the default insert mode bind of <C-e> to access this.
+ */
+//#background
+export async function editor() {
+    // need to figure out how to get that into background
+    const version = await Native.getNativeMessengerVersion()
+    if (version === undefined) native()
+    const file = "/tmp/tridactyledit" + Math.floor(Math.random() * 1000)
+    fillinput((await Native.editor(file, await getinput())).content)
+    // TODO: add annoying "This message was written with [Tridactyl](https://addons.mozilla.org/en-US/firefox/addon/tridactyl-vim/)"
+    // to everything written using editor
+}
+
+//#background
+export async function native() {
+    const version = await Native.getNativeMessengerVersion()
+    if (version !== undefined) fillcmdline("# Native messenger is correctly installed, version " + version)
+    else fillcmdline("# Native messenger not found. Please run `:installnative` and follow the instructions.")
+}
+
+/**
+ * Simply copies "curl -fsSl https://raw.githubusercontent.com/cmcaine/tridactyl/master/native/install.sh | sh" to the clipboard and tells the user to run it.
+ */
+//#background
+export async function installnative() {
+    const installstr = "curl -fsSl https://raw.githubusercontent.com/cmcaine/tridactyl/master/native/install.sh | sh"
+    await clipboard("yank", installstr)
+    fillcmdline("# Installation command copied to clipboard. Please paste and run it in your shell to install the native messenger")
+}
 /** @hidden */
 function hasScheme(uri: string) {
     return uri.match(/^([\w-]+):/)
