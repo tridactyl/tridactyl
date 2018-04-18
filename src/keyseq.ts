@@ -144,7 +144,8 @@ function prefixes(seq1: KeyEventLike[], seq2: MinimalKey[]) {
 export function completions(keyseq: KeyEventLike[], map: KeyMap): KeyMap {
     const possibleMappings = new Map() as KeyMap
     for (const [ks, maptarget] of map.entries()) {
-        if (prefixes(keyseq, ks)) {
+        // maptarget might be "" because of unbound keys, ignore such case
+        if (maptarget && prefixes(keyseq, ks)) {
             possibleMappings.set(ks, maptarget)
         }
     }
