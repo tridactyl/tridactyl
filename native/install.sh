@@ -1,6 +1,6 @@
-#!/bin/sh
+#!/bin/bash
 
-# To install, curl -fsSl 'url to this script' | sh
+# To install, curl -fsSl 'url to this script' | bash
 
 XDG_CONFIG_HOME="${XDG_CONFIG_HOME:-$HOME/.config/tridactyl}"
 XDG_DATA_HOME="${XDG_LOCAL_HOME:-$HOME/.local/share/tridactyl}"
@@ -24,8 +24,6 @@ native_file="$XDG_DATA_HOME/native_main.py"
 echo "Manifest home: $manifest_home"
 echo "XDG_DATA_HOME: $XDG_DATA_HOME"
 
-# Download the files using curl since macOS doesn't ship with wget for
-# inexplicable reasons
 # Until this PR is merged into master, we'll be copying the local version over
 # instead of downloading it
 if [[ "$1" == "local" ]]; then

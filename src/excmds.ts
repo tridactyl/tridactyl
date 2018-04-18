@@ -124,21 +124,12 @@ import * as Native from "./native_background"
 export const cmd_params = new Map<string, Map<string, string>>()
 // }
 
-// Native messenger stuff
+// {{{ Native messenger stuff
 
 /** @hidden **/
 //#background
 export async function getNativeVersion(): Promise<void> {
     Native.getNativeMessengerVersion()
-}
-
-/**
- * Get RC from filesystem. Currently unused.
- * @hidden
- */
-//#background
-export async function getFilesystemRc(): Promise<string> {
-    return Native.getFilesystemUserConfig()
 }
 
 /**
@@ -162,13 +153,16 @@ export async function getinput() {
 
 /**
  * Opens your favourite editor (which is currently gVim) and fills the last used input with whatever you write into that file.
- * **Requires that the native messenger is installed, see [[native]]**.
+ * **Requires that the native messenger is installed, see [[native]] and [[installnative]]**.
+ *
+ * Uses the `editorcmd` config option, default = `gvim -f`. `urxvt -e nvim` works well for nvim users.
+ *
+ * The editorcmd needs to accept a filename, stay in the foreground while it's edited, save the file and exit.
  *
  * You're probably better off using the default insert mode bind of <C-e> to access this.
  */
 //#background
 export async function editor() {
-    // need to figure out how to get that into background
     const version = await Native.getNativeMessengerVersion()
     if (version === undefined) native()
     const file = "/tmp/tridactyledit" + Math.floor(Math.random() * 1000)
@@ -185,14 +179,17 @@ export async function native() {
 }
 
 /**
- * Simply copies "curl -fsSl https://raw.githubusercontent.com/cmcaine/tridactyl/master/native/install.sh | sh" to the clipboard and tells the user to run it.
+ * Simply copies "curl -fsSl https://raw.githubusercontent.com/cmcaine/tridactyl/master/native/install.sh | bash" to the clipboard and tells the user to run it.
  */
 //#background
 export async function installnative() {
-    const installstr = "curl -fsSl https://raw.githubusercontent.com/cmcaine/tridactyl/master/native/install.sh | sh"
+    const installstr = "curl -fsSl https://raw.githubusercontent.com/cmcaine/tridactyl/master/native/install.sh | bash"
     await clipboard("yank", installstr)
     fillcmdline("# Installation command copied to clipboard. Please paste and run it in your shell to install the native messenger")
 }
+
+// }}}
+
 /** @hidden */
 function hasScheme(uri: string) {
     return uri.match(/^([\w-]+):/)

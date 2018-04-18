@@ -227,6 +227,9 @@ const DEFAULTS = o({
         state: 2,
         excmd: 1,
     }),
+
+    // This has to be a command that stays in the foreground for the whole editing session
+    editorcmd: "gvim -f",
 })
 
 /** Given an object and a target, extract the target if it exists, else return undefined

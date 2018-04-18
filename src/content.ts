@@ -27,6 +27,7 @@ import state from "./state"
 import * as webext from "./lib/webext"
 import Mark from "mark.js"
 import * as keyseq from "./keyseq"
+import * as native from "./native_background"
 ;(window as any).tri = Object.assign(Object.create(null), {
     browserBg: webext.browserBg,
     commandline_content,
@@ -45,6 +46,7 @@ import * as keyseq from "./keyseq"
     state,
     webext,
     l: prom => prom.then(console.log).catch(console.error),
+    native,
 })
 
 dom.setupFocusHandler()
