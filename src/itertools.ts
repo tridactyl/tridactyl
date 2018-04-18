@@ -1,20 +1,33 @@
 import "./number.mod"
 
 export function head(iter) {
+    iter = iter[Symbol.iterator]()
     let result = iter.next()
-    if (result.done) throw RangeError("Iterable is so done.")
+    if (result.done) throw RangeError("Empty iterator has no head/tail")
     else return result.value
 }
 
 /** Get the last item of an array or iterable */
 export function tail(iter) {
     if (Array.isArray(iter)) {
+        if (iter.length < 1) throw RangeError("Empty iterator has no head/tail")
         return iter[iter.length - 1]
     } else {
-        let last
+        // Re-use error handling in head()
+        let last = head(iter)
         for (last of iter) {}
         return last
     }
+}
+
+export function* filter(iter, predicate) {
+    for (let v of iter) {
+        if (predicate(v)) yield v
+    }
+}
+
+export function find(iter, predicate) {
+    return head(filter(iter, predicate))
 }
 
 /** Zip some arrays together
