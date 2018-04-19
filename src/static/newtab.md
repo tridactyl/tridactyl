@@ -12,6 +12,9 @@ Tridactyl has to override your new tab page due to WebExtension limitations. You
 
 - If you're enjoying Tridactyl (or not), please leave a review on [addons.mozilla.org][amo].
 
+
+REPLACE_ME_WITH_THE_CHANGE_LOG_USING_SED
+
 ## Highlighted features:
 
 - `f`/`F` — enter the "hint mode" to select a link to follow. `F` to open it in a background tab.
