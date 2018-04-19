@@ -47,8 +47,11 @@ import * as keyseq from "./keyseq"
     l: prom => prom.then(console.log).catch(console.error),
 })
 
-dom.setupFocusHandler()
-dom.hijackPageListenerFunctions()
+// Don't hijack on the newtab page.
+if ("exportFunction" in window) {
+    dom.setupFocusHandler()
+    dom.hijackPageListenerFunctions()
+}
 
 if (
     window.location.protocol === "moz-extension:" &&
