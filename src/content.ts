@@ -57,8 +57,5 @@ if (
     window.location.protocol === "moz-extension:" &&
     window.location.pathname === "/static/newtab.html"
 ) {
-    ;(window as any).tri.config.getAsync("newtab").then(newtab => {
-        if (newtab !== "")
-            window.location.href = (window as any).tri.excmds.forceURI(newtab)
-    })
+    config.getAsync("newtab").then(newtab => newtab && excmds.open(newtab))
 }
