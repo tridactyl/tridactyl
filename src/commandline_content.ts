@@ -33,10 +33,15 @@ function init() {
         }
     }
 }
-// TODO: Propagate awaits back through messaging system or resend
-// commandline_frame messages from excmd_content if you want to avoid init'ing
-// every time.
-init()
+
+// Load the iframe immediately if the document is already complete (happens if tridactyl is reloaded)
+// Else load lazily to avoid upsetting page JS that hates foreign iframes.
+if (document.readyState === "complete") {
+    init()
+} else {
+    // Surrender event loop with setTimeout() to page JS in case it's still doing stuff.
+    document.addEventListener("DOMContentLoaded", () => setTimeout(init, 0))
+}
 
 export function show() {
     const height =
