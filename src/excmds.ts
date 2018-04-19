@@ -137,15 +137,24 @@ function searchURL(provider: string, query: string) {
     return UrlUtil.interpolateSearchItem(new URL(searchurlprovider), query)
 }
 
-/** If maybeURI doesn't have a schema, affix http:// */
+/** Take a string and find a way to interpret it as a URI or search query. */
 /** @hidden */
 export function forceURI(maybeURI: string): string {
     // Need undefined to be able to open about:newtab
     if (maybeURI == "") return undefined
-    try {
-        return new URL(maybeURI).href
-    } catch (e) {
-        if (e.name !== "TypeError") throw e
+
+    // If the uri looks like it might contain a schema and a domain, try url()
+    // test for a non-whitespace, non-colon character after the colon to avoid
+    // false positives like "error: can't reticulate spline" and "std::map".
+    //
+    // These heuristics mean that very unusual URIs will be coerced to
+    // something else by this function.
+    if (/^[a-zA-Z0-9+.-]+:[^\s:]/.test(maybeURI)) {
+        try {
+            return new URL(maybeURI).href
+        } catch (e) {
+            if (e.name !== "TypeError") throw e
+        }
     }
 
     // Else if search keyword:
