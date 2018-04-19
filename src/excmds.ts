@@ -87,7 +87,7 @@
 
 // Shared
 import * as Messaging from "./messaging"
-import { l } from "./lib/webext"
+import { l, browserBg, activeTabId } from "./lib/webext"
 import state from "./state"
 import * as UrlUtil from "./url_util"
 import * as config from "./config"
@@ -114,7 +114,7 @@ import { flatten } from "./itertools"
 import "./number.mod"
 import { ModeName } from "./state"
 import * as keydown from "./keydown_background"
-import { activeTab, activeTabId, firefoxVersionAtLeast, openInNewTab } from "./lib/webext"
+import { activeTab, firefoxVersionAtLeast, openInNewTab } from "./lib/webext"
 import * as CommandLineBackground from "./commandline_background"
 
 /** @hidden */
@@ -375,10 +375,16 @@ export async function reloadhard(n = 1) {
         "searchengine": "google" or any of [[SEARCH_URLS]]
 */
 //#content
-export function open(...urlarr: string[]) {
+export async function open(...urlarr: string[]) {
     let url = urlarr.join(" ")
-    if (url === "") url = config.get("newtab") || browser.extension.getURL("static/newtab.html")
-    window.location.href = forceURI(url)
+
+    // Setting window.location to about:blank results in a page we can't access, tabs.update works.
+    // tabs.update goes to the new tab page if url === "".
+    if (["", "about:blank"].includes(url)) {
+        browserBg.tabs.update(await activeTabId(), { url })
+    } else {
+        window.location.href = forceURI(url)
+    }
 }
 
 /** @hidden */
