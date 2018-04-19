@@ -12,6 +12,8 @@ Tridactyl has to override your new tab page due to WebExtension limitations. You
 
 - If you're enjoying Tridactyl (or not), please leave a review on [addons.mozilla.org][amo].
 
+- **NB:** Tridactyl will soon support a native messenger. When this version is released, Firefox **will not update to it** unless you click the menu in the top right and allow it to update. A small yellow exclamation mark will appear on the menu's icon to notify you of this fact; please keep an eye out for it over the next week or so.
+
 
 REPLACE_ME_WITH_THE_CHANGE_LOG_USING_SED
 
