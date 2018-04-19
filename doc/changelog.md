@@ -1,5 +1,12 @@
 # Tridactyl changelogs
 
+## Release 1.9.3
+
+- Fix unbind issues
+- Add more default binds from Vimperator
+- Change the `^` bind to `<c-6>` (matches vim)
+- :bmark now supports folders
+
 ## Release 1.9.2
 
 - Fix #392 (bug with keyseq)
