@@ -176,7 +176,7 @@ export async function editor() {
 //#background
 export async function exclaim(...str: string[]) {
     fillcmdline((await Native.run(str.join(" "))).content)
-}
+} // should consider how to give option to fillcmdline or not. We need flags.
 
 //#background
 export async function native() {
@@ -1922,7 +1922,7 @@ import * as hinting from "./hinting_background"
           - `bind ;c hint -c [class*="expand"],[class="togg"]` works particularly well on reddit and HN
         - -w open in new window
             -wp open in new private window
-        - `-W excmd...` append hint href to excmd and execute, e.g, `hint -W open` and other such bad ideas.
+        - `-W excmd...` append hint href to excmd and execute, e.g, `hint -W exclaim mpv` to open YouTube videos
 
     Excepting the custom selector mode and background hint mode, each of these
     hint modes is available by default as `;<option character>`, so e.g. `;y`
