@@ -3,10 +3,11 @@
   "version": "0.1.0",
   "description": "Vimperator/Pentadactyl successor",
   "dependencies": {
+    "@types/nearley": "^2.11.0",
     "fuse.js": "^3.2.0",
     "mark.js": "^8.11.1",
-    "@types/nearley": "^2.11.0",
-    "nearley": "^2.11.0"
+    "nearley": "^2.11.0",
+    "semver-compare": "^1.0.0"
   },
   "devDependencies": {
     "@types/jest": "^21.1.4",

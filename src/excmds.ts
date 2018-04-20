@@ -96,6 +96,7 @@ import * as Logging from "./logging"
 /** @hidden */
 const logger = new Logging.Logger("excmds")
 import Mark from "mark.js"
+import * as semverCompare from "semver-compare"
 
 //#content_helper
 // {
@@ -165,12 +166,43 @@ export async function getinput() {
  */
 //#background
 export async function editor() {
-    const version = await Native.getNativeMessengerVersion()
-    if (version === undefined) native()
+    if (!await nativegate()) return
     const file = "/tmp/tridactyledit" + Math.floor(Math.random() * 1000)
     fillinput((await Native.editor(file, await getinput())).content)
     // TODO: add annoying "This message was written with [Tridactyl](https://addons.mozilla.org/en-US/firefox/addon/tridactyl-vim/)"
     // to everything written using editor
+}
+
+/**
+ * Uses the native messenger to open URLs.
+ *
+ * **Be *seriously* careful with this: you can use it to open any URL you can open in the Firefox address bar.**
+ *
+ * You've been warned.
+ */
+//#background
+export async function nativeopen(url: string, ...firefoxArgs: string[]) {
+    if (firefoxArgs.length === 0) firefoxArgs = ["--new-tab"]
+    if (await nativegate()) {
+        Native.run(config.get("browser") + " " + firefoxArgs.join(" ") + " " + url)
+    }
+}
+
+/**
+ * Used internally to gate off functions that use the native messenger. Gives a helpful error message in the command line if the native messenger is not installed, or is the wrong version.
+ */
+//#background
+export async function nativegate(version = "0"): Promise<Boolean> {
+    const actualVersion = await Native.getNativeMessengerVersion()
+    if (actualVersion !== undefined) {
+        if (semverCompare(version, actualVersion) > 0) {
+            fillcmdline("# Native messenger is installed, version " + actualVersion + " but the command you just tried to use needs version " + version)
+            // TODO: add update procedure and document here.
+            return false
+        }
+        return true
+    } else fillcmdline("# Native messenger not found. Please run `:installnative` and follow the instructions.")
+    return false
 }
 
 //#background
@@ -461,6 +493,9 @@ export async function open(...urlarr: string[]) {
     // tabs.update goes to the new tab page if url === "".
     if (["", "about:blank"].includes(url)) {
         browserBg.tabs.update(await activeTabId(), { url })
+    } else if (url.match(/^(about|file):.*/)) {
+        // I thought we could run background excmds from content but apparently not?
+        Messaging.message("commandline_background", "recvExStr", ["nativeopen " + url])
     } else {
         window.location.href = forceURI(url)
     }
@@ -1049,7 +1084,10 @@ export async function tabopen(...addressarr: string[]) {
     let url: string
     let address = addressarr.join(" ")
 
-    if (address != "") url = forceURI(address)
+    if (address.match(/^(about|file):.*/)) {
+        nativeopen(address)
+        return
+    } else if (address != "") url = forceURI(address)
     else url = forceURI(config.get("newtab"))
 
     openInNewTab(url, { active })
@@ -1236,11 +1274,17 @@ export async function pin() {
 export async function winopen(...args: string[]) {
     let address: string
     const createData = {}
+    let firefoxArgs = "--new-window"
     if (args[0] === "-private") {
         createData["incognito"] = true
         address = args.slice(1, args.length).join(" ")
+        firefoxArgs = "--private-window"
     } else address = args.join(" ")
     createData["url"] = address != "" ? forceURI(address) : forceURI(config.get("newtab"))
+    if (address.match(/^(about|file):.*/)) {
+        nativeopen(address, firefoxArgs)
+        return
+    }
     browser.windows.create(createData)
 }
 
