@@ -48,7 +48,7 @@ export async function getNativeMessengerVersion(): Promise<number> {
 
 export async function editor(file: string, content?: string) {
     if (content !== undefined) await write(file, content)
-    await run(config.get("editorcmd") + file)
+    await run(config.get("editorcmd") + " " + file)
     return await read(file)
 }
 
