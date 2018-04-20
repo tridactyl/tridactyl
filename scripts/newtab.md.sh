@@ -16,7 +16,7 @@ sed "1,/REPLACETHIS/ d" newtab.template.html >> "$newtabtemp"
 sed "/REPLACE_ME_WITH_THE_CHANGE_LOG_USING_SED/,$ d" "$newtabtemp" > "$newtab"
 echo """
 <input type="checkbox"  id="spoilerbutton" />
-<label for="spoilerbutton" >Changelogs</label>
+<label for="spoilerbutton" onclick="">Changelogs</label>
 <div class="spoiler">
 """ >> "$newtab"
 marked ../../doc/changelog.md >> "$newtab"

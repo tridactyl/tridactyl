@@ -52,8 +52,7 @@ Tridactyl overrides your newtab page because it cannot insert its content script
 ### How can I get rid of it?
 
 - `:set newtab [URL]`
-    <!-- - If you just want a blank page, you can use `set newtab data:text/html, <html style="background:white"></html>`. You can replace "white" with any CSS colour of your choosing. -->
-- `d`, Alt-F4, Ctrl-W and other such jokes.
+    - e.g, `:set newtab about:blank`
 
 ## FAQ
 
