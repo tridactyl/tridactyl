@@ -852,6 +852,41 @@ export function focusinput(nth: number | string) {
     }
 }
 
+/**
+ * Focus the tab which contains the last focussed input element. If you're lucky, it will focus the right input, too.
+ *
+ * Currently just goes to the last focussed input; being able to jump forwards and backwards is planned.
+ */
+//#background
+export async function changelistjump(n?: number) {
+    let tail = state.prevInputs[state.prevInputs.length - 1]
+    let jumppos = tail.jumppos ? tail.jumppos : state.prevInputs.length - 1
+    const input = state.prevInputs[jumppos]
+    await browser.tabs.update(input.tab, { active: true })
+    const id = input.inputId
+    // Not all elements have an ID, so this will do for now.
+    if (id) focusbyid(input.inputId)
+    else focusinput("-l")
+
+    // Really want to bin the input we just focussed ^ and edit the real last input to tell us where to jump to next.
+    // It doesn't work in practice as the focus events get added after we try to delete them.
+    // Even editing focusbyid/focusinput doesn't work to try to delete their own history doesn't work.
+    // I'm bored of working on it for now, though.
+    // Probable solution: add an event listener to state.prevInputs changing, delete the focussed element, then delete event listener.
+    //
+    // let arr = state.prevInputs
+    // arr.splice(-2,2)
+
+    // tail.jumppos = jumppos - 1
+    // arr = arr.concat(tail)
+    // state.prevInputs = arr
+}
+
+//#content
+export function focusbyid(id: string) {
+    document.getElementById(id).focus()
+}
+
 // }}}
 
 // {{{ TABS

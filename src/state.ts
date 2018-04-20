@@ -28,6 +28,13 @@ export type ModeName =
 class State {
     mode: ModeName = "normal"
     cmdHistory: string[] = []
+    prevInputs: { inputId: string; tab: number; jumppos?: number }[] = [
+        {
+            inputId: undefined,
+            tab: undefined,
+            jumppos: undefined,
+        },
+    ]
     last_ex_str: string = ""
 }
 
