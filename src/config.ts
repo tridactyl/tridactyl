@@ -115,6 +115,7 @@ const DEFAULTS = o({
         ";A": "hint -A",
         ";;": "hint -;",
         ";#": "hint -#",
+        ";v": "hint -W exclaim mpv",
         I: "mode ignore",
         a: "current_url bmark",
         A: "bmark",
