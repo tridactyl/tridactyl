@@ -121,6 +121,8 @@ import * as CommandLineBackground from "./commandline_background"
 export const cmd_params = new Map<string, Map<string, string>>()
 // }
 
+// }}}
+
 /** @hidden */
 function hasScheme(uri: string) {
     return uri.match(/^([\w-]+):/)
@@ -1845,6 +1847,7 @@ import * as hinting from "./hinting_background"
           - `bind ;c hint -c [class*="expand"],[class="togg"]` works particularly well on reddit and HN
         - -w open in new window
             -wp open in new private window
+        - `-W excmd...` append hint href to excmd and execute, e.g, `hint -W open` and other such bad ideas.
 
     Excepting the custom selector mode and background hint mode, each of these
     hint modes is available by default as `;<option character>`, so e.g. `;y`
@@ -1858,7 +1861,7 @@ import * as hinting from "./hinting_background"
         "relatedopenpos": "related" | "next" | "last"
 */
 //#background
-export function hint(option?: string, selectors = "") {
+export function hint(option?: string, selectors = "", ...rest: string[]) {
     if (option === "-b") hinting.hintPageOpenInBackground()
     else if (option === "-y") hinting.hintPageYank()
     else if (option === "-p") hinting.hintPageTextYank()
@@ -1874,6 +1877,7 @@ export function hint(option?: string, selectors = "") {
     else if (option === "-c") hinting.hintPageSimple(selectors)
     else if (option === "-r") hinting.hintRead()
     else if (option === "-w") hinting.hintPageWindow()
+    else if (option === "-W") hinting.hintPageExStr([selectors, ...rest].join(" "))
     else if (option === "-wp") hinting.hintPageWindowPrivate()
     else hinting.hintPageSimple()
 }

@@ -26,6 +26,7 @@ import * as config from "./config"
 import * as TTS from "./text_to_speech"
 import { HintSaveType } from "./hinting_background"
 import Logger from "./logging"
+import * as Messaging from "./messaging"
 const logger = new Logger("hinting")
 
 /** Simple container for the state of a single frame's hints. */
@@ -602,6 +603,15 @@ function hintPageSimple(selectors = HINTTAGS_selectors) {
     })
 }
 
+function hintPageExStr(...exStr: string[]) {
+    let selectors = HINTTAGS_selectors
+    hintPage(hintables(selectors, true), hint => {
+        Messaging.message("commandline_background", "recvExStr", [
+            exStr.join(" ") + " " + hint.target.href,
+        ])
+    })
+}
+
 function hintPageTextYank() {
     hintPage(elementswithtext(), hint => {
         messageActiveTab("commandline_frame", "setClipboard", [
@@ -716,6 +726,7 @@ addListener(
         selectFocusedHint,
         reset,
         hintPageSimple,
+        hintPageExStr,
         hintPageYank,
         hintPageTextYank,
         hintPageAnchorYank,

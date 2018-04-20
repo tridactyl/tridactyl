@@ -30,6 +30,12 @@ export async function hintPageSimple(selectors?) {
     ])
 }
 
+export async function hintPageExStr(...exstr: string[]) {
+    return await messageActiveTab("hinting_content", "hintPageExStr", [
+        ...exstr,
+    ])
+}
+
 export async function hintPageOpenInBackground() {
     return await messageActiveTab("hinting_content", "hintPageOpenInBackground")
 }
