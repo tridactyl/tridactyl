@@ -48,9 +48,11 @@ import * as keyseq from "./keyseq"
 })
 
 // Don't hijack on the newtab page.
-if ("exportFunction" in window) {
+if (webext.inContentScript()) {
     dom.setupFocusHandler()
     dom.hijackPageListenerFunctions()
+} else {
+    console.error("No export func")
 }
 
 if (
