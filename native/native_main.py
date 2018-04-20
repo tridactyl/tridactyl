@@ -69,7 +69,7 @@ def handleMessage(message):
         reply = {'version': VERSION}
 
     elif cmd == 'run':
-        output = subprocess.check_output(message["command"].split(" "))
+        output = subprocess.check_output(message["command"].split(" ")).decode("utf-8")
         reply['content'] = output if output else ""
 
     elif cmd == 'eval':
