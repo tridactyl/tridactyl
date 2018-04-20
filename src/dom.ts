@@ -1,6 +1,8 @@
 import { MsgSafeNode } from "./msgsafe"
 import * as config from "./config"
 import { flatten } from "./itertools"
+import state from "./state"
+import { activeTabId } from "./lib/webext"
 
 // From saka-key lib/dom.js, under Apachev2
 
@@ -432,8 +434,8 @@ export function focus(e: HTMLElement): void {
 //#content_helper
 let LAST_USED_INPUT: HTMLElement = null
 
-export function getLastUsedInput () {
-   return LAST_USED_INPUT
+export function getLastUsedInput() {
+    return LAST_USED_INPUT
 }
 
 /** WARNING: This function can potentially recieve malicious input! For the
@@ -447,17 +449,23 @@ export function getLastUsedInput () {
 function onPageFocus(elem: HTMLElement, args: any[]): void {
     if (isTextEditable(elem)) {
         LAST_USED_INPUT = elem
-        config.getAsync("allowautofocus").then((allow) => {
-            if (allow === "true")
-                elem.focus(args)
-        });
+        config.getAsync("allowautofocus").then(allow => {
+            if (allow === "true") elem.focus(args)
+        })
     }
+}
+
+async function setInput(el) {
+    let tab = await activeTabId()
+    // store maximum of 10 elements to stop this getting bonkers huge
+    const arr = state.prevInputs.concat({ tab, inputId: el.id })
+    state.prevInputs = arr.slice(Math.max(arr.length - 10, 0))
 }
 
 /** Replaces the page's HTMLElement.prototype.focus with our own, onPageFocus */
 function hijackPageFocusFunction(): void {
-    let exportedName = "onPageFocus";
-    exportFunction(onPageFocus, window, {defineAs: exportedName})
+    let exportedName = "onPageFocus"
+    exportFunction(onPageFocus, window, { defineAs: exportedName })
 
     let eval_str = `HTMLElement.prototype.focus = ((realFocus, ${exportedName}) => {
         return function (...args) {
@@ -465,14 +473,16 @@ function hijackPageFocusFunction(): void {
         }
      })(HTMLElement.prototype.focus, ${exportedName})`
 
-     window.eval(eval_str + `;delete ${exportedName}`)
+    window.eval(eval_str + `;delete ${exportedName}`)
 }
 
 export function setupFocusHandler(): void {
     // Handles when a user selects an input
     document.addEventListener("focusin", e => {
-        if (isTextEditable(e.target as HTMLElement))
+        if (isTextEditable(e.target as HTMLElement)) {
             LAST_USED_INPUT = e.target as HTMLElement
+            setInput(e.target as HTMLInputElement)
+        }
     })
     // Handles when the page tries to select an input
     hijackPageFocusFunction()

@@ -6,6 +6,47 @@ body {
     margin: auto;
 }
 
+input[id^="spoiler"]{
+ display: none;
+}
+
+/* Borrowed from https://codepen.io/oloman/pen/odnqy */
+input[id^="spoiler"] + label {
+  display: block;
+  width: 8em;
+  margin: 0 auto;
+  padding: 0.25em, 0.25em;
+  background: #1f9947;
+  color: #fff;
+  text-align: center;
+  font-size: 12pt;
+  border-radius: 2px;
+  cursor: pointer;
+  transition: all .6s;
+}
+input[id^="spoiler"]:checked + label {
+  color: #333;
+  background: #ccc;
+}
+input[id^="spoiler"] ~ .spoiler {
+  width: 90%;
+  height: 0;
+  overflow: hidden;
+  opacity: 0;
+  margin: 10px auto 0;
+  padding: 10px;
+  background: #eee;
+  border: 1px solid #ccc;
+  border-radius: 2px;
+  transition: all .6s;
+}
+input[id^="spoiler"]:checked + label + .spoiler{
+  height: auto;
+  opacity: 1;
+  padding: 10px;
+}
+
+
 h1 {
     padding-top: 1em;
 }

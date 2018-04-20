@@ -87,7 +87,7 @@
 
 // Shared
 import * as Messaging from "./messaging"
-import { l } from "./lib/webext"
+import { l, browserBg, activeTabId } from "./lib/webext"
 import state from "./state"
 import * as UrlUtil from "./url_util"
 import * as config from "./config"
@@ -114,7 +114,7 @@ import { flatten } from "./itertools"
 import "./number.mod"
 import { ModeName } from "./state"
 import * as keydown from "./keydown_background"
-import { activeTab, activeTabId, firefoxVersionAtLeast, openInNewTab } from "./lib/webext"
+import { activeTab, firefoxVersionAtLeast, openInNewTab } from "./lib/webext"
 import * as CommandLineBackground from "./commandline_background"
 
 //#background_helper
@@ -211,15 +211,24 @@ function searchURL(provider: string, query: string) {
     return UrlUtil.interpolateSearchItem(new URL(searchurlprovider), query)
 }
 
-/** If maybeURI doesn't have a schema, affix http:// */
+/** Take a string and find a way to interpret it as a URI or search query. */
 /** @hidden */
 export function forceURI(maybeURI: string): string {
     // Need undefined to be able to open about:newtab
     if (maybeURI == "") return undefined
-    try {
-        return new URL(maybeURI).href
-    } catch (e) {
-        if (e.name !== "TypeError") throw e
+
+    // If the uri looks like it might contain a schema and a domain, try url()
+    // test for a non-whitespace, non-colon character after the colon to avoid
+    // false positives like "error: can't reticulate spline" and "std::map".
+    //
+    // These heuristics mean that very unusual URIs will be coerced to
+    // something else by this function.
+    if (/^[a-zA-Z0-9+.-]+:[^\s:]/.test(maybeURI)) {
+        try {
+            return new URL(maybeURI).href
+        } catch (e) {
+            if (e.name !== "TypeError") throw e
+        }
     }
 
     // Else if search keyword:
@@ -449,10 +458,16 @@ export async function reloadhard(n = 1) {
         "searchengine": "google" or any of [[SEARCH_URLS]]
 */
 //#content
-export function open(...urlarr: string[]) {
+export async function open(...urlarr: string[]) {
     let url = urlarr.join(" ")
-    if (url === "") url = config.get("newtab") || browser.extension.getURL("static/newtab.html")
-    window.location.href = forceURI(url)
+
+    // Setting window.location to about:blank results in a page we can't access, tabs.update works.
+    // tabs.update goes to the new tab page if url === "".
+    if (["", "about:blank"].includes(url)) {
+        browserBg.tabs.update(await activeTabId(), { url })
+    } else {
+        window.location.href = forceURI(url)
+    }
 }
 
 /** @hidden */
@@ -909,6 +924,41 @@ export function focusinput(nth: number | string) {
             state.mode = "input"
         }
     }
+}
+
+/**
+ * Focus the tab which contains the last focussed input element. If you're lucky, it will focus the right input, too.
+ *
+ * Currently just goes to the last focussed input; being able to jump forwards and backwards is planned.
+ */
+//#background
+export async function changelistjump(n?: number) {
+    let tail = state.prevInputs[state.prevInputs.length - 1]
+    let jumppos = tail.jumppos ? tail.jumppos : state.prevInputs.length - 1
+    const input = state.prevInputs[jumppos]
+    await browser.tabs.update(input.tab, { active: true })
+    const id = input.inputId
+    // Not all elements have an ID, so this will do for now.
+    if (id) focusbyid(input.inputId)
+    else focusinput("-l")
+
+    // Really want to bin the input we just focussed ^ and edit the real last input to tell us where to jump to next.
+    // It doesn't work in practice as the focus events get added after we try to delete them.
+    // Even editing focusbyid/focusinput doesn't work to try to delete their own history doesn't work.
+    // I'm bored of working on it for now, though.
+    // Probable solution: add an event listener to state.prevInputs changing, delete the focussed element, then delete event listener.
+    //
+    // let arr = state.prevInputs
+    // arr.splice(-2,2)
+
+    // tail.jumppos = jumppos - 1
+    // arr = arr.concat(tail)
+    // state.prevInputs = arr
+}
+
+//#content
+export function focusbyid(id: string) {
+    document.getElementById(id).focus()
 }
 
 // }}}

@@ -2,7 +2,7 @@
 
 # Tridactyl REPLACE_ME_WITH_THE_VERSION_USING_SED
 
-Tridactyl has to override your new tab page due to WebExtension limitations. You can learn how to change it at the bottom of the page, otherwise please read on for some tips and tricks. (If you've just installed Tridactyl for the first time and are seeing this page, hello! Welcome! You'll probably be seeing this page a lot until you figure out how to disable it or uninstall the addon).
+Tridactyl has to override your new tab page due to WebExtension limitations. You can learn how to change it at the bottom of the page, otherwise please read on for some tips and tricks.
 
 - You can view the main help page by typing [`:help`][help], and access the tutorial with [`:tutor`][tutor].
 
@@ -11,6 +11,11 @@ Tridactyl has to override your new tab page due to WebExtension limitations. You
 - You can contact the developers, other users and contributors for support or whatever on [Matrix][matrix-link], [Gitter][gitter-link], or [IRC][freenode-link].
 
 - If you're enjoying Tridactyl (or not), please leave a review on [addons.mozilla.org][amo].
+
+- **NB:** Tridactyl will soon support a native messenger. When this version is released, Firefox **will not update to it** unless you click the menu in the top right and allow it to update. A small yellow exclamation mark will appear on the menu's icon to notify you of this fact; please keep an eye out for it over the next week or so.
+
+
+REPLACE_ME_WITH_THE_CHANGE_LOG_USING_SED
 
 ## Highlighted features:
 
@@ -47,8 +52,7 @@ Tridactyl overrides your newtab page because it cannot insert its content script
 ### How can I get rid of it?
 
 - `:set newtab [URL]`
-    <!-- - If you just want a blank page, you can use `set newtab data:text/html, <html style="background:white"></html>`. You can replace "white" with any CSS colour of your choosing. -->
-- `d`, Alt-F4, Ctrl-W and other such jokes.
+    - e.g, `:set newtab about:blank`
 
 ## FAQ
 

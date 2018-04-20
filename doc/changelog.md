@@ -1,5 +1,27 @@
 # Tridactyl changelogs
 
+## Release 1.9.4
+
+- Add jumplist for inputs bound to `g;`
+    - Editor's impartial note: this is pretty cool
+- Add `hint -W [exstr]` to execute exstr on hint's href
+- Update new tab page:
+    - Add changelogs
+    - Remove welcome to new users as we have `tutor` for that now
+    - Fix newtab redirection on `set newtab [url]`
+        - `set newtab about:blank` now works thanks to a Mozilla bug fix!
+    - Warn users about native messenger update
+- Bug fixes
+    - input-mode now correctly exits to normal mode on focus loss
+    - Stop treating "std::map" or "Error: foo" as URIs: searching for them will now work.
+
+## Release 1.9.3
+
+- Fix unbind issues
+- Add more default binds from Vimperator
+- Change the `^` bind to `<c-6>` (matches vim)
+- :bmark now supports folders
+
 ## Release 1.9.2
 
 - Fix #392 (bug with keyseq)
