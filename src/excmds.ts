@@ -174,6 +174,11 @@ export async function editor() {
 }
 
 //#background
+export async function exclaim(...str: string[]) {
+    fillcmdline((await Native.run(str.join(" "))).content)
+}
+
+//#background
 export async function native() {
     const version = await Native.getNativeMessengerVersion()
     if (version !== undefined) fillcmdline("# Native messenger is correctly installed, version " + version)
