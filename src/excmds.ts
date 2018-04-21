@@ -96,6 +96,7 @@ import * as Logging from "./logging"
 /** @hidden */
 const logger = new Logging.Logger("excmds")
 import Mark from "mark.js"
+import * as CSS from "css"
 import * as semverCompare from "semver-compare"
 
 //#content_helper
@@ -169,6 +170,42 @@ export async function editor() {
     fillinput((await Native.editor(file, await getinput())).content)
     // TODO: add annoying "This message was written with [Tridactyl](https://addons.mozilla.org/en-US/firefox/addon/tridactyl-vim/)"
     // to everything written using editor
+}
+
+//#background_helper
+import * as css_util from "./css_util"
+
+/**
+ * Might mangle your userChrome. Requires native messenger and a restart <!-- (unless you enable addon debugging and refresh using the browser toolbox) -->
+ *
+ * View available rules and options [here](/static/docs/modules/_css_util_.html#potentialrules).
+ *
+ */
+//#background
+export async function guiset(rule: string, option: string) {
+    // Could potentially fall back to sending minimal example to clipboard if native not installed
+
+    //TODO: support fresh installs - won't have a chrome folder or userChrome.css
+    // just need to add @namespace url("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul");
+
+    // Find active profile directory automatically by seeing where the lock exists
+    // This probably ought to live in native_background.ts
+    let profile_dir = (await Native.run("find ../../../.mozilla/firefox -name lock")).content
+        .split("/")
+        .slice(0, -1)
+        .join("/")
+    const cssstr = (await Native.read(profile_dir + "/chrome/userChrome.css")).content
+    // this will get overwritten as soon as a second command is run.
+    await Native.write(profile_dir + "/chrome/userChrome.css.tri.bak", cssstr)
+    let stylesheet = CSS.parse(cssstr)
+    let stylesheetDone = CSS.stringify(css_util.changeCss(rule, option, stylesheet))
+    Native.write(profile_dir + "/chrome/userChrome.css", stylesheetDone)
+}
+
+/** @hidden */
+//#background
+export function cssparse(...css: string[]) {
+    console.log(CSS.parse(css.join(" ")))
 }
 
 /**

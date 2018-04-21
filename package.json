@@ -3,7 +3,9 @@
   "version": "0.1.0",
   "description": "Vimperator/Pentadactyl successor",
   "dependencies": {
+    "@types/css": "0.0.31",
     "@types/nearley": "^2.11.0",
+    "css": "^2.2.1",
     "fuse.js": "^3.2.0",
     "mark.js": "^8.11.1",
     "nearley": "^2.11.0",
