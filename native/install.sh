@@ -38,3 +38,13 @@ native_file_escaped=$(sed 's/[&/\]/\\&/g' <<< "$native_file")
 
 sed -i.bak "s/REPLACE_ME_WITH_SED/$native_file_escaped/" "$manifest_file"
 chmod +x $native_file
+
+# Requirements for native messenger
+python_path=$(which python3)
+pip_path=$(which pip3)
+if [[ -x "$python_path" ]] && [[ -x "$pip_path" ]]; then
+    pip3 install --user tinycss2
+else
+    echo "Error: Python 3 and pip3 must exist in PATH."
+    echo "Please install them and run this script again."
+fi
