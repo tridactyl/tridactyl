@@ -242,10 +242,22 @@ export function scrollpx(a: number, b: number) {
 //#content
 export function scrollto(a: number, b: number | "x" | "y" = "y") {
     a = Number(a)
+    let elem = window.document.scrollingElement
+    let percentage = a.clamp(0, 100)
     if (b === "y") {
-        window.scrollTo(window.scrollX, a.clamp(0, 100) * window.document.scrollingElement.scrollHeight / 100)
+        let top = elem.getClientRects()[0].top
+        window.scrollTo(window.scrollX, percentage * elem.scrollHeight / 100)
+        if (top == elem.getClientRects()[0].top && (percentage == 0 || percentage == 100)) {
+            // scrollTo failed, if the user wants to go to the top/bottom of
+            // the page try recursiveScroll instead
+            recursiveScroll(window.scrollX, 1073741824 * (percentage == 0 ? -1 : 1), [window.document.body])
+        }
     } else if (b === "x") {
-        window.scrollTo(a.clamp(0, 100) * window.document.scrollingElement.scrollWidth / 100, window.scrollY)
+        let left = elem.getClientRects()[0].left
+        window.scrollTo(percentage * elem.scrollWidth / 100, window.scrollY)
+        if (left == elem.getClientRects()[0].left && (percentage == 0 || percentage == 100)) {
+            recursiveScroll(1073741824 * (percentage == 0 ? -1 : 1), window.scrollX, [window.document.body])
+        }
     } else {
         window.scrollTo(a, Number(b)) // a,b numbers
     }
