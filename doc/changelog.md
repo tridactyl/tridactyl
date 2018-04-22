@@ -1,5 +1,14 @@
 # Tridactyl changelogs
 
+## Release 1.9.5
+
+- Add mode indicator
+- Fix #337: Make `composite` and ex-parser more sequential
+    - Add `D` binding: close current tab and `tabprev`
+- Bug fixes
+    - Fix `tab` in inputmode
+    - Catch CSP exception when hijacking
+
 ## Release 1.9.4
 
 - Add jumplist for inputs bound to `g;`
