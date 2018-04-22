@@ -132,7 +132,7 @@ NOTE: key modifiers (eg: control, alt) are not supported yet. See the FAQ below.
 
 - How can I add a search engine?
 
-    `searchsetkeyword esa http://www.esa.int/esasearch?q=`
+    `set searchurls.esa http://www.esa.int/esasearch?q=`
 
 - Can I import/export settings, and does Tridactyl use an external configuration file just like Vimperator?
 
