@@ -41,15 +41,21 @@ function* ParserController() {
                 if (
                     state.mode != "ignore" &&
                     state.mode != "hint" &&
+                    state.mode != "input" &&
                     state.mode != "find"
                 ) {
                     if (isTextEditable(keyevent.target)) {
                         if (state.mode !== "insert") {
                             state.mode = "insert"
                         }
-                    } else if (["insert", "input"].includes(state.mode)) {
+                    } else if (state.mode === "insert") {
                         state.mode = "normal"
                     }
+                } else if (
+                    state.mode === "input" &&
+                    !isTextEditable(keyevent.target)
+                ) {
+                    state.mode = "normal"
                 }
                 logger.debug(keyevent, state.mode)
 
