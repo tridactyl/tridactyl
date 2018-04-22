@@ -1290,9 +1290,16 @@ export function repeat(n = 1, ...exstr: string[]) {
     Workaround: this should clearly be in the parser, but we haven't come up with a good way to deal with |s in URLs, search terms, etc. yet.
 */
 //#background
-export function composite(...cmds: string[]) {
+export async function composite(...cmds: string[]) {
     cmds = cmds.join(" ").split("|")
-    cmds.forEach(controller.acceptExCmd)
+    for (let c of cmds) {
+        await controller.acceptExCmd(c)
+    }
+}
+
+//#background
+export async function sleep(time_ms: number) {
+    await new Promise(resolve => setTimeout(resolve, time_ms))
 }
 
 /** @hidden */

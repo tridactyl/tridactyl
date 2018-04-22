@@ -75,6 +75,7 @@ const DEFAULTS = o({
         "<c-o>": "back",
         "<c-i>": "forward",
         d: "tabclose",
+        D: "composite tabprev | sleep 100 | tabclose #",
         u: "undo",
         r: "reload",
         R: "reloadhard",
