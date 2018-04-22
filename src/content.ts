@@ -47,12 +47,17 @@ import * as keyseq from "./keyseq"
     l: prom => prom.then(console.log).catch(console.error),
 })
 
+
 // Don't hijack on the newtab page.
 if (webext.inContentScript()) {
-    dom.setupFocusHandler()
-    dom.hijackPageListenerFunctions()
+    try {
+        dom.setupFocusHandler()
+        dom.hijackPageListenerFunctions()
+    } catch (e) {
+        console.log("Could not hijack due to CSP:", e)
+    }
 } else {
-    console.error("No export func")
+    console.log("No export func")
 }
 
 if (
