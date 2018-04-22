@@ -100,7 +100,7 @@ import Mark from "mark.js"
 //#content_helper
 // {
 import "./number.clamp"
-import * as SELF from "./excmds_content"
+import * as SELF from "./.excmds_content.generated"
 Messaging.addListener("excmd_content", Messaging.attributeCaller(SELF))
 import * as DOM from "./dom"
 import { executeWithoutCommandLine } from "./commandline_content"

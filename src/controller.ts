@@ -2,7 +2,7 @@ import { MsgSafeKeyboardEvent, MsgSafeNode } from "./msgsafe"
 import { isTextEditable } from "./dom"
 import { isSimpleKey } from "./keyseq"
 import state from "./state"
-import { repeat } from "./excmds_background"
+import { repeat } from "./.excmds_background.generated"
 import Logger from "./logging"
 
 import { parser as exmode_parser } from "./parsers/exmode"

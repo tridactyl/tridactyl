@@ -23,7 +23,7 @@
 /** */
 import { find, izip } from "./itertools"
 import { Parser } from "./nearley_utils"
-import * as bracketexpr_grammar from "./grammars/bracketexpr"
+import * as bracketexpr_grammar from "./grammars/.bracketexpr.generated"
 const bracketexpr_parser = new Parser(bracketexpr_grammar)
 
 // {{{ General types
@@ -124,7 +124,10 @@ export function parse(keyseq: KeyEventLike[], map: KeyMap): ParserResponse {
         // Check if any of the mappings is a perfect match (this will only
         // happen if some sequences in the KeyMap are prefixes of other seqs).
         try {
-            let perfect = find(possibleMappings, ([k, v]) => k.length === keyseq.length)
+            let perfect = find(
+                possibleMappings,
+                ([k, v]) => k.length === keyseq.length,
+            )
             return { value: perfect[1], isMatch: true }
         } catch (e) {
             if (!(e instanceof RangeError)) throw e

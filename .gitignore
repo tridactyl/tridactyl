@@ -1,8 +1,8 @@
 AMOKEYS
 build
 node_modules
-src/excmds_background.ts
-src/excmds_content.ts
+src/.excmds_background.generated.ts
+src/.excmds_content.generated.ts
 src/grammars/*.ts
 generated
 web-ext-artifacts
