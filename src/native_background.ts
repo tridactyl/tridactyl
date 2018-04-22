@@ -63,3 +63,11 @@ export async function write(file: string, content: string) {
 export async function run(command: string) {
     return sendNativeMsg("run", { command })
 }
+
+export async function getProfileDir() {
+    // Find active profile directory automatically by seeing where the lock exists
+    return (await run("find ../../../.mozilla/firefox -name lock")).content
+        .split("/")
+        .slice(0, -1)
+        .join("/")
+}

@@ -187,13 +187,15 @@ export async function guiset(rule: string, option: string) {
 
     //TODO: support fresh installs - won't have a chrome folder or userChrome.css
     // just need to add @namespace url("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul");
-
-    // Find active profile directory automatically by seeing where the lock exists
-    // This probably ought to live in native_background.ts
-    let profile_dir = (await Native.run("find ../../../.mozilla/firefox -name lock")).content
-        .split("/")
-        .slice(0, -1)
-        .join("/")
+    if (!await nativegate()) return
+    let profile_dir = ""
+    if (config.get("profiledir") === "auto") {
+        if (["linux", "openbsd"].includes((await browser.runtime.getPlatformInfo()).os)) profile_dir = await Native.getProfileDir()
+        else {
+            fillcmdline("Please set your profile directory (found on about:support) via `set profiledir [profile directory]`")
+            return
+        }
+    } else profile_dir = config.get("profiledir")
     const cssstr = (await Native.read(profile_dir + "/chrome/userChrome.css")).content
     // this will get overwritten as soon as a second command is run.
     await Native.write(profile_dir + "/chrome/userChrome.css.tri.bak", cssstr)

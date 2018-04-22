@@ -235,6 +235,7 @@ const DEFAULTS = o({
     // This has to be a command that stays in the foreground for the whole editing session
     editorcmd: "gvim -f",
     browser: "firefox",
+    profiledir: "auto",
 })
 
 /** Given an object and a target, extract the target if it exists, else return undefined
