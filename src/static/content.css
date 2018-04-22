@@ -24,4 +24,5 @@
     right: 2px !important;
     bottom: 2px !important;
     z-index: 2147483646 !important; /* this is one less than the command line so that it is hidden by it */
+    line-height: initial !important; /* cleanslate doesn't seem to set this correctly */
 }
