@@ -2039,6 +2039,16 @@ export async function bmark(url?: string, ...titlearr: string[]) {
     browser.bookmarks.create({ url, title })
 }
 
+//#background
+export async function errorbg(msg: string) {
+    logger.error(msg)
+}
+
+//#content
+export async function errorfg(msg: string) {
+    logger.error(msg)
+}
+
 /**  Open a welcome page on first install.
  *
  * @hidden

@@ -4,7 +4,9 @@ import * as ExCmds from "../.excmds_background.generated"
 import * as convert from "../convert"
 import * as Config from "../config"
 import * as aliases from "../aliases"
+import * as Logging from "../logging"
 import { enumerate, head, izip } from "../itertools"
+const logger = new Logging.Logger("exmode")
 
 /* Converts numbers, boolean, string[].
 
@@ -55,10 +57,11 @@ export function parser(exstr: string): any[] {
                 convertArgs(ExCmds.cmd_params.get(func), args),
             ]
         } catch (e) {
-            console.error("Error executing or parsing:", exstr, e)
+            logger.error("Error executing or parsing:", exstr, e)
             throw e
         }
     } else {
+        logger.error("Not an excmd:", exstr)
         throw `Not an excmd: ${func}`
     }
 }

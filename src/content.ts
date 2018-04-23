@@ -8,8 +8,9 @@ import "./lib/html-tagged-template"
 /* import "./commandline_content" */
 /* import "./excmds_content" */
 /* import "./hinting" */
-
-console.log("Tridactyl content script loaded, boss!")
+import * as Logging from "./logging"
+const logger = new Logging.Logger("content")
+logger.debug("Tridactyl content script loaded, boss!")
 
 // Add various useful modules to the window for debugging
 import * as commandline_content from "./commandline_content"
@@ -38,6 +39,7 @@ import * as keyseq from "./keyseq"
     finding_content,
     itertools,
     keydown_content,
+    logger,
     Mark,
     keyseq,
     messaging,
@@ -47,17 +49,16 @@ import * as keyseq from "./keyseq"
     l: prom => prom.then(console.log).catch(console.error),
 })
 
-
 // Don't hijack on the newtab page.
 if (webext.inContentScript()) {
     try {
         dom.setupFocusHandler()
         dom.hijackPageListenerFunctions()
     } catch (e) {
-        console.log("Could not hijack due to CSP:", e)
+        logger.warning("Could not hijack due to CSP:", e)
     }
 } else {
-    console.log("No export func")
+    logger.warning("No export func")
 }
 
 if (

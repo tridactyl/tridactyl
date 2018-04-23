@@ -3,6 +3,8 @@ import * as config from "./config"
 import { flatten } from "./itertools"
 import state from "./state"
 import { activeTabId } from "./lib/webext"
+import * as Logging from "./logging"
+const logger = new Logging.Logger("dom")
 
 // From saka-key lib/dom.js, under Apachev2
 
@@ -369,7 +371,7 @@ export function registerEvListenerAction(
     } catch (e) {
         // Don't throw a real exception because addEventListener wouldn't and we
         // don't want to break content code.
-        console.error("Elem is not a real Node", elem)
+        logger.error("Elem is not a real Node", elem)
         return
     }
 

@@ -38,7 +38,41 @@ export class Logger {
             // hand over to console.log, error or debug as needed
             switch (level) {
                 case LEVEL.ERROR:
-                    return console.error
+                    // TODO: replicate this for other levels, don't steal focus
+                    // work out how to import messaging/webext without breaking everything
+                    return async (...message) => {
+                        console.error(...message)
+                        const getContext = () => {
+                            if (!("tabs" in browser)) {
+                                return "content"
+                            } else if (
+                                browser.runtime.getURL(
+                                    "_generated_background_page.html",
+                                ) == window.location.href
+                            )
+                                return "background"
+                        }
+                        if (getContext() == "content")
+                            return browser.runtime.sendMessage({
+                                type: "commandline_background",
+                                command: "recvExStr",
+                                args: [
+                                    "fillcmdline # Error: " + message.join(" "),
+                                ],
+                            })
+                        else
+                            return browser.tabs.sendMessage(
+                                (await browser.tabs.query({
+                                    active: true,
+                                    currentWindow: true,
+                                }))[0].id,
+                                {
+                                    type: "commandline_frame",
+                                    command: "fillcmdline",
+                                    args: ["# Error: " + message.join(" ")],
+                                },
+                            )
+                    }
                 case LEVEL.WARNING:
                     return console.warn
                 case LEVEL.INFO:
