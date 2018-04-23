@@ -21,7 +21,7 @@
 */
 
 /** */
-import { find, izip } from "./itertools"
+import { find, filter, izip } from "./itertools"
 import { Parser } from "./nearley_utils"
 import * as bracketexpr_grammar from "./grammars/.bracketexpr.generated"
 const bracketexpr_parser = new Parser(bracketexpr_grammar)
@@ -150,13 +150,9 @@ function prefixes(seq1: KeyEventLike[], seq2: MinimalKey[]) {
 
 /** returns the fragment of `map` that keyseq is a valid prefix of. */
 export function completions(keyseq: KeyEventLike[], map: KeyMap): KeyMap {
-    const possibleMappings = new Map() as KeyMap
-    for (const [ks, maptarget] of map.entries()) {
-        if (prefixes(keyseq, ks)) {
-            possibleMappings.set(ks, maptarget)
-        }
-    }
-    return possibleMappings
+    return new Map(
+        filter(map.entries(), ([ks, maptarget]) => prefixes(keyseq, ks)),
+    )
 }
 
 // }}}
