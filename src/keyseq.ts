@@ -138,10 +138,14 @@ export function parse(keyseq: KeyEventLike[], map: KeyMap): ParserResponse {
 
 /** True if seq1 is a prefix or equal to seq2 */
 function prefixes(seq1: KeyEventLike[], seq2: MinimalKey[]) {
-    for (const [key1, key2] of izip(seq1, seq2)) {
-        if (!key2.match(key1)) return false
+    if (seq1.length > seq2.length) {
+        return false
+    } else {
+        for (const [key1, key2] of izip(seq1, seq2)) {
+            if (!key2.match(key1)) return false
+        }
+        return true
     }
-    return true
 }
 
 /** returns the fragment of `map` that keyseq is a valid prefix of. */
