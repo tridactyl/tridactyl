@@ -221,6 +221,7 @@ const DEFAULTS = o({
     cursorpos: "end",
 
     theme: "default", // currently available: "default", "dark"
+    modeindicator: "true",
 
     // Default logging levels - 2 === WARNING
     logging: o({

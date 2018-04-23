@@ -69,32 +69,37 @@ if (
 }
 
 // Really bad status indicator
-let statusIndicator = document.createElement("span")
-statusIndicator.className = "cleanslate TridactylStatusIndicator"
-window.addEventListener("DOMContentLoaded", () => {
-    statusIndicator.textContent = state.mode || "normal"
-    document.body.appendChild(statusIndicator)
-})
+config.getAsync("modeindicator").then(mode => {
+    if (mode !== "true") return
 
-browser.storage.onChanged.addListener((changes, areaname) => {
-    if (areaname === "local" && "state" in changes) {
-        let mode = changes.state.newValue.mode
-        if (
-            dom.isTextEditable(document.activeElement) &&
-            !["input", "ignore"].includes(mode)
-        ) {
-            statusIndicator.textContent = "insert"
-            // this doesn't work; statusIndicator.style is full of empty string
-            // statusIndicator.style.borderColor = "green !important"
-            // need to fix loss of focus by click: doesn't do anything here.
-        } else if (
-            mode === "insert" &&
-            !dom.isTextEditable(document.activeElement)
-        ) {
-            statusIndicator.textContent = "normal"
-            // statusIndicator.style.borderColor = "lightgray !important"
-        } else {
-            statusIndicator.textContent = mode
+    let statusIndicator = document.createElement("span")
+    statusIndicator.className = "cleanslate TridactylStatusIndicator"
+    window.addEventListener("DOMContentLoaded", () => {
+        statusIndicator.textContent = state.mode || "normal"
+        document.body.appendChild(statusIndicator)
+    })
+
+    browser.storage.onChanged.addListener((changes, areaname) => {
+        if (areaname === "local" && "state" in changes) {
+            let mode = changes.state.newValue.mode
+            if (
+                dom.isTextEditable(document.activeElement) &&
+                !["input", "ignore"].includes(mode)
+            ) {
+                statusIndicator.textContent = "insert"
+                // this doesn't work; statusIndicator.style is full of empty string
+                // statusIndicator.style.borderColor = "green !important"
+                // need to fix loss of focus by click: doesn't do anything here.
+            } else if (
+                mode === "insert" &&
+                !dom.isTextEditable(document.activeElement)
+            ) {
+                statusIndicator.textContent = "normal"
+                // statusIndicator.style.borderColor = "lightgray !important"
+            } else {
+                statusIndicator.textContent = mode
+            }
         }
-    }
+        if (config.get("modeindicator") !== "true") statusIndicator.remove()
+    })
 })
