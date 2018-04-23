@@ -16,6 +16,7 @@ function mk(k, mod?: ks.KeyModifiers) {
         // Test shiftKey ignoring
         [mks(":"), "fillcmdline"],
         [mks("Av"), "whatever"],
+        [mks("i<c-j>"), "testmods"],
     ])
     // Keymap for negative tests
     const keymap2 = new Map([
@@ -42,6 +43,16 @@ function mk(k, mod?: ks.KeyModifiers) {
             [[mk("A", { shiftKey: true }), mk("v")], keymap],
             { value: "whatever", isMatch: true },
         ],
+        // Test bare modifiers
+        [
+            [mks("i<Control><c-j>"), keymap],
+            { value: "testmods", isMatch: true },
+        ],
+        [
+            [mks("i<C-Control><c-j>"), keymap],
+            { value: "testmods", isMatch: true },
+        ],
+
         // Test prefix problems
         [[mks("g"), keymap2], { keys: mks("g"), isMatch: true }],
         [[mks("go"), keymap2], { keys: mks("go"), isMatch: true }],
@@ -56,6 +67,9 @@ function mk(k, mod?: ks.KeyModifiers) {
     testAllObject(ks.completions, [
         [[[mk("g")], keymap], new Map([[[mk("g"), mk("g")], "scrolltop"]])],
         [[mks("<C-u>j"), keymap], new Map([[mks("<C-u>j"), "scrollline 10"]])],
+        // -ve tests
+        [[mks("x"), keymap], new Map()],
+        [[mks("ggg"), keymap], new Map()],
     ])
 } // }}}
 
