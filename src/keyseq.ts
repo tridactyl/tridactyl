@@ -279,6 +279,7 @@ export function bracketexprToKey(inputStr) {
 export function mapstrToKeyseq(mapstr: string): MinimalKey[] {
     const keyseq: MinimalKey[] = []
     let key: MinimalKey
+    // Reduce mapstr by one character or one bracket expression per iteration
     while (mapstr.length) {
         if (mapstr[0] === "<") {
             ;[key, mapstr] = bracketexprToKey(mapstr)
