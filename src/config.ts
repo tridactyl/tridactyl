@@ -157,6 +157,7 @@ const DEFAULTS = o({
         bdelete: "tabclose",
         sanitize: "sanitise",
         tutorial: "tutor",
+        h: "help",
         openwith: "hint -W",
     }),
     followpagepatterns: o({
