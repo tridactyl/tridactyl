@@ -358,7 +358,7 @@ export async function update() {
                 // Before we had a config system, we had nmaps, and we put them in the
                 // root namespace because we were young and bold.
                 let legacy_nmaps = await browser.storage.sync.get("nmaps")
-                if (legacy_nmaps) {
+                if (Object.keys(legacy_nmaps).length > 0) {
                     USERCONFIG["nmaps"] = Object.assign(
                         legacy_nmaps["nmaps"],
                         USERCONFIG["nmaps"],
