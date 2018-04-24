@@ -196,7 +196,7 @@ export async function nativegate(version = "0"): Promise<Boolean> {
     const actualVersion = await Native.getNativeMessengerVersion()
     if (actualVersion !== undefined) {
         if (semverCompare(version, actualVersion) > 0) {
-            fillcmdline("# Native messenger is installed, version " + actualVersion + " but the command you just tried to use needs version " + version)
+            fillcmdline("# Please update to native messenger " + version + ", for example by running `:updatenative`.")
             // TODO: add update procedure and document here.
             return false
         }
@@ -224,7 +224,14 @@ export async function native() {
 export async function installnative() {
     const installstr = "curl -fsSl https://raw.githubusercontent.com/cmcaine/tridactyl/master/native/install.sh | bash"
     await clipboard("yank", installstr)
-    fillcmdline("# Installation command copied to clipboard. Please paste and run it in your shell to install the native messenger")
+    fillcmdline("# Installation command copied to clipboard. Please paste and run it in your shell to install the native messenger.")
+}
+
+//#background
+export async function updatenative() {
+    if (await nativegate()) {
+        Native.run("curl -fsSl https://raw.githubusercontent.com/cmcaine/tridactyl/master/native/install.sh | bash")
+    }
 }
 
 // }}}
