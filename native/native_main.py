@@ -6,6 +6,7 @@ import os
 import json
 import struct
 import subprocess
+import tempfile
 
 VERSION = "0.1.0"
 
@@ -83,6 +84,12 @@ def handleMessage(message):
     elif cmd == 'write':
         with open(message["file"],"w") as file:
             file.write(message["content"])
+
+    elif cmd == 'temp':
+        (handle,filepath) = tempfile.mkstemp()
+        with open(filepath,"w") as file:
+            file.write(message["content"])
+        reply['content'] = filepath
 
     else:
         reply = {'cmd': 'error', 'error': 'Unhandled message'}

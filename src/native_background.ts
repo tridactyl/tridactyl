@@ -8,7 +8,7 @@ import Logger from "./logging"
 const logger = new Logger("native")
 
 const NATIVE_NAME = "tridactyl"
-type MessageCommand = "version" | "run" | "read" | "write"
+type MessageCommand = "version" | "run" | "read" | "write" | "temp"
 interface MessageResp {
     cmd: string
     version: number | null
@@ -60,6 +60,9 @@ export async function write(file: string, content: string) {
     return sendNativeMsg("write", { file, content })
 }
 
+export async function temp(content: string) {
+    return sendNativeMsg("temp", { content })
+}
 export async function run(command: string) {
     return sendNativeMsg("run", { command })
 }
