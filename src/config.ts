@@ -232,6 +232,8 @@ const DEFAULTS = o({
         state: 2,
         excmd: 1,
     }),
+
+    noiframeon: [],
 })
 
 /** Given an object and a target, extract the target if it exists, else return undefined

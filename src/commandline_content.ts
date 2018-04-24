@@ -1,6 +1,7 @@
 /** Inject an input element into unsuspecting webpages and provide an API for interaction with tridactyl */
 
 import Logger from "./logging"
+import * as config from "./config"
 const logger = new Logger("messaging")
 
 /* TODO:
@@ -16,8 +17,13 @@ const logger = new Logger("messaging")
 
 let cmdline_iframe: HTMLIFrameElement = undefined
 
-function init() {
-    if (cmdline_iframe === undefined) {
+/** Initialise the cmdline_iframe element unless the window location is included in a value of config/noiframeon */
+async function init() {
+    let noiframeon = await config.getAsync("noiframeon")
+    let enabled =
+        noiframeon.length == 0 ||
+        noiframeon.find(url => window.location.href.includes(url)) === undefined
+    if (enabled && cmdline_iframe === undefined) {
         try {
             cmdline_iframe = window.document.createElement("iframe")
             cmdline_iframe.className = "cleanslate"
