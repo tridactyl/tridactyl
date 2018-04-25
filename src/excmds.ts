@@ -274,32 +274,14 @@ function recursiveScroll(x: number, y: number, nodes: Element[]) {
     let index = 0
     do {
         let node = nodes[index++] as any
-        let rect = node.getClientRects()[0]
-
-        // This check is quite arbitrary and even possibly wrong.
-        // We can't use DOM.isVisible because it breaks scrolling on some
-        // sites (e.g. twitch.com)
-        // We can't not check anything because it makes scrolling unbearably
-        // slow on some other sites, e.g.
-        // http://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html
-        // and
-        // https://stripe.com/docs/api#intro
-        // This check speeds things up on the aforementioned website while
-        // still letting scrolling work on twitch/website with frames so we'll
-        // consider it good enough for now.
-        while (!rect || rect.top >= innerHeight - 4) {
-            node = nodes[index++]
-            // No node means we've reached the end of the array
-            if (!node) return
-            rect = node.getClientRects()[0]
-        }
-        let top = rect.top
-        let left = rect.left
+        // Save the node's position
+        let top = node.scrollTop
+        let left = node.scrollLeft
         node.scrollBy(x, y)
-        rect = node.getClientRects()[0]
         // if the node moved, stop
-        if (top != rect.top || left != rect.left) return
-        nodes = nodes.concat(Array.prototype.slice.call(node.children))
+        if (top != node.scrollTop || left != node.scrollLeft) return
+        // Otherwise, add its children to the nodes that could be scrolled
+        nodes = nodes.concat(Array.from(node.children))
         if (node.contentDocument) nodes.push(node.contentDocument.body)
     } while (index < nodes.length)
 }
