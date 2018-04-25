@@ -70,14 +70,23 @@ if (
 
 // Really bad status indicator
 config.getAsync("modeindicator").then(mode => {
+    console.log("mode")
     if (mode !== "true") return
+    console.log("got here")
 
     let statusIndicator = document.createElement("span")
     statusIndicator.className = "cleanslate TridactylStatusIndicator"
-    window.addEventListener("DOMContentLoaded", () => {
+    try {
+        // On quick loading pages, the document is already loaded
         statusIndicator.textContent = state.mode || "normal"
         document.body.appendChild(statusIndicator)
-    })
+    } catch (e) {
+        // But on slower pages we wait for the document to load
+        window.addEventListener("DOMContentLoaded", () => {
+            statusIndicator.textContent = state.mode || "normal"
+            document.body.appendChild(statusIndicator)
+        })
+    }
 
     browser.storage.onChanged.addListener((changes, areaname) => {
         if (areaname === "local" && "state" in changes) {
