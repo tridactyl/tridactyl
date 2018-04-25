@@ -160,6 +160,7 @@ const DEFAULTS = o({
         tutorial: "tutor",
         h: "help",
         openwith: "hint -W",
+        "!": "exclaim",
     }),
     followpagepatterns: o({
         next: "^(next|newer)\\b|»|>>|more",
