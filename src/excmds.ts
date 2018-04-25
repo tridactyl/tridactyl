@@ -193,6 +193,10 @@ export async function nativeopen(url: string, ...firefoxArgs: string[]) {
  */
 //#background
 export async function nativegate(version = "0", interactive = true): Promise<Boolean> {
+    if (["win", "android"].includes((await browser.runtime.getPlatformInfo()).os)) {
+        if (interactive == true) fillcmdline("# Tridactyl's native messenger doesn't support your operating system, yet.")
+        return false
+    }
     const actualVersion = await Native.getNativeMessengerVersion()
     if (actualVersion !== undefined) {
         if (semverCompare(version, actualVersion) > 0) {
