@@ -1,5 +1,18 @@
 # Tridactyl changelogs
 
+## Release 1.9.6
+
+- Scrolling improvements
+    - Faster (#395)
+    - `G`/`gg` work on more pages (#382)
+- Mode indicator improvements
+    - Can be disabled with `set modeindicator false`
+    - Text is not selectable to improve the lives of people who "Select All" a lot
+- Internal error messages are now displayed in the command line
+- New default alias `:h` for `:help`
+- Bug fixes
+    - Fix #418: keyseq is better at realising when a key combination is invalid
+
 ## Release 1.9.5
 
 - Add mode indicator
