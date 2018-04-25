@@ -192,16 +192,16 @@ export async function nativeopen(url: string, ...firefoxArgs: string[]) {
  * Used internally to gate off functions that use the native messenger. Gives a helpful error message in the command line if the native messenger is not installed, or is the wrong version.
  */
 //#background
-export async function nativegate(version = "0"): Promise<Boolean> {
+export async function nativegate(version = "0", interactive = true): Promise<Boolean> {
     const actualVersion = await Native.getNativeMessengerVersion()
     if (actualVersion !== undefined) {
         if (semverCompare(version, actualVersion) > 0) {
-            fillcmdline("# Please update to native messenger " + version + ", for example by running `:updatenative`.")
+            if (interactive == true) fillcmdline("# Please update to native messenger " + version + ", for example by running `:updatenative`.")
             // TODO: add update procedure and document here.
             return false
         }
         return true
-    } else fillcmdline("# Native messenger not found. Please run `:installnative` and follow the instructions.")
+    } else if (interactive == true) fillcmdline("# Native messenger not found. Please run `:installnative` and follow the instructions.")
     return false
 }
 
@@ -228,10 +228,10 @@ export async function installnative() {
 }
 
 //#background
-export async function updatenative() {
+export async function updatenative(interactive = true) {
     if (await nativegate()) {
         await Native.run(await config.get("nativeinstallcmd"))
-        native()
+        if (interactive) native()
     }
 }
 
