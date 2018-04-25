@@ -222,7 +222,7 @@ export async function native() {
  */
 //#background
 export async function installnative() {
-    const installstr = "curl -fsSl https://raw.githubusercontent.com/cmcaine/tridactyl/master/native/install.sh | bash"
+    const installstr = await config.get("nativeinstallcmd")
     await clipboard("yank", installstr)
     fillcmdline("# Installation command copied to clipboard. Please paste and run it in your shell to install the native messenger.")
 }
@@ -230,7 +230,8 @@ export async function installnative() {
 //#background
 export async function updatenative() {
     if (await nativegate()) {
-        Native.run("curl -fsSl https://raw.githubusercontent.com/cmcaine/tridactyl/master/native/install.sh | bash")
+        await Native.run(await config.get("nativeinstallcmd"))
+        native()
     }
 }
 

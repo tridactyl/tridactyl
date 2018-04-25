@@ -240,6 +240,8 @@ const DEFAULTS = o({
     // This has to be a command that stays in the foreground for the whole editing session
     editorcmd: "gvim -f",
     browser: "firefox",
+    nativeinstallcmd:
+        "curl -fsSl https://raw.githubusercontent.com/cmcaine/tridactyl/master/native/install.sh | bash",
 })
 
 /** Given an object and a target, extract the target if it exists, else return undefined
