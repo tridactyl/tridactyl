@@ -100,7 +100,7 @@ export async function getBestEditor(): Promise<string> {
                 if (cmd === undefined) break
             }
             if (cmd === undefined) break
-            ind[0]
+            ind = 0
             tuicmd = tui_editors[ind]
             // Try to find a text editor
             while (!await inpath(tuicmd.split(" ")[0])) {
@@ -144,5 +144,6 @@ export async function temp(content: string) {
 }
 export async function run(command: string) {
     let msg = await sendNativeMsg("run", { command })
+    logger.info(msg)
     return msg
 }
