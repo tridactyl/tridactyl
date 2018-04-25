@@ -47,6 +47,8 @@ export async function getNativeMessengerVersion(): Promise<number> {
 }
 
 export async function getBestEditor(): Promise<string> {
+    if ((await browser.runtime.getPlatformInfo()).os === "mac")
+        return "open -nWt"
     // Tempted to put this behind another config setting: prefergui
     const gui_candidates = [
         "gvim -f",
