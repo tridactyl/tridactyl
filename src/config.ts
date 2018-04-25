@@ -238,7 +238,10 @@ const DEFAULTS = o({
 
     // Native messenger settings
     // This has to be a command that stays in the foreground for the whole editing session
-    editorcmd: "gvim -f",
+    // "auto" will attempt to find a sane editor in your path.
+    // Please send your requests to have your favourite terminal moved further up the list to /dev/null.
+    //          (but we are probably happy to add your terminal to the list if it isn't already there).
+    editorcmd: "auto",
     browser: "firefox",
     nativeinstallcmd:
         "curl -fsSl https://raw.githubusercontent.com/cmcaine/tridactyl/master/native/install.sh | bash",
