@@ -70,9 +70,7 @@ if (
 
 // Really bad status indicator
 config.getAsync("modeindicator").then(mode => {
-    console.log("mode")
     if (mode !== "true") return
-    console.log("got here")
 
     let statusIndicator = document.createElement("span")
     statusIndicator.className = "cleanslate TridactylStatusIndicator"
