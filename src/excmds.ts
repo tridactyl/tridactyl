@@ -229,7 +229,7 @@ export async function installnative() {
 
 //#background
 export async function updatenative(interactive = true) {
-    if (await nativegate()) {
+    if (await nativegate("0", interactive)) {
         await Native.run(await config.get("nativeinstallcmd"))
         if (interactive) native()
     }
@@ -2176,6 +2176,7 @@ export async function errorfg(msg: string) {
 //#background_helper
 browser.runtime.onInstalled.addListener(details => {
     if (details.reason == "install") tutor("newtab")
+    else if (details.reason == "update") updatenative(false)
     // could add elif "update" and show a changelog. Hide it behind a setting to make it less annoying?
 })
 
