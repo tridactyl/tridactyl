@@ -1,5 +1,15 @@
 # Tridactyl changelogs
 
+## Release 1.10.0 (beta)
+
+- Native messenger! Run `:installnative` to install, then:
+    - `<Ctrl-E>` in a text field will open Vim, probably. Set it with `set editorcmd` but make sure that the command stays in the foreground till the programme is exited.
+    - Not all text fields work yet (esp CodeMirror), so make sure you test it before writing war and peace.
+    - `:! [shell command]` or `:exclaim [shell command]` will run the command and give you STDOUT/STDERR back in the command line.
+        - Pipes work but redirection probably doesn't.
+        - You can't use composite and shell pipes together yet.
+    - `hint -W exclaim mpv` works particularly well.
+
 ## Release 1.9.7
 
 - Add setting `noiframeon` for websites that are broken by our iframes ("ServiceNow", for example: #279)
