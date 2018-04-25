@@ -70,18 +70,15 @@ def handleMessage(message):
         reply = {'version': VERSION}
 
     elif cmd == 'run':
-        if "|" in message["command"]:
-            commands = message["command"].split("|")
-            p1 = subprocess.Popen(commands[0].split(" "),stdout=subprocess.PIPE)
-            p2 = p1
-            for command in commands[1:]:
-                command = list(filter(None,command.split(" ")))
-                p2 = subprocess.Popen(command,stdin=p1.stdout,stdout=subprocess.PIPE)
-                p1.stdout.close()
-                p1 = p2
-            output = p2.communicate()[0].decode("utf-8")
-        else:
-            output = subprocess.check_output(message["command"].split(" ")).decode("utf-8")
+        commands = message["command"].split("|")
+        p1 = subprocess.Popen(commands[0].split(" "),stderr=subprocess.STDOUT,stdout=subprocess.PIPE)
+        p2 = p1
+        for command in commands[1:]:
+            command = list(filter(None,command.split(" ")))
+            p2 = subprocess.Popen(command,stdin=p1.stdout,stderr=subprocess.STDOUT,stdout=subprocess.PIPE)
+            p1.stdout.close()
+            p1 = p2
+        output = p2.communicate()[0].decode("utf-8")
         reply['content'] = output if output else ""
 
     elif cmd == 'eval':
