@@ -30,8 +30,8 @@ if [[ "$1" == "local" ]]; then
     cp -f native/tridactyl.json "$manifest_file"
     cp -f native/native_main.py "$native_file"
 else
-    curl --create-dirs -o $manifest_file $manifest_loc
-    curl --create-dirs -o $native_file $native_loc
+    curl --create-dirs -o "$manifest_file" "$manifest_loc"
+    curl --create-dirs -o "$native_file" "$native_loc"
 fi
 
 native_file_escaped=$(sed 's/[&/\]/\\&/g' <<< "$native_file")
