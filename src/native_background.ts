@@ -73,8 +73,8 @@ export async function getBestEditor(): Promise<string> {
         // "terminator -e", // NB: requires command to be in quotes, which breaks the others
         // so terminator is not supported.
         "alacritty -e", // alacritty is nice but takes ages to start and doesn't support class
-        "dbus-launch gnome-terminal --",
         "cool-retro-term -e",
+        "dbus-launch gnome-terminal --",
         // I wanted to put hyper.js here as a joke but you can't start it running a command,
         // which is a far better joke: a terminal emulator that you can't send commands to.
         // You win this time, web artisans.
