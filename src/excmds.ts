@@ -502,13 +502,13 @@ export async function open(...urlarr: string[]) {
     let url = urlarr.join(" ")
 
     // Setting window.location to about:blank results in a page we can't access, tabs.update works.
-    // tabs.update goes to the new tab page if url === "".
-    if (["", "about:blank"].includes(url)) {
+    if (["about:blank"].includes(url)) {
+        url = url || undefined
         browserBg.tabs.update(await activeTabId(), { url })
+    // Open URLs that firefox won't let us by running `firefox <URL>` on the command line
     } else if (url.match(/^(about|file):.*/)) {
-        // I thought we could run background excmds from content but apparently not?
         Messaging.message("commandline_background", "recvExStr", ["nativeopen " + url])
-    } else {
+    } else if (url !== "") {
         window.location.href = forceURI(url)
     }
 }
