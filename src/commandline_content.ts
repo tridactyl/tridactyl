@@ -16,11 +16,12 @@ const logger = new Logger("messaging")
 // inject the commandline iframe into a content page
 
 let cmdline_iframe: HTMLIFrameElement = undefined
+let enabled = false
 
 /** Initialise the cmdline_iframe element unless the window location is included in a value of config/noiframeon */
 async function init() {
     let noiframeon = await config.getAsync("noiframeon")
-    let enabled =
+    enabled =
         noiframeon.length == 0 ||
         noiframeon.find(url => window.location.href.includes(url)) === undefined
     if (enabled && cmdline_iframe === undefined) {
@@ -50,21 +51,29 @@ if (document.readyState === "complete") {
 }
 
 export function show() {
-    const height =
-        cmdline_iframe.contentWindow.document.body.offsetHeight + "px"
-    cmdline_iframe.setAttribute("style", `height: ${height} !important;`)
+    if (enabled) {
+        const height =
+            cmdline_iframe.contentWindow.document.body.offsetHeight + "px"
+        cmdline_iframe.setAttribute("style", `height: ${height} !important;`)
+    }
 }
 
 export function hide() {
-    cmdline_iframe.setAttribute("style", "height: 0px !important;")
+    if (enabled) {
+        cmdline_iframe.setAttribute("style", "height: 0px !important;")
+    }
 }
 
 export function focus() {
-    cmdline_iframe.focus()
+    if (enabled) {
+        cmdline_iframe.focus()
+    }
 }
 
 export function blur() {
-    cmdline_iframe.blur()
+    if (enabled) {
+        cmdline_iframe.blur()
+    }
 }
 
 export function executeWithoutCommandLine(fn) {
