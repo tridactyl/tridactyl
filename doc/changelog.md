@@ -10,11 +10,16 @@
         - You can't use composite and shell pipes together yet.
     - `hint -W exclaim mpv` works particularly well.
 
+## Release 1.9.8
+
+- Make error reporting to command line less fussy
+- Fix error reporting loop with `noiframeon`
+
 ## Release 1.9.7
 
-- Add setting `noiframeon` for websites that are broken by our iframes ("ServiceNow", for example: #279)
+- Load iframe more lazily to stop breakage on some sites
+- Add setting `noiframeon` for websites that are still broken by our iframe ("ServiceNow", for example: #279)
     - Simply `set noiframeon [space separated URLs]` to blacklist URLs
-    - Load iframe more lazily to hopefully break fewer sites
 - This will hopefully be our final release before the native messenger for OSX and Linux is merged.
     - If you'd like to help test it out, download our latest betas from [here](https://tridactyl.cmcaine.co.uk/betas) and run `:installnative` once you are in.
 
