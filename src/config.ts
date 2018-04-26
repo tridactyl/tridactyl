@@ -34,6 +34,7 @@ let USERCONFIG = o({})
 const DEFAULTS = o({
     configversion: "0.0",
     nmaps: o({
+        "<F1>": "help",
         o: "fillcmdline open",
         O: "current_url open",
         w: "fillcmdline winopen",
