@@ -58,6 +58,11 @@ def sendMessage(encodedMessage):
     """ Send an encoded message to stdout."""
     sys.stdout.buffer.write(encodedMessage['length'])
     sys.stdout.buffer.write(encodedMessage['content'])
+    try:
+        sys.stdout.buffer.write(encodedMessage['code'])
+    except KeyError:
+        pass
+
     sys.stdout.buffer.flush()
 
 
@@ -70,32 +75,32 @@ def handleMessage(message):
         reply = {'version': VERSION}
 
     elif cmd == 'run':
-        commands = message["command"].split("|")
-        p1 = subprocess.Popen(commands[0].split(" "),stderr=subprocess.STDOUT,stdout=subprocess.PIPE)
-        p2 = p1
-        for command in commands[1:]:
-            command = list(filter(None,command.split(" ")))
-            p2 = subprocess.Popen(command,stdin=p1.stdout,stderr=subprocess.STDOUT,stdout=subprocess.PIPE)
-            p1.stdout.close()
-            p1 = p2
-        output = p2.communicate()[0].decode("utf-8")
-        reply['content'] = output if output else ""
+        commands = message["command"]
+
+        try:
+            p = subprocess.check_output(commands, shell=True)
+            reply["content"] = p.decode("utf-8")
+            reply["code"] = 0
+
+        except subprocess.CalledProcessError as process:
+            reply["code"] = process.returncode
+            reply["content"] = process.output.decode("utf-8")
 
     elif cmd == 'eval':
         output = eval(message["command"])
         reply['content'] = output
 
     elif cmd == 'read':
-        with open(message["file"],"r") as file:
+        with open(message["file"], "r") as file:
             reply['content'] = file.read()
 
     elif cmd == 'write':
-        with open(message["file"],"w") as file:
+        with open(message["file"], "w") as file:
             file.write(message["content"])
 
     elif cmd == 'temp':
-        (handle,filepath) = tempfile.mkstemp()
-        with open(filepath,"w") as file:
+        (handle, filepath) = tempfile.mkstemp()
+        with open(filepath, "w") as file:
             file.write(message["content"])
         reply['content'] = filepath
 

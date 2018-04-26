@@ -13,6 +13,7 @@ interface MessageResp {
     cmd: string
     version: number | null
     content: string | null
+    code: number | null
     error: string | null
 }
 
@@ -116,9 +117,7 @@ export async function getBestEditor(): Promise<string> {
 }
 
 export async function inpath(cmd) {
-    return !(await run("which " + cmd.split(" ")[0])).content.includes(
-        "which: no ",
-    )
+    return (await run("which " + cmd.split(" ")[0])).code === 0
 }
 
 export async function editor(file: string, content?: string) {
