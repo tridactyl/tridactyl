@@ -6,8 +6,10 @@
     - `<Ctrl-E>` in a text field will open Vim, probably. Set it with `set editorcmd` but make sure that the command stays in the foreground till the programme is exited.
     - Not all text fields work yet (esp CodeMirror), so make sure you test it before writing war and peace.
     - `:! [shell command]` or `:exclaim [shell command]` will run the command and give you STDOUT/STDERR back in the command line.
-        - Pipes work but redirection probably doesn't.
         - You can't use composite and shell pipes together yet.
+        - Anything that works in `/bin/sh` should work
+            - If you want to use a different shell, just make your own alias:
+                -  `command ! exclaim fish -c` (but be aware that some shells require quotes around arguments given to -c)
     - `hint -W exclaim mpv` works particularly well.
 
 ## Release 1.9.8 / 2018-04-26
