@@ -229,7 +229,7 @@ export async function exclaim(...str: string[]) {
  */
 //#background
 export async function native() {
-    const version = await Native.getNativeMessengerVersion()
+    const version = await Native.getNativeMessengerVersion(true)
     if (version !== undefined) fillcmdline("# Native messenger is correctly installed, version " + version)
     else fillcmdline("# Native messenger not found. Please run `:installnative` and follow the instructions.")
 }

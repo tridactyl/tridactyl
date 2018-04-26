@@ -23,6 +23,7 @@ interface MessageResp {
 async function sendNativeMsg(
     cmd: MessageCommand,
     opts: object,
+    quiet = false,
 ): Promise<MessageResp> {
     const send = Object.assign({ cmd }, opts)
     let resp
@@ -33,18 +34,25 @@ async function sendNativeMsg(
         logger.info(`Received response:`, resp)
         return resp as MessageResp
     } catch (e) {
-        logger.error(`Error sending native message:`, e)
-        throw e
+        if (!quiet) {
+            logger.error(`Error sending native message:`, e)
+            throw e
+        }
     }
 }
 
-export async function getNativeMessengerVersion(): Promise<number> {
-    const res = await sendNativeMsg("version", {})
+export async function getNativeMessengerVersion(
+    quiet = false,
+): Promise<number> {
+    const res = await sendNativeMsg("version", {}, quiet)
+    if (res === undefined) {
+        if (quiet) return undefined
+        throw `Error retrieving version: ${res.error}`
+    }
     if (res.version && !res.error) {
         logger.info(`Native version: ${res.version}`)
         return res.version
     }
-    throw `Error retrieving version: ${res.error}`
 }
 
 export async function getBestEditor(): Promise<string> {
