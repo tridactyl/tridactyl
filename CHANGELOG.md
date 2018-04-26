@@ -1,6 +1,6 @@
 # Tridactyl changelog
 
-## Release 1.10.0 (beta) - TBC
+## Release 1.10.0 / Unreleased
 
 - Native messenger! Run `:installnative` to install, then:
     - `<Ctrl-E>` in a text field will open Vim, probably. Set it with `set editorcmd` but make sure that the command stays in the foreground till the programme is exited.
@@ -10,12 +10,12 @@
         - You can't use composite and shell pipes together yet.
     - `hint -W exclaim mpv` works particularly well.
 
-## Release 1.9.8 - 2018-04-26 12:19 UTC
+## Release 1.9.8 / 2018-04-26
 
 - Make error reporting to command line less fussy
 - Fix error reporting loop with `noiframeon`
 
-## Release 1.9.7 - 2018-04-25 19:37 UTC
+## Release 1.9.7 / 2018-04-25
 
 - Load iframe more lazily to stop breakage on some sites
 - Add setting `noiframeon` for websites that are still broken by our iframe ("ServiceNow", for example: #279)
@@ -23,7 +23,7 @@
 - This will hopefully be our final release before the native messenger for OSX and Linux is merged.
     - If you'd like to help test it out, download our latest betas from [here](https://tridactyl.cmcaine.co.uk/betas) and run `:installnative` once you are in.
 
-## Release 1.9.6 - 2018-04-25 14:39 UTC
+## Release 1.9.6 / 2018-04-25
 
 - Scrolling improvements
     - Faster (#395)
@@ -36,7 +36,7 @@
 - Bug fixes
     - Fix #418: keyseq is better at realising when a key combination is invalid
 
-## Release 1.9.5 2018-04-22 17:56 UTC
+## Release 1.9.5 / 2018-04-22
 
 - Add mode indicator
 - Fix #337: Make `composite` and ex-parser more sequential
@@ -45,7 +45,7 @@
     - Fix `tab` in inputmode
     - Catch CSP exception when hijacking
 
-## Release 1.9.4 - 2018-04-20 19:59 UTC
+## Release 1.9.4 / 2018-04-20
 
 - Add jumplist for inputs bound to `g;`
     - Editor's impartial note: this is pretty cool
@@ -60,22 +60,22 @@
     - input-mode now correctly exits to normal mode on focus loss
     - Stop treating "std::map" or "Error: foo" as URIs: searching for them will now work.
 
-## Release 1.9.3 - 2018-04-19 10:22 UTC
+## Release 1.9.3 / 2018-04-19
 
 - Fix unbind issues
 - Add more default binds from Vimperator
 - Change the `^` bind to `<c-6>` (matches vim)
 - :bmark now supports folders
 
-## Release 1.9.2 - 2018-04-16 07:47 UTC
+## Release 1.9.2 / 2018-04-16
 
 - Fix #392 (bug with keyseq)
 
-## Release 1.9.1 - 2018-04-15 23:57 UTC
+## Release 1.9.1 / 2018-04-15
 
 - Fix buffer switch bind
 
-## Release 1.9.0 - 2018-04-15 23:20 UTC
+## Release 1.9.0 / 2018-04-15
 
 - Allow binds with modifiers (e.g. `<C-u>`) and binds of special keys (e.g. `<F1>`) and both together (e.g. `<SA-Escape>`)
 - Normal mode now only hides keypresses that you've told it to listen to from the web page
@@ -121,7 +121,7 @@
     - Show useless hints on some sites (#225)
     - and more!
 
-## Release 1.8.2 - 2018-03-07 14:55 UTC
+## Release 1.8.2 / 2018-03-07
 
 - Improve config API
     - `set key.subkey.subsubkey value` now works
@@ -153,7 +153,7 @@
 - Fix various typos (#247, #228)
 - Add FAQ and other updates to readme.md (#232)
 
-## Release 1.7.3 - 2017-12-21 22:06 UTC
+## Release 1.7.3 / 2017-12-21
 
 - Hint tags are much better:
     - Hint tags are now as short as possible
@@ -181,7 +181,7 @@
 - Add <summary> tags to standard hinting
 - Log an error to browser console if no TTS voices are found
 
-## Release 1.7.0 - 2017-12-01 08:39 UTC
+## Release 1.7.0 / 2017-12-01
 
  - History completion is massively improved: much faster, more relevant results, and less janky as you type.
  - User configuration
