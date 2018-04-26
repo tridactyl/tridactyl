@@ -19,7 +19,7 @@ echo """
 <label for="spoilerbutton" onclick="">Changelog</label>
 <div class="spoiler">
 """ >> "$newtab"
-marked ../../changelog.md >> "$newtab"
+marked ../../CHANGELOG.md >> "$newtab"
 echo """
 </div>
 """ >> "$newtab"
