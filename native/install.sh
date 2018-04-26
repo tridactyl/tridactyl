@@ -42,8 +42,9 @@ chmod +x $native_file
 # Requirements for native messenger
 python_path=$(which python3)
 pip_path=$(which pip3)
+python_file_escaped=$(sed 's/[&/\]/\\&/g' <<< "$python_path")
 if [[ -x "$python_path" ]] && [[ -x "$pip_path" ]]; then
-    :
+    sed -i.bak "1s/.*/#!$python_file_escaped/" "$native_file"
     # pip3 install --user tinycss2
     # put dependencies here
 else
