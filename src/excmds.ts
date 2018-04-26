@@ -97,6 +97,7 @@ import * as Logging from "./logging"
 const logger = new Logging.Logger("excmds")
 import Mark from "mark.js"
 import * as semverCompare from "semver-compare"
+import * as ansiConvert from "ansi-to-html"
 
 //#content_helper
 // {
@@ -211,7 +212,8 @@ export async function nativegate(version = "0", interactive = true): Promise<Boo
 
 //#background
 export async function exclaim(...str: string[]) {
-    fillcmdline((await Native.run(str.join(" "))).content)
+    const convert = new ansiConvert()
+    fillcmdline(convert.toHtml((await Native.run(str.join(" "))).content))
 } // should consider how to give option to fillcmdline or not. We need flags.
 
 //#background
@@ -505,7 +507,7 @@ export async function open(...urlarr: string[]) {
     if (["about:blank"].includes(url)) {
         url = url || undefined
         browserBg.tabs.update(await activeTabId(), { url })
-    // Open URLs that firefox won't let us by running `firefox <URL>` on the command line
+        // Open URLs that firefox won't let us by running `firefox <URL>` on the command line
     } else if (url.match(/^(about|file):.*/)) {
         Messaging.message("commandline_background", "recvExStr", ["nativeopen " + url])
     } else if (url !== "") {
