@@ -224,6 +224,14 @@ export async function exclaim(...str: string[]) {
 } // should consider how to give option to fillcmdline or not. We need flags.
 
 /**
+ * Like exclaim, but without any output to the command line.
+ */
+//#background
+export async function exclaim_quiet(...str: string[]) {
+    ;(await Native.run(str.join(" "))).content
+}
+
+/**
  * Tells you if the native messenger is installed and its version.
  *
  */
