@@ -158,7 +158,7 @@ export async function getinput() {
  * Opens your favourite editor (which is currently gVim) and fills the last used input with whatever you write into that file.
  * **Requires that the native messenger is installed, see [[native]] and [[installnative]]**.
  *
- * Uses the `editorcmd` config option, default = `gvim -f`. `urxvt -e nvim` works well for nvim users.
+ * Uses the `editorcmd` config option, default = `auto` looks through a list defined in native_background.ts try find a sensible combination. If it's a bit slow, or chooses the wrong editor, or gives up completely, set editorcmd to something you want. The command must stay in the foreground until the editor exits.
  *
  * The editorcmd needs to accept a filename, stay in the foreground while it's edited, save the file and exit.
  *
@@ -209,11 +209,24 @@ export async function nativegate(version = "0", interactive = true): Promise<Boo
     return false
 }
 
+/**
+ * Run command in /bin/sh (unless you're on Windows), and print the output in the command line. Non-zero exit codes and stderr are ignored, currently.
+ *
+ * Requires the native messenger, obviously.
+ *
+ * If you want to use a different shell, just prepend your command with whatever the invocation is and keep in mode that most shells require quotes around the command to be executed, e.g. `:exclaim xonsh -c "1+2"`.
+ *
+ * Aliased to `!` but the exclamation mark **must be followed with a space**.
+ */
 //#background
 export async function exclaim(...str: string[]) {
     fillcmdline((await Native.run(str.join(" "))).content)
 } // should consider how to give option to fillcmdline or not. We need flags.
 
+/**
+ * Tells you if the native messenger is installed and its version.
+ *
+ */
 //#background
 export async function native() {
     const version = await Native.getNativeMessengerVersion()
@@ -231,6 +244,11 @@ export async function installnative() {
     fillcmdline("# Installation command copied to clipboard. Please paste and run it in your shell to install the native messenger.")
 }
 
+/**
+ * Updates the native messenger if it is installed, using our GitHub repo. This is run every time Tridactyl is updated.
+ *
+ * If you want to disable this, or point it to your own native messenger, edit the `nativeinstallcmd` setting.
+ */
 //#background
 export async function updatenative(interactive = true) {
     if (await nativegate("0", interactive)) {
@@ -505,7 +523,7 @@ export async function open(...urlarr: string[]) {
     if (["about:blank"].includes(url)) {
         url = url || undefined
         browserBg.tabs.update(await activeTabId(), { url })
-    // Open URLs that firefox won't let us by running `firefox <URL>` on the command line
+        // Open URLs that firefox won't let us by running `firefox <URL>` on the command line
     } else if (url.match(/^(about|file):.*/)) {
         Messaging.message("commandline_background", "recvExStr", ["nativeopen " + url])
     } else if (url !== "") {
