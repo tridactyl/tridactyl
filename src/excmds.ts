@@ -2180,7 +2180,7 @@ export async function errorfg(msg: string) {
 //#background_helper
 browser.runtime.onInstalled.addListener(details => {
     if (details.reason == "install") tutor("newtab")
-    else if (details.reason == "update") updatenative(false)
+    else if ((details as any).temporary !== true && details.reason == "update") updatenative(false)
     // could add elif "update" and show a changelog. Hide it behind a setting to make it less annoying?
 })
 
