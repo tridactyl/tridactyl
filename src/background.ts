@@ -15,7 +15,7 @@ CommandLine.onLine.addListener(Controller.acceptExCmd)
 
 // Add various useful modules to the window for debugging
 import * as messaging from "./messaging"
-import * as excmds from "./excmds_background"
+import * as excmds from "./.excmds_background.generated"
 import * as commandline_background from "./commandline_background"
 import * as controller from "./controller"
 import * as convert from "./convert"

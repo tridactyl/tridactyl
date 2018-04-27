@@ -6,7 +6,7 @@ Replace Firefox's default control mechanism with one modelled on the one true ed
 
 ## Installing
 
-[Get our "beta" builds!][betas] These are updated with each commit to master on this repo. Your browser will automatically update from there once a day. If you want more frequent updates, you can change `extensions.update.interval` in `about:config` to whatever time you want, say, 15 minutes (900 seconds). Changelogs for the stable versions on the AMO can be found [here](https://github.com/cmcaine/tridactyl/blob/master/doc/changelog.md).
+[Get our "beta" builds!][betas] These are updated with each commit to master on this repo. Your browser will automatically update from there once a day. If you want more frequent updates, you can change `extensions.update.interval` in `about:config` to whatever time you want, say, 15 minutes (900 seconds). The changelog for the stable versions on the AMO can be found [here](https://github.com/cmcaine/tridactyl/blob/master/CHANGELOG.md).
 
 Type `:help` for online help once you're in :)
 
@@ -132,7 +132,7 @@ NOTE: key modifiers (eg: control, alt) are not supported yet. See the FAQ below.
 
 - How can I add a search engine?
 
-    `searchsetkeyword esa http://www.esa.int/esasearch?q=`
+    `set searchurls.esa http://www.esa.int/esasearch?q=`
 
 - Can I import/export settings, and does Tridactyl use an external configuration file just like Vimperator?
 
@@ -166,7 +166,7 @@ NOTE: key modifiers (eg: control, alt) are not supported yet. See the FAQ below.
 
 - Where can I find a changelog for the different versions (to see what is new in the latest version)?
 
-    [Here.](https://github.com/cmcaine/tridactyl/blob/master/doc/changelog.md)
+    [Here.](https://github.com/cmcaine/tridactyl/blob/master/CHANGELOG.md)
 
 - Why can't I use my bookmark keywords?
 

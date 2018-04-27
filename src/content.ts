@@ -8,15 +8,16 @@ import "./lib/html-tagged-template"
 /* import "./commandline_content" */
 /* import "./excmds_content" */
 /* import "./hinting" */
-
-console.log("Tridactyl content script loaded, boss!")
+import * as Logging from "./logging"
+const logger = new Logging.Logger("content")
+logger.debug("Tridactyl content script loaded, boss!")
 
 // Add various useful modules to the window for debugging
 import * as commandline_content from "./commandline_content"
 import * as convert from "./convert"
 import * as config from "./config"
 import * as dom from "./dom"
-import * as excmds from "./excmds_content"
+import * as excmds from "./.excmds_content.generated"
 import * as hinting_content from "./hinting"
 import * as finding_content from "./finding"
 import * as itertools from "./itertools"
@@ -39,6 +40,7 @@ import * as native from "./native_background"
     finding_content,
     itertools,
     keydown_content,
+    logger,
     Mark,
     keyseq,
     messaging,
@@ -51,10 +53,14 @@ import * as native from "./native_background"
 
 // Don't hijack on the newtab page.
 if (webext.inContentScript()) {
-    dom.setupFocusHandler()
-    dom.hijackPageListenerFunctions()
+    try {
+        dom.setupFocusHandler()
+        dom.hijackPageListenerFunctions()
+    } catch (e) {
+        logger.warning("Could not hijack due to CSP:", e)
+    }
 } else {
-    console.error("No export func")
+    logger.warning("No export func")
 }
 
 if (
@@ -63,3 +69,46 @@ if (
 ) {
     config.getAsync("newtab").then(newtab => newtab && excmds.open(newtab))
 }
+
+// Really bad status indicator
+config.getAsync("modeindicator").then(mode => {
+    if (mode !== "true") return
+
+    let statusIndicator = document.createElement("span")
+    statusIndicator.className = "cleanslate TridactylStatusIndicator"
+    try {
+        // On quick loading pages, the document is already loaded
+        statusIndicator.textContent = state.mode || "normal"
+        document.body.appendChild(statusIndicator)
+    } catch (e) {
+        // But on slower pages we wait for the document to load
+        window.addEventListener("DOMContentLoaded", () => {
+            statusIndicator.textContent = state.mode || "normal"
+            document.body.appendChild(statusIndicator)
+        })
+    }
+
+    browser.storage.onChanged.addListener((changes, areaname) => {
+        if (areaname === "local" && "state" in changes) {
+            let mode = changes.state.newValue.mode
+            if (
+                dom.isTextEditable(document.activeElement) &&
+                !["input", "ignore"].includes(mode)
+            ) {
+                statusIndicator.textContent = "insert"
+                // this doesn't work; statusIndicator.style is full of empty string
+                // statusIndicator.style.borderColor = "green !important"
+                // need to fix loss of focus by click: doesn't do anything here.
+            } else if (
+                mode === "insert" &&
+                !dom.isTextEditable(document.activeElement)
+            ) {
+                statusIndicator.textContent = "normal"
+                // statusIndicator.style.borderColor = "lightgray !important"
+            } else {
+                statusIndicator.textContent = mode
+            }
+        }
+        if (config.get("modeindicator") !== "true") statusIndicator.remove()
+    })
+})

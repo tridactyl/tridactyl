@@ -2,7 +2,7 @@ import { MsgSafeKeyboardEvent, MsgSafeNode } from "./msgsafe"
 import { isTextEditable } from "./dom"
 import { isSimpleKey } from "./keyseq"
 import state from "./state"
-import { repeat } from "./excmds_background"
+import { repeat } from "./.excmds_background.generated"
 import Logger from "./logging"
 
 import { parser as exmode_parser } from "./parsers/exmode"
@@ -41,15 +41,21 @@ function* ParserController() {
                 if (
                     state.mode != "ignore" &&
                     state.mode != "hint" &&
+                    state.mode != "input" &&
                     state.mode != "find"
                 ) {
                     if (isTextEditable(keyevent.target)) {
                         if (state.mode !== "insert") {
                             state.mode = "insert"
                         }
-                    } else if (["insert", "input"].includes(state.mode)) {
+                    } else if (state.mode === "insert") {
                         state.mode = "normal"
                     }
+                } else if (
+                    state.mode === "input" &&
+                    !isTextEditable(keyevent.target)
+                ) {
+                    state.mode = "normal"
                 }
                 logger.debug(keyevent, state.mode)
 
@@ -77,7 +83,7 @@ function* ParserController() {
             acceptExCmd(exstr)
         } catch (e) {
             // Rumsfeldian errors are caught here
-            console.error("Tridactyl ParserController fatally wounded:", e)
+            logger.error("Tridactyl ParserController fatally wounded:", e)
         }
     }
 }
@@ -91,21 +97,21 @@ export function acceptKey(keyevent: MsgSafeKeyboardEvent) {
 }
 
 /** Parse and execute ExCmds */
-export function acceptExCmd(exstr: string) {
+export async function acceptExCmd(exstr: string) {
     // TODO: Errors should go to CommandLine.
     try {
         let [func, args] = exmode_parser(exstr)
         // Stop the repeat excmd from recursing.
         if (func !== repeat) state.last_ex_str = exstr
         try {
-            func(...args)
+            await func(...args)
         } catch (e) {
             // Errors from func are caught here (e.g. no next tab)
-            console.error(e)
+            logger.error(e)
         }
     } catch (e) {
         // Errors from parser caught here
-        console.error(e)
+        logger.error(e)
     }
 }
 

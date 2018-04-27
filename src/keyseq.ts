@@ -21,9 +21,9 @@
 */
 
 /** */
-import { find, izip } from "./itertools"
+import { find, filter, izip } from "./itertools"
 import { Parser } from "./nearley_utils"
-import * as bracketexpr_grammar from "./grammars/bracketexpr"
+import * as bracketexpr_grammar from "./grammars/.bracketexpr.generated"
 const bracketexpr_parser = new Parser(bracketexpr_grammar)
 
 // {{{ General types
@@ -109,7 +109,8 @@ export type ParserResponse = {
 export function parse(keyseq: KeyEventLike[], map: KeyMap): ParserResponse {
     // Remove bare modifiers
     keyseq = keyseq.filter(
-        key => !["Control", "Shift", "Alt", "Meta"].includes(key.key),
+        key =>
+            !["Control", "Shift", "Alt", "AltGraph", "Meta"].includes(key.key),
     )
 
     // If keyseq is a prefix of a key in map, proceed, else try dropping keys
@@ -124,7 +125,10 @@ export function parse(keyseq: KeyEventLike[], map: KeyMap): ParserResponse {
         // Check if any of the mappings is a perfect match (this will only
         // happen if some sequences in the KeyMap are prefixes of other seqs).
         try {
-            let perfect = find(possibleMappings, ([k, v]) => k.length === keyseq.length)
+            let perfect = find(
+                possibleMappings,
+                ([k, v]) => k.length === keyseq.length,
+            )
             return { value: perfect[1], isMatch: true }
         } catch (e) {
             if (!(e instanceof RangeError)) throw e
@@ -135,21 +139,21 @@ export function parse(keyseq: KeyEventLike[], map: KeyMap): ParserResponse {
 
 /** True if seq1 is a prefix or equal to seq2 */
 function prefixes(seq1: KeyEventLike[], seq2: MinimalKey[]) {
-    for (const [key1, key2] of izip(seq1, seq2)) {
-        if (!key2.match(key1)) return false
+    if (seq1.length > seq2.length) {
+        return false
+    } else {
+        for (const [key1, key2] of izip(seq1, seq2)) {
+            if (!key2.match(key1)) return false
+        }
+        return true
     }
-    return true
 }
 
 /** returns the fragment of `map` that keyseq is a valid prefix of. */
 export function completions(keyseq: KeyEventLike[], map: KeyMap): KeyMap {
-    const possibleMappings = new Map() as KeyMap
-    for (const [ks, maptarget] of map.entries()) {
-        if (prefixes(keyseq, ks)) {
-            possibleMappings.set(ks, maptarget)
-        }
-    }
-    return possibleMappings
+    return new Map(
+        filter(map.entries(), ([ks, maptarget]) => prefixes(keyseq, ks)),
+    )
 }
 
 // }}}
@@ -272,6 +276,7 @@ export function bracketexprToKey(inputStr) {
 export function mapstrToKeyseq(mapstr: string): MinimalKey[] {
     const keyseq: MinimalKey[] = []
     let key: MinimalKey
+    // Reduce mapstr by one character or one bracket expression per iteration
     while (mapstr.length) {
         if (mapstr[0] === "<") {
             ;[key, mapstr] = bracketexprToKey(mapstr)
@@ -322,60 +327,3 @@ export function isSimpleKey(keyEvent: KeyEventLike) {
 }
 
 // }}}
-
-/* {{{ Deprecated
-
-// OLD IMPLEMENTATION! See below for a simpler-looking one powered by nearley.
-// It's probably slower, but it supports multiple modifiers and will be easier
-// to understand and extend.
-export function bracketexprToKey(be: string): [MinimalKey, string] {
-    function extractModifiers(be: string): [string, any] {
-        const modifiers = new Map([
-            ["A-", "altKey"],
-            ["C-", "ctrlKey"],
-            ["M-", "metaKey"],
-            ["S-", "shiftKey"],
-        ])
-
-        let extracted = {}
-        let mod = modifiers.get(be.slice(1, 3).toUpperCase())
-        if (mod) {
-            extracted[mod] = true
-            // Remove modifier prefix
-            be = "<" + be.slice(3)
-        }
-        return [be, extracted]
-    }
-
-    let modifiers: KeyModifiers
-    let beWithoutModifiers: string
-    ;[beWithoutModifiers, modifiers] = extractModifiers(be)
-
-    // Special cases:
-    if (be === "<<>") {
-        return [new MinimalKey("<", modifiers), be.slice(3)]
-    } else if (beWithoutModifiers === "<>>") {
-        return [new MinimalKey("<", modifiers), be.slice(3)]
-    }
-
-    // General case:
-    const beRegex = /<[^\s]+?>/u
-
-    if (beRegex.exec(be) !== null) {
-        // Extract complete bracket expression and remove
-        let bracketedBit = beRegex.exec(be)[0]
-        be = be.replace(bracketedBit, "")
-
-        // Extract key and alias if required
-        let key = beRegex.exec(beWithoutModifiers)[0].slice(1, -1)
-        key = expandAliases(key)
-
-        // Return constructed key and remainder of the string
-        return [new MinimalKey(key, modifiers), be]
-    } else {
-        // Wasn't a bracket expression. Treat it as a literal <
-        return [new MinimalKey("<"), be.slice(1)]
-    }
-}
-
-}}} */

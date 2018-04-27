@@ -102,7 +102,7 @@ import * as semverCompare from "semver-compare"
 //#content_helper
 // {
 import "./number.clamp"
-import * as SELF from "./excmds_content"
+import * as SELF from "./.excmds_content.generated"
 Messaging.addListener("excmd_content", Messaging.attributeCaller(SELF))
 import * as DOM from "./dom"
 import { executeWithoutCommandLine } from "./commandline_content"
@@ -125,6 +125,8 @@ import * as Native from "./native_background"
 /** @hidden */
 export const cmd_params = new Map<string, Map<string, string>>()
 // }
+
+// }}}
 
 // {{{ Native messenger stuff
 
@@ -157,7 +159,7 @@ export async function getinput() {
  * Opens your favourite editor (which is currently gVim) and fills the last used input with whatever you write into that file.
  * **Requires that the native messenger is installed, see [[native]] and [[installnative]]**.
  *
- * Uses the `editorcmd` config option, default = `gvim -f`. `urxvt -e nvim` works well for nvim users.
+ * Uses the `editorcmd` config option, default = `auto` looks through a list defined in native_background.ts try find a sensible combination. If it's a bit slow, or chooses the wrong editor, or gives up completely, set editorcmd to something you want. The command must stay in the foreground until the editor exits.
  *
  * The editorcmd needs to accept a filename, stay in the foreground while it's edited, save the file and exit.
  *
@@ -166,8 +168,8 @@ export async function getinput() {
 //#background
 export async function editor() {
     if (!await nativegate()) return
-    const file = "/tmp/tridactyledit" + Math.floor(Math.random() * 1000)
-    fillinput((await Native.editor(file, await getinput())).content)
+    const file = (await Native.temp(await getinput())).content
+    fillinput((await Native.editor(file)).content)
     // TODO: add annoying "This message was written with [Tridactyl](https://addons.mozilla.org/en-US/firefox/addon/tridactyl-vim/)"
     // to everything written using editor
 }
@@ -229,27 +231,52 @@ export async function nativeopen(url: string, ...firefoxArgs: string[]) {
  * Used internally to gate off functions that use the native messenger. Gives a helpful error message in the command line if the native messenger is not installed, or is the wrong version.
  */
 //#background
-export async function nativegate(version = "0"): Promise<Boolean> {
+export async function nativegate(version = "0", interactive = true): Promise<Boolean> {
+    if (["win", "android"].includes((await browser.runtime.getPlatformInfo()).os)) {
+        if (interactive == true) fillcmdline("# Tridactyl's native messenger doesn't support your operating system, yet.")
+        return false
+    }
     const actualVersion = await Native.getNativeMessengerVersion()
     if (actualVersion !== undefined) {
         if (semverCompare(version, actualVersion) > 0) {
-            fillcmdline("# Native messenger is installed, version " + actualVersion + " but the command you just tried to use needs version " + version)
+            if (interactive == true) fillcmdline("# Please update to native messenger " + version + ", for example by running `:updatenative`.")
             // TODO: add update procedure and document here.
             return false
         }
         return true
-    } else fillcmdline("# Native messenger not found. Please run `:installnative` and follow the instructions.")
+    } else if (interactive == true) fillcmdline("# Native messenger not found. Please run `:installnative` and follow the instructions.")
     return false
 }
 
+/**
+ * Run command in /bin/sh (unless you're on Windows), and print the output in the command line. Non-zero exit codes and stderr are ignored, currently.
+ *
+ * Requires the native messenger, obviously.
+ *
+ * If you want to use a different shell, just prepend your command with whatever the invocation is and keep in mode that most shells require quotes around the command to be executed, e.g. `:exclaim xonsh -c "1+2"`.
+ *
+ * Aliased to `!` but the exclamation mark **must be followed with a space**.
+ */
 //#background
 export async function exclaim(...str: string[]) {
     fillcmdline((await Native.run(str.join(" "))).content)
 } // should consider how to give option to fillcmdline or not. We need flags.
 
+/**
+ * Like exclaim, but without any output to the command line.
+ */
+//#background
+export async function exclaim_quiet(...str: string[]) {
+    ;(await Native.run(str.join(" "))).content
+}
+
+/**
+ * Tells you if the native messenger is installed and its version.
+ *
+ */
 //#background
 export async function native() {
-    const version = await Native.getNativeMessengerVersion()
+    const version = await Native.getNativeMessengerVersion(true)
     if (version !== undefined) fillcmdline("# Native messenger is correctly installed, version " + version)
     else fillcmdline("# Native messenger not found. Please run `:installnative` and follow the instructions.")
 }
@@ -259,9 +286,22 @@ export async function native() {
  */
 //#background
 export async function installnative() {
-    const installstr = "curl -fsSl https://raw.githubusercontent.com/cmcaine/tridactyl/master/native/install.sh | bash"
+    const installstr = await config.get("nativeinstallcmd")
     await clipboard("yank", installstr)
-    fillcmdline("# Installation command copied to clipboard. Please paste and run it in your shell to install the native messenger")
+    fillcmdline("# Installation command copied to clipboard. Please paste and run it in your shell to install the native messenger.")
+}
+
+/**
+ * Updates the native messenger if it is installed, using our GitHub repo. This is run every time Tridactyl is updated.
+ *
+ * If you want to disable this, or point it to your own native messenger, edit the `nativeinstallcmd` setting.
+ */
+//#background
+export async function updatenative(interactive = true) {
+    if (await nativegate("0", interactive)) {
+        await Native.run(await config.get("nativeinstallcmd"))
+        if (interactive) native()
+    }
 }
 
 // }}}
@@ -385,10 +425,22 @@ export function scrollpx(a: number, b: number) {
 //#content
 export function scrollto(a: number, b: number | "x" | "y" = "y") {
     a = Number(a)
+    let elem = window.document.scrollingElement
+    let percentage = a.clamp(0, 100)
     if (b === "y") {
-        window.scrollTo(window.scrollX, a.clamp(0, 100) * window.document.scrollingElement.scrollHeight / 100)
+        let top = elem.getClientRects()[0].top
+        window.scrollTo(window.scrollX, percentage * elem.scrollHeight / 100)
+        if (top == elem.getClientRects()[0].top && (percentage == 0 || percentage == 100)) {
+            // scrollTo failed, if the user wants to go to the top/bottom of
+            // the page try recursiveScroll instead
+            recursiveScroll(window.scrollX, 1073741824 * (percentage == 0 ? -1 : 1), [window.document.body])
+        }
     } else if (b === "x") {
-        window.scrollTo(a.clamp(0, 100) * window.document.scrollingElement.scrollWidth / 100, window.scrollY)
+        let left = elem.getClientRects()[0].left
+        window.scrollTo(percentage * elem.scrollWidth / 100, window.scrollY)
+        if (left == elem.getClientRects()[0].left && (percentage == 0 || percentage == 100)) {
+            recursiveScroll(1073741824 * (percentage == 0 ? -1 : 1), window.scrollX, [window.document.body])
+        }
     } else {
         window.scrollTo(a, Number(b)) // a,b numbers
     }
@@ -405,32 +457,14 @@ function recursiveScroll(x: number, y: number, nodes: Element[]) {
     let index = 0
     do {
         let node = nodes[index++] as any
-        let rect = node.getClientRects()[0]
-
-        // This check is quite arbitrary and even possibly wrong.
-        // We can't use DOM.isVisible because it breaks scrolling on some
-        // sites (e.g. twitch.com)
-        // We can't not check anything because it makes scrolling unbearably
-        // slow on some other sites, e.g.
-        // http://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html
-        // and
-        // https://stripe.com/docs/api#intro
-        // This check speeds things up on the aforementioned website while
-        // still letting scrolling work on twitch/website with frames so we'll
-        // consider it good enough for now.
-        while (!rect || rect.top >= innerHeight - 4) {
-            node = nodes[index++]
-            // No node means we've reached the end of the array
-            if (!node) return
-            rect = node.getClientRects()[0]
-        }
-        let top = rect.top
-        let left = rect.left
+        // Save the node's position
+        let top = node.scrollTop
+        let left = node.scrollLeft
         node.scrollBy(x, y)
-        rect = node.getClientRects()[0]
         // if the node moved, stop
-        if (top != rect.top || left != rect.left) return
-        nodes = nodes.concat(Array.prototype.slice.call(node.children))
+        if (top != node.scrollTop || left != node.scrollLeft) return
+        // Otherwise, add its children to the nodes that could be scrolled
+        nodes = nodes.concat(Array.from(node.children))
         if (node.contentDocument) nodes.push(node.contentDocument.body)
     } while (index < nodes.length)
 }
@@ -533,13 +567,13 @@ export async function open(...urlarr: string[]) {
     let url = urlarr.join(" ")
 
     // Setting window.location to about:blank results in a page we can't access, tabs.update works.
-    // tabs.update goes to the new tab page if url === "".
-    if (["", "about:blank"].includes(url)) {
+    if (["about:blank"].includes(url)) {
+        url = url || undefined
         browserBg.tabs.update(await activeTabId(), { url })
+        // Open URLs that firefox won't let us by running `firefox <URL>` on the command line
     } else if (url.match(/^(about|file):.*/)) {
-        // I thought we could run background excmds from content but apparently not?
         Messaging.message("commandline_background", "recvExStr", ["nativeopen " + url])
-    } else {
+    } else if (url !== "") {
         window.location.href = forceURI(url)
     }
 }
@@ -1445,9 +1479,16 @@ export function repeat(n = 1, ...exstr: string[]) {
     Workaround: this should clearly be in the parser, but we haven't come up with a good way to deal with |s in URLs, search terms, etc. yet.
 */
 //#background
-export function composite(...cmds: string[]) {
+export async function composite(...cmds: string[]) {
     cmds = cmds.join(" ").split("|")
-    cmds.forEach(controller.acceptExCmd)
+    for (let c of cmds) {
+        await controller.acceptExCmd(c)
+    }
+}
+
+//#background
+export async function sleep(time_ms: number) {
+    await new Promise(resolve => setTimeout(resolve, time_ms))
 }
 
 /** @hidden */
@@ -2194,6 +2235,7 @@ export async function bmark(url?: string, ...titlearr: string[]) {
 //#background_helper
 browser.runtime.onInstalled.addListener(details => {
     if (details.reason == "install") tutor("newtab")
+    else if ((details as any).temporary !== true && details.reason == "update") updatenative(false)
     // could add elif "update" and show a changelog. Hide it behind a setting to make it less annoying?
 })
 

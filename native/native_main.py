@@ -6,6 +6,7 @@ import os
 import json
 import struct
 import subprocess
+import tempfile
 
 VERSION = "0.1.0"
 
@@ -57,6 +58,11 @@ def sendMessage(encodedMessage):
     """ Send an encoded message to stdout."""
     sys.stdout.buffer.write(encodedMessage['length'])
     sys.stdout.buffer.write(encodedMessage['content'])
+    try:
+        sys.stdout.buffer.write(encodedMessage['code'])
+    except KeyError:
+        pass
+
     sys.stdout.buffer.flush()
 
 
@@ -69,20 +75,34 @@ def handleMessage(message):
         reply = {'version': VERSION}
 
     elif cmd == 'run':
-        output = subprocess.check_output(message["command"].split(" ")).decode("utf-8")
-        reply['content'] = output if output else ""
+        commands = message["command"]
+
+        try:
+            p = subprocess.check_output(commands, shell=True)
+            reply["content"] = p.decode("utf-8")
+            reply["code"] = 0
+
+        except subprocess.CalledProcessError as process:
+            reply["code"] = process.returncode
+            reply["content"] = process.output.decode("utf-8")
 
     elif cmd == 'eval':
         output = eval(message["command"])
         reply['content'] = output
 
     elif cmd == 'read':
-        with open(message["file"],"r") as file:
+        with open(message["file"], "r") as file:
             reply['content'] = file.read()
 
     elif cmd == 'write':
-        with open(message["file"],"w") as file:
+        with open(message["file"], "w") as file:
             file.write(message["content"])
+
+    elif cmd == 'temp':
+        (handle, filepath) = tempfile.mkstemp()
+        with open(filepath, "w") as file:
+            file.write(message["content"])
+        reply['content'] = filepath
 
     else:
         reply = {'cmd': 'error', 'error': 'Unhandled message'}

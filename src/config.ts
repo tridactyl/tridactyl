@@ -34,6 +34,7 @@ let USERCONFIG = o({})
 const DEFAULTS = o({
     configversion: "0.0",
     nmaps: o({
+        "<F1>": "help",
         o: "fillcmdline open",
         O: "current_url open",
         w: "fillcmdline winopen",
@@ -75,6 +76,7 @@ const DEFAULTS = o({
         "<c-o>": "back",
         "<c-i>": "forward",
         d: "tabclose",
+        D: "composite tabprev | sleep 100 | tabclose #",
         u: "undo",
         r: "reload",
         R: "reloadhard",
@@ -116,7 +118,7 @@ const DEFAULTS = o({
         ";A": "hint -A",
         ";;": "hint -;",
         ";#": "hint -#",
-        ";v": "hint -W exclaim mpv",
+        ";v": "hint -W exclaim_quiet mpv",
         I: "mode ignore",
         a: "current_url bmark",
         A: "bmark",
@@ -157,7 +159,9 @@ const DEFAULTS = o({
         bdelete: "tabclose",
         sanitize: "sanitise",
         tutorial: "tutor",
+        h: "help",
         openwith: "hint -W",
+        "!": "exclaim",
     }),
     followpagepatterns: o({
         next: "^(next|newer)\\b|»|>>|more",
@@ -220,6 +224,7 @@ const DEFAULTS = o({
     cursorpos: "end",
 
     theme: "default", // currently available: "default", "dark"
+    modeindicator: "true",
 
     // Default logging levels - 2 === WARNING
     logging: o({
@@ -230,11 +235,17 @@ const DEFAULTS = o({
         state: 2,
         excmd: 1,
     }),
+    noiframeon: [],
 
     // Native messenger settings
     // This has to be a command that stays in the foreground for the whole editing session
-    editorcmd: "gvim -f",
+    // "auto" will attempt to find a sane editor in your path.
+    // Please send your requests to have your favourite terminal moved further up the list to /dev/null.
+    //          (but we are probably happy to add your terminal to the list if it isn't already there).
+    editorcmd: "auto",
     browser: "firefox",
+    nativeinstallcmd:
+        "curl -fsSl https://raw.githubusercontent.com/cmcaine/tridactyl/master/native/install.sh | bash",
     profiledir: "auto",
 })
 
@@ -360,7 +371,7 @@ export async function update() {
                 // Before we had a config system, we had nmaps, and we put them in the
                 // root namespace because we were young and bold.
                 let legacy_nmaps = await browser.storage.sync.get("nmaps")
-                if (legacy_nmaps) {
+                if (Object.keys(legacy_nmaps).length > 0) {
                     USERCONFIG["nmaps"] = Object.assign(
                         legacy_nmaps["nmaps"],
                         USERCONFIG["nmaps"],

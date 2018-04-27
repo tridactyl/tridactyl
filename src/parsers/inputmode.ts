@@ -14,6 +14,7 @@ export function parser(keys: MsgSafeKeyboardEvent[]) {
     } else if (key === "Tab") {
         if (keys[0].shiftKey) return { keys: [], exstr: "focusinput -N" }
         else return { keys: [], exstr: "focusinput -n" }
-    }
+    } else if (key === "e" && keys[0].ctrlKey)
+        return { keys: [], exstr: "editor" }
     return { keys: [], exstr: "" }
 }

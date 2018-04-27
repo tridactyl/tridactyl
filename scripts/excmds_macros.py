@@ -162,7 +162,7 @@ def main():
                 else:
                     output += line
             # print(output.rstrip())
-            with open("src/excmds_{context}.ts".format(**locals()), "w") as sink:
+            with open("src/.excmds_{context}.generated.ts".format(**locals()), "w") as sink:
                 print(output.rstrip(), file=sink)
 
 

@@ -197,8 +197,7 @@ clInput.addEventListener("keydown", function(keyevent) {
 
         case " ":
             const command = getCompletion()
-            if (command)
-                fillcmdline(command, false)
+            if (command) fillcmdline(command, false)
             break
     }
 
@@ -279,8 +278,13 @@ function process() {
 
     hide_and_clear()
 
-    // Save non-secret commandlines to the history.
     const [func, ...args] = command.trim().split(/\s+/)
+
+    if (func.length === 0 || func.startsWith("#")) {
+        return
+    }
+
+    // Save non-secret commandlines to the history.
     if (
         !browser.extension.inIncognitoContext &&
         !(func === "winopen" && args[0] === "-private")

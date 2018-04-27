@@ -1,12 +1,59 @@
-# Tridactyl changelogs
+# Tridactyl changelog
 
-## Release 1.9.4
+## Release 1.10.0 / Unreleased
+
+- Native messenger! Run `:installnative` to install, then:
+    - `<Ctrl-E>` in a text field will open Vim, probably. Set it with `set editorcmd` but make sure that the command stays in the foreground till the programme is exited.
+    - Not all text fields work yet (esp CodeMirror), so make sure you test it before writing war and peace.
+    - `:! [shell command]` or `:exclaim [shell command]` will run the command and give you STDOUT/STDERR back in the command line.
+        - You can't use composite and shell pipes together yet.
+        - Anything that works in `/bin/sh` should work
+            - If you want to use a different shell, just make your own alias:
+                -  `command ! exclaim fish -c` (but be aware that some shells require quotes around arguments given to -c)
+    - `hint -W exclaim mpv` works particularly well.
+
+## Release 1.9.8 / 2018-04-26
+
+- Make error reporting to command line less fussy
+- Fix error reporting loop with `noiframeon`
+
+## Release 1.9.7 / 2018-04-25
+
+- Load iframe more lazily to stop breakage on some sites
+- Add setting `noiframeon` for websites that are still broken by our iframe ("ServiceNow", for example: #279)
+    - Simply `set noiframeon [space separated URLs]` to blacklist URLs
+- This will hopefully be our final release before the native messenger for OSX and Linux is merged.
+    - If you'd like to help test it out, download our latest betas from [here](https://tridactyl.cmcaine.co.uk/betas) and run `:installnative` once you are in.
+
+## Release 1.9.6 / 2018-04-25
+
+- Scrolling improvements
+    - Faster (#395)
+    - `G`/`gg` work on more pages (#382)
+- Mode indicator improvements
+    - Can be disabled with `set modeindicator false`
+    - Text is not selectable to improve the lives of people who "Select All" a lot
+- Internal error messages are now displayed in the command line
+- New default alias `:h` for `:help`
+- Bug fixes
+    - Fix #418: keyseq is better at realising when a key combination is invalid
+
+## Release 1.9.5 / 2018-04-22
+
+- Add mode indicator
+- Fix #337: Make `composite` and ex-parser more sequential
+    - Add `D` binding: close current tab and `tabprev`
+- Bug fixes
+    - Fix `tab` in inputmode
+    - Catch CSP exception when hijacking
+
+## Release 1.9.4 / 2018-04-20
 
 - Add jumplist for inputs bound to `g;`
     - Editor's impartial note: this is pretty cool
 - Add `hint -W [exstr]` to execute exstr on hint's href
 - Update new tab page:
-    - Add changelogs
+    - Add changelog
     - Remove welcome to new users as we have `tutor` for that now
     - Fix newtab redirection on `set newtab [url]`
         - `set newtab about:blank` now works thanks to a Mozilla bug fix!
@@ -15,22 +62,22 @@
     - input-mode now correctly exits to normal mode on focus loss
     - Stop treating "std::map" or "Error: foo" as URIs: searching for them will now work.
 
-## Release 1.9.3
+## Release 1.9.3 / 2018-04-19
 
 - Fix unbind issues
 - Add more default binds from Vimperator
 - Change the `^` bind to `<c-6>` (matches vim)
 - :bmark now supports folders
 
-## Release 1.9.2
+## Release 1.9.2 / 2018-04-16
 
 - Fix #392 (bug with keyseq)
 
-## Release 1.9.1
+## Release 1.9.1 / 2018-04-15
 
 - Fix buffer switch bind
 
-## Release 1.9.0
+## Release 1.9.0 / 2018-04-15
 
 - Allow binds with modifiers (e.g. `<C-u>`) and binds of special keys (e.g. `<F1>`) and both together (e.g. `<SA-Escape>`)
 - Normal mode now only hides keypresses that you've told it to listen to from the web page
@@ -76,8 +123,7 @@
     - Show useless hints on some sites (#225)
     - and more!
 
-
-## Release 1.8.2
+## Release 1.8.2 / 2018-03-07
 
 - Improve config API
     - `set key.subkey.subsubkey value` now works
@@ -109,7 +155,7 @@
 - Fix various typos (#247, #228)
 - Add FAQ and other updates to readme.md (#232)
 
-## Release 1.7.3
+## Release 1.7.3 / 2017-12-21
 
 - Hint tags are much better:
     - Hint tags are now as short as possible
@@ -137,8 +183,7 @@
 - Add <summary> tags to standard hinting
 - Log an error to browser console if no TTS voices are found
 
-
-## Release 1.7.0
+## Release 1.7.0 / 2017-12-01
 
  - History completion is massively improved: much faster, more relevant results, and less janky as you type.
  - User configuration

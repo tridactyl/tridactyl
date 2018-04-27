@@ -16,6 +16,13 @@ function mk(k, mod?: ks.KeyModifiers) {
         // Test shiftKey ignoring
         [mks(":"), "fillcmdline"],
         [mks("Av"), "whatever"],
+        [mks("i<c-j>"), "testmods"],
+    ])
+    // Keymap for negative tests
+    const keymap2 = new Map([
+        [mks("gg"), "scrolltop"],
+        [mks("gof"), "foo"],
+        [mks("o"), "bar"],
     ])
 
     // This one actually found a bug once!
@@ -36,11 +43,33 @@ function mk(k, mod?: ks.KeyModifiers) {
             [[mk("A", { shiftKey: true }), mk("v")], keymap],
             { value: "whatever", isMatch: true },
         ],
+        // Test bare modifiers
+        [
+            [mks("i<Control><c-j>"), keymap],
+            { value: "testmods", isMatch: true },
+        ],
+        [
+            [mks("i<C-Control><c-j>"), keymap],
+            { value: "testmods", isMatch: true },
+        ],
+
+        // Test prefix problems
+        [[mks("g"), keymap2], { keys: mks("g"), isMatch: true }],
+        [[mks("go"), keymap2], { keys: mks("go"), isMatch: true }],
+        [[mks("gog"), keymap2], { keys: mks("g"), isMatch: true }],
+        [[mks("gor"), keymap2], { keys: [], isMatch: false }],
+        // If you somehow go beyond a valid keymap (keymap is changed in
+        // between keypresses or something) then clear the key list.
+        [[mks("goff"), keymap2], { keys: [], isMatch: false }],
+        [[mks("xxxxx"), keymap2], { keys: [], isMatch: false }],
     ])
 
     testAllObject(ks.completions, [
         [[[mk("g")], keymap], new Map([[[mk("g"), mk("g")], "scrolltop"]])],
         [[mks("<C-u>j"), keymap], new Map([[mks("<C-u>j"), "scrollline 10"]])],
+        // -ve tests
+        [[mks("x"), keymap], new Map()],
+        [[mks("ggg"), keymap], new Map()],
     ])
 } // }}}
 

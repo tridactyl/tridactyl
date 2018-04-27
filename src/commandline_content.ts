@@ -1,6 +1,7 @@
 /** Inject an input element into unsuspecting webpages and provide an API for interaction with tridactyl */
 
 import Logger from "./logging"
+import * as config from "./config"
 const logger = new Logger("messaging")
 
 /* TODO:
@@ -15,9 +16,15 @@ const logger = new Logger("messaging")
 // inject the commandline iframe into a content page
 
 let cmdline_iframe: HTMLIFrameElement = undefined
+let enabled = false
 
-function init() {
-    if (cmdline_iframe === undefined) {
+/** Initialise the cmdline_iframe element unless the window location is included in a value of config/noiframeon */
+async function init() {
+    let noiframeon = await config.getAsync("noiframeon")
+    enabled =
+        noiframeon.length == 0 ||
+        noiframeon.find(url => window.location.href.includes(url)) === undefined
+    if (enabled && cmdline_iframe === undefined) {
         try {
             cmdline_iframe = window.document.createElement("iframe")
             cmdline_iframe.className = "cleanslate"
@@ -33,27 +40,40 @@ function init() {
         }
     }
 }
-// TODO: Propagate awaits back through messaging system or resend
-// commandline_frame messages from excmd_content if you want to avoid init'ing
-// every time.
-init()
+
+// Load the iframe immediately if the document is already complete (happens if tridactyl is reloaded)
+// Else load lazily to avoid upsetting page JS that hates foreign iframes.
+if (document.readyState === "complete") {
+    init()
+} else {
+    // Surrender event loop with setTimeout() to page JS in case it's still doing stuff.
+    document.addEventListener("DOMContentLoaded", () => setTimeout(init, 0))
+}
 
 export function show() {
-    const height =
-        cmdline_iframe.contentWindow.document.body.offsetHeight + "px"
-    cmdline_iframe.setAttribute("style", `height: ${height} !important;`)
+    if (enabled) {
+        const height =
+            cmdline_iframe.contentWindow.document.body.offsetHeight + "px"
+        cmdline_iframe.setAttribute("style", `height: ${height} !important;`)
+    }
 }
 
 export function hide() {
-    cmdline_iframe.setAttribute("style", "height: 0px !important;")
+    if (enabled) {
+        cmdline_iframe.setAttribute("style", "height: 0px !important;")
+    }
 }
 
 export function focus() {
-    cmdline_iframe.focus()
+    if (enabled) {
+        cmdline_iframe.focus()
+    }
 }
 
 export function blur() {
-    cmdline_iframe.blur()
+    if (enabled) {
+        cmdline_iframe.blur()
+    }
 }
 
 export function executeWithoutCommandLine(fn) {
