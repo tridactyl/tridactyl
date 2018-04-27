@@ -198,9 +198,11 @@ export async function guiset(rule: string, option: string) {
             return
         }
     } else profile_dir = config.get("profiledir")
-    const cssstr = (await Native.read(profile_dir + "/chrome/userChrome.css")).content
+    await Native.mkdir(profile_dir + "/chrome", true)
+    let cssstr = (await Native.read(profile_dir + "/chrome/userChrome.css")).content
     // this will get overwritten as soon as a second command is run.
     await Native.write(profile_dir + "/chrome/userChrome.css.tri.bak", cssstr)
+    if (cssstr === "") cssstr = `@namespace url("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul");`
     let stylesheet = CSS.parse(cssstr)
     let stylesheetDone = CSS.stringify(css_util.changeCss(rule, option, stylesheet))
     Native.write(profile_dir + "/chrome/userChrome.css", stylesheetDone)

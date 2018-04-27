@@ -8,7 +8,7 @@ import struct
 import subprocess
 import tempfile
 
-VERSION = "0.1.0"
+VERSION = "0.1.1"
 
 
 class NoConnectionError(Exception):
@@ -91,8 +91,20 @@ def handleMessage(message):
         reply['content'] = output
 
     elif cmd == 'read':
-        with open(message["file"], "r") as file:
-            reply['content'] = file.read()
+        try:
+            with open(message["file"], "r") as file:
+                reply['content'] = file.read()
+                reply['code'] = 0
+        except FileNotFoundError:
+            reply['content'] = ""
+            reply['code'] = 2
+
+    elif cmd == 'mkdir':
+        os.makedirs(
+            os.path.relpath(message["dir"]), exist_ok=message["exist_ok"]
+        )
+        reply['content'] = ""
+        reply['code'] = 0
 
     elif cmd == 'write':
         with open(message["file"], "w") as file:

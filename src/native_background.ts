@@ -8,7 +8,7 @@ import Logger from "./logging"
 const logger = new Logger("native")
 
 const NATIVE_NAME = "tridactyl"
-type MessageCommand = "version" | "run" | "read" | "write" | "temp"
+type MessageCommand = "version" | "run" | "read" | "write" | "temp" | "mkdir"
 interface MessageResp {
     cmd: string
     version: number | null
@@ -144,6 +144,10 @@ export async function read(file: string) {
 
 export async function write(file: string, content: string) {
     return sendNativeMsg("write", { file, content })
+}
+
+export async function mkdir(dir: string, exist_ok: boolean) {
+    return sendNativeMsg("mkdir", { dir, exist_ok })
 }
 
 export async function temp(content: string) {
