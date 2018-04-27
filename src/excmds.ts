@@ -192,7 +192,7 @@ export async function guiset(rule: string, option: string) {
     if (!await nativegate()) return
     let profile_dir = ""
     if (config.get("profiledir") === "auto") {
-        if (["linux", "openbsd"].includes((await browser.runtime.getPlatformInfo()).os)) profile_dir = await Native.getProfileDir()
+        if (["linux", "openbsd", "mac"].includes((await browser.runtime.getPlatformInfo()).os)) profile_dir = await Native.getProfileDir()
         else {
             fillcmdline("Please set your profile directory (found on about:support) via `set profiledir [profile directory]`")
             return

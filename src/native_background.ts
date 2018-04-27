@@ -157,7 +157,11 @@ export async function run(command: string) {
 
 export async function getProfileDir() {
     // Find active profile directory automatically by seeing where the lock exists
-    return (await run("find ../../../.mozilla/firefox -name lock")).content
+    let hacky_profile_finder = "find ../../../.mozilla/firefox -name lock"
+    if ((await browser.runtime.getPlatformInfo()).os === "mac")
+        hacky_profile_finder =
+            "find ../../../Library/Application Support/Firefox/Profiles -maxdepth 2 -name .parentlock"
+    return (await run(hacky_profile_finder)).content
         .split("/")
         .slice(0, -1)
         .join("/")
