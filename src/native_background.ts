@@ -160,7 +160,7 @@ export async function getProfileDir() {
     let hacky_profile_finder = "find ../../../.mozilla/firefox -name lock"
     if ((await browser.runtime.getPlatformInfo()).os === "mac")
         hacky_profile_finder =
-            "find ../../../Library/Application Support/Firefox/Profiles -maxdepth 2 -name .parentlock"
+            "find ../../../Library/'Application Support'/Firefox/Profiles -maxdepth 2 -name .parentlock"
     return (await run(hacky_profile_finder)).content
         .split("/")
         .slice(0, -1)
