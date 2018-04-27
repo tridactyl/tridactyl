@@ -218,6 +218,8 @@ export function cssparse(...css: string[]) {
  * **Be *seriously* careful with this: you can use it to open any URL you can open in the Firefox address bar.**
  *
  * You've been warned.
+ *
+ * Unsupported on OSX unless you set `browser` to something that will open Firefox from a terminal pass it commmand line options.
  */
 //#background
 export async function nativeopen(url: string, ...firefoxArgs: string[]) {
@@ -552,16 +554,19 @@ export async function reloadhard(n = 1) {
 }
 
 /** Open a new page in the current tab.
-
-    @param urlarr
-        - if first word looks like it has a schema, treat as a URI
-        - else if the first word contains a dot, treat as a domain name
-        - else if the first word is a key of [[SEARCH_URLS]], treat all following terms as search parameters for that provider
-        - else treat as search parameters for google
-
-    Related settings:
-        "searchengine": "google" or any of [[SEARCH_URLS]]
-*/
+ *
+ *   @param urlarr
+ *       - if first word looks like it has a schema, treat as a URI
+ *       - else if the first word contains a dot, treat as a domain name
+ *       - else if the first word is a key of [[SEARCH_URLS]], treat all following terms as search parameters for that provider
+ *       - else treat as search parameters for google
+ * 
+ *   Related settings:
+ *       "searchengine": "google" or any of [[SEARCH_URLS]]
+ 
+ * Can only open about:* or file:* URLs if you have the native messenger installed, and on OSX you must set `browser` to something that will open Firefox from a terminal pass it commmand line options.
+ *
+ */
 //#content
 export async function open(...urlarr: string[]) {
     let url = urlarr.join(" ")
