@@ -197,8 +197,8 @@ clInput.addEventListener("keydown", function(keyevent) {
 
         case " ":
             const command = getCompletion()
-            if (command)
-                fillcmdline(command, false)
+            activeCompletions.forEach(comp => (comp.completion = undefined))
+            if (command) fillcmdline(command, false)
             break
     }
 
@@ -281,7 +281,7 @@ function process() {
 
     const [func, ...args] = command.trim().split(/\s+/)
 
-    if (func.length === 0 || func.startsWith('#')) {
+    if (func.length === 0 || func.startsWith("#")) {
         return
     }
 
