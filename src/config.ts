@@ -119,7 +119,7 @@ const DEFAULTS = o({
         ";;": "hint -;",
         ";#": "hint -#",
         ";v": "hint -W exclaim_quiet mpv",
-        I: "mode ignore",
+        "<S-Insert>": "mode ignore",
         a: "current_url bmark",
         A: "bmark",
         zi: "zoom 0.1 true",
