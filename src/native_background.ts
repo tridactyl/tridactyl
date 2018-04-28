@@ -91,41 +91,34 @@ export async function getBestEditor(): Promise<string> {
 
     const tui_editors = ["vim", "nvim", "nano", "emacs -nw"]
 
-    let ind = 0
-    let cmd = gui_candidates[ind]
-    let tuicmd = ""
-
     // Consider GUI editors
-    while (!await inpath(cmd.split(" ")[0])) {
-        ind++
-        cmd = gui_candidates[ind]
-        if (cmd === undefined) {
-            ind = 0
-            cmd = term_emulators[ind]
-            // Try to find a terminal emulator
-            while (!await inpath(cmd.split(" ")[0])) {
-                ind++
-                cmd = term_emulators[ind]
-                if (cmd === undefined) break
-            }
-            if (cmd === undefined) break
-            ind = 0
-            tuicmd = tui_editors[ind]
-            // Try to find a text editor
-            while (!await inpath(tuicmd.split(" ")[0])) {
-                ind++
-                tuicmd = tui_editors[ind]
-                if (tuicmd === undefined) break
-            }
-            cmd = cmd + " " + tuicmd
-            break
-        }
+    let cmd = await firstinpath(gui_candidates)
+
+    if (cmd === undefined) {
+        // Try to find a terminal emulator
+        cmd = await firstinpath(term_emulators)
+        // and a text editor
+        let tuicmd = await firstinpath(tui_editors)
+        cmd = cmd + " " + tuicmd
     }
+
     return cmd
 }
 
 export async function inpath(cmd) {
     return (await run("which " + cmd.split(" ")[0])).code === 0
+}
+
+export async function firstinpath(cmdarray) {
+    let ind = 0
+    let cmd = cmdarray[ind]
+    // Try to find a text editor
+    while (!await inpath(cmd.split(" ")[0])) {
+        ind++
+        cmd = cmdarray[ind]
+        if (cmd === undefined) break
+    }
+    return cmd
 }
 
 export async function editor(file: string, content?: string) {
