@@ -8,7 +8,7 @@ export function parser(keys) {
         if (key.key === "Escape") {
             return { keys: [], exstr: "unfocus" }
         }
-    } else if (key.key === "e" && key.ctrlKey)
+    } else if (key.key === "i" && key.ctrlKey)
         return { keys: [], exstr: "editor" }
     return { keys: [], exstr: undefined }
 }

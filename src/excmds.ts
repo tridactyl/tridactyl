@@ -162,7 +162,7 @@ export async function getinput() {
  *
  * The editorcmd needs to accept a filename, stay in the foreground while it's edited, save the file and exit.
  *
- * You're probably better off using the default insert mode bind of <C-e> to access this.
+ * You're probably better off using the default insert mode bind of <C-i> to access this.
  */
 //#background
 export async function editor() {
