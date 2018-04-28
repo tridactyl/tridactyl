@@ -542,6 +542,22 @@ export async function open(...urlarr: string[]) {
 /** @hidden */
 //#content_helper
 let sourceElement = undefined
+/** @hidden */
+//#content_helper
+function removeSource() {
+    if (sourceElement) {
+        sourceElement.remove()
+        sourceElement = undefined
+    }
+}
+/** Display the (HTML) source of the current page.
+
+    Behaviour can be changed by the 'viewsource' setting.
+
+    If the 'viewsource' setting is set to 'default' rather than 'tridactyl',
+    the url the source of which should be displayed can be given as argument.
+    Otherwise, the source of the current document will be displayed.
+*/
 //#content
 export function viewsource(url = "") {
     if (url === "") url = window.location.href
@@ -556,11 +572,13 @@ export function viewsource(url = "") {
             pre.className = "cleanslate " + config.get("theme")
             pre.innerText = document.documentElement.innerHTML
             document.documentElement.appendChild(pre)
+            window.addEventListener("popstate", removeSource)
             return pre
         })
     } else {
         sourceElement.parentNode.removeChild(sourceElement)
         sourceElement = undefined
+        window.removeEventListener("popstate", removeSource)
     }
 }
 
