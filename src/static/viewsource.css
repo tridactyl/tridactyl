@@ -9,6 +9,7 @@
   white-space: pre !important;
   min-width: 100% !important;
   min-height: 100% !important;
+  margin: 0px !important;
 }
 
 #TridactylViewsourceElement.dark {
