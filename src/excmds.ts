@@ -260,6 +260,10 @@ export async function installnative() {
 //#background
 export async function updatenative(interactive = true) {
     if (await nativegate("0", interactive)) {
+        if ((await browser.runtime.getPlatformInfo()).os === "mac") {
+            if (interactive) logger.error("Updating the native messenger on OSX is broken. Please use `:installnative` instead.")
+            return
+        }
         await Native.run(await config.get("nativeinstallcmd"))
         if (interactive) native()
     }
