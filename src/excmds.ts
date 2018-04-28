@@ -189,7 +189,7 @@ export async function guiset(rule: string, option: string) {
 
     //TODO: support fresh installs - won't have a chrome folder or userChrome.css
     // just need to add @namespace url("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul");
-    if (!await nativegate()) return
+    if (!await nativegate("0.1.1")) return
     let profile_dir = ""
     if (config.get("profiledir") === "auto") {
         if (["linux", "openbsd", "mac"].includes((await browser.runtime.getPlatformInfo()).os)) profile_dir = await Native.getProfileDir()
