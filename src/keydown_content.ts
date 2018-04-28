@@ -59,7 +59,7 @@ function modeSpecificSuppression(ke: KeyboardEvent) {
             }
             break
         case "input":
-            if (ke.key === "Tab") {
+            if (ke.key === "Tab" || (ke.ctrlKey === true && ke.key === "i")) {
                 ke.preventDefault()
                 ke.stopImmediatePropagation()
             }
@@ -67,6 +67,10 @@ function modeSpecificSuppression(ke: KeyboardEvent) {
         case "ignore":
             break
         case "insert":
+            if (ke.ctrlKey === true && ke.key === "i") {
+                ke.preventDefault()
+                ke.stopImmediatePropagation()
+            }
             break
     }
 }
