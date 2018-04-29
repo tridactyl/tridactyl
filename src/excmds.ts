@@ -374,6 +374,7 @@ export function loggingsetlevel(logModule: string, level: string) {
 //#content
 export function unfocus() {
     ;(document.activeElement as HTMLInputElement).blur()
+    state.mode = "normal"
 }
 
 //#content
