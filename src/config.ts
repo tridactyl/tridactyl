@@ -92,6 +92,7 @@ const DEFAULTS = o({
         gr: "reader",
         gu: "urlparent",
         gU: "urlroot",
+        gf: "viewsource",
         ":": "fillcmdline",
         s: "fillcmdline open search",
         S: "fillcmdline tabopen search",
