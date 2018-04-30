@@ -3,7 +3,7 @@
 ## Release 1.10.0 / Unreleased
 
 - Native messenger! Run `:installnative` to install, then:
-    - `<Ctrl-E>` in a text field will open Vim, probably. Set it with `set editorcmd` but make sure that the command stays in the foreground till the programme is exited.
+    - `<Ctrl-I>` in a text field will open Vim, probably. Set it with `set editorcmd` but make sure that the command stays in the foreground till the programme is exited.
     - Not all text fields work yet (esp CodeMirror), so make sure you test it before writing war and peace.
     - `:! [shell command]` or `:exclaim [shell command]` will run the command and give you STDOUT/STDERR back in the command line.
         - You can't use composite and shell pipes together yet.
