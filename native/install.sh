@@ -19,7 +19,8 @@ fi
 mkdir -p "$manifest_home" "$XDG_DATA_HOME"
 
 manifest_file="$manifest_home/tridactyl.json"
-native_file="$XDG_DATA_HOME/native_main.py"
+native_file="$XDG_DATA_HOME/native_main.py.new"
+native_file_final="$XDG_DATA_HOME/native_main.py"
 
 echo "Installing manifest here: $manifest_home"
 echo "Installing script here: XDG_DATA_HOME: $XDG_DATA_HOME"
@@ -34,7 +35,7 @@ else
     curl -sS --create-dirs -o "$native_file" "$native_loc"
 fi
 
-native_file_escaped=$(sed 's/[&/\]/\\&/g' <<< "$native_file")
+native_file_escaped=$(sed 's/[&/\]/\\&/g' <<< "$native_file_final")
 
 sed -i.bak "s/REPLACE_ME_WITH_SED/$native_file_escaped/" "$manifest_file"
 chmod +x $native_file
@@ -45,6 +46,7 @@ pip_path=$(which pip3)
 python_file_escaped=$(sed 's/[&/\]/\\&/g' <<< "$python_path")
 if [[ -x "$python_path" ]] && [[ -x "$pip_path" ]]; then
     sed -i.bak "1s/.*/#!$python_file_escaped/" "$native_file"
+    mv "$native_file" "$native_file_final"
     # pip3 install --user tinycss2
     # put dependencies here
 else

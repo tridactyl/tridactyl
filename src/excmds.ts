@@ -162,7 +162,7 @@ export async function getinput() {
  *
  * The editorcmd needs to accept a filename, stay in the foreground while it's edited, save the file and exit.
  *
- * You're probably better off using the default insert mode bind of <C-e> to access this.
+ * You're probably better off using the default insert mode bind of <C-i> to access this.
  */
 //#background
 export async function editor() {
@@ -260,6 +260,10 @@ export async function installnative() {
 //#background
 export async function updatenative(interactive = true) {
     if (await nativegate("0", interactive)) {
+        if ((await browser.runtime.getPlatformInfo()).os === "mac") {
+            if (interactive) logger.error("Updating the native messenger on OSX is broken. Please use `:installnative` instead.")
+            return
+        }
         await Native.run(await config.get("nativeinstallcmd"))
         if (interactive) native()
     }
@@ -370,6 +374,7 @@ export function loggingsetlevel(logModule: string, level: string) {
 //#content
 export function unfocus() {
     ;(document.activeElement as HTMLInputElement).blur()
+    state.mode = "normal"
 }
 
 //#content
