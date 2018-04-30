@@ -178,17 +178,20 @@ export async function editor() {
 import * as css_util from "./css_util"
 
 /**
- * Might mangle your userChrome. Requires native messenger and a restart <!-- (unless you enable addon debugging and refresh using the browser toolbox) -->
+ * Change which parts of the Firefox user interface are shown.
  *
- * View available rules and options [here](/static/docs/modules/_css_util_.html#potentialrules).
+ * Might mangle your userChrome. Requires native messenger, and you must restart Firefox each time to see any changes. <!-- (unless you enable addon debugging and refresh using the browser toolbox) -->
+ *
+ * View available rules and options [here](/static/docs/modules/_css_util_.html#potentialrules) and [here](/static/docs/modules/_css_util_.html#metarules).
+ *
+ * Example usage: `guiset gui none`, `guiset gui full`, `guiset tabs autohide`.
  *
  */
 //#background
 export async function guiset(rule: string, option: string) {
     // Could potentially fall back to sending minimal example to clipboard if native not installed
 
-    //TODO: support fresh installs - won't have a chrome folder or userChrome.css
-    // just need to add @namespace url("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul");
+    // Check for native messenger and make sure we have a plausible profile directory
     if (!await nativegate("0.1.1")) return
     let profile_dir = ""
     if (config.get("profiledir") === "auto") {
@@ -198,11 +201,19 @@ export async function guiset(rule: string, option: string) {
             return
         }
     } else profile_dir = config.get("profiledir")
-    if (profile_dir == "") {logger.error("Profile not found."); return}
+    if (profile_dir == "") {
+        logger.error("Profile not found.")
+        return
+    }
+
+    // Make backups
     await Native.mkdir(profile_dir + "/chrome", true)
     let cssstr = (await Native.read(profile_dir + "/chrome/userChrome.css")).content
-    // this will get overwritten as soon as a second command is run.
+    let cssstrOrig = (await Native.read(profile_dir + "/chrome/userChrome.orig.css")).content
+    if (cssstrOrig === "") await Native.write(profile_dir + "/chrome/userChrome.orig.css", cssstr)
     await Native.write(profile_dir + "/chrome/userChrome.css.tri.bak", cssstr)
+
+    // Modify and write new CSS
     if (cssstr === "") cssstr = `@namespace url("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul");`
     let stylesheet = CSS.parse(cssstr)
     let stylesheetDone = CSS.stringify(css_util.changeCss(rule, option, stylesheet))
