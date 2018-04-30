@@ -32,10 +32,60 @@ export const potentialRules = {
             "top-right": `top: 2em; right: 0; display: inline;`,
         },
     },
-    tabs: {
+    tabstoolbar: {
         name: `#TabsToolbar`,
         options: {
             none: `visibility: collapse;`,
+            show: ``,
+        },
+    },
+    tabstoolbarunfocused: {
+        name: `:root:not([customizing]) #navigator-toolbox:not(:hover):not(:focus-within) #TabsToolbar`,
+        options: {
+            hide: `visibility: collapse;`,
+            show: ``,
+        },
+    },
+    navtoolboxunfocused: {
+        name: `:root:not([customizing]) #navigator-toolbox:not(:hover):not(:focus-within)`,
+        options: {
+            hide: `max-height: 0; min-height: calc(0px);`,
+            show: ``,
+        },
+    },
+    navbarunfocused: {
+        name: `:root:not([customizing]) #navigator-toolbox:not(:hover):not(:focus-within) #nav-bar`,
+        // tridactyl auto show zone doesn't seem to make a difference
+        options: {
+            hide: `max-height: 0;
+                    min-height: 0!important;
+                    --tridactyl-auto-show-zone: 10px;
+                    margin-bottom: calc(-1 * var(--tridactyl-auto-show-zone));
+                    opacity: 0;`,
+            show: ``,
+        },
+    },
+    // Annoying black line at top in fullscreen
+    navbarafter: {
+        name: `#navigator-toolbox::after`,
+        options: {
+            hide: `display: none !important;`,
+            show: ``,
+        },
+    },
+    // This inherits transparency if we aren't careful
+    menubar: {
+        name: `#navigator-toolbox:not(:hover):not(:focus-within) #toolbar-menubar > *`,
+        options: {
+            grey: `background-color: rgb(232, 232, 231);`,
+            default: ``,
+        },
+    },
+    // Window dectorations
+    titlebar: {
+        name: `#titlebar`,
+        options: {
+            hide: `display: none !important;`,
             show: ``,
         },
     },
@@ -62,10 +112,41 @@ export const metaRules = {
         none: {
             hoverlink: "none",
             tabs: "none",
+            navbar: "autohide",
+            titlebar: "hide",
+            menubar: "grey",
         },
         full: {
             hoverlink: "left",
-            tabs: "show",
+            tabs: "always",
+            navbar: "always",
+            titlebar: "show",
+            menubar: "default",
+        },
+    },
+    tabs: {
+        none: {
+            tabstoolbar: "none",
+        },
+        always: {
+            tabstoolbar: "show",
+            tabstoolbarunfocused: "show",
+        },
+        autohide: {
+            tabstoolbar: "show",
+            tabstoolbarunfocused: "hide",
+        },
+    },
+    navbar: {
+        autohide: {
+            navbarunfocused: "hide",
+            navtoolboxunfocused: "hide",
+            navbarafter: "hide",
+        },
+        always: {
+            navbarunfocused: "show",
+            navtoolboxunfocused: "show",
+            navbarafter: "show",
         },
     },
 }
@@ -97,7 +178,8 @@ export function changeCss(
 ): CSS.Stylesheet {
     if (rulename in metaRules) {
         for (let rule of Object.keys(metaRules[rulename][optionname])) {
-            sheet = changeSingleCss(
+            // have a metarule call itself for hours of fun
+            sheet = changeCss(
                 rule,
                 metaRules[rulename][optionname][rule],
                 sheet,
