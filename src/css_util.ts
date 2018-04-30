@@ -41,13 +41,41 @@ export const potentialRules = {
     },
 }
 
-export function changeCss(
+//  Vimperator's options for reference:
+//  <tags>'go' 'guioptions'</tags>
+//  <spec>'guioptions' 'go'</spec>
+
+//
+//  m          Menubar
+//  T          Toolbar
+//  B          Bookmark bar
+//  A          Add-on bar
+//  n          Tab number
+//  b          Bottom scrollbar
+//  r          Right scrollbar
+//  l          Left scrollbar
+//
+//  was just a simple show/hide if the characters appeared in the setting
+
+export const metaRules = {
+    gui: {
+        none: {
+            hoverlink: "none",
+            tabs: "none",
+        },
+        full: {
+            hoverlink: "left",
+            tabs: "show",
+        },
+    },
+}
+
+export function changeSingleCss(
     rulename: string,
     optionname: string,
     sheet: CSS.Stylesheet,
 ): CSS.Stylesheet {
     const ruleInds = findCssRules(potentialRules[rulename]["name"], sheet)
-    console.log(ruleInds)
     const desRule =
         potentialRules[rulename]["name"] +
         " {" +
@@ -59,5 +87,22 @@ export function changeCss(
     } else {
         sheet.stylesheet.rules = sheet.stylesheet.rules.concat(miniSheet)
     }
+    return sheet
+}
+
+export function changeCss(
+    rulename: string,
+    optionname: string,
+    sheet: CSS.Stylesheet,
+): CSS.Stylesheet {
+    if (rulename in metaRules) {
+        for (let rule of Object.keys(metaRules[rulename][optionname])) {
+            sheet = changeSingleCss(
+                rule,
+                metaRules[rulename][optionname][rule],
+                sheet,
+            )
+        }
+    } else sheet = changeSingleCss(rulename, optionname, sheet)
     return sheet
 }
