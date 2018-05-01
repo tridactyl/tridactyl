@@ -76,6 +76,7 @@ abstract class CompletionOptionHTML extends CompletionOption {
         switch (newstate) {
             case "focused":
                 this.html.classList.add("focused")
+                this.html.scrollIntoView()
                 this.html.classList.remove("hidden")
                 break
             case "normal":
@@ -296,8 +297,7 @@ abstract class CompletionSourceFuse extends CompletionSource {
             // visopts.length + 1 because we want an empty completion at the end
             let max = visopts.length + 1
             let opt = visopts[(currind + inc + max) % max]
-            if (opt)
-                this.select(opt)
+            if (opt) this.select(opt)
             return true
         } else return false
     }
