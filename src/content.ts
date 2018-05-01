@@ -93,7 +93,7 @@ config.getAsync("modeindicator").then(mode => {
             let mode = changes.state.newValue.mode
             if (
                 dom.isTextEditable(document.activeElement) &&
-                !["input", "ignore"].includes(mode)
+                mode != "ignore"
             ) {
                 statusIndicator.textContent = "insert"
                 // this doesn't work; statusIndicator.style is full of empty string

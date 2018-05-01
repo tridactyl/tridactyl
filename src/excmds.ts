@@ -1011,10 +1011,8 @@ export function focusinput(nth: number | string) {
     }
 
     if (inputToFocus) {
+        state.focusinput = true
         DOM.focus(inputToFocus)
-        if (config.get("gimode") === "nextinput" && state.mode !== "input") {
-            state.mode = "input"
-        }
     }
 }
 

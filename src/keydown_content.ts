@@ -4,15 +4,13 @@ import * as Messaging from "./messaging"
 import * as msgsafe from "./msgsafe"
 import { isTextEditable, getAllDocumentFrames } from "./dom"
 import { isSimpleKey } from "./keyseq"
+import * as config from "./config"
 
 function keyeventHandler(ke: KeyboardEvent) {
     // Ignore JS-generated events for security reasons.
     if (!ke.isTrusted) return
 
-    // Mode is changed based on ke target in the bg.
-    if (state.mode === "input" || !isTextEditable(ke.target as Node)) {
-        modeSpecificSuppression(ke)
-    }
+    modeSpecificSuppression(ke)
 
     Messaging.message("keydown_background", "recvEvent", [
         msgsafe.KeyboardEvent(ke),
@@ -58,19 +56,20 @@ function modeSpecificSuppression(ke: KeyboardEvent) {
                 ke.stopImmediatePropagation()
             }
             break
-        case "input":
-            if (ke.key === "Tab" || (ke.ctrlKey === true && ke.key === "i")) {
-                ke.preventDefault()
-                ke.stopImmediatePropagation()
+        case "insert":
+            switch (true) {
+                // <C-i> opens the text editor
+                case ke.ctrlKey === true && ke.key === "i":
+                // <Tab> can call focusinput
+                case ke.key == "Tab" &&
+                    state.focusinput &&
+                    config.get("gimode") != "firefox":
+                    ke.preventDefault()
+                    ke.stopImmediatePropagation()
+                    break
             }
             break
         case "ignore":
-            break
-        case "insert":
-            if (ke.ctrlKey === true && ke.key === "i") {
-                ke.preventDefault()
-                ke.stopImmediatePropagation()
-            }
             break
     }
 }
