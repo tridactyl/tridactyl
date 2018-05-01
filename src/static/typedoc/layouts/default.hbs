@@ -1,0 +1,37 @@
+<!doctype html>
+<html class="minimal no-js">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>{{model.name}} | {{project.name}}</title>
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script src="/content.js"></script>
+    <link rel="stylesheet" href="/static/content.css">
+    <link rel="stylesheet" href="/static/hint.css">
+    <link rel="stylesheet" href="/static/typedoc/assets/css/main.css">
+</head>
+<body>
+
+<nav class="tsd-navigation secondary">
+    <ul>
+        {{#each toc.children}}
+            {{> toc}}
+        {{/each}}
+    </ul>
+</nav>
+
+<div class="container container-main">
+    <div class="content-wrap">
+        {{#if model.readme}}
+                <div class="tsd-panel tsd-typography">
+                        {{#markdown}}{{{model.readme}}}{{/markdown}}
+                </div>
+        {{/if}}
+
+        {{{contents}}}
+    </div>
+</div>
+
+</body>
+</html>
