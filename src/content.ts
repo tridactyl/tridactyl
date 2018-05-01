@@ -114,8 +114,14 @@ config.getAsync("modeindicator").then(mode => {
 })
 
 config.getAsync("smoothscroll").then(smooth => {
+    browser.storage.onChanged.addListener((changes, areaname) => {
+        if (areaname == "sync") {
+            if (changes.userconfig.newValue.smoothscroll === "true")
+                (document.body.style as any).scrollBehavior = "smooth"
+            else (document.body.style as any).scrollBehavior = "auto"
+        }
+    })
     if (smooth !== "true") return
-    // Typescript says scrollBehavior doesn't exist but it does
     ;(document.body.style as any).scrollBehavior = "smooth"
     // Apparently frames aren't affected by scrollBehavior = "smooth"
     // dom.getAllDocumentFrames().map(f => {
