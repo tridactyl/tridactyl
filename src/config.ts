@@ -226,6 +226,7 @@ const DEFAULTS = o({
 
     theme: "default", // currently available: "default", "dark"
     modeindicator: "true",
+    smoothscroll: "false",
 
     // Default logging levels - 2 === WARNING
     logging: o({

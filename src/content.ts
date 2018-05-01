@@ -112,3 +112,15 @@ config.getAsync("modeindicator").then(mode => {
         if (config.get("modeindicator") !== "true") statusIndicator.remove()
     })
 })
+
+config.getAsync("smoothscroll").then(smooth => {
+    if (smooth !== "true") return
+    // Typescript says scrollBehavior doesn't exist but it does
+    ;(document.body.style as any).scrollBehavior = "smooth"
+    // Apparently frames aren't affected by scrollBehavior = "smooth"
+    // dom.getAllDocumentFrames().map(f => {
+    //     try {
+    //         (f.contentDocument.body.style as any).scrollBehavior = "smooth"
+    //     } catch (e) {console.log(e)}
+    // })
+})
