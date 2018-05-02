@@ -876,7 +876,7 @@ img { max-width: 100%; }
 
 body {
     font-family: sans-serif;
-    font-size: 12px;
+    font-size: 1rem;
     text-align: justify;
     -moz-hyphens: auto;
     background: #fff;
@@ -885,7 +885,7 @@ body {
 .tsd-panel {
     box-shadow: unset;
     /* border: solid rgba(220,220,220) 1px; */
-    border-top: solid lightgrey 2px;
+    border-top: solid lightgrey 1.5px;
 }
 
 a {
@@ -894,7 +894,7 @@ a {
 
 code {
     font-family: monospace;
-    font-size: 10px;
+    font-size: 0.8rem;
     padding: 1px;
     border-radius: 2px;
 }
@@ -924,7 +924,7 @@ ul.tsd-parameters h5 {
 }
 
 ul.tsd-descriptions h4 {
-    font-size: 14px;
+    font-size: 1.1rem;
 }
 
 .tsd-signatures {
