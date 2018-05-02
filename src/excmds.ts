@@ -391,7 +391,7 @@ export function scrollpx(a: number, b: number) {
 //#content
 export function scrollto(a: number, b: number | "x" | "y" = "y") {
     a = Number(a)
-    let elem = window.document.scrollingElement
+    let elem = window.document.scrollingElement || window.document.body
     let percentage = a.clamp(0, 100)
     if (b === "y") {
         let top = elem.getClientRects()[0].top
