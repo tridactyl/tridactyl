@@ -1005,16 +1005,14 @@ export function focusinput(nth: number | string) {
 
     // either a number (not special) or we failed to find a special input when
     // asked and falling back is acceptable
-    if (!inputToFocus && fallbackToNumeric) {
+    if ((!inputToFocus || !document.contains(inputToFocus)) && fallbackToNumeric) {
         let index = isNaN(<number>nth) ? 0 : <number>nth
         inputToFocus = DOM.getNthElement(INPUTTAGS_selectors, index, [DOM.isSubstantial])
     }
 
     if (inputToFocus) {
+        state.focusinput = true
         DOM.focus(inputToFocus)
-        if (config.get("gimode") === "nextinput" && state.mode !== "input") {
-            state.mode = "input"
-        }
     }
 }
 

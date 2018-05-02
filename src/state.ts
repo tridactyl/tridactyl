@@ -23,10 +23,13 @@ export type ModeName =
     | "hint"
     | "ignore"
     | "gobble"
-    | "input"
     | "find"
 class State {
     mode: ModeName = "normal"
+    // focusinput is used to keep track of whether the user went into insert
+    // mode through regular means (hints, clicking) or through the 'focusinput'
+    // command (bound to gi by default).
+    focusinput = false
     cmdHistory: string[] = []
     prevInputs: { inputId: string; tab: number; jumppos?: number }[] = [
         {
@@ -62,8 +65,9 @@ const state = (new Proxy(overlay, {
         }
     },
 
-    /** Persist sets to storage immediately */
     set: function(target, property, value) {
+        if (property == "mode" && value != "insert") target.focusinput = false
+        /** Persist sets to storage immediately */
         logger.debug("State changed!", property, value)
         target[property] = value
         browser.storage.local.set({ state: target })

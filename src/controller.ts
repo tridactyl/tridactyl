@@ -12,7 +12,6 @@ import * as normalmode from "./parsers/normalmode"
 import * as insertmode from "./parsers/insertmode"
 import * as ignoremode from "./parsers/ignoremode"
 import * as gobblemode from "./parsers/gobblemode"
-import * as inputmode from "./parsers/inputmode"
 
 const logger = new Logger("controller")
 
@@ -25,7 +24,6 @@ function* ParserController() {
         hint: hintmode_parser,
         find: findmode_parser,
         gobble: gobblemode.parser,
-        input: inputmode.parser,
     }
 
     while (true) {
@@ -41,7 +39,6 @@ function* ParserController() {
                 if (
                     state.mode != "ignore" &&
                     state.mode != "hint" &&
-                    state.mode != "input" &&
                     state.mode != "find"
                 ) {
                     if (isTextEditable(keyevent.target)) {
@@ -51,11 +48,6 @@ function* ParserController() {
                     } else if (state.mode === "insert") {
                         state.mode = "normal"
                     }
-                } else if (
-                    state.mode === "input" &&
-                    !isTextEditable(keyevent.target)
-                ) {
-                    state.mode = "normal"
                 }
                 logger.debug(keyevent, state.mode)
 
