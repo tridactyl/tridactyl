@@ -1264,6 +1264,19 @@ export async function tabclose(...indexes: string[]) {
     }
 }
 
+/** Close all tabs to the right of the current one
+ *
+ */
+//#background
+export async function tabcloseAllToRight() {
+    const tabs = await browser.tabs.query({
+        pinned: false,
+        active: true,
+        currentWindow: true,
+    })
+    const numTabs = tabs.count
+}
+
 /** restore most recently closed tab in this window unless the most recently closed item was a window */
 //#background
 export async function undo() {
