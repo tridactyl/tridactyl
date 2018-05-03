@@ -12,6 +12,7 @@ import * as Fuse from "fuse.js"
 import { enumerate } from "./itertools"
 import { toNumber } from "./convert"
 import * as Messaging from "./messaging"
+import * as config from "./config"
 import { browserBg } from "./lib/webext"
 
 const DEFAULT_FAVICON = browser.extension.getURL("static/defaultFavicon.svg")
@@ -500,7 +501,7 @@ export class HistoryCompletionSource extends CompletionSourceFuse {
             // Search history, dedupe and sort by frecency
             let history = await browserBg.history.search({
                 text: query,
-                maxResults: 500,
+                maxResults: Number(config.get("historyresults")),
                 startTime: 0,
             })
 

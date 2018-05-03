@@ -247,6 +247,11 @@ const DEFAULTS = o({
     browser: "firefox",
     nativeinstallcmd:
         "curl -fsSl https://raw.githubusercontent.com/cmcaine/tridactyl/master/native/install.sh | bash",
+
+    // Performance related settings
+
+    // number of most recent results to ask Firefox for. We display the top 20 or so most frequently visited ones.
+    historyresults: "50",
 })
 
 /** Given an object and a target, extract the target if it exists, else return undefined

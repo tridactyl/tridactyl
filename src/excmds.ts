@@ -527,6 +527,7 @@ export async function reloadhard(n = 1) {
 
     Related settings:
         "searchengine": "google" or any of [[SEARCH_URLS]]
+        "historyresults": the n-most-recent results to ask Firefox for before they are sorted by frequency. Reduce this number if you find your results are bad.
 */
 //#content
 export async function open(...urlarr: string[]) {
