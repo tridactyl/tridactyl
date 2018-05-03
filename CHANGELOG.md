@@ -1,8 +1,8 @@
 # Tridactyl changelog
 
-## Release 1.10.0 / Unreleased
+## Release 1.10.0 / 2018-05-03
 
-- Native messenger! Run `:installnative` to install, then:
+- Native messenger (for OSX/Linux only, for now)! On Linux/OSXRun `:installnative` to install, then:
     - `<Ctrl-I>` in a text field will open Vim, probably. Set it with `set editorcmd` but make sure that the command stays in the foreground till the programme is exited.
     - Not all text fields work yet (esp CodeMirror), so make sure you test it before writing war and peace.
     - `:! [shell command]` or `:exclaim [shell command]` will run the command and give you STDOUT/STDERR back in the command line.
@@ -10,7 +10,48 @@
         - Anything that works in `/bin/sh` should work
             - If you want to use a different shell, just make your own alias:
                 -  `command ! exclaim fish -c` (but be aware that some shells require quotes around arguments given to -c)
-    - `hint -W exclaim mpv` works particularly well.
+    - Requires a new permission to use the native messenger (and to use Tridactyl at all, unfortunately)
+    - `nativeopen` will try to open a new tab or window using the native messenger. It is used in `{,win,tab}open` automatically when you try to open about:* or file:* URIs.
+
+- Add `hint -W [exstr]` to execute exstr on hint's href
+    - `hint -W exclaim_quiet mpv` works particularly well.
+
+- **Breaking change**: change ignore mode binds to be symmetric and resolve Jupyter conflict
+    - Ignore mode is now bound to `<S-Insert>` to enter and leave it.
+    - Previous binds of `I` and `<S-Esc>` are unbound
+
+- More scrolling fixes
+    - `G`/`gg` will now work on more sites
+
+- Completion improvements
+    - History completion performance improved
+        - If you find you are getting worse results than usual, increase `set historyresults` to, e.g, 500.
+    - Fix #446: you can now edit completions you select with space
+    - Completions will now pan to show you what you have selected
+
+- Mode indicator is now print friendly (#453)!
+
+- Fiddled with `help` theme
+    - We've tried to make it look a bit more like the old Vimperator help pages and have hidden some useless or misleading bits that TypeDoc produced, such as the return values.
+
+- `viewsource` improved
+    - Now bound to `gf` by default
+    - Fix viewsource elem not always covering the whole page
+    - Remove viewsource elem on spa history changes
+
+- Bind help to F1
+
+- Changelog changelog:
+    - Change changelog date format
+    - Changelog: use standard case: changelog.md -> CHANGELOG.md
+    - Changelog: move to the standard location
+    - Changelog: add dates
+
+- Misc fixes
+    Fix :open <empty string>. Fixes #421
+    Filter AltGraph keys. Fixes #430
+    Explain that the hint tags are typed in lowercase even though they are displayed in uppercase
+
 
 ## Release 1.9.8 / 2018-04-26
 
