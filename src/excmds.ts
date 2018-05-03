@@ -31,7 +31,7 @@
 
     A "splat" operator (...) means that the excmd will accept any number of space-delimited arguments into that parameter.
 
-    You do not need to worry about types or return values.
+    You do not need to worry about types.
 
     At the bottom of each function's help page, you can click on a link that will take you straight to that function's definition in our code. This is especially recommended for browsing the [config](/static/docs/modules/_config_.html#defaults) which is nigh-on unreadable on these pages.
     
@@ -527,6 +527,7 @@ export async function reloadhard(n = 1) {
 
     Related settings:
         "searchengine": "google" or any of [[SEARCH_URLS]]
+        "historyresults": the n-most-recent results to ask Firefox for before they are sorted by frequency. Reduce this number if you find your results are bad.
 */
 //#content
 export async function open(...urlarr: string[]) {
@@ -614,7 +615,7 @@ export function home(all: "false" | "true" = "false") {
 //#background
 export async function help(excmd?: string) {
     const docpage = browser.extension.getURL("static/docs/modules/_excmds_.html")
-    if (excmd === undefined) excmd = "tridactyl-help-page"
+    if (excmd === undefined) excmd = ""
     if ((await activeTab()).url.startsWith(docpage)) {
         open(docpage + "#" + excmd)
     } else {

@@ -12,6 +12,7 @@ import * as Fuse from "fuse.js"
 import { enumerate } from "./itertools"
 import { toNumber } from "./convert"
 import * as Messaging from "./messaging"
+import * as config from "./config"
 import { browserBg } from "./lib/webext"
 
 const DEFAULT_FAVICON = browser.extension.getURL("static/defaultFavicon.svg")
@@ -76,6 +77,7 @@ abstract class CompletionOptionHTML extends CompletionOption {
         switch (newstate) {
             case "focused":
                 this.html.classList.add("focused")
+                this.html.scrollIntoView()
                 this.html.classList.remove("hidden")
                 break
             case "normal":
@@ -296,8 +298,7 @@ abstract class CompletionSourceFuse extends CompletionSource {
             // visopts.length + 1 because we want an empty completion at the end
             let max = visopts.length + 1
             let opt = visopts[(currind + inc + max) % max]
-            if (opt)
-                this.select(opt)
+            if (opt) this.select(opt)
             return true
         } else return false
     }
@@ -500,7 +501,7 @@ export class HistoryCompletionSource extends CompletionSourceFuse {
             // Search history, dedupe and sort by frecency
             let history = await browserBg.history.search({
                 text: query,
-                maxResults: 500,
+                maxResults: Number(config.get("historyresults")),
                 startTime: 0,
             })
 
