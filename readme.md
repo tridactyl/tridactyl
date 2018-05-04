@@ -24,7 +24,7 @@ ex-commands. You can bind any ex-command to a normal-mode shortcut.
 
 ### Default normal-mode bindings
 
-This is a (non-exhaustive) list of the most command normal-mode bindings. Type
+This is a (non-exhaustive) list of the most common normal-mode bindings. Type
 `:help` to open the online help for more details.
 
 - `:` — activate the command line
