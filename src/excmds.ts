@@ -1273,7 +1273,7 @@ export async function tabclose(...indexes: string[]) {
  *
  */
 //#background
-export async function tabcloseAllToRight() {
+export async function tabclosealltoright() {
     const tabs = await browser.tabs.query({
         pinned: false,
         currentWindow: true,
@@ -1288,7 +1288,7 @@ export async function tabcloseAllToRight() {
  *
  */
 //#background
-export async function tabcloseAllToLeft() {
+export async function tabclosealltoleft() {
     const tabs = await browser.tabs.query({
         pinned: false,
         currentWindow: true,

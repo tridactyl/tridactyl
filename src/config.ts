@@ -77,6 +77,8 @@ const DEFAULTS = o({
         "<c-i>": "forward",
         d: "tabclose",
         D: "composite tabprev | sleep 100 | tabclose #",
+        gx0: "tabclosealltoleft",
+        gx$: "tabclosealltoright",
         u: "undo",
         r: "reload",
         R: "reloadhard",
