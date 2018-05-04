@@ -1,5 +1,12 @@
 # Tridactyl changelog
 
+## Release 1.10.1 / 2018-05-04
+
+- Add tabcloseallto{right,left} bound to `gx0` and `gx$`
+- Update tab page and other documentation to reflect new ignore mode binding
+- Fix #474: you can open a handful of about:* pages without the native messenger again
+- Improve feedback when native messenger is not correctly installed   
+
 ## Release 1.10.0 / 2018-05-03
 
 - Native messenger (for OSX/Linux only, for now)! On Linux/OSXRun `:installnative` to install, then:
