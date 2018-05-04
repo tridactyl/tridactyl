@@ -522,6 +522,11 @@ export async function reloadhard(n = 1) {
     reload(n, true)
 }
 
+// I went through the whole list https://developer.mozilla.org/en-US/Firefox/The_about_protocol
+// about:blank is even more special
+/** @hidden */
+export const ABOUT_WHITELIST = ["about:home", "about:license", "about:logo", "about:rights"]
+
 /** Open a new page in the current tab.
 
     @param urlarr
@@ -543,7 +548,7 @@ export async function open(...urlarr: string[]) {
         url = url || undefined
         browserBg.tabs.update(await activeTabId(), { url })
         // Open URLs that firefox won't let us by running `firefox <URL>` on the command line
-    } else if (url.match(/^(about|file):.*/)) {
+    } else if (!ABOUT_WHITELIST.includes(url) && url.match(/^(about|file):.*/)) {
         Messaging.message("commandline_background", "recvExStr", ["nativeopen " + url])
     } else if (url !== "") {
         window.location.href = forceURI(url)
@@ -1151,7 +1156,7 @@ export async function tabopen(...addressarr: string[]) {
     let url: string
     let address = addressarr.join(" ")
 
-    if (address.match(/^(about|file):.*/)) {
+    if (!ABOUT_WHITELIST.includes(address) && address.match(/^(about|file):.*/)) {
         nativeopen(address)
         return
     } else if (address != "") url = forceURI(address)
@@ -1378,7 +1383,7 @@ export async function winopen(...args: string[]) {
         firefoxArgs = "--private-window"
     } else address = args.join(" ")
     createData["url"] = address != "" ? forceURI(address) : forceURI(config.get("newtab"))
-    if (address.match(/^(about|file):.*/)) {
+    if (!ABOUT_WHITELIST.includes(address) && address.match(/^(about|file):.*/)) {
         nativeopen(address, firefoxArgs)
         return
     }
