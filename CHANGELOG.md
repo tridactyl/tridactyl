@@ -48,9 +48,9 @@
     - Changelog: add dates
 
 - Misc fixes
-    Fix :open <empty string>. Fixes #421
-    Filter AltGraph keys. Fixes #430
-    Explain that the hint tags are typed in lowercase even though they are displayed in uppercase
+    - Fix :open <empty string>. Fixes #421
+    - Filter AltGraph keys. Fixes #430
+    - Explain that the hint tags are typed in lowercase even though they are displayed in uppercase
 
 
 ## Release 1.9.8 / 2018-04-26
