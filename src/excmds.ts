@@ -197,16 +197,21 @@ export async function nativegate(version = "0", interactive = true): Promise<Boo
         if (interactive == true) fillcmdline("# Tridactyl's native messenger doesn't support your operating system, yet.")
         return false
     }
-    const actualVersion = await Native.getNativeMessengerVersion()
-    if (actualVersion !== undefined) {
-        if (semverCompare(version, actualVersion) > 0) {
-            if (interactive == true) fillcmdline("# Please update to native messenger " + version + ", for example by running `:updatenative`.")
-            // TODO: add update procedure and document here.
-            return false
-        }
-        return true
-    } else if (interactive == true) fillcmdline("# Native messenger not found. Please run `:installnative` and follow the instructions.")
-    return false
+    try {
+        const actualVersion = await Native.getNativeMessengerVersion()
+        if (actualVersion !== undefined) {
+            if (semverCompare(version, actualVersion) > 0) {
+                if (interactive == true) fillcmdline("# Please update to native messenger " + version + ", for example by running `:updatenative`.")
+                // TODO: add update procedure and document here.
+                return false
+            }
+            return true
+        } else if (interactive == true) fillcmdline("# Native messenger not found. Please run `:installnative` and follow the instructions.")
+        return false
+    } catch (e) {
+        if (interactive == true) fillcmdline("# Native messenger not found. Please run `:installnative` and follow the instructions.")
+        return false
+    }
 }
 
 /**
