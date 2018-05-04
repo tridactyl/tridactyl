@@ -1271,10 +1271,27 @@ export async function tabclose(...indexes: string[]) {
 export async function tabcloseAllToRight() {
     const tabs = await browser.tabs.query({
         pinned: false,
-        active: true,
         currentWindow: true,
     })
-    const numTabs = tabs.count
+
+    const atab = await activeTab()
+    let ids = tabs.filter(tab => tab.index > atab.index).map(tab => tab.id)
+    browser.tabs.remove(ids)
+}
+
+/** Close all tabs to the left of the current one
+ *
+ */
+//#background
+export async function tabcloseAllToLeft() {
+    const tabs = await browser.tabs.query({
+        pinned: false,
+        currentWindow: true,
+    })
+
+    const atab = await activeTab()
+    let ids = tabs.filter(tab => tab.index < atab.index).map(tab => tab.id)
+    browser.tabs.remove(ids)
 }
 
 /** restore most recently closed tab in this window unless the most recently closed item was a window */
