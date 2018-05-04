@@ -22,7 +22,7 @@ REPLACE_ME_WITH_THE_CHANGE_LOG_USING_SED
 ## Highlighted features:
 
 - `f`/`F` — enter the "hint mode" to select a link to follow. `F` to open it in a background tab.
-- `I` — enter ignore mode to send all key presses to the web page you are on. `Shift` + `Escape` gets you back to the highly productive normal mode.
+- `Shift` + `Insert` — enter "ignore mode" to send all key presses to the web page you are on. Press `Shift` + `Insert` again to return to the highly productive "normal mode".
 - `H`/`L` — go back/forward in the history.
 - `o`/`O` — open a URL in this tab (`O` to pre-load current URL).
 - `t`/`T` — open a URL in a new tab (`T` to pre-load current URL).
