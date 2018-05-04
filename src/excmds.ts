@@ -34,14 +34,14 @@
     You do not need to worry about types.
 
     At the bottom of each function's help page, you can click on a link that will take you straight to that function's definition in our code. This is especially recommended for browsing the [config](/static/docs/modules/_config_.html#defaults) which is nigh-on unreadable on these pages.
-    
+
 
     ## Highlighted features:
 
     - Press `b` to bring up a list of open tabs in the current window; you can
       type the tab ID or part of the title or URL to choose a tab
-    - Press `I` to enter ignore mode. `Shift` + `Escape` to return to normal
-      mode.
+    - Press `Shift` + `Insert` to enter "ignore mode". Press `Shift` + `Insert`
+      again to return to "normal mode".
     - Press `f` to start "hint mode", `F` to open in background
     - Press `o` to `:open` a different page
     - Press `s` if you want to search for something that looks like a domain
@@ -1237,7 +1237,7 @@ async function getSortedWinTabs(): Promise<browser.tabs.Tab[]> {
     return tabs
 }
 
-/** Toggle fullscreen state 
+/** Toggle fullscreen state
 
 */
 //#background
