@@ -1623,7 +1623,7 @@ export async function clipboard(excmd: "open" | "yank" | "yankshort" | "yankcano
 */
 //#background
 export async function tabs() {
-    fillcmdline("buffer")
+    fillcmdline("Deprecated. If anyone actually uses this, they should file an issue on GitHub.")
 }
 
 /** Equivalent to `fillcmdline buffer`
