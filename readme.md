@@ -8,7 +8,7 @@ Replace Firefox's default control mechanism with one modelled on the one true ed
 
 [Get our "beta" builds!][betas] These are updated with each commit to master on this repo. Your browser will automatically update from there once a day. If you want more frequent updates, you can change `extensions.update.interval` in `about:config` to whatever time you want, say, 15 minutes (900 seconds). The changelog for the stable versions on the AMO can be found [here](https://github.com/cmcaine/tridactyl/blob/master/CHANGELOG.md).
 
-Type `:help` for online help once you're in :)
+Type `:help` or press `<F1>` for online help once you're in :)
 
 Remember that tridactyl cannot run on any page on addons.mozilla.org, about:\*, data:\*, view-source:\* and file:\*. We're sorry about that and we're working with Firefox to improve this situation by removing restrictions on existing APIs and developing a new API.
 
@@ -113,11 +113,9 @@ You can bind your own shortcuts in normal mode with the `:bind` command.
 For example `:bind J tabprev` to bind `J` to switch to the previous tab.
 See `:help bind` for details about this command.
 
-NOTE: key modifiers (eg: control, alt) are not supported yet. See the FAQ below.
-
 ## WebExtension-related issues
 
-- Do not try to navigate to any about:\* pages using `:open` as it will fail silently.
+- Navigation to any about:\* pages using `:open` requires the native messenger.
 - Firefox will not load Tridactyl on addons.mozilla.org, about:\*, some file:\* URIs, view-source:\*, or data:\*. On these pages Ctrl-L (or F6), Ctrl-Tab and Ctrl-W are your escape hatches.
 - Tridactyl does not currently support changing/hiding the Firefox GUI, but you can do it yourself by changing your userChrome. We've developed [quite a good one](src/static/userChrome-minimal.css) that makes windowed Firefox behave more like full-screen mode, but it's well commented, so you can make your own.
 
