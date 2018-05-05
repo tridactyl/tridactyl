@@ -516,23 +516,25 @@ export function loggingsetlevel(logModule: string, level: string) {
 //#content_helper
 export let JUMPLIST = []
 //#content_helper
-export let JUMPCURRENT : number
+export let JUMPCURRENT: number
 //#content_helper
-export let JUMPTIMEOUT : number
+export let JUMPTIMEOUT: number
 //#content_helper
-export let JUMPED : boolean
+export let JUMPED: boolean
 
 //#content
 export function jumpnext(n = 1) {
-    jumpback(-n)
+    jumpprev(-n)
 }
 
 /** Similar to Pentadactyl or vim's jump list.
     Should be bound to <C-o> when modifiers are implemented
 */
 //#content
-export function jumpback(n = 1) {
-    JUMPCURRENT = (JUMPCURRENT - n).clamp(0, JUMPLIST.length - 1)
+export function jumpprev(n = 1) {
+    JUMPCURRENT -= n
+    if (JUMPCURRENT < 0) return back(-JUMPCURRENT)
+    else if (JUMPCURRENT >= JUMPLIST.length) return forward(JUMPCURRENT - JUMPLIST.length + 1)
     let p = JUMPLIST[JUMPCURRENT]
     JUMPED = true
     window.scrollTo(p.x, p.y)
@@ -554,14 +556,14 @@ export function addJump(scrollEvent: UIEvent) {
     }
     clearTimeout(JUMPTIMEOUT)
     JUMPTIMEOUT = setTimeout(() => {
-        JUMPLIST.push({'x': scrollEvent.pageX, 'y': scrollEvent.pageY})
+        JUMPLIST.push({ x: scrollEvent.pageX, y: scrollEvent.pageY })
         JUMPCURRENT = JUMPLIST.length - 1
-    } , config.get("jumpdelay"))
+    }, config.get("jumpdelay"))
 }
 
 //#content_helper
-document.addEventListener("scroll", addJump); addJump(new UIEvent("scroll"))
-
+document.addEventListener("scroll", addJump)
+addJump(new UIEvent("scroll"))
 
 /** Blur (unfocus) the active element */
 //#content
