@@ -178,13 +178,38 @@ export async function editor() {
 import * as css_util from "./css_util"
 
 /**
- * Change which parts of the Firefox user interface are shown.
+ * Change which parts of the Firefox user interface are shown. **NB: This feature is experimental and might break stuff.**
  *
  * Might mangle your userChrome. Requires native messenger, and you must restart Firefox each time to see any changes. <!-- (unless you enable addon debugging and refresh using the browser toolbox) -->
  *
  * View available rules and options [here](/static/docs/modules/_css_util_.html#potentialrules) and [here](/static/docs/modules/_css_util_.html#metarules).
  *
  * Example usage: `guiset gui none`, `guiset gui full`, `guiset tabs autohide`.
+ *
+ * Some of the available options:
+ *
+ * - gui
+ *      - full
+ *      - none
+ *
+ * - tabs
+ *      - always
+ *      - autohide
+ *
+ * - navbar
+ *      - always
+ *      - autohide
+ *
+ * - hoverlink (the little link that appears when you hover over a link)
+ *      - none
+ *      - left
+ *      - right
+ *      - top-left
+ *      - top-right
+ *
+ * - titlebar
+ *      - hide
+ *      - show
  *
  */
 //#background

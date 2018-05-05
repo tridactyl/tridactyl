@@ -1,5 +1,12 @@
 # Tridactyl changelog
 
+## Release 1.11.0 / Unreleased
+
+- You can now edit the Firefox GUI from Tridactyl with `guiset`. You must restart Firefox after using `guiset` to see the effects.
+    - e.g, `guiset gui none` or `guiset gui full`.
+    - see all the options with `help guiset` and following the links.
+    - **Only minimally tested. Back up your precious userChrome.css if you care about it!**
+
 ## Release 1.10.1 / 2018-05-04
 
 - Add tabcloseallto{right,left} bound to `gx0` and `gx$`
