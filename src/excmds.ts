@@ -289,7 +289,7 @@ export async function exclaim(...str: string[]) {
  */
 //#background
 export async function exclaim_quiet(...str: string[]) {
-    ;(await Native.run(str.join(" "))).content
+    return (await Native.run(str.join(" "))).content
 }
 
 /**
