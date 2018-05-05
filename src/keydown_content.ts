@@ -10,9 +10,7 @@ function keyeventHandler(ke: KeyboardEvent) {
     if (!ke.isTrusted) return
 
     // Mode is changed based on ke target in the bg.
-    if (state.mode === "input" || !isTextEditable(ke.target as Node)) {
-        modeSpecificSuppression(ke)
-    }
+    modeSpecificSuppression(ke)
 
     Messaging.message("keydown_background", "recvEvent", [
         msgsafe.KeyboardEvent(ke),
@@ -30,7 +28,29 @@ let keys = []
 
 /** Choose to suppress a key or not */
 function modeSpecificSuppression(ke: KeyboardEvent) {
-    switch (state.mode) {
+    let mode = state.mode
+
+    // Duplicate of the logic in src/controller
+    // Yes, this is not good.
+    // Will be fixed in v2, promise.
+    if (
+        state.mode != "ignore" &&
+        state.mode != "hint" &&
+        state.mode != "input" &&
+        state.mode != "find"
+    ) {
+        if (isTextEditable(ke.target as Node)) {
+            if (state.mode !== "insert") {
+                mode = "insert"
+            }
+        } else if (state.mode === "insert") {
+            mode = "normal"
+        }
+    } else if (mode === "input" && !isTextEditable(ke.target as Node)) {
+        mode = "normal"
+    }
+
+    switch (mode) {
         case "normal":
             keys.push(ke)
             const response = normalmode.parser(keys)
@@ -59,7 +79,7 @@ function modeSpecificSuppression(ke: KeyboardEvent) {
             }
             break
         case "input":
-            if (ke.key === "Tab") {
+            if (ke.key === "Tab" || (ke.ctrlKey === true && ke.key === "i")) {
                 ke.preventDefault()
                 ke.stopImmediatePropagation()
             }
@@ -67,6 +87,10 @@ function modeSpecificSuppression(ke: KeyboardEvent) {
         case "ignore":
             break
         case "insert":
+            if (ke.ctrlKey === true && ke.key === "i") {
+                ke.preventDefault()
+                ke.stopImmediatePropagation()
+            }
             break
     }
 }

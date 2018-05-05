@@ -1,5 +1,4 @@
 #!/bin/sh
 dest=generated/static/docs
-typedoc --out $dest src --ignoreCompilerErrors
-find $dest -name \*.html -exec ./scripts/commandline_injector.sh '{}' \;
+typedoc --theme src/static/typedoc/ --out $dest src --ignoreCompilerErrors
 cp -r $dest build/static/

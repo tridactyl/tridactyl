@@ -77,6 +77,8 @@ const DEFAULTS = o({
         "<c-i>": "forward",
         d: "tabclose",
         D: "composite tabprev | sleep 100 | tabclose #",
+        gx0: "tabclosealltoleft",
+        gx$: "tabclosealltoright",
         u: "undo",
         r: "reload",
         R: "reloadhard",
@@ -92,6 +94,7 @@ const DEFAULTS = o({
         gr: "reader",
         gu: "urlparent",
         gU: "urlroot",
+        gf: "viewsource",
         ":": "fillcmdline",
         s: "fillcmdline open search",
         S: "fillcmdline tabopen search",
@@ -119,7 +122,7 @@ const DEFAULTS = o({
         ";;": "hint -;",
         ";#": "hint -#",
         ";v": "hint -W exclaim_quiet mpv",
-        I: "mode ignore",
+        "<S-Insert>": "mode ignore",
         a: "current_url bmark",
         A: "bmark",
         zi: "zoom 0.1 true",
@@ -247,6 +250,11 @@ const DEFAULTS = o({
     nativeinstallcmd:
         "curl -fsSl https://raw.githubusercontent.com/cmcaine/tridactyl/master/native/install.sh | bash",
     profiledir: "auto",
+
+    // Performance related settings
+
+    // number of most recent results to ask Firefox for. We display the top 20 or so most frequently visited ones.
+    historyresults: "50",
 })
 
 /** Given an object and a target, extract the target if it exists, else return undefined

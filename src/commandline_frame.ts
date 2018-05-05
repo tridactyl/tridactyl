@@ -197,6 +197,7 @@ clInput.addEventListener("keydown", function(keyevent) {
 
         case " ":
             const command = getCompletion()
+            activeCompletions.forEach(comp => (comp.completion = undefined))
             if (command) fillcmdline(command, false)
             break
     }

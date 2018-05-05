@@ -30,3 +30,9 @@
     -ms-user-select: none !important;
     user-select: none !important;
 }
+
+@media print {
+    .TridactylStatusIndicator {
+        display: none;
+    }
+}

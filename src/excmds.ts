@@ -31,17 +31,17 @@
 
     A "splat" operator (...) means that the excmd will accept any number of space-delimited arguments into that parameter.
 
-    You do not need to worry about types or return values.
+    You do not need to worry about types.
 
     At the bottom of each function's help page, you can click on a link that will take you straight to that function's definition in our code. This is especially recommended for browsing the [config](/static/docs/modules/_config_.html#defaults) which is nigh-on unreadable on these pages.
-    
+
 
     ## Highlighted features:
 
     - Press `b` to bring up a list of open tabs in the current window; you can
       type the tab ID or part of the title or URL to choose a tab
-    - Press `I` to enter ignore mode. `Shift` + `Escape` to return to normal
-      mode.
+    - Press `Shift` + `Insert` to enter "ignore mode". Press `Shift` + `Insert`
+      again to return to "normal mode".
     - Press `f` to start "hint mode", `F` to open in background
     - Press `o` to `:open` a different page
     - Press `s` if you want to search for something that looks like a domain
@@ -163,7 +163,7 @@ export async function getinput() {
  *
  * The editorcmd needs to accept a filename, stay in the foreground while it's edited, save the file and exit.
  *
- * You're probably better off using the default insert mode bind of <C-e> to access this.
+ * You're probably better off using the default insert mode bind of <C-i> to access this.
  */
 //#background
 export async function editor() {
@@ -252,16 +252,21 @@ export async function nativegate(version = "0", interactive = true): Promise<Boo
         if (interactive == true) fillcmdline("# Tridactyl's native messenger doesn't support your operating system, yet.")
         return false
     }
-    const actualVersion = await Native.getNativeMessengerVersion()
-    if (actualVersion !== undefined) {
-        if (semverCompare(version, actualVersion) > 0) {
-            if (interactive == true) fillcmdline("# Please update to native messenger " + version + ", for example by running `:updatenative`.")
-            // TODO: add update procedure and document here.
-            return false
-        }
-        return true
-    } else if (interactive == true) fillcmdline("# Native messenger not found. Please run `:installnative` and follow the instructions.")
-    return false
+    try {
+        const actualVersion = await Native.getNativeMessengerVersion()
+        if (actualVersion !== undefined) {
+            if (semverCompare(version, actualVersion) > 0) {
+                if (interactive == true) fillcmdline("# Please update to native messenger " + version + ", for example by running `:updatenative`.")
+                // TODO: add update procedure and document here.
+                return false
+            }
+            return true
+        } else if (interactive == true) fillcmdline("# Native messenger not found. Please run `:installnative` and follow the instructions.")
+        return false
+    } catch (e) {
+        if (interactive == true) fillcmdline("# Native messenger not found. Please run `:installnative` and follow the instructions.")
+        return false
+    }
 }
 
 /**
@@ -315,6 +320,10 @@ export async function installnative() {
 //#background
 export async function updatenative(interactive = true) {
     if (await nativegate("0", interactive)) {
+        if ((await browser.runtime.getPlatformInfo()).os === "mac") {
+            if (interactive) logger.error("Updating the native messenger on OSX is broken. Please use `:installnative` instead.")
+            return
+        }
         await Native.run(await config.get("nativeinstallcmd"))
         if (interactive) native()
     }
@@ -425,6 +434,7 @@ export function loggingsetlevel(logModule: string, level: string) {
 //#content
 export function unfocus() {
     ;(document.activeElement as HTMLInputElement).blur()
+    state.mode = "normal"
 }
 
 //#content
@@ -441,7 +451,7 @@ export function scrollpx(a: number, b: number) {
 //#content
 export function scrollto(a: number, b: number | "x" | "y" = "y") {
     a = Number(a)
-    let elem = window.document.scrollingElement
+    let elem = window.document.scrollingElement || window.document.body
     let percentage = a.clamp(0, 100)
     if (b === "y") {
         let top = elem.getClientRects()[0].top
@@ -567,6 +577,11 @@ export async function reloadhard(n = 1) {
     reload(n, true)
 }
 
+// I went through the whole list https://developer.mozilla.org/en-US/Firefox/The_about_protocol
+// about:blank is even more special
+/** @hidden */
+export const ABOUT_WHITELIST = ["about:home", "about:license", "about:logo", "about:rights"]
+
 /** Open a new page in the current tab.
  *
  *   @param urlarr
@@ -574,10 +589,10 @@ export async function reloadhard(n = 1) {
  *       - else if the first word contains a dot, treat as a domain name
  *       - else if the first word is a key of [[SEARCH_URLS]], treat all following terms as search parameters for that provider
  *       - else treat as search parameters for google
- * 
+ *
  *   Related settings:
  *       "searchengine": "google" or any of [[SEARCH_URLS]]
- 
+ *      "historyresults": the n-most-recent results to ask Firefox for before they are sorted by frequency. Reduce this number if you find your results are bad.
  * Can only open about:* or file:* URLs if you have the native messenger installed, and on OSX you must set `browser` to something that will open Firefox from a terminal pass it commmand line options.
  *
  */
@@ -590,7 +605,7 @@ export async function open(...urlarr: string[]) {
         url = url || undefined
         browserBg.tabs.update(await activeTabId(), { url })
         // Open URLs that firefox won't let us by running `firefox <URL>` on the command line
-    } else if (url.match(/^(about|file):.*/)) {
+    } else if (!ABOUT_WHITELIST.includes(url) && url.match(/^(about|file):.*/)) {
         Messaging.message("commandline_background", "recvExStr", ["nativeopen " + url])
     } else if (url !== "") {
         window.location.href = forceURI(url)
@@ -600,6 +615,22 @@ export async function open(...urlarr: string[]) {
 /** @hidden */
 //#content_helper
 let sourceElement = undefined
+/** @hidden */
+//#content_helper
+function removeSource() {
+    if (sourceElement) {
+        sourceElement.remove()
+        sourceElement = undefined
+    }
+}
+/** Display the (HTML) source of the current page.
+
+    Behaviour can be changed by the 'viewsource' setting.
+
+    If the 'viewsource' setting is set to 'default' rather than 'tridactyl',
+    the url the source of which should be displayed can be given as argument.
+    Otherwise, the source of the current document will be displayed.
+*/
 //#content
 export function viewsource(url = "") {
     if (url === "") url = window.location.href
@@ -614,11 +645,13 @@ export function viewsource(url = "") {
             pre.className = "cleanslate " + config.get("theme")
             pre.innerText = document.documentElement.innerHTML
             document.documentElement.appendChild(pre)
+            window.addEventListener("popstate", removeSource)
             return pre
         })
     } else {
         sourceElement.parentNode.removeChild(sourceElement)
         sourceElement = undefined
+        window.removeEventListener("popstate", removeSource)
     }
 }
 
@@ -649,7 +682,7 @@ export function home(all: "false" | "true" = "false") {
 //#background
 export async function help(excmd?: string) {
     const docpage = browser.extension.getURL("static/docs/modules/_excmds_.html")
-    if (excmd === undefined) excmd = "tridactyl-help-page"
+    if (excmd === undefined) excmd = ""
     if ((await activeTab()).url.startsWith(docpage)) {
         open(docpage + "#" + excmd)
     } else {
@@ -1180,7 +1213,7 @@ export async function tabopen(...addressarr: string[]) {
     let url: string
     let address = addressarr.join(" ")
 
-    if (address.match(/^(about|file):.*/)) {
+    if (!ABOUT_WHITELIST.includes(address) && address.match(/^(about|file):.*/)) {
         nativeopen(address)
         return
     } else if (address != "") url = forceURI(address)
@@ -1266,7 +1299,7 @@ async function getSortedWinTabs(): Promise<browser.tabs.Tab[]> {
     return tabs
 }
 
-/** Toggle fullscreen state 
+/** Toggle fullscreen state
 
 */
 //#background
@@ -1296,6 +1329,36 @@ export async function tabclose(...indexes: string[]) {
         // Close current tab
         browser.tabs.remove(await activeTabId())
     }
+}
+
+/** Close all tabs to the right of the current one
+ *
+ */
+//#background
+export async function tabclosealltoright() {
+    const tabs = await browser.tabs.query({
+        pinned: false,
+        currentWindow: true,
+    })
+
+    const atab = await activeTab()
+    let ids = tabs.filter(tab => tab.index > atab.index).map(tab => tab.id)
+    browser.tabs.remove(ids)
+}
+
+/** Close all tabs to the left of the current one
+ *
+ */
+//#background
+export async function tabclosealltoleft() {
+    const tabs = await browser.tabs.query({
+        pinned: false,
+        currentWindow: true,
+    })
+
+    const atab = await activeTab()
+    let ids = tabs.filter(tab => tab.index < atab.index).map(tab => tab.id)
+    browser.tabs.remove(ids)
 }
 
 /** restore most recently closed tab in this window unless the most recently closed item was a window */
@@ -1377,7 +1440,7 @@ export async function winopen(...args: string[]) {
         firefoxArgs = "--private-window"
     } else address = args.join(" ")
     createData["url"] = address != "" ? forceURI(address) : forceURI(config.get("newtab"))
-    if (address.match(/^(about|file):.*/)) {
+    if (!ABOUT_WHITELIST.includes(address) && address.match(/^(about|file):.*/)) {
         nativeopen(address, firefoxArgs)
         return
     }
@@ -1617,7 +1680,7 @@ export async function clipboard(excmd: "open" | "yank" | "yankshort" | "yankcano
 */
 //#background
 export async function tabs() {
-    fillcmdline("buffer")
+    fillcmdline("Deprecated. If anyone actually uses this, they should file an issue on GitHub.")
 }
 
 /** Equivalent to `fillcmdline buffer`

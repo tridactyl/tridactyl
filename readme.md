@@ -8,7 +8,7 @@ Replace Firefox's default control mechanism with one modelled on the one true ed
 
 [Get our "beta" builds!][betas] These are updated with each commit to master on this repo. Your browser will automatically update from there once a day. If you want more frequent updates, you can change `extensions.update.interval` in `about:config` to whatever time you want, say, 15 minutes (900 seconds). The changelog for the stable versions on the AMO can be found [here](https://github.com/cmcaine/tridactyl/blob/master/CHANGELOG.md).
 
-Type `:help` for online help once you're in :)
+Type `:help` or press `<F1>` for online help once you're in :)
 
 Remember that tridactyl cannot run on any page on addons.mozilla.org, about:\*, data:\*, view-source:\* and file:\*. We're sorry about that and we're working with Firefox to improve this situation by removing restrictions on existing APIs and developing a new API.
 
@@ -19,16 +19,17 @@ If you're enjoying Tridactyl, or not, please leave a review on the [AMO](https:/
 Like Vim, Tridactyl is modal, with the default mode being "normal mode". In
 "normal mode", many functions are available using keybindings. In "command
 mode" (when the command line is shown), you can execute more complex commands,
-known as "ex-commands". All Tridactyl functionality can be accessed by 
+known as "ex-commands". All Tridactyl functionality can be accessed by
 ex-commands. You can bind any ex-command to a normal-mode shortcut.
 
 ### Default normal-mode bindings
 
-This is a (non-exhaustive) list of the most command normal-mode bindings. Type
+This is a (non-exhaustive) list of the most common normal-mode bindings. Type
 `:help` to open the online help for more details.
 
 - `:` — activate the command line
-- `I` — enter ignore mode. `Shift-Escape` to return to normal mode
+- `Shift` + `Insert` — enter "ignore mode". Press `Shift` + `Insert` again to
+  return to "normal mode".
 - `ZZ` — close all tabs and windows, but only "save" them if your
   about:preferences are set to "show your tabs and windows from last time"
 - `.` — repeat the last command
@@ -86,7 +87,7 @@ be improved eventually.
 - `u` — undo the last tab/window closure
 - `gt`/`gT` — go to the next/previous tab
 - `g^`/`g$` — go to the first/last tab
-- `b` — bring up a list of open tabs in the current window; you can type the 
+- `b` — bring up a list of open tabs in the current window; you can type the
   tab ID or part of the title or URL to choose a tab
 
 #### Extended hint mode
@@ -112,11 +113,9 @@ You can bind your own shortcuts in normal mode with the `:bind` command.
 For example `:bind J tabprev` to bind `J` to switch to the previous tab.
 See `:help bind` for details about this command.
 
-NOTE: key modifiers (eg: control, alt) are not supported yet. See the FAQ below.
-
 ## WebExtension-related issues
 
-- Do not try to navigate to any about:\* pages using `:open` as it will fail silently.
+- Navigation to any about:\* pages using `:open` requires the native messenger.
 - Firefox will not load Tridactyl on addons.mozilla.org, about:\*, some file:\* URIs, view-source:\*, or data:\*. On these pages Ctrl-L (or F6), Ctrl-Tab and Ctrl-W are your escape hatches.
 - Tridactyl does not currently support changing/hiding the Firefox GUI, but you can do it yourself by changing your userChrome. We've developed [quite a good one](src/static/userChrome-minimal.css) that makes windowed Firefox behave more like full-screen mode, but it's well commented, so you can make your own.
 
@@ -136,7 +135,7 @@ NOTE: key modifiers (eg: control, alt) are not supported yet. See the FAQ below.
 
 - Can I import/export settings, and does Tridactyl use an external configuration file just like Vimperator?
 
-    Sort of: if you do `set storageloc local`, a JSON file will appear at `<your firefox profile>\browser-extension-data\tridactyl.vim@cmcaine.co.uk\storage.js`. You can find you profile folder by going to `about:support`. 
+    Sort of: if you do `set storageloc local`, a JSON file will appear at `<your firefox profile>\browser-extension-data\tridactyl.vim@cmcaine.co.uk\storage.js`. You can find you profile folder by going to `about:support`.
 
     You can edit this file to your heart's content. A more traditional rc file is planned but will require a native messenger. For more information, see [issue #79](https://github.com/cmcaine/tridactyl/issues/79).
 
@@ -147,7 +146,7 @@ NOTE: key modifiers (eg: control, alt) are not supported yet. See the FAQ below.
 - How can I bind keys using the control/alt key modifiers (eg: `ctrl+^`)?
 
     `:bind <C-f> scrollpage 1`. Special keys can be bound too: `:bind <F3> set theme dark` and with modifiers: `:bind <S-F3> set theme default` and with multiple modifiers: `:bind <SA-F3> composite set hintchars 1234567890 | set hintfiltermode vimperator-reflow`
-    
+
     The modifiers are case insensitive. Special key names are not. The names used are those reported by Javascript with a limited number of vim compatibility aliases (e.g. `CR == Enter`).
 
     If you want to bind <C-^> you'll find that you'll probably need to press Control+Shift+6 to trigger it. The default bind is <C-6> which does not require you to press shift.
@@ -396,7 +395,7 @@ Some actions have their own interactive mini-mode:
 
 ## Logo acknowledgement
 
-The logo was designed by Jake Beazley using free vector art by <a target="_blank" href="https://www.Vecteezy.com">www.Vecteezy.com</a> 
+The logo was designed by Jake Beazley using free vector art by <a target="_blank" href="https://www.Vecteezy.com">www.Vecteezy.com</a>
 
 [gitter-badge]: https://badges.gitter.im/Join%20Chat.svg
 [gitter-link]: https://gitter.im/tridactyl/Lobby
