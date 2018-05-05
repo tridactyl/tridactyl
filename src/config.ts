@@ -176,6 +176,7 @@ const DEFAULTS = o({
         "!s": "exclaim_quiet",
         colorscheme: "set theme",
         colors: "set theme",
+        "!js": "js",
     }),
     followpagepatterns: o({
         next: "^(next|newer)\\b|»|>>|more",

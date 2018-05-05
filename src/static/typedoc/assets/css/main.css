@@ -869,7 +869,7 @@ img { max-width: 100%; }
   margin-top: 0px;
 }
 
-/* Hide return values as they are unused */
+/* Unhide return values as they can be used in composite now*/
 .tsd-returns-title {
     display: none;
 }

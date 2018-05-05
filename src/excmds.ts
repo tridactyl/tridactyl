@@ -1591,15 +1591,19 @@ export function repeat(n = 1, ...exstr: string[]) {
     for (let i = 0; i < n; i++) controller.acceptExCmd(cmd)
 }
 
-/** Split `cmds` on pipes (|) and treat each as its own command.
-
-    Workaround: this should clearly be in the parser, but we haven't come up with a good way to deal with |s in URLs, search terms, etc. yet.
-*/
+/**
+ * Split `cmds` on pipes (|) and treat each as its own command. Return values are cast to strings and passed to the next ex command.
+ *
+ * Workaround: this should clearly be in the parser, but we haven't come up with a good way to deal with |s in URLs, search terms, etc. yet.
+ */
 //#background
 export async function composite(...cmds: string[]) {
     cmds = cmds.join(" ").split("|")
+    let val = ""
     for (let c of cmds) {
-        await controller.acceptExCmd(c)
+        val = await controller.acceptExCmd(c + val)
+        if (val == undefined || val.includes("undefined")) val = ""
+        else val = " " + val
     }
 }
 
@@ -2329,6 +2333,24 @@ export async function bmark(url?: string, ...titlearr: string[]) {
     }
 
     browser.bookmarks.create({ url, title })
+}
+
+//#background
+export async function echo(...str: string[]) {
+    return str.join(" ")
+}
+
+/**
+ * Lets you execute JavaScript in the page context. If you want to get the result back, use `composite js ... | fillcmdline`
+ *
+ * About as dangerous as opening the web console.
+ *
+ * Currently, Tridactyl functions are not accessible from `js`.
+ *
+ */
+//#content
+export async function js(...str: string[]) {
+    return eval(str.join(" "))
 }
 
 /**  Open a welcome page on first install.
