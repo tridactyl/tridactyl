@@ -1,6 +1,10 @@
 body {
   overflow: hidden;
   margin: 0;
+  position: absolute;
+  /* CSS is pants. Move the bar down a tiny bit to cover up the gap. */
+  top: 1px;
+  width: 100%;
 }
 
 input {
