@@ -114,19 +114,27 @@ config.getAsync("modeindicator").then(mode => {
 })
 
 config.getAsync("smoothscroll").then(smooth => {
+    let setSmooth = (doc, smooth) => {
+        if (smooth) {
+            ;(doc as any).documentElement.style.scrollBehavior = "smooth"
+        } else {
+            ;(doc as any).documentElement.style.scrollBehavior = "auto"
+        }
+    }
     browser.storage.onChanged.addListener((changes, areaname) => {
         if (areaname == "sync") {
-            if (changes.userconfig.newValue.smoothscroll === "true")
-                (document.body.style as any).scrollBehavior = "smooth"
-            else (document.body.style as any).scrollBehavior = "auto"
+            let oldSmooth = changes.userconfig.oldValue.smoothscroll
+            let newSmooth = changes.userconfig.newValue.smoothscroll
+            if (oldSmooth != newSmooth)
+                setSmooth(document, newSmooth === "true")
         }
     })
-    if (smooth !== "true") return
-    ;(document.body.style as any).scrollBehavior = "smooth"
-    // Apparently frames aren't affected by scrollBehavior = "smooth"
-    // dom.getAllDocumentFrames().map(f => {
-    //     try {
-    //         (f.contentDocument.body.style as any).scrollBehavior = "smooth"
-    //     } catch (e) {console.log(e)}
-    // })
+    if (document.readyState == "complete") {
+        setSmooth(document, smooth === "true")
+    } else {
+        document.addEventListener("readystatechange", ev => {
+            if ((ev.target as any).readyState == "complete")
+                setSmooth(document, smooth === "true")
+        })
+    }
 })
