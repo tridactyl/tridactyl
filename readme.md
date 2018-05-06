@@ -6,7 +6,7 @@ Replace Firefox's default control mechanism with one modelled on the one true ed
 
 ## Installing
 
-[Get our "beta" builds!][betas] These are updated with each commit to master on this repo. Your browser will automatically update from there once a day. If you want more frequent updates, you can change `extensions.update.interval` in `about:config` to whatever time you want, say, 15 minutes (900 seconds). The changelog for the stable versions on the AMO can be found [here](https://github.com/cmcaine/tridactyl/blob/master/CHANGELOG.md).
+[Get our "beta" builds!][betas] These are updated with each commit to master on this repo. Your browser will automatically update from there once a day. If you want more frequent updates, you can change `extensions.update.interval` in `about:config` to whatever time you want, say, 15 minutes (900 seconds). Alternatively, you can get our "stable" builds straight from [Mozilla][amo]. The changelog for the stable versions can be found [here](https://github.com/cmcaine/tridactyl/blob/master/CHANGELOG.md).
 
 Type `:help` or press `<F1>` for online help once you're in :)
 
@@ -402,3 +402,4 @@ The logo was designed by Jake Beazley using free vector art by <a target="_blank
 [matrix-badge]: https://matrix.to/img/matrix-badge.svg
 [matrix-link]: https://riot.im/app/#/room/#tridactyl:matrix.org
 [betas]: https://tridactyl.cmcaine.co.uk/betas/?sort=time&order=desc
+[amo]: https://addons.mozilla.org/en-US/firefox/addon/tridactyl-vim?src=external-github
