@@ -1,7 +1,7 @@
 ## Control your browser with your keyboard *only*.
 
 Replace Firefox's control mechanism with one modelled on VIM.
-Most common tasks you want your browser to perform are bind to a single key
+Most common tasks you want your browser to perform are bound to a single key
 press:
 
 - You want to open a new tab? Hit `t`.
