@@ -41,6 +41,14 @@ permissions and why we need them.
    * This is Mozilla's way of saying that Tridactyl can read the content of web
      pages. This is necessary in order to e.g. find the links you can follow
      with the `:hint` command (bound to `f` by default).
+ - Exchange messages with programs other than Firefox
+   * This permission is required for Tridactyl to interact with your
+     operating system (opening your editor to edit text areas, sending links to
+     your video player, reading a configuration file from your disk...). This
+     is possible thanks to an external executable we provide. If you feel this
+     gives Tridactyl too much power you can chose not to install the external
+     executable: Tridactyl will still work but won't be able to start external
+     programs.
  - Read and modify bookmarks:
    * Tridactyl's command line has a powerful autocompletion mechanism. In
      order to be able to autocomplete your bookmarks, Tridactyl needs to read
