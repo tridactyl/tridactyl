@@ -165,6 +165,7 @@ const DEFAULTS = o({
         h: "help",
         openwith: "hint -W",
         "!": "exclaim",
+        "!s": "exclaim_quiet",
     }),
     followpagepatterns: o({
         next: "^(next|newer)\\b|»|>>|more",
