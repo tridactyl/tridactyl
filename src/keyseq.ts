@@ -168,6 +168,7 @@ function expandAliases(key: string) {
     // Vim compatibility aliases
     const aliases = {
         cr: "Enter",
+        esc: "Escape",
         return: "Enter",
         enter: "Enter",
         space: " ",
