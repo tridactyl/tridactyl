@@ -4,16 +4,18 @@ Replace Firefox's control mechanism with one modelled on VIM.
 Most common tasks you want your browser to perform are bind to a single key
 press:
 
-You want to open a new tab? Hit `t`.
-You want to follow that link? Hit `f` and type the displayed label.
-You want to go to the bottom of the page? Hit `G`. Or the top? `gg`.
-You want to focus the text field on Wikipedia to search for another term? `gi`.
-Switch to the next tab? `gt`.
-Go back in time? `H`.
-Notice that this tab is rubbish and you want to close it? `d`.
-Regret that decision? `u` restores it.
-Temporarily disable all that magic because you can't stand it? `I`.
-But how do you use your browser now? `Shift-Esc` and we're back on.
+- You want to open a new tab? Hit `t`.
+- You want to follow that link? Hit `f` and type the displayed label.
+- You want to go to the bottom of the page? Hit `G`. Or the top? `gg`.
+- You want to focus the text field on Wikipedia to search for another term? `gi`.
+- Switch to the next tab? `gt`.
+- Go back in time? `H`.
+- Notice that this tab is rubbish and you want to close it? `d`.
+- Regret that decision? `u` restores it.
+- Want to write something in Vim? `Ctrl-i` in a text box opens it in Vim, if 
+you have `:native` working.
+- Temporarily disable all that magic because you can't stand it? `Shift-Insert`.
+- But how do you use your browser now? `Shift-Insert` again and we're back on.
 
 The list could go on a bit here, but I guess you'll get the point. If you feel
 lost sometimes `:help` might help you a lot.
