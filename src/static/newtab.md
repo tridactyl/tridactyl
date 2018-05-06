@@ -14,7 +14,7 @@ Tridactyl has to override your new tab page due to WebExtension limitations. You
 
 - **Breaking change to default settings:** ignore mode is now bound to `<S-Insert>` for both entering and leaving the mode. Previous binds are unbound.
 
-- **NB:** Tridactyl now supports a native messenger on Linux and OSX. Just run `:installnative` to get going, and then Ctrl-i `<C-i>` in a text box to open your editor.
+- **NB:** Tridactyl can now run external programs on Linux and OSX if you decide to install an additional executable. Just run `:installnative` to get going, and then Ctrl-i `<C-i>` in a text box to open your editor.
 
 
 REPLACE_ME_WITH_THE_CHANGE_LOG_USING_SED
@@ -42,7 +42,7 @@ REPLACE_ME_WITH_THE_CHANGE_LOG_USING_SED
 
 ## Important limitations due to WebExtensions
 
-- You can only navigate to most about:*\file:* pages if you have the native messenger installed.
+- You can only navigate to most about:*\file:* pages if you have Tridactyl's native executable installed.
 - Firefox will not load Tridactyl on addons.mozilla.org, about:\*, some file:\* URIs, view-source:\*, or data:\*. On these pages Ctrl-L (or F6), Ctrl-Tab and Ctrl-W are your escape hatches.
 - Tridactyl does not currently support changing/hiding the Firefox GUI, but you can do it yourself by changing your userChrome. There is an example file available on our repository [[2]].
 - Tridactyl cannot capture key presses until web pages are loaded. You can use `:reloadall` to reload all tabs to make life more bearable, or flip `browser.sessionstore.restore_tabs_lazily` to false in `about:config`.
