@@ -1798,7 +1798,7 @@ export function comclear(name: string) {
         - `bind j`
         - `bind k`
 
-    You can bind to modifiers and special keys by enclosing them with space, for example `bind <C-\>z fullscreen`, or `bind <Backspace> forward`.
+    You can bind to modifiers and special keys by enclosing them with angle brackets, for example `bind <C-\>z fullscreen`, `unbind <F1>` (a favourite of people who use TreeStyleTabs :) ), or `bind <Backspace> forward`.
 
     Modifiers are truncated to a single character, so Ctrl -> C, Alt -> A, and Shift -> S. Shift is a bit special as it is only required if Shift does not change the key inputted, e.g. `<S-ArrowDown>` is OK, but `<S-a>` should just be `A`.
 
