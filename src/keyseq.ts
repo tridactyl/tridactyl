@@ -109,7 +109,8 @@ export type ParserResponse = {
 export function parse(keyseq: KeyEventLike[], map: KeyMap): ParserResponse {
     // Remove bare modifiers
     keyseq = keyseq.filter(
-        key => !["Control", "Shift", "Alt", "AltGraph", "Meta"].includes(key.key),
+        key =>
+            !["Control", "Shift", "Alt", "AltGraph", "Meta"].includes(key.key),
     )
 
     // If keyseq is a prefix of a key in map, proceed, else try dropping keys
@@ -167,6 +168,7 @@ function expandAliases(key: string) {
     // Vim compatibility aliases
     const aliases = {
         cr: "Enter",
+        esc: "Escape",
         return: "Enter",
         enter: "Enter",
         space: " ",

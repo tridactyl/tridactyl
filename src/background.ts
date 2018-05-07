@@ -27,6 +27,7 @@ import * as gobble_mode from "./parsers/gobblemode"
 import * as input_mode from "./parsers/inputmode"
 import * as itertools from "./itertools"
 import * as keyseq from "./keyseq"
+import * as native from "./native_background"
 import * as msgsafe from "./msgsafe"
 import state from "./state"
 import * as webext from "./lib/webext"
@@ -44,6 +45,7 @@ import * as webext from "./lib/webext"
     input_mode,
     itertools,
     keydown_background,
+    native,
     keyseq,
     msgsafe,
     state,

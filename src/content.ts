@@ -67,7 +67,14 @@ if (
     window.location.protocol === "moz-extension:" &&
     window.location.pathname === "/static/newtab.html"
 ) {
-    config.getAsync("newtab").then(newtab => newtab && excmds.open(newtab))
+    config.getAsync("newtab").then(newtab => {
+        if (newtab) {
+            excmds.open(newtab)
+        } else {
+            document.documentElement.style.display = "block"
+            document.title = "Tridactyl Top Tips & New Tab Page"
+        }
+    })
 }
 
 // Really bad status indicator

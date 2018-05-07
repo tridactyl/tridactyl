@@ -47,8 +47,6 @@ python_file_escaped=$(sed 's/[&/\]/\\&/g' <<< "$python_path")
 if [[ -x "$python_path" ]] && [[ -x "$pip_path" ]]; then
     sed -i.bak "1s/.*/#!$python_file_escaped/" "$native_file"
     mv "$native_file" "$native_file_final"
-    # pip3 install --user tinycss2
-    # put dependencies here
 else
     echo "Error: Python 3 and pip3 must exist in PATH."
     echo "Please install them and run this script again."

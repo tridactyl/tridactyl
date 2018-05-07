@@ -96,6 +96,7 @@ import * as Logging from "./logging"
 /** @hidden */
 const logger = new Logging.Logger("excmds")
 import Mark from "mark.js"
+import * as CSS from "css"
 import * as semverCompare from "semver-compare"
 
 //#content_helper
@@ -173,12 +174,91 @@ export async function editor() {
     // to everything written using editor
 }
 
+//#background_helper
+import * as css_util from "./css_util"
+
+/**
+ * Change which parts of the Firefox user interface are shown. **NB: This feature is experimental and might break stuff.**
+ *
+ * Might mangle your userChrome. Requires native messenger, and you must restart Firefox each time to see any changes. <!-- (unless you enable addon debugging and refresh using the browser toolbox) -->
+ *
+ * View available rules and options [here](/static/docs/modules/_css_util_.html#potentialrules) and [here](/static/docs/modules/_css_util_.html#metarules).
+ *
+ * Example usage: `guiset gui none`, `guiset gui full`, `guiset tabs autohide`.
+ *
+ * Some of the available options:
+ *
+ * - gui
+ *      - full
+ *      - none
+ *
+ * - tabs
+ *      - always
+ *      - autohide
+ *
+ * - navbar
+ *      - always
+ *      - autohide
+ *
+ * - hoverlink (the little link that appears when you hover over a link)
+ *      - none
+ *      - left
+ *      - right
+ *      - top-left
+ *      - top-right
+ *
+ * - titlebar
+ *      - hide
+ *      - show
+ *
+ */
+//#background
+export async function guiset(rule: string, option: string) {
+    // Could potentially fall back to sending minimal example to clipboard if native not installed
+
+    // Check for native messenger and make sure we have a plausible profile directory
+    if (!await nativegate("0.1.1")) return
+    let profile_dir = ""
+    if (config.get("profiledir") === "auto") {
+        if (["linux", "openbsd", "mac"].includes((await browser.runtime.getPlatformInfo()).os)) profile_dir = await Native.getProfileDir()
+        else {
+            fillcmdline("Please set your profile directory (found on about:support) via `set profiledir [profile directory]`")
+            return
+        }
+    } else profile_dir = config.get("profiledir")
+    if (profile_dir == "") {
+        logger.error("Profile not found.")
+        return
+    }
+
+    // Make backups
+    await Native.mkdir(profile_dir + "/chrome", true)
+    let cssstr = (await Native.read(profile_dir + "/chrome/userChrome.css")).content
+    let cssstrOrig = (await Native.read(profile_dir + "/chrome/userChrome.orig.css")).content
+    if (cssstrOrig === "") await Native.write(profile_dir + "/chrome/userChrome.orig.css", cssstr)
+    await Native.write(profile_dir + "/chrome/userChrome.css.tri.bak", cssstr)
+
+    // Modify and write new CSS
+    if (cssstr === "") cssstr = `@namespace url("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul");`
+    let stylesheet = CSS.parse(cssstr)
+    let stylesheetDone = CSS.stringify(css_util.changeCss(rule, option, stylesheet))
+    Native.write(profile_dir + "/chrome/userChrome.css", stylesheetDone)
+}
+
+/** @hidden */
+//#background
+export function cssparse(...css: string[]) {
+    console.log(CSS.parse(css.join(" ")))
+}
+
 /**
  * Uses the native messenger to open URLs.
  *
  * **Be *seriously* careful with this: you can use it to open any URL you can open in the Firefox address bar.**
  *
  * You've been warned.
+ *
+ * Unsupported on OSX unless you set `browser` to something that will open Firefox from a terminal pass it commmand line options.
  */
 //#background
 export async function nativeopen(url: string, ...firefoxArgs: string[]) {
@@ -522,18 +602,25 @@ export async function reloadhard(n = 1) {
     reload(n, true)
 }
 
+// I went through the whole list https://developer.mozilla.org/en-US/Firefox/The_about_protocol
+// about:blank is even more special
+/** @hidden */
+export const ABOUT_WHITELIST = ["about:home", "about:license", "about:logo", "about:rights"]
+
 /** Open a new page in the current tab.
-
-    @param urlarr
-        - if first word looks like it has a schema, treat as a URI
-        - else if the first word contains a dot, treat as a domain name
-        - else if the first word is a key of [[SEARCH_URLS]], treat all following terms as search parameters for that provider
-        - else treat as search parameters for google
-
-    Related settings:
-        "searchengine": "google" or any of [[SEARCH_URLS]]
-        "historyresults": the n-most-recent results to ask Firefox for before they are sorted by frequency. Reduce this number if you find your results are bad.
-*/
+ *
+ *   @param urlarr
+ *       - if first word looks like it has a schema, treat as a URI
+ *       - else if the first word contains a dot, treat as a domain name
+ *       - else if the first word is a key of [[SEARCH_URLS]], treat all following terms as search parameters for that provider
+ *       - else treat as search parameters for google
+ *
+ *   Related settings:
+ *       "searchengine": "google" or any of [[SEARCH_URLS]]
+ *      "historyresults": the n-most-recent results to ask Firefox for before they are sorted by frequency. Reduce this number if you find your results are bad.
+ * Can only open about:* or file:* URLs if you have the native messenger installed, and on OSX you must set `browser` to something that will open Firefox from a terminal pass it commmand line options.
+ *
+ */
 //#content
 export async function open(...urlarr: string[]) {
     let url = urlarr.join(" ")
@@ -543,7 +630,7 @@ export async function open(...urlarr: string[]) {
         url = url || undefined
         browserBg.tabs.update(await activeTabId(), { url })
         // Open URLs that firefox won't let us by running `firefox <URL>` on the command line
-    } else if (url.match(/^(about|file):.*/)) {
+    } else if (!ABOUT_WHITELIST.includes(url) && url.match(/^(about|file):.*/)) {
         Messaging.message("commandline_background", "recvExStr", ["nativeopen " + url])
     } else if (url !== "") {
         window.location.href = forceURI(url)
@@ -1011,7 +1098,7 @@ export function focusinput(nth: number | string) {
 
     // either a number (not special) or we failed to find a special input when
     // asked and falling back is acceptable
-    if (!inputToFocus && fallbackToNumeric) {
+    if ((!inputToFocus || !document.contains(inputToFocus)) && fallbackToNumeric) {
         let index = isNaN(<number>nth) ? 0 : <number>nth
         inputToFocus = DOM.getNthElement(INPUTTAGS_selectors, index, [DOM.isSubstantial])
     }
@@ -1151,7 +1238,7 @@ export async function tabopen(...addressarr: string[]) {
     let url: string
     let address = addressarr.join(" ")
 
-    if (address.match(/^(about|file):.*/)) {
+    if (!ABOUT_WHITELIST.includes(address) && address.match(/^(about|file):.*/)) {
         nativeopen(address)
         return
     } else if (address != "") url = forceURI(address)
@@ -1378,7 +1465,7 @@ export async function winopen(...args: string[]) {
         firefoxArgs = "--private-window"
     } else address = args.join(" ")
     createData["url"] = address != "" ? forceURI(address) : forceURI(config.get("newtab"))
-    if (address.match(/^(about|file):.*/)) {
+    if (!ABOUT_WHITELIST.includes(address) && address.match(/^(about|file):.*/)) {
         nativeopen(address, firefoxArgs)
         return
     }
@@ -1618,7 +1705,7 @@ export async function clipboard(excmd: "open" | "yank" | "yankshort" | "yankcano
 */
 //#background
 export async function tabs() {
-    fillcmdline("buffer")
+    fillcmdline("Deprecated. If anyone actually uses this, they should file an issue on GitHub.")
 }
 
 /** Equivalent to `fillcmdline buffer`
@@ -1711,7 +1798,7 @@ export function comclear(name: string) {
         - `bind j`
         - `bind k`
 
-    You can bind to modifiers and special keys by enclosing them with space, for example `bind <C-\>z fullscreen`, or `bind <Backspace> forward`.
+    You can bind to modifiers and special keys by enclosing them with angle brackets, for example `bind <C-\>z fullscreen`, `unbind <F1>` (a favourite of people who use TreeStyleTabs :) ), or `bind <Backspace> forward`.
 
     Modifiers are truncated to a single character, so Ctrl -> C, Alt -> A, and Shift -> S. Shift is a bit special as it is only required if Shift does not change the key inputted, e.g. `<S-ArrowDown>` is OK, but `<S-a>` should just be `A`.
 
@@ -2246,16 +2333,6 @@ export async function bmark(url?: string, ...titlearr: string[]) {
     }
 
     browser.bookmarks.create({ url, title })
-}
-
-//#background
-export async function errorbg(msg: string) {
-    logger.error(msg)
-}
-
-//#content
-export async function errorfg(msg: string) {
-    logger.error(msg)
 }
 
 /**  Open a welcome page on first install.

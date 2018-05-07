@@ -8,7 +8,7 @@ import Logger from "./logging"
 const logger = new Logger("native")
 
 const NATIVE_NAME = "tridactyl"
-type MessageCommand = "version" | "run" | "read" | "write" | "temp"
+type MessageCommand = "version" | "run" | "read" | "write" | "temp" | "mkdir"
 interface MessageResp {
     cmd: string
     version: number | null
@@ -154,6 +154,10 @@ export async function write(file: string, content: string) {
     return sendNativeMsg("write", { file, content })
 }
 
+export async function mkdir(dir: string, exist_ok: boolean) {
+    return sendNativeMsg("mkdir", { dir, exist_ok })
+}
+
 export async function temp(content: string) {
     return sendNativeMsg("temp", { content })
 }
@@ -161,4 +165,20 @@ export async function run(command: string) {
     let msg = await sendNativeMsg("run", { command })
     logger.info(msg)
     return msg
+}
+
+export async function getProfileDir() {
+    // Find active profile directory automatically by seeing where the lock exists
+    let hacky_profile_finder = "find ../../../.mozilla/firefox -name lock"
+    if ((await browser.runtime.getPlatformInfo()).os === "mac")
+        hacky_profile_finder =
+            "find ../../../Library/'Application Support'/Firefox/Profiles -maxdepth 2 -name .parentlock"
+    let profilecmd = await run(hacky_profile_finder)
+    if (profilecmd.code != 0) {
+        return ""
+    } else
+        return profilecmd.content
+            .split("/")
+            .slice(0, -1)
+            .join("/")
 }

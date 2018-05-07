@@ -165,6 +165,7 @@ const DEFAULTS = o({
         h: "help",
         openwith: "hint -W",
         "!": "exclaim",
+        "!s": "exclaim_quiet",
     }),
     followpagepatterns: o({
         next: "^(next|newer)\\b|»|>>|more",
@@ -249,6 +250,7 @@ const DEFAULTS = o({
     browser: "firefox",
     nativeinstallcmd:
         "curl -fsSl https://raw.githubusercontent.com/cmcaine/tridactyl/master/native/install.sh | bash",
+    profiledir: "auto",
 
     // Performance related settings
 

@@ -1,5 +1,5 @@
-const UglifyJSPlugin = require('uglifyjs-webpack-plugin')
-const CopyWebPackPlugin = require('copy-webpack-plugin')
+const UglifyJSPlugin = require("uglifyjs-webpack-plugin")
+const CopyWebPackPlugin = require("copy-webpack-plugin")
 // const WebpackShellPlugin = require('webpack-shell-plugin')
 
 module.exports = {
@@ -10,7 +10,7 @@ module.exports = {
     },
     output: {
         filename: "[name].js",
-        path: __dirname + "/build"
+        path: __dirname + "/build",
     },
 
     // Enable sourcemaps for debugging webpack's output.
@@ -18,7 +18,7 @@ module.exports = {
 
     resolve: {
         // Add '.ts' and '.tsx' as resolvable extensions.
-        extensions: [".ts", ".tsx", ".js", ".json"]
+        extensions: [".ts", ".tsx", ".js", ".json"],
     },
 
     module: {
@@ -27,8 +27,8 @@ module.exports = {
             { test: /\.tsx?$/, loader: "awesome-typescript-loader" },
 
             // All output '.js' files will have any sourcemaps re-processed by 'source-map-loader'.
-            { enforce: "pre", test: /\.js$/, loader: "source-map-loader" }
-        ]
+            { enforce: "pre", test: /\.js$/, loader: "source-map-loader" },
+        ],
     },
 
     plugins: [
@@ -45,8 +45,17 @@ module.exports = {
         // ]}),
         new CopyWebPackPlugin([
             { from: "src/manifest.json" },
-            { from: "src/static", to: "static", ignore: ['*.psd', '*1024px.png'] },
+            {
+                from: "src/static",
+                to: "static",
+                ignore: ["*.psd", "*1024px.png"],
+            },
             { from: "generated/static", to: "static" },
         ]),
-    ]
+    ],
+    // Fix css
+    // https://github.com/webpack-contrib/css-loader/issues/447#issuecomment-285598881
+    node: {
+        fs: "empty",
+    },
 }
