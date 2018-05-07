@@ -1405,18 +1405,6 @@ export async function undo() {
     }
 }
 
-/** Synonym for [[tabclose]]. */
-//#background
-export async function quit() {
-    tabclose()
-}
-
-/** Convenience shortcut for [[quit]]. */
-//#background
-export async function q() {
-    tabclose()
-}
-
 /** Move the current tab to be just in front of the index specified.
 
     Known bug: This supports relative movement, but autocomple doesn't know

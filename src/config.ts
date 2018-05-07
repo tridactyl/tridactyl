@@ -160,6 +160,8 @@ const DEFAULTS = o({
         tlast: "tablast",
         bd: "tabclose",
         bdelete: "tabclose",
+        quit: "tabclose",
+        q: "tabclose",
         sanitize: "sanitise",
         tutorial: "tutor",
         h: "help",
