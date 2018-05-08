@@ -7,6 +7,10 @@
     - see all the options with `help guiset` and following the links.
     - **Only minimally tested. Back up your precious userChrome.css if you care about it!**
 
+- You can now choose to bypass [CSP](https://en.wikipedia.org/wiki/Content_Security_Policy) on all sites with `set csp clobber`. If you change your mind, just `unset csp`, and restart your browser.
+    - This, for example, allows Tridactyl to run on pages such as https://raw.githubusercontent.com/cmcaine/tridactyl/master/CHANGELOG.md, but it could also allow other scripts to run on pages, making the Internet as dangerous as it was about 2 or 3 years ago before CSP was introduced.
+    - Once this [bug](https://bugzilla.mozilla.org/show_bug.cgi?id=1267027) in Firefox is fixed, you won't have to clobber CSP.
+
 ## Release 1.10.1 / 2018-05-04
 
 - Add tabcloseallto{right,left} bound to `gx0` and `gx$`
