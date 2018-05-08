@@ -239,7 +239,7 @@ export async function run(command: string) {
 
 export async function getenv(variable: string) {
     let v = await getNativeMessengerVersion()
-    if (!nativegate("0.1.2", false)) {
+    if (!(await nativegate("0.1.2", false))) {
         throw `Error: getenv needs native messenger v>=0.1.2. Current: ${v}`
     }
     return (await sendNativeMsg("env", { var: variable })).content
@@ -259,9 +259,26 @@ export async function ffargs(): Promise<string[]> {
 }
 
 export async function getProfileDir() {
+    // First, see if we can get the profile from the arguments that were given
+    // to Firefox
+    let args = await ffargs()
+
+    // --profile <path>: Start with profile at <path>
+    let prof = args.indexOf("--profile")
+    if (prof >= 0) return args[prof + 1]
+
+    // -P <profile>: Start with <profile>
+    // -P          : Start with profile manager
+    let profileName = "*"
+    prof = args.indexOf("-P")
+    // args.length -1 because we need to make sure -P was given a value
+    if (prof >= 0 && prof < args.length - 1) profileName = args[prof + 1]
+
     // Find active profile directory automatically by seeing where the lock exists
-    let hacky_profile_finder =
-        "find ../../../.mozilla/firefox -maxdepth 2 -name lock"
+    // We can't use a relative path because ~/.local (the directory where the
+    // native messenger currently sits) might actually be a symlink to another dir
+    let home = await getenv("HOME")
+    let hacky_profile_finder = `find "${home}/.mozilla/firefox" -maxdepth 2 -path '*.${profileName}/lock'`
     if ((await browser.runtime.getPlatformInfo()).os === "mac")
         hacky_profile_finder =
             "find ../../../Library/'Application Support'/Firefox/Profiles -maxdepth 2 -name .parentlock"
