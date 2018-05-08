@@ -226,10 +226,6 @@ export async function guiset(rule: string, option: string) {
             return
         }
     } else profile_dir = config.get("profiledir")
-    if (profile_dir == "") {
-        logger.error("Profile not found.")
-        return
-    }
 
     // Make backups
     await Native.mkdir(profile_dir + "/chrome", true)

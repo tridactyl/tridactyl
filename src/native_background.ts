@@ -169,16 +169,27 @@ export async function run(command: string) {
 
 export async function getProfileDir() {
     // Find active profile directory automatically by seeing where the lock exists
-    let hacky_profile_finder = "find ../../../.mozilla/firefox -name lock"
+    let hacky_profile_finder =
+        "find ../../../.mozilla/firefox -maxdepth 2 -name lock"
     if ((await browser.runtime.getPlatformInfo()).os === "mac")
         hacky_profile_finder =
             "find ../../../Library/'Application Support'/Firefox/Profiles -maxdepth 2 -name .parentlock"
     let profilecmd = await run(hacky_profile_finder)
     if (profilecmd.code != 0) {
-        return ""
-    } else
-        return profilecmd.content
-            .split("/")
-            .slice(0, -1)
-            .join("/")
+        throw new Error("Profile not found")
+    } else {
+        // Remove trailing newline
+        profilecmd.content = profilecmd.content.trim()
+        if (profilecmd.content.split("\n").length > 1) {
+            throw new Error(
+                "Multiple profiles in use. Can't tell which one you want. `set profiledir`, close other Firefox profiles or remove zombie lock files.",
+            )
+        } else {
+            // Get parent directory of lock file
+            return profilecmd.content
+                .split("/")
+                .slice(0, -1)
+                .join("/")
+        }
+    }
 }
