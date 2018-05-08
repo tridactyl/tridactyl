@@ -95,10 +95,10 @@ input {
 }
 
 #completions .sectionHeader {
-    background: linear-gradient(
-    var(--tridactyl-header-bg-g1),
-    var(--tridactyl-header-bg-g2),
-    var(--tridactyl-header-bg-g3));
+    background: linear-gradient( 
+    var(--tridactyl-header-first-bg), 
+    var(--tridactyl-header-second-bg), 
+    var(--tridactyl-header-third-bg));
     font-weight: var(--tridactyl-header-font-weight);
     border-bottom: var(--tridactyl-header-border-bottom);
     padding-left: 0.5ex;

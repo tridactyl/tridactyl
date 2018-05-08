@@ -21,26 +21,27 @@
 
     /* need a better way for naming variables 
      *
-        /*.Properties for .HistoryCompletionSource table*/
-        /*.Properties for .BmarkCompletionSource table*/
+        - .Properties for .HistoryCompletionSource table
+        - .Properties for .BmarkCompletionSource table
 
     */
 
 /*sectionHeader*/
 
-    --tridactyl-header-bg-g1: lightgrey;
-    --tridactyl-header-bg-g2: #ddd;
-    --tridactyl-header-bg-g3: lightgrey;
-
+    --tridactyl-header-first-bg: LightGray;
+    --tridactyl-header-second-bg: #ddd;
+    --tridactyl-header-third-bg: LightGray;
     /* eg. What if I dont want liner-gradient as bg?
      *
      * :root .sectionHeader { background: blue; }
      *
      * ????
+     */
 
     --tridactyl-header-font-weight: bold;
     /* i don't think 0.5px is redered */
     --tridactyl-header-border-bottom: 1px solid bottom;
+    
 
 /*url style*/
 
