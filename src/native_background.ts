@@ -186,7 +186,9 @@ export async function getenv(variable: string) {
     return (await sendNativeMsg("env", { var: variable })).content
 }
 
-export async function ffargs() {
+/** This returns the commandline that was used to start firefox.
+ You'll get both firefox binary (not necessarily an absolute path) and flags */
+export async function ffargs(): Promise<string[]> {
     // Using ' and + rather that ` because we don't want newlines
     let output = await sendNativeMsg("eval", {
         command:
