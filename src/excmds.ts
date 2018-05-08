@@ -218,13 +218,12 @@ export async function guiset(rule: string, option: string) {
     // Check for native messenger and make sure we have a plausible profile directory
     if (!await Native.nativegate("0.1.1")) return
     let profile_dir = ""
-    if (config.get("profiledir") === "auto") {
-        if (["linux", "openbsd", "mac"].includes((await browser.runtime.getPlatformInfo()).os)) profile_dir = await Native.getProfileDir()
-        else {
-            fillcmdline("Please set your profile directory (found on about:support) via `set profiledir [profile directory]`")
-            return
-        }
-    } else profile_dir = config.get("profiledir")
+    if (config.get("profiledir") === "auto" && ["linux", "openbsd", "mac"].includes((await browser.runtime.getPlatformInfo()).os)) profile_dir = await Native.getProfileDir()
+    else profile_dir = config.get("profiledir")
+    if (profile_dir == "") {
+        fillcmdline("Please set your profile directory (found on about:support) via `set profiledir [profile directory]`")
+        return
+    }
 
     // Make backups
     await Native.mkdir(profile_dir + "/chrome", true)
