@@ -258,6 +258,11 @@ const DEFAULTS = o({
 
     // number of most recent results to ask Firefox for. We display the top 20 or so most frequently visited ones.
     historyresults: "50",
+
+
+    // Security settings
+
+    csp: "untouched" // change this to "clobber" to ruin the CSP of all sites and make Tridactyl run a bit better on some of them, e.g. raw.github*
 })
 
 /** Given an object and a target, extract the target if it exists, else return undefined

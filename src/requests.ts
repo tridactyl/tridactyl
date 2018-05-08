@@ -1,3 +1,5 @@
+import * as config from "./config"
+
 export function addurltocsp(response){
     let headers = response["responseHeaders"]
     let cspind = headers.findIndex(header => header.name == "Content-Security-Policy")
@@ -42,5 +44,7 @@ export function addurltocsp(response){
     return {responseHeaders: headers}
 }
 
-browser.webRequest.onHeadersReceived.addListener(addurltocsp,{urls:["<all_urls>"], types:["main_frame"]},["blocking","responseHeaders"])
+if (config.get("csp") == "clobber"){
+    browser.webRequest.onHeadersReceived.addListener(addurltocsp,{urls:["<all_urls>"], types:["main_frame"]},["blocking","responseHeaders"])
+}
 // csp tends to be in method GET and type "main_frame"

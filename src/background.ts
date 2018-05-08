@@ -54,3 +54,16 @@ import * as webext from "./lib/webext"
     webext,
     l: prom => prom.then(console.log).catch(console.error),
 })
+
+let cspListener
+if (config.get("csp") == "clobber"){
+    cspListener = browser.webRequest.onHeadersReceived.addListener(request.addurltocsp,{urls:["<all_urls>"], types:["main_frame"]},["blocking","responseHeaders"])
+}
+browser.storage.onChanged.addListener((changes, areaname) => {
+        if (config.get("csp") == "clobber"){
+            cspListener = browser.webRequest.onHeadersReceived.addListener(request.addurltocsp,{urls:["<all_urls>"], types:["main_frame"]},["blocking","responseHeaders"])
+        } else {
+            // This doesn't work. :(
+            // browser.webRequest.onHeadersReceived.removeListener(cspListener)
+        }
+})
