@@ -10,6 +10,8 @@ import "./number.clamp"
 import state from "./state"
 import Logger from "./logging"
 import * as aliases from "./aliases"
+import * as CssHelper from "./css_util"
+
 const logger = new Logger("cmdline")
 
 let activeCompletions: Completions.CompletionSource[] = undefined
@@ -67,13 +69,7 @@ export function focus() {
 
     // update theme of command line
     let theme = Config.get("theme")
-    if (theme !== lastTheme) {
-        if (lastTheme) {
-            document.querySelector(":root").classList.remove(lastTheme)
-        }
-        document.querySelector(":root").classList.add(theme)
-        lastTheme = theme
-    }
+    CssHelper.toggleStylesheet("themes/" + theme + "/commandline.css", 1)
 
     clInput.focus()
     clInput.addEventListener("blur", noblur)
