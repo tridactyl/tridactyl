@@ -275,9 +275,12 @@ export async function getProfileDir() {
     if (prof >= 0 && prof < args.length - 1) profileName = args[prof + 1]
 
     // Find active profile directory automatically by seeing where the lock exists
-    // We can't use a relative path because ~/.local (the directory where the
-    // native messenger currently sits) might actually be a symlink to another dir
-    let home = await getenv("HOME")
+    let home = "../../.."
+    try {
+        // We try not to use a relative path because ~/.local (the directory where
+        // the native messenger currently sits) might actually be a symlink
+        home = await getenv("HOME")
+    } catch (e) {}
     let hacky_profile_finder = `find "${home}/.mozilla/firefox" -maxdepth 2 -path '*.${profileName}/lock'`
     if ((await browser.runtime.getPlatformInfo()).os === "mac")
         hacky_profile_finder =
