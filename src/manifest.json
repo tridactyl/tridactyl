@@ -43,6 +43,8 @@
         "bookmarks",
         "browsingData",
         "contextMenus",
+        "contextualIdentities",
+        "cookies",
         "clipboardWrite",
         "clipboardRead",
         "downloads",

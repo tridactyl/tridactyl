@@ -87,7 +87,7 @@
 
 // Shared
 import * as Messaging from "./messaging"
-import { l, browserBg, activeTabId } from "./lib/webext"
+import { l, browserBg, activeTabId, activeTabContainerId } from "./lib/webext"
 import state from "./state"
 import * as UrlUtil from "./url_util"
 import * as config from "./config"
@@ -1244,7 +1244,10 @@ export async function tabopen(...addressarr: string[]) {
     } else if (address != "") url = forceURI(address)
     else url = forceURI(config.get("newtab"))
 
-    openInNewTab(url, { active })
+    activeTabContainerId().then(containerId => {
+        if (containerId && config.get("tabopencontaineraware") === "true") openInNewTab(url, { active: active, cookieStoreId: containerId })
+        else openInNewTab(url, { active })
+    })
 }
 
 /** Resolve a tab index to the tab id of the corresponding tab in this window.

@@ -254,6 +254,10 @@ const DEFAULTS = o({
         "curl -fsSl https://raw.githubusercontent.com/cmcaine/tridactyl/master/native/install.sh | bash",
     profiledir: "auto",
 
+    // Container settings
+    // If enabled, tabopen opens a new tab in the currently active tab's container.
+    tabopencontaineraware: "false",
+
     // Performance related settings
 
     // number of most recent results to ask Firefox for. We display the top 20 or so most frequently visited ones.
