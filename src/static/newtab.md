@@ -12,7 +12,7 @@ Tridactyl has to override your new tab page due to WebExtension limitations. You
 
 - If you're enjoying Tridactyl (or not), please leave a review on [addons.mozilla.org][amo].
 
-- **Breaking change to default settings:** ignore mode is now bound to `<S-Insert>` for both entering and leaving the mode. Previous binds are unbound.
+- **Manual intervention required. The next update will require the "cookies" permission:** we need the permission so that we can support opening links in the same container that they were opened in. Please keep an eye out for the tiny desaturated yellow exclamation mark on Firefox's hamburger menu that will notify you that the update is available. Click it to update.
 
 - **NB:** Tridactyl can now run external programs on Linux and OSX if you decide to install an additional executable. Just run `:installnative` to get going, and then Ctrl-i `<C-i>` in a text box to open your editor.
 
