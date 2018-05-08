@@ -28,6 +28,7 @@
                 "static/css/content.css",
                 "static/css/hint.css",
                 "static/css/viewsource.css"
+
             ],
             "run_at": "document_start",
             "match_about_blank": true
