@@ -1,6 +1,6 @@
 # Tridactyl changelog
 
-## Release 1.11.0 / Unreleased
+## Release 1.11.0 / 2018-05-09
 
 - You can now edit the Firefox GUI from Tridactyl with `guiset`. You must restart Firefox after using `guiset` to see the effects.
     - e.g, `guiset gui none` or `guiset gui full`.
@@ -13,6 +13,23 @@
 
 - Tridactyl will no longer update while the browser is running in an attempt to fix issues where the add-on would be unresponsive after an update; instead, it will only update on browser launch.
     - This includes manual updates via `about:addons`. You'll need to restart the browser after clicking "Check for updates".
+
+- `set newtab news.bbc.co.uk` etc. now looks much less janky
+
+- Minor new features
+    - Add !s alias for silent exclaim
+    - `termite` and `terminator` support with `set editorcmd auto`
+    - Allow binding <Esc> (not recommended...)
+    - AMO explains why we need each new permission
+    - Native messenger documentation improved, making it clear that we haven't reimplemented IRC in the browser.
+
+- Minor bug fixes
+    - Remove pixel gap under command bar (#442)
+    - Native installer no longer requires pip and supports Debian's `which`
+    - Help page links are more legible on rubbish screens
+    - Turn 'q' and 'qall' into aliases
+    - Fix typo regarding binding of special keys on help page
+    - `focusinput` is now better at finding elements to focus
 
 ## Release 1.10.1 / 2018-05-04
 
