@@ -97,7 +97,6 @@ import * as Logging from "./logging"
 const logger = new Logging.Logger("excmds")
 import Mark from "mark.js"
 import * as CSS from "css"
-import * as semverCompare from "semver-compare"
 
 //#content_helper
 // {
@@ -167,7 +166,7 @@ export async function getinput() {
  */
 //#background
 export async function editor() {
-    if (!await nativegate()) return
+    if (!await Native.nativegate()) return
     const file = (await Native.temp(await getinput())).content
     fillinput((await Native.editor(file)).content)
     // TODO: add annoying "This message was written with [Tridactyl](https://addons.mozilla.org/en-US/firefox/addon/tridactyl-vim/)"
@@ -217,7 +216,7 @@ export async function guiset(rule: string, option: string) {
     // Could potentially fall back to sending minimal example to clipboard if native not installed
 
     // Check for native messenger and make sure we have a plausible profile directory
-    if (!await nativegate("0.1.1")) return
+    if (!await Native.nativegate("0.1.1")) return
     let profile_dir = ""
     if (config.get("profiledir") === "auto") {
         if (["linux", "openbsd", "mac"].includes((await browser.runtime.getPlatformInfo()).os)) profile_dir = await Native.getProfileDir()
@@ -260,34 +259,8 @@ export function cssparse(...css: string[]) {
 //#background
 export async function nativeopen(url: string, ...firefoxArgs: string[]) {
     if (firefoxArgs.length === 0) firefoxArgs = ["--new-tab"]
-    if (await nativegate()) {
+    if (await Native.nativegate()) {
         Native.run(config.get("browser") + " " + firefoxArgs.join(" ") + " " + url)
-    }
-}
-
-/**
- * Used internally to gate off functions that use the native messenger. Gives a helpful error message in the command line if the native messenger is not installed, or is the wrong version.
- */
-//#background
-export async function nativegate(version = "0", interactive = true): Promise<Boolean> {
-    if (["win", "android"].includes((await browser.runtime.getPlatformInfo()).os)) {
-        if (interactive == true) fillcmdline("# Tridactyl's native messenger doesn't support your operating system, yet.")
-        return false
-    }
-    try {
-        const actualVersion = await Native.getNativeMessengerVersion()
-        if (actualVersion !== undefined) {
-            if (semverCompare(version, actualVersion) > 0) {
-                if (interactive == true) fillcmdline("# Please update to native messenger " + version + ", for example by running `:updatenative`.")
-                // TODO: add update procedure and document here.
-                return false
-            }
-            return true
-        } else if (interactive == true) fillcmdline("# Native messenger not found. Please run `:installnative` and follow the instructions.")
-        return false
-    } catch (e) {
-        if (interactive == true) fillcmdline("# Native messenger not found. Please run `:installnative` and follow the instructions.")
-        return false
     }
 }
 
@@ -341,7 +314,7 @@ export async function installnative() {
  */
 //#background
 export async function updatenative(interactive = true) {
-    if (await nativegate("0", interactive)) {
+    if (await Native.nativegate("0", interactive)) {
         if ((await browser.runtime.getPlatformInfo()).os === "mac") {
             if (interactive) logger.error("Updating the native messenger on OSX is broken. Please use `:installnative` instead.")
             return

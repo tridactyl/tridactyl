@@ -2,7 +2,9 @@
  * Background functions for the native messenger interface
  */
 
+import * as semverCompare from "semver-compare"
 import * as config from "./config"
+import * as excmds from "./.excmds_background.generated"
 
 import Logger from "./logging"
 const logger = new Logger("native")
@@ -130,6 +132,59 @@ export async function getBestEditor(): Promise<string> {
     return cmd
 }
 
+/**
+ * Used internally to gate off functions that use the native messenger. Gives a
+ * helpful error message in the command line if the native messenger is not
+ * installed, or is the wrong version.
+ *
+ * @arg version: A string representing the minimal required version.
+ * @arg interactive: True if a message should be displayed on version mismatch.
+ * @return false if the required version is higher than the currently available
+ * native messenger version.
+ */
+export async function nativegate(
+    version = "0",
+    interactive = true,
+): Promise<Boolean> {
+    if (
+        ["win", "android"].includes(
+            (await browser.runtime.getPlatformInfo()).os,
+        )
+    ) {
+        if (interactive == true)
+            excmds.fillcmdline(
+                "# Tridactyl's native messenger doesn't support your operating system, yet.",
+            )
+        return false
+    }
+    try {
+        const actualVersion = await getNativeMessengerVersion()
+        if (actualVersion !== undefined) {
+            if (semverCompare(version, actualVersion) > 0) {
+                if (interactive == true)
+                    excmds.fillcmdline(
+                        "# Please update to native messenger " +
+                            version +
+                            ", for example by running `:updatenative`.",
+                    )
+                // TODO: add update procedure and document here.
+                return false
+            }
+            return true
+        } else if (interactive == true)
+            excmds.fillcmdline(
+                "# Native messenger not found. Please run `:installnative` and follow the instructions.",
+            )
+        return false
+    } catch (e) {
+        if (interactive == true)
+            excmds.fillcmdline(
+                "# Native messenger not found. Please run `:installnative` and follow the instructions.",
+            )
+        return false
+    }
+}
+
 export async function inpath(cmd) {
     return (await run("which " + cmd.split(" ")[0])).code === 0
 }
@@ -183,6 +238,10 @@ export async function run(command: string) {
 }
 
 export async function getenv(variable: string) {
+    let v = await getNativeMessengerVersion()
+    if (!nativegate("0.1.2", false)) {
+        throw `Error: getenv needs native messenger v>=0.1.2. Current: ${v}`
+    }
     return (await sendNativeMsg("env", { var: variable })).content
 }
 
