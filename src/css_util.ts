@@ -127,14 +127,17 @@ export const metaRules = {
     tabs: {
         none: {
             tabstoolbar: "none",
+            navtoolboxunfocused: "hide",
         },
         always: {
             tabstoolbar: "show",
             tabstoolbarunfocused: "show",
+            navtoolboxunfocused: "show",
         },
         autohide: {
             tabstoolbar: "show",
             tabstoolbarunfocused: "hide",
+            navtoolboxunfocused: "hide",
         },
     },
     navbar: {
