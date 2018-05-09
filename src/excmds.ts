@@ -1682,26 +1682,6 @@ export async function clipboard(excmd: "open" | "yank" | "yankshort" | "yankcano
     CommandLineBackground.hide()
 }
 
-// {{{ Buffer/completion stuff
-
-/** Equivalent to `fillcmdline buffer`
-
-    Sort of Vimperator alias
-*/
-//#background
-export async function tabs() {
-    fillcmdline("Deprecated. If anyone actually uses this, they should file an issue on GitHub.")
-}
-
-/** Equivalent to `fillcmdline buffer`
-
-    Sort of Vimperator alias
-*/
-//#background
-export async function buffers() {
-    tabs()
-}
-
 /** Change active tab.
 
     @param index
