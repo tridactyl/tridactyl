@@ -1542,6 +1542,24 @@ export async function qall() {
 
 // }}}
 
+// {{{ CONTAINERS
+/** Closes all tabs open in the same container across all windows.
+ * @param containerId
+ *      The string represtation of the container id.
+ */
+//#background
+export async function containerclose(containerId: string) {
+    browser.tabs.query({ cookieStoreId: "firefox-container-" + containerId }).then(tabs => {
+        console.log(tabs)
+        browser.tabs.remove(
+            tabs.map(tab => {
+                return tab.id
+            }),
+        )
+    })
+}
+// }}}
+//
 // {{{ MISC
 
 /** Deprecated
