@@ -6,18 +6,27 @@ import * as CSS from "css"
 //                      type: "rule", selectors: [string], declarations: [
 //                          {type: "declaration", property: string, value: string}
 
+/** Find rules in sheet that match selector */
 export function findCssRules(
-    ruleToFind: string,
+    selector: string,
     sheet: CSS.Stylesheet,
 ): number[] {
     const filtSheet = [...sheet.stylesheet.rules.entries()].filter(x => {
         const rule = x[1]
-        return rule.type == "rule" && rule["selectors"].indexOf(ruleToFind) > -1
+        return rule.type == "rule" && rule["selectors"].indexOf(selector) > -1
     })
     return filtSheet.map(x => x[0])
 }
 
-// TODO: make this more flexible with cleverer matching of selectors, merging of options
+/** Rulename -> { name: <selector>, options: { <option-name>: <css-string> } }
+ *
+ *  Multi-level map of rulename, options available for rule and css for each option.
+ *
+ *  *findCssRules and changeSingleCss rely on the selector not containing a comma.*
+ *
+ *  TODO: make this more flexible with cleverer matching of selectors, merging of options
+ *
+ */
 export const potentialRules = {
     hoverlink: {
         name: `statuspanel[type="overLink"]`,
@@ -104,6 +113,10 @@ export const potentialRules = {
 //
 //  was just a simple show/hide if the characters appeared in the setting
 
+/** Rules that index into potentialRules or metaRules
+ *
+ *  Please don't add cycles to this table :)
+ */
 export const metaRules = {
     gui: {
         none: {
@@ -151,39 +164,40 @@ export const metaRules = {
     },
 }
 
+/** Add desired non-meta rule to stylesheet replacing existing rule with the same selector if present */
 export function changeSingleCss(
     rulename: string,
     optionname: string,
     sheet: CSS.Stylesheet,
 ): CSS.Stylesheet {
-    const ruleInds = findCssRules(potentialRules[rulename]["name"], sheet)
-    const desRule =
-        potentialRules[rulename]["name"] +
-        " {" +
-        potentialRules[rulename]["options"][optionname] +
-        "}"
-    const miniSheet = CSS.parse(desRule).stylesheet.rules[0]
-    if (ruleInds.length > 0) {
-        sheet.stylesheet.rules[ruleInds[0]] = miniSheet
+    const selector = potentialRules[rulename]["name"]
+    const newRule = `${selector} {
+        ${potentialRules[rulename]["options"][optionname]}
+    }`
+    const miniSheet = CSS.parse(newRule).stylesheet.rules[0]
+
+    // Find pre-existing rules
+    const oldRuleIndexes = findCssRules(selector, sheet)
+    if (oldRuleIndexes.length > 0) {
+        sheet.stylesheet.rules[oldRuleIndexes[0]] = miniSheet
     } else {
         sheet.stylesheet.rules = sheet.stylesheet.rules.concat(miniSheet)
     }
+
     return sheet
 }
 
+/** Apply rule to stylesheet. rulename, optionname identify a rule. They may be meta rules */
 export function changeCss(
     rulename: string,
     optionname: string,
     sheet: CSS.Stylesheet,
 ): CSS.Stylesheet {
     if (rulename in metaRules) {
-        for (let rule of Object.keys(metaRules[rulename][optionname])) {
+        const metarule = metaRules[rulename][optionname]
+        for (let rule of Object.keys(metarule)) {
             // have a metarule call itself for hours of fun
-            sheet = changeCss(
-                rule,
-                metaRules[rulename][optionname][rule],
-                sheet,
-            )
+            sheet = changeCss(rule, metarule[rule], sheet)
         }
     } else sheet = changeSingleCss(rulename, optionname, sheet)
     return sheet

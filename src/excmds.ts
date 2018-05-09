@@ -237,7 +237,8 @@ export async function guiset(rule: string, option: string) {
     // Modify and write new CSS
     if (cssstr === "") cssstr = `@namespace url("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul");`
     let stylesheet = CSS.parse(cssstr)
-    let stylesheetDone = CSS.stringify(css_util.changeCss(rule, option, stylesheet))
+    // Trim due to https://github.com/reworkcss/css/issues/114
+    let stylesheetDone = CSS.stringify(css_util.changeCss(rule, option, stylesheet)).trim()
     Native.write(profile_dir + "/chrome/userChrome.css", stylesheetDone)
 }
 
