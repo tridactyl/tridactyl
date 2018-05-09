@@ -12,10 +12,7 @@ export function findCssRules(
 ): number[] {
     const filtSheet = [...sheet.stylesheet.rules.entries()].filter(x => {
         const rule = x[1]
-        return (
-            rule.type == "rule" &&
-            rule["selectors"].filter(sel => sel == ruleToFind).length > 0
-        )
+        return rule.type == "rule" && rule["selectors"].indexOf(ruleToFind) > -1
     })
     return filtSheet.map(x => x[0])
 }
