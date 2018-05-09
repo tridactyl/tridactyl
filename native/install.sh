@@ -56,8 +56,8 @@ if [[ -x "$python_path" ]]; then
     sed -i.bak "1s/.*/#!$(sedEscape "$python_path")/" "$native_file"
     mv "$native_file" "$native_file_final"
 else
-    echoerr "Error: Python 3 and pip3 must exist in PATH."
-    echoerr "Please install them and run this script again."
+    echoerr "Error: Python 3 must exist in PATH."
+    echoerr "Please install it and run this script again."
     exit 1
 fi
 
