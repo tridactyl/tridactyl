@@ -2,6 +2,18 @@
 
 set -e
 
+echoerr() {
+    red="\033[31m"
+    normal="\e[0m"
+    echo -e "$red$@$normal" >&2
+}
+
+sedEscape() {
+    sed 's/[&/\]/\\&/g' <<< "$@"
+}
+
+trap "echoerr 'Failed to install!'" ERR
+
 # To install, curl -fsSl 'url to this script' | bash
 
 XDG_CONFIG_HOME="${XDG_CONFIG_HOME:-$HOME/.config/tridactyl}"
@@ -35,21 +47,17 @@ else
     curl -sS --create-dirs -o "$native_file" "$native_loc"
 fi
 
-native_file_escaped=$(sed 's/[&/\]/\\&/g' <<< "$native_file_final")
-
-sed -i.bak "s/REPLACE_ME_WITH_SED/$native_file_escaped/" "$manifest_file"
+sed -i.bak "s/REPLACE_ME_WITH_SED/$(sedEscape "$native_file_final")/" "$manifest_file"
 chmod +x $native_file
 
 # Requirements for native messenger
-python_path=$(which python3)
-pip_path=$(which pip3)
-python_file_escaped=$(sed 's/[&/\]/\\&/g' <<< "$python_path")
-if [[ -x "$python_path" ]] && [[ -x "$pip_path" ]]; then
-    sed -i.bak "1s/.*/#!$python_file_escaped/" "$native_file"
+python_path=$(which python3) || python_path=""
+if [[ -x "$python_path" ]]; then
+    sed -i.bak "1s/.*/#!$(sedEscape "$python_path")/" "$native_file"
     mv "$native_file" "$native_file_final"
 else
-    echo "Error: Python 3 and pip3 must exist in PATH."
-    echo "Please install them and run this script again."
+    echoerr "Error: Python 3 and pip3 must exist in PATH."
+    echoerr "Please install them and run this script again."
     exit 1
 fi
 
