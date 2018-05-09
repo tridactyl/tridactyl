@@ -22,7 +22,7 @@ def eprint(*args, **kwargs):
     print(*args, file=sys.stderr, flush=True, **kwargs)
 
 
-def _getenv(variable, default):
+def getenv(variable, default):
     """ Get an environment variable value, or use the default provided """
     return os.environ.get(variable) or default
 
@@ -71,7 +71,7 @@ def findUserConfigFile():
     if not found
     """
     home = os.path.expanduser('~')
-    config_dir = _getenv('XDG_CONFIG_HOME', os.path.expanduser('~/.config'))
+    config_dir = getenv('XDG_CONFIG_HOME', os.path.expanduser('~/.config'))
 
     # Will search for files in this order
     candidate_files = [
