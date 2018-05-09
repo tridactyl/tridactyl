@@ -8,7 +8,15 @@ import Logger from "./logging"
 const logger = new Logger("native")
 
 const NATIVE_NAME = "tridactyl"
-type MessageCommand = "version" | "run" | "read" | "write" | "temp" | "mkdir"
+type MessageCommand =
+    | "version"
+    | "run"
+    | "read"
+    | "write"
+    | "temp"
+    | "mkdir"
+    | "eval"
+    | "env"
 interface MessageResp {
     cmd: string
     version: number | null
@@ -167,10 +175,26 @@ export async function mkdir(dir: string, exist_ok: boolean) {
 export async function temp(content: string) {
     return sendNativeMsg("temp", { content })
 }
+
 export async function run(command: string) {
     let msg = await sendNativeMsg("run", { command })
     logger.info(msg)
     return msg
+}
+
+export async function getenv(variable: string) {
+    return (await sendNativeMsg("env", { var: variable })).content
+}
+
+export async function ffargs() {
+    // Using ' and + rather that ` because we don't want newlines
+    let output = await sendNativeMsg("eval", {
+        command:
+            "handleMessage(" +
+            '{"cmd": "run", "command": "ps -p " + str(os.getppid()) + " -o' +
+            'args="})["content"]',
+    })
+    return output.content.trim().split(" ")
 }
 
 export async function getProfileDir() {

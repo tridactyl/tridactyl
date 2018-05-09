@@ -22,10 +22,9 @@ def eprint(*args, **kwargs):
     print(*args, file=sys.stderr, flush=True, **kwargs)
 
 
-def _getenv(variable, default):
+def getenv(variable, default):
     """ Get an environment variable value, or use the default provided """
     return os.environ.get(variable) or default
-
 
 def getMessage():
     """Read a message from stdin and decode it.
@@ -115,6 +114,9 @@ def handleMessage(message):
         with open(filepath, "w") as file:
             file.write(message["content"])
         reply['content'] = filepath
+
+    elif cmd == 'env':
+        reply['content'] = getenv(message["var"], "")
 
     else:
         reply = {'cmd': 'error', 'error': 'Unhandled message'}
