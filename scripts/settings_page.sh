@@ -2,7 +2,7 @@
 
 echo 'Replacing settings page static options'
 
-marked doc/changelog.md > changelog.html
+marked CHANGELOG.md > changelog.html
 marked src/static/about.md > about.html
 marked readme.md > readme.html
 
@@ -17,4 +17,4 @@ sed -e '/REPLACE_WITH_CHANGELOG_VIA_SED/{r changelog.html
        d;}' -i.bak $page
 sed -e '/REPLACE_WITH_README_VIA_SED/{r readme.html
        d;}' -i.bak $page
-rm $page.bak about.html changelog.html
+rm $page.bak about.html changelog.html readme.html
