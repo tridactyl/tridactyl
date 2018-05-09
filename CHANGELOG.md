@@ -11,6 +11,9 @@
     - This, for example, allows Tridactyl to run on pages such as https://raw.githubusercontent.com/cmcaine/tridactyl/master/CHANGELOG.md, but it could also allow other scripts to run on pages, making the Internet as dangerous as it was about 2 or 3 years ago before CSP was introduced.
     - Once this [bug](https://bugzilla.mozilla.org/show_bug.cgi?id=1267027) in Firefox is fixed, you won't have to clobber CSP.
 
+- Tridactyl will no longer update while the browser is running in an attempt to fix issues where the add-on would be unresponsive after an update; instead, it will only update on browser launch.
+    - This includes manual updates via `about:addons`. You'll need to restart the browser after clicking "Check for updates".
+
 ## Release 1.10.1 / 2018-05-04
 
 - Add tabcloseallto{right,left} bound to `gx0` and `gx$`
