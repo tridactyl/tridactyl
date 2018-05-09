@@ -1,34 +1,38 @@
+@import url('../themes/default/content.css');
+@import url('../themes/dark/content.css');
+@import url('../themes/greenmat/content.css');
+
 span.TridactylHint {
     position: absolute !important;
-    font-family: sans-serif !important;
-    font-size: 12px !important;
-    font-weight: bold !important;
+    font-family: var(--tridactyl-hintspan-font-family) !important;
+    font-size: var(--tridactyl-hintspan-font-size) !important;
+    font-weight: var(--tridactyl-hintspan-font-weight) !important;
     text-transform: uppercase !important;
-    color: white !important;
-    background-color: red !important;
-    border-color: ButtonShadow !important;
-    border-width: 0px !important;
+    color: var(--tridactyl-hintspan-fg) !important;
+    background-color: var(--tridactyl-hintspan-bg) !important;
+    border-color: var(--tridactyl-hintspan-border-color) !important;
+    border-width: var(--tridactyl-hintspan-border-width) !important;
     min-width: .75em !important;
-    border-style: solid !important;
+    border-style: var(--tridactyl-hintspan-border-style) !important;
     padding: 0 1pt !important;
     text-align: center !important;
     z-index: 2147483647 !important;
 }
 
 .TridactylHintElem, .TridactylHintActive {
-    color: black !important !important;
+    color: var(--tridactyl-hint-active-fg) !important !important;
     animation: none !important;
     transition: unset !important;
 }
 
 .TridactylHintElem {
-    background-color: rgba(255, 255, 0, 0.25) !important;
-    outline: 1px solid #8F5902 !important;
+    background-color: var(--tridactyl-hint-bg) !important;
+    outline: var(--tridactyl-hint-outline) !important;
 }
 
 .TridactylHintActive {
-    background-color: #88FF00 !important;
-    outline: 1px solid #CC0000 !important;
+    background-color: var(--tridactyl-hint-active-bg) !important;
+    outline: var(--tridactyl-hint-active-outline) !important;
 }
 
 div.TridactylHintHost {

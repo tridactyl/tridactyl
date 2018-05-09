@@ -180,6 +180,7 @@ type HintSelectedCallback = (Hint) => any
 /** Place a flag by each hintworthy element */
 class Hint {
     public readonly flag = document.createElement("span")
+    private theme: string = config.get("theme")
 
     constructor(
         public readonly target: Element,
@@ -221,17 +222,13 @@ class Hint {
         if (hide) {
             this.focused = false
             this.target.classList.remove("TridactylHintElem")
-            if (config.get("theme") === "dark") {
-                document
-                    .querySelector(":root")
-                    .classList.remove("TridactylThemeDark")
+            if (this.theme != "default") {
+                document.querySelector(":root").classList.remove(this.theme)
             }
         } else {
             this.target.classList.add("TridactylHintElem")
-            if (config.get("theme") === "dark") {
-                document
-                    .querySelector(":root")
-                    .classList.add("TridactylThemeDark")
+            if (this.theme != "default") {
+                document.querySelector(":root").classList.add(this.theme)
             }
         }
     }

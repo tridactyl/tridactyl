@@ -20,7 +20,7 @@ native/install.sh local
 wait
 
 if [ -e "$CLEANSLATE" ] ; then
-	cp "$CLEANSLATE" build/static/cleanslate.css
+	cp "$CLEANSLATE" build/static/css/cleanslate.css
 else
 	echo "Couldn't find cleanslate.css. Try running 'npm install'"
 fi

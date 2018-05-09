@@ -1,18 +1,12 @@
-:root.TridactylThemeDark span.TridactylHint {
-    color: white !important;
-    background-color: #204e8a !important;
-}
+:root.dark {
 
-:root.TridactylThemeDark .TridactylHintElem, :root.TridactylThemeDark .TridactylHintActive {
-    color: #333 !important !important;
-}
+	--tridactyl-hintspan-fg: white;
+	--tridactyl-hintspan-bg: #204E8A;
 
-:root.TridactylThemeDark .TridactylHintElem {
-    background-color: rgba(13, 31, 54, 0.25) !important;
-    outline: 1px solid #204e8a !important;
-}
+    --tridactyl-hint-active-fg: #333;
+    --tridactyl-hint-active-bg: #88FF00;
+    --tridactyl-hint-active-outline:1px solid #000;
 
-:root.TridactylThemeDark .TridactylHintActive {
-    background-color: #88FF00 !important;
-    outline: 1px solid #000 !important;
+    --tridactyl-hint-bg: rgba(13, 31, 54, 0.25); 
+    --tridactyl-hint-outline: 1px solid var(--tridactyl-hintspan-bg);
 }
