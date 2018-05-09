@@ -76,3 +76,6 @@ browser.storage.onChanged.addListener((changes, areaname) => {
         // browser.webRequest.onHeadersReceived.removeListener(cspListener)
     }
 })
+
+// Prevent Tridactyl from being updated while it is running in the hope of fixing #290
+browser.runtime.onUpdateAvailable.addListener(_ => {})
