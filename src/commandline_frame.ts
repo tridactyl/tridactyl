@@ -10,6 +10,8 @@ import "./number.clamp"
 import state from "./state"
 import Logger from "./logging"
 import * as aliases from "./aliases"
+import * as CssHelper from "./css_util"
+
 const logger = new Logger("cmdline")
 
 let activeCompletions: Completions.CompletionSource[] = undefined
@@ -58,32 +60,6 @@ function enableCompletions() {
 }
 /* document.addEventListener("DOMContentLoaded", enableCompletions) */
 
-//https://stackoverflow.com/questions/11833759/add-stylesheet-to-head-using-javascript-in-body
-function toggleStylesheet(href, onoff) {
-    var existingNode: Node //get existing stylesheet node if it already exists:
-    for (var i = 0; i < document.styleSheets.length; i++) {
-        if (
-            document.styleSheets[i].href &&
-            document.styleSheets[i].href.indexOf(href) > -1
-        )
-            existingNode = document.styleSheets[i].ownerNode
-    }
-    if (onoff == undefined) onoff = !existingNode //toggle on or off if undefined
-    if (onoff) {
-        //TURN ON:
-        if (existingNode) return onoff //already exists so cancel now
-        var link = document.createElement("link")
-        link.rel = "stylesheet"
-        link.type = "text/css"
-        link.href = href
-        document.getElementsByTagName("head")[0].appendChild(link)
-    } else {
-        //TURN OFF:
-        if (existingNode) existingNode.parentNode.removeChild(existingNode)
-    }
-    return onoff
-}
-
 let noblur = e => setTimeout(() => clInput.focus(), 0)
 let lastTheme: string
 
@@ -93,7 +69,7 @@ export function focus() {
 
     // update theme of command line
     let theme = Config.get("theme")
-    toggleStylesheet("themes/" + theme + "/commandline.css", 1)
+    CssHelper.toggleStylesheet("themes/" + theme + "/commandline.css", 1)
 
     clInput.focus()
     clInput.addEventListener("blur", noblur)
