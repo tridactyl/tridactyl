@@ -81,3 +81,6 @@ browser.storage.onChanged.addListener((changes, areaname) => {
         // browser.webRequest.onHeadersReceived.removeListener(cspListener)
     }
 })
+
+// Try to load an RC file
+excmds.source_quiet()

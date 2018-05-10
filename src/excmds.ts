@@ -335,8 +335,19 @@ export async function installnative() {
 }
 
 //#background
-export async function source(file?: string) {
-    rc.source(file)
+export async function source(...fileArr: string[]) {
+    const file = fileArr.join(" ") || undefined
+    if (await nativegate("0.1.3")) rc.source(file)
+}
+
+//#background
+export async function source_quiet(...fileArr: string[]) {
+    try {
+        const file = fileArr.join(" ") || undefined
+        if (await nativegate("0.1.3", false)) rc.source(file)
+    } catch (e) {
+        logger.info("Automatic loading of RC file failed.")
+    }
 }
 
 /**
