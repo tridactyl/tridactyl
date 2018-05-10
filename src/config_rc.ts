@@ -28,7 +28,11 @@ const RC_DEFAULT = `
 " bind i mode ignore
 
 " Access this page with ':st'
-" command st settings`
+" command st settings
+
+" Get pretty highlighting in Vim (leave this last line commented!)
+" vim set filetype=vim:
+`
 
 const FSRC_NOT_FOUND = `
 " Something went wrong with loading the file from the filesystem. Please make
