@@ -118,6 +118,7 @@ import { ModeName } from "./state"
 import * as keydown from "./keydown_background"
 import { activeTab, firefoxVersionAtLeast, openInNewTab } from "./lib/webext"
 import * as CommandLineBackground from "./commandline_background"
+import * as rc from "./config_rc"
 
 //#background_helper
 import * as Native from "./native_background"
@@ -334,8 +335,8 @@ export async function installnative() {
 }
 
 //#background
-export async function getFilesystemRc(): Promise<string> {
-    return Native.getFilesystemUserConfig()
+export async function source(file?: string) {
+    rc.source(file)
 }
 
 /**

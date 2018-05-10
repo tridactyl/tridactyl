@@ -5,6 +5,7 @@ import * as Native from "./native_background"
 import * as Messaging from "./messaging"
 import DEFAULTS from "./config_defaults"
 import Logger from "./logging"
+const logger = new Logger("rc")
 
 const RC_NAME = "rc-text"
 const RC_LOC_NAME = "rc-location"
@@ -55,11 +56,11 @@ export async function initConfigFromRc(): Promise<void> {
     if (!location) location = "browser"
     if (!isAutoload) isAutoload = false
 
-    console.info(`Loading RC from:`, location)
+    logger.info(`Loading RC from:`, location)
 
     switch (location) {
         case "filesystem":
-            rcText = await getFilesystemRc()
+            rcText = await Native.getrc()
             break
         case "browser":
             rcText = await getBrowserRc()
@@ -76,9 +77,20 @@ export async function initConfigFromRc(): Promise<void> {
     runRc(rcText)
 }
 
-export function runRc(rc: string): void {
+export async function source(filename = "auto") {
+    let rctext = ""
+    if (filename == "auto") {
+        rctext = await Native.getrc()
+    } else {
+        rctext = (await Native.read(filename)).content
+    }
+
+    runRc(rctext)
+}
+
+export async function runRc(rc: string) {
     for (let cmd of rcFileToExCmds(rc)) {
-        Controller.acceptExCmd(cmd)
+        await Controller.acceptExCmd(cmd)
     }
 }
 
@@ -94,16 +106,12 @@ async function detectAndSetDefaultBrowserRc(): Promise<void> {
     if (!browserRc) await setBrowserRc(RC_DEFAULT)
 }
 
-export async function getFilesystemRc(): Promise<string> {
-    return Native.getFilesystemUserConfig()
-}
-
 export async function getBrowserRc(): Promise<string> {
     return Util.getStorage(RC_NAME)
 }
 
 export async function setBrowserRc(newRc: string): Promise<void> {
-    console.info(`Setting new RC file: \n${newRc}`)
+    logger.info(`Setting new RC file: \n${newRc}`)
     await Util.setStorage(RC_NAME, newRc)
 }
 

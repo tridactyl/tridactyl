@@ -48,15 +48,14 @@ async function sendNativeMsg(
     }
 }
 
-export async function getFilesystemUserConfig(): Promise<string> {
+export async function getrc(): Promise<string> {
     const res = await sendNativeMsg("getconfig", {})
 
     if (res.content && !res.error) {
-        console.info(`Successfully retrieved fs config:\n${res.content}`)
+        logger.info(`Successfully retrieved fs config:\n${res.content}`)
         return res.content
     } else {
-        console.error(`Error in retrieving config: ${res.error}`)
-        throw Error(`Error retrieving config: ${res.error}`)
+        logger.error(`Error in retrieving config: ${res.error}`)
     }
 }
 
