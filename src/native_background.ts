@@ -237,9 +237,16 @@ export async function run(command: string) {
     return msg
 }
 
+/** Evaluates a string in the native messenger. This has to be python code. If
+ *  you want to run shell strings, use run() instead.
+ */
+export async function pyeval(command: string): Promise<MessageResp> {
+    return sendNativeMsg("eval", { command })
+}
+
 export async function getenv(variable: string) {
     let v = await getNativeMessengerVersion()
-    if (!(await nativegate("0.1.2", false))) {
+    if (!await nativegate("0.1.2", false)) {
         throw `Error: getenv needs native messenger v>=0.1.2. Current: ${v}`
     }
     return (await sendNativeMsg("env", { var: variable })).content
@@ -249,12 +256,10 @@ export async function getenv(variable: string) {
  You'll get both firefox binary (not necessarily an absolute path) and flags */
 export async function ffargs(): Promise<string[]> {
     // Using ' and + rather that ` because we don't want newlines
-    let output = await sendNativeMsg("eval", {
-        command:
-            "handleMessage(" +
-            '{"cmd": "run", "command": "ps -p " + str(os.getppid()) + " -o' +
-            'args="})["content"]',
-    })
+    let output = await pyeval(
+        'handleMessage({"cmd": "run", ' +
+            '"command": "ps -p " + str(os.getppid()) + " -oargs="})["content"]',
+    )
     return output.content.trim().split(" ")
 }
 
