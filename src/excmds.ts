@@ -181,7 +181,7 @@ import * as css_util from "./css_util"
 /**
  * Change which parts of the Firefox user interface are shown. **NB: This feature is experimental and might break stuff.**
  *
- * Might mangle your userChrome. Requires native messenger, and you must restart Firefox each time to see any changes. <!-- (unless you enable addon debugging and refresh using the browser toolbox) -->
+ * Might mangle your userChrome. Requires native messenger, and you must restart Firefox each time to see any changes (this can be done using [[restart]]). <!-- (unless you enable addon debugging and refresh using the browser toolbox) -->
  *
  * View available rules and options [here](/static/docs/modules/_css_util_.html#potentialrules) and [here](/static/docs/modules/_css_util_.html#metarules).
  *
@@ -356,6 +356,21 @@ export async function updatenative(interactive = true) {
         await Native.run(await config.get("nativeinstallcmd"))
         if (interactive) native()
     }
+}
+
+/**
+ *  Restarts firefox with the same commandline arguments.
+ *
+ *  Warning: This can kill your tabs, especially if you :restart several times
+ *  in a row
+ */
+//#background
+export async function restart() {
+    const firefox = (await Native.ffargs()).join(" ")
+    const profile = await Native.getProfileDir()
+    // Wait for the lock to disappear, then wait a bit more, then start firefox
+    Native.run(`while readlink ${profile}/lock ; do sleep 1 ; done ; sleep 1 ; ${firefox}`)
+    qall()
 }
 
 // }}}
