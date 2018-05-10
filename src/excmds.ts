@@ -117,6 +117,7 @@ import { ModeName } from "./state"
 import * as keydown from "./keydown_background"
 import { activeTab, firefoxVersionAtLeast, openInNewTab } from "./lib/webext"
 import * as CommandLineBackground from "./commandline_background"
+import * as rc from "./config_rc"
 
 //#background_helper
 import * as Native from "./native_background"
@@ -309,6 +310,32 @@ export async function installnative() {
     const installstr = await config.get("nativeinstallcmd")
     await clipboard("yank", installstr)
     fillcmdline("# Installation command copied to clipboard. Please paste and run it in your shell to install the native messenger.")
+}
+
+/**
+ * Runs an RC file from disk.
+ *
+ * If no argument given, it will try to open ~/.tridactylrc, ~/.config/tridactylrc or $XDG_CONFIG_HOME/tridactyl/tridactylrc in reverse order.
+ *
+ * @param fileArr the file to open. Must be an absolute path and can't contain magic strings like ~.
+ */
+//#background
+export async function source(...fileArr: string[]) {
+    const file = fileArr.join(" ") || undefined
+    if (await Native.nativegate("0.1.3")) rc.source(file)
+}
+
+/**
+ * Same as [[source]] but suppresses all errors
+ */
+//#background
+export async function source_quiet(...fileArr: string[]) {
+    try {
+        const file = fileArr.join(" ") || undefined
+        if (await Native.nativegate("0.1.3", false)) rc.source(file)
+    } catch (e) {
+        logger.info("Automatic loading of RC file failed.")
+    }
 }
 
 /**

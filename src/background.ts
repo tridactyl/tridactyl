@@ -79,3 +79,6 @@ browser.storage.onChanged.addListener((changes, areaname) => {
 
 // Prevent Tridactyl from being updated while it is running in the hope of fixing #290
 browser.runtime.onUpdateAvailable.addListener(_ => {})
+
+// Try to load an RC file
+excmds.source_quiet()

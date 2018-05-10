@@ -17,6 +17,7 @@ type MessageCommand =
     | "temp"
     | "mkdir"
     | "eval"
+    | "getconfig"
     | "env"
 interface MessageResp {
     cmd: string
@@ -47,6 +48,17 @@ async function sendNativeMsg(
             logger.error(`Error sending native message:`, e)
             throw e
         }
+    }
+}
+
+export async function getrc(): Promise<string> {
+    const res = await sendNativeMsg("getconfig", {})
+
+    if (res.content && !res.error) {
+        logger.info(`Successfully retrieved fs config:\n${res.content}`)
+        return res.content
+    } else {
+        logger.error(`Error in retrieving config: ${res.error}`)
     }
 }
 
