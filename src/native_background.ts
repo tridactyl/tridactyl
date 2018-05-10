@@ -239,7 +239,7 @@ export async function run(command: string) {
 
 export async function getenv(variable: string) {
     let v = await getNativeMessengerVersion()
-    if (!nativegate("0.1.2", false)) {
+    if (!await nativegate("0.1.2", false)) {
         throw `Error: getenv needs native messenger v>=0.1.2. Current: ${v}`
     }
     return (await sendNativeMsg("env", { var: variable })).content
