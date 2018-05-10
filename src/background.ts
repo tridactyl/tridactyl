@@ -33,9 +33,9 @@ import * as msgsafe from "./msgsafe"
 import state from "./state"
 import * as webext from "./lib/webext"
 
-import * as RC from "./config_rc"
-console.log("Loading RC and initialising config")
-RC.initConfigFromRc()
+import * as rc from "./config_rc"
+console.log("Loading rc and initialising config")
+rc.initConfigFromRc()
 ;(window as any).tri = Object.assign(Object.create(null), {
     messaging,
     excmds,
@@ -51,6 +51,7 @@ RC.initConfigFromRc()
     itertools,
     keydown_background,
     native,
+    rc,
     keyseq,
     request,
     msgsafe,
