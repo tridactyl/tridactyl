@@ -1456,7 +1456,9 @@ export async function tablast() {
 
 /** Like [[open]], but in a new tab. If no address is given, it will open the newtab page, which can be set with `set newtab [url]`
 
-    Use the `-b` flag as the first argument to open the tab in the background.
+    Use the `-c` flag followed by a ccontainer id to open a tab in said container.
+    Use the `-b` flag to open the tab in the background.
+    These two can be combined in any order, but need to be placed as the first arguments.
 
     Unlike Firefox's Ctrl-t shortcut, this opens tabs immediately after the
     currently active tab rather than at the end of the tab list because that is
@@ -1474,13 +1476,29 @@ export async function tablast() {
 //#background
 export async function tabopen(...addressarr: string[]) {
     let active
-    if (addressarr[0] === "-b") {
-        addressarr.shift()
-        active = false
-    }
+    let container
 
+    // Lets us pass both -b and -c in no particular order as long as they are up front.
+    function argParse(args): string[] {
+        if (args[0] === "-b") {
+            active = false
+            args.shift()
+            argParse(args)
+        } else if (args[0] === "-c") {
+            if (args[1].length !== 1) {
+                logger.debug("Container Id missing, opening tab with no container specified.")
+                args.shift()
+            } else {
+                container = args[1]
+                args.shift()
+                args.shift()
+            }
+            argParse(args)
+        }
+        return args
+    }
     let url: string
-    let address = addressarr.join(" ")
+    let address = argParse(addressarr).join(" ")
 
     if (!ABOUT_WHITELIST.includes(address) && address.match(/^(about|file):.*/)) {
         if ((await browser.runtime.getPlatformInfo()).os === "mac" && (await browser.windows.getCurrent()).incognito) {
@@ -1495,6 +1513,7 @@ export async function tabopen(...addressarr: string[]) {
 
     activeTabContainerId().then(containerId => {
         if (containerId && config.get("tabopencontaineraware") === "true") openInNewTab(url, { active: active, cookieStoreId: containerId })
+        else if (container) openInNewTab(url, { active: active, cookieStoreId: "firefox-container-" + container })
         else openInNewTab(url, { active })
     })
 }
@@ -1741,7 +1760,6 @@ export async function qall() {
 //#background
 export async function containerclose(containerId: string) {
     browser.tabs.query({ cookieStoreId: "firefox-container-" + containerId }).then(tabs => {
-        console.log(tabs)
         browser.tabs.remove(
             tabs.map(tab => {
                 return tab.id
