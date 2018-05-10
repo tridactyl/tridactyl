@@ -269,8 +269,10 @@ export async function getProfileDir() {
 
     // -P <profile>: Start with <profile>
     // -P          : Start with profile manager
+    // Apparently, this argument is case-insensitive
     let profileName = "*"
     prof = args.indexOf("-P")
+    if (prof < 0) prof = args.indexOf("-p")
     // args.length -1 because we need to make sure -P was given a value
     if (prof >= 0 && prof < args.length - 1) profileName = args[prof + 1]
 
