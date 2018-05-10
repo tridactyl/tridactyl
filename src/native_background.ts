@@ -151,7 +151,9 @@ export async function nativegate(
         )
     ) {
         if (interactive == true)
-            throw "# Tridactyl's native messenger doesn't support your operating system, yet."
+            logger.error(
+                "# Tridactyl's native messenger doesn't support your operating system, yet.",
+            )
         return false
     }
     try {
@@ -159,19 +161,25 @@ export async function nativegate(
         if (actualVersion !== undefined) {
             if (semverCompare(version, actualVersion) > 0) {
                 if (interactive == true)
-                    throw "# Please update to native messenger " +
-                        version +
-                        ", for example by running `:updatenative`."
+                    logger.error(
+                        "# Please update to native messenger " +
+                            version +
+                            ", for example by running `:updatenative`.",
+                    )
                 // TODO: add update procedure and document here.
                 return false
             }
             return true
         } else if (interactive == true)
-            throw "# Native messenger not found. Please run `:installnative` and follow the instructions."
+            logger.error(
+                "# Native messenger not found. Please run `:installnative` and follow the instructions.",
+            )
         return false
     } catch (e) {
         if (interactive == true)
-            throw "# Native messenger not found. Please run `:installnative` and follow the instructions."
+            logger.error(
+                "# Native messenger not found. Please run `:installnative` and follow the instructions.",
+            )
         return false
     }
 }
