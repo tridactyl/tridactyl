@@ -334,6 +334,13 @@ export async function installnative() {
     fillcmdline("# Installation command copied to clipboard. Please paste and run it in your shell to install the native messenger.")
 }
 
+/**
+ * Runs an RC file from disk.
+ *
+ * If no argument given, it will try to open ~/.tridactylrc, ~/.config/tridactylrc or $XDG_CONFIG_HOME/tridactyl/tridactylrc in reverse order.
+ *
+ * @param fileArr the file to open. Must be an absolute path and can't contain magic strings like ~.
+ */
 //#background
 export async function source(...fileArr: string[]) {
     const file = fileArr.join(" ") || undefined
