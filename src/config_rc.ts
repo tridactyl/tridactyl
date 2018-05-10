@@ -31,6 +31,10 @@ const RC_DEFAULT = `
 " Access this page with ':st'
 " command st settings
 
+" Read another RC. For maximum fun, source this file in the other one!
+" source ~/.anotherfile
+
+
 " Get pretty highlighting in Vim (leave this last line commented!)
 " vim set filetype=vim:
 `
