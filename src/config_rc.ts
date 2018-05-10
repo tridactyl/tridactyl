@@ -10,31 +10,33 @@ const RC_NAME = "rc-text"
 const RC_LOC_NAME = "rc-location"
 const RC_AUTOLOAD_FS_NAME = "rc-autoload"
 const RC_DEFAULT = `
-# This is the default RC file.
-# Because I am a nice guy, here are some commented settings for you.
+" This is the default RC file.
+" Because I am a nice guy, here are some commented settings for you.
+" We don't support "in-line" comments yet:
+" Your comment must be an entire line starting with a quote mark
 
-# Wipe addon settings every time this file is loaded
-# resetConfigToDefault
+" Wipe addon settings every time this file is loaded
+" resetConfigToDefault
 
-# Use dark mode
-# set theme dark
+" Use dark mode
+" set theme dark
 
-# Disable on reddit because RES
-# autocmd DocStart reddit.com mode ignore
+" Disable on reddit because RES
+" autocmd DocStart reddit.com mode ignore
 
-# Bind i to ':mode ignore'
-# bind i mode ignore
+" Bind i to ':mode ignore'
+" bind i mode ignore
 
-# Access this page with ':st'
-# command st settings`
+" Access this page with ':st'
+" command st settings`
 
 const FSRC_NOT_FOUND = `
-# Something went wrong with loading the file from the filesystem. Please make
-# sure that all of the following are true:
-#  - You have a file at XDG_CONFIG_HOME/tridactyl/tridactylrc
-#  - You have installed the native app
-#  - No unusual errors are being reported in the console
-# If you are still lost, file a bug on GitHub or contact us on Gitter/Matrix. `
+" Something went wrong with loading the file from the filesystem. Please make
+" sure that all of the following are true:
+"  - You have a file at XDG_CONFIG_HOME/tridactyl/tridactylrc
+"  - You have installed the native app
+"  - No unusual errors are being reported in the console
+" If you are still lost, file a bug on GitHub or contact us on Gitter/Matrix. `
 
 export type RcLocation = "filesystem" | "browser"
 
