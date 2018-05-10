@@ -57,7 +57,7 @@ body {
 
 #current-settings {
     white-space: pre;
-    overflow: scroll;
+    overflow-x: scroll;
     font-family: monospace;
     border: 1px #eee solid;
     border-radius: 4px;
