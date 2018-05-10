@@ -17,4 +17,6 @@ sed -e '/REPLACE_WITH_CHANGELOG_VIA_SED/{r changelog.html
        d;}' -i.bak $page
 sed -e '/REPLACE_WITH_README_VIA_SED/{r readme.html
        d;}' -i.bak $page
+
 rm $page.bak about.html changelog.html readme.html
+
