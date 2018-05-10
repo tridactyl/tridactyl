@@ -8,7 +8,7 @@ import struct
 import subprocess
 import tempfile
 
-VERSION = "0.1.1"
+VERSION = "0.1.3"
 
 
 class NoConnectionError(Exception):
@@ -79,12 +79,10 @@ def findUserConfigFile():
         os.path.join(home, '.tridactylrc')
     ]
 
-    eprint(candidate_files)
     config_path = None
 
     # find the first path in the list that exists
     for path in candidate_files:
-        eprint("Checking file {}".format(path))
         if os.path.isfile(path):
             config_path = path
             break
@@ -118,7 +116,7 @@ def handleMessage(message):
         if file_content:
             reply['content'] = file_content
         else:
-            reply['error'] = 'File not found'
+            reply['code'] = 'File not found'
 
     elif cmd == 'run':
         commands = message["command"]
