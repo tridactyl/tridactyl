@@ -1,0 +1,42 @@
+" bovine3dom's dogfood
+
+" Move this to $XDG_CONFIG_DIR/tridactyl/tridactylrc (that's
+" ~/.config/tridactyl/tridactylrc to mere mortals) or ~/.tridactylrc and
+" install the native messenger (:installnative in Tridactyl). Run :source to
+" get it in the browser, or just restart.
+
+" NB: If you want "vim-like" behaviour where removing a line from 
+" here makes the setting disappear, uncomment the line below.
+
+"sanitise tridactyllocal tridactylsync
+
+"
+" Binds
+"
+
+" Comment toggler
+bind ;c hint -c [class*="expand"],[class="togg"]
+
+"
+" Misc settings
+"
+
+set editorcmd st vim
+
+" Sane hinting mode
+set hintfiltermode vimperator-reflow
+set hintchars 4327895610
+
+
+"
+" URL redirects
+" 
+
+" New reddit is bad
+autocmd DocStart www.reddit.com urlmodify -t www old
+" Mosquito nets won't make themselves
+autocmd DocStart www.amazon.co.uk urlmodify -t www smile
+
+
+" This will have to do until someone writes us a nice syntax file :)
+" vim: set filetype=vim:
