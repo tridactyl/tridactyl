@@ -24,6 +24,13 @@ function recvExStr(exstr: string) {
     }
 }
 
+//async function updateTheme(theme: String){
+//	//page root scope (content.css)
+//	browser.tabs.insertCSS("static/themes/" +
+//		theme + "/content.css")
+//	//cmdline_iframe root scope (commandline.css)
+//}
+
 /** Helpers for completions */
 async function currentWindowTabs(): Promise<browser.tabs.Tab[]> {
     return await browser.tabs.query({ currentWindow: true })

@@ -69,7 +69,7 @@ export function focus() {
 
     // update theme of command line
     let theme = Config.get("theme")
-    CssHelper.toggleStylesheet("themes/" + theme + "/theme.css", 1)
+    CssHelper.toggleStylesheet("themes/" + theme + "/commandline.css", 1)
 
     clInput.focus()
     clInput.addEventListener("blur", noblur)

@@ -35,10 +35,37 @@ async function init() {
             cmdline_iframe.setAttribute("id", "cmdline_iframe")
             hide()
             window.document.documentElement.appendChild(cmdline_iframe)
+
+            //inject content.css at page root element
+            var themerootcss = window.document.createElement("link")
+            themerootcss.setAttribute(
+                "href",
+                browser.extension.getURL(
+                    "static/themes/" + config.get("theme") + "/content.css",
+                ),
+            )
+            themerootcss.setAttribute("rel", "stylesheet")
+            window.document
+                .getElementsByTagName("head")[0]
+                .appendChild(themerootcss)
         } catch (e) {
             logger.error("Couldn't initialise cmdline_iframe!", e)
         }
     }
+}
+
+async function updatetheme(context: String, headElement) {
+    //var teste = browser.extension.getURL("
+    //if (context ==
+    //var themepath = "static/themes/" + config.get("theme") + "/theme.css"
+    //var themelink = window.document.createElement("link")
+    //themelink.setAttribute("rel", "stylesheet")
+    //themelink.setAttribute(
+    //    "href",
+    //    browser.extension.getURL(themepath),
+    //)
+    //var head = window.document.getElementsByTagName("head")[0]
+    //head.appendChild(themelink)
 }
 
 // Load the iframe immediately if the document is already complete (happens if tridactyl is reloaded)
