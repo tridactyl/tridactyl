@@ -317,7 +317,7 @@ export async function installnative() {
  *
  * If no argument given, it will try to open ~/.tridactylrc, ~/.config/tridactylrc or $XDG_CONFIG_HOME/tridactyl/tridactylrc in reverse order.
  *
- * @param fileArr the file to open. Must be an absolute path and can't contain magic strings like ~.
+ * @param fileArr the file to open. Must be an absolute path, but can contain environment variables and things like ~.
  */
 //#background
 export async function source(...fileArr: string[]) {

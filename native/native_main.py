@@ -134,7 +134,7 @@ def handleMessage(message):
 
     elif cmd == 'read':
         try:
-            with open(message["file"], "r") as file:
+            with open(os.path.expandvars(os.path.expanduser(message["file"])), "r") as file:
                 reply['content'] = file.read()
                 reply['code'] = 0
         except FileNotFoundError:
