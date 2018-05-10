@@ -71,8 +71,16 @@ export async function initConfigFromRc(): Promise<void> {
 }
 
 export function runRc(rc: string): void {
-    console.info("Running RC file: \n", rc)
-    Controller.acceptRcFile(rc)
+    for (let cmd of rcFileToExCmds(rc)) {
+        Controller.acceptExCmd(cmd)
+    }
+}
+
+export function rcFileToExCmds(rcText: string): string[] {
+    const excmds = rcText.split("\n")
+
+    // Remove comment lines
+    return excmds.filter(x => x != "" && !x.trim().startsWith('"'))
 }
 
 async function detectAndSetDefaultBrowserRc(): Promise<void> {
