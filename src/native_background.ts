@@ -4,7 +4,6 @@
 
 import * as semverCompare from "semver-compare"
 import * as config from "./config"
-import * as excmds from "./.excmds_background.generated"
 
 import Logger from "./logging"
 const logger = new Logger("native")
@@ -152,9 +151,7 @@ export async function nativegate(
         )
     ) {
         if (interactive == true)
-            excmds.fillcmdline(
-                "# Tridactyl's native messenger doesn't support your operating system, yet.",
-            )
+            throw "# Tridactyl's native messenger doesn't support your operating system, yet."
         return false
     }
     try {
@@ -162,25 +159,19 @@ export async function nativegate(
         if (actualVersion !== undefined) {
             if (semverCompare(version, actualVersion) > 0) {
                 if (interactive == true)
-                    excmds.fillcmdline(
-                        "# Please update to native messenger " +
-                            version +
-                            ", for example by running `:updatenative`.",
-                    )
+                    throw "# Please update to native messenger " +
+                        version +
+                        ", for example by running `:updatenative`."
                 // TODO: add update procedure and document here.
                 return false
             }
             return true
         } else if (interactive == true)
-            excmds.fillcmdline(
-                "# Native messenger not found. Please run `:installnative` and follow the instructions.",
-            )
+            throw "# Native messenger not found. Please run `:installnative` and follow the instructions."
         return false
     } catch (e) {
         if (interactive == true)
-            excmds.fillcmdline(
-                "# Native messenger not found. Please run `:installnative` and follow the instructions.",
-            )
+            throw "# Native messenger not found. Please run `:installnative` and follow the instructions."
         return false
     }
 }
