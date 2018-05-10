@@ -61,6 +61,7 @@ body {
     font-family: monospace;
     border: 1px #eee solid;
     border-radius: 4px;
+    background: #f9f9f9;
     min-height: 100%;
 }
 
@@ -76,4 +77,19 @@ body {
 #license {
     white-space: pre;
     font-family: monospace;
+}
+
+/* config display */
+.key {
+    color: green;
+}
+
+.string {
+    color: darkred;
+}
+
+.disclosure {
+    text-decoration: none;
+    color: gray;
+    display: none
 }

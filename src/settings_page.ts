@@ -3,6 +3,7 @@
 import * as Config from "./config"
 import * as RC from "./config_rc"
 import * as Messaging from "./messaging"
+import * as renderjson from "renderjson"
 
 const rctextarea = <HTMLTextAreaElement>document.querySelector("#rc-textarea")
 const isAutoloadCheckbox = <HTMLInputElement>document.querySelector(
@@ -49,8 +50,11 @@ function getTextboxValue(): string {
 
 async function fillCurrentConfig(): Promise<void> {
     const config = await Config.getAllConfig()
-    const cfgStr = JSON.stringify(config, null, 2)
-    document.querySelector("#current-settings").textContent = cfgStr
+    // const cfgStr = JSON.stringify(config, null, 2)
+    renderjson.set_icons("+", "-")
+    renderjson.set_show_to_level(1)
+    const cfgHTML = renderjson(config)
+    document.querySelector("#current-settings").appendChild(cfgHTML)
 
     const isAutoload = await RC.getAutoload()
     isAutoloadCheckbox.checked = isAutoload

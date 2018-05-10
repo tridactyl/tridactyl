@@ -20,6 +20,7 @@
     "copy-webpack-plugin": "^4.2.0",
     "jest": "^21.2.1",
     "prettier": "^1.11.1",
+    "renderjson": "^1.3.1",
     "shared-git-hooks": "^1.2.1",
     "source-map-loader": "^0.2.2",
     "ts-jest": "^21.1.3",
