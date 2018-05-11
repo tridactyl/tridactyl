@@ -100,11 +100,12 @@ export function acceptKey(keyevent: MsgSafeKeyboardEvent) {
 export async function acceptExCmd(exstr: string) {
     // TODO: Errors should go to CommandLine.
     try {
-        let [func, args] = exmode_parser(exstr)
+        let [func, args, flags] = exmode_parser(exstr)
         // Stop the repeat excmd from recursing.
         if (func !== repeat) state.last_ex_str = exstr
         try {
-            await func(...args)
+            console.log(flags)
+            await func(...args, flags)
         } catch (e) {
             // Errors from func are caught here (e.g. no next tab)
             logger.error(e)

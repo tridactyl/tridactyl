@@ -5,6 +5,7 @@ import * as convert from "../convert"
 import * as Config from "../config"
 import * as aliases from "../aliases"
 import * as Logging from "../logging"
+import parseArgs from "command-line-args"
 import { enumerate, head, izip } from "../itertools"
 const logger = new Logging.Logger("exmode")
 
@@ -52,9 +53,21 @@ export function parser(exstr: string): any[] {
 
     if (ExCmds.cmd_params.has(func)) {
         try {
+            const optionDefinitions = [{ name: "private", type: Boolean }]
+            let parsedargs = parseArgs(optionDefinitions, {
+                stopAtFirstUnknown: true,
+                argv: args,
+            })
+
+            const posargs = parsedargs._unknown
+            delete parsedargs["_unknown"]
+
+            parsedargs = Object.keys(parsedargs).length === 0 ? "" : parsedargs
+
             return [
                 ExCmds[func],
-                convertArgs(ExCmds.cmd_params.get(func), args),
+                convertArgs(ExCmds.cmd_params.get(func), posargs),
+                parsedargs,
             ]
         } catch (e) {
             logger.error("Error executing or parsing:", exstr, e)
