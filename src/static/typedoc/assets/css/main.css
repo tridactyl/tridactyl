@@ -937,6 +937,15 @@ ul.tsd-descriptions h4 {
 
 }
 
+.tsd-parent-kind-object-literal > h3, .tsd-sources {
+    display: none
+}
+
+.tsd-parent-kind-object-literal > .tsd-signature {
+    border: none
+}
+
+
 
 /* Other changes:
  * - removed all background images in CSS above

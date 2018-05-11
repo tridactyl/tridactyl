@@ -31,9 +31,9 @@ function schlepp(settings) {
 
 // TODO: have list of possibilities for settings, e.g. hintmode: reverse | normal
 let USERCONFIG = o({})
-const DEFAULTS = o({
+const _DEFAULTS = {
     configversion: "0.0",
-    nmaps: o({
+    nmaps: {
         "<F1>": "help",
         o: "fillcmdline open",
         O: "current_url open",
@@ -132,13 +132,19 @@ const DEFAULTS = o({
         ".": "repeat",
         "<SA-ArrowUp><SA-ArrowUp><SA-ArrowDown><SA-ArrowDown><SA-ArrowLeft><SA-ArrowRight><SA-ArrowLeft><SA-ArrowRight>ba":
             "open https://www.youtube.com/watch?v=M3iOROuTuMA",
-    }),
-    autocmds: o({
-        DocStart: o({
+    },
+    autocmds: {
+        DocStart: {
             "addons.mozilla.org": "mode ignore",
-        }),
-    }),
-    exaliases: o({
+        },
+    },
+
+    /**
+     * Aliases for use in the command line. The key is replaced with the value.
+     *
+     * Related ex command: `command`
+     */
+    exaliases: {
         alias: "command",
         au: "autocmd",
         b: "buffer",
@@ -169,13 +175,13 @@ const DEFAULTS = o({
         openwith: "hint -W",
         "!": "exclaim",
         "!s": "exclaim_quiet",
-    }),
-    followpagepatterns: o({
-        next: "^(next|newer)\\b|»|>>|more",
-        prev: "^(prev(ious)?|older)\\b|«|<<",
-    }),
+    },
+    followpagepatterns: {
+        next: "^(next|newer\\b|»|>>|more",
+        prev: "^(prev(ious?|older\\b|«|<<",
+    },
     searchengine: "google",
-    searchurls: o({
+    searchurls: {
         google: "https://www.google.com/search?q=",
         scholar: "https://scholar.google.com/scholar?q=",
         googleuk: "https://www.google.co.uk/search?q=",
@@ -199,7 +205,7 @@ const DEFAULTS = o({
         gentoo_wiki:
             "https://wiki.gentoo.org/index.php?title=Special%3ASearch&profile=default&fulltext=Search&search=",
         qwant: "https://www.qwant.com/?q=",
-    }),
+    },
 
     newtab: "",
     viewsource: "tridactyl", // "tridactyl" or "default"
@@ -210,7 +216,7 @@ const DEFAULTS = o({
 
     // Controls whether the page can focus elements for you via js
     // Remember to also change browser.autofocus (autofocusing elements via
-    // HTML) in about:config
+    // HTML in about:config
     // Maybe have a nice user-vicible message when the setting is changed?
     allowautofocus: "true",
 
@@ -234,21 +240,21 @@ const DEFAULTS = o({
     modeindicator: "true",
 
     // Default logging levels - 2 === WARNING
-    logging: o({
+    logging: {
         messaging: 2,
         cmdline: 2,
         controller: 2,
         hinting: 2,
         state: 2,
         excmd: 1,
-    }),
+    },
     noiframeon: [],
 
     // Native messenger settings
     // This has to be a command that stays in the foreground for the whole editing session
     // "auto" will attempt to find a sane editor in your path.
     // Please send your requests to have your favourite terminal moved further up the list to /dev/null.
-    //          (but we are probably happy to add your terminal to the list if it isn't already there).
+    //          (but we are probably happy to add your terminal to the list if it isn't already there.
     editorcmd: "auto",
     browser: "firefox",
     nativeinstallcmd:
@@ -263,7 +269,8 @@ const DEFAULTS = o({
     // Security settings
 
     csp: "untouched", // change this to "clobber" to ruin the CSP of all sites and make Tridactyl run a bit better on some of them, e.g. raw.github*
-})
+}
+const DEFAULTS = o(_DEFAULTS)
 
 /** Given an object and a target, extract the target if it exists, else return undefined
 
