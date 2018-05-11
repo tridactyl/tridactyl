@@ -931,6 +931,10 @@ ul.tsd-descriptions h4 {
     border: unset;
 }
 
+.tsd-signature {
+    text-align: left;
+}
+
 .tsd-flag {
     font-size: unset;
     border-radius: 2px;
@@ -943,6 +947,25 @@ ul.tsd-descriptions h4 {
 
 .tsd-parent-kind-object-literal > .tsd-signature {
     border: none
+}
+
+.tsd-panel {
+    padding: 0px;
+    padding-left: 3rem;
+}
+
+.tsd-parent-kind-object-literal > .tsd-panel {
+    margin: 0px;
+    border-top-width: 0.5px
+}
+
+.tsd-parent-kind-object-literal > .tsd-signature {
+    margin: 0px;
+    padding: 3px;
+}
+
+.tsd-signature-type {
+    display: none
 }
 
 
