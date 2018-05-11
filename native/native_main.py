@@ -154,7 +154,7 @@ def handleMessage(message):
 
     elif cmd == 'temp':
         (handle, filepath) = tempfile.mkstemp()
-        with open(filepath, "w") as file:
+        with os.fdopen(handle, "w") as file:
             file.write(message["content"])
         reply['content'] = filepath
 
