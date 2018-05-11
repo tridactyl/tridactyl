@@ -66,13 +66,14 @@ let lastTheme: string
 export function focus() {
     enableCompletions()
     document.body.classList.remove("hidden")
+    clInput.focus()
+    clInput.addEventListener("blur", noblur)
+}
 
+export function updateCommandLineTheme(cmdlcss) {
     // update theme of command line
     let theme = Config.get("theme")
     CssHelper.toggleStylesheet("themes/" + theme + "/commandline.css", 1)
-
-    clInput.focus()
-    clInput.addEventListener("blur", noblur)
 }
 
 async function sendExstr(exstr) {

@@ -20,6 +20,7 @@ import * as dom from "./dom"
 import * as excmds from "./.excmds_content.generated"
 import * as hinting_content from "./hinting"
 import * as finding_content from "./finding"
+import * as theming_content from "./theming"
 import * as itertools from "./itertools"
 import * as keydown_content from "./keydown_content"
 import * as messaging from "./messaging"
@@ -38,6 +39,7 @@ import * as native from "./native_background"
     excmds,
     hinting_content,
     finding_content,
+    theming_content,
     itertools,
     keydown_content,
     logger,
@@ -74,6 +76,7 @@ if (
             document.documentElement.style.display = "block"
             document.title = "Tridactyl Top Tips & New Tab Page"
         }
+        open
     })
 }
 
