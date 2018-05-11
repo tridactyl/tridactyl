@@ -4,11 +4,14 @@
 import sys
 import os
 import json
+import re
 import struct
 import subprocess
 import tempfile
+import unicodedata
 
 VERSION = "0.1.3"
+
 
 class NoConnectionError(Exception):
     """ Exception thrown when stdin cannot be read """
@@ -24,6 +27,7 @@ def eprint(*args, **kwargs):
 def getenv(variable, default):
     """ Get an environment variable value, or use the default provided """
     return os.environ.get(variable) or default
+
 
 def getMessage():
     """Read a message from stdin and decode it.
@@ -101,6 +105,19 @@ def getUserConfig():
     return open(cfg_file, 'r').read()
 
 
+def sanitizeFilename(fn):
+    """ Transform a string to make it suitable for use as a filename.
+
+    From https://stackoverflow.com/a/295466/147356"""
+
+    fn = unicodedata.normalize('NFKD', fn).encode(
+        'ascii', 'ignore').decode('ascii')
+    fn = re.sub('[^\w\s/.-]', '', fn).strip().lower()
+    fn = re.sub('\.\.+', '', fn)
+    fn = re.sub('[-/\s]+', '-', fn)
+    return fn
+
+
 def handleMessage(message):
     """ Generate reply from incoming message. """
     cmd = message["cmd"]
@@ -153,7 +170,11 @@ def handleMessage(message):
             file.write(message["content"])
 
     elif cmd == 'temp':
-        (handle, filepath) = tempfile.mkstemp()
+        prefix = message.get('prefix')
+        if prefix is not None:
+            prefix = 'tmp_{}_'.format(sanitizeFilename(prefix))
+
+        (handle, filepath) = tempfile.mkstemp(prefix=prefix)
         with os.fdopen(handle, "w") as file:
             file.write(message["content"])
         reply['content'] = filepath
