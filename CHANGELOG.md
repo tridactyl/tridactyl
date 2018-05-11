@@ -1,5 +1,32 @@
 # Tridactyl changelog
 
+## Release 1.11.1 / 2018-05-11
+
+- **Add "tridactylrc" support**
+    - Stick a bunch of commands you want to run at startup in one of:
+        - `$XDG_CONFIG_DIR/tridactyl/tridactylrc`
+        - `~/.config/tridactyl/tridactylrc`
+        - `~/.tridactylrc`
+    - [Example file available here](https://github.com/cmcaine/tridactyl/blob/master/.tridactylrc)
+    - You can run any file you want with `source [absolute path to file]`. Bonus points if you can think of something sensible to do with `source` in an `autocmd`.
+    - If you want vim-style configuration where nothing persists except that which is in the rc file, simply add `sanitise tridactyllocal tridactylsync` to the top of your rc file.
+    - Only whole-line comments are supported at the moment, in the VimL style where lines start with a quote mark: "
+
+- Native messenger updated to 0.1.3
+    - Add rc file reader
+    - Add ability to read environment variables
+    - Make read understand ~ and environment variables (used in `source`)
+
+- Readme updated
+    - Add statistics page and `guiset`
+
+- Bug fixes
+    - `guiset` can now cope with multiple Firefox instances running simultaneously provided they are started with profiles explicitly via the command line.
+
+- Deprecations
+    - Remove buffers,tabs as promised
+    - Inform people pressing `I` of the new bind
+
 ## Release 1.11.0 / 2018-05-09
 
 - You can now edit the Firefox GUI from Tridactyl with `guiset`. You must restart Firefox after using `guiset` to see the effects.
