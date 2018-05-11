@@ -324,7 +324,7 @@ export async function installnative() {
 //#background
 export async function source(...fileArr: string[]) {
     const file = fileArr.join(" ") || undefined
-    if (await Native.nativegate("0.1.3")) rc.source(file)
+    if (await Native.nativegate("0.1.3")) if (!await rc.source(file)) logger.error("Could not find RC file")
 }
 
 /**

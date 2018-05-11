@@ -10,8 +10,9 @@ export async function source(filename = "auto") {
     } else {
         rctext = (await Native.read(filename)).content
     }
-
+    if (rctext === undefined) return false
     runRc(rctext)
+    return true
 }
 
 export async function runRc(rc: string) {
