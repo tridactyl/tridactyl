@@ -14,7 +14,7 @@
 " Binds
 "
 
-" Comment toggler
+" Comment toggler for Reddit and Hacker News
 bind ;c hint -c [class*="expand"],[class="togg"]
 
 "
@@ -27,6 +27,11 @@ set editorcmd st vim
 set hintfiltermode vimperator-reflow
 set hintchars 4327895610
 
+" Make Tridactyl work on more sites at the expense of some security
+set csp clobber
+
+" Make quickmarks for the sane Tridactyl issue view
+quickmark t https://github.com/cmcaine/tridactyl/issues?utf8=%E2%9C%93&q=sort%3Aupdated-desc+
 
 "
 " URL redirects
