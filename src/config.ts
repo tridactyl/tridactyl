@@ -138,6 +138,9 @@ const DEFAULTS = o({
         DocStart: o({
             "addons.mozilla.org": "mode ignore",
         }),
+        TriStart: o({
+            ".*": "source_quiet",
+        }),
     }),
     exaliases: o({
         alias: "command",
