@@ -123,6 +123,7 @@ const DEFAULTS = o({
         ";#": "hint -#",
         ";v": "hint -W exclaim_quiet mpv",
         "<S-Insert>": "mode ignore",
+        I: "fillcmdline Ignore mode is now toggled by pressing <S-Insert>",
         a: "current_url bmark",
         A: "bmark",
         zi: "zoom 0.1 true",
@@ -259,10 +260,9 @@ const DEFAULTS = o({
     // number of most recent results to ask Firefox for. We display the top 20 or so most frequently visited ones.
     historyresults: "50",
 
-
     // Security settings
 
-    csp: "untouched" // change this to "clobber" to ruin the CSP of all sites and make Tridactyl run a bit better on some of them, e.g. raw.github*
+    csp: "untouched", // change this to "clobber" to ruin the CSP of all sites and make Tridactyl run a bit better on some of them, e.g. raw.github*
 })
 
 /** Given an object and a target, extract the target if it exists, else return undefined
