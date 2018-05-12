@@ -280,6 +280,7 @@ const default_config = {
 
     /**
      * Controls whether the page can focus elements for you via js
+     *
      * Best used in conjuciton with browser.autofocus in `about:config`
      *
      * Permitted values: `true`, or `false`.
@@ -295,7 +296,9 @@ const default_config = {
 
     /**
      * If nextinput, <Tab> after gi brings selects the next input
+     *
      * If firefox, <Tab> selects the next selectable element, e.g. a link
+     *
      * Permitted values: "nextinput" or "firefox"
      */
     gimode: "nextinput", // either "nextinput" or "firefox"
