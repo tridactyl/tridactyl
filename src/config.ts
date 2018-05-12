@@ -149,7 +149,17 @@ const default_config = {
         "<SA-ArrowUp><SA-ArrowUp><SA-ArrowDown><SA-ArrowDown><SA-ArrowLeft><SA-ArrowRight><SA-ArrowLeft><SA-ArrowRight>ba":
             "open https://www.youtube.com/watch?v=M3iOROuTuMA",
     },
+    /**
+     * Autocommands that run when certain events happen, and other conditions are met.
+     *
+     * Related ex command: `autocmd`.
+     */
     autocmds: {
+        /**
+         * Commands that will be run when pages are loaded.
+         *
+         * Each key corresponds to a URL fragment which, if contained within the page URL, will run the corresponding command.
+         */
         DocStart: {
             "addons.mozilla.org": "mode ignore",
         },
@@ -192,11 +202,23 @@ const default_config = {
         "!": "exclaim",
         "!s": "exclaim_quiet",
     },
+
+    /**
+     * Used by `]]` and `[[` to look for links containing these words.
+     *
+     * Edit these if you want to add, e.g. other language support.
+     */
     followpagepatterns: {
         next: "^(next|newer\\b|»|>>|more",
         prev: "^(prev(ious?|older\\b|«|<<",
     },
+    /**
+     * The default search engine used by `open search`
+     */
     searchengine: "google",
+    /**
+     * Definitions of search engines for use via `open [keyword]`.
+     */
     searchurls: {
         google: "https://www.google.com/search?q=",
         scholar: "https://scholar.google.com/scholar?q=",
@@ -223,17 +245,45 @@ const default_config = {
         qwant: "https://www.qwant.com/?q=",
     },
 
+    /**
+     * URL the newtab will redirect to.
+     *
+     * All usual rules about things you can open with `open` apply, with the caveat that you'll get interesting results if you try to use something that needs `nativeopen`: so don't try `about:newtab`.
+     */
     newtab: "",
+    /**
+     * Whether `:viewsource` will use our own page that you can use Tridactyl binds on, or Firefox's default viewer, which you cannot use Tridactyl on.
+     *
+     * Permitted values: `tridactyl` or `default`.
+     */
     viewsource: "tridactyl", // "tridactyl" or "default"
+    /**
+     * Which storage to use. Sync storage will synchronise your settings via your Firefox Account.
+     *
+     * Permitted values: `sync` or `local`
+     */
     storageloc: "sync",
     homepages: [],
+    /**
+     * Characters to use in hint mode.
+     *
+     * They are used preferentially from left to right.
+     */
     hintchars: "hjklasdfgyuiopqwertnmzxcvb",
+
+    /**
+     * The type of hinting to use. `vimperator` will allow you to filter links based on their names by typing non-hint chars. It is recommended that you use this in conjuction with the [[hintchars]] setting, which you should probably set to e.g, `5432167890`.
+     *
+     * Permitted values: `simple`, `vimperator`, or `vimperator-reflow`.
+     */
     hintfiltermode: "simple", // "simple", "vimperator", "vimperator-reflow"
 
-    // Controls whether the page can focus elements for you via js
-    // Remember to also change browser.autofocus (autofocusing elements via
-    // HTML in about:config
-    // Maybe have a nice user-vicible message when the setting is changed?
+    /**
+     * Controls whether the page can focus elements for you via js
+     * Best used in conjuciton with browser.autofocus in `about:config`
+     *
+     * Permitted values: `true`, or `false`.
+     */
     allowautofocus: "true",
 
     tabopenpos: "next",
@@ -243,9 +293,11 @@ const default_config = {
     ttsrate: 1, // 0.1 to 10
     ttspitch: 1, // 0 to 2
 
-    // either "nextinput" or "firefox"
-    // If nextinput, <Tab> after gi brings selects the next input
-    // If firefox, <Tab> selects the next selectable element, e.g. a link
+    /**
+     * If nextinput, <Tab> after gi brings selects the next input
+     * If firefox, <Tab> selects the next selectable element, e.g. a link
+     * Permitted values: "nextinput" or "firefox"
+     */
     gimode: "nextinput", // either "nextinput" or "firefox"
 
     // either "beginning" or "end"
