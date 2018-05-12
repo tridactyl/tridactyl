@@ -4,7 +4,7 @@
 
     Use `:help <excmd>` or scroll down to show [[help]] for a particular excmd.
 
-    The default keybinds can be found [here](/static/docs/modules/_config_.html#defaults) or all active binds can be seen with `:viewconfig nmaps`.
+    The default keybinds can be found [here](/static/docs/modules/_config_.html#_defaults) or all active binds can be seen with `:viewconfig nmaps`.
     You can also view them with [[bind]]. Try `bind j`.
 
     For more information, and FAQs, check out our [readme][4] on github.
@@ -33,7 +33,7 @@
 
     You do not need to worry about types.
 
-    At the bottom of each function's help page, you can click on a link that will take you straight to that function's definition in our code. This is especially recommended for browsing the [config](/static/docs/modules/_config_.html#defaults) which is nigh-on unreadable on these pages.
+    At the bottom of each function's help page, you can click on a link that will take you straight to that function's definition in our code.
 
 
     ## Highlighted features:
@@ -324,7 +324,7 @@ export async function installnative() {
 //#background
 export async function source(...fileArr: string[]) {
     const file = fileArr.join(" ") || undefined
-    if (await Native.nativegate("0.1.3")) rc.source(file)
+    if (await Native.nativegate("0.1.3")) if (!await rc.source(file)) logger.error("Could not find RC file")
 }
 
 /**

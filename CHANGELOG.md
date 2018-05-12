@@ -1,5 +1,11 @@
 # Tridactyl changelog
 
+## Release 1.11.2 / 2018-05-11
+
+- Hotfix to prevent "config undefined" errors on browser start if no rc file was found
+    - It was mysteriously only reproducible sometimes...
+- Make newtab changelog a bit wider
+
 ## Release 1.11.1 / 2018-05-11
 
 - **Add "tridactylrc" support**
