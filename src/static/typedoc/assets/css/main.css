@@ -942,11 +942,11 @@ ul.tsd-descriptions h4 {
 }
 
 .tsd-parent-kind-object-literal > h3, .tsd-sources {
-    display: none
+    display: none;
 }
 
 .tsd-parent-kind-object-literal > .tsd-signature {
-    border: none
+    border: none;
 }
 
 .tsd-panel {
@@ -965,9 +965,14 @@ ul.tsd-descriptions h4 {
 }
 
 .tsd-signature-type {
-    display: none
+    display: none;
 }
 
+.tsd-kind-object-literal > .tsd-panel {
+    margin: 0px;
+    border-top-width: 0.5px;
+    border-top-color: rgb(230,230,230);
+}
 
 /* Other changes:
  * - removed all background images in CSS above
