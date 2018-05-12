@@ -1,5 +1,11 @@
 # Tridactyl changelog
 
+## Release 1.12.0 / Unreleased
+
+- Add container support
+    - `hint` will now open links in the current container
+    - there is a new setting, `set tabopencontaineraware [false|true]`, which will make `tabopen` open new tabs in the current container
+
 ## Release 1.11.2 / 2018-05-11
 
 - Hotfix to prevent "config undefined" errors on browser start if no rc file was found
