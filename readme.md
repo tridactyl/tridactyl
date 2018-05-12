@@ -117,7 +117,7 @@ See `:help bind` for details about this command.
 
 - Navigation to any about:\* pages using `:open` requires the native messenger.
 - Firefox will not load Tridactyl on addons.mozilla.org, about:\*, some file:\* URIs, view-source:\*, or data:\*. On these pages Ctrl-L (or F6), Ctrl-Tab and Ctrl-W are your escape hatches.
-- Tridactyl does not currently support changing/hiding the Firefox GUI, but you can do it yourself by changing your userChrome. We've developed [quite a good one](src/static/userChrome-minimal.css) that makes windowed Firefox behave more like full-screen mode, but it's well commented, so you can make your own.
+- Tridactyl now supports changing the Firefox GUI if you have the native messenger installed via `guiset`. There's quite a few options available, but `guiset gui none` is probably what you want, perhaps followed up with `guiset tabs always`.
 
 ## Frequently asked questions
 
@@ -195,6 +195,9 @@ See `:help bind` for details about this command.
 
     Press `j` and see if you scroll down :) There's no status line yet: see [#210](https://github.com/cmcaine/tridactyl/issues/210).
 
+- Does anyone actually use Tridactyl?
+
+    In addition to the developers, some other people do. Mozilla keeps tabs on them [here](https://addons.mozilla.org/en-US/firefox/addon/tridactyl-vim/statistics/?last=30).
 
 
 ## Contributing
