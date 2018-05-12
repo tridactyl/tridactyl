@@ -88,6 +88,7 @@
 // Shared
 import * as Messaging from "./messaging"
 import { l, browserBg, activeTabId, activeTabContainerId } from "./lib/webext"
+import { containerCreate, containerExists, containerGetFromId } from "./lib/containers"
 import state from "./state"
 import * as UrlUtil from "./url_util"
 import * as config from "./config"
@@ -1743,6 +1744,7 @@ export async function qall() {
 // }}}
 
 // {{{ CONTAINERS
+
 /** Closes all tabs open in the same container across all windows.
  * @param containerId
  *      The string represtation of the container id.
@@ -1757,6 +1759,16 @@ export async function containerclose(containerId: string) {
         )
     })
 }
+
+//#background
+export async function containerexists() {
+    //let container = { name: "tridactyl-container-test", color: "red" as browser.contextualIdentities.IdentityColor, icon: "fingerprint" as browser.contextualIdentities.IdentityIcon }
+    let container = { name: "ridiculous", color: "blue" as browser.contextualIdentities.IdentityColor, icon: "fingerprint" as browser.contextualIdentities.IdentityIcon }
+    console.log(container)
+    let res = await containerExists(container)
+    console.log(res)
+}
+
 // }}}
 //
 // {{{ MISC
