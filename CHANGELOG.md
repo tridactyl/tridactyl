@@ -5,6 +5,7 @@
 - Add container support
     - `hint` will now open links in the current container
     - there is a new setting, `set tabopencontaineraware [false|true]`, which will make `tabopen` open new tabs in the current container
+- Add extra `<CA-Esc>` bind to toggle ignore mode by popular demand
 
 ## Release 1.11.2 / 2018-05-11
 
