@@ -45,7 +45,6 @@ async function sendNativeMsg(
         return resp as MessageResp
     } catch (e) {
         if (!quiet) {
-            logger.error(`Error sending native message:`, e)
             throw e
         }
     }
