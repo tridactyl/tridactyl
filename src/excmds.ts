@@ -1771,12 +1771,8 @@ export async function containerclose(containerId: string) {
 }
 
 //#background
-export async function containerexists() {
-    //let container = { name: "tridactyl-container-test", color: "red" as browser.contextualIdentities.IdentityColor, icon: "fingerprint" as browser.contextualIdentities.IdentityIcon }
-    let container = { name: "ridiculous", color: "blue" as browser.contextualIdentities.IdentityColor, icon: "fingerprint" as browser.contextualIdentities.IdentityIcon }
-    console.log(container)
-    let res = await containerExists(container)
-    console.log(res)
+export async function containercreate(name: string, color: string, icon: string) {
+    containerCreate(name, color, icon)
 }
 
 // }}}
