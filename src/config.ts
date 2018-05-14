@@ -272,6 +272,7 @@ const DEFAULTS = o({
         messaging: 2,
         cmdline: 2,
         controller: 2,
+        containers: 2,
         hinting: 2,
         state: 2,
         excmd: 1,
