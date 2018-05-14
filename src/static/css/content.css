@@ -1,5 +1,6 @@
 @import url('../themes/default/content.css');
 @import url('../themes/dark/content.css');
+@import url('../themes/greenmat/content.css');
 
 #cmdline_iframe {
     position: fixed !important;

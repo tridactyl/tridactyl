@@ -1,0 +1,47 @@
+:root.greenmat {
+
+  --tridactyl-cmdl-fg: #00eb00;
+  --tridactyl-cmdl-bg: #001500;
+
+  --tridactyl-header-first-bg: black;
+  --tridactyl-header-second-bg: #003500;
+  --tridactyl-header-third-bg: black;
+
+  --tridactyl-cmplt-fg: var(--tridactyl-cmdl-fg);
+  --tridactyl-cmplt-bg: rgba(0,0,0,0.90);
+  --tridactyl-cmplt-border-top: 1px solid var(--tridactyl-cmdl-bg);
+
+  --tridactyl-url-fg: var(--tridactyl-cmdl-fg);
+  --tridactyl-url-bg: none;
+
+  --tridactyl-of-fg: #00FF00;
+  --tridactyl-of-bg: black; 
+
+  /*custom theme variables*/
+  --focused-prefix-color: black;
+  --focused-border-color: green;
+}
+
+
+
+/*custom rules over tridactyl default*/
+
+:root.greenmat table {
+   border-collapse: collapse;
+} 
+
+:root.greenmat #completions table tr td {
+  color: var(--tridactyl-cmplt-fg);
+}
+
+:root.greenmat #completions .focused{
+  border-bottom: 1px solid green;
+}
+
+:root.greenmat #completions .focused .prefix{
+   color:var(--focused-prefix-color);
+   background: linear-gradient(
+   var(--focused-prefix-color),
+   var(--focused-border-color),
+   var(--focused-prefix-color));
+}
