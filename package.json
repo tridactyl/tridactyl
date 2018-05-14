@@ -33,7 +33,7 @@
     "webpack": "^3.8.1"
   },
   "scripts": {
-    "build": "scripts/build.sh",
+    "build": "sh scripts/build.sh",
     "watch": "echo 'watch is broken, use build instead'; exit 0; chokidar src scripts --initial --silent -i 'src/excmds_{background,content}.ts' -i 'src/static/docs' -c 'npm run build'",
     "clean": "rm -rf build generated",
     "test": "npm run build && jest --silent",
