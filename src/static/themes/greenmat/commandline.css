@@ -2,11 +2,13 @@
 
   --tridactyl-cmdl-fg: #00eb00;
   --tridactyl-cmdl-bg: #001500;
+  --tridactyl-cmdl-font-family: 'Aldrich';
 
   --tridactyl-header-first-bg: black;
   --tridactyl-header-second-bg: #003500;
   --tridactyl-header-third-bg: black;
 
+  --tridactyl-cmplt-font-family: 'Aldrich';
   --tridactyl-cmplt-fg: var(--tridactyl-cmdl-fg);
   --tridactyl-cmplt-bg: rgba(0,0,0,0.90);
   --tridactyl-cmplt-border-top: 1px solid var(--tridactyl-cmdl-bg);
