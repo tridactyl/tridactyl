@@ -23,7 +23,6 @@ import * as config from "./config"
 import * as dom from "./dom"
 import * as hinting_background from "./hinting_background"
 import * as download_background from "./download_background"
-import * as theming_background from "./theming_background"
 import * as gobble_mode from "./parsers/gobblemode"
 import * as input_mode from "./parsers/inputmode"
 import * as itertools from "./itertools"
@@ -42,7 +41,6 @@ import * as webext from "./lib/webext"
     dom,
     hinting_background,
     download_background,
-    theming_background,
     gobble_mode,
     input_mode,
     itertools,
