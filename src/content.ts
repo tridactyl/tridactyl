@@ -74,7 +74,6 @@ if (
             document.documentElement.style.display = "block"
             document.title = "Tridactyl Top Tips & New Tab Page"
         }
-        open
     })
 }
 

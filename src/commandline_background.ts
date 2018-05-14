@@ -45,8 +45,6 @@ async function allWindowTabs(): Promise<browser.tabs.Tab[]> {
     return allTabs
 }
 
-export async function themeChanged() {}
-
 export async function show() {
     Messaging.messageActiveTab("commandline_content", "show")
     Messaging.messageActiveTab("commandline_content", "focus")

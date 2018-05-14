@@ -10,7 +10,6 @@ import "./number.clamp"
 import state from "./state"
 import Logger from "./logging"
 import * as aliases from "./aliases"
-import * as CssHelper from "./css_util"
 
 const logger = new Logger("cmdline")
 
