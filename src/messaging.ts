@@ -9,7 +9,6 @@ export type TabMessageType =
     | "commandline_frame"
     | "hinting_content"
     | "finding_content"
-    | "theming_content"
 export type NonTabMessageType =
     | "keydown_background"
     | "commandline_background"
