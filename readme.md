@@ -230,6 +230,19 @@ $(npm bin)/web-ext build -s build
 
 If you want to build a signed copy (e.g. for the non-developer release), you can do that with `web-ext sign`. You'll need some keys for AMO and to edit the application id in `src/manifest.json`. There's a helper script in `scripts/sign` that's used by our build bot and for manual releases.
 
+#### Building on Windows
+
+  - Install [Git for Windows][win-git]
+
+  - Install [NodeJS for Windows][win-nodejs]
+      - Current 8.11.1 LTS seems to work fine
+
+  - Launch the installation steps described above from MinTTY shell
+      - Also known as "Git Bash"
+
+[win-git]: https://git-scm.com/download/win
+[win-nodejs]: https://nodejs.org/dist/v8.11.1/node-v8.11.1-x64.msi
+
 ### Development loop
 
 ```
