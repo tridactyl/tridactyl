@@ -307,9 +307,15 @@ export async function native() {
  */
 //#background
 export async function installnative() {
-    const installstr = await config.get("nativeinstallcmd")
-    await clipboard("yank", installstr)
-    fillcmdline("# Installation command copied to clipboard. Please paste and run it in your shell to install the native messenger.")
+    if ((await browser.runtime.getPlatformInfo()).os === "win") {
+        const installstr = await config.get("win_nativeinstallcmd")
+        await clipboard("yank", installstr)
+        fillcmdline("# Installation command copied to clipboard. Please paste and run it in Powershell to install the native messenger.")
+    } else {
+        const installstr = await config.get("nativeinstallcmd")
+        await clipboard("yank", installstr)
+        fillcmdline("# Installation command copied to clipboard. Please paste and run it in your shell to install the native messenger.")
+    }
 }
 
 /**
@@ -352,7 +358,12 @@ export async function updatenative(interactive = true) {
             if (interactive) logger.error("Updating the native messenger on OSX is broken. Please use `:installnative` instead.")
             return
         }
-        await Native.run(await config.get("nativeinstallcmd"))
+        if ((await browser.runtime.getPlatformInfo()).os === "win") {
+            await Native.run(await config.get("win_nativeinstallcmd"))
+        } else {
+            await Native.run(await config.get("nativeinstallcmd"))
+        }
+
         if (interactive) native()
     }
 }

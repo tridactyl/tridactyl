@@ -157,11 +157,7 @@ export async function nativegate(
     version = "0",
     interactive = true,
 ): Promise<Boolean> {
-    if (
-        ["win", "android"].includes(
-            (await browser.runtime.getPlatformInfo()).os,
-        )
-    ) {
+    if (["android"].includes((await browser.runtime.getPlatformInfo()).os)) {
         if (interactive == true)
             logger.error(
                 "# Tridactyl's native messenger doesn't support your operating system, yet.",
