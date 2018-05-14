@@ -1,8 +1,4 @@
-@import url('../../css/content.css');
-@import url('../../css/hint.css');
-@import url('../../css/viewsource.css');
-
-:root.default {
+:root {
 
     --tridactyl-status-font-family: monospace;
     --tridactyl-status-font-size: 12px;

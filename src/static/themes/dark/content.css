@@ -1,9 +1,3 @@
-/*
- * import theme default variables and rules
- */
-
-@import url(../default/content.css);
-
 :root.dark {
 
 	--tridactyl-hintspan-fg: white;

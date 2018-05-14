@@ -1,3 +1,6 @@
+@import url('../themes/default/commandline.css');
+@import url('../themes/dark/commandline.css');
+
 body {
     overflow: hidden;
     margin: 0;
