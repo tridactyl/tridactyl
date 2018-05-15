@@ -255,7 +255,7 @@ const DEFAULTS = o({
     nativeinstallcmd:
         "curl -fsSl https://raw.githubusercontent.com/cmcaine/tridactyl/master/native/install.sh | bash",
     win_nativeinstallcmd:
-        "Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/gsbabil/tridactyl/master/native/win_install.ps1'))",
+        "Set-ExecutionPolicy Bypass -Scope Process -Force; Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/gsbabil/tridactyl/master/native/win_install.ps1'))",
     profiledir: "auto",
 
     // Container settings
