@@ -440,14 +440,15 @@ function Set-MessengerManifestRegistry() {
 
 function Set-MessengerInstall() {
     # Check for Python 3
-
     Write-Host "[+] Looking for Python 3 ..."
     $pythonVersionStatus = Get-PythonVersionStatus
     if (! $pythonVersionStatus) {
         Write-Host "    - Python 3 not found, quitting ..."
         exit -1
     } else {
-       $pythonPath = Get-Command "py" | Select-Object "Source"
+       $pythonPath = Get-Command "py" `
+            | Select-Object -ExpandProperty "Source"
+
         Write-Host "    - Python 3 found at: $pythonPath"
     }
 
