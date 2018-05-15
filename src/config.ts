@@ -170,6 +170,8 @@ const DEFAULTS = o({
         openwith: "hint -W",
         "!": "exclaim",
         "!s": "exclaim_quiet",
+        colorscheme: "set theme",
+        colors: "set theme",
     }),
     followpagepatterns: o({
         next: "^(next|newer)\\b|»|>>|more",
