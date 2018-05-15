@@ -4,7 +4,7 @@ set -e
 
 CLEANSLATE="node_modules/cleanslate/docs/files/cleanslate.css"
 
-isWindowsMingw() {
+isWindowsMinGW() {
   local is_mingw="False"
   if [ "$(uname | cut -c 1-5)" == "MINGW" ]; then
     is_mingw="True"
@@ -13,7 +13,7 @@ isWindowsMingw() {
   echo -n "${is_mingw}"
 }
 
-if [ "$(isWindowsMingw)" == "True" ]; then
+if [ "$(isWindowsMinGW)" == "True" ]; then
   NPM_BIN_DIR="$(cygpath $(npm bin))"
   PATH=$NPM_BIN_DIR:$PATH
 else
@@ -35,8 +35,8 @@ scripts/make_docs.sh &
 nearleyc src/grammars/bracketexpr.ne \
   > src/grammars/.bracketexpr.generated.ts
 
-if [ "$(isWindowsMingw)" == "True" ]; then
-  powershell native/win_install.ps1
+if [ "$(isWindowsMinGW)" == "True" ]; then
+  powershell native/win_install.ps1 -DebugDirBase native
 else
   native/install.sh local
 fi
