@@ -14,6 +14,7 @@ isWindowsMinGW() {
 }
 
 if [ "$(isWindowsMinGW)" == "True" ]; then
+  WIN_PYTHON="py -3"
   NPM_BIN_DIR="$(cygpath $(npm bin))"
   PATH=$NPM_BIN_DIR:$PATH
 else
@@ -27,7 +28,11 @@ mkdir -p build/static
 mkdir -p generated/static
 mkdir -p generated/static/clippy
 
-scripts/excmds_macros.py
+if [ "$(isWindowsMinGW)" == "True" ]; then
+  $WIN_PYTHON -3 scripts/excmds_macros.py
+else
+  python3 scripts/excmds_macros.py
+fi
 scripts/newtab.md.sh
 scripts/make_tutorial.sh
 scripts/make_docs.sh &
