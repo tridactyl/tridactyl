@@ -50,3 +50,7 @@ declare function html(
     strings: TemplateStringsArray,
     ...values: any[]
 ): HTMLElement
+
+declare namespace browser.webRequest {
+    function filterResponseData(requestId: string): any
+}

@@ -537,7 +537,7 @@ const HINTTAGS_saveable = `
 [href]:not([href='#'])
 `
 
-import { openInNewTab } from "./lib/webext"
+import { openInNewTab, activeTabContainerId } from "./lib/webext"
 
 /** if `target === _blank` clicking the link is treated as opening a popup and is blocked. Use webext API to avoid that. */
 function simulateClick(target: HTMLElement) {
@@ -550,7 +550,18 @@ function simulateClick(target: HTMLElement) {
         (target as HTMLAnchorElement).target === "_blank" ||
         (target as HTMLAnchorElement).target === "_new"
     ) {
-        openInNewTab((target as HTMLAnchorElement).href, { related: true })
+        // Try to open the new tab in the same container as the current one.
+        activeTabContainerId().then(containerId => {
+            if (containerId)
+                openInNewTab((target as HTMLAnchorElement).href, {
+                    related: true,
+                    cookieStoreId: containerId,
+                })
+            else
+                openInNewTab((target as HTMLAnchorElement).href, {
+                    related: true,
+                })
+        })
     } else {
         DOM.mouseEvent(target, "click")
         // DOM.focus has additional logic for focusing inputs
@@ -563,10 +574,21 @@ function hintPageOpenInBackground(selectors = HINTTAGS_selectors) {
         hint.target.focus()
         if (hint.target.href) {
             // Try to open with the webext API. If that fails, simulate a click on this page anyway.
-            openInNewTab(hint.target.href, {
-                active: false,
-                related: true,
-            }).catch(() => simulateClick(hint.target))
+            // Try to open the new tab in the same container as the current one.
+            activeTabContainerId().then(containerId => {
+                if (containerId) {
+                    openInNewTab(hint.target.href, {
+                        active: false,
+                        related: true,
+                        cookieStoreId: containerId,
+                    }).catch(() => simulateClick(hint.target))
+                } else {
+                    openInNewTab(hint.target.href, {
+                        active: false,
+                        related: true,
+                    }).catch(() => simulateClick(hint.target))
+                }
+            })
         } else {
             // This is to mirror vimperator behaviour.
             simulateClick(hint.target)

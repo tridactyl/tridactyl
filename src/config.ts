@@ -123,6 +123,8 @@ const DEFAULTS = o({
         ";#": "hint -#",
         ";v": "hint -W exclaim_quiet mpv",
         "<S-Insert>": "mode ignore",
+        "<CA-Esc>": "mode ignore",
+        I: "fillcmdline Ignore mode is now toggled by pressing <S-Insert>",
         a: "current_url bmark",
         A: "bmark",
         zi: "zoom 0.1 true",
@@ -160,6 +162,8 @@ const DEFAULTS = o({
         tlast: "tablast",
         bd: "tabclose",
         bdelete: "tabclose",
+        quit: "tabclose",
+        q: "tabclose",
         sanitize: "sanitise",
         tutorial: "tutor",
         h: "help",
@@ -252,10 +256,18 @@ const DEFAULTS = o({
         "curl -fsSl https://raw.githubusercontent.com/cmcaine/tridactyl/master/native/install.sh | bash",
     profiledir: "auto",
 
+    // Container settings
+    // If enabled, tabopen opens a new tab in the currently active tab's container.
+    tabopencontaineraware: "false",
+
     // Performance related settings
 
     // number of most recent results to ask Firefox for. We display the top 20 or so most frequently visited ones.
     historyresults: "50",
+
+    // Security settings
+
+    csp: "untouched", // change this to "clobber" to ruin the CSP of all sites and make Tridactyl run a bit better on some of them, e.g. raw.github*
 })
 
 /** Given an object and a target, extract the target if it exists, else return undefined

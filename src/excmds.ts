@@ -87,7 +87,7 @@
 
 // Shared
 import * as Messaging from "./messaging"
-import { l, browserBg, activeTabId } from "./lib/webext"
+import { l, browserBg, activeTabId, activeTabContainerId } from "./lib/webext"
 import state from "./state"
 import * as UrlUtil from "./url_util"
 import * as config from "./config"
@@ -97,7 +97,6 @@ import * as Logging from "./logging"
 const logger = new Logging.Logger("excmds")
 import Mark from "mark.js"
 import * as CSS from "css"
-import * as semverCompare from "semver-compare"
 
 //#content_helper
 // {
@@ -118,6 +117,7 @@ import { ModeName } from "./state"
 import * as keydown from "./keydown_background"
 import { activeTab, firefoxVersionAtLeast, openInNewTab } from "./lib/webext"
 import * as CommandLineBackground from "./commandline_background"
+import * as rc from "./config_rc"
 
 //#background_helper
 import * as Native from "./native_background"
@@ -167,7 +167,7 @@ export async function getinput() {
  */
 //#background
 export async function editor() {
-    if (!await nativegate()) return
+    if (!await Native.nativegate()) return
     const file = (await Native.temp(await getinput())).content
     fillinput((await Native.editor(file)).content)
     // TODO: add annoying "This message was written with [Tridactyl](https://addons.mozilla.org/en-US/firefox/addon/tridactyl-vim/)"
@@ -217,17 +217,17 @@ export async function guiset(rule: string, option: string) {
     // Could potentially fall back to sending minimal example to clipboard if native not installed
 
     // Check for native messenger and make sure we have a plausible profile directory
-    if (!await nativegate("0.1.1")) return
+    if (!await Native.nativegate("0.1.1")) return
     let profile_dir = ""
-    if (config.get("profiledir") === "auto") {
-        if (["linux", "openbsd", "mac"].includes((await browser.runtime.getPlatformInfo()).os)) profile_dir = await Native.getProfileDir()
-        else {
-            fillcmdline("Please set your profile directory (found on about:support) via `set profiledir [profile directory]`")
-            return
-        }
-    } else profile_dir = config.get("profiledir")
+    if (config.get("profiledir") === "auto" && ["linux", "openbsd", "mac"].includes((await browser.runtime.getPlatformInfo()).os)) {
+        try {
+            profile_dir = await Native.getProfileDir()
+        } catch (e) {}
+    } else {
+        profile_dir = config.get("profiledir")
+    }
     if (profile_dir == "") {
-        logger.error("Profile not found.")
+        fillcmdline("Please set your profile directory (found on about:support) via `set profiledir [profile directory]`")
         return
     }
 
@@ -241,7 +241,8 @@ export async function guiset(rule: string, option: string) {
     // Modify and write new CSS
     if (cssstr === "") cssstr = `@namespace url("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul");`
     let stylesheet = CSS.parse(cssstr)
-    let stylesheetDone = CSS.stringify(css_util.changeCss(rule, option, stylesheet))
+    // Trim due to https://github.com/reworkcss/css/issues/114
+    let stylesheetDone = CSS.stringify(css_util.changeCss(rule, option, stylesheet)).trim()
     Native.write(profile_dir + "/chrome/userChrome.css", stylesheetDone)
 }
 
@@ -263,34 +264,8 @@ export function cssparse(...css: string[]) {
 //#background
 export async function nativeopen(url: string, ...firefoxArgs: string[]) {
     if (firefoxArgs.length === 0) firefoxArgs = ["--new-tab"]
-    if (await nativegate()) {
+    if (await Native.nativegate()) {
         Native.run(config.get("browser") + " " + firefoxArgs.join(" ") + " " + url)
-    }
-}
-
-/**
- * Used internally to gate off functions that use the native messenger. Gives a helpful error message in the command line if the native messenger is not installed, or is the wrong version.
- */
-//#background
-export async function nativegate(version = "0", interactive = true): Promise<Boolean> {
-    if (["win", "android"].includes((await browser.runtime.getPlatformInfo()).os)) {
-        if (interactive == true) fillcmdline("# Tridactyl's native messenger doesn't support your operating system, yet.")
-        return false
-    }
-    try {
-        const actualVersion = await Native.getNativeMessengerVersion()
-        if (actualVersion !== undefined) {
-            if (semverCompare(version, actualVersion) > 0) {
-                if (interactive == true) fillcmdline("# Please update to native messenger " + version + ", for example by running `:updatenative`.")
-                // TODO: add update procedure and document here.
-                return false
-            }
-            return true
-        } else if (interactive == true) fillcmdline("# Native messenger not found. Please run `:installnative` and follow the instructions.")
-        return false
-    } catch (e) {
-        if (interactive == true) fillcmdline("# Native messenger not found. Please run `:installnative` and follow the instructions.")
-        return false
     }
 }
 
@@ -338,13 +313,41 @@ export async function installnative() {
 }
 
 /**
+ * Runs an RC file from disk.
+ *
+ * If no argument given, it will try to open ~/.tridactylrc, ~/.config/tridactylrc or $XDG_CONFIG_HOME/tridactyl/tridactylrc in reverse order.
+ *
+ * The RC file is just a bunch of Tridactyl excmds (i.e, the stuff on this help page). Settings persist in local storage; add `sanitise tridactyllocal tridactylsync` to make it more Vim like. There's an [example file](https://www.github.com/cmcaine/tridactyl/master/.tridactylrc) if you want it.
+ *
+ * @param fileArr the file to open. Must be an absolute path, but can contain environment variables and things like ~.
+ */
+//#background
+export async function source(...fileArr: string[]) {
+    const file = fileArr.join(" ") || undefined
+    if (await Native.nativegate("0.1.3")) if (!await rc.source(file)) logger.error("Could not find RC file")
+}
+
+/**
+ * Same as [[source]] but suppresses all errors
+ */
+//#background
+export async function source_quiet(...fileArr: string[]) {
+    try {
+        const file = fileArr.join(" ") || undefined
+        if (await Native.nativegate("0.1.3", false)) rc.source(file)
+    } catch (e) {
+        logger.info("Automatic loading of RC file failed.")
+    }
+}
+
+/**
  * Updates the native messenger if it is installed, using our GitHub repo. This is run every time Tridactyl is updated.
  *
  * If you want to disable this, or point it to your own native messenger, edit the `nativeinstallcmd` setting.
  */
 //#background
 export async function updatenative(interactive = true) {
-    if (await nativegate("0", interactive)) {
+    if (await Native.nativegate("0", interactive)) {
         if ((await browser.runtime.getPlatformInfo()).os === "mac") {
             if (interactive) logger.error("Updating the native messenger on OSX is broken. Please use `:installnative` instead.")
             return
@@ -1244,7 +1247,10 @@ export async function tabopen(...addressarr: string[]) {
     } else if (address != "") url = forceURI(address)
     else url = forceURI(config.get("newtab"))
 
-    openInNewTab(url, { active })
+    activeTabContainerId().then(containerId => {
+        if (containerId && config.get("tabopencontaineraware") === "true") openInNewTab(url, { active: active, cookieStoreId: containerId })
+        else openInNewTab(url, { active })
+    })
 }
 
 /** Resolve a tab index to the tab id of the corresponding tab in this window.
@@ -1403,18 +1409,6 @@ export async function undo() {
             browser.sessions.restore(closed.window.sessionId)
         }
     }
-}
-
-/** Synonym for [[tabclose]]. */
-//#background
-export async function quit() {
-    tabclose()
-}
-
-/** Convenience shortcut for [[quit]]. */
-//#background
-export async function q() {
-    tabclose()
 }
 
 /** Move the current tab to be just in front of the index specified.
@@ -1695,26 +1689,6 @@ export async function clipboard(excmd: "open" | "yank" | "yankshort" | "yankcano
             throw new Error(`[clipboard] unknown excmd: ${excmd}`)
     }
     CommandLineBackground.hide()
-}
-
-// {{{ Buffer/completion stuff
-
-/** Equivalent to `fillcmdline buffer`
-
-    Sort of Vimperator alias
-*/
-//#background
-export async function tabs() {
-    fillcmdline("Deprecated. If anyone actually uses this, they should file an issue on GitHub.")
-}
-
-/** Equivalent to `fillcmdline buffer`
-
-    Sort of Vimperator alias
-*/
-//#background
-export async function buffers() {
-    tabs()
 }
 
 /** Change active tab.

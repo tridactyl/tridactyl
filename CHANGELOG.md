@@ -1,11 +1,76 @@
 # Tridactyl changelog
 
-## Release 1.11.0 / Unreleased
+## Release 1.12.0 / 2018-05-13
+
+- Add container support
+    - `hint` will now open links in the current container
+    - there is a new setting, `set tabopencontaineraware [false|true]`, which will make `tabopen` open new tabs in the current container
+- Add extra `<CA-Esc>` bind to toggle ignore mode by popular demand
+- Fix errors related to missing native messenger on Firefox launch
+
+## Release 1.11.2 / 2018-05-11
+
+- Hotfix to prevent "config undefined" errors on browser start if no rc file was found
+    - It was mysteriously only reproducible sometimes...
+- Make newtab changelog a bit wider
+
+## Release 1.11.1 / 2018-05-11
+
+- **Add "tridactylrc" support**
+    - Stick a bunch of commands you want to run at startup in one of:
+        - `$XDG_CONFIG_DIR/tridactyl/tridactylrc`
+        - `~/.config/tridactyl/tridactylrc`
+        - `~/.tridactylrc`
+    - [Example file available here](https://github.com/cmcaine/tridactyl/blob/master/.tridactylrc)
+    - You can run any file you want with `source [absolute path to file]`. Bonus points if you can think of something sensible to do with `source` in an `autocmd`.
+    - If you want vim-style configuration where nothing persists except that which is in the rc file, simply add `sanitise tridactyllocal tridactylsync` to the top of your rc file.
+    - Only whole-line comments are supported at the moment, in the VimL style where lines start with a quote mark: "
+
+- Native messenger updated to 0.1.3
+    - Add rc file reader
+    - Add ability to read environment variables
+    - Make read understand ~ and environment variables (used in `source`)
+
+- Readme updated
+    - Add statistics page and `guiset`
+
+- Bug fixes
+    - `guiset` can now cope with multiple Firefox instances running simultaneously provided they are started with profiles explicitly via the command line.
+
+- Deprecations
+    - Remove buffers,tabs as promised
+    - Inform people pressing `I` of the new bind
+
+## Release 1.11.0 / 2018-05-09
 
 - You can now edit the Firefox GUI from Tridactyl with `guiset`. You must restart Firefox after using `guiset` to see the effects.
     - e.g, `guiset gui none` or `guiset gui full`.
     - see all the options with `help guiset` and following the links.
     - **Only minimally tested. Back up your precious userChrome.css if you care about it!**
+
+- You can now choose to bypass [CSP](https://en.wikipedia.org/wiki/Content_Security_Policy) on all sites with `set csp clobber`. If you change your mind, just `unset csp`, and restart your browser.
+    - This, for example, allows Tridactyl to run on pages such as https://raw.githubusercontent.com/cmcaine/tridactyl/master/CHANGELOG.md, but it could also allow other scripts to run on pages, making the Internet as dangerous as it was about 2 or 3 years ago before CSP was introduced.
+    - Once this [bug](https://bugzilla.mozilla.org/show_bug.cgi?id=1267027) in Firefox is fixed, you won't have to clobber CSP.
+
+- Tridactyl will no longer update while the browser is running in an attempt to fix issues where the add-on would be unresponsive after an update; instead, it will only update on browser launch.
+    - This includes manual updates via `about:addons`. You'll need to restart the browser after clicking "Check for updates".
+
+- `set newtab news.bbc.co.uk` etc. now looks much less janky
+
+- Minor new features
+    - Add !s alias for silent exclaim
+    - `termite` and `terminator` support with `set editorcmd auto`
+    - Allow binding <Esc> (not recommended...)
+    - AMO explains why we need each new permission
+    - Native messenger documentation improved, making it clear that we haven't reimplemented IRC in the browser.
+
+- Minor bug fixes
+    - Remove pixel gap under command bar (#442)
+    - Native installer no longer requires pip and supports Debian's `which`
+    - Help page links are more legible on rubbish screens
+    - Turn 'q' and 'qall' into aliases
+    - Fix typo regarding binding of special keys on help page
+    - `focusinput` is now better at finding elements to focus
 
 ## Release 1.10.1 / 2018-05-04
 

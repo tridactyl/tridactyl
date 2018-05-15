@@ -8,8 +8,7 @@ import struct
 import subprocess
 import tempfile
 
-VERSION = "0.1.1"
-
+VERSION = "0.1.3"
 
 class NoConnectionError(Exception):
     """ Exception thrown when stdin cannot be read """
@@ -22,10 +21,9 @@ def eprint(*args, **kwargs):
     print(*args, file=sys.stderr, flush=True, **kwargs)
 
 
-def _getenv(variable, default):
+def getenv(variable, default):
     """ Get an environment variable value, or use the default provided """
     return os.environ.get(variable) or default
-
 
 def getMessage():
     """Read a message from stdin and decode it.
@@ -66,6 +64,43 @@ def sendMessage(encodedMessage):
     sys.stdout.buffer.flush()
 
 
+def findUserConfigFile():
+    """ Find a user config file, if it exists. Return the file path, or None
+    if not found
+    """
+    home = os.path.expanduser('~')
+    config_dir = getenv('XDG_CONFIG_HOME', os.path.expanduser('~/.config'))
+
+    # Will search for files in this order
+    candidate_files = [
+        os.path.join(config_dir, "tridactyl", "tridactylrc"),
+        os.path.join(home, '.tridactylrc')
+    ]
+
+    config_path = None
+
+    # find the first path in the list that exists
+    for path in candidate_files:
+        if os.path.isfile(path):
+            config_path = path
+            break
+
+    return config_path
+
+
+def getUserConfig():
+    # look it up freshly each time - the user could have moved or killed it
+    cfg_file = findUserConfigFile()
+
+    # no file, return
+    if not cfg_file:
+        return None
+
+    # for now, this is a simple file read, but if the files can
+    # include other files, that will need more work
+    return open(cfg_file, 'r').read()
+
+
 def handleMessage(message):
     """ Generate reply from incoming message. """
     cmd = message["cmd"]
@@ -73,6 +108,13 @@ def handleMessage(message):
 
     if cmd == 'version':
         reply = {'version': VERSION}
+
+    elif cmd == 'getconfig':
+        file_content = getUserConfig()
+        if file_content:
+            reply['content'] = file_content
+        else:
+            reply['code'] = 'File not found'
 
     elif cmd == 'run':
         commands = message["command"]
@@ -92,7 +134,7 @@ def handleMessage(message):
 
     elif cmd == 'read':
         try:
-            with open(message["file"], "r") as file:
+            with open(os.path.expandvars(os.path.expanduser(message["file"])), "r") as file:
                 reply['content'] = file.read()
                 reply['code'] = 0
         except FileNotFoundError:
@@ -115,6 +157,9 @@ def handleMessage(message):
         with open(filepath, "w") as file:
             file.write(message["content"])
         reply['content'] = filepath
+
+    elif cmd == 'env':
+        reply['content'] = getenv(message["var"], "")
 
     else:
         reply = {'cmd': 'error', 'error': 'Unhandled message'}

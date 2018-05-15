@@ -83,7 +83,7 @@ function* ParserController() {
             acceptExCmd(exstr)
         } catch (e) {
             // Rumsfeldian errors are caught here
-            logger.error("Tridactyl ParserController fatally wounded:", e)
+            logger.error("An error occurred in the controller: ", e)
         }
     }
 }
