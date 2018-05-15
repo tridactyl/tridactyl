@@ -141,11 +141,11 @@ function Set-InstallDir() {
     $result = Test-TridactylPath $messengerInstallDir
     if ($result -eq $true) {
         Write-Host `
-            "    - Create $messengerInstallDir successful!"
+            "    - Creating $messengerInstallDir was successful!"
             return $true
     } else {
         Write-Host `
-            "    - Create $messengerInstallDir failed, quitting ..."
+            "    - Creating $messengerInstallDir failed, quitting ..."
         exit -1
     }
 }
@@ -211,11 +211,11 @@ function Set-MessengerBin() {
     $result = Test-TridactylPath -Path $messengerBinPath
     if ($result -eq $true) {
         Write-Host `
-            "    - Create $messengerBinPath was successful!"
+            "    - Creating $messengerBinPath was successful!"
         return $true
     } else {
         Write-Host `
-            "    - Create $messengerBinPath failed, quitting ..."
+            "    - Creating $messengerBinPath failed, quitting ..."
         exit -1
     }
 }
@@ -248,13 +248,13 @@ call py -3 -u $messengerBinPath
     $result = Test-TridactylPath -Path $messengerBinWrapperPath
     if ($result -eq $true) {
         $msg = [string]::Format(
-                "    - Create {0} failed, was successful!",
+                "    - Creating {0} was successful!",
                 $messengerBinWrapperPath)
         Write-Host $msg
         return $true
     } else {
         $msg = [string]::Format(
-                "    - Create {0} failed, quitting ...",
+                "    - Creating {0} failed, quitting ...",
                 $messengerBinWrapperPath)
         Write-Host $msg
         exit -1
@@ -324,12 +324,12 @@ function Set-MessengerManifest() {
 
     if ($result -eq $true) {
         $msg = [string]::Format(
-                "    - Create {0} was successful!",
+                "    - Creating {0} was successful!",
                 $messengerManifestPath)
         Write-Host $msg
     } else {
         $msg = [string]::Format(
-                "    - Create {0} failed, quitting ...",
+                "    - Creating {0} failed, quitting ...",
                 $messengerManifestPath)
         Write-Host $msg
         exit -1
@@ -387,8 +387,6 @@ function Get-MessengerManifestRegistryValue(){
 }
 
 function Remove-MessengerManifestRegistry() {
-    $messengerManifestPath = Get-MessengerManifestPath
-
     $msg = [string]::Format("[+] Removing registry key {0} ...",
         $global:MessengerManifestRegistryPath)
 
