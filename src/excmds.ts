@@ -1876,9 +1876,15 @@ export function set(key: string, ...values: string[]) {
 
 /** Set autocmds to run when certain events happen.
 
- @param event Curently, only 'DocStart' is supported.
+ @param event Curently, only 'TriStart' and 'DocStart' are supported.
 
- @param url The URL on which the events will trigger (currently just uses "contains")
+ @param url For DocStart: the URL on which the events will trigger (currently
+ just uses "contains").
+
+ For TriStart: A regular expression that matches the hostname of the computer
+ the autocmd should be run on. This requires the native messenger to be
+ installed, except for the ".*" regular expression which will always be
+ triggered, even without the native messenger.
 
  @param excmd The excmd to run (use [[composite]] to run multiple commands)
 
@@ -1887,7 +1893,7 @@ export function set(key: string, ...values: string[]) {
 export function autocmd(event: string, url: string, ...excmd: string[]) {
     // rudimentary run time type checking
     // TODO: Decide on autocmd event names
-    if (!["DocStart"].includes(event)) throw event + " is not a supported event."
+    if (!["DocStart", "TriStart"].includes(event)) throw event + " is not a supported event."
     config.set("autocmds", event, url, excmd.join(" "))
 }
 
