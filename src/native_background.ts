@@ -238,8 +238,8 @@ export async function mkdir(dir: string, exist_ok: boolean) {
     return sendNativeMsg("mkdir", { dir, exist_ok })
 }
 
-export async function temp(content: string) {
-    return sendNativeMsg("temp", { content })
+export async function temp(content: string, prefix: string) {
+    return sendNativeMsg("temp", { content, prefix })
 }
 
 export async function run(command: string) {

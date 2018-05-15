@@ -167,8 +167,9 @@ export async function getinput() {
  */
 //#background
 export async function editor() {
+    let url = new URL((await activeTab()).url)
     if (!await Native.nativegate()) return
-    const file = (await Native.temp(await getinput())).content
+    const file = (await Native.temp(await getinput(), url.hostname)).content
     fillinput((await Native.editor(file)).content)
     // TODO: add annoying "This message was written with [Tridactyl](https://addons.mozilla.org/en-US/firefox/addon/tridactyl-vim/)"
     // to everything written using editor
