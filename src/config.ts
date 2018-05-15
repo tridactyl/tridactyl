@@ -123,6 +123,7 @@ const DEFAULTS = o({
         ";#": "hint -#",
         ";v": "hint -W exclaim_quiet mpv",
         "<S-Insert>": "mode ignore",
+        "<CA-Esc>": "mode ignore",
         I: "fillcmdline Ignore mode is now toggled by pressing <S-Insert>",
         a: "current_url bmark",
         A: "bmark",
@@ -254,6 +255,10 @@ const DEFAULTS = o({
     nativeinstallcmd:
         "curl -fsSl https://raw.githubusercontent.com/cmcaine/tridactyl/master/native/install.sh | bash",
     profiledir: "auto",
+
+    // Container settings
+    // If enabled, tabopen opens a new tab in the currently active tab's container.
+    tabopencontaineraware: "false",
 
     // Performance related settings
 

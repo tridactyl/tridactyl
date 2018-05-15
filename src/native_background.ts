@@ -45,7 +45,6 @@ async function sendNativeMsg(
         return resp as MessageResp
     } catch (e) {
         if (!quiet) {
-            logger.error(`Error sending native message:`, e)
             throw e
         }
     }
@@ -58,7 +57,8 @@ export async function getrc(): Promise<string> {
         logger.info(`Successfully retrieved fs config:\n${res.content}`)
         return res.content
     } else {
-        logger.error(`Error in retrieving config: ${res.error}`)
+        // Have to make this a warning as async exceptions apparently don't get caught
+        logger.info(`Error in retrieving config: ${res.error}`)
     }
 }
 
