@@ -29,9 +29,9 @@ mkdir -p generated/static
 mkdir -p generated/static/clippy
 
 if [ "$(isWindowsMinGW)" == "True" ]; then
-  $WIN_PYTHON -3 scripts/excmds_macros.py
+  $WIN_PYTHON scripts/excmds_macros.py
 else
-  python3 scripts/excmds_macros.py
+  scripts/excmds_macros.py
 fi
 scripts/newtab.md.sh
 scripts/make_tutorial.sh
