@@ -1,5 +1,11 @@
 # Tridactyl changelog
 
+## Release 1.12.1 / Unreleased
+
+- `editor` now includes the hostname of the site you are on in the temporary filename
+    - this is mostly so that you can set up syntax highlighting in Vim, e.g,
+    - `au BufReadPost *github.com* set syntax=pandoc`
+
 ## Release 1.12.0 / 2018-05-13
 
 - Add container support
