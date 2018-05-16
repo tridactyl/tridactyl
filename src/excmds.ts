@@ -1597,13 +1597,22 @@ export function repeat(n = 1, ...exstr: string[]) {
  * `composite echo yes | fillcmdline` becomes `fillcmdline yes`. A more complicated example is the ex alias, `command current_url composite get_current_url | fillcmdline_notrail `, which is used in, e.g. `bind T current_url tabopen`.
  *
  * Workaround: this should clearly be in the parser, but we haven't come up with a good way to deal with |s in URLs, search terms, etc. yet.
+ *
+ * `cmds` are also split with semicolons (;) and don't pass things along to each other.
+ *
+ * The behaviour of combining ; and | in the same composite command is left as an exercise for the reader.
  */
 //#background
 export async function composite(...cmds: string[]) {
     cmds = cmds.join(" ").split("|")
     let val = ""
     for (let c of cmds) {
-        val = await controller.acceptExCmd(c + val)
+        let dmds = c.split(";")
+        if (dmds.length > 1) {
+            for (let d of dmds) {
+                await controller.acceptExCmd(d)
+            }
+        } else val = await controller.acceptExCmd(dmds[0] + val)
         try {
             if (val == undefined || val.includes("undefined")) val = ""
             else val = " " + val
