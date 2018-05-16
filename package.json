@@ -34,6 +34,7 @@
   },
   "scripts": {
     "build": "scripts/build.sh",
+    "run": "web-ext run --firefox=firefox -s build/ -u 'txti.es'",
     "watch": "echo 'watch is broken, use build instead'; exit 0; chokidar src scripts --initial --silent -i 'src/excmds_{background,content}.ts' -i 'src/static/docs' -c 'npm run build'",
     "clean": "rm -rf build generated",
     "test": "npm run build && jest --silent",

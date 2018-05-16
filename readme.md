@@ -231,11 +231,11 @@ If you want to build a signed copy (e.g. for the non-developer release), you can
 ### Development loop
 
 ```
-npm run watch &
-$(npm bin)/web-ext run -s build
+npm run build & npm run run
 ```
 
-This will compile and deploy your files each time you save them.
+<!-- This will compile and deploy your files each time you save them. -->
+You'll need to run `npm run build` every time you edit the files, and press "r" in the `npm run run` window to make sure that the files are properly reloaded.
 
 ### Committing
 
