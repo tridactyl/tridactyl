@@ -4,6 +4,8 @@
 
 Replace Firefox's default control mechanism with one modelled on the one true editor, Vim.
 
+![Gigantic GIF showing Tridactyl in action](doc/AMO_screenshots/trishowcase.gif)
+
 ## Installing
 
 [Get our "beta" builds!][betas] These are updated with each commit to master on this repo. Your browser will automatically update from there once a day. If you want more frequent updates, you can change `extensions.update.interval` in `about:config` to whatever time you want, say, 15 minutes (900 seconds). Alternatively, you can get our "stable" builds straight from [Mozilla][amo]. The changelog for the stable versions can be found [here](https://github.com/cmcaine/tridactyl/blob/master/CHANGELOG.md).
