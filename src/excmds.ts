@@ -1604,8 +1604,14 @@ export async function composite(...cmds: string[]) {
     let val = ""
     for (let c of cmds) {
         val = await controller.acceptExCmd(c + val)
-        if (val == undefined || val.includes("undefined")) val = ""
-        else val = " " + val
+        try {
+            if (val == undefined || val.includes("undefined")) val = ""
+            else val = " " + val
+        } catch (e) {
+            if (e instanceof TypeError) {
+                val = " " + val
+            } else throw e
+        }
     }
 }
 
@@ -2344,9 +2350,9 @@ export async function echo(...str: string[]) {
 /**
  * Lets you execute JavaScript in the page context. If you want to get the result back, use `composite js ... | fillcmdline`
  *
- * About as dangerous as opening the web console.
+ * Some of Tridactyl's functions are accessible here via the `tri` object. Just do `console.log(tri)` in the web console on the new tab page to see what's available.
  *
- * Currently, Tridactyl functions are not accessible from `js`.
+ * Aliased to `!js`
  *
  */
 //#content
