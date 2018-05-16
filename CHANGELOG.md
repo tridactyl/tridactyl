@@ -1,10 +1,12 @@
 # Tridactyl changelog
 
-## Release 1.12.1 / Unreleased
+## Release 1.13.0 / Unreleased
 
 - `editor` now includes the hostname of the site you are on in the temporary filename
     - this is mostly so that you can set up syntax highlighting in Vim, e.g,
     - `au BufReadPost *github.com* set syntax=pandoc`
+
+- **Potentially breaking change**: pipes in `composite` now send return values to the following ex command. Use semi-colons if you want the old behaviour back (see `bind D`).
 
 ## Release 1.12.0 / 2018-05-13
 
