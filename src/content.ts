@@ -81,17 +81,30 @@ if (
 config.getAsync("modeindicator").then(mode => {
     if (mode !== "true") return
 
+    // Hide indicator in print mode
+    // CSS not explicitly added to the dom doesn't make it to print mode:
+    // https://bugzilla.mozilla.org/show_bug.cgi?id=1448507
+    let style = document.createElement("style")
+    style.type = "text/css"
+    style.innerHTML = `@media print {
+        .TridactylStatusIndicator {
+            display: none !important;
+        }
+    }`
+
     let statusIndicator = document.createElement("span")
     statusIndicator.className = "cleanslate TridactylStatusIndicator"
     try {
         // On quick loading pages, the document is already loaded
         statusIndicator.textContent = state.mode || "normal"
         document.body.appendChild(statusIndicator)
+        document.head.appendChild(style)
     } catch (e) {
         // But on slower pages we wait for the document to load
         window.addEventListener("DOMContentLoaded", () => {
             statusIndicator.textContent = state.mode || "normal"
             document.body.appendChild(statusIndicator)
+            document.head.appendChild(style)
         })
     }
 
