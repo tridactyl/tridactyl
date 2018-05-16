@@ -124,6 +124,7 @@ const DEFAULTS = o({
         ";v": "hint -W exclaim_quiet mpv",
         "<S-Insert>": "mode ignore",
         "<CA-Esc>": "mode ignore",
+        "<CA-`>": "mode ignore",
         I: "fillcmdline Ignore mode is now toggled by pressing <S-Insert>",
         a: "current_url bmark",
         A: "bmark",
