@@ -41,7 +41,11 @@ nearleyc src/grammars/bracketexpr.ne \
   > src/grammars/.bracketexpr.generated.ts
 
 if [ "$(isWindowsMinGW)" == "True" ]; then
-  powershell native/win_install.ps1 -DebugDirBase native
+  powershell \
+    -NoProfile \
+    -InputFormat None \
+    -ExecutionPolicy Bypass \
+    native/win_install.ps1 -DebugDirBase native
 else
   native/install.sh local
 fi
