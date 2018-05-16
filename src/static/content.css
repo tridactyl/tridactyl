@@ -33,6 +33,6 @@
 
 @media print {
     .TridactylStatusIndicator {
-        display: none;
+        display: none !important;
     }
 }
