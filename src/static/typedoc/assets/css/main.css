@@ -871,7 +871,7 @@ img { max-width: 100%; }
 
 /* Unhide return values as they can be used in composite now*/
 .tsd-returns-title {
-    display: none;
+    /* display: none; */
 }
 
 body {

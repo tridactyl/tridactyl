@@ -31,7 +31,7 @@
 
     A "splat" operator (...) means that the excmd will accept any number of space-delimited arguments into that parameter.
 
-    You do not need to worry about types.
+    You do not need to worry about types. Return values which are promises will turn into whatever they promise to when used in [[composite]].
 
     At the bottom of each function's help page, you can click on a link that will take you straight to that function's definition in our code. This is especially recommended for browsing the [config](/static/docs/modules/_config_.html#defaults) which is nigh-on unreadable on these pages.
 
@@ -1592,7 +1592,9 @@ export function repeat(n = 1, ...exstr: string[]) {
 }
 
 /**
- * Split `cmds` on pipes (|) and treat each as its own command. Return values are cast to strings and passed to the next ex command.
+ * Split `cmds` on pipes (|) and treat each as its own command. Return values are cast to strings and passed to the appended to the arguments of the next ex command, e.g,
+ *
+ * `composite echo yes | fillcmdline` becomes `fillcmdline yes`. A more complicated example is the ex alias, `command current_url composite get_current_url | fillcmdline_notrail `, which is used in, e.g. `bind T current_url tabopen`.
  *
  * Workaround: this should clearly be in the parser, but we haven't come up with a good way to deal with |s in URLs, search terms, etc. yet.
  */
@@ -1635,13 +1637,12 @@ export function fillcmdline_notrail(...strarr: string[]) {
     messageActiveTab("commandline_frame", "fillcmdline", [str, trailspace])
 }
 
-/** Equivalent to `fillcmdline_notrail <yourargs><current URL>`
-
-    See also [[fillcmdline_notrail]]
-*/
+/**
+ * Returns the current URL. For use with [[composite]].
+ */
 //#background
-export async function current_url(...strarr: string[]) {
-    fillcmdline_notrail(...strarr, (await activeTab()).url)
+export async function get_current_url() {
+    return (await activeTab()).url
 }
 
 /** Use the system clipboard.

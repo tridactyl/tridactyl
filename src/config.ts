@@ -177,6 +177,7 @@ const DEFAULTS = o({
         colorscheme: "set theme",
         colors: "set theme",
         "!js": "js",
+        current_url: "composite get_current_url | fillcmdline_notrail ",
     }),
     followpagepatterns: o({
         next: "^(next|newer)\\b|»|>>|more",
