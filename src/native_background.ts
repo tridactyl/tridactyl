@@ -156,12 +156,10 @@ export async function getBestEditor(): Promise<string> {
 export async function nativegate(
     version = "0",
     interactive = true,
+    desiredOS = ["mac", "win", "linux", "openbsd"],
+    // desiredOS = ["mac", "win", "android", "cros", "linux", "openbsd"]
 ): Promise<Boolean> {
-    if (
-        ["win", "android"].includes(
-            (await browser.runtime.getPlatformInfo()).os,
-        )
-    ) {
+    if (!desiredOS.includes((await browser.runtime.getPlatformInfo()).os)) {
         if (interactive == true)
             logger.error(
                 "# Tridactyl's native messenger doesn't support your operating system, yet.",
