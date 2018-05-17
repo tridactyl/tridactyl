@@ -2380,6 +2380,14 @@ export async function js(...str: string[]) {
     return eval(str.join(" "))
 }
 
+/**
+ * Lets you execute JavaScript in the background context. All the help from [[js]] applies. Gives you a different `tri` object.
+ */
+//#background
+export async function jsb(...str: string[]) {
+    return eval(str.join(" "))
+}
+
 /**  Open a welcome page on first install.
  *
  * @hidden
