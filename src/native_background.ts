@@ -417,9 +417,7 @@ export async function writePref(name: string, value: any) {
     } else {
         let substr = text.substring(prefPos)
         let prefEnd = substr.indexOf(";\n")
-        console.log(text, substr, prefPos, prefEnd)
         substr = text.substring(prefPos, prefPos + prefEnd)
-        console.log(substr)
         write(file, text.replace(substr, `pref("${name}", ${value})`))
     }
 }
