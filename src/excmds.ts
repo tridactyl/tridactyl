@@ -57,14 +57,15 @@
 
     There are some caveats common to all webextension vimperator-alikes:
 
-    - Do not try to navigate to any about:\* pages using `:open` as it will
-      fail silently
-    - Firefox will not load Tridactyl on addons.mozilla.org, about:\*, some
-      file:\* URIs, view-source:\*, or data:\*. On these pages Ctrl-L (or F6),
-      Ctrl-Tab and Ctrl-W are your escape hatches
-    - Tridactyl does not currently support changing/hiding the Firefox GUI, but
-      you can do it yourself by changing your userChrome. There is an [example
-      file](2) available in our repository.
+    - To make Tridactyl work on addons.mozilla.org, about:\*, some file:\*
+      URIs, view-source:\*, or data:\*, you need to open `about:config`, add a
+      new boolean `privacy.resistFingerprinting.block_mozAddonManager` with the
+      value `true`, and remove the above domains from
+      `extensions.webextensions.restrictedDomains`.
+    - To change/hide the GUI of Firefox from Tridactyl, you can use [[guiset]]
+      with the native messenger installed (see [[native]] and
+      [[installnative]]). Alternatively, you can edit your userChrome yourself.
+      There is an [example file](2) available in our repository.
 
     If you want a more fully-featured vimperator-alike, your best option is
     [Firefox ESR][3] and Vimperator :)
