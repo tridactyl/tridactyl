@@ -144,16 +144,24 @@ export async function getNativeVersion(): Promise<void> {
  */
 //#content
 export async function fillinput(...content: string[]) {
-    let inputToFill = DOM.getLastUsedInput() as HTMLInputElement
-    inputToFill.value = content.join(" ")
+    let inputToFill = DOM.getLastUsedInput()
+    if ("value" in inputToFill) {
+        ;(inputToFill as HTMLInputElement).value = content.join(" ")
+    } else {
+        inputToFill.textContent = content.join(" ")
+    }
 }
 
 /** @hidden */
 //#content
 export async function getinput() {
     // this should probably be subsumed by the focusinput code
-    let input = DOM.getLastUsedInput() as HTMLInputElement
-    return input.value
+    let input = DOM.getLastUsedInput()
+    if ("value" in input) {
+        return (input as HTMLInputElement).value
+    } else {
+        return input.textContent
+    }
 }
 
 /**
