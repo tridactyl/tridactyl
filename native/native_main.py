@@ -171,8 +171,9 @@ def handleMessage(message):
 
     elif cmd == 'temp':
         prefix = message.get('prefix')
-        if prefix is not None:
-            prefix = 'tmp_{}_'.format(sanitizeFilename(prefix))
+        if prefix is None:
+            prefix = ''
+        prefix = 'tmp_{}_'.format(sanitizeFilename(prefix))
 
         (handle, filepath) = tempfile.mkstemp(prefix=prefix)
         with os.fdopen(handle, "w") as file:
