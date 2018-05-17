@@ -6,14 +6,14 @@ CLEANSLATE="node_modules/cleanslate/docs/files/cleanslate.css"
 
 isWindowsMinGW() {
   local is_mingw="False"
-  if [ "$(uname | cut -c 1-5)" == "MINGW" ]; then
+  if [ "$(uname | cut -c 1-5)" = "MINGW" ]; then
     is_mingw="True"
   fi
 
   echo -n "${is_mingw}"
 }
 
-if [ "$(isWindowsMinGW)" == "True" ]; then
+if [ "$(isWindowsMinGW)" = "True" ]; then
   WIN_PYTHON="py -3"
   NPM_BIN_DIR="$(cygpath $(npm bin))"
   PATH=$NPM_BIN_DIR:$PATH
@@ -28,7 +28,7 @@ mkdir -p build/static
 mkdir -p generated/static
 mkdir -p generated/static/clippy
 
-if [ "$(isWindowsMinGW)" == "True" ]; then
+if [ "$(isWindowsMinGW)" = "True" ]; then
   $WIN_PYTHON scripts/excmds_macros.py
 else
   scripts/excmds_macros.py
@@ -40,7 +40,7 @@ scripts/make_docs.sh &
 nearleyc src/grammars/bracketexpr.ne \
   > src/grammars/.bracketexpr.generated.ts
 
-if [ "$(isWindowsMinGW)" == "True" ]; then
+if [ "$(isWindowsMinGW)" = "True" ]; then
   powershell \
     -NoProfile \
     -InputFormat None \
