@@ -199,7 +199,7 @@ export async function inpath(cmd) {
         (await browser.runtime.getPlatformInfo()).os == "win"
             ? "where "
             : "which "
-    return (await run("which " + cmd.split(" ")[0])).code === 0
+    return (await run(pathcmd + cmd.split(" ")[0])).code === 0
 }
 
 export async function firstinpath(cmdarray) {
