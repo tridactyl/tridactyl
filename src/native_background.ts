@@ -325,3 +325,101 @@ export async function getProfileDir() {
         }
     }
 }
+
+export async function parsePrefs(prefFileContent: string) {
+    //  This RegExp currently only deals with " but for correctness it should
+    //  also deal with ' and `
+    //  We could also just give up on parsing and eval() the whole thing
+    const regex = new RegExp(
+        /^(user_|sticky_|lock)?[pP]ref\("([^"]+)",\s*"?([^\)]+?)"?\);$/,
+    )
+    // Fragile parsing
+    let allPrefs = prefFileContent.split("\n").reduce((prefs, line) => {
+        let matches = line.match(regex)
+        if (!matches) {
+            return prefs
+        }
+        const key = matches[2]
+        let value = matches[3]
+        // value = " means that it should be an empty string
+        if (value == '"') value = ""
+        prefs[key] = value
+        return prefs
+    }, {})
+    return allPrefs
+}
+
+/** When given the name of a firefox preference file, will load said file and
+ *  return a promise for an object the keys of which correspond to preference
+ *  names and the values of which correspond to preference values.
+ *  When the file couldn't be loaded or doesn't contain any preferences, will
+ *  return a promise for an empty object.
+ */
+export async function loadPrefs(filename): Promise<{ [key: string]: string }> {
+    const result = await read(filename)
+    if (result.code != 0) return {}
+    return parsePrefs(result.content)
+}
+
+/** Returns a promise for an object that should contain every about:config
+ *  setting. If performance is slow, it might be a good idea to cache the
+ *  results of this function: the preference files do not change while firefox
+ *  is running.
+ */
+export async function getPrefs(): Promise<{ [key: string]: string }> {
+    const profile = (await getProfileDir()) + "/"
+    const prefFiles = [
+        // Debian has these
+        "/usr/share/firefox/browser/defaults/preferences/firefox.js",
+        "/usr/share/firefox/browser/defaults/preferences/debugger.js",
+        "/usr/share/firefox/browser/defaults/preferences/devtools-startup-prefs.js",
+        "/usr/share/firefox/browser/defaults/preferences/devtools.js",
+        "/usr/share/firefox/browser/defaults/preferences/firefox-branding.js",
+        "/usr/share/firefox/browser/defaults/preferences/vendor.js",
+        "/usr/share/firefox/browser/defaults/preferences/firefox.js",
+        "/etc/firefox/firefox.js",
+        // Pref files can be found here:
+        // https://developer.mozilla.org/en-US/docs/Mozilla/Preferences/A_brief_guide_to_Mozilla_preferences
+        profile + "grepref.js",
+        profile + "services/common/services-common.js",
+        profile + "defaults/pref/services-sync.js",
+        profile + "browser/app/profile/channel-prefs.js",
+        profile + "browser/app/profile/firefox.js",
+        profile + "browser/app/profile/firefox-branding.js",
+        profile + "browser/defaults/preferences/firefox-l10n.js",
+        profile + "prefs.js",
+        profile + "user.js",
+    ]
+    let promises = []
+    // Starting all promises before awaiting because we want the calls to be
+    // made in parallel
+    for (let file of prefFiles) {
+        promises.push(loadPrefs(file))
+    }
+    return promises.reduce(async (a, b) => Object.assign(await a, await b))
+}
+
+/** Returns the value for the corresponding about:config setting */
+export async function getPref(name: string): Promise<string> {
+    return (await getPrefs())[name]
+}
+
+/** Writes a preference to user.js */
+export async function writePref(name: string, value: any) {
+    if (typeof value == "string") value = `"${value}"`
+    const file = (await getProfileDir()) + "/user.js"
+    // No need to check the return code because read returns "" when failing to
+    // read a file
+    const text = (await read(file)).content
+    let prefPos = text.indexOf(`pref("${name}",`)
+    if (prefPos < 0) {
+        write(file, `${text}\nuser_pref("${name}", ${value});\n`)
+    } else {
+        let substr = text.substring(prefPos)
+        let prefEnd = substr.indexOf(";\n")
+        console.log(text, substr, prefPos, prefEnd)
+        substr = text.substring(prefPos, prefPos + prefEnd)
+        console.log(substr)
+        write(file, text.replace(substr, `pref("${name}", ${value})`))
+    }
+}
