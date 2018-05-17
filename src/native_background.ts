@@ -195,6 +195,10 @@ export async function nativegate(
 }
 
 export async function inpath(cmd) {
+    const pathcmd =
+        (await browser.runtime.getPlatformInfo()).os == "win"
+            ? "where "
+            : "which "
     return (await run("which " + cmd.split(" ")[0])).code === 0
 }
 
