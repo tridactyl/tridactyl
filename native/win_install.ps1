@@ -458,7 +458,7 @@ function Set-MessengerInstall() {
         $result = Set-MessengerBin
     }
 
-    # Prepare `win_tridactyl.bat`
+    # Prepare `native_main.bat`
     if ($result -eq $true) {
         $result = Set-MessengerBinWrapper
     }
@@ -503,3 +503,4 @@ if ($global:Uninstall) {
 }
 
 Set-MessengerInstall
+
