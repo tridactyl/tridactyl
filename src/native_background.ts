@@ -4,6 +4,7 @@
 
 import * as semverCompare from "semver-compare"
 import * as config from "./config"
+import { browserBg } from "./lib/webext"
 
 import Logger from "./logging"
 const logger = new Logger("native")
@@ -40,7 +41,7 @@ async function sendNativeMsg(
     logger.info(`Sending message: ${JSON.stringify(send)}`)
 
     try {
-        resp = await browser.runtime.sendNativeMessage(NATIVE_NAME, send)
+        resp = await browserBg.runtime.sendNativeMessage(NATIVE_NAME, send)
         logger.info(`Received response:`, resp)
         return resp as MessageResp
     } catch (e) {
@@ -81,7 +82,7 @@ export async function getBestEditor(): Promise<string> {
     let term_emulators = []
     let tui_editors = []
     let last_resorts = []
-    if ((await browser.runtime.getPlatformInfo()).os === "mac") {
+    if ((await browserBg.runtime.getPlatformInfo()).os === "mac") {
         gui_candidates = ["/Applications/MacVim.app/Contents/bin/mvim -f"]
         // if anyone knows of any "sensible" terminals that let you send them commands to run,
         // please let us know in issue #451!
@@ -159,7 +160,7 @@ export async function nativegate(
     desiredOS = ["mac", "win", "linux", "openbsd"],
     // desiredOS = ["mac", "win", "android", "cros", "linux", "openbsd"]
 ): Promise<Boolean> {
-    if (!desiredOS.includes((await browser.runtime.getPlatformInfo()).os)) {
+    if (!desiredOS.includes((await browserBg.runtime.getPlatformInfo()).os)) {
         if (interactive == true)
             logger.error(
                 "# Tridactyl's native messenger doesn't support your operating system, yet.",
@@ -196,7 +197,7 @@ export async function nativegate(
 
 export async function inpath(cmd) {
     const pathcmd =
-        (await browser.runtime.getPlatformInfo()).os == "win"
+        (await browserBg.runtime.getPlatformInfo()).os == "win"
             ? "where "
             : "which "
     return (await run(pathcmd + cmd.split(" ")[0])).code === 0
@@ -302,7 +303,7 @@ export async function getProfileDir() {
         home = await getenv("HOME")
     } catch (e) {}
     let hacky_profile_finder = `find "${home}/.mozilla/firefox" -maxdepth 2 -path '*.${profileName}/lock'`
-    if ((await browser.runtime.getPlatformInfo()).os === "mac")
+    if ((await browserBg.runtime.getPlatformInfo()).os === "mac")
         hacky_profile_finder =
             "find ../../../Library/'Application Support'/Firefox/Profiles -maxdepth 2 -name .parentlock"
     let profilecmd = await run(hacky_profile_finder)
