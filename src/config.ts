@@ -137,7 +137,7 @@ const DEFAULTS = o({
     }),
     autocmds: o({
         DocStart: o({
-            "addons.mozilla.org": "mode ignore",
+            // "addons.mozilla.org": "mode ignore",
         }),
         TriStart: o({
             ".*": "source_quiet",
