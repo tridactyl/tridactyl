@@ -6,6 +6,9 @@
     - this is mostly so that you can set up syntax highlighting in Vim, e.g,
     - `au BufReadPost *github.com* set syntax=pandoc`
 
+- `native` support for Windows: just do what `installnative` tells you to
+    - you'll probably want to make sure `gvim` is on your path
+
 - **Potentially breaking change**: pipes in `composite` now send return values to the following ex command. Use semi-colons if you want the old behaviour back (see `bind D`).
 
 ## Release 1.12.0 / 2018-05-13
