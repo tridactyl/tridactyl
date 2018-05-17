@@ -12,7 +12,9 @@ Replace Firefox's default control mechanism with one modelled on the one true ed
 
 Type `:help` or press `<F1>` for online help once you're in :)
 
-Remember that tridactyl cannot run on any page on addons.mozilla.org, about:\*, data:\*, view-source:\* and file:\*. We're sorry about that and we're working with Firefox to improve this situation by removing restrictions on existing APIs and developing a new API.
+Remember that Tridactyl cannot run on any page on about:\*, data:\*, view-source:\* and file:\*. We're sorry about that and we're working with Firefox to improve this situation by removing restrictions on existing APIs and developing a new API.
+
+We can now run on addons.mozilla.org and a few other websites if you run `fixamo` once you've installed the native messenger. `help fixamo` tells you exactly what it does.
 
 If you're enjoying Tridactyl, or not, please leave a review on the [AMO](https://addons.mozilla.org/en-US/firefox/addon/tridactyl-vim/reviews/).
 
@@ -22,7 +24,7 @@ Like Vim, Tridactyl is modal, with the default mode being "normal mode". In
 "normal mode", many functions are available using keybindings. In "command
 mode" (when the command line is shown), you can execute more complex commands,
 known as "ex-commands". All Tridactyl functionality can be accessed by
-ex-commands. You can bind any ex-command to a normal-mode shortcut.
+ex-commands. You can bind any ex-command to a normal-mode shortcut. We also support a `.tridactylrc` file, of which there is an example in the root of this repository.
 
 ### Default normal-mode bindings
 
@@ -118,7 +120,8 @@ See `:help bind` for details about this command.
 ## WebExtension-related issues
 
 - Navigation to any about:\* pages using `:open` requires the native messenger.
-- Firefox will not load Tridactyl on addons.mozilla.org, about:\*, some file:\* URIs, view-source:\*, or data:\*. On these pages Ctrl-L (or F6), Ctrl-Tab and Ctrl-W are your escape hatches.
+- Firefox will not load Tridactyl on about:\*, some file:\* URIs, view-source:\*, or data:\*. On these pages Ctrl-L (or F6), Ctrl-Tab and Ctrl-W are your escape hatches.
+    - addons.mozilla.org is now supported so long as you run `fixamo` first.
 - Tridactyl now supports changing the Firefox GUI if you have the native messenger installed via `guiset`. There's quite a few options available, but `guiset gui none` is probably what you want, perhaps followed up with `guiset tabs always`.
 
 ## Frequently asked questions
