@@ -93,7 +93,11 @@ config.getAsync("modeindicator").then(mode => {
     }`
 
     let statusIndicator = document.createElement("span")
-    statusIndicator.className = "cleanslate TridactylStatusIndicator"
+    const privateMode = browser.extension.inIncognitoContext
+        ? "TridactylPrivate"
+        : ""
+    statusIndicator.className =
+        "cleanslate TridactylStatusIndicator " + privateMode
     try {
         // On quick loading pages, the document is already loaded
         statusIndicator.textContent = state.mode || "normal"
@@ -111,6 +115,11 @@ config.getAsync("modeindicator").then(mode => {
     browser.storage.onChanged.addListener((changes, areaname) => {
         if (areaname === "local" && "state" in changes) {
             let mode = changes.state.newValue.mode
+            const privateMode = browser.extension.inIncognitoContext
+                ? "TridactylPrivate"
+                : ""
+            statusIndicator.className =
+                "cleanslate TridactylStatusIndicator " + privateMode
             if (
                 dom.isTextEditable(document.activeElement) &&
                 !["input", "ignore"].includes(mode)

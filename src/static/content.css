@@ -31,6 +31,12 @@
     user-select: none !important;
 }
 
+.TridactylPrivate {
+    border: purple solid 1.5px !important;
+    background: #f9f5ff !important;
+}
+
+
 @media print {
     .TridactylStatusIndicator {
         display: none !important;
