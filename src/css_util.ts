@@ -34,8 +34,8 @@ export const potentialRules = {
             none: `display: none !important;`,
             right: `right: 0; display: inline;`,
             left: ``,
-            "top-left": `top: 2em; display: inline;`,
-            "top-right": `top: 2em; right: 0; display: inline;`,
+            "top-left": `top: 2em; z-index: 2; display: inline;`,
+            "top-right": `top: 2em; z-index: 2; right: 0; display: inline;`,
         },
     },
     tabstoolbar: {

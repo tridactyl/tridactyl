@@ -4,6 +4,7 @@
 
 import * as semverCompare from "semver-compare"
 import * as config from "./config"
+import { browserBg } from "./lib/webext"
 
 import Logger from "./logging"
 const logger = new Logger("native")
@@ -40,7 +41,7 @@ async function sendNativeMsg(
     logger.info(`Sending message: ${JSON.stringify(send)}`)
 
     try {
-        resp = await browser.runtime.sendNativeMessage(NATIVE_NAME, send)
+        resp = await browserBg.runtime.sendNativeMessage(NATIVE_NAME, send)
         logger.info(`Received response:`, resp)
         return resp as MessageResp
     } catch (e) {
@@ -81,7 +82,7 @@ export async function getBestEditor(): Promise<string> {
     let term_emulators = []
     let tui_editors = []
     let last_resorts = []
-    if ((await browser.runtime.getPlatformInfo()).os === "mac") {
+    if ((await browserBg.runtime.getPlatformInfo()).os === "mac") {
         gui_candidates = ["/Applications/MacVim.app/Contents/bin/mvim -f"]
         // if anyone knows of any "sensible" terminals that let you send them commands to run,
         // please let us know in issue #451!
@@ -156,8 +157,10 @@ export async function getBestEditor(): Promise<string> {
 export async function nativegate(
     version = "0",
     interactive = true,
+    desiredOS = ["mac", "win", "linux", "openbsd"],
+    // desiredOS = ["mac", "win", "android", "cros", "linux", "openbsd"]
 ): Promise<Boolean> {
-    if (["android"].includes((await browser.runtime.getPlatformInfo()).os)) {
+    if (!desiredOS.includes((await browserBg.runtime.getPlatformInfo()).os)) {
         if (interactive == true)
             logger.error(
                 "# Tridactyl's native messenger doesn't support your operating system, yet.",
@@ -193,7 +196,11 @@ export async function nativegate(
 }
 
 export async function inpath(cmd) {
-    return (await run("which " + cmd.split(" ")[0])).code === 0
+    const pathcmd =
+        (await browserBg.runtime.getPlatformInfo()).os == "win"
+            ? "where "
+            : "which "
+    return (await run(pathcmd + cmd.split(" ")[0])).code === 0
 }
 
 export async function firstinpath(cmdarray) {
@@ -234,8 +241,8 @@ export async function mkdir(dir: string, exist_ok: boolean) {
     return sendNativeMsg("mkdir", { dir, exist_ok })
 }
 
-export async function temp(content: string) {
-    return sendNativeMsg("temp", { content })
+export async function temp(content: string, prefix: string) {
+    return sendNativeMsg("temp", { content, prefix })
 }
 
 export async function run(command: string) {
@@ -296,7 +303,7 @@ export async function getProfileDir() {
         home = await getenv("HOME")
     } catch (e) {}
     let hacky_profile_finder = `find "${home}/.mozilla/firefox" -maxdepth 2 -path '*.${profileName}/lock'`
-    if ((await browser.runtime.getPlatformInfo()).os === "mac")
+    if ((await browserBg.runtime.getPlatformInfo()).os === "mac")
         hacky_profile_finder =
             "find ../../../Library/'Application Support'/Firefox/Profiles -maxdepth 2 -name .parentlock"
     let profilecmd = await run(hacky_profile_finder)
@@ -316,5 +323,101 @@ export async function getProfileDir() {
                 .slice(0, -1)
                 .join("/")
         }
+    }
+}
+
+export async function parsePrefs(prefFileContent: string) {
+    //  This RegExp currently only deals with " but for correctness it should
+    //  also deal with ' and `
+    //  We could also just give up on parsing and eval() the whole thing
+    const regex = new RegExp(
+        /^(user_|sticky_|lock)?[pP]ref\("([^"]+)",\s*"?([^\)]+?)"?\);$/,
+    )
+    // Fragile parsing
+    let allPrefs = prefFileContent.split("\n").reduce((prefs, line) => {
+        let matches = line.match(regex)
+        if (!matches) {
+            return prefs
+        }
+        const key = matches[2]
+        let value = matches[3]
+        // value = " means that it should be an empty string
+        if (value == '"') value = ""
+        prefs[key] = value
+        return prefs
+    }, {})
+    return allPrefs
+}
+
+/** When given the name of a firefox preference file, will load said file and
+ *  return a promise for an object the keys of which correspond to preference
+ *  names and the values of which correspond to preference values.
+ *  When the file couldn't be loaded or doesn't contain any preferences, will
+ *  return a promise for an empty object.
+ */
+export async function loadPrefs(filename): Promise<{ [key: string]: string }> {
+    const result = await read(filename)
+    if (result.code != 0) return {}
+    return parsePrefs(result.content)
+}
+
+/** Returns a promise for an object that should contain every about:config
+ *  setting. If performance is slow, it might be a good idea to cache the
+ *  results of this function: the preference files do not change while firefox
+ *  is running.
+ */
+export async function getPrefs(): Promise<{ [key: string]: string }> {
+    const profile = (await getProfileDir()) + "/"
+    const prefFiles = [
+        // Debian has these
+        "/usr/share/firefox/browser/defaults/preferences/firefox.js",
+        "/usr/share/firefox/browser/defaults/preferences/debugger.js",
+        "/usr/share/firefox/browser/defaults/preferences/devtools-startup-prefs.js",
+        "/usr/share/firefox/browser/defaults/preferences/devtools.js",
+        "/usr/share/firefox/browser/defaults/preferences/firefox-branding.js",
+        "/usr/share/firefox/browser/defaults/preferences/vendor.js",
+        "/usr/share/firefox/browser/defaults/preferences/firefox.js",
+        "/etc/firefox/firefox.js",
+        // Pref files can be found here:
+        // https://developer.mozilla.org/en-US/docs/Mozilla/Preferences/A_brief_guide_to_Mozilla_preferences
+        profile + "grepref.js",
+        profile + "services/common/services-common.js",
+        profile + "defaults/pref/services-sync.js",
+        profile + "browser/app/profile/channel-prefs.js",
+        profile + "browser/app/profile/firefox.js",
+        profile + "browser/app/profile/firefox-branding.js",
+        profile + "browser/defaults/preferences/firefox-l10n.js",
+        profile + "prefs.js",
+        profile + "user.js",
+    ]
+    let promises = []
+    // Starting all promises before awaiting because we want the calls to be
+    // made in parallel
+    for (let file of prefFiles) {
+        promises.push(loadPrefs(file))
+    }
+    return promises.reduce(async (a, b) => Object.assign(await a, await b))
+}
+
+/** Returns the value for the corresponding about:config setting */
+export async function getPref(name: string): Promise<string> {
+    return (await getPrefs())[name]
+}
+
+/** Writes a preference to user.js */
+export async function writePref(name: string, value: any) {
+    if (typeof value == "string") value = `"${value}"`
+    const file = (await getProfileDir()) + "/user.js"
+    // No need to check the return code because read returns "" when failing to
+    // read a file
+    const text = (await read(file)).content
+    let prefPos = text.indexOf(`pref("${name}",`)
+    if (prefPos < 0) {
+        write(file, `${text}\nuser_pref("${name}", ${value});\n`)
+    } else {
+        let substr = text.substring(prefPos)
+        let prefEnd = substr.indexOf(";\n")
+        substr = text.substring(prefPos, prefPos + prefEnd)
+        write(file, text.replace(substr, `pref("${name}", ${value})`))
     }
 }

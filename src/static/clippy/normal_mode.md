@@ -4,6 +4,8 @@ Normal mode is where you will spend most of your time.
 
 You can scroll up and down pages using `k` and `j`, and left and right with `h` and `l`; `gg` takes you to the top of the page and `G` to the bottom.
 
+`H` and `L` navigate backwards and forwards in history.
+
 Use `.` to repeat the last action.
 
 Many keypresses in normal mode take you into another mode. `t`, for example, puts you into command mode prefilled with the command for opening a new tab; `F` puts you into hinting mode to open a link in a background tab; `gi` focuses the first text box on the page and allows you to press `Tab` to switch between text boxes.

@@ -80,5 +80,20 @@ browser.storage.onChanged.addListener((changes, areaname) => {
 // Prevent Tridactyl from being updated while it is running in the hope of fixing #290
 browser.runtime.onUpdateAvailable.addListener(_ => {})
 
-// Try to load an RC file
-excmds.source_quiet()
+browser.runtime.onStartup.addListener(_ => {
+    config.getAsync("autocmds", "TriStart").then(aucmds => {
+        let hosts = Object.keys(aucmds)
+        // If there's only one rule and it's "all", no need to check the hostname
+        if (hosts.length == 1 && hosts[0] == ".*") {
+            Controller.acceptExCmd(aucmds[hosts[0]])
+        } else {
+            native.run("hostname").then(hostname => {
+                for (let host of hosts) {
+                    if (hostname.content.match(host)) {
+                        Controller.acceptExCmd(aucmds[host])
+                    }
+                }
+            })
+        }
+    })
+})

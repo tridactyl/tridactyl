@@ -76,7 +76,7 @@ const DEFAULTS = o({
         "<c-o>": "back",
         "<c-i>": "forward",
         d: "tabclose",
-        D: "composite tabprev | sleep 100 | tabclose #",
+        D: "composite tabprev; sleep 100; tabclose #",
         gx0: "tabclosealltoleft",
         gx$: "tabclosealltoright",
         u: "undo",
@@ -124,6 +124,7 @@ const DEFAULTS = o({
         ";v": "hint -W exclaim_quiet mpv",
         "<S-Insert>": "mode ignore",
         "<CA-Esc>": "mode ignore",
+        "<CA-`>": "mode ignore",
         I: "fillcmdline Ignore mode is now toggled by pressing <S-Insert>",
         a: "current_url bmark",
         A: "bmark",
@@ -136,7 +137,10 @@ const DEFAULTS = o({
     }),
     autocmds: o({
         DocStart: o({
-            "addons.mozilla.org": "mode ignore",
+            // "addons.mozilla.org": "mode ignore",
+        }),
+        TriStart: o({
+            ".*": "source_quiet",
         }),
     }),
     exaliases: o({
@@ -170,6 +174,11 @@ const DEFAULTS = o({
         openwith: "hint -W",
         "!": "exclaim",
         "!s": "exclaim_quiet",
+        colorscheme: "set theme",
+        colors: "set theme",
+        "!js": "js",
+        "!jsb": "jsb",
+        current_url: "composite get_current_url | fillcmdline_notrail ",
     }),
     followpagepatterns: o({
         next: "^(next|newer)\\b|»|>>|more",

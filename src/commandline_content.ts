@@ -51,29 +51,29 @@ if (document.readyState === "complete") {
 }
 
 export function show() {
-    if (enabled) {
+    try {
         const height =
             cmdline_iframe.contentWindow.document.body.offsetHeight + "px"
         cmdline_iframe.setAttribute("style", `height: ${height} !important;`)
-    }
+    } catch (e) {}
 }
 
 export function hide() {
-    if (enabled) {
+    try {
         cmdline_iframe.setAttribute("style", "height: 0px !important;")
-    }
+    } catch (e) {}
 }
 
 export function focus() {
-    if (enabled) {
+    try {
         cmdline_iframe.focus()
-    }
+    } catch (e) {}
 }
 
 export function blur() {
-    if (enabled) {
+    try {
         cmdline_iframe.blur()
-    }
+    } catch (e) {}
 }
 
 export function executeWithoutCommandLine(fn) {
