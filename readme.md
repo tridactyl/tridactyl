@@ -135,15 +135,21 @@ See `:help bind` for details about this command.
 
     `set searchurls.esa http://www.esa.int/esasearch?q=`
 
+    You can also add `%s` to specify exactly where the search query should go, which is useful for more inventive uses, such as
+
+    `set searchurls.phrasebook https://translate.google.co.uk/#en/%s/my%20hovercraft%20is%20full%20of%20eels`
+
+    after which `open phrasebook [fr|de|la|es|hi|it...]` will work as expected.
+
 - Can I import/export settings, and does Tridactyl use an external configuration file just like Vimperator?
 
-    Sort of: if you do `set storageloc local`, a JSON file will appear at `<your firefox profile>\browser-extension-data\tridactyl.vim@cmcaine.co.uk\storage.js`. You can find you profile folder by going to `about:support`.
+    Yes, if you have `native` working, `$XDG_CONFIG_DIR/tridactyl/tridactylrc` or `~/.tridactylrc` will be read at startup via an `autocmd` and `source`. There is an (example file available on our repository)[https://github.com/cmcaine/tridactyl/blob/master/.tridactylrc].
 
-    You can edit this file to your heart's content. A more traditional rc file is planned but will require a native messenger. For more information, see [issue #79](https://github.com/cmcaine/tridactyl/issues/79).
+    If you can't use the native messenger for some reason, there is a workaround: if you do `set storageloc local`, a JSON file will appear at `<your firefox profile>\browser-extension-data\tridactyl.vim@cmcaine.co.uk\storage.js`. You can find your profile folder by going to `about:support`. You can edit this file to your heart's content. 
 
 - I hate the light, can I get a dark theme/dark mode?
 
-    Yes! `set theme dark`. Thanks to @fugerf.
+    Yes: `set theme dark` or `colors dark`. Thanks to @fugerf.
 
 - How can I bind keys using the control/alt key modifiers (eg: `ctrl+^`)?
 
