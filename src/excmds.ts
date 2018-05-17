@@ -263,6 +263,23 @@ export function cssparse(...css: string[]) {
 }
 
 /**
+ *
+ * Simply sets
+ * ```js
+ *  "privacy.resistFingerprinting.block_mozAddonManager":true
+ *  "extensions.webextensions.restrictedDomains":""
+ * ```
+ * in about:config via user.js so that Tridactyl (and other extensions!) can be used on addons.mozilla.org and other sites.
+ *
+ * Requires `native`.
+ */
+//#background
+export async function fixamo() {
+    await Native.writePref("privacy.resistFingerprinting.block_mozAddonManager", true)
+    await Native.writePref("extensions.webextensions.restrictedDomains", "")
+}
+
+/**
  * Uses the native messenger to open URLs.
  *
  * **Be *seriously* careful with this: you can use it to open any URL you can open in the Firefox address bar.**
