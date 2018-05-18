@@ -83,7 +83,11 @@ function* ParserController() {
             acceptExCmd(exstr)
         } catch (e) {
             // Rumsfeldian errors are caught here
-            logger.error("An error occurred in the controller: ", e)
+            logger.error(
+                "An error occurred in the controller: ",
+                e,
+                " ¯\\_(ツ)_/¯",
+            )
         }
     }
 }
