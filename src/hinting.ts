@@ -683,8 +683,8 @@ function hintImage(inBackground) {
 }
 
 /** Hint elements to focus */
-function hintFocus() {
-    hintPage(hintables(), hint => {
+function hintFocus(selectors?) {
+    hintPage(hintables(selectors), hint => {
         hint.target.focus()
     })
 }

@@ -2214,7 +2214,7 @@ import * as hinting from "./hinting_background"
         "relatedopenpos": "related" | "next" | "last"
 */
 //#background
-export function hint(option?: string, selectors = "", ...rest: string[]) {
+export function hint(option?: string, selectors?: string, ...rest: string[]) {
     if (option === "-b") hinting.hintPageOpenInBackground()
     else if (option === "-y") hinting.hintPageYank()
     else if (option === "-p") hinting.hintPageTextYank()
@@ -2225,7 +2225,7 @@ export function hint(option?: string, selectors = "", ...rest: string[]) {
     else if (option === "-S") hinting.hintSave("img", false)
     else if (option === "-a") hinting.hintSave("link", true)
     else if (option === "-A") hinting.hintSave("img", true)
-    else if (option === "-;") hinting.hintFocus()
+    else if (option === "-;") hinting.hintFocus(selectors)
     else if (option === "-#") hinting.hintPageAnchorYank()
     else if (option === "-c") hinting.hintPageSimple(selectors)
     else if (option === "-r") hinting.hintRead()
