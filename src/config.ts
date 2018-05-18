@@ -114,6 +114,7 @@ const DEFAULTS = o({
         ";k": "hint -k",
         ";y": "hint -y",
         ";p": "hint -p",
+        ";P": "hint -P",
         ";r": "hint -r",
         ";s": "hint -s",
         ";S": "hint -S",
