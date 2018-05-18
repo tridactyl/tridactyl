@@ -49,7 +49,7 @@
     - [[bind]] new commands with e.g. `:bind J tabnext`
     - Type `:help` to see a list of available excmds
     - Use `yy` to copy the current page URL to your clipboard
-    - `]]` and `[[` to navigate through the pages of comics, paginated
+    - `[[`and `]]`  to navigate through the pages of comics, paginated
       articles, etc
     - Pressing `ZZ` will close all tabs and windows, but it will only "save"
       them if your about:preferences are set to "show your tabs and windows
@@ -57,11 +57,8 @@
 
     There are some caveats common to all webextension vimperator-alikes:
 
-    - To make Tridactyl work on addons.mozilla.org, about:\*, some file:\*
-      URIs, view-source:\*, or data:\*, you need to open `about:config`, add a
-      new boolean `privacy.resistFingerprinting.block_mozAddonManager` with the
-      value `true`, and remove the above domains from
-      `extensions.webextensions.restrictedDomains`.
+    - To make Tridactyl work on addons.mozilla.org and some other Mozilla domains, you need to open `about:config`, run [[fixamo]] or add a new boolean `privacy.resistFingerprinting.block_mozAddonManager` with the value `true`, and remove the above domains from `extensions.webextensions.restrictedDomains`.
+    - Tridactyl can't run on about:\*, some file:\* URIs, view-source:\*, or data:\*, URIs.
     - To change/hide the GUI of Firefox from Tridactyl, you can use [[guiset]]
       with the native messenger installed (see [[native]] and
       [[installnative]]). Alternatively, you can edit your userChrome yourself.
