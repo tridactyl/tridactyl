@@ -2186,6 +2186,7 @@ import * as hinting from "./hinting_background"
         - -b open in background
         - -y copy (yank) link's target to clipboard
         - -p copy an element's text to the clipboard
+        - -P copy an element's title/alt text to the clipboard
         - -r read an element's text with text-to-speech
         - -i view an image
         - -I view an image in a new tab
@@ -2218,6 +2219,7 @@ export function hint(option?: string, selectors?: string, ...rest: string[]) {
     if (option === "-b") hinting.hintPageOpenInBackground()
     else if (option === "-y") hinting.hintPageYank()
     else if (option === "-p") hinting.hintPageTextYank()
+    else if (option === "-P") hinting.hintPageTitleAltTextYank()
     else if (option === "-i") hinting.hintImage(false)
     else if (option === "-I") hinting.hintImage(true)
     else if (option === "-k") hinting.hintKill()

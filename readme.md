@@ -102,6 +102,7 @@ Extended hint modes allow you to perform actions on page items:
 - `;s`/`;a` — save/save-as the linked resource
 - `;S`/`;A` — save/save-as the selected image
 - `;p` — copy an element's text to the clipboard
+- `;P` — copy an element's title/alt text to the clipboard
 - `;y` — copy an element's link URL to the clipboard
 - `;#` — copy an element's anchor URL to the clipboard
 - `;r` — read the element's text with text-to-speech
