@@ -64,6 +64,9 @@ let noblur = e => setTimeout(() => clInput.focus(), 0)
 export function focus() {
     enableCompletions()
     document.body.classList.remove("hidden")
+    // should keep styling here because of DeadObject on
+    // styling at commandline_content init
+    styling.theme(document.querySelector(":root"))
     clInput.focus()
     clInput.addEventListener("blur", noblur)
 }

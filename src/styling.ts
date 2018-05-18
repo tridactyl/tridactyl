@@ -29,7 +29,6 @@ export async function theme(element) {
     // Add a class corresponding to config.get('theme')
     if (newTheme !== "default") {
         element.classList.add(prefixTheme(newTheme))
-        currentTheme = newTheme
     }
 
     // Record for re-theming

@@ -37,9 +37,6 @@ async function init() {
             hide()
             window.document.documentElement.appendChild(cmdline_iframe)
             await styling.theme(window.document.querySelector(":root"))
-            await styling.theme(
-                cmdline_iframe.contentDocument.querySelector(":root"),
-            )
         } catch (e) {
             logger.error("Couldn't initialise cmdline_iframe!", e)
         }
