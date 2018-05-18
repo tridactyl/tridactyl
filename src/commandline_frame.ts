@@ -10,7 +10,7 @@ import "./number.clamp"
 import state from "./state"
 import Logger from "./logging"
 import * as aliases from "./aliases"
-
+import * as styling from "./styling"
 const logger = new Logger("cmdline")
 
 let activeCompletions: Completions.CompletionSource[] = undefined
@@ -60,22 +60,22 @@ function enableCompletions() {
 /* document.addEventListener("DOMContentLoaded", enableCompletions) */
 
 let noblur = e => setTimeout(() => clInput.focus(), 0)
-let lastTheme: string
+//####### REMOVE let lastTheme: string
 
 export function focus() {
     enableCompletions()
     document.body.classList.remove("hidden")
 
     // update theme of command line
-    let theme = Config.get("theme")
-    if (theme !== lastTheme) {
-        if (lastTheme) {
-            document.querySelector(":root").classList.remove(lastTheme)
-        }
-        document.querySelector(":root").classList.add(theme)
-        lastTheme = theme
-    }
-
+    //####### REMOVE let theme = Config.get("theme")
+    //####### REMOVE if (theme !== lastTheme) {
+    //####### REMOVE     if (lastTheme) {
+    //####### REMOVE         document.querySelector(":root").classList.remove(lastTheme)
+    //####### REMOVE     }
+    //####### REMOVE     document.querySelector(":root").classList.add(theme)
+    //####### REMOVE     lastTheme = theme
+    //####### REMOVE }
+    //####### REMOVE styling.theme(document.querySelector(":root"))
     clInput.focus()
     clInput.addEventListener("blur", noblur)
 }

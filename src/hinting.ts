@@ -27,6 +27,7 @@ import * as TTS from "./text_to_speech"
 import { HintSaveType } from "./hinting_background"
 import Logger from "./logging"
 import * as Messaging from "./messaging"
+import * as styling from "./styling"
 const logger = new Logger("hinting")
 
 /** Simple container for the state of a single frame's hints. */
@@ -180,7 +181,6 @@ type HintSelectedCallback = (Hint) => any
 /** Place a flag by each hintworthy element */
 class Hint {
     public readonly flag = document.createElement("span")
-    private theme: string = config.get("theme")
 
     constructor(
         public readonly target: Element,
@@ -222,14 +222,8 @@ class Hint {
         if (hide) {
             this.focused = false
             this.target.classList.remove("TridactylHintElem")
-            if (this.theme != "default") {
-                document.querySelector(":root").classList.remove(this.theme)
-            }
         } else {
             this.target.classList.add("TridactylHintElem")
-            if (this.theme != "default") {
-                document.querySelector(":root").classList.add(this.theme)
-            }
         }
     }
 

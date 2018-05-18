@@ -1,4 +1,4 @@
-:root.greenmat {
+:root.TridactylThemeGREENMAT {
 
   --tridactyl-cmdl-fg: #00eb00;
   --tridactyl-cmdl-bg: #001500;
@@ -28,19 +28,19 @@
 
 /*custom rules over tridactyl default*/
 
-:root.greenmat table {
+:root.TridactylThemeGREENMAT table {
    border-collapse: collapse;
 } 
 
-:root.greenmat #completions table tr td {
+:root.TridactylThemeGREENMAT #completions table tr td {
   color: var(--tridactyl-cmplt-fg);
 }
 
-:root.greenmat #completions .focused{
+:root.TridactylThemeGREENMAT #completions .focused{
   border-bottom: 1px solid green;
 }
 
-:root.greenmat #completions .focused .prefix{
+:root.TridactylThemeGREENMAT #completions .focused .prefix{
    color:var(--focused-prefix-color);
    background: linear-gradient(
    var(--focused-prefix-color),
