@@ -67,6 +67,11 @@ export async function activeTabId() {
     return (await activeTab()).id
 }
 
+//#background_helper
+export async function activeTabContainerId() {
+    return (await activeTab()).cookieStoreId
+}
+
 /** Compare major firefox versions */
 export async function firefoxVersionAtLeast(desiredmajor: number) {
     const versionstr = (await browserBg.runtime.getBrowserInfo()).version
@@ -88,12 +93,17 @@ export async function firefoxVersionAtLeast(desiredmajor: number) {
 */
 export async function openInNewTab(
     url: string,
-    kwargs: { active?; related? } = { active: true, related: false },
+    kwargs: { active?; related?; cookieStoreId? } = {
+        active: true,
+        related: false,
+        cookieStoreId: undefined,
+    },
 ) {
     const thisTab = await activeTab()
     const options: any = {
         active: kwargs.active,
         url,
+        cookieStoreId: kwargs.cookieStoreId,
     }
 
     // Be nice to behrmann, #342

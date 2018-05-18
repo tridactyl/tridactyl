@@ -29,6 +29,9 @@ export function isTextEditable(element: MsgSafeNode) {
                 return true
         }
         switch (true) {
+            case element.contentEditable === undefined:
+                // This happens on e.g. svgs.
+                return false
             case element.contentEditable.toUpperCase() === "TRUE":
             case element.role === "application":
                 return true
@@ -436,7 +439,7 @@ export function focus(e: HTMLElement): void {
 //#content_helper
 let LAST_USED_INPUT: HTMLElement = null
 
-export function getLastUsedInput() {
+export function getLastUsedInput(): HTMLElement {
     return LAST_USED_INPUT
 }
 

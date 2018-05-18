@@ -54,8 +54,8 @@ export async function hintImage(inBackground) {
     ])
 }
 
-export async function hintFocus() {
-    return await messageActiveTab("hinting_content", "hintFocus")
+export async function hintFocus(selectors?) {
+    return await messageActiveTab("hinting_content", "hintFocus", [selectors])
 }
 
 export async function hintRead() {

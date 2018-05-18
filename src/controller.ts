@@ -83,7 +83,11 @@ function* ParserController() {
             acceptExCmd(exstr)
         } catch (e) {
             // Rumsfeldian errors are caught here
-            logger.error("Tridactyl ParserController fatally wounded:", e)
+            logger.error(
+                "An error occurred in the controller: ",
+                e,
+                " ¯\\_(ツ)_/¯",
+            )
         }
     }
 }
@@ -97,14 +101,14 @@ export function acceptKey(keyevent: MsgSafeKeyboardEvent) {
 }
 
 /** Parse and execute ExCmds */
-export async function acceptExCmd(exstr: string) {
+export async function acceptExCmd(exstr: string): Promise<any> {
     // TODO: Errors should go to CommandLine.
     try {
         let [func, args] = exmode_parser(exstr)
         // Stop the repeat excmd from recursing.
         if (func !== repeat) state.last_ex_str = exstr
         try {
-            await func(...args)
+            return await func(...args)
         } catch (e) {
             // Errors from func are caught here (e.g. no next tab)
             logger.error(e)
