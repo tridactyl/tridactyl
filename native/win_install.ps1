@@ -1,5 +1,6 @@
 Param (
     [switch]$Uninstall = $false,
+    [switch]$UsePython= $false,
     [string]$DebugDirBase = "",
     [string]$InstallDirBase = ""
 )
@@ -8,7 +9,8 @@ Param (
 # Global constants
 #
 $global:InstallDirName = ".tridactyl"
-$global:MessengerBinName = "native_main.py"
+$global:MessengerBinPyName = "native_main.py"
+$global:MessengerBinExeName = "native_main.exe"
 $global:MessengerBinWrapperFilename = "native_main.bat"
 $global:MessengerManifestFilename = "tridactyl.json"
 $global:PythonVersionStr = "Python 3"
@@ -16,12 +18,13 @@ $global:MessengerManifestReplaceStr = "REPLACE_ME_WITH_SED"
 
 $global:MessengerFilesHttpUriBase = [string]::Format("{0}{1}",
     "https://raw.githubusercontent.com",
-    "/cmcaine/tridactyl/master/native")
+    "/gsbabil/tridactyl/master/native")
 
 $global:MessengerManifestRegistryPath = `
     "HKCU:\Software\Mozilla\NativeMessagingHosts\tridactyl"
 
 $global:Uninstall = $Uninstall
+$global:UsePython= $UsePython
 $global:InstallDirBase = $InstallDirBase.Trim()
 $global:DebugDirBase = $DebugDirBase.Trim()
 
@@ -150,12 +153,22 @@ function Set-InstallDir() {
     }
 }
 
+function Get-MessengerBinName() {
+    $messengerBinName = $global:MessengerBinExeName
+    if ($global:UsePython -eq $true) {
+        $messengerBinName = $global:MessengerBinPyName
+    }
+
+    Return $messengerBinName
+}
+
 function Get-MessengerBinPath() {
     $messengerInstallDir = Get-MessengerInstallDir
+    $messengerBinName = Get-MessengerBinName
 
     $native_messenger_binary_path = [string]::Format("{0}\{1}",
         $messengerInstallDir,
-        $global:MessengerBinName)
+        $messengerBinName)
 
     Return $native_messenger_binary_path.Trim()
 }
@@ -165,9 +178,11 @@ function Get-MessengerBinUri() {
         -Date ((Get-Date).ToUniversalTime()) `
         -UFormat %s)
 
+    $messengerBinName = Get-MessengerBinName
+
     $messengerBinUri = [string]::Format("{0}/{1}?{2}",
         $global:MessengerFilesHttpUriBase,
-        $global:MessengerBinName,
+        $messengerBinName,
         $downloadStartTime)
 
     Return $messengerBinUri.Trim()
@@ -178,15 +193,18 @@ function Set-MessengerBin() {
     $messengerBinUri = Get-MessengerBinUri
 
     if ($global:DebugDirBase.Length -gt 0) {
+        $messengerBinName = Get-MessengerBinName
+
         $srcPath = [string]::Format("{0}\{1}",
             $global:DebugDirBase,
-            $global:MessengerBinName)
+            $messengerBinName)
 
         Write-Host "[+] Copying $srcPath ..."
 
         Copy-Item `
             -Path $srcPath `
-            -Destination $messengerBinPath
+            -Destination $messengerBinPath `
+            -Force `
     } else {
         Write-Host "[+] Downloading $messengerBinUri ..."
 
@@ -233,10 +251,18 @@ function Get-MessengerBinWrapperPath() {
 function Set-MessengerBinWrapper() {
     $messengerBinPath = Get-MessengerBinPath
     $messengerBinWrapperPath = Get-MessengerBinWrapperPath
+
+    if ($global:UsePython -eq $true) {
     $messengerWrapperContent = @"
 @echo off
 call py -3 -u $messengerBinPath
 "@
+    } else {
+    $messengerWrapperContent = @"
+@echo off
+call $messengerBinPath
+"@
+    }
 
     Write-Host "[+] Preparing $messengerBinWrapperPath ..."
 
@@ -298,7 +324,8 @@ function Set-MessengerManifest() {
 
         Copy-Item `
             -Path $srcPath `
-            -Destination $messengerManifestPath
+            -Destination $messengerManifestPath `
+            -Force `
     } else {
         Write-Host "[+] Downloading $messengerManifestUri ..."
 
@@ -437,23 +464,25 @@ function Set-MessengerManifestRegistry() {
 }
 
 function Set-MessengerInstall() {
-    # Check for Python 3
-    Write-Host "[+] Looking for Python 3 ..."
-    $pythonVersionStatus = Get-PythonVersionStatus
-    if (! $pythonVersionStatus) {
-        Write-Host "    - Python 3 not found, quitting ..."
-        exit -1
-    } else {
-       $pythonPath = Get-Command "py" `
+    if ($global:UsePython -eq $true) {
+        # Check for Python 3
+        Write-Host "[+] Looking for Python 3 ..."
+        $pythonVersionStatus = Get-PythonVersionStatus
+        if (! $pythonVersionStatus) {
+            Write-Host "    - Python 3 not found, quitting ..."
+            exit -1
+        } else {
+        $pythonPath = Get-Command "py" `
             | Select-Object -ExpandProperty "Source"
 
-        Write-Host "    - Python 3 found at: $pythonPath"
+            Write-Host "    - Python 3 found at: $pythonPath"
+        }
     }
 
     # Prepare `.tridactyl` directory
     $result = Set-InstallDir
 
-    # Prepare `native_main.py`
+    # Prepare `native_main.{py,exe}`
     if ($result -eq $true) {
         $result = Set-MessengerBin
     }
@@ -503,4 +532,3 @@ if ($global:Uninstall) {
 }
 
 Set-MessengerInstall
-
