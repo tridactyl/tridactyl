@@ -4,7 +4,7 @@
   --background: #111;
 }
 
-:root.dark input {
+:root.dark input, :root.dark #command-line-holder {
   color: var(--foreground-bright);
   background: var(--background);
 }
