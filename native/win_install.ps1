@@ -16,9 +16,23 @@ $global:MessengerManifestFilename = "tridactyl.json"
 $global:PythonVersionStr = "Python 3"
 $global:MessengerManifestReplaceStr = "REPLACE_ME_WITH_SED"
 
-$global:MessengerFilesHttpUriBase = [string]::Format("{0}{1}",
-    "https://raw.githubusercontent.com",
-    "/gsbabil/tridactyl/master/native")
+# $git_repo_owner should be "cmcaine" in final release
+$git_repo_owner = "gsbabil"
+# $git_repo_branch should be "master" in final release
+$git_repo_branch = "gsbabil/windows-compiled-native-messenger-support"
+$git_repo_proto = "https"
+$git_repo_host = "raw.githubusercontent.com"
+$git_repo_name = "tridactyl"
+$git_repo_dir = "native"
+$global:MessengerFilesHttpUriBase = `
+    [string]::Format("{0}://{1}/{2}/{3}/{4}/{5}",
+    $git_repo_proto,
+    $git_repo_host,
+    $git_repo_owner,
+    $git_repo_name,
+    $git_repo_branch,
+    $git_repo_dir
+)
 
 $global:MessengerManifestRegistryPath = `
     "HKCU:\Software\Mozilla\NativeMessagingHosts\tridactyl"
