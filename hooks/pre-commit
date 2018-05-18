@@ -3,14 +3,23 @@
 jsfiles=$(git diff --cached --name-only --diff-filter=ACM "*.js" "*.jsx" "*.ts" "*.tsx" | tr '\n' ' ')
 [ -z "$jsfiles" ] && exit 0
 
-# Check if any of the files are ugly
+# Check if any of the files are ugly or contain a console.log call
 uglyFiles=()
+consoleFiles=""
 for jsfile in $jsfiles; do
     diff "$jsfile" <($(npm bin)/prettier "$jsfile") >/dev/null || uglyFiles+=("$jsfile")
+    if [ "$(git diff --cached "$jsfile" | grep '^+.*console.log' -c)" -gt '0' ] ; then
+        consoleFiles="$consoleFiles '$jsfile'"
+    fi
 done
 
-if [ -n $uglyFiles ]; then
+if [ -n "$uglyFiles" ]; then
     echo "Prettify your files first:"
     echo '$(npm bin)/prettier --write' "${uglyFiles[@]}"
     exit 1
+fi
+
+if [ -n "$consoleFiles" ]; then
+    echo "Warning: adding console.log calls in$consoleFiles"
+    echo 'Did you mean to use logger.debug?'
 fi
