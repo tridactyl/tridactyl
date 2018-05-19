@@ -27,6 +27,7 @@ import * as gobble_mode from "./parsers/gobblemode"
 import * as input_mode from "./parsers/inputmode"
 import * as itertools from "./itertools"
 import * as keyseq from "./keyseq"
+import * as request from "./requests"
 import * as native from "./native_background"
 import * as msgsafe from "./msgsafe"
 import state from "./state"
@@ -47,8 +48,59 @@ import * as webext from "./lib/webext"
     keydown_background,
     native,
     keyseq,
+    request,
     msgsafe,
     state,
     webext,
     l: prom => prom.then(console.log).catch(console.error),
+})
+
+// {{{ Clobber CSP
+
+// This should be removed once https://bugzilla.mozilla.org/show_bug.cgi?id=1267027 is fixed
+function addCSPListener() {
+    browser.webRequest.onHeadersReceived.addListener(
+        request.clobberCSP,
+        { urls: ["<all_urls>"], types: ["main_frame"] },
+        ["blocking", "responseHeaders"],
+    )
+}
+
+function removeCSPListener() {
+    browser.webRequest.onHeadersReceived.removeListener(request.clobberCSP)
+}
+
+config.getAsync("csp").then(csp => csp === "clobber" && addCSPListener())
+
+browser.storage.onChanged.addListener((changes, areaname) => {
+    if ("userconfig" in changes) {
+        if (changes.userconfig.newValue.csp === "clobber") {
+            addCSPListener()
+        } else {
+            removeCSPListener()
+        }
+    }
+})
+
+// }}}
+
+// Prevent Tridactyl from being updated while it is running in the hope of fixing #290
+browser.runtime.onUpdateAvailable.addListener(_ => {})
+
+browser.runtime.onStartup.addListener(_ => {
+    config.getAsync("autocmds", "TriStart").then(aucmds => {
+        let hosts = Object.keys(aucmds)
+        // If there's only one rule and it's "all", no need to check the hostname
+        if (hosts.length == 1 && hosts[0] == ".*") {
+            Controller.acceptExCmd(aucmds[hosts[0]])
+        } else {
+            native.run("hostname").then(hostname => {
+                for (let host of hosts) {
+                    if (hostname.content.match(host)) {
+                        Controller.acceptExCmd(aucmds[host])
+                    }
+                }
+            })
+        }
+    })
 })

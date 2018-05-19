@@ -1,6 +1,6 @@
 ## Control your browser with your keyboard *only*.
 
-Replace Firefox's control mechanism with one modelled on VIM.
+Replace Firefox's control mechanism with one modelled on VIM. This is a "Firefox Quantum" replacement for VimFX, Vimperator and Pentadactyl.
 Most common tasks you want your browser to perform are bound to a single key
 press:
 
@@ -18,7 +18,7 @@ you have `:native` working.
 - But how do you use your browser now? `Shift-Insert` again and we're back on.
 
 The list could go on a bit here, but I guess you'll get the point. If you feel
-lost sometimes `:help` might help you a lot.
+lost sometimes `:help` might help you a lot, and there's always `:tutor`.
 
 **Highlighted features:**
 

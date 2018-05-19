@@ -76,7 +76,7 @@ const DEFAULTS = o({
         "<c-o>": "back",
         "<c-i>": "forward",
         d: "tabclose",
-        D: "composite tabprev | sleep 100 | tabclose #",
+        D: "composite tabprev; sleep 100; tabclose #",
         gx0: "tabclosealltoleft",
         gx$: "tabclosealltoright",
         u: "undo",
@@ -114,6 +114,7 @@ const DEFAULTS = o({
         ";k": "hint -k",
         ";y": "hint -y",
         ";p": "hint -p",
+        ";P": "hint -P",
         ";r": "hint -r",
         ";s": "hint -s",
         ";S": "hint -S",
@@ -123,18 +124,26 @@ const DEFAULTS = o({
         ";#": "hint -#",
         ";v": "hint -W exclaim_quiet mpv",
         "<S-Insert>": "mode ignore",
+        "<CA-Esc>": "mode ignore",
+        "<CA-`>": "mode ignore",
+        I: "fillcmdline Ignore mode is now toggled by pressing <S-Insert>",
         a: "current_url bmark",
         A: "bmark",
         zi: "zoom 0.1 true",
         zo: "zoom -0.1 true",
         zz: "zoom 1",
         ".": "repeat",
+        gow: "open http://www.bbc.co.uk/news/live/uk-44167290",
+        gnw: "tabopen http://www.bbc.co.uk/news/live/uk-44167290",
         "<SA-ArrowUp><SA-ArrowUp><SA-ArrowDown><SA-ArrowDown><SA-ArrowLeft><SA-ArrowRight><SA-ArrowLeft><SA-ArrowRight>ba":
             "open https://www.youtube.com/watch?v=M3iOROuTuMA",
     }),
     autocmds: o({
         DocStart: o({
-            "addons.mozilla.org": "mode ignore",
+            // "addons.mozilla.org": "mode ignore",
+        }),
+        TriStart: o({
+            ".*": "source_quiet",
         }),
     }),
     exaliases: o({
@@ -160,12 +169,22 @@ const DEFAULTS = o({
         tlast: "tablast",
         bd: "tabclose",
         bdelete: "tabclose",
+        quit: "tabclose",
+        q: "tabclose",
         sanitize: "sanitise",
         tutorial: "tutor",
         h: "help",
         openwith: "hint -W",
         "!": "exclaim",
         "!s": "exclaim_quiet",
+        colourscheme: "set theme",
+        colours: "colourscheme",
+        colorscheme: "colourscheme",
+        colors: "colourscheme",
+        man: "help",
+        "!js": "js",
+        "!jsb": "jsb",
+        current_url: "composite get_current_url | fillcmdline_notrail ",
     }),
     followpagepatterns: o({
         next: "^(next|newer)\\b|»|>>|more",
@@ -250,12 +269,24 @@ const DEFAULTS = o({
     browser: "firefox",
     nativeinstallcmd:
         "curl -fsSl https://raw.githubusercontent.com/cmcaine/tridactyl/master/native/install.sh | bash",
+    win_powershell_nativeinstallcmd:
+        "Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/gsbabil/tridactyl/master/native/win_install.ps1'))",
+    win_cmdexe_nativeinstallcmd:
+        '@"%SystemRoot%\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -NoProfile -InputFormat None -Command "iex ((New-Object System.Net.WebClient).DownloadString(\'https://raw.githubusercontent.com/gsbabil/tridactyl/master/native/win_install.ps1\'))"',
     profiledir: "auto",
+
+    // Container settings
+    // If enabled, tabopen opens a new tab in the currently active tab's container.
+    tabopencontaineraware: "false",
 
     // Performance related settings
 
     // number of most recent results to ask Firefox for. We display the top 20 or so most frequently visited ones.
     historyresults: "50",
+
+    // Security settings
+
+    csp: "untouched", // change this to "clobber" to ruin the CSP of all sites and make Tridactyl run a bit better on some of them, e.g. raw.github*
 })
 
 /** Given an object and a target, extract the target if it exists, else return undefined

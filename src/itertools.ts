@@ -15,7 +15,8 @@ export function tail(iter) {
     } else {
         // Re-use error handling in head()
         let last = head(iter)
-        for (last of iter) {}
+        for (last of iter) {
+        }
         return last
     }
 }
@@ -148,9 +149,21 @@ export function* map(arr, func) {
 // Returns an array of unique elements.
 export function unique(arr) {
     return arr.reduce((acc, cur) => {
-        if (acc.indexOf(cur) == -1) acc.push(cur)
+        if (!acc.includes(cur)) acc.push(cur)
         return acc
     }, [])
+}
+
+/** Yield values that are unique under hasher(value) */
+export function* uniqueBy(arr, hasher) {
+    const hashes = new Set()
+    for (let e of arr) {
+        let hash = hasher(e)
+        if (!hashes.has(hash)) {
+            yield e
+            hashes.add(hash)
+        }
+    }
 }
 
 export function flatten(arr) {
