@@ -10,7 +10,7 @@ import "./number.clamp"
 import state from "./state"
 import Logger from "./logging"
 import * as aliases from "./aliases"
-import * as styling from "./styling"
+import { theme } from "./styling"
 const logger = new Logger("cmdline")
 
 let activeCompletions: Completions.CompletionSource[] = undefined
@@ -20,6 +20,9 @@ let completionsDiv = window.document.getElementById(
 let clInput = window.document.getElementById(
     "tridactyl-input",
 ) as HTMLInputElement
+
+// first theming of commandlinet iframe
+theme(document.querySelector(":root"))
 
 /* This is to handle Escape key which, while the cmdline is focused,
  * ends up firing both keydown and input listeners. In the worst case
@@ -64,9 +67,6 @@ let noblur = e => setTimeout(() => clInput.focus(), 0)
 export function focus() {
     enableCompletions()
     document.body.classList.remove("hidden")
-    // should keep styling here because of DeadObject on
-    // styling at commandline_content init
-    styling.theme(document.querySelector(":root"))
     clInput.focus()
     clInput.addEventListener("blur", noblur)
 }

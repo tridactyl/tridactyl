@@ -33,7 +33,8 @@ export async function theme(element) {
 
     // Record for re-theming
     // considering only elements :root (page and cmdline_iframe)
-    // Find other ways to check if element is already pushed
+    // TODO:
+    //     - Find ways to check if element is already pushed
     if (
         THEMED_ELEMENTS.length < 2 &&
         element.tagName.toUpperCase() === "HTML"
@@ -56,8 +57,7 @@ function retheme() {
 
 // Hacky listener
 browser.storage.onChanged.addListener((changes, areaname) => {
-    //if ("userconfig" in changes) {
-    //    retheme()
-    //}
-    retheme()
+    if ("userconfig" in changes) {
+        retheme()
+    }
 })
