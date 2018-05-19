@@ -11,7 +11,9 @@
 - `native` support for Windows: just do what `installnative` tells you to
     - you'll probably want to make sure `gvim` is on your path
 
-- **Potentially breaking change**: pipes in `composite` now send return values to the following ex command. Use semi-colons if you want the old behaviour back (see `bind D`).
+- **Potentially breaking changes**
+    - pipes in `composite` now send return values to the following ex command. Use semi-colons if you want the old behaviour back (see `bind D`).
+    - the `DocStart` now uses `String.prototype.search` for matching, so you can use regular expressions such as `/www\.amazon\.co.*/`
 
 - Add internal functions for editing `user.js` - we'll probably add a nice interface to this some day.
 
