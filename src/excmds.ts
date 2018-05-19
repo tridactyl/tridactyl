@@ -759,7 +759,7 @@ export function home(all: "false" | "true" = "false") {
 */
 //#background
 export async function help(excmd?: string) {
-    const docpage = browser.extension.getURL("static/docs/modules/_excmds_.html")
+    const docpage = browser.extension.getURL("static/docs/modules/_src_excmds_.html")
     if (excmd === undefined) excmd = ""
     if ((await activeTab()).url.startsWith(docpage)) {
         open(docpage + "#" + excmd)
