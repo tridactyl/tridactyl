@@ -1,6 +1,6 @@
 Param (
     [switch]$Uninstall = $false,
-    [switch]$UsePython= $false,
+    [switch]$NoPython= $false,
     [string]$DebugDirBase = "",
     [string]$InstallDirBase = ""
 )
@@ -14,6 +14,7 @@ $global:MessengerBinExeName = "native_main.exe"
 $global:MessengerBinWrapperFilename = "native_main.bat"
 $global:MessengerManifestFilename = "tridactyl.json"
 $global:PythonVersionStr = "Python 3"
+$global:WinPython3Command = "py -3 -u"
 $global:MessengerManifestReplaceStr = "REPLACE_ME_WITH_SED"
 
 # $git_repo_owner should be "cmcaine" in final release
@@ -38,13 +39,14 @@ $global:MessengerManifestRegistryPath = `
     "HKCU:\Software\Mozilla\NativeMessagingHosts\tridactyl"
 
 $global:Uninstall = $Uninstall
-$global:UsePython= $UsePython
+$global:NoPython= $NoPython
 $global:InstallDirBase = $InstallDirBase.Trim()
 $global:DebugDirBase = $DebugDirBase.Trim()
 
 function Get-PythonVersionStatus() {
     try {
-        $pythonVersion = py -3 -u --version
+        $pythonVersion = Invoke-Expression `
+            "$global:WinPython3Command --version"
     } catch {
         $pythonVersion = ""
     }
@@ -168,9 +170,9 @@ function Set-InstallDir() {
 }
 
 function Get-MessengerBinName() {
-    $messengerBinName = $global:MessengerBinExeName
-    if ($global:UsePython -eq $true) {
-        $messengerBinName = $global:MessengerBinPyName
+    $messengerBinName = $global:MessengerBinPyName
+    if ($global:NoPython -eq $true) { # system doesn't have python3
+        $messengerBinName = $global:MessengerBinExeName
     }
 
     Return $messengerBinName
@@ -266,12 +268,12 @@ function Set-MessengerBinWrapper() {
     $messengerBinPath = Get-MessengerBinPath
     $messengerBinWrapperPath = Get-MessengerBinWrapperPath
 
-    if ($global:UsePython -eq $true) {
+    if ($global:NoPython -eq $false) { # system has python3
     $messengerWrapperContent = @"
 @echo off
-call py -3 -u $messengerBinPath
+call $global:WinPython3Command $messengerBinPath
 "@
-    } else {
+    } else { ## system does _not_ have python3
     $messengerWrapperContent = @"
 @echo off
 call $messengerBinPath
@@ -478,13 +480,14 @@ function Set-MessengerManifestRegistry() {
 }
 
 function Set-MessengerInstall() {
-    if ($global:UsePython -eq $true) {
-        # Check for Python 3
+    # Check if system has Python 3, unless user set # the
+    # `-NoPython` flag
+    if ($global:NoPython -eq $false) {
         Write-Host "[+] Looking for Python 3 ..."
         $pythonVersionStatus = Get-PythonVersionStatus
         if (! $pythonVersionStatus) {
-            Write-Host "    - Python 3 not found, quitting ..."
-            exit -1
+            Write-Host "    - Python 3 not found, will use EXE ..."
+            $global:NoPython = $true
         } else {
         $pythonPath = Get-Command "py" `
             | Select-Object -ExpandProperty "Source"
