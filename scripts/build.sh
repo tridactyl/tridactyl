@@ -22,30 +22,31 @@ WIN_NATIVE_BIN_INSTALLER="${NATIVE_BIN_DIR}/win_install.ps1"
 ## should be adjusted by 'cmcaine/tridactyl' repo maintainers
 WIN_COMPILE_NATIVE_BIN_GPG2_SIGNER="gsbabil@gmail.com"
 
-if [ -z "${PYINSTALLER}" ] && [ "$PYINSTALLER" = "0" ]; then
+if [ ! -z "${PYINSTALLER}" ] \
+  && [ "${PYINSTALLER}" = "0" ]; then
   WIN_COMPILE_NATIVE_BIN="False"
 else
   WIN_COMPILE_NATIVE_BIN="True"
 fi
 
-function stripWhitespace() {
+stripWhitespace() {
   local input="$@"
   echo "${input}" | tr -d "[:space:]"
 }
 
-function colorEcho() {
+colorEcho() {
   local str="$1"
   local color="${COLOR_GOOD}${COLOR_BOLD}"
 
   if [ ! -z "$2" ] \
-    && [ "$(stripWhitespace $2)" == "alert" ]; then
+    && [ "$(stripWhitespace "$2")" = "alert" ]; then
     color="${COLOR_BAD}${COLOR_BOLD}"
   fi
 
   echo -e "${color}${str}${COLOR_RESET}"
 }
 
-function checkWindowsPrerequisite() {
+checkWindowsPrerequisite() {
   local bin_name="$1"
   local bin_loc=$("${WIN_WHICH_BIN_PATH}" \
     "${bin_name}" 2>/dev/null)
@@ -136,31 +137,32 @@ signWindowsCompiledNativeBin() {
 
   if [ "${winpty_bin_path}" = "NULL" ]; then
     colorEcho \
-      "[-] 'winpty.exe' binary not found, quitting ..." \
+      "[-] winpty.exe binary not found, quitting ..." \
       "alert"
     exit -1
   fi
 
   if [ "${gpg2_bin_path}" = "NULL" ]; then
     colorEcho \
-      "[-] 'gpg2.exe' binary not found, quitting ..." \
+      "[-] gpg2.exe binary not found, quitting ..." \
       "alert"
     exit -1
   fi
 
   if [ "${sha256sum_bin_path}" = "NULL" ]; then
     colorEcho \
-      "[-] 'sha256sum.exe' binary not found, quitting ..." \
+      "[-] sha256sum.exe binary not found, quitting ..." \
       "alert"
     exit -1
   fi
 
-  colorEcho "[+] 'winpty.exe' found at: ${winpty_bin_path}"
-  colorEcho "[+] 'gpg2.exe' found at: ${gpg2_bin_path}"
-  colorEcho "[+] 'sha256sum.exe' found at: ${sha256sum_bin_path}"
+  colorEcho "[+] winpty.exe found at: ${winpty_bin_path}"
+  colorEcho "[+] gpg2.exe found at: ${gpg2_bin_path}"
+  colorEcho "[+] sha256sum.exe found at: ${sha256sum_bin_path}"
 
   "${gpg2_bin_path}" \
     --yes \
+    --armor \
     --detach-sig \
     --output "${WIN_COMPILE_NATIVE_BIN_SIG_FILE}" \
     --local-user "${WIN_COMPILE_NATIVE_BIN_GPG2_SIGNER}" \
@@ -174,7 +176,7 @@ signWindowsCompiledNativeBin() {
   else
     colorEcho \
       "$(printf \
-          "[-] failed to sign %s\n, quitting ..." \
+          "[-] Failed to sign %s\n, quitting ..." \
           "${WIN_COMPILE_NATIVE_BIN_OUTPUT}")"
     exit -1
   fi
@@ -189,11 +191,35 @@ signWindowsCompiledNativeBin() {
           "[+] %s successfully generated\n" \
           "${WIN_COMPILE_NATIVE_BIN_HASH_FILE}")"
 
-    colorEcho \
-    "$(printf \
-        "[+] cross-checking hash ... %s" \
-        "$("${sha256sum_bin_path}" \
-              --check $WIN_COMPILE_NATIVE_BIN_HASH_FILE)")"
+    colorEcho "[+] Cross-checking signature ... "
+    "${gpg2_bin_path}" \
+      --verify "${WIN_COMPILE_NATIVE_BIN_SIG_FILE}" \
+      "${WIN_COMPILE_NATIVE_BIN_OUTPUT}"
+
+    if [ $? -ne 0 ]; then
+      colorEcho \
+        "    - Signature verification failed, quitting ..." \
+        "alert"
+      exit -1
+    else
+      colorEcho \
+        "    - Signature verification was successful!"
+    fi
+
+    colorEcho "[+] Cross-checking hash ... "
+    "${sha256sum_bin_path}" \
+      --check "${WIN_COMPILE_NATIVE_BIN_HASH_FILE}"
+
+    if [ $? -ne 0 ]; then
+      colorEcho \
+        "    - Hash verification failed, quitting ..." \
+        "alert"
+      exit -1
+    else
+      colorEcho \
+        "    - Hash verification was successful!"
+    fi
+
   else
     colorEcho \
       "$(printf \
@@ -221,12 +247,13 @@ compileWindowsNativeBin() {
     mkdir -v -p "${output_dir}"
   fi
 
-  pyinstaller \
+  PYTHONHASHSEED=1 pyinstaller \
     --clean \
     --console \
     --onefile \
     --noupx \
     --noconfirm \
+    --log-leve=ERROR \
     --workpath "${output_dir}" \
     --distpath "${output_dir}" \
     "${target_file}"
@@ -269,6 +296,8 @@ installWindowsNativeMessenger() {
           "$(printf "    - %s successfully generated\n" \
               "${WIN_COMPILE_NATIVE_BIN_HASH_FILE}")"
 
+        echo
+        colorEcho "[+] Installing native messenger ..."
         powershell \
           -NoProfile \
           -InputFormat None \
@@ -296,6 +325,8 @@ installWindowsNativeMessenger() {
 
   else
     colorEcho "[+] Skipping Python -> EXE compilation ..."
+    echo
+
     powershell \
       -NoProfile \
       -InputFormat None \
@@ -322,11 +353,11 @@ mainFunction() {
     if [ -x "${WIN_WHICH_BIN_PATH}" ]; then
       colorEcho \
         "$(printf \
-            "[+] 'which' binary found at: %s\n" \
+            "[+] which.exe binary found at: %s\n" \
             "${WIN_WHICH_BIN_PATH}")"
     else
       colorEcho \
-        "[-] 'which' binary not found, quitting ..." \
+        "[-] which.exe binary not found, quitting ..." \
         "alert"
       exit -1
     fi
@@ -337,11 +368,11 @@ mainFunction() {
     if [ -x "${WIN_CYGPATH_BIN_PATH}" ]; then
       colorEcho \
         "$(printf \
-          "[+] 'cygpath' binary found at: %s\n" \
+          "[+] cygpath.exe binary found at: %s\n" \
           "${WIN_CYGPATH_BIN_PATH}")"
     else
       colorEcho \
-        "[-] 'cygpath' binary not found, quitting ..." \
+        "[-] cygpath.exe binary not found, quitting ..." \
         "alert"
       exit -1
     fi
@@ -425,3 +456,4 @@ mainFunction() {
 }
 
 mainFunction "$@"
+
