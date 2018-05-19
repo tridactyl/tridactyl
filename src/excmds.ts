@@ -759,7 +759,7 @@ export function home(all: "false" | "true" = "false") {
 */
 //#background
 export async function help(excmd?: string) {
-    const docpage = browser.extension.getURL("static/docs/modules/_excmds_.html")
+    const docpage = browser.extension.getURL("static/docs/modules/_src_excmds_.html")
     if (excmd === undefined) excmd = ""
     if ((await activeTab()).url.startsWith(docpage)) {
         open(docpage + "#" + excmd)
@@ -1046,7 +1046,7 @@ export async function loadaucmds() {
     let aucmds = await config.getAsync("autocmds", "DocStart")
     const ausites = Object.keys(aucmds)
     // yes, this is lazy
-    const aukey = ausites.find(e => window.document.location.href.includes(e))
+    const aukey = ausites.find(e => window.document.location.href.search(e) >= 0)
     if (aukey !== undefined) {
         Messaging.message("commandline_background", "recvExStr", [aucmds[aukey]])
     }
@@ -1932,8 +1932,9 @@ export function set(key: string, ...values: string[]) {
 
  @param event Curently, only 'TriStart' and 'DocStart' are supported.
 
- @param url For DocStart: the URL on which the events will trigger (currently
- just uses "contains").
+ @param url For DocStart: a fragment of the URL on which the events will trigger, or a JavaScript regex (e.g, `/www\.amazon\.co.*\/`)
+
+ We just use [URL.search](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/search).
 
  For TriStart: A regular expression that matches the hostname of the computer
  the autocmd should be run on. This requires the native messenger to be
