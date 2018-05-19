@@ -1,4 +1,4 @@
-:root.TridactylThemeDARK {
+:root.TridactylThemeDark {
 
     --tridactyl-cmdl-fg: #ccc;
     --tridactyl-cmdl-bg: #111;
@@ -18,6 +18,6 @@
     --tridactyl-of-bg: #204E8A; 
 }
 
-:root.TridactylThemeDARK #completions table tr td {
+:root.TridactylThemeDark #completions table tr td {
   color: var(--tridactyl-cmplt-fg);
 }

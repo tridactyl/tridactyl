@@ -6,7 +6,6 @@ const logger = new Logging.Logger("styling")
 // find a way of getting theme list without hard-coding it
 // using a macro might be an option
 const THEMES = ["dark", "greenmat"]
-let currentTheme = config.get("styling")
 
 function capitalise(str) {
     return str[0].toUpperCase() + str.slice(1)
@@ -26,17 +25,22 @@ export async function theme(element) {
     }
 
     let newTheme = await config.getAsync("theme")
+
     // Add a class corresponding to config.get('theme')
-    if (newTheme !== "default" && newTheme !== currentTheme) {
+    if (newTheme !== "default") {
         element.classList.add(prefixTheme(newTheme))
-        currentTheme = newTheme
     }
 
-    // Load the required stylesheet if it's not loaded already
-    // No-op
-
     // Record for re-theming
-    THEMED_ELEMENTS.push(element)
+    // considering only elements :root (page and cmdline_iframe)
+    // TODO:
+    //     - Find ways to check if element is already pushed
+    if (
+        THEMED_ELEMENTS.length < 2 &&
+        element.tagName.toUpperCase() === "HTML"
+    ) {
+        THEMED_ELEMENTS.push(element)
+    }
 }
 
 function retheme() {
@@ -52,7 +56,7 @@ function retheme() {
 }
 
 // Hacky listener
-browser.storage.onChanged.addListener(changes => {
+browser.storage.onChanged.addListener((changes, areaname) => {
     if ("userconfig" in changes) {
         retheme()
     }
