@@ -552,21 +552,44 @@ export function scrollto(a: number, b: number | "x" | "y" = "y") {
 
 /** Tries to find a node which can be scrolled either x pixels to the right or
  *  y pixels down among the Elements in {nodes} and children of these Elements.
+ *  Scrolls and then returns the scrolled node.
  *
  *  This function used to be recursive but isn't anymore due to various
  *  attempts at optimizing the function in order to reduce GC pressure.
+ *
+ *  This function modifies the scroll-behavior CSS property of the elements it
+ *  tries to scroll. This is because when the scroll-behavior of an element is
+ *  "smooth", we can't detect if it has been scrolled right after trying to
+ *  scroll it.
+ *
+ *  Since this function is going to mess with the scroll-behavior property of
+ *  elements anyway, it also temporarily sets it to "smooth" when scrolling if
+ *  "smoothscroll" is set to "true" in the user's config.
  */
 //#content_helper
 function recursiveScroll(x: number, y: number, nodes: Element[]) {
     let index = 0
+    let smallX = x != 0 ? x / Math.abs(x) : 0
+    let smallY = y != 0 ? y / Math.abs(y) : 0
+    let scrollBehavior = config.get("smoothscroll") === "true" ? "smooth" : "auto"
     do {
         let node = nodes[index++] as any
         // Save the node's position
         let top = node.scrollTop
         let left = node.scrollLeft
-        node.scrollBy(x, y)
-        // if the node moved, stop
-        if (top != node.scrollTop || left != node.scrollLeft) return
+        // Make sure the scrollBehavior is "auto", otherwise we won't
+        // detect if the node has been scrolled
+        ;(node as any).style.scrollBehavior = "auto"
+        // Move the node by a very small amount
+        node.scrollBy(smallX, smallY)
+        // If it moved
+        if (top != node.scrollTop || left != node.scrollLeft) {
+            // Change its scroll behavior, actually scroll it and then
+            // restore its scroll behavior
+            ;(node as any).style.scrollBehavior = scrollBehavior
+            node.scrollBy(x - smallX, y - smallY)
+            ;(node as any).style.scrollBehavior = "auto"
+        }
         // Otherwise, add its children to the nodes that could be scrolled
         nodes = nodes.concat(Array.from(node.children))
         if (node.contentDocument) nodes.push(node.contentDocument.body)

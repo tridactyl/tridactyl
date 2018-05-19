@@ -141,3 +141,29 @@ config.getAsync("modeindicator").then(mode => {
         if (config.get("modeindicator") !== "true") statusIndicator.remove()
     })
 })
+
+config.getAsync("smoothscroll").then(smooth => {
+    let setSmooth = (doc, smooth) => {
+        if (smooth) {
+            ;(doc as any).documentElement.style.scrollBehavior = "smooth"
+        } else {
+            ;(doc as any).documentElement.style.scrollBehavior = "auto"
+        }
+    }
+    browser.storage.onChanged.addListener((changes, areaname) => {
+        if (areaname == "sync") {
+            let oldSmooth = changes.userconfig.oldValue.smoothscroll
+            let newSmooth = changes.userconfig.newValue.smoothscroll
+            if (oldSmooth != newSmooth)
+                setSmooth(document, newSmooth === "true")
+        }
+    })
+    if (document.readyState == "complete") {
+        setSmooth(document, smooth === "true")
+    } else {
+        document.addEventListener("readystatechange", ev => {
+            if ((ev.target as any).readyState == "complete")
+                setSmooth(document, smooth === "true")
+        })
+    }
+})
