@@ -133,8 +133,8 @@ const DEFAULTS = o({
         zo: "zoom -0.1 true",
         zz: "zoom 1",
         ".": "repeat",
-        "gow": "http://www.bbc.co.uk/news/live/uk-44167290",
-        "gnw": "http://www.bbc.co.uk/news/live/uk-44167290",
+        gow: "open http://www.bbc.co.uk/news/live/uk-44167290",
+        gnw: "tabopen http://www.bbc.co.uk/news/live/uk-44167290",
         "<SA-ArrowUp><SA-ArrowUp><SA-ArrowDown><SA-ArrowDown><SA-ArrowLeft><SA-ArrowRight><SA-ArrowLeft><SA-ArrowRight>ba":
             "open https://www.youtube.com/watch?v=M3iOROuTuMA",
     }),
