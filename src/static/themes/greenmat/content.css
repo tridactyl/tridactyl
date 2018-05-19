@@ -1,0 +1,13 @@
+:root.TridactylThemeGREENMAT {
+
+  --tridactyl-hintspan-fg: #88FF00;
+  --tridactyl-hintspan-bg: black;
+  --tridactyl-hintspan-font-family: "Aldrich";
+
+  --tridactyl-hint-active-fg: #333;
+  --tridactyl-hint-active-bg: #88FF00;
+  --tridactyl-hint-active-outline:1px solid #000;
+
+  --tridactyl-hint-bg: rgba(0, 0, 0, 0.25); 
+  --tridactyl-hint-outline: 2px solid var(--tridactyl-hintspan-bg);
+}

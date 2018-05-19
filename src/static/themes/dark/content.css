@@ -1,0 +1,12 @@
+:root.TridatcylThemeDARK {
+
+	--tridactyl-hintspan-fg: white;
+	--tridactyl-hintspan-bg: #204E8A;
+
+    --tridactyl-hint-active-fg: #333;
+    --tridactyl-hint-active-bg: #88FF00;
+    --tridactyl-hint-active-outline:1px solid #000;
+
+    --tridactyl-hint-bg: rgba(13, 31, 54, 0.25); 
+    --tridactyl-hint-outline: 1px solid var(--tridactyl-hintspan-bg);
+}

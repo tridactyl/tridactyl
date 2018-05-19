@@ -56,7 +56,7 @@ fi
 wait
 
 if [ -e "$CLEANSLATE" ] ; then
-	cp -v "$CLEANSLATE" build/static/cleanslate.css
+	cp "$CLEANSLATE" build/static/css/cleanslate.css
 else
 	echo "Couldn't find cleanslate.css. Try running 'npm install'"
 fi
