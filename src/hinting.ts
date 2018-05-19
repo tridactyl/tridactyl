@@ -27,7 +27,6 @@ import * as TTS from "./text_to_speech"
 import { HintSaveType } from "./hinting_background"
 import Logger from "./logging"
 import * as Messaging from "./messaging"
-import * as styling from "./styling"
 const logger = new Logger("hinting")
 
 /** Simple container for the state of a single frame's hints. */
