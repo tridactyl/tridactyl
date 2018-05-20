@@ -19,6 +19,14 @@
 
 - Add `restart` command to restart Firefox.
 
+- Add new themes
+    - `shydactyl` and `greenmat`, covering both ends of the design spectrum.
+
+- Make themes apply to {newtab, mode indicator, tutor}
+
+- Add new internal structure for themes - check out contributing.md on the repository if you want to add your own
+    - Adding themes at runtime is planned but some way off.
+
 ## Release 1.12.0 / 2018-05-13
 
 - Add container support
