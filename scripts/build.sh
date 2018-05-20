@@ -55,6 +55,8 @@ fi
 
 wait
 
+scripts/bodgecss.sh
+
 if [ -e "$CLEANSLATE" ] ; then
 	cp -v "$CLEANSLATE" build/static/css/cleanslate.css
 else

@@ -1,7 +1,3 @@
-@import url('../themes/default/content.css');
-@import url('../themes/dark/content.css');
-@import url('../themes/greenmat/content.css');
-
 span.TridactylHint {
     position: absolute !important;
     font-family: var(--tridactyl-hintspan-font-family) !important;
