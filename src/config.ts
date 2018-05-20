@@ -257,6 +257,7 @@ const DEFAULTS = o({
         hinting: 2,
         state: 2,
         excmd: 1,
+        styling: 2,
     }),
     noiframeon: [],
 

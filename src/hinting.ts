@@ -221,18 +221,8 @@ class Hint {
         if (hide) {
             this.focused = false
             this.target.classList.remove("TridactylHintElem")
-            if (config.get("theme") === "dark") {
-                document
-                    .querySelector(":root")
-                    .classList.remove("TridactylThemeDark")
-            }
         } else {
             this.target.classList.add("TridactylHintElem")
-            if (config.get("theme") === "dark") {
-                document
-                    .querySelector(":root")
-                    .classList.add("TridactylThemeDark")
-            }
         }
     }
 
