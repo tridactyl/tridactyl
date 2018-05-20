@@ -221,18 +221,8 @@ class Hint {
         if (hide) {
             this.focused = false
             this.target.classList.remove("TridactylHintElem")
-            if (config.get("theme") === "dark") {
-                document
-                    .querySelector(":root")
-                    .classList.remove("TridactylThemeDark")
-            }
         } else {
             this.target.classList.add("TridactylHintElem")
-            if (config.get("theme") === "dark") {
-                document
-                    .querySelector(":root")
-                    .classList.add("TridactylThemeDark")
-            }
         }
     }
 
@@ -450,6 +440,10 @@ function elementswithtext() {
     ])
 }
 
+function titleAltTextElements() {
+    return DOM.getElemsBySelector("[title], [alt]", [DOM.isVisible])
+}
+
 /** Returns elements that point to a saveable resource
  */
 function saveableElements() {
@@ -642,6 +636,14 @@ function hintPageTextYank() {
     })
 }
 
+function hintPageTitleAltTextYank() {
+    hintPage(titleAltTextElements(), hint => {
+        messageActiveTab("commandline_frame", "setClipboard", [
+            hint.target.title ? hint.target.title : hint.target.alt,
+        ])
+    })
+}
+
 function hintPageYank() {
     hintPage(hintables(), hint => {
         messageActiveTab("commandline_frame", "setClipboard", [
@@ -683,8 +685,8 @@ function hintImage(inBackground) {
 }
 
 /** Hint elements to focus */
-function hintFocus() {
-    hintPage(hintables(), hint => {
+function hintFocus(selectors?) {
+    hintPage(hintables(selectors), hint => {
         hint.target.focus()
     })
 }
@@ -751,6 +753,7 @@ addListener(
         hintPageExStr,
         hintPageYank,
         hintPageTextYank,
+        hintPageTitleAltTextYank,
         hintPageAnchorYank,
         hintPageOpenInBackground,
         hintPageWindow,

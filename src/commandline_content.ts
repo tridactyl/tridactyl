@@ -2,6 +2,7 @@
 
 import Logger from "./logging"
 import * as config from "./config"
+import { theme } from "./styling"
 const logger = new Logger("messaging")
 
 /* TODO:
@@ -34,18 +35,20 @@ async function init() {
             )
             cmdline_iframe.setAttribute("id", "cmdline_iframe")
             hide()
-            window.document.documentElement.appendChild(cmdline_iframe)
+            document.documentElement.appendChild(cmdline_iframe)
+            // first theming of page root
+            await theme(window.document.querySelector(":root"))
         } catch (e) {
             logger.error("Couldn't initialise cmdline_iframe!", e)
         }
     }
 }
 
-// Load the iframe immediately if the document is already complete (happens if tridactyl is reloaded)
+// Load the iframe immediately if we can (happens if tridactyl is reloaded or on ImageDocument)
 // Else load lazily to avoid upsetting page JS that hates foreign iframes.
-if (document.readyState === "complete") {
+try {
     init()
-} else {
+} catch (e) {
     // Surrender event loop with setTimeout() to page JS in case it's still doing stuff.
     document.addEventListener("DOMContentLoaded", () => setTimeout(init, 0))
 }

@@ -55,27 +55,34 @@ import * as webext from "./lib/webext"
     l: prom => prom.then(console.log).catch(console.error),
 })
 
+// {{{ Clobber CSP
+
 // This should be removed once https://bugzilla.mozilla.org/show_bug.cgi?id=1267027 is fixed
-let cspListener
-if (config.get("csp") == "clobber") {
-    cspListener = browser.webRequest.onHeadersReceived.addListener(
-        request.addurltocsp,
+function addCSPListener() {
+    browser.webRequest.onHeadersReceived.addListener(
+        request.clobberCSP,
         { urls: ["<all_urls>"], types: ["main_frame"] },
         ["blocking", "responseHeaders"],
     )
 }
+
+function removeCSPListener() {
+    browser.webRequest.onHeadersReceived.removeListener(request.clobberCSP)
+}
+
+config.getAsync("csp").then(csp => csp === "clobber" && addCSPListener())
+
 browser.storage.onChanged.addListener((changes, areaname) => {
-    if (config.get("csp") == "clobber") {
-        cspListener = browser.webRequest.onHeadersReceived.addListener(
-            request.addurltocsp,
-            { urls: ["<all_urls>"], types: ["main_frame"] },
-            ["blocking", "responseHeaders"],
-        )
-    } else {
-        // This doesn't work. :(
-        // browser.webRequest.onHeadersReceived.removeListener(cspListener)
+    if ("userconfig" in changes) {
+        if (changes.userconfig.newValue.csp === "clobber") {
+            addCSPListener()
+        } else {
+            removeCSPListener()
+        }
     }
 })
+
+// }}}
 
 // Prevent Tridactyl from being updated while it is running in the hope of fixing #290
 browser.runtime.onUpdateAvailable.addListener(_ => {})

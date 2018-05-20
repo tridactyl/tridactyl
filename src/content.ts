@@ -29,6 +29,7 @@ import * as webext from "./lib/webext"
 import Mark from "mark.js"
 import * as keyseq from "./keyseq"
 import * as native from "./native_background"
+import * as styling from "./styling"
 ;(window as any).tri = Object.assign(Object.create(null), {
     browserBg: webext.browserBg,
     commandline_content,
@@ -49,6 +50,7 @@ import * as native from "./native_background"
     webext,
     l: prom => prom.then(console.log).catch(console.error),
     native,
+    styling,
 })
 
 // Don't hijack on the newtab page.
@@ -98,19 +100,9 @@ config.getAsync("modeindicator").then(mode => {
         : ""
     statusIndicator.className =
         "cleanslate TridactylStatusIndicator " + privateMode
-    try {
-        // On quick loading pages, the document is already loaded
-        statusIndicator.textContent = state.mode || "normal"
-        document.body.appendChild(statusIndicator)
-        document.head.appendChild(style)
-    } catch (e) {
-        // But on slower pages we wait for the document to load
-        window.addEventListener("DOMContentLoaded", () => {
-            statusIndicator.textContent = state.mode || "normal"
-            document.body.appendChild(statusIndicator)
-            document.head.appendChild(style)
-        })
-    }
+    statusIndicator.textContent = state.mode
+    dom.appendTo(document.body, statusIndicator)
+    dom.appendTo(document.head, style)
 
     browser.storage.onChanged.addListener((changes, areaname) => {
         if (areaname === "local" && "state" in changes) {

@@ -454,6 +454,8 @@ mainFunction() {
     wait
   fi
 
+  scripts/bodgecss.sh
+
   if [ -e "${CLEANSLATE}" ] ; then
     cp -v "${CLEANSLATE}" build/static/cleanslate.css
   else

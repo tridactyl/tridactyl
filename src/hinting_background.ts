@@ -16,6 +16,10 @@ export async function hintPageYank() {
     return await messageActiveTab("hinting_content", "hintPageYank")
 }
 
+export async function hintPageTitleAltTextYank() {
+    return await messageActiveTab("hinting_content", "hintPageTitleAltTextYank")
+}
+
 export async function hintPageTextYank() {
     return await messageActiveTab("hinting_content", "hintPageTextYank")
 }
@@ -54,8 +58,8 @@ export async function hintImage(inBackground) {
     ])
 }
 
-export async function hintFocus() {
-    return await messageActiveTab("hinting_content", "hintFocus")
+export async function hintFocus(selectors?) {
+    return await messageActiveTab("hinting_content", "hintFocus", [selectors])
 }
 
 export async function hintRead() {
