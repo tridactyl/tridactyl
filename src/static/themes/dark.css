@@ -1,5 +1,8 @@
 :root.TridactylThemeDark {
 
+    --tridactyl-fg: #ccc;
+    --tridactyl-bg: #111;
+
     --tridactyl-cmdl-fg: #ccc;
     --tridactyl-cmdl-bg: #111;
 
