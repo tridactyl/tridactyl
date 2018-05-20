@@ -41,8 +41,8 @@
 
 /*commandline*/
 
-    --tridactyl-cmdl-bg: white;
-    --tridactyl-cmdl-fg: black;
+    --tridactyl-cmdl-bg: var(--tridactyl-bg);
+    --tridactyl-cmdl-fg: var(--tridactyl-fg)
     --tridactyl-cmdl-line-height: 1.5;
     --tridactyl-cmdl-font-family: monospace;
     --tridactyl-cmdl-font-size: 9pt;
@@ -50,8 +50,8 @@
 /*completions*/
 
     --tridactyl-cmplt-option-height: 1.4em;
-    --tridactyl-cmplt-fg: black;
-    --tridactyl-cmplt-bg: white;
+    --tridactyl-cmplt-fg: var(--tridactyl-fg);
+    --tridactyl-cmplt-bg: var(--tridactyl-bg);
     --tridactyl-cmplt-font-size: 10pt;
     --tridactyl-cmplt-font-family: monospace;
     /* i don't think 0.5px is redered */
@@ -85,11 +85,11 @@
 
     --tridactyl-url-text-decoration: none;
     --tridactyl-url-fg: #1f9947;
-    --tridactyl-url-bg: white;
+    --tridactyl-url-bg: var(--tridactyl-bg);
     --tridactyl-url-cursor: pointer;
 
 /*option focused*/
 
-    --tridactyl-of-fg: black;
+    --tridactyl-of-fg: var(--tridactyl-fg);
     --tridactyl-of-bg: #FFEC8B;
 }
