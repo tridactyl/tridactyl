@@ -280,21 +280,24 @@ installWindowsNativeMessenger() {
             "${WIN_COMPILE_NATIVE_BIN_SOURCE}" \
             "${WIN_COMPILE_NATIVE_BIN_OUTPUT}")"
 
-      colorEcho \
-        "$(printf "[+] Signing compiled binary: %s ...\n" \
-            "${WIN_COMPILE_NATIVE_BIN_OUTPUT}")"
-
-      success="$(stripWhitespace \
-        "$(signWindowsCompiledNativeBin | tail -n1)")"
-
-      if [ "${success}" = "True" ]; then
-        colorEcho \
-          "$(printf "    - %s successfully generated\n" \
-              "${WIN_COMPILE_NATIVE_BIN_SIG_FILE}")"
-
-        colorEcho \
-          "$(printf "    - %s successfully generated\n" \
-              "${WIN_COMPILE_NATIVE_BIN_HASH_FILE}")"
+      ##
+      ## Disable GPG signing for now, until decided otherwise later
+      ##
+      # colorEcho \
+      #   "$(printf "[+] Signing compiled binary: %s ...\n" \
+      #       "${WIN_COMPILE_NATIVE_BIN_OUTPUT}")"
+      #
+      # success="$(stripWhitespace \
+      #   "$(signWindowsCompiledNativeBin | tail -n1)")"
+      #
+      # if [ "${success}" = "True" ]; then
+      #   colorEcho \
+      #     "$(printf "    - %s successfully generated\n" \
+      #         "${WIN_COMPILE_NATIVE_BIN_SIG_FILE}")"
+      #
+      #   colorEcho \
+      #     "$(printf "    - %s successfully generated\n" \
+      #         "${WIN_COMPILE_NATIVE_BIN_HASH_FILE}")"
 
         echo
         colorEcho "[+] Installing native messenger ..."
@@ -304,14 +307,19 @@ installWindowsNativeMessenger() {
           -ExecutionPolicy Bypass \
           "${WIN_NATIVE_BIN_INSTALLER}" \
             -DebugDirBase native
-      else
-        colorEcho \
-          "$(printf \
-              "[-] Signing %s failed, quitting ..." \
-              $WIN_COMPILE_NATIVE_BIN_OUTPUT)" \
-          "alert"
-        exit -1
-      fi
+
+      ##
+      ## Disable GPG signing for now, until decided otherwise later
+      ##
+      # else
+      #   colorEcho \
+      #     "$(printf \
+      #         "[-] Signing %s failed, quitting ..." \
+      #         $WIN_COMPILE_NATIVE_BIN_OUTPUT)" \
+      #     "alert"
+      #   exit -1
+      #
+      # fi
 
     else
       colorEcho \

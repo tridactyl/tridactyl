@@ -249,6 +249,13 @@ If you want to build a signed copy (e.g. for the non-developer release), you can
   - Launch the installation steps described above from MinTTY shell
       - Also known as "Git Bash"
 
+[win-git]: https://git-scm.com/download/win
+[win-nodejs]: https://nodejs.org/dist/v8.11.1/node-v8.11.1-x64.msi
+[pyinstaller]: https://www.pyinstaller.org
+[gpg4win]: https://www.gpg4win.org
+
+<!--- ## Disable GPG signing for now, until decided otherwise later
+
 ### Cryptographically Verifying the Compiled Native Binary on Windows
 
   - `native_main.py` is compiled to `native_main.exe` for Windows using [PyInstaller][pyinstaller]. The goal is to relieve Tridactyl users on Windows from having to install the whole Python 3 distribution.
@@ -304,10 +311,7 @@ PS C:\Users\{USERNAME}\.tridactyl> gpg2 --armor --import gsbabil-pub.asc
 PS C:\Users\{USERNAME}\.tridactyl> gpg2 --verify .\native_main.exe.sig .\native_main.exe
 ```
 
-[win-git]: https://git-scm.com/download/win
-[win-nodejs]: https://nodejs.org/dist/v8.11.1/node-v8.11.1-x64.msi
-[pyinstaller]: https://www.pyinstaller.org
-[gpg4win]: https://www.gpg4win.org
+--->
 
 
 ### Development loop
