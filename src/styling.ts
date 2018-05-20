@@ -5,7 +5,7 @@ const logger = new Logging.Logger("styling")
 
 // find a way of getting theme list without hard-coding it
 // using a macro might be an option
-const THEMES = ["dark", "greenmat"]
+const THEMES = ["dark", "greenmat", "shydactyl"]
 
 function capitalise(str) {
     return str[0].toUpperCase() + str.slice(1)

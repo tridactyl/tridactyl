@@ -54,6 +54,7 @@
     - Pressing `ZZ` will close all tabs and windows, but it will only "save"
       them if your about:preferences are set to "show your tabs and windows
       from last time"
+    - Change theme with `colours default|dark|greenmat|shydactyl`
 
     There are some caveats common to all webextension vimperator-alikes:
 
