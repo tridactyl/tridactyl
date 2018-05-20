@@ -11,17 +11,27 @@ body {
     width: 100%;
 }
 
+#command-line-holder {
+    background: var(--tridactyl-cmdl-bg);
+    color: var(--tridactyl-cmdl-fg);
+    font-family: var(--tridactyl-cmdl-font-family);
+    font-size: 9pt;
+    /* reduce the padding added by the colon so that the command line shows up roughly where it used to be */
+    padding-left: 0.125ex;
+}
+
 input {
-    width: 100%;
+    width: 97%;
     font-family: var(--tridactyl-cmdl-font-family);
     font-size: var(--tridactyl-cmdl-font-size);
     line-height: var(--tridactyl-cmdl-line-height);
     color: var(--tridactyl-cmdl-fg);
     background: var(--tridactyl-cmdl-bg);
     border: unset;
+    /* reduce the padding from the colon */
+    margin-left: -0.25ex;
     /* we currently have a border from the completions */
     /* border-top: solid 1px lightgray; */
-    padding-left: 0.5ex;
 }
 
 /* COMPLETIONS */
