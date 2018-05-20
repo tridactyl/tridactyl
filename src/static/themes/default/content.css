@@ -1,0 +1,29 @@
+:root {
+
+    --tridactyl-status-font-family: monospace;
+    --tridactyl-status-font-size: 12px;
+    --tridactyl-status-bg: white;
+    --tridactyl-status-border: 1px lightgray solid;
+    --tridactyl-status-border-radius: 2px;
+
+    --tridactyl-hintspan-font-family: sans-serif;
+    --tridactyl-hintspan-font-size: 12px;
+    --tridactyl-hintspan-font-weight: bold;
+    --tridactyl-hintspan-fg: white;
+    --tridactyl-hintspan-bg: red;
+    --tridactyl-hintspan-border-color: ButtonShadow;
+    --tridactyl-hintspan-border-width: 0px;
+    --tridactyl-hintspan-border-style: solid;
+
+    --tridactyl-hint-active-fg: black;
+    --tridactyl-hint-active-bg: #88FF00;
+    --tridactyl-hint-active-outline: 1px solid #CC0000;
+
+    --tridactyl-hint-bg: rgba(255, 255, 0, 0.25);
+    --tridactyl-hint-outline: 1px solid #8F5902;
+
+/*viewsource*/
+    --tridactyl-vs-bg: white;
+    --tridactyl-vs-fg: black;
+    --tridactyl-vs-font-family: monospace;
+}

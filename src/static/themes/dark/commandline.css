@@ -1,0 +1,23 @@
+:root.TridactylThemeDark {
+
+    --tridactyl-cmdl-fg: #ccc;
+    --tridactyl-cmdl-bg: #111;
+
+    --tridactyl-header-first-bg: #333;
+    --tridactyl-header-second-bg: #222;
+    --tridactyl-header-third-bg: #111;
+
+    --tridactyl-cmplt-fg: var(--tridactyl-cmdl-fg);
+    --tridactyl-cmplt-bg: #474747;
+    --tridactyl-cmplt-border-top: 1px solid var(--tridactyl-cmdl-bg);
+
+    --tridactyl-url-fg: var(--tridactyl-cmdl-fg);
+    --tridactyl-url-bg: var(--tridactyl-header-first-bg);
+
+    --tridactyl-of-fg: #FFF;
+    --tridactyl-of-bg: #204E8A; 
+}
+
+:root.TridactylThemeDark #completions table tr td {
+  color: var(--tridactyl-cmplt-fg);
+}
