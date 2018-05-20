@@ -1,5 +1,7 @@
 :root.TridactylThemeGreenmat {
 
+  --tridactyl-fg: #00eb00;
+  --tridactyl-bg: #001500;
   --tridactyl-cmdl-fg: #00eb00;
   --tridactyl-cmdl-bg: #001500;
   --tridactyl-cmdl-font-family: 'Aldrich';
