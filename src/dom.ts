@@ -492,3 +492,15 @@ export function setupFocusHandler(): void {
     // Handles when the page tries to select an input
     hijackPageFocusFunction()
 }
+
+export function appendTo(parent, child) {
+    try {
+        // On quick loading pages, the document is already loaded
+        parent.appendChild(child)
+    } catch (e) {
+        // But on slower pages we wait for the document to load
+        window.addEventListener("DOMContentLoaded", () =>
+            parent.appendChild(child),
+        )
+    }
+}
