@@ -10,7 +10,7 @@ COLOR_BAD=$(tput setaf 1 2>/dev/null)
 COLOR_GOOD=$(tput setaf 2 2>/dev/null)
 
 WIN_PYTHON_CMD="py -3"
-WIN_PREREQUISITES="tput printf cygpath which npm pyinstaller"
+WIN_PREREQUISITES="tput printf cygpath which npm"
 
 NATIVE_BIN_DIR="native"
 WIN_COMPILE_NATIVE_BIN_SOURCE="${NATIVE_BIN_DIR}/native_main.py"
@@ -25,6 +25,7 @@ WIN_COMPILE_NATIVE_BIN_GPG2_SIGNER="gsbabil@gmail.com"
 if [ ! -z "${PYINSTALLER}" ] \
   && [ "${PYINSTALLER}" = "1" ]; then
   WIN_COMPILE_NATIVE_BIN="True"
+  WIN_PREREQUISITES="${WIN_PREREQUISITES} pyinstaller"
 else
   WIN_COMPILE_NATIVE_BIN="False"
 fi
