@@ -25,7 +25,7 @@ The idea behind Tridactyl is to allow you to navigate the web more efficiently w
     - You can enter this mode with `:` and exit it with `Escape` or `Enter`.
 - Ignore mode
     - This mode passes all keypresses through to the web page. It is useful for websites that have their own keybinds, such as games and Gmail.
-    - You can enter the mode with `I` and leave it with `Shift-Esc`.
+    - You can toggle the mode with `Shift-Insert`.
 
 Almost all of the modes are controlled by series of keypresses. In this tutorial, a sequence of keys such as `zz` should be entered by pressing the key `z`, letting go, and then pressing the key `z`. There is no need to hold both keys at once, if that were even possible. (`zz` resets the zoom level to the default, so it probably didn't seem to do anything). Sometimes `help` refers to a command that must be entered in command mode; it should hopefully always be clear from context which we mean.
 
