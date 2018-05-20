@@ -23,10 +23,10 @@ WIN_NATIVE_BIN_INSTALLER="${NATIVE_BIN_DIR}/win_install.ps1"
 WIN_COMPILE_NATIVE_BIN_GPG2_SIGNER="gsbabil@gmail.com"
 
 if [ ! -z "${PYINSTALLER}" ] \
-  && [ "${PYINSTALLER}" = "0" ]; then
-  WIN_COMPILE_NATIVE_BIN="False"
-else
+  && [ "${PYINSTALLER}" = "1" ]; then
   WIN_COMPILE_NATIVE_BIN="True"
+else
+  WIN_COMPILE_NATIVE_BIN="False"
 fi
 
 stripWhitespace() {
