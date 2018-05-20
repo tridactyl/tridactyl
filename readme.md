@@ -102,6 +102,7 @@ Extended hint modes allow you to perform actions on page items:
 - `;s`/`;a` — save/save-as the linked resource
 - `;S`/`;A` — save/save-as the selected image
 - `;p` — copy an element's text to the clipboard
+- `;P` — copy an element's title/alt text to the clipboard
 - `;y` — copy an element's link URL to the clipboard
 - `;#` — copy an element's anchor URL to the clipboard
 - `;r` — read the element's text with text-to-speech
@@ -146,7 +147,7 @@ See `:help bind` for details about this command.
 
 - Can I import/export settings, and does Tridactyl use an external configuration file just like Vimperator?
 
-    Yes, if you have `native` working, `$XDG_CONFIG_DIR/tridactyl/tridactylrc` or `~/.tridactylrc` will be read at startup via an `autocmd` and `source`. There is an (example file available on our repository)[https://github.com/cmcaine/tridactyl/blob/master/.tridactylrc].
+    Yes, if you have `native` working, `$XDG_CONFIG_DIR/tridactyl/tridactylrc` or `~/.tridactylrc` will be read at startup via an `autocmd` and `source`. There is an [example file available on our repository](https://github.com/cmcaine/tridactyl/blob/master/.tridactylrc).
 
     If you can't use the native messenger for some reason, there is a workaround: if you do `set storageloc local`, a JSON file will appear at `<your firefox profile>\browser-extension-data\tridactyl.vim@cmcaine.co.uk\storage.js`. You can find your profile folder by going to `about:support`. You can edit this file to your heart's content. 
 

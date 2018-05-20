@@ -98,19 +98,9 @@ config.getAsync("modeindicator").then(mode => {
         : ""
     statusIndicator.className =
         "cleanslate TridactylStatusIndicator " + privateMode
-    try {
-        // On quick loading pages, the document is already loaded
-        statusIndicator.textContent = state.mode || "normal"
-        document.body.appendChild(statusIndicator)
-        document.head.appendChild(style)
-    } catch (e) {
-        // But on slower pages we wait for the document to load
-        window.addEventListener("DOMContentLoaded", () => {
-            statusIndicator.textContent = state.mode || "normal"
-            document.body.appendChild(statusIndicator)
-            document.head.appendChild(style)
-        })
-    }
+    statusIndicator.textContent = state.mode
+    dom.appendTo(document.body, statusIndicator)
+    dom.appendTo(document.head, style)
 
     browser.storage.onChanged.addListener((changes, areaname) => {
         if (areaname === "local" && "state" in changes) {

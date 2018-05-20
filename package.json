@@ -5,6 +5,7 @@
   "dependencies": {
     "@types/css": "0.0.31",
     "@types/nearley": "^2.11.0",
+    "csp-serdes": "github:cmcaine/csp-serdes",
     "css": "^2.2.1",
     "fuse.js": "^3.2.0",
     "mark.js": "^8.11.1",
@@ -34,11 +35,13 @@
   },
   "scripts": {
     "build": "sh scripts/build.sh",
-    "run": "web-ext run --firefox=firefox -s build/ -u 'txti.es'",
+    "run": "web-ext run -s build/ -u 'txti.es'",
     "watch": "echo 'watch is broken, use build instead'; exit 0; chokidar src scripts --initial --silent -i 'src/excmds_{background,content}.ts' -i 'src/static/docs' -c 'npm run build'",
     "clean": "rm -rf build generated",
     "test": "npm run build && jest --silent",
-    "update-buildsystem": "rm -rf src/node_modules; npm run clean"
+    "update-buildsystem": "rm -rf src/node_modules; npm run clean",
+    "lint": "bash hooks/pre-commit",
+    "pretty": "bash scripts/pretty"
   },
   "jest": {
     "transform": {

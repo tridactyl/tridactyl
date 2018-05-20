@@ -49,7 +49,7 @@
     - [[bind]] new commands with e.g. `:bind J tabnext`
     - Type `:help` to see a list of available excmds
     - Use `yy` to copy the current page URL to your clipboard
-    - `]]` and `[[` to navigate through the pages of comics, paginated
+    - `[[`and `]]`  to navigate through the pages of comics, paginated
       articles, etc
     - Pressing `ZZ` will close all tabs and windows, but it will only "save"
       them if your about:preferences are set to "show your tabs and windows
@@ -57,11 +57,8 @@
 
     There are some caveats common to all webextension vimperator-alikes:
 
-    - To make Tridactyl work on addons.mozilla.org, about:\*, some file:\*
-      URIs, view-source:\*, or data:\*, you need to open `about:config`, add a
-      new boolean `privacy.resistFingerprinting.block_mozAddonManager` with the
-      value `true`, and remove the above domains from
-      `extensions.webextensions.restrictedDomains`.
+    - To make Tridactyl work on addons.mozilla.org and some other Mozilla domains, you need to open `about:config`, run [[fixamo]] or add a new boolean `privacy.resistFingerprinting.block_mozAddonManager` with the value `true`, and remove the above domains from `extensions.webextensions.restrictedDomains`.
+    - Tridactyl can't run on about:\*, some file:\* URIs, view-source:\*, or data:\*, URIs.
     - To change/hide the GUI of Firefox from Tridactyl, you can use [[guiset]]
       with the native messenger installed (see [[native]] and
       [[installnative]]). Alternatively, you can edit your userChrome yourself.
@@ -762,7 +759,7 @@ export function home(all: "false" | "true" = "false") {
 */
 //#background
 export async function help(excmd?: string) {
-    const docpage = browser.extension.getURL("static/docs/modules/_excmds_.html")
+    const docpage = browser.extension.getURL("static/docs/modules/_src_excmds_.html")
     if (excmd === undefined) excmd = ""
     if ((await activeTab()).url.startsWith(docpage)) {
         open(docpage + "#" + excmd)
@@ -1049,7 +1046,7 @@ export async function loadaucmds() {
     let aucmds = await config.getAsync("autocmds", "DocStart")
     const ausites = Object.keys(aucmds)
     // yes, this is lazy
-    const aukey = ausites.find(e => window.document.location.href.includes(e))
+    const aukey = ausites.find(e => window.document.location.href.search(e) >= 0)
     if (aukey !== undefined) {
         Messaging.message("commandline_background", "recvExStr", [aucmds[aukey]])
     }
@@ -1897,8 +1894,11 @@ export function searchsetkeyword(keyword: string, url: string) {
 */
 //#background
 export function set(key: string, ...values: string[]) {
-    if (!key || !values[0]) {
-        throw "Both key and value must be provided!"
+    if (!key) {
+        throw "Key must be provided!"
+    } else if (!values[0]) {
+        get(key)
+        return
     }
 
     const target = key.split(".")
@@ -1935,8 +1935,9 @@ export function set(key: string, ...values: string[]) {
 
  @param event Curently, only 'TriStart' and 'DocStart' are supported.
 
- @param url For DocStart: the URL on which the events will trigger (currently
- just uses "contains").
+ @param url For DocStart: a fragment of the URL on which the events will trigger, or a JavaScript regex (e.g, `/www\.amazon\.co.*\/`)
+
+ We just use [URL.search](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/search).
 
  For TriStart: A regular expression that matches the hostname of the computer
  the autocmd should be run on. This requires the native messenger to be
@@ -2189,6 +2190,7 @@ import * as hinting from "./hinting_background"
         - -b open in background
         - -y copy (yank) link's target to clipboard
         - -p copy an element's text to the clipboard
+        - -P copy an element's title/alt text to the clipboard
         - -r read an element's text with text-to-speech
         - -i view an image
         - -I view an image in a new tab
@@ -2217,10 +2219,11 @@ import * as hinting from "./hinting_background"
         "relatedopenpos": "related" | "next" | "last"
 */
 //#background
-export function hint(option?: string, selectors = "", ...rest: string[]) {
+export function hint(option?: string, selectors?: string, ...rest: string[]) {
     if (option === "-b") hinting.hintPageOpenInBackground()
     else if (option === "-y") hinting.hintPageYank()
     else if (option === "-p") hinting.hintPageTextYank()
+    else if (option === "-P") hinting.hintPageTitleAltTextYank()
     else if (option === "-i") hinting.hintImage(false)
     else if (option === "-I") hinting.hintImage(true)
     else if (option === "-k") hinting.hintKill()
@@ -2228,7 +2231,7 @@ export function hint(option?: string, selectors = "", ...rest: string[]) {
     else if (option === "-S") hinting.hintSave("img", false)
     else if (option === "-a") hinting.hintSave("link", true)
     else if (option === "-A") hinting.hintSave("img", true)
-    else if (option === "-;") hinting.hintFocus()
+    else if (option === "-;") hinting.hintFocus(selectors)
     else if (option === "-#") hinting.hintPageAnchorYank()
     else if (option === "-c") hinting.hintPageSimple(selectors)
     else if (option === "-r") hinting.hintRead()
