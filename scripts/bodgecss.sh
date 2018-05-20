@@ -1,4 +1,4 @@
-#!/bin/env bash
+#!/usr/bin/env bash
 
 imports=$(find src/static/themes/ -name *.css| sed "s/^src\/static\///" | sed "s/^.*$/@import url\('..\/\0'\);/")
 
