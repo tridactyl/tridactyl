@@ -5,6 +5,8 @@ body {
     /* CSS is pants. Move the bar down a tiny bit to cover up the gap. */
     top: 1px;
     width: 100%;
+    display: flex;
+    flex-direction: column;
 }
 
 #command-line-holder {
