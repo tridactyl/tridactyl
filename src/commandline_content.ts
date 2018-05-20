@@ -2,6 +2,7 @@
 
 import Logger from "./logging"
 import * as config from "./config"
+import { theme } from "./styling"
 const logger = new Logger("messaging")
 
 /* TODO:
@@ -35,6 +36,8 @@ async function init() {
             cmdline_iframe.setAttribute("id", "cmdline_iframe")
             hide()
             document.documentElement.appendChild(cmdline_iframe)
+            // first theming of page root
+            await theme(window.document.querySelector(":root"))
         } catch (e) {
             logger.error("Couldn't initialise cmdline_iframe!", e)
         }

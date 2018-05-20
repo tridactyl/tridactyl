@@ -15,11 +15,12 @@
 .TridactylStatusIndicator {
     position: fixed !important;
     bottom: 0 !important;
-    font-family: monospace !important;
-    background: white !important;
-    border: 1.5px lightgray solid !important;
-    border-radius: 2px !important;
-    font-size: 12px !important;
+    font-family: var(--tridactyl-status-font-family) !important;
+    background: var(--tridactyl-status-bg) !important;
+    color: var(--tridactyl-status-fg) !important;
+    border: var(--tridactyl-status-border) !important;
+    border-radius: var(--tridactyl-status-border-radius) !important;
+    font-size: var(--tridactyl-status-font-size) !important;
     padding: 0.25ex !important;
     right: 2px !important;
     bottom: 2px !important;

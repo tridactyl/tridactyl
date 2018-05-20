@@ -60,12 +60,12 @@ Tridactyl overrides your newtab page because it cannot insert its content script
 You have more questions? Have a look at our [FAQ][faq-link].
 
 [1]: https://github.com/cmcaine/tridactyl/issues
-[2]: https://github.com/cmcaine/tridactyl/blob/master/src/static/userChrome-minimal.css
+[2]: https://github.com/cmcaine/tridactyl/blob/master/src/static/css/userChrome-minimal.css
 [3]: https://www.mozilla.org/en-US/firefox/organizations/
 
 <div class="align-left">
 \[1]: https://github.com/cmcaine/tridactyl/issues<br />
-\[2]: https://github.com/cmcaine/tridactyl/blob/master/src/static/userChrome-minimal.css<br />
+\[2]: https://github.com/cmcaine/tridactyl/blob/master/src/static/css/userChrome-minimal.css<br />
 \[3]: https://www.mozilla.org/en-US/firefox/organizations/<br />
 </div>
 
