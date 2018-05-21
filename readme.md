@@ -155,6 +155,14 @@ See `:help bind` for details about this command.
 
     Yes: `set theme dark` or `colors dark`. Thanks to @fugerf.
 
+- How can I pretend that I'm not a 1337 h4x0r?
+
+    We cater for you, too! `set theme shydactyl`. Thanks to @atrnh.
+
+- How can I pretend that I'm a 1337 h4x0r?
+
+    We cater for you, too! `set theme greenmat`. Thanks to @caputchinefrobles.
+
 - How can I bind keys using the control/alt key modifiers (eg: `ctrl+^`)?
 
     `:bind <C-f> scrollpage 1`. Special keys can be bound too: `:bind <F3> set theme dark` and with modifiers: `:bind <S-F3> set theme default` and with multiple modifiers: `:bind <SA-F3> composite set hintchars 1234567890 | set hintfiltermode vimperator-reflow`
@@ -205,7 +213,7 @@ See `:help bind` for details about this command.
 
 - How can I know which mode I'm in/have a status line?
 
-    Press `j` and see if you scroll down :) There's no status line yet: see [#210](https://github.com/cmcaine/tridactyl/issues/210).
+    Press `j` and see if you scroll down :) There's no status line yet: see [#210](https://github.com/cmcaine/tridactyl/issues/210), but we do have a "mode indicator" in the bottom right. It even goes purple when you're in a private window :).
 
 - Does anyone actually use Tridactyl?
 
