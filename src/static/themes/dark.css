@@ -30,7 +30,3 @@
     --tridactyl-hint-bg: rgba(13, 31, 54, 0.25); 
     --tridactyl-hint-outline: 1px solid var(--tridactyl-hintspan-bg);
 }
-
-:root.TridactylThemeDark #completions table tr td {
-  color: var(--tridactyl-cmplt-fg);
-}
