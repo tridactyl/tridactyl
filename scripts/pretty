@@ -13,7 +13,7 @@ if [ -n "$uglyFiles" ]; then
       git add "$file"
     else
       echo "WARN: Staged and working file differ: '$file'"
-      echo "WARN: Moving working file temporarily..."
+      echo "WARN: Moving working file temporarily (this might upset your editor)"
       # Get crazy: backup the working copy of the file, paste the staged version in its place, prettify, add, restore backup
       backup=$(mktemp -p . $file.XXXXXXXXX)
       mv "$file" "$backup"
