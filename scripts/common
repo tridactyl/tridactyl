@@ -7,9 +7,9 @@ cachedJS() {
 ugly() {
     local acc=()
     for jsfile in "$@"; do
-        diff "$jsfile" <($(npm bin)/prettier "$jsfile") >/dev/null || acc+=("$jsfile")
+        diff "$jsfile" <($(npm bin)/prettier $jsfile) >/dev/null || acc+=("$jsfile")
     done
-    echo $acc
+    echo ${acc[@]}
 }
 
 noisy() {
@@ -19,5 +19,5 @@ noisy() {
             acc+=("jsfile")
         fi
     done
-    echo $acc
+    echo ${acc[@]}
 }

@@ -2,8 +2,11 @@
 
 source ./scripts/common
 
+set -e
+
 uglyFiles=$(ugly $(cachedJS))
 
 if [ -n "$uglyFiles" ]; then
-  prettier --write "$uglyFiles"
+  prettier --write $uglyFiles
+  git add $uglyFiles
 fi
