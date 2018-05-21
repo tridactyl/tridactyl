@@ -1,6 +1,8 @@
 body {
-    font-family: sans-serif;
-    font-size: 12pt;
+    font-family: var(--tridactyl-font-family-sans);
+    font-size: var(--tridactyl-font-size);
+    color: var(--tridactyl-fg);
+    background: var(--tridactyl-bg);
     max-width: 40em;
     line-height: 140%;
     margin: auto;
@@ -34,7 +36,8 @@ input[id^="spoiler"] ~ .spoiler {
   opacity: 0;
   margin: 10px auto 0;
   padding: 10px;
-  background: #eee;
+  background: var(--tridactyl-highlight-box-bg);
+  color: var(--tridactyl-highlight-box-fg);
   border: 1px solid #ccc;
   border-radius: 2px;
   transition: all .6s;

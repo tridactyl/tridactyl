@@ -54,3 +54,10 @@ declare function html(
 declare namespace browser.webRequest {
     function filterResponseData(requestId: string): any
 }
+
+// Stop typedoc complaining about toBeAll.
+declare namespace jest {
+    interface Matchers<R> {
+        toBeAll: any
+    }
+}

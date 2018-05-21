@@ -31,7 +31,7 @@
 
     A "splat" operator (...) means that the excmd will accept any number of space-delimited arguments into that parameter.
 
-    You do not need to worry about types.
+    You do not need to worry about types. Return values which are promises will turn into whatever they promise to when used in [[composite]].
 
     At the bottom of each function's help page, you can click on a link that will take you straight to that function's definition in our code. This is especially recommended for browsing the [config](/static/docs/modules/_config_.html#defaults) which is nigh-on unreadable on these pages.
 
@@ -49,22 +49,21 @@
     - [[bind]] new commands with e.g. `:bind J tabnext`
     - Type `:help` to see a list of available excmds
     - Use `yy` to copy the current page URL to your clipboard
-    - `]]` and `[[` to navigate through the pages of comics, paginated
+    - `[[`and `]]`  to navigate through the pages of comics, paginated
       articles, etc
     - Pressing `ZZ` will close all tabs and windows, but it will only "save"
       them if your about:preferences are set to "show your tabs and windows
       from last time"
+    - Change theme with `colours default|dark|greenmat|shydactyl`
 
     There are some caveats common to all webextension vimperator-alikes:
 
-    - Do not try to navigate to any about:\* pages using `:open` as it will
-      fail silently
-    - Firefox will not load Tridactyl on addons.mozilla.org, about:\*, some
-      file:\* URIs, view-source:\*, or data:\*. On these pages Ctrl-L (or F6),
-      Ctrl-Tab and Ctrl-W are your escape hatches
-    - Tridactyl does not currently support changing/hiding the Firefox GUI, but
-      you can do it yourself by changing your userChrome. There is an [example
-      file](2) available in our repository.
+    - To make Tridactyl work on addons.mozilla.org and some other Mozilla domains, you need to open `about:config`, run [[fixamo]] or add a new boolean `privacy.resistFingerprinting.block_mozAddonManager` with the value `true`, and remove the above domains from `extensions.webextensions.restrictedDomains`.
+    - Tridactyl can't run on about:\*, some file:\* URIs, view-source:\*, or data:\*, URIs.
+    - To change/hide the GUI of Firefox from Tridactyl, you can use [[guiset]]
+      with the native messenger installed (see [[native]] and
+      [[installnative]]). Alternatively, you can edit your userChrome yourself.
+      There is an [example file](2) available in our repository.
 
     If you want a more fully-featured vimperator-alike, your best option is
     [Firefox ESR][3] and Vimperator :)
@@ -143,16 +142,24 @@ export async function getNativeVersion(): Promise<void> {
  */
 //#content
 export async function fillinput(...content: string[]) {
-    let inputToFill = DOM.getLastUsedInput() as HTMLInputElement
-    inputToFill.value = content.join(" ")
+    let inputToFill = DOM.getLastUsedInput()
+    if ("value" in inputToFill) {
+        ;(inputToFill as HTMLInputElement).value = content.join(" ")
+    } else {
+        inputToFill.textContent = content.join(" ")
+    }
 }
 
 /** @hidden */
 //#content
 export async function getinput() {
     // this should probably be subsumed by the focusinput code
-    let input = DOM.getLastUsedInput() as HTMLInputElement
-    return input.value
+    let input = DOM.getLastUsedInput()
+    if ("value" in input) {
+        return (input as HTMLInputElement).value
+    } else {
+        return input.textContent
+    }
 }
 
 /**
@@ -167,8 +174,9 @@ export async function getinput() {
  */
 //#background
 export async function editor() {
+    let url = new URL((await activeTab()).url)
     if (!await Native.nativegate()) return
-    const file = (await Native.temp(await getinput())).content
+    const file = (await Native.temp(await getinput(), url.hostname)).content
     fillinput((await Native.editor(file)).content)
     // TODO: add annoying "This message was written with [Tridactyl](https://addons.mozilla.org/en-US/firefox/addon/tridactyl-vim/)"
     // to everything written using editor
@@ -180,7 +188,7 @@ import * as css_util from "./css_util"
 /**
  * Change which parts of the Firefox user interface are shown. **NB: This feature is experimental and might break stuff.**
  *
- * Might mangle your userChrome. Requires native messenger, and you must restart Firefox each time to see any changes. <!-- (unless you enable addon debugging and refresh using the browser toolbox) -->
+ * Might mangle your userChrome. Requires native messenger, and you must restart Firefox each time to see any changes (this can be done using [[restart]]). <!-- (unless you enable addon debugging and refresh using the browser toolbox) -->
  *
  * View available rules and options [here](/static/docs/modules/_css_util_.html#potentialrules) and [here](/static/docs/modules/_css_util_.html#metarules).
  *
@@ -253,6 +261,23 @@ export function cssparse(...css: string[]) {
 }
 
 /**
+ *
+ * Simply sets
+ * ```js
+ *  "privacy.resistFingerprinting.block_mozAddonManager":true
+ *  "extensions.webextensions.restrictedDomains":""
+ * ```
+ * in about:config via user.js so that Tridactyl (and other extensions!) can be used on addons.mozilla.org and other sites.
+ *
+ * Requires `native`.
+ */
+//#background
+export async function fixamo() {
+    await Native.writePref("privacy.resistFingerprinting.block_mozAddonManager", true)
+    await Native.writePref("extensions.webextensions.restrictedDomains", "")
+}
+
+/**
  * Uses the native messenger to open URLs.
  *
  * **Be *seriously* careful with this: you can use it to open any URL you can open in the Firefox address bar.**
@@ -288,7 +313,7 @@ export async function exclaim(...str: string[]) {
  */
 //#background
 export async function exclaim_quiet(...str: string[]) {
-    ;(await Native.run(str.join(" "))).content
+    return (await Native.run(str.join(" "))).content
 }
 
 /**
@@ -307,9 +332,15 @@ export async function native() {
  */
 //#background
 export async function installnative() {
-    const installstr = await config.get("nativeinstallcmd")
-    await clipboard("yank", installstr)
-    fillcmdline("# Installation command copied to clipboard. Please paste and run it in your shell to install the native messenger.")
+    if ((await browser.runtime.getPlatformInfo()).os === "win") {
+        const installstr = await config.get("win_powershell_nativeinstallcmd")
+        await clipboard("yank", installstr)
+        fillcmdline("# Installation command copied to clipboard. Please paste and run it in Windows Powershell to install the native messenger.")
+    } else {
+        const installstr = await config.get("nativeinstallcmd")
+        await clipboard("yank", installstr)
+        fillcmdline("# Installation command copied to clipboard. Please paste and run it in your shell to install the native messenger.")
+    }
 }
 
 /**
@@ -352,9 +383,29 @@ export async function updatenative(interactive = true) {
             if (interactive) logger.error("Updating the native messenger on OSX is broken. Please use `:installnative` instead.")
             return
         }
-        await Native.run(await config.get("nativeinstallcmd"))
+        if ((await browser.runtime.getPlatformInfo()).os === "win") {
+            await Native.run(await config.get("win_cmdexe_nativeinstallcmd"))
+        } else {
+            await Native.run(await config.get("nativeinstallcmd"))
+        }
+
         if (interactive) native()
     }
+}
+
+/**
+ *  Restarts firefox with the same commandline arguments.
+ *
+ *  Warning: This can kill your tabs, especially if you :restart several times
+ *  in a row
+ */
+//#background
+export async function restart() {
+    const firefox = (await Native.ffargs()).join(" ")
+    const profile = await Native.getProfileDir()
+    // Wait for the lock to disappear, then wait a bit more, then start firefox
+    Native.run(`while readlink ${profile}/lock ; do sleep 1 ; done ; sleep 1 ; ${firefox}`)
+    qall()
 }
 
 // }}}
@@ -709,7 +760,7 @@ export function home(all: "false" | "true" = "false") {
 */
 //#background
 export async function help(excmd?: string) {
-    const docpage = browser.extension.getURL("static/docs/modules/_excmds_.html")
+    const docpage = browser.extension.getURL("static/docs/modules/_src_excmds_.html")
     if (excmd === undefined) excmd = ""
     if ((await activeTab()).url.startsWith(docpage)) {
         open(docpage + "#" + excmd)
@@ -996,7 +1047,7 @@ export async function loadaucmds() {
     let aucmds = await config.getAsync("autocmds", "DocStart")
     const ausites = Object.keys(aucmds)
     // yes, this is lazy
-    const aukey = ausites.find(e => window.document.location.href.includes(e))
+    const aukey = ausites.find(e => window.document.location.href.search(e) >= 0)
     if (aukey !== undefined) {
         Messaging.message("commandline_background", "recvExStr", [aucmds[aukey]])
     }
@@ -1575,15 +1626,36 @@ export function repeat(n = 1, ...exstr: string[]) {
     for (let i = 0; i < n; i++) controller.acceptExCmd(cmd)
 }
 
-/** Split `cmds` on pipes (|) and treat each as its own command.
-
-    Workaround: this should clearly be in the parser, but we haven't come up with a good way to deal with |s in URLs, search terms, etc. yet.
-*/
+/**
+ * Split `cmds` on pipes (|) and treat each as its own command. Return values are cast to strings and passed to the appended to the arguments of the next ex command, e.g,
+ *
+ * `composite echo yes | fillcmdline` becomes `fillcmdline yes`. A more complicated example is the ex alias, `command current_url composite get_current_url | fillcmdline_notrail `, which is used in, e.g. `bind T current_url tabopen`.
+ *
+ * Workaround: this should clearly be in the parser, but we haven't come up with a good way to deal with |s in URLs, search terms, etc. yet.
+ *
+ * `cmds` are also split with semicolons (;) and don't pass things along to each other.
+ *
+ * The behaviour of combining ; and | in the same composite command is left as an exercise for the reader.
+ */
 //#background
 export async function composite(...cmds: string[]) {
     cmds = cmds.join(" ").split("|")
+    let val = ""
     for (let c of cmds) {
-        await controller.acceptExCmd(c)
+        let dmds = c.split(";")
+        if (dmds.length > 1) {
+            for (let d of dmds) {
+                await controller.acceptExCmd(d)
+            }
+        } else val = await controller.acceptExCmd(dmds[0] + val)
+        try {
+            if (val == undefined || val.includes("undefined")) val = ""
+            else val = " " + val
+        } catch (e) {
+            if (e instanceof TypeError) {
+                val = " " + val
+            } else throw e
+        }
     }
 }
 
@@ -1615,13 +1687,12 @@ export function fillcmdline_notrail(...strarr: string[]) {
     messageActiveTab("commandline_frame", "fillcmdline", [str, trailspace])
 }
 
-/** Equivalent to `fillcmdline_notrail <yourargs><current URL>`
-
-    See also [[fillcmdline_notrail]]
-*/
+/**
+ * Returns the current URL. For use with [[composite]].
+ */
 //#background
-export async function current_url(...strarr: string[]) {
-    fillcmdline_notrail(...strarr, (await activeTab()).url)
+export async function get_current_url() {
+    return (await activeTab()).url
 }
 
 /** Use the system clipboard.
@@ -1824,8 +1895,11 @@ export function searchsetkeyword(keyword: string, url: string) {
 */
 //#background
 export function set(key: string, ...values: string[]) {
-    if (!key || !values[0]) {
-        throw "Both key and value must be provided!"
+    if (!key) {
+        throw "Key must be provided!"
+    } else if (!values[0]) {
+        get(key)
+        return
     }
 
     const target = key.split(".")
@@ -1860,9 +1934,16 @@ export function set(key: string, ...values: string[]) {
 
 /** Set autocmds to run when certain events happen.
 
- @param event Curently, only 'DocStart' is supported.
+ @param event Curently, only 'TriStart' and 'DocStart' are supported.
 
- @param url The URL on which the events will trigger (currently just uses "contains")
+ @param url For DocStart: a fragment of the URL on which the events will trigger, or a JavaScript regex (e.g, `/www\.amazon\.co.*\/`)
+
+ We just use [URL.search](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/search).
+
+ For TriStart: A regular expression that matches the hostname of the computer
+ the autocmd should be run on. This requires the native messenger to be
+ installed, except for the ".*" regular expression which will always be
+ triggered, even without the native messenger.
 
  @param excmd The excmd to run (use [[composite]] to run multiple commands)
 
@@ -1871,7 +1952,7 @@ export function set(key: string, ...values: string[]) {
 export function autocmd(event: string, url: string, ...excmd: string[]) {
     // rudimentary run time type checking
     // TODO: Decide on autocmd event names
-    if (!["DocStart"].includes(event)) throw event + " is not a supported event."
+    if (!["DocStart", "TriStart"].includes(event)) throw event + " is not a supported event."
     config.set("autocmds", event, url, excmd.join(" "))
 }
 
@@ -2110,6 +2191,7 @@ import * as hinting from "./hinting_background"
         - -b open in background
         - -y copy (yank) link's target to clipboard
         - -p copy an element's text to the clipboard
+        - -P copy an element's title/alt text to the clipboard
         - -r read an element's text with text-to-speech
         - -i view an image
         - -I view an image in a new tab
@@ -2138,10 +2220,11 @@ import * as hinting from "./hinting_background"
         "relatedopenpos": "related" | "next" | "last"
 */
 //#background
-export function hint(option?: string, selectors = "", ...rest: string[]) {
+export function hint(option?: string, selectors?: string, ...rest: string[]) {
     if (option === "-b") hinting.hintPageOpenInBackground()
     else if (option === "-y") hinting.hintPageYank()
     else if (option === "-p") hinting.hintPageTextYank()
+    else if (option === "-P") hinting.hintPageTitleAltTextYank()
     else if (option === "-i") hinting.hintImage(false)
     else if (option === "-I") hinting.hintImage(true)
     else if (option === "-k") hinting.hintKill()
@@ -2149,7 +2232,7 @@ export function hint(option?: string, selectors = "", ...rest: string[]) {
     else if (option === "-S") hinting.hintSave("img", false)
     else if (option === "-a") hinting.hintSave("link", true)
     else if (option === "-A") hinting.hintSave("img", true)
-    else if (option === "-;") hinting.hintFocus()
+    else if (option === "-;") hinting.hintFocus(selectors)
     else if (option === "-#") hinting.hintPageAnchorYank()
     else if (option === "-c") hinting.hintPageSimple(selectors)
     else if (option === "-r") hinting.hintRead()
@@ -2307,6 +2390,32 @@ export async function bmark(url?: string, ...titlearr: string[]) {
     }
 
     browser.bookmarks.create({ url, title })
+}
+
+//#background
+export async function echo(...str: string[]) {
+    return str.join(" ")
+}
+
+/**
+ * Lets you execute JavaScript in the page context. If you want to get the result back, use `composite js ... | fillcmdline`
+ *
+ * Some of Tridactyl's functions are accessible here via the `tri` object. Just do `console.log(tri)` in the web console on the new tab page to see what's available.
+ *
+ * Aliased to `!js`
+ *
+ */
+//#content
+export async function js(...str: string[]) {
+    return eval(str.join(" "))
+}
+
+/**
+ * Lets you execute JavaScript in the background context. All the help from [[js]] applies. Gives you a different `tri` object.
+ */
+//#background
+export async function jsb(...str: string[]) {
+    return eval(str.join(" "))
 }
 
 /**  Open a welcome page on first install.

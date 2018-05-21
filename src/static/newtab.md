@@ -12,6 +12,7 @@ Tridactyl has to override your new tab page due to WebExtension limitations. You
 
 - If you're enjoying Tridactyl (or not), please leave a review on [addons.mozilla.org][amo].
 
+- **Breaking change to `composite`:** composite now tries to pass the return value from each preceding function to its ancestor. This might break some of your binds to composite, or cause them to act in unexpected ways.
 - **NB:** Tridactyl can now run external programs on Linux and OSX if you decide to install an additional executable. Just run `:installnative` to get going, and then Ctrl-i `<C-i>` in a text box to open your editor.
 
 
@@ -42,7 +43,7 @@ REPLACE_ME_WITH_THE_CHANGE_LOG_USING_SED
 
 - You can only navigate to most about:*\file:* pages if you have Tridactyl's native executable installed.
 - Firefox will not load Tridactyl on addons.mozilla.org, about:\*, some file:\* URIs, view-source:\*, or data:\*. On these pages Ctrl-L (or F6), Ctrl-Tab and Ctrl-W are your escape hatches.
-- You can change the Firefox GUI with `guiset` (e.g. `guiset gui none`) if you have the native messenger installed, or you can do it yourself by changing your userChrome. There is an example file available on our repository [[2]].
+- You can change the Firefox GUI with `guiset` (e.g. `guiset gui none` and then `restart`) if you have the native messenger installed, or you can do it yourself by changing your userChrome. There is an example file available on our repository [[2]].
 - Tridactyl cannot capture key presses until web pages are loaded. You can use `:reloadall` to reload all tabs to make life more bearable, or flip `browser.sessionstore.restore_tabs_lazily` to false in `about:config`.
 
 ## Why do I see this here?
@@ -59,12 +60,12 @@ Tridactyl overrides your newtab page because it cannot insert its content script
 You have more questions? Have a look at our [FAQ][faq-link].
 
 [1]: https://github.com/cmcaine/tridactyl/issues
-[2]: https://github.com/cmcaine/tridactyl/blob/master/src/static/userChrome-minimal.css
+[2]: https://github.com/cmcaine/tridactyl/blob/master/src/static/css/userChrome-minimal.css
 [3]: https://www.mozilla.org/en-US/firefox/organizations/
 
 <div class="align-left">
 \[1]: https://github.com/cmcaine/tridactyl/issues<br />
-\[2]: https://github.com/cmcaine/tridactyl/blob/master/src/static/userChrome-minimal.css<br />
+\[2]: https://github.com/cmcaine/tridactyl/blob/master/src/static/css/userChrome-minimal.css<br />
 \[3]: https://www.mozilla.org/en-US/firefox/organizations/<br />
 </div>
 

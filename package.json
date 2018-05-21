@@ -5,6 +5,7 @@
   "dependencies": {
     "@types/css": "0.0.31",
     "@types/nearley": "^2.11.0",
+    "csp-serdes": "github:cmcaine/csp-serdes",
     "css": "^2.2.1",
     "fuse.js": "^3.2.0",
     "mark.js": "^8.11.1",
@@ -28,16 +29,19 @@
     "typescript": "^2.5.3",
     "uglify-es": "^3.1.5",
     "uglifyjs-webpack-plugin": "^1.0.0-rc.0",
-    "web-ext": "^1.8.1",
+    "web-ext": "^1.10.1",
     "web-ext-types": "github:kelseasy/web-ext-types",
     "webpack": "^3.8.1"
   },
   "scripts": {
-    "build": "scripts/build.sh",
+    "build": "sh scripts/build.sh",
+    "run": "web-ext run -s build/ -u 'txti.es'",
     "watch": "echo 'watch is broken, use build instead'; exit 0; chokidar src scripts --initial --silent -i 'src/excmds_{background,content}.ts' -i 'src/static/docs' -c 'npm run build'",
     "clean": "rm -rf build generated",
     "test": "npm run build && jest --silent",
-    "update-buildsystem": "rm -rf src/node_modules; npm run clean"
+    "update-buildsystem": "rm -rf src/node_modules; npm run clean",
+    "lint": "bash hooks/pre-commit",
+    "pretty": "bash scripts/pretty"
   },
   "jest": {
     "transform": {

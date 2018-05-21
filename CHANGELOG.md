@@ -1,5 +1,32 @@
 # Tridactyl changelog
 
+## Release 1.13.0 / Unreleased
+
+- `fixamo` added: you can now use Tridactyl on addons.mozilla.org. Requires a `restart`.
+
+- `editor` now includes the hostname of the site you are on in the temporary filename
+    - this is mostly so that you can set up syntax highlighting in Vim, e.g,
+    - `au BufReadPost *github.com* set syntax=pandoc`
+
+- `native` support for Windows: just do what `installnative` tells you to
+    - you'll probably want to make sure `gvim` is on your path
+
+- **Potentially breaking changes**
+    - pipes in `composite` now send return values to the following ex command. Use semi-colons if you want the old behaviour back (see `bind D`).
+    - the `DocStart` now uses `String.prototype.search` for matching, so you can use regular expressions such as `/www\.amazon\.co.*/`
+
+- Add internal functions for editing `user.js` - we'll probably add a nice interface to this some day.
+
+- Add `restart` command to restart Firefox.
+
+- Add new themes
+    - `shydactyl` and `greenmat`, covering both ends of the design spectrum.
+
+- Make themes apply to {newtab, mode indicator, tutor}
+
+- Add new internal structure for themes - check out contributing.md on the repository if you want to add your own
+    - Adding themes at runtime is planned but some way off.
+
 ## Release 1.12.0 / 2018-05-13
 
 - Add container support

@@ -26,6 +26,15 @@ Tridactyl is very lucky to have a wide base of contributors, 30 at the time of w
 
 If you are making a substantial or potentially controversial change, your first port of call should be to stop by and chat to us on [Matrix][Matrix] or file an issue to discuss what you would like to change. We really don't want you to waste time on a pull request (GitHub jargon for a contribution) that has no chance of being merged; that said, we are probably happy to gate even the most controversial changes behind an option. 
 
+# Add another theme (30 minutes+)
+
+Take a look in src/static/themes to get an idea of what to do. There is a reasonable amount of magic going on:
+
+- All of your styles must be prefixed with `:root.TridactylTheme[Name]`. If your theme is called `bobstheme`, the selector mentioned must be `:root.TridactylThemeBobstheme` (note the capitalisation).
+    - All of your CSS will be injected into all pages, so it is important that is fenced off in this manner.
+- `default.css` has loads of variables that you can use to make it easier for you to style things, and for your theme to apply to new elements that did not exist when you wrote your theme. It is advised that you make as much use of these as possible.
+
+
 # Code of conduct
 
 [Queensberry rules](https://en.oxforddictionaries.com/definition/queensberry_rules).

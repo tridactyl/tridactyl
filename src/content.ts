@@ -29,6 +29,7 @@ import * as webext from "./lib/webext"
 import Mark from "mark.js"
 import * as keyseq from "./keyseq"
 import * as native from "./native_background"
+import * as styling from "./styling"
 ;(window as any).tri = Object.assign(Object.create(null), {
     browserBg: webext.browserBg,
     commandline_content,
@@ -49,6 +50,7 @@ import * as native from "./native_background"
     webext,
     l: prom => prom.then(console.log).catch(console.error),
     native,
+    styling,
 })
 
 // Don't hijack on the newtab page.
@@ -81,23 +83,45 @@ if (
 config.getAsync("modeindicator").then(mode => {
     if (mode !== "true") return
 
+    // Hide indicator in print mode
+    // CSS not explicitly added to the dom doesn't make it to print mode:
+    // https://bugzilla.mozilla.org/show_bug.cgi?id=1448507
+    let style = document.createElement("style")
+    style.type = "text/css"
+    style.innerHTML = `@media print {
+        .TridactylStatusIndicator {
+            display: none !important;
+        }
+    }`
+
     let statusIndicator = document.createElement("span")
-    statusIndicator.className = "cleanslate TridactylStatusIndicator"
+    const privateMode = browser.extension.inIncognitoContext
+        ? "TridactylPrivate"
+        : ""
+    statusIndicator.className =
+        "cleanslate TridactylStatusIndicator " + privateMode
     try {
         // On quick loading pages, the document is already loaded
         statusIndicator.textContent = state.mode || "normal"
         document.body.appendChild(statusIndicator)
+        document.head.appendChild(style)
     } catch (e) {
         // But on slower pages we wait for the document to load
         window.addEventListener("DOMContentLoaded", () => {
             statusIndicator.textContent = state.mode || "normal"
             document.body.appendChild(statusIndicator)
+            document.head.appendChild(style)
         })
     }
 
     browser.storage.onChanged.addListener((changes, areaname) => {
         if (areaname === "local" && "state" in changes) {
             let mode = changes.state.newValue.mode
+            const privateMode = browser.extension.inIncognitoContext
+                ? "TridactylPrivate"
+                : ""
+            statusIndicator.className =
+                "cleanslate TridactylStatusIndicator " + privateMode
             if (
                 dom.isTextEditable(document.activeElement) &&
                 !["input", "ignore"].includes(mode)

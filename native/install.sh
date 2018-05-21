@@ -53,7 +53,7 @@ chmod +x $native_file
 # Requirements for native messenger
 python_path=$(which python3) || python_path=""
 if [[ -x "$python_path" ]]; then
-    sed -i.bak "1s/.*/#!$(sedEscape "$python_path")/" "$native_file"
+    sed -i.bak "1s/.*/#!$(sedEscape /usr/bin/env) $(sedEscape "$python_path")/" "$native_file"
     mv "$native_file" "$native_file_final"
 else
     echoerr "Error: Python 3 must exist in PATH."
