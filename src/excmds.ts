@@ -175,7 +175,7 @@ export async function getinput() {
 //#background
 export async function editor() {
     let url = new URL((await activeTab()).url)
-    if (!await Native.nativegate()) return
+    if (!(await Native.nativegate())) return
     const file = (await Native.temp(await getinput(), url.hostname)).content
     fillinput((await Native.editor(file)).content)
     // TODO: add annoying "This message was written with [Tridactyl](https://addons.mozilla.org/en-US/firefox/addon/tridactyl-vim/)"
@@ -225,7 +225,7 @@ export async function guiset(rule: string, option: string) {
     // Could potentially fall back to sending minimal example to clipboard if native not installed
 
     // Check for native messenger and make sure we have a plausible profile directory
-    if (!await Native.nativegate("0.1.1")) return
+    if (!(await Native.nativegate("0.1.1"))) return
     let profile_dir = ""
     if (config.get("profiledir") === "auto" && ["linux", "openbsd", "mac"].includes((await browser.runtime.getPlatformInfo()).os)) {
         try {
@@ -355,7 +355,7 @@ export async function installnative() {
 //#background
 export async function source(...fileArr: string[]) {
     const file = fileArr.join(" ") || undefined
-    if (await Native.nativegate("0.1.3")) if (!await rc.source(file)) logger.error("Could not find RC file")
+    if (await Native.nativegate("0.1.3")) if (!(await rc.source(file))) logger.error("Could not find RC file")
 }
 
 /**
@@ -1695,6 +1695,15 @@ export async function get_current_url() {
     return (await activeTab()).url
 }
 
+/**
+ * Copy content to clipboard and tell the user what we did.
+ */
+//#background
+export function yank(content: string[]) {
+    messageActiveTab("commandline_frame", "setClipboard", content)
+    fillcmdline_notrail("# " + content + " copied to clipboard.")
+}
+
 /** Use the system clipboard.
 
     If `excmd == "open"`, call [[open]] with the contents of the clipboard. Similarly for [[tabopen]].
@@ -1724,26 +1733,26 @@ export async function clipboard(excmd: "open" | "yank" | "yankshort" | "yankcano
                 urls = await geturlsforlinks("rev", "canonical")
             }
             if (urls.length > 0) {
-                messageActiveTab("commandline_frame", "setClipboard", [urls[0]])
+                yank([urls[0]])
                 break
             }
         case "yankcanon":
             urls = await geturlsforlinks("rel", "canonical")
             if (urls.length > 0) {
-                messageActiveTab("commandline_frame", "setClipboard", [urls[0]])
+                yank([urls[0]])
                 break
             }
         case "yank":
             await messageActiveTab("commandline_content", "focus")
             content = content == "" ? (await activeTab()).url : content
-            messageActiveTab("commandline_frame", "setClipboard", [content])
+            yank([content])
             break
         case "yanktitle":
-            messageActiveTab("commandline_frame", "setClipboard", [content])
+            yank([content])
             break
         case "yankmd":
             content = "[" + (await activeTab()).title + "](" + (await activeTab()).url + ")"
-            messageActiveTab("commandline_frame", "setClipboard", [content])
+            yank([content])
             break
         case "open":
             await messageActiveTab("commandline_content", "focus")
