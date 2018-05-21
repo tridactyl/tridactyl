@@ -284,14 +284,17 @@ export async function fixamo() {
  * **Be *seriously* careful with this: you can use it to open any URL you can open in the Firefox address bar.**
  *
  * You've been warned.
- *
- * Unsupported on OSX unless you set `browser` to something that will open Firefox from a terminal pass it commmand line options.
  */
 //#background
 export async function nativeopen(url: string, ...firefoxArgs: string[]) {
-    if (firefoxArgs.length === 0) firefoxArgs = ["--new-tab"]
     if (await Native.nativegate()) {
-        Native.run(config.get("browser") + " " + firefoxArgs.join(" ") + " " + url)
+        if ((await browser.runtime.getPlatformInfo()).os === "mac") {
+            let osascriptArgs = ["-e 'on run argv'", "-e 'tell application \"Firefox\" to open location item 1 of argv'", "-e 'end run'"]
+            Native.run("osascript " + osascriptArgs.join(" ") + " " + url)
+        } else {
+            if (firefoxArgs.length === 0) firefoxArgs = ["--new-tab"]
+            Native.run(config.get("browser") + " " + firefoxArgs.join(" ") + " " + url)
+        }
     }
 }
 
