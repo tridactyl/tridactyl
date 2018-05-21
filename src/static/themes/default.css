@@ -94,4 +94,8 @@
 
     --tridactyl-of-fg: var(--tridactyl-fg);
     --tridactyl-of-bg: #FFEC8B;
+
+/*new tab spoiler box*/
+    --tridactyl-highlight-box-bg: #eee;
+    --tridactyl-highlight-box-fg: var(--tridactyl-fg);
 }
