@@ -1962,6 +1962,7 @@ export async function clipboard(excmd: "open" | "yank" | "yankshort" | "yankcano
     switch (excmd) {
         case "yankshort":
             urls = await geturlsforlinks("rel", "shortlink")
+            console.log(urls)
             if (urls.length == 0) {
                 urls = await geturlsforlinks("rev", "canonical")
             }
