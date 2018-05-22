@@ -1531,12 +1531,6 @@ export async function qall() {
     windows.map(window => browser.windows.remove(window.id))
 }
 
-/** Convenience shortcut for [[qall]]. */
-//#background
-export async function qa() {
-    qall()
-}
-
 // }}}
 
 // {{{ MISC
