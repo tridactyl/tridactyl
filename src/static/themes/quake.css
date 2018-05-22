@@ -7,6 +7,10 @@
     display: none
 }
 
+:root.TridactylThemeQuake #tridactyl-colon::before {
+    content: "] "
+}
+
 :root.TridactylThemeQuake #completions .focused, :root.TridactylThemeQuake #completions .focused .url{
     background: var(--tridactyl-bg);
     text-decoration: underline;
