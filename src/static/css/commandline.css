@@ -27,9 +27,13 @@ input {
     background: var(--tridactyl-cmdl-bg);
     border: unset;
     /* reduce the padding from the colon */
-    margin-left: -0.25ex;
+    /* margin-left: -0.25ex; */
     /* we currently have a border from the completions */
     /* border-top: solid 1px lightgray; */
+}
+
+#tridactyl-colon::before{
+    content: ":"
 }
 
 /* COMPLETIONS */
