@@ -41,14 +41,6 @@
 
 }
 
-:root.TridactylThemeGreenmat table {
-   border-collapse: collapse;
-} 
-
-:root.TridactylThemeGreenmat #completions table tr td {
-  color: var(--tridactyl-cmplt-fg);
-}
-
 :root.TridactylThemeGreenmat #completions .focused{
   border-bottom: 1px solid green;
 }
@@ -59,6 +51,14 @@
    var(--focused-prefix-color),
    var(--focused-border-color),
    var(--focused-prefix-color));
+}
+
+:root.TridactylThemeGreenmat.TridactylOwnNamespace table {
+   border-collapse: collapse;
+} 
+
+:root.TridactylThemeGreenmat.TridactylOwnNamespace #completions table tr td {
+  color: var(--tridactyl-cmplt-fg);
 }
 
 /* ### newtab ### */
