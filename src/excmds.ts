@@ -42,7 +42,8 @@
       type the tab ID or part of the title or URL to choose a tab
     - Press `Shift` + `Insert` to enter "ignore mode". Press `Shift` + `Insert`
       again to return to "normal mode".
-    - Press `f` to start "hint mode", `F` to open in background
+    - Press `f` to start "hint mode", `F` to open in background (note: hint
+      characters should be typed in lowercase)
     - Press `o` to `:open` a different page
     - Press `s` if you want to search for something that looks like a domain
       name or URL
