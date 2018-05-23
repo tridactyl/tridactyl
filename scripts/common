@@ -4,12 +4,16 @@ cachedJS() {
     git diff --cached --name-only --diff-filter=ACM "*.js" "*.jsx" "*.ts" "*.tsx" | tr '\n' ' '
 }
 
+staged() {
+    git show :"$1"
+}
+
 ugly() {
     local acc=()
     for jsfile in "$@"; do
-        diff "$jsfile" <($(npm bin)/prettier "$jsfile") >/dev/null || acc+=("$jsfile")
+        diff <(staged $jsfile) <(staged $jsfile | $(npm bin)/prettier --stdin-filepath $jsfile) >/dev/null || acc+=("$jsfile")
     done
-    echo $acc
+    echo ${acc[@]}
 }
 
 noisy() {
@@ -19,5 +23,5 @@ noisy() {
             acc+=("jsfile")
         fi
     done
-    echo $acc
+    echo ${acc[@]}
 }

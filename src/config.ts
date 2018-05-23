@@ -171,6 +171,7 @@ const DEFAULTS = o({
         bdelete: "tabclose",
         quit: "tabclose",
         q: "tabclose",
+        qa: "qall",
         sanitize: "sanitise",
         tutorial: "tutor",
         h: "help",

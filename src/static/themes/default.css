@@ -44,7 +44,7 @@
 /*commandline*/
 
     --tridactyl-cmdl-bg: var(--tridactyl-bg);
-    --tridactyl-cmdl-fg: var(--tridactyl-fg)
+    --tridactyl-cmdl-fg: var(--tridactyl-fg);
     --tridactyl-cmdl-line-height: 1.5;
     --tridactyl-cmdl-font-family: monospace;
     --tridactyl-cmdl-font-size: 9pt;
@@ -94,4 +94,8 @@
 
     --tridactyl-of-fg: var(--tridactyl-fg);
     --tridactyl-of-bg: #FFEC8B;
+
+/*new tab spoiler box*/
+    --tridactyl-highlight-box-bg: #eee;
+    --tridactyl-highlight-box-fg: var(--tridactyl-fg);
 }

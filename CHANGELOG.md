@@ -292,7 +292,7 @@
 - Fix hints on some sites via cleanslate.css (#220)
 - Fix new config system (#321)
 - followpage now falls back to urlincrement
-- `tabopen` now opens tabs to the right of the curent tab
+- `tabopen` now opens tabs to the right of the current tab
 - Fix floating commandline iframe on some sites (#289)
 - Enter insert mode on drop down menus (#281)
 - Support hinting on some dodgy old websites (#287)
