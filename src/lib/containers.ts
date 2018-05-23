@@ -1,6 +1,5 @@
 import * as Logging from "../logging"
 const logger = new Logging.Logger("excmd")
-//TODO: refactor the whole "firefox-container" + containerId thing into something more sensible.
 
 /** Creates a container from the specified parameters. Unlike the official Mozilla addon, does not
  *  allow multiple  containers with the same (name, color, icon) constraint.
