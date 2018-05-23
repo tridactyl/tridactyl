@@ -175,6 +175,7 @@ const DEFAULTS = o({
         sanitize: "sanitise",
         tutorial: "tutor",
         h: "help",
+        authors: "credits",
         openwith: "hint -W",
         "!": "exclaim",
         "!s": "exclaim_quiet",

@@ -779,6 +779,15 @@ export async function tutor(newtab?: string) {
     else open(tutor)
 }
 
+/**
+ * Display Tridactyl's contributors in order of commits in a user-friendly fashion
+ */
+//#background
+export async function credits(excmd?: string) {
+    const creditspage = browser.extension.getURL("static/authors.html")
+    tabopen(creditspage)
+}
+
 /** @hidden */
 // Find clickable next-page/previous-page links whose text matches the supplied pattern,
 // and return the last such link.
