@@ -3,8 +3,10 @@
 
 import sys
 import os
-import json
 import re
+import json
+import time
+import shutil
 import struct
 import subprocess
 import tempfile
@@ -16,6 +18,14 @@ VERSION = "0.1.5"
 class NoConnectionError(Exception):
     """ Exception thrown when stdin cannot be read """
 
+def is_command_on_path(command):
+    """ Returns 'True' if the if the specified command is found on
+        user's $PATH.
+    """
+    if shutil.which(command):
+        return True
+    else:
+        return False
 
 def eprint(*args, **kwargs):
     """ Print to stderr, which gets echoed in the browser console when run
@@ -182,6 +192,151 @@ def handleMessage(message):
 
     elif cmd == 'env':
         reply['content'] = getenv(message["var"], "")
+
+    elif cmd == "win_restart_firefox":
+        profile_dir = message["profiledir"].strip()
+
+        if profile_dir != "auto" and not os.path.isdir(profile_dir):
+            reply = {
+                "cmd": "error",
+                "error": "%s %s %s" % (
+                    "Invalid profile directory specified.",
+                    "Profile directory path(s) can be found by",
+                    "navigating to 'about:support'."
+                )
+            }
+
+        elif not is_command_on_path("firefox"):
+            reply = {
+                "cmd": "error",
+                "error": "firefox.exe is not found on PATH."
+            }
+
+        else:
+            ##
+            ## Native messenger can't seem to create detached
+            ## process on Windows while Firefox is quitting, which
+            ## is essential to trigger restarting Firefox. So,
+            ## below we are resorting to create a scheduled task
+            ## with the task start-time set in the near future.
+            ##
+
+            #
+            #subprocess.Popen(
+            #    [ff_bin, "-profile", profile_dir],
+            #    shell=False,
+            #    creationflags=0x208 \
+            #    | subprocess.CREATE_NEW_PROCESS_GROUP)
+            #
+
+            ##
+            ## 'schtasks.exe' is limited as in it doesn't
+            ## support task-time with granularity in seconds. So,
+            ## falling back to PowerShell as the last resort.
+            ##
+
+            # out_str = ""
+            # task_time = time.strftime("%H:%M",
+            #                           time.localtime(
+            #                               time.time() + 60))
+            #
+            # out_str = subprocess.check_output(
+            #     ["schtasks.exe",
+            #      "/Create",
+            #      "/F",
+            #      "/SC",
+            #      "ONCE",
+            #      "/TN",
+            #      "tridactyl",
+            #      "/TR",
+            #      "calc",
+            #      "/IT",
+            #      "/ST",
+            #      task_time],
+            #     shell=True)
+            #
+
+            ff_bin = "\"%s\"" % shutil.which("firefox")
+
+            if profile_dir == "auto":
+                lock_file = ff_bin
+                ff_args = "\"-ProfileManager\""
+            else:
+                lock_file = "\"%s\\parent.lock\"" % profile_dir
+                ff_args = "\"-profile\" \"%s\"" % profile_dir
+
+
+            try:
+                restart_ps1_content = '''$profileDir = "%s"
+if ($profileDir -ne "auto") {
+    $lockFile = "$profileDir\parent.lock"
+    $locked = $true
+    $num_try = 10
+} else {
+    $locked = $false
+}
+while (($locked -eq $true) -and ($num_try -gt 0)) {
+    try {
+        [IO.File]::OpenWrite($lockFile).close()
+        $locked=$fals
+    } catch{
+        $num_try-=1
+        Write-Host "[+] Trial: $num_try [lock = true]"
+        Start-Sleep -Seconds 1
+    }
+}
+if ($locked -eq $true) {
+    Add-Type -AssemblyName System.Windows.Forms
+    [System.Windows.MessageBox]::Show(
+        "Restarting Firefox failed. Please manually restart.",
+        "Tridactyl")
+} else {
+    Write-Host "[+] Restarting Firefox ..."
+    & %s %s
+}
+''' % (profile_dir, ff_bin, ff_args)
+
+                delay_sec= 1
+                task_cmd = "powershell"
+                task_name = "firefox-restart"
+
+                restart_ps1_path = os.path.expanduser("~") \
+                     + "\\.tridactyl\\win_firefox_restart.ps1"
+
+                task_arg = "\"%s\"" % restart_ps1_path
+
+                open(restart_ps1_path,
+                     "w+").write(restart_ps1_content)
+
+                startupinfo = subprocess.STARTUPINFO()
+                startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+                subprocess.check_output(
+                    ["powershell",
+                     "-NonInteractive",
+                     "-NoProfile",
+                     "-WindowStyle",
+                     "Minimized",
+                     "-InputFormat",
+                     "None",
+                     "-ExecutionPolicy",
+                     "Bypass",
+                     "-Command",
+                     "Register-ScheduledTask -TaskName '%s' -Force -Action (New-ScheduledTaskAction -Execute '%s' -Argument '%s') -Trigger (New-ScheduledTaskTrigger -Once -At (Get-Date).AddSeconds(%d).ToString('HH:mm:ss'))" % (task_name, task_cmd, task_arg, delay_sec)],
+                    shell=False,
+                    startupinfo=startupinfo,
+                )
+
+                reply = {
+                    "code": 0,
+                    "content": "Restarting in %d seconds..." % delay_sec
+                }
+
+            except subprocess.CalledProcessError:
+                reply = {
+                    "code": -1,
+                    "cmd": "error",
+                    "error": "Error creating restart task."
+                }
 
     else:
         reply = {'cmd': 'error', 'error': 'Unhandled message'}

@@ -20,6 +20,7 @@ type MessageCommand =
     | "eval"
     | "getconfig"
     | "env"
+    | "win_restart_firefox"
 interface MessageResp {
     cmd: string
     version: number | null
@@ -245,6 +246,10 @@ export async function temp(content: string, prefix: string) {
     return sendNativeMsg("temp", { content, prefix })
 }
 
+export async function winRestartFirefox(profiledir: string) {
+    return sendNativeMsg("win_restart_firefox", { profiledir })
+}
+
 export async function run(command: string) {
     let msg = await sendNativeMsg("run", { command })
     logger.info(msg)
@@ -270,14 +275,34 @@ export async function getenv(variable: string) {
  You'll get both firefox binary (not necessarily an absolute path) and flags */
 export async function ffargs(): Promise<string[]> {
     // Using ' and + rather that ` because we don't want newlines
-    let output = await pyeval(
-        'handleMessage({"cmd": "run", ' +
-            '"command": "ps -p " + str(os.getppid()) + " -oargs="})["content"]',
-    )
-    return output.content.trim().split(" ")
+    if ((await browserBg.runtime.getPlatformInfo()).os === "win") {
+        return []
+    } else {
+        let output = await pyeval(
+            'handleMessage({"cmd": "run", ' +
+                '"command": "ps -p " + str(os.getppid()) + " -oargs="})["content"]',
+        )
+        return output.content.trim().split(" ")
+    }
 }
 
 export async function getProfileDir() {
+    // Windows users must specify their Firefox profile directory
+    // via 'set profiledir [directory]'. Windows profile directory
+    // path must be properly escaped. For example, a correct way
+    // to set 'profiledir' on Windows is as shown below:
+    //
+    // : set profiledir C:\\Users\\<User-Name>\\AppData\\Roaming\\Mozilla\\Firefox\\Profiles\\8s21wzbh.Default
+    if ((await browserBg.runtime.getPlatformInfo()).os === "win") {
+        let win_profiledir = config.get("profiledir")
+        win_profiledir = win_profiledir.trim()
+        if (win_profiledir.length > 0) {
+            return win_profiledir
+        } else {
+            throw new Error("Profile directory not set.")
+        }
+    }
+
     // First, see if we can get the profile from the arguments that were given
     // to Firefox
     let args = await ffargs()
