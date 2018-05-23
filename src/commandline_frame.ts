@@ -10,6 +10,7 @@ import "./number.clamp"
 import state from "./state"
 import Logger from "./logging"
 import * as aliases from "./aliases"
+import { theme } from "./styling"
 const logger = new Logger("cmdline")
 
 let activeCompletions: Completions.CompletionSource[] = undefined
@@ -19,6 +20,9 @@ let completionsDiv = window.document.getElementById(
 let clInput = window.document.getElementById(
     "tridactyl-input",
 ) as HTMLInputElement
+
+// first theming of commandline iframe
+theme(document.querySelector(":root"))
 
 /* This is to handle Escape key which, while the cmdline is focused,
  * ends up firing both keydown and input listeners. In the worst case
@@ -59,22 +63,10 @@ function enableCompletions() {
 /* document.addEventListener("DOMContentLoaded", enableCompletions) */
 
 let noblur = e => setTimeout(() => clInput.focus(), 0)
-let lastTheme: string
 
 export function focus() {
     enableCompletions()
     document.body.classList.remove("hidden")
-
-    // update theme of command line
-    let theme = Config.get("theme")
-    if (theme !== lastTheme) {
-        if (lastTheme) {
-            document.querySelector(":root").classList.remove(lastTheme)
-        }
-        document.querySelector(":root").classList.add(theme)
-        lastTheme = theme
-    }
-
     clInput.focus()
     clInput.addEventListener("blur", noblur)
 }

@@ -19,6 +19,14 @@
 
 - Add `restart` command to restart Firefox.
 
+- Add new themes
+    - `shydactyl` and `greenmat`, covering both ends of the design spectrum.
+
+- Make themes apply to {newtab, mode indicator, tutor}
+
+- Add new internal structure for themes - check out contributing.md on the repository if you want to add your own
+    - Adding themes at runtime is planned but some way off.
+
 ## Release 1.12.0 / 2018-05-13
 
 - Add container support
@@ -284,7 +292,7 @@
 - Fix hints on some sites via cleanslate.css (#220)
 - Fix new config system (#321)
 - followpage now falls back to urlincrement
-- `tabopen` now opens tabs to the right of the curent tab
+- `tabopen` now opens tabs to the right of the current tab
 - Fix floating commandline iframe on some sites (#289)
 - Enter insert mode on drop down menus (#281)
 - Support hinting on some dodgy old websites (#287)

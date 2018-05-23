@@ -171,6 +171,7 @@ const DEFAULTS = o({
         bdelete: "tabclose",
         quit: "tabclose",
         q: "tabclose",
+        qa: "qall",
         sanitize: "sanitise",
         tutorial: "tutor",
         h: "help",
@@ -257,6 +258,7 @@ const DEFAULTS = o({
         hinting: 2,
         state: 2,
         excmd: 1,
+        styling: 2,
     }),
     noiframeon: [],
 

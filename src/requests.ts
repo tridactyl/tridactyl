@@ -1,5 +1,8 @@
 import * as config from "./config"
 import * as csp from "csp-serdes"
+import Logger from "./logging"
+
+const logger = new Logger("requests")
 
 class DefaultMap extends Map {
     constructor(private defaultFactory, ...args) {
@@ -7,12 +10,10 @@ class DefaultMap extends Map {
     }
 
     get(key) {
-        let ans = super.get(key)
-        if (ans === undefined) {
-            ans = this.defaultFactory(key)
-            super.set(key, ans)
+        if (!this.has(key)) {
+            this.set(key, this.defaultFactory(key))
         }
-        return ans
+        return super.get(key)
     }
 }
 
@@ -38,14 +39,30 @@ export function clobberCSP(response) {
             () => new Set(),
             csp.parse(cspHeader.value),
         )
+        logger.info(
+            "given CSP",
+            cspHeader.value,
+            "parsed CSP",
+            policy,
+            "reserialized CSP",
+            csp.serialize(policy),
+        )
         policy.delete("sandbox")
-        policy
-            .get("style-src")
-            .add("'unsafe-inline'")
-            .add("'self'")
-        // policy.get("script-src").add("'unsafe-eval'")
+
+        // Loosen style-src directive if it or default-src are present.
+        if (policy.has("default-src") && !policy.has("style-src")) {
+            policy.set("style-src", policy.get("default-src"))
+        }
+        if (policy.has("style-src")) {
+            policy
+                .get("style-src")
+                .add("'unsafe-inline'")
+                .add("'self'")
+        }
+
         // Replace old CSP
         cspHeader.value = csp.serialize(policy)
+        logger.info("new CSP", cspHeader.value, "parsed as", policy)
         return { responseHeaders: headers }
     } else {
         return {}

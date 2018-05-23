@@ -5,7 +5,6 @@ import sys
 import os
 import re
 import json
-import time
 import shutil
 import struct
 import subprocess
@@ -296,7 +295,7 @@ if ($locked -eq $true) {
 }
 ''' % (profile_dir, ff_bin, ff_args)
 
-                delay_sec= 1
+                delay_sec = 1
                 task_cmd = "powershell"
                 task_name = "firefox-restart"
 

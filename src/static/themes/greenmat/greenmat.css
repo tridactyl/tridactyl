@@ -1,0 +1,62 @@
+:root.TridactylThemeGreenmat {
+
+  --tridactyl-fg: #00eb00;
+  --tridactyl-bg: #001500;
+  --tridactyl-cmdl-fg: #00eb00;
+  --tridactyl-cmdl-bg: #001500;
+  --tridactyl-font-family: 'Aldrich';
+
+  --tridactyl-header-first-bg: black;
+  --tridactyl-header-second-bg: #003500;
+  --tridactyl-header-third-bg: black;
+
+  --tridactyl-cmplt-font-family: 'Aldrich';
+  --tridactyl-cmplt-fg: var(--tridactyl-cmdl-fg);
+  --tridactyl-cmplt-bg: rgba(0,0,0,0.90);
+  --tridactyl-cmplt-border-top: 1px solid var(--tridactyl-cmdl-bg);
+
+  --tridactyl-url-fg: var(--tridactyl-cmdl-fg);
+  --tridactyl-url-bg: none;
+
+  --tridactyl-of-fg: #00FF00;
+  --tridactyl-of-bg: black; 
+
+  /*custom theme variables*/
+  --focused-prefix-color: black;
+  --focused-border-color: green;
+
+  --tridactyl-hintspan-fg: #88FF00;
+  --tridactyl-hintspan-bg: black;
+  --tridactyl-hintspan-font-family: "Aldrich";
+
+  --tridactyl-hint-active-fg: #333;
+  --tridactyl-hint-active-bg: #88FF00;
+  --tridactyl-hint-active-outline:1px solid #000;
+
+  --tridactyl-hint-bg: rgba(0, 0, 0, 0.25); 
+  --tridactyl-hint-outline: 2px solid var(--tridactyl-hintspan-bg);
+}
+
+
+
+/*custom rules over tridactyl default*/
+
+:root.TridactylThemeGreenmat table {
+   border-collapse: collapse;
+} 
+
+:root.TridactylThemeGreenmat #completions table tr td {
+  color: var(--tridactyl-cmplt-fg);
+}
+
+:root.TridactylThemeGreenmat #completions .focused{
+  border-bottom: 1px solid green;
+}
+
+:root.TridactylThemeGreenmat #completions .focused .prefix{
+   color:var(--focused-prefix-color);
+   background: linear-gradient(
+   var(--focused-prefix-color),
+   var(--focused-border-color),
+   var(--focused-prefix-color));
+}

@@ -55,8 +55,10 @@ fi
 
 wait
 
+scripts/bodgecss.sh
+
 if [ -e "$CLEANSLATE" ] ; then
-	cp -v "$CLEANSLATE" build/static/cleanslate.css
+	cp -v "$CLEANSLATE" build/static/css/cleanslate.css
 else
 	echo "Couldn't find cleanslate.css. Try running 'npm install'"
 fi

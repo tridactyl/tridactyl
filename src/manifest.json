@@ -24,11 +24,10 @@
                 "content.js"
             ],
             "css": [
-                "static/cleanslate.css",
-                "static/content.css",
-                "static/content-dark.css",
-                "static/hint.css",
-                "static/viewsource.css"
+                "static/css/cleanslate.css",
+                "static/css/content.css",
+                "static/css/hint.css",
+                "static/css/viewsource.css"
             ],
             "run_at": "document_start",
             "match_about_blank": true

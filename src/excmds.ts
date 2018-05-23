@@ -54,6 +54,7 @@
     - Pressing `ZZ` will close all tabs and windows, but it will only "save"
       them if your about:preferences are set to "show your tabs and windows
       from last time"
+    - Change theme with `colours default|dark|greenmat|shydactyl`
 
     There are some caveats common to all webextension vimperator-alikes:
 
@@ -1540,12 +1541,6 @@ export async function winclose() {
 export async function qall() {
     let windows = await browser.windows.getAll()
     windows.map(window => browser.windows.remove(window.id))
-}
-
-/** Convenience shortcut for [[qall]]. */
-//#background
-export async function qa() {
-    qall()
 }
 
 // }}}
