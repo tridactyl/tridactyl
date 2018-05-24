@@ -404,8 +404,8 @@ export async function restart() {
     const profile = await Native.getProfileDir()
 
     if ((await browser.runtime.getPlatformInfo()).os === "win") {
-        let reply = await Native.winRestartFirefox(profile)
-        logger.info("[+] win_restart_firefox 'reply' = " + JSON.stringify(reply))
+        let reply = await Native.winFirefoxRestart(profile)
+        logger.info("[+] win_firefox_restart 'reply' = " + JSON.stringify(reply))
         if (Number(reply["code"]) === 0) {
             fillcmdline("#" + reply["content"])
             qall()

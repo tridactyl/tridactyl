@@ -20,7 +20,7 @@ type MessageCommand =
     | "eval"
     | "getconfig"
     | "env"
-    | "win_restart_firefox"
+    | "win_firefox_restart"
 interface MessageResp {
     cmd: string
     version: number | null
@@ -246,8 +246,15 @@ export async function temp(content: string, prefix: string) {
     return sendNativeMsg("temp", { content, prefix })
 }
 
-export async function winRestartFirefox(profiledir: string) {
-    return sendNativeMsg("win_restart_firefox", { profiledir })
+export async function winFirefoxRestart(profiledir: string) {
+    let current_version = await getNativeMessengerVersion()
+    let required_version = "0.1.6"
+
+    if (!await nativegate(required_version, false)) {
+        throw `Error: 'restart' on Windows needs native messenger version >= 0.1.6. Current: ${current_version}`
+    }
+
+    return sendNativeMsg("win_firefox_restart", { profiledir })
 }
 
 export async function run(command: string) {
@@ -276,7 +283,7 @@ export async function getenv(variable: string) {
 export async function ffargs(): Promise<string[]> {
     // Using ' and + rather that ` because we don't want newlines
     if ((await browserBg.runtime.getPlatformInfo()).os === "win") {
-        return []
+        throw `Error: "ffargs() is currently broken on Windows and should be avoided."`
     } else {
         let output = await pyeval(
             'handleMessage({"cmd": "run", ' +
@@ -296,10 +303,17 @@ export async function getProfileDir() {
     if ((await browserBg.runtime.getPlatformInfo()).os === "win") {
         let win_profiledir = config.get("profiledir")
         win_profiledir = win_profiledir.trim()
+        logger.info("[+] profiledir original: " + win_profiledir)
+
+        win_profiledir = win_profiledir.replace(/\\/g, "/")
+        logger.info("[+] profiledir escaped: " + win_profiledir)
+
         if (win_profiledir.length > 0) {
             return win_profiledir
         } else {
-            throw new Error("Profile directory not set.")
+            throw new Error(
+                "Profile directory is not set. Profile directory path(s) can be found by navigating to 'about:support'.",
+            )
         }
     }
 
