@@ -5,7 +5,7 @@ Most common tasks you want your browser to perform are bound to a single key
 press:
 
 - You want to open a new tab? Hit `t`.
-- You want to follow that link? Hit `f` and type the displayed label.
+- You want to follow that link? Hit `f` and type the displayed label. (Note: hint characters should be typed in lowercase.)
 - You want to go to the bottom of the page? Hit `G`. Or the top? `gg`.
 - You want to focus the text field on Wikipedia to search for another term? `gi`.
 - Switch to the next tab? `gt`.
