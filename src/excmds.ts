@@ -71,7 +71,7 @@
 
     [1]: https://github.com/cmcaine/tridactyl/issues
     [2]: https://github.com/cmcaine/tridactyl/blob/master/src/static/userChrome-minimal.css
-    [3]: https://www.mozilla.org/en-US/firefox/organizations/
+    [3]: https://www.mozilla.org/en-GB/firefox/organizations/all/#legacy
     [4]: https://github.com/cmcaine/tridactyl#readme
 
     [gitter-badge]: /static/badges/gitter-badge.svg
