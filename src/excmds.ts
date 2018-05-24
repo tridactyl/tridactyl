@@ -1306,8 +1306,13 @@ export async function tabopen(...addressarr: string[]) {
     let address = addressarr.join(" ")
 
     if (!ABOUT_WHITELIST.includes(address) && address.match(/^(about|file):.*/)) {
-        nativeopen(address)
-        return
+        if ((await browser.runtime.getPlatformInfo()).os === "mac" && (await browser.windows.getCurrent()).incognito) {
+            fillcmdline_notrail("# nativeopen isn't supported. Please install Linux or Windows.")
+            return
+        } else {
+            nativeopen(address)
+            return
+        }
     } else if (address != "") url = forceURI(address)
     else url = forceURI(config.get("newtab"))
 
@@ -1524,8 +1529,13 @@ export async function winopen(...args: string[]) {
     } else address = args.join(" ")
     createData["url"] = address != "" ? forceURI(address) : forceURI(config.get("newtab"))
     if (!ABOUT_WHITELIST.includes(address) && address.match(/^(about|file):.*/)) {
-        nativeopen(address, firefoxArgs)
-        return
+        if ((await browser.runtime.getPlatformInfo()).os === "mac") {
+            fillcmdline_notrail("# nativeopen isn't supported. Please install Linux or Windows.")
+            return
+        } else {
+            nativeopen(address, firefoxArgs)
+            return
+        }
     }
     browser.windows.create(createData)
 }
