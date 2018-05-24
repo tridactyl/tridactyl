@@ -104,6 +104,7 @@ export function containerFromString(name: string, color: string, icon: string) {
 export async function containerGetAll(): Promise<any[]> {
     return await browser.contextualIdentities.query({})
 }
+
 /**
  * @param name The container name
  * @returns The cookieStoreId of the first match of the query.
@@ -112,4 +113,42 @@ export async function containerGetId(name: string): Promise<string> {
     return (await browser.contextualIdentities.query({ name: name }))[0][
         "cookieStoreId"
     ]
+}
+
+/**
+ *
+ */
+export async function containerFuzzyMatch(
+    partialName: string,
+): Promise<string> {
+    let exactMatch = await browser.contextualIdentities.query({
+        name: partialName,
+    })
+    if (exactMatch.length === 1) {
+        return exactMatch[0]["cookieStoreId"]
+    } else if (exactMatch.length > 1) {
+        throw new Error(
+            "[containerFuzzyMatch] more than one container with this name exists.",
+        )
+    } else {
+        let fuzzyMatches = []
+        let containers = await containerGetAll()
+        for (let c of containers) {
+            if (c["name"].indexOf(partialName) === 0) {
+                // Only match start of name.
+                fuzzyMatches.push(c)
+            }
+        }
+        if (fuzzyMatches.length === 1) {
+            return fuzzyMatches[0]["cookieStoreId"]
+        } else if (fuzzyMatches.length > 1) {
+            throw new Error(
+                "[containerFuzzyMatch] ambiguous match, provide more characters",
+            )
+        } else {
+            throw new Error(
+                "[containerFuzzyMatch] no container matched that string",
+            )
+        }
+    }
 }
