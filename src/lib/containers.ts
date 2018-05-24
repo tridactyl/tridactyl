@@ -12,17 +12,16 @@ export async function containerCreate(
     color: string,
     icon: string,
 ) {
-    let c = containerFromString(name, color, icon)
-    let exists = await containerExists(c)
-    if (!exists) {
+    let container = containerFromString(name, color, icon)
+    if (await containerExists(name)) {
+        logger.error("[containerCreate] Container already exists, aborting.")
+        logger.debug(container)
+    } else {
         browser.contextualIdentities
-            .create(c)
+            .create(container)
             .then(newContainer =>
                 logger.info("Created container:", newContainer.cookieStoreId),
             )
-    } else {
-        logger.error("containerCreate: Container already exists, aborting.")
-        logger.debug(c)
     }
 }
 
@@ -50,10 +49,10 @@ export async function containerUpdate(
 ) {
     let currcontainer = await containerGetFromId(containerId)
     let container = containerFromString(name, color, icon)
-    if (!containerExists(container)) {
-        browser.contextualIdentities.update(containerId, container)
+    if (await containerExists(name)) {
+        logger.error("[containerUpdate] No values changed, aborting.")
     } else {
-        logger.error("containerUpdate: No values changed, aborting.")
+        browser.contextualIdentities.update(containerId, container)
     }
 }
 
@@ -64,42 +63,32 @@ export async function containerGetFromId(containerId: string): Promise<{}> {
     return await browser.contextualIdentities.get(containerId)
 }
 
-/** Queries Firefox's contextual identities API for a container with a specific
- *  name. The color and icon are then compared. This is done to impose a unique
- *  constraint on those parameters.
- *  The function returns true if all the parameters have not been
- *  supplied to ensure that checks for uniqueness can't be circumvented.
- *  @params container
- *  @returns boolean Returns true when all container fields match or if the query fails.
+/** Queries Firefox's contextual identities API for a container with a specific name.
+ *  @param string cname
+ *  @returns boolean Returns true when cname matches an existing container or on query error.
  */
-export async function containerExists(container: {
-    name: string
-    color: browser.contextualIdentities.IdentityColor
-    icon: browser.contextualIdentities.IdentityIcon
-}): Promise<boolean> {
+export async function containerExists(cname: string): Promise<boolean> {
     let exists = false
     try {
-        let res = await browser.contextualIdentities.query({
-            name: container.name,
-        })
+        let res = await browser.contextualIdentities.query({ name: cname })
         if (res.length > 0) {
-            for (let c of res) {
-                if (c.color === container.color && c.icon === container.icon)
-                    exists = true
-            }
+            exists = true
         }
     } catch (e) {
         exists = true // Make sure we don't accidentally break the constraint on query error.
-        logger.error("Error querying contextualIdentities:", e)
+        logger.error(
+            "[containerExists] Error querying contextualIdentities:",
+            e,
+        )
     }
     return exists
 }
 
 /** Takes string parameters and returns them as a pseudo container object
  *  for use in otherfunctions in the library.
- *  @params name
- *  @params color
- *  @params icon
+ *  @param name
+ *  @param color
+ *  @param icon
  */
 export function containerFromString(name: string, color: string, icon: string) {
     return {
@@ -109,9 +98,18 @@ export function containerFromString(name: string, color: string, icon: string) {
     }
 }
 
-/** Returns an array representation of all containers.
- *  Something something completions?
+/**
+ *  @returns An array representation of all containers.
  */
 export async function containerGetAll(): Promise<any[]> {
     return await browser.contextualIdentities.query({})
+}
+/**
+ * @param name The container name
+ * @returns The cookieStoreId of the first match of the query.
+ */
+export async function containerGetId(name: string): Promise<string> {
+    return (await browser.contextualIdentities.query({ name: name }))[0][
+        "cookieStoreId"
+    ]
 }
