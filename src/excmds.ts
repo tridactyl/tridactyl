@@ -88,7 +88,7 @@
 // Shared
 import * as Messaging from "./messaging"
 import { l, browserBg, activeTabId, activeTabContainerId } from "./lib/webext"
-import { containerCreate, containerExists, containerGetId } from "./lib/containers"
+import { containerCreate, containerExists, containerFuzzyMatch } from "./lib/containers"
 import state from "./state"
 import * as UrlUtil from "./url_util"
 import * as config from "./config"
@@ -1476,23 +1476,16 @@ export async function tabopen(...addressarr: string[]) {
             args.shift()
             argParse(args)
         } else if (args[0] === "-c") {
-            if (await containerExists(args[1])) {
-                container = await containerGetId(args[1]) // Fetches the first matching result.
-                args.shift()
-                args.shift()
-            } else {
-                let msg = args[1]
-                args.shift()
-                logger.error("[tabopen] container does not exist")
-                throw new Error(`[tabopen] container does not exist: ${msg}`)
-            }
+            container = await containerFuzzyMatch(args[1])
+            args.shift()
+            args.shift()
             argParse(args)
         }
         return args
     }
+
     let url: string
-    let parsedAddress = await argParse(addressarr)
-    let address = parsedAddress.join(" ")
+    let address = (await argParse(addressarr)).join(" ")
 
     if (!ABOUT_WHITELIST.includes(address) && address.match(/^(about|file):.*/)) {
         if ((await browser.runtime.getPlatformInfo()).os === "mac" && (await browser.windows.getCurrent()).incognito) {
