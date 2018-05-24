@@ -88,7 +88,7 @@
 // Shared
 import * as Messaging from "./messaging"
 import { l, browserBg, activeTabId, activeTabContainerId } from "./lib/webext"
-import { containerCreate, containerExists, containerGetFromId } from "./lib/containers"
+import { containerCreate, containerExists, containerGetId } from "./lib/containers"
 import state from "./state"
 import * as UrlUtil from "./url_util"
 import * as config from "./config"
@@ -1470,26 +1470,29 @@ export async function tabopen(...addressarr: string[]) {
     let container
 
     // Lets us pass both -b and -c in no particular order as long as they are up front.
-    function argParse(args): string[] {
+    async function argParse(args): Promise<string[]> {
         if (args[0] === "-b") {
             active = false
             args.shift()
             argParse(args)
         } else if (args[0] === "-c") {
-            if (args[1].length !== 1) {
-                logger.debug("Container Id missing, opening tab with no container specified.")
+            if (await containerExists(args[1])) {
+                container = await containerGetId(args[1]) // Fetches the first matching result.
+                args.shift()
                 args.shift()
             } else {
-                container = args[1]
+                let msg = args[1]
                 args.shift()
-                args.shift()
+                logger.error("[tabopen] container does not exist")
+                throw new Error(`[tabopen] container does not exist: ${msg}`)
             }
             argParse(args)
         }
         return args
     }
     let url: string
-    let address = argParse(addressarr).join(" ")
+    let parsedAddress = await argParse(addressarr)
+    let address = parsedAddress.join(" ")
 
     if (!ABOUT_WHITELIST.includes(address) && address.match(/^(about|file):.*/)) {
         if ((await browser.runtime.getPlatformInfo()).os === "mac" && (await browser.windows.getCurrent()).incognito) {
@@ -1503,8 +1506,9 @@ export async function tabopen(...addressarr: string[]) {
     else url = forceURI(config.get("newtab"))
 
     activeTabContainerId().then(containerId => {
-        if (containerId && config.get("tabopencontaineraware") === "true") openInNewTab(url, { active: active, cookieStoreId: containerId })
-        else if (container) openInNewTab(url, { active: active, cookieStoreId: "firefox-container-" + container })
+        if (container) openInNewTab(url, { active: active, cookieStoreId: container })
+        // Ensure -c has priority.
+        else if (containerId && config.get("tabopencontaineraware") === "true") openInNewTab(url, { active: active, cookieStoreId: containerId })
         else openInNewTab(url, { active })
     })
 }
