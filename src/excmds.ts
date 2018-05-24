@@ -2171,6 +2171,60 @@ export function unset(...keys: string[]) {
     config.unset(...target)
 }
 
+//#background
+export function style(mode: string, ...args: string[]) {
+    // parsing command
+    let name: string = ""
+    let filter: string = ""
+    let css: string = ""
+    let index: number = 0
+    let enabled: boolean = true
+    let append: boolean = false
+
+    let cssregex = /^(\s*\S*\s+)\{((?:.|\n)*?)\}\s*$/gm
+
+    if (args.length > 0) {
+        if (args.includes("-n") || args.includes("-name")) {
+            name = args[args.indexOf("-n") + 1]
+        }
+        if (args.includes("-a") || args.includes("-append")) {
+            append = true
+        }
+
+        css = cssregex.exec(args.join(" "))[0]
+        logger.debug(css)
+    } else {
+        throw new Error("Style bad syntax")
+    }
+
+    // checking argument rules
+    switch (mode) {
+        case "-i":
+            logger.debug("style mode -i reached")
+            break
+        case "-x":
+            // delete
+            logger.debug("style mode -x reached")
+            break
+        case "-d":
+            // disable
+            logger.debug("style mode -d reached")
+            break
+        case "-e":
+            // enable
+            logger.debug("style mode -e reached")
+            break
+        case "-t":
+            // toggle
+            logger.debug("style mode -t reached")
+            break
+
+        default:
+            // list matches
+            logger.debug("style default reached")
+    }
+}
+
 // not required as we automatically save all config
 ////#background
 //export function saveconfig(){
