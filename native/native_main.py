@@ -1,15 +1,15 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-import sys
-import os
-import re
 import json
+import os
+import pathlib
+import re
 import shutil
 import struct
-import tempfile
-import pathlib
 import subprocess
+import sys
+import tempfile
 import unicodedata
 
 VERSION = "0.1.6"
@@ -129,6 +129,7 @@ def sanitizeFilename(fn):
     fn = re.sub('[-/\s]+', '-', fn)
     return fn
 
+
 def is_valid_firefox_profile(profile_dir):
     is_valid = False
     validity_indicator = "times.json"
@@ -177,7 +178,7 @@ def win_firefox_restart(message):
         #
 
         #
-        #subprocess.Popen(
+        # subprocess.Popen(
         #    [ff_bin_path, "-profile", profile_dir],
         #    shell=False,
         #    creationflags=0x208 \
@@ -214,13 +215,13 @@ def win_firefox_restart(message):
         ff_bin_path = "\"%s\"" % shutil.which(ff_bin_name)
 
         if profile_dir == "auto":
-            ff_args = "\"-ProfileManager\""
             ff_lock_path = ff_bin_path
+            ff_args = "\"-foreground -ProfileManager\""
         else:
-            ff_args = "\"-profile\" \"%s\"" % profile_dir
-            ff_lock_path = "\"%s\\%s\"" % (profile_dir,
-                                           ff_lock_name)
-
+            ff_lock_path = "\"%s/%s\"" % (profile_dir,
+                                          ff_lock_name)
+            ff_args = "\"-foreground -profile\" \"%s\"" % \
+                profile_dir
 
         try:
             restart_ps1_content = '''$profileDir = "%s"
