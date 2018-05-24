@@ -19,6 +19,7 @@ The idea behind Tridactyl is to allow you to navigate the web more efficiently w
     - This mode highlights elements on the web page and performs actions on those elements.
     - This is most often used for following links, but it has many other submodes.
     - You can enter this mode with `f` and exit it with `Escape` or `Enter`.
+    - Hint characters are displayed as uppercase letters, but you should type the lowercase letter.
 - Command mode ("ex-mode")
     - This mode allows you to execute more complicated commands by typing them out manually.
     - It is commonly used for binding keys and accessing help.

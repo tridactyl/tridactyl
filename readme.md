@@ -45,7 +45,7 @@ This is a (non-exhaustive) list of the most common normal-mode bindings. Type
 - `^`/`$` — scroll to left/right margin
 - `gg`/`G` — scroll to start/end of page
 - `f`/`F` — enter "hint mode" to select a link to follow. `F` to open in a
-  background tab
+  background tab (note: hint characters should be typed in lowercase)
 - `gi` — scroll to and focus the last-used input on the page
 - `r`/`R` — reload page or hard reload page
 - `yy` — copy the current page URL to the clipboard

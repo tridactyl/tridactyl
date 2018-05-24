@@ -1,6 +1,6 @@
 # Hint mode
 
-There are many different hint submodes. They all follow a similar pattern: hinting modes display characters above various elements on the screen, which you can type to perform actions using those elements.
+There are many different hint submodes. They all follow a similar pattern: hinting modes display characters above various elements on the screen, which you can type to perform actions using those elements. (Note: hint characters should be typed in lowercase.)
 
 Here are some of the most useful hint modes:
 

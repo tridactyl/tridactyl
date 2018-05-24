@@ -19,7 +19,10 @@
   --tridactyl-url-bg: none;
 
   --tridactyl-of-fg: #00FF00;
-  --tridactyl-of-bg: black; 
+  --tridactyl-of-bg: black;
+
+  --tridactyl-highlight-box-bg: black;
+  --tridactyl-highlight-box-fg: var(--tridactyl-fg);
 
   /*custom theme variables*/
   --focused-prefix-color: black;
@@ -33,20 +36,9 @@
   --tridactyl-hint-active-bg: #88FF00;
   --tridactyl-hint-active-outline:1px solid #000;
 
-  --tridactyl-hint-bg: rgba(0, 0, 0, 0.25); 
+  --tridactyl-hint-bg: rgba(0, 0, 0, 0.25);
   --tridactyl-hint-outline: 2px solid var(--tridactyl-hintspan-bg);
-}
 
-
-
-/*custom rules over tridactyl default*/
-
-:root.TridactylThemeGreenmat table {
-   border-collapse: collapse;
-} 
-
-:root.TridactylThemeGreenmat #completions table tr td {
-  color: var(--tridactyl-cmplt-fg);
 }
 
 :root.TridactylThemeGreenmat #completions .focused{
@@ -59,4 +51,41 @@
    var(--focused-prefix-color),
    var(--focused-border-color),
    var(--focused-prefix-color));
+}
+
+:root.TridactylThemeGreenmat.TridactylOwnNamespace table {
+   border-collapse: collapse;
+}
+
+:root.TridactylThemeGreenmat.TridactylOwnNamespace #completions table tr td {
+  color: var(--tridactyl-cmplt-fg);
+}
+
+/* ### newtab ### */
+
+:root.TridactylThemeGreenmat.TridactylOwnNamespace code {
+  background-color: rgba(255,255,255,0.10);
+  border-top: 1px solid var(--tridactyl-fg);
+}
+
+:root.TridactylThemeGreenmat.TridactylOwnNamespace ul {
+   background-color: rgba(0,0,0,0.55);
+   border-radius: 10px;
+   border-top: 1px solid var(--tridactyl-fg);
+   padding-top: 10px;
+   padding-bottom: 5px;
+}
+
+:root.TridactylThemeGreenmat.TridactylOwnNamespace .spoiler > h2 + ul{
+   background-color: rgba(255,255,255,0.05);
+   border-radius: 10px;
+   border-left: 1px solid var(--tridactyl-fg);
+   border-right: 1px solid var(--tridactyl-fg);
+   border-top: unset;
+   border-bottom: unset;
+}
+
+:root.TridactylThemeGreenmat.TridactylOwnNamespace a {
+   color: var(--tridactyl-fg);
+   font-weight: bold;
 }
