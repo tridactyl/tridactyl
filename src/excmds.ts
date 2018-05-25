@@ -41,7 +41,7 @@
     - Press `b` to bring up a list of open tabs in the current window; you can
       type the tab ID or part of the title or URL to choose a tab
     - Press `Shift` + `Insert` to enter "ignore mode". Press `Shift` + `Insert`
-      again to return to "normal mode".
+      again to return to "normal mode". `<C-A-backtick>` also works both ways.
     - Press `f` to start "hint mode", `F` to open in background (note: hint
       characters should be typed in lowercase)
     - Press `o` to `:open` a different page
@@ -284,14 +284,17 @@ export async function fixamo() {
  * **Be *seriously* careful with this: you can use it to open any URL you can open in the Firefox address bar.**
  *
  * You've been warned.
- *
- * Unsupported on OSX unless you set `browser` to something that will open Firefox from a terminal pass it commmand line options.
  */
 //#background
 export async function nativeopen(url: string, ...firefoxArgs: string[]) {
-    if (firefoxArgs.length === 0) firefoxArgs = ["--new-tab"]
     if (await Native.nativegate()) {
-        Native.run(config.get("browser") + " " + firefoxArgs.join(" ") + " " + url)
+        if ((await browser.runtime.getPlatformInfo()).os === "mac") {
+            let osascriptArgs = ["-e 'on run argv'", "-e 'tell application \"Firefox\" to open location item 1 of argv'", "-e 'end run'"]
+            Native.run("osascript " + osascriptArgs.join(" ") + " " + url)
+        } else {
+            if (firefoxArgs.length === 0) firefoxArgs = ["--new-tab"]
+            Native.run(config.get("browser") + " " + firefoxArgs.join(" ") + " " + url)
+        }
     }
 }
 
@@ -1303,8 +1306,13 @@ export async function tabopen(...addressarr: string[]) {
     let address = addressarr.join(" ")
 
     if (!ABOUT_WHITELIST.includes(address) && address.match(/^(about|file):.*/)) {
-        nativeopen(address)
-        return
+        if ((await browser.runtime.getPlatformInfo()).os === "mac" && (await browser.windows.getCurrent()).incognito) {
+            fillcmdline_notrail("# nativeopen isn't supported in private mode on OSX. Consider installing Linux or Windows :).")
+            return
+        } else {
+            nativeopen(address)
+            return
+        }
     } else if (address != "") url = forceURI(address)
     else url = forceURI(config.get("newtab"))
 
@@ -1521,8 +1529,13 @@ export async function winopen(...args: string[]) {
     } else address = args.join(" ")
     createData["url"] = address != "" ? forceURI(address) : forceURI(config.get("newtab"))
     if (!ABOUT_WHITELIST.includes(address) && address.match(/^(about|file):.*/)) {
-        nativeopen(address, firefoxArgs)
-        return
+        if ((await browser.runtime.getPlatformInfo()).os === "mac") {
+            fillcmdline_notrail("# nativeopen isn't supported for winopen on OSX. Consider installing Linux or Windows :).")
+            return
+        } else {
+            nativeopen(address, firefoxArgs)
+            return
+        }
     }
     browser.windows.create(createData)
 }

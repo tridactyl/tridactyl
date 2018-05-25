@@ -126,7 +126,8 @@ const DEFAULTS = o({
         "<S-Insert>": "mode ignore",
         "<CA-Esc>": "mode ignore",
         "<CA-`>": "mode ignore",
-        I: "fillcmdline Ignore mode is now toggled by pressing <S-Insert>",
+        I:
+            "fillcmdline Ignore mode is now toggled by pressing <S-Insert> or <C-A-`>",
         a: "current_url bmark",
         A: "bmark",
         zi: "zoom 0.1 true",
