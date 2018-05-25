@@ -213,15 +213,24 @@ def win_firefox_restart(message):
         # }}}
 
         ff_bin_path = "\"%s\"" % shutil.which(ff_bin_name)
+        new_tab_url = "https://www.mozilla.org/en-US/firefox/"
 
         if profile_dir == "auto":
             ff_lock_path = ff_bin_path
-            ff_args = "\"-foreground -ProfileManager\""
+            ff_args = "\"%s\" \"%s\" \"%s\" \"%s\"" % \
+                ("-foreground",
+                 "-ProfileManager",
+                 "-new-tab",
+                 new_tab_url)
         else:
             ff_lock_path = "\"%s/%s\"" % (profile_dir,
                                           ff_lock_name)
-            ff_args = "\"-foreground -profile\" \"%s\"" % \
-                profile_dir
+            ff_args = "\"%s\" \"%s\" \"%s\" \"%s\" \"%s\"" % \
+                ("-foreground",
+                 "-profile",
+                 profile_dir,
+                 "-new-tab",
+                 new_tab_url)
 
         try:
             restart_ps1_content = '''$profileDir = "%s"
