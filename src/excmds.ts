@@ -1307,7 +1307,7 @@ export async function tabopen(...addressarr: string[]) {
 
     if (!ABOUT_WHITELIST.includes(address) && address.match(/^(about|file):.*/)) {
         if ((await browser.runtime.getPlatformInfo()).os === "mac" && (await browser.windows.getCurrent()).incognito) {
-            fillcmdline_notrail("# nativeopen isn't supported. Please install Linux or Windows.")
+            fillcmdline_notrail("# nativeopen isn't supported in private mode on OSX. Consider installing Linux or Windows :).")
             return
         } else {
             nativeopen(address)
@@ -1530,7 +1530,7 @@ export async function winopen(...args: string[]) {
     createData["url"] = address != "" ? forceURI(address) : forceURI(config.get("newtab"))
     if (!ABOUT_WHITELIST.includes(address) && address.match(/^(about|file):.*/)) {
         if ((await browser.runtime.getPlatformInfo()).os === "mac") {
-            fillcmdline_notrail("# nativeopen isn't supported. Please install Linux or Windows.")
+            fillcmdline_notrail("# nativeopen isn't supported for winopen on OSX. Consider installing Linux or Windows :).")
             return
         } else {
             nativeopen(address, firefoxArgs)
