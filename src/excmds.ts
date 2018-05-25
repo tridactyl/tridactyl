@@ -1476,7 +1476,11 @@ export async function tabopen(...addressarr: string[]) {
             args.shift()
             argParse(args)
         } else if (args[0] === "-c") {
-            container = await containerFuzzyMatch(args[1])
+            // Ignore the -c flag if incognito as containers are disabled.
+            let win = await browser.windows.getCurrent()
+            if (!win["incognito"]) container = await containerFuzzyMatch(args[1])
+            else logger.error("[tabopen] can't open a container in a private browsing window.")
+
             args.shift()
             args.shift()
             argParse(args)
