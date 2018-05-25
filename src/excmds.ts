@@ -2172,35 +2172,44 @@ export function unset(...keys: string[]) {
 }
 
 //#background
-export function style(mode: string, ...args: string[]) {
-    // parsing command
-    let name: string = ""
-    let filter: string = ""
-    let css: string = ""
-    let index: number = 0
-    let enabled: boolean = true
+export async function style(mode: string, ...args: string[]) {
+    let name: string
+    let css: string
     let append: boolean = false
-
-    let cssregex = /^(\s*\S*\s+)\{((?:.|\n)*?)\}\s*$/gm
-
+    let cssregex = /(\S*\s+)\{((?:.|\n)*?)\}\s*$/gm
     if (args.length > 0) {
-        if (args.includes("-n") || args.includes("-name")) {
-            name = args[args.indexOf("-n") + 1]
+        if (args.includes("-name")) {
+            name = args[args.indexOf("-name") + 1]
         }
-        if (args.includes("-a") || args.includes("-append")) {
+        if (args.includes("-append")) {
             append = true
         }
-
         css = cssregex.exec(args.join(" "))[0]
-        logger.debug(css)
-    } else {
-        throw new Error("Style bad syntax")
     }
-
+    let styletoggles = await config.getAsync("styletoggles")
     // checking argument rules
     switch (mode) {
         case "-i":
-            logger.debug("style mode -i reached")
+            if (append) {
+                let filter = styletoggles.filter(t => t.name === name)[0]
+                if (filter != undefined) {
+                    filter.css.push(css)
+                }
+            } else {
+                let index = styletoggles.length + 1
+                let filter: string
+                let enabled: boolean = true
+                let style = {
+                    index: index,
+                    name: name,
+                    filter: filter,
+                    enabled: true,
+                    css: [],
+                }
+                style.css.push(css)
+                styletoggles.push(style)
+            }
+            config.set("styletoggles", styletoggles)
             break
         case "-x":
             // delete

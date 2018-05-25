@@ -67,7 +67,7 @@ export async function insertcss(css: string) {
     let tab = await webext.activeTab()
     try {
         //insert css to the current active tab
-        webext.browserBg.tabs.insertCSS({ code: css })
+        await webext.browserBg.tabs.insertCSS({ code: css })
     } catch (e) {
         logger.error(
             `It was not possible to insert css on tab "${tab.title}": `,
@@ -80,7 +80,7 @@ export async function removecss(css: string) {
     let tab = await webext.activeTab()
     try {
         //insert css to the current active tab
-        webext.browserBg.tabs.removeCSS({ code: css })
+        await webext.browserBg.tabs.removeCSS({ code: css })
     } catch (e) {
         logger.error(
             `It was not possible to remove css from tab "${tab.title}": `,
