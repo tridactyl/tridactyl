@@ -247,11 +247,10 @@ export async function temp(content: string, prefix: string) {
 }
 
 export async function winFirefoxRestart(profiledir: string) {
-    let current_version = await getNativeMessengerVersion()
     let required_version = "0.1.6"
 
     if (!await nativegate(required_version, false)) {
-        throw `Error: 'restart' on Windows needs native messenger version >= 0.1.6. Current: ${current_version}`
+        throw `'restart' on Windows needs native messenger version >= ${required_version}.`
     }
 
     return sendNativeMsg("win_firefox_restart", { profiledir })
@@ -271,10 +270,12 @@ export async function pyeval(command: string): Promise<MessageResp> {
 }
 
 export async function getenv(variable: string) {
-    let v = await getNativeMessengerVersion()
-    if (!await nativegate("0.1.2", false)) {
-        throw `Error: getenv needs native messenger v>=0.1.2. Current: ${v}`
+    let required_version = "0.1.2"
+
+    if (!await nativegate(required_version, false)) {
+        throw `'getenv' needs native messenger version >= ${required_version}.`
     }
+
     return (await sendNativeMsg("env", { var: variable })).content
 }
 
@@ -294,12 +295,18 @@ export async function ffargs(): Promise<string[]> {
 }
 
 export async function getProfileDir() {
-    // Windows users must specify their Firefox profile directory
-    // via 'set profiledir [directory]'. Windows profile directory
-    // path must be properly escaped. For example, a correct way
-    // to set 'profiledir' on Windows is as shown below:
+    // Windows users must explicitly specify their Firefox profile
+    // directory via 'set profiledir [directory]', or use the
+    // default 'profiledir' value as 'auto' (without quotes).
     //
-    // : set profiledir C:\\Users\\<User-Name>\\AppData\\Roaming\\Mozilla\\Firefox\\Profiles\\8s21wzbh.Default
+    // Profile directory paths on Windows must _not_ need be
+    // excaped, and used exactly as shown in the 'about:support'
+    // page.
+    //
+    // Example:
+    //
+    // :set profiledir C:\Users\<User-Name>\AppData\Roaming\Mozilla\Firefox\Profiles\8s21wzbh.Default
+    //
     if ((await browserBg.runtime.getPlatformInfo()).os === "win") {
         let win_profiledir = config.get("profiledir")
         win_profiledir = win_profiledir.trim()
