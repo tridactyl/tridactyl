@@ -2171,29 +2171,44 @@ export function unset(...keys: string[]) {
     config.unset(...target)
 }
 
+/** Toggle css style to a page.
+ *
+ * Syntax: style {mode} [...args]
+ *
+ * @param mode
+ *         ALIASES          MODES
+ *      styleinclude   : style -i
+ *      styledelete    : style -x
+ *      styledisable   : style -d
+ *      styleenable    : style -e
+ *      styletoggle    : style -t
+ *
+ * @param args `-name {name} -match {[prefix]|[domain]|[URL]} -css {[complete css block of code]}`
+ *
+ */
 //#background
 export async function style(mode: string, ...args: string[]) {
     let name: string
     let css: string
     let append: boolean = false
-    // TODO:
-    //  - more robust regex
-    //  - deal with no matches
-    let cssregex = /(\S*\s+)\{((?:.|\n)*?)\}\s*$/gm
+    //let cssregex = /(\S*\s+)\{((?:.|\n)*?)\}\s*$/gm
     if (args.length > 0) {
         if (args.includes("-name")) {
             name = args[args.indexOf("-name") + 1]
-        }
+        } else throw 'Missing "-name" argument.'
+
         if (args.includes("-append")) {
             append = true
+        }
+        if (args.includes("-css")) {
+            css = args.slice(args.indexOf("-css") + 1, args.length).join(" ")
         }
     }
     let styletoggles = await config.getAsync("styletoggles")
     // checking argument rules
     switch (mode) {
         case "-i":
-            css = cssregex.exec(args.join(" "))[0]
-            // check if styletoggle already exists
+            if (css == undefined) throw 'Missing "-css" argument.'
             if (append && styletoggles[name]) styletoggles[name].css.push(css)
             else {
                 let filter: string
