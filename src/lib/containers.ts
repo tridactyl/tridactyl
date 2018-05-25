@@ -3,14 +3,14 @@ const logger = new Logging.Logger("excmd")
 
 /** Creates a container from the specified parameters. Unlike the official Mozilla addon, does not
  *  allow multiple  containers with the same (name, color, icon) constraint.
- *  @param containerName  The container name.
- *  @param containerColor  The container color, limited to browser.contextualIdentities.IdentityColor.
- *  @param containerIcon  The container icon, limited to browser.contextualIdentities.IdentityIcon.
+ *  @param name  The container name.
+ *  @param color  The container color, must be one of: "blue", "turquoise", "green", "yellow", "orange", "red", "pink" or "purple"
+ *  @param icon  The container icon, must be one of: "fingerprint", "briefcase", "dollar", "cart", "circle", "gift", "vacation", "food", "fruit", "pet", "tree", "chill"
  */
 export async function containerCreate(
     name: string,
-    color: string,
-    icon: string,
+    color = "blue",
+    icon = "fingerprint",
 ) {
     let container = containerFromString(name, color, icon)
     if (await containerExists(name)) {
