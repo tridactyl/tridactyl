@@ -295,13 +295,12 @@ export async function ffargs(): Promise<string[]> {
 }
 
 export async function getProfileDir() {
-    // Windows users must explicitly specify their Firefox profile
+    // Windows users must explicitly set their Firefox profile
     // directory via 'set profiledir [directory]', or use the
     // default 'profiledir' value as 'auto' (without quotes).
     //
-    // Profile directory paths on Windows must _not_ need be
-    // excaped, and used exactly as shown in the 'about:support'
-    // page.
+    // Profile directory paths on Windows must _not_ be escaped, and
+    // should be used exactly as shown in the 'about:support' page.
     //
     // Example:
     //
