@@ -70,7 +70,7 @@ Find mode is still incomplete and uses the built-in Firefox search. This will be
 *   `p`/`P` — open the clipboard contents in the current/new tab
 *   `s`/`S` — force a search using the default Tridactyl search engine, opening in the current/new tab. This is useful when searching for something that would otherwise be treated as a URL by `o` or `t`
 *   `H`/`L` — go back/forward in the tab history
-*   `gh`/`gH` — go to the home page (in a new tab)
+*   `gh`/`gH` — go to the pages you have set with `set home [url1] [url2] ...`
 
 #### Handling tabs
 

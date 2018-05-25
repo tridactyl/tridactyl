@@ -738,13 +738,14 @@ export function viewsource(url = "") {
     }
 }
 
-/** Go to your homepage(s)
-
-    @param all
-        - if "true", opens all homepages in new tabs
-        - if "false" or not given, opens the last homepage in the current tab
-
-*/
+/**
+ * Go to the homepages you have set with `set home [url1] [url2]`.
+ *
+ *  @param all
+ *      - if "true", opens all homepages in new tabs
+ *      - if "false" or not given, opens the last homepage in the current tab
+ *
+ */
 //#background
 export function home(all: "false" | "true" = "false") {
     let homepages = config.get("homepages")
