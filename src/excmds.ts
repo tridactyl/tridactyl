@@ -2176,6 +2176,9 @@ export async function style(mode: string, ...args: string[]) {
     let name: string
     let css: string
     let append: boolean = false
+    // TODO:
+    //  - more robust regex
+    //  - deal with no matches
     let cssregex = /(\S*\s+)\{((?:.|\n)*?)\}\s*$/gm
     if (args.length > 0) {
         if (args.includes("-name")) {
@@ -2184,48 +2187,61 @@ export async function style(mode: string, ...args: string[]) {
         if (args.includes("-append")) {
             append = true
         }
-        css = cssregex.exec(args.join(" "))[0]
     }
     let styletoggles = await config.getAsync("styletoggles")
     // checking argument rules
     switch (mode) {
         case "-i":
-            if (append) {
-                let filter = styletoggles.filter(t => t.name === name)[0]
-                if (filter != undefined) {
-                    filter.css.push(css)
-                }
-            } else {
-                let index = styletoggles.length + 1
+            css = cssregex.exec(args.join(" "))[0]
+            // check if styletoggle already exists
+            if (append && styletoggles[name]) styletoggles[name].css.push(css)
+            else {
                 let filter: string
                 let enabled: boolean = true
-                let style = {
-                    index: index,
-                    name: name,
+                let newstyle = {
                     filter: filter,
                     enabled: true,
+                    toggled: false,
                     css: [],
                 }
-                style.css.push(css)
-                styletoggles.push(style)
+                newstyle.css.push(css)
+                styletoggles[name] = newstyle
             }
             config.set("styletoggles", styletoggles)
             break
         case "-x":
-            // delete
-            logger.debug("style mode -x reached")
+            if (styletoggles[name]) {
+                styletoggles[name] = undefined
+                config.set("styletoggles", styletoggles)
+            } else logger.warning(`Style "${name}" not found.`)
             break
         case "-d":
-            // disable
-            logger.debug("style mode -d reached")
+            if (styletoggles[name]) {
+                styletoggles[name].enabled = false
+                config.set("styletoggles", styletoggles)
+            } else logger.warning(`Style "${name}" not found.`)
             break
         case "-e":
-            // enable
-            logger.debug("style mode -e reached")
+            if (styletoggles[name]) {
+                styletoggles[name].enabled = true
+                config.set("styletoggles", styletoggles)
+            } else logger.warning(`Style "${name}" not found.`)
             break
         case "-t":
-            // toggle
-            logger.debug("style mode -t reached")
+            if (styletoggles[name] && styletoggles[name].enabled) {
+                if (styletoggles[name].toggled) {
+                    styletoggles[name].toggled = false
+                    styletoggles[name].css.forEach(css => {
+                        messageActiveTab("styling_content", "removestyle", [css])
+                    })
+                } else {
+                    styletoggles[name].toggled = true
+                    styletoggles[name].css.forEach(css => {
+                        messageActiveTab("styling_content", "insertstyle", [css])
+                    })
+                }
+                config.set("styletoggles", styletoggles)
+            }
             break
 
         default:

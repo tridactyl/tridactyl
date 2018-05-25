@@ -63,11 +63,11 @@ browser.storage.onChanged.addListener((changes, areaname) => {
     }
 })
 
-export async function insertcss(css: string) {
+export async function insertstyle(csscode: string) {
     let tab = await webext.activeTab()
     try {
         //insert css to the current active tab
-        await webext.browserBg.tabs.insertCSS({ code: css })
+        await webext.browserBg.tabs.insertCSS({ code: csscode })
     } catch (e) {
         logger.error(
             `It was not possible to insert css on tab "${tab.title}": `,
@@ -76,11 +76,11 @@ export async function insertcss(css: string) {
     }
 }
 
-export async function removecss(css: string) {
+export async function removestyle(csscode: string) {
     let tab = await webext.activeTab()
     try {
         //insert css to the current active tab
-        await webext.browserBg.tabs.removeCSS({ code: css })
+        await webext.browserBg.tabs.removeCSS({ code: csscode })
     } catch (e) {
         logger.error(
             `It was not possible to remove css from tab "${tab.title}": `,
@@ -88,3 +88,12 @@ export async function removecss(css: string) {
         )
     }
 }
+
+import * as Messaging from "./messaging"
+Messaging.addListener(
+    "styling_content",
+    Messaging.attributeCaller({
+        insertstyle,
+        removestyle,
+    }),
+)

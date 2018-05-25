@@ -267,7 +267,7 @@ const DEFAULTS = o({
         styling: 2,
     }),
     noiframeon: [],
-    styletoggles: [],
+    styletoggles: {},
 
     // Native messenger settings
     // This has to be a command that stays in the foreground for the whole editing session
