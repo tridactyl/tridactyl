@@ -18,6 +18,6 @@ fi
 
 if [ -n "$uglyFiles" ]; then
     echo "Prettify your files first:"
-    echo '$(npm bin)/prettier --write' "${uglyFiles[@]}"
+    echo 'npm run pretty'
     exit 1
 fi

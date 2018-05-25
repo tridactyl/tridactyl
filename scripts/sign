@@ -19,7 +19,7 @@ publish_stable() {
     npm run clean
     npm run build
     sign_and_submit
-    tar --exclude-from=.gitignore --exclude=.git/* -czf ../public_html/betas/tridactyl_source.tar.gz .
+    tar --exclude-from=.gitignore -czf ../public_html/betas/tridactyl_source.tar.gz .
 }
 
 case $1 in
