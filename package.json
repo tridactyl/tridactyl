@@ -6,7 +6,9 @@
     "@types/css": "0.0.31",
     "@types/nearley": "^2.11.0",
     "css": "^2.2.1",
+    "fast-levenshtein": "^2.0.6",
     "fuse.js": "^3.2.0",
+    "immutable": "^4.0.0-rc.9",
     "mark.js": "^8.11.1",
     "nearley": "^2.11.0",
     "semver-compare": "^1.0.0"
@@ -14,6 +16,7 @@
   "devDependencies": {
     "@types/jest": "^21.1.4",
     "@types/node": "^8.0.46",
+    "@types/fast-levenshtein": "0.0.1",
     "awesome-typescript-loader": "^3.2.3",
     "chokidar-cli": "^1.2.0",
     "cleanslate": "^0.10.1",

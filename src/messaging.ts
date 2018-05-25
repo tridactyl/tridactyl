@@ -9,11 +9,14 @@ export type TabMessageType =
     | "commandline_frame"
     | "hinting_content"
     | "finding_content"
+
 export type NonTabMessageType =
     | "keydown_background"
     | "commandline_background"
     | "browser_proxy_background"
     | "download_background"
+    | "command_background"
+
 export type MessageType = TabMessageType | NonTabMessageType
 
 export interface Message {
