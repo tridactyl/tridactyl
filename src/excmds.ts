@@ -1658,21 +1658,25 @@ export function repeat(n = 1, ...exstr: string[]) {
  */
 //#background
 export async function composite(...cmds: string[]) {
-    return cmds
-        .join(" ")
-        .split(";")
-        .reduce(
-            async (_, cmd) => {
-                return cmd.split("|").reduce(
-                    async (pipedValue, cmd) => {
-                        let [fn, args] = excmd_parser.parser(cmd)
-                        return fn.call({}, ...args, await pipedValue)
-                    },
-                    "" as any,
-                )
-            },
-            null as any,
-        )
+    try {
+        return cmds
+            .join(" ")
+            .split(";")
+            .reduce(
+                async (_, cmd) => {
+                    return cmd.split("|").reduce(
+                        async (pipedValue, cmd) => {
+                            let [fn, args] = excmd_parser.parser(cmd)
+                            return fn.call({}, ...args, await pipedValue)
+                        },
+                        "" as any,
+                    )
+                },
+                null as any,
+            )
+    } catch (e) {
+        logger.error(e)
+    }
 }
 
 //#background
