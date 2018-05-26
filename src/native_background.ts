@@ -410,6 +410,36 @@ export async function getPref(name: string): Promise<string> {
     return (await getPrefs())[name]
 }
 
+/** Fetches a config option from the config. If the option is undefined, fetch
+ *  a preference from preferences. It would make more sense for this function to
+ *  be in config.ts but this would require importing this file in config.ts and
+ *  Webpack doesn't like circular dependencies.
+ */
+export async function getConfElsePref(
+    confName: string,
+    prefName: string,
+): Promise<any> {
+    let option = await config.getAsync(confName)
+    if (option === undefined) {
+        option = await getPref(prefName)
+    }
+    return option
+}
+
+/** Fetches a config option from the config. If the option is undefined, fetch
+ *  prefName from the preferences. If prefName is undefined too, return a
+ *  default.
+ */
+export async function getConfElsePrefElseDefault(
+    confName: string,
+    prefName: string,
+    def: any,
+): Promise<any> {
+    let option = await getConfElsePref(confName, prefName)
+    if (option === undefined) return def
+    return option
+}
+
 /** Writes a preference to user.js */
 export async function writePref(name: string, value: any) {
     if (cached_prefs) cached_prefs[name] = value
