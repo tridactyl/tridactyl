@@ -118,6 +118,7 @@ import * as keydown from "./keydown_background"
 import { activeTab, firefoxVersionAtLeast, openInNewTab } from "./lib/webext"
 import * as CommandLineBackground from "./commandline_background"
 import * as rc from "./config_rc"
+import * as excmd_parser from "./parsers/exmode"
 
 //#background_helper
 import * as Native from "./native_background"
@@ -1645,7 +1646,7 @@ export function repeat(n = 1, ...exstr: string[]) {
 }
 
 /**
- * Split `cmds` on pipes (|) and treat each as its own command. Return values are cast to strings and passed to the appended to the arguments of the next ex command, e.g,
+ * Split `cmds` on pipes (|) and treat each as its own command. Return values are passed as the last argument of the next ex command, e.g,
  *
  * `composite echo yes | fillcmdline` becomes `fillcmdline yes`. A more complicated example is the ex alias, `command current_url composite get_current_url | fillcmdline_notrail `, which is used in, e.g. `bind T current_url tabopen`.
  *
@@ -1657,24 +1658,21 @@ export function repeat(n = 1, ...exstr: string[]) {
  */
 //#background
 export async function composite(...cmds: string[]) {
-    cmds = cmds.join(" ").split("|")
-    let val = ""
-    for (let c of cmds) {
-        let dmds = c.split(";")
-        if (dmds.length > 1) {
-            for (let d of dmds) {
-                await controller.acceptExCmd(d)
-            }
-        } else val = await controller.acceptExCmd(dmds[0] + val)
-        try {
-            if (val == undefined || val.includes("undefined")) val = ""
-            else val = " " + val
-        } catch (e) {
-            if (e instanceof TypeError) {
-                val = " " + val
-            } else throw e
-        }
-    }
+    return cmds
+        .join(" ")
+        .split(";")
+        .reduce(
+            async (_, cmd) => {
+                return cmd.split("|").reduce(
+                    async (pipedValue, cmd) => {
+                        let [fn, args] = excmd_parser.parser(cmd)
+                        return fn.call({}, ...args, await pipedValue)
+                    },
+                    "" as any,
+                )
+            },
+            null as any,
+        )
 }
 
 //#background
