@@ -25,12 +25,12 @@ Commands:
     buffer {N}
 
 ## modes
-    
+
     normal
     insert
     find {phrase} {direction=+/-1}
     hints {open|tabopen|winopen|yank}
 
-
 ## search-likes
+
     {page, google, amazon} {phrase}

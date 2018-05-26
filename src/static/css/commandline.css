@@ -32,8 +32,8 @@ input {
     /* border-top: solid 1px lightgray; */
 }
 
-#tridactyl-colon::before{
-    content: ":"
+#tridactyl-colon::before {
+    content: ":";
 }
 
 /* COMPLETIONS */
@@ -89,10 +89,17 @@ input {
     table-layout: fixed;
 }
 
-#completions table tr td:nth-of-type(1) { width: 1.5em; padding-left: 0.5em}
-#completions table tr td:nth-of-type(2) { width: 1.5em; }
+#completions table tr td:nth-of-type(1) {
+    width: 1.5em;
+    padding-left: 0.5em;
+}
+#completions table tr td:nth-of-type(2) {
+    width: 1.5em;
+}
 /* #completions table tr td:nth-of-type(3) { width: 5em; } */
-#completions table tr td:nth-of-type(4) { width: 50%; }
+#completions table tr td:nth-of-type(4) {
+    width: 50%;
+}
 
 #completions table tr {
     white-space: nowrap;
@@ -111,16 +118,18 @@ input {
 }
 
 #completions .sectionHeader {
-    background: linear-gradient( 
-    var(--tridactyl-header-first-bg), 
-    var(--tridactyl-header-second-bg), 
-    var(--tridactyl-header-third-bg));
+    background: linear-gradient(
+        var(--tridactyl-header-first-bg),
+        var(--tridactyl-header-second-bg),
+        var(--tridactyl-header-third-bg)
+    );
     font-weight: var(--tridactyl-header-font-weight);
     border-bottom: var(--tridactyl-header-border-bottom);
     padding-left: 0.5ex;
 }
 
-#completions .sectionHeader, #completions .option {
+#completions .sectionHeader,
+#completions .option {
     height: var(--option-height);
     line-height: var(--option-height);
 }
@@ -157,7 +166,8 @@ a.url:hover {
 }
 
 /* Pick the .url out especially because otherwise its link styles dominate. */
-.focused, .focused .url {
+.focused,
+.focused .url {
     color: var(--tridactyl-of-fg);
     background: var(--tridactyl-of-bg);
 }

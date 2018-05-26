@@ -259,7 +259,7 @@ function buildHintsVimperator(els: Element[], onSelect: HintSelectedCallback) {
     const escapedHintChars = config
         .get("hintchars")
         .replace(/^\^|[-\\\]]/g, "\\$&")
-    const filterableTextFilter = new RegExp("[" + escapedHintChars + "]", "gi")
+    const filterableTextFilter = new RegExp("[" + escapedHintChars + "]", "g")
     for (let [el, name] of izip(els, names)) {
         let ft = elementFilterableText(el)
         // strip out hintchars
@@ -401,7 +401,7 @@ function reset() {
 
 /** If key is in hintchars, add it to filtstr and filter */
 function pushKey(ke) {
-    if (hasModifiers(ke)) {
+    if (ke.ctrlKey || ke.altKey || ke.metaKey) {
         return
     } else if (ke.key === "Backspace") {
         modeState.filter = modeState.filter.slice(0, -1)
@@ -409,6 +409,7 @@ function pushKey(ke) {
     } else if (ke.key.length > 1) {
         return
     } else if (modeState.hintchars.includes(ke.key)) {
+        console.log(ke.key)
         modeState.filter += ke.key
         modeState.filterFunc(modeState.filter)
     }

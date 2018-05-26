@@ -1,7 +1,7 @@
 #!/bin/bash
 
 cachedJS() {
-    git diff --cached --name-only --diff-filter=ACM "*.js" "*.jsx" "*.ts" "*.tsx" | tr '\n' ' '
+    git diff --cached --name-only --diff-filter=ACM "*.js" "*.jsx" "*.ts" "*.tsx" "*.md" "*.css" | tr '\n' ' '
 }
 
 staged() {
