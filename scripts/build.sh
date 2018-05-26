@@ -316,7 +316,7 @@ installWindowsNativeMessenger() {
       #   colorEcho \
       #     "$(printf \
       #         "[-] Signing %s failed, quitting ..." \
-      #         $WIN_COMPILE_NATIVE_BIN_OUTPUT)" \
+      #         ${WIN_COMPILE_NATIVE_BIN_OUTPUT})" \
       #     "alert"
       #   exit -1
       #
@@ -326,8 +326,8 @@ installWindowsNativeMessenger() {
       colorEcho \
         "$(printf \
             "[-] %s -> %s compilation failed, quitting ..." \
-            $WIN_COMPILE_NATIVE_BIN_SOURCE \
-            $WIN_COMPILE_NATIVE_BIN_OUTPUT)" \
+            ${WIN_COMPILE_NATIVE_BIN_SOURCE} \
+            ${WIN_COMPILE_NATIVE_BIN_OUTPUT})" \
         "alert"
       exit -1
     fi
