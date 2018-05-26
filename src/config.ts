@@ -233,6 +233,11 @@ const DEFAULTS = o({
     // Maybe have a nice user-vicible message when the setting is changed?
     allowautofocus: "true",
 
+    // These two options will fall back to user's preferences and then to a
+    // default value set in scrolling.ts if left undefined.
+    smoothscroll: undefined, // "false" | "true"
+    scrollduration: undefined, // number
+
     tabopenpos: "next",
     relatedopenpos: "related",
     ttsvoice: "default", // chosen from the listvoices list, or "default"

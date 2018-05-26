@@ -421,7 +421,9 @@ export async function getConfElsePref(
 ): Promise<any> {
     let option = await config.getAsync(confName)
     if (option === undefined) {
-        option = await getPref(prefName)
+        try {
+            option = await getPref(prefName)
+        } catch (e) {}
     }
     return option
 }

@@ -105,6 +105,7 @@ import * as SELF from "./.excmds_content.generated"
 Messaging.addListener("excmd_content", Messaging.attributeCaller(SELF))
 import * as DOM from "./dom"
 import { executeWithoutCommandLine } from "./commandline_content"
+import * as scrolling from "./scrolling"
 // }
 
 //#background_helper
@@ -521,10 +522,8 @@ export function unfocus() {
 }
 
 //#content
-export function scrollpx(a: number, b: number) {
-    let top = document.body.getClientRects()[0].top
-    window.scrollBy(a, b)
-    if (top == document.body.getClientRects()[0].top) recursiveScroll(a, b, [document.body])
+export async function scrollpx(a: number, b: number) {
+    if (!await scrolling.scroll(a, b, document.documentElement)) scrolling.recursiveScroll(a, b, [document.documentElement])
 }
 
 /** If two numbers are given, treat as x and y values to give to window.scrollTo
@@ -541,54 +540,27 @@ export function scrollto(a: number, b: number | "x" | "y" = "y") {
         window.scrollTo(window.scrollX, percentage * elem.scrollHeight / 100)
         if (top == elem.getClientRects()[0].top && (percentage == 0 || percentage == 100)) {
             // scrollTo failed, if the user wants to go to the top/bottom of
-            // the page try recursiveScroll instead
-            recursiveScroll(window.scrollX, 1073741824 * (percentage == 0 ? -1 : 1), [window.document.body])
+            // the page try scrolling.recursiveScroll instead
+            scrolling.recursiveScroll(window.scrollX, 1073741824 * (percentage == 0 ? -1 : 1), [document.documentElement])
         }
     } else if (b === "x") {
         let left = elem.getClientRects()[0].left
         window.scrollTo(percentage * elem.scrollWidth / 100, window.scrollY)
         if (left == elem.getClientRects()[0].left && (percentage == 0 || percentage == 100)) {
-            recursiveScroll(1073741824 * (percentage == 0 ? -1 : 1), window.scrollX, [window.document.body])
+            scrolling.recursiveScroll(1073741824 * (percentage == 0 ? -1 : 1), window.scrollX, [document.documentElement])
         }
     } else {
         window.scrollTo(a, Number(b)) // a,b numbers
     }
 }
 
-/** Tries to find a node which can be scrolled either x pixels to the right or
- *  y pixels down among the Elements in {nodes} and children of these Elements.
- *
- *  This function used to be recursive but isn't anymore due to various
- *  attempts at optimizing the function in order to reduce GC pressure.
- */
-//#content_helper
-function recursiveScroll(x: number, y: number, nodes: Element[]) {
-    let index = 0
-    do {
-        let node = nodes[index++] as any
-        // Save the node's position
-        let top = node.scrollTop
-        let left = node.scrollLeft
-        node.scrollBy(x, y)
-        // if the node moved, stop
-        if (top != node.scrollTop || left != node.scrollLeft) return
-        // Otherwise, add its children to the nodes that could be scrolled
-        nodes = nodes.concat(Array.from(node.children))
-        if (node.contentDocument) nodes.push(node.contentDocument.body)
-    } while (index < nodes.length)
-}
-
 //#content
 export function scrollline(n = 1) {
-    let top = document.body.getClientRects()[0].top
-    window.scrollByLines(n)
-    if (top == document.body.getClientRects()[0].top) {
-        const cssHeight = window.getComputedStyle(document.body).getPropertyValue("line-height")
-        // Remove the "px" at the end
-        const lineHeight = parseInt(cssHeight.substr(0, cssHeight.length - 2))
-        // lineHeight probably can't be NaN but let's make sure
-        if (lineHeight) recursiveScroll(0, lineHeight * n, [window.document.body])
-    }
+    const cssHeight = window.getComputedStyle(document.body).getPropertyValue("line-height")
+    // Remove the "px" at the end
+    const lineHeight = parseInt(cssHeight.substr(0, cssHeight.length - 2))
+    // lineHeight probably can't be NaN but let's make sure
+    if (lineHeight) scrolling.recursiveScroll(0, lineHeight * n, [document.documentElement])
 }
 
 //#content
