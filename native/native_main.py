@@ -252,10 +252,12 @@ try {
 }
 }
 if ($locked -eq $true) {
-Add-Type -AssemblyName System.Windows.Forms
-[System.Windows.MessageBox]::Show(
-    "Restarting Firefox failed. Please manually restart.",
-    "Tridactyl")
+$errorMsg = "Restarting Firefox failed. Please restart manually."
+Write-Host "$errorMsg"
+# Add-Type -AssemblyName System.Windows.Forms
+# [System.Windows.MessageBox]::Show(
+#     $errorMsg,
+#     "Tridactyl")
 } else {
 Write-Host "[+] Restarting Firefox ..."
 & %s %s
@@ -263,16 +265,24 @@ Write-Host "[+] Restarting Firefox ..."
 ''' % (profile_dir, ff_lock_path, ff_bin_path, ff_args)
 
             delay_sec = 1
-            task_cmd = "powershell"
             task_name = "firefox-restart"
             native_messenger_dirname = ".tridactyl"
 
-            restart_ps1_path = "%s\\%s\\%s" % (
-                os.path.expanduser('~'),
-                native_messenger_dirname,
-                "win_firefox_restart.ps1")
+            powershell_cmd = "powershell"
+            powershell_args = "%s %s" % \
+                ("-NoProfile",
+                 "-ExecutionPolicy Bypass")
 
-            task_arg = "\"%s\"" % restart_ps1_path
+            restart_ps1_path = "%s\\%s\\%s" % \
+                (os.path.expanduser('~'),
+                 native_messenger_dirname,
+                 "win_firefox_restart.ps1")
+
+            task_cmd = "cmd"
+            task_arg = "/c \"%s %s -File %s\"" % \
+                (powershell_cmd,
+                 powershell_args,
+                 restart_ps1_path)
 
             open(restart_ps1_path, "w+").write(restart_ps1_content)
 
