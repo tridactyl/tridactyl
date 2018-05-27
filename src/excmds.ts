@@ -2424,10 +2424,18 @@ export async function echo(...str: string[]) {
  *
  * Aliased to `!js`
  *
+ * If you want to pipe an argument to `js`, you need to use the "-p" flag and then use the JS_ARG global variable, e.g:
+ *
+ * `composite get_current_url | js -p alert(JS_ARG)`
  */
 //#content
 export async function js(...str: string[]) {
-    return eval(str.join(" "))
+    if (str[0].startsWith("-p")) {
+        let JS_ARG = str[str.length - 1]
+        return eval(str.slice(1, -1).join(" "))
+    } else {
+        return eval(str.join(" "))
+    }
 }
 
 /**
@@ -2435,7 +2443,12 @@ export async function js(...str: string[]) {
  */
 //#background
 export async function jsb(...str: string[]) {
-    return eval(str.join(" "))
+    if (str[0].startsWith("-p")) {
+        let JS_ARG = str[str.length - 1]
+        return eval(str.slice(1, -1).join(" "))
+    } else {
+        return eval(str.join(" "))
+    }
 }
 
 /**  Open a welcome page on first install.
