@@ -2171,7 +2171,7 @@ export function unset(...keys: string[]) {
     config.unset(...target)
 }
 
-/** Toggle css style to a page.
+/** Include and toggle css style to a web page.
  *
  * Syntax: style {mode} [...args]
  *
@@ -2183,40 +2183,47 @@ export function unset(...keys: string[]) {
  *      styleenable    : style -e
  *      styletoggle    : style -t
  *
- * @param args `-name {name} -match {[prefix]|[domain]|[URL]} -css {[complete css block of code]}`
+ *  - `-i` includes new rule
+ *  - `-x` deletes existing rule
+ *  - `-d` disables rule
+ *  - `-e` enable rule (default: ENABLED)
+ *  - `-t` toggle a rule on/off (default: OFF)
+ *
+ * @param args `--name {name} --append --filter {URL string part} --css {[complete css block of code]}`
+ *  - `--name` is name of the rule to be saving in config
+ *  - `--append` appends new style to exiting rule
+ * 	- `--filter` argument list is matched with `OR` and should be separated by comma: `,`. eg. `--filter domain.com,https,http://website.com/index.html`. If no filter is given, style will be applyed to every page.
+ *  - `--css` is the CSS full code block to be inserted at page when URL matches the filter rules
  *
  */
 //#background
 export async function style(mode: string, ...args: string[]) {
     let name: string
     let css: string
+    let filters: string[]
     let append: boolean = false
-    //let cssregex = /(\S*\s+)\{((?:.|\n)*?)\}\s*$/gm
     if (args.length > 0) {
-        if (args.includes("-name")) {
-            name = args[args.indexOf("-name") + 1]
-        } else throw 'Missing "-name" argument.'
-
-        if (args.includes("-append")) {
-            append = true
-        }
-        if (args.includes("-css")) {
-            css = args.slice(args.indexOf("-css") + 1, args.length).join(" ")
+        if (args.includes("--name")) name = args[args.indexOf("--name") + 1]
+        else throw 'Missing "--name" argument.'
+        if (args.includes("--append")) append = true
+        if (args.includes("--css")) css = args.slice(args.indexOf("--css") + 1, args.length).join(" ")
+        if (args.includes("--filter")) {
+            let filterlist = args[args.indexOf("--filter") + 1].split(",")
+            if (filterlist.some(f => f.includes("--"))) throw "No --filter argument given."
+            else filters = filterlist
         }
     }
+
     let styletoggles = await config.getAsync("styletoggles")
-    // checking argument rules
     switch (mode) {
         case "-i":
-            if (css == undefined) throw 'Missing "-css" argument.'
+            if (css == undefined) throw 'Missing "--css" argument.'
             if (append && styletoggles[name]) styletoggles[name].css.push(css)
             else {
-                let filter: string
-                let enabled: boolean = true
                 let newstyle = {
-                    filter: filter,
-                    enabled: true,
-                    toggled: false,
+                    filters: filters,
+                    enabled: true, // DEFAULT ENABLED
+                    toggled: false, // DEFAULT OFF
                     css: [],
                 }
                 newstyle.css.push(css)
@@ -2260,8 +2267,7 @@ export async function style(mode: string, ...args: string[]) {
             break
 
         default:
-            // list matches
-            logger.debug("style default reached")
+            throw "Unknown style mode."
     }
 }
 

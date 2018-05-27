@@ -143,3 +143,24 @@ config.getAsync("modeindicator").then(mode => {
         if (config.get("modeindicator") !== "true") statusIndicator.remove()
     })
 })
+
+// loading style toggles on page load
+config.getAsync("styletoggles").then(styletoggles => {
+    let current_url = new URL(window.location.href)
+
+    for (const [key, value] of Object.entries(styletoggles)) {
+        if (value.filters != undefined && value.filters.length > 0) {
+            let match = value.filters.some(f => current_url.href.includes(f))
+            if (match && value.enabled && value.toggled) {
+                value.css.forEach(css => {
+                    styling.insertstyle(css)
+                })
+            }
+        } else {
+            if (value.enabled && value.toggled)
+                value.css.forEach(css => {
+                    styling.insertstyle(css)
+                })
+        }
+    }
+})
