@@ -10,8 +10,10 @@ import struct
 import subprocess
 import sys
 import tempfile
+import time
 import unicodedata
 
+DEBUG = False
 VERSION = "0.1.6"
 
 
@@ -146,26 +148,46 @@ def is_valid_firefox_profile(profile_dir):
 def win_firefox_restart(message):
     """Handle 'win_firefox_restart' message."""
     reply = {}
-    profile_dir = message["profiledir"].strip()
+    profile_dir = None
+    browser_cmd = None
 
-    ff_bin_name = "firefox.exe"
-    ff_lock_name = "parent.lock"
-
-    if profile_dir != "auto" \
-            and not is_valid_firefox_profile(profile_dir):
+    try:
+        profile_dir = message["profiledir"].strip()
+        browser_cmd = message["browsercmd"].strip()
+    except KeyError:
         reply = {
+            "code": -1,
             "cmd": "error",
-            "error": "%s %s %s" % (
+            "error": "Error parsing 'restart' message.",
+        }
+        return reply
+
+    if (
+        profile_dir
+        and profile_dir != "auto"
+        and not is_valid_firefox_profile(profile_dir)
+    ):
+        reply = {
+            "code": -1,
+            "cmd": "error",
+            "error": "%s %s %s"
+            % (
                 "Invalid profile directory specified.",
                 "Vaild profile directory path(s) can be found by",
-                "navigating to 'about:support'."
-            )
+                "navigating to 'about:support'.",
+            ),
         }
 
-    elif not is_command_on_path(ff_bin_name):
+    elif browser_cmd and not is_command_on_path(browser_cmd):
         reply = {
+            "code": -1,
             "cmd": "error",
-            "error": "firefox.exe is not found on %PATH%."
+            "error": "%s %s %s"
+            % (
+                "'{0}' wasn't found on %PATH%.".format(browser_cmd),
+                "Please set valid browser by",
+                "'set browser [browser-command]'.",
+            ),
         }
 
     else:
@@ -212,71 +234,93 @@ def win_firefox_restart(message):
         #     shell=True)
         # }}}
 
-        ff_bin_path = "\"%s\"" % shutil.which(ff_bin_name)
+        ff_lock_name = "parent.lock"
+
+        ff_bin_name = browser_cmd
+        ff_bin_path = '"%s"' % shutil.which(ff_bin_name)
+
+        ff_bin_dir = '"%s"' % str(
+            pathlib.WindowsPath(shutil.which(ff_bin_name)).parent
+        )
 
         if profile_dir == "auto":
             ff_lock_path = ff_bin_path
-            ff_args = "\"%s\"" % \
-                ("-foreground")
+            ff_args = '"%s"' % ("-foreground")
         else:
-            ff_lock_path = "\"%s/%s\"" % (profile_dir,
-                                          ff_lock_name)
-            ff_args = "\"%s\" \"%s\" \"%s\"" % \
-                ("-foreground",
-                 "-profile",
-                 profile_dir)
+            ff_lock_path = '"%s/%s"' % (profile_dir, ff_lock_name)
+            ff_args = '"%s","%s","%s"' % (
+                "-foreground",
+                "-profile",
+                profile_dir,
+            )
 
         try:
-            restart_ps1_content = '''$profileDir = "%s"
-if ($profileDir -ne "auto") {
-    $lockFilePath = %s
+            restart_ps1_content = """
+$env:PATH=$env:PATH;{ff_bin_dir}
+Set-Location -Path {ff_bin_dir}
+$profileDir = "{profile_dir}"
+if ($profileDir -ne "auto") {{
+    $lockFilePath = {ff_lock_path}
     $locked = $true
     $num_try = 10
-} else {
+}} else {{
     $locked = $false
-}
-while (($locked -eq $true) -and ($num_try -gt 0)) {
-try {
+}}
+while (($locked -eq $true) -and ($num_try -gt 0)) {{
+try {{
     [IO.File]::OpenWrite($lockFilePath).close()
-    $locked=$fals
-} catch{
+    $locked=$false
+}} catch {{
     $num_try-=1
     Write-Host "[+] Trial: $num_try [lock == true]"
     Start-Sleep -Seconds 1
-}
-}
-if ($locked -eq $true) {
+}}
+}}
+if ($locked -eq $true) {{
 $errorMsg = "Restarting Firefox failed. Please restart manually."
 Write-Host "$errorMsg"
 # Add-Type -AssemblyName System.Windows.Forms
 # [System.Windows.MessageBox]::Show(
 #     $errorMsg,
 #     "Tridactyl")
-} else {
+}} else {{
 Write-Host "[+] Restarting Firefox ..."
-& %s %s
-}
-''' % (profile_dir, ff_lock_path, ff_bin_path, ff_args)
+Start-Process `
+  -WorkingDirectory {ff_bin_dir} `
+  -FilePath {ff_bin_path} `
+  -ArgumentList {ff_args} `
+  -WindowStyle Normal
+}}
+""".format(
+                ff_bin_dir=ff_bin_dir,
+                profile_dir=profile_dir,
+                ff_lock_path=ff_lock_path,
+                ff_bin_path=ff_bin_path,
+                ff_args=ff_args,
+            )
 
-            delay_sec = 1
+            delay_sec = 1.5
             task_name = "firefox-restart"
             native_messenger_dirname = ".tridactyl"
 
             powershell_cmd = "powershell"
-            powershell_args = "%s %s" % \
-                ("-NoProfile",
-                 "-ExecutionPolicy Bypass")
+            powershell_args = "%s %s" % (
+                "-NoProfile",
+                "-ExecutionPolicy Bypass",
+            )
 
-            restart_ps1_path = "%s\\%s\\%s" % \
-                (os.path.expanduser('~'),
-                 native_messenger_dirname,
-                 "win_firefox_restart.ps1")
+            restart_ps1_path = "%s\\%s\\%s" % (
+                os.path.expanduser("~"),
+                native_messenger_dirname,
+                "win_firefox_restart.ps1",
+            )
 
             task_cmd = "cmd"
-            task_arg = "/c \"%s %s -File %s\"" % \
-                (powershell_cmd,
-                 powershell_args,
-                 restart_ps1_path)
+            task_arg = '/c "%s %s -File %s"' % (
+                powershell_cmd,
+                powershell_args,
+                restart_ps1_path,
+            )
 
             open(restart_ps1_path, "w+").write(restart_ps1_content)
 
@@ -284,17 +328,18 @@ Write-Host "[+] Restarting Firefox ..."
             startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
 
             subprocess.check_output(
-                ["powershell",
-                 "-NonInteractive",
-                 "-NoProfile",
-                 "-WindowStyle",
-                 "Minimized",
-                 "-InputFormat",
-                 "None",
-                 "-ExecutionPolicy",
-                 "Bypass",
-                 "-Command",
-                 "Register-ScheduledTask \
+                [
+                    "powershell",
+                    "-NonInteractive",
+                    "-NoProfile",
+                    "-WindowStyle",
+                    "Minimized",
+                    "-InputFormat",
+                    "None",
+                    "-ExecutionPolicy",
+                    "Bypass",
+                    "-Command",
+                    "Register-ScheduledTask \
                      -TaskName '%s' \
                      -Force \
                      -Action (New-ScheduledTaskAction \
@@ -303,32 +348,53 @@ Write-Host "[+] Restarting Firefox ..."
                      -Trigger (New-ScheduledTaskTrigger \
                      -Once \
                      -At \
-                 (Get-Date).AddSeconds(%d).ToString(\
-                 'HH:mm:ss'))" % (task_name,
-                                  task_cmd,
-                                  task_arg,
-                                  delay_sec)
-                 ], shell=False, startupinfo=startupinfo)
+                 (Get-Date).AddSeconds(%d).ToString('HH:mm:ss'))"
+                    % (task_name, task_cmd, task_arg, delay_sec),
+                ],
+                shell=False,
+                startupinfo=startupinfo,
+            )
 
             reply = {
                 "code": 0,
-                "content": "Restarting in %d seconds..." % delay_sec
+                "content": "Restarting in %d seconds..."
+                % delay_sec,
             }
 
         except subprocess.CalledProcessError:
             reply = {
                 "code": -1,
                 "cmd": "error",
-                "error": "Error creating restart task."
+                "error": "error creating restart task.",
             }
 
     return reply
 
 
+def write_log(msg):
+    debug_log_dirname = ".tridactyl"
+    debug_log_filename = "native_main.log"
+
+    debug_log_path = "%s\\%s\\%s" % (
+        os.path.expanduser("~"),
+        debug_log_dirname,
+        debug_log_filename,
+    )
+
+    open(debug_log_path, "a+").write(msg)
+
+
 def handleMessage(message):
     """ Generate reply from incoming message. """
     cmd = message["cmd"]
-    reply = {'cmd': cmd}
+    reply = {"cmd": cmd}
+
+    if DEBUG:
+        msg = "%s %s\n" % (
+            time.strftime("%H:%M:%S %p", time.localtime()),
+            str(message),
+        )
+        write_log(msg)
 
     if cmd == 'version':
         reply = {'version': VERSION}

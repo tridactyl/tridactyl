@@ -246,14 +246,17 @@ export async function temp(content: string, prefix: string) {
     return sendNativeMsg("temp", { content, prefix })
 }
 
-export async function winFirefoxRestart(profiledir: string) {
+export async function winFirefoxRestart(
+    profiledir: string,
+    browsercmd: string,
+) {
     let required_version = "0.1.6"
 
     if (!await nativegate(required_version, false)) {
         throw `'restart' on Windows needs native messenger version >= ${required_version}.`
     }
 
-    return sendNativeMsg("win_firefox_restart", { profiledir })
+    return sendNativeMsg("win_firefox_restart", { profiledir, browsercmd })
 }
 
 export async function run(command: string) {
