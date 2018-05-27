@@ -514,13 +514,33 @@ export function loggingsetlevel(logModule: string, level: string) {
 // {{{ PAGE CONTEXT
 
 //#content_helper
-export let JUMPLIST = []
-//#content_helper
-export let JUMPCURRENT: number
-//#content_helper
-export let JUMPTIMEOUT: number
-//#content_helper
 export let JUMPED: boolean
+
+//#content_helper
+export function getJumpPageId() {
+    return document.location.href
+}
+
+//#content_helper
+export async function saveJumps(jumps) {
+    browserBg.sessions.setTabValue(await activeTabId(), "jumps", jumps)
+}
+
+//#content_helper
+export async function curJumps() {
+    let tabid = await activeTabId()
+    let jumps = await browserBg.sessions.getTabValue(tabid, "jumps")
+    if (!jumps) jumps = {}
+    let ensure = (obj, key, def) => {
+        if (obj[key] === null || obj[key] === undefined) obj[key] = def
+    }
+    let page = getJumpPageId()
+    ensure(jumps, page, {})
+    ensure(jumps[page], "list", [{ x: 0, y: 0 }])
+    ensure(jumps[page], "cur", 0)
+    saveJumps(jumps)
+    return jumps
+}
 
 //#content
 export function jumpnext(n = 1) {
@@ -532,12 +552,24 @@ export function jumpnext(n = 1) {
 */
 //#content
 export function jumpprev(n = 1) {
-    JUMPCURRENT -= n
-    if (JUMPCURRENT < 0) return back(-JUMPCURRENT)
-    else if (JUMPCURRENT >= JUMPLIST.length) return forward(JUMPCURRENT - JUMPLIST.length + 1)
-    let p = JUMPLIST[JUMPCURRENT]
-    JUMPED = true
-    window.scrollTo(p.x, p.y)
+    curJumps().then(alljumps => {
+        let jumps = alljumps[getJumpPageId()]
+        let current = jumps.cur - n
+        if (current < 0) {
+            jumps.cur = 0
+            saveJumps(alljumps)
+            return back(-current)
+        } else if (current >= jumps.list.length) {
+            jumps.cur = jumps.list.length - 1
+            saveJumps(alljumps)
+            return forward(current - jumps.list.length + 1)
+        }
+        jumps.cur = current
+        let p = jumps.list[jumps.cur]
+        saveJumps(alljumps)
+        JUMPED = true
+        window.scrollTo(p.x, p.y)
+    })
 }
 
 /** Called on 'scroll' events.
@@ -554,16 +586,36 @@ export function addJump(scrollEvent: UIEvent) {
         JUMPED = false
         return
     }
-    clearTimeout(JUMPTIMEOUT)
-    JUMPTIMEOUT = setTimeout(() => {
-        JUMPLIST.push({ x: scrollEvent.pageX, y: scrollEvent.pageY })
-        JUMPCURRENT = JUMPLIST.length - 1
-    }, config.get("jumpdelay"))
+    let pageX = scrollEvent.pageX
+    let pageY = scrollEvent.pageY
+    // Get config for current page
+    curJumps().then(alljumps => {
+        let jumps = alljumps[getJumpPageId()]
+        // Prevent pending jump from being registered
+        clearTimeout(jumps.timeoutid)
+        // Schedule the registering of the current jump
+        jumps.timeoutid = setTimeout(() => {
+            let list = jumps.list
+            // if the page hasn't moved, stop
+            if (list[jumps.cur].x == pageX && list[jumps.cur].y == pageY) return
+            // Store the new jump
+            // Could removing all jumps from list[cur] to list[list.length] be
+            // a better/more intuitive behavior?
+            list.push({ x: pageX, y: pageY })
+            jumps.cur = jumps.list.length - 1
+            saveJumps(alljumps)
+        }, config.get("jumpdelay"))
+    })
 }
 
 //#content_helper
 document.addEventListener("scroll", addJump)
-addJump(new UIEvent("scroll"))
+
+// Try to restore the previous jump position every time a page is loaded
+//#content_helper
+curJumps().then(() => {
+    jumpprev(0)
+})
 
 /** Blur (unfocus) the active element */
 //#content

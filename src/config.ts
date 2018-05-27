@@ -73,8 +73,8 @@ const DEFAULTS = o({
         "<c-6>": "buffer #",
         H: "back",
         L: "forward",
-        "<c-o>": "back",
-        "<c-i>": "forward",
+        "<c-o>": "jumpprev",
+        "<c-i>": "jumpnext",
         d: "tabclose",
         D: "composite tabprev; sleep 100; tabclose #",
         gx0: "tabclosealltoleft",
@@ -252,7 +252,7 @@ const DEFAULTS = o({
     theme: "default", // currently available: "default", "dark"
     modeindicator: "true",
 
-    "jumpdelay": 1000, // Delay before registering a scroll in the jumplist
+    jumpdelay: 1000, // Delay before registering a scroll in the jumplist
 
     // Default logging levels - 2 === WARNING
     logging: o({
