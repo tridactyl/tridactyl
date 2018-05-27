@@ -24,6 +24,7 @@ import * as itertools from "./itertools"
 import * as keydown_content from "./keydown_content"
 import * as messaging from "./messaging"
 import * as msgsafe from "./msgsafe"
+import * as UrlUtil from "./url_util"
 import state from "./state"
 import * as webext from "./lib/webext"
 import Mark from "mark.js"
@@ -142,4 +143,27 @@ config.getAsync("modeindicator").then(mode => {
         }
         if (config.get("modeindicator") !== "true") statusIndicator.remove()
     })
+})
+
+// loading style toggles on page load
+config.getAsync("styletoggles").then(styletoggles => {
+    const current_url = new URL(window.location.href)
+    for (const [key, value] of Object.entries(styletoggles)) {
+        if (value.filters != undefined && value.filters.length > 0) {
+            let match = value.filters.some(f =>
+                UrlUtil.partMatchesURL(f, current_url),
+            )
+            if (match && value.enabled && value.toggled) {
+                value.css.forEach(css => {
+                    styling.insertstyle(css)
+                })
+            }
+            // no filter apply to all
+        } else {
+            if (value.enabled && value.toggled)
+                value.css.forEach(css => {
+                    styling.insertstyle(css)
+                })
+        }
+    }
 })

@@ -370,3 +370,26 @@ export function interpolateSearchItem(urlPattern: URL, query: string): URL {
         return new URL(urlPattern.href + query)
     }
 }
+
+/**
+ * Check if url URL filter criteria matches the current page URL
+ *
+ * @param part      a URL part string or full URL be matched with the @param url
+ * @param url       a URL object of the current page
+ *
+ * @return          `true` if url `part` matches the full URL href, and `false` otherwise
+ *
+ */
+export function partMatchesURL(part: string, url: URL): boolean {
+    // prefix
+    if (/[*]$/.test(part)) {
+        let prefix = part.replace(/[*]$/, "")
+        if (url.href.includes(prefix)) return true
+    }
+    // full URL
+    else if (/[\/:]/.test(part) && url.href === part) return true
+    // domain
+    else if (url.host === part || url.hostname === part) return true
+
+    return false
+}
