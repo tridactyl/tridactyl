@@ -55,8 +55,8 @@ def getMessage():
     rawLength = sys.stdin.buffer.read(4)
     if len(rawLength) == 0:
         sys.exit(0)
-    messageLength = struct.unpack('@I', rawLength)[0]
-    message = sys.stdin.buffer.read(messageLength).decode('utf-8')
+    messageLength = struct.unpack("@I", rawLength)[0]
+    message = sys.stdin.buffer.read(messageLength).decode("utf-8")
     return json.loads(message)
 
 
@@ -64,18 +64,18 @@ def getMessage():
 # given its content.
 def encodeMessage(messageContent):
     """ Encode a message for transmission, given its content."""
-    encodedContent = json.dumps(messageContent).encode('utf-8')
-    encodedLength = struct.pack('@I', len(encodedContent))
-    return {'length': encodedLength, 'content': encodedContent}
+    encodedContent = json.dumps(messageContent).encode("utf-8")
+    encodedLength = struct.pack("@I", len(encodedContent))
+    return {"length": encodedLength, "content": encodedContent}
 
 
 # Send an encoded message to stdout
 def sendMessage(encodedMessage):
     """ Send an encoded message to stdout."""
-    sys.stdout.buffer.write(encodedMessage['length'])
-    sys.stdout.buffer.write(encodedMessage['content'])
+    sys.stdout.buffer.write(encodedMessage["length"])
+    sys.stdout.buffer.write(encodedMessage["content"])
     try:
-        sys.stdout.buffer.write(encodedMessage['code'])
+        sys.stdout.buffer.write(encodedMessage["code"])
     except KeyError:
         pass
 
@@ -86,13 +86,15 @@ def findUserConfigFile():
     """ Find a user config file, if it exists. Return the file path, or None
     if not found
     """
-    home = os.path.expanduser('~')
-    config_dir = getenv('XDG_CONFIG_HOME', os.path.expanduser('~/.config'))
+    home = os.path.expanduser("~")
+    config_dir = getenv(
+        "XDG_CONFIG_HOME", os.path.expanduser("~/.config")
+    )
 
     # Will search for files in this order
     candidate_files = [
         os.path.join(config_dir, "tridactyl", "tridactylrc"),
-        os.path.join(home, '.tridactylrc')
+        os.path.join(home, ".tridactylrc"),
     ]
 
     config_path = None
@@ -116,7 +118,7 @@ def getUserConfig():
 
     # for now, this is a simple file read, but if the files can
     # include other files, that will need more work
-    return open(cfg_file, 'r').read()
+    return open(cfg_file, "r").read()
 
 
 def sanitizeFilename(fn):
@@ -124,11 +126,14 @@ def sanitizeFilename(fn):
 
     From https://stackoverflow.com/a/295466/147356"""
 
-    fn = unicodedata.normalize('NFKD', fn).encode(
-        'ascii', 'ignore').decode('ascii')
-    fn = re.sub('[^\w\s/.-]', '', fn).strip().lower()
-    fn = re.sub('\.\.+', '', fn)
-    fn = re.sub('[-/\s]+', '-', fn)
+    fn = (
+        unicodedata.normalize("NFKD", fn)
+        .encode("ascii", "ignore")
+        .decode("ascii")
+    )
+    fn = re.sub("[^\w\s/.-]", "", fn).strip().lower()
+    fn = re.sub("\.\.+", "", fn)
+    fn = re.sub("[-/\s]+", "-", fn)
     return fn
 
 
@@ -396,17 +401,17 @@ def handleMessage(message):
         )
         write_log(msg)
 
-    if cmd == 'version':
-        reply = {'version': VERSION}
+    if cmd == "version":
+        reply = {"version": VERSION}
 
-    elif cmd == 'getconfig':
+    elif cmd == "getconfig":
         file_content = getUserConfig()
         if file_content:
-            reply['content'] = file_content
+            reply["content"] = file_content
         else:
-            reply['code'] = 'File not found'
+            reply["code"] = "File not found"
 
-    elif cmd == 'run':
+    elif cmd == "run":
         commands = message["command"]
 
         try:
@@ -418,50 +423,56 @@ def handleMessage(message):
             reply["code"] = process.returncode
             reply["content"] = process.output.decode("utf-8")
 
-    elif cmd == 'eval':
+    elif cmd == "eval":
         output = eval(message["command"])
-        reply['content'] = output
+        reply["content"] = output
 
-    elif cmd == 'read':
+    elif cmd == "read":
         try:
-            with open(os.path.expandvars(os.path.expanduser(message["file"])), "r") as file:
-                reply['content'] = file.read()
-                reply['code'] = 0
+            with open(
+                os.path.expandvars(
+                    os.path.expanduser(message["file"])
+                ),
+                "r",
+            ) as file:
+                reply["content"] = file.read()
+                reply["code"] = 0
         except FileNotFoundError:
-            reply['content'] = ""
-            reply['code'] = 2
+            reply["content"] = ""
+            reply["code"] = 2
 
-    elif cmd == 'mkdir':
+    elif cmd == "mkdir":
         os.makedirs(
-            os.path.relpath(message["dir"]), exist_ok=message["exist_ok"]
+            os.path.relpath(message["dir"]),
+            exist_ok=message["exist_ok"],
         )
-        reply['content'] = ""
-        reply['code'] = 0
+        reply["content"] = ""
+        reply["code"] = 0
 
-    elif cmd == 'write':
+    elif cmd == "write":
         with open(message["file"], "w") as file:
             file.write(message["content"])
 
-    elif cmd == 'temp':
-        prefix = message.get('prefix')
+    elif cmd == "temp":
+        prefix = message.get("prefix")
         if prefix is None:
-            prefix = ''
-        prefix = 'tmp_{}_'.format(sanitizeFilename(prefix))
+            prefix = ""
+        prefix = "tmp_{}_".format(sanitizeFilename(prefix))
 
         (handle, filepath) = tempfile.mkstemp(prefix=prefix)
         with os.fdopen(handle, "w") as file:
             file.write(message["content"])
-        reply['content'] = filepath
+        reply["content"] = filepath
 
-    elif cmd == 'env':
-        reply['content'] = getenv(message["var"], "")
+    elif cmd == "env":
+        reply["content"] = getenv(message["var"], "")
 
     elif cmd == "win_firefox_restart":
         reply = win_firefox_restart(message)
 
     else:
-        reply = {'cmd': 'error', 'error': 'Unhandled message'}
-        eprint('Unhandled message: {}'.format(message))
+        reply = {"cmd": "error", "error": "Unhandled message"}
+        eprint("Unhandled message: {}".format(message))
 
     return reply
 
