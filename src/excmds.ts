@@ -105,6 +105,7 @@ import * as SELF from "./.excmds_content.generated"
 Messaging.addListener("excmd_content", Messaging.attributeCaller(SELF))
 import * as DOM from "./dom"
 import { executeWithoutCommandLine } from "./commandline_content"
+import * as scrolling from "./scrolling"
 // }
 
 //#background_helper
@@ -514,6 +515,110 @@ export function loggingsetlevel(logModule: string, level: string) {
 
 // {{{ PAGE CONTEXT
 
+//#content_helper
+export let JUMPED: boolean
+
+//#content_helper
+export function getJumpPageId() {
+    return document.location.href
+}
+
+//#content_helper
+export async function saveJumps(jumps) {
+    browserBg.sessions.setTabValue(await activeTabId(), "jumps", jumps)
+}
+
+//#content_helper
+export async function curJumps() {
+    let tabid = await activeTabId()
+    let jumps = await browserBg.sessions.getTabValue(tabid, "jumps")
+    if (!jumps) jumps = {}
+    let ensure = (obj, key, def) => {
+        if (obj[key] === null || obj[key] === undefined) obj[key] = def
+    }
+    let page = getJumpPageId()
+    ensure(jumps, page, {})
+    ensure(jumps[page], "list", [{ x: 0, y: 0 }])
+    ensure(jumps[page], "cur", 0)
+    saveJumps(jumps)
+    return jumps
+}
+
+//#content
+export function jumpnext(n = 1) {
+    jumpprev(-n)
+}
+
+/** Similar to Pentadactyl or vim's jump list.
+    Should be bound to <C-o> when modifiers are implemented
+*/
+//#content
+export function jumpprev(n = 1) {
+    curJumps().then(alljumps => {
+        let jumps = alljumps[getJumpPageId()]
+        let current = jumps.cur - n
+        if (current < 0) {
+            jumps.cur = 0
+            saveJumps(alljumps)
+            return back(-current)
+        } else if (current >= jumps.list.length) {
+            jumps.cur = jumps.list.length - 1
+            saveJumps(alljumps)
+            return forward(current - jumps.list.length + 1)
+        }
+        jumps.cur = current
+        let p = jumps.list[jumps.cur]
+        saveJumps(alljumps)
+        JUMPED = true
+        window.scrollTo(p.x, p.y)
+    })
+}
+
+/** Called on 'scroll' events.
+    If you want to have a function that moves within the page but doesn't add a
+    location to the jumplist, make sure to set JUMPED to true before moving
+    around.
+    The setTimeout call is required because sometimes a user wants to move
+    somewhere by pressing 'j' multiple times and we don't want to add the
+    in-between locations to the jump list
+*/
+//#content_helper
+export function addJump(scrollEvent: UIEvent) {
+    if (JUMPED) {
+        JUMPED = false
+        return
+    }
+    let pageX = scrollEvent.pageX
+    let pageY = scrollEvent.pageY
+    // Get config for current page
+    curJumps().then(alljumps => {
+        let jumps = alljumps[getJumpPageId()]
+        // Prevent pending jump from being registered
+        clearTimeout(jumps.timeoutid)
+        // Schedule the registering of the current jump
+        jumps.timeoutid = setTimeout(() => {
+            let list = jumps.list
+            // if the page hasn't moved, stop
+            if (list[jumps.cur].x == pageX && list[jumps.cur].y == pageY) return
+            // Store the new jump
+            // Could removing all jumps from list[cur] to list[list.length] be
+            // a better/more intuitive behavior?
+            list.push({ x: pageX, y: pageY })
+            jumps.cur = jumps.list.length - 1
+            saveJumps(alljumps)
+        }, config.get("jumpdelay"))
+    })
+}
+
+//#content_helper
+document.addEventListener("scroll", addJump)
+
+// Try to restore the previous jump position every time a page is loaded
+//#content_helper
+curJumps().then(() => {
+    jumpprev(0)
+})
+
 /** Blur (unfocus) the active element */
 //#content
 export function unfocus() {
@@ -522,10 +627,8 @@ export function unfocus() {
 }
 
 //#content
-export function scrollpx(a: number, b: number) {
-    let top = document.body.getClientRects()[0].top
-    window.scrollBy(a, b)
-    if (top == document.body.getClientRects()[0].top) recursiveScroll(a, b, [document.body])
+export async function scrollpx(a: number, b: number) {
+    if (!await scrolling.scroll(a, b, document.documentElement)) scrolling.recursiveScroll(a, b, [document.documentElement])
 }
 
 /** If two numbers are given, treat as x and y values to give to window.scrollTo
@@ -542,54 +645,27 @@ export function scrollto(a: number, b: number | "x" | "y" = "y") {
         window.scrollTo(window.scrollX, percentage * elem.scrollHeight / 100)
         if (top == elem.getClientRects()[0].top && (percentage == 0 || percentage == 100)) {
             // scrollTo failed, if the user wants to go to the top/bottom of
-            // the page try recursiveScroll instead
-            recursiveScroll(window.scrollX, 1073741824 * (percentage == 0 ? -1 : 1), [window.document.body])
+            // the page try scrolling.recursiveScroll instead
+            scrolling.recursiveScroll(window.scrollX, 1073741824 * (percentage == 0 ? -1 : 1), [document.documentElement])
         }
     } else if (b === "x") {
         let left = elem.getClientRects()[0].left
         window.scrollTo(percentage * elem.scrollWidth / 100, window.scrollY)
         if (left == elem.getClientRects()[0].left && (percentage == 0 || percentage == 100)) {
-            recursiveScroll(1073741824 * (percentage == 0 ? -1 : 1), window.scrollX, [window.document.body])
+            scrolling.recursiveScroll(1073741824 * (percentage == 0 ? -1 : 1), window.scrollX, [document.documentElement])
         }
     } else {
         window.scrollTo(a, Number(b)) // a,b numbers
     }
 }
 
-/** Tries to find a node which can be scrolled either x pixels to the right or
- *  y pixels down among the Elements in {nodes} and children of these Elements.
- *
- *  This function used to be recursive but isn't anymore due to various
- *  attempts at optimizing the function in order to reduce GC pressure.
- */
-//#content_helper
-function recursiveScroll(x: number, y: number, nodes: Element[]) {
-    let index = 0
-    do {
-        let node = nodes[index++] as any
-        // Save the node's position
-        let top = node.scrollTop
-        let left = node.scrollLeft
-        node.scrollBy(x, y)
-        // if the node moved, stop
-        if (top != node.scrollTop || left != node.scrollLeft) return
-        // Otherwise, add its children to the nodes that could be scrolled
-        nodes = nodes.concat(Array.from(node.children))
-        if (node.contentDocument) nodes.push(node.contentDocument.body)
-    } while (index < nodes.length)
-}
-
 //#content
 export function scrollline(n = 1) {
-    let top = document.body.getClientRects()[0].top
-    window.scrollByLines(n)
-    if (top == document.body.getClientRects()[0].top) {
-        const cssHeight = window.getComputedStyle(document.body).getPropertyValue("line-height")
-        // Remove the "px" at the end
-        const lineHeight = parseInt(cssHeight.substr(0, cssHeight.length - 2))
-        // lineHeight probably can't be NaN but let's make sure
-        if (lineHeight) recursiveScroll(0, lineHeight * n, [window.document.body])
-    }
+    const cssHeight = window.getComputedStyle(document.body).getPropertyValue("line-height")
+    // Remove the "px" at the end
+    const lineHeight = parseInt(cssHeight.substr(0, cssHeight.length - 2))
+    // lineHeight probably can't be NaN but let's make sure
+    if (lineHeight) scrolling.recursiveScroll(0, lineHeight * n, [document.documentElement])
 }
 
 //#content
