@@ -8,15 +8,7 @@ platform:
 # Set `git clone` directory
 clone_folder: 'C:\Tridactyl'
 
-# Environment variables
-environment:
-  PYINSTALLER: 0
-
 init:
-  # Extend %PATH%
-  - ps: $env:PATH = "C:\Program Files\Git\mingw64\bin;$env:PATH"
-  # - ps: $env:PATH = "C:\msys64\bin;$env:PATH"
-
   # Verify %PATH%
   - ps: Write-Host "[+] Current PATH contains ..."
   - ps: Write-Host $env:PATH.Replace(";", "`r`n")
@@ -36,28 +28,38 @@ init:
   - node --version
   - npm --version
 
-  # Python version here will be 2.7, which is needed to keep NPM's
-  # 'bunyan' > 'dtrace-provider' modules happy. 'Dtrace-provider'
-  # needs Python 'gyp' module, which is only available for Python 2.
-  # We will prepend Python 3.6 to $PATH, under 'build_script'.
+  #
+  # Python version will show "2.7" below, which is required to keep
+  # NPM's 'bunyan' > 'dtrace-provider' modules happy.
+  # 'Dtrace-provider' needs Python 'gyp' module, which is only
+  # available for Python-2. We will prepend Python-3.6 to $PATH,
+  # under 'build_script'.
+  #
   - python --version
 
 install:
+  #
   # If there is a newer build queued for the same PR, cancel this
-  # one.  The AppVeyor 'rollout builds' option is supposed to serve
+  # one. The AppVeyor 'rollout builds' option is supposed to serve
   # the same purpose but it is problematic because it tends to
   # cancel builds pushed directly to master instead of just PR
-  # builds (or the converse).  credits: JuliaLang developers.
-  - ps: if ($env:APPVEYOR_PULL_REQUEST_NUMBER -and $env:APPVEYOR_BUILD_NUMBER -ne ((Invoke-RestMethod `
-        https://ci.appveyor.com/api/projects/$env:APPVEYOR_ACCOUNT_NAME/$env:APPVEYOR_PROJECT_SLUG/history?recordsNumber=50).builds | `
-        Where-Object pullRequestId -eq $env:APPVEYOR_PULL_REQUEST_NUMBER)[0].buildNumber) { `
-          throw "There are newer queued builds for this pull request, failing early." }
+  # builds (or the converse).
+  #
+  # Credits: JuliaLang developers.
+  #
+  - ps: if ($env:APPVEYOR_PULL_REQUEST_NUMBER `
+             -and $env:APPVEYOR_BUILD_NUMBER `
+             -ne ((Invoke-RestMethod `
+        https://ci.appveyor.com/api/projects/$env:APPVEYOR_ACCOUNT_NAME/$env:APPVEYOR_PROJECT_SLUG/history?recordsNumber=50).builds `
+        | Where-Object pullRequestId `
+        -eq $env:APPVEYOR_PULL_REQUEST_NUMBER)[0].buildNumber) `
+        { throw "Newer build in progress, giving this one up ..." }
 
   # Change to build directory
   - ps: Set-Location -Path $env:APPVEYOR_BUILD_FOLDER
 
   # Verify CWD
-  - ps: Write-Host "[+] Current PWD is ..."
+  - ps: Write-Host "[+] Current working directory is ..."
   - ps: Get-Location
   - bash -e -l -c "cd $APPVEYOR_BUILD_FOLDER && ls -alh"
 
@@ -74,18 +76,23 @@ install:
   - bash -e -l -c "cd $APPVEYOR_BUILD_FOLDER && npm install"
 
 build_script:
-  # Add Python3 to %PATH%
+  # Add Python-3.6 to %PATH%
   - ps: $env:PATH = "C:\Python36-x64\Scripts;$env:PATH"
   - ps: $env:PATH = "C:\Python36-x64;$env:PATH"
   - ps: Copy-Item -Path "C:\Python36-x64\Python.exe" -Destination "C:\Python36-x64\Python3.exe"
 
   # Change to build directory and verify CWD
   - ps: Set-Location -Path $env:APPVEYOR_BUILD_FOLDER
-  - ps: Write-Host "[+] Current PWD is ..."
+  - ps: Write-Host "[+] Current working directory is ..."
   - ps: Get-Location
 
   # Start build
+  - ps: Write-Host "[+] Current %PATH% under Bash ..."
   - bash -e -l -c "echo $PATH"
+
+  - ps: Write-Host "[+] Current directory under Bash ..."
   - bash -e -l -c "cd $APPVEYOR_BUILD_FOLDER && ls -alh"
-  - bash -e -l -c "cd $APPVEYOR_BUILD_FOLDER && PYINSTALLER=1 sh -x scripts/build.sh"
+
+  - ps: Write-Host "[+] Starting 'npm run build' ..."
+  - bash -e -l -c "cd $APPVEYOR_BUILD_FOLDER && export PYINSTALLER=1 && npm run build"
 

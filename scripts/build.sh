@@ -6,7 +6,8 @@ CLEANSLATE="node_modules/cleanslate/docs/files/cleanslate.css"
 
 isWindowsMinGW() {
   local is_mingw="False"
-  if [ "$(uname | cut -c 1-5)" = "MINGW" ]; then
+  if [ "$(uname | cut -c 1-5)" = "MINGW" ] \
+    || [ "$(uname | cut -c 1-4)" = "MSYS" ]; then
     is_mingw="True"
   fi
 
