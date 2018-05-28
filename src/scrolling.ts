@@ -18,7 +18,7 @@ async function getDuration() {
     return await Native.getConfElsePrefElseDefault(
         "scrollduration",
         "general.smoothScroll.lines.durationMinMs",
-        250,
+        100,
     )
 }
 
