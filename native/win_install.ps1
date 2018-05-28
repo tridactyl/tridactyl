@@ -18,9 +18,9 @@ $global:WinPython3Command = "py -3 -u"
 $global:MessengerManifestReplaceStr = "REPLACE_ME_WITH_SED"
 
 # $git_repo_owner should be "cmcaine" in final release
-$git_repo_owner = "gsbabil"
+$git_repo_owner = "cmcaine"
 # $git_repo_branch should be "master" in final release
-$git_repo_branch = "gsbabil/windows-compiled-native-messenger-support"
+$git_repo_branch = "cmcaine/master"
 $git_repo_proto = "https"
 $git_repo_host = "raw.githubusercontent.com"
 $git_repo_name = "tridactyl"
@@ -34,7 +34,7 @@ $global:MessengerFilesHttpUriBase = `
     $git_repo_branch,
     $git_repo_dir
 )
-
+$global:MessengerExeHttpUriBase = "https://tridactyl.cmcaine.co.uk/betas"
 $global:MessengerManifestRegistryPath = `
     "HKCU:\Software\Mozilla\NativeMessagingHosts\tridactyl"
 
@@ -195,11 +195,17 @@ function Get-MessengerBinUri() {
         -UFormat %s)
 
     $messengerBinName = Get-MessengerBinName
-
-    $messengerBinUri = [string]::Format("{0}/{1}?{2}",
-        $global:MessengerFilesHttpUriBase,
-        $messengerBinName,
-        $downloadStartTime)
+    if ($global:NoPython -eq $true) { # system doesn't have python3
+        $messengerBinUri = [string]::Format("{0}/{1}",
+            $global:MessengerExeHttpUriBase,
+            $messengerBinName
+        )
+    } else {
+        $messengerBinUri = [string]::Format("{0}/{1}?{2}",
+            $global:MessengerFilesHttpUriBase,
+            $messengerBinName,
+            $downloadStartTime)
+    }
 
     Return $messengerBinUri.Trim()
 }

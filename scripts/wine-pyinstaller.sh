@@ -95,9 +95,9 @@ mainFunction() {
 
   ## Create required directories
   mkdir -pv "${BUILDROOT}"
-  mkdir -pv "${OUTDIR}"
   mkdir -pv "${DLDIR}"
   mkdir -pv "${OUTDIR}"
+  mkdir -pv "$TRIDIR"/web-ext-artifacts/
 
 
   ## Download Python and Pip
@@ -157,6 +157,7 @@ mainFunction() {
   ## Test the compiled EXE
   colorEcho "[+] Checking compiled binary ...\n"
   OUTFILE="${OUTDIR}/native_main.exe"
+  cp "$OUTFILE" "$TRIDIR"/web-ext-artifacts/
 
   if [ -f "${OUTFILE}" ]; then
     python3 \
