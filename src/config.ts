@@ -73,8 +73,8 @@ const DEFAULTS = o({
         "<c-6>": "buffer #",
         H: "back",
         L: "forward",
-        "<c-o>": "back",
-        "<c-i>": "forward",
+        "<c-o>": "jumpprev",
+        "<c-i>": "jumpnext",
         d: "tabclose",
         D: "composite tabprev; sleep 100; tabclose #",
         gx0: "tabclosealltoleft",
@@ -257,6 +257,8 @@ const DEFAULTS = o({
     theme: "default", // currently available: "default", "dark"
     modeindicator: "true",
 
+    jumpdelay: 3000, // Milliseconds before registering a scroll in the jumplist
+
     // Default logging levels - 2 === WARNING
     logging: o({
         messaging: 2,
@@ -279,9 +281,9 @@ const DEFAULTS = o({
     nativeinstallcmd:
         "curl -fsSl https://raw.githubusercontent.com/cmcaine/tridactyl/master/native/install.sh | bash",
     win_powershell_nativeinstallcmd:
-        "Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/gsbabil/tridactyl/master/native/win_install.ps1'))",
+        "Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/cmcaine/tridactyl/master/native/win_install.ps1'))",
     win_cmdexe_nativeinstallcmd:
-        '@"%SystemRoot%\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -NoProfile -InputFormat None -Command "iex ((New-Object System.Net.WebClient).DownloadString(\'https://raw.githubusercontent.com/gsbabil/tridactyl/master/native/win_install.ps1\'))"',
+        '@"%SystemRoot%\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -NoProfile -InputFormat None -Command "iex ((New-Object System.Net.WebClient).DownloadString(\'https://raw.githubusercontent.com/cmcaine/tridactyl/master/native/win_install.ps1\'))"',
     profiledir: "auto",
 
     // Container settings

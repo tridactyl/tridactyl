@@ -16,6 +16,12 @@ interface Window {
     eval(str: string): any
 }
 
+// Again, firefox-specific
+interface UIEvent {
+    pageX: number
+    pageY: number
+}
+
 interface HTMLElement {
     // Let's be future proof:
     // https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement/focus

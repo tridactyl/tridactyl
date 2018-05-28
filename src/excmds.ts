@@ -514,6 +514,110 @@ export function loggingsetlevel(logModule: string, level: string) {
 
 // {{{ PAGE CONTEXT
 
+//#content_helper
+export let JUMPED: boolean
+
+//#content_helper
+export function getJumpPageId() {
+    return document.location.href
+}
+
+//#content_helper
+export async function saveJumps(jumps) {
+    browserBg.sessions.setTabValue(await activeTabId(), "jumps", jumps)
+}
+
+//#content_helper
+export async function curJumps() {
+    let tabid = await activeTabId()
+    let jumps = await browserBg.sessions.getTabValue(tabid, "jumps")
+    if (!jumps) jumps = {}
+    let ensure = (obj, key, def) => {
+        if (obj[key] === null || obj[key] === undefined) obj[key] = def
+    }
+    let page = getJumpPageId()
+    ensure(jumps, page, {})
+    ensure(jumps[page], "list", [{ x: 0, y: 0 }])
+    ensure(jumps[page], "cur", 0)
+    saveJumps(jumps)
+    return jumps
+}
+
+//#content
+export function jumpnext(n = 1) {
+    jumpprev(-n)
+}
+
+/** Similar to Pentadactyl or vim's jump list.
+    Should be bound to <C-o> when modifiers are implemented
+*/
+//#content
+export function jumpprev(n = 1) {
+    curJumps().then(alljumps => {
+        let jumps = alljumps[getJumpPageId()]
+        let current = jumps.cur - n
+        if (current < 0) {
+            jumps.cur = 0
+            saveJumps(alljumps)
+            return back(-current)
+        } else if (current >= jumps.list.length) {
+            jumps.cur = jumps.list.length - 1
+            saveJumps(alljumps)
+            return forward(current - jumps.list.length + 1)
+        }
+        jumps.cur = current
+        let p = jumps.list[jumps.cur]
+        saveJumps(alljumps)
+        JUMPED = true
+        window.scrollTo(p.x, p.y)
+    })
+}
+
+/** Called on 'scroll' events.
+    If you want to have a function that moves within the page but doesn't add a
+    location to the jumplist, make sure to set JUMPED to true before moving
+    around.
+    The setTimeout call is required because sometimes a user wants to move
+    somewhere by pressing 'j' multiple times and we don't want to add the
+    in-between locations to the jump list
+*/
+//#content_helper
+export function addJump(scrollEvent: UIEvent) {
+    if (JUMPED) {
+        JUMPED = false
+        return
+    }
+    let pageX = scrollEvent.pageX
+    let pageY = scrollEvent.pageY
+    // Get config for current page
+    curJumps().then(alljumps => {
+        let jumps = alljumps[getJumpPageId()]
+        // Prevent pending jump from being registered
+        clearTimeout(jumps.timeoutid)
+        // Schedule the registering of the current jump
+        jumps.timeoutid = setTimeout(() => {
+            let list = jumps.list
+            // if the page hasn't moved, stop
+            if (list[jumps.cur].x == pageX && list[jumps.cur].y == pageY) return
+            // Store the new jump
+            // Could removing all jumps from list[cur] to list[list.length] be
+            // a better/more intuitive behavior?
+            list.push({ x: pageX, y: pageY })
+            jumps.cur = jumps.list.length - 1
+            saveJumps(alljumps)
+        }, config.get("jumpdelay"))
+    })
+}
+
+//#content_helper
+document.addEventListener("scroll", addJump)
+
+// Try to restore the previous jump position every time a page is loaded
+//#content_helper
+curJumps().then(() => {
+    jumpprev(0)
+})
+
 /** Blur (unfocus) the active element */
 //#content
 export function unfocus() {
