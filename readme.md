@@ -95,7 +95,7 @@ Extended hint modes allow you to perform actions on page items:
 *   `;k` — delete an element from the page
 *   `;;` — focus an element
 
-Additionally, you can bind to a custom CSS selector with `:hint -c [selector]` which is useful for site-specific versions of the standard `f` hint mode.
+Additionally, you can hint elements matching a custom CSS selector with `:hint -c [selector]` which is useful for site-specific versions of the standard `f` hint mode.
 
 ### Binding custom commands
 
