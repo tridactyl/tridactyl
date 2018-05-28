@@ -21,7 +21,6 @@
  *
  */
 
-
 /* auto-hide the tab and navigation bar in a similar way to fullscreen mode */
 
 /* User config */
@@ -34,24 +33,30 @@
 }
 
 /* Hide grey container box */
-:root:not([customizing]) #navigator-toolbox:not(:hover):not(:focus-within) { 
+:root:not([customizing]) #navigator-toolbox:not(:hover):not(:focus-within) {
     max-height: 0;
-    min-height: calc(0px); /* I have no idea why just using 0 or 0px does not work... */
+    min-height: calc(
+        0px
+    ); /* I have no idea why just using 0 or 0px does not work... */
 }
 
 /* Auto hide tab bar */
-:root:not([customizing]) #navigator-toolbox:not(:hover):not(:focus-within) #TabsToolbar { 
+:root:not([customizing])
+    #navigator-toolbox:not(:hover):not(:focus-within)
+    #TabsToolbar {
     visibility: collapse;
 }
 
 /* Auto hide nav bar */
-:root:not([customizing]) #navigator-toolbox:not(:hover):not(:focus-within) #nav-bar {
+:root:not([customizing])
+    #navigator-toolbox:not(:hover):not(:focus-within)
+    #nav-bar {
     max-height: 0;
-    min-height: 0!important;
+    min-height: 0 !important;
     /* Use margin-bottom to allow trigger zones that are larger than the nav-bar */
     margin-bottom: calc(-1 * var(--tridactyl-auto-show-zone));
     opacity: 0;
-} 
+}
 
 /* Avoid transparent background for menubar if nav-toolbox not focussed */
 #navigator-toolbox:not(:hover):not(:focus-within) #toolbar-menubar > * {
@@ -59,30 +64,39 @@
     background-color: rgb(232, 232, 231);
 }
 
-
 /* Make top bar more compact */
 
 /* Make nav-bar thinner */
-#nav-bar{
+#nav-bar {
     padding-top: 1px !important;
     padding-bottom: 0 !important;
 }
 
 /* We need more padding when maximised (maybe just on Windows?) */
-#main-window[sizemode="maximized"] #nav-bar{
+#main-window[sizemode="maximized"] #nav-bar {
     padding-top: 7px !important;
 }
 
 /* Hide URL notifications that aren't particularly useful and cover up the command line
  * TODO: move it above the command line / bring functionality into status line like Vimperator */
-statuspanel[type="overLink"]{display: none !important;}
+statuspanel[type="overLink"] {
+    display: none !important;
+}
 
 /* Partial removal of black bottom 1px line shown in fullscreen mode */
-#navigator-toolbox::after { display: none !important; }
+#navigator-toolbox::after {
+    display: none !important;
+}
 
 /* Kill tab bar */
-#TabsToolbar { visibility: collapse; }
+#TabsToolbar {
+    visibility: collapse;
+}
 
 /* Remove window decorations (Close, Minimize, Fullscreen) */
-#titlebar { display: none !important; }
-#TabsToolbar .titlebar-placeholder { display: none !important; }
+#titlebar {
+    display: none !important;
+}
+#TabsToolbar .titlebar-placeholder {
+    display: none !important;
+}

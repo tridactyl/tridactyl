@@ -4,7 +4,7 @@
 
     Use `:help <excmd>` or scroll down to show [[help]] for a particular excmd.
 
-    The default keybinds can be found [here](/static/docs/modules/_config_.html#defaults) or all active binds can be seen with `:viewconfig nmaps`.
+    The default keybinds can be found [here](/static/docs/modules/_src_config_.html#defaults) or all active binds can be seen with `:viewconfig nmaps`.
     You can also view them with [[bind]]. Try `bind j`.
 
     For more information, and FAQs, check out our [readme][4] on github.
@@ -33,7 +33,7 @@
 
     You do not need to worry about types. Return values which are promises will turn into whatever they promise to when used in [[composite]].
 
-    At the bottom of each function's help page, you can click on a link that will take you straight to that function's definition in our code. This is especially recommended for browsing the [config](/static/docs/modules/_config_.html#defaults) which is nigh-on unreadable on these pages.
+    At the bottom of each function's help page, you can click on a link that will take you straight to that function's definition in our code. This is especially recommended for browsing the [config](/static/docs/modules/_src_config_.html#defaults) which is nigh-on unreadable on these pages.
 
 
     ## Highlighted features:
@@ -41,8 +41,9 @@
     - Press `b` to bring up a list of open tabs in the current window; you can
       type the tab ID or part of the title or URL to choose a tab
     - Press `Shift` + `Insert` to enter "ignore mode". Press `Shift` + `Insert`
-      again to return to "normal mode".
-    - Press `f` to start "hint mode", `F` to open in background
+      again to return to "normal mode". `<C-A-backtick>` also works both ways.
+    - Press `f` to start "hint mode", `F` to open in background (note: hint
+      characters should be typed in lowercase)
     - Press `o` to `:open` a different page
     - Press `s` if you want to search for something that looks like a domain
       name or URL
@@ -70,7 +71,7 @@
 
     [1]: https://github.com/cmcaine/tridactyl/issues
     [2]: https://github.com/cmcaine/tridactyl/blob/master/src/static/userChrome-minimal.css
-    [3]: https://www.mozilla.org/en-US/firefox/organizations/
+    [3]: https://www.mozilla.org/en-GB/firefox/organizations/all/#legacy
     [4]: https://github.com/cmcaine/tridactyl#readme
 
     [gitter-badge]: /static/badges/gitter-badge.svg
@@ -190,7 +191,7 @@ import * as css_util from "./css_util"
  *
  * Might mangle your userChrome. Requires native messenger, and you must restart Firefox each time to see any changes (this can be done using [[restart]]). <!-- (unless you enable addon debugging and refresh using the browser toolbox) -->
  *
- * View available rules and options [here](/static/docs/modules/_css_util_.html#potentialrules) and [here](/static/docs/modules/_css_util_.html#metarules).
+ * View available rules and options [here](/static/docs/modules/_src_css_util_.html#potentialrules) and [here](/static/docs/modules/_src_css_util_.html#metarules).
  *
  * Example usage: `guiset gui none`, `guiset gui full`, `guiset tabs autohide`.
  *
@@ -283,14 +284,17 @@ export async function fixamo() {
  * **Be *seriously* careful with this: you can use it to open any URL you can open in the Firefox address bar.**
  *
  * You've been warned.
- *
- * Unsupported on OSX unless you set `browser` to something that will open Firefox from a terminal pass it commmand line options.
  */
 //#background
 export async function nativeopen(url: string, ...firefoxArgs: string[]) {
-    if (firefoxArgs.length === 0) firefoxArgs = ["--new-tab"]
     if (await Native.nativegate()) {
-        Native.run(config.get("browser") + " " + firefoxArgs.join(" ") + " " + url)
+        if ((await browser.runtime.getPlatformInfo()).os === "mac") {
+            let osascriptArgs = ["-e 'on run argv'", "-e 'tell application \"Firefox\" to open location item 1 of argv'", "-e 'end run'"]
+            Native.run("osascript " + osascriptArgs.join(" ") + " " + url)
+        } else {
+            if (firefoxArgs.length === 0) firefoxArgs = ["--new-tab"]
+            Native.run(config.get("browser") + " " + firefoxArgs.join(" ") + " " + url)
+        }
     }
 }
 
@@ -734,13 +738,14 @@ export function viewsource(url = "") {
     }
 }
 
-/** Go to your homepage(s)
-
-    @param all
-        - if "true", opens all homepages in new tabs
-        - if "false" or not given, opens the last homepage in the current tab
-
-*/
+/**
+ * Go to the homepages you have set with `set home [url1] [url2]`.
+ *
+ *  @param all
+ *      - if "true", opens all homepages in new tabs
+ *      - if "false" or not given, opens the last homepage in the current tab
+ *
+ */
 //#background
 export function home(all: "false" | "true" = "false") {
     let homepages = config.get("homepages")
@@ -777,6 +782,15 @@ export async function tutor(newtab?: string) {
     const tutor = browser.extension.getURL("static/clippy/tutor.html")
     if (newtab) tabopen(tutor)
     else open(tutor)
+}
+
+/**
+ * Display Tridactyl's contributors in order of commits in a user-friendly fashion
+ */
+//#background
+export async function credits(excmd?: string) {
+    const creditspage = browser.extension.getURL("static/authors.html")
+    tabopen(creditspage)
 }
 
 /** @hidden */
@@ -1293,8 +1307,13 @@ export async function tabopen(...addressarr: string[]) {
     let address = addressarr.join(" ")
 
     if (!ABOUT_WHITELIST.includes(address) && address.match(/^(about|file):.*/)) {
-        nativeopen(address)
-        return
+        if ((await browser.runtime.getPlatformInfo()).os === "mac" && (await browser.windows.getCurrent()).incognito) {
+            fillcmdline_notrail("# nativeopen isn't supported in private mode on OSX. Consider installing Linux or Windows :).")
+            return
+        } else {
+            nativeopen(address)
+            return
+        }
     } else if (address != "") url = forceURI(address)
     else url = forceURI(config.get("newtab"))
 
@@ -1511,8 +1530,13 @@ export async function winopen(...args: string[]) {
     } else address = args.join(" ")
     createData["url"] = address != "" ? forceURI(address) : forceURI(config.get("newtab"))
     if (!ABOUT_WHITELIST.includes(address) && address.match(/^(about|file):.*/)) {
-        nativeopen(address, firefoxArgs)
-        return
+        if ((await browser.runtime.getPlatformInfo()).os === "mac") {
+            fillcmdline_notrail("# nativeopen isn't supported for winopen on OSX. Consider installing Linux or Windows :).")
+            return
+        } else {
+            nativeopen(address, firefoxArgs)
+            return
+        }
     }
     browser.windows.create(createData)
 }
@@ -1529,12 +1553,6 @@ export async function winclose() {
 export async function qall() {
     let windows = await browser.windows.getAll()
     windows.map(window => browser.windows.remove(window.id))
-}
-
-/** Convenience shortcut for [[qall]]. */
-//#background
-export async function qa() {
-    qall()
 }
 
 // }}}
@@ -1887,7 +1905,7 @@ export function searchsetkeyword(keyword: string, url: string) {
 
 /** Set a key value pair in config.
 
-    Use to set any string values found [here](/static/docs/modules/_config_.html#defaults)
+    Use to set any string values found [here](/static/docs/modules/_src_config_.html#defaults)
 
     e.g.
         set searchurls.google https://www.google.com/search?q=
