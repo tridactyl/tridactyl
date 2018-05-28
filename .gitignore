@@ -11,4 +11,5 @@ yarn.lock
 native/__pycache__
 native/native_main
 native_main.spec
+.wine-pyinstaller/
 tags

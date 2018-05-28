@@ -9,7 +9,7 @@ DISPLAY=""
 
 BASEDIR="$(pwd)"
 
-TESTDIR="${BASEDIR}/wine-pyinstaller"
+TESTDIR="${BASEDIR}/../.wine-pyinstaller"
 OUTDIR="${TESTDIR}/dist"
 DLDIR="${TESTDIR}/downloads"
 
