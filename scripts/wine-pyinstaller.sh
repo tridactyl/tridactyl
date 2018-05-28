@@ -1,5 +1,12 @@
 #!/bin/bash -e
 
+# This script must be run from the root Tridactyl directory
+
+cd scripts/
+
+# stop wine whining
+DISPLAY=""
+
 BASEDIR="$(pwd)"
 
 TESTDIR="${BASEDIR}/wine-pyinstaller"
@@ -15,8 +22,6 @@ WINEDIR="${TESTDIR}/wine"
 WINEARCH="win32"
 
 NATIVE_MAIN_URL="https://raw.githubusercontent.com/gsbabil/tridactyl/gsbabil/fix-restart-command-on-windows/native/native_main.py"
-
-GEN_NATIVE_URL="https://raw.githubusercontent.com/gsbabil/tridactyl/gsbabil/fix-restart-command-on-windows/native/gen_native_message.py"
 
 PREREQUISITES="tput printf 7z wine"
 
@@ -114,7 +119,6 @@ mainFunction() {
     colorEcho "[-] ${WINPY_EXE} has incorrect hash, quitting ...\n"
   fi
 
-  wget "${GEN_NATIVE_URL}" -O "${DLDIR}/gen_native_message.py"
   wget "${NATIVE_MAIN_URL}" -O "${DLDIR}/native_main.py"
 
   wget "https://bootstrap.pypa.io/get-pip.py" -O "${DLDIR}/get-pip.py"
@@ -155,7 +159,7 @@ mainFunction() {
 
   if [ -f "${OUTFILE}" ]; then
     python3 \
-      "${DLDIR}/gen_native_message.py" cmd..version \
+      "../../../native/gen_native_message.py" cmd..version \
       | wine "${OUTFILE}"
 
     printf "\n"
