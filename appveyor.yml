@@ -70,9 +70,6 @@ install:
 
   # Install NPM modules
   # - bash -e -l -c "cd /C/Tridactyl && npm install -g windows-build-tools"
-  - bash -e -l -c "cd $APPVEYOR_BUILD_FOLDER && npm -g install marked"
-  - bash -e -l -c "cd $APPVEYOR_BUILD_FOLDER && npm -g install typedoc"
-  - bash -e -l -c "cd $APPVEYOR_BUILD_FOLDER && npm -g install nearley"
   - bash -e -l -c "cd $APPVEYOR_BUILD_FOLDER && npm install"
 
 build_script:
