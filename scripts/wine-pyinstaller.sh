@@ -152,7 +152,7 @@ mainFunction() {
   if [ -f "${OUTFILE}" ]; then
     python3 \
       "$TRIDIR/native/gen_native_message.py" cmd..version \
-      | wine "${OUTFILE}"
+      | wine "$TRIDIR"/web-ext-artifacts/native_main.exe
 
     printf "\n"
     colorEcho "[+] PyInstaller with Wine was successful!\n"
