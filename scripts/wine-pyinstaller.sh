@@ -155,7 +155,7 @@ mainFunction() {
 
   if [ -f "${OUTFILE}" ]; then
     python3 \
-      "${DLDIR}/gen_native_message.py" version \
+      "${DLDIR}/gen_native_message.py" cmd..version \
       | wine "${OUTFILE}"
 
     printf "\n"
