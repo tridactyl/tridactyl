@@ -115,10 +115,6 @@ mainFunction() {
     exit 1
   fi
 
-  if [ ! -f "$DLDIR/get-pip.py" ]; then
-    wget "https://bootstrap.pypa.io/get-pip.py" -O "${DLDIR}/get-pip.py"
-  fi
-
   ## Extract Python-3.5.4 from WinPython if required
 
   rm -rf "${WINEDIR}"
@@ -126,24 +122,18 @@ mainFunction() {
 
   if [ ! -f "$PYDIR/python.exe" ]; then
     colorEcho "[+] Extract Python-${PYVER}\n"
-    7z x "${DLDIR}/winpython-${PYVER}.exe" "$PYDIR" -aoa
+    7z x "${DLDIR}/winpython-${PYVER}.exe" "python-$PYVER" -o"$BUILDROOT"
 
-    # if pip is not installed
-    if ! $winepython -m pip >/dev/null 2>&1; then
-      ## Install Pip and PyInstaller
+    $winepython -m pip install --upgrade pip
 
-      colorEcho "[+] Installing Pip ...\n"
-      $winepython "${DLDIR}/get-pip.py"
-
-      colorEcho "[+] Installing PyInstaller ...\n"
-      $winepython -m pip install pyinstaller
-    fi
+    colorEcho "[+] Installing PyInstaller ...\n"
+    $winepython -m pip install pyinstaller
   fi
 
   ## Compile with PyInstaller
   colorEcho "[+] Compiling with PyInstaller under Wine ...\n"
   rm -rf "${OUTDIR}"
-  PYTHONHASHSEED=1 $winepython "$PYDIR"/Scripts/pyinstaller.exe \
+  PYTHONHASHSEED=1 wine "$PYDIR"/Scripts/pyinstaller.exe \
     --clean \
     --console \
     --onefile \
