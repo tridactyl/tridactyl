@@ -252,7 +252,7 @@ const DEFAULTS = o({
     theme: "default", // currently available: "default", "dark"
     modeindicator: "true",
 
-    jumpdelay: 1000, // Delay before registering a scroll in the jumplist
+    jumpdelay: 3000, // Milliseconds before registering a scroll in the jumplist
 
     // Default logging levels - 2 === WARNING
     logging: o({
