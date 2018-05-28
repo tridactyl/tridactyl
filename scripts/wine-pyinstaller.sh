@@ -1,34 +1,25 @@
 #!/bin/bash -e
 
 # This script must be run from the root Tridactyl directory
+TRIDIR="$(pwd)"
 
-cd scripts/
-
-# stop wine whining
-DISPLAY=""
-
-BASEDIR="$(pwd)"
-
-TESTDIR="${BASEDIR}/../.wine-pyinstaller"
-OUTDIR="${TESTDIR}/dist"
-DLDIR="${TESTDIR}/downloads"
+BUILDROOT="${TRIDIR}/.wine-pyinstaller"
+OUTDIR="${BUILDROOT}/dist"
+DLDIR="${BUILDROOT}/downloads"
 
 PYVER="3.5.4"
-PYDIR="${TESTDIR}/python-${PYVER}"
+PYDIR="${BUILDROOT}/python-${PYVER}"
 WINPY_HASH="b5d90c5252a624117ccec8678862d6144710219737f06cd01deb1df963f639fd"
 WINPY_EXE="${DLDIR}/winpython-${PYVER}.exe"
 
-WINEDIR="${TESTDIR}/wine"
+WINEDIR="${BUILDROOT}/wine"
 WINEARCH="win32"
+export WINEDEBUG="fixme-all"
 
-NATIVE_MAIN_URL="https://raw.githubusercontent.com/gsbabil/tridactyl/gsbabil/fix-restart-command-on-windows/native/native_main.py"
+# stop wine whining
+export DISPLAY=
 
 PREREQUISITES="tput printf 7z wine"
-
-COLOR_RESET=$(tput sgr0 2>/dev/null)
-COLOR_BOLD=$(tput bold 2>/dev/null)
-COLOR_BAD=$(tput setaf 1 2>/dev/null)
-COLOR_GOOD=$(tput setaf 2 2>/dev/null)
 
 MIN_WINE_VER="3"
 MIN_7ZIP_VER="16"
@@ -58,6 +49,11 @@ stripWhitespace() {
 }
 
 colorEcho() {
+  local COLOR_RESET=$(tput sgr0 2>/dev/null)
+  local COLOR_BOLD=$(tput bold 2>/dev/null)
+  local COLOR_BAD=$(tput setaf 1 2>/dev/null)
+  local COLOR_GOOD=$(tput setaf 2 2>/dev/null)
+
   local str="$1"
   local color="${COLOR_GOOD}${COLOR_BOLD}"
 
@@ -98,15 +94,14 @@ mainFunction() {
 
 
   ## Create required directories
-  mkdir -pv "${TESTDIR}"
+  mkdir -pv "${BUILDROOT}"
   mkdir -pv "${OUTDIR}"
   mkdir -pv "${DLDIR}"
   mkdir -pv "${OUTDIR}"
 
 
-  colorEcho "[+] Downloading necessary files ...\n"
   ## Download Python and Pip
-  cd "${DLDIR}"
+  colorEcho "[+] Downloading necessary files ...\n"
 
   if [ ! -f "${WINPY_EXE}" ]; then
     wget \
@@ -115,34 +110,40 @@ mainFunction() {
   fi
 
   if [ ! "$(sha256sum "${WINPY_EXE}" \
-    | cut -d" " -f1)" = ${WINPYHASH} ]; then
+    | cut -d" " -f1)" = ${WINPY_HASH} ]; then
     colorEcho "[-] ${WINPY_EXE} has incorrect hash, quitting ...\n"
+    exit 1
   fi
 
-  wget "${NATIVE_MAIN_URL}" -O "${DLDIR}/native_main.py"
+  if [ ! -f "$DLDIR/get-pip.py" ]; then
+    wget "https://bootstrap.pypa.io/get-pip.py" -O "${DLDIR}/get-pip.py"
+  fi
 
-  wget "https://bootstrap.pypa.io/get-pip.py" -O "${DLDIR}/get-pip.py"
+  ## Extract Python-3.5.4 from WinPython if required
 
-  ## Extract Python-3.5.4 from WinPython
-  colorEcho "[+] Extract Python-${PYVER}\n"
-  cd "${TESTDIR}"
-  7z x "${DLDIR}/winpython-${PYVER}.exe" "python-${PYVER}" -aoa
-
-
-  ## Install Pip and PyInstaller
   rm -rf "${WINEDIR}"
-  cd "${PYDIR}"
+  local winepython="wine $PYDIR/python.exe"
 
-  colorEcho "[+] Installing Pip ...\n"
-  wine python.exe "${DLDIR}/get-pip.py"
+  if [ ! -f "$PYDIR/python.exe" ]; then
+    colorEcho "[+] Extract Python-${PYVER}\n"
+    7z x "${DLDIR}/winpython-${PYVER}.exe" "$PYDIR" -aoa
 
-  colorEcho "[+] Installing PyInstaller ...\n"
-  wine python.exe -m pip install --upgrade pyinstaller
+    # if pip is not installed
+    if ! $winepython -m pip >/dev/null 2>&1; then
+      ## Install Pip and PyInstaller
+
+      colorEcho "[+] Installing Pip ...\n"
+      $winepython "${DLDIR}/get-pip.py"
+
+      colorEcho "[+] Installing PyInstaller ...\n"
+      $winepython -m pip install pyinstaller
+    fi
+  fi
 
   ## Compile with PyInstaller
   colorEcho "[+] Compiling with PyInstaller under Wine ...\n"
   rm -rf "${OUTDIR}"
-  PYTHONHASHSEED=1 wine Scripts/pyinstaller \
+  PYTHONHASHSEED=1 $winepython "$PYDIR"/Scripts/pyinstaller.exe \
     --clean \
     --console \
     --onefile \
@@ -151,7 +152,7 @@ mainFunction() {
     --log-level=ERROR \
     --workpath "${OUTDIR}" \
     --distpath "${OUTDIR}" \
-    "${DLDIR}/native_main.py"
+    "$TRIDIR/native/native_main.py"
 
   ## Test the compiled EXE
   colorEcho "[+] Checking compiled binary ...\n"
@@ -159,7 +160,7 @@ mainFunction() {
 
   if [ -f "${OUTFILE}" ]; then
     python3 \
-      "../../../native/gen_native_message.py" cmd..version \
+      "$TRIDIR/native/gen_native_message.py" cmd..version \
       | wine "${OUTFILE}"
 
     printf "\n"
@@ -173,4 +174,3 @@ mainFunction() {
 }
 
 mainFunction "$@"
-
