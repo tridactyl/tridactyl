@@ -1664,13 +1664,13 @@ export async function composite(...cmds: string[]) {
             .split(";")
             .reduce(
                 async (_, cmd) => {
-                    return cmd.split("|").reduce(
-                        async (pipedValue, cmd) => {
-                            let [fn, args] = excmd_parser.parser(cmd)
-                            return fn.call({}, ...args, await pipedValue)
-                        },
-                        "" as any,
-                    )
+                    await _
+                    let cmds = cmd.split("|")
+                    let [fn, args] = excmd_parser.parser(cmd)
+                    return cmds.slice(1).reduce(async (pipedValue, cmd) => {
+                        let [fn, args] = excmd_parser.parser(cmd)
+                        return fn.call({}, ...args, await pipedValue)
+                    }, fn.call({}, ...args))
                 },
                 null as any,
             )
