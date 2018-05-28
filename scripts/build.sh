@@ -37,7 +37,7 @@ scripts/newtab.md.sh
 scripts/make_tutorial.sh
 scripts/make_docs.sh &
 
-nearleyc src/grammars/bracketexpr.ne \
+$(npm bin)/nearleyc src/grammars/bracketexpr.ne \
   > src/grammars/.bracketexpr.generated.ts
 
 if [ "$(isWindowsMinGW)" = "True" ]; then
