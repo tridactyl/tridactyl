@@ -1087,8 +1087,9 @@ export function urlmodify(mode: "-t" | "-r" | "-q" | "-Q" | "-g", ...args: strin
             break
     }
 
+    // TODO: once we have an arg parser, have a quiet flag that prevents the page from being added to history
     if (newUrl && newUrl !== oldUrl) {
-        window.location.href = newUrl
+        window.location.replace(newUrl)
     }
 }
 
