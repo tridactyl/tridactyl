@@ -778,6 +778,25 @@ export async function open(...urlarr: string[]) {
     }
 }
 
+/**
+ * Like [[open]] but doesn't make a new entry in history.
+ */
+//#content
+export async function open_quiet(...urlarr: string[]) {
+    let url = urlarr.join(" ")
+
+    // Setting window.location to about:blank results in a page we can't access, tabs.update works.
+    if (["about:blank"].includes(url)) {
+        url = url || undefined
+        browserBg.tabs.update(await activeTabId(), { url })
+        // Open URLs that firefox won't let us by running `firefox <URL>` on the command line
+    } else if (!ABOUT_WHITELIST.includes(url) && url.match(/^(about|file):.*/)) {
+        Messaging.message("commandline_background", "recvExStr", ["nativeopen " + url])
+    } else if (url !== "") {
+        document.location.replace(forceURI(url))
+    }
+}
+
 /** @hidden */
 //#content_helper
 let sourceElement = undefined
@@ -1093,8 +1112,9 @@ export function urlmodify(mode: "-t" | "-r" | "-q" | "-Q" | "-g", ...args: strin
             break
     }
 
+    // TODO: once we have an arg parser, have a quiet flag that prevents the page from being added to history
     if (newUrl && newUrl !== oldUrl) {
-        window.location.href = newUrl
+        window.location.replace(newUrl)
     }
 }
 
