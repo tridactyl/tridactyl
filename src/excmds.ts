@@ -659,13 +659,19 @@ export function scrollto(a: number, b: number | "x" | "y" = "y") {
     }
 }
 
+//#content_helper
+let lineHeight = null
 //#content
 export function scrollline(n = 1) {
-    const cssHeight = window.getComputedStyle(document.body).getPropertyValue("line-height")
-    // Remove the "px" at the end
-    const lineHeight = parseInt(cssHeight.substr(0, cssHeight.length - 2))
-    // lineHeight probably can't be NaN but let's make sure
-    if (lineHeight) scrolling.recursiveScroll(0, lineHeight * n, [document.documentElement])
+    if (lineHeight === null) {
+        // Get line height
+        const cssHeight = window.getComputedStyle(document.body).getPropertyValue("line-height")
+        // Remove the "px" at the end
+        lineHeight = parseInt(cssHeight.substr(0, cssHeight.length - 2))
+        // Is there a better way to compute a fallback? Maybe fetch from about:preferences?
+        if (!lineHeight) lineHeight = 22
+    }
+    scrolling.recursiveScroll(0, lineHeight * n, [document.documentElement])
 }
 
 //#content
