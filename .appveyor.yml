@@ -63,13 +63,7 @@ install:
   - ps: Get-Location
   - bash -e -l -c "cd $APPVEYOR_BUILD_FOLDER && ls -alh"
 
-  # Install Python modules
-  - ps: python -m pip install --upgrade pip
-  # - ps: python -m pip install --upgrade packager
-  - ps: python -m pip install --upgrade pyinstaller
-
   # Install NPM modules
-  # - bash -e -l -c "cd /C/Tridactyl && npm install -g windows-build-tools"
   - bash -e -l -c "cd $APPVEYOR_BUILD_FOLDER && npm install"
 
 build_script:
@@ -77,6 +71,10 @@ build_script:
   - ps: $env:PATH = "C:\Python36-x64\Scripts;$env:PATH"
   - ps: $env:PATH = "C:\Python36-x64;$env:PATH"
   - ps: Copy-Item -Path "C:\Python36-x64\Python.exe" -Destination "C:\Python36-x64\Python3.exe"
+
+  # Install Python modules under Python 3.6
+  - ps: python -m pip install --upgrade pip
+  - ps: python -m pip install --upgrade pyinstaller
 
   # Change to build directory and verify CWD
   - ps: Set-Location -Path $env:APPVEYOR_BUILD_FOLDER
