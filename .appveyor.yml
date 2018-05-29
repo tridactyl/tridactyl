@@ -47,10 +47,19 @@ install:
   #
   # Credits: JuliaLang developers.
   #
-  - ps: if ($env:APPVEYOR_PULL_REQUEST_NUMBER `
-             -and $env:APPVEYOR_BUILD_NUMBER `
-             -ne ((Invoke-RestMethod `
-        https://ci.appveyor.com/api/projects/$env:APPVEYOR_ACCOUNT_NAME/$env:APPVEYOR_PROJECT_SLUG/history?recordsNumber=50).builds `
+  - ps: >-
+        $url = [string]::Format(
+          "{0}/{1}/{2}/{3}?{4}",
+          "https://ci.appveyor.com/api/projects",
+          $env:APPVEYOR_ACCOUNT_NAME,
+          $env:APPVEYOR_PROJECT_SLUG,
+          "history",
+          "recordsNumber=50"
+        );
+        `
+        if ($env:APPVEYOR_PULL_REQUEST_NUMBER `
+              -and $env:APPVEYOR_BUILD_NUMBER `
+              -ne ((Invoke-RestMethod $url).builds `
         | Where-Object pullRequestId `
         -eq $env:APPVEYOR_PULL_REQUEST_NUMBER)[0].buildNumber) `
         { throw "Newer build in progress, giving this one up ..." }
@@ -59,7 +68,7 @@ install:
   - ps: Set-Location -Path $env:APPVEYOR_BUILD_FOLDER
 
   # Verify CWD
-  - ps: Write-Host "[+] Current working directory is ..."
+  - ps: Write-Host "[+] Current PowerShell directory is ..."
   - ps: Get-Location
   - bash -e -l -c "cd $APPVEYOR_BUILD_FOLDER && ls -alh"
 
@@ -70,7 +79,11 @@ build_script:
   # Add Python-3.6 to %PATH%
   - ps: $env:PATH = "C:\Python36-x64\Scripts;$env:PATH"
   - ps: $env:PATH = "C:\Python36-x64;$env:PATH"
-  - ps: Copy-Item -Path "C:\Python36-x64\Python.exe" -Destination "C:\Python36-x64\Python3.exe"
+  - ps: >-
+        Copy-Item `
+        -Path "C:\Python36-x64\Python.exe" `
+        -Destination "C:\Python36-x64\Python3.exe"
+  - python --version
 
   # Install Python modules under Python 3.6
   - ps: python -m pip install --upgrade pip
@@ -78,7 +91,7 @@ build_script:
 
   # Change to build directory and verify CWD
   - ps: Set-Location -Path $env:APPVEYOR_BUILD_FOLDER
-  - ps: Write-Host "[+] Current working directory is ..."
+  - ps: Write-Host "[+] Current PowerShell directory is ..."
   - ps: Get-Location
 
   # Start build
@@ -91,3 +104,31 @@ build_script:
   - ps: Write-Host "[+] Starting 'npm run build' ..."
   - bash -e -l -c "cd $APPVEYOR_BUILD_FOLDER && export PYINSTALLER=1 && npm run build"
 
+test_script:
+  # Add Python-3.6 to %PATH%
+  - ps: $env:PATH = "C:\Python36-x64\Scripts;$env:PATH"
+  - ps: $env:PATH = "C:\Python36-x64;$env:PATH"
+  - ps: >-
+        Copy-Item `
+        -Path "C:\Python36-x64\Python.exe" `
+        -Destination "C:\Python36-x64\Python3.exe"
+  - python --version
+
+  # Install Python modules under Python 3.6
+  - ps: python -m pip install --upgrade pip
+  - ps: python -m pip install --upgrade pyinstaller
+
+  # Change to build directory and verify CWD
+  - ps: Set-Location -Path $env:APPVEYOR_BUILD_FOLDER
+  - ps: Write-Host "[+] Current PowerShell directory is ..."
+  - ps: Get-Location
+
+  # Start build
+  - ps: Write-Host "[+] Current %PATH% under Bash ..."
+  - bash -e -l -c "echo $PATH"
+
+  - ps: Write-Host "[+] Current directory under Bash ..."
+  - bash -e -l -c "cd $APPVEYOR_BUILD_FOLDER && ls -alh"
+
+  - ps: Write-Host "[+] Starting 'npm run test' ..."
+  - bash -e -l -c "cd $APPVEYOR_BUILD_FOLDER && export PYINSTALLER=1 && npm run test"
