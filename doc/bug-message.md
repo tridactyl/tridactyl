@@ -2,7 +2,6 @@
 
 See also [content-scripts-bug.md](content-scripts-bug.md).
 
-
 Vimperator and pentadactyl are addons that replace most of the Firefox UX with a keyboard-focused interface inspired by Vim. They enjoy moderate popularity and are particularly highlighted as "interesting add-ons" for porting on the Mozilla wiki[0].
 
 From now on I'll just say "Vimperator" instead of "Vimperator and pentadactyl" or similar.
@@ -19,21 +18,21 @@ The main drawback of this approach is that the content scripts aren't injected i
 
 Users of Vimperator-like addons cannot:
 
-1. Use vimperator at all on some URLs (about:\*, addons.mozilla.org)
-    1. Show and control the command line
-    2. Use any keyboard shortcuts
-    3. Use any commands or shortcuts that need to access the page's DOM.
-        * Includes: history control, scrolling, searching, hint mode, etc.
-2. Hide UI elements
-    *  Vimperator aims to replace the entire UI, so the old Firefox UI is not used at all. This frees up valuable real estate on small screens, such as laptops.
-3. Escape from browser UI elements (especially the location bar)
-4. Suppress/shadow all browser keybinds
-5. Configure vimperator from the kind of config files they expect from other unix programs (and especially vim)
-    * In particular users expect to have something like ~/.vimperatorrc for their config and to be able to install additional plugins to something like ~/.vimperator/plugins; something like ~/.config/vimperator/ would also be acceptable.
+1.  Use vimperator at all on some URLs (about:\*, addons.mozilla.org)
+    1.  Show and control the command line
+    2.  Use any keyboard shortcuts
+    3.  Use any commands or shortcuts that need to access the page's DOM.
+        *   Includes: history control, scrolling, searching, hint mode, etc.
+2.  Hide UI elements
+    *   Vimperator aims to replace the entire UI, so the old Firefox UI is not used at all. This frees up valuable real estate on small screens, such as laptops.
+3.  Escape from browser UI elements (especially the location bar)
+4.  Suppress/shadow all browser keybinds
+5.  Configure vimperator from the kind of config files they expect from other unix programs (and especially vim)
+    *   In particular users expect to have something like ~/.vimperatorrc for their config and to be able to install additional plugins to something like ~/.vimperator/plugins; something like ~/.config/vimperator/ would also be acceptable.
 
 In Firefox there is a new, sixth problem:
 
-6. Vimperator cannot open certain restricted URLs
+6.  Vimperator cannot open certain restricted URLs
 
 The issues are in rough importance order, apart from 6, which should be higher.
 
@@ -63,8 +62,8 @@ Leechblock is another addon that has a legitimate reason to access a restricted 
 
 My understanding is that Firefox developers do not want to permit content scripts to run on restricted pages because of the possibility of privilege escalation. This is normally bad for two reasons:
 
-1. Security of the user
-2. Stability of the browser: addons using exposed APIs they shouldn't will break more on updates, etc.
+1.  Security of the user
+2.  Stability of the browser: addons using exposed APIs they shouldn't will break more on updates, etc.
 
 I don't think either of these issues matter for an addon like vimperator. Vimperator is expected and essentially required to be able to read every keystroke the user makes on every page, control network access, control ui (including display of URLs and https status), etc. Let's say running a content script in about:addons might let us privilege escalate to control the whole browser. The only new warning we need to give users is that this addon can potentially run arbitrary code as your user on the host system, which vimperator could do anyway in a slightly roundabout fashion by redirecting any executable or source code the user downloads to some malware.
 
@@ -76,11 +75,11 @@ Regarding stability, the risk of exposing APIs that shouldn't be used only reall
 
 If the Firefox developers are adamant that no addon be permitted to access the DOM of restricted pages, then we have to work around that limitation with new APIs. This is the best I can come up with, but it relies again on lydell's abandoned keyboard API:
 
-1. The command line/statusline moves into a toolbar. Toolbar must be permitted to expand or overlay page content to show autocompletion and to talk to content and background scripts.
-2. The proposed keyboard API allows vimperator to capture keypresses within restricted pages, so we can still call most vimperator functions, but any that need to access the DOM of the restricted page won't work.
-3. The keyboardshortcuts API also proposed by the vimFx developer ("simple functions to trigger standard Firefox keyboard shortcuts programmatically") will allow some of the simple features we otherwise need DOM access for to work, examples: scrolling, history navigation, stop loading, etc. More advanced features such as hint mode, marks, insert, visual and caret mode and searching will not work.
+1.  The command line/statusline moves into a toolbar. Toolbar must be permitted to expand or overlay page content to show autocompletion and to talk to content and background scripts.
+2.  The proposed keyboard API allows vimperator to capture keypresses within restricted pages, so we can still call most vimperator functions, but any that need to access the DOM of the restricted page won't work.
+3.  The keyboardshortcuts API also proposed by the vimFx developer ("simple functions to trigger standard Firefox keyboard shortcuts programmatically") will allow some of the simple features we otherwise need DOM access for to work, examples: scrolling, history navigation, stop loading, etc. More advanced features such as hint mode, marks, insert, visual and caret mode and searching will not work.
 
-These three fix the main problem in the chrome addons of getting stuck and having to use a different UI on some pages is mostly removed (remember, the whole point of vimperator is to replace the default UI/UX). It is important to highlight, however, that users losing hint mode on about: pages is a real UX hit because hint mode is the main way that users select and follow links in vimperator. 
+These three fix the main problem in the chrome addons of getting stuck and having to use a different UI on some pages is mostly removed (remember, the whole point of vimperator is to replace the default UI/UX). It is important to highlight, however, that users losing hint mode on about: pages is a real UX hit because hint mode is the main way that users select and follow links in vimperator.
 
 I can't think of an easy way of allowing hinting without DOM access. A built-in hinting API is probably the only sensible way; but seems like a high maintenance burden on Firefox (unless you want to enable hinting mode in normal Firefox, which would be cool). A less sensible proposal would be to tell us where and what the anchor tags are and let us overlay the page with just the labels in a new, mostly transparent window.
 
@@ -88,22 +87,22 @@ I can't think of an easy way of allowing hinting without DOM access. A built-in 
 
 ## List of new required WebExtension APIs
 
-* keyboard incl. function to escape browser location bar
-    * https://bugzilla.mozilla.org/show_bug.cgi?id=1215061
-* theming or some other API must support completely hiding most UI elements.
-* permission to programmatically navigate to restricted URLs
-    * https://bugzilla.mozilla.org/show_bug.cgi?id=1261289
-    * https://bugzilla.mozilla.org/show_bug.cgi?id=1298215
-* filesystem
-    * https://bugzilla.mozilla.org/show_bug.cgi?id=1246236
-* either:
-    * a permission allowing content scripts to run on restricted pages.
-    * or...
-        * keyboardshortcuts
-        * toolbar/custom html+css+js ui element with ability to expand or (preferably) overlay the tab window.
-            * https://bugzilla.mozilla.org/show_bug.cgi?id=1215064
-        * And for more functionality:
-            * hinting
+*   keyboard incl. function to escape browser location bar
+    *   https://bugzilla.mozilla.org/show_bug.cgi?id=1215061
+*   theming or some other API must support completely hiding most UI elements.
+*   permission to programmatically navigate to restricted URLs
+    *   https://bugzilla.mozilla.org/show_bug.cgi?id=1261289
+    *   https://bugzilla.mozilla.org/show_bug.cgi?id=1298215
+*   filesystem
+    *   https://bugzilla.mozilla.org/show_bug.cgi?id=1246236
+*   either:
+    *   a permission allowing content scripts to run on restricted pages.
+    *   or...
+        *   keyboardshortcuts
+        *   toolbar/custom html+css+js ui element with ability to expand or (preferably) overlay the tab window.
+            *   https://bugzilla.mozilla.org/show_bug.cgi?id=1215064
+        *   And for more functionality:
+            *   hinting
 
 ## What's this hint mode thing, anyway?
 

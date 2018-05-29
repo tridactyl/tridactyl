@@ -37,7 +37,6 @@
     background: #f9f5ff !important;
 }
 
-
 @media print {
     .TridactylStatusIndicator {
         display: none !important;

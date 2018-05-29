@@ -2,16 +2,17 @@
     --tridactyl-bg: black;
     --tridactyl-fg: lightgreen;
 }
- 
+
 :root.TridactylThemeQuake #completions .sectionHeader {
-    display: none
+    display: none;
 }
 
 :root.TridactylThemeQuake #tridactyl-colon::before {
-    content: "] "
+    content: "] ";
 }
 
-:root.TridactylThemeQuake #completions .focused, :root.TridactylThemeQuake #completions .focused .url{
+:root.TridactylThemeQuake #completions .focused,
+:root.TridactylThemeQuake #completions .focused .url {
     background: var(--tridactyl-bg);
     text-decoration: underline;
 }
@@ -21,6 +22,6 @@
     bottom: unset;
     top: 0% !important;
     left: 0% !important;
-	box-shadow: rgba(0,0,0,0.5) 0px 0px 15px !important;
-    opacity: 0.9
+    box-shadow: rgba(0, 0, 0, 0.5) 0px 0px 15px !important;
+    opacity: 0.9;
 }

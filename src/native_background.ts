@@ -409,12 +409,15 @@ export async function loadPrefs(filename): Promise<{ [key: string]: string }> {
     return parsePrefs(result.content)
 }
 
+let cached_prefs = null
+
 /** Returns a promise for an object that should contain every about:config
- *  setting. If performance is slow, it might be a good idea to cache the
- *  results of this function: the preference files do not change while firefox
- *  is running.
+ *  setting.
+ *
+ *  Performance is slow so we need to cache the results.
  */
 export async function getPrefs(): Promise<{ [key: string]: string }> {
+    if (cached_prefs != null) return cached_prefs
     const profile = (await getProfileDir()) + "/"
     const prefFiles = [
         // Debian has these
@@ -444,7 +447,10 @@ export async function getPrefs(): Promise<{ [key: string]: string }> {
     for (let file of prefFiles) {
         promises.push(loadPrefs(file))
     }
-    return promises.reduce(async (a, b) => Object.assign(await a, await b))
+    cached_prefs = promises.reduce(async (a, b) =>
+        Object.assign(await a, await b),
+    )
+    return cached_prefs
 }
 
 /** Returns the value for the corresponding about:config setting */
@@ -452,8 +458,42 @@ export async function getPref(name: string): Promise<string> {
     return (await getPrefs())[name]
 }
 
+/** Fetches a config option from the config. If the option is undefined, fetch
+ *  a preference from preferences. It would make more sense for this function to
+ *  be in config.ts but this would require importing this file in config.ts and
+ *  Webpack doesn't like circular dependencies.
+ */
+export async function getConfElsePref(
+    confName: string,
+    prefName: string,
+): Promise<any> {
+    let option = await config.getAsync(confName)
+    if (option === undefined) {
+        try {
+            option = await getPref(prefName)
+        } catch (e) {}
+    }
+    return option
+}
+
+/** Fetches a config option from the config. If the option is undefined, fetch
+ *  prefName from the preferences. If prefName is undefined too, return a
+ *  default.
+ */
+export async function getConfElsePrefElseDefault(
+    confName: string,
+    prefName: string,
+    def: any,
+): Promise<any> {
+    let option = await getConfElsePref(confName, prefName)
+    if (option === undefined) return def
+    return option
+}
+
 /** Writes a preference to user.js */
 export async function writePref(name: string, value: any) {
+    if (cached_prefs) cached_prefs[name] = value
+
     if (typeof value == "string") value = `"${value}"`
     const file = (await getProfileDir()) + "/user.js"
     // No need to check the return code because read returns "" when failing to

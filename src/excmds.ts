@@ -4,7 +4,7 @@
 
     Use `:help <excmd>` or scroll down to show [[help]] for a particular excmd.
 
-    The default keybinds can be found [here](/static/docs/modules/_config_.html#defaults) or all active binds can be seen with `:viewconfig nmaps`.
+    The default keybinds can be found [here](/static/docs/modules/_src_config_.html#defaults) or all active binds can be seen with `:viewconfig nmaps`.
     You can also view them with [[bind]]. Try `bind j`.
 
     For more information, and FAQs, check out our [readme][4] on github.
@@ -33,7 +33,7 @@
 
     You do not need to worry about types. Return values which are promises will turn into whatever they promise to when used in [[composite]].
 
-    At the bottom of each function's help page, you can click on a link that will take you straight to that function's definition in our code. This is especially recommended for browsing the [config](/static/docs/modules/_config_.html#defaults) which is nigh-on unreadable on these pages.
+    At the bottom of each function's help page, you can click on a link that will take you straight to that function's definition in our code. This is especially recommended for browsing the [config](/static/docs/modules/_src_config_.html#defaults) which is nigh-on unreadable on these pages.
 
 
     ## Highlighted features:
@@ -41,8 +41,9 @@
     - Press `b` to bring up a list of open tabs in the current window; you can
       type the tab ID or part of the title or URL to choose a tab
     - Press `Shift` + `Insert` to enter "ignore mode". Press `Shift` + `Insert`
-      again to return to "normal mode".
-    - Press `f` to start "hint mode", `F` to open in background
+      again to return to "normal mode". `<C-A-backtick>` also works both ways.
+    - Press `f` to start "hint mode", `F` to open in background (note: hint
+      characters should be typed in lowercase)
     - Press `o` to `:open` a different page
     - Press `s` if you want to search for something that looks like a domain
       name or URL
@@ -70,7 +71,7 @@
 
     [1]: https://github.com/cmcaine/tridactyl/issues
     [2]: https://github.com/cmcaine/tridactyl/blob/master/src/static/userChrome-minimal.css
-    [3]: https://www.mozilla.org/en-US/firefox/organizations/
+    [3]: https://www.mozilla.org/en-GB/firefox/organizations/all/#legacy
     [4]: https://github.com/cmcaine/tridactyl#readme
 
     [gitter-badge]: /static/badges/gitter-badge.svg
@@ -104,6 +105,7 @@ import * as SELF from "./.excmds_content.generated"
 Messaging.addListener("excmd_content", Messaging.attributeCaller(SELF))
 import * as DOM from "./dom"
 import { executeWithoutCommandLine } from "./commandline_content"
+import * as scrolling from "./scrolling"
 // }
 
 //#background_helper
@@ -117,6 +119,7 @@ import * as keydown from "./keydown_background"
 import { activeTab, firefoxVersionAtLeast, openInNewTab } from "./lib/webext"
 import * as CommandLineBackground from "./commandline_background"
 import * as rc from "./config_rc"
+import * as excmd_parser from "./parsers/exmode"
 
 //#background_helper
 import * as Native from "./native_background"
@@ -190,7 +193,7 @@ import * as css_util from "./css_util"
  *
  * Might mangle your userChrome. Requires native messenger, and you must restart Firefox each time to see any changes (this can be done using [[restart]]). <!-- (unless you enable addon debugging and refresh using the browser toolbox) -->
  *
- * View available rules and options [here](/static/docs/modules/_css_util_.html#potentialrules) and [here](/static/docs/modules/_css_util_.html#metarules).
+ * View available rules and options [here](/static/docs/modules/_src_css_util_.html#potentialrules) and [here](/static/docs/modules/_src_css_util_.html#metarules).
  *
  * Example usage: `guiset gui none`, `guiset gui full`, `guiset tabs autohide`.
  *
@@ -283,14 +286,17 @@ export async function fixamo() {
  * **Be *seriously* careful with this: you can use it to open any URL you can open in the Firefox address bar.**
  *
  * You've been warned.
- *
- * Unsupported on OSX unless you set `browser` to something that will open Firefox from a terminal pass it commmand line options.
  */
 //#background
 export async function nativeopen(url: string, ...firefoxArgs: string[]) {
-    if (firefoxArgs.length === 0) firefoxArgs = ["--new-tab"]
     if (await Native.nativegate()) {
-        Native.run(config.get("browser") + " " + firefoxArgs.join(" ") + " " + url)
+        if ((await browser.runtime.getPlatformInfo()).os === "mac") {
+            let osascriptArgs = ["-e 'on run argv'", "-e 'tell application \"Firefox\" to open location item 1 of argv'", "-e 'end run'"]
+            Native.run("osascript " + osascriptArgs.join(" ") + " " + url)
+        } else {
+            if (firefoxArgs.length === 0) firefoxArgs = ["--new-tab"]
+            Native.run(config.get("browser") + " " + firefoxArgs.join(" ") + " " + url)
+        }
     }
 }
 
@@ -522,6 +528,110 @@ export function loggingsetlevel(logModule: string, level: string) {
 
 // {{{ PAGE CONTEXT
 
+//#content_helper
+export let JUMPED: boolean
+
+//#content_helper
+export function getJumpPageId() {
+    return document.location.href
+}
+
+//#content_helper
+export async function saveJumps(jumps) {
+    browserBg.sessions.setTabValue(await activeTabId(), "jumps", jumps)
+}
+
+//#content_helper
+export async function curJumps() {
+    let tabid = await activeTabId()
+    let jumps = await browserBg.sessions.getTabValue(tabid, "jumps")
+    if (!jumps) jumps = {}
+    let ensure = (obj, key, def) => {
+        if (obj[key] === null || obj[key] === undefined) obj[key] = def
+    }
+    let page = getJumpPageId()
+    ensure(jumps, page, {})
+    ensure(jumps[page], "list", [{ x: 0, y: 0 }])
+    ensure(jumps[page], "cur", 0)
+    saveJumps(jumps)
+    return jumps
+}
+
+//#content
+export function jumpnext(n = 1) {
+    jumpprev(-n)
+}
+
+/** Similar to Pentadactyl or vim's jump list.
+    Should be bound to <C-o> when modifiers are implemented
+*/
+//#content
+export function jumpprev(n = 1) {
+    curJumps().then(alljumps => {
+        let jumps = alljumps[getJumpPageId()]
+        let current = jumps.cur - n
+        if (current < 0) {
+            jumps.cur = 0
+            saveJumps(alljumps)
+            return back(-current)
+        } else if (current >= jumps.list.length) {
+            jumps.cur = jumps.list.length - 1
+            saveJumps(alljumps)
+            return forward(current - jumps.list.length + 1)
+        }
+        jumps.cur = current
+        let p = jumps.list[jumps.cur]
+        saveJumps(alljumps)
+        JUMPED = true
+        window.scrollTo(p.x, p.y)
+    })
+}
+
+/** Called on 'scroll' events.
+    If you want to have a function that moves within the page but doesn't add a
+    location to the jumplist, make sure to set JUMPED to true before moving
+    around.
+    The setTimeout call is required because sometimes a user wants to move
+    somewhere by pressing 'j' multiple times and we don't want to add the
+    in-between locations to the jump list
+*/
+//#content_helper
+export function addJump(scrollEvent: UIEvent) {
+    if (JUMPED) {
+        JUMPED = false
+        return
+    }
+    let pageX = scrollEvent.pageX
+    let pageY = scrollEvent.pageY
+    // Get config for current page
+    curJumps().then(alljumps => {
+        let jumps = alljumps[getJumpPageId()]
+        // Prevent pending jump from being registered
+        clearTimeout(jumps.timeoutid)
+        // Schedule the registering of the current jump
+        jumps.timeoutid = setTimeout(() => {
+            let list = jumps.list
+            // if the page hasn't moved, stop
+            if (list[jumps.cur].x == pageX && list[jumps.cur].y == pageY) return
+            // Store the new jump
+            // Could removing all jumps from list[cur] to list[list.length] be
+            // a better/more intuitive behavior?
+            list.push({ x: pageX, y: pageY })
+            jumps.cur = jumps.list.length - 1
+            saveJumps(alljumps)
+        }, config.get("jumpdelay"))
+    })
+}
+
+//#content_helper
+document.addEventListener("scroll", addJump)
+
+// Try to restore the previous jump position every time a page is loaded
+//#content_helper
+curJumps().then(() => {
+    jumpprev(0)
+})
+
 /** Blur (unfocus) the active element */
 //#content
 export function unfocus() {
@@ -530,10 +640,8 @@ export function unfocus() {
 }
 
 //#content
-export function scrollpx(a: number, b: number) {
-    let top = document.body.getClientRects()[0].top
-    window.scrollBy(a, b)
-    if (top == document.body.getClientRects()[0].top) recursiveScroll(a, b, [document.body])
+export async function scrollpx(a: number, b: number) {
+    if (!await scrolling.scroll(a, b, document.documentElement)) scrolling.recursiveScroll(a, b, [document.documentElement])
 }
 
 /** If two numbers are given, treat as x and y values to give to window.scrollTo
@@ -550,54 +658,27 @@ export function scrollto(a: number, b: number | "x" | "y" = "y") {
         window.scrollTo(window.scrollX, percentage * elem.scrollHeight / 100)
         if (top == elem.getClientRects()[0].top && (percentage == 0 || percentage == 100)) {
             // scrollTo failed, if the user wants to go to the top/bottom of
-            // the page try recursiveScroll instead
-            recursiveScroll(window.scrollX, 1073741824 * (percentage == 0 ? -1 : 1), [window.document.body])
+            // the page try scrolling.recursiveScroll instead
+            scrolling.recursiveScroll(window.scrollX, 1073741824 * (percentage == 0 ? -1 : 1), [document.documentElement])
         }
     } else if (b === "x") {
         let left = elem.getClientRects()[0].left
         window.scrollTo(percentage * elem.scrollWidth / 100, window.scrollY)
         if (left == elem.getClientRects()[0].left && (percentage == 0 || percentage == 100)) {
-            recursiveScroll(1073741824 * (percentage == 0 ? -1 : 1), window.scrollX, [window.document.body])
+            scrolling.recursiveScroll(1073741824 * (percentage == 0 ? -1 : 1), window.scrollX, [document.documentElement])
         }
     } else {
         window.scrollTo(a, Number(b)) // a,b numbers
     }
 }
 
-/** Tries to find a node which can be scrolled either x pixels to the right or
- *  y pixels down among the Elements in {nodes} and children of these Elements.
- *
- *  This function used to be recursive but isn't anymore due to various
- *  attempts at optimizing the function in order to reduce GC pressure.
- */
-//#content_helper
-function recursiveScroll(x: number, y: number, nodes: Element[]) {
-    let index = 0
-    do {
-        let node = nodes[index++] as any
-        // Save the node's position
-        let top = node.scrollTop
-        let left = node.scrollLeft
-        node.scrollBy(x, y)
-        // if the node moved, stop
-        if (top != node.scrollTop || left != node.scrollLeft) return
-        // Otherwise, add its children to the nodes that could be scrolled
-        nodes = nodes.concat(Array.from(node.children))
-        if (node.contentDocument) nodes.push(node.contentDocument.body)
-    } while (index < nodes.length)
-}
-
 //#content
 export function scrollline(n = 1) {
-    let top = document.body.getClientRects()[0].top
-    window.scrollByLines(n)
-    if (top == document.body.getClientRects()[0].top) {
-        const cssHeight = window.getComputedStyle(document.body).getPropertyValue("line-height")
-        // Remove the "px" at the end
-        const lineHeight = parseInt(cssHeight.substr(0, cssHeight.length - 2))
-        // lineHeight probably can't be NaN but let's make sure
-        if (lineHeight) recursiveScroll(0, lineHeight * n, [window.document.body])
-    }
+    const cssHeight = window.getComputedStyle(document.body).getPropertyValue("line-height")
+    // Remove the "px" at the end
+    const lineHeight = parseInt(cssHeight.substr(0, cssHeight.length - 2))
+    // lineHeight probably can't be NaN but let's make sure
+    if (lineHeight) scrolling.recursiveScroll(0, lineHeight * n, [document.documentElement])
 }
 
 //#content
@@ -747,13 +828,14 @@ export function viewsource(url = "") {
     }
 }
 
-/** Go to your homepage(s)
-
-    @param all
-        - if "true", opens all homepages in new tabs
-        - if "false" or not given, opens the last homepage in the current tab
-
-*/
+/**
+ * Go to the homepages you have set with `set home [url1] [url2]`.
+ *
+ *  @param all
+ *      - if "true", opens all homepages in new tabs
+ *      - if "false" or not given, opens the last homepage in the current tab
+ *
+ */
 //#background
 export function home(all: "false" | "true" = "false") {
     let homepages = config.get("homepages")
@@ -790,6 +872,15 @@ export async function tutor(newtab?: string) {
     const tutor = browser.extension.getURL("static/clippy/tutor.html")
     if (newtab) tabopen(tutor)
     else open(tutor)
+}
+
+/**
+ * Display Tridactyl's contributors in order of commits in a user-friendly fashion
+ */
+//#background
+export async function credits(excmd?: string) {
+    const creditspage = browser.extension.getURL("static/authors.html")
+    tabopen(creditspage)
 }
 
 /** @hidden */
@@ -1306,8 +1397,13 @@ export async function tabopen(...addressarr: string[]) {
     let address = addressarr.join(" ")
 
     if (!ABOUT_WHITELIST.includes(address) && address.match(/^(about|file):.*/)) {
-        nativeopen(address)
-        return
+        if ((await browser.runtime.getPlatformInfo()).os === "mac" && (await browser.windows.getCurrent()).incognito) {
+            fillcmdline_notrail("# nativeopen isn't supported in private mode on OSX. Consider installing Linux or Windows :).")
+            return
+        } else {
+            nativeopen(address)
+            return
+        }
     } else if (address != "") url = forceURI(address)
     else url = forceURI(config.get("newtab"))
 
@@ -1524,8 +1620,13 @@ export async function winopen(...args: string[]) {
     } else address = args.join(" ")
     createData["url"] = address != "" ? forceURI(address) : forceURI(config.get("newtab"))
     if (!ABOUT_WHITELIST.includes(address) && address.match(/^(about|file):.*/)) {
-        nativeopen(address, firefoxArgs)
-        return
+        if ((await browser.runtime.getPlatformInfo()).os === "mac") {
+            fillcmdline_notrail("# nativeopen isn't supported for winopen on OSX. Consider installing Linux or Windows :).")
+            return
+        } else {
+            nativeopen(address, firefoxArgs)
+            return
+        }
     }
     browser.windows.create(createData)
 }
@@ -1634,7 +1735,7 @@ export function repeat(n = 1, ...exstr: string[]) {
 }
 
 /**
- * Split `cmds` on pipes (|) and treat each as its own command. Return values are cast to strings and passed to the appended to the arguments of the next ex command, e.g,
+ * Split `cmds` on pipes (|) and treat each as its own command. Return values are passed as the last argument of the next ex command, e.g,
  *
  * `composite echo yes | fillcmdline` becomes `fillcmdline yes`. A more complicated example is the ex alias, `command current_url composite get_current_url | fillcmdline_notrail `, which is used in, e.g. `bind T current_url tabopen`.
  *
@@ -1646,23 +1747,24 @@ export function repeat(n = 1, ...exstr: string[]) {
  */
 //#background
 export async function composite(...cmds: string[]) {
-    cmds = cmds.join(" ").split("|")
-    let val = ""
-    for (let c of cmds) {
-        let dmds = c.split(";")
-        if (dmds.length > 1) {
-            for (let d of dmds) {
-                await controller.acceptExCmd(d)
-            }
-        } else val = await controller.acceptExCmd(dmds[0] + val)
-        try {
-            if (val == undefined || val.includes("undefined")) val = ""
-            else val = " " + val
-        } catch (e) {
-            if (e instanceof TypeError) {
-                val = " " + val
-            } else throw e
-        }
+    try {
+        return cmds
+            .join(" ")
+            .split(";")
+            .reduce(
+                async (_, cmd) => {
+                    await _
+                    let cmds = cmd.split("|")
+                    let [fn, args] = excmd_parser.parser(cmd)
+                    return cmds.slice(1).reduce(async (pipedValue, cmd) => {
+                        let [fn, args] = excmd_parser.parser(cmd)
+                        return fn.call({}, ...args, await pipedValue)
+                    }, fn.call({}, ...args))
+                },
+                null as any,
+            )
+    } catch (e) {
+        logger.error(e)
     }
 }
 
@@ -1894,7 +1996,7 @@ export function searchsetkeyword(keyword: string, url: string) {
 
 /** Set a key value pair in config.
 
-    Use to set any string values found [here](/static/docs/modules/_config_.html#defaults)
+    Use to set any string values found [here](/static/docs/modules/_src_config_.html#defaults)
 
     e.g.
         set searchurls.google https://www.google.com/search?q=
@@ -2411,10 +2513,18 @@ export async function echo(...str: string[]) {
  *
  * Aliased to `!js`
  *
+ * If you want to pipe an argument to `js`, you need to use the "-p" flag and then use the JS_ARG global variable, e.g:
+ *
+ * `composite get_current_url | js -p alert(JS_ARG)`
  */
 //#content
 export async function js(...str: string[]) {
-    return eval(str.join(" "))
+    if (str[0].startsWith("-p")) {
+        let JS_ARG = str[str.length - 1]
+        return eval(str.slice(1, -1).join(" "))
+    } else {
+        return eval(str.join(" "))
+    }
 }
 
 /**
@@ -2422,7 +2532,12 @@ export async function js(...str: string[]) {
  */
 //#background
 export async function jsb(...str: string[]) {
-    return eval(str.join(" "))
+    if (str[0].startsWith("-p")) {
+        let JS_ARG = str[str.length - 1]
+        return eval(str.slice(1, -1).join(" "))
+    } else {
+        return eval(str.join(" "))
+    }
 }
 
 /**  Open a welcome page on first install.
