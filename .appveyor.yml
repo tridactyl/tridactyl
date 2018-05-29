@@ -86,8 +86,8 @@ build_script:
   - python --version
 
   # Install Python modules under Python 3.6
-  - ps: python -m pip install --upgrade pip
-  - ps: python -m pip install --upgrade pyinstaller
+  - ps: python -m pip install --upgrade pip>=10.0.1
+  - ps: python -m pip install --upgrade pyinstaller>=3.3.1
 
   # Change to build directory and verify CWD
   - ps: Set-Location -Path $env:APPVEYOR_BUILD_FOLDER
@@ -115,8 +115,8 @@ test_script:
   - python --version
 
   # Install Python modules under Python 3.6
-  - ps: python -m pip install --upgrade pip
-  - ps: python -m pip install --upgrade pyinstaller
+  - ps: python -m pip install --upgrade pip>=10.0.1
+  - ps: python -m pip install --upgrade pyinstaller>=3.3.1
 
   # Change to build directory and verify CWD
   - ps: Set-Location -Path $env:APPVEYOR_BUILD_FOLDER
