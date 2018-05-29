@@ -628,7 +628,7 @@ export function unfocus() {
 
 //#content
 export async function scrollpx(a: number, b: number) {
-    if (!await scrolling.scroll(a, b, document.documentElement)) scrolling.recursiveScroll(a, b, [document.documentElement])
+    if (!await scrolling.scroll(a, b, document.documentElement)) scrolling.recursiveScroll(a, b)
 }
 
 /** If two numbers are given, treat as x and y values to give to window.scrollTo
@@ -671,7 +671,7 @@ export function scrollline(n = 1) {
         // Is there a better way to compute a fallback? Maybe fetch from about:preferences?
         if (!lineHeight) lineHeight = 22
     }
-    scrolling.recursiveScroll(0, lineHeight * n, [document.documentElement])
+    scrolling.recursiveScroll(0, lineHeight * n)
 }
 
 //#content
