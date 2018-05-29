@@ -2204,9 +2204,13 @@ export function unset(...keys: string[]) {
  *
  *  `styleinclude --name stylemod --filter https://* --css body {border: 3px solid green;}`
  *
- * - Turn off the style included:
+ * - Turn on/off the style included:
  *
  *  `styletoggle --name stylemod`
+ *
+ * - To get your current style configuration:
+ *
+ *  `viewconfig styletoggles` or `get styletoggles`
  *
  */
 //#background
