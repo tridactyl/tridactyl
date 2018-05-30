@@ -1,4 +1,5 @@
 import * as Native from "./native_background"
+import * as config from "./config"
 
 type scrollingDirection = "scrollLeft" | "scrollTop"
 
@@ -10,20 +11,12 @@ let verticallyScrolling = new Map()
 let opts = { smooth: null, duration: null }
 async function getSmooth() {
     if (opts.smooth === null)
-        opts.smooth = await Native.getConfElsePrefElseDefault(
-            "smoothscroll",
-            "general.smoothScroll",
-            "false",
-        )
+        opts.smooth = await config.getAsync("smoothscroll")
     return opts.smooth
 }
 async function getDuration() {
     if (opts.duration === null)
-        opts.duration = await Native.getConfElsePrefElseDefault(
-            "scrollduration",
-            "general.smoothScroll.lines.durationMinMs",
-            100,
-        )
+        opts.duration = await config.getAsync("scrollduration")
     return opts.duration
 }
 browser.storage.onChanged.addListener(changes => {
