@@ -321,7 +321,7 @@ export async function getProfileDir() {
             return win_profiledir
         } else {
             throw new Error(
-                "Profile directory is not set. Profile directory path(s) can be found by navigating to 'about:support'.",
+                "Your profile directory must be set manually on Windows, which you can find on 'about:support', with `set profiledir [directory]`.",
             )
         }
     }
