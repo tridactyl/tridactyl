@@ -407,11 +407,24 @@ export async function updatenative(interactive = true) {
  */
 //#background
 export async function restart() {
-    const firefox = (await Native.ffargs()).join(" ")
-    const profile = await Native.getProfileDir()
-    // Wait for the lock to disappear, then wait a bit more, then start firefox
-    Native.run(`while readlink ${profile}/lock ; do sleep 1 ; done ; sleep 1 ; ${firefox}`)
-    qall()
+    const profiledir = await Native.getProfileDir()
+    const browsercmd = await config.get("browser")
+
+    if ((await browser.runtime.getPlatformInfo()).os === "win") {
+        let reply = await Native.winFirefoxRestart(profiledir, browsercmd)
+        logger.info("[+] win_firefox_restart 'reply' = " + JSON.stringify(reply))
+        if (Number(reply["code"]) === 0) {
+            fillcmdline("#" + reply["content"])
+            qall()
+        } else {
+            fillcmdline("#" + reply["error"])
+        }
+    } else {
+        const firefox = (await Native.ffargs()).join(" ")
+        // Wait for the lock to disappear, then wait a bit more, then start firefox
+        Native.run(`while readlink ${profiledir}/lock ; do sleep 1 ; done ; sleep 1 ; ${firefox}`)
+        qall()
+    }
 }
 
 // }}}
