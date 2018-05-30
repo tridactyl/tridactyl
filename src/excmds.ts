@@ -641,7 +641,7 @@ export function unfocus() {
 
 //#content
 export async function scrollpx(a: number, b: number) {
-    if (!await scrolling.scroll(a, b, document.documentElement)) scrolling.recursiveScroll(a, b, [document.documentElement])
+    if (!await scrolling.scroll(a, b, document.documentElement)) scrolling.recursiveScroll(a, b)
 }
 
 /** If two numbers are given, treat as x and y values to give to window.scrollTo
@@ -672,13 +672,19 @@ export function scrollto(a: number, b: number | "x" | "y" = "y") {
     }
 }
 
+//#content_helper
+let lineHeight = null
 //#content
 export function scrollline(n = 1) {
-    const cssHeight = window.getComputedStyle(document.body).getPropertyValue("line-height")
-    // Remove the "px" at the end
-    const lineHeight = parseInt(cssHeight.substr(0, cssHeight.length - 2))
-    // lineHeight probably can't be NaN but let's make sure
-    if (lineHeight) scrolling.recursiveScroll(0, lineHeight * n, [document.documentElement])
+    if (lineHeight === null) {
+        // Get line height
+        const cssHeight = window.getComputedStyle(document.body).getPropertyValue("line-height")
+        // Remove the "px" at the end
+        lineHeight = parseInt(cssHeight.substr(0, cssHeight.length - 2))
+        // Is there a better way to compute a fallback? Maybe fetch from about:preferences?
+        if (!lineHeight) lineHeight = 22
+    }
+    scrolling.recursiveScroll(0, lineHeight * n)
 }
 
 //#content
@@ -782,6 +788,25 @@ export async function open(...urlarr: string[]) {
         Messaging.message("commandline_background", "recvExStr", ["nativeopen " + url])
     } else if (url !== "") {
         window.location.href = forceURI(url)
+    }
+}
+
+/**
+ * Like [[open]] but doesn't make a new entry in history.
+ */
+//#content
+export async function open_quiet(...urlarr: string[]) {
+    let url = urlarr.join(" ")
+
+    // Setting window.location to about:blank results in a page we can't access, tabs.update works.
+    if (["about:blank"].includes(url)) {
+        url = url || undefined
+        browserBg.tabs.update(await activeTabId(), { url })
+        // Open URLs that firefox won't let us by running `firefox <URL>` on the command line
+    } else if (!ABOUT_WHITELIST.includes(url) && url.match(/^(about|file):.*/)) {
+        Messaging.message("commandline_background", "recvExStr", ["nativeopen " + url])
+    } else if (url !== "") {
+        document.location.replace(forceURI(url))
     }
 }
 
@@ -1100,8 +1125,9 @@ export function urlmodify(mode: "-t" | "-r" | "-q" | "-Q" | "-g", ...args: strin
             break
     }
 
+    // TODO: once we have an arg parser, have a quiet flag that prevents the page from being added to history
     if (newUrl && newUrl !== oldUrl) {
-        window.location.href = newUrl
+        window.location.replace(newUrl)
     }
 }
 

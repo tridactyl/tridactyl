@@ -235,7 +235,7 @@ const DEFAULTS = o({
 
     // These two options will fall back to user's preferences and then to a
     // default value set in scrolling.ts if left undefined.
-    smoothscroll: undefined, // "false" | "true"
+    smoothscroll: "false", // "false" | "true"
     scrollduration: undefined, // number
 
     tabopenpos: "next",

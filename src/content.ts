@@ -71,7 +71,7 @@ if (
 ) {
     config.getAsync("newtab").then(newtab => {
         if (newtab) {
-            excmds.open(newtab)
+            excmds.open_quiet(newtab)
         } else {
             document.documentElement.style.display = "block"
             document.title = "Tridactyl Top Tips & New Tab Page"
