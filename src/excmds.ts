@@ -1175,9 +1175,8 @@ loadaucmds("DocStart")
 export async function loadaucmds(cmdType: "DocStart" | "TabEnter" | "TabLeft") {
     let aucmds = await config.getAsync("autocmds", cmdType)
     const ausites = Object.keys(aucmds)
-    // yes, this is lazy
-    const aukey = ausites.find(e => window.document.location.href.search(e) >= 0)
-    if (aukey !== undefined) {
+    const aukeyarr = ausites.filter(e => window.document.location.href.search(e) >= 0)
+    for (let aukey of aukeyarr) {
         Messaging.message("commandline_background", "recvExStr", [aucmds[aukey]])
     }
 }
