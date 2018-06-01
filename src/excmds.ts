@@ -2068,9 +2068,9 @@ export function set(key: string, ...values: string[]) {
 
 /** Set autocmds to run when certain events happen.
 
- @param event Curently, only 'TriStart' and 'DocStart' are supported.
+ @param event Curently, 'TriStart', 'DocStart', 'TabEnter' and 'TabLeft' are supported.
 
- @param url For DocStart: a fragment of the URL on which the events will trigger, or a JavaScript regex (e.g, `/www\.amazon\.co.*\/`)
+ @param url For DocStart, TabEnter, and TabLeft: a fragment of the URL on which the events will trigger, or a JavaScript regex (e.g, `/www\.amazon\.co.*\/`)
 
  We just use [URL.search](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/search).
 
@@ -2088,6 +2088,21 @@ export function autocmd(event: string, url: string, ...excmd: string[]) {
     // TODO: Decide on autocmd event names
     if (!["DocStart", "TriStart", "TabEnter", "TabLeft"].includes(event)) throw event + " is not a supported event."
     config.set("autocmds", event, url, excmd.join(" "))
+}
+
+/**
+ *  Helper function to put Tridactyl into ignore mode on the provided URL.
+ *
+ *  Simply creates a DocStart and TabEnter [[autocmd]] that runs `mode ignore`.
+ *
+ *  Due to a Tridactyl bug, the only way to remove these rules once they are set is to delete all of your autocmds with `unset autocmds`.
+ *
+ *  <!-- this should probably be moved to an ex alias once configuration has better help --!>
+ *
+ */
+//#background
+export function blacklistadd(url: string) {
+    ;["DocStart", "TabEnter"].map(e => autocmd(e, url, "mode ignore"))
 }
 
 /** Unbind a sequence of keys so that they do nothing at all.
