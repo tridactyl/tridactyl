@@ -104,3 +104,11 @@ browser.runtime.onStartup.addListener(_ => {
         }
     })
 })
+
+let curTab = null
+browser.tabs.onActivated.addListener(ev => {
+    if (curTab !== null)
+        messaging.messageTab(curTab, "excmd_content", "loadaucmds", ["TabLeft"])
+    curTab = ev.tabId
+    messaging.messageTab(curTab, "excmd_content", "loadaucmds", ["TabEnter"])
+})

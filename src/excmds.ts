@@ -1168,13 +1168,12 @@ export async function reader() {
 
 //@hidden
 //#content_helper
-loadaucmds()
+loadaucmds("DocStart")
 
 /** @hidden */
 //#content
-export async function loadaucmds() {
-    // for some reason, this never changes from the default, even when there is user config (e.g. set via `aucmd bbc.co.uk mode ignore`)
-    let aucmds = await config.getAsync("autocmds", "DocStart")
+export async function loadaucmds(cmdType: "DocStart" | "TabEnter" | "TabLeft") {
+    let aucmds = await config.getAsync("autocmds", cmdType)
     const ausites = Object.keys(aucmds)
     // yes, this is lazy
     const aukey = ausites.find(e => window.document.location.href.search(e) >= 0)
@@ -2087,7 +2086,7 @@ export function set(key: string, ...values: string[]) {
 export function autocmd(event: string, url: string, ...excmd: string[]) {
     // rudimentary run time type checking
     // TODO: Decide on autocmd event names
-    if (!["DocStart", "TriStart"].includes(event)) throw event + " is not a supported event."
+    if (!["DocStart", "TriStart", "TabEnter", "TabLeft"].includes(event)) throw event + " is not a supported event."
     config.set("autocmds", event, url, excmd.join(" "))
 }
 

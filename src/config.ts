@@ -146,6 +146,14 @@ const DEFAULTS = o({
         TriStart: o({
             ".*": "source_quiet",
         }),
+        TabEnter: o({
+            // "gmail.com": "mode ignore",
+        }),
+        TabLeft: o({
+            // Actually, this doesn't work because tabclose closes the current tab
+            // Too bad :/
+            // "emacs.org": "tabclose",
+        }),
     }),
     exaliases: o({
         alias: "command",
