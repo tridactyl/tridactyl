@@ -104,12 +104,14 @@ build_script:
   - ps: Write-Host "[+] Starting 'npm run build' ..."
   - bash -e -l -c "cd $APPVEYOR_BUILD_FOLDER && export PYINSTALLER=1 && npm run build"
 
+
 test_script:
   # Add Python-3.6 to %PATH%
   - ps: $env:PATH = "C:\Python36-x64\Scripts;$env:PATH"
   - ps: $env:PATH = "C:\Python36-x64;$env:PATH"
   - ps: >-
         Copy-Item `
+        -Verbose `
         -Path "C:\Python36-x64\Python.exe" `
         -Destination "C:\Python36-x64\Python3.exe"
   - python --version
@@ -132,3 +134,64 @@ test_script:
 
   - ps: Write-Host "[+] Starting 'npm run test' ..."
   - bash -e -l -c "cd $APPVEYOR_BUILD_FOLDER && export PYINSTALLER=1 && npm run test"
+
+  - ps: Write-Host "[+] Preparing 'native_main.exe' for upload ..."
+  - ps: >-
+        $srcDir = "$env:APPVEYOR_BUILD_FOLDER/native"; `
+        $srcFile = "$srcDir/native_main.exe"; `
+        $dstFile = [string]::Format( `
+          "{0}-g{1}.exe", `
+          "native_main", `
+          $env:APPVEYOR_REPO_COMMIT.Substring(0,7) `
+        );
+        $dstPath = [string]::Format( `
+          "{0}/{1}", `
+          $srcDir, `
+          $dstFile `
+        );
+        `
+        Copy-Item `
+          -Verbose `
+          -Path $srcFile `
+          -Destination $dstPath;
+        `
+        Push-AppveyorArtifact `
+          $srcFile `
+          -FileName $dstFile `
+          -DeploymentName $dstFile `
+          -Verbosity Normal `
+          -Type file;
+
+
+deploy:
+  #
+  # Since SFTP with password-authentication is required by AppVeyor
+  # to upload artifacts, deployment etc., it's useful to add the
+  # following at the bottom of OpenSSH configuration file to enable
+  # password-authentication for AppVeyor IP addresses only. OpenSSH
+  # configuration may have "PasswordAuthentication No" at the top of
+  # the file as default. The list of AppVeyor IP addresses can be
+  # found here [0].
+  #
+  # [0] https://www.appveyor.com/docs/build-environment/#ip-addresses
+  #
+  # OpenSSH Config
+  # --------------
+  #
+  #   Match Address 104.197.145.181,146.148.85.29,67.225.139.254
+  #     PasswordAuthentication yes
+  #   Match Address 67.225.138.82,67.225.139.144,138.91.141.243
+  #     PasswordAuthentication yes
+  #   Match Address 74.205.54.20,104.197.110.30
+  #     PasswordAuthentication yes
+  #
+  - provider: FTP
+    protocol: sftp
+    host: tridactyl.gsbabil.com
+    username: tridactyl
+    password: UNSAFE-PASSWORD-CHANGE-ME-ASAP
+    folder: ./
+    active_mode: false
+    debug: true
+    beta: true
+

@@ -346,7 +346,7 @@ installWindowsNativeMessenger() {
       -InputFormat None \
       -ExecutionPolicy Bypass \
       "${WIN_NATIVE_BIN_INSTALLER}" \
-        -DebugDirBase native \
+        -DebugDirBase native
   fi
 }
 
