@@ -1170,9 +1170,12 @@ export async function reader() {
 //#content_helper
 loadaucmds("DocStart")
 
+//#content_helper
+window.addEventListener("pagehide", () => loadaucmds("DocEnd"))
+
 /** @hidden */
 //#content
-export async function loadaucmds(cmdType: "DocStart" | "TabEnter" | "TabLeft") {
+export async function loadaucmds(cmdType: "DocStart" | "DocEnd" | "TabEnter" | "TabLeft") {
     let aucmds = await config.getAsync("autocmds", cmdType)
     const ausites = Object.keys(aucmds)
     const aukeyarr = ausites.filter(e => window.document.location.href.search(e) >= 0)
@@ -2067,9 +2070,9 @@ export function set(key: string, ...values: string[]) {
 
 /** Set autocmds to run when certain events happen.
 
- @param event Curently, 'TriStart', 'DocStart', 'TabEnter' and 'TabLeft' are supported.
+ @param event Curently, 'TriStart', 'DocStart', 'DocEnd', 'TabEnter' and 'TabLeft' are supported.
 
- @param url For DocStart, TabEnter, and TabLeft: a fragment of the URL on which the events will trigger, or a JavaScript regex (e.g, `/www\.amazon\.co.*\/`)
+ @param url For DocStart, DocEnd, TabEnter, and TabLeft: a fragment of the URL on which the events will trigger, or a JavaScript regex (e.g, `/www\.amazon\.co.*\/`)
 
  We just use [URL.search](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/search).
 
@@ -2085,7 +2088,7 @@ export function set(key: string, ...values: string[]) {
 export function autocmd(event: string, url: string, ...excmd: string[]) {
     // rudimentary run time type checking
     // TODO: Decide on autocmd event names
-    if (!["DocStart", "TriStart", "TabEnter", "TabLeft"].includes(event)) throw event + " is not a supported event."
+    if (!["DocStart", "DocEnd", "TriStart", "TabEnter", "TabLeft"].includes(event)) throw event + " is not a supported event."
     config.set("autocmds", event, url, excmd.join(" "))
 }
 

@@ -143,6 +143,9 @@ const DEFAULTS = o({
         DocStart: o({
             // "addons.mozilla.org": "mode ignore",
         }),
+        DocEnd: o({
+            // "emacs.org": "sanitise history",
+        }),
         TriStart: o({
             ".*": "source_quiet",
         }),
