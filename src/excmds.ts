@@ -909,6 +909,11 @@ export async function help(excmd?: string) {
     const docpage = browser.extension.getURL("static/docs/modules/_src_excmds_.html")
     if (excmd === undefined) excmd = ""
     else {
+        let bindings = await config.getAsync("nmaps")
+        if (excmd in bindings) {
+            excmd = bindings[excmd].split(" ")
+            excmd = ["composite", "fillcmdline"].includes(excmd[0]) ? excmd[1] : excmd[0]
+        }
         let aliases = await config.getAsync("exaliases")
         while (aliases[excmd]) {
             excmd = aliases[excmd].split(" ")
