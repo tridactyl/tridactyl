@@ -528,23 +528,30 @@ export function loggingsetlevel(logModule: string, level: string) {
 
 // {{{ PAGE CONTEXT
 
+/** @hidden */
 //#content_helper
-export let JUMPED: boolean
+let JUMPED: boolean
 
 /** This is used as an ID for the current page in the jumplist.
- *  It has a potentially confusing behavior: if you visit site A, then site B, then visit site A again, the jumplist that was created for your first visit on A will be re-used for your second visit.
- *  An ideal solution would be to have a counter that is incremented every time a new page is visited within the tab and use that as the return value for getJumpPageId but this doesn't seem to be trivial to implement.
+    It has a potentially confusing behavior: if you visit site A, then site B, then visit site A again, the jumplist that was created for your first visit on A will be re-used for your second visit.
+    An ideal solution would be to have a counter that is incremented every time a new page is visited within the tab and use that as the return value for getJumpPageId but this doesn't seem to be trivial to implement.
+    @hidden
  */
 //#content_helper
 export function getJumpPageId() {
     return document.location.href
 }
 
+/** @hidden */
 //#content_helper
 export async function saveJumps(jumps) {
     browserBg.sessions.setTabValue(await activeTabId(), "jumps", jumps)
 }
 
+/** Returns a promise for an object containing the jumplist of all pages accessed in the current tab.
+    The keys of the object currently are the page's URL, however this might change some day. Use [[getJumpPageId]] to access the jumplist of a specific page.
+    @hidden
+ */
 //#content_helper
 export async function curJumps() {
     let tabid = await activeTabId()
@@ -563,14 +570,14 @@ export async function curJumps() {
     return jumps
 }
 
+/** Calls [[jumpprev]](-n) */
 //#content
 export function jumpnext(n = 1) {
     jumpprev(-n)
 }
 
 /** Similar to Pentadactyl or vim's jump list.
-    Should be bound to <C-o> when modifiers are implemented
-*/
+ */
 //#content
 export function jumpprev(n = 1) {
     curJumps().then(alljumps => {
@@ -600,6 +607,7 @@ export function jumpprev(n = 1) {
     The setTimeout call is required because sometimes a user wants to move
     somewhere by pressing 'j' multiple times and we don't want to add the
     in-between locations to the jump list
+    @hidden
 */
 //#content_helper
 export function addJump(scrollEvent: UIEvent) {
@@ -645,14 +653,17 @@ export function unfocus() {
     state.mode = "normal"
 }
 
+/** Scrolls the window or any scrollable child element by a pixels on the horizontal axis and b pixels on the vertical axis.
+ */
 //#content
 export async function scrollpx(a: number, b: number) {
     if (!await scrolling.scroll(a, b, document.documentElement)) scrolling.recursiveScroll(a, b)
 }
 
 /** If two numbers are given, treat as x and y values to give to window.scrollTo
-    If one number is given, scroll to that percentage along a chosen axis,
-        defaulting to the y-axis
+    If one number is given, scroll to that percentage along a chosen axis, defaulting to the y-axis
+
+    Note that if `a` is 0 or 100 and if the document is not scrollable in the given direction, Tridactyl will attempt to scroll the first scrollable element until it reaches the very bottom of that element.
 */
 //#content
 export function scrollto(a: number, b: number | "x" | "y" = "y") {
@@ -678,8 +689,13 @@ export function scrollto(a: number, b: number | "x" | "y" = "y") {
     }
 }
 
+/** @hidden */
 //#content_helper
 let lineHeight = null
+/** Scrolls the document of its first scrollable child element by n lines.
+ *
+ *  The height of a line is defined by the site's CSS. If Tridactyl can't get it, it'll default to 22 pixels.
+ */
 //#content
 export function scrollline(n = 1) {
     if (lineHeight === null) {
@@ -693,6 +709,10 @@ export function scrollline(n = 1) {
     scrolling.recursiveScroll(0, lineHeight * n)
 }
 
+/** Scrolls the document by n pages.
+ *
+ *  The height of a page is the current height of the window.
+ */
 //#content
 export function scrollpage(n = 1) {
     scrollpx(0, window.innerHeight * n)
@@ -1333,6 +1353,7 @@ export async function changelistjump(n?: number) {
     // state.prevInputs = arr
 }
 
+/** @hidden */
 //#content
 export function focusbyid(id: string) {
     document.getElementById(id).focus()
@@ -1802,6 +1823,9 @@ export async function composite(...cmds: string[]) {
     }
 }
 
+/** Sleep time_ms milliseconds.
+ *  This is probably only useful for composite commands that need to wait until the previous asynchronous command has finished running.
+ */
 //#background
 export async function sleep(time_ms: number) {
     await new Promise(resolve => setTimeout(resolve, time_ms))
@@ -2035,6 +2059,8 @@ export function searchsetkeyword(keyword: string, url: string) {
     e.g.
         set searchurls.google https://www.google.com/search?q=
         set logging.messaging info
+
+    If no value is given, the value of the of the key will be displayed
 */
 //#background
 export function set(key: string, ...values: string[]) {
