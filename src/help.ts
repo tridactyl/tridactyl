@@ -2,23 +2,24 @@
 
 import * as config from "./config"
 
-/** Creates the element that should contain alias information */
-function initTridactylAliases(elem: HTMLElement) {
-    let aliasNode = elem.getElementsByClassName("TridactylAliases")[0]
-    // If the node already exists
-    if (aliasNode) {
-        // Empty it
-        Array.from(aliasNode.children)
+/** Created the element that should contain keybinding information */
+function initTridactylSettingElem(
+    elem: HTMLElement,
+    kind: string,
+): HTMLElement {
+    let bindingNode = elem.getElementsByClassName(`Tridactyl${kind}`)[0]
+    if (bindingNode) {
+        Array.from(bindingNode.children)
             .filter(e => e.tagName == "LI")
             .forEach(e => e.parentNode.removeChild(e))
     } else {
         // Otherwise, create it
-        aliasNode = document.createElement("ul")
-        aliasNode.className = "TridactylAliases"
-        aliasNode.textContent = "Aliases: "
-        elem.insertBefore(aliasNode, elem.children[2])
+        bindingNode = document.createElement("ul")
+        bindingNode.className = `TridactylSetting Tridactyl${kind}`
+        bindingNode.textContent = kind + ": "
+        elem.insertBefore(bindingNode, elem.children[2])
     }
-    return aliasNode
+    return bindingNode as HTMLElement
 }
 
 /** Returns an object that maps excmd names to excmd documentation element */
@@ -32,37 +33,51 @@ function getCommandElements() {
 }
 
 /** Updates the doc with aliases fetched from the config */
-async function setCommandAliases() {
+async function addSetting(settingName: string) {
     let commandElems = getCommandElements()
     // We're ignoring composite because it combines multiple excmds
     delete commandElems["composite"]
 
-    // Initialize or reset the <ul> element that will contain aliases in each commandElem
-    let aliasElems = Object.keys(commandElems).reduce((aliasElems, cmdName) => {
-        aliasElems[cmdName] = initTridactylAliases(commandElems[cmdName])
-        return aliasElems
-    }, {})
+    // Initialize or reset the <ul> element that will contain settings in each commandElem
+    let settingElems = Object.keys(commandElems).reduce(
+        (settingElems, cmdName) => {
+            settingElems[cmdName] = initTridactylSettingElem(
+                commandElems[cmdName],
+                settingName,
+            )
+            return settingElems
+        },
+        {},
+    )
 
-    let aliases = await config.getAsync("exaliases")
-    // For each alias
-    for (let alias in aliases) {
-        let excmd = aliases[alias].split(" ")[0]
-        // Find the corresponding alias
-        // We do this in a loop because aliases can be aliases for other aliases
-        while (aliases[excmd]) excmd = aliases[excmd].split(" ")[0]
+    let settings = await config.getAsync(settingName)
+    // For each setting
+    for (let setting in settings) {
+        let excmd = settings[setting].split(" ")
+        // How can we automatically detect what commands can be skipped?
+        excmd = ["fillcmdline", "current_url"].includes(excmd[0])
+            ? excmd[1]
+            : excmd[0]
+        // Find the corresponding setting
+        while (settings[excmd]) {
+            excmd = settings[excmd].split(" ")
+            excmd = ["fillcmdline", "current_url"].includes(excmd[0])
+                ? excmd[1]
+                : excmd[0]
+        }
 
-        // If there is an HTML element for aliases that correspond to the excmd we just found
-        if (aliasElems[excmd]) {
-            let aliasLi = document.createElement("li")
-            aliasLi.innerText = alias
-            aliasLi.title = aliases[alias]
-            // Add the alias to the element
-            aliasElems[excmd].appendChild(aliasLi)
+        // If there is an HTML element for settings that correspond to the excmd we just found
+        if (settingElems[excmd]) {
+            let settingLi = document.createElement("li")
+            settingLi.innerText = setting
+            settingLi.title = settings[setting]
+            // Add the setting to the element
+            settingElems[excmd].appendChild(settingLi)
         }
     }
 
-    // Remove all aliasElems that do not have at least one alias
-    Object.values(aliasElems)
+    // Remove all settingElems that do not have at least one setting
+    Object.values(settingElems)
         .filter(
             (e: HTMLElement) =>
                 !Array.from(e.children).find(c => c.tagName == "LI"),
@@ -73,16 +88,21 @@ async function setCommandAliases() {
 browser.storage.onChanged.addListener((changes, areaname) => {
     if ("userconfig" in changes) {
         // JSON.stringify for comparisons like it's 2012
-        if (
-            JSON.stringify(changes.userconfig.newValue.exaliases) !=
-            JSON.stringify(changes.userconfig.oldValue.exaliases)
-        )
-            setCommandAliases()
+        ;["exaliases", "nmaps"].forEach(kind => {
+            if (
+                JSON.stringify(changes.userconfig.newValue[kind]) !=
+                JSON.stringify(changes.userconfig.oldValue[kind])
+            )
+                addSetting(kind)
+        })
     }
 })
 
-addEventListener("load", () => {
-    setCommandAliases()
-    // setCommandAliases() can change the height of nodes in the page so we need to scroll to the right place again
+addEventListener("load", async () => {
+    let x = addSetting("exaliases")
+    let y = addSetting("nmaps")
+    await x
+    await y
+    // setCommandSetting() can change the height of nodes in the page so we need to scroll to the right place again
     document.location.href = document.location.href
 })

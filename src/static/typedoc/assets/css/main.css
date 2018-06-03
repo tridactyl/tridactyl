@@ -2983,7 +2983,7 @@ ul.tsd-descriptions h4 {
     border-radius: 2px;
 }
 
-ul.TridactylAliases {
+ul.TridactylSetting {
     display: flex;
     flex-direction: row;
     justify-content: flex-start;
@@ -2992,7 +2992,7 @@ ul.TridactylAliases {
     white-space: nowrap;
 }
 
-ul.TridactylAliases li:not(:last-child):after {
+ul.TridactylSetting li:not(:last-child):after {
     content: ", ";
 }
 
