@@ -910,7 +910,10 @@ export async function help(excmd?: string) {
     if (excmd === undefined) excmd = ""
     else {
         let aliases = await config.getAsync("exaliases")
-        if (aliases[excmd] && !aliases[excmd].startsWith("composite")) excmd = aliases[excmd].split(" ")[0]
+        while (aliases[excmd]) {
+            excmd = aliases[excmd].split(" ")
+            excmd = excmd[0] == "composite" ? excmd[1] : excmd[0]
+        }
     }
     if ((await activeTab()).url.startsWith(docpage)) {
         open(docpage + "#" + excmd)
