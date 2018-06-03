@@ -531,6 +531,10 @@ export function loggingsetlevel(logModule: string, level: string) {
 //#content_helper
 export let JUMPED: boolean
 
+/** This is used as an ID for the current page in the jumplist.
+ *  It has a potentially confusing behavior: if you visit site A, then site B, then visit site A again, the jumplist that was created for your first visit on A will be re-used for your second visit.
+ *  An ideal solution would be to have a counter that is incremented every time a new page is visited within the tab and use that as the return value for getJumpPageId but this doesn't seem to be trivial to implement.
+ */
 //#content_helper
 export function getJumpPageId() {
     return document.location.href
@@ -546,12 +550,14 @@ export async function curJumps() {
     let tabid = await activeTabId()
     let jumps = await browserBg.sessions.getTabValue(tabid, "jumps")
     if (!jumps) jumps = {}
+    // This makes sure that `key` exists in `obj`, setting it to `def` if it doesn't
     let ensure = (obj, key, def) => {
         if (obj[key] === null || obj[key] === undefined) obj[key] = def
     }
     let page = getJumpPageId()
     ensure(jumps, page, {})
-    ensure(jumps[page], "list", [{ x: 0, y: 0 }])
+    let dummy = new UIEvent("scroll")
+    ensure(jumps[page], "list", [{ x: dummy.pageX, y: dummy.pageY }])
     ensure(jumps[page], "cur", 0)
     saveJumps(jumps)
     return jumps
