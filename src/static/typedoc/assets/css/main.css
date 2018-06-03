@@ -2983,6 +2983,19 @@ ul.tsd-descriptions h4 {
     border-radius: 2px;
 }
 
+ul.TridactylAliases {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+    list-style: none;
+    padding: 0;
+    white-space: nowrap;
+}
+
+ul.TridactylAliases li:not(:last-child):after {
+    content: ", ";
+}
+
 /* Other changes:
  * - removed all background images in CSS above
  * - reset all links to default FF colour
