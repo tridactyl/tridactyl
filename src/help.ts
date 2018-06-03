@@ -60,6 +60,14 @@ async function setCommandAliases() {
             aliasElems[excmd].appendChild(aliasLi)
         }
     }
+
+    // Remove all aliasElems that do not have at least one alias
+    Object.values(aliasElems)
+        .filter(
+            (e: HTMLElement) =>
+                !Array.from(e.children).find(c => c.tagName == "LI"),
+        )
+        .forEach((e: HTMLElement) => e.parentNode.removeChild(e))
 }
 
 browser.storage.onChanged.addListener((changes, areaname) => {
