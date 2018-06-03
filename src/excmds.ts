@@ -888,6 +888,10 @@ export function home(all: "false" | "true" = "false") {
 export async function help(excmd?: string) {
     const docpage = browser.extension.getURL("static/docs/modules/_src_excmds_.html")
     if (excmd === undefined) excmd = ""
+    else {
+        let aliases = await config.getAsync("exaliases")
+        if (aliases[excmd] && !aliases[excmd].startsWith("composite")) excmd = aliases[excmd].split(" ")[0]
+    }
     if ((await activeTab()).url.startsWith(docpage)) {
         open(docpage + "#" + excmd)
     } else {
