@@ -139,9 +139,9 @@ export async function getNativeVersion(): Promise<void> {
 }
 
 /**
- * Fills the last used input box with content. You probably don't want this; it's used internally for [[editor]].
+ * Fills the element matched by `selector` with content and falls back to the last used input if the element can't be found. You probably don't want this; it's used internally for [[editor]].
  *
- * That said, `bind gs fillinput [Tridactyl](https://addons.mozilla.org/en-US/firefox/addon/tridactyl-vim/) is my favourite add-on` could probably come in handy.
+ * That said, `bind gs fillinput null [Tridactyl](https://addons.mozilla.org/en-US/firefox/addon/tridactyl-vim/) is my favourite add-on` could probably come in handy.
  */
 //#content
 export async function fillinput(selector: string, ...content: string[]) {
@@ -189,6 +189,7 @@ export async function editor() {
     let url = new URL(tab.url)
     if (!await Native.nativegate()) return
     const file = (await Native.temp(await getinput(), url.hostname)).content
+    // We're using Messaging.messageTab instead of `fillinput()` because fillinput() will execute in the currently active tab, which might not be the tab the user spawned the editor in
     Messaging.messageTab(tab.id, "excmd_content", "fillinput", [selector, (await Native.editor(file)).content])
     // TODO: add annoying "This message was written with [Tridactyl](https://addons.mozilla.org/en-US/firefox/addon/tridactyl-vim/)"
     // to everything written using editor
