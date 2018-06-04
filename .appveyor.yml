@@ -73,6 +73,7 @@ install:
   - bash -e -l -c "cd $APPVEYOR_BUILD_FOLDER && ls -alh"
 
   # Install NPM modules
+  - bash -e -l -c "cd $APPVEYOR_BUILD_FOLDER && npm install npm@latest -g"
   - bash -e -l -c "cd $APPVEYOR_BUILD_FOLDER && npm install"
 
 build_script:
@@ -175,8 +176,19 @@ deploy:
   #
   # [0] https://www.appveyor.com/docs/build-environment/#ip-addresses
   #
+  # Prerequisites
+  # -------------
+  #
+  # $ sudo adduser appveyor
+  # $ sudo mkdir -p /var/sftp/appveyor
+  # $ sudo chmod 755 /var/sftp
+  # $ sudo chown root.root /var/sftp
+  # $ sudo chown appveyor.appveyor /var/sftp/appveyor
+  #
   # OpenSSH Config
   # --------------
+  #
+  #   ## AppVeyor SFTP Config
   #
   #   Match Address 104.197.145.181,146.148.85.29,67.225.139.254
   #     PasswordAuthentication yes
@@ -185,12 +197,20 @@ deploy:
   #   Match Address 74.205.54.20,104.197.110.30
   #     PasswordAuthentication yes
   #
+  #   Match User appveyor
+  #     ForceCommand internal-sftp
+  #     ChrootDirectory /var/sftp
+  #     PermitTunnel no
+  #     AllowAgentForwarding no
+  #     AllowTcpForwarding no
+  #     X11Forwarding no
+  #
   - provider: FTP
     protocol: sftp
-    host: tridactyl.gsbabil.com
-    username: tridactyl
-    password: UNSAFE-PASSWORD-CHANGE-ME-ASAP
-    folder: ./
+    host: appveyor.gsbabil.com
+    username: appveyor
+    password: ADD-A-SAFE-PASSWORD
+    folder: /appveyor
     active_mode: false
     debug: true
     beta: true
