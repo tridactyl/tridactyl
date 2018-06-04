@@ -12,15 +12,19 @@ export type RArray<T> = ReadonlyArray<T>
 export type OMAP<T> = { [k: string]: T }
 
 /**
- * Takes a list of strings and joins all the strings after x
+ * Takes a list of strings and joins all the strings after x. Ex:
+ * `['a', 'b', 'c', 'd'] at x=1 => ['ab', 'cd']` since 1 is 'b' and everything
+ * after that is joined together
  *
- * @param x Index after which args should be joined together
+ * @param x 0-based index after which elements are joined
  * @param list List of strings
  */
 export function joinAfter(x: number, list: List<string>): List<string> {
-    const head = list.slice(0, x - 1)
-    const tail = list.slice(x).join(" ")
-    return head.concat(tail)
+    const i = x - 1
+    const head = list.slice(0, i)
+    const tail = list.slice(i)
+    if (isListEmpty(tail)) return list
+    return head.concat(tail.join(" "))
 }
 
 export function parseBool(str: string): boolean {
@@ -39,6 +43,7 @@ export const unimplemented = () => {
 }
 export const isContentScript = () => !("tabs" in browser)
 export const isEmpty = (l: { length: number }) => l.length === 0
+export const isListEmpty = (l: List<any>) => l.size === 0
 
 export async function getStorage(key: string): Promise<any> {
     const store = await browser.storage.sync.get(key)
@@ -72,7 +77,7 @@ export function errorIfNull<T>(
     throw Error(emsg)
 }
 
-export const tokeniseOnWhitespace = (s: string) => s.trim().split(/\s+/)
+export const tokeniseOnWhitespace = (s: string) => s.split(/\s+/)
 
 /**
  * Extracts the command name from the raw exstring. The command is always the

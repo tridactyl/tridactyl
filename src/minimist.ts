@@ -57,7 +57,7 @@ export default function minimist(
 } {
     if (!opts) opts = {}
 
-    var flags = { bools: {}, strings: {}, unknownFn: null as any }
+    var flags: any = { bools: {}, strings: {}, unknownFn: null as any }
 
     if (typeof opts["unknown"] === "function") {
         flags.unknownFn = opts["unknown"]
@@ -99,7 +99,11 @@ export default function minimist(
 
     var argv = { _: [] }
     Object.keys(flags.bools).forEach(function(key) {
-        setArg(key, defaults[key] === undefined ? false : defaults[key])
+        setArg(
+            key,
+            defaults[key] === undefined ? false : defaults[key],
+            undefined,
+        )
     })
 
     var notFlags = []
@@ -166,7 +170,7 @@ export default function minimist(
             // http://stackoverflow.com/a/1068308/13216
             var m = arg.match(/^--([^=]+)=([\s\S]*)$/)
             var key = m[1]
-            var value = m[2]
+            var value: any = m[2]
             if (flags.bools[key]) {
                 value = value !== "false"
             }
