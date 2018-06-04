@@ -144,8 +144,9 @@ export async function getNativeVersion(): Promise<void> {
  * That said, `bind gs fillinput [Tridactyl](https://addons.mozilla.org/en-US/firefox/addon/tridactyl-vim/) is my favourite add-on` could probably come in handy.
  */
 //#content
-export async function fillinput(...content: string[]) {
-    let inputToFill = DOM.getLastUsedInput()
+export async function fillinput(selector: string, ...content: string[]) {
+    let inputToFill = document.querySelector(selector)
+    if (!inputToFill) inputToFill = DOM.getLastUsedInput()
     if ("value" in inputToFill) {
         ;(inputToFill as HTMLInputElement).value = content.join(" ")
     } else {
@@ -165,6 +166,12 @@ export async function getinput() {
     }
 }
 
+/** @hidden */
+//#content
+export async function getInputSelector() {
+    return DOM.getSelector(DOM.getLastUsedInput())
+}
+
 /**
  * Opens your favourite editor (which is currently gVim) and fills the last used input with whatever you write into that file.
  * **Requires that the native messenger is installed, see [[native]] and [[installnative]]**.
@@ -177,10 +184,12 @@ export async function getinput() {
  */
 //#background
 export async function editor() {
-    let url = new URL((await activeTab()).url)
+    let tab = await activeTab()
+    let selector = await Messaging.messageTab(tab.id, "excmd_content", "getInputSelector", [])
+    let url = new URL(tab.url)
     if (!await Native.nativegate()) return
     const file = (await Native.temp(await getinput(), url.hostname)).content
-    fillinput((await Native.editor(file)).content)
+    Messaging.messageTab(tab.id, "excmd_content", "fillinput", [selector, (await Native.editor(file)).content])
     // TODO: add annoying "This message was written with [Tridactyl](https://addons.mozilla.org/en-US/firefox/addon/tridactyl-vim/)"
     // to everything written using editor
 }
