@@ -426,11 +426,21 @@ export function hijackPageListenerFunctions(): void {
 /** Focuses an input element and makes sure the cursor is put at the end of the input */
 export function focus(e: HTMLElement): void {
     e.focus()
-    if (e instanceof HTMLInputElement) {
+    // https://developer.mozilla.org/en-US/docs/Web/API/HTMLInputElement/setSelectionRange
+    // "Note that accordingly to the WHATWG forms spec selectionStart,
+    // selectionEnd properties and setSelectionRange method apply only to
+    // inputs of types text, search, URL, tel and password"
+    // So you can't put the cursor at the end of an email field. I can't
+    // believe how stupid this is.
+    if (
+        e instanceof HTMLInputElement &&
+        ["text", "search", "url", "tel", "password"].includes(
+            e.type.toLowerCase(),
+        )
+    ) {
         let pos = 0
         if (config.get("cursorpos") === "end") pos = e.value.length
-        e.selectionStart = pos
-        e.selectionEnd = e.selectionStart
+        e.setSelectionRange(pos, pos)
     }
 }
 
