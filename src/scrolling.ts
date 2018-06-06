@@ -1,4 +1,5 @@
 import * as Native from "./native_background"
+import * as config from "./config"
 
 type scrollingDirection = "scrollLeft" | "scrollTop"
 
@@ -7,20 +8,25 @@ let horizontallyScrolling = new Map()
 // Stores elements that are currently being vertically scrolled
 let verticallyScrolling = new Map()
 
+let opts = { smooth: null, duration: null }
 async function getSmooth() {
-    return await Native.getConfElsePrefElseDefault(
-        "smoothscroll",
-        "general.smoothScroll",
-        "false",
-    )
+    if (opts.smooth === null)
+        opts.smooth = await config.getAsync("smoothscroll")
+    return opts.smooth
 }
 async function getDuration() {
-    return await Native.getConfElsePrefElseDefault(
-        "scrollduration",
-        "general.smoothScroll.lines.durationMinMs",
-        100,
-    )
+    if (opts.duration === null)
+        opts.duration = await config.getAsync("scrollduration")
+    return opts.duration
 }
+browser.storage.onChanged.addListener(changes => {
+    if ("userconfig" in changes) {
+        if ("smoothscroll" in changes.userconfig.newValue)
+            opts.smooth = changes.userconfig.newValue["smoothscroll"]
+        if ("scrollduration" in changes.userconfig.newValue)
+            opts.duration = changes.userconfig.newValue["scrollduration"]
+    }
+})
 
 class ScrollingData {
     // time at which the scrolling animation started
@@ -117,21 +123,22 @@ export async function scroll(
         // Don't create a new ScrollingData object if the element is already
         // being scrolled
         let scrollData = horizontallyScrolling.get(e)
-        if (!scrollData || !scrollData.scrolling)
-            scrollData = new ScrollingData(e, "scrollLeft")
+        if (!scrollData) scrollData = new ScrollingData(e, "scrollLeft")
         horizontallyScrolling.set(e, scrollData)
         result = result || scrollData.scroll(x, duration)
     }
     if (y != 0) {
         let scrollData = verticallyScrolling.get(e)
-        if (!scrollData || !scrollData.scrolling)
-            scrollData = new ScrollingData(e, "scrollTop")
+        if (!scrollData) scrollData = new ScrollingData(e, "scrollTop")
         verticallyScrolling.set(e, scrollData)
         result = result || scrollData.scroll(y, duration)
     }
     return result
 }
 
+let lastRecursiveScrolled = null
+let lastX = 0
+let lastY = 0
 /** Tries to find a node which can be scrolled either x pixels to the right or
  *  y pixels down among the Elements in {nodes} and children of these Elements.
  *
@@ -141,22 +148,50 @@ export async function scroll(
 export async function recursiveScroll(
     x: number,
     y: number,
-    nodes: Element[],
-    duration: number = undefined,
+    nodes: Element[] = undefined,
+    ignore: Element[] = [],
 ) {
-    // Determine whether to smoothscroll or not
-    let smooth = await getSmooth()
-    if (smooth == "false") duration = 0
-    else if (duration === undefined) duration = await getDuration()
-
+    let startingFromCached = false
+    if (!nodes) {
+        // Check if x and lastX have the same sign and if y and lastY have the same sign
+        if (lastRecursiveScrolled && (x ^ lastX) >= 0 && (y ^ lastY) >= 0) {
+            // We're scrolling in the same direction as the previous time so
+            // let's try to pick up from where we left
+            startingFromCached = true
+            nodes = [lastRecursiveScrolled]
+        } else {
+            nodes = [document.documentElement]
+        }
+    }
     let index = 0
     let now = performance.now()
     do {
-        let node = nodes[index++] as any
-        // Save the node's position
-        if (await scroll(x, y, node, duration)) return
+        let node
+        do {
+            node = nodes[index++] as any
+        } while (ignore.includes(node))
+        // If node is undefined or if we managed to scroll it
+        if (!node || (await scroll(x, y, node))) {
+            // Cache the node for next time and stop trying to scroll
+            lastRecursiveScrolled = node
+            return
+        }
         // Otherwise, add its children to the nodes that could be scrolled
         nodes = nodes.concat(Array.from(node.children))
         if (node.contentDocument) nodes.push(node.contentDocument.body)
     } while (index < nodes.length)
+    // If we reached this part, this means that we couldn't find an element to scroll
+    // If we started from a cached element, we can try to start again from the
+    // top of the document and ignore the cached element this time.
+    // It might be possible to further improve performance by first trying to
+    // recursiveScroll lastRecursiveScrolled sibling elements and only if
+    // that fails its parents but this seems unnecessary for now
+    if (startingFromCached) {
+        recursiveScroll(
+            x,
+            y,
+            [document.documentElement],
+            [lastRecursiveScrolled],
+        )
+    }
 }

@@ -146,6 +146,14 @@ const DEFAULTS = o({
         TriStart: o({
             ".*": "source_quiet",
         }),
+        TabEnter: o({
+            // "gmail.com": "mode ignore",
+        }),
+        TabLeft: o({
+            // Actually, this doesn't work because tabclose closes the current tab
+            // Too bad :/
+            // "emacs.org": "tabclose",
+        }),
     }),
     exaliases: o({
         alias: "command",
@@ -235,8 +243,8 @@ const DEFAULTS = o({
 
     // These two options will fall back to user's preferences and then to a
     // default value set in scrolling.ts if left undefined.
-    smoothscroll: undefined, // "false" | "true"
-    scrollduration: undefined, // number
+    smoothscroll: "false", // "false" | "true"
+    scrollduration: 100, // number
 
     tabopenpos: "next",
     relatedopenpos: "related",

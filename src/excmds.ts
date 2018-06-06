@@ -407,11 +407,24 @@ export async function updatenative(interactive = true) {
  */
 //#background
 export async function restart() {
-    const firefox = (await Native.ffargs()).join(" ")
-    const profile = await Native.getProfileDir()
-    // Wait for the lock to disappear, then wait a bit more, then start firefox
-    Native.run(`while readlink ${profile}/lock ; do sleep 1 ; done ; sleep 1 ; ${firefox}`)
-    qall()
+    const profiledir = await Native.getProfileDir()
+    const browsercmd = await config.get("browser")
+
+    if ((await browser.runtime.getPlatformInfo()).os === "win") {
+        let reply = await Native.winFirefoxRestart(profiledir, browsercmd)
+        logger.info("[+] win_firefox_restart 'reply' = " + JSON.stringify(reply))
+        if (Number(reply["code"]) === 0) {
+            fillcmdline("#" + reply["content"])
+            qall()
+        } else {
+            fillcmdline("#" + reply["error"])
+        }
+    } else {
+        const firefox = (await Native.ffargs()).join(" ")
+        // Wait for the lock to disappear, then wait a bit more, then start firefox
+        Native.run(`while readlink ${profiledir}/lock ; do sleep 1 ; done ; sleep 1 ; ${firefox}`)
+        qall()
+    }
 }
 
 // }}}
@@ -628,7 +641,7 @@ export function unfocus() {
 
 //#content
 export async function scrollpx(a: number, b: number) {
-    if (!await scrolling.scroll(a, b, document.documentElement)) scrolling.recursiveScroll(a, b, [document.documentElement])
+    if (!await scrolling.scroll(a, b, document.documentElement)) scrolling.recursiveScroll(a, b)
 }
 
 /** If two numbers are given, treat as x and y values to give to window.scrollTo
@@ -659,13 +672,19 @@ export function scrollto(a: number, b: number | "x" | "y" = "y") {
     }
 }
 
+//#content_helper
+let lineHeight = null
 //#content
 export function scrollline(n = 1) {
-    const cssHeight = window.getComputedStyle(document.body).getPropertyValue("line-height")
-    // Remove the "px" at the end
-    const lineHeight = parseInt(cssHeight.substr(0, cssHeight.length - 2))
-    // lineHeight probably can't be NaN but let's make sure
-    if (lineHeight) scrolling.recursiveScroll(0, lineHeight * n, [document.documentElement])
+    if (lineHeight === null) {
+        // Get line height
+        const cssHeight = window.getComputedStyle(document.body).getPropertyValue("line-height")
+        // Remove the "px" at the end
+        lineHeight = parseInt(cssHeight.substr(0, cssHeight.length - 2))
+        // Is there a better way to compute a fallback? Maybe fetch from about:preferences?
+        if (!lineHeight) lineHeight = 22
+    }
+    scrolling.recursiveScroll(0, lineHeight * n)
 }
 
 //#content
@@ -1149,17 +1168,15 @@ export async function reader() {
 
 //@hidden
 //#content_helper
-loadaucmds()
+loadaucmds("DocStart")
 
 /** @hidden */
 //#content
-export async function loadaucmds() {
-    // for some reason, this never changes from the default, even when there is user config (e.g. set via `aucmd bbc.co.uk mode ignore`)
-    let aucmds = await config.getAsync("autocmds", "DocStart")
+export async function loadaucmds(cmdType: "DocStart" | "TabEnter" | "TabLeft") {
+    let aucmds = await config.getAsync("autocmds", cmdType)
     const ausites = Object.keys(aucmds)
-    // yes, this is lazy
-    const aukey = ausites.find(e => window.document.location.href.search(e) >= 0)
-    if (aukey !== undefined) {
+    const aukeyarr = ausites.filter(e => window.document.location.href.search(e) >= 0)
+    for (let aukey of aukeyarr) {
         Messaging.message("commandline_background", "recvExStr", [aucmds[aukey]])
     }
 }
@@ -2050,9 +2067,9 @@ export function set(key: string, ...values: string[]) {
 
 /** Set autocmds to run when certain events happen.
 
- @param event Curently, only 'TriStart' and 'DocStart' are supported.
+ @param event Curently, 'TriStart', 'DocStart', 'TabEnter' and 'TabLeft' are supported.
 
- @param url For DocStart: a fragment of the URL on which the events will trigger, or a JavaScript regex (e.g, `/www\.amazon\.co.*\/`)
+ @param url For DocStart, TabEnter, and TabLeft: a fragment of the URL on which the events will trigger, or a JavaScript regex (e.g, `/www\.amazon\.co.*\/`)
 
  We just use [URL.search](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/search).
 
@@ -2068,8 +2085,23 @@ export function set(key: string, ...values: string[]) {
 export function autocmd(event: string, url: string, ...excmd: string[]) {
     // rudimentary run time type checking
     // TODO: Decide on autocmd event names
-    if (!["DocStart", "TriStart"].includes(event)) throw event + " is not a supported event."
+    if (!["DocStart", "TriStart", "TabEnter", "TabLeft"].includes(event)) throw event + " is not a supported event."
     config.set("autocmds", event, url, excmd.join(" "))
+}
+
+/**
+ *  Helper function to put Tridactyl into ignore mode on the provided URL.
+ *
+ *  Simply creates a DocStart and TabEnter [[autocmd]] that runs `mode ignore`.
+ *
+ *  Due to a Tridactyl bug, the only way to remove these rules once they are set is to delete all of your autocmds with `unset autocmds`.
+ *
+ *  <!-- this should probably be moved to an ex alias once configuration has better help --!>
+ *
+ */
+//#background
+export function blacklistadd(url: string) {
+    ;["DocStart", "TabEnter"].map(e => autocmd(e, url, "mode ignore"))
 }
 
 /** Unbind a sequence of keys so that they do nothing at all.
