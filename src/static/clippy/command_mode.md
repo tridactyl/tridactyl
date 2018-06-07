@@ -7,6 +7,7 @@ Command mode, i.e, "the console", is used for accessing less frequently used com
 *   `viewsource` to view the current page's source
 *   `viewconfig nmaps` to view the current normal mode bindings
 *   `help [command]` to access help on a command
+*   `help [key]` to access help on an existing binding
 *   `composite [command 1]; [command 2]; [command 3]...` lets you execute commands sequentially, useful for binding. If you want the results of each command to be piped to the other, use pipes `|` instead of semi-colons.
 
 We support a handful of keybinds in the console:

@@ -900,7 +900,13 @@ export function home(all: "false" | "true" = "false") {
 
 /** Show this page.
 
-    `:help <excmd>` jumps to the entry for that command.
+    `:help something` jumps to the entry for something. Something can be an excmd, an alias for an excmd or a binding. 
+
+    The "nmaps" list is a list of all the bindings for the command you're seeing and the "exaliases" list lists all its aliases.
+
+    If there's a conflict (e.g. you have a "go" binding that does something and also a "go" excmd that does something else), the binding has higher priority.
+
+    If the keyword you gave to `:help` is actually an alias for a composite command (see [[composite]]) , you will be taken to the help section for the first command of the pipeline. You will be able to see the whole pipeline by hovering your mouse over the alias in the "exaliases" list. Unfortunately there currently is now way to display these HTML tooltips from the keyboard.
 
     e.g. `:help bind`
 */
@@ -910,14 +916,21 @@ export async function help(excmd?: string) {
     if (excmd === undefined) excmd = ""
     else {
         let bindings = await config.getAsync("nmaps")
+        // If 'excmd' matches a binding, replace 'excmd' with the command that would be executed when pressing the key sequence referenced by 'excmd'
         if (excmd in bindings) {
             excmd = bindings[excmd].split(" ")
             excmd = ["composite", "fillcmdline"].includes(excmd[0]) ? excmd[1] : excmd[0]
         }
+
         let aliases = await config.getAsync("exaliases")
+        // As long as excmd is an alias, try to resolve this alias to a real excmd
+        let resolved = []
         while (aliases[excmd]) {
+            resolved.push(excmd)
             excmd = aliases[excmd].split(" ")
             excmd = excmd[0] == "composite" ? excmd[1] : excmd[0]
+            // Prevent infinite loops
+            if (resolved.includes(excmd)) break
         }
     }
     if ((await activeTab()).url.startsWith(docpage)) {
