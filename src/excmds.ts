@@ -312,11 +312,12 @@ export async function nativeopen(url: string, ...firefoxArgs: string[]) {
 
         if ((await browser.runtime.getPlatformInfo()).os === "mac") {
             let osascriptArgs = ["-e 'on run argv'", "-e 'tell application \"Firefox\" to open location item 1 of argv'", "-e 'end run'"]
-            Native.run("osascript " + osascriptArgs.join(" ") + " " + url)
+            await Native.run("osascript " + osascriptArgs.join(" ") + " " + url)
         } else {
             if (firefoxArgs.length === 0) firefoxArgs = ["--new-tab"]
-            Native.run(config.get("browser") + " " + firefoxArgs.join(" ") + " " + url)
+            await Native.run(config.get("browser") + " " + firefoxArgs.join(" ") + " " + url)
         }
+        setTimeout(() => browser.tabs.onCreated.removeListener(selecttab), 100)
     }
 }
 
