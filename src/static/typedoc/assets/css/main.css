@@ -2992,8 +2992,14 @@ ul.TridactylSetting {
     white-space: nowrap;
 }
 
+ul.TridactylSetting li {
+    font-family: Monospace;
+    font-weight: bold;
+}
+
 ul.TridactylSetting li:not(:last-child):after {
     content: ", ";
+    font-weight: normal;
 }
 
 /* Other changes:
