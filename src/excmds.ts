@@ -2315,6 +2315,132 @@ export function unset(...keys: string[]) {
     config.unset(...target)
 }
 
+/** Include and toggle css style to a web page.
+ *
+ * Syntax: style {mode} [...args]
+ *
+ * @param mode
+ *         ALIASES          MODES
+ *      styleinclude   : style -i
+ *      styledelete    : style -x
+ *      styledisable   : style -d
+ *      styleenable    : style -e
+ *      styletoggle    : style -t
+ *
+ *  - `-i` includes new rule
+ *  - `-x` deletes existing rule
+ *  - `-d` disables rule
+ *  - `-e` enable rule (default: ENABLED)
+ *  - `-t` toggle a rule on/off (default: ON)
+ *
+ * @param args `--name {name} --append --filter {prefix|domain|URL} --css {[complete css block of code]}`
+ *  - `--name` is name of the rule to be saving in config
+ *  - `--append` appends new style to exiting rule. If `--name` is provided on mode `-i` without `--append`option the existing style and filter will be overwritten.
+ * 	- `--filter` argument list is matched with `OR` and should be separated by comma: `,`. eg. `--filter domain.com,https://*,http://website.com/index.html`. If no filter is given, style will be applyed to every page.
+ * 	    . prefix: URLs ending with '*'. eg. `http://*` or `https://www.domain.com/pages/*`
+ * 	    . domain: URL part not containing characters `:` or `/`. eg: www.domain.com
+ * 	    . URL: Full url filter. eg. https://www.domain.com/index.html
+ *  - `--css` is the CSS full code block to be inserted at page when URL matches the filter rules
+ *
+ *  Here are some examples of usage:
+ *
+ * - Include a new css style matching all https pages:
+ *
+ *  `styleinclude --name stylemod --filter https://* --css body {border: 3px solid green;}`
+ *
+ * - Turn on/off the style included:
+ *
+ *  `styletoggle --name stylemod`
+ *
+ * - To get your current style configuration:
+ *
+ *  `viewconfig styletoggles` or `get styletoggles`
+ *
+ */
+//#background
+export async function style(mode: string, ...args: string[]) {
+    let name: string
+    let css: string
+    let filters: string[]
+    let append: boolean = false
+    const current_url = new URL((await activeTab()).url)
+    if (args.length > 0) {
+        if (args.includes("--name")) name = args[args.indexOf("--name") + 1]
+        else throw 'Missing "--name" argument.'
+        if (args.includes("--append")) append = true
+        if (args.includes("--css")) css = args.slice(args.indexOf("--css") + 1, args.length).join(" ")
+        if (args.includes("--filter")) {
+            let filterlist = args[args.indexOf("--filter") + 1].split(",")
+            if (filterlist.some(f => f.includes("--"))) throw "No --filter argument given."
+            else filters = filterlist
+        }
+    }
+
+    let styletoggles = await config.getAsync("styletoggles")
+    switch (mode) {
+        case "-i":
+            if (css == undefined) throw 'Missing "--css" argument.'
+            if (append && styletoggles[name]) styletoggles[name].css.push(css)
+            else {
+                let newstyle = {
+                    filters: filters,
+                    enabled: true, // DEFAULT ENABLED
+                    toggled: true, // DEFAULT ON
+                    css: [],
+                }
+                newstyle.css.push(css)
+                styletoggles[name] = newstyle
+            }
+            break
+        case "-x":
+            if (styletoggles[name]) {
+                styletoggles[name].css.forEach(css => {
+                    messageActiveTab("styling_content", "removestyle", [css])
+                })
+                styletoggles[name] = undefined
+            } else logger.warning(`Style "${name}" not found.`)
+            break
+        case "-d":
+            if (styletoggles[name]) styletoggles[name].enabled = false
+            else logger.warning(`Style "${name}" not found.`)
+            break
+        case "-e":
+            if (styletoggles[name]) styletoggles[name].enabled = true
+            else logger.warning(`Style "${name}" not found.`)
+            break
+        case "-t":
+            if (styletoggles[name] && styletoggles[name].enabled) {
+                if (styletoggles[name].toggled) styletoggles[name].toggled = false
+                else styletoggles[name].toggled = true
+            }
+            break
+        default:
+            throw "Unknown style mode."
+    }
+
+    // applying config changes
+    if (mode !== "-x") {
+        if (styletoggles[name].enabled && styletoggles[name].toggled) {
+            if (styletoggles[name].filters != undefined) {
+                let match = styletoggles[name].filters.some(f => UrlUtil.partMatchesURL(f, current_url))
+                if (match)
+                    styletoggles[name].css.forEach(css => {
+                        messageActiveTab("styling_content", "insertstyle", [css])
+                    })
+            } else
+                styletoggles[name].css.forEach(css => {
+                    messageActiveTab("styling_content", "insertstyle", [css])
+                })
+        } else
+            styletoggles[name].css.forEach(css => {
+                messageActiveTab("styling_content", "removestyle", [css])
+            })
+    }
+
+    // saving config changes
+    config.set("styletoggles", styletoggles)
+}
+
 // not required as we automatically save all config
 ////#background
 //export function saveconfig(){

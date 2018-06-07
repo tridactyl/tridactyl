@@ -1,4 +1,5 @@
 import * as config from "./config"
+import * as webext from "./lib/webext"
 import * as Logging from "./logging"
 
 const logger = new Logging.Logger("styling")
@@ -61,3 +62,38 @@ browser.storage.onChanged.addListener((changes, areaname) => {
         retheme()
     }
 })
+
+export async function insertstyle(csscode: string) {
+    let tab = await webext.activeTab()
+    try {
+        //insert css to the current active tab
+        await webext.browserBg.tabs.insertCSS({ code: csscode })
+    } catch (e) {
+        logger.error(
+            `It was not possible to insert css on tab "${tab.title}": `,
+            e,
+        )
+    }
+}
+
+export async function removestyle(csscode: string) {
+    let tab = await webext.activeTab()
+    try {
+        //insert css to the current active tab
+        await webext.browserBg.tabs.removeCSS({ code: csscode })
+    } catch (e) {
+        logger.error(
+            `It was not possible to remove css from tab "${tab.title}": `,
+            e,
+        )
+    }
+}
+
+import * as Messaging from "./messaging"
+Messaging.addListener(
+    "styling_content",
+    Messaging.attributeCaller({
+        insertstyle,
+        removestyle,
+    }),
+)

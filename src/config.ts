@@ -186,6 +186,11 @@ const DEFAULTS = o({
         h: "help",
         authors: "credits",
         openwith: "hint -W",
+        styleinclude: "style -i",
+        styledelete: "style -x",
+        styledisable: "style -d",
+        styleenable: "style -e",
+        styletoggle: "style -t",
         "!": "exclaim",
         "!s": "exclaim_quiet",
         colourscheme: "set theme",
@@ -274,10 +279,11 @@ const DEFAULTS = o({
         controller: 2,
         hinting: 2,
         state: 2,
-        excmd: 1,
+        excmds: 2,
         styling: 2,
     }),
     noiframeon: [],
+    styletoggles: {},
 
     // Native messenger settings
     // This has to be a command that stays in the foreground for the whole editing session
