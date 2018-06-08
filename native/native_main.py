@@ -13,8 +13,9 @@ import tempfile
 import time
 import unicodedata
 
-DEBUG = False
-VERSION = "0.1.6"
+DEBUG = True
+VERSION = "0.1.7"
+NATIVE_DIRNAME = ".tridactyl"
 
 
 class NoConnectionError(Exception):
@@ -83,8 +84,8 @@ def sendMessage(encodedMessage):
 
 
 def findUserConfigFile():
-    """ Find a user config file, if it exists. Return the file path, or None
-    if not found
+    """ Find a user config file, if it exists. Return the file path,
+        or None if not found
     """
     home = os.path.expanduser("~")
     config_dir = getenv(
@@ -148,6 +149,191 @@ def is_valid_firefox_profile(profile_dir):
             is_valid = True
 
     return is_valid
+
+
+def remove_firefox_prefs(message):
+    """Handle 'remove_prefs' message."""
+    reply = {}
+    prefs_to_remove = None
+    profile_dir = None
+    userjs_path = None
+
+    try:
+        profile_dir = message["profiledir"].strip()
+        prefs_to_remove = message["prefs"].strip()
+    except:
+        reply = {
+            "code": -1,
+            "cmd": "error",
+            "error": "Error parsing 'remove_firefox_prefs' message.",
+        }
+        return reply
+
+    if (
+        profile_dir
+        and profile_dir != "auto"
+        and not is_valid_firefox_profile(profile_dir)
+    ):
+        reply = {
+            "code": -1,
+            "cmd": "error",
+            "error": "%s %s %s"
+            % (
+                "Invalid profile directory specified.",
+                "Vaild profile directory path(s) can be found by",
+                "navigating to 'about:support'.",
+            ),
+        }
+
+    elif prefs_to_remove:
+        try:
+            prefs_to_remove = json.loads(prefs_to_remove)
+        except json.decoder.JSONDecodeError:
+            reply = {
+                "code": -1,
+                "cmd": "error",
+                "error": "%s %s"
+                % (
+                    "Error decoding JSON object.",
+                    "Invalid 'prefs' list specified.",
+                ),
+            }
+
+        def remove_empty_items(items):
+            for item in items:
+                if len(item.strip()) == 0:
+                    items.remove(item)
+
+            return items
+
+        def remove_pref(js_path, prefs_to_remove):
+            count_removed = 0
+            count_total = 0
+
+            if os.path.isfile(js_path):
+                js_lines = remove_empty_items(
+                    open(js_path).readlines()
+                )
+                prefs_to_remove = remove_empty_items(
+                    prefs_to_remove
+                )
+                count_total = len(js_lines)
+
+                for pref in prefs_to_remove:
+                    for line in js_lines:
+                        if line.find(pref) >= 0:
+                            js_lines.remove(line)
+                            count_removed = count_removed + 1
+
+                with open(js_path, "w+") as js_file:
+                    for line in js_lines:
+                        js_file.write(line)
+
+            return count_total, count_removed
+
+        userjs_total, userjs_removed = remove_pref(
+            profile_dir + "/user.js", prefs_to_remove
+        )
+
+        prefsjs_total, prefsjs_removed = remove_pref(
+            profile_dir + "/prefs.js", prefs_to_remove
+        )
+
+        # Removing preferences from 'prefs.js' here is insuffcient.
+        # Firefox tends to write them back immediately before
+        # quitting from internal memory. The only way around so far
+        # seems to be the following:
+        #
+        #   1. Manually reset the target preference(s) from
+        #      about:config
+        #
+        #   2. Reset 'prefs.js' _after_ Firefox quit, and _before_
+        #      Firefox restarted
+        #
+        # We are resorting to [2] below, and hence introducing the
+        # pre-restart hooks. The hook functionality is likely to
+        # be useful for clean-up activities later on as well.
+
+        hook_ps1_path = "%s\\%s\\%s" % (
+            os.path.expanduser("~"),
+            NATIVE_DIRNAME,
+            "win_firefox_restart-pre_restart_hook.ps1",
+        )
+
+        hook_ps1_content = """
+Write-Host "****************************"
+Write-Host "----REMOVE-FIREFOX-PREFS----"
+Write-Host "****************************"
+
+$profileDir = "{profile_dir}"
+$prefsjsPath = "{prefsjs_path}"
+$prefsjsPathNew = "{prefsjs_path_new}"
+""".format(
+            profile_dir=profile_dir,
+            prefsjs_path=profile_dir + "/prefs.js",
+            prefsjs_path_new=profile_dir + "/prefs.js-new",
+        )
+
+        open(hook_ps1_path, "a+").write(hook_ps1_content)
+
+        for pref in prefs_to_remove:
+            hook_ps1_content = """
+Write-Host "[+] Removing user_pref() = {pref}"
+
+if ((Test-Path $prefsjsPathNew) -eq $True) {{
+    Remove-Item `
+        -Path "$prefsjsPathNew" `
+        -Force
+}}
+
+Get-Content `
+    -Path "$prefsjsPath" `
+    | Select-String `
+        -Pattern "{pref}" `
+        -NotMatch `
+        | Out-File "$prefsjsPathNew" `
+            -Encoding ascii `
+            -Force
+
+if ((Test-Path $prefsjsPath) -eq $True) {{
+    Remove-Item `
+        -Path "$prefsjsPath" `
+        -Force
+}}
+
+Rename-Item `
+    -Path "$prefsjsPathNew" `
+    -NewName "$prefsjsPath" `
+    -Force
+""".format(
+                pref=pref
+            )
+            open(hook_ps1_path, "a+").write(hook_ps1_content)
+
+        reply = {
+            "code": 0,
+            "content": "%s - %s=[%d/%d] %s=[%d/%d]. %s"
+            % (
+                "user_pref() removed",
+                "user.js",
+                userjs_removed,
+                userjs_total,
+                "prefs.js",
+                prefsjs_removed,
+                prefsjs_total,
+                "Restart Firefox to activate.",
+            ),
+        }
+
+    else:
+        reply = {
+            "code": -1,
+            "cmd": "error",
+            "error": "%s %s"
+            % ("Empty 'user.js' found.", "No changes were made."),
+        }
+
+    return reply
 
 
 def win_firefox_restart(message):
@@ -263,11 +449,18 @@ def win_firefox_restart(message):
             restart_ps1_content = """
 $env:PATH=$env:PATH;{ff_bin_dir}
 Set-Location -Path {ff_bin_dir}
+
 $profileDir = "{profile_dir}"
+$nativeDir = "$env:USERPROFILE/{native_dir}"
+
+$preRestartHookFilename = `
+    "win_firefox_restart-pre_restart_hook.ps1"
+$preRestartHookPath = "$nativeDir/$preRestartHookFilename"
+
 if ($profileDir -ne "auto") {{
     $lockFilePath = {ff_lock_path}
     $locked = $true
-    $num_try = 10
+    $num_try = 15
 }} else {{
     $locked = $false
 }}
@@ -282,31 +475,32 @@ try {{
 }}
 }}
 if ($locked -eq $true) {{
-$errorMsg = "Restarting Firefox failed. Please restart manually."
-Write-Host "$errorMsg"
-# Add-Type -AssemblyName System.Windows.Forms
-# [System.Windows.MessageBox]::Show(
-#     $errorMsg,
-#     "Tridactyl")
+    $errorMsg = "Restart failed. Please restart Firefox manually."
+    Write-Host "$errorMsg"
 }} else {{
-Write-Host "[+] Restarting Firefox ..."
-Start-Process `
-  -WorkingDirectory {ff_bin_dir} `
-  -FilePath {ff_bin_path} `
-  -ArgumentList {ff_args} `
-  -WindowStyle Normal
+    if ((Test-Path $preRestartHookPath) -eq $True) {{
+        Write-Host "[+] Executing pre-restart-hook ..."
+        & $preRestartHookPath
+        Remove-Item -Force -Path "$preRestartHookPath"
+    }}
+    Write-Host "[+] Restarting Firefox ..."
+    Start-Process `
+        -WorkingDirectory {ff_bin_dir} `
+        -FilePath {ff_bin_path} `
+        -ArgumentList {ff_args} `
+        -WindowStyle Normal
 }}
 """.format(
                 ff_bin_dir=ff_bin_dir,
                 profile_dir=profile_dir,
+                native_dir=NATIVE_DIRNAME,
                 ff_lock_path=ff_lock_path,
                 ff_bin_path=ff_bin_path,
                 ff_args=ff_args,
             )
 
-            delay_sec = 1.5
+            delay_sec = 2
             task_name = "firefox-restart"
-            native_messenger_dirname = ".tridactyl"
 
             powershell_cmd = "powershell"
             powershell_args = "%s %s" % (
@@ -316,7 +510,7 @@ Start-Process `
 
             restart_ps1_path = "%s\\%s\\%s" % (
                 os.path.expanduser("~"),
-                native_messenger_dirname,
+                NATIVE_DIRNAME,
                 "win_firefox_restart.ps1",
             )
 
@@ -469,6 +663,9 @@ def handleMessage(message):
 
     elif cmd == "win_firefox_restart":
         reply = win_firefox_restart(message)
+
+    elif cmd == "remove_firefox_prefs":
+        reply = remove_firefox_prefs(message)
 
     else:
         reply = {"cmd": "error", "error": "Unhandled message"}

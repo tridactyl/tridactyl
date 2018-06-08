@@ -7,6 +7,7 @@ import * as config from "./config"
 import { browserBg } from "./lib/webext"
 
 import Logger from "./logging"
+import { List } from "lodash"
 const logger = new Logger("native")
 
 const NATIVE_NAME = "tridactyl"
@@ -21,6 +22,7 @@ type MessageCommand =
     | "getconfig"
     | "env"
     | "win_firefox_restart"
+    | "remove_firefox_prefs"
 interface MessageResp {
     cmd: string
     version: number | null
@@ -508,4 +510,17 @@ export async function writePref(name: string, value: any) {
         substr = text.substring(prefPos, prefPos + prefEnd)
         write(file, text.replace(substr, `pref("${name}", ${value})`))
     }
+}
+
+/** Remove a list of preference(s) from user.js */
+export async function removePrefs(arr_prefs: string[]) {
+    let profiledir = await getProfileDir()
+    let required_version = "0.1.7"
+
+    if (!await nativegate(required_version, false)) {
+        throw `'removePrefs()' needs native messenger version >= ${required_version}.`
+    }
+
+    let prefs = JSON.stringify(arr_prefs)
+    return sendNativeMsg("remove_firefox_prefs", { profiledir, prefs })
 }

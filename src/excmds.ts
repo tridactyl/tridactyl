@@ -275,9 +275,22 @@ export function cssparse(...css: string[]) {
  * Requires `native`.
  */
 //#background
-export async function fixamo() {
-    await Native.writePref("privacy.resistFingerprinting.block_mozAddonManager", true)
-    await Native.writePref("extensions.webextensions.restrictedDomains", "")
+export async function fixamo(cmd: string) {
+    if (typeof cmd === "undefined" || cmd === "on") {
+        await Native.writePref("privacy.resistFingerprinting.block_mozAddonManager", true)
+        await Native.writePref("extensions.webextensions.restrictedDomains", "")
+        fillcmdline("# 2 user_prefs() added. Restart Firefox to activate.")
+    } else if (cmd === "off") {
+        let reply = await Native.removePrefs(["privacy.resistFingerprinting.block_mozAddonManager", "extensions.webextensions.restrictedDomains"])
+        logger.info("[+] 'fixamo off' > reply = " + JSON.stringify(reply))
+        if (Number(reply["code"]) === 0) {
+            fillcmdline("# " + reply["content"])
+        } else {
+            fillcmdline("# " + reply["error"])
+        }
+    } else {
+        throw new Error(`Invalid option '${cmd}' provided for 'fixamo'`)
+    }
 }
 
 /**
