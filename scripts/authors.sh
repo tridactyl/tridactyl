@@ -1,4 +1,9 @@
 #!/usr/bin/env bash
+
+set -e
+err() { echo "error: line $(caller)"; }
+trap err ERR
+
 cd src/static
 
 authors="../../build/static/authors.html"
