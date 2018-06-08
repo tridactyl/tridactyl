@@ -2990,17 +2990,23 @@ ul.TridactylSetting {
     list-style: none;
     padding: 0;
     white-space: nowrap;
+    font-weight: bold;
+    font-size: 10pt;
 }
 
 ul.TridactylSetting li {
     font-family: Monospace;
-    font-weight: bold;
+    font-weight: normal;
+    background: whitesmoke;
+    padding: 2px;
+    margin: 2px;
+    border-radius: 3px;
 }
 
-ul.TridactylSetting li:not(:last-child):after {
-    content: ", ";
-    font-weight: normal;
-}
+/* ul.TridactylSetting li:not(:last-child):after { */
+/*     content: ", "; */
+/*     font-weight: normal; */
+/* } */
 
 /* Other changes:
  * - removed all background images in CSS above
