@@ -517,6 +517,9 @@ const HINTTAGS_anchor_selectors = `
 `
 
 const HINTTAGS_killable_selectors = `
+header,
+footer,
+nav,
 span,
 div,
 iframe,
