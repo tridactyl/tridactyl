@@ -17,7 +17,16 @@ if [ -n "$consoleFiles" ]; then
 fi
 
 if [ -n "$uglyFiles" ]; then
+    echo "Aborting Git commit."
     echo "Prettify your files first:"
     echo 'npm run pretty'
+    exit 1
+fi
+
+if [[ "$(grep \
+        -E '^.*DEBUG.*=.*True.*$' \
+        -c native/native_main.py)" == "1" ]]; then
+    echo "Aborting Git commit."
+    echo "Remove 'DEBUG = True' from 'native_main.py'"
     exit 1
 fi

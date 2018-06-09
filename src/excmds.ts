@@ -277,11 +277,32 @@ export function cssparse(...css: string[]) {
 //#background
 export async function fixamo(cmd: string) {
     if (typeof cmd === "undefined" || cmd === "on") {
-        await Native.writePref("privacy.resistFingerprinting.block_mozAddonManager", true)
-        await Native.writePref("extensions.webextensions.restrictedDomains", "")
-        fillcmdline("# 2 user_prefs() added. Restart Firefox to activate.")
+        //
+        // Replacing the writePref() calls below with the new
+        // add_firefox_prefs() call that avoids multiple invocation
+        // of the native messenger. Multiple invocation leads to
+        // performance issues currently being discussed here [0].
+        //
+        // Also, the writePref() call below is destructive as in it
+        // overwrites user's existing user.js, which may be
+        // undesired if the user was already using a user.js.
+        //
+        // [0] https://github.com/cmcaine/tridactyl/issues/512
+        //
+        // await Native.writePref("privacy.resistFingerprinting.block_mozAddonManager", true)
+        // await Native.writePref("extensions.webextensions.restrictedDomains", "")
+        let reply = await Native.addFirefoxPrefs({
+            "privacy.resistFingerprinting.block_mozAddonManager": true,
+            "extensions.webextensions.restrictedDomains": "",
+        })
+        logger.info("[+] 'fixamo on' > reply = " + JSON.stringify(reply))
+        if (Number(reply["code"]) === 0) {
+            fillcmdline("# " + reply["content"])
+        } else {
+            fillcmdline("# " + reply["error"])
+        }
     } else if (cmd === "off") {
-        let reply = await Native.removePrefs(["privacy.resistFingerprinting.block_mozAddonManager", "extensions.webextensions.restrictedDomains"])
+        let reply = await Native.removeFirefoxPrefs(["privacy.resistFingerprinting.block_mozAddonManager", "extensions.webextensions.restrictedDomains"])
         logger.info("[+] 'fixamo off' > reply = " + JSON.stringify(reply))
         if (Number(reply["code"]) === 0) {
             fillcmdline("# " + reply["content"])
@@ -913,7 +934,7 @@ export function home(all: "false" | "true" = "false") {
 
 /** Show this page.
 
-    `:help something` jumps to the entry for something. Something can be an excmd, an alias for an excmd or a binding. 
+    `:help something` jumps to the entry for something. Something can be an excmd, an alias for an excmd or a binding.
 
     The "nmaps" list is a list of all the bindings for the command you're seeing and the "exaliases" list lists all its aliases.
 

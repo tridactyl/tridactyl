@@ -23,6 +23,7 @@ type MessageCommand =
     | "env"
     | "win_firefox_restart"
     | "remove_firefox_prefs"
+    | "add_firefox_prefs"
 interface MessageResp {
     cmd: string
     version: number | null
@@ -236,6 +237,8 @@ export async function read(file: string) {
     return sendNativeMsg("read", { file })
 }
 
+// FIXME: The "write" message below currently will lead to
+// overwriting of the target file.
 export async function write(file: string, content: string) {
     return sendNativeMsg("write", { file, content })
 }
@@ -492,6 +495,9 @@ export async function getConfElsePrefElseDefault(
     return option
 }
 
+// FIXME: The "writePref" message below currently will lead to
+// overwriting of the existing "user.js".
+
 /** Writes a preference to user.js */
 export async function writePref(name: string, value: any) {
     if (cached_prefs) cached_prefs[name] = value
@@ -513,14 +519,27 @@ export async function writePref(name: string, value: any) {
 }
 
 /** Remove a list of preference(s) from user.js */
-export async function removePrefs(arr_prefs: string[]) {
+export async function removeFirefoxPrefs(arr_prefs: string[]) {
     let profiledir = await getProfileDir()
     let required_version = "0.1.7"
 
     if (!await nativegate(required_version, false)) {
-        throw `'removePrefs()' needs native messenger version >= ${required_version}.`
+        throw `'removeFirefoxPrefs()' needs native messenger version >= ${required_version}.`
     }
 
     let prefs = JSON.stringify(arr_prefs)
     return sendNativeMsg("remove_firefox_prefs", { profiledir, prefs })
+}
+
+/** Add a dictionary of preference(s) to user.js */
+export async function addFirefoxPrefs(arr_prefs: {}) {
+    let profiledir = await getProfileDir()
+    let required_version = "0.1.7"
+
+    if (!await nativegate(required_version, false)) {
+        throw `'addFirefoxPrefs()' needs native messenger version >= ${required_version}.`
+    }
+
+    let prefs = JSON.stringify(arr_prefs)
+    return sendNativeMsg("add_firefox_prefs", { profiledir, prefs })
 }
