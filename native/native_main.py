@@ -863,7 +863,14 @@ def handleMessage(message):
     return reply
 
 
-while True:
-    message = getMessage()
-    reply = handleMessage(message)
-    sendMessage(encodeMessage(reply))
+# The empty main() is primarily here so that 'native_main.py' can
+# be imported as module. It should not interfere with any other
+# functionalities.
+def main():
+    pass
+
+if __name__ == "__main__":
+  while True:
+      message = getMessage()
+      reply = handleMessage(message)
+      sendMessage(encodeMessage(reply))

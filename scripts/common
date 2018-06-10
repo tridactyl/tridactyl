@@ -32,3 +32,9 @@ noisy() {
     done
     echo ${acc[@]}
 }
+
+native_main_debug_flag() {
+  python -c \
+    'from native import native_main; \
+    print(native_main.DEBUG)'
+}
