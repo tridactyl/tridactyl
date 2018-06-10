@@ -99,10 +99,10 @@ browser.storage.onChanged.addListener((changes, areaname) => {
 })
 
 addEventListener("load", async () => {
-    let x = addSetting("exaliases")
-    let y = addSetting("nmaps")
-    await x
-    await y
+    await addSetting("exaliases")
+    await addSetting("nmaps")
     // setCommandSetting() can change the height of nodes in the page so we need to scroll to the right place again
-    document.location.href = document.location.href
+    if (document.location.hash) {
+        document.location.hash = document.location.hash
+    }
 })
