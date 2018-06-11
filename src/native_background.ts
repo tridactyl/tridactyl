@@ -21,7 +21,7 @@ type MessageCommand =
     | "eval"
     | "getconfig"
     | "env"
-    | "win_firefox_restart"
+    | "restart_firefox"
     | "remove_firefox_prefs"
     | "add_firefox_prefs"
 interface MessageResp {
@@ -251,17 +251,14 @@ export async function temp(content: string, prefix: string) {
     return sendNativeMsg("temp", { content, prefix })
 }
 
-export async function winFirefoxRestart(
-    profiledir: string,
-    browsercmd: string,
-) {
+export async function restartFirefox(profiledir: string, browsercmd: string) {
     let required_version = "0.1.6"
 
     if (!await nativegate(required_version, false)) {
         throw `'restart' on Windows needs native messenger version >= ${required_version}.`
     }
 
-    return sendNativeMsg("win_firefox_restart", { profiledir, browsercmd })
+    return sendNativeMsg("restart_firefox", { profiledir, browsercmd })
 }
 
 export async function run(command: string) {

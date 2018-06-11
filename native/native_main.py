@@ -6,6 +6,7 @@ import os
 import pathlib
 import re
 import shutil
+import stat
 import struct
 import subprocess
 import sys
@@ -15,7 +16,8 @@ import unicodedata
 
 DEBUG = False
 VERSION = "0.1.7"
-NATIVE_DIRNAME = ".tridactyl"
+DEFAULT_UNIX_SHELL = "/bin/sh"
+WIN_NATIVE_DIRNAME = ".tridactyl"
 PRE_RESTART_HOOK_PREFIX = "pre_restart_hook-"
 
 
@@ -24,15 +26,424 @@ class Utility(object):
         the native_main.py.
     """
 
-    def remove_empty_items(self, items):
-        """ Remove empty or whitespaced items from a list of given
-            items.
-        """
-        for item in items:
-            if len(item.strip()) == 0:
-                items.remove(item)
+    def write_log(self, msg):
+        """ Save log messages for debugging. """
+        debug_log_filename = "native_main.log"
+        debug_log_dirname = self.get_native_dir()
 
-        return items
+        if self.is_windows():
+            debug_log_path = "%s\\%s" % (
+                debug_log_dirname,
+                debug_log_filename,
+            )
+        else:
+            debug_log_path = "%s/%s" % (
+                debug_log_dirname,
+                debug_log_filename,
+            )
+
+        open(debug_log_path, "a+").write(msg)
+
+    def is_command_on_path(self, cmd):
+        """ Returns 'True' if the if the specified command is found
+            on user's $PATH.
+        """
+        if shutil.which(cmd):
+            return True
+        else:
+            return False
+
+    def windows_firefox_restart(self, profile_dir, browser_cmd):
+        """ Restart Firefox on Windows. """
+        reply = {}
+        ff_lock_name = "parent.lock"
+
+        ff_bin_name = browser_cmd
+        ff_bin_path = '"%s"' % shutil.which(ff_bin_name)
+
+        ff_bin_dir = '"%s"' % str(
+            pathlib.Path(shutil.which(ff_bin_name)).parent
+        )
+
+        if profile_dir == "auto":
+            ff_lock_path = ff_bin_path
+            ff_args = '"%s"' % ("-foreground")
+        else:
+            ff_lock_path = '"%s\\%s"' % (profile_dir, ff_lock_name)
+            ff_args = '"%s","%s","%s"' % (
+                "-foreground",
+                "-profile",
+                profile_dir,
+            )
+
+        # {{{
+        # Native messenger can't seem to create detached process on
+        # Windows while Firefox is quitting, which is essential to
+        # trigger restarting Firefox. So, below we are resorting to
+        # create a scheduled task with the task start-time set in
+        # the near future.
+
+        #
+        # subprocess.Popen(
+        #    [ff_bin_path, "-profile", profile_dir],
+        #    shell=False,
+        #    creationflags=0x208 \
+        #    | subprocess.CREATE_NEW_PROCESS_GROUP)
+        #
+
+        #
+        # 'schtasks.exe' is limited as in it doesn't support
+        # task-time with granularity in seconds. So, falling back
+        # to PowerShell as the last resort.
+        #
+
+        # out_str = ""
+        # task_time = time.strftime("%H:%M",
+        #                           time.localtime(
+        #                               time.time() + 60))
+        #
+        # out_str = subprocess.check_output(
+        #     ["schtasks.exe",
+        #      "/Create",
+        #      "/F",
+        #      "/SC",
+        #      "ONCE",
+        #      "/TN",
+        #      "tridactyl",
+        #      "/TR",
+        #      "calc",
+        #      "/IT",
+        #      "/ST",
+        #      task_time],
+        #     shell=True)
+        # }}}
+
+        try:
+            restart_ps1_name = "restart_firefox.ps1"
+            restart_ps1_dirname = self.get_native_dir()
+
+            restart_ps1_path = "%s\\%s" % (
+                restart_ps1_dirname,
+                restart_ps1_name,
+            )
+
+            restart_ps1_content = """
+$debug = {debug}
+
+Set-Location -Path {ff_bin_dir}
+$env:PATH=$env:PATH;{ff_bin_dir}
+
+$profileDir = "{profile_dir}"
+$nativeDir = "{native_dir}"
+
+if ($profileDir -ne "auto") {{
+$lockFilePath = {ff_lock_path}
+$locked = $true
+$num_try = 15
+}} else {{
+$locked = $false
+}}
+while (($locked -eq $true) -and ($num_try -gt 0)) {{
+try {{
+  [IO.File]::OpenWrite($lockFilePath).close()
+  $locked=$false
+}} catch {{
+  $num_try-=1
+  Write-Host "[+] Trial: $num_try [lock == true]"
+  Start-Sleep -Seconds 1
+}}
+}}
+if ($locked -eq $true) {{
+$errorMsg = "Restart failed. Please restart Firefox manually."
+Write-Host "$errorMsg"
+}} else {{
+$hookFilesGlob = "$nativeDir/{pre_restart_hook_prefix}*.ps1"
+if ( (Test-Path "$hookFilesGlob") -eq $True) {{
+      Get-ChildItem "$hookFilesGlob" `
+        | Sort-Object -Property LastWriteTime `
+        | ForEach-Object {{
+      Write-Host "[+] Executing pre-restart-hook(s) $_ ..."
+        & "$_";
+        if ($debug -eq $False) {{
+          Remove-Item `
+            -Path "$_" `
+            -Force | Out-Null
+        }} else {{
+          $newName = "debug-$(Split-Path "$_" -Leaf)"
+          Remove-Item `
+            -Path "$newName" `
+            -Force | Out-Null
+
+          Rename-Item `
+              -Path "$_" `
+              -NewName  $newName`
+              -Force | Out-Null
+        }}
+    }}
+}}
+Write-Host "[+] Restarting Firefox ..."
+Start-Process `
+    -WorkingDirectory {ff_bin_dir} `
+    -FilePath {ff_bin_path} `
+    -ArgumentList {ff_args} `
+    -WindowStyle Normal
+
+if ($debug -eq $False) {{
+  Remove-Item `
+    -Path "{restart_ps1_path}" `
+    -Force | Out-Null
+}} else {{
+  Read-Host -Prompt "Press ENTER to continue ..."
+}}
+}}
+""".format(
+                ff_bin_dir=ff_bin_dir,
+                profile_dir=profile_dir,
+                native_dir=self.get_native_dir(),
+                ff_lock_path=ff_lock_path,
+                ff_bin_path=ff_bin_path,
+                ff_args=ff_args,
+                pre_restart_hook_prefix=PRE_RESTART_HOOK_PREFIX,
+                debug="$True" if DEBUG else "$False",
+                restart_ps1_path=restart_ps1_path,
+            )
+
+            open(restart_ps1_path, "w+").write(restart_ps1_content)
+
+            delay_sec = 2
+            task_name = "firefox-restart"
+
+            powershell_cmd = "powershell"
+            powershell_args = "%s %s" % (
+                "-NoProfile",
+                "-ExecutionPolicy Bypass",
+            )
+
+            task_cmd = "cmd"
+            task_arg = '/c "%s %s -File %s"' % (
+                powershell_cmd,
+                powershell_args,
+                restart_ps1_path,
+            )
+
+            startupinfo = subprocess.STARTUPINFO()
+            startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+
+            subprocess.check_output(
+                [
+                    "powershell",
+                    "-NonInteractive",
+                    "-NoProfile",
+                    "-WindowStyle",
+                    "Minimized",
+                    "-InputFormat",
+                    "None",
+                    "-ExecutionPolicy",
+                    "Bypass",
+                    "-Command",
+                    "Register-ScheduledTask \
+                    -TaskName '%s' \
+                    -Force \
+                    -Action (New-ScheduledTaskAction \
+                              -Execute '%s' \
+                              -Argument '%s') \
+                    -Trigger (New-ScheduledTaskTrigger \
+                              -Once \
+                              -At \
+                (Get-Date).AddSeconds(%d).ToString('HH:mm:ss'))"
+                    % (task_name, task_cmd, task_arg, delay_sec),
+                ],
+                shell=False,
+                startupinfo=startupinfo,
+            )
+
+            reply = {
+                "code": 0,
+                "content": "Restarting in %d seconds..."
+                % delay_sec,
+            }
+
+        except subprocess.CalledProcessError:
+            reply = {
+                "code": -1,
+                "cmd": "error",
+                "error": "Error creating restart task.",
+            }
+
+        return reply
+
+    def unix_firefox_restart(self, profile_dir, browser_cmd):
+        """ Restart Firefox on Unix like systems. """
+
+        reply = {}
+        ff_lock_name = "lock"
+
+        ff_bin_name = browser_cmd
+        ff_bin_path = '"%s"' % shutil.which(ff_bin_name)
+
+        ff_bin_dir = '"%s"' % str(
+            pathlib.Path(shutil.which(ff_bin_name)).parent
+        )
+
+        util = Utility()
+
+        if profile_dir == "auto":
+            ff_lock_path = ff_bin_path
+            ff_args = '"%s"' % ("-foreground")
+        else:
+            ff_lock_path = '"%s/%s"' % (profile_dir, ff_lock_name)
+            ff_args = '"%s","%s","%s"' % (
+                "-foreground",
+                "-profile",
+                profile_dir,
+            )
+
+        try:
+            restart_sh_name = "restart_firefox.sh"
+            restart_sh_dirname = self.get_native_dir()
+
+            restart_sh_path = "%s/%s" % (
+                restart_sh_dirname,
+                restart_sh_name,
+            )
+
+            restart_sh_content = """#!{unix_shell}
+
+debug={debug}
+
+export PATH="{path}"
+
+while readlink "{profile_dir}/lock"; do
+  sleep 1
+done
+
+sleep 1
+
+echo "[+] Executing pre-restart hook(s) ..."
+
+for hook in {native_dir}/{pre_restart_hook_prefix}*.sh; do
+  if [ ! -e "$hook" ]; then
+    continue
+  fi
+
+  echo "    - $hook"
+  chmod ugo+x "$hook"
+  {unix_shell} $hook
+
+  if [ "$debug" != "true" ]; then
+    rm -vf "$hook"
+  else
+    hookFilename="$(basename $hook)"
+    hookDirname="$(dirname $hook)"
+    mv -vf "$hook" "$hookDirname/debug-$hookFilename"
+  fi
+done
+
+echo "[+] Restarting Firefox ..."
+
+{ff_bin_name} &
+
+echo "[+] Cleaning up ..."
+if [ "$debug" != "true" ]; then
+  rm -vf "$0"
+else
+    shFilename="$(basename "$0")"
+    shDirname="$(dirname "$0")"
+    mv -vf "$0" "$shDirname/debug-$shFilename"
+fi
+
+""".format(
+                unix_shell=DEFAULT_UNIX_SHELL,
+                path=os.environ["PATH"],
+                pre_restart_hook_prefix=PRE_RESTART_HOOK_PREFIX,
+                profile_dir=profile_dir,
+                native_dir=self.get_native_dir(),
+                ff_bin_name=ff_bin_name,
+                debug="true" if DEBUG else "false",
+            )
+
+            open(restart_sh_path, "w+").write(restart_sh_content)
+            # os.chmod(
+            #     restart_sh_path,
+            #     os.stat(restart_sh_path).st_mode | stat.S_IRWXU,
+            # )
+
+            if DEBUG:
+                restart_sh_stdout = open(
+                    restart_sh_path + "-stdout", "w+"
+                )
+                restart_sh_stderr = open(
+                    restart_sh_path + "-stderr", "w+"
+                )
+            else:
+                restart_sh_stdout = open("/dev/null", "a+")
+                restart_sh_stderr = open("/dev/null", "a+")
+
+            subprocess.Popen(
+                [DEFAULT_UNIX_SHELL, restart_sh_path],
+                close_fds=True,
+                stdout=restart_sh_stdout,
+                stderr=restart_sh_stderr,
+            )
+
+            reply = {
+                "code": 0,
+                "content": "Restarting in a few seconds...",
+            }
+
+        except subprocess.CalledProcessError:
+            reply = {
+                "code": -1,
+                "cmd": "error",
+                "error": "Error creating restart task.",
+            }
+
+        return reply
+
+    def is_valid_firefox_profile(self, profile_dir):
+        """ Check if the specified firefox profile directory is
+            valid.
+        """
+        is_valid = False
+        validity_indicator = "times.json"
+
+        if (
+            self.is_windows()
+            and pathlib.WindowsPath(profile_dir).is_dir()
+        ):
+            test_path = "%s\\%s" % (profile_dir, validity_indicator)
+            if pathlib.WindowsPath(test_path).is_file():
+                is_valid = True
+        else:
+            test_path = "%s/%s" % (profile_dir, validity_indicator)
+            if pathlib.Path(test_path).is_file():
+                is_valid = True
+
+        return is_valid
+
+    def get_native_dir(self):
+        """ Returns the directory where 'native_main.py' is located.
+        """
+        return os.path.dirname(os.path.realpath(__file__))
+
+    def is_windows(self):
+        """ Detect if underlying OS is Windows. """
+        if os.name == "nt":
+            return True
+        else:
+            return False
+
+    def cleanup_items(self, items):
+        """ Remove empty or whitespaced items from a list of given
+            items, and also strip() each item in items.
+        """
+        new_items = []
+        for item in items:
+            item = item.strip()
+            if len(item) > 0:
+                new_items.append(item)
+
+        return new_items
 
     def count_lines(self, path):
         """ Return the number of lines in the specified path. """
@@ -50,13 +461,11 @@ class Utility(object):
 
         if os.path.isfile(js_path):
             # Remove empty/whitespace lines
-            js_lines = self.remove_empty_items(
-                open(js_path).readlines()
-            )
+            js_lines = self.cleanup_items(open(js_path).readlines())
 
             # Remove previous entry for the same 'pref_key'
             for line in js_lines:
-                if line.find(pref_key) >= 0:
+                if pref_key in line:
                     js_lines.remove(line)
 
             # Add the new user_pref() line
@@ -85,9 +494,7 @@ class Utility(object):
 
         if os.path.isfile(js_path):
             # Remove empty/whitespace lines
-            js_lines = self.remove_empty_items(
-                open(js_path).readlines()
-            )
+            js_lines = self.cleanup_items(open(js_path).readlines())
 
             # Remove previous entry for the same 'pref_key'
             for line in js_lines:
@@ -105,16 +512,6 @@ class Utility(object):
 
 class NoConnectionError(Exception):
     """ Exception thrown when stdin cannot be read. """
-
-
-def is_command_on_path(command):
-    """ Returns 'True' if the if the specified command is found on
-        user's $PATH.
-    """
-    if shutil.which(command):
-        return True
-    else:
-        return False
 
 
 def eprint(*args, **kwargs):
@@ -228,19 +625,6 @@ def sanitizeFilename(fn):
     return fn
 
 
-def is_valid_firefox_profile(profile_dir):
-    is_valid = False
-    validity_indicator = "times.json"
-
-    if pathlib.WindowsPath(profile_dir).is_dir():
-        test_path = "%s\\%s" % (profile_dir, validity_indicator)
-
-        if pathlib.WindowsPath(test_path).is_file():
-            is_valid = True
-
-    return is_valid
-
-
 def add_firefox_prefs(message):
     """ Handle 'add_firefox_prefs' message. """
     reply = {}
@@ -248,10 +632,12 @@ def add_firefox_prefs(message):
     profile_dir = None
     userjs_path = None
 
+    util = Utility()
+
     try:
         profile_dir = message["profiledir"].strip()
         prefs_to_add = message["prefs"].strip()
-    except:
+    except KeyError:
         reply = {
             "code": -1,
             "cmd": "error",
@@ -260,9 +646,9 @@ def add_firefox_prefs(message):
         return reply
 
     if (
-        profile_dir
-        and profile_dir != "auto"
-        and not is_valid_firefox_profile(profile_dir)
+        not profile_dir
+        or profile_dir == "auto"
+        or not util.is_valid_firefox_profile(profile_dir)
     ):
         reply = {
             "code": -1,
@@ -278,13 +664,13 @@ def add_firefox_prefs(message):
 
     elif prefs_to_add:
         try:
-            util = Utility()
-
             prefs_to_add = json.loads(prefs_to_add)
-            prefs_to_add = util.remove_empty_items(prefs_to_add)
 
-            for pref_key in prefs_to_add.keys():
-                pref_val = prefs_to_add[pref_key]
+            new_prefs_to_add = {}
+            for key in util.cleanup_items(prefs_to_add):
+                new_prefs_to_add[key] = prefs_to_add[key]
+
+            prefs_to_add = new_prefs_to_add
 
         except (json.decoder.JSONDecodeError, AttributeError):
             reply = {
@@ -299,6 +685,10 @@ def add_firefox_prefs(message):
             return reply
 
         userjs_path = profile_dir + "/user.js"
+
+        # Add empty 'user.js' if doesn't exist
+        if not os.path.isfile(userjs_path):
+            open(userjs_path, "w+").write("")
 
         added = 0
         userjs_added = 0
@@ -324,16 +714,18 @@ def add_firefox_prefs(message):
 
 
 def remove_firefox_prefs(message):
-    """ Handle 'remove_firefox_prefs' message. """
+    """Handle 'remove_firefox_prefs' message."""
     reply = {}
     prefs_to_remove = None
     profile_dir = None
     userjs_path = None
 
+    util = Utility()
+
     try:
         profile_dir = message["profiledir"].strip()
         prefs_to_remove = message["prefs"].strip()
-    except:
+    except KeyError:
         reply = {
             "code": -1,
             "cmd": "error",
@@ -342,9 +734,9 @@ def remove_firefox_prefs(message):
         return reply
 
     if (
-        profile_dir
-        and profile_dir != "auto"
-        and not is_valid_firefox_profile(profile_dir)
+        not profile_dir
+        or profile_dir == "auto"
+        or not util.is_valid_firefox_profile(profile_dir)
     ):
         reply = {
             "code": -1,
@@ -372,7 +764,7 @@ def remove_firefox_prefs(message):
             }
 
         util = Utility()
-        prefs_to_remove = util.remove_empty_items(prefs_to_remove)
+        prefs_to_remove = util.cleanup_items(prefs_to_remove)
 
         removed = 0
         userjs_removed = 0
@@ -409,32 +801,40 @@ def remove_firefox_prefs(message):
         # activities, adding/removing preferences etc. later on as
         # well.
 
-        hook_ps1_path = "%s\\%s\\%s" % (
-            os.path.expanduser("~"),
-            NATIVE_DIRNAME,
-            "pre_restart_hook-remove_firefox_prefs.ps1",
-        )
+        if util.is_windows():
+            hook_ps1_name = (
+                "pre_restart_hook-remove_firefox_prefs.ps1"
+            )
+            hook_ps1_dirname = util.get_native_dir()
 
-        hook_ps1_content = """
-Write-Host "*****************************"
-Write-Host "-----REMOVE-FIREFOX-PREFS----"
-Write-Host "*****************************"
+            hook_ps1_path = "%s\\%s" % (
+                hook_ps1_dirname,
+                hook_ps1_name,
+            )
+
+            hook_ps1_content = """
+Write-Host "******************************"
+Write-Host "-----REMOVE-FIREFOX-PREFS-----"
+Write-Host "******************************"
 
 $debug = {debug}
 $profileDir = "{profile_dir}"
 $prefsjsPath = "{prefsjs_path}"
 $prefsjsPathNew = "{prefsjs_path_new}"
 """.format(
-            debug="$True" if DEBUG else "$False",
-            profile_dir=profile_dir,
-            prefsjs_path=profile_dir + "/prefs.js",
-            prefsjs_path_new=profile_dir + "/prefs.js-new",
-        )
+                debug="$True" if DEBUG else "$False",
+                profile_dir=profile_dir,
+                prefsjs_path=profile_dir + "\\prefs.js",
+                prefsjs_path_new=profile_dir + "\\prefs.js-new",
+            )
 
-        open(hook_ps1_path, "a+").write(hook_ps1_content)
+            open(hook_ps1_path, "a+").write(hook_ps1_content)
 
-        for pref in prefs_to_remove:
-            hook_ps1_content = """
+            hook_ps1_content = ""
+            for pref in prefs_to_remove:
+                hook_ps1_content = (
+                    hook_ps1_content
+                    + """
 Write-Host "[+] Removing user_pref() = {pref}"
 
 if ((Test-Path $prefsjsPathNew) -eq $True) {{
@@ -466,9 +866,82 @@ Rename-Item `
 if ($debug -eq $True) {{
   Read-Host -Prompt "Press ENTER to continue ..."
 }}
-""".format(pref=pref)
+""".format(
+                        pref=pref
+                    )
+                )
 
             open(hook_ps1_path, "a+").write(hook_ps1_content)
+
+        else:
+            # Prepare "pre-restart-hook" script for Unix operating
+            # systems here.
+
+            hook_sh_name = (
+                "pre_restart_hook-remove_firefox_prefs.sh"
+            )
+            hook_sh_dirname = util.get_native_dir()
+
+            hook_sh_path = "%s/%s" % (hook_sh_dirname, hook_sh_name)
+
+            hook_sh_content = """#!{unix_shell}
+echo "******************************"
+echo "-----REMOVE-FIREFOX-PREFS-----"
+echo "******************************"
+
+debug="{debug}"
+profileDir="{profile_dir}"
+prefsjsPath="{prefsjs_path}"
+prefsjsPathNew="{prefsjs_path_new}"
+""".format(
+                unix_shell=DEFAULT_UNIX_SHELL,
+                debug="true" if DEBUG else "false",
+                profile_dir=profile_dir,
+                prefsjs_path=profile_dir + "/prefs.js",
+                prefsjs_path_new=profile_dir + "/prefs.js-new",
+            )
+
+            open(hook_sh_path, "a+").write(hook_sh_content)
+
+            hook_sh_content = ""
+            for pref in prefs_to_remove:
+                hook_sh_content = (
+                    hook_sh_content
+                    + """
+echo "[+] Removing user_pref() = {pref}"
+
+rm -vf "$prefsjsPathNew"
+
+grep \
+  --invert-match \
+  "{pref}" "$prefsjsPath" \
+    > "$prefsjsPathNew"
+
+rm -vf "$prefsjsPath"
+
+mv -vf "$prefsjsPathNew" "$prefsjsPath"
+
+if [ "$debug" = "true" ]; then
+  /usr/bin/env \
+    python3 \
+      -c "print('Press ENTER to continue ...'); input()"
+else
+  rm -vf "$0"
+fi
+
+""".format(
+                        pref=pref
+                    )
+                )
+
+            open(hook_sh_path, "a+").write(hook_sh_content)
+            # os.chmod(
+            #     hook_sh_path,
+            #     os.stat(hook_sh_path).st_mode | stat.S_IRWXU,
+            # )
+
+        # The 'reply' dictionary item below is common for both
+        # Windows and Unix.
 
         reply = {
             "code": 0,
@@ -485,7 +958,6 @@ if ($debug -eq $True) {{
                 "Restart Firefox with `:restart` to activate!",
             ),
         }
-
     else:
         reply = {
             "code": -1,
@@ -497,11 +969,13 @@ if ($debug -eq $True) {{
     return reply
 
 
-def win_firefox_restart(message):
-    """ Handle 'win_firefox_restart' message. """
+def restart_firefox(message):
+    """ Handle 'restart_firefox' message. """
     reply = {}
     profile_dir = None
     browser_cmd = None
+
+    util = Utility()
 
     try:
         profile_dir = message["profiledir"].strip()
@@ -517,7 +991,7 @@ def win_firefox_restart(message):
     if (
         profile_dir
         and profile_dir != "auto"
-        and not is_valid_firefox_profile(profile_dir)
+        and not util.is_valid_firefox_profile(profile_dir)
     ):
         reply = {
             "code": -1,
@@ -530,7 +1004,7 @@ def win_firefox_restart(message):
             ),
         }
 
-    elif browser_cmd and not is_command_on_path(browser_cmd):
+    elif browser_cmd and not util.is_command_on_path(browser_cmd):
         reply = {
             "code": -1,
             "cmd": "error",
@@ -543,241 +1017,30 @@ def win_firefox_restart(message):
         }
 
     else:
-        # {{{
-        # Native messenger can't seem to create detached process on
-        # Windows while Firefox is quitting, which is essential to
-        # trigger restarting Firefox. So, below we are resorting to
-        # create a scheduled task with the task start-time set in
-        # the near future.
-        #
-
-        #
-        # subprocess.Popen(
-        #    [ff_bin_path, "-profile", profile_dir],
-        #    shell=False,
-        #    creationflags=0x208 \
-        #    | subprocess.CREATE_NEW_PROCESS_GROUP)
-        #
-
-        #
-        # 'schtasks.exe' is limited as in it doesn't support
-        # task-time with granularity in seconds. So, falling back
-        # to PowerShell as the last resort.
-        #
-
-        # out_str = ""
-        # task_time = time.strftime("%H:%M",
-        #                           time.localtime(
-        #                               time.time() + 60))
-        #
-        # out_str = subprocess.check_output(
-        #     ["schtasks.exe",
-        #      "/Create",
-        #      "/F",
-        #      "/SC",
-        #      "ONCE",
-        #      "/TN",
-        #      "tridactyl",
-        #      "/TR",
-        #      "calc",
-        #      "/IT",
-        #      "/ST",
-        #      task_time],
-        #     shell=True)
-        # }}}
-
-        ff_lock_name = "parent.lock"
-
-        ff_bin_name = browser_cmd
-        ff_bin_path = '"%s"' % shutil.which(ff_bin_name)
-
-        ff_bin_dir = '"%s"' % str(
-            pathlib.WindowsPath(shutil.which(ff_bin_name)).parent
-        )
-
-        if profile_dir == "auto":
-            ff_lock_path = ff_bin_path
-            ff_args = '"%s"' % ("-foreground")
+        if util.is_windows():
+            reply = util.windows_firefox_restart(
+                profile_dir, browser_cmd
+            )
         else:
-            ff_lock_path = '"%s/%s"' % (profile_dir, ff_lock_name)
-            ff_args = '"%s","%s","%s"' % (
-                "-foreground",
-                "-profile",
-                profile_dir,
+            reply = util.unix_firefox_restart(
+                profile_dir, browser_cmd
             )
-
-        try:
-            restart_ps1_path = "%s\\%s\\%s" % (
-                os.path.expanduser("~"),
-                NATIVE_DIRNAME,
-                "win_firefox_restart.ps1",
-            )
-
-            restart_ps1_content = """
-$debug = {debug}
-
-Set-Location -Path {ff_bin_dir}
-$env:PATH=$env:PATH;{ff_bin_dir}
-
-$profileDir = "{profile_dir}"
-$nativeDir = "$env:USERPROFILE/{native_dir}"
-
-if ($profileDir -ne "auto") {{
-  $lockFilePath = {ff_lock_path}
-  $locked = $true
-  $num_try = 15
-}} else {{
-  $locked = $false
-}}
-while (($locked -eq $true) -and ($num_try -gt 0)) {{
-  try {{
-    [IO.File]::OpenWrite($lockFilePath).close()
-    $locked=$false
-  }} catch {{
-    $num_try-=1
-    Write-Host "[+] Trial: $num_try [lock == true]"
-    Start-Sleep -Seconds 1
-  }}
-}}
-if ($locked -eq $true) {{
-  $errorMsg = "Restart failed. Please restart Firefox manually."
-  Write-Host "$errorMsg"
-}} else {{
-  $hookFilesGlob = "$nativeDir/{pre_restart_hook_prefix}*.ps1"
-  if ( (Test-Path "$hookFilesGlob") -eq $True) {{
-        Get-ChildItem "$hookFilesGlob" `
-          | Sort-Object -Property LastWriteTime `
-          | ForEach-Object {{
-        Write-Host "[+] Executing pre-restart-hook $_ ..."
-          & "$_";
-          if ($debug -eq $False) {{
-            Remove-Item `
-              -Path "$_" `
-              -Force | Out-Null
-          }} else {{
-            Rename-Item `
-                -Path "$_" `
-                -NewName "debug-$(Split-Path "$_" -Leaf)" `
-                -Force | Out-Null
-          }}
-      }}
-  }}
-  Write-Host "[+] Restarting Firefox ..."
-  Start-Process `
-      -WorkingDirectory {ff_bin_dir} `
-      -FilePath {ff_bin_path} `
-      -ArgumentList {ff_args} `
-      -WindowStyle Normal
-
-  if ($debug -eq $False) {{
-    Remove-Item `
-      -Path "{restart_ps1_path}" `
-      -Force | Out-Null
-  }} else {{
-    Read-Host -Prompt "Press ENTER to continue ..."
-  }}
-}}
-""".format(
-                ff_bin_dir=ff_bin_dir,
-                profile_dir=profile_dir,
-                native_dir=NATIVE_DIRNAME,
-                ff_lock_path=ff_lock_path,
-                ff_bin_path=ff_bin_path,
-                ff_args=ff_args,
-                pre_restart_hook_prefix=PRE_RESTART_HOOK_PREFIX,
-                debug="$True" if DEBUG else "$False",
-                restart_ps1_path=restart_ps1_path,
-            )
-
-            delay_sec = 2
-            task_name = "firefox-restart"
-
-            powershell_cmd = "powershell"
-            powershell_args = "%s %s" % (
-                "-NoProfile",
-                "-ExecutionPolicy Bypass",
-            )
-
-            task_cmd = "cmd"
-            task_arg = '/c "%s %s -File %s"' % (
-                powershell_cmd,
-                powershell_args,
-                restart_ps1_path,
-            )
-
-            open(restart_ps1_path, "w+").write(restart_ps1_content)
-
-            startupinfo = subprocess.STARTUPINFO()
-            startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
-
-            subprocess.check_output(
-                [
-                    "powershell",
-                    "-NonInteractive",
-                    "-NoProfile",
-                    "-WindowStyle",
-                    "Minimized",
-                    "-InputFormat",
-                    "None",
-                    "-ExecutionPolicy",
-                    "Bypass",
-                    "-Command",
-                    "Register-ScheduledTask \
-                     -TaskName '%s' \
-                     -Force \
-                     -Action (New-ScheduledTaskAction \
-                     -Execute '%s' \
-                     -Argument '%s') \
-                     -Trigger (New-ScheduledTaskTrigger \
-                     -Once \
-                     -At \
-                 (Get-Date).AddSeconds(%d).ToString('HH:mm:ss'))"
-                    % (task_name, task_cmd, task_arg, delay_sec),
-                ],
-                shell=False,
-                startupinfo=startupinfo,
-            )
-
-            reply = {
-                "code": 0,
-                "content": "Restarting in %d seconds..."
-                % delay_sec,
-            }
-
-        except subprocess.CalledProcessError:
-            reply = {
-                "code": -1,
-                "cmd": "error",
-                "error": "error creating restart task.",
-            }
 
     return reply
-
-
-def write_log(msg):
-    debug_log_dirname = ".tridactyl"
-    debug_log_filename = "native_main.log"
-
-    debug_log_path = "%s\\%s\\%s" % (
-        os.path.expanduser("~"),
-        debug_log_dirname,
-        debug_log_filename,
-    )
-
-    open(debug_log_path, "a+").write(msg)
 
 
 def handleMessage(message):
     """ Generate reply from incoming message. """
     cmd = message["cmd"]
     reply = {"cmd": cmd}
+    util = Utility()
 
     if DEBUG:
         msg = "%s %s\n" % (
             time.strftime("%H:%M:%S %p", time.localtime()),
             str(message),
         )
-        write_log(msg)
+        util.write_log(msg)
 
     if cmd == "version":
         reply = {"version": VERSION}
@@ -847,8 +1110,8 @@ def handleMessage(message):
     elif cmd == "env":
         reply["content"] = getenv(message["var"], "")
 
-    elif cmd == "win_firefox_restart":
-        reply = win_firefox_restart(message)
+    elif cmd == "restart_firefox":
+        reply = restart_firefox(message)
 
     elif cmd == "remove_firefox_prefs":
         reply = remove_firefox_prefs(message)
@@ -869,8 +1132,9 @@ def handleMessage(message):
 def main():
     pass
 
+
 if __name__ == "__main__":
-  while True:
-      message = getMessage()
-      reply = handleMessage(message)
-      sendMessage(encodeMessage(reply))
+    while True:
+        message = getMessage()
+        reply = handleMessage(message)
+        sendMessage(encodeMessage(reply))
