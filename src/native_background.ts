@@ -282,6 +282,35 @@ export async function getenv(variable: string) {
     return (await sendNativeMsg("env", { var: variable })).content
 }
 
+/** Calls an external program, to either set or get the content of the X selection. */
+export async function clipboard(action: "set" | "get", str: string): Promise<MessageResp> {
+    let clipcmd = await config.get("externalclipboardcmd")
+    if (clipcmd == "auto")
+        clipcmd = await firstinpath(["xsel", "xclip"])
+
+    if (clipcmd === undefined) {
+        logger.info("Couldn't find an external clipboard executable")
+        return ""
+    }
+
+    if (action == "set")
+        clipcmd += " -i"
+    else
+        clipcmd += " -o"
+
+    // We need to quote the whole string otherwise shell injection is possible
+    // Quoting the whole string means we need to escape all quotes within the string
+    // In order to do this, we use $'', which makes the shell understand that a \' means an escaped ', not a literal \'
+    // Because backslashes are now considered as beginning escape sequences, we need to escape them too!
+    clipcmd = `echo -n $'${str.replace("\\", "\\\\").replace("'", "\\'")}' | ${clipcmd}`
+    let result = await run(clipcmd)
+    if (result.code != 0) {
+        logger.info(`External command failed with code ${result.code}: ${clipcmd}`)
+        return ""
+    }
+    return s
+}
+
 /** This returns the commandline that was used to start firefox.
  You'll get both firefox binary (not necessarily an absolute path) and flags */
 export async function ffargs(): Promise<string[]> {
