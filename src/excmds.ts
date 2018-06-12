@@ -452,15 +452,6 @@ export async function restart() {
     } else {
         fillcmdline("#" + reply["error"])
     }
-
-    /*
-    const firefox = (await Native.ffargs()).join(" ")
-    const pre_restart = "find \"${XDG_LOCAL_HOME:-$HOME/.local/share}/tridactyl\" -name 'pre_restart_hook-*' -exec /bin/sh {} \\; rm -vf {} \\;"
-
-    // Wait for the lock to disappear, then wait a bit more, then start firefox
-    Native.run(`while readlink ${profiledir}/lock ; do sleep 1 ; done ; sleep 1 ; ${pre_restart}; ${firefox}`)
-    qall()
-    */
 }
 
 // }}}

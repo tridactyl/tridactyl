@@ -1090,7 +1090,7 @@ def handleMessage(message):
         reply["content"] = ""
         reply["code"] = 0
 
-    # FIXME: "write" below currently overwrite the previous content
+    # FIXME: "write" below currently overwrites the previous content
     # of the the target which may not be desired.
     elif cmd == "write":
         with open(message["file"], "w") as file:
