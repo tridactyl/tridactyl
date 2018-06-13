@@ -88,7 +88,7 @@
 // Shared
 import * as Messaging from "./messaging"
 import { l, browserBg, activeTabId, activeTabContainerId } from "./lib/webext"
-import { containerCreate, containerExists, containerFuzzyMatch } from "./lib/containers"
+import * as Container from "./lib/containers"
 import state from "./state"
 import * as UrlUtil from "./url_util"
 import * as config from "./config"
@@ -1488,7 +1488,7 @@ export async function tabopen(...addressarr: string[]) {
         } else if (args[0] === "-c") {
             // Ignore the -c flag if incognito as containers are disabled.
             let win = await browser.windows.getCurrent()
-            if (!win["incognito"]) container = await containerFuzzyMatch(args[1])
+            if (!win["incognito"]) container = await Container.fuzzyMatch(args[1])
             else logger.error("[tabopen] can't open a container in a private browsing window.")
 
             args.shift()
@@ -1513,8 +1513,8 @@ export async function tabopen(...addressarr: string[]) {
     else url = forceURI(config.get("newtab"))
 
     activeTabContainerId().then(containerId => {
-        if (container) openInNewTab(url, { active: active, cookieStoreId: container })
         // Ensure -c has priority.
+        if (container) openInNewTab(url, { active: active, cookieStoreId: container })
         else if (containerId && config.get("tabopencontaineraware") === "true") openInNewTab(url, { active: active, cookieStoreId: containerId })
         else openInNewTab(url, { active })
     })
@@ -1773,7 +1773,24 @@ export async function containerclose(containerId: string) {
 
 //#background
 export async function containercreate(name: string, color: string, icon: string) {
-    containerCreate(name, color, icon)
+    await Container.create(name, color, icon)
+}
+
+//#background
+export async function containerremove(name: string) {
+    await Container.remove(name)
+}
+
+//#background
+export async function containerupdate(name: string, uname: string, ucolor: string, uicon: string) {
+    logger.debug("containerupdate parameters: " + name + ", " + uname + ", " + ucolor + ", " + uicon)
+    try {
+        let containerId = await Container.fuzzyMatch(name)
+        let containerObj = Container.fromString(uname, ucolor, uicon)
+        Container.update(containerId, containerObj)
+    } catch (e) {
+        throw e
+    }
 }
 
 // }}}
