@@ -1783,7 +1783,7 @@ export async function containerupdate(name: string, uname: string, ucolor: strin
     try {
         let containerId = await Container.fuzzyMatch(name)
         let containerObj = Container.fromString(uname, ucolor, uicon)
-        Container.update(containerId, containerObj)
+        await Container.update(containerId, containerObj)
     } catch (e) {
         throw e
     }
