@@ -282,33 +282,48 @@ export async function getenv(variable: string) {
     return (await sendNativeMsg("env", { var: variable })).content
 }
 
-/** Calls an external program, to either set or get the content of the X selection. */
-export async function clipboard(action: "set" | "get", str: string): Promise<MessageResp> {
+/** Calls an external program, to either set or get the content of the X selection.
+ *  When setting the selection or if getting it failed, will return an empty string.
+ **/
+export async function clipboard(
+    action: "set" | "get",
+    str: string,
+): Promise<string> {
     let clipcmd = await config.get("externalclipboardcmd")
-    if (clipcmd == "auto")
-        clipcmd = await firstinpath(["xsel", "xclip"])
+    if (clipcmd == "auto") clipcmd = await firstinpath(["xsel", "xclip"])
 
     if (clipcmd === undefined) {
         logger.info("Couldn't find an external clipboard executable")
         return ""
     }
 
-    if (action == "set")
-        clipcmd += " -i"
-    else
-        clipcmd += " -o"
-
-    // We need to quote the whole string otherwise shell injection is possible
-    // Quoting the whole string means we need to escape all quotes within the string
-    // In order to do this, we use $'', which makes the shell understand that a \' means an escaped ', not a literal \'
-    // Because backslashes are now considered as beginning escape sequences, we need to escape them too!
-    clipcmd = `echo -n $'${str.replace("\\", "\\\\").replace("'", "\\'")}' | ${clipcmd}`
-    let result = await run(clipcmd)
-    if (result.code != 0) {
-        logger.info(`External command failed with code ${result.code}: ${clipcmd}`)
-        return ""
+    if (action == "get") {
+        let result = await run(clipcmd + " -o")
+        if (result.code != 0) {
+            logger.info(
+                `External command failed with code ${result.code}: ${clipcmd}`,
+            )
+            return ""
+        }
+        return result.content
     }
-    return s
+
+    // We're going to need to insert str, which we can't trust, in the clipcmd
+    // In order to do this safely we'll use here documents:
+    // http://pubs.opengroup.org/onlinepubs/009695399/utilities/xcu_chap02.html#tag_02_07_04
+
+    // Find a delimiter that isn't in str
+    let heredoc = "TRIDACTYL"
+    while (str.search(heredoc) != -1) heredoc += Math.round(Math.random() * 10)
+
+    // Use delimiter to insert str into clipcmd's stdin
+    clipcmd = `${clipcmd} -i <<'${heredoc}'\n${str}\n${heredoc}\n`
+    let result = await run(clipcmd)
+    if (result.code != 0)
+        logger.info(
+            `External command failed with code ${result.code}: ${clipcmd}`,
+        )
+    return ""
 }
 
 /** This returns the commandline that was used to start firefox.

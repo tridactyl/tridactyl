@@ -2084,10 +2084,8 @@ async function setclip(str, selection = undefined) {
     let s = () => Native.clipboard("set", str)
     let c = () => messageActiveTab("commandline_frame", "setClipboard", [str])
 
-    if (selection === true)
-        return s()
-    if (selection === false)
-        return c()
+    if (selection === true) return s()
+    if (selection === false) return c()
 
     // "selection" is undefined here so let's try to determine what the user wants
     let external = await config.getAsync("externalclipboard")
@@ -2095,13 +2093,13 @@ async function setclip(str, selection = undefined) {
     switch (external) {
         case "only":
             promises = [s()]
-            break;
+            break
         case "first":
         case "last":
             promises = [s(), c()]
         case "never":
             promises = [c()]
-            break;
+            break
     }
     return Promise.all(promises)
 }
@@ -2117,17 +2115,13 @@ async function setclip(str, selection = undefined) {
 //#background_helper
 async function getclip(selection = undefined) {
     let external = await config.getAsync("externalclipboard")
-    let s = async () => (await Native.clipboard("get", "")).content
+    let s = async () => await Native.clipboard("get", "")
     let c = () => messageActiveTab("commandline_frame", "getClipboard")
-    if (selection === true)
-        return s()
-    if (selection === false)
-        return c()
-    if (["only", "first"].includes(external))
-        return s()
+    if (selection === true) return s()
+    if (selection === false) return c()
+    if (["only", "first"].includes(external)) return s()
     return c()
 }
-
 
 /** Use the system clipboard.
 
@@ -2166,7 +2160,7 @@ export async function clipboard(excmd: "open" | "yank" | "yankshort" | "yankcano
                 fillcmdline_tmp("3000", "# " + urls[0] + " copied to clipboard.")
                 break
             }
-            // Trying yankcanon if yankshort failed...
+        // Trying yankcanon if yankshort failed...
         case "yankcanon":
             urls = await geturlsforlinks("rel", "canonical")
             if (urls.length > 0) {
@@ -2174,7 +2168,7 @@ export async function clipboard(excmd: "open" | "yank" | "yankshort" | "yankcano
                 fillcmdline_tmp("3000", "# " + urls[0] + " copied to clipboard.")
                 break
             }
-            // Trying yank if yankcanon failed...
+        // Trying yank if yankcanon failed...
         case "yank":
             content = content == "" ? (await activeTab()).url : content
             await yank(content)
