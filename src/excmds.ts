@@ -1757,12 +1757,12 @@ export async function qall() {
 // {{{ CONTAINERS
 
 /** Closes all tabs open in the same container across all windows.
- * @param containerId
+ *  @param containerId
  *      The string represtation of the container id.
  */
 //#background
 export async function containerclose(containerId: string) {
-    browser.tabs.query({ cookieStoreId: "firefox-container-" + containerId }).then(tabs => {
+    browser.tabs.query({ cookieStoreId: containerId }).then(tabs => {
         browser.tabs.remove(
             tabs.map(tab => {
                 return tab.id
@@ -1776,8 +1776,14 @@ export async function containercreate(name: string, color: string, icon: string)
     await Container.create(name, color, icon)
 }
 
+/** Delete a container. Closes all tabs associated with that container beforehand.
+ * @param name
+ *      The container name
+ */
 //#background
 export async function containerremove(name: string) {
+    let cid = await Container.getId(name)
+    await containerclose(cid)
     await Container.remove(name)
 }
 
