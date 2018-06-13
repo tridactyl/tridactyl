@@ -1,6 +1,7 @@
 import * as Logging from "../logging"
 const logger = new Logging.Logger("containers")
 
+// As per Mozilla specification: https://developer.mozilla.org/en-US/Add-ons/WebExtensions/API/contextualIdentities/ContextualIdentity
 const ContainerColor = [
     "blue",
     "turquoise",
@@ -11,6 +12,8 @@ const ContainerColor = [
     "pink",
     "purple",
 ]
+
+// As per Mozilla specification: https://developer.mozilla.org/en-US/Add-ons/WebExtensions/API/contextualIdentities/ContextualIdentity
 const ContainerIcon = [
     "fingerprint",
     "briefcase",
@@ -217,20 +220,20 @@ export async function fuzzyMatch(partialName: string): Promise<string> {
 }
 
 /** Helper function for create, returns a random valid IdentityColor for use if no color is applied at creation.*/
-export function chooseRandomColor(): string {
+function chooseRandomColor(): string {
     let max = Math.floor(ContainerColor.length)
     let n = Math.floor(Math.random() * max)
     return ContainerColor[n]
 }
 
-export function isValidColor(color: string): boolean {
+function isValidColor(color: string): boolean {
     for (let c of ContainerColor) {
         if (c === color) return true
     }
     return false
 }
 
-export function isValidIcon(icon: string): boolean {
+function isValidIcon(icon: string): boolean {
     for (let i of ContainerIcon) {
         if (i === icon) return true
     }
