@@ -41,6 +41,7 @@ export async function create(
 ): Promise<string> {
     if (color === "random") color = chooseRandomColor()
     let container = fromString(name, color, icon)
+    logger.debug(container)
 
     if (await exists(name)) {
         logger.debug(`[Container.create] container already exists ${container}`)
@@ -56,7 +57,7 @@ export async function create(
             )
             return res["cookieStoreId"]
         } catch (e) {
-            throw e.message
+            throw e
         }
     }
 }
@@ -65,21 +66,23 @@ export async function create(
  *  @param name The container name
  */
 export async function remove(name: string) {
+    logger.debug(name)
     try {
         let id = await getId(name)
         let res = await browser.contextualIdentities.remove(id)
         logger.debug("[Container.remove] removed container:", res.cookieStoreId)
     } catch (e) {
-        throw e.message
+        throw e
     }
 }
 
 /** Updates the specified container.
+ *  TODO: pass an object to this when tridactyl gets proper flag parsing
+ *  NOTE: while browser.contextualIdentities.create does check for valid color/icon combos, browser.contextualIdentities.update does not.
  *  @param containerId Expects a cookieStringId e.g. "firefox-container-n".
  *  @param name optional the new name of the container
  *  @param color optional the new color of the container
  *  @param icon optional the new icon of the container
- *  TODO: pass an object to this when tridactyl gets proper flag parsing
  */
 export async function update(
     containerId: string,
@@ -89,19 +92,18 @@ export async function update(
         icon: browser.contextualIdentities.IdentityIcon
     },
 ) {
-    try {
-        if (
-            isValidColor(updateObj["color"]) &&
-            isValidIcon(updateObj["icon"])
-        ) {
+    if (
+        isValidColor(updateObj["color"]) &&
+        isValidIcon(updateObj["icon"])
+    ) {
+        try {
             browser.contextualIdentities.update(containerId, updateObj)
-        } else {
-            logger.debug("[Container.update] invalid icon or color name")
-            logger.debug(updateObj)
-            throw new Error("[Container.update] invalid icon or color name")
+        } catch (e) {
+            throw e
         }
-    } catch (e) {
-        throw e
+    } else {
+        logger.debug(updateObj)
+        throw new Error("[Container.update] invalid container icon or color")
     }
 }
 
