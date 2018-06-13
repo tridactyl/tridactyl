@@ -92,10 +92,7 @@ export async function update(
         icon: browser.contextualIdentities.IdentityIcon
     },
 ) {
-    if (
-        isValidColor(updateObj["color"]) &&
-        isValidIcon(updateObj["icon"])
-    ) {
+    if (isValidColor(updateObj["color"]) && isValidIcon(updateObj["icon"])) {
         try {
             browser.contextualIdentities.update(containerId, updateObj)
         } catch (e) {
@@ -136,10 +133,7 @@ export async function exists(cname: string): Promise<boolean> {
         }
     } catch (e) {
         exists = true // Make sure we don't accidentally break the constraint on query error.
-        logger.error(
-            "[Container.exists] Error querying contextualIdentities:",
-            e,
-        )
+        throw e
     }
     return exists
 }
