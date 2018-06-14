@@ -1,0 +1,65 @@
+#!/bin/sh
+
+print_red() {
+        printf '\033[0;31m'
+        echo "$@"
+        printf '\033[0m'
+}
+
+# Get the last local tag as a version number (e.g. 1.12.0)
+last_local_tag="$(git tag -l '[0-9]*.[0-9]*.[0-9]*' | sort -V | tail -n 1)"
+if [ "$last_local_tag" = "" ]; then
+        # No tags, exit
+        exit
+fi
+
+# If the stable tag exists and points to a version tag, this will return the version
+# If the stable tag exists and points to a non-version commit, thie wil return "stable"
+# If the stable tag doesn't exist, this will fail
+local_stable="$(git describe --tags stable)"
+if [ "$?" != "0" ]; then
+        # if git describe failed, this means there's no local stable tag yet
+        print_red "Found version tags but no stable tag."
+        echo "You can create a stable tag by running the following command:"
+        echo "git update-ref refs/tags/stable '$last_local_tag'"
+        echo "git push origin stable"
+        exit
+fi
+
+if [ "$last_local_tag" != "$local_stable" ]; then
+        print_red "Local stable tag doesn't seem up to date (stable: $local_stable, latest tag: $last_local_tag)."
+        echo "You can update the stable tag like this:"
+        echo "git update-ref refs/tags/stable '$last_local_tag'"
+        exit
+fi
+
+# Get the last remote tag as a version number
+last_remote_tag="$(git ls-remote --tags origin '[0-9]*.[0-9]*.[0-9]*' | cut -d/ -f3 | sort -V | tail -n 1)"
+if [ "$last_remote_tag" != "$last_local_tag" ]; then
+        print_red "Last remote tag and last local tag differ (local: $last_local_tag, remote: $last_remote_tag)"
+        echo "You might want to run either of these:"
+        echo "git fetch origin refs/tags/$last_remote_tag"
+        echo "git push origin refs/tags/$last_local_tag"
+        exit
+fi
+
+# This returns the commit hash remote stable is pointing to.
+# It'd be better to have it return the version, just like for local_stable, but
+# git-describe doesn't seem able to do that 
+remote_stable="$(git ls-remote --tags origin stable | cut -d"$(printf '\t')" -f1)"
+if [ "$remote_stable" = "" ]; then
+        # No remote stable tag
+        print_red "Found a local stable tag but no remote stable tag."
+        echo "You can push your stable tag with the following command:"
+        echo "git push origin stable"
+        exit
+fi
+
+# Because $remote_stable is a commit hash, we need to find the commit hash for $local_stable
+local_stable="$(git rev-parse stable)"
+if [ "$remote_stable" != "$local_stable" ]; then
+        print_red "Remote and local stable tags do not point to the same version (local: $local_stable, remote: $remote_stable)"
+        echo "If you're currently pushing the stable tag, you can ignore this message. Otherwise, you might want to run either of these:"
+        echo "git tag --delete stable && git fetch origin refs/tags/stable"
+        echo "git push --force origin stable"
+fi
