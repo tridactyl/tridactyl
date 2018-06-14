@@ -806,8 +806,9 @@ export const ABOUT_WHITELIST = ["about:home", "about:license", "about:logo", "ab
  *       - else treat as search parameters for google
  *
  *   Related settings:
- *       "searchengine": "google" or any of [[SEARCH_URLS]]
- *      "historyresults": the n-most-recent results to ask Firefox for before they are sorted by frequency. Reduce this number if you find your results are bad.
+ *      - "searchengine": "google" or any of [[SEARCH_URLS]]
+ *      - "historyresults": the n-most-recent results to ask Firefox for before they are sorted by frequency. Reduce this number if you find your results are bad.
+ *
  * Can only open about:* or file:* URLs if you have the native messenger installed, and on OSX you must set `browser` to something that will open Firefox from a terminal pass it commmand line options.
  *
  */
@@ -2430,9 +2431,9 @@ import * as hinting from "./hinting_background"
     To open a hint in the background, the default bind is `F`.
 
     Related settings:
-        "hintchars": "hjklasdfgyuiopqwertnmzxcvb"
-        "hintfiltermode": "simple" | "vimperator" | "vimperator-reflow"
-        "relatedopenpos": "related" | "next" | "last"
+        - "hintchars": "hjklasdfgyuiopqwertnmzxcvb"
+        - "hintfiltermode": "simple" | "vimperator" | "vimperator-reflow"
+        - "relatedopenpos": "related" | "next" | "last"
 */
 //#background
 export function hint(option?: string, selectors?: string, ...rest: string[]) {
