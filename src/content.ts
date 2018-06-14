@@ -100,6 +100,25 @@ config.getAsync("modeindicator").then(mode => {
         : ""
     statusIndicator.className =
         "cleanslate TridactylStatusIndicator " + privateMode
+    // This listener makes the modeindicator disappear when the mouse goes over it
+    statusIndicator.addEventListener("mouseenter", ev => {
+        let target = ev.target as any
+        let rect = target.getBoundingClientRect()
+        target.classList.add("TridactylInvisible")
+        let onMouseOut = ev => {
+            // If the mouse event happened out of the mode indicator boundaries
+            if (
+                ev.clientX < rect.x ||
+                ev.clientX > rect.x + rect.with ||
+                ev.clientY < rect.y ||
+                ev.clientY > rect.y + rect.height
+            ) {
+                target.classList.remove("TridactylInvisible")
+                window.removeEventListener("mousemouve", onMouseOut)
+            }
+        }
+        window.addEventListener("mousemove", onMouseOut)
+    })
     try {
         // On quick loading pages, the document is already loaded
         statusIndicator.textContent = state.mode || "normal"

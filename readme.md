@@ -31,6 +31,8 @@ This is a (non-exhaustive) list of the most common normal-mode bindings. Type `:
 *   `ZZ` — close all tabs and windows, but only "save" them if your about:preferences are set to "show your tabs and windows from last time"
 *   `.` — repeat the last command
 
+You can try `:help key` to know more about `key`. If it is an existing binding, it will take you to the help section of the command that will be executed when pressing `key`. For example `:help .` will take you to the help section of the `repeat` command.
+
 #### Navigating with the current page
 
 *   `j`/`k` — scroll down/up
@@ -184,7 +186,7 @@ You can bind your own shortcuts in normal mode with the `:bind` command. For exa
 
 *   How do I disable Tridactyl on certain sites?
 
-    You can't yet, see [#158](https://github.com/cmcaine/tridactyl/issues/158).
+    In the beta you can use `blacklistadd`, like this: `blacklistadd mail.google.com/mail`.
 
 *   How can I list the current bindings?
 
@@ -192,7 +194,7 @@ You can bind your own shortcuts in normal mode with the `:bind` command. For exa
 
 *   Why doesn't Tridactyl work on some pages?
 
-One possible reason is that the site has a strict content security policy. We can rewrite these to make Tridactyl work, but we do not want to worsen the security of sensitive pages, so it is taking us a little while. See [#112](https://github.com/cmcaine/tridactyl/issues/112).
+    One possible reason is that the site has a strict content security policy. You can try to use `set csp clobber` to fix this, but know that it could worsen the security of sensitive pages.
 
 *   How can I know which mode I'm in/have a status line?
 
@@ -201,6 +203,10 @@ One possible reason is that the site has a strict content security policy. We ca
 *   Does anyone actually use Tridactyl?
 
     In addition to the developers, some other people do. Mozilla keeps tabs on them [here](https://addons.mozilla.org/en-US/firefox/addon/tridactyl-vim/statistics/?last=30).
+
+*   How do I prevent websites from stealing focus?
+
+    There are two ways to do that, the first one is `set allowautofocus false` (if you do this you'll probably also want to set `browser.autofocus` to false in `about:config`). This will prevent the page's `focus()` function from working and could break javascript text editors such as Ace or CodeMirror. Another solution is to use `autocmd TabEnter .* unfocus` in the beta, JS text editors should still work but pages won't steal focus when entering their tabs anymore.
 
 ## Contributing
 

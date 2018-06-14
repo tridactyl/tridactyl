@@ -364,7 +364,7 @@ export async function installnative() {
  *
  * If no argument given, it will try to open ~/.tridactylrc, ~/.config/tridactylrc or $XDG_CONFIG_HOME/tridactyl/tridactylrc in reverse order.
  *
- * The RC file is just a bunch of Tridactyl excmds (i.e, the stuff on this help page). Settings persist in local storage; add `sanitise tridactyllocal tridactylsync` to make it more Vim like. There's an [example file](https://www.github.com/cmcaine/tridactyl/master/.tridactylrc) if you want it.
+ * The RC file is just a bunch of Tridactyl excmds (i.e, the stuff on this help page). Settings persist in local storage; add `sanitise tridactyllocal tridactylsync` to make it more Vim like. There's an [example file](https://raw.githubusercontent.com/cmcaine/tridactyl/master/.tridactylrc) if you want it.
  *
  * @param fileArr the file to open. Must be an absolute path, but can contain environment variables and things like ~.
  */
@@ -538,43 +538,56 @@ export function loggingsetlevel(logModule: string, level: string) {
 
 // {{{ PAGE CONTEXT
 
+/** @hidden */
 //#content_helper
-export let JUMPED: boolean
+let JUMPED: boolean
 
+/** This is used as an ID for the current page in the jumplist.
+    It has a potentially confusing behavior: if you visit site A, then site B, then visit site A again, the jumplist that was created for your first visit on A will be re-used for your second visit.
+    An ideal solution would be to have a counter that is incremented every time a new page is visited within the tab and use that as the return value for getJumpPageId but this doesn't seem to be trivial to implement.
+    @hidden
+ */
 //#content_helper
 export function getJumpPageId() {
     return document.location.href
 }
 
+/** @hidden */
 //#content_helper
 export async function saveJumps(jumps) {
     browserBg.sessions.setTabValue(await activeTabId(), "jumps", jumps)
 }
 
+/** Returns a promise for an object containing the jumplist of all pages accessed in the current tab.
+    The keys of the object currently are the page's URL, however this might change some day. Use [[getJumpPageId]] to access the jumplist of a specific page.
+    @hidden
+ */
 //#content_helper
 export async function curJumps() {
     let tabid = await activeTabId()
     let jumps = await browserBg.sessions.getTabValue(tabid, "jumps")
     if (!jumps) jumps = {}
+    // This makes sure that `key` exists in `obj`, setting it to `def` if it doesn't
     let ensure = (obj, key, def) => {
         if (obj[key] === null || obj[key] === undefined) obj[key] = def
     }
     let page = getJumpPageId()
     ensure(jumps, page, {})
-    ensure(jumps[page], "list", [{ x: 0, y: 0 }])
+    let dummy = new UIEvent("scroll")
+    ensure(jumps[page], "list", [{ x: dummy.pageX, y: dummy.pageY }])
     ensure(jumps[page], "cur", 0)
     saveJumps(jumps)
     return jumps
 }
 
+/** Calls [[jumpprev]](-n) */
 //#content
 export function jumpnext(n = 1) {
     jumpprev(-n)
 }
 
 /** Similar to Pentadactyl or vim's jump list.
-    Should be bound to <C-o> when modifiers are implemented
-*/
+ */
 //#content
 export function jumpprev(n = 1) {
     curJumps().then(alljumps => {
@@ -604,6 +617,7 @@ export function jumpprev(n = 1) {
     The setTimeout call is required because sometimes a user wants to move
     somewhere by pressing 'j' multiple times and we don't want to add the
     in-between locations to the jump list
+    @hidden
 */
 //#content_helper
 export function addJump(scrollEvent: UIEvent) {
@@ -649,14 +663,17 @@ export function unfocus() {
     state.mode = "normal"
 }
 
+/** Scrolls the window or any scrollable child element by a pixels on the horizontal axis and b pixels on the vertical axis.
+ */
 //#content
 export async function scrollpx(a: number, b: number) {
     if (!await scrolling.scroll(a, b, document.documentElement)) scrolling.recursiveScroll(a, b)
 }
 
 /** If two numbers are given, treat as x and y values to give to window.scrollTo
-    If one number is given, scroll to that percentage along a chosen axis,
-        defaulting to the y-axis
+    If one number is given, scroll to that percentage along a chosen axis, defaulting to the y-axis
+
+    Note that if `a` is 0 or 100 and if the document is not scrollable in the given direction, Tridactyl will attempt to scroll the first scrollable element until it reaches the very bottom of that element.
 */
 //#content
 export function scrollto(a: number, b: number | "x" | "y" = "y") {
@@ -682,8 +699,13 @@ export function scrollto(a: number, b: number | "x" | "y" = "y") {
     }
 }
 
+/** @hidden */
 //#content_helper
 let lineHeight = null
+/** Scrolls the document of its first scrollable child element by n lines.
+ *
+ *  The height of a line is defined by the site's CSS. If Tridactyl can't get it, it'll default to 22 pixels.
+ */
 //#content
 export function scrollline(n = 1) {
     if (lineHeight === null) {
@@ -697,6 +719,10 @@ export function scrollline(n = 1) {
     scrolling.recursiveScroll(0, lineHeight * n)
 }
 
+/** Scrolls the document by n pages.
+ *
+ *  The height of a page is the current height of the window.
+ */
 //#content
 export function scrollpage(n = 1) {
     scrollpx(0, window.innerHeight * n)
@@ -884,7 +910,13 @@ export function home(all: "false" | "true" = "false") {
 
 /** Show this page.
 
-    `:help <excmd>` jumps to the entry for that command.
+    `:help something` jumps to the entry for something. Something can be an excmd, an alias for an excmd or a binding. 
+
+    The "nmaps" list is a list of all the bindings for the command you're seeing and the "exaliases" list lists all its aliases.
+
+    If there's a conflict (e.g. you have a "go" binding that does something and also a "go" excmd that does something else), the binding has higher priority.
+
+    If the keyword you gave to `:help` is actually an alias for a composite command (see [[composite]]) , you will be taken to the help section for the first command of the pipeline. You will be able to see the whole pipeline by hovering your mouse over the alias in the "exaliases" list. Unfortunately there currently is now way to display these HTML tooltips from the keyboard.
 
     e.g. `:help bind`
 */
@@ -892,6 +924,25 @@ export function home(all: "false" | "true" = "false") {
 export async function help(excmd?: string) {
     const docpage = browser.extension.getURL("static/docs/modules/_src_excmds_.html")
     if (excmd === undefined) excmd = ""
+    else {
+        let bindings = await config.getAsync("nmaps")
+        // If 'excmd' matches a binding, replace 'excmd' with the command that would be executed when pressing the key sequence referenced by 'excmd'
+        if (excmd in bindings) {
+            excmd = bindings[excmd].split(" ")
+            excmd = ["composite", "fillcmdline"].includes(excmd[0]) ? excmd[1] : excmd[0]
+        }
+
+        let aliases = await config.getAsync("exaliases")
+        // As long as excmd is an alias, try to resolve this alias to a real excmd
+        let resolved = []
+        while (aliases[excmd]) {
+            resolved.push(excmd)
+            excmd = aliases[excmd].split(" ")
+            excmd = excmd[0] == "composite" ? excmd[1] : excmd[0]
+            // Prevent infinite loops
+            if (resolved.includes(excmd)) break
+        }
+    }
     if ((await activeTab()).url.startsWith(docpage)) {
         open(docpage + "#" + excmd)
     } else {
@@ -1333,6 +1384,7 @@ export async function changelistjump(n?: number) {
     // state.prevInputs = arr
 }
 
+/** @hidden */
 //#content
 export function focusbyid(id: string) {
     document.getElementById(id).focus()
@@ -1789,7 +1841,7 @@ export async function composite(...cmds: string[]) {
                 async (_, cmd) => {
                     await _
                     let cmds = cmd.split("|")
-                    let [fn, args] = excmd_parser.parser(cmd)
+                    let [fn, args] = excmd_parser.parser(cmds[0])
                     return cmds.slice(1).reduce(async (pipedValue, cmd) => {
                         let [fn, args] = excmd_parser.parser(cmd)
                         return fn.call({}, ...args, await pipedValue)
@@ -1802,6 +1854,9 @@ export async function composite(...cmds: string[]) {
     }
 }
 
+/** Sleep time_ms milliseconds.
+ *  This is probably only useful for composite commands that need to wait until the previous asynchronous command has finished running.
+ */
 //#background
 export async function sleep(time_ms: number) {
     await new Promise(resolve => setTimeout(resolve, time_ms))
@@ -2035,6 +2090,8 @@ export function searchsetkeyword(keyword: string, url: string) {
     e.g.
         set searchurls.google https://www.google.com/search?q=
         set logging.messaging info
+
+    If no value is given, the value of the of the key will be displayed
 */
 //#background
 export function set(key: string, ...values: string[]) {
