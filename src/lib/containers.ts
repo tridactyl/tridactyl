@@ -80,9 +80,9 @@ export async function remove(name: string) {
  *  TODO: pass an object to this when tridactyl gets proper flag parsing
  *  NOTE: while browser.contextualIdentities.create does check for valid color/icon combos, browser.contextualIdentities.update does not.
  *  @param containerId Expects a cookieStringId e.g. "firefox-container-n".
- *  @param name optional the new name of the container
- *  @param color optional the new color of the container
- *  @param icon optional the new icon of the container
+ *  @param name the new name of the container
+ *  @param color the new color of the container
+ *  @param icon the new icon of the container
  */
 export async function update(
     containerId: string,

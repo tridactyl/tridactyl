@@ -1770,15 +1770,20 @@ export async function containerclose(containerId: string) {
         )
     })
 }
-
+/** Creates a new container.
+ *
+ *  Further reading https://developer.mozilla.org/en-US/Add-ons/WebExtensions/API/contextualIdentities/ContextualIdentity
+ * @param name The container name. Must be unique.
+ * @param color The container color. Valid colors are: "blue", "turquoise", "green", "yellow", "orange", "red", "pink", "purple". If no color is chosen a random one will be selected from the list of valid colors.
+ * @param icon The container icon. Valid icons are: "fingerprint", "briefcase", "dollar", "cart", "circle", "gift", "vacation", "food", "fruit", "pet", "tree", "chill". If no icon is chosen, it defaults to "fingerprint".
+ */
 //#background
-export async function containercreate(name: string, color: string, icon: string) {
+export async function containercreate(name: string, color?: string, icon?: string) {
     await Container.create(name, color, icon)
 }
 
 /** Delete a container. Closes all tabs associated with that container beforehand.
- * @param name
- *      The container name
+ * @param name The container name.
  */
 //#background
 export async function containerremove(name: string) {
@@ -1787,6 +1792,21 @@ export async function containerremove(name: string) {
     await Container.remove(name)
 }
 
+/** Update a container's information. Note that none of the parameters are optional.
+ *
+ *  Example usage:
+ *
+ *  - Changing the container name: `containerupdate banking blockchain green dollar`
+ *
+ *  - Changing the container icon: `containerupdate banking banking green briefcase`
+ *
+ *  - Changing the container color: `containerupdate banking banking purple dollar`
+ *
+ * @param name The container name.
+ * @param uname The new container name. Must be unique.
+ * @param ucolor The new container color. Valid colors are: "blue", "turquoise", "green", "yellow", "orange", "red", "pink", "purple". If no color is chosen a random one will be selected from the list of valid colors.
+ * @param uicon The new container icon. Valid icons are: "fingerprint", "briefcase", "dollar", "cart", "circle", "gift", "vacation", "food", "fruit", "pet", "tree", "chill".
+ */
 //#background
 export async function containerupdate(name: string, uname: string, ucolor: string, uicon: string) {
     logger.debug("containerupdate parameters: " + name + ", " + uname + ", " + ucolor + ", " + uicon)
