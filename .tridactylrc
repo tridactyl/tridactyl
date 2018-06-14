@@ -26,7 +26,7 @@ bind ;c hint -c [class*="expand"],[class="togg"]
 js tri.browserBg.runtime.getPlatformInfo().then(os=>{const editorcmd = os.os=="linux" ? "st vim" : "auto"; tri.config.set("editorcmd", editorcmd)})
 
 " set profile dir on Windows
-js tri.browserBg.runtime.getPlatformInfo().then(os=>{const profiledir = os.os=="win" ? `C:\Users\olie\AppData\Roaming\Mozilla\Firefox\Profiles\gwm76nmk.default` : "auto"; tri.config.set("profiledir", profiledir)})
+jsb browser.runtime.getPlatformInfo().then(os=>{const profiledir = os.os=="win" ? "C:\\Users\\olie\\AppData\\Roaming\\Mozilla\\Firefox\\Profiles\\gwm76nmk.default" : "auto"; tri.config.set("profiledir", profiledir)})
 
 " Sane hinting mode
 set hintfiltermode vimperator-reflow

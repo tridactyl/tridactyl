@@ -7,6 +7,7 @@ module.exports = {
         background: "./src/background.ts",
         content: "./src/content.ts",
         commandline_frame: "./src/commandline_frame.ts",
+        help: "./src/help.ts",
     },
     output: {
         filename: "[name].js",

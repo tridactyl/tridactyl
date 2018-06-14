@@ -264,6 +264,26 @@ export function getAllDocumentFrames(doc = document) {
     )
 }
 
+/** Computes the unique CSS selector of a specific HTMLElement */
+export function getSelector(e: HTMLElement) {
+    function uniqueSelector(e: HTMLElement) {
+        // Only matching alphanumeric selectors because others chars might have special meaning in CSS
+        if (e.id && e.id.match("^[a-zA-Z0-9]+$")) return "#" + e.id
+        // If we reached the top of the document
+        if (!e.parentElement) return "HTML"
+        // Compute the position of the element
+        let index =
+            Array.from(e.parentElement.children)
+                .filter(child => child.tagName == e.tagName)
+                .indexOf(e) + 1
+        return (
+            uniqueSelector(e.parentElement) +
+            ` > ${e.tagName}:nth-of-type(${index})`
+        )
+    }
+    return uniqueSelector(e)
+}
+
 /** Get all elements that match the given selector
  *
  * @param selector   `the CSS selector to choose elements with
