@@ -1,6 +1,6 @@
 # Tridactyl changelog
 
-## Release 1.13.0 / Unreleased
+## Release 1.13.0 / 2018-06-08
 
 *   **Potentially breaking changes**
 
@@ -22,7 +22,7 @@
 
 *   New commands:
 
-    *   `:js` an `:jsb` let you execute arbitrary javascript.
+    *   `:js` and `:jsb` let you execute arbitrary javascript.
     *   `:restart` will restart Firefox if you have installed Tridactyl's native executable.
     *   `:fixamo` will make Tridactyl work on addons.mozilla.org. Requires a `:restart`.
 
@@ -66,6 +66,10 @@
 *   Urlmodify doesn't add the websites you're leaving to your history anymore.
 
 *   An experimental `smoothscroll` setting has been added. You can turn it on by using `:set smoothscroll true`. Be warned, this can make scrolling slower on some websites.
+
+*   `credits` added to show off all the wonderful contributors we have.
+
+*   `help` now displays relevant aliases and key bindings, and `help [key sequence / alias]` will take you to the relevant help.
 
 ## Release 1.12.0 / 2018-05-13
 
