@@ -27,6 +27,61 @@ class Utility(object):
         the native_main.py.
     """
 
+    def unix_detect_firefox(self, ff_args):
+        """ Detect current Firefox binary binary path, directory,
+            binary/command name etc. given the 'ff_args', usually
+            collected via 'unix_find_firefox_args()'
+        """
+        ff_bin_path = None
+        ff_bin_name = None
+        ff_bin_dir = None
+
+        if ff_args:
+            ff_args = ff_args.split()
+            if len(ff_args) >= 1:
+                ff_bin_path = ff_args[0]
+                if pathlib.Path(ff_bin_path).is_file():
+                    ff_bin_name = os.path.basename(ff_bin_path)
+                    ff_bin_dir = os.path.dirname(ff_bin_path)
+
+        if (
+            (not ff_bin_dir)
+            or (not ff_bin_name)
+            or (not ff_bin_path)
+        ):
+            return (None, None, None)
+        else:
+            return (ff_bin_path, ff_bin_dir, ff_bin_name)
+
+    def unix_find_firefox_args(self):
+        """ Returns the arguments Firefox was invoked with on Unix
+          systems.
+      """
+        garbage = ["\n", "''"]
+
+        try:
+            ff_args = (
+                subprocess.check_output(
+                    [
+                        "ps",
+                        "--pid",
+                        str(os.getppid()),
+                        "--format",
+                        "args=''",
+                    ]
+                )
+                .decode("utf-8")
+                .strip()
+            )
+
+            for _ in garbage:
+                ff_args = ff_args.replace(_, "")
+
+        except (subprocess.CalledProcessError, UnicodeDecodeError):
+            ff_args = None
+
+        return ff_args
+
     def write_log(self, msg):
         """ Save log messages for debugging. """
         debug_log_filename = "native_main.log"
@@ -296,26 +351,41 @@ if ($locked -eq $true) {{
         reply = {}
         ff_lock_name = "lock"
 
-        ff_bin_name = browser_cmd
-
-        ff_bin_path = '"%s"' % shutil.which(ff_bin_name)
-
-        ff_bin_dir = '"%s"' % str(
-            pathlib.Path(shutil.which(ff_bin_name)).parent
-        )
-
         util = Utility()
 
-        if profile_dir == "auto":
-            ff_lock_path = ff_bin_path
-            ff_args = '"%s"' % ("-foreground")
-        else:
-            ff_lock_path = '"%s/%s"' % (profile_dir, ff_lock_name)
-            ff_args = '"%s","%s","%s"' % (
-                "-foreground",
-                "-profile",
-                profile_dir,
+        ff_args = util.unix_find_firefox_args()
+        (
+            ff_bin_path,
+            ff_bin_dir,
+            ff_bin_name,
+        ) = util.unix_detect_firefox(ff_args)
+
+
+        if DEBUG:
+            msg = "%s %s\n" % (
+                time.strftime("%H:%M:%S %p", time.localtime()),
+                str(ff_args),
             )
+            util.write_log(msg)
+
+        if not ff_bin_path:
+            ff_bin_name = browser_cmd
+
+            ff_bin_path = '"%s"' % shutil.which(ff_bin_name)
+
+            ff_bin_dir = '"%s"' % str(
+                pathlib.Path(shutil.which(ff_bin_name)).parent
+            )
+
+            if profile_dir == "auto":
+                ff_args = "%s %s" % (ff_bin_path, "-foreground")
+            else:
+                ff_args = "%s %s %s %s" % (
+                    ff_bin_name,
+                    "-foreground",
+                    "-profile",
+                    profile_dir,
+                )
 
         try:
             restart_sh_name = "restart_firefox.sh"
@@ -361,7 +431,7 @@ done
 
 echo "[+] Restarting Firefox ..."
 
-{ff_bin_name} &
+{ff_args} &
 
 if [ "$debug" != "true" ]; then
   rm -vf "$0"
@@ -378,7 +448,7 @@ fi
                 pre_restart_hook_prefix=PRE_RESTART_HOOK_PREFIX,
                 profile_dir=profile_dir,
                 native_dir=self.get_native_dir(),
-                ff_bin_name=ff_bin_name,
+                ff_args=ff_args,
                 debug="true" if DEBUG else "false",
             )
 
@@ -662,9 +732,9 @@ def add_firefox_prefs(message):
         return reply
 
     if (
-        not profile_dir
-        or profile_dir == "auto"
-        or not util.is_valid_firefox_profile(profile_dir)
+        (not profile_dir)
+        or (profile_dir == "auto")
+        or (not util.is_valid_firefox_profile(profile_dir))
     ):
         reply = {
             "code": -1,
@@ -750,9 +820,9 @@ def remove_firefox_prefs(message):
         return reply
 
     if (
-        not profile_dir
-        or profile_dir == "auto"
-        or not util.is_valid_firefox_profile(profile_dir)
+        (not profile_dir)
+        or (profile_dir == "auto")
+        or (not util.is_valid_firefox_profile(profile_dir))
     ):
         reply = {
             "code": -1,
@@ -1146,6 +1216,30 @@ def handleMessage(message):
 
     elif cmd == "add_firefox_prefs":
         reply = add_firefox_prefs(message)
+
+    elif cmd == "get_firefox_args":
+        reply = {}
+        try:
+            ff_args = (
+                subprocess.check_output(
+                    [
+                        "ps",
+                        "--pid",
+                        str(os.getppid()),
+                        "--format",
+                        "args=''",
+                    ]
+                )
+                .decode("utf-8")
+                .strip()
+            )
+
+            reply["content"] = ff_args
+            reply["code"] = 0
+
+        except (subprocess.CalledProcessError, UnicodeDecodeError):
+            reply["error"] = "Failed to get Firefox arguments."
+            reply["code"] = -1
 
     else:
         reply = {"cmd": "error", "error": "Unhandled message"}
