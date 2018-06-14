@@ -492,9 +492,6 @@ export async function getConfElsePrefElseDefault(
     return option
 }
 
-// FIXME: The "writePref" message below currently will lead to
-// overwriting of the existing "user.js".
-
 /** Writes a preference to user.js */
 export async function writePref(name: string, value: any) {
     if (cached_prefs) cached_prefs[name] = value

@@ -283,10 +283,6 @@ export async function fixamo(cmd: string) {
         // of the native messenger. Multiple invocation leads to
         // performance issues currently being discussed here [0].
         //
-        // Also, the writePref() call below is destructive as in it
-        // overwrites user's existing user.js, which may be
-        // undesired if the user was already using a user.js.
-        //
         // [0] https://github.com/cmcaine/tridactyl/issues/512
         //
         // await Native.writePref("privacy.resistFingerprinting.block_mozAddonManager", true)

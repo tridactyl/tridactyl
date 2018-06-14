@@ -4,8 +4,8 @@ source ./scripts/common
 
 # Check if 'DEBUG = True' set in 'native_main.py'
 if [[ "$(native_main_debug_flag)" != "False" ]]; then
-  echo "- Aborting Git commit ..."
-  echo "- Set 'DEBUG = False' in 'native_main.py'"
+  echo "Commit 'DEBUG = False' in 'native_main.py'"
+  echo "Aborting Git commit ..."
   exit 1
 fi
 

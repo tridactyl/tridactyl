@@ -6,7 +6,6 @@ import os
 import pathlib
 import re
 import shutil
-import stat
 import struct
 import subprocess
 import sys
@@ -18,7 +17,9 @@ DEBUG = False
 VERSION = "0.1.7"
 DEFAULT_UNIX_SHELL = "/bin/sh"
 WIN_NATIVE_DIRNAME = ".tridactyl"
-PRE_RESTART_HOOK_PREFIX = "pre_restart_hook-"
+HOOKS_DIRNAME = "hooks"
+PRE_RESTART_HOOK_PREFIX = "pre-restart"
+POST_RESTART_HOOK_PREFIX = "post-restart"
 
 
 class Utility(object):
@@ -137,64 +138,80 @@ $profileDir = "{profile_dir}"
 $nativeDir = "{native_dir}"
 
 if ($profileDir -ne "auto") {{
-$lockFilePath = {ff_lock_path}
-$locked = $true
-$num_try = 15
+  $lockFilePath = {ff_lock_path}
+  $locked = $true
+  $num_try = 15
 }} else {{
-$locked = $false
+  $locked = $false
 }}
+
 while (($locked -eq $true) -and ($num_try -gt 0)) {{
-try {{
-  [IO.File]::OpenWrite($lockFilePath).close()
-  $locked=$false
-}} catch {{
-  $num_try-=1
-  Write-Host "[+] Trial: $num_try [lock == true]"
-  Start-Sleep -Seconds 1
+  try {{
+    [IO.File]::OpenWrite($lockFilePath).close()
+    $locked=$false
+  }} catch {{
+    $num_try-=1
+    Write-Host "[+] Trial: $num_try [lock == true]"
+    Start-Sleep -Seconds 1
+  }}
 }}
-}}
+
 if ($locked -eq $true) {{
-$errorMsg = "Restart failed. Please restart Firefox manually."
-Write-Host "$errorMsg"
+  $errorMsg = "Restart failed. Please restart Firefox manually."
+  Write-Host "$errorMsg"
 }} else {{
-$hookFilesGlob = "$nativeDir/{pre_restart_hook_prefix}*.ps1"
-if ( (Test-Path "$hookFilesGlob") -eq $True) {{
-      Get-ChildItem "$hookFilesGlob" `
-        | Sort-Object -Property LastWriteTime `
-        | ForEach-Object {{
-      Write-Host "[+] Executing pre-restart-hook(s) $_ ..."
-        & "$_";
-        if ($debug -eq $False) {{
-          Remove-Item `
-            -Path "$_" `
-            -Force | Out-Null
-        }} else {{
-          $newName = "debug-$(Split-Path "$_" -Leaf)"
-          Remove-Item `
-            -Path "$newName" `
-            -Force | Out-Null
+  $hookFilesGlob = `
+    "$nativeDir/{hooks_dir}/{pre_restart_hook_prefix}*.ps1"
 
-          Rename-Item `
-              -Path "$_" `
-              -NewName  $newName`
-              -Force | Out-Null
-        }}
-    }}
-}}
-Write-Host "[+] Restarting Firefox ..."
-Start-Process `
-    -WorkingDirectory {ff_bin_dir} `
-    -FilePath {ff_bin_path} `
-    -ArgumentList {ff_args} `
-    -WindowStyle Normal
+  if ((Test-Path "$hookFilesGlob") -eq $True) {{
+        Get-ChildItem "$hookFilesGlob" `
+          | Sort-Object -Property LastWriteTime `
+          | ForEach-Object {{
 
-if ($debug -eq $False) {{
-  Remove-Item `
-    -Path "{restart_ps1_path}" `
-    -Force | Out-Null
-}} else {{
-  Read-Host -Prompt "Press ENTER to continue ..."
-}}
+            $hookPath = "$_"
+
+            Write-Host `
+              "[+] Executing pre-restart-hook(s) $hookPath ..."
+            & "$hookPath";
+
+            if ($debug -eq $False) {{
+              Remove-Item `
+                -Path "$hookPath" `
+                -Force | Out-Null
+            }} else {{
+              $newHookPath = `
+                "{native_dir}\\{hooks_dir}\\debug-$( `
+                    Split-Path "$hookPath" -Leaf)"
+
+              if ((Test-Path "$newHookPath") -eq $True) {{
+                Remove-Item `
+                  -Path "$newHookPath" `
+                  -Force | Out-Null
+              }}
+
+              Rename-Item `
+                  -Path "$hookPath" `
+                  -NewName  $newHookPath `
+                  -Force | Out-Null
+            }}
+      }}
+  }}
+
+  Write-Host "[+] Restarting Firefox ..."
+  Start-Process `
+      -WorkingDirectory {ff_bin_dir} `
+      -FilePath {ff_bin_path} `
+      -ArgumentList {ff_args} `
+      -WindowStyle Normal
+
+  if ($debug -eq $False) {{
+    Remove-Item `
+      -Path "{restart_ps1_path}" `
+      -Force | Out-Null
+  }} else {{
+    Read-Host -Prompt "Press ENTER to continue ..."
+  }}
+
 }}
 """.format(
                 ff_bin_dir=ff_bin_dir,
@@ -203,6 +220,7 @@ if ($debug -eq $False) {{
                 ff_lock_path=ff_lock_path,
                 ff_bin_path=ff_bin_path,
                 ff_args=ff_args,
+                hooks_dir=HOOKS_DIRNAME,
                 pre_restart_hook_prefix=PRE_RESTART_HOOK_PREFIX,
                 debug="$True" if DEBUG else "$False",
                 restart_ps1_path=restart_ps1_path,
@@ -279,6 +297,7 @@ if ($debug -eq $False) {{
         ff_lock_name = "lock"
 
         ff_bin_name = browser_cmd
+
         ff_bin_path = '"%s"' % shutil.which(ff_bin_name)
 
         ff_bin_dir = '"%s"' % str(
@@ -321,7 +340,8 @@ sleep 1
 
 echo "[+] Executing pre-restart hook(s) ..."
 
-for hook in {native_dir}/{pre_restart_hook_prefix}*.sh; do
+for hook \
+  in {native_dir}/{hooks_dir}/{pre_restart_hook_prefix}*.sh; do
   if [ ! -e "$hook" ]; then
     continue
   fi
@@ -343,7 +363,6 @@ echo "[+] Restarting Firefox ..."
 
 {ff_bin_name} &
 
-echo "[+] Cleaning up ..."
 if [ "$debug" != "true" ]; then
   rm -vf "$0"
 else
@@ -355,6 +374,7 @@ fi
 """.format(
                 unix_shell=DEFAULT_UNIX_SHELL,
                 path=os.environ["PATH"],
+                hooks_dir=HOOKS_DIRNAME,
                 pre_restart_hook_prefix=PRE_RESTART_HOOK_PREFIX,
                 profile_dir=profile_dir,
                 native_dir=self.get_native_dir(),
@@ -363,10 +383,6 @@ fi
             )
 
             open(restart_sh_path, "w+").write(restart_sh_content)
-            # os.chmod(
-            #     restart_sh_path,
-            #     os.stat(restart_sh_path).st_mode | stat.S_IRWXU,
-            # )
 
             if DEBUG:
                 restart_sh_stdout = open(
@@ -801,11 +817,19 @@ def remove_firefox_prefs(message):
         # activities, adding/removing preferences etc. later on as
         # well.
 
+        curr_def_name = "remove_firefox_prefs"
+
         if util.is_windows():
-            hook_ps1_name = (
-                "pre_restart_hook-remove_firefox_prefs.ps1"
+            hook_ps1_name = "%s.ps1" % (PRE_RESTART_HOOK_PREFIX)
+
+            hook_ps1_dirname = "%s\\%s" % (
+                util.get_native_dir(),
+                HOOKS_DIRNAME,
             )
-            hook_ps1_dirname = util.get_native_dir()
+
+            pathlib.Path(hook_ps1_dirname).mkdir(
+                parents=True, exist_ok=True
+            )
 
             hook_ps1_path = "%s\\%s" % (
                 hook_ps1_dirname,
@@ -824,13 +848,10 @@ $prefsjsPathNew = "{prefsjs_path_new}"
 """.format(
                 debug="$True" if DEBUG else "$False",
                 profile_dir=profile_dir,
-                prefsjs_path=profile_dir + "\\prefs.js",
-                prefsjs_path_new=profile_dir + "\\prefs.js-new",
+                prefsjs_path=profile_dir + "/prefs.js",
+                prefsjs_path_new=profile_dir + "/prefs.js-new",
             )
 
-            open(hook_ps1_path, "a+").write(hook_ps1_content)
-
-            hook_ps1_content = ""
             for pref in prefs_to_remove:
                 hook_ps1_content = (
                     hook_ps1_content
@@ -863,13 +884,19 @@ Rename-Item `
     -NewName "$prefsjsPath" `
     -Force
 
-if ($debug -eq $True) {{
-  Read-Host -Prompt "Press ENTER to continue ..."
-}}
 """.format(
                         pref=pref
                     )
                 )
+
+            hook_ps1_content = (
+                hook_ps1_content
+                + """
+if ($debug -eq $True) {
+  Read-Host -Prompt "Press ENTER to continue ..."
+}
+"""
+            )
 
             open(hook_ps1_path, "a+").write(hook_ps1_content)
 
@@ -877,10 +904,15 @@ if ($debug -eq $True) {{
             # Prepare "pre-restart-hook" script for Unix operating
             # systems here.
 
-            hook_sh_name = (
-                "pre_restart_hook-remove_firefox_prefs.sh"
+            hook_sh_name = "%s.sh" % (PRE_RESTART_HOOK_PREFIX)
+
+            hook_sh_dirname = "%s/%s" % (
+                util.get_native_dir(),
+                HOOKS_DIRNAME,
             )
-            hook_sh_dirname = util.get_native_dir()
+            pathlib.Path(hook_sh_dirname).mkdir(
+                parents=True, exist_ok=True
+            )
 
             hook_sh_path = "%s/%s" % (hook_sh_dirname, hook_sh_name)
 
@@ -901,9 +933,6 @@ prefsjsPathNew="{prefsjs_path_new}"
                 prefsjs_path_new=profile_dir + "/prefs.js-new",
             )
 
-            open(hook_sh_path, "a+").write(hook_sh_content)
-
-            hook_sh_content = ""
             for pref in prefs_to_remove:
                 hook_sh_content = (
                     hook_sh_content
@@ -921,24 +950,23 @@ rm -vf "$prefsjsPath"
 
 mv -vf "$prefsjsPathNew" "$prefsjsPath"
 
-if [ "$debug" = "true" ]; then
-  /usr/bin/env \
-    python3 \
-      -c "print('Press ENTER to continue ...'); input()"
-else
-  rm -vf "$0"
-fi
-
 """.format(
                         pref=pref
                     )
                 )
 
+            hook_sh_content = (
+                hook_sh_content
+                + """
+if [ "$debug" = "true" ]; then
+  /usr/bin/env \
+    python3 \
+      -c "print('Press ENTER to continue ...'); input()"
+fi
+"""
+            )
+
             open(hook_sh_path, "a+").write(hook_sh_content)
-            # os.chmod(
-            #     hook_sh_path,
-            #     os.stat(hook_sh_path).st_mode | stat.S_IRWXU,
-            # )
 
         # The 'reply' dictionary item below is common for both
         # Windows and Unix.
