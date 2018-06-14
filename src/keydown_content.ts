@@ -97,8 +97,25 @@ function modeSpecificSuppression(ke: KeyboardEvent) {
 
 // }}}
 
+let killEvent = e => {
+    // We're not killing keys with modifiers because otherwise we might prevent Firefox's default shortcuts from working (e.g. Ctrl+B)
+    // We're also not killing "/" because we currently use Firefox's search mode. This should be removed once Tridactyl defaults to its own search mode.
+    if (
+        !e.ctrlKey &&
+        !e.altKey &&
+        !e.metaKey &&
+        e.key != "/" &&
+        !["input", "insert", "ignore"].includes(state.mode)
+    ) {
+        e.preventDefault()
+        e.stopImmediatePropagation()
+    }
+}
+
 // Add listeners
 window.addEventListener("keydown", keyeventHandler, true)
+window.addEventListener("keypress", killEvent, true)
+window.addEventListener("keyup", killEvent, true)
 document.addEventListener("readystatechange", ev =>
     getAllDocumentFrames().map(frame => {
         frame.contentWindow.removeEventListener(
@@ -107,6 +124,8 @@ document.addEventListener("readystatechange", ev =>
             true,
         )
         frame.contentWindow.addEventListener("keydown", keyeventHandler, true)
+        frame.contentWindow.addEventListener("keypress", killEvent, true)
+        frame.contentWindow.addEventListener("keyup", killEvent, true)
     }),
 )
 import * as SELF from "./keydown_content"
