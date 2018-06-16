@@ -26,7 +26,8 @@ input[id^="spoiler"] + label {
     cursor: pointer;
     transition: all 0.6s;
 }
-input[id^="spoiler"]:checked + label {
+input[id^="spoiler"]:checked + label,
+input[id^="spoiler"].seen + label {
     color: #333;
     background: #ccc;
 }

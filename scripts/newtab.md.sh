@@ -14,10 +14,11 @@ sed "1,/REPLACETHIS/ d" newtab.template.html >> "$newtabtemp"
 # Why think when you can pattern match?
 
 sed "/REPLACE_ME_WITH_THE_CHANGE_LOG_USING_SED/,$ d" "$newtabtemp" > "$newtab"
+# Note: If you're going to change this HTML, make sure you don't break the JS in src/newtab.ts
 echo """
 <input type="checkbox"  id="spoilerbutton" />
 <label for="spoilerbutton" onclick="">Changelog</label>
-<div class="spoiler">
+<div id="changelog" class="spoiler">
 """ >> "$newtab"
 $(npm bin)/marked ../../CHANGELOG.md >> "$newtab"
 echo """
