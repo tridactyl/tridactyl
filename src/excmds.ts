@@ -1457,7 +1457,7 @@ export async function tablast() {
 
 /** Like [[open]], but in a new tab. If no address is given, it will open the newtab page, which can be set with `set newtab [url]`
 
-    Use the `-c` flag followed by a ccontainer id to open a tab in said container.
+    Use the `-c` flag followed by a container name to open a tab in said container. Tridactyl will try to fuzzy match a name if an exact match is not found.
     Use the `-b` flag to open the tab in the background.
     These two can be combined in any order, but need to be placed as the first arguments.
 
@@ -1757,7 +1757,7 @@ export async function qall() {
 // {{{ CONTAINERS
 
 /** Closes all tabs open in the same container across all windows.
- * @param name The container name.
+  @param name The container name.
  */
 //#background
 export async function containerclose(name: string) {
@@ -1771,11 +1771,12 @@ export async function containerclose(name: string) {
     })
 }
 /** Creates a new container.
- *
- *  Further reading https://developer.mozilla.org/en-US/Add-ons/WebExtensions/API/contextualIdentities/ContextualIdentity
- * @param name The container name. Must be unique.
- * @param color The container color. Valid colors are: "blue", "turquoise", "green", "yellow", "orange", "red", "pink", "purple". If no color is chosen a random one will be selected from the list of valid colors.
- * @param icon The container icon. Valid icons are: "fingerprint", "briefcase", "dollar", "cart", "circle", "gift", "vacation", "food", "fruit", "pet", "tree", "chill". If no icon is chosen, it defaults to "fingerprint".
+
+  Further reading https://developer.mozilla.org/en-US/Add-ons/WebExtensions/API/contextualIdentities/ContextualIdentity
+
+  @param name The container name. Must be unique.
+  @param color The container color. Valid colors are: "blue", "turquoise", "green", "yellow", "orange", "red", "pink", "purple". If no color is chosen a random one will be selected from the list of valid colors.
+  @param icon The container icon. Valid icons are: "fingerprint", "briefcase", "dollar", "cart", "circle", "gift", "vacation", "food", "fruit", "pet", "tree", "chill". If no icon is chosen, it defaults to "fingerprint".
  */
 //#background
 export async function containercreate(name: string, color?: string, icon?: string) {
@@ -1783,7 +1784,7 @@ export async function containercreate(name: string, color?: string, icon?: strin
 }
 
 /** Delete a container. Closes all tabs associated with that container beforehand.
- * @param name The container name.
+  @param name The container name.
  */
 //#background
 export async function containerremove(name: string) {
@@ -1792,19 +1793,19 @@ export async function containerremove(name: string) {
 }
 
 /** Update a container's information. Note that none of the parameters are optional.
- *
- *  Example usage:
- *
- *  - Changing the container name: `containerupdate banking blockchain green dollar`
- *
- *  - Changing the container icon: `containerupdate banking banking green briefcase`
- *
- *  - Changing the container color: `containerupdate banking banking purple dollar`
- *
- * @param name The container name.
- * @param uname The new container name. Must be unique.
- * @param ucolor The new container color. Valid colors are: "blue", "turquoise", "green", "yellow", "orange", "red", "pink", "purple". If no color is chosen a random one will be selected from the list of valid colors.
- * @param uicon The new container icon. Valid icons are: "fingerprint", "briefcase", "dollar", "cart", "circle", "gift", "vacation", "food", "fruit", "pet", "tree", "chill".
+
+  Example usage:
+
+  - Changing the container name: `containerupdate banking blockchain green dollar`
+
+  - Changing the container icon: `containerupdate banking banking green briefcase`
+
+  - Changing the container color: `containerupdate banking banking purple dollar`
+
+  @param name The container name.
+  @param uname The new container name. Must be unique.
+  @param ucolor The new container color. Valid colors are: "blue", "turquoise", "green", "yellow", "orange", "red", "pink", "purple". If no color is chosen a random one will be selected from the list of valid colors.
+  @param uicon The new container icon. Valid icons are: "fingerprint", "briefcase", "dollar", "cart", "circle", "gift", "vacation", "food", "fruit", "pet", "tree", "chill".
  */
 //#background
 export async function containerupdate(name: string, uname: string, ucolor: string, uicon: string) {
