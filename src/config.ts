@@ -297,6 +297,9 @@ const DEFAULTS = o({
     // If enabled, tabopen opens a new tab in the currently active tab's container.
     tabopencontaineraware: "false",
 
+    // If moodeindicator is enabled, containerindicator will color the border of the mode indicator with the container color.
+    containerindicator: "true",
+
     // Performance related settings
 
     // number of most recent results to ask Firefox for. We display the top 20 or so most frequently visited ones.

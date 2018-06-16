@@ -92,10 +92,7 @@ export async function update(
         icon: browser.contextualIdentities.IdentityIcon
     },
 ) {
-    if (
-        isValidColor(updateObj["color"]) &&
-        isValidIcon(updateObj["icon"])
-    ) {
+    if (isValidColor(updateObj["color"]) && isValidIcon(updateObj["icon"])) {
         try {
             browser.contextualIdentities.update(containerId, updateObj)
         } catch (e) {
@@ -114,12 +111,7 @@ export async function getFromId(containerId: string): Promise<{}> {
     try {
         return await browser.contextualIdentities.get(containerId)
     } catch (e) {
-        logger.debug(
-            `[Container.getFromId] could not find a container with id: ${containerId}`,
-        )
-        throw new Error(
-            "[Container.getFromId] could not find a container with that id",
-        )
+        throw e
     }
 }
 

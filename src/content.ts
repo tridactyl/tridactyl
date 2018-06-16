@@ -83,6 +83,9 @@ if (
 config.getAsync("modeindicator").then(mode => {
     if (mode !== "true") return
 
+    // Do we want container indicators?
+    let containerIndicator = config.get("containerindicator")
+
     // Hide indicator in print mode
     // CSS not explicitly added to the dom doesn't make it to print mode:
     // https://bugzilla.mozilla.org/show_bug.cgi?id=1448507
@@ -100,6 +103,22 @@ config.getAsync("modeindicator").then(mode => {
         : ""
     statusIndicator.className =
         "cleanslate TridactylStatusIndicator " + privateMode
+
+    // Dynamically sets the border container color.
+    if (containerIndicator === "true") {
+        webext
+            .activeTabContainer()
+            .then(container => {
+                statusIndicator.setAttribute(
+                    "style",
+                    `border: ${container.colorCode} solid 1.5px !important`,
+                )
+            })
+            .catch(error => {
+                logger.debug(error)
+            })
+    }
+
     // This listener makes the modeindicator disappear when the mouse goes over it
     statusIndicator.addEventListener("mouseenter", ev => {
         let target = ev.target as any
