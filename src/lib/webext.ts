@@ -72,6 +72,12 @@ export async function activeTabContainerId() {
     return (await activeTab()).cookieStoreId
 }
 
+//#background_helper
+export async function activeTabContainer() {
+    let containerId = await activeTabContainerId()
+    return await browserBg.contextualIdentities.get(containerId)
+}
+
 /** Compare major firefox versions */
 export async function firefoxVersionAtLeast(desiredmajor: number) {
     const versionstr = (await browserBg.runtime.getBrowserInfo()).version

@@ -20,7 +20,7 @@ $global:MessengerManifestReplaceStr = "REPLACE_ME_WITH_SED"
 # $git_repo_owner should be "cmcaine" in final release
 $git_repo_owner = "cmcaine"
 # $git_repo_branch should be "master" in final release
-$git_repo_branch = "cmcaine/master"
+$git_repo_branch = "master"
 $git_repo_proto = "https"
 $git_repo_host = "raw.githubusercontent.com"
 $git_repo_name = "tridactyl"

@@ -4,20 +4,21 @@ source ./scripts/common
 
 set -e
 
-uglyFiles=$(ugly $(cachedJS))
+uglyFiles="$(ugly "$(cachedFiles)")"
 
 if [ -n "$uglyFiles" ]; then
-  for file in "$uglyFiles"; do
-    if cmp -s <(staged $file) "$file"; then
+  IFS=$'\n'
+  for file in $uglyFiles; do
+    if cmp -s <(staged "$file") "$file"; then
       prettier --write "$file"
       git add "$file"
     else
       echo "WARN: Staged and working file differ: '$file'"
       echo "WARN: Moving working file temporarily (this might upset your editor)"
       # Get crazy: backup the working copy of the file, paste the staged version in its place, prettify, add, restore backup
-      backup=$(mktemp -p . $file.XXXXXXXXX)
+      backup=$(mktemp -p . "$file.XXXXXXXXX")
       mv "$file" "$backup"
-      staged "$file"|prettier --stdin-filepath "$file" > "$file"
+      staged "$file" | prettier --stdin-filepath "$file" > "$file"
       git add "$file"
       mv "$backup" "$file"
       echo "WARN: Working file restored"

@@ -37,6 +37,7 @@ REPLACE_ME_WITH_THE_CHANGE_LOG_USING_SED
 *   `[[`/`]]` — navigate forward/backward though paginated pages.
 *   `ZZ` — close all tabs and windows, but it will only "save" them if your about:preferences are set to "show your tabs and windows from last time".
 *   [`:help hint`][help-hint] to see all the other useful hint modes (this is the `f` magic. :) ).
+*   `:help <keybinding>` to learn more about what a specific key binding does.
 
 ## Important limitations due to WebExtensions
 
@@ -53,6 +54,8 @@ Tridactyl overrides your newtab page because it cannot insert its content script
 
 *   `:set newtab [URL]`
     *   e.g, `:set newtab about:blank`
+
+Also, if you want to use a new tab page provided by another extension, make sure to install said extension after Tridactyl. Uninstalling and re-installing the other extension should work too.
 
 ## FAQ
 
