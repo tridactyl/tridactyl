@@ -1841,6 +1841,22 @@ export async function containerupdate(name: string, uname: string, ucolor: strin
     }
 }
 
+/** Shows a list of the current containers in Firefox's native JSON viewer in the current tab.
+
+ NB: Tridactyl cannot run on this page!
+
+ */
+//#content
+export async function viewcontainers() {
+    // # and white space don't agree with FF's JSON viewer.
+    // Probably other symbols too.
+    let containers = await Container.getAll()
+    window.location.href =
+        "data:application/json," +
+        JSON.stringify(containers)
+            .replace(/#/g, "%23")
+            .replace(/ /g, "%20")
+}
 // }}}
 //
 // {{{ MISC
