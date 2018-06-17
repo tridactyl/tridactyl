@@ -123,6 +123,7 @@ const DEFAULTS = o({
         ";;": "hint -;",
         ";#": "hint -#",
         ";v": "hint -W exclaim_quiet mpv",
+        ";w": "hint -w",
         "<S-Insert>": "mode ignore",
         "<CA-Esc>": "mode ignore",
         "<CA-`>": "mode ignore",
