@@ -271,7 +271,7 @@ function process() {
 
     hide_and_clear()
 
-    const [func, ...args] = command.trim().split(/\s+/)
+    const [func, ...args] = command.trim().split(/ +/)
 
     if (func.length === 0 || func.startsWith("#")) {
         return

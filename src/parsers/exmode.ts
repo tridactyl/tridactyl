@@ -47,14 +47,13 @@ function convertArgs(params, argv) {
 // TODO: Abbreviated commands
 export function parser(exstr: string): any[] {
     // Expand aliases
-    const expandedExstr = aliases.expandExstr(exstr)
-    const [func, ...args] = expandedExstr.trim().split(/\s+/)
+    const [command, ...args] = aliases.expandExarr(exstr)
 
-    if (ExCmds.cmd_params.has(func)) {
+    if (ExCmds.cmd_params.has(command)) {
         try {
             return [
-                ExCmds[func],
-                convertArgs(ExCmds.cmd_params.get(func), args),
+                ExCmds[command],
+                convertArgs(ExCmds.cmd_params.get(command), args),
             ]
         } catch (e) {
             logger.error("Error executing or parsing:", exstr, e)
@@ -62,6 +61,6 @@ export function parser(exstr: string): any[] {
         }
     } else {
         logger.error("Not an excmd:", exstr)
-        throw `Not an excmd: ${func}`
+        throw `Not an excmd: ${command}`
     }
 }
