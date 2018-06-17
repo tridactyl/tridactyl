@@ -9,7 +9,7 @@ How to handle cached e.g. buffer information going out of date?
 */
 
 import * as Fuse from "fuse.js"
-import { enumerate } from "./itertools"
+import { enumerate, flatten, unique } from "./itertools"
 import { toNumber } from "./convert"
 import * as Messaging from "./messaging"
 import * as config from "./config"
@@ -343,6 +343,7 @@ class BmarkCompletionOption extends CompletionOptionHTML
     constructor(
         public value: string,
         bmark: browser.bookmarks.BookmarkTreeNode,
+        parentTitles: string[],
     ) {
         super()
         if (!bmark.title) {
@@ -350,7 +351,7 @@ class BmarkCompletionOption extends CompletionOptionHTML
         }
 
         // Push properties we want to fuzmatch on
-        this.fuseKeys.push(bmark.title, bmark.url)
+        this.fuseKeys.push(bmark.title, bmark.url, ...parentTitles)
 
         // Create HTMLElement
         // need to download favicon
@@ -395,9 +396,20 @@ export class BmarkCompletionSource extends CompletionSourceFuse {
             return
         }
 
-        this.options = (await this.scoreOptions(query, 10)).map(
-            page => new BmarkCompletionOption(page.url, page),
-        )
+        this.options = (await Promise.all(
+            (await this.scoreOptions(query, 10)).map(async page => {
+                // Find the title of all parent folders
+                let parentTitles = []
+                let parentId = page.parentId
+                while (parentId) {
+                    let parent = (await browserBg.bookmarks.get(parentId))[0]
+                    parentTitles.push(parent.title)
+                    parentId = parent.parentId
+                }
+
+                return new BmarkCompletionOption(page.url, page, parentTitles)
+            }),
+        )) as any
 
         this.updateChain()
     }
@@ -413,15 +425,34 @@ export class BmarkCompletionSource extends CompletionSourceFuse {
     onInput() {}
 
     private async scoreOptions(query: string, n: number) {
-        // Search bookmarks, dedupe and sort by frecency
-        let bookmarks = await browserBg.bookmarks.search({ query })
-        bookmarks = bookmarks.filter(b => {
-            try {
-                return new URL(b.url)
-            } catch (e) {
-                return false
-            }
-        })
+        // Search bookmarks and sort by frecency
+        let bookmarks = (await browserBg.bookmarks.search({ query })).map(
+            bmark => browserBg.bookmarks.getSubTree(bmark.id),
+        )
+
+        bookmarks = await Promise.all(bookmarks)
+
+        console.log(
+            `Bookmarks is ${
+                bookmarks instanceof Array ? "" : "not "
+            }an array and bookmarks[0] is ${
+                bookmarks[0] instanceof Array ? "" : "not "
+            }an array and bookmarks[0][0] is ${
+                bookmarks[0][0] instanceof Array ? "" : "not "
+            }an array`,
+            bookmarks,
+            bookmarks[0],
+            bookmarks[0][0],
+        )
+
+        let getChildren = bmark =>
+            bmark.children
+                ? bmark.children.map(getChildren)
+                : bmark.url
+                    ? bmark
+                    : []
+
+        bookmarks = unique(flatten(bookmarks.map(getChildren)))
 
         bookmarks.sort((a, b) => b.dateAdded - a.dateAdded)
 
