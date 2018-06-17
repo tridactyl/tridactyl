@@ -8,6 +8,7 @@ const logger = new Logging.Logger("styling")
 const THEMES = ["dark", "greenmat", "shydactyl", "quake"]
 
 function capitalise(str) {
+    if (str === "") return str
     return str[0].toUpperCase() + str.slice(1)
 }
 
