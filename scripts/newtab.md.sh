@@ -17,7 +17,7 @@ sed "/REPLACE_ME_WITH_THE_CHANGE_LOG_USING_SED/,$ d" "$newtabtemp" > "$newtab"
 # Note: If you're going to change this HTML, make sure you don't break the JS in src/newtab.ts
 echo """
 <input type="checkbox"  id="spoilerbutton" />
-<label for="spoilerbutton" onclick="">Changelog</label>
+<label for="spoilerbutton" onclick=""><div id="nagbar-changelog">New features!</div>Changelog</label>
 <div id="changelog" class="spoiler">
 """ >> "$newtab"
 $(npm bin)/marked ../../CHANGELOG.md >> "$newtab"
