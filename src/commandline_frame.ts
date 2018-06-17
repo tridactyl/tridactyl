@@ -50,6 +50,7 @@ function getCompletion() {
 function enableCompletions() {
     if (!activeCompletions) {
         activeCompletions = [
+            new Completions.BufferAllCompletionSource(completionsDiv),
             new Completions.BufferCompletionSource(completionsDiv),
             new Completions.HistoryCompletionSource(completionsDiv),
             new Completions.BmarkCompletionSource(completionsDiv),

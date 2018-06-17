@@ -666,6 +666,73 @@ export class BufferCompletionSource extends CompletionSourceFuse {
     }
 }
 
+class BufferAllCompletionOption extends CompletionOptionHTML {
+    public fuseKeys = []
+
+    constructor(
+        public value: string,
+        tab: browser.tabs.Tab,
+    ) {
+        super()
+        this.fuseKeys.push(String(tab.id), tab.title, tab.url)
+
+        // Create HTMLElement
+        const favIconUrl = tab.favIconUrl ? tab.favIconUrl : DEFAULT_FAVICON
+        this.html = html`<tr class="BufferAllCompletionOption option">
+            <td class="prefix"></td>
+            <td><img src=${favIconUrl} /></td>
+            <td>${tab.id}: ${tab.title}</td>
+            <td><a class="url" target="_blank" href=${tab.url}>${
+            tab.url
+        }</a></td>
+        </tr>`
+    }
+}
+
+export class BufferAllCompletionSource extends CompletionSourceFuse {
+    public options: BufferAllCompletionOption[]
+
+    constructor(private _parent) {
+        super(
+            ["bufferall "],
+            "BufferAllCompletionSource",
+            "All Buffers",
+        )
+
+        this.updateOptions()
+        this._parent.appendChild(this.node)
+    }
+
+    async onInput(exstr) {
+        this.updateOptions()
+    }
+
+    private async updateOptions(exstr?: string) {
+        const tabs: browser.tabs.Tab[] = await Messaging.message(
+            "commandline_background",
+            "allWindowTabs",
+        )
+
+        const options = []
+
+        tabs.sort((a, b) => {
+            return a.index < b.index ? -1 : 1
+        })
+
+        for (const tab of tabs) {
+            options.push(
+                new BufferAllCompletionOption(
+                    (tab.id).toString(),
+                    tab,
+                ),
+            )
+        }
+
+        this.options = options
+        this.updateChain()
+    }
+}
+
 // {{{ UNUSED: MANAGING ASYNC CHANGES
 
 /** If first to modify epoch, commit change. May want to change epoch after commiting. */

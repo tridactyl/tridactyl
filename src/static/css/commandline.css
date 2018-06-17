@@ -51,38 +51,12 @@ input {
 }
 
 /* Olie doesn't know how CSS inheritance works */
-#completions .HistoryCompletionSource {
+#completions > div {
     max-height: calc(20 * var(--option-height));
     min-height: calc(10 * var(--option-height));
 }
 
-#completions .HistoryCompletionSource table {
-    width: 100%;
-    font-size: 9pt;
-    border-spacing: 0;
-    table-layout: fixed;
-}
-
-/* redundancy 2: redundancy 2: more redundancy */
-#completions .BmarkCompletionSource {
-    max-height: calc(20 * var(--option-height));
-    min-height: calc(10 * var(--option-height));
-}
-
-#completions .BmarkCompletionSource table {
-    width: 100%;
-    font-size: 9pt;
-    border-spacing: 0;
-    table-layout: fixed;
-}
-/* redundancy ends */
-
-#completions .BufferCompletionSource {
-    max-height: calc(20 * var(--option-height));
-    min-height: calc(10 * var(--option-height));
-}
-
-#completions .BufferCompletionSource table {
+#completions > div > table {
     width: 100%;
     font-size: 9pt;
     border-spacing: 0;

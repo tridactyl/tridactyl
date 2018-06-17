@@ -1963,13 +1963,28 @@ export async function clipboard(excmd: "open" | "yank" | "yankshort" | "yankcano
 /** Change active tab.
 
     @param index
-        Starts at 1. 0 refers to last tab, -1 to penultimate tab, etc.
+        Starts at 1. 0 refers to last tab of the current window, -1 to penultimate tab, etc.
 
         "#" means the tab that was last accessed in this window
+
+    This is different from [[bufferall]] because `index` is the position of the tab in the window.
  */
 //#background
 export async function buffer(index: number | "#") {
     tabIndexSetActive(index)
+}
+
+/** Change active tab.
+
+    @param id
+        The id of the tab that should be selected.
+
+    This is different from [[buffer]] because `id` is the internal firefox id of the tab, this means that you can focus tabs that aren't in the current window.
+ */
+//#background
+export async function bufferall(id: number) {
+    await browser.windows.update((await browser.tabs.get(id)).windowId, { focused: true })
+    await browser.tabs.update(id, { active: true })
 }
 
 // }}}
