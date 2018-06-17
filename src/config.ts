@@ -123,6 +123,7 @@ const DEFAULTS = o({
         ";;": "hint -;",
         ";#": "hint -#",
         ";v": "hint -W exclaim_quiet mpv",
+        ";w": "hint -w",
         "<S-Insert>": "mode ignore",
         "<CA-Esc>": "mode ignore",
         "<CA-`>": "mode ignore",
@@ -477,9 +478,15 @@ async function init() {
 
 // Listen for changes to the storage and update the USERCONFIG if appropriate.
 // TODO: BUG! Sync and local storage are merged at startup, but not by this thing.
-browser.storage.onChanged.addListener((changes, areaname) => {
+browser.storage.onChanged.addListener(async (changes, areaname) => {
     if (CONFIGNAME in changes) {
-        USERCONFIG = changes[CONFIGNAME].newValue
+        // newValue is undefined when calling browser.storage.AREANAME.clear()
+        if (changes[CONFIGNAME].newValue !== undefined) {
+            USERCONFIG = changes[CONFIGNAME].newValue
+        } else if (areaname === (await get("storageloc"))) {
+            // If newValue is undefined and AREANAME is the same value as STORAGELOC, the user wants to clean their config
+            USERCONFIG = o({})
+        }
     }
 })
 

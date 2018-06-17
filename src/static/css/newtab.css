@@ -30,6 +30,15 @@ input[id^="spoiler"]:checked + label {
     color: #333;
     background: #ccc;
 }
+input[id^="spoiler"]:checked + label > #nagbar-changelog,
+input[id^="spoiler"].seen + label > #nagbar-changelog {
+    display: none;
+}
+#nagbar-changelog {
+    font-size: 8pt;
+    background: red;
+    line-height: 1.4;
+}
 input[id^="spoiler"] ~ .spoiler {
     height: 0;
     overflow: hidden;

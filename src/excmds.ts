@@ -301,13 +301,34 @@ export async function fixamo() {
 //#background
 export async function nativeopen(url: string, ...firefoxArgs: string[]) {
     if (await Native.nativegate()) {
+        // First compute where the tab should be
+        let pos = await config.getAsync("tabopenpos")
+        let index = (await activeTab()).index + 1
+        switch (pos) {
+            case "last":
+                index = 99999
+                break
+            case "related":
+                // How do we simulate that?
+                break
+        }
+        // Then make sure the tab is made active and moved to the right place
+        // when it is opened in the current window
+        let selecttab = tab => {
+            browser.tabs.onCreated.removeListener(selecttab)
+            tabSetActive(tab.id)
+            browser.tabs.move(tab.id, { index })
+        }
+        browser.tabs.onCreated.addListener(selecttab)
+
         if ((await browser.runtime.getPlatformInfo()).os === "mac") {
             let osascriptArgs = ["-e 'on run argv'", "-e 'tell application \"Firefox\" to open location item 1 of argv'", "-e 'end run'"]
-            Native.run("osascript " + osascriptArgs.join(" ") + " " + url)
+            await Native.run("osascript " + osascriptArgs.join(" ") + " " + url)
         } else {
             if (firefoxArgs.length === 0) firefoxArgs = ["--new-tab"]
-            Native.run(config.get("browser") + " " + firefoxArgs.join(" ") + " " + url)
+            await Native.run(config.get("browser") + " " + firefoxArgs.join(" ") + " " + url)
         }
+        setTimeout(() => browser.tabs.onCreated.removeListener(selecttab), 100)
     }
 }
 
