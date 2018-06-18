@@ -2097,6 +2097,7 @@ async function setclip(str, selection = undefined) {
         case "first":
         case "last":
             promises = [s(), c()]
+            break
         case "never":
             promises = [c()]
             break
@@ -2114,11 +2115,11 @@ async function setclip(str, selection = undefined) {
  */
 //#background_helper
 async function getclip(selection = undefined) {
-    let external = await config.getAsync("externalclipboard")
     let s = async () => await Native.clipboard("get", "")
     let c = () => messageActiveTab("commandline_frame", "getClipboard")
     if (selection === true) return s()
     if (selection === false) return c()
+    let external = await config.getAsync("externalclipboard")
     if (["only", "first"].includes(external)) return s()
     return c()
 }
