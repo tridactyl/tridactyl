@@ -2605,10 +2605,64 @@ export function unset(...keys: string[]) {
 //    config.save(config.get("storageloc"))
 //}
 
-////#background
-//export function mktridactylrc(){
-//    saveconfig()
-//}
+/** Writes current config to a file.
+ *
+ */
+//#background
+export function mktridactylrc() {
+    //    saveconfig()
+    //const file = fileArr.join(" ") || undefined
+    const conf = config.get()
+    let parsedConf = []
+    let parsedBinds = []
+    let parsedAliases = []
+    let parsedAucmds = []
+    let parsedFollowPagePatterns = []
+    let parsedSearchUrls = []
+    let parsedLogging = []
+
+    for (let i in conf) {
+        if (conf[i] instanceof Array && conf[i].length > 0) parsedConf.push("set " + i + " " + conf[i].join(" "))
+        else if (typeof conf[i] === "string" && conf[i].length > 0) parsedConf.push("set " + i + " " + conf[i])
+        else if (typeof conf[i] === "number") parsedConf.push("set " + i + " " + conf[i])
+        else if (i === "nmaps") {
+            for (let e in conf[i]) {
+                parsedBinds.push("bind " + e + " " + conf[i][e])
+            }
+        } else if (i === "exaliases") {
+            for (let e in conf[i]) {
+                if (e === "alias") parsedAliases.push("command " + e + " " + conf[i][e])
+                parsedAliases.push("alias " + e + " " + conf[i][e])
+            }
+        } else if (i === "autocmds") {
+            for (let e in conf[i]) {
+                for (let a in conf[i][e]) {
+                    parsedAucmds.push("autocmd " + e + " " + a + " " + conf[i][e][a])
+                }
+            }
+        } else if (i === "followpagepatterns") {
+            for (let e in conf[i]) {
+                parsedFollowPagePatterns.push("set followpagepatterns." + e + " " + conf[i][e])
+            }
+        } else if (i === "searchurls") {
+            for (let e in conf[i]) {
+                parsedSearchUrls.push("set searchurls." + e + " " + conf[i][e])
+            }
+        } else if (i === "searchurls") {
+            for (let e in conf[i]) {
+                parsedSearchUrls.push("set searchurls." + e + " " + conf[i][e])
+            }
+        } else if (i === "logging") {
+            for (let e in conf[i]) {
+                parsedLogging.push("set logging." + e + " " + conf[i][e])
+            }
+        }
+    }
+
+    let configFile = "//General Settings\n" + parsedConf.join("\n") + "\n\n//Binds\n" + parsedBinds.join("\n") + "\n\n//Aliases\n" + parsedAliases.join("\n") + "\n\n//Autocmds\n" + parsedAucmds.join("\n") + "\n\n//Followpagepatterns\n" + parsedFollowPagePatterns.join("\n") + "\n\n//Searchurls\n" + parsedSearchUrls.join("\n") + "\n\n//Logging\n" + parsedLogging.join("\n")
+
+    console.log(configFile)
+}
 
 // }}}
 
