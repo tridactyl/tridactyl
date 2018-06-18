@@ -221,6 +221,7 @@ import * as css_util from "./css_util"
  * - navbar
  *      - always
  *      - autohide
+ *      - none
  *
  * - hoverlink (the little link that appears when you hover over a link)
  *      - none
