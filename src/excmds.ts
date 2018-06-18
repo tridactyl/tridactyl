@@ -1983,6 +1983,9 @@ export async function buffer(index: number | "#") {
  */
 //#background
 export async function bufferall(id: number) {
+    if (id === null || id === undefined) {
+        id = (await activeTab()).id
+    }
     await browser.windows.update((await browser.tabs.get(id)).windowId, { focused: true })
     await browser.tabs.update(id, { active: true })
 }

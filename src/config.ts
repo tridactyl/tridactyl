@@ -104,7 +104,7 @@ const DEFAULTS = o({
         // "n": "findnext 1",
         // "N": "findnext -1",
         M: "gobble 1 quickmark",
-        // "B": "fillcmdline bufferall",
+        B: "fillcmdline bufferall",
         b: "fillcmdline buffer",
         ZZ: "qall",
         f: "hint",
