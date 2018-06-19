@@ -122,7 +122,10 @@ export async function getFromId(containerId: string): Promise<{}> {
 export async function exists(cname: string): Promise<boolean> {
     let exists = false
     try {
-        let res = await browser.contextualIdentities.query({ name: cname })
+        let containers = await getAll()
+        let res = containers.filter(c => {
+            return c.name.toLowerCase() === cname
+        })
         if (res.length > 0) {
             exists = true
         }
@@ -181,9 +184,11 @@ export async function getId(name: string): Promise<string> {
  *  @param partialName The (partial) name of the container.
  */
 export async function fuzzyMatch(partialName: string): Promise<string> {
-    let exactMatch = await browser.contextualIdentities.query({
-        name: partialName,
+    let containers = await getAll()
+    let exactMatch = containers.filter(c => {
+        return c.name.toLowerCase() === partialName
     })
+
     if (exactMatch.length === 1) {
         return exactMatch[0]["cookieStoreId"]
     } else if (exactMatch.length > 1) {
@@ -191,14 +196,9 @@ export async function fuzzyMatch(partialName: string): Promise<string> {
             "[Container.fuzzyMatch] more than one container with this name exists.",
         )
     } else {
-        let fuzzyMatches = []
-        let containers = await getAll()
-        for (let c of containers) {
-            if (c["name"].indexOf(partialName) === 0) {
-                // Only match start of name.
-                fuzzyMatches.push(c)
-            }
-        }
+        let fuzzyMatches = containers.filter(c => {
+            return c.name.toLowerCase().indexOf(partialName) > -1
+        })
         if (fuzzyMatches.length === 1) {
             return fuzzyMatches[0]["cookieStoreId"]
         } else if (fuzzyMatches.length > 1) {
