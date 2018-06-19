@@ -75,7 +75,12 @@ export async function activeTabContainerId() {
 //#background_helper
 export async function activeTabContainer() {
     let containerId = await activeTabContainerId()
-    return await browserBg.contextualIdentities.get(containerId)
+    if (containerId !== "firefox-default")
+        return await browserBg.contextualIdentities.get(containerId)
+    else
+        throw new Error(
+            "firefox-default is not a valid contextualIdentity (activeTabContainer)",
+        )
 }
 
 /** Compare major firefox versions */
