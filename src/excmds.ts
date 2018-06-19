@@ -1796,20 +1796,23 @@ export async function containerclose(name: string) {
         )
     })
 }
-/** Creates a new container.
+/** Creates a new container. Note that container names must be unique and that the checks are case-insensitive.
 
-  Further reading https://developer.mozilla.org/en-US/Add-ons/WebExtensions/API/contextualIdentities/ContextualIdentity
+    Further reading https://developer.mozilla.org/en-US/Add-ons/WebExtensions/API/contextualIdentities/ContextualIdentity
 
-  @param name The container name. Must be unique.
-  @param color The container color. Valid colors are: "blue", "turquoise", "green", "yellow", "orange", "red", "pink", "purple". If no color is chosen a random one will be selected from the list of valid colors.
-  @param icon The container icon. Valid icons are: "fingerprint", "briefcase", "dollar", "cart", "circle", "gift", "vacation", "food", "fruit", "pet", "tree", "chill". If no icon is chosen, it defaults to "fingerprint".
+    Example usage:
+        - `:containercreate tridactyl green dollar`
+
+    @param name The container name. Must be unique.
+    @param color The container color. Valid colors are: "blue", "turquoise", "green", "yellow", "orange", "red", "pink", "purple". If no color is chosen a random one will be selected from the list of valid colors.
+    @param icon The container icon. Valid icons are: "fingerprint", "briefcase", "dollar", "cart", "circle", "gift", "vacation", "food", "fruit", "pet", "tree", "chill". If no icon is chosen, it defaults to "fingerprint".
  */
 //#background
 export async function containercreate(name: string, color?: string, icon?: string) {
     await Container.create(name, color, icon)
 }
 
-/** Delete a container. Closes all tabs associated with that container beforehand.
+/** Delete a container. Closes all tabs associated with that container beforehand. Note: container names are case-insensitive.
   @param name The container name.
  */
 //#background
@@ -1818,15 +1821,15 @@ export async function containerremove(name: string) {
     await Container.remove(name)
 }
 
-/** Update a container's information. Note that none of the parameters are optional.
+/** Update a container's information. Note that none of the parameters are optional and that container names are case-insensitive.
 
   Example usage:
 
-  - Changing the container name: `containerupdate banking blockchain green dollar`
+  - Changing the container name: `:containerupdate banking blockchain green dollar`
 
-  - Changing the container icon: `containerupdate banking banking green briefcase`
+  - Changing the container icon: `:containerupdate banking banking green briefcase`
 
-  - Changing the container color: `containerupdate banking banking purple dollar`
+  - Changing the container color: `:containerupdate banking banking purple dollar`
 
   @param name The container name.
   @param uname The new container name. Must be unique.
