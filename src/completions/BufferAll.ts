@@ -35,7 +35,7 @@ export class BufferAllCompletionSource extends Completions.CompletionSourceFuse 
     }
 
     async onInput(exstr) {
-        this.updateOptions()
+        await this.updateOptions()
     }
 
     private async updateOptions(exstr?: string) {

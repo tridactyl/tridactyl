@@ -133,8 +133,8 @@ export abstract class CompletionSourceFuse extends CompletionSource {
 
     public async filter(exstr: string) {
         this.lastExstr = exstr
-        this.onInput(exstr)
-        this.updateChain()
+        await this.onInput(exstr)
+        await this.updateChain()
     }
 
     updateChain(exstr = this.lastExstr, options = this.options) {
