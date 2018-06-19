@@ -467,78 +467,71 @@ export async function update() {
 }
 
 /** Parse the config into a string representation of a .tridactylrc config file.
+    Tries to parse the config into sectionable chunks based on keywords. 
+    Binds, aliases, autocmds and logging settings each have their own section while the rest are dumped into "General Settings".
 
- @returns string The parsed config file.
+    @returns string The parsed config file.
 
  */
 export function parseConfig(): string {
     // Parse the config into sections, this is my last resort.
-    const conf = get()
     let parsedConf = []
     let parsedBinds = []
     let parsedAliases = []
     let parsedAucmds = []
-    let parsedFollowPagePatterns = []
-    let parsedSearchUrls = []
     let parsedLogging = []
 
-    for (let i in conf) {
-        if (conf[i] instanceof Array && conf[i].length > 0)
-            parsedConf.push("set " + i + " " + conf[i].join(" "))
-        else if (typeof conf[i] === "string" && conf[i].length > 0)
-            parsedConf.push("set " + i + " " + conf[i])
-        else if (typeof conf[i] === "number")
-            parsedConf.push("set " + i + " " + conf[i])
+    for (let i in USERCONFIG) {
+        if (typeof USERCONFIG[i] !== "object")
+            parsedConf.push(`set ${i} ${USERCONFIG[i]}`)
         else if (i === "nmaps") {
-            for (let e in conf[i]) {
-                parsedBinds.push("bind " + e + " " + conf[i][e])
+            for (let e in USERCONFIG[i]) {
+                parsedBinds.push(`bind ${e} ${USERCONFIG[i][e]}`)
             }
         } else if (i === "exaliases") {
-            for (let e in conf[i]) {
+            for (let e in USERCONFIG[i]) {
+                // Only really useful if mapping the entire config and not just USERCONFIG.
                 if (e === "alias")
-                    parsedAliases.push("command " + e + " " + conf[i][e])
-                parsedAliases.push("alias " + e + " " + conf[i][e])
+                    parsedAliases.push(`command ${e} ${USERCONFIG[i][e]}`)
+                parsedAliases.push(`alias ${e} ${USERCONFIG[i][e]}`)
             }
         } else if (i === "autocmds") {
-            for (let e in conf[i]) {
-                for (let a in conf[i][e]) {
+            for (let e in USERCONFIG[i]) {
+                for (let a in USERCONFIG[i][e]) {
                     parsedAucmds.push(
-                        "autocmd " + e + " " + a + " " + conf[i][e][a],
+                        `autocmd ${e} ${a} ${USERCONFIG[i][e][a]}`,
                     )
                 }
             }
-        } else if (i === "followpagepatterns") {
-            for (let e in conf[i]) {
-                parsedFollowPagePatterns.push(
-                    "set followpagepatterns." + e + " " + conf[i][e],
-                )
-            }
-        } else if (i === "searchurls") {
-            for (let e in conf[i]) {
-                parsedSearchUrls.push("set searchurls." + e + " " + conf[i][e])
-            }
         } else if (i === "logging") {
-            for (let e in conf[i]) {
-                parsedLogging.push("set logging." + e + " " + conf[i][e])
+            for (let e in USERCONFIG[i]) {
+                //Map the int values in e to a log level
+                let level
+                if (USERCONFIG[i][e] === 0) level = "never"
+                if (USERCONFIG[i][e] === 1) level = "error"
+                if (USERCONFIG[i][e] === 2) level = "warning"
+                if (USERCONFIG[i][e] === 3) level = "info"
+                if (USERCONFIG[i][e] === 4) level = "debug"
+                parsedLogging.push(`set logging.${e} ${level}`)
+            }
+        } else {
+            for (let e in USERCONFIG[i]) {
+                parsedConf.push(`set ${i}.${e} ${USERCONFIG[i][e]}`)
             }
         }
     }
 
-    let configFile =
-        "//General Settings\n" +
-        parsedConf.join("\n") +
-        "\n\n//Binds\n" +
-        parsedBinds.join("\n") +
-        "\n\n//Aliases\n" +
-        parsedAliases.join("\n") +
-        "\n\n//Autocmds\n" +
-        parsedAucmds.join("\n") +
-        "\n\n//Followpagepatterns\n" +
-        parsedFollowPagePatterns.join("\n") +
-        "\n\n//Searchurls\n" +
-        parsedSearchUrls.join("\n") +
-        "\n\n//Logging\n" +
-        parsedLogging.join("\n")
+    let configFile = ""
+    if (parsedConf.length > 0)
+        configFile += "//General Settings\n" + parsedConf.join("\n") + "\n\n"
+    if (parsedBinds.length > 0)
+        configFile += "//Binds\n" + parsedBinds.join("\n") + "\n\n"
+    if (parsedAliases.length > 0)
+        configFile += "//Aliases\n" + parsedAliases.join("\n") + "\n\n"
+    if (parsedAucmds.length > 0)
+        configFile += "//Autocmds\n" + parsedAucmds.join("\n") + "\n\n"
+    if (parsedLogging.length > 0)
+        configFile += "//Logging\n" + parsedLogging.join("\n")
 
     return configFile
 }

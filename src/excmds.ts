@@ -2611,7 +2611,7 @@ export function unset(...keys: string[]) {
 
  */
 //#background
-export function mktridactylrc(...argArr?: string[]) {
+export async function mktridactylrc(...argArr: string[]) {
     let overwrite = false
 
     function argParse(args): string[] {
@@ -2624,7 +2624,7 @@ export function mktridactylrc(...argArr?: string[]) {
     }
 
     const file = argParse(argArr).join(" ") || undefined
-    if (await Native.nativegate("0.1.3")) if (!await rc.source(file)) logger.error("Could not find RC file")
+    //if (await Native.nativegate("0.1.3")) if (!await rc.source(file)) logger.error("Could not find RC file")
 
     let conf = config.parseConfig()
     console.log(conf)
