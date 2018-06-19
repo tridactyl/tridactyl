@@ -1977,17 +1977,21 @@ export async function buffer(index: number | "#") {
 /** Change active tab.
 
     @param id
-        The id of the tab that should be selected.
+        A string following the following format: "[0-9]+.[0-9]+", the first number being the index of the window that should be selected and the second one being the index of the tab within that window.
 
-    This is different from [[buffer]] because `id` is the internal firefox id of the tab, this means that you can focus tabs that aren't in the current window.
  */
 //#background
-export async function bufferall(id: number) {
-    if (id === null || id === undefined) {
-        id = (await activeTab()).id
+export async function bufferall(id: string) {
+    let windows = (await browser.windows.getAll()).map(w => w.id).sort()
+    if (id === null || id === undefined || !id.match(/\d+\.\d+/)) {
+        const tab = await activeTab()
+        let prevId = id
+        id = windows.indexOf(tab.windowId) + "." + (tab.index + 1)
+        logger.info(`bufferall: Bad tab id: ${prevId}, defaulting to ${id}`)
     }
-    await browser.windows.update((await browser.tabs.get(id)).windowId, { focused: true })
-    await browser.tabs.update(id, { active: true })
+    let [winindex, tabindex] = id.split(".")
+    await browser.windows.update(windows[parseInt(winindex) - 1], { focused: true })
+    return browser.tabs.update(await idFromIndex(tabindex), { active: true })
 }
 
 // }}}
