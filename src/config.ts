@@ -201,6 +201,9 @@ const DEFAULTS = o({
         "!js": "js",
         "!jsb": "jsb",
         current_url: "composite get_current_url | fillcmdline_notrail ",
+        "maketridactylrc!": "mktridactylrc --force",
+        mkt: "mktridactylrc",
+        "mkt!": "mktridactylrc --force",
     }),
     followpagepatterns: o({
         next: "^(next|newer)\\b|»|>>|more",
