@@ -2605,8 +2605,10 @@ export function unset(...keys: string[]) {
 //    config.save(config.get("storageloc"))
 //}
 
-/** Writes current config to a file.
- 
+/** Writes current config to a file. No argu
+
+    Available flags:
+        - `--force` will overwrite the config file if it exists.
   @param string[] argArr an optional string of arguments to be parsed.
 
  */
@@ -2615,7 +2617,7 @@ export async function mktridactylrc(...argArr: string[]) {
     let overwrite = false
 
     function argParse(args): string[] {
-        if (args[0] === "-f") {
+        if (args[0] === "--force") {
             overwrite = true
             args.shift()
             argParse(args)
@@ -2630,6 +2632,8 @@ export async function mktridactylrc(...argArr: string[]) {
     console.log(conf)
     console.log(file)
     console.log(overwrite)
+
+    return conf
 }
 
 // }}}
