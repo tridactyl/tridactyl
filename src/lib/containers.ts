@@ -30,9 +30,9 @@ const ContainerIcon = [
 ]
 
 /** Creates a container from the specified parameters.Does not allow multiple containers with the same name.
- *  @param name  The container name.
- *  @param color  The container color, must be one of: "blue", "turquoise", "green", "yellow", "orange", "red", "pink" or "purple". If nothing is supplied, it selects one at random.
- *  @param icon  The container icon, must be one of: "fingerprint", "briefcase", "dollar", "cart", "circle", "gift", "vacation", "food", "fruit", "pet", "tree", "chill"
+    @param name  The container name.
+    @param color  The container color, must be one of: "blue", "turquoise", "green", "yellow", "orange", "red", "pink" or "purple". If nothing is supplied, it selects one at random.
+    @param icon  The container icon, must be one of: "fingerprint", "briefcase", "dollar", "cart", "circle", "gift", "vacation", "food", "fruit", "pet", "tree", "chill"
  */
 export async function create(
     name: string,
@@ -63,7 +63,7 @@ export async function create(
 }
 
 /** Removes specified container. No fuzzy matching is intentional here. If there are multiple containers with the same name (allowed by other container plugins), it chooses the one with the lowest cookieStoreId
- *  @param name The container name
+    @param name The container name
  */
 export async function remove(name: string) {
     logger.debug(name)
@@ -77,12 +77,12 @@ export async function remove(name: string) {
 }
 
 /** Updates the specified container.
- *  TODO: pass an object to this when tridactyl gets proper flag parsing
- *  NOTE: while browser.contextualIdentities.create does check for valid color/icon combos, browser.contextualIdentities.update does not.
- *  @param containerId Expects a cookieStringId e.g. "firefox-container-n".
- *  @param name the new name of the container
- *  @param color the new color of the container
- *  @param icon the new icon of the container
+    TODO: pass an object to this when tridactyl gets proper flag parsing
+    NOTE: while browser.contextualIdentities.create does check for valid color/icon combos, browser.contextualIdentities.update does not.
+    @param containerId Expects a cookieStringId e.g. "firefox-container-n".
+    @param name the new name of the container
+    @param color the new color of the container
+    @param icon the new icon of the container
  */
 export async function update(
     containerId: string,
@@ -105,7 +105,7 @@ export async function update(
 }
 
 /** Gets a container object from a supplied container id string.
- *  @param containerId Expects a cookieStringId e.g. "firefox-container-n"
+    @param containerId Expects a cookieStringId e.g. "firefox-container-n"
  */
 export async function getFromId(containerId: string): Promise<{}> {
     try {
@@ -115,9 +115,10 @@ export async function getFromId(containerId: string): Promise<{}> {
     }
 }
 
-/** Queries Firefox's contextual identities API for a container with a specific name.
- *  @param string cname
- *  @returns boolean Returns true when cname matches an existing container or on query error.
+/** Fetches all containers from Firefox's contextual identities API and checks if one exists with the specified name.
+    Note: This operation is entirely case-insensitive.
+    @param string cname
+    @returns boolean Returns true when cname matches an existing container or on query error.
  */
 export async function exists(cname: string): Promise<boolean> {
     let exists = false
@@ -140,10 +141,10 @@ export async function exists(cname: string): Promise<boolean> {
 }
 
 /** Takes string parameters and returns them as a pseudo container object
- *  for use in other functions in the library.
- *  @param name
- *  @param color
- *  @param icon
+    for use in other functions in the library.
+    @param name
+    @param color
+    @param icon
  */
 export function fromString(name: string, color: string, icon: string) {
     try {
@@ -181,7 +182,8 @@ export async function getId(name: string): Promise<string> {
 }
 
 /** Tries some simple ways to match containers to your input.
- *  @param partialName The (partial) name of the container.
+    Fuzzy matching is entirely case-insensitive.
+    @param partialName The (partial) name of the container.
  */
 export async function fuzzyMatch(partialName: string): Promise<string> {
     let containers = await getAll()
@@ -221,15 +223,9 @@ function chooseRandomColor(): string {
 }
 
 function isValidColor(color: string): boolean {
-    for (let c of ContainerColor) {
-        if (c === color) return true
-    }
-    return false
+    return ContainerColor.indexOf(color) > -1
 }
 
 function isValidIcon(icon: string): boolean {
-    for (let i of ContainerIcon) {
-        if (i === icon) return true
-    }
-    return false
+    return ContainerIcon.indexOf(icon) > -1
 }
