@@ -125,7 +125,7 @@ export async function exists(cname: string): Promise<boolean> {
     try {
         let containers = await getAll()
         let res = containers.filter(c => {
-            return c.name.toLowerCase() === cname
+            return c.name.toLowerCase() === cname.toLowerCase()
         })
         if (res.length > 0) {
             exists = true
@@ -188,7 +188,7 @@ export async function getId(name: string): Promise<string> {
 export async function fuzzyMatch(partialName: string): Promise<string> {
     let containers = await getAll()
     let exactMatch = containers.filter(c => {
-        return c.name.toLowerCase() === partialName
+        return c.name.toLowerCase() === partialName.toLowerCase()
     })
 
     if (exactMatch.length === 1) {
@@ -199,7 +199,7 @@ export async function fuzzyMatch(partialName: string): Promise<string> {
         )
     } else {
         let fuzzyMatches = containers.filter(c => {
-            return c.name.toLowerCase().indexOf(partialName) > -1
+            return c.name.toLowerCase().indexOf(partialName.toLowerCase()) > -1
         })
         if (fuzzyMatches.length === 1) {
             return fuzzyMatches[0]["cookieStoreId"]
