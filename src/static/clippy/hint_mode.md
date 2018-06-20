@@ -12,4 +12,4 @@ Here are some of the most useful hint modes:
 
 If there is ever only a single hint remaining (for example, because you have wittled them down, or there is only a single link visible on the page) the hint mode will follow it automatically.
 
-The [next page](./command_mode.html) will cover the command mode.
+The [next page](./command_mode.html) will cover the command mode. <a href='./normal_mode.html' rel="prev"></a>
