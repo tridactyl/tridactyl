@@ -1,6 +1,6 @@
 # Tridactyl changelog
 
-## Release 1.13.1 / Unreleased
+## Release 1.13.1 / 2018-06-20
 
 *   New features
 
