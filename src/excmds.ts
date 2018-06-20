@@ -1066,7 +1066,12 @@ export function urlincrement(count = 1) {
     let newUrl = UrlUtil.incrementUrl(window.location.href, count)
 
     if (newUrl !== null) {
-        window.location.href = newUrl
+        // This might throw an error when using incrementurl on a moz-extension:// page if the page we're trying to access doesn't exist
+        try {
+            window.location.href = newUrl
+        } catch (e) {
+            logger.info(`urlincrement: Impossible to navigate to ${newUrl}`)
+        }
     }
 }
 
