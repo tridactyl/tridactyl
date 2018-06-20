@@ -66,9 +66,9 @@ You have more questions? Have a look at our [FAQ][faq-link].
 [3]: https://www.mozilla.org/en-US/firefox/organizations/
 
 <div class="align-left">
-\[1]: https://github.com/cmcaine/tridactyl/issues<br />
-\[2]: https://github.com/cmcaine/tridactyl/blob/master/src/static/css/userChrome-minimal.css<br />
-\[3]: https://www.mozilla.org/en-US/firefox/organizations/<br />
+[1]: https://github.com/cmcaine/tridactyl/issues<br />
+[2]: https://github.com/cmcaine/tridactyl/blob/master/src/static/css/userChrome-minimal.css<br />
+[3]: https://www.mozilla.org/en-US/firefox/organizations/<br />
 </div>
 
 [faq-link]: https://github.com/cmcaine/tridactyl#frequently-asked-questions
