@@ -1862,7 +1862,7 @@ export async function containerupdate(name: string, uname: string, ucolor: strin
 export async function viewcontainers() {
     // # and white space don't agree with FF's JSON viewer.
     // Probably other symbols too.
-    let containers = await Container.getAll()
+    let containers = await browserBg.contextualIdentities.query({}) // Can't access src/lib/containers.ts from a content script.
     window.location.href =
         "data:application/json," +
         JSON.stringify(containers)
