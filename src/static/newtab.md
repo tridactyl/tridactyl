@@ -41,8 +41,8 @@ REPLACE_ME_WITH_THE_CHANGE_LOG_USING_SED
 
 ## Important limitations due to WebExtensions
 
-*   You can only navigate to most about:_\file:_ pages if you have Tridactyl's native executable installed.
-*   Firefox will not load Tridactyl on addons.mozilla.org, about:\*, some file:\* URIs, view-source:\*, or data:\*. On these pages Ctrl-L (or F6), Ctrl-Tab and Ctrl-W are your escape hatches.
+*   You can only navigate to most about: and file: pages if you have Tridactyl's native executable installed.
+*   Firefox will not load Tridactyl on about:\*, some file:\* URIs, view-source:\*, or data:\*. On these pages Ctrl-L (or F6), Ctrl-Tab and Ctrl-W are your escape hatches.
 *   You can change the Firefox GUI with `guiset` (e.g. `guiset gui none` and then `restart`) if you have the native messenger installed, or you can do it yourself by changing your userChrome. There is an example file available on our repository [[2]].
 *   Tridactyl cannot capture key presses until web pages are loaded. You can use `:reloadall` to reload all tabs to make life more bearable, or flip `browser.sessionstore.restore_tabs_lazily` to false in `about:config`.
 
