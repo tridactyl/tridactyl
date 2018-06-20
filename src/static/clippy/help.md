@@ -8,4 +8,4 @@ You can get help about any command by typing `help [command]` in command mode. A
 
 Lastly, you can contact the developers via Matrix or GitHub, as mentioned on the new tab page.
 
-This concludes the tutorial. If you have any feedback, please leave it on [the relevant GitHub issue](https://github.com/cmcaine/tridactyl/issues/380).
+This concludes the tutorial. If you have any feedback, please leave it on [the relevant GitHub issue](https://github.com/cmcaine/tridactyl/issues/380). <a href='./settings.html' rel="prev"></a>

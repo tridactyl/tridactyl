@@ -29,3 +29,5 @@ Many keypresses in normal mode take you into another mode. `t`, for example, put
 All the keys in normal mode are bound to commands; for example, `j` is bound to `scrolline 10`. If you are ever curious as to what a key sequence does in normal mode, you can simply use `:bind [keys]` and the command line will tell you to which command they are bound.
 
 The [next page](./hint_mode.html) will explain how to use some of the various hint modes. This time try `]]` (guess the next page) to follow the link.
+
+<a href='./tutor.html' rel="prev"></a>

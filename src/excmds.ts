@@ -88,6 +88,7 @@
 // Shared
 import * as Messaging from "./messaging"
 import { l, browserBg, activeTabId, activeTabContainerId } from "./lib/webext"
+import * as Container from "./lib/containers"
 import state from "./state"
 import * as UrlUtil from "./url_util"
 import * as config from "./config"
@@ -220,6 +221,7 @@ import * as css_util from "./css_util"
  * - navbar
  *      - always
  *      - autohide
+ *      - none
  *
  * - hoverlink (the little link that appears when you hover over a link)
  *      - none
@@ -300,13 +302,34 @@ export async function fixamo() {
 //#background
 export async function nativeopen(url: string, ...firefoxArgs: string[]) {
     if (await Native.nativegate()) {
+        // First compute where the tab should be
+        let pos = await config.getAsync("tabopenpos")
+        let index = (await activeTab()).index + 1
+        switch (pos) {
+            case "last":
+                index = 99999
+                break
+            case "related":
+                // How do we simulate that?
+                break
+        }
+        // Then make sure the tab is made active and moved to the right place
+        // when it is opened in the current window
+        let selecttab = tab => {
+            browser.tabs.onCreated.removeListener(selecttab)
+            tabSetActive(tab.id)
+            browser.tabs.move(tab.id, { index })
+        }
+        browser.tabs.onCreated.addListener(selecttab)
+
         if ((await browser.runtime.getPlatformInfo()).os === "mac") {
             let osascriptArgs = ["-e 'on run argv'", "-e 'tell application \"Firefox\" to open location item 1 of argv'", "-e 'end run'"]
-            Native.run("osascript " + osascriptArgs.join(" ") + " " + url)
+            await Native.run("osascript " + osascriptArgs.join(" ") + " " + url)
         } else {
             if (firefoxArgs.length === 0) firefoxArgs = ["--new-tab"]
-            Native.run(config.get("browser") + " " + firefoxArgs.join(" ") + " " + url)
+            await Native.run(config.get("browser") + " " + firefoxArgs.join(" ") + " " + url)
         }
+        setTimeout(() => browser.tabs.onCreated.removeListener(selecttab), 100)
     }
 }
 
@@ -806,8 +829,9 @@ export const ABOUT_WHITELIST = ["about:home", "about:license", "about:logo", "ab
  *       - else treat as search parameters for google
  *
  *   Related settings:
- *       "searchengine": "google" or any of [[SEARCH_URLS]]
- *      "historyresults": the n-most-recent results to ask Firefox for before they are sorted by frequency. Reduce this number if you find your results are bad.
+ *      - "searchengine": "google" or any of [[SEARCH_URLS]]
+ *      - "historyresults": the n-most-recent results to ask Firefox for before they are sorted by frequency. Reduce this number if you find your results are bad.
+ *
  * Can only open about:* or file:* URLs if you have the native messenger installed, and on OSX you must set `browser` to something that will open Firefox from a terminal pass it commmand line options.
  *
  */
@@ -1042,7 +1066,12 @@ export function urlincrement(count = 1) {
     let newUrl = UrlUtil.incrementUrl(window.location.href, count)
 
     if (newUrl !== null) {
-        window.location.href = newUrl
+        // This might throw an error when using incrementurl on a moz-extension:// page if the page we're trying to access doesn't exist
+        try {
+            window.location.href = newUrl
+        } catch (e) {
+            logger.info(`urlincrement: Impossible to navigate to ${newUrl}`)
+        }
     }
 }
 
@@ -1231,9 +1260,12 @@ export async function reader() {
 //#content_helper
 loadaucmds("DocStart")
 
+//#content_helper
+window.addEventListener("pagehide", () => loadaucmds("DocEnd"))
+
 /** @hidden */
 //#content
-export async function loadaucmds(cmdType: "DocStart" | "TabEnter" | "TabLeft") {
+export async function loadaucmds(cmdType: "DocStart" | "DocEnd" | "TabEnter" | "TabLeft") {
     let aucmds = await config.getAsync("autocmds", cmdType)
     const ausites = Object.keys(aucmds)
     const aukeyarr = ausites.filter(e => window.document.location.href.search(e) >= 0)
@@ -1456,7 +1488,9 @@ export async function tablast() {
 
 /** Like [[open]], but in a new tab. If no address is given, it will open the newtab page, which can be set with `set newtab [url]`
 
-    Use the `-b` flag as the first argument to open the tab in the background.
+    Use the `-c` flag followed by a container name to open a tab in said container. Tridactyl will try to fuzzy match a name if an exact match is not found.
+    Use the `-b` flag to open the tab in the background.
+    These two can be combined in any order, but need to be placed as the first arguments.
 
     Unlike Firefox's Ctrl-t shortcut, this opens tabs immediately after the
     currently active tab rather than at the end of the tab list because that is
@@ -1474,13 +1508,29 @@ export async function tablast() {
 //#background
 export async function tabopen(...addressarr: string[]) {
     let active
-    if (addressarr[0] === "-b") {
-        addressarr.shift()
-        active = false
+    let container
+
+    // Lets us pass both -b and -c in no particular order as long as they are up front.
+    async function argParse(args): Promise<string[]> {
+        if (args[0] === "-b") {
+            active = false
+            args.shift()
+            argParse(args)
+        } else if (args[0] === "-c") {
+            // Ignore the -c flag if incognito as containers are disabled.
+            let win = await browser.windows.getCurrent()
+            if (!win["incognito"]) container = await Container.fuzzyMatch(args[1])
+            else logger.error("[tabopen] can't open a container in a private browsing window.")
+
+            args.shift()
+            args.shift()
+            argParse(args)
+        }
+        return args
     }
 
     let url: string
-    let address = addressarr.join(" ")
+    let address = (await argParse(addressarr)).join(" ")
 
     if (!ABOUT_WHITELIST.includes(address) && address.match(/^(about|file):.*/)) {
         if ((await browser.runtime.getPlatformInfo()).os === "mac" && (await browser.windows.getCurrent()).incognito) {
@@ -1494,7 +1544,9 @@ export async function tabopen(...addressarr: string[]) {
     else url = forceURI(config.get("newtab"))
 
     activeTabContainerId().then(containerId => {
-        if (containerId && config.get("tabopencontaineraware") === "true") openInNewTab(url, { active: active, cookieStoreId: containerId })
+        // Ensure -c has priority.
+        if (container) openInNewTab(url, { active: active, cookieStoreId: container })
+        else if (containerId && config.get("tabopencontaineraware") === "true") openInNewTab(url, { active: active, cookieStoreId: containerId })
         else openInNewTab(url, { active })
     })
 }
@@ -1733,6 +1785,92 @@ export async function qall() {
 
 // }}}
 
+// {{{ CONTAINERS
+
+/** Closes all tabs open in the same container across all windows.
+  @param name The container name.
+ */
+//#background
+export async function containerclose(name: string) {
+    let containerId = await Container.getId(name)
+    browser.tabs.query({ cookieStoreId: containerId }).then(tabs => {
+        browser.tabs.remove(
+            tabs.map(tab => {
+                return tab.id
+            }),
+        )
+    })
+}
+/** Creates a new container. Note that container names must be unique and that the checks are case-insensitive.
+
+    Further reading https://developer.mozilla.org/en-US/Add-ons/WebExtensions/API/contextualIdentities/ContextualIdentity
+
+    Example usage:
+        - `:containercreate tridactyl green dollar`
+
+    @param name The container name. Must be unique.
+    @param color The container color. Valid colors are: "blue", "turquoise", "green", "yellow", "orange", "red", "pink", "purple". If no color is chosen a random one will be selected from the list of valid colors.
+    @param icon The container icon. Valid icons are: "fingerprint", "briefcase", "dollar", "cart", "circle", "gift", "vacation", "food", "fruit", "pet", "tree", "chill". If no icon is chosen, it defaults to "fingerprint".
+ */
+//#background
+export async function containercreate(name: string, color?: string, icon?: string) {
+    await Container.create(name, color, icon)
+}
+
+/** Delete a container. Closes all tabs associated with that container beforehand. Note: container names are case-insensitive.
+  @param name The container name.
+ */
+//#background
+export async function containerremove(name: string) {
+    await containerclose(name)
+    await Container.remove(name)
+}
+
+/** Update a container's information. Note that none of the parameters are optional and that container names are case-insensitive.
+
+  Example usage:
+
+  - Changing the container name: `:containerupdate banking blockchain green dollar`
+
+  - Changing the container icon: `:containerupdate banking banking green briefcase`
+
+  - Changing the container color: `:containerupdate banking banking purple dollar`
+
+  @param name The container name.
+  @param uname The new container name. Must be unique.
+  @param ucolor The new container color. Valid colors are: "blue", "turquoise", "green", "yellow", "orange", "red", "pink", "purple". If no color is chosen a random one will be selected from the list of valid colors.
+  @param uicon The new container icon. Valid icons are: "fingerprint", "briefcase", "dollar", "cart", "circle", "gift", "vacation", "food", "fruit", "pet", "tree", "chill".
+ */
+//#background
+export async function containerupdate(name: string, uname: string, ucolor: string, uicon: string) {
+    logger.debug("containerupdate parameters: " + name + ", " + uname + ", " + ucolor + ", " + uicon)
+    try {
+        let containerId = await Container.fuzzyMatch(name)
+        let containerObj = Container.fromString(uname, ucolor, uicon)
+        await Container.update(containerId, containerObj)
+    } catch (e) {
+        throw e
+    }
+}
+
+/** Shows a list of the current containers in Firefox's native JSON viewer in the current tab.
+
+ NB: Tridactyl cannot run on this page!
+
+ */
+//#content
+export async function viewcontainers() {
+    // # and white space don't agree with FF's JSON viewer.
+    // Probably other symbols too.
+    let containers = await Container.getAll()
+    window.location.href =
+        "data:application/json," +
+        JSON.stringify(containers)
+            .replace(/#/g, "%23")
+            .replace(/ /g, "%20")
+}
+// }}}
+//
 // {{{ MISC
 
 /** Deprecated
@@ -2156,9 +2294,9 @@ export function set(key: string, ...values: string[]) {
 
 /** Set autocmds to run when certain events happen.
 
- @param event Curently, 'TriStart', 'DocStart', 'TabEnter' and 'TabLeft' are supported.
+ @param event Curently, 'TriStart', 'DocStart', 'DocEnd', 'TabEnter' and 'TabLeft' are supported.
 
- @param url For DocStart, TabEnter, and TabLeft: a fragment of the URL on which the events will trigger, or a JavaScript regex (e.g, `/www\.amazon\.co.*\/`)
+ @param url For DocStart, DocEnd, TabEnter, and TabLeft: a fragment of the URL on which the events will trigger, or a JavaScript regex (e.g, `/www\.amazon\.co.*\/`)
 
  We just use [URL.search](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/search).
 
@@ -2174,7 +2312,7 @@ export function set(key: string, ...values: string[]) {
 export function autocmd(event: string, url: string, ...excmd: string[]) {
     // rudimentary run time type checking
     // TODO: Decide on autocmd event names
-    if (!["DocStart", "TriStart", "TabEnter", "TabLeft"].includes(event)) throw event + " is not a supported event."
+    if (!["DocStart", "DocEnd", "TriStart", "TabEnter", "TabLeft"].includes(event)) throw event + " is not a supported event."
     config.set("autocmds", event, url, excmd.join(" "))
 }
 
@@ -2452,9 +2590,24 @@ import * as hinting from "./hinting_background"
     To open a hint in the background, the default bind is `F`.
 
     Related settings:
-        "hintchars": "hjklasdfgyuiopqwertnmzxcvb"
-        "hintfiltermode": "simple" | "vimperator" | "vimperator-reflow"
-        "relatedopenpos": "related" | "next" | "last"
+        - "hintchars": "hjklasdfgyuiopqwertnmzxcvb"
+        - "hintfiltermode": "simple" | "vimperator" | "vimperator-reflow"
+        - "relatedopenpos": "related" | "next" | "last"
+        - "hintnames": "short" | "uniform" | "numeric"
+
+          With "short" names, Tridactyl will generate short hints that
+          are never prefixes of each other. With "uniform", Tridactyl
+          will generate hints of uniform length. In either case, the
+          hints are generated from the set in "hintchars".
+
+          With "numeric" names, hints are always assigned using
+          sequential integers, and "hintchars" is ignored. This has the
+          disadvantage that some hints are prefixes of others (and you
+          need to hit space or enter to select such a hint). But it has
+          the advantage that the hints tend to be more predictable
+          (e.g., a news site will have the same hints for its
+          boilerplate each time you visit it, even if the number of
+          links in the main body changes).
 */
 //#background
 export function hint(option?: string, selectors?: string, ...rest: string[]) {
