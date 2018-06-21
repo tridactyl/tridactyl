@@ -1646,13 +1646,15 @@ export async function fullscreen() {
     Known bug: autocompletion will make it impossible to close more than one tab at once if the list of numbers looks enough like an open tab's title or URL.
 
     @param indexes
-        The 1-based indexes of the tabs to target. indexes < 1 wrap. If omitted, this tab.
+        The 1-based indexes of the tabs to target. indexes < 1 wrap. If omitted, this tab. Add `-f` to the list of tab indexes if you want to close pinned tabs.
 */
 //#background
 export async function tabclose(...indexes: string[]) {
     const i = indexes.indexOf("-f")
     const force = i >= 0
     if (force) indexes.splice(i, 1)
+
+    let error = () => fillcmdline("# Use :tabclose -f to close pinned tabs.")
 
     if (indexes.length > 0) {
         let ids: number[]
@@ -1671,6 +1673,7 @@ export async function tabclose(...indexes: string[]) {
             ))
                 .filter(tabs => tabs.length > 0)
                 .map(tab => tab[0].id)
+            if (ids.length == 0) return error()
         }
 
         browser.tabs.remove(ids)
@@ -1678,6 +1681,7 @@ export async function tabclose(...indexes: string[]) {
         // Close current tab
         let tab = await activeTab()
         if (!tab.pinned || force) browser.tabs.remove(tab.id)
+        else error()
     }
 }
 
