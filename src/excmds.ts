@@ -1650,13 +1650,34 @@ export async function fullscreen() {
 */
 //#background
 export async function tabclose(...indexes: string[]) {
+    const i = indexes.indexOf("-f")
+    const force = i >= 0
+    if (force) indexes.splice(i, 1)
+
     if (indexes.length > 0) {
         let ids: number[]
-        ids = await Promise.all(indexes.map(index => idFromIndex(index)))
+        if (force) {
+            // force is true, we don't care about whether the tabs are pinned or not
+            ids = await Promise.all(indexes.map(index => idFromIndex(index)))
+        } else {
+            ids = (await Promise.all(
+                indexes.map(idx =>
+                    browser.tabs.query({
+                        currentWindow: true,
+                        index: parseInt(idx) - 1,
+                        pinned: false,
+                    }),
+                ),
+            ))
+                .filter(tabs => tabs.length > 0)
+                .map(tab => tab[0].id)
+        }
+
         browser.tabs.remove(ids)
     } else {
         // Close current tab
-        browser.tabs.remove(await activeTabId())
+        let tab = await activeTab()
+        if (!tab.pinned || force) browser.tabs.remove(tab.id)
     }
 }
 
