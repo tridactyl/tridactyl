@@ -284,7 +284,7 @@ export function cssparse(...css: string[]) {
  * ```
  * in about:config via user.js so that Tridactyl (and other extensions!) can be used on addons.mozilla.org and other sites.
  *
- * Requires `native`.
+ * Requires `native` and a `restart`.
  */
 //#background
 export async function fixamo() {
