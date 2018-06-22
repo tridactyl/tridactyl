@@ -1,4 +1,5 @@
 import { enumerate } from "../itertools"
+import * as Containers from "../lib/containers"
 import * as Messaging from "../messaging"
 import * as Completions from "../completions"
 
@@ -10,6 +11,7 @@ class BufferCompletionOption extends Completions.CompletionOptionHTML
         public value: string,
         tab: browser.tabs.Tab,
         public isAlternative = false,
+        container: browser.contextualIdentities.ContextualIdentity,
     ) {
         super()
         // Two character buffer properties prefix
@@ -31,13 +33,16 @@ class BufferCompletionOption extends Completions.CompletionOptionHTML
         const favIconUrl = tab.favIconUrl
             ? tab.favIconUrl
             : Completions.DEFAULT_FAVICON
-        this.html = html`<tr class="BufferCompletionOption option">
+        this.html = html`<tr class="BufferCompletionOption option container_${
+            container.color
+        } container_${container.icon} container_${container.name}">
             <td class="prefix">${pre.padEnd(2)}</td>
-            <td><img src=${favIconUrl} /></td>
-            <td>${tab.index + 1}: ${tab.title}</td>
-            <td><a class="url" target="_blank" href=${tab.url}>${
-            tab.url
-        }</a></td>
+            <td class="container"></td>
+            <td class="icon"><img src="${favIconUrl}"/></td>
+            <td class="title">${tab.index + 1}: ${tab.title}</td>
+            <td class="content"><a class="url" target="_blank" href=${
+                tab.url
+            }>${tab.url}</a></td>
         </tr>`
     }
 }
@@ -84,6 +89,7 @@ export class BufferCompletionSource extends Completions.CompletionSourceFuse {
                     (tab.index + 1).toString(),
                     tab,
                     tab === alt,
+                    await Containers.getFromId(tab.cookieStoreId),
                 ),
             )
         }

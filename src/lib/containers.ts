@@ -1,3 +1,4 @@
+import { browserBg } from "./webext"
 import * as Logging from "../logging"
 const logger = new Logging.Logger("containers")
 
@@ -28,6 +29,10 @@ const ContainerIcon = [
     "tree",
     "chill",
 ]
+
+const DefaultContainer = Object.freeze(
+    fromString("default", "invisible", "noicond", "firefox-default"),
+)
 
 /** Creates a container from the specified parameters.Does not allow multiple containers with the same name.
     @param name  The container name.
@@ -104,14 +109,16 @@ export async function update(
     }
 }
 
-/** Gets a container object from a supplied container id string.
+/** Gets a container object from a supplied container id string. If no container corresponds to containerId, returns a default empty container.
     @param containerId Expects a cookieStringId e.g. "firefox-container-n"
  */
-export async function getFromId(containerId: string): Promise<{}> {
+export async function getFromId(
+    containerId: string,
+): Promise<browser.contextualIdentities.ContextualIdentity> {
     try {
-        return await browser.contextualIdentities.get(containerId)
+        return await browserBg.contextualIdentities.get(containerId)
     } catch (e) {
-        throw e
+        return DefaultContainer
     }
 }
 
@@ -146,13 +153,19 @@ export async function exists(cname: string): Promise<boolean> {
     @param color
     @param icon
  */
-export function fromString(name: string, color: string, icon: string) {
+export function fromString(
+    name: string,
+    color: string,
+    icon: string,
+    id: string = "",
+) {
     try {
         return {
             name: name,
             color: color as browser.contextualIdentities.IdentityColor,
             icon: icon as browser.contextualIdentities.IdentityIcon,
-        }
+            cookieStoreId: id,
+        } as browser.contextualIdentities.ContextualIdentity // rules are made to be broken
     } catch (e) {
         throw e
     }

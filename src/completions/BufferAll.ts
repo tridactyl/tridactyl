@@ -1,10 +1,16 @@
+import * as Containers from "../lib/containers"
 import * as Messaging from "../messaging"
 import * as Completions from "../completions"
 
 class BufferAllCompletionOption extends Completions.CompletionOptionHTML
     implements Completions.CompletionOptionFuse {
     public fuseKeys = []
-    constructor(public value: string, tab: browser.tabs.Tab, winindex: number) {
+    constructor(
+        public value: string,
+        tab: browser.tabs.Tab,
+        winindex: number,
+        container: browser.contextualIdentities.ContextualIdentity,
+    ) {
         super()
         this.value = `${winindex}.${tab.index + 1}`
         this.fuseKeys.push(this.value, tab.title, tab.url)
@@ -13,13 +19,16 @@ class BufferAllCompletionOption extends Completions.CompletionOptionHTML
         const favIconUrl = tab.favIconUrl
             ? tab.favIconUrl
             : Completions.DEFAULT_FAVICON
-        this.html = html`<tr class="BufferAllCompletionOption option">
+        this.html = html`<tr class="BufferAllCompletionOption option container_${
+            container.color
+        } container_${container.icon} container_${container.name}">
             <td class="prefix"></td>
-            <td><img src=${favIconUrl} /></td>
-            <td>${this.value}: ${tab.title}</td>
-            <td><a class="url" target="_blank" href=${tab.url}>${
-            tab.url
-        }</a></td>
+            <td class="container"></td>
+            <td class="icon"><img src="${favIconUrl}"/></td>
+            <td class="title">${this.value}: ${tab.title}</td>
+            <td class="content"><a class="url" target="_blank" href=${
+                tab.url
+            }>${tab.url}</a></td>
         </tr>`
     }
 }
@@ -61,7 +70,12 @@ export class BufferAllCompletionSource extends Completions.CompletionSourceFuse 
                 winindex += 1
             }
             options.push(
-                new BufferAllCompletionOption(tab.id.toString(), tab, winindex),
+                new BufferAllCompletionOption(
+                    tab.id.toString(),
+                    tab,
+                    winindex,
+                    await Containers.getFromId(tab.cookieStoreId),
+                ),
             )
         }
 

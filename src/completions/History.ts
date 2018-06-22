@@ -21,11 +21,11 @@ class HistoryCompletionOption extends Completions.CompletionOptionHTML
         // const favIconUrl = tab.favIconUrl ? tab.favIconUrl : DEFAULT_FAVICON
         this.html = html`<tr class="HistoryCompletionOption option">
             <td class="prefix">${"".padEnd(2)}</td>
-            <td></td>
-            <td>${page.title}</td>
-            <td><a class="url" target="_blank" href=${page.url}>${
-            page.url
-        }</a></td>
+            <td class="icon"></td>
+            <td class="title">${page.title}</td>
+            <td class="content"><a class="url" target="_blank" href=${
+                page.url
+            }>${page.url}</a></td>
         </tr>`
     }
 }

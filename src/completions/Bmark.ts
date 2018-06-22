@@ -23,11 +23,11 @@ class BmarkCompletionOption extends Completions.CompletionOptionHTML
         // const favIconUrl = tab.favIconUrl ? tab.favIconUrl : DEFAULT_FAVICON
         this.html = html`<tr class="BmarkCompletionOption option">
             <td class="prefix">${"".padEnd(2)}</td>
-            <td></td>
-            <td>${bmark.title}</td>
-            <td><a class="url" target="_blank" href=${bmark.url}>${
-            bmark.url
-        }</a></td>
+            <td class="icon"></td>
+            <td class="title">${bmark.title}</td>
+            <td class="content"><a class="url" target="_blank" href=${
+                bmark.url
+            }>${bmark.url}</a></td>
         </tr>`
     }
 }
