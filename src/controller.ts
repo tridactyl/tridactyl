@@ -7,7 +7,6 @@ import Logger from "./logging"
 
 import { parser as exmode_parser } from "./parsers/exmode"
 import { parser as hintmode_parser } from "./hinting_background"
-import { parser as findmode_parser } from "./finding_background"
 import * as normalmode from "./parsers/normalmode"
 import * as insertmode from "./parsers/insertmode"
 import * as ignoremode from "./parsers/ignoremode"
@@ -23,7 +22,6 @@ function* ParserController() {
         insert: insertmode.parser,
         ignore: ignoremode.parser,
         hint: hintmode_parser,
-        find: findmode_parser,
         gobble: gobblemode.parser,
         input: inputmode.parser,
     }

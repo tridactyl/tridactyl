@@ -751,18 +751,14 @@ export function scrollpage(n = 1) {
     scrollpx(0, window.innerHeight * n)
 }
 
-//#background_helper
-import * as finding from "./finding_background"
-
 /** Start find mode. Work in progress.
  *
  * @param direction - the direction to search in: 1 is forwards, -1 is backwards.
  *
  */
 //#background
-export function find(direction?: number) {
-    if (direction === undefined) direction = 1
-    finding.findPage(direction)
+export function find(str: string) {
+    console.log("find ", str)
 }
 
 /** Highlight the next occurence of the previously searched for word.
@@ -772,7 +768,7 @@ export function find(direction?: number) {
  */
 //#background
 export function findnext(n: number) {
-    finding.findPageNavigate(n)
+    console.log("findnext ", n)
 }
 
 /** @hidden */
@@ -1894,8 +1890,6 @@ export function mode(mode: ModeName) {
     // TODO: event emition on mode change.
     if (mode === "hint") {
         hint()
-    } else if (mode === "find") {
-        find()
     } else {
         state.mode = mode
     }

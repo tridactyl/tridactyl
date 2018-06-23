@@ -135,6 +135,10 @@ a.url:hover {
 /*   margin: 0 .5em; */
 /* } */
 
+.FindCompletionOption .match {
+    font-weight: bold;
+}
+
 .hidden {
     display: none;
 }

@@ -18,8 +18,8 @@ import * as convert from "./convert"
 import * as config from "./config"
 import * as dom from "./dom"
 import * as excmds from "./.excmds_content.generated"
+import * as finding_content from "./finding_content"
 import * as hinting_content from "./hinting"
-import * as finding_content from "./finding"
 import * as itertools from "./itertools"
 import * as keydown_content from "./keydown_content"
 import * as messaging from "./messaging"
@@ -37,8 +37,8 @@ import * as styling from "./styling"
     config,
     dom,
     excmds,
-    hinting_content,
     finding_content,
+    hinting_content,
     itertools,
     keydown_content,
     logger,
