@@ -675,9 +675,7 @@ document.addEventListener("scroll", addJump)
 
 // Try to restore the previous jump position every time a page is loaded
 //#content_helper
-curJumps().then(() => {
-    jumpprev(0)
-})
+document.addEventListener("load", () => curJumps().then(() => jumpprev(0)))
 
 /** Blur (unfocus) the active element */
 //#content
