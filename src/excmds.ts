@@ -791,9 +791,9 @@ export function findnext(n: number) {
     finding.jumpToNextMatch(n)
 }
 
-//#background
+//#content
 export function clearsearchhighlight() {
-    browserBg.find.removeHighlighting()
+    finding.removeHighlighting()
 }
 
 /** @hidden */

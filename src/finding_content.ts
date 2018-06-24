@@ -1,6 +1,7 @@
 // This file has various utilities used by the completion source for the find excmd
 import * as Messaging from "./messaging"
 import * as config from "./config"
+import * as DOM from "./dom"
 import { browserBg, activeTabId } from "./lib/webext"
 
 export class Match {
@@ -131,6 +132,16 @@ export function getMatches(findings, contextLength = 10): Match[] {
     }
 
     if (result[0] && cachedQuery != result[0].rangeData.text) matchesCacheIsValid = false
+
+    console.log(result[0])
+    result.sort((a, b) => {
+        a = a.rectData.rectsAndTexts.rectList[0]
+        b = b.rectData.rectsAndTexts.rectList[0]
+        if (!a || !b)
+            return 0
+        return a.top - b.top
+    })
+
     return result
 }
 
@@ -170,10 +181,52 @@ export async function find(
     return findings
 }
 
+function createHighlightingElement(rect) {
+    let e = document.createElement("div")
+    e.className = "TridactylSearchHighlight"
+    e.style.display = "block"
+    e.style.position = "absolute"
+    e.style.top = rect.top + "px"
+    e.style.left = rect.left + "px"
+    e.style.width = (rect.right - rect.left) + "px"
+    e.style.height = (rect.bottom - rect.top) + "px"
+    return e
+}
+
+export function removeHighlighting(all = true) {
+    if (all)
+        browserBg.find.removeHighlighting()
+    highlightingElements.forEach(e => e.parentNode.removeChild(e))
+    highlightingElements = []
+}
+
+/* Scrolls to the first visible node.
+ * i is the id of the node that should be scrolled to in allMatches
+ * direction is +1 if going forward and -1 if going backawrd
+ */
+export function findVisibleNode(allMatches, i, direction) {
+    let match = allMatches[i]
+    let n = i
+
+    do {
+        while (!match.firstNode.ownerDocument.contains(match.firstNode)) {
+            n += direction
+            match = lastMatches[n]
+            if (n == i) return null
+        }
+        match.firstNode.parentNode.scrollIntoView()
+        console.log(match)
+    } while (!DOM.isVisible(match.firstNode.parentNode))
+
+    return match
+}
+
 let lastMatch = 0
 let lastReverse = false
+let highlightingElements = []
 /* Jumps to the startingFromth dom node matching pattern */
 export async function jumpToMatch(pattern, reverse, startingFrom) {
+    removeHighlighting()
     let match
 
     // When we already computed all the matches, don't recompute them
@@ -192,28 +245,34 @@ export async function jumpToMatch(pattern, reverse, startingFrom) {
     // Ideally we should reimplement our own highlighting
     browserBg.find.highlightResults()
 
-    // Here, we make sure that the current match hasn't been removed from its owner document
-    // If it has, we try to find the next/previous node that is still in the document
-    let n = startingFrom
-    while (!match.firstNode.ownerDocument.contains(match.firstNode)) {
-        n += reverse ? -1 : 1
-        match = lastMatches[startingFrom]
-        if (n == startingFrom) return
+    match = findVisibleNode(lastMatches, startingFrom, reverse ? -1 : 1)
+
+    for (let rect of match.rectData.rectsAndTexts.rectList) {
+        let elem = createHighlightingElement(rect)
+        highlightingElements.push(elem)
+        document.body.appendChild(elem)
     }
 
-    match.firstNode.parentNode.scrollIntoView()
     // Remember where we where and what actions we did. This is need for jumpToNextMatch
-    lastMatch = n
+    lastMatch = lastMatches.indexOf(match)
     lastReverse = reverse
 }
 
 export function jumpToNextMatch(n: number) {
+    removeHighlighting()
+
     if (lastReverse) n *= -1
-    n = (n + lastMatch + lastMatches.length) % lastMatches.length
-    let match = lastMatches[n]
+
     browserBg.find.highlightResults()
-    match.firstNode.parentNode.scrollIntoView()
-    lastMatch = n
+    let match = findVisibleNode(lastMatches, (n + lastMatch + lastMatches.length) % lastMatches.length, n <= 0 ? -1 : 1)
+
+    for (let rect of match.rectData.rectsAndTexts.rectList) {
+        let elem = createHighlightingElement(rect)
+        highlightingElements.push(elem)
+        document.body.appendChild(elem)
+    }
+
+    lastMatch = lastMatches.indexOf(match)
 }
 
 import * as SELF from "./finding_content"
