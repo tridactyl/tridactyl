@@ -31,7 +31,6 @@ export class FindCompletionSource extends Completions.CompletionSourceFuse {
     constructor(private _parent) {
         super(["find "], "FindCompletionSource", "Matches")
 
-        this.updateOptions()
         this._parent.appendChild(this.node)
     }
 

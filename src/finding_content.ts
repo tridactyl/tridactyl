@@ -130,7 +130,7 @@ export function getMatches(findings, contextLength = 10): Match[] {
         )
     }
 
-    if (cachedQuery != result[0].rangeData.text) matchesCacheIsValid = false
+    if (result[0] && cachedQuery != result[0].rangeData.text) matchesCacheIsValid = false
     return result
 }
 
