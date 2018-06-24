@@ -131,14 +131,14 @@ export function getMatches(findings, contextLength = 10): Match[] {
         )
     }
 
-    if (result[0] && cachedQuery != result[0].rangeData.text) matchesCacheIsValid = false
+    if (result[0] && cachedQuery != result[0].rangeData.text)
+        matchesCacheIsValid = false
 
     console.log(result[0])
     result.sort((a, b) => {
         a = a.rectData.rectsAndTexts.rectList[0]
         b = b.rectData.rectsAndTexts.rectList[0]
-        if (!a || !b)
-            return 0
+        if (!a || !b) return 0
         return a.top - b.top
     })
 
@@ -188,14 +188,13 @@ function createHighlightingElement(rect) {
     e.style.position = "absolute"
     e.style.top = rect.top + "px"
     e.style.left = rect.left + "px"
-    e.style.width = (rect.right - rect.left) + "px"
-    e.style.height = (rect.bottom - rect.top) + "px"
+    e.style.width = rect.right - rect.left + "px"
+    e.style.height = rect.bottom - rect.top + "px"
     return e
 }
 
 export function removeHighlighting(all = true) {
-    if (all)
-        browserBg.find.removeHighlighting()
+    if (all) browserBg.find.removeHighlighting()
     highlightingElements.forEach(e => e.parentNode.removeChild(e))
     highlightingElements = []
 }
@@ -226,7 +225,7 @@ let lastReverse = false
 let highlightingElements = []
 /* Jumps to the startingFromth dom node matching pattern */
 export async function jumpToMatch(pattern, reverse, startingFrom) {
-    removeHighlighting()
+    removeHighlighting(false)
     let match
 
     // When we already computed all the matches, don't recompute them
@@ -259,12 +258,16 @@ export async function jumpToMatch(pattern, reverse, startingFrom) {
 }
 
 export function jumpToNextMatch(n: number) {
-    removeHighlighting()
+    removeHighlighting(false)
 
     if (lastReverse) n *= -1
 
     browserBg.find.highlightResults()
-    let match = findVisibleNode(lastMatches, (n + lastMatch + lastMatches.length) % lastMatches.length, n <= 0 ? -1 : 1)
+    let match = findVisibleNode(
+        lastMatches,
+        (n + lastMatch + lastMatches.length) % lastMatches.length,
+        n <= 0 ? -1 : 1,
+    )
 
     for (let rect of match.rectData.rectsAndTexts.rectList) {
         let elem = createHighlightingElement(rect)
