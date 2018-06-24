@@ -134,13 +134,21 @@ export function getMatches(findings, contextLength = 10): Match[] {
     if (result[0] && cachedQuery != result[0].rangeData.text)
         matchesCacheIsValid = false
 
-    console.log(result[0])
     result.sort((a, b) => {
         a = a.rectData.rectsAndTexts.rectList[0]
         b = b.rectData.rectsAndTexts.rectList[0]
         if (!a || !b) return 0
         return a.top - b.top
     })
+    let pivot = result.indexOf(
+        result.find(
+            m =>
+                m.rectData.rectsAndTexts.rectList[0] &&
+                m.rectData.rectsAndTexts.rectList[0].top > window.pageYOffset,
+        ),
+    )
+
+    result = result.slice(pivot).concat(result.slice(0, pivot))
 
     return result
 }
@@ -214,7 +222,6 @@ export function findVisibleNode(allMatches, i, direction) {
             if (n == i) return null
         }
         match.firstNode.parentNode.scrollIntoView()
-        console.log(match)
     } while (!DOM.isVisible(match.firstNode.parentNode))
 
     return match
