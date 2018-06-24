@@ -264,6 +264,26 @@ export function getAllDocumentFrames(doc = document) {
     )
 }
 
+/** Computes the unique CSS selector of a specific HTMLElement */
+export function getSelector(e: HTMLElement) {
+    function uniqueSelector(e: HTMLElement) {
+        // Only matching alphanumeric selectors because others chars might have special meaning in CSS
+        if (e.id && e.id.match("^[a-zA-Z0-9]+$")) return "#" + e.id
+        // If we reached the top of the document
+        if (!e.parentElement) return "HTML"
+        // Compute the position of the element
+        let index =
+            Array.from(e.parentElement.children)
+                .filter(child => child.tagName == e.tagName)
+                .indexOf(e) + 1
+        return (
+            uniqueSelector(e.parentElement) +
+            ` > ${e.tagName}:nth-of-type(${index})`
+        )
+    }
+    return uniqueSelector(e)
+}
+
 /** Get all elements that match the given selector
  *
  * @param selector   `the CSS selector to choose elements with
@@ -426,11 +446,21 @@ export function hijackPageListenerFunctions(): void {
 /** Focuses an input element and makes sure the cursor is put at the end of the input */
 export function focus(e: HTMLElement): void {
     e.focus()
-    if (e instanceof HTMLInputElement) {
+    // https://developer.mozilla.org/en-US/docs/Web/API/HTMLInputElement/setSelectionRange
+    // "Note that accordingly to the WHATWG forms spec selectionStart,
+    // selectionEnd properties and setSelectionRange method apply only to
+    // inputs of types text, search, URL, tel and password"
+    // So you can't put the cursor at the end of an email field. I can't
+    // believe how stupid this is.
+    if (
+        e instanceof HTMLInputElement &&
+        ["text", "search", "url", "tel", "password"].includes(
+            e.type.toLowerCase(),
+        )
+    ) {
         let pos = 0
         if (config.get("cursorpos") === "end") pos = e.value.length
-        e.selectionStart = pos
-        e.selectionEnd = e.selectionStart
+        e.setSelectionRange(pos, pos)
     }
 }
 

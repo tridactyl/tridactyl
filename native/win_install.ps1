@@ -13,7 +13,7 @@ $global:MessengerBinPyName = "native_main.py"
 $global:MessengerBinExeName = "native_main.exe"
 $global:MessengerBinWrapperFilename = "native_main.bat"
 $global:MessengerManifestFilename = "tridactyl.json"
-$global:PythonVersionStr = "Python 3"
+$global:PythonVersionStr = "^3\."
 $global:WinPython3Command = "py -3 -u"
 $global:MessengerManifestReplaceStr = "REPLACE_ME_WITH_SED"
 
@@ -46,12 +46,12 @@ $global:DebugDirBase = $DebugDirBase.Trim()
 function Get-PythonVersionStatus() {
     try {
         $pythonVersion = Invoke-Expression `
-            "$global:WinPython3Command --version"
+            "$global:WinPython3Command -c ""import sys; print(sys.version)"""
     } catch {
         $pythonVersion = ""
     }
 
-    if ($pythonVersion.IndexOf($global:PythonVersionStr) -ge 0) {
+    if ($pythonVersion -match $global:PythonVersionStr) {
         return $true
     } else {
         return $false

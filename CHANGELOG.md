@@ -1,5 +1,28 @@
 # Tridactyl changelog
 
+## Release 1.13.1 / 2018-06-20
+
+*   New features
+
+    *   `bufferall` bound to `B` by default shows you tabs in all windows.
+    *   Container management with `container{create,close,update,delete}`, `viewcontainers` and `tabopen -c [container name] URL`
+        *   see `help containercreate` for more information
+        *   Mode indicator's border now uses the current container colour
+    *   `set hintnames numeric` for sequential numeric hints. Best used with `set hintfiltermode vimperator-reflow`.
+    *   Changelog now tells you when there's a new changelog that you haven't read.
+    *   `guiset navbar none` removes the navbar totally. Not for the faint-of-heart: you could potentially get trapped if Tridactyl stops working.
+
+*   Bug fixes
+
+    *   `nativeopen` now puts tabs in the same place that `tabopen` would
+    *   `santise tridactyllocal tridactylsync` now works in RC files
+    *   Missing ;w hint winopen bind added
+    *   Fixed minor error with themes not being properly applied on some sites
+    *   Fixed reload bug on :help when there's no hash
+    *   `<C-i>` editor will now always update the field you started in, not just the one you currently have focused.
+    *   "email" input elements can now be focused without errors.
+    *   `urlincrement` no longer throws errors if a link cannot be found.
+
 ## Release 1.13.0 / 2018-06-08
 
 *   **Potentially breaking changes**
