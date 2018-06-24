@@ -754,10 +754,17 @@ export function scrollpage(n = 1) {
 //#content_helper
 import * as finding from "./finding_content"
 
-/** Start find mode. Work in progress.
+/** Use firefox's search function.
  *
- * @param direction - the direction to search in: 1 is forwards, -1 is backwards.
+ *  Argument: A string you want to search for.
  *
+ *  This function accepts two flags: `-?` to search from the bottom rather than the top and `-: n` to jump directly to the nth match.
+ *
+ *  The behavior of this function is affected by the following setting:
+ *
+ *      - findcase: either "smart", "sensitive" or "unsensitive". If "smart", find will be case-sensitive if the pattern contains uppercase letters.
+ *
+ *  Know bugs: find will currently happily jump to a non-visible element.
  */
 //#content
 export function find(...args: string[]) {
@@ -774,7 +781,7 @@ export function find(...args: string[]) {
     finding.jumpToMatch(args.join(" "), reverse, startingFrom)
 }
 
-/** Highlight the next occurence of the previously searched for word.
+/** Jump to the next searched pattern.
  *
  * @param number - number of words to advance down the page (use 1 for next word, -1 for previous)
  *

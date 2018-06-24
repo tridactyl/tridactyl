@@ -310,6 +310,13 @@ const DEFAULTS = o({
     // number of most recent results to ask Firefox for. We display the top 20 or so most frequently visited ones.
     historyresults: "50",
 
+    // Number of results that should be shown in completions. -1 for unlimited
+    findresults: "0",
+    // Number of characters to use as context for the matches shown in completions
+    findcontextlen: "10",
+    // Whether find should be case-sensitive
+    findcase: "smart", // "smart" | "sensitive" | "unsensitive"
+
     // Security settings
 
     csp: "untouched", // change this to "clobber" to ruin the CSP of all sites and make Tridactyl run a bit better on some of them, e.g. raw.github*

@@ -61,7 +61,7 @@ export class FindCompletionSource extends Completions.CompletionSourceFuse {
         // No point if continuing if the user hasn't started searching yet
         if (query.length == 0) return
 
-        let findresults = await config.getAsync("findresults")
+        let findresults = parseInt(await config.getAsync("findresults"))
         if (findresults === 0) return
 
         // Note: the use of activeTabId here might break completions if the user starts searching for a pattern in a really big page and then switches to another tab.
@@ -77,7 +77,7 @@ export class FindCompletionSource extends Completions.CompletionSourceFuse {
         // If the search was successful
         if (findings.count > 0) {
             // Get match context
-            let len = await config.getAsync("findcontextlen")
+            let len = parseInt(await config.getAsync("findcontextlen"))
             let matches = await Messaging.messageTab(
                 tabId,
                 "finding_content",
