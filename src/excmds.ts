@@ -2659,6 +2659,18 @@ export async function jsb(...str: string[]) {
     }
 }
 
+//#background
+export async function ffargs(): Promise<void> {
+    let output = await Native.ffargs()
+    fillcmdline("# " + output)
+}
+
+//#background
+export async function ffpid(): Promise<void> {
+    let output = await Native.getFirefoxPid()
+    fillcmdline("# " + output["content"])
+}
+
 /**  Open a welcome page on first install.
  *
  * @hidden

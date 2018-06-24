@@ -24,6 +24,7 @@ type MessageCommand =
     | "restart_firefox"
     | "remove_firefox_prefs"
     | "add_firefox_prefs"
+    | "get_firefox_pid"
 interface MessageResp {
     cmd: string
     version: number | null
@@ -536,4 +537,9 @@ export async function addFirefoxPrefs(arr_prefs: {}) {
 
     let prefs = JSON.stringify(arr_prefs)
     return sendNativeMsg("add_firefox_prefs", { profiledir, prefs })
+}
+
+/** Fetch Firefox's process ID */
+export async function getFirefoxPid() {
+    return sendNativeMsg("get_firefox_pid", {}, false)
 }

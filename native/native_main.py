@@ -109,7 +109,7 @@ class Utility(object):
         else:
             return False
 
-    def windows_firefox_restart(self, profile_dir, browser_cmd):
+    def windows_restart_firefox(self, profile_dir, browser_cmd):
         """ Restart Firefox on Windows. """
         reply = {}
         ff_lock_name = "parent.lock"
@@ -284,7 +284,7 @@ if ($locked -eq $true) {{
             open(restart_ps1_path, "w+").write(restart_ps1_content)
 
             delay_sec = 2
-            task_name = "firefox-restart"
+            task_name = "restart-firefox"
 
             powershell_cmd = "powershell"
             powershell_args = "%s %s" % (
@@ -345,7 +345,7 @@ if ($locked -eq $true) {{
 
         return reply
 
-    def unix_firefox_restart(self, profile_dir, browser_cmd):
+    def unix_restart_firefox(self, profile_dir, browser_cmd):
         """ Restart Firefox on Unix like systems. """
 
         reply = {}
@@ -359,7 +359,6 @@ if ($locked -eq $true) {{
             ff_bin_dir,
             ff_bin_name,
         ) = util.unix_detect_firefox(ff_args)
-
 
         if DEBUG:
             msg = "%s %s\n" % (
@@ -1116,11 +1115,11 @@ def restart_firefox(message):
 
     else:
         if util.is_windows():
-            reply = util.windows_firefox_restart(
+            reply = util.windows_restart_firefox(
                 profile_dir, browser_cmd
             )
         else:
-            reply = util.unix_firefox_restart(
+            reply = util.unix_restart_firefox(
                 profile_dir, browser_cmd
             )
 
@@ -1217,34 +1216,16 @@ def handleMessage(message):
     elif cmd == "add_firefox_prefs":
         reply = add_firefox_prefs(message)
 
-    elif cmd == "get_firefox_args":
-        reply = {}
-        try:
-            ff_args = (
-                subprocess.check_output(
-                    [
-                        "ps",
-                        "--pid",
-                        str(os.getppid()),
-                        "--format",
-                        "args=''",
-                    ]
-                )
-                .decode("utf-8")
-                .strip()
-            )
+    elif cmd == "get_firefox_pid":
+        util = Utility()
 
-            reply["content"] = ff_args
-            reply["code"] = 0
+        if util.is_windows():
+            time.sleep(10)
+            reply["content"] = str(os.getppid())
+        else:
+            reply["content"] = str(os.getppid())
 
-        except (subprocess.CalledProcessError, UnicodeDecodeError):
-            reply["error"] = "Failed to get Firefox arguments."
-            reply["code"] = -1
-
-    else:
-        reply = {"cmd": "error", "error": "Unhandled message"}
-        eprint("Unhandled message: {}".format(message))
-
+        reply["code"] = 0
     return reply
 
 
