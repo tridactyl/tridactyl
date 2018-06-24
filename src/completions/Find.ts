@@ -7,16 +7,17 @@ import * as config from "../config"
 class FindCompletionOption extends Completions.CompletionOptionHTML
     implements Completions.CompletionOptionFuse {
     public fuseKeys = []
-    constructor(m) {
+    constructor(m, reverse = false) {
         super()
-        this.value = m.rangeData.text
-        this.fuseKeys.push(this.value)
+        this.value =
+            (reverse ? "-? " : "") + ("-: " + m.index) + " " + m.rangeData.text
+        this.fuseKeys.push(m.rangeData.text)
 
         let contextLength = 4
         // Create HTMLElement
         this.html = html`<tr class="FindCompletionOption option">
             <td class="content">${m.precontext}<span class="match">${
-            this.value
+            m.rangeData.text
         }</span>${m.postcontext}</td>
         </tr>`
     }
@@ -28,7 +29,7 @@ export class FindCompletionSource extends Completions.CompletionSourceFuse {
     public completionCount = 0
 
     constructor(private _parent) {
-        super(["find"], "FindCompletionSource", "Matches")
+        super(["find "], "FindCompletionSource", "Matches")
 
         this.updateOptions()
         this._parent.appendChild(this.node)
@@ -48,26 +49,35 @@ export class FindCompletionSource extends Completions.CompletionSourceFuse {
 
     private async updateOptions(exstr?: string) {
         if (!exstr) return
-        let query = exstr.substring(exstr.trim().indexOf(" ") + 1)
-        if (!query || query == exstr) return
+
+        // Flag parsing because -? should reverse completions
+        let tokens = exstr.split(" ")
+        let flagpos = tokens.indexOf("-?")
+        let reverse = flagpos >= 0
+        if (reverse) {
+            tokens.splice(flagpos, 1)
+        }
+
+        let query = tokens.slice(1).join(" ")
+        // No point if continuing if the user hasn't started searching yet
+        if (query.length == 0) return
+
         let findresults = await config.getAsync("findresults")
         if (findresults === 0) return
-        let findcase = await config.getAsync("findcase")
-        let caseSensitive =
-            findcase == "sensitive" ||
-            (findcase == "smart" && query.search(/[A-Z]/) >= 0)
 
-        this.lastExstr = exstr
+        // Note: the use of activeTabId here might break completions if the user starts searching for a pattern in a really big page and then switches to another tab.
+        // Getting the tabId should probably be done in the constructor but you can't have async constructors.
         let tabId = await activeTabId()
-        let findings = browserBg.find.find(query, {
+        let findings = await Messaging.messageTab(
             tabId,
-            caseSensitive,
-            includeRangeData: true,
-        })
-        findings = await findings
+            "finding_content",
+            "find",
+            [query, findresults, reverse],
+        )
+
+        // If the search was successful
         if (findings.count > 0) {
-            if (findresults != -1 && findresults < findings.count)
-                findings.count = findresults
+            // Get match context
             let len = await config.getAsync("findcontextlen")
             let matches = await Messaging.messageTab(
                 tabId,
@@ -75,9 +85,11 @@ export class FindCompletionSource extends Completions.CompletionSourceFuse {
                 "getMatches",
                 [findings, len],
             )
-            this.options = matches.map(m => new FindCompletionOption(m))
+
+            this.options = matches.map(
+                m => new FindCompletionOption(m, reverse),
+            )
             this.updateChain(exstr, this.options)
-        } else {
         }
     }
 

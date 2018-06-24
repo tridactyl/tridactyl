@@ -751,14 +751,27 @@ export function scrollpage(n = 1) {
     scrollpx(0, window.innerHeight * n)
 }
 
+//#content_helper
+import * as finding from "./finding_content"
+
 /** Start find mode. Work in progress.
  *
  * @param direction - the direction to search in: 1 is forwards, -1 is backwards.
  *
  */
-//#background
-export function find(str: string) {
-    console.log("find ", str)
+//#content
+export function find(...args: string[]) {
+    let flagpos = args.indexOf("-?")
+    let reverse = flagpos >= 0
+    if (reverse) args.splice(flagpos, 1)
+
+    flagpos = args.indexOf("-:")
+    let startingFrom = 0
+    if (flagpos >= 0) {
+        startingFrom = parseInt(args[flagpos + 1]) || 0
+        args.splice(flagpos, 2)
+    }
+    finding.jumpToMatch(args.join(" "), reverse, startingFrom)
 }
 
 /** Highlight the next occurence of the previously searched for word.
@@ -766,9 +779,14 @@ export function find(str: string) {
  * @param number - number of words to advance down the page (use 1 for next word, -1 for previous)
  *
  */
-//#background
+//#content
 export function findnext(n: number) {
-    console.log("findnext ", n)
+    finding.jumpToNextMatch(n)
+}
+
+//#background
+export function clearsearchhighlight() {
+    browserBg.find.removeHighlighting()
 }
 
 /** @hidden */

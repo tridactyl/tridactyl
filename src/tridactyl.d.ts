@@ -22,6 +22,29 @@ interface UIEvent {
     pageY: number
 }
 
+// This isn't an actual firefox type but it's nice to have one for this kind of object
+// https://developer.mozilla.org/en-US/Add-ons/WebExtensions/API/find/find
+interface findResult {
+    count: number
+    rangeData: {
+        framePos: number
+        startTextNodePos: number
+        endTextNodePos: number
+        startOffset: number
+        endOffset: number
+        text: string
+    }[]
+    rectData: {
+        rectsAndTexts: {
+            top: number
+            left: number
+            bottom: number
+            right: number
+        }[]
+        textList: string[]
+    }
+}
+
 interface HTMLElement {
     // Let's be future proof:
     // https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement/focus
