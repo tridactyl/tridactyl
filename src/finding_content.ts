@@ -2,6 +2,7 @@
 import * as Messaging from "./messaging"
 import * as config from "./config"
 import * as DOM from "./dom"
+import { zip } from "./itertools"
 import { browserBg, activeTabId } from "./lib/webext"
 
 export class Match {
@@ -44,42 +45,18 @@ function getNodes() {
 }
 
 let lastMatches = []
-/** Given "findings", an object matching the ones returned by browser.find.find(), will compute the context for every match in findings and prune the matches than happened in Tridactyl's command line. ContextLength is how many characters from before and after the match should be included into the returned Match object.
+/** Given "findings", an array matching the one returned by find(), will compute the context for every match in findings and prune the matches than happened in Tridactyl's command line. ContextLength is how many characters from before and after the match should be included into the returned Match object.
  getMatches() will save its returned values in lastMatches. This is important for caching purposes in jumpToMatch, read its documentation to get the whole picture. */
 export function getMatches(findings, contextLength = 10): Match[] {
     let result = []
 
-    if (findings.count == 0) return result
-
-    if (!findings.rangeData)
-        throw new Error("Can't get matches without range data!")
-
-    // Helper function to create matches. This avoids a `if` in the loop below
-    let constructMatch = (findings, i, precontext, postcontext, node) =>
-        new Match(
-            i,
-            findings.rangeData[i],
-            findings.rectData[i],
-            precontext,
-            postcontext,
-            node,
-        )
-    if (!findings.rectData)
-        constructMatch = (findings, i, precontext, postcontext, node) =>
-            new Match(
-                i,
-                findings.rangeData[i],
-                null,
-                precontext,
-                postcontext,
-                node,
-            )
+    if (findings.length == 0) return result
 
     // Checks if a node belongs to the command line
     let nodes = getNodes()
 
-    for (let i = 0; i < findings.count; ++i) {
-        let range = findings.rangeData[i]
+    for (let i = 0; i < findings.length; ++i) {
+        let range = findings[i][0]
         let firstnode = nodes[range.startTextNodePos]
         let lastnode = nodes[range.endTextNodePos]
         // We never want to match against nodes in the command line
@@ -127,65 +104,69 @@ export function getMatches(findings, contextLength = 10): Match[] {
         }
 
         result.push(
-            constructMatch(findings, i, precontext, postcontext, firstnode),
+            new Match(
+                i,
+                findings[i][0],
+                findings[i][1],
+                precontext,
+                postcontext,
+                firstnode,
+            ),
         )
     }
 
-    if (result[0] && cachedQuery != result[0].rangeData.text)
-        matchesCacheIsValid = false
-
-    result.sort((a, b) => {
-        a = a.rectData.rectsAndTexts.rectList[0]
-        b = b.rectData.rectsAndTexts.rectList[0]
-        if (!a || !b) return 0
-        return a.top - b.top
-    })
-    let pivot = result.indexOf(
-        result.find(
-            m =>
-                m.rectData.rectsAndTexts.rectList[0] &&
-                m.rectData.rectsAndTexts.rectList[0].top > window.pageYOffset,
-        ),
-    )
-
-    result = result.slice(pivot).concat(result.slice(0, pivot))
-
+    lastMatches = result
     return result
 }
 
-let matchesCacheIsValid = false
-let cachedQuery = ""
-/** Performs a call to browser.find.find() with the right parameters.
+let prevFind = null
+let findCount = 0
+/** Performs a call to browser.find.find() with the right parameters and returns the result as a zipped array of rangeData and rectData (see browser.find.find's documentation) sorted according to their vertical position within the document.
  If count is different from -1 and lower than the number of matches returned by browser.find.find(), will return count results. Note that when this happens, `matchesCacheIsValid ` is set to false, which will prevent `jumpToMatch` from using cached matches. */
-export async function find(
-    query,
-    count = -1,
-    reverse = false,
-): Promise<findResult> {
+export async function find(query, count = -1, reverse = false) {
+    findCount += 1
+    let findId = findCount
     let findcase = await config.getAsync("findcase")
     let caseSensitive =
         findcase == "sensitive" ||
         (findcase == "smart" && query.search(/[A-Z]/) >= 0)
     let tabId = await activeTabId()
-    let findings = await browserBg.find.find(query, {
+
+    // No point in searching for something that won't be used anyway
+    await prevFind
+    if (findId != findCount) return []
+
+    prevFind = browserBg.find.find(query, {
         tabId,
         caseSensitive,
         includeRangeData: true,
         includeRectData: true,
     })
+    let findings = await prevFind
+    findings = zip(findings.rangeData, findings.rectData).sort(
+        (a: any, b: any) => {
+            a = a[1].rectsAndTexts.rectList[0]
+            b = b[1].rectsAndTexts.rectList[0]
+            if (!a || !b) return 0
+            return a.top - b.top
+        },
+    )
+
+    let finder = e =>
+        e[1].rectsAndTexts.rectList[0] &&
+        e[1].rectsAndTexts.rectList[0].top > window.pageYOffset
     if (reverse) {
-        findings.rangeData = findings.rangeData.reverse()
-        findings.rectData = findings.rectData.reverse()
+        findings = findings.reverse()
+        finder = e =>
+            e[1].rectsAndTexts.rectList[0] &&
+            e[1].rectsAndTexts.rectList[0].top < window.pageYOffset
     }
-    if (count != -1 && count < findings.count) {
-        findings.count = count
-        findings.rangeData = findings.rangeData.slice(0, findings.count)
-        findings.rectData = findings.rectData.slice(0, findings.count)
-        matchesCacheIsValid = false
-    } else {
-        matchesCacheIsValid = true
-    }
-    cachedQuery = query
+
+    let pivot = findings.indexOf(findings.find(finder))
+    findings = findings.slice(pivot).concat(findings.slice(0, pivot))
+
+    if (count != -1 && count < findings.length) return findings.slice(0, count)
+
     return findings
 }
 
@@ -228,7 +209,6 @@ export function findVisibleNode(allMatches, i, direction) {
 }
 
 let lastMatch = 0
-let lastReverse = false
 let highlightingElements = []
 /* Jumps to the startingFromth dom node matching pattern */
 export async function jumpToMatch(pattern, reverse, startingFrom) {
@@ -236,7 +216,7 @@ export async function jumpToMatch(pattern, reverse, startingFrom) {
     let match
 
     // When we already computed all the matches, don't recompute them
-    if (matchesCacheIsValid && pattern == cachedQuery)
+    if (lastMatches[0] && lastMatches[0].rangeData.text == pattern)
         match = lastMatches[startingFrom]
 
     if (!match) {
@@ -261,13 +241,10 @@ export async function jumpToMatch(pattern, reverse, startingFrom) {
 
     // Remember where we where and what actions we did. This is need for jumpToNextMatch
     lastMatch = lastMatches.indexOf(match)
-    lastReverse = reverse
 }
 
 export function jumpToNextMatch(n: number) {
     removeHighlighting(false)
-
-    if (lastReverse) n *= -1
 
     browserBg.find.highlightResults()
     let match = findVisibleNode(

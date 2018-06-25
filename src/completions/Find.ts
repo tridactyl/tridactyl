@@ -27,10 +27,12 @@ export class FindCompletionSource extends Completions.CompletionSourceFuse {
     public options: FindCompletionOption[]
     public prevCompletion = null
     public completionCount = 0
+    private startingPosition = 0
 
     constructor(private _parent) {
         super(["find "], "FindCompletionSource", "Matches")
 
+        this.startingPosition = window.pageYOffset
         this._parent.appendChild(this.node)
     }
 
@@ -58,11 +60,19 @@ export class FindCompletionSource extends Completions.CompletionSourceFuse {
         }
 
         let query = tokens.slice(1).join(" ")
+        let minincsearchlen = parseInt(await config.getAsync("minincsearchlen"))
         // No point if continuing if the user hasn't started searching yet
-        if (query.length == 0) return
+        if (query.length < minincsearchlen) return
 
         let findresults = parseInt(await config.getAsync("findresults"))
-        if (findresults === 0) return
+        let incsearch = (await config.getAsync("incsearch")) === "true"
+        if (findresults === 0 && !incsearch) return
+
+        let incsearchonly = false
+        if (findresults === 0) {
+            findresults = 1
+            incsearchonly = true
+        }
 
         // Note: the use of activeTabId here might break completions if the user starts searching for a pattern in a really big page and then switches to another tab.
         // Getting the tabId should probably be done in the constructor but you can't have async constructors.
@@ -75,7 +85,7 @@ export class FindCompletionSource extends Completions.CompletionSourceFuse {
         )
 
         // If the search was successful
-        if (findings.count > 0) {
+        if (findings.length > 0) {
             // Get match context
             let len = parseInt(await config.getAsync("findcontextlen"))
             let matches = await Messaging.messageTab(
@@ -85,10 +95,19 @@ export class FindCompletionSource extends Completions.CompletionSourceFuse {
                 [findings, len],
             )
 
-            this.options = matches.map(
-                m => new FindCompletionOption(m, reverse),
-            )
-            this.updateChain(exstr, this.options)
+            if (incsearch)
+                Messaging.messageTab(tabId, "finding_content", "jumpToMatch", [
+                    query,
+                    false,
+                    0,
+                ])
+
+            if (!incsearchonly) {
+                this.options = matches.map(
+                    m => new FindCompletionOption(m, reverse),
+                )
+                this.updateChain(exstr, this.options)
+            }
         }
     }
 

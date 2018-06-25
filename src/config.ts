@@ -316,6 +316,10 @@ const DEFAULTS = o({
     findcontextlen: "10",
     // Whether find should be case-sensitive
     findcase: "smart", // "smart" | "sensitive" | "unsensitive"
+    // Whether Tridactyl should jump to the first match when using `:find`
+    incsearch: "false",
+    // How many characters should be typed before triggering incsearch/completions
+    minincsearchlen: "3",
 
     // Security settings
 
