@@ -271,19 +271,18 @@ function Get-MessengerBinWrapperPath() {
 }
 
 function Set-MessengerBinWrapper() {
-    $messengerBinPath = Get-MessengerBinPath
+    $messengerBinName = Get-MessengerBinName
     $messengerBinWrapperPath = Get-MessengerBinWrapperPath
-    $messengerBinName = $global:MessengerBinPyName
 
     if ($global:NoPython -eq $false) { # system has python3
     $messengerWrapperContent = @"
 @echo off
-call $global:WinPython3Command $messengerBinName
+call $global:WinPython3Command .\$messengerBinName
 "@
     } else { ## system does _not_ have python3
     $messengerWrapperContent = @"
 @echo off
-call $messengerBinName
+call .\$messengerBinName
 "@
     }
 
