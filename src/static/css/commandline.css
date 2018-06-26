@@ -68,8 +68,9 @@ input {
     padding-left: 0.5em;
     text-align: center;
 }
+#completions table tr td.container,
 #completions table tr td.icon,
-#completions table tr td.container {
+#completions table tr td.privatewindow {
     width: 1.5em;
 }
 /* #completions table tr td:nth-of-type(3) { width: 5em; } */
@@ -148,8 +149,13 @@ a.url:hover {
     background: var(--tridactyl-of-bg);
 }
 
+.option.incognito .privatewindow {
+    background-image: var(--tridactyl-private-window-icon-url);
+}
+
 /* Still completions, but container-related stuff */
-.option .container {
+.option .container,
+.option .privatewindow {
     background-size: 1em;
     background-repeat: no-repeat;
     background-position: center;
