@@ -868,6 +868,33 @@ export async function open_quiet(...urlarr: string[]) {
     }
 }
 
+/**
+ *  If the url of the current document matches one of your search engines, will convert it to a list of arguments that open/tabopen will understand. If the url doesn't match any search engine, returns the url without modifications.
+ *
+ *  For example, if you have searchurls.gi set to "https://www.google.com/search?q=%s&tbm=isch", using this function on a page you opened using "gi butterflies" will return "gi butterflies".
+ *
+ *  This is useful when combined with fillcmdline, for example like this: `bind O composite url2args | fillcmdline open`.
+ *
+ *  Note that this might break with search engines that redirect you to other pages/add GET parameters that do not exist in your searchurl.
+ */
+//#content
+export async function url2args() {
+    let url = document.location.href
+    let searchurls = await config.getAsync("searchurls")
+    let result = url
+
+    for (let engine in searchurls) {
+        let [beginning, end] = [...searchurls[engine].split("%s"), ""]
+        if (url.startsWith(beginning) && url.endsWith(end)) {
+            // Get the string matching %s
+            let args = url.substring(beginning.length)
+            args = engine + " " + args.substring(0, args.length - end.length)
+            if (args.length < result.length) result = args
+        }
+    }
+    return result
+}
+
 /** @hidden */
 //#content_helper
 let sourceElement = undefined
