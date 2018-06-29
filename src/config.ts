@@ -263,6 +263,20 @@ class default_config {
      */
     autocmds = {
         /**
+         * Commands that will be run every time the javascript "blur" event is triggered on a page.
+         *
+         * Each key corresponds to a URL fragment which, if contained within the page URL, will run the corresponding command.
+         */
+        DocBlur: {},
+
+        /**
+         * Commands that will be run every time the javascript "focus" event is triggered on a page.
+         *
+         * Each key corresponds to a URL fragment which, if contained within the page URL, will run the corresponding command.
+         */
+        DocFocus: {},
+
+        /**
          * Commands that will be run as soon as Tridactyl loads into a page.
          *
          * Each key corresponds to a URL fragment which, if contained within the page URL, will run the corresponding command.

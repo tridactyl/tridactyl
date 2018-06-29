@@ -1788,11 +1788,13 @@ export async function reader() {
 loadaucmds("DocStart")
 window.addEventListener("pagehide", () => loadaucmds("DocEnd"))
 window.addEventListener("DOMContentLoaded", () => loadaucmds("DocLoad"))
+document.addEventListener("blur", () => loadaucmds("DocBlur"))
+document.addEventListener("focus", () => loadaucmds("DocFocus"))
 // }
 
 /** @hidden */
 //#content
-export async function loadaucmds(cmdType: "DocStart" | "DocLoad" | "DocEnd" | "TabEnter" | "TabLeft") {
+export async function loadaucmds(cmdType: "DocBlur" | "DocFocus" | "DocStart" | "DocLoad" | "DocEnd" | "TabEnter" | "TabLeft") {
     let aucmds = await config.getAsync("autocmds", cmdType)
     const ausites = Object.keys(aucmds)
     const aukeyarr = ausites.filter(e => window.document.location.href.search(e) >= 0)
@@ -3094,19 +3096,16 @@ export function set(key: string, ...values: string[]) {
 
 /** @hidden */
 //#background_helper
-let AUCMDS = ["DocStart", "DocLoad", "DocEnd", "TriStart", "TabEnter", "TabLeft"]
+let AUCMDS = ["DocFocus", "DocBlur", "DocStart", "DocLoad", "DocEnd", "TriStart", "TabEnter", "TabLeft"]
 /** Set autocmds to run when certain events happen.
 
- @param event Curently, 'TriStart', 'DocStart', 'DocLoad', 'DocEnd', 'TabEnter' and 'TabLeft' are supported.
+ @param event Curently, 'TriStart', 'DocStart', 'DocLoad', 'DocEnd', 'DocFocus', 'DocBlur', 'TabEnter' and 'TabLeft' are supported.
 
- @param url For DocStart, DocEnd, TabEnter, and TabLeft: a fragment of the URL on which the events will trigger, or a JavaScript regex (e.g, `/www\.amazon\.co.*\/`)
+ @param url For DocStart, DocEnd, DocFocus, DocBlur, TabEnter, and TabLeft: a fragment of the URL on which the events will trigger, or a JavaScript regex (e.g, `/www\.amazon\.co.*\/`)
 
  We just use [URL.search](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/search).
 
- For TriStart: A regular expression that matches the hostname of the computer
- the autocmd should be run on. This requires the native messenger to be
- installed, except for the ".*" regular expression which will always be
- triggered, even without the native messenger.
+ For TriStart: A regular expression that matches the hostname of the computer the autocmd should be run on. This requires the native messenger to be installed, except for the ".*" regular expression which will always be triggered, even without the native messenger.
 
  @param excmd The excmd to run (use [[composite]] to run multiple commands)
 
