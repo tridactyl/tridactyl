@@ -2000,8 +2000,8 @@ export async function sleep(time_ms: number) {
 
 /** @hidden */
 //#background
-function showcmdline() {
-    CommandLineBackground.show()
+function showcmdline(focus = true) {
+    CommandLineBackground.show(focus)
 }
 
 /** Set the current value of the commandline to string *with* a trailing space */
@@ -2019,6 +2019,26 @@ export function fillcmdline_notrail(...strarr: string[]) {
     let trailspace = false
     showcmdline()
     messageActiveTab("commandline_frame", "fillcmdline", [str, trailspace])
+}
+
+/** Show and fill the command line without focusing it */
+//#background
+export function fillcmdline_nofocus(...strarr: string[]) {
+    showcmdline(false)
+    return messageActiveTab("commandline_frame", "fillcmdline", [strarr.join(" "), false, false])
+}
+
+/** Shows str in the command line for ms milliseconds */
+//#background
+export async function fillcmdline_tmp(ms: string, ...strarr: string[]) {
+    let milliseconds = parseInt(ms)
+    await fillcmdline_nofocus(...strarr)
+    return new Promise(resolve =>
+        setTimeout(async () => {
+            await messageActiveTab("commandline_frame", "hide_and_clear", [])
+            resolve()
+        }, milliseconds),
+    )
 }
 
 /**
