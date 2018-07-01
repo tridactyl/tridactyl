@@ -2052,12 +2052,12 @@ export async function get_current_url() {
 }
 
 /**
- * Copy content to clipboard.
+ * Copy content to clipboard and provide feedback (noisy!)
  */
 //#background
-export function yank(...content: string[]) {
-    messageActiveTab("commandline_frame", "setClipboard", content)
-    fillcmdline_notrail("# " + content + " copied to clipboard.")
+export async function yank(...content: string[]) {
+    await messageActiveTab("commandline_frame", "setClipboard", content)
+    fillcmdline_tmp("3000", "# " + content + " copied to clipboard.")
 }
 
 /** Use the system clipboard.
@@ -2101,7 +2101,7 @@ export async function clipboard(excmd: "open" | "yank" | "yankshort" | "yankcano
         case "yank":
             await messageActiveTab("commandline_content", "focus")
             content = content == "" ? (await activeTab()).url : content
-            yank(content)
+            fillcmdline_tmp("3000", "# " + content + " copied to clipboard.")
             break
         case "yanktitle":
             yank(content)
@@ -2248,7 +2248,9 @@ export function comclear(name: string) {
 //#background
 export function bind(key: string, ...bindarr: string[]) {
     // Convert key to internal representation
-    key = mapstrToKeyseq(key).map(k => k.toMapstr()).join("")
+    key = mapstrToKeyseq(key)
+        .map(k => k.toMapstr())
+        .join("")
     if (bindarr.length) {
         let exstring = bindarr.join(" ")
         config.set("nmaps", key, exstring)
@@ -2372,7 +2374,9 @@ export function blacklistadd(url: string) {
 //#background
 export async function unbind(key: string) {
     // Convert key to internal representation
-    key = mapstrToKeyseq(key).map(k => k.toMapstr()).join("")
+    key = mapstrToKeyseq(key)
+        .map(k => k.toMapstr())
+        .join("")
     config.set("nmaps", key, "")
 }
 
