@@ -97,6 +97,8 @@
     --tridactyl-highlight-box-bg: #eee;
     --tridactyl-highlight-box-fg: var(--tridactyl-fg);
 
+    --tridactyl-private-window-icon-url: url("chrome://browser/skin/privatebrowsing/private-browsing.svg");
+
     --tridactyl-container-fingerprint-url: url("resource://usercontext-content/fingerprint.svg");
     --tridactyl-container-briefcase-url: url("resource://usercontext-content/briefcase.svg");
     --tridactyl-container-dollar-url: url("resource://usercontext-content/dollar.svg");
