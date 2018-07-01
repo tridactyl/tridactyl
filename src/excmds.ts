@@ -87,7 +87,7 @@
 
 // Shared
 import * as Messaging from "./messaging"
-import { l, browserBg, activeTabId, activeTabContainerId } from "./lib/webext"
+import { browserBg, activeTabId, activeTabContainerId } from "./lib/webext"
 import * as Container from "./lib/containers"
 import state from "./state"
 import * as UrlUtil from "./url_util"
@@ -121,6 +121,7 @@ import { activeTab, firefoxVersionAtLeast, openInNewTab } from "./lib/webext"
 import * as CommandLineBackground from "./commandline_background"
 import * as rc from "./config_rc"
 import * as excmd_parser from "./parsers/exmode"
+import { mapstrToKeyseq } from "./keyseq"
 
 //#background_helper
 import * as Native from "./native_background"
@@ -1244,7 +1245,7 @@ export async function zoom(level = 0, rel = "false") {
  */
 //#background
 export async function reader() {
-    if (await l(firefoxVersionAtLeast(58))) {
+    if (await firefoxVersionAtLeast(58)) {
         let aTab = await activeTab()
         if (aTab.isArticle) {
             browser.tabs.toggleReaderMode()
@@ -1569,15 +1570,13 @@ async function idFromIndex(index?: number | "%" | "#" | string): Promise<number>
     } else if (index !== undefined && index !== "%") {
         // Wrap
         index = Number(index)
-        index = (index - 1).mod((await l(browser.tabs.query({ currentWindow: true }))).length) + 1
+        index = (index - 1).mod((await browser.tabs.query({ currentWindow: true })).length) + 1
 
         // Return id of tab with that index.
-        return (await l(
-            browser.tabs.query({
-                currentWindow: true,
-                index: index - 1,
-            }),
-        ))[0].id
+        return (await browser.tabs.query({
+            currentWindow: true,
+            index: index - 1,
+        }))[0].id
     } else {
         return await activeTabId()
     }
@@ -1950,7 +1949,7 @@ import * as controller from "./controller"
 */
 //#background
 export function repeat(n = 1, ...exstr: string[]) {
-    let cmd = state.last_ex_str
+    let cmd = controller.last_ex_str
     if (exstr.length > 0) cmd = exstr.join(" ")
     logger.debug("repeating " + cmd + " " + n + " times")
     for (let i = 0; i < n; i++) controller.acceptExCmd(cmd)
@@ -2239,6 +2238,8 @@ export function comclear(name: string) {
 */
 //#background
 export function bind(key: string, ...bindarr: string[]) {
+    // Convert key to internal representation
+    key = mapstrToKeyseq(key).map(k => k.toMapstr()).join("")
     if (bindarr.length) {
         let exstring = bindarr.join(" ")
         config.set("nmaps", key, exstring)
@@ -2361,6 +2362,8 @@ export function blacklistadd(url: string) {
 */
 //#background
 export async function unbind(key: string) {
+    // Convert key to internal representation
+    key = mapstrToKeyseq(key).map(k => k.toMapstr()).join("")
     config.set("nmaps", key, "")
 }
 

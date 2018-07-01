@@ -1,3 +1,4 @@
+import { browserBg } from "../lib/webext"
 import * as Containers from "../lib/containers"
 import * as Messaging from "../messaging"
 import * as Completions from "../completions"
@@ -10,6 +11,7 @@ class BufferAllCompletionOption extends Completions.CompletionOptionHTML
         tab: browser.tabs.Tab,
         winindex: number,
         container: browser.contextualIdentities.ContextualIdentity,
+        incognito: boolean,
     ) {
         super()
         this.value = `${winindex}.${tab.index + 1}`
@@ -21,8 +23,11 @@ class BufferAllCompletionOption extends Completions.CompletionOptionHTML
             : Completions.DEFAULT_FAVICON
         this.html = html`<tr class="BufferAllCompletionOption option container_${
             container.color
-        } container_${container.icon} container_${container.name}">
+        } container_${container.icon} container_${container.name} ${
+            incognito ? "incognito" : ""
+        }">
             <td class="prefix"></td>
+            <td class="privatewindow"></td>
             <td class="container"></td>
             <td class="icon"><img src="${favIconUrl}"/></td>
             <td class="title">${this.value}: ${tab.title}</td>
@@ -52,6 +57,13 @@ export class BufferAllCompletionSource extends Completions.CompletionSourceFuse 
             "commandline_background",
             "allWindowTabs",
         )
+        const windows = (await browserBg.windows.getAll()).reduce(
+            (acc, win) => {
+                acc[win.id] = win
+                return acc
+            },
+            {},
+        )
 
         const options = []
 
@@ -75,6 +87,7 @@ export class BufferAllCompletionSource extends Completions.CompletionSourceFuse 
                     tab,
                     winindex,
                     await Containers.getFromId(tab.cookieStoreId),
+                    windows[tab.windowId].incognito,
                 ),
             )
         }
