@@ -352,4 +352,8 @@ export function getClipboard() {
     return result
 }
 
+export function getContent() {
+    return clInput.value
+}
+
 Messaging.addListener("commandline_frame", Messaging.attributeCaller(SELF))

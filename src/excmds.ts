@@ -112,7 +112,7 @@ import * as scrolling from "./scrolling"
 //#background_helper
 // {
 /** Message excmds_content.ts in the active tab of the currentWindow */
-import { messageActiveTab } from "./messaging"
+import { messageTab, messageActiveTab } from "./messaging"
 import { flatten } from "./itertools"
 import "./number.mod"
 import { ModeName } from "./state"
@@ -2032,10 +2032,13 @@ export function fillcmdline_nofocus(...strarr: string[]) {
 //#background
 export async function fillcmdline_tmp(ms: string, ...strarr: string[]) {
     let milliseconds = parseInt(ms)
-    await fillcmdline_nofocus(...strarr)
+    let str = strarr.join(" ")
+    let tabId = await activeTabId()
+    showcmdline(false)
+    messageTab(tabId, "commandline_frame", "fillcmdline", [strarr.join(" "), false, false])
     return new Promise(resolve =>
         setTimeout(async () => {
-            await messageActiveTab("commandline_frame", "hide_and_clear", [])
+            if ((await messageTab(tabId, "commandline_frame", "getContent", [])) == str) await messageTab(tabId, "commandline_frame", "hide_and_clear", [])
             resolve()
         }, milliseconds),
     )
