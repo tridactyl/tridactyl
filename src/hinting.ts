@@ -119,12 +119,21 @@ function defaultHintFilter() {
     }
 }
 
+function defaultHintChars() {
+    switch (config.get("hintnames")) {
+        case "numeric":
+            return "1234567890"
+        default:
+            return config.get("hintchars")
+    }
+}
+
 /** An infinite stream of hints
 
     Earlier hints prefix later hints
 */
 function* hintnames_simple(
-    hintchars = config.get("hintchars"),
+    hintchars = defaultHintChars(),
 ): IterableIterator<string> {
     for (let taglen = 1; true; taglen++) {
         yield* map(permutationsWithReplacement(hintchars, taglen), e =>
@@ -147,9 +156,9 @@ function* hintnames_simple(
     and so on, but we hardly ever see that many hints, so whatever.
     
 */
-function* hintnames(
+function* hintnames_short(
     n: number,
-    hintchars = config.get("hintchars"),
+    hintchars = defaultHintChars(),
 ): IterableIterator<string> {
     let source = hintnames_simple(hintchars)
     const num2skip = Math.floor(n / hintchars.length)
@@ -159,7 +168,7 @@ function* hintnames(
 /** Uniform length hintnames */
 function* hintnames_uniform(
     n: number,
-    hintchars = config.get("hintchars"),
+    hintchars = defaultHintChars(),
 ): IterableIterator<string> {
     if (n <= hintchars.length) yield* islice(hintchars[Symbol.iterator](), n)
     else {
@@ -172,6 +181,26 @@ function* hintnames_uniform(
                 return perm.join("")
             },
         )
+    }
+}
+
+function* hintnames_numeric(n: number): IterableIterator<string> {
+    for (let i = 1; i <= n; i++) {
+        yield String(i)
+    }
+}
+
+function* hintnames(
+    n: number,
+    hintchars = defaultHintChars(),
+): IterableIterator<string> {
+    switch (config.get("hintnames")) {
+        case "numeric":
+            yield* hintnames_numeric(n)
+        case "uniform":
+            yield* hintnames_uniform(n, hintchars)
+        default:
+            yield* hintnames_short(n, hintchars)
     }
 }
 
@@ -256,10 +285,8 @@ function buildHintsVimperator(els: Element[], onSelect: HintSelectedCallback) {
     let names = hintnames(els.length)
     // escape the hintchars string so that strange things don't happen
     // when special characters are used as hintchars (for example, ']')
-    const escapedHintChars = config
-        .get("hintchars")
-        .replace(/^\^|[-\\\]]/g, "\\$&")
-    const filterableTextFilter = new RegExp("[" + escapedHintChars + "]", "gi")
+    const escapedHintChars = defaultHintChars().replace(/^\^|[-\\\]]/g, "\\$&")
+    const filterableTextFilter = new RegExp("[" + escapedHintChars + "]", "g")
     for (let [el, name] of izip(els, names)) {
         let ft = elementFilterableText(el)
         // strip out hintchars
@@ -322,7 +349,7 @@ function filterHintsVimperator(fstr, reflow = false) {
     /** Partition a fstr into a tagged array of substrings */
     function partitionFstr(fstr): { str: string; isHintChar: boolean }[] {
         const peek = a => a[a.length - 1]
-        const hintChars = config.get("hintchars")
+        const hintChars = defaultHintChars()
 
         // For each char, either add it to the existing run if there is one and
         // it's a matching type or start a new run
@@ -401,7 +428,7 @@ function reset() {
 
 /** If key is in hintchars, add it to filtstr and filter */
 function pushKey(ke) {
-    if (hasModifiers(ke)) {
+    if (ke.ctrlKey || ke.altKey || ke.metaKey) {
         return
     } else if (ke.key === "Backspace") {
         modeState.filter = modeState.filter.slice(0, -1)
@@ -409,6 +436,7 @@ function pushKey(ke) {
     } else if (ke.key.length > 1) {
         return
     } else if (modeState.hintchars.includes(ke.key)) {
+        console.log(ke.key)
         modeState.filter += ke.key
         modeState.filterFunc(modeState.filter)
     }
@@ -516,6 +544,9 @@ const HINTTAGS_anchor_selectors = `
 `
 
 const HINTTAGS_killable_selectors = `
+header,
+footer,
+nav,
 span,
 div,
 iframe,

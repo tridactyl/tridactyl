@@ -4,6 +4,7 @@ import Logger from "./logging"
 import * as config from "./config"
 import { theme } from "./styling"
 const logger = new Logger("messaging")
+const cmdline_logger = new Logger("cmdline")
 
 /* TODO:
     CSS
@@ -55,28 +56,38 @@ try {
 
 export function show() {
     try {
+        cmdline_iframe.classList.remove("hidden")
         const height =
             cmdline_iframe.contentWindow.document.body.offsetHeight + "px"
         cmdline_iframe.setAttribute("style", `height: ${height} !important;`)
-    } catch (e) {}
+    } catch (e) {
+        cmdline_logger.error(e)
+    }
 }
 
 export function hide() {
     try {
+        cmdline_iframe.classList.add("hidden")
         cmdline_iframe.setAttribute("style", "height: 0px !important;")
-    } catch (e) {}
+    } catch (e) {
+        cmdline_logger.error(e)
+    }
 }
 
 export function focus() {
     try {
         cmdline_iframe.focus()
-    } catch (e) {}
+    } catch (e) {
+        cmdline_logger.error(e)
+    }
 }
 
 export function blur() {
     try {
         cmdline_iframe.blur()
-    } catch (e) {}
+    } catch (e) {
+        cmdline_logger.error(e)
+    }
 }
 
 export function executeWithoutCommandLine(fn) {
@@ -89,7 +100,7 @@ export function executeWithoutCommandLine(fn) {
     try {
         result = fn()
     } catch (e) {
-        console.log(e)
+        cmdline_logger.error(e)
     }
     if (cmdline_iframe) parent.appendChild(cmdline_iframe)
     return result

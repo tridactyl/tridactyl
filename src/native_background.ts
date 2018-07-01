@@ -20,6 +20,7 @@ type MessageCommand =
     | "eval"
     | "getconfig"
     | "env"
+    | "win_firefox_restart"
 interface MessageResp {
     cmd: string
     version: number | null
@@ -245,6 +246,19 @@ export async function temp(content: string, prefix: string) {
     return sendNativeMsg("temp", { content, prefix })
 }
 
+export async function winFirefoxRestart(
+    profiledir: string,
+    browsercmd: string,
+) {
+    let required_version = "0.1.6"
+
+    if (!await nativegate(required_version, false)) {
+        throw `'restart' on Windows needs native messenger version >= ${required_version}.`
+    }
+
+    return sendNativeMsg("win_firefox_restart", { profiledir, browsercmd })
+}
+
 export async function run(command: string) {
     let msg = await sendNativeMsg("run", { command })
     logger.info(msg)
@@ -259,10 +273,12 @@ export async function pyeval(command: string): Promise<MessageResp> {
 }
 
 export async function getenv(variable: string) {
-    let v = await getNativeMessengerVersion()
-    if (!await nativegate("0.1.2", false)) {
-        throw `Error: getenv needs native messenger v>=0.1.2. Current: ${v}`
+    let required_version = "0.1.2"
+
+    if (!await nativegate(required_version, false)) {
+        throw `'getenv' needs native messenger version >= ${required_version}.`
     }
+
     return (await sendNativeMsg("env", { var: variable })).content
 }
 
@@ -270,14 +286,46 @@ export async function getenv(variable: string) {
  You'll get both firefox binary (not necessarily an absolute path) and flags */
 export async function ffargs(): Promise<string[]> {
     // Using ' and + rather that ` because we don't want newlines
-    let output = await pyeval(
-        'handleMessage({"cmd": "run", ' +
-            '"command": "ps -p " + str(os.getppid()) + " -oargs="})["content"]',
-    )
-    return output.content.trim().split(" ")
+    if ((await browserBg.runtime.getPlatformInfo()).os === "win") {
+        throw `Error: "ffargs() is currently broken on Windows and should be avoided."`
+    } else {
+        let output = await pyeval(
+            'handleMessage({"cmd": "run", ' +
+                '"command": "ps -p " + str(os.getppid()) + " -oargs="})["content"]',
+        )
+        return output.content.trim().split(" ")
+    }
 }
 
 export async function getProfileDir() {
+    // Windows users must explicitly set their Firefox profile
+    // directory via 'set profiledir [directory]', or use the
+    // default 'profiledir' value as 'auto' (without quotes).
+    //
+    // Profile directory paths on Windows must _not_ be escaped, and
+    // should be used exactly as shown in the 'about:support' page.
+    //
+    // Example:
+    //
+    // :set profiledir C:\Users\<User-Name>\AppData\Roaming\Mozilla\Firefox\Profiles\8s21wzbh.Default
+    //
+    if ((await browserBg.runtime.getPlatformInfo()).os === "win") {
+        let win_profiledir = config.get("profiledir")
+        win_profiledir = win_profiledir.trim()
+        logger.info("[+] profiledir original: " + win_profiledir)
+
+        win_profiledir = win_profiledir.replace(/\\/g, "/")
+        logger.info("[+] profiledir escaped: " + win_profiledir)
+
+        if (win_profiledir.length > 0) {
+            return win_profiledir
+        } else {
+            throw new Error(
+                "Your profile directory must be set manually on Windows, which you can find on 'about:support', with `set profiledir [directory]`.",
+            )
+        }
+    }
+
     // First, see if we can get the profile from the arguments that were given
     // to Firefox
     let args = await ffargs()
@@ -361,12 +409,15 @@ export async function loadPrefs(filename): Promise<{ [key: string]: string }> {
     return parsePrefs(result.content)
 }
 
+let cached_prefs = null
+
 /** Returns a promise for an object that should contain every about:config
- *  setting. If performance is slow, it might be a good idea to cache the
- *  results of this function: the preference files do not change while firefox
- *  is running.
+ *  setting.
+ *
+ *  Performance is slow so we need to cache the results.
  */
 export async function getPrefs(): Promise<{ [key: string]: string }> {
+    if (cached_prefs != null) return cached_prefs
     const profile = (await getProfileDir()) + "/"
     const prefFiles = [
         // Debian has these
@@ -396,7 +447,10 @@ export async function getPrefs(): Promise<{ [key: string]: string }> {
     for (let file of prefFiles) {
         promises.push(loadPrefs(file))
     }
-    return promises.reduce(async (a, b) => Object.assign(await a, await b))
+    cached_prefs = promises.reduce(async (a, b) =>
+        Object.assign(await a, await b),
+    )
+    return cached_prefs
 }
 
 /** Returns the value for the corresponding about:config setting */
@@ -404,8 +458,42 @@ export async function getPref(name: string): Promise<string> {
     return (await getPrefs())[name]
 }
 
+/** Fetches a config option from the config. If the option is undefined, fetch
+ *  a preference from preferences. It would make more sense for this function to
+ *  be in config.ts but this would require importing this file in config.ts and
+ *  Webpack doesn't like circular dependencies.
+ */
+export async function getConfElsePref(
+    confName: string,
+    prefName: string,
+): Promise<any> {
+    let option = await config.getAsync(confName)
+    if (option === undefined) {
+        try {
+            option = await getPref(prefName)
+        } catch (e) {}
+    }
+    return option
+}
+
+/** Fetches a config option from the config. If the option is undefined, fetch
+ *  prefName from the preferences. If prefName is undefined too, return a
+ *  default.
+ */
+export async function getConfElsePrefElseDefault(
+    confName: string,
+    prefName: string,
+    def: any,
+): Promise<any> {
+    let option = await getConfElsePref(confName, prefName)
+    if (option === undefined) return def
+    return option
+}
+
 /** Writes a preference to user.js */
 export async function writePref(name: string, value: any) {
+    if (cached_prefs) cached_prefs[name] = value
+
     if (typeof value == "string") value = `"${value}"`
     const file = (await getProfileDir()) + "/user.js"
     // No need to check the return code because read returns "" when failing to

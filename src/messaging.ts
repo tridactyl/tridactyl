@@ -1,4 +1,4 @@
-import { l, browserBg, activeTabId } from "./lib/webext"
+import { browserBg, activeTabId } from "./lib/webext"
 import Logger from "./logging"
 const logger = new Logger("messaging")
 
@@ -64,8 +64,7 @@ export function attributeCaller(obj) {
 
 /** Send a message to non-content scripts */
 export async function message(type: NonTabMessageType, command, args?) {
-    // One day typescript will be smart enough to back propagate this cast.
-    return l(browser.runtime.sendMessage({ type, command, args } as Message))
+    return browser.runtime.sendMessage({ type, command, args } as Message)
 }
 
 /** Message the active tab of the currentWindow */
@@ -84,7 +83,7 @@ export async function messageTab(tabId, type: TabMessageType, command, args?) {
         command,
         args,
     }
-    return l(browserBg.tabs.sendMessage(tabId, message))
+    return browserBg.tabs.sendMessage(tabId, message)
 }
 
 export async function messageAllTabs(

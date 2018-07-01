@@ -56,9 +56,7 @@ export class Logger {
                             return browser.runtime.sendMessage({
                                 type: "commandline_background",
                                 command: "recvExStr",
-                                args: [
-                                    "fillcmdline # Error: " + message.join(" "),
-                                ],
+                                args: ["fillcmdline # " + message.join(" ")],
                             })
                         else
                             return browser.tabs.sendMessage(
@@ -69,7 +67,7 @@ export class Logger {
                                 {
                                     type: "commandline_frame",
                                     command: "fillcmdline",
-                                    args: ["# Error: " + message.join(" ")],
+                                    args: ["# " + message.join(" ")],
                                 },
                             )
                     }

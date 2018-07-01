@@ -94,9 +94,15 @@ function mode(mode: "nav" | "search") {
         // ^ why does filtering by offsetHeight work here
         findModeState.markpos = 0
         let el = findModeState.markedels[0]
-        if (!DOM.isVisible(el)) el.scrollIntoView()
-        // colour of the selected link
-        el.style.background = "lawngreen"
+        if (el) {
+            if (!DOM.isVisible(el)) el.scrollIntoView()
+            // colour of the selected link
+            el.style.background = "lawngreen"
+        } else {
+            messageActiveTab("commandline_frame", "fillcmdline", [
+                "# Couldn't find pattern: " + findModeState.filter,
+            ])
+        }
     }
 }
 

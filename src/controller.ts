@@ -100,13 +100,15 @@ export function acceptKey(keyevent: MsgSafeKeyboardEvent) {
     generator.next(keyevent)
 }
 
+export let last_ex_str = ""
+
 /** Parse and execute ExCmds */
 export async function acceptExCmd(exstr: string): Promise<any> {
     // TODO: Errors should go to CommandLine.
     try {
         let [func, args] = exmode_parser(exstr)
         // Stop the repeat excmd from recursing.
-        if (func !== repeat) state.last_ex_str = exstr
+        if (func !== repeat) last_ex_str = exstr
         try {
             return await func(...args)
         } catch (e) {

@@ -71,7 +71,7 @@ if (
 ) {
     config.getAsync("newtab").then(newtab => {
         if (newtab) {
-            excmds.open(newtab)
+            excmds.open_quiet(newtab)
         } else {
             document.documentElement.style.display = "block"
             document.title = "Tridactyl Top Tips & New Tab Page"
@@ -82,6 +82,9 @@ if (
 // Really bad status indicator
 config.getAsync("modeindicator").then(mode => {
     if (mode !== "true") return
+
+    // Do we want container indicators?
+    let containerIndicator = config.get("containerindicator")
 
     // Hide indicator in print mode
     // CSS not explicitly added to the dom doesn't make it to print mode:
@@ -100,9 +103,54 @@ config.getAsync("modeindicator").then(mode => {
         : ""
     statusIndicator.className =
         "cleanslate TridactylStatusIndicator " + privateMode
-    statusIndicator.textContent = state.mode
-    dom.appendTo(document.body, statusIndicator)
-    dom.appendTo(document.head, style)
+
+    // Dynamically sets the border container color.
+    if (containerIndicator === "true") {
+        webext
+            .activeTabContainer()
+            .then(container => {
+                statusIndicator.setAttribute(
+                    "style",
+                    `border: ${container.colorCode} solid 1.5px !important`,
+                )
+            })
+            .catch(error => {
+                logger.debug(error)
+            })
+    }
+
+    // This listener makes the modeindicator disappear when the mouse goes over it
+    statusIndicator.addEventListener("mouseenter", ev => {
+        let target = ev.target as any
+        let rect = target.getBoundingClientRect()
+        target.classList.add("TridactylInvisible")
+        let onMouseOut = ev => {
+            // If the mouse event happened out of the mode indicator boundaries
+            if (
+                ev.clientX < rect.x ||
+                ev.clientX > rect.x + rect.with ||
+                ev.clientY < rect.y ||
+                ev.clientY > rect.y + rect.height
+            ) {
+                target.classList.remove("TridactylInvisible")
+                window.removeEventListener("mousemouve", onMouseOut)
+            }
+        }
+        window.addEventListener("mousemove", onMouseOut)
+    })
+    try {
+        // On quick loading pages, the document is already loaded
+        statusIndicator.textContent = state.mode || "normal"
+        document.body.appendChild(statusIndicator)
+        document.head.appendChild(style)
+    } catch (e) {
+        // But on slower pages we wait for the document to load
+        window.addEventListener("DOMContentLoaded", () => {
+            statusIndicator.textContent = state.mode || "normal"
+            document.body.appendChild(statusIndicator)
+            document.head.appendChild(style)
+        })
+    }
 
     browser.storage.onChanged.addListener((changes, areaname) => {
         if (areaname === "local" && "state" in changes) {

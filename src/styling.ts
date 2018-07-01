@@ -5,9 +5,10 @@ const logger = new Logging.Logger("styling")
 
 // find a way of getting theme list without hard-coding it
 // using a macro might be an option
-const THEMES = ["dark", "greenmat", "shydactyl"]
+const THEMES = ["dark", "greenmat", "shydactyl", "quake"]
 
 function capitalise(str) {
+    if (str === "") return str
     return str[0].toUpperCase() + str.slice(1)
 }
 
@@ -60,4 +61,22 @@ browser.storage.onChanged.addListener((changes, areaname) => {
     if ("userconfig" in changes) {
         retheme()
     }
+})
+
+// Sometimes pages will overwrite class names of elements. We use a MutationObserver to make sure that the HTML element always has a TridactylTheme class
+// We can't just call theme() because it would first try to remove class names from the element, which would trigger the MutationObserver before we had a chance to add the theme class and thus cause infinite recursion
+let cb = async mutationList => {
+    let theme = await config.getAsync("theme")
+    mutationList
+        .filter(m => m.target.className.search(prefixTheme("")) == -1)
+        .forEach(m => m.target.classList.add(prefixTheme(theme)))
+}
+
+new MutationObserver(cb).observe(document.documentElement, {
+    attributes: true,
+    childList: false,
+    characterData: false,
+    subtree: false,
+    attributeOldValue: false,
+    attributeFilter: ["class"],
 })
