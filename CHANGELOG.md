@@ -1,35 +1,98 @@
 # Tridactyl changelog
 
-## Release 1.13.0 / Unreleased
+## Release 1.13.1 / 2018-06-20
 
-*   `fixamo` added: you can now use Tridactyl on addons.mozilla.org. Requires a `restart`.
+*   New features
 
-*   `editor` now includes the hostname of the site you are on in the temporary filename
+    *   `bufferall` bound to `B` by default shows you tabs in all windows.
+    *   Container management with `container{create,close,update,delete}`, `viewcontainers` and `tabopen -c [container name] URL`
+        *   see `help containercreate` for more information
+        *   Mode indicator's border now uses the current container colour
+    *   `set hintnames numeric` for sequential numeric hints. Best used with `set hintfiltermode vimperator-reflow`.
+    *   Changelog now tells you when there's a new changelog that you haven't read.
+    *   `guiset navbar none` removes the navbar totally. Not for the faint-of-heart: you could potentially get trapped if Tridactyl stops working.
 
-    *   this is mostly so that you can set up syntax highlighting in Vim, e.g,
-    *   `au BufReadPost *github.com* set syntax=pandoc`
+*   Bug fixes
 
-*   `native` support for Windows: just do what `installnative` tells you to
+    *   `nativeopen` now puts tabs in the same place that `tabopen` would
+    *   `santise tridactyllocal tridactylsync` now works in RC files
+    *   Missing ;w hint winopen bind added
+    *   Fixed minor error with themes not being properly applied on some sites
+    *   Fixed reload bug on :help when there's no hash
+    *   `<C-i>` editor will now always update the field you started in, not just the one you currently have focused.
+    *   "email" input elements can now be focused without errors.
+    *   `urlincrement` no longer throws errors if a link cannot be found.
 
-    *   you'll probably want to make sure `gvim` is on your path
+## Release 1.13.0 / 2018-06-08
 
 *   **Potentially breaking changes**
 
-    *   pipes in `composite` now send return values to the following ex command. Use semi-colons if you want the old behaviour back (see `bind D`).
-    *   the `DocStart` now uses `String.prototype.search` for matching, so you can use regular expressions such as `/www\.amazon\.co.*/`
+    *   Pipes in `composite` now send return values to the following ex command. Use semi-colons if you want the old behaviour back (see `bind D`).
+    *   The `DocStart` autocommand now uses `String.prototype.search` for matching, so you can use regular expressions such as `/www\.amazon\.co.*/`.
 
-*   Add internal functions for editing `user.js` - we'll probably add a nice interface to this some day.
+*   `editor` now includes the hostname of the site you are on in the temporary filename.
 
-*   Add `restart` command to restart Firefox.
+    *   this is mostly so that you can set up syntax highlighting in Vim, e.g, `au BufReadPost *github.com* set syntax=pandoc`
 
-*   Add new themes
+*   `native` support for Windows: just do what `installnative` tells you to.
 
-    *   `shydactyl` and `greenmat`, covering both ends of the design spectrum.
+    *   You'll probably want to make sure `gvim` is on your path.
 
-*   Make themes apply to {newtab, mode indicator, tutor}
+*   New autocommand events:
+
+    *   TriStart: Triggered when you start firefox.
+    *   TabEnter/TabLeft: Triggered when you enter and leave a tab.
+
+*   New commands:
+
+    *   `:js` and `:jsb` let you execute arbitrary javascript.
+    *   `:restart` will restart Firefox if you have installed Tridactyl's native executable.
+    *   `:fixamo` will make Tridactyl work on addons.mozilla.org. Requires a `:restart`.
+
+*   Hint improvements:
+
+    *   You can select title/alt text of elements using `:hint -P`.
+    *   `hint -;` now accepts selectors.
+    *   Uppercase hints are now supported.
+
+*   Multiple improvements for the mode indicator. It will:
+
+    *   Disappear when you hover your mouse over it.
+    *   Go purple in private windows.
+    *   Be invisible on printed pages.
+
+*   There is now a jumplist:
+
+    *   `<C-o>` or `:jumpprev` will go to your previous location.
+    *   `<C-i>` or `:jumpnext` will go to the next location in your jumplist.
+
+*   Themes:
+
+    *   `shydactyl`, `greenmat`, `quake` were added.
+    *   The dark theme has been updated.
+    *   themes apply to {newtab, mode indicator, tutor}.
 
 *   Add new internal structure for themes - check out contributing.md on the repository if you want to add your own
+
     *   Adding themes at runtime is planned but some way off.
+
+*   The long awaited blacklist to automatically enter ignore mode on some websites is now available! See `:h blacklistadd`.
+
+*   Ignore mode can now also be toggled with <CA-`>.
+
+*   A colon is shown at the beginning of the command line.
+
+*   `:set setting` will now display the setting's value.
+
+*   The command line should work again on image documents.
+
+*   Urlmodify doesn't add the websites you're leaving to your history anymore.
+
+*   An experimental `smoothscroll` setting has been added. You can turn it on by using `:set smoothscroll true`. Be warned, this can make scrolling slower on some websites.
+
+*   `credits` added to show off all the wonderful contributors we have.
+
+*   `help` now displays relevant aliases and key bindings, and `help [key sequence / alias]` will take you to the relevant help.
 
 ## Release 1.12.0 / 2018-05-13
 

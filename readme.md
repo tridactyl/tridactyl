@@ -31,6 +31,8 @@ This is a (non-exhaustive) list of the most common normal-mode bindings. Type `:
 *   `ZZ` — close all tabs and windows, but only "save" them if your about:preferences are set to "show your tabs and windows from last time"
 *   `.` — repeat the last command
 
+You can try `:help key` to know more about `key`. If it is an existing binding, it will take you to the help section of the command that will be executed when pressing `key`. For example `:help .` will take you to the help section of the `repeat` command.
+
 #### Navigating with the current page
 
 *   `j`/`k` — scroll down/up
@@ -205,6 +207,10 @@ You can bind your own shortcuts in normal mode with the `:bind` command. For exa
 *   How do I prevent websites from stealing focus?
 
     There are two ways to do that, the first one is `set allowautofocus false` (if you do this you'll probably also want to set `browser.autofocus` to false in `about:config`). This will prevent the page's `focus()` function from working and could break javascript text editors such as Ace or CodeMirror. Another solution is to use `autocmd TabEnter .* unfocus` in the beta, JS text editors should still work but pages won't steal focus when entering their tabs anymore.
+
+*   Help! A website I use is totally blank when I try to use it with Tridactyl enabled!
+
+    Try `set noiframeon [space separated list of URLs to match]`. If that doesn't work, please file an issue.
 
 ## Contributing
 

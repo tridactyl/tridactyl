@@ -59,6 +59,7 @@ export async function hide() {
 Messaging.addListener(
     "commandline_background",
     Messaging.attributeCaller({
+        allWindowTabs,
         currentWindowTabs,
         history,
         recvExStr,

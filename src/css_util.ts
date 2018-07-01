@@ -79,6 +79,22 @@ export const potentialRules = {
             show: ``,
         },
     },
+    // All children except add-on panels
+    navbarnonaddonchildren: {
+        name: `:root:not([customizing]) #nav-bar > :not(#customizationui-widget-panel)`,
+        options: {
+            hide: `display: none !important;`,
+            show: ``,
+        },
+    },
+    // Set navbar height to 0
+    navbarnoheight: {
+        name: `:root:not([customizing]) #nav-bar`,
+        options: {
+            hide: ``,
+            show: `max-height: 0; min-height: 0 !important;`,
+        },
+    },
     // This inherits transparency if we aren't careful
     menubar: {
         name: `#navigator-toolbox:not(:hover):not(:focus-within) #toolbar-menubar > *`,
@@ -155,11 +171,22 @@ export const metaRules = {
             navbarunfocused: "hide",
             navtoolboxunfocused: "hide",
             navbarafter: "hide",
+            navbarnonaddonchildren: "show",
+            navbarnoheight: "hide",
         },
         always: {
             navbarunfocused: "show",
             navtoolboxunfocused: "show",
             navbarafter: "show",
+            navbarnonaddonchildren: "show",
+            navbarnoheight: "hide",
+        },
+        none: {
+            navbarunfocused: "show",
+            navtoolboxunfocused: "show",
+            navbarafter: "hide",
+            navbarnonaddonchildren: "hide",
+            navbarnoheight: "show",
         },
     },
 }

@@ -2,7 +2,7 @@
 
 source ./scripts/common
 
-jsfiles=$(cachedJS)
+jsfiles=$(cachedFiles)
 
 [ -z "$jsfiles" ] && exit 0
 

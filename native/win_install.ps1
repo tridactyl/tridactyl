@@ -13,14 +13,14 @@ $global:MessengerBinPyName = "native_main.py"
 $global:MessengerBinExeName = "native_main.exe"
 $global:MessengerBinWrapperFilename = "native_main.bat"
 $global:MessengerManifestFilename = "tridactyl.json"
-$global:PythonVersionStr = "Python 3"
+$global:PythonVersionStr = "^3\."
 $global:WinPython3Command = "py -3 -u"
 $global:MessengerManifestReplaceStr = "REPLACE_ME_WITH_SED"
 
 # $git_repo_owner should be "cmcaine" in final release
 $git_repo_owner = "cmcaine"
 # $git_repo_branch should be "master" in final release
-$git_repo_branch = "cmcaine/master"
+$git_repo_branch = "master"
 $git_repo_proto = "https"
 $git_repo_host = "raw.githubusercontent.com"
 $git_repo_name = "tridactyl"
@@ -46,12 +46,12 @@ $global:DebugDirBase = $DebugDirBase.Trim()
 function Get-PythonVersionStatus() {
     try {
         $pythonVersion = Invoke-Expression `
-            "$global:WinPython3Command --version"
+            "$global:WinPython3Command -c ""import sys; print(sys.version)"""
     } catch {
         $pythonVersion = ""
     }
 
-    if ($pythonVersion.IndexOf($global:PythonVersionStr) -ge 0) {
+    if ($pythonVersion -match $global:PythonVersionStr) {
         return $true
     } else {
         return $false
@@ -271,18 +271,18 @@ function Get-MessengerBinWrapperPath() {
 }
 
 function Set-MessengerBinWrapper() {
-    $messengerBinPath = Get-MessengerBinPath
+    $messengerBinName = Get-MessengerBinName
     $messengerBinWrapperPath = Get-MessengerBinWrapperPath
 
     if ($global:NoPython -eq $false) { # system has python3
     $messengerWrapperContent = @"
 @echo off
-call $global:WinPython3Command $messengerBinPath
+call $global:WinPython3Command .\$messengerBinName
 "@
     } else { ## system does _not_ have python3
     $messengerWrapperContent = @"
 @echo off
-call $messengerBinPath
+call .\$messengerBinName
 "@
     }
 

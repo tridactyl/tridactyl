@@ -3,6 +3,10 @@
 import "./lib/html-tagged-template"
 
 import * as Completions from "./completions"
+import { BufferAllCompletionSource } from "./completions/BufferAll"
+import { BufferCompletionSource } from "./completions/Buffer"
+import { BmarkCompletionSource } from "./completions/Bmark"
+import { HistoryCompletionSource } from "./completions/History"
 import * as Messaging from "./messaging"
 import * as Config from "./config"
 import * as SELF from "./commandline_frame"
@@ -50,9 +54,10 @@ function getCompletion() {
 function enableCompletions() {
     if (!activeCompletions) {
         activeCompletions = [
-            new Completions.BufferCompletionSource(completionsDiv),
-            new Completions.HistoryCompletionSource(completionsDiv),
-            new Completions.BmarkCompletionSource(completionsDiv),
+            new BufferAllCompletionSource(completionsDiv),
+            new BufferCompletionSource(completionsDiv),
+            new HistoryCompletionSource(completionsDiv),
+            new BmarkCompletionSource(completionsDiv),
         ]
 
         const fragment = document.createDocumentFragment()
