@@ -95,7 +95,7 @@ const DEFAULTS = o({
         gu: "urlparent",
         gU: "urlroot",
         gf: "viewsource",
-        ":": "fillcmdline",
+        ":": "fillcmdline_notrail",
         s: "fillcmdline open search",
         S: "fillcmdline tabopen search",
         // find mode not suitable for general consumption yet.

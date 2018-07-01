@@ -298,10 +298,8 @@ export function fillcmdline(
     trailspace = true,
     ffocus = true,
 ) {
-    if (newcommand !== "") {
-        if (trailspace) clInput.value = newcommand + " "
-        else clInput.value = newcommand
-    }
+    if (trailspace) clInput.value = newcommand + " "
+    else clInput.value = newcommand
     isVisible = true
     // Focus is lost for some reason.
     if (ffocus) {
