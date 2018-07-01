@@ -121,6 +121,7 @@ import { activeTab, firefoxVersionAtLeast, openInNewTab } from "./lib/webext"
 import * as CommandLineBackground from "./commandline_background"
 import * as rc from "./config_rc"
 import * as excmd_parser from "./parsers/exmode"
+import { mapstrToKeyseq } from "./keyseq"
 
 //#background_helper
 import * as Native from "./native_background"
@@ -2216,6 +2217,8 @@ export function comclear(name: string) {
 */
 //#background
 export function bind(key: string, ...bindarr: string[]) {
+    // Convert key to internal representation
+    key = mapstrToKeyseq(key).map(k => k.toMapstr()).join("")
     if (bindarr.length) {
         let exstring = bindarr.join(" ")
         config.set("nmaps", key, exstring)
@@ -2338,6 +2341,8 @@ export function blacklistadd(url: string) {
 */
 //#background
 export async function unbind(key: string) {
+    // Convert key to internal representation
+    key = mapstrToKeyseq(key).map(k => k.toMapstr()).join("")
     config.set("nmaps", key, "")
 }
 

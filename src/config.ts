@@ -33,6 +33,7 @@ function schlepp(settings) {
 let USERCONFIG = o({})
 const DEFAULTS = o({
     configversion: "0.0",
+    // When creating new <modifier-letter> maps, make sure to make the modifier uppercase (e.g. <C-a> instead of <c-a>) otherwise some commands might not be able to find them (e.g. `bind <c-a>`)
     nmaps: o({
         "<F1>": "help",
         o: "fillcmdline open",
@@ -44,8 +45,8 @@ const DEFAULTS = o({
         "[[": "followpage prev",
         "[c": "urlincrement -1",
         "]c": "urlincrement 1",
-        "<c-x>": "urlincrement -1",
-        "<c-a>": "urlincrement 1",
+        "<C-x>": "urlincrement -1",
+        "<C-a>": "urlincrement 1",
         T: "current_url tabopen",
         yy: "clipboard yank",
         ys: "clipboard yankshort",
@@ -55,26 +56,26 @@ const DEFAULTS = o({
         p: "clipboard open",
         P: "clipboard tabopen",
         j: "scrollline 10",
-        "<c-e>": "scrollline 10",
+        "<C-e>": "scrollline 10",
         k: "scrollline -10",
-        "<c-y>": "scrollline 10",
+        "<C-y>": "scrollline 10",
         h: "scrollpx -50",
         l: "scrollpx 50",
         G: "scrollto 100",
         gg: "scrollto 0",
-        "<c-u>": "scrollpage -0.5",
-        "<c-d>": "scrollpage 0.5",
+        "<C-u>": "scrollpage -0.5",
+        "<C-d>": "scrollpage 0.5",
         // Disabled while our find mode is bad
-        /* "<c-f>": "scrollpage -1", */
-        // "<c-b>": "scrollpage -1",
+        /* "<C-f>": "scrollpage -1", */
+        // "<C-b>": "scrollpage -1",
         $: "scrollto 100 x",
         // "0": "scrollto 0 x", // will get interpreted as a count
         "^": "scrollto 0 x",
-        "<c-6>": "buffer #",
+        "<C-6>": "buffer #",
         H: "back",
         L: "forward",
-        "<c-o>": "jumpprev",
-        "<c-i>": "jumpnext",
+        "<C-o>": "jumpprev",
+        "<C-i>": "jumpnext",
         d: "tabclose",
         D: "composite tabprev; sleep 100; tabclose #",
         gx0: "tabclosealltoleft",
