@@ -268,6 +268,8 @@ export async function guiset(rule: string, option: string) {
     // Trim due to https://github.com/reworkcss/css/issues/114
     let stylesheetDone = CSS.stringify(css_util.changeCss(rule, option, stylesheet)).trim()
     Native.write(profile_dir + "/chrome/userChrome.css", stylesheetDone)
+
+    fillcmdline_tmp("3000", "userChrome.css written. Please restart Firefox to see the changes.")
 }
 
 /** @hidden */
@@ -291,6 +293,7 @@ export function cssparse(...css: string[]) {
 export async function fixamo() {
     await Native.writePref("privacy.resistFingerprinting.block_mozAddonManager", true)
     await Native.writePref("extensions.webextensions.restrictedDomains", "")
+    fillcmdline_tmp("3000", "Permissions added to user.js. Please restart Firefox to make them take affect.")
 }
 
 /**
@@ -2027,7 +2030,7 @@ export function fillcmdline_nofocus(...strarr: string[]) {
     return messageActiveTab("commandline_frame", "fillcmdline", [strarr.join(" "), false, false])
 }
 
-/** Shows str in the command line for ms milliseconds */
+/** Shows str in the command line for ms milliseconds. Recommended duration: 3000ms. */
 //#background
 export async function fillcmdline_tmp(ms: string, ...strarr: string[]) {
     let milliseconds = parseInt(ms)
