@@ -128,6 +128,7 @@ const DEFAULTS = o({
         "<S-Insert>": "mode ignore",
         "<CA-Esc>": "mode ignore",
         "<CA-`>": "mode ignore",
+        "<Esc>": "composite mode normal ; hidecmdline",
         I:
             "fillcmdline Ignore mode is now toggled by pressing <S-Insert> or <C-A-`>",
         a: "current_url bmark",

@@ -2003,6 +2003,12 @@ function showcmdline(focus = true) {
     CommandLineBackground.show(focus)
 }
 
+/** @hidden */
+//#background
+export function hidecmdline() {
+    CommandLineBackground.hide()
+}
+
 /** Set the current value of the commandline to string *with* a trailing space */
 //#background
 export function fillcmdline(...strarr: string[]) {
