@@ -7,6 +7,7 @@ import * as config from "./config"
 import { browserBg } from "./lib/webext"
 
 import Logger from "./logging"
+import { List } from "lodash"
 const logger = new Logger("native")
 
 const NATIVE_NAME = "tridactyl"
@@ -20,7 +21,10 @@ type MessageCommand =
     | "eval"
     | "getconfig"
     | "env"
-    | "win_firefox_restart"
+    | "restart_firefox"
+    | "remove_firefox_prefs"
+    | "add_firefox_prefs"
+    | "get_firefox_pid"
 interface MessageResp {
     cmd: string
     version: number | null
@@ -234,6 +238,8 @@ export async function read(file: string) {
     return sendNativeMsg("read", { file })
 }
 
+// FIXME: The "write" message below currently will lead to
+// overwriting of the target file.
 export async function write(file: string, content: string) {
     return sendNativeMsg("write", { file, content })
 }
@@ -246,17 +252,14 @@ export async function temp(content: string, prefix: string) {
     return sendNativeMsg("temp", { content, prefix })
 }
 
-export async function winFirefoxRestart(
-    profiledir: string,
-    browsercmd: string,
-) {
+export async function restartFirefox(profiledir: string, browsercmd: string) {
     let required_version = "0.1.6"
 
     if (!await nativegate(required_version, false)) {
         throw `'restart' on Windows needs native messenger version >= ${required_version}.`
     }
 
-    return sendNativeMsg("win_firefox_restart", { profiledir, browsercmd })
+    return sendNativeMsg("restart_firefox", { profiledir, browsercmd })
 }
 
 export async function run(command: string) {
@@ -508,4 +511,35 @@ export async function writePref(name: string, value: any) {
         substr = text.substring(prefPos, prefPos + prefEnd)
         write(file, text.replace(substr, `pref("${name}", ${value})`))
     }
+}
+
+/** Remove a list of preference(s) from user.js */
+export async function removeFirefoxPrefs(arr_prefs: string[]) {
+    let profiledir = await getProfileDir()
+    let required_version = "0.1.7"
+
+    if (!await nativegate(required_version, false)) {
+        throw `'removeFirefoxPrefs()' needs native messenger version >= ${required_version}.`
+    }
+
+    let prefs = JSON.stringify(arr_prefs)
+    return sendNativeMsg("remove_firefox_prefs", { profiledir, prefs })
+}
+
+/** Add a dictionary of preference(s) to user.js */
+export async function addFirefoxPrefs(arr_prefs: {}) {
+    let profiledir = await getProfileDir()
+    let required_version = "0.1.7"
+
+    if (!await nativegate(required_version, false)) {
+        throw `'addFirefoxPrefs()' needs native messenger version >= ${required_version}.`
+    }
+
+    let prefs = JSON.stringify(arr_prefs)
+    return sendNativeMsg("add_firefox_prefs", { profiledir, prefs })
+}
+
+/** Fetch Firefox's process ID */
+export async function getFirefoxPid() {
+    return sendNativeMsg("get_firefox_pid", {}, false)
 }

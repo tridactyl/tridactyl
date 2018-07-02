@@ -32,3 +32,12 @@ noisy() {
     done
     echo ${acc[@]}
 }
+
+native_main_debug_flag() {
+  local tmp=$(mktemp -u "native_main_XXXXXXXX")
+  staged "native/native_main.py" > "${tmp}.py"
+
+  python -c "from ${tmp} import *; print(DEBUG)"
+  rm -f "${tmp}.py" 2>&1 > /dev/null
+  rm -rf "__pycache__" 2>&1 > /dev/null
+}

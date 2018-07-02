@@ -2,6 +2,13 @@
 
 source ./scripts/common
 
+# Check if 'DEBUG = True' set in 'native_main.py'
+if [[ "$(native_main_debug_flag)" != "False" ]]; then
+  echo "Commit 'DEBUG = False' in 'native_main.py'"
+  echo "Aborting Git commit ..."
+  exit 1
+fi
+
 jsfiles=$(cachedFiles)
 
 [ -z "$jsfiles" ] && exit 0
@@ -21,3 +28,4 @@ if [ -n "$uglyFiles" ]; then
     echo 'npm run pretty'
     exit 1
 fi
+

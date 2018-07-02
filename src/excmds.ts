@@ -288,9 +288,39 @@ export function cssparse(...css: string[]) {
  * Requires `native` and a `restart`.
  */
 //#background
-export async function fixamo() {
-    await Native.writePref("privacy.resistFingerprinting.block_mozAddonManager", true)
-    await Native.writePref("extensions.webextensions.restrictedDomains", "")
+export async function fixamo(cmd: string) {
+    if (typeof cmd === "undefined" || cmd === "on") {
+        //
+        // Replacing the writePref() calls below with the new
+        // add_firefox_prefs() call that avoids multiple invocation
+        // of the native messenger. Multiple invocation leads to
+        // performance issues currently being discussed here [0].
+        //
+        // [0] https://github.com/cmcaine/tridactyl/issues/512
+        //
+        // await Native.writePref("privacy.resistFingerprinting.block_mozAddonManager", true)
+        // await Native.writePref("extensions.webextensions.restrictedDomains", "")
+        let reply = await Native.addFirefoxPrefs({
+            "privacy.resistFingerprinting.block_mozAddonManager": true,
+            "extensions.webextensions.restrictedDomains": "",
+        })
+        logger.info("[+] 'fixamo on' > reply = " + JSON.stringify(reply))
+        if (Number(reply["code"]) === 0) {
+            fillcmdline("# " + reply["content"])
+        } else {
+            fillcmdline("# " + reply["error"])
+        }
+    } else if (cmd === "off") {
+        let reply = await Native.removeFirefoxPrefs(["privacy.resistFingerprinting.block_mozAddonManager", "extensions.webextensions.restrictedDomains"])
+        logger.info("[+] 'fixamo off' > reply = " + JSON.stringify(reply))
+        if (Number(reply["code"]) === 0) {
+            fillcmdline("# " + reply["content"])
+        } else {
+            fillcmdline("# " + reply["error"])
+        }
+    } else {
+        throw new Error(`Invalid option '${cmd}' provided for 'fixamo'`)
+    }
 }
 
 /**
@@ -436,28 +466,21 @@ export async function updatenative(interactive = true) {
 /**
  *  Restarts firefox with the same commandline arguments.
  *
- *  Warning: This can kill your tabs, especially if you :restart several times
- *  in a row
+ *  Warning: This can kill your tabs, especially if you :restart
+ *  several times in a row
  */
 //#background
 export async function restart() {
     const profiledir = await Native.getProfileDir()
     const browsercmd = await config.get("browser")
 
-    if ((await browser.runtime.getPlatformInfo()).os === "win") {
-        let reply = await Native.winFirefoxRestart(profiledir, browsercmd)
-        logger.info("[+] win_firefox_restart 'reply' = " + JSON.stringify(reply))
-        if (Number(reply["code"]) === 0) {
-            fillcmdline("#" + reply["content"])
-            qall()
-        } else {
-            fillcmdline("#" + reply["error"])
-        }
-    } else {
-        const firefox = (await Native.ffargs()).join(" ")
-        // Wait for the lock to disappear, then wait a bit more, then start firefox
-        Native.run(`while readlink ${profiledir}/lock ; do sleep 1 ; done ; sleep 1 ; ${firefox}`)
+    let reply = await Native.restartFirefox(profiledir, browsercmd)
+    logger.info("[+] restart_firefox 'reply' = " + JSON.stringify(reply))
+    if (Number(reply["code"]) === 0) {
+        fillcmdline("#" + reply["content"])
         qall()
+    } else {
+        fillcmdline("#" + reply["error"])
     }
 }
 
@@ -933,7 +956,7 @@ export function home(all: "false" | "true" = "false") {
 
 /** Show this page.
 
-    `:help something` jumps to the entry for something. Something can be an excmd, an alias for an excmd or a binding. 
+    `:help something` jumps to the entry for something. Something can be an excmd, an alias for an excmd or a binding.
 
     The "nmaps" list is a list of all the bindings for the command you're seeing and the "exaliases" list lists all its aliases.
 
@@ -2856,6 +2879,18 @@ export async function jsb(...str: string[]) {
     } else {
         return eval(str.join(" "))
     }
+}
+
+//#background
+export async function ffargs(): Promise<void> {
+    let output = await Native.ffargs()
+    fillcmdline("# " + output)
+}
+
+//#background
+export async function ffpid(): Promise<void> {
+    let output = await Native.getFirefoxPid()
+    fillcmdline("# " + output["content"])
 }
 
 /**  Open a welcome page on first install.
