@@ -891,7 +891,8 @@ export async function url2args() {
             encodedArgs = encodedArgs.substring(0, encodedArgs.length - end.length)
             // Remove any get parameters that might have been added by the search engine
             // This works because if the user's query contains an "&", it will be encoded as %26
-            encodedArgs = encodedArgs.substring(0, encodedArgs.search("&"))
+            let amperpos = encodedArgs.search("&")
+            if (amperpos > 0) encodedArgs = encodedArgs.substring(0, amperpos)
 
             // Do transformations depending on the search engine
             if (beginning.search("duckduckgo") > 0) encodedArgs = encodedArgs.replace(/\+/g, " ")
