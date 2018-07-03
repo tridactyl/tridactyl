@@ -142,6 +142,7 @@ const DEFAULTS = o({
     autocmds: o({
         DocStart: o({
             // "addons.mozilla.org": "mode ignore",
+            // "github.com": "reopenincontainer Work",
         }),
         DocEnd: o({
             // "emacs.org": "sanitise history",
