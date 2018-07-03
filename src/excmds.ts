@@ -279,6 +279,15 @@ export function cssparse(...css: string[]) {
 }
 
 /**
+ * Like [[fixamo]] but quieter.
+ */
+//#background
+export async function fixamo_quiet() {
+    await Native.writePref("privacy.resistFingerprinting.block_mozAddonManager", true)
+    await Native.writePref("extensions.webextensions.restrictedDomains", "")
+}
+
+/**
  *
  * Simply sets
  * ```js
@@ -291,8 +300,7 @@ export function cssparse(...css: string[]) {
  */
 //#background
 export async function fixamo() {
-    await Native.writePref("privacy.resistFingerprinting.block_mozAddonManager", true)
-    await Native.writePref("extensions.webextensions.restrictedDomains", "")
+    await fixamo_quiet()
     fillcmdline_tmp("3000", "Permissions added to user.js. Please restart Firefox to make them take affect.")
 }
 

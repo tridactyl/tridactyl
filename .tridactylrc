@@ -34,7 +34,7 @@ set hintchars 4327895610
 
 " Make Tridactyl work on more sites at the expense of some security
 set csp clobber
-fixamo
+fixamo_quiet
 
 " Make quickmarks for the sane Tridactyl issue view
 quickmark t https://github.com/cmcaine/tridactyl/issues?utf8=%E2%9C%93&q=sort%3Aupdated-desc+
