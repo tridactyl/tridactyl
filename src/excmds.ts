@@ -377,11 +377,11 @@ export async function native() {
 export async function installnative() {
     if ((await browser.runtime.getPlatformInfo()).os === "win") {
         const installstr = await config.get("win_powershell_nativeinstallcmd")
-        await clipboard("yank", installstr)
+        await yank(installstr)
         fillcmdline("# Installation command copied to clipboard. Please paste and run it in Windows Powershell to install the native messenger.")
     } else {
         const installstr = await config.get("nativeinstallcmd")
-        await clipboard("yank", installstr)
+        await yank(installstr)
         fillcmdline("# Installation command copied to clipboard. Please paste and run it in your shell to install the native messenger.")
     }
 }
@@ -2055,12 +2055,11 @@ export async function get_current_url() {
 }
 
 /**
- * Copy content to clipboard and provide feedback (noisy!)
+ * Copy content to clipboard without feedback. Use `clipboard yank` for interactive use.
  */
 //#background
 export async function yank(...content: string[]) {
     await messageActiveTab("commandline_frame", "setClipboard", content)
-    fillcmdline_tmp("3000", "# " + content + " copied to clipboard.")
 }
 
 /** Use the system clipboard.
@@ -2104,6 +2103,7 @@ export async function clipboard(excmd: "open" | "yank" | "yankshort" | "yankcano
         case "yank":
             await messageActiveTab("commandline_content", "focus")
             content = content == "" ? (await activeTab()).url : content
+            await yank(content)
             fillcmdline_tmp("3000", "# " + content + " copied to clipboard.")
             break
         case "yanktitle":
