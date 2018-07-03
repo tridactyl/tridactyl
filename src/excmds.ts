@@ -2081,16 +2081,15 @@ async function setclip(str) {
     let c = () => messageActiveTab("commandline_frame", "setClipboard", [str])
 
     let promises = []
-    switch (await config.getAsync("externalclipboard")) {
-        case "only":
+    switch (await config.getAsync("yankto")) {
+        case "selection":
             promises = [s()]
             break
-        case "first":
-        case "last":
-            promises = [s(), c()]
-            break
-        case "never":
+        case "clipboard":
             promises = [c()]
+            break
+        case "both":
+            promises = [s(), c()]
             break
     }
     return Promise.all(promises)
@@ -2102,13 +2101,10 @@ async function setclip(str) {
  */
 //#background_helper
 async function getclip() {
-    switch (await config.getAsync("externalclipboard")) {
-        case "only":
-        case "first":
-            return Native.clipboard("get", "")
-        case "last":
-        case "never":
+    if (await config.getAsync("putfrom") == "selection") {
             return messageActiveTab("commandline_frame", "getClipboard")
+    } else {
+            return Native.clipboard("get", "")
     }
 }
 
@@ -2126,11 +2122,11 @@ async function getclip() {
 
     If `excmd == "yankmd"`, copy the title and url of the open page formatted in Markdown for easy use on sites such as reddit.
 
-    If you're on Linux and the native messenger is installed, Tridactyl will call an external binary (either xclip or xsel) to read or write to your X selection buffer.
+    If you're on Linux and the native messenger is installed, Tridactyl will call an external binary (either xclip or xsel) to read or write to your X selection buffer. If you want another program to be used, set "externalclipboardcmd" to its name and make sure it has the same interface as xsel/xclip ("-i"/"-o" and reading from stdin).
 
-    When doing a read operation (i.e. open or tabopen), if "externalclipboard" is set to "only" or "first", the X selection buffer will be read instead of the clipboard. Set "externalclipboard" to "last" or "never" to use the clipboard.
+    When doing a read operation (i.e. open or tabopen), if "putfrom" is set to "selection", the X selection buffer will be read instead of the clipboard. Set "putfrom" to "clipboard" to use the clipboard.
 
-    When doing a write operation, if "externalclipboard" is set to "only", only the X selection buffer will be written to. If "externalclipboard" is set to "first" or "last", both the X selection and the clipboard will be written to. If "externalclipboard" is set to "never", only the clipboard will be written to.
+    When doing a write operation, if "yankto" is set to "selection", only the X selection buffer will be written to. If "yankto" is set to "both", both the X selection and the clipboard will be written to. If "yankto" is set to "clipboard", only the clipboard will be written to.
 
 */
 //#background
