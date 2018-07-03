@@ -2100,14 +2100,14 @@ export async function clipboard(excmd: "open" | "yank" | "yankshort" | "yankcano
             }
             if (urls.length > 0) {
                 await yank(urls[0])
-                fillcmdline_tmp("3000", "# " + content + " copied to clipboard.")
+                fillcmdline_tmp("3000", "# " + urls[0] + " copied to clipboard.")
                 break
             }
         case "yankcanon":
             urls = await geturlsforlinks("rel", "canonical")
             if (urls.length > 0) {
                 await yank(urls[0])
-                fillcmdline_tmp("3000", "# " + content + " copied to clipboard.")
+                fillcmdline_tmp("3000", "# " + urls[0] + " copied to clipboard.")
                 break
             }
         case "yank":
