@@ -2107,6 +2107,7 @@ export async function clipboard(excmd: "open" | "yank" | "yankshort" | "yankcano
             fillcmdline_tmp("3000", "# " + content + " copied to clipboard.")
             break
         case "yanktitle":
+            content = (await activeTab()).title
             yank(content)
             break
         case "yankmd":
