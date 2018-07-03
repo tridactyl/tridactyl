@@ -46,6 +46,8 @@ export async function create(
 ): Promise<string> {
     if (color === "random") color = chooseRandomColor()
     let container = fromString(name, color, icon)
+    // browser.contextualIdentities.create does not accept a cookieStoreId property.
+    delete container.cookieStoreId
     logger.debug(container)
 
     if (await exists(name)) {
@@ -56,11 +58,7 @@ export async function create(
     } else {
         try {
             let res = await browser.contextualIdentities.create(container)
-            logger.info(
-                "[Container.create] created container:",
-                res["cookieStoreId"],
-            )
-            return res["cookieStoreId"]
+            return res.cookieStoreId
         } catch (e) {
             throw e
         }
