@@ -2091,13 +2091,15 @@ export async function clipboard(excmd: "open" | "yank" | "yankshort" | "yankcano
                 urls = await geturlsforlinks("rev", "canonical")
             }
             if (urls.length > 0) {
-                yank(urls[0])
+                await yank(urls[0])
+                fillcmdline_tmp("3000", "# " + content + " copied to clipboard.")
                 break
             }
         case "yankcanon":
             urls = await geturlsforlinks("rel", "canonical")
             if (urls.length > 0) {
-                yank(urls[0])
+                await yank(urls[0])
+                fillcmdline_tmp("3000", "# " + content + " copied to clipboard.")
                 break
             }
         case "yank":
@@ -2108,11 +2110,13 @@ export async function clipboard(excmd: "open" | "yank" | "yankshort" | "yankcano
             break
         case "yanktitle":
             content = (await activeTab()).title
-            yank(content)
+            await yank(content)
+            fillcmdline_tmp("3000", "# " + content + " copied to clipboard.")
             break
         case "yankmd":
             content = "[" + (await activeTab()).title + "](" + (await activeTab()).url + ")"
-            yank(content)
+            await yank(content)
+            fillcmdline_tmp("3000", "# " + content + " copied to clipboard.")
             break
         case "open":
             await messageActiveTab("commandline_content", "focus")
