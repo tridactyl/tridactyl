@@ -51,6 +51,8 @@ const DEFAULTS = o({
         yy: "clipboard yank",
         ys: "clipboard yankshort",
         yc: "clipboard yankcanon",
+        ym: "clipboard yankmd",
+        yt: "clipboard yanktitle",
         gh: "home",
         gH: "home true",
         p: "clipboard open",
