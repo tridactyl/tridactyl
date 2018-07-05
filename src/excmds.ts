@@ -2504,9 +2504,9 @@ export async function sanitise(...args: string[]) {
     // Tridactyl-specific items
     if (dts.commandline === true) state.cmdHistory = []
     delete dts.commandline
-    if (dts.tridactyllocal === true) browser.storage.local.clear()
+    if (dts.tridactyllocal === true) await browser.storage.local.clear()
     delete dts.tridactyllocal
-    if (dts.tridactylsync === true) browser.storage.sync.clear()
+    if (dts.tridactylsync === true) await browser.storage.sync.clear()
     delete dts.tridactylsync
     // Global items
     browser.browsingData.remove(since, dts)
