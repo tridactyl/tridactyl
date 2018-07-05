@@ -29,7 +29,7 @@ export function findCssRules(
  */
 export const potentialRules = {
     hoverlink: {
-        name: `statuspanel[type="overLink"]`,
+        name: `statuspanel[type="overLink"], #statuspanel[type="overLink"]`,
         options: {
             none: `display: none !important;`,
             right: `right: 0; display: inline;`,
