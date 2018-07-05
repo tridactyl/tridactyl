@@ -2048,7 +2048,10 @@ export async function fillcmdline_tmp(ms: string, ...strarr: string[]) {
     messageTab(tabId, "commandline_frame", "fillcmdline", [strarr.join(" "), false, false])
     return new Promise(resolve =>
         setTimeout(async () => {
-            if ((await messageTab(tabId, "commandline_frame", "getContent", [])) == str) await messageTab(tabId, "commandline_frame", "hide_and_clear", [])
+            if ((await messageTab(tabId, "commandline_frame", "getContent", [])) == str) {
+                CommandLineBackground.hide(tabId)
+                await messageTab(tabId, "commandline_frame", "clear", [true])
+            }
             resolve()
         }, milliseconds),
     )
