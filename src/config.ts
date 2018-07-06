@@ -159,6 +159,10 @@ const DEFAULTS = o({
             // "emacs.org": "tabclose",
         }),
     }),
+    autocontain: o({
+        ".*github.com": "tridactyl",
+        ".*youtube.com": "Personal",
+    }),
     exaliases: o({
         alias: "command",
         au: "autocmd",

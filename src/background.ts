@@ -112,3 +112,10 @@ browser.tabs.onActivated.addListener(ev => {
     curTab = ev.tabId
     messaging.messageTab(curTab, "excmd_content", "loadaucmds", ["TabEnter"])
 })
+
+// Contain autocmd.
+browser.webRequest.onBeforeRequest.addListener(
+    request.autoContain,
+    { urls: ["<all_urls>"], types: ["main_frame"] },
+    ["blocking"],
+)

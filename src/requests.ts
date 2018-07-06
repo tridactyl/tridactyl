@@ -1,3 +1,5 @@
+import * as Messaging from "./messaging"
+import * as Container from "./lib/containers"
 import * as config from "./config"
 import * as csp from "csp-serdes"
 import Logger from "./logging"
@@ -66,5 +68,42 @@ export function clobberCSP(response) {
         return { responseHeaders: headers }
     } else {
         return {}
+    }
+}
+
+function reopenTab(tab, cookieStoreId, url) {
+    browser.tabs
+        .create({
+            url: url,
+            cookieStoreId: cookieStoreId,
+            active: tab.active,
+        })
+        .then(_ => {
+            //browser.tabs.remove(tab.tabId)
+        })
+}
+/** If it quacks like an aucmd... **/
+export async function autoContain(details) {
+    let tab = await browser.tabs.get(details.tabId)
+    if (tab.incognito) return
+    if (details.tabId === -1) return
+
+    try {
+        let aucons = config.get("autocontain")
+        const ausites = Object.keys(aucons)
+        const aukeyarr = ausites.filter(e => details.url.search(e) >= 0)
+        if (aukeyarr.length > 1)
+            throw new Error(
+                "More than one autocontain directives match this url.",
+            )
+
+        // Silently return if we're already in the correct container.
+        let cookieStoreId = await Container.getId(aucons[aukeyarr[0]])
+        if (tab.cookieStoreId === cookieStoreId) return
+
+        reopenTab(tab, cookieStoreId, details.url)
+        console.log(`reopenincontainer ${aucons[aukeyarr[0]]} ${details.tabId}`)
+    } catch (e) {
+        throw e
     }
 }
