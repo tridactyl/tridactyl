@@ -711,7 +711,7 @@ export async function scrollpx(a: number, b: number) {
 //#content
 export function scrollto(a: number, b: number | "x" | "y" = "y") {
     a = Number(a)
-    let elem = window.document.scrollingElement || window.document.body
+    let elem = window.document.scrollingElement || window.document.documentElement
     let percentage = a.clamp(0, 100)
     if (b === "y") {
         let top = elem.getClientRects()[0].top
@@ -742,10 +742,14 @@ let lineHeight = null
 //#content
 export function scrollline(n = 1) {
     if (lineHeight === null) {
-        // Get line height
-        const cssHeight = window.getComputedStyle(document.body).getPropertyValue("line-height")
-        // Remove the "px" at the end
-        lineHeight = parseInt(cssHeight.substr(0, cssHeight.length - 2))
+        let getLineHeight = elem => {
+            // Get line height
+            const cssHeight = window.getComputedStyle(elem).getPropertyValue("line-height")
+            // Remove the "px" at the end
+            return parseInt(cssHeight.substr(0, cssHeight.length - 2))
+        }
+        lineHeight = getLineHeight(document.documentElement)
+        if (!lineHeight) lineHeight = getLineHeight(document.body)
         // Is there a better way to compute a fallback? Maybe fetch from about:preferences?
         if (!lineHeight) lineHeight = 22
     }
