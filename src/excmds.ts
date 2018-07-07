@@ -2385,6 +2385,20 @@ export function autocmd(event: string, url: string, ...excmd: string[]) {
     config.set("autocmds", event, url, excmd.join(" "))
 }
 
+/** Load sites specified with autocontain in containers
+ 
+ @param url a fragment of the URL on which the autocontain will trigger, or a JavaScript regex (e.g, `/www\.amazon\.co*\/`)
+ @param container The container to open the url in. 
+ 
+ For declaring containers that do not yet exist, consider using `auconscreatecontainer true` in your tridactylrc.
+ This allows tridactyl to automatically create containers from your autocontain directives. Note that they will be random icons and colors.
+ 
+ */
+//#background
+export function autocontain(url: string, container: string) {
+    config.set("autocontain", url, container)
+}
+
 /**
  *  Helper function to put Tridactyl into ignore mode on the provided URL.
  *
