@@ -209,41 +209,20 @@ export abstract class CompletionSourceFuse extends CompletionSource {
 
     /** Rtn sorted array of {option, score} */
     scoredOptions(query: string, options = this.options): ScoredOption[] {
-        // This is about as slow.
-        let USE_FUSE = true
-        if (!USE_FUSE) {
-            const searchThis = this.options.map((elem, index) => {
-                return { index, fuseKeys: elem.fuseKeys[0] }
-            })
-
-            return searchThis.map(r => {
-                return {
-                    index: r.index,
-                    option: this.options[r.index],
-                    score: r.fuseKeys.length,
-                }
-            })
-        } else {
-            // Can't sort the real options array because Fuse loses class information.
-
-            if (!this.fuse) {
-                let searchThis = this.options.map((elem, index) => {
-                    return { index, fuseKeys: elem.fuseKeys }
-                })
-
-                this.fuse = new Fuse(searchThis, this.fuseOptions)
+        let searchThis = this.options.map((elem, index) => {
+            return { index, fuseKeys: elem.fuseKeys }
+        })
+        this.fuse = new Fuse(searchThis, this.fuseOptions)
+        return this.fuse.search(query).map(res => {
+            let result = res as any
+            // console.log(result, result.item, query)
+            let index = toNumber(result.item)
+            return {
+                index,
+                option: this.options[index],
+                score: result.score as number,
             }
-            return this.fuse.search(query).map(res => {
-                let result = res as any
-                // console.log(result, result.item, query)
-                let index = toNumber(result.item)
-                return {
-                    index,
-                    option: this.options[index],
-                    score: result.score as number,
-                }
-            })
-        }
+        })
     }
 
     /** Set option state by score
