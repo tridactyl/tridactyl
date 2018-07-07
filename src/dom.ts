@@ -481,13 +481,11 @@ export function getLastUsedInput(): HTMLElement {
  *  https://developer.mozilla.org/en-US/docs/Web/Web_Components/Custom_Elements
  *  https://bugzilla.mozilla.org/show_bug.cgi?id=1406825
  * */
-function onPageFocus(elem: HTMLElement, args: any[]): void {
+function onPageFocus(elem: HTMLElement, args: any[]): boolean {
     if (isTextEditable(elem)) {
         LAST_USED_INPUT = elem
-        config.getAsync("allowautofocus").then(allow => {
-            if (allow === "true") elem.focus(args)
-        })
     }
+    return config.get("allowautofocus") == "true"
 }
 
 async function setInput(el) {
@@ -504,7 +502,8 @@ function hijackPageFocusFunction(): void {
 
     let eval_str = `HTMLElement.prototype.focus = ((realFocus, ${exportedName}) => {
         return function (...args) {
-            realFocus.apply(this, args)
+            if (${exportedName}(this, args))
+                return realFocus.apply(this, args)
         }
      })(HTMLElement.prototype.focus, ${exportedName})`
 
