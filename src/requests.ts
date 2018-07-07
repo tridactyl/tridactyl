@@ -72,14 +72,18 @@ export function clobberCSP(response) {
 }
 
 function reopenTab(tab, cookieStoreId, url) {
-    browser.tabs.create({
-        url: url,
-        cookieStoreId: cookieStoreId,
-        active: tab.active,
-    })
+    browser.tabs
+        .create({
+            url: url,
+            cookieStoreId: cookieStoreId,
+            active: tab.active,
+        })
+        .then(_ => {
+            browser.tabs.remove(tab.tabId)
+        })
 }
 
-function shouldContain(details): string {
+function parseAucons(details): string {
     let aucons = config.get("autocontain")
     const ausites = Object.keys(aucons)
     const aukeyarr = ausites.filter(e => details.url.search(e) >= 0)
@@ -94,7 +98,8 @@ function shouldContain(details): string {
 }
 
 /** If it quacks like an aucmd... **/
-export async function autoContain(details) {
+export async function autoContain(details): Promise<any> {
+    console.log(details)
     let tab = await browser.tabs.get(details.tabId)
 
     // Don't handle private tabs or invalid tabIds.
@@ -102,12 +107,8 @@ export async function autoContain(details) {
     if (details.tabId === -1) return
 
     // Get container name from config. Return if containerName is the empty string.
-    let containerName = shouldContain(details)
+    let containerName = parseAucons(details)
     if (!containerName) return
-
-    // Silently return if we're already in the correct container.
-    let cookieStoreId = await Container.getId(containerName)
-    if (tab.cookieStoreId === cookieStoreId) return
 
     // Checks if container by that name exists and creates it if false.
     let containerExists = await Container.exists(containerName)
@@ -121,6 +122,10 @@ export async function autoContain(details) {
         }
     }
 
+    // Silently return if we're already in the correct container.
+    let cookieStoreId = await Container.getId(containerName)
+    if (tab.cookieStoreId === cookieStoreId) return
+
     reopenTab(tab, cookieStoreId, details.url)
-    console.log(`reopenincontainer ${containerName} ${details.tabId}`)
+    return { cancel: true }
 }
