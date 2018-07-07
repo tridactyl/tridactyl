@@ -504,7 +504,7 @@ function hijackPageFocusFunction(): void {
 
     let eval_str = `HTMLElement.prototype.focus = ((realFocus, ${exportedName}) => {
         return function (...args) {
-            ${exportedName}(this, args)
+            realFocus.apply(this, args)
         }
      })(HTMLElement.prototype.focus, ${exportedName})`
 
