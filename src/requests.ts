@@ -107,11 +107,11 @@ export async function autoContain(details): Promise<any> {
     // Checks if container by that name exists and creates it if false.
     let containerExists = await Container.exists(containerName)
     if (!containerExists) {
-        if (config.get("auconscreatecontainer")) {
+        if (config.get("auconcreatecontainer")) {
             await Container.create(containerName)
         } else {
             logger.error(
-                "Specified container doesn't exist. consider setting 'auconscreatecontainer' to true",
+                "Specified container doesn't exist. consider setting 'auconcreatecontainer' to true",
             )
         }
     }
@@ -120,12 +120,19 @@ export async function autoContain(details): Promise<any> {
     let cookieStoreId = await Container.getId(containerName)
     if (tab.cookieStoreId === cookieStoreId) return
 
+    let preserveTab = config.get("auconpreservetab")
+    if (preserveTab && details.originUrl) {
+        window.history.back()
+    } else {
+        browser.tabs.remove(details.tabId)
+    }
+
     browser.tabs.create({
         url: details.url,
         cookieStoreId: cookieStoreId,
         active: tab.active,
         windowId: tab.windowId,
     })
-    browser.tabs.remove(details.tabId)
+
     return { cancel: true }
 }

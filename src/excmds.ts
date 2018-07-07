@@ -2385,18 +2385,20 @@ export function autocmd(event: string, url: string, ...excmd: string[]) {
     config.set("autocmds", event, url, excmd.join(" "))
 }
 
-/** Load sites specified with autocontain in containers
+/** Automatically open a domain and all it's subdomains in a specified container.
  
- @param url a fragment of the URL on which the autocontain will trigger, or a JavaScript regex (e.g, `/www\.amazon\.co*\/`)
+ @param domain The domain which will trigger the autoContain directive. Includes all subdomains.
  @param container The container to open the url in. 
  
  For declaring containers that do not yet exist, consider using `auconscreatecontainer true` in your tridactylrc.
  This allows tridactyl to automatically create containers from your autocontain directives. Note that they will be random icons and colors.
+
+ Use `auconspreservetab true` to keep the uncontained tab open. The use case here is for example to keep your reddit tab open even if you click a youtube link.
  
  */
 //#background
-export function autocontain(url: string, container: string) {
-    config.set("autocontain", url, container)
+export function autocontain(domain: string, container: string) {
+    config.set("autocontain", domain, container)
 }
 
 /**

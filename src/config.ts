@@ -160,12 +160,13 @@ const DEFAULTS = o({
         }),
     }),
     autocontain: o({
-        ".*github.com": "tridactyl",
-        ".*youtube.com": "Personal",
+        //"github.com": "microsoft",
+        //"youtube.com": "google",
     }),
     exaliases: o({
         alias: "command",
         au: "autocmd",
+        aucon: "autocontain",
         b: "buffer",
         o: "open",
         w: "winopen",
@@ -313,7 +314,10 @@ const DEFAULTS = o({
     containerindicator: "true",
 
     // AutoContain directives create a container if it doesn't exist already.
-    auconscreatecontainer: "true",
+    auconcreatecontainer: "true",
+
+    // Does not close the tab that navigated to the autocontained domain.
+    auconpreservetab: "true",
 
     // Performance related settings
 
