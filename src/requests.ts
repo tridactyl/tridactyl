@@ -1,5 +1,6 @@
 import * as Messaging from "./messaging"
 import * as Container from "./lib/containers"
+import * as UrlUtil from "./url_util"
 import * as config from "./config"
 import * as csp from "csp-serdes"
 import Logger from "./logging"
@@ -71,22 +72,12 @@ export function clobberCSP(response) {
     }
 }
 
-function reopenTab(tab, cookieStoreId, url) {
-    browser.tabs
-        .create({
-            url: url,
-            cookieStoreId: cookieStoreId,
-            active: tab.active,
-        })
-        .then(_ => {
-            browser.tabs.remove(tab.tabId)
-        })
-}
-
 function parseAucons(details): string {
     let aucons = config.get("autocontain")
     const ausites = Object.keys(aucons)
-    const aukeyarr = ausites.filter(e => details.url.search(e) >= 0)
+    const aukeyarr = ausites.filter(
+        e => details.url.search("^https?://.*" + e + "/") >= 0,
+    )
     if (aukeyarr.length > 1) {
         logger.error("Too many autocontain directives match this url.")
         return ""
@@ -105,6 +96,9 @@ export async function autoContain(details): Promise<any> {
     // Don't handle private tabs or invalid tabIds.
     if (tab.incognito) return
     if (details.tabId === -1) return
+
+    // Only handle http requests.
+    if (details.url.search("^https?://") < 0) return
 
     // Get container name from config. Return if containerName is the empty string.
     let containerName = parseAucons(details)
@@ -126,6 +120,12 @@ export async function autoContain(details): Promise<any> {
     let cookieStoreId = await Container.getId(containerName)
     if (tab.cookieStoreId === cookieStoreId) return
 
-    reopenTab(tab, cookieStoreId, details.url)
+    browser.tabs.create({
+        url: details.url,
+        cookieStoreId: cookieStoreId,
+        active: tab.active,
+        windowId: tab.windowId,
+    })
+    browser.tabs.remove(details.tabId)
     return { cancel: true }
 }
