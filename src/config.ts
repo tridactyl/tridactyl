@@ -305,11 +305,15 @@ const DEFAULTS = o({
     profiledir: "auto",
 
     // Container settings
+
     // If enabled, tabopen opens a new tab in the currently active tab's container.
     tabopencontaineraware: "false",
 
     // If moodeindicator is enabled, containerindicator will color the border of the mode indicator with the container color.
     containerindicator: "true",
+
+    // AutoContain directives create a container if it doesn't exist already.
+    auconscreatecontainer: "true",
 
     // Performance related settings
 

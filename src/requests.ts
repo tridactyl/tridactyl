@@ -72,38 +72,55 @@ export function clobberCSP(response) {
 }
 
 function reopenTab(tab, cookieStoreId, url) {
-    browser.tabs
-        .create({
-            url: url,
-            cookieStoreId: cookieStoreId,
-            active: tab.active,
-        })
-        .then(_ => {
-            //browser.tabs.remove(tab.tabId)
-        })
+    browser.tabs.create({
+        url: url,
+        cookieStoreId: cookieStoreId,
+        active: tab.active,
+    })
 }
+
+function shouldContain(details): string {
+    let aucons = config.get("autocontain")
+    const ausites = Object.keys(aucons)
+    const aukeyarr = ausites.filter(e => details.url.search(e) >= 0)
+    if (aukeyarr.length > 1) {
+        logger.error("Too many autocontain directives match this url.")
+        return ""
+    } else if (aukeyarr.length === 0) {
+        return ""
+    } else {
+        return aucons[aukeyarr[0]]
+    }
+}
+
 /** If it quacks like an aucmd... **/
 export async function autoContain(details) {
     let tab = await browser.tabs.get(details.tabId)
+
+    // Don't handle private tabs or invalid tabIds.
     if (tab.incognito) return
     if (details.tabId === -1) return
 
-    try {
-        let aucons = config.get("autocontain")
-        const ausites = Object.keys(aucons)
-        const aukeyarr = ausites.filter(e => details.url.search(e) >= 0)
-        if (aukeyarr.length > 1)
-            throw new Error(
-                "More than one autocontain directives match this url.",
+    // Get container name from config. Return if containerName is the empty string.
+    let containerName = shouldContain(details)
+    if (!containerName) return
+
+    // Silently return if we're already in the correct container.
+    let cookieStoreId = await Container.getId(containerName)
+    if (tab.cookieStoreId === cookieStoreId) return
+
+    // Checks if container by that name exists and creates it if false.
+    let containerExists = await Container.exists(containerName)
+    if (!containerExists) {
+        if (config.get("auconscreatecontainer")) {
+            await Container.create(containerName)
+        } else {
+            logger.error(
+                "Specified container doesn't exist. consider setting 'auconscreatecontainer' to true",
             )
-
-        // Silently return if we're already in the correct container.
-        let cookieStoreId = await Container.getId(aucons[aukeyarr[0]])
-        if (tab.cookieStoreId === cookieStoreId) return
-
-        reopenTab(tab, cookieStoreId, details.url)
-        console.log(`reopenincontainer ${aucons[aukeyarr[0]]} ${details.tabId}`)
-    } catch (e) {
-        throw e
+        }
     }
+
+    reopenTab(tab, cookieStoreId, details.url)
+    console.log(`reopenincontainer ${containerName} ${details.tabId}`)
 }
