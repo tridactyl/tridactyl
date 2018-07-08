@@ -1870,38 +1870,6 @@ export async function viewcontainers() {
             .replace(/ /g, "%20")
 }
 
-/** Reopens current tab in specified container. Does not retain the tab's history.
-
- @param string containerName
- @param string tabId The id of the tab to reopen.
- */
-//#background
-export async function reopenincontainer(containerName: string) {
-    try {
-        let tab = await activeTab()
-        let containerId = await Container.getId(containerName)
-
-        // Silently return if the tab is already in requested container.
-        if (tab.cookieStoreId === containerId) return
-
-        if (Container.exists(containerName)) {
-            browser.tabs
-                .create({
-                    url: tab.url,
-                    cookieStoreId: containerId,
-                    active: tab.active,
-                    index: tab.index,
-                    windowId: tab.windowId,
-                })
-                .then(_ => {
-                    browser.tabs.remove(tab.id)
-                })
-        }
-    } catch (e) {
-        throw e
-    }
-}
-
 // }}}
 //
 // {{{ MISC
