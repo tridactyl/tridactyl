@@ -181,17 +181,26 @@ export async function getAll(): Promise<any[]> {
     return await browser.contextualIdentities.query({})
 }
 
-/**
- * @param name The container name
- * @returns The cookieStoreId of the first match of the query.
+/** Fetches the cookieStoreId of a given container
+
+ Note: all checks are case insensitive.
+
+ @param name The container name
+ @returns The cookieStoreId of the first match of the query.
  */
 export async function getId(name: string): Promise<string> {
     try {
-        return (await browser.contextualIdentities.query({ name: name }))[0][
-            "cookieStoreId"
-        ]
+        let containers = await getAll()
+        let res = containers.filter(
+            c => c.name.toLowerCase() === name.toLowerCase(),
+        )
+        if (res.length !== 1) {
+            throw new Error("")
+        } else {
+            return res[0]["cookieStoreId"]
+        }
     } catch (e) {
-        throw new Error(
+        logger.error(
             "[Container.getId] could not find a container with that name.",
         )
     }

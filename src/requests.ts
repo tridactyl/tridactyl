@@ -90,12 +90,10 @@ function parseAucons(details): string {
 
 /** If it quacks like an aucmd... **/
 export async function autoContain(details): Promise<any> {
-    console.log(details)
-    let tab = await browser.tabs.get(details.tabId)
-
     // Don't handle private tabs or invalid tabIds.
-    if (tab.incognito) return
     if (details.tabId === -1) return
+    let tab = await browser.tabs.get(details.tabId)
+    if (tab.incognito) return
 
     // Only handle http requests.
     if (details.url.search("^https?://") < 0) return
