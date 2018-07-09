@@ -1,5 +1,6 @@
 " bovine3dom's dogfood
-"
+ 
+" May require the latest beta builds.
 
 " Move this to $XDG_CONFIG_DIR/tridactyl/tridactylrc (that's
 " ~/.config/tridactyl/tridactylrc to mere mortals) or ~/.tridactylrc and
