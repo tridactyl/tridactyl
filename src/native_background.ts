@@ -124,7 +124,7 @@ export async function getBestEditor(): Promise<string> {
         ]
     }
 
-    tui_editors = ["vim", "nvim", "nano", "emacs -nw"]
+    tui_editors = ["nvim", "vim", "nano", "emacs -nw"]
 
     // Consider GUI editors
     let cmd = await firstinpath(gui_candidates)
