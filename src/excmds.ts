@@ -536,7 +536,7 @@ export function forceURI(maybeURI: string): string {
 /** @hidden */
 //#background_helper
 function tabSetActive(id: number) {
-    browser.tabs.update(id, { active: true })
+    return browser.tabs.update(id, { active: true })
 }
 
 // }}}
@@ -1451,7 +1451,7 @@ export function focusbyid(id: string) {
 /** @hidden */
 //#background_helper
 async function tabIndexSetActive(index: number | string) {
-    tabSetActive(await idFromIndex(index))
+    return tabSetActive(await idFromIndex(index))
 }
 
 /** Switch to the next tab, wrapping round.
@@ -1485,7 +1485,7 @@ export async function tabnext_gt(index?: number) {
  */
 //#background
 export async function tabprev(increment = 1) {
-    tabIndexSetActive((await activeTab()).index - increment + 1)
+    return tabIndexSetActive((await activeTab()).index - increment + 1)
 }
 
 /** Switch to the first tab. */
