@@ -55,6 +55,7 @@
     - Pressing `ZZ` will close all tabs and windows, but it will only "save"
       them if your about:preferences are set to "show your tabs and windows
       from last time"
+    - Press Ctrl-i in a text box to edit in an external editor (e.g. vim). Requires native messenger.
     - Change theme with `colours default|dark|greenmat|shydactyl`
 
     There are some caveats common to all webextension vimperator-alikes:
@@ -182,7 +183,7 @@ export async function getInputSelector() {
  *
  * The editorcmd needs to accept a filename, stay in the foreground while it's edited, save the file and exit.
  *
- * You're probably better off using the default insert mode bind of <C-i> to access this.
+ * You're probably better off using the default insert mode bind of `<C-i>` (Ctrl-i) to access this.
  */
 //#background
 export async function editor() {
