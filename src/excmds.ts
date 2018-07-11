@@ -384,9 +384,9 @@ export async function native() {
 //#background
 export async function installnative() {
     if ((await browser.runtime.getPlatformInfo()).os === "win") {
-        const installstr = await config.get("win_powershell_nativeinstallcmd")
+        const installstr = await config.get("win_nativeinstallcmd")
         await yank(installstr)
-        fillcmdline("# Installation command copied to clipboard. Please paste and run it in Windows Powershell to install the native messenger.")
+        fillcmdline("# Installation command copied to clipboard. Please paste and run it from cmd.exe, PowerShell, or MinTTY to install the native messenger.")
     } else {
         const installstr = await config.get("nativeinstallcmd")
         await yank(installstr)
@@ -435,7 +435,7 @@ export async function updatenative(interactive = true) {
             return
         }
         if ((await browser.runtime.getPlatformInfo()).os === "win") {
-            await Native.run(await config.get("win_cmdexe_nativeinstallcmd"))
+            await Native.run(await config.get("win_nativeinstallcmd"))
         } else {
             await Native.run(await config.get("nativeinstallcmd"))
         }
@@ -948,7 +948,7 @@ export function home(all: "false" | "true" = "false") {
 
 /** Show this page.
 
-    `:help something` jumps to the entry for something. Something can be an excmd, an alias for an excmd or a binding. 
+    `:help something` jumps to the entry for something. Something can be an excmd, an alias for an excmd or a binding.
 
     The "nmaps" list is a list of all the bindings for the command you're seeing and the "exaliases" list lists all its aliases.
 

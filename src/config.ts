@@ -295,10 +295,8 @@ const DEFAULTS = o({
     browser: "firefox",
     nativeinstallcmd:
         "curl -fsSl https://raw.githubusercontent.com/cmcaine/tridactyl/master/native/install.sh | bash",
-    win_powershell_nativeinstallcmd:
-        "Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/cmcaine/tridactyl/master/native/win_install.ps1'))",
-    win_cmdexe_nativeinstallcmd:
-        '@"%SystemRoot%\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -NoProfile -InputFormat None -Command "iex ((New-Object System.Net.WebClient).DownloadString(\'https://raw.githubusercontent.com/cmcaine/tridactyl/master/native/win_install.ps1\'))"',
+    win_nativeinstallcmd:
+        "powershell -NoProfile -InputFormat None -Command \"Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/cmcaine/tridactyl/master/native/install.ps1'))\"",
     profiledir: "auto",
 
     // Container settings
