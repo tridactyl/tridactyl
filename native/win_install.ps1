@@ -43,6 +43,11 @@ $global:NoPython= $NoPython
 $global:InstallDirBase = $InstallDirBase.Trim()
 $global:DebugDirBase = $DebugDirBase.Trim()
 
+function Set-TlsVersion() {
+    [Net.ServicePointManager]::SecurityProtocol =
+        [Net.SecurityProtocolType]::Tls12 -bOr `
+        [Net.SecurityProtocolType]::Tls11
+}
 function Get-PythonVersionStatus() {
     try {
         $pythonVersion = Invoke-Expression `
@@ -231,10 +236,15 @@ function Set-MessengerBin() {
         Write-Host "[+] Downloading $messengerBinUri ..."
 
         try {
+            Set-TlsVersion
             Invoke-WebRequest `
                 -Uri $messengerBinUri `
                 -OutFile $messengerBinPath
         } catch {
+            Write-Host `
+                "Invoke-WebRequest Exception:" `
+                $_.Exception.GetType().FullName, $_.Exception.Message
+
             Write-Host `
                 "Invoke-WebRequest StatusCode:" `
                 $_.Exception.Response.StatusCode.value__
@@ -352,6 +362,7 @@ function Set-MessengerManifest() {
         Write-Host "[+] Downloading $messengerManifestUri ..."
 
         try {
+            Set-TlsVersion
             Invoke-WebRequest `
                 -Uri $messengerManifestUri `
                 -OutFile $messengerManifestPath
@@ -495,8 +506,8 @@ function Set-MessengerInstall() {
             Write-Host "    - Python 3 not found, will use EXE ..."
             $global:NoPython = $true
         } else {
-        $pythonPath = Get-Command "py" `
-            | Select-Object -ExpandProperty "Source"
+            $pythonPath = Get-Command "py" `
+                | Select-Object -ExpandProperty "Source"
 
             Write-Host "    - Python 3 found at: $pythonPath"
         }
