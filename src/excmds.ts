@@ -2355,6 +2355,9 @@ export function set(key: string, ...values: string[]) {
     }
 }
 
+/** @hidden */
+//#background_helper
+let AUCMDS = ["DocStart", "DocEnd", "TriStart", "TabEnter", "TabLeft"]
 /** Set autocmds to run when certain events happen.
 
  @param event Curently, 'TriStart', 'DocStart', 'DocEnd', 'TabEnter' and 'TabLeft' are supported.
@@ -2375,7 +2378,7 @@ export function set(key: string, ...values: string[]) {
 export function autocmd(event: string, url: string, ...excmd: string[]) {
     // rudimentary run time type checking
     // TODO: Decide on autocmd event names
-    if (!["DocStart", "DocEnd", "TriStart", "TabEnter", "TabLeft"].includes(event)) throw event + " is not a supported event."
+    if (!AUCMDS.includes(event)) throw event + " is not a supported event."
     config.set("autocmds", event, url, excmd.join(" "))
 }
 
@@ -2385,8 +2388,8 @@ export function autocmd(event: string, url: string, ...excmd: string[]) {
  @param url For DocStart, DocEnd, TabEnter, and TabLeft: a fragment of the URL on which the events will trigger, or a JavaScript regex (e.g, `/www\.amazon\.co.*\/`)
 */
 //#background
-export function rmautocmd(event: string, url: string) {
-    if (!["DocStart", "DocEnd", "TriStart", "TabEnter", "TabLeft"].includes(event)) throw event + " is not a supported event."
+export function autocmddelete(event: string, url: string) {
+    if (!AUCMDS.includes(event)) throw event + " is not a supported event."
     config.unset("autocmds", event, url)
 }
 
