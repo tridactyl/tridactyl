@@ -164,6 +164,8 @@ const DEFAULTS = o({
     exaliases: o({
         alias: "command",
         au: "autocmd",
+        "au!": "rmautocmd",
+        "autocmd!": "rmautocmd",
         b: "buffer",
         o: "open",
         w: "winopen",

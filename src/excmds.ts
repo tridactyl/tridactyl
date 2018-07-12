@@ -2379,6 +2379,17 @@ export function autocmd(event: string, url: string, ...excmd: string[]) {
     config.set("autocmds", event, url, excmd.join(" "))
 }
 
+/** Remove autocmds
+ @param event Curently, 'TriStart', 'DocStart', 'DocEnd', 'TabEnter' and 'TabLeft' are supported.
+
+ @param url For DocStart, DocEnd, TabEnter, and TabLeft: a fragment of the URL on which the events will trigger, or a JavaScript regex (e.g, `/www\.amazon\.co.*\/`)
+*/
+//#background
+export function rmautocmd(event: string, url: string) {
+    if (!["DocStart", "DocEnd", "TriStart", "TabEnter", "TabLeft"].includes(event)) throw event + " is not a supported event."
+    config.unset("autocmds", event, url)
+}
+
 /**
  *  Helper function to put Tridactyl into ignore mode on the provided URL.
  *
