@@ -1,3 +1,4 @@
+import { activeTabId } from "./lib/webext"
 import * as Messaging from "./messaging"
 
 export type onLineCallback = (exStr: string) => void
@@ -53,9 +54,10 @@ export async function show(focus = true) {
     }
 }
 
-export async function hide() {
-    Messaging.messageActiveTab("commandline_content", "hide")
-    Messaging.messageActiveTab("commandline_content", "blur")
+export async function hide(tabid?) {
+    if (!tabid) tabid = await activeTabId()
+    Messaging.messageTab(tabid, "commandline_content", "hide")
+    Messaging.messageTab(tabid, "commandline_content", "blur")
 }
 
 Messaging.addListener(
