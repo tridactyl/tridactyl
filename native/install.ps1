@@ -16,6 +16,7 @@ $global:MessengerManifestFilename = "tridactyl.json"
 $global:PythonVersionStr = "^3\."
 $global:WinPython3Command = "py -3 -u"
 $global:MessengerManifestReplaceStr = "REPLACE_ME_WITH_SED"
+$global:PowerShellMinimumVersion = 3
 
 # $git_repo_owner should be "cmcaine" in final release
 $git_repo_owner = "cmcaine"
@@ -43,6 +44,25 @@ $global:NoPython= $NoPython
 $global:InstallDirBase = $InstallDirBase.Trim()
 $global:DebugDirBase = $DebugDirBase.Trim()
 
+function Set-PowerShellVersion() {
+    $requiredPowerShellVersion = $global:PowerShellMinimumVersion
+    $currentPowerShellVersion = [int]`
+        ($PSVersionTable.PSVersion.Major)
+
+    if ($currentPowerShellVersion -lt $requiredPowerShellVersion) {
+        $msg = [string]::Format("{0} >= '{1}' {2}, '{3}' {4}",
+            "    - PowerShell major version",
+            $requiredPowerShellVersion,
+            "required",
+            $currentPowerShellVersion,
+            "found, quitting ..."
+        )
+
+        Write-Host "[+] Installation failed. :-("
+        Write-Host $msg
+        exit -1
+    }
+}
 function Set-TlsVersion() {
     [Net.ServicePointManager]::SecurityProtocol =
         [Net.SecurityProtocolType]::Tls12 -bOr `
@@ -565,4 +585,5 @@ if ($global:Uninstall) {
     exit 0
 }
 
+Set-PowerShellVersion
 Set-MessengerInstall
