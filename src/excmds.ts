@@ -885,6 +885,43 @@ export async function open_quiet(...urlarr: string[]) {
     }
 }
 
+/**
+ *  If the url of the current document matches one of your search engines, will convert it to a list of arguments that open/tabopen will understand. If the url doesn't match any search engine, returns the url without modifications.
+ *
+ *  For example, if you have searchurls.gi set to "https://www.google.com/search?q=%s&tbm=isch", using this function on a page you opened using "gi butterflies" will return "gi butterflies".
+ *
+ *  This is useful when combined with fillcmdline, for example like this: `bind O composite url2args | fillcmdline open`.
+ *
+ *  Note that this might break with search engines that redirect you to other pages/add GET parameters that do not exist in your searchurl.
+ */
+//#content
+export async function url2args() {
+    let url = document.location.href
+    let searchurls = await config.getAsync("searchurls")
+    let result = url
+
+    for (let engine in searchurls) {
+        let [beginning, end] = [...searchurls[engine].split("%s"), ""]
+        if (url.startsWith(beginning) && url.endsWith(end)) {
+            // Get the string matching %s
+            let encodedArgs = url.substring(beginning.length)
+            encodedArgs = encodedArgs.substring(0, encodedArgs.length - end.length)
+            // Remove any get parameters that might have been added by the search engine
+            // This works because if the user's query contains an "&", it will be encoded as %26
+            let amperpos = encodedArgs.search("&")
+            if (amperpos > 0) encodedArgs = encodedArgs.substring(0, amperpos)
+
+            // Do transformations depending on the search engine
+            if (beginning.search("duckduckgo") > 0) encodedArgs = encodedArgs.replace(/\+/g, " ")
+            else if (beginning.search("wikipedia") > 0) encodedArgs = encodedArgs.replace(/_/g, " ")
+
+            let args = engine + " " + decodeURIComponent(encodedArgs)
+            if (args.length < result.length) result = args
+        }
+    }
+    return result
+}
+
 /** @hidden */
 //#content_helper
 let sourceElement = undefined
