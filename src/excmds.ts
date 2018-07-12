@@ -2118,7 +2118,45 @@ export async function get_current_url() {
  */
 //#background
 export async function yank(...content: string[]) {
-    await messageActiveTab("commandline_frame", "setClipboard", content)
+    await setclip(content.join(" "))
+}
+
+/** Copies a string to the clipboard/selection buffer depending on the user's preferences
+ *
+ *  @hidden
+ */
+//#background_helper
+async function setclip(str) {
+    // Functions to avoid retyping everything everywhere
+    let s = () => Native.clipboard("set", str)
+    let c = () => messageActiveTab("commandline_frame", "setClipboard", [str])
+
+    let promises = []
+    switch (await config.getAsync("yankto")) {
+        case "selection":
+            promises = [s()]
+            break
+        case "clipboard":
+            promises = [c()]
+            break
+        case "both":
+            promises = [s(), c()]
+            break
+    }
+    return Promise.all(promises)
+}
+
+/** Fetches the content of the clipboard/selection buffer depending on user's preferences
+ *
+ *  @hidden
+ */
+//#background_helper
+async function getclip() {
+    if (await config.getAsync("putfrom") == "selection") {
+            return messageActiveTab("commandline_frame", "getClipboard")
+    } else {
+            return Native.clipboard("get", "")
+    }
 }
 
 /** Use the system clipboard.
@@ -2135,7 +2173,11 @@ export async function yank(...content: string[]) {
 
     If `excmd == "yankmd"`, copy the title and url of the open page formatted in Markdown for easy use on sites such as reddit.
 
-    Unfortunately, javascript can only give us the `clipboard` clipboard, not e.g. the X selection clipboard.
+    If you're on Linux and the native messenger is installed, Tridactyl will call an external binary (either xclip or xsel) to read or write to your X selection buffer. If you want another program to be used, set "externalclipboardcmd" to its name and make sure it has the same interface as xsel/xclip ("-i"/"-o" and reading from stdin).
+
+    When doing a read operation (i.e. open or tabopen), if "putfrom" is set to "selection", the X selection buffer will be read instead of the clipboard. Set "putfrom" to "clipboard" to use the clipboard.
+
+    When doing a write operation, if "yankto" is set to "selection", only the X selection buffer will be written to. If "yankto" is set to "both", both the X selection and the clipboard will be written to. If "yankto" is set to "clipboard", only the clipboard will be written to.
 
 */
 //#background
@@ -2143,55 +2185,57 @@ export async function clipboard(excmd: "open" | "yank" | "yankshort" | "yankcano
     let content = toYank.join(" ")
     let url = ""
     let urls = []
-    switch (excmd) {
-        case "yankshort":
-            urls = await geturlsforlinks("rel", "shortlink")
-            if (urls.length == 0) {
-                urls = await geturlsforlinks("rev", "canonical")
-            }
-            if (urls.length > 0) {
-                await yank(urls[0])
-                fillcmdline_tmp("3000", "# " + urls[0] + " copied to clipboard.")
+    try {
+        switch (excmd) {
+            case "yankshort":
+                urls = await geturlsforlinks("rel", "shortlink")
+                if (urls.length == 0) {
+                    urls = await geturlsforlinks("rev", "canonical")
+                }
+                if (urls.length > 0) {
+                    await yank(urls[0])
+                    fillcmdline_tmp("3000", "# " + urls[0] + " copied to clipboard.")
+                    break
+                }
+            // Trying yankcanon if yankshort failed...
+            case "yankcanon":
+                urls = await geturlsforlinks("rel", "canonical")
+                if (urls.length > 0) {
+                    await yank(urls[0])
+                    fillcmdline_tmp("3000", "# " + urls[0] + " copied to clipboard.")
+                    break
+                }
+            // Trying yank if yankcanon failed...
+            case "yank":
+                content = content == "" ? (await activeTab()).url : content
+                await yank(content)
+                fillcmdline_tmp("3000", "# " + content + " copied to clipboard.")
                 break
-            }
-        case "yankcanon":
-            urls = await geturlsforlinks("rel", "canonical")
-            if (urls.length > 0) {
-                await yank(urls[0])
-                fillcmdline_tmp("3000", "# " + urls[0] + " copied to clipboard.")
+            case "yanktitle":
+                content = (await activeTab()).title
+                await yank(content)
+                fillcmdline_tmp("3000", "# " + content + " copied to clipboard.")
                 break
-            }
-        case "yank":
-            await messageActiveTab("commandline_content", "focus")
-            content = content == "" ? (await activeTab()).url : content
-            await yank(content)
-            fillcmdline_tmp("3000", "# " + content + " copied to clipboard.")
-            break
-        case "yanktitle":
-            content = (await activeTab()).title
-            await yank(content)
-            fillcmdline_tmp("3000", "# " + content + " copied to clipboard.")
-            break
-        case "yankmd":
-            content = "[" + (await activeTab()).title + "](" + (await activeTab()).url + ")"
-            await yank(content)
-            fillcmdline_tmp("3000", "# " + content + " copied to clipboard.")
-            break
-        case "open":
-            await messageActiveTab("commandline_content", "focus")
-            url = await messageActiveTab("commandline_frame", "getClipboard")
-            url && open(url)
-            break
-        case "tabopen":
-            await messageActiveTab("commandline_content", "focus")
-            url = await messageActiveTab("commandline_frame", "getClipboard")
-            url && tabopen(url)
-            break
-        default:
-            // todo: maybe we should have some common error and error handler
-            throw new Error(`[clipboard] unknown excmd: ${excmd}`)
+            case "yankmd":
+                content = "[" + (await activeTab()).title + "](" + (await activeTab()).url + ")"
+                await yank(content)
+                fillcmdline_tmp("3000", "# " + content + " copied to clipboard.")
+                break
+            case "open":
+                url = await getclip()
+                url && open(url)
+                break
+            case "tabopen":
+                url = await getclip()
+                url && tabopen(url)
+                break
+            default:
+                // todo: maybe we should have some common error and error handler
+                throw new Error(`[clipboard] unknown excmd: ${excmd}`)
+        }
+    } catch (e) {
+        logger.error(e)
     }
-    CommandLineBackground.hide()
 }
 
 /** Change active tab.

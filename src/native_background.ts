@@ -282,6 +282,50 @@ export async function getenv(variable: string) {
     return (await sendNativeMsg("env", { var: variable })).content
 }
 
+/** Calls an external program, to either set or get the content of the X selection.
+ *  When setting the selection or if getting it failed, will return an empty string.
+ **/
+export async function clipboard(
+    action: "set" | "get",
+    str: string,
+): Promise<string> {
+    let clipcmd = await config.get("externalclipboardcmd")
+    if (clipcmd == "auto") clipcmd = await firstinpath(["xsel", "xclip"])
+
+    if (clipcmd === undefined) {
+        throw new Error("Couldn't find an external clipboard executable")
+    }
+
+    if (action == "get") {
+        let result = await run(clipcmd + " -o")
+        if (result.code != 0) {
+            throw new Error(
+                `External command failed with code ${result.code}: ${clipcmd}`,
+            )
+        }
+        return result.content
+    } else if (action == "set") {
+        // We're going to need to insert str, which we can't trust, in the clipcmd
+        // In order to do this safely we'll use here documents:
+        // http://pubs.opengroup.org/onlinepubs/009695399/utilities/xcu_chap02.html#tag_02_07_04
+
+        // Find a delimiter that isn't in str
+        let heredoc = "TRIDACTYL"
+        while (str.search(heredoc) != -1)
+            heredoc += Math.round(Math.random() * 10)
+
+        // Use delimiter to insert str into clipcmd's stdin
+        clipcmd = `${clipcmd} -i <<'${heredoc}'\n${str}\n${heredoc}\n`
+        let result = await run(clipcmd)
+        if (result.code != 0)
+            throw new Error(
+                `External command failed with code ${result.code}: ${clipcmd}`,
+            )
+        return ""
+    }
+    throw new Error("Unknown action!")
+}
+
 /** This returns the commandline that was used to start firefox.
  You'll get both firefox binary (not necessarily an absolute path) and flags */
 export async function ffargs(): Promise<string[]> {

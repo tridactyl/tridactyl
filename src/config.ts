@@ -296,6 +296,9 @@ const DEFAULTS = o({
     //          (but we are probably happy to add your terminal to the list if it isn't already there).
     editorcmd: "auto",
     browser: "firefox",
+    yankto: "clipboard", // "clipboard", "selection", "both"
+    putfrom: "clipboard", // "clipboard", "selection"
+    externalclipboardcmd: "auto",
     nativeinstallcmd:
         "curl -fsSl https://raw.githubusercontent.com/cmcaine/tridactyl/master/native/install.sh | bash",
     win_nativeinstallcmd:
