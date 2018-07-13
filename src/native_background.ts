@@ -315,7 +315,8 @@ export async function clipboard(
             heredoc += Math.round(Math.random() * 10)
 
         // Use delimiter to insert str into clipcmd's stdin
-        clipcmd = `${clipcmd} -i <<'${heredoc}'\n${str}\n${heredoc}\n`
+        // We use sed to remove the newline added by the here document
+        clipcmd = `sed -z 's/.$//' <<'${heredoc}' | ${clipcmd} -i \n${str}\n${heredoc}`
         let result = await run(clipcmd)
         if (result.code != 0)
             throw new Error(
