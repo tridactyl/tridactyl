@@ -202,6 +202,43 @@ export async function editor() {
 import * as css_util from "./css_util"
 
 /**
+ * Like [[guiset]] but quieter.
+ */
+//#background
+export async function guiset_quiet(rule: string, option: string) {
+    // Could potentially fall back to sending minimal example to clipboard if native not installed
+
+    // Check for native messenger and make sure we have a plausible profile directory
+    if (!await Native.nativegate("0.1.1")) return
+    let profile_dir = ""
+    if (config.get("profiledir") === "auto" && ["linux", "openbsd", "mac"].includes((await browser.runtime.getPlatformInfo()).os)) {
+        try {
+            profile_dir = await Native.getProfileDir()
+        } catch (e) {}
+    } else {
+        profile_dir = config.get("profiledir")
+    }
+    if (profile_dir == "") {
+        fillcmdline("Please set your profile directory (found on about:support) via `set profiledir [profile directory]`")
+        return
+    }
+
+    // Make backups
+    await Native.mkdir(profile_dir + "/chrome", true)
+    let cssstr = (await Native.read(profile_dir + "/chrome/userChrome.css")).content
+    let cssstrOrig = (await Native.read(profile_dir + "/chrome/userChrome.orig.css")).content
+    if (cssstrOrig === "") await Native.write(profile_dir + "/chrome/userChrome.orig.css", cssstr)
+    await Native.write(profile_dir + "/chrome/userChrome.css.tri.bak", cssstr)
+
+    // Modify and write new CSS
+    if (cssstr === "") cssstr = `@namespace url("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul");`
+    let stylesheet = CSS.parse(cssstr)
+    // Trim due to https://github.com/reworkcss/css/issues/114
+    let stylesheetDone = CSS.stringify(css_util.changeCss(rule, option, stylesheet)).trim()
+    return Native.write(profile_dir + "/chrome/userChrome.css", stylesheetDone)
+}
+
+/**
  * Change which parts of the Firefox user interface are shown. **NB: This feature is experimental and might break stuff.**
  *
  * Might mangle your userChrome. Requires native messenger, and you must restart Firefox each time to see any changes (this can be done using [[restart]]). <!-- (unless you enable addon debugging and refresh using the browser toolbox) -->
@@ -236,40 +273,11 @@ import * as css_util from "./css_util"
  *      - hide
  *      - show
  *
+ * If you want to use guiset in your tridactylrc, you might want to use [[guiset_quiet]] instead.
  */
 //#background
 export async function guiset(rule: string, option: string) {
-    // Could potentially fall back to sending minimal example to clipboard if native not installed
-
-    // Check for native messenger and make sure we have a plausible profile directory
-    if (!await Native.nativegate("0.1.1")) return
-    let profile_dir = ""
-    if (config.get("profiledir") === "auto" && ["linux", "openbsd", "mac"].includes((await browser.runtime.getPlatformInfo()).os)) {
-        try {
-            profile_dir = await Native.getProfileDir()
-        } catch (e) {}
-    } else {
-        profile_dir = config.get("profiledir")
-    }
-    if (profile_dir == "") {
-        fillcmdline("Please set your profile directory (found on about:support) via `set profiledir [profile directory]`")
-        return
-    }
-
-    // Make backups
-    await Native.mkdir(profile_dir + "/chrome", true)
-    let cssstr = (await Native.read(profile_dir + "/chrome/userChrome.css")).content
-    let cssstrOrig = (await Native.read(profile_dir + "/chrome/userChrome.orig.css")).content
-    if (cssstrOrig === "") await Native.write(profile_dir + "/chrome/userChrome.orig.css", cssstr)
-    await Native.write(profile_dir + "/chrome/userChrome.css.tri.bak", cssstr)
-
-    // Modify and write new CSS
-    if (cssstr === "") cssstr = `@namespace url("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul");`
-    let stylesheet = CSS.parse(cssstr)
-    // Trim due to https://github.com/reworkcss/css/issues/114
-    let stylesheetDone = CSS.stringify(css_util.changeCss(rule, option, stylesheet)).trim()
-    Native.write(profile_dir + "/chrome/userChrome.css", stylesheetDone)
-
+    await guiset_quiet(rule, option)
     fillcmdline_tmp("3000", "userChrome.css written. Please restart Firefox to see the changes.")
 }
 
