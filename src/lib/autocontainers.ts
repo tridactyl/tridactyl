@@ -35,12 +35,12 @@ interface IDetails {
 }
 
 export interface IAutoContain {
-    cancelRequest(tab: browser.tabs.Tab, details: any): boolean
-    parseAucons(details: any): string
-    shouldCancelEarly(tab: browser.tabs.Tab, details: any): boolean
-    getCancelledRequest(tabId: number): any[]
-    clearCancelledRequests(tabId: number): void
     autoContain(details: IDetails): any
+    cancelEarly(tab: browser.tabs.Tab, details: IDetails): boolean
+    cancelRequest(tab: browser.tabs.Tab, details: IDetails): void
+    clearCancelledRequests(tabId: number): void
+    getCancelledRequest(tabId: number): any
+    parseAucons(details: IDetails): string
 }
 
 export class AutoContain implements IAutoContain {
@@ -49,10 +49,7 @@ export class AutoContain implements IAutoContain {
 
     constructor() {}
 
-    cancelRequest(tab: browser.tabs.Tab, details: any): boolean {
-        return false
-    }
-    parseAucons(details): string {
+    parseAucons = (details): string => {
         let aucons = Config.get("autocontain")
         const ausites = Object.keys(aucons)
         const aukeyarr = ausites.filter(
@@ -68,28 +65,57 @@ export class AutoContain implements IAutoContain {
         }
     }
 
-    shouldCancelEarly(tab: browser.tabs.Tab, details: any): boolean {
-        if (!this.cancelledRequests[tab.id]) this.cancelRequest(tab, details)
-        else {
+    cancelRequest = (tab: browser.tabs.Tab, details: IDetails): void => {
+        this.cancelledRequests[tab.id] = {
+            requestIds: {
+                [details.requestId]: true,
+            },
+            urls: {
+                [details.url]: true,
+            },
         }
-        return true
+
+        // The webRequest events onCompleted and onErrorOccurred are not 100% reliable.
+        // Mozilla's contain facebook extension points this out and adds a guaranteed removal so we'll do the same.
+        setTimeout(() => {
+            this.clearCancelledRequests(tab.id)
+        }, 2000)
+    }
+
+    cancelEarly = (tab: browser.tabs.Tab, details: IDetails): boolean => {
+        if (!this.cancelledRequests[tab.id]) {
+            this.cancelRequest(tab, details)
+        } else {
+            let cancel = false
+            let cr = this.getCancelledRequest(tab.id)
+
+            if (cr.requestIds[details.requestId] || cr.urls[details.url]) {
+                cancel = true
+            }
+
+            cr.requestIds[details.requestId] = true
+            cr.urls[details.url] = true
+            return cancel
+        }
+        return false
     }
 
     // Not sure if needed.
-    getCancelledRequest(tabId: number): any[] {
+    // TODO: Add error checking
+    getCancelledRequest = (tabId: number): any => {
         return this.cancelledRequests[tabId]
     }
 
     // Clear the cancelled requests.
-    clearCancelledRequests(tabId: number): void {
+    clearCancelledRequests = (tabId: number): void => {
         if (this.cancelledRequests[tabId]) {
             delete this.cancelledRequests[tabId]
         }
     }
 
-    async autoContain(
+    autoContain = async (
         details: IDetails,
-    ): Promise<browser.webRequest.BlockingResponse> {
+    ): Promise<browser.webRequest.BlockingResponse> => {
         // Do not handle private tabs or invalid tabIds.
         if (details.tabId === -1) return
         let tab = await browser.tabs.get(details.tabId)
@@ -99,8 +125,13 @@ export class AutoContain implements IAutoContain {
         if (details.url.search("^https?://") < 0) return
 
         // Get container name from Config. Return if containerName is the empty string.
+        // TODO: refactor to return firefox-default in order to comply with behaviour described in conversation in #754
         let containerName = this.parseAucons(details)
         if (!containerName) return
+
+        // Silently return if we're already in the correct container.
+        let cookieStoreId = await Container.getId(containerName)
+        if (tab.cookieStoreId === cookieStoreId) return
 
         // Checks if containerName exists and creates it if it does not.
         let containerExists = await Container.exists(containerName)
@@ -114,9 +145,7 @@ export class AutoContain implements IAutoContain {
             }
         }
 
-        // Silently return if we're already in the correct container.
-        let cookieStoreId = await Container.getId(containerName)
-        if (tab.cookieStoreId === cookieStoreId) return
+        if (this.cancelEarly(tab, details)) return { cancel: true }
 
         let preserveTab = Config.get("auconpreservetab")
         if (preserveTab && details.originUrl) {
