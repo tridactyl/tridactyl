@@ -69,8 +69,8 @@ export class HistoryCompletionSource extends Completions.CompletionSourceFuse {
             }
             if (query.startsWith("-b")) {
                 let args = query.split(" ")
-                options = args.slice(0, 2).join(" ")
-                query = args.slice(2).join(" ")
+                options = args.slice(0, 1).join(" ")
+                query = args.slice(1).join(" ")
             }
         } else if (prefix == "winopen ") {
             if (query.startsWith("-private")) {
