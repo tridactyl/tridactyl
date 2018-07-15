@@ -2605,18 +2605,20 @@ export function unset(...keys: string[]) {
 //    config.save(config.get("storageloc"))
 //}
 
-/** Writes current config to a file. No argu
-
-    Available flags:
-        - `--force` will overwrite the config file if it exists.
-  @param string[] argArr an optional string of arguments to be parsed.
+/** Writes current config to a file. 
+ 
+ TODO: Write documentation.
+ Available flags:
+    - `--force` will overwrite the config file if it exists.
+ @param string[] argArr an optional string of arguments to be parsed.
+ @returns the parsed config.
 
  */
 //#background
 export async function mktridactylrc(...argArr: string[]) {
     let overwrite = false
 
-    function argParse(args): string[] {
+    let argParse = (args: string[]): string[] => {
         if (args[0] === "--force") {
             overwrite = true
             args.shift()
@@ -2626,6 +2628,7 @@ export async function mktridactylrc(...argArr: string[]) {
     }
 
     const file = argParse(argArr).join(" ") || undefined
+    //TODO: Add actual native messenger code here.
     //if (await Native.nativegate("0.1.3")) if (!await rc.source(file)) logger.error("Could not find RC file")
 
     let conf = config.parseConfig()
