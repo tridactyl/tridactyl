@@ -3,7 +3,9 @@
  Hook into webRequests and make sure that your (least) favorite domain is contained
  and doesn't touch your default browsing.
 
- A lot of the inspiration for this code was taken from the Mozilla `contain facebook` Extension.
+ Should try and detect Multi Account Containers or Contain Facebook extensions from Mozilla.
+ 
+ A lot of the inspiration for this code was drawn from the Mozilla `contain facebook` Extension.
  https://github.com/mozilla/contain-facebook/
 
  */
@@ -34,35 +36,97 @@ interface IDetails {
     url: string
 }
 
-export interface IAutoContain {
+interface ICancelledRequest {
+    requestIds: any
+    urls: any
+}
+
+interface IAutoContain {
     autoContain(details: IDetails): any
     cancelEarly(tab: browser.tabs.Tab, details: IDetails): boolean
     cancelRequest(tab: browser.tabs.Tab, details: IDetails): void
     clearCancelledRequests(tabId: number): void
-    getCancelledRequest(tabId: number): any
+    getCancelledRequest(tabId: number): ICancelledRequest
     parseAucons(details: IDetails): string
 }
 
 export class AutoContain implements IAutoContain {
     private enabled: boolean
-    private cancelledRequests = []
+    private cancelledRequests: ICancelledRequest[] = []
 
     constructor() {}
 
-    parseAucons = (details): string => {
-        let aucons = Config.get("autocontain")
-        const ausites = Object.keys(aucons)
-        const aukeyarr = ausites.filter(
-            e => details.url.search("^https?://.*" + e + "/") >= 0,
-        )
-        if (aukeyarr.length > 1) {
-            logger.error("Too many autocontain directives match this url.")
-            return ""
-        } else if (aukeyarr.length === 0) {
-            return ""
-        } else {
-            return aucons[aukeyarr[0]]
+    autoContain = async (
+        details: IDetails,
+    ): Promise<browser.webRequest.BlockingResponse> => {
+        // Do not handle private tabs or invalid tabIds.
+        if (details.tabId === -1) return
+        let tab = await browser.tabs.get(details.tabId)
+        if (tab.incognito) return
+
+        // Only handle http requests.
+        if (details.url.search("^https?://") < 0) return
+
+        // Get container name from Config. Return if containerName is the empty string.
+        // TODO: refactor to return firefox-default in order to comply with behaviour described in conversation in #754
+        let containerName = this.parseAucons(details)
+        if (!containerName) return
+
+        // Checks if containerName exists and creates it if it does not.
+        let containerExists = await Container.exists(containerName)
+        if (!containerExists) {
+            if (Config.get("auconcreatecontainer")) {
+                await Container.create(containerName)
+            } else {
+                logger.error(
+                    "Specified container doesn't exist. consider setting 'auconcreatecontainer' to true",
+                )
+            }
         }
+
+        // Silently return if we're already in the correct container.
+        let cookieStoreId = await Container.getId(containerName)
+        if (tab.cookieStoreId === cookieStoreId) return
+
+        if (this.cancelEarly(tab, details)) return { cancel: true }
+
+        browser.tabs
+            .create({
+                url: details.url,
+                cookieStoreId: cookieStoreId,
+                active: tab.active,
+                windowId: tab.windowId,
+            })
+            .then(_ => {
+                let preserveTab = Config.get("auconpreservetab")
+                if (preserveTab && details.originUrl) {
+                    window.history.back()
+                } else {
+                    browser.tabs.remove(details.tabId)
+                }
+            })
+
+        return { cancel: true }
+    }
+
+    //Handles the requests after the initial checks made in this.autoContain.
+    cancelEarly = (tab: browser.tabs.Tab, details: IDetails): boolean => {
+        if (!this.cancelledRequests[tab.id]) {
+            this.cancelRequest(tab, details)
+        } else {
+            let cancel = false
+            let cr = this.getCancelledRequest(tab.id)
+
+            if (cr.requestIds[details.requestId] || cr.urls[details.url]) {
+                cancel = true
+            }
+
+            cr.requestIds[details.requestId] = true
+            cr.urls[details.url] = true
+
+            return cancel
+        }
+        return false
     }
 
     cancelRequest = (tab: browser.tabs.Tab, details: IDetails): void => {
@@ -82,27 +146,7 @@ export class AutoContain implements IAutoContain {
         }, 2000)
     }
 
-    cancelEarly = (tab: browser.tabs.Tab, details: IDetails): boolean => {
-        if (!this.cancelledRequests[tab.id]) {
-            this.cancelRequest(tab, details)
-        } else {
-            let cancel = false
-            let cr = this.getCancelledRequest(tab.id)
-
-            if (cr.requestIds[details.requestId] || cr.urls[details.url]) {
-                cancel = true
-            }
-
-            cr.requestIds[details.requestId] = true
-            cr.urls[details.url] = true
-            return cancel
-        }
-        return false
-    }
-
-    // Not sure if needed.
-    // TODO: Add error checking
-    getCancelledRequest = (tabId: number): any => {
+    getCancelledRequest = (tabId: number): ICancelledRequest => {
         return this.cancelledRequests[tabId]
     }
 
@@ -113,54 +157,19 @@ export class AutoContain implements IAutoContain {
         }
     }
 
-    autoContain = async (
-        details: IDetails,
-    ): Promise<browser.webRequest.BlockingResponse> => {
-        // Do not handle private tabs or invalid tabIds.
-        if (details.tabId === -1) return
-        let tab = await browser.tabs.get(details.tabId)
-        if (tab.incognito) return
-
-        // Only handle http requests.
-        if (details.url.search("^https?://") < 0) return
-
-        // Get container name from Config. Return if containerName is the empty string.
-        // TODO: refactor to return firefox-default in order to comply with behaviour described in conversation in #754
-        let containerName = this.parseAucons(details)
-        if (!containerName) return
-
-        // Silently return if we're already in the correct container.
-        let cookieStoreId = await Container.getId(containerName)
-        if (tab.cookieStoreId === cookieStoreId) return
-
-        // Checks if containerName exists and creates it if it does not.
-        let containerExists = await Container.exists(containerName)
-        if (!containerExists) {
-            if (Config.get("auconcreatecontainer")) {
-                await Container.create(containerName)
-            } else {
-                logger.error(
-                    "Specified container doesn't exist. consider setting 'auconcreatecontainer' to true",
-                )
-            }
-        }
-
-        if (this.cancelEarly(tab, details)) return { cancel: true }
-
-        let preserveTab = Config.get("auconpreservetab")
-        if (preserveTab && details.originUrl) {
-            window.history.back()
+    parseAucons = (details): string => {
+        let aucons = Config.get("autocontain")
+        const ausites = Object.keys(aucons)
+        const aukeyarr = ausites.filter(
+            e => details.url.search("^https?://.*" + e + "/") >= 0,
+        )
+        if (aukeyarr.length > 1) {
+            logger.error("Too many autocontain directives match this url.")
+            return ""
+        } else if (aukeyarr.length === 0) {
+            return ""
         } else {
-            browser.tabs.remove(details.tabId)
+            return aucons[aukeyarr[0]]
         }
-
-        browser.tabs.create({
-            url: details.url,
-            cookieStoreId: cookieStoreId,
-            active: tab.active,
-            windowId: tab.windowId,
-        })
-
-        return { cancel: true }
     }
 }
