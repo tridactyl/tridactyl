@@ -192,6 +192,7 @@ const DEFAULTS = o({
         sanitize: "sanitise",
         tutorial: "tutor",
         h: "help",
+        unmute: "mute -u",
         authors: "credits",
         openwith: "hint -W",
         "!": "exclaim",
