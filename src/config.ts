@@ -141,6 +141,7 @@ const DEFAULTS = o({
         ".": "repeat",
         "<SA-ArrowUp><SA-ArrowUp><SA-ArrowDown><SA-ArrowDown><SA-ArrowLeft><SA-ArrowRight><SA-ArrowLeft><SA-ArrowRight>ba":
             "open https://www.youtube.com/watch?v=M3iOROuTuMA",
+        "<A-m>": "mute toggle",
     }),
     autocmds: o({
         DocStart: o({
