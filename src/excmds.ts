@@ -1799,6 +1799,54 @@ export async function pin() {
     browser.tabs.update(aTab.id, { pinned: !aTab.pinned })
 }
 
+/**  Mute current tab or all tabs.
+
+ Passing "all" to the excmd will operate on  the mute state of all tabs.
+ Passing "unmute" to the excmd will unmute.
+ Passing "toggle" to the excmd will toggle the state of `browser.tabs.tab.MutedInfo`
+ @param string[] muteArgs 
+ */
+//#background
+export async function mute(...muteArgs: string[]): Promise<void> {
+    let mute = true
+    let toggle = false
+    let all = false
+
+    let argParse = (args: string[]) => {
+        if (args == null) { return }
+        if (args[0] === "all") {
+            all = true
+            args.shift()
+            argParse(args)
+        } 
+        if (args[0] === "unmute") {
+            mute = false
+            args.shift()
+            argParse(args)
+        }
+        if (args[0] === "toggle") {
+            toggle = true
+            args.shift()
+            argParse(args)
+        }
+    }
+
+    argParse(muteArgs)
+
+    let updateObj = { muted: false}
+    if(mute) { updateObj.muted = true }
+    if (all) { 
+        let tabs = await browser.tabs.query({currentWindow: true})
+        for (let tab of tabs) {
+            if(toggle) { updateObj.muted = !tab.mutedInfo.muted}
+            browser.tabs.update(tab.id, updateObj) 
+        }
+    } else {
+        let tab = await activeTab()
+        if(toggle) { updateObj.muted = !tab.mutedInfo.muted}
+        browser.tabs.update(tab.id, updateObj) 
+    }
+}
 // }}}
 
 // {{{ WINDOWS
