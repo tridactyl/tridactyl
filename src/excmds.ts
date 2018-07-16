@@ -1802,7 +1802,7 @@ export async function pin() {
 /**  Mute current tab or all tabs.
 
  Passing "all" to the excmd will operate on  the mute state of all tabs.
- Passing "-u" to the excmd will unmute.
+ Passing "unmute" to the excmd will unmute.
  Passing "toggle" to the excmd will toggle the state of `browser.tabs.tab.MutedInfo`
  @param string[] muteArgs 
  */
@@ -1819,7 +1819,7 @@ export async function mute(...muteArgs: string[]): Promise<void> {
             args.shift()
             argParse(args)
         } 
-        if (args[0] === "-u") {
+        if (args[0] === "unmute") {
             mute = false
             args.shift()
             argParse(args)
