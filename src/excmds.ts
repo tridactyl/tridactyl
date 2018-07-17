@@ -1769,11 +1769,9 @@ export async function undo() {
 
 /** Move the current tab to be just in front of the index specified.
 
-    Known bug: This supports relative movement, but autocomple doesn't know
-    that yet and will override positive and negative indexes.
+    Known bug: This supports relative movement with `tabmove +pos` and `tabmove -pos`, but autocomplete doesn't know that yet and will override positive and negative indexes.
 
-    Put a space in front of tabmove if you want to disable completion and have
-    the relative indexes at the command line.
+    Put a space in front of tabmove if you want to disable completion and have the relative indexes at the command line.
 
     Binds are unaffected.
 
@@ -1813,12 +1811,14 @@ export async function mute(...muteArgs: string[]): Promise<void> {
     let all = false
 
     let argParse = (args: string[]) => {
-        if (args == null) { return }
+        if (args == null) {
+            return
+        }
         if (args[0] === "all") {
             all = true
             args.shift()
             argParse(args)
-        } 
+        }
         if (args[0] === "unmute") {
             mute = false
             args.shift()
@@ -1833,18 +1833,24 @@ export async function mute(...muteArgs: string[]): Promise<void> {
 
     argParse(muteArgs)
 
-    let updateObj = { muted: false}
-    if(mute) { updateObj.muted = true }
-    if (all) { 
-        let tabs = await browser.tabs.query({currentWindow: true})
+    let updateObj = { muted: false }
+    if (mute) {
+        updateObj.muted = true
+    }
+    if (all) {
+        let tabs = await browser.tabs.query({ currentWindow: true })
         for (let tab of tabs) {
-            if(toggle) { updateObj.muted = !tab.mutedInfo.muted}
-            browser.tabs.update(tab.id, updateObj) 
+            if (toggle) {
+                updateObj.muted = !tab.mutedInfo.muted
+            }
+            browser.tabs.update(tab.id, updateObj)
         }
     } else {
         let tab = await activeTab()
-        if(toggle) { updateObj.muted = !tab.mutedInfo.muted}
-        browser.tabs.update(tab.id, updateObj) 
+        if (toggle) {
+            updateObj.muted = !tab.mutedInfo.muted
+        }
+        browser.tabs.update(tab.id, updateObj)
     }
 }
 // }}}
@@ -2208,10 +2214,10 @@ async function setclip(str) {
  */
 //#background_helper
 async function getclip() {
-    if (await config.getAsync("putfrom") == "selection") {
-            return messageActiveTab("commandline_frame", "getClipboard")
+    if ((await config.getAsync("putfrom")) == "selection") {
+        return messageActiveTab("commandline_frame", "getClipboard")
     } else {
-            return Native.clipboard("get", "")
+        return Native.clipboard("get", "")
     }
 }
 
