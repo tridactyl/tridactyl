@@ -70,7 +70,8 @@ if (
     window.location.pathname === "/static/newtab.html"
 ) {
     config.getAsync("newtab").then(newtab => {
-        if (newtab) {
+        if (newtab == "about:blank") {
+        } else if (newtab) {
             excmds.open_quiet(newtab)
         } else {
             document.documentElement.style.display = "block"
