@@ -16,7 +16,6 @@ readonly COLOR_BOLD=$(tput bold 2>/dev/null)
 readonly COLOR_BAD=$(tput setaf 1 2>/dev/null)
 readonly COLOR_GOOD=$(tput setaf 2 2>/dev/null)
 
-readonly WIN_PYTHON_CMD="py -3"
 readonly WIN_COMPILE_NATIVE_BIN_SOURCE="${NATIVE_DIR_NAME}/native_main.py"
 readonly WIN_COMPILE_NATIVE_BIN_OUTPUT="${NATIVE_DIR_NAME}/native_main.exe"
 readonly WIN_COMPILE_NATIVE_BIN_SIG_FILE="${NATIVE_DIR_NAME}/native_main.exe.sig"
@@ -62,10 +61,6 @@ windows_check_prerequisite() {
 # Globals:
 #   WIN_PREREQUISITES
 #   WIN_COMPILE_NATIVE_BIN
-# Arguments:
-#   None
-# Returns:
-#   None
 ##################################################################
 windows_detect_prerequisites() {
   if [ ! -z "${PYINSTALLER}" ] \
@@ -83,28 +78,8 @@ windows_detect_prerequisites() {
 
 
 ##################################################################
-# Process 'excmd' macros using 'excmds_macros.py' enforcing the
-# required version of Python. Explicitly enforcing Python version
-# is required on Windows as shebangs are unreliable.
-#
-# Globals:
-#   WIN_PYTHON_CMD
-# Arguments:
-#   None
-# Returns:
-#   None
-##################################################################
-windows_process_excmd_macros(){
-  ${WIN_PYTHON_CMD} scripts/excmds_macros.py
-}
-
-##################################################################
 # Check the status of PyInstaller on Windows.
 #
-# Globals:
-#   None
-# Arguments:
-#   None
 # Returns:
 #   "True" if PyInstaller is found.
 #   "False" if PyInstaller is not found.
@@ -126,8 +101,6 @@ windows_check_pyinstaller() {
 # Detect the full-path of the specified Windows binary using
 # PowerShell.
 #
-# Globals:
-#   None
 # Arguments:
 #   $1 is the name of the binary to detect.
 # Returns:
@@ -392,8 +365,6 @@ windows_compile_native_bin() {
 #   WIN_NATIVE_BIN_INSTALLER
 #   WIN_COMPILE_NATIVE_BIN_SOURCE
 #   WIN_COMPILE_NATIVE_BIN_OUTPUT
-# Arguments:
-#   None
 # Returns:
 #   "True" if successful.
 #   Exits with -1 if compilation fails.
@@ -490,8 +461,6 @@ windows_install_native_messenger() {
 #   WIN_PREREQUISITES
 #   WIN_WHICH_BIN_PATH
 #   WIN_CYGPATH_BIN_PATH
-# Arguments:
-#   None
 # Returns:
 #   "True" if target PyInstaller is found on Windows
 #   "False" if target PyInstaller is not found on Windows
