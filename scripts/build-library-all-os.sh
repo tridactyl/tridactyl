@@ -270,13 +270,15 @@ all_os_strip_whitespace() {
 #   Print the colored input string.
 ##################################################################
 all_os_color_print() {
-  local str="$1"
-  local color="${COLOR_GOOD}${COLOR_BOLD}"
+  if [ $VERBOSE_BUILD ]; then
+      local str="$1"
+      local color="${COLOR_GOOD}${COLOR_BOLD}"
 
-  if [ ! -z "$2" ] \
-    && [ "$(all_os_strip_whitespace "$2")" = "alert" ]; then
-    color="${COLOR_BAD}${COLOR_BOLD}"
+      if [ ! -z "$2" ] \
+        && [ "$(all_os_strip_whitespace "$2")" = "alert" ]; then
+        color="${COLOR_BAD}${COLOR_BOLD}"
+      fi
+
+      printf "${color}${str}${COLOR_RESET}"
   fi
-
-  printf "${color}${str}${COLOR_RESET}"
 }

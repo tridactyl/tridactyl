@@ -17,11 +17,11 @@ set -e
 #   None
 ##################################################################
 import_build_library(){
-  echo "    - Importing library common for all OS"
   . scripts/build-library-all-os.sh
+  all_os_color_print "    - Importing library common for all OS\n"
 
   if [ "$(all_os_is_windows_mingw)" = "True" ]; then
-    echo "    - Importing library for Windows"
+    all_os_color_print "    - Importing library for Windows"
     . scripts/build-library-windows.sh
   fi
 }
@@ -100,8 +100,8 @@ install_native_messenger() {
 #   None
 ##################################################################
 main() {
-  echo "[+] Importing necessary build libraries ..."
   import_build_library
+  all_os_color_print "[+] Importing necessary build libraries ...\n"
 
   all_os_color_print "[+] Preparing build path ...\n"
   prepare_build_path
