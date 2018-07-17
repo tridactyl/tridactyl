@@ -20,7 +20,7 @@ readonly WIN_COMPILE_NATIVE_BIN_SOURCE="${NATIVE_DIR_NAME}/native_main.py"
 readonly WIN_COMPILE_NATIVE_BIN_OUTPUT="${NATIVE_DIR_NAME}/native_main.exe"
 readonly WIN_COMPILE_NATIVE_BIN_SIG_FILE="${NATIVE_DIR_NAME}/native_main.exe.sig"
 readonly WIN_COMPILE_NATIVE_BIN_HASH_FILE="${NATIVE_DIR_NAME}/native_main.exe.sha256"
-readonly WIN_NATIVE_BIN_INSTALLER="${NATIVE_DIR_NAME}/win_install.ps1"
+readonly WIN_NATIVE_BIN_INSTALLER="${NATIVE_DIR_NAME}/install.ps1"
 readonly WIN_COMPILE_NATIVE_BIN_GPG2_SIGNER="gsbabil@gmail.com"
 
 ##################################################################

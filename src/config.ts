@@ -33,6 +33,7 @@ function schlepp(settings) {
 let USERCONFIG = o({})
 const DEFAULTS = o({
     configversion: "0.0",
+    // When creating new <modifier-letter> maps, make sure to make the modifier uppercase (e.g. <C-a> instead of <c-a>) otherwise some commands might not be able to find them (e.g. `bind <c-a>`)
     nmaps: o({
         "<F1>": "help",
         o: "fillcmdline open",
@@ -44,37 +45,39 @@ const DEFAULTS = o({
         "[[": "followpage prev",
         "[c": "urlincrement -1",
         "]c": "urlincrement 1",
-        "<c-x>": "urlincrement -1",
-        "<c-a>": "urlincrement 1",
+        "<C-x>": "urlincrement -1",
+        "<C-a>": "urlincrement 1",
         T: "current_url tabopen",
         yy: "clipboard yank",
         ys: "clipboard yankshort",
         yc: "clipboard yankcanon",
+        ym: "clipboard yankmd",
+        yt: "clipboard yanktitle",
         gh: "home",
         gH: "home true",
         p: "clipboard open",
         P: "clipboard tabopen",
         j: "scrollline 10",
-        "<c-e>": "scrollline 10",
+        "<C-e>": "scrollline 10",
         k: "scrollline -10",
-        "<c-y>": "scrollline 10",
+        "<C-y>": "scrollline 10",
         h: "scrollpx -50",
         l: "scrollpx 50",
         G: "scrollto 100",
         gg: "scrollto 0",
-        "<c-u>": "scrollpage -0.5",
-        "<c-d>": "scrollpage 0.5",
+        "<C-u>": "scrollpage -0.5",
+        "<C-d>": "scrollpage 0.5",
         // Disabled while our find mode is bad
-        /* "<c-f>": "scrollpage -1", */
-        // "<c-b>": "scrollpage -1",
+        /* "<C-f>": "scrollpage -1", */
+        // "<C-b>": "scrollpage -1",
         $: "scrollto 100 x",
         // "0": "scrollto 0 x", // will get interpreted as a count
         "^": "scrollto 0 x",
-        "<c-6>": "buffer #",
+        "<C-6>": "buffer #",
         H: "back",
         L: "forward",
-        "<c-o>": "jumpprev",
-        "<c-i>": "jumpnext",
+        "<C-o>": "jumpprev",
+        "<C-i>": "jumpnext",
         d: "tabclose",
         D: "composite tabprev; sleep 100; tabclose #",
         gx0: "tabclosealltoleft",
@@ -95,7 +98,7 @@ const DEFAULTS = o({
         gu: "urlparent",
         gU: "urlroot",
         gf: "viewsource",
-        ":": "fillcmdline",
+        ":": "fillcmdline_notrail",
         s: "fillcmdline open search",
         S: "fillcmdline tabopen search",
         // find mode not suitable for general consumption yet.
@@ -104,7 +107,7 @@ const DEFAULTS = o({
         // "n": "findnext 1",
         // "N": "findnext -1",
         M: "gobble 1 quickmark",
-        // "B": "fillcmdline bufferall",
+        B: "fillcmdline bufferall",
         b: "fillcmdline buffer",
         ZZ: "qall",
         f: "hint",
@@ -123,9 +126,11 @@ const DEFAULTS = o({
         ";;": "hint -;",
         ";#": "hint -#",
         ";v": "hint -W exclaim_quiet mpv",
+        ";w": "hint -w",
         "<S-Insert>": "mode ignore",
         "<CA-Esc>": "mode ignore",
         "<CA-`>": "mode ignore",
+        "<Esc>": "composite mode normal ; hidecmdline",
         I:
             "fillcmdline Ignore mode is now toggled by pressing <S-Insert> or <C-A-`>",
         a: "current_url bmark",
@@ -134,14 +139,17 @@ const DEFAULTS = o({
         zo: "zoom -0.1 true",
         zz: "zoom 1",
         ".": "repeat",
-        gow: "open http://www.bbc.co.uk/news/live/uk-44167290",
-        gnw: "tabopen http://www.bbc.co.uk/news/live/uk-44167290",
         "<SA-ArrowUp><SA-ArrowUp><SA-ArrowDown><SA-ArrowDown><SA-ArrowLeft><SA-ArrowRight><SA-ArrowLeft><SA-ArrowRight>ba":
             "open https://www.youtube.com/watch?v=M3iOROuTuMA",
+        "<A-p>": "pin",
+        "<A-m>": "mute toggle",
     }),
     autocmds: o({
         DocStart: o({
             // "addons.mozilla.org": "mode ignore",
+        }),
+        DocEnd: o({
+            // "emacs.org": "sanitise history",
         }),
         TriStart: o({
             ".*": "source_quiet",
@@ -158,6 +166,8 @@ const DEFAULTS = o({
     exaliases: o({
         alias: "command",
         au: "autocmd",
+        audel: "autocmddelete",
+        audelete: "autocmddelete",
         b: "buffer",
         o: "open",
         w: "winopen",
@@ -184,6 +194,7 @@ const DEFAULTS = o({
         sanitize: "sanitise",
         tutorial: "tutor",
         h: "help",
+        unmute: "mute unmute",
         authors: "credits",
         openwith: "hint -W",
         "!": "exclaim",
@@ -234,6 +245,7 @@ const DEFAULTS = o({
     homepages: [],
     hintchars: "hjklasdfgyuiopqwertnmzxcvb",
     hintfiltermode: "simple", // "simple", "vimperator", "vimperator-reflow"
+    hintnames: "short",
 
     // Controls whether the page can focus elements for you via js
     // Remember to also change browser.autofocus (autofocusing elements via
@@ -272,6 +284,7 @@ const DEFAULTS = o({
         messaging: 2,
         cmdline: 2,
         controller: 2,
+        containers: 2,
         hinting: 2,
         state: 2,
         excmd: 1,
@@ -286,17 +299,21 @@ const DEFAULTS = o({
     //          (but we are probably happy to add your terminal to the list if it isn't already there).
     editorcmd: "auto",
     browser: "firefox",
+    yankto: "clipboard", // "clipboard", "selection", "both"
+    putfrom: "clipboard", // "clipboard", "selection"
+    externalclipboardcmd: "auto",
     nativeinstallcmd:
         "curl -fsSl https://raw.githubusercontent.com/cmcaine/tridactyl/master/native/install.sh | bash",
-    win_powershell_nativeinstallcmd:
-        "Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/cmcaine/tridactyl/master/native/win_install.ps1'))",
-    win_cmdexe_nativeinstallcmd:
-        '@"%SystemRoot%\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -NoProfile -InputFormat None -Command "iex ((New-Object System.Net.WebClient).DownloadString(\'https://raw.githubusercontent.com/cmcaine/tridactyl/master/native/win_install.ps1\'))"',
+    win_nativeinstallcmd:
+        "powershell -NoProfile -InputFormat None -Command \"Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/cmcaine/tridactyl/master/native/install.ps1'))\"",
     profiledir: "auto",
 
     // Container settings
     // If enabled, tabopen opens a new tab in the currently active tab's container.
     tabopencontaineraware: "false",
+
+    // If moodeindicator is enabled, containerindicator will color the border of the mode indicator with the container color.
+    containerindicator: "true",
 
     // Performance related settings
 
@@ -475,9 +492,15 @@ async function init() {
 
 // Listen for changes to the storage and update the USERCONFIG if appropriate.
 // TODO: BUG! Sync and local storage are merged at startup, but not by this thing.
-browser.storage.onChanged.addListener((changes, areaname) => {
+browser.storage.onChanged.addListener(async (changes, areaname) => {
     if (CONFIGNAME in changes) {
-        USERCONFIG = changes[CONFIGNAME].newValue
+        // newValue is undefined when calling browser.storage.AREANAME.clear()
+        if (changes[CONFIGNAME].newValue !== undefined) {
+            USERCONFIG = changes[CONFIGNAME].newValue
+        } else if (areaname === (await get("storageloc"))) {
+            // If newValue is undefined and AREANAME is the same value as STORAGELOC, the user wants to clean their config
+            USERCONFIG = o({})
+        }
     }
 })
 

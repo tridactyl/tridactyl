@@ -69,12 +69,13 @@
     min-height: unset;
 }
 
-:root.TridactylThemeShydactyl #completions table tr td:nth-of-type(1) {
+:root.TridactylThemeShydactyl #completions table tr td.prefix,
+:root.TridactylThemeShydactyl #completions table tr td.privatewindow,
+:root.TridactylThemeShydactyl #completions table tr td.container,
+:root.TridactylThemeShydactyl #completions table tr td.icon {
     display: none;
 }
-:root.TridactylThemeShydactyl #completions table tr td:nth-of-type(2) {
-    display: none;
-}
+
 :root.TridactylThemeShydactyl #completions .BufferCompletionSource table {
     width: unset;
     font-size: unset;
@@ -82,7 +83,7 @@
     table-layout: unset;
 }
 
-:root.TridactylThemeShydactyl #completions table tr td:nth-of-type(4) {
+:root.TridactylThemeShydactyl #completions table tr .title {
     width: 50%;
 }
 
