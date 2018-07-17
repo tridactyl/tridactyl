@@ -2214,7 +2214,7 @@ async function setclip(str) {
  */
 //#background_helper
 async function getclip() {
-    if ((await config.getAsync("putfrom")) == "selection") {
+    if ((await config.getAsync("putfrom")) == "clipboard") {
         return messageActiveTab("commandline_frame", "getClipboard")
     } else {
         return Native.clipboard("get", "")
