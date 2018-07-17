@@ -82,6 +82,8 @@ const DEFAULTS = o({
         D: "composite tabprev; sleep 100; tabclose #",
         gx0: "tabclosealltoleft",
         gx$: "tabclosealltoright",
+        "<<": "tabmove -1",
+        ">>": "tabmove +1",
         u: "undo",
         r: "reload",
         R: "reloadhard",
