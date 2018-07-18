@@ -74,7 +74,9 @@ if (
         } else if (newtab) {
             excmds.open_quiet(newtab)
         } else {
-            document.documentElement.style.display = "block"
+            document.body.style.height = "100%"
+            document.body.style.opacity = "1"
+            document.body.style.overflow = "auto"
             document.title = "Tridactyl Top Tips & New Tab Page"
         }
     })
