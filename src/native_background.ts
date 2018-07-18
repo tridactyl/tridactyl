@@ -305,19 +305,12 @@ export async function clipboard(
         }
         return result.content
     } else if (action == "set") {
-        // We're going to need to insert str, which we can't trust, in the clipcmd
-        // In order to do this safely we'll use here documents:
-        // http://pubs.opengroup.org/onlinepubs/009695399/utilities/xcu_chap02.html#tag_02_07_04
+        let required_version = "0.1.7"
+        if (!await nativegate(required_version, false)) {
+            throw `setting external clipboard requires native messenger >= ${required_version}.`
+        }
 
-        // Find a delimiter that isn't in str
-        let heredoc = "TRIDACTYL"
-        while (str.search(heredoc) != -1)
-            heredoc += Math.round(Math.random() * 10)
-
-        // Use delimiter to insert str into clipcmd's stdin
-        // We use sed to remove the newline added by the here document
-        clipcmd = `sed -z 's/.$//' <<'${heredoc}' | ${clipcmd} -i \n${str}\n${heredoc}`
-        let result = await run(clipcmd)
+        let result = await run(`${clipcmd} -i`, str)
         if (result.code != 0)
             throw new Error(
                 `External command failed with code ${result.code}: ${clipcmd}`,
