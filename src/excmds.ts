@@ -2114,8 +2114,8 @@ export async function sleep(time_ms: number) {
 
 /** @hidden */
 //#background
-function showcmdline(focus = true) {
-    CommandLineBackground.show(focus)
+async function showcmdline(focus = true) {
+    await CommandLineBackground.show(focus)
 }
 
 /** @hidden */
@@ -2126,9 +2126,9 @@ export function hidecmdline() {
 
 /** Set the current value of the commandline to string *with* a trailing space */
 //#background
-export function fillcmdline(...strarr: string[]) {
+export async function fillcmdline(...strarr: string[]) {
     let str = strarr.join(" ")
-    showcmdline()
+    await showcmdline()
     messageActiveTab("commandline_frame", "fillcmdline", [str])
 }
 

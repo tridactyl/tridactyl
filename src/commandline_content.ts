@@ -19,6 +19,7 @@ const cmdline_logger = new Logger("cmdline")
 
 let cmdline_iframe: HTMLIFrameElement = undefined
 let enabled = false
+let initted = false
 
 /** Initialise the cmdline_iframe element unless the window location is included in a value of config/noiframeon */
 async function init() {
@@ -26,7 +27,7 @@ async function init() {
     enabled =
         noiframeon.length == 0 ||
         noiframeon.find(url => window.location.href.includes(url)) === undefined
-    if (enabled && cmdline_iframe === undefined) {
+    if (!initted && enabled && cmdline_iframe === undefined) {
         try {
             cmdline_iframe = window.document.createElement("iframe")
             cmdline_iframe.className = "cleanslate"
@@ -39,6 +40,8 @@ async function init() {
             document.documentElement.appendChild(cmdline_iframe)
             // first theming of page root
             await theme(window.document.querySelector(":root"))
+            initted = true
+            return "done"
         } catch (e) {
             logger.error("Couldn't initialise cmdline_iframe!", e)
         }
@@ -47,19 +50,18 @@ async function init() {
 
 // Load the iframe immediately if we can (happens if tridactyl is reloaded or on ImageDocument)
 // Else load lazily to avoid upsetting page JS that hates foreign iframes.
-try {
-    init()
-} catch (e) {
-    // Surrender event loop with setTimeout() to page JS in case it's still doing stuff.
-    document.addEventListener("DOMContentLoaded", () => setTimeout(init, 0))
-}
 
-export function show() {
+export async function show() {
     try {
+        await init()
+        await hide()
+        await setTimeout(_=>{
         cmdline_iframe.classList.remove("hidden")
         const height =
             cmdline_iframe.contentWindow.document.body.offsetHeight + "px"
         cmdline_iframe.setAttribute("style", `height: ${height} !important;`)
+        },100)
+        return "done"
     } catch (e) {
         cmdline_logger.error(e)
     }

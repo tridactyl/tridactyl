@@ -47,7 +47,7 @@ async function allWindowTabs(): Promise<browser.tabs.Tab[]> {
 }
 
 export async function show(focus = true) {
-    Messaging.messageActiveTab("commandline_content", "show")
+    await Messaging.messageActiveTab("commandline_content", "show")
     if (focus) {
         await Messaging.messageActiveTab("commandline_content", "focus")
         await Messaging.messageActiveTab("commandline_frame", "focus")
