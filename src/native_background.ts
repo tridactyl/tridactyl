@@ -259,8 +259,8 @@ export async function winFirefoxRestart(
     return sendNativeMsg("win_firefox_restart", { profiledir, browsercmd })
 }
 
-export async function run(command: string) {
-    let msg = await sendNativeMsg("run", { command })
+export async function run(command: string, content = "") {
+    let msg = await sendNativeMsg("run", { command, content })
     logger.info(msg)
     return msg
 }
