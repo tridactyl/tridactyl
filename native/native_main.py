@@ -14,7 +14,7 @@ import time
 import unicodedata
 
 DEBUG = False
-VERSION = "0.1.6"
+VERSION = "0.1.7"
 
 
 class NoConnectionError(Exception):
@@ -413,15 +413,14 @@ def handleMessage(message):
 
     elif cmd == "run":
         commands = message["command"]
+        stdin = message.get("content", "").encode("utf-8")
 
-        try:
-            p = subprocess.check_output(commands, shell=True)
-            reply["content"] = p.decode("utf-8")
-            reply["code"] = 0
+        p = subprocess.Popen(commands, shell=True,
+                             stdin=subprocess.PIPE,
+                             stdout=subprocess.PIPE)
 
-        except subprocess.CalledProcessError as process:
-            reply["code"] = process.returncode
-            reply["content"] = process.output.decode("utf-8")
+        reply["content"] = p.communicate(stdin)[0].decode("utf-8")
+        reply["code"] = p.returncode
 
     elif cmd == "eval":
         output = eval(message["command"])
