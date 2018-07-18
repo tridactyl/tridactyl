@@ -380,7 +380,7 @@ def write_log(msg):
     debug_log_dirname = ".tridactyl"
     debug_log_filename = "native_main.log"
 
-    debug_log_path = "%s\\%s\\%s" % (
+    debug_log_path = os.path.join(
         os.path.expanduser("~"),
         debug_log_dirname,
         debug_log_filename,
