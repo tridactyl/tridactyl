@@ -1,5 +1,11 @@
 # Tridactyl changelog
 
+## Unreleased
+
+*   New features
+
+    *   `DocLoad` autocmd added. It fires on DOMContentLoaded.
+
 ## Release 1.13.1 / 2018-06-20
 
 *   New features
