@@ -60,7 +60,7 @@ const DEFAULTS = o({
         j: "scrollline 10",
         "<C-e>": "scrollline 10",
         k: "scrollline -10",
-        "<C-y>": "scrollline 10",
+        "<C-y>": "scrollline -10",
         h: "scrollpx -50",
         l: "scrollpx 50",
         G: "scrollto 100",
