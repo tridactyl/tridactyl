@@ -1,0 +1,30 @@
+{
+  "name": "tri2",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "run": "parcel build index.html"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/cmcaine/tri2.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/cmcaine/tri2/issues"
+  },
+  "homepage": "https://github.com/cmcaine/tri2#readme",
+  "devDependencies": {
+    "typescript": "^2.8.3"
+  },
+  "dependencies": {
+    "csp-serdes": "git+https://github.com/cmcaine/csp-serdes.git",
+    "parcel-bundler": "^1.9.7",
+    "parcel-plugin-typescript": "^0.7.0",
+    "reflect-metadata": "^0.1.12"
+  }
+}
