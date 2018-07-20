@@ -863,11 +863,10 @@ export async function open(...urlarr: string[]) {
     let url = urlarr.join(" ")
 
     // Setting window.location to about:blank results in a page we can't access, tabs.update works.
-    if (["about:blank"].includes(url)) {
-        url = url || undefined
+    if (url === "about:blank") {
         browserBg.tabs.update(await activeTabId(), { url })
-        // Open URLs that firefox won't let us by running `firefox <URL>` on the command line
     } else if (!ABOUT_WHITELIST.includes(url) && url.match(/^(about|file):.*/)) {
+        // Open URLs that firefox won't let us by running `firefox <URL>` on the command line
         Messaging.message("commandline_background", "recvExStr", ["nativeopen " + url])
     } else if (url !== "") {
         window.location.href = forceURI(url)
