@@ -659,6 +659,16 @@ function hintPageExStr(...exStr: string[]) {
     })
 }
 
+async function hintPagePipe(selectors,key) {
+    let hint =  await new Promise(resolve => {
+        hintPage(hintables(selectors, true), resolve)
+    })
+    return (hint as any).target[key]
+    // Promise takes function which it calls immediately with another function
+    // as its argument. When this second function is called, it gives its 
+    // argument to the promise as its value
+}
+
 function hintPageTextYank() {
     hintPage(elementswithtext(), hint => {
         messageActiveTab("commandline_frame", "setClipboard", [
