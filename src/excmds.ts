@@ -1821,7 +1821,7 @@ export async function containercreate(name: string, color?: string, icon?: strin
   @param name The container name.
  */
 //#background
-export async function containerremove(name: string) {
+export async function containerdelete(name: string) {
     await containerclose(name)
     await Container.remove(name)
 }
