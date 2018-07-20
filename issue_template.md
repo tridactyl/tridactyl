@@ -1,14 +1,10 @@
 <!--
 
-Thanks for taking the time to file an issue! Tridactyl doesn't have any analytics built into it, so issues are our only way of finding out about problems!
-
-Reading and following the information on this page would probably save us some time, but if you personally are short on time, please just delete everything and file an issue anyway - we would much rather have a few duplicate issues than miss out on a new issue.
-
+Thanks for taking the time to file an issue. If you're short on time, please just delete all of this and file your issue. Otherwise, read on : )
 
 # Making a feature request
 
-If you're opening this issue to request a new feature, please delete everything here after you've searched through the `:help` page in Tridactyl and the issues in this repository first.
-
+Please search our `:help` page and through the other issues on this repository; then, delete all of this text and describe your feature.
 
 # Reporting a bug / getting help
 
@@ -36,13 +32,13 @@ If that does not solve your problem, please fill in the following template and t
 
 *   Config (in a new tab, run `:viewconfig`, copy the url and paste it somewhere like gist.github.com):
 
-*   Contents of ~/.tridactylrc or ~/.config/tridactyl/tridactylrc:
+*   Contents of ~/.tridactylrc or ~/.config/tridactyl/tridactylrc (if they exist):
 
 ```
 Insert tridactylrc contents between the backticks
 ```
 
-If your bug is about Tridactyl's native executable, please add the following information:
+<!-- If your bug is about Tridactyl's native executable, please add the following information: -->
 
 *   Operating system:
 *   Result of running `:! echo $PATH` in tridactyl:
