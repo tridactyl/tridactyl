@@ -20,19 +20,23 @@ If that does not solve your problem, please fill in the following template and t
 
 *   Brief description of the problem:
 
--   Steps to reproduce:
+*   Steps to reproduce:
 
-    1.  2.  3.  4.  5.
+    1.
+    2.
+    3.
+    4.
+    5.
 
--   Tridactyl version (`:version`):
+*   Tridactyl version (`:version`):
 
 *   Firefox version (Top right menu > Help > About Firefox):
 
--   URL of the website the bug happens on:
+*   URL of the website the bug happens on:
 
 *   Config (in a new tab, run `:viewconfig`, copy the url and paste it somewhere like gist.github.com):
 
--   Contents of ~/.tridactylrc or ~/.config/tridactyl/tridactylrc:
+*   Contents of ~/.tridactylrc or ~/.config/tridactyl/tridactylrc:
 
 ```
 Insert tridactylrc contents between the backticks
