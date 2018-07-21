@@ -2,8 +2,8 @@ import { MsgSafeNode } from "./msgsafe"
 import * as config from "./config"
 import { flatten } from "./itertools"
 import state from "./state"
-import { activeTabId } from "./lib/webext"
 import * as Logging from "./logging"
+import { activeTabId, openInNewTab, activeTabContainerId } from "./lib/webext"
 const logger = new Logging.Logger("dom")
 
 // From saka-key lib/dom.js, under Apachev2
@@ -94,6 +94,15 @@ export function mouseEvent(
         })
         element.dispatchEvent(event)
     })
+}
+
+export function elementsWithText() {
+    return getElemsBySelector("*", [
+        isVisible,
+        hint => {
+            return hint.textContent != ""
+        },
+    ])
 }
 
 /** Iterable of elements that match xpath.
@@ -520,4 +529,106 @@ export function setupFocusHandler(): void {
     })
     // Handles when the page tries to select an input
     hijackPageFocusFunction()
+}
+
+// CSS selectors. More readable for web developers. Not dead. Leaves browser to care about XML.
+export const HINTTAGS_selectors = `
+input:not([type=hidden]):not([disabled]),
+a,
+area,
+iframe,
+textarea,
+button,
+select,
+summary,
+[onclick],
+[onmouseover],
+[onmousedown],
+[onmouseup],
+[oncommand],
+[role='link'],
+[role='button'],
+[role='checkbox'],
+[role='combobox'],
+[role='listbox'],
+[role='listitem'],
+[role='menuitem'],
+[role='menuitemcheckbox'],
+[role='menuitemradio'],
+[role='option'],
+[role='radio'],
+[role='scrollbar'],
+[role='slider'],
+[role='spinbutton'],
+[role='tab'],
+[role='textbox'],
+[role='treeitem'],
+[class*='button'],
+[tabindex]
+`
+
+export const HINTTAGS_img_selectors = `
+img,
+[src]
+`
+
+export const HINTTAGS_anchor_selectors = `
+[id],
+[name]
+`
+
+export const HINTTAGS_killable_selectors = `
+header,
+footer,
+nav,
+span,
+div,
+iframe,
+img,
+button,
+article,
+summary
+`
+
+/** CSS selector for elements which point to a saveable resource
+ */
+export const HINTTAGS_saveable = `
+[href]:not([href='#'])
+`
+
+/** Get array of "anchors": elements which have id or name and can be addressed
+ * with the hash/fragment in the URL
+ */
+export function anchors() {
+    return getElemsBySelector(HINTTAGS_anchor_selectors, [isVisible])
+}
+
+/** if `target === _blank` clicking the link is treated as opening a popup and is blocked. Use webext API to avoid that. */
+export function simulateClick(target: HTMLElement) {
+    // target can be set to other stuff, and we'll fail in annoying ways.
+    // There's no easy way around that while this code executes outside of the
+    // magic 'short lived event handler' context.
+    //
+    // OTOH, hardly anyone uses that functionality any more.
+    if (
+        (target as HTMLAnchorElement).target === "_blank" ||
+        (target as HTMLAnchorElement).target === "_new"
+    ) {
+        // Try to open the new tab in the same container as the current one.
+        activeTabContainerId().then(containerId => {
+            if (containerId)
+                openInNewTab((target as HTMLAnchorElement).href, {
+                    related: true,
+                    cookieStoreId: containerId,
+                })
+            else
+                openInNewTab((target as HTMLAnchorElement).href, {
+                    related: true,
+                })
+        })
+    } else {
+        mouseEvent(target, "click")
+        // DOM.focus has additional logic for focusing inputs
+        focus(target)
+    }
 }

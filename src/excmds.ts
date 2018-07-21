@@ -88,7 +88,7 @@
 
 // Shared
 import * as Messaging from "./messaging"
-import { browserBg, activeTabId, activeTabContainerId } from "./lib/webext"
+import { browserBg, activeTabId, activeTabContainerId, openInNewTab } from "./lib/webext"
 import * as Container from "./lib/containers"
 import state from "./state"
 import * as UrlUtil from "./url_util"
@@ -118,7 +118,7 @@ import { flatten } from "./itertools"
 import "./number.mod"
 import { ModeName } from "./state"
 import * as keydown from "./keydown_background"
-import { activeTab, firefoxVersionAtLeast, openInNewTab } from "./lib/webext"
+import { activeTab, firefoxVersionAtLeast } from "./lib/webext"
 import * as CommandLineBackground from "./commandline_background"
 import * as rc from "./config_rc"
 import * as excmd_parser from "./parsers/exmode"
@@ -2788,6 +2788,7 @@ import * as hinting from "./hinting"
 
     @param option
         - -b open in background
+        - -br repeatedly open in background
         - -y copy (yank) link's target to clipboard
         - -p copy an element's text to the clipboard
         - -P copy an element's title/alt text to the clipboard
@@ -2805,7 +2806,9 @@ import * as hinting from "./hinting"
           - `bind ;c hint -c [class*="expand"],[class="togg"]` works particularly well on reddit and HN
         - -w open in new window
             -wp open in new private window
-        - `-W excmd...` append hint href to excmd and execute, e.g, `hint -W exclaim mpv` to open YouTube videos
+        - `-pipe selector key` e.g, `-pipe * href` returns the key. Only makes sense with `composite`, e.g, `composite hint -pipe * textContent | yank`.
+        - **DEPRECATED** `-W excmd...` append hint href to excmd and execute, e.g, `hint -W exclaim mpv` to open YouTube videos. Use `composite hint -pipe | [excmd]` instead.
+
 
     Excepting the custom selector mode and background hint mode, each of these
     hint modes is available by default as `;<option character>`, so e.g. `;y`
@@ -2835,10 +2838,69 @@ import * as hinting from "./hinting"
 */
 //#content
 export async function hint(option?: string, selectors?: string, ...rest: string[]) {
-    if (option === "-b") hinting.hintPageOpenInBackground()
-    else if (option === "-y") hinting.hintPageYank()
-    else if (option === "-p") hinting.hintPageTextYank()
-    else if (option === "-P") hinting.hintPageTitleAltTextYank()
+    // NB: if you want something to work with rapid hinting, make it return something
+
+    // Open in background
+    if (option === "-b"){
+        let link = await hinting.pipe(DOM.HINTTAGS_selectors)
+        link.focus()
+        if (link.href){
+            let containerId = await activeTabContainerId()
+            if (containerId) {
+                openInNewTab(link.target.href, {
+                    active: false,
+                    related: true,
+                    cookieStoreId: containerId,
+                }).catch(() => DOM.simulateClick(link.target))
+            } else {
+                openInNewTab(link.target.href, {
+                    active: false,
+                    related: true,
+                }).catch(() => DOM.simulateClick(link.target))
+            }
+        } else {
+            DOM.simulateClick(link.target)
+        }
+        return link.href
+    }
+
+    // Yank link
+    else if (option === "-y") {
+        run_exstr("yank " + (await hinting.pipe(DOM.HINTTAGS_selectors))['href'])
+    }
+
+    // Yank text content
+    else if (option === "-p") {
+        run_exstr("yank " + 
+            (await hinting.pipe_elements(DOM.elementsWithText()))["textContent"]
+        )
+    }
+
+    // Yank link alt text
+    else if (option === "-P"){
+        let link = await hinting.pipe_elements(DOM.getElemsBySelector("[title], [alt]", [DOM.isVisible]))
+        run_exstr("yank " + (link.title ? link.title : link.alt))
+    }
+
+    // Yank anchor
+    else if (option === "-#"){
+        let anchorUrl = new URL(window.location.href)
+        let link = await hinting.pipe_elements(DOM.anchors())
+        anchorUrl.hash = link.id || link.name
+        run_exstr("yank " + anchorUrl.href)
+    }
+    else if (option === "-c") DOM.simulateClick(await hinting.pipe(selectors))
+
+    // Deprecated: hint exstr
+    else if (option === "-W") run_exstr(selectors + " " + rest.join(" ") + " " + (await hinting.pipe(DOM.HINTTAGS_selectors)))
+    else if (option === "-pipe") return (await hinting.pipe(selectors))[rest.join(" ")]
+    else if (option === "-br"){
+        while(true){
+            await hint("-b")
+        }
+    }
+
+    // TODO: port these to new fangled way
     else if (option === "-i") hinting.hintImage(false)
     else if (option === "-I") hinting.hintImage(true)
     else if (option === "-k") hinting.hintKill()
@@ -2847,14 +2909,31 @@ export async function hint(option?: string, selectors?: string, ...rest: string[
     else if (option === "-a") hinting.hintSave("link", true)
     else if (option === "-A") hinting.hintSave("img", true)
     else if (option === "-;") hinting.hintFocus(selectors)
-    else if (option === "-#") hinting.hintPageAnchorYank()
-    else if (option === "-c") hinting.hintPageSimple(selectors)
     else if (option === "-r") hinting.hintRead()
     else if (option === "-w") hinting.hintPageWindow()
-    else if (option === "-W") hinting.hintPageExStr([selectors, ...rest].join(" "))
-    else if (option === "-pipe") return await hinting.hintPagePipe(selectors, rest.join(" "))
     else if (option === "-wp") hinting.hintPageWindowPrivate()
-    else hinting.hintPageSimple()
+
+    else DOM.simulateClick(await hinting.pipe(DOM.HINTTAGS_selectors))
+}
+
+// how 2 crash pc
+////#content
+//export async function rapid(...commands: string[]){
+//    while(true){
+//        await run_exstr(...commands)
+//    }
+//}
+
+/**
+ * Hacky ex string parser.
+ *
+ * Use it for fire-and-forget running of background commands in content.
+ *
+ * @hidden
+ */
+//#content_helper
+export function run_exstr(...commands: string[]){
+    Messaging.message("commandline_background", "recvExStr", commands)
 }
 
 // }}}
