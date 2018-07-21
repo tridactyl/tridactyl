@@ -2841,61 +2841,57 @@ export async function hint(option?: string, selectors?: string, ...rest: string[
     // NB: if you want something to work with rapid hinting, make it return something
 
     // Open in background
-    if (option === "-b"){
+    if (option === "-b") {
         let link = await hinting.pipe(DOM.HINTTAGS_selectors)
         link.focus()
-        if (link.href){
+        if (link.href) {
             let containerId = await activeTabContainerId()
             if (containerId) {
-                openInNewTab(link.target.href, {
+                openInNewTab(link.href, {
                     active: false,
                     related: true,
                     cookieStoreId: containerId,
-                }).catch(() => DOM.simulateClick(link.target))
+                }).catch(() => DOM.simulateClick(link))
             } else {
-                openInNewTab(link.target.href, {
+                openInNewTab(link.href, {
                     active: false,
                     related: true,
-                }).catch(() => DOM.simulateClick(link.target))
+                }).catch(() => DOM.simulateClick(link))
             }
         } else {
-            DOM.simulateClick(link.target)
+            DOM.simulateClick(link)
         }
         return link.href
     }
 
     // Yank link
     else if (option === "-y") {
-        run_exstr("yank " + (await hinting.pipe(DOM.HINTTAGS_selectors))['href'])
+        run_exstr("yank " + (await hinting.pipe(DOM.HINTTAGS_selectors))["href"])
     }
 
     // Yank text content
     else if (option === "-p") {
-        run_exstr("yank " + 
-            (await hinting.pipe_elements(DOM.elementsWithText()))["textContent"]
-        )
+        run_exstr("yank " + (await hinting.pipe_elements(DOM.elementsWithText()))["textContent"])
     }
 
     // Yank link alt text
-    else if (option === "-P"){
+    else if (option === "-P") {
         let link = await hinting.pipe_elements(DOM.getElemsBySelector("[title], [alt]", [DOM.isVisible]))
         run_exstr("yank " + (link.title ? link.title : link.alt))
     }
 
     // Yank anchor
-    else if (option === "-#"){
+    else if (option === "-#") {
         let anchorUrl = new URL(window.location.href)
         let link = await hinting.pipe_elements(DOM.anchors())
         anchorUrl.hash = link.id || link.name
         run_exstr("yank " + anchorUrl.href)
-    }
-    else if (option === "-c") DOM.simulateClick(await hinting.pipe(selectors))
-
+    } else if (option === "-c") DOM.simulateClick(await hinting.pipe(selectors))
     // Deprecated: hint exstr
     else if (option === "-W") run_exstr(selectors + " " + rest.join(" ") + " " + (await hinting.pipe(DOM.HINTTAGS_selectors)))
     else if (option === "-pipe") return (await hinting.pipe(selectors))[rest.join(" ")]
-    else if (option === "-br"){
-        while(true){
+    else if (option === "-br") {
+        while (true) {
             await hint("-b")
         }
     }
@@ -2912,7 +2908,6 @@ export async function hint(option?: string, selectors?: string, ...rest: string[
     else if (option === "-r") hinting.hintRead()
     else if (option === "-w") hinting.hintPageWindow()
     else if (option === "-wp") hinting.hintPageWindowPrivate()
-
     else DOM.simulateClick(await hinting.pipe(DOM.HINTTAGS_selectors))
 }
 
@@ -2932,7 +2927,7 @@ export async function hint(option?: string, selectors?: string, ...rest: string[
  * @hidden
  */
 //#content_helper
-export function run_exstr(...commands: string[]){
+export function run_exstr(...commands: string[]) {
     Messaging.message("commandline_background", "recvExStr", commands)
 }
 
