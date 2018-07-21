@@ -24,7 +24,6 @@ import state from "./state"
 import { messageActiveTab, message } from "./messaging"
 import * as config from "./config"
 import * as TTS from "./text_to_speech"
-import { HintSaveType } from "./hinting_background"
 import Logger from "./logging"
 import * as Messaging from "./messaging"
 const logger = new Logger("hinting")
@@ -436,7 +435,6 @@ function pushKey(ke) {
     } else if (ke.key.length > 1) {
         return
     } else if (modeState.hintchars.includes(ke.key)) {
-        console.log(ke.key)
         modeState.filter += ke.key
         modeState.filterFunc(modeState.filter)
     }
@@ -594,7 +592,7 @@ function simulateClick(target: HTMLElement) {
     }
 }
 
-function hintPageOpenInBackground(selectors = HINTTAGS_selectors) {
+export function hintPageOpenInBackground(selectors = HINTTAGS_selectors) {
     hintPage(hintables(selectors, true), hint => {
         hint.target.focus()
         if (hint.target.href) {
@@ -623,7 +621,7 @@ function hintPageOpenInBackground(selectors = HINTTAGS_selectors) {
 
 import { openInNewWindow } from "./lib/webext"
 
-function hintPageWindow() {
+export function hintPageWindow() {
     hintPage(hintables(), hint => {
         hint.target.focus()
         if (hint.target.href) {
@@ -635,7 +633,7 @@ function hintPageWindow() {
     })
 }
 
-function hintPageWindowPrivate() {
+export function hintPageWindowPrivate() {
     hintPage(hintables(), hint => {
         hint.target.focus()
         if (hint.target.href) {
@@ -644,13 +642,13 @@ function hintPageWindowPrivate() {
     })
 }
 
-function hintPageSimple(selectors = HINTTAGS_selectors) {
+export function hintPageSimple(selectors = HINTTAGS_selectors) {
     hintPage(hintables(selectors, true), hint => {
         simulateClick(hint.target)
     })
 }
 
-function hintPageExStr(...exStr: string[]) {
+export function hintPageExStr(...exStr: string[]) {
     let selectors = HINTTAGS_selectors
     hintPage(hintables(selectors, true), hint => {
         Messaging.message("commandline_background", "recvExStr", [
@@ -659,7 +657,7 @@ function hintPageExStr(...exStr: string[]) {
     })
 }
 
-async function hintPagePipe(selectors,key) {
+export async function hintPagePipe(selectors=HINTTAGS_selectors,key="href") {
     let hint =  await new Promise(resolve => {
         hintPage(hintables(selectors, true), resolve)
     })
@@ -669,7 +667,7 @@ async function hintPagePipe(selectors,key) {
     // argument to the promise as its value
 }
 
-function hintPageTextYank() {
+export function hintPageTextYank() {
     hintPage(elementswithtext(), hint => {
         messageActiveTab("commandline_frame", "setClipboard", [
             hint.target.textContent,
@@ -677,7 +675,7 @@ function hintPageTextYank() {
     })
 }
 
-function hintPageTitleAltTextYank() {
+export function hintPageTitleAltTextYank() {
     hintPage(titleAltTextElements(), hint => {
         messageActiveTab("commandline_frame", "setClipboard", [
             hint.target.title ? hint.target.title : hint.target.alt,
@@ -685,7 +683,7 @@ function hintPageTitleAltTextYank() {
     })
 }
 
-function hintPageYank() {
+export function hintPageYank() {
     hintPage(hintables(), hint => {
         messageActiveTab("commandline_frame", "setClipboard", [
             hint.target.href,
@@ -695,7 +693,7 @@ function hintPageYank() {
 
 /** Hint anchors and yank the URL on selection
  */
-function hintPageAnchorYank() {
+export function hintPageAnchorYank() {
     hintPage(anchors(), hint => {
         let anchorUrl = new URL(window.location.href)
 
@@ -710,7 +708,7 @@ function hintPageAnchorYank() {
  * @param inBackground  opens the image source URL in a background tab,
  *                      as opposed to the current tab
  */
-function hintImage(inBackground) {
+export function hintImage(inBackground) {
     hintPage(hintableImages(), hint => {
         let img_src = hint.target.getAttribute("src")
 
@@ -726,14 +724,14 @@ function hintImage(inBackground) {
 }
 
 /** Hint elements to focus */
-function hintFocus(selectors?) {
+export function hintFocus(selectors?) {
     hintPage(hintables(selectors), hint => {
         hint.target.focus()
     })
 }
 
 /** Hint items and read out the content of the selection */
-function hintRead() {
+export function hintRead() {
     hintPage(elementswithtext(), hint => {
         TTS.readText(hint.target.textContent)
     })
@@ -741,11 +739,18 @@ function hintRead() {
 
 /** Hint elements and delete the selection from the page
  */
-function hintKill() {
+export function hintKill() {
     hintPage(killables(), hint => {
         hint.target.remove()
     })
 }
+
+/** Type for "hint save" actions:
+ *    - "link": elements that point to another resource (eg
+ *              links to pages/files) - the link target is saved
+ *    - "img":  image elements
+ */
+export type HintSaveType = "link" | "img"
 
 /** Hint link elements to save
  *
@@ -755,7 +760,7 @@ function hintKill() {
  *                      - "img": image elements
  * @param saveAs    prompt for save location
  */
-function hintSave(hintType: HintSaveType, saveAs: boolean) {
+export function hintSave(hintType: HintSaveType, saveAs: boolean) {
     function saveHintElems(hintType) {
         return hintType === "link" ? saveableElements() : hintableImages()
     }
@@ -792,6 +797,7 @@ addListener(
         reset,
         hintPageSimple,
         hintPageExStr,
+        hintPagePipe,
         hintPageYank,
         hintPageTextYank,
         hintPageTitleAltTextYank,

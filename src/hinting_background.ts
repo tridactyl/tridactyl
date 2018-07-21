@@ -12,63 +12,6 @@ async function reset() {
     return await messageActiveTab("hinting_content", "reset")
 }
 
-export async function hintPageYank() {
-    return await messageActiveTab("hinting_content", "hintPageYank")
-}
-
-export async function hintPageTitleAltTextYank() {
-    return await messageActiveTab("hinting_content", "hintPageTitleAltTextYank")
-}
-
-export async function hintPageTextYank() {
-    return await messageActiveTab("hinting_content", "hintPageTextYank")
-}
-
-export async function hintPageAnchorYank() {
-    return await messageActiveTab("hinting_content", "hintPageAnchorYank")
-}
-
-export async function hintPageSimple(selectors?) {
-    return await messageActiveTab("hinting_content", "hintPageSimple", [
-        selectors,
-    ])
-}
-
-export async function hintPageExStr(...exstr: string[]) {
-    return await messageActiveTab("hinting_content", "hintPageExStr", [
-        ...exstr,
-    ])
-}
-
-export async function hintPageOpenInBackground() {
-    return await messageActiveTab("hinting_content", "hintPageOpenInBackground")
-}
-
-export async function hintPageWindow() {
-    return await messageActiveTab("hinting_content", "hintPageWindow")
-}
-
-export async function hintPageWindowPrivate() {
-    return await messageActiveTab("hinting_content", "hintPageWindowPrivate")
-}
-
-export async function hintImage(inBackground) {
-    return await messageActiveTab("hinting_content", "hintImage", [
-        inBackground,
-    ])
-}
-
-export async function hintFocus(selectors?) {
-    return await messageActiveTab("hinting_content", "hintFocus", [selectors])
-}
-
-export async function hintRead() {
-    return await messageActiveTab("hinting_content", "hintRead")
-}
-
-export async function hintKill() {
-    return await messageActiveTab("hinting_content", "hintKill")
-}
 
 /** Type for "hint save" actions:
  *    - "link": elements that point to another resource (eg
@@ -76,13 +19,6 @@ export async function hintKill() {
  *    - "img":  image elements
  */
 export type HintSaveType = "link" | "img"
-
-export async function hintSave(hintType: HintSaveType, saveAs: boolean) {
-    return await messageActiveTab("hinting_content", "hintSave", [
-        hintType,
-        saveAs,
-    ])
-}
 
 import { MsgSafeKeyboardEvent } from "./msgsafe"
 

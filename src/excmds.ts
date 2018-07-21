@@ -2781,8 +2781,8 @@ export function unset(...keys: string[]) {
 
 // {{{ HINTMODE
 
-//#background_helper
-import * as hinting from "./hinting_background"
+//#content_helper
+import * as hinting from "./hinting"
 
 /** Hint a page.
 
@@ -2833,8 +2833,8 @@ import * as hinting from "./hinting_background"
           boilerplate each time you visit it, even if the number of
           links in the main body changes).
 */
-//#background
-export function hint(option?: string, selectors?: string, ...rest: string[]) {
+//#content
+export async function hint(option?: string, selectors?: string, ...rest: string[]) {
     if (option === "-b") hinting.hintPageOpenInBackground()
     else if (option === "-y") hinting.hintPageYank()
     else if (option === "-p") hinting.hintPageTextYank()
@@ -2852,6 +2852,7 @@ export function hint(option?: string, selectors?: string, ...rest: string[]) {
     else if (option === "-r") hinting.hintRead()
     else if (option === "-w") hinting.hintPageWindow()
     else if (option === "-W") hinting.hintPageExStr([selectors, ...rest].join(" "))
+    else if (option === "-pipe") return await hinting.hintPagePipe(selectors, rest.join(" "))
     else if (option === "-wp") hinting.hintPageWindowPrivate()
     else hinting.hintPageSimple()
 }
