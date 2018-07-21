@@ -448,7 +448,7 @@ function pushKey(ke) {
             1. Within viewport
             2. Not hidden by another element
 */
-function hintables(selectors = HINTTAGS_selectors, withjs = false) {
+function hintables(selectors = DOM.HINTTAGS_selectors, withjs = false) {
     let elems = DOM.getElemsBySelector(selectors, [])
     if (withjs) {
         elems = elems.concat(DOM.hintworthy_js_elems)
@@ -457,168 +457,25 @@ function hintables(selectors = HINTTAGS_selectors, withjs = false) {
     return elems.filter(DOM.isVisible)
 }
 
-function elementswithtext() {
-    return DOM.getElemsBySelector("*", [
-        DOM.isVisible,
-        hint => {
-            return hint.textContent != ""
-        },
-    ])
-}
-
-function titleAltTextElements() {
-    return DOM.getElemsBySelector("[title], [alt]", [DOM.isVisible])
-}
-
 /** Returns elements that point to a saveable resource
  */
 function saveableElements() {
-    return DOM.getElemsBySelector(HINTTAGS_saveable, [DOM.isVisible])
+    return DOM.getElemsBySelector(DOM.HINTTAGS_saveable, [DOM.isVisible])
 }
 
 /** Get array of images in the viewport
  */
 function hintableImages() {
-    return DOM.getElemsBySelector(HINTTAGS_img_selectors, [DOM.isVisible])
-}
-
-/** Get arrat of "anchors": elements which have id or name and can be addressed
- * with the hash/fragment in the URL
- */
-function anchors() {
-    return DOM.getElemsBySelector(HINTTAGS_anchor_selectors, [DOM.isVisible])
+    return DOM.getElemsBySelector(DOM.HINTTAGS_img_selectors, [DOM.isVisible])
 }
 
 /** Array of items that can be killed with hint kill
  */
 function killables() {
-    return DOM.getElemsBySelector(HINTTAGS_killable_selectors, [DOM.isVisible])
+    return DOM.getElemsBySelector(DOM.HINTTAGS_killable_selectors, [DOM.isVisible])
 }
-
-// CSS selectors. More readable for web developers. Not dead. Leaves browser to care about XML.
-const HINTTAGS_selectors = `
-input:not([type=hidden]):not([disabled]),
-a,
-area,
-iframe,
-textarea,
-button,
-select,
-summary,
-[onclick],
-[onmouseover],
-[onmousedown],
-[onmouseup],
-[oncommand],
-[role='link'],
-[role='button'],
-[role='checkbox'],
-[role='combobox'],
-[role='listbox'],
-[role='listitem'],
-[role='menuitem'],
-[role='menuitemcheckbox'],
-[role='menuitemradio'],
-[role='option'],
-[role='radio'],
-[role='scrollbar'],
-[role='slider'],
-[role='spinbutton'],
-[role='tab'],
-[role='textbox'],
-[role='treeitem'],
-[class*='button'],
-[tabindex]
-`
-
-const HINTTAGS_img_selectors = `
-img,
-[src]
-`
-
-const HINTTAGS_anchor_selectors = `
-[id],
-[name]
-`
-
-const HINTTAGS_killable_selectors = `
-header,
-footer,
-nav,
-span,
-div,
-iframe,
-img,
-button,
-article,
-summary
-`
-
-/** CSS selector for elements which point to a saveable resource
- */
-const HINTTAGS_saveable = `
-[href]:not([href='#'])
-`
 
 import { openInNewTab, activeTabContainerId } from "./lib/webext"
-
-/** if `target === _blank` clicking the link is treated as opening a popup and is blocked. Use webext API to avoid that. */
-function simulateClick(target: HTMLElement) {
-    // target can be set to other stuff, and we'll fail in annoying ways.
-    // There's no easy way around that while this code executes outside of the
-    // magic 'short lived event handler' context.
-    //
-    // OTOH, hardly anyone uses that functionality any more.
-    if (
-        (target as HTMLAnchorElement).target === "_blank" ||
-        (target as HTMLAnchorElement).target === "_new"
-    ) {
-        // Try to open the new tab in the same container as the current one.
-        activeTabContainerId().then(containerId => {
-            if (containerId)
-                openInNewTab((target as HTMLAnchorElement).href, {
-                    related: true,
-                    cookieStoreId: containerId,
-                })
-            else
-                openInNewTab((target as HTMLAnchorElement).href, {
-                    related: true,
-                })
-        })
-    } else {
-        DOM.mouseEvent(target, "click")
-        // DOM.focus has additional logic for focusing inputs
-        DOM.focus(target)
-    }
-}
-
-export function hintPageOpenInBackground(selectors = HINTTAGS_selectors) {
-    hintPage(hintables(selectors, true), hint => {
-        hint.target.focus()
-        if (hint.target.href) {
-            // Try to open with the webext API. If that fails, simulate a click on this page anyway.
-            // Try to open the new tab in the same container as the current one.
-            activeTabContainerId().then(containerId => {
-                if (containerId) {
-                    openInNewTab(hint.target.href, {
-                        active: false,
-                        related: true,
-                        cookieStoreId: containerId,
-                    }).catch(() => simulateClick(hint.target))
-                } else {
-                    openInNewTab(hint.target.href, {
-                        active: false,
-                        related: true,
-                    }).catch(() => simulateClick(hint.target))
-                }
-            })
-        } else {
-            // This is to mirror vimperator behaviour.
-            simulateClick(hint.target)
-        }
-    })
-}
-
 import { openInNewWindow } from "./lib/webext"
 
 export function hintPageWindow() {
@@ -628,7 +485,7 @@ export function hintPageWindow() {
             openInNewWindow({ url: hint.target.href })
         } else {
             // This is to mirror vimperator behaviour.
-            simulateClick(hint.target)
+            DOM.simulateClick(hint.target)
         }
     })
 }
@@ -642,56 +499,21 @@ export function hintPageWindowPrivate() {
     })
 }
 
-export function hintPageSimple(selectors = HINTTAGS_selectors) {
-    hintPage(hintables(selectors, true), hint => {
-        simulateClick(hint.target)
+export async function pipe(selectors = DOM.HINTTAGS_selectors) {
+    let hint =  await new Promise(resolve => {
+        hintPage(hintables(selectors, true), resolve)
     })
+    return (hint as any).target
+    // Promise takes function which it calls immediately with another function
+    // as its argument. When this second function is called, it gives its 
+    // argument to the promise as its value
 }
 
-export function hintPageExStr(...exStr: string[]) {
-    let selectors = HINTTAGS_selectors
-    hintPage(hintables(selectors, true), hint => {
-        Messaging.message("commandline_background", "recvExStr", [
-            exStr.join(" ") + " " + hint.target.href,
-        ])
+export async function pipe_elements(elements: any=DOM.elementsWithText) {
+    let hint =  await new Promise(resolve => {
+        hintPage(elements, resolve)
     })
-}
-
-
-export function hintPageTextYank() {
-    hintPage(elementswithtext(), hint => {
-        messageActiveTab("commandline_frame", "setClipboard", [
-            hint.target.textContent,
-        ])
-    })
-}
-
-export function hintPageTitleAltTextYank() {
-    hintPage(titleAltTextElements(), hint => {
-        messageActiveTab("commandline_frame", "setClipboard", [
-            hint.target.title ? hint.target.title : hint.target.alt,
-        ])
-    })
-}
-
-export function hintPageYank() {
-    hintPage(hintables(), hint => {
-        messageActiveTab("commandline_frame", "setClipboard", [
-            hint.target.href,
-        ])
-    })
-}
-
-/** Hint anchors and yank the URL on selection
- */
-export function hintPageAnchorYank() {
-    hintPage(anchors(), hint => {
-        let anchorUrl = new URL(window.location.href)
-
-        anchorUrl.hash = hint.target.id || hint.target.name
-
-        messageActiveTab("commandline_frame", "setClipboard", [anchorUrl.href])
-    })
+    return (hint as any).target
 }
 
 /** Hint images, opening in the same tab, or in a background tab
@@ -723,7 +545,7 @@ export function hintFocus(selectors?) {
 
 /** Hint items and read out the content of the selection */
 export function hintRead() {
-    hintPage(elementswithtext(), hint => {
+    hintPage(DOM.elementsWithText(), hint => {
         TTS.readText(hint.target.textContent)
     })
 }
@@ -786,19 +608,5 @@ addListener(
         pushKey,
         selectFocusedHint,
         reset,
-        hintPageSimple,
-        hintPageExStr,
-        hintPageYank,
-        hintPageTextYank,
-        hintPageTitleAltTextYank,
-        hintPageAnchorYank,
-        hintPageOpenInBackground,
-        hintPageWindow,
-        hintPageWindowPrivate,
-        hintImage,
-        hintFocus,
-        hintRead,
-        hintKill,
-        hintSave,
     }),
 )

@@ -114,6 +114,7 @@ const DEFAULTS = o({
         ZZ: "qall",
         f: "hint",
         F: "hint -b",
+        gF: "hint -br",
         ";i": "hint -i",
         ";I": "hint -I",
         ";k": "hint -k",
