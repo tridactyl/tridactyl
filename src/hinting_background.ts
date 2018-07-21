@@ -12,14 +12,6 @@ async function reset() {
     return await messageActiveTab("hinting_content", "reset")
 }
 
-
-/** Type for "hint save" actions:
- *    - "link": elements that point to another resource (eg
- *              links to pages/files) - the link target is saved
- *    - "img":  image elements
- */
-export type HintSaveType = "link" | "img"
-
 import { MsgSafeKeyboardEvent } from "./msgsafe"
 
 /** At some point, this might be turned into a real keyseq parser
