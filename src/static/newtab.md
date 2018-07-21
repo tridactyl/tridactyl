@@ -72,9 +72,9 @@ You have more questions? Have a look at our [FAQ][faq-link].
 </div>
 
 [faq-link]: https://github.com/cmcaine/tridactyl#frequently-asked-questions
-[help]: /static/docs/modules/_excmds_.html
+[help]: /static/docs/modules/_src_excmds_.html
 [tutor]: /static/clippy/tutor.html
-[help-hint]: /static/docs/modules/_excmds_.html#hint
+[help-hint]: /static/docs/modules/_src_excmds_.html#hint
 [gitter-badge]: /static/badges/gitter-badge.svg
 [gitter-link]: https://gitter.im/tridactyl/Lobby
 [freenode-badge]: /static/badges/freenode-badge.svg

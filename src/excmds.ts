@@ -4,7 +4,7 @@
 
     Use `:help <excmd>` or scroll down to show [[help]] for a particular excmd.
 
-    The default keybinds can be found [here](/static/docs/modules/_config_.html#defaults) or all active binds can be seen with `:viewconfig nmaps`.
+    The default keybinds can be found [here](/static/docs/modules/_src_config_.html#defaults) or all active binds can be seen with `:viewconfig nmaps`.
     You can also view them with [[bind]]. Try `bind j`.
 
     For more information, and FAQs, check out our [readme][4] on github.
@@ -33,7 +33,7 @@
 
     You do not need to worry about types. Return values which are promises will turn into whatever they promise to when used in [[composite]].
 
-    At the bottom of each function's help page, you can click on a link that will take you straight to that function's definition in our code. This is especially recommended for browsing the [config](/static/docs/modules/_config_.html#defaults) which is nigh-on unreadable on these pages.
+    At the bottom of each function's help page, you can click on a link that will take you straight to that function's definition in our code. This is especially recommended for browsing the [config](/static/docs/modules/_src_config_.html#defaults) which is nigh-on unreadable on these pages.
 
 
     ## Highlighted features:
@@ -243,7 +243,7 @@ export async function guiset_quiet(rule: string, option: string) {
  *
  * Might mangle your userChrome. Requires native messenger, and you must restart Firefox each time to see any changes (this can be done using [[restart]]). <!-- (unless you enable addon debugging and refresh using the browser toolbox) -->
  *
- * View available rules and options [here](/static/docs/modules/_css_util_.html#potentialrules) and [here](/static/docs/modules/_css_util_.html#metarules).
+ * View available rules and options [here](/static/docs/modules/_src_css_util_.html#potentialrules) and [here](/static/docs/modules/_src_css_util_.html#metarules).
  *
  * Example usage: `guiset gui none`, `guiset gui full`, `guiset tabs autohide`.
  *
@@ -1005,7 +1005,7 @@ export function home(all: "false" | "true" = "false") {
 */
 //#background
 export async function help(excmd?: string) {
-    const docpage = browser.extension.getURL("static/docs/modules/_excmds_.html")
+    const docpage = browser.extension.getURL("static/docs/modules/_src_excmds_.html")
     if (excmd === undefined) excmd = ""
     else {
         let bindings = await config.getAsync("nmaps")
@@ -2451,7 +2451,7 @@ export function searchsetkeyword(keyword: string, url: string) {
 
 /** Set a key value pair in config.
 
-    Use to set any string values found [here](/static/docs/modules/_config_.html#defaults)
+    Use to set any string values found [here](/static/docs/modules/_src_config_.html#defaults)
 
     e.g.
         set searchurls.google https://www.google.com/search?q=
