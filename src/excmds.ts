@@ -206,6 +206,10 @@ import * as css_util from "./css_util"
  */
 //#background
 export async function guiset_quiet(rule: string, option: string) {
+    if (!rule || !option) {
+        fillcmdline(":guiset requires two arguments. See `:help guiset` for more information.")
+        return
+    }
     // Could potentially fall back to sending minimal example to clipboard if native not installed
 
     // Check for native messenger and make sure we have a plausible profile directory
