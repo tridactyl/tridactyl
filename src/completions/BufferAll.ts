@@ -92,6 +92,7 @@ export class BufferAllCompletionSource extends Completions.CompletionSourceFuse 
             )
         }
 
+        this.completion = undefined
         this.options = options
         this.updateChain()
     }

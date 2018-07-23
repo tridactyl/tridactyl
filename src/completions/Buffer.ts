@@ -94,7 +94,7 @@ export class BufferCompletionSource extends Completions.CompletionSourceFuse {
             )
         }
 
-        /* console.log('updateOptions end', this.waiting, this.optionContainer) */
+        this.completion = undefined
         this.options = options
         this.updateChain()
     }

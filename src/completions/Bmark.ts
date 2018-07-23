@@ -56,6 +56,7 @@ export class BmarkCompletionSource extends Completions.CompletionSourceFuse {
             return
         }
 
+        this.completion = undefined
         this.options = (await this.scoreOptions(query, 10)).map(
             page => new BmarkCompletionOption(page.url, page),
         )
