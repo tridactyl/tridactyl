@@ -80,6 +80,7 @@ export class HistoryCompletionSource extends Completions.CompletionSourceFuse {
         }
         options += options ? " " : ""
 
+        this.completion = undefined
         this.options = (await this.scoreOptions(query, 10)).map(
             page => new HistoryCompletionOption(options + page.url, page),
         )
