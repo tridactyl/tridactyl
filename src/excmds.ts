@@ -206,8 +206,7 @@ import * as css_util from "./css_util"
  */
 //#background
 export async function guiset_quiet(rule: string, option: string) {
-    if (!rule || !option)
-        throw new Error(":guiset requires two arguments. See `:help guiset` for more information.")
+    if (!rule || !option) throw new Error(":guiset requires two arguments. See `:help guiset` for more information.")
     // Could potentially fall back to sending minimal example to clipboard if native not installed
 
     // Check for native messenger and make sure we have a plausible profile directory
@@ -2893,8 +2892,15 @@ export async function hint(option?: string, selectors?: string, ...rest: string[
     else if (option === "-W") run_exstr(selectors + " " + rest.join(" ") + " " + (await hinting.pipe(DOM.HINTTAGS_selectors)))
     else if (option === "-pipe") return (await hinting.pipe(selectors))[rest.join(" ")]
     else if (option === "-br") {
+        let lasthref = ""
+        let starttime = window.performance.now()
         while (true) {
-            await hint("-b")
+            let href = await hint("-b")
+            let endtime = window.performance.now()
+            // Hacky "if there's only one link on the page, don't spam it"
+            if (href == lasthref && endtime - starttime < 100) break
+            else lasthref = href
+            starttime = endtime
         }
     }
 
