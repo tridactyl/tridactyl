@@ -1,10 +1,89 @@
 # Tridactyl changelog
 
-## Unreleased
+## Release 1.13.2 / Unreleased
 
-*   New features
+* New features:
 
-    *   `DocLoad` autocmd added. It fires on DOMContentLoaded.
+    * Rapid hinting bound to `gF`. One of our most requested features.
+
+    * Add `DocLoad` autocmd which triggers after all HTML is downloaded (it fires on DOMContentLoaded).
+
+    * All clipboard commands on Linux now support X-selection if you have the native messenger installed. Simply set `yankto` and `putfrom` to `selection`.
+
+    * Add private window indicator to `bufferall`; add container icons to `buffer{,all}`.
+
+    * Add `fillcmdline_tmp`, useful for temporary messages. A few commands now use this (e.g, `yy`).
+
+    * `tabmove` bound to `<<` and `>>` à la Vimium.
+
+    * Add `mute` to mute tabs. Bound to `<A-m>` by default.
+
+    * Add `<A-p>` bind for `pin`.
+
+    * Add `{fixamo,guiset}_quiet` for non-interactive use; normal `{fixamo,guiset}` now inform you that you must restart.
+
+    * Add `url2args` ex-command to retrieve search terms from Tridactyl search engines, for use with `O`. `help url2args` for more information.
+
+    * Add `autocmddelete` to delete an autocmd.
+
+    * Add binds for yankmd and yanktitle to `yt` and `ym` irrespectively.
+
+    * Our GitHub has a new troublehooting guide and issue template (#522).
+
+* Bug fixes:
+
+    * Fix race condition in state.mode synchronization (#613).
+
+    * `set newtab about:blank` should work once again (#678).
+
+    * Make `tabprev` synchronous: it now works better in `composite` commands (i.e, `D` is less janky).
+
+    * Fix `guiset hoverlink *` in Firefox 61 (#763).
+
+    * Make `source` ignore visually empty lines.
+
+    * Completions will now be properly deselected upon typing (#833).
+
+    * `guiset` now gives helpful errors if given the wrong arguments (#844).
+
+    * History completion insertion with space no longer inserts an extra space (#838).
+
+    * Ctrl-y actually scrolls up now
+
+    * Arguments now ignored on history completions (`-private, -c, -b` etc.).
+
+    * Native messenger:
+
+        * Windows install script now complains if you do not have the requisite PowerShell version.
+
+        * Windows install script should now work if you have a non-ASCII username/directory
+
+        * Windows install script no longer rage-quits if Python is not found.
+            * This means that the compiled executable will actually be used. It's much slower than the normal Python script, so we strongly recommend that you use that instead by installing Python 3, making sure it is on your PATH, and running `installnative` again.
+
+    * Fix focus hijacking again (#768).
+
+    * Fix scrolling on bugzilla.mozilla.org (#762).
+
+    * Fix race condition in :sanitise (#724).
+
+    * Make sure bind/unbind use the same binding format: previously, modifiers on binds were case-sensitive for some commands.
+
+    * Container commands are now more case-insensitive.
+
+    * Fix jumplist not being correctly restored on reloads (#680).
+
+    * Update 1.13.1 release date in time for 1.13.2
+
+* Boring internal stuff
+
+    * Move most of hinting to content script (this may have broken some stuff - please report it if it has).
+
+Thanks to all of our contributors for this release: Oliver Blanthorn, glacambre, Anton Vilhelm Ásgeirsson, Babil Golam Sarwar, Jeff King, Bzly, WorldCodeCentral, Colin Caine, Vladimir Macko, Bodo Graumann, Chris Pickard, Matt Friedman, Susexe, jcrowgey.
+
+Extra special thanks go to Chris Pickard, Matt Friedman, Susexe, Vladimir Macko, WorldCodeCentral, all of whom were first time contributors!
+
+And thanks to anyone who reported issues.
 
 ## Release 1.13.1 / 2018-06-20
 
