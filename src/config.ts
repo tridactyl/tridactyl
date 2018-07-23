@@ -316,9 +316,6 @@ const DEFAULTS = o({
     // AutoContain directives create a container if it doesn't exist already.
     auconcreatecontainer: "true",
 
-    // Does not close the tab that navigated to the autocontained domain.
-    auconpreservetab: "true",
-
     // Performance related settings
 
     // number of most recent results to ask Firefox for. We display the top 20 or so most frequently visited ones.

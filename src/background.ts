@@ -115,6 +115,7 @@ browser.tabs.onActivated.addListener(ev => {
 })
 
 // {{{ AUTOCONTAINERS
+
 let aucon = new AutoContain()
 
 // Handle cancelled requests as a result of autocontain.

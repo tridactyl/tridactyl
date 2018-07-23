@@ -8,7 +8,13 @@
  A lot of the inspiration for this code was drawn from the Mozilla `contain facebook` Extension.
  https://github.com/mozilla/contain-facebook/
 
+ This feature is experimental and can cause heavy CPU usage.
+
+ Issue in MAC that is seemingly caused by the same thing:
+ https://github.com/mozilla/multi-account-containers/issues/572
+
  */
+
 import * as Config from "../config"
 import * as Container from "./containers"
 import * as Logging from "../logging"
@@ -47,18 +53,16 @@ interface IAutoContain {
     cancelRequest(tab: browser.tabs.Tab, details: IDetails): void
     clearCancelledRequests(tabId: number): void
     getCancelledRequest(tabId: number): ICancelledRequest
-    parseAucons(details: IDetails): string
+    parseAucons(details: IDetails): Promise<string>
 }
 
 export class AutoContain implements IAutoContain {
-    private enabled: boolean
     private cancelledRequests: ICancelledRequest[] = []
-
-    constructor() {}
 
     autoContain = async (
         details: IDetails,
     ): Promise<browser.webRequest.BlockingResponse> => {
+        
         // Do not handle private tabs or invalid tabIds.
         if (details.tabId === -1) return
         let tab = await browser.tabs.get(details.tabId)
@@ -67,25 +71,9 @@ export class AutoContain implements IAutoContain {
         // Only handle http requests.
         if (details.url.search("^https?://") < 0) return
 
-        // Get container name from Config. Return if containerName is the empty string.
-        // TODO: refactor to return firefox-default in order to comply with behaviour described in conversation in #754
-        let containerName = this.parseAucons(details)
-        if (!containerName) return
-
-        // Checks if containerName exists and creates it if it does not.
-        let containerExists = await Container.exists(containerName)
-        if (!containerExists) {
-            if (Config.get("auconcreatecontainer")) {
-                await Container.create(containerName)
-            } else {
-                logger.error(
-                    "Specified container doesn't exist. consider setting 'auconcreatecontainer' to true",
-                )
-            }
-        }
 
         // Silently return if we're already in the correct container.
-        let cookieStoreId = await Container.getId(containerName)
+        let cookieStoreId = await this.parseAucons(details)
         if (tab.cookieStoreId === cookieStoreId) return
 
         if (this.cancelEarly(tab, details)) return { cancel: true }
@@ -98,8 +86,7 @@ export class AutoContain implements IAutoContain {
                 windowId: tab.windowId,
             })
             .then(_ => {
-                let preserveTab = Config.get("auconpreservetab")
-                if (preserveTab && details.originUrl) {
+                if (details.originUrl) {
                     window.history.back()
                 } else {
                     browser.tabs.remove(details.tabId)
@@ -157,19 +144,31 @@ export class AutoContain implements IAutoContain {
         }
     }
 
-    parseAucons = (details): string => {
+    // Parses autocontain directives and returns valid cookieStoreIds or errors.
+    parseAucons = async (details): Promise<string> => {
         let aucons = Config.get("autocontain")
         const ausites = Object.keys(aucons)
         const aukeyarr = ausites.filter(
             e => details.url.search("^https?://.*" + e + "/") >= 0,
         )
         if (aukeyarr.length > 1) {
-            logger.error("Too many autocontain directives match this url.")
-            return ""
+            logger.error("Too many autocontain directives match this url. Not containing.")
+            return "firefox-default"
         } else if (aukeyarr.length === 0) {
-            return ""
+            return "firefox-default"
         } else {
-            return aucons[aukeyarr[0]]
+            let containerExists = await Container.exists(aucons[aukeyarr[0]])
+            if (!containerExists) {
+                if (Config.get("auconcreatecontainer")) {
+                    await Container.create(aucons[aukeyarr[0]])
+                } else {
+                    logger.error(
+                        "Specified container doesn't exist. consider setting 'auconcreatecontainer' to true",
+                    )
+                }
+            }
+            console.log(aucons[aukeyarr[0]])
+            return await Container.getId(aucons[aukeyarr[0]])
         }
     }
 }
