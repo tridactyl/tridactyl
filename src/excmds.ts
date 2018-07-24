@@ -2323,7 +2323,7 @@ export async function buffer(index: number | "#") {
  */
 //#background
 export async function bufferall(id: string) {
-    let windows = (await browser.windows.getAll()).map(w => w.id).sort()
+    let windows = (await browser.windows.getAll()).map(w => w.id).sort((a, b) => a - b)
     if (id === null || id === undefined || !id.match(/\d+\.\d+/)) {
         const tab = await activeTab()
         let prevId = id
