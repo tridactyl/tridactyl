@@ -62,7 +62,6 @@ export class AutoContain implements IAutoContain {
     autoContain = async (
         details: IDetails,
     ): Promise<browser.webRequest.BlockingResponse> => {
-        
         // Do not handle private tabs or invalid tabIds.
         if (details.tabId === -1) return
         let tab = await browser.tabs.get(details.tabId)
@@ -71,9 +70,9 @@ export class AutoContain implements IAutoContain {
         // Only handle http requests.
         if (details.url.search("^https?://") < 0) return
 
+        let cookieStoreId = await this.parseAucons(details)
 
         // Silently return if we're already in the correct container.
-        let cookieStoreId = await this.parseAucons(details)
         if (tab.cookieStoreId === cookieStoreId) return
 
         if (this.cancelEarly(tab, details)) return { cancel: true }
@@ -152,7 +151,9 @@ export class AutoContain implements IAutoContain {
             e => details.url.search("^https?://.*" + e + "/") >= 0,
         )
         if (aukeyarr.length > 1) {
-            logger.error("Too many autocontain directives match this url. Not containing.")
+            logger.error(
+                "Too many autocontain directives match this url. Not containing.",
+            )
             return "firefox-default"
         } else if (aukeyarr.length === 0) {
             return "firefox-default"
