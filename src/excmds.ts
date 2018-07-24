@@ -2353,7 +2353,7 @@ export function autocmd(event: string, url: string, ...excmd: string[]) {
     config.set("autocmds", event, url, excmd.join(" "))
 }
 
-/** Automatically open a domain and all it's subdomains in a specified container.
+/** Automatically open a domain and all its subdomains in a specified container.
   
  @param domain The domain which will trigger the autoContain directive. Includes all subdomains.
  @param container The container to open the url in. 
