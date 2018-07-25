@@ -46,7 +46,7 @@ if [ "$(isWindowsMinGW)" = "True" ]; then
     -NoProfile \
     -InputFormat None \
     -ExecutionPolicy Bypass \
-    native/install.ps1 -DebugDirBase native
+    native/win_install.ps1 -DebugDirBase native
 else
   native/install.sh local
 fi
