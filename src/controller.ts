@@ -16,10 +16,10 @@ const logger = new Logger("controller")
 /** Accepts keyevents, resolves them to maps, maps to exstrs, executes exstrs */
 function* ParserController() {
     const parsers = {
-        normal: keys => generic.parser("nmaps",keys),
-        insert: keys => generic.parser("imaps",keys),
-        input: keys => generic.parser("inputmaps",keys),
-        ignore: keys => generic.parser("ignoremaps",keys),
+        normal: keys => generic.parser("nmaps", keys),
+        insert: keys => generic.parser("imaps", keys),
+        input: keys => generic.parser("inputmaps", keys),
+        ignore: keys => generic.parser("ignoremaps", keys),
         hint: hintmode_parser,
         find: findmode_parser,
         gobble: gobblemode.parser,
@@ -58,16 +58,7 @@ function* ParserController() {
 
                 keyEvents.push(keyevent)
                 let response = undefined
-                switch (state.mode) {
-                    case "normal":
-                        response = (parsers[state.mode] as any)(keyEvents)
-                        // Compatibility with other parsers.
-                        response.exstr = response.value
-                        break
-                    default:
-                        response = (parsers[state.mode] as any)([keyevent])
-                        break
-                }
+                response = (parsers[state.mode] as any)(keyEvents)
                 logger.debug(keyEvents, response)
 
                 if (response.exstr) {
