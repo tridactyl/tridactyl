@@ -2,7 +2,7 @@
 
 /** # Tridactyl help page
 
-    Use `:help <excmd>` or scroll down to show [[help]] for a particular excmd.
+    Use `:help <excmd>` or scroll down to show [[help]] for a particular excmd. If you're still stuck, you might consider reading through the [:tutor](/static/clippy/tutor.html) again.
 
     The default keybinds can be found [here](/static/docs/modules/_src_config_.html#defaults) or all active binds can be seen with `:viewconfig nmaps`.
     You can also view them with [[bind]]. Try `bind j`.
