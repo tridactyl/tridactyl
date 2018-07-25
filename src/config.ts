@@ -82,6 +82,8 @@ const DEFAULTS = o({
         gg: "scrollto 0",
         "<C-u>": "scrollpage -0.5",
         "<C-d>": "scrollpage 0.5",
+        "<C-f>": "scrollpage 1",
+        "<C-b>": "scrollpage -1",
         // Disabled while our find mode is bad
         /* "<C-f>": "scrollpage -1", */
         // "<C-b>": "scrollpage -1",
