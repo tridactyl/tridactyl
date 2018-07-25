@@ -2354,14 +2354,18 @@ export function autocmd(event: string, url: string, ...excmd: string[]) {
 }
 
 /** Automatically open a domain and all its subdomains in a specified container.
-  
- @param domain The domain which will trigger the autoContain directive. Includes all subdomains.
- @param container The container to open the url in. 
- 
- * Note: This is an experimental feature, if you encounter issues please create an issue on github. *
- For declaring containers that do not yet exist, consider using `auconscreatecontainer true` in your tridactylrc.
- This allows tridactyl to automatically create containers from your autocontain directives. Note that they will be random icons and colors.
-
+ *
+ *  For declaring containers that do not yet exist, consider using `auconscreatecontainer true` in your tridactylrc.
+ *  This allows tridactyl to automatically create containers from your autocontain directives. Note that they will be random icons and colors.
+ *
+ * ** NB: This is an experimental feature, if you encounter issues please create an issue on github. **
+ *
+ *  The domain is passed through as a regular expression so there are a few gotchas to be aware of:
+ *  * Unescaped periods will match *anything*. `autocontain google.co.uk work` will match `google!co$uk`. Escape your periods or accept that you might get some false positives.
+ *  * You can use regex in your domain pattern. `autocontain google\,(co\.uk|com) work` will match either `google.co.uk` or `google.com`.
+ *
+ *  @param domain The domain which will trigger the autoContain directive. Includes all subdomains.
+ *  @param container The container to open the url in.
  */
 //#background
 export function autocontain(domain: string, container: string) {
