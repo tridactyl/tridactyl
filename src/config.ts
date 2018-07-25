@@ -197,6 +197,7 @@ const DEFAULTS = o({
         openwith: "hint -W",
         "!": "exclaim",
         "!s": "exclaim_quiet",
+        containerremove: "containerdelete",
         colourscheme: "set theme",
         colours: "colourscheme",
         colorscheme: "colourscheme",
