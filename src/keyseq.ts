@@ -103,6 +103,7 @@ type KeyMap = Map<MinimalKey[], MapTarget>
 export type ParserResponse = {
     keys?: KeyEventLike[]
     value?: any
+    exstr?: any
     isMatch: boolean
 }
 
@@ -129,7 +130,7 @@ export function parse(keyseq: KeyEventLike[], map: KeyMap): ParserResponse {
                 possibleMappings,
                 ([k, v]) => k.length === keyseq.length,
             )
-            return { value: perfect[1], isMatch: true }
+            return { value: perfect[1], exstr: perfect[1], isMatch: true }
         } catch (e) {
             if (!(e instanceof RangeError)) throw e
         }
