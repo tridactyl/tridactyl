@@ -34,10 +34,20 @@ let USERCONFIG = o({})
 const DEFAULTS = o({
     configversion: "0.0",
     // When creating new <modifier-letter> maps, make sure to make the modifier uppercase (e.g. <C-a> instead of <c-a>) otherwise some commands might not be able to find them (e.g. `bind <c-a>`)
-    imaps: o({
+    ignoremaps: o({
         "<S-Insert>": "mode normal",
         "<CA-Esc>": "mode normal",
         "<CA-`>": "mode normal",
+    }),
+    inputmaps: o({
+        "<Esc>": "composite unfocus | mode normal",
+        "<C-i>": "editor",
+        "<Tab>": "focusinput -n",
+        "<S-Tab>": "focusinput -N",
+    }),
+    imaps: o({
+        "<Esc>": "composite unfocus | mode ignore",
+        "<C-i>": "editor",
     }),
     nmaps: o({
         "<F1>": "help",

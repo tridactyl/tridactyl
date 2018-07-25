@@ -23,7 +23,8 @@ function keyeventHandler(ke: KeyboardEvent) {
 
 import state from "./state"
 
-import * as normalmode from "./parsers/normalmode"
+import * as generic from "./parsers/genericmode"
+let normparser = keys => generic.parser("nmaps", keys)
 let keys = []
 
 /** Choose to suppress a key or not */
@@ -53,7 +54,7 @@ function modeSpecificSuppression(ke: KeyboardEvent) {
     switch (mode) {
         case "normal":
             keys.push(ke)
-            const response = normalmode.parser(keys)
+            const response = normparser(keys)
 
             // Suppress if there's a match.
             if (response.isMatch) {

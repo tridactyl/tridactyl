@@ -24,7 +24,6 @@ import * as dom from "./dom"
 import * as hinting_background from "./hinting_background"
 import * as download_background from "./download_background"
 import * as gobble_mode from "./parsers/gobblemode"
-import * as input_mode from "./parsers/inputmode"
 import * as itertools from "./itertools"
 import * as keyseq from "./keyseq"
 import * as request from "./requests"
@@ -43,7 +42,6 @@ import * as webext from "./lib/webext"
     hinting_background,
     download_background,
     gobble_mode,
-    input_mode,
     itertools,
     keydown_background,
     native,
