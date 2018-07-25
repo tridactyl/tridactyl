@@ -46,7 +46,7 @@ const DEFAULTS = o({
         "<S-Tab>": "focusinput -N",
     }),
     imaps: o({
-        "<Esc>": "composite unfocus | mode ignore",
+        "<Esc>": "composite unfocus | mode normal",
         "<C-i>": "editor",
     }),
     nmaps: o({
