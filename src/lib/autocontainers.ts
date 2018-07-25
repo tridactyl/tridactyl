@@ -1,14 +1,23 @@
 /** Auto Containers
 
  Hook into webRequests and make sure that your (least) favorite domain is contained
- and doesn't touch your default browsing.
+ and doesn't touch your default browsing environment.
 
- Should try and detect Multi Account Containers or Contain Facebook extensions from Mozilla.
+  For declaring containers that do not yet exist, consider using `auconscreatecontainer true` in your tridactylrc.
+  This allows tridactyl to automatically create containers from your autocontain directives. Note that they will be random icons and colors.
+
+ ** NB: This is an experimental feature, if you encounter issues please create an issue on github. **
+
+  The domain is passed through as a regular expression so there are a few gotchas to be aware of:
+  * Unescaped periods will match *anything*. `autocontain google.co.uk work` will match `google!co$uk`. Escape your periods or accept that you might get some false positives.
+  * You can use regex in your domain pattern. `autocontain google\,(co\.uk|com) work` will match either `google.co.uk` or `google.com`.
+
+ TODO: Should try and detect Multi Account Containers and/or Contain Facebook extensions from Mozilla. 
  
  A lot of the inspiration for this code was drawn from the Mozilla `contain facebook` Extension.
  https://github.com/mozilla/contain-facebook/
 
- This feature is experimental and can cause heavy CPU usage.
+ This feature is experimental and may cause heavy CPU usage.
 
  Issue in MAC that is seemingly caused by the same thing:
  https://github.com/mozilla/multi-account-containers/issues/572
@@ -148,7 +157,7 @@ export class AutoContain implements IAutoContain {
         let aucons = Config.get("autocontain")
         const ausites = Object.keys(aucons)
         const aukeyarr = ausites.filter(
-            e => details.url.search("^https?://.*" + e + "/") >= 0,
+            e => details.url.search("^https?://[^/]*" + e + "/") >= 0,
         )
         if (aukeyarr.length > 1) {
             logger.error(
@@ -168,7 +177,6 @@ export class AutoContain implements IAutoContain {
                     )
                 }
             }
-            console.log(aucons[aukeyarr[0]])
             return await Container.getId(aucons[aukeyarr[0]])
         }
     }
