@@ -472,7 +472,9 @@ function hintableImages() {
 /** Array of items that can be killed with hint kill
  */
 function killables() {
-    return DOM.getElemsBySelector(DOM.HINTTAGS_killable_selectors, [DOM.isVisible])
+    return DOM.getElemsBySelector(DOM.HINTTAGS_killable_selectors, [
+        DOM.isVisible,
+    ])
 }
 
 import { openInNewTab, activeTabContainerId } from "./lib/webext"
@@ -499,18 +501,21 @@ export function hintPageWindowPrivate() {
     })
 }
 
-export async function pipe(selectors = DOM.HINTTAGS_selectors) {
-    let hint =  await new Promise(resolve => {
+export async function pipe(
+    selectors = DOM.HINTTAGS_selectors,
+): Promise<[any, number]> {
+    let hintCount = hintables(selectors, true).length
+    let hint = await new Promise(resolve => {
         hintPage(hintables(selectors, true), resolve)
     })
-    return (hint as any).target
+    return [(hint as any).target, hintCount]
     // Promise takes function which it calls immediately with another function
-    // as its argument. When this second function is called, it gives its 
+    // as its argument. When this second function is called, it gives its
     // argument to the promise as its value
 }
 
-export async function pipe_elements(elements: any=DOM.elementsWithText) {
-    let hint =  await new Promise(resolve => {
+export async function pipe_elements(elements: any = DOM.elementsWithText) {
+    let hint = await new Promise(resolve => {
         hintPage(elements, resolve)
     })
     return (hint as any).target

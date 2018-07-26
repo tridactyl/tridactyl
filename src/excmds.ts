@@ -2856,7 +2856,7 @@ export async function hint(option?: string, selectors?: string, ...rest: string[
 
     // Open in background
     if (option === "-b") {
-        let link = await hinting.pipe(DOM.HINTTAGS_selectors)
+        let [link, hintCount] = await hinting.pipe(DOM.HINTTAGS_selectors)
         link.focus()
         if (link.href) {
             let containerId = await activeTabContainerId()
@@ -2875,7 +2875,7 @@ export async function hint(option?: string, selectors?: string, ...rest: string[
         } else {
             DOM.simulateClick(link)
         }
-        return link.href
+        return [link.href, hintCount]
     }
 
     // Yank link
@@ -2900,7 +2900,7 @@ export async function hint(option?: string, selectors?: string, ...rest: string[
         let link = await hinting.pipe_elements(DOM.anchors())
         anchorUrl.hash = link.id || link.name
         run_exstr("yank " + anchorUrl.href)
-    } else if (option === "-c") DOM.simulateClick(await hinting.pipe(selectors))
+    } else if (option === "-c") DOM.simulateClick(await hinting.pipe(selectors)[0])
     // Deprecated: hint exstr
     else if (option === "-W") run_exstr(selectors + " " + rest.join(" ") + " " + (await hinting.pipe(DOM.HINTTAGS_selectors)))
     else if (option === "-pipe") return (await hinting.pipe(selectors))[rest.join(" ")]
@@ -2908,12 +2908,8 @@ export async function hint(option?: string, selectors?: string, ...rest: string[
         let lasthref = ""
         let starttime = window.performance.now()
         while (true) {
-            let href = await hint("-b")
-            let endtime = window.performance.now()
-            // Hacky "if there's only one link on the page, don't spam it"
-            if (href == lasthref && endtime - starttime < 100) break
-            else lasthref = href
-            starttime = endtime
+            let [_, hintCount] = await hint("-b")
+            if (hintCount < 2) break
         }
     }
 
@@ -2929,7 +2925,7 @@ export async function hint(option?: string, selectors?: string, ...rest: string[
     else if (option === "-r") hinting.hintRead()
     else if (option === "-w") hinting.hintPageWindow()
     else if (option === "-wp") hinting.hintPageWindowPrivate()
-    else DOM.simulateClick(await hinting.pipe(DOM.HINTTAGS_selectors))
+    else DOM.simulateClick(await hinting.pipe(DOM.HINTTAGS_selectors)[0])
 }
 
 // how 2 crash pc
