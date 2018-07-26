@@ -2192,9 +2192,10 @@ export async function yank(...content: string[]) {
     await setclip(content.join(" "))
 }
 
-/** Copies a string to the clipboard/selection buffer depending on the user's preferences
+/**
+ * Copies a string to the clipboard/selection buffer depending on the user's preferences
  *
- *  @hidden
+ * @hidden
  */
 //#background_helper
 async function setclip(str) {
@@ -2220,9 +2221,10 @@ async function setclip(str) {
     return await Promise.all(promises)
 }
 
-/** Fetches the content of the clipboard/selection buffer depending on user's preferences
+/**
+ * Fetches the content of the clipboard/selection buffer depending on user's preferences
  *
- *  @hidden
+ * @hidden
  */
 //#background_helper
 async function getclip() {
