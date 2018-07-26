@@ -165,6 +165,7 @@ const DEFAULTS = o({
         "<A-m>": "mute toggle",
     }),
     autocmds: o({
+        DocLoad: o({}),
         DocStart: o({
             // "addons.mozilla.org": "mode ignore",
         }),
