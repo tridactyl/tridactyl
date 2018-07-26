@@ -2852,7 +2852,7 @@ import * as hinting from "./hinting"
 */
 //#content
 export async function hint(option?: string, selectors?: string, ...rest: string[]) {
-    // NB: if you want something to work with rapid hinting, make it return something
+    // NB: if you want something to work with rapid hinting, make it return a tuple of [something, hintCount] see option === "-b" below.
 
     // Open in background
     if (option === "-b") {
@@ -2880,7 +2880,7 @@ export async function hint(option?: string, selectors?: string, ...rest: string[
 
     // Yank link
     else if (option === "-y") {
-        run_exstr("yank " + (await hinting.pipe(DOM.HINTTAGS_selectors))["href"])
+        run_exstr("yank " + (await hinting.pipe(DOM.HINTTAGS_selectors)[0])["href"])
     }
 
     // Yank text content
@@ -2902,11 +2902,9 @@ export async function hint(option?: string, selectors?: string, ...rest: string[
         run_exstr("yank " + anchorUrl.href)
     } else if (option === "-c") DOM.simulateClick(await hinting.pipe(selectors)[0])
     // Deprecated: hint exstr
-    else if (option === "-W") run_exstr(selectors + " " + rest.join(" ") + " " + (await hinting.pipe(DOM.HINTTAGS_selectors)))
-    else if (option === "-pipe") return (await hinting.pipe(selectors))[rest.join(" ")]
+    else if (option === "-W") run_exstr(selectors + " " + rest.join(" ") + " " + (await hinting.pipe(DOM.HINTTAGS_selectors)[0]))
+    else if (option === "-pipe") return (await hinting.pipe(selectors)[0])[rest.join(" ")]
     else if (option === "-br") {
-        let lasthref = ""
-        let starttime = window.performance.now()
         while (true) {
             let [_, hintCount] = await hint("-b")
             if (hintCount < 2) break
