@@ -31,6 +31,14 @@
 
     A "splat" operator (...) means that the excmd will accept any number of space-delimited arguments into that parameter.
 
+    Above each function signature you will see any aliases or key sequences bound to it. The internal names for the various modes are used, which are listed here:
+    
+        - `nmaps`: normal mode binds
+        - `imaps`: insert mode binds
+        - `inputmaps`: input mode binds
+        - `ignoremaps`: ignore mode binds
+        - `exaliases`: aliases in the command mode
+
     You do not need to worry about types. Return values which are promises will turn into whatever they promise to when used in [[composite]].
 
     At the bottom of each function's help page, you can click on a link that will take you straight to that function's definition in our code. This is especially recommended for browsing the [config](/static/docs/modules/_src_config_.html#defaults) which is nigh-on unreadable on these pages.

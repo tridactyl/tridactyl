@@ -88,19 +88,24 @@ async function addSetting(settingName: string) {
 browser.storage.onChanged.addListener((changes, areaname) => {
     if ("userconfig" in changes) {
         // JSON.stringify for comparisons like it's 2012
-        ;["exaliases", "nmaps"].forEach(kind => {
-            if (
-                JSON.stringify(changes.userconfig.newValue[kind]) !=
-                JSON.stringify(changes.userconfig.oldValue[kind])
-            )
-                addSetting(kind)
-        })
+        ;["nmaps", "imaps", "ignoremaps", "inputmaps", "exaliases"].forEach(
+            kind => {
+                if (
+                    JSON.stringify(changes.userconfig.newValue[kind]) !=
+                    JSON.stringify(changes.userconfig.oldValue[kind])
+                )
+                    addSetting(kind)
+            },
+        )
     }
 })
 
 addEventListener("load", async () => {
-    await addSetting("exaliases")
-    await addSetting("nmaps")
+    await Promise.all(
+        ["nmaps", "imaps", "ignoremaps", "inputmaps", "exaliases"].map(
+            addSetting,
+        ),
+    )
     // setCommandSetting() can change the height of nodes in the page so we need to scroll to the right place again
     if (document.location.hash) {
         document.location.hash = document.location.hash
