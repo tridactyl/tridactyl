@@ -336,7 +336,7 @@ function applyWithTmpTextArea(fn) {
     }
 }
 
-export function setClipboard(content: string) {
+export async function setClipboard(content: string) {
     applyWithTmpTextArea(scratchpad => {
         scratchpad.value = content
         scratchpad.select()
@@ -346,7 +346,7 @@ export function setClipboard(content: string) {
         } else throw "Failed to copy!"
     })
     // Return focus to the document
-    Messaging.message("commandline_background", "hide")
+    await Messaging.message("commandline_background", "hide")
 }
 
 export function getClipboard() {

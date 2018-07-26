@@ -2192,7 +2192,10 @@ export async function yank(...content: string[]) {
 async function setclip(str) {
     // Functions to avoid retyping everything everywhere
     let s = () => Native.clipboard("set", str)
-    let c = () => messageActiveTab("commandline_frame", "setClipboard", [str])
+    let c = async () => {
+        await messageActiveTab("commandline_content", "focus")
+        await messageActiveTab("commandline_frame", "setClipboard", [str])
+    }
 
     let promises = []
     switch (await config.getAsync("yankto")) {
@@ -2206,7 +2209,7 @@ async function setclip(str) {
             promises = [s(), c()]
             break
     }
-    return Promise.all(promises)
+    return await Promise.all(promises)
 }
 
 /** Fetches the content of the clipboard/selection buffer depending on user's preferences
