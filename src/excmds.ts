@@ -4073,8 +4073,15 @@ export async function bmark(url?: string, ...titlearr: string[]) {
     dupbmarks.forEach(bookmark => browser.bookmarks.remove(bookmark.id))
     if (dupbmarks.length !== 0) return
     const path = title.substring(0, title.lastIndexOf("/") + 1)
-    // TODO: if title is blank, get it from the page.
-    if (path !== "") {
+    // if title is blank, get it from the current page.
+    // technically could race condition if someone switched tabs REALLY quick after
+    // bookmarking, but too unlikely to bother with for now
+    if (title == "") {
+        //retrieve title from current tab
+        title = (await activeTab()).title
+    }
+
+    if (path != "") {
         const tree = (await browser.bookmarks.getTree())[0] // Why would getTree return a tree? Obviously it returns an array of unit length.
         // I hate recursion.
         const treeClimber = (tree, treestr) => {
@@ -4088,6 +4095,14 @@ export async function bmark(url?: string, ...titlearr: string[]) {
         let pathobj = validpaths.find(p => p.path === path)
         // If strict look doesn't find it, be a bit gentler
         if (pathobj === undefined) pathobj = validpaths.find(p => p.path.includes(path))
+        //technically an initial title string like `Firefox/` can give us a blank title
+        //once we remove the path, so let's fix that
+        if (title == "") {
+            //retrieve title from current tab
+            const currTitle = (await activeTab()).title
+            title = currTitle
+        }
+
         if (pathobj !== undefined) {
             browser.bookmarks.create({ url, title, parentId: pathobj.id })
             return
