@@ -41,12 +41,14 @@ const DEFAULTS = o({
     }),
     inputmaps: o({
         "<Esc>": "composite unfocus | mode normal",
+        "<C-[>": "composite unfocus | mode normal",
         "<C-i>": "editor",
         "<Tab>": "focusinput -n",
         "<S-Tab>": "focusinput -N",
     }),
     imaps: o({
         "<Esc>": "composite unfocus | mode normal",
+        "<C-[>": "composite unfocus | mode normal",
         "<C-i>": "editor",
     }),
     nmaps: o({
@@ -151,6 +153,7 @@ const DEFAULTS = o({
         "<CA-Esc>": "mode ignore",
         "<CA-`>": "mode ignore",
         "<Esc>": "composite mode normal ; hidecmdline",
+        "<C-[>": "composite mode normal ; hidecmdline",
         I:
             "fillcmdline Ignore mode is now toggled by pressing <S-Insert> or <C-A-`>",
         a: "current_url bmark",
