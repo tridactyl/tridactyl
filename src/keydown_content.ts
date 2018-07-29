@@ -25,7 +25,24 @@ import state from "./state"
 
 import * as generic from "./parsers/genericmode"
 let normparser = keys => generic.parser("nmaps", keys)
+let inputparser = keys => generic.parser("inputmaps", keys)
+let insertparser = keys => generic.parser("imaps", keys)
+let ignoreparser = keys => generic.parser("ignoremaps", keys)
 let keys = []
+
+function genericResponse(ke: KeyboardEvent, parser: any): void {
+    keys.push(ke)
+    const response = parser(keys)
+
+    // Suppress if there's a match.
+    if (response.isMatch) {
+        ke.preventDefault()
+        ke.stopImmediatePropagation()
+    }
+
+    // Update keys array.
+    keys = response.keys || []
+}
 
 /** Choose to suppress a key or not */
 function modeSpecificSuppression(ke: KeyboardEvent) {
@@ -53,17 +70,7 @@ function modeSpecificSuppression(ke: KeyboardEvent) {
 
     switch (mode) {
         case "normal":
-            keys.push(ke)
-            const response = normparser(keys)
-
-            // Suppress if there's a match.
-            if (response.isMatch) {
-                ke.preventDefault()
-                ke.stopImmediatePropagation()
-            }
-
-            // Update keys array.
-            keys = response.keys || []
+            genericResponse(ke, normparser)
             break
         // Hintmode can't clean up after itself yet, so it needs to block more FF shortcuts.
         case "hint":
@@ -80,18 +87,13 @@ function modeSpecificSuppression(ke: KeyboardEvent) {
             }
             break
         case "input":
-            if (ke.key === "Tab" || (ke.ctrlKey === true && ke.key === "i")) {
-                ke.preventDefault()
-                ke.stopImmediatePropagation()
-            }
+            genericResponse(ke, inputparser)
             break
         case "ignore":
+            genericResponse(ke, ignoreparser)
             break
         case "insert":
-            if (ke.ctrlKey === true && ke.key === "i") {
-                ke.preventDefault()
-                ke.stopImmediatePropagation()
-            }
+            genericResponse(ke, insertparser)
             break
     }
 }
