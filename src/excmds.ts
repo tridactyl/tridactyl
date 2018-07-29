@@ -2880,7 +2880,7 @@ export async function hint(option?: string, selectors?: string, ...rest: string[
 
     // Yank link
     else if (option === "-y") {
-        run_exstr("yank " + (await hinting.pipe(DOM.HINTTAGS_selectors)[0])["href"])
+        run_exstr("yank " + (await hinting.pipe(DOM.HINTTAGS_selectors))[0]["href"])
     }
 
     // Yank text content
