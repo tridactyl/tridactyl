@@ -41,7 +41,7 @@ export class Logger {
                     // TODO: replicate this for other levels, don't steal focus
                     // work out how to import messaging/webext without breaking everything
                     return async (...message) => {
-                        console.error(...message)
+                        console.error(new Error(message))
                         const getContext = () => {
                             if (!("tabs" in browser)) {
                                 return "content"
