@@ -20,6 +20,7 @@ type MessageCommand =
     | "move"
     | "eval"
     | "getconfig"
+    | "getconfigpath"
     | "env"
     | "win_firefox_restart"
 interface MessageResp {
@@ -51,6 +52,15 @@ async function sendNativeMsg(
             throw e
         }
     }
+}
+
+export async function getrcpath(): Promise <string> {
+    const res = await sendNativeMsg("getconfigpath", {})
+
+    if (res.code != 0)
+        throw new Error("getrcpath error: " + res.code)
+
+    return res.content
 }
 
 export async function getrc(): Promise<string> {

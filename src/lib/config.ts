@@ -396,7 +396,6 @@ class default_config {
         "!": "exclaim",
         "!s": "exclaim_quiet",
         containerremove: "containerdelete",
-        colourscheme: "set theme",
         colours: "colourscheme",
         colorscheme: "colourscheme",
         colors: "colourscheme",

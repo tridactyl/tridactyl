@@ -413,6 +413,12 @@ def handleMessage(message):
         else:
             reply["code"] = "File not found"
 
+    elif cmd == "getconfigpath":
+        reply["content"] = findUserConfigFile()
+        reply["code"] = 0
+        if reply["content"] == None:
+            reply["code"] = "Path not found"
+
     elif cmd == "run":
         commands = message["command"]
         stdin = message.get("content", "").encode("utf-8")

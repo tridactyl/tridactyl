@@ -18,10 +18,23 @@ function prefixTheme(name) {
 // At the moment elements are only ever `:root` and so this array and stuff is all a bit overdesigned.
 const THEMED_ELEMENTS = []
 
+let insertedCSS = false
+let customCss = {
+    allFrames: true,
+    matchAboutBlank: true,
+    code: "",
+}
+
 export async function theme(element) {
     // Remove any old theme
     for (let theme of THEMES.map(prefixTheme)) {
         element.classList.remove(theme)
+    }
+    if (insertedCSS) {
+        // Typescript doesn't seem to be aware than remove/insertCSS's tabid
+        // argument is optional
+        await (browser.tabs.removeCSS as any)(customCss)
+        insertedCSS = false
     }
 
     let newTheme = await config.getAsync("theme")
@@ -29,6 +42,17 @@ export async function theme(element) {
     // Add a class corresponding to config.get('theme')
     if (newTheme !== "default") {
         element.classList.add(prefixTheme(newTheme))
+    }
+
+    // Insert custom css if needed
+    if (newTheme !== "default" && !THEMES.includes(newTheme)) {
+        customCss.code = await config.getAsync("customthemes", newTheme)
+        if (customCss.code) {
+            await (browser.tabs.insertCSS as any)(customCss)
+            insertedCSS = true
+        } else {
+            logger.error("Theme " + newTheme + " couldn't be found.")
+        }
     }
 
     // Record for re-theming
