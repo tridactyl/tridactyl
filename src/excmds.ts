@@ -1792,9 +1792,19 @@ export async function undo() {
 //#background
 export async function tabmove(index = "0") {
     const aTab = await activeTab()
+    const maxindex = (await browser.tabs.query({ currentWindow: true })).length - 1
     let newindex: number
-    if (index.startsWith("+") || index.startsWith("-")) {
-        newindex = Math.max(0, Number(index) + aTab.index)
+
+    if (index.startsWith("+")) {
+        newindex = Number(index) + aTab.index
+        if (newindex > maxindex) {
+            newindex -= (maxindex + 1)
+        }
+    } else if (index.startsWith("-")) {
+        newindex = Number(index) + aTab.index
+        if (newindex < 0) {
+            newindex += (maxindex + 1)
+        }
     } else newindex = Number(index) - 1
     browser.tabs.move(aTab.id, { index: newindex })
 }
