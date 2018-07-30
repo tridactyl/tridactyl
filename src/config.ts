@@ -163,7 +163,7 @@ const DEFAULTS = o({
         "<Esc>": "composite mode normal ; hidecmdline",
         "<C-[>": "composite mode normal ; hidecmdline",
         I:
-            "fillcmdline Ignore mode is now toggled by pressing <S-Insert> or <C-A-`>",
+            "fillcmdline_tmp 3000 Ignore mode is now toggled by pressing <S-Insert> or <C-A-`>",
         a: "current_url bmark",
         A: "bmark",
         zi: "zoom 0.1 true",
@@ -243,10 +243,9 @@ const DEFAULTS = o({
         colorscheme: "colourscheme",
         colors: "colourscheme",
         man: "help",
-        "!js":
-            "fillcmdline Warning: !js is deprecated. Please use js instead: js ",
+        "!js": "fillcmdline_tmp 3000 !js is deprecated. Please use js instead",
         "!jsb":
-            "fillcmdline Warning: !jsb is deprecated. Please use jsb instead: jsb ",
+            "fillcmdline_tmp 3000 !jsb is deprecated. Please use jsb instead",
         current_url: "composite get_current_url | fillcmdline_notrail ",
     }),
     followpagepatterns: o({
