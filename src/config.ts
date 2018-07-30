@@ -45,11 +45,18 @@ const DEFAULTS = o({
         "<C-i>": "editor",
         "<Tab>": "focusinput -n",
         "<S-Tab>": "focusinput -N",
+        "<CA-Esc>": "mode normal",
+        "<CA-`>": "mode normal",
+        "<C-^>": "buffer #",
     }),
     imaps: o({
         "<Esc>": "composite unfocus | mode normal",
         "<C-[>": "composite unfocus | mode normal",
         "<C-i>": "editor",
+        "<CA-Esc>": "mode normal",
+        "<CA-`>": "mode normal",
+        "<C-6>": "buffer #",
+        "<C-^>": "buffer #",
     }),
     nmaps: o({
         "<F1>": "help",
@@ -93,6 +100,7 @@ const DEFAULTS = o({
         // "0": "scrollto 0 x", // will get interpreted as a count
         "^": "scrollto 0 x",
         "<C-6>": "buffer #",
+        "<C-^>": "buffer #",
         H: "back",
         L: "forward",
         "<C-o>": "jumpprev",
