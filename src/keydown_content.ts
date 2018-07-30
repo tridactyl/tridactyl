@@ -72,6 +72,15 @@ function modeSpecificSuppression(ke: KeyboardEvent) {
         case "normal":
             genericResponse(ke, normparser)
             break
+        case "input":
+            genericResponse(ke, inputparser)
+            break
+        case "insert":
+            genericResponse(ke, insertparser)
+            break
+        case "ignore":
+            genericResponse(ke, ignoreparser)
+            break
         // Hintmode can't clean up after itself yet, so it needs to block more FF shortcuts.
         case "hint":
         case "find":
@@ -85,15 +94,6 @@ function modeSpecificSuppression(ke: KeyboardEvent) {
                 ke.preventDefault()
                 ke.stopImmediatePropagation()
             }
-            break
-        case "input":
-            genericResponse(ke, inputparser)
-            break
-        case "ignore":
-            genericResponse(ke, ignoreparser)
-            break
-        case "insert":
-            genericResponse(ke, insertparser)
             break
     }
 }
