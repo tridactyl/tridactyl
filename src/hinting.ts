@@ -24,7 +24,6 @@ import state from "./state"
 import { messageActiveTab, message } from "./messaging"
 import * as config from "./config"
 import * as TTS from "./text_to_speech"
-import { HintSaveType } from "./hinting_background"
 import Logger from "./logging"
 import * as Messaging from "./messaging"
 const logger = new Logger("hinting")
@@ -436,7 +435,6 @@ function pushKey(ke) {
     } else if (ke.key.length > 1) {
         return
     } else if (modeState.hintchars.includes(ke.key)) {
-        console.log(ke.key)
         modeState.filter += ke.key
         modeState.filterFunc(modeState.filter)
     }
@@ -450,7 +448,7 @@ function pushKey(ke) {
             1. Within viewport
             2. Not hidden by another element
 */
-function hintables(selectors = HINTTAGS_selectors, withjs = false) {
+function hintables(selectors = DOM.HINTTAGS_selectors, withjs = false) {
     let elems = DOM.getElemsBySelector(selectors, [])
     if (withjs) {
         elems = elems.concat(DOM.hintworthy_js_elems)
@@ -459,183 +457,42 @@ function hintables(selectors = HINTTAGS_selectors, withjs = false) {
     return elems.filter(DOM.isVisible)
 }
 
-function elementswithtext() {
-    return DOM.getElemsBySelector("*", [
-        DOM.isVisible,
-        hint => {
-            return hint.textContent != ""
-        },
-    ])
-}
-
-function titleAltTextElements() {
-    return DOM.getElemsBySelector("[title], [alt]", [DOM.isVisible])
-}
-
 /** Returns elements that point to a saveable resource
  */
 function saveableElements() {
-    return DOM.getElemsBySelector(HINTTAGS_saveable, [DOM.isVisible])
+    return DOM.getElemsBySelector(DOM.HINTTAGS_saveable, [DOM.isVisible])
 }
 
 /** Get array of images in the viewport
  */
 function hintableImages() {
-    return DOM.getElemsBySelector(HINTTAGS_img_selectors, [DOM.isVisible])
-}
-
-/** Get arrat of "anchors": elements which have id or name and can be addressed
- * with the hash/fragment in the URL
- */
-function anchors() {
-    return DOM.getElemsBySelector(HINTTAGS_anchor_selectors, [DOM.isVisible])
+    return DOM.getElemsBySelector(DOM.HINTTAGS_img_selectors, [DOM.isVisible])
 }
 
 /** Array of items that can be killed with hint kill
  */
 function killables() {
-    return DOM.getElemsBySelector(HINTTAGS_killable_selectors, [DOM.isVisible])
+    return DOM.getElemsBySelector(DOM.HINTTAGS_killable_selectors, [
+        DOM.isVisible,
+    ])
 }
-
-// CSS selectors. More readable for web developers. Not dead. Leaves browser to care about XML.
-const HINTTAGS_selectors = `
-input:not([type=hidden]):not([disabled]),
-a,
-area,
-iframe,
-textarea,
-button,
-select,
-summary,
-[onclick],
-[onmouseover],
-[onmousedown],
-[onmouseup],
-[oncommand],
-[role='link'],
-[role='button'],
-[role='checkbox'],
-[role='combobox'],
-[role='listbox'],
-[role='listitem'],
-[role='menuitem'],
-[role='menuitemcheckbox'],
-[role='menuitemradio'],
-[role='option'],
-[role='radio'],
-[role='scrollbar'],
-[role='slider'],
-[role='spinbutton'],
-[role='tab'],
-[role='textbox'],
-[role='treeitem'],
-[class*='button'],
-[tabindex]
-`
-
-const HINTTAGS_img_selectors = `
-img,
-[src]
-`
-
-const HINTTAGS_anchor_selectors = `
-[id],
-[name]
-`
-
-const HINTTAGS_killable_selectors = `
-header,
-footer,
-nav,
-span,
-div,
-iframe,
-img,
-button,
-article,
-summary
-`
-
-/** CSS selector for elements which point to a saveable resource
- */
-const HINTTAGS_saveable = `
-[href]:not([href='#'])
-`
 
 import { openInNewTab, activeTabContainerId } from "./lib/webext"
-
-/** if `target === _blank` clicking the link is treated as opening a popup and is blocked. Use webext API to avoid that. */
-function simulateClick(target: HTMLElement) {
-    // target can be set to other stuff, and we'll fail in annoying ways.
-    // There's no easy way around that while this code executes outside of the
-    // magic 'short lived event handler' context.
-    //
-    // OTOH, hardly anyone uses that functionality any more.
-    if (
-        (target as HTMLAnchorElement).target === "_blank" ||
-        (target as HTMLAnchorElement).target === "_new"
-    ) {
-        // Try to open the new tab in the same container as the current one.
-        activeTabContainerId().then(containerId => {
-            if (containerId)
-                openInNewTab((target as HTMLAnchorElement).href, {
-                    related: true,
-                    cookieStoreId: containerId,
-                })
-            else
-                openInNewTab((target as HTMLAnchorElement).href, {
-                    related: true,
-                })
-        })
-    } else {
-        DOM.mouseEvent(target, "click")
-        // DOM.focus has additional logic for focusing inputs
-        DOM.focus(target)
-    }
-}
-
-function hintPageOpenInBackground(selectors = HINTTAGS_selectors) {
-    hintPage(hintables(selectors, true), hint => {
-        hint.target.focus()
-        if (hint.target.href) {
-            // Try to open with the webext API. If that fails, simulate a click on this page anyway.
-            // Try to open the new tab in the same container as the current one.
-            activeTabContainerId().then(containerId => {
-                if (containerId) {
-                    openInNewTab(hint.target.href, {
-                        active: false,
-                        related: true,
-                        cookieStoreId: containerId,
-                    }).catch(() => simulateClick(hint.target))
-                } else {
-                    openInNewTab(hint.target.href, {
-                        active: false,
-                        related: true,
-                    }).catch(() => simulateClick(hint.target))
-                }
-            })
-        } else {
-            // This is to mirror vimperator behaviour.
-            simulateClick(hint.target)
-        }
-    })
-}
-
 import { openInNewWindow } from "./lib/webext"
 
-function hintPageWindow() {
+export function hintPageWindow() {
     hintPage(hintables(), hint => {
         hint.target.focus()
         if (hint.target.href) {
             openInNewWindow({ url: hint.target.href })
         } else {
             // This is to mirror vimperator behaviour.
-            simulateClick(hint.target)
+            DOM.simulateClick(hint.target)
         }
     })
 }
 
-function hintPageWindowPrivate() {
+export function hintPageWindowPrivate() {
     hintPage(hintables(), hint => {
         hint.target.focus()
         if (hint.target.href) {
@@ -644,55 +501,24 @@ function hintPageWindowPrivate() {
     })
 }
 
-function hintPageSimple(selectors = HINTTAGS_selectors) {
-    hintPage(hintables(selectors, true), hint => {
-        simulateClick(hint.target)
+export async function pipe(
+    selectors = DOM.HINTTAGS_selectors,
+): Promise<[any, number]> {
+    let hintCount = hintables(selectors, true).length
+    let hint = await new Promise(resolve => {
+        hintPage(hintables(selectors, true), resolve)
     })
+    return [(hint as any).target, hintCount]
+    // Promise takes function which it calls immediately with another function
+    // as its argument. When this second function is called, it gives its
+    // argument to the promise as its value
 }
 
-function hintPageExStr(...exStr: string[]) {
-    let selectors = HINTTAGS_selectors
-    hintPage(hintables(selectors, true), hint => {
-        Messaging.message("commandline_background", "recvExStr", [
-            exStr.join(" ") + " " + hint.target.href,
-        ])
+export async function pipe_elements(elements: any = DOM.elementsWithText) {
+    let hint = await new Promise(resolve => {
+        hintPage(elements, resolve)
     })
-}
-
-function hintPageTextYank() {
-    hintPage(elementswithtext(), hint => {
-        messageActiveTab("commandline_frame", "setClipboard", [
-            hint.target.textContent,
-        ])
-    })
-}
-
-function hintPageTitleAltTextYank() {
-    hintPage(titleAltTextElements(), hint => {
-        messageActiveTab("commandline_frame", "setClipboard", [
-            hint.target.title ? hint.target.title : hint.target.alt,
-        ])
-    })
-}
-
-function hintPageYank() {
-    hintPage(hintables(), hint => {
-        messageActiveTab("commandline_frame", "setClipboard", [
-            hint.target.href,
-        ])
-    })
-}
-
-/** Hint anchors and yank the URL on selection
- */
-function hintPageAnchorYank() {
-    hintPage(anchors(), hint => {
-        let anchorUrl = new URL(window.location.href)
-
-        anchorUrl.hash = hint.target.id || hint.target.name
-
-        messageActiveTab("commandline_frame", "setClipboard", [anchorUrl.href])
-    })
+    return (hint as any).target
 }
 
 /** Hint images, opening in the same tab, or in a background tab
@@ -700,7 +526,7 @@ function hintPageAnchorYank() {
  * @param inBackground  opens the image source URL in a background tab,
  *                      as opposed to the current tab
  */
-function hintImage(inBackground) {
+export function hintImage(inBackground) {
     hintPage(hintableImages(), hint => {
         let img_src = hint.target.getAttribute("src")
 
@@ -716,26 +542,33 @@ function hintImage(inBackground) {
 }
 
 /** Hint elements to focus */
-function hintFocus(selectors?) {
+export function hintFocus(selectors?) {
     hintPage(hintables(selectors), hint => {
         hint.target.focus()
     })
 }
 
 /** Hint items and read out the content of the selection */
-function hintRead() {
-    hintPage(elementswithtext(), hint => {
+export function hintRead() {
+    hintPage(DOM.elementsWithText(), hint => {
         TTS.readText(hint.target.textContent)
     })
 }
 
 /** Hint elements and delete the selection from the page
  */
-function hintKill() {
+export function hintKill() {
     hintPage(killables(), hint => {
         hint.target.remove()
     })
 }
+
+/** Type for "hint save" actions:
+ *    - "link": elements that point to another resource (eg
+ *              links to pages/files) - the link target is saved
+ *    - "img":  image elements
+ */
+export type HintSaveType = "link" | "img"
 
 /** Hint link elements to save
  *
@@ -745,7 +578,7 @@ function hintKill() {
  *                      - "img": image elements
  * @param saveAs    prompt for save location
  */
-function hintSave(hintType: HintSaveType, saveAs: boolean) {
+export function hintSave(hintType: HintSaveType, saveAs: boolean) {
     function saveHintElems(hintType) {
         return hintType === "link" ? saveableElements() : hintableImages()
     }
@@ -780,19 +613,5 @@ addListener(
         pushKey,
         selectFocusedHint,
         reset,
-        hintPageSimple,
-        hintPageExStr,
-        hintPageYank,
-        hintPageTextYank,
-        hintPageTitleAltTextYank,
-        hintPageAnchorYank,
-        hintPageOpenInBackground,
-        hintPageWindow,
-        hintPageWindowPrivate,
-        hintImage,
-        hintFocus,
-        hintRead,
-        hintKill,
-        hintSave,
     }),
 )

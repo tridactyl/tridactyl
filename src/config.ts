@@ -34,6 +34,30 @@ let USERCONFIG = o({})
 const DEFAULTS = o({
     configversion: "0.0",
     // When creating new <modifier-letter> maps, make sure to make the modifier uppercase (e.g. <C-a> instead of <c-a>) otherwise some commands might not be able to find them (e.g. `bind <c-a>`)
+    ignoremaps: o({
+        "<S-Insert>": "mode normal",
+        "<CA-Esc>": "mode normal",
+        "<CA-`>": "mode normal",
+    }),
+    inputmaps: o({
+        "<Esc>": "composite unfocus | mode normal",
+        "<C-[>": "composite unfocus | mode normal",
+        "<C-i>": "editor",
+        "<Tab>": "focusinput -n",
+        "<S-Tab>": "focusinput -N",
+        "<CA-Esc>": "mode normal",
+        "<CA-`>": "mode normal",
+        "<C-^>": "buffer #",
+    }),
+    imaps: o({
+        "<Esc>": "composite unfocus | mode normal",
+        "<C-[>": "composite unfocus | mode normal",
+        "<C-i>": "editor",
+        "<CA-Esc>": "mode normal",
+        "<CA-`>": "mode normal",
+        "<C-6>": "buffer #",
+        "<C-^>": "buffer #",
+    }),
     nmaps: o({
         "<F1>": "help",
         o: "fillcmdline open",
@@ -51,6 +75,8 @@ const DEFAULTS = o({
         yy: "clipboard yank",
         ys: "clipboard yankshort",
         yc: "clipboard yankcanon",
+        ym: "clipboard yankmd",
+        yt: "clipboard yanktitle",
         gh: "home",
         gH: "home true",
         p: "clipboard open",
@@ -58,13 +84,15 @@ const DEFAULTS = o({
         j: "scrollline 10",
         "<C-e>": "scrollline 10",
         k: "scrollline -10",
-        "<C-y>": "scrollline 10",
+        "<C-y>": "scrollline -10",
         h: "scrollpx -50",
         l: "scrollpx 50",
         G: "scrollto 100",
         gg: "scrollto 0",
         "<C-u>": "scrollpage -0.5",
         "<C-d>": "scrollpage 0.5",
+        "<C-f>": "scrollpage 1",
+        "<C-b>": "scrollpage -1",
         // Disabled while our find mode is bad
         /* "<C-f>": "scrollpage -1", */
         // "<C-b>": "scrollpage -1",
@@ -72,6 +100,7 @@ const DEFAULTS = o({
         // "0": "scrollto 0 x", // will get interpreted as a count
         "^": "scrollto 0 x",
         "<C-6>": "buffer #",
+        "<C-^>": "buffer #",
         H: "back",
         L: "forward",
         "<C-o>": "jumpprev",
@@ -80,6 +109,8 @@ const DEFAULTS = o({
         D: "composite tabprev; sleep 100; tabclose #",
         gx0: "tabclosealltoleft",
         gx$: "tabclosealltoright",
+        "<<": "tabmove -1",
+        ">>": "tabmove +1",
         u: "undo",
         r: "reload",
         R: "reloadhard",
@@ -110,6 +141,7 @@ const DEFAULTS = o({
         ZZ: "qall",
         f: "hint",
         F: "hint -b",
+        gF: "hint -br",
         ";i": "hint -i",
         ";I": "hint -I",
         ";k": "hint -k",
@@ -128,6 +160,8 @@ const DEFAULTS = o({
         "<S-Insert>": "mode ignore",
         "<CA-Esc>": "mode ignore",
         "<CA-`>": "mode ignore",
+        "<Esc>": "composite mode normal ; hidecmdline",
+        "<C-[>": "composite mode normal ; hidecmdline",
         I:
             "fillcmdline Ignore mode is now toggled by pressing <S-Insert> or <C-A-`>",
         a: "current_url bmark",
@@ -138,8 +172,11 @@ const DEFAULTS = o({
         ".": "repeat",
         "<SA-ArrowUp><SA-ArrowUp><SA-ArrowDown><SA-ArrowDown><SA-ArrowLeft><SA-ArrowRight><SA-ArrowLeft><SA-ArrowRight>ba":
             "open https://www.youtube.com/watch?v=M3iOROuTuMA",
+        "<A-p>": "pin",
+        "<A-m>": "mute toggle",
     }),
     autocmds: o({
+        DocLoad: o({}),
         DocStart: o({
             // "addons.mozilla.org": "mode ignore",
             // "github.com": "reopenincontainer Work",
@@ -167,6 +204,8 @@ const DEFAULTS = o({
         alias: "command",
         au: "autocmd",
         aucon: "autocontain",
+        audel: "autocmddelete",
+        audelete: "autocmddelete",
         b: "buffer",
         o: "open",
         w: "winopen",
@@ -193,6 +232,7 @@ const DEFAULTS = o({
         sanitize: "sanitise",
         tutorial: "tutor",
         h: "help",
+        unmute: "mute unmute",
         authors: "credits",
         openwith: "hint -W",
         "!": "exclaim",
@@ -203,8 +243,8 @@ const DEFAULTS = o({
         colorscheme: "colourscheme",
         colors: "colourscheme",
         man: "help",
-        "!js": "js",
-        "!jsb": "jsb",
+        "!js": "fillcmdline !js is deprecated. Please use js instead: js ",
+        "!jsb": "fillcmdline !jsb is deprecated. Please use jsb instead: jsb ",
         current_url: "composite get_current_url | fillcmdline_notrail ",
     }),
     followpagepatterns: o({
@@ -298,12 +338,13 @@ const DEFAULTS = o({
     //          (but we are probably happy to add your terminal to the list if it isn't already there).
     editorcmd: "auto",
     browser: "firefox",
+    yankto: "clipboard", // "clipboard", "selection", "both"
+    putfrom: "clipboard", // "clipboard", "selection"
+    externalclipboardcmd: "auto",
     nativeinstallcmd:
         "curl -fsSl https://raw.githubusercontent.com/cmcaine/tridactyl/master/native/install.sh | bash",
-    win_powershell_nativeinstallcmd:
-        "Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/cmcaine/tridactyl/master/native/win_install.ps1'))",
-    win_cmdexe_nativeinstallcmd:
-        '@"%SystemRoot%\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -NoProfile -InputFormat None -Command "iex ((New-Object System.Net.WebClient).DownloadString(\'https://raw.githubusercontent.com/cmcaine/tridactyl/master/native/win_install.ps1\'))"',
+    win_nativeinstallcmd:
+        "powershell -NoProfile -InputFormat None -Command \"Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/cmcaine/tridactyl/master/native/win_install.ps1'))\"",
     profiledir: "auto",
 
     // Container settings

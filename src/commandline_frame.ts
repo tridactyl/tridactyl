@@ -218,11 +218,19 @@ clInput.addEventListener("input", () => {
 let cmdline_history_position = 0
 let cmdline_history_current = ""
 
-export async function hide_and_clear() {
-    clInput.removeEventListener("blur", noblur)
+/** Clears the command line.
+ *  If you intend to close the command line after this, set evlistener to true in order to enable losing focus.
+ *  Otherwise, no need to pass an argument.
+ */
+export function clear(evlistener = false) {
+    if (evlistener) clInput.removeEventListener("blur", noblur)
     clInput.value = ""
     cmdline_history_position = 0
     cmdline_history_current = ""
+}
+
+export async function hide_and_clear() {
+    clear(true)
 
     // Try to make the close cmdline animation as smooth as possible.
     Messaging.message("commandline_background", "hide")
@@ -328,7 +336,7 @@ function applyWithTmpTextArea(fn) {
     }
 }
 
-export function setClipboard(content: string) {
+export async function setClipboard(content: string) {
     applyWithTmpTextArea(scratchpad => {
         scratchpad.value = content
         scratchpad.select()
@@ -338,7 +346,7 @@ export function setClipboard(content: string) {
         } else throw "Failed to copy!"
     })
     // Return focus to the document
-    Messaging.message("commandline_background", "hide")
+    await Messaging.message("commandline_background", "hide")
 }
 
 export function getClipboard() {

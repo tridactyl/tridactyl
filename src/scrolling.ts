@@ -62,7 +62,7 @@ class ScrollingData {
         let elapsed = performance.now() - this.startTime
 
         // If the animation should be done, return the position the element should have
-        if (elapsed > this.duration || this.elem[this.pos] == this.endPos)
+        if (elapsed >= this.duration || this.elem[this.pos] == this.endPos)
             return this.endPos
 
         let result = (this.endPos - this.startPos) * elapsed / this.duration
@@ -97,6 +97,7 @@ class ScrollingData {
         this.duration = duration
         // If we're already scrolling we don't need to try to scroll
         if (this.scrolling) return true
+        ;(this.elem.style as any).scrollBehavior = "unset"
         this.scrolling = this.scrollStep()
         if (this.scrolling)
             // If the element can be scrolled, scroll until animation completion

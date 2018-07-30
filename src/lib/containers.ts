@@ -59,11 +59,7 @@ export async function create(
     } else {
         try {
             let res = await browser.contextualIdentities.create(container)
-            logger.info(
-                "[Container.create] created container:",
-                res["cookieStoreId"],
-            )
-            return res["cookieStoreId"]
+            return res.cookieStoreId
         } catch (e) {
             throw e
         }

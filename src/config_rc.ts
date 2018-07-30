@@ -24,6 +24,6 @@ export async function runRc(rc: string) {
 export function rcFileToExCmds(rcText: string): string[] {
     const excmds = rcText.split("\n")
 
-    // Remove comment lines
-    return excmds.filter(x => x != "" && !x.trim().startsWith('"'))
+    // Remove empty and comment lines
+    return excmds.filter(x => /\S/.test(x) && !x.trim().startsWith('"'))
 }

@@ -70,10 +70,13 @@ if (
     window.location.pathname === "/static/newtab.html"
 ) {
     config.getAsync("newtab").then(newtab => {
-        if (newtab) {
+        if (newtab == "about:blank") {
+        } else if (newtab) {
             excmds.open_quiet(newtab)
         } else {
-            document.documentElement.style.display = "block"
+            document.body.style.height = "100%"
+            document.body.style.opacity = "1"
+            document.body.style.overflow = "auto"
             document.title = "Tridactyl Top Tips & New Tab Page"
         }
     })
@@ -180,4 +183,32 @@ config.getAsync("modeindicator").then(mode => {
         }
         if (config.get("modeindicator") !== "true") statusIndicator.remove()
     })
+})
+
+// Site specific fix for / on GitHub.com
+config.getAsync("leavegithubalone").then(v => {
+    if (v == "true") return
+    try {
+        // On quick loading pages, the document is already loaded
+        if (document.location.host == "github.com") {
+            document.body.addEventListener("keydown", function(e) {
+                if ("/".indexOf(e.key) != -1) {
+                    e.cancelBubble = true
+                    e.stopImmediatePropagation()
+                }
+            })
+        }
+    } catch (e) {
+        // But on slower pages we wait for the document to load
+        window.addEventListener("DOMContentLoaded", () => {
+            if (document.location.host == "github.com") {
+                document.body.addEventListener("keydown", function(e) {
+                    if ("/".indexOf(e.key) != -1) {
+                        e.cancelBubble = true
+                        e.stopImmediatePropagation()
+                    }
+                })
+            }
+        })
+    }
 })

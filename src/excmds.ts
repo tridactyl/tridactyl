@@ -2,7 +2,7 @@
 
 /** # Tridactyl help page
 
-    Use `:help <excmd>` or scroll down to show [[help]] for a particular excmd.
+    Use `:help <excmd>` or scroll down to show [[help]] for a particular excmd. If you're still stuck, you might consider reading through the [:tutor](/static/clippy/tutor.html) again.
 
     The default keybinds can be found [here](/static/docs/modules/_src_config_.html#defaults) or all active binds can be seen with `:viewconfig nmaps`.
     You can also view them with [[bind]]. Try `bind j`.
@@ -31,6 +31,14 @@
 
     A "splat" operator (...) means that the excmd will accept any number of space-delimited arguments into that parameter.
 
+    Above each function signature you will see any aliases or key sequences bound to it. The internal names for the various modes are used, which are listed here:
+    
+        - `nmaps`: normal mode binds
+        - `imaps`: insert mode binds
+        - `inputmaps`: input mode binds
+        - `ignoremaps`: ignore mode binds
+        - `exaliases`: aliases in the command mode
+
     You do not need to worry about types. Return values which are promises will turn into whatever they promise to when used in [[composite]].
 
     At the bottom of each function's help page, you can click on a link that will take you straight to that function's definition in our code. This is especially recommended for browsing the [config](/static/docs/modules/_src_config_.html#defaults) which is nigh-on unreadable on these pages.
@@ -55,6 +63,7 @@
     - Pressing `ZZ` will close all tabs and windows, but it will only "save"
       them if your about:preferences are set to "show your tabs and windows
       from last time"
+    - Press Ctrl-i in a text box to edit in an external editor (e.g. vim). Requires native messenger.
     - Change theme with `colours default|dark|greenmat|shydactyl`
 
     There are some caveats common to all webextension vimperator-alikes:
@@ -87,7 +96,7 @@
 
 // Shared
 import * as Messaging from "./messaging"
-import { browserBg, activeTabId, activeTabContainerId } from "./lib/webext"
+import { browserBg, activeTabId, activeTabContainerId, openInNewTab } from "./lib/webext"
 import * as Container from "./lib/containers"
 import state from "./state"
 import * as UrlUtil from "./url_util"
@@ -117,7 +126,7 @@ import { flatten } from "./itertools"
 import "./number.mod"
 import { ModeName } from "./state"
 import * as keydown from "./keydown_background"
-import { activeTab, firefoxVersionAtLeast, openInNewTab } from "./lib/webext"
+import { activeTab, firefoxVersionAtLeast } from "./lib/webext"
 import * as CommandLineBackground from "./commandline_background"
 import * as rc from "./config_rc"
 import * as excmd_parser from "./parsers/exmode"
@@ -182,7 +191,7 @@ export async function getInputSelector() {
  *
  * The editorcmd needs to accept a filename, stay in the foreground while it's edited, save the file and exit.
  *
- * You're probably better off using the default insert mode bind of <C-i> to access this.
+ * You're probably better off using the default insert mode bind of `<C-i>` (Ctrl-i) to access this.
  */
 //#background
 export async function editor() {
@@ -199,6 +208,44 @@ export async function editor() {
 
 //#background_helper
 import * as css_util from "./css_util"
+
+/**
+ * Like [[guiset]] but quieter.
+ */
+//#background
+export async function guiset_quiet(rule: string, option: string) {
+    if (!rule || !option) throw new Error(":guiset requires two arguments. See `:help guiset` for more information.")
+    // Could potentially fall back to sending minimal example to clipboard if native not installed
+
+    // Check for native messenger and make sure we have a plausible profile directory
+    if (!await Native.nativegate("0.1.1")) return
+    let profile_dir = ""
+    if (config.get("profiledir") === "auto" && ["linux", "openbsd", "mac"].includes((await browser.runtime.getPlatformInfo()).os)) {
+        try {
+            profile_dir = await Native.getProfileDir()
+        } catch (e) {}
+    } else {
+        profile_dir = config.get("profiledir")
+    }
+    if (profile_dir == "") {
+        fillcmdline("Please set your profile directory (found on about:support) via `set profiledir [profile directory]`")
+        return
+    }
+
+    // Make backups
+    await Native.mkdir(profile_dir + "/chrome", true)
+    let cssstr = (await Native.read(profile_dir + "/chrome/userChrome.css")).content
+    let cssstrOrig = (await Native.read(profile_dir + "/chrome/userChrome.orig.css")).content
+    if (cssstrOrig === "") await Native.write(profile_dir + "/chrome/userChrome.orig.css", cssstr)
+    await Native.write(profile_dir + "/chrome/userChrome.css.tri.bak", cssstr)
+
+    // Modify and write new CSS
+    if (cssstr === "") cssstr = `@namespace url("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul");`
+    let stylesheet = CSS.parse(cssstr)
+    // Trim due to https://github.com/reworkcss/css/issues/114
+    let stylesheetDone = CSS.stringify(css_util.changeCss(rule, option, stylesheet)).trim()
+    return Native.write(profile_dir + "/chrome/userChrome.css", stylesheetDone)
+}
 
 /**
  * Change which parts of the Firefox user interface are shown. **NB: This feature is experimental and might break stuff.**
@@ -235,40 +282,11 @@ import * as css_util from "./css_util"
  *      - hide
  *      - show
  *
+ * If you want to use guiset in your tridactylrc, you might want to use [[guiset_quiet]] instead.
  */
 //#background
 export async function guiset(rule: string, option: string) {
-    // Could potentially fall back to sending minimal example to clipboard if native not installed
-
-    // Check for native messenger and make sure we have a plausible profile directory
-    if (!await Native.nativegate("0.1.1")) return
-    let profile_dir = ""
-    if (config.get("profiledir") === "auto" && ["linux", "openbsd", "mac"].includes((await browser.runtime.getPlatformInfo()).os)) {
-        try {
-            profile_dir = await Native.getProfileDir()
-        } catch (e) {}
-    } else {
-        profile_dir = config.get("profiledir")
-    }
-    if (profile_dir == "") {
-        fillcmdline("Please set your profile directory (found on about:support) via `set profiledir [profile directory]`")
-        return
-    }
-
-    // Make backups
-    await Native.mkdir(profile_dir + "/chrome", true)
-    let cssstr = (await Native.read(profile_dir + "/chrome/userChrome.css")).content
-    let cssstrOrig = (await Native.read(profile_dir + "/chrome/userChrome.orig.css")).content
-    if (cssstrOrig === "") await Native.write(profile_dir + "/chrome/userChrome.orig.css", cssstr)
-    await Native.write(profile_dir + "/chrome/userChrome.css.tri.bak", cssstr)
-
-    // Modify and write new CSS
-    if (cssstr === "") cssstr = `@namespace url("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul");`
-    let stylesheet = CSS.parse(cssstr)
-    // Trim due to https://github.com/reworkcss/css/issues/114
-    let stylesheetDone = CSS.stringify(css_util.changeCss(rule, option, stylesheet)).trim()
-    Native.write(profile_dir + "/chrome/userChrome.css", stylesheetDone)
-
+    await guiset_quiet(rule, option)
     fillcmdline_tmp("3000", "userChrome.css written. Please restart Firefox to see the changes.")
 }
 
@@ -276,6 +294,15 @@ export async function guiset(rule: string, option: string) {
 //#background
 export function cssparse(...css: string[]) {
     console.log(CSS.parse(css.join(" ")))
+}
+
+/**
+ * Like [[fixamo]] but quieter.
+ */
+//#background
+export async function fixamo_quiet() {
+    await Native.writePref("privacy.resistFingerprinting.block_mozAddonManager", true)
+    await Native.writePref("extensions.webextensions.restrictedDomains", "")
 }
 
 /**
@@ -291,8 +318,7 @@ export function cssparse(...css: string[]) {
  */
 //#background
 export async function fixamo() {
-    await Native.writePref("privacy.resistFingerprinting.block_mozAddonManager", true)
-    await Native.writePref("extensions.webextensions.restrictedDomains", "")
+    await fixamo_quiet()
     fillcmdline_tmp("3000", "Permissions added to user.js. Please restart Firefox to make them take affect.")
 }
 
@@ -376,12 +402,12 @@ export async function native() {
 //#background
 export async function installnative() {
     if ((await browser.runtime.getPlatformInfo()).os === "win") {
-        const installstr = await config.get("win_powershell_nativeinstallcmd")
-        await clipboard("yank", installstr)
-        fillcmdline("# Installation command copied to clipboard. Please paste and run it in Windows Powershell to install the native messenger.")
+        const installstr = await config.get("win_nativeinstallcmd")
+        await yank(installstr)
+        fillcmdline("# Installation command copied to clipboard. Please paste and run it from cmd.exe, PowerShell, or MinTTY to install the native messenger.")
     } else {
         const installstr = await config.get("nativeinstallcmd")
-        await clipboard("yank", installstr)
+        await yank(installstr)
         fillcmdline("# Installation command copied to clipboard. Please paste and run it in your shell to install the native messenger.")
     }
 }
@@ -427,7 +453,7 @@ export async function updatenative(interactive = true) {
             return
         }
         if ((await browser.runtime.getPlatformInfo()).os === "win") {
-            await Native.run(await config.get("win_cmdexe_nativeinstallcmd"))
+            await Native.run(await config.get("win_nativeinstallcmd"))
         } else {
             await Native.run(await config.get("nativeinstallcmd"))
         }
@@ -528,7 +554,7 @@ export function forceURI(maybeURI: string): string {
 /** @hidden */
 //#background_helper
 function tabSetActive(id: number) {
-    browser.tabs.update(id, { active: true })
+    return browser.tabs.update(id, { active: true })
 }
 
 // }}}
@@ -703,7 +729,7 @@ export async function scrollpx(a: number, b: number) {
 //#content
 export function scrollto(a: number, b: number | "x" | "y" = "y") {
     a = Number(a)
-    let elem = window.document.scrollingElement || window.document.body
+    let elem = window.document.scrollingElement || window.document.documentElement
     let percentage = a.clamp(0, 100)
     if (b === "y") {
         let top = elem.getClientRects()[0].top
@@ -734,10 +760,14 @@ let lineHeight = null
 //#content
 export function scrollline(n = 1) {
     if (lineHeight === null) {
-        // Get line height
-        const cssHeight = window.getComputedStyle(document.body).getPropertyValue("line-height")
-        // Remove the "px" at the end
-        lineHeight = parseInt(cssHeight.substr(0, cssHeight.length - 2))
+        let getLineHeight = elem => {
+            // Get line height
+            const cssHeight = window.getComputedStyle(elem).getPropertyValue("line-height")
+            // Remove the "px" at the end
+            return parseInt(cssHeight.substr(0, cssHeight.length - 2))
+        }
+        lineHeight = getLineHeight(document.documentElement)
+        if (!lineHeight) lineHeight = getLineHeight(document.body)
         // Is there a better way to compute a fallback? Maybe fetch from about:preferences?
         if (!lineHeight) lineHeight = 22
     }
@@ -842,11 +872,10 @@ export async function open(...urlarr: string[]) {
     let url = urlarr.join(" ")
 
     // Setting window.location to about:blank results in a page we can't access, tabs.update works.
-    if (["about:blank"].includes(url)) {
-        url = url || undefined
+    if (url === "about:blank") {
         browserBg.tabs.update(await activeTabId(), { url })
-        // Open URLs that firefox won't let us by running `firefox <URL>` on the command line
     } else if (!ABOUT_WHITELIST.includes(url) && url.match(/^(about|file):.*/)) {
+        // Open URLs that firefox won't let us by running `firefox <URL>` on the command line
         Messaging.message("commandline_background", "recvExStr", ["nativeopen " + url])
     } else if (url !== "") {
         window.location.href = forceURI(url)
@@ -870,6 +899,43 @@ export async function open_quiet(...urlarr: string[]) {
     } else if (url !== "") {
         document.location.replace(forceURI(url))
     }
+}
+
+/**
+ *  If the url of the current document matches one of your search engines, will convert it to a list of arguments that open/tabopen will understand. If the url doesn't match any search engine, returns the url without modifications.
+ *
+ *  For example, if you have searchurls.gi set to "https://www.google.com/search?q=%s&tbm=isch", using this function on a page you opened using "gi butterflies" will return "gi butterflies".
+ *
+ *  This is useful when combined with fillcmdline, for example like this: `bind O composite url2args | fillcmdline open`.
+ *
+ *  Note that this might break with search engines that redirect you to other pages/add GET parameters that do not exist in your searchurl.
+ */
+//#content
+export async function url2args() {
+    let url = document.location.href
+    let searchurls = await config.getAsync("searchurls")
+    let result = url
+
+    for (let engine in searchurls) {
+        let [beginning, end] = [...searchurls[engine].split("%s"), ""]
+        if (url.startsWith(beginning) && url.endsWith(end)) {
+            // Get the string matching %s
+            let encodedArgs = url.substring(beginning.length)
+            encodedArgs = encodedArgs.substring(0, encodedArgs.length - end.length)
+            // Remove any get parameters that might have been added by the search engine
+            // This works because if the user's query contains an "&", it will be encoded as %26
+            let amperpos = encodedArgs.search("&")
+            if (amperpos > 0) encodedArgs = encodedArgs.substring(0, amperpos)
+
+            // Do transformations depending on the search engine
+            if (beginning.search("duckduckgo") > 0) encodedArgs = encodedArgs.replace(/\+/g, " ")
+            else if (beginning.search("wikipedia") > 0) encodedArgs = encodedArgs.replace(/_/g, " ")
+
+            let args = engine + " " + decodeURIComponent(encodedArgs)
+            if (args.length < result.length) result = args
+        }
+    }
+    return result
 }
 
 /** @hidden */
@@ -936,7 +1002,7 @@ export function home(all: "false" | "true" = "false") {
 
 /** Show this page.
 
-    `:help something` jumps to the entry for something. Something can be an excmd, an alias for an excmd or a binding. 
+    `:help something` jumps to the entry for something. Something can be an excmd, an alias for an excmd or a binding.
 
     The "nmaps" list is a list of all the bindings for the command you're seeing and the "exaliases" list lists all its aliases.
 
@@ -1260,14 +1326,15 @@ export async function reader() {
 
 //@hidden
 //#content_helper
+// {
 loadaucmds("DocStart")
-
-//#content_helper
 window.addEventListener("pagehide", () => loadaucmds("DocEnd"))
+window.addEventListener("DOMContentLoaded", () => loadaucmds("DocLoad"))
+// }
 
 /** @hidden */
 //#content
-export async function loadaucmds(cmdType: "DocStart" | "DocEnd" | "TabEnter" | "TabLeft") {
+export async function loadaucmds(cmdType: "DocStart" | "DocLoad" | "DocEnd" | "TabEnter" | "TabLeft") {
     let aucmds = await config.getAsync("autocmds", cmdType)
     const ausites = Object.keys(aucmds)
     const aukeyarr = ausites.filter(e => window.document.location.href.search(e) >= 0)
@@ -1439,7 +1506,7 @@ export function focusbyid(id: string) {
 /** @hidden */
 //#background_helper
 async function tabIndexSetActive(index: number | string) {
-    tabSetActive(await idFromIndex(index))
+    return tabSetActive(await idFromIndex(index))
 }
 
 /** Switch to the next tab, wrapping round.
@@ -1473,7 +1540,7 @@ export async function tabnext_gt(index?: number) {
  */
 //#background
 export async function tabprev(increment = 1) {
-    tabIndexSetActive((await activeTab()).index - increment + 1)
+    return tabIndexSetActive((await activeTab()).index - increment + 1)
 }
 
 /** Switch to the first tab. */
@@ -1711,25 +1778,37 @@ export async function undo() {
 
 /** Move the current tab to be just in front of the index specified.
 
-    Known bug: This supports relative movement, but autocomple doesn't know
-    that yet and will override positive and negative indexes.
+    Known bug: This supports relative movement with `tabmove +pos` and `tabmove -pos`, but autocomplete doesn't know that yet and will override positive and negative indexes.
 
-    Put a space in front of tabmove if you want to disable completion and have
-    the relative indexes at the command line.
+    Put a space in front of tabmove if you want to disable completion and have the relative indexes at the command line.
 
     Binds are unaffected.
 
     @param index
         New index for the current tab.
 
-        1 is the first index. 0 is the last index. -1 is the penultimate, etc.
+        1,start,^ are aliases for the first index. 0,end,$ are aliases for the last index.
 */
 //#background
 export async function tabmove(index = "0") {
     const aTab = await activeTab()
+    const maxindex = (await browser.tabs.query({ currentWindow: true })).length - 1
     let newindex: number
-    if (index.startsWith("+") || index.startsWith("-")) {
-        newindex = Math.max(0, Number(index) + aTab.index)
+
+    if (index.startsWith("+")) {
+        newindex = Number(index) + aTab.index
+        if (newindex > maxindex) {
+            newindex -= maxindex + 1
+        }
+    } else if (index.startsWith("-")) {
+        newindex = Number(index) + aTab.index
+        if (newindex < 0) {
+            newindex += maxindex + 1
+        }
+    } else if (["end", "$"].includes(index)) {
+        newindex = maxindex
+    } else if (["start", "^"].includes(index)) {
+        newindex = 0
     } else newindex = Number(index) - 1
     browser.tabs.move(aTab.id, { index: newindex })
 }
@@ -1741,6 +1820,62 @@ export async function pin() {
     browser.tabs.update(aTab.id, { pinned: !aTab.pinned })
 }
 
+/**  Mute current tab or all tabs.
+
+ Passing "all" to the excmd will operate on  the mute state of all tabs.
+ Passing "unmute" to the excmd will unmute.
+ Passing "toggle" to the excmd will toggle the state of `browser.tabs.tab.MutedInfo`
+ @param string[] muteArgs 
+ */
+//#background
+export async function mute(...muteArgs: string[]): Promise<void> {
+    let mute = true
+    let toggle = false
+    let all = false
+
+    let argParse = (args: string[]) => {
+        if (args == null) {
+            return
+        }
+        if (args[0] === "all") {
+            all = true
+            args.shift()
+            argParse(args)
+        }
+        if (args[0] === "unmute") {
+            mute = false
+            args.shift()
+            argParse(args)
+        }
+        if (args[0] === "toggle") {
+            toggle = true
+            args.shift()
+            argParse(args)
+        }
+    }
+
+    argParse(muteArgs)
+
+    let updateObj = { muted: false }
+    if (mute) {
+        updateObj.muted = true
+    }
+    if (all) {
+        let tabs = await browser.tabs.query({ currentWindow: true })
+        for (let tab of tabs) {
+            if (toggle) {
+                updateObj.muted = !tab.mutedInfo.muted
+            }
+            browser.tabs.update(tab.id, updateObj)
+        }
+    } else {
+        let tab = await activeTab()
+        if (toggle) {
+            updateObj.muted = !tab.mutedInfo.muted
+        }
+        browser.tabs.update(tab.id, updateObj)
+    }
+}
 // }}}
 
 // {{{ WINDOWS
@@ -2007,6 +2142,12 @@ function showcmdline(focus = true) {
     CommandLineBackground.show(focus)
 }
 
+/** @hidden */
+//#background
+export function hidecmdline() {
+    CommandLineBackground.hide()
+}
+
 /** Set the current value of the commandline to string *with* a trailing space */
 //#background
 export function fillcmdline(...strarr: string[]) {
@@ -2041,7 +2182,10 @@ export async function fillcmdline_tmp(ms: string, ...strarr: string[]) {
     messageTab(tabId, "commandline_frame", "fillcmdline", [strarr.join(" "), false, false])
     return new Promise(resolve =>
         setTimeout(async () => {
-            if ((await messageTab(tabId, "commandline_frame", "getContent", [])) == str) await messageTab(tabId, "commandline_frame", "hide_and_clear", [])
+            if ((await messageTab(tabId, "commandline_frame", "getContent", [])) == str) {
+                CommandLineBackground.hide(tabId)
+                await messageTab(tabId, "commandline_frame", "clear", [true])
+            }
             resolve()
         }, milliseconds),
     )
@@ -2056,12 +2200,54 @@ export async function get_current_url() {
 }
 
 /**
- * Copy content to clipboard and provide feedback (noisy!)
+ * Copy content to clipboard without feedback. Use `clipboard yank` for interactive use.
  */
 //#background
 export async function yank(...content: string[]) {
-    await messageActiveTab("commandline_frame", "setClipboard", content)
-    fillcmdline_tmp("3000", "# " + content + " copied to clipboard.")
+    await setclip(content.join(" "))
+}
+
+/**
+ * Copies a string to the clipboard/selection buffer depending on the user's preferences
+ *
+ * @hidden
+ */
+//#background_helper
+async function setclip(str) {
+    // Functions to avoid retyping everything everywhere
+    let s = () => Native.clipboard("set", str)
+    let c = async () => {
+        await messageActiveTab("commandline_content", "focus")
+        await messageActiveTab("commandline_frame", "setClipboard", [str])
+    }
+
+    let promises = []
+    switch (await config.getAsync("yankto")) {
+        case "selection":
+            promises = [s()]
+            break
+        case "clipboard":
+            promises = [c()]
+            break
+        case "both":
+            promises = [s(), c()]
+            break
+    }
+    return await Promise.all(promises)
+}
+
+/**
+ * Fetches the content of the clipboard/selection buffer depending on user's preferences
+ *
+ * @hidden
+ */
+//#background_helper
+async function getclip() {
+    if ((await config.getAsync("putfrom")) == "clipboard") {
+        return messageActiveTab("commandline_frame", "getClipboard")
+    } else {
+        return Native.clipboard("get", "")
+    }
 }
 
 /** Use the system clipboard.
@@ -2078,7 +2264,11 @@ export async function yank(...content: string[]) {
 
     If `excmd == "yankmd"`, copy the title and url of the open page formatted in Markdown for easy use on sites such as reddit.
 
-    Unfortunately, javascript can only give us the `clipboard` clipboard, not e.g. the X selection clipboard.
+    If you're on Linux and the native messenger is installed, Tridactyl will call an external binary (either xclip or xsel) to read or write to your X selection buffer. If you want another program to be used, set "externalclipboardcmd" to its name and make sure it has the same interface as xsel/xclip ("-i"/"-o" and reading from stdin).
+
+    When doing a read operation (i.e. open or tabopen), if "putfrom" is set to "selection", the X selection buffer will be read instead of the clipboard. Set "putfrom" to "clipboard" to use the clipboard.
+
+    When doing a write operation, if "yankto" is set to "selection", only the X selection buffer will be written to. If "yankto" is set to "both", both the X selection and the clipboard will be written to. If "yankto" is set to "clipboard", only the clipboard will be written to.
 
 */
 //#background
@@ -2086,49 +2276,57 @@ export async function clipboard(excmd: "open" | "yank" | "yankshort" | "yankcano
     let content = toYank.join(" ")
     let url = ""
     let urls = []
-    switch (excmd) {
-        case "yankshort":
-            urls = await geturlsforlinks("rel", "shortlink")
-            if (urls.length == 0) {
-                urls = await geturlsforlinks("rev", "canonical")
-            }
-            if (urls.length > 0) {
-                yank(urls[0])
+    try {
+        switch (excmd) {
+            case "yankshort":
+                urls = await geturlsforlinks("rel", "shortlink")
+                if (urls.length == 0) {
+                    urls = await geturlsforlinks("rev", "canonical")
+                }
+                if (urls.length > 0) {
+                    await yank(urls[0])
+                    fillcmdline_tmp("3000", "# " + urls[0] + " copied to clipboard.")
+                    break
+                }
+            // Trying yankcanon if yankshort failed...
+            case "yankcanon":
+                urls = await geturlsforlinks("rel", "canonical")
+                if (urls.length > 0) {
+                    await yank(urls[0])
+                    fillcmdline_tmp("3000", "# " + urls[0] + " copied to clipboard.")
+                    break
+                }
+            // Trying yank if yankcanon failed...
+            case "yank":
+                content = content == "" ? (await activeTab()).url : content
+                await yank(content)
+                fillcmdline_tmp("3000", "# " + content + " copied to clipboard.")
                 break
-            }
-        case "yankcanon":
-            urls = await geturlsforlinks("rel", "canonical")
-            if (urls.length > 0) {
-                yank(urls[0])
+            case "yanktitle":
+                content = (await activeTab()).title
+                await yank(content)
+                fillcmdline_tmp("3000", "# " + content + " copied to clipboard.")
                 break
-            }
-        case "yank":
-            await messageActiveTab("commandline_content", "focus")
-            content = content == "" ? (await activeTab()).url : content
-            fillcmdline_tmp("3000", "# " + content + " copied to clipboard.")
-            break
-        case "yanktitle":
-            yank(content)
-            break
-        case "yankmd":
-            content = "[" + (await activeTab()).title + "](" + (await activeTab()).url + ")"
-            yank(content)
-            break
-        case "open":
-            await messageActiveTab("commandline_content", "focus")
-            url = await messageActiveTab("commandline_frame", "getClipboard")
-            url && open(url)
-            break
-        case "tabopen":
-            await messageActiveTab("commandline_content", "focus")
-            url = await messageActiveTab("commandline_frame", "getClipboard")
-            url && tabopen(url)
-            break
-        default:
-            // todo: maybe we should have some common error and error handler
-            throw new Error(`[clipboard] unknown excmd: ${excmd}`)
+            case "yankmd":
+                content = "[" + (await activeTab()).title + "](" + (await activeTab()).url + ")"
+                await yank(content)
+                fillcmdline_tmp("3000", "# " + content + " copied to clipboard.")
+                break
+            case "open":
+                url = await getclip()
+                url && open(url)
+                break
+            case "tabopen":
+                url = await getclip()
+                url && tabopen(url)
+                break
+            default:
+                // todo: maybe we should have some common error and error handler
+                throw new Error(`[clipboard] unknown excmd: ${excmd}`)
+        }
+    } catch (e) {
+        logger.error(e)
     }
-    CommandLineBackground.hide()
 }
 
 /** Change active tab.
@@ -2153,7 +2351,7 @@ export async function buffer(index: number | "#") {
  */
 //#background
 export async function bufferall(id: string) {
-    let windows = (await browser.windows.getAll()).map(w => w.id).sort()
+    let windows = (await browser.windows.getAll()).map(w => w.id).sort((a, b) => a - b)
     if (id === null || id === undefined || !id.match(/\d+\.\d+/)) {
         const tab = await activeTab()
         let prevId = id
@@ -2329,9 +2527,12 @@ export function set(key: string, ...values: string[]) {
     }
 }
 
+/** @hidden */
+//#background_helper
+let AUCMDS = ["DocStart", "DocLoad", "DocEnd", "TriStart", "TabEnter", "TabLeft"]
 /** Set autocmds to run when certain events happen.
 
- @param event Curently, 'TriStart', 'DocStart', 'DocEnd', 'TabEnter' and 'TabLeft' are supported.
+ @param event Curently, 'TriStart', 'DocStart', 'DocLoad', 'DocEnd', 'TabEnter' and 'TabLeft' are supported.
 
  @param url For DocStart, DocEnd, TabEnter, and TabLeft: a fragment of the URL on which the events will trigger, or a JavaScript regex (e.g, `/www\.amazon\.co.*\/`)
 
@@ -2349,7 +2550,7 @@ export function set(key: string, ...values: string[]) {
 export function autocmd(event: string, url: string, ...excmd: string[]) {
     // rudimentary run time type checking
     // TODO: Decide on autocmd event names
-    if (!["DocStart", "DocEnd", "TriStart", "TabEnter", "TabLeft"].includes(event)) throw event + " is not a supported event."
+    if (!AUCMDS.includes(event)) throw event + " is not a supported event."
     config.set("autocmds", event, url, excmd.join(" "))
 }
 
@@ -2370,6 +2571,17 @@ export function autocmd(event: string, url: string, ...excmd: string[]) {
 //#background
 export function autocontain(domain: string, container: string) {
     config.set("autocontain", domain, container)
+}
+
+/** Remove autocmds
+ @param event Curently, 'TriStart', 'DocStart', 'DocLoad', 'DocEnd', 'TabEnter' and 'TabLeft' are supported.
+
+ @param url For DocStart, DocEnd, TabEnter, and TabLeft: a fragment of the URL on which the events will trigger, or a JavaScript regex (e.g, `/www\.amazon\.co.*\/`)
+*/
+//#background
+export function autocmddelete(event: string, url: string) {
+    if (!AUCMDS.includes(event)) throw event + " is not a supported event."
+    config.unset("autocmds", event, url)
 }
 
 /**
@@ -2511,9 +2723,9 @@ export async function sanitise(...args: string[]) {
     // Tridactyl-specific items
     if (dts.commandline === true) state.cmdHistory = []
     delete dts.commandline
-    if (dts.tridactyllocal === true) browser.storage.local.clear()
+    if (dts.tridactyllocal === true) await browser.storage.local.clear()
     delete dts.tridactyllocal
-    if (dts.tridactylsync === true) browser.storage.sync.clear()
+    if (dts.tridactylsync === true) await browser.storage.sync.clear()
     delete dts.tridactylsync
     // Global items
     browser.browsingData.remove(since, dts)
@@ -2617,13 +2829,14 @@ export function unset(...keys: string[]) {
 
 // {{{ HINTMODE
 
-//#background_helper
-import * as hinting from "./hinting_background"
+//#content_helper
+import * as hinting from "./hinting"
 
 /** Hint a page.
 
     @param option
         - -b open in background
+        - -br repeatedly open in background
         - -y copy (yank) link's target to clipboard
         - -p copy an element's text to the clipboard
         - -P copy an element's title/alt text to the clipboard
@@ -2641,7 +2854,9 @@ import * as hinting from "./hinting_background"
           - `bind ;c hint -c [class*="expand"],[class="togg"]` works particularly well on reddit and HN
         - -w open in new window
             -wp open in new private window
-        - `-W excmd...` append hint href to excmd and execute, e.g, `hint -W exclaim mpv` to open YouTube videos
+        - `-pipe selector key` e.g, `-pipe * href` returns the key. Only makes sense with `composite`, e.g, `composite hint -pipe * textContent | yank`.
+        - **DEPRECATED** `-W excmd...` append hint href to excmd and execute, e.g, `hint -W exclaim mpv` to open YouTube videos. Use `composite hint -pipe | [excmd]` instead.
+
 
     Excepting the custom selector mode and background hint mode, each of these
     hint modes is available by default as `;<option character>`, so e.g. `;y`
@@ -2669,12 +2884,68 @@ import * as hinting from "./hinting_background"
           boilerplate each time you visit it, even if the number of
           links in the main body changes).
 */
-//#background
-export function hint(option?: string, selectors?: string, ...rest: string[]) {
-    if (option === "-b") hinting.hintPageOpenInBackground()
-    else if (option === "-y") hinting.hintPageYank()
-    else if (option === "-p") hinting.hintPageTextYank()
-    else if (option === "-P") hinting.hintPageTitleAltTextYank()
+//#content
+export async function hint(option?: string, selectors?: string, ...rest: string[]) {
+    // NB: if you want something to work with rapid hinting, make it return a tuple of [something, hintCount] see option === "-b" below.
+
+    // Open in background
+    if (option === "-b") {
+        let [link, hintCount] = await hinting.pipe(DOM.HINTTAGS_selectors)
+        link.focus()
+        if (link.href) {
+            let containerId = await activeTabContainerId()
+            if (containerId) {
+                openInNewTab(link.href, {
+                    active: false,
+                    related: true,
+                    cookieStoreId: containerId,
+                }).catch(() => DOM.simulateClick(link))
+            } else {
+                openInNewTab(link.href, {
+                    active: false,
+                    related: true,
+                }).catch(() => DOM.simulateClick(link))
+            }
+        } else {
+            DOM.simulateClick(link)
+        }
+        return [link.href, hintCount]
+    }
+
+    // Yank link
+    else if (option === "-y") {
+        run_exstr("yank " + (await hinting.pipe(DOM.HINTTAGS_selectors))[0]["href"])
+    }
+
+    // Yank text content
+    else if (option === "-p") {
+        run_exstr("yank " + (await hinting.pipe_elements(DOM.elementsWithText()))["textContent"])
+    }
+
+    // Yank link alt text
+    else if (option === "-P") {
+        let link = await hinting.pipe_elements(DOM.getElemsBySelector("[title], [alt]", [DOM.isVisible]))
+        run_exstr("yank " + (link.title ? link.title : link.alt))
+    }
+
+    // Yank anchor
+    else if (option === "-#") {
+        let anchorUrl = new URL(window.location.href)
+        let link = await hinting.pipe_elements(DOM.anchors())
+        anchorUrl.hash = link.id || link.name
+        run_exstr("yank " + anchorUrl.href)
+    } else if (option === "-c") DOM.simulateClick((await hinting.pipe(selectors))[0])
+    // Deprecated: hint exstr
+    else if (option === "-W") run_exstr(selectors + " " + rest.join(" ") + " " + (await hinting.pipe(DOM.HINTTAGS_selectors))[0])
+    else if (option === "-pipe") return (await hinting.pipe(selectors))[0][rest.join(" ")]
+    else if (option === "-br") {
+        while (true) {
+            let [_, hintCount] = await hint("-b")
+            if (hintCount < 2) break
+        }
+    }
+
+    // TODO: port these to new fangled way
     else if (option === "-i") hinting.hintImage(false)
     else if (option === "-I") hinting.hintImage(true)
     else if (option === "-k") hinting.hintKill()
@@ -2683,13 +2954,30 @@ export function hint(option?: string, selectors?: string, ...rest: string[]) {
     else if (option === "-a") hinting.hintSave("link", true)
     else if (option === "-A") hinting.hintSave("img", true)
     else if (option === "-;") hinting.hintFocus(selectors)
-    else if (option === "-#") hinting.hintPageAnchorYank()
-    else if (option === "-c") hinting.hintPageSimple(selectors)
     else if (option === "-r") hinting.hintRead()
     else if (option === "-w") hinting.hintPageWindow()
-    else if (option === "-W") hinting.hintPageExStr([selectors, ...rest].join(" "))
     else if (option === "-wp") hinting.hintPageWindowPrivate()
-    else hinting.hintPageSimple()
+    else DOM.simulateClick((await hinting.pipe(DOM.HINTTAGS_selectors))[0])
+}
+
+// how 2 crash pc
+////#content
+//export async function rapid(...commands: string[]){
+//    while(true){
+//        await run_exstr(...commands)
+//    }
+//}
+
+/**
+ * Hacky ex string parser.
+ *
+ * Use it for fire-and-forget running of background commands in content.
+ *
+ * @hidden
+ */
+//#content_helper
+export function run_exstr(...commands: string[]) {
+    Messaging.message("commandline_background", "recvExStr", commands)
 }
 
 // }}}
@@ -2851,8 +3139,6 @@ export async function echo(...str: string[]) {
  * Lets you execute JavaScript in the page context. If you want to get the result back, use `composite js ... | fillcmdline`
  *
  * Some of Tridactyl's functions are accessible here via the `tri` object. Just do `console.log(tri)` in the web console on the new tab page to see what's available.
- *
- * Aliased to `!js`
  *
  * If you want to pipe an argument to `js`, you need to use the "-p" flag and then use the JS_ARG global variable, e.g:
  *

@@ -45,7 +45,8 @@ export class HistoryCompletionSource extends Completions.CompletionSourceFuse {
 
     public async filter(exstr: string) {
         this.lastExstr = exstr
-        const [prefix, query] = this.splitOnPrefix(exstr)
+        let [prefix, query] = this.splitOnPrefix(exstr)
+        let options = ""
 
         // Hide self and stop if prefixes don't match
         if (prefix) {
@@ -58,8 +59,30 @@ export class HistoryCompletionSource extends Completions.CompletionSourceFuse {
             return
         }
 
+        // Ignoring command-specific arguments
+        // It's terrible but it's ok because it's just a stopgap until an actual commandline-parsing API is implemented
+        if (prefix == "tabopen ") {
+            if (query.startsWith("-c")) {
+                let args = query.split(" ")
+                options = args.slice(0, 2).join(" ")
+                query = args.slice(2).join(" ")
+            }
+            if (query.startsWith("-b")) {
+                let args = query.split(" ")
+                options = args.slice(0, 1).join(" ")
+                query = args.slice(1).join(" ")
+            }
+        } else if (prefix == "winopen ") {
+            if (query.startsWith("-private")) {
+                options = "-private"
+                query = query.substring(options.length)
+            }
+        }
+        options += options ? " " : ""
+
+        this.completion = undefined
         this.options = (await this.scoreOptions(query, 10)).map(
-            page => new HistoryCompletionOption(page.url, page),
+            page => new HistoryCompletionOption(options + page.url, page),
         )
 
         this.updateChain()
