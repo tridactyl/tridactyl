@@ -2444,23 +2444,34 @@ export function comclear(name: string) {
     [[fillcmdline]] to put a string in the cmdline and focus the cmdline
     (otherwise the string is executed immediately).
 
+
+    You can bind to other modes with `bind --mode={insert|ignore|normal|input} ...`, e.g, `bind --mode=insert emacs qall` (NB: unlike vim, all preceeding characters will not be input).
+
     See also:
 
         - [[unbind]]
         - [[reset]]
 */
 //#background
-export function bind(key: string, ...bindarr: string[]) {
+export function bind(...args: string[]) {
+    let mode = "normal"
+    let mode2maps = new Map([["normal", "nmaps"], ["ignore", "ignoremaps"], ["insert", "imaps"], ["input", "inputmaps"]])
+    if (args[0].startsWith("--mode=")) {
+        mode = args.shift().replace("--mode=", "")
+    }
+    if (!mode2maps.has(mode)) fillcmdline("Mode " + mode + " does not yet have user-configurable binds.")
+    let key = args.shift()
+    let bindarr = args
     // Convert key to internal representation
     key = mapstrToKeyseq(key)
         .map(k => k.toMapstr())
         .join("")
     if (bindarr.length) {
         let exstring = bindarr.join(" ")
-        config.set("nmaps", key, exstring)
+        config.set(mode2maps.get(mode), key, exstring)
     } else if (key.length) {
         // Display the existing bind
-        fillcmdline_notrail("#", key, "=", config.get("nmaps", key))
+        fillcmdline_notrail("#", key, "=", config.get(mode2maps.get(mode), key))
     }
 }
 
