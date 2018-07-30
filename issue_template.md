@@ -18,7 +18,7 @@ If that does not solve your problem, please fill in the following template and t
 
 *   Steps to reproduce:
 
-    1. 2. 3. 4. 5.
+    1.  2.  3.  4.  5.
 
 *   Tridactyl version (`:version`):
 
@@ -37,5 +37,5 @@ Insert tridactylrc contents between the backticks
 <!-- If your bug is about Tridactyl's native executable, please add the following information: -->
 
 *   Operating system:
-*   Result of running `:! echo $PATH` in tridactyl:
+*   Result of running `:! echo $PATH`, or `! echo %PATH%` on Windows, in Tridactyl:
 *   Unix-like only: result of running `printf '%c\0\0\0{"cmd": "run", "command": "echo $PATH"}' 39 | ~/.local/share/tridactyl/native_main.py` in a terminal:
