@@ -287,7 +287,7 @@ export async function guiset_quiet(rule: string, option: string) {
 //#background
 export async function guiset(rule: string, option: string) {
     await guiset_quiet(rule, option)
-    fillcmdline_tmp("3000", "userChrome.css written. Please restart Firefox to see the changes.")
+    fillcmdline_tmp(3000, "userChrome.css written. Please restart Firefox to see the changes.")
 }
 
 /** @hidden */
@@ -319,7 +319,7 @@ export async function fixamo_quiet() {
 //#background
 export async function fixamo() {
     await fixamo_quiet()
-    fillcmdline_tmp("3000", "Permissions added to user.js. Please restart Firefox to make them take affect.")
+    fillcmdline_tmp(3000, "Permissions added to user.js. Please restart Firefox to make them take affect.")
 }
 
 /**
@@ -2176,8 +2176,7 @@ export function fillcmdline_nofocus(...strarr: string[]) {
 
 /** Shows str in the command line for ms milliseconds. Recommended duration: 3000ms. */
 //#background
-export async function fillcmdline_tmp(ms: string, ...strarr: string[]) {
-    let milliseconds = parseInt(ms)
+export async function fillcmdline_tmp(ms: number, ...strarr: string[]) {
     let str = strarr.join(" ")
     let tabId = await activeTabId()
     showcmdline(false)
@@ -2189,7 +2188,7 @@ export async function fillcmdline_tmp(ms: string, ...strarr: string[]) {
                 await messageTab(tabId, "commandline_frame", "clear", [true])
             }
             resolve()
-        }, milliseconds),
+        }, ms),
     )
 }
 
@@ -2287,7 +2286,7 @@ export async function clipboard(excmd: "open" | "yank" | "yankshort" | "yankcano
                 }
                 if (urls.length > 0) {
                     await yank(urls[0])
-                    fillcmdline_tmp("3000", "# " + urls[0] + " copied to clipboard.")
+                    fillcmdline_tmp(3000, "# " + urls[0] + " copied to clipboard.")
                     break
                 }
             // Trying yankcanon if yankshort failed...
@@ -2295,24 +2294,24 @@ export async function clipboard(excmd: "open" | "yank" | "yankshort" | "yankcano
                 urls = await geturlsforlinks("rel", "canonical")
                 if (urls.length > 0) {
                     await yank(urls[0])
-                    fillcmdline_tmp("3000", "# " + urls[0] + " copied to clipboard.")
+                    fillcmdline_tmp(3000, "# " + urls[0] + " copied to clipboard.")
                     break
                 }
             // Trying yank if yankcanon failed...
             case "yank":
                 content = content == "" ? (await activeTab()).url : content
                 await yank(content)
-                fillcmdline_tmp("3000", "# " + content + " copied to clipboard.")
+                fillcmdline_tmp(3000, "# " + content + " copied to clipboard.")
                 break
             case "yanktitle":
                 content = (await activeTab()).title
                 await yank(content)
-                fillcmdline_tmp("3000", "# " + content + " copied to clipboard.")
+                fillcmdline_tmp(3000, "# " + content + " copied to clipboard.")
                 break
             case "yankmd":
                 content = "[" + (await activeTab()).title + "](" + (await activeTab()).url + ")"
                 await yank(content)
-                fillcmdline_tmp("3000", "# " + content + " copied to clipboard.")
+                fillcmdline_tmp(3000, "# " + content + " copied to clipboard.")
                 break
             case "open":
                 url = await getclip()
