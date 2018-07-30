@@ -14,7 +14,7 @@ import time
 import unicodedata
 
 DEBUG = False
-VERSION = "0.1.7"
+VERSION = "0.1.8"
 
 
 class NoConnectionError(Exception):
@@ -95,6 +95,8 @@ def findUserConfigFile():
     candidate_files = [
         os.path.join(config_dir, "tridactyl", "tridactylrc"),
         os.path.join(home, ".tridactylrc"),
+        os.path.join(home, "_tridactylrc"),
+        os.path.join(home, , "_config", "tridactylrc"),
     ]
 
     config_path = None
