@@ -41,13 +41,22 @@ const DEFAULTS = o({
     }),
     inputmaps: o({
         "<Esc>": "composite unfocus | mode normal",
+        "<C-[>": "composite unfocus | mode normal",
         "<C-i>": "editor",
         "<Tab>": "focusinput -n",
         "<S-Tab>": "focusinput -N",
+        "<CA-Esc>": "mode normal",
+        "<CA-`>": "mode normal",
+        "<C-^>": "buffer #",
     }),
     imaps: o({
         "<Esc>": "composite unfocus | mode normal",
+        "<C-[>": "composite unfocus | mode normal",
         "<C-i>": "editor",
+        "<CA-Esc>": "mode normal",
+        "<CA-`>": "mode normal",
+        "<C-6>": "buffer #",
+        "<C-^>": "buffer #",
     }),
     nmaps: o({
         "<F1>": "help",
@@ -91,6 +100,7 @@ const DEFAULTS = o({
         // "0": "scrollto 0 x", // will get interpreted as a count
         "^": "scrollto 0 x",
         "<C-6>": "buffer #",
+        "<C-^>": "buffer #",
         H: "back",
         L: "forward",
         "<C-o>": "jumpprev",
@@ -151,6 +161,7 @@ const DEFAULTS = o({
         "<CA-Esc>": "mode ignore",
         "<CA-`>": "mode ignore",
         "<Esc>": "composite mode normal ; hidecmdline",
+        "<C-[>": "composite mode normal ; hidecmdline",
         I:
             "fillcmdline Ignore mode is now toggled by pressing <S-Insert> or <C-A-`>",
         a: "current_url bmark",
@@ -225,8 +236,8 @@ const DEFAULTS = o({
         colorscheme: "colourscheme",
         colors: "colourscheme",
         man: "help",
-        "!js": "js",
-        "!jsb": "jsb",
+        "!js": "fillcmdline !js is deprecated. Please use js instead: js ",
+        "!jsb": "fillcmdline !jsb is deprecated. Please use jsb instead: jsb ",
         current_url: "composite get_current_url | fillcmdline_notrail ",
     }),
     followpagepatterns: o({

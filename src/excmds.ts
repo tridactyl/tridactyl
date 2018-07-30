@@ -2894,7 +2894,7 @@ export async function hint(option?: string, selectors?: string, ...rest: string[
 
     // Yank link
     else if (option === "-y") {
-        run_exstr("yank " + (await hinting.pipe(DOM.HINTTAGS_selectors)[0])["href"])
+        run_exstr("yank " + (await hinting.pipe(DOM.HINTTAGS_selectors))[0]["href"])
     }
 
     // Yank text content
@@ -3119,8 +3119,6 @@ export async function echo(...str: string[]) {
  * Lets you execute JavaScript in the page context. If you want to get the result back, use `composite js ... | fillcmdline`
  *
  * Some of Tridactyl's functions are accessible here via the `tri` object. Just do `console.log(tri)` in the web console on the new tab page to see what's available.
- *
- * Aliased to `!js`
  *
  * If you want to pipe an argument to `js`, you need to use the "-p" flag and then use the JS_ARG global variable, e.g:
  *
