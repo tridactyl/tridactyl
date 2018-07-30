@@ -95,8 +95,8 @@ def findUserConfigFile():
     candidate_files = [
         os.path.join(config_dir, "tridactyl", "tridactylrc"),
         os.path.join(home, ".tridactylrc"),
+        os.path.join(home, , "_config", "tridactyl", "tridactylrc"),
         os.path.join(home, "_tridactylrc"),
-        os.path.join(home, , "_config", "tridactylrc"),
     ]
 
     config_path = None
