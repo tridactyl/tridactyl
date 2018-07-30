@@ -3106,8 +3106,6 @@ export async function echo(...str: string[]) {
  *
  * Some of Tridactyl's functions are accessible here via the `tri` object. Just do `console.log(tri)` in the web console on the new tab page to see what's available.
  *
- * Aliased to `!js`
- *
  * If you want to pipe an argument to `js`, you need to use the "-p" flag and then use the JS_ARG global variable, e.g:
  *
  * `composite get_current_url | js -p alert(JS_ARG)`

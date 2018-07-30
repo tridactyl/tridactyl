@@ -228,8 +228,8 @@ const DEFAULTS = o({
         colorscheme: "colourscheme",
         colors: "colourscheme",
         man: "help",
-        "!js": "js",
-        "!jsb": "jsb",
+        "!js": "fillcmdline !js is deprecated. Please use js instead: js ",
+        "!jsb": "fillcmdline !jsb is deprecated. Please use jsb instead: jsb ",
         current_url: "composite get_current_url | fillcmdline_notrail ",
     }),
     followpagepatterns: o({
