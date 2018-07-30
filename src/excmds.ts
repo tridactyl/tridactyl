@@ -1787,7 +1787,7 @@ export async function undo() {
     @param index
         New index for the current tab.
 
-        1 is the first index. 0 is the last index. -1 is the penultimate, etc.
+        1,start,^ are aliases for the first index. 0,end,$ are aliases for the last index.
 */
 //#background
 export async function tabmove(index = "0") {
@@ -1798,13 +1798,17 @@ export async function tabmove(index = "0") {
     if (index.startsWith("+")) {
         newindex = Number(index) + aTab.index
         if (newindex > maxindex) {
-            newindex -= (maxindex + 1)
+            newindex -= maxindex + 1
         }
     } else if (index.startsWith("-")) {
         newindex = Number(index) + aTab.index
         if (newindex < 0) {
-            newindex += (maxindex + 1)
+            newindex += maxindex + 1
         }
+    } else if (["end", "$"].includes(index)) {
+        newindex = maxindex
+    } else if (["start", "^"].includes(index)) {
+        newindex = 0
     } else newindex = Number(index) - 1
     browser.tabs.move(aTab.id, { index: newindex })
 }
