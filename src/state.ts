@@ -25,6 +25,12 @@ export type ModeName =
     | "gobble"
     | "input"
     | "find"
+
+export type StateEvent = "modechange"
+// Not adding listeners to state because we don't want it to be synced
+// TODO: Find a way to replace "modechange" with StateEvent
+let listeners: { modechange: ((string) => any)[] } = { modechange: [] }
+
 class State {
     mode: ModeName = "normal"
     cmdHistory: string[] = []
@@ -35,6 +41,16 @@ class State {
             jumppos: undefined,
         },
     ]
+    addListener(ev: StateEvent, cb: (...any) => any) {
+        listeners[ev].push(cb)
+    }
+    removeListener(ev: StateEvent, cb: (...any) => any) {
+        let idx = listeners[ev].indexOf(cb)
+        if (idx >= 0) listeners[ev].splice(idx, 1)
+    }
+    fire(ev: StateEvent, data: any) {
+        listeners[ev].forEach(fn => fn(data))
+    }
 }
 
 // Don't change these from const or you risk breaking the Proxy below.
@@ -66,12 +82,16 @@ const state = (new Proxy(overlay, {
         logger.debug("State changed!", property, value)
         target[property] = value
         browser.storage.local.set({ state: target })
+        // This is quite hacky. We had to put fire, addListener and removeListener in State for them to be seen as members of State, but since they operate on global data, we don't need to call them exactly from the object they appear to be bound to
+        if (property == "mode") defaults.fire("modechange", value)
         return true
     },
 }) as any) as State
 
 browser.storage.onChanged.addListener((changes, areaname) => {
     if (areaname === "local" && "state" in changes) {
+        if (changes.state.oldValue.mode !== changes.state.newValue.mode)
+            defaults.fire("modechange", changes.state.newValue.mode)
         Object.assign(overlay, changes.state.newValue)
     }
 })

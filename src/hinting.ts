@@ -61,6 +61,13 @@ export function hintPage(
     filterHints: HintFilter = defaultHintFilter(),
 ) {
     state.mode = "hint"
+    let cb = mode => {
+        if (mode !== "hint") {
+            state.removeListener("modechange", cb)
+            reset()
+        }
+    }
+    state.addListener("modechange", cb)
     modeState = new HintState(filterHints)
     buildHints(hintableElements, onSelect)
 
@@ -420,9 +427,11 @@ function filterHintsVimperator(fstr, reflow = false) {
 
 /** Remove all hints, reset STATE. */
 function reset() {
-    modeState.destructor()
-    modeState = undefined
-    state.mode = "normal"
+    if (modeState) {
+        modeState.destructor()
+        modeState = undefined
+        state.mode = "normal"
+    }
 }
 
 /** If key is in hintchars, add it to filtstr and filter */
