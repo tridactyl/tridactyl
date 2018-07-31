@@ -5,7 +5,7 @@
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
     "moduleResolution": "Node",
-    "typeRoots": ["node_modules/@types", "node_modules/web-ext-types/"],
+    "typeRoots": ["../node_modules/@types", "../node_modules/web-ext-types/"],
     "alwaysStrict": true,
     "baseUrl": ".",
     "paths": {
