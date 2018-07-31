@@ -71,9 +71,9 @@ export class AutoContain implements IAutoContain {
     autoContain = async (
         details: IDetails,
     ): Promise<browser.webRequest.BlockingResponse> => {
-        // Lets not break everyone's user experience ok?
-        let enabled = Config.get("auconenable")
-        if (enabled === "false") return { cancel: false }
+        // No autocontain directives, no nothing.
+        let aucons = Config.get("autocontain")
+        if (Object.keys(aucons).length === 0) return { cancel: false }
 
         // Do not handle private tabs or invalid tabIds.
         if (details.tabId === -1) return { cancel: false}

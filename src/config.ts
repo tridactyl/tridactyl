@@ -355,9 +355,6 @@ const DEFAULTS = o({
     // If moodeindicator is enabled, containerindicator will color the border of the mode indicator with the container color.
     containerindicator: "true",
 
-    // Enable Autocontainers
-    auconenable: "false",
-
     // Autocontain directives create a container if it doesn't exist already.
     auconcreatecontainer: "true",
 
