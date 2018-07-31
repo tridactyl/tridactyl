@@ -24,7 +24,7 @@ class ExCmds {
      */
     @content
     scrollline({msg}, [x, y], {down, up}) {
-        this.excmd({meta.msg}, 3, x)
+        this.excmd({msg: meta.msg}, 3, x)
         parser(`excmd 3 ${x}`, meta)
     }
 
