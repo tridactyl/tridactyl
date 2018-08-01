@@ -179,7 +179,6 @@ const DEFAULTS = o({
         DocLoad: o({}),
         DocStart: o({
             // "addons.mozilla.org": "mode ignore",
-            // "github.com": "reopenincontainer Work",
         }),
         DocEnd: o({
             // "emacs.org": "sanitise history",
@@ -356,7 +355,7 @@ const DEFAULTS = o({
     // If moodeindicator is enabled, containerindicator will color the border of the mode indicator with the container color.
     containerindicator: "true",
 
-    // AutoContain directives create a container if it doesn't exist already.
+    // Autocontain directives create a container if it doesn't exist already.
     auconcreatecontainer: "true",
 
     // Performance related settings

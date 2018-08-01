@@ -71,18 +71,22 @@ export class AutoContain implements IAutoContain {
     autoContain = async (
         details: IDetails,
     ): Promise<browser.webRequest.BlockingResponse> => {
+        // No autocontain directives, no nothing.
+        let aucons = Config.get("autocontain")
+        if (Object.keys(aucons).length === 0) return { cancel: false }
+
         // Do not handle private tabs or invalid tabIds.
-        if (details.tabId === -1) return
+        if (details.tabId === -1) return { cancel: false}
         let tab = await browser.tabs.get(details.tabId)
-        if (tab.incognito) return
+        if (tab.incognito) return { cancel: false }
 
         // Only handle http requests.
-        if (details.url.search("^https?://") < 0) return
+        if (details.url.search("^https?://") < 0) return { cancel: false }
 
         let cookieStoreId = await this.parseAucons(details)
 
         // Silently return if we're already in the correct container.
-        if (tab.cookieStoreId === cookieStoreId) return
+        if (tab.cookieStoreId === cookieStoreId) return { cancel: false }
 
         if (this.cancelEarly(tab, details)) return { cancel: true }
 
@@ -110,14 +114,13 @@ export class AutoContain implements IAutoContain {
             this.cancelRequest(tab, details)
         } else {
             let cancel = false
-            let cr = this.getCancelledRequest(tab.id)
 
-            if (cr.requestIds[details.requestId] || cr.urls[details.url]) {
+            if (this.cancelledRequests[tab.id].requestIds[details.requestId] || this.cancelledRequests[tab.id].urls[details.url]) {
                 cancel = true
             }
 
-            cr.requestIds[details.requestId] = true
-            cr.urls[details.url] = true
+            this.cancelledRequests[tab.id].requestIds[details.requestId] = true
+            this.cancelledRequests[tab.id].urls[details.url] = true
 
             return cancel
         }
