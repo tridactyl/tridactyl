@@ -267,6 +267,7 @@ const DEFAULTS = o({
     hintchars: "hjklasdfgyuiopqwertnmzxcvb",
     hintfiltermode: "simple", // "simple", "vimperator", "vimperator-reflow"
     hintnames: "short",
+    hintuppercase: "true",
 
     // Controls whether the page can focus elements for you via js
     // Remember to also change browser.autofocus (autofocusing elements via

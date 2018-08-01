@@ -230,6 +230,9 @@ class Hint {
         const rect = target.getClientRects()[0]
         this.flag.textContent = name
         this.flag.className = "TridactylHint"
+        if (config.get("hintuppercase") == "true") {
+            this.flag.classList.add("TridactylHintUppercase")
+        }
         /* this.flag.style.cssText = ` */
         /*     top: ${rect.top}px; */
         /*     left: ${rect.left}px; */
