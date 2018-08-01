@@ -96,8 +96,8 @@ class ScrollingData {
         this.endPos = this.elem[this.pos] + distance
         this.duration = duration
         // If we're already scrolling we don't need to try to scroll
-        if (this.scrolling) return true;
-        (this.elem.style as any).scrollBehavior = "unset"
+        if (this.scrolling) return true
+        ;(this.elem.style as any).scrollBehavior = "unset"
         this.scrolling = this.scrollStep()
         if (this.scrolling)
             // If the element can be scrolled, scroll until animation completion

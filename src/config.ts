@@ -41,13 +41,22 @@ const DEFAULTS = o({
     }),
     inputmaps: o({
         "<Esc>": "composite unfocus | mode normal",
+        "<C-[>": "composite unfocus | mode normal",
         "<C-i>": "editor",
         "<Tab>": "focusinput -n",
         "<S-Tab>": "focusinput -N",
+        "<CA-Esc>": "mode normal",
+        "<CA-`>": "mode normal",
+        "<C-^>": "buffer #",
     }),
     imaps: o({
         "<Esc>": "composite unfocus | mode normal",
+        "<C-[>": "composite unfocus | mode normal",
         "<C-i>": "editor",
+        "<CA-Esc>": "mode normal",
+        "<CA-`>": "mode normal",
+        "<C-6>": "buffer #",
+        "<C-^>": "buffer #",
     }),
     nmaps: o({
         "<F1>": "help",
@@ -91,6 +100,7 @@ const DEFAULTS = o({
         // "0": "scrollto 0 x", // will get interpreted as a count
         "^": "scrollto 0 x",
         "<C-6>": "buffer #",
+        "<C-^>": "buffer #",
         H: "back",
         L: "forward",
         "<C-o>": "jumpprev",
@@ -151,8 +161,9 @@ const DEFAULTS = o({
         "<CA-Esc>": "mode ignore",
         "<CA-`>": "mode ignore",
         "<Esc>": "composite mode normal ; hidecmdline",
+        "<C-[>": "composite mode normal ; hidecmdline",
         I:
-            "fillcmdline Ignore mode is now toggled by pressing <S-Insert> or <C-A-`>",
+            "fillcmdline_tmp 3000 Ignore mode is now toggled by pressing <S-Insert> or <C-A-`>",
         a: "current_url bmark",
         A: "bmark",
         zi: "zoom 0.1 true",
@@ -184,9 +195,14 @@ const DEFAULTS = o({
             // "emacs.org": "tabclose",
         }),
     }),
+    autocontain: o({
+        //"github.com": "microsoft",
+        //"youtube.com": "google",
+    }),
     exaliases: o({
         alias: "command",
         au: "autocmd",
+        aucon: "autocontain",
         audel: "autocmddelete",
         audelete: "autocmddelete",
         b: "buffer",
@@ -220,13 +236,15 @@ const DEFAULTS = o({
         openwith: "hint -W",
         "!": "exclaim",
         "!s": "exclaim_quiet",
+        containerremove: "containerdelete",
         colourscheme: "set theme",
         colours: "colourscheme",
         colorscheme: "colourscheme",
         colors: "colourscheme",
         man: "help",
-        "!js": "js",
-        "!jsb": "jsb",
+        "!js": "fillcmdline_tmp 3000 !js is deprecated. Please use js instead",
+        "!jsb":
+            "fillcmdline_tmp 3000 !jsb is deprecated. Please use jsb instead",
         current_url: "composite get_current_url | fillcmdline_notrail ",
     }),
     followpagepatterns: o({
@@ -331,11 +349,15 @@ const DEFAULTS = o({
     profiledir: "auto",
 
     // Container settings
+
     // If enabled, tabopen opens a new tab in the currently active tab's container.
     tabopencontaineraware: "false",
 
     // If moodeindicator is enabled, containerindicator will color the border of the mode indicator with the container color.
     containerindicator: "true",
+
+    // Autocontain directives create a container if it doesn't exist already.
+    auconcreatecontainer: "true",
 
     // Performance related settings
 

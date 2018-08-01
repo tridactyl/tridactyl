@@ -287,7 +287,7 @@ export async function guiset_quiet(rule: string, option: string) {
 //#background
 export async function guiset(rule: string, option: string) {
     await guiset_quiet(rule, option)
-    fillcmdline_tmp("3000", "userChrome.css written. Please restart Firefox to see the changes.")
+    fillcmdline_tmp(3000, "userChrome.css written. Please restart Firefox to see the changes.")
 }
 
 /** @hidden */
@@ -319,7 +319,7 @@ export async function fixamo_quiet() {
 //#background
 export async function fixamo() {
     await fixamo_quiet()
-    fillcmdline_tmp("3000", "Permissions added to user.js. Please restart Firefox to make them take affect.")
+    fillcmdline_tmp(3000, "Permissions added to user.js. Please restart Firefox to make them take affect.")
 }
 
 /**
@@ -415,7 +415,9 @@ export async function installnative() {
 /**
  * Runs an RC file from disk.
  *
- * If no argument given, it will try to open ~/.tridactylrc, ~/.config/tridactylrc or $XDG_CONFIG_HOME/tridactyl/tridactylrc in reverse order.
+ * If no argument given, it will try to open ~/.tridactylrc, ~/.config/tridactylrc or $XDG_CONFIG_HOME/tridactyl/tridactylrc in reverse order. You may use a `_` in place of a leading `.` if you wish, e.g, if you use Windows.
+ *
+ * On Windows, the `~` expands to `%USERPROFILE%`.
  *
  * The RC file is just a bunch of Tridactyl excmds (i.e, the stuff on this help page). Settings persist in local storage; add `sanitise tridactyllocal tridactylsync` to make it more Vim like. There's an [example file](https://raw.githubusercontent.com/cmcaine/tridactyl/master/.tridactylrc) if you want it.
  *
@@ -1787,14 +1789,28 @@ export async function undo() {
     @param index
         New index for the current tab.
 
-        1 is the first index. 0 is the last index. -1 is the penultimate, etc.
+        1,start,^ are aliases for the first index. 0,end,$ are aliases for the last index.
 */
 //#background
 export async function tabmove(index = "0") {
     const aTab = await activeTab()
+    const maxindex = (await browser.tabs.query({ currentWindow: true })).length - 1
     let newindex: number
-    if (index.startsWith("+") || index.startsWith("-")) {
-        newindex = Math.max(0, Number(index) + aTab.index)
+
+    if (index.startsWith("+")) {
+        newindex = Number(index) + aTab.index
+        if (newindex > maxindex) {
+            newindex -= maxindex + 1
+        }
+    } else if (index.startsWith("-")) {
+        newindex = Number(index) + aTab.index
+        if (newindex < 0) {
+            newindex += maxindex + 1
+        }
+    } else if (["end", "$"].includes(index)) {
+        newindex = maxindex
+    } else if (["start", "^"].includes(index)) {
+        newindex = 0
     } else newindex = Number(index) - 1
     browser.tabs.move(aTab.id, { index: newindex })
 }
@@ -1942,7 +1958,7 @@ export async function containercreate(name: string, color?: string, icon?: strin
   @param name The container name.
  */
 //#background
-export async function containerremove(name: string) {
+export async function containerdelete(name: string) {
     await containerclose(name)
     await Container.remove(name)
 }
@@ -1990,6 +2006,7 @@ export async function viewcontainers() {
             .replace(/#/g, "%23")
             .replace(/ /g, "%20")
 }
+
 // }}}
 //
 // {{{ MISC
@@ -2159,8 +2176,7 @@ export function fillcmdline_nofocus(...strarr: string[]) {
 
 /** Shows str in the command line for ms milliseconds. Recommended duration: 3000ms. */
 //#background
-export async function fillcmdline_tmp(ms: string, ...strarr: string[]) {
-    let milliseconds = parseInt(ms)
+export async function fillcmdline_tmp(ms: number, ...strarr: string[]) {
     let str = strarr.join(" ")
     let tabId = await activeTabId()
     showcmdline(false)
@@ -2172,7 +2188,7 @@ export async function fillcmdline_tmp(ms: string, ...strarr: string[]) {
                 await messageTab(tabId, "commandline_frame", "clear", [true])
             }
             resolve()
-        }, milliseconds),
+        }, ms),
     )
 }
 
@@ -2270,7 +2286,7 @@ export async function clipboard(excmd: "open" | "yank" | "yankshort" | "yankcano
                 }
                 if (urls.length > 0) {
                     await yank(urls[0])
-                    fillcmdline_tmp("3000", "# " + urls[0] + " copied to clipboard.")
+                    fillcmdline_tmp(3000, "# " + urls[0] + " copied to clipboard.")
                     break
                 }
             // Trying yankcanon if yankshort failed...
@@ -2278,24 +2294,24 @@ export async function clipboard(excmd: "open" | "yank" | "yankshort" | "yankcano
                 urls = await geturlsforlinks("rel", "canonical")
                 if (urls.length > 0) {
                     await yank(urls[0])
-                    fillcmdline_tmp("3000", "# " + urls[0] + " copied to clipboard.")
+                    fillcmdline_tmp(3000, "# " + urls[0] + " copied to clipboard.")
                     break
                 }
             // Trying yank if yankcanon failed...
             case "yank":
                 content = content == "" ? (await activeTab()).url : content
                 await yank(content)
-                fillcmdline_tmp("3000", "# " + content + " copied to clipboard.")
+                fillcmdline_tmp(3000, "# " + content + " copied to clipboard.")
                 break
             case "yanktitle":
                 content = (await activeTab()).title
                 await yank(content)
-                fillcmdline_tmp("3000", "# " + content + " copied to clipboard.")
+                fillcmdline_tmp(3000, "# " + content + " copied to clipboard.")
                 break
             case "yankmd":
                 content = "[" + (await activeTab()).title + "](" + (await activeTab()).url + ")"
                 await yank(content)
-                fillcmdline_tmp("3000", "# " + content + " copied to clipboard.")
+                fillcmdline_tmp(3000, "# " + content + " copied to clipboard.")
                 break
             case "open":
                 url = await getclip()
@@ -2427,23 +2443,34 @@ export function comclear(name: string) {
     [[fillcmdline]] to put a string in the cmdline and focus the cmdline
     (otherwise the string is executed immediately).
 
+
+    You can bind to other modes with `bind --mode={insert|ignore|normal|input} ...`, e.g, `bind --mode=insert emacs qall` (NB: unlike vim, all preceeding characters will not be input).
+
     See also:
 
         - [[unbind]]
         - [[reset]]
 */
 //#background
-export function bind(key: string, ...bindarr: string[]) {
+export function bind(...args: string[]) {
+    let mode = "normal"
+    let mode2maps = new Map([["normal", "nmaps"], ["ignore", "ignoremaps"], ["insert", "imaps"], ["input", "inputmaps"]])
+    if (args[0].startsWith("--mode=")) {
+        mode = args.shift().replace("--mode=", "")
+    }
+    if (!mode2maps.has(mode)) fillcmdline("Mode " + mode + " does not yet have user-configurable binds.")
+    let key = args.shift()
+    let bindarr = args
     // Convert key to internal representation
     key = mapstrToKeyseq(key)
         .map(k => k.toMapstr())
         .join("")
     if (bindarr.length) {
         let exstring = bindarr.join(" ")
-        config.set("nmaps", key, exstring)
+        config.set(mode2maps.get(mode), key, exstring)
     } else if (key.length) {
         // Display the existing bind
-        fillcmdline_notrail("#", key, "=", config.get("nmaps", key))
+        fillcmdline_notrail("#", key, "=", config.get(mode2maps.get(mode), key))
     }
 }
 
@@ -2537,6 +2564,25 @@ export function autocmd(event: string, url: string, ...excmd: string[]) {
     // TODO: Decide on autocmd event names
     if (!AUCMDS.includes(event)) throw event + " is not a supported event."
     config.set("autocmds", event, url, excmd.join(" "))
+}
+
+/** Automatically open a domain and all its subdomains in a specified container.
+ *
+ *  For declaring containers that do not yet exist, consider using `auconscreatecontainer true` in your tridactylrc.
+ *  This allows tridactyl to automatically create containers from your autocontain directives. Note that they will be random icons and colors.
+ *
+ * ** NB: This is an experimental feature, if you encounter issues please create an issue on github. **
+ *
+ *  The domain is passed through as a regular expression so there are a few gotchas to be aware of:
+ *  * Unescaped periods will match *anything*. `autocontain google.co.uk work` will match `google!co$uk`. Escape your periods or accept that you might get some false positives.
+ *  * You can use regex in your domain pattern. `autocontain google\,(co\.uk|com) work` will match either `google.co.uk` or `google.com`.
+ *
+ *  @param domain The domain which will trigger the autoContain directive. Includes all subdomains.
+ *  @param container The container to open the url in.
+ */
+//#background
+export function autocontain(domain: string, container: string) {
+    config.set("autocontain", domain, container)
 }
 
 /** Remove autocmds
@@ -3105,8 +3151,6 @@ export async function echo(...str: string[]) {
  * Lets you execute JavaScript in the page context. If you want to get the result back, use `composite js ... | fillcmdline`
  *
  * Some of Tridactyl's functions are accessible here via the `tri` object. Just do `console.log(tri)` in the web console on the new tab page to see what's available.
- *
- * Aliased to `!js`
  *
  * If you want to pipe an argument to `js`, you need to use the "-p" flag and then use the JS_ARG global variable, e.g:
  *

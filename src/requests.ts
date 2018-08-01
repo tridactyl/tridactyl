@@ -1,3 +1,6 @@
+import * as Messaging from "./messaging"
+import * as Container from "./lib/containers"
+import * as UrlUtil from "./url_util"
 import * as config from "./config"
 import * as csp from "csp-serdes"
 import Logger from "./logging"

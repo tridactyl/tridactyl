@@ -31,6 +31,7 @@ import * as native from "./native_background"
 import * as msgsafe from "./msgsafe"
 import state from "./state"
 import * as webext from "./lib/webext"
+import { AutoContain } from "./lib/autocontainers"
 ;(window as any).tri = Object.assign(Object.create(null), {
     messaging,
     excmds,
@@ -110,3 +111,34 @@ browser.tabs.onActivated.addListener(ev => {
     curTab = ev.tabId
     messaging.messageTab(curTab, "excmd_content", "loadaucmds", ["TabEnter"])
 })
+
+// {{{ AUTOCONTAINERS
+
+let aucon = new AutoContain()
+
+// Handle cancelled requests as a result of autocontain.
+browser.webRequest.onCompleted.addListener(
+    details => {
+        if (aucon.getCancelledRequest(details.tabId)) {
+            aucon.clearCancelledRequests(details.tabId)
+        }
+    },
+    { urls: ["<all_urls"], types: ["main_frame"] },
+)
+
+browser.webRequest.onErrorOccurred.addListener(
+    details => {
+        if (aucon.getCancelledRequest(details.tabId)) {
+            aucon.clearCancelledRequests(details.tabId)
+        }
+    },
+    { urls: ["<all_urls>"], types: ["main_frame"] },
+)
+
+// Contain autocmd.
+browser.webRequest.onBeforeRequest.addListener(
+    aucon.autoContain,
+    { urls: ["<all_urls>"], types: ["main_frame"] },
+    ["blocking"],
+)
+// }}}

@@ -1,4 +1,5 @@
 import { browserBg } from "./webext"
+import * as Fuse from "fuse.js"
 import * as Logging from "../logging"
 const logger = new Logging.Logger("containers")
 
@@ -176,17 +177,26 @@ export async function getAll(): Promise<any[]> {
     return await browser.contextualIdentities.query({})
 }
 
-/**
- * @param name The container name
- * @returns The cookieStoreId of the first match of the query.
+/** Fetches the cookieStoreId of a given container
+
+ Note: all checks are case insensitive.
+
+ @param name The container name
+ @returns The cookieStoreId of the first match of the query.
  */
 export async function getId(name: string): Promise<string> {
     try {
-        return (await browser.contextualIdentities.query({ name: name }))[0][
-            "cookieStoreId"
-        ]
+        let containers = await getAll()
+        let res = containers.filter(
+            c => c.name.toLowerCase() === name.toLowerCase(),
+        )
+        if (res.length !== 1) {
+            throw new Error("")
+        } else {
+            return res[0]["cookieStoreId"]
+        }
     } catch (e) {
-        throw new Error(
+        logger.error(
             "[Container.getId] could not find a container with that name.",
         )
     }
@@ -197,32 +207,25 @@ export async function getId(name: string): Promise<string> {
     @param partialName The (partial) name of the container.
  */
 export async function fuzzyMatch(partialName: string): Promise<string> {
-    let containers = await getAll()
-    let exactMatch = containers.filter(c => {
-        return c.name.toLowerCase() === partialName.toLowerCase()
-    })
+    let fuseOptions = {
+        id: "cookieStoreId",
+        shouldSort: true,
+        threshold: 0.5,
+        location: 0,
+        distance: 100,
+        mimMatchCharLength: 3,
+        keys: ["name"],
+    }
 
-    if (exactMatch.length === 1) {
-        return exactMatch[0]["cookieStoreId"]
-    } else if (exactMatch.length > 1) {
+    let containers = await getAll()
+    let fuse = new Fuse(containers, fuseOptions)
+    let res = fuse.search(partialName)
+
+    if (res.length >= 1) return res[0] as string
+    else {
         throw new Error(
-            "[Container.fuzzyMatch] more than one container with this name exists.",
+            "[Container.fuzzyMatch] no container matched that string",
         )
-    } else {
-        let fuzzyMatches = containers.filter(c => {
-            return c.name.toLowerCase().indexOf(partialName.toLowerCase()) > -1
-        })
-        if (fuzzyMatches.length === 1) {
-            return fuzzyMatches[0]["cookieStoreId"]
-        } else if (fuzzyMatches.length > 1) {
-            throw new Error(
-                "[Container.fuzzyMatch] ambiguous match, provide more characters",
-            )
-        } else {
-            throw new Error(
-                "[Container.fuzzyMatch] no container matched that string",
-            )
-        }
     }
 }
 

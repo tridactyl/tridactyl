@@ -12,7 +12,6 @@ async function reset() {
     return await messageActiveTab("hinting_content", "reset")
 }
 
-
 /** Type for "hint save" actions:
  *    - "link": elements that point to another resource (eg
  *              links to pages/files) - the link target is saved
