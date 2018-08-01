@@ -2880,6 +2880,7 @@ import * as hinting from "./hinting"
         - "hintchars": "hjklasdfgyuiopqwertnmzxcvb"
         - "hintfiltermode": "simple" | "vimperator" | "vimperator-reflow"
         - "relatedopenpos": "related" | "next" | "last"
+        - "hintuppercase": "true" | "false"
         - "hintnames": "short" | "uniform" | "numeric"
 
           With "short" names, Tridactyl will generate short hints that
