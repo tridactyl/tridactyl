@@ -8,8 +8,9 @@ async function selectFocusedHint() {
     return await messageActiveTab("hinting_content", "selectFocusedHint")
 }
 
-async function reset() {
-    return await messageActiveTab("hinting_content", "reset")
+/* abort = true means that we're resetting because the user pressed escape */
+async function reset(abort = false) {
+    return await messageActiveTab("hinting_content", "reset", [abort])
 }
 
 /** Type for "hint save" actions:
@@ -30,7 +31,7 @@ import { MsgSafeKeyboardEvent } from "./msgsafe"
 export function parser(keys: MsgSafeKeyboardEvent[]) {
     const key = keys[0].key
     if (key === "Escape") {
-        reset()
+        reset(true)
     } else if (["Enter", " "].includes(key)) {
         selectFocusedHint()
     } else {

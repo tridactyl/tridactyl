@@ -2903,7 +2903,9 @@ export async function hint(option?: string, selectors?: string, ...rest: string[
 
     // Open in background
     if (option === "-b") {
-        let [link, hintCount] = await hinting.pipe(DOM.HINTTAGS_selectors)
+        let result = await hinting.pipe(DOM.HINTTAGS_selectors)
+        if (result === null) return null
+        let [link, hintCount] = result
         link.focus()
         if (link.href) {
             let containerId = await activeTabContainerId()
@@ -2927,17 +2929,22 @@ export async function hint(option?: string, selectors?: string, ...rest: string[
 
     // Yank link
     else if (option === "-y") {
-        run_exstr("yank " + (await hinting.pipe(DOM.HINTTAGS_selectors))[0]["href"])
+        let result = await hinting.pipe(DOM.HINTTAGS_selectors)
+        if (result === null) return null
+        run_exstr("yank " + result[0]["href"])
     }
 
     // Yank text content
     else if (option === "-p") {
-        run_exstr("yank " + (await hinting.pipe_elements(DOM.elementsWithText()))["textContent"])
+        let result = await hinting.pipe_elements(DOM.elementsWithText())
+        if (result === null) return null
+        run_exstr("yank " + result["textContent"])
     }
 
     // Yank link alt text
     else if (option === "-P") {
         let link = await hinting.pipe_elements(DOM.getElemsBySelector("[title], [alt]", [DOM.isVisible]))
+        if (link === null) return link
         run_exstr("yank " + (link.title ? link.title : link.alt))
     }
 
@@ -2945,15 +2952,28 @@ export async function hint(option?: string, selectors?: string, ...rest: string[
     else if (option === "-#") {
         let anchorUrl = new URL(window.location.href)
         let link = await hinting.pipe_elements(DOM.anchors())
+        if (link === null) return null
         anchorUrl.hash = link.id || link.name
         run_exstr("yank " + anchorUrl.href)
-    } else if (option === "-c") DOM.simulateClick((await hinting.pipe(selectors))[0])
+    } else if (option === "-c") {
+        let result = await hinting.pipe(selectors)
+        if (result === null) return null
+        DOM.simulateClick(result[0])
+    }
     // Deprecated: hint exstr
-    else if (option === "-W") run_exstr(selectors + " " + rest.join(" ") + " " + (await hinting.pipe(DOM.HINTTAGS_selectors))[0])
-    else if (option === "-pipe") return (await hinting.pipe(selectors))[0][rest.join(" ")]
-    else if (option === "-br") {
+    else if (option === "-W") {
+        let result = await hinting.pipe(DOM.HINTTAGS_selectors)
+        if (result === null) return null
+        run_exstr(selectors + " " + rest.join(" ") + " " + result[0])
+    } else if (option === "-pipe") {
+        let result = await hinting.pipe(selectors)
+        if (result === null) return null
+        return result[0][rest.join(" ")]
+    } else if (option === "-br") {
         while (true) {
-            let [_, hintCount] = await hint("-b")
+            let result = await hint("-b")
+            if (result === null) return null
+            let [_, hintCount] = result
             if (hintCount < 2) break
         }
     }
@@ -2970,7 +2990,11 @@ export async function hint(option?: string, selectors?: string, ...rest: string[
     else if (option === "-r") hinting.hintRead()
     else if (option === "-w") hinting.hintPageWindow()
     else if (option === "-wp") hinting.hintPageWindowPrivate()
-    else DOM.simulateClick((await hinting.pipe(DOM.HINTTAGS_selectors))[0])
+    else {
+        let result = await hinting.pipe(DOM.HINTTAGS_selectors)
+        if (result === null) return null
+        DOM.simulateClick(result[0])
+    }
 }
 
 // how 2 crash pc

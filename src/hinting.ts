@@ -36,11 +36,11 @@ class HintState {
     public filter = ""
     public hintchars = ""
 
-    constructor(public filterFunc: HintFilter) {
+    constructor(public filterFunc: HintFilter, public resolve: (Hint) => void) {
         this.hintHost.classList.add("TridactylHintHost", "cleanslate")
     }
 
-    destructor() {
+    destructor(abort) {
         // Undo any alterations of the hinted elements
         for (const hint of this.hints) {
             hint.hidden = true
@@ -48,6 +48,9 @@ class HintState {
 
         // Remove all hints from the DOM.
         this.hintHost.remove()
+
+        if (abort) this.resolve(null)
+        else this.resolve(this.focusedHint)
     }
 }
 
@@ -57,11 +60,13 @@ let modeState: HintState = undefined
 export function hintPage(
     hintableElements: Element[],
     onSelect: HintSelectedCallback,
-    buildHints: HintBuilder = defaultHintBuilder(),
-    filterHints: HintFilter = defaultHintFilter(),
+    resolve = () => {},
 ) {
+    let buildHints: HintBuilder = defaultHintBuilder()
+    let filterHints: HintFilter = defaultHintFilter()
     state.mode = "hint"
-    modeState = new HintState(filterHints)
+    modeState = new HintState(filterHints, resolve)
+
     buildHints(hintableElements, onSelect)
 
     if (modeState.hints.length) {
@@ -421,9 +426,12 @@ function filterHintsVimperator(fstr, reflow = false) {
     }
 }
 
-/** Remove all hints, reset STATE. */
-function reset() {
-    modeState.destructor()
+/** Remove all hints, reset STATE.
+ *  If abort is true, we're resetting because the user pressed escape.
+ *  If it is false, we're resetting because the user selected a hint.
+ **/
+function reset(abort = false) {
+    modeState.destructor(abort)
     modeState = undefined
     state.mode = "normal"
 }
@@ -509,9 +517,10 @@ export async function pipe(
 ): Promise<[any, number]> {
     let hintCount = hintables(selectors, true).length
     let hint = await new Promise(resolve => {
-        hintPage(hintables(selectors, true), resolve)
+        hintPage(hintables(selectors, true), () => {}, resolve)
     })
-    return [(hint as any).target, hintCount]
+    if (hint) return [(hint as any).target, hintCount]
+    else return null
     // Promise takes function which it calls immediately with another function
     // as its argument. When this second function is called, it gives its
     // argument to the promise as its value
@@ -519,9 +528,10 @@ export async function pipe(
 
 export async function pipe_elements(elements: any = DOM.elementsWithText) {
     let hint = await new Promise(resolve => {
-        hintPage(elements, resolve)
+        hintPage(elements, () => {}, resolve)
     })
-    return (hint as any).target
+    if (hint) return (hint as any).target
+    else return null
 }
 
 /** Hint images, opening in the same tab, or in a background tab
