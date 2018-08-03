@@ -16,6 +16,8 @@
 
     *   `tabmove` bound to `<<` and `>>` à la Vimium.
 
+        *   `tabmove` now wraps tabs around if you reach the beginning or end.
+
     *   Add `mute` to mute tabs. Bound to `<A-m>` by default.
 
     *   Add `<A-p>` bind for `pin`.
@@ -26,9 +28,13 @@
 
     *   Add `autocmddelete` to delete an autocmd.
 
+    *   Add `hintdelay` setting (measured in milliseconds) to add a short pause before hint mode is left after choosing a link (#386). It is mostly of use to people using `set hintfiltermode vimperator`, so that they have time to stop typing before Tridactyl returns to normal mode.
+
     *   Add binds for yankmd and yanktitle to `yt` and `ym` irrespectively.
 
     *   Our GitHub has a new troublehooting guide and issue template (#522).
+
+    *   `GitHub` can no longer steal `/` from Firefox. If you are unhappy with this state of affairs, try `set leavegithubalone true`.
 
 *   Bug fixes:
 
@@ -79,11 +85,11 @@
 
     *   Move most of hinting to content script (this may have broken some stuff - please report it if it has).
 
-Thanks to all of our contributors for this release: Oliver Blanthorn, glacambre, Anton Vilhelm Ásgeirsson, Babil Golam Sarwar, Jeff King, Bzly, WorldCodeCentral, Colin Caine, Vladimir Macko, Bodo Graumann, Chris Pickard, Matt Friedman, Susexe, jcrowgey.
+Thanks to all of our contributors for this release: Oliver Blanthorn, glacambre, Anton Vilhelm Ásgeirsson, Babil Golam Sarwar, Colin Caine, Jeff King, Bzly, WorldCodeCentral, Mohammad AlSaleh, Vladimir Macko, André Klausnitzer, Bodo Graumann, Chris Pickard, Lucian Poston, Matt Friedman, Susexe, and jcrowgey.
 
-Extra special thanks go to Chris Pickard, Matt Friedman, Susexe, Vladimir Macko, WorldCodeCentral, all of whom were first time contributors!
+Extra special thanks go to André Klausnitzer, Chris Pickard, Lucian Poston, Matt Friedman, Susexe, Vladimir Macko, and WorldCodeCentral, all of whom were first time contributors.
 
-And thanks to anyone who reported issues.
+Last, but not least - thank you to everyone who reported issues.
 
 ## Release 1.13.1 / 2018-06-20
 
