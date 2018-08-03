@@ -28,6 +28,12 @@ import Logger from "./logging"
 import * as Messaging from "./messaging"
 const logger = new Logger("hinting")
 
+export enum HintRejectionReason {
+    Err,
+    User,
+    NoHints,
+}
+
 /** Simple container for the state of a single frame's hints. */
 class HintState {
     public focusedHint: Hint
@@ -36,11 +42,17 @@ class HintState {
     public filter = ""
     public hintchars = ""
 
-    constructor(public filterFunc: HintFilter, public resolve: (Hint) => void) {
+    constructor(
+        public filterFunc: HintFilter,
+        public resolve: (Hint) => void,
+        public reject: (HintRejectionReason) => any,
+    ) {
         this.hintHost.classList.add("TridactylHintHost", "cleanslate")
     }
 
     destructor(abort) {
+        if (!this.focusedHint) this.focusedHint = this.hints[0]
+
         // Undo any alterations of the hinted elements
         for (const hint of this.hints) {
             hint.hidden = true
@@ -49,8 +61,9 @@ class HintState {
         // Remove all hints from the DOM.
         this.hintHost.remove()
 
-        if (abort) this.resolve(null)
-        else this.resolve(this.focusedHint)
+        if (abort) this.reject(HintRejectionReason.User)
+        else if (!this.focusedHint) this.reject(HintRejectionReason.NoHints)
+        else this.resolve([this.focusedHint.target, this.hints.length])
     }
 }
 
@@ -61,11 +74,12 @@ export function hintPage(
     hintableElements: Element[],
     onSelect: HintSelectedCallback,
     resolve = () => {},
+    reject = () => {},
 ) {
     let buildHints: HintBuilder = defaultHintBuilder()
     let filterHints: HintFilter = defaultHintFilter()
     state.mode = "hint"
-    modeState = new HintState(filterHints, resolve)
+    modeState = new HintState(filterHints, resolve, reject)
 
     buildHints(hintableElements, onSelect)
 
@@ -512,26 +526,20 @@ export function hintPageWindowPrivate() {
     })
 }
 
-export async function pipe(
+export function pipe(
     selectors = DOM.HINTTAGS_selectors,
-): Promise<[any, number]> {
-    let hintCount = hintables(selectors, true).length
-    let hint = await new Promise(resolve => {
-        hintPage(hintables(selectors, true), () => {}, resolve)
+): Promise<[Element, number]> {
+    return new Promise((resolve, reject) => {
+        hintPage(hintables(selectors, true), () => {}, resolve, reject)
     })
-    if (hint) return [(hint as any).target, hintCount]
-    else return null
-    // Promise takes function which it calls immediately with another function
-    // as its argument. When this second function is called, it gives its
-    // argument to the promise as its value
 }
 
-export async function pipe_elements(elements: any = DOM.elementsWithText) {
-    let hint = await new Promise(resolve => {
-        hintPage(elements, () => {}, resolve)
+export function pipe_elements(
+    elements: any = DOM.elementsWithText,
+): Promise<[Element, number]> {
+    return new Promise((resolve, reject) => {
+        hintPage(elements, () => {}, resolve, reject)
     })
-    if (hint) return (hint as any).target
-    else return null
 }
 
 /** Hint images, opening in the same tab, or in a background tab

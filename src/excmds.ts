@@ -2900,78 +2900,105 @@ import * as hinting from "./hinting"
 //#content
 export async function hint(option?: string, selectors?: string, ...rest: string[]) {
     // NB: if you want something to work with rapid hinting, make it return a tuple of [something, hintCount] see option === "-b" below.
+    let selectHints = new Promise(r => r())
+    let onSelected = a => a
 
     // Open in background
     if (option === "-b") {
-        let result = await hinting.pipe(DOM.HINTTAGS_selectors)
-        if (result === null) return null
-        let [link, hintCount] = result
-        link.focus()
-        if (link.href) {
-            let containerId = await activeTabContainerId()
-            if (containerId) {
-                openInNewTab(link.href, {
-                    active: false,
-                    related: true,
-                    cookieStoreId: containerId,
-                }).catch(() => DOM.simulateClick(link))
+        selectHints = hinting.pipe(DOM.HINTTAGS_selectors)
+        onSelected = async result => {
+            let [link, hintCount] = result as [HTMLAnchorElement, number]
+            link.focus()
+            if (link.href) {
+                let containerId = await activeTabContainerId()
+                if (containerId) {
+                    openInNewTab(link.href, {
+                        active: false,
+                        related: true,
+                        cookieStoreId: containerId,
+                    }).catch(() => DOM.simulateClick(link))
+                } else {
+                    openInNewTab(link.href, {
+                        active: false,
+                        related: true,
+                    }).catch(() => DOM.simulateClick(link))
+                }
             } else {
-                openInNewTab(link.href, {
-                    active: false,
-                    related: true,
-                }).catch(() => DOM.simulateClick(link))
+                DOM.simulateClick(link)
             }
-        } else {
-            DOM.simulateClick(link)
+            return [link.href, hintCount]
         }
-        return [link.href, hintCount]
     }
 
     // Yank link
     else if (option === "-y") {
-        let result = await hinting.pipe(DOM.HINTTAGS_selectors)
-        if (result === null) return null
-        run_exstr("yank " + result[0]["href"])
+        selectHints = hinting.pipe(DOM.HINTTAGS_selectors)
+        onSelected = result => {
+            // /!\ Warning: This is racy! This can easily be fixed by adding an await but do we want this? yank can be pretty slow, especially with yankto=selection
+            run_exstr("yank " + result[0]["href"])
+            return result
+        }
     }
 
     // Yank text content
     else if (option === "-p") {
-        let result = await hinting.pipe_elements(DOM.elementsWithText())
-        if (result === null) return null
-        run_exstr("yank " + result["textContent"])
+        selectHints = hinting.pipe_elements(DOM.elementsWithText())
+        onSelected = result => {
+            // /!\ Warning: This is racy! This can easily be fixed by adding an await but do we want this? yank can be pretty slow, especially with yankto=selection
+            run_exstr("yank " + result["textContent"])
+            return result
+        }
     }
 
     // Yank link alt text
+    // ???: Neither anchors nor links posses an "alt" attribute. I'm assuming that the person who wrote this code also wanted to select the alt text of images
+    // https://developer.mozilla.org/en-US/docs/Web/HTML/Element/a
+    // https://developer.mozilla.org/en-US/docs/Web/HTML/Element/link
     else if (option === "-P") {
-        let link = await hinting.pipe_elements(DOM.getElemsBySelector("[title], [alt]", [DOM.isVisible]))
-        if (link === null) return link
-        run_exstr("yank " + (link.title ? link.title : link.alt))
+        selectHints = hinting.pipe_elements(DOM.getElemsBySelector("[title], [alt]", [DOM.isVisible]))
+        onSelected = result => {
+            let link = result[0] as HTMLAnchorElement & HTMLImageElement
+            // /!\ Warning: This is racy! This can easily be fixed by adding an await but do we want this? yank can be pretty slow, especially with yankto=selection
+            run_exstr("yank " + (link.title ? link.title : link.alt))
+            return result
+        }
     }
 
     // Yank anchor
     else if (option === "-#") {
-        let anchorUrl = new URL(window.location.href)
-        let link = await hinting.pipe_elements(DOM.anchors())
-        if (link === null) return null
-        anchorUrl.hash = link.id || link.name
-        run_exstr("yank " + anchorUrl.href)
+        selectHints = hinting.pipe_elements(DOM.anchors())
+        onSelected = result => {
+            let anchorUrl = new URL(window.location.href)
+            let link = result[0] as any
+            // ???: What purpose does selecting elements with a name attribute have? Selecting values that only have meaning in forms doesn't seem very useful.
+            // https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes
+            anchorUrl.hash = link.id || link.name
+            // /!\ Warning: This is racy! This can easily be fixed by adding an await but do we want this? yank can be pretty slow, especially with yankto=selection
+            run_exstr("yank " + anchorUrl.href)
+            return result
+        }
     } else if (option === "-c") {
-        let result = await hinting.pipe(selectors)
-        if (result === null) return null
-        DOM.simulateClick(result[0])
+        selectHints = hinting.pipe(selectors)
+        onSelected = result => {
+            DOM.simulateClick(result[0] as HTMLElement)
+            return result
+        }
     }
     // Deprecated: hint exstr
     else if (option === "-W") {
-        let result = await hinting.pipe(DOM.HINTTAGS_selectors)
-        if (result === null) return null
-        run_exstr(selectors + " " + rest.join(" ") + " " + result[0])
+        selectHints = hinting.pipe(DOM.HINTTAGS_selectors)
+        onSelected = result => {
+            // /!\ RACY RACY RACY!
+            run_exstr(selectors + " " + rest.join(" ") + " " + result[0])
+            return result
+        }
     } else if (option === "-pipe") {
-        let result = await hinting.pipe(selectors)
-        if (result === null) return null
-        return result[0][rest.join(" ")]
+        selectHints = hinting.pipe(selectors)
+        onSelected = result => result[0][rest.join(" ")]
     } else if (option === "-br") {
         while (true) {
-            let result = await hint("-b")
+            // The typecast can be removed once the function is completely ported
+            let result = (await hint("-b")) as [HTMLElement, number]
             if (result === null) return null
             let [_, hintCount] = result
             if (hintCount < 2) break
@@ -2991,10 +3018,27 @@ export async function hint(option?: string, selectors?: string, ...rest: string[
     else if (option === "-w") hinting.hintPageWindow()
     else if (option === "-wp") hinting.hintPageWindowPrivate()
     else {
-        let result = await hinting.pipe(DOM.HINTTAGS_selectors)
-        if (result === null) return null
-        DOM.simulateClick(result[0])
+        selectHints = hinting.pipe(DOM.HINTTAGS_selectors)
     }
+
+    return new Promise((resolve, reject) =>
+        selectHints.then(
+            async result => resolve(await onSelected(result)),
+            rejectionReason => {
+                // We have to resolve when we don't want to have our messages be logged in the command line but this feels wrong since no hint has been selected
+                // Perhaps we should implement a mechanism to allow specific errors to go unreported?
+                if (rejectionReason == hinting.HintRejectionReason.User) {
+                    logger.debug("Hint promise rejected because user left hint mode without selecting a hint")
+                    resolve(null)
+                } else if (rejectionReason == hinting.HintRejectionReason.NoHints) {
+                    logger.debug("Hint promise rejected because there are no hints to select")
+                    resolve(null)
+                } else {
+                    reject(rejectionReason)
+                }
+            },
+        ),
+    )
 }
 
 // how 2 crash pc
