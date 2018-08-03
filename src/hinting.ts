@@ -605,8 +605,7 @@ export function hintSave(hintType: HintSaveType, saveAs: boolean) {
 function selectFocusedHint() {
     logger.debug("Selecting hint.", state.mode)
     const focused = modeState.focusedHint
-    reset()
-    focused.select()
+    setTimeout(_=>{reset(); focused.select()},config.get("hintdelay"))
 }
 
 import { addListener, attributeCaller } from "./messaging"
