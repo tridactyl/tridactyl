@@ -3035,6 +3035,10 @@ export async function hint(option?: string, selectors?: string, ...rest: string[
     else if (option === "-wp") hinting.hintPageWindowPrivate()
     else {
         selectHints = hinting.pipe(DOM.HINTTAGS_selectors)
+        onSelected = result => {
+            DOM.simulateClick(result[0] as HTMLElement)
+            return result
+        }
     }
 
     return new Promise((resolve, reject) =>
