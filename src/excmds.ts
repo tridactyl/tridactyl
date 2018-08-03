@@ -2417,6 +2417,35 @@ export function comclear(name: string) {
     config.unset("exaliases", name)
 }
 
+//#background_helper
+type bind_args = { mode: string; configName: string; key: string; excmd: string }
+
+//#background_helper
+function parse_bind_args(...args: string[]): bind_args {
+    if (args.length == 0) throw new Error("Invalid bind/unbind arguments.")
+
+    let result = {} as bind_args
+    result.mode = "normal"
+
+    let mode2maps = new Map([["normal", "nmaps"], ["ignore", "ignoremaps"], ["insert", "imaps"], ["input", "inputmaps"]])
+    if (args[0].startsWith("--mode=")) {
+        result.mode = args.shift().replace("--mode=", "")
+    }
+    if (!mode2maps.has(result.mode)) throw new Error("Mode " + result.mode + " does not yet have user-configurable binds.")
+
+    result.configName = mode2maps.get(result.mode)
+
+    let key = args.shift()
+    // Convert key to internal representation
+    result.key = mapstrToKeyseq(key)
+        .map(k => k.toMapstr())
+        .join("")
+
+    result.excmd = args.join(" ")
+
+    return result
+}
+
 /** Bind a sequence of keys to an excmd or view bound sequence.
 
     This is an easier-to-implement bodge while we work on vim-style maps.
@@ -2453,24 +2482,12 @@ export function comclear(name: string) {
 */
 //#background
 export function bind(...args: string[]) {
-    let mode = "normal"
-    let mode2maps = new Map([["normal", "nmaps"], ["ignore", "ignoremaps"], ["insert", "imaps"], ["input", "inputmaps"]])
-    if (args[0].startsWith("--mode=")) {
-        mode = args.shift().replace("--mode=", "")
-    }
-    if (!mode2maps.has(mode)) fillcmdline("Mode " + mode + " does not yet have user-configurable binds.")
-    let key = args.shift()
-    let bindarr = args
-    // Convert key to internal representation
-    key = mapstrToKeyseq(key)
-        .map(k => k.toMapstr())
-        .join("")
-    if (bindarr.length) {
-        let exstring = bindarr.join(" ")
-        config.set(mode2maps.get(mode), key, exstring)
-    } else if (key.length) {
+    let args_obj = parse_bind_args(...args)
+    if (args_obj.excmd != "") {
+        config.set(args_obj.configName, args_obj.key, args_obj.excmd)
+    } else if (args_obj.key.length) {
         // Display the existing bind
-        fillcmdline_notrail("#", key, "=", config.get(mode2maps.get(mode), key))
+        fillcmdline_notrail("#", args_obj.key, "=", config.get(args_obj.configName, args_obj.key))
     }
 }
 
@@ -2619,12 +2636,11 @@ export function blacklistadd(url: string) {
         - [[reset]]
 */
 //#background
-export async function unbind(key: string) {
-    // Convert key to internal representation
-    key = mapstrToKeyseq(key)
-        .map(k => k.toMapstr())
-        .join("")
-    config.set("nmaps", key, "")
+export async function unbind(...args: string[]) {
+    let args_obj = parse_bind_args(...args)
+    if (args_obj.excmd != "") throw new Error("unbind syntax: `unbind key`")
+
+    config.set(args_obj.configName, args_obj.key, "")
 }
 
 /** Restores a sequence of keys to their default value.

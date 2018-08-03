@@ -61,7 +61,10 @@ export function show() {
             cmdline_iframe.contentWindow.document.body.offsetHeight + "px"
         cmdline_iframe.setAttribute("style", `height: ${height} !important;`)
     } catch (e) {
-        cmdline_logger.error(e)
+        // Note: We can't use cmdline_logger.error because it will try to log
+        // the error in the commandline, which we can't show!
+        // cmdline_logger.error(e)
+        console.error(e)
     }
 }
 
@@ -70,6 +73,9 @@ export function hide() {
         cmdline_iframe.classList.add("hidden")
         cmdline_iframe.setAttribute("style", "height: 0px !important;")
     } catch (e) {
+        // Using cmdline_logger here is OK because cmdline_logger won't try to
+        // call hide(), thus we avoid the recursion that happens for show() and
+        // focus()
         cmdline_logger.error(e)
     }
 }
@@ -78,7 +84,11 @@ export function focus() {
     try {
         cmdline_iframe.focus()
     } catch (e) {
-        cmdline_logger.error(e)
+        // Note: We can't use cmdline_logger.error because it will try to log
+        // the error in the commandline, which will need to focus() it again,
+        // which will throw again...
+        // cmdline_logger.error(e)
+        console.error(e)
     }
 }
 
@@ -86,6 +96,7 @@ export function blur() {
     try {
         cmdline_iframe.blur()
     } catch (e) {
+        // Same as with hide(), it's ok to use cmdline_logger here
         cmdline_logger.error(e)
     }
 }
