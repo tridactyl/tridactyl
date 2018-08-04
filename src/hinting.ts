@@ -473,7 +473,7 @@ function pushKey(ke) {
             1. Within viewport
             2. Not hidden by another element
 */
-function hintables(selectors = DOM.HINTTAGS_selectors, withjs = false) {
+export function hintables(selectors = DOM.HINTTAGS_selectors, withjs = false) {
     let elems = DOM.getElemsBySelector(selectors, [])
     if (withjs) {
         elems = elems.concat(DOM.hintworthy_js_elems)
@@ -539,13 +539,6 @@ export function pipe_elements(
 ): Promise<[Element, number]> {
     return new Promise((resolve, reject) => {
         hintPage(elements, () => {}, resolve, reject)
-    })
-}
-
-/** Hint elements to focus */
-export function hintFocus(selectors?) {
-    hintPage(hintables(selectors), hint => {
-        hint.target.focus()
     })
 }
 

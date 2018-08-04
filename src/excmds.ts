@@ -3046,8 +3046,10 @@ export async function hint(option?: string, selectors?: string, ...rest: string[
     } else if (option === "-A") {
         selectHints = hinting.pipe_elements(hinting.hintableImages())
         onSelected = result => Messaging.message("download_background", "downloadUrl", [new URL(result[0].src, window.location.href).href, true])
-    } else if (option === "-;") hinting.hintFocus(selectors)
-    else if (option === "-r") hinting.hintRead()
+    } else if (option === "-;") {
+        selectHints = hinting.pipe_elements(hinting.hintables(selectors))
+        onSelected = result => result[0].focus()
+    } else if (option === "-r") hinting.hintRead()
     else if (option === "-w") hinting.hintPageWindow()
     else if (option === "-wp") hinting.hintPageWindowPrivate()
     else {
