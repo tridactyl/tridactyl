@@ -1818,7 +1818,7 @@ export async function tabmove(index = "$") {
     } else if (index.startsWith("-")) {
         relative = true
         newindex = Number(index) + aTab.index
-    } else if (["end", "$"].includes(index)) {
+    } else if (["end", "$", "0"].includes(index)) {
         newindex = maxindex
     } else if (["start", "^"].includes(index)) {
         newindex = 0
