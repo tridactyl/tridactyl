@@ -2918,6 +2918,21 @@ export async function hint(option?: string, selectors?: string, ...rest: string[
     // NB: if you want something to work with rapid hinting, make it return a tuple of [something, hintCount] see option === "-b" below.
     let selectHints = new Promise(r => r())
     let onSelected = a => a
+    let hintTabOpen = async (href, active = true) => {
+        let containerId = await activeTabContainerId()
+        if (containerId) {
+            return await openInNewTab(href, {
+                active,
+                related: true,
+                cookieStoreId: containerId,
+            })
+        } else {
+            return await openInNewTab(href, {
+                active,
+                related: true,
+            })
+        }
+    }
 
     // Open in background
     if (option === "-b") {
@@ -2926,19 +2941,7 @@ export async function hint(option?: string, selectors?: string, ...rest: string[
             let [link, hintCount] = result as [HTMLAnchorElement, number]
             link.focus()
             if (link.href) {
-                let containerId = await activeTabContainerId()
-                if (containerId) {
-                    openInNewTab(link.href, {
-                        active: false,
-                        related: true,
-                        cookieStoreId: containerId,
-                    }).catch(() => DOM.simulateClick(link))
-                } else {
-                    openInNewTab(link.href, {
-                        active: false,
-                        related: true,
-                    }).catch(() => DOM.simulateClick(link))
-                }
+                hintTabOpen(link.href, false).catch(() => DOM.simulateClick(link))
             } else {
                 DOM.simulateClick(link)
             }
@@ -3022,9 +3025,13 @@ export async function hint(option?: string, selectors?: string, ...rest: string[
     }
 
     // TODO: port these to new fangled way
-    else if (option === "-i") hinting.hintImage(false)
-    else if (option === "-I") hinting.hintImage(true)
-    else if (option === "-k") hinting.hintKill()
+    else if (option === "-i") {
+        selectHints = hinting.pipe_elements(hinting.hintableImages())
+        onSelected = result => open(new URL(result[0].getAttribute("src"), window.location.href).href)
+    } else if (option === "-I") {
+        selectHints = hinting.pipe_elements(hinting.hintableImages())
+        onSelected = result => hintTabOpen(new URL(result[0].getAttribute("src"), window.location.href).href)
+    } else if (option === "-k") hinting.hintKill()
     else if (option === "-s") hinting.hintSave("link", false)
     else if (option === "-S") hinting.hintSave("img", false)
     else if (option === "-a") hinting.hintSave("link", true)

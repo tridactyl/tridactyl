@@ -490,7 +490,7 @@ function saveableElements() {
 
 /** Get array of images in the viewport
  */
-function hintableImages() {
+export function hintableImages() {
     return DOM.getElemsBySelector(DOM.HINTTAGS_img_selectors, [DOM.isVisible])
 }
 
@@ -539,26 +539,6 @@ export function pipe_elements(
 ): Promise<[Element, number]> {
     return new Promise((resolve, reject) => {
         hintPage(elements, () => {}, resolve, reject)
-    })
-}
-
-/** Hint images, opening in the same tab, or in a background tab
- *
- * @param inBackground  opens the image source URL in a background tab,
- *                      as opposed to the current tab
- */
-export function hintImage(inBackground) {
-    hintPage(hintableImages(), hint => {
-        let img_src = hint.target.getAttribute("src")
-
-        if (inBackground) {
-            openInNewTab(new URL(img_src, window.location.href).href, {
-                active: false,
-                related: true,
-            })
-        } else {
-            window.location.href = img_src
-        }
     })
 }
 
