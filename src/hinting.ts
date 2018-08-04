@@ -63,7 +63,7 @@ class HintState {
 
         if (abort) this.reject(HintRejectionReason.User)
         else if (!this.focusedHint) this.reject(HintRejectionReason.NoHints)
-        else this.resolve([this.focusedHint.target, this.hints.length])
+        else this.resolve(this.focusedHint.result)
     }
 }
 
@@ -75,13 +75,23 @@ export function hintPage(
     onSelect: HintSelectedCallback,
     resolve = () => {},
     reject = () => {},
+    rapid = false,
 ) {
     let buildHints: HintBuilder = defaultHintBuilder()
     let filterHints: HintFilter = defaultHintFilter()
     state.mode = "hint"
     modeState = new HintState(filterHints, resolve, reject)
 
-    buildHints(hintableElements, onSelect)
+    if (rapid == false) {
+        buildHints(hintableElements, hint => {
+            hint.result = onSelect(hint.target)
+            reset()
+        })
+    } else {
+        buildHints(hintableElements, hint => {
+            hint.result = onSelect(hint.target)
+        })
+    }
 
     if (modeState.hints.length) {
         let firstTarget = modeState.hints[0].target
@@ -227,6 +237,7 @@ type HintSelectedCallback = (Hint) => any
 /** Place a flag by each hintworthy element */
 class Hint {
     public readonly flag = document.createElement("span")
+    public result: any = null
 
     constructor(
         public readonly target: Element,
@@ -445,7 +456,9 @@ function filterHintsVimperator(fstr, reflow = false) {
  *  If it is false, we're resetting because the user selected a hint.
  **/
 function reset(abort = false) {
-    modeState.destructor(abort)
+    if (modeState) {
+        modeState.destructor(abort)
+    }
     modeState = undefined
     state.mode = "normal"
 }
@@ -507,29 +520,31 @@ import { openInNewWindow } from "./lib/webext"
 
 export function pipe(
     selectors = DOM.HINTTAGS_selectors,
+    action: HintSelectedCallback = _ => _,
+    rapid = false,
 ): Promise<[Element, number]> {
     return new Promise((resolve, reject) => {
-        hintPage(hintables(selectors, true), () => {}, resolve, reject)
+        hintPage(hintables(selectors, true), action, resolve, reject, rapid)
     })
 }
 
 export function pipe_elements(
     elements: any = DOM.elementsWithText,
+    action: HintSelectedCallback = _ => _,
+    rapid = false,
 ): Promise<[Element, number]> {
     return new Promise((resolve, reject) => {
-        hintPage(elements, () => {}, resolve, reject)
+        hintPage(elements, action, resolve, reject, rapid)
     })
 }
 
 function selectFocusedHint(delay = false) {
     logger.debug("Selecting hint.", state.mode)
     const focused = modeState.focusedHint
-    let select = () => {
-        reset()
-        focused.select()
-    }
-    if (delay) setTimeout(select, config.get("hintdelay"))
-    else select()
+    modeState.filter = ""
+    modeState.hints.forEach(h => (h.hidden = false))
+    if (delay) setTimeout(() => focused.select(), config.get("hintdelay"))
+    else focused.select()
 }
 
 import { addListener, attributeCaller } from "./messaging"
