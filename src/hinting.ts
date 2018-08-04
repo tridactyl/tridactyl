@@ -505,27 +505,6 @@ export function killables() {
 import { openInNewTab, activeTabContainerId } from "./lib/webext"
 import { openInNewWindow } from "./lib/webext"
 
-export function hintPageWindow() {
-    hintPage(hintables(), hint => {
-        hint.target.focus()
-        if (hint.target.href) {
-            openInNewWindow({ url: hint.target.href })
-        } else {
-            // This is to mirror vimperator behaviour.
-            DOM.simulateClick(hint.target)
-        }
-    })
-}
-
-export function hintPageWindowPrivate() {
-    hintPage(hintables(), hint => {
-        hint.target.focus()
-        if (hint.target.href) {
-            openInNewWindow({ url: hint.target.href, incognito: true })
-        }
-    })
-}
-
 export function pipe(
     selectors = DOM.HINTTAGS_selectors,
 ): Promise<[Element, number]> {

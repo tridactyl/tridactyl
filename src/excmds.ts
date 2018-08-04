@@ -96,7 +96,7 @@
 
 // Shared
 import * as Messaging from "./messaging"
-import { browserBg, activeTabId, activeTabContainerId, openInNewTab } from "./lib/webext"
+import { browserBg, activeTabId, activeTabContainerId, openInNewTab, openInNewWindow } from "./lib/webext"
 import * as Container from "./lib/containers"
 import state from "./state"
 import * as UrlUtil from "./url_util"
@@ -3052,9 +3052,20 @@ export async function hint(option?: string, selectors?: string, ...rest: string[
     } else if (option === "-r") {
         selectHints = hinting.pipe_elements(DOM.elementsWithText())
         onSelected = result => TTS.readText(result[0].textContent)
-    } else if (option === "-w") hinting.hintPageWindow()
-    else if (option === "-wp") hinting.hintPageWindowPrivate()
-    else {
+    } else if (option === "-w") {
+        selectHints = hinting.pipe_elements(hinting.hintables())
+        onSelected = result => {
+            result[0].focus()
+            if (result[0].href) return openInNewWindow({ url: new URL(result[0].href, window.location.href).href })
+            else return DOM.simulateClick(result[0])
+        }
+    } else if (option === "-wp") {
+        selectHints = hinting.pipe_elements(hinting.hintables())
+        onSelected = result => {
+            result[0].focus()
+            if (result[0].href) return openInNewWindow({ url: result[0].href, incognito: true })
+        }
+    } else {
         selectHints = hinting.pipe(DOM.HINTTAGS_selectors)
         onSelected = result => {
             DOM.simulateClick(result[0] as HTMLElement)
