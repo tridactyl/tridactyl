@@ -3049,8 +3049,10 @@ export async function hint(option?: string, selectors?: string, ...rest: string[
     } else if (option === "-;") {
         selectHints = hinting.pipe_elements(hinting.hintables(selectors))
         onSelected = result => result[0].focus()
-    } else if (option === "-r") hinting.hintRead()
-    else if (option === "-w") hinting.hintPageWindow()
+    } else if (option === "-r") {
+        selectHints = hinting.pipe_elements(DOM.elementsWithText())
+        onSelected = result => TTS.readText(result[0].textContent)
+    } else if (option === "-w") hinting.hintPageWindow()
     else if (option === "-wp") hinting.hintPageWindowPrivate()
     else {
         selectHints = hinting.pipe(DOM.HINTTAGS_selectors)

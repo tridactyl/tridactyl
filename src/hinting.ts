@@ -542,13 +542,6 @@ export function pipe_elements(
     })
 }
 
-/** Hint items and read out the content of the selection */
-export function hintRead() {
-    hintPage(DOM.elementsWithText(), hint => {
-        TTS.readText(hint.target.textContent)
-    })
-}
-
 function selectFocusedHint(delay = false) {
     logger.debug("Selecting hint.", state.mode)
     const focused = modeState.focusedHint
