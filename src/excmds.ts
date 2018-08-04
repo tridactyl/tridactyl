@@ -2934,143 +2934,172 @@ export async function hint(option?: string, selectors?: string, ...rest: string[
         }
     }
 
-    // Open in background
-    if (option === "-b") {
-        selectHints = hinting.pipe(DOM.HINTTAGS_selectors)
-        onSelected = async result => {
-            let [link, hintCount] = result as [HTMLAnchorElement, number]
-            link.focus()
-            if (link.href) {
-                hintTabOpen(link.href, false).catch(() => DOM.simulateClick(link))
-            } else {
-                DOM.simulateClick(link)
+    switch (option) {
+        case "-b":
+            // Open in background
+            selectHints = hinting.pipe(DOM.HINTTAGS_selectors)
+            onSelected = async result => {
+                let [link, hintCount] = result as [HTMLAnchorElement, number]
+                link.focus()
+                if (link.href) {
+                    hintTabOpen(link.href, false).catch(() => DOM.simulateClick(link))
+                } else {
+                    DOM.simulateClick(link)
+                }
+                return [link.href, hintCount]
             }
-            return [link.href, hintCount]
-        }
-    }
+            break
 
-    // Yank link
-    else if (option === "-y") {
-        selectHints = hinting.pipe(DOM.HINTTAGS_selectors)
-        onSelected = result => {
-            // /!\ Warning: This is racy! This can easily be fixed by adding an await but do we want this? yank can be pretty slow, especially with yankto=selection
-            run_exstr("yank " + result[0]["href"])
-            return result
-        }
-    }
+        case "-y":
+            // Yank link
+            selectHints = hinting.pipe(DOM.HINTTAGS_selectors)
+            onSelected = result => {
+                // /!\ Warning: This is racy! This can easily be fixed by adding an await but do we want this? yank can be pretty slow, especially with yankto=selection
+                run_exstr("yank " + result[0]["href"])
+                return result
+            }
+            break
 
-    // Yank text content
-    else if (option === "-p") {
-        selectHints = hinting.pipe_elements(DOM.elementsWithText())
-        onSelected = result => {
-            // /!\ Warning: This is racy! This can easily be fixed by adding an await but do we want this? yank can be pretty slow, especially with yankto=selection
-            run_exstr("yank " + result["textContent"])
-            return result
-        }
-    }
+        case "-p":
+            // Yank text content
+            selectHints = hinting.pipe_elements(DOM.elementsWithText())
+            onSelected = result => {
+                // /!\ Warning: This is racy! This can easily be fixed by adding an await but do we want this? yank can be pretty slow, especially with yankto=selection
+                run_exstr("yank " + result[0]["textContent"])
+                return result
+            }
+            break
 
-    // Yank link alt text
-    // ???: Neither anchors nor links posses an "alt" attribute. I'm assuming that the person who wrote this code also wanted to select the alt text of images
-    // https://developer.mozilla.org/en-US/docs/Web/HTML/Element/a
-    // https://developer.mozilla.org/en-US/docs/Web/HTML/Element/link
-    else if (option === "-P") {
-        selectHints = hinting.pipe_elements(DOM.getElemsBySelector("[title], [alt]", [DOM.isVisible]))
-        onSelected = result => {
-            let link = result[0] as HTMLAnchorElement & HTMLImageElement
-            // /!\ Warning: This is racy! This can easily be fixed by adding an await but do we want this? yank can be pretty slow, especially with yankto=selection
-            run_exstr("yank " + (link.title ? link.title : link.alt))
-            return result
-        }
-    }
+        case "-P":
+            // Yank link alt text
+            // ???: Neither anchors nor links posses an "alt" attribute. I'm assuming that the person who wrote this code also wanted to select the alt text of images
+            // https://developer.mozilla.org/en-US/docs/Web/HTML/Element/a
+            // https://developer.mozilla.org/en-US/docs/Web/HTML/Element/link
+            selectHints = hinting.pipe_elements(DOM.getElemsBySelector("[title], [alt]", [DOM.isVisible]))
+            onSelected = result => {
+                let link = result[0] as HTMLAnchorElement & HTMLImageElement
+                // /!\ Warning: This is racy! This can easily be fixed by adding an await but do we want this? yank can be pretty slow, especially with yankto=selection
+                run_exstr("yank " + (link.title ? link.title : link.alt))
+                return result
+            }
+            break
 
-    // Yank anchor
-    else if (option === "-#") {
-        selectHints = hinting.pipe_elements(DOM.anchors())
-        onSelected = result => {
-            let anchorUrl = new URL(window.location.href)
-            let link = result[0] as any
-            // ???: What purpose does selecting elements with a name attribute have? Selecting values that only have meaning in forms doesn't seem very useful.
-            // https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes
-            anchorUrl.hash = link.id || link.name
-            // /!\ Warning: This is racy! This can easily be fixed by adding an await but do we want this? yank can be pretty slow, especially with yankto=selection
-            run_exstr("yank " + anchorUrl.href)
-            return result
-        }
-    } else if (option === "-c") {
-        selectHints = hinting.pipe(selectors)
-        onSelected = result => {
-            DOM.simulateClick(result[0] as HTMLElement)
-            return result
-        }
-    }
-    // Deprecated: hint exstr
-    else if (option === "-W") {
-        selectHints = hinting.pipe(DOM.HINTTAGS_selectors)
-        onSelected = result => {
-            // /!\ RACY RACY RACY!
-            run_exstr(selectors + " " + rest.join(" ") + " " + result[0])
-            return result
-        }
-    } else if (option === "-pipe") {
-        selectHints = hinting.pipe(selectors)
-        onSelected = result => result[0][rest.join(" ")]
-    } else if (option === "-br") {
-        while (true) {
-            // The typecast can be removed once the function is completely ported
-            let result = (await hint("-b")) as [HTMLElement, number]
-            if (result === null) return null
-            let [_, hintCount] = result
-            if (hintCount < 2) break
-        }
-    }
+        case "-#":
+            // Yank anchor
+            selectHints = hinting.pipe_elements(DOM.anchors())
+            onSelected = result => {
+                let anchorUrl = new URL(window.location.href)
+                let link = result[0] as any
+                // ???: What purpose does selecting elements with a name attribute have? Selecting values that only have meaning in forms doesn't seem very useful.
+                // https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes
+                anchorUrl.hash = link.id || link.name
+                // /!\ Warning: This is racy! This can easily be fixed by adding an await but do we want this? yank can be pretty slow, especially with yankto=selection
+                run_exstr("yank " + anchorUrl.href)
+                return result
+            }
+            break
 
-    // TODO: port these to new fangled way
-    else if (option === "-i") {
-        selectHints = hinting.pipe_elements(hinting.hintableImages())
-        onSelected = result => open(new URL(result[0].getAttribute("src"), window.location.href).href)
-    } else if (option === "-I") {
-        selectHints = hinting.pipe_elements(hinting.hintableImages())
-        onSelected = result => hintTabOpen(new URL(result[0].getAttribute("src"), window.location.href).href)
-    } else if (option === "-k") {
-        selectHints = hinting.pipe_elements(hinting.killables())
-        onSelected = result => result[0].remove()
-    } else if (option === "-s") {
-        selectHints = hinting.pipe_elements(hinting.saveableElements())
-        onSelected = result => Messaging.message("download_background", "downloadUrl", [new URL(result[0].href, window.location.href).href, false])
-    } else if (option === "-S") {
-        selectHints = hinting.pipe_elements(hinting.hintableImages())
-        onSelected = result => Messaging.message("download_background", "downloadUrl", [new URL(result[0].src, window.location.href).href, false])
-    } else if (option === "-a") {
-        selectHints = hinting.pipe_elements(hinting.saveableElements())
-        onSelected = result => Messaging.message("download_background", "downloadUrl", [new URL(result[0].href, window.location.href).href, true])
-    } else if (option === "-A") {
-        selectHints = hinting.pipe_elements(hinting.hintableImages())
-        onSelected = result => Messaging.message("download_background", "downloadUrl", [new URL(result[0].src, window.location.href).href, true])
-    } else if (option === "-;") {
-        selectHints = hinting.pipe_elements(hinting.hintables(selectors))
-        onSelected = result => result[0].focus()
-    } else if (option === "-r") {
-        selectHints = hinting.pipe_elements(DOM.elementsWithText())
-        onSelected = result => TTS.readText(result[0].textContent)
-    } else if (option === "-w") {
-        selectHints = hinting.pipe_elements(hinting.hintables())
-        onSelected = result => {
-            result[0].focus()
-            if (result[0].href) return openInNewWindow({ url: new URL(result[0].href, window.location.href).href })
-            else return DOM.simulateClick(result[0])
-        }
-    } else if (option === "-wp") {
-        selectHints = hinting.pipe_elements(hinting.hintables())
-        onSelected = result => {
-            result[0].focus()
-            if (result[0].href) return openInNewWindow({ url: result[0].href, incognito: true })
-        }
-    } else {
-        selectHints = hinting.pipe(DOM.HINTTAGS_selectors)
-        onSelected = result => {
-            DOM.simulateClick(result[0] as HTMLElement)
-            return result
-        }
+        case "-c":
+            selectHints = hinting.pipe(selectors)
+            onSelected = result => {
+                DOM.simulateClick(result[0] as HTMLElement)
+                return result
+            }
+            break
+
+        case "-W":
+            // Deprecated: hint exstr
+            selectHints = hinting.pipe(DOM.HINTTAGS_selectors)
+            onSelected = result => {
+                // /!\ RACY RACY RACY!
+                run_exstr(selectors + " " + rest.join(" ") + " " + result[0])
+                return result
+            }
+            break
+
+        case "-pipe":
+            selectHints = hinting.pipe(selectors)
+            onSelected = result => result[0][rest.join(" ")]
+            break
+
+        case "-br":
+            while (true) {
+                // The typecast can be removed once the function is completely ported
+                let result = (await hint("-b")) as [HTMLElement, number]
+                if (result === null) return null
+                let [_, hintCount] = result
+                if (hintCount < 2) break
+            }
+            break
+
+        case "-i":
+            selectHints = hinting.pipe_elements(hinting.hintableImages())
+            onSelected = result => open(new URL(result[0].getAttribute("src"), window.location.href).href)
+            break
+
+        case "-I":
+            selectHints = hinting.pipe_elements(hinting.hintableImages())
+            onSelected = result => hintTabOpen(new URL(result[0].getAttribute("src"), window.location.href).href)
+            break
+
+        case "-k":
+            selectHints = hinting.pipe_elements(hinting.killables())
+            onSelected = result => result[0].remove()
+            break
+
+        case "-s":
+            selectHints = hinting.pipe_elements(hinting.saveableElements())
+            onSelected = result => Messaging.message("download_background", "downloadUrl", [new URL(result[0].href, window.location.href).href, false])
+            break
+
+        case "-S":
+            selectHints = hinting.pipe_elements(hinting.hintableImages())
+            onSelected = result => Messaging.message("download_background", "downloadUrl", [new URL(result[0].src, window.location.href).href, false])
+            break
+
+        case "-a":
+            selectHints = hinting.pipe_elements(hinting.saveableElements())
+            onSelected = result => Messaging.message("download_background", "downloadUrl", [new URL(result[0].href, window.location.href).href, true])
+            break
+
+        case "-A":
+            selectHints = hinting.pipe_elements(hinting.hintableImages())
+            onSelected = result => Messaging.message("download_background", "downloadUrl", [new URL(result[0].src, window.location.href).href, true])
+            break
+
+        case "-;":
+            selectHints = hinting.pipe_elements(hinting.hintables(selectors))
+            onSelected = result => result[0].focus()
+            break
+
+        case "-r":
+            selectHints = hinting.pipe_elements(DOM.elementsWithText())
+            onSelected = result => TTS.readText(result[0].textContent)
+            break
+
+        case "-w":
+            selectHints = hinting.pipe_elements(hinting.hintables())
+            onSelected = result => {
+                result[0].focus()
+                if (result[0].href) return openInNewWindow({ url: new URL(result[0].href, window.location.href).href })
+                else return DOM.simulateClick(result[0])
+            }
+            break
+
+        case "-wp":
+            selectHints = hinting.pipe_elements(hinting.hintables())
+            onSelected = result => {
+                result[0].focus()
+                if (result[0].href) return openInNewWindow({ url: result[0].href, incognito: true })
+            }
+            break
+
+        default:
+            selectHints = hinting.pipe(DOM.HINTTAGS_selectors)
+            onSelected = result => {
+                DOM.simulateClick(result[0] as HTMLElement)
+                return result
+            }
     }
 
     return new Promise((resolve, reject) =>
