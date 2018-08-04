@@ -3048,23 +3048,24 @@ export async function hint(option?: string, selectors?: string, ...rest: string[
             break
 
         case "-s":
-            selectHints = hinting.pipe_elements(hinting.saveableElements())
-            onSelected = result => Messaging.message("download_background", "downloadUrl", [new URL(result[0].href, window.location.href).href, false])
-            break
-
-        case "-S":
-            selectHints = hinting.pipe_elements(hinting.hintableImages())
-            onSelected = result => Messaging.message("download_background", "downloadUrl", [new URL(result[0].src, window.location.href).href, false])
-            break
-
         case "-a":
-            selectHints = hinting.pipe_elements(hinting.saveableElements())
-            onSelected = result => Messaging.message("download_background", "downloadUrl", [new URL(result[0].href, window.location.href).href, true])
-            break
-
+        case "-S":
         case "-A":
-            selectHints = hinting.pipe_elements(hinting.hintableImages())
-            onSelected = result => Messaging.message("download_background", "downloadUrl", [new URL(result[0].src, window.location.href).href, true])
+            // s: don't ask the user where to save the file
+            // a: ask the user where to save the file
+            let saveAs = true
+            if (option[1].toLowerCase() == "s") saveAs = false
+            // Lowercase: anchors
+            // Uppercase: images
+            let attr = "href"
+            if (option[1].toLowerCase() == option[1]) {
+                attr = "href"
+                selectHints = hinting.pipe_elements(hinting.saveableElements())
+            } else {
+                attr = "src"
+                selectHints = hinting.pipe_elements(hinting.hintableImages())
+            }
+            onSelected = result => Messaging.message("download_background", "downloadUrl", [new URL(result[0][attr], window.location.href).href, saveAs])
             break
 
         case "-;":
