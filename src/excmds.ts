@@ -1794,24 +1794,54 @@ export async function undo() {
 //#background
 export async function tabmove(index = "0") {
     const aTab = await activeTab()
-    const maxindex = (await browser.tabs.query({ currentWindow: true })).length - 1
+    const windowTabs = await browser.tabs.query({ currentWindow: true })
+    const windowPinnedTabs = await browser.tabs.query({ currentWindow: true, pinned: true })
+    const maxPinnedIndex = windowPinnedTabs.length - 1
+
+    let minindex: number
+    let maxindex: number
+
+    if (aTab.pinned) {
+        minindex = 0
+        maxindex = maxPinnedIndex
+    } else {
+        minindex = maxPinnedIndex + 1
+        maxindex = windowTabs.length - 1
+    }
+
     let newindex: number
+    let relative = false
 
     if (index.startsWith("+")) {
+        relative = true
         newindex = Number(index) + aTab.index
-        if (newindex > maxindex) {
-            newindex -= maxindex + 1
-        }
     } else if (index.startsWith("-")) {
+        relative = true
         newindex = Number(index) + aTab.index
-        if (newindex < 0) {
-            newindex += maxindex + 1
-        }
     } else if (["end", "$"].includes(index)) {
         newindex = maxindex
     } else if (["start", "^"].includes(index)) {
         newindex = 0
-    } else newindex = Number(index) - 1
+    } else {
+        newindex = Number(index) - 1
+    }
+
+    if (newindex > maxindex) {
+        if (relative) {
+            while (newindex > maxindex) {
+                newindex -= maxindex - minindex + 1
+            }
+        } else newindex = maxindex
+    }
+
+    if (newindex < minindex) {
+        if (relative) {
+            while (newindex < minindex) {
+                newindex += maxindex - minindex + 1
+            }
+        } else newindex = minindex
+    }
+
     browser.tabs.move(aTab.id, { index: newindex })
 }
 
