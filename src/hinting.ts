@@ -436,7 +436,7 @@ function filterHintsVimperator(fstr, reflow = false) {
 
     // Select focused hint if it's the only match
     if (active.length == 1) {
-        selectFocusedHint()
+        selectFocusedHint(true)
     }
 }
 
@@ -620,10 +620,15 @@ export function hintSave(hintType: HintSaveType, saveAs: boolean) {
     })
 }
 
-function selectFocusedHint() {
+function selectFocusedHint(delay = false) {
     logger.debug("Selecting hint.", state.mode)
     const focused = modeState.focusedHint
-    setTimeout(_=>{reset(); focused.select()},config.get("hintdelay"))
+    let select = () => {
+        reset()
+        focused.select()
+    }
+    if (delay) setTimeout(select, config.get("hintdelay"))
+    else select()
 }
 
 import { addListener, attributeCaller } from "./messaging"
