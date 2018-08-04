@@ -1812,10 +1812,7 @@ export async function tabmove(index = "$") {
     let newindex: number
     let relative = false
 
-    if (index.startsWith("+")) {
-        relative = true
-        newindex = Number(index) + aTab.index
-    } else if (index.startsWith("-")) {
+    if (index.startsWith("+") || index.startsWith("-")) {
         relative = true
         newindex = Number(index) + aTab.index
     } else if (["end", "$", "0"].includes(index)) {
@@ -1825,7 +1822,6 @@ export async function tabmove(index = "$") {
     } else {
         newindex = Number(index)  + minindex - 1
     }
-
 
     if (newindex > maxindex) {
         if (relative) {
