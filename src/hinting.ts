@@ -496,7 +496,7 @@ export function hintableImages() {
 
 /** Array of items that can be killed with hint kill
  */
-function killables() {
+export function killables() {
     return DOM.getElemsBySelector(DOM.HINTTAGS_killable_selectors, [
         DOM.isVisible,
     ])
@@ -553,14 +553,6 @@ export function hintFocus(selectors?) {
 export function hintRead() {
     hintPage(DOM.elementsWithText(), hint => {
         TTS.readText(hint.target.textContent)
-    })
-}
-
-/** Hint elements and delete the selection from the page
- */
-export function hintKill() {
-    hintPage(killables(), hint => {
-        hint.target.remove()
     })
 }
 

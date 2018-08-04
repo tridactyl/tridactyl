@@ -3031,8 +3031,10 @@ export async function hint(option?: string, selectors?: string, ...rest: string[
     } else if (option === "-I") {
         selectHints = hinting.pipe_elements(hinting.hintableImages())
         onSelected = result => hintTabOpen(new URL(result[0].getAttribute("src"), window.location.href).href)
-    } else if (option === "-k") hinting.hintKill()
-    else if (option === "-s") hinting.hintSave("link", false)
+    } else if (option === "-k") {
+        selectHints = hinting.pipe_elements(hinting.killables())
+        onSelected = result => result[0].remove()
+    } else if (option === "-s") hinting.hintSave("link", false)
     else if (option === "-S") hinting.hintSave("img", false)
     else if (option === "-a") hinting.hintSave("link", true)
     else if (option === "-A") hinting.hintSave("img", true)
