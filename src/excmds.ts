@@ -3034,11 +3034,19 @@ export async function hint(option?: string, selectors?: string, ...rest: string[
     } else if (option === "-k") {
         selectHints = hinting.pipe_elements(hinting.killables())
         onSelected = result => result[0].remove()
-    } else if (option === "-s") hinting.hintSave("link", false)
-    else if (option === "-S") hinting.hintSave("img", false)
-    else if (option === "-a") hinting.hintSave("link", true)
-    else if (option === "-A") hinting.hintSave("img", true)
-    else if (option === "-;") hinting.hintFocus(selectors)
+    } else if (option === "-s") {
+        selectHints = hinting.pipe_elements(hinting.saveableElements())
+        onSelected = result => Messaging.message("download_background", "downloadUrl", [new URL(result[0].href, window.location.href).href, false])
+    } else if (option === "-S") {
+        selectHints = hinting.pipe_elements(hinting.hintableImages())
+        onSelected = result => Messaging.message("download_background", "downloadUrl", [new URL(result[0].src, window.location.href).href, false])
+    } else if (option === "-a") {
+        selectHints = hinting.pipe_elements(hinting.saveableElements())
+        onSelected = result => Messaging.message("download_background", "downloadUrl", [new URL(result[0].href, window.location.href).href, true])
+    } else if (option === "-A") {
+        selectHints = hinting.pipe_elements(hinting.hintableImages())
+        onSelected = result => Messaging.message("download_background", "downloadUrl", [new URL(result[0].src, window.location.href).href, true])
+    } else if (option === "-;") hinting.hintFocus(selectors)
     else if (option === "-r") hinting.hintRead()
     else if (option === "-w") hinting.hintPageWindow()
     else if (option === "-wp") hinting.hintPageWindowPrivate()

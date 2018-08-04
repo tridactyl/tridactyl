@@ -484,7 +484,7 @@ function hintables(selectors = DOM.HINTTAGS_selectors, withjs = false) {
 
 /** Returns elements that point to a saveable resource
  */
-function saveableElements() {
+export function saveableElements() {
     return DOM.getElemsBySelector(DOM.HINTTAGS_saveable, [DOM.isVisible])
 }
 
@@ -553,42 +553,6 @@ export function hintFocus(selectors?) {
 export function hintRead() {
     hintPage(DOM.elementsWithText(), hint => {
         TTS.readText(hint.target.textContent)
-    })
-}
-
-/** Type for "hint save" actions:
- *    - "link": elements that point to another resource (eg
- *              links to pages/files) - the link target is saved
- *    - "img":  image elements
- */
-export type HintSaveType = "link" | "img"
-
-/** Hint link elements to save
- *
- * @param hintType  the type of elements to hint and save:
- *                      - "link": elements that point to another resource (eg
- *                        links to pages/files) - the link targer is saved
- *                      - "img": image elements
- * @param saveAs    prompt for save location
- */
-export function hintSave(hintType: HintSaveType, saveAs: boolean) {
-    function saveHintElems(hintType) {
-        return hintType === "link" ? saveableElements() : hintableImages()
-    }
-
-    function urlFromElem(hintType, elem) {
-        return hintType === "link" ? elem.href : elem.src
-    }
-
-    hintPage(saveHintElems(hintType), hint => {
-        const urlToSave = new URL(
-            urlFromElem(hintType, hint.target),
-            window.location.href,
-        )
-
-        // Pass to background context to allow saving from data URLs.
-        // Convert to href because can't clone URL across contexts
-        message("download_background", "downloadUrl", [urlToSave.href, saveAs])
     })
 }
 
