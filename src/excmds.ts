@@ -1792,7 +1792,7 @@ export async function undo() {
         1,start,^ are aliases for the first index. 0,end,$ are aliases for the last index.
 */
 //#background
-export async function tabmove(index = "0") {
+export async function tabmove(index = "$") {
     const aTab = await activeTab()
     const windowTabs = await browser.tabs.query({ currentWindow: true })
     const windowPinnedTabs = await browser.tabs.query({ currentWindow: true, pinned: true })
@@ -1823,8 +1823,9 @@ export async function tabmove(index = "0") {
     } else if (["start", "^"].includes(index)) {
         newindex = 0
     } else {
-        newindex = Number(index) - 1
+        newindex = Number(index)  + minindex - 1
     }
+
 
     if (newindex > maxindex) {
         if (relative) {
