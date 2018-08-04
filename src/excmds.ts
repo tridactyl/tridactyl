@@ -3034,17 +3034,26 @@ export async function hint(option?: string, selectors?: string, ...rest: string[
 
         case "-i":
             selectHints = hinting.pipe_elements(hinting.hintableImages())
-            onSelected = result => open(new URL(result[0].getAttribute("src"), window.location.href).href)
+            onSelected = result => {
+                open(new URL(result[0].getAttribute("src"), window.location.href).href)
+                return result
+            }
             break
 
         case "-I":
             selectHints = hinting.pipe_elements(hinting.hintableImages())
-            onSelected = result => hintTabOpen(new URL(result[0].getAttribute("src"), window.location.href).href)
+            onSelected = async result => {
+                await hintTabOpen(new URL(result[0].getAttribute("src"), window.location.href).href)
+                return result
+            }
             break
 
         case "-k":
             selectHints = hinting.pipe_elements(hinting.killables())
-            onSelected = result => result[0].remove()
+            onSelected = result => {
+                result[0].remove()
+                return result
+            }
             break
 
         case "-s":
@@ -3065,25 +3074,34 @@ export async function hint(option?: string, selectors?: string, ...rest: string[
                 attr = "src"
                 selectHints = hinting.pipe_elements(hinting.hintableImages())
             }
-            onSelected = result => Messaging.message("download_background", "downloadUrl", [new URL(result[0][attr], window.location.href).href, saveAs])
+            onSelected = result => {
+                Messaging.message("download_background", "downloadUrl", [new URL(result[0][attr], window.location.href).href, saveAs])
+                return result
+            }
             break
 
         case "-;":
             selectHints = hinting.pipe_elements(hinting.hintables(selectors))
-            onSelected = result => result[0].focus()
+            onSelected = result => {
+                result[0].focus()
+                return result
+            }
             break
 
         case "-r":
             selectHints = hinting.pipe_elements(DOM.elementsWithText())
-            onSelected = result => TTS.readText(result[0].textContent)
+            onSelected = result => {
+                TTS.readText(result[0].textContent)
+                return result
+            }
             break
 
         case "-w":
             selectHints = hinting.pipe_elements(hinting.hintables())
             onSelected = result => {
                 result[0].focus()
-                if (result[0].href) return openInNewWindow({ url: new URL(result[0].href, window.location.href).href })
-                else return DOM.simulateClick(result[0])
+                if (result[0].href) openInNewWindow({ url: new URL(result[0].href, window.location.href).href })
+                else DOM.simulateClick(result[0])
             }
             break
 
