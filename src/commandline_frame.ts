@@ -6,6 +6,7 @@ import * as Completions from "./completions"
 import { BufferAllCompletionSource } from "./completions/BufferAll"
 import { BufferCompletionSource } from "./completions/Buffer"
 import { BmarkCompletionSource } from "./completions/Bmark"
+import { ExcmdCompletionSource } from "./completions/Excmd"
 import { HistoryCompletionSource } from "./completions/History"
 import * as Messaging from "./messaging"
 import * as Config from "./config"
@@ -54,10 +55,11 @@ function getCompletion() {
 function enableCompletions() {
     if (!activeCompletions) {
         activeCompletions = [
+            new BmarkCompletionSource(completionsDiv),
             new BufferAllCompletionSource(completionsDiv),
             new BufferCompletionSource(completionsDiv),
+            new ExcmdCompletionSource(completionsDiv),
             new HistoryCompletionSource(completionsDiv),
-            new BmarkCompletionSource(completionsDiv),
         ]
 
         const fragment = document.createDocumentFragment()

@@ -51,6 +51,8 @@ else
   native/install.sh local
 fi
 
+"$(npm bin)/tsc" compiler/gen_metadata.ts -m commonjs && node compiler/gen_metadata.js --out src/metadata.ts src/*.ts
+
 (webpack --display errors-only \
   && scripts/git_version.sh) &
 

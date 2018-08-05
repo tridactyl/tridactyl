@@ -221,3 +221,13 @@ a.url:hover {
 .option.container_chill .container {
     background-image: var(--tridactyl-container-chill-url);
 }
+
+.ExcmdCompletionOption td.excmd {
+    width: 20%;
+}
+.ExcmdCompletionOption td.type {
+    width: 30%;
+}
+.ExcmdCompletionOption td.documentation {
+    width: 50%;
+}

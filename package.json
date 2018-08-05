@@ -5,6 +5,7 @@
   "dependencies": {
     "@types/css": "0.0.31",
     "@types/nearley": "^2.11.0",
+    "command-line-args": "^5.0.2",
     "csp-serdes": "github:cmcaine/csp-serdes",
     "css": "^2.2.3",
     "fuse.js": "^3.2.0",
