@@ -34,6 +34,12 @@ if [ "$(isWindowsMinGW)" = "True" ]; then
 else
   scripts/excmds_macros.py
 fi
+
+# It's important to generate the metadata before the documentation because
+# missing imports might break documentation generation on clean builds
+"$(npm bin)/tsc" compiler/gen_metadata.ts -m commonjs \
+  && node compiler/gen_metadata.js --out src/.metadata.generated.ts src/*.ts
+
 scripts/newtab.md.sh
 scripts/make_tutorial.sh
 scripts/make_docs.sh &
@@ -50,8 +56,6 @@ if [ "$(isWindowsMinGW)" = "True" ]; then
 else
   native/install.sh local
 fi
-
-"$(npm bin)/tsc" compiler/gen_metadata.ts -m commonjs && node compiler/gen_metadata.js --out src/metadata.ts src/*.ts
 
 (webpack --display errors-only \
   && scripts/git_version.sh) &

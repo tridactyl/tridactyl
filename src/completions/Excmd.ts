@@ -1,5 +1,5 @@
 import * as Completions from "../completions"
-import * as Metadata from "../metadata"
+import * as Metadata from "../.metadata.generated"
 
 class ExcmdCompletionOption extends Completions.CompletionOptionHTML
     implements Completions.CompletionOptionFuse {
