@@ -32,7 +32,7 @@
     A "splat" operator (...) means that the excmd will accept any number of space-delimited arguments into that parameter.
 
     Above each function signature you will see any aliases or key sequences bound to it. The internal names for the various modes are used, which are listed here:
-    
+
         - `nmaps`: normal mode binds
         - `imaps`: insert mode binds
         - `inputmaps`: input mode binds
@@ -1820,7 +1820,7 @@ export async function tabmove(index = "$") {
     } else if (["start", "^"].includes(index)) {
         newindex = 0
     } else {
-        newindex = Number(index)  + minindex - 1
+        newindex = Number(index) + minindex - 1
     }
 
     if (newindex > maxindex) {
@@ -1854,7 +1854,7 @@ export async function pin() {
  Passing "all" to the excmd will operate on  the mute state of all tabs.
  Passing "unmute" to the excmd will unmute.
  Passing "toggle" to the excmd will toggle the state of `browser.tabs.tab.MutedInfo`
- @param string[] muteArgs 
+ @param string[] muteArgs
  */
 //#background
 export async function mute(...muteArgs: string[]): Promise<void> {

@@ -57,7 +57,7 @@ export async function getrc(): Promise<string> {
 
     if (res.content && !res.error) {
         logger.info(`Successfully retrieved fs config:\n${res.content}`)
-        return res.content
+        return ipcDecode(res.content)
     } else {
         // Have to make this a warning as async exceptions apparently don't get caught
         logger.info(`Error in retrieving config: ${res.error}`)
@@ -217,7 +217,9 @@ export async function firstinpath(cmdarray) {
 }
 
 export async function editor(file: string, content?: string) {
-    if (content !== undefined) await write(file, content)
+    if (content !== undefined) {
+        await write(file, content)
+    }
     const editorcmd =
         config.get("editorcmd") == "auto"
             ? await getBestEditor()
@@ -230,11 +232,29 @@ export async function editor(file: string, content?: string) {
     return await read(file)
 }
 
+function ipcDecode(b64_content: string) {
+    let uri_content = atob(b64_content)
+    let content = decodeURIComponent(uri_content)
+
+    return content
+}
+
 export async function read(file: string) {
-    return sendNativeMsg("read", { file })
+    let message = await sendNativeMsg("read", { file })
+
+    message.content = ipcDecode(message.content)
+    return message
+}
+
+function ipcEncode(content: string) {
+    let uri_content = encodeURIComponent(content)
+    let b64_content = btoa(uri_content)
+
+    return b64_content
 }
 
 export async function write(file: string, content: string) {
+    content = ipcEncode(content)
     return sendNativeMsg("write", { file, content })
 }
 
@@ -243,7 +263,11 @@ export async function mkdir(dir: string, exist_ok: boolean) {
 }
 
 export async function temp(content: string, prefix: string) {
-    return sendNativeMsg("temp", { content, prefix })
+    content = ipcEncode(content)
+    let message = await sendNativeMsg("temp", { content, prefix })
+
+    message.content = ipcDecode(message.content)
+    return message
 }
 
 export async function winFirefoxRestart(
@@ -260,16 +284,20 @@ export async function winFirefoxRestart(
 }
 
 export async function run(command: string, content = "") {
-    let msg = await sendNativeMsg("run", { command, content })
-    logger.info(msg)
-    return msg
+    let message = await sendNativeMsg("run", { command, content })
+
+    message.content = ipcDecode(message.content)
+    return message
 }
 
 /** Evaluates a string in the native messenger. This has to be python code. If
  *  you want to run shell strings, use run() instead.
  */
 export async function pyeval(command: string): Promise<MessageResp> {
-    return sendNativeMsg("eval", { command })
+    let message = await sendNativeMsg("eval", { command })
+    message.content = ipcDecode(message.content)
+
+    return message
 }
 
 export async function getenv(variable: string) {
@@ -279,7 +307,10 @@ export async function getenv(variable: string) {
         throw `'getenv' needs native messenger version >= ${required_version}.`
     }
 
-    return (await sendNativeMsg("env", { var: variable })).content
+    let message = await sendNativeMsg("env", { var: variable })
+
+    message.content = ipcDecode(message.content)
+    return message
 }
 
 /** Calls an external program, to either set or get the content of the X selection.
@@ -344,11 +375,13 @@ export async function ffargs(): Promise<string[]> {
     if ((await browserBg.runtime.getPlatformInfo()).os === "win") {
         throw `Error: "ffargs() is currently broken on Windows and should be avoided."`
     } else {
-        let output = await pyeval(
+        let message = await pyeval(
             'handleMessage({"cmd": "run", ' +
                 '"command": "ps -p " + str(os.getppid()) + " -oargs="})["content"]',
         )
-        return output.content.trim().split(" ")
+
+        message.content = ipcDecode(message.content)
+        return message.content.trim().split(" ")
     }
 }
 
@@ -403,7 +436,7 @@ export async function getProfileDir() {
     try {
         // We try not to use a relative path because ~/.local (the directory where
         // the native messenger currently sits) might actually be a symlink
-        home = await getenv("HOME")
+        home = (await getenv("HOME")).content
     } catch (e) {}
     let hacky_profile_finder = `find "${home}/.mozilla/firefox" -maxdepth 2 -path '*.${profileName}/lock'`
     if ((await browserBg.runtime.getPlatformInfo()).os === "mac")

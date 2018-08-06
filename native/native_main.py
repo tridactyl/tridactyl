@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+import base64
 import json
 import os
 import pathlib
@@ -12,13 +13,35 @@ import sys
 import tempfile
 import time
 import unicodedata
+import urllib
 
 DEBUG = False
-VERSION = "0.1.8"
+VERSION = "0.1.9"
 
 
 class NoConnectionError(Exception):
     """ Exception thrown when stdin cannot be read """
+
+
+def ipc_encode(msg_content):
+    """ Encodes message["content"] with URI encoding and Base64
+    for Inter-Process-Communication (IPC) between JavaScript and
+    Python to avoid Unicode encoding/decoding issues.
+    """
+    uri_content = urllib.parse.quote(msg_content)
+    b64_content = base64.b64encode(uri_content.encode("utf-8"))
+    return b64_content.decode("utf-8")
+
+
+def ipc_decode(b64_content):
+    """ Decodes Base64 and URI encoded message content to
+    fascilinate Inter-Process-Communication (IPC) between
+    JavaScript and Python avoiding Unicode encoding/decoding
+    issues.
+    """
+    uri_content = base64.b64decode(b64_content)
+    content = urllib.parse.unquote(uri_content.decode("utf-8"))
+    return content.encode("utf-8")
 
 
 def is_command_on_path(command):
@@ -409,7 +432,7 @@ def handleMessage(message):
     elif cmd == "getconfig":
         file_content = getUserConfig()
         if file_content:
-            reply["content"] = file_content
+            reply["content"] = ipc_encode(file_content)
         else:
             reply["code"] = "File not found"
 
@@ -417,16 +440,21 @@ def handleMessage(message):
         commands = message["command"]
         stdin = message.get("content", "").encode("utf-8")
 
-        p = subprocess.Popen(commands, shell=True,
-                             stdin=subprocess.PIPE,
-                             stdout=subprocess.PIPE)
+        p = subprocess.Popen(
+            commands,
+            shell=True,
+            stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+        )
 
-        reply["content"] = p.communicate(stdin)[0].decode("utf-8")
+        reply["content"] = ipc_encode(
+            p.communicate(stdin)[0].decode("utf-8")
+        )
         reply["code"] = p.returncode
 
     elif cmd == "eval":
         output = eval(message["command"])
-        reply["content"] = output
+        reply["content"] = ipc_encode(output)
 
     elif cmd == "read":
         try:
@@ -434,9 +462,10 @@ def handleMessage(message):
                 os.path.expandvars(
                     os.path.expanduser(message["file"])
                 ),
-                "r",
+                "rb",
             ) as file:
-                reply["content"] = file.read()
+                message_content = ipc_encode(file.read())
+                reply["content"] = message_content
                 reply["code"] = 0
         except FileNotFoundError:
             reply["content"] = ""
@@ -451,8 +480,9 @@ def handleMessage(message):
         reply["code"] = 0
 
     elif cmd == "write":
-        with open(message["file"], "w") as file:
-            file.write(message["content"])
+        with open(message["file"], "wb") as file:
+            content = ipc_decode(message["content"])
+            file.write(content)
 
     elif cmd == "temp":
         prefix = message.get("prefix")
@@ -461,12 +491,15 @@ def handleMessage(message):
         prefix = "tmp_{}_".format(sanitizeFilename(prefix))
 
         (handle, filepath) = tempfile.mkstemp(prefix=prefix)
-        with os.fdopen(handle, "w") as file:
-            file.write(message["content"])
-        reply["content"] = filepath
+        with open(handle, "wb") as file:
+            content = ipc_decode(message["content"])
+            file.write(content)
+
+        reply["content"] = ipc_encode(filepath)
 
     elif cmd == "env":
-        reply["content"] = getenv(message["var"], "")
+        content = ipc_encode(getenv(message["var"], ""))
+        reply["content"] = content
 
     elif cmd == "win_firefox_restart":
         reply = win_firefox_restart(message)
