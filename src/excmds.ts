@@ -1820,7 +1820,7 @@ export async function tabmove(index = "$") {
     } else if (["start", "^"].includes(index)) {
         newindex = 0
     } else {
-        newindex = Number(index)  + minindex - 1
+        newindex = Number(index) + minindex - 1
     }
 
     if (newindex > maxindex) {
@@ -2444,9 +2444,11 @@ export function comclear(name: string) {
     config.unset("exaliases", name)
 }
 
+/** @hidden */
 //#background_helper
 type bind_args = { mode: string; configName: string; key: string; excmd: string }
 
+/** @hidden */
 //#background_helper
 function parse_bind_args(...args: string[]): bind_args {
     if (args.length == 0) throw new Error("Invalid bind/unbind arguments.")
