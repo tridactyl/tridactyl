@@ -2,7 +2,7 @@
 
 import * as config from "./config"
 
-/** Created the element that should contain keybinding information */
+/** Create the element that should contain keybinding information */
 function initTridactylSettingElem(
     elem: HTMLElement,
     kind: string,
@@ -22,17 +22,20 @@ function initTridactylSettingElem(
     return bindingNode as HTMLElement
 }
 
-/** Returns an object that maps excmd names to excmd documentation element */
+/** Return an object that maps excmd names to excmd documentation element */
 function getCommandElements() {
     return Array.from(
-        document.querySelectorAll("section.tsd-panel-group:nth-child(3) h3"),
+        document.querySelectorAll(
+            ".tsd-panel.tsd-member.tsd-kind-function.tsd-parent-kind-external-module",
+        ),
     ).reduce((all, elem) => {
-        all[elem.textContent] = elem.parentElement
+        let fnName = Array.from(elem.children).find(e => e.tagName == "H3")
+        if (fnName) all[fnName.textContent] = elem
         return all
     }, {})
 }
 
-/** Updates the doc with aliases fetched from the config */
+/** Update the doc with aliases fetched from the config */
 async function addSetting(settingName: string) {
     let commandElems = getCommandElements()
     // We're ignoring composite because it combines multiple excmds

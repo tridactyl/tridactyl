@@ -1,6 +1,6 @@
 # Tridactyl changelog
 
-## Release 1.13.2 / Unreleased
+## Release 1.13.2 / 2018-08-15
 
 *   New features:
 
@@ -28,13 +28,13 @@
 
     *   Add `autocmddelete` to delete an autocmd.
 
-    *   Add `hintdelay` setting (measured in milliseconds) to add a short pause before hint mode is left after choosing a link (#386). It is mostly of use to people using `set hintfiltermode vimperator`, so that they have time to stop typing before Tridactyl returns to normal mode.
+    *   Add `hintdelay` setting (measured in milliseconds) to add a short pause before hint mode is left after choosing a link (#386) with the `hintfiltermode vimperator*` hint modes so that one has time to stop typing before Tridactyl returns to normal mode.
 
     *   Add binds for yankmd and yanktitle to `yt` and `ym` irrespectively.
 
     *   Our GitHub has a new troublehooting guide and issue template (#522).
 
-    *   `GitHub` can no longer steal `/` from Firefox. If you are unhappy with this state of affairs, try `set leavegithubalone true`.
+    *   Websites can no longer steal `/` from Firefox. If you are unhappy with this state of affairs, try `set leavegithubalone true`.
 
 *   Bug fixes:
 

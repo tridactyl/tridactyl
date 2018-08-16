@@ -190,25 +190,25 @@ config.getAsync("leavegithubalone").then(v => {
     if (v == "true") return
     try {
         // On quick loading pages, the document is already loaded
-        if (document.location.host == "github.com") {
+        // if (document.location.host == "github.com") {
+        document.body.addEventListener("keydown", function(e) {
+            if ("/".indexOf(e.key) != -1) {
+                e.cancelBubble = true
+                e.stopImmediatePropagation()
+            }
+        })
+        // }
+    } catch (e) {
+        // But on slower pages we wait for the document to load
+        window.addEventListener("DOMContentLoaded", () => {
+            // if (document.location.host == "github.com") {
             document.body.addEventListener("keydown", function(e) {
                 if ("/".indexOf(e.key) != -1) {
                     e.cancelBubble = true
                     e.stopImmediatePropagation()
                 }
             })
-        }
-    } catch (e) {
-        // But on slower pages we wait for the document to load
-        window.addEventListener("DOMContentLoaded", () => {
-            if (document.location.host == "github.com") {
-                document.body.addEventListener("keydown", function(e) {
-                    if ("/".indexOf(e.key) != -1) {
-                        e.cancelBubble = true
-                        e.stopImmediatePropagation()
-                    }
-                })
-            }
+            // }
         })
     }
 })
