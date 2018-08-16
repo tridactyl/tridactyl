@@ -7,8 +7,8 @@ class ExcmdCompletionOption extends Completions.CompletionOptionHTML
     public fuseKeys = []
     constructor(
         public value: string,
-        public ttype: string,
-        public documentation: string,
+        public ttype: string = "",
+        public documentation: string = "",
     ) {
         super()
         this.fuseKeys.push(this.value)
@@ -49,13 +49,7 @@ export class ExcmdCompletionSource extends Completions.CompletionSourceFuse {
         let fns = Metadata.everything["src/excmds.ts"]
         this.options = (await this.scoreOptions(
             Object.keys(fns).filter(f => f.startsWith(exstr)),
-        )).map(f => {
-            try {
-                return new ExcmdCompletionOption(f, fns[f].type, fns[f].doc)
-            } catch {
-                return new ExcmdCompletionOption("", "", "")
-            }
-        })
+        )).map(f => new ExcmdCompletionOption(f, fns[f].type, fns[f].doc))
         this.options.forEach(o => (o.state = "normal"))
         this.updateChain()
     }
