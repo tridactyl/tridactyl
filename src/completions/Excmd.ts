@@ -1,5 +1,6 @@
 import * as Completions from "../completions"
 import * as Metadata from "../.metadata.generated"
+import state from "../state"
 
 class ExcmdCompletionOption extends Completions.CompletionOptionHTML
     implements Completions.CompletionOptionFuse {
@@ -46,11 +47,32 @@ export class ExcmdCompletionSource extends Completions.CompletionSourceFuse {
         if (!exstr) exstr = ""
         this.lastExstr = exstr
         let fns = Metadata.everything["src/excmds.ts"]
-        this.options = Object.keys(fns)
-            .filter(f => f.startsWith(exstr))
-            .map(f => new ExcmdCompletionOption(f, fns[f].type, fns[f].doc))
+        this.options = (await this.scoreOptions(
+            Object.keys(fns).filter(f => f.startsWith(exstr)),
+        )).map(f => {
+            try {
+                return new ExcmdCompletionOption(f, fns[f].type, fns[f].doc)
+            } catch {
+                return new ExcmdCompletionOption("", "", "")
+            }
+        })
         this.options.forEach(o => (o.state = "normal"))
         this.updateChain()
+    }
+
+    private async scoreOptions(exstrs: string[]) {
+        let histpos = state.cmdHistory.map(s => s.split(" ")[0]).reverse()
+        return exstrs.sort((a, b) => {
+            let posa = histpos.findIndex(x => x == a)
+            let posb = histpos.findIndex(x => x == b)
+            // If two ex commands have the same position, sort lexically
+            if (posa == posb) return a < b ? -1 : 1
+            // If they aren't found in the list they get lower priority
+            if (posa == -1) return 1
+            if (posb == -1) return -1
+            // Finally, sort by history position
+            return posa < posb ? -1 : 1
+        })
     }
 
     select(option: ExcmdCompletionOption) {
