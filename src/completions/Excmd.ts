@@ -26,7 +26,7 @@ export class ExcmdCompletionSource extends Completions.CompletionSourceFuse {
     public options: ExcmdCompletionOption[]
 
     constructor(private _parent) {
-        super([], "ExcmdCompletionSource", "Excmds")
+        super([], "ExcmdCompletionSource", "ex commands")
 
         this.updateOptions()
         this._parent.appendChild(this.node)
