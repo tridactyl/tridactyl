@@ -4,6 +4,7 @@
 
 import * as semverCompare from "semver-compare"
 import * as config from "./config"
+import { browserBg } from "./lib/webext"
 
 import Logger from "./logging"
 const logger = new Logger("native")
@@ -19,6 +20,7 @@ type MessageCommand =
     | "eval"
     | "getconfig"
     | "env"
+    | "win_firefox_restart"
 interface MessageResp {
     cmd: string
     version: number | null
@@ -40,12 +42,11 @@ async function sendNativeMsg(
     logger.info(`Sending message: ${JSON.stringify(send)}`)
 
     try {
-        resp = await browser.runtime.sendNativeMessage(NATIVE_NAME, send)
+        resp = await browserBg.runtime.sendNativeMessage(NATIVE_NAME, send)
         logger.info(`Received response:`, resp)
         return resp as MessageResp
     } catch (e) {
         if (!quiet) {
-            logger.error(`Error sending native message:`, e)
             throw e
         }
     }
@@ -82,7 +83,7 @@ export async function getBestEditor(): Promise<string> {
     let term_emulators = []
     let tui_editors = []
     let last_resorts = []
-    if ((await browser.runtime.getPlatformInfo()).os === "mac") {
+    if ((await browserBg.runtime.getPlatformInfo()).os === "mac") {
         gui_candidates = ["/Applications/MacVim.app/Contents/bin/mvim -f"]
         // if anyone knows of any "sensible" terminals that let you send them commands to run,
         // please let us know in issue #451!
@@ -157,12 +158,10 @@ export async function getBestEditor(): Promise<string> {
 export async function nativegate(
     version = "0",
     interactive = true,
+    desiredOS = ["mac", "win", "linux", "openbsd"],
+    // desiredOS = ["mac", "win", "android", "cros", "linux", "openbsd"]
 ): Promise<Boolean> {
-    if (
-        ["win", "android"].includes(
-            (await browser.runtime.getPlatformInfo()).os,
-        )
-    ) {
+    if (!desiredOS.includes((await browserBg.runtime.getPlatformInfo()).os)) {
         if (interactive == true)
             logger.error(
                 "# Tridactyl's native messenger doesn't support your operating system, yet.",
@@ -198,7 +197,11 @@ export async function nativegate(
 }
 
 export async function inpath(cmd) {
-    return (await run("which " + cmd.split(" ")[0])).code === 0
+    const pathcmd =
+        (await browserBg.runtime.getPlatformInfo()).os == "win"
+            ? "where "
+            : "which "
+    return (await run(pathcmd + cmd.split(" ")[0])).code === 0
 }
 
 export async function firstinpath(cmdarray) {
@@ -239,12 +242,25 @@ export async function mkdir(dir: string, exist_ok: boolean) {
     return sendNativeMsg("mkdir", { dir, exist_ok })
 }
 
-export async function temp(content: string) {
-    return sendNativeMsg("temp", { content })
+export async function temp(content: string, prefix: string) {
+    return sendNativeMsg("temp", { content, prefix })
 }
 
-export async function run(command: string) {
-    let msg = await sendNativeMsg("run", { command })
+export async function winFirefoxRestart(
+    profiledir: string,
+    browsercmd: string,
+) {
+    let required_version = "0.1.6"
+
+    if (!await nativegate(required_version, false)) {
+        throw `'restart' on Windows needs native messenger version >= ${required_version}.`
+    }
+
+    return sendNativeMsg("win_firefox_restart", { profiledir, browsercmd })
+}
+
+export async function run(command: string, content = "") {
+    let msg = await sendNativeMsg("run", { command, content })
     logger.info(msg)
     return msg
 }
@@ -257,25 +273,114 @@ export async function pyeval(command: string): Promise<MessageResp> {
 }
 
 export async function getenv(variable: string) {
-    let v = await getNativeMessengerVersion()
-    if (!await nativegate("0.1.2", false)) {
-        throw `Error: getenv needs native messenger v>=0.1.2. Current: ${v}`
+    let required_version = "0.1.2"
+
+    if (!await nativegate(required_version, false)) {
+        throw `'getenv' needs native messenger version >= ${required_version}.`
     }
+
     return (await sendNativeMsg("env", { var: variable })).content
+}
+
+/** Calls an external program, to either set or get the content of the X selection.
+ *  When setting the selection or if getting it failed, will return an empty string.
+ **/
+export async function clipboard(
+    action: "set" | "get",
+    str: string,
+): Promise<string> {
+    let clipcmd = await config.get("externalclipboardcmd")
+    if (clipcmd == "auto") clipcmd = await firstinpath(["xsel", "xclip"])
+
+    if (clipcmd === undefined) {
+        throw new Error("Couldn't find an external clipboard executable")
+    }
+
+    if (action == "get") {
+        let result = await run(clipcmd + " -o")
+        if (result.code != 0) {
+            throw new Error(
+                `External command failed with code ${result.code}: ${clipcmd}`,
+            )
+        }
+        return result.content
+    } else if (action == "set") {
+        let required_version = "0.1.7"
+        if (await nativegate(required_version, false)) {
+            let result = await run(`${clipcmd} -i`, str)
+            if (result.code != 0)
+                throw new Error(
+                    `External command failed with code ${
+                        result.code
+                    }: ${clipcmd}`,
+                )
+            return ""
+        } else {
+            // Fall back to hacky old fashioned way
+
+            // We're going to pretend that we don't know about stdin, and we need to insert str, which we can't trust, into the clipcmd
+            // In order to do this safely we'll use here documents:
+            // http://pubs.opengroup.org/onlinepubs/009695399/utilities/xcu_chap02.html#tag_02_07_04
+
+            // Find a delimiter that isn't in str
+            let heredoc = "TRIDACTYL"
+            while (str.search(heredoc) != -1)
+                heredoc += Math.round(Math.random() * 10)
+
+            // Use delimiter to insert str into clipcmd's stdin
+            // We use sed to remove the newline added by the here document
+            clipcmd = `sed -z 's/.$//' <<'${heredoc}' | ${clipcmd} -i \n${str}\n${heredoc}`
+            let result = await run(clipcmd)
+            return ""
+        }
+    }
+    throw new Error("Unknown action!")
 }
 
 /** This returns the commandline that was used to start firefox.
  You'll get both firefox binary (not necessarily an absolute path) and flags */
 export async function ffargs(): Promise<string[]> {
     // Using ' and + rather that ` because we don't want newlines
-    let output = await pyeval(
-        'handleMessage({"cmd": "run", ' +
-            '"command": "ps -p " + str(os.getppid()) + " -oargs="})["content"]',
-    )
-    return output.content.trim().split(" ")
+    if ((await browserBg.runtime.getPlatformInfo()).os === "win") {
+        throw `Error: "ffargs() is currently broken on Windows and should be avoided."`
+    } else {
+        let output = await pyeval(
+            'handleMessage({"cmd": "run", ' +
+                '"command": "ps -p " + str(os.getppid()) + " -oargs="})["content"]',
+        )
+        return output.content.trim().split(" ")
+    }
 }
 
 export async function getProfileDir() {
+    // Windows users must explicitly set their Firefox profile
+    // directory via 'set profiledir [directory]', or use the
+    // default 'profiledir' value as 'auto' (without quotes).
+    //
+    // Profile directory paths on Windows must _not_ be escaped, and
+    // should be used exactly as shown in the 'about:support' page.
+    //
+    // Example:
+    //
+    // :set profiledir C:\Users\<User-Name>\AppData\Roaming\Mozilla\Firefox\Profiles\8s21wzbh.Default
+    //
+    if ((await browserBg.runtime.getPlatformInfo()).os === "win") {
+        let win_profiledir = config.get("profiledir")
+        win_profiledir = win_profiledir.trim()
+        logger.info("[+] profiledir original: " + win_profiledir)
+
+        win_profiledir = win_profiledir.replace(/\\/g, "/")
+        logger.info("[+] profiledir escaped: " + win_profiledir)
+
+        if (win_profiledir.length > 0) {
+            return win_profiledir
+        } else {
+            throw new Error(
+                "Your profile directory must be set manually on Windows, which you can find on 'about:support', with `set profiledir [directory]`.",
+            )
+        }
+    }
+
     // First, see if we can get the profile from the arguments that were given
     // to Firefox
     let args = await ffargs()
@@ -301,7 +406,7 @@ export async function getProfileDir() {
         home = await getenv("HOME")
     } catch (e) {}
     let hacky_profile_finder = `find "${home}/.mozilla/firefox" -maxdepth 2 -path '*.${profileName}/lock'`
-    if ((await browser.runtime.getPlatformInfo()).os === "mac")
+    if ((await browserBg.runtime.getPlatformInfo()).os === "mac")
         hacky_profile_finder =
             "find ../../../Library/'Application Support'/Firefox/Profiles -maxdepth 2 -name .parentlock"
     let profilecmd = await run(hacky_profile_finder)
@@ -321,5 +426,141 @@ export async function getProfileDir() {
                 .slice(0, -1)
                 .join("/")
         }
+    }
+}
+
+export async function parsePrefs(prefFileContent: string) {
+    //  This RegExp currently only deals with " but for correctness it should
+    //  also deal with ' and `
+    //  We could also just give up on parsing and eval() the whole thing
+    const regex = new RegExp(
+        /^(user_|sticky_|lock)?[pP]ref\("([^"]+)",\s*"?([^\)]+?)"?\);$/,
+    )
+    // Fragile parsing
+    let allPrefs = prefFileContent.split("\n").reduce((prefs, line) => {
+        let matches = line.match(regex)
+        if (!matches) {
+            return prefs
+        }
+        const key = matches[2]
+        let value = matches[3]
+        // value = " means that it should be an empty string
+        if (value == '"') value = ""
+        prefs[key] = value
+        return prefs
+    }, {})
+    return allPrefs
+}
+
+/** When given the name of a firefox preference file, will load said file and
+ *  return a promise for an object the keys of which correspond to preference
+ *  names and the values of which correspond to preference values.
+ *  When the file couldn't be loaded or doesn't contain any preferences, will
+ *  return a promise for an empty object.
+ */
+export async function loadPrefs(filename): Promise<{ [key: string]: string }> {
+    const result = await read(filename)
+    if (result.code != 0) return {}
+    return parsePrefs(result.content)
+}
+
+let cached_prefs = null
+
+/** Returns a promise for an object that should contain every about:config
+ *  setting.
+ *
+ *  Performance is slow so we need to cache the results.
+ */
+export async function getPrefs(): Promise<{ [key: string]: string }> {
+    if (cached_prefs != null) return cached_prefs
+    const profile = (await getProfileDir()) + "/"
+    const prefFiles = [
+        // Debian has these
+        "/usr/share/firefox/browser/defaults/preferences/firefox.js",
+        "/usr/share/firefox/browser/defaults/preferences/debugger.js",
+        "/usr/share/firefox/browser/defaults/preferences/devtools-startup-prefs.js",
+        "/usr/share/firefox/browser/defaults/preferences/devtools.js",
+        "/usr/share/firefox/browser/defaults/preferences/firefox-branding.js",
+        "/usr/share/firefox/browser/defaults/preferences/vendor.js",
+        "/usr/share/firefox/browser/defaults/preferences/firefox.js",
+        "/etc/firefox/firefox.js",
+        // Pref files can be found here:
+        // https://developer.mozilla.org/en-US/docs/Mozilla/Preferences/A_brief_guide_to_Mozilla_preferences
+        profile + "grepref.js",
+        profile + "services/common/services-common.js",
+        profile + "defaults/pref/services-sync.js",
+        profile + "browser/app/profile/channel-prefs.js",
+        profile + "browser/app/profile/firefox.js",
+        profile + "browser/app/profile/firefox-branding.js",
+        profile + "browser/defaults/preferences/firefox-l10n.js",
+        profile + "prefs.js",
+        profile + "user.js",
+    ]
+    let promises = []
+    // Starting all promises before awaiting because we want the calls to be
+    // made in parallel
+    for (let file of prefFiles) {
+        promises.push(loadPrefs(file))
+    }
+    cached_prefs = promises.reduce(async (a, b) =>
+        Object.assign(await a, await b),
+    )
+    return cached_prefs
+}
+
+/** Returns the value for the corresponding about:config setting */
+export async function getPref(name: string): Promise<string> {
+    return (await getPrefs())[name]
+}
+
+/** Fetches a config option from the config. If the option is undefined, fetch
+ *  a preference from preferences. It would make more sense for this function to
+ *  be in config.ts but this would require importing this file in config.ts and
+ *  Webpack doesn't like circular dependencies.
+ */
+export async function getConfElsePref(
+    confName: string,
+    prefName: string,
+): Promise<any> {
+    let option = await config.getAsync(confName)
+    if (option === undefined) {
+        try {
+            option = await getPref(prefName)
+        } catch (e) {}
+    }
+    return option
+}
+
+/** Fetches a config option from the config. If the option is undefined, fetch
+ *  prefName from the preferences. If prefName is undefined too, return a
+ *  default.
+ */
+export async function getConfElsePrefElseDefault(
+    confName: string,
+    prefName: string,
+    def: any,
+): Promise<any> {
+    let option = await getConfElsePref(confName, prefName)
+    if (option === undefined) return def
+    return option
+}
+
+/** Writes a preference to user.js */
+export async function writePref(name: string, value: any) {
+    if (cached_prefs) cached_prefs[name] = value
+
+    if (typeof value == "string") value = `"${value}"`
+    const file = (await getProfileDir()) + "/user.js"
+    // No need to check the return code because read returns "" when failing to
+    // read a file
+    const text = (await read(file)).content
+    let prefPos = text.indexOf(`pref("${name}",`)
+    if (prefPos < 0) {
+        write(file, `${text}\nuser_pref("${name}", ${value});\n`)
+    } else {
+        let substr = text.substring(prefPos)
+        let prefEnd = substr.indexOf(";\n")
+        substr = text.substring(prefPos, prefPos + prefEnd)
+        write(file, text.replace(substr, `pref("${name}", ${value})`))
     }
 }

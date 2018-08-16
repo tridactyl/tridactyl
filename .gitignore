@@ -7,4 +7,11 @@ src/grammars/*.ts
 generated
 web-ext-artifacts
 yarn.lock
-.vscode/
+.vscode
+native/__pycache__
+native/native_main
+native_main.spec
+.wine-pyinstaller
+tags
+compiler/gen_metadata.js
+src/.metadata.generated.ts

@@ -3,6 +3,11 @@
 import "./lib/html-tagged-template"
 
 import * as Completions from "./completions"
+import { BufferAllCompletionSource } from "./completions/BufferAll"
+import { BufferCompletionSource } from "./completions/Buffer"
+import { BmarkCompletionSource } from "./completions/Bmark"
+import { ExcmdCompletionSource } from "./completions/Excmd"
+import { HistoryCompletionSource } from "./completions/History"
 import * as Messaging from "./messaging"
 import * as Config from "./config"
 import * as SELF from "./commandline_frame"
@@ -10,6 +15,7 @@ import "./number.clamp"
 import state from "./state"
 import Logger from "./logging"
 import * as aliases from "./aliases"
+import { theme } from "./styling"
 const logger = new Logger("cmdline")
 
 let activeCompletions: Completions.CompletionSource[] = undefined
@@ -19,6 +25,9 @@ let completionsDiv = window.document.getElementById(
 let clInput = window.document.getElementById(
     "tridactyl-input",
 ) as HTMLInputElement
+
+// first theming of commandline iframe
+theme(document.querySelector(":root"))
 
 /* This is to handle Escape key which, while the cmdline is focused,
  * ends up firing both keydown and input listeners. In the worst case
@@ -46,9 +55,11 @@ function getCompletion() {
 function enableCompletions() {
     if (!activeCompletions) {
         activeCompletions = [
-            new Completions.BufferCompletionSource(completionsDiv),
-            new Completions.HistoryCompletionSource(completionsDiv),
-            new Completions.BmarkCompletionSource(completionsDiv),
+            new BmarkCompletionSource(completionsDiv),
+            new BufferAllCompletionSource(completionsDiv),
+            new BufferCompletionSource(completionsDiv),
+            new ExcmdCompletionSource(completionsDiv),
+            new HistoryCompletionSource(completionsDiv),
         ]
 
         const fragment = document.createDocumentFragment()
@@ -59,22 +70,8 @@ function enableCompletions() {
 /* document.addEventListener("DOMContentLoaded", enableCompletions) */
 
 let noblur = e => setTimeout(() => clInput.focus(), 0)
-let lastTheme: string
 
 export function focus() {
-    enableCompletions()
-    document.body.classList.remove("hidden")
-
-    // update theme of command line
-    let theme = Config.get("theme")
-    if (theme !== lastTheme) {
-        if (lastTheme) {
-            document.querySelector(":root").classList.remove(lastTheme)
-        }
-        document.querySelector(":root").classList.add(theme)
-        lastTheme = theme
-    }
-
     clInput.focus()
     clInput.addEventListener("blur", noblur)
 }
@@ -213,6 +210,7 @@ clInput.addEventListener("input", () => {
     const expandedCmd = aliases.expandExstr(exstr)
 
     // Fire each completion and add a callback to resize area
+    enableCompletions()
     logger.debug(activeCompletions)
     activeCompletions.forEach(comp =>
         comp.filter(expandedCmd).then(() => resizeArea()),
@@ -222,18 +220,26 @@ clInput.addEventListener("input", () => {
 let cmdline_history_position = 0
 let cmdline_history_current = ""
 
-async function hide_and_clear() {
-    clInput.removeEventListener("blur", noblur)
+/** Clears the command line.
+ *  If you intend to close the command line after this, set evlistener to true in order to enable losing focus.
+ *  Otherwise, no need to pass an argument.
+ */
+export function clear(evlistener = false) {
+    if (evlistener) clInput.removeEventListener("blur", noblur)
     clInput.value = ""
     cmdline_history_position = 0
     cmdline_history_current = ""
+}
+
+export async function hide_and_clear() {
+    clear(true)
 
     // Try to make the close cmdline animation as smooth as possible.
-    document.body.classList.add("hidden")
     Messaging.message("commandline_background", "hide")
     // Delete all completion sources - I don't think this is required, but this
     // way if there is a transient bug in completions it shouldn't persist.
-    activeCompletions.forEach(comp => completionsDiv.removeChild(comp.node))
+    if (activeCompletions)
+        activeCompletions.forEach(comp => completionsDiv.removeChild(comp.node))
     activeCompletions = undefined
     isVisible = false
 }
@@ -297,15 +303,19 @@ function process() {
     sendExstr(command)
 }
 
-export function fillcmdline(newcommand?: string, trailspace = true) {
-    if (newcommand !== "") {
-        if (trailspace) clInput.value = newcommand + " "
-        else clInput.value = newcommand
-    }
-    // Focus is lost for some reason.
-    focus()
+export function fillcmdline(
+    newcommand?: string,
+    trailspace = true,
+    ffocus = true,
+) {
+    if (trailspace) clInput.value = newcommand + " "
+    else clInput.value = newcommand
     isVisible = true
-    clInput.dispatchEvent(new Event("input")) // dirty hack for completions
+    // Focus is lost for some reason.
+    if (ffocus) {
+        focus()
+        clInput.dispatchEvent(new Event("input")) // dirty hack for completions
+    }
 }
 
 /** Create a temporary textarea and give it to fn. Remove the textarea afterwards
@@ -328,7 +338,7 @@ function applyWithTmpTextArea(fn) {
     }
 }
 
-export function setClipboard(content: string) {
+export async function setClipboard(content: string) {
     applyWithTmpTextArea(scratchpad => {
         scratchpad.value = content
         scratchpad.select()
@@ -338,7 +348,7 @@ export function setClipboard(content: string) {
         } else throw "Failed to copy!"
     })
     // Return focus to the document
-    Messaging.message("commandline_background", "hide")
+    await Messaging.message("commandline_background", "hide")
 }
 
 export function getClipboard() {
@@ -350,6 +360,10 @@ export function getClipboard() {
     // Return focus to the document
     Messaging.message("commandline_background", "hide")
     return result
+}
+
+export function getContent() {
+    return clInput.value
 }
 
 Messaging.addListener("commandline_frame", Messaging.attributeCaller(SELF))

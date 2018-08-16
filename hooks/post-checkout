@@ -9,6 +9,6 @@ file_changed() {
 	echo "$changed_files" | grep --quiet "$1"
 }
 
-if file_changed package.json || file_changed package-lock.json; then
+if file_changed package.json; then
 	npm install
 fi

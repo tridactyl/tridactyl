@@ -1,0 +1,123 @@
+:root {
+    /* Generic */
+    --tridactyl-font-family: monospace;
+    --tridactyl-font-family-sans: sans-serif;
+    --tridactyl-font-size: 12pt;
+    --tridactyl-small-font-size: 12px;
+    --tridactyl-bg: white;
+    --tridactyl-fg: black;
+
+    /* Mode indicator */
+    --tridactyl-status-font-family: var(--tridactyl-font-family);
+    --tridactyl-status-font-size: var(--tridactyl-small-font-size);
+    --tridactyl-status-bg: var(--tridactyl-bg);
+    --tridactyl-status-fg: var(--tridactyl-fg);
+    --tridactyl-status-border: 1px lightgray solid;
+    --tridactyl-status-border-radius: 2px;
+
+    /* Hinting */
+
+    /* Hint character tags */
+    --tridactyl-hintspan-font-family: var(--tridactyl-font-family-sans);
+    --tridactyl-hintspan-font-size: var(--tridactyl-small-font-size);
+    --tridactyl-hintspan-font-weight: bold;
+    --tridactyl-hintspan-fg: white;
+    --tridactyl-hintspan-bg: red;
+    --tridactyl-hintspan-border-color: ButtonShadow;
+    --tridactyl-hintspan-border-width: 0px;
+    --tridactyl-hintspan-border-style: solid;
+
+    /* Element highlights */
+    --tridactyl-hint-active-fg: var(--tridactyl-fg);
+    --tridactyl-hint-active-bg: #88ff00;
+    --tridactyl-hint-active-outline: 1px solid #cc0000;
+
+    --tridactyl-hint-bg: rgba(255, 255, 0, 0.25);
+    --tridactyl-hint-outline: 1px solid #8f5902;
+
+    /* :viewsource */
+    --tridactyl-vs-bg: var(--tridactyl-bg);
+    --tridactyl-vs-fg: var(--tridactyl-fg);
+    --tridactyl-vs-font-family: var(--tridactyl-font-family);
+
+    /*commandline*/
+
+    --tridactyl-cmdl-bg: var(--tridactyl-bg);
+    --tridactyl-cmdl-fg: var(--tridactyl-fg);
+    --tridactyl-cmdl-line-height: 1.5;
+    --tridactyl-cmdl-font-family: monospace;
+    --tridactyl-cmdl-font-size: 9pt;
+
+    /*completions*/
+
+    --tridactyl-cmplt-option-height: 1.4em;
+    --tridactyl-cmplt-fg: var(--tridactyl-fg);
+    --tridactyl-cmplt-bg: var(--tridactyl-bg);
+    --tridactyl-cmplt-font-size: 10pt;
+    --tridactyl-cmplt-font-family: monospace;
+    /* i don't think 0.5px is redered */
+    --tridactyl-cmplt-border-top: 1px solid grey;
+
+    /* need a better way for naming variables 
+     *
+        - .Properties for .HistoryCompletionSource table
+        - .Properties for .BmarkCompletionSource table
+
+    */
+
+    /*sectionHeader*/
+
+    --tridactyl-header-first-bg: LightGray;
+    --tridactyl-header-second-bg: #ddd;
+    --tridactyl-header-third-bg: LightGray;
+    /* eg. What if I dont want liner-gradient as bg?
+     *
+     * :root .sectionHeader { background: blue; }
+     *
+     * ????
+     */
+
+    --tridactyl-header-font-weight: bold;
+    /* i don't think 0.5px is redered */
+    --tridactyl-header-border-bottom: 1px solid bottom;
+
+    /*url style*/
+
+    --tridactyl-url-text-decoration: none;
+    --tridactyl-url-fg: #1f9947;
+    --tridactyl-url-bg: var(--tridactyl-bg);
+    --tridactyl-url-cursor: pointer;
+
+    /*option focused*/
+
+    --tridactyl-of-fg: var(--tridactyl-fg);
+    --tridactyl-of-bg: #ffec8b;
+
+    /*new tab spoiler box*/
+    --tridactyl-highlight-box-bg: #eee;
+    --tridactyl-highlight-box-fg: var(--tridactyl-fg);
+
+    --tridactyl-private-window-icon-url: url("chrome://browser/skin/privatebrowsing/private-browsing.svg");
+
+    --tridactyl-container-fingerprint-url: url("resource://usercontext-content/fingerprint.svg");
+    --tridactyl-container-briefcase-url: url("resource://usercontext-content/briefcase.svg");
+    --tridactyl-container-dollar-url: url("resource://usercontext-content/dollar.svg");
+    --tridactyl-container-cart-url: url("resource://usercontext-content/cart.svg");
+    --tridactyl-container-circle-url: url("resource://usercontext-content/circle.svg");
+    --tridactyl-container-gift-url: url("resource://usercontext-content/gift.svg");
+    --tridactyl-container-vacation-url: url("resource://usercontext-content/vacation.svg");
+    --tridactyl-container-food-url: url("resource://usercontext-content/food.svg");
+    --tridactyl-container-fruit-url: url("resource://usercontext-content/fruit.svg");
+    --tridactyl-container-pet-url: url("resource://usercontext-content/pet.svg");
+    --tridactyl-container-tree-url: url("resource://usercontext-content/tree.svg");
+    --tridactyl-container-chill-url: url("resource://usercontext-content/chill.svg");
+
+    --tridactyl-container-color-blue: #37adff;
+    --tridactyl-container-color-turquoise: #00c79a;
+    --tridactyl-container-color-green: #51cd00;
+    --tridactyl-container-color-yellow: #ffcb00;
+    --tridactyl-container-color-orange: #ff9f00;
+    --tridactyl-container-color-red: #ff613d;
+    --tridactyl-container-color-pink: #ff4bda;
+    --tridactyl-container-color-purple: #af51f5;
+}

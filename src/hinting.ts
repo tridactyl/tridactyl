@@ -24,10 +24,15 @@ import state from "./state"
 import { messageActiveTab, message } from "./messaging"
 import * as config from "./config"
 import * as TTS from "./text_to_speech"
-import { HintSaveType } from "./hinting_background"
 import Logger from "./logging"
 import * as Messaging from "./messaging"
 const logger = new Logger("hinting")
+
+export enum HintRejectionReason {
+    Err,
+    User,
+    NoHints,
+}
 
 /** Simple container for the state of a single frame's hints. */
 class HintState {
@@ -37,11 +42,17 @@ class HintState {
     public filter = ""
     public hintchars = ""
 
-    constructor(public filterFunc: HintFilter) {
+    constructor(
+        public filterFunc: HintFilter,
+        public resolve: (Hint) => void,
+        public reject: (HintRejectionReason) => any,
+    ) {
         this.hintHost.classList.add("TridactylHintHost", "cleanslate")
     }
 
-    destructor() {
+    destructor(abort) {
+        if (!this.focusedHint) this.focusedHint = this.hints[0]
+
         // Undo any alterations of the hinted elements
         for (const hint of this.hints) {
             hint.hidden = true
@@ -49,6 +60,10 @@ class HintState {
 
         // Remove all hints from the DOM.
         this.hintHost.remove()
+
+        if (abort) this.reject(HintRejectionReason.User)
+        else if (!this.focusedHint) this.reject(HintRejectionReason.NoHints)
+        else this.resolve([this.focusedHint.target, this.hints.length])
     }
 }
 
@@ -58,11 +73,14 @@ let modeState: HintState = undefined
 export function hintPage(
     hintableElements: Element[],
     onSelect: HintSelectedCallback,
-    buildHints: HintBuilder = defaultHintBuilder(),
-    filterHints: HintFilter = defaultHintFilter(),
+    resolve = () => {},
+    reject = () => {},
 ) {
+    let buildHints: HintBuilder = defaultHintBuilder()
+    let filterHints: HintFilter = defaultHintFilter()
     state.mode = "hint"
-    modeState = new HintState(filterHints)
+    modeState = new HintState(filterHints, resolve, reject)
+
     buildHints(hintableElements, onSelect)
 
     if (modeState.hints.length) {
@@ -119,12 +137,21 @@ function defaultHintFilter() {
     }
 }
 
+function defaultHintChars() {
+    switch (config.get("hintnames")) {
+        case "numeric":
+            return "1234567890"
+        default:
+            return config.get("hintchars")
+    }
+}
+
 /** An infinite stream of hints
 
     Earlier hints prefix later hints
 */
 function* hintnames_simple(
-    hintchars = config.get("hintchars"),
+    hintchars = defaultHintChars(),
 ): IterableIterator<string> {
     for (let taglen = 1; true; taglen++) {
         yield* map(permutationsWithReplacement(hintchars, taglen), e =>
@@ -147,9 +174,9 @@ function* hintnames_simple(
     and so on, but we hardly ever see that many hints, so whatever.
     
 */
-function* hintnames(
+function* hintnames_short(
     n: number,
-    hintchars = config.get("hintchars"),
+    hintchars = defaultHintChars(),
 ): IterableIterator<string> {
     let source = hintnames_simple(hintchars)
     const num2skip = Math.floor(n / hintchars.length)
@@ -159,7 +186,7 @@ function* hintnames(
 /** Uniform length hintnames */
 function* hintnames_uniform(
     n: number,
-    hintchars = config.get("hintchars"),
+    hintchars = defaultHintChars(),
 ): IterableIterator<string> {
     if (n <= hintchars.length) yield* islice(hintchars[Symbol.iterator](), n)
     else {
@@ -172,6 +199,26 @@ function* hintnames_uniform(
                 return perm.join("")
             },
         )
+    }
+}
+
+function* hintnames_numeric(n: number): IterableIterator<string> {
+    for (let i = 1; i <= n; i++) {
+        yield String(i)
+    }
+}
+
+function* hintnames(
+    n: number,
+    hintchars = defaultHintChars(),
+): IterableIterator<string> {
+    switch (config.get("hintnames")) {
+        case "numeric":
+            yield* hintnames_numeric(n)
+        case "uniform":
+            yield* hintnames_uniform(n, hintchars)
+        default:
+            yield* hintnames_short(n, hintchars)
     }
 }
 
@@ -202,6 +249,9 @@ class Hint {
         const rect = target.getClientRects()[0]
         this.flag.textContent = name
         this.flag.className = "TridactylHint"
+        if (config.get("hintuppercase") == "true") {
+            this.flag.classList.add("TridactylHintUppercase")
+        }
         /* this.flag.style.cssText = ` */
         /*     top: ${rect.top}px; */
         /*     left: ${rect.left}px; */
@@ -221,18 +271,8 @@ class Hint {
         if (hide) {
             this.focused = false
             this.target.classList.remove("TridactylHintElem")
-            if (config.get("theme") === "dark") {
-                document
-                    .querySelector(":root")
-                    .classList.remove("TridactylThemeDark")
-            }
         } else {
             this.target.classList.add("TridactylHintElem")
-            if (config.get("theme") === "dark") {
-                document
-                    .querySelector(":root")
-                    .classList.add("TridactylThemeDark")
-            }
         }
     }
 
@@ -266,10 +306,8 @@ function buildHintsVimperator(els: Element[], onSelect: HintSelectedCallback) {
     let names = hintnames(els.length)
     // escape the hintchars string so that strange things don't happen
     // when special characters are used as hintchars (for example, ']')
-    const escapedHintChars = config
-        .get("hintchars")
-        .replace(/^\^|[-\\\]]/g, "\\$&")
-    const filterableTextFilter = new RegExp("[" + escapedHintChars + "]", "gi")
+    const escapedHintChars = defaultHintChars().replace(/^\^|[-\\\]]/g, "\\$&")
+    const filterableTextFilter = new RegExp("[" + escapedHintChars + "]", "g")
     for (let [el, name] of izip(els, names)) {
         let ft = elementFilterableText(el)
         // strip out hintchars
@@ -332,7 +370,7 @@ function filterHintsVimperator(fstr, reflow = false) {
     /** Partition a fstr into a tagged array of substrings */
     function partitionFstr(fstr): { str: string; isHintChar: boolean }[] {
         const peek = a => a[a.length - 1]
-        const hintChars = config.get("hintchars")
+        const hintChars = defaultHintChars()
 
         // For each char, either add it to the existing run if there is one and
         // it's a matching type or start a new run
@@ -398,20 +436,23 @@ function filterHintsVimperator(fstr, reflow = false) {
 
     // Select focused hint if it's the only match
     if (active.length == 1) {
-        selectFocusedHint()
+        selectFocusedHint(true)
     }
 }
 
-/** Remove all hints, reset STATE. */
-function reset() {
-    modeState.destructor()
+/** Remove all hints, reset STATE.
+ *  If abort is true, we're resetting because the user pressed escape.
+ *  If it is false, we're resetting because the user selected a hint.
+ **/
+function reset(abort = false) {
+    modeState.destructor(abort)
     modeState = undefined
     state.mode = "normal"
 }
 
 /** If key is in hintchars, add it to filtstr and filter */
 function pushKey(ke) {
-    if (hasModifiers(ke)) {
+    if (ke.ctrlKey || ke.altKey || ke.metaKey) {
         return
     } else if (ke.key === "Backspace") {
         modeState.filter = modeState.filter.slice(0, -1)
@@ -432,7 +473,7 @@ function pushKey(ke) {
             1. Within viewport
             2. Not hidden by another element
 */
-function hintables(selectors = HINTTAGS_selectors, withjs = false) {
+function hintables(selectors = DOM.HINTTAGS_selectors, withjs = false) {
     let elems = DOM.getElemsBySelector(selectors, [])
     if (withjs) {
         elems = elems.concat(DOM.hintworthy_js_elems)
@@ -441,154 +482,42 @@ function hintables(selectors = HINTTAGS_selectors, withjs = false) {
     return elems.filter(DOM.isVisible)
 }
 
-function elementswithtext() {
-    return DOM.getElemsBySelector("*", [
-        DOM.isVisible,
-        hint => {
-            return hint.textContent != ""
-        },
-    ])
-}
-
 /** Returns elements that point to a saveable resource
  */
 function saveableElements() {
-    return DOM.getElemsBySelector(HINTTAGS_saveable, [DOM.isVisible])
+    return DOM.getElemsBySelector(DOM.HINTTAGS_saveable, [DOM.isVisible])
 }
 
 /** Get array of images in the viewport
  */
 function hintableImages() {
-    return DOM.getElemsBySelector(HINTTAGS_img_selectors, [DOM.isVisible])
-}
-
-/** Get arrat of "anchors": elements which have id or name and can be addressed
- * with the hash/fragment in the URL
- */
-function anchors() {
-    return DOM.getElemsBySelector(HINTTAGS_anchor_selectors, [DOM.isVisible])
+    return DOM.getElemsBySelector(DOM.HINTTAGS_img_selectors, [DOM.isVisible])
 }
 
 /** Array of items that can be killed with hint kill
  */
 function killables() {
-    return DOM.getElemsBySelector(HINTTAGS_killable_selectors, [DOM.isVisible])
+    return DOM.getElemsBySelector(DOM.HINTTAGS_killable_selectors, [
+        DOM.isVisible,
+    ])
 }
 
-// CSS selectors. More readable for web developers. Not dead. Leaves browser to care about XML.
-const HINTTAGS_selectors = `
-input:not([type=hidden]):not([disabled]),
-a,
-area,
-iframe,
-textarea,
-button,
-select,
-summary,
-[onclick],
-[onmouseover],
-[onmousedown],
-[onmouseup],
-[oncommand],
-[role='link'],
-[role='button'],
-[role='checkbox'],
-[role='combobox'],
-[role='listbox'],
-[role='listitem'],
-[role='menuitem'],
-[role='menuitemcheckbox'],
-[role='menuitemradio'],
-[role='option'],
-[role='radio'],
-[role='scrollbar'],
-[role='slider'],
-[role='spinbutton'],
-[role='tab'],
-[role='textbox'],
-[role='treeitem'],
-[class*='button'],
-[tabindex]
-`
-
-const HINTTAGS_img_selectors = `
-img,
-[src]
-`
-
-const HINTTAGS_anchor_selectors = `
-[id],
-[name]
-`
-
-const HINTTAGS_killable_selectors = `
-span,
-div,
-iframe,
-img,
-button,
-article,
-summary
-`
-
-/** CSS selector for elements which point to a saveable resource
- */
-const HINTTAGS_saveable = `
-[href]:not([href='#'])
-`
-
-import { openInNewTab } from "./lib/webext"
-
-/** if `target === _blank` clicking the link is treated as opening a popup and is blocked. Use webext API to avoid that. */
-function simulateClick(target: HTMLElement) {
-    // target can be set to other stuff, and we'll fail in annoying ways.
-    // There's no easy way around that while this code executes outside of the
-    // magic 'short lived event handler' context.
-    //
-    // OTOH, hardly anyone uses that functionality any more.
-    if (
-        (target as HTMLAnchorElement).target === "_blank" ||
-        (target as HTMLAnchorElement).target === "_new"
-    ) {
-        openInNewTab((target as HTMLAnchorElement).href, { related: true })
-    } else {
-        DOM.mouseEvent(target, "click")
-        // DOM.focus has additional logic for focusing inputs
-        DOM.focus(target)
-    }
-}
-
-function hintPageOpenInBackground(selectors = HINTTAGS_selectors) {
-    hintPage(hintables(selectors, true), hint => {
-        hint.target.focus()
-        if (hint.target.href) {
-            // Try to open with the webext API. If that fails, simulate a click on this page anyway.
-            openInNewTab(hint.target.href, {
-                active: false,
-                related: true,
-            }).catch(() => simulateClick(hint.target))
-        } else {
-            // This is to mirror vimperator behaviour.
-            simulateClick(hint.target)
-        }
-    })
-}
-
+import { openInNewTab, activeTabContainerId } from "./lib/webext"
 import { openInNewWindow } from "./lib/webext"
 
-function hintPageWindow() {
+export function hintPageWindow() {
     hintPage(hintables(), hint => {
         hint.target.focus()
         if (hint.target.href) {
             openInNewWindow({ url: hint.target.href })
         } else {
             // This is to mirror vimperator behaviour.
-            simulateClick(hint.target)
+            DOM.simulateClick(hint.target)
         }
     })
 }
 
-function hintPageWindowPrivate() {
+export function hintPageWindowPrivate() {
     hintPage(hintables(), hint => {
         hint.target.focus()
         if (hint.target.href) {
@@ -597,46 +526,19 @@ function hintPageWindowPrivate() {
     })
 }
 
-function hintPageSimple(selectors = HINTTAGS_selectors) {
-    hintPage(hintables(selectors, true), hint => {
-        simulateClick(hint.target)
+export function pipe(
+    selectors = DOM.HINTTAGS_selectors,
+): Promise<[Element, number]> {
+    return new Promise((resolve, reject) => {
+        hintPage(hintables(selectors, true), () => {}, resolve, reject)
     })
 }
 
-function hintPageExStr(...exStr: string[]) {
-    let selectors = HINTTAGS_selectors
-    hintPage(hintables(selectors, true), hint => {
-        Messaging.message("commandline_background", "recvExStr", [
-            exStr.join(" ") + " " + hint.target.href,
-        ])
-    })
-}
-
-function hintPageTextYank() {
-    hintPage(elementswithtext(), hint => {
-        messageActiveTab("commandline_frame", "setClipboard", [
-            hint.target.textContent,
-        ])
-    })
-}
-
-function hintPageYank() {
-    hintPage(hintables(), hint => {
-        messageActiveTab("commandline_frame", "setClipboard", [
-            hint.target.href,
-        ])
-    })
-}
-
-/** Hint anchors and yank the URL on selection
- */
-function hintPageAnchorYank() {
-    hintPage(anchors(), hint => {
-        let anchorUrl = new URL(window.location.href)
-
-        anchorUrl.hash = hint.target.id || hint.target.name
-
-        messageActiveTab("commandline_frame", "setClipboard", [anchorUrl.href])
+export function pipe_elements(
+    elements: any = DOM.elementsWithText,
+): Promise<[Element, number]> {
+    return new Promise((resolve, reject) => {
+        hintPage(elements, () => {}, resolve, reject)
     })
 }
 
@@ -645,7 +547,7 @@ function hintPageAnchorYank() {
  * @param inBackground  opens the image source URL in a background tab,
  *                      as opposed to the current tab
  */
-function hintImage(inBackground) {
+export function hintImage(inBackground) {
     hintPage(hintableImages(), hint => {
         let img_src = hint.target.getAttribute("src")
 
@@ -661,26 +563,33 @@ function hintImage(inBackground) {
 }
 
 /** Hint elements to focus */
-function hintFocus() {
-    hintPage(hintables(), hint => {
+export function hintFocus(selectors?) {
+    hintPage(hintables(selectors), hint => {
         hint.target.focus()
     })
 }
 
 /** Hint items and read out the content of the selection */
-function hintRead() {
-    hintPage(elementswithtext(), hint => {
+export function hintRead() {
+    hintPage(DOM.elementsWithText(), hint => {
         TTS.readText(hint.target.textContent)
     })
 }
 
 /** Hint elements and delete the selection from the page
  */
-function hintKill() {
+export function hintKill() {
     hintPage(killables(), hint => {
         hint.target.remove()
     })
 }
+
+/** Type for "hint save" actions:
+ *    - "link": elements that point to another resource (eg
+ *              links to pages/files) - the link target is saved
+ *    - "img":  image elements
+ */
+export type HintSaveType = "link" | "img"
 
 /** Hint link elements to save
  *
@@ -690,7 +599,7 @@ function hintKill() {
  *                      - "img": image elements
  * @param saveAs    prompt for save location
  */
-function hintSave(hintType: HintSaveType, saveAs: boolean) {
+export function hintSave(hintType: HintSaveType, saveAs: boolean) {
     function saveHintElems(hintType) {
         return hintType === "link" ? saveableElements() : hintableImages()
     }
@@ -711,11 +620,15 @@ function hintSave(hintType: HintSaveType, saveAs: boolean) {
     })
 }
 
-function selectFocusedHint() {
+function selectFocusedHint(delay = false) {
     logger.debug("Selecting hint.", state.mode)
     const focused = modeState.focusedHint
-    reset()
-    focused.select()
+    let select = () => {
+        reset()
+        focused.select()
+    }
+    if (delay) setTimeout(select, config.get("hintdelay"))
+    else select()
 }
 
 import { addListener, attributeCaller } from "./messaging"
@@ -725,18 +638,5 @@ addListener(
         pushKey,
         selectFocusedHint,
         reset,
-        hintPageSimple,
-        hintPageExStr,
-        hintPageYank,
-        hintPageTextYank,
-        hintPageAnchorYank,
-        hintPageOpenInBackground,
-        hintPageWindow,
-        hintPageWindowPrivate,
-        hintImage,
-        hintFocus,
-        hintRead,
-        hintKill,
-        hintSave,
     }),
 )

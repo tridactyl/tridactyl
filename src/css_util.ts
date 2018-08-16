@@ -29,13 +29,13 @@ export function findCssRules(
  */
 export const potentialRules = {
     hoverlink: {
-        name: `statuspanel[type="overLink"]`,
+        name: `statuspanel[type="overLink"], #statuspanel[type="overLink"]`,
         options: {
             none: `display: none !important;`,
             right: `right: 0; display: inline;`,
             left: ``,
-            "top-left": `top: 2em; display: inline;`,
-            "top-right": `top: 2em; right: 0; display: inline;`,
+            "top-left": `top: 2em; z-index: 2; display: inline;`,
+            "top-right": `top: 2em; z-index: 2; right: 0; display: inline;`,
         },
     },
     tabstoolbar: {
@@ -77,6 +77,22 @@ export const potentialRules = {
         options: {
             hide: `display: none !important;`,
             show: ``,
+        },
+    },
+    // All children except add-on panels
+    navbarnonaddonchildren: {
+        name: `:root:not([customizing]) #nav-bar > :not(#customizationui-widget-panel)`,
+        options: {
+            hide: `display: none !important;`,
+            show: ``,
+        },
+    },
+    // Set navbar height to 0
+    navbarnoheight: {
+        name: `:root:not([customizing]) #nav-bar`,
+        options: {
+            hide: ``,
+            show: `max-height: 0; min-height: 0 !important;`,
         },
     },
     // This inherits transparency if we aren't careful
@@ -155,11 +171,22 @@ export const metaRules = {
             navbarunfocused: "hide",
             navtoolboxunfocused: "hide",
             navbarafter: "hide",
+            navbarnonaddonchildren: "show",
+            navbarnoheight: "hide",
         },
         always: {
             navbarunfocused: "show",
             navtoolboxunfocused: "show",
             navbarafter: "show",
+            navbarnonaddonchildren: "show",
+            navbarnoheight: "hide",
+        },
+        none: {
+            navbarunfocused: "show",
+            navtoolboxunfocused: "show",
+            navbarafter: "hide",
+            navbarnonaddonchildren: "hide",
+            navbarnoheight: "show",
         },
     },
 }

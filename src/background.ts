@@ -24,7 +24,6 @@ import * as dom from "./dom"
 import * as hinting_background from "./hinting_background"
 import * as download_background from "./download_background"
 import * as gobble_mode from "./parsers/gobblemode"
-import * as input_mode from "./parsers/inputmode"
 import * as itertools from "./itertools"
 import * as keyseq from "./keyseq"
 import * as request from "./requests"
@@ -32,6 +31,7 @@ import * as native from "./native_background"
 import * as msgsafe from "./msgsafe"
 import state from "./state"
 import * as webext from "./lib/webext"
+import { AutoContain } from "./lib/autocontainers"
 ;(window as any).tri = Object.assign(Object.create(null), {
     messaging,
     excmds,
@@ -43,7 +43,6 @@ import * as webext from "./lib/webext"
     hinting_background,
     download_background,
     gobble_mode,
-    input_mode,
     itertools,
     keydown_background,
     native,
@@ -55,30 +54,91 @@ import * as webext from "./lib/webext"
     l: prom => prom.then(console.log).catch(console.error),
 })
 
+// {{{ Clobber CSP
+
 // This should be removed once https://bugzilla.mozilla.org/show_bug.cgi?id=1267027 is fixed
-let cspListener
-if (config.get("csp") == "clobber") {
-    cspListener = browser.webRequest.onHeadersReceived.addListener(
-        request.addurltocsp,
+function addCSPListener() {
+    browser.webRequest.onHeadersReceived.addListener(
+        request.clobberCSP,
         { urls: ["<all_urls>"], types: ["main_frame"] },
         ["blocking", "responseHeaders"],
     )
 }
+
+function removeCSPListener() {
+    browser.webRequest.onHeadersReceived.removeListener(request.clobberCSP)
+}
+
+config.getAsync("csp").then(csp => csp === "clobber" && addCSPListener())
+
 browser.storage.onChanged.addListener((changes, areaname) => {
-    if (config.get("csp") == "clobber") {
-        cspListener = browser.webRequest.onHeadersReceived.addListener(
-            request.addurltocsp,
-            { urls: ["<all_urls>"], types: ["main_frame"] },
-            ["blocking", "responseHeaders"],
-        )
-    } else {
-        // This doesn't work. :(
-        // browser.webRequest.onHeadersReceived.removeListener(cspListener)
+    if ("userconfig" in changes) {
+        if (changes.userconfig.newValue.csp === "clobber") {
+            addCSPListener()
+        } else {
+            removeCSPListener()
+        }
     }
 })
+
+// }}}
 
 // Prevent Tridactyl from being updated while it is running in the hope of fixing #290
 browser.runtime.onUpdateAvailable.addListener(_ => {})
 
-// Try to load an RC file
-excmds.source_quiet()
+browser.runtime.onStartup.addListener(_ => {
+    config.getAsync("autocmds", "TriStart").then(aucmds => {
+        let hosts = Object.keys(aucmds)
+        // If there's only one rule and it's "all", no need to check the hostname
+        if (hosts.length == 1 && hosts[0] == ".*") {
+            Controller.acceptExCmd(aucmds[hosts[0]])
+        } else {
+            native.run("hostname").then(hostname => {
+                for (let host of hosts) {
+                    if (hostname.content.match(host)) {
+                        Controller.acceptExCmd(aucmds[host])
+                    }
+                }
+            })
+        }
+    })
+})
+
+let curTab = null
+browser.tabs.onActivated.addListener(ev => {
+    if (curTab !== null)
+        messaging.messageTab(curTab, "excmd_content", "loadaucmds", ["TabLeft"])
+    curTab = ev.tabId
+    messaging.messageTab(curTab, "excmd_content", "loadaucmds", ["TabEnter"])
+})
+
+// {{{ AUTOCONTAINERS
+
+let aucon = new AutoContain()
+
+// Handle cancelled requests as a result of autocontain.
+browser.webRequest.onCompleted.addListener(
+    details => {
+        if (aucon.getCancelledRequest(details.tabId)) {
+            aucon.clearCancelledRequests(details.tabId)
+        }
+    },
+    { urls: ["<all_urls"], types: ["main_frame"] },
+)
+
+browser.webRequest.onErrorOccurred.addListener(
+    details => {
+        if (aucon.getCancelledRequest(details.tabId)) {
+            aucon.clearCancelledRequests(details.tabId)
+        }
+    },
+    { urls: ["<all_urls>"], types: ["main_frame"] },
+)
+
+// Contain autocmd.
+browser.webRequest.onBeforeRequest.addListener(
+    aucon.autoContain,
+    { urls: ["<all_urls>"], types: ["main_frame"] },
+    ["blocking"],
+)
+// }}}

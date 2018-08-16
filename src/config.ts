@@ -45,13 +45,39 @@ let USERCONFIG = o({})
  */
 const default_config = {
     configversion: "0.0",
-
+    // When creating new <modifier-letter> maps, make sure to make the modifier uppercase (e.g. <C-a> instead of <c-a>) otherwise some commands might not be able to find them (e.g. `bind <c-a>`)
+    ignoremaps: {
+        "<S-Insert>": "mode normal",
+        "<CA-Esc>": "mode normal",
+        "<CA-`>": "mode normal",
+    },
+    inputmaps: {
+        "<Esc>": "composite unfocus | mode normal",
+        "<C-[>": "composite unfocus | mode normal",
+        "<C-i>": "editor",
+        "<Tab>": "focusinput -n",
+        "<S-Tab>": "focusinput -N",
+        "<CA-Esc>": "mode normal",
+        "<CA-`>": "mode normal",
+        "<C-^>": "buffer #",
+    },
+    imaps: {
+        "<Esc>": "composite unfocus | mode normal",
+        "<C-[>": "composite unfocus | mode normal",
+        "<C-i>": "editor",
+        "<CA-Esc>": "mode normal",
+        "<CA-`>": "mode normal",
+        "<C-6>": "buffer #",
+        "<C-^>": "buffer #",
+    },
     /**
      * nmaps contain all of the bindings for "normal mode".
      *
      * They consist of key sequences mapped to ex commands.
      */
     nmaps: {
+        "<A-p>": "pin",
+        "<A-m>": "mute toggle",
         "<F1>": "help",
         o: "fillcmdline open",
         O: "current_url open",
@@ -62,39 +88,45 @@ const default_config = {
         "[[": "followpage prev",
         "[c": "urlincrement -1",
         "]c": "urlincrement 1",
-        "<c-x>": "urlincrement -1",
-        "<c-a>": "urlincrement 1",
+        "<C-x>": "urlincrement -1",
+        "<C-a>": "urlincrement 1",
         T: "current_url tabopen",
         yy: "clipboard yank",
         ys: "clipboard yankshort",
         yc: "clipboard yankcanon",
+        ym: "clipboard yankmd",
+        yt: "clipboard yanktitle",
         gh: "home",
         gH: "home true",
         p: "clipboard open",
         P: "clipboard tabopen",
         j: "scrollline 10",
-        "<c-e>": "scrollline 10",
+        "<C-e>": "scrollline 10",
         k: "scrollline -10",
-        "<c-y>": "scrollline 10",
+        "<C-y>": "scrollline -10",
         h: "scrollpx -50",
         l: "scrollpx 50",
         G: "scrollto 100",
         gg: "scrollto 0",
-        "<c-u>": "scrollpage -0.5",
-        "<c-d>": "scrollpage 0.5",
-        // "<c-b>": "scrollpage -1",
+        "<C-u>": "scrollpage -0.5",
+        "<C-d>": "scrollpage 0.5",
+        "<C-f>": "scrollpage 1",
+        "<C-b>": "scrollpage -1",
         $: "scrollto 100 x",
         // "0": "scrollto 0 x", // will get interpreted as a count
         "^": "scrollto 0 x",
-        "<c-6>": "buffer #",
+        "<C-6>": "buffer #",
+        "<C-^>": "buffer #",
         H: "back",
         L: "forward",
-        "<c-o>": "back",
-        "<c-i>": "forward",
+        "<C-o>": "jumpprev",
+        "<C-i>": "jumpnext",
         d: "tabclose",
-        D: "composite tabprev | sleep 100 | tabclose #",
+        D: "composite tabprev; sleep 100; tabclose #",
         gx0: "tabclosealltoleft",
         gx$: "tabclosealltoright",
+        "<<": "tabmove -1",
+        ">>": "tabmove +1",
         u: "undo",
         r: "reload",
         R: "reloadhard",
@@ -111,7 +143,7 @@ const default_config = {
         gu: "urlparent",
         gU: "urlroot",
         gf: "viewsource",
-        ":": "fillcmdline",
+        ":": "fillcmdline_notrail",
         s: "fillcmdline open search",
         S: "fillcmdline tabopen search",
         // find mode not suitable for general consumption yet.
@@ -120,16 +152,18 @@ const default_config = {
         // "n": "findnext 1",
         // "N": "findnext -1",
         M: "gobble 1 quickmark",
-        // "B": "fillcmdline bufferall",
+        B: "fillcmdline bufferall",
         b: "fillcmdline buffer",
         ZZ: "qall",
         f: "hint",
         F: "hint -b",
+        gF: "hint -br",
         ";i": "hint -i",
         ";I": "hint -I",
         ";k": "hint -k",
         ";y": "hint -y",
         ";p": "hint -p",
+        ";P": "hint -P",
         ";r": "hint -r",
         ";s": "hint -s",
         ";S": "hint -S",
@@ -138,8 +172,14 @@ const default_config = {
         ";;": "hint -;",
         ";#": "hint -#",
         ";v": "hint -W exclaim_quiet mpv",
+        ";w": "hint -w",
         "<S-Insert>": "mode ignore",
-        I: "fillcmdline Ignore mode is now toggled by pressing <S-Insert>",
+        "<CA-Esc>": "mode ignore",
+        "<CA-`>": "mode ignore",
+        "<Esc>": "composite mode normal ; hidecmdline",
+        "<C-[>": "composite mode normal ; hidecmdline",
+        I:
+            "fillcmdline_tmp 3000 Ignore mode is now toggled by pressing <S-Insert> or <C-A-`>",
         a: "current_url bmark",
         A: "bmark",
         zi: "zoom 0.1 true",
@@ -161,18 +201,31 @@ const default_config = {
          * Each key corresponds to a URL fragment which, if contained within the page URL, will run the corresponding command.
          */
         DocStart: {
-            "addons.mozilla.org": "mode ignore",
+            // "addons.mozilla.org": "mode ignore",
+        },
+        DocLoad: {},
+        DocEnd: {
+            // "emacs.org": "sanitise history",
+        },
+        TriStart: {
+            ".*": "source_quiet",
+        },
+        TabEnter: {
+            // "gmail.com": "mode ignore",
+        },
+        TabLeft: {
+            // Actually, this doesn't work because tabclose closes the current tab
+            // Too bad :/
+            // "emacs.org": "tabclose",
         },
     },
 
-    /**
-     * Aliases for use in the command line. The key is replaced with the value.
-     *
-     * Related ex command: `command`
-     */
     exaliases: {
         alias: "command",
         au: "autocmd",
+        aucon: "autocontain",
+        audel: "autocmddelete",
+        audelete: "autocmddelete",
         b: "buffer",
         o: "open",
         w: "winopen",
@@ -195,12 +248,29 @@ const default_config = {
         bdelete: "tabclose",
         quit: "tabclose",
         q: "tabclose",
+        qa: "qall",
         sanitize: "sanitise",
         tutorial: "tutor",
         h: "help",
+        unmute: "mute unmute",
+        authors: "credits",
         openwith: "hint -W",
         "!": "exclaim",
         "!s": "exclaim_quiet",
+        containerremove: "containerdelete",
+        colourscheme: "set theme",
+        colours: "colourscheme",
+        colorscheme: "colourscheme",
+        colors: "colourscheme",
+        man: "help",
+        "!js": "fillcmdline_tmp 3000 !js is deprecated. Please use js instead",
+        "!jsb":
+            "fillcmdline_tmp 3000 !jsb is deprecated. Please use jsb instead",
+        current_url: "composite get_current_url | fillcmdline_notrail ",
+    },
+    autocontain: {
+        //"github.com": "microsoft",
+        //"youtube.com": "google",
     },
 
     /**
@@ -277,6 +347,9 @@ const default_config = {
      * Permitted values: `simple`, `vimperator`, or `vimperator-reflow`.
      */
     hintfiltermode: "simple", // "simple", "vimperator", "vimperator-reflow"
+    hintnames: "short",
+    hintuppercase: "true",
+    hintdelay: "300",
 
     /**
      * Controls whether the page can focus elements for you via js
@@ -286,6 +359,11 @@ const default_config = {
      * Permitted values: `true`, or `false`.
      */
     allowautofocus: "true",
+
+    // These two options will fall back to user's preferences and then to a
+    // default value set in scrolling.ts if left undefined.
+    smoothscroll: "false", // "false" | "true"
+    scrollduration: 100, // number
 
     tabopenpos: "next",
     relatedopenpos: "related",
@@ -310,14 +388,18 @@ const default_config = {
     theme: "default", // currently available: "default", "dark"
     modeindicator: "true",
 
+    jumpdelay: 3000, // Milliseconds before registering a scroll in the jumplist
+
     // Default logging levels - 2 === WARNING
     logging: {
         messaging: 2,
         cmdline: 2,
         controller: 2,
+        containers: 2,
         hinting: 2,
         state: 2,
         excmd: 1,
+        styling: 2,
     },
     noiframeon: [],
 
@@ -328,9 +410,25 @@ const default_config = {
     //          (but we are probably happy to add your terminal to the list if it isn't already there.
     editorcmd: "auto",
     browser: "firefox",
+    yankto: "clipboard", // "clipboard", "selection", "both"
+    putfrom: "clipboard", // "clipboard", "selection"
+    externalclipboardcmd: "auto",
     nativeinstallcmd:
         "curl -fsSl https://raw.githubusercontent.com/cmcaine/tridactyl/master/native/install.sh | bash",
+    win_nativeinstallcmd:
+        "powershell -NoProfile -InputFormat None -Command \"Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/cmcaine/tridactyl/master/native/win_install.ps1'))\"",
     profiledir: "auto",
+
+    // Container settings
+
+    // If enabled, tabopen opens a new tab in the currently active tab's container.
+    tabopencontaineraware: "false",
+
+    // If moodeindicator is enabled, containerindicator will color the border of the mode indicator with the container color.
+    containerindicator: "true",
+
+    // Autocontain directives create a container if it doesn't exist already.
+    auconcreatecontainer: "true",
 
     // Performance related settings
 
@@ -523,9 +621,15 @@ async function init() {
 
 // Listen for changes to the storage and update the USERCONFIG if appropriate.
 // TODO: BUG! Sync and local storage are merged at startup, but not by this thing.
-browser.storage.onChanged.addListener((changes, areaname) => {
+browser.storage.onChanged.addListener(async (changes, areaname) => {
     if (CONFIGNAME in changes) {
-        USERCONFIG = changes[CONFIGNAME].newValue
+        // newValue is undefined when calling browser.storage.AREANAME.clear()
+        if (changes[CONFIGNAME].newValue !== undefined) {
+            USERCONFIG = changes[CONFIGNAME].newValue
+        } else if (areaname === (await get("storageloc"))) {
+            // If newValue is undefined and AREANAME is the same value as STORAGELOC, the user wants to clean their config
+            USERCONFIG = o({})
+        }
     }
 })
 

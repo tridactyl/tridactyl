@@ -41,7 +41,7 @@ export class Logger {
                     // TODO: replicate this for other levels, don't steal focus
                     // work out how to import messaging/webext without breaking everything
                     return async (...message) => {
-                        console.error(...message)
+                        console.error(new Error(message.join(" ")))
                         const getContext = () => {
                             if (!("tabs" in browser)) {
                                 return "content"
@@ -56,9 +56,7 @@ export class Logger {
                             return browser.runtime.sendMessage({
                                 type: "commandline_background",
                                 command: "recvExStr",
-                                args: [
-                                    "fillcmdline # Error: " + message.join(" "),
-                                ],
+                                args: ["fillcmdline # " + message.join(" ")],
                             })
                         else
                             return browser.tabs.sendMessage(
@@ -69,7 +67,7 @@ export class Logger {
                                 {
                                     type: "commandline_frame",
                                     command: "fillcmdline",
-                                    args: ["# Error: " + message.join(" ")],
+                                    args: ["# " + message.join(" ")],
                                 },
                             )
                     }

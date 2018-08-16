@@ -4,15 +4,14 @@
 
 A broad outline is thus:
 
-1. A user presses a key, triggering a keyEvent
-2. The parser picker chooses which parser to send it to based on the current mode
-3. The mode parser adds the key to its internal state, and can call an `update()` function to update, e.g, the status line / autocompletion
-4. Upon receiving a terminal character, the parser translates the series of keypresses into an `ex` string (e.g, ":scrollPage 1")
-5. This `ex` string is sent to the `ex str` parser, and converted into an internal Tridactyl function, e.g. `commmands.scrollPage(1)`, or if not possible, we report an error to the user
-6. These functions then interface with the WebExtensions API and will hide any message passing that needs to occur. If the function fails, it reports an error as in step 5.
+1.  A user presses a key, triggering a keyEvent
+2.  The parser picker chooses which parser to send it to based on the current mode
+3.  The mode parser adds the key to its internal state, and can call an `update()` function to update, e.g, the status line / autocompletion
+4.  Upon receiving a terminal character, the parser translates the series of keypresses into an `ex` string (e.g, ":scrollPage 1")
+5.  This `ex` string is sent to the `ex str` parser, and converted into an internal Tridactyl function, e.g. `commmands.scrollPage(1)`, or if not possible, we report an error to the user
+6.  These functions then interface with the WebExtensions API and will hide any message passing that needs to occur. If the function fails, it reports an error as in step 5.
 
-
-    browser -> keyEvents -> parser picker -> mode parser -> terminal character -> ex command -> "ex str" parser -> (function | error) -> browser
+        browser -> keyEvents -> parser picker -> mode parser -> terminal character -> ex command -> "ex str" parser -> (function | error) -> browser
 
 The process for "BrowserEvents", which occur when the user or some other code manipulates the browser through some non-Tridactyl method is similar, but we skip the parser picker step for now.
 

@@ -1,0 +1,133 @@
+:root.TridactylThemeShydactyl {
+    --tridactyl-font-family: "San Francisco", sans-serif;
+    --tridactyl-small-font-size: "1.5rem";
+}
+
+:root.TridactylThemeShydactyl #command-line-holder {
+    order: 1;
+    border: 2px solid #000;
+    color: var(--tridactyl-bg);
+}
+
+:root.TridactylThemeShydactyl #tridactyl-input {
+    padding: 1rem;
+    color: var(--tridactyl-fg);
+    width: 90%;
+    font-size: 1.5rem;
+    line-height: 1.5;
+    color: black;
+    background: white;
+    padding-left: unset;
+    padding: 1rem;
+}
+
+:root.TridactylThemeShydactyl #completions table {
+    font-size: 0.8rem;
+    font-weight: 200;
+    border-spacing: 0;
+    table-layout: fixed;
+    padding: 1rem;
+    padding-top: 0;
+}
+
+:root.TridactylThemeShydactyl #completions > div {
+    max-height: calc(20 * var(--option-height));
+    min-height: calc(10 * var(--option-height));
+}
+
+/* COMPLETIONS */
+
+:root.TridactylThemeShydactyl #completions {
+    --option-height: 1.4em;
+    color: black;
+    background: white;
+    display: inline-block;
+    font-size: unset;
+    font-weight: 200;
+    overflow: hidden;
+    width: 100%;
+    border-top: unset;
+    order: 2;
+}
+
+/* Olie doesn't know how CSS inheritance works */
+:root.TridactylThemeShydactyl #completions .HistoryCompletionSource {
+    max-height: unset;
+    min-height: unset;
+}
+
+:root.TridactylThemeShydactyl #completions .HistoryCompletionSource table {
+    width: 100%;
+    font-size: 9pt;
+    border-spacing: 0;
+    table-layout: fixed;
+}
+
+/* redundancy 2: redundancy 2: more redundancy */
+:root.TridactylThemeShydactyl #completions .BmarkCompletionSource {
+    max-height: unset;
+    min-height: unset;
+}
+
+:root.TridactylThemeShydactyl #completions table tr td.prefix,
+:root.TridactylThemeShydactyl #completions table tr td.privatewindow,
+:root.TridactylThemeShydactyl #completions table tr td.container,
+:root.TridactylThemeShydactyl #completions table tr td.icon {
+    display: none;
+}
+
+:root.TridactylThemeShydactyl #completions .BufferCompletionSource table {
+    width: unset;
+    font-size: unset;
+    border-spacing: unset;
+    table-layout: unset;
+}
+
+:root.TridactylThemeShydactyl #completions table tr .title {
+    width: 50%;
+}
+
+:root.TridactylThemeShydactyl #completions table tr {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+:root.TridactylThemeShydactyl #completions .sectionHeader {
+    background: unset;
+    font-weight: 200;
+    border-bottom: unset;
+    padding: 1rem !important;
+    padding-left: unset;
+    padding-bottom: 0.2rem;
+}
+
+:root.TridactylThemeShydactyl #cmdline_iframe {
+    position: fixed !important;
+    bottom: unset;
+    top: 25% !important;
+    left: 10% !important;
+    z-index: 2147483647 !important;
+    width: 80% !important;
+    box-shadow: rgba(0, 0, 0, 0.5) 0px 0px 15px !important;
+}
+
+:root.TridactylThemeShydactyl .TridactylStatusIndicator {
+    position: fixed !important;
+    bottom: 0 !important;
+    font-family: "Fira Code", monospace !important;
+    background: white !important;
+    border: unset !important;
+    border: 1px #000 solid !important;
+    font-size: 9px !important;
+    font-weight: 200 !important;
+    padding: 0.8ex !important;
+}
+
+/* #Shydactyl-normal { */
+/*  border-color: green !important; */
+/* } */
+
+/* #Shydactyl-insert { */
+/*  border-color: yellow !important; */
+/* } */

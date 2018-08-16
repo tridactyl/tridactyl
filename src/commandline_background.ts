@@ -1,3 +1,4 @@
+import { activeTabId } from "./lib/webext"
 import * as Messaging from "./messaging"
 
 export type onLineCallback = (exStr: string) => void
@@ -45,20 +46,24 @@ async function allWindowTabs(): Promise<browser.tabs.Tab[]> {
     return allTabs
 }
 
-export async function show() {
+export async function show(focus = true) {
     Messaging.messageActiveTab("commandline_content", "show")
-    Messaging.messageActiveTab("commandline_content", "focus")
-    Messaging.messageActiveTab("commandline_frame", "focus")
+    if (focus) {
+        await Messaging.messageActiveTab("commandline_content", "focus")
+        await Messaging.messageActiveTab("commandline_frame", "focus")
+    }
 }
 
-export async function hide() {
-    Messaging.messageActiveTab("commandline_content", "hide")
-    Messaging.messageActiveTab("commandline_content", "blur")
+export async function hide(tabid?) {
+    if (!tabid) tabid = await activeTabId()
+    Messaging.messageTab(tabid, "commandline_content", "hide")
+    Messaging.messageTab(tabid, "commandline_content", "blur")
 }
 
 Messaging.addListener(
     "commandline_background",
     Messaging.attributeCaller({
+        allWindowTabs,
         currentWindowTabs,
         history,
         recvExStr,

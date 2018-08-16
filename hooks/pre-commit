@@ -1,10 +1,23 @@
-#!/bin/sh
+#!/bin/bash
 
-jsfiles=$(git diff --cached --name-only --diff-filter=ACM "*.js" "*.jsx" "*.ts" "*.tsx" | tr '\n' ' ')
+source ./scripts/common
+
+jsfiles=$(cachedFiles)
+
 [ -z "$jsfiles" ] && exit 0
 
-# Prettify all staged .js files
-echo "$jsfiles" | xargs ./node_modules/.bin/prettier --write
+# Check if any of the files are ugly or contain a console.log call
+consoleFiles=$(noisy $jsfiles)
+uglyFiles=$(ugly $jsfiles)
 
-# Add back the modified/prettified files to staging
-echo "$jsfiles" | xargs git add
+if [ -n "$consoleFiles" ]; then
+    echo "Warning: adding console.log calls in ${consoleFiles[@]}"
+    echo 'Did you mean to use logger.debug?'
+    echo
+fi
+
+if [ -n "$uglyFiles" ]; then
+    echo "Prettify your files first:"
+    echo 'npm run pretty'
+    exit 1
+fi

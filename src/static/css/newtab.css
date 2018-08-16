@@ -1,0 +1,100 @@
+body {
+    font-family: var(--tridactyl-font-family-sans);
+    font-size: var(--tridactyl-font-size);
+    color: var(--tridactyl-fg);
+    background: var(--tridactyl-bg);
+    max-width: 40em;
+    line-height: 140%;
+    margin: auto;
+}
+
+input[id^="spoiler"] {
+    display: none;
+}
+
+/* Borrowed from https://codepen.io/oloman/pen/odnqy */
+input[id^="spoiler"] + label {
+    display: block;
+    width: 8em;
+    margin: 0 auto;
+    padding: 0.25em, 0.25em;
+    background: #1f9947;
+    color: #fff;
+    text-align: center;
+    font-size: 12pt;
+    border-radius: 2px;
+    cursor: pointer;
+    transition: all 0.6s;
+}
+input[id^="spoiler"]:checked + label {
+    color: #333;
+    background: #ccc;
+}
+input[id^="spoiler"]:checked + label > #nagbar-changelog,
+input[id^="spoiler"].seen + label > #nagbar-changelog {
+    display: none;
+}
+#nagbar-changelog {
+    font-size: 8pt;
+    background: red;
+    line-height: 1.4;
+}
+input[id^="spoiler"] ~ .spoiler {
+    height: 0;
+    overflow: hidden;
+    opacity: 0;
+    margin: 10px auto 0;
+    padding: 10px;
+    background: var(--tridactyl-highlight-box-bg);
+    color: var(--tridactyl-highlight-box-fg);
+    border: 1px solid #ccc;
+    border-radius: 2px;
+    transition: all 0.6s;
+}
+input[id^="spoiler"]:checked + label + .spoiler {
+    height: auto;
+    opacity: 1;
+    padding: 10px;
+}
+
+h1 {
+    padding-top: 1em;
+}
+
+@media screen and (max-width: 38em) {
+    body {
+        max-width: 100%;
+        margin: 20px;
+    }
+}
+
+ul {
+    padding-right: 20px;
+}
+
+p,
+li {
+    hyphens: auto;
+    text-align: justify;
+}
+
+div.align-left * {
+    text-align: left;
+    hyphens: none;
+}
+
+code {
+    background-color: rgba(27, 31, 35, 0.05);
+    padding: 0.2em;
+    /* font-size: 85%; */
+    font-size: 10pt;
+    border-radius: 3px;
+}
+
+img {
+    max-width: 100%;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    padding-top: 0.5em;
+}

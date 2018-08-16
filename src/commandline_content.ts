@@ -2,7 +2,9 @@
 
 import Logger from "./logging"
 import * as config from "./config"
+import { theme } from "./styling"
 const logger = new Logger("messaging")
+const cmdline_logger = new Logger("cmdline")
 
 /* TODO:
     CSS
@@ -34,45 +36,68 @@ async function init() {
             )
             cmdline_iframe.setAttribute("id", "cmdline_iframe")
             hide()
-            window.document.documentElement.appendChild(cmdline_iframe)
+            document.documentElement.appendChild(cmdline_iframe)
+            // first theming of page root
+            await theme(window.document.querySelector(":root"))
         } catch (e) {
             logger.error("Couldn't initialise cmdline_iframe!", e)
         }
     }
 }
 
-// Load the iframe immediately if the document is already complete (happens if tridactyl is reloaded)
+// Load the iframe immediately if we can (happens if tridactyl is reloaded or on ImageDocument)
 // Else load lazily to avoid upsetting page JS that hates foreign iframes.
-if (document.readyState === "complete") {
+try {
     init()
-} else {
+} catch (e) {
     // Surrender event loop with setTimeout() to page JS in case it's still doing stuff.
     document.addEventListener("DOMContentLoaded", () => setTimeout(init, 0))
 }
 
 export function show() {
-    if (enabled) {
+    try {
+        cmdline_iframe.classList.remove("hidden")
         const height =
             cmdline_iframe.contentWindow.document.body.offsetHeight + "px"
         cmdline_iframe.setAttribute("style", `height: ${height} !important;`)
+    } catch (e) {
+        // Note: We can't use cmdline_logger.error because it will try to log
+        // the error in the commandline, which we can't show!
+        // cmdline_logger.error(e)
+        console.error(e)
     }
 }
 
 export function hide() {
-    if (enabled) {
+    try {
+        cmdline_iframe.classList.add("hidden")
         cmdline_iframe.setAttribute("style", "height: 0px !important;")
+    } catch (e) {
+        // Using cmdline_logger here is OK because cmdline_logger won't try to
+        // call hide(), thus we avoid the recursion that happens for show() and
+        // focus()
+        cmdline_logger.error(e)
     }
 }
 
 export function focus() {
-    if (enabled) {
+    try {
         cmdline_iframe.focus()
+    } catch (e) {
+        // Note: We can't use cmdline_logger.error because it will try to log
+        // the error in the commandline, which will need to focus() it again,
+        // which will throw again...
+        // cmdline_logger.error(e)
+        console.error(e)
     }
 }
 
 export function blur() {
-    if (enabled) {
+    try {
         cmdline_iframe.blur()
+    } catch (e) {
+        // Same as with hide(), it's ok to use cmdline_logger here
+        cmdline_logger.error(e)
     }
 }
 
@@ -86,7 +111,7 @@ export function executeWithoutCommandLine(fn) {
     try {
         result = fn()
     } catch (e) {
-        console.log(e)
+        cmdline_logger.error(e)
     }
     if (cmdline_iframe) parent.appendChild(cmdline_iframe)
     return result

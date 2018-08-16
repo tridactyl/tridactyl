@@ -1,0 +1,90 @@
+:root.TridactylThemeGreenmat {
+    --tridactyl-fg: #00eb00;
+    --tridactyl-bg: #001500;
+    --tridactyl-cmdl-fg: #00eb00;
+    --tridactyl-cmdl-bg: #001500;
+    --tridactyl-font-family: "Aldrich";
+
+    --tridactyl-header-first-bg: black;
+    --tridactyl-header-second-bg: #003500;
+    --tridactyl-header-third-bg: black;
+
+    --tridactyl-cmplt-font-family: "Aldrich";
+    --tridactyl-cmplt-fg: var(--tridactyl-cmdl-fg);
+    --tridactyl-cmplt-bg: rgba(0, 0, 0, 0.9);
+    --tridactyl-cmplt-border-top: 1px solid var(--tridactyl-cmdl-bg);
+
+    --tridactyl-url-fg: var(--tridactyl-cmdl-fg);
+    --tridactyl-url-bg: none;
+
+    --tridactyl-of-fg: #00ff00;
+    --tridactyl-of-bg: black;
+
+    --tridactyl-highlight-box-bg: black;
+    --tridactyl-highlight-box-fg: var(--tridactyl-fg);
+
+    /*custom theme variables*/
+    --focused-prefix-color: black;
+    --focused-border-color: green;
+
+    --tridactyl-hintspan-fg: #88ff00;
+    --tridactyl-hintspan-bg: black;
+    --tridactyl-hintspan-font-family: "Aldrich";
+
+    --tridactyl-hint-active-fg: #333;
+    --tridactyl-hint-active-bg: #88ff00;
+    --tridactyl-hint-active-outline: 1px solid #000;
+
+    --tridactyl-hint-bg: rgba(0, 0, 0, 0.25);
+    --tridactyl-hint-outline: 2px solid var(--tridactyl-hintspan-bg);
+}
+
+:root.TridactylThemeGreenmat #completions .focused {
+    border-bottom: 1px solid green;
+}
+
+:root.TridactylThemeGreenmat #completions .focused .prefix {
+    color: var(--focused-prefix-color);
+    background: linear-gradient(
+        var(--focused-prefix-color),
+        var(--focused-border-color),
+        var(--focused-prefix-color)
+    );
+}
+
+:root.TridactylThemeGreenmat.TridactylOwnNamespace table {
+    border-collapse: collapse;
+}
+
+:root.TridactylThemeGreenmat.TridactylOwnNamespace #completions table tr td {
+    color: var(--tridactyl-cmplt-fg);
+}
+
+/* ### newtab ### */
+
+:root.TridactylThemeGreenmat.TridactylOwnNamespace code {
+    background-color: rgba(255, 255, 255, 0.1);
+    border-top: 1px solid var(--tridactyl-fg);
+}
+
+:root.TridactylThemeGreenmat.TridactylOwnNamespace ul {
+    background-color: rgba(0, 0, 0, 0.55);
+    border-radius: 10px;
+    border-top: 1px solid var(--tridactyl-fg);
+    padding-top: 10px;
+    padding-bottom: 5px;
+}
+
+:root.TridactylThemeGreenmat.TridactylOwnNamespace .spoiler > h2 + ul {
+    background-color: rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+    border-left: 1px solid var(--tridactyl-fg);
+    border-right: 1px solid var(--tridactyl-fg);
+    border-top: unset;
+    border-bottom: unset;
+}
+
+:root.TridactylThemeGreenmat.TridactylOwnNamespace a {
+    color: var(--tridactyl-fg);
+    font-weight: bold;
+}

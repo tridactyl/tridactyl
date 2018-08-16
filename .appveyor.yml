@@ -1,0 +1,134 @@
+# Build worker image (VM template)
+image: Visual Studio 2017
+
+# Build platform, i.e. x86, x64, Any CPU.
+platform:
+  - Any CPU
+
+# Set `git clone` directory
+clone_folder: 'C:\Tridactyl'
+
+init:
+  # Verify %PATH%
+  - ps: Write-Host "[+] Current PATH contains ..."
+  - ps: Write-Host $env:PATH.Replace(";", "`r`n")
+
+  # Verify Bash
+  - ps: Write-Host "[+] Location of Bash ..."
+  - ps: Get-Command -Name 'bash'
+
+  # Verify NPM
+  - ps: Write-Host "[+] Location of NPM ..."
+  - ps: Get-Command -Name 'npm'
+
+  # Verify software versions
+  - ps: Write-Host "[+] Verifying software verisons ..."
+  - sh --version
+  - bash --version
+  - node --version
+  - npm --version
+
+  #
+  # Python version will show "2.7" below, which is required to keep
+  # NPM's 'bunyan' > 'dtrace-provider' modules happy.
+  # 'Dtrace-provider' needs Python 'gyp' module, which is only
+  # available for Python-2. We will prepend Python-3.6 to $PATH,
+  # under 'build_script'.
+  #
+  - python --version
+
+install:
+  #
+  # If there is a newer build queued for the same PR, cancel this
+  # one. The AppVeyor 'rollout builds' option is supposed to serve
+  # the same purpose but it is problematic because it tends to
+  # cancel builds pushed directly to master instead of just PR
+  # builds (or the converse).
+  #
+  # Credits: JuliaLang developers.
+  #
+  - ps: >-
+        $url = [string]::Format(
+          "{0}/{1}/{2}/{3}?{4}",
+          "https://ci.appveyor.com/api/projects",
+          $env:APPVEYOR_ACCOUNT_NAME,
+          $env:APPVEYOR_PROJECT_SLUG,
+          "history",
+          "recordsNumber=50"
+        );
+        `
+        if ($env:APPVEYOR_PULL_REQUEST_NUMBER `
+              -and $env:APPVEYOR_BUILD_NUMBER `
+              -ne ((Invoke-RestMethod $url).builds `
+        | Where-Object pullRequestId `
+        -eq $env:APPVEYOR_PULL_REQUEST_NUMBER)[0].buildNumber) `
+        { throw "Newer build in progress, giving this one up ..." }
+
+  # Change to build directory
+  - ps: Set-Location -Path $env:APPVEYOR_BUILD_FOLDER
+
+  # Verify CWD
+  - ps: Write-Host "[+] Current PowerShell directory is ..."
+  - ps: Get-Location
+  - bash -e -l -c "cd $APPVEYOR_BUILD_FOLDER && ls -alh"
+
+  # Install NPM modules
+  - bash -e -l -c "cd $APPVEYOR_BUILD_FOLDER && npm install"
+
+build_script:
+  # Add Python-3.6 to %PATH%
+  - ps: $env:PATH = "C:\Python36-x64\Scripts;$env:PATH"
+  - ps: $env:PATH = "C:\Python36-x64;$env:PATH"
+  - ps: >-
+        Copy-Item `
+        -Path "C:\Python36-x64\Python.exe" `
+        -Destination "C:\Python36-x64\Python3.exe"
+  - python --version
+
+  # Install Python modules under Python 3.6
+  - ps: python -m pip install --upgrade pip>=10.0.1
+  - ps: python -m pip install --upgrade pyinstaller>=3.3.1
+
+  # Change to build directory and verify CWD
+  - ps: Set-Location -Path $env:APPVEYOR_BUILD_FOLDER
+  - ps: Write-Host "[+] Current PowerShell directory is ..."
+  - ps: Get-Location
+
+  # Start build
+  - ps: Write-Host "[+] Current %PATH% under Bash ..."
+  - bash -e -l -c "echo $PATH"
+
+  - ps: Write-Host "[+] Current directory under Bash ..."
+  - bash -e -l -c "cd $APPVEYOR_BUILD_FOLDER && ls -alh"
+
+  - ps: Write-Host "[+] Starting 'npm run build' ..."
+  - bash -e -l -c "cd $APPVEYOR_BUILD_FOLDER && export PYINSTALLER=1 && npm run build"
+
+test_script:
+  # Add Python-3.6 to %PATH%
+  - ps: $env:PATH = "C:\Python36-x64\Scripts;$env:PATH"
+  - ps: $env:PATH = "C:\Python36-x64;$env:PATH"
+  - ps: >-
+        Copy-Item `
+        -Path "C:\Python36-x64\Python.exe" `
+        -Destination "C:\Python36-x64\Python3.exe"
+  - python --version
+
+  # Install Python modules under Python 3.6
+  - ps: python -m pip install --upgrade pip>=10.0.1
+  - ps: python -m pip install --upgrade pyinstaller>=3.3.1
+
+  # Change to build directory and verify CWD
+  - ps: Set-Location -Path $env:APPVEYOR_BUILD_FOLDER
+  - ps: Write-Host "[+] Current PowerShell directory is ..."
+  - ps: Get-Location
+
+  # Start build
+  - ps: Write-Host "[+] Current %PATH% under Bash ..."
+  - bash -e -l -c "echo $PATH"
+
+  - ps: Write-Host "[+] Current directory under Bash ..."
+  - bash -e -l -c "cd $APPVEYOR_BUILD_FOLDER && ls -alh"
+
+  - ps: Write-Host "[+] Starting 'npm run test' ..."
+  - bash -e -l -c "cd $APPVEYOR_BUILD_FOLDER && export PYINSTALLER=1 && npm run test"

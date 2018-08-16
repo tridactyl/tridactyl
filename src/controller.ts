@@ -8,24 +8,21 @@ import Logger from "./logging"
 import { parser as exmode_parser } from "./parsers/exmode"
 import { parser as hintmode_parser } from "./hinting_background"
 import { parser as findmode_parser } from "./finding_background"
-import * as normalmode from "./parsers/normalmode"
-import * as insertmode from "./parsers/insertmode"
-import * as ignoremode from "./parsers/ignoremode"
 import * as gobblemode from "./parsers/gobblemode"
-import * as inputmode from "./parsers/inputmode"
+import * as generic from "./parsers/genericmode"
 
 const logger = new Logger("controller")
 
 /** Accepts keyevents, resolves them to maps, maps to exstrs, executes exstrs */
 function* ParserController() {
     const parsers = {
-        normal: normalmode.parser,
-        insert: insertmode.parser,
-        ignore: ignoremode.parser,
+        normal: keys => generic.parser("nmaps", keys),
+        insert: keys => generic.parser("imaps", keys),
+        input: keys => generic.parser("inputmaps", keys),
+        ignore: keys => generic.parser("ignoremaps", keys),
         hint: hintmode_parser,
         find: findmode_parser,
         gobble: gobblemode.parser,
-        input: inputmode.parser,
     }
 
     while (true) {
@@ -61,16 +58,7 @@ function* ParserController() {
 
                 keyEvents.push(keyevent)
                 let response = undefined
-                switch (state.mode) {
-                    case "normal":
-                        response = (parsers[state.mode] as any)(keyEvents)
-                        // Compatibility with other parsers.
-                        response.exstr = response.value
-                        break
-                    default:
-                        response = (parsers[state.mode] as any)([keyevent])
-                        break
-                }
+                response = (parsers[state.mode] as any)(keyEvents)
                 logger.debug(keyEvents, response)
 
                 if (response.exstr) {
@@ -83,7 +71,11 @@ function* ParserController() {
             acceptExCmd(exstr)
         } catch (e) {
             // Rumsfeldian errors are caught here
-            logger.error("Tridactyl ParserController fatally wounded:", e)
+            logger.error(
+                "An error occurred in the controller: ",
+                e,
+                " ¯\\_(ツ)_/¯",
+            )
         }
     }
 }
@@ -96,15 +88,17 @@ export function acceptKey(keyevent: MsgSafeKeyboardEvent) {
     generator.next(keyevent)
 }
 
+export let last_ex_str = ""
+
 /** Parse and execute ExCmds */
-export async function acceptExCmd(exstr: string) {
+export async function acceptExCmd(exstr: string): Promise<any> {
     // TODO: Errors should go to CommandLine.
     try {
         let [func, args] = exmode_parser(exstr)
         // Stop the repeat excmd from recursing.
-        if (func !== repeat) state.last_ex_str = exstr
+        if (func !== repeat) last_ex_str = exstr
         try {
-            await func(...args)
+            return await func(...args)
         } catch (e) {
             // Errors from func are caught here (e.g. no next tab)
             logger.error(e)

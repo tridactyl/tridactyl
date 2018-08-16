@@ -1,0 +1,234 @@
+body {
+    overflow: hidden;
+    margin: 0;
+    position: absolute;
+    /* CSS is pants. Move the bar down a tiny bit to cover up the gap. */
+    top: 1px;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+#command-line-holder {
+    background: var(--tridactyl-cmdl-bg);
+    color: var(--tridactyl-cmdl-fg);
+    font-family: var(--tridactyl-cmdl-font-family);
+    font-size: 9pt;
+    /* reduce the padding added by the colon so that the command line shows up roughly where it used to be */
+    padding-left: 0.125ex;
+}
+
+input {
+    width: 97%;
+    font-family: var(--tridactyl-cmdl-font-family);
+    font-size: var(--tridactyl-cmdl-font-size);
+    line-height: var(--tridactyl-cmdl-line-height);
+    color: var(--tridactyl-cmdl-fg);
+    background: var(--tridactyl-cmdl-bg);
+    border: unset;
+    /* reduce the padding from the colon */
+    /* margin-left: -0.25ex; */
+    /* we currently have a border from the completions */
+    /* border-top: solid 1px lightgray; */
+}
+
+#tridactyl-colon::before {
+    content: ":";
+}
+
+/* COMPLETIONS */
+
+#completions {
+    --option-height: var(--tridactyl-cmplt-option-height);
+    color: var(--tridactyl-cmplt-fg);
+    background: var(--tridactyl-cmplt-bg);
+    display: inline-block;
+    font-size: var(--tridactyl-cmplt-font-size);
+    font-family: var(--tridactyl-cmplt-font-family);
+    overflow: hidden;
+    width: 100%;
+    border-top: var(--tridactyl-cmplt-border-top);
+}
+
+/* Olie doesn't know how CSS inheritance works */
+#completions > div {
+    max-height: calc(20 * var(--option-height));
+    min-height: calc(10 * var(--option-height));
+}
+
+#completions > div > table {
+    width: 100%;
+    font-size: 9pt;
+    border-spacing: 0;
+    table-layout: fixed;
+}
+
+#completions table tr td.prefix {
+    width: 1em;
+    padding-left: 0.5em;
+    text-align: center;
+}
+#completions table tr td.container,
+#completions table tr td.icon,
+#completions table tr td.privatewindow {
+    width: 1.5em;
+}
+/* #completions table tr td:nth-of-type(3) { width: 5em; } */
+#completions table tr td.content {
+    width: 50%;
+}
+
+#completions table tr {
+    white-space: nowrap;
+    overflow: hidden;
+}
+
+#completions table tr td {
+    overflow: hidden;
+}
+
+#completions img {
+    display: inline;
+    vertical-align: middle;
+    height: 1em;
+    width: 1em;
+}
+
+#completions .sectionHeader {
+    background: linear-gradient(
+        var(--tridactyl-header-first-bg),
+        var(--tridactyl-header-second-bg),
+        var(--tridactyl-header-third-bg)
+    );
+    font-weight: var(--tridactyl-header-font-weight);
+    border-bottom: var(--tridactyl-header-border-bottom);
+    padding-left: 0.5ex;
+}
+
+#completions .sectionHeader,
+#completions .option {
+    height: var(--option-height);
+    line-height: var(--option-height);
+}
+
+.url {
+    text-decoration: var(--tridactyl-url-text-decoration);
+    padding-left: 7px;
+}
+
+.option:not(.focused) .url {
+    color: var(--tridactyl-url-fg);
+    background: var(--tridactyl-url-bg);
+}
+
+a.url:hover {
+    cursor: var(--tridactyl-url-cursor);
+    text-decoration: underline;
+}
+
+/* Hide the URLs if the screen is small */
+@media all and (max-width: 500px) {
+    .url {
+        display: none;
+    }
+}
+
+/* .BufferCompletionOption span { */
+/*   white-space: pre; */
+/*   margin: 0 .5em; */
+/* } */
+
+.hidden {
+    display: none;
+}
+
+/* Pick the .url out especially because otherwise its link styles dominate. */
+.focused,
+.focused .url {
+    color: var(--tridactyl-of-fg);
+    background: var(--tridactyl-of-bg);
+}
+
+.option.incognito .privatewindow {
+    background-image: var(--tridactyl-private-window-icon-url);
+}
+
+/* Still completions, but container-related stuff */
+.option .container,
+.option .privatewindow {
+    background-size: 1em;
+    background-repeat: no-repeat;
+    background-position: center;
+    -moz-context-properties: fill;
+}
+.option.container_blue .container {
+    fill: var(--tridactyl-container-color-blue);
+}
+.option.container_turquoise .container {
+    fill: var(--tridactyl-container-color-turquoise);
+}
+.option.container_green .container {
+    fill: var(--tridactyl-container-color-green);
+}
+.option.container_yellow .container {
+    fill: var(--tridactyl-container-color-yellow);
+}
+.option.container_orange .container {
+    fill: var(--tridactyl-container-color-orange);
+}
+.option.container_red .container {
+    fill: var(--tridactyl-container-color-red);
+}
+.option.container_pink .container {
+    fill: var(--tridactyl-container-color-pink);
+}
+.option.container_purple .container {
+    fill: var(--tridactyl-container-color-purple);
+}
+.option.container_fingerprint .container {
+    background-image: var(--tridactyl-container-fingerprint-url);
+}
+.option.container_briefcase .container {
+    background-image: var(--tridactyl-container-briefcase-url);
+}
+.option.container_dollar .container {
+    background-image: var(--tridactyl-container-dollar-url);
+}
+.option.container_cart .container {
+    background-image: var(--tridactyl-container-cart-url);
+}
+.option.container_circle .container {
+    background-image: var(--tridactyl-container-circle-url);
+}
+.option.container_gift .container {
+    background-image: var(--tridactyl-container-gift-url);
+}
+.option.container_vacation .container {
+    background-image: var(--tridactyl-container-vacation-url);
+}
+.option.container_food .container {
+    background-image: var(--tridactyl-container-food-url);
+}
+.option.container_fruit .container {
+    background-image: var(--tridactyl-container-fruit-url);
+}
+.option.container_pet .container {
+    background-image: var(--tridactyl-container-pet-url);
+}
+.option.container_tree .container {
+    background-image: var(--tridactyl-container-tree-url);
+}
+.option.container_chill .container {
+    background-image: var(--tridactyl-container-chill-url);
+}
+
+.ExcmdCompletionOption td.excmd {
+    padding-left: 0.5em;
+    width: 20%;
+}
+.ExcmdCompletionOption td.type {
+    width: 30%;
+}
+.ExcmdCompletionOption td.documentation {
+    width: 50%;
+}

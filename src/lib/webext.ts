@@ -34,22 +34,6 @@ if (inContentScript()) {
     browserBg = browser
 }
 
-/** await a promise and console.error and rethrow if it errors
-
-    Errors from promises don't get logged unless you seek them out.
-
-    There's an event for catching these, but it's not implemented in firefox
-    yet: https://bugzilla.mozilla.org/show_bug.cgi?id=1269371
-*/
-export async function l(promise) {
-    try {
-        return await promise
-    } catch (e) {
-        console.error(e)
-        throw e
-    }
-}
-
 /** The first active tab in the currentWindow.
  *
  * TODO: Highlander theory: Can there ever be more than one?
@@ -57,14 +41,31 @@ export async function l(promise) {
  */
 //#background_helper
 export async function activeTab() {
-    return (await l(
-        browserBg.tabs.query({ active: true, currentWindow: true }),
-    ))[0]
+    return (await browserBg.tabs.query({
+        active: true,
+        currentWindow: true,
+    }))[0]
 }
 
 //#background_helper
 export async function activeTabId() {
     return (await activeTab()).id
+}
+
+//#background_helper
+export async function activeTabContainerId() {
+    return (await activeTab()).cookieStoreId
+}
+
+//#background_helper
+export async function activeTabContainer() {
+    let containerId = await activeTabContainerId()
+    if (containerId !== "firefox-default")
+        return await browserBg.contextualIdentities.get(containerId)
+    else
+        throw new Error(
+            "firefox-default is not a valid contextualIdentity (activeTabContainer)",
+        )
 }
 
 /** Compare major firefox versions */
@@ -88,12 +89,17 @@ export async function firefoxVersionAtLeast(desiredmajor: number) {
 */
 export async function openInNewTab(
     url: string,
-    kwargs: { active?; related? } = { active: true, related: false },
+    kwargs: { active?; related?; cookieStoreId? } = {
+        active: true,
+        related: false,
+        cookieStoreId: undefined,
+    },
 ) {
     const thisTab = await activeTab()
     const options: any = {
         active: kwargs.active,
         url,
+        cookieStoreId: kwargs.cookieStoreId,
     }
 
     // Be nice to behrmann, #342
@@ -103,7 +109,7 @@ export async function openInNewTab(
     switch (pos) {
         case "next":
             options.index = thisTab.index + 1
-            if (kwargs.related && (await l(firefoxVersionAtLeast(57))))
+            if (kwargs.related && (await firefoxVersionAtLeast(57)))
                 options.openerTabId = thisTab.id
             break
         case "last":
@@ -111,7 +117,7 @@ export async function openInNewTab(
             options.index = 99999
             break
         case "related":
-            if (await l(firefoxVersionAtLeast(57))) {
+            if (await firefoxVersionAtLeast(57)) {
                 options.openerTabId = thisTab.id
             } else {
                 options.index = thisTab.index + 1

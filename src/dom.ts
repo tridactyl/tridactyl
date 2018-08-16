@@ -2,8 +2,8 @@ import { MsgSafeNode } from "./msgsafe"
 import * as config from "./config"
 import { flatten } from "./itertools"
 import state from "./state"
-import { activeTabId } from "./lib/webext"
 import * as Logging from "./logging"
+import { activeTabId, openInNewTab, activeTabContainerId } from "./lib/webext"
 const logger = new Logging.Logger("dom")
 
 // From saka-key lib/dom.js, under Apachev2
@@ -29,6 +29,9 @@ export function isTextEditable(element: MsgSafeNode) {
                 return true
         }
         switch (true) {
+            case element.contentEditable === undefined:
+                // This happens on e.g. svgs.
+                return false
             case element.contentEditable.toUpperCase() === "TRUE":
             case element.role === "application":
                 return true
@@ -91,6 +94,15 @@ export function mouseEvent(
         })
         element.dispatchEvent(event)
     })
+}
+
+export function elementsWithText() {
+    return getElemsBySelector("*", [
+        isVisible,
+        hint => {
+            return hint.textContent != ""
+        },
+    ])
 }
 
 /** Iterable of elements that match xpath.
@@ -261,6 +273,26 @@ export function getAllDocumentFrames(doc = document) {
     )
 }
 
+/** Computes the unique CSS selector of a specific HTMLElement */
+export function getSelector(e: HTMLElement) {
+    function uniqueSelector(e: HTMLElement) {
+        // Only matching alphanumeric selectors because others chars might have special meaning in CSS
+        if (e.id && e.id.match("^[a-zA-Z0-9]+$")) return "#" + e.id
+        // If we reached the top of the document
+        if (!e.parentElement) return "HTML"
+        // Compute the position of the element
+        let index =
+            Array.from(e.parentElement.children)
+                .filter(child => child.tagName == e.tagName)
+                .indexOf(e) + 1
+        return (
+            uniqueSelector(e.parentElement) +
+            ` > ${e.tagName}:nth-of-type(${index})`
+        )
+    }
+    return uniqueSelector(e)
+}
+
 /** Get all elements that match the given selector
  *
  * @param selector   `the CSS selector to choose elements with
@@ -423,11 +455,21 @@ export function hijackPageListenerFunctions(): void {
 /** Focuses an input element and makes sure the cursor is put at the end of the input */
 export function focus(e: HTMLElement): void {
     e.focus()
-    if (e instanceof HTMLInputElement) {
+    // https://developer.mozilla.org/en-US/docs/Web/API/HTMLInputElement/setSelectionRange
+    // "Note that accordingly to the WHATWG forms spec selectionStart,
+    // selectionEnd properties and setSelectionRange method apply only to
+    // inputs of types text, search, URL, tel and password"
+    // So you can't put the cursor at the end of an email field. I can't
+    // believe how stupid this is.
+    if (
+        e instanceof HTMLInputElement &&
+        ["text", "search", "url", "tel", "password"].includes(
+            e.type.toLowerCase(),
+        )
+    ) {
         let pos = 0
         if (config.get("cursorpos") === "end") pos = e.value.length
-        e.selectionStart = pos
-        e.selectionEnd = e.selectionStart
+        e.setSelectionRange(pos, pos)
     }
 }
 
@@ -436,7 +478,7 @@ export function focus(e: HTMLElement): void {
 //#content_helper
 let LAST_USED_INPUT: HTMLElement = null
 
-export function getLastUsedInput() {
+export function getLastUsedInput(): HTMLElement {
     return LAST_USED_INPUT
 }
 
@@ -448,13 +490,11 @@ export function getLastUsedInput() {
  *  https://developer.mozilla.org/en-US/docs/Web/Web_Components/Custom_Elements
  *  https://bugzilla.mozilla.org/show_bug.cgi?id=1406825
  * */
-function onPageFocus(elem: HTMLElement, args: any[]): void {
+function onPageFocus(elem: HTMLElement, args: any[]): boolean {
     if (isTextEditable(elem)) {
         LAST_USED_INPUT = elem
-        config.getAsync("allowautofocus").then(allow => {
-            if (allow === "true") elem.focus(args)
-        })
     }
+    return config.get("allowautofocus") == "true"
 }
 
 async function setInput(el) {
@@ -471,7 +511,8 @@ function hijackPageFocusFunction(): void {
 
     let eval_str = `HTMLElement.prototype.focus = ((realFocus, ${exportedName}) => {
         return function (...args) {
-            ${exportedName}(this, args)
+            if (${exportedName}(this, args))
+                return realFocus.apply(this, args)
         }
      })(HTMLElement.prototype.focus, ${exportedName})`
 
@@ -488,4 +529,106 @@ export function setupFocusHandler(): void {
     })
     // Handles when the page tries to select an input
     hijackPageFocusFunction()
+}
+
+// CSS selectors. More readable for web developers. Not dead. Leaves browser to care about XML.
+export const HINTTAGS_selectors = `
+input:not([type=hidden]):not([disabled]),
+a,
+area,
+iframe,
+textarea,
+button,
+select,
+summary,
+[onclick],
+[onmouseover],
+[onmousedown],
+[onmouseup],
+[oncommand],
+[role='link'],
+[role='button'],
+[role='checkbox'],
+[role='combobox'],
+[role='listbox'],
+[role='listitem'],
+[role='menuitem'],
+[role='menuitemcheckbox'],
+[role='menuitemradio'],
+[role='option'],
+[role='radio'],
+[role='scrollbar'],
+[role='slider'],
+[role='spinbutton'],
+[role='tab'],
+[role='textbox'],
+[role='treeitem'],
+[class*='button'],
+[tabindex]
+`
+
+export const HINTTAGS_img_selectors = `
+img,
+[src]
+`
+
+export const HINTTAGS_anchor_selectors = `
+[id],
+[name]
+`
+
+export const HINTTAGS_killable_selectors = `
+header,
+footer,
+nav,
+span,
+div,
+iframe,
+img,
+button,
+article,
+summary
+`
+
+/** CSS selector for elements which point to a saveable resource
+ */
+export const HINTTAGS_saveable = `
+[href]:not([href='#'])
+`
+
+/** Get array of "anchors": elements which have id or name and can be addressed
+ * with the hash/fragment in the URL
+ */
+export function anchors() {
+    return getElemsBySelector(HINTTAGS_anchor_selectors, [isVisible])
+}
+
+/** if `target === _blank` clicking the link is treated as opening a popup and is blocked. Use webext API to avoid that. */
+export function simulateClick(target: HTMLElement) {
+    // target can be set to other stuff, and we'll fail in annoying ways.
+    // There's no easy way around that while this code executes outside of the
+    // magic 'short lived event handler' context.
+    //
+    // OTOH, hardly anyone uses that functionality any more.
+    if (
+        (target as HTMLAnchorElement).target === "_blank" ||
+        (target as HTMLAnchorElement).target === "_new"
+    ) {
+        // Try to open the new tab in the same container as the current one.
+        activeTabContainerId().then(containerId => {
+            if (containerId)
+                openInNewTab((target as HTMLAnchorElement).href, {
+                    related: true,
+                    cookieStoreId: containerId,
+                })
+            else
+                openInNewTab((target as HTMLAnchorElement).href, {
+                    related: true,
+                })
+        })
+    } else {
+        mouseEvent(target, "click")
+        // DOM.focus has additional logic for focusing inputs
+        focus(target)
+    }
 }
