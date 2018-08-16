@@ -77,6 +77,10 @@
     padding-top: 7px !important;
 }
 
+#main-window[sizemode="maximized"] #content-deck {
+    padding-top: 8px;
+}
+
 /* Hide URL notifications that aren't particularly useful and cover up the command line
  * TODO: move it above the command line / bring functionality into status line like Vimperator */
 statuspanel[type="overLink"],
