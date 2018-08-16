@@ -38,7 +38,10 @@ fi
 # It's important to generate the metadata before the documentation because
 # missing imports might break documentation generation on clean builds
 "$(npm bin)/tsc" compiler/gen_metadata.ts -m commonjs \
-  && node compiler/gen_metadata.js --out src/.metadata.generated.ts src/*.ts
+  && node compiler/gen_metadata.js \
+          --out src/.metadata.generated.ts \
+          --themeDir src/static/themes \
+          src/*.ts
 
 scripts/newtab.md.sh
 scripts/make_tutorial.sh

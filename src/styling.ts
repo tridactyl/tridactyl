@@ -1,11 +1,10 @@
+import { staticThemes } from "./.metadata.generated"
 import * as config from "./config"
 import * as Logging from "./logging"
 
 const logger = new Logging.Logger("styling")
 
-// find a way of getting theme list without hard-coding it
-// using a macro might be an option
-const THEMES = ["dark", "greenmat", "shydactyl", "quake"]
+const THEMES = staticThemes
 
 function capitalise(str) {
     if (str === "") return str

@@ -61,7 +61,12 @@ function visit(checker: any, filename: string, node: any, everything: any) {
     ts.forEachChild(node, node => visit(checker, filename, node, everything))
 }
 
-function generateMetadata(out: string, fileNames: string[]): void {
+function generateMetadata(
+    out: string,
+    themedir: string,
+    fileNames: string[],
+): void {
+    /* Parse Tridactyl */
     let program = ts.createProgram(fileNames, {
         target: ts.ScriptTarget.ES5,
         module: ts.ModuleKind.CommonJS,
@@ -74,23 +79,33 @@ function generateMetadata(out: string, fileNames: string[]): void {
         if (n) visit(program.getTypeChecker(), n, sourceFile, everything)
     }
 
+    let metadataString = `\nexport let everything = ${JSON.stringify(
+        everything,
+        undefined,
+        4,
+    )}\n`
+
+    if (themedir) {
+        metadataString += `\nexport let staticThemes = ${JSON.stringify(
+            fs.readdirSync(themedir),
+        )}\n`
+    }
+
     // print out the doc
-    fs.writeFileSync(
-        out,
-        "export let everything = " + JSON.stringify(everything, undefined, 4),
-    )
+    fs.writeFileSync(out, metadataString)
 
     return
 }
 
 let opts = commandLineArgs([
     { name: "out", type: String },
+    { name: "themeDir", type: String },
     { name: "src", type: String, multiple: true, defaultOption: true },
 ])
 
-if (!opts.out)
+if (!opts.out || opts.src.length < 1)
     throw new Error(
         "Argument syntax: --out outfile [--src] file1.ts [file2.ts ...]",
     )
 
-generateMetadata(opts.out, opts.src)
+generateMetadata(opts.out, opts.themeDir, opts.src)
