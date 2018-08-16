@@ -223,6 +223,7 @@ a.url:hover {
 }
 
 .ExcmdCompletionOption td.excmd {
+    padding-left: 0.5em;
     width: 20%;
 }
 .ExcmdCompletionOption td.type {
