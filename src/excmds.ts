@@ -2916,6 +2916,8 @@ import * as hinting from "./hinting"
 */
 //#content
 export async function hint(option?: string, selectors?: string, ...rest: string[]) {
+    if (!option) option = ""
+
     if (option == "-br") option = "-qb"
 
     let rapid = false
