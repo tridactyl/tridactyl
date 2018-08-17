@@ -2880,12 +2880,11 @@ import * as hinting from "./hinting"
         - -c [selector] hint links that match the css selector
           - `bind ;c hint -c [class*="expand"],[class="togg"]` works particularly well on reddit and HN
         - -w open in new window
-            -wp open in new private window
-        - `-pipe selector key` e.g, `-pipe * href` returns the key. Only makes sense with `composite`, e.g, `composite hint -pipe * textContent | yank`.
-        - `-W excmd...` append hint href to excmd and execute, e.g, `hint -W exclaim mpv` to open YouTube videos. Use `composite hint -pipe | [excmd]` instead.
-        - -q* quick (or rapid) hints mode. Stay in hint mode until you press <Esc>, e.g. `:hint -qb` to open multiple hints in the background or `:hint -qW excmd` to execute excmd once for each hint
+        - -wp open in new private window
+        - `-pipe selector key` e.g, `-pipe * href` returns the key. Only makes sense with `composite`, e.g, `composite hint -pipe * textContent | yank`. If you don't select a hint (i.e. press <Esc>), will return an empty string.
+        - `-W excmd...` append hint href to excmd and execute, e.g, `hint -W exclaim mpv` to open YouTube videos.
+        - -q* quick (or rapid) hints mode. Stay in hint mode until you press <Esc>, e.g. `:hint -qb` to open multiple hints in the background or `:hint -qW excmd` to execute excmd once for each hint. This will return an array containing all elements or the result of executed functions (e.g. `hint -qpipe a href` will return an array of links).
         - -br deprecated, use `-qb` instead
-
 
     Excepting the custom selector mode and background hint mode, each of these
     hint modes is available by default as `;<option character>`, so e.g. `;y`
@@ -2927,7 +2926,6 @@ export async function hint(option?: string, selectors?: string, ...rest: string[
     }
 
     let selectHints = new Promise(r => r())
-    let onSelected = a => a
     let hintTabOpen = async (href, active = !rapid) => {
         let containerId = await activeTabContainerId()
         if (containerId) {
@@ -3033,7 +3031,6 @@ export async function hint(option?: string, selectors?: string, ...rest: string[
             break
 
         case "-W":
-            // Deprecated: hint exstr
             selectHints = hinting.pipe(
                 DOM.HINTTAGS_selectors,
                 elem => {
@@ -3168,24 +3165,7 @@ export async function hint(option?: string, selectors?: string, ...rest: string[
             )
     }
 
-    return new Promise((resolve, reject) =>
-        selectHints.then(
-            async result => resolve(await onSelected(result)),
-            rejectionReason => {
-                // We have to resolve when we don't want to have our messages be logged in the command line but this feels wrong since no hint has been selected
-                // Perhaps we should implement a mechanism to allow specific errors to go unreported?
-                if (rejectionReason == hinting.HintRejectionReason.User) {
-                    logger.debug("Hint promise rejected because user left hint mode without selecting a hint")
-                    resolve(null)
-                } else if (rejectionReason == hinting.HintRejectionReason.NoHints) {
-                    logger.debug("Hint promise rejected because there are no hints to select")
-                    resolve(null)
-                } else {
-                    reject(rejectionReason)
-                }
-            },
-        ),
-    )
+    return selectHints
 }
 
 // how 2 crash pc

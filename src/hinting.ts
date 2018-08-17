@@ -28,31 +28,25 @@ import Logger from "./logging"
 import * as Messaging from "./messaging"
 const logger = new Logger("hinting")
 
-export enum HintRejectionReason {
-    Err,
-    User,
-    NoHints,
-}
-
 /** Simple container for the state of a single frame's hints. */
 class HintState {
     public focusedHint: Hint
     readonly hintHost = document.createElement("div")
     readonly hints: Hint[] = []
+    public selectedHints: Hint[] = []
     public filter = ""
     public hintchars = ""
 
     constructor(
         public filterFunc: HintFilter,
         public resolve: (Hint) => void,
-        public reject: (HintRejectionReason) => any,
+        public reject: (any) => void,
+        public rapid: boolean,
     ) {
         this.hintHost.classList.add("TridactylHintHost", "cleanslate")
     }
 
-    destructor(abort) {
-        if (!this.focusedHint) this.focusedHint = this.hints[0]
-
+    destructor() {
         // Undo any alterations of the hinted elements
         for (const hint of this.hints) {
             hint.hidden = true
@@ -61,9 +55,10 @@ class HintState {
         // Remove all hints from the DOM.
         this.hintHost.remove()
 
-        if (abort) this.reject(HintRejectionReason.User)
-        else if (!this.focusedHint) this.reject(HintRejectionReason.NoHints)
-        else this.resolve(this.focusedHint.result)
+        if (this.rapid)
+            this.resolve(this.selectedHints.map(h => h.result))
+        else
+            this.resolve(this.selectedHints[0] ? this.selectedHints[0].result : "")
     }
 }
 
@@ -80,16 +75,18 @@ export function hintPage(
     let buildHints: HintBuilder = defaultHintBuilder()
     let filterHints: HintFilter = defaultHintFilter()
     state.mode = "hint"
-    modeState = new HintState(filterHints, resolve, reject)
+    modeState = new HintState(filterHints, resolve, reject, rapid)
 
     if (rapid == false) {
         buildHints(hintableElements, hint => {
             hint.result = onSelect(hint.target)
+            modeState.selectedHints.push(hint)
             reset()
         })
     } else {
         buildHints(hintableElements, hint => {
             hint.result = onSelect(hint.target)
+            modeState.selectedHints.push(hint)
         })
     }
 
@@ -455,9 +452,9 @@ function filterHintsVimperator(fstr, reflow = false) {
  *  If abort is true, we're resetting because the user pressed escape.
  *  If it is false, we're resetting because the user selected a hint.
  **/
-function reset(abort = false) {
+function reset() {
     if (modeState) {
-        modeState.destructor(abort)
+        modeState.destructor()
     }
     modeState = undefined
     state.mode = "normal"
