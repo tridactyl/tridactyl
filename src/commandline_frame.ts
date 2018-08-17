@@ -14,7 +14,6 @@ import * as SELF from "./commandline_frame"
 import "./number.clamp"
 import state from "./state"
 import Logger from "./logging"
-import * as aliases from "./aliases"
 import { theme } from "./styling"
 const logger = new Logger("cmdline")
 
@@ -207,13 +206,12 @@ clInput.addEventListener("keydown", function(keyevent) {
 
 clInput.addEventListener("input", () => {
     const exstr = clInput.value
-    const expandedCmd = aliases.expandExstr(exstr)
 
     // Fire each completion and add a callback to resize area
     enableCompletions()
     logger.debug(activeCompletions)
     activeCompletions.forEach(comp =>
-        comp.filter(expandedCmd).then(() => resizeArea()),
+        comp.filter(exstr).then(() => resizeArea()),
     )
 })
 
