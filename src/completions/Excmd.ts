@@ -55,18 +55,21 @@ export class ExcmdCompletionSource extends Completions.CompletionSourceFuse {
     }
 
     private async scoreOptions(exstrs: string[]) {
-        let histpos = state.cmdHistory.map(s => s.split(" ")[0]).reverse()
-        return exstrs.sort((a, b) => {
-            let posa = histpos.findIndex(x => x == a)
-            let posb = histpos.findIndex(x => x == b)
-            // If two ex commands have the same position, sort lexically
-            if (posa == posb) return a < b ? -1 : 1
-            // If they aren't found in the list they get lower priority
-            if (posa == -1) return 1
-            if (posb == -1) return -1
-            // Finally, sort by history position
-            return posa < posb ? -1 : 1
-        })
+        return exstrs
+
+        // Too slow with large profiles
+        // let histpos = state.cmdHistory.map(s => s.split(" ")[0]).reverse()
+        // return exstrs.sort((a, b) => {
+        //     let posa = histpos.findIndex(x => x == a)
+        //     let posb = histpos.findIndex(x => x == b)
+        //     // If two ex commands have the same position, sort lexically
+        //     if (posa == posb) return a < b ? -1 : 1
+        //     // If they aren't found in the list they get lower priority
+        //     if (posa == -1) return 1
+        //     if (posb == -1) return -1
+        //     // Finally, sort by history position
+        //     return posa < posb ? -1 : 1
+        // })
     }
 
     select(option: ExcmdCompletionOption) {
