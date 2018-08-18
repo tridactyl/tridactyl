@@ -48,28 +48,9 @@ export function getCmdAliasMapping(
     // aliases look like this: {alias: command} but what we really need is this: {command: [alias1, alias2...]}
     // This is what this loop builds
     for (let alias in aliases) {
-        let cmd = aliases[alias].trim()
+        let cmd = expandExstr(alias, aliases).trim()
         if (!commands[cmd]) commands[cmd] = []
         commands[cmd].push(alias.trim())
     }
-    // Some aliases might be aliases to other aliases (e.g. colors -> colourscheme -> set theme) so we need to recursively resolve them
-    function getAliases(cmd: string, prevExpansions: string[]): string[] {
-        if (!commands[cmd]) return []
-        if (prevExpansions.includes(cmd))
-            throw `Infinite loop detected while expanding aliases. Stack: ${prevExpansions}.`
-        return commands[cmd]
-            .reduce(
-                (result, alias) =>
-                    result.concat(
-                        getAliases(alias, prevExpansions.concat(cmd)),
-                    ),
-                [],
-            )
-            .concat(commands[cmd])
-    }
-    let result = {}
-    for (let cmd in commands) {
-        result[cmd] = getAliases(cmd, [])
-    }
-    return result
+    return commands
 }
