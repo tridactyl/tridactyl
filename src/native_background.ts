@@ -263,8 +263,8 @@ function ipcEncode(content: string) {
 }
 
 export async function write(file: string, content: string) {
-    content = ipcEncode(content)
-    return sendNativeMsg("write", { file, content })
+    let b64content = ipcEncode(content)
+    return sendNativeMsg("write", { file, content, b64content })
 }
 
 export async function mkdir(dir: string, exist_ok: boolean) {
@@ -272,8 +272,8 @@ export async function mkdir(dir: string, exist_ok: boolean) {
 }
 
 export async function temp(content: string, prefix: string) {
-    content = ipcEncode(content)
-    let message = await sendNativeMsg("temp", { content, prefix })
+    let b64content = ipcEncode(content)
+    let message = await sendNativeMsg("temp", { content, b64content, prefix })
 
     message.content = respHandler(message)
     return message
