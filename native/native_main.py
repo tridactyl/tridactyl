@@ -463,7 +463,7 @@ def handleMessage(message):
                 os.path.expandvars(
                     os.path.expanduser(message["file"])
                 ),
-                "rb",
+                "r",
             ) as file:
                 message_content = file.read()
                 reply["content"] = message_content
@@ -481,8 +481,9 @@ def handleMessage(message):
         reply["code"] = 0
 
     elif cmd == "write":
-        with open(message["file"], "wb") as file:
-            content = ipc_decode(message["content"])
+        with open(message["file"], "w") as file:
+            content = message.get("b64content")
+            content = ipc_decode(content) if content else message["content"]
             file.write(content)
 
     elif cmd == "temp":
@@ -493,7 +494,8 @@ def handleMessage(message):
 
         (handle, filepath) = tempfile.mkstemp(prefix=prefix)
         with open(handle, "wb") as file:
-            content = ipc_decode(message["content"])
+            content = message.get("b64content")
+            content = ipc_decode(content) if content else message["content"]
             file.write(content)
 
         reply["content"] = filepath
