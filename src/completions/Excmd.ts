@@ -1,6 +1,8 @@
 import * as Completions from "../completions"
 import * as Metadata from "../.metadata.generated"
 import state from "../state"
+import * as config from "../config"
+import * as aliases from "../aliases"
 
 class ExcmdCompletionOption extends Completions.CompletionOptionHTML
     implements Completions.CompletionOptionFuse {
@@ -50,6 +52,32 @@ export class ExcmdCompletionSource extends Completions.CompletionSourceFuse {
         this.options = (await this.scoreOptions(
             Object.keys(fns).filter(f => f.startsWith(exstr)),
         )).map(f => new ExcmdCompletionOption(f, fns[f].type, fns[f].doc))
+
+        let exaliases = config.get("exaliases")
+        for (let alias of Object.keys(exaliases).filter(a =>
+            a.startsWith(exstr),
+        )) {
+            let cmd = aliases.expandExstr(alias)
+            if (fns[cmd]) {
+                this.options = this.options.concat(
+                    new ExcmdCompletionOption(
+                        alias,
+                        fns[cmd].type,
+                        `Alias for \`${cmd}\`. ${fns[cmd].doc}`,
+                    ),
+                )
+            } else {
+                // This can happen when the alias is a composite command or a command with arguments. We can't display type or doc because we don't know what parameter the alias takes or what it does.
+                this.options = this.options.concat(
+                    new ExcmdCompletionOption(
+                        alias,
+                        "",
+                        `Alias for \`${cmd}\`.`,
+                    ),
+                )
+            }
+        }
+
         this.options.forEach(o => (o.state = "normal"))
         this.updateChain()
     }
