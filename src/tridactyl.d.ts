@@ -9,6 +9,8 @@ interface Number {
     clamp(lo: number, hi: number): number
 }
 
+interface HTMLDialogElement extends HTMLElement {}
+
 // Firefox-specific dom properties
 interface Window {
     scrollByLines(n: number): void

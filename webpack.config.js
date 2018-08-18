@@ -7,6 +7,7 @@ module.exports = {
         background: "./src/background.ts",
         content: "./src/content.ts",
         commandline_frame: "./src/commandline_frame.ts",
+        inferno_completions: "./src/inferno_completions.tsx",
         help: "./src/help.ts",
         newtab: "./src/newtab.ts",
     },
@@ -24,12 +25,17 @@ module.exports = {
     },
 
     module: {
-        rules: [
-            // All files with a '.ts' or '.tsx' extension will be handled by 'awesome-typescript-loader'.
-            { test: /\.tsx?$/, loader: "awesome-typescript-loader" },
-
-            // All output '.js' files will have any sourcemaps re-processed by 'source-map-loader'.
-            { enforce: "pre", test: /\.js$/, loader: "source-map-loader" },
+        loaders: [
+            {
+                test: /\.tsx?$/, // All ts and tsx files will be process by
+                loaders: ["babel-loader", "awesome-typescript-loader"], // first babel-loader, then ts-loader
+                exclude: /node_modules/, // ignore node_modules
+            },
+            {
+                test: /\.jsx?$/, // all js and jsx files will be processed by
+                loader: "babel-loader", // babel-loader
+                exclude: /node_modules/, // ignore node_modules
+            },
         ],
     },
 
