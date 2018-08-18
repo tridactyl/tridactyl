@@ -13,6 +13,8 @@ Concrete completion classes have been moved to src/completions/.
 import * as Fuse from "fuse.js"
 import { enumerate } from "./itertools"
 import { toNumber } from "./convert"
+import * as config from "./config"
+import * as aliases from "./aliases"
 
 export const DEFAULT_FAVICON = browser.extension.getURL(
     "static/defaultFavicon.svg",
@@ -33,6 +35,20 @@ export abstract class CompletionSource {
     readonly options: CompletionOption[]
     node: HTMLElement
     public completion: string
+    protected prefixes: string[] = []
+
+    constructor(prefixes) {
+        let commands = aliases.getCmdAliasMapping()
+
+        // Now, for each prefix given as argument, add it to the completionsource's prefix list and also add any alias it has
+        prefixes.map(p => p.trim()).forEach(p => {
+            this.prefixes.push(p)
+            if (commands[p]) this.prefixes = this.prefixes.concat(commands[p])
+        })
+
+        // Not sure this is necessary but every completion source has it
+        this.prefixes = this.prefixes.map(p => p + " ")
+    }
 
     /** Update [[node]] to display completions relevant to exstr */
     public abstract filter(exstr: string): Promise<void>
@@ -117,8 +133,8 @@ export abstract class CompletionSourceFuse extends CompletionSource {
 
     protected optionContainer = html`<table class="optionContainer">`
 
-    constructor(private prefixes, className: string, title?: string) {
-        super()
+    constructor(prefixes, className: string, title?: string) {
+        super(prefixes)
         this.node = html`<div class="${className} hidden">
                 <div class="sectionHeader">${title || className}</div>
             </div>`

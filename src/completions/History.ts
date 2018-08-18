@@ -35,7 +35,7 @@ export class HistoryCompletionSource extends Completions.CompletionSourceFuse {
 
     constructor(private _parent) {
         super(
-            ["open ", "tabopen ", "winopen "],
+            ["open", "tabopen", "winopen"],
             "HistoryCompletionSource",
             "History",
         )

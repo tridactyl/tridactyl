@@ -57,7 +57,7 @@ export class BufferCompletionSource extends Completions.CompletionSourceFuse {
 
     constructor(private _parent) {
         super(
-            ["buffer ", "tabclose ", "tabdetach ", "tabduplicate ", "tabmove "],
+            ["buffer", "tabclose", "tabdetach", "tabduplicate", "tabmove"],
             "BufferCompletionSource",
             "Buffers",
         )

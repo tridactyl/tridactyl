@@ -36,7 +36,7 @@ export class BmarkCompletionSource extends Completions.CompletionSourceFuse {
     public options: BmarkCompletionOption[]
 
     constructor(private _parent) {
-        super(["bmarks "], "BmarkCompletionSource", "Bookmarks")
+        super(["bmarks"], "BmarkCompletionSource", "Bookmarks")
 
         this._parent.appendChild(this.node)
     }
