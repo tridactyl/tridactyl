@@ -148,9 +148,11 @@ const HCS = <HistoryCompletionSource />
 //     return <input onInput />
 // }
 
-const input = document.getElementById("cmdline") as HTMLInputElement
-input.addEventListener("input", event =>
-    setTimeout(console.log(HCS.children) /*.filter(input.value)*/, 0),
+const input = document.getElementById("commandline") as HTMLInputElement
+input.addEventListener(
+    "input",
+    event => setTimeout(console.log(HCS.children), 0),
+    // setTimeout((HCS.children as any).filter(input.value), 0),
 )
 
 render(HCS, app)
