@@ -55,7 +55,7 @@ export class ExcmdCompletionSource extends Completions.CompletionSourceFuse {
     }
 
     private async scoreOptions(exstrs: string[]) {
-        return exstrs
+        return exstrs.sort()
 
         // Too slow with large profiles
         // let histpos = state.cmdHistory.map(s => s.split(" ")[0]).reverse()
