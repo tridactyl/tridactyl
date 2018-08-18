@@ -248,6 +248,7 @@ const DEFAULTS = o({
         blast: "tablast",
         tfirst: "tabfirst",
         tlast: "tablast",
+        tab: "buffer",
         bd: "tabclose",
         bdelete: "tabclose",
         quit: "tabclose",
