@@ -14,6 +14,7 @@ import * as Fuse from "fuse.js"
 import { enumerate } from "./itertools"
 import { toNumber } from "./convert"
 import * as config from "./config"
+import * as aliases from "./aliases"
 
 export const DEFAULT_FAVICON = browser.extension.getURL(
     "static/defaultFavicon.svg",
@@ -37,15 +38,7 @@ export abstract class CompletionSource {
     protected prefixes: string[] = []
 
     constructor(prefixes) {
-        let exaliases = config.get("exaliases")
-        let commands = {}
-        // exaliases look like this: {alias: command} but what we really need is this: {command: [alias1, alias2...]}
-        // This is what this loop builds
-        for (let alias in exaliases) {
-            let cmd = exaliases[alias]
-            if (!commands[cmd]) commands[cmd] = []
-            commands[cmd].push(alias)
-        }
+        let commands = aliases.getCmdAliasMapping()
 
         // Now, for each prefix given as argument, add it to the completionsource's prefix list and also add any alias it has
         prefixes.map(p => p.trim()).forEach(p => {
