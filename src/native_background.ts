@@ -25,6 +25,7 @@ interface MessageResp {
     cmd: string
     version: number | null
     content: string | null
+    b64content: string | null
     code: number | null
     error: string | null
 }
@@ -52,12 +53,20 @@ async function sendNativeMsg(
     }
 }
 
+function respHandler(resp: MessageResp) {
+    if (resp.hasOwnProperty("b64content")) {
+        return ipcDecode(resp.b64content)
+    } else {
+        return resp.content
+    }
+}
+
 export async function getrc(): Promise<string> {
     const res = await sendNativeMsg("getconfig", {})
 
     if (res.content && !res.error) {
         logger.info(`Successfully retrieved fs config:\n${res.content}`)
-        return ipcDecode(res.content)
+        return respHandler(res)
     } else {
         // Have to make this a warning as async exceptions apparently don't get caught
         logger.info(`Error in retrieving config: ${res.error}`)
@@ -242,7 +251,7 @@ function ipcDecode(b64_content: string) {
 export async function read(file: string) {
     let message = await sendNativeMsg("read", { file })
 
-    message.content = ipcDecode(message.content)
+    message.content = respHandler(message)
     return message
 }
 
@@ -266,7 +275,7 @@ export async function temp(content: string, prefix: string) {
     content = ipcEncode(content)
     let message = await sendNativeMsg("temp", { content, prefix })
 
-    message.content = ipcDecode(message.content)
+    message.content = respHandler(message)
     return message
 }
 
@@ -286,7 +295,7 @@ export async function winFirefoxRestart(
 export async function run(command: string, content = "") {
     let message = await sendNativeMsg("run", { command, content })
 
-    message.content = ipcDecode(message.content)
+    message.content = respHandler(message)
     return message
 }
 
@@ -295,7 +304,7 @@ export async function run(command: string, content = "") {
  */
 export async function pyeval(command: string): Promise<MessageResp> {
     let message = await sendNativeMsg("eval", { command })
-    message.content = ipcDecode(message.content)
+    message.content = respHandler(message)
 
     return message
 }
@@ -309,7 +318,7 @@ export async function getenv(variable: string) {
 
     let message = await sendNativeMsg("env", { var: variable })
 
-    message.content = ipcDecode(message.content)
+    message.content = respHandler(message)
     return message
 }
 
@@ -380,7 +389,7 @@ export async function ffargs(): Promise<string[]> {
                 '"command": "ps -p " + str(os.getppid()) + " -oargs="})["content"]',
         )
 
-        message.content = ipcDecode(message.content)
+        message.content = respHandler(message)
         return message.content.trim().split(" ")
     }
 }

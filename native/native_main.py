@@ -87,6 +87,9 @@ def getMessage():
 # given its content.
 def encodeMessage(messageContent):
     """ Encode a message for transmission, given its content."""
+    c = messageContent.get("content")
+    if (c):
+        messageContent["b64content"] = ipc_encode(c)
     encodedContent = json.dumps(messageContent).encode("utf-8")
     encodedLength = struct.pack("@I", len(encodedContent))
     return {"length": encodedLength, "content": encodedContent}
@@ -432,7 +435,7 @@ def handleMessage(message):
     elif cmd == "getconfig":
         file_content = getUserConfig()
         if file_content:
-            reply["content"] = ipc_encode(file_content)
+            reply["content"] = file_content
         else:
             reply["code"] = "File not found"
 
@@ -447,14 +450,12 @@ def handleMessage(message):
             stdout=subprocess.PIPE,
         )
 
-        reply["content"] = ipc_encode(
-            p.communicate(stdin)[0].decode("utf-8")
-        )
+        reply["content"] = p.communicate(stdin)[0].decode("utf-8")
         reply["code"] = p.returncode
 
     elif cmd == "eval":
         output = eval(message["command"])
-        reply["content"] = ipc_encode(output)
+        reply["content"] = output
 
     elif cmd == "read":
         try:
@@ -464,7 +465,7 @@ def handleMessage(message):
                 ),
                 "rb",
             ) as file:
-                message_content = ipc_encode(file.read())
+                message_content = file.read()
                 reply["content"] = message_content
                 reply["code"] = 0
         except FileNotFoundError:
@@ -495,10 +496,10 @@ def handleMessage(message):
             content = ipc_decode(message["content"])
             file.write(content)
 
-        reply["content"] = ipc_encode(filepath)
+        reply["content"] = filepath
 
     elif cmd == "env":
-        content = ipc_encode(getenv(message["var"], ""))
+        content = getenv(message["var"], "")
         reply["content"] = content
 
     elif cmd == "win_firefox_restart":
