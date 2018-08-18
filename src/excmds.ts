@@ -2886,9 +2886,7 @@ import * as hinting from "./hinting"
         - -q* quick (or rapid) hints mode. Stay in hint mode until you press <Esc>, e.g. `:hint -qb` to open multiple hints in the background or `:hint -qW excmd` to execute excmd once for each hint. This will return an array containing all elements or the result of executed functions (e.g. `hint -qpipe a href` will return an array of links).
         - -br deprecated, use `-qb` instead
 
-    Excepting the custom selector mode and background hint mode, each of these
-    hint modes is available by default as `;<option character>`, so e.g. `;y`
-    to yank a link's target.
+    Excepting the custom selector mode and background hint mode, each of these hint modes is available by default as `;<option character>`, so e.g. `;y` to yank a link's target; `g;<option character>` starts rapid hint mode for all modes where it makes sense, and some others.
 
     To open a hint in the background, the default bind is `F`.
 
