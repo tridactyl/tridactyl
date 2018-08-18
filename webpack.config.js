@@ -1,5 +1,6 @@
 const UglifyJSPlugin = require("uglifyjs-webpack-plugin")
 const CopyWebPackPlugin = require("copy-webpack-plugin")
+const webpack = require("webpack")
 // const WebpackShellPlugin = require('webpack-shell-plugin')
 
 module.exports = {
@@ -60,6 +61,11 @@ module.exports = {
             },
             { from: "generated/static", to: "static" },
         ]),
+        new webpack.DefinePlugin({
+            "process.env": {
+                NODE_ENV: JSON.stringify("production"),
+            },
+        }),
     ],
     // Fix css
     // https://github.com/webpack-contrib/css-loader/issues/447#issuecomment-285598881
