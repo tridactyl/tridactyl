@@ -517,7 +517,10 @@ export async function update() {
         },
     }
     if (!get("configversion")) set("configversion", "0.0")
-    while (updaters[get("configversion")] instanceof Function) {
+    const updatetest = v => {
+        return updaters.hasOwnProperty(v) && updaters[v] instanceof Function
+    }
+    while (updatetest(get("configversion"))) {
         await updaters[get("configversion")]()
     }
 }
