@@ -1769,7 +1769,7 @@ export async function undo() {
     const lastSession = sessions.find(s => {
         if (s.window) {
             return true
-        } else if (s.tab && s.tab.windowId) {
+        } else if (s.tab && s.tab.windowId === current_win_id) {
             return true
         } else {
             return false
@@ -1777,7 +1777,7 @@ export async function undo() {
     })
 
     if (lastSession) {
-        if (lastSession.tab && lastSession.tab.windowId === current_win_id) {
+        if (lastSession.tab) {
             browser.sessions.restore(lastSession.tab.sessionId)
         } else if (lastSession.window) {
             browser.sessions.restore(lastSession.window.sessionId)
