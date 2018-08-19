@@ -1763,17 +1763,24 @@ export async function tabclosealltoleft() {
 //#background
 export async function undo() {
     const current_win_id: number = (await browser.windows.getCurrent()).id
-    const sessions = await browser.sessions.getRecentlyClosed()
+    const sessions = await browser.sessions.getRecentlyClosed({ maxResults: 10 })
 
     // The first session object that's a window or a tab from this window. Or undefined if sessions is empty.
-    let closed = sessions.find(s => {
-        return "window" in s || (s.tab && s.tab.windowId == current_win_id)
+    const lastSession = sessions.find(s => {
+        if (s.window) {
+            return true
+        } else if (s.tab && s.tab.windowId) {
+            return true
+        } else {
+            return false
+        }
     })
-    if (closed) {
-        if (closed.tab) {
-            browser.sessions.restore(closed.tab.sessionId)
-        } else if (closed.window) {
-            browser.sessions.restore(closed.window.sessionId)
+
+    if (lastSession) {
+        if (lastSession.tab && lastSession.tab.windowId === current_win_id) {
+            browser.sessions.restore(lastSession.tab.sessionId)
+        } else if (lastSession.window) {
+            browser.sessions.restore(lastSession.window.sessionId)
         }
     }
 }
