@@ -13,7 +13,7 @@
         ]
     },
     "chrome_url_overrides": {
-        "newtab": "static/newtab.html"
+        "newtab": "static/infernal.html"
     },
     "content_scripts": [
         {
