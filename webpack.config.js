@@ -9,6 +9,7 @@ module.exports = {
         content: "./src/content.ts",
         commandline_frame: "./src/commandline_frame.ts",
         inferno_completions: "./src/inferno_completions.tsx",
+        inferno_commandline: "./src/inferno_commandline.tsx",
         help: "./src/help.ts",
         newtab: "./src/newtab.ts",
     },
