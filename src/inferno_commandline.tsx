@@ -1,6 +1,49 @@
 import { render, Component } from "inferno"
 import * as Messaging from "./messaging"
-import { browserBg } from "./lib/webext"
+import { browserBg, activeTabId } from "./lib/webext"
+
+class UIComponent extends Component {
+    render() {
+        return (
+            <div id="tridactyl-ui">
+                <Completions />
+                <Modeline />
+                <Commandline />
+            </div>
+        )
+    }
+}
+
+class Completions extends Component {
+    render() {
+        return <div id="tridactyl-completions" />
+    }
+}
+
+class Modeline extends Component<any, any> {
+    private constructor(props) {
+        super(props)
+        this.state = {
+            mode: "",
+            tabId: -1,
+        }
+    }
+
+    public async componentDidMount() {
+        this.setState({
+            tabId: await activeTabId(),
+        })
+    }
+
+    render() {
+        return (
+            <div id="tridactyl-modeline">
+                <span id="tridactyl-modeline-mode">{this.state.mode}</span>
+                <span id="tridactyl-modeline-tabid">{this.state.tabId}</span>
+            </div>
+        )
+    }
+}
 
 class Commandline extends Component<any, any> {
     private constructor() {
@@ -62,4 +105,4 @@ class Commandline extends Component<any, any> {
     }
 }
 
-render(<Commandline />, document.getElementById("commandline-container"))
+render(<UIComponent />, document.getElementById("tridactyl-ui-container"))
