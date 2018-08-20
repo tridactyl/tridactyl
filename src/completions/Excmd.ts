@@ -19,10 +19,10 @@ class ExcmdCompletionOption extends Completions.CompletionOptionHTML
         // Create HTMLElement
         this.html = html`<tr class="ExcmdCompletionOption option">
             <td class="excmd">${value}</td>
-            <td class="type">${ttype}</td>
             <td class="documentation">${documentation}</td>
         </tr>`
     }
+    // <td class="type">${ttype}</td>
 }
 
 export class ExcmdCompletionSource extends Completions.CompletionSourceFuse {
