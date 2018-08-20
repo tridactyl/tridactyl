@@ -1,4 +1,5 @@
 import * as Completions from "../completions"
+import { typeToSimpleString } from "../metadata"
 import * as Metadata from "../.metadata.generated"
 import state from "../state"
 import * as config from "../config"
@@ -51,7 +52,11 @@ export class ExcmdCompletionSource extends Completions.CompletionSourceFuse {
         let fns = Metadata.everything["src/excmds.ts"]
         this.options = (await this.scoreOptions(
             Object.keys(fns).filter(f => f.startsWith(exstr)),
-        )).map(f => new ExcmdCompletionOption(f, fns[f].type, fns[f].doc))
+        )).map(f => {
+            let t = ""
+            if (fns[f].type) t = typeToSimpleString(fns[f].type)
+            return new ExcmdCompletionOption(f, t, fns[f].doc)
+        })
 
         let exaliases = config.get("exaliases")
         for (let alias of Object.keys(exaliases).filter(a =>
@@ -62,7 +67,7 @@ export class ExcmdCompletionSource extends Completions.CompletionSourceFuse {
                 this.options = this.options.concat(
                     new ExcmdCompletionOption(
                         alias,
-                        fns[cmd].type,
+                        fns[cmd].type ? typeToSimpleString(fns[cmd].type) : "",
                         `Alias for \`${cmd}\`. ${fns[cmd].doc}`,
                     ),
                 )
