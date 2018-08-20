@@ -2,7 +2,11 @@ import { render, Component } from "inferno"
 import * as Messaging from "./messaging"
 import { browserBg, activeTabId } from "./lib/webext"
 
-class UIComponent extends Component {
+class UIComponent extends Component<any, any> {
+    private constructor(props) {
+        super(props)
+    }
+
     render() {
         return (
             <div id="tridactyl-ui">
@@ -14,18 +18,34 @@ class UIComponent extends Component {
     }
 }
 
-class Completions extends Component {
+class Completions extends Component<any, any> {
     render() {
         return <div id="tridactyl-completions" />
     }
 }
 
+/** The Modeline.
+ *
+ *  NOTE: the initial value of `this.state.mode` is hardcoded because
+ *  `browser.storage.local.get()` is async and won't gel with the constructor.
+ *  Neat ideas to fix this are welcome.
+ */
 class Modeline extends Component<any, any> {
     private constructor(props) {
         super(props)
         this.state = {
-            mode: "",
+            mode: "NORMAL",
             tabId: -1,
+        }
+        //        this.handleMode = this.handleMode.bind(this)
+    }
+
+    private handleMode = (changes, areaname) => {
+        if (areaname === "local" && "state" in changes) {
+            console.log(changes)
+            this.setState({
+                mode: changes.state.newValue.mode.toUpperCase,
+            })
         }
     }
 
@@ -33,13 +53,26 @@ class Modeline extends Component<any, any> {
         this.setState({
             tabId: await activeTabId(),
         })
+
+        browser.storage.onChanged.addListener(this.handleMode)
+    }
+
+    public async componentWillUnmount() {
+        browser.storage.onChanged.removeListener(this.handleMode)
     }
 
     render() {
         return (
             <div id="tridactyl-modeline">
-                <span id="tridactyl-modeline-mode">{this.state.mode}</span>
-                <span id="tridactyl-modeline-tabid">{this.state.tabId}</span>
+                <span id="tridactyl-modeline-left">
+                    <span id="tridactyl-modeline-mode">{this.state.mode}</span>
+                </span>
+                <span id="tridactyl-modeline-middle" />
+                <span id="tridactyl-modeline-right">
+                    <span id="tridactyl-modeline-tabid">
+                        {this.state.tabId}
+                    </span>
+                </span>
             </div>
         )
     }
@@ -95,12 +128,15 @@ class Commandline extends Component<any, any> {
 
     render() {
         return (
-            <input
-                id="commandline"
-                value={this.state.inputString}
-                onKeyDown={this.handleKeyDown.bind(this)}
-                onInput={this.handleInput.bind(this)}
-            />
+            <div id="commandline-container">
+                <span id="tridactyl-colon" />
+                <input
+                    id="commandline"
+                    value={this.state.inputString}
+                    onKeyDown={this.handleKeyDown.bind(this)}
+                    onInput={this.handleInput.bind(this)}
+                />
+            </div>
         )
     }
 }

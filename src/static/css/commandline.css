@@ -9,7 +9,7 @@ body {
     flex-direction: column;
 }
 
-#command-line-holder {
+#tridactyl-ui-container {
     background: var(--tridactyl-cmdl-bg);
     color: var(--tridactyl-cmdl-fg);
     font-family: var(--tridactyl-cmdl-font-family);

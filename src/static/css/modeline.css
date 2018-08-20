@@ -1,0 +1,28 @@
+#tridactyl-modeline {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    justify-content: space-between;
+    width: 100%;
+    background-color: #0d0d0d;
+    color: white;
+}
+#tridactyl-modeline-left {
+    display: flex;
+    flex: 1 1 auto;
+}
+
+#tridactyl-modeline-middle {
+    display: flex;
+    flex: 2 1 auto;
+}
+
+#tridactyl-modeline-right {
+    display: flex;
+    flex: 1 1 auto;
+    justify-content: flex-end;
+}
+
+#tridactyl-modeline-mode {
+    font-weight: bold;
+}
