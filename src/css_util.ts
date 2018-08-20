@@ -111,7 +111,7 @@ export const potentialRules = {
             show: ``,
         },
     },
-    padwhenmaximsed: {
+    padwhenmaximised: {
         name: `#main-window[sizemode="maximized"] #content-deck`,
         options: {
             some: `padding-top: 8px;`,
@@ -148,7 +148,7 @@ export const metaRules = {
             navbar: "autohide",
             titlebar: "hide",
             menubar: "grey",
-            padwhenmaximsed: "some",
+            padwhenmaximised: "some",
         },
         full: {
             hoverlink: "left",
@@ -156,7 +156,7 @@ export const metaRules = {
             navbar: "always",
             titlebar: "show",
             menubar: "default",
-            padwhenmaximsed: "none",
+            padwhenmaximised: "none",
         },
     },
     tabs: {
