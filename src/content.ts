@@ -86,6 +86,10 @@ if (
 config.getAsync("modeindicator").then(mode => {
     if (mode !== "true") return
 
+    // Modeline takes priority.
+    let modeline = config.get("modeline")
+    if (modeline === "true" ) return
+
     // Do we want container indicators?
     let containerIndicator = config.get("containerindicator")
 

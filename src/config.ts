@@ -343,6 +343,7 @@ const DEFAULTS = o({
 
     theme: "default", // currently available: "default", "dark"
     modeindicator: "true",
+    modeline: "true",
 
     jumpdelay: 3000, // Milliseconds before registering a scroll in the jumplist
 
