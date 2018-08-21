@@ -8,6 +8,7 @@ import { BufferCompletionSource } from "./completions/Buffer"
 import { BmarkCompletionSource } from "./completions/Bmark"
 import { ExcmdCompletionSource } from "./completions/Excmd"
 import { HistoryCompletionSource } from "./completions/History"
+import { SettingsCompletionSource } from "./completions/Settings"
 import * as Messaging from "./messaging"
 import * as Config from "./config"
 import * as SELF from "./commandline_frame"
@@ -58,6 +59,7 @@ function enableCompletions() {
             new BufferAllCompletionSource(completionsDiv),
             new BufferCompletionSource(completionsDiv),
             new ExcmdCompletionSource(completionsDiv),
+            new SettingsCompletionSource(completionsDiv),
             new HistoryCompletionSource(completionsDiv),
         ]
 
