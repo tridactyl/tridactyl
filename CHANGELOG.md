@@ -4,10 +4,11 @@
 
 *   New features:
 
-    *   Our command line now has completions for ex commands and aliases!
-        *   It even includes a little bit of help for each command.
-    *   Rapid hint mode improvements:
+    *   Our command line now has more completions:
+        *   Ex commands and ex aliases with a little bit of help for each command.
+        *   Settings, showing their current value (currently does not support options within options)
 
+    *   Rapid hint mode improvements:
         *   Less jank (particularly if you hold a key down)
         *   Most hint modes now have a rapid mode with `hint -q[flag]` and bound to `;g[key]`
             *   The divergence from Pentadactyl is because we already have `g;` bound to "switch to tab containing last used input field and focus it", which is my pet favourite command.
