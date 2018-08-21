@@ -1,6 +1,6 @@
 # Tridactyl changelog
 
-## Release 1.13.3 / Unreleased
+## Release 1.13.3 / 2018-08-21
 
 *   New features:
 
@@ -35,6 +35,12 @@
     *   We're now using Typescript 3
     *   We now generate a bunch of metadata about Tridactyl for use with introspection
         *   As an added bonus, build times are now a bit slower.
+
+Thanks to all of our contributors for this release: Oliver Blanthorn, glacambre, Anton Vilhelm Ásgeirsson, and Henré Botha.
+
+Extra special thanks go to Henré Botha, who contributed for the first time.
+
+Last, but not least - thank you to everyone who reported issues.
 
 ## Release 1.13.2 / 2018-08-15
 
