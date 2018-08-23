@@ -24,6 +24,8 @@ native_loc="https://raw.githubusercontent.com/cmcaine/tridactyl/master/native/na
 # Decide where to put the manifest based on OS
 if [[ "$OSTYPE" == "linux-gnu" ]]; then
     manifest_home="$HOME/.mozilla/native-messaging-hosts/"
+elif [[ "$OSTYPE" == "linux" ]]; then
+    manifest_home="$HOME/.mozilla/native-messaging-hosts/"
 elif [[ "$OSTYPE" == "darwin"* ]]; then
     manifest_home="$HOME/Library/Application Support/Mozilla/NativeMessagingHosts/"
 fi
