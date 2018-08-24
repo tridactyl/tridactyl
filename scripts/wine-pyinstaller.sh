@@ -1,4 +1,4 @@
-#!/bin/bash -e
+#!/usr/bin/env bash -e
 
 # This script must be run from the root Tridactyl directory
 TRIDIR="$(pwd)"
