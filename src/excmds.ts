@@ -78,6 +78,7 @@ import * as UrlUtil from "@src/lib/url_util"
 import * as config from "@src/lib/config"
 import * as aliases from "@src/lib/aliases"
 import * as Logging from "@src/lib/logging"
+import { AutoContain } from "@src/lib/autocontainers"
 /** @hidden */
 const logger = new Logging.Logger("excmds")
 import * as CSS from "css"
@@ -1865,7 +1866,7 @@ export async function tabprev(increment = 1) {
 
 /** Like [[open]], but in a new tab. If no address is given, it will open the newtab page, which can be set with `set newtab [url]`
 
-    Use the `-c` flag followed by a container name to open a tab in said container. Tridactyl will try to fuzzy match a name if an exact match is not found.
+    Use the `-c` flag followed by a container name to open a tab in said container. Tridactyl will try to fuzzy match a name if an exact match is not found. If any autocontainer directives are configured and -c is not set, Tridactyl will try to use the right container automatically using your configurations.
     Use the `-b` flag to open the tab in the background.
     These two can be combined in any order, but need to be placed as the first arguments.
 
@@ -1888,6 +1889,8 @@ export async function tabopen(...addressarr: string[]) {
     let active
     let container
 
+    const win = await browser.windows.getCurrent()
+
     // Lets us pass both -b and -c in no particular order as long as they are up front.
     async function argParse(args): Promise<string[]> {
         if (args[0] === "-b") {
@@ -1896,7 +1899,6 @@ export async function tabopen(...addressarr: string[]) {
             argParse(args)
         } else if (args[0] === "-c") {
             // Ignore the -c flag if incognito as containers are disabled.
-            const win = await browser.windows.getCurrent()
             if (!win.incognito) container = await Container.fuzzyMatch(args[1])
             else logger.error("[tabopen] can't open a container in a private browsing window.")
 
@@ -1912,6 +1914,15 @@ export async function tabopen(...addressarr: string[]) {
     const address = query.join(" ")
     if (!ABOUT_WHITELIST.includes(address) && address.match(/^(about|file):.*/)) {
         return nativeopen(address)
+    }
+
+    const aucon = new AutoContain()
+    if (!container && aucon.autocontainConfigured()) {
+        const autoContainer = await aucon.getAuconForUrl(address)
+        if (autoContainer && autoContainer !== "firefox-default") {
+            container = autoContainer
+            logger.debug("tabopen setting container automatically using autocontain directive")
+        }
     }
 
     return activeTabContainerId().then(containerId => {
