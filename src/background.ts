@@ -19,6 +19,7 @@ import * as native from "@src/lib/native"
 import state from "@src/state"
 import * as webext from "@src/lib/webext"
 import { AutoContain } from "@src/lib/autocontainers"
+import * as extension_info from "@src/lib/extension_info"
 /* tslint:disable:import-spacing */
 ; (window as any).tri = Object.assign(Object.create(null), {
     messaging,
@@ -135,20 +136,16 @@ browser.tabs.onActivated.addListener(ev => {
 
 const aucon = new AutoContain()
 
-function cancelReq(details) {
-    if (aucon.getCancelledRequest(details.tabId)) {
-        aucon.clearCancelledRequests(details.tabId)
-    }
-}
-
 // Handle cancelled requests as a result of autocontain.
-browser.webRequest.onCompleted.addListener(cancelReq,
-    { urls: ["<all_urls"], types: ["main_frame"] },
-)
+browser.webRequest.onCompleted.addListener(aucon.completedRequestListener, {
+    urls: ["<all_urls>"],
+    types: ["main_frame"],
+})
 
-browser.webRequest.onErrorOccurred.addListener(cancelReq,
-    { urls: ["<all_urls>"], types: ["main_frame"] },
-)
+browser.webRequest.onErrorOccurred.addListener(aucon.completedRequestListener, {
+    urls: ["<all_urls>"],
+    types: ["main_frame"],
+})
 
 // Contain autocmd.
 browser.webRequest.onBeforeRequest.addListener(
@@ -156,6 +153,7 @@ browser.webRequest.onBeforeRequest.addListener(
     { urls: ["<all_urls>"], types: ["main_frame"] },
     ["blocking"],
 )
+
 // }}}
 
 // {{{ PERFORMANCE LOGGING
