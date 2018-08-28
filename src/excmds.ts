@@ -852,7 +852,7 @@ export async function reloadhard(n = 1) {
 // I went through the whole list https://developer.mozilla.org/en-US/Firefox/The_about_protocol
 // about:blank is even more special
 /** @hidden */
-export const ABOUT_WHITELIST = ["about:home", "about:license", "about:logo", "about:rights"]
+export const ABOUT_WHITELIST = ["about:license", "about:logo", "about:rights"]
 
 /** Open a new page in the current tab.
  *
@@ -1603,6 +1603,7 @@ export async function tabopen(...addressarr: string[]) {
     let url: string
     let address = (await argParse(addressarr)).join(" ")
 
+    if (address == "") address = config.get("newtab")
     if (!ABOUT_WHITELIST.includes(address) && address.match(/^(about|file):.*/)) {
         if ((await browser.runtime.getPlatformInfo()).os === "mac" && (await browser.windows.getCurrent()).incognito) {
             fillcmdline_notrail("# nativeopen isn't supported in private mode on OSX. Consider installing Linux or Windows :).")
@@ -1612,7 +1613,6 @@ export async function tabopen(...addressarr: string[]) {
             return
         }
     } else if (address != "") url = forceURI(address)
-    else url = forceURI(config.get("newtab"))
 
     activeTabContainerId().then(containerId => {
         // Ensure -c has priority.
