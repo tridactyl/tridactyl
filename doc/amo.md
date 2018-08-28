@@ -56,5 +56,7 @@ Since Tridactyl aims to provide all the features Vimperator and Pentadactyl had,
     -   This is needed for Tridactyl to be able to go back to normal mode every time you open a new page. In the future we may use it for autocommands.
 -   Read the text of all open tabs
     -   This allows us to use Firefox's built-in find-in-page API, for, for example, allowing you to bind find-next and find-previous to `n` and `N`.
+-   Monitor extension usage and manage themes:
+    -   Tridactyl needs this to integrate with and avoid conflicts with other extensions. For example, Tridactyl's contextual identity features use this to cooperate with the Multi-Account Containers extension.
 
 [betas]: https://tridactyl.cmcaine.co.uk/betas/?sort=time&order=desc
