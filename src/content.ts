@@ -192,7 +192,7 @@ config.getAsync("leavegithubalone").then(v => {
         // On quick loading pages, the document is already loaded
         // if (document.location.host == "github.com") {
         document.body.addEventListener("keydown", function(e) {
-            if ("/".indexOf(e.key) != -1) {
+            if ("/".indexOf(e.key) != -1 && state.mode == "normal") {
                 e.cancelBubble = true
                 e.stopImmediatePropagation()
             }
@@ -203,7 +203,7 @@ config.getAsync("leavegithubalone").then(v => {
         window.addEventListener("DOMContentLoaded", () => {
             // if (document.location.host == "github.com") {
             document.body.addEventListener("keydown", function(e) {
-                if ("/".indexOf(e.key) != -1) {
+                if ("/".indexOf(e.key) != -1 && state.mode == "normal") {
                     e.cancelBubble = true
                     e.stopImmediatePropagation()
                 }
