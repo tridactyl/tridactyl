@@ -203,7 +203,15 @@ const DEFAULTS = o({
     autocmds: o({
         DocLoad: o({}),
         DocStart: o({
-            // "addons.mozilla.org": "mode ignore",
+            /** chocolateboy's pagination fixes */
+            "news.ycombinator.com": `js try{document.getElementsByClassName("morelink")[0].rel += " next"}catch(e){}`,
+            /** ars needs more work */
+            // "arstechnica.com": `js try{Array.from(document.querySelectorAll("[rel=next],[rel=prev]")).map(x=>x.rel=""); document.getElementsByClassName("next")[0].rel="next";}catch(e){}`,
+            // "arstechnica.co.uk": `js try{Array.from(document.querySelectorAll("[rel=next],[rel=prev]")).map(x=>x.rel=""); document.getElementsByClassName("next")[0].rel="next";}catch(e){}`,
+            /** prev links need more complex logic, it seems */
+            "amazon.co.uk": `js try{document.getElementById("pagnNextLink").rel="next";}catch(e){}`,
+            // "amazon.co.uk":
+            // "amazon.de":
         }),
         DocEnd: o({
             // "emacs.org": "sanitise history",
@@ -274,7 +282,7 @@ const DEFAULTS = o({
         current_url: "composite get_current_url | fillcmdline_notrail ",
     }),
     followpagepatterns: o({
-        next: "^(next|newer)\\b|»|>>|more",
+        next: "^(next|newer)\\b|»|>>",
         prev: "^(prev(ious)?|older)\\b|«|<<",
     }),
     searchengine: "google",
