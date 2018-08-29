@@ -3002,7 +3002,6 @@ ul.TridactylSetting {
     font-weight: bold;
     font-size: 10pt;
 }
->>>>>>> e1bb76600e8ebc796fe61818217a7ddab59770f9
 
 ul.TridactylSetting li {
     font-family: Monospace;
@@ -3013,8 +3012,8 @@ ul.TridactylSetting li {
     border-radius: 3px;
 }
 
-<<<<<<< HEAD
-.tsd-parent-kind-object-literal > h3, .tsd-sources {
+.tsd-parent-kind-object-literal > h3,
+.tsd-sources {
     display: none;
 }
 
@@ -3029,7 +3028,7 @@ ul.TridactylSetting li {
 
 .tsd-parent-kind-object-literal > .tsd-panel {
     margin: 0px;
-    border-top-width: 0.5px
+    border-top-width: 0.5px;
 }
 
 .tsd-parent-kind-object-literal > .tsd-signature {
@@ -3044,17 +3043,5 @@ ul.TridactylSetting li {
 .tsd-kind-object-literal > .tsd-panel {
     margin: 0px;
     border-top-width: 0.5px;
-    border-top-color: rgb(230,230,230);
+    border-top-color: rgb(230, 230, 230);
 }
-||||||| merged common ancestors
-=======
-/* ul.TridactylSetting li:not(:last-child):after { */
-/*     content: ", "; */
-/*     font-weight: normal; */
-/* } */
->>>>>>> e1bb76600e8ebc796fe61818217a7ddab59770f9
-
-/* Other changes:
- * - removed all background images in CSS above
- * - reset all links to default FF colour
- */
