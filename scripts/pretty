@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Run prettier on each staged file that needs it without touching the working tree
+# Run prettier on each staged file that needs it without touching the working tree copy if they differ.
 
 source ./scripts/common
 
@@ -34,16 +34,24 @@ main() {
     local tmpdir=$(mktemp -p . -d "pretty.XXXXXXXXX")
     IFS=$'\n'
     for file in $stagedFiles; do
-      (
-	cd "$tmpdir"
-	mkdir -p $(dirname $file)
-	lock ../.git/index.lock
-	staged "$file" | prettier --stdin-filepath "$file" > "$file"
-	chmod --reference="../$file" "$file" # match permissions
-	# Can't hold lock while git add occurs. Hopefully release and reacquire happen fast enough to prevent race.
-	unlock ../.git/index.lock
-	GIT_WORK_TREE=. git add "$file"
-      )
+      if cmp -s <(staged "$file") "$file"; then
+	lock .git/index.lock
+	prettier --write "$file"
+	unlock .git/index.lock
+	git add "$file"
+      else
+	echo "WARN: Staged copy of '$file' does not match working copy: only prettifying staged copy."
+	(
+	  cd "$tmpdir"
+	  mkdir -p $(dirname $file)
+	  lock ../.git/index.lock
+	  staged "$file" | prettier --stdin-filepath "$file" > "$file"
+	  chmod --reference="../$file" "$file" # match permissions
+	  # Can't hold lock while git add occurs. Hopefully release and reacquire happen fast enough to prevent race.
+	  unlock ../.git/index.lock
+	  GIT_WORK_TREE=. git add "$file"
+	)
+      fi
     done
     rm -rf "$tmpdir"
   fi
