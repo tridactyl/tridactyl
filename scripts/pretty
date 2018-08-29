@@ -35,6 +35,7 @@ main() {
     IFS=$'\n'
     for file in $stagedFiles; do
       if cmp -s <(staged "$file") "$file"; then
+	echo "WARN: Staged copy of '$file' matches working copy. Modifying both"
 	lock .git/index.lock
 	prettier --write "$file"
 	unlock .git/index.lock
