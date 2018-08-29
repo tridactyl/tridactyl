@@ -6,7 +6,10 @@ class SettingsCompletionOption extends Completions.CompletionOptionHTML
     implements Completions.CompletionOptionFuse {
     public fuseKeys = []
 
-    constructor(public value: string, setting: {name: string, value: string, docs: string}) {
+    constructor(
+        public value: string,
+        setting: { name: string; value: string; docs: string },
+    ) {
         super()
         this.html = html`<tr class="SettingsCompletionOption option">
             <td class="title">${setting.name}</td>
@@ -19,11 +22,7 @@ export class SettingsCompletionSource extends Completions.CompletionSourceFuse {
     public options: SettingsCompletionOption[]
 
     constructor(private _parent) {
-        super(
-            ["set","get"],
-            "SettingsCompletionSource",
-            "Settings",
-        )
+        super(["set", "get", "unset"], "SettingsCompletionSource", "Settings")
 
         this._parent.appendChild(this.node)
     }
@@ -45,9 +44,17 @@ export class SettingsCompletionSource extends Completions.CompletionSourceFuse {
         }
 
         let settings = config.get()
-        this.options = Object.keys(settings).filter(x=>x.startsWith(query)).sort().map(
-            setting => new SettingsCompletionOption(setting, {name: setting, value: JSON.stringify(settings[setting]), docs: ""}),
-        )
+        this.options = Object.keys(settings)
+            .filter(x => x.startsWith(query))
+            .sort()
+            .map(
+                setting =>
+                    new SettingsCompletionOption(setting, {
+                        name: setting,
+                        value: JSON.stringify(settings[setting]),
+                        docs: "",
+                    }),
+            )
         // this.options = [new SettingsCompletionOption("ok", {name: "ok", docs:""})]
 
         this.updateChain()
