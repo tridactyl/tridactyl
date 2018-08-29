@@ -48,27 +48,30 @@ const default_config = {
     // When creating new <modifier-letter> maps, make sure to make the modifier uppercase (e.g. <C-a> instead of <c-a>) otherwise some commands might not be able to find them (e.g. `bind <c-a>`)
     ignoremaps: {
         "<S-Insert>": "mode normal",
-        "<CA-Esc>": "mode normal",
+        "<CA-Escape>": "mode normal",
         "<CA-`>": "mode normal",
+        "<S-Escape>": "mode normal",
+        I: "mode normal",
     },
     inputmaps: {
-        "<Esc>": "composite unfocus | mode normal",
+        "<Escape>": "composite unfocus | mode normal",
         "<C-[>": "composite unfocus | mode normal",
         "<C-i>": "editor",
         "<Tab>": "focusinput -n",
         "<S-Tab>": "focusinput -N",
-        "<CA-Esc>": "mode normal",
+        "<CA-Escape>": "mode normal",
         "<CA-`>": "mode normal",
         "<C-^>": "buffer #",
     },
     imaps: {
-        "<Esc>": "composite unfocus | mode normal",
+        "<Escape>": "composite unfocus | mode normal",
         "<C-[>": "composite unfocus | mode normal",
         "<C-i>": "editor",
-        "<CA-Esc>": "mode normal",
+        "<CA-Escape>": "mode normal",
         "<CA-`>": "mode normal",
         "<C-6>": "buffer #",
         "<C-^>": "buffer #",
+        "<S-Escape>": "mode ignore",
     },
     /**
      * nmaps contain all of the bindings for "normal mode".
@@ -159,6 +162,8 @@ const default_config = {
         F: "hint -b",
         gF: "hint -br",
         ";i": "hint -i",
+        ";b": "hint -b",
+        ";o": "hint",
         ";I": "hint -I",
         ";k": "hint -k",
         ";y": "hint -y",
@@ -173,13 +178,32 @@ const default_config = {
         ";#": "hint -#",
         ";v": "hint -W exclaim_quiet mpv",
         ";w": "hint -w",
+        ";O": "hint -W fillcmdline_notrail open ",
+        ";W": "hint -W fillcmdline_notrail winopen ",
+        ";T": "hint -W fillcmdline_notrail tabopen ",
+        ";gi": "hint -qi",
+        ";gI": "hint -qI",
+        ";gk": "hint -qk",
+        ";gy": "hint -qy",
+        ";gp": "hint -qp",
+        ";gP": "hint -qP",
+        ";gr": "hint -qr",
+        ";gs": "hint -qs",
+        ";gS": "hint -qS",
+        ";ga": "hint -qa",
+        ";gA": "hint -qA",
+        ";g;": "hint -q;",
+        ";g#": "hint -q#",
+        ";gv": "hint -qW exclaim_quiet mpv",
+        ";gw": "hint -qw",
+        ";gb": "hint -qb",
         "<S-Insert>": "mode ignore",
-        "<CA-Esc>": "mode ignore",
+        "<CA-Escape>": "mode ignore",
         "<CA-`>": "mode ignore",
-        "<Esc>": "composite mode normal ; hidecmdline",
+        "<S-Escape>": "mode ignore",
+        I: "mode ignore",
+        "<Escape>": "composite mode normal ; hidecmdline",
         "<C-[>": "composite mode normal ; hidecmdline",
-        I:
-            "fillcmdline_tmp 3000 Ignore mode is now toggled by pressing <S-Insert> or <C-A-`>",
         a: "current_url bmark",
         A: "bmark",
         zi: "zoom 0.1 true",
@@ -219,7 +243,10 @@ const default_config = {
             // "emacs.org": "tabclose",
         },
     },
-
+    autocontain: o({
+        //"github.com": "microsoft",
+        //"youtube.com": "google",
+    }),
     exaliases: {
         alias: "command",
         au: "autocmd",
@@ -244,6 +271,7 @@ const default_config = {
         blast: "tablast",
         tfirst: "tabfirst",
         tlast: "tablast",
+        tab: "buffer",
         bd: "tabclose",
         bdelete: "tabclose",
         quit: "tabclose",
@@ -268,11 +296,6 @@ const default_config = {
             "fillcmdline_tmp 3000 !jsb is deprecated. Please use jsb instead",
         current_url: "composite get_current_url | fillcmdline_notrail ",
     },
-    autocontain: {
-        //"github.com": "microsoft",
-        //"youtube.com": "google",
-    },
-
     /**
      * Used by `]]` and `[[` to look for links containing these words.
      *
@@ -596,7 +619,10 @@ export async function update() {
         },
     }
     if (!get("configversion")) set("configversion", "0.0")
-    while (updaters[get("configversion")] instanceof Function) {
+    const updatetest = v => {
+        return updaters.hasOwnProperty(v) && updaters[v] instanceof Function
+    }
+    while (updatetest(get("configversion"))) {
         await updaters[get("configversion")]()
     }
 }
