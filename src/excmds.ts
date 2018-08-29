@@ -95,7 +95,7 @@
 
 // Shared
 import * as Messaging from "./messaging"
-import { browserBg, activeTabId, activeTabContainerId, openInNewTab } from "./lib/webext"
+import { browserBg, activeTabId, activeTabContainerId, openInNewTab, openInNewWindow } from "./lib/webext"
 import * as Container from "./lib/containers"
 import state from "./state"
 import * as UrlUtil from "./url_util"
@@ -851,7 +851,7 @@ export async function reloadhard(n = 1) {
 // I went through the whole list https://developer.mozilla.org/en-US/Firefox/The_about_protocol
 // about:blank is even more special
 /** @hidden */
-export const ABOUT_WHITELIST = ["about:home", "about:license", "about:logo", "about:rights"]
+export const ABOUT_WHITELIST = ["about:license", "about:logo", "about:rights"]
 
 /** Open a new page in the current tab.
  *
@@ -1602,6 +1602,7 @@ export async function tabopen(...addressarr: string[]) {
     let url: string
     let address = (await argParse(addressarr)).join(" ")
 
+    if (address == "") address = config.get("newtab")
     if (!ABOUT_WHITELIST.includes(address) && address.match(/^(about|file):.*/)) {
         if ((await browser.runtime.getPlatformInfo()).os === "mac" && (await browser.windows.getCurrent()).incognito) {
             fillcmdline_notrail("# nativeopen isn't supported in private mode on OSX. Consider installing Linux or Windows :).")
@@ -1611,7 +1612,6 @@ export async function tabopen(...addressarr: string[]) {
             return
         }
     } else if (address != "") url = forceURI(address)
-    else url = forceURI(config.get("newtab"))
 
     activeTabContainerId().then(containerId => {
         // Ensure -c has priority.
@@ -1762,17 +1762,24 @@ export async function tabclosealltoleft() {
 //#background
 export async function undo() {
     const current_win_id: number = (await browser.windows.getCurrent()).id
-    const sessions = await browser.sessions.getRecentlyClosed()
+    const sessions = await browser.sessions.getRecentlyClosed({ maxResults: 10 })
 
     // The first session object that's a window or a tab from this window. Or undefined if sessions is empty.
-    let closed = sessions.find(s => {
-        return "window" in s || (s.tab && s.tab.windowId == current_win_id)
+    const lastSession = sessions.find(s => {
+        if (s.window) {
+            return true
+        } else if (s.tab && s.tab.windowId === current_win_id) {
+            return true
+        } else {
+            return false
+        }
     })
-    if (closed) {
-        if (closed.tab) {
-            browser.sessions.restore(closed.tab.sessionId)
-        } else if (closed.window) {
-            browser.sessions.restore(closed.window.sessionId)
+
+    if (lastSession) {
+        if (lastSession.tab) {
+            browser.sessions.restore(lastSession.tab.sessionId)
+        } else if (lastSession.window) {
+            browser.sessions.restore(lastSession.window.sessionId)
         }
     }
 }
@@ -2892,7 +2899,6 @@ import * as hinting from "./hinting"
 
     @param option
         - -b open in background
-        - -br repeatedly open in background
         - -y copy (yank) link's target to clipboard
         - -p copy an element's text to the clipboard
         - -P copy an element's title/alt text to the clipboard
@@ -2909,14 +2915,13 @@ import * as hinting from "./hinting"
         - -c [selector] hint links that match the css selector
           - `bind ;c hint -c [class*="expand"],[class="togg"]` works particularly well on reddit and HN
         - -w open in new window
-            -wp open in new private window
-        - `-pipe selector key` e.g, `-pipe * href` returns the key. Only makes sense with `composite`, e.g, `composite hint -pipe * textContent | yank`.
-        - **DEPRECATED** `-W excmd...` append hint href to excmd and execute, e.g, `hint -W exclaim mpv` to open YouTube videos. Use `composite hint -pipe | [excmd]` instead.
+        - -wp open in new private window
+        - `-pipe selector key` e.g, `-pipe * href` returns the key. Only makes sense with `composite`, e.g, `composite hint -pipe * textContent | yank`. If you don't select a hint (i.e. press <Esc>), will return an empty string.
+        - `-W excmd...` append hint href to excmd and execute, e.g, `hint -W exclaim mpv` to open YouTube videos.
+        - -q* quick (or rapid) hints mode. Stay in hint mode until you press <Esc>, e.g. `:hint -qb` to open multiple hints in the background or `:hint -qW excmd` to execute excmd once for each hint. This will return an array containing all elements or the result of executed functions (e.g. `hint -qpipe a href` will return an array of links).
+        - -br deprecated, use `-qb` instead
 
-
-    Excepting the custom selector mode and background hint mode, each of these
-    hint modes is available by default as `;<option character>`, so e.g. `;y`
-    to yank a link's target.
+    Excepting the custom selector mode and background hint mode, each of these hint modes is available by default as `;<option character>`, so e.g. `;y` to yank a link's target; `;g<option character>` starts rapid hint mode for all modes where it makes sense, and some others.
 
     To open a hint in the background, the default bind is `F`.
 
@@ -2943,150 +2948,257 @@ import * as hinting from "./hinting"
 */
 //#content
 export async function hint(option?: string, selectors?: string, ...rest: string[]) {
-    // NB: if you want something to work with rapid hinting, make it return a tuple of [something, hintCount] see option === "-b" below.
+    if (!option) option = ""
+
+    if (option == "-br") option = "-qb"
+
+    let rapid = false
+    if (option.startsWith("-q")) {
+        option = "-" + option.slice(2)
+        rapid = true
+    }
+
     let selectHints = new Promise(r => r())
-    let onSelected = a => a
+    let hintTabOpen = async (href, active = !rapid) => {
+        let containerId = await activeTabContainerId()
+        if (containerId) {
+            return await openInNewTab(href, {
+                active,
+                related: true,
+                cookieStoreId: containerId,
+            })
+        } else {
+            return await openInNewTab(href, {
+                active,
+                related: true,
+            })
+        }
+    }
 
-    // Open in background
-    if (option === "-b") {
-        selectHints = hinting.pipe(DOM.HINTTAGS_selectors)
-        onSelected = async result => {
-            let [link, hintCount] = result as [HTMLAnchorElement, number]
-            link.focus()
-            if (link.href) {
-                let containerId = await activeTabContainerId()
-                if (containerId) {
-                    openInNewTab(link.href, {
-                        active: false,
-                        related: true,
-                        cookieStoreId: containerId,
-                    }).catch(() => DOM.simulateClick(link))
-                } else {
-                    openInNewTab(link.href, {
-                        active: false,
-                        related: true,
-                    }).catch(() => DOM.simulateClick(link))
-                }
+    switch (option) {
+        case "-b":
+            // Open in background
+            selectHints = hinting.pipe(
+                DOM.HINTTAGS_selectors,
+                async link => {
+                    link.focus()
+                    if (link.href) {
+                        hintTabOpen(link.href, false).catch(() => DOM.simulateClick(link))
+                    } else {
+                        DOM.simulateClick(link)
+                    }
+                    return link
+                },
+                rapid,
+            )
+            break
+
+        case "-y":
+            // Yank link
+            selectHints = hinting.pipe(
+                DOM.HINTTAGS_selectors,
+                elem => {
+                    // /!\ Warning: This is racy! This can easily be fixed by adding an await but do we want this? yank can be pretty slow, especially with yankto=selection
+                    run_exstr("yank " + elem["href"])
+                    return elem
+                },
+                rapid,
+            )
+            break
+
+        case "-p":
+            // Yank text content
+            selectHints = hinting.pipe_elements(
+                DOM.elementsWithText(),
+                elem => {
+                    // /!\ Warning: This is racy! This can easily be fixed by adding an await but do we want this? yank can be pretty slow, especially with yankto=selection
+                    run_exstr("yank " + elem["textContent"])
+                    return elem
+                },
+                rapid,
+            )
+            break
+
+        case "-P":
+            // Yank link alt text
+            // ???: Neither anchors nor links posses an "alt" attribute. I'm assuming that the person who wrote this code also wanted to select the alt text of images
+            // https://developer.mozilla.org/en-US/docs/Web/HTML/Element/a
+            // https://developer.mozilla.org/en-US/docs/Web/HTML/Element/link
+            selectHints = hinting.pipe_elements(
+                DOM.getElemsBySelector("[title], [alt]", [DOM.isVisible]),
+                link => {
+                    // /!\ Warning: This is racy! This can easily be fixed by adding an await but do we want this? yank can be pretty slow, especially with yankto=selection
+                    run_exstr("yank " + (link.title ? link.title : link.alt))
+                    return link
+                },
+                rapid,
+            )
+            break
+
+        case "-#":
+            // Yank anchor
+            selectHints = hinting.pipe_elements(
+                DOM.anchors(),
+                link => {
+                    let anchorUrl = new URL(window.location.href)
+                    // ???: What purpose does selecting elements with a name attribute have? Selecting values that only have meaning in forms doesn't seem very useful.
+                    // https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes
+                    anchorUrl.hash = link.id || link.name
+                    // /!\ Warning: This is racy! This can easily be fixed by adding an await but do we want this? yank can be pretty slow, especially with yankto=selection
+                    run_exstr("yank " + anchorUrl.href)
+                    return link
+                },
+                rapid,
+            )
+            break
+
+        case "-c":
+            selectHints = hinting.pipe(
+                selectors,
+                elem => {
+                    DOM.simulateClick(elem as HTMLElement)
+                    return elem
+                },
+                rapid,
+            )
+            break
+
+        case "-W":
+            selectHints = hinting.pipe(
+                DOM.HINTTAGS_selectors,
+                elem => {
+                    // /!\ RACY RACY RACY!
+                    run_exstr(selectors + " " + rest.join(" ") + " " + elem)
+                    return elem
+                },
+                rapid,
+            )
+            break
+
+        case "-pipe":
+            selectHints = hinting.pipe(selectors, elem => elem[rest.join(" ")], rapid)
+            break
+
+        case "-i":
+            selectHints = hinting.pipe_elements(
+                hinting.hintableImages(),
+                elem => {
+                    open(new URL(elem.getAttribute("src"), window.location.href).href)
+                    return elem
+                },
+                rapid,
+            )
+            break
+
+        case "-I":
+            selectHints = hinting.pipe_elements(
+                hinting.hintableImages(),
+                async elem => {
+                    await hintTabOpen(new URL(elem.getAttribute("src"), window.location.href).href)
+                    return elem
+                },
+                rapid,
+            )
+            break
+
+        case "-k":
+            selectHints = hinting.pipe_elements(
+                hinting.killables(),
+                elem => {
+                    elem.remove()
+                    return elem
+                },
+                rapid,
+            )
+            break
+
+        case "-s":
+        case "-a":
+        case "-S":
+        case "-A":
+            let elems = []
+            // s: don't ask the user where to save the file
+            // a: ask the user where to save the file
+            let saveAs = true
+            if (option[1].toLowerCase() == "s") saveAs = false
+            // Lowercase: anchors
+            // Uppercase: images
+            let attr = "href"
+            if (option[1].toLowerCase() == option[1]) {
+                attr = "href"
+                elems = hinting.saveableElements()
             } else {
-                DOM.simulateClick(link)
+                attr = "src"
+                elems = hinting.hintableImages()
             }
-            return [link.href, hintCount]
-        }
+            selectHints = hinting.pipe_elements(
+                elems,
+                elem => {
+                    Messaging.message("download_background", "downloadUrl", [new URL(elem[attr], window.location.href).href, saveAs])
+                    return elem
+                },
+                rapid,
+            )
+            break
+
+        case "-;":
+            selectHints = hinting.pipe_elements(
+                hinting.hintables(selectors),
+                elem => {
+                    elem.focus()
+                    return elem
+                },
+                rapid,
+            )
+            break
+
+        case "-r":
+            selectHints = hinting.pipe_elements(
+                DOM.elementsWithText(),
+                elem => {
+                    TTS.readText(elem.textContent)
+                    return elem
+                },
+                rapid,
+            )
+            break
+
+        case "-w":
+            selectHints = hinting.pipe_elements(
+                hinting.hintables(),
+                elem => {
+                    elem.focus()
+                    if (elem.href) openInNewWindow({ url: new URL(elem.href, window.location.href).href })
+                    else DOM.simulateClick(elem)
+                    return elem
+                },
+                rapid,
+            )
+            break
+
+        case "-wp":
+            selectHints = hinting.pipe_elements(
+                hinting.hintables(),
+                elem => {
+                    elem.focus()
+                    if (elem.href) return openInNewWindow({ url: elem.href, incognito: true })
+                },
+                rapid,
+            )
+            break
+
+        default:
+            selectHints = hinting.pipe(
+                DOM.HINTTAGS_selectors,
+                elem => {
+                    DOM.simulateClick(elem as HTMLElement)
+                    return elem
+                },
+                rapid,
+            )
     }
 
-    // Yank link
-    else if (option === "-y") {
-        selectHints = hinting.pipe(DOM.HINTTAGS_selectors)
-        onSelected = result => {
-            // /!\ Warning: This is racy! This can easily be fixed by adding an await but do we want this? yank can be pretty slow, especially with yankto=selection
-            run_exstr("yank " + result[0]["href"])
-            return result
-        }
-    }
-
-    // Yank text content
-    else if (option === "-p") {
-        selectHints = hinting.pipe_elements(DOM.elementsWithText())
-        onSelected = result => {
-            // /!\ Warning: This is racy! This can easily be fixed by adding an await but do we want this? yank can be pretty slow, especially with yankto=selection
-            run_exstr("yank " + result["textContent"])
-            return result
-        }
-    }
-
-    // Yank link alt text
-    // ???: Neither anchors nor links posses an "alt" attribute. I'm assuming that the person who wrote this code also wanted to select the alt text of images
-    // https://developer.mozilla.org/en-US/docs/Web/HTML/Element/a
-    // https://developer.mozilla.org/en-US/docs/Web/HTML/Element/link
-    else if (option === "-P") {
-        selectHints = hinting.pipe_elements(DOM.getElemsBySelector("[title], [alt]", [DOM.isVisible]))
-        onSelected = result => {
-            let link = result[0] as HTMLAnchorElement & HTMLImageElement
-            // /!\ Warning: This is racy! This can easily be fixed by adding an await but do we want this? yank can be pretty slow, especially with yankto=selection
-            run_exstr("yank " + (link.title ? link.title : link.alt))
-            return result
-        }
-    }
-
-    // Yank anchor
-    else if (option === "-#") {
-        selectHints = hinting.pipe_elements(DOM.anchors())
-        onSelected = result => {
-            let anchorUrl = new URL(window.location.href)
-            let link = result[0] as any
-            // ???: What purpose does selecting elements with a name attribute have? Selecting values that only have meaning in forms doesn't seem very useful.
-            // https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes
-            anchorUrl.hash = link.id || link.name
-            // /!\ Warning: This is racy! This can easily be fixed by adding an await but do we want this? yank can be pretty slow, especially with yankto=selection
-            run_exstr("yank " + anchorUrl.href)
-            return result
-        }
-    } else if (option === "-c") {
-        selectHints = hinting.pipe(selectors)
-        onSelected = result => {
-            DOM.simulateClick(result[0] as HTMLElement)
-            return result
-        }
-    }
-    // Deprecated: hint exstr
-    else if (option === "-W") {
-        selectHints = hinting.pipe(DOM.HINTTAGS_selectors)
-        onSelected = result => {
-            // /!\ RACY RACY RACY!
-            run_exstr(selectors + " " + rest.join(" ") + " " + result[0])
-            return result
-        }
-    } else if (option === "-pipe") {
-        selectHints = hinting.pipe(selectors)
-        onSelected = result => result[0][rest.join(" ")]
-    } else if (option === "-br") {
-        while (true) {
-            // The typecast can be removed once the function is completely ported
-            let result = (await hint("-b")) as [HTMLElement, number]
-            if (result === null) return null
-            let [_, hintCount] = result
-            if (hintCount < 2) break
-        }
-    }
-
-    // TODO: port these to new fangled way
-    else if (option === "-i") hinting.hintImage(false)
-    else if (option === "-I") hinting.hintImage(true)
-    else if (option === "-k") hinting.hintKill()
-    else if (option === "-s") hinting.hintSave("link", false)
-    else if (option === "-S") hinting.hintSave("img", false)
-    else if (option === "-a") hinting.hintSave("link", true)
-    else if (option === "-A") hinting.hintSave("img", true)
-    else if (option === "-;") hinting.hintFocus(selectors)
-    else if (option === "-r") hinting.hintRead()
-    else if (option === "-w") hinting.hintPageWindow()
-    else if (option === "-wp") hinting.hintPageWindowPrivate()
-    else {
-        selectHints = hinting.pipe(DOM.HINTTAGS_selectors)
-        onSelected = result => {
-            DOM.simulateClick(result[0] as HTMLElement)
-            return result
-        }
-    }
-
-    return new Promise((resolve, reject) =>
-        selectHints.then(
-            async result => resolve(await onSelected(result)),
-            rejectionReason => {
-                // We have to resolve when we don't want to have our messages be logged in the command line but this feels wrong since no hint has been selected
-                // Perhaps we should implement a mechanism to allow specific errors to go unreported?
-                if (rejectionReason == hinting.HintRejectionReason.User) {
-                    logger.debug("Hint promise rejected because user left hint mode without selecting a hint")
-                    resolve(null)
-                } else if (rejectionReason == hinting.HintRejectionReason.NoHints) {
-                    logger.debug("Hint promise rejected because there are no hints to select")
-                    resolve(null)
-                } else {
-                    reject(rejectionReason)
-                }
-            },
-        ),
-    )
+    return selectHints
 }
 
 // how 2 crash pc

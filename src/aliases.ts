@@ -34,3 +34,23 @@ export function expandExstr(
         prevExpansions,
     )
 }
+
+/**
+ * Get all aliases for all commands.
+ *
+ * @param aliases An object mapping aliases to commands
+ * @return commands An object mapping commands to an array of aliases
+ */
+export function getCmdAliasMapping(
+    aliases = config.get("exaliases"),
+): { [str: string]: string[] } {
+    let commands = {}
+    // aliases look like this: {alias: command} but what we really need is this: {command: [alias1, alias2...]}
+    // This is what this loop builds
+    for (let alias in aliases) {
+        let cmd = expandExstr(alias, aliases).trim()
+        if (!commands[cmd]) commands[cmd] = []
+        commands[cmd].push(alias.trim())
+    }
+    return commands
+}

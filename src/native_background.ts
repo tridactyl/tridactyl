@@ -381,6 +381,10 @@ export async function getProfileDir() {
         }
     }
 
+    if (config.get("profiledir") != "auto") {
+        return config.get("profiledir")
+    }
+
     // First, see if we can get the profile from the arguments that were given
     // to Firefox
     let args = await ffargs()

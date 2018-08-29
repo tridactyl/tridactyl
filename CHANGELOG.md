@@ -1,5 +1,48 @@
 # Tridactyl changelog
 
+## Release 1.13.3 / 2018-08-21
+
+*   New features:
+
+    *   Our command line now has more completions:
+
+        *   Ex commands and ex aliases with a little bit of help for each command.
+        *   Settings, showing their current value (currently does not support options within options)
+
+    *   Rapid hint mode improvements:
+        *   Less jank (particularly if you hold a key down)
+        *   Most hint modes now have a rapid mode with `hint -q[flag]` and bound to `;g[key]`
+            *   The divergence from Pentadactyl is because we already have `g;` bound to "switch to tab containing last used input field and focus it", which is my pet favourite command.
+    *   `tab` is now an alias for `buffer` (I meant to add this months ago)
+
+*   Old features:
+
+    *   More hint modes from Pentadactyl that no-one missed added:
+        *   `;O`, `;W`, and `;T` pre-fill the command line with the hinted URL and open/tabopen/winopen.
+    *   Added I, Shift-Escape ignore binds back
+        *   You can unbind them with `unbind --mode=... [key]`
+
+*   Bug fixes:
+
+    *   Yank element text hint mode was broken (`;p`) and we fixed it by accident
+    *   You can now unbind keys which were bound to `Esc` by default (#921)
+    *   Less console spam: fixed "1.1" error if config was at latest version
+    *   Our command line now plays nicely with left scrollbars (#909)
+    *   `guiset gui none` now pads maximised windows to fix a bug on Windows where the top of the page is cut off
+
+*   Boring internal changes:
+
+    *   All hint modes now use a newfangled method with less message passing
+    *   We're now using Typescript 3
+    *   We now generate a bunch of metadata about Tridactyl for use with introspection
+        *   As an added bonus, build times are now a bit slower.
+
+Thanks to all of our contributors for this release: Oliver Blanthorn, glacambre, Anton Vilhelm Ásgeirsson, and Henré Botha.
+
+Extra special thanks go to Henré Botha, who contributed for the first time.
+
+Last, but not least - thank you to everyone who reported issues.
+
 ## Release 1.13.2 / 2018-08-15
 
 *   New features:

@@ -42,7 +42,7 @@ export class BufferAllCompletionSource extends Completions.CompletionSourceFuse 
     public options: BufferAllCompletionOption[]
 
     constructor(private _parent) {
-        super(["bufferall "], "BufferAllCompletionSource", "All Buffers")
+        super(["bufferall"], "BufferAllCompletionSource", "All Buffers")
 
         this.updateOptions()
         this._parent.appendChild(this.node)
