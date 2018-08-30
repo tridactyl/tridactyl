@@ -1089,15 +1089,6 @@ ul.tsd-descriptions > li > :last-child > :last-child > :last-child {
     background-position: -221px -68px;
 }
 
-.tsd-signature {
-    text-align: left;
-}
-
-.tsd-flag {
-    font-size: unset;
-    border-radius: 2px;
-}
-
 .tsd-kind-method > .tsd-kind-icon:before {
     background-position: -136px -68px;
 }
@@ -3012,36 +3003,12 @@ ul.TridactylSetting li {
     border-radius: 3px;
 }
 
-.tsd-parent-kind-object-literal > h3,
-.tsd-sources {
-    display: none;
-}
+/* ul.TridactylSetting li:not(:last-child):after { */
+/*     content: ", "; */
+/*     font-weight: normal; */
+/* } */
 
-.tsd-parent-kind-object-literal > .tsd-signature {
-    border: none;
-}
-
-.tsd-panel {
-    padding: 0px;
-    padding-left: 3rem;
-}
-
-.tsd-parent-kind-object-literal > .tsd-panel {
-    margin: 0px;
-    border-top-width: 0.5px;
-}
-
-.tsd-parent-kind-object-literal > .tsd-signature {
-    margin: 0px;
-    padding: 3px;
-}
-
-.tsd-signature-type {
-    display: none;
-}
-
-.tsd-kind-object-literal > .tsd-panel {
-    margin: 0px;
-    border-top-width: 0.5px;
-    border-top-color: rgb(230, 230, 230);
-}
+/* Other changes:
+ * - removed all background images in CSS above
+ * - reset all links to default FF colour
+ */

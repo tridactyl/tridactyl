@@ -4,7 +4,7 @@ import * as Logging from "./logging"
 
 const logger = new Logging.Logger("styling")
 
-const THEMES = staticThemes
+export const THEMES = staticThemes
 
 function capitalise(str) {
     if (str === "") return str

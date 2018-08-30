@@ -44,8 +44,20 @@ let USERCONFIG = o({})
  *
  */
 const default_config = {
+    /**
+     * Internal version number Tridactyl uses to know whether it needs to update from old versions of the configuration.
+     *
+     * Changing this might do weird stuff.
+     */
     configversion: "0.0",
-    // When creating new <modifier-letter> maps, make sure to make the modifier uppercase (e.g. <C-a> instead of <c-a>) otherwise some commands might not be able to find them (e.g. `bind <c-a>`)
+
+    // Note to developers: When creating new <modifier-letter> maps, make sure to make the modifier uppercase (e.g. <C-a> instead of <c-a>) otherwise some commands might not be able to find them (e.g. `bind <c-a>`)
+
+    /**
+     * ignoremaps contain all of the bindings for "ignore mode".
+     *
+     * They consist of key sequences mapped to ex commands.
+     */
     ignoremaps: {
         "<S-Insert>": "mode normal",
         "<CA-Escape>": "mode normal",
@@ -53,6 +65,12 @@ const default_config = {
         "<S-Escape>": "mode normal",
         I: "mode normal",
     },
+
+    /**
+     * inputmaps contain all of the bindings for "input mode".
+     *
+     * They consist of key sequences mapped to ex commands.
+     */
     inputmaps: {
         "<Escape>": "composite unfocus | mode normal",
         "<C-[>": "composite unfocus | mode normal",
@@ -63,6 +81,12 @@ const default_config = {
         "<CA-`>": "mode normal",
         "<C-^>": "buffer #",
     },
+
+    /**
+     * imaps contain all of the bindings for "insert mode".
+     *
+     * They consist of key sequences mapped to ex commands.
+     */
     imaps: {
         "<Escape>": "composite unfocus | mode normal",
         "<C-[>": "composite unfocus | mode normal",
@@ -73,6 +97,7 @@ const default_config = {
         "<C-^>": "buffer #",
         "<S-Escape>": "mode ignore",
     },
+
     /**
      * nmaps contain all of the bindings for "normal mode".
      *
@@ -213,6 +238,7 @@ const default_config = {
         "<SA-ArrowUp><SA-ArrowUp><SA-ArrowDown><SA-ArrowDown><SA-ArrowLeft><SA-ArrowRight><SA-ArrowLeft><SA-ArrowRight>ba":
             "open https://www.youtube.com/watch?v=M3iOROuTuMA",
     },
+
     /**
      * Autocommands that run when certain events happen, and other conditions are met.
      *
@@ -220,33 +246,75 @@ const default_config = {
      */
     autocmds: {
         /**
-         * Commands that will be run when pages are loaded.
+         * Commands that will be run as soon as Tridactyl loads into a page.
          *
          * Each key corresponds to a URL fragment which, if contained within the page URL, will run the corresponding command.
          */
         DocStart: {
             // "addons.mozilla.org": "mode ignore",
         },
+
+        /**
+         * Commands that will be run when pages are loaded.
+         *
+         * Each key corresponds to a URL fragment which, if contained within the page URL, will run the corresponding command.
+         */
         DocLoad: {},
+
+        /**
+         * Commands that will be run when pages are unloaded.
+         *
+         * Each key corresponds to a URL fragment which, if contained within the page URL, will run the corresponding command.
+         */
         DocEnd: {
             // "emacs.org": "sanitise history",
         },
+
+        /**
+         * Commands that will be run when Tridactyl first runs each time you start your browser.
+         *
+         * Each key corresponds to a URL fragment which, if contained within the page URL, will run the corresponding command.
+         */
         TriStart: {
             ".*": "source_quiet",
         },
+
+        /**
+         * Commands that will be run when you enter a tab.
+         *
+         * Each key corresponds to a URL fragment which, if contained within the page URL, will run the corresponding command.
+         */
         TabEnter: {
             // "gmail.com": "mode ignore",
         },
+
+        /**
+         * Commands that will be run when you leave a tab.
+         *
+         * Each key corresponds to a URL fragment which, if contained within the page URL, will run the corresponding command.
+         */
         TabLeft: {
             // Actually, this doesn't work because tabclose closes the current tab
             // Too bad :/
             // "emacs.org": "tabclose",
         },
     },
+
+    /**
+     * Automatically place these sites in the named container.
+     *
+     * Each key corresponds to a URL fragment which, if contained within the page URL, the site will be opened in a container tab instead.
+     */
     autocontain: o({
         //"github.com": "microsoft",
         //"youtube.com": "google",
     }),
+
+    /**
+     * Aliases for the commandline.
+     *
+     * You can make a new one with `command alias ex-command`.
+     */
     exaliases: {
         alias: "command",
         au: "autocmd",
@@ -296,6 +364,7 @@ const default_config = {
             "fillcmdline_tmp 3000 !jsb is deprecated. Please use jsb instead",
         current_url: "composite get_current_url | fillcmdline_notrail ",
     },
+
     /**
      * Used by `]]` and `[[` to look for links containing these words.
      *
@@ -305,10 +374,12 @@ const default_config = {
         next: "^(next|newer\\b|»|>>|more",
         prev: "^(prev(ious?|older\\b|«|<<",
     },
+
     /**
      * The default search engine used by `open search`
      */
     searchengine: "google",
+
     /**
      * Definitions of search engines for use via `open [keyword]`.
      */
@@ -344,19 +415,26 @@ const default_config = {
      * All usual rules about things you can open with `open` apply, with the caveat that you'll get interesting results if you try to use something that needs `nativeopen`: so don't try `about:newtab`.
      */
     newtab: "",
+
     /**
      * Whether `:viewsource` will use our own page that you can use Tridactyl binds on, or Firefox's default viewer, which you cannot use Tridactyl on.
      *
      * Permitted values: `tridactyl` or `default`.
      */
     viewsource: "tridactyl", // "tridactyl" or "default"
+
     /**
      * Which storage to use. Sync storage will synchronise your settings via your Firefox Account.
      *
      * Permitted values: `sync` or `local`
      */
     storageloc: "sync",
+
+    /**
+     * Pages opened with `gH`.
+     */
     homepages: [],
+
     /**
      * Characters to use in hint mode.
      *
@@ -370,25 +448,57 @@ const default_config = {
      * Permitted values: `simple`, `vimperator`, or `vimperator-reflow`.
      */
     hintfiltermode: "simple", // "simple", "vimperator", "vimperator-reflow"
+
+    /**
+     * Whether to optimise for the shortest possible names for each hint, or to use a simple numerical ordering. If set to `numeric`, overrides `hintchars` setting.
+     *
+     * Permitted values: `short` or `numeric`
+     */
     hintnames: "short",
+
+    /**
+     * Whether to display the names for hints in uppercase.
+     */
     hintuppercase: "true",
+
+    /**
+     * The delay in milliseconds in `vimperator` style hint modes after selecting a hint before you are returned to normal mode.
+     *
+     * The point of this is to prevent accidental execution of normal mode binds due to people typing more than is necessary to choose a hint.
+     */
     hintdelay: "300",
 
     /**
      * Controls whether the page can focus elements for you via js
      *
-     * Best used in conjuciton with browser.autofocus in `about:config`
+     * Best used in conjunction with browser.autofocus in `about:config`
      *
      * Permitted values: `true`, or `false`.
      */
     allowautofocus: "true",
 
-    // These two options will fall back to user's preferences and then to a
-    // default value set in scrolling.ts if left undefined.
+    /**
+     * Whether to use Tridactyl's (bad) smooth scrolling.
+     */
     smoothscroll: "false", // "false" | "true"
+
+    /**
+     * How viscous you want smooth scrolling to feel.
+     */
     scrollduration: 100, // number
 
+    /**
+     * Where to open tabs opened with `tabopen` - to the right of the current tab, or at the end of the tabs.
+     *
+     * Permitted values: `next`, or `last`.
+     */
     tabopenpos: "next",
+
+    /**
+     * Where to open tabs opened with hinting - as if it had been middle clicked, to the right of the current tab, or at the end of the tabs.
+     *
+     * Permitted values: `related, `next`, or `last`.
+     */
     relatedopenpos: "related",
     ttsvoice: "default", // chosen from the listvoices list, or "default"
     ttsvolume: 1, // 0 to 1
@@ -408,12 +518,24 @@ const default_config = {
     // Decides where to place the cursor when selecting non-empty input fields
     cursorpos: "end",
 
+    /**
+     * The theme to use.
+     *
+     * Permitted values: run `:composite js tri.styling.THEMES | fillcmdline` to find out.
+     */
     theme: "default", // currently available: "default", "dark"
     modeindicator: "true",
 
-    jumpdelay: 3000, // Milliseconds before registering a scroll in the jumplist
+    /*
+     * Milliseconds before registering a scroll in the jumplist
+     */
+    jumpdelay: 3000,
 
-    // Default logging levels - 2 === WARNING
+    /*
+     * Default logging levels - 2 === WARNING
+     * 
+     * NB: these cannot be set directly with `set` - you must use magic words such as `WARNING` or `DEBUG`.
+     */
     logging: {
         messaging: 2,
         cmdline: 2,
@@ -426,41 +548,84 @@ const default_config = {
     },
     noiframeon: [],
 
-    // Native messenger settings
-    // This has to be a command that stays in the foreground for the whole editing session
-    // "auto" will attempt to find a sane editor in your path.
-    // Please send your requests to have your favourite terminal moved further up the list to /dev/null.
-    //          (but we are probably happy to add your terminal to the list if it isn't already there.
+    /* 
+     * Insert / input mode edit-in-$EDITOR command to run
+     * This has to be a command that stays in the foreground for the whole editing session
+     * "auto" will attempt to find a sane editor in your path.
+     * Please send your requests to have your favourite terminal moved further up the list to /dev/null.
+     *          (but we are probably happy to add your terminal to the list if it isn't already there.)
+     */
     editorcmd: "auto",
+
+    /* 
+     * The browser executable to look for in commands such as `restart`. Not as mad as it seems if you have multiple versions of Firefox...
+     */
     browser: "firefox",
-    yankto: "clipboard", // "clipboard", "selection", "both"
-    putfrom: "clipboard", // "clipboard", "selection"
+
+    /* 
+     * Which clipboard to store items in. Requires the native messenger to be installed.
+     *
+     * Permitted values: `clipboard`, `selection`, or `both`.
+     */
+    yankto: "clipboard",
+
+    /* 
+     * Which clipboard to retrieve items from. Requires the native messenger to be installed.
+     *
+     * Permitted values: `clipboard`, or `selection`.
+     */
+    putfrom: "clipboard",
+
+    /* 
+     * Clipboard command to try to get the selection from (e.g. `xsel` or `xclip`)
+     */
     externalclipboardcmd: "auto",
+
+    /* 
+     * Set this to something weird if you want to have fun every time Tridactyl tries to update its native messenger. 
+     */
     nativeinstallcmd:
         "curl -fsSl https://raw.githubusercontent.com/cmcaine/tridactyl/master/native/install.sh | bash",
+
+    /* 
+     * Set this to something weird if you want to have fun every time Tridactyl tries to update its native messenger. 
+     */
     win_nativeinstallcmd:
         "powershell -NoProfile -InputFormat None -Command \"Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/cmcaine/tridactyl/master/native/win_install.ps1'))\"",
+
+    /* 
+     * Profile directory to use with native messenger with e.g, `guiset`.
+     */
     profiledir: "auto",
 
     // Container settings
 
-    // If enabled, tabopen opens a new tab in the currently active tab's container.
+    /*
+     * If enabled, tabopen opens a new tab in the currently active tab's container.
+     */
     tabopencontaineraware: "false",
 
-    // If moodeindicator is enabled, containerindicator will color the border of the mode indicator with the container color.
+    /*
+     * If moodeindicator is enabled, containerindicator will color the border of the mode indicator with the container color.
+     */
     containerindicator: "true",
 
-    // Autocontain directives create a container if it doesn't exist already.
+    /*
+     * Autocontain directives create a container if it doesn't exist already.
+     */
     auconcreatecontainer: "true",
 
-    // Performance related settings
-
-    // number of most recent results to ask Firefox for. We display the top 20 or so most frequently visited ones.
+    /*
+     * Number of most recent results to ask Firefox for. We display the top 20 or so most frequently visited ones.
+     */
     historyresults: "50",
 
-    // Security settings
-
-    csp: "untouched", // change this to "clobber" to ruin the CSP of all sites and make Tridactyl run a bit better on some of them, e.g. raw.github*
+    /*
+     * Change this to "clobber" to ruin the "Content Security Policy" of all sites a bit and make Tridactyl run a bit better on some of them, e.g. raw.github*
+     *
+     * Permitted values: `untouched`, or `clobber`.
+     */
+    csp: "untouched",
 }
 
 /** @hidden */
