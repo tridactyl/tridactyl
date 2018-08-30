@@ -5,6 +5,7 @@
 *   New features:
 
     *   Our command line now has more completions:
+
         *   Ex commands and ex aliases with a little bit of help for each command.
         *   Settings, showing their current value (currently does not support options within options)
 

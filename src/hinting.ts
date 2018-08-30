@@ -55,10 +55,11 @@ class HintState {
         // Remove all hints from the DOM.
         this.hintHost.remove()
 
-        if (this.rapid)
-            this.resolve(this.selectedHints.map(h => h.result))
+        if (this.rapid) this.resolve(this.selectedHints.map(h => h.result))
         else
-            this.resolve(this.selectedHints[0] ? this.selectedHints[0].result : "")
+            this.resolve(
+                this.selectedHints[0] ? this.selectedHints[0].result : "",
+            )
     }
 }
 

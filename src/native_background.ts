@@ -208,7 +208,7 @@ export async function firstinpath(cmdarray) {
     let ind = 0
     let cmd = cmdarray[ind]
     // Try to find a text editor
-    while (!(await inpath(cmd.split(" ")[0]))) {
+    while (!await inpath(cmd.split(" ")[0])) {
         ind++
         cmd = cmdarray[ind]
         if (cmd === undefined) break
@@ -252,7 +252,7 @@ export async function winFirefoxRestart(
 ) {
     let required_version = "0.1.6"
 
-    if (!(await nativegate(required_version, false))) {
+    if (!await nativegate(required_version, false)) {
         throw `'restart' on Windows needs native messenger version >= ${required_version}.`
     }
 
@@ -275,7 +275,7 @@ export async function pyeval(command: string): Promise<MessageResp> {
 export async function getenv(variable: string) {
     let required_version = "0.1.2"
 
-    if (!(await nativegate(required_version, false))) {
+    if (!await nativegate(required_version, false)) {
         throw `'getenv' needs native messenger version >= ${required_version}.`
     }
 

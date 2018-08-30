@@ -39,10 +39,9 @@
         - `ignoremaps`: ignore mode binds
         - `exaliases`: aliases in the command mode
 
+    At the bottom of each function's help page, you can click on a link that will take you straight to that function's definition in our code.
+
     You do not need to worry about types. Return values which are promises will turn into whatever they promise to when used in [[composite]].
-
-    At the bottom of each function's help page, you can click on a link that will take you straight to that function's definition in our code. This is especially recommended for browsing the [config](/static/docs/modules/_src_config_.html#defaults) which is nigh-on unreadable on these pages.
-
 
     ## Highlighted features:
 
