@@ -1,6 +1,5 @@
-#!/bin/bash -e
-# Ideally this would be /usr/bin/env but shebangs are actually not as portable as they look
-# https://stackoverflow.com/questions/4303128/how-to-use-multiple-arguments-for-awk-with-a-shebang-i-e
+#!/usr/bin/env bash
+set -e
 
 # This script must be run from the root Tridactyl directory
 TRIDIR="$(pwd)"
