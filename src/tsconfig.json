@@ -12,5 +12,8 @@
       "~/*": ["*"]
     }
   },
-  "files": ["content.ts"]
+  "files": [
+    "content.ts",
+    "background.ts"
+  ]
 }

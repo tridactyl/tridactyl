@@ -1,0 +1,1 @@
+import "~/dispatch_test"
