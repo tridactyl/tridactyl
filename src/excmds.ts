@@ -99,6 +99,7 @@ import * as Messaging from "./messaging"
 import { browserBg, activeTabId, activeTabContainerId, openInNewTab, openInNewWindow } from "./lib/webext"
 import * as Container from "./lib/containers"
 import state from "./state"
+import { contentState, ModeName } from "./content_state"
 import * as UrlUtil from "./url_util"
 import * as config from "./config"
 import * as aliases from "./aliases"
@@ -124,8 +125,6 @@ import * as scrolling from "./scrolling"
 import { messageTab, messageActiveTab } from "./messaging"
 import { flatten } from "./itertools"
 import "./number.mod"
-import { ModeName } from "./state"
-import * as keydown from "./keydown_background"
 import { activeTab, firefoxVersionAtLeast } from "./lib/webext"
 import * as CommandLineBackground from "./commandline_background"
 import * as rc from "./config_rc"
@@ -715,7 +714,7 @@ document.addEventListener("load", () => curJumps().then(() => jumpprev(0)))
 //#content
 export function unfocus() {
     ;(document.activeElement as HTMLInputElement).blur()
-    state.mode = "normal"
+    contentState.mode = "normal"
 }
 
 /** Scrolls the window or any scrollable child element by a pixels on the horizontal axis and b pixels on the vertical axis.
@@ -787,16 +786,16 @@ export function scrollpage(n = 1) {
     scrollpx(0, window.innerHeight * n)
 }
 
-//#background_helper
-import * as finding from "./finding_background"
+//#content_helper
+import * as finding from "./finding"
 
 /** Start find mode. Work in progress.
  *
  * @param direction - the direction to search in: 1 is forwards, -1 is backwards.
  *
  */
-//#background
-export function find(direction?: number) {
+//#content
+export function find(direction?: -1 | 1) {
     if (direction === undefined) direction = 1
     finding.findPage(direction)
 }
@@ -806,9 +805,9 @@ export function find(direction?: number) {
  * @param number - number of words to advance down the page (use 1 for next word, -1 for previous)
  *
  */
-//#background
+//#content
 export function findnext(n: number) {
-    finding.findPageNavigate(n)
+    finding.navigate(n)
 }
 
 /** @hidden */
@@ -1453,8 +1452,8 @@ export function focusinput(nth: number | string) {
 
     if (inputToFocus) {
         DOM.focus(inputToFocus)
-        if (config.get("gimode") === "nextinput" && state.mode !== "input") {
-            state.mode = "input"
+        if (config.get("gimode") === "nextinput" && contentState.mode !== "input") {
+            contentState.mode = "input"
         }
     }
 }
@@ -2063,7 +2062,7 @@ export function version() {
 /** Example:
         - `mode ignore` to ignore all keys.
 */
-//#background
+//#content
 export function mode(mode: ModeName) {
     // TODO: event emition on mode change.
     if (mode === "hint") {
@@ -2071,7 +2070,7 @@ export function mode(mode: ModeName) {
     } else if (mode === "find") {
         find()
     } else {
-        state.mode = mode
+        contentState.mode = mode
     }
 }
 
@@ -2118,7 +2117,7 @@ async function getnexttabs(tabid: number, n?: number) {
 // {{{ CMDLINE
 
 //#background_helper
-import * as controller from "./controller"
+import * as controller from "./controller_background"
 
 /** Repeats a `cmd` `n` times.
     Falls back to the last executed command if `cmd` doesn't exist.

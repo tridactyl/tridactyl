@@ -4,14 +4,13 @@ const logger = new Logger("messaging")
 
 export type TabMessageType =
     | "excmd_content"
-    | "keydown_content"
     | "commandline_content"
     | "commandline_frame"
     | "hinting_content"
     | "finding_content"
 export type NonTabMessageType =
-    | "keydown_background"
     | "commandline_background"
+    | "controller_background"
     | "browser_proxy_background"
     | "download_background"
 export type MessageType = TabMessageType | NonTabMessageType
@@ -83,7 +82,9 @@ export async function messageTab(tabId, type: TabMessageType, command, args?) {
         command,
         args,
     }
-    return browserBg.tabs.sendMessage(tabId, message)
+    return browserBg.tabs.sendMessage(tabId, message).catch((e) => {
+        logger.error(e, tabId, message)
+    })
 }
 
 export async function messageAllTabs(

@@ -4,13 +4,25 @@
 // assigned to a name.  If you want an import just for its side effects, make
 // sure you import it like this:
 import "./lib/html-tagged-template"
-/* import "./keydown_content" */
 /* import "./commandline_content" */
 /* import "./excmds_content" */
 /* import "./hinting" */
 import * as Logging from "./logging"
 const logger = new Logging.Logger("content")
 logger.debug("Tridactyl content script loaded, boss!")
+
+// Our local state
+import {contentState, addContentStateChangedListener }  from "./content_state"
+
+// Hook the keyboard up to the controller
+import * as ContentController from "./controller_content"
+try {
+    document.body.addEventListener("keydown", ContentController.acceptKey)
+} catch (e) {
+    window.addEventListener("DOMContentLoaded", () => {
+        document.body.addEventListener("keydown", ContentController.acceptKey)
+    })
+}
 
 // Add various useful modules to the window for debugging
 import * as commandline_content from "./commandline_content"
@@ -21,7 +33,6 @@ import * as excmds from "./.excmds_content.generated"
 import * as hinting_content from "./hinting"
 import * as finding_content from "./finding"
 import * as itertools from "./itertools"
-import * as keydown_content from "./keydown_content"
 import * as messaging from "./messaging"
 import * as msgsafe from "./msgsafe"
 import state from "./state"
@@ -30,28 +41,29 @@ import Mark from "mark.js"
 import * as keyseq from "./keyseq"
 import * as native from "./native_background"
 import * as styling from "./styling"
-;(window as any).tri = Object.assign(Object.create(null), {
-    browserBg: webext.browserBg,
-    commandline_content,
-    convert,
-    config,
-    dom,
-    excmds,
-    hinting_content,
-    finding_content,
-    itertools,
-    keydown_content,
-    logger,
-    Mark,
-    keyseq,
-    messaging,
-    msgsafe,
-    state,
-    webext,
-    l: prom => prom.then(console.log).catch(console.error),
-    native,
-    styling,
-})
+    ; (window as any).tri = Object.assign(Object.create(null), {
+        browserBg: webext.browserBg,
+        commandline_content,
+        convert,
+        config,
+        dom,
+        excmds,
+        hinting_content,
+        finding_content,
+        itertools,
+        logger,
+        Mark,
+        keyseq,
+        messaging,
+        msgsafe,
+        state,
+        webext,
+        l: prom => prom.then(console.log).catch(console.error),
+        native,
+        styling,
+    })
+
+logger.info("Loaded commandline content?", commandline_content)
 
 // Don't hijack on the newtab page.
 if (webext.inContentScript()) {
@@ -141,46 +153,50 @@ config.getAsync("modeindicator").then(mode => {
         }
         window.addEventListener("mousemove", onMouseOut)
     })
+
     try {
         // On quick loading pages, the document is already loaded
-        statusIndicator.textContent = state.mode || "normal"
+        statusIndicator.textContent = contentState.mode || "normal"
         document.body.appendChild(statusIndicator)
         document.head.appendChild(style)
     } catch (e) {
         // But on slower pages we wait for the document to load
         window.addEventListener("DOMContentLoaded", () => {
-            statusIndicator.textContent = state.mode || "normal"
+            statusIndicator.textContent = contentState.mode || "normal"
             document.body.appendChild(statusIndicator)
             document.head.appendChild(style)
         })
     }
 
-    browser.storage.onChanged.addListener((changes, areaname) => {
-        if (areaname === "local" && "state" in changes) {
-            let mode = changes.state.newValue.mode
-            const privateMode = browser.extension.inIncognitoContext
-                ? "TridactylPrivate"
-                : ""
-            statusIndicator.className =
-                "cleanslate TridactylStatusIndicator " + privateMode
-            if (
-                dom.isTextEditable(document.activeElement) &&
-                !["input", "ignore"].includes(mode)
-            ) {
-                statusIndicator.textContent = "insert"
-                // this doesn't work; statusIndicator.style is full of empty string
-                // statusIndicator.style.borderColor = "green !important"
-                // need to fix loss of focus by click: doesn't do anything here.
-            } else if (
-                mode === "insert" &&
-                !dom.isTextEditable(document.activeElement)
-            ) {
-                statusIndicator.textContent = "normal"
-                // statusIndicator.style.borderColor = "lightgray !important"
-            } else {
-                statusIndicator.textContent = mode
-            }
+    addContentStateChangedListener((property, oldValue, newValue) => {
+        if (property != "mode") {
+            return
         }
+        
+        let mode = newValue
+        const privateMode = browser.extension.inIncognitoContext
+            ? "TridactylPrivate"
+            : ""
+        statusIndicator.className =
+            "cleanslate TridactylStatusIndicator " + privateMode
+        if (
+            dom.isTextEditable(document.activeElement) &&
+                !["input", "ignore"].includes(mode)
+        ) {
+            statusIndicator.textContent = "insert"
+            // this doesn't work; statusIndicator.style is full of empty string
+            // statusIndicator.style.borderColor = "green !important"
+            // need to fix loss of focus by click: doesn't do anything here.
+        } else if (
+            mode === "insert" &&
+                !dom.isTextEditable(document.activeElement)
+        ) {
+            statusIndicator.textContent = "normal"
+            // statusIndicator.style.borderColor = "lightgray !important"
+        } else {
+            statusIndicator.textContent = mode
+        }
+
         if (config.get("modeindicator") !== "true") statusIndicator.remove()
     })
 })
@@ -192,7 +208,7 @@ config.getAsync("leavegithubalone").then(v => {
         // On quick loading pages, the document is already loaded
         // if (document.location.host == "github.com") {
         document.body.addEventListener("keydown", function(e) {
-            if ("/".indexOf(e.key) != -1 && state.mode == "normal") {
+            if ("/".indexOf(e.key) != -1 && contentState.mode == "normal") {
                 e.cancelBubble = true
                 e.stopImmediatePropagation()
             }
@@ -203,7 +219,7 @@ config.getAsync("leavegithubalone").then(v => {
         window.addEventListener("DOMContentLoaded", () => {
             // if (document.location.host == "github.com") {
             document.body.addEventListener("keydown", function(e) {
-                if ("/".indexOf(e.key) != -1 && state.mode == "normal") {
+                if ("/".indexOf(e.key) != -1 && contentState.mode == "normal") {
                     e.cancelBubble = true
                     e.stopImmediatePropagation()
                 }

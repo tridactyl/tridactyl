@@ -1,4 +1,4 @@
-import state from "../state"
+import { contentState } from "../content_state"
 import { isSimpleKey } from "../keyseq"
 import { MsgSafeKeyboardEvent } from "../msgsafe"
 
@@ -15,7 +15,7 @@ let modeState: GobbleState = undefined
 `endCmd` with attached parsed input. `Escape` cancels the mode and returns to
 normal mode. */
 export function init(numChars: number, endCommand: string) {
-    state.mode = "gobble"
+    contentState.mode = "gobble"
     modeState = new GobbleState()
     modeState.numChars = numChars
     modeState.endCommand = endCommand
@@ -24,7 +24,7 @@ export function init(numChars: number, endCommand: string) {
 /** Reset state. */
 function reset() {
     modeState = undefined
-    state.mode = "normal"
+    contentState.mode = "normal"
 }
 
 /** Receive keypress. If applicable, execute a command. */
