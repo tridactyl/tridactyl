@@ -100,55 +100,75 @@ function isNodeExported(node: ts.Node): boolean {
 }
 
 function visit(checker: any, filename: string, node: any, everything: any) {
-    switch (node.kind) {
-        case ts.SyntaxKind.FunctionDeclaration:
-            let symbol = checker.getSymbolAtLocation(node.name)
-            if (symbol && isNodeExported(node)) {
-                everything[filename] = everything[filename] || {}
-                let file = everything[filename]
-
-                let nodeName = symbol.escapedName
-                file[nodeName] = file[nodeName] || {}
-                let nodeInfo = file[nodeName]
-                nodeInfo["doc"] = nodeInfo["doc"] || []
-
-                let doc = ts.displayPartsToString(
-                    symbol.getDocumentationComment(),
-                )
-                if (doc && !nodeInfo["doc"].includes(doc))
-                    nodeInfo["doc"].push(doc)
-
-                let ttype = checker.getTypeOfSymbolAtLocation(
-                    symbol,
-                    symbol.valueDeclaration!,
-                )
-                if (ttype) {
-                    nodeInfo["type"] = new SimpleType(
-                        checker.typeToTypeNode(ttype),
-                    )
-                }
+    let symbol = checker.getSymbolAtLocation(node.name)
+    if (symbol && isNodeExported(node)) {
+        // ensure() is very simple, it just creates a key named `name` the value of which is `def` if `name` doesn't exist in `obj`
+        let ensure = (obj, name, def) => {
+            obj[name] = obj[name] || def
+            return obj[name]
+        }
+        // addDoc creates a "doc" key set to an empty array in `obj` if it doesn't exist and then adds documentation from the symbol to it if it isn't already in the array
+        let addDoc = (obj, symbol) => {
+            let doc = ensure(obj, "doc", [])
+            let docstr = ts.displayPartsToString(
+                symbol.getDocumentationComment(),
+            )
+            if (docstr && !doc.includes(docstr)) doc.push(docstr)
+        }
+        // addType sets the `type` attribute of `obj` to the SimpleType of `symbol` if it has one
+        let addType = (obj, symbol) => {
+            let ttype = checker.getTypeOfSymbolAtLocation(
+                symbol,
+                symbol.valueDeclaration!,
+            )
+            if (ttype) {
+                obj["type"] = new SimpleType(checker.typeToTypeNode(ttype))
             }
-            break
-        // Other declaration syntaxkinds:
-        // case ts.SyntaxKind.VariableDeclaration:
-        // case ts.SyntaxKind.VariableDeclarationList:
-        // case ts.SyntaxKind.PropertyDeclaration:
-        // case ts.SyntaxKind.MethodDeclaration:
-        // case ts.SyntaxKind.EndOfDeclarationMarker:
-        // case ts.SyntaxKind.MergeDeclarationMarker:
-        // case ts.SyntaxKind.MissingDeclaration:
-        // case ts.SyntaxKind.ClassDeclaration
-        // case ts.SyntaxKind.ClassExpression:
-        // case ts.SyntaxKind.ClassDeclaration:
-        // case ts.SyntaxKind.InterfaceDeclaration:
-        // case ts.SyntaxKind.TypeAliasDeclaration:
-        // case ts.SyntaxKind.EnumDeclaration:
-        // case ts.SyntaxKind.ModuleDeclaration:
-        // case ts.SyntaxKind.ImportEqualsDeclaration:
-        // case ts.SyntaxKind.ImportDeclaration:
-        // case ts.SyntaxKind.NamespaceExportDeclaration:
-        // case ts.SyntaxKind.ExportDeclaration:
-        // case ts.SyntaxKind.Constructor:
+        }
+
+        let nodeName = symbol.escapedName
+
+        let file = ensure(everything, filename, {})
+
+        switch (node.kind) {
+            case ts.SyntaxKind.FunctionDeclaration:
+                let functions = ensure(file, "functions", {})
+                let func = ensure(functions, nodeName, {})
+                addDoc(func, symbol)
+                addType(func, symbol)
+                break
+            case ts.SyntaxKind.ClassDeclaration:
+                let classes = ensure(file, "classes", {})
+                let clazz = ensure(classes, nodeName, {})
+                symbol.members.forEach((sym, name, map) => {
+                    // Can't get doc/type from these special functions
+                    // Or at least, it requires work that might not be needed for now
+                    if (["__constructor", "get", "set"].includes(name)) return
+
+                    let member = ensure(clazz, name, {})
+                    addDoc(member, sym)
+                    addType(member, sym)
+                })
+                break
+            // Other declaration syntaxkinds:
+            // case ts.SyntaxKind.VariableDeclaration:
+            // case ts.SyntaxKind.VariableDeclarationList:
+            // case ts.SyntaxKind.PropertyDeclaration:
+            // case ts.SyntaxKind.MethodDeclaration:
+            // case ts.SyntaxKind.EndOfDeclarationMarker:
+            // case ts.SyntaxKind.MergeDeclarationMarker:
+            // case ts.SyntaxKind.MissingDeclaration:
+            // case ts.SyntaxKind.ClassExpression:
+            // case ts.SyntaxKind.InterfaceDeclaration:
+            // case ts.SyntaxKind.TypeAliasDeclaration:
+            // case ts.SyntaxKind.EnumDeclaration:
+            // case ts.SyntaxKind.ModuleDeclaration:
+            // case ts.SyntaxKind.ImportEqualsDeclaration:
+            // case ts.SyntaxKind.ImportDeclaration:
+            // case ts.SyntaxKind.NamespaceExportDeclaration:
+            // case ts.SyntaxKind.ExportDeclaration:
+            // case ts.SyntaxKind.Constructor:
+        }
     }
 
     ts.forEachChild(node, node => visit(checker, filename, node, everything))

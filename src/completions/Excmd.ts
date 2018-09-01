@@ -49,7 +49,7 @@ export class ExcmdCompletionSource extends Completions.CompletionSourceFuse {
     private async updateOptions(exstr?: string) {
         if (!exstr) exstr = ""
         this.lastExstr = exstr
-        let fns = Metadata.everything["src/excmds.ts"]
+        let fns = Metadata.everything["src/excmds.ts"].functions
         this.options = (await this.scoreOptions(
             Object.keys(fns).filter(f => f.startsWith(exstr)),
         )).map(f => {
