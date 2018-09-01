@@ -106,10 +106,17 @@ browser.runtime.onStartup.addListener(_ => {
 
 let curTab = null
 browser.tabs.onActivated.addListener(ev => {
-    if (curTab !== null)
-        messaging.messageTab(curTab, "excmd_content", "loadaucmds", ["TabLeft"])
+    let ignore = _ => _
+    if (curTab !== null) {
+        // messaging.messageTab failing can happen when leaving privileged tabs (e.g. about:addons)
+        messaging
+            .messageTab(curTab, "excmd_content", "loadaucmds", ["TabLeft"])
+            .catch(ignore)
+    }
     curTab = ev.tabId
-    messaging.messageTab(curTab, "excmd_content", "loadaucmds", ["TabEnter"])
+    messaging
+        .messageTab(curTab, "excmd_content", "loadaucmds", ["TabEnter"])
+        .catch(ignore)
 })
 
 // {{{ AUTOCONTAINERS
