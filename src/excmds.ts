@@ -2662,7 +2662,7 @@ export function autocmddelete(event: string, url: string) {
 /**
  *  Helper function to put Tridactyl into ignore mode on the provided URL.
  *
- *  Simply creates a DocStart and TabEnter [[autocmd]] that runs `mode ignore`.
+ *  Simply creates a DocStart [[autocmd]] that runs `mode ignore`.
  *
  *  Due to a Tridactyl bug, the only way to remove these rules once they are set is to delete all of your autocmds with `unset autocmds`.
  *
@@ -2671,7 +2671,7 @@ export function autocmddelete(event: string, url: string) {
  */
 //#background
 export function blacklistadd(url: string) {
-    ;["DocStart", "TabEnter"].map(e => autocmd(e, url, "mode ignore"))
+    autocmd("DocStart", url, "mode ignore")
 }
 
 /** Unbind a sequence of keys so that they do nothing at all.
