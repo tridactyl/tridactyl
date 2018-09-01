@@ -6,8 +6,8 @@ import Logger from "./logging"
 import * as messaging from "./messaging"
 
 import { parser as exmode_parser } from "./parsers/exmode"
-import { parser as hintmode_parser } from "./hinting_background"
-import { parser as findmode_parser } from "./finding_background"
+import * as hinting from "./hinting"
+import * as finding from "./finding"
 import * as gobblemode from "./parsers/gobblemode"
 import * as generic from "./parsers/genericmode"
 
@@ -21,8 +21,8 @@ function* ParserController() {
         insert: keys => generic.parser("imaps", keys),
         input: keys => generic.parser("inputmaps", keys),
         ignore: keys => generic.parser("ignoremaps", keys),
-        hint: hintmode_parser,
-        find: findmode_parser,
+        hint: hinting.parser,
+        find: finding.parser,
         gobble: gobblemode.parser,
     }
 
@@ -58,7 +58,6 @@ function* ParserController() {
                 } else if (currentMode === "input" && !textEditable) {
                     contentState.mode = "normal"
                 }
-                logger.debug(keyevent_safe, contentState.mode)
 
                 // Accumulate key events. The parser will cut this
                 // down whenever it's not a valid prefix of a known
@@ -69,7 +68,7 @@ function* ParserController() {
 
                 let response = undefined
                 response = (parsers[contentState.mode] as any)(keyEvents)
-                logger.debug(keyEvents, response)
+                logger.debug(currentMode, contentState.mode, keyEvents, response)
 
                 if (response.isMatch) {
                     keyevent_raw.preventDefault()

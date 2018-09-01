@@ -10,7 +10,6 @@ import * as commandline_background from "./commandline_background"
 import * as convert from "./convert"
 import * as config from "./config"
 import * as dom from "./dom"
-import * as hinting_background from "./hinting_background"
 import * as download_background from "./download_background"
 import * as itertools from "./itertools"
 import * as keyseq from "./keyseq"
@@ -27,7 +26,6 @@ import { AutoContain } from "./lib/autocontainers"
     convert,
     config,
     dom,
-    hinting_background,
     download_background,
     itertools,
     native,

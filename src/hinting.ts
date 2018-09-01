@@ -450,8 +450,6 @@ function filterHintsVimperator(fstr, reflow = false) {
 }
 
 /** Remove all hints, reset STATE.
- *  If abort is true, we're resetting because the user pressed escape.
- *  If it is false, we're resetting because the user selected a hint.
  **/
 function reset() {
     if (modeState) {
@@ -545,12 +543,15 @@ function selectFocusedHint(delay = false) {
     else focused.select()
 }
 
-import { addListener, attributeCaller } from "./messaging"
-addListener(
-    "hinting_content",
-    attributeCaller({
-        pushKey,
-        selectFocusedHint,
-        reset,
-    }),
-)
+export function parser(keys: KeyboardEvent[]) {
+    for (const { key } of keys) {
+        if (key === "Escape") {
+            reset()
+        } else if (["Enter", " "].includes(key)) {
+            selectFocusedHint()
+        } else {
+            pushKey(keys[0])
+        }
+    }
+    return { keys: [], ex_str: "" }
+}

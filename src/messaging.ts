@@ -6,8 +6,6 @@ export type TabMessageType =
     | "excmd_content"
     | "commandline_content"
     | "commandline_frame"
-    | "hinting_content"
-    | "finding_content"
 export type NonTabMessageType =
     | "commandline_background"
     | "controller_background"
@@ -82,9 +80,7 @@ export async function messageTab(tabId, type: TabMessageType, command, args?) {
         command,
         args,
     }
-    return browserBg.tabs.sendMessage(tabId, message).catch((e) => {
-        logger.error(e, tabId, message)
-    })
+    return browserBg.tabs.sendMessage(tabId, message)
 }
 
 export async function messageAllTabs(

@@ -149,14 +149,9 @@ function pushKey(ke) {
     }
 }
 
-import { addListener, attributeCaller } from "./messaging"
-addListener(
-    "finding_content",
-    attributeCaller({
-        pushKey,
-        mode,
-        reset,
-        findPage,
-        navigate,
-    }),
-)
+export function parser(keys: KeyboardEvent[]) {
+    for (const { key } of keys) {
+        pushKey(key)
+    }
+    return { keys: [], ex_str: "" }
+}
