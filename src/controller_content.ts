@@ -13,16 +13,18 @@ import * as generic from "./parsers/genericmode"
 
 const logger = new Logger("controller")
 
+let response = undefined
+
 /** Accepts keyevents, resolves them to maps, maps to exstrs, executes exstrs */
 function* ParserController() {
     const parsers: { [mode_name in ModeName]: any } = {
-        "normal": keys => generic.parser("nmaps", keys),
-        "insert": keys => generic.parser("imaps", keys),
-        "input": keys => generic.parser("inputmaps", keys),
-        "ignore": keys => generic.parser("ignoremaps", keys),
-        "hint": hintmode_parser,
-        "find": findmode_parser,
-        "gobble": gobblemode.parser,
+        normal: keys => generic.parser("nmaps", keys),
+        insert: keys => generic.parser("imaps", keys),
+        input: keys => generic.parser("inputmaps", keys),
+        ignore: keys => generic.parser("ignoremaps", keys),
+        hint: hintmode_parser,
+        find: findmode_parser,
+        gobble: gobblemode.parser,
     }
 
     while (true) {
@@ -36,15 +38,15 @@ function* ParserController() {
                 // code more thread-safe.
                 let currentMode = contentState.mode
                 let textEditable = isTextEditable(keyevent.target)
-                
+
                 // This code was sort of the cause of the most serious bug in Tridactyl
                 // to date (March 2018).
                 // https://github.com/cmcaine/tridactyl/issues/311
                 if (
                     currentMode !== "ignore" &&
-                        currentMode !== "hint" &&
-                        currentMode !== "input" &&
-                        currentMode !== "find"
+                    currentMode !== "hint" &&
+                    currentMode !== "input" &&
+                    currentMode !== "find"
                 ) {
                     if (textEditable) {
                         if (currentMode !== "insert") {
@@ -53,15 +55,12 @@ function* ParserController() {
                     } else if (currentMode === "insert") {
                         contentState.mode = "normal"
                     }
-                } else if (
-                    currentMode === "input" && !textEditable
-                ) {
+                } else if (currentMode === "input" && !textEditable) {
                     contentState.mode = "normal"
                 }
                 logger.debug(keyevent, contentState.mode)
 
                 keyEvents.push(keyevent)
-                let response = undefined
                 response = (parsers[contentState.mode] as any)(keyEvents)
                 logger.debug(keyEvents, response)
 
@@ -92,6 +91,10 @@ generator.next()
 /** Feed keys to the ParserController */
 export function acceptKey(keyevent: KeyboardEvent) {
     generator.next(keyevent)
+    if (response.isMatch) {
+        keyevent.preventDefault()
+        keyevent.stopImmediatePropagation()
+    }
 }
 
 export let last_ex_str = ""
