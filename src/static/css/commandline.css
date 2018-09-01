@@ -239,4 +239,5 @@ a.url:hover {
 #completions .SettingsCompletionOption td.content,
 #completions .SettingsCompletionOption td.type {
     width: 15%;
+    text-overflow: ellipsis;
 }
