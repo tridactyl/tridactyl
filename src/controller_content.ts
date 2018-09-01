@@ -1,4 +1,4 @@
-import { MsgSafeKeyboardEvent, MsgSafeNode } from "./msgsafe"
+import { MsgSafeKeyboardEvent, MsgSafeNode, KeyboardEvent } from "./msgsafe"
 import { isTextEditable } from "./dom"
 import { contentState, ModeName } from "./content_state"
 import { repeat } from "./.excmds_background.generated"
@@ -13,7 +13,6 @@ import * as generic from "./parsers/genericmode"
 
 const logger = new Logger("controller")
 
-let response = undefined
 
 /** Accepts keyevents, resolves them to maps, maps to exstrs, executes exstrs */
 function* ParserController() {
@@ -29,15 +28,16 @@ function* ParserController() {
 
     while (true) {
         let exstr = ""
-        let keyEvents = []
+        let keyEvents: KeyboardEvent[] = []
         try {
             while (true) {
-                let keyevent: MsgSafeKeyboardEvent = yield
+                let keyevent_raw: KeyboardEvent = yield
+                let keyevent_safe: MsgSafeKeyboardEvent = KeyboardEvent(keyevent_raw)
 
                 // _just to be safe_, cache this to make the following
                 // code more thread-safe.
                 let currentMode = contentState.mode
-                let textEditable = isTextEditable(keyevent.target)
+                let textEditable = isTextEditable(keyevent_safe.target)
 
                 // This code was sort of the cause of the most serious bug in Tridactyl
                 // to date (March 2018).
@@ -58,11 +58,23 @@ function* ParserController() {
                 } else if (currentMode === "input" && !textEditable) {
                     contentState.mode = "normal"
                 }
-                logger.debug(keyevent, contentState.mode)
+                logger.debug(keyevent_safe, contentState.mode)
 
-                keyEvents.push(keyevent)
+                // Accumulate key events. The parser will cut this
+                // down whenever it's not a valid prefix of a known
+                // binding, so it can't grow indefinitely unless you
+                // have a combination of maps that permits bindings of
+                // unbounded length.
+                keyEvents.push(keyevent_raw)
+
+                let response = undefined
                 response = (parsers[contentState.mode] as any)(keyEvents)
                 logger.debug(keyEvents, response)
+
+                if (response.isMatch) {
+                    keyevent_raw.preventDefault()
+                    keyevent_raw.stopImmediatePropagation()
+                }
 
                 if (response.exstr) {
                     exstr = response.exstr
@@ -77,9 +89,7 @@ function* ParserController() {
             logger.error(
                 "An error occurred in the content controller: ",
                 e,
-                " ¯\\_(ツ)_/¯",
-                parsers,
-                contentState,
+                " ¯\\_(ツ)_/¯"
             )
         }
     }
@@ -90,14 +100,8 @@ generator.next()
 
 /** Feed keys to the ParserController */
 export function acceptKey(keyevent: KeyboardEvent) {
-    generator.next(keyevent)
-    if (response.isMatch) {
-        keyevent.preventDefault()
-        keyevent.stopImmediatePropagation()
-    }
+    return generator.next(keyevent)
 }
-
-export let last_ex_str = ""
 
 /** Parse and execute ExCmds */
 export async function acceptExCmd(exstr: string): Promise<any> {
