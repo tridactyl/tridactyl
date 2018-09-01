@@ -1,6 +1,8 @@
 import * as Completions from "../completions"
 import * as config from "../config"
 import { browserBg } from "../lib/webext"
+import * as metadata from "../.metadata.generated"
+import { typeToString } from "../metadata"
 
 class SettingsCompletionOption extends Completions.CompletionOptionHTML
     implements Completions.CompletionOptionFuse {
@@ -8,12 +10,14 @@ class SettingsCompletionOption extends Completions.CompletionOptionHTML
 
     constructor(
         public value: string,
-        setting: { name: string; value: string; docs: string },
+        setting: { name: string; value: string; type: string; doc: string },
     ) {
         super()
         this.html = html`<tr class="SettingsCompletionOption option">
             <td class="title">${setting.name}</td>
             <td class="content">${setting.value}</td>
+            <td class="type">${setting.type}</td>
+            <td class="doc">${setting.doc}</td>
         </tr>`
     }
 }
@@ -43,18 +47,26 @@ export class SettingsCompletionSource extends Completions.CompletionSourceFuse {
             return
         }
 
+        let configmd =
+            metadata.everything["src/config.ts"].classes.default_config
         let settings = config.get()
         this.options = Object.keys(settings)
             .filter(x => x.startsWith(query))
             .sort()
-            .map(
-                setting =>
-                    new SettingsCompletionOption(setting, {
-                        name: setting,
-                        value: JSON.stringify(settings[setting]),
-                        docs: "",
-                    }),
-            )
+            .map(setting => {
+                let doc = ""
+                let type = ""
+                if (configmd[setting]) {
+                    doc = configmd[setting].doc.join(" ")
+                    type = typeToString(configmd[setting].type)
+                }
+                return new SettingsCompletionOption(setting, {
+                    name: setting,
+                    value: JSON.stringify(settings[setting]),
+                    doc: doc,
+                    type: type,
+                })
+            })
         // this.options = [new SettingsCompletionOption("ok", {name: "ok", docs:""})]
 
         this.updateChain()
