@@ -10,11 +10,11 @@ It will not cover advanced topics. For those, [`:help`](../docs/modules/_src_exc
 
 ## Basics
 
-The idea behind Tridactyl is to allow you to navigate the web more efficiently with just the keyboard. Tridactyl turns Firefox into a modal browser, meaning it has several different modes of operation, like Vim. It can only ever be in one mode at a time, and each of these modes could have a wildly different operation. You can think of it a bit like a Transformer, if you like. There are four main modes you will want to be familiar with:
+The idea behind Tridactyl is to allow you to navigate the web more efficiently with just the keyboard. Tridactyl turns Firefox into a modal browser, meaning it has several different modes of operation, like Vim. Each tab can only ever be in one mode at a time and each of these modes could have a wildly different operation. You can think of it a bit like a Transformer, if you like. There are four main modes you will want to be familiar with:
 
 *   Normal mode
     *   This mode is used for navigating around single pages and starting other modes.
-    *   You are usually in this mode. You can enter normal mode from the other modes by pressing `Escape`.
+    *   Tabs are usually in this mode. You can enter normal mode from the other modes by pressing `Escape`.
 *   Hint mode
     *   This mode highlights elements on the web page and performs actions on those elements.
     *   This is most often used for following links, but it has many other submodes.
