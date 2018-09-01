@@ -369,7 +369,7 @@ export async function nativeopen(url: string, ...firefoxArgs: string[]) {
  *
  * Requires the native messenger, obviously.
  *
- * If you want to use a different shell, just prepend your command with whatever the invocation is and keep in mode that most shells require quotes around the command to be executed, e.g. `:exclaim xonsh -c "1+2"`.
+ * If you want to use a different shell, just prepend your command with whatever the invocation is and keep in mind that most shells require quotes around the command to be executed, e.g. `:exclaim xonsh -c "1+2"`.
  *
  * Aliased to `!` but the exclamation mark **must be followed with a space**.
  */
@@ -2464,6 +2464,10 @@ function parse_bind_args(...args: string[]): bind_args {
     let result = {} as bind_args
     result.mode = "normal"
 
+    // TODO: This mapping is copy-pasted in controller_content.ts,
+    // where it constructs the list of parsers. it should be
+    // centralized, possibly as part of rewrite for content-local maps
+    // and similar.
     let mode2maps = new Map([["normal", "nmaps"], ["ignore", "ignoremaps"], ["insert", "imaps"], ["input", "inputmaps"]])
     if (args[0].startsWith("--mode=")) {
         result.mode = args.shift().replace("--mode=", "")
