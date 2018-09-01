@@ -1,6 +1,6 @@
 import { MsgSafeKeyboardEvent, MsgSafeNode, KeyboardEvent } from "./msgsafe"
 import { isTextEditable } from "./dom"
-import { contentState, ModeName } from "./content_state"
+import { contentState, ModeName } from "./state_content"
 import { repeat } from "./.excmds_background.generated"
 import Logger from "./logging"
 import * as messaging from "./messaging"

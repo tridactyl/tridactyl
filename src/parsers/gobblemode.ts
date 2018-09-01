@@ -1,4 +1,4 @@
-import { contentState } from "../content_state"
+import { contentState } from "../state_content"
 import { isSimpleKey } from "../keyseq"
 import { MsgSafeKeyboardEvent } from "../msgsafe"
 
