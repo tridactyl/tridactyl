@@ -418,17 +418,13 @@ class default_config {
 
     /**
      * Whether `:viewsource` will use our own page that you can use Tridactyl binds on, or Firefox's default viewer, which you cannot use Tridactyl on.
-     *
-     * Permitted values: `tridactyl` or `default`.
      */
-    viewsource = "tridactyl" // "tridactyl" or "default"
+    viewsource: "tridactyl" | "default" = "tridactyl"
 
     /**
      * Which storage to use. Sync storage will synchronise your settings via your Firefox Account.
-     *
-     * Permitted values: `sync` or `local`
      */
-    storageloc = "sync"
+    storageloc: "sync" | "local" = "sync"
 
     /**
      * Pages opened with `gH`.
@@ -444,22 +440,18 @@ class default_config {
 
     /**
      * The type of hinting to use. `vimperator` will allow you to filter links based on their names by typing non-hint chars. It is recommended that you use this in conjuction with the [[hintchars]] setting, which you should probably set to e.g, `5432167890`.
-     *
-     * Permitted values: `simple`, `vimperator`, or `vimperator-reflow`.
      */
-    hintfiltermode = "simple" // "simple", "vimperator" "vimperator-reflow"
+    hintfiltermode: "simple" | "vimperator" | "vimperator-reflow" = "simple"
 
     /**
      * Whether to optimise for the shortest possible names for each hint, or to use a simple numerical ordering. If set to `numeric`, overrides `hintchars` setting.
-     *
-     * Permitted values: `short` or `numeric`
      */
-    hintnames = "short"
+    hintnames: "short" | "numeric" = "short"
 
     /**
      * Whether to display the names for hints in uppercase.
      */
-    hintuppercase = "true"
+    hintuppercase: "true" | "false" = "true"
 
     /**
      * The delay in milliseconds in `vimperator` style hint modes after selecting a hint before you are returned to normal mode.
@@ -472,15 +464,13 @@ class default_config {
      * Controls whether the page can focus elements for you via js
      *
      * Best used in conjunction with browser.autofocus in `about:config`
-     *
-     * Permitted values: `true`, or `false`.
      */
-    allowautofocus = "true"
+    allowautofocus: "true" | "false" = "true"
 
     /**
      * Whether to use Tridactyl's (bad) smooth scrolling.
      */
-    smoothscroll = "false" // "false" | "true"
+    smoothscroll: "true" | "false" = "false"
 
     /**
      * How viscous you want smooth scrolling to feel.
@@ -489,17 +479,13 @@ class default_config {
 
     /**
      * Where to open tabs opened with `tabopen` - to the right of the current tab, or at the end of the tabs.
-     *
-     * Permitted values: `next`, or `last`.
      */
-    tabopenpos = "next"
+    tabopenpos: "next" | "last" = "next"
 
     /**
      * Where to open tabs opened with hinting - as if it had been middle clicked, to the right of the current tab, or at the end of the tabs.
-     *
-     * Permitted values: `related, `next`, or `last`.
      */
-    relatedopenpos = "related"
+    relatedopenpos: "related" | "next" | "last" = "related"
     ttsvoice = "default" // chosen from the listvoices list or "default"
     ttsvolume = 1 // 0 to 1
     ttsrate = 1 // 0.1 to 10
@@ -509,22 +495,25 @@ class default_config {
      * If nextinput, <Tab> after gi brings selects the next input
      *
      * If firefox, <Tab> selects the next selectable element, e.g. a link
-     *
-     * Permitted values: "nextinput" or "firefox"
      */
-    gimode = "nextinput" // either "nextinput" or "firefox"
+    gimode: "nextinput" | "firefox" = "nextinput"
 
-    // either "beginning" or "end"
-    // Decides where to place the cursor when selecting non-empty input fields
-    cursorpos = "end"
+    /**
+     * Decides where to place the cursor when selecting non-empty input fields
+     */
+    cursorpos: "beginning" | "end" = "end"
 
     /**
      * The theme to use.
      *
      * Permitted values: run `:composite js tri.styling.THEMES | fillcmdline` to find out.
      */
-    theme = "default" // currently available: "default" "dark"
-    modeindicator = "true"
+    theme = "default"
+
+    /**
+     * Whether to display the mode indicator or not.
+     */
+    modeindicator: "true" | "false" = "true"
 
     /*
      * Milliseconds before registering a scroll in the jumplist
@@ -564,17 +553,15 @@ class default_config {
 
     /* 
      * Which clipboard to store items in. Requires the native messenger to be installed.
-     *
-     * Permitted values: `clipboard`, `selection`, or `both`.
      */
-    yankto = "clipboard"
+    yankto: "clipboard" | "selection" | "both" = "clipboard"
 
     /* 
      * Which clipboard to retrieve items from. Requires the native messenger to be installed.
      *
      * Permitted values: `clipboard`, or `selection`.
      */
-    putfrom = "clipboard"
+    putfrom: "clipboard" | "selection" = "clipboard"
 
     /* 
      * Clipboard command to try to get the selection from (e.g. `xsel` or `xclip`)
@@ -601,17 +588,17 @@ class default_config {
     /*
      * If enabled, tabopen opens a new tab in the currently active tab's container.
      */
-    tabopencontaineraware = "false"
+    tabopencontaineraware: "true" | "false" = "false"
 
     /*
      * If moodeindicator is enabled, containerindicator will color the border of the mode indicator with the container color.
      */
-    containerindicator = "true"
+    containerindicator: "true" | "false" = "true"
 
     /*
      * Autocontain directives create a container if it doesn't exist already.
      */
-    auconcreatecontainer = "true"
+    auconcreatecontainer: "true" | "false" = "true"
 
     /*
      * Number of most recent results to ask Firefox for. We display the top 20 or so most frequently visited ones.
@@ -620,10 +607,8 @@ class default_config {
 
     /*
      * Change this to "clobber" to ruin the "Content Security Policy" of all sites a bit and make Tridactyl run a bit better on some of them, e.g. raw.github*
-     *
-     * Permitted values: `untouched`, or `clobber`.
      */
-    csp = "untouched"
+    csp: "untouched" | "clobber" = "untouched"
 }
 
 /** @hidden */
