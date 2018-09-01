@@ -17,14 +17,14 @@ async function getSmooth() {
 async function getDuration() {
     if (opts.duration === null)
         opts.duration = await config.getAsync("scrollduration")
-    return opts.duration
+    return Number.parseInt(opts.duration)
 }
 browser.storage.onChanged.addListener(changes => {
     if ("userconfig" in changes) {
         if ("smoothscroll" in changes.userconfig.newValue)
             opts.smooth = changes.userconfig.newValue["smoothscroll"]
         if ("scrollduration" in changes.userconfig.newValue)
-            opts.duration = changes.userconfig.newValue["scrollduration"]
+            opts.duration = Number.parseInt(changes.userconfig.newValue["scrollduration"])
     }
 })
 

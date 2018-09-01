@@ -475,7 +475,7 @@ class default_config {
     /**
      * How viscous you want smooth scrolling to feel.
      */
-    scrollduration = 100 // number
+    scrollduration = "100"
 
     /**
      * Where to open tabs opened with `tabopen` - to the right of the current tab, or at the end of the tabs.
@@ -518,7 +518,7 @@ class default_config {
     /*
      * Milliseconds before registering a scroll in the jumplist
      */
-    jumpdelay = 3000
+    jumpdelay = "3000"
 
     /*
      * Default logging levels - 2 === WARNING

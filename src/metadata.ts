@@ -1,3 +1,45 @@
+export function fitsType(variable, type) {
+    switch (type.kind) {
+        case "function":
+            return variable instanceof Function
+        case "array":
+            return (
+                variable instanceof Array &&
+                !variable.find(e => !fitsType(e, type.type))
+            )
+        case "Promise":
+            return variable instanceof Promise
+        case "union":
+            for (let t of type.arguments) {
+                if (fitsType(variable, t)) return true
+            }
+            return false
+        case "LiteralType":
+            return variable == type.name
+        case "tuple":
+            if (variable.length != type.arguments.length) return false
+            for (let i = 0; i < variable.length; ++i) {
+                let v = variable[i]
+                let t = type.arguments[i]
+                if (!fitsType(v, t)) return false
+            }
+            return true
+        case "any":
+            return true
+        case "object":
+            return true
+        case "boolean":
+            return typeof variable == "number"
+        case "number":
+            return typeof variable == "number"
+        case "string":
+            return typeof variable == "string"
+        case "void":
+            return !variable
+    }
+    throw new Error("Unhandled type!")
+}
+
 // Gets the type sitting inside a promise
 function unwrapPromise(type) {
     while (type.kind == "Promise") type = type.arguments[0]

@@ -133,6 +133,8 @@ import { mapstrToKeyseq } from "./keyseq"
 
 //#background_helper
 import * as Native from "./native_background"
+import * as Metadata from "./.metadata.generated"
+import { fitsType, typeToString } from "./metadata"
 
 /** @hidden */
 export const cmd_params = new Map<string, Map<string, string>>()
@@ -697,7 +699,7 @@ export function addJump(scrollEvent: UIEvent) {
             list.push({ x: pageX, y: pageY })
             jumps.cur = jumps.list.length - 1
             saveJumps(alljumps)
-        }, config.get("jumpdelay"))
+        }, Number.parseInt(config.get("jumpdelay")))
     })
 }
 
@@ -2562,6 +2564,7 @@ export function set(key: string, ...values: string[]) {
     }
 
     const target = key.split(".")
+    const last = target[target.length - 1]
 
     // Special case conversions
     // TODO: Should we do any special case shit here?
@@ -2582,13 +2585,21 @@ export function set(key: string, ...values: string[]) {
 
     const currentValue = config.get(...target)
 
+    let value: string | string[] = values
     if (Array.isArray(currentValue)) {
-        config.set(...target, values)
+        // Do nothing
     } else if (currentValue === undefined || typeof currentValue === "string") {
-        config.set(...target, values.join(" "))
+        value = values.join(" ")
     } else {
         throw "Unsupported setting type!"
     }
+
+    let md = Metadata.everything["src/config.ts"].classes.default_config[last]
+    if (md) {
+        if (md.type && !fitsType(value, md.type)) throw `Given type does not match expected type (given: ${value}, expected: ${typeToString(md.type)})`
+    }
+
+    config.set(...target, value)
 }
 
 /** @hidden */
