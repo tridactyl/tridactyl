@@ -486,10 +486,22 @@ class default_config {
      * Where to open tabs opened with hinting - as if it had been middle clicked, to the right of the current tab, or at the end of the tabs.
      */
     relatedopenpos: "related" | "next" | "last" = "related"
+    /**
+     * The name of the voice to use for text-to-speech. You can get the list of installed voices by running the following snippet: `js alert(window.speechSynthesis.getVoices().reduce((a, b) => a + " " + b.name))`
+     */
     ttsvoice = "default" // chosen from the listvoices list or "default"
-    ttsvolume = 1 // 0 to 1
-    ttsrate = 1 // 0.1 to 10
-    ttspitch = 1 // 0 to 2
+    /**
+     * Controls text-to-speech volume. Has to be a number between 0 and 1.
+     */
+    ttsvolume = "1"
+    /**
+     * Controls text-to-speech speed. Has to be a number between 0.1 and 10.
+     */
+    ttsrate = "1"
+    /**
+     * Controls text-to-speech pitch. Has to be between 0 and 2.
+     */
+    ttspitch = "1"
 
     /**
      * If nextinput, <Tab> after gi brings selects the next input
@@ -515,14 +527,14 @@ class default_config {
      */
     modeindicator: "true" | "false" = "true"
 
-    /*
+    /**
      * Milliseconds before registering a scroll in the jumplist
      */
     jumpdelay = "3000"
 
-    /*
+    /**
      * Default logging levels - 2 === WARNING
-     * 
+     *
      * NB: these cannot be set directly with `set` - you must use magic words such as `WARNING` or `DEBUG`.
      */
     logging = {
@@ -535,9 +547,9 @@ class default_config {
         excmd: 1,
         styling: 2,
     }
-    noiframeon = []
+    noiframeon: string[] = []
 
-    /* 
+    /**
      * Insert / input mode edit-in-$EDITOR command to run
      * This has to be a command that stays in the foreground for the whole editing session
      * "auto" will attempt to find a sane editor in your path.
@@ -546,66 +558,66 @@ class default_config {
      */
     editorcmd = "auto"
 
-    /* 
+    /**
      * The browser executable to look for in commands such as `restart`. Not as mad as it seems if you have multiple versions of Firefox...
      */
     browser = "firefox"
 
-    /* 
+    /**
      * Which clipboard to store items in. Requires the native messenger to be installed.
      */
     yankto: "clipboard" | "selection" | "both" = "clipboard"
 
-    /* 
+    /**
      * Which clipboard to retrieve items from. Requires the native messenger to be installed.
      *
      * Permitted values: `clipboard`, or `selection`.
      */
     putfrom: "clipboard" | "selection" = "clipboard"
 
-    /* 
+    /**
      * Clipboard command to try to get the selection from (e.g. `xsel` or `xclip`)
      */
     externalclipboardcmd = "auto"
 
-    /* 
-     * Set this to something weird if you want to have fun every time Tridactyl tries to update its native messenger. 
+    /**
+     * Set this to something weird if you want to have fun every time Tridactyl tries to update its native messenger.
      */
     nativeinstallcmd: "curl -fsSl https://raw.githubusercontent.com/cmcaine/tridactyl/master/native/install.sh | bash"
 
-    /* 
-     * Set this to something weird if you want to have fun every time Tridactyl tries to update its native messenger. 
+    /**
+     * Set this to something weird if you want to have fun every time Tridactyl tries to update its native messenger.
      */
     win_nativeinstallcmd: "powershell -NoProfile -InputFormat None -Command \"Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/cmcaine/tridactyl/master/native/win_install.ps1'))\""
 
-    /* 
+    /**
      * Profile directory to use with native messenger with e.g, `guiset`.
      */
     profiledir = "auto"
 
     // Container settings
 
-    /*
+    /**
      * If enabled, tabopen opens a new tab in the currently active tab's container.
      */
     tabopencontaineraware: "true" | "false" = "false"
 
-    /*
+    /**
      * If moodeindicator is enabled, containerindicator will color the border of the mode indicator with the container color.
      */
     containerindicator: "true" | "false" = "true"
 
-    /*
+    /**
      * Autocontain directives create a container if it doesn't exist already.
      */
     auconcreatecontainer: "true" | "false" = "true"
 
-    /*
+    /**
      * Number of most recent results to ask Firefox for. We display the top 20 or so most frequently visited ones.
      */
     historyresults = "50"
 
-    /*
+    /**
      * Change this to "clobber" to ruin the "Content Security Policy" of all sites a bit and make Tridactyl run a bit better on some of them, e.g. raw.github*
      */
     csp: "untouched" | "clobber" = "untouched"

@@ -27,10 +27,10 @@ export function readText(text: string): void {
 
     let utterance = new SpeechSynthesisUtterance(text)
 
-    let pitch = Config.get("ttspitch")
+    let pitch = Number.parseFloat(Config.get("ttspitch"))
     let voice = Config.get("ttsvoice")
-    let volume = Config.get("ttsvolume")
-    let rate = Config.get("ttsrate")
+    let volume = Number.parseFloat(Config.get("ttsvolume"))
+    let rate = Number.parseFloat(Config.get("ttsrate"))
 
     if (pitch >= 0 && pitch < 2) utterance.pitch = pitch
 
