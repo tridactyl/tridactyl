@@ -754,15 +754,20 @@ export function cssparse(...css: string[]) {
 /** @hidden */
 //#background
 export async function loadtheme(themename: string) {
-    if (!(await Native.nativegate("0.1.8")))
-        return
+    if (!await Native.nativegate("0.1.9")) return
     const separator = (await browserBg.runtime.getPlatformInfo().os) == "win" ? "\\" : "/"
     // remove the "tridactylrc" bit so that we're left with the directory
-    const path = (await Native.getrcpath()).split(separator).slice(0, -1).join(separator)
-        + separator +  "themes" + separator + themename
+    const path =
+        (await Native.getrcpath())
+            .split(separator)
+            .slice(0, -1)
+            .join(separator) +
+        separator +
+        "themes" +
+        separator +
+        themename
     const file = await Native.read(path)
-    if (file.code != 0)
-        throw new Error("Couldn't read theme " + path)
+    if (file.code != 0) throw new Error("Couldn't read theme " + path)
     return set("customthemes." + themename, file.content)
 }
 
@@ -773,8 +778,8 @@ export async function unloadtheme(themename: string) {
 }
 
 /** Changes the current theme.
- * 
- * If THEMENAME is "dark", "default", "greenamt", "quake" or "shydactyl", the theme will be loaded from Tridactyl's internal storage.
+ *
+ * If THEMENAME is any of the themes that can be found in the [Tridactyl repo](https://github.com/tridactyl/tridactyl/tree/master/src/static/themes) (e.g. 'dark'), the theme will be loaded from Tridactyl's internal storage.
  *
  * If THEMENAME is set to any other value, Tridactyl will attempt to use its native binary (see [[native]]) in order to load a CSS file named THEMENAME from disk. The CSS file has to be in a directory named "themes" and this directory has to be in the same directory as your tridactylrc.
  *
@@ -783,8 +788,7 @@ export async function unloadtheme(themename: string) {
 //#background
 export async function colourscheme(themename: string) {
     // If this is a builtin theme, no need to bother with native messaging stuff
-    if (["dark", "default", "greenmat", "quake", "shydactyl"].includes(themename))
-        return set("theme", themename)
+    if (Metadata.staticThemes.includes(themename)) return set("theme", themename)
     await loadtheme(themename)
     return set("theme", themename)
 }

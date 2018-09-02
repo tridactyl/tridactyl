@@ -147,19 +147,19 @@ You can bind your own shortcuts in normal mode with the `:bind` command. For exa
 
 -   I hate the light, can I get a dark theme/dark mode?
 
-    Yes: `set theme dark` or `colors dark`. Thanks to @fugerf.
+    Yes: `colors dark`. Thanks to @fugerf.
 
 -   How can I pretend that I'm not a 1337 h4x0r?
 
-    We cater for you, too! `set theme shydactyl`. Thanks to @atrnh.
+    We cater for you, too! `colors shydactyl`. Thanks to @atrnh.
 
 -   How can I pretend that I'm a 1337 h4x0r?
 
-    We cater for you, too! `set theme greenmat`. Thanks to @caputchinefrobles.
+    We cater for you, too! `colors greenmat`. Thanks to @caputchinefrobles.
 
 -   How can I bind keys using the control/alt key modifiers (eg: `ctrl+^`)?
 
-    `:bind <C-f> scrollpage 1`. Special keys can be bound too: `:bind <F3> set theme dark` and with modifiers: `:bind <S-F3> set theme default` and with multiple modifiers: `:bind <SA-F3> composite set hintchars 1234567890 | set hintfiltermode vimperator-reflow`
+    `:bind <C-f> scrollpage 1`. Special keys can be bound too: `:bind <F3> colors dark` and with modifiers: `:bind <S-F3> colors default` and with multiple modifiers: `:bind <SA-F3> composite set hintchars 1234567890 | set hintfiltermode vimperator-reflow`
 
     The modifiers are case insensitive. Special key names are not. The names used are those reported by Javascript with a limited number of vim compatibility aliases (e.g. `CR == Enter`).
 
