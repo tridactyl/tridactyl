@@ -34,7 +34,6 @@ import * as hinting_content from "./hinting"
 import * as finding_content from "./finding"
 import * as itertools from "./itertools"
 import * as messaging from "./messaging"
-import * as msgsafe from "./msgsafe"
 import state from "./state"
 import * as webext from "./lib/webext"
 import Mark from "mark.js"
@@ -55,7 +54,6 @@ import * as styling from "./styling"
     Mark,
     keyseq,
     messaging,
-    msgsafe,
     state,
     webext,
     l: prom => prom.then(console.log).catch(console.error),

@@ -1,4 +1,3 @@
-import { MsgSafeNode } from "./msgsafe"
 import * as config from "./config"
 import { flatten } from "./itertools"
 import state from "./state"
@@ -17,24 +16,38 @@ const logger = new Logging.Logger("dom")
  * @param {HTMLElement} element
  * @returns {boolean}
  */
-export function isTextEditable(element: MsgSafeNode) {
+export function isTextEditable(element: Element) {
     if (element) {
         // HTML is always upper case, but XHTML is not necessarily upper case
-        switch (element.nodeName.toUpperCase()) {
-            case "INPUT":
-                return isEditableHTMLInput(element)
-            case "SELECT":
-            case "TEXTAREA":
-            case "OBJECT":
-                return true
+        if (element.nodeName.toUpperCase() === "INPUT") {
+            return isEditableHTMLInput(element as HTMLInputElement)
         }
-        switch (true) {
-            case element.contentEditable === undefined:
+
+        if (
+            ["SELECT", "TEXTAREA", "OBJECT"].includes(
+                element.nodeName.toUpperCase(),
+            )
+        ) {
+            return true
+        }
+
+        // These properties are only defined on HTMLElements
+        if (element instanceof HTMLElement) {
+            if (element.contentEditable === undefined) {
                 // This happens on e.g. svgs.
                 return false
-            case element.contentEditable.toUpperCase() === "TRUE":
-            case element.role === "application":
+            }
+            if (element.contentEditable.toUpperCase() === "TRUE") {
                 return true
+            }
+        }
+
+        // ARIA stuff isn't pulled out into fields, so we have to
+        // manually inspect the attributes to find it.
+        for (const attr of element.attributes) {
+            if (attr.name === "role" && attr.value === "application") {
+                return true
+            }
         }
     }
     return false
@@ -44,8 +57,8 @@ export function isTextEditable(element: MsgSafeNode) {
  * Returns whether the passed HTML input element is editable
  * @param {HTMLInputElement} element
  */
-function isEditableHTMLInput(element: MsgSafeNode) {
-    if (element.disabled || element.readonly) return false
+function isEditableHTMLInput(element: HTMLInputElement) {
+    if (element.disabled || element.readOnly) return false
     switch (element.type) {
         case undefined:
         case "text":
@@ -255,8 +268,8 @@ export function isVisible(element: Element) {
  */
 export function getAllDocumentFrames(doc = document) {
     if (!(doc instanceof HTMLDocument)) return []
-    let frames = (<HTMLIFrameElement[] & HTMLFrameElement[]>Array.from(
-        doc.getElementsByTagName("iframe"),
+    let frames = (<HTMLIFrameElement[] & HTMLFrameElement[]>(
+        Array.from(doc.getElementsByTagName("iframe"))
     ))
         .concat(Array.from(doc.getElementsByTagName("frame")))
         .filter(frame => !frame.src.startsWith("moz-extension://"))

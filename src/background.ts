@@ -15,7 +15,6 @@ import * as itertools from "./itertools"
 import * as keyseq from "./keyseq"
 import * as request from "./requests"
 import * as native from "./native_background"
-import * as msgsafe from "./msgsafe"
 import state from "./state"
 import * as webext from "./lib/webext"
 import { AutoContain } from "./lib/autocontainers"
@@ -31,7 +30,6 @@ import { AutoContain } from "./lib/autocontainers"
     native,
     keyseq,
     request,
-    msgsafe,
     state,
     webext,
     l: prom => prom.then(console.log).catch(console.error),

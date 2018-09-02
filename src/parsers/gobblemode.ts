@@ -1,6 +1,5 @@
 import { contentState } from "../state_content"
 import { isSimpleKey } from "../keyseq"
-import { MsgSafeKeyboardEvent } from "../msgsafe"
 
 /** Simple container for the gobble state. */
 class GobbleState {
@@ -28,7 +27,7 @@ function reset() {
 }
 
 /** Receive keypress. If applicable, execute a command. */
-export function parser(keys: MsgSafeKeyboardEvent[]) {
+export function parser(keys: KeyboardEvent[]) {
     const key = keys[0].key
 
     if (key === "Escape") {

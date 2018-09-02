@@ -1,4 +1,3 @@
-import { MsgSafeKeyboardEvent, MsgSafeNode, KeyboardEvent } from "./msgsafe"
 import { isTextEditable } from "./dom"
 import { contentState, ModeName } from "./state_content"
 import { repeat } from "./.excmds_background.generated"
@@ -30,15 +29,12 @@ function* ParserController() {
         let keyEvents: KeyboardEvent[] = []
         try {
             while (true) {
-                let keyevent_raw: KeyboardEvent = yield
-                let keyevent_safe: MsgSafeKeyboardEvent = KeyboardEvent(
-                    keyevent_raw,
-                )
+                let keyevent: KeyboardEvent = yield
 
                 // _just to be safe_, cache this to make the following
                 // code more thread-safe.
                 let currentMode = contentState.mode
-                let textEditable = isTextEditable(keyevent_safe.target)
+                let textEditable = isTextEditable(keyevent.target as Element)
 
                 // This code was sort of the cause of the most serious bug in Tridactyl
                 // to date (March 2018).
@@ -65,7 +61,7 @@ function* ParserController() {
                 // binding, so it can't grow indefinitely unless you
                 // have a combination of maps that permits bindings of
                 // unbounded length.
-                keyEvents.push(keyevent_raw)
+                keyEvents.push(keyevent)
 
                 let response = undefined
                 response = (parsers[contentState.mode] as any)(keyEvents)
@@ -77,8 +73,8 @@ function* ParserController() {
                 )
 
                 if (response.isMatch) {
-                    keyevent_raw.preventDefault()
-                    keyevent_raw.stopImmediatePropagation()
+                    keyevent.preventDefault()
+                    keyevent.stopImmediatePropagation()
                 }
 
                 if (response.exstr) {

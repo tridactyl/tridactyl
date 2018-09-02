@@ -89,9 +89,7 @@ export class MinimalKey {
     }
 }
 
-import { MsgSafeKeyboardEvent } from "./msgsafe"
-
-type KeyEventLike = MinimalKey | MsgSafeKeyboardEvent | KeyboardEvent
+type KeyEventLike = MinimalKey | KeyboardEvent
 
 // }}}
 
