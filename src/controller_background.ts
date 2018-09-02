@@ -27,7 +27,6 @@ export async function acceptExCmd(exstr: string): Promise<any> {
     }
 }
 
-
 import * as Messaging from "./messaging"
 
 // Get messages from content

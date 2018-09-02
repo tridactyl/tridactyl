@@ -13,7 +13,6 @@ import * as generic from "./parsers/genericmode"
 
 const logger = new Logger("controller")
 
-
 /** Accepts keyevents, resolves them to maps, maps to exstrs, executes exstrs */
 function* ParserController() {
     const parsers: { [mode_name in ModeName]: any } = {
@@ -32,7 +31,9 @@ function* ParserController() {
         try {
             while (true) {
                 let keyevent_raw: KeyboardEvent = yield
-                let keyevent_safe: MsgSafeKeyboardEvent = KeyboardEvent(keyevent_raw)
+                let keyevent_safe: MsgSafeKeyboardEvent = KeyboardEvent(
+                    keyevent_raw,
+                )
 
                 // _just to be safe_, cache this to make the following
                 // code more thread-safe.
@@ -68,7 +69,12 @@ function* ParserController() {
 
                 let response = undefined
                 response = (parsers[contentState.mode] as any)(keyEvents)
-                logger.debug(currentMode, contentState.mode, keyEvents, response)
+                logger.debug(
+                    currentMode,
+                    contentState.mode,
+                    keyEvents,
+                    response,
+                )
 
                 if (response.isMatch) {
                     keyevent_raw.preventDefault()
@@ -88,7 +94,7 @@ function* ParserController() {
             logger.error(
                 "An error occurred in the content controller: ",
                 e,
-                " ¯\\_(ツ)_/¯"
+                " ¯\\_(ツ)_/¯",
             )
         }
     }

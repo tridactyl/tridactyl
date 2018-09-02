@@ -28,34 +28,39 @@ class State {
     ]
 }
 
-export type ContentStateProperty =
-    | "mode"
-    | "cmdHistory"
-    | "prevInputs"
+export type ContentStateProperty = "mode" | "cmdHistory" | "prevInputs"
 
-export type ContentStateChangedCallback =
-    (property: ContentStateProperty, oldValue: any, newValue: any) => void
+export type ContentStateChangedCallback = (
+    property: ContentStateProperty,
+    oldValue: any,
+    newValue: any,
+) => void
 
 const onChangedListeners: ContentStateChangedCallback[] = []
 
-export function addContentStateChangedListener(callback: ContentStateChangedCallback) {
+export function addContentStateChangedListener(
+    callback: ContentStateChangedCallback,
+) {
     onChangedListeners.push(callback)
 }
 
-export const contentState = (new Proxy({"mode": "normal"}, {
-    get: function(target, property: ContentStateProperty) {
-        return target[property]
+export const contentState = (new Proxy(
+    { mode: "normal" },
+    {
+        get: function(target, property: ContentStateProperty) {
+            return target[property]
+        },
+
+        set: function(target, property: ContentStateProperty, newValue) {
+            logger.debug("Content state changed!", property, newValue)
+
+            const oldValue = target[property]
+            target[property] = newValue
+
+            for (let listener of onChangedListeners) {
+                listener(property, oldValue, newValue)
+            }
+            return true
+        },
     },
-
-    set: function(target, property: ContentStateProperty, newValue) {
-        logger.debug("Content state changed!", property, newValue)
-
-        const oldValue = target[property]
-        target[property] = newValue
-
-        for (let listener of onChangedListeners) {
-            listener(property, oldValue, newValue)
-        }
-        return true
-    },
-}) as any) as State
+) as any) as State

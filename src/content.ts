@@ -12,7 +12,7 @@ const logger = new Logging.Logger("content")
 logger.debug("Tridactyl content script loaded, boss!")
 
 // Our local state
-import {contentState, addContentStateChangedListener }  from "./state_content"
+import { contentState, addContentStateChangedListener } from "./state_content"
 
 // Hook the keyboard up to the controller
 import * as ContentController from "./controller_content"
@@ -41,27 +41,27 @@ import Mark from "mark.js"
 import * as keyseq from "./keyseq"
 import * as native from "./native_background"
 import * as styling from "./styling"
-    ; (window as any).tri = Object.assign(Object.create(null), {
-        browserBg: webext.browserBg,
-        commandline_content,
-        convert,
-        config,
-        dom,
-        excmds,
-        hinting_content,
-        finding_content,
-        itertools,
-        logger,
-        Mark,
-        keyseq,
-        messaging,
-        msgsafe,
-        state,
-        webext,
-        l: prom => prom.then(console.log).catch(console.error),
-        native,
-        styling,
-    })
+;(window as any).tri = Object.assign(Object.create(null), {
+    browserBg: webext.browserBg,
+    commandline_content,
+    convert,
+    config,
+    dom,
+    excmds,
+    hinting_content,
+    finding_content,
+    itertools,
+    logger,
+    Mark,
+    keyseq,
+    messaging,
+    msgsafe,
+    state,
+    webext,
+    l: prom => prom.then(console.log).catch(console.error),
+    native,
+    styling,
+})
 
 logger.info("Loaded commandline content?", commandline_content)
 
@@ -172,7 +172,7 @@ config.getAsync("modeindicator").then(mode => {
         if (property != "mode") {
             return
         }
-        
+
         let mode = newValue
         const privateMode = browser.extension.inIncognitoContext
             ? "TridactylPrivate"
@@ -181,7 +181,7 @@ config.getAsync("modeindicator").then(mode => {
             "cleanslate TridactylStatusIndicator " + privateMode
         if (
             dom.isTextEditable(document.activeElement) &&
-                !["input", "ignore"].includes(mode)
+            !["input", "ignore"].includes(mode)
         ) {
             statusIndicator.textContent = "insert"
             // this doesn't work; statusIndicator.style is full of empty string
@@ -189,7 +189,7 @@ config.getAsync("modeindicator").then(mode => {
             // need to fix loss of focus by click: doesn't do anything here.
         } else if (
             mode === "insert" &&
-                !dom.isTextEditable(document.activeElement)
+            !dom.isTextEditable(document.activeElement)
         ) {
             statusIndicator.textContent = "normal"
             // statusIndicator.style.borderColor = "lightgray !important"

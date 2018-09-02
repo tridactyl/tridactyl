@@ -40,8 +40,6 @@ import { AutoContain } from "./lib/autocontainers"
 // Send commandline to controller
 commandline_background.onLine.addListener(BackgroundController.acceptExCmd)
 
-
-
 // {{{ Clobber CSP
 
 // This should be removed once https://bugzilla.mozilla.org/show_bug.cgi?id=1267027 is fixed
