@@ -583,12 +583,12 @@ class default_config {
     /**
      * Set this to something weird if you want to have fun every time Tridactyl tries to update its native messenger.
      */
-    nativeinstallcmd: "curl -fsSl https://raw.githubusercontent.com/cmcaine/tridactyl/master/native/install.sh | bash"
+    nativeinstallcmd = "curl -fsSl https://raw.githubusercontent.com/cmcaine/tridactyl/master/native/install.sh | bash"
 
     /**
      * Set this to something weird if you want to have fun every time Tridactyl tries to update its native messenger.
      */
-    win_nativeinstallcmd: "powershell -NoProfile -InputFormat None -Command \"Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/cmcaine/tridactyl/master/native/win_install.ps1'))\""
+    win_nativeinstallcmd = `powershell -NoProfile -InputFormat None -Command "Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/cmcaine/tridactyl/master/native/win_install.ps1'))"`
 
     /**
      * Profile directory to use with native messenger with e.g, `guiset`.
