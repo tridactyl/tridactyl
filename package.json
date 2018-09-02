@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "mocha -r ts-node/register test/**/*.ts",
     "pretty": "scripts/pretty",
     "build": "parcel build --no-minify src/manifest.json --no-cache",
     "qbuild": "parcel build --no-minify src/manifest.json",
@@ -32,7 +32,11 @@
     "web-ext-types": "github:kelseasy/web-ext-types"
   },
   "dependencies": {
-    "csp-serdes": "git+https://github.com/cmcaine/csp-serdes.git"
+    "csp-serdes": "git+https://github.com/cmcaine/csp-serdes.git",
+    "@types/mocha": "^5.2.5",
+    "chai": "^4.1.2",
+    "mocha": "^5.2.0",
+    "ts-node": "^7.0.0"
   },
   "browserslist": [
     "Firefox >= 54"
