@@ -26,25 +26,28 @@ import "reflect-metadata"
 export class Foo {
     @printMeta
     @logArgs
-    typed(a: number, b: "foo", c, d: {a: "foo"|"bar"}, ...e: string[]) {
+    typed(a: number, b: "foo", c, d: { a: "foo" | "bar" }, ...e: string[]) {
         return a
     }
 }
 
 function logArgs(t, n, pd) {
     const orig = pd.value
-    pd.value = (...args) => {console.log(orig, ...args); return orig(...args)}
+    pd.value = (...args) => {
+        console.log(orig, ...args)
+        return orig(...args)
+    }
 }
 
 function printMeta(target, name, propDesc) {
-    ["design:type", "design:paramtypes", "design:returntype"].forEach(key =>
-        console.log(key, Reflect.getMetadata(key, target, name)))
+    ;["design:type", "design:paramtypes", "design:returntype"].forEach(key =>
+        console.log(key, Reflect.getMetadata(key, target, name)),
+    )
 }
 
 ;(window as any).Foo = Foo
 
 import * as csp from "csp-serdes"
-
 ;(window as any).csp = csp
 
 // class Excmds {

@@ -6,16 +6,16 @@
 
 class ExCmds {
     @content
-    scrollline([x],{},meta) {
+    scrollline([x], {}, meta) {
         // whatever
-        excmd([3, x],null,meta)
+        excmd([3, x], null, meta)
         parser(`excmd 3 ${x}`, meta)
     }
 
     @content
-    scrollline([x],{flags: {down}, meta}) {
+    scrollline([x], { flags: { down }, meta }) {
         // whatever
-        excmd([3, x],{meta})
+        excmd([3, x], { meta })
         parser(`excmd 3 ${x}`, meta)
     }
 
@@ -23,19 +23,18 @@ class ExCmds {
      * @param blah is x
      */
     @content
-    scrollline({msg}, [x, y], {down, up}) {
-        this.excmd({msg: meta.msg}, 3, x)
+    scrollline({ msg }, [x, y], { down, up }) {
+        this.excmd({ msg: meta.msg }, 3, x)
         parser(`excmd 3 ${x}`, meta)
     }
 
-    scrolline({msg, flags: {up, down}}, x, y) {
-    }
+    scrolline({ msg, flags: { up, down } }, x, y) {}
 
     @content
-    async open({msg, flags}, ...urlarr: string[]) {
+    async open({ msg, flags }, ...urlarr: string[]) {
         let url = urlarr.join(" ")
         if (url === "about:blank") {
-            browserBg.tabs.update(msg.tabId, {url})
+            browserBg.tabs.update(msg.tabId, { url })
         } else if (about_whitelist) {
             natmsg.open(url)
         } else if (url) {
@@ -51,13 +50,11 @@ class native {
     }
 
     @background
-    print([a, b], meta) {
-    }
+    print([a, b], meta) {}
 
-    path(meta, x, ...y) {
-    }
+    path(meta, x, ...y) {}
 
-    path({msg, flags: {force}}, x, ...y) {
-        foo({msg}, y[0], x)
+    path({ msg, flags: { force } }, x, ...y) {
+        foo({ msg }, y[0], x)
     }
 }
