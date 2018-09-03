@@ -38,19 +38,21 @@ async function history(): Promise<browser.history.HistoryItem[]> {
     })
 }
 async function allWindowTabs(): Promise<browser.tabs.Tab[]> {
-    let allTabs: browser.tabs.Tab[] = []
-    for (const window of await browser.windows.getAll()) {
-        const tabs = await browser.tabs.query({ windowId: window.id })
-        allTabs = allTabs.concat(tabs)
-    }
+    const windows: browser.windows.Window[] = await browser.windows.getAll()
+    const queries: Promise<browser.tabs.Tab[]>[] = windows.map(
+        window =>
+            browser.tabs.query({ windowId: window.id })
+    )
+    const windowTabs: browser.tabs.Tab[][] = await Promise.all(queries)
+    const allTabs: browser.tabs.Tab[] = Array.prototype.concat(...windowTabs)
     return allTabs
 }
 
 export async function show(focus = true) {
     Messaging.messageActiveTab("commandline_content", "show")
     if (focus) {
-        await Messaging.messageActiveTab("commandline_content", "focus")
-        await Messaging.messageActiveTab("commandline_frame", "focus")
+        Messaging.messageActiveTab("commandline_content", "focus")
+        Messaging.messageActiveTab("commandline_frame", "focus")
     }
 }
 
