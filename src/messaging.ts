@@ -11,6 +11,7 @@ export type NonTabMessageType =
     | "controller_background"
     | "browser_proxy_background"
     | "download_background"
+    | "performance_background"
 export type MessageType = TabMessageType | NonTabMessageType
 
 export interface Message {

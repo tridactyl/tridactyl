@@ -2,6 +2,7 @@ import { browserBg } from "../lib/webext"
 import * as Containers from "../lib/containers"
 import * as Messaging from "../messaging"
 import * as Completions from "../completions"
+import * as Perf from "../perf"
 
 class BufferAllCompletionOption extends Completions.CompletionOptionHTML
     implements Completions.CompletionOptionFuse {
@@ -62,6 +63,7 @@ export class BufferAllCompletionSource extends Completions.CompletionSourceFuse 
         return response
     }
 
+    @Perf.measuredAsync
     private async updateOptions(exstr?: string) {
         const tabsPromise = Messaging.message(
             "commandline_background",

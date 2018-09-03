@@ -16,6 +16,7 @@ import "./number.clamp"
 import state from "./state"
 import Logger from "./logging"
 import { theme } from "./styling"
+import * as perf from "./perf"
 const logger = new Logger("cmdline")
 
 let activeCompletions: Completions.CompletionSource[] = undefined
@@ -367,3 +368,18 @@ export function getContent() {
 }
 
 Messaging.addListener("commandline_frame", Messaging.attributeCaller(SELF))
+
+// Listen for statistics from the commandline's iframe and send them
+// to the background for collection.
+const perf_observer = new PerformanceObserver(
+    (list: PerformanceObserverEntryList, observer: PerformanceObserver) => {
+        perf.sendStats(list.getEntries())
+    },
+)
+perf_observer.observe({ entryTypes: ["mark", "measure"], buffered: true })
+window.tri = Object.assign(window.tri || Object.create(null), {
+    // Attach it to the window object since there's a bug that causes
+    // performance observers to be GC'd even if they still hold a
+    // callback.
+    perf_observer,
+})

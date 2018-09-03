@@ -106,6 +106,7 @@ import Mark from "mark.js"
 import * as CSS from "css"
 import * as Metadata from "./.metadata.generated"
 import { fitsType, typeToString } from "./metadata"
+import * as Perf from "./perf"
 
 //#content_helper
 // {
@@ -3853,6 +3854,72 @@ export async function ttscontrol(action: string) {
 }
 
 //}}}
+
+// {{{ PERFORMANCE LOGGING
+
+/**
+ * Build a set of FilterConfigs from a list of human-input filter
+ * specs.
+ *
+ * @hidden
+ */
+//#background_helper
+export function buildFilterConfigs(filters: string[]): Perf.StatsFilterConfig[] {
+    return filters.map(
+        (filter: string): Perf.StatsFilterConfig => {
+            if (filter.endsWith("/")) {
+                return { filter: "ownerName", ownerName: filter.slice(0, -1) }
+            } else if (filter === ":start") {
+                return { filter: "eventType", eventType: "start" }
+            } else if (filter === ":end") {
+                return { filter: "eventType", eventType: "end" }
+            } else if (filter === ":measure") {
+                return { filter: "eventType", eventType: "measure" }
+            } else {
+                return { filter: "functionName", functionName: name }
+            }
+        },
+    )
+}
+
+/**
+ * Dump the raw json for our performance counters. Filters with
+ * trailing slashes are class names, :start | :end | :measure specify
+ * what type of sample to pass through, and all others are function
+ * names. All filters must match for a sample to be dumped.
+ *
+ * Tridactyl does not collect performance information by default. To
+ * get this data you'll have to set the configuration option
+ * `perfcounters` to `"true"`. You may also want to examine the value
+ * of `perfsamples`.
+ */
+//#background
+export async function dumpcounters(...filters: string[]) {
+    let filterconfigs = buildFilterConfigs(filters)
+    const entries = window.tri.statsLogger.getEntries(...filterconfigs)
+    console.log(filterconfigs)
+    open("data:application/json;charset=UTF-8," + JSON.stringify(entries))
+}
+
+/**
+ * Pretty-print a histogram of execution durations for you. Arguments
+ * are as above, with the addition that this automatically filters to
+ * counter samples of type :measure.
+ *
+ * Note that this will display its output by opening a data: url with
+ * text in the place of your current tab.
+ */
+//#background
+export async function perfhistogram(...filters: string[]) {
+    let filterconfigs = buildFilterConfigs(filters)
+    filterconfigs.push({ filter: "eventType", eventType: "measure" })
+    const entries = window.tri.statsLogger.getEntries(...filterconfigs)
+    const histogram = Perf.renderStatsHistogram(entries)
+    console.log(histogram)
+    open("data:text/plain;charset=UTF-8;base64," + btoa(histogram))
+}
+
+// }}}
 
 // unsupported on android
 /**

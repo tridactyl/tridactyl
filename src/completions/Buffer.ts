@@ -2,6 +2,7 @@ import { enumerate } from "../itertools"
 import * as Containers from "../lib/containers"
 import * as Messaging from "../messaging"
 import * as Completions from "../completions"
+import * as Perf from "../perf"
 
 class BufferCompletionOption extends Completions.CompletionOptionHTML
     implements Completions.CompletionOptionFuse {
@@ -66,6 +67,7 @@ export class BufferCompletionSource extends Completions.CompletionSourceFuse {
         this._parent.appendChild(this.node)
     }
 
+    @Perf.measuredAsync
     private async updateOptions(exstr?: string) {
         /* console.log('updateOptions', this.optionContainer) */
         const tabs: browser.tabs.Tab[] = await Messaging.message(

@@ -587,6 +587,7 @@ class default_config {
         state: "warning",
         excmd: "error",
         styling: "warning",
+        performance: "warning",
     }
     noiframeon: string[] = []
 
@@ -668,6 +669,32 @@ class default_config {
      * JavaScript RegExp used to recognize words in im_* functions (e.g. im_transpose_words). Should match any character belonging to a word.
      */
     wordpattern = "[^\\s]+"
+
+    /**
+     * Activate tridactyl's performance counters. These have a
+     * measurable performance impact, since every sample is a few
+     * hundred bytes and we sample tridactyl densely, but they're good
+     * when you're trying to optimize things.
+     */
+    perfcounters: "true" | "false" = "false"
+
+    /**
+     * How many samples to store from the perf counters.
+     *
+     * Each performance entry is two numbers (16 bytes), an entryType
+     * of either "mark" or "measure" (js strings are utf-16 ad we have
+     * two marks for each measure, so amortize to about 10 bytes per
+     * entry), and a string name that for Tridactyl object will be
+     * about 40 (utf-16) characters (80 bytes), plus object overhead
+     * roughly proportional to the string-length of the name of the
+     * constructor (in this case something like 30 bytes), for a total
+     * of what we'll call 128 bytes for ease of math.
+     *
+     * We want to store, by default, about 1MB of performance
+     * statistics, so somewhere around 10k samples.
+     *
+     */
+    perfsamples: number = 10_000
 }
 
 /** @hidden */
