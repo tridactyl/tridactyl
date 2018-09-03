@@ -53,17 +53,19 @@ export class BufferAllCompletionSource extends Completions.CompletionSourceFuse 
     }
 
     private async updateOptions(exstr?: string) {
-        const tabs: browser.tabs.Tab[] = await Messaging.message(
+        const tabsPromise: Promise<browser.tabs.Tab[]> = Messaging.message(
             "commandline_background",
             "allWindowTabs",
         )
-        const windows = (await browserBg.windows.getAll()).reduce(
-            (acc, win) => {
+        const windowsPromise: Promise<{
+            [tabId: number]: browser.windows.Window
+        }> = browserBg.windows.getAll().then(windows =>
+            windows.reduce((acc, win) => {
                 acc[win.id] = win
                 return acc
-            },
-            {},
+            }, {}),
         )
+        const [tabs, windows] = await Promise.all([tabsPromise, windowsPromise])
 
         const options = []
 
