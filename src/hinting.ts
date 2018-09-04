@@ -20,7 +20,7 @@ import {
     unique,
 } from "./itertools"
 import { hasModifiers } from "./keyseq"
-import state from "./state"
+import { contentState } from "./state_content"
 import { messageActiveTab, message } from "./messaging"
 import * as config from "./config"
 import * as TTS from "./text_to_speech"
@@ -75,7 +75,7 @@ export function hintPage(
 ) {
     let buildHints: HintBuilder = defaultHintBuilder()
     let filterHints: HintFilter = defaultHintFilter()
-    state.mode = "hint"
+    contentState.mode = "hint"
     modeState = new HintState(filterHints, resolve, reject, rapid)
 
     if (rapid == false) {
@@ -450,15 +450,13 @@ function filterHintsVimperator(fstr, reflow = false) {
 }
 
 /** Remove all hints, reset STATE.
- *  If abort is true, we're resetting because the user pressed escape.
- *  If it is false, we're resetting because the user selected a hint.
  **/
 function reset() {
     if (modeState) {
         modeState.destructor()
     }
     modeState = undefined
-    state.mode = "normal"
+    contentState.mode = "normal"
 }
 
 /** If key is in hintchars, add it to filtstr and filter */
@@ -537,7 +535,7 @@ export function pipe_elements(
 }
 
 function selectFocusedHint(delay = false) {
-    logger.debug("Selecting hint.", state.mode)
+    logger.debug("Selecting hint.", contentState.mode)
     const focused = modeState.focusedHint
     modeState.filter = ""
     modeState.hints.forEach(h => (h.hidden = false))
@@ -545,12 +543,15 @@ function selectFocusedHint(delay = false) {
     else focused.select()
 }
 
-import { addListener, attributeCaller } from "./messaging"
-addListener(
-    "hinting_content",
-    attributeCaller({
-        pushKey,
-        selectFocusedHint,
-        reset,
-    }),
-)
+export function parser(keys: KeyboardEvent[]) {
+    for (const { key } of keys) {
+        if (key === "Escape") {
+            reset()
+        } else if (["Enter", " "].includes(key)) {
+            selectFocusedHint()
+        } else {
+            pushKey(keys[0])
+        }
+    }
+    return { keys: [], ex_str: "" }
+}

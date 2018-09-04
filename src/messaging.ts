@@ -4,14 +4,11 @@ const logger = new Logger("messaging")
 
 export type TabMessageType =
     | "excmd_content"
-    | "keydown_content"
     | "commandline_content"
     | "commandline_frame"
-    | "hinting_content"
-    | "finding_content"
 export type NonTabMessageType =
-    | "keydown_background"
     | "commandline_background"
+    | "controller_background"
     | "browser_proxy_background"
     | "download_background"
 export type MessageType = TabMessageType | NonTabMessageType
