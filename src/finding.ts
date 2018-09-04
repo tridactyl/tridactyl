@@ -153,5 +153,5 @@ export function parser(keys: KeyboardEvent[]) {
     for (const { key } of keys) {
         pushKey(key)
     }
-    return { keys: [], ex_str: "" }
+    return { keys: [], ex_str: "", isMatch: true }
 }

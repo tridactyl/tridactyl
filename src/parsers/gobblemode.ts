@@ -40,5 +40,5 @@ export function parser(keys: KeyboardEvent[]) {
             return { keys: [], exstr }
         }
     }
-    return { keys: [], exstr: "" }
+    return { keys: [], exstr: "", isMatch: true }
 }

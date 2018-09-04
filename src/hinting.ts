@@ -553,5 +553,5 @@ export function parser(keys: KeyboardEvent[]) {
             pushKey(keys[0])
         }
     }
-    return { keys: [], ex_str: "" }
+    return { keys: [], ex_str: "", isMatch: true }
 }
