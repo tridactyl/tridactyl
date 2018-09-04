@@ -7,8 +7,9 @@
     "sourceMap": true,
     "target": "ES2017",
     "lib": ["ES2017","dom", "dom.iterable"],
-    "typeRoots": ["node_modules/@types", "node_modules/web-ext-types/"],
-    "alwaysStrict": true
+    "typeRoots": ["node_modules/@types", "node_modules/web-ext-types/", "node_modules/inferno"],
+    "alwaysStrict": true,
+    "jsx": "preserve"
   },
   "include": [
     "./src/**/*"

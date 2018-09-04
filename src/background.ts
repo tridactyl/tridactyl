@@ -123,29 +123,31 @@ browser.tabs.onActivated.addListener(ev => {
 
 let aucon = new AutoContain()
 
-// Handle cancelled requests as a result of autocontain.
-browser.webRequest.onCompleted.addListener(
-    details => {
-        if (aucon.getCancelledRequest(details.tabId)) {
-            aucon.clearCancelledRequests(details.tabId)
-        }
-    },
-    { urls: ["<all_urls"], types: ["main_frame"] },
-)
+if (browser.webRequest) {
+    // Handle cancelled requests as a result of autocontain.
+    browser.webRequest.onCompleted.addListener(
+        details => {
+            if (aucon.getCancelledRequest(details.tabId)) {
+                aucon.clearCancelledRequests(details.tabId)
+            }
+        },
+        { urls: ["<all_urls"], types: ["main_frame"] },
+    )
 
-browser.webRequest.onErrorOccurred.addListener(
-    details => {
-        if (aucon.getCancelledRequest(details.tabId)) {
-            aucon.clearCancelledRequests(details.tabId)
-        }
-    },
-    { urls: ["<all_urls>"], types: ["main_frame"] },
-)
+    browser.webRequest.onErrorOccurred.addListener(
+        details => {
+            if (aucon.getCancelledRequest(details.tabId)) {
+                aucon.clearCancelledRequests(details.tabId)
+            }
+        },
+        { urls: ["<all_urls>"], types: ["main_frame"] },
+    )
 
-// Contain autocmd.
-browser.webRequest.onBeforeRequest.addListener(
-    aucon.autoContain,
-    { urls: ["<all_urls>"], types: ["main_frame"] },
-    ["blocking"],
-)
+    // Contain autocmd.
+    browser.webRequest.onBeforeRequest.addListener(
+        aucon.autoContain,
+        { urls: ["<all_urls>"], types: ["main_frame"] },
+        ["blocking"],
+    )
+}
 // }}}

@@ -1,5 +1,6 @@
 const UglifyJSPlugin = require("uglifyjs-webpack-plugin")
 const CopyWebPackPlugin = require("copy-webpack-plugin")
+const webpack = require("webpack")
 // const WebpackShellPlugin = require('webpack-shell-plugin')
 
 module.exports = {
@@ -9,6 +10,7 @@ module.exports = {
         commandline_frame: "./src/commandline_frame.ts",
         help: "./src/help.ts",
         newtab: "./src/newtab.ts",
+        permissions: "./src/permissions.tsx",
     },
     output: {
         filename: "[name].js",
@@ -24,13 +26,18 @@ module.exports = {
     },
 
     module: {
-        rules: [
-            // All files with a '.ts' or '.tsx' extension will be handled by 'awesome-typescript-loader'.
-            { test: /\.tsx?$/, loader: "awesome-typescript-loader" },
-
-            // All output '.js' files will have any sourcemaps re-processed by 'source-map-loader'.
-            { enforce: "pre", test: /\.js$/, loader: "source-map-loader" },
-        ],
+        loaders: [
+            {
+                test: /\.tsx?$/, // All ts and tsx files will be process by
+                loaders: ["babel-loader", "awesome-typescript-loader"], // first babel-loader, then ts-loader
+                exclude: /node_modules/, // ignore node_modules
+            },
+            {
+                test: /\.jsx?$/, // all js and jsx files will be processed by
+                loader: "babel-loader", // babel-loader
+                exclude: /node_modules/, // ignore node_modules
+            },
+        ]
     },
 
     plugins: [
@@ -54,6 +61,11 @@ module.exports = {
             },
             { from: "generated/static", to: "static" },
         ]),
+        new webpack.DefinePlugin({
+            "process.env": {
+                NODE_ENV: JSON.stringify("production"),
+            },
+        }),
     ],
     // Fix css
     // https://github.com/webpack-contrib/css-loader/issues/447#issuecomment-285598881

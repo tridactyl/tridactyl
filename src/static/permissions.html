@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>Tridactyl's optional permissions</title>
+        <link rel="stylesheet" href="css/newtab.css">
+        <link rel="stylesheet" href="css/content.css">
+        <link rel="stylesheet" href="css/hint.css">
+        <link rel="stylesheet" href="css/viewsource.css">
+        <link rel="shortcut icon" href="logo/Tridactyl_64px.png">
+        <style>
+            input[type=checkbox] {
+                width: 16pt !important;
+                height: 16pt !important;
+                margin: 3pt;
+                margin-right: 10pt;
+            }
+
+            table {
+                border-collapse: collapse;
+            }
+
+            tr {
+                border-bottom: solid #EEEEEE 1px;
+            }
+
+            #save-permissions {
+                display: block;
+                margin: 10pt auto;
+            }
+        </style>
+    </head>
+    <body>
+        <p>On this page, you can give Tridactyl additional permissions. Not all permissions are currently used by default Tridactyl, but they might still be useful to you if you choose to create custom commands that depend on the corresponding APIs. Please note that it is currently impossible to revoke permissions as Mozilla hasn't implemented such an API yet.</p>
+        <div id="tridactyl-optional-permissions"></div>
+        <button id="save-permissions">Save permissions</button>
+    </body>
+    <script src="../content.js"></script>
+    <script src="../permissions.js"></script>
+</html>
