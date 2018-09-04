@@ -37,15 +37,9 @@ async function history(): Promise<browser.history.HistoryItem[]> {
         startTime: 0,
     })
 }
+
 async function allWindowTabs(): Promise<browser.tabs.Tab[]> {
-    const windows: browser.windows.Window[] = await browser.windows.getAll()
-    const queries: Promise<browser.tabs.Tab[]>[] = windows.map(
-        window =>
-            browser.tabs.query({ windowId: window.id })
-    )
-    const windowTabs: browser.tabs.Tab[][] = await Promise.all(queries)
-    const allTabs: browser.tabs.Tab[] = Array.prototype.concat(...windowTabs)
-    return allTabs
+    return browser.tabs.query({})
 }
 
 export async function show(focus = true) {
