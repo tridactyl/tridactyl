@@ -12,8 +12,7 @@ Tridactyl has to override your new tab page due to WebExtension limitations. You
 
 *   If you're enjoying Tridactyl (or not), please leave a review on [addons.mozilla.org][amo].
 
-*   **Breaking change to `composite`:** composite now tries to pass the return value from each preceding function to its ancestor. This might break some of your binds to composite, or cause them to act in unexpected ways.
-*   **NB:** Tridactyl can now run external programs on Linux and OSX if you decide to install an additional executable. Just run `:installnative` to get going, and then Ctrl-i `<C-i>` in a text box to open your editor.
+*   **Big change, probably buggy**: saulrh has very kindly made some quite large changes to Tridactyl's internals such that per-tab mode is now possible (i.e, you can have one window in ignore mode and another in normal mode and it Just Works (TM)).
 
 REPLACE_ME_WITH_THE_CHANGE_LOG_USING_SED
 
