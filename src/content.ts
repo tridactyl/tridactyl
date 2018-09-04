@@ -16,13 +16,22 @@ import { contentState, addContentStateChangedListener } from "./state_content"
 
 // Hook the keyboard up to the controller
 import * as ContentController from "./controller_content"
-try {
-    document.body.addEventListener("keydown", ContentController.acceptKey)
-} catch (e) {
-    window.addEventListener("DOMContentLoaded", () => {
-        document.body.addEventListener("keydown", ContentController.acceptKey)
-    })
-}
+import { getAllDocumentFrames } from "./dom"
+window.addEventListener("keydown", ContentController.acceptKey, true)
+document.addEventListener("readystatechange", ev =>
+    getAllDocumentFrames().map(frame => {
+        frame.contentWindow.removeEventListener(
+            "keydown",
+            ContentController.acceptKey,
+            true,
+        )
+        frame.contentWindow.addEventListener(
+            "keydown",
+            ContentController.acceptKey,
+            true,
+        )
+    }),
+)
 
 // Add various useful modules to the window for debugging
 import * as commandline_content from "./commandline_content"
