@@ -371,8 +371,8 @@ class default_config {
      * Edit these if you want to add, e.g. other language support.
      */
     followpagepatterns = {
-        next: "^(next|newer\\b|»|>>|more",
-        prev: "^(prev(ious?|older\\b|«|<<",
+        next: "^(next|newer)\\b|»|>>|more",
+        prev: "^(prev(ious)?|older)\\b|«|<<",
     }
 
     /**
