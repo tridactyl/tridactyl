@@ -1,5 +1,36 @@
 # Tridactyl changelog
 
+## Release 1.14.0 / Unreleased
+
+*   New features:
+
+    *   Mode is now per-tab
+
+        *   Having two windows with one in ignore mode is now bearable
+        *   This opens the door to proper per-tab settings, e.g, per site binds
+        *   This is a big change so please report any bugs on GitHub
+
+    *   Configuration now has a help page
+
+        *   Accessible from the link to the binds on the normal help page
+        *   We'll add a better way of accessing it soon
+
+    *   Configuration completions now show their permitted values and set checks for these
+
+*   Bug fixes:
+
+    *   Fixed the wrong invocation of urlmodify in the tridactylrc example
+    *   Fix #948: set newtab about:home kinda works subject to usual caveats
+    *   Respect `profiledir` in more places (#946)
+    *   Pass `/` through to websites in abnormal modes (#954)
+    *   Fix `installnative` on some gourmet distributions
+
+Thanks to all of our contributors for this release: Oliver Blanthorn, Saul Reynolds-Haertle, glacambre, Colin Caine, William G Hatch, Noah Birnel, Roman Bogorodskiy, and quinoa42.
+
+Extra special thanks go to Noah Birnel, quinoa42, Roman Bogorodskiy, and William G Hatch who all contributed for the first time.
+
+Last, but not least - thank you to everyone who reported issues.
+
 ## Release 1.13.3 / 2018-08-21
 
 *   New features:
