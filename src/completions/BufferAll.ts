@@ -52,19 +52,22 @@ export class BufferAllCompletionSource extends Completions.CompletionSourceFuse 
         await this.updateOptions()
     }
 
+    /**
+     * Map all windows into a {[windowId]: window} object
+     */
+    private async getWindows() {
+        const windows = await browserBg.windows.getAll()
+        const response: {[windowId: number]: browser.windows.Window} = {}
+        windows.forEach(win => response[win.id] = win)
+        return response
+    }
+
     private async updateOptions(exstr?: string) {
-        const tabsPromise: Promise<browser.tabs.Tab[]> = Messaging.message(
+        const tabsPromise = Messaging.message(
             "commandline_background",
             "allWindowTabs",
         )
-        const windowsPromise: Promise<{
-            [tabId: number]: browser.windows.Window
-        }> = browserBg.windows.getAll().then(windows =>
-            windows.reduce((acc, win) => {
-                acc[win.id] = win
-                return acc
-            }, {}),
-        )
+        const windowsPromise = this.getWindows()
         const [tabs, windows] = await Promise.all([tabsPromise, windowsPromise])
 
         const options = []
