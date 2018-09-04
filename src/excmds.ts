@@ -2550,7 +2550,7 @@ export function searchsetkeyword(keyword: string, url: string) {
 
 /** Set a key value pair in config.
 
-    Use to set any string values found [here](/static/docs/modules/_src_config_.html#defaults)
+    Use to set any string values found [here](/static/docs/classes/_src_config_.default_config.html).
 
     e.g.
         set searchurls.google https://www.google.com/search?q=
@@ -2885,6 +2885,9 @@ export function viewconfig(key?: string) {
     //window.location.href = "data:application/json;base64," + btoa(JSON.stringify(config.get()))
 }
 
+/**
+ * Reset a config setting to default
+ */
 //#background
 export function unset(...keys: string[]) {
     const target = keys.join(".").split(".")
