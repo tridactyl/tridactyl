@@ -3894,7 +3894,7 @@ export function buildFilterConfigs(filters: string[]): Perf.StatsFilterConfig[] 
  * of `perfsamples`.
  */
 //#background
-export async function dumpcounters(...filters: string[]) {
+export async function perfdump(...filters: string[]) {
     let filterconfigs = buildFilterConfigs(filters)
     const entries = window.tri.statsLogger.getEntries(...filterconfigs)
     console.log(filterconfigs)
