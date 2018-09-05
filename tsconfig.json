@@ -1,5 +1,6 @@
 {
   "compilerOptions": {
+    "module": "es6",
     "moduleResolution": "Node",
     "noImplicitAny": false,
     "noEmitOnError": true,
@@ -9,7 +10,7 @@
     "lib": ["ES2017","dom", "dom.iterable"],
     "typeRoots": ["node_modules/@types", "node_modules/web-ext-types/", "node_modules/inferno"],
     "alwaysStrict": true,
-    "jsx": "preserve"
+    "jsx": "react"
   },
   "include": [
     "./src/**/*"
