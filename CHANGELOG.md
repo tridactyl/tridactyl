@@ -1,6 +1,6 @@
 # Tridactyl changelog
 
-## Release 1.14.0 / Unreleased
+## Release 1.14.0 / 2018-09-05
 
 *   New features:
 
@@ -16,6 +16,8 @@
         *   We'll add a better way of accessing it soon
 
     *   Configuration completions now show their permitted values and set checks for these
+
+    *   You can now map keys to keys for Tridactyl modes with `keymap key1 key2`. The purpose of this is for our international users who switch keyboard layouts.
 
 *   Bug fixes:
 
