@@ -2533,6 +2533,17 @@ export function bind(...args: string[]) {
 }
 
 /**
+ *  Makes one key equivalent to another for the purposes of most of our parsers. Useful for international keyboard layouts.
+ *
+ *  e.g,
+ *      keymap ę e
+ */
+//#background
+export function keymap(source: string, target: string) {
+    set("keytranslatemap." + source, target)
+}
+
+/**
  * Set a search engine keyword for use with *open or `set searchengine`
  *
  * @deprecated use `set searchurls.KEYWORD URL` instead
