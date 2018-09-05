@@ -6,9 +6,15 @@ Welcome to the Tridactyl tutorial. Here, you will learn how to get started with 
 
 It will not cover advanced topics. For those, [`:help`](../docs/modules/_src_excmds_.html) is always at hand.
 
----
-
 ## Basics
+
+### Permissions
+
+First, make sure you enable the permissions you think you'll need by visiting the [`permissions`](../permissions.html) page as Tridactyl's features can be severly limited if it doesn't have access to some parts of your browser. You can also enable all permissions by clicking on the following button:
+
+<button style="display: block; margin: auto;" id="tridactyl-tutor-grant-all-permissions">Grant all permissions</button>
+
+### Introduction
 
 The idea behind Tridactyl is to allow you to navigate the web more efficiently with just the keyboard. Tridactyl turns Firefox into a modal browser, meaning it has several different modes of operation, like Vim. It can only ever be in one mode at a time, and each of these modes could have a wildly different operation. You can think of it a bit like a Transformer, if you like. There are four main modes you will want to be familiar with:
 

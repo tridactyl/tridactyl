@@ -4,7 +4,7 @@
 
 Tridactyl has to override your new tab page due to WebExtension limitations. You can learn how to change it at the bottom of the page, otherwise please read on for some tips and tricks.
 
-*   You can view the main help page by typing [`:help`][help], and access the tutorial with [`:tutor`][tutor].
+*   You can view the main help page by typing [`:help`][help], the tutorial with [`:tutor`][tutor] and the permissions page with[`:permissions`][permissions].
 
 *   You can view your current configuration with `:viewconfig`.
 
@@ -74,6 +74,7 @@ You have more questions? Have a look at our [FAQ][faq-link].
 [faq-link]: https://github.com/cmcaine/tridactyl#frequently-asked-questions
 [help]: /static/docs/modules/_src_excmds_.html
 [tutor]: /static/clippy/tutor.html
+[permissions]: /static/permissions.html
 [help-hint]: /static/docs/modules/_src_excmds_.html#hint
 [gitter-badge]: /static/badges/gitter-badge.svg
 [gitter-link]: https://gitter.im/tridactyl/Lobby

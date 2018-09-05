@@ -10,7 +10,7 @@ module.exports = {
         commandline_frame: "./src/commandline_frame.ts",
         help: "./src/help.ts",
         newtab: "./src/newtab.ts",
-        permissions: "./src/permissions.tsx",
+        tutor: "./src/tutor.ts",
     },
     output: {
         filename: "[name].js",
@@ -37,7 +37,7 @@ module.exports = {
                 loader: "babel-loader", // babel-loader
                 exclude: /node_modules/, // ignore node_modules
             },
-        ]
+        ],
     },
 
     plugins: [

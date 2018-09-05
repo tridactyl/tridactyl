@@ -30,6 +30,7 @@ import Mark from "mark.js"
 import * as keyseq from "./keyseq"
 import * as native from "./native_background"
 import * as styling from "./styling"
+import * as permissions from "./permissions"
 ;(window as any).tri = Object.assign(Object.create(null), {
     browserBg: webext.browserBg,
     commandline_content,
@@ -51,6 +52,7 @@ import * as styling from "./styling"
     l: prom => prom.then(console.log).catch(console.error),
     native,
     styling,
+    permissions,
 })
 
 // Don't hijack on the newtab page.
