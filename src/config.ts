@@ -301,6 +301,30 @@ class default_config {
     }
 
     /**
+     * Map for translating keys directly into other keys in normal-ish modes. For example, if you have an entry in this config option mapping `п` to `g`, then you could type `пп` instead of `gg` or `пi` instead of `gi` or `;п` instead of `;g`. This is primarily useful for international users who don't want to deal with rebuilding their bindings every time tridactyl ships a new default keybind. It's not as good as shipping properly internationalized sets of default bindings, but it's probably as close as we're going to get on a small open-source project like this.
+     *
+     * Note that the current implementation does not allow you to "chain" keys, for example, "a"=>"b" and "b"=>"c" for "a"=>"c". You can, however, swap or rotate keys, so "a"=>"b" and "b"=>"a" will work the way you'd expect, as will "a"=>"b" and "b"=>"c" and "c"=>"a".
+     */
+    keytranslatemap = {
+        // Examples (I think >_>):
+        // "д": "l", // Russian language
+        // "é" : "w", // BÉPO
+        // "h": "j", // Dvorak
+        // "n": "j", // Colemak
+        // etc
+    }
+
+    /**
+     * Whether to use the keytranslatemap in various maps.
+     */
+    keytranslatemodes = {
+        nmaps: "true",
+        imaps: "false",
+        inputmaps: "false",
+        ignoremaps: "false",
+    }
+
+    /**
      * Automatically place these sites in the named container.
      *
      * Each key corresponds to a URL fragment which, if contained within the page URL, the site will be opened in a container tab instead.
