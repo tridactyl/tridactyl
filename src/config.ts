@@ -694,7 +694,7 @@ class default_config {
      * statistics, so somewhere around 10k samples.
      *
      */
-    perfsamples: number = 10_000
+    perfsamples: string = "10000"
 }
 
 /** @hidden */

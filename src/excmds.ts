@@ -3868,15 +3868,15 @@ export function buildFilterConfigs(filters: string[]): Perf.StatsFilterConfig[] 
     return filters.map(
         (filter: string): Perf.StatsFilterConfig => {
             if (filter.endsWith("/")) {
-                return { filter: "ownerName", ownerName: filter.slice(0, -1) }
+                return { kind: "ownerName", ownerName: filter.slice(0, -1) }
             } else if (filter === ":start") {
-                return { filter: "eventType", eventType: "start" }
+                return { kind: "eventType", eventType: "start" }
             } else if (filter === ":end") {
-                return { filter: "eventType", eventType: "end" }
+                return { kind: "eventType", eventType: "end" }
             } else if (filter === ":measure") {
-                return { filter: "eventType", eventType: "measure" }
+                return { kind: "eventType", eventType: "measure" }
             } else {
-                return { filter: "functionName", functionName: name }
+                return { kind: "functionName", functionName: name }
             }
         },
     )
@@ -3912,7 +3912,7 @@ export async function dumpcounters(...filters: string[]) {
 //#background
 export async function perfhistogram(...filters: string[]) {
     let filterconfigs = buildFilterConfigs(filters)
-    filterconfigs.push({ filter: "eventType", eventType: "measure" })
+    filterconfigs.push({ kind: "eventType", eventType: "measure" })
     const entries = window.tri.statsLogger.getEntries(...filterconfigs)
     const histogram = Perf.renderStatsHistogram(entries)
     console.log(histogram)

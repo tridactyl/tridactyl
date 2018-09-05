@@ -19,6 +19,7 @@ import state from "./state"
 import * as webext from "./lib/webext"
 import { AutoContain } from "./lib/autocontainers"
 import * as perf from "./perf"
+import { listenForCounters } from "./perf";
 window.tri = Object.assign(window.tri || Object.create(null), {
     messaging,
     excmds,
@@ -170,21 +171,17 @@ messaging.addListener(
     "performance_background",
     messaging.attributeCaller(statsLogger),
 )
-
-// Listen for statistics from the background script and store them.
-const perf_observer = new PerformanceObserver(
-    (list: PerformanceObserverEntryList, observer: PerformanceObserver) => {
-        statsLogger.pushList(list.getEntries())
-    },
-)
-perf_observer.observe({ entryTypes: ["mark", "measure"], buffered: true })
+// Listen for statistics from the background script and store
+// them. Set this one up to log directly to the statsLogger instead of
+// going through messaging.
+const perfObserver = listenForCounters(statsLogger)
 window.tri = Object.assign(window.tri || Object.create(null), {
-    // Attach the perf observer to the window object since there
+    // Attach the perf observer to the window object, since there
     // appears to be a bug causing performance observers to be GC'd
     // even if they're still the target of a callback.
-    perf_observer,
+    perfObserver,
     // Also attach the statsLogger so we can access our stats from the
-    // command line
+    // console.
     statsLogger,
 })
 

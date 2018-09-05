@@ -240,16 +240,9 @@ config.getAsync("leavegithubalone").then(v => {
 })
 
 // Listen for statistics from each content script and send them to the
-// background for collection.
-const perf_observer = new PerformanceObserver(
-    (list: PerformanceObserverEntryList, observer: PerformanceObserver) => {
-        perf.sendStats(list.getEntries())
-    },
-)
-perf_observer.observe({ entryTypes: ["mark", "measure"], buffered: true })
+// background for collection. Attach the observer to the window object
+// since there's apparently a bug that causes performance observers to
+// be GC'd even if they're still the target of a callback.
 ;(window as any).tri = Object.assign(window.tri, {
-    // Attach it to the window object since there's a bug that causes
-    // performance observers to be GC'd even if they still hold a
-    // callback.
-    perf_observer,
+    perfObserver: perf.listenForCounters(),
 })

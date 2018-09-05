@@ -369,17 +369,12 @@ export function getContent() {
 
 Messaging.addListener("commandline_frame", Messaging.attributeCaller(SELF))
 
-// Listen for statistics from the commandline's iframe and send them
-// to the background for collection.
-const perf_observer = new PerformanceObserver(
-    (list: PerformanceObserverEntryList, observer: PerformanceObserver) => {
-        perf.sendStats(list.getEntries())
-    },
-)
-perf_observer.observe({ entryTypes: ["mark", "measure"], buffered: true })
-window.tri = Object.assign(window.tri || Object.create(null), {
-    // Attach it to the window object since there's a bug that causes
-    // performance observers to be GC'd even if they still hold a
-    // callback.
-    perf_observer,
+
+// Listen for statistics from the commandline iframe and send them to
+// the background for collection. Attach the observer to the window
+// object since there's apparently a bug that causes performance
+// observers to be GC'd even if they're still the target of a
+// callback.
+;(window as any).tri = Object.assign(window.tri, {
+    perfObserver: perf.listenForCounters(),
 })
