@@ -3243,7 +3243,7 @@ export function run_exstr(...commands: string[]) {
 
 // {{{ GOBBLE mode
 
-//#background_helper
+//#content_helper
 import * as gobbleMode from "./parsers/gobblemode"
 
 /** Initialize gobble mode.
@@ -3252,7 +3252,7 @@ import * as gobbleMode from "./parsers/gobblemode"
     string.
 
 */
-//#background
+//#content
 export async function gobble(nChars: number, endCmd: string) {
     gobbleMode.init(nChars, endCmd)
 }
