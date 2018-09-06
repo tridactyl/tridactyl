@@ -16,10 +16,10 @@ trap "echoerr 'Failed to install!'" ERR
 
 # To install, curl -fsSl 'url to this script' | bash
 
-XDG_CONFIG_HOME="${XDG_CONFIG_HOME:-$HOME/.config/tridactyl}"
-XDG_DATA_HOME="${XDG_LOCAL_HOME:-$HOME/.local/share/tridactyl}"
-manifest_loc="https://raw.githubusercontent.com/cmcaine/tridactyl/master/native/tridactyl.json"
-native_loc="https://raw.githubusercontent.com/cmcaine/tridactyl/master/native/native_main.py"
+XDG_CONFIG_HOME="${XDG_CONFIG_HOME:-$HOME/.config}/tridactyl"
+XDG_DATA_HOME="${XDG_DATA_HOME:-$HOME/.local/share}/tridactyl"
+manifest_loc="https://raw.githubusercontent.com/tridactyl/tridactyl/master/native/tridactyl.json"
+native_loc="https://raw.githubusercontent.com/tridactyl/tridactyl/master/native/native_main.py"
 
 # Decide where to put the manifest based on OS
 case "$OSTYPE" in
