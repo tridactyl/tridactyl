@@ -46,7 +46,10 @@ class HintState {
         this.hintHost.classList.add("TridactylHintHost", "cleanslate")
     }
 
-    destructor() {
+    /**
+     * Remove hinting elements and classes from the DOM
+     */
+    cleanUpHints() {
         // Undo any alterations of the hinted elements
         for (const hint of this.hints) {
             hint.hidden = true
@@ -54,6 +57,10 @@ class HintState {
 
         // Remove all hints from the DOM.
         this.hintHost.remove()
+    }
+
+    resolveHinting() {
+        this.cleanUpHints()
 
         if (this.rapid) this.resolve(this.selectedHints.map(h => h.result))
         else
@@ -80,6 +87,7 @@ export function hintPage(
 
     if (rapid == false) {
         buildHints(hintableElements, hint => {
+            modeState.cleanUpHints()
             hint.result = onSelect(hint.target)
             modeState.selectedHints.push(hint)
             reset()
@@ -108,6 +116,7 @@ export function hintPage(
             })
 
             if (different === undefined) {
+                modeState.cleanUpHints()
                 modeState.hints[0].select()
                 reset()
                 return
@@ -453,7 +462,8 @@ function filterHintsVimperator(fstr, reflow = false) {
  **/
 function reset() {
     if (modeState) {
-        modeState.destructor()
+        modeState.cleanUpHints()
+        modeState.resolveHinting()
     }
     modeState = undefined
     contentState.mode = "normal"
@@ -537,10 +547,13 @@ export function pipe_elements(
 function selectFocusedHint(delay = false) {
     logger.debug("Selecting hint.", contentState.mode)
     const focused = modeState.focusedHint
-    modeState.filter = ""
-    modeState.hints.forEach(h => (h.hidden = false))
-    if (delay) setTimeout(() => focused.select(), config.get("hintdelay"))
-    else focused.select()
+    let selectFocusedHintInternal = () => {
+        modeState.filter = ""
+        modeState.hints.forEach(h => (h.hidden = false))
+        focused.select()
+    }
+    if (delay) setTimeout(selectFocusedHintInternal, config.get("hintdelay"))
+    else selectFocusedHintInternal()
 }
 
 export function parser(keys: KeyboardEvent[]) {
