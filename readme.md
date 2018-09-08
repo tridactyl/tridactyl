@@ -1,6 +1,6 @@
 ![Tridactyl logo](src/static/logo/Tridactyl_200px.png)
 
-# Tridactyl [![Build Status](https://travis-ci.org/cmcaine/tridactyl.svg?branch=master)](https://travis-ci.org/cmcaine/tridactyl) [![Matrix Chat][matrix-badge]][matrix-link] [![Gitter Chat][gitter-badge]][gitter-link]
+# Tridactyl [![Build Status](https://travis-ci.org/tridactyl/tridactyl.svg?branch=master)](https://travis-ci.org/cmcaine/tridactyl) [![Matrix Chat][matrix-badge]][matrix-link] [![Gitter Chat][gitter-badge]][gitter-link]
 
 Replace Firefox's default control mechanism with one modelled on the one true editor, Vim.
 
