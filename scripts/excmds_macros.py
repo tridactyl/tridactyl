@@ -143,6 +143,12 @@ def background(lines, context):
                    )
                }}\n""".format(**locals()))
 
+def both(lines, context):
+    "Just extract the signature of the command."
+
+    sig = Signature(next(lines))
+    return "cmd_params.set('{sig.name}', ".format(**locals()) + dict_to_js(sig.params) + """)\n{sig.raw}""".format(**locals())
+
 
 def omit_helper_func_factory(desired_context):
     "Consume this block if context isn't what we want"
@@ -170,6 +176,7 @@ def main():
     macros = {
             "content": content,
             "background": background,
+            "both": both,
             "content_helper": omit_helper_func_factory("content"),
             "background_helper": omit_helper_func_factory("background"),
             "content_omit_line": omit_line_factory("content"),

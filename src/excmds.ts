@@ -100,12 +100,15 @@ import * as UrlUtil from "./url_util"
 import * as config from "./config"
 import * as aliases from "./aliases"
 import * as Logging from "./logging"
-/** @hidden */
-const logger = new Logging.Logger("excmds")
+import * as excmd_parser from "./parsers/exmode"
 import Mark from "mark.js"
 import * as CSS from "css"
 import * as Metadata from "./.metadata.generated"
 import { fitsType, typeToString } from "./metadata"
+import * as controller from "./controller"
+
+/** @hidden */
+const logger = new Logging.Logger("excmds")
 
 /**
  * Used to store the types of the parameters for each excmd.
@@ -114,10 +117,28 @@ import { fitsType, typeToString } from "./metadata"
   */
 export const cmd_params = new Map<string, Map<string, string>>()
 
+
+// Set up the SELF import for excmds that work in both modes
+import * as SELF_CONTENT from "./.excmds_content.generated"
+import * as SELF_BACKGROUND from "./.excmds_background.generated"
+
+/** @hidden */
+let SELF
+
+//#content_helper
+// {
+SELF = SELF_CONTENT
+// }
+
+//#background_helper
+// {
+SELF = SELF_BACKGROUND
+// }
+
+
 //#content_helper
 // {
 import "./number.clamp"
-import * as SELF_CONTENT from "./.excmds_content.generated"
 Messaging.addListener("excmd_content", Messaging.attributeCaller(SELF_CONTENT))
 import { message } from "./messaging"
 import * as DOM from "./dom"
@@ -128,7 +149,6 @@ import * as scrolling from "./scrolling"
 //#background_helper
 // {
 /** Message excmds_content.ts in the active tab of the currentWindow */
-import * as SELF_BACKGROUND from "./.excmds_background.generated"
 Messaging.addListener("excmd_background", Messaging.attributeCaller(SELF_BACKGROUND))
 import { messageTab, messageActiveTab } from "./messaging"
 import { flatten } from "./itertools"
@@ -136,7 +156,6 @@ import "./number.mod"
 import { activeTab, firefoxVersionAtLeast } from "./lib/webext"
 import * as CommandLineBackground from "./commandline_background"
 import * as rc from "./config_rc"
-import * as excmd_parser from "./parsers/exmode"
 import { mapstrToKeyseq } from "./keyseq"
 import * as Native from "./native_background"
 
@@ -2101,9 +2120,6 @@ async function getnexttabs(tabid: number, n?: number) {
 
 // {{{ CMDLINE
 
-//#background_helper
-import * as controller from "./controller"
-
 /** Repeats a `cmd` `n` times.
     Falls back to the last executed command if `cmd` doesn't exist.
     Executes the command once if `n` isn't defined either.
@@ -2113,7 +2129,7 @@ export function repeat(n = 1, ...exstr: string[]) {
     let cmd = controller.last_ex_str
     if (exstr.length > 0) cmd = exstr.join(" ")
     logger.debug("repeating " + cmd + " " + n + " times")
-    for (let i = 0; i < n; i++) controller.acceptExCmd(cmd, SELF_BACKGROUND)
+    for (let i = 0; i < n; i++) controller.acceptExCmd(cmd, SELF)
 }
 
 /**
@@ -2127,7 +2143,7 @@ export function repeat(n = 1, ...exstr: string[]) {
  *
  * The behaviour of combining ; and | in the same composite command is left as an exercise for the reader.
  */
-//#background
+//#both
 export async function composite(...cmds: string[]) {
     try {
         return cmds
@@ -2137,9 +2153,9 @@ export async function composite(...cmds: string[]) {
                 async (_, cmd) => {
                     await _
                     let cmds = cmd.split("|")
-                    let [fn, args] = excmd_parser.parser(cmds[0], SELF_BACKGROUND)
+                    let [fn, args] = excmd_parser.parser(cmds[0], SELF)
                     return cmds.slice(1).reduce(async (pipedValue, cmd) => {
-                        let [fn, args] = excmd_parser.parser(cmd, SELF_BACKGROUND)
+                        let [fn, args] = excmd_parser.parser(cmd, SELF)
                         return fn.call({}, ...args, await pipedValue)
                     }, fn.call({}, ...args))
                 },
