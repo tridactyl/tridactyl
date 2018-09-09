@@ -7,8 +7,8 @@ export type TabMessageType =
     | "commandline_content"
     | "commandline_frame"
 export type NonTabMessageType =
+    | "excmd_background"
     | "commandline_background"
-    | "controller_background"
     | "browser_proxy_background"
     | "download_background"
 export type MessageType = TabMessageType | NonTabMessageType

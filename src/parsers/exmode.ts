@@ -1,6 +1,5 @@
 /** Ex Mode (AKA cmd mode) */
 
-import * as ExCmds from "../.excmds_background.generated"
 import * as convert from "../convert"
 import * as Config from "../config"
 import * as aliases from "../aliases"
@@ -45,16 +44,16 @@ function convertArgs(params, argv) {
 // TODO: Quoting arguments
 // TODO: Pipe to separate commands
 // TODO: Abbreviated commands
-export function parser(exstr: string): any[] {
+export function parser(exstr: string, excmds: any): any[] {
     // Expand aliases
     const expandedExstr = aliases.expandExstr(exstr)
     const [func, ...args] = expandedExstr.trim().split(/\s+/)
 
-    if (ExCmds.cmd_params.has(func)) {
+    if (excmds.cmd_params.has(func)) {
         try {
             return [
-                ExCmds[func],
-                convertArgs(ExCmds.cmd_params.get(func), args),
+                excmds[func],
+                convertArgs(excmds.cmd_params.get(func), args),
             ]
         } catch (e) {
             logger.error("Error executing or parsing:", exstr, e)

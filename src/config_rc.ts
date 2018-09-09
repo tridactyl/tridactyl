@@ -1,5 +1,6 @@
-import * as Controller from "./controller_background"
+import * as controller from "./controller"
 import * as Native from "./native_background"
+import * as excmds from "./.excmds_background.generated"
 import Logger from "./logging"
 const logger = new Logger("rc")
 
@@ -17,7 +18,7 @@ export async function source(filename = "auto") {
 
 export async function runRc(rc: string) {
     for (let cmd of rcFileToExCmds(rc)) {
-        await Controller.acceptExCmd(cmd)
+        await controller.acceptExCmd(cmd, excmds)
     }
 }
 

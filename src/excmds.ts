@@ -107,11 +107,19 @@ import * as CSS from "css"
 import * as Metadata from "./.metadata.generated"
 import { fitsType, typeToString } from "./metadata"
 
+/**
+ * Used to store the types of the parameters for each excmd.
+ *
+ * @hidden
+  */
+export const cmd_params = new Map<string, Map<string, string>>()
+
 //#content_helper
 // {
 import "./number.clamp"
-import * as SELF from "./.excmds_content.generated"
-Messaging.addListener("excmd_content", Messaging.attributeCaller(SELF))
+import * as SELF_CONTENT from "./.excmds_content.generated"
+Messaging.addListener("excmd_content", Messaging.attributeCaller(SELF_CONTENT))
+import { message } from "./messaging"
 import * as DOM from "./dom"
 import { executeWithoutCommandLine } from "./commandline_content"
 import * as scrolling from "./scrolling"
@@ -120,6 +128,8 @@ import * as scrolling from "./scrolling"
 //#background_helper
 // {
 /** Message excmds_content.ts in the active tab of the currentWindow */
+import * as SELF_BACKGROUND from "./.excmds_background.generated"
+Messaging.addListener("excmd_background", Messaging.attributeCaller(SELF_BACKGROUND))
 import { messageTab, messageActiveTab } from "./messaging"
 import { flatten } from "./itertools"
 import "./number.mod"
@@ -128,12 +138,13 @@ import * as CommandLineBackground from "./commandline_background"
 import * as rc from "./config_rc"
 import * as excmd_parser from "./parsers/exmode"
 import { mapstrToKeyseq } from "./keyseq"
-
-//#background_helper
 import * as Native from "./native_background"
 
 /** @hidden */
 export const cmd_params = new Map<string, Map<string, string>>()
+
+import * as Metadata from "./.metadata.generated"
+import { fitsType, typeToString } from "./metadata"
 // }
 
 // }}}
@@ -2068,7 +2079,7 @@ async function getnexttabs(tabid: number, n?: number) {
 // Consider adding to buffers with incremental search
 //      maybe only if no other results in URL etc?
 // Find out how to return context of each result
-//#background
+// //#background
 /* export async function findintabs(query: string) { */
 /*     const tabs = await browser.tabs.query({currentWindow: true}) */
 /*     console.log(query) */
@@ -2091,7 +2102,7 @@ async function getnexttabs(tabid: number, n?: number) {
 // {{{ CMDLINE
 
 //#background_helper
-import * as controller from "./controller_background"
+import * as controller from "./controller"
 
 /** Repeats a `cmd` `n` times.
     Falls back to the last executed command if `cmd` doesn't exist.
@@ -2102,7 +2113,7 @@ export function repeat(n = 1, ...exstr: string[]) {
     let cmd = controller.last_ex_str
     if (exstr.length > 0) cmd = exstr.join(" ")
     logger.debug("repeating " + cmd + " " + n + " times")
-    for (let i = 0; i < n; i++) controller.acceptExCmd(cmd)
+    for (let i = 0; i < n; i++) controller.acceptExCmd(cmd, SELF_BACKGROUND)
 }
 
 /**
@@ -2126,9 +2137,9 @@ export async function composite(...cmds: string[]) {
                 async (_, cmd) => {
                     await _
                     let cmds = cmd.split("|")
-                    let [fn, args] = excmd_parser.parser(cmds[0])
+                    let [fn, args] = excmd_parser.parser(cmds[0], SELF_BACKGROUND)
                     return cmds.slice(1).reduce(async (pipedValue, cmd) => {
-                        let [fn, args] = excmd_parser.parser(cmd)
+                        let [fn, args] = excmd_parser.parser(cmd, SELF_BACKGROUND)
                         return fn.call({}, ...args, await pipedValue)
                     }, fn.call({}, ...args))
                 },

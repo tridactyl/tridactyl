@@ -17,6 +17,7 @@ Caveats:
 
 from collections import OrderedDict
 import re
+import textwrap
 
 class Signature:
     """Extract name, parameters and types from a function signature."""
@@ -84,36 +85,63 @@ def dict_to_js(d):
     "Py dict to string that when eval'd will produce equivalent js Map"
     return "new Map(" + str(list(d.items())).replace('(','[').replace(')',']') + ")"
 
-
 def content(lines, context):
-    "Extract params and replace function with a shim if context==background."
+    "Extract signature and, if context==background, replace function with a shim."
+
+    block = get_block(lines)
+    sig = Signature(block.split('\n')[0])
+    cmd_params = "cmd_params.set('{sig.name}', ".format(**locals()) + dict_to_js(sig.params) + ")"
+    message_params = ", ".join(sig.params.keys())
     if context == "background":
-        # Consume and replace this block.
-        block = get_block(lines)
-        sig = Signature(block.split('\n')[0])
-        return "cmd_params.set('{sig.name}', ".format(**locals()) + dict_to_js(sig.params) + """)
-{sig.raw}
-    return messageActiveTab(
-        "excmd_content", 
-        "{sig.name}",
-        """.format(**locals()) + str(list(sig.params.keys())).replace("'","") + """,
-    )
-}\n"""
+        # Consume and replace this block. We emit the line to add the
+        # function's signature to cmd_params, the function's signature
+        # line unchanged, then a command to message the browser's
+        # active tab forwarding all parameters.
+        return textwrap.dedent("""\
+               {cmd_params}
+               {sig.raw}
+                   logger.debug("shimming excmd {sig.name} from background to content")
+                   return messageActiveTab(
+                       "excmd_content",
+                       "{sig.name}",
+                       [{message_params}],
+                   )
+               }}\n""".format(**locals()))
     else:
-        # Do nothing
-        return ""
+        # Emit the line to add the function to cmd_params, then
+        # re-emit the original block (because we consumed the block so
+        # we could compute the cmd params)
+        return "{cmd_params}\n{block}".format(**locals())
 
 
 def background(lines, context):
-    "Extract params if context is background, else omit"
+    "Extract signature and, if context==content, replace function with a shim."
+
+    block = get_block(lines)
+    sig = Signature(block.split('\n')[0])
+    cmd_params = "cmd_params.set('{sig.name}', ".format(**locals()) + dict_to_js(sig.params) + ")"
+    message_params = ", ".join(sig.params.keys())
+
     if context == "background":
-        sig = Signature(next(lines))
-        return "cmd_params.set('{sig.name}', ".format(**locals()) + dict_to_js(sig.params) + """)
-{sig.raw}""".format(**locals())
+        # Emit the line to add the function to cmd_params, then
+        # re-emit the original block (because we consumed the block so
+        # we could compute the cmd params)
+        return "{cmd_params}\n{block}".format(**locals())
     else:
-        # Omit
-        get_block(lines)
-        return ""
+        # Consume and replace this block. We emit the line to add the
+        # function's signature to cmd_params, the function's signature
+        # line unchanged, then a command to message the browser's
+        # active tab forwarding all parameters.
+        return textwrap.dedent("""\
+               {cmd_params}
+               {sig.raw}
+                   logger.debug("shimming excmd {sig.name} from content to background")
+                   return message(
+                       "excmd_background",
+                       "{sig.name}",
+                       [{message_params}],
+                   )
+               }}\n""".format(**locals()))
 
 
 def omit_helper_func_factory(desired_context):

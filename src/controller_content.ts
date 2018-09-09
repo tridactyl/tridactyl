@@ -1,10 +1,9 @@
 import { isTextEditable } from "./dom"
 import { contentState, ModeName } from "./state_content"
-import { repeat } from "./.excmds_background.generated"
 import Logger from "./logging"
-import * as messaging from "./messaging"
+import * as excmds from "./.excmds_content.generated"
+import * as controller from "./controller"
 
-import { parser as exmode_parser } from "./parsers/exmode"
 import * as hinting from "./hinting"
 import * as finding from "./finding"
 import * as gobblemode from "./parsers/gobblemode"
@@ -84,7 +83,7 @@ function* ParserController() {
                     keyEvents = response.keys
                 }
             }
-            acceptExCmd(exstr)
+            controller.acceptExCmd(exstr, excmds)
         } catch (e) {
             // Rumsfeldian errors are caught here
             logger.error(
@@ -102,9 +101,4 @@ generator.next()
 /** Feed keys to the ParserController */
 export function acceptKey(keyevent: KeyboardEvent) {
     return generator.next(keyevent)
-}
-
-/** Parse and execute ExCmds */
-export async function acceptExCmd(exstr: string): Promise<any> {
-    messaging.message("controller_background", "acceptExCmd", [exstr])
 }

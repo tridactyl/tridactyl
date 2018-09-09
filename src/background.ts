@@ -1,9 +1,8 @@
 /** Background script entry point. */
 
-import * as BackgroundController from "./controller_background"
 import "./lib/browser_proxy_background"
 
-// Add various useful modules to the window for debugging
+import * as controller from "./controller"
 import * as messaging from "./messaging"
 import * as excmds from "./.excmds_background.generated"
 import * as commandline_background from "./commandline_background"
@@ -18,6 +17,8 @@ import * as native from "./native_background"
 import state from "./state"
 import * as webext from "./lib/webext"
 import { AutoContain } from "./lib/autocontainers"
+
+// Add various useful modules to the window for debugging
 ;(window as any).tri = Object.assign(Object.create(null), {
     messaging,
     excmds,
@@ -57,7 +58,7 @@ browser.tabs.onActivated.addListener(ev => {
 //
 
 // Send commandline to controller
-commandline_background.onLine.addListener(BackgroundController.acceptExCmd)
+commandline_background.onLine.addListener((exstr) => controller.acceptExCmd(exstr, excmds))
 
 // {{{ Clobber CSP
 
@@ -96,12 +97,12 @@ browser.runtime.onStartup.addListener(_ => {
         let hosts = Object.keys(aucmds)
         // If there's only one rule and it's "all", no need to check the hostname
         if (hosts.length == 1 && hosts[0] == ".*") {
-            BackgroundController.acceptExCmd(aucmds[hosts[0]])
+            controller.acceptExCmd(aucmds[hosts[0]], excmds)
         } else {
             native.run("hostname").then(hostname => {
                 for (let host of hosts) {
                     if (hostname.content.match(host)) {
-                        BackgroundController.acceptExCmd(aucmds[host])
+                        controller.acceptExCmd(aucmds[host], excmds)
                     }
                 }
             })
