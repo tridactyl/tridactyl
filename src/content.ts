@@ -68,6 +68,7 @@ import * as styling from "./styling"
     l: prom => prom.then(console.log).catch(console.error),
     native,
     styling,
+    contentLocation: window.location,
 })
 
 logger.info("Loaded commandline content?", commandline_content)

@@ -108,6 +108,8 @@ import * as Logging from "./logging"
 const logger = new Logging.Logger("excmds")
 import Mark from "mark.js"
 import * as CSS from "css"
+import * as Metadata from "./.metadata.generated"
+import { fitsType, typeToString } from "./metadata"
 
 //#content_helper
 // {
@@ -133,8 +135,6 @@ import { mapstrToKeyseq } from "./keyseq"
 
 //#background_helper
 import * as Native from "./native_background"
-import * as Metadata from "./.metadata.generated"
-import { fitsType, typeToString } from "./metadata"
 
 /** @hidden */
 export const cmd_params = new Map<string, Map<string, string>>()
@@ -2529,6 +2529,62 @@ export function searchsetkeyword(keyword: string, url: string) {
     config.set("searchurls", keyword, forceURI(url))
 }
 
+/**
+ * Validates arguments for set/seturl
+ * @hidden
+ */
+function validateSetArgs(key: string, values: string[]) {
+    const target = key.split(".")
+    const currentValue = config.get(...target)
+    const last = target[target.length - 1]
+
+    let value: string | string[] = values
+    if (Array.isArray(currentValue)) {
+        // Do nothing
+    } else if (currentValue === undefined || typeof currentValue === "string") {
+        value = values.join(" ")
+    } else {
+        throw "Unsupported setting type!"
+    }
+
+    let md = Metadata.everything["src/config.ts"].classes.default_config[last]
+    if (md) {
+        if (md.type && !fitsType(value, md.type)) throw `Given type does not match expected type (given: ${value}, expected: ${typeToString(md.type)})`
+    }
+
+    return target.concat(value)
+}
+
+/**
+ * Usage: `seturl [pattern] key values`
+ *
+ * @param pattern Optional. The URL pattern the setting should be set for, e.g. `en.wikipedia.org` or `/index.html`
+ * @param key The name of the setting you want to set, e.g. `followpagepatterns.next`
+ * @param values The value you wish for, e.g. `next`
+ *
+ * Example:
+ * `seturl .*\.fr followpagepatterns.next suivant`
+ * `seturl website.fr followpagepatterns.next next`
+ *
+ * When multiple patterns can apply to a same URL, the pattern that gives the largest match is selected. For example, in the previous example, `followpagepatterns.next` would be set to `suivant` on `http://website.fr` because `.*\.fr` matches the whole url while `website.fr` only matches the domain name.
+ *
+ * Note that the patterns a regex-like, not glob-like. This means that if you want to match everything, you need to use `.*` instead of `*`.
+ */
+//#content
+export function seturl(pattern: string, key: string, ...values: string[]) {
+    if (values.length == 0 && key) {
+        values = [key]
+        key = pattern
+        pattern = window.location.href
+    }
+
+    if (!pattern || !key || !values.length) {
+        throw "seturl syntax: [pattern] key value"
+    }
+
+    config.setUrl(pattern, ...validateSetArgs(key, values))
+}
+
 /** Set a key value pair in config.
 
     Use to set any string values found [here](/static/docs/classes/_src_config_.default_config.html).
@@ -2548,26 +2604,7 @@ export function set(key: string, ...values: string[]) {
         return
     }
 
-    const target = key.split(".")
-    const last = target[target.length - 1]
-
-    const currentValue = config.get(...target)
-
-    let value: string | string[] = values
-    if (Array.isArray(currentValue)) {
-        // Do nothing
-    } else if (currentValue === undefined || typeof currentValue === "string") {
-        value = values.join(" ")
-    } else {
-        throw "Unsupported setting type!"
-    }
-
-    let md = Metadata.everything["src/config.ts"].classes.default_config[last]
-    if (md) {
-        if (md.type && !fitsType(value, md.type)) throw `Given type does not match expected type (given: ${value}, expected: ${typeToString(md.type)})`
-    }
-
-    config.set(...target, value)
+    config.set(...validateSetArgs(key, values))
 }
 
 /** @hidden */

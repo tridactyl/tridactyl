@@ -33,7 +33,28 @@ import { AutoContain } from "./lib/autocontainers"
     state,
     webext,
     l: prom => prom.then(console.log).catch(console.error),
+    contentLocation: window.location,
 })
+
+// {{{ tri.contentLocation
+// When loading the background, use the active tab to know what the current content url is
+let dateUpdated
+browser.tabs.query({ currentWindow: true, active: true }).then(t => {
+    ;(window as any).tri.contentLocation = new URL(t[0].url)
+    dateUpdated = performance.now()
+})
+// After that, on every tab change, update the current url
+// Experiments show that context switching+performing the api call costs more than 2ms so performance.now()'s resolution should be precise enough for it to be used when we need to protect ourselves against race conditions
+browser.tabs.onActivated.addListener(ev => {
+    browser.tabs.get(ev.tabId).then(t => {
+        let perf = performance.now()
+        if (dateUpdated <= perf) {
+            ;(window as any).tri.contentLocation = new URL(t.url)
+            dateUpdated = perf
+        }
+    })
+})
+//
 
 // Send commandline to controller
 commandline_background.onLine.addListener(BackgroundController.acceptExCmd)
@@ -88,6 +109,9 @@ browser.runtime.onStartup.addListener(_ => {
     })
 })
 
+// }}}
+
+// {{{ AUTOCOMMANDS
 let curTab = null
 browser.tabs.onActivated.addListener(ev => {
     let ignore = _ => _
@@ -102,6 +126,8 @@ browser.tabs.onActivated.addListener(ev => {
         .messageTab(curTab, "excmd_content", "loadaucmds", ["TabEnter"])
         .catch(ignore)
 })
+
+// }}}
 
 // {{{ AUTOCONTAINERS
 
