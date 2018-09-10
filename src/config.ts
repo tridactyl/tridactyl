@@ -37,6 +37,11 @@ function schlepp(settings) {
 /** @hidden */
 let USERCONFIG = o({})
 
+/** @hidden
+ * Ideally, LoggingLevel should be in logging.ts and imported from there. However this would cause a circular dependency, which webpack can't deal with
+ */
+export type LoggingLevel = "never" | "error" | "warning" | "info" | "debug"
+
 /**
  * This is the default configuration that Tridactyl comes with.
  *
@@ -557,19 +562,17 @@ class default_config {
     jumpdelay = "3000"
 
     /**
-     * Default logging levels - 2 === WARNING
-     *
-     * NB: these cannot be set directly with `set` - you must use magic words such as `WARNING` or `DEBUG`.
+     * Logging levels. Unless you're debugging Tridactyl, it's unlikely you'll ever need to change these.
      */
-    logging = {
-        messaging: 2,
-        cmdline: 2,
-        controller: 2,
-        containers: 2,
-        hinting: 2,
-        state: 2,
-        excmd: 1,
-        styling: 2,
+    logging: { [key: string]: LoggingLevel } = {
+        messaging: "warning",
+        cmdline: "warning",
+        controller: "warning",
+        containers: "warning",
+        hinting: "warning",
+        state: "warning",
+        excmd: "error",
+        styling: "warning",
     }
     noiframeon: string[] = []
 
@@ -655,7 +658,7 @@ const DEFAULTS = o(new default_config())
     @param target path of properties as an array
     @hidden
 */
-function getDeepProperty(obj, target) {
+function getDeepProperty(obj, target: string[]) {
     if (obj !== undefined && target.length) {
         return getDeepProperty(obj[target[0]], target.slice(1))
     } else {
@@ -793,13 +796,29 @@ export async function update() {
             }
         },
         "1.0": () => {
-            let vimiumgi = getDeepProperty(USERCONFIG, "vimium-gi")
+            let vimiumgi = getDeepProperty(USERCONFIG, ["vimium-gi"])
             if (vimiumgi === true || vimiumgi === "true")
                 set("gimode", "nextinput")
             else if (vimiumgi === false || vimiumgi === "false")
                 set("gimode", "firefox")
             unset("vimium-gi")
             set("configversion", "1.1")
+        },
+        "1.1": () => {
+            let leveltostr: { [key: number]: LoggingLevel } = {
+                0: "never",
+                1: "error",
+                2: "warning",
+                3: "info",
+                4: "debug",
+            }
+            let logging = getDeepProperty(USERCONFIG, ["logging"])
+            // logging is not necessarily defined if the user didn't change default values
+            if (logging)
+                Object.keys(logging).forEach(l =>
+                    set("logging", l, leveltostr[logging[l]]),
+                )
+            set("configversion", "1.2")
         },
     }
     if (!get("configversion")) set("configversion", "0.0")

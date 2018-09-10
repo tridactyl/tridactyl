@@ -562,36 +562,6 @@ function tabSetActive(id: number) {
 
 // }}}
 
-// {{{ INTERNAL/DEBUG
-
-/**
- * Set the logging level for a given logging module.
- *
- * @param logModule     the logging module to set the level on
- * @param level         the level to log at: in increasing verbosity, one of
- *                      "never", "error", "warning", "info", "debug"
- */
-//#background
-export function loggingsetlevel(logModule: string, level: string) {
-    const map = {
-        never: Logging.LEVEL.NEVER,
-        error: Logging.LEVEL.ERROR,
-        warning: Logging.LEVEL.WARNING,
-        info: Logging.LEVEL.INFO,
-        debug: Logging.LEVEL.DEBUG,
-    }
-
-    let newLevel = map[level.toLowerCase()]
-
-    if (newLevel !== undefined) {
-        config.set("logging", logModule, newLevel)
-    } else {
-        throw "Bad log level!"
-    }
-}
-
-// }}}
-
 // {{{ PAGE CONTEXT
 
 /** @hidden */
@@ -2580,23 +2550,6 @@ export function set(key: string, ...values: string[]) {
 
     const target = key.split(".")
     const last = target[target.length - 1]
-
-    // Special case conversions
-    // TODO: Should we do any special case shit here?
-    switch (target[0]) {
-        case "logging":
-            const map = {
-                never: Logging.LEVEL.NEVER,
-                error: Logging.LEVEL.ERROR,
-                warning: Logging.LEVEL.WARNING,
-                info: Logging.LEVEL.INFO,
-                debug: Logging.LEVEL.DEBUG,
-            }
-            let level = map[values[0].toLowerCase()]
-            if (level === undefined) throw "Bad log level!"
-            else config.set(...target, level)
-            return
-    }
 
     const currentValue = config.get(...target)
 
