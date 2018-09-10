@@ -114,7 +114,7 @@ export async function openInNewTab(
             break
         case "last":
             // Infinity can't be serialised, apparently.
-            options.index = 99999
+            options.index = (await browserBg.tabs.query({currentWindow: true})).length
             break
         case "related":
             if (await firefoxVersionAtLeast(57)) {

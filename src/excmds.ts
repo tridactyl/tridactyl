@@ -338,7 +338,7 @@ export async function nativeopen(url: string, ...firefoxArgs: string[]) {
         let index = (await activeTab()).index + 1
         switch (pos) {
             case "last":
-                index = 99999
+                index = -1
                 break
             case "related":
                 // How do we simulate that?
