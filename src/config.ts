@@ -901,6 +901,16 @@ async function init() {
     // Local storage overrides sync
     let localConfig = await browser.storage.local.get(CONFIGNAME)
     schlepp(localConfig[CONFIGNAME])
+
+    Object.assign(
+        URLCONFIGS,
+        (await browser.storage.sync.get(URLCONFIGNAME))[URLCONFIGNAME],
+    )
+    Object.assign(
+        URLCONFIGS,
+        (await browser.storage.local.get(URLCONFIGNAME))[URLCONFIGNAME],
+    )
+
     await update()
     INITIALISED = true
     for (let waiter of WAITERS) {
