@@ -692,7 +692,7 @@ function setDeepProperty(obj, value, target) {
     }
 }
 
-export function getUrl(url, target) {
+export function getURL(url, target) {
     let url_match =
         // For each key
         Object.keys(URLCONFIGS)
@@ -720,7 +720,7 @@ export function get(...target) {
     let loc = window.location
     if ((window as any).tri) loc = (window as any).tri.contentLocation
     // If there's a site-specifing setting, it overrides global settings
-    const site = getUrl(loc.href, target)
+    const site = getURL(loc.href, target)
     const user = getDeepProperty(USERCONFIG, target)
     const defult = getDeepProperty(DEFAULTS, target)
 
@@ -767,7 +767,7 @@ function genericSet(config, args) {
 }
 
 /** Same as [[set]], but for URLCONFIGS[pattern] instead of USERCONFIG. */
-export function setUrl(pattern, ...args) {
+export function setURL(pattern, ...args) {
     if (!URLCONFIGS[pattern]) URLCONFIGS[pattern] = {}
 
     try {

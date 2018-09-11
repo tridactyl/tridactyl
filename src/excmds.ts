@@ -2558,7 +2558,7 @@ function validateSetArgs(key: string, values: string[]) {
 /**
  * Usage: `seturl [pattern] key values`
  *
- * @param pattern Optional. The URL pattern the setting should be set for, e.g. `en.wikipedia.org` or `/index.html`
+ * @param pattern The URL pattern the setting should be set for, e.g. `en.wikipedia.org` or `/index.html`. Defaults to the current url if `values` is a single word. 
  * @param key The name of the setting you want to set, e.g. `followpagepatterns.next`
  * @param values The value you wish for, e.g. `next`
  *
@@ -2582,7 +2582,7 @@ export function seturl(pattern: string, key: string, ...values: string[]) {
         throw "seturl syntax: [pattern] key value"
     }
 
-    config.setUrl(pattern, ...validateSetArgs(key, values))
+    config.setURL(pattern, ...validateSetArgs(key, values))
 }
 
 /** Set a key value pair in config.
@@ -2884,6 +2884,29 @@ export function viewconfig(key?: string) {
                 .replace(/ /g, "%20")
     // base 64 encoding is a cleverer way of doing this, but it doesn't seem to work for the whole config.
     //window.location.href = "data:application/json;base64," + btoa(JSON.stringify(config.get()))
+}
+
+/**
+ * Reset a site-specific setting.
+ *
+ * usage: `unseturl [pattern] key`
+ *
+ * @param pattern The pattern the setting should be unset on, e.g. `.*wiki.*`. Defaults to the current url.
+ * @param key The key that should be unset.
+ *
+ * Example: `unseturl youtube.com gimode`
+ *
+ * Note that this removes a setting from the site-specific config, it doesn't "invert" it. This means that if you have a setting set to `false` in your global config and the same setting set to `false` in a site-specific setting, using `unseturl` will result in the setting still being set to `false`.
+ *
+ * Also note that `pattern` should match exactly the one that was used when using `seturl`.
+ */
+//#content
+export function unseturl(pattern: string, key: string) {
+    if (!key) {
+        key = pattern
+        pattern = window.location.href
+    }
+    config.unsetURL(pattern, key.split("."))
 }
 
 /**
