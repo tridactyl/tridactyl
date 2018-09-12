@@ -2558,7 +2558,7 @@ function validateSetArgs(key: string, values: string[]) {
 /**
  * Usage: `seturl [pattern] key values`
  *
- * @param pattern The URL pattern the setting should be set for, e.g. `en.wikipedia.org` or `/index.html`. Defaults to the current url if `values` is a single word. 
+ * @param pattern The URL pattern the setting should be set for, e.g. `en.wikipedia.org` or `/index.html`. Defaults to the current url if `values` is a single word.
  * @param key The name of the setting you want to set, e.g. `followpagepatterns.next`
  * @param values The value you wish for, e.g. `next`
  *
@@ -2566,7 +2566,7 @@ function validateSetArgs(key: string, values: string[]) {
  * `seturl .*\.fr followpagepatterns.next suivant`
  * `seturl website.fr followpagepatterns.next next`
  *
- * When multiple patterns can apply to a same URL, the pattern that gives the largest match is selected. For example, in the previous example, `followpagepatterns.next` would be set to `suivant` on `http://website.fr` because `.*\.fr` matches the whole url while `website.fr` only matches the domain name.
+ * When multiple patterns can apply to a same URL, the pattern that has the highest priority is used. You can set the priority of a pattern by using `:seturl pattern priority 10`. By default every pattern has a priority of 10.
  *
  * Note that the patterns a regex-like, not glob-like. This means that if you want to match everything, you need to use `.*` instead of `*`.
  */

@@ -693,20 +693,21 @@ function setDeepProperty(obj, value, target) {
 }
 
 export function getURL(url, target) {
-    let url_match =
+    let key =
         // For each key
         Object.keys(URLCONFIGS)
-            // Create a tuple containing the key and its match
-            .map(k => [k, url.match(k)])
             // Keep only the ones that have a match
-            .filter(([_, m]) => m)
-            // Sort them from the longest match to the shortest
-            .sort(([k1, m1], [k2, m2]) => m2.length - m1.length)
+            .filter(k => url.match(k))
+            // Sort them from highest to lowest priority
+            .sort(
+                (k1, k2) =>
+                    Number(URLCONFIGS[k2].priority) -
+                    Number(URLCONFIGS[k1].priority),
+            )
             // Get the first config name that has `target`
-            .find(([k, _]) => getDeepProperty(URLCONFIGS[k], target))
+            .find(k => getDeepProperty(URLCONFIGS[k], target))
 
-    if (url_match && url_match[0])
-        return getDeepProperty(URLCONFIGS[url_match[0]], target)
+    return getDeepProperty(URLCONFIGS[key], target)
 }
 
 /** Get the value of the key target.
@@ -768,7 +769,7 @@ function genericSet(config, args) {
 
 /** Same as [[set]], but for URLCONFIGS[pattern] instead of USERCONFIG. */
 export function setURL(pattern, ...args) {
-    if (!URLCONFIGS[pattern]) URLCONFIGS[pattern] = {}
+    if (!URLCONFIGS[pattern]) URLCONFIGS[pattern] = o({ priority: "10" })
 
     try {
         genericSet(URLCONFIGS[pattern], args)
