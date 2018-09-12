@@ -765,7 +765,8 @@ export async function loadtheme(themename: string) {
         separator +
         "themes" +
         separator +
-        themename
+        themename +
+        ".css"
     const file = await Native.read(path)
     if (file.code != 0) throw new Error("Couldn't read theme " + path)
     return set("customthemes." + themename, file.content)
@@ -783,12 +784,16 @@ export async function unloadtheme(themename: string) {
  *
  * If THEMENAME is set to any other value, Tridactyl will attempt to use its native binary (see [[native]]) in order to load a CSS file named THEMENAME from disk. The CSS file has to be in a directory named "themes" and this directory has to be in the same directory as your tridactylrc.
  *
- * Example: `:colourscheme mysupertheme.css`
+ * Note that the theme name should NOT contain any dot.
+ *
+ * Example: `:colourscheme mysupertheme`
+ * On linux, this will load ~/.config/tridactyl/themes/mysupertheme.css
  */
 //#background
 export async function colourscheme(themename: string) {
     // If this is a builtin theme, no need to bother with native messaging stuff
     if (Metadata.staticThemes.includes(themename)) return set("theme", themename)
+    if (themename.search("\\.") >= 0) throw new Error(`Theme name should not contain any dots! (given name: ${themename}).`)
     await loadtheme(themename)
     return set("theme", themename)
 }
