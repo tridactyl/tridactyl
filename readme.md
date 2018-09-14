@@ -26,76 +26,76 @@ Like Vim, Tridactyl is modal, with the default mode being "normal mode". In "nor
 
 This is a (non-exhaustive) list of the most common normal-mode bindings. Type `:help` to open the online help for more details.
 
-*   `:` — activate the command line
-*   `Shift` + `Insert` — enter "ignore mode". Press `Shift` + `Insert` again to return to "normal mode".
-*   `ZZ` — close all tabs and windows, but only "save" them if your about:preferences are set to "show your tabs and windows from last time"
-*   `.` — repeat the last command
+-   `:` — activate the command line
+-   `Shift` + `Insert` — enter "ignore mode". Press `Shift` + `Insert` again to return to "normal mode".
+-   `ZZ` — close all tabs and windows, but only "save" them if your about:preferences are set to "show your tabs and windows from last time"
+-   `.` — repeat the last command
 
 You can try `:help key` to know more about `key`. If it is an existing binding, it will take you to the help section of the command that will be executed when pressing `key`. For example `:help .` will take you to the help section of the `repeat` command.
 
 #### Navigating with the current page
 
-*   `j`/`k` — scroll down/up
-*   `h`/`l` — scroll left/right
-*   `^`/`$` — scroll to left/right margin
-*   `gg`/`G` — scroll to start/end of page
-*   `f`/`F` — enter "hint mode" to select a link to follow. `F` to open in a background tab (note: hint characters should be typed in lowercase)
-*   `gi` — scroll to and focus the last-used input on the page
-*   `r`/`R` — reload page or hard reload page
-*   `yy` — copy the current page URL to the clipboard
-*   `[[`/`]]` — navigate forward/backward though paginated pages, for example comics, multi-part articles, search result pages, etc.
-*   `]c`/`[c` — increment/decrement the current URL by 1
-*   `gu` — go to the parent of the current URL
-*   `gU` — go to the root domain of the current URL
-*   `gr` — open Firefox reader mode (note: Tridactyl will not work in this mode)
-*   `zi`/`zo`/`zz` — zoom in/out/reset zoom
+-   `j`/`k` — scroll down/up
+-   `h`/`l` — scroll left/right
+-   `^`/`$` — scroll to left/right margin
+-   `gg`/`G` — scroll to start/end of page
+-   `f`/`F` — enter "hint mode" to select a link to follow. `F` to open in a background tab (note: hint characters should be typed in lowercase)
+-   `gi` — scroll to and focus the last-used input on the page
+-   `r`/`R` — reload page or hard reload page
+-   `yy` — copy the current page URL to the clipboard
+-   `[[`/`]]` — navigate forward/backward though paginated pages, for example comics, multi-part articles, search result pages, etc.
+-   `]c`/`[c` — increment/decrement the current URL by 1
+-   `gu` — go to the parent of the current URL
+-   `gU` — go to the root domain of the current URL
+-   `gr` — open Firefox reader mode (note: Tridactyl will not work in this mode)
+-   `zi`/`zo`/`zz` — zoom in/out/reset zoom
 
 #### Find mode
 
 Find mode is still incomplete and uses the built-in Firefox search. This will be improved eventually.
 
-*   `/` — open the find search box
-*   `C-g`/`C-G` — find the next/previous instance of the last find operation (note: these are the standard Firefox shortcuts)
+-   `/` — open the find search box
+-   `C-g`/`C-G` — find the next/previous instance of the last find operation (note: these are the standard Firefox shortcuts)
 
 #### Bookmarks and quickmarks
 
-*   `A` — bookmark the current page
-*   `a` — bookmark the current page, but allow the URL to be modified first
-*   `M<key>` — bind a quickmark to the given key
-*   `go<key>`/`gn<key>`/`gw<key>` — open a given quickmark in current tab/new tab/new window
+-   `A` — bookmark the current page
+-   `a` — bookmark the current page, but allow the URL to be modified first
+-   `M<key>` — bind a quickmark to the given key
+-   `go<key>`/`gn<key>`/`gw<key>` — open a given quickmark in current tab/new tab/new window
 
 #### Navigating to new pages:
 
-*   `o`/`O` — open a URL (or default search) in this tab (`O` to pre-load current URL)
-*   `t`/`T` — open a URL (or default search) in a new tab (`T` to pre-load current URL)
-*   `w`/`W` — open a URL (or default search) in a new window (`W` to pre-load current URL)
-*   `p`/`P` — open the clipboard contents in the current/new tab
-*   `s`/`S` — force a search using the default Tridactyl search engine, opening in the current/new tab. This is useful when searching for something that would otherwise be treated as a URL by `o` or `t`
-*   `H`/`L` — go back/forward in the tab history
-*   `gh`/`gH` — go to the pages you have set with `set home [url1] [url2] ...`
+-   `o`/`O` — open a URL (or default search) in this tab (`O` to pre-load current URL)
+-   `t`/`T` — open a URL (or default search) in a new tab (`T` to pre-load current URL)
+-   `w`/`W` — open a URL (or default search) in a new window (`W` to pre-load current URL)
+-   `p`/`P` — open the clipboard contents in the current/new tab
+-   `s`/`S` — force a search using the default Tridactyl search engine, opening in the current/new tab. This is useful when searching for something that would otherwise be treated as a URL by `o` or `t`
+-   `H`/`L` — go back/forward in the tab history
+-   `gh`/`gH` — go to the pages you have set with `set home [url1] [url2] ...`
 
 #### Handling tabs
 
-*   `d` — close the current tab
-*   `u` — undo the last tab/window closure
-*   `gt`/`gT` — go to the next/previous tab
-*   `g^`/`g$` — go to the first/last tab
-*   `b` — bring up a list of open tabs in the current window; you can type the tab ID or part of the title or URL to choose a tab
+-   `d` — close the current tab
+-   `u` — undo the last tab/window closure
+-   `gt`/`gT` — go to the next/previous tab
+-   `g^`/`g$` — go to the first/last tab
+-   `b` — bring up a list of open tabs in the current window; you can type the tab ID or part of the title or URL to choose a tab
 
 #### Extended hint mode
 
 Extended hint modes allow you to perform actions on page items:
 
-*   `;i`/`;I` — open an image (in current/new tab)
-*   `;s`/`;a` — save/save-as the linked resource
-*   `;S`/`;A` — save/save-as the selected image
-*   `;p` — copy an element's text to the clipboard
-*   `;P` — copy an element's title/alt text to the clipboard
-*   `;y` — copy an element's link URL to the clipboard
-*   `;#` — copy an element's anchor URL to the clipboard
-*   `;r` — read the element's text with text-to-speech
-*   `;k` — delete an element from the page
-*   `;;` — focus an element
+-   `;i`/`;I` — open an image (in current/new tab)
+-   `;s`/`;a` — save/save-as the linked resource
+-   `;S`/`;A` — save/save-as the selected image
+-   `;p` — copy an element's text to the clipboard
+-   `;P` — copy an element's title/alt text to the clipboard
+-   `;y` — copy an element's link URL to the clipboard
+-   `;#` — copy an element's anchor URL to the clipboard
+-   `;r` — read the element's text with text-to-speech
+-   `;k` — delete an element from the page
+-   `;;` — focus an element
 
 Additionally, you can hint elements matching a custom CSS selector with `:hint -c [selector]` which is useful for site-specific versions of the standard `f` hint mode.
 
@@ -105,22 +105,26 @@ You can bind your own shortcuts in normal mode with the `:bind` command. For exa
 
 ## WebExtension-related issues
 
-*   Navigation to any about:\* pages using `:open` requires the native messenger.
-*   Firefox will not load Tridactyl on about:\*, some file:\* URIs, view-source:\*, or data:\*. On these pages Ctrl-L (or F6), Ctrl-Tab and Ctrl-W are your escape hatches.
-    *   addons.mozilla.org is now supported so long as you run `fixamo` first.
-*   Tridactyl now supports changing the Firefox GUI if you have the native messenger installed via `guiset`. There's quite a few options available, but `guiset gui none` is probably what you want, perhaps followed up with `guiset tabs always`.
+-   Navigation to any about:\* pages using `:open` requires the native messenger.
+-   Firefox will not load Tridactyl on about:\*, some file:\* URIs, view-source:\*, or data:\*. On these pages Ctrl-L (or F6), Ctrl-Tab and Ctrl-W are your escape hatches.
+    -   addons.mozilla.org is now supported so long as you run `fixamo` first.
+-   Tridactyl now supports changing the Firefox GUI if you have the native messenger installed via `guiset`. There's quite a few options available, but `guiset gui none` is probably what you want, perhaps followed up with `guiset tabs always`.
 
 ## Frequently asked questions
 
-*   Why doesn't Tridactyl respect my search engine settings?
+-   Why doesn't Tridactyl respect my search engine settings?
 
     It's a webextension limitation. Firefox doesn't allow reading user preferences.
 
-*   How can I change the search engine?
+-   Why doesn't Tridactyl work?
+
+    Please visit our [troubleshooting guide](https://github.com/tridactyl/tridactyl/blob/master/doc/troubleshooting.md).
+
+-   How can I change the search engine?
 
     `set searchengine duckduckgo`
 
-*   How can I add a search engine?
+-   How can I add a search engine?
 
     `set searchurls.esa http://www.esa.int/esasearch?q=`
 
@@ -130,25 +134,25 @@ You can bind your own shortcuts in normal mode with the `:bind` command. For exa
 
     after which `open phrasebook [fr|de|la|es|hi|it...]` will work as expected.
 
-*   Can I import/export settings, and does Tridactyl use an external configuration file just like Vimperator?
+-   Can I import/export settings, and does Tridactyl use an external configuration file just like Vimperator?
 
     Yes, if you have `native` working, `$XDG_CONFIG_DIR/tridactyl/tridactylrc` or `~/.tridactylrc` will be read at startup via an `autocmd` and `source`. There is an [example file available on our repository](https://github.com/cmcaine/tridactyl/blob/master/.tridactylrc).
 
     If you can't use the native messenger for some reason, there is a workaround: if you do `set storageloc local`, a JSON file will appear at `<your firefox profile>\browser-extension-data\tridactyl.vim@cmcaine.co.uk\storage.js`. You can find your profile folder by going to `about:support`. You can edit this file to your heart's content.
 
-*   I hate the light, can I get a dark theme/dark mode?
+-   I hate the light, can I get a dark theme/dark mode?
 
     Yes: `set theme dark` or `colors dark`. Thanks to @fugerf.
 
-*   How can I pretend that I'm not a 1337 h4x0r?
+-   How can I pretend that I'm not a 1337 h4x0r?
 
     We cater for you, too! `set theme shydactyl`. Thanks to @atrnh.
 
-*   How can I pretend that I'm a 1337 h4x0r?
+-   How can I pretend that I'm a 1337 h4x0r?
 
     We cater for you, too! `set theme greenmat`. Thanks to @caputchinefrobles.
 
-*   How can I bind keys using the control/alt key modifiers (eg: `ctrl+^`)?
+-   How can I bind keys using the control/alt key modifiers (eg: `ctrl+^`)?
 
     `:bind <C-f> scrollpage 1`. Special keys can be bound too: `:bind <F3> set theme dark` and with modifiers: `:bind <S-F3> set theme default` and with multiple modifiers: `:bind <SA-F3> composite set hintchars 1234567890 | set hintfiltermode vimperator-reflow`
 
@@ -156,59 +160,59 @@ You can bind your own shortcuts in normal mode with the `:bind` command. For exa
 
     If you want to bind <C-^> you'll find that you'll probably need to press Control+Shift+6 to trigger it. The default bind is <C-6> which does not require you to press shift.
 
-*   How can I tab complete from bookmarks?
+-   How can I tab complete from bookmarks?
 
     `bmarks`. Bookmarks are not currently supported on `*open`: see [issue #214](https://github.com/cmcaine/tridactyl/issues/214).
 
-*   When I type 'f', can I type link names (like Vimperator) in order to narrow down the number of highlighted links?
+-   When I type 'f', can I type link names (like Vimperator) in order to narrow down the number of highlighted links?
 
     You can, thanks to @saulrh. First `set hintfiltermode vimperator` and then `set hintchars 1234567890`.
 
-*   How to remap keybindings in both normal mode and ex mode?
+-   How to remap keybindings in both normal mode and ex mode?
 
     You cannot. We only support normal mode bindings for now, with `bind [key] [excmd]`
 
-*   Where can I find a changelog for the different versions (to see what is new in the latest version)?
+-   Where can I find a changelog for the different versions (to see what is new in the latest version)?
 
     [Here.](https://github.com/cmcaine/tridactyl/blob/master/CHANGELOG.md)
 
-*   Why can't I use my bookmark keywords?
+-   Why can't I use my bookmark keywords?
 
     Mozilla doesn't give us access to them. See [issue #73](https://github.com/cmcaine/tridactyl/issues/73).
 
-*   Why doesn't Tridactyl work on websites with frames?
+-   Why doesn't Tridactyl work on websites with frames?
 
     It should work on some frames now. See [#122](https://github.com/cmcaine/tridactyl/issues/122).
 
-*   Can I change proxy via commands?
+-   Can I change proxy via commands?
 
     Not yet, but this feature will eventually be implemented.
 
-*   How do I disable Tridactyl on certain sites?
+-   How do I disable Tridactyl on certain sites?
 
     In the beta you can use `blacklistadd`, like this: `blacklistadd mail.google.com/mail`.
 
-*   How can I list the current bindings?
+-   How can I list the current bindings?
 
     `viewconfig nmaps` works OK, but Tridactyl commands won't work on the shown page for "security reasons". We'll eventually provide a better way. See [#98](https://github.com/cmcaine/tridactyl/issues/98).
 
-*   Why doesn't Tridactyl work on some pages?
+-   Why doesn't Tridactyl work on some pages?
 
     One possible reason is that the site has a strict content security policy. You can try to use `set csp clobber` to fix this, but know that it could worsen the security of sensitive pages.
 
-*   How can I know which mode I'm in/have a status line?
+-   How can I know which mode I'm in/have a status line?
 
     Press `j` and see if you scroll down :) There's no status line yet: see [#210](https://github.com/cmcaine/tridactyl/issues/210), but we do have a "mode indicator" in the bottom right. It even goes purple when you're in a private window :).
 
-*   Does anyone actually use Tridactyl?
+-   Does anyone actually use Tridactyl?
 
     In addition to the developers, some other people do. Mozilla keeps tabs on them [here](https://addons.mozilla.org/en-US/firefox/addon/tridactyl-vim/statistics/?last=30).
 
-*   How do I prevent websites from stealing focus?
+-   How do I prevent websites from stealing focus?
 
     There are two ways to do that, the first one is `set allowautofocus false` (if you do this you'll probably also want to set `browser.autofocus` to false in `about:config`). This will prevent the page's `focus()` function from working and could break javascript text editors such as Ace or CodeMirror. Another solution is to use `autocmd TabEnter .* unfocus` in the beta, JS text editors should still work but pages won't steal focus when entering their tabs anymore.
 
-*   Help! A website I use is totally blank when I try to use it with Tridactyl enabled!
+-   Help! A website I use is totally blank when I try to use it with Tridactyl enabled!
 
     Try `set noiframeon [space separated list of URLs to match]`. If that doesn't work, please file an issue.
 
@@ -242,14 +246,14 @@ If you want to build a signed copy (e.g. for the non-developer release), you can
 
 ### Building on Windows
 
-*   Install [Git for Windows][win-git]
+-   Install [Git for Windows][win-git]
 
-*   Install [NodeJS for Windows][win-nodejs]
+-   Install [NodeJS for Windows][win-nodejs]
 
-    *   Current 8.11.1 LTS seems to work fine
+    -   Current 8.11.1 LTS seems to work fine
 
-*   Launch the installation steps described above from MinTTY shell
-    *   Also known as "Git Bash"
+-   Launch the installation steps described above from MinTTY shell
+    -   Also known as "Git Bash"
 
 [win-git]: https://git-scm.com/download/win
 [win-nodejs]: https://nodejs.org/dist/v8.11.1/node-v8.11.1-x64.msi
@@ -341,18 +345,18 @@ Development notes are in the doc directory, but they're mostly out of date now. 
 
 Principles:
 
-*   Keyboard > mouse
-*   default keybinds should be Vim-like
-*   actions should be composable and repeatable
-*   ex mode should expose all the browser functionality anyone might want
-*   Arguable: most (all?) actions should have an ex mode version (departure from Vim?)
-*   users can map and define their own actions and commands
+-   Keyboard > mouse
+-   default keybinds should be Vim-like
+-   actions should be composable and repeatable
+-   ex mode should expose all the browser functionality anyone might want
+-   Arguable: most (all?) actions should have an ex mode version (departure from Vim?)
+-   users can map and define their own actions and commands
 
 Other objectives:
 
-*   be fast - the whole point of a keyboard interface is to be more efficient, don't compromise that with slow code
-*   don't crash - we're the new UI and we shouldn't crash
-*   be maintainable - code should be well documented, reasoned about and tested.
+-   be fast - the whole point of a keyboard interface is to be more efficient, don't compromise that with slow code
+-   don't crash - we're the new UI and we shouldn't crash
+-   be maintainable - code should be well documented, reasoned about and tested.
 
 ## Logo acknowledgement
 
