@@ -8,7 +8,7 @@
     
     You can also view them with [[bind]]. Try `bind j`.
 
-    For more information, and FAQs, check out our [readme][4] on github.
+    For more information, and FAQs, check out our [readme][3] on github.
 
     Tridactyl is in a pretty early stage of development. Please report any
     issues and make requests for missing features on the GitHub [project page][1].
@@ -75,13 +75,9 @@
       [[installnative]]). Alternatively, you can edit your userChrome yourself.
       There is an [example file](2) available in our repository.
 
-    If you want a more fully-featured vimperator-alike, your best option is
-    [Firefox ESR][3] and Vimperator :)
-
     [1]: https://github.com/cmcaine/tridactyl/issues
     [2]: https://github.com/cmcaine/tridactyl/blob/master/src/static/userChrome-minimal.css
-    [3]: https://www.mozilla.org/en-GB/firefox/organizations/all/#legacy
-    [4]: https://github.com/cmcaine/tridactyl#readme
+    [3]: https://github.com/cmcaine/tridactyl#readme
 
     [gitter-badge]: /static/badges/gitter-badge.svg
     [gitter-link]: https://gitter.im/tridactyl/Lobby
@@ -199,7 +195,7 @@ export async function editor() {
     let tab = await activeTab()
     let selector = await Messaging.messageTab(tab.id, "excmd_content", "getInputSelector", [])
     let url = new URL(tab.url)
-    if (!await Native.nativegate()) return
+    if (!(await Native.nativegate())) return
     const file = (await Native.temp(await getinput(), url.hostname)).content
     // We're using Messaging.messageTab instead of `fillinput()` because fillinput() will execute in the currently active tab, which might not be the tab the user spawned the editor in
     Messaging.messageTab(tab.id, "excmd_content", "fillinput", [selector, (await Native.editor(file)).content])
@@ -219,7 +215,7 @@ export async function guiset_quiet(rule: string, option: string) {
     // Could potentially fall back to sending minimal example to clipboard if native not installed
 
     // Check for native messenger and make sure we have a plausible profile directory
-    if (!await Native.nativegate("0.1.1")) return
+    if (!(await Native.nativegate("0.1.1"))) return
     let profile_dir = ""
     if (config.get("profiledir") === "auto" && ["linux", "openbsd", "mac"].includes((await browser.runtime.getPlatformInfo()).os)) {
         try {
@@ -243,7 +239,7 @@ export async function guiset_quiet(rule: string, option: string) {
     // Modify and write new CSS
     if (cssstr === "") cssstr = `@namespace url("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul");`
     let stylesheet = CSS.parse(cssstr)
-    // Trim due to https://github.com/reworkcss/css/issues/114
+    // Trim due to https://github.com/reworkcss/css/issues/113
     let stylesheetDone = CSS.stringify(css_util.changeCss(rule, option, stylesheet)).trim()
     return Native.write(profile_dir + "/chrome/userChrome.css", stylesheetDone)
 }
@@ -427,7 +423,7 @@ export async function installnative() {
 //#background
 export async function source(...fileArr: string[]) {
     const file = fileArr.join(" ") || undefined
-    if (await Native.nativegate("0.1.3")) if (!await rc.source(file)) logger.error("Could not find RC file")
+    if (await Native.nativegate("0.1.3")) if (!(await rc.source(file))) logger.error("Could not find RC file")
 }
 
 /**
@@ -721,7 +717,7 @@ export function unfocus() {
  */
 //#content
 export async function scrollpx(a: number, b: number) {
-    if (!await scrolling.scroll(a, b, document.documentElement)) scrolling.recursiveScroll(a, b)
+    if (!(await scrolling.scroll(a, b, document.documentElement))) scrolling.recursiveScroll(a, b)
 }
 
 /** If two numbers are given, treat as x and y values to give to window.scrollTo
@@ -736,7 +732,7 @@ export function scrollto(a: number, b: number | "x" | "y" = "y") {
     let percentage = a.clamp(0, 100)
     if (b === "y") {
         let top = elem.getClientRects()[0].top
-        window.scrollTo(window.scrollX, percentage * elem.scrollHeight / 100)
+        window.scrollTo(window.scrollX, (percentage * elem.scrollHeight) / 100)
         if (top == elem.getClientRects()[0].top && (percentage == 0 || percentage == 100)) {
             // scrollTo failed, if the user wants to go to the top/bottom of
             // the page try scrolling.recursiveScroll instead
@@ -744,7 +740,7 @@ export function scrollto(a: number, b: number | "x" | "y" = "y") {
         }
     } else if (b === "x") {
         let left = elem.getClientRects()[0].left
-        window.scrollTo(percentage * elem.scrollWidth / 100, window.scrollY)
+        window.scrollTo((percentage * elem.scrollWidth) / 100, window.scrollY)
         if (left == elem.getClientRects()[0].left && (percentage == 0 || percentage == 100)) {
             scrolling.recursiveScroll(1073741824 * (percentage == 0 ? -1 : 1), window.scrollX, [document.documentElement])
         }
@@ -3105,7 +3101,11 @@ export async function hint(option?: string, selectors?: string, ...rest: string[
             break
 
         case "-pipe":
-            selectHints = hinting.pipe(selectors, elem => elem[rest.join(" ")], rapid)
+            selectHints = hinting.pipe(
+                selectors,
+                elem => elem[rest.join(" ")],
+                rapid,
+            )
             break
 
         case "-i":
