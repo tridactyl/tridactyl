@@ -3,6 +3,7 @@ const CopyWebPackPlugin = require("copy-webpack-plugin")
 // const WebpackShellPlugin = require('webpack-shell-plugin')
 
 module.exports = {
+    mode: "development",
     entry: {
         background: "./src/background.ts",
         content: "./src/content.ts",
