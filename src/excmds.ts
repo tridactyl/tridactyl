@@ -189,6 +189,13 @@ export async function getInputSelector() {
  * The editorcmd needs to accept a filename, stay in the foreground while it's edited, save the file and exit.
  *
  * You're probably better off using the default insert mode bind of `<C-i>` (Ctrl-i) to access this.
+ *
+ * This function returns a tuple containing the path to the file that was opened by the editor and its content. This enables creating commands such as the following one, which deletes the temporary file created by the editor:
+ * ```
+ * alias editor_rm composite editor | jsb -p tri.native.run(`rm -f '${JS_ARG[0]}'`)
+ * bind --mode=insert <C-i> editor_rm
+ * bind --mode=input <C-i> editor_rm
+ * ```
  */
 //#background
 export async function editor() {
@@ -197,10 +204,11 @@ export async function editor() {
     let url = new URL(tab.url)
     if (!(await Native.nativegate())) return
     const file = (await Native.temp(await getinput(), url.hostname)).content
+    const content = (await Native.editor(file)).content
     // We're using Messaging.messageTab instead of `fillinput()` because fillinput() will execute in the currently active tab, which might not be the tab the user spawned the editor in
-    Messaging.messageTab(tab.id, "excmd_content", "fillinput", [selector, (await Native.editor(file)).content])
-    // TODO: add annoying "This message was written with [Tridactyl](https://addons.mozilla.org/en-US/firefox/addon/tridactyl-vim/)"
-    // to everything written using editor
+    Messaging.messageTab(tab.id, "excmd_content", "fillinput", [selector, content])
+    // TODO: add annoying "This message was written with [Tridactyl](https://addons.mozilla.org/en-US/firefox/addon/tridactyl-vim/)" to everything written using editor
+    return [file, content]
 }
 
 //#background_helper
