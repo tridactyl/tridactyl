@@ -18,8 +18,6 @@
 /** @hidden */
 const CONFIGNAME = "userconfig"
 /** @hidden */
-const URLCONFIGNAME = "URLCONFIGS"
-/** @hidden */
 const WAITERS = []
 /** @hidden */
 let INITIALISED = false
@@ -40,11 +38,6 @@ function schlepp(settings) {
 let USERCONFIG = o({})
 
 /** @hidden
- * Site-specific configs. The key should be a string representing a regex that matches an URL, the value should be an object that contains the keys that can be found in default_config.
- **/
-let URLCONFIGS = o({})
-
-/** @hidden
  * Ideally, LoggingLevel should be in logging.ts and imported from there. However this would cause a circular dependency, which webpack can't deal with
  */
 export type LoggingLevel = "never" | "error" | "warning" | "info" | "debug"
@@ -62,6 +55,16 @@ class default_config {
      * Changing this might do weird stuff.
      */
     configversion = "0.0"
+
+    /**
+     * Internal field to handle site-specific configs. Use :seturl/:unseturl to change these values.
+     */
+    subconfigs: { [key: string]: default_config } = {}
+
+    /**
+     * Internal field to handle site-specific config priorities. Use :seturl/:unseturl to change this value.
+     */
+    priority = "0"
 
     // Note to developers: When creating new <modifier-letter> maps, make sure to make the modifier uppercase (e.g. <C-a> instead of <c-a>) otherwise some commands might not be able to find them (e.g. `bind <c-a>`)
 
@@ -693,21 +696,22 @@ function setDeepProperty(obj, value, target) {
 }
 
 export function getURL(url, target) {
+    if (!USERCONFIG.subconfigs) return undefined
     let key =
         // For each key
-        Object.keys(URLCONFIGS)
+        Object.keys(USERCONFIG.subconfigs)
             // Keep only the ones that have a match
             .filter(k => url.match(k))
-            // Sort them from highest to lowest priority
+            // Sort them from highest to lowest priority, default to a priority of 10
             .sort(
                 (k1, k2) =>
-                    Number(URLCONFIGS[k2].priority) -
-                    Number(URLCONFIGS[k1].priority),
+                    (Number(USERCONFIG.subconfigs[k2].priority) || 10) -
+                    (Number(USERCONFIG.subconfigs[k1].priority) || 10),
             )
             // Get the first config name that has `target`
-            .find(k => getDeepProperty(URLCONFIGS[k], target))
+            .find(k => getDeepProperty(USERCONFIG.subconfigs[k], target))
 
-    return getDeepProperty(URLCONFIGS[key], target)
+    return getDeepProperty(USERCONFIG.subconfigs[key], target)
 }
 
 /** Get the value of the key target.
@@ -755,30 +759,12 @@ export async function getAsync(...target) {
     }
 }
 
-function genericSet(config, args) {
-    if (args.length < 2) {
-        throw "You must provide at least two arguments!"
-    }
-
-    const target = args.slice(0, args.length - 1)
-    const value = args[args.length - 1]
-
-    setDeepProperty(config, value, target)
-    save()
-}
-
-/** Same as [[set]], but for URLCONFIGS[pattern] instead of USERCONFIG. */
+/** @hidden
+ * Like set(), but for a specific pattern.
+ */
 export function setURL(pattern, ...args) {
-    if (!URLCONFIGS[pattern]) URLCONFIGS[pattern] = o({ priority: "10" })
-
-    try {
-        genericSet(URLCONFIGS[pattern], args)
-    } catch (e) {
-        if (e == "You must provide at least two arguments!")
-            throw e.replace("two", "three")
-    }
+    set("subconfigs", pattern, ...args)
 }
-
 /** Full target specification, then value
 
     e.g.
@@ -789,27 +775,30 @@ export function setURL(pattern, ...args) {
     @hidden
 */
 export function set(...args) {
-    genericSet(USERCONFIG, args)
-}
+    if (args.length < 2) {
+        throw "You must provide at least two arguments!"
+    }
 
-/** Delete the key at target in config if it exists
- * @hidden */
-function genericUnset(config, target) {
-    const parent = getDeepProperty(config, target.slice(0, -1))
-    if (parent !== undefined) delete parent[target[target.length - 1]]
+    const target = args.slice(0, args.length - 1)
+    const value = args[args.length - 1]
+
+    setDeepProperty(USERCONFIG, value, target)
     save()
 }
 
-/** Delete the key at pattern.target in URLCONFIGS if it exists
- * @hidden */
+/** @hidden
+ * Delete the key at USERCONFIG[pattern][target]
+ */
 export function unsetURL(pattern, ...target) {
-    genericUnset(URLCONFIGS[pattern], target)
+    unset("subconfigs", pattern, ...target)
 }
 
 /** Delete the key at target in USERCONFIG if it exists
  * @hidden */
 export function unset(...target) {
-    genericUnset(USERCONFIG, target)
+    const parent = getDeepProperty(USERCONFIG, target.slice(0, -1))
+    if (parent !== undefined) delete parent[target[target.length - 1]]
+    save()
 }
 
 /** Save the config back to storage API.
@@ -824,7 +813,6 @@ export async function save(storage: "local" | "sync" = get("storageloc")) {
     // storageobj.set({CONFIGNAME: USERCONFIG})
     let settingsobj = o({})
     settingsobj[CONFIGNAME] = USERCONFIG
-    settingsobj[URLCONFIGNAME] = URLCONFIGS
     if (storage == "local") browser.storage.local.set(settingsobj)
     else browser.storage.sync.set(settingsobj)
 }
@@ -903,15 +891,6 @@ async function init() {
     let localConfig = await browser.storage.local.get(CONFIGNAME)
     schlepp(localConfig[CONFIGNAME])
 
-    Object.assign(
-        URLCONFIGS,
-        (await browser.storage.sync.get(URLCONFIGNAME))[URLCONFIGNAME],
-    )
-    Object.assign(
-        URLCONFIGS,
-        (await browser.storage.local.get(URLCONFIGNAME))[URLCONFIGNAME],
-    )
-
     await update()
     INITIALISED = true
     for (let waiter of WAITERS) {
@@ -929,16 +908,6 @@ browser.storage.onChanged.addListener(async (changes, areaname) => {
         } else if (areaname === (await get("storageloc"))) {
             // If newValue is undefined and AREANAME is the same value as STORAGELOC, the user wants to clean their config
             USERCONFIG = o({})
-        }
-    }
-    // TODO: Find a way to remove duplication
-    if (URLCONFIGNAME in changes) {
-        // newValue is undefined when calling browser.storage.AREANAME.clear()
-        if (changes[URLCONFIGNAME].newValue !== undefined) {
-            URLCONFIGS = changes[URLCONFIGNAME].newValue
-        } else if (areaname === (await get("storageloc"))) {
-            // If newValue is undefined and AREANAME is the same value as STORAGELOC, the user wants to clean their config
-            URLCONFIGS = o({})
         }
     }
 })
