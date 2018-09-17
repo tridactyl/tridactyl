@@ -349,6 +349,7 @@ class default_config {
         o: "open",
         w: "winopen",
         t: "tabopen",
+        tabnew: "tabopen",
         tn: "tabnext_gt",
         bn: "tabnext_gt",
         tnext: "tabnext_gt",
@@ -607,7 +608,8 @@ class default_config {
     /**
      * Set this to something weird if you want to have fun every time Tridactyl tries to update its native messenger.
      */
-    nativeinstallcmd = "curl -fsSl https://raw.githubusercontent.com/tridactyl/tridactyl/master/native/install.sh | bash"
+    nativeinstallcmd =
+        "curl -fsSl https://raw.githubusercontent.com/tridactyl/tridactyl/master/native/install.sh | bash"
 
     /**
      * Set this to something weird if you want to have fun every time Tridactyl tries to update its native messenger.
