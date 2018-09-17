@@ -1,0 +1,174 @@
+:root.TridactylThemeShapeshifter {
+    /* Shapeshifter by Chris Kempson (http://chriskempson.com) */
+    --base00: #f9f9f9;
+    --base01: #e0e0e0;
+    --base02: #ababab;
+    --base03: #555555;
+    --base04: #343434;
+    --base05: #102015;
+    --base06: #040404;
+    --base07: #000000;
+    --base08: #e92f2f;
+    --base09: #e09448;
+    --base0A: #dddd13;
+    --base0B: #0ed839;
+    --base0C: #23edda;
+    --base0D: #3b48e3;
+    --base0E: #f996e2;
+    --base0F: #69542d;
+
+    --tridactyl-fg: var(--base05);
+    --tridactyl-bg: var(--base00);
+    --tridactyl-url-fg: var(--base08);
+    --tridactyl-url-bg: var(--base00);
+    --tridactyl-highlight-box-bg: var(--base0B);
+    --tridactyl-highlight-box-fg: var(--base00);
+
+    /* Hint character tags */
+    --tridactyl-hintspan-fg: var(--base00) !important;
+    --tridactyl-hintspan-bg: var(--base0A) !important;
+
+    /* Element Highlights */
+    --tridactyl-hint-active-fg: none;
+    --tridactyl-hint-active-bg: none;
+    --tridactyl-hint-active-outline: none;
+    --tridactyl-hint-bg: none;
+    --tridactyl-hint-outline: none;
+}
+
+:root.TridactylThemeShapeshifter #command-line-holder {
+    order: 1;
+    border: 2px solid var(--base0B);
+    color: var(--tridactyl-bg);
+}
+
+:root.TridactylThemeShapeshifter #tridactyl-input {
+    padding: 1rem;
+    color: var(--tridactyl-fg);
+    width: 90%;
+    font-size: 1.5rem;
+    line-height: 1.5;
+    background: var(--tridactyl-bg);
+    padding-left: unset;
+    padding: 1rem;
+}
+
+:root.TridactylThemeShapeshifter #completions table {
+    font-size: 0.8rem;
+    font-weight: 200;
+    border-spacing: 0;
+    table-layout: fixed;
+    padding: 1rem;
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+}
+
+:root.TridactylThemeShapeshifter #completions > div {
+    max-height: calc(20 * var(--option-height));
+    min-height: calc(10 * var(--option-height));
+}
+
+/* COMPLETIONS */
+
+:root.TridactylThemeShapeshifter #completions {
+    --option-height: 1.4em;
+    color: var(--tridactyl-fg);
+    background: var(--tridactyl-bg);
+    display: inline-block;
+    font-size: unset;
+    font-weight: 200;
+    overflow: hidden;
+    width: 100%;
+    border-top: unset;
+    order: 2;
+}
+
+/* Olie doesn't know how CSS inheritance works */
+:root.TridactylThemeShapeshifter #completions .HistoryCompletionSource {
+    max-height: unset;
+    min-height: unset;
+}
+
+:root.TridactylThemeShapeshifter #completions .HistoryCompletionSource table {
+    width: 100%;
+    font-size: 9pt;
+    border-spacing: 0;
+    table-layout: fixed;
+}
+
+/* redundancy 2: redundancy 2: more redundancy */
+:root.TridactylThemeShapeshifter #completions .BmarkCompletionSource {
+    max-height: unset;
+    min-height: unset;
+}
+
+:root.TridactylThemeShapeshifter #completions table tr td.prefix,
+:root.TridactylThemeShapeshifter #completions table tr td.privatewindow,
+:root.TridactylThemeShapeshifter #completions table tr td.container,
+:root.TridactylThemeShapeshifter #completions table tr td.icon {
+    display: none;
+}
+
+:root.TridactylThemeShapeshifter #completions .BufferCompletionSource table {
+    width: unset;
+    font-size: unset;
+    border-spacing: unset;
+    table-layout: unset;
+}
+
+:root.TridactylThemeShapeshifter #completions table tr .title {
+    width: 50%;
+}
+
+:root.TridactylThemeShapeshifter #completions table tr {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+:root.TridactylThemeShapeshifter #completions .sectionHeader {
+    background: unset;
+    font-weight: 200;
+    border-bottom: unset;
+    padding: 1rem !important;
+    padding-left: unset;
+    padding-bottom: 0.2rem;
+}
+
+:root.TridactylThemeShapeshifter #cmdline_iframe {
+    position: fixed !important;
+    bottom: unset;
+    top: 25% !important;
+    left: 10% !important;
+    z-index: 2147483647 !important;
+    width: 80% !important;
+    box-shadow: rgba(0, 0, 0, 0.5) 0px 0px 20px !important;
+}
+
+:root.TridactylThemeShapeshifter .TridactylStatusIndicator {
+    position: fixed !important;
+    bottom: 0 !important;
+    background: var(--tridactyl-bg) !important;
+    border: unset !important;
+    border: 1px var(--base0B) solid !important;
+    font-size: 12pt !important;
+    /*font-weight: 200 !important;*/
+    padding: 0.8ex !important;
+}
+
+:root.TridactylThemeShapeshifter #completions .focused {
+    background: var(--base0B);
+    color: var(--base00);
+}
+
+:root.TridactylThemeShapeshifter #completions .focused .url {
+    background: var(--base0B);
+    color: var(--base00);
+}
+/* #Ocean-normal { */
+/*  border-color: green !important; */
+/* } */
+
+/* #Ocean-insert { */
+/*  border-color: yellow !important; */
+/* } */
