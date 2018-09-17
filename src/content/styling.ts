@@ -1,6 +1,7 @@
 import { staticThemes } from "@src/.metadata.generated"
 import * as config from "@src/lib/config"
 import * as Logging from "@src/lib/logging"
+import { browserBg } from "@src/lib/webext"
 
 const logger = new Logging.Logger("styling")
 
@@ -33,7 +34,7 @@ export async function theme(element) {
     if (insertedCSS) {
         // Typescript doesn't seem to be aware than remove/insertCSS's tabid
         // argument is optional
-        await (browser.tabs.removeCSS as any)(customCss)
+        await (browserBg.tabs.removeCSS as any)(customCss)
         insertedCSS = false
     }
 
@@ -48,7 +49,7 @@ export async function theme(element) {
     if (newTheme !== "default" && !THEMES.includes(newTheme)) {
         customCss.code = await config.getAsync("customthemes", newTheme)
         if (customCss.code) {
-            await (browser.tabs.insertCSS as any)(customCss)
+            await (browserBg.tabs.insertCSS as any)(customCss)
             insertedCSS = true
         } else {
             logger.error("Theme " + newTheme + " couldn't be found.")
