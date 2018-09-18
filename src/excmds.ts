@@ -928,7 +928,7 @@ export function viewsource(url = "") {
 }
 
 /**
- * Go to the homepages you have set with `set home [url1] [url2]`.
+ * Go to the homepages you have set with `set homepages [url1] [url2]`.
  *
  *  @param all
  *      - if "true", opens all homepages in new tabs
