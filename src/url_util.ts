@@ -354,6 +354,8 @@ export function graftUrlPath(url: URL, newTail: string, level: number) {
 export function interpolateSearchItem(urlPattern: URL, query: string): URL {
     const hasInterpolationPoint = urlPattern.href.includes("%s")
 
+    let queryWords = query.split(" ")
+
     // percent-encode if theres a %s in the query string, or if we're apppending
     // and there's a query string
     if (
@@ -361,11 +363,21 @@ export function interpolateSearchItem(urlPattern: URL, query: string): URL {
         urlPattern.search !== ""
     ) {
         query = encodeURIComponent(query)
+        queryWords = queryWords.map(w => encodeURIComponent(w))
     }
 
     // replace or append as needed
     if (hasInterpolationPoint) {
-        return new URL(urlPattern.href.replace("%s", query))
+        let resultingURL = new URL (urlPattern.href.replace(/%s\d+/g, function(x) {
+            const index = parseInt(x.slice(2)) - 1
+            if (index >= queryWords.length) {
+                return ""
+            }
+
+            return queryWords[index]
+        }))
+
+        return new URL(resultingURL.href.replace("%s", query))
     } else {
         return new URL(urlPattern.href + query)
     }
