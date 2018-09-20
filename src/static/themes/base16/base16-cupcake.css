@@ -1,0 +1,174 @@
+:root.TridactylThemeCupcake {
+    /* Cupcake by Chris Kempson (http://chriskempson.com) */
+    --base00: #fbf1f2;
+    --base01: #f2f1f4;
+    --base02: #d8d5dd;
+    --base03: #bfb9c6;
+    --base04: #a59daf;
+    --base05: #8b8198;
+    --base06: #72677e;
+    --base07: #585062;
+    --base08: #d57e85;
+    --base09: #ebb790;
+    --base0A: #dcb16c;
+    --base0B: #a3b367;
+    --base0C: #69a9a7;
+    --base0D: #7297b9;
+    --base0E: #bb99b4;
+    --base0F: #baa58c;
+
+    --tridactyl-fg: var(--base05);
+    --tridactyl-bg: var(--base00);
+    --tridactyl-url-fg: var(--base08);
+    --tridactyl-url-bg: var(--base00);
+    --tridactyl-highlight-box-bg: var(--base0B);
+    --tridactyl-highlight-box-fg: var(--base00);
+
+    /* Hint character tags */
+    --tridactyl-hintspan-fg: var(--base00) !important;
+    --tridactyl-hintspan-bg: var(--base0A) !important;
+
+    /* Element Highlights */
+    --tridactyl-hint-active-fg: none;
+    --tridactyl-hint-active-bg: none;
+    --tridactyl-hint-active-outline: none;
+    --tridactyl-hint-bg: none;
+    --tridactyl-hint-outline: none;
+}
+
+:root.TridactylThemeCupcake #command-line-holder {
+    order: 1;
+    border: 2px solid var(--base0B);
+    color: var(--tridactyl-bg);
+}
+
+:root.TridactylThemeCupcake #tridactyl-input {
+    padding: 1rem;
+    color: var(--tridactyl-fg);
+    width: 90%;
+    font-size: 1.5rem;
+    line-height: 1.5;
+    background: var(--tridactyl-bg);
+    padding-left: unset;
+    padding: 1rem;
+}
+
+:root.TridactylThemeCupcake #completions table {
+    font-size: 0.8rem;
+    font-weight: 200;
+    border-spacing: 0;
+    table-layout: fixed;
+    padding: 1rem;
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+}
+
+:root.TridactylThemeCupcake #completions > div {
+    max-height: calc(20 * var(--option-height));
+    min-height: calc(10 * var(--option-height));
+}
+
+/* COMPLETIONS */
+
+:root.TridactylThemeCupcake #completions {
+    --option-height: 1.4em;
+    color: var(--tridactyl-fg);
+    background: var(--tridactyl-bg);
+    display: inline-block;
+    font-size: unset;
+    font-weight: 200;
+    overflow: hidden;
+    width: 100%;
+    border-top: unset;
+    order: 2;
+}
+
+/* Olie doesn't know how CSS inheritance works */
+:root.TridactylThemeCupcake #completions .HistoryCompletionSource {
+    max-height: unset;
+    min-height: unset;
+}
+
+:root.TridactylThemeCupcake #completions .HistoryCompletionSource table {
+    width: 100%;
+    font-size: 9pt;
+    border-spacing: 0;
+    table-layout: fixed;
+}
+
+/* redundancy 2: redundancy 2: more redundancy */
+:root.TridactylThemeCupcake #completions .BmarkCompletionSource {
+    max-height: unset;
+    min-height: unset;
+}
+
+:root.TridactylThemeCupcake #completions table tr td.prefix,
+:root.TridactylThemeCupcake #completions table tr td.privatewindow,
+:root.TridactylThemeCupcake #completions table tr td.container,
+:root.TridactylThemeCupcake #completions table tr td.icon {
+    display: none;
+}
+
+:root.TridactylThemeCupcake #completions .BufferCompletionSource table {
+    width: unset;
+    font-size: unset;
+    border-spacing: unset;
+    table-layout: unset;
+}
+
+:root.TridactylThemeCupcake #completions table tr .title {
+    width: 50%;
+}
+
+:root.TridactylThemeCupcake #completions table tr {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+:root.TridactylThemeCupcake #completions .sectionHeader {
+    background: unset;
+    font-weight: 200;
+    border-bottom: unset;
+    padding: 1rem !important;
+    padding-left: unset;
+    padding-bottom: 0.2rem;
+}
+
+:root.TridactylThemeCupcake #cmdline_iframe {
+    position: fixed !important;
+    bottom: unset;
+    top: 25% !important;
+    left: 10% !important;
+    z-index: 2147483647 !important;
+    width: 80% !important;
+    box-shadow: rgba(0, 0, 0, 0.5) 0px 0px 20px !important;
+}
+
+:root.TridactylThemeCupcake .TridactylStatusIndicator {
+    position: fixed !important;
+    bottom: 0 !important;
+    background: var(--tridactyl-bg) !important;
+    border: unset !important;
+    border: 1px var(--base0B) solid !important;
+    font-size: 12pt !important;
+    /*font-weight: 200 !important;*/
+    padding: 0.8ex !important;
+}
+
+:root.TridactylThemeCupcake #completions .focused {
+    background: var(--base0B);
+    color: var(--base00);
+}
+
+:root.TridactylThemeCupcake #completions .focused .url {
+    background: var(--base0B);
+    color: var(--base00);
+}
+/* #Ocean-normal { */
+/*  border-color: green !important; */
+/* } */
+
+/* #Ocean-insert { */
+/*  border-color: yellow !important; */
+/* } */
