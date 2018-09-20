@@ -14,6 +14,7 @@ class HistoryCompletionOption extends Completions.CompletionOptionHTML
 
         // Push properties we want to fuzmatch on
         this.fuseKeys.push(page.title, page.url) // weight by page.visitCount
+        
         // Create HTMLElement
         // need to download favicon
         const favIconUrl = Completions.DEFAULT_FAVICON
