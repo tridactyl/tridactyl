@@ -63,6 +63,7 @@ class default_config {
         "<CA-Escape>": "mode normal",
         "<CA-`>": "mode normal",
         "<S-Escape>": "mode normal",
+        "<C-^>": "buffer #",
         I: "mode normal",
     }
 
