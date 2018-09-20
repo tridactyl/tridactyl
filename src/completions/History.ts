@@ -14,7 +14,7 @@ class HistoryCompletionOption extends Completions.CompletionOptionHTML
 
         // Push properties we want to fuzmatch on
         this.fuseKeys.push(page.title, page.url) // weight by page.visitCount
-
+        
         // Create HTMLElement
         // need to download favicon
         const favIconUrl = Completions.DEFAULT_FAVICON
@@ -107,7 +107,7 @@ export class HistoryCompletionSource extends Completions.CompletionSourceFuse {
         const newtab = browser.runtime.getManifest()["chrome_url_overrides"]
             .newtab
         const newtaburl = browser.extension.getURL(newtab)
-        if (!query) {
+        if (!query || config.get("historyresults") == 0) {
             return (await browserBg.topSites.get())
                 .filter(page => page.url !== newtaburl)
                 .slice(0, n)
