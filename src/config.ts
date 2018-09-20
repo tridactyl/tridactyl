@@ -159,6 +159,7 @@ class default_config {
         u: "undo",
         r: "reload",
         R: "reloadhard",
+        x: "js window.stop()",
         gi: "focusinput -l",
         "g;": "changelistjump -1",
         gt: "tabnext_gt",
