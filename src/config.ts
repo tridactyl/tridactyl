@@ -159,7 +159,7 @@ class default_config {
         u: "undo",
         r: "reload",
         R: "reloadhard",
-        x: "js window.stop()",
+        "<C-c>": "stop",
         gi: "focusinput -l",
         "g;": "changelistjump -1",
         gt: "tabnext_gt",
@@ -390,6 +390,7 @@ class default_config {
         "!jsb":
             "fillcmdline_tmp 3000 !jsb is deprecated. Please use jsb instead",
         current_url: "composite get_current_url | fillcmdline_notrail ",
+        stop: "js window.stop()",
     }
 
     /**
