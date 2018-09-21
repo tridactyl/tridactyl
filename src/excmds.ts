@@ -104,6 +104,8 @@ import * as Logging from "./logging"
 const logger = new Logging.Logger("excmds")
 import Mark from "mark.js"
 import * as CSS from "css"
+import * as Metadata from "./.metadata.generated"
+import { fitsType, typeToString } from "./metadata"
 
 //#content_helper
 // {
@@ -129,8 +131,6 @@ import { mapstrToKeyseq } from "./keyseq"
 
 //#background_helper
 import * as Native from "./native_background"
-import * as Metadata from "./.metadata.generated"
-import { fitsType, typeToString } from "./metadata"
 
 /** @hidden */
 export const cmd_params = new Map<string, Map<string, string>>()
@@ -562,36 +562,6 @@ export function forceURI(maybeURI: string): string {
 //#background_helper
 function tabSetActive(id: number) {
     return browser.tabs.update(id, { active: true })
-}
-
-// }}}
-
-// {{{ INTERNAL/DEBUG
-
-/**
- * Set the logging level for a given logging module.
- *
- * @param logModule     the logging module to set the level on
- * @param level         the level to log at: in increasing verbosity, one of
- *                      "never", "error", "warning", "info", "debug"
- */
-//#background
-export function loggingsetlevel(logModule: string, level: string) {
-    const map = {
-        never: Logging.LEVEL.NEVER,
-        error: Logging.LEVEL.ERROR,
-        warning: Logging.LEVEL.WARNING,
-        info: Logging.LEVEL.INFO,
-        debug: Logging.LEVEL.DEBUG,
-    }
-
-    let newLevel = map[level.toLowerCase()]
-
-    if (newLevel !== undefined) {
-        config.set("logging", logModule, newLevel)
-    } else {
-        throw "Bad log level!"
-    }
 }
 
 // }}}
@@ -2563,6 +2533,62 @@ export function searchsetkeyword(keyword: string, url: string) {
     config.set("searchurls", keyword, forceURI(url))
 }
 
+/**
+ * Validates arguments for set/seturl
+ * @hidden
+ */
+function validateSetArgs(key: string, values: string[]) {
+    const target = key.split(".")
+    const currentValue = config.get(...target)
+    const last = target[target.length - 1]
+
+    let value: string | string[] = values
+    if (Array.isArray(currentValue)) {
+        // Do nothing
+    } else if (currentValue === undefined || typeof currentValue === "string") {
+        value = values.join(" ")
+    } else {
+        throw "Unsupported setting type!"
+    }
+
+    let md = Metadata.everything["src/config.ts"].classes.default_config[last]
+    if (md) {
+        if (md.type && !fitsType(value, md.type)) throw `Given type does not match expected type (given: ${value}, expected: ${typeToString(md.type)})`
+    }
+
+    return target.concat(value)
+}
+
+/**
+ * Usage: `seturl [pattern] key values`
+ *
+ * @param pattern The URL pattern the setting should be set for, e.g. `en.wikipedia.org` or `/index.html`. Defaults to the current url if `values` is a single word.
+ * @param key The name of the setting you want to set, e.g. `followpagepatterns.next`
+ * @param values The value you wish for, e.g. `next`
+ *
+ * Example:
+ * `seturl .*\.fr followpagepatterns.next suivant`
+ * `seturl website.fr followpagepatterns.next next`
+ *
+ * When multiple patterns can apply to a same URL, the pattern that has the highest priority is used. You can set the priority of a pattern by using `:seturl pattern priority 10`. By default every pattern has a priority of 10.
+ *
+ * Note that the patterns a regex-like, not glob-like. This means that if you want to match everything, you need to use `.*` instead of `*`.
+ */
+//#content
+export function seturl(pattern: string, key: string, ...values: string[]) {
+    if (values.length == 0 && key) {
+        values = [key]
+        key = pattern
+        pattern = window.location.href
+    }
+
+    if (!pattern || !key || !values.length) {
+        throw "seturl syntax: [pattern] key value"
+    }
+
+    config.setURL(pattern, ...validateSetArgs(key, values))
+}
+
 /** Set a key value pair in config.
 
     Use to set any string values found [here](/static/docs/classes/_src_config_.default_config.html).
@@ -2582,43 +2608,7 @@ export function set(key: string, ...values: string[]) {
         return
     }
 
-    const target = key.split(".")
-    const last = target[target.length - 1]
-
-    // Special case conversions
-    // TODO: Should we do any special case shit here?
-    switch (target[0]) {
-        case "logging":
-            const map = {
-                never: Logging.LEVEL.NEVER,
-                error: Logging.LEVEL.ERROR,
-                warning: Logging.LEVEL.WARNING,
-                info: Logging.LEVEL.INFO,
-                debug: Logging.LEVEL.DEBUG,
-            }
-            let level = map[values[0].toLowerCase()]
-            if (level === undefined) throw "Bad log level!"
-            else config.set(...target, level)
-            return
-    }
-
-    const currentValue = config.get(...target)
-
-    let value: string | string[] = values
-    if (Array.isArray(currentValue)) {
-        // Do nothing
-    } else if (currentValue === undefined || typeof currentValue === "string") {
-        value = values.join(" ")
-    } else {
-        throw "Unsupported setting type!"
-    }
-
-    let md = Metadata.everything["src/config.ts"].classes.default_config[last]
-    if (md) {
-        if (md.type && !fitsType(value, md.type)) throw `Given type does not match expected type (given: ${value}, expected: ${typeToString(md.type)})`
-    }
-
-    config.set(...target, value)
+    config.set(...validateSetArgs(key, values))
 }
 
 /** @hidden */
@@ -2898,6 +2888,29 @@ export function viewconfig(key?: string) {
                 .replace(/ /g, "%20")
     // base 64 encoding is a cleverer way of doing this, but it doesn't seem to work for the whole config.
     //window.location.href = "data:application/json;base64," + btoa(JSON.stringify(config.get()))
+}
+
+/**
+ * Reset a site-specific setting.
+ *
+ * usage: `unseturl [pattern] key`
+ *
+ * @param pattern The pattern the setting should be unset on, e.g. `.*wiki.*`. Defaults to the current url.
+ * @param key The key that should be unset.
+ *
+ * Example: `unseturl youtube.com gimode`
+ *
+ * Note that this removes a setting from the site-specific config, it doesn't "invert" it. This means that if you have a setting set to `false` in your global config and the same setting set to `false` in a site-specific setting, using `unseturl` will result in the setting still being set to `false`.
+ *
+ * Also note that `pattern` should match exactly the one that was used when using `seturl`.
+ */
+//#content
+export function unseturl(pattern: string, key: string) {
+    if (!key) {
+        key = pattern
+        pattern = window.location.href
+    }
+    config.unsetURL(pattern, key.split("."))
 }
 
 /**

@@ -4,13 +4,12 @@
 
 import * as Config from "./config"
 
-export enum LEVEL {
-    NEVER = 0, // don't use this in calls to log()
-    ERROR = 1,
-    WARNING = 2,
-    INFO = 3,
-    DEBUG = 4,
-}
+const LevelToNum = new Map<Config.LoggingLevel, number>()
+LevelToNum.set("never", 0)
+LevelToNum.set("error", 1)
+LevelToNum.set("warning", 2)
+LevelToNum.set("info", 3)
+LevelToNum.set("debug", 4)
 
 export class Logger {
     /**
@@ -30,14 +29,13 @@ export class Logger {
      * @return              logging function: this is returned as a function to
      *                      retain the call site
      */
-    private log(level: LEVEL) {
-        let configedLevel =
-            Config.get("logging", this.logModule) || LEVEL.WARNING
+    private log(level: Config.LoggingLevel) {
+        let configedLevel = Config.get("logging", this.logModule)
 
-        if (level <= configedLevel) {
+        if (LevelToNum.get(level) <= LevelToNum.get(configedLevel)) {
             // hand over to console.log, error or debug as needed
             switch (level) {
-                case LEVEL.ERROR:
+                case "error":
                     // TODO: replicate this for other levels, don't steal focus
                     // work out how to import messaging/webext without breaking everything
                     return async (...message) => {
@@ -71,11 +69,11 @@ export class Logger {
                                 },
                             )
                     }
-                case LEVEL.WARNING:
+                case "warning":
                     return console.warn
-                case LEVEL.INFO:
+                case "info":
                     return console.log
-                case LEVEL.DEBUG:
+                case "debug":
                     return console.debug
             }
         }
@@ -88,16 +86,16 @@ export class Logger {
     // logger.debug('blah') translates into console.debug('blah') with the
     // filename and line correct.
     public get debug() {
-        return this.log(LEVEL.DEBUG)
+        return this.log("debug")
     }
     public get info() {
-        return this.log(LEVEL.INFO)
+        return this.log("info")
     }
     public get warning() {
-        return this.log(LEVEL.WARNING)
+        return this.log("warning")
     }
     public get error() {
-        return this.log(LEVEL.ERROR)
+        return this.log("error")
     }
 }
 

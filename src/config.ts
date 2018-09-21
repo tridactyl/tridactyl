@@ -37,6 +37,11 @@ function schlepp(settings) {
 /** @hidden */
 let USERCONFIG = o({})
 
+/** @hidden
+ * Ideally, LoggingLevel should be in logging.ts and imported from there. However this would cause a circular dependency, which webpack can't deal with
+ */
+export type LoggingLevel = "never" | "error" | "warning" | "info" | "debug"
+
 /**
  * This is the default configuration that Tridactyl comes with.
  *
@@ -50,6 +55,16 @@ class default_config {
      * Changing this might do weird stuff.
      */
     configversion = "0.0"
+
+    /**
+     * Internal field to handle site-specific configs. Use :seturl/:unseturl to change these values.
+     */
+    subconfigs: { [key: string]: default_config } = {}
+
+    /**
+     * Internal field to handle site-specific config priorities. Use :seturl/:unseturl to change this value.
+     */
+    priority = "0"
 
     // Note to developers: When creating new <modifier-letter> maps, make sure to make the modifier uppercase (e.g. <C-a> instead of <c-a>) otherwise some commands might not be able to find them (e.g. `bind <c-a>`)
 
@@ -561,19 +576,17 @@ class default_config {
     jumpdelay = "3000"
 
     /**
-     * Default logging levels - 2 === WARNING
-     *
-     * NB: these cannot be set directly with `set` - you must use magic words such as `WARNING` or `DEBUG`.
+     * Logging levels. Unless you're debugging Tridactyl, it's unlikely you'll ever need to change these.
      */
-    logging = {
-        messaging: 2,
-        cmdline: 2,
-        controller: 2,
-        containers: 2,
-        hinting: 2,
-        state: 2,
-        excmd: 1,
-        styling: 2,
+    logging: { [key: string]: LoggingLevel } = {
+        messaging: "warning",
+        cmdline: "warning",
+        controller: "warning",
+        containers: "warning",
+        hinting: "warning",
+        state: "warning",
+        excmd: "error",
+        styling: "warning",
     }
     noiframeon: string[] = []
 
@@ -660,7 +673,7 @@ const DEFAULTS = o(new default_config())
     @param target path of properties as an array
     @hidden
 */
-function getDeepProperty(obj, target) {
+function getDeepProperty(obj, target: string[]) {
     if (obj !== undefined && target.length) {
         return getDeepProperty(obj[target[0]], target.slice(1))
     } else {
@@ -687,6 +700,25 @@ function setDeepProperty(obj, value, target) {
     }
 }
 
+export function getURL(url, target) {
+    if (!USERCONFIG.subconfigs) return undefined
+    let key =
+        // For each key
+        Object.keys(USERCONFIG.subconfigs)
+            // Keep only the ones that have a match
+            .filter(k => url.match(k))
+            // Sort them from highest to lowest priority, default to a priority of 10
+            .sort(
+                (k1, k2) =>
+                    (Number(USERCONFIG.subconfigs[k2].priority) || 10) -
+                    (Number(USERCONFIG.subconfigs[k1].priority) || 10),
+            )
+            // Get the first config name that has `target`
+            .find(k => getDeepProperty(USERCONFIG.subconfigs[k], target))
+
+    return getDeepProperty(USERCONFIG.subconfigs[key], target)
+}
+
 /** Get the value of the key target.
 
     If the user has not specified a key, use the corresponding key from
@@ -694,14 +726,21 @@ function setDeepProperty(obj, value, target) {
     @hidden
 */
 export function get(...target) {
+    // Window.tri might not be defined when called from the untrusted page context
+    let loc = window.location
+    if ((window as any).tri) loc = (window as any).tri.contentLocation
+    // If there's a site-specifing setting, it overrides global settings
+    const site = getURL(loc.href, target)
     const user = getDeepProperty(USERCONFIG, target)
     const defult = getDeepProperty(DEFAULTS, target)
 
     // Merge results if there's a default value and it's not an Array or primitive.
     if (defult && (!Array.isArray(defult) && typeof defult === "object")) {
-        return Object.assign(o({}), defult, user)
+        return Object.assign(Object.assign(o({}), defult, user), site)
     } else {
-        if (user !== undefined) {
+        if (site !== undefined) {
+            return site
+        } else if (user !== undefined) {
             return user
         } else {
             return defult
@@ -725,6 +764,12 @@ export async function getAsync(...target) {
     }
 }
 
+/** @hidden
+ * Like set(), but for a specific pattern.
+ */
+export function setURL(pattern, ...args) {
+    set("subconfigs", pattern, ...args)
+}
 /** Full target specification, then value
 
     e.g.
@@ -746,7 +791,14 @@ export function set(...args) {
     save()
 }
 
-/** Delete the key at target if it exists
+/** @hidden
+ * Delete the key at USERCONFIG[pattern][target]
+ */
+export function unsetURL(pattern, ...target) {
+    unset("subconfigs", pattern, ...target)
+}
+
+/** Delete the key at target in USERCONFIG if it exists
  * @hidden */
 export function unset(...target) {
     const parent = getDeepProperty(USERCONFIG, target.slice(0, -1))
@@ -798,13 +850,29 @@ export async function update() {
             }
         },
         "1.0": () => {
-            let vimiumgi = getDeepProperty(USERCONFIG, "vimium-gi")
+            let vimiumgi = getDeepProperty(USERCONFIG, ["vimium-gi"])
             if (vimiumgi === true || vimiumgi === "true")
                 set("gimode", "nextinput")
             else if (vimiumgi === false || vimiumgi === "false")
                 set("gimode", "firefox")
             unset("vimium-gi")
             set("configversion", "1.1")
+        },
+        "1.1": () => {
+            let leveltostr: { [key: number]: LoggingLevel } = {
+                0: "never",
+                1: "error",
+                2: "warning",
+                3: "info",
+                4: "debug",
+            }
+            let logging = getDeepProperty(USERCONFIG, ["logging"])
+            // logging is not necessarily defined if the user didn't change default values
+            if (logging)
+                Object.keys(logging).forEach(l =>
+                    set("logging", l, leveltostr[logging[l]]),
+                )
+            set("configversion", "1.2")
         },
     }
     if (!get("configversion")) set("configversion", "0.0")
@@ -827,6 +895,7 @@ async function init() {
     // Local storage overrides sync
     let localConfig = await browser.storage.local.get(CONFIGNAME)
     schlepp(localConfig[CONFIGNAME])
+
     await update()
     INITIALISED = true
     for (let waiter of WAITERS) {
