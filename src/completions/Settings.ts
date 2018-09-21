@@ -26,7 +26,11 @@ export class SettingsCompletionSource extends Completions.CompletionSourceFuse {
     public options: SettingsCompletionOption[]
 
     constructor(private _parent) {
-        super(["set", "get", "unset"], "SettingsCompletionSource", "Settings")
+        super(
+            ["set", "get", "unset", "seturl", "unseturl"],
+            "SettingsCompletionSource",
+            "Settings",
+        )
 
         this._parent.appendChild(this.node)
     }
@@ -47,6 +51,17 @@ export class SettingsCompletionSource extends Completions.CompletionSourceFuse {
             return
         }
 
+        // Ignoring command-specific arguments
+        // It's terrible but it's ok because it's just a stopgap until an actual commandline-parsing API is implemented
+        // copy pasting code is fun and good
+        if (prefix == "seturl " || prefix == "unseturl ") {
+            let args = query.split(" ")
+            options = args.slice(0, 1).join(" ")
+            query = args.slice(1).join(" ")
+        }
+
+        options += options ? " " : ""
+
         let configmd =
             metadata.everything["src/config.ts"].classes.default_config
         let settings = config.get()
@@ -60,7 +75,7 @@ export class SettingsCompletionSource extends Completions.CompletionSourceFuse {
                     doc = configmd[setting].doc.join(" ")
                     type = typeToString(configmd[setting].type)
                 }
-                return new SettingsCompletionOption(setting, {
+                return new SettingsCompletionOption(options + setting, {
                     name: setting,
                     value: JSON.stringify(settings[setting]),
                     doc: doc,
