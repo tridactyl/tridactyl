@@ -84,7 +84,6 @@ import Mark from "mark.js"
 import * as CSS from "css"
 import * as Perf from "@src/perf"
 import * as Metadata from "@src/.metadata.generated"
-import { fitsType, typeToString } from "@src/lib/metadata"
 
 //#content_helper
 // {
@@ -2848,9 +2847,15 @@ function validateSetArgs(key: string, values: string[]) {
         throw "Unsupported setting type!"
     }
 
-    let md = Metadata.everything["src/lib/config.ts"].classes.default_config[last]
-    if (md) {
-        if (md.type && !fitsType(value, md.type)) throw `Given type does not match expected type (given: ${value}, expected: ${typeToString(md.type)})`
+    let file, default_config, md
+    if ((file = Metadata.everything.getFile("src/lib/config.ts")) && (default_config = file.getClass("default_config")) && (md = default_config.getMember(last))) {
+        try {
+            value = md.type.convert(value)
+        } catch (e) {
+            throw `Given value (${value}) does not match or could not be converted to ${md.type.toString()}`
+        }
+    } else {
+        logger.warning("Could not fetch setting metadata.")
     }
 
     target.push(value)

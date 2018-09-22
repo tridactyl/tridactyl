@@ -4,7 +4,6 @@ import * as aliases from "@src/lib/aliases"
 import * as config from "@src/lib/config"
 import state from "@src/state"
 import { browserBg } from "@src/lib/webext"
-import { typeToString } from "@src/lib/metadata"
 
 class HelpCompletionOption extends Completions.CompletionOptionHTML implements Completions.CompletionOptionFuse {
     public fuseKeys = []
@@ -51,33 +50,37 @@ export class HelpCompletionSource extends Completions.CompletionSourceFuse {
         }
 
 
-        let configmd = Metadata.everything["src/lib/config.ts"].classes.default_config
-        let fns = Metadata.everything["src/excmds.ts"].functions
-        let settings = config.get()
-        let exaliases = settings.exaliases
-        let bindings = settings.nmaps
+        let file, default_config, excmds, fns, settings, exaliases, bindings
+        if (!(file = Metadata.everything.getFile("src/lib/config.ts"))
+            || !(default_config = file.getClass("default_config"))
+            || !(excmds = Metadata.everything.getFile("src/excmds.ts"))
+            || !(fns = excmds.getFunctions())
+            || !(settings = config.get())
+            || !(exaliases = settings.exaliases)
+            || !(bindings = settings.nmaps))
+            return;
 
         // Settings completion
         this.options = Object.keys(settings)
             .filter(x => x.startsWith(query))
             .map(setting => {
-                let doc = ""
-                if (configmd[setting]) {
-                    doc = configmd[setting].doc.join(" ")
+                let member, doc = ""
+                if (member = default_config.getMember(setting)) {
+                    doc = member.doc
                 }
                 return new HelpCompletionOption(setting, `Setting. ${doc}`)
             })
         // Excmd completion
-            .concat(Object.keys(fns)
+            .concat(fns
                 .filter(fn => fn.startsWith(query))
-                .map(f => new HelpCompletionOption(f, `Excmd. ${fns[f].doc}`))
+                .map(f => new HelpCompletionOption(f, `Excmd. ${excmds.getFunction(f).doc}`))
             )
         // Alias completion
             .concat(Object.keys(exaliases)
                 .filter(alias => alias.startsWith(query))
                 .map(alias => {
                     let cmd = aliases.expandExstr(alias)
-                    let doc = (fns[cmd] || {}).doc || ""
+                    let doc = (excmds.getFunction(cmd) || {}).doc || ""
                     return new HelpCompletionOption(alias, `Alias for \`${cmd}\`. ${doc}`)
                 })
             )
