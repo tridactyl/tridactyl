@@ -63,7 +63,7 @@ class default_config {
     /**
      * Internal field to handle site-specific config priorities. Use :seturl/:unseturl to change this value.
      */
-    priority = "0"
+    priority = 0
 
     // Note to developers: When creating new <modifier-letter> maps, make sure to make the modifier uppercase (e.g. <C-a> instead of <c-a>) otherwise some commands might not be able to find them (e.g. `bind <c-a>`)
 
@@ -548,7 +548,7 @@ class default_config {
      *
      * The point of this is to prevent accidental execution of normal mode binds due to people typing more than is necessary to choose a hint.
      */
-    hintdelay = "300"
+    hintdelay = 300
 
     /**
      * Controls whether the page can focus elements for you via js
@@ -572,7 +572,7 @@ class default_config {
     /**
      * How viscous you want smooth scrolling to feel.
      */
-    scrollduration = "100"
+    scrollduration = 100
 
     /**
      * Where to open tabs opened with `tabopen` - to the right of the current tab, or at the end of the tabs.
@@ -590,15 +590,15 @@ class default_config {
     /**
      * Controls text-to-speech volume. Has to be a number between 0 and 1.
      */
-    ttsvolume = "1"
+    ttsvolume = 1
     /**
      * Controls text-to-speech speed. Has to be a number between 0.1 and 10.
      */
-    ttsrate = "1"
+    ttsrate = 1
     /**
      * Controls text-to-speech pitch. Has to be between 0 and 2.
      */
-    ttspitch = "1"
+    ttspitch = 1
 
     /**
      * If nextinput, <Tab> after gi brings selects the next input
@@ -627,7 +627,7 @@ class default_config {
     /**
      * Milliseconds before registering a scroll in the jumplist
      */
-    jumpdelay = "3000"
+    jumpdelay = 3000
 
     /**
      * Logging levels. Unless you're debugging Tridactyl, it's unlikely you'll ever need to change these.
@@ -713,7 +713,7 @@ class default_config {
     /**
      * Number of most recent results to ask Firefox for. We display the top 20 or so most frequently visited ones.
      */
-    historyresults = "50"
+    historyresults = 50
 
     /**
      * Change this to "clobber" to ruin the "Content Security Policy" of all sites a bit and make Tridactyl run a bit better on some of them, e.g. raw.github*
@@ -807,8 +807,8 @@ export function getURL(url, target) {
             // Sort them from highest to lowest priority, default to a priority of 10
             .sort(
                 (k1, k2) =>
-                    (Number(USERCONFIG.subconfigs[k2].priority) || 10) -
-                    (Number(USERCONFIG.subconfigs[k1].priority) || 10),
+                    (USERCONFIG.subconfigs[k2].priority || 10) -
+                    (USERCONFIG.subconfigs[k1].priority || 10),
             )
             // Get the first config name that has `target`
             .find(k => getDeepProperty(USERCONFIG.subconfigs[k], target))
@@ -1003,6 +1003,35 @@ export async function update() {
                         )
                 })
             set("configversion", "1.3")
+        },
+        "1.3": () => {
+            // Updates a value both in the main config and in sub (=site specific) configs
+            let updateAll = (setting: any[], fn: (any) => any) => {
+                let val = getDeepProperty(USERCONFIG, setting)
+                if (val) {
+                    set(...setting, fn(val))
+                }
+                let subconfigs = getDeepProperty(USERCONFIG, ["subconfigs"])
+                if (subconfigs) {
+                    Object.keys(subconfigs)
+                        .map(pattern => [pattern, getURL(pattern, setting)])
+                        .filter(([pattern, value]) => value)
+                        .forEach(([pattern, value]) =>
+                            setURL(pattern, ...setting, fn(value)),
+                        )
+                }
+            }
+            ;[
+                "priority",
+                "hintdelay",
+                "scrollduration",
+                "ttsvolume",
+                "ttsrate",
+                "ttspitch",
+                "jumpdelay",
+                "historyresults",
+            ].forEach(setting => updateAll([setting], parseInt))
+            set("configversion", "1.4")
         },
     }
     if (!get("configversion")) set("configversion", "0.0")

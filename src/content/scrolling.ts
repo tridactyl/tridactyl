@@ -17,14 +17,14 @@ async function getSmooth() {
 async function getDuration() {
     if (opts.duration === null)
         opts.duration = await config.getAsync("scrollduration")
-    return Number.parseInt(opts.duration)
+    return opts.duration
 }
 browser.storage.onChanged.addListener(changes => {
     if ("userconfig" in changes) {
         if ("smoothscroll" in changes.userconfig.newValue)
             opts.smooth = changes.userconfig.newValue["smoothscroll"]
         if ("scrollduration" in changes.userconfig.newValue)
-            opts.duration = Number.parseInt(changes.userconfig.newValue["scrollduration"])
+            opts.duration = changes.userconfig.newValue["scrollduration"]
     }
 })
 
@@ -65,7 +65,7 @@ class ScrollingData {
         if (elapsed >= this.duration || this.elem[this.pos] == this.endPos)
             return this.endPos
 
-        let result = (this.endPos - this.startPos) * elapsed / this.duration
+        let result = ((this.endPos - this.startPos) * elapsed) / this.duration
         if (result >= 1 || result <= -1) return this.startPos + result
         return this.elem[this.pos] + (this.startPos < this.endPos ? 1 : -1)
     }

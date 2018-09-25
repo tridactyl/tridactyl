@@ -758,7 +758,7 @@ export function addJump(scrollEvent: UIEvent) {
             list.push({ x: pageX, y: pageY })
             jumps.cur = jumps.list.length - 1
             saveJumps(alljumps)
-        }, Number.parseInt(config.get("jumpdelay")))
+        }, config.get("jumpdelay"))
     })
 }
 
