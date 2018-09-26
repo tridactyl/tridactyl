@@ -239,6 +239,28 @@ export function im_delete_char() {
     elem.selectionStart = elem.selectionEnd = pos
 }
 
+/**
+ * Behaves like readline's [delete_backward_char](http://web.mit.edu/gnu/doc/html/rlman_1.html#SEC14).
+ **/
+//#content
+export function im_delete_backward_char() {
+    let elem = DOM.getLastUsedInput() as HTMLInputElement
+    let pos = elem.selectionStart
+    // Abort if we can't find out where the cursor is or if it is at the beginning of the text
+    if (!pos) {
+        logger.warning("im_delete_backward_char: elem doesn't have a selectionStart or cursor is at beginning of line.")
+        return
+    }
+    let text = getInput(elem)
+    if (pos != elem.selectionEnd) {
+        text = text.substring(0, pos) + text.substring(elem.selectionEnd)
+    } else {
+        text = text.substring(0, pos - 1) + text.substring(pos)
+    }
+    fillinput(DOM.getSelector(elem), text)
+    elem.selectionStart = elem.selectionEnd = pos - 1
+}
+
 //#background_helper
 import * as css_util from "./css_util"
 
