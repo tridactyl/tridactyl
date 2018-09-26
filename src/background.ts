@@ -18,6 +18,8 @@ import state from "./state"
 import * as webext from "./lib/webext"
 import { AutoContain } from "./lib/autocontainers"
 
+controller.setExCmds(excmds)
+
 // Add various useful modules to the window for debugging
 ;(window as any).tri = Object.assign(Object.create(null), {
     messaging,
@@ -58,7 +60,7 @@ browser.tabs.onActivated.addListener(ev => {
 //
 
 // Send commandline to controller
-commandline_background.onLine.addListener((exstr) => controller.acceptExCmd(exstr, excmds))
+commandline_background.onLine.addListener((exstr) => controller.acceptExCmd(exstr))
 
 // {{{ Clobber CSP
 
@@ -97,12 +99,12 @@ browser.runtime.onStartup.addListener(_ => {
         let hosts = Object.keys(aucmds)
         // If there's only one rule and it's "all", no need to check the hostname
         if (hosts.length == 1 && hosts[0] == ".*") {
-            controller.acceptExCmd(aucmds[hosts[0]], excmds)
+            controller.acceptExCmd(aucmds[hosts[0]])
         } else {
             native.run("hostname").then(hostname => {
                 for (let host of hosts) {
                     if (hostname.content.match(host)) {
-                        controller.acceptExCmd(aucmds[host], excmds)
+                        controller.acceptExCmd(aucmds[host])
                     }
                 }
             })

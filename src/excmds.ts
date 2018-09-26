@@ -135,6 +135,8 @@ SELF = SELF_CONTENT
 SELF = SELF_BACKGROUND
 // }
 
+// Set up the controller to run excmds from the appropriate mode
+controller.setExCmds(SELF)
 
 //#content_helper
 // {
@@ -149,7 +151,7 @@ import * as scrolling from "./scrolling"
 //#background_helper
 // {
 /** Message excmds_content.ts in the active tab of the currentWindow */
-Messaging.addListener("excmd_background", Messaging.attributeCaller(SELF_BACKGROUND))
+Messaging.addListener("excmd_background", Messaging.attributeCaller(SELF))
 import { messageTab, messageActiveTab } from "./messaging"
 import { flatten } from "./itertools"
 import "./number.mod"
@@ -158,12 +160,6 @@ import * as CommandLineBackground from "./commandline_background"
 import * as rc from "./config_rc"
 import { mapstrToKeyseq } from "./keyseq"
 import * as Native from "./native_background"
-
-/** @hidden */
-export const cmd_params = new Map<string, Map<string, string>>()
-
-import * as Metadata from "./.metadata.generated"
-import { fitsType, typeToString } from "./metadata"
 // }
 
 // }}}
@@ -2129,7 +2125,7 @@ export function repeat(n = 1, ...exstr: string[]) {
     let cmd = controller.last_ex_str
     if (exstr.length > 0) cmd = exstr.join(" ")
     logger.debug("repeating " + cmd + " " + n + " times")
-    for (let i = 0; i < n; i++) controller.acceptExCmd(cmd, SELF)
+    for (let i = 0; i < n; i++) controller.acceptExCmd(cmd)
 }
 
 /**

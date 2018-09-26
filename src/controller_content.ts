@@ -11,6 +11,8 @@ import * as generic from "./parsers/genericmode"
 
 const logger = new Logger("controller")
 
+controller.setExCmds(excmds)
+
 /** Accepts keyevents, resolves them to maps, maps to exstrs, executes exstrs */
 function* ParserController() {
     const parsers: { [mode_name in ModeName]: any } = {
@@ -83,7 +85,7 @@ function* ParserController() {
                     keyEvents = response.keys
                 }
             }
-            controller.acceptExCmd(exstr, excmds)
+            controller.acceptExCmd(exstr)
         } catch (e) {
             // Rumsfeldian errors are caught here
             logger.error(

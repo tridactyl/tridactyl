@@ -4,6 +4,8 @@ import * as excmds from "./.excmds_background.generated"
 import Logger from "./logging"
 const logger = new Logger("rc")
 
+controller.setExCmds(excmds)
+
 export async function source(filename = "auto") {
     let rctext = ""
     if (filename == "auto") {
@@ -18,7 +20,7 @@ export async function source(filename = "auto") {
 
 export async function runRc(rc: string) {
     for (let cmd of rcFileToExCmds(rc)) {
-        await controller.acceptExCmd(cmd, excmds)
+        await controller.acceptExCmd(cmd)
     }
 }
 
