@@ -261,6 +261,27 @@ export function im_delete_backward_char() {
     elem.selectionStart = elem.selectionEnd = pos - 1
 }
 
+/**
+ * Behaves like readline's [tab_insert](http://web.mit.edu/gnu/doc/html/rlman_1.html#SEC14).
+ **/
+//#content
+export function im_tab_insert() {
+    let elem = DOM.getLastUsedInput() as HTMLInputElement
+    let pos = elem.selectionStart
+    if (pos === undefined || pos === null) {
+        logger.warning("im_tab_insert: elem doesn't have a selectionStart")
+        return
+    }
+    let text = getInput(elem)
+    if (pos != elem.selectionEnd) {
+        text = text.substring(0, pos) + "\t" + text.substring(elem.selectionEnd)
+    } else {
+        text = text.substring(0, pos) + "\t" + text.substring(pos)
+    }
+    fillinput(DOM.getSelector(elem), text)
+    elem.selectionStart = elem.selectionEnd = pos + 1
+}
+
 //#background_helper
 import * as css_util from "./css_util"
 
