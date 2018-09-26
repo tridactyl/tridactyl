@@ -163,15 +163,20 @@ export async function fillinput(selector: string, ...content: string[]) {
 }
 
 /** @hidden */
-//#content
-export async function getinput() {
+//#content_helper
+export function getInput(e: HTMLElement) {
     // this should probably be subsumed by the focusinput code
-    let input = DOM.getLastUsedInput()
-    if ("value" in input) {
-        return (input as HTMLInputElement).value
+    if ("value" in e) {
+        return (e as HTMLInputElement).value
     } else {
-        return input.textContent
+        return e.textContent
     }
+}
+
+/** @hidden */
+//#content
+export function getinput() {
+    return getInput(DOM.getLastUsedInput())
 }
 
 /** @hidden */
@@ -209,6 +214,29 @@ export async function editor() {
     Messaging.messageTab(tab.id, "excmd_content", "fillinput", [selector, content])
     // TODO: add annoying "This message was written with [Tridactyl](https://addons.mozilla.org/en-US/firefox/addon/tridactyl-vim/)" to everything written using editor
     return [file, content]
+}
+
+/**
+ * Behaves like readline's [delete_char](http://web.mit.edu/gnu/doc/html/rlman_1.html#SEC14).
+ **/
+//#content
+export function im_delete_char() {
+    let elem = DOM.getLastUsedInput() as HTMLInputElement
+    let pos = elem.selectionStart
+    // Abort if we can't find out where the cursor is
+    if (pos === undefined || pos === null) {
+        logger.warning("im_delete_char: elem doesn't have a selectionStart")
+        return
+    }
+    let text = getInput(elem)
+    if (pos != elem.selectionEnd) {
+        // If the user selected text, then we need to delete that instead of a single char
+        text = text.substring(0, pos) + text.substring(elem.selectionEnd)
+    } else {
+        text = text.substring(0, pos) + text.substring(pos + 1)
+    }
+    fillinput(DOM.getSelector(elem), text)
+    elem.selectionStart = elem.selectionEnd = pos
 }
 
 //#background_helper
