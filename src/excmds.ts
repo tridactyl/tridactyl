@@ -282,6 +282,26 @@ export function im_tab_insert() {
     elem.selectionStart = elem.selectionEnd = pos + 1
 }
 
+/**
+ * Behaves like readline's [transpose_chars](http://web.mit.edu/gnu/doc/html/rlman_1.html#SEC14).
+ **/
+//#content
+export function im_transpose_chars() {
+    let elem = DOM.getLastUsedInput() as HTMLInputElement
+    let pos = elem.selectionStart
+    if (pos === undefined || pos === null) {
+        logger.warning("im_transpose_chars: elem doesn't have a selectionStart")
+        return
+    }
+    // When at the beginning of the text, transpose the first and second characters
+    if (pos == 0) pos = 1
+    let text = getInput(elem)
+    // When at the end of the text, transpose the last and second-to-last characters
+    if (pos >= text.length) pos = text.length - 1
+    fillinput(DOM.getSelector(elem), text.substring(0, pos - 1) + text.substring(pos, pos + 1) + text.substring(pos - 1, pos) + text.substring(pos + 1))
+    elem.selectionStart = elem.selectionEnd = pos + 1
+}
+
 //#background_helper
 import * as css_util from "./css_util"
 
