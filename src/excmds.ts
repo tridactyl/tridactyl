@@ -3914,6 +3914,10 @@ export async function perfhistogram(...filters: string[]) {
     let filterconfigs = buildFilterConfigs(filters)
     filterconfigs.push({ kind: "eventType", eventType: "measure" })
     const entries = window.tri.statsLogger.getEntries(...filterconfigs)
+    if (entries.length == 0) {
+        fillcmdline_tmp(3000, "perfhistogram: No samples found.");
+        return
+    }
     const histogram = Perf.renderStatsHistogram(entries)
     console.log(histogram)
     open("data:text/plain;charset=UTF-8;base64," + btoa(histogram))

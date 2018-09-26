@@ -104,8 +104,8 @@ export class Marker {
     constructor(
         ownerName: string,
         functionName: string,
-        private readonly active: boolean = config.get("perfcounters") ===
-            "true" && performanceEnabled(),
+        private readonly active: boolean = performanceEnabled() &&
+            config.get("perfcounters") === "true",
         private readonly metricName: MetricName = new MetricName(
             ownerName,
             functionName,
@@ -114,12 +114,20 @@ export class Marker {
 
     public start() {
         if (!this.active) return this
+        logger.debug(
+            "Marking startpoint of performance counter for %o",
+            this.metricName,
+        )
         performance.mark(this.metricName.startName)
         return this
     }
 
     public end() {
         if (!this.active) return this
+        logger.debug(
+            "Marking endpoint of performance counter for %o",
+            this.metricName,
+        )
         performance.mark(this.metricName.endName)
         performance.measure(
             this.metricName.fullName,
@@ -241,6 +249,11 @@ export class StatsLogger {
     }
 
     private pushEntry(entry: PerformanceEntry) {
+        logger.debug(
+            "Pushing performance entry %o into performance counters",
+            entry,
+        )
+
         // Drop samples that aren't for tridactyl, since performance
         // events are global and there are some badly-behaved
         // libraries spamming them all over our own data.
