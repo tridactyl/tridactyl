@@ -4,7 +4,7 @@
 
     Use `:help <excmd>` or scroll down to show [[help]] for a particular excmd. If you're still stuck, you might consider reading through the [:tutor](/static/clippy/tutor.html) again.
 
-    The default keybinds can be found [here](/static/docs/classes/_src_config_.default_config.html) or all active binds can be seen with `:viewconfig nmaps`.
+    The default keybinds can be found [here](/static/docs/classes/_config_.default_config.html) or all active binds can be seen with `:viewconfig nmaps`.
     
     You can also view them with [[bind]]. Try `bind j`.
 
@@ -257,7 +257,7 @@ export async function guiset_quiet(rule: string, option: string) {
  *
  * Might mangle your userChrome. Requires native messenger, and you must restart Firefox each time to see any changes (this can be done using [[restart]]). <!-- (unless you enable addon debugging and refresh using the browser toolbox) -->
  *
- * View available rules and options [here](/static/docs/modules/_src_css_util_.html#potentialrules) and [here](/static/docs/modules/_src_css_util_.html#metarules).
+ * View available rules and options [here](/static/docs/modules/_css_util_.html#potentialrules) and [here](/static/docs/modules/_css_util_.html#metarules).
  *
  * Example usage: `guiset gui none`, `guiset gui full`, `guiset tabs autohide`.
  *
@@ -991,7 +991,7 @@ export function home(all: "false" | "true" = "false") {
 */
 //#background
 export async function help(excmd?: string) {
-    const docpage = browser.extension.getURL("static/docs/modules/_src_excmds_.html")
+    const docpage = browser.extension.getURL("static/docs/modules/_excmds_.html")
     if (excmd === undefined) excmd = ""
     else {
         let bindings = await config.getAsync("nmaps")
@@ -2591,7 +2591,7 @@ export function seturl(pattern: string, key: string, ...values: string[]) {
 
 /** Set a key value pair in config.
 
-    Use to set any string values found [here](/static/docs/classes/_src_config_.default_config.html).
+    Use to set any string values found [here](/static/docs/classes/_config_.default_config.html).
 
     e.g.
         set searchurls.google https://www.google.com/search?q=
