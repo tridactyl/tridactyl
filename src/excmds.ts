@@ -374,6 +374,65 @@ export function im_transpose_words() {
     elem.selectionStart = elem.selectionEnd = pos
 }
 
+/** @hidden
+ * Returns true if POSITION is in a word in text, false otherwise.
+ */
+//#content_helper
+function inWord(text: string, position: number) {
+    return !!text[0].match(new RegExp(config.get("wordpattern"), "g"))
+}
+
+/** @hidden
+ * Applies a function to the word the cursor is in, or to the next word if the cursor is not in a word, or to the previous word if the current word is empty.
+ */
+//#content_helper
+function applyWord(fn: (string) => string) {
+    let elem = DOM.getLastUsedInput() as HTMLInputElement
+    let pos = elem.selectionStart
+    if (pos === undefined || pos === null) {
+        logger.warning("im_upcase_word: elem doesn't have a selectionStart")
+        return
+    }
+    let text = getInput(elem)
+    // If the cursor is at the end of the text, move it just before the last character
+    if (pos >= text.length) {
+        pos = text.length - 1
+    }
+
+    if (!inWord(text, pos)) {
+        let newPos = wordAfterPos(text, pos)
+        if (newPos > -1) pos = newPos
+    }
+    let boundaries = getWordBoundaries(text, pos)
+    let beginning = text.substring(0, boundaries[0]) + fn(text.substring(boundaries[0], boundaries[1]))
+    fillinput(DOM.getSelector(elem), beginning + text.substring(boundaries[1]))
+    elem.selectionStart = elem.selectionEnd = beginning.length + 1
+}
+
+/**
+ * Behaves like readline's [upcase_word](http://web.mit.edu/gnu/doc/html/rlman_1.html#SEC14).
+ **/
+//#content
+export function im_upcase_word() {
+    applyWord(word => word.toUpperCase())
+}
+
+/**
+ * Behaves like readline's [downcase_word](http://web.mit.edu/gnu/doc/html/rlman_1.html#SEC14).
+ **/
+//#content
+export function im_downcase_word() {
+    applyWord(word => word.toLowerCase())
+}
+
+/**
+ * Behaves like readline's [capitalize_word](http://web.mit.edu/gnu/doc/html/rlman_1.html#SEC14).
+ **/
+//#content
+export function im_capitalize_word() {
+    applyWord(word => word[0].toUpperCase() + word.substring(1))
+}
+
 //#background_helper
 import * as css_util from "./css_util"
 
