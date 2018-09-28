@@ -302,6 +302,78 @@ export function im_transpose_chars() {
     elem.selectionStart = elem.selectionEnd = pos + 1
 }
 
+/** @hidden
+ * Detects the boundaries of a word in text according to the wordpattern setting. If POSITION is in a word, the boundaries of this word are returned. If POSITION is out of a word, the first word before POSITION is returned.
+ */
+//#content_helper
+export function getWordBoundaries(text: string, position: number): [number, number] {
+    if (position < 0 || position > text.length) throw new Error(`getWordBoundaries: position (${position}) should be within text ("${text}") boundaries (0, ${text.length})`)
+    let pattern = new RegExp(config.get("wordpattern"), "g")
+    let startBoundary = position
+    // if the cursor is not in a word, try to find the beginning of the word before it
+    while (startBoundary > 0 && !text[startBoundary].match(pattern)) startBoundary -= 1
+    let endBoundary = startBoundary
+    // now that we know the cursor is in a word, try to find its beginning
+    while (startBoundary >= 0 && !!text[startBoundary].match(pattern)) startBoundary -= 1
+    // Add 1 to startBoundary because it is currently pointing to the char before the word
+    startBoundary += 1
+    // now that we know where the word begins, try to find where it ends
+    while (endBoundary < text.length && !!text[endBoundary].match(pattern)) endBoundary += 1
+
+    return [startBoundary, endBoundary]
+}
+
+/** @hidden
+ * Finds the next word as defined by the wordpattern setting after POSITION. If POSITION is in a word, POSITION is moved forward until it is out of the word.
+ * @return number The position of the next word in text or -1 if the next word can't be found.
+ */
+//#content_helper
+export function wordAfterPos(text: string, position: number) {
+    if (position < 0) throw new Error(`wordAfterPos: position (${position}) is less that 0`)
+    let pattern = new RegExp(config.get("wordpattern"), "g")
+    // move position out of the current word
+    while (position < text.length && !!text[position].match(pattern)) position += 1
+    // try to find characters that match wordpattern
+    while (position < text.length && !text[position].match(pattern)) position += 1
+    if (position >= text.length) return -1
+    return position
+}
+
+/**
+ * Behaves like readline's [transpose_words](http://web.mit.edu/gnu/doc/html/rlman_1.html#SEC14).
+ **/
+//#content
+export function im_transpose_words() {
+    let elem = DOM.getLastUsedInput() as HTMLInputElement
+    let pos = elem.selectionStart
+    if (pos === undefined || pos === null) {
+        logger.warning("im_transpose_words: elem doesn't have a selectionStart")
+        return
+    }
+    let text = getInput(elem)
+    // If the cursor is at the end of the text, move it just before the last character
+    if (pos >= text.length) {
+        pos = text.length - 1
+    }
+    // Find the word the cursor is in
+    let firstBoundaries = getWordBoundaries(text, pos)
+    let secondBoundaries = firstBoundaries
+    // If there is a word after the word the cursor is in, use it for the transposition, otherwise use the word before it
+    let nextWord = wordAfterPos(text, firstBoundaries[1])
+    if (nextWord > -1) {
+        secondBoundaries = getWordBoundaries(text, nextWord)
+    } else {
+        firstBoundaries = getWordBoundaries(text, firstBoundaries[0] - 1)
+    }
+    let firstWord = text.substring(firstBoundaries[0], firstBoundaries[1])
+    let secondWord = text.substring(secondBoundaries[0], secondBoundaries[1])
+    let beginning = text.substring(0, firstBoundaries[0]) + secondWord + text.substring(firstBoundaries[1], secondBoundaries[0])
+    pos = beginning.length
+    fillinput(DOM.getSelector(elem), beginning + firstWord + text.substring(secondBoundaries[1]))
+    // Move cursor just before the word that was transposed
+    elem.selectionStart = elem.selectionEnd = pos
+}
+
 //#background_helper
 import * as css_util from "./css_util"
 
