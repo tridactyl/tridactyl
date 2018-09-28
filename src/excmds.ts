@@ -433,6 +433,30 @@ export function im_capitalize_word() {
     applyWord(word => word[0].toUpperCase() + word.substring(1))
 }
 
+/**
+ * Behaves like readline's [kill_line](http://web.mit.edu/gnu/doc/html/rlman_1.html#SEC15).
+ **/
+//#content
+export function im_kill_line() {
+    let elem = DOM.getLastUsedInput() as HTMLInputElement
+    let pos = elem.selectionStart
+    if (pos === undefined || pos === null) {
+        logger.warning("im_kill_line: elem doesn't have a selectionStart")
+        return
+    }
+    let text = getInput(elem)
+    let newLine = text.substring(pos).search("\n")
+    if (newLine != -1) {
+        // If the cursor is right before the newline, kill the newline
+        if (newLine == 0) newLine = 1
+        text = text.substring(0, pos) + text.substring(pos + newLine)
+    } else {
+        text = text.substring(0, pos)
+    }
+    fillinput(DOM.getSelector(elem), text)
+    elem.selectionStart = elem.selectionEnd = pos
+}
+
 //#background_helper
 import * as css_util from "./css_util"
 
