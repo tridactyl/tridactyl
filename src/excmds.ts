@@ -457,6 +457,32 @@ export function im_kill_line() {
     elem.selectionStart = elem.selectionEnd = pos
 }
 
+/**
+ * Behaves like readline's [backward_kill_line](http://web.mit.edu/gnu/doc/html/rlman_1.html#SEC15).
+ **/
+//#content
+export function im_backward_kill_line() {
+    let elem = DOM.getLastUsedInput() as HTMLInputElement
+    let pos = elem.selectionStart
+    if (pos === undefined || pos === null) {
+        logger.warning("im_backward_kill_line: elem doesn't have a selectionStart")
+        return
+    }
+    let text = getInput(elem)
+    // If the cursor is at the beginning of a line, join the lines
+    if (text[pos - 1] == "\n") {
+        fillinput(DOM.getSelector(elem), text.substring(0, pos - 1) + text.substring(pos))
+        elem.selectionStart = elem.selectionEnd = pos - 1
+    } else {
+        let newLine
+        // Find the closest newline
+        for (newLine = pos; newLine > 0 && text[newLine - 1] != "\n"; --newLine) {}
+        // Remove everything between the newline and the cursor
+        fillinput(DOM.getSelector(elem), text.substring(0, newLine) + text.substring(pos))
+        elem.selectionStart = elem.selectionEnd = newLine
+    }
+}
+
 //#background_helper
 import * as css_util from "./css_util"
 
