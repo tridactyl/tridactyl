@@ -130,7 +130,7 @@ import * as excmd_parser from "./parsers/exmode"
 import { mapstrToKeyseq } from "./keyseq"
 
 //#background_helper
-import * as Native from "./native_background"
+import * as Native from "@src/background/native_background"
 
 /** @hidden */
 export const cmd_params = new Map<string, Map<string, string>>()

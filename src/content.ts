@@ -47,7 +47,7 @@ import state from "./state"
 import * as webext from "./lib/webext"
 import Mark from "mark.js"
 import * as keyseq from "./keyseq"
-import * as native from "./native_background"
+import * as native from "@src/background/native_background"
 import * as styling from "./styling"
 ;(window as any).tri = Object.assign(Object.create(null), {
     browserBg: webext.browserBg,
