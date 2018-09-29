@@ -27,7 +27,7 @@ export async function acceptExCmd(exstr: string): Promise<any> {
     }
 }
 
-import * as Messaging from "@src/messaging"
+import * as Messaging from "@src/lib/messaging"
 
 // Get messages from content
 Messaging.addListener(

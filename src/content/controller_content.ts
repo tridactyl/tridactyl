@@ -2,7 +2,7 @@ import { isTextEditable } from "@src/dom"
 import { contentState, ModeName } from "@src/state_content"
 import { repeat } from "@src/.excmds_background.generated"
 import Logger from "@src/lib/logging"
-import * as messaging from "@src/messaging"
+import * as messaging from "@src/lib/messaging"
 
 import { parser as exmode_parser } from "@src/parsers/exmode"
 import * as hinting from "@src/content/hinting"

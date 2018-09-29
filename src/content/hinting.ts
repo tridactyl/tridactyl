@@ -21,11 +21,11 @@ import {
 } from "@src/lib/itertools"
 import { hasModifiers } from "@src/keyseq"
 import { contentState } from "@src/state_content"
-import { messageActiveTab, message } from "@src/messaging"
+import { messageActiveTab, message } from "@src/lib/messaging"
 import * as config from "@src/lib/config"
 import * as TTS from "@src/text_to_speech"
 import Logger from "@src/lib/logging"
-import * as Messaging from "@src/messaging"
+import * as Messaging from "@src/lib/messaging"
 const logger = new Logger("hinting")
 
 /** Simple container for the state of a single frame's hints. */

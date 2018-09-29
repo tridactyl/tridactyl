@@ -1,4 +1,4 @@
-import * as Messaging from "./messaging"
+import * as Messaging from "@src/lib/messaging"
 import * as Container from "./lib/containers"
 import * as UrlUtil from "./url_util"
 import * as config from "@src/lib/config"

@@ -1,6 +1,6 @@
 import { enumerate } from "@src/lib/itertools"
 import * as Containers from "../lib/containers"
-import * as Messaging from "../messaging"
+import * as Messaging from "@src/lib/messaging"
 import * as Completions from "../completions"
 
 class BufferCompletionOption extends Completions.CompletionOptionHTML

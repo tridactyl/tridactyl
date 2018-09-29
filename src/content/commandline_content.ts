@@ -117,6 +117,6 @@ export function executeWithoutCommandLine(fn) {
     return result
 }
 
-import * as Messaging from "@src/messaging"
+import * as Messaging from "@src/lib/messaging"
 import * as SELF from "@src/content/commandline_content"
 Messaging.addListener("commandline_content", Messaging.attributeCaller(SELF))

@@ -91,7 +91,7 @@
 // {{{ setup
 
 // Shared
-import * as Messaging from "./messaging"
+import * as Messaging from "@src/lib/messaging"
 import { browserBg, activeTabId, activeTabContainerId, openInNewTab, openInNewWindow } from "./lib/webext"
 import * as Container from "./lib/containers"
 import state from "./state"
@@ -120,7 +120,7 @@ import * as scrolling from "./scrolling"
 //#background_helper
 // {
 /** Message excmds_content.ts in the active tab of the currentWindow */
-import { messageTab, messageActiveTab } from "./messaging"
+import { messageTab, messageActiveTab } from "@src/lib/messaging"
 import { flatten } from "@src/lib/itertools"
 import "./number.mod"
 import { activeTab, firefoxVersionAtLeast } from "./lib/webext"

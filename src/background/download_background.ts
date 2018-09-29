@@ -69,7 +69,7 @@ export async function downloadUrl(url: string, saveAs: boolean) {
     await downloadPromise
 }
 
-import * as Messaging from "@src/messaging"
+import * as Messaging from "@src/lib/messaging"
 
 // Get messages from content
 Messaging.addListener(

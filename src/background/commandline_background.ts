@@ -1,5 +1,5 @@
 import { activeTabId } from "@src/lib/webext"
-import * as Messaging from "@src/messaging"
+import * as Messaging from "@src/lib/messaging"
 
 export type onLineCallback = (exStr: string) => void
 

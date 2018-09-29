@@ -4,7 +4,7 @@ import * as BackgroundController from "@src/background/controller_background"
 import "./lib/browser_proxy_background"
 
 // Add various useful modules to the window for debugging
-import * as messaging from "./messaging"
+import * as messaging from "@src/lib/messaging"
 import * as excmds from "./.excmds_background.generated"
 import * as commandline_background from "@src/background/commandline_background"
 import * as convert from "@src/lib/convert"
