@@ -1,4 +1,4 @@
-import * as convert from "../convert"
+import * as convert from "@src/lib/convert"
 import browserProxy from "./browser_proxy"
 import * as config from "@src/lib/config"
 

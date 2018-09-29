@@ -1,7 +1,7 @@
 /** Ex Mode (AKA cmd mode) */
 
 import * as ExCmds from "../.excmds_background.generated"
-import * as convert from "../convert"
+import * as convert from "@src/lib/convert"
 import * as Config from "@src/lib/config"
 import * as aliases from "@src/lib/aliases"
 import * as Logging from "@src/lib/logging"

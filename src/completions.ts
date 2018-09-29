@@ -12,7 +12,7 @@ Concrete completion classes have been moved to src/completions/.
 
 import * as Fuse from "fuse.js"
 import { enumerate } from "./itertools"
-import { toNumber } from "./convert"
+import { toNumber } from "@src/lib/convert"
 import * as config from "@src/lib/config"
 import * as aliases from "@src/lib/aliases"
 
