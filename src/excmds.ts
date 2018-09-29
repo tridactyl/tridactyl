@@ -603,6 +603,38 @@ export function im_end_of_line() {
     elem.selectionStart = elem.selectionEnd = pos
 }
 
+/**
+ * Behaves like readline's [forward_char](http://web.mit.edu/gnu/doc/html/rlman_1.html#SEC12).
+ **/
+//#content
+export function im_forward_char() {
+    let elem = DOM.getLastUsedInput() as HTMLInputElement
+    let pos = elem.selectionStart
+    if (pos === undefined || pos === null) {
+        logger.warning("im_forward_char: elem doesn't have a selectionStart")
+        return
+    }
+    let text = getInput(elem)
+    if (text.length == 0) return
+    elem.selectionStart = elem.selectionEnd = pos + 1
+}
+
+/**
+ * Behaves like readline's [backward_char](http://web.mit.edu/gnu/doc/html/rlman_1.html#SEC12).
+ **/
+//#content
+export function im_backward_char() {
+    let elem = DOM.getLastUsedInput() as HTMLInputElement
+    let pos = elem.selectionStart
+    if (pos === undefined || pos === null) {
+        logger.warning("im_backward_char: elem doesn't have a selectionStart")
+        return
+    }
+    let text = getInput(elem)
+    if (text.length == 0) return
+    elem.selectionStart = elem.selectionEnd = pos - 1
+}
+
 //#background_helper
 import * as css_util from "./css_util"
 
