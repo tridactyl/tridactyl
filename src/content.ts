@@ -4,7 +4,7 @@
 // assigned to a name.  If you want an import just for its side effects, make
 // sure you import it like this:
 import "./lib/html-tagged-template"
-/* import "./commandline_content" */
+/* import "@src/content/commandline_content" */
 /* import "./excmds_content" */
 /* import "./hinting" */
 import * as Logging from "@src/lib/logging"
@@ -34,7 +34,7 @@ document.addEventListener("readystatechange", ev =>
 )
 
 // Add various useful modules to the window for debugging
-import * as commandline_content from "./commandline_content"
+import * as commandline_content from "@src/content/commandline_content"
 import * as convert from "./convert"
 import * as config from "./config"
 import * as dom from "./dom"
