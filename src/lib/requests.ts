@@ -1,6 +1,6 @@
 import * as Messaging from "@src/lib/messaging"
 import * as Container from "@src/lib/containers"
-import * as UrlUtil from "@src/url_util"
+import * as UrlUtil from "@src/lib/url_util"
 import * as config from "@src/lib/config"
 import * as csp from "csp-serdes"
 import Logger from "@src/lib/logging"

@@ -96,7 +96,7 @@ import { browserBg, activeTabId, activeTabContainerId, openInNewTab, openInNewWi
 import * as Container from "./lib/containers"
 import state from "./state"
 import { contentState, ModeName } from "@src/content/state_content"
-import * as UrlUtil from "./url_util"
+import * as UrlUtil from "@src/lib/url_util"
 import * as config from "@src/lib/config"
 import * as aliases from "@src/lib/aliases"
 import * as Logging from "@src/lib/logging"

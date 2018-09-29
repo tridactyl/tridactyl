@@ -2,7 +2,7 @@
  * Background download-related functions
  */
 
-import { getDownloadFilenameForUrl } from "@src/url_util"
+import { getDownloadFilenameForUrl } from "@src/lib/url_util"
 
 /** Construct an object URL string from a given data URL
  *
