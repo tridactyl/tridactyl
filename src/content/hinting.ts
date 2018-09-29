@@ -10,22 +10,22 @@
         Redraw on reflow
 */
 
-import * as DOM from "./dom"
-import { log } from "./math"
+import * as DOM from "@src/dom"
+import { log } from "@src/math"
 import {
     permutationsWithReplacement,
     islice,
     izip,
     map,
     unique,
-} from "./itertools"
-import { hasModifiers } from "./keyseq"
-import { contentState } from "./state_content"
-import { messageActiveTab, message } from "./messaging"
+} from "@src/itertools"
+import { hasModifiers } from "@src/keyseq"
+import { contentState } from "@src/state_content"
+import { messageActiveTab, message } from "@src/messaging"
 import * as config from "@src/lib/config"
-import * as TTS from "./text_to_speech"
+import * as TTS from "@src/text_to_speech"
 import Logger from "@src/lib/logging"
-import * as Messaging from "./messaging"
+import * as Messaging from "@src/messaging"
 const logger = new Logger("hinting")
 
 /** Simple container for the state of a single frame's hints. */
@@ -521,8 +521,8 @@ export function killables() {
     ])
 }
 
-import { openInNewTab, activeTabContainerId } from "./lib/webext"
-import { openInNewWindow } from "./lib/webext"
+import { openInNewTab, activeTabContainerId } from "@src/lib/webext"
+import { openInNewWindow } from "@src/lib/webext"
 
 export function pipe(
     selectors = DOM.HINTTAGS_selectors,

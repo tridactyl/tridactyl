@@ -2939,7 +2939,7 @@ export function unset(...keys: string[]) {
 // {{{ HINTMODE
 
 //#content_helper
-import * as hinting from "./hinting"
+import * as hinting from "@src/content/hinting"
 
 /** Hint a page.
 

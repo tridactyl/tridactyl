@@ -6,7 +6,7 @@
 import "./lib/html-tagged-template"
 /* import "@src/content/commandline_content" */
 /* import "./excmds_content" */
-/* import "./hinting" */
+/* import "@src/content/hinting" */
 import * as Logging from "@src/lib/logging"
 const logger = new Logging.Logger("content")
 logger.debug("Tridactyl content script loaded, boss!")
@@ -39,7 +39,7 @@ import * as convert from "@src/lib/convert"
 import * as config from "@src/lib/config"
 import * as dom from "./dom"
 import * as excmds from "./.excmds_content.generated"
-import * as hinting_content from "./hinting"
+import * as hinting_content from "@src/content/hinting"
 import * as finding_content from "@src/content/finding"
 import * as itertools from "./itertools"
 import * as messaging from "./messaging"
