@@ -1,5 +1,5 @@
 import * as Completions from "../completions"
-import { typeToSimpleString } from "../metadata"
+import { typeToSimpleString } from "@src/lib/metadata"
 import * as Metadata from "../.metadata.generated"
 import state from "../state"
 import * as config from "@src/lib/config"

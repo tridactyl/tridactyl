@@ -105,7 +105,7 @@ const logger = new Logging.Logger("excmds")
 import Mark from "mark.js"
 import * as CSS from "css"
 import * as Metadata from "./.metadata.generated"
-import { fitsType, typeToString } from "./metadata"
+import { fitsType, typeToString } from "@src/lib/metadata"
 
 //#content_helper
 // {

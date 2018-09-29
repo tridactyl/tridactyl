@@ -2,7 +2,7 @@ import * as Completions from "../completions"
 import * as config from "@src/lib/config"
 import { browserBg } from "../lib/webext"
 import * as metadata from "../.metadata.generated"
-import { typeToString } from "../metadata"
+import { typeToString } from "@src/lib/metadata"
 
 class SettingsCompletionOption extends Completions.CompletionOptionHTML
     implements Completions.CompletionOptionFuse {
