@@ -1,7 +1,7 @@
 import { parser as exmode_parser } from "./parsers/exmode"
 import { repeat } from "./.excmds_background.generated"
 
-import Logger from "./logging"
+import Logger from "@src/lib/logging"
 
 const logger = new Logger("controller")
 

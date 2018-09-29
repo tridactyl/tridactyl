@@ -99,7 +99,7 @@ import { contentState, ModeName } from "./state_content"
 import * as UrlUtil from "./url_util"
 import * as config from "./config"
 import * as aliases from "./aliases"
-import * as Logging from "./logging"
+import * as Logging from "@src/lib/logging"
 /** @hidden */
 const logger = new Logging.Logger("excmds")
 import Mark from "mark.js"

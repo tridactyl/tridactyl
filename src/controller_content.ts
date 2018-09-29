@@ -1,7 +1,7 @@
 import { isTextEditable } from "./dom"
 import { contentState, ModeName } from "./state_content"
 import { repeat } from "./.excmds_background.generated"
-import Logger from "./logging"
+import Logger from "@src/lib/logging"
 import * as messaging from "./messaging"
 
 import { parser as exmode_parser } from "./parsers/exmode"

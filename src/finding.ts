@@ -15,7 +15,7 @@ import { hasModifiers } from "./keyseq"
 import { contentState } from "./state_content"
 import { messageActiveTab, message } from "./messaging"
 import * as config from "./config"
-import Logger from "./logging"
+import Logger from "@src/lib/logging"
 import Mark from "mark.js"
 const logger = new Logger("finding")
 

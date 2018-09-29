@@ -14,7 +14,7 @@ import * as Config from "./config"
 import * as SELF from "./commandline_frame"
 import "./number.clamp"
 import state from "./state"
-import Logger from "./logging"
+import Logger from "@src/lib/logging"
 import { theme } from "./styling"
 const logger = new Logger("cmdline")
 

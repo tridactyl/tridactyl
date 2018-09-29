@@ -1,6 +1,6 @@
 import * as Controller from "./controller_background"
 import * as Native from "./native_background"
-import Logger from "./logging"
+import Logger from "@src/lib/logging"
 const logger = new Logger("rc")
 
 export async function source(filename = "auto") {

@@ -4,7 +4,7 @@ import * as ExCmds from "../.excmds_background.generated"
 import * as convert from "../convert"
 import * as Config from "../config"
 import * as aliases from "../aliases"
-import * as Logging from "../logging"
+import * as Logging from "@src/lib/logging"
 import { enumerate, head, izip } from "../itertools"
 const logger = new Logging.Logger("exmode")
 

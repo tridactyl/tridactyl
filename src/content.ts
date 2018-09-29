@@ -7,7 +7,7 @@ import "./lib/html-tagged-template"
 /* import "./commandline_content" */
 /* import "./excmds_content" */
 /* import "./hinting" */
-import * as Logging from "./logging"
+import * as Logging from "@src/lib/logging"
 const logger = new Logging.Logger("content")
 logger.debug("Tridactyl content script loaded, boss!")
 
