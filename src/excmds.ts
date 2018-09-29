@@ -635,6 +635,42 @@ export function im_backward_char() {
     elem.selectionStart = elem.selectionEnd = pos - 1
 }
 
+/**
+ * Behaves like readline's [forward_word](http://web.mit.edu/gnu/doc/html/rlman_1.html#SEC12).
+ **/
+//#content
+export function im_forward_word() {
+    let elem = DOM.getLastUsedInput() as HTMLInputElement
+    let pos = elem.selectionStart
+    if (pos === undefined || pos === null) {
+        logger.warning("im_forward_word: elem doesn't have a selectionStart")
+        return
+    }
+    let text = getInput(elem)
+    if (text.length == 0) return
+    let boundaries = getWordBoundaries(text, pos, false)
+    if (pos >= boundaries[0] && pos < boundaries[1]) boundaries = getWordBoundaries(text, boundaries[1], false)
+    elem.selectionStart = elem.selectionEnd = boundaries[0]
+}
+
+/**
+ * Behaves like readline's [backward_word](http://web.mit.edu/gnu/doc/html/rlman_1.html#SEC12).
+ **/
+//#content
+export function im_backward_word() {
+    let elem = DOM.getLastUsedInput() as HTMLInputElement
+    let pos = elem.selectionStart
+    if (pos === undefined || pos === null) {
+        logger.warning("im_backward_word: elem doesn't have a selectionStart")
+        return
+    }
+    let text = getInput(elem)
+    if (text.length == 0 || pos == 0) return
+    let boundaries = getWordBoundaries(text, pos, true)
+    if (pos >= boundaries[0] && pos < boundaries[1]) boundaries = getWordBoundaries(text, boundaries[0] - 1, true)
+    elem.selectionStart = elem.selectionEnd = boundaries[0]
+}
+
 //#background_helper
 import * as css_util from "./css_util"
 
