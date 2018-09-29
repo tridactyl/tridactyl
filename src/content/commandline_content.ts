@@ -2,7 +2,7 @@
 
 import Logger from "@src/lib/logging"
 import * as config from "@src/lib/config"
-import { theme } from "@src/styling"
+import { theme } from "@src/content/styling"
 const logger = new Logger("messaging")
 const cmdline_logger = new Logger("cmdline")
 

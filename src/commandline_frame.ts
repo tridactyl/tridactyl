@@ -15,7 +15,7 @@ import * as SELF from "./commandline_frame"
 import "@src/lib/number.clamp"
 import state from "./state"
 import Logger from "@src/lib/logging"
-import { theme } from "./styling"
+import { theme } from "@src/content/styling"
 const logger = new Logger("cmdline")
 
 let activeCompletions: Completions.CompletionSource[] = undefined
