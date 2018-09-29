@@ -15,7 +15,7 @@ logger.debug("Tridactyl content script loaded, boss!")
 import { contentState, addContentStateChangedListener } from "./state_content"
 
 // Hook the keyboard up to the controller
-import * as ContentController from "./controller_content"
+import * as ContentController from "@src/content/controller_content"
 import { getAllDocumentFrames } from "./dom"
 window.addEventListener("keydown", ContentController.acceptKey, true)
 document.addEventListener("readystatechange", ev =>
