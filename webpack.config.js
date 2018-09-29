@@ -1,3 +1,4 @@
+const { TsConfigPathsPlugin } = require('awesome-typescript-loader');
 const UglifyJSPlugin = require("uglifyjs-webpack-plugin")
 const CopyWebPackPlugin = require("copy-webpack-plugin")
 // const WebpackShellPlugin = require('webpack-shell-plugin')
@@ -22,6 +23,9 @@ module.exports = {
     resolve: {
         // Add '.ts' and '.tsx' as resolvable extensions.
         extensions: [".ts", ".tsx", ".js", ".json"],
+	plugins: [
+	    new TsConfigPathsPlugin(),
+	],
     },
 
     module: {
