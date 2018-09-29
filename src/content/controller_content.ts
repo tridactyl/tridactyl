@@ -6,7 +6,7 @@ import * as messaging from "@src/messaging"
 
 import { parser as exmode_parser } from "@src/parsers/exmode"
 import * as hinting from "@src/hinting"
-import * as finding from "@src/finding"
+import * as finding from "@src/content/finding"
 import * as gobblemode from "@src/parsers/gobblemode"
 import * as generic from "@src/parsers/genericmode"
 

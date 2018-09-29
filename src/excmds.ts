@@ -761,7 +761,7 @@ export function scrollpage(n = 1) {
 }
 
 //#content_helper
-import * as finding from "./finding"
+import * as finding from "@src/content/finding"
 
 /** Start find mode. Work in progress.
  *
