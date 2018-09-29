@@ -212,7 +212,7 @@ export async function editor() {
 }
 
 //#background_helper
-import * as css_util from "./css_util"
+import * as css_util from "@src/lib/css_util"
 
 /**
  * Like [[guiset]] but quieter.
