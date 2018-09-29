@@ -1,5 +1,5 @@
-import * as Controller from "./controller_background"
-import * as Native from "./native_background"
+import * as Controller from "@src/controller_background"
+import * as Native from "@src/native_background"
 import Logger from "@src/lib/logging"
 const logger = new Logger("rc")
 
