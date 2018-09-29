@@ -1,6 +1,6 @@
 /** Background script entry point. */
 
-import * as BackgroundController from "./controller_background"
+import * as BackgroundController from "@src/background/controller_background"
 import "./lib/browser_proxy_background"
 
 // Add various useful modules to the window for debugging

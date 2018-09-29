@@ -2091,7 +2091,7 @@ async function getnexttabs(tabid: number, n?: number) {
 // {{{ CMDLINE
 
 //#background_helper
-import * as controller from "./controller_background"
+import * as controller from "@src/background/controller_background"
 
 /** Repeats a `cmd` `n` times.
     Falls back to the last executed command if `cmd` doesn't exist.
