@@ -106,7 +106,7 @@ function mode(mode: "nav" | "search") {
     }
 }
 
-import "@src/number.mod"
+import "@src/lib/number.mod"
 export function navigate(n: number = 1) {
     // also - really - should probably actually make this be an excmd
     // people will want to be able to scroll and stuff.

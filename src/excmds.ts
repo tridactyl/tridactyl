@@ -122,7 +122,7 @@ import * as scrolling from "./scrolling"
 /** Message excmds_content.ts in the active tab of the currentWindow */
 import { messageTab, messageActiveTab } from "@src/lib/messaging"
 import { flatten } from "@src/lib/itertools"
-import "./number.mod"
+import "@src/lib/number.mod"
 import { activeTab, firefoxVersionAtLeast } from "./lib/webext"
 import * as CommandLineBackground from "@src/background/commandline_background"
 import * as rc from "@src/background/config_rc"
