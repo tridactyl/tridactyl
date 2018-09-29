@@ -23,7 +23,7 @@ import { hasModifiers } from "@src/keyseq"
 import { contentState } from "@src/content/state_content"
 import { messageActiveTab, message } from "@src/lib/messaging"
 import * as config from "@src/lib/config"
-import * as TTS from "@src/text_to_speech"
+import * as TTS from "@src/lib/text_to_speech"
 import Logger from "@src/lib/logging"
 import * as Messaging from "@src/lib/messaging"
 const logger = new Logger("hinting")

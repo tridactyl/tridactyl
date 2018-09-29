@@ -3293,7 +3293,7 @@ export async function gobble(nChars: number, endCmd: string) {
 
 // {{{TEXT TO SPEECH
 
-import * as TTS from "./text_to_speech"
+import * as TTS from "@src/lib/text_to_speech"
 
 /**
  * Read text content of elements matching the given selector
