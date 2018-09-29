@@ -303,24 +303,53 @@ export function im_transpose_chars() {
 }
 
 /** @hidden
- * Detects the boundaries of a word in text according to the wordpattern setting. If POSITION is in a word, the boundaries of this word are returned. If POSITION is out of a word, the first word before POSITION is returned.
+ * Detects the boundaries of a word in text according to the wordpattern setting. If POSITION is in a word, the boundaries of this word are returned. If POSITION is out of a word and BEFORE is true, the word before POSITION is returned. If BEFORE is false, the word after the cursor is returned.
  */
 //#content_helper
-export function getWordBoundaries(text: string, position: number): [number, number] {
+export function getWordBoundaries(text: string, position: number, before: boolean): [number, number] {
     if (position < 0 || position > text.length) throw new Error(`getWordBoundaries: position (${position}) should be within text ("${text}") boundaries (0, ${text.length})`)
     let pattern = new RegExp(config.get("wordpattern"), "g")
-    let startBoundary = position
-    // if the cursor is not in a word, try to find the beginning of the word before it
-    while (startBoundary > 0 && !text[startBoundary].match(pattern)) startBoundary -= 1
-    let endBoundary = startBoundary
-    // now that we know the cursor is in a word, try to find its beginning
-    while (startBoundary >= 0 && !!text[startBoundary].match(pattern)) startBoundary -= 1
-    // Add 1 to startBoundary because it is currently pointing to the char before the word
-    startBoundary += 1
-    // now that we know where the word begins, try to find where it ends
-    while (endBoundary < text.length && !!text[endBoundary].match(pattern)) endBoundary += 1
+    let boundary1 = position
+    let direction = before ? -1 : 1
+    // if the cursor is not in a word, try to find the word before or after it
+    while (boundary1 >= 0 && boundary1 < text.length && !text[boundary1].match(pattern)) {
+        boundary1 += direction
+    }
 
-    return [startBoundary, endBoundary]
+    if (boundary1 < 0) boundary1 = 0
+    else if (boundary1 >= text.length) boundary1 = text.length - 1
+
+    // if a word couldn't be found in this direction, try the other one
+    while (boundary1 >= 0 && boundary1 < text.length && !text[boundary1].match(pattern)) {
+        boundary1 -= direction
+    }
+
+    if (boundary1 < 0) boundary1 = 0
+    else if (boundary1 >= text.length) boundary1 = text.length - 1
+
+    if (!text[boundary1].match(pattern)) {
+        // there is no word in text
+        throw new Error(`getWordBoundaries: no characters matching wordpattern (${pattern.source}) in text (${text})`)
+    }
+
+    // now that we know the cursor is in a word (it could be in the middle depending on POSITION!), try to find its beginning/end
+    while (boundary1 >= 0 && boundary1 < text.length && !!text[boundary1].match(pattern)) {
+        boundary1 += direction
+    }
+    // boundary1 is now outside of the word, bring it back inside of it
+    boundary1 -= direction
+
+    let boundary2 = boundary1
+    // now that we know the cursor is at the beginning/end of a word, we need to find the other boundary
+    while (boundary2 >= 0 && boundary2 < text.length && !!text[boundary2].match(pattern)) {
+        boundary2 -= direction
+    }
+    // boundary2 is outside of the word, bring it back in
+    boundary2 += direction
+
+    // Add 1 to the end boundary because the end of a word is marked by the character after said word
+    if (boundary1 > boundary2) return [boundary2, boundary1 + 1]
+    return [boundary1, boundary2 + 1]
 }
 
 /** @hidden
@@ -356,14 +385,14 @@ export function im_transpose_words() {
         pos = text.length - 1
     }
     // Find the word the cursor is in
-    let firstBoundaries = getWordBoundaries(text, pos)
+    let firstBoundaries = getWordBoundaries(text, pos, false)
     let secondBoundaries = firstBoundaries
     // If there is a word after the word the cursor is in, use it for the transposition, otherwise use the word before it
     let nextWord = wordAfterPos(text, firstBoundaries[1])
     if (nextWord > -1) {
-        secondBoundaries = getWordBoundaries(text, nextWord)
+        secondBoundaries = getWordBoundaries(text, nextWord, false)
     } else {
-        firstBoundaries = getWordBoundaries(text, firstBoundaries[0] - 1)
+        firstBoundaries = getWordBoundaries(text, firstBoundaries[0] - 1, true)
     }
     let firstWord = text.substring(firstBoundaries[0], firstBoundaries[1])
     let secondWord = text.substring(secondBoundaries[0], secondBoundaries[1])
@@ -372,14 +401,6 @@ export function im_transpose_words() {
     fillinput(DOM.getSelector(elem), beginning + firstWord + text.substring(secondBoundaries[1]))
     // Move cursor just before the word that was transposed
     elem.selectionStart = elem.selectionEnd = pos
-}
-
-/** @hidden
- * Returns true if POSITION is in a word in text, false otherwise.
- */
-//#content_helper
-function inWord(text: string, position: number) {
-    return !!text[0].match(new RegExp(config.get("wordpattern"), "g"))
 }
 
 /** @hidden
@@ -398,12 +419,7 @@ function applyWord(fn: (string) => string) {
     if (pos >= text.length) {
         pos = text.length - 1
     }
-
-    if (!inWord(text, pos)) {
-        let newPos = wordAfterPos(text, pos)
-        if (newPos > -1) pos = newPos
-    }
-    let boundaries = getWordBoundaries(text, pos)
+    let boundaries = getWordBoundaries(text, pos, false)
     let beginning = text.substring(0, boundaries[0]) + fn(text.substring(boundaries[0], boundaries[1]))
     fillinput(DOM.getSelector(elem), beginning + text.substring(boundaries[1]))
     elem.selectionStart = elem.selectionEnd = beginning.length + 1
@@ -503,6 +519,25 @@ export function im_kill_whole_line() {
     // Remove everything between the newline and the cursor
     fillinput(DOM.getSelector(elem), text.substring(0, firstNewLine) + text.substring(secondNewLine))
     elem.selectionStart = elem.selectionEnd = firstNewLine
+}
+
+/**
+ * Behaves like readline's [kill_word](http://web.mit.edu/gnu/doc/html/rlman_1.html#SEC15).
+ **/
+//#content
+export function im_kill_word() {
+    let elem = DOM.getLastUsedInput() as HTMLInputElement
+    let pos = elem.selectionStart
+    if (pos === undefined || pos === null) {
+        logger.warning("im_kill_word: elem doesn't have a selectionStart")
+        return
+    }
+    let text = getInput(elem)
+    let boundaries = getWordBoundaries(text, pos, false)
+    if (pos > boundaries[0]) boundaries[0] = pos
+    // Remove everything between the newline and the cursor
+    fillinput(DOM.getSelector(elem), text.substring(0, boundaries[0]) + text.substring(boundaries[1] + 1))
+    elem.selectionStart = elem.selectionEnd = boundaries[0]
 }
 
 //#background_helper
