@@ -586,6 +586,23 @@ export function im_beginning_of_line() {
     elem.selectionStart = elem.selectionEnd = pos
 }
 
+/**
+ * Behaves like readline's [end_of_line](http://web.mit.edu/gnu/doc/html/rlman_1.html#SEC12).
+ **/
+//#content
+export function im_end_of_line() {
+    let elem = DOM.getLastUsedInput() as HTMLInputElement
+    let pos = elem.selectionStart
+    if (pos === undefined || pos === null) {
+        logger.warning("im_end_of_line: elem doesn't have a selectionStart")
+        return
+    }
+    let text = getInput(elem)
+    if (text.length == 0) return
+    while (text[pos] != undefined && text[pos] != "\n") pos += 1
+    elem.selectionStart = elem.selectionEnd = pos
+}
+
 //#background_helper
 import * as css_util from "./css_util"
 
