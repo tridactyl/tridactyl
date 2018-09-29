@@ -1,4 +1,4 @@
-import { enumerate } from "../itertools"
+import { enumerate } from "@src/lib/itertools"
 import * as Containers from "../lib/containers"
 import * as Messaging from "../messaging"
 import * as Completions from "../completions"

@@ -18,7 +18,7 @@ import {
     izip,
     map,
     unique,
-} from "@src/itertools"
+} from "@src/lib/itertools"
 import { hasModifiers } from "@src/keyseq"
 import { contentState } from "@src/state_content"
 import { messageActiveTab, message } from "@src/messaging"

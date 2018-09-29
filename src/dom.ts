@@ -1,5 +1,5 @@
 import * as config from "@src/lib/config"
-import { flatten } from "./itertools"
+import { flatten } from "@src/lib/itertools"
 import state from "./state"
 import * as Logging from "@src/lib/logging"
 import { activeTabId, openInNewTab, activeTabContainerId } from "./lib/webext"

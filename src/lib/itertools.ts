@@ -1,4 +1,4 @@
-import "./number.mod"
+import "@src/number.mod"
 
 export function head(iter) {
     iter = iter[Symbol.iterator]()
