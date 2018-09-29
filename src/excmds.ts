@@ -98,7 +98,7 @@ import state from "./state"
 import { contentState, ModeName } from "./state_content"
 import * as UrlUtil from "./url_util"
 import * as config from "./config"
-import * as aliases from "./aliases"
+import * as aliases from "@src/lib/aliases"
 import * as Logging from "@src/lib/logging"
 /** @hidden */
 const logger = new Logging.Logger("excmds")

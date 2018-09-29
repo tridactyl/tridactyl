@@ -3,7 +3,7 @@ import { typeToSimpleString } from "../metadata"
 import * as Metadata from "../.metadata.generated"
 import state from "../state"
 import * as config from "../config"
-import * as aliases from "../aliases"
+import * as aliases from "@src/lib/aliases"
 
 class ExcmdCompletionOption extends Completions.CompletionOptionHTML
     implements Completions.CompletionOptionFuse {

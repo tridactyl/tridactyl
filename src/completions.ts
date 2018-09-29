@@ -14,7 +14,7 @@ import * as Fuse from "fuse.js"
 import { enumerate } from "./itertools"
 import { toNumber } from "./convert"
 import * as config from "./config"
-import * as aliases from "./aliases"
+import * as aliases from "@src/lib/aliases"
 
 export const DEFAULT_FAVICON = browser.extension.getURL(
     "static/defaultFavicon.svg",
