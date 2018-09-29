@@ -109,7 +109,7 @@ import { fitsType, typeToString } from "@src/lib/metadata"
 
 //#content_helper
 // {
-import "./number.clamp"
+import "@src/lib/number.clamp"
 import * as SELF from "./.excmds_content.generated"
 Messaging.addListener("excmd_content", Messaging.attributeCaller(SELF))
 import * as DOM from "./dom"
