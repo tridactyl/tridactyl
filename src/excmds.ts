@@ -229,6 +229,7 @@ export function im_delete_char() {
         return
     }
     let text = getInput(elem)
+    if (text.length == 0) return
     if (pos != elem.selectionEnd) {
         // If the user selected text, then we need to delete that instead of a single char
         text = text.substring(0, pos) + text.substring(elem.selectionEnd)
@@ -252,6 +253,7 @@ export function im_delete_backward_char() {
         return
     }
     let text = getInput(elem)
+    if (text.length == 0) return
     if (pos != elem.selectionEnd) {
         text = text.substring(0, pos) + text.substring(elem.selectionEnd)
     } else {
@@ -296,6 +298,7 @@ export function im_transpose_chars() {
     // When at the beginning of the text, transpose the first and second characters
     if (pos == 0) pos = 1
     let text = getInput(elem)
+    if (text.length == 0) return
     // When at the end of the text, transpose the last and second-to-last characters
     if (pos >= text.length) pos = text.length - 1
     fillinput(DOM.getSelector(elem), text.substring(0, pos - 1) + text.substring(pos, pos + 1) + text.substring(pos - 1, pos) + text.substring(pos + 1))
@@ -309,7 +312,7 @@ export function im_transpose_chars() {
 export function getWordBoundaries(text: string, position: number, before: boolean): [number, number] {
     if (position < 0 || position > text.length) throw new Error(`getWordBoundaries: position (${position}) should be within text ("${text}") boundaries (0, ${text.length})`)
     let pattern = new RegExp(config.get("wordpattern"), "g")
-    let boundary1 = position
+    let boundary1 = position < text.length ? position : text.length - 1
     let direction = before ? -1 : 1
     // if the cursor is not in a word, try to find the word before or after it
     while (boundary1 >= 0 && boundary1 < text.length && !text[boundary1].match(pattern)) {
@@ -380,6 +383,7 @@ export function im_transpose_words() {
         return
     }
     let text = getInput(elem)
+    if (text.length == 0) return
     // If the cursor is at the end of the text, move it just before the last character
     if (pos >= text.length) {
         pos = text.length - 1
@@ -415,6 +419,7 @@ function applyWord(fn: (string) => string) {
         return
     }
     let text = getInput(elem)
+    if (text.length == 0) return
     // If the cursor is at the end of the text, move it just before the last character
     if (pos >= text.length) {
         pos = text.length - 1
@@ -461,6 +466,7 @@ export function im_kill_line() {
         return
     }
     let text = getInput(elem)
+    if (text.length == 0) return
     let newLine = text.substring(pos).search("\n")
     if (newLine != -1) {
         // If the cursor is right before the newline, kill the newline
@@ -485,6 +491,7 @@ export function im_backward_kill_line() {
         return
     }
     let text = getInput(elem)
+    if (text.length == 0) return
     // If the cursor is at the beginning of a line, join the lines
     if (text[pos - 1] == "\n") {
         fillinput(DOM.getSelector(elem), text.substring(0, pos - 1) + text.substring(pos))
@@ -511,6 +518,7 @@ export function im_kill_whole_line() {
         return
     }
     let text = getInput(elem)
+    if (text.length == 0) return
     let firstNewLine, secondNewLine
     // Find the newline before the cursor
     for (firstNewLine = pos; firstNewLine > 0 && text[firstNewLine - 1] != "\n"; --firstNewLine) {}
@@ -533,10 +541,31 @@ export function im_kill_word() {
         return
     }
     let text = getInput(elem)
+    if (text.length == 0) return
     let boundaries = getWordBoundaries(text, pos, false)
-    if (pos > boundaries[0]) boundaries[0] = pos
+    if (pos > boundaries[0] && pos < boundaries[1]) boundaries[0] = pos
     // Remove everything between the newline and the cursor
     fillinput(DOM.getSelector(elem), text.substring(0, boundaries[0]) + text.substring(boundaries[1] + 1))
+    elem.selectionStart = elem.selectionEnd = boundaries[0]
+}
+
+/**
+ * Behaves like readline's [backward_kill_word](http://web.mit.edu/gnu/doc/html/rlman_1.html#SEC15).
+ **/
+//#content
+export function im_backward_kill_word() {
+    let elem = DOM.getLastUsedInput() as HTMLInputElement
+    let pos = elem.selectionStart
+    if (pos === undefined || pos === null) {
+        logger.warning("im_backward_kill_word: elem doesn't have a selectionStart")
+        return
+    }
+    let text = getInput(elem)
+    if (text.length == 0) return
+    let boundaries = getWordBoundaries(text, pos, true)
+    if (pos > boundaries[0] && pos < boundaries[1]) boundaries[1] = pos
+    // Remove everything between the newline and the cursor
+    fillinput(DOM.getSelector(elem), text.substring(0, boundaries[0]) + text.substring(boundaries[1]))
     elem.selectionStart = elem.selectionEnd = boundaries[0]
 }
 
