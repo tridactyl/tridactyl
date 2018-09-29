@@ -1,6 +1,6 @@
 import * as convert from "../convert"
 import browserProxy from "./browser_proxy"
-import * as config from "../config"
+import * as config from "@src/lib/config"
 
 export function inContentScript() {
     return getContext() == "content"

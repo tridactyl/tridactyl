@@ -22,7 +22,7 @@ import {
 import { hasModifiers } from "./keyseq"
 import { contentState } from "./state_content"
 import { messageActiveTab, message } from "./messaging"
-import * as config from "./config"
+import * as config from "@src/lib/config"
 import * as TTS from "./text_to_speech"
 import Logger from "@src/lib/logging"
 import * as Messaging from "./messaging"

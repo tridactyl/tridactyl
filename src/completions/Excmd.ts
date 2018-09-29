@@ -2,7 +2,7 @@ import * as Completions from "../completions"
 import { typeToSimpleString } from "../metadata"
 import * as Metadata from "../.metadata.generated"
 import state from "../state"
-import * as config from "../config"
+import * as config from "@src/lib/config"
 import * as aliases from "@src/lib/aliases"
 
 class ExcmdCompletionOption extends Completions.CompletionOptionHTML

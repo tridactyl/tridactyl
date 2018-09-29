@@ -1,6 +1,6 @@
 // This file is only loaded in tridacyl's help pages
 
-import * as config from "./config"
+import * as config from "@src/lib/config"
 
 /** Create the element that should contain keybinding information */
 function initTridactylSettingElem(

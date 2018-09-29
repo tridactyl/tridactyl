@@ -1,4 +1,4 @@
-import * as config from "./config"
+import * as config from "@src/lib/config"
 import { flatten } from "./itertools"
 import state from "./state"
 import * as Logging from "@src/lib/logging"

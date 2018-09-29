@@ -1,5 +1,5 @@
 import * as Completions from "../completions"
-import * as config from "../config"
+import * as config from "@src/lib/config"
 import { browserBg } from "../lib/webext"
 
 class HistoryCompletionOption extends Completions.CompletionOptionHTML

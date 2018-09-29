@@ -36,7 +36,7 @@ document.addEventListener("readystatechange", ev =>
 // Add various useful modules to the window for debugging
 import * as commandline_content from "@src/content/commandline_content"
 import * as convert from "./convert"
-import * as config from "./config"
+import * as config from "@src/lib/config"
 import * as dom from "./dom"
 import * as excmds from "./.excmds_content.generated"
 import * as hinting_content from "./hinting"

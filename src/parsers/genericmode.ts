@@ -1,6 +1,6 @@
 /** Tridactyl helper mode */
 
-import * as config from "../config"
+import * as config from "@src/lib/config"
 import * as keyseq from "../keyseq"
 
 export function parser(conf, keys): keyseq.ParserResponse {

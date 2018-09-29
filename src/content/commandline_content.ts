@@ -1,7 +1,7 @@
 /** Inject an input element into unsuspecting webpages and provide an API for interaction with tridactyl */
 
 import Logger from "@src/lib/logging"
-import * as config from "@src/config"
+import * as config from "@src/lib/config"
 import { theme } from "@src/styling"
 const logger = new Logger("messaging")
 const cmdline_logger = new Logger("cmdline")

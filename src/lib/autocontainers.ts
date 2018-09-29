@@ -24,7 +24,7 @@
 
  */
 
-import * as Config from "../config"
+import * as Config from "@src/lib/config"
 import * as Container from "./containers"
 import * as Logging from "@src/lib/logging"
 

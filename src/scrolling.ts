@@ -1,5 +1,5 @@
 import * as Native from "./native_background"
-import * as config from "./config"
+import * as config from "@src/lib/config"
 
 type scrollingDirection = "scrollLeft" | "scrollTop"
 
