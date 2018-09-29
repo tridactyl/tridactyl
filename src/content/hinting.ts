@@ -20,7 +20,7 @@ import {
     unique,
 } from "@src/lib/itertools"
 import { hasModifiers } from "@src/keyseq"
-import { contentState } from "@src/state_content"
+import { contentState } from "@src/content/state_content"
 import { messageActiveTab, message } from "@src/lib/messaging"
 import * as config from "@src/lib/config"
 import * as TTS from "@src/text_to_speech"

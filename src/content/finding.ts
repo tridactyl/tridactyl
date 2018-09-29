@@ -12,7 +12,7 @@
 
 import * as DOM from "@src/dom"
 import { hasModifiers } from "@src/keyseq"
-import { contentState } from "@src/state_content"
+import { contentState } from "@src/content/state_content"
 import { messageActiveTab, message } from "@src/lib/messaging"
 import * as config from "@src/lib/config"
 import Logger from "@src/lib/logging"

@@ -12,7 +12,7 @@ const logger = new Logging.Logger("content")
 logger.debug("Tridactyl content script loaded, boss!")
 
 // Our local state
-import { contentState, addContentStateChangedListener } from "./state_content"
+import { contentState, addContentStateChangedListener } from "@src/content/state_content"
 
 // Hook the keyboard up to the controller
 import * as ContentController from "@src/content/controller_content"
