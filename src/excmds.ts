@@ -483,6 +483,28 @@ export function im_backward_kill_line() {
     }
 }
 
+/**
+ * Behaves like readline's [kill_whole_line](http://web.mit.edu/gnu/doc/html/rlman_1.html#SEC15).
+ **/
+//#content
+export function im_kill_whole_line() {
+    let elem = DOM.getLastUsedInput() as HTMLInputElement
+    let pos = elem.selectionStart
+    if (pos === undefined || pos === null) {
+        logger.warning("im_kill_whole_line: elem doesn't have a selectionStart")
+        return
+    }
+    let text = getInput(elem)
+    let firstNewLine, secondNewLine
+    // Find the newline before the cursor
+    for (firstNewLine = pos; firstNewLine > 0 && text[firstNewLine - 1] != "\n"; --firstNewLine) {}
+    // Find the newline after the cursor
+    for (secondNewLine = pos; secondNewLine < text.length && text[secondNewLine - 1] != "\n"; ++secondNewLine) {}
+    // Remove everything between the newline and the cursor
+    fillinput(DOM.getSelector(elem), text.substring(0, firstNewLine) + text.substring(secondNewLine))
+    elem.selectionStart = elem.selectionEnd = firstNewLine
+}
+
 //#background_helper
 import * as css_util from "./css_util"
 
