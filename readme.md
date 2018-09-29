@@ -52,7 +52,7 @@ You can try `:help key` to know more about `key`. If it is an existing binding, 
 
 #### Find mode
 
-Find mode is still incomplete and uses the built-in Firefox search. This will be improved eventually.
+Find mode is still incomplete and uses the Firefox feature "Quick Find". This will be improved eventually.
 
 -   `/` — open the find search box
 -   `C-g`/`C-G` — find the next/previous instance of the last find operation (note: these are the standard Firefox shortcuts)
