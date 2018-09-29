@@ -11,7 +11,7 @@
 */
 
 import * as DOM from "@src/dom"
-import { log } from "@src/math"
+import { log } from "@src/lib/math"
 import {
     permutationsWithReplacement,
     islice,
