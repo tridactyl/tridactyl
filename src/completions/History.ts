@@ -1,6 +1,6 @@
-import * as Completions from "../completions"
+import * as Completions from "@src/completions"
 import * as config from "@src/lib/config"
-import { browserBg } from "../lib/webext"
+import { browserBg } from "@src/lib/webext"
 
 class HistoryCompletionOption extends Completions.CompletionOptionHTML
     implements Completions.CompletionOptionFuse {

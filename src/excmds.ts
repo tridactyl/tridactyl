@@ -92,9 +92,9 @@
 
 // Shared
 import * as Messaging from "@src/lib/messaging"
-import { browserBg, activeTabId, activeTabContainerId, openInNewTab, openInNewWindow } from "./lib/webext"
-import * as Container from "./lib/containers"
-import state from "./state"
+import { browserBg, activeTabId, activeTabContainerId, openInNewTab, openInNewWindow } from "@src/lib/webext"
+import * as Container from "@src/lib/containers"
+import state from "@src/state"
 import { contentState, ModeName } from "@src/content/state_content"
 import * as UrlUtil from "@src/lib/url_util"
 import * as config from "@src/lib/config"
@@ -104,13 +104,13 @@ import * as Logging from "@src/lib/logging"
 const logger = new Logging.Logger("excmds")
 import Mark from "mark.js"
 import * as CSS from "css"
-import * as Metadata from "./.metadata.generated"
+import * as Metadata from "@src/.metadata.generated"
 import { fitsType, typeToString } from "@src/lib/metadata"
 
 //#content_helper
 // {
 import "@src/lib/number.clamp"
-import * as SELF from "./.excmds_content.generated"
+import * as SELF from "@src/.excmds_content.generated"
 Messaging.addListener("excmd_content", Messaging.attributeCaller(SELF))
 import * as DOM from "@src/lib/dom"
 import { executeWithoutCommandLine } from "@src/content/commandline_content"
@@ -123,10 +123,10 @@ import * as scrolling from "@src/content/scrolling"
 import { messageTab, messageActiveTab } from "@src/lib/messaging"
 import { flatten } from "@src/lib/itertools"
 import "@src/lib/number.mod"
-import { activeTab, firefoxVersionAtLeast } from "./lib/webext"
+import { activeTab, firefoxVersionAtLeast } from "@src/lib/webext"
 import * as CommandLineBackground from "@src/background/commandline_background"
 import * as rc from "@src/background/config_rc"
-import * as excmd_parser from "./parsers/exmode"
+import * as excmd_parser from "@src/parsers/exmode"
 import { mapstrToKeyseq } from "@src/lib/keyseq"
 
 //#background_helper
@@ -3276,7 +3276,7 @@ export function run_exstr(...commands: string[]) {
 // {{{ GOBBLE mode
 
 //#content_helper
-import * as gobbleMode from "./parsers/gobblemode"
+import * as gobbleMode from "@src/parsers/gobblemode"
 
 /** Initialize gobble mode.
 

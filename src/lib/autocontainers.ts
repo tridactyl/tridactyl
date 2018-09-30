@@ -25,7 +25,7 @@
  */
 
 import * as Config from "@src/lib/config"
-import * as Container from "./containers"
+import * as Container from "@src/lib/containers"
 import * as Logging from "@src/lib/logging"
 
 const logger = new Logging.Logger("containers")

@@ -1,5 +1,5 @@
-import { browserBg } from "../lib/webext"
-import * as Completions from "../completions"
+import { browserBg } from "@src/lib/webext"
+import * as Completions from "@src/completions"
 
 class BmarkCompletionOption extends Completions.CompletionOptionHTML
     implements Completions.CompletionOptionFuse {

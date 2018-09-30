@@ -1,4 +1,4 @@
-import { browserBg } from "./webext"
+import { browserBg } from "@src/lib/webext"
 import * as Fuse from "fuse.js"
 import * as Logging from "@src/lib/logging"
 const logger = new Logging.Logger("containers")

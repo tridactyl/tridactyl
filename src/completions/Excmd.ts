@@ -1,7 +1,7 @@
-import * as Completions from "../completions"
+import * as Completions from "@src/completions"
 import { typeToSimpleString } from "@src/lib/metadata"
-import * as Metadata from "../.metadata.generated"
-import state from "../state"
+import * as Metadata from "@src/.metadata.generated"
+import state from "@src/state"
 import * as config from "@src/lib/config"
 import * as aliases from "@src/lib/aliases"
 

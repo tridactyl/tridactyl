@@ -1,7 +1,7 @@
-import { browserBg } from "../lib/webext"
-import * as Containers from "../lib/containers"
+import { browserBg } from "@src/lib/webext"
+import * as Containers from "@src/lib/containers"
 import * as Messaging from "@src/lib/messaging"
-import * as Completions from "../completions"
+import * as Completions from "@src/completions"
 
 class BufferAllCompletionOption extends Completions.CompletionOptionHTML
     implements Completions.CompletionOptionFuse {

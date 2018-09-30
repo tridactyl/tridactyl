@@ -1,5 +1,5 @@
 import * as convert from "@src/lib/convert"
-import browserProxy from "./browser_proxy"
+import browserProxy from "@src/lib/browser_proxy"
 import * as config from "@src/lib/config"
 
 export function inContentScript() {

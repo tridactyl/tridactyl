@@ -3,9 +3,9 @@
 // Be careful: typescript elides imports that appear not to be used if they're
 // assigned to a name.  If you want an import just for its side effects, make
 // sure you import it like this:
-import "./lib/html-tagged-template"
+import "@src/lib/html-tagged-template"
 /* import "@src/content/commandline_content" */
-/* import "./excmds_content" */
+/* import "@src/excmds_content" */
 /* import "@src/content/hinting" */
 import * as Logging from "@src/lib/logging"
 const logger = new Logging.Logger("content")
@@ -38,13 +38,13 @@ import * as commandline_content from "@src/content/commandline_content"
 import * as convert from "@src/lib/convert"
 import * as config from "@src/lib/config"
 import * as dom from "@src/lib/dom"
-import * as excmds from "./.excmds_content.generated"
+import * as excmds from "@src/.excmds_content.generated"
 import * as hinting_content from "@src/content/hinting"
 import * as finding_content from "@src/content/finding"
 import * as itertools from "@src/lib/itertools"
 import * as messaging from "@src/lib/messaging"
-import state from "./state"
-import * as webext from "./lib/webext"
+import state from "@src/state"
+import * as webext from "@src/lib/webext"
 import Mark from "mark.js"
 import * as keyseq from "@src/lib/keyseq"
 import * as native from "@src/background/native_background"
