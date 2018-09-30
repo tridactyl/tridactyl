@@ -5,7 +5,7 @@ class BmarkCompletionOption extends Completions.CompletionOptionHTML
     implements Completions.CompletionOptionFuse {
     public fuseKeys = []
 
-    constructor(
+        constructor(
         public value: string,
         bmark: browser.bookmarks.BookmarkTreeNode,
     ) {
@@ -35,8 +35,8 @@ class BmarkCompletionOption extends Completions.CompletionOptionHTML
 export class BmarkCompletionSource extends Completions.CompletionSourceFuse {
     public options: BmarkCompletionOption[]
 
-    constructor() {
-        super(["bmarks"], "BmarkCompletionSource", "Bookmarks")
+    constructor(props, context) {
+        super(props, context, ["bmarks"], "BmarkCompletionSource", "Bookmarks")
         this.selfDiv.current.setAttribute("key", "bmark_completion_source")
     }
 
@@ -47,11 +47,11 @@ export class BmarkCompletionSource extends Completions.CompletionSourceFuse {
         // Hide self and stop if prefixes don't match
         if (prefix) {
             // Show self if prefix and currently hidden
-            if (this.state === "hidden") {
-                this.state = "normal"
+            if (this.hidden === "hidden") {
+                this.hidden = "normal"
             }
         } else {
-            this.state = "hidden"
+            this.hidden = "hidden"
             return
         }
 

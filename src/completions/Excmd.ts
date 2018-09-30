@@ -28,9 +28,8 @@ class ExcmdCompletionOption extends Completions.CompletionOptionHTML
 export class ExcmdCompletionSource extends Completions.CompletionSourceFuse {
     public options: ExcmdCompletionOption[]
 
-    constructor() {
-        super([], "ExcmdCompletionSource", "ex commands")
-
+    constructor(props, context) {
+        super(props, context, [], "ExcmdCompletionSource", "ex commands")
         this.updateOptions()
         this.node.setAttribute("key", "excmd_completion_source")
     }
@@ -40,8 +39,8 @@ export class ExcmdCompletionSource extends Completions.CompletionSourceFuse {
     }
 
     updateChain(exstr = this.lastExstr, options = this.options) {
-        if (this.options.length > 0) this.state = "normal"
-        else this.state = "hidden"
+        if (this.options.length > 0) this.hidden = "normal"
+        else this.hidden = "hidden"
 
         this.updateDisplay()
     }

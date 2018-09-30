@@ -56,9 +56,8 @@ class BufferAllCompletionOption extends Completions.CompletionOptionHTML
 export class BufferAllCompletionSource extends Completions.CompletionSourceFuse {
     public options: BufferAllCompletionOption[]
 
-    constructor() {
-        super(["bufferall"], "BufferAllCompletionSource", "All Buffers")
-
+    constructor(props, context) {
+        super(props, context, ["bufferall"], "BufferAllCompletionSource", "All Buffers")
         this.updateOptions()
         this.node.setAttribute("key", "bufferall_completion_source")
     }

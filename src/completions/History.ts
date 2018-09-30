@@ -33,8 +33,10 @@ class HistoryCompletionOption extends Completions.CompletionOptionHTML
 export class HistoryCompletionSource extends Completions.CompletionSourceFuse {
     public options: HistoryCompletionOption[]
 
-    constructor() {
+    constructor(props, context) {
         super(
+            props,
+            context,
             ["open", "tabopen", "winopen"],
             "HistoryCompletionSource",
             "History",
@@ -50,11 +52,11 @@ export class HistoryCompletionSource extends Completions.CompletionSourceFuse {
         // Hide self and stop if prefixes don't match
         if (prefix) {
             // Show self if prefix and currently hidden
-            if (this.state === "hidden") {
-                this.state = "normal"
+            if (this.hidden === "hidden") {
+                this.hidden = "normal"
             }
         } else {
-            this.state = "hidden"
+            this.hidden = "hidden"
             return
         }
 

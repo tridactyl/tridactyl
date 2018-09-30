@@ -58,13 +58,14 @@ export class BufferCompletionSource extends Completions.CompletionSourceFuse {
     //       callback faffery
     //     - sort out the element redrawing.
 
-    constructor() {
+    constructor(props, context) {
         super(
+            props,
+            context,
             ["buffer", "tabclose", "tabdetach", "tabduplicate", "tabmove"],
             "BufferCompletionSource",
             "Buffers",
         )
-
         this.updateOptions()
         this.node.setAttribute("key", "buffer_completion_source")
     }

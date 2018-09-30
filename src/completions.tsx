@@ -71,13 +71,17 @@ export abstract class CompletionSource extends React.Component<any, any> {
     /** Control presentation of this Source */
     set hidden(newhidden: OptionState) {
         this.setState({hidden: newhidden})
-        switch (newstate) {
+        switch (newhidden) {
             case "normal":
                 this.completion = undefined
                 break
             case "hidden":
                 break
         }
+    }
+
+    get hidden() {
+        return this.state.hidden
     }
 
     abstract next(inc?: number): boolean
@@ -141,17 +145,19 @@ export abstract class CompletionSourceFuse extends CompletionSource {
     protected optionContainer = React.createRef<HTMLTableElement>()
 
     constructor(
+        props,
+        context,
         prefixes,
         private className: string,
         private title?: string,
     ) {
-        super(prefixes)
+        super(props, context, prefixes)
         this.hidden = "hidden"
     }
 
     public render() {
         return (
-            <div ref={this.selfDiv} className="{this.className} {this.state.hidden}">
+            <div ref={this.selfDiv} className="{this.className} {this.hidden}">
                 <div className="sectionHeader">{this.title || this.className}</div>
                 <table ref={this.optionContainer} className="optionContainer"></table>
             </div>
@@ -182,7 +188,7 @@ export abstract class CompletionSourceFuse extends CompletionSource {
         // Hide self and stop if prefixes don't match
         if (prefix) {
             // Show self if prefix and currently hidden
-            if (this.state.hidden === "hidden") {
+            if (this.hidden === "hidden") {
                 this.hidden = "normal"
             }
         } else {
@@ -303,7 +309,7 @@ export abstract class CompletionSourceFuse extends CompletionSource {
     }
 
     next(inc = 1) {
-        if (this.state.hidden != "hidden") {
+        if (this.hidden != "hidden") {
             let visopts = this.options.filter(o => o.state != "hidden")
             let currind = visopts.findIndex(o => o.state == "focused")
             this.deselect()

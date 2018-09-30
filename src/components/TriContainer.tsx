@@ -31,7 +31,7 @@ export default class TriContainer extends React.Component<any, any> {
         public state: TriContainerState = {
             commandlineContents: "",
         },
-        private activeCompletions: Completions.CompletionSource[] = [],
+        private activeCompletions = [],
     ) {
         super(props, context)
         Styling.theme(document.querySelector(":root"))
@@ -41,7 +41,7 @@ export default class TriContainer extends React.Component<any, any> {
         return(
             <div id="tridactyl-commandline-root">
                 <div id="tridactyl-completions">
-                    {this.activeCompletions.map((comp) => comp.node)}
+                    {this.activeCompletions}
                 </div>
                 <div id="tridactyl-commandline">
                     <span id="tridactyl-colon"></span>
@@ -172,7 +172,7 @@ export default class TriContainer extends React.Component<any, any> {
     // Should work so long as there's only one completion source per prefix.
     private getCompletion() {
         for (const comp of this.activeCompletions) {
-            if (comp.state === "normal" && comp.completion !== undefined) {
+            if (comp.hidden === "normal" && comp.completion !== undefined) {
                 return comp.completion
             }
         }
@@ -181,12 +181,13 @@ export default class TriContainer extends React.Component<any, any> {
     private enableCompletions() {
         if (this.activeCompletions.length === 0) {
             this.activeCompletions = [
-                new BmarkCompletionSource(),
-                new BufferAllCompletionSource(),
-                new BufferCompletionSource(),
-                new ExcmdCompletionSource(),
-                new SettingsCompletionSource(),
-                new HistoryCompletionSource(),
+                /* This won't work at all and may require redux. */
+                <BmarkCompletionSource />,
+                <BufferAllCompletionSource />,
+                <BufferCompletionSource />,
+                <ExcmdCompletionSource />,
+                <SettingsCompletionSource />,
+                <HistoryCompletionSource />,
             ]
         }
     }
