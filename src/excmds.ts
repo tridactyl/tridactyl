@@ -127,7 +127,7 @@ import { activeTab, firefoxVersionAtLeast } from "./lib/webext"
 import * as CommandLineBackground from "@src/background/commandline_background"
 import * as rc from "@src/background/config_rc"
 import * as excmd_parser from "./parsers/exmode"
-import { mapstrToKeyseq } from "./keyseq"
+import { mapstrToKeyseq } from "@src/lib/keyseq"
 
 //#background_helper
 import * as Native from "@src/background/native_background"

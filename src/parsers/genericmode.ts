@@ -1,7 +1,7 @@
 /** Tridactyl helper mode */
 
 import * as config from "@src/lib/config"
-import * as keyseq from "../keyseq"
+import * as keyseq from "@src/lib/keyseq"
 
 export function parser(conf, keys): keyseq.ParserResponse {
     let maps: any = config.get(conf)

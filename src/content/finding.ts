@@ -11,7 +11,7 @@
 */
 
 import * as DOM from "@src/lib/dom"
-import { hasModifiers } from "@src/keyseq"
+import { hasModifiers } from "@src/lib/keyseq"
 import { contentState } from "@src/content/state_content"
 import { messageActiveTab, message } from "@src/lib/messaging"
 import * as config from "@src/lib/config"
