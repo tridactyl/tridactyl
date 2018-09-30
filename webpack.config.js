@@ -9,6 +9,7 @@ module.exports = {
         background: "./src/background.ts",
         content: "./src/content.ts",
         commandline_frame: "./src/commandline_frame.ts",
+        commandline_frame_react: "./src/commandline_frame_react.tsx",
         help: "./src/help.ts",
         newtab: "./src/newtab.ts",
     },
