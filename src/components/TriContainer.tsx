@@ -1,6 +1,13 @@
 import * as Messaging from "../messaging"
-import { theme } from "../styling"
+import * as Styling from "../styling"
 import * as React from "react"
+import Logger from "../logging"
+
+const logger = new Logger("cmdline")
+
+type TriContainerState = {
+    commandlineContents: string
+}
 
 /** The tridactyl UI container.
  *
@@ -8,18 +15,17 @@ import * as React from "react"
  *  TODO: hard mode: vi style editing on cli, like set -o mode vi
  *
  */
-
 export default class TriContainer extends React.Component<any, any> {
-    constructor(props, context) {
-	super(props, context)
-
-	/* Set up state */
-	this.state = {
+    constructor(
+	props,
+	context,
+	private inputRef = React.createRef<HTMLInputElement>(),
+	public state: TriContainerState = {
 	    commandlineContents: "",
-	}
-
-	/* Apply our theme */
-	theme(document.querySelector(":root"))
+	},
+    ) {
+	super(props, context)
+	Styling.theme(document.querySelector(":root"))
     }
 
     render() {
@@ -29,6 +35,7 @@ export default class TriContainer extends React.Component<any, any> {
 		<div id="tridactyl-commandline">
 		    <span id="tridactyl-colon"></span>
 		    <input id="tridactyl-input"
+			   ref={this.inputRef}
 			   autoFocus={true}
 			   value={this.state.commandlineContents}
 			   onKeyDown={evt => this.handleKeyDown(evt)}
@@ -41,7 +48,46 @@ export default class TriContainer extends React.Component<any, any> {
     private handleKeyDown(keyevent) {
 	switch (keyevent.key) {
             case "Enter":
-		/* process() */
+		this.process()
+		this.hide_and_clear()
+		break
+
+            case "j":
+                /* Just like hitting enter, but we need to keep firefox
+		 * from focusing the omnibar. */
+		if (keyevent.ctrlKey) {
+		    keyevent.preventDefault()
+                    keyevent.stopPropagation()
+                    this.process()
+		    this.hide_and_clear()
+		}
+		break
+
+            case "m":
+                /* Just like hitting enter, but we need to keep firefox
+		 * from doing whatever it does with the key. */
+		if (keyevent.ctrlKey) {
+		    keyevent.preventDefault()
+                    keyevent.stopPropagation()
+		    this.process()
+		    this.hide_and_clear()
+		}
+		break
+
+            case "a":
+		if (keyevent.ctrlKey) {
+                    keyevent.preventDefault()
+                    keyevent.stopPropagation()
+                    this.setCursor()
+		}
+		break
+
+            case "e":
+		if (keyevent.ctrlKey) {
+                    keyevent.preventDefault()
+                    keyevent.stopPropagation()
+                    this.setCursor(this.state.commandlineContents.length)
+		}
 		break
 
             case "Escape":
@@ -49,6 +95,10 @@ export default class TriContainer extends React.Component<any, any> {
 		this.hide_and_clear()
 		break
 	}
+    }
+
+    private setCursor(n = 0) {
+	this.inputRef.current.setSelectionRange(n, n, "none")
     }
 
     private hide_and_clear() {
@@ -64,180 +114,17 @@ export default class TriContainer extends React.Component<any, any> {
 	})
     }
 
-    /* 
-     *     
-     *     // Refs. Use sparingly.
-     *     private cmdline: Commandline
-     * 
-     *     constructor(props, context) {
-     *         super(props, context)
-     * 
-     *         this.state = {
-     *             cmdlineString: "",
-     *             renderCmdline: true,
-     *             cmdMode: "cmd",
-     *         }
-     * 
-     *         // Commandline callbacks
-     *         this.handleCmdlineInput = this.handleCmdlineInput.bind(this)
-     *         this.handleCmdlineKeyDown = this.handleCmdlineKeyDown.bind(this)
-     *     }
-     * 
-     *     private setCursor(pos = 0) {
-     *         this.cmdline.inputRef.selectionStart = pos
-     *         this.cmdline.inputRef.selectionEnd = pos
-     *     }
-     * 
-     *     // Controls the input element's value.
-     *     private handleCmdlineInput(event: React.FormEvent<HTMLInputElement>): void {
-     *         this.setState({
-     *             cmdlineString: event.currentTarget.value,
-     *         })
-     *     }
-     * 
-     *     private handleCmdlineKeyDown(event) {
-     *         switch (event.key) {
-     *             case "Enter":
-     *                 this.setState({ cmdlineString: "" })
-     *                 //process()
-     *                 break
-     * 
-     *             case "j":
-     *                 if (event.ctrlKey) {
-     *                     // stop Firefox from giving focus to the omnibar
-     *                     event.preventDefault()
-     *                     event.stopPropagation()
-     *                     //process()
-     *                 }
-     *                 break
-     * 
-     *             case "m":
-     *                 if (event.ctrlKey) {
-     *                     //process()
-     *                 }
-     *                 break
-     * 
-     *             case "Escape":
-     *                 event.preventDefault()
-     *                 //hide_and_clear()
-     *                 break
-     * 
-     *             // Todo: fish-style history search
-     *             // persistent history
-     *             case "ArrowUp":
-     *                 //history(-1)
-     *                 break
-     * 
-     *             case "ArrowDown":
-     *                 //history(1)
-     *                 break
-     * 
-     *             case "a":
-     *                 if (event.ctrlKey) {
-     *                     event.preventDefault()
-     *                     event.stopPropagation()
-     *                     this.setCursor()
-     *                 }
-     *                 break
-     * 
-     *             case "e":
-     *                 if (event.ctrlKey) {
-     *                     event.preventDefault()
-     *                     event.stopPropagation()
-     *                     this.setCursor(this.state.cmdlineString.length)
-     *                 }
-     *                 break
-     * 
-     *             case "u":
-     *                 if (event.ctrlKey) {
-     *                     event.preventDefault()
-     *                     event.stopPropagation()
-     *                     this.setState({
-     *                         cmdlineString: this.state.cmdlineString.slice(
-     *                             this.cmdline.inputRef.selectionStart,
-     *                         ),
-     *                     })
-     *                     this.setCursor()
-     *                 }
-     *                 break
-     * 
-     *             case "k":
-     *                 if (event.ctrlKey) {
-     *                     event.preventDefault()
-     *                     event.stopPropagation()
-     *                     this.setState({
-     *                         cmdlineString: this.state.cmdlineString.slice(
-     *                             0,
-     *                             this.cmdline.inputRef.selectionStart,
-     *                         ),
-     *                     })
-     *                 }
-     *                 break
-     * 
-     *             // Clear input on ^C if there is no selection
-     *             // should probably just defer to another library
-     *             case "c":
-     *                 if (
-     *                     event.ctrlKey &&
-     *                     !event.target.value.substring(
-     *                         event.target.selectionStart,
-     *                         event.target.selectionEnd,
-     *                     )
-     *                 ) {
-     *                     //hide_and_clear()
-     *                     this.setState({ cmdlineString: "" })
-     *                 }
-     *                 break
-     * 
-     *             case "f":
-     *                 if (event.ctrlKey) {
-     *                     // Stop ctrl+f from doing find
-     *                     event.preventDefault()
-     *                     event.stopPropagation()
-     *                     //tabcomplete()
-     *                 }
-     *                 break
-     * 
-     *             case "Tab":
-     *                 // Stop tab from losing focus
-     *                 event.preventDefault()
-     *                 event.stopPropagation()
-     *                 if (event.shiftKey) {
-     *                     //activeCompletions.forEach(comp => comp.prev())
-     *                 } else {
-     *                     //activeCompletions.forEach(comp => comp.next())
-     *                 }
-     *                 // tabcomplete()
-     *                 break
-     * 
-     *             //case " ":
-     *             //    const command = getCompletion()
-     *             //    activeCompletions.forEach(comp => (comp.completion = undefined))
-     *             //    if (command) fillcmdline(command, false)
-     *             //    break
-     *         }
-     *     }
-     *  */
-    
-    /* public render() {
-     *     const cmdlineString = this.state.cmdlineString
-     *     const renderCmdline = this.state.renderCmdline
+    /* Send the commandline to the background script and await response. */
+    private async process() {
+	const command = this.state.commandlineContents
+	const [func, ...args] = command.trim().split(/\s+/)
+	if (func.length === 0 || func.startsWith("#")) {
+            return
+	}
+	this.sendExstr(command)
+    }
 
-     *     return (
-     *         <div id="tridactyl-container">
-     *             <Commandline
-     *                 ref={node => {
-     *                     if (node) {
-     *                         this.cmdline = node
-     *                     }
-     *                 }}
-     *                 handleInput={this.handleCmdlineInput}
-     *                 handleKeyDown={this.handleCmdlineKeyDown}
-     *                 cmdlineString={cmdlineString}
-     *                 isVisible={renderCmdline}
-     *                 cmdMode={this.state.cmdMode}
-     *             />
-     *         </div>
-     *     )
-     * } */
+    private async sendExstr(exstr) {
+	Messaging.message("commandline_background", "recvExStr", [exstr])
+    }
 }
