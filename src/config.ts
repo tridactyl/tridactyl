@@ -663,6 +663,11 @@ class default_config {
      * Change this to "clobber" to ruin the "Content Security Policy" of all sites a bit and make Tridactyl run a bit better on some of them, e.g. raw.github*
      */
     csp: "untouched" | "clobber" = "untouched"
+
+    /**
+     * JavaScript RegExp used to recognize words in im_* functions (e.g. im_transpose_words). Should match any character belonging to a word.
+     */
+    wordpattern = "[^\\s]+"
 }
 
 /** @hidden */
