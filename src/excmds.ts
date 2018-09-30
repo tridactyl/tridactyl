@@ -503,7 +503,9 @@ export async function restart() {
  * - An absolute path
  * - A path starting with ~, which will be expanded to your home directory
  * - A relative path, relative to the native messenger executable (e.g. ~/.local/share/tridactyl on linux).
- * If filename is not given, a download dialog will be opened. If filename is a directory, the file will be saved inside of it, its name being inferred from the URL. If the directories mentionned in the path do not exist or if a file already exists at this path, the file will be kept in your downloads folder and an error message will be given.
+ * If filename is not given, a download dialogue will be opened. If filename is a directory, the file will be saved inside of it, its name being inferred from the URL. If the directories mentioned in the path do not exist or if a file already exists at this path, the file will be kept in your downloads folder and an error message will be given.
+ *
+ * **NB**: if a non-default save location is chosen, Firefox's download manager will say the file is missing. It is not - it is where you asked it to be saved.
  *
  * @param filename The name the file should be saved as.
  */
