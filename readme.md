@@ -239,7 +239,7 @@ If you want to install a local copy of the add-on into your developer or nightly
 # Build tridactyl if you haven't done that yet
 npm run build
 # Package for a browser
-$(npm bin)/web-ext build -s build
+"$(npm bin)/web-ext" build -s build
 ```
 
 If you want to build a signed copy (e.g. for the non-developer release), you can do that with `web-ext sign`. You'll need some keys for AMO and to edit the application id in `src/manifest.json`. There's a helper script in `scripts/sign` that's used by our build bot and for manual releases.
