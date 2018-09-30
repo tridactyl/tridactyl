@@ -14,7 +14,7 @@ import time
 import unicodedata
 
 DEBUG = False
-VERSION = "0.1.8"
+VERSION = "0.1.9"
 
 
 class NoConnectionError(Exception):
@@ -449,6 +449,17 @@ def handleMessage(message):
         )
         reply["content"] = ""
         reply["code"] = 0
+
+    elif cmd == "move":
+        dest = os.path.expanduser(message["to"])
+        if (os.path.isfile(dest)):
+            reply["code"] = 1
+        else:
+            try:
+                shutil.move(os.path.expanduser(message["from"]), dest)
+                reply["code"] = 0
+            except:
+                reply["code"] = 2
 
     elif cmd == "write":
         with open(message["file"], "w") as file:
