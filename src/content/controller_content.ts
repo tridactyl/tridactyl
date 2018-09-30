@@ -1,4 +1,4 @@
-import { isTextEditable } from "@src/dom"
+import { isTextEditable } from "@src/lib/dom"
 import { contentState, ModeName } from "@src/content/state_content"
 import { repeat } from "@src/.excmds_background.generated"
 import Logger from "@src/lib/logging"

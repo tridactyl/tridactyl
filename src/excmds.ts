@@ -112,7 +112,7 @@ import { fitsType, typeToString } from "@src/lib/metadata"
 import "@src/lib/number.clamp"
 import * as SELF from "./.excmds_content.generated"
 Messaging.addListener("excmd_content", Messaging.attributeCaller(SELF))
-import * as DOM from "./dom"
+import * as DOM from "@src/lib/dom"
 import { executeWithoutCommandLine } from "@src/content/commandline_content"
 import * as scrolling from "@src/content/scrolling"
 // }

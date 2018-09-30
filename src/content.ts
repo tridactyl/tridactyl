@@ -16,7 +16,7 @@ import { contentState, addContentStateChangedListener } from "@src/content/state
 
 // Hook the keyboard up to the controller
 import * as ContentController from "@src/content/controller_content"
-import { getAllDocumentFrames } from "./dom"
+import { getAllDocumentFrames } from "@src/lib/dom"
 window.addEventListener("keydown", ContentController.acceptKey, true)
 document.addEventListener("readystatechange", ev =>
     getAllDocumentFrames().map(frame => {
@@ -37,7 +37,7 @@ document.addEventListener("readystatechange", ev =>
 import * as commandline_content from "@src/content/commandline_content"
 import * as convert from "@src/lib/convert"
 import * as config from "@src/lib/config"
-import * as dom from "./dom"
+import * as dom from "@src/lib/dom"
 import * as excmds from "./.excmds_content.generated"
 import * as hinting_content from "@src/content/hinting"
 import * as finding_content from "@src/content/finding"

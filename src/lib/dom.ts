@@ -1,8 +1,8 @@
 import * as config from "@src/lib/config"
 import { flatten } from "@src/lib/itertools"
-import state from "./state"
+import state from "@src/state"
 import * as Logging from "@src/lib/logging"
-import { activeTabId, openInNewTab, activeTabContainerId } from "./lib/webext"
+import { activeTabId, openInNewTab, activeTabContainerId } from "@src/lib/webext"
 const logger = new Logging.Logger("dom")
 
 // From saka-key lib/dom.js, under Apachev2

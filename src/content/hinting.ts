@@ -10,7 +10,7 @@
         Redraw on reflow
 */
 
-import * as DOM from "@src/dom"
+import * as DOM from "@src/lib/dom"
 import { log } from "@src/lib/math"
 import {
     permutationsWithReplacement,
