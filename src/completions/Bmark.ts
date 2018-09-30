@@ -35,10 +35,9 @@ class BmarkCompletionOption extends Completions.CompletionOptionHTML
 export class BmarkCompletionSource extends Completions.CompletionSourceFuse {
     public options: BmarkCompletionOption[]
 
-    constructor(private _parent) {
+    constructor() {
         super(["bmarks"], "BmarkCompletionSource", "Bookmarks")
-
-        this._parent.appendChild(this.node)
+        this.selfDiv.current.setAttribute("key", "bmark_completion_source")
     }
 
     public async filter(exstr: string) {

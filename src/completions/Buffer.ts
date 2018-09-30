@@ -58,7 +58,7 @@ export class BufferCompletionSource extends Completions.CompletionSourceFuse {
     //       callback faffery
     //     - sort out the element redrawing.
 
-    constructor(private _parent) {
+    constructor() {
         super(
             ["buffer", "tabclose", "tabdetach", "tabduplicate", "tabmove"],
             "BufferCompletionSource",
@@ -66,7 +66,7 @@ export class BufferCompletionSource extends Completions.CompletionSourceFuse {
         )
 
         this.updateOptions()
-        this._parent.appendChild(this.node)
+        this.node.setAttribute("key", "buffer_completion_source")
     }
 
     private async getWindows(): Promise<{ [windowId: number]: browser.windows.Window }> {

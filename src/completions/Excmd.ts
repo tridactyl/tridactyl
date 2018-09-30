@@ -28,11 +28,11 @@ class ExcmdCompletionOption extends Completions.CompletionOptionHTML
 export class ExcmdCompletionSource extends Completions.CompletionSourceFuse {
     public options: ExcmdCompletionOption[]
 
-    constructor(private _parent) {
+    constructor() {
         super([], "ExcmdCompletionSource", "ex commands")
 
         this.updateOptions()
-        this._parent.appendChild(this.node)
+        this.node.setAttribute("key", "excmd_completion_source")
     }
 
     async onInput(exstr) {

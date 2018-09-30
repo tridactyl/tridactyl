@@ -1,8 +1,19 @@
 /** Script used in the commandline iframe. Communicates with background. */
 
-import * as perf from "@src/perf"
+// Typescript elides unused named imports, so we deliberately do not
+// name these imports so the tagged template literal and
+// monkey-patches stick around.
+import "./lib/html-tagged-template"
 import "@src/lib/number.clamp"
-import "@src/lib/html-tagged-template"
+
+import * as perf from "@src/perf"
+import * as Messaging from "@src/lib/messaging"
+import * as Config from "@src/lib/config"
+import * as SELF from "@src/commandline_frame"
+import state from "@src/state"
+import Logger from "@src/lib/logging"
+import { theme } from "@src/content/styling"
+
 import * as Completions from "@src/completions"
 import { BufferAllCompletionSource } from "@src/completions/BufferAll"
 import { BufferCompletionSource } from "@src/completions/Buffer"
@@ -10,13 +21,6 @@ import { BmarkCompletionSource } from "@src/completions/Bmark"
 import { ExcmdCompletionSource } from "@src/completions/Excmd"
 import { HistoryCompletionSource } from "@src/completions/History"
 import { SettingsCompletionSource } from "@src/completions/Settings"
-import * as Messaging from "@src/lib/messaging"
-import * as Config from "@src/lib/config"
-import * as SELF from "@src/commandline_frame"
-import "@src/lib/number.clamp"
-import state from "@src/state"
-import Logger from "@src/lib/logging"
-import { theme } from "@src/content/styling"
 
 const logger = new Logger("cmdline")
 
@@ -61,12 +65,12 @@ function getCompletion() {
 function enableCompletions() {
     if (!activeCompletions) {
         activeCompletions = [
-            new BmarkCompletionSource(completionsDiv),
-            new BufferAllCompletionSource(completionsDiv),
-            new BufferCompletionSource(completionsDiv),
-            new ExcmdCompletionSource(completionsDiv),
-            new SettingsCompletionSource(completionsDiv),
-            new HistoryCompletionSource(completionsDiv),
+            new BmarkCompletionSource(),
+            new BufferAllCompletionSource(),
+            new BufferCompletionSource(),
+            new ExcmdCompletionSource(),
+            new SettingsCompletionSource(),
+            new HistoryCompletionSource(),
         ]
 
         const fragment = document.createDocumentFragment()

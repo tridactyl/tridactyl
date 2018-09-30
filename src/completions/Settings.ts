@@ -25,14 +25,13 @@ class SettingsCompletionOption extends Completions.CompletionOptionHTML
 export class SettingsCompletionSource extends Completions.CompletionSourceFuse {
     public options: SettingsCompletionOption[]
 
-    constructor(private _parent) {
+    constructor() {
         super(
             ["set", "get", "unset", "seturl", "unseturl"],
             "SettingsCompletionSource",
             "Settings",
         )
-
-        this._parent.appendChild(this.node)
+        this.node.setAttribute("key", "settings_completion_source")
     }
 
     public async filter(exstr: string) {

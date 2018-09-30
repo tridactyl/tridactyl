@@ -10,6 +10,7 @@ Concrete completion classes have been moved to src/completions/.
 
 */
 
+import * as React from "react"
 import * as Fuse from "fuse.js"
 import { enumerate } from "@src/lib/itertools"
 import { toNumber } from "@src/lib/convert"
@@ -31,13 +32,27 @@ export abstract class CompletionOption {
     state: OptionState
 }
 
-export abstract class CompletionSource {
+type CompletionSourceState = {
+    hidden: OptionState
+}
+
+export abstract class CompletionSource extends React.Component<any, any> {
     readonly options: CompletionOption[]
     node: HTMLElement
     public completion: string
-    protected prefixes: string[] = []
+    protected prefixes: string[] = []    
+ 
+    protected selfDiv = React.createRef<HTMLDivElement>()
 
-    constructor(prefixes) {
+    constructor(
+        props,
+        context,
+        prefixes,
+        public state: CompletionSourceState = {
+            hidden: "hidden"
+        }
+    ) {
+        super(props, context)
         let commands = aliases.getCmdAliasMapping()
 
         // Now, for each prefix given as argument, add it to the completionsource's prefix list and also add any alias it has
@@ -53,24 +68,16 @@ export abstract class CompletionSource {
     /** Update [[node]] to display completions relevant to exstr */
     public abstract filter(exstr: string): Promise<void>
 
-    private _state: OptionState
-
-    /** Control presentation of Source */
-    set state(newstate: OptionState) {
+    /** Control presentation of this Source */
+    set hidden(newhidden: OptionState) {
+        this.setState({hidden: newhidden})
         switch (newstate) {
             case "normal":
-                this.node.classList.remove("hidden")
                 this.completion = undefined
                 break
             case "hidden":
-                this.node.classList.add("hidden")
                 break
         }
-        this._state = newstate
-    }
-
-    get state() {
-        return this._state
     }
 
     abstract next(inc?: number): boolean
@@ -131,15 +138,24 @@ export abstract class CompletionSourceFuse extends CompletionSource {
     protected lastExstr: string
     protected lastFocused: CompletionOption
 
-    protected optionContainer = html`<table class="optionContainer">`
+    protected optionContainer = React.createRef<HTMLTableElement>()
 
-    constructor(prefixes, className: string, title?: string) {
+    constructor(
+        prefixes,
+        private className: string,
+        private title?: string,
+    ) {
         super(prefixes)
-        this.node = html`<div class="${className} hidden">
-                <div class="sectionHeader">${title || className}</div>
-            </div>`
-        this.node.appendChild(this.optionContainer)
-        this.state = "hidden"
+        this.hidden = "hidden"
+    }
+
+    public render() {
+        return (
+            <div ref={this.selfDiv} className="{this.className} {this.state.hidden}">
+                <div className="sectionHeader">{this.title || this.className}</div>
+                <table ref={this.optionContainer} className="optionContainer"></table>
+            </div>
+        )
     }
 
     /* abstract onUpdate(query: string, prefix: string, options: CompletionOptionFuse[]) */
@@ -155,7 +171,7 @@ export abstract class CompletionSourceFuse extends CompletionSource {
 
     updateChain(exstr = this.lastExstr, options = this.options) {
         if (options === undefined) {
-            this.state = "hidden"
+            this.hidden = "hidden"
             return
         }
 
@@ -166,11 +182,11 @@ export abstract class CompletionSourceFuse extends CompletionSource {
         // Hide self and stop if prefixes don't match
         if (prefix) {
             // Show self if prefix and currently hidden
-            if (this.state === "hidden") {
-                this.state = "normal"
+            if (this.state.hidden === "hidden") {
+                this.hidden = "normal"
             }
         } else {
-            this.state = "hidden"
+            this.hidden = "hidden"
             return
         }
 
@@ -190,7 +206,7 @@ export abstract class CompletionSourceFuse extends CompletionSource {
         if (this.lastExstr !== undefined && option !== undefined) {
             const [prefix, _] = this.splitOnPrefix(this.lastExstr)
             this.completion = prefix + option.value
-            option.state = "focused"
+            this.hidden = "focused"
             this.lastFocused = option
         } else {
             throw new Error("lastExstr and option must be defined!")
@@ -269,14 +285,14 @@ export abstract class CompletionSourceFuse extends CompletionSource {
     updateDisplay() {
         /* const newContainer = html`<div>` */
 
-        while (this.optionContainer.hasChildNodes()) {
-            this.optionContainer.removeChild(this.optionContainer.lastChild)
+        while (this.optionContainer.current.hasChildNodes()) {
+            this.optionContainer.current.removeChild(this.optionContainer.current.lastChild)
         }
 
         for (const option of this.options) {
             /* newContainer.appendChild(option.html) */
             if (option.state != "hidden")
-                this.optionContainer.appendChild(option.html)
+                this.optionContainer.current.appendChild(option.html)
         }
 
         /* console.log('updateDisplay', this.optionContainer, newContainer) */
@@ -287,7 +303,7 @@ export abstract class CompletionSourceFuse extends CompletionSource {
     }
 
     next(inc = 1) {
-        if (this.state != "hidden") {
+        if (this.state.hidden != "hidden") {
             let visopts = this.options.filter(o => o.state != "hidden")
             let currind = visopts.findIndex(o => o.state == "focused")
             this.deselect()

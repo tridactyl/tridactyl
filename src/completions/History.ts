@@ -33,14 +33,13 @@ class HistoryCompletionOption extends Completions.CompletionOptionHTML
 export class HistoryCompletionSource extends Completions.CompletionSourceFuse {
     public options: HistoryCompletionOption[]
 
-    constructor(private _parent) {
+    constructor() {
         super(
             ["open", "tabopen", "winopen"],
             "HistoryCompletionSource",
             "History",
         )
-
-        this._parent.appendChild(this.node)
+        this.node.setAttribute("key", "history_completion_source")
     }
 
     public async filter(exstr: string) {

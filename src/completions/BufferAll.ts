@@ -56,11 +56,11 @@ class BufferAllCompletionOption extends Completions.CompletionOptionHTML
 export class BufferAllCompletionSource extends Completions.CompletionSourceFuse {
     public options: BufferAllCompletionOption[]
 
-    constructor(private _parent) {
+    constructor() {
         super(["bufferall"], "BufferAllCompletionSource", "All Buffers")
 
         this.updateOptions()
-        this._parent.appendChild(this.node)
+        this.node.setAttribute("key", "bufferall_completion_source")
     }
 
     async onInput(exstr) {
