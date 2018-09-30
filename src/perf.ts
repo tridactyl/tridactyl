@@ -45,9 +45,8 @@ export function measured(
     cls: any,
     propertyKey: string,
     descriptor: PropertyDescriptor,
-): PropertyDescriptor | void {
-    // do nothing if performance isn't available
-    if (!performanceEnabled()) return
+): PropertyDescriptor {
+    if (!performanceApiAvailable()) return
 
     const originalMethod = descriptor.value
     descriptor.value = function(this, ...args) {
@@ -68,9 +67,8 @@ export function measuredAsync(
     cls: any,
     propertyKey: string,
     descriptor: PropertyDescriptor,
-): PropertyDescriptor | void {
-    // do nothing if performance isn't available
-    if (!performanceEnabled()) return
+): PropertyDescriptor {
+    if (!performanceApiAvailable()) return
 
     const originalMethod = descriptor.value
     descriptor.value = async function(this, ...args) {
@@ -104,7 +102,7 @@ export class Marker {
     constructor(
         ownerName: string,
         functionName: string,
-        private readonly active: boolean = performanceEnabled() &&
+        private readonly active: boolean = performanceApiAvailable() &&
             config.get("perfcounters") === "true",
         private readonly metricName: MetricName = new MetricName(
             ownerName,
@@ -369,7 +367,7 @@ export class StatsFilter {
 
 const TRI_PERFORMANCE_NAME_PREFIX: string = "tri"
 
-function performanceEnabled(): boolean {
+function performanceApiAvailable(): boolean {
     return performance.mark !== undefined
 }
 
