@@ -38,7 +38,9 @@ theme(document.querySelector(":root"))
 let isVisible = false
 function resizeArea() {
     if (isVisible) {
-        Messaging.message("commandline_background", "show")
+        Messaging.messageOwnTab("commandline_content", "show")
+        Messaging.messageOwnTab("commandline_content", "focus")
+        focus()
     }
 }
 
@@ -235,7 +237,8 @@ export async function hide_and_clear() {
     clear(true)
 
     // Try to make the close cmdline animation as smooth as possible.
-    Messaging.message("commandline_background", "hide")
+    Messaging.messageOwnTab("commandline_content", "hide")
+    Messaging.messageOwnTab("commandline_content", "blur")
     // Delete all completion sources - I don't think this is required, but this
     // way if there is a transient bug in completions it shouldn't persist.
     if (activeCompletions)
@@ -348,7 +351,8 @@ export async function setClipboard(content: string) {
         } else throw "Failed to copy!"
     })
     // Return focus to the document
-    await Messaging.message("commandline_background", "hide")
+    Messaging.messageOwnTab("commandline_content", "hide")
+    Messaging.messageOwnTab("commandline_content", "blur")
 }
 
 export function getClipboard() {
@@ -358,7 +362,8 @@ export function getClipboard() {
         return scratchpad.textContent
     })
     // Return focus to the document
-    Messaging.message("commandline_background", "hide")
+    Messaging.messageOwnTab("commandline_content", "hide")
+    Messaging.messageOwnTab("commandline_content", "blur")
     return result
 }
 
