@@ -34,4 +34,5 @@ window.addEventListener("load", _ => {
         return
     }
     spoilerbutton.addEventListener("click", readChangelog)
+    window.focus()
 })
