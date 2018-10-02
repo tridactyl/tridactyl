@@ -7,6 +7,7 @@ export type TabMessageType =
     | "commandline_content"
     | "commandline_frame"
 export type NonTabMessageType =
+    | "tabid_background"
     | "commandline_background"
     | "controller_background"
     | "browser_proxy_background"
@@ -83,6 +84,18 @@ export async function messageTab(tabId, type: TabMessageType, command, args?) {
     return browserBg.tabs.sendMessage(tabId, message)
 }
 
+let ownTabId = undefined
+export async function messageOwnTab(type: TabMessageType, command, args?) {
+    if (ownTabId === undefined) {
+        ownTabId = await browser.runtime.sendMessage({
+            type: "tabid_background",
+        })
+    }
+    if (ownTabId === undefined)
+        throw new Error("Can't message own tab: ownTabId is undefined")
+    return messageTab(ownTabId, type, command, args)
+}
+
 export async function messageAllTabs(
     type: TabMessageType,
     command: string,
@@ -111,6 +124,12 @@ export function addListener(type: MessageType, callback: listener) {
         listeners.get(type).delete(callback)
     }
 }
+
+addListener("tabid_background", (message, sender, sendResponse) => {
+    sendResponse(
+        sender.tab ? sender.tab.id : new Error("Message sender not in a tab"),
+    )
+})
 
 /** Recv a message from runtime.onMessage and send to all listeners */
 function onMessage(message, sender, sendResponse) {
