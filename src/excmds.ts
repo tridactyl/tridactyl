@@ -2988,6 +2988,26 @@ export function bind(...args: string[]) {
 }
 
 /**
+ * Like [[bind]] but for a specific url pattern (also see [[seturl]]).
+ *
+ * @param pattern Mandatory. The pattern on which the binding should take effect.
+ * @param mode Optional. The mode the binding should be in (e.g. normal, insert, ignore, input). Defaults to normal.
+ * @param keys Mandatory. The keys that should be bound.
+ * @param excmd Optional. Without it, will display what `keys` are bound to in `mode`.
+ *
+ */
+//#background
+export function bindurl(pattern: string, mode: string, keys: string, ...excmd: string[]) {
+    let args_obj = parse_bind_args(mode, keys, ...excmd)
+    if (args_obj.excmd != "") {
+        config.setURL(pattern, args_obj.configName, args_obj.key, args_obj.excmd)
+    } else if (args_obj.key.length) {
+        // Display the existing bind
+        fillcmdline_notrail("#", args_obj.key, "=", config.getURL(pattern, [args_obj.configName, args_obj.key]))
+    }
+}
+
+/**
  *  Makes one key equivalent to another for the purposes of most of our parsers. Useful for international keyboard layouts.
  *
  *  e.g,
@@ -3179,22 +3199,61 @@ export async function unbind(...args: string[]) {
     config.set(args_obj.configName, args_obj.key, "")
 }
 
-/** Restores a sequence of keys to their default value.
-
-    See also:
-
-        - [[bind]]
-        - [[unbind]]
-*/
+/**
+ * Unbind a sequence of keys you have set with [[bindurl]]. Note that this **kills** a bind, which means Tridactyl will pass it to the page on `pattern`. If instead you want to use the default setting again, use [[reseturl]].
+ *
+ * @param pattern the url on which the key should be unbound
+ * @param mode Optional. The mode in which the key should be unbound. Defaults to normal.
+ * @param keys The keybinding that should be unbound
+ *
+ * example: `unbindurl jupyter --mode=ignore I`
+ *
+ * This unbinds `I` in ignore mode on every website the URL of which contains `jupyter`, while keeping the binding active everywhere else.
+ *
+ * Also see [[bind]], [[bindurl]], [[seturl]], [[unbind]], [[unseturl]]
+ */
 //#background
-export async function reset(key: string) {
-    config.unset("nmaps", key)
+export async function unbindurl(pattern: string, mode: string, keys: string) {
+    let args_obj = parse_bind_args(mode, keys)
 
-    // Code for dealing with legacy binds
-    let nmaps = (await browser.storage.sync.get("nmaps"))["nmaps"]
-    nmaps = nmaps == undefined ? {} : nmaps
-    delete nmaps[key]
-    browser.storage.sync.set({ nmaps })
+    config.setURL(pattern, args_obj.configName, args_obj.key, "")
+}
+
+/**
+ * Restores a sequence of keys to their default value.
+ *
+ * @param mode Optional. The mode the key should be reset in. Defaults to normal.
+ * @param key The key that should be reset.
+ *
+ *  See also:
+ *
+ *      - [[bind]]
+ *      - [[unbind]]
+ */
+//#background
+export async function reset(mode: string, key: string) {
+    let args_obj = parse_bind_args(mode, key)
+    config.unset(args_obj.configName, args_obj.key)
+}
+
+/**
+ * Restores a sequence of keys to their value in the global config for a specific URL.
+ *
+ *  See also:
+ *
+ *      - [[bind]]
+ *      - [[unbind]]
+ *      - [[reset]]
+ *      - [[bindurl]]
+ *      - [[unbindurl]]
+ *      - [[seturl]]
+ *      - [[unseturl]]
+ */
+//#background
+export async function reseturl(pattern: string, mode: string, key: string) {
+    let args = parse_bind_args(mode, key)
+    let args_obj = parse_bind_args(mode, key)
+    config.unsetURL(pattern, args_obj.configName, args_obj.key)
 }
 
 /** Deletes various privacy-related items.
