@@ -1,4 +1,4 @@
-import { browserBg, activeTabId } from "./lib/webext"
+import { browserBg, activeTabId, ownTabId } from "./lib/webext"
 import Logger from "./logging"
 const logger = new Logger("messaging")
 
@@ -7,7 +7,7 @@ export type TabMessageType =
     | "commandline_content"
     | "commandline_frame"
 export type NonTabMessageType =
-    | "tabid_background"
+    | "owntab_background"
     | "commandline_background"
     | "controller_background"
     | "browser_proxy_background"
@@ -84,16 +84,16 @@ export async function messageTab(tabId, type: TabMessageType, command, args?) {
     return browserBg.tabs.sendMessage(tabId, message)
 }
 
-let ownTabId = undefined
+//#content_helper
+let _ownTabId = undefined
+//#content_helper
 export async function messageOwnTab(type: TabMessageType, command, args?) {
-    if (ownTabId === undefined) {
-        ownTabId = await browser.runtime.sendMessage({
-            type: "tabid_background",
-        })
+    if (_ownTabId === undefined) {
+        _ownTabId = await ownTabId()
     }
-    if (ownTabId === undefined)
-        throw new Error("Can't message own tab: ownTabId is undefined")
-    return messageTab(ownTabId, type, command, args)
+    if (_ownTabId === undefined)
+        throw new Error("Can't message own tab: _ownTabId is undefined")
+    return messageTab(_ownTabId, type, command, args)
 }
 
 export async function messageAllTabs(
@@ -125,10 +125,13 @@ export function addListener(type: MessageType, callback: listener) {
     }
 }
 
-addListener("tabid_background", (message, sender, sendResponse) => {
-    sendResponse(
-        sender.tab ? sender.tab.id : new Error("Message sender not in a tab"),
-    )
+// Warning: lib/webext.ts:ownTab() relies on this listener being added in order to work
+//#content_helper
+addListener("owntab_background", (message, sender, sendResponse) => {
+    let x = Object.assign(Object.create(null), sender.tab)
+    x.mutedInfo = Object.assign(Object.create(null), sender.tab.mutedInfo)
+    x.sharingState = Object.assign(Object.create(null), sender.tab.sharingState)
+    sendResponse(new Promise(r => r(x)))
 })
 
 /** Recv a message from runtime.onMessage and send to all listeners */

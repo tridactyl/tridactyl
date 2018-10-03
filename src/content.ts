@@ -130,7 +130,10 @@ config.getAsync("modeindicator").then(mode => {
     // Dynamically sets the border container color.
     if (containerIndicator === "true") {
         webext
-            .activeTabContainer()
+            .ownTabContainer()
+            .then(ownTab =>
+                webext.browserBg.contextualIdentities.get(ownTab.cookieStoreId),
+            )
             .then(container => {
                 statusIndicator.setAttribute(
                     "style",

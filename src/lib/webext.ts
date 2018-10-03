@@ -57,6 +57,24 @@ export async function activeTabContainerId() {
     return (await activeTab()).cookieStoreId
 }
 
+//#content_helper
+export async function ownTab() {
+    // Warning: this relies on the owntab_background listener being set in messaging.ts in order to work
+    return await browser.runtime.sendMessage({ type: "owntab_background" })
+}
+
+//#content_helper
+export async function ownTabId() {
+    return (await ownTab()).id
+}
+
+//#content_helper
+export async function ownTabContainer() {
+    return await browserBg.contextualIdentities.get(
+        (await ownTab()).cookieStoreId,
+    )
+}
+
 //#background_helper
 export async function activeTabContainer() {
     let containerId = await activeTabContainerId()
@@ -114,7 +132,9 @@ export async function openInNewTab(
             break
         case "last":
             // Infinity can't be serialised, apparently.
-            options.index = (await browserBg.tabs.query({currentWindow: true})).length
+            options.index = (await browserBg.tabs.query({
+                currentWindow: true,
+            })).length
             break
         case "related":
             if (await firefoxVersionAtLeast(57)) {
