@@ -511,9 +511,11 @@ class default_config {
     allowautofocus: "true" | "false" = "true"
 
     /**
-     * Controls whether the newtab focuses on tridactyl or the firefox urlbar.
+     * Controls whether the newtab focuses on tridactyl's newtab page or the firefox urlbar.
+     *
+     * To get FF default behaviour, use "urlbar".
      */
-    allownewtabfocus: "true" | "false" = "true"
+    newtabfocus: "page" | "urlbar" = "page"
 
     /**
      * Whether to use Tridactyl's (bad) smooth scrolling.
