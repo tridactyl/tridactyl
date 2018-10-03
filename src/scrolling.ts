@@ -110,8 +110,8 @@ class ScrollingData {
  *  last duration milliseconds
  */
 export async function scroll(
-    x: number,
-    y: number,
+    x: number = 0,
+    y: number = 0,
     e: HTMLElement,
     duration: number = undefined,
 ) {
