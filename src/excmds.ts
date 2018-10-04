@@ -693,8 +693,7 @@ export async function guiset_quiet(rule: string, option: string) {
         profile_dir = config.get("profiledir")
     }
     if (profile_dir == "") {
-        fillcmdline("Please set your profile directory (found on about:support) via `set profiledir [profile directory]`")
-        return
+        throw "Please set your profile directory (found on about:support) via `set profiledir [profile directory]`"
     }
 
     // Make backups
