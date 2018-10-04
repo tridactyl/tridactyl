@@ -47,6 +47,8 @@ function resizeArea() {
 // This is a bit loosely defined at the moment.
 // Should work so long as there's only one completion source per prefix.
 function getCompletion() {
+    if (!activeCompletions) return undefined
+
     for (const comp of activeCompletions) {
         if (comp.state === "normal" && comp.completion !== undefined) {
             return comp.completion
@@ -68,6 +70,7 @@ function enableCompletions() {
         const fragment = document.createDocumentFragment()
         activeCompletions.forEach(comp => fragment.appendChild(comp.node))
         completionsDiv.appendChild(fragment)
+        logger.debug(activeCompletions)
     }
 }
 /* document.addEventListener("DOMContentLoaded", enableCompletions) */
@@ -208,15 +211,26 @@ clInput.addEventListener("keydown", function(keyevent) {
     }
 })
 
-clInput.addEventListener("input", () => {
+let onInputId = 0
+let onInputPromise = Promise.resolve()
+clInput.addEventListener("input", async () => {
     const exstr = clInput.value
-
-    // Fire each completion and add a callback to resize area
     enableCompletions()
-    logger.debug(activeCompletions)
-    activeCompletions.forEach(comp =>
-        comp.filter(exstr).then(() => resizeArea()),
-    )
+    let myInputId = onInputId + 1
+    onInputId = myInputId
+
+    await onInputPromise
+
+    if (onInputId != myInputId) return
+    onInputPromise = new Promise(resolve => {
+        // Fire each completion and add a callback to resize area
+        Promise.all(
+            activeCompletions.map(async comp => {
+                await comp.filter(exstr)
+                resizeArea()
+            }),
+        ).then(() => resolve())
+    })
 })
 
 let cmdline_history_position = 0
