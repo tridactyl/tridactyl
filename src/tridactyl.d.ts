@@ -16,6 +16,12 @@ interface Window {
     eval(str: string): any
 }
 
+// Record that we've added a property with convenience objects to the
+// window object:
+interface Window {
+    tri: any
+}
+
 // Again, firefox-specific
 interface UIEvent {
     pageX: number

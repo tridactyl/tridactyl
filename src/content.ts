@@ -49,6 +49,7 @@ import Mark from "mark.js"
 import * as keyseq from "./keyseq"
 import * as native from "./native_background"
 import * as styling from "./styling"
+import * as perf from "./perf"
 ;(window as any).tri = Object.assign(Object.create(null), {
     browserBg: webext.browserBg,
     commandline_content,
@@ -69,6 +70,7 @@ import * as styling from "./styling"
     native,
     styling,
     contentLocation: window.location,
+    perf,
 })
 
 logger.info("Loaded commandline content?", commandline_content)
@@ -238,4 +240,12 @@ config.getAsync("leavegithubalone").then(v => {
             // }
         })
     }
+})
+
+// Listen for statistics from each content script and send them to the
+// background for collection. Attach the observer to the window object
+// since there's apparently a bug that causes performance observers to
+// be GC'd even if they're still the target of a callback.
+;(window as any).tri = Object.assign(window.tri, {
+    perfObserver: perf.listenForCounters(),
 })

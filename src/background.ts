@@ -18,7 +18,9 @@ import * as native from "./native_background"
 import state from "./state"
 import * as webext from "./lib/webext"
 import { AutoContain } from "./lib/autocontainers"
-;(window as any).tri = Object.assign(Object.create(null), {
+import * as perf from "./perf"
+import { listenForCounters } from "./perf";
+window.tri = Object.assign(window.tri || Object.create(null), {
     messaging,
     excmds,
     commandline_background,
@@ -34,6 +36,7 @@ import { AutoContain } from "./lib/autocontainers"
     webext,
     l: prom => prom.then(console.log).catch(console.error),
     contentLocation: window.location,
+    perf,
 })
 
 // {{{ tri.contentLocation
@@ -158,4 +161,28 @@ browser.webRequest.onBeforeRequest.addListener(
     { urls: ["<all_urls>"], types: ["main_frame"] },
     ["blocking"],
 )
+// }}}
+
+// {{{ PERFORMANCE LOGGING
+
+// An object to collect all of our statistics in one place.
+const statsLogger: perf.StatsLogger = new perf.StatsLogger()
+messaging.addListener(
+    "performance_background",
+    messaging.attributeCaller(statsLogger),
+)
+// Listen for statistics from the background script and store
+// them. Set this one up to log directly to the statsLogger instead of
+// going through messaging.
+const perfObserver = listenForCounters(statsLogger)
+window.tri = Object.assign(window.tri || Object.create(null), {
+    // Attach the perf observer to the window object, since there
+    // appears to be a bug causing performance observers to be GC'd
+    // even if they're still the target of a callback.
+    perfObserver,
+    // Also attach the statsLogger so we can access our stats from the
+    // console.
+    statsLogger,
+})
+
 // }}}

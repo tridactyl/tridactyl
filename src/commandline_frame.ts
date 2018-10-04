@@ -16,6 +16,7 @@ import "./number.clamp"
 import state from "./state"
 import Logger from "./logging"
 import { theme } from "./styling"
+import * as perf from "./perf"
 const logger = new Logger("cmdline")
 
 let activeCompletions: Completions.CompletionSource[] = undefined
@@ -386,3 +387,13 @@ export function getContent() {
 }
 
 Messaging.addListener("commandline_frame", Messaging.attributeCaller(SELF))
+
+
+// Listen for statistics from the commandline iframe and send them to
+// the background for collection. Attach the observer to the window
+// object since there's apparently a bug that causes performance
+// observers to be GC'd even if they're still the target of a
+// callback.
+;(window as any).tri = Object.assign(window.tri, {
+    perfObserver: perf.listenForCounters(),
+})
