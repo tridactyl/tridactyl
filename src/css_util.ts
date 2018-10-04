@@ -8,12 +8,20 @@ import * as CSS from "css"
 
 /** Find rules in sheet that match selector */
 export function findCssRules(
-    selector: string,
+    selectors: string[],
     sheet: CSS.Stylesheet,
 ): number[] {
     const filtSheet = [...sheet.stylesheet.rules.entries()].filter(x => {
         const rule = x[1]
-        return rule.type == "rule" && rule["selectors"].indexOf(selector) > -1
+        return (
+            rule.type == "rule" &&
+            // Make sure that there are as many selectors in the current rule
+            // as there are in the rule we're looking for
+            rule["selectors"].length == selectors.length &&
+            // Also make sure that each of the selectors of the current rule
+            // are present in the rule we're looking for
+            !rule["selectors"].find(selector => !selectors.includes(selector))
+        )
     })
     return filtSheet.map(x => x[0])
 }
@@ -213,7 +221,7 @@ export function changeSingleCss(
     const miniSheet = CSS.parse(newRule).stylesheet.rules[0]
 
     // Find pre-existing rules
-    const oldRuleIndexes = findCssRules(selector, sheet)
+    const oldRuleIndexes = findCssRules(miniSheet["selectors"], sheet)
     if (oldRuleIndexes.length > 0) {
         sheet.stylesheet.rules[oldRuleIndexes[0]] = miniSheet
     } else {
