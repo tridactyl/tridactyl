@@ -3042,7 +3042,7 @@ function validateSetArgs(key: string, values: string[]) {
         throw "Unsupported setting type!"
     }
 
-    let md = Metadata.everything["src/config.ts"].classes.default_config[last]
+    let md = Metadata.everything["src/lib/config.ts"].classes.default_config[last]
     if (md) {
         if (md.type && !fitsType(value, md.type)) throw `Given type does not match expected type (given: ${value}, expected: ${typeToString(md.type)})`
     }

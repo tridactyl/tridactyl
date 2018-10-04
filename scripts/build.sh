@@ -41,7 +41,7 @@ fi
   && node compiler/gen_metadata.js \
           --out src/.metadata.generated.ts \
           --themeDir src/static/themes \
-          src/excmds.ts src/config.ts
+          src/excmds.ts src/lib/config.ts
 
 scripts/newtab.md.sh
 scripts/make_tutorial.sh
