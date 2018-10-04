@@ -3,20 +3,23 @@
 // Be careful: typescript elides imports that appear not to be used if they're
 // assigned to a name.  If you want an import just for its side effects, make
 // sure you import it like this:
-import "./lib/html-tagged-template"
-/* import "./commandline_content" */
-/* import "./excmds_content" */
-/* import "./hinting" */
-import * as Logging from "./logging"
+import "@src/lib/html-tagged-template"
+/* import "@src/content/commandline_content" */
+/* import "@src/excmds_content" */
+/* import "@src/content/hinting" */
+import * as Logging from "@src/lib/logging"
 const logger = new Logging.Logger("content")
 logger.debug("Tridactyl content script loaded, boss!")
 
 // Our local state
-import { contentState, addContentStateChangedListener } from "./state_content"
+import {
+    contentState,
+    addContentStateChangedListener,
+} from "@src/content/state_content"
 
 // Hook the keyboard up to the controller
-import * as ContentController from "./controller_content"
-import { getAllDocumentFrames } from "./dom"
+import * as ContentController from "@src/content/controller_content"
+import { getAllDocumentFrames } from "@src/lib/dom"
 window.addEventListener("keydown", ContentController.acceptKey, true)
 document.addEventListener("readystatechange", ev =>
     getAllDocumentFrames().map(frame => {
@@ -34,22 +37,22 @@ document.addEventListener("readystatechange", ev =>
 )
 
 // Add various useful modules to the window for debugging
-import * as commandline_content from "./commandline_content"
-import * as convert from "./convert"
-import * as config from "./config"
-import * as dom from "./dom"
-import * as excmds from "./.excmds_content.generated"
-import * as hinting_content from "./hinting"
-import * as finding_content from "./finding"
-import * as itertools from "./itertools"
-import * as messaging from "./messaging"
-import state from "./state"
-import * as webext from "./lib/webext"
+import * as commandline_content from "@src/content/commandline_content"
+import * as convert from "@src/lib/convert"
+import * as config from "@src/lib/config"
+import * as dom from "@src/lib/dom"
+import * as excmds from "@src/.excmds_content.generated"
+import * as hinting_content from "@src/content/hinting"
+import * as finding_content from "@src/content/finding"
+import * as itertools from "@src/lib/itertools"
+import * as messaging from "@src/lib/messaging"
+import state from "@src/state"
+import * as webext from "@src/lib/webext"
 import Mark from "mark.js"
-import * as keyseq from "./keyseq"
-import * as native from "./native_background"
-import * as styling from "./styling"
-import * as perf from "./perf"
+import * as perf from "@src/perf"
+import * as keyseq from "@src/lib/keyseq"
+import * as native from "@src/background/native_background"
+import * as styling from "@src/content/styling"
 ;(window as any).tri = Object.assign(Object.create(null), {
     browserBg: webext.browserBg,
     commandline_content,

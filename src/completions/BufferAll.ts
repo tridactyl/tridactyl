@@ -1,8 +1,8 @@
-import { browserBg } from "../lib/webext"
-import * as Containers from "../lib/containers"
-import * as Messaging from "../messaging"
-import * as Completions from "../completions"
-import * as Perf from "../perf"
+import * as Perf from "@src/perf"
+import { browserBg } from "@src/lib/webext"
+import * as Containers from "@src/lib/containers"
+import * as Messaging from "@src/lib/messaging"
+import * as Completions from "@src/completions"
 
 class BufferAllCompletionOption extends Completions.CompletionOptionHTML
     implements Completions.CompletionOptionFuse {
@@ -58,8 +58,8 @@ export class BufferAllCompletionSource extends Completions.CompletionSourceFuse 
      */
     private async getWindows() {
         const windows = await browserBg.windows.getAll()
-        const response: {[windowId: number]: browser.windows.Window} = {}
-        windows.forEach(win => response[win.id] = win)
+        const response: { [windowId: number]: browser.windows.Window } = {}
+        windows.forEach(win => (response[win.id] = win))
         return response
     }
 

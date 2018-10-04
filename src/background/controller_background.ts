@@ -1,7 +1,7 @@
-import { parser as exmode_parser } from "./parsers/exmode"
-import { repeat } from "./.excmds_background.generated"
+import { parser as exmode_parser } from "@src/parsers/exmode"
+import { repeat } from "@src/.excmds_background.generated"
 
-import Logger from "./logging"
+import Logger from "@src/lib/logging"
 
 const logger = new Logger("controller")
 
@@ -27,7 +27,7 @@ export async function acceptExCmd(exstr: string): Promise<any> {
     }
 }
 
-import * as Messaging from "./messaging"
+import * as Messaging from "@src/lib/messaging"
 
 // Get messages from content
 Messaging.addListener(

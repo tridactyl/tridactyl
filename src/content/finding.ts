@@ -10,12 +10,12 @@
         allow spaces
 */
 
-import * as DOM from "./dom"
-import { hasModifiers } from "./keyseq"
-import { contentState } from "./state_content"
-import { messageActiveTab, message } from "./messaging"
-import * as config from "./config"
-import Logger from "./logging"
+import * as DOM from "@src/lib/dom"
+import { hasModifiers } from "@src/lib/keyseq"
+import { contentState } from "@src/content/state_content"
+import { messageActiveTab, message } from "@src/lib/messaging"
+import * as config from "@src/lib/config"
+import Logger from "@src/lib/logging"
 import Mark from "mark.js"
 const logger = new Logger("finding")
 
@@ -106,7 +106,7 @@ function mode(mode: "nav" | "search") {
     }
 }
 
-import "./number.mod"
+import "@src/lib/number.mod"
 export function navigate(n: number = 1) {
     // also - really - should probably actually make this be an excmd
     // people will want to be able to scroll and stuff.

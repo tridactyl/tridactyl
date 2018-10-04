@@ -14,7 +14,7 @@
     If this turns out to be expensive there are improvements available.
 */
 
-import Logger from "./logging"
+import Logger from "@src/lib/logging"
 const logger = new Logger("state")
 
 class State {

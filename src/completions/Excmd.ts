@@ -1,9 +1,9 @@
-import * as Completions from "../completions"
-import { typeToSimpleString } from "../metadata"
-import * as Metadata from "../.metadata.generated"
-import state from "../state"
-import * as config from "../config"
-import * as aliases from "../aliases"
+import * as Completions from "@src/completions"
+import { typeToSimpleString } from "@src/lib/metadata"
+import * as Metadata from "@src/.metadata.generated"
+import state from "@src/state"
+import * as config from "@src/lib/config"
+import * as aliases from "@src/lib/aliases"
 
 class ExcmdCompletionOption extends Completions.CompletionOptionHTML
     implements Completions.CompletionOptionFuse {

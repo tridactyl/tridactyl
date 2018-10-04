@@ -1,6 +1,6 @@
-import { staticThemes } from "./.metadata.generated"
-import * as config from "./config"
-import * as Logging from "./logging"
+import { staticThemes } from "@src/.metadata.generated"
+import * as config from "@src/lib/config"
+import * as Logging from "@src/lib/logging"
 
 const logger = new Logging.Logger("styling")
 

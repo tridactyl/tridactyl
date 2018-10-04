@@ -21,9 +21,9 @@
 */
 
 /** */
-import { find, filter, izip } from "./itertools"
-import { Parser } from "./nearley_utils"
-import * as bracketexpr_grammar from "./grammars/.bracketexpr.generated"
+import { find, filter, izip } from "@src/lib/itertools"
+import { Parser } from "@src/background/nearley_utils"
+import * as bracketexpr_grammar from "@src/grammars/.bracketexpr.generated"
 const bracketexpr_parser = new Parser(bracketexpr_grammar)
 
 // {{{ General types

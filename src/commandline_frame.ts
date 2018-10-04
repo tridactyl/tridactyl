@@ -1,22 +1,23 @@
 /** Script used in the commandline iframe. Communicates with background. */
 
-import "./lib/html-tagged-template"
+import * as perf from "@src/perf"
+import "@src/lib/number.clamp"
+import "@src/lib/html-tagged-template"
+import * as Completions from "@src/completions"
+import { BufferAllCompletionSource } from "@src/completions/BufferAll"
+import { BufferCompletionSource } from "@src/completions/Buffer"
+import { BmarkCompletionSource } from "@src/completions/Bmark"
+import { ExcmdCompletionSource } from "@src/completions/Excmd"
+import { HistoryCompletionSource } from "@src/completions/History"
+import { SettingsCompletionSource } from "@src/completions/Settings"
+import * as Messaging from "@src/lib/messaging"
+import * as Config from "@src/lib/config"
+import * as SELF from "@src/commandline_frame"
+import "@src/lib/number.clamp"
+import state from "@src/state"
+import Logger from "@src/lib/logging"
+import { theme } from "@src/content/styling"
 
-import * as Completions from "./completions"
-import { BufferAllCompletionSource } from "./completions/BufferAll"
-import { BufferCompletionSource } from "./completions/Buffer"
-import { BmarkCompletionSource } from "./completions/Bmark"
-import { ExcmdCompletionSource } from "./completions/Excmd"
-import { HistoryCompletionSource } from "./completions/History"
-import { SettingsCompletionSource } from "./completions/Settings"
-import * as Messaging from "./messaging"
-import * as Config from "./config"
-import * as SELF from "./commandline_frame"
-import "./number.clamp"
-import state from "./state"
-import Logger from "./logging"
-import { theme } from "./styling"
-import * as perf from "./perf"
 const logger = new Logger("cmdline")
 
 let activeCompletions: Completions.CompletionSource[] = undefined
@@ -387,7 +388,6 @@ export function getContent() {
 }
 
 Messaging.addListener("commandline_frame", Messaging.attributeCaller(SELF))
-
 
 // Listen for statistics from the commandline iframe and send them to
 // the background for collection. Attach the observer to the window

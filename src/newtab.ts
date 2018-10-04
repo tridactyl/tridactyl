@@ -1,6 +1,6 @@
 // This file is only included in newtab.html, after content.js has been loaded
 
-import * as config from "./config"
+import * as config from "@src/lib/config"
 
 // These functions work with the elements created by tridactyl/scripts/newtab.md.sh
 function getChangelogDiv() {

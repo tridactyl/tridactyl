@@ -1,5 +1,5 @@
-import { browserBg, activeTabId, ownTabId } from "./lib/webext"
-import Logger from "./logging"
+import { browserBg, activeTabId, ownTabId } from "@src/lib/webext"
+import Logger from "@src/lib/logging"
 const logger = new Logger("messaging")
 
 export type TabMessageType =

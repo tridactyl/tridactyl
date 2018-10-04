@@ -1,26 +1,26 @@
 /** Background script entry point. */
 
-import * as BackgroundController from "./controller_background"
-import "./lib/browser_proxy_background"
+import * as BackgroundController from "@src/background/controller_background"
+import "@src/lib/browser_proxy_background"
 
 // Add various useful modules to the window for debugging
-import * as messaging from "./messaging"
-import * as excmds from "./.excmds_background.generated"
-import * as commandline_background from "./commandline_background"
-import * as convert from "./convert"
-import * as config from "./config"
-import * as dom from "./dom"
-import * as download_background from "./download_background"
-import * as itertools from "./itertools"
-import * as keyseq from "./keyseq"
-import * as request from "./requests"
-import * as native from "./native_background"
-import state from "./state"
-import * as webext from "./lib/webext"
-import { AutoContain } from "./lib/autocontainers"
-import * as perf from "./perf"
-import { listenForCounters } from "./perf";
-window.tri = Object.assign(window.tri || Object.create(null), {
+import * as perf from "@src/perf"
+import { listenForCounters } from "@src/perf"
+import * as messaging from "@src/lib/messaging"
+import * as excmds from "@src/.excmds_background.generated"
+import * as commandline_background from "@src/background/commandline_background"
+import * as convert from "@src/lib/convert"
+import * as config from "@src/lib/config"
+import * as dom from "@src/lib/dom"
+import * as download_background from "@src/background/download_background"
+import * as itertools from "@src/lib/itertools"
+import * as keyseq from "@src/lib/keyseq"
+import * as request from "@src/lib/requests"
+import * as native from "@src/background/native_background"
+import state from "@src/state"
+import * as webext from "@src/lib/webext"
+import { AutoContain } from "@src/lib/autocontainers"
+;(window as any).tri = Object.assign(Object.create(null), {
     messaging,
     excmds,
     commandline_background,

@@ -91,47 +91,47 @@
 // {{{ setup
 
 // Shared
-import * as Messaging from "./messaging"
-import { browserBg, activeTabId, activeTabContainerId, openInNewTab, openInNewWindow } from "./lib/webext"
-import * as Container from "./lib/containers"
-import state from "./state"
-import { contentState, ModeName } from "./state_content"
-import * as UrlUtil from "./url_util"
-import * as config from "./config"
-import * as aliases from "./aliases"
-import * as Logging from "./logging"
+import * as Messaging from "@src/lib/messaging"
+import { browserBg, activeTabId, activeTabContainerId, openInNewTab, openInNewWindow } from "@src/lib/webext"
+import * as Container from "@src/lib/containers"
+import state from "@src/state"
+import { contentState, ModeName } from "@src/content/state_content"
+import * as UrlUtil from "@src/lib/url_util"
+import * as config from "@src/lib/config"
+import * as aliases from "@src/lib/aliases"
+import * as Logging from "@src/lib/logging"
 /** @hidden */
 const logger = new Logging.Logger("excmds")
 import Mark from "mark.js"
 import * as CSS from "css"
-import * as Metadata from "./.metadata.generated"
-import { fitsType, typeToString } from "./metadata"
-import * as Perf from "./perf"
+import * as Perf from "@src/perf"
+import * as Metadata from "@src/.metadata.generated"
+import { fitsType, typeToString } from "@src/lib/metadata"
 
 //#content_helper
 // {
-import "./number.clamp"
-import * as SELF from "./.excmds_content.generated"
+import "@src/lib/number.clamp"
+import * as SELF from "@src/.excmds_content.generated"
 Messaging.addListener("excmd_content", Messaging.attributeCaller(SELF))
-import * as DOM from "./dom"
-import { executeWithoutCommandLine } from "./commandline_content"
-import * as scrolling from "./scrolling"
+import * as DOM from "@src/lib/dom"
+import { executeWithoutCommandLine } from "@src/content/commandline_content"
+import * as scrolling from "@src/content/scrolling"
 // }
 
 //#background_helper
 // {
 /** Message excmds_content.ts in the active tab of the currentWindow */
-import { messageTab, messageActiveTab } from "./messaging"
-import { flatten } from "./itertools"
-import "./number.mod"
-import { activeTab, firefoxVersionAtLeast } from "./lib/webext"
-import * as CommandLineBackground from "./commandline_background"
-import * as rc from "./config_rc"
-import * as excmd_parser from "./parsers/exmode"
-import { mapstrToKeyseq } from "./keyseq"
+import { messageTab, messageActiveTab } from "@src/lib/messaging"
+import { flatten } from "@src/lib/itertools"
+import "@src/lib/number.mod"
+import { activeTab, firefoxVersionAtLeast } from "@src/lib/webext"
+import * as CommandLineBackground from "@src/background/commandline_background"
+import * as rc from "@src/background/config_rc"
+import * as excmd_parser from "@src/parsers/exmode"
+import { mapstrToKeyseq } from "@src/lib/keyseq"
 
 //#background_helper
-import * as Native from "./native_background"
+import * as Native from "@src/background/native_background"
 
 /** @hidden */
 export const cmd_params = new Map<string, Map<string, string>>()
@@ -673,7 +673,7 @@ export function im_backward_word() {
 }
 
 //#background_helper
-import * as css_util from "./css_util"
+import * as css_util from "@src/lib/css_util"
 
 /**
  * Like [[guiset]] but quieter.
@@ -1232,7 +1232,7 @@ export function scrollpage(n = 1) {
 }
 
 //#content_helper
-import * as finding from "./finding"
+import * as finding from "@src/content/finding"
 
 /** Start find mode. Work in progress.
  *
@@ -2562,7 +2562,7 @@ async function getnexttabs(tabid: number, n?: number) {
 // {{{ CMDLINE
 
 //#background_helper
-import * as controller from "./controller_background"
+import * as controller from "@src/background/controller_background"
 
 /** Repeats a `cmd` `n` times.
     Falls back to the last executed command if `cmd` doesn't exist.
@@ -3469,7 +3469,7 @@ export function unset(...keys: string[]) {
 // {{{ HINTMODE
 
 //#content_helper
-import * as hinting from "./hinting"
+import * as hinting from "@src/content/hinting"
 
 /** Hint a page.
 
@@ -3806,7 +3806,7 @@ export function run_exstr(...commands: string[]) {
 // {{{ GOBBLE mode
 
 //#content_helper
-import * as gobbleMode from "./parsers/gobblemode"
+import * as gobbleMode from "@src/parsers/gobblemode"
 
 /** Initialize gobble mode.
 
@@ -3823,7 +3823,7 @@ export async function gobble(nChars: number, endCmd: string) {
 
 // {{{TEXT TO SPEECH
 
-import * as TTS from "./text_to_speech"
+import * as TTS from "@src/lib/text_to_speech"
 
 /**
  * Read text content of elements matching the given selector
@@ -3963,7 +3963,7 @@ export async function perfhistogram(...filters: string[]) {
     filterconfigs.push({ kind: "eventType", eventType: "measure" })
     const entries = window.tri.statsLogger.getEntries(...filterconfigs)
     if (entries.length == 0) {
-        fillcmdline_tmp(3000, "perfhistogram: No samples found.");
+        fillcmdline_tmp(3000, "perfhistogram: No samples found.")
         return
     }
     const histogram = Perf.renderStatsHistogram(entries)

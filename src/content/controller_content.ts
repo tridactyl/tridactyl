@@ -1,14 +1,14 @@
-import { isTextEditable } from "./dom"
-import { contentState, ModeName } from "./state_content"
-import { repeat } from "./.excmds_background.generated"
-import Logger from "./logging"
-import * as messaging from "./messaging"
+import { isTextEditable } from "@src/lib/dom"
+import { contentState, ModeName } from "@src/content/state_content"
+import { repeat } from "@src/.excmds_background.generated"
+import Logger from "@src/lib/logging"
+import * as messaging from "@src/lib/messaging"
 
-import { parser as exmode_parser } from "./parsers/exmode"
-import * as hinting from "./hinting"
-import * as finding from "./finding"
-import * as gobblemode from "./parsers/gobblemode"
-import * as generic from "./parsers/genericmode"
+import { parser as exmode_parser } from "@src/parsers/exmode"
+import * as hinting from "@src/content/hinting"
+import * as finding from "@src/content/finding"
+import * as gobblemode from "@src/parsers/gobblemode"
+import * as generic from "@src/parsers/genericmode"
 
 const logger = new Logger("controller")
 

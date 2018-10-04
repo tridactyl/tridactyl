@@ -2,8 +2,8 @@
  * Background download-related functions
  */
 
-import { getDownloadFilenameForUrl } from "./url_util"
-import * as Native from "./native_background"
+import * as Native from "@src/background/native_background"
+import { getDownloadFilenameForUrl } from "@src/lib/url_util"
 
 /** Construct an object URL string from a given data URL
  *
@@ -147,7 +147,7 @@ export async function downloadUrlAs(url: string, saveAs: string) {
     })
 }
 
-import * as Messaging from "./messaging"
+import * as Messaging from "@src/lib/messaging"
 
 // Get messages from content
 Messaging.addListener(
