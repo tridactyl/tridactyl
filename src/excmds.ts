@@ -684,17 +684,7 @@ export async function guiset_quiet(rule: string, option: string) {
 
     // Check for native messenger and make sure we have a plausible profile directory
     if (!(await Native.nativegate("0.1.1"))) return
-    let profile_dir = ""
-    if (config.get("profiledir") === "auto" && ["linux", "openbsd", "mac"].includes((await browser.runtime.getPlatformInfo()).os)) {
-        try {
-            profile_dir = await Native.getProfileDir()
-        } catch (e) {}
-    } else {
-        profile_dir = config.get("profiledir")
-    }
-    if (profile_dir == "") {
-        throw "Please set your profile directory (found on about:support) via `set profiledir [profile directory]`"
-    }
+    let profile_dir = await Native.getProfileDir()
 
     // Make backups
     await Native.mkdir(profile_dir + "/chrome", true)
