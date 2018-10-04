@@ -63,7 +63,7 @@ export class SettingsCompletionSource extends Completions.CompletionSourceFuse {
         options += options ? " " : ""
 
         let configmd =
-            metadata.everything["src/config.ts"].classes.default_config
+            metadata.everything["src/lib/config.ts"].classes.default_config
         let settings = config.get()
         this.options = Object.keys(settings)
             .filter(x => x.startsWith(query))
