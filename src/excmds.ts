@@ -949,7 +949,7 @@ export async function restart() {
             fillcmdline("#" + reply["error"])
         }
     } else {
-        const firefox = (await Native.ffargs()).join(" ")
+        const firefox = (await Native.ff_cmdline()).join(" ")
         // Wait for the lock to disappear, then wait a bit more, then start firefox
         Native.run(`while readlink ${profiledir}/lock ; do sleep 1 ; done ; sleep 1 ; ${firefox}`)
         qall()

@@ -344,10 +344,10 @@ export async function clipboard(
 
 /** This returns the commandline that was used to start firefox.
  You'll get both firefox binary (not necessarily an absolute path) and flags */
-export async function ffargs(): Promise<string[]> {
+export async function ff_cmdline(): Promise<string[]> {
     // Using ' and + rather that ` because we don't want newlines
     if ((await browserBg.runtime.getPlatformInfo()).os === "win") {
-        throw `Error: "ffargs() is currently broken on Windows and should be avoided."`
+        throw `Error: "ff_cmdline() is currently broken on Windows and should be avoided."`
     } else {
         let output = await pyeval(
             'handleMessage({"cmd": "run", ' +
@@ -392,7 +392,7 @@ export async function getProfileDir() {
 
     // First, see if we can get the profile from the arguments that were given
     // to Firefox
-    let args = await ffargs()
+    let args = await ff_cmdline()
 
     // --profile <path>: Start with profile at <path>
     let prof = args.indexOf("--profile")
@@ -414,7 +414,7 @@ export async function getProfileDir() {
         // the native messenger currently sits) might actually be a symlink
         home = await getenv("HOME")
     } catch (e) {}
-    let hacky_profile_finder = `find "${home}/.mozilla/firefox" -maxdepth 2 -path '*.${profileName}/lock'`
+    let hacky_profile_finder = `find "${home}/.mozilla/firefox" -maxdepth 2 -path '*${profileName}/lock'`
     if ((await browserBg.runtime.getPlatformInfo()).os === "mac")
         hacky_profile_finder =
             "find ../../../Library/'Application Support'/Firefox/Profiles -maxdepth 2 -name .parentlock"
