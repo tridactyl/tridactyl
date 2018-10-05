@@ -221,7 +221,12 @@ clInput.addEventListener("input", async () => {
     let myInputId = onInputId + 1
     onInputId = myInputId
 
-    await onInputPromise
+    try {
+        await onInputPromise
+    } catch (e) {
+        // we don't actually care because this is the previous computation, which we will throw away
+        logger.warning(e)
+    }
 
     if (onInputId != myInputId) return
     onInputPromise = new Promise(resolve => {
