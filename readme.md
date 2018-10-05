@@ -49,13 +49,16 @@ You can try `:help key` to know more about `key`. If it is an existing binding, 
 -   `gU` — go to the root domain of the current URL
 -   `gr` — open Firefox reader mode (note: Tridactyl will not work in this mode)
 -   `zi`/`zo`/`zz` — zoom in/out/reset zoom
+-   `<C-f>`/`<C-b>` — jump to the next/previous part of the page
 
 #### Find mode
 
 Find mode is still incomplete and uses the Firefox feature "Quick Find". This will be improved eventually.
 
 -   `/` — open the find search box
--   `C-g`/`C-G` — find the next/previous instance of the last find operation (note: these are the standard Firefox shortcuts)
+-   `<C-g>`/`<C-G>` — find the next/previous instance of the last find operation (note: these are the standard Firefox shortcuts)
+
+Please note that Tridactyl overrides Firefox's `<C-f>` search, replacing it with a binding to go to the next part of the page. If you want to be able to use `<C-f>` again to search for things, use `unbind <C-f>`.
 
 #### Bookmarks and quickmarks
 
@@ -63,6 +66,8 @@ Find mode is still incomplete and uses the Firefox feature "Quick Find". This wi
 -   `a` — bookmark the current page, but allow the URL to be modified first
 -   `M<key>` — bind a quickmark to the given key
 -   `go<key>`/`gn<key>`/`gw<key>` — open a given quickmark in current tab/new tab/new window
+
+If you want to use Firefox's default `<C-b>` binding to open the bookmarks sidebar, make sure to run `unbind <C-b>` because Tridactyl replaces this setting with one to go to the previous part of the page.
 
 #### Navigating to new pages:
 
@@ -108,7 +113,7 @@ You can bind your own shortcuts in normal mode with the `:bind` command. For exa
 -   Navigation to any about:\* pages using `:open` requires the native messenger.
 -   Firefox will not load Tridactyl on about:\*, some file:\* URIs, view-source:\*, or data:\*. On these pages Ctrl-L (or F6), Ctrl-Tab and Ctrl-W are your escape hatches.
     -   addons.mozilla.org is now supported so long as you run `fixamo` first.
--   Tridactyl now supports changing the Firefox GUI if you have the native messenger installed via `guiset`. There's quite a few options available, but `guiset gui none` is probably what you want, perhaps followed up with `guiset tabs always`.
+-   Tridactyl now supports changing the Firefox GUI if you have the native messenger installed via `guiset`. There's quite a few options available, but `guiset gui none` is probably what you want, perhaps followed up with `guiset tabs always`. See `:help guiset` for a list of all possible options.
 
 ## Frequently asked questions
 
@@ -116,7 +121,7 @@ You can bind your own shortcuts in normal mode with the `:bind` command. For exa
 
     It's a webextension limitation. Firefox doesn't allow reading user preferences.
 
--   Why doesn't Tridactyl work?
+-   Why doesn't Tridactyl work/why does it break the websites I'm trying to use?
 
     Please visit our [troubleshooting guide](https://github.com/tridactyl/tridactyl/blob/master/doc/troubleshooting.md).
 

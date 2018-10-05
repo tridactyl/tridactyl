@@ -25,6 +25,7 @@ Many keypresses in normal mode take you into another mode. `t`, for example, put
 *   `p` opens the clipboard contents as a web page, or searches for it, in the current tab. `P` opens it in a new tab
     *   Protip: quickly search for the source of a quote by using `;p` to copy a paragraph, and `P` to search the internet for it
 *   `zi`,`zo`,`zz` zoom in, out and return to the default zoom
+*   Search text with Firefox's standard `/` binding, jump from match to match with `<C-g>` or `<C-G>` (note that it isn't possible to rebind searching/jumping between matches for now). If you want to use Firefox's `<C-f>` search you'll have to run `unbind <C-f>`.
 
 All the keys in normal mode are bound to commands; for example, `j` is bound to `scrolline 10`. If you are ever curious as to what a key sequence does in normal mode, you can simply use `:bind [keys]` and the command line will tell you to which command they are bound.
 
