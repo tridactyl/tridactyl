@@ -1564,7 +1564,7 @@ export function followpage(rel: "next" | "prev" = "next") {
         return
     }
 
-    const anchor = <HTMLAnchorElement>selectLast(`a[rel~=${rel}][href]`) || findRelLink(new RegExp(config.get("followpagepatterns", rel), "i"))
+    const anchor = <HTMLAnchorElement>selectLast(`a[rel~=${rel}][href]`) || findRelLink(new RegExp(config.get("followpagepatterns", rel)))
 
     if (anchor) {
         DOM.mouseEvent(anchor, "click")
