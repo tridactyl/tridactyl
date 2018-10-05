@@ -154,6 +154,10 @@ browser.webRequest.onBeforeRequest.addListener(
     ["blocking"],
 )
 
+browser.tabs.onCreated.addListener(
+    aucon.tabCreatedListener,
+)
+
 // }}}
 
 // {{{ PERFORMANCE LOGGING

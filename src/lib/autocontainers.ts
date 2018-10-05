@@ -54,6 +54,11 @@ interface IAutoContain {
 
 export class AutoContain implements IAutoContain {
     private cancelledRequests: ICancelledRequest[] = []
+    private lastCreatedTab = null
+
+    tabCreatedListener = (tab) => {
+        this.lastCreatedTab = tab
+    }
 
     completedRequestListener = (details: browser.webRequest.IDetails) => {
         if (this.getCancelledRequest(details.tabId)) {
@@ -98,21 +103,31 @@ export class AutoContain implements IAutoContain {
 
         if (this.cancelEarly(tab, details)) return { cancel: true }
 
-        logger.debug("reopening url in aucon: ", details.url, cookieStoreId)
-        browser.tabs
-            .create({
+        // If this navigation created a tab, we cancel and then kill
+        // the newly-created tab after opening.
+        const removeTab = this.lastCreatedTab && (this.lastCreatedTab.id === tab.id)
+
+        // Figure out which tab should be the parent of the tab we'll
+        // be creating in the selected container.
+        const openerTabId = removeTab ? tab.openerTabId : tab.id
+
+        logger.debug("in tab %o and with details %o, reopening from container %o to container %o",
+                     tab, details, tab.cookieStoreId, cookieStoreId)
+        browser.tabs.create({
                 url: details.url,
                 cookieStoreId,
                 active: tab.active,
                 windowId: tab.windowId,
+                index: tab.index + 1,
+                // openerTabId: openerTabId,
+            }).then(result => {
+                logger.debug("Autocontainer created tab %o", result)
             })
-            .then(_ => {
-                if (details.originUrl) {
-                    window.history.back()
-                } else {
-                    browser.tabs.remove(details.tabId)
-                }
-            })
+
+        if (removeTab) {
+            logger.debug("Closing newly-opened tab %o", tab)
+            browser.tabs.remove(tab.id)
+        }
 
         return { cancel: true }
     }
@@ -195,6 +210,9 @@ export class AutoContain implements IAutoContain {
             )
         ) {
             // It can't take priority if it's not enabled.
+            logger.debug(
+                "multi-account containers extension does not exist",
+            )
             return false
         }
 
@@ -220,6 +238,9 @@ export class AutoContain implements IAutoContain {
             )
             return true
         } else {
+            logger.debug(
+                "multi-account containers extension exists but does not claim priority",
+            )
             return false
         }
     }
@@ -233,6 +254,9 @@ export class AutoContain implements IAutoContain {
             )
         ) {
             // It can't take priority if it's not enabled.
+            logger.debug(
+                "temporary containers extension does not exist",
+            )
             return false
         }
 
@@ -243,6 +267,10 @@ export class AutoContain implements IAutoContain {
         if (willContainInDefault) {
             logger.info(
                 "temporary containers extension has priority over autocontainer directives",
+            )
+        } else {
+            logger.debug(
+                "temporary containers extension exists but does not claim priority",
             )
         }
         return willContainInDefault
