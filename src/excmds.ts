@@ -2696,7 +2696,13 @@ export async function yank(...content: string[]) {
 //#background_helper
 async function setclip(str) {
     // Functions to avoid retyping everything everywhere
-    let s = () => Native.clipboard("set", str)
+
+    // Note: We're using fillcmdline here because exceptions are somehow not caught. We're rethrowing because otherwise the error message will be overwritten with the "yank successful" message.
+    let s = () => Native.clipboard("set", str).catch(e => {
+        let msg = "# Failed to set X selection. Is the native messenger installed and is it >=v.0.1.7?"
+        fillcmdline(msg)
+        throw msg
+    })
     let c = async () => {
         await messageActiveTab("commandline_content", "focus")
         await messageActiveTab("commandline_frame", "setClipboard", [str])
@@ -2727,7 +2733,11 @@ async function getclip() {
     if ((await config.getAsync("putfrom")) == "clipboard") {
         return messageActiveTab("commandline_frame", "getClipboard")
     } else {
-        return Native.clipboard("get", "")
+        return Native.clipboard("get", "").catch(e => {
+            let msg = "# Failed to get X selection. Is the native messenger installed?"
+            fillcmdline(msg)
+            throw msg
+        })
     }
 }
 
