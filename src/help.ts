@@ -10,11 +10,11 @@ function initTridactylSettingElem(
     let bindingNode = elem.getElementsByClassName(`Tridactyl${kind}`)[0]
     if (bindingNode) {
         Array.from(bindingNode.children)
-            .filter(e => e.tagName == "LI")
+            .filter(e => e.tagName == "SPAN")
             .forEach(e => e.parentNode.removeChild(e))
     } else {
         // Otherwise, create it
-        bindingNode = document.createElement("ul")
+        bindingNode = document.createElement("p")
         bindingNode.className = `TridactylSetting Tridactyl${kind}`
         bindingNode.textContent = kind + ": "
         elem.insertBefore(bindingNode, elem.children[2])
@@ -41,7 +41,7 @@ async function addSetting(settingName: string) {
     // We're ignoring composite because it combines multiple excmds
     delete commandElems["composite"]
 
-    // Initialize or reset the <ul> element that will contain settings in each commandElem
+    // Initialize or reset the <p> element that will contain settings in each commandElem
     let settingElems = Object.keys(commandElems).reduce(
         (settingElems, cmdName) => {
             settingElems[cmdName] = initTridactylSettingElem(
@@ -71,11 +71,12 @@ async function addSetting(settingName: string) {
 
         // If there is an HTML element for settings that correspond to the excmd we just found
         if (settingElems[excmd]) {
-            let settingLi = document.createElement("li")
-            settingLi.innerText = setting
-            settingLi.title = settings[setting]
+            let settingSpan = document.createElement("span")
+            settingSpan.innerText = setting
+            settingSpan.title = settings[setting]
             // Add the setting to the element
-            settingElems[excmd].appendChild(settingLi)
+            settingElems[excmd].appendChild(settingSpan)
+            settingElems[excmd].appendChild(document.createTextNode(" "))
         }
     }
 
@@ -83,7 +84,7 @@ async function addSetting(settingName: string) {
     Object.values(settingElems)
         .filter(
             (e: HTMLElement) =>
-                !Array.from(e.children).find(c => c.tagName == "LI"),
+                !Array.from(e.children).find(c => c.tagName == "SPAN"),
         )
         .forEach((e: HTMLElement) => e.parentNode.removeChild(e))
 }

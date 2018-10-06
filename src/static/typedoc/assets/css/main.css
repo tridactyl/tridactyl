@@ -2983,18 +2983,14 @@ ul.tsd-descriptions h4 {
     border-radius: 2px;
 }
 
-ul.TridactylSetting {
-    display: flex;
-    flex-direction: row;
-    justify-content: flex-start;
-    list-style: none;
+.TridactylSetting {
     padding: 0;
-    white-space: nowrap;
     font-weight: bold;
     font-size: 10pt;
 }
 
-ul.TridactylSetting li {
+.TridactylSetting span {
+    display: inline-block;
     font-family: Monospace;
     font-weight: normal;
     background: whitesmoke;
