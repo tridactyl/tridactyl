@@ -50,6 +50,7 @@ class BufferCompletionOption extends Completions.CompletionOptionHTML
 
 export class BufferCompletionSource extends Completions.CompletionSourceFuse {
     public options: BufferCompletionOption[]
+    private shouldSetStateFromScore = true
 
     // TODO:
     //     - store the exstr and trigger redraws on user or data input without
@@ -68,7 +69,13 @@ export class BufferCompletionSource extends Completions.CompletionSourceFuse {
     }
 
     @Perf.measuredAsync
-    private async updateOptions(exstr?: string) {
+    private async updateOptions(exstr = "") {
+
+        const [prefix, query] = this.splitOnPrefix(exstr)
+
+        // When the user is asking for tabmove completions, don't autoselect if the query looks like a relative move https://github.com/tridactyl/tridactyl/issues/825
+        this.shouldSetStateFromScore = !(prefix == "tabmove " && query.match("^[+-][0-9]+$")) 
+
         /* console.log('updateOptions', this.optionContainer) */
         const tabs: browser.tabs.Tab[] = await Messaging.message(
             "commandline_background",
@@ -104,11 +111,11 @@ export class BufferCompletionSource extends Completions.CompletionSourceFuse {
     async onInput(exstr) {
         // Schedule an update, if you like. Not very useful for buffers, but
         // will be for other things.
-        this.updateOptions()
+        this.updateOptions(exstr)
     }
 
     setStateFromScore(scoredOpts: Completions.ScoredOption[]) {
-        super.setStateFromScore(scoredOpts, true)
+        super.setStateFromScore(scoredOpts, this.shouldSetStateFromScore)
     }
 
     /** Score with fuse unless query is a single # or looks like a buffer index */
