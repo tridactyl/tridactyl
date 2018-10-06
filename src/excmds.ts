@@ -1497,43 +1497,70 @@ export function home(all: "false" | "true" = "false") {
 
 /** Show this page.
 
-    `:help something` jumps to the entry for something. Something can be an excmd, an alias for an excmd or a binding.
+    `:help something` jumps to the entry for something. Something can be an excmd, an alias for an excmd, a binding or a setting.
 
-    The "nmaps" list is a list of all the bindings for the command you're seeing and the "exaliases" list lists all its aliases.
+    On the ex command page, the "nmaps" list is a list of all the bindings for the command you're seeing and the "exaliases" list lists all its aliases.
 
-    If there's a conflict (e.g. you have a "go" binding that does something and also a "go" excmd that does something else), the binding has higher priority.
+    If there's a conflict (e.g. you have a "go" binding that does something, a "go" excmd that does something else and a "go" setting that does a third thing), the binding is chosen first, then the setting, then the excmd.
 
     If the keyword you gave to `:help` is actually an alias for a composite command (see [[composite]]) , you will be taken to the help section for the first command of the pipeline. You will be able to see the whole pipeline by hovering your mouse over the alias in the "exaliases" list. Unfortunately there currently is no way to display these HTML tooltips from the keyboard.
 
     e.g. `:help bind`
 */
 //#background
-export async function help(excmd?: string) {
-    const docpage = browser.extension.getURL("static/docs/modules/_excmds_.html")
-    if (excmd === undefined) excmd = ""
+export async function help(helpItem?: string) {
+    let docpage = browser.extension.getURL("static/docs/modules/_excmds_.html")
+    if (helpItem === undefined) helpItem = ""
     else {
-        let bindings = await config.getAsync("nmaps")
-        // If 'excmd' matches a binding, replace 'excmd' with the command that would be executed when pressing the key sequence referenced by 'excmd'
-        if (excmd in bindings) {
-            excmd = bindings[excmd].split(" ")
-            excmd = ["composite", "fillcmdline"].includes(excmd[0]) ? excmd[1] : excmd[0]
+        let matched = false
+        const settings = await config.getAsync()
+
+        for (let mode of ["nmaps", "imaps", "inputmaps", "ignoremaps"]) {
+            let bindings = settings[mode]
+            // If 'helpItem' matches a binding, replace 'helpItem' with the command that would be executed when pressing the key sequence referenced by 'helpItem' and don't check other modes
+            if (helpItem in bindings) {
+                helpItem = bindings[helpItem].split(" ")
+                helpItem = ["composite", "fillcmdline"].includes(helpItem[0]) ? helpItem[1] : helpItem[0]
+                matched = true
+                break
+            }
         }
 
-        let aliases = await config.getAsync("exaliases")
-        // As long as excmd is an alias, try to resolve this alias to a real excmd
+        let aliases = settings.exaliases
+        // As long as helpItem is an alias, try to resolve this alias to a real helpItem
         let resolved = []
-        while (aliases[excmd]) {
-            resolved.push(excmd)
-            excmd = aliases[excmd].split(" ")
-            excmd = excmd[0] == "composite" ? excmd[1] : excmd[0]
+        while (aliases[helpItem]) {
+            matched = true
+            resolved.push(helpItem)
+            helpItem = aliases[helpItem].split(" ")
+            helpItem = helpItem[0] == "composite" ? helpItem[1] : helpItem[0]
             // Prevent infinite loops
-            if (resolved.includes(excmd)) break
+            if (resolved.includes(helpItem)) break
+        }
+
+        // If we still haven't found either a binding or an alias, try a setting name
+        if (!matched) {
+            let subSettings = settings
+            let settingNames = helpItem.split(".")
+            let settingHelpAnchor = ""
+            // Try to match each piece of the path, this is done so that a correct object (e.g. followpagepatterns) with an incorrect key (e.g. nextt) will still match the parent object.
+            for (let settingName of settingNames) {
+                if (settingName in subSettings) {
+                    settingHelpAnchor += settingName + "."
+                    subSettings = subSettings[settingName]
+                }
+            }
+            if (settingHelpAnchor != "") {
+                docpage = browser.extension.getURL("static/docs/classes/_lib_config_.default_config.html")
+                helpItem = settingHelpAnchor.slice(0,-1)
+            }
         }
     }
+
     if ((await activeTab()).url.startsWith(docpage)) {
-        open(docpage + "#" + excmd)
+        open(docpage + "#" + helpItem)
     } else {
-        tabopen(docpage + "#" + excmd)
+        tabopen(docpage + "#" + helpItem)
     }
 }
 
@@ -3140,7 +3167,7 @@ export function seturl(pattern: string, key: string, ...values: string[]) {
 
 /** Set a key value pair in config.
 
-    Use to set any string values found [here](/static/docs/classes/_config_.default_config.html).
+    Use to set any string values found [here](/static/docs/classes/_lib_config_.default_config.html).
 
     e.g.
         set searchurls.google https://www.google.com/search?q=
