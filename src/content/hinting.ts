@@ -19,26 +19,98 @@ import {
     map,
     unique,
 } from "@src/lib/itertools"
-import { hasModifiers } from "@src/lib/keyseq"
 import { contentState } from "@src/content/state_content"
-import { messageActiveTab, message } from "@src/lib/messaging"
 import * as config from "@src/lib/config"
-import * as TTS from "@src/lib/text_to_speech"
 import Logger from "@src/lib/logging"
-import * as Messaging from "@src/lib/messaging"
 const logger = new Logger("hinting")
 
-/** Simple container for the state of a single frame's hints. */
+// A BooleanFilter is meant to represent a selection of active
+// elements of an array, while maintaining which elements have
+// been deactivated already.
+//
+// Invariant: pos.length + neg.length = xs.length
+// Invariant: set(pos) union set(neg) = set(xs)
+// Invariant: set(pos) intersect set(neg) = empty
+class BooleanFilter<T> {
+    // Both pos and neg index into xs.
+    private pos: number[]
+    private neg: number[]
+
+    private readonly xs: T[]
+
+    public static forData<T>(xs: T[]) {
+        return new BooleanFilter(xs, xs.map((x, i) => i), [])
+    }
+
+    constructor(xs: T[], pos, neg) {
+        // Initially, all items are active and none are inactive.
+        this.pos = pos
+        this.neg = neg
+        this.xs = xs
+    }
+
+    // Returns a new, more narrow BooleanFilter, or undefined if
+    // the given predicate does not deactivate any active elements.
+    narrow(predicate: (x: T) => boolean) {
+        // If there are no elements left, the given predicate cannot deactivate any.
+        if (this.pos.length === 0) {
+            return undefined
+        }
+
+        const neg = []
+        for (const i in this.neg) {
+            neg.push(i)
+        }
+
+        const pos = []
+        for (const i in this.pos) {
+            (predicate(this.xs[i]) ? pos : neg).push(i)
+        }
+
+        // Check whether the predicate used actually narrowed the filter.
+        if (this.pos.length === pos.length) {
+            return undefined
+        }
+
+        return new BooleanFilter<T>(this.xs, pos, neg)
+    }
+
+    project(active: boolean = true) {
+        return (active ? this.pos : this.neg).map(i => this.xs[i])
+    }
+
+    get size() {
+        return this.pos.length
+    }
+}
+
+/** Simple container for the state of a single frame's hints.
+ * Hints generally follow the following flow:
+ * hintable, selected, focused
+*/
 class HintState {
-    public focusedHint: Hint
     readonly hintHost = document.createElement("div")
     readonly hints: Hint[] = []
-    public selectedHints: Hint[] = []
-    public filter = ""
+
+    private filter: BooleanFilter<Hint>
+
+    public fstr = ""
     public hintchars = ""
 
+    private _focusedHint: number
+    
+    get focusedHint(): number {
+        return this._focusedHint
+    }
+
+    set focusedHint(i: number) {
+        this.hints[this._focusedHint].focused = false
+        this._focusedHint = i
+        this.hints[this._focusedHint].focused = true
+    }
+
     constructor(
-        public filterFunc: HintFilter,
+        public filterFunc: FilteringFunction,
         public resolve: (Hint) => void,
         public reject: (any) => void,
         public rapid: boolean,
@@ -62,11 +134,79 @@ class HintState {
     resolveHinting() {
         this.cleanUpHints()
 
-        if (this.rapid) this.resolve(this.selectedHints.map(h => h.result))
-        else
+        if (this.rapid) {
+            this.resolve(this.selectedHints.map(h => h.result))
+        }
+        else {
             this.resolve(
                 this.selectedHints[0] ? this.selectedHints[0].result : "",
             )
+        }
+    }
+
+    // Applies the filtering function with the current filter to the argument.
+    // If there is only one active hint left, it is selected.
+    update() {
+        // TODO: Call filtering functions
+        const narrowed = this.filterFunc(this.filter, this.fstr)
+
+        if (narrowed === undefined) {
+
+        }
+
+        // TODO: What about stability of selection? If we narrow the filter,
+        // the same element should stay selected from a user's perspective.
+
+        // Hide inactive hints.
+        for (const h of this.filter.project(false)) {
+            h.hidden = true
+        }
+
+        // Show and update labels of active
+        for (const h of this.filter.project()) {
+            h.hidden = false
+            h.flag.textContent = h.name
+        }
+
+        // Focus first hint
+        if (this.filter.size > 0) {
+            modeState.focusedHint = this.filter.project()[0]
+        }
+
+        // Select focused hint if it's the only match
+        if (this.filter.size === 1) {
+            this.selectFocusedHint(true)
+        }
+    }
+
+    narrow(key: string) {
+        this.fstr += key
+        this.update()
+    }
+
+    revert() {
+        this.fstr = this.fstr.substring(0, this.fstr.length - 1)
+        this.update()
+    }
+
+    selectFocusedHint(delay = false) {
+        logger.debug("Selecting hint.", contentState.mode)
+        if (delay) {
+            setTimeout(this.selectFocusedHintInternal, config.get("hintdelay"))
+        }
+        else {
+            this.selectFocusedHintInternal()
+        }
+    }
+
+    focusNextActive() {
+        
+    }
+
+    private selectFocusedHintInternal() {
+        this.filter = '' 
+        this.hints.forEach(h => (h.hidden = false))
+        this.hints[this.focusedHint].select()
     }
 }
 
@@ -80,77 +220,66 @@ export function hintPage(
     reject = () => {},
     rapid = false,
 ) {
-    let buildHints: HintBuilder = defaultHintBuilder()
-    let filterHints: HintFilter = defaultHintFilter()
-    contentState.mode = "hint"
-    modeState = new HintState(filterHints, resolve, reject, rapid)
+    const [builder, filter]: [HintBuilder, FilteringFunction] = defaultHinting()
 
-    if (rapid == false) {
-        buildHints(hintableElements, hint => {
+    const onSelectInternal = rapid ? hint => {
             modeState.cleanUpHints()
             hint.result = onSelect(hint.target)
             modeState.selectedHints.push(hint)
             reset()
-        })
-    } else {
-        buildHints(hintableElements, hint => {
+    } : hint => {
             hint.result = onSelect(hint.target)
             modeState.selectedHints.push(hint)
-        })
     }
 
-    if (modeState.hints.length) {
-        let firstTarget = modeState.hints[0].target
-        let shouldSelect =
-            firstTarget instanceof HTMLAnchorElement &&
-            firstTarget.href !== "" &&
-            !firstTarget.href.startsWith("javascript:")
-        if (shouldSelect) {
-            // Try to find an element that is not a link or that doesn't point
-            // to the same URL as the first hint
-            let different = modeState.hints.find(h => {
-                return (
-                    !(h.target instanceof HTMLAnchorElement) ||
-                    h.target.href !== (<HTMLAnchorElement>firstTarget).href
-                )
-            })
+    const hints = builder(hintableElements, onSelectInternal)
 
-            if (different === undefined) {
-                modeState.cleanUpHints()
-                modeState.hints[0].select()
-                reset()
-                return
-            }
-        }
-
-        logger.debug("hints", modeState.hints)
-        modeState.focusedHint = modeState.hints[0]
-        modeState.focusedHint.focused = true
-        document.documentElement.appendChild(modeState.hintHost)
-    } else {
+    if (hints.length === 0) {
+        logger.warning('No hints, therefore not entering hint mode!')
         reset()
+        return
     }
+
+    const firstTarget = hints[0].target
+    const shouldSelect =
+        firstTarget instanceof HTMLAnchorElement &&
+        firstTarget.href !== "" &&
+        !firstTarget.href.startsWith("javascript:")
+    if (shouldSelect) {
+        // Try to find an element that is not a link or that doesn't point
+        // to the same URL as the first hint.
+        const different = hints.some(h =>
+            !(h.target instanceof HTMLAnchorElement) ||
+            h.target.href !== (<HTMLAnchorElement>firstTarget).href
+        )
+
+        if (!different) {
+            logger.warning('Only one hyperlink found. Following without entering hint mode!')
+            hints[0].select()
+            reset()
+            return
+        }
+    }
+
+    contentState.mode = "hint"
+    modeState = new HintState(filter, resolve, reject, rapid)
+
+    logger.debug("hints", modeState.hints)
+    document.documentElement.appendChild(modeState.hintHost)
 }
 
-function defaultHintBuilder() {
-    switch (config.get("hintfiltermode")) {
-        case "simple":
-            return buildHintsSimple
-        case "vimperator":
-            return buildHintsVimperator
-        case "vimperator-reflow":
-            return buildHintsVimperator
-    }
+function filterHintsVimperatorCurry(reflow: boolean) {
+    return (filter, fstr) => filterHintsVimperator(filter, fstr, reflow)
 }
 
-function defaultHintFilter() {
+function defaultHinting(): [HintBuilder, FilteringFunction] {
     switch (config.get("hintfiltermode")) {
         case "simple":
-            return filterHintsSimple
+            return [buildHintsSimple, filterHintsSimple]
         case "vimperator":
-            return filterHintsVimperator
+            return [buildHintsVimperator, filterHintsVimperatorCurry(false)]
         case "vimperator-reflow":
-            return fstr => filterHintsVimperator(fstr, true)
+            return [buildHintsVimperator, filterHintsVimperatorCurry(true)]
     }
 }
 
@@ -167,12 +296,10 @@ function defaultHintChars() {
 
     Earlier hints prefix later hints
 */
-function* hintnames_simple(
-    hintchars = defaultHintChars(),
-): IterableIterator<string> {
+function* hintnames_simple(hintchars): IterableIterator<string> {
     for (let taglen = 1; true; taglen++) {
         yield* map(permutationsWithReplacement(hintchars, taglen), e =>
-            e.join(""),
+            e.join("")
         )
     }
 }
@@ -191,22 +318,17 @@ function* hintnames_simple(
     and so on, but we hardly ever see that many hints, so whatever.
     
 */
-function* hintnames_short(
-    n: number,
-    hintchars = defaultHintChars(),
-): IterableIterator<string> {
-    let source = hintnames_simple(hintchars)
+function* hintnames_short(n: number, hintchars): IterableIterator<string> {
+    const source = hintnames_simple(hintchars)
     const num2skip = Math.floor(n / hintchars.length)
     yield* islice(source, num2skip, n + num2skip)
 }
 
 /** Uniform length hintnames */
-function* hintnames_uniform(
-    n: number,
-    hintchars = defaultHintChars(),
-): IterableIterator<string> {
-    if (n <= hintchars.length) yield* islice(hintchars[Symbol.iterator](), n)
-    else {
+function* hintnames_uniform(n: number, hintchars): IterableIterator<string> {
+    if (n <= hintchars.length) {
+        yield* islice(hintchars[Symbol.iterator](), n)
+    } else {
         // else calculate required length of each tag
         const taglen = Math.ceil(log(n, hintchars.length))
         // And return first n permutations
@@ -309,31 +431,31 @@ class Hint {
     }
 }
 
-type HintBuilder = (els: Element[], onSelect: HintSelectedCallback) => void
+type HintBuilder = (els: Element[], onSelect: HintSelectedCallback) => Hint[]
 
-function buildHintsSimple(els: Element[], onSelect: HintSelectedCallback) {
-    let names = hintnames(els.length)
-    for (let [el, name] of izip(els, names)) {
+function buildHintsSimple(els: Element[], onSelect: HintSelectedCallback): Hint[] {
+    const result = []
+    for (let [el, name] of izip(els, hintnames(els.length))) {
         logger.debug({ el, name })
-        modeState.hintchars += name
-        modeState.hints.push(new Hint(el, name, null, onSelect))
+        result.push(new Hint(el, name, null, onSelect))
     }
+    return result
 }
 
-function buildHintsVimperator(els: Element[], onSelect: HintSelectedCallback) {
-    let names = hintnames(els.length)
+function buildHintsVimperator(els: Element[], onSelect: HintSelectedCallback): Hint[] {
+    const result = []
     // escape the hintchars string so that strange things don't happen
     // when special characters are used as hintchars (for example, ']')
     const escapedHintChars = defaultHintChars().replace(/^\^|[-\\\]]/g, "\\$&")
     const filterableTextFilter = new RegExp("[" + escapedHintChars + "]", "g")
-    for (let [el, name] of izip(els, names)) {
+    for (let [el, name] of izip(els, hintnames(els.length))) {
         let ft = elementFilterableText(el)
         // strip out hintchars
         ft = ft.replace(filterableTextFilter, "")
         logger.debug({ el, name, ft })
-        modeState.hintchars += name + ft
-        modeState.hints.push(new Hint(el, name, ft, onSelect))
+        result.push(new Hint(el, name, ft, onSelect))
     }
+    return result
 }
 
 function elementFilterableText(el: Element): string {
@@ -352,27 +474,10 @@ function elementFilterableText(el: Element): string {
     return text.slice(0, 2048).toLowerCase() || ""
 }
 
-type HintFilter = (string) => void
+type FilteringFunction = (filter: BooleanFilter<Hint>, fstr: string) => BooleanFilter<Hint>
 
-/** Show only hints prefixed by fstr. Focus first match */
-function filterHintsSimple(fstr) {
-    const active: Hint[] = []
-    let foundMatch
-    for (let h of modeState.hints) {
-        if (!h.name.startsWith(fstr)) h.hidden = true
-        else {
-            if (!foundMatch) {
-                h.focused = true
-                modeState.focusedHint = h
-                foundMatch = true
-            }
-            h.hidden = false
-            active.push(h)
-        }
-    }
-    if (active.length == 1) {
-        selectFocusedHint()
-    }
+function filterHintsSimple(filter: BooleanFilter<Hint>, fstr) {
+    return filter.narrow(h => h.name.startsWith(fstr))
 }
 
 /** Partition the filter string into hintchars and content filter strings.
@@ -384,7 +489,7 @@ function filterHintsSimple(fstr) {
     weren't so tied here we could do a neat dynamic programming thing and just
     throw the data at a reactalike.
 */
-function filterHintsVimperator(fstr, reflow = false) {
+function filterHintsVimperator(filter: BooleanFilter<Hint>, fstr, reflow = false): BooleanFilter<Hint> {
     /** Partition a fstr into a tagged array of substrings */
     function partitionFstr(fstr): { str: string; isHintChar: boolean }[] {
         const peek = a => a[a.length - 1]
@@ -411,51 +516,28 @@ function filterHintsVimperator(fstr, reflow = false) {
         }
     }
 
-    // Start with all hints
-    let active = modeState.hints
-
     // If we're reflowing, the names may be wrong at this point, so apply the original names.
-    if (reflow) rename(active)
+    if (reflow) {
+        rename(filter.project())
+    }
 
-    // Filter down (renaming as required)
     for (const run of partitionFstr(fstr)) {
         if (run.isHintChar) {
-            // Filter by label
-            active = active.filter(hint => hint.name.startsWith(run.str))
-        } else {
-            // By text
-            active = active.filter(hint => hint.filterData.includes(run.str))
+            // Filter by name
+            filter = filter.narrow(h => h.name.startsWith(run.str))
+            continue
         }
 
-        if (reflow && !run.isHintChar) {
-            rename(active)
+        const before = filter.size
+
+        // Filter by text
+        filter = filter.narrow(h => h.filterData.includes(run.str))
+
+        if (reflow && filter.size !== before) {
+            rename(filter.project())
         }
     }
-
-    // Update display
-    // Hide all hints
-    for (const hint of modeState.hints) {
-        // Warning: this could cause flickering.
-        hint.hidden = true
-    }
-    // Show and update labels of active
-    for (const hint of active) {
-        hint.hidden = false
-        hint.flag.textContent = hint.name
-    }
-    // Focus first hint
-    if (active.length) {
-        if (modeState.focusedHint) {
-            modeState.focusedHint.focused = false
-        }
-        active[0].focused = true
-        modeState.focusedHint = active[0]
-    }
-
-    // Select focused hint if it's the only match
-    if (active.length == 1) {
-        selectFocusedHint(true)
-    }
+    return filter
 }
 
 /** Remove all hints, reset STATE.
@@ -467,21 +549,6 @@ function reset() {
     }
     modeState = undefined
     contentState.mode = "normal"
-}
-
-/** If key is in hintchars, add it to filtstr and filter */
-function pushKey(ke) {
-    if (ke.ctrlKey || ke.altKey || ke.metaKey) {
-        return
-    } else if (ke.key === "Backspace") {
-        modeState.filter = modeState.filter.slice(0, -1)
-        modeState.filterFunc(modeState.filter)
-    } else if (ke.key.length > 1) {
-        return
-    } else if (modeState.hintchars.includes(ke.key)) {
-        modeState.filter += ke.key
-        modeState.filterFunc(modeState.filter)
-    }
 }
 
 /** Array of hintable elements in viewport
@@ -521,17 +588,14 @@ export function killables() {
     ])
 }
 
-import { openInNewTab, activeTabContainerId } from "@src/lib/webext"
-import { openInNewWindow } from "@src/lib/webext"
-
 export function pipe(
     selectors = DOM.HINTTAGS_selectors,
     action: HintSelectedCallback = _ => _,
     rapid = false,
 ): Promise<[Element, number]> {
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve, reject) =>
         hintPage(hintables(selectors, true), action, resolve, reject, rapid)
-    })
+    )
 }
 
 export function pipe_elements(
@@ -539,21 +603,9 @@ export function pipe_elements(
     action: HintSelectedCallback = _ => _,
     rapid = false,
 ): Promise<[Element, number]> {
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve, reject) =>
         hintPage(elements, action, resolve, reject, rapid)
-    })
-}
-
-function selectFocusedHint(delay = false) {
-    logger.debug("Selecting hint.", contentState.mode)
-    const focused = modeState.focusedHint
-    let selectFocusedHintInternal = () => {
-        modeState.filter = ""
-        modeState.hints.forEach(h => (h.hidden = false))
-        focused.select()
-    }
-    if (delay) setTimeout(selectFocusedHintInternal, config.get("hintdelay"))
-    else selectFocusedHintInternal()
+    )
 }
 
 export function parser(keys: KeyboardEvent[]) {
@@ -561,9 +613,17 @@ export function parser(keys: KeyboardEvent[]) {
         if (key === "Escape") {
             reset()
         } else if (["Enter", " "].includes(key)) {
-            selectFocusedHint()
+            modeState.selectFocusedHint()
+        } else if (key === "Tab") {
+            modeState.focusNextActive()
+        } else if ("Control" === key || "Alt" === key || "Meta" === key) {
+            return
+        } else if (key === "Backspace") {
+            modeState.revert()
+        } else if (key.length > 1) {
+            return
         } else {
-            pushKey(keys[0])
+            modeState.narrow(key)
         }
     }
     return { keys: [], ex_str: "", isMatch: true }
