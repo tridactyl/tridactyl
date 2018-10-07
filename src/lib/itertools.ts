@@ -177,3 +177,20 @@ export function flatten(arr) {
     }
     return result
 }
+
+export function maxby(arr, f) {
+    let maxvalue = -Infinity
+    let maxelem = null
+    for (let elem of arr) {
+        let val = f(elem)
+        if (val > maxvalue) {
+            maxvalue = val
+            maxelem = elem
+        }
+    }
+    return [maxelem, maxvalue]
+}
+
+export function minby(arr, f) {
+    return maxby(arr, e => -f(e))
+}

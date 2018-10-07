@@ -1,5 +1,6 @@
 import * as Perf from "@src/perf"
-import { enumerate } from "@src/lib/itertools"
+import { browserBg } from "@src/lib/webext"
+import { enumerate, maxby } from "@src/lib/itertools"
 import * as Containers from "@src/lib/containers"
 import * as Messaging from "@src/lib/messaging"
 import * as Completions from "@src/completions"
@@ -15,6 +16,7 @@ class BufferCompletionOption extends Completions.CompletionOptionHTML
         container: browser.contextualIdentities.ContextualIdentity,
     ) {
         super()
+
         // Two character buffer properties prefix
         let pre = ""
         if (tab.active) pre += "%"
@@ -67,31 +69,47 @@ export class BufferCompletionSource extends Completions.CompletionSourceFuse {
         this._parent.appendChild(this.node)
     }
 
+    private async getWindows(): Promise<{ [windowId: number]: browser.windows.Window }> {
+        const windows = await browserBg.windows.getAll()
+        const response: { [windowId: number]: browser.windows.Window } = {}
+        windows.forEach(win => (response[win.id] = win))
+        return response
+    }
+
+    private async getContainers(): Promise<Map<number, browser.contextualIdentities.ContextualIdentity>> {
+        const containers = await browserBg.contextualIdentities.query({})
+        const result: Map<number, browser.contextualIdentities.ContextualIdentity> = new Map()
+        for (const container of containers) {
+            result.set(container.cookieStoreId, container)
+        }
+        return result
+    }
+
     @Perf.measuredAsync
     private async updateOptions(exstr?: string) {
-        /* console.log('updateOptions', this.optionContainer) */
-        const tabs: browser.tabs.Tab[] = await Messaging.message(
+        const tabsPromise = Messaging.message(
             "commandline_background",
-            "currentWindowTabs",
+            "allWindowTabs",
         )
+        const windowsPromise = this.getWindows()
+        const containersPromise = this.getContainers()
+        const [tabs, windows, containers] = await Promise.all([tabsPromise, windowsPromise, containersPromise])
+
+        // Get alternative tab, defined as most recently accessed tab
+        // that is not focused.
+        const [alt, _] = maxby(tabs.filter(t => !t.active), t => t.lastAccessed)
+
+        // Sort by windowid then index
+        tabs.sort((a, b) => a.windowId - b.windowId || a.index - b.index)
 
         const options = []
-
-        // Get alternative tab, defined as last accessed tab.
-        const alt = tabs.sort((a, b) => {
-            return a.lastAccessed < b.lastAccessed ? 1 : -1
-        })[1]
-        tabs.sort((a, b) => {
-            return a.index < b.index ? -1 : 1
-        })
-
         for (const tab of tabs) {
             options.push(
                 new BufferCompletionOption(
                     (tab.index + 1).toString(),
                     tab,
                     tab === alt,
-                    await Containers.getFromId(tab.cookieStoreId),
+                    containers.get(tab.cookieStoreId) || Containers.DefaultContainer,
                 ),
             )
         }

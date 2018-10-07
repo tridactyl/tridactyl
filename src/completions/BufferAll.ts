@@ -1,5 +1,6 @@
 import * as Perf from "@src/perf"
 import { browserBg } from "@src/lib/webext"
+import { enumerate, maxby } from "@src/lib/itertools"
 import * as Containers from "@src/lib/containers"
 import * as Messaging from "@src/lib/messaging"
 import * as Completions from "@src/completions"
@@ -11,11 +12,24 @@ class BufferAllCompletionOption extends Completions.CompletionOptionHTML
         public value: string,
         tab: browser.tabs.Tab,
         winindex: number,
+        public isAlternative = false,
         container: browser.contextualIdentities.ContextualIdentity,
         incognito: boolean,
     ) {
         super()
+
+        // Two character buffer properties prefix
+        let pre = ""
+        if (tab.active) pre += "%"
+        else if (isAlternative) {
+            pre += "#"
+            this.value = "#"
+        }
+        if (tab.pinned) pre += "@"
+
         this.value = `${winindex}.${tab.index + 1}`
+
+        this.fuseKeys.push(pre)
         this.fuseKeys.push(this.value, tab.title, tab.url)
 
         // Create HTMLElement
@@ -27,7 +41,7 @@ class BufferAllCompletionOption extends Completions.CompletionOptionHTML
         } container_${container.icon} container_${container.name} ${
             incognito ? "incognito" : ""
         }">
-            <td class="prefix"></td>
+            <td class="prefix">${pre.padEnd(2)}</td>
             <td class="privatewindow"></td>
             <td class="container"></td>
             <td class="icon"><img src="${favIconUrl}"/></td>
@@ -53,36 +67,44 @@ export class BufferAllCompletionSource extends Completions.CompletionSourceFuse 
         await this.updateOptions()
     }
 
-    /**
-     * Map all windows into a {[windowId]: window} object
-     */
-    private async getWindows() {
+    private async getWindows(): Promise<{ [windowId: number]: browser.windows.Window }> {
         const windows = await browserBg.windows.getAll()
         const response: { [windowId: number]: browser.windows.Window } = {}
         windows.forEach(win => (response[win.id] = win))
         return response
     }
 
+    private async getContainers(): Promise<Map<number, browser.contextualIdentities.ContextualIdentity>> {
+        const containers = await browserBg.contextualIdentities.query({})
+        const result: Map<number, browser.contextualIdentities.ContextualIdentity> = new Map()
+        for (const container of containers) {
+            result.set(container.cookieStoreId, container)
+        }
+        return result
+    }
+
     @Perf.measuredAsync
     private async updateOptions(exstr?: string) {
         const tabsPromise = Messaging.message(
             "commandline_background",
-            "allWindowTabs",
+            "currentWindowTabs",
         )
         const windowsPromise = this.getWindows()
-        const [tabs, windows] = await Promise.all([tabsPromise, windowsPromise])
+        const containersPromise = this.getContainers()
+        const [tabs, windows, containers] = await Promise.all([tabsPromise, windowsPromise, containersPromise])
 
-        const options = []
+        // Get alternative tab, defined as most recently accessed tab
+        // that is not focused.
+        const [alt, _] = maxby(tabs.filter(t => !t.active), t => t.lastAccessed)
 
-        tabs.sort((a, b) => {
-            if (a.windowId == b.windowId) return a.index - b.index
-            return a.windowId - b.windowId
-        })
+        // Sort by windowid then index
+        tabs.sort((a, b) => a.windowId - b.windowId || a.index - b.index)
 
         // Window Ids don't make sense so we're using LASTID and WININDEX to compute a window index
         // This relies on the fact that tabs are sorted by window ids
         let lastId = 0
         let winindex = 0
+        const options = []
         for (const tab of tabs) {
             if (lastId != tab.windowId) {
                 lastId = tab.windowId
@@ -93,7 +115,8 @@ export class BufferAllCompletionSource extends Completions.CompletionSourceFuse 
                     tab.id.toString(),
                     tab,
                     winindex,
-                    await Containers.getFromId(tab.cookieStoreId),
+                    tab === alt,
+                    containers.get(tab.cookieStoreId) || Containers.DefaultContainer,
                     windows[tab.windowId].incognito,
                 ),
             )

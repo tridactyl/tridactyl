@@ -31,7 +31,7 @@ const ContainerIcon = [
     "chill",
 ]
 
-const DefaultContainer = Object.freeze(
+export const DefaultContainer = Object.freeze(
     fromString("default", "invisible", "noicond", "firefox-default"),
 )
 
