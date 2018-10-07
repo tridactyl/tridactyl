@@ -3039,7 +3039,7 @@ export function searchsetkeyword(keyword: string, url: string) {
  * @hidden
  */
 function validateSetArgs(key: string, values: string[]) {
-    const target = key.split(".")
+    const target: any[] = key.split(".")
     const currentValue = config.get(...target)
     const last = target[target.length - 1]
 
@@ -3057,7 +3057,8 @@ function validateSetArgs(key: string, values: string[]) {
         if (md.type && !fitsType(value, md.type)) throw `Given type does not match expected type (given: ${value}, expected: ${typeToString(md.type)})`
     }
 
-    return target.concat(value)
+    target.push(value)
+    return target
 }
 
 /**
