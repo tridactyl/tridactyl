@@ -739,6 +739,17 @@ function setDeepProperty(obj, value, target) {
     }
 }
 
+export function mergeDeep(o1, o2) {
+    let r = Array.isArray(o1) ? o1.slice() : Object.create(o1)
+    Object.assign(r, o1, o2)
+    if (o2 === undefined)
+        return r
+    Object.keys(o1)
+        .filter(key => typeof o1[key] == "object" && typeof o2[key] == "object")
+        .forEach(key => Object.assign(r[key], mergeDeep(o1[key], o2[key])))
+    return r
+}
+
 export function getURL(url, target) {
     if (!USERCONFIG.subconfigs) return undefined
     let key =
@@ -774,8 +785,8 @@ export function get(...target) {
     const defult = getDeepProperty(DEFAULTS, target)
 
     // Merge results if there's a default value and it's not an Array or primitive.
-    if (defult && (!Array.isArray(defult) && typeof defult === "object")) {
-        return Object.assign(Object.assign(o({}), defult, user), site)
+    if (typeof defult === "object") {
+        return mergeDeep(mergeDeep(defult, user), site)
     } else {
         if (site !== undefined) {
             return site
