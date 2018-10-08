@@ -1360,6 +1360,18 @@ export async function open(...urlarr: string[]) {
 }
 
 /**
+ * Works exactly like [[open]], but only suggests bookmarks.
+ *
+ * @param opt Optional. Has to be `-t` in order to make bmarks open your bookmarks in a new tab.
+ * @param urlarr any argument accepted by [[open]], or [[tabopen]] if opt is "-t"
+ */
+//#background
+export async function bmarks(opt: string, ...urlarr: string[]) {
+    if (opt == "-t") return tabopen(...urlarr)
+    else return open(opt, ...urlarr)
+}
+
+/**
  * Like [[open]] but doesn't make a new entry in history.
  */
 //#content
