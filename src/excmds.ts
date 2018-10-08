@@ -1378,18 +1378,6 @@ export async function open(...urlarr: string[]) {
 }
 
 /**
- * Works exactly like [[open]], but only suggests bookmarks.
- *
- * @param opt Optional. Has to be `-t` in order to make bmarks open your bookmarks in a new tab.
- * @param urlarr any argument accepted by [[open]], or [[tabopen]] if opt is "-t"
- */
-//#content
-export async function bmarks(opt: string, ...urlarr: string[]) {
-    if (opt == "-t") return tabopen(...urlarr)
-    else return open(opt, ...urlarr)
-}
-
-/**
  * Like [[open]] but doesn't make a new entry in history.
  */
 //#content
@@ -2081,7 +2069,7 @@ export async function tablast() {
     Hinting is controlled by `relatedopenpos`
 
 */
-//#content
+//#background
 export async function tabopen(...addressarr: string[]) {
     let active
     let container
@@ -2094,7 +2082,7 @@ export async function tabopen(...addressarr: string[]) {
             argParse(args)
         } else if (args[0] === "-c") {
             // Ignore the -c flag if incognito as containers are disabled.
-            let win = await browserBg.windows.getCurrent()
+            let win = await browser.windows.getCurrent()
             if (!win["incognito"]) container = await Container.fuzzyMatch(args[1])
             else logger.error("[tabopen] can't open a container in a private browsing window.")
 
@@ -2110,12 +2098,11 @@ export async function tabopen(...addressarr: string[]) {
 
     if (address == "") address = config.get("newtab")
     if (!ABOUT_WHITELIST.includes(address) && address.match(/^(about|file):.*/)) {
-        if ((await browserBg.runtime.getPlatformInfo()).os === "mac" && (await browserBg.windows.getCurrent()).incognito) {
+        if ((await browser.runtime.getPlatformInfo()).os === "mac" && (await browser.windows.getCurrent()).incognito) {
             fillcmdline_notrail("# nativeopen isn't supported in private mode on OSX. Consider installing Linux or Windows :).")
             return
         } else {
-            Messaging.message("commandline_background", "recvExStr", ["nativeopen " + address])
-            // nativeopen(address)
+            nativeopen(address)
             return
         }
     } else if (address != "") url = forceURI(address)
@@ -2679,13 +2666,9 @@ export async function sleep(time_ms: number) {
 }
 
 /** @hidden */
-//#content
+//#background
 function showcmdline(focus = true) {
-    Messaging.messageOwnTab("commandline_content", "show")
-    if (focus) {
-        Messaging.messageOwnTab("commandline_content", "focus")
-        Messaging.messageOwnTab("commandline_frame", "focus")
-    }
+    CommandLineBackground.show(focus)
 }
 
 /** @hidden */
@@ -2695,20 +2678,20 @@ export function hidecmdline() {
 }
 
 /** Set the current value of the commandline to string *with* a trailing space */
-//#content
+//#background
 export function fillcmdline(...strarr: string[]) {
     let str = strarr.join(" ")
     showcmdline()
-    Messaging.messageOwnTab("commandline_frame", "fillcmdline", [str])
+    messageActiveTab("commandline_frame", "fillcmdline", [str])
 }
 
 /** Set the current value of the commandline to string *without* a trailing space */
-//#content
+//#background
 export function fillcmdline_notrail(...strarr: string[]) {
     let str = strarr.join(" ")
     let trailspace = false
     showcmdline()
-    Messaging.messageOwnTab("commandline_frame", "fillcmdline", [str, trailspace])
+    messageActiveTab("commandline_frame", "fillcmdline", [str, trailspace])
 }
 
 /** Show and fill the command line without focusing it */
@@ -2762,12 +2745,11 @@ async function setclip(str) {
     // Functions to avoid retyping everything everywhere
 
     // Note: We're using fillcmdline here because exceptions are somehow not caught. We're rethrowing because otherwise the error message will be overwritten with the "yank successful" message.
-    let s = () =>
-        Native.clipboard("set", str).catch(e => {
-            let msg = "# Failed to set X selection. Is the native messenger installed and is it >=v.0.1.7?"
-            fillcmdline(msg)
-            throw msg
-        })
+    let s = () => Native.clipboard("set", str).catch(e => {
+        let msg = "# Failed to set X selection. Is the native messenger installed and is it >=v.0.1.7?"
+        fillcmdline(msg)
+        throw msg
+    })
     let c = async () => {
         await messageActiveTab("commandline_content", "focus")
         await messageActiveTab("commandline_frame", "setClipboard", [str])

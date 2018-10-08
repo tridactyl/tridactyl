@@ -43,8 +43,7 @@ export class BmarkCompletionSource extends Completions.CompletionSourceFuse {
 
     public async filter(exstr: string) {
         this.lastExstr = exstr
-        let [prefix, query] = this.splitOnPrefix(exstr)
-        let option = ""
+        const [prefix, query] = this.splitOnPrefix(exstr)
 
         // Hide self and stop if prefixes don't match
         if (prefix) {
@@ -57,14 +56,9 @@ export class BmarkCompletionSource extends Completions.CompletionSourceFuse {
             return
         }
 
-        if (query.startsWith("-t ")) {
-            option = "-t "
-            query = query.slice(3)
-        }
-
         this.completion = undefined
         this.options = (await this.scoreOptions(query, 10)).map(
-            page => new BmarkCompletionOption(option + page.url, page),
+            page => new BmarkCompletionOption(page.url, page),
         )
 
         this.updateChain()
@@ -98,7 +92,7 @@ export class BmarkCompletionSource extends Completions.CompletionSourceFuse {
 
     select(option: Completions.CompletionOption) {
         if (this.lastExstr !== undefined && option !== undefined) {
-            this.completion = "bmarks " + option.value
+            this.completion = "open " + option.value
             option.state = "focused"
             this.lastFocused = option
         } else {
