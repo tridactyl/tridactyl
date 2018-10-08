@@ -47,6 +47,7 @@ export type LoggingLevel = "never" | "error" | "warning" | "info" | "debug"
  *
  * You can change anything here using `set key1.key2.key3 value` or specific things any of the various helper commands such as `bind` or `command`.
  *
+ * You can also jump to the help section of a setting using `:help $settingname`. Some of the settings have a small input field containing their current value next to them. You can modify these values and save them by pressing `<Enter>` but using `:set $setting $value` is a good habit to take as it doesn't force you to leave the page you're visiting to change your settings.
  */
 class default_config {
     /**
@@ -741,8 +742,7 @@ function setDeepProperty(obj, value, target) {
 export function mergeDeep(o1, o2) {
     let r = Array.isArray(o1) ? o1.slice() : Object.create(o1)
     Object.assign(r, o1, o2)
-    if (o2 === undefined)
-        return r
+    if (o2 === undefined) return r
     Object.keys(o1)
         .filter(key => typeof o1[key] == "object" && typeof o2[key] == "object")
         .forEach(key => Object.assign(r[key], mergeDeep(o1[key], o2[key])))

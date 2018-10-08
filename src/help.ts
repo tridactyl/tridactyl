@@ -89,22 +89,22 @@ async function addSetting(settingName: string) {
         .forEach((e: HTMLElement) => e.parentNode.removeChild(e))
 }
 
-browser.storage.onChanged.addListener((changes, areaname) => {
-    if ("userconfig" in changes) {
-        // JSON.stringify for comparisons like it's 2012
-        ;["nmaps", "imaps", "ignoremaps", "inputmaps", "exaliases"].forEach(
-            kind => {
-                if (
-                    JSON.stringify(changes.userconfig.newValue[kind]) !=
-                    JSON.stringify(changes.userconfig.oldValue[kind])
-                )
-                    addSetting(kind)
-            },
-        )
-    }
-})
+async function onExcmdPageLoad() {
+    browser.storage.onChanged.addListener((changes, areaname) => {
+        if ("userconfig" in changes) {
+            // JSON.stringify for comparisons like it's 2012
+            ;["nmaps", "imaps", "ignoremaps", "inputmaps", "exaliases"].forEach(
+                kind => {
+                    if (
+                        JSON.stringify(changes.userconfig.newValue[kind]) !=
+                        JSON.stringify(changes.userconfig.oldValue[kind])
+                    )
+                        addSetting(kind)
+                },
+            )
+        }
+    })
 
-addEventListener("load", async () => {
     await Promise.all(
         ["nmaps", "imaps", "ignoremaps", "inputmaps", "exaliases"].map(
             addSetting,
@@ -114,4 +114,85 @@ addEventListener("load", async () => {
     if (document.location.hash) {
         document.location.hash = document.location.hash
     }
-})
+}
+
+async function onSettingsPageLoad() {
+    const inputClassName = " TridactylSettingInput "
+    const inputClassNameModified =
+        inputClassName + " TridactylSettingInputModified "
+
+    let getIdForSetting = settingName => "TridactylSettingInput_" + settingName
+
+    browser.storage.onChanged.addListener((changes, areaname) => {
+        if (!("userconfig" in changes)) return
+        Object.keys(changes.userconfig.newValue).forEach(key => {
+            let elem = document.getElementById(
+                getIdForSetting(key),
+            ) as HTMLInputElement
+            if (!elem) return
+            elem.value = changes.userconfig.newValue[key]
+            elem.className = inputClassName
+        })
+    })
+
+    let onKeyUp = async ev => {
+        let input = ev.target
+        if (ev.key == "Enter") {
+            ;(window as any).tri.messaging.message(
+                "commandline_background",
+                "recvExStr",
+                ["set " + input.name + " " + input.value],
+            )
+        } else {
+            if (input.value == (await config.getAsync(input.name.split(".")))) {
+                input.className = inputClassName
+            } else {
+                input.className = inputClassNameModified
+            }
+        }
+    }
+
+    Array.from(document.querySelectorAll("a.tsd-anchor")).forEach(
+        async (a: HTMLAnchorElement) => {
+            let signature = (a.parentNode as any).querySelector(
+                "div.tsd-signature",
+            )
+            if (!signature)
+                // console.logging is ok because we're only spamming our own console
+                return console.log("Failed to grab signature of ", a)
+
+            let settingName = a.name.split(".")
+            let value = await config.getAsync(settingName)
+            if (!value) return console.log("Failed to grab value of ", a)
+            if (!["number", "boolean", "string"].includes(typeof value))
+                return console.log(
+                    "Not embedding value of ",
+                    a,
+                    value,
+                    " because not easily represented as string",
+                )
+
+            let input = document.createElement("input")
+            input.name = a.name
+            input.value = value
+            input.id = getIdForSetting(a.name)
+            input.className = inputClassName
+            input.addEventListener("keyup", onKeyUp)
+
+            signature.appendChild(input)
+        },
+    )
+}
+
+addEventListener(
+    "load",
+    (() => {
+        switch (document.location.pathname) {
+            case "/static/docs/modules/_excmds_.html":
+                return onExcmdPageLoad
+            case "/static/docs/classes/_lib_config_.default_config.html":
+                return onSettingsPageLoad
+        }
+        return () => {}
+    })(),
+)

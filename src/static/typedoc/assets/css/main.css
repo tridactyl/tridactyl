@@ -2999,6 +2999,16 @@ ul.tsd-descriptions h4 {
     border-radius: 3px;
 }
 
+.TridactylSettingInput {
+    position: absolute;
+    top: 0px;
+    right: 0px;
+}
+
+.TridactylSettingInputModified {
+    color: blue;
+}
+
 /* ul.TridactylSetting li:not(:last-child):after { */
 /*     content: ", "; */
 /*     font-weight: normal; */
