@@ -52,7 +52,7 @@ import Mark from "mark.js"
 import * as perf from "@src/perf"
 import * as keyseq from "@src/lib/keyseq"
 import * as native from "@src/background/native_background"
-import * as styling from "@src/content/styling"
+import * as styling from "@src/lib/styling"
 ;(window as any).tri = Object.assign(Object.create(null), {
     browserBg: webext.browserBg,
     commandline_content,

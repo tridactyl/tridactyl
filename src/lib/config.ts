@@ -590,6 +590,7 @@ class default_config {
         cmdline: "warning",
         controller: "warning",
         containers: "warning",
+        completions: "warning",
         hinting: "warning",
         state: "warning",
         excmd: "error",

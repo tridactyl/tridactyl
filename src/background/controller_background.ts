@@ -1,5 +1,6 @@
 import { parser as exmode_parser } from "@src/parsers/exmode"
 import { repeat } from "@src/.excmds_background.generated"
+import * as Messaging from "@src/lib/messaging"
 
 import Logger from "@src/lib/logging"
 
@@ -26,8 +27,6 @@ export async function acceptExCmd(exstr: string): Promise<any> {
         logger.error("background_controller: ", e)
     }
 }
-
-import * as Messaging from "@src/lib/messaging"
 
 // Get messages from content
 Messaging.addListener(

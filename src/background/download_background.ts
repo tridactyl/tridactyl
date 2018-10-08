@@ -2,6 +2,7 @@
  * Background download-related functions
  */
 
+import * as Messaging from "@src/lib/messaging"
 import * as Native from "@src/background/native_background"
 import { getDownloadFilenameForUrl } from "@src/lib/url_util"
 
@@ -146,8 +147,6 @@ export async function downloadUrlAs(url: string, saveAs: string) {
         browser.downloads.onChanged.addListener(onDownloadComplete)
     })
 }
-
-import * as Messaging from "@src/lib/messaging"
 
 // Get messages from content
 Messaging.addListener(
