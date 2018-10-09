@@ -4,7 +4,7 @@
 
     Use `:help <excmd>` or scroll down to show [[help]] for a particular excmd. If you're still stuck, you might consider reading through the [:tutor](/static/clippy/tutor.html) again.
 
-    The default keybinds can be found [here](/static/docs/classes/_config_.default_config.html) or all active binds can be seen with `:viewconfig nmaps`.
+    The default keybinds can be found [here](/static/docs/classes/_lib_config_.default_config.html) or all active binds can be seen with `:viewconfig nmaps`.
     
     You can also view them with [[bind]]. Try `bind j`.
 
