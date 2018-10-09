@@ -116,10 +116,9 @@ export async function getBestEditor(): Promise<string> {
             "urxvt -e",
             "alacritty -e", // alacritty is nice but takes ages to start and doesn't support class
             "cool-retro-term -e",
-            // Terminator and termite require  -e commands to be in quotes, hence the extra quote at the end.
-            // The closing quote is implemented in the editor function.
-            'terminator -e "',
-            'termite --class tridactyl_editor -e "',
+            // Terminator and termite require  -e commands to be in quotes
+            'terminator -e "%f"',
+            'termite --class tridactyl_editor -e "%f"',
             "dbus-launch gnome-terminal --",
             // I wanted to put hyper.js here as a joke but you can't start it running a command,
             // which is a far better joke: a terminal emulator that you can't send commands to.
@@ -233,11 +232,11 @@ export async function editor(file: string, content?: string) {
         config.get("editorcmd") == "auto"
             ? await getBestEditor()
             : config.get("editorcmd")
-    // Dirty hacks for termite and terminator support part 2.
-    const e = editorcmd.split(" ")[0]
-    if (e === "termite" || e === "terminator") {
-        await run(editorcmd + " " + file + '"')
-    } else await run(editorcmd + " " + file)
+    if (editorcmd.indexOf("%f") != -1) {
+        await run(editorcmd.replace(/%f/, file))
+    } else {
+        await run(editorcmd + " " + file)
+    }
     return await read(file)
 }
 
