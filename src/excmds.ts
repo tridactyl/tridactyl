@@ -199,7 +199,7 @@ export async function editor() {
 export function im_delete_char() {
     let elem = DOM.getLastUsedInput() as HTMLInputElement
     let pos = elem.selectionStart
-    // Abort if we can't find out where the cursor is
+    // Abort if we can't find out where the caret is
     if (pos === undefined || pos === null) {
         logger.warning("im_delete_char: elem doesn't have a selectionStart")
         return
@@ -223,9 +223,9 @@ export function im_delete_char() {
 export function im_delete_backward_char() {
     let elem = DOM.getLastUsedInput() as HTMLInputElement
     let pos = elem.selectionStart
-    // Abort if we can't find out where the cursor is or if it is at the beginning of the text
+    // Abort if we can't find out where the caret is or if it is at the beginning of the text
     if (!pos) {
-        logger.warning("im_delete_backward_char: elem doesn't have a selectionStart or cursor is at beginning of line.")
+        logger.warning("im_delete_backward_char: elem doesn't have a selectionStart or caret is at beginning of line.")
         return
     }
     let text = getInput(elem)
@@ -240,7 +240,7 @@ export function im_delete_backward_char() {
 }
 
 /**
- * Behaves like readline's [tab_insert](http://web.mit.edu/gnu/doc/html/rlman_1.html#SEC14), i.e. inserts a tab character to the left of the cursor.
+ * Behaves like readline's [tab_insert](http://web.mit.edu/gnu/doc/html/rlman_1.html#SEC14), i.e. inserts a tab character to the left of the caret.
  **/
 //#content
 export function im_tab_insert() {
@@ -261,7 +261,7 @@ export function im_tab_insert() {
 }
 
 /**
- * Behaves like readline's [transpose_chars](http://web.mit.edu/gnu/doc/html/rlman_1.html#SEC14), i.e. transposes the character to the left of the cursor with the character to the right of the cursor and then moves the cursor one character to the right. If there are no characters to the right or to the left of the cursor, uses the two characters the closest to the cursor.
+ * Behaves like readline's [transpose_chars](http://web.mit.edu/gnu/doc/html/rlman_1.html#SEC14), i.e. transposes the character to the left of the caret with the character to the right of the caret and then moves the caret one character to the right. If there are no characters to the right or to the left of the caret, uses the two characters the closest to the caret.
  **/
 //#content
 export function im_transpose_chars() {
@@ -282,7 +282,7 @@ export function im_transpose_chars() {
 }
 
 /** @hidden
- * Detects the boundaries of a word in text according to the wordpattern setting. If POSITION is in a word, the boundaries of this word are returned. If POSITION is out of a word and BEFORE is true, the word before POSITION is returned. If BEFORE is false, the word after the cursor is returned.
+ * Detects the boundaries of a word in text according to the wordpattern setting. If POSITION is in a word, the boundaries of this word are returned. If POSITION is out of a word and BEFORE is true, the word before POSITION is returned. If BEFORE is false, the word after the caret is returned.
  */
 //#content_helper
 export function getWordBoundaries(text: string, position: number, before: boolean): [number, number] {
@@ -290,7 +290,7 @@ export function getWordBoundaries(text: string, position: number, before: boolea
     let pattern = new RegExp(config.get("wordpattern"), "g")
     let boundary1 = position < text.length ? position : text.length - 1
     let direction = before ? -1 : 1
-    // if the cursor is not in a word, try to find the word before or after it
+    // if the caret is not in a word, try to find the word before or after it
     while (boundary1 >= 0 && boundary1 < text.length && !text[boundary1].match(pattern)) {
         boundary1 += direction
     }
@@ -311,7 +311,7 @@ export function getWordBoundaries(text: string, position: number, before: boolea
         throw new Error(`getWordBoundaries: no characters matching wordpattern (${pattern.source}) in text (${text})`)
     }
 
-    // now that we know the cursor is in a word (it could be in the middle depending on POSITION!), try to find its beginning/end
+    // now that we know the caret is in a word (it could be in the middle depending on POSITION!), try to find its beginning/end
     while (boundary1 >= 0 && boundary1 < text.length && !!text[boundary1].match(pattern)) {
         boundary1 += direction
     }
@@ -319,7 +319,7 @@ export function getWordBoundaries(text: string, position: number, before: boolea
     boundary1 -= direction
 
     let boundary2 = boundary1
-    // now that we know the cursor is at the beginning/end of a word, we need to find the other boundary
+    // now that we know the caret is at the beginning/end of a word, we need to find the other boundary
     while (boundary2 >= 0 && boundary2 < text.length && !!text[boundary2].match(pattern)) {
         boundary2 -= direction
     }
@@ -360,14 +360,14 @@ export function im_transpose_words() {
     }
     let text = getInput(elem)
     if (text.length == 0) return
-    // If the cursor is at the end of the text, move it just before the last character
+    // If the caret is at the end of the text, move it just before the last character
     if (pos >= text.length) {
         pos = text.length - 1
     }
-    // Find the word the cursor is in
+    // Find the word the caret is in
     let firstBoundaries = getWordBoundaries(text, pos, false)
     let secondBoundaries = firstBoundaries
-    // If there is a word after the word the cursor is in, use it for the transposition, otherwise use the word before it
+    // If there is a word after the word the caret is in, use it for the transposition, otherwise use the word before it
     let nextWord = wordAfterPos(text, firstBoundaries[1])
     if (nextWord > -1) {
         secondBoundaries = getWordBoundaries(text, nextWord, false)
@@ -379,12 +379,12 @@ export function im_transpose_words() {
     let beginning = text.substring(0, firstBoundaries[0]) + secondWord + text.substring(firstBoundaries[1], secondBoundaries[0])
     pos = beginning.length
     fillinput(DOM.getSelector(elem), beginning + firstWord + text.substring(secondBoundaries[1]))
-    // Move cursor just before the word that was transposed
+    // Move caret just before the word that was transposed
     elem.selectionStart = elem.selectionEnd = pos
 }
 
 /** @hidden
- * Applies a function to the word the cursor is in, or to the next word if the cursor is not in a word, or to the previous word if the current word is empty.
+ * Applies a function to the word the caret is in, or to the next word if the caret is not in a word, or to the previous word if the current word is empty.
  */
 //#content_helper
 function applyWord(fn: (string) => string) {
@@ -396,7 +396,7 @@ function applyWord(fn: (string) => string) {
     }
     let text = getInput(elem)
     if (text.length == 0) return
-    // If the cursor is at the end of the text, move it just before the last character
+    // If the caret is at the end of the text, move it just before the last character
     if (pos >= text.length) {
         pos = text.length - 1
     }
@@ -407,7 +407,7 @@ function applyWord(fn: (string) => string) {
 }
 
 /**
- * Behaves like readline's [upcase_word](http://web.mit.edu/gnu/doc/html/rlman_1.html#SEC14). Makes the word the cursor is in uppercase.
+ * Behaves like readline's [upcase_word](http://web.mit.edu/gnu/doc/html/rlman_1.html#SEC14). Makes the word the caret is in uppercase.
  **/
 //#content
 export function im_upcase_word() {
@@ -415,7 +415,7 @@ export function im_upcase_word() {
 }
 
 /**
- * Behaves like readline's [downcase_word](http://web.mit.edu/gnu/doc/html/rlman_1.html#SEC14). Makes the word the cursor is in lowercase.
+ * Behaves like readline's [downcase_word](http://web.mit.edu/gnu/doc/html/rlman_1.html#SEC14). Makes the word the caret is in lowercase.
  **/
 //#content
 export function im_downcase_word() {
@@ -423,7 +423,7 @@ export function im_downcase_word() {
 }
 
 /**
- * Behaves like readline's [capitalize_word](http://web.mit.edu/gnu/doc/html/rlman_1.html#SEC14). Makes the initial character of the word the cursor is in uppercase.
+ * Behaves like readline's [capitalize_word](http://web.mit.edu/gnu/doc/html/rlman_1.html#SEC14). Makes the initial character of the word the caret is in uppercase.
  **/
 //#content
 export function im_capitalize_word() {
@@ -431,7 +431,7 @@ export function im_capitalize_word() {
 }
 
 /**
- * Behaves like readline's [kill_line](http://web.mit.edu/gnu/doc/html/rlman_1.html#SEC15), i.e. deletes every character to the right of the cursor until reaching either the end of the text or the newline character (\n).
+ * Behaves like readline's [kill_line](http://web.mit.edu/gnu/doc/html/rlman_1.html#SEC15), i.e. deletes every character to the right of the caret until reaching either the end of the text or the newline character (\n).
  **/
 //#content
 export function im_kill_line() {
@@ -445,7 +445,7 @@ export function im_kill_line() {
     if (text.length == 0) return
     let newLine = text.substring(pos).search("\n")
     if (newLine != -1) {
-        // If the cursor is right before the newline, kill the newline
+        // If the caret is right before the newline, kill the newline
         if (newLine == 0) newLine = 1
         text = text.substring(0, pos) + text.substring(pos + newLine)
     } else {
@@ -456,7 +456,7 @@ export function im_kill_line() {
 }
 
 /**
- * Behaves like readline's [backward_kill_line](http://web.mit.edu/gnu/doc/html/rlman_1.html#SEC15), i.e. deletes every character to the left of the cursor until either the beginning of the text is found or a newline character ("\n") is reached.
+ * Behaves like readline's [backward_kill_line](http://web.mit.edu/gnu/doc/html/rlman_1.html#SEC15), i.e. deletes every character to the left of the caret until either the beginning of the text is found or a newline character ("\n") is reached.
  **/
 //#content
 export function im_backward_kill_line() {
@@ -468,7 +468,7 @@ export function im_backward_kill_line() {
     }
     let text = getInput(elem)
     if (text.length == 0) return
-    // If the cursor is at the beginning of a line, join the lines
+    // If the caret is at the beginning of a line, join the lines
     if (text[pos - 1] == "\n") {
         fillinput(DOM.getSelector(elem), text.substring(0, pos - 1) + text.substring(pos))
         elem.selectionStart = elem.selectionEnd = pos - 1
@@ -476,14 +476,14 @@ export function im_backward_kill_line() {
         let newLine
         // Find the closest newline
         for (newLine = pos; newLine > 0 && text[newLine - 1] != "\n"; --newLine) {}
-        // Remove everything between the newline and the cursor
+        // Remove everything between the newline and the caret
         fillinput(DOM.getSelector(elem), text.substring(0, newLine) + text.substring(pos))
         elem.selectionStart = elem.selectionEnd = newLine
     }
 }
 
 /**
- * Behaves like readline's [kill_whole_line](http://web.mit.edu/gnu/doc/html/rlman_1.html#SEC15). Deletes every character between the two newlines the cursor is in. If a newline can't be found on the left of the cursor, everything is deleted until the beginning of the text is reached. If a newline can't be found on the right, everything is deleted until the end of the text is found.
+ * Behaves like readline's [kill_whole_line](http://web.mit.edu/gnu/doc/html/rlman_1.html#SEC15). Deletes every character between the two newlines the caret is in. If a newline can't be found on the left of the caret, everything is deleted until the beginning of the text is reached. If a newline can't be found on the right, everything is deleted until the end of the text is found.
  **/
 //#content
 export function im_kill_whole_line() {
@@ -496,17 +496,17 @@ export function im_kill_whole_line() {
     let text = getInput(elem)
     if (text.length == 0) return
     let firstNewLine, secondNewLine
-    // Find the newline before the cursor
+    // Find the newline before the caret
     for (firstNewLine = pos; firstNewLine > 0 && text[firstNewLine - 1] != "\n"; --firstNewLine) {}
-    // Find the newline after the cursor
+    // Find the newline after the caret
     for (secondNewLine = pos; secondNewLine < text.length && text[secondNewLine - 1] != "\n"; ++secondNewLine) {}
-    // Remove everything between the newline and the cursor
+    // Remove everything between the newline and the caret
     fillinput(DOM.getSelector(elem), text.substring(0, firstNewLine) + text.substring(secondNewLine))
     elem.selectionStart = elem.selectionEnd = firstNewLine
 }
 
 /**
- * Behaves like readline's [kill_word](http://web.mit.edu/gnu/doc/html/rlman_1.html#SEC15). Deletes every character from the cursor to the end of a word, with words being defined by the wordpattern setting.
+ * Behaves like readline's [kill_word](http://web.mit.edu/gnu/doc/html/rlman_1.html#SEC15). Deletes every character from the caret to the end of a word, with words being defined by the wordpattern setting.
  **/
 //#content
 export function im_kill_word() {
@@ -520,13 +520,13 @@ export function im_kill_word() {
     if (text.length == 0) return
     let boundaries = getWordBoundaries(text, pos, false)
     if (pos > boundaries[0] && pos < boundaries[1]) boundaries[0] = pos
-    // Remove everything between the newline and the cursor
+    // Remove everything between the newline and the caret
     fillinput(DOM.getSelector(elem), text.substring(0, boundaries[0]) + text.substring(boundaries[1] + 1))
     elem.selectionStart = elem.selectionEnd = boundaries[0]
 }
 
 /**
- * Behaves like readline's [backward_kill_word](http://web.mit.edu/gnu/doc/html/rlman_1.html#SEC15). Deletes every character from the cursor to the beginning of a word with word being defined by the wordpattern setting.
+ * Behaves like readline's [backward_kill_word](http://web.mit.edu/gnu/doc/html/rlman_1.html#SEC15). Deletes every character from the caret to the beginning of a word with word being defined by the wordpattern setting.
  **/
 //#content
 export function im_backward_kill_word() {
@@ -540,13 +540,13 @@ export function im_backward_kill_word() {
     if (text.length == 0) return
     let boundaries = getWordBoundaries(text, pos, true)
     if (pos > boundaries[0] && pos < boundaries[1]) boundaries[1] = pos
-    // Remove everything between the newline and the cursor
+    // Remove everything between the newline and the caret
     fillinput(DOM.getSelector(elem), text.substring(0, boundaries[0]) + text.substring(boundaries[1]))
     elem.selectionStart = elem.selectionEnd = boundaries[0]
 }
 
 /**
- * Behaves like readline's [beginning_of_line](http://web.mit.edu/gnu/doc/html/rlman_1.html#SEC12). Moves the cursor to the right of the first newline character found at the left of the cursor. If no newline can be found, move the cursor to the beginning of the text.
+ * Behaves like readline's [beginning_of_line](http://web.mit.edu/gnu/doc/html/rlman_1.html#SEC12). Moves the caret to the right of the first newline character found at the left of the caret. If no newline can be found, move the caret to the beginning of the text.
  **/
 //#content
 export function im_beginning_of_line() {
@@ -563,7 +563,7 @@ export function im_beginning_of_line() {
 }
 
 /**
- * Behaves like readline's [end_of_line](http://web.mit.edu/gnu/doc/html/rlman_1.html#SEC12). Moves the cursor to the left of the first newline character found at the right of the cursor. If no newline can be found, move the cursor to the end of the text.
+ * Behaves like readline's [end_of_line](http://web.mit.edu/gnu/doc/html/rlman_1.html#SEC12). Moves the caret to the left of the first newline character found at the right of the caret. If no newline can be found, move the caret to the end of the text.
  **/
 //#content
 export function im_end_of_line() {
@@ -580,7 +580,7 @@ export function im_end_of_line() {
 }
 
 /**
- * Behaves like readline's [forward_char](http://web.mit.edu/gnu/doc/html/rlman_1.html#SEC12). Moves the cursor one character to the right.
+ * Behaves like readline's [forward_char](http://web.mit.edu/gnu/doc/html/rlman_1.html#SEC12). Moves the caret one character to the right.
  **/
 //#content
 export function im_forward_char() {
@@ -596,7 +596,7 @@ export function im_forward_char() {
 }
 
 /**
- * Behaves like readline's [backward_char](http://web.mit.edu/gnu/doc/html/rlman_1.html#SEC12). Moves the cursor one character to the left.
+ * Behaves like readline's [backward_char](http://web.mit.edu/gnu/doc/html/rlman_1.html#SEC12). Moves the caret one character to the left.
  **/
 //#content
 export function im_backward_char() {
@@ -612,7 +612,7 @@ export function im_backward_char() {
 }
 
 /**
- * Behaves like readline's [forward_word](http://web.mit.edu/gnu/doc/html/rlman_1.html#SEC12). Moves the cursor one word to the right, with words being defined by the wordpattern setting.
+ * Behaves like readline's [forward_word](http://web.mit.edu/gnu/doc/html/rlman_1.html#SEC12). Moves the caret one word to the right, with words being defined by the wordpattern setting.
  **/
 //#content
 export function im_forward_word() {
@@ -630,7 +630,7 @@ export function im_forward_word() {
 }
 
 /**
- * Behaves like readline's [backward_word](http://web.mit.edu/gnu/doc/html/rlman_1.html#SEC12). Moves the cursor one word to the right, with words being defined by the wordpattern setting.
+ * Behaves like readline's [backward_word](http://web.mit.edu/gnu/doc/html/rlman_1.html#SEC12). Moves the caret one word to the right, with words being defined by the wordpattern setting.
  **/
 //#content
 export function im_backward_word() {
