@@ -152,7 +152,7 @@ async function onSettingsPageLoad() {
         }
     }
 
-    Array.from(document.querySelectorAll("a.tsd-anchor")).forEach(
+    Promise.all(Array.from(document.querySelectorAll("a.tsd-anchor")).map(
         async (a: HTMLAnchorElement) => {
             let section = a.parentNode
 
@@ -180,7 +180,8 @@ async function onSettingsPageLoad() {
 
             section.appendChild(div)
         },
-    )
+        // Adding elements expands sections so if the user wants to see a specific hash, we need to focus it again
+    )).then(_ => { if (document.location.hash) { document.location.hash = document.location.hash } })
 }
 
 addEventListener(
