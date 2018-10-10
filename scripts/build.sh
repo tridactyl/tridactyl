@@ -3,6 +3,7 @@
 set -e
 
 CLEANSLATE="node_modules/cleanslate/docs/files/cleanslate.css"
+TRIDACTYL_LOGO="src/static/logo/Tridactyl_64px.png"
 
 isWindowsMinGW() {
   local is_mingw="False"
@@ -72,4 +73,10 @@ if [ -e "$CLEANSLATE" ] ; then
 	cp -v "$CLEANSLATE" build/static/css/cleanslate.css
 else
 	echo "Couldn't find cleanslate.css. Try running 'npm install'"
+fi
+
+if [ -e "$TRIDACTYL_LOGO" ] ; then
+	sed "s@REPLACE_ME_WITH_BASE64_TRIDACTYL_LOGO@$(base64 --wrap 0 "$TRIDACTYL_LOGO")@" -i build/static/themes/default/default.css
+else
+	echo "Couldn't find Tridactyl logo ($TRIDACTYL_LOGO)"
 fi
