@@ -1797,10 +1797,28 @@ export function geturlsforlinks(reltype = "rel", rel: string) {
     return []
 }
 
+/** Sets the current page's zoom level anywhere between 30% and 300%.
+ *
+ * If you overshoot the level while using relative adjustments i.e. level > 300% or level < 30%
+ * the zoom level will be set to it's maximum or minimum position.
+ *
+ * @param level - The zoom level to set.
+ * Expects percentages when changing the absolute zoom value and percentage points when making relative adjustments..
+ * @param rel - Set the zoom adjustment to be relative to current zoom level.
+ */
 //#background
 export async function zoom(level = 0, rel = "false") {
     level = level > 3 ? level / 100 : level
-    if (rel == "true") level += await browser.tabs.getZoom()
+    if (rel === "false") {
+        if (level > 3 || level < 0.3) throw new Error(`[zoom] level out of range: ${level}`)
+    }
+    if (rel === "true") {
+        level += await browser.tabs.getZoom()
+
+        // Handle overshooting of zoom level.
+        if (level > 3) level = 3
+        if (level < 0.3) level = 0.3
+    }
     browser.tabs.setZoom(level)
 }
 

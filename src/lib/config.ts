@@ -250,7 +250,11 @@ class default_config {
         A: "bmark",
         zi: "zoom 0.1 true",
         zo: "zoom -0.1 true",
+        zM: "zoom 0.5 true",
+        zR: "zoom -0.5 true",
         zz: "zoom 1",
+        zI: "zoom 3",
+        zO: "zoom 0.3",
         ".": "repeat",
         "<SA-ArrowUp><SA-ArrowUp><SA-ArrowDown><SA-ArrowDown><SA-ArrowLeft><SA-ArrowRight><SA-ArrowLeft><SA-ArrowRight>ba":
             "open https://www.youtube.com/watch?v=M3iOROuTuMA",
@@ -405,6 +409,7 @@ class default_config {
             "fillcmdline_tmp 3000 !jsb is deprecated. Please use jsb instead",
         current_url: "composite get_current_url | fillcmdline_notrail ",
         stop: "js window.stop()",
+        zo: "zoom",
     }
 
     /**
