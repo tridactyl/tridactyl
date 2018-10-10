@@ -1803,7 +1803,7 @@ export function geturlsforlinks(reltype = "rel", rel: string) {
  * the zoom level will be set to it's maximum or minimum position.
  *
  * @param level - The zoom level to set.
- * Expects percentages when changing the absolute zoom value and percentage points when making relative adjustments..
+ * Expects percentages when changing the absolute zoom value and percentage points when making relative adjustments.
  * @param rel - Set the zoom adjustment to be relative to current zoom level.
  */
 //#background
