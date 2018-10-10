@@ -777,7 +777,7 @@ export function getURL(url, target) {
 export function get(...target) {
     // Window.tri might not be defined when called from the untrusted page context
     let loc = window.location
-    if ((window as any).tri) loc = (window as any).tri.contentLocation
+    if ((window as any).tri && (window as any).tri.contentLocation) loc = (window as any).tri.contentLocation
     // If there's a site-specifing setting, it overrides global settings
     const site = getURL(loc.href, target)
     const user = getDeepProperty(USERCONFIG, target)
