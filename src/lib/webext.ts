@@ -70,7 +70,7 @@ export async function ownTabId() {
 
 //#content_helper
 export async function ownTabContainer() {
-    return await browserBg.contextualIdentities.get(
+    return browserBg.contextualIdentities.get(
         (await ownTab()).cookieStoreId,
     )
 }
