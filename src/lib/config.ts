@@ -47,7 +47,7 @@ export type LoggingLevel = "never" | "error" | "warning" | "info" | "debug"
  *
  * You can change anything here using `set key1.key2.key3 value` or specific things any of the various helper commands such as `bind` or `command`.
  *
- * You can also jump to the help section of a setting using `:help $settingname`. Some of the settings have a small input field containing their current value next to them. You can modify these values and save them by pressing `<Enter>` but using `:set $setting $value` is a good habit to take as it doesn't force you to leave the page you're visiting to change your settings.
+ * You can also jump to the help section of a setting using `:help $settingname`. Some of the settings have an input field containing their current. You can modify these values and save them by pressing `<Enter>` but using `:set $setting $value` is a good habit to take as it doesn't force you to leave the page you're visiting to change your settings.
  */
 class default_config {
     /**

@@ -3000,9 +3000,7 @@ ul.tsd-descriptions h4 {
 }
 
 .TridactylSettingInput {
-    position: absolute;
-    top: 0px;
-    right: 0px;
+    margin-left: 6pt;
 }
 
 .TridactylSettingInputModified {

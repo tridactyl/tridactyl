@@ -154,12 +154,7 @@ async function onSettingsPageLoad() {
 
     Array.from(document.querySelectorAll("a.tsd-anchor")).forEach(
         async (a: HTMLAnchorElement) => {
-            let signature = (a.parentNode as any).querySelector(
-                "div.tsd-signature",
-            )
-            if (!signature)
-                // console.logging is ok because we're only spamming our own console
-                return console.log("Failed to grab signature of ", a)
+            let section = a.parentNode
 
             let settingName = a.name.split(".")
             let value = await config.getAsync(settingName)
@@ -179,7 +174,11 @@ async function onSettingsPageLoad() {
             input.className = inputClassName
             input.addEventListener("keyup", onKeyUp)
 
-            signature.appendChild(input)
+            let div = document.createElement("div")
+            div.appendChild(document.createTextNode("Current value:"))
+            div.appendChild(input)
+
+            section.appendChild(div)
         },
     )
 }
