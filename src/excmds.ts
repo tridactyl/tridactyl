@@ -4,25 +4,11 @@
 
     Use `:help <excmd>` or scroll down to show [[help]] for a particular excmd. If you're still stuck, you might consider reading through the [:tutor](/static/clippy/tutor.html) again.
 
-    The default keybinds can be found [here](/static/docs/classes/_lib_config_.default_config.html) or all active binds can be seen with `:viewconfig nmaps`.
-    
-    You can also view them with [[bind]]. Try `bind j`.
-
-    For more information, and FAQs, check out our [readme][3] on github.
-
-    Tridactyl is in a pretty early stage of development. Please report any
-    issues and make requests for missing features on the GitHub [project page][1].
-    You can also get in touch using Matrix, Gitter, or IRC chat clients:
-
-    [![Matrix Chat][matrix-badge]][matrix-link]
-    [![Gitter Chat][gitter-badge]][gitter-link]
-    [![Freenode Chat][freenode-badge]][freenode-link]
-
-    All three channels are mirrored together, so it doesn't matter which one you use.
+    The default keybinds and settings can be found [here](/static/docs/classes/_lib_config_.default_config.html) and active binds can be seen with `:viewconfig nmaps` or with [[bind]].
 
     ## How to use this help page
 
-    We've hackily re-purposed TypeDoc which is designed for internal documentation. Every function (excmd) on this page can be called via Tridactyl's command line which we call "ex". There is a slight change in syntax, however. Wherever you see:
+    Every function (excmd) on this page can be called via Tridactyl's command line which we call "ex". There is a slight change in syntax, however. Wherever you see:
 
     `function(arg1,arg2)`
 
@@ -44,36 +30,25 @@
 
     You do not need to worry about types. Return values which are promises will turn into whatever they promise to when used in [[composite]].
 
-    ## Highlighted features:
-
-    - Press `b` to bring up a list of open tabs in the current window; you can
-      type the tab ID or part of the title or URL to choose a tab
-    - Press `Shift` + `Insert` to enter "ignore mode". Press `Shift` + `Insert`
-      again to return to "normal mode". `<C-A-backtick>` also works both ways.
-    - Press `f` to start "hint mode", `F` to open in background (note: hint
-      characters should be typed in lowercase)
-    - Press `o` to `:open` a different page
-    - Press `s` if you want to search for something that looks like a domain
-      name or URL
-    - [[bind]] new commands with e.g. `:bind J tabnext`
-    - Type `:help` to see a list of available excmds
-    - Use `yy` to copy the current page URL to your clipboard
-    - `[[`and `]]`  to navigate through the pages of comics, paginated
-      articles, etc
-    - Pressing `ZZ` will close all tabs and windows, but it will only "save"
-      them if your about:preferences are set to "show your tabs and windows
-      from last time"
-    - Press Ctrl-i in a text box to edit in an external editor (e.g. vim). Requires native messenger.
-    - Change theme with `colours default|dark|greenmat|shydactyl`
-
+    ## Caveats
     There are some caveats common to all webextension vimperator-alikes:
 
     - To make Tridactyl work on addons.mozilla.org and some other Mozilla domains, you need to open `about:config`, run [[fixamo]] or add a new boolean `privacy.resistFingerprinting.block_mozAddonManager` with the value `true`, and remove the above domains from `extensions.webextensions.restrictedDomains`.
     - Tridactyl can't run on about:\*, some file:\* URIs, view-source:\*, or data:\*, URIs.
-    - To change/hide the GUI of Firefox from Tridactyl, you can use [[guiset]]
-      with the native messenger installed (see [[native]] and
-      [[installnative]]). Alternatively, you can edit your userChrome yourself.
-      There is an [example file](2) available in our repository.
+    - To change/hide the GUI of Firefox from Tridactyl, you can use [[guiset]] with the native messenger installed (see [[native]] and [[installnative]]). Alternatively, you can edit your userChrome yourself. There is an [example file](2) available in our repository.
+    
+    ## Getting help
+
+    For more information, and FAQs, check out our [readme][3] on github.
+
+    Tridactyl is in a pretty early stage of development. Please report any issues and make requests for missing features on the GitHub [project page][1]. You can also get in touch using Matrix, Gitter, or IRC chat clients:
+
+    [![Matrix Chat][matrix-badge]][matrix-link]
+    [![Gitter Chat][gitter-badge]][gitter-link]
+    [![Freenode Chat][freenode-badge]][freenode-link]
+
+    All three channels are mirrored together, so it doesn't matter which one you use.
+
 
     [1]: https://github.com/cmcaine/tridactyl/issues
     [2]: https://github.com/cmcaine/tridactyl/blob/master/src/static/userChrome-minimal.css
@@ -221,13 +196,13 @@ export async function editor() {
 }
 
 /**
- * Behaves like readline's [delete_char](http://web.mit.edu/gnu/doc/html/rlman_1.html#SEC14).
+ * Behaves like readline's [delete_char](http://web.mit.edu/gnu/doc/html/rlman_1.html#SEC14), i.e. deletes the character to the right of the caret.
  **/
 //#content
 export function im_delete_char() {
     let elem = DOM.getLastUsedInput() as HTMLInputElement
     let pos = elem.selectionStart
-    // Abort if we can't find out where the cursor is
+    // Abort if we can't find out where the caret is
     if (pos === undefined || pos === null) {
         logger.warning("im_delete_char: elem doesn't have a selectionStart")
         return
@@ -245,15 +220,15 @@ export function im_delete_char() {
 }
 
 /**
- * Behaves like readline's [delete_backward_char](http://web.mit.edu/gnu/doc/html/rlman_1.html#SEC14).
+ * Behaves like readline's [delete_backward_char](http://web.mit.edu/gnu/doc/html/rlman_1.html#SEC14), i.e. deletes the character to the left of the caret.
  **/
 //#content
 export function im_delete_backward_char() {
     let elem = DOM.getLastUsedInput() as HTMLInputElement
     let pos = elem.selectionStart
-    // Abort if we can't find out where the cursor is or if it is at the beginning of the text
+    // Abort if we can't find out where the caret is or if it is at the beginning of the text
     if (!pos) {
-        logger.warning("im_delete_backward_char: elem doesn't have a selectionStart or cursor is at beginning of line.")
+        logger.warning("im_delete_backward_char: elem doesn't have a selectionStart or caret is at beginning of line.")
         return
     }
     let text = getInput(elem)
@@ -268,7 +243,7 @@ export function im_delete_backward_char() {
 }
 
 /**
- * Behaves like readline's [tab_insert](http://web.mit.edu/gnu/doc/html/rlman_1.html#SEC14).
+ * Behaves like readline's [tab_insert](http://web.mit.edu/gnu/doc/html/rlman_1.html#SEC14), i.e. inserts a tab character to the left of the caret.
  **/
 //#content
 export function im_tab_insert() {
@@ -289,7 +264,7 @@ export function im_tab_insert() {
 }
 
 /**
- * Behaves like readline's [transpose_chars](http://web.mit.edu/gnu/doc/html/rlman_1.html#SEC14).
+ * Behaves like readline's [transpose_chars](http://web.mit.edu/gnu/doc/html/rlman_1.html#SEC14), i.e. transposes the character to the left of the caret with the character to the right of the caret and then moves the caret one character to the right. If there are no characters to the right or to the left of the caret, uses the two characters the closest to the caret.
  **/
 //#content
 export function im_transpose_chars() {
@@ -310,7 +285,7 @@ export function im_transpose_chars() {
 }
 
 /** @hidden
- * Detects the boundaries of a word in text according to the wordpattern setting. If POSITION is in a word, the boundaries of this word are returned. If POSITION is out of a word and BEFORE is true, the word before POSITION is returned. If BEFORE is false, the word after the cursor is returned.
+ * Detects the boundaries of a word in text according to the wordpattern setting. If POSITION is in a word, the boundaries of this word are returned. If POSITION is out of a word and BEFORE is true, the word before POSITION is returned. If BEFORE is false, the word after the caret is returned.
  */
 //#content_helper
 export function getWordBoundaries(text: string, position: number, before: boolean): [number, number] {
@@ -318,7 +293,7 @@ export function getWordBoundaries(text: string, position: number, before: boolea
     let pattern = new RegExp(config.get("wordpattern"), "g")
     let boundary1 = position < text.length ? position : text.length - 1
     let direction = before ? -1 : 1
-    // if the cursor is not in a word, try to find the word before or after it
+    // if the caret is not in a word, try to find the word before or after it
     while (boundary1 >= 0 && boundary1 < text.length && !text[boundary1].match(pattern)) {
         boundary1 += direction
     }
@@ -339,7 +314,7 @@ export function getWordBoundaries(text: string, position: number, before: boolea
         throw new Error(`getWordBoundaries: no characters matching wordpattern (${pattern.source}) in text (${text})`)
     }
 
-    // now that we know the cursor is in a word (it could be in the middle depending on POSITION!), try to find its beginning/end
+    // now that we know the caret is in a word (it could be in the middle depending on POSITION!), try to find its beginning/end
     while (boundary1 >= 0 && boundary1 < text.length && !!text[boundary1].match(pattern)) {
         boundary1 += direction
     }
@@ -347,7 +322,7 @@ export function getWordBoundaries(text: string, position: number, before: boolea
     boundary1 -= direction
 
     let boundary2 = boundary1
-    // now that we know the cursor is at the beginning/end of a word, we need to find the other boundary
+    // now that we know the caret is at the beginning/end of a word, we need to find the other boundary
     while (boundary2 >= 0 && boundary2 < text.length && !!text[boundary2].match(pattern)) {
         boundary2 -= direction
     }
@@ -376,7 +351,7 @@ export function wordAfterPos(text: string, position: number) {
 }
 
 /**
- * Behaves like readline's [transpose_words](http://web.mit.edu/gnu/doc/html/rlman_1.html#SEC14).
+ * Behaves like readline's [transpose_words](http://web.mit.edu/gnu/doc/html/rlman_1.html#SEC14). Basically equivalent to [[im_transpose_chars]], but using words as defined by the wordpattern setting.
  **/
 //#content
 export function im_transpose_words() {
@@ -388,14 +363,14 @@ export function im_transpose_words() {
     }
     let text = getInput(elem)
     if (text.length == 0) return
-    // If the cursor is at the end of the text, move it just before the last character
+    // If the caret is at the end of the text, move it just before the last character
     if (pos >= text.length) {
         pos = text.length - 1
     }
-    // Find the word the cursor is in
+    // Find the word the caret is in
     let firstBoundaries = getWordBoundaries(text, pos, false)
     let secondBoundaries = firstBoundaries
-    // If there is a word after the word the cursor is in, use it for the transposition, otherwise use the word before it
+    // If there is a word after the word the caret is in, use it for the transposition, otherwise use the word before it
     let nextWord = wordAfterPos(text, firstBoundaries[1])
     if (nextWord > -1) {
         secondBoundaries = getWordBoundaries(text, nextWord, false)
@@ -407,12 +382,12 @@ export function im_transpose_words() {
     let beginning = text.substring(0, firstBoundaries[0]) + secondWord + text.substring(firstBoundaries[1], secondBoundaries[0])
     pos = beginning.length
     fillinput(DOM.getSelector(elem), beginning + firstWord + text.substring(secondBoundaries[1]))
-    // Move cursor just before the word that was transposed
+    // Move caret just before the word that was transposed
     elem.selectionStart = elem.selectionEnd = pos
 }
 
 /** @hidden
- * Applies a function to the word the cursor is in, or to the next word if the cursor is not in a word, or to the previous word if the current word is empty.
+ * Applies a function to the word the caret is in, or to the next word if the caret is not in a word, or to the previous word if the current word is empty.
  */
 //#content_helper
 function applyWord(fn: (string) => string) {
@@ -424,7 +399,7 @@ function applyWord(fn: (string) => string) {
     }
     let text = getInput(elem)
     if (text.length == 0) return
-    // If the cursor is at the end of the text, move it just before the last character
+    // If the caret is at the end of the text, move it just before the last character
     if (pos >= text.length) {
         pos = text.length - 1
     }
@@ -435,7 +410,7 @@ function applyWord(fn: (string) => string) {
 }
 
 /**
- * Behaves like readline's [upcase_word](http://web.mit.edu/gnu/doc/html/rlman_1.html#SEC14).
+ * Behaves like readline's [upcase_word](http://web.mit.edu/gnu/doc/html/rlman_1.html#SEC14). Makes the word the caret is in uppercase.
  **/
 //#content
 export function im_upcase_word() {
@@ -443,7 +418,7 @@ export function im_upcase_word() {
 }
 
 /**
- * Behaves like readline's [downcase_word](http://web.mit.edu/gnu/doc/html/rlman_1.html#SEC14).
+ * Behaves like readline's [downcase_word](http://web.mit.edu/gnu/doc/html/rlman_1.html#SEC14). Makes the word the caret is in lowercase.
  **/
 //#content
 export function im_downcase_word() {
@@ -451,7 +426,7 @@ export function im_downcase_word() {
 }
 
 /**
- * Behaves like readline's [capitalize_word](http://web.mit.edu/gnu/doc/html/rlman_1.html#SEC14).
+ * Behaves like readline's [capitalize_word](http://web.mit.edu/gnu/doc/html/rlman_1.html#SEC14). Makes the initial character of the word the caret is in uppercase.
  **/
 //#content
 export function im_capitalize_word() {
@@ -459,7 +434,7 @@ export function im_capitalize_word() {
 }
 
 /**
- * Behaves like readline's [kill_line](http://web.mit.edu/gnu/doc/html/rlman_1.html#SEC15).
+ * Behaves like readline's [kill_line](http://web.mit.edu/gnu/doc/html/rlman_1.html#SEC15), i.e. deletes every character to the right of the caret until reaching either the end of the text or the newline character (\n).
  **/
 //#content
 export function im_kill_line() {
@@ -473,7 +448,7 @@ export function im_kill_line() {
     if (text.length == 0) return
     let newLine = text.substring(pos).search("\n")
     if (newLine != -1) {
-        // If the cursor is right before the newline, kill the newline
+        // If the caret is right before the newline, kill the newline
         if (newLine == 0) newLine = 1
         text = text.substring(0, pos) + text.substring(pos + newLine)
     } else {
@@ -484,7 +459,7 @@ export function im_kill_line() {
 }
 
 /**
- * Behaves like readline's [backward_kill_line](http://web.mit.edu/gnu/doc/html/rlman_1.html#SEC15).
+ * Behaves like readline's [backward_kill_line](http://web.mit.edu/gnu/doc/html/rlman_1.html#SEC15), i.e. deletes every character to the left of the caret until either the beginning of the text is found or a newline character ("\n") is reached.
  **/
 //#content
 export function im_backward_kill_line() {
@@ -496,7 +471,7 @@ export function im_backward_kill_line() {
     }
     let text = getInput(elem)
     if (text.length == 0) return
-    // If the cursor is at the beginning of a line, join the lines
+    // If the caret is at the beginning of a line, join the lines
     if (text[pos - 1] == "\n") {
         fillinput(DOM.getSelector(elem), text.substring(0, pos - 1) + text.substring(pos))
         elem.selectionStart = elem.selectionEnd = pos - 1
@@ -504,14 +479,14 @@ export function im_backward_kill_line() {
         let newLine
         // Find the closest newline
         for (newLine = pos; newLine > 0 && text[newLine - 1] != "\n"; --newLine) {}
-        // Remove everything between the newline and the cursor
+        // Remove everything between the newline and the caret
         fillinput(DOM.getSelector(elem), text.substring(0, newLine) + text.substring(pos))
         elem.selectionStart = elem.selectionEnd = newLine
     }
 }
 
 /**
- * Behaves like readline's [kill_whole_line](http://web.mit.edu/gnu/doc/html/rlman_1.html#SEC15).
+ * Behaves like readline's [kill_whole_line](http://web.mit.edu/gnu/doc/html/rlman_1.html#SEC15). Deletes every character between the two newlines the caret is in. If a newline can't be found on the left of the caret, everything is deleted until the beginning of the text is reached. If a newline can't be found on the right, everything is deleted until the end of the text is found.
  **/
 //#content
 export function im_kill_whole_line() {
@@ -524,17 +499,17 @@ export function im_kill_whole_line() {
     let text = getInput(elem)
     if (text.length == 0) return
     let firstNewLine, secondNewLine
-    // Find the newline before the cursor
+    // Find the newline before the caret
     for (firstNewLine = pos; firstNewLine > 0 && text[firstNewLine - 1] != "\n"; --firstNewLine) {}
-    // Find the newline after the cursor
+    // Find the newline after the caret
     for (secondNewLine = pos; secondNewLine < text.length && text[secondNewLine - 1] != "\n"; ++secondNewLine) {}
-    // Remove everything between the newline and the cursor
+    // Remove everything between the newline and the caret
     fillinput(DOM.getSelector(elem), text.substring(0, firstNewLine) + text.substring(secondNewLine))
     elem.selectionStart = elem.selectionEnd = firstNewLine
 }
 
 /**
- * Behaves like readline's [kill_word](http://web.mit.edu/gnu/doc/html/rlman_1.html#SEC15).
+ * Behaves like readline's [kill_word](http://web.mit.edu/gnu/doc/html/rlman_1.html#SEC15). Deletes every character from the caret to the end of a word, with words being defined by the wordpattern setting.
  **/
 //#content
 export function im_kill_word() {
@@ -548,13 +523,13 @@ export function im_kill_word() {
     if (text.length == 0) return
     let boundaries = getWordBoundaries(text, pos, false)
     if (pos > boundaries[0] && pos < boundaries[1]) boundaries[0] = pos
-    // Remove everything between the newline and the cursor
+    // Remove everything between the newline and the caret
     fillinput(DOM.getSelector(elem), text.substring(0, boundaries[0]) + text.substring(boundaries[1] + 1))
     elem.selectionStart = elem.selectionEnd = boundaries[0]
 }
 
 /**
- * Behaves like readline's [backward_kill_word](http://web.mit.edu/gnu/doc/html/rlman_1.html#SEC15).
+ * Behaves like readline's [backward_kill_word](http://web.mit.edu/gnu/doc/html/rlman_1.html#SEC15). Deletes every character from the caret to the beginning of a word with word being defined by the wordpattern setting.
  **/
 //#content
 export function im_backward_kill_word() {
@@ -568,13 +543,13 @@ export function im_backward_kill_word() {
     if (text.length == 0) return
     let boundaries = getWordBoundaries(text, pos, true)
     if (pos > boundaries[0] && pos < boundaries[1]) boundaries[1] = pos
-    // Remove everything between the newline and the cursor
+    // Remove everything between the newline and the caret
     fillinput(DOM.getSelector(elem), text.substring(0, boundaries[0]) + text.substring(boundaries[1]))
     elem.selectionStart = elem.selectionEnd = boundaries[0]
 }
 
 /**
- * Behaves like readline's [beginning_of_line](http://web.mit.edu/gnu/doc/html/rlman_1.html#SEC12).
+ * Behaves like readline's [beginning_of_line](http://web.mit.edu/gnu/doc/html/rlman_1.html#SEC12). Moves the caret to the right of the first newline character found at the left of the caret. If no newline can be found, move the caret to the beginning of the text.
  **/
 //#content
 export function im_beginning_of_line() {
@@ -591,7 +566,7 @@ export function im_beginning_of_line() {
 }
 
 /**
- * Behaves like readline's [end_of_line](http://web.mit.edu/gnu/doc/html/rlman_1.html#SEC12).
+ * Behaves like readline's [end_of_line](http://web.mit.edu/gnu/doc/html/rlman_1.html#SEC12). Moves the caret to the left of the first newline character found at the right of the caret. If no newline can be found, move the caret to the end of the text.
  **/
 //#content
 export function im_end_of_line() {
@@ -608,7 +583,7 @@ export function im_end_of_line() {
 }
 
 /**
- * Behaves like readline's [forward_char](http://web.mit.edu/gnu/doc/html/rlman_1.html#SEC12).
+ * Behaves like readline's [forward_char](http://web.mit.edu/gnu/doc/html/rlman_1.html#SEC12). Moves the caret one character to the right.
  **/
 //#content
 export function im_forward_char() {
@@ -624,7 +599,7 @@ export function im_forward_char() {
 }
 
 /**
- * Behaves like readline's [backward_char](http://web.mit.edu/gnu/doc/html/rlman_1.html#SEC12).
+ * Behaves like readline's [backward_char](http://web.mit.edu/gnu/doc/html/rlman_1.html#SEC12). Moves the caret one character to the left.
  **/
 //#content
 export function im_backward_char() {
@@ -640,7 +615,7 @@ export function im_backward_char() {
 }
 
 /**
- * Behaves like readline's [forward_word](http://web.mit.edu/gnu/doc/html/rlman_1.html#SEC12).
+ * Behaves like readline's [forward_word](http://web.mit.edu/gnu/doc/html/rlman_1.html#SEC12). Moves the caret one word to the right, with words being defined by the wordpattern setting.
  **/
 //#content
 export function im_forward_word() {
@@ -658,7 +633,7 @@ export function im_forward_word() {
 }
 
 /**
- * Behaves like readline's [backward_word](http://web.mit.edu/gnu/doc/html/rlman_1.html#SEC12).
+ * Behaves like readline's [backward_word](http://web.mit.edu/gnu/doc/html/rlman_1.html#SEC12). Moves the caret one word to the right, with words being defined by the wordpattern setting.
  **/
 //#content
 export function im_backward_word() {
@@ -1138,6 +1113,10 @@ export function jumpnext(n = 1) {
 }
 
 /** Similar to Pentadactyl or vim's jump list.
+ *
+ * When you scroll on a page, either by using the mouse or Tridactyl's key bindings, your position in the page will be saved after jumpdelay milliseconds (`:get jumpdelay` to know how many milliseconds that is). If you scroll again, you'll be able to go back to your previous position by using `:jumpprev 1`. If you need to go forward in the jumplist, use `:jumpprev -1`.
+ *
+ * Known bug: Tridactyl will use the same jumplist for multiple visits to a same website in the same tab, see [github issue 834](https://github.com/tridactyl/tridactyl/issues/834).
  */
 //#content
 export function jumpprev(n = 1) {
@@ -1447,6 +1426,7 @@ function removeSource() {
         sourceElement = undefined
     }
 }
+
 /** Display the (HTML) source of the current page.
 
     Behaviour can be changed by the 'viewsource' setting.
@@ -1500,43 +1480,70 @@ export function home(all: "false" | "true" = "false") {
 
 /** Show this page.
 
-    `:help something` jumps to the entry for something. Something can be an excmd, an alias for an excmd or a binding.
+    `:help something` jumps to the entry for something. Something can be an excmd, an alias for an excmd, a binding or a setting.
 
-    The "nmaps" list is a list of all the bindings for the command you're seeing and the "exaliases" list lists all its aliases.
+    On the ex command page, the "nmaps" list is a list of all the bindings for the command you're seeing and the "exaliases" list lists all its aliases.
 
-    If there's a conflict (e.g. you have a "go" binding that does something and also a "go" excmd that does something else), the binding has higher priority.
+    If there's a conflict (e.g. you have a "go" binding that does something, a "go" excmd that does something else and a "go" setting that does a third thing), the binding is chosen first, then the setting, then the excmd.
 
     If the keyword you gave to `:help` is actually an alias for a composite command (see [[composite]]) , you will be taken to the help section for the first command of the pipeline. You will be able to see the whole pipeline by hovering your mouse over the alias in the "exaliases" list. Unfortunately there currently is no way to display these HTML tooltips from the keyboard.
 
     e.g. `:help bind`
 */
 //#background
-export async function help(excmd?: string) {
-    const docpage = browser.extension.getURL("static/docs/modules/_excmds_.html")
-    if (excmd === undefined) excmd = ""
+export async function help(helpItem?: string) {
+    let docpage = browser.extension.getURL("static/docs/modules/_excmds_.html")
+    if (helpItem === undefined) helpItem = ""
     else {
-        let bindings = await config.getAsync("nmaps")
-        // If 'excmd' matches a binding, replace 'excmd' with the command that would be executed when pressing the key sequence referenced by 'excmd'
-        if (excmd in bindings) {
-            excmd = bindings[excmd].split(" ")
-            excmd = ["composite", "fillcmdline"].includes(excmd[0]) ? excmd[1] : excmd[0]
+        let matched = false
+        const settings = await config.getAsync()
+
+        for (let mode of ["nmaps", "imaps", "inputmaps", "ignoremaps"]) {
+            let bindings = settings[mode]
+            // If 'helpItem' matches a binding, replace 'helpItem' with the command that would be executed when pressing the key sequence referenced by 'helpItem' and don't check other modes
+            if (helpItem in bindings) {
+                helpItem = bindings[helpItem].split(" ")
+                helpItem = ["composite", "fillcmdline"].includes(helpItem[0]) ? helpItem[1] : helpItem[0]
+                matched = true
+                break
+            }
         }
 
-        let aliases = await config.getAsync("exaliases")
-        // As long as excmd is an alias, try to resolve this alias to a real excmd
+        let aliases = settings.exaliases
+        // As long as helpItem is an alias, try to resolve this alias to a real helpItem
         let resolved = []
-        while (aliases[excmd]) {
-            resolved.push(excmd)
-            excmd = aliases[excmd].split(" ")
-            excmd = excmd[0] == "composite" ? excmd[1] : excmd[0]
+        while (aliases[helpItem]) {
+            matched = true
+            resolved.push(helpItem)
+            helpItem = aliases[helpItem].split(" ")
+            helpItem = helpItem[0] == "composite" ? helpItem[1] : helpItem[0]
             // Prevent infinite loops
-            if (resolved.includes(excmd)) break
+            if (resolved.includes(helpItem)) break
+        }
+
+        // If we still haven't found either a binding or an alias, try a setting name
+        if (!matched) {
+            let subSettings = settings
+            let settingNames = helpItem.split(".")
+            let settingHelpAnchor = ""
+            // Try to match each piece of the path, this is done so that a correct object (e.g. followpagepatterns) with an incorrect key (e.g. nextt) will still match the parent object.
+            for (let settingName of settingNames) {
+                if (settingName in subSettings) {
+                    settingHelpAnchor += settingName + "."
+                    subSettings = subSettings[settingName]
+                }
+            }
+            if (settingHelpAnchor != "") {
+                docpage = browser.extension.getURL("static/docs/classes/_lib_config_.default_config.html")
+                helpItem = settingHelpAnchor.slice(0,-1)
+            }
         }
     }
+
     if ((await activeTab()).url.startsWith(docpage)) {
-        open(docpage + "#" + excmd)
+        open(docpage + "#" + helpItem)
     } else {
-        tabopen(docpage + "#" + excmd)
+        tabopen(docpage + "#" + helpItem)
     }
 }
 
@@ -3161,7 +3168,7 @@ export function seturl(pattern: string, key: string, ...values: string[]) {
 
 /** Set a key value pair in config.
 
-    Use to set any string values found [here](/static/docs/classes/_config_.default_config.html).
+    Use to set any string values found [here](/static/docs/classes/_lib_config_.default_config.html).
 
     e.g.
         set searchurls.google https://www.google.com/search?q=

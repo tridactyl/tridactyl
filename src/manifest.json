@@ -64,5 +64,9 @@
             "id": "tridactyl.vim@cmcaine.co.uk",
             "strict_min_version": "54.0"
         }
+    },
+    "options_ui": {
+        "page": "static/docs/classes/_lib_config_.default_config.html",
+        "open_in_tab": true
     }
 }

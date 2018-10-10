@@ -241,3 +241,7 @@ a.url:hover {
     width: 15%;
     text-overflow: ellipsis;
 }
+
+.HelpCompletionOption td.name {
+    max-width: 25%;
+}
