@@ -749,7 +749,7 @@ export function cssparse(...css: string[]) {
 /** @hidden */
 //#background
 export async function loadtheme(themename: string) {
-    if (!await Native.nativegate("0.1.9")) return
+    if (!(await Native.nativegate("0.1.9"))) return
     const separator = (await browserBg.runtime.getPlatformInfo().os) == "win" ? "\\" : "/"
     // remove the "tridactylrc" bit so that we're left with the directory
     const path =
@@ -1221,7 +1221,10 @@ export async function scrollpx(a: number, b: number) {
     Note that if `a` is 0 or 100 and if the document is not scrollable in the given direction, Tridactyl will attempt to scroll the first scrollable element until it reaches the very bottom of that element.
 */
 //#content
-export function scrollto(a: number, b: number | "x" | "y" = "y") {
+export function scrollto(a: number | string, b: number | "x" | "y" = "y") {
+    if (typeof a == "string" && a.match(/c$/i)) {
+        a = (Number(a.replace(/c$/, "")) * 100) / (2 * Math.PI)
+    }
     a = Number(a)
     let elem = window.document.scrollingElement || window.document.documentElement
     let percentage = a.clamp(0, 100)
@@ -1564,7 +1567,7 @@ export async function help(helpItem?: string) {
             }
             if (settingHelpAnchor != "") {
                 docpage = browser.extension.getURL("static/docs/classes/_lib_config_.default_config.html")
-                helpItem = settingHelpAnchor.slice(0,-1)
+                helpItem = settingHelpAnchor.slice(0, -1)
             }
         }
     }
@@ -2802,11 +2805,12 @@ async function setclip(str) {
     // Functions to avoid retyping everything everywhere
 
     // Note: We're using fillcmdline here because exceptions are somehow not caught. We're rethrowing because otherwise the error message will be overwritten with the "yank successful" message.
-    let s = () => Native.clipboard("set", str).catch(e => {
-        let msg = "# Failed to set X selection. Is the native messenger installed and is it >=v.0.1.7?"
-        fillcmdline(msg)
-        throw msg
-    })
+    let s = () =>
+        Native.clipboard("set", str).catch(e => {
+            let msg = "# Failed to set X selection. Is the native messenger installed and is it >=v.0.1.7?"
+            fillcmdline(msg)
+            throw msg
+        })
     let c = async () => {
         await messageActiveTab("commandline_content", "focus")
         await messageActiveTab("commandline_frame", "setClipboard", [str])
