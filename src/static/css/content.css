@@ -41,6 +41,10 @@
     pointer-events: none !important;
 }
 
+.TridactylEditing {
+    background: var(--tridactyl-externaledit-bg);
+}
+
 @media print {
     .TridactylStatusIndicator {
         display: none !important;
