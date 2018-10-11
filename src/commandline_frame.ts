@@ -8,6 +8,7 @@ import { BufferAllCompletionSource } from "@src/completions/BufferAll"
 import { BufferCompletionSource } from "@src/completions/Buffer"
 import { BmarkCompletionSource } from "@src/completions/Bmark"
 import { ExcmdCompletionSource } from "@src/completions/Excmd"
+import { FileSystemCompletionSource } from "@src/completions/FileSystem"
 import { HelpCompletionSource } from "@src/completions/Help"
 import { HistoryCompletionSource } from "@src/completions/History"
 import { SettingsCompletionSource } from "@src/completions/Settings"
@@ -66,6 +67,7 @@ function enableCompletions() {
             new BufferAllCompletionSource(completionsDiv),
             new BufferCompletionSource(completionsDiv),
             new ExcmdCompletionSource(completionsDiv),
+            new FileSystemCompletionSource(completionsDiv),
             new HelpCompletionSource(completionsDiv),
             new HistoryCompletionSource(completionsDiv),
             new SettingsCompletionSource(completionsDiv),

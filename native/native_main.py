@@ -14,7 +14,7 @@ import time
 import unicodedata
 
 DEBUG = False
-VERSION = "0.1.9"
+VERSION = "0.1.10"
 
 
 class NoConnectionError(Exception):
@@ -487,6 +487,16 @@ def handleMessage(message):
 
     elif cmd == "win_firefox_restart":
         reply = win_firefox_restart(message)
+
+    elif cmd == "list_dir":
+        path = os.path.expanduser(message.get("path"))
+        reply["sep"] = os.sep
+        reply["isDir"] = os.path.isdir(path)
+        if not reply["isDir"]:
+            path = os.path.dirname(path)
+            if not path:
+                path = "./"
+        reply["files"] = os.listdir(path)
 
     else:
         reply = {"cmd": "error", "error": "Unhandled message"}
