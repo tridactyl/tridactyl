@@ -589,15 +589,16 @@ class default_config {
      * Logging levels. Unless you're debugging Tridactyl, it's unlikely you'll ever need to change these.
      */
     logging: { [key: string]: LoggingLevel } = {
-        messaging: "warning",
         cmdline: "warning",
-        controller: "warning",
         containers: "warning",
-        hinting: "warning",
-        state: "warning",
+        controller: "warning",
         excmd: "error",
-        styling: "warning",
+        hinting: "warning",
+        messaging: "warning",
+        native: "warning",
         performance: "warning",
+        state: "warning",
+        styling: "warning",
     }
     noiframeon: string[] = []
 

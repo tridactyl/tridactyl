@@ -749,7 +749,7 @@ export function cssparse(...css: string[]) {
 /** @hidden */
 //#background
 export async function loadtheme(themename: string) {
-    if (!await Native.nativegate("0.1.9")) return
+    if (!(await Native.nativegate("0.1.9"))) return
     const separator = (await browserBg.runtime.getPlatformInfo().os) == "win" ? "\\" : "/"
     // remove the "tridactylrc" bit so that we're left with the directory
     const path =
@@ -871,7 +871,9 @@ export async function nativeopen(url: string, ...firefoxArgs: string[]) {
  */
 //#background
 export async function exclaim(...str: string[]) {
-    fillcmdline((await Native.run(str.join(" "))).content)
+    if (await Native.nativegate()) {
+        fillcmdline((await Native.run(str.join(" "))).content)
+    }
 } // should consider how to give option to fillcmdline or not. We need flags.
 
 /**
@@ -879,7 +881,9 @@ export async function exclaim(...str: string[]) {
  */
 //#background
 export async function exclaim_quiet(...str: string[]) {
-    return (await Native.run(str.join(" "))).content
+    if (await Native.nativegate()) {
+        return (await Native.run(str.join(" "))).content
+    }
 }
 
 /**
