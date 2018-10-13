@@ -2,7 +2,6 @@
  * Background functions for the native messenger interface
  */
 
-import * as Messaging from "@src/lib/messaging"
 import * as semverCompare from "semver-compare"
 import * as config from "@src/lib/config"
 import { browserBg } from "@src/lib/webext"
@@ -17,7 +16,6 @@ type MessageCommand =
     | "read"
     | "write"
     | "temp"
-    | "list_dir"
     | "mkdir"
     | "move"
     | "eval"
@@ -56,10 +54,11 @@ async function sendNativeMsg(
     }
 }
 
-export async function getrcpath(): Promise<string> {
+export async function getrcpath(): Promise <string> {
     const res = await sendNativeMsg("getconfigpath", {})
 
-    if (res.code != 0) throw new Error("getrcpath error: " + res.code)
+    if (res.code != 0)
+        throw new Error("getrcpath error: " + res.code)
 
     return res.content
 }
@@ -259,10 +258,6 @@ export async function temp(content: string, prefix: string) {
 
 export async function move(from: string, to: string) {
     return sendNativeMsg("move", { from, to })
-}
-
-export async function listDir(dir: string) {
-    return sendNativeMsg("list_dir", { path: dir })
 }
 
 export async function winFirefoxRestart(
@@ -587,6 +582,3 @@ export async function writePref(name: string, value: any) {
         write(file, text.replace(substr, `pref("${name}", ${value})`))
     }
 }
-
-import * as SELF from "@src/background/native_background"
-Messaging.addListener("native_background", Messaging.attributeCaller(SELF))
