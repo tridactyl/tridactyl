@@ -431,6 +431,7 @@ class default_config {
      */
     searchurls = {
         google: "https://www.google.com/search?q=",
+        googlelucky: "https://www.google.com/search?btnI=I'm+Feeling+Lucky&q=",
         scholar: "https://scholar.google.com/scholar?q=",
         googleuk: "https://www.google.co.uk/search?q=",
         bing: "https://www.bing.com/search?q=",
@@ -781,7 +782,8 @@ export function getURL(url, target) {
 export function get(...target) {
     // Window.tri might not be defined when called from the untrusted page context
     let loc = window.location
-    if ((window as any).tri && (window as any).tri.contentLocation) loc = (window as any).tri.contentLocation
+    if ((window as any).tri && (window as any).tri.contentLocation)
+        loc = (window as any).tri.contentLocation
     // If there's a site-specifing setting, it overrides global settings
     const site = getURL(loc.href, target)
     const user = getDeepProperty(USERCONFIG, target)
