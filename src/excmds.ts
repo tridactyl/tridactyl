@@ -19,7 +19,7 @@
     A "splat" operator (...) means that the excmd will accept any number of space-delimited arguments into that parameter.
 
     Above each function signature you will see any aliases or key sequences bound to it. The internal names for the various modes are used, which are listed here:
-    
+
         - `nmaps`: normal mode binds
         - `imaps`: insert mode binds
         - `inputmaps`: input mode binds
@@ -36,7 +36,7 @@
     - To make Tridactyl work on addons.mozilla.org and some other Mozilla domains, you need to open `about:config`, run [[fixamo]] or add a new boolean `privacy.resistFingerprinting.block_mozAddonManager` with the value `true`, and remove the above domains from `extensions.webextensions.restrictedDomains`.
     - Tridactyl can't run on about:\*, some file:\* URIs, view-source:\*, or data:\*, URIs.
     - To change/hide the GUI of Firefox from Tridactyl, you can use [[guiset]] with the native messenger installed (see [[native]] and [[installnative]]). Alternatively, you can edit your userChrome yourself. There is an [example file](2) available in our repository.
-    
+
     ## Getting help
 
     For more information, and FAQs, check out our [readme][3] on github.
@@ -1375,6 +1375,9 @@ export async function open(...urlarr: string[]) {
     } else if (!ABOUT_WHITELIST.includes(url) && url.match(/^(about|file):.*/)) {
         // Open URLs that firefox won't let us by running `firefox <URL>` on the command line
         Messaging.message("commandline_background", "recvExStr", ["nativeopen " + url])
+    } else if (url.match(/^javascript:/)) {
+        let bookmarklet = url.replace(/^javascript:/, "")
+        document.body.append(html`<script>${bookmarklet}</script>`)
     } else if (url !== "") {
         window.location.href = forceURI(url)
     }
@@ -1568,7 +1571,7 @@ export async function help(helpItem?: string) {
             }
             if (settingHelpAnchor != "") {
                 docpage = browser.extension.getURL("static/docs/classes/_lib_config_.default_config.html")
-                helpItem = settingHelpAnchor.slice(0,-1)
+                helpItem = settingHelpAnchor.slice(0, -1)
             }
         }
     }
@@ -2415,7 +2418,7 @@ export async function pin() {
  Passing "all" to the excmd will operate on  the mute state of all tabs.
  Passing "unmute" to the excmd will unmute.
  Passing "toggle" to the excmd will toggle the state of `browser.tabs.tab.MutedInfo`
- @param string[] muteArgs 
+ @param string[] muteArgs
  */
 //#background
 export async function mute(...muteArgs: string[]): Promise<void> {
@@ -2806,11 +2809,12 @@ async function setclip(str) {
     // Functions to avoid retyping everything everywhere
 
     // Note: We're using fillcmdline here because exceptions are somehow not caught. We're rethrowing because otherwise the error message will be overwritten with the "yank successful" message.
-    let s = () => Native.clipboard("set", str).catch(e => {
-        let msg = "# Failed to set X selection. Is the native messenger installed and is it >=v.0.1.7?"
-        fillcmdline(msg)
-        throw msg
-    })
+    let s = () =>
+        Native.clipboard("set", str).catch(e => {
+            let msg = "# Failed to set X selection. Is the native messenger installed and is it >=v.0.1.7?"
+            fillcmdline(msg)
+            throw msg
+        })
     let c = async () => {
         await messageActiveTab("commandline_content", "focus")
         await messageActiveTab("commandline_frame", "setClipboard", [str])
