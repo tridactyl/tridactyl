@@ -1377,7 +1377,7 @@ export async function open(...urlarr: string[]) {
         Messaging.message("commandline_background", "recvExStr", ["nativeopen " + url])
     } else if (url.match(/^javascript:/)) {
         let bookmarklet = url.replace(/^javascript:/, "")
-        document.body.append(html`<script>${bookmarklet}</script>`)
+        ;(document.body as any).append(html`<script>${bookmarklet}</script>`)
     } else if (url !== "") {
         window.location.href = forceURI(url)
     }
