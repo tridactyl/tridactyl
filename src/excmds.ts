@@ -1216,9 +1216,14 @@ export async function scrollpx(a: number, b: number) {
 }
 
 /** If two numbers are given, treat as x and y values to give to window.scrollTo
-    If one number is given, scroll to that percentage along a chosen axis, defaulting to the y-axis
+    If one number is given, scroll to that percentage along a chosen axis, defaulting to the y-axis. If the number has 'c' appended to it, it will be interpreted in radians.
 
     Note that if `a` is 0 or 100 and if the document is not scrollable in the given direction, Tridactyl will attempt to scroll the first scrollable element until it reaches the very bottom of that element.
+
+    Examples:
+
+    `scrollto 50` - scroll halfway down the page.
+    `scrollto 3.14c` - scroll approximately 49.97465213% of the way down the page.
 */
 //#content
 export function scrollto(a: number | string, b: number | "x" | "y" = "y") {
