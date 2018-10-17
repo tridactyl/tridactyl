@@ -11,6 +11,7 @@ import { ExcmdCompletionSource } from "@src/completions/Excmd"
 import { FileSystemCompletionSource } from "@src/completions/FileSystem"
 import { HelpCompletionSource } from "@src/completions/Help"
 import { HistoryCompletionSource } from "@src/completions/History"
+import { PreferenceCompletionSource } from "@src/completions/Preferences"
 import { SettingsCompletionSource } from "@src/completions/Settings"
 import * as Messaging from "@src/lib/messaging"
 import * as Config from "@src/lib/config"
@@ -70,6 +71,7 @@ function enableCompletions() {
             new FileSystemCompletionSource(completionsDiv),
             new HelpCompletionSource(completionsDiv),
             new HistoryCompletionSource(completionsDiv),
+            new PreferenceCompletionSource(completionsDiv),
             new SettingsCompletionSource(completionsDiv),
         ]
 

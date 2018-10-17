@@ -572,7 +572,6 @@ export async function getConfElsePrefElseDefault(
 export async function writePref(name: string, value: any) {
     if (cached_prefs) cached_prefs[name] = value
 
-    if (typeof value == "string") value = `"${value}"`
     const file = (await getProfileDir()) + "/user.js"
     // No need to check the return code because read returns "" when failing to
     // read a file

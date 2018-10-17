@@ -794,12 +794,28 @@ export async function colourscheme(themename: string) {
 }
 
 /**
+ * Write a setting to your user.js file.
+ *
+ * @param key The key that should be set. Must not be quoted. Must not contain spaces.
+ * @param value The value the key should take. Quoted if a string, unquoted otherwise.
+ *
+ * Note that not all of the keys Firefox uses are suggested by Tridactyl.
+ *
+ * e.g.: `setpref general.warnOnAboutConfig false`
+ * `setpref extensions.webextensions.restricterDomains ""`
+ */
+//#background
+export async function setpref(key: string, value: string) {
+    await Native.writePref(key, value)
+}
+
+/**
  * Like [[fixamo]] but quieter.
  */
 //#background
 export async function fixamo_quiet() {
-    await Native.writePref("privacy.resistFingerprinting.block_mozAddonManager", true)
-    await Native.writePref("extensions.webextensions.restrictedDomains", "")
+    await setpref("privacy.resistFingerprinting.block_mozAddonManager", "true")
+    return setpref("extensions.webextensions.restrictedDomains", '""')
 }
 
 /**
