@@ -8,6 +8,7 @@ import { BufferAllCompletionSource } from "@src/completions/BufferAll"
 import { BufferCompletionSource } from "@src/completions/Buffer"
 import { BmarkCompletionSource } from "@src/completions/Bmark"
 import { ExcmdCompletionSource } from "@src/completions/Excmd"
+import { FileSystemCompletionSource } from "@src/completions/FileSystem"
 import { HelpCompletionSource } from "@src/completions/Help"
 import { HistoryCompletionSource } from "@src/completions/History"
 import { SettingsCompletionSource } from "@src/completions/Settings"
@@ -66,6 +67,7 @@ function enableCompletions() {
             new BufferAllCompletionSource(completionsDiv),
             new BufferCompletionSource(completionsDiv),
             new ExcmdCompletionSource(completionsDiv),
+            new FileSystemCompletionSource(completionsDiv),
             new HelpCompletionSource(completionsDiv),
             new HistoryCompletionSource(completionsDiv),
             new SettingsCompletionSource(completionsDiv),
@@ -216,7 +218,7 @@ clInput.addEventListener("keydown", function(keyevent) {
 })
 
 let onInputId = 0
-let onInputPromise = Promise.resolve()
+let onInputPromise: Promise<any> = Promise.resolve()
 clInput.addEventListener("input", async () => {
     const exstr = clInput.value
     enableCompletions()
@@ -231,15 +233,13 @@ clInput.addEventListener("input", async () => {
     }
 
     if (onInputId != myInputId) return
-    onInputPromise = new Promise(resolve => {
-        // Fire each completion and add a callback to resize area
-        Promise.all(
-            activeCompletions.map(async comp => {
-                await comp.filter(exstr)
-                resizeArea()
-            }),
-        ).then(() => resolve())
-    })
+    // Fire each completion and add a callback to resize area
+    onInputPromise = Promise.all(
+        activeCompletions.map(async comp => {
+            await comp.filter(exstr)
+            resizeArea()
+        }),
+    )
 })
 
 let cmdline_history_position = 0
