@@ -120,7 +120,9 @@ export async function getBestEditor(): Promise<string> {
             // Terminator and termite require  -e commands to be in quotes
             'terminator -e "%f"',
             'termite --class tridactyl_editor -e "%f"',
-            "dbus-launch gnome-terminal --",
+            // Gnome-terminal doesn't work consistently, see issue #1035
+            // "dbus-launch gnome-terminal --",
+
             // I wanted to put hyper.js here as a joke but you can't start it running a command,
             // which is a far better joke: a terminal emulator that you can't send commands to.
             // You win this time, web artisans.
