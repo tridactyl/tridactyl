@@ -60,6 +60,21 @@ export const potentialRules = {
             show: ``,
         },
     },
+    tabcounter: {
+        name: `tabs`,
+        options: {
+            off: ``,
+            on: `counter-reset: tab-counter;`,
+        }
+    },
+    tabcounters: {
+        name: `.tab-label::before`,
+        options: {
+            hide: ``,
+            show: ` counter-increment: tab-counter;
+                    content: counter(tab-counter) " - ";`
+        }
+    },
     navtoolboxunfocused: {
         name: `:root:not([customizing]) #navigator-toolbox:not(:hover):not(:focus-within)`,
         options: {
@@ -182,6 +197,14 @@ export const metaRules = {
             tabstoolbarunfocused: "hide",
             navtoolboxunfocused: "hide",
         },
+        count: {
+            tabcounter: "on",
+            tabcounters: "show",
+        },
+        nocount: {
+            tabcounter: "off",
+            tabcounters: "hide",
+        }
     },
     navbar: {
         autohide: {
