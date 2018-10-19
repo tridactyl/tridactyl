@@ -78,7 +78,6 @@ class default_config {
         "<CA-`>": "mode normal",
         "<S-Escape>": "mode normal",
         "<C-^>": "buffer #",
-        I: "mode normal",
     }
 
     /**
@@ -242,7 +241,6 @@ class default_config {
         "<CA-Escape>": "mode ignore",
         "<CA-`>": "mode ignore",
         "<S-Escape>": "mode ignore",
-        I: "mode ignore",
         "<Escape>": "composite mode normal ; hidecmdline",
         "<C-[>": "composite mode normal ; hidecmdline",
         a: "current_url bmark",

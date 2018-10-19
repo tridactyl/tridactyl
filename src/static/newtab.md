@@ -12,7 +12,7 @@ Tridactyl has to override your new tab page due to WebExtension limitations. You
 
 *   If you're enjoying Tridactyl (or not), please leave a review on [addons.mozilla.org][amo].
 
-*   **Big change, probably buggy**: saulrh has very kindly made some quite large changes to Tridactyl's internals such that per-tab mode is now possible (i.e, you can have one window in ignore mode and another in normal mode and it Just Works (TM)).
+*   `I` has been unbound by default. You can rebind it with `bind I mode ignore` and `bind --mode=ignore mode normal`.
 
 REPLACE_ME_WITH_THE_CHANGE_LOG_USING_SED
 
