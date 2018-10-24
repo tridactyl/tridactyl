@@ -16,6 +16,18 @@
     -   `<C-6>` is now bound to `buffer #` in ignore mode
     -   `set searchurls` now supports multiple `%s` and numbered `%1`, `%2` etc. magic arguments for the search query
     -   `tabnew` alias added for `tabopen`
+    -   `stop` command bound to `x`
+    -   `:help config_option` now works, with completions
+    -   A few more `z*` binds have been added for zooming. See the help page for more details.
+    -   Inputs now get the Tridactyl logo on them while you edit them in an external editor
+    -   `bmarks` is now a proper excmd and allows you to open bookmarks in tabs if you give it a `-t` flag
+    -   New `setpref` command allows you to write to `user.js` for changing settings in `about:config`
+    -   `saveas` now allows you to specify file save location if you have the native messenger
+    -   Filesystem completion for `source` and `saveas`
+    -   `googlelucky` is now a valid search engine
+    -   `guiset tabs count` and `guiset tabs nocount`
+    -   `reloadallbut` command reloads everything but the active tab
+    -   `I` is unbound again. Bind it back with `bind I mode ignore` and `bind --mode=ignore I mode normal`
 
 -   Bug fixes
 
@@ -29,8 +41,9 @@
     -   `tabmove +1` no longer requires a leading space when typed interactively
     -   `setclip`/`getclip` now provide error messages
     -   `guiset` should be a bit better at finding profiles now
-    -   the mode indicator should now always have the correct colour at startup
+    -   The mode indicator should now always have the correct colour at startup
     -   `set historyresults 0` now works
+    -   `exclaim` should give more helpful errors if the native messenger is not installed
 
 -   Under the bonnet
 
