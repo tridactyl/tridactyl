@@ -219,29 +219,33 @@ clInput.addEventListener("keydown", function(keyevent) {
     }
 })
 
-let onInputId = 0
+let timeoutId: any = 0
 let onInputPromise: Promise<any> = Promise.resolve()
-clInput.addEventListener("input", async () => {
+clInput.addEventListener("input", () => {
     const exstr = clInput.value
-    enableCompletions()
-    let myInputId = onInputId + 1
-    onInputId = myInputId
+    // Prevent starting previous completion computation if possible
+    clearTimeout(timeoutId)
+    // Schedule completion computation. We do not start computing immediately because this would incur a slow down on quickly repeated input events (e.g. maintaining <Backspace> pressed)
+    let myTimeoutId = setTimeout(async () => {
+        try {
+            // Make sure the previous computation has ended
+            await onInputPromise
+        } catch (e) {
+            // we don't actually care because this is the previous computation, which we will throw away
+            logger.warning(e)
+        }
 
-    try {
-        await onInputPromise
-    } catch (e) {
-        // we don't actually care because this is the previous computation, which we will throw away
-        logger.warning(e)
-    }
+        // If we're not the current completion computation anymore, stop
+        if (timeoutId != myTimeoutId) return
 
-    if (onInputId != myInputId) return
-    // Fire each completion and add a callback to resize area
-    onInputPromise = Promise.all(
-        activeCompletions.map(async comp => {
-            await comp.filter(exstr)
-            resizeArea()
-        }),
-    )
+        enableCompletions()
+        // Fire each completion and add a callback to resize area
+        onInputPromise = Promise.all(
+            activeCompletions.map(comp => comp.filter(exstr).then(resizeArea))
+        )
+    }, 100)
+    // Declare self as current completion computation
+    timeoutId = myTimeoutId
 })
 
 let cmdline_history_position = 0
