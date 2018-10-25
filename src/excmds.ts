@@ -2229,7 +2229,14 @@ export async function tabopen(...addressarr: string[]) {
 async function idFromIndex(index?: number | "%" | "#" | string): Promise<number> {
     if (index === "#") {
         // Support magic previous/current tab syntax everywhere
-        return (await getSortedWinTabs())[1].id
+        const tabs = await getSortedWinTabs()
+        if (tabs.length < 2) {
+            // In vim, '#' is the id of the previous buffer even if said buffer has been wiped
+            // However, firefox doesn't store tab ids for closed tabs
+            // Since vim makes '#' default to the current buffer if only one buffer has ever been opened for the current session, it seems reasonable to return the id of the current tab if only one tab is opened in firefox
+            return activeTabId()
+        }
+        return tabs[1].id
     } else if (index !== undefined && index !== "%") {
         // Wrap
         index = Number(index)
