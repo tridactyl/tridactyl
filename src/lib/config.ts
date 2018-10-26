@@ -316,6 +316,21 @@ class default_config {
             // Too bad :/
             // "emacs.org": "tabclose",
         },
+
+        /**
+         * Commands that will be run when fullscreen state changes.
+         */
+        FullscreenChange: {},
+
+        /**
+         * Commands that will be run when fullscreen state is entered.
+         */
+        FullscreenEnter: {},
+
+        /**
+         * Commands that will be run when fullscreen state is left.
+         */
+        FullscreenLeft: {},
     }
 
     /**

@@ -1923,11 +1923,28 @@ export async function reader() {
 loadaucmds("DocStart")
 window.addEventListener("pagehide", () => loadaucmds("DocEnd"))
 window.addEventListener("DOMContentLoaded", () => loadaucmds("DocLoad"))
+const fullscreenhandler = () => {
+    loadaucmds("FullscreenChange")
+    if (document.fullscreenElement || (document as any).mozFullScreenElement) {
+        loadaucmds("FullscreenEnter")
+    } else {
+        loadaucmds("FullscreenLeft")
+    }
+}
+
+const prefixed = "mozFullScreenEnabled" in document
+
+// Until firefox removes vendor prefix for this api (in FF64), we must also use mozfullscreenchange
+if (prefixed) {
+    document.addEventListener("mozfullscreenchange", fullscreenhandler)
+} else if ("fullscreenEnabled" in document) {
+    document.addEventListener("fullscreenchange", fullscreenhandler)
+}
 // }
 
 /** @hidden */
 //#content
-export async function loadaucmds(cmdType: "DocStart" | "DocLoad" | "DocEnd" | "TabEnter" | "TabLeft") {
+export async function loadaucmds(cmdType: "DocStart" | "DocLoad" | "DocEnd" | "TabEnter" | "TabLeft" | "FullscreenEnter" | "FullscreenLeft" | "FullscreenChange") {
     let aucmds = await config.getAsync("autocmds", cmdType)
     const ausites = Object.keys(aucmds)
     const aukeyarr = ausites.filter(e => window.document.location.href.search(e) >= 0)
@@ -3268,10 +3285,10 @@ export function set(key: string, ...values: string[]) {
 
 /** @hidden */
 //#background_helper
-let AUCMDS = ["DocStart", "DocLoad", "DocEnd", "TriStart", "TabEnter", "TabLeft"]
+let AUCMDS = ["DocStart", "DocLoad", "DocEnd", "TriStart", "TabEnter", "TabLeft", "FullscreenChange", "FullscreenEnter", "FullscreenLeft"]
 /** Set autocmds to run when certain events happen.
 
- @param event Curently, 'TriStart', 'DocStart', 'DocLoad', 'DocEnd', 'TabEnter' and 'TabLeft' are supported.
+ @param event Curently, 'TriStart', 'DocStart', 'DocLoad', 'DocEnd', 'TabEnter', 'TabLeft', 'FullscreenChange', 'FullscreenEnter', and 'FullscreenLeft' are supported
 
  @param url For DocStart, DocEnd, TabEnter, and TabLeft: a fragment of the URL on which the events will trigger, or a JavaScript regex (e.g, `/www\.amazon\.co.*\/`)
 
@@ -3313,7 +3330,7 @@ export function autocontain(domain: string, container: string) {
 }
 
 /** Remove autocmds
- @param event Curently, 'TriStart', 'DocStart', 'DocLoad', 'DocEnd', 'TabEnter' and 'TabLeft' are supported.
+ @param event Curently, 'TriStart', 'DocStart', 'DocLoad', 'DocEnd', 'TabEnter', 'TabLeft', 'FullscreenChange', 'FullscreenEnter', and 'FullscreenLeft' are supported
 
  @param url For DocStart, DocEnd, TabEnter, and TabLeft: a fragment of the URL on which the events will trigger, or a JavaScript regex (e.g, `/www\.amazon\.co.*\/`)
 */
