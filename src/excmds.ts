@@ -1932,10 +1932,10 @@ const fullscreenhandler = () => {
     }
 }
 
-const prefixed = "mozFullScreenEnabled" in document
+const fullscreenApiIsPrefixed = "mozFullScreenEnabled" in document
 
 // Until firefox removes vendor prefix for this api (in FF64), we must also use mozfullscreenchange
-if (prefixed) {
+if (fullscreenApiIsPrefixed) {
     document.addEventListener("mozfullscreenchange", fullscreenhandler)
 } else if ("fullscreenEnabled" in document) {
     document.addEventListener("fullscreenchange", fullscreenhandler)
