@@ -1923,6 +1923,7 @@ export async function reader() {
 loadaucmds("DocStart")
 window.addEventListener("pagehide", () => loadaucmds("DocEnd"))
 window.addEventListener("DOMContentLoaded", () => loadaucmds("DocLoad"))
+/** @hidden */
 const fullscreenhandler = () => {
     loadaucmds("FullscreenChange")
     if (document.fullscreenElement || (document as any).mozFullScreenElement) {
