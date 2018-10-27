@@ -805,8 +805,8 @@ export async function colourscheme(themename: string) {
  * `setpref extensions.webextensions.restricterDomains ""`
  */
 //#background
-export async function setpref(key: string, value: string) {
-    await Native.writePref(key, value)
+export async function setpref(key: string, ...value: string[]) {
+    await Native.writePref(key, value.join(" "))
 }
 
 /**
