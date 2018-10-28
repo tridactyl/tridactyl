@@ -1,11 +1,11 @@
 # Tridactyl changelog
 
-## Release 1.14.1 / Unreleased
+## Release 1.14.1 / 2018-10-28
 
 -   New features
 
     -   URL-specific settings:
-        -   `bindurl`,`seturl`,`unseturl`,`unbindurl` allow you to change settings per site. See `help bindurl` for more details.
+        -   `bindurl`,`seturl`,`unseturl`,`unbindurl`, and `reseturl` allow you to change settings per site. See `help bindurl` for more details.
     -   New tab page now steals focus from the address bar (but not on Windows):
         -   if you want the old behaviour back, `set newtabfocus urlbar`
     -   `set editorcmd` now has `%f` as a magic argument to specify the filename
@@ -44,6 +44,7 @@
     -   The mode indicator should now always have the correct colour at startup
     -   `set historyresults 0` now works
     -   `exclaim` should give more helpful errors if the native messenger is not installed
+    -   `#` in `buffer #` and others will now refer to the current tab if you only have a single tab open
 
 -   Under the bonnet
 
@@ -56,6 +57,12 @@
 
 -   Miscellaneous
     -   Documentation improvements
+
+Thanks to all of our contributors for this release: Oliver Blanthorn, glacambre, Saul Reynolds-Haertle, Anton Vilhelm Ásgeirsson, Joao Sa, notJerl, Colin Caine, WorldCodeCentral, Alex Griffin, FrankEular, Ivan Solyankin, Lorenz Leutgeb, and Shou Ya.
+
+Extra special thanks go to Alex Griffin, FrankEular, Ivan Solyankin, Joao Sa, Lorenz Leutgeb, notJerl, and Shou Ya who all contributed for the first time.
+
+Last, but not least - thank you to everyone who reported issues.
 
 ## Release 1.14.0 / 2018-09-05
 
