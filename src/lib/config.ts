@@ -247,6 +247,8 @@ class default_config {
         A: "bmark",
         zi: "zoom 0.1 true",
         zo: "zoom -0.1 true",
+        zm: "zoom 0.5 true",
+        zr: "zoom -0.5 true",
         zM: "zoom 0.5 true",
         zR: "zoom -0.5 true",
         zz: "zoom 1",
