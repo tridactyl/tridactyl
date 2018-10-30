@@ -170,6 +170,7 @@ class default_config {
         "<<": "tabmove -1",
         ">>": "tabmove +1",
         u: "undo",
+        U: "undo window",
         r: "reload",
         R: "reloadhard",
         x: "stop",
