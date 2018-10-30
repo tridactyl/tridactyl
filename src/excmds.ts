@@ -82,6 +82,7 @@ import * as CSS from "css"
 import * as Perf from "@src/perf"
 import * as Metadata from "@src/.metadata.generated"
 import { fitsType, typeToString } from "@src/lib/metadata"
+import * as tri_editor from "@src/lib/editor"
 
 //#content_helper
 // {
@@ -217,23 +218,7 @@ export async function editor() {
  **/
 //#content
 export function im_delete_char() {
-    let elem = DOM.getLastUsedInput() as HTMLInputElement
-    let pos = elem.selectionStart
-    // Abort if we can't find out where the caret is
-    if (pos === undefined || pos === null) {
-        logger.warning("im_delete_char: elem doesn't have a selectionStart")
-        return
-    }
-    let text = getInput(elem)
-    if (text.length == 0) return
-    if (pos != elem.selectionEnd) {
-        // If the user selected text, then we need to delete that instead of a single char
-        text = text.substring(0, pos) + text.substring(elem.selectionEnd)
-    } else {
-        text = text.substring(0, pos) + text.substring(pos + 1)
-    }
-    fillinput(DOM.getSelector(elem), text)
-    elem.selectionStart = elem.selectionEnd = pos
+    tri_editor.delete_char(DOM.getLastUsedInput())
 }
 
 /**
@@ -241,22 +226,7 @@ export function im_delete_char() {
  **/
 //#content
 export function im_delete_backward_char() {
-    let elem = DOM.getLastUsedInput() as HTMLInputElement
-    let pos = elem.selectionStart
-    // Abort if we can't find out where the caret is or if it is at the beginning of the text
-    if (!pos) {
-        logger.warning("im_delete_backward_char: elem doesn't have a selectionStart or caret is at beginning of line.")
-        return
-    }
-    let text = getInput(elem)
-    if (text.length == 0) return
-    if (pos != elem.selectionEnd) {
-        text = text.substring(0, pos) + text.substring(elem.selectionEnd)
-    } else {
-        text = text.substring(0, pos - 1) + text.substring(pos)
-    }
-    fillinput(DOM.getSelector(elem), text)
-    elem.selectionStart = elem.selectionEnd = pos - 1
+    tri_editor.delete_backward_char(DOM.getLastUsedInput())
 }
 
 /**
@@ -264,20 +234,7 @@ export function im_delete_backward_char() {
  **/
 //#content
 export function im_tab_insert() {
-    let elem = DOM.getLastUsedInput() as HTMLInputElement
-    let pos = elem.selectionStart
-    if (pos === undefined || pos === null) {
-        logger.warning("im_tab_insert: elem doesn't have a selectionStart")
-        return
-    }
-    let text = getInput(elem)
-    if (pos != elem.selectionEnd) {
-        text = text.substring(0, pos) + "\t" + text.substring(elem.selectionEnd)
-    } else {
-        text = text.substring(0, pos) + "\t" + text.substring(pos)
-    }
-    fillinput(DOM.getSelector(elem), text)
-    elem.selectionStart = elem.selectionEnd = pos + 1
+    tri_editor.tab_insert(DOM.getLastUsedInput())
 }
 
 /**
@@ -285,86 +242,7 @@ export function im_tab_insert() {
  **/
 //#content
 export function im_transpose_chars() {
-    let elem = DOM.getLastUsedInput() as HTMLInputElement
-    let pos = elem.selectionStart
-    if (pos === undefined || pos === null) {
-        logger.warning("im_transpose_chars: elem doesn't have a selectionStart")
-        return
-    }
-    // When at the beginning of the text, transpose the first and second characters
-    if (pos == 0) pos = 1
-    let text = getInput(elem)
-    if (text.length == 0) return
-    // When at the end of the text, transpose the last and second-to-last characters
-    if (pos >= text.length) pos = text.length - 1
-    fillinput(DOM.getSelector(elem), text.substring(0, pos - 1) + text.substring(pos, pos + 1) + text.substring(pos - 1, pos) + text.substring(pos + 1))
-    elem.selectionStart = elem.selectionEnd = pos + 1
-}
-
-/** @hidden
- * Detects the boundaries of a word in text according to the wordpattern setting. If POSITION is in a word, the boundaries of this word are returned. If POSITION is out of a word and BEFORE is true, the word before POSITION is returned. If BEFORE is false, the word after the caret is returned.
- */
-//#content_helper
-export function getWordBoundaries(text: string, position: number, before: boolean): [number, number] {
-    if (position < 0 || position > text.length) throw new Error(`getWordBoundaries: position (${position}) should be within text ("${text}") boundaries (0, ${text.length})`)
-    let pattern = new RegExp(config.get("wordpattern"), "g")
-    let boundary1 = position < text.length ? position : text.length - 1
-    let direction = before ? -1 : 1
-    // if the caret is not in a word, try to find the word before or after it
-    while (boundary1 >= 0 && boundary1 < text.length && !text[boundary1].match(pattern)) {
-        boundary1 += direction
-    }
-
-    if (boundary1 < 0) boundary1 = 0
-    else if (boundary1 >= text.length) boundary1 = text.length - 1
-
-    // if a word couldn't be found in this direction, try the other one
-    while (boundary1 >= 0 && boundary1 < text.length && !text[boundary1].match(pattern)) {
-        boundary1 -= direction
-    }
-
-    if (boundary1 < 0) boundary1 = 0
-    else if (boundary1 >= text.length) boundary1 = text.length - 1
-
-    if (!text[boundary1].match(pattern)) {
-        // there is no word in text
-        throw new Error(`getWordBoundaries: no characters matching wordpattern (${pattern.source}) in text (${text})`)
-    }
-
-    // now that we know the caret is in a word (it could be in the middle depending on POSITION!), try to find its beginning/end
-    while (boundary1 >= 0 && boundary1 < text.length && !!text[boundary1].match(pattern)) {
-        boundary1 += direction
-    }
-    // boundary1 is now outside of the word, bring it back inside of it
-    boundary1 -= direction
-
-    let boundary2 = boundary1
-    // now that we know the caret is at the beginning/end of a word, we need to find the other boundary
-    while (boundary2 >= 0 && boundary2 < text.length && !!text[boundary2].match(pattern)) {
-        boundary2 -= direction
-    }
-    // boundary2 is outside of the word, bring it back in
-    boundary2 += direction
-
-    // Add 1 to the end boundary because the end of a word is marked by the character after said word
-    if (boundary1 > boundary2) return [boundary2, boundary1 + 1]
-    return [boundary1, boundary2 + 1]
-}
-
-/** @hidden
- * Finds the next word as defined by the wordpattern setting after POSITION. If POSITION is in a word, POSITION is moved forward until it is out of the word.
- * @return number The position of the next word in text or -1 if the next word can't be found.
- */
-//#content_helper
-export function wordAfterPos(text: string, position: number) {
-    if (position < 0) throw new Error(`wordAfterPos: position (${position}) is less that 0`)
-    let pattern = new RegExp(config.get("wordpattern"), "g")
-    // move position out of the current word
-    while (position < text.length && !!text[position].match(pattern)) position += 1
-    // try to find characters that match wordpattern
-    while (position < text.length && !text[position].match(pattern)) position += 1
-    if (position >= text.length) return -1
-    return position
+    tri_editor.transpose_chars(DOM.getLastUsedInput())
 }
 
 /**
@@ -372,58 +250,7 @@ export function wordAfterPos(text: string, position: number) {
  **/
 //#content
 export function im_transpose_words() {
-    let elem = DOM.getLastUsedInput() as HTMLInputElement
-    let pos = elem.selectionStart
-    if (pos === undefined || pos === null) {
-        logger.warning("im_transpose_words: elem doesn't have a selectionStart")
-        return
-    }
-    let text = getInput(elem)
-    if (text.length == 0) return
-    // If the caret is at the end of the text, move it just before the last character
-    if (pos >= text.length) {
-        pos = text.length - 1
-    }
-    // Find the word the caret is in
-    let firstBoundaries = getWordBoundaries(text, pos, false)
-    let secondBoundaries = firstBoundaries
-    // If there is a word after the word the caret is in, use it for the transposition, otherwise use the word before it
-    let nextWord = wordAfterPos(text, firstBoundaries[1])
-    if (nextWord > -1) {
-        secondBoundaries = getWordBoundaries(text, nextWord, false)
-    } else {
-        firstBoundaries = getWordBoundaries(text, firstBoundaries[0] - 1, true)
-    }
-    let firstWord = text.substring(firstBoundaries[0], firstBoundaries[1])
-    let secondWord = text.substring(secondBoundaries[0], secondBoundaries[1])
-    let beginning = text.substring(0, firstBoundaries[0]) + secondWord + text.substring(firstBoundaries[1], secondBoundaries[0])
-    pos = beginning.length
-    fillinput(DOM.getSelector(elem), beginning + firstWord + text.substring(secondBoundaries[1]))
-    // Move caret just before the word that was transposed
-    elem.selectionStart = elem.selectionEnd = pos
-}
-
-/** @hidden
- * Applies a function to the word the caret is in, or to the next word if the caret is not in a word, or to the previous word if the current word is empty.
- */
-//#content_helper
-function applyWord(fn: (string) => string) {
-    let elem = DOM.getLastUsedInput() as HTMLInputElement
-    let pos = elem.selectionStart
-    if (pos === undefined || pos === null) {
-        logger.warning("im_upcase_word: elem doesn't have a selectionStart")
-        return
-    }
-    let text = getInput(elem)
-    if (text.length == 0) return
-    // If the caret is at the end of the text, move it just before the last character
-    if (pos >= text.length) {
-        pos = text.length - 1
-    }
-    let boundaries = getWordBoundaries(text, pos, false)
-    let beginning = text.substring(0, boundaries[0]) + fn(text.substring(boundaries[0], boundaries[1]))
-    fillinput(DOM.getSelector(elem), beginning + text.substring(boundaries[1]))
-    elem.selectionStart = elem.selectionEnd = beginning.length + 1
+    tri_editor.transpose_words(DOM.getLastUsedInput())
 }
 
 /**
@@ -431,7 +258,7 @@ function applyWord(fn: (string) => string) {
  **/
 //#content
 export function im_upcase_word() {
-    applyWord(word => word.toUpperCase())
+    tri_editor.upcase_word(DOM.getLastUsedInput())
 }
 
 /**
@@ -439,7 +266,7 @@ export function im_upcase_word() {
  **/
 //#content
 export function im_downcase_word() {
-    applyWord(word => word.toLowerCase())
+    tri_editor.downcase_word(DOM.getLastUsedInput())
 }
 
 /**
@@ -447,7 +274,7 @@ export function im_downcase_word() {
  **/
 //#content
 export function im_capitalize_word() {
-    applyWord(word => word[0].toUpperCase() + word.substring(1))
+    tri_editor.capitalize_word(DOM.getLastUsedInput())
 }
 
 /**
@@ -455,24 +282,7 @@ export function im_capitalize_word() {
  **/
 //#content
 export function im_kill_line() {
-    let elem = DOM.getLastUsedInput() as HTMLInputElement
-    let pos = elem.selectionStart
-    if (pos === undefined || pos === null) {
-        logger.warning("im_kill_line: elem doesn't have a selectionStart")
-        return
-    }
-    let text = getInput(elem)
-    if (text.length == 0) return
-    let newLine = text.substring(pos).search("\n")
-    if (newLine != -1) {
-        // If the caret is right before the newline, kill the newline
-        if (newLine == 0) newLine = 1
-        text = text.substring(0, pos) + text.substring(pos + newLine)
-    } else {
-        text = text.substring(0, pos)
-    }
-    fillinput(DOM.getSelector(elem), text)
-    elem.selectionStart = elem.selectionEnd = pos
+    tri_editor.kill_line(DOM.getLastUsedInput())
 }
 
 /**
@@ -480,26 +290,7 @@ export function im_kill_line() {
  **/
 //#content
 export function im_backward_kill_line() {
-    let elem = DOM.getLastUsedInput() as HTMLInputElement
-    let pos = elem.selectionStart
-    if (pos === undefined || pos === null) {
-        logger.warning("im_backward_kill_line: elem doesn't have a selectionStart")
-        return
-    }
-    let text = getInput(elem)
-    if (text.length == 0) return
-    // If the caret is at the beginning of a line, join the lines
-    if (text[pos - 1] == "\n") {
-        fillinput(DOM.getSelector(elem), text.substring(0, pos - 1) + text.substring(pos))
-        elem.selectionStart = elem.selectionEnd = pos - 1
-    } else {
-        let newLine
-        // Find the closest newline
-        for (newLine = pos; newLine > 0 && text[newLine - 1] != "\n"; --newLine) {}
-        // Remove everything between the newline and the caret
-        fillinput(DOM.getSelector(elem), text.substring(0, newLine) + text.substring(pos))
-        elem.selectionStart = elem.selectionEnd = newLine
-    }
+    tri_editor.backward_kill_line(DOM.getLastUsedInput())
 }
 
 /**
@@ -507,22 +298,7 @@ export function im_backward_kill_line() {
  **/
 //#content
 export function im_kill_whole_line() {
-    let elem = DOM.getLastUsedInput() as HTMLInputElement
-    let pos = elem.selectionStart
-    if (pos === undefined || pos === null) {
-        logger.warning("im_kill_whole_line: elem doesn't have a selectionStart")
-        return
-    }
-    let text = getInput(elem)
-    if (text.length == 0) return
-    let firstNewLine, secondNewLine
-    // Find the newline before the caret
-    for (firstNewLine = pos; firstNewLine > 0 && text[firstNewLine - 1] != "\n"; --firstNewLine) {}
-    // Find the newline after the caret
-    for (secondNewLine = pos; secondNewLine < text.length && text[secondNewLine - 1] != "\n"; ++secondNewLine) {}
-    // Remove everything between the newline and the caret
-    fillinput(DOM.getSelector(elem), text.substring(0, firstNewLine) + text.substring(secondNewLine))
-    elem.selectionStart = elem.selectionEnd = firstNewLine
+    tri_editor.kill_whole_line(DOM.getLastUsedInput())
 }
 
 /**
@@ -530,19 +306,7 @@ export function im_kill_whole_line() {
  **/
 //#content
 export function im_kill_word() {
-    let elem = DOM.getLastUsedInput() as HTMLInputElement
-    let pos = elem.selectionStart
-    if (pos === undefined || pos === null) {
-        logger.warning("im_kill_word: elem doesn't have a selectionStart")
-        return
-    }
-    let text = getInput(elem)
-    if (text.length == 0) return
-    let boundaries = getWordBoundaries(text, pos, false)
-    if (pos > boundaries[0] && pos < boundaries[1]) boundaries[0] = pos
-    // Remove everything between the newline and the caret
-    fillinput(DOM.getSelector(elem), text.substring(0, boundaries[0]) + text.substring(boundaries[1] + 1))
-    elem.selectionStart = elem.selectionEnd = boundaries[0]
+    tri_editor.kill_word(DOM.getLastUsedInput())
 }
 
 /**
@@ -550,19 +314,7 @@ export function im_kill_word() {
  **/
 //#content
 export function im_backward_kill_word() {
-    let elem = DOM.getLastUsedInput() as HTMLInputElement
-    let pos = elem.selectionStart
-    if (pos === undefined || pos === null) {
-        logger.warning("im_backward_kill_word: elem doesn't have a selectionStart")
-        return
-    }
-    let text = getInput(elem)
-    if (text.length == 0) return
-    let boundaries = getWordBoundaries(text, pos, true)
-    if (pos > boundaries[0] && pos < boundaries[1]) boundaries[1] = pos
-    // Remove everything between the newline and the caret
-    fillinput(DOM.getSelector(elem), text.substring(0, boundaries[0]) + text.substring(boundaries[1]))
-    elem.selectionStart = elem.selectionEnd = boundaries[0]
+    tri_editor.backward_kill_word(DOM.getLastUsedInput())
 }
 
 /**
@@ -570,16 +322,7 @@ export function im_backward_kill_word() {
  **/
 //#content
 export function im_beginning_of_line() {
-    let elem = DOM.getLastUsedInput() as HTMLInputElement
-    let pos = elem.selectionStart
-    if (pos === undefined || pos === null) {
-        logger.warning("im_beginning_of_line: elem doesn't have a selectionStart")
-        return
-    }
-    let text = getInput(elem)
-    if (text.length == 0) return
-    while (text[pos - 1] != undefined && text[pos - 1] != "\n") pos -= 1
-    elem.selectionStart = elem.selectionEnd = pos
+    tri_editor.beginning_of_line(DOM.getLastUsedInput())
 }
 
 /**
@@ -587,16 +330,7 @@ export function im_beginning_of_line() {
  **/
 //#content
 export function im_end_of_line() {
-    let elem = DOM.getLastUsedInput() as HTMLInputElement
-    let pos = elem.selectionStart
-    if (pos === undefined || pos === null) {
-        logger.warning("im_end_of_line: elem doesn't have a selectionStart")
-        return
-    }
-    let text = getInput(elem)
-    if (text.length == 0) return
-    while (text[pos] != undefined && text[pos] != "\n") pos += 1
-    elem.selectionStart = elem.selectionEnd = pos
+    tri_editor.end_of_line(DOM.getLastUsedInput())
 }
 
 /**
@@ -604,15 +338,7 @@ export function im_end_of_line() {
  **/
 //#content
 export function im_forward_char() {
-    let elem = DOM.getLastUsedInput() as HTMLInputElement
-    let pos = elem.selectionStart
-    if (pos === undefined || pos === null) {
-        logger.warning("im_forward_char: elem doesn't have a selectionStart")
-        return
-    }
-    let text = getInput(elem)
-    if (text.length == 0) return
-    elem.selectionStart = elem.selectionEnd = pos + 1
+    tri_editor.forward_char(DOM.getLastUsedInput())
 }
 
 /**
@@ -620,15 +346,7 @@ export function im_forward_char() {
  **/
 //#content
 export function im_backward_char() {
-    let elem = DOM.getLastUsedInput() as HTMLInputElement
-    let pos = elem.selectionStart
-    if (pos === undefined || pos === null) {
-        logger.warning("im_backward_char: elem doesn't have a selectionStart")
-        return
-    }
-    let text = getInput(elem)
-    if (text.length == 0) return
-    elem.selectionStart = elem.selectionEnd = pos - 1
+    tri_editor.backward_char(DOM.getLastUsedInput())
 }
 
 /**
@@ -636,17 +354,7 @@ export function im_backward_char() {
  **/
 //#content
 export function im_forward_word() {
-    let elem = DOM.getLastUsedInput() as HTMLInputElement
-    let pos = elem.selectionStart
-    if (pos === undefined || pos === null) {
-        logger.warning("im_forward_word: elem doesn't have a selectionStart")
-        return
-    }
-    let text = getInput(elem)
-    if (text.length == 0) return
-    let boundaries = getWordBoundaries(text, pos, false)
-    if (pos >= boundaries[0] && pos < boundaries[1]) boundaries = getWordBoundaries(text, boundaries[1], false)
-    elem.selectionStart = elem.selectionEnd = boundaries[0]
+    tri_editor.forward_word(DOM.getLastUsedInput())
 }
 
 /**
@@ -654,17 +362,7 @@ export function im_forward_word() {
  **/
 //#content
 export function im_backward_word() {
-    let elem = DOM.getLastUsedInput() as HTMLInputElement
-    let pos = elem.selectionStart
-    if (pos === undefined || pos === null) {
-        logger.warning("im_backward_word: elem doesn't have a selectionStart")
-        return
-    }
-    let text = getInput(elem)
-    if (text.length == 0 || pos == 0) return
-    let boundaries = getWordBoundaries(text, pos, true)
-    if (pos >= boundaries[0] && pos < boundaries[1]) boundaries = getWordBoundaries(text, boundaries[0] - 1, true)
-    elem.selectionStart = elem.selectionEnd = boundaries[0]
+    tri_editor.backward_word(DOM.getLastUsedInput())
 }
 
 //#background_helper
