@@ -66,6 +66,27 @@ class default_config {
     priority = "0"
 
     // Note to developers: When creating new <modifier-letter> maps, make sure to make the modifier uppercase (e.g. <C-a> instead of <c-a>) otherwise some commands might not be able to find them (e.g. `bind <c-a>`)
+    
+    /**
+     * exmaps contains all of the bindings for the command line.
+     */
+    exmaps = {
+        "<Enter>": "ex.accept_line",
+        "<C-j>": "ex.accept_line",
+        "<C-m>": "ex.accept_line",
+        "<Escape>": "ex.hide_and_clear",
+        "<ArrowUp>": "ex.previous_history",
+        "<ArrowDown>": "ex.next_history",
+        "<C-a>": "ex.beginning_of_line",
+        "<C-e>": "ex.end_of_line",
+        "<C-u>": "ex.backward_kill_line",
+        "<C-k>": "ex.kill_line",
+        "<C-c>": "ex.kill_whole_line",
+        "<C-f>": "ex.complete",
+        "<Tab>": "ex.next_completion",
+        "<S-Tab>": "ex.prev_completion",
+        "<Space>": "ex.insert_completion_or_space",
+    }
 
     /**
      * ignoremaps contain all of the bindings for "ignore mode".

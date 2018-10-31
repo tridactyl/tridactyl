@@ -97,6 +97,7 @@ import * as scrolling from "@src/content/scrolling"
 //#background_helper
 // {
 /** Message excmds_content.ts in the active tab of the currentWindow */
+import * as BGSELF from "@src/.excmds_background.generated"
 import { messageTab, messageActiveTab } from "@src/lib/messaging"
 import { flatten } from "@src/lib/itertools"
 import "@src/lib/number.mod"
@@ -211,158 +212,6 @@ export async function editor() {
     classUpdate.then(() => Messaging.messageTab(tab.id, "excmd_content", "removeTridactylEditorClass", [selector]))
     // TODO: add annoying "This message was written with [Tridactyl](https://addons.mozilla.org/en-US/firefox/addon/tridactyl-vim/)" to everything written using editor
     return [file, content]
-}
-
-/**
- * Behaves like readline's [delete_char](http://web.mit.edu/gnu/doc/html/rlman_1.html#SEC14), i.e. deletes the character to the right of the caret.
- **/
-//#content
-export function im_delete_char() {
-    tri_editor.delete_char(DOM.getLastUsedInput())
-}
-
-/**
- * Behaves like readline's [delete_backward_char](http://web.mit.edu/gnu/doc/html/rlman_1.html#SEC14), i.e. deletes the character to the left of the caret.
- **/
-//#content
-export function im_delete_backward_char() {
-    tri_editor.delete_backward_char(DOM.getLastUsedInput())
-}
-
-/**
- * Behaves like readline's [tab_insert](http://web.mit.edu/gnu/doc/html/rlman_1.html#SEC14), i.e. inserts a tab character to the left of the caret.
- **/
-//#content
-export function im_tab_insert() {
-    tri_editor.tab_insert(DOM.getLastUsedInput())
-}
-
-/**
- * Behaves like readline's [transpose_chars](http://web.mit.edu/gnu/doc/html/rlman_1.html#SEC14), i.e. transposes the character to the left of the caret with the character to the right of the caret and then moves the caret one character to the right. If there are no characters to the right or to the left of the caret, uses the two characters the closest to the caret.
- **/
-//#content
-export function im_transpose_chars() {
-    tri_editor.transpose_chars(DOM.getLastUsedInput())
-}
-
-/**
- * Behaves like readline's [transpose_words](http://web.mit.edu/gnu/doc/html/rlman_1.html#SEC14). Basically equivalent to [[im_transpose_chars]], but using words as defined by the wordpattern setting.
- **/
-//#content
-export function im_transpose_words() {
-    tri_editor.transpose_words(DOM.getLastUsedInput())
-}
-
-/**
- * Behaves like readline's [upcase_word](http://web.mit.edu/gnu/doc/html/rlman_1.html#SEC14). Makes the word the caret is in uppercase.
- **/
-//#content
-export function im_upcase_word() {
-    tri_editor.upcase_word(DOM.getLastUsedInput())
-}
-
-/**
- * Behaves like readline's [downcase_word](http://web.mit.edu/gnu/doc/html/rlman_1.html#SEC14). Makes the word the caret is in lowercase.
- **/
-//#content
-export function im_downcase_word() {
-    tri_editor.downcase_word(DOM.getLastUsedInput())
-}
-
-/**
- * Behaves like readline's [capitalize_word](http://web.mit.edu/gnu/doc/html/rlman_1.html#SEC14). Makes the initial character of the word the caret is in uppercase.
- **/
-//#content
-export function im_capitalize_word() {
-    tri_editor.capitalize_word(DOM.getLastUsedInput())
-}
-
-/**
- * Behaves like readline's [kill_line](http://web.mit.edu/gnu/doc/html/rlman_1.html#SEC15), i.e. deletes every character to the right of the caret until reaching either the end of the text or the newline character (\n).
- **/
-//#content
-export function im_kill_line() {
-    tri_editor.kill_line(DOM.getLastUsedInput())
-}
-
-/**
- * Behaves like readline's [backward_kill_line](http://web.mit.edu/gnu/doc/html/rlman_1.html#SEC15), i.e. deletes every character to the left of the caret until either the beginning of the text is found or a newline character ("\n") is reached.
- **/
-//#content
-export function im_backward_kill_line() {
-    tri_editor.backward_kill_line(DOM.getLastUsedInput())
-}
-
-/**
- * Behaves like readline's [kill_whole_line](http://web.mit.edu/gnu/doc/html/rlman_1.html#SEC15). Deletes every character between the two newlines the caret is in. If a newline can't be found on the left of the caret, everything is deleted until the beginning of the text is reached. If a newline can't be found on the right, everything is deleted until the end of the text is found.
- **/
-//#content
-export function im_kill_whole_line() {
-    tri_editor.kill_whole_line(DOM.getLastUsedInput())
-}
-
-/**
- * Behaves like readline's [kill_word](http://web.mit.edu/gnu/doc/html/rlman_1.html#SEC15). Deletes every character from the caret to the end of a word, with words being defined by the wordpattern setting.
- **/
-//#content
-export function im_kill_word() {
-    tri_editor.kill_word(DOM.getLastUsedInput())
-}
-
-/**
- * Behaves like readline's [backward_kill_word](http://web.mit.edu/gnu/doc/html/rlman_1.html#SEC15). Deletes every character from the caret to the beginning of a word with word being defined by the wordpattern setting.
- **/
-//#content
-export function im_backward_kill_word() {
-    tri_editor.backward_kill_word(DOM.getLastUsedInput())
-}
-
-/**
- * Behaves like readline's [beginning_of_line](http://web.mit.edu/gnu/doc/html/rlman_1.html#SEC12). Moves the caret to the right of the first newline character found at the left of the caret. If no newline can be found, move the caret to the beginning of the text.
- **/
-//#content
-export function im_beginning_of_line() {
-    tri_editor.beginning_of_line(DOM.getLastUsedInput())
-}
-
-/**
- * Behaves like readline's [end_of_line](http://web.mit.edu/gnu/doc/html/rlman_1.html#SEC12). Moves the caret to the left of the first newline character found at the right of the caret. If no newline can be found, move the caret to the end of the text.
- **/
-//#content
-export function im_end_of_line() {
-    tri_editor.end_of_line(DOM.getLastUsedInput())
-}
-
-/**
- * Behaves like readline's [forward_char](http://web.mit.edu/gnu/doc/html/rlman_1.html#SEC12). Moves the caret one character to the right.
- **/
-//#content
-export function im_forward_char() {
-    tri_editor.forward_char(DOM.getLastUsedInput())
-}
-
-/**
- * Behaves like readline's [backward_char](http://web.mit.edu/gnu/doc/html/rlman_1.html#SEC12). Moves the caret one character to the left.
- **/
-//#content
-export function im_backward_char() {
-    tri_editor.backward_char(DOM.getLastUsedInput())
-}
-
-/**
- * Behaves like readline's [forward_word](http://web.mit.edu/gnu/doc/html/rlman_1.html#SEC12). Moves the caret one word to the right, with words being defined by the wordpattern setting.
- **/
-//#content
-export function im_forward_word() {
-    tri_editor.forward_word(DOM.getLastUsedInput())
-}
-
-/**
- * Behaves like readline's [backward_word](http://web.mit.edu/gnu/doc/html/rlman_1.html#SEC12). Moves the caret one word to the right, with words being defined by the wordpattern setting.
- **/
-//#content
-export function im_backward_word() {
-    tri_editor.backward_word(DOM.getLastUsedInput())
 }
 
 //#background_helper
@@ -2522,6 +2371,46 @@ export async function fillcmdline_tmp(ms: number, ...strarr: string[]) {
     )
 }
 
+/** @hidden **/
+const cmdframe_fns = {
+    "accept_line": ["process", []],
+    "previous_history": ["history", [-1]],
+    "next_history": ["history", [1]],
+    "next_completion": ["next_completion", []],
+    "prev_completion": ["prev_completion", []],
+    "insert_completion": ["insert_completion", []],
+    "insert_completion_or_space": ["insert_completion_or_space", []],
+    "complete": ["tabcomplete", []],
+    "hide_and_clear": ["hide_and_clear", []],
+}
+
+//#content_helper
+// {
+for (let editorfn in tri_editor) {
+    SELF["im." + editorfn] = () => tri_editor[editorfn](DOM.getLastUsedInput())
+    SELF["ex." + editorfn] = () => Messaging.messageOwnTab("commandline_frame", "editor_function", [editorfn])
+}
+for (let fn in cmdframe_fns) {
+    SELF["ex." + fn] = () => (Messaging.messageOwnTab as any)("commandline_frame", ...cmdframe_fns[fn])
+}
+// }
+
+//#background_helper
+// {
+for (let editorfn in tri_editor) {
+    const im = "im." + editorfn
+    cmd_params.set(im, new Map([]))
+    BGSELF[im] = () => messageActiveTab("excmd_content", im, [])
+    const ex = "ex." + editorfn
+    cmd_params.set(ex, new Map([]))
+    BGSELF[ex] = () => messageActiveTab("commandline_frame", "editor_function", [editorfn])
+}
+for (let fn in cmdframe_fns) {
+    cmd_params.set("ex." + fn, new Map([]))
+    BGSELF["ex." + fn] = () => (messageActiveTab as any)("commandline_frame", ...cmdframe_fns[fn])
+}
+// }
+
 /**
  * Returns the current URL. For use with [[composite]].
  */
@@ -2774,7 +2663,7 @@ function parse_bind_args(...args: string[]): bind_args {
     // where it constructs the list of parsers. it should be
     // centralized, possibly as part of rewrite for content-local maps
     // and similar.
-    let mode2maps = new Map([["normal", "nmaps"], ["ignore", "ignoremaps"], ["insert", "imaps"], ["input", "inputmaps"]])
+    let mode2maps = new Map([["normal", "nmaps"], ["ignore", "ignoremaps"], ["insert", "imaps"], ["input", "inputmaps"], ["ex", "exmaps"]])
     if (args[0].startsWith("--mode=")) {
         result.mode = args.shift().replace("--mode=", "")
     }

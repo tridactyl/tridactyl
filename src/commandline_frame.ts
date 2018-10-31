@@ -15,11 +15,13 @@ import { PreferenceCompletionSource } from "@src/completions/Preferences"
 import { SettingsCompletionSource } from "@src/completions/Settings"
 import * as Messaging from "@src/lib/messaging"
 import * as Config from "@src/lib/config"
-import * as SELF from "@src/commandline_frame"
 import "@src/lib/number.clamp"
 import state from "@src/state"
 import Logger from "@src/lib/logging"
 import { theme } from "@src/content/styling"
+
+import * as genericParser from "@src/parsers/genericmode"
+import * as tri_editor from "@src/lib/editor"
 
 const logger = new Logger("cmdline")
 
@@ -61,7 +63,7 @@ function getCompletion() {
     }
 }
 
-function enableCompletions() {
+export function enableCompletions() {
     if (!activeCompletions) {
         activeCompletions = [
             new BmarkCompletionSource(completionsDiv),
@@ -98,126 +100,45 @@ let HISTORY_SEARCH_STRING: string
 
 /* Command line keybindings */
 
-clInput.addEventListener("keydown", function(keyevent) {
-    switch (keyevent.key) {
-        case "Enter":
-            process()
-            break
-
-        case "j":
-            if (keyevent.ctrlKey) {
-                // stop Firefox from giving focus to the omnibar
-                keyevent.preventDefault()
-                keyevent.stopPropagation()
-                process()
-            }
-            break
-
-        case "m":
-            if (keyevent.ctrlKey) {
-                process()
-            }
-            break
-
-        case "Escape":
-            keyevent.preventDefault()
-            hide_and_clear()
-            break
-
-        // Todo: fish-style history search
-        // persistent history
-        case "ArrowUp":
-            history(-1)
-            break
-
-        case "ArrowDown":
-            history(1)
-            break
-
-        case "a":
-            if (keyevent.ctrlKey) {
-                keyevent.preventDefault()
-                keyevent.stopPropagation()
-                setCursor()
-            }
-            break
-
-        case "e":
-            if (keyevent.ctrlKey) {
-                keyevent.preventDefault()
-                keyevent.stopPropagation()
-                setCursor(clInput.value.length)
-            }
-            break
-
-        case "u":
-            if (keyevent.ctrlKey) {
-                keyevent.preventDefault()
-                keyevent.stopPropagation()
-                clInput.value = clInput.value.slice(
-                    clInput.selectionStart,
-                    clInput.value.length,
-                )
-                setCursor()
-            }
-            break
-
-        case "k":
-            if (keyevent.ctrlKey) {
-                keyevent.preventDefault()
-                keyevent.stopPropagation()
-                clInput.value = clInput.value.slice(0, clInput.selectionStart)
-            }
-            break
-
-        // Clear input on ^C if there is no selection
-        // Todo: hard mode: vi style editing on cli, like set -o mode vi
-        // should probably just defer to another library
-        case "c":
-            if (
-                keyevent.ctrlKey &&
-                !clInput.value.substring(
-                    clInput.selectionStart,
-                    clInput.selectionEnd,
-                )
-            ) {
-                hide_and_clear()
-            }
-            break
-
-        case "f":
-            if (keyevent.ctrlKey) {
-                // Stop ctrl+f from doing find
-                keyevent.preventDefault()
-                keyevent.stopPropagation()
-                tabcomplete()
-            }
-            break
-
-        case "Tab":
-            // Stop tab from losing focus
-            keyevent.preventDefault()
-            keyevent.stopPropagation()
-            if (keyevent.shiftKey) {
-                activeCompletions.forEach(comp => comp.prev())
-            } else {
-                activeCompletions.forEach(comp => comp.next())
-            }
-            // tabcomplete()
-            break
-
-        case " ":
-            const command = getCompletion()
-            activeCompletions.forEach(comp => (comp.completion = undefined))
-            if (command) fillcmdline(command, false)
-            break
+let keyParser = keys => genericParser.parser("exmaps", keys)
+let keyEvents = []
+clInput.addEventListener("keydown", function(keyevent: KeyboardEvent) {
+    keyEvents.push(keyevent)
+    let response = keyParser(keyEvents)
+    if (response.isMatch) {
+        keyevent.preventDefault()
+        keyevent.stopImmediatePropagation()
     }
-
-    // If a key other than the arrow keys was pressed, clear the history search string
-    if (!(keyevent.key == "ArrowUp" || keyevent.key == "ArrowDown")) {
-        HISTORY_SEARCH_STRING = undefined
+    if (response.exstr) {
+        Messaging.message("controller_background", "acceptExCmd", [response.exstr])
+    } else {
+        keyEvents = response.keys
     }
-})
+}, true)
+
+export function next_completion() {
+    if (activeCompletions)
+        activeCompletions.forEach(comp => comp.next())
+}
+
+export function prev_completions() {
+    if (activeCompletions)
+        activeCompletions.forEach(comp => comp.prev())
+}
+
+export function insert_completion() {
+    const command = getCompletion()
+    activeCompletions.forEach(comp => (comp.completion = undefined))
+    if (command) clInput.value = clInput.value + " "
+}
+
+export function insert_completion_or_space() {
+    let value = clInput.value
+    insert_completion()
+    // If insert_completion didn't insert anything, insert a space
+    if (value == clInput.value)
+        clInput.value += " "
+}
 
 let timeoutId: any = 0
 let onInputPromise: Promise<any> = Promise.resolve()
@@ -280,14 +201,7 @@ function setCursor(n = 0) {
     clInput.setSelectionRange(n, n, "none")
 }
 
-function tabcomplete() {
-    let fragment = clInput.value
-    let matches = state.cmdHistory.filter(key => key.startsWith(fragment))
-    let mostrecent = matches[matches.length - 1]
-    if (mostrecent != undefined) clInput.value = mostrecent
-}
-
-function history(n) {
+export function history(n) {
     HISTORY_SEARCH_STRING =
         HISTORY_SEARCH_STRING === undefined
             ? clInput.value
@@ -312,7 +226,7 @@ function history(n) {
 }
 
 /* Send the commandline to the background script and await response. */
-function process() {
+export function process() {
     const command = getCompletion() || clInput.value
 
     hide_and_clear()
@@ -400,6 +314,17 @@ export function getContent() {
     return clInput.value
 }
 
+export function editor_function(fn_name) {
+    if (tri_editor[fn_name]) {
+        tri_editor[fn_name](clInput)
+    } else {
+        // The user is using the command line so we can't log message there
+        // logger.error(`No editor function named ${fn_name}!`)
+        console.error(`No editor function named ${fn_name}!`)
+    }
+}
+
+import * as SELF from "@src/commandline_frame"
 Messaging.addListener("commandline_frame", Messaging.attributeCaller(SELF))
 
 // Listen for statistics from the commandline iframe and send them to
