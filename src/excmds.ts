@@ -1315,6 +1315,7 @@ import * as finding from "@src/content/finding"
  */
 //#content
 export function find(direction?: -1 | 1) {
+    throw new Error("Our find mode is currently broken. Please `unbind /` and use Firefox's default find mode on `/`")
     if (direction === undefined) direction = 1
     finding.findPage(direction)
 }
