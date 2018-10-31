@@ -2,6 +2,8 @@
 
 # Tridactyl REPLACE_ME_WITH_THE_VERSION_USING_SED
 
+<marquee>👻👻 `:colors halloween` 🎃🎃</marquee>
+
 Tridactyl has to override your new tab page due to WebExtension limitations. You can learn how to change it at the bottom of the page, otherwise please read on for some tips and tricks.
 
 *   You can view the main help page by typing [`:help`][help], and access the tutorial with [`:tutor`][tutor].
