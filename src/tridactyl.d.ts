@@ -16,6 +16,11 @@ interface Window {
     eval(str: string): any
 }
 
+// Firefox Document interface
+interface Document {
+    fullscreenElement: HTMLElement | void
+}
+
 // Record that we've added a property with convenience objects to the
 // window object:
 interface Window {
@@ -32,6 +37,8 @@ interface HTMLElement {
     // Let's be future proof:
     // https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement/focus
     focus(options: any): void
+    // Let's also implement the current function signature.
+    focus(): void
 }
 
 declare function exportFunction(
