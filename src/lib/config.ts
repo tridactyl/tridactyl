@@ -85,7 +85,7 @@ class default_config {
         "<C-f>": "text.complete",
         "<Tab>": "ex.next_completion",
         "<S-Tab>": "ex.prev_completion",
-        "<Space>": "ex.insert_completion_or_space",
+        "<Space>": "ex.insert_completion",
     }
 
     /**

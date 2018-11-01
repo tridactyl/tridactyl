@@ -129,15 +129,9 @@ export function prev_completions() {
 export function insert_completion() {
     const command = getCompletion()
     activeCompletions.forEach(comp => (comp.completion = undefined))
-    if (command) clInput.value = clInput.value + " "
-}
-
-export function insert_completion_or_space() {
-    let value = clInput.value
-    insert_completion()
-    // If insert_completion didn't insert anything, insert a space
-    if (value == clInput.value)
-        clInput.value += " "
+    if (command) clInput.value = command
+    clInput.value += " "
+    clInput.dispatchEvent(new Event("input")) // dirty hack for completions
 }
 
 let timeoutId: any = 0
