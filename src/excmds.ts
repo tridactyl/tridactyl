@@ -2390,7 +2390,7 @@ export async function tabclosealltoleft() {
 //#background
 export async function undo(item = "recent"): Promise<Number> {
     const current_win_id: number = (await browser.windows.getCurrent()).id
-    const sessions = await browser.sessions.getRecentlyClosed({ maxResults: 10 })
+    const sessions = await browser.sessions.getRecentlyClosed()
 
     if (item === "tab") {
         const lastSession = sessions.find(s => {if (s.tab) return true})
@@ -2425,6 +2425,8 @@ export async function undo(item = "recent"): Promise<Number> {
                 return lastSession.window.id
             }
         }
+    } else {
+        throw new Error(`[undo] Invalid argument: ${item}. Must be one of "tab", "window", "recent"`)
     }
     return -1
 }
