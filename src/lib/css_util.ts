@@ -78,7 +78,7 @@ export const potentialRules = {
     navtoolboxunfocused: {
         name: `:root:not([customizing]) #navigator-toolbox:not(:hover):not(:focus-within)`,
         options: {
-            hide: `max-height: 0; min-height: calc(0px);`,
+            hide: `max-height: 1px; min-height: calc(0px); overflow: hidden;`,
             show: ``,
         },
     },
