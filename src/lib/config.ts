@@ -948,6 +948,21 @@ export async function update() {
                 )
             set("configversion", "1.2")
         },
+        "1.2": () => {
+            ["ignoremaps", "inputmaps", "imaps", "nmaps"]
+                .map(mapname => [mapname, getDeepProperty(USERCONFIG, [mapname])])
+                // mapobj is undefined if the user didn't define any bindings
+                .filter(([mapname, mapobj]) => mapobj)
+                .forEach(([mapname, mapobj]) => {
+                    // For each mapping
+                    Object.keys(mapobj)
+                        // Keep only the ones with im_* functions
+                        .filter(key => mapobj[key].search("^im_|\([^a-zA-Z0-9_-]\)im_") >= 0)
+                        // Replace the prefix
+                        .forEach(key => setDeepProperty(USERCONFIG, mapobj[key].replace(new RegExp("^im_|\([^a-zA-Z0-9_-]\)im_"), "$1text."), [mapname, key]))
+                })
+            set("configversion", "1.3")
+        }
     }
     if (!get("configversion")) set("configversion", "0.0")
     const updatetest = v => {
