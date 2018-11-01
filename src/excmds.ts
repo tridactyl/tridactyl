@@ -6,6 +6,8 @@
 
     The default keybinds and settings can be found [here](/static/docs/classes/_lib_config_.default_config.html) and active binds can be seen with `:viewconfig nmaps` or with [[bind]].
 
+    Tridactyl also provides a few functions to manipulate text in the command line or text areas that can be found [here](/static/docs/modules/_lib_editor_.html).
+
     ## How to use this help page
 
     Every function (excmd) on this page can be called via Tridactyl's command line which we call "ex". There is a slight change in syntax, however. Wherever you see:
@@ -25,6 +27,7 @@
         - `inputmaps`: input mode binds
         - `ignoremaps`: ignore mode binds
         - `exaliases`: aliases in the command mode
+        - `exmaps`: commandline mode binds
 
     At the bottom of each function's help page, you can click on a link that will take you straight to that function's definition in our code.
 

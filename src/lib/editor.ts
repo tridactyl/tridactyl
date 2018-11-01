@@ -1,14 +1,31 @@
-/**
+
+/** # Editor Functions
+ *
  * This file contains functions to manipulate the content of textareas/input fields/contenteditable elements.
  *
- * The functions that are exposed here take an element as parameter.
+ * If you want to bind them to keyboard shortcuts, be sure to prefix them with "text.". For example, if you want to bind control-a to `beginning_of_line` in all modes, use:
+ *
+ * ```
+ * bind --mode=ex <C-a> text.beginning_of_line
+ * bind --mode=input <C-a> text.beginning_of_line
+ * bind --mode=insert <C-a> text.begining_of_line
+ * ```
+ *
+ * Also keep in mind that if you want to bind something in insert mode, you'll probably also want to bind it in input mode (insert mode is entered by clicking on text areas while input mode is entered by using `gi`).
+ *
+ * Contrary to the main tridactyl help page, this one doesn't tell you whether a specific function is bound to something. For now, you'll have to make do with with `:bind` and `:viewconfig`.
  *
  */
+/** ignore this line */
+
+// We have a single dependency on config: getting the value of the WORDPATTERN setting
+// Perhaps we could find a way to get rid of it?
 import * as config from "@src/lib/config"
 
+/** @hidden **/
 type editor_function = (text: string, start: number, end: number) => [string, number, number]
 
-/**
+/** @hidden
  * Returns values necessary for editor functions to work on textarea/input elements
  *
  * @param e the element
@@ -18,7 +35,7 @@ function getSimpleValues(e: any) {
     return [e.value, e.selectionStart, e.selectionEnd]
 }
 
-/**
+/** @hidden
  * Returns values necessary for editor functions to work on contentEditable elements
  *
  * @param e a contentEditable element
@@ -44,7 +61,7 @@ function getContentEditableValues(e: any): [string, number, number] {
     return [s, caretPos, caretPos + selectionLength]
 }
 
-/**
+/** @hidden
  * Change text in regular textarea/input fields. Note: this destroys the field's history (i.e. C-z won't work).
  *
  * @param e The element
@@ -63,7 +80,7 @@ function setSimpleValues(e, text, start, end) {
     }
 }
 
-/**
+/** @hidden
  * Change text in contentEditable elements in a non-destructive way (i.e. C-z will undo changes).
  * @param e The content editable element
  * @param text The new content the element should have. null if you just want to move the caret around
@@ -96,7 +113,7 @@ function setContentEditableValues(e, text, start, end) {
     }
 }
 
-/**
+/** @hidden
  * Take an editor function as parameter and return it wrapped in a function that will handle grabbing text and caret position from the HTML element it takes as parameter
  * 
  * @param editor_function A function that takes a [string, selectionStart, selectionEnd] tuple as argument and returns a [string, selectionStart, selectionEnd] tuple corresponding to the new state of the text.
@@ -120,7 +137,7 @@ function wrap_input(fn: editor_function): (e: HTMLElement) => boolean {
     }
 }
 
-/**
+/** @hidden
  * Take an editor function as parameter and wrap it in a function that will handle error conditions
  */
 function needs_text(fn: editor_function): editor_function {
@@ -131,7 +148,7 @@ function needs_text(fn: editor_function): editor_function {
     }
 }
 
-/**
+/** @hidden
  * Detects the boundaries of a word in text according to the wordpattern setting. If POSITION is in a word, the boundaries of this word are returned. If POSITION is out of a word and BEFORE is true, the word before POSITION is returned. If BEFORE is false, the word after the caret is returned.
  */
 export function getWordBoundaries(text: string, position: number, before: boolean): [number, number] {
@@ -180,7 +197,7 @@ export function getWordBoundaries(text: string, position: number, before: boolea
     return [boundary1, boundary2 + 1]
 }
 
-/**
+/** @hidden
  * Finds the next word as defined by the wordpattern setting after POSITION. If POSITION is in a word, POSITION is moved forward until it is out of the word.
  * @return number The position of the next word in text or -1 if the next word can't be found.
  */

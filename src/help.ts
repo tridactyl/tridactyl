@@ -106,7 +106,7 @@ async function onExcmdPageLoad() {
     })
 
     await Promise.all(
-        ["nmaps", "imaps", "ignoremaps", "inputmaps", "exaliases"].map(
+        ["nmaps", "imaps", "ignoremaps", "inputmaps", "exaliases", "exmaps"].map(
             addSetting,
         ),
     )
