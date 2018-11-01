@@ -2376,30 +2376,60 @@ export async function tabclosealltoleft() {
     browser.tabs.remove(ids)
 }
 
-/** restore most recently closed tab in this window unless the most recently closed item was a window */
+/** Restore the most recently closed item.
+    The default behaviour is to restore the most recently closed tab in the
+    current window unless the most recently closed item is a window.
+
+    Supplying either "tab" or "window" as an argument will specifically only
+    restore an item of the specified type.
+
+    @param item
+        The type of item to restore. Valid inputs are "recent", "tab" and "window".
+    @return
+        The tab or window id of the restored item. Returns -1 if no items are found.
+ */
 //#background
-export async function undo() {
+export async function undo(item = "recent"): Promise<Number> {
     const current_win_id: number = (await browser.windows.getCurrent()).id
-    const sessions = await browser.sessions.getRecentlyClosed({ maxResults: 10 })
+    const sessions = await browser.sessions.getRecentlyClosed()
 
-    // The first session object that's a window or a tab from this window. Or undefined if sessions is empty.
-    const lastSession = sessions.find(s => {
-        if (s.window) {
-            return true
-        } else if (s.tab && s.tab.windowId === current_win_id) {
-            return true
-        } else {
-            return false
-        }
-    })
-
-    if (lastSession) {
-        if (lastSession.tab) {
+    if (item === "tab") {
+        const lastSession = sessions.find(s => {if (s.tab) return true})
+        if (lastSession) {
             browser.sessions.restore(lastSession.tab.sessionId)
-        } else if (lastSession.window) {
-            browser.sessions.restore(lastSession.window.sessionId)
+            return lastSession.tab.id
         }
+    } else if ( item === "window") {
+        const lastSession = sessions.find(s => {if (s.window) return true})
+        if (lastSession) {
+            browser.sessions.restore(lastSession.window.sessionId)
+            return lastSession.window.id
+        }
+    } else if ( item === "recent") {
+        // The first session object that's a window or a tab from this window. Or undefined if sessions is empty.
+        const lastSession = sessions.find(s => {
+            if (s.window) {
+                return true
+            } else if (s.tab && s.tab.windowId === current_win_id) {
+                return true
+            } else {
+                return false
+            }
+        })
+
+        if (lastSession) {
+            if (lastSession.tab) {
+                browser.sessions.restore(lastSession.tab.sessionId)
+                return lastSession.tab.id
+            } else if (lastSession.window) {
+                browser.sessions.restore(lastSession.window.sessionId)
+                return lastSession.window.id
+            }
+        }
+    } else {
+        throw new Error(`[undo] Invalid argument: ${item}. Must be one of "tab", "window", "recent"`)
     }
+    return -1
 }
 
 /** Move the current tab to be just in front of the index specified.
