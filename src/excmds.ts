@@ -82,7 +82,6 @@ import * as CSS from "css"
 import * as Perf from "@src/perf"
 import * as Metadata from "@src/.metadata.generated"
 import { fitsType, typeToString } from "@src/lib/metadata"
-import * as tri_editor from "@src/lib/editor"
 
 //#content_helper
 // {
@@ -2372,7 +2371,7 @@ export async function fillcmdline_tmp(ms: number, ...strarr: string[]) {
 }
 
 /** @hidden **/
-const cmdframe_fns = {
+const cmdframe_fns: {[key:string]: [string, any[]]} = {
     "accept_line": ["process", []],
     "previous_history": ["history", [-1]],
     "next_history": ["history", [1]],
@@ -2384,11 +2383,17 @@ const cmdframe_fns = {
     "hide_and_clear": ["hide_and_clear", []],
 }
 
+import * as tri_editor from "@src/lib/editor"
+
 //#content_helper
 // {
 for (let editorfn in tri_editor) {
-    SELF["im." + editorfn] = () => tri_editor[editorfn](DOM.getLastUsedInput())
-    SELF["ex." + editorfn] = () => Messaging.messageOwnTab("commandline_frame", "editor_function", [editorfn])
+    // Re-expose every editor function as a text.$fn excmd that will forward the call to $fn to the commandline frame if it is selected or apply $fn to the last used input if it isn't
+    SELF["text." + editorfn] = () => {
+        if ((document.activeElement as any).src === browser.extension.getURL("static/commandline.html"))
+            return Messaging.messageOwnTab("commandline_frame", "editor_function", [editorfn])
+        return tri_editor[editorfn](DOM.getLastUsedInput())
+    }
 }
 for (let fn in cmdframe_fns) {
     SELF["ex." + fn] = () => (Messaging.messageOwnTab as any)("commandline_frame", ...cmdframe_fns[fn])
@@ -2398,16 +2403,13 @@ for (let fn in cmdframe_fns) {
 //#background_helper
 // {
 for (let editorfn in tri_editor) {
-    const im = "im." + editorfn
-    cmd_params.set(im, new Map([]))
-    BGSELF[im] = () => messageActiveTab("excmd_content", im, [])
-    const ex = "ex." + editorfn
-    cmd_params.set(ex, new Map([]))
-    BGSELF[ex] = () => messageActiveTab("commandline_frame", "editor_function", [editorfn])
+    let name = "text." + editorfn
+    cmd_params.set(name, new Map([]))
+    BGSELF[name] = () => messageActiveTab("excmd_content", name, [])
 }
 for (let fn in cmdframe_fns) {
-    cmd_params.set("ex." + fn, new Map([]))
-    BGSELF["ex." + fn] = () => (messageActiveTab as any)("commandline_frame", ...cmdframe_fns[fn])
+    cmd_params.set("ex." + fn, new Map(cmdframe_fns[fn][1].map((a, i) => ([`${i}`, typeof a] as [string, string]))))
+    BGSELF["ex." + fn] = () => messageActiveTab("commandline_frame", ...cmdframe_fns[fn])
 }
 // }
 
