@@ -110,6 +110,7 @@ clInput.addEventListener("keydown", function(keyevent: KeyboardEvent) {
         keyevent.stopImmediatePropagation()
     }
     if (response.exstr) {
+        keyEvents = []
         Messaging.message("controller_background", "acceptExCmd", [response.exstr])
     } else {
         keyEvents = response.keys
@@ -121,7 +122,7 @@ export function next_completion() {
         activeCompletions.forEach(comp => comp.next())
 }
 
-export function prev_completions() {
+export function prev_completion() {
     if (activeCompletions)
         activeCompletions.forEach(comp => comp.prev())
 }
@@ -179,6 +180,7 @@ export function clear(evlistener = false) {
 
 export async function hide_and_clear() {
     clear(true)
+    keyEvents = []
 
     // Try to make the close cmdline animation as smooth as possible.
     Messaging.messageOwnTab("commandline_content", "hide")
