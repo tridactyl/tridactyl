@@ -1,5 +1,10 @@
 # Tridactyl changelog
 
+## Release 1.14.2 / Unreleased
+
+-   New features
+    -   New theme: `colours halloween`
+
 ## Release 1.14.1 / 2018-10-28
 
 -   New features
