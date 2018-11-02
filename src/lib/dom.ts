@@ -2,7 +2,11 @@ import * as config from "@src/lib/config"
 import { flatten } from "@src/lib/itertools"
 import state from "@src/state"
 import * as Logging from "@src/lib/logging"
-import { activeTabId, openInNewTab, activeTabContainerId } from "@src/lib/webext"
+import {
+    activeTabId,
+    openInNewTab,
+    activeTabContainerId,
+} from "@src/lib/webext"
 const logger = new Logging.Logger("dom")
 
 // From saka-key lib/dom.js, under Apachev2
@@ -44,9 +48,13 @@ export function isTextEditable(element: Element) {
 
         // ARIA stuff isn't pulled out into fields, so we have to
         // manually inspect the attributes to find it.
-        for (const attr of element.attributes) {
-            if (attr.name === "role" && attr.value === "application") {
-                return true
+        // Google products perform some witchcraft with it's search input as
+        // seen in #1031, the conditional seems to be enough to fix it.
+        if (element.hasOwnProperty("attributes")) {
+            for (const attr of element.attributes) {
+                if (attr.name === "role" && attr.value === "application") {
+                    return true
+                }
             }
         }
     }
