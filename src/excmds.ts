@@ -6,7 +6,7 @@
 
     The default keybinds and settings can be found [here](/static/docs/classes/_lib_config_.default_config.html) and active binds can be seen with `:viewconfig nmaps` or with [[bind]].
 
-    Tridactyl also provides a few functions to manipulate text in the command line or text areas that can be found [here](/static/docs/modules/_lib_editor_.html).
+    Tridactyl also provides a few functions to manipulate text in the command line or text areas that can be found [here](/static/docs/modules/_lib_editor_.html). There are also a few commands only available in the command line which can be found [here](/static/docs/modules/_commandline_frame_.html).
 
     ## How to use this help page
 
@@ -2375,13 +2375,13 @@ export async function fillcmdline_tmp(ms: number, ...strarr: string[]) {
 
 /** @hidden **/
 const cmdframe_fns: {[key:string]: [string, any[]]} = {
-    "accept_line": ["process", []],
-    "previous_history": ["history", [-1]],
-    "next_history": ["history", [1]],
+    "accept_line": ["accept_line", []],
+    "next_history": ["next_history", []],
+    "prev_history": ["prev_history", []],
     "next_completion": ["next_completion", []],
     "prev_completion": ["prev_completion", []],
     "insert_completion": ["insert_completion", []],
-    "complete": ["tabcomplete", []],
+    "complete": ["complete", []],
     "hide_and_clear": ["hide_and_clear", []],
 }
 

@@ -1,3 +1,21 @@
+
+/** # Command line functions
+ *
+ * This file contains functions to interact with the command line.
+ *
+ * If you want to bind them to keyboard shortcuts, be sure to prefix them with "ex.". For example, if you want to bind control-p to `prev_completion`, use:
+ *
+ * ```
+ * bind --mode=ex <C-p> ex.prev_completion
+ * ```
+ *
+ * Note that you can also bind Tridactyl's [editor functions](/static/docs/modules/_lib_editor_.html) in the command line.
+ *
+ * Contrary to the main tridactyl help page, this one doesn't tell you whether a specific function is bound to something. For now, you'll have to make do with `:bind` and `:viewconfig`.
+ *
+ */
+/** ignore this line */
+
 /** Script used in the commandline iframe. Communicates with background. */
 
 import * as perf from "@src/perf"
@@ -23,12 +41,16 @@ import { theme } from "@src/content/styling"
 import * as genericParser from "@src/parsers/genericmode"
 import * as tri_editor from "@src/lib/editor"
 
+/** @hidden **/
 const logger = new Logger("cmdline")
 
+/** @hidden **/
 let activeCompletions: Completions.CompletionSource[] = undefined
+/** @hidden **/
 let completionsDiv = window.document.getElementById(
     "completions",
 ) as HTMLElement
+/** @hidden **/
 let clInput = window.document.getElementById(
     "tridactyl-input",
 ) as HTMLInputElement
@@ -36,13 +58,15 @@ let clInput = window.document.getElementById(
 // first theming of commandline iframe
 theme(document.querySelector(":root"))
 
-/* This is to handle Escape key which, while the cmdline is focused,
+/** @hidden
+ * This is to handle Escape key which, while the cmdline is focused,
  * ends up firing both keydown and input listeners. In the worst case
  * hides the cmdline, shows and refocuses it and replaces its text
  * which could be the prefix to generate a completion.
  * tl;dr TODO: delete this and better resolve race condition
  */
 let isVisible = false
+/** @hidden **/
 function resizeArea() {
     if (isVisible) {
         Messaging.messageOwnTab("commandline_content", "show")
@@ -51,8 +75,10 @@ function resizeArea() {
     }
 }
 
-// This is a bit loosely defined at the moment.
-// Should work so long as there's only one completion source per prefix.
+/** @hidden
+ * This is a bit loosely defined at the moment.
+ * Should work so long as there's only one completion source per prefix.
+ */
 function getCompletion() {
     if (!activeCompletions) return undefined
 
@@ -63,6 +89,7 @@ function getCompletion() {
     }
 }
 
+/** @hidden **/
 export function enableCompletions() {
     if (!activeCompletions) {
         activeCompletions = [
@@ -85,23 +112,30 @@ export function enableCompletions() {
 }
 /* document.addEventListener("DOMContentLoaded", enableCompletions) */
 
+/** @hidden **/
 let noblur = e => setTimeout(() => clInput.focus(), 0)
 
+/** @hidden **/
 export function focus() {
     clInput.focus()
     clInput.addEventListener("blur", noblur)
 }
 
+/** @hidden **/
 async function sendExstr(exstr) {
     Messaging.message("commandline_background", "recvExStr", [exstr])
 }
 
+/** @hidden **/
 let HISTORY_SEARCH_STRING: string
 
-/* Command line keybindings */
-
+/** @hidden
+ * Command line keybindings
+ **/
 let keyParser = keys => genericParser.parser("exmaps", keys)
+/** @hidden **/
 let keyEvents = []
+/** @hidden **/
 clInput.addEventListener("keydown", function(keyevent: KeyboardEvent) {
     keyEvents.push(keyevent)
     let response = keyParser(keyEvents)
@@ -117,16 +151,36 @@ clInput.addEventListener("keydown", function(keyevent: KeyboardEvent) {
     }
 }, true)
 
+/**
+ * Insert the first command line history line that starts with the content of the command line in the command line.
+ */
+export function complete() {
+    let fragment = clInput.value
+    let matches = state.cmdHistory.filter(key => key.startsWith(fragment))
+    let mostrecent = matches[matches.length - 1]
+    if (mostrecent != undefined) clInput.value = mostrecent
+}
+
+/**
+ * Selects the next completion.
+ */
 export function next_completion() {
     if (activeCompletions)
         activeCompletions.forEach(comp => comp.next())
 }
 
+/**
+ * Selects the previous completion.
+ */
 export function prev_completion() {
     if (activeCompletions)
         activeCompletions.forEach(comp => comp.prev())
 }
 
+/**
+ * Inserts the currently selected completion and a space in the command line.
+ * If no completion option is selected, inserts a space in the command line.
+ */
 export function insert_completion() {
     const command = getCompletion()
     activeCompletions.forEach(comp => (comp.completion = undefined))
@@ -135,8 +189,11 @@ export function insert_completion() {
     clInput.dispatchEvent(new Event("input")) // dirty hack for completions
 }
 
+/** @hidden **/
 let timeoutId: any = 0
+/** @hidden **/
 let onInputPromise: Promise<any> = Promise.resolve()
+/** @hidden **/
 clInput.addEventListener("input", () => {
     const exstr = clInput.value
     // Prevent starting previous completion computation if possible
@@ -164,11 +221,14 @@ clInput.addEventListener("input", () => {
     timeoutId = myTimeoutId
 })
 
+/** @hidden **/
 let cmdline_history_position = 0
+/** @hidden **/
 let cmdline_history_current = ""
 
-/** Clears the command line.
- *  If you intend to close the command line after this, set evlistener to true in order to enable losing focus.
+/** @hidden
+ * Clears the command line.
+ * If you intend to close the command line after this, set evlistener to true in order to enable losing focus.
  *  Otherwise, no need to pass an argument.
  */
 export function clear(evlistener = false) {
@@ -178,6 +238,7 @@ export function clear(evlistener = false) {
     cmdline_history_current = ""
 }
 
+/** Hide the command line and clear its content without executing it. **/
 export async function hide_and_clear() {
     clear(true)
     keyEvents = []
@@ -193,11 +254,27 @@ export async function hide_and_clear() {
     isVisible = false
 }
 
+/** @hidden **/
 function setCursor(n = 0) {
     clInput.setSelectionRange(n, n, "none")
 }
 
-export function history(n) {
+/**
+ * Selects the next history line.
+ */
+export function next_history() {
+    return history(1)
+}
+
+/**
+ * Selects the prev history line.
+ */
+export function prev_history() {
+    return history(-1)
+}
+
+/** @hidden **/
+function history(n) {
     HISTORY_SEARCH_STRING =
         HISTORY_SEARCH_STRING === undefined
             ? clInput.value
@@ -221,8 +298,10 @@ export function history(n) {
         cmdline_history_position = cmdline_history_position - n
 }
 
-/* Send the commandline to the background script and await response. */
-export function process() {
+/**
+ * Execute the content of the command line and hide it.
+ **/
+export function accept_line() {
     const command = getCompletion() || clInput.value
 
     hide_and_clear()
@@ -245,6 +324,7 @@ export function process() {
     sendExstr(command)
 }
 
+/** @hidden **/
 export function fillcmdline(
     newcommand?: string,
     trailspace = true,
@@ -260,10 +340,11 @@ export function fillcmdline(
     }
 }
 
-/** Create a temporary textarea and give it to fn. Remove the textarea afterwards
-
-    Useful for document.execCommand
-*/
+/** @hidden
+ * Create a temporary textarea and give it to fn. Remove the textarea afterwards
+ *
+ * Useful for document.execCommand
+ **/
 function applyWithTmpTextArea(fn) {
     let textarea
     try {
@@ -280,6 +361,7 @@ function applyWithTmpTextArea(fn) {
     }
 }
 
+/** @hidden **/
 export async function setClipboard(content: string) {
     applyWithTmpTextArea(scratchpad => {
         scratchpad.value = content
@@ -294,6 +376,7 @@ export async function setClipboard(content: string) {
     Messaging.messageOwnTab("commandline_content", "blur")
 }
 
+/** @hidden **/
 export function getClipboard() {
     const result = applyWithTmpTextArea(scratchpad => {
         scratchpad.focus()
@@ -306,10 +389,12 @@ export function getClipboard() {
     return result
 }
 
+/** @hidden **/
 export function getContent() {
     return clInput.value
 }
 
+/** @hidden **/
 export function editor_function(fn_name) {
     if (tri_editor[fn_name]) {
         tri_editor[fn_name](clInput)
