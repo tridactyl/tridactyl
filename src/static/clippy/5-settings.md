@@ -18,4 +18,4 @@ Here we will briefly summarise some of the main settings:
 *   excmds
     *   aliases for command mode: the things on the left actually run the commands on the right. The most interesting one of these is `current_url`, which is how the binds for O, W and T (`bind T`) work.
 
-The [next page](./containers.html) will talk about how to operate firefox containers with tridactyl. <a href='./command_mode.html' rel="prev"></a>
+The [next page](./6-containers.html) will talk about how to operate firefox containers with tridactyl. <a href='./4-command_mode.html' rel="prev"></a>

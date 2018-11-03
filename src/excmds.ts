@@ -917,7 +917,7 @@ export async function native() {
  * Simply copies "curl -fsSl https://raw.githubusercontent.com/tridactyl/tridactyl/master/native/install.sh | bash" to the clipboard and tells the user to run it.
  */
 //#background
-export async function installnative() {
+export async function nativeinstall() {
     if ((await browser.runtime.getPlatformInfo()).os === "win") {
         const installstr = await config.get("win_nativeinstallcmd")
         await yank(installstr)
@@ -1623,7 +1623,7 @@ export async function help(helpItem?: string) {
  */
 //#background
 export async function tutor(newtab?: string) {
-    const tutor = browser.extension.getURL("static/clippy/tutor.html")
+    const tutor = browser.extension.getURL("static/clippy/1-tutor.html")
     if (newtab) tabopen(tutor)
     else open(tutor)
 }
