@@ -209,6 +209,14 @@ You can bind your own shortcuts in normal mode with the `:bind` command. For exa
 
 ## Contributing
 
+### Donations
+
+We gratefully accept donations via [PayPa](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=7JQHV4N2YZCTY). If you can, please make this a recurring donation as it makes it much easier to plan.
+
+<center><a href="https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=7JQHV4N2YZCTY"><img src="https://www.paypalobjects.com/en_US/GB/i/btn/btn_donateCC_LG.gif" alt="PayPal"></a></center>
+
+Funds will be used at the discretion of the main contributors (currently bovine3dom, cmcaine, glacambre and antonva) for Tridactyl-related expenditure.
+
 ### Building and installing
 
 Onboarding:
