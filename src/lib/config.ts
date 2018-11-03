@@ -425,6 +425,7 @@ class default_config {
         current_url: "composite get_current_url | fillcmdline_notrail ",
         stop: "js window.stop()",
         zo: "zoom",
+        installnative: "nativeinstall",
     }
 
     /**

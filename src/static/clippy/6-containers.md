@@ -13,4 +13,4 @@ The perceived benefits of this feature are as described by the Firefox Test Pilo
 * `containerclose name` Closes all tabs in a specified container.
 * `containerdelete name` Deletes a container, calls `containerclose` before deletion
 
-The <a href='./help.html' rel='next'>final page</a> describes how you can get further help. <a href='./settings.html' rel="prev"></a>
+The <a href='./7-native_messenger.html' rel='next'>next page</a> is about the native messenger. <a href='./5-settings.html' rel="prev"></a>
