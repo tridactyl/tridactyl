@@ -12,7 +12,7 @@ Tridactyl has to override your new tab page due to WebExtension limitations. You
 
 -   If you're enjoying Tridactyl (or not), please leave a review on [addons.mozilla.org][amo].
 
--   `I` has been unbound by default. You can rebind it with `bind I mode ignore` and `bind --mode=ignore mode normal`.
+-   Minor breaking change: the `im_*` ex commands have been replaced with `text.*` ex commands.
 
 REPLACE_ME_WITH_THE_CHANGE_LOG_USING_SED
 
