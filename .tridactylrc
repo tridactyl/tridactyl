@@ -35,6 +35,9 @@ bindurl wikiwand.com yy composite js document.location.href.replace("wikiwand.co
 " Make gu take you back to subreddit from comments
 bindurl reddit.com gu urlparent 4
 
+" Allow Ctrl-a to select all in the commandline
+unbind --mode=ex <C-a>
+
 "
 " Misc settings
 "

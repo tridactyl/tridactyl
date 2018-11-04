@@ -68,6 +68,28 @@ class default_config {
     // Note to developers: When creating new <modifier-letter> maps, make sure to make the modifier uppercase (e.g. <C-a> instead of <c-a>) otherwise some commands might not be able to find them (e.g. `bind <c-a>`)
 
     /**
+     * exmaps contains all of the bindings for the command line.
+     * You can of course bind regular ex commands but also [editor functions](/static/docs/modules/_lib_editor_.html) and [commandline-specific functions](/static/docs/modules/_commandline_frame_.html).
+     */
+    exmaps = {
+        "<Enter>": "ex.accept_line",
+        "<C-j>": "ex.accept_line",
+        "<C-m>": "ex.accept_line",
+        "<Escape>": "ex.hide_and_clear",
+        "<ArrowUp>": "ex.prev_history",
+        "<ArrowDown>": "ex.next_history",
+        "<C-a>": "text.beginning_of_line",
+        "<C-e>": "text.end_of_line",
+        "<C-u>": "text.backward_kill_line",
+        "<C-k>": "text.kill_line",
+        "<C-c>": "text.kill_whole_line",
+        "<C-f>": "ex.complete",
+        "<Tab>": "ex.next_completion",
+        "<S-Tab>": "ex.prev_completion",
+        "<Space>": "ex.insert_completion",
+    }
+
+    /**
      * ignoremaps contain all of the bindings for "ignore mode".
      *
      * They consist of key sequences mapped to ex commands.
@@ -82,6 +104,8 @@ class default_config {
 
     /**
      * inputmaps contain all of the bindings for "input mode".
+     *
+     * On top of regular ex commands, you can also bind [editor functions](/static/docs/modules/_lib_editor_.html) in input mode.
      *
      * They consist of key sequences mapped to ex commands.
      */
@@ -98,6 +122,8 @@ class default_config {
 
     /**
      * imaps contain all of the bindings for "insert mode".
+     *
+     * On top of regular ex commands, you can also bind [editor functions](/static/docs/modules/_lib_editor_.html) in insert mode.
      *
      * They consist of key sequences mapped to ex commands.
      */
@@ -945,6 +971,38 @@ export async function update() {
                     set("logging", l, leveltostr[logging[l]]),
                 )
             set("configversion", "1.2")
+        },
+        "1.2": () => {
+            ;["ignoremaps", "inputmaps", "imaps", "nmaps"]
+                .map(mapname => [
+                    mapname,
+                    getDeepProperty(USERCONFIG, [mapname]),
+                ])
+                // mapobj is undefined if the user didn't define any bindings
+                .filter(([mapname, mapobj]) => mapobj)
+                .forEach(([mapname, mapobj]) => {
+                    // For each mapping
+                    Object.keys(mapobj)
+                        // Keep only the ones with im_* functions
+                        .filter(
+                            key =>
+                                mapobj[key].search(
+                                    "^im_|([^a-zA-Z0-9_-])im_",
+                                ) >= 0,
+                        )
+                        // Replace the prefix
+                        .forEach(key =>
+                            setDeepProperty(
+                                USERCONFIG,
+                                mapobj[key].replace(
+                                    new RegExp("^im_|([^a-zA-Z0-9_-])im_"),
+                                    "$1text.",
+                                ),
+                                [mapname, key],
+                            ),
+                        )
+                })
+            set("configversion", "1.3")
         },
     }
     if (!get("configversion")) set("configversion", "0.0")

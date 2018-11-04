@@ -106,9 +106,14 @@ async function onExcmdPageLoad() {
     })
 
     await Promise.all(
-        ["nmaps", "imaps", "ignoremaps", "inputmaps", "exaliases"].map(
-            addSetting,
-        ),
+        [
+            "nmaps",
+            "imaps",
+            "ignoremaps",
+            "inputmaps",
+            "exaliases",
+            "exmaps",
+        ].map(addSetting),
     )
     // setCommandSetting() can change the height of nodes in the page so we need to scroll to the right place again
     if (document.location.hash) {
@@ -152,36 +157,42 @@ async function onSettingsPageLoad() {
         }
     }
 
-    Promise.all(Array.from(document.querySelectorAll("a.tsd-anchor")).map(
-        async (a: HTMLAnchorElement) => {
-            let section = a.parentNode
+    Promise.all(
+        Array.from(document.querySelectorAll("a.tsd-anchor")).map(
+            async (a: HTMLAnchorElement) => {
+                let section = a.parentNode
 
-            let settingName = a.name.split(".")
-            let value = await config.getAsync(settingName)
-            if (!value) return console.log("Failed to grab value of ", a)
-            if (!["number", "boolean", "string"].includes(typeof value))
-                return console.log(
-                    "Not embedding value of ",
-                    a,
-                    value,
-                    " because not easily represented as string",
-                )
+                let settingName = a.name.split(".")
+                let value = await config.getAsync(settingName)
+                if (!value) return console.log("Failed to grab value of ", a)
+                if (!["number", "boolean", "string"].includes(typeof value))
+                    return console.log(
+                        "Not embedding value of ",
+                        a,
+                        value,
+                        " because not easily represented as string",
+                    )
 
-            let input = document.createElement("input")
-            input.name = a.name
-            input.value = value
-            input.id = getIdForSetting(a.name)
-            input.className = inputClassName
-            input.addEventListener("keyup", onKeyUp)
+                let input = document.createElement("input")
+                input.name = a.name
+                input.value = value
+                input.id = getIdForSetting(a.name)
+                input.className = inputClassName
+                input.addEventListener("keyup", onKeyUp)
 
-            let div = document.createElement("div")
-            div.appendChild(document.createTextNode("Current value:"))
-            div.appendChild(input)
+                let div = document.createElement("div")
+                div.appendChild(document.createTextNode("Current value:"))
+                div.appendChild(input)
 
-            section.appendChild(div)
-        },
-        // Adding elements expands sections so if the user wants to see a specific hash, we need to focus it again
-    )).then(_ => { if (document.location.hash) { document.location.hash = document.location.hash } })
+                section.appendChild(div)
+            },
+            // Adding elements expands sections so if the user wants to see a specific hash, we need to focus it again
+        ),
+    ).then(_ => {
+        if (document.location.hash) {
+            document.location.hash = document.location.hash
+        }
+    })
 }
 
 addEventListener(

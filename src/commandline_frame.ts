@@ -1,3 +1,20 @@
+/** # Command line functions
+ *
+ * This file contains functions to interact with the command line.
+ *
+ * If you want to bind them to keyboard shortcuts, be sure to prefix them with "ex.". For example, if you want to bind control-p to `prev_completion`, use:
+ *
+ * ```
+ * bind --mode=ex <C-p> ex.prev_completion
+ * ```
+ *
+ * Note that you can also bind Tridactyl's [editor functions](/static/docs/modules/_lib_editor_.html) in the command line.
+ *
+ * Contrary to the main tridactyl help page, this one doesn't tell you whether a specific function is bound to something. For now, you'll have to make do with `:bind` and `:viewconfig`.
+ *
+ */
+/** ignore this line */
+
 /** Script used in the commandline iframe. Communicates with background. */
 
 import * as perf from "@src/perf"
@@ -15,18 +32,24 @@ import { PreferenceCompletionSource } from "@src/completions/Preferences"
 import { SettingsCompletionSource } from "@src/completions/Settings"
 import * as Messaging from "@src/lib/messaging"
 import * as Config from "@src/lib/config"
-import * as SELF from "@src/commandline_frame"
 import "@src/lib/number.clamp"
 import state from "@src/state"
 import Logger from "@src/lib/logging"
 import { theme } from "@src/content/styling"
 
+import * as genericParser from "@src/parsers/genericmode"
+import * as tri_editor from "@src/lib/editor"
+
+/** @hidden **/
 const logger = new Logger("cmdline")
 
+/** @hidden **/
 let activeCompletions: Completions.CompletionSource[] = undefined
+/** @hidden **/
 let completionsDiv = window.document.getElementById(
     "completions",
 ) as HTMLElement
+/** @hidden **/
 let clInput = window.document.getElementById(
     "tridactyl-input",
 ) as HTMLInputElement
@@ -34,13 +57,15 @@ let clInput = window.document.getElementById(
 // first theming of commandline iframe
 theme(document.querySelector(":root"))
 
-/* This is to handle Escape key which, while the cmdline is focused,
+/** @hidden
+ * This is to handle Escape key which, while the cmdline is focused,
  * ends up firing both keydown and input listeners. In the worst case
  * hides the cmdline, shows and refocuses it and replaces its text
  * which could be the prefix to generate a completion.
  * tl;dr TODO: delete this and better resolve race condition
  */
 let isVisible = false
+/** @hidden **/
 function resizeArea() {
     if (isVisible) {
         Messaging.messageOwnTab("commandline_content", "show")
@@ -49,8 +74,10 @@ function resizeArea() {
     }
 }
 
-// This is a bit loosely defined at the moment.
-// Should work so long as there's only one completion source per prefix.
+/** @hidden
+ * This is a bit loosely defined at the moment.
+ * Should work so long as there's only one completion source per prefix.
+ */
 function getCompletion() {
     if (!activeCompletions) return undefined
 
@@ -61,7 +88,8 @@ function getCompletion() {
     }
 }
 
-function enableCompletions() {
+/** @hidden **/
+export function enableCompletions() {
     if (!activeCompletions) {
         activeCompletions = [
             new BmarkCompletionSource(completionsDiv),
@@ -83,144 +111,92 @@ function enableCompletions() {
 }
 /* document.addEventListener("DOMContentLoaded", enableCompletions) */
 
+/** @hidden **/
 let noblur = e => setTimeout(() => clInput.focus(), 0)
 
+/** @hidden **/
 export function focus() {
     clInput.focus()
     clInput.addEventListener("blur", noblur)
 }
 
+/** @hidden **/
 async function sendExstr(exstr) {
     Messaging.message("commandline_background", "recvExStr", [exstr])
 }
 
+/** @hidden **/
 let HISTORY_SEARCH_STRING: string
 
-/* Command line keybindings */
-
-clInput.addEventListener("keydown", function(keyevent) {
-    switch (keyevent.key) {
-        case "Enter":
-            process()
-            break
-
-        case "j":
-            if (keyevent.ctrlKey) {
-                // stop Firefox from giving focus to the omnibar
-                keyevent.preventDefault()
-                keyevent.stopPropagation()
-                process()
-            }
-            break
-
-        case "m":
-            if (keyevent.ctrlKey) {
-                process()
-            }
-            break
-
-        case "Escape":
+/** @hidden
+ * Command line keybindings
+ **/
+let keyParser = keys => genericParser.parser("exmaps", keys)
+/** @hidden **/
+let keyEvents = []
+/** @hidden **/
+clInput.addEventListener(
+    "keydown",
+    function(keyevent: KeyboardEvent) {
+        keyEvents.push(keyevent)
+        let response = keyParser(keyEvents)
+        if (response.isMatch) {
             keyevent.preventDefault()
-            hide_and_clear()
-            break
+            keyevent.stopImmediatePropagation()
+        }
+        if (response.exstr) {
+            keyEvents = []
+            Messaging.message("controller_background", "acceptExCmd", [
+                response.exstr,
+            ])
+        } else {
+            keyEvents = response.keys
+        }
+    },
+    true,
+)
 
-        // Todo: fish-style history search
-        // persistent history
-        case "ArrowUp":
-            history(-1)
-            break
+/**
+ * Insert the first command line history line that starts with the content of the command line in the command line.
+ */
+export function complete() {
+    let fragment = clInput.value
+    let matches = state.cmdHistory.filter(key => key.startsWith(fragment))
+    let mostrecent = matches[matches.length - 1]
+    if (mostrecent != undefined) clInput.value = mostrecent
+}
 
-        case "ArrowDown":
-            history(1)
-            break
+/**
+ * Selects the next completion.
+ */
+export function next_completion() {
+    if (activeCompletions) activeCompletions.forEach(comp => comp.next())
+}
 
-        case "a":
-            if (keyevent.ctrlKey) {
-                keyevent.preventDefault()
-                keyevent.stopPropagation()
-                setCursor()
-            }
-            break
+/**
+ * Selects the previous completion.
+ */
+export function prev_completion() {
+    if (activeCompletions) activeCompletions.forEach(comp => comp.prev())
+}
 
-        case "e":
-            if (keyevent.ctrlKey) {
-                keyevent.preventDefault()
-                keyevent.stopPropagation()
-                setCursor(clInput.value.length)
-            }
-            break
+/**
+ * Inserts the currently selected completion and a space in the command line.
+ * If no completion option is selected, inserts a space in the command line.
+ */
+export function insert_completion() {
+    const command = getCompletion()
+    activeCompletions.forEach(comp => (comp.completion = undefined))
+    if (command) clInput.value = command
+    clInput.value += " "
+    clInput.dispatchEvent(new Event("input")) // dirty hack for completions
+}
 
-        case "u":
-            if (keyevent.ctrlKey) {
-                keyevent.preventDefault()
-                keyevent.stopPropagation()
-                clInput.value = clInput.value.slice(
-                    clInput.selectionStart,
-                    clInput.value.length,
-                )
-                setCursor()
-            }
-            break
-
-        case "k":
-            if (keyevent.ctrlKey) {
-                keyevent.preventDefault()
-                keyevent.stopPropagation()
-                clInput.value = clInput.value.slice(0, clInput.selectionStart)
-            }
-            break
-
-        // Clear input on ^C if there is no selection
-        // Todo: hard mode: vi style editing on cli, like set -o mode vi
-        // should probably just defer to another library
-        case "c":
-            if (
-                keyevent.ctrlKey &&
-                !clInput.value.substring(
-                    clInput.selectionStart,
-                    clInput.selectionEnd,
-                )
-            ) {
-                hide_and_clear()
-            }
-            break
-
-        case "f":
-            if (keyevent.ctrlKey) {
-                // Stop ctrl+f from doing find
-                keyevent.preventDefault()
-                keyevent.stopPropagation()
-                tabcomplete()
-            }
-            break
-
-        case "Tab":
-            // Stop tab from losing focus
-            keyevent.preventDefault()
-            keyevent.stopPropagation()
-            if (keyevent.shiftKey) {
-                activeCompletions.forEach(comp => comp.prev())
-            } else {
-                activeCompletions.forEach(comp => comp.next())
-            }
-            // tabcomplete()
-            break
-
-        case " ":
-            const command = getCompletion()
-            activeCompletions.forEach(comp => (comp.completion = undefined))
-            if (command) fillcmdline(command, false)
-            break
-    }
-
-    // If a key other than the arrow keys was pressed, clear the history search string
-    if (!(keyevent.key == "ArrowUp" || keyevent.key == "ArrowDown")) {
-        HISTORY_SEARCH_STRING = undefined
-    }
-})
-
+/** @hidden **/
 let timeoutId: any = 0
+/** @hidden **/
 let onInputPromise: Promise<any> = Promise.resolve()
+/** @hidden **/
 clInput.addEventListener("input", () => {
     const exstr = clInput.value
     // Prevent starting previous completion computation if possible
@@ -241,18 +217,21 @@ clInput.addEventListener("input", () => {
         enableCompletions()
         // Fire each completion and add a callback to resize area
         onInputPromise = Promise.all(
-            activeCompletions.map(comp => comp.filter(exstr).then(resizeArea))
+            activeCompletions.map(comp => comp.filter(exstr).then(resizeArea)),
         )
     }, 100)
     // Declare self as current completion computation
     timeoutId = myTimeoutId
 })
 
+/** @hidden **/
 let cmdline_history_position = 0
+/** @hidden **/
 let cmdline_history_current = ""
 
-/** Clears the command line.
- *  If you intend to close the command line after this, set evlistener to true in order to enable losing focus.
+/** @hidden
+ * Clears the command line.
+ * If you intend to close the command line after this, set evlistener to true in order to enable losing focus.
  *  Otherwise, no need to pass an argument.
  */
 export function clear(evlistener = false) {
@@ -262,8 +241,10 @@ export function clear(evlistener = false) {
     cmdline_history_current = ""
 }
 
+/** Hide the command line and clear its content without executing it. **/
 export async function hide_and_clear() {
     clear(true)
+    keyEvents = []
 
     // Try to make the close cmdline animation as smooth as possible.
     Messaging.messageOwnTab("commandline_content", "hide")
@@ -276,17 +257,26 @@ export async function hide_and_clear() {
     isVisible = false
 }
 
+/** @hidden **/
 function setCursor(n = 0) {
     clInput.setSelectionRange(n, n, "none")
 }
 
-function tabcomplete() {
-    let fragment = clInput.value
-    let matches = state.cmdHistory.filter(key => key.startsWith(fragment))
-    let mostrecent = matches[matches.length - 1]
-    if (mostrecent != undefined) clInput.value = mostrecent
+/**
+ * Selects the next history line.
+ */
+export function next_history() {
+    return history(1)
 }
 
+/**
+ * Selects the prev history line.
+ */
+export function prev_history() {
+    return history(-1)
+}
+
+/** @hidden **/
 function history(n) {
     HISTORY_SEARCH_STRING =
         HISTORY_SEARCH_STRING === undefined
@@ -311,8 +301,10 @@ function history(n) {
         cmdline_history_position = cmdline_history_position - n
 }
 
-/* Send the commandline to the background script and await response. */
-function process() {
+/**
+ * Execute the content of the command line and hide it.
+ **/
+export function accept_line() {
     const command = getCompletion() || clInput.value
 
     hide_and_clear()
@@ -335,6 +327,7 @@ function process() {
     sendExstr(command)
 }
 
+/** @hidden **/
 export function fillcmdline(
     newcommand?: string,
     trailspace = true,
@@ -350,10 +343,11 @@ export function fillcmdline(
     }
 }
 
-/** Create a temporary textarea and give it to fn. Remove the textarea afterwards
-
-    Useful for document.execCommand
-*/
+/** @hidden
+ * Create a temporary textarea and give it to fn. Remove the textarea afterwards
+ *
+ * Useful for document.execCommand
+ **/
 function applyWithTmpTextArea(fn) {
     let textarea
     try {
@@ -370,6 +364,7 @@ function applyWithTmpTextArea(fn) {
     }
 }
 
+/** @hidden **/
 export async function setClipboard(content: string) {
     applyWithTmpTextArea(scratchpad => {
         scratchpad.value = content
@@ -384,6 +379,7 @@ export async function setClipboard(content: string) {
     Messaging.messageOwnTab("commandline_content", "blur")
 }
 
+/** @hidden **/
 export function getClipboard() {
     const result = applyWithTmpTextArea(scratchpad => {
         scratchpad.focus()
@@ -396,10 +392,23 @@ export function getClipboard() {
     return result
 }
 
+/** @hidden **/
 export function getContent() {
     return clInput.value
 }
 
+/** @hidden **/
+export function editor_function(fn_name) {
+    if (tri_editor[fn_name]) {
+        tri_editor[fn_name](clInput)
+    } else {
+        // The user is using the command line so we can't log message there
+        // logger.error(`No editor function named ${fn_name}!`)
+        console.error(`No editor function named ${fn_name}!`)
+    }
+}
+
+import * as SELF from "@src/commandline_frame"
 Messaging.addListener("commandline_frame", Messaging.attributeCaller(SELF))
 
 // Listen for statistics from the commandline iframe and send them to

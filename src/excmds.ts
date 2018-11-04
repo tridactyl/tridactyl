@@ -6,6 +6,8 @@
 
     The default keybinds and settings can be found [here](/static/docs/classes/_lib_config_.default_config.html) and active binds can be seen with `:viewconfig nmaps` or with [[bind]].
 
+    Tridactyl also provides a few functions to manipulate text in the command line or text areas that can be found [here](/static/docs/modules/_lib_editor_.html). There are also a few commands only available in the command line which can be found [here](/static/docs/modules/_commandline_frame_.html).
+
     ## How to use this help page
 
     Every function (excmd) on this page can be called via Tridactyl's command line which we call "ex". There is a slight change in syntax, however. Wherever you see:
@@ -25,6 +27,7 @@
         - `inputmaps`: input mode binds
         - `ignoremaps`: ignore mode binds
         - `exaliases`: aliases in the command mode
+        - `exmaps`: commandline mode binds
 
     At the bottom of each function's help page, you can click on a link that will take you straight to that function's definition in our code.
 
@@ -96,6 +99,7 @@ import * as scrolling from "@src/content/scrolling"
 //#background_helper
 // {
 /** Message excmds_content.ts in the active tab of the currentWindow */
+import * as BGSELF from "@src/.excmds_background.generated"
 import { messageTab, messageActiveTab } from "@src/lib/messaging"
 import { flatten } from "@src/lib/itertools"
 import "@src/lib/number.mod"
@@ -210,461 +214,6 @@ export async function editor() {
     classUpdate.then(() => Messaging.messageTab(tab.id, "excmd_content", "removeTridactylEditorClass", [selector]))
     // TODO: add annoying "This message was written with [Tridactyl](https://addons.mozilla.org/en-US/firefox/addon/tridactyl-vim/)" to everything written using editor
     return [file, content]
-}
-
-/**
- * Behaves like readline's [delete_char](http://web.mit.edu/gnu/doc/html/rlman_1.html#SEC14), i.e. deletes the character to the right of the caret.
- **/
-//#content
-export function im_delete_char() {
-    let elem = DOM.getLastUsedInput() as HTMLInputElement
-    let pos = elem.selectionStart
-    // Abort if we can't find out where the caret is
-    if (pos === undefined || pos === null) {
-        logger.warning("im_delete_char: elem doesn't have a selectionStart")
-        return
-    }
-    let text = getInput(elem)
-    if (text.length == 0) return
-    if (pos != elem.selectionEnd) {
-        // If the user selected text, then we need to delete that instead of a single char
-        text = text.substring(0, pos) + text.substring(elem.selectionEnd)
-    } else {
-        text = text.substring(0, pos) + text.substring(pos + 1)
-    }
-    fillinput(DOM.getSelector(elem), text)
-    elem.selectionStart = elem.selectionEnd = pos
-}
-
-/**
- * Behaves like readline's [delete_backward_char](http://web.mit.edu/gnu/doc/html/rlman_1.html#SEC14), i.e. deletes the character to the left of the caret.
- **/
-//#content
-export function im_delete_backward_char() {
-    let elem = DOM.getLastUsedInput() as HTMLInputElement
-    let pos = elem.selectionStart
-    // Abort if we can't find out where the caret is or if it is at the beginning of the text
-    if (!pos) {
-        logger.warning("im_delete_backward_char: elem doesn't have a selectionStart or caret is at beginning of line.")
-        return
-    }
-    let text = getInput(elem)
-    if (text.length == 0) return
-    if (pos != elem.selectionEnd) {
-        text = text.substring(0, pos) + text.substring(elem.selectionEnd)
-    } else {
-        text = text.substring(0, pos - 1) + text.substring(pos)
-    }
-    fillinput(DOM.getSelector(elem), text)
-    elem.selectionStart = elem.selectionEnd = pos - 1
-}
-
-/**
- * Behaves like readline's [tab_insert](http://web.mit.edu/gnu/doc/html/rlman_1.html#SEC14), i.e. inserts a tab character to the left of the caret.
- **/
-//#content
-export function im_tab_insert() {
-    let elem = DOM.getLastUsedInput() as HTMLInputElement
-    let pos = elem.selectionStart
-    if (pos === undefined || pos === null) {
-        logger.warning("im_tab_insert: elem doesn't have a selectionStart")
-        return
-    }
-    let text = getInput(elem)
-    if (pos != elem.selectionEnd) {
-        text = text.substring(0, pos) + "\t" + text.substring(elem.selectionEnd)
-    } else {
-        text = text.substring(0, pos) + "\t" + text.substring(pos)
-    }
-    fillinput(DOM.getSelector(elem), text)
-    elem.selectionStart = elem.selectionEnd = pos + 1
-}
-
-/**
- * Behaves like readline's [transpose_chars](http://web.mit.edu/gnu/doc/html/rlman_1.html#SEC14), i.e. transposes the character to the left of the caret with the character to the right of the caret and then moves the caret one character to the right. If there are no characters to the right or to the left of the caret, uses the two characters the closest to the caret.
- **/
-//#content
-export function im_transpose_chars() {
-    let elem = DOM.getLastUsedInput() as HTMLInputElement
-    let pos = elem.selectionStart
-    if (pos === undefined || pos === null) {
-        logger.warning("im_transpose_chars: elem doesn't have a selectionStart")
-        return
-    }
-    // When at the beginning of the text, transpose the first and second characters
-    if (pos == 0) pos = 1
-    let text = getInput(elem)
-    if (text.length == 0) return
-    // When at the end of the text, transpose the last and second-to-last characters
-    if (pos >= text.length) pos = text.length - 1
-    fillinput(DOM.getSelector(elem), text.substring(0, pos - 1) + text.substring(pos, pos + 1) + text.substring(pos - 1, pos) + text.substring(pos + 1))
-    elem.selectionStart = elem.selectionEnd = pos + 1
-}
-
-/** @hidden
- * Detects the boundaries of a word in text according to the wordpattern setting. If POSITION is in a word, the boundaries of this word are returned. If POSITION is out of a word and BEFORE is true, the word before POSITION is returned. If BEFORE is false, the word after the caret is returned.
- */
-//#content_helper
-export function getWordBoundaries(text: string, position: number, before: boolean): [number, number] {
-    if (position < 0 || position > text.length) throw new Error(`getWordBoundaries: position (${position}) should be within text ("${text}") boundaries (0, ${text.length})`)
-    let pattern = new RegExp(config.get("wordpattern"), "g")
-    let boundary1 = position < text.length ? position : text.length - 1
-    let direction = before ? -1 : 1
-    // if the caret is not in a word, try to find the word before or after it
-    while (boundary1 >= 0 && boundary1 < text.length && !text[boundary1].match(pattern)) {
-        boundary1 += direction
-    }
-
-    if (boundary1 < 0) boundary1 = 0
-    else if (boundary1 >= text.length) boundary1 = text.length - 1
-
-    // if a word couldn't be found in this direction, try the other one
-    while (boundary1 >= 0 && boundary1 < text.length && !text[boundary1].match(pattern)) {
-        boundary1 -= direction
-    }
-
-    if (boundary1 < 0) boundary1 = 0
-    else if (boundary1 >= text.length) boundary1 = text.length - 1
-
-    if (!text[boundary1].match(pattern)) {
-        // there is no word in text
-        throw new Error(`getWordBoundaries: no characters matching wordpattern (${pattern.source}) in text (${text})`)
-    }
-
-    // now that we know the caret is in a word (it could be in the middle depending on POSITION!), try to find its beginning/end
-    while (boundary1 >= 0 && boundary1 < text.length && !!text[boundary1].match(pattern)) {
-        boundary1 += direction
-    }
-    // boundary1 is now outside of the word, bring it back inside of it
-    boundary1 -= direction
-
-    let boundary2 = boundary1
-    // now that we know the caret is at the beginning/end of a word, we need to find the other boundary
-    while (boundary2 >= 0 && boundary2 < text.length && !!text[boundary2].match(pattern)) {
-        boundary2 -= direction
-    }
-    // boundary2 is outside of the word, bring it back in
-    boundary2 += direction
-
-    // Add 1 to the end boundary because the end of a word is marked by the character after said word
-    if (boundary1 > boundary2) return [boundary2, boundary1 + 1]
-    return [boundary1, boundary2 + 1]
-}
-
-/** @hidden
- * Finds the next word as defined by the wordpattern setting after POSITION. If POSITION is in a word, POSITION is moved forward until it is out of the word.
- * @return number The position of the next word in text or -1 if the next word can't be found.
- */
-//#content_helper
-export function wordAfterPos(text: string, position: number) {
-    if (position < 0) throw new Error(`wordAfterPos: position (${position}) is less that 0`)
-    let pattern = new RegExp(config.get("wordpattern"), "g")
-    // move position out of the current word
-    while (position < text.length && !!text[position].match(pattern)) position += 1
-    // try to find characters that match wordpattern
-    while (position < text.length && !text[position].match(pattern)) position += 1
-    if (position >= text.length) return -1
-    return position
-}
-
-/**
- * Behaves like readline's [transpose_words](http://web.mit.edu/gnu/doc/html/rlman_1.html#SEC14). Basically equivalent to [[im_transpose_chars]], but using words as defined by the wordpattern setting.
- **/
-//#content
-export function im_transpose_words() {
-    let elem = DOM.getLastUsedInput() as HTMLInputElement
-    let pos = elem.selectionStart
-    if (pos === undefined || pos === null) {
-        logger.warning("im_transpose_words: elem doesn't have a selectionStart")
-        return
-    }
-    let text = getInput(elem)
-    if (text.length == 0) return
-    // If the caret is at the end of the text, move it just before the last character
-    if (pos >= text.length) {
-        pos = text.length - 1
-    }
-    // Find the word the caret is in
-    let firstBoundaries = getWordBoundaries(text, pos, false)
-    let secondBoundaries = firstBoundaries
-    // If there is a word after the word the caret is in, use it for the transposition, otherwise use the word before it
-    let nextWord = wordAfterPos(text, firstBoundaries[1])
-    if (nextWord > -1) {
-        secondBoundaries = getWordBoundaries(text, nextWord, false)
-    } else {
-        firstBoundaries = getWordBoundaries(text, firstBoundaries[0] - 1, true)
-    }
-    let firstWord = text.substring(firstBoundaries[0], firstBoundaries[1])
-    let secondWord = text.substring(secondBoundaries[0], secondBoundaries[1])
-    let beginning = text.substring(0, firstBoundaries[0]) + secondWord + text.substring(firstBoundaries[1], secondBoundaries[0])
-    pos = beginning.length
-    fillinput(DOM.getSelector(elem), beginning + firstWord + text.substring(secondBoundaries[1]))
-    // Move caret just before the word that was transposed
-    elem.selectionStart = elem.selectionEnd = pos
-}
-
-/** @hidden
- * Applies a function to the word the caret is in, or to the next word if the caret is not in a word, or to the previous word if the current word is empty.
- */
-//#content_helper
-function applyWord(fn: (string) => string) {
-    let elem = DOM.getLastUsedInput() as HTMLInputElement
-    let pos = elem.selectionStart
-    if (pos === undefined || pos === null) {
-        logger.warning("im_upcase_word: elem doesn't have a selectionStart")
-        return
-    }
-    let text = getInput(elem)
-    if (text.length == 0) return
-    // If the caret is at the end of the text, move it just before the last character
-    if (pos >= text.length) {
-        pos = text.length - 1
-    }
-    let boundaries = getWordBoundaries(text, pos, false)
-    let beginning = text.substring(0, boundaries[0]) + fn(text.substring(boundaries[0], boundaries[1]))
-    fillinput(DOM.getSelector(elem), beginning + text.substring(boundaries[1]))
-    elem.selectionStart = elem.selectionEnd = beginning.length + 1
-}
-
-/**
- * Behaves like readline's [upcase_word](http://web.mit.edu/gnu/doc/html/rlman_1.html#SEC14). Makes the word the caret is in uppercase.
- **/
-//#content
-export function im_upcase_word() {
-    applyWord(word => word.toUpperCase())
-}
-
-/**
- * Behaves like readline's [downcase_word](http://web.mit.edu/gnu/doc/html/rlman_1.html#SEC14). Makes the word the caret is in lowercase.
- **/
-//#content
-export function im_downcase_word() {
-    applyWord(word => word.toLowerCase())
-}
-
-/**
- * Behaves like readline's [capitalize_word](http://web.mit.edu/gnu/doc/html/rlman_1.html#SEC14). Makes the initial character of the word the caret is in uppercase.
- **/
-//#content
-export function im_capitalize_word() {
-    applyWord(word => word[0].toUpperCase() + word.substring(1))
-}
-
-/**
- * Behaves like readline's [kill_line](http://web.mit.edu/gnu/doc/html/rlman_1.html#SEC15), i.e. deletes every character to the right of the caret until reaching either the end of the text or the newline character (\n).
- **/
-//#content
-export function im_kill_line() {
-    let elem = DOM.getLastUsedInput() as HTMLInputElement
-    let pos = elem.selectionStart
-    if (pos === undefined || pos === null) {
-        logger.warning("im_kill_line: elem doesn't have a selectionStart")
-        return
-    }
-    let text = getInput(elem)
-    if (text.length == 0) return
-    let newLine = text.substring(pos).search("\n")
-    if (newLine != -1) {
-        // If the caret is right before the newline, kill the newline
-        if (newLine == 0) newLine = 1
-        text = text.substring(0, pos) + text.substring(pos + newLine)
-    } else {
-        text = text.substring(0, pos)
-    }
-    fillinput(DOM.getSelector(elem), text)
-    elem.selectionStart = elem.selectionEnd = pos
-}
-
-/**
- * Behaves like readline's [backward_kill_line](http://web.mit.edu/gnu/doc/html/rlman_1.html#SEC15), i.e. deletes every character to the left of the caret until either the beginning of the text is found or a newline character ("\n") is reached.
- **/
-//#content
-export function im_backward_kill_line() {
-    let elem = DOM.getLastUsedInput() as HTMLInputElement
-    let pos = elem.selectionStart
-    if (pos === undefined || pos === null) {
-        logger.warning("im_backward_kill_line: elem doesn't have a selectionStart")
-        return
-    }
-    let text = getInput(elem)
-    if (text.length == 0) return
-    // If the caret is at the beginning of a line, join the lines
-    if (text[pos - 1] == "\n") {
-        fillinput(DOM.getSelector(elem), text.substring(0, pos - 1) + text.substring(pos))
-        elem.selectionStart = elem.selectionEnd = pos - 1
-    } else {
-        let newLine
-        // Find the closest newline
-        for (newLine = pos; newLine > 0 && text[newLine - 1] != "\n"; --newLine) {}
-        // Remove everything between the newline and the caret
-        fillinput(DOM.getSelector(elem), text.substring(0, newLine) + text.substring(pos))
-        elem.selectionStart = elem.selectionEnd = newLine
-    }
-}
-
-/**
- * Behaves like readline's [kill_whole_line](http://web.mit.edu/gnu/doc/html/rlman_1.html#SEC15). Deletes every character between the two newlines the caret is in. If a newline can't be found on the left of the caret, everything is deleted until the beginning of the text is reached. If a newline can't be found on the right, everything is deleted until the end of the text is found.
- **/
-//#content
-export function im_kill_whole_line() {
-    let elem = DOM.getLastUsedInput() as HTMLInputElement
-    let pos = elem.selectionStart
-    if (pos === undefined || pos === null) {
-        logger.warning("im_kill_whole_line: elem doesn't have a selectionStart")
-        return
-    }
-    let text = getInput(elem)
-    if (text.length == 0) return
-    let firstNewLine, secondNewLine
-    // Find the newline before the caret
-    for (firstNewLine = pos; firstNewLine > 0 && text[firstNewLine - 1] != "\n"; --firstNewLine) {}
-    // Find the newline after the caret
-    for (secondNewLine = pos; secondNewLine < text.length && text[secondNewLine - 1] != "\n"; ++secondNewLine) {}
-    // Remove everything between the newline and the caret
-    fillinput(DOM.getSelector(elem), text.substring(0, firstNewLine) + text.substring(secondNewLine))
-    elem.selectionStart = elem.selectionEnd = firstNewLine
-}
-
-/**
- * Behaves like readline's [kill_word](http://web.mit.edu/gnu/doc/html/rlman_1.html#SEC15). Deletes every character from the caret to the end of a word, with words being defined by the wordpattern setting.
- **/
-//#content
-export function im_kill_word() {
-    let elem = DOM.getLastUsedInput() as HTMLInputElement
-    let pos = elem.selectionStart
-    if (pos === undefined || pos === null) {
-        logger.warning("im_kill_word: elem doesn't have a selectionStart")
-        return
-    }
-    let text = getInput(elem)
-    if (text.length == 0) return
-    let boundaries = getWordBoundaries(text, pos, false)
-    if (pos > boundaries[0] && pos < boundaries[1]) boundaries[0] = pos
-    // Remove everything between the newline and the caret
-    fillinput(DOM.getSelector(elem), text.substring(0, boundaries[0]) + text.substring(boundaries[1] + 1))
-    elem.selectionStart = elem.selectionEnd = boundaries[0]
-}
-
-/**
- * Behaves like readline's [backward_kill_word](http://web.mit.edu/gnu/doc/html/rlman_1.html#SEC15). Deletes every character from the caret to the beginning of a word with word being defined by the wordpattern setting.
- **/
-//#content
-export function im_backward_kill_word() {
-    let elem = DOM.getLastUsedInput() as HTMLInputElement
-    let pos = elem.selectionStart
-    if (pos === undefined || pos === null) {
-        logger.warning("im_backward_kill_word: elem doesn't have a selectionStart")
-        return
-    }
-    let text = getInput(elem)
-    if (text.length == 0) return
-    let boundaries = getWordBoundaries(text, pos, true)
-    if (pos > boundaries[0] && pos < boundaries[1]) boundaries[1] = pos
-    // Remove everything between the newline and the caret
-    fillinput(DOM.getSelector(elem), text.substring(0, boundaries[0]) + text.substring(boundaries[1]))
-    elem.selectionStart = elem.selectionEnd = boundaries[0]
-}
-
-/**
- * Behaves like readline's [beginning_of_line](http://web.mit.edu/gnu/doc/html/rlman_1.html#SEC12). Moves the caret to the right of the first newline character found at the left of the caret. If no newline can be found, move the caret to the beginning of the text.
- **/
-//#content
-export function im_beginning_of_line() {
-    let elem = DOM.getLastUsedInput() as HTMLInputElement
-    let pos = elem.selectionStart
-    if (pos === undefined || pos === null) {
-        logger.warning("im_beginning_of_line: elem doesn't have a selectionStart")
-        return
-    }
-    let text = getInput(elem)
-    if (text.length == 0) return
-    while (text[pos - 1] != undefined && text[pos - 1] != "\n") pos -= 1
-    elem.selectionStart = elem.selectionEnd = pos
-}
-
-/**
- * Behaves like readline's [end_of_line](http://web.mit.edu/gnu/doc/html/rlman_1.html#SEC12). Moves the caret to the left of the first newline character found at the right of the caret. If no newline can be found, move the caret to the end of the text.
- **/
-//#content
-export function im_end_of_line() {
-    let elem = DOM.getLastUsedInput() as HTMLInputElement
-    let pos = elem.selectionStart
-    if (pos === undefined || pos === null) {
-        logger.warning("im_end_of_line: elem doesn't have a selectionStart")
-        return
-    }
-    let text = getInput(elem)
-    if (text.length == 0) return
-    while (text[pos] != undefined && text[pos] != "\n") pos += 1
-    elem.selectionStart = elem.selectionEnd = pos
-}
-
-/**
- * Behaves like readline's [forward_char](http://web.mit.edu/gnu/doc/html/rlman_1.html#SEC12). Moves the caret one character to the right.
- **/
-//#content
-export function im_forward_char() {
-    let elem = DOM.getLastUsedInput() as HTMLInputElement
-    let pos = elem.selectionStart
-    if (pos === undefined || pos === null) {
-        logger.warning("im_forward_char: elem doesn't have a selectionStart")
-        return
-    }
-    let text = getInput(elem)
-    if (text.length == 0) return
-    elem.selectionStart = elem.selectionEnd = pos + 1
-}
-
-/**
- * Behaves like readline's [backward_char](http://web.mit.edu/gnu/doc/html/rlman_1.html#SEC12). Moves the caret one character to the left.
- **/
-//#content
-export function im_backward_char() {
-    let elem = DOM.getLastUsedInput() as HTMLInputElement
-    let pos = elem.selectionStart
-    if (pos === undefined || pos === null) {
-        logger.warning("im_backward_char: elem doesn't have a selectionStart")
-        return
-    }
-    let text = getInput(elem)
-    if (text.length == 0) return
-    elem.selectionStart = elem.selectionEnd = pos - 1
-}
-
-/**
- * Behaves like readline's [forward_word](http://web.mit.edu/gnu/doc/html/rlman_1.html#SEC12). Moves the caret one word to the right, with words being defined by the wordpattern setting.
- **/
-//#content
-export function im_forward_word() {
-    let elem = DOM.getLastUsedInput() as HTMLInputElement
-    let pos = elem.selectionStart
-    if (pos === undefined || pos === null) {
-        logger.warning("im_forward_word: elem doesn't have a selectionStart")
-        return
-    }
-    let text = getInput(elem)
-    if (text.length == 0) return
-    let boundaries = getWordBoundaries(text, pos, false)
-    if (pos >= boundaries[0] && pos < boundaries[1]) boundaries = getWordBoundaries(text, boundaries[1], false)
-    elem.selectionStart = elem.selectionEnd = boundaries[0]
-}
-
-/**
- * Behaves like readline's [backward_word](http://web.mit.edu/gnu/doc/html/rlman_1.html#SEC12). Moves the caret one word to the right, with words being defined by the wordpattern setting.
- **/
-//#content
-export function im_backward_word() {
-    let elem = DOM.getLastUsedInput() as HTMLInputElement
-    let pos = elem.selectionStart
-    if (pos === undefined || pos === null) {
-        logger.warning("im_backward_word: elem doesn't have a selectionStart")
-        return
-    }
-    let text = getInput(elem)
-    if (text.length == 0 || pos == 0) return
-    let boundaries = getWordBoundaries(text, pos, true)
-    if (pos >= boundaries[0] && pos < boundaries[1]) boundaries = getWordBoundaries(text, boundaries[0] - 1, true)
-    elem.selectionStart = elem.selectionEnd = boundaries[0]
 }
 
 //#background_helper
@@ -2394,18 +1943,22 @@ export async function undo(item = "recent"): Promise<Number> {
     const sessions = await browser.sessions.getRecentlyClosed()
 
     if (item === "tab") {
-        const lastSession = sessions.find(s => {if (s.tab) return true})
+        const lastSession = sessions.find(s => {
+            if (s.tab) return true
+        })
         if (lastSession) {
             browser.sessions.restore(lastSession.tab.sessionId)
             return lastSession.tab.id
         }
-    } else if ( item === "window") {
-        const lastSession = sessions.find(s => {if (s.window) return true})
+    } else if (item === "window") {
+        const lastSession = sessions.find(s => {
+            if (s.window) return true
+        })
         if (lastSession) {
             browser.sessions.restore(lastSession.window.sessionId)
             return lastSession.window.id
         }
-    } else if ( item === "recent") {
+    } else if (item === "recent") {
         // The first session object that's a window or a tab from this window. Or undefined if sessions is empty.
         const lastSession = sessions.find(s => {
             if (s.window) {
@@ -2873,6 +2426,47 @@ export async function fillcmdline_tmp(ms: number, ...strarr: string[]) {
     )
 }
 
+/** @hidden **/
+const cmdframe_fns: { [key: string]: [string, any[]] } = {
+    accept_line: ["accept_line", []],
+    next_history: ["next_history", []],
+    prev_history: ["prev_history", []],
+    next_completion: ["next_completion", []],
+    prev_completion: ["prev_completion", []],
+    insert_completion: ["insert_completion", []],
+    complete: ["complete", []],
+    hide_and_clear: ["hide_and_clear", []],
+}
+
+import * as tri_editor from "@src/lib/editor"
+
+//#content_helper
+// {
+for (let editorfn in tri_editor) {
+    // Re-expose every editor function as a text.$fn excmd that will forward the call to $fn to the commandline frame if it is selected or apply $fn to the last used input if it isn't
+    SELF["text." + editorfn] = () => {
+        if ((document.activeElement as any).src === browser.extension.getURL("static/commandline.html")) return Messaging.messageOwnTab("commandline_frame", "editor_function", [editorfn])
+        return tri_editor[editorfn](DOM.getLastUsedInput())
+    }
+}
+for (let fn in cmdframe_fns) {
+    SELF["ex." + fn] = () => (Messaging.messageOwnTab as any)("commandline_frame", ...cmdframe_fns[fn])
+}
+// }
+
+//#background_helper
+// {
+for (let editorfn in tri_editor) {
+    let name = "text." + editorfn
+    cmd_params.set(name, new Map([]))
+    BGSELF[name] = () => messageActiveTab("excmd_content", name, [])
+}
+for (let fn in cmdframe_fns) {
+    cmd_params.set("ex." + fn, new Map(cmdframe_fns[fn][1].map((a, i) => [`${i}`, typeof a] as [string, string])))
+    BGSELF["ex." + fn] = () => messageActiveTab("commandline_frame", ...cmdframe_fns[fn])
+}
+// }
+
 /**
  * Returns the current URL. For use with [[composite]].
  */
@@ -3125,7 +2719,7 @@ function parse_bind_args(...args: string[]): bind_args {
     // where it constructs the list of parsers. it should be
     // centralized, possibly as part of rewrite for content-local maps
     // and similar.
-    let mode2maps = new Map([["normal", "nmaps"], ["ignore", "ignoremaps"], ["insert", "imaps"], ["input", "inputmaps"]])
+    let mode2maps = new Map([["normal", "nmaps"], ["ignore", "ignoremaps"], ["insert", "imaps"], ["input", "inputmaps"], ["ex", "exmaps"]])
     if (args[0].startsWith("--mode=")) {
         result.mode = args.shift().replace("--mode=", "")
     }
