@@ -212,7 +212,7 @@ export abstract class CompletionSourceFuse extends CompletionSource {
         return [undefined, undefined]
     }
 
-    fuseOptions = {
+    fuseOptions: Fuse.FuseOptions<any> = {
         keys: ["fuseKeys"],
         shouldSort: true,
         id: "index",
