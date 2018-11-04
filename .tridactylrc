@@ -32,6 +32,9 @@ bind yg composite js "git clone " + document.location.href.replace(/https?:\/\//
 " I like wikiwand but I don't like the way it changes URLs
 bindurl wikiwand.com yy composite js document.location.href.replace("wikiwand.com/en","wikipedia.org/wiki") | clipboard yank
 
+" Make gu take you back to subreddit from comments
+bindurl reddit.com gu urlparent 4
+
 "
 " Misc settings
 "
