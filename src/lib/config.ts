@@ -379,7 +379,7 @@ class default_config {
     /**
      * Whether to use the keytranslatemap in various maps.
      */
-    keytranslatemodes = {
+    keytranslatemodes: {[key:string]: "true" | "false"}  = {
         nmaps: "true",
         imaps: "false",
         inputmaps: "false",
@@ -517,9 +517,9 @@ class default_config {
     storageloc: "sync" | "local" = "sync"
 
     /**
-     * Pages opened with `gH`.
+     * Pages opened with `gH`. In order to set this value, use `:set homepages ["example.org", "example.net", "example.com"]` and so on.
      */
-    homepages = []
+    homepages: string[] = []
 
     /**
      * Characters to use in hint mode.
@@ -644,6 +644,10 @@ class default_config {
         state: "warning",
         styling: "warning",
     }
+
+    /**
+     * Pages on which the command line should not be inserted. Set these values with `:set noiframeon ["url1", "url2"]`.
+     */
     noiframeon: string[] = []
 
     /**

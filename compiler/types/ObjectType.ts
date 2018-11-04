@@ -3,14 +3,34 @@ import { Type } from "./Type"
 export class ObjectType implements Type {
     kind = "object"
 
-    constructor() {}
+    // Note: a map that has an empty key ("") uses the corresponding type as default type
+    constructor(public members: Map<string, Type> = new Map<string, Type>()) {}
 
     toConstructor() {
-        return "new ObjectType()"
+        return `new ObjectType(new Map<string, Type>([` +
+            Array.from(this.members.entries()).map(([n, m]) => `[${JSON.stringify(n)}, ${m.toConstructor()}]`)
+            .join(", ") +
+        `]))`
     }
 
     toString() {
         return this.kind
+    }
+
+    convertMember(memberName: string[], memberValue: string) {
+        let type = this.members.get(memberName[0])
+        if (!type) {
+            // No type, try to get the default type
+            type = this.members.get("")
+            if (!type) {
+                // No info for this member and no default type, anything goes
+                return memberValue
+            }
+        }
+        if (type.kind == "object") {
+            return (type as ObjectType).convertMember(memberName.slice(1), memberValue)
+        }
+        return type.convert(memberValue)
     }
 
     convert(argument) {

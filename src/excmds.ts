@@ -1079,7 +1079,7 @@ export function viewsource(url = "") {
 }
 
 /**
- * Go to the homepages you have set with `set homepages [url1] [url2]`.
+ * Go to the homepages you have set with `set homepages ["url1", "url2"]`.
  *
  *  @param all
  *      - if "true", opens all homepages in new tabs
@@ -2835,27 +2835,27 @@ export function searchsetkeyword(keyword: string, url: string) {
  */
 function validateSetArgs(key: string, values: string[]) {
     const target: any[] = key.split(".")
-    const currentValue = config.get(...target)
     const last = target[target.length - 1]
 
-    let value: string | string[] = values
-    if (Array.isArray(currentValue)) {
-        // Do nothing
-    } else if (currentValue === undefined || typeof currentValue === "string") {
-        value = values.join(" ")
+    let value, file, default_config, md
+    if ((file = Metadata.everything.getFile("src/lib/config.ts")) && (default_config = file.getClass("default_config")) && (md = default_config.getMember(target[0]))) {
+        const strval = values.join(" ")
+        // Note: the conversion will throw if strval can't be converted to the right type
+        if (md.type.kind == "object")
+            value = md.type.convertMember(target.slice(1), strval)
+        else
+            value = md.type.convert(strval)
     } else {
-        throw "Unsupported setting type!"
-    }
-
-    let file, default_config, md
-    if ((file = Metadata.everything.getFile("src/lib/config.ts")) && (default_config = file.getClass("default_config")) && (md = default_config.getMember(last))) {
-        try {
-            value = md.type.convert(value)
-        } catch (e) {
-            throw `Given value (${value}) does not match or could not be converted to ${md.type.toString()}`
+        // If we don't have metadata, fall back to the old way
+        logger.warning("Could not fetch setting metadata. Falling back to type of current value.")
+        const currentValue = config.get(...target)
+        if (Array.isArray(currentValue)) {
+            // Do nothing
+        } else if (currentValue === undefined || typeof currentValue === "string") {
+            value = values.join(" ")
+        } else {
+            throw "Unsupported setting type!"
         }
-    } else {
-        logger.warning("Could not fetch setting metadata.")
     }
 
     target.push(value)

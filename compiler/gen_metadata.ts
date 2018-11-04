@@ -23,6 +23,14 @@ export function toSimpleType(typeNode) {
             n.name = typeNode.name.original.escapedText
             return n
         case ts.SyntaxKind.TypeReference:
+            if (!typeNode.typeArguments) {
+                // If there are no typeArguments, this is not a parametric type and we can return the type directly
+                try {
+                    return toSimpleType(typeNode.typeName.symbol.declarations[0].type)
+                } catch (e) {
+                    // Fall back to what you'd do with typeArguments
+                }
+            }
             let args = typeNode.typeArguments
                 ? typeNode.typeArguments.map(t =>
                       toSimpleType(typeNode.typeArguments[0]),
@@ -39,9 +47,16 @@ export function toSimpleType(typeNode) {
                 toSimpleType(typeNode.type),
             )
         case ts.SyntaxKind.TypeLiteral:
-            // This is a type literal. i.e., something like this: { [str: string]: string[] }
-            // Very complicated and perhaps not useful to know about. Let's just say "object" for now
-            return new AllTypes.ObjectType()
+            let members = typeNode.members.map(member => {
+                if (member.kind == ts.SyntaxKind.IndexSignature) {
+                    // Something like this: { [str: string]: string[] }
+                    return ["", toSimpleType(member.type)]
+                }
+                // Very fun feature: when you have an object literal with >20 members, typescript will decide to replace some of them with a "... X more ..." node that obviously doesn't have a corresponding symbol, hence this check and the filter after the map
+                if (member.name.symbol)
+                        return [member.name.symbol.escapedName, toSimpleType(member.type)];
+            }).filter(m => m)
+            return new AllTypes.ObjectType(new Map(members));
         case ts.SyntaxKind.ArrayType:
             return new AllTypes.ArrayType(toSimpleType(typeNode.elementType))
         case ts.SyntaxKind.TupleType:
@@ -181,7 +196,8 @@ function generateMetadata(
         }
     }
 
-    let imports =
+    // We need to specify Type itself because it won't exist in AllTypes.js since it's an interface
+    let imports = `import { Type } from "../compiler/types/AllTypes"\n` +
         `import {${Object.keys(AllTypes).join(
             ", ",
         )}} from "../compiler/types/AllTypes"\n` +
