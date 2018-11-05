@@ -84,7 +84,6 @@ import Mark from "mark.js"
 import * as CSS from "css"
 import * as Perf from "@src/perf"
 import * as Metadata from "@src/.metadata.generated"
-import { fitsType, typeToString } from "@src/lib/metadata"
 
 //#content_helper
 // {
@@ -759,7 +758,7 @@ export function addJump(scrollEvent: UIEvent) {
             list.push({ x: pageX, y: pageY })
             jumps.cur = jumps.list.length - 1
             saveJumps(alljumps)
-        }, Number.parseInt(config.get("jumpdelay")))
+        }, config.get("jumpdelay"))
     })
 }
 
@@ -1080,7 +1079,7 @@ export function viewsource(url = "") {
 }
 
 /**
- * Go to the homepages you have set with `set homepages [url1] [url2]`.
+ * Go to the homepages you have set with `set homepages ["url1", "url2"]`.
  *
  *  @param all
  *      - if "true", opens all homepages in new tabs
@@ -2836,21 +2835,27 @@ export function searchsetkeyword(keyword: string, url: string) {
  */
 function validateSetArgs(key: string, values: string[]) {
     const target: any[] = key.split(".")
-    const currentValue = config.get(...target)
     const last = target[target.length - 1]
 
-    let value: string | string[] = values
-    if (Array.isArray(currentValue)) {
-        // Do nothing
-    } else if (currentValue === undefined || typeof currentValue === "string") {
-        value = values.join(" ")
+    let value, file, default_config, md
+    if ((file = Metadata.everything.getFile("src/lib/config.ts")) && (default_config = file.getClass("default_config")) && (md = default_config.getMember(target[0]))) {
+        const strval = values.join(" ")
+        // Note: the conversion will throw if strval can't be converted to the right type
+        if (md.type.kind == "object")
+            value = md.type.convertMember(target.slice(1), strval)
+        else
+            value = md.type.convert(strval)
     } else {
-        throw "Unsupported setting type!"
-    }
-
-    let md = Metadata.everything["src/lib/config.ts"].classes.default_config[last]
-    if (md) {
-        if (md.type && !fitsType(value, md.type)) throw `Given type does not match expected type (given: ${value}, expected: ${typeToString(md.type)})`
+        // If we don't have metadata, fall back to the old way
+        logger.warning("Could not fetch setting metadata. Falling back to type of current value.")
+        const currentValue = config.get(...target)
+        if (Array.isArray(currentValue)) {
+            // Do nothing
+        } else if (currentValue === undefined || typeof currentValue === "string") {
+            value = values.join(" ")
+        } else {
+            throw "Unsupported setting type!"
+        }
     }
 
     target.push(value)

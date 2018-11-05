@@ -115,7 +115,7 @@ export class HistoryCompletionSource extends Completions.CompletionSourceFuse {
             // Search history, dedupe and sort by frecency
             let history = await browserBg.history.search({
                 text: query,
-                maxResults: Number(config.get("historyresults")),
+                maxResults: config.get("historyresults"),
                 startTime: 0,
             })
 
