@@ -808,13 +808,13 @@ export function scrollto(a: number | string, b: number | "x" | "y" = "y") {
         if (top == elem.getClientRects()[0].top && (percentage == 0 || percentage == 100)) {
             // scrollTo failed, if the user wants to go to the top/bottom of
             // the page try scrolling.recursiveScroll instead
-            scrolling.recursiveScroll(window.scrollX, 1073741824 * (percentage == 0 ? -1 : 1), [document.documentElement])
+            scrolling.recursiveScroll(window.scrollX, 1073741824 * (percentage == 0 ? -1 : 1), document.documentElement)
         }
     } else if (b === "x") {
         let left = elem.getClientRects()[0].left
         window.scrollTo((percentage * elem.scrollWidth) / 100, window.scrollY)
         if (left == elem.getClientRects()[0].left && (percentage == 0 || percentage == 100)) {
-            scrolling.recursiveScroll(1073741824 * (percentage == 0 ? -1 : 1), window.scrollX, [document.documentElement])
+            scrolling.recursiveScroll(1073741824 * (percentage == 0 ? -1 : 1), window.scrollX, document.documentElement)
         }
     } else {
         window.scrollTo(a, Number(b)) // a,b numbers

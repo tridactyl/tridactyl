@@ -3,11 +3,6 @@ import * as config from "@src/lib/config"
 
 type scrollingDirection = "scrollLeft" | "scrollTop"
 
-// Stores elements that are currently being horizontally scrolled
-let horizontallyScrolling = new Map()
-// Stores elements that are currently being vertically scrolled
-let verticallyScrolling = new Map()
-
 let opts = { smooth: null, duration: null }
 async function getSmooth() {
     if (opts.smooth === null)
@@ -45,7 +40,7 @@ class ScrollingData {
      *  pos: "scrollLeft" if the element should be scrolled on the horizontal axis, "scrollTop" otherwise
      */
     constructor(
-        private elem: HTMLElement,
+        private elem: Node,
         private pos: scrollingDirection = "scrollTop",
     ) {}
 
@@ -70,7 +65,7 @@ class ScrollingData {
         return this.elem[this.pos] + (this.startPos < this.endPos ? 1 : -1)
     }
 
-    /** Updates the position of this.elem */
+    /** Updates the position of this.elem, returns true if the element has been scrolled, false otherwise. */
     scrollStep() {
         let val = this.elem[this.pos]
         this.elem[this.pos] = this.getStep()
@@ -93,11 +88,11 @@ class ScrollingData {
     scroll(distance: number, duration: number) {
         this.startTime = performance.now()
         this.startPos = this.elem[this.pos]
-        this.endPos = this.elem[this.pos] + distance
+        this.endPos = this.startPos + distance
         this.duration = duration
         // If we're already scrolling we don't need to try to scroll
         if (this.scrolling) return true
-        ;(this.elem.style as any).scrollBehavior = "unset"
+        ;(this.elem as any).style.scrollBehavior = "unset"
         this.scrolling = this.scrollStep()
         if (this.scrolling)
             // If the element can be scrolled, scroll until animation completion
@@ -106,13 +101,18 @@ class ScrollingData {
     }
 }
 
+// Stores elements that are currently being horizontally scrolled
+let horizontallyScrolling = new Map<Node, ScrollingData>()
+// Stores elements that are currently being vertically scrolled
+let verticallyScrolling = new Map<Node, ScrollingData>()
+
 /** Tries to scroll e by x and y pixel, make the smooth scrolling animation
  *  last duration milliseconds
  */
 export async function scroll(
     x: number = 0,
     y: number = 0,
-    e: HTMLElement,
+    e: Node,
     duration: number = undefined,
 ) {
     let smooth = await getSmooth()
@@ -124,14 +124,18 @@ export async function scroll(
         // Don't create a new ScrollingData object if the element is already
         // being scrolled
         let scrollData = horizontallyScrolling.get(e)
-        if (!scrollData) scrollData = new ScrollingData(e, "scrollLeft")
-        horizontallyScrolling.set(e, scrollData)
+        if (!scrollData) {
+            scrollData = new ScrollingData(e, "scrollLeft")
+            horizontallyScrolling.set(e, scrollData)
+        }
         result = result || scrollData.scroll(x, duration)
     }
     if (y != 0) {
         let scrollData = verticallyScrolling.get(e)
-        if (!scrollData) scrollData = new ScrollingData(e, "scrollTop")
-        verticallyScrolling.set(e, scrollData)
+        if (!scrollData) {
+            scrollData = new ScrollingData(e, "scrollTop")
+            verticallyScrolling.set(e, scrollData)
+        }
         result = result || scrollData.scroll(y, duration)
     }
     return result
@@ -149,50 +153,48 @@ let lastY = 0
 export async function recursiveScroll(
     x: number,
     y: number,
-    nodes: Element[] = undefined,
-    ignore: Element[] = [],
+    node: Element = undefined,
+    stopAt: Element = undefined
 ) {
     let startingFromCached = false
-    if (!nodes) {
+    if (!node) {
         // Check if x and lastX have the same sign and if y and lastY have the same sign
         if (lastRecursiveScrolled && (x ^ lastX) >= 0 && (y ^ lastY) >= 0) {
             // We're scrolling in the same direction as the previous time so
             // let's try to pick up from where we left
             startingFromCached = true
-            nodes = [lastRecursiveScrolled]
+            node = lastRecursiveScrolled
         } else {
-            nodes = [document.documentElement]
+            node = document.documentElement
         }
     }
-    let index = 0
-    let now = performance.now()
+    let treeWalker = document.createTreeWalker(node, NodeFilter.SHOW_ELEMENT)
     do {
-        let node
-        do {
-            node = nodes[index++] as any
-        } while (ignore.includes(node))
         // If node is undefined or if we managed to scroll it
-        if (!node || (await scroll(x, y, node))) {
+        if ((await scroll(x, y, treeWalker.currentNode)) || ((treeWalker.currentNode as any).contentDocument && (await recursiveScroll(x, y, (treeWalker.currentNode as any).contentDocument.body)))) {
             // Cache the node for next time and stop trying to scroll
-            lastRecursiveScrolled = node
-            return
+            lastRecursiveScrolled = treeWalker.currentNode
+            lastX = x
+            lastY = y
+            return true
         }
-        // Otherwise, add its children to the nodes that could be scrolled
-        nodes = nodes.concat(Array.from(node.children))
-        if (node.contentDocument) nodes.push(node.contentDocument.body)
-    } while (index < nodes.length)
-    // If we reached this part, this means that we couldn't find an element to scroll
-    // If we started from a cached element, we can try to start again from the
-    // top of the document and ignore the cached element this time.
-    // It might be possible to further improve performance by first trying to
-    // recursiveScroll lastRecursiveScrolled sibling elements and only if
-    // that fails its parents but this seems unnecessary for now
+    } while (treeWalker.nextNode())
+    // If we started from a cached node, we could try the nodes before it
     if (startingFromCached) {
-        recursiveScroll(
-            x,
-            y,
-            [document.documentElement],
-            [lastRecursiveScrolled],
-        )
+        treeWalker = document.createTreeWalker(node, NodeFilter.SHOW_ELEMENT)
+        do {
+            // If node is undefined or if we managed to scroll it
+            if (await scroll(x, y, treeWalker.currentNode)) {
+                // Cache the node for next time and stop trying to scroll
+                lastRecursiveScrolled = treeWalker.currentNode
+                lastX = x
+                lastY = y
+                return true
+            }
+        } while (treeWalker.previousNode())
     }
+    lastRecursiveScrolled = null
+    lastX = x
+    lastY = y
+    return false
 }
