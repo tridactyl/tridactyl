@@ -2433,6 +2433,7 @@ const cmdframe_fns: { [key: string]: [string, any[]] } = {
     next_completion: ["next_completion", []],
     prev_completion: ["prev_completion", []],
     insert_completion: ["insert_completion", []],
+    insert_space_or_completion: ["insert_space_or_completion", []],
     complete: ["complete", []],
     hide_and_clear: ["hide_and_clear", []],
 }
