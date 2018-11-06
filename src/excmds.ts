@@ -1703,12 +1703,11 @@ export async function tabprev(increment = 1) {
     // Proper way:
     // return tabIndexSetActive((await activeTab()).index - increment + 1)
     // Kludge until https://bugzilla.mozilla.org/show_bug.cgi?id=1504775 is fixed:
-    return browser.tabs.query({currentWindow: true})
-        .then(tabs => {
-            tabs = tabs.sort((t1, t2) => t1.index - t2.index)
-            let prevTab = (tabs.findIndex(t => t.active) - increment + tabs.length) % tabs.length
-            return browser.tabs.update(tabs[prevTab].id, {active: true})
-        })
+    return browser.tabs.query({ currentWindow: true, hidden: false }).then(tabs => {
+        tabs = tabs.sort((t1, t2) => t1.index - t2.index)
+        let prevTab = (tabs.findIndex(t => t.active) - increment + tabs.length) % tabs.length
+        return browser.tabs.update(tabs[prevTab].id, { active: true })
+    })
 }
 
 /** Switch to the first tab. */
@@ -2850,10 +2849,8 @@ function validateSetArgs(key: string, values: string[]) {
     if ((file = Metadata.everything.getFile("src/lib/config.ts")) && (default_config = file.getClass("default_config")) && (md = default_config.getMember(target[0]))) {
         const strval = values.join(" ")
         // Note: the conversion will throw if strval can't be converted to the right type
-        if (md.type.kind == "object")
-            value = md.type.convertMember(target.slice(1), strval)
-        else
-            value = md.type.convert(strval)
+        if (md.type.kind == "object") value = md.type.convertMember(target.slice(1), strval)
+        else value = md.type.convert(strval)
     } else {
         // If we don't have metadata, fall back to the old way
         logger.warning("Could not fetch setting metadata. Falling back to type of current value.")
