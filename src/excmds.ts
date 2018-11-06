@@ -1675,7 +1675,7 @@ async function tabIndexSetActive(index: number | string) {
  */
 //#background
 export async function tabnext(increment = 1) {
-    tabIndexSetActive((await activeTab()).index + increment + 1)
+    return tabprev(-increment)
 }
 
 /** Switch to the next tab, wrapping round.
@@ -1700,7 +1700,15 @@ export async function tabnext_gt(index?: number) {
  */
 //#background
 export async function tabprev(increment = 1) {
-    return tabIndexSetActive((await activeTab()).index - increment + 1)
+    // Proper way:
+    // return tabIndexSetActive((await activeTab()).index - increment + 1)
+    // Kludge until https://bugzilla.mozilla.org/show_bug.cgi?id=1504775 is fixed:
+    return browser.tabs.query({currentWindow: true})
+        .then(tabs => {
+            tabs = tabs.sort((t1, t2) => t1.index - t2.index)
+            let prevTab = (tabs.findIndex(t => t.active) - increment + tabs.length) % tabs.length
+            return browser.tabs.update(tabs[prevTab].id, {active: true})
+        })
 }
 
 /** Switch to the first tab. */
