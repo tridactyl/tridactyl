@@ -164,6 +164,7 @@ export function complete() {
     let matches = state.cmdHistory.filter(key => key.startsWith(fragment))
     let mostrecent = matches[matches.length - 1]
     if (mostrecent != undefined) clInput.value = mostrecent
+    clInput.dispatchEvent(new Event("input")) // dirty hack for completions
 }
 
 /**
@@ -182,13 +183,31 @@ export function prev_completion() {
 
 /**
  * Inserts the currently selected completion and a space in the command line.
- * If no completion option is selected, inserts a space in the command line.
  */
 export function insert_completion() {
     const command = getCompletion()
     activeCompletions.forEach(comp => (comp.completion = undefined))
-    if (command) clInput.value = command
-    clInput.value += " "
+    if (command) {
+        clInput.value = command + " "
+        clInput.dispatchEvent(new Event("input")) // dirty hack for completions
+    }
+}
+
+/**
+ * If a completion is selected, inserts it in the command line with a space.
+ * If no completion is selected, inserts a space where the caret is.
+ */
+export function insert_space_or_completion() {
+    const command = getCompletion()
+    activeCompletions.forEach(comp => (comp.completion = undefined))
+    if (command) {
+        clInput.value = command + " "
+    } else {
+        const selectionStart = clInput.selectionStart
+        const selectionEnd = clInput.selectionEnd
+        clInput.value = clInput.value.substring(0, selectionStart) + " " + clInput.value.substring(selectionEnd)
+        clInput.selectionStart = clInput.selectionEnd = selectionStart + 1
+    }
     clInput.dispatchEvent(new Event("input")) // dirty hack for completions
 }
 
@@ -401,6 +420,7 @@ export function getContent() {
 export function editor_function(fn_name) {
     if (tri_editor[fn_name]) {
         tri_editor[fn_name](clInput)
+        clInput.dispatchEvent(new Event("input")) // dirty hack for completions
     } else {
         // The user is using the command line so we can't log message there
         // logger.error(`No editor function named ${fn_name}!`)
