@@ -2487,8 +2487,8 @@ export async function get_current_url() {
  * Copy content to clipboard without feedback. Use `clipboard yank` for interactive use.
  */
 //#background
-export async function yank(...content: string[]) {
-    await setclip(content.join(" "))
+export function yank(...content: string[]) {
+    return setclip(content.join(" "))
 }
 
 /**
@@ -2501,16 +2501,8 @@ async function setclip(str) {
     // Functions to avoid retyping everything everywhere
 
     // Note: We're using fillcmdline here because exceptions are somehow not caught. We're rethrowing because otherwise the error message will be overwritten with the "yank successful" message.
-    let s = () =>
-        Native.clipboard("set", str).catch(e => {
-            let msg = "# Failed to set X selection. Is the native messenger installed and is it >=v.0.1.7?"
-            fillcmdline(msg)
-            throw msg
-        })
-    let c = async () => {
-        await messageActiveTab("commandline_content", "focus")
-        await messageActiveTab("commandline_frame", "setClipboard", [str])
-    }
+    let s = () => Native.clipboard("set", str)
+    let c = () => messageActiveTab("commandline_frame", "setClipboard", [str])
 
     let promises = []
     switch (await config.getAsync("yankto")) {
@@ -2524,7 +2516,7 @@ async function setclip(str) {
             promises = [s(), c()]
             break
     }
-    return await Promise.all(promises)
+    return Promise.all(promises)
 }
 
 /**
@@ -2537,11 +2529,7 @@ async function getclip() {
     if ((await config.getAsync("putfrom")) == "clipboard") {
         return messageActiveTab("commandline_frame", "getClipboard")
     } else {
-        return Native.clipboard("get", "").catch(e => {
-            let msg = "# Failed to get X selection. Is the native messenger installed?"
-            fillcmdline(msg)
-            throw msg
-        })
+        return Native.clipboard("get", "")
     }
 }
 
@@ -2571,56 +2559,52 @@ export async function clipboard(excmd: "open" | "yank" | "yankshort" | "yankcano
     let content = toYank.join(" ")
     let url = ""
     let urls = []
-    try {
-        switch (excmd) {
-            case "yankshort":
-                urls = await geturlsforlinks("rel", "shortlink")
-                if (urls.length == 0) {
-                    urls = await geturlsforlinks("rev", "canonical")
-                }
-                if (urls.length > 0) {
-                    await yank(urls[0])
-                    fillcmdline_tmp(3000, "# " + urls[0] + " copied to clipboard.")
-                    break
-                }
-            // Trying yankcanon if yankshort failed...
-            case "yankcanon":
-                urls = await geturlsforlinks("rel", "canonical")
-                if (urls.length > 0) {
-                    await yank(urls[0])
-                    fillcmdline_tmp(3000, "# " + urls[0] + " copied to clipboard.")
-                    break
-                }
-            // Trying yank if yankcanon failed...
-            case "yank":
-                content = content == "" ? (await activeTab()).url : content
-                await yank(content)
-                fillcmdline_tmp(3000, "# " + content + " copied to clipboard.")
+    switch (excmd) {
+        case "yankshort":
+            urls = await geturlsforlinks("rel", "shortlink")
+            if (urls.length == 0) {
+                urls = await geturlsforlinks("rev", "canonical")
+            }
+            if (urls.length > 0) {
+                await yank(urls[0])
+                fillcmdline_tmp(3000, "# " + urls[0] + " copied to clipboard.")
                 break
-            case "yanktitle":
-                content = (await activeTab()).title
-                await yank(content)
-                fillcmdline_tmp(3000, "# " + content + " copied to clipboard.")
+            }
+        // Trying yankcanon if yankshort failed...
+        case "yankcanon":
+            urls = await geturlsforlinks("rel", "canonical")
+            if (urls.length > 0) {
+                await yank(urls[0])
+                fillcmdline_tmp(3000, "# " + urls[0] + " copied to clipboard.")
                 break
-            case "yankmd":
-                content = "[" + (await activeTab()).title + "](" + (await activeTab()).url + ")"
-                await yank(content)
-                fillcmdline_tmp(3000, "# " + content + " copied to clipboard.")
-                break
-            case "open":
-                url = await getclip()
-                url && open(url)
-                break
-            case "tabopen":
-                url = await getclip()
-                url && tabopen(url)
-                break
-            default:
-                // todo: maybe we should have some common error and error handler
-                throw new Error(`[clipboard] unknown excmd: ${excmd}`)
-        }
-    } catch (e) {
-        logger.error(e)
+            }
+        // Trying yank if yankcanon failed...
+        case "yank":
+            content = content == "" ? (await activeTab()).url : content
+            await yank(content)
+            fillcmdline_tmp(3000, "# " + content + " copied to clipboard.")
+            break
+        case "yanktitle":
+            content = (await activeTab()).title
+            await yank(content)
+            fillcmdline_tmp(3000, "# " + content + " copied to clipboard.")
+            break
+        case "yankmd":
+            content = "[" + (await activeTab()).title + "](" + (await activeTab()).url + ")"
+            await yank(content)
+            fillcmdline_tmp(3000, "# " + content + " copied to clipboard.")
+            break
+        case "open":
+            url = await getclip()
+            url && open(url)
+            break
+        case "tabopen":
+            url = await getclip()
+            url && tabopen(url)
+            break
+        default:
+            // todo: maybe we should have some common error and error handler
+            throw new Error(`[clipboard] unknown excmd: ${excmd}`)
     }
 }
 

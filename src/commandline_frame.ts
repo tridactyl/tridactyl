@@ -385,6 +385,7 @@ function applyWithTmpTextArea(fn) {
 
 /** @hidden **/
 export async function setClipboard(content: string) {
+    await Messaging.messageOwnTab("commandline_content", "focus")
     applyWithTmpTextArea(scratchpad => {
         scratchpad.value = content
         scratchpad.select()
@@ -394,20 +395,21 @@ export async function setClipboard(content: string) {
         } else throw "Failed to copy!"
     })
     // Return focus to the document
-    Messaging.messageOwnTab("commandline_content", "hide")
-    Messaging.messageOwnTab("commandline_content", "blur")
+    await Messaging.messageOwnTab("commandline_content", "hide")
+    return Messaging.messageOwnTab("commandline_content", "blur")
 }
 
 /** @hidden **/
-export function getClipboard() {
+export async function getClipboard() {
+    await Messaging.messageOwnTab("commandline_content", "focus")
     const result = applyWithTmpTextArea(scratchpad => {
         scratchpad.focus()
         document.execCommand("Paste")
         return scratchpad.textContent
     })
     // Return focus to the document
-    Messaging.messageOwnTab("commandline_content", "hide")
-    Messaging.messageOwnTab("commandline_content", "blur")
+    await Messaging.messageOwnTab("commandline_content", "hide")
+    await Messaging.messageOwnTab("commandline_content", "blur")
     return result
 }
 
