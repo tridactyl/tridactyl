@@ -87,7 +87,12 @@ function isNodeExported(node: ts.Node): boolean {
     )
 }
 
-function visit(checker: any, file: AllMetadata.FileMetadata, node: any) {
+/** True if node is marked as @hidden in its documentation */
+function isNodeHidden(sourceFile, node): boolean {
+    return sourceFile && node.jsDoc && !!node.jsDoc.find(doc => sourceFile.text.slice(doc.pos, doc.end).search("@hidden") != -1)
+}
+
+function visit(checker: any, sourceFile: any, file: AllMetadata.FileMetadata, node: any) {
     let symbol = checker.getSymbolAtLocation(node.name)
     if (symbol && isNodeExported(node)) {
         let nodeName = symbol.escapedName
@@ -109,7 +114,7 @@ function visit(checker: any, file: AllMetadata.FileMetadata, node: any) {
                     : new AllTypes.AnyType()
                 file.setFunction(
                     nodeName,
-                    new AllMetadata.SymbolMetadata(doc, t),
+                    new AllMetadata.SymbolMetadata(doc, t, isNodeHidden(sourceFile, node)),
                 )
                 return
 
@@ -140,7 +145,7 @@ function visit(checker: any, file: AllMetadata.FileMetadata, node: any) {
                         : new AllTypes.AnyType()
                     clazz.setMember(
                         name,
-                        new AllMetadata.SymbolMetadata(doc, t),
+                        new AllMetadata.SymbolMetadata(doc, t, isNodeHidden(sourceFile, node)),
                     )
                 })
                 return
@@ -166,7 +171,7 @@ function visit(checker: any, file: AllMetadata.FileMetadata, node: any) {
         }
     }
 
-    ts.forEachChild(node, node => visit(checker, file, node))
+    ts.forEachChild(node, node => visit(checker, sourceFile, file, node))
 }
 
 function generateMetadata(
@@ -192,7 +197,7 @@ function generateMetadata(
                 file = new AllMetadata.FileMetadata()
                 metadata.setFile(name, file)
             }
-            visit(program.getTypeChecker(), file, sourceFile)
+            visit(program.getTypeChecker(), sourceFile, file, sourceFile)
         }
     }
 
