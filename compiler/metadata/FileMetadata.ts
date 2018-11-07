@@ -34,6 +34,10 @@ export class FileMetadata {
     }
 
     getFunctions() {
+        return Array.from(this.functions.entries())
+    }
+
+    getFunctionNames() {
         return Array.from(this.functions.keys())
     }
 

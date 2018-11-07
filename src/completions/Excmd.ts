@@ -52,9 +52,8 @@ export class ExcmdCompletionSource extends Completions.CompletionSourceFuse {
         let fns = excmds.getFunctions()
 
         // Add all excmds that start with exstr and that tridactyl has metadata about to completions
-        this.options = (await this.scoreOptions(
-            fns.filter(f => f.startsWith(exstr)),
-        )).map(f => new ExcmdCompletionOption(f, excmds.getFunction(f).doc))
+        this.options = this.scoreOptions(fns.filter(([name, fn]) => !fn.hidden && name.startsWith(exstr))
+            .map(([name, fn]) => new ExcmdCompletionOption(name, fn.doc)))
 
         // Also add aliases to possible completions
         let exaliases = Object.keys(config.get("exaliases")).filter(a => a.startsWith(exstr))
@@ -73,8 +72,8 @@ export class ExcmdCompletionSource extends Completions.CompletionSourceFuse {
         this.updateChain()
     }
 
-    private async scoreOptions(exstrs: string[]) {
-        return exstrs.sort()
+    private scoreOptions(options: ExcmdCompletionOption[]) {
+        return options.sort((o1, o2) => o1.value.localeCompare(o2.value))
 
         // Too slow with large profiles
         // let histpos = state.cmdHistory.map(s => s.split(" ")[0]).reverse()
