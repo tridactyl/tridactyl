@@ -72,8 +72,8 @@ export class HelpCompletionSource extends Completions.CompletionSourceFuse {
             })
         // Excmd completion
             .concat(fns
-                .filter(fn => fn.startsWith(query))
-                .map(f => new HelpCompletionOption(f, `Excmd. ${excmds.getFunction(f).doc}`))
+                .filter(([name, fn]) => !fn.hidden && name.startsWith(query))
+                .map(([name, fn]) => new HelpCompletionOption(name, `Excmd. ${fn.doc}`))
             )
         // Alias completion
             .concat(Object.keys(exaliases)
