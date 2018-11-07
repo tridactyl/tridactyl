@@ -51,7 +51,7 @@ async function sendNativeMsg(
         return resp as MessageResp
     } catch (e) {
         if (!quiet) {
-            throw e
+            throw new Error("Failed to send message to native messenger. If it is correctly installed (run `:native`), please report this bug on https://github.com/tridactyl/tridactyl/issues .")
         }
     }
 }
