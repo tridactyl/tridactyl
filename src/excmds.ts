@@ -250,7 +250,7 @@ export async function guiset_quiet(rule: string, option: string) {
  *
  * Might mangle your userChrome. Requires native messenger, and you must restart Firefox each time to see any changes (this can be done using [[restart]]). <!-- (unless you enable addon debugging and refresh using the browser toolbox) -->
  *
- * View available rules and options [here](/static/docs/modules/_src_css_util_.html#potentialrules) and [here](/static/docs/modules/_src_css_util_.html#metarules).
+ * View available rules and options [here](/static/docs/modules/_src_lib_css_util_.html#potentialrules) and [here](/static/docs/modules/_src_lib_css_util_.html#metarules).
  *
  * Example usage: `guiset gui none`, `guiset gui full`, `guiset tabs autohide`.
  *
