@@ -69,7 +69,7 @@ class default_config {
 
     /**
      * exmaps contains all of the bindings for the command line.
-     * You can of course bind regular ex commands but also [editor functions](/static/docs/modules/_lib_editor_.html) and [commandline-specific functions](/static/docs/modules/_commandline_frame_.html).
+     * You can of course bind regular ex commands but also [editor functions](/static/docs/modules/_src_lib_editor_.html) and [commandline-specific functions](/static/docs/modules/_src_commandline_frame_.html).
      */
     exmaps = {
         "<Enter>": "ex.accept_line",
@@ -105,7 +105,7 @@ class default_config {
     /**
      * inputmaps contain all of the bindings for "input mode".
      *
-     * On top of regular ex commands, you can also bind [editor functions](/static/docs/modules/_lib_editor_.html) in input mode.
+     * On top of regular ex commands, you can also bind [editor functions](/static/docs/modules/_src_lib_editor_.html) in input mode.
      *
      * They consist of key sequences mapped to ex commands.
      */
@@ -123,7 +123,7 @@ class default_config {
     /**
      * imaps contain all of the bindings for "insert mode".
      *
-     * On top of regular ex commands, you can also bind [editor functions](/static/docs/modules/_lib_editor_.html) in insert mode.
+     * On top of regular ex commands, you can also bind [editor functions](/static/docs/modules/_src_lib_editor_.html) in insert mode.
      *
      * They consist of key sequences mapped to ex commands.
      */
@@ -379,7 +379,7 @@ class default_config {
     /**
      * Whether to use the keytranslatemap in various maps.
      */
-    keytranslatemodes: {[key:string]: "true" | "false"}  = {
+    keytranslatemodes: { [key: string]: "true" | "false" } = {
         nmaps: "true",
         imaps: "false",
         inputmaps: "false",

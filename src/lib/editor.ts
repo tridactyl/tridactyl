@@ -12,7 +12,7 @@
  *
  * Also keep in mind that if you want to bind something in insert mode, you'll probably also want to bind it in input mode (insert mode is entered by clicking on text areas while input mode is entered by using `gi`).
  *
- * If you're looking for command-line only functions, go [there](/static/docs/modules/_commandline_frame_.html).
+ * If you're looking for command-line only functions, go [there](/static/docs/modules/_src_commandline_frame_.html).
  *
  * Contrary to the main tridactyl help page, this one doesn't tell you whether a specific function is bound to something. For now, you'll have to make do with with `:bind` and `:viewconfig`.
  *
