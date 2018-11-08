@@ -6,7 +6,7 @@
 
     The default keybinds and settings can be found [here](/static/docs/classes/_lib_config_.default_config.html) and active binds can be seen with `:viewconfig nmaps` or with [[bind]].
 
-    Tridactyl also provides a few functions to manipulate text in the command line or text areas that can be found [here](/static/docs/modules/_lib_editor_.html). There are also a few commands only available in the command line which can be found [here](/static/docs/modules/_commandline_frame_.html).
+    Tridactyl also provides a few functions to manipulate text in the command line or text areas that can be found [here](/static/docs/modules/_src_lib_editor_.html). There are also a few commands only available in the command line which can be found [here](/static/docs/modules/_src_commandline_frame_.html).
 
     ## How to use this help page
 
@@ -250,7 +250,7 @@ export async function guiset_quiet(rule: string, option: string) {
  *
  * Might mangle your userChrome. Requires native messenger, and you must restart Firefox each time to see any changes (this can be done using [[restart]]). <!-- (unless you enable addon debugging and refresh using the browser toolbox) -->
  *
- * View available rules and options [here](/static/docs/modules/_css_util_.html#potentialrules) and [here](/static/docs/modules/_css_util_.html#metarules).
+ * View available rules and options [here](/static/docs/modules/_src_lib_css_util_.html#potentialrules) and [here](/static/docs/modules/_src_lib_css_util_.html#metarules).
  *
  * Example usage: `guiset gui none`, `guiset gui full`, `guiset tabs autohide`.
  *
@@ -1111,7 +1111,7 @@ export function home(all: "false" | "true" = "false") {
 */
 //#background
 export async function help(helpItem?: string) {
-    let docpage = browser.extension.getURL("static/docs/modules/_excmds_.html")
+    let docpage = browser.extension.getURL("static/docs/modules/_src_excmds_.html")
     if (helpItem === undefined) helpItem = ""
     else {
         let matched = false

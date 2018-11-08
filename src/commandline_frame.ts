@@ -8,7 +8,7 @@
  * bind --mode=ex <C-p> ex.prev_completion
  * ```
  *
- * Note that you can also bind Tridactyl's [editor functions](/static/docs/modules/_lib_editor_.html) in the command line.
+ * Note that you can also bind Tridactyl's [editor functions](/static/docs/modules/_src_lib_editor_.html) in the command line.
  *
  * Contrary to the main tridactyl help page, this one doesn't tell you whether a specific function is bound to something. For now, you'll have to make do with `:bind` and `:viewconfig`.
  *
@@ -205,7 +205,10 @@ export function insert_space_or_completion() {
     } else {
         const selectionStart = clInput.selectionStart
         const selectionEnd = clInput.selectionEnd
-        clInput.value = clInput.value.substring(0, selectionStart) + " " + clInput.value.substring(selectionEnd)
+        clInput.value =
+            clInput.value.substring(0, selectionStart) +
+            " " +
+            clInput.value.substring(selectionEnd)
         clInput.selectionStart = clInput.selectionEnd = selectionStart + 1
     }
     clInput.dispatchEvent(new Event("input")) // dirty hack for completions
