@@ -28,6 +28,7 @@ type editor_function = (
     text: string,
     start: number,
     end: number,
+    arg?: any,
 ) => [string, number, number]
 
 /** @hidden
@@ -121,8 +122,8 @@ function setContentEditableValues(e, text, start, end) {
  * @return boolean Whether the editor function was actually called or not
  *
  **/
-function wrap_input(fn: editor_function): (e: HTMLElement) => boolean {
-    return (e: HTMLElement) => {
+function wrap_input(fn: editor_function): (e: HTMLElement, arg?: any) => boolean {
+    return (e: HTMLElement, arg?: any) => {
         let getValues = getSimpleValues
         let setValues = setSimpleValues
         if (e.isContentEditable) {
@@ -131,7 +132,7 @@ function wrap_input(fn: editor_function): (e: HTMLElement) => boolean {
         }
         const [origText, origStart, origEnd] = getValues(e)
         if (origText === null || origStart === null) return false
-        setValues(e, ...fn(origText, origStart, origEnd))
+        setValues(e, ...fn(origText, origStart, origEnd, arg))
         return true
     }
 }
@@ -139,8 +140,8 @@ function wrap_input(fn: editor_function): (e: HTMLElement) => boolean {
 /** @hidden
  * Take an editor function as parameter and wrap it in a function that will handle error conditions
  */
-function needs_text(fn: editor_function): editor_function {
-    return (text: string, selectionStart: number, selectionEnd: number) => {
+function needs_text(fn: editor_function, arg?: any): editor_function {
+    return (text: string, selectionStart: number, selectionEnd: number, arg?: any) => {
         if (
             text.length === 0 ||
             selectionStart === null ||
@@ -151,6 +152,7 @@ function needs_text(fn: editor_function): editor_function {
             text,
             selectionStart,
             typeof selectionEnd == "number" ? selectionEnd : selectionStart,
+            arg
         )
     }
 }
@@ -605,3 +607,13 @@ export const backward_word = wrap_input(
         return [null, boundaries[0], null]
     },
 )
+
+/**
+ * Insert text in the current input.
+ **/
+export const insert_text = wrap_input((text, selectionStart, selectionEnd, arg) => {
+    return [text.slice(0, selectionStart) + arg + text.slice(selectionEnd),
+        selectionStart + arg.length,
+        null
+    ]
+})

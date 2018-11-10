@@ -2452,14 +2452,15 @@ import * as tri_editor from "@src/lib/editor"
 // {
 for (let editorfn in tri_editor) {
     // Re-expose every editor function as a text.$fn excmd that will forward the call to $fn to the commandline frame if it is selected or apply $fn to the last used input if it isn't
-    SELF["text." + editorfn] = () => {
-        if ((document.activeElement as any).src === browser.extension.getURL("static/commandline.html")) return Messaging.messageOwnTab("commandline_frame", "editor_function", [editorfn])
-        return tri_editor[editorfn](DOM.getLastUsedInput())
+    SELF["text." + editorfn] = (arg) => {
+        if ((document.activeElement as any).src === browser.extension.getURL("static/commandline.html")) return Messaging.messageOwnTab("commandline_frame", "editor_function", [editorfn].concat(arg))
+        return tri_editor[editorfn](DOM.getLastUsedInput(), arg)
     }
 }
 for (let fn in cmdframe_fns) {
-    SELF["ex." + fn] = () => (Messaging.messageOwnTab as any)("commandline_frame", ...cmdframe_fns[fn])
+    SELF["ex." + fn] = (...args) => (Messaging.messageOwnTab as any)("commandline_frame", cmdframe_fns[fn][0], cmdframe_fns[fn][1].concat(args))
 }
+
 // }
 
 //#background_helper
@@ -2467,11 +2468,11 @@ for (let fn in cmdframe_fns) {
 for (let editorfn in tri_editor) {
     let name = "text." + editorfn
     cmd_params.set(name, new Map([]))
-    BGSELF[name] = () => messageActiveTab("excmd_content", name, [])
+    BGSELF[name] = (...args) => messageActiveTab("excmd_content", name, args)
 }
 for (let fn in cmdframe_fns) {
     cmd_params.set("ex." + fn, new Map(cmdframe_fns[fn][1].map((a, i) => [`${i}`, typeof a] as [string, string])))
-    BGSELF["ex." + fn] = () => messageActiveTab("commandline_frame", ...cmdframe_fns[fn])
+    BGSELF["ex." + fn] = (...args) => messageActiveTab("commandline_frame", cmdframe_fns[fn][0], cmdframe_fns[fn][1].concat(args))
 }
 // }
 
@@ -2525,8 +2526,10 @@ async function setclip(str) {
  * @hidden
  */
 //#background_helper
-async function getclip() {
-    if ((await config.getAsync("putfrom")) == "clipboard") {
+async function getclip(fromm?: "clipboard" | "selection") {
+    if (fromm == undefined)
+        fromm = (await config.getAsync("putfrom"))
+    if (fromm == "clipboard") {
         return messageActiveTab("commandline_frame", "getClipboard")
     } else {
         return Native.clipboard("get", "")
@@ -2555,7 +2558,7 @@ async function getclip() {
 
 */
 //#background
-export async function clipboard(excmd: "open" | "yank" | "yankshort" | "yankcanon" | "yanktitle" | "yankmd" | "tabopen" = "open", ...toYank: string[]) {
+export async function clipboard(excmd: "open" | "yank" | "yankshort" | "yankcanon" | "yanktitle" | "yankmd" | "xselpaste" | "tabopen" = "open", ...toYank: string[]) {
     let content = toYank.join(" ")
     let url = ""
     let urls = []
@@ -2601,6 +2604,12 @@ export async function clipboard(excmd: "open" | "yank" | "yankshort" | "yankcano
         case "tabopen":
             url = await getclip()
             url && tabopen(url)
+            break
+        case "xselpaste":
+            content = await getclip("selection")
+            if (content.length > 0) {
+                BGSELF["text.insert_text"](content)
+            }
             break
         default:
             // todo: maybe we should have some common error and error handler
