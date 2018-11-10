@@ -51,7 +51,9 @@ async function sendNativeMsg(
         return resp as MessageResp
     } catch (e) {
         if (!quiet) {
-            throw new Error("Failed to send message to native messenger. If it is correctly installed (run `:native`), please report this bug on https://github.com/tridactyl/tridactyl/issues .")
+            throw new Error(
+                "Failed to send message to native messenger. If it is correctly installed (run `:native`), please report this bug on https://github.com/tridactyl/tridactyl/issues .",
+            )
         }
     }
 }
@@ -96,7 +98,10 @@ export async function getBestEditor(): Promise<string> {
     let tui_editors = []
     let last_resorts = []
     if ((await browserBg.runtime.getPlatformInfo()).os === "mac") {
-        gui_candidates = ["/Applications/MacVim.app/Contents/bin/mvim -f"]
+        gui_candidates = [
+            "/Applications/MacVim.app/Contents/bin/mvim -f",
+            "/usr/local/bin/vimr --wait --nvim +only",
+        ]
         // if anyone knows of any "sensible" terminals that let you send them commands to run,
         // please let us know in issue #451!
         term_emulators = [
@@ -116,10 +121,14 @@ export async function getBestEditor(): Promise<string> {
             "uxterm -class tridactyl_editor -e",
             "urxvt -e",
             "alacritty -e", // alacritty is nice but takes ages to start and doesn't support class
-            "cool-retro-term -e",
             // Terminator and termite require  -e commands to be in quotes
             'terminator -e "%f"',
             'termite --class tridactyl_editor -e "%f"',
+            "sakura --class tridactyl_editor -e",
+            "lilyterm -e",
+            "mlterm -e",
+            "roxterm -e",
+            "cool-retro-term -e",
             // Gnome-terminal doesn't work consistently, see issue #1035
             // "dbus-launch gnome-terminal --",
 
