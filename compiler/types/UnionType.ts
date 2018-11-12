@@ -24,10 +24,6 @@ export class UnionType implements Type {
                 return t.convert(argument)
             } catch (e) {}
         }
-        throw new Error(
-            `Can't convert argument to any of types: ${argument}, ${
-                this.types
-            }`,
-        )
+        throw new Error(`Can't convert "${argument}" to any of: ${this.types}`)
     }
 }
