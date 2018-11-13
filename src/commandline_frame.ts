@@ -186,7 +186,9 @@ export function prev_completion() {
  */
 export function insert_completion() {
     const command = getCompletion()
-    activeCompletions.forEach(comp => (comp.completion = undefined))
+    if (activeCompletions) {
+        activeCompletions.forEach(comp => (comp.completion = undefined))
+    }
     if (command) {
         clInput.value = command + " "
         clInput.dispatchEvent(new Event("input")) // dirty hack for completions
@@ -199,7 +201,9 @@ export function insert_completion() {
  */
 export function insert_space_or_completion() {
     const command = getCompletion()
-    activeCompletions.forEach(comp => (comp.completion = undefined))
+    if (activeCompletions) {
+        activeCompletions.forEach(comp => (comp.completion = undefined))
+    }
     if (command) {
         clInput.value = command + " "
     } else {
