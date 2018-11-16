@@ -4,7 +4,7 @@
 
     Use `:help <excmd>` or scroll down to show [[help]] for a particular excmd. If you're still stuck, you might consider reading through the [:tutor](/static/clippy/tutor.html) again.
 
-    The default keybinds and settings can be found [here](/static/docs/classes/_lib_config_.default_config.html) and active binds can be seen with `:viewconfig nmaps` or with [[bind]].
+    The default keybinds and settings can be found [here](/static/docs/classes/_src_lib_config_.default_config.html) and active binds can be seen with `:viewconfig nmaps` or with [[bind]].
 
     Tridactyl also provides a few functions to manipulate text in the command line or text areas that can be found [here](/static/docs/modules/_src_lib_editor_.html). There are also a few commands only available in the command line which can be found [here](/static/docs/modules/_src_commandline_frame_.html).
 
@@ -1153,7 +1153,7 @@ export async function help(helpItem?: string) {
                 }
             }
             if (settingHelpAnchor != "") {
-                docpage = browser.extension.getURL("static/docs/classes/_lib_config_.default_config.html")
+                docpage = browser.extension.getURL("static/docs/classes/_src_lib_config_.default_config.html")
                 helpItem = settingHelpAnchor.slice(0, -1)
             }
         }
@@ -2452,7 +2452,7 @@ import * as tri_editor from "@src/lib/editor"
 // {
 for (let editorfn in tri_editor) {
     // Re-expose every editor function as a text.$fn excmd that will forward the call to $fn to the commandline frame if it is selected or apply $fn to the last used input if it isn't
-    SELF["text." + editorfn] = (arg) => {
+    SELF["text." + editorfn] = arg => {
         if ((document.activeElement as any).src === browser.extension.getURL("static/commandline.html")) return Messaging.messageOwnTab("commandline_frame", "editor_function", [editorfn].concat(arg))
         return tri_editor[editorfn](DOM.getLastUsedInput(), arg)
     }
@@ -2527,8 +2527,7 @@ async function setclip(str) {
  */
 //#background_helper
 async function getclip(fromm?: "clipboard" | "selection") {
-    if (fromm == undefined)
-        fromm = (await config.getAsync("putfrom"))
+    if (fromm == undefined) fromm = await config.getAsync("putfrom")
     if (fromm == "clipboard") {
         return messageActiveTab("commandline_frame", "getClipboard")
     } else {
@@ -2894,7 +2893,7 @@ export function seturl(pattern: string, key: string, ...values: string[]) {
 
 /** Set a key value pair in config.
 
-    Use to set any string values found [here](/static/docs/classes/_lib_config_.default_config.html).
+    Use to set any string values found [here](/static/docs/classes/_src_lib_config_.default_config.html).
 
     e.g.
         set searchurls.google https://www.google.com/search?q=

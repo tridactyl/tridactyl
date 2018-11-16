@@ -66,7 +66,7 @@
         }
     },
     "options_ui": {
-        "page": "static/docs/classes/_lib_config_.default_config.html",
+        "page": "static/docs/classes/_src_lib_config_.default_config.html",
         "open_in_tab": true
     }
 }

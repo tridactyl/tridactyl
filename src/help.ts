@@ -201,7 +201,7 @@ addEventListener(
         switch (document.location.pathname) {
             case "/static/docs/modules/_src_excmds_.html":
                 return onExcmdPageLoad
-            case "/static/docs/classes/_lib_config_.default_config.html":
+            case "/static/docs/classes/_src_lib_config_.default_config.html":
                 return onSettingsPageLoad
         }
         return () => {}
