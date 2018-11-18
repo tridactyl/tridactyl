@@ -28,7 +28,10 @@ async function init() {
         noiframeon.find(url => window.location.href.includes(url)) === undefined
     if (enabled && cmdline_iframe === undefined) {
         try {
-            cmdline_iframe = window.document.createElement("iframe")
+            cmdline_iframe = window.document.createElementNS(
+                "http://www.w3.org/1999/xhtml",
+                "iframe",
+            ) as HTMLIFrameElement
             cmdline_iframe.className = "cleanslate"
             cmdline_iframe.setAttribute(
                 "src",
