@@ -92,7 +92,8 @@ class ScrollingData {
         this.duration = duration
         // If we're already scrolling we don't need to try to scroll
         if (this.scrolling) return true
-        ;(this.elem as any).style.scrollBehavior = "unset"
+        if ("style" in this.elem)
+            (this.elem as any).style.scrollBehavior = "unset"
         this.scrolling = this.scrollStep()
         if (this.scrolling)
             // If the element can be scrolled, scroll until animation completion
@@ -154,7 +155,7 @@ export async function recursiveScroll(
     x: number,
     y: number,
     node: Element = undefined,
-    stopAt: Element = undefined
+    stopAt: Element = undefined,
 ) {
     let startingFromCached = false
     if (!node) {
@@ -171,7 +172,15 @@ export async function recursiveScroll(
     let treeWalker = document.createTreeWalker(node, NodeFilter.SHOW_ELEMENT)
     do {
         // If node is undefined or if we managed to scroll it
-        if ((await scroll(x, y, treeWalker.currentNode)) || ((treeWalker.currentNode as any).contentDocument && (await recursiveScroll(x, y, (treeWalker.currentNode as any).contentDocument.body)))) {
+        if (
+            (await scroll(x, y, treeWalker.currentNode)) ||
+            ((treeWalker.currentNode as any).contentDocument &&
+                (await recursiveScroll(
+                    x,
+                    y,
+                    (treeWalker.currentNode as any).contentDocument.body,
+                )))
+        ) {
             // Cache the node for next time and stop trying to scroll
             lastRecursiveScrolled = treeWalker.currentNode
             lastX = x
