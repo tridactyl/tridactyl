@@ -99,7 +99,7 @@ class default_config {
         "<CA-Escape>": "mode normal",
         "<CA-`>": "mode normal",
         "<S-Escape>": "mode normal",
-        "<C-^>": "buffer #",
+        "<C-^>": "tab #",
     }
 
     /**
@@ -117,7 +117,7 @@ class default_config {
         "<S-Tab>": "focusinput -N",
         "<CA-Escape>": "mode normal",
         "<CA-`>": "mode normal",
-        "<C-^>": "buffer #",
+        "<C-^>": "tab #",
     }
 
     /**
@@ -133,8 +133,8 @@ class default_config {
         "<C-i>": "editor",
         "<CA-Escape>": "mode normal",
         "<CA-`>": "mode normal",
-        "<C-6>": "buffer #",
-        "<C-^>": "buffer #",
+        "<C-6>": "tab #",
+        "<C-^>": "tab #",
         "<S-Escape>": "mode ignore",
     }
 
@@ -183,8 +183,8 @@ class default_config {
         $: "scrollto 100 x",
         // "0": "scrollto 0 x", // will get interpreted as a count
         "^": "scrollto 0 x",
-        "<C-6>": "buffer #",
-        "<C-^>": "buffer #",
+        "<C-6>": "tab #",
+        "<C-^>": "tab #",
         H: "back",
         L: "forward",
         "<C-o>": "jumpprev",
@@ -222,8 +222,8 @@ class default_config {
         // "n": "findnext 1",
         // "N": "findnext -1",
         M: "gobble 1 quickmark",
-        B: "fillcmdline bufferall",
-        b: "fillcmdline buffer",
+        B: "fillcmdline taball",
+        b: "fillcmdline tab",
         ZZ: "qall",
         f: "hint",
         F: "hint -b",
@@ -407,7 +407,7 @@ class default_config {
         aucon: "autocontain",
         audel: "autocmddelete",
         audelete: "autocmddelete",
-        b: "buffer",
+        b: "tab",
         o: "open",
         w: "winopen",
         t: "tabopen",
@@ -426,7 +426,8 @@ class default_config {
         blast: "tablast",
         tfirst: "tabfirst",
         tlast: "tablast",
-        tab: "buffer",
+        buffer: "tab",
+        bufferall: "taball",
         bd: "tabclose",
         bdelete: "tabclose",
         quit: "tabclose",

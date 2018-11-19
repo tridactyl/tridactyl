@@ -4,7 +4,7 @@ import * as Containers from "@src/lib/containers"
 import * as Messaging from "@src/lib/messaging"
 import * as Completions from "@src/completions"
 
-class BufferAllCompletionOption extends Completions.CompletionOptionHTML
+class TabAllCompletionOption extends Completions.CompletionOptionHTML
     implements Completions.CompletionOptionFuse {
     public fuseKeys = []
     constructor(
@@ -39,11 +39,11 @@ class BufferAllCompletionOption extends Completions.CompletionOptionHTML
     }
 }
 
-export class BufferAllCompletionSource extends Completions.CompletionSourceFuse {
-    public options: BufferAllCompletionOption[]
+export class TabAllCompletionSource extends Completions.CompletionSourceFuse {
+    public options: TabAllCompletionOption[]
 
     constructor(private _parent) {
-        super(["bufferall"], "BufferAllCompletionSource", "All Buffers")
+        super(["taball"], "TabAllCompletionSource", "All Tabs")
 
         this.updateOptions()
         this._parent.appendChild(this.node)
@@ -89,7 +89,7 @@ export class BufferAllCompletionSource extends Completions.CompletionSourceFuse 
                 winindex += 1
             }
             options.push(
-                new BufferAllCompletionOption(
+                new TabAllCompletionOption(
                     tab.id.toString(),
                     tab,
                     winindex,
