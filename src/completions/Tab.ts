@@ -4,7 +4,7 @@ import * as Containers from "@src/lib/containers"
 import * as Messaging from "@src/lib/messaging"
 import * as Completions from "@src/completions"
 
-class BufferCompletionOption extends Completions.CompletionOptionHTML
+class TabCompletionOption extends Completions.CompletionOptionHTML
     implements Completions.CompletionOptionFuse {
     public fuseKeys = []
 
@@ -15,7 +15,7 @@ class BufferCompletionOption extends Completions.CompletionOptionHTML
         container: browser.contextualIdentities.ContextualIdentity,
     ) {
         super()
-        // Two character buffer properties prefix
+        // Two character tab properties prefix
         let pre = ""
         if (tab.active) pre += "%"
         else if (isAlternative) {
@@ -48,8 +48,8 @@ class BufferCompletionOption extends Completions.CompletionOptionHTML
     }
 }
 
-export class BufferCompletionSource extends Completions.CompletionSourceFuse {
-    public options: BufferCompletionOption[]
+export class TabCompletionSource extends Completions.CompletionSourceFuse {
+    public options: TabCompletionOption[]
     private shouldSetStateFromScore = true
 
     // TODO:
@@ -59,9 +59,9 @@ export class BufferCompletionSource extends Completions.CompletionSourceFuse {
 
     constructor(private _parent) {
         super(
-            ["buffer", "tabclose", "tabdetach", "tabduplicate", "tabmove"],
-            "BufferCompletionSource",
-            "Buffers",
+            ["tab", "tabclose", "tabdetach", "tabduplicate", "tabmove"],
+            "TabCompletionSource",
+            "Tabs",
         )
 
         this.updateOptions()
@@ -70,11 +70,12 @@ export class BufferCompletionSource extends Completions.CompletionSourceFuse {
 
     @Perf.measuredAsync
     private async updateOptions(exstr = "") {
-
         const [prefix, query] = this.splitOnPrefix(exstr)
 
         // When the user is asking for tabmove completions, don't autoselect if the query looks like a relative move https://github.com/tridactyl/tridactyl/issues/825
-        this.shouldSetStateFromScore = !(prefix == "tabmove " && query.match("^[+-][0-9]+$")) 
+        this.shouldSetStateFromScore = !(
+            prefix == "tabmove " && query.match("^[+-][0-9]+$")
+        )
 
         /* console.log('updateOptions', this.optionContainer) */
         const tabs: browser.tabs.Tab[] = await Messaging.message(
@@ -94,7 +95,7 @@ export class BufferCompletionSource extends Completions.CompletionSourceFuse {
 
         for (const tab of tabs) {
             options.push(
-                new BufferCompletionOption(
+                new TabCompletionOption(
                     (tab.index + 1).toString(),
                     tab,
                     tab === alt,
@@ -109,7 +110,7 @@ export class BufferCompletionSource extends Completions.CompletionSourceFuse {
     }
 
     async onInput(exstr) {
-        // Schedule an update, if you like. Not very useful for buffers, but
+        // Schedule an update, if you like. Not very useful for tabs, but
         // will be for other things.
         this.updateOptions(exstr)
     }
@@ -118,7 +119,7 @@ export class BufferCompletionSource extends Completions.CompletionSourceFuse {
         super.setStateFromScore(scoredOpts, this.shouldSetStateFromScore)
     }
 
-    /** Score with fuse unless query is a single # or looks like a buffer index */
+    /** Score with fuse unless query is a single # or looks like a tab index */
     scoredOptions(
         query: string,
         options = this.options,

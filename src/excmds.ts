@@ -1711,18 +1711,6 @@ export async function tabprev(increment = 1) {
     })
 }
 
-/** Switch to the first tab. */
-//#background
-export async function tabfirst() {
-    tabIndexSetActive(1)
-}
-
-/** Switch to the last tab. */
-//#background
-export async function tablast() {
-    tabIndexSetActive(0)
-}
-
 /** Like [[open]], but in a new tab. If no address is given, it will open the newtab page, which can be set with `set newtab [url]`
 
     Use the `-c` flag followed by a container name to open a tab in said container. Tridactyl will try to fuzzy match a name if an exact match is not found.
@@ -2623,10 +2611,10 @@ export async function clipboard(excmd: "open" | "yank" | "yankshort" | "yankcano
 
         "#" means the tab that was last accessed in this window
 
-    This is different from [[bufferall]] because `index` is the position of the tab in the window.
+    This is different from [[taball]] because `index` is the position of the tab in the current window.
  */
 //#background
-export async function buffer(index: number | "#") {
+export async function tab(index: number | "#") {
     tabIndexSetActive(index)
 }
 
@@ -2637,13 +2625,13 @@ export async function buffer(index: number | "#") {
 
  */
 //#background
-export async function bufferall(id: string) {
+export async function taball(id: string) {
     let windows = (await browser.windows.getAll()).map(w => w.id).sort((a, b) => a - b)
     if (id === null || id === undefined || !id.match(/\d+\.\d+/)) {
         const tab = await activeTab()
         let prevId = id
         id = windows.indexOf(tab.windowId) + "." + (tab.index + 1)
-        logger.info(`bufferall: Bad tab id: ${prevId}, defaulting to ${id}`)
+        logger.info(`taball: Bad tab id: ${prevId}, defaulting to ${id}`)
     }
     let [winindex, tabindex] = id.split(".")
     await browser.windows.update(windows[parseInt(winindex) - 1], { focused: true })
@@ -2745,7 +2733,7 @@ function parse_bind_args(...args: string[]): bind_args {
     Examples:
 
         - `bind G fillcmdline tabopen google`
-        - `bind D composite tabclose | buffer #`
+        - `bind D composite tabclose | tab #`
         - `bind j scrollline 20`
         - `bind F hint -b`
 
