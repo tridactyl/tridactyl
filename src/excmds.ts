@@ -1711,18 +1711,6 @@ export async function tabprev(increment = 1) {
     })
 }
 
-/** Switch to the first tab. */
-//#background
-export async function tabfirst() {
-    tabIndexSetActive(1)
-}
-
-/** Switch to the last tab. */
-//#background
-export async function tablast() {
-    tabIndexSetActive(0)
-}
-
 /** Like [[open]], but in a new tab. If no address is given, it will open the newtab page, which can be set with `set newtab [url]`
 
     Use the `-c` flag followed by a container name to open a tab in said container. Tridactyl will try to fuzzy match a name if an exact match is not found.
