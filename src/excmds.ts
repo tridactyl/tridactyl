@@ -2733,7 +2733,7 @@ function parse_bind_args(...args: string[]): bind_args {
     Examples:
 
         - `bind G fillcmdline tabopen google`
-        - `bind D composite tabclose | tab #`
+        - `bind D composite tabclose | tab #` (close current tab and switch to most recent previous tab)
         - `bind j scrollline 20`
         - `bind F hint -b`
 
