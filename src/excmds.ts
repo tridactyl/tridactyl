@@ -790,8 +790,8 @@ export async function scrollpx(a: number, b: number) {
 
     Examples:
 
-    `scrollto 50` - scroll halfway down the page.
-    `scrollto 3.14c` - scroll approximately 49.97465213% of the way down the page.
+    - `scrollto 50` -> scroll halfway down the page.
+    - `scrollto 3.14c` -> scroll approximately 49.97465213% of the way down the page.
 */
 //#content
 export function scrollto(a: number | string, b: number | "x" | "y" = "y") {
@@ -2733,7 +2733,7 @@ function parse_bind_args(...args: string[]): bind_args {
     Examples:
 
         - `bind G fillcmdline tabopen google`
-        - `bind D composite tabclose | tab #`
+        - `bind D composite tabclose | tab #` -> close current tab and switch to most recent previous tab
         - `bind j scrollline 20`
         - `bind F hint -b`
 
@@ -2857,8 +2857,8 @@ function validateSetArgs(key: string, values: string[]) {
  * @param values The value you wish for, e.g. `next`
  *
  * Example:
- * `seturl .*\.fr followpagepatterns.next suivant`
- * `seturl website.fr followpagepatterns.next next`
+ * - `seturl .*\.fr followpagepatterns.next suivant`
+ * - `seturl website.fr followpagepatterns.next next`
  *
  * When multiple patterns can apply to a same URL, the pattern that has the highest priority is used. You can set the priority of a pattern by using `:seturl pattern priority 10`. By default every pattern has a priority of 10.
  *
@@ -3147,6 +3147,9 @@ export async function sanitise(...args: string[]) {
 
     Afterwards use go[key], gn[key], or gw[key] to [[open]], [[tabopen]], or
     [[winopen]] the URL respectively.
+
+    Example:
+    - `quickmark m https://mail.google.com/mail/u/0/#inbox`
 
 */
 //#background
