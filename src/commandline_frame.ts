@@ -22,7 +22,7 @@ import "@src/lib/number.clamp"
 import "@src/lib/html-tagged-template"
 import * as Completions from "@src/completions"
 import { TabAllCompletionSource } from "@src/completions/TabAll"
-import { TabCompletionSource } from "@src/completions/Tab"
+import { BufferCompletionSource } from "@src/completions/Tab"
 import { BmarkCompletionSource } from "@src/completions/Bmark"
 import { ExcmdCompletionSource } from "@src/completions/Excmd"
 import { FileSystemCompletionSource } from "@src/completions/FileSystem"
@@ -94,7 +94,7 @@ export function enableCompletions() {
         activeCompletions = [
             new BmarkCompletionSource(completionsDiv),
             new TabAllCompletionSource(completionsDiv),
-            new TabCompletionSource(completionsDiv),
+            new BufferCompletionSource(completionsDiv),
             new ExcmdCompletionSource(completionsDiv),
             new FileSystemCompletionSource(completionsDiv),
             new HelpCompletionSource(completionsDiv),

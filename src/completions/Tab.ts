@@ -4,7 +4,7 @@ import * as Containers from "@src/lib/containers"
 import * as Messaging from "@src/lib/messaging"
 import * as Completions from "@src/completions"
 
-class TabCompletionOption extends Completions.CompletionOptionHTML
+class BufferCompletionOption extends Completions.CompletionOptionHTML
     implements Completions.CompletionOptionFuse {
     public fuseKeys = []
 
@@ -48,8 +48,8 @@ class TabCompletionOption extends Completions.CompletionOptionHTML
     }
 }
 
-export class TabCompletionSource extends Completions.CompletionSourceFuse {
-    public options: TabCompletionOption[]
+export class BufferCompletionSource extends Completions.CompletionSourceFuse {
+    public options: BufferCompletionOption[]
     private shouldSetStateFromScore = true
 
     // TODO:
@@ -60,7 +60,7 @@ export class TabCompletionSource extends Completions.CompletionSourceFuse {
     constructor(private _parent) {
         super(
             ["tab", "tabclose", "tabdetach", "tabduplicate", "tabmove"],
-            "TabCompletionSource",
+            "BufferCompletionSource",
             "Tabs",
         )
 
@@ -95,7 +95,7 @@ export class TabCompletionSource extends Completions.CompletionSourceFuse {
 
         for (const tab of tabs) {
             options.push(
-                new TabCompletionOption(
+                new BufferCompletionOption(
                     (tab.index + 1).toString(),
                     tab,
                     tab === alt,
