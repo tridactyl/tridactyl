@@ -1,12 +1,13 @@
 import { Type } from "./Type"
 
 export class NumberType implements Type {
+    static instance = new NumberType()
     kind = "number"
 
     constructor() {}
 
     toConstructor() {
-        return "new NumberType()"
+        return "NumberType.instance"
     }
 
     toString() {
