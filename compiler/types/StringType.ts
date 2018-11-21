@@ -1,12 +1,13 @@
 import { Type } from "./Type"
 
 export class StringType implements Type {
+    static instance = new StringType()
     kind = "string"
 
     constructor() {}
 
     toConstructor() {
-        return "new StringType()"
+        return "StringType.instance"
     }
 
     toString() {

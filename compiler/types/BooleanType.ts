@@ -1,12 +1,13 @@
 import { Type } from "./Type"
 
 export class BooleanType implements Type {
+    static instance = new BooleanType()
     kind = "boolean"
 
     constructor() {}
 
     toConstructor() {
-        return "new BooleanType()"
+        return "BooleanType.instance"
     }
 
     toString() {

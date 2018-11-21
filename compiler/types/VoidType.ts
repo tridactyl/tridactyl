@@ -1,12 +1,13 @@
 import { Type } from "./Type"
 
 export class VoidType implements Type {
+    static instance = new VoidType()
     kind = "void"
 
     constructor() {}
 
     toConstructor() {
-        return "new VoidType()"
+        return "VoidType.instance"
     }
 
     toString() {
