@@ -1069,16 +1069,80 @@ async function init() {
     }
 }
 
+const changeListeners = new Map()
+export function addChangeListener<P extends keyof default_config>(
+    name: P,
+    listener: (old: default_config[P], neww: default_config[P]) => void,
+) {
+    let arr = changeListeners.get(name)
+    if (!arr) {
+        arr = []
+        changeListeners.set(name, arr)
+    }
+    arr.push(listener)
+}
+
+export function removeChangeListener<P extends keyof default_config>(
+    name: P,
+    listener: (old: default_config[P], neww: default_config[P]) => void,
+) {
+    let arr = changeListeners.get(name)
+    if (!arr) return
+    let i = arr.indexOf(listener)
+    if (i >= 0) arr.splice(i, 1)
+}
+
 // Listen for changes to the storage and update the USERCONFIG if appropriate.
 // TODO: BUG! Sync and local storage are merged at startup, but not by this thing.
 browser.storage.onChanged.addListener(async (changes, areaname) => {
     if (CONFIGNAME in changes) {
+        let defaultConf = new default_config()
+
         // newValue is undefined when calling browser.storage.AREANAME.clear()
         if (changes[CONFIGNAME].newValue !== undefined) {
+            // A key has been :unset if it exists in USERCONFIG and doesn't in changes and if its value in USERCONFIG is different from the one it has in default_config
+            let unsetKeys = Object.keys(USERCONFIG).filter(
+                k =>
+                    changes[CONFIGNAME].newValue[k] === undefined &&
+                    USERCONFIG[k] != defaultConf[k],
+            )
+
+            // A key has changed if its value in `changes` is different from the one in USERCONFIG
+            let changedKeys = Object.keys(changes[CONFIGNAME].newValue).filter(
+                k => USERCONFIG[k] != changes[CONFIGNAME].newValue[k],
+            )
+
+            let old = USERCONFIG
             USERCONFIG = changes[CONFIGNAME].newValue
+
+            // Trigger listeners
+            unsetKeys.forEach(key => {
+                let arr = changeListeners.get(key)
+                if (arr) {
+                    arr.forEach(f => f(old[key], defaultConf[key]))
+                }
+            })
+
+            changedKeys.forEach(key => {
+                let arr = changeListeners.get(key)
+                if (arr) {
+                    let v = old[key] === undefined ? defaultConf[key] : old[key]
+                    arr.forEach(f => f(v, USERCONFIG[key]))
+                }
+            })
         } else if (areaname === (await get("storageloc"))) {
             // If newValue is undefined and AREANAME is the same value as STORAGELOC, the user wants to clean their config
+            let old = USERCONFIG
             USERCONFIG = o({})
+
+            Object.keys(old)
+                .filter(key => old[key] != defaultConf[key])
+                .forEach(key => {
+                    let arr = changeListeners.get(key)
+                    if (arr) {
+                        arr.forEach(f => f(old[key], defaultConf[key]))
+                    }
+                })
         }
     }
 })
