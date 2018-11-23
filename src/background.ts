@@ -155,6 +155,38 @@ browser.webRequest.onErrorOccurred.addListener(
     { urls: ["<all_urls>"], types: ["main_frame"] },
 )
 
+browser.webRequest.onErrorOccurred.addListener(
+    details => {
+        // copied almost verbatim from vvimpulation
+        if (details.frameId !== 0) {
+            return
+        }
+        const tabId = details.tabId
+        browser.tabs.get(tabId).then(tab => {
+            if (tab.status !== "complete" || tab.url !== details.url) {
+                return
+            }
+            //const IGNORED_ERROR_LIST = [
+            //    "2152398850", // Cancel loading
+            //    "2152398918", // Document not cached
+            //    "2153578529", // Show image
+            //    "2153390067", // Ignore SSL unknown issuer to enable to register the
+            //                  // certificate to the browser's exception list.
+            //]
+            //if (IGNORED_ERROR_LIST.some((error) => details.error.endsWith(error))) {
+            //    return
+            //}
+            const url = browser.runtime.getURL("static/clippy/1-tutor.html") // this obviously needs to be updated to a real error page (which tells you about the error)
+            const errorURL = encodeURIComponent(details.url)
+            browser.tabs.update(tabId, {
+                url: `${url}?errorURL=${errorURL}&errorCode=${details.error}`,
+                loadReplace: true,
+            })
+        })
+    },
+    { urls: ["<all_urls>"], types: ["main_frame"] },
+)
+
 // Contain autocmd.
 browser.webRequest.onBeforeRequest.addListener(
     aucon.autoContain,
