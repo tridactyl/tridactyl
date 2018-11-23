@@ -79,13 +79,11 @@ function removeCSPListener() {
 
 config.getAsync("csp").then(csp => csp === "clobber" && addCSPListener())
 
-browser.storage.onChanged.addListener((changes, areaname) => {
-    if ("userconfig" in changes) {
-        if (changes.userconfig.newValue.csp === "clobber") {
-            addCSPListener()
-        } else {
-            removeCSPListener()
-        }
+config.addChangeListener("csp", (old, cur) => {
+    if (cur === "clobber") {
+        addCSPListener()
+    } else {
+        removeCSPListener()
     }
 })
 

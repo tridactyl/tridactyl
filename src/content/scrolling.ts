@@ -14,14 +14,9 @@ async function getDuration() {
         opts.duration = await config.getAsync("scrollduration")
     return opts.duration
 }
-browser.storage.onChanged.addListener(changes => {
-    if ("userconfig" in changes) {
-        if ("smoothscroll" in changes.userconfig.newValue)
-            opts.smooth = changes.userconfig.newValue["smoothscroll"]
-        if ("scrollduration" in changes.userconfig.newValue)
-            opts.duration = changes.userconfig.newValue["scrollduration"]
-    }
-})
+
+config.addChangeListener("smoothscroll", (prev, cur) => opts.smooth = cur)
+config.addChangeListener("scrollduration", (prev, cur) => opts.duration = cur)
 
 class ScrollingData {
     // time at which the scrolling animation started

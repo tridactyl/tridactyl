@@ -80,12 +80,7 @@ function retheme() {
     })
 }
 
-// Hacky listener
-browser.storage.onChanged.addListener((changes, areaname) => {
-    if ("userconfig" in changes) {
-        retheme()
-    }
-})
+config.addChangeListener("theme", retheme)
 
 // Sometimes pages will overwrite class names of elements. We use a MutationObserver to make sure that the HTML element always has a TridactylTheme class
 // We can't just call theme() because it would first try to remove class names from the element, which would trigger the MutationObserver before we had a chance to add the theme class and thus cause infinite recursion
