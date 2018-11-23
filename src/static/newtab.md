@@ -72,7 +72,7 @@ You have more questions? Have a look at our [FAQ][faq-link].
 
 [faq-link]: https://github.com/cmcaine/tridactyl#frequently-asked-questions
 [help]: /static/docs/modules/_src_excmds_.html
-[tutor]: /static/clippy/tutor.html
+[tutor]: /static/clippy/1-tutor.html
 [help-hint]: /static/docs/modules/_src_excmds_.html#hint
 [gitter-badge]: /static/badges/gitter-badge.svg
 [gitter-link]: https://gitter.im/tridactyl/Lobby
