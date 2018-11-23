@@ -1104,12 +1104,18 @@ browser.storage.onChanged.addListener(async (changes, areaname) => {
             let unsetKeys = Object.keys(USERCONFIG).filter(
                 k =>
                     changes[CONFIGNAME].newValue[k] === undefined &&
-                    USERCONFIG[k] != defaultConf[k],
+                    JSON.stringify(USERCONFIG[k]) !=
+                        JSON.stringify(defaultConf[k]),
             )
 
-            // A key has changed if its value in `changes` is different from the one in USERCONFIG
+            // A key has changed if it is defined in USERCONFIG and its value in USERCONFIG is different from the one in `changes` or if the value in defaultConf is different from the one in `changes`
             let changedKeys = Object.keys(changes[CONFIGNAME].newValue).filter(
-                k => USERCONFIG[k] != changes[CONFIGNAME].newValue[k],
+                k =>
+                    JSON.stringify(
+                        USERCONFIG[k] !== undefined
+                            ? USERCONFIG[k]
+                            : defaultConf[k],
+                    ) != JSON.stringify(changes[CONFIGNAME].newValue[k]),
             )
 
             let old = USERCONFIG
