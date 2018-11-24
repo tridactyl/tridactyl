@@ -794,6 +794,9 @@ function setDeepProperty(obj, value, target) {
     }
 }
 
+/** @hidden
+ * Merges two objects and any child objects they may have
+ */
 export function mergeDeep(o1, o2) {
     let r = Array.isArray(o1) ? o1.slice() : Object.create(o1)
     Object.assign(r, o1, o2)
@@ -804,7 +807,11 @@ export function mergeDeep(o1, o2) {
     return r
 }
 
-export function getURL(url, target) {
+/** @hidden
+ * Gets a site-specific setting.
+ */
+
+export function getURL(url: string, target: string[]) {
     if (!USERCONFIG.subconfigs) return undefined
     let key =
         // For each key
@@ -1069,7 +1076,13 @@ async function init() {
     }
 }
 
+/** @hidden */
 const changeListeners = new Map()
+
+/** @hidden
+ * @param name The name of a "toplevel" config setting (i.e. "nmaps", not "nmaps.j")
+ * @param listener A function to call when the value of $name is modified in the config. Takes the previous and new value as parameters.
+ */
 export function addChangeListener<P extends keyof default_config>(
     name: P,
     listener: (old: default_config[P], neww: default_config[P]) => void,
@@ -1082,6 +1095,9 @@ export function addChangeListener<P extends keyof default_config>(
     arr.push(listener)
 }
 
+/** @hidden
+ * Removes event listeners set with addChangeListener
+ */
 export function removeChangeListener<P extends keyof default_config>(
     name: P,
     listener: (old: default_config[P], neww: default_config[P]) => void,
