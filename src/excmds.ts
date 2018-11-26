@@ -3357,7 +3357,7 @@ export async function hint(option?: string, selectors?: string, ...rest: string[
         case "-b":
             // Open in background
             selectHints = hinting.pipe(
-                DOM.HINTTAGS_selectors,
+                selectors || DOM.HINTTAGS_selectors,
                 async link => {
                     link.focus()
                     if (link.href) {
@@ -3374,7 +3374,7 @@ export async function hint(option?: string, selectors?: string, ...rest: string[
         case "-y":
             // Yank link
             selectHints = hinting.pipe(
-                DOM.HINTTAGS_selectors,
+                selectors || DOM.HINTTAGS_selectors,
                 elem => {
                     // /!\ Warning: This is racy! This can easily be fixed by adding an await but do we want this? yank can be pretty slow, especially with yankto=selection
                     run_exstr("yank " + elem["href"])
@@ -3443,7 +3443,7 @@ export async function hint(option?: string, selectors?: string, ...rest: string[
 
         case "-W":
             selectHints = hinting.pipe(
-                DOM.HINTTAGS_selectors,
+                selectors || DOM.HINTTAGS_selectors,
                 elem => {
                     // /!\ RACY RACY RACY!
                     run_exstr(selectors + " " + rest.join(" ") + " " + elem)
@@ -3571,7 +3571,7 @@ export async function hint(option?: string, selectors?: string, ...rest: string[
 
         default:
             selectHints = hinting.pipe(
-                DOM.HINTTAGS_selectors,
+                selectors || DOM.HINTTAGS_selectors,
                 elem => {
                     DOM.simulateClick(elem as HTMLElement)
                     return elem
