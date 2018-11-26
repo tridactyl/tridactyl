@@ -13,7 +13,6 @@
     "semver-compare": "^1.0.0"
   },
   "devDependencies": {
-    "@aoberoi/chokidar-cli": "^1.3.0",
     "@types/jest": "^23.3.9",
     "@types/node": "^10.12.1",
     "awesome-typescript-loader": "^5.2.1",
@@ -40,7 +39,7 @@
   "scripts": {
     "build": "sh scripts/build.sh",
     "run": "web-ext run -s build/ -u 'txti.es'",
-    "watch": "echo 'watch is broken, use build instead'; exit 0; chokidar src scripts --initial --silent -i 'src/excmds_{background,content}.ts' -i 'src/static/docs' -c 'npm run build'",
+    "watch": "echo 'watch is broken, use build instead'; exit 0;",
     "clean": "rm -rf build generated",
     "test": "npm run build && jest --silent",
     "update-buildsystem": "rm -rf src/node_modules; npm run clean",
