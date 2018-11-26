@@ -76,7 +76,12 @@ else
 fi
 
 if [ -e "$TRIDACTYL_LOGO" ] ; then
-	sed "s@REPLACE_ME_WITH_BASE64_TRIDACTYL_LOGO@$(base64 --wrap 0 "$TRIDACTYL_LOGO")@" -i build/static/themes/default/default.css
+    # sed and base64 take different arguments on Mac
+    if [[ $OSTYPE == darwin* ]]; then
+	    sed -i "" "s@REPLACE_ME_WITH_BASE64_TRIDACTYL_LOGO@$(base64 "$TRIDACTYL_LOGO")@" build/static/themes/default/default.css
+    else
+	    sed "s@REPLACE_ME_WITH_BASE64_TRIDACTYL_LOGO@$(base64 --wrap 0 "$TRIDACTYL_LOGO")@" -i build/static/themes/default/default.css
+    fi
 else
 	echo "Couldn't find Tridactyl logo ($TRIDACTYL_LOGO)"
 fi
