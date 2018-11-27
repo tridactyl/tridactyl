@@ -823,15 +823,18 @@ export function getURL(url, target) {
                     (USERCONFIG.subconfigs[k2].priority || 10),
             )
             // Merge their corresponding value if they're objects, otherwise return the last value
-            .reduce((acc, curKey) => {
-                let curVal = getDeepProperty(
-                    USERCONFIG.subconfigs[curKey],
-                    target,
-                )
-                if (acc instanceof Object && curVal instanceof Object)
-                    return mergeDeep(acc, curVal)
-                return curVal
-            }, {})
+            .reduce(
+                (acc, curKey) => {
+                    let curVal = getDeepProperty(
+                        USERCONFIG.subconfigs[curKey],
+                        target,
+                    )
+                    if (acc instanceof Object && curVal instanceof Object)
+                        return mergeDeep(acc, curVal)
+                    return curVal
+                },
+                undefined as any,
+            )
     )
 }
 
