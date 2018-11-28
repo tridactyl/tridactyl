@@ -27,24 +27,21 @@ async function init() {
         noiframeon.length == 0 ||
         noiframeon.find(url => window.location.href.includes(url)) === undefined
     if (enabled && cmdline_iframe === undefined) {
-        try {
-            cmdline_iframe = window.document.createElementNS(
-                "http://www.w3.org/1999/xhtml",
-                "iframe",
-            ) as HTMLIFrameElement
-            cmdline_iframe.className = "cleanslate"
-            cmdline_iframe.setAttribute(
-                "src",
-                browser.extension.getURL("static/commandline.html"),
-            )
-            cmdline_iframe.setAttribute("id", "cmdline_iframe")
-            hide()
-            document.documentElement.appendChild(cmdline_iframe)
-            // first theming of page root
-            await theme(window.document.querySelector(":root"))
-        } catch (e) {
-            logger.error("Couldn't initialise cmdline_iframe!", e)
-        }
+        cmdline_iframe = window.document.createElementNS(
+            "http://www.w3.org/1999/xhtml",
+            "iframe",
+        ) as HTMLIFrameElement
+        cmdline_iframe.className = "cleanslate"
+        cmdline_iframe.setAttribute(
+            "src",
+            browser.extension.getURL("static/commandline.html"),
+        )
+        cmdline_iframe.setAttribute("id", "cmdline_iframe")
+        hide()
+        document.documentElement.appendChild(cmdline_iframe)
+        enabled = true
+        // first theming of page root
+        await theme(window.document.querySelector(":root"))
     }
 }
 
@@ -54,7 +51,15 @@ try {
     init()
 } catch (e) {
     // Surrender event loop with setTimeout() to page JS in case it's still doing stuff.
-    document.addEventListener("DOMContentLoaded", () => setTimeout(init, 0))
+    document.addEventListener("DOMContentLoaded", () =>
+        setTimeout(() => {
+            try {
+                init()
+            } catch (e) {
+                logger.error("Couldn't initialise cmdline_iframe!", e)
+            }
+        }, 0),
+    )
 }
 
 export function show() {
