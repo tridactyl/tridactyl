@@ -72,6 +72,9 @@ function* ParserController() {
                     response,
                 )
 
+		// show current keyEvents as a suffix of the contentState
+		contentState.suffix = keyEvents.map(x => x.key).join('')
+
                 if (response.isMatch) {
                     keyevent.preventDefault()
                     keyevent.stopImmediatePropagation()
@@ -85,6 +88,7 @@ function* ParserController() {
                 }
             }
             acceptExCmd(exstr)
+	    contentState.suffix = ''
         } catch (e) {
             // Rumsfeldian errors are caught here
             logger.error("An error occurred in the content controller: ", e)

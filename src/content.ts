@@ -184,12 +184,19 @@ config.getAsync("modeindicator").then(mode => {
         })
     }
 
-    addContentStateChangedListener((property, oldValue, newValue) => {
+    addContentStateChangedListener((property, oldMode, oldValue, newValue) => {
+	let mode = newValue
+	let suffix = ""
+	let result = ""
         if (property != "mode") {
-            return
-        }
+	    if (property === "suffix") {
+		mode = oldMode
+		suffix = newValue
+	    } else {
+		return
+	    }
+	}
 
-        let mode = newValue
         const privateMode = browser.extension.inIncognitoContext
             ? "TridactylPrivate"
             : ""
@@ -210,8 +217,17 @@ config.getAsync("modeindicator").then(mode => {
             statusIndicator.textContent = "normal"
             // statusIndicator.style.borderColor = "lightgray !important"
         } else {
-            statusIndicator.textContent = mode
+            result = mode
         }
+	if ( suffix != "" ) {
+	    result = mode + " " + suffix
+	}
+	logger.debug (
+	    "statusindicator: ",
+	    result,
+	    ";"
+	)
+	statusIndicator.textContent = result
         statusIndicator.className +=  " TridactylMode" + statusIndicator.textContent
 
         if (config.get("modeindicator") !== "true") statusIndicator.remove()

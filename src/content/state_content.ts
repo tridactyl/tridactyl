@@ -26,14 +26,16 @@ class State {
             jumppos: undefined,
         },
     ]
+    suffix: string = ""
 }
 
-export type ContentStateProperty = "mode" | "cmdHistory" | "prevInputs"
+export type ContentStateProperty = "mode" | "cmdHistory" | "prevInputs" | "suffix"
 
 export type ContentStateChangedCallback = (
     property: ContentStateProperty,
     oldValue: any,
     newValue: any,
+    suffix: any,
 ) => void
 
 const onChangedListeners: ContentStateChangedCallback[] = []
@@ -55,10 +57,11 @@ export const contentState = (new Proxy(
             logger.debug("Content state changed!", property, newValue)
 
             const oldValue = target[property]
+            const mode = target["mode"]
             target[property] = newValue
 
             for (let listener of onChangedListeners) {
-                listener(property, oldValue, newValue)
+                listener(property, mode, oldValue, newValue)
             }
             return true
         },
