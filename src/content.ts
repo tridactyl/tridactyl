@@ -7,6 +7,7 @@ import "@src/lib/html-tagged-template"
 /* import "@src/content/commandline_content" */
 /* import "@src/excmds_content" */
 /* import "@src/content/hinting" */
+import * as Config from "@src/lib/config"
 import * as Logging from "@src/lib/logging"
 const logger = new Logging.Logger("content")
 logger.debug("Tridactyl content script loaded, boss!")
@@ -219,13 +220,16 @@ config.getAsync("modeindicator").then(mode => {
         } else {
             result = mode
         }
-	if ( suffix != "" ) {
+	let showcmd = Config.get("showcmd")
+	if ( showcmd === "true" && suffix != "" ) {
 	    result = mode + " " + suffix
 	}
 	logger.debug (
 	    "statusindicator: ",
 	    result,
-	    ";"
+	    ";",
+	    "config",
+	    showcmd
 	)
 	statusIndicator.textContent = result
         statusIndicator.className +=  " TridactylMode" + statusIndicator.textContent

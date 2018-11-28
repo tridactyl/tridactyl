@@ -24,13 +24,13 @@ function PrintableKey(k) {
 	}
 
     if (k.altKey) {
-	result = "Alt-" + result
+	result = "A-" + result
     }
     if (k.ctrlKey) {
-	result = "Ctrl-" + result
+	result = "C-" + result
     }
     if (k.shiftKey) {
-	result = "Shift-" + result
+	result = "S-" + result
     }
     if (result.length > 1) {
 	result = "<" + result + ">"

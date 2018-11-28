@@ -757,6 +757,12 @@ class default_config {
      *
      */
     perfsamples: string = "10000"
+
+    /**
+     * Show (partial) command in the mode indicator.
+     * Corresponds to 'showcmd' option of vi.
+     */
+    showcmd: "true" | "false" = "false"
 }
 
 /** @hidden */
