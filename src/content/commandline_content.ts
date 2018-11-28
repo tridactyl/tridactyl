@@ -20,13 +20,10 @@ const cmdline_logger = new Logger("cmdline")
 let cmdline_iframe: HTMLIFrameElement = undefined
 let enabled = false
 
-/** Initialise the cmdline_iframe element unless the window location is included in a value of config/noiframeon */
+/** Initialise the cmdline_iframe element unless the window location is included in a value of config/noiframe */
 async function init() {
-    let noiframeon = await config.getAsync("noiframeon")
-    enabled =
-        noiframeon.length == 0 ||
-        noiframeon.find(url => window.location.href.includes(url)) === undefined
-    if (enabled && cmdline_iframe === undefined) {
+    let noiframe = await config.getAsync("noiframe")
+    if (noiframe == "false" && !enabled && cmdline_iframe === undefined) {
         cmdline_iframe = window.document.createElementNS(
             "http://www.w3.org/1999/xhtml",
             "iframe",

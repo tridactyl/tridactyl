@@ -649,9 +649,9 @@ class default_config {
     }
 
     /**
-     * Pages on which the command line should not be inserted. Set these values with `:set noiframeon ["url1", "url2"]`.
+     * Disables the commandline iframe. Dangerous setting, use [[seturl]] to set it. If you ever set this setting to "true" globally and then want to set it to false again, you can do this by opening Tridactyl's preferences page from about:addons.
      */
-    noiframeon: string[] = []
+    noiframe: "true" | "false" = "false"
 
     /**
      * Insert / input mode edit-in-$EDITOR command to run
@@ -1055,6 +1055,12 @@ export async function update() {
             ].forEach(setting => updateAll([setting], parseInt))
             set("configversion", "1.4")
         },
+        "1.4": () => {
+            (getDeepProperty(USERCONFIG, ["noiframeon"]) || []).forEach(site => {
+                setURL(site, "noiframe", "true")
+            })
+            set("configversion", "1.5")
+        }
     }
     if (!get("configversion")) set("configversion", "0.0")
     const updatetest = v => {

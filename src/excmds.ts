@@ -2898,6 +2898,18 @@ export function set(key: string, ...values: string[]) {
         return
     }
 
+    if (key == "noiframeon") {
+        let noiframes = config.get("noiframeon")
+        // unset previous settings
+        if (noiframes)
+            noiframes.forEach(url => seturl(url, "noiframe", "false"))
+        // store new settings
+        values.forEach(url => seturl(url, "noiframe", "true"))
+        // save as deprecated setting for compatibility
+        config.set("noiframeon", values)
+        throw "Warning: `noiframeon $url1 $url2` has been deprecated in favor of `:seturl $url1 noiframe true`. The right seturl calls have been made for you but from now on please use `:seturl`."
+    }
+
     config.set(...validateSetArgs(key, values))
 }
 
