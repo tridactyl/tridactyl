@@ -12,6 +12,32 @@ import * as generic from "@src/parsers/genericmode"
 
 const logger = new Logger("controller")
 
+function PrintableKey(k) {
+    let result = k.key
+    if (result === "Control" ||
+	result === "Meta" ||
+	result === "Alt" ||
+	result === "Shift" ||
+	result === "OS"
+	) {
+	    return ""
+	}
+
+    if (k.altKey) {
+	result = "Alt-" + result
+    }
+    if (k.ctrlKey) {
+	result = "Ctrl-" + result
+    }
+    if (k.shiftKey) {
+	result = "Shift-" + result
+    }
+    if (result.length > 1) {
+	result = "<" + result + ">"
+    }
+    return result
+}
+
 /** Accepts keyevents, resolves them to maps, maps to exstrs, executes exstrs */
 function* ParserController() {
     const parsers: { [mode_name in ModeName]: any } = {
@@ -73,7 +99,11 @@ function* ParserController() {
                 )
 
 		// show current keyEvents as a suffix of the contentState
-		contentState.suffix = keyEvents.map(x => x.key).join('')
+		contentState.suffix = keyEvents.map(x => PrintableKey(x)).join('')
+                logger.debug(
+		    "suffix: ",
+		    contentState.suffix
+		)
 
                 if (response.isMatch) {
                     keyevent.preventDefault()
