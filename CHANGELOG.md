@@ -1,9 +1,46 @@
 # Tridactyl changelog
 
-## Release 1.14.2 / Unreleased
+## Release 1.14.2 / 2018-12-02
 
 -   New features
+
     -   New theme: `colours halloween`
+    -   New command `clipboard xselpaste` pastes from primary selection into focused input field
+    -   New editors added to `editor` (#1162)
+    -   You can now rebind key sequences in the commandline: `viewconfig exmaps` and `bind --mode=ex`
+    -   `text.*` commands have been added for insert mode operations
+
+-   Bug fixes
+
+    -   getURL now merges site-specific config objects (e.g, "example" and "example.org")
+    -   Tridactyl now scrolls on non-html pages (#1165)
+    -   Various broken links fixed
+    -   Fewer errors when using the command line (#1168)
+    -   `set` gives more helpful error messages (#1166)
+    -   `tabnext/prev` now only cycles through visible tabs (#1084)
+    -   Commands requiring the native messenger now give more helpful error messages if there is a problem
+    -   Internal commands are no longer shown in completions (#1154)
+    -   It is now possible to insert spaces in the middle of words in the commandline (#1147)
+    -   scrolling.ts: Fix sticky scrolling
+    -   tabprev/tabnext is more robust (#1148)
+
+-   Miscellaneous
+
+    -   Documentation improvements
+    -   Various tutorial improvements
+
+-   Under the bonnet
+    -   Fewer bashisms in build process
+    -   Rename buffers to tabs
+    -   Tridactyl uses approximately 0.03MB less RAM per tab (#1187)
+    -   `tab{first,last}` are now simple aliases
+    -   Numerical config settings are now numbers rather than strings
+
+Thanks to all of our contributors for this release: Oliver Blanthorn, glacambre, Anton Vilhelm Ásgeirsson, Abraham White, Nathan Collins, Colin Caine, Keegan Carruthers-Smith, and pale3.
+
+Extra special thanks go to Abraham White, Keegan Carruthers-Smith, Nathan Collins, and pale3 who all contributed for the first time.
+
+Last, but not least - thank you to everyone who reported issues.
 
 ## Release 1.14.1 / 2018-10-28
 
