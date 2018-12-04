@@ -1,5 +1,18 @@
 # Tridactyl changelog
 
+## Release 1.14.3 / 2018-12-03
+
+-   Bug fixes
+
+    -   `tabnext/prev` now only cycles through visible tabs (#1084), for real this time (#1207)
+    -   `clipboard xselpaste` now works in the commandline (#1206)
+
+Thanks to all of our contributors for this release: Oliver Blanthorn, glacambre, and scde.
+
+Extra special thanks goes to scde who contributed for the first time.
+
+Last, but not least - thank you to everyone who reported issues.
+
 ## Release 1.14.2 / 2018-12-02
 
 -   New features
