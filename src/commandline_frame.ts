@@ -426,9 +426,9 @@ export function getContent() {
 }
 
 /** @hidden **/
-export function editor_function(fn_name) {
+export function editor_function(fn_name, ...args) {
     if (tri_editor[fn_name]) {
-        tri_editor[fn_name](clInput)
+        tri_editor[fn_name](clInput, ...args)
         clInput.dispatchEvent(new Event("input")) // dirty hack for completions
     } else {
         // The user is using the command line so we can't log message there

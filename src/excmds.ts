@@ -2455,7 +2455,7 @@ for (let fn in cmdframe_fns) {
 // {
 for (let editorfn in tri_editor) {
     let name = "text." + editorfn
-    cmd_params.set(name, new Map([]))
+    cmd_params.set(name, new Map([['arr', 'string[]']]))
     BGSELF[name] = (...args) => messageActiveTab("excmd_content", name, args)
 }
 for (let fn in cmdframe_fns) {
