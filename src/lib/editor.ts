@@ -32,13 +32,30 @@ type editor_function = (
 ) => [string, number, number]
 
 /** @hidden
+ * Applies a function to an element. If the element is an HTMLInputElement and its type isn't "text", it is first turned into a "text" element. This is necessary because some elements (e.g. "email") do not have a selectionStart/selectionEnd.
+ * https://developer.mozilla.org/en-US/docs/Web/API/HTMLInputElement/setSelectionRange .
+ **/
+function applyToElem(e, fn) {
+    let result
+    if (e instanceof HTMLInputElement && e.type != "text") {
+        let t = e.type
+        e.type = "text"
+        result = fn(e)
+        e.type = t
+    } else {
+        result = fn(e)
+    }
+    return result
+}
+
+/** @hidden
  * Returns values necessary for editor functions to work on textarea/input elements
  *
  * @param e the element
  * @return [string, number, number] The content of the element, the position of the caret, the position of the end of the visual selection
  */
 function getSimpleValues(e: any) {
-    return [e.value, e.selectionStart, e.selectionEnd]
+    return applyToElem(e, e => [e.value, e.selectionStart, e.selectionEnd])
 }
 
 /** @hidden
@@ -74,12 +91,14 @@ function getContentEditableValues(e: any): [string, number, number] {
  * @param end The end of the visual selection, null if you just want to move the caret
  */
 function setSimpleValues(e, text, start, end) {
-    if (text !== null) e.value = text
-    if (start !== null) {
-        if (end === null) end = start
-        e.selectionStart = start
-        e.selectionEnd = end
-    }
+    return applyToElem(e, e => {
+        if (text !== null) e.value = text
+        if (start !== null) {
+            if (end === null) end = start
+            e.selectionStart = start
+            e.selectionEnd = end
+        }
+    })
 }
 
 /** @hidden
@@ -122,7 +141,9 @@ function setContentEditableValues(e, text, start, end) {
  * @return boolean Whether the editor function was actually called or not
  *
  **/
-function wrap_input(fn: editor_function): (e: HTMLElement, arg?: any) => boolean {
+function wrap_input(
+    fn: editor_function,
+): (e: HTMLElement, arg?: any) => boolean {
     return (e: HTMLElement, arg?: any) => {
         let getValues = getSimpleValues
         let setValues = setSimpleValues
@@ -141,7 +162,12 @@ function wrap_input(fn: editor_function): (e: HTMLElement, arg?: any) => boolean
  * Take an editor function as parameter and wrap it in a function that will handle error conditions
  */
 function needs_text(fn: editor_function, arg?: any): editor_function {
-    return (text: string, selectionStart: number, selectionEnd: number, arg?: any) => {
+    return (
+        text: string,
+        selectionStart: number,
+        selectionEnd: number,
+        arg?: any,
+    ) => {
         if (
             text.length === 0 ||
             selectionStart === null ||
@@ -152,7 +178,7 @@ function needs_text(fn: editor_function, arg?: any): editor_function {
             text,
             selectionStart,
             typeof selectionEnd == "number" ? selectionEnd : selectionStart,
-            arg
+            arg,
         )
     }
 }
@@ -611,9 +637,12 @@ export const backward_word = wrap_input(
 /**
  * Insert text in the current input.
  **/
-export const insert_text = wrap_input((text, selectionStart, selectionEnd, arg) => {
-    return [text.slice(0, selectionStart) + arg + text.slice(selectionEnd),
-        selectionStart + arg.length,
-        null
-    ]
-})
+export const insert_text = wrap_input(
+    (text, selectionStart, selectionEnd, arg) => {
+        return [
+            text.slice(0, selectionStart) + arg + text.slice(selectionEnd),
+            selectionStart + arg.length,
+            null,
+        ]
+    },
+)
