@@ -33,6 +33,7 @@ class HintState {
     public focusedHint: Hint
     readonly hintHost = document.createElement("div")
     readonly hints: Hint[] = []
+    public visible = false
     public selectedHints: Hint[] = []
     public filter = ""
     public hintchars = ""
@@ -46,6 +47,66 @@ class HintState {
         this.hintHost.classList.add("TridactylHintHost", "cleanslate")
     }
 
+    deOverlap() {
+        let moved = false
+        let repulsionForce = 6
+        let attraction = 0.05
+        let velocityLoss = 1.4
+        // Compute new hint positions
+        this.hints.map(hint => {
+            let overlapping = this.hints.filter(
+                curHint => hint != curHint && hint.overlapsWith(curHint),
+            )
+            let vector = overlapping
+                // Compute repulsion between hints
+                .reduce(
+                    (repulsion, curHint) => {
+                        // compute distance between hint and curHint
+                        let distX = hint.x - curHint.x
+                        let distY = hint.y - curHint.y
+                        let dist = distX * distX + distY * distY
+                        // Some hints might be perfectly overlaping (dist = 0), but we
+                        // need a distance of at least 1 to compute repulsion
+                        if (dist == 0) dist = 1
+                        repulsion.x += (distX / dist) * repulsionForce
+                        repulsion.y += (distY / dist) * repulsionForce
+                        return repulsion
+                    },
+                    { x: 0, y: 0, hint },
+                )
+            // Compute attraction between hint and its origin
+            // Multiply by overlapping.length in order to counteract repulsion caused by other flags
+            vector.x += (hint.originX - hint.x) * attraction
+            vector.y += (hint.originY - hint.y) * attraction
+            hint.velocityX = (hint.velocityX + vector.x) / velocityLoss
+            hint.velocityY = (hint.velocityY + vector.y) / velocityLoss
+            if (hint.velocityX > 1 || hint.velocityX < -1) {
+                let newX = hint.x + hint.velocityX
+                if (hint.x < 0) newX = 0
+                if (
+                    hint.x + hint.width >
+                    hint.flag.ownerDocument.body.clientWidth
+                )
+                    newX = hint.flag.ownerDocument.body.clientWidth - hint.width
+                hint.x = newX
+                moved = true
+            }
+            if (hint.velocityY > 1 || hint.velocityY < -1) {
+                let newY = hint.y + hint.velocityY
+                if (hint.y < 0) newY = 0
+                if (
+                    hint.y + hint.height >
+                    hint.flag.ownerDocument.body.clientHeight
+                )
+                    newY =
+                        hint.flag.ownerDocument.body.clientHeight - hint.height
+                moved = true
+            }
+        })
+        if (this.visible && moved)
+            window.requestAnimationFrame(this.deOverlap.bind(this))
+    }
+
     /**
      * Remove hinting elements and classes from the DOM
      */
@@ -57,6 +118,8 @@ class HintState {
 
         // Remove all hints from the DOM.
         this.hintHost.remove()
+
+        this.visible = false
     }
 
     resolveHinting() {
@@ -126,7 +189,9 @@ export function hintPage(
         logger.debug("hints", modeState.hints)
         modeState.focusedHint = modeState.hints[0]
         modeState.focusedHint.focused = true
+        modeState.visible = true
         document.documentElement.appendChild(modeState.hintHost)
+        modeState.deOverlap()
     } else {
         reset()
     }
@@ -245,6 +310,14 @@ type HintSelectedCallback = (Hint) => any
 class Hint {
     public readonly flag = document.createElement("span")
     public result: any = null
+    private _x: number = 0
+    private _y: number = 0
+    public width: number = 0
+    public height: number = 0
+    public originX: number = 0
+    public originY: number = 0
+    public velocityX: number = 0
+    public velocityY: number = 0
 
     constructor(
         public readonly target: Element,
@@ -270,16 +343,46 @@ class Hint {
         if (config.get("hintuppercase") == "true") {
             this.flag.classList.add("TridactylHintUppercase")
         }
-        /* this.flag.style.cssText = ` */
-        /*     top: ${rect.top}px; */
-        /*     left: ${rect.left}px; */
-        /* ` */
-        this.flag.style.cssText = `
-            top: ${window.scrollY + offsetTop + rect.top}px !important;
-            left: ${window.scrollX + offsetLeft + rect.left}px !important;
-        `
+        this.y = this.originY = window.scrollY + offsetTop + rect.top
+        this.x = this.originX = window.scrollX + offsetLeft + rect.left
         modeState.hintHost.appendChild(this.flag)
         this.hidden = false
+    }
+
+    set x(X: number) {
+        this._x = X
+        this.updatePosition()
+    }
+
+    get x() {
+        return this._x
+    }
+
+    set y(Y: number) {
+        this._y = Y
+        this.updatePosition()
+    }
+
+    get y() {
+        return this._y
+    }
+
+    private updatePosition() {
+        this.flag.style.cssText = `
+            top: ${this._y}px !important;
+            left: ${this._x}px !important;
+        `
+    }
+
+    public overlapsWith(h: Hint) {
+        if (this.width == 0) this.width = this.flag.getClientRects()[0].width
+        if (this.height == 0) this.height = this.flag.getClientRects()[0].height
+        return (
+            this.x <= h.x + h.width &&
+            this.x + this.width >= h.x &&
+            this.y <= h.y + h.height &&
+            this.y + this.height >= h.y
+        )
     }
 
     // These styles would be better with pseudo selectors. Can we do custom ones?
