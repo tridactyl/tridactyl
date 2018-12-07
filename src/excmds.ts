@@ -3877,19 +3877,32 @@ export async function jsb(...str: string[]) {
 import * as Parser from "rss-parser"
 import * as semverCompare from "semver-compare"
 
+/**
+ * Checks if there are any stable updates available for Tridactyl.
+ *
+ * Related settings:
+ *
+ * - `updatenag = true | false` - checks for updates on Tridactyl start.
+ * - `updatenagwait = 7` - waits 7 days before nagging you to update.
+ *
+ */
 //#background
-export async function checkupdate() {
-    let parser = new Parser()
-    let feed = await parser.parseURL("https://github.com/tridactyl/tridactyl/tags.atom")
-
+export async function updatecheck(polite = false) {
     try {
         // If any monster any makes a novelty tag this will break.
         // So let's just ignore any errors.
-        // let latest = feed.items[0].title
-        let latest = feed.items[0].title
-        let current = TRI_VERSION.replace(/-.*/, "")
+        const parser = new Parser()
+        const feed = await parser.parseURL("https://github.com/tridactyl/tridactyl/tags.atom")
+        const latest = feed.items[0].title
+        const current = TRI_VERSION.replace(/-.*/, "")
         if (semverCompare(latest, current) > 0) {
-            fillcmdline_notrail("A new version of Tridactyl is available.")
+            const releasedate = new Date(feed.items[0].pubDate) // e.g. 2018-12-04T15:24:43.000Z
+            const today = new Date()
+            // any here are to shut up TS - it doesn't think Dates have subtraction defined :S
+            const days_since = ((today as any) - (releasedate as any)) / (1000 * 60 * 60 * 24)
+            if (polite == false || days_since > config.get("updatenagwait")) {
+                fillcmdline_tmp(10000, "Tridactyl " + latest + " is available. Visit about:addons, right click Tridactyl, click 'Find Updates'. Restart Firefox once it has downloaded.")
+            }
         }
     } catch (e) {}
 }

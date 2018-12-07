@@ -112,6 +112,12 @@ browser.runtime.onStartup.addListener(_ => {
     })
 })
 
+// Nag people about updates.
+// Hope that they're on a tab we can access.
+config.getAsync("updatenag").then(nag => {
+    if (nag === true) excmds.updatecheck(true)
+})
+
 // }}}
 
 // {{{ AUTOCOMMANDS
