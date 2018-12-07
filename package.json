@@ -10,6 +10,7 @@
     "css": "^2.2.4",
     "fuse.js": "^3.3.0",
     "mark.js": "^8.11.1",
+    "rss-parser": "^3.5.4",
     "semver-compare": "^1.0.0"
   },
   "devDependencies": {

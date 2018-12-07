@@ -85,6 +85,8 @@ import * as CSS from "css"
 import * as Perf from "@src/perf"
 import * as Metadata from "@src/.metadata.generated"
 
+const TRI_VERSION = "REPLACE_ME_WITH_THE_VERSION_USING_SED"
+
 //#content_helper
 // {
 import "@src/lib/number.clamp"
@@ -2250,7 +2252,7 @@ export function suppress(preventDefault?: boolean, stopPropagation?: boolean) {
 
 //#background
 export function version() {
-    fillcmdline_notrail("REPLACE_ME_WITH_THE_VERSION_USING_SED")
+    fillcmdline_notrail(TRI_VERSION)
 }
 
 /** Example:
@@ -2455,7 +2457,7 @@ for (let fn in cmdframe_fns) {
 // {
 for (let editorfn in tri_editor) {
     let name = "text." + editorfn
-    cmd_params.set(name, new Map([['arr', 'string[]']]))
+    cmd_params.set(name, new Map([["arr", "string[]"]]))
     BGSELF[name] = (...args) => messageActiveTab("excmd_content", name, args)
 }
 for (let fn in cmdframe_fns) {
@@ -2901,8 +2903,7 @@ export function set(key: string, ...values: string[]) {
     if (key == "noiframeon") {
         let noiframes = config.get("noiframeon")
         // unset previous settings
-        if (noiframes)
-            noiframes.forEach(url => seturl(url, "noiframe", "false"))
+        if (noiframes) noiframes.forEach(url => seturl(url, "noiframe", "false"))
         // store new settings
         values.forEach(url => seturl(url, "noiframe", "true"))
         // save as deprecated setting for compatibility
@@ -3870,6 +3871,27 @@ export async function jsb(...str: string[]) {
     } else {
         return eval(str.join(" "))
     }
+}
+
+//#background_helper
+import * as Parser from "rss-parser"
+import * as semverCompare from "semver-compare"
+
+//#background
+export async function checkupdate() {
+    let parser = new Parser()
+    let feed = await parser.parseURL("https://github.com/tridactyl/tridactyl/tags.atom")
+
+    try {
+        // If any monster any makes a novelty tag this will break.
+        // So let's just ignore any errors.
+        // let latest = feed.items[0].title
+        let latest = feed.items[0].title
+        let current = TRI_VERSION.replace(/-.*/, "")
+        if (semverCompare(latest, current) > 0) {
+            fillcmdline_notrail("A new version of Tridactyl is available.")
+        }
+    } catch (e) {}
 }
 
 /**  Open a welcome page on first install.
