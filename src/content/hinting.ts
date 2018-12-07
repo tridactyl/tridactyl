@@ -270,6 +270,7 @@ class Hint {
         if (config.get("hintuppercase") == "true") {
             this.flag.classList.add("TridactylHintUppercase")
         }
+        this.flag.classList.add("TridactylHint" + target.tagName)
         /* this.flag.style.cssText = ` */
         /*     top: ${rect.top}px; */
         /*     left: ${rect.left}px; */
