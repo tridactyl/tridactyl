@@ -706,6 +706,11 @@ class default_config {
     updatenagwait = 7
 
     /**
+     * The version we last nagged you about. We only nag you once per version.
+     */
+    updatenaglastversion = "1.14.0"
+
+    /**
      * Profile directory to use with native messenger with e.g, `guiset`.
      */
     profiledir = "auto"
