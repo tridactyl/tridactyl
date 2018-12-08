@@ -696,6 +696,21 @@ class default_config {
     win_nativeinstallcmd = `powershell -NoProfile -InputFormat None -Command "Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/cmcaine/tridactyl/master/native/win_install.ps1'))"`
 
     /**
+     * Whether Tridactyl should check for available updates at startup.
+     */
+    updatenag = true
+
+    /**
+     * How many days to wait after an update is first available until telling people.
+     */
+    updatenagwait = 7
+
+    /**
+     * The version we last nagged you about. We only nag you once per version.
+     */
+    updatenaglastversion = "1.14.0"
+
+    /**
      * Profile directory to use with native messenger with e.g, `guiset`.
      */
     profiledir = "auto"
@@ -1056,11 +1071,13 @@ export async function update() {
             set("configversion", "1.4")
         },
         "1.4": () => {
-            (getDeepProperty(USERCONFIG, ["noiframeon"]) || []).forEach(site => {
-                setURL(site, "noiframe", "true")
-            })
+            ;(getDeepProperty(USERCONFIG, ["noiframeon"]) || []).forEach(
+                site => {
+                    setURL(site, "noiframe", "true")
+                },
+            )
             set("configversion", "1.5")
-        }
+        },
     }
     if (!get("configversion")) set("configversion", "0.0")
     const updatetest = v => {
