@@ -2455,7 +2455,7 @@ for (let fn in cmdframe_fns) {
 // {
 for (let editorfn in tri_editor) {
     let name = "text." + editorfn
-    cmd_params.set(name, new Map([['arr', 'string[]']]))
+    cmd_params.set(name, new Map([["arr", "string[]"]]))
     BGSELF[name] = (...args) => messageActiveTab("excmd_content", name, args)
 }
 for (let fn in cmdframe_fns) {
@@ -2901,8 +2901,7 @@ export function set(key: string, ...values: string[]) {
     if (key == "noiframeon") {
         let noiframes = config.get("noiframeon")
         // unset previous settings
-        if (noiframes)
-            noiframes.forEach(url => seturl(url, "noiframe", "false"))
+        if (noiframes) noiframes.forEach(url => seturl(url, "noiframe", "false"))
         // store new settings
         values.forEach(url => seturl(url, "noiframe", "true"))
         // save as deprecated setting for compatibility
@@ -3444,7 +3443,7 @@ export async function hint(option?: string, selectors?: string, ...rest: string[
 
         case "-c":
             selectHints = hinting.pipe(
-                selectors,
+                [selectors, ...rest].join(" "),
                 elem => {
                     DOM.simulateClick(elem as HTMLElement)
                     return elem
