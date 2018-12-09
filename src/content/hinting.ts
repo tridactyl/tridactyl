@@ -46,6 +46,10 @@ class HintState {
         this.hintHost.classList.add("TridactylHintHost", "cleanslate")
     }
 
+    get activeHints() {
+        return this.hints.filter(h => !h.flag.hidden)
+    }
+
     /**
      * Remove hinting elements and classes from the DOM
      */
@@ -67,6 +71,25 @@ class HintState {
             this.resolve(
                 this.selectedHints[0] ? this.selectedHints[0].result : "",
             )
+    }
+
+    changeFocusedHintIndex(offset) {
+        const activeHints = this.activeHints
+        if (!activeHints.length) {
+            return
+        }
+
+        // Get the index of the currently focused hint
+        const focusedIndex = activeHints.indexOf(this.focusedHint)
+
+        // Unfocus the currently focused hint
+        this.focusedHint.focused = false
+
+        // Focus the next hint, accounting for negative wraparound
+        const nextFocusedIndex =
+            (focusedIndex + offset + activeHints.length) % activeHints.length
+        this.focusedHint = activeHints[nextFocusedIndex]
+        this.focusedHint.focused = true
     }
 }
 
@@ -557,14 +580,36 @@ function selectFocusedHint(delay = false) {
     else selectFocusedHintInternal()
 }
 
+function focusNextHint() {
+    logger.debug("Focusing next hint")
+    modeState.changeFocusedHintIndex(1)
+}
+
+function focusPreviousHint() {
+    logger.debug("Focusing previous hint")
+    modeState.changeFocusedHintIndex(-1)
+}
+
 export function parser(keys: KeyboardEvent[]) {
-    for (const { key } of keys) {
-        if (key === "Escape") {
-            reset()
-        } else if (["Enter", " "].includes(key)) {
-            selectFocusedHint()
-        } else {
-            pushKey(keys[0])
+    for (const keyev of keys) {
+        const key = keyev.key
+        switch (key) {
+            case "Escape":
+                reset()
+                break
+            case "Tab":
+                if (keyev.shiftKey) {
+                    focusPreviousHint()
+                } else {
+                    focusNextHint()
+                }
+                break
+            case "Enter":
+            case " ":
+                selectFocusedHint()
+                break
+            default:
+                pushKey(keys[0])
         }
     }
     return { keys: [], ex_str: "", isMatch: true }
