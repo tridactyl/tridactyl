@@ -449,31 +449,32 @@ function filterHintsVimperator(fstr, reflow = false) {
         } else {
             // By text
             active = active.filter(hint => hint.filterData.includes(run.str))
-        }
 
-        if (reflow && !run.isHintChar) {
-            rename(active)
+            if (reflow) rename(active)
         }
     }
 
     // Update display
-    // Hide all hints
+    // Unfocus the focused hint - must be before hiding the hint
+    if (modeState.focusedHint) {
+        modeState.focusedHint.focused = false
+        modeState.focusedHint = undefined
+    }
+
+    // Set hidden state of the hints
     for (const hint of modeState.hints) {
-        // Warning: this could cause flickering.
-        hint.hidden = true
+        if (active.includes(hint)) {
+            hint.hidden = false
+            hint.flag.textContent = hint.name
+        } else {
+            hint.hidden = true
+        }
     }
-    // Show and update labels of active
-    for (const hint of active) {
-        hint.hidden = false
-        hint.flag.textContent = hint.name
-    }
+
     // Focus first hint
     if (active.length) {
-        if (modeState.focusedHint) {
-            modeState.focusedHint.focused = false
-        }
-        active[0].focused = true
         modeState.focusedHint = active[0]
+        modeState.focusedHint.focused = true
     }
 
     // Select focused hint if it's the only match
@@ -500,11 +501,17 @@ function pushKey(ke) {
     } else if (ke.key === "Backspace") {
         modeState.filter = modeState.filter.slice(0, -1)
         modeState.filterFunc(modeState.filter)
-    } else if (ke.key.length > 1) {
-        return
-    } else if (modeState.hintchars.includes(ke.key)) {
+    } else if (ke.key.length === 1 && modeState.hintchars.includes(ke.key)) {
+        // The new key can be used to filter the hints
+        const originalFilter = modeState.filter
         modeState.filter += ke.key
         modeState.filterFunc(modeState.filter)
+
+        if (!modeState.activeHints.length) {
+            // There are no more active hints, undo the change to the filter
+            modeState.filter = originalFilter
+            modeState.filterFunc(modeState.filter)
+        }
     }
 }
 
