@@ -92,16 +92,22 @@ function getCompletion() {
 export function enableCompletions() {
     if (!activeCompletions) {
         activeCompletions = [
-            new BmarkCompletionSource(completionsDiv),
-            new TabAllCompletionSource(completionsDiv),
-            new BufferCompletionSource(completionsDiv),
-            new ExcmdCompletionSource(completionsDiv),
-            new FileSystemCompletionSource(completionsDiv),
-            new HelpCompletionSource(completionsDiv),
-            new HistoryCompletionSource(completionsDiv),
-            new PreferenceCompletionSource(completionsDiv),
-            new SettingsCompletionSource(completionsDiv),
+            BmarkCompletionSource,
+            TabAllCompletionSource,
+            BufferCompletionSource,
+            ExcmdCompletionSource,
+            FileSystemCompletionSource,
+            HelpCompletionSource,
+            HistoryCompletionSource,
+            PreferenceCompletionSource,
+            SettingsCompletionSource,
         ]
+            .map(constructorr => {
+                try {
+                    return new constructorr(completionsDiv)
+                } catch (e) {}
+            })
+            .filter(c => c)
 
         const fragment = document.createDocumentFragment()
         activeCompletions.forEach(comp => fragment.appendChild(comp.node))

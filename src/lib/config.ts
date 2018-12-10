@@ -1078,6 +1078,10 @@ export async function update() {
             )
             set("configversion", "1.5")
         },
+        "1.5": () => {
+            unset("exaliases", "tab")
+            set("configversion", "1.6")
+        },
     }
     if (!get("configversion")) set("configversion", "0.0")
     const updatetest = v => {
