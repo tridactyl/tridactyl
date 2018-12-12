@@ -1,5 +1,31 @@
 # Tridactyl changelog
 
+## Release 1.14.4 / 2018-12-12
+
+-   New features
+
+    -   You can now cycle the selected hint in hint mode by pressing `<Tab>` or `<S-Tab>`
+    -   The native messenger now appends ".txt" to files it edits, hopefully making the experience better out of the box for most people
+        -   You might need to run `:nativeupdate` to get this feature
+    -   Tridactyl will check for a new stable version at launch and notify you once once a new version has been released and it is a week old
+        -   You can change this behaviour with `set updatenag false` and `set updatenagewait [days to wait before nagging]`
+        -   Hopefully this will make it easier for users to notice when a new update has been blocked because it needs more permissions
+    -   `noiframeon` has been turned into a normal setting for use with `seturl [url] noiframe true`
+
+-   Bug fixes
+
+    -   `alias tab buffer` no longer breaks completions
+    -   `hint -c [selectors]` can now accept selectors with spaces
+    -   `a` tags now have higher priority than (often spurious) elements JavaScript events attached. This makes hinting on YouTube usable :)
+    -   Themes are now properly applied to tabs opened in the background
+    -   Editor functions (`text.*`) should now work in email inputs, and others if you're lucky.
+
+Thanks to all of our contributors for this release: Oliver Blanthorn, glacambre, Fabian Furger, and arcnmx.
+
+Extra special thanks go to arcnmx who contributed for the first time.
+
+Last, but not least - thank you to everyone who reported issues.
+
 ## Release 1.14.3 / 2018-12-03
 
 -   Bug fixes
@@ -9,7 +35,7 @@
 
 Thanks to all of our contributors for this release: Oliver Blanthorn, glacambre, and scde.
 
-Extra special thanks goes to scde who contributed for the first time.
+Extra special thanks go to scde who contributed for the first time.
 
 Last, but not least - thank you to everyone who reported issues.
 
