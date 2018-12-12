@@ -455,6 +455,7 @@ class default_config {
         stop: "js window.stop()",
         zo: "zoom",
         installnative: "nativeinstall",
+        nativeupdate: "updatenative",
     }
 
     /**
