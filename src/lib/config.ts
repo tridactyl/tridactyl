@@ -532,7 +532,7 @@ class default_config {
     hintchars = "hjklasdfgyuiopqwertnmzxcvb"
 
     /**
-     * The type of hinting to use. `vimperator` will allow you to filter links based on their names by typing non-hint chars. It is recommended that you use this in conjuction with the [[hintchars]] setting, which you should probably set to e.g, `5432167890`.
+     * The type of hinting to use. `vimperator` will allow you to filter links based on their names by typing non-hint chars. It is recommended that you use this in conjuction with the [[hintchars]] setting, which you should probably set to e.g, `5432167890`. ´vimperator-reflow´ additionally updates the hint labels after filtering.
      */
     hintfiltermode: "simple" | "vimperator" | "vimperator-reflow" = "simple"
 
