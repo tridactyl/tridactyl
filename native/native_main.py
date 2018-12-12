@@ -477,7 +477,7 @@ def handleMessage(message):
             prefix = ""
         prefix = "tmp_{}_".format(sanitizeFilename(prefix))
 
-        (handle, filepath) = tempfile.mkstemp(prefix=prefix)
+        (handle, filepath) = tempfile.mkstemp(prefix=prefix, suffix=".txt")
         with os.fdopen(handle, "w") as file:
             file.write(message["content"])
         reply["content"] = filepath
