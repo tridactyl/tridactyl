@@ -8,6 +8,9 @@ export function toSimpleType(typeNode) {
     switch (typeNode.kind) {
         case ts.SyntaxKind.VoidKeyword:
             return new AllTypes.VoidType()
+        // IndexedAccessTypes are things like `fn<T keyof Class>(x: T, y: Class[T])`
+        // This doesn't seem to be easy to deal with so let's kludge it for now
+        case ts.SyntaxKind.IndexedAccessType:
         case ts.SyntaxKind.AnyKeyword:
             return new AllTypes.AnyType()
         case ts.SyntaxKind.BooleanKeyword:
@@ -26,7 +29,9 @@ export function toSimpleType(typeNode) {
             if (!typeNode.typeArguments) {
                 // If there are no typeArguments, this is not a parametric type and we can return the type directly
                 try {
-                    return toSimpleType(typeNode.typeName.symbol.declarations[0].type)
+                    return toSimpleType(
+                        typeNode.typeName.symbol.declarations[0].type,
+                    )
                 } catch (e) {
                     // Fall back to what you'd do with typeArguments
                 }
@@ -47,16 +52,21 @@ export function toSimpleType(typeNode) {
                 toSimpleType(typeNode.type),
             )
         case ts.SyntaxKind.TypeLiteral:
-            let members = typeNode.members.map(member => {
-                if (member.kind == ts.SyntaxKind.IndexSignature) {
-                    // Something like this: { [str: string]: string[] }
-                    return ["", toSimpleType(member.type)]
-                }
-                // Very fun feature: when you have an object literal with >20 members, typescript will decide to replace some of them with a "... X more ..." node that obviously doesn't have a corresponding symbol, hence this check and the filter after the map
-                if (member.name.symbol)
-                        return [member.name.symbol.escapedName, toSimpleType(member.type)];
-            }).filter(m => m)
-            return new AllTypes.ObjectType(new Map(members));
+            let members = typeNode.members
+                .map(member => {
+                    if (member.kind == ts.SyntaxKind.IndexSignature) {
+                        // Something like this: { [str: string]: string[] }
+                        return ["", toSimpleType(member.type)]
+                    }
+                    // Very fun feature: when you have an object literal with >20 members, typescript will decide to replace some of them with a "... X more ..." node that obviously doesn't have a corresponding symbol, hence this check and the filter after the map
+                    if (member.name.symbol)
+                        return [
+                            member.name.symbol.escapedName,
+                            toSimpleType(member.type),
+                        ]
+                })
+                .filter(m => m)
+            return new AllTypes.ObjectType(new Map(members))
         case ts.SyntaxKind.ArrayType:
             return new AllTypes.ArrayType(toSimpleType(typeNode.elementType))
         case ts.SyntaxKind.TupleType:
@@ -71,6 +81,8 @@ export function toSimpleType(typeNode) {
         case ts.SyntaxKind.LiteralType:
             return new AllTypes.LiteralTypeType(typeNode.literal.text)
             break
+        case ts.SyntaxKind.IndexedAccessType:
+
         default:
             console.log(typeNode)
             throw new Error(`Unhandled kind (${typeNode.kind}) for ${typeNode}`)
@@ -89,10 +101,22 @@ function isNodeExported(node: ts.Node): boolean {
 
 /** True if node is marked as @hidden in its documentation */
 function isNodeHidden(sourceFile, node): boolean {
-    return sourceFile && node.jsDoc && !!node.jsDoc.find(doc => sourceFile.text.slice(doc.pos, doc.end).search("@hidden") != -1)
+    return (
+        sourceFile &&
+        node.jsDoc &&
+        !!node.jsDoc.find(
+            doc =>
+                sourceFile.text.slice(doc.pos, doc.end).search("@hidden") != -1,
+        )
+    )
 }
 
-function visit(checker: any, sourceFile: any, file: AllMetadata.FileMetadata, node: any) {
+function visit(
+    checker: any,
+    sourceFile: any,
+    file: AllMetadata.FileMetadata,
+    node: any,
+) {
     let symbol = checker.getSymbolAtLocation(node.name)
     if (symbol && isNodeExported(node)) {
         let nodeName = symbol.escapedName
@@ -114,7 +138,11 @@ function visit(checker: any, sourceFile: any, file: AllMetadata.FileMetadata, no
                     : new AllTypes.AnyType()
                 file.setFunction(
                     nodeName,
-                    new AllMetadata.SymbolMetadata(doc, t, isNodeHidden(sourceFile, node)),
+                    new AllMetadata.SymbolMetadata(
+                        doc,
+                        t,
+                        isNodeHidden(sourceFile, node),
+                    ),
                 )
                 return
 
@@ -145,7 +173,11 @@ function visit(checker: any, sourceFile: any, file: AllMetadata.FileMetadata, no
                         : new AllTypes.AnyType()
                     clazz.setMember(
                         name,
-                        new AllMetadata.SymbolMetadata(doc, t, isNodeHidden(sourceFile, node)),
+                        new AllMetadata.SymbolMetadata(
+                            doc,
+                            t,
+                            isNodeHidden(sourceFile, node),
+                        ),
                     )
                 })
                 return
@@ -202,7 +234,8 @@ function generateMetadata(
     }
 
     // We need to specify Type itself because it won't exist in AllTypes.js since it's an interface
-    let imports = `import { Type } from "../compiler/types/AllTypes"\n` +
+    let imports =
+        `import { Type } from "../compiler/types/AllTypes"\n` +
         `import {${Object.keys(AllTypes).join(
             ", ",
         )}} from "../compiler/types/AllTypes"\n` +
