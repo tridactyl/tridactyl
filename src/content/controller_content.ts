@@ -14,26 +14,27 @@ const logger = new Logger("controller")
 
 function PrintableKey(k) {
     let result = k.key
-    if (result === "Control" ||
-	result === "Meta" ||
-	result === "Alt" ||
-	result === "Shift" ||
-	result === "OS"
-	) {
-	    return ""
-	}
+    if (
+        result === "Control" ||
+        result === "Meta" ||
+        result === "Alt" ||
+        result === "Shift" ||
+        result === "OS"
+    ) {
+        return ""
+    }
 
     if (k.altKey) {
-	result = "A-" + result
+        result = "A-" + result
     }
     if (k.ctrlKey) {
-	result = "C-" + result
+        result = "C-" + result
     }
     if (k.shiftKey) {
-	result = "S-" + result
+        result = "S-" + result
     }
     if (result.length > 1) {
-	result = "<" + result + ">"
+        result = "<" + result + ">"
     }
     return result
 }
@@ -98,13 +99,6 @@ function* ParserController() {
                     response,
                 )
 
-		// show current keyEvents as a suffix of the contentState
-		contentState.suffix = keyEvents.map(x => PrintableKey(x)).join('')
-                logger.debug(
-		    "suffix: ",
-		    contentState.suffix
-		)
-
                 if (response.isMatch) {
                     keyevent.preventDefault()
                     keyevent.stopImmediatePropagation()
@@ -115,10 +109,15 @@ function* ParserController() {
                     break
                 } else {
                     keyEvents = response.keys
+                    // show current keyEvents as a suffix of the contentState
+                    contentState.suffix = keyEvents
+                        .map(x => PrintableKey(x))
+                        .join("")
+                    logger.debug("suffix: ", contentState.suffix)
                 }
             }
             acceptExCmd(exstr)
-	    contentState.suffix = ''
+            contentState.suffix = ""
         } catch (e) {
             // Rumsfeldian errors are caught here
             logger.error("An error occurred in the content controller: ", e)
