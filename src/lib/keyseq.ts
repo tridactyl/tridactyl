@@ -79,8 +79,14 @@ export class MinimalKey {
             str += "-"
         }
 
+        let key = this.key
+        if (key == " ") {
+            key = "Space"
+            needsBrackets = true
+        }
+
         // Format the rest
-        str += this.key
+        str += key
         if (needsBrackets) {
             str = "<" + str + ">"
         }
@@ -349,15 +355,12 @@ export function translateKeysUsingKeyTranslateMap(
             // through, so we just swap the key event out for a new
             // MinimalKey with the right key and modifiers copied from
             // the original.
-            keyEvents[index] = new MinimalKey(
-                newkey,
-                {
-                    altKey: keyEvent.altKey,
-                    ctrlKey: keyEvent.ctrlKey,
-                    metaKey: keyEvent.metaKey,
-                    shiftKey: keyEvent.shiftKey,
-                }
-            )
+            keyEvents[index] = new MinimalKey(newkey, {
+                altKey: keyEvent.altKey,
+                ctrlKey: keyEvent.ctrlKey,
+                metaKey: keyEvent.metaKey,
+                shiftKey: keyEvent.shiftKey,
+            })
         }
     }
 }

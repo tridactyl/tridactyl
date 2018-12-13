@@ -969,6 +969,23 @@ export async function save(storage: "local" | "sync" = get("storageloc")) {
     @hidden
 */
 export async function update() {
+    // Updates a value both in the main config and in sub (=site specific) configs
+    let updateAll = (setting: any[], fn: (any) => any) => {
+        let val = getDeepProperty(USERCONFIG, setting)
+        if (val) {
+            set(...setting, fn(val))
+        }
+        let subconfigs = getDeepProperty(USERCONFIG, ["subconfigs"])
+        if (subconfigs) {
+            Object.keys(subconfigs)
+                .map(pattern => [pattern, getURL(pattern, setting)])
+                .filter(([pattern, value]) => value)
+                .forEach(([pattern, value]) =>
+                    setURL(pattern, ...setting, fn(value)),
+                )
+        }
+    }
+
     let updaters = {
         "0.0": async () => {
             try {
@@ -1043,22 +1060,6 @@ export async function update() {
             set("configversion", "1.3")
         },
         "1.3": () => {
-            // Updates a value both in the main config and in sub (=site specific) configs
-            let updateAll = (setting: any[], fn: (any) => any) => {
-                let val = getDeepProperty(USERCONFIG, setting)
-                if (val) {
-                    set(...setting, fn(val))
-                }
-                let subconfigs = getDeepProperty(USERCONFIG, ["subconfigs"])
-                if (subconfigs) {
-                    Object.keys(subconfigs)
-                        .map(pattern => [pattern, getURL(pattern, setting)])
-                        .filter(([pattern, value]) => value)
-                        .forEach(([pattern, value]) =>
-                            setURL(pattern, ...setting, fn(value)),
-                        )
-                }
-            }
             ;[
                 "priority",
                 "hintdelay",
@@ -1082,6 +1083,38 @@ export async function update() {
         "1.5": () => {
             unset("exaliases", "tab")
             set("configversion", "1.6")
+        },
+        "1.6": () => {
+            let updateSetting = mapObj => {
+                if (!mapObj) return mapObj
+                if (mapObj[" "] != undefined) {
+                    mapObj["<Space>"] = mapObj[" "]
+                    delete mapObj[" "]
+                }
+                ;[
+                    "<A- >",
+                    "<C- >",
+                    "<M- >",
+                    "<S- >",
+                    "<AC- >",
+                    "<AM- >",
+                    "<AS- >",
+                    "<CM- >",
+                    "<CS- >",
+                    "<MS- >",
+                ].forEach(binding => {
+                    if (mapObj[binding] != undefined) {
+                        let key = binding.replace(" ", "Space")
+                        mapObj[key] = mapObj[binding]
+                        delete mapObj[binding]
+                    }
+                })
+                return mapObj
+            }
+            ;["nmaps", "exmaps", "imaps", "inputmaps", "ignoremaps"].forEach(
+                settingName => updateAll([settingName], updateSetting),
+            )
+            set("configversion", "1.7")
         },
     }
     if (!get("configversion")) set("configversion", "0.0")
