@@ -2113,7 +2113,7 @@ export async function mute(...muteArgs: string[]): Promise<void> {
 
 // {{{ WINDOWS
 
-/** Like [[tabopen]], but in a new window */
+/** Like [[tabopen]], but in a new window. `winopen -private [...]` will open the result in a private window (and won't store the command in your ex-history ;) )*/
 //#background
 export async function winopen(...args: string[]) {
     let address: string
