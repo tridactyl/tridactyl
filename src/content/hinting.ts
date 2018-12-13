@@ -507,7 +507,7 @@ function pushKey(ke) {
         modeState.filter += ke.key
         modeState.filterFunc(modeState.filter)
 
-        if (!modeState.activeHints.length) {
+        if (modeState && !modeState.activeHints.length) {
             // There are no more active hints, undo the change to the filter
             modeState.filter = originalFilter
             modeState.filterFunc(modeState.filter)
