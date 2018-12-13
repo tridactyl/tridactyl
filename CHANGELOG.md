@@ -1,5 +1,19 @@
 # Tridactyl changelog
 
+## Release 1.14.5 / 2018-12-13
+
+-   Bug fixes
+
+    -   `hintfiltermode simple` should no longer give you a useless error every time you click something
+    -   Rebinding `<Space>` should actually work now
+        -   If you're having typing sentences into the command line and find spaces appear in the middle of words, you might want to `unbind --mode=ex <Space>`.
+
+-   Under the bonnet
+
+    -   We now have our own configuration listeners. See #1192 for more details.
+
+This release was rushed out because I didn't test 1.14.4 well enough, so only glacambre and bovine3dom got to contribute to it. It feels more weird than usual to thank myself for coding when I'm 50% of the contributors, especially when the release was so speedy because I wasn't paying enough attention to the previous one, so I'll just pat glacambre instead. _bovine3dom tapote glacambre_.
+
 ## Release 1.14.4 / 2018-12-12
 
 -   New features
