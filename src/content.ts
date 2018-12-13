@@ -131,7 +131,9 @@ config.getAsync("modeindicator").then(mode => {
         ? "TridactylPrivate"
         : ""
     statusIndicator.className =
-        "cleanslate TridactylStatusIndicator " + privateMode + " TridactylModenormal "
+        "cleanslate TridactylStatusIndicator " +
+        privateMode +
+        " TridactylModenormal "
 
     // Dynamically sets the border container color.
     if (containerIndicator === "true") {
@@ -186,17 +188,17 @@ config.getAsync("modeindicator").then(mode => {
     }
 
     addContentStateChangedListener((property, oldMode, oldValue, newValue) => {
-	let mode = newValue
-	let suffix = ""
-	let result = ""
+        let mode = newValue
+        let suffix = ""
+        let result = ""
         if (property != "mode") {
-	    if (property === "suffix") {
-		mode = oldMode
-		suffix = newValue
-	    } else {
-		return
-	    }
-	}
+            if (property === "suffix") {
+                mode = oldMode
+                suffix = newValue
+            } else {
+                return
+            }
+        }
 
         const privateMode = browser.extension.inIncognitoContext
             ? "TridactylPrivate"
@@ -220,19 +222,15 @@ config.getAsync("modeindicator").then(mode => {
         } else {
             result = mode
         }
-	let showcmd = Config.get("showcmd")
-	if ( showcmd === "true" && suffix != "" ) {
-	    result = mode + " " + suffix
-	}
-	logger.debug (
-	    "statusindicator: ",
-	    result,
-	    ";",
-	    "config",
-	    showcmd
-	)
-	statusIndicator.textContent = result
-        statusIndicator.className +=  " TridactylMode" + statusIndicator.textContent
+
+        let showcmd = Config.get("showcmd")
+        if (showcmd === "true" && suffix != "") {
+            result = mode + " " + suffix
+        }
+        logger.debug("statusindicator: ", result, ";", "config", showcmd)
+        statusIndicator.textContent = result
+        statusIndicator.className +=
+            " TridactylMode" + statusIndicator.textContent
 
         if (config.get("modeindicator") !== "true") statusIndicator.remove()
     })
