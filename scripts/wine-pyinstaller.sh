@@ -22,7 +22,7 @@ export DISPLAY=
 
 PREREQUISITES="tput printf 7z wine"
 
-MIN_WINE_VER="3"
+MIN_WINE_VER="4"
 MIN_7ZIP_VER="16"
 
 checkRequiredVersions() {
@@ -36,9 +36,9 @@ checkRequiredVersions() {
    fi
 
    if [ -z "$(wine --version 2> /dev/null \
-              | grep "wine-${MIN_WINE_VER}")" ]; then
-      colorEcho \
-        "[-] wine minimum version ${MIN_WINE_VER} required\n" \
+              | grep "wine-${min_wine_ver}")" ]; then
+      colorecho \
+        "[-] wine minimum version ${min_wine_ver} required\n" \
         "alert"
       exit -1
    fi
