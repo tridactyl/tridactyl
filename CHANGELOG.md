@@ -1,5 +1,14 @@
 # Tridactyl changelog
 
+## Release 1.14.6 / 2018-12-14
+
+-   Bug fixes
+
+    -   `updatenag` now checks the right date (code I was using for testing made it into a stable release...)
+    -   `winopen -private` is now documented
+
+We're aware of a few issues introduced by 1.14.4+ and/or Firefox 64. Hopefully we'll get them fixed soon. In the meantime, please report any weirdness on our GitHub page as usual.
+
 ## Release 1.14.5 / 2018-12-13
 
 -   Bug fixes
