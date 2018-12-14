@@ -3896,7 +3896,7 @@ export async function updatecheck(polite = false) {
         const latest = feed.items[0].title
         const current = TRI_VERSION.replace(/-.*/, "")
         if (semverCompare(latest, current) > 0) {
-            const releasedate = new Date(feed.items[3].pubDate) // e.g. 2018-12-04T15:24:43.000Z
+            const releasedate = new Date(feed.items[0].pubDate) // e.g. 2018-12-04T15:24:43.000Z
             const today = new Date()
             // any here are to shut up TS - it doesn't think Dates have subtraction defined :S
             const days_since = ((today as any) - (releasedate as any)) / (1000 * 60 * 60 * 24)
