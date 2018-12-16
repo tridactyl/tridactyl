@@ -1,5 +1,10 @@
 /** Content script entry point */
 
+// We need to grab a lock because sometimes Firefox will decide to insert the content script in the page multiple times
+if ((window as any).tridactyl_content_lock !== undefined)
+    throw Error("Trying to load Tridactyl, but it's already loaded.")
+;(window as any).tridactyl_content_lock = "locked"
+
 // Be careful: typescript elides imports that appear not to be used if they're
 // assigned to a name.  If you want an import just for its side effects, make
 // sure you import it like this:
@@ -130,7 +135,9 @@ config.getAsync("modeindicator").then(mode => {
         ? "TridactylPrivate"
         : ""
     statusIndicator.className =
-        "cleanslate TridactylStatusIndicator " + privateMode + " TridactylModenormal "
+        "cleanslate TridactylStatusIndicator " +
+        privateMode +
+        " TridactylModenormal "
 
     // Dynamically sets the border container color.
     if (containerIndicator === "true") {
@@ -212,7 +219,8 @@ config.getAsync("modeindicator").then(mode => {
         } else {
             statusIndicator.textContent = mode
         }
-        statusIndicator.className +=  " TridactylMode" + statusIndicator.textContent
+        statusIndicator.className +=
+            " TridactylMode" + statusIndicator.textContent
 
         if (config.get("modeindicator") !== "true") statusIndicator.remove()
     })
