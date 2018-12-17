@@ -1,5 +1,13 @@
 # Tridactyl changelog
 
+## Release 1.14.7 / Unreleased
+
+-   New features
+
+    -   `no_mouse_mode` added to help users force themselves to use hints by preventing mouse clicks from reaching the page.
+
+        -   What, we have 1337 stars on GitHub? I hadn't noticed ; )
+
 ## Release 1.14.6 / 2018-12-14
 
 -   Bug fixes

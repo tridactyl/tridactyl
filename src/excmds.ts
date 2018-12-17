@@ -1187,6 +1187,23 @@ export async function credits(excmd?: string) {
     tabopen(creditspage)
 }
 
+//#content_helper
+import * as toys from "./content/toys"
+
+/**
+ * Cover the current page in an overlay to prevent clicking on links with the mouse to force yourself to use hint mode. Get rid of it by reloading the page.
+ *
+ * Suggested usage: `autocmd DocLoad .* no_mouse_mode`
+ *
+ * "There is no mouse".
+ *
+ * Coincidentally added to Tridactyl at the same time as we reached 1337 stars on GitHub.
+ */
+//#content
+export function no_mouse_mode() {
+    toys.jack_in()
+}
+
 /** @hidden */
 // Find clickable next-page/previous-page links whose text matches the supplied pattern,
 // and return the last such link.
