@@ -41,19 +41,19 @@ import { AutoContain } from "@src/lib/autocontainers"
 
 // {{{ tri.contentLocation
 // When loading the background, use the active tab to know what the current content url is
-let dateUpdated
 browser.tabs.query({ currentWindow: true, active: true }).then(t => {
     ;(window as any).tri.contentLocation = new URL(t[0].url)
-    dateUpdated = performance.now()
 })
 // After that, on every tab change, update the current url
-// Experiments show that context switching+performing the api call costs more than 2ms so performance.now()'s resolution should be precise enough for it to be used when we need to protect ourselves against race conditions
+let contentLocationCount = 0
 browser.tabs.onActivated.addListener(ev => {
+    let myId = contentLocationCount + 1
+    contentLocationCount = myId
     browser.tabs.get(ev.tabId).then(t => {
-        let perf = performance.now()
-        if (dateUpdated <= perf) {
+        // Note: we're using contentLocationCount and myId in order to make sure that only the last onActivated event is used in order to set contentLocation
+        // This is needed because otherWise the following chain of execution might happen: onActivated1 => onActivated2 => tabs.get2 => tabs.get1
+        if (contentLocationCount == myId) {
             ;(window as any).tri.contentLocation = new URL(t.url)
-            dateUpdated = perf
         }
     })
 })
