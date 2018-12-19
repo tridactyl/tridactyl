@@ -1082,8 +1082,8 @@ export function viewsource(url = "") {
  * Go to the homepages you have set with `set homepages ["url1", "url2"]`.
  *
  *  @param all
- *      - if "true", opens all homepages in new tabs
- *      - if "false" or not given, opens the last homepage in the current tab
+ *  - if "true", opens all homepages in new tabs
+ *  - if "false" or not given, opens the last homepage in the current tab
  *
  */
 //#background
@@ -3046,9 +3046,8 @@ export async function unbindurl(pattern: string, mode: string, keys: string) {
  * @param key The key that should be reset.
  *
  *  See also:
- *
- *      - [[bind]]
- *      - [[unbind]]
+ *  - [[bind]]
+ *  - [[unbind]]
  */
 //#background
 export async function reset(mode: string, key: string) {
@@ -3060,14 +3059,13 @@ export async function reset(mode: string, key: string) {
  * Restores a sequence of keys to their value in the global config for a specific URL.
  *
  *  See also:
- *
- *      - [[bind]]
- *      - [[unbind]]
- *      - [[reset]]
- *      - [[bindurl]]
- *      - [[unbindurl]]
- *      - [[seturl]]
- *      - [[unseturl]]
+ *  - [[bind]]
+ *  - [[unbind]]
+ *  - [[reset]]
+ *  - [[bindurl]]
+ *  - [[unbindurl]]
+ *  - [[seturl]]
+ *  - [[unseturl]]
  */
 //#background
 export async function reseturl(pattern: string, mode: string, key: string) {
