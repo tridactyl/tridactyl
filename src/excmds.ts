@@ -2273,6 +2273,8 @@ export function version() {
 
 /** Example:
         - `mode ignore` to ignore all keys.
+
+    Note that when in ignore mode, Tridactyl will not switch to insert mode when focusing text areas/inputs. This is by design.
 */
 //#content
 export function mode(mode: ModeName) {
