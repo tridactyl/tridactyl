@@ -660,6 +660,12 @@ class default_config {
      * "auto" will attempt to find a sane editor in your path.
      * Please send your requests to have your favourite terminal moved further up the list to /dev/null.
      *          (but we are probably happy to add your terminal to the list if it isn't already there.)
+     *
+     * Example values:
+     * - linux: `xterm -e vim`
+     * - windows: `start cmd.exe /c \"vim\"`.
+     *
+     * Also see [:editor](/static/docs/modules/_src_excmds_.html#editor).
      */
     editorcmd = "auto"
 
