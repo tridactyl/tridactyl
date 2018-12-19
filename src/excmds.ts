@@ -938,14 +938,12 @@ export const ABOUT_WHITELIST = ["about:license", "about:logo", "about:rights"]
 /** Open a new page in the current tab.
  *
  *   @param urlarr
- *       - if first word looks like it has a schema, treat as a URI
- *       - else if the first word contains a dot, treat as a domain name
- *       - else if the first word is a key of [[SEARCH_URLS]], treat all following terms as search parameters for that provider
- *       - else treat as search parameters for google
+ *   - if first word looks like it has a schema, treat as a URI
+ *   - else if the first word contains a dot, treat as a domain name
+ *   - else if the first word is a key of [[SEARCH_URLS]], treat all following terms as search parameters for that provider
+ *   - else treat as search parameters for [[searchengine]]
  *
- *   Related settings:
- *      - "searchengine": "google" or any of [[SEARCH_URLS]]
- *      - "historyresults": the n-most-recent results to ask Firefox for before they are sorted by frequency. Reduce this number if you find your results are bad.
+ *   Related settings: [[searchengine]], [[historyresults]]
  *
  * Can only open about:* or file:* URLs if you have the native messenger installed, and on OSX you must set `browser` to something that will open Firefox from a terminal pass it commmand line options.
  *
@@ -1748,6 +1746,7 @@ export async function tabprev(increment = 1) {
 
     Hinting is controlled by `relatedopenpos`
 
+    Also see the [[searchengine]] and [[searchurls]] settings.
 */
 //#background
 export async function tabopen(...addressarr: string[]) {
