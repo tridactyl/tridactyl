@@ -85,6 +85,7 @@ import * as CSS from "css"
 import * as Perf from "@src/perf"
 import * as Metadata from "@src/.metadata.generated"
 
+/** @hidden **/
 const TRI_VERSION = "REPLACE_ME_WITH_THE_VERSION_USING_SED"
 
 //#content_helper
@@ -938,14 +939,12 @@ export const ABOUT_WHITELIST = ["about:license", "about:logo", "about:rights"]
 /** Open a new page in the current tab.
  *
  *   @param urlarr
- *       - if first word looks like it has a schema, treat as a URI
- *       - else if the first word contains a dot, treat as a domain name
- *       - else if the first word is a key of [[SEARCH_URLS]], treat all following terms as search parameters for that provider
- *       - else treat as search parameters for google
+ *   - if first word looks like it has a schema, treat as a URI
+ *   - else if the first word contains a dot, treat as a domain name
+ *   - else if the first word is a key of [[SEARCH_URLS]], treat all following terms as search parameters for that provider
+ *   - else treat as search parameters for [[searchengine]]
  *
- *   Related settings:
- *      - "searchengine": "google" or any of [[SEARCH_URLS]]
- *      - "historyresults": the n-most-recent results to ask Firefox for before they are sorted by frequency. Reduce this number if you find your results are bad.
+ *   Related settings: [[searchengine]], [[historyresults]]
  *
  * Can only open about:* or file:* URLs if you have the native messenger installed, and on OSX you must set `browser` to something that will open Firefox from a terminal pass it commmand line options.
  *
@@ -1084,8 +1083,8 @@ export function viewsource(url = "") {
  * Go to the homepages you have set with `set homepages ["url1", "url2"]`.
  *
  *  @param all
- *      - if "true", opens all homepages in new tabs
- *      - if "false" or not given, opens the last homepage in the current tab
+ *  - if "true", opens all homepages in new tabs
+ *  - if "false" or not given, opens the last homepage in the current tab
  *
  */
 //#background
@@ -1485,7 +1484,7 @@ export async function reader() {
     }
 }
 
-//@hidden
+/** @hidden **/
 //#content_helper
 // {
 loadaucmds("DocStart")
@@ -1501,7 +1500,7 @@ const fullscreenhandler = () => {
     }
 }
 
-//@hidden
+/** @hidden **/
 const fullscreenApiIsPrefixed = "mozFullScreenEnabled" in document
 
 // Until firefox removes vendor prefix for this api (in FF64), we must also use mozfullscreenchange
@@ -1748,6 +1747,7 @@ export async function tabprev(increment = 1) {
 
     Hinting is controlled by `relatedopenpos`
 
+    Also see the [[searchengine]] and [[searchurls]] settings.
 */
 //#background
 export async function tabopen(...addressarr: string[]) {
@@ -2274,6 +2274,8 @@ export function version() {
 
 /** Example:
         - `mode ignore` to ignore all keys.
+
+    Note that when in ignore mode, Tridactyl will not switch to insert mode when focusing text areas/inputs. This is by design.
 */
 //#content
 export function mode(mode: ModeName) {
@@ -3045,9 +3047,8 @@ export async function unbindurl(pattern: string, mode: string, keys: string) {
  * @param key The key that should be reset.
  *
  *  See also:
- *
- *      - [[bind]]
- *      - [[unbind]]
+ *  - [[bind]]
+ *  - [[unbind]]
  */
 //#background
 export async function reset(mode: string, key: string) {
@@ -3059,14 +3060,13 @@ export async function reset(mode: string, key: string) {
  * Restores a sequence of keys to their value in the global config for a specific URL.
  *
  *  See also:
- *
- *      - [[bind]]
- *      - [[unbind]]
- *      - [[reset]]
- *      - [[bindurl]]
- *      - [[unbindurl]]
- *      - [[seturl]]
- *      - [[unseturl]]
+ *  - [[bind]]
+ *  - [[unbind]]
+ *  - [[reset]]
+ *  - [[bindurl]]
+ *  - [[unbindurl]]
+ *  - [[seturl]]
+ *  - [[unseturl]]
  */
 //#background
 export async function reseturl(pattern: string, mode: string, key: string) {
