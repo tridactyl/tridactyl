@@ -85,6 +85,7 @@ import * as CSS from "css"
 import * as Perf from "@src/perf"
 import * as Metadata from "@src/.metadata.generated"
 
+/** @hidden **/
 const TRI_VERSION = "REPLACE_ME_WITH_THE_VERSION_USING_SED"
 
 //#content_helper
@@ -1483,7 +1484,7 @@ export async function reader() {
     }
 }
 
-//@hidden
+/** @hidden **/
 //#content_helper
 // {
 loadaucmds("DocStart")
@@ -1499,7 +1500,7 @@ const fullscreenhandler = () => {
     }
 }
 
-//@hidden
+/** @hidden **/
 const fullscreenApiIsPrefixed = "mozFullScreenEnabled" in document
 
 // Until firefox removes vendor prefix for this api (in FF64), we must also use mozfullscreenchange
