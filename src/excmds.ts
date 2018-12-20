@@ -2401,9 +2401,9 @@ export function showcmdline(focus = true) {
 }
 
 /** @hidden */
-//#background
+//#content
 export function hidecmdline() {
-    CommandLineBackground.hide()
+    CommandLineContent.hide_and_blur()
 }
 
 /** Set the current value of the commandline to string *with* a trailing space */
@@ -2440,7 +2440,7 @@ export async function fillcmdline_tmp(ms: number, ...strarr: string[]) {
     return new Promise(resolve =>
         setTimeout(async () => {
             if ((await messageTab(tabId, "commandline_frame", "getContent", [])) == str) {
-                CommandLineBackground.hide(tabId)
+                await messageTab(tabId, "commandline_content", "hide_and_blur")
                 await messageTab(tabId, "commandline_frame", "clear", [true])
             }
             resolve()
