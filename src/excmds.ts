@@ -1203,6 +1203,14 @@ export function no_mouse_mode() {
     toys.jack_in()
 }
 
+/**
+ * Christmas variant of [[no_mouse_mode]] (if you live in $DEFAULT hemisphere).
+ */
+//#content
+export function snow_mouse_mode() {
+    toys.snow()
+}
+
 /** @hidden */
 // Find clickable next-page/previous-page links whose text matches the supplied pattern,
 // and return the last such link.

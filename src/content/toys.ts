@@ -8,6 +8,17 @@
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 export function jack_in() {
+    //chinese characters - taken from the unicode charset
+    const chinese = "田由甲申甴电甶男甸甹町画甼甽甾甿畀畁畂畃畄畅畆畇畈畉畊畋界畍畎畏畐畑".split(
+        "",
+    )
+    const colour = "#0F0" //green text
+    rain(chinese,colour)
+}
+
+export let snow = () => rain(["❄"],"#FFF",0.15)
+
+export function rain(characters: string[], colour, darkening=0.05){
     let d = document.createElement("div")
     d.style.position = "fixed"
     d.style.display = "block"
@@ -28,10 +39,6 @@ export function jack_in() {
     c.height = window.innerHeight
     c.width = window.innerWidth
 
-    //chinese characters - taken from the unicode charset
-    let chinese = "田由甲申甴电甶男甸甹町画甼甽甾甿畀畁畂畃畄畅畆畇畈畉畊畋界畍畎畏畐畑".split(
-        "",
-    )
     //converting the string into an array of single characters
 
     let font_size = 10
@@ -46,15 +53,15 @@ export function jack_in() {
     function draw() {
         //Black BG for the canvas
         //translucent BG to show trail
-        ctx.fillStyle = "rgba(0, 0, 0, 0.05)"
+        ctx.fillStyle = "rgba(0, 0, 0, "+darkening+")"
         ctx.fillRect(0, 0, c.width, c.height)
 
-        ctx.fillStyle = "#0F0" //green text
+        ctx.fillStyle = colour
         ctx.font = font_size + "px arial"
         //looping over drops
         for (let i = 0; i < drops.length; i++) {
             //a random chinese character to print
-            let text = chinese[Math.floor(Math.random() * chinese.length)]
+            let text = characters[Math.floor(Math.random() * characters.length)]
             //x = i*font_size, y = value of drops[i]*font_size
             ctx.fillText(text, i * font_size, drops[i] * font_size)
 

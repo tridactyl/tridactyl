@@ -7,6 +7,7 @@
     -   `no_mouse_mode` added to help users force themselves to use hints by preventing mouse clicks from reaching the page.
 
         -   What, we have 1337 stars on GitHub? I hadn't noticed ; )
+        -   `snow_mouse_mode` also added to help people get into the Christmas spirit
 
 ## Release 1.14.6 / 2018-12-14
 
