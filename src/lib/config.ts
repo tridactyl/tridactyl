@@ -762,7 +762,7 @@ class default_config {
      * Show (partial) command in the mode indicator.
      * Corresponds to 'showcmd' option of vi.
      */
-    showcmd: "true" | "false" = "false"
+    modeindicatorshowkeys: "true" | "false" = "false"
 }
 
 /** @hidden */

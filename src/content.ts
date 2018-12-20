@@ -223,11 +223,17 @@ config.getAsync("modeindicator").then(mode => {
             result = mode
         }
 
-        let showcmd = Config.get("showcmd")
-        if (showcmd === "true" && suffix != "") {
+        let modeindicatorshowkeys = Config.get("modeindicatorshowkeys")
+        if (modeindicatorshowkeys === "true" && suffix != "") {
             result = mode + " " + suffix
         }
-        logger.debug("statusindicator: ", result, ";", "config", showcmd)
+        logger.debug(
+            "statusindicator: ",
+            result,
+            ";",
+            "config",
+            modeindicatorshowkeys,
+        )
         statusIndicator.textContent = result
         statusIndicator.className +=
             " TridactylMode" + statusIndicator.textContent
