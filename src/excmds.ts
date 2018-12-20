@@ -94,7 +94,7 @@ import "@src/lib/number.clamp"
 import * as SELF from "@src/.excmds_content.generated"
 Messaging.addListener("excmd_content", Messaging.attributeCaller(SELF))
 import * as DOM from "@src/lib/dom"
-import { executeWithoutCommandLine } from "@src/content/commandline_content"
+import * as CommandLineContent from "@src/content/commandline_content"
 import * as scrolling from "@src/content/scrolling"
 // }
 
@@ -1063,7 +1063,7 @@ export function viewsource(url = "") {
         return
     }
     if (!sourceElement) {
-        sourceElement = executeWithoutCommandLine(() => {
+        sourceElement = CommandLineContent.executeWithoutCommandLine(() => {
             let pre = document.createElement("pre")
             pre.id = "TridactylViewsourceElement"
             pre.className = "cleanslate " + config.get("theme")
@@ -2389,9 +2389,15 @@ export async function sleep(time_ms: number) {
 }
 
 /** @hidden */
-//#background
-function showcmdline(focus = true) {
-    CommandLineBackground.show(focus)
+//#content
+export function showcmdline(focus = true) {
+    CommandLineContent.show()
+    let done = Promise.resolve()
+    if (focus) {
+        CommandLineContent.focus()
+        done = Messaging.messageOwnTab("commandline_frame", "focus")
+    }
+    return done
 }
 
 /** @hidden */

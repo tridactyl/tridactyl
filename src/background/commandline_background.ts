@@ -42,14 +42,6 @@ async function allWindowTabs(): Promise<browser.tabs.Tab[]> {
     return browser.tabs.query({})
 }
 
-export async function show(focus = true) {
-    Messaging.messageActiveTab("commandline_content", "show")
-    if (focus) {
-        Messaging.messageActiveTab("commandline_content", "focus")
-        Messaging.messageActiveTab("commandline_frame", "focus")
-    }
-}
-
 export async function hide(tabid?) {
     if (!tabid) tabid = await activeTabId()
     Messaging.messageTab(tabid, "commandline_content", "hide")
@@ -63,7 +55,6 @@ Messaging.addListener(
         currentWindowTabs,
         history,
         recvExStr,
-        show,
         hide,
     }),
 )
