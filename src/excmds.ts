@@ -2407,41 +2407,39 @@ export function hidecmdline() {
 }
 
 /** Set the current value of the commandline to string *with* a trailing space */
-//#background
+//#content
 export function fillcmdline(...strarr: string[]) {
     let str = strarr.join(" ")
     showcmdline()
-    messageActiveTab("commandline_frame", "fillcmdline", [str])
+    return Messaging.messageOwnTab("commandline_frame", "fillcmdline", [str])
 }
 
 /** Set the current value of the commandline to string *without* a trailing space */
-//#background
+//#content
 export function fillcmdline_notrail(...strarr: string[]) {
     let str = strarr.join(" ")
-    let trailspace = false
     showcmdline()
-    messageActiveTab("commandline_frame", "fillcmdline", [str, trailspace])
+    return Messaging.messageOwnTab("commandline_frame", "fillcmdline", [str, false])
 }
 
 /** Show and fill the command line without focusing it */
-//#background
+//#content
 export function fillcmdline_nofocus(...strarr: string[]) {
     showcmdline(false)
-    return messageActiveTab("commandline_frame", "fillcmdline", [strarr.join(" "), false, false])
+    return Messaging.messageOwnTab("commandline_frame", "fillcmdline", [strarr.join(" "), false, false])
 }
 
 /** Shows str in the command line for ms milliseconds. Recommended duration: 3000ms. */
-//#background
+//#content
 export async function fillcmdline_tmp(ms: number, ...strarr: string[]) {
     let str = strarr.join(" ")
-    let tabId = await activeTabId()
     showcmdline(false)
-    messageTab(tabId, "commandline_frame", "fillcmdline", [strarr.join(" "), false, false])
+    Messaging.messageOwnTab("commandline_frame", "fillcmdline", [strarr.join(" "), false, false])
     return new Promise(resolve =>
         setTimeout(async () => {
-            if ((await messageTab(tabId, "commandline_frame", "getContent", [])) == str) {
-                await messageTab(tabId, "commandline_content", "hide_and_blur")
-                await messageTab(tabId, "commandline_frame", "clear", [true])
+            if ((await Messaging.messageOwnTab("commandline_frame", "getContent", [])) == str) {
+                CommandLineContent.hide_and_blur()
+                resolve(Messaging.messageOwnTab("commandline_frame", "clear", [true]))
             }
             resolve()
         }, ms),
