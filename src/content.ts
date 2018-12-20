@@ -12,6 +12,7 @@ import "@src/lib/html-tagged-template"
 /* import "@src/content/commandline_content" */
 /* import "@src/excmds_content" */
 /* import "@src/content/hinting" */
+import * as Config from "@src/lib/config"
 import * as Logging from "@src/lib/logging"
 const logger = new Logging.Logger("content")
 logger.debug("Tridactyl content script loaded, boss!")
@@ -191,12 +192,19 @@ config.getAsync("modeindicator").then(mode => {
         })
     }
 
-    addContentStateChangedListener((property, oldValue, newValue) => {
+    addContentStateChangedListener((property, oldMode, oldValue, newValue) => {
+        let mode = newValue
+        let suffix = ""
+        let result = ""
         if (property != "mode") {
-            return
+            if (property === "suffix") {
+                mode = oldMode
+                suffix = newValue
+            } else {
+                return
+            }
         }
 
-        let mode = newValue
         const privateMode = browser.extension.inIncognitoContext
             ? "TridactylPrivate"
             : ""
@@ -217,8 +225,20 @@ config.getAsync("modeindicator").then(mode => {
             statusIndicator.textContent = "normal"
             // statusIndicator.style.borderColor = "lightgray !important"
         } else {
-            statusIndicator.textContent = mode
+            result = mode
         }
+        let modeindicatorshowkeys = Config.get("modeindicatorshowkeys")
+        if (modeindicatorshowkeys === "true" && suffix != "") {
+            result = mode + " " + suffix
+        }
+        logger.debug(
+            "statusindicator: ",
+            result,
+            ";",
+            "config",
+            modeindicatorshowkeys,
+        )
+        statusIndicator.textContent = result
         statusIndicator.className +=
             " TridactylMode" + statusIndicator.textContent
 

@@ -12,6 +12,33 @@ import * as generic from "@src/parsers/genericmode"
 
 const logger = new Logger("controller")
 
+function PrintableKey(k) {
+    let result = k.key
+    if (
+        result === "Control" ||
+        result === "Meta" ||
+        result === "Alt" ||
+        result === "Shift" ||
+        result === "OS"
+    ) {
+        return ""
+    }
+
+    if (k.altKey) {
+        result = "A-" + result
+    }
+    if (k.ctrlKey) {
+        result = "C-" + result
+    }
+    if (k.shiftKey) {
+        result = "S-" + result
+    }
+    if (result.length > 1) {
+        result = "<" + result + ">"
+    }
+    return result
+}
+
 /** Accepts keyevents, resolves them to maps, maps to exstrs, executes exstrs */
 function* ParserController() {
     const parsers: { [mode_name in ModeName]: any } = {
@@ -82,9 +109,15 @@ function* ParserController() {
                     break
                 } else {
                     keyEvents = response.keys
+                    // show current keyEvents as a suffix of the contentState
+                    contentState.suffix = keyEvents
+                        .map(x => PrintableKey(x))
+                        .join("")
+                    logger.debug("suffix: ", contentState.suffix)
                 }
             }
             acceptExCmd(exstr)
+            contentState.suffix = ""
         } catch (e) {
             // Rumsfeldian errors are caught here
             logger.error("An error occurred in the content controller: ", e)
