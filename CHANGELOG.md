@@ -9,6 +9,8 @@
         -   What, we have 1337 stars on GitHub? I hadn't noticed ; )
         -   `snow_mouse_mode` also added to help people get into the Christmas spirit
 
+    -   the horrendously named `modeindicatorshowkeys` setting now allows you to see which fragments of valid key sequences you have typed.
+
 ## Release 1.14.6 / 2018-12-14
 
 -   Bug fixes
