@@ -1,4 +1,5 @@
 import * as Perf from "@src/perf"
+import { browserBg } from "@src/lib/webext.ts"
 import { enumerate } from "@src/lib/itertools"
 import * as Containers from "@src/lib/containers"
 import * as Messaging from "@src/lib/messaging"
@@ -78,11 +79,7 @@ export class BufferCompletionSource extends Completions.CompletionSourceFuse {
         )
 
         /* console.log('updateOptions', this.optionContainer) */
-        const tabs: browser.tabs.Tab[] = await Messaging.message(
-            "commandline_background",
-            "currentWindowTabs",
-        )
-
+        const tabs: browser.tabs.Tab[] = await browserBg.tabs.query({ currentWindow: true })
         const options = []
 
         // Get alternative tab, defined as last accessed tab.

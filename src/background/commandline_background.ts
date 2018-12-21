@@ -25,29 +25,9 @@ function recvExStr(exstr: string) {
     }
 }
 
-/** Helpers for completions */
-async function currentWindowTabs(): Promise<browser.tabs.Tab[]> {
-    return await browser.tabs.query({ currentWindow: true })
-}
-
-async function history(): Promise<browser.history.HistoryItem[]> {
-    return await browser.history.search({
-        text: "",
-        maxResults: 50,
-        startTime: 0,
-    })
-}
-
-async function allWindowTabs(): Promise<browser.tabs.Tab[]> {
-    return browser.tabs.query({})
-}
-
 Messaging.addListener(
     "commandline_background",
     Messaging.attributeCaller({
-        allWindowTabs,
-        currentWindowTabs,
-        history,
         recvExStr,
     }),
 )
