@@ -65,10 +65,7 @@ export class TabAllCompletionSource extends Completions.CompletionSourceFuse {
 
     @Perf.measuredAsync
     private async updateOptions(exstr?: string) {
-        const tabsPromise = Messaging.message(
-            "commandline_background",
-            "allWindowTabs",
-        )
+        const tabsPromise = browserBg.tabs.query({})
         const windowsPromise = this.getWindows()
         const [tabs, windows] = await Promise.all([tabsPromise, windowsPromise])
 
