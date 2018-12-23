@@ -106,6 +106,11 @@ export function blur() {
     }
 }
 
+export function hide_and_blur() {
+    hide()
+    blur()
+}
+
 export function executeWithoutCommandLine(fn) {
     let parent
     if (cmdline_iframe) {

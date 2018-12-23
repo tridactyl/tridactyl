@@ -94,7 +94,7 @@ import "@src/lib/number.clamp"
 import * as SELF from "@src/.excmds_content.generated"
 Messaging.addListener("excmd_content", Messaging.attributeCaller(SELF))
 import * as DOM from "@src/lib/dom"
-import { executeWithoutCommandLine } from "@src/content/commandline_content"
+import * as CommandLineContent from "@src/content/commandline_content"
 import * as scrolling from "@src/content/scrolling"
 // }
 
@@ -1063,7 +1063,7 @@ export function viewsource(url = "") {
         return
     }
     if (!sourceElement) {
-        sourceElement = executeWithoutCommandLine(() => {
+        sourceElement = CommandLineContent.executeWithoutCommandLine(() => {
             let pre = document.createElement("pre")
             pre.id = "TridactylViewsourceElement"
             pre.className = "cleanslate " + config.get("theme")
@@ -2397,53 +2397,57 @@ export async function sleep(time_ms: number) {
 }
 
 /** @hidden */
-//#background
-function showcmdline(focus = true) {
-    CommandLineBackground.show(focus)
+//#content
+export function showcmdline(focus = true) {
+    CommandLineContent.show()
+    let done = Promise.resolve()
+    if (focus) {
+        CommandLineContent.focus()
+        done = Messaging.messageOwnTab("commandline_frame", "focus")
+    }
+    return done
 }
 
 /** @hidden */
-//#background
+//#content
 export function hidecmdline() {
-    CommandLineBackground.hide()
+    CommandLineContent.hide_and_blur()
 }
 
 /** Set the current value of the commandline to string *with* a trailing space */
-//#background
+//#content
 export function fillcmdline(...strarr: string[]) {
     let str = strarr.join(" ")
     showcmdline()
-    messageActiveTab("commandline_frame", "fillcmdline", [str])
+    return Messaging.messageOwnTab("commandline_frame", "fillcmdline", [str])
 }
 
 /** Set the current value of the commandline to string *without* a trailing space */
-//#background
+//#content
 export function fillcmdline_notrail(...strarr: string[]) {
     let str = strarr.join(" ")
-    let trailspace = false
     showcmdline()
-    messageActiveTab("commandline_frame", "fillcmdline", [str, trailspace])
+    return Messaging.messageOwnTab("commandline_frame", "fillcmdline", [str, false])
 }
 
 /** Show and fill the command line without focusing it */
-//#background
+//#content
 export function fillcmdline_nofocus(...strarr: string[]) {
     showcmdline(false)
-    return messageActiveTab("commandline_frame", "fillcmdline", [strarr.join(" "), false, false])
+    return Messaging.messageOwnTab("commandline_frame", "fillcmdline", [strarr.join(" "), false, false])
 }
 
 /** Shows str in the command line for ms milliseconds. Recommended duration: 3000ms. */
-//#background
+//#content
 export async function fillcmdline_tmp(ms: number, ...strarr: string[]) {
     let str = strarr.join(" ")
-    let tabId = await activeTabId()
     showcmdline(false)
-    messageTab(tabId, "commandline_frame", "fillcmdline", [strarr.join(" "), false, false])
+    Messaging.messageOwnTab("commandline_frame", "fillcmdline", [strarr.join(" "), false, false])
     return new Promise(resolve =>
         setTimeout(async () => {
-            if ((await messageTab(tabId, "commandline_frame", "getContent", [])) == str) {
-                CommandLineBackground.hide(tabId)
-                await messageTab(tabId, "commandline_frame", "clear", [true])
+            if ((await Messaging.messageOwnTab("commandline_frame", "getContent", [])) == str) {
+                CommandLineContent.hide_and_blur()
+                resolve(Messaging.messageOwnTab("commandline_frame", "clear", [true]))
             }
             resolve()
         }, ms),
