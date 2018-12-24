@@ -1707,7 +1707,16 @@ export async function tabprev(increment = 1) {
     // return tabIndexSetActive((await activeTab()).index - increment + 1)
     // Kludge until https://bugzilla.mozilla.org/show_bug.cgi?id=1504775 is fixed:
 
-    if (config.get("treestyletabintegration")) {
+    var hasTST = false
+    try {
+        // Not sure why this is an error
+        await browser.management.get("treestyletab@piro.sakura.ne.jp")
+        hasTST = true
+    } catch (e) {
+        hasTST = false
+    }
+
+    if (config.get("treestyletabintegration") && hasTST) {
         // Ok so this entire piece here is really inefficient, it looks up all tabs, gets the active tab id, gets all tabs again (this time as a tree), iterates through all those tabs flattening them into an array, and then iterates over them once more to find the index of the active tab in that flattened array. This has a lot of room for improvement in the future.
         // Find the current TAB id
         let activeTabId = (await activeTab()).id

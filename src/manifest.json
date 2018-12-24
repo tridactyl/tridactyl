@@ -54,6 +54,7 @@
         "tabs",
         "topSites",
         "nativeMessaging",
+        "management",
         "webNavigation",
         "webRequest",
         "webRequestBlocking",
