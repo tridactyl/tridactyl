@@ -1943,11 +1943,66 @@ export async function tabprev(increment = 1) {
     // Proper way:
     // return tabIndexSetActive((await activeTab()).index - increment + 1)
     // Kludge until https://bugzilla.mozilla.org/show_bug.cgi?id=1504775 is fixed:
-    return browser.tabs.query({ currentWindow: true, hidden: false }).then(tabs => {
-        tabs.sort((t1, t2) => t1.index - t2.index)
-        const prevTab = (tabs.findIndex(t => t.active) - increment + tabs.length) % tabs.length
-        return browser.tabs.update(tabs[prevTab].id, { active: true })
-    })
+
+    let hasTST = false
+    try {
+        // Not sure why this is an error
+        await browser.management.get("treestyletab@piro.sakura.ne.jp")
+        hasTST = true
+    } catch (e) {
+        hasTST = false
+    }
+
+    if (config.get("treestyletabintegration") && hasTST) {
+        // Ok so this entire piece here is really inefficient, it looks up all tabs, gets the active tab id, gets all tabs again (this time as a tree), iterates through all those tabs flattening them into an array, and then iterates over them once more to find the index of the active tab in that flattened array. This has a lot of room for improvement in the future.
+        // Find the current TAB id
+        const activeTabId = (await activeTab()).id
+        // Get the whole tab tree
+        const tabTree = await browser.runtime.sendMessage("treestyletab@piro.sakura.ne.jp", {
+            type: "get-tree",
+            tabs: "*",
+        })
+        // Convert the Tree to a flat array
+        function flattenVisibleTree(node) {
+            if (typeof node === "undefined") return []
+
+            // There is no root parent node so the first iteration should be delt with differently
+            const ids = []
+            if (node instanceof Array) {
+                node.forEach(child => {
+                    ids.push(...flattenVisibleTree(child))
+                })
+            } else {
+                // Tree is collapsed, therefore it nor it's children are visible
+                if (typeof node.states !== "undefined" && node.states.indexOf("collapsed") !== -1) return []
+
+                ids.push(node.id)
+                // Recurse over every child and add their ID array to ours
+                if (typeof node.children !== "undefined")
+                    node.children.forEach(child => {
+                        ids.push(...flattenVisibleTree(child))
+                    })
+            }
+
+            // Return our ids followed by our childrens as an array
+            return ids
+        }
+
+        if (typeof tabTree === undefined || tabTree.constructor !== Array) return null
+        const tabList = flattenVisibleTree(tabTree)
+
+        const prevTab = tabList[tabList.indexOf(activeTabId) - increment]
+
+        return browser.tabs.update(prevTab, { active: true })
+
+        //return browser.tabs.update(tabs[prevTab].id, { active: true })
+    } else {
+        return browser.tabs.query({ currentWindow: true, hidden: false }).then(tabs => {
+            tabs.sort((t1, t2) => t1.index - t2.index)
+            const prevTab = (tabs.findIndex(t => t.active) - increment + tabs.length) % tabs.length
+            return browser.tabs.update(tabs[prevTab].id, { active: true })
+        })
+    }
 }
 
 /** Like [[open]], but in a new tab. If no address is given, it will open the newtab page, which can be set with `set newtab [url]`
