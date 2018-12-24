@@ -170,7 +170,7 @@ export function complete() {
     let matches = state.cmdHistory.filter(key => key.startsWith(fragment))
     let mostrecent = matches[matches.length - 1]
     if (mostrecent != undefined) clInput.value = mostrecent
-    clInput.dispatchEvent(new Event("input")) // dirty hack for completions
+    return refresh_completions(clInput.value)
 }
 
 /**
@@ -195,10 +195,12 @@ export function insert_completion() {
     if (activeCompletions) {
         activeCompletions.forEach(comp => (comp.completion = undefined))
     }
+    let result = Promise.resolve([])
     if (command) {
         clInput.value = command + " "
-        clInput.dispatchEvent(new Event("input")) // dirty hack for completions
+        result = refresh_completions(clInput.value)
     }
+    return result
 }
 
 /**
@@ -221,7 +223,14 @@ export function insert_space_or_completion() {
             clInput.value.substring(selectionEnd)
         clInput.selectionStart = clInput.selectionEnd = selectionStart + 1
     }
-    clInput.dispatchEvent(new Event("input")) // dirty hack for completions
+    return refresh_completions(clInput.value)
+}
+
+export function refresh_completions(exstr) {
+    if (!activeCompletions) enableCompletions()
+    return Promise.all(
+        activeCompletions.map(comp => comp.filter(exstr).then(resizeArea)),
+    )
 }
 
 /** @hidden **/
@@ -246,11 +255,7 @@ clInput.addEventListener("input", () => {
         // If we're not the current completion computation anymore, stop
         if (timeoutId != myTimeoutId) return
 
-        enableCompletions()
-        // Fire each completion and add a callback to resize area
-        onInputPromise = Promise.all(
-            activeCompletions.map(comp => comp.filter(exstr).then(resizeArea)),
-        )
+        onInputPromise = refresh_completions(exstr)
     }, 100)
     // Declare self as current completion computation
     timeoutId = myTimeoutId
@@ -368,11 +373,13 @@ export function fillcmdline(
     if (trailspace) clInput.value = newcommand + " "
     else clInput.value = newcommand
     isVisible = true
+    let result = Promise.resolve([])
     // Focus is lost for some reason.
     if (ffocus) {
         focus()
-        clInput.dispatchEvent(new Event("input")) // dirty hack for completions
+        result = refresh_completions(clInput.value)
     }
+    return result
 }
 
 /** @hidden
@@ -433,14 +440,16 @@ export function getContent() {
 
 /** @hidden **/
 export function editor_function(fn_name, ...args) {
+    let result = Promise.resolve([])
     if (tri_editor[fn_name]) {
         tri_editor[fn_name](clInput, ...args)
-        clInput.dispatchEvent(new Event("input")) // dirty hack for completions
+        result = refresh_completions(clInput.value)
     } else {
         // The user is using the command line so we can't log message there
         // logger.error(`No editor function named ${fn_name}!`)
         console.error(`No editor function named ${fn_name}!`)
     }
+    return result
 }
 
 import * as SELF from "@src/commandline_frame"
