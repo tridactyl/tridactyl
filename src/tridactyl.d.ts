@@ -218,6 +218,10 @@ declare namespace browser.webRequest {
     }
 }
 
+declare namespace browser.management {
+    function get(id: string): any // really this is https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/management/ExtensionInfo but I'm lazy
+}
+
 // html-tagged-template.js
 declare function html(
     strings: TemplateStringsArray,

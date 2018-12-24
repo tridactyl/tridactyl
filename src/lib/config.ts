@@ -927,6 +927,11 @@ export class default_config {
      * Corresponds to 'showcmd' option of vi.
      */
     modeindicatorshowkeys: "true" | "false" = "false"
+
+    /**
+     * Whether or not to integrate with the TST tab
+     */
+    treestyletabintegration: boolean = true
 }
 
 /** @hidden */

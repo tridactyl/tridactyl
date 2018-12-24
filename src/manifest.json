@@ -57,6 +57,7 @@
         "topSites",
         "management",
         "nativeMessaging",
+        "management",
         "webNavigation",
         "webRequest",
         "webRequestBlocking",
