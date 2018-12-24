@@ -1709,55 +1709,47 @@ export async function tabprev(increment = 1) {
 
     if (config.get("treestyletabintegration")) {
         // Ok so this entire piece here is really inefficient, it looks up all tabs, gets the active tab id, gets all tabs again (this time as a tree), iterates through all those tabs flattening them into an array, and then iterates over them once more to find the index of the active tab in that flattened array. This has a lot of room for improvement in the future.
-        return browser.tabs.query({ currentWindow: true, hidden: false }).then(tabs => {
-            tabs = tabs.sort((t1, t2) => t1.index - t2.index)
-            // Find the current TAB id
-            let activeTabId = tabs[tabs.findIndex(t => t.active)].id
-            // Get the whole tab tree
-            browser.runtime
-                .sendMessage("treestyletab@piro.sakura.ne.jp", {
-                    type: "get-tree",
-                    tabs: "*",
-                })
-                .then(tabTree => {
-                    // Convert the Tree to a flat array
-                    function flattenVisibleTree(node) {
-                        // Damn Javascript type errors
-                        if (typeof node === "undefined") return []
-
-                        // There is no root parent node so the first iteration should be delt with differently
-                        var ids = []
-                        if (node instanceof Array) {
-                            node.forEach(child => {
-                                ids.push(...flattenVisibleTree(child))
-                            })
-                        } else {
-                            // Tree is collapsed, therefore it nor it's children are visible
-                            if (typeof node.states !== "undefined" && node.states.indexOf("collapsed") !== -1) return []
-
-                            ids.push(node.id)
-                            // Recurse over every child and add their ID array to ours
-                            if (typeof node.children !== "undefined")
-                                node.children.forEach(child => {
-                                    ids.push(...flattenVisibleTree(child))
-                                })
-                        }
-
-                        // Return our ids followed by our childrens as an array
-                        return ids
-                    }
-
-                    // TODO: Have this check if the tabTree is an array
-                    if (typeof tabTree === undefined || tabTree.constructor !== Array) return null
-                    let tabList = flattenVisibleTree(tabTree)
-
-                    let prevTab = tabList[tabList.indexOf(activeTabId) - increment]
-
-                    return browser.tabs.update(prevTab, { active: true })
-                })
-
-            //return browser.tabs.update(tabs[prevTab].id, { active: true })
+        // Find the current TAB id
+        let activeTabId = (await activeTab()).id
+        // Get the whole tab tree
+        let tabTree = await browser.runtime.sendMessage("treestyletab@piro.sakura.ne.jp", {
+            type: "get-tree",
+            tabs: "*",
         })
+        // Convert the Tree to a flat array
+        function flattenVisibleTree(node) {
+            if (typeof node === "undefined") return []
+
+            // There is no root parent node so the first iteration should be delt with differently
+            var ids = []
+            if (node instanceof Array) {
+                node.forEach(child => {
+                    ids.push(...flattenVisibleTree(child))
+                })
+            } else {
+                // Tree is collapsed, therefore it nor it's children are visible
+                if (typeof node.states !== "undefined" && node.states.indexOf("collapsed") !== -1) return []
+
+                ids.push(node.id)
+                // Recurse over every child and add their ID array to ours
+                if (typeof node.children !== "undefined")
+                    node.children.forEach(child => {
+                        ids.push(...flattenVisibleTree(child))
+                    })
+            }
+
+            // Return our ids followed by our childrens as an array
+            return ids
+        }
+
+        if (typeof tabTree === undefined || tabTree.constructor !== Array) return null
+        let tabList = flattenVisibleTree(tabTree)
+
+        let prevTab = tabList[tabList.indexOf(activeTabId) - increment]
+
+        return browser.tabs.update(prevTab, { active: true })
+
+        //return browser.tabs.update(tabs[prevTab].id, { active: true })
     } else {
         return browser.tabs.query({ currentWindow: true, hidden: false }).then(tabs => {
             tabs = tabs.sort((t1, t2) => t1.index - t2.index)
