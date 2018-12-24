@@ -777,7 +777,7 @@ class default_config {
     /**
      * Whether or not to integrate with the TST tab
      */
-    treestyletabintegration: boolean = false
+    treestyletabintegration: boolean = true
 }
 
 /** @hidden */
