@@ -773,6 +773,11 @@ class default_config {
      *
      */
     perfsamples: string = "10000"
+
+    /**
+     * Whether or not to integrate with the TST tab
+     */
+    treestyletabintegration: boolean = false
 }
 
 /** @hidden */
