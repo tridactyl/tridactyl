@@ -1838,7 +1838,7 @@ async function idFromIndex(index?: number | "%" | "#" | string): Promise<number>
             index: index - 1,
         }))[0].id
     } else {
-        return await activeTabId()
+        return activeTabId()
     }
 }
 
@@ -2500,9 +2500,9 @@ for (let fn in cmdframe_fns) {
 /**
  * Returns the current URL. For use with [[composite]].
  */
-//#background
+//#content
 export async function get_current_url() {
-    return (await activeTab()).url
+    return window.location.href
 }
 
 /**
@@ -3382,13 +3382,13 @@ export async function hint(option?: string, selectors?: string, ...rest: string[
     let hintTabOpen = async (href, active = !rapid) => {
         let containerId = await activeTabContainerId()
         if (containerId) {
-            return await openInNewTab(href, {
+            return openInNewTab(href, {
                 active,
                 related: true,
                 cookieStoreId: containerId,
             })
         } else {
-            return await openInNewTab(href, {
+            return openInNewTab(href, {
                 active,
                 related: true,
             })

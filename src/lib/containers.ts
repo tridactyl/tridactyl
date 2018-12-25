@@ -174,7 +174,7 @@ export function fromString(
  *  @returns An array representation of all containers.
  */
 export async function getAll(): Promise<any[]> {
-    return await browser.contextualIdentities.query({})
+    return browser.contextualIdentities.query({})
 }
 
 /** Fetches the cookieStoreId of a given container

@@ -249,7 +249,7 @@ export async function editor(file: string, content?: string) {
     } else {
         await run(editorcmd + " " + file)
     }
-    return await read(file)
+    return read(file)
 }
 
 export async function read(file: string) {

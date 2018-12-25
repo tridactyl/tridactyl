@@ -60,7 +60,7 @@ export async function activeTabContainerId() {
 //#content_helper
 export async function ownTab() {
     // Warning: this relies on the owntab_background listener being set in messaging.ts in order to work
-    return await browser.runtime.sendMessage({ type: "owntab_background" })
+    return browser.runtime.sendMessage({ type: "owntab_background" })
 }
 
 //#content_helper
@@ -79,7 +79,7 @@ export async function ownTabContainer() {
 export async function activeTabContainer() {
     let containerId = await activeTabContainerId()
     if (containerId !== "firefox-default")
-        return await browserBg.contextualIdentities.get(containerId)
+        return browserBg.contextualIdentities.get(containerId)
     else
         throw new Error(
             "firefox-default is not a valid contextualIdentity (activeTabContainer)",
