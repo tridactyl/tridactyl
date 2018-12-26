@@ -183,7 +183,7 @@ export class AutoContain implements IAutoContain {
                     )
                 }
             }
-            return await Container.getId(aucons[aukeyarr[0]])
+            return Container.getId(aucons[aukeyarr[0]])
         }
     }
 }
