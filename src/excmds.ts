@@ -128,6 +128,59 @@ export async function getNativeVersion(): Promise<void> {
     Native.getNativeMessengerVersion()
 }
 
+/** @hidden
+ * This function is used by getrss and getrss completions.
+ */
+//#content
+export async function getRssLinks(): Promise<{ type: string; url: string; title: string }[]> {
+    let seen = new Set<string>()
+    return (Array.from(document.querySelectorAll("link[rel='alternate']")) as HTMLLinkElement[]).filter(e => e.type && e.href && (e.type.indexOf("rss") >= 0 || e.type.indexOf("atom") >= 0) && !seen.has(e.href) && seen.add(e.href)).map(e => {
+        return { type: e.type, url: e.href, title: e.title }
+    })
+}
+
+/**
+ * Get rss links from the page.
+ *
+ * If `url` is undefined, Tridactyl will look for rss links in the current
+ * page. If it doesn't find any, it will display an error message. If it finds
+ * multiple urls, it will offer completions in order for you to select the link
+ * you're interested in. If a single rss feed is found, it will automatically
+ * be selected.
+ *
+ * Selecting a link can mean either copying it to your clipboard according to
+ * your [[yankto]] setting or, if you have the native messenger installed and
+ * modified your [[rsscmd]] setting, running a custom command.
+ */
+//#background
+export async function getrss(url: string, type?: string, ...title: string[]) {
+    if (!url || url == "") {
+        let links = await getRssLinks()
+        switch (links.length) {
+            case 0:
+                throw new Error("No rss link found on this page.")
+                break
+            case 1:
+                url = links[0].url
+                title = [links[0].title]
+                type = links[0].type
+                break
+            default:
+                return fillcmdline("getrss")
+        }
+    }
+    let rsscmd = config.get("rsscmd")
+    if (rsscmd == "") {
+        return setclip(url)
+    }
+    rsscmd = rsscmd
+        .replace("%u", url)
+        .replace("%t", title.join(" "))
+        .replace("%y", type || "")
+    let command = await Native.run(rsscmd)
+    if (command.code != 0) throw new Error(command.error || `Failed to run ${rsscmd}`)
+}
+
 /**
  * Fills the element matched by `selector` with content and falls back to the last used input if the element can't be found. You probably don't want this; it's used internally for [[editor]].
  *

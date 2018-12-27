@@ -676,6 +676,17 @@ class default_config {
     editorcmd = "auto"
 
     /**
+     * Command that should be run by the "getrss" ex command. Has the following format:
+     * - %u: url
+     * - %t: title
+     * - %y: type (rss, atom, xml...)
+     * Leave empty if you want to copy the url to your clipboard.
+     * Example value: `echo '%u' >> ~/.config/newsboat/urls`.
+     * Also see [[getrss]].
+     */
+    rsscmd = ""
+
+    /**
      * The browser executable to look for in commands such as `restart`. Not as mad as it seems if you have multiple versions of Firefox...
      */
     browser = "firefox"
