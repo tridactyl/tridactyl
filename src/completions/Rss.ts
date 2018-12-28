@@ -1,7 +1,8 @@
 import * as Messaging from "@src/lib/messaging"
 import * as Completions from "@src/completions"
 
-class RssCompletionOption extends Completions.CompletionOptionHTML implements Completions.CompletionOptionFuse {
+class RssCompletionOption extends Completions.CompletionOptionHTML
+    implements Completions.CompletionOptionFuse {
     public fuseKeys = []
 
     constructor(public url, public title, public type) {
@@ -23,7 +24,7 @@ export class RssCompletionSource extends Completions.CompletionSourceFuse {
     private shouldSetStateFromScore = true
 
     constructor(private _parent) {
-        super(["getrss"], "RssCompletionSource", "Feeds")
+        super(["rssexec"], "RssCompletionSource", "Feeds")
 
         this.updateOptions()
         this._parent.appendChild(this.node)
@@ -35,12 +36,19 @@ export class RssCompletionSource extends Completions.CompletionSourceFuse {
 
     private async updateOptions(exstr = "") {
         if (this.options.length < 1) {
-            this.options = (await Messaging.messageOwnTab("excmd_content", "getRssLinks", []))
-                .map(link => {
-                    let opt = new RssCompletionOption(link.url, link.title, link.type)
-                    opt.state = "normal"
-                    return opt
-                })
+            this.options = (await Messaging.messageOwnTab(
+                "excmd_content",
+                "getRssLinks",
+                [],
+            )).map(link => {
+                let opt = new RssCompletionOption(
+                    link.url,
+                    link.title,
+                    link.type,
+                )
+                opt.state = "normal"
+                return opt
+            })
         }
         this.updateChain()
     }

@@ -129,7 +129,7 @@ export async function getNativeVersion(): Promise<void> {
 }
 
 /** @hidden
- * This function is used by getrss and getrss completions.
+ * This function is used by rssexec and rssexec completions.
  */
 //#content
 export async function getRssLinks(): Promise<{ type: string; url: string; title: string }[]> {
@@ -140,20 +140,16 @@ export async function getRssLinks(): Promise<{ type: string; url: string; title:
 }
 
 /**
- * Get rss links from the page.
+ * Execute [[rsscmd]] for an rss link.
  *
  * If `url` is undefined, Tridactyl will look for rss links in the current
  * page. If it doesn't find any, it will display an error message. If it finds
  * multiple urls, it will offer completions in order for you to select the link
  * you're interested in. If a single rss feed is found, it will automatically
  * be selected.
- *
- * Selecting a link can mean either copying it to your clipboard according to
- * your [[yankto]] setting or, if you have the native messenger installed and
- * modified your [[rsscmd]] setting, running a custom command.
  */
-//#background
-export async function getrss(url: string, type?: string, ...title: string[]) {
+//#content
+export async function rssexec(url: string, type?: string, ...title: string[]) {
     if (!url || url == "") {
         let links = await getRssLinks()
         switch (links.length) {
@@ -166,19 +162,19 @@ export async function getrss(url: string, type?: string, ...title: string[]) {
                 type = links[0].type
                 break
             default:
-                return fillcmdline("getrss")
+                return fillcmdline("rssexec")
         }
     }
     let rsscmd = config.get("rsscmd")
-    if (rsscmd == "") {
-        return setclip(url)
+    if (rsscmd.match("%[uty]")) {
+        rsscmd = rsscmd
+            .replace("%u", url)
+            .replace("%t", title.join(" "))
+            .replace("%y", type || "")
+    } else {
+        rsscmd += " " + url
     }
-    rsscmd = rsscmd
-        .replace("%u", url)
-        .replace("%t", title.join(" "))
-        .replace("%y", type || "")
-    let command = await Native.run(rsscmd)
-    if (command.code != 0) throw new Error(command.error || `Failed to run ${rsscmd}`)
+    return Messaging.message("commandline_background", "recvExStr", [rsscmd])
 }
 
 /**
