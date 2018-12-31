@@ -681,8 +681,22 @@ class default_config {
      * - %u: url
      * - %t: title
      * - %y: type (rss, atom, xml...)
-     * Beware: if this command is a composite one, websites could execute
-     * arbitrary ex commands just by adding a pipe to their url/title/type.
+     * Warning: This is a very large footgun. %u will be inserted without any
+     * kind of escaping, hence you must obey the following rules if you care
+     * about security:
+     * - Do not use a composite command. If you need a composite command,
+     * create an alias.
+     * - Do not use `js` or `jsb`. If you need to use them, create an alias.
+     * - Do not insert any %u, %t or %y in shell commands run by the native
+     * messenger. Use pipes instead.
+     *
+     * Here's an example of how to save an rss url in a file on your disk
+     * safely:
+     * `alias save_rss jsb -p tri.native.run("cat >> ~/.config.newsboat/urls", JS_ARG)`
+     * `set rsscmd save_rss %u`
+     * This is safe because the url is passed to jsb as an argument rather than
+     * being expanded inside of the string it will execute and because it is
+     * piped to the shell command rather than being expanded inside of it.
      */
     rsscmd = "yank %u"
 
