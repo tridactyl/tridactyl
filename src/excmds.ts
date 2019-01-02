@@ -1315,7 +1315,7 @@ function selectLast(selector: string): HTMLElement | null {
 
     ```
     set followpagepatterns.next ^(next|newer|prochain)\b|»|>>
-    set followpagepatterns.prev ^(prev(ious)?|older|précédent)\b|»|>>
+    set followpagepatterns.prev ^(prev(ious)?|older|précédent)\b|«|<<
     ```
 
     @param rel   the relation of the target page to the current page: "next" or "prev"
@@ -3121,7 +3121,7 @@ export async function unbindurl(pattern: string, mode: string, keys: string) {
  * @param mode Optional. The mode the key should be reset in. Defaults to normal.
  * @param key The key that should be reset.
  *
- *  See also:
+ * See also:
  *  - [[bind]]
  *  - [[unbind]]
  */
@@ -3134,7 +3134,7 @@ export async function reset(mode: string, key: string) {
 /**
  * Restores a sequence of keys to their value in the global config for a specific URL.
  *
- *  See also:
+ * See also:
  *  - [[bind]]
  *  - [[unbind]]
  *  - [[reset]]
