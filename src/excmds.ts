@@ -1315,7 +1315,7 @@ function selectLast(selector: string): HTMLElement | null {
 
     ```
     set followpagepatterns.next ^(next|newer|prochain)\b|»|>>
-    set followpagepatterns.prev ^(prev(ious)?|older|précédent)\b|»|>>
+    set followpagepatterns.prev ^(prev(ious)?|older|précédent)\b|«|<<
     ```
 
     @param rel   the relation of the target page to the current page: "next" or "prev"
