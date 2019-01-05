@@ -121,24 +121,10 @@ async function onExcmdPageLoad() {
     }
 }
 
-async function onSettingsPageLoad() {
+function addSettingInputs() {
     const inputClassName = " TridactylSettingInput "
     const inputClassNameModified =
         inputClassName + " TridactylSettingInputModified "
-
-    let getIdForSetting = settingName => "TridactylSettingInput_" + settingName
-
-    browser.storage.onChanged.addListener((changes, areaname) => {
-        if (!("userconfig" in changes)) return
-        Object.keys(changes.userconfig.newValue).forEach(key => {
-            let elem = document.getElementById(
-                getIdForSetting(key),
-            ) as HTMLInputElement
-            if (!elem) return
-            elem.value = changes.userconfig.newValue[key]
-            elem.className = inputClassName
-        })
-    })
 
     let onKeyUp = async ev => {
         let input = ev.target
@@ -157,7 +143,7 @@ async function onSettingsPageLoad() {
         }
     }
 
-    Promise.all(
+    return Promise.all(
         Array.from(document.querySelectorAll("a.tsd-anchor")).map(
             async (a: HTMLAnchorElement) => {
                 let section = a.parentNode
@@ -176,7 +162,7 @@ async function onSettingsPageLoad() {
                 let input = document.createElement("input")
                 input.name = a.name
                 input.value = value
-                input.id = getIdForSetting(a.name)
+                input.id = "TridactylSettingInput_" + input.name
                 input.className = inputClassName
                 input.addEventListener("keyup", onKeyUp)
 
@@ -185,6 +171,11 @@ async function onSettingsPageLoad() {
                 div.appendChild(input)
 
                 section.appendChild(div)
+
+                config.addChangeListener(input.name as any, (_, newValue) => {
+                    input.value = newValue
+                    input.className = inputClassName
+                })
             },
             // Adding elements expands sections so if the user wants to see a specific hash, we need to focus it again
         ),
@@ -193,6 +184,32 @@ async function onSettingsPageLoad() {
             document.location.hash = document.location.hash
         }
     })
+}
+
+function addResetConfigButton() {
+    let button = document.createElement("button")
+    button.innerText = "Reset Tridactyl config"
+    button.style.margin = "auto 50%"
+    button.style.minWidth = "200pt"
+    button.addEventListener("click", () => {
+        let sentence = "sanitise tridactylsync tridactyllocal tridactylhistory"
+        let p = prompt(
+            `Please write '${sentence}' without quotes in the following input field if you really want to reset your Tridactyl config.`,
+        )
+        if (p == sentence) {
+            ;(window as any).tri.messaging
+                .message("commandline_background", "recvExStr", [sentence])
+                .then(_ => alert("Config reset!"))
+        } else {
+            alert(`Config not reset because '${p}' != '${sentence}'`)
+        }
+    })
+    document.querySelector("div.container.container-main").appendChild(button)
+}
+
+function onSettingsPageLoad() {
+    addResetConfigButton()
+    return addSettingInputs()
 }
 
 addEventListener(
