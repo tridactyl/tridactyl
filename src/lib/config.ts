@@ -781,7 +781,7 @@ class default_config {
     csp: "untouched" | "clobber" = "untouched"
 
     /**
-     * JavaScript RegExp used to recognize words in im_* functions (e.g. im_transpose_words). Should match any character belonging to a word.
+     * JavaScript RegExp used to recognize words in text.* functions (e.g. text.transpose_words). Should match any character belonging to a word.
      */
     wordpattern = "[^\\s]+"
 
