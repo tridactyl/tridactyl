@@ -779,27 +779,27 @@ class default_config {
     /**
      * Number of results that should be shown in completions. -1 for unlimited
      */
-    findresults: "0"
+    findresults = -1
 
     /**
      * Number of characters to use as context for the matches shown in completions
      */
-    findcontextlen: "10"
+    findcontextlen = 10
 
     /**
      * Whether find should be case-sensitive
      */
-    findcase: "smart" // "smart" | "sensitive" | "unsensitive"
+    findcase: "smart" | "sensitive" | "unsensitive" = "smart" 
 
     /**
      * Whether Tridactyl should jump to the first match when using `:find`
      */
-    incsearch: "false"
+    incsearch: "true" | "false" = "false"
 
     /**
      * How many characters should be typed before triggering incsearch/completions
      */
-    minincsearchlen: "3"
+    minincsearchlen = 3
 
     /**
      * Change this to "clobber" to ruin the "Content Security Policy" of all sites a bit and make Tridactyl run a bit better on some of them, e.g. raw.github*

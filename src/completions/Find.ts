@@ -60,11 +60,11 @@ export class FindCompletionSource extends Completions.CompletionSourceFuse {
         }
 
         let query = tokens.slice(1).join(" ")
-        let minincsearchlen = parseInt(await config.getAsync("minincsearchlen"))
+        let minincsearchlen = await config.getAsync("minincsearchlen")
         // No point if continuing if the user hasn't started searching yet
         if (query.length < minincsearchlen) return
 
-        let findresults = parseInt(await config.getAsync("findresults"))
+        let findresults = await config.getAsync("findresults")
         let incsearch = (await config.getAsync("incsearch")) === "true"
         if (findresults === 0 && !incsearch) return
 
@@ -87,7 +87,7 @@ export class FindCompletionSource extends Completions.CompletionSourceFuse {
         // If the search was successful
         if (findings.length > 0) {
             // Get match context
-            let len = parseInt(await config.getAsync("findcontextlen"))
+            let len = await config.getAsync("findcontextlen")
             let matches = await Messaging.messageTab(
                 tabId,
                 "finding_content",
