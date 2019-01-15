@@ -14,19 +14,10 @@
     If this turns out to be expensive there are improvements available.
 */
 
-import Logger from "./logging"
+import Logger from "@src/lib/logging"
 const logger = new Logger("state")
 
-export type ModeName =
-    | "normal"
-    | "insert"
-    | "hint"
-    | "ignore"
-    | "gobble"
-    | "input"
-    | "find"
 class State {
-    mode: ModeName = "normal"
     cmdHistory: string[] = []
     prevInputs: { inputId: string; tab: number; jumppos?: number }[] = [
         {
@@ -35,7 +26,6 @@ class State {
             jumppos: undefined,
         },
     ]
-    last_ex_str: string = ""
 }
 
 // Don't change these from const or you risk breaking the Proxy below.

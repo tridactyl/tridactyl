@@ -3,16 +3,23 @@ span.TridactylHint {
     font-family: var(--tridactyl-hintspan-font-family) !important;
     font-size: var(--tridactyl-hintspan-font-size) !important;
     font-weight: var(--tridactyl-hintspan-font-weight) !important;
-    text-transform: uppercase !important;
     color: var(--tridactyl-hintspan-fg) !important;
     background-color: var(--tridactyl-hintspan-bg) !important;
     border-color: var(--tridactyl-hintspan-border-color) !important;
     border-width: var(--tridactyl-hintspan-border-width) !important;
     min-width: 0.75em !important;
     border-style: var(--tridactyl-hintspan-border-style) !important;
-    padding: 0 1pt !important;
+    padding: 2pt !important;
     text-align: center !important;
+    z-index: 2147483646 !important;
+}
+
+span.TridactylHintA {
     z-index: 2147483647 !important;
+}
+
+span.TridactylHintUppercase {
+    text-transform: uppercase !important;
 }
 
 .TridactylHintElem,

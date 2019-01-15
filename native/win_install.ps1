@@ -13,9 +13,10 @@ $global:MessengerBinPyName = "native_main.py"
 $global:MessengerBinExeName = "native_main.exe"
 $global:MessengerBinWrapperFilename = "native_main.bat"
 $global:MessengerManifestFilename = "tridactyl.json"
-$global:PythonVersionStr = "Python 3"
+$global:PythonVersionStr = "^3\."
 $global:WinPython3Command = "py -3 -u"
 $global:MessengerManifestReplaceStr = "REPLACE_ME_WITH_SED"
+$global:PowerShellMinimumVersion = 3
 
 # $git_repo_owner should be "cmcaine" in final release
 $git_repo_owner = "cmcaine"
@@ -43,15 +44,39 @@ $global:NoPython= $NoPython
 $global:InstallDirBase = $InstallDirBase.Trim()
 $global:DebugDirBase = $DebugDirBase.Trim()
 
+function Set-PowerShellVersion() {
+    $requiredPowerShellVersion = $global:PowerShellMinimumVersion
+    $currentPowerShellVersion = [int]`
+        ($PSVersionTable.PSVersion.Major)
+
+    if ($currentPowerShellVersion -lt $requiredPowerShellVersion) {
+        $msg = [string]::Format("{0} >= '{1}' {2}, '{3}' {4}",
+            "    - PowerShell major version",
+            $requiredPowerShellVersion,
+            "required",
+            $currentPowerShellVersion,
+            "found, quitting ..."
+        )
+
+        Write-Host "[+] Installation failed. :-("
+        Write-Host $msg
+        exit -1
+    }
+}
+function Set-TlsVersion() {
+    [Net.ServicePointManager]::SecurityProtocol =
+        [Net.SecurityProtocolType]::Tls12 -bOr `
+        [Net.SecurityProtocolType]::Tls11
+}
 function Get-PythonVersionStatus() {
     try {
         $pythonVersion = Invoke-Expression `
-            "$global:WinPython3Command --version"
+            "$global:WinPython3Command -c ""import sys; print(sys.version)"""
     } catch {
         $pythonVersion = ""
     }
 
-    if ($pythonVersion.IndexOf($global:PythonVersionStr) -ge 0) {
+    if ($pythonVersion -match $global:PythonVersionStr) {
         return $true
     } else {
         return $false
@@ -231,10 +256,15 @@ function Set-MessengerBin() {
         Write-Host "[+] Downloading $messengerBinUri ..."
 
         try {
+            Set-TlsVersion
             Invoke-WebRequest `
                 -Uri $messengerBinUri `
                 -OutFile $messengerBinPath
         } catch {
+            Write-Host `
+                "Invoke-WebRequest Exception:" `
+                $_.Exception.GetType().FullName, $_.Exception.Message
+
             Write-Host `
                 "Invoke-WebRequest StatusCode:" `
                 $_.Exception.Response.StatusCode.value__
@@ -271,18 +301,18 @@ function Get-MessengerBinWrapperPath() {
 }
 
 function Set-MessengerBinWrapper() {
-    $messengerBinPath = Get-MessengerBinPath
+    $messengerBinName = Get-MessengerBinName
     $messengerBinWrapperPath = Get-MessengerBinWrapperPath
 
     if ($global:NoPython -eq $false) { # system has python3
     $messengerWrapperContent = @"
 @echo off
-call $global:WinPython3Command $messengerBinPath
+call $global:WinPython3Command .\$messengerBinName
 "@
     } else { ## system does _not_ have python3
     $messengerWrapperContent = @"
 @echo off
-call $messengerBinPath
+call .\$messengerBinName
 "@
     }
 
@@ -352,6 +382,7 @@ function Set-MessengerManifest() {
         Write-Host "[+] Downloading $messengerManifestUri ..."
 
         try {
+            Set-TlsVersion
             Invoke-WebRequest `
                 -Uri $messengerManifestUri `
                 -OutFile $messengerManifestPath
@@ -495,8 +526,8 @@ function Set-MessengerInstall() {
             Write-Host "    - Python 3 not found, will use EXE ..."
             $global:NoPython = $true
         } else {
-        $pythonPath = Get-Command "py" `
-            | Select-Object -ExpandProperty "Source"
+            $pythonPath = Get-Command "py" `
+                | Select-Object -ExpandProperty "Source"
 
             Write-Host "    - Python 3 found at: $pythonPath"
         }
@@ -554,4 +585,5 @@ if ($global:Uninstall) {
     exit 0
 }
 
+Set-PowerShellVersion
 Set-MessengerInstall

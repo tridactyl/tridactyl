@@ -13,3 +13,6 @@ native/native_main
 native_main.spec
 .wine-pyinstaller
 tags
+compiler/*.js
+compiler/**/*.js
+src/.metadata.generated.ts

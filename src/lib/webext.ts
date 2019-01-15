@@ -1,6 +1,6 @@
-import * as convert from "../convert"
-import browserProxy from "./browser_proxy"
-import * as config from "../config"
+import * as convert from "@src/lib/convert"
+import browserProxy from "@src/lib/browser_proxy"
+import * as config from "@src/lib/config"
 
 export function inContentScript() {
     return getContext() == "content"
@@ -34,22 +34,6 @@ if (inContentScript()) {
     browserBg = browser
 }
 
-/** await a promise and console.error and rethrow if it errors
-
-    Errors from promises don't get logged unless you seek them out.
-
-    There's an event for catching these, but it's not implemented in firefox
-    yet: https://bugzilla.mozilla.org/show_bug.cgi?id=1269371
-*/
-export async function l(promise) {
-    try {
-        return await promise
-    } catch (e) {
-        console.error(e)
-        throw e
-    }
-}
-
 /** The first active tab in the currentWindow.
  *
  * TODO: Highlander theory: Can there ever be more than one?
@@ -57,9 +41,10 @@ export async function l(promise) {
  */
 //#background_helper
 export async function activeTab() {
-    return (await l(
-        browserBg.tabs.query({ active: true, currentWindow: true }),
-    ))[0]
+    return (await browserBg.tabs.query({
+        active: true,
+        currentWindow: true,
+    }))[0]
 }
 
 //#background_helper
@@ -72,11 +57,29 @@ export async function activeTabContainerId() {
     return (await activeTab()).cookieStoreId
 }
 
+//#content_helper
+export async function ownTab() {
+    // Warning: this relies on the owntab_background listener being set in messaging.ts in order to work
+    return browser.runtime.sendMessage({ type: "owntab_background" })
+}
+
+//#content_helper
+export async function ownTabId() {
+    return (await ownTab()).id
+}
+
+//#content_helper
+export async function ownTabContainer() {
+    return browserBg.contextualIdentities.get(
+        (await ownTab()).cookieStoreId,
+    )
+}
+
 //#background_helper
 export async function activeTabContainer() {
     let containerId = await activeTabContainerId()
     if (containerId !== "firefox-default")
-        return await browserBg.contextualIdentities.get(containerId)
+        return browserBg.contextualIdentities.get(containerId)
     else
         throw new Error(
             "firefox-default is not a valid contextualIdentity (activeTabContainer)",
@@ -124,15 +127,17 @@ export async function openInNewTab(
     switch (pos) {
         case "next":
             options.index = thisTab.index + 1
-            if (kwargs.related && (await l(firefoxVersionAtLeast(57))))
+            if (kwargs.related && (await firefoxVersionAtLeast(57)))
                 options.openerTabId = thisTab.id
             break
         case "last":
             // Infinity can't be serialised, apparently.
-            options.index = 99999
+            options.index = (await browserBg.tabs.query({
+                currentWindow: true,
+            })).length
             break
         case "related":
-            if (await l(firefoxVersionAtLeast(57))) {
+            if (await firefoxVersionAtLeast(57)) {
                 options.openerTabId = thisTab.id
             } else {
                 options.index = thisTab.index + 1

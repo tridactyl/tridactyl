@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Accepts no arguments
 # Returns git-add'ed files as a list of filenames separated by a newline character

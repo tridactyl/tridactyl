@@ -8,12 +8,17 @@
     "target": "ES2017",
     "lib": ["ES2017","dom", "dom.iterable"],
     "typeRoots": ["node_modules/@types", "node_modules/web-ext-types/"],
-    "alwaysStrict": true
+    "experimentalDecorators": true,
+    "alwaysStrict": true,
+      "baseUrl": "src/",
+      "paths": {
+          "@src/*": ["*"]
+      }
   },
   "include": [
     "./src/**/*"
   ],
   "exclude": [
-    "./src/**/*.test.ts"
+      "./src/**/*.test.ts"
   ]
 }

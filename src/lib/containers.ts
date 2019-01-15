@@ -1,4 +1,6 @@
-import * as Logging from "../logging"
+import { browserBg } from "@src/lib/webext"
+import * as Fuse from "fuse.js"
+import * as Logging from "@src/lib/logging"
 const logger = new Logging.Logger("containers")
 
 // As per Mozilla specification: https://developer.mozilla.org/en-US/Add-ons/WebExtensions/API/contextualIdentities/ContextualIdentity
@@ -29,6 +31,10 @@ const ContainerIcon = [
     "chill",
 ]
 
+const DefaultContainer = Object.freeze(
+    fromString("default", "invisible", "noicond", "firefox-default"),
+)
+
 /** Creates a container from the specified parameters.Does not allow multiple containers with the same name.
     @param name  The container name.
     @param color  The container color, must be one of: "blue", "turquoise", "green", "yellow", "orange", "red", "pink" or "purple". If nothing is supplied, it selects one at random.
@@ -41,6 +47,8 @@ export async function create(
 ): Promise<string> {
     if (color === "random") color = chooseRandomColor()
     let container = fromString(name, color, icon)
+    // browser.contextualIdentities.create does not accept a cookieStoreId property.
+    delete container.cookieStoreId
     logger.debug(container)
 
     if (await exists(name)) {
@@ -51,11 +59,7 @@ export async function create(
     } else {
         try {
             let res = await browser.contextualIdentities.create(container)
-            logger.info(
-                "[Container.create] created container:",
-                res["cookieStoreId"],
-            )
-            return res["cookieStoreId"]
+            return res.cookieStoreId
         } catch (e) {
             throw e
         }
@@ -104,14 +108,16 @@ export async function update(
     }
 }
 
-/** Gets a container object from a supplied container id string.
+/** Gets a container object from a supplied container id string. If no container corresponds to containerId, returns a default empty container.
     @param containerId Expects a cookieStringId e.g. "firefox-container-n"
  */
-export async function getFromId(containerId: string): Promise<{}> {
+export async function getFromId(
+    containerId: string,
+): Promise<browser.contextualIdentities.ContextualIdentity> {
     try {
-        return await browser.contextualIdentities.get(containerId)
+        return await browserBg.contextualIdentities.get(containerId)
     } catch (e) {
-        throw e
+        return DefaultContainer
     }
 }
 
@@ -146,13 +152,19 @@ export async function exists(cname: string): Promise<boolean> {
     @param color
     @param icon
  */
-export function fromString(name: string, color: string, icon: string) {
+export function fromString(
+    name: string,
+    color: string,
+    icon: string,
+    id: string = "",
+) {
     try {
         return {
             name: name,
             color: color as browser.contextualIdentities.IdentityColor,
             icon: icon as browser.contextualIdentities.IdentityIcon,
-        }
+            cookieStoreId: id,
+        } as browser.contextualIdentities.ContextualIdentity // rules are made to be broken
     } catch (e) {
         throw e
     }
@@ -162,20 +174,29 @@ export function fromString(name: string, color: string, icon: string) {
  *  @returns An array representation of all containers.
  */
 export async function getAll(): Promise<any[]> {
-    return await browser.contextualIdentities.query({})
+    return browser.contextualIdentities.query({})
 }
 
-/**
- * @param name The container name
- * @returns The cookieStoreId of the first match of the query.
+/** Fetches the cookieStoreId of a given container
+
+ Note: all checks are case insensitive.
+
+ @param name The container name
+ @returns The cookieStoreId of the first match of the query.
  */
 export async function getId(name: string): Promise<string> {
     try {
-        return (await browser.contextualIdentities.query({ name: name }))[0][
-            "cookieStoreId"
-        ]
+        let containers = await getAll()
+        let res = containers.filter(
+            c => c.name.toLowerCase() === name.toLowerCase(),
+        )
+        if (res.length !== 1) {
+            throw new Error("")
+        } else {
+            return res[0]["cookieStoreId"]
+        }
     } catch (e) {
-        throw new Error(
+        logger.error(
             "[Container.getId] could not find a container with that name.",
         )
     }
@@ -186,32 +207,25 @@ export async function getId(name: string): Promise<string> {
     @param partialName The (partial) name of the container.
  */
 export async function fuzzyMatch(partialName: string): Promise<string> {
-    let containers = await getAll()
-    let exactMatch = containers.filter(c => {
-        return c.name.toLowerCase() === partialName.toLowerCase()
-    })
+    let fuseOptions = {
+        id: "cookieStoreId",
+        shouldSort: true,
+        threshold: 0.5,
+        location: 0,
+        distance: 100,
+        mimMatchCharLength: 3,
+        keys: ["name"],
+    }
 
-    if (exactMatch.length === 1) {
-        return exactMatch[0]["cookieStoreId"]
-    } else if (exactMatch.length > 1) {
+    let containers = await getAll()
+    let fuse = new Fuse(containers, fuseOptions)
+    let res = fuse.search(partialName)
+
+    if (res.length >= 1) return res[0] as string
+    else {
         throw new Error(
-            "[Container.fuzzyMatch] more than one container with this name exists.",
+            "[Container.fuzzyMatch] no container matched that string",
         )
-    } else {
-        let fuzzyMatches = containers.filter(c => {
-            return c.name.toLowerCase().indexOf(partialName.toLowerCase()) > -1
-        })
-        if (fuzzyMatches.length === 1) {
-            return fuzzyMatches[0]["cookieStoreId"]
-        } else if (fuzzyMatches.length > 1) {
-            throw new Error(
-                "[Container.fuzzyMatch] ambiguous match, provide more characters",
-            )
-        } else {
-            throw new Error(
-                "[Container.fuzzyMatch] no container matched that string",
-            )
-        }
     }
 }
 

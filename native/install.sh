@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 set -e
 
@@ -16,17 +16,24 @@ trap "echoerr 'Failed to install!'" ERR
 
 # To install, curl -fsSl 'url to this script' | bash
 
-XDG_CONFIG_HOME="${XDG_CONFIG_HOME:-$HOME/.config/tridactyl}"
-XDG_DATA_HOME="${XDG_LOCAL_HOME:-$HOME/.local/share/tridactyl}"
-manifest_loc="https://raw.githubusercontent.com/cmcaine/tridactyl/master/native/tridactyl.json"
-native_loc="https://raw.githubusercontent.com/cmcaine/tridactyl/master/native/native_main.py"
+XDG_CONFIG_HOME="${XDG_CONFIG_HOME:-$HOME/.config}/tridactyl"
+XDG_DATA_HOME="${XDG_DATA_HOME:-$HOME/.local/share}/tridactyl"
+manifest_loc="https://raw.githubusercontent.com/tridactyl/tridactyl/master/native/tridactyl.json"
+native_loc="https://raw.githubusercontent.com/tridactyl/tridactyl/master/native/native_main.py"
 
 # Decide where to put the manifest based on OS
-if [[ "$OSTYPE" == "linux-gnu" ]]; then
-    manifest_home="$HOME/.mozilla/native-messaging-hosts/"
-elif [[ "$OSTYPE" == "darwin"* ]]; then
-    manifest_home="$HOME/Library/Application Support/Mozilla/NativeMessagingHosts/"
-fi
+case "$OSTYPE" in
+    linux-gnu|linux|freebsd*)
+        manifest_home="$HOME/.mozilla/native-messaging-hosts/"
+        ;;
+    darwin*)
+        manifest_home="$HOME/Library/Application Support/Mozilla/NativeMessagingHosts/"
+        ;;
+    *)
+        # Fallback to default Linux location for unknown OSTYPE
+        manifest_home="$HOME/.mozilla/native-messaging-hosts/"
+        ;;
+esac
 
 mkdir -p "$manifest_home" "$XDG_DATA_HOME"
 

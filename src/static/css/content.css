@@ -1,7 +1,6 @@
 #cmdline_iframe {
     position: fixed !important;
     bottom: 0 !important;
-    left: 0 !important;
     z-index: 2147483647 !important;
     width: 100% !important;
     height: 0 !important;
@@ -40,6 +39,10 @@
 .TridactylInvisible {
     opacity: 0 !important;
     pointer-events: none !important;
+}
+
+.TridactylEditing {
+    background: var(--tridactyl-externaledit-bg);
 }
 
 @media print {

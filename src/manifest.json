@@ -1,7 +1,7 @@
 {
     "manifest_version": 2,
     "name": "Tridactyl",
-    "version": "1.13.1",
+    "version": "1.14.6",
     "icons": {
         "64": "static/logo/Tridactyl_64px.png",
         "100": "static/logo/Tridactyl_100px.png",
@@ -65,5 +65,9 @@
             "id": "tridactyl.vim@cmcaine.co.uk",
             "strict_min_version": "54.0"
         }
+    },
+    "options_ui": {
+        "page": "static/docs/classes/_src_lib_config_.default_config.html",
+        "open_in_tab": true
     }
 }

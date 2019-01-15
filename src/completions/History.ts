@@ -1,6 +1,6 @@
-import * as Completions from "../completions"
-import * as config from "../config"
-import { browserBg } from "../lib/webext"
+import * as Completions from "@src/completions"
+import * as config from "@src/lib/config"
+import { browserBg } from "@src/lib/webext"
 
 class HistoryCompletionOption extends Completions.CompletionOptionHTML
     implements Completions.CompletionOptionFuse {
@@ -21,11 +21,11 @@ class HistoryCompletionOption extends Completions.CompletionOptionHTML
         // const favIconUrl = tab.favIconUrl ? tab.favIconUrl : DEFAULT_FAVICON
         this.html = html`<tr class="HistoryCompletionOption option">
             <td class="prefix">${"".padEnd(2)}</td>
-            <td></td>
-            <td>${page.title}</td>
-            <td><a class="url" target="_blank" href=${page.url}>${
-            page.url
-        }</a></td>
+            <td class="icon"></td>
+            <td class="title">${page.title}</td>
+            <td class="content"><a class="url" target="_blank" href=${
+                page.url
+            }>${page.url}</a></td>
         </tr>`
     }
 }
@@ -35,7 +35,7 @@ export class HistoryCompletionSource extends Completions.CompletionSourceFuse {
 
     constructor(private _parent) {
         super(
-            ["open ", "tabopen ", "winopen "],
+            ["open", "tabopen", "winopen"],
             "HistoryCompletionSource",
             "History",
         )
@@ -45,7 +45,8 @@ export class HistoryCompletionSource extends Completions.CompletionSourceFuse {
 
     public async filter(exstr: string) {
         this.lastExstr = exstr
-        const [prefix, query] = this.splitOnPrefix(exstr)
+        let [prefix, query] = this.splitOnPrefix(exstr)
+        let options = ""
 
         // Hide self and stop if prefixes don't match
         if (prefix) {
@@ -58,8 +59,30 @@ export class HistoryCompletionSource extends Completions.CompletionSourceFuse {
             return
         }
 
+        // Ignoring command-specific arguments
+        // It's terrible but it's ok because it's just a stopgap until an actual commandline-parsing API is implemented
+        if (prefix == "tabopen ") {
+            if (query.startsWith("-c")) {
+                let args = query.split(" ")
+                options = args.slice(0, 2).join(" ")
+                query = args.slice(2).join(" ")
+            }
+            if (query.startsWith("-b")) {
+                let args = query.split(" ")
+                options = args.slice(0, 1).join(" ")
+                query = args.slice(1).join(" ")
+            }
+        } else if (prefix == "winopen ") {
+            if (query.startsWith("-private")) {
+                options = "-private"
+                query = query.substring(options.length)
+            }
+        }
+        options += options ? " " : ""
+
+        this.completion = undefined
         this.options = (await this.scoreOptions(query, 10)).map(
-            page => new HistoryCompletionOption(page.url, page),
+            page => new HistoryCompletionOption(options + page.url, page),
         )
 
         this.updateChain()
@@ -84,7 +107,7 @@ export class HistoryCompletionSource extends Completions.CompletionSourceFuse {
         const newtab = browser.runtime.getManifest()["chrome_url_overrides"]
             .newtab
         const newtaburl = browser.extension.getURL(newtab)
-        if (!query) {
+        if (!query || config.get("historyresults") == 0) {
             return (await browserBg.topSites.get())
                 .filter(page => page.url !== newtaburl)
                 .slice(0, n)
@@ -92,7 +115,7 @@ export class HistoryCompletionSource extends Completions.CompletionSourceFuse {
             // Search history, dedupe and sort by frecency
             let history = await browserBg.history.search({
                 text: query,
-                maxResults: Number(config.get("historyresults")),
+                maxResults: config.get("historyresults"),
                 startTime: 0,
             })
 

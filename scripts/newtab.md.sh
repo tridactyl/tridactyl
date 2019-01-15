@@ -8,7 +8,7 @@ newtab="../../generated/static/newtab.html"
 newtabtemp="../../generated/static/newtab.temp.html"
 
 sed "/REPLACETHIS/,$ d" newtab.template.html > "$newtabtemp"
-$(npm bin)/marked newtab.md >> "$newtabtemp"
+"$(npm bin)/marked" newtab.md >> "$newtabtemp"
 sed "1,/REPLACETHIS/ d" newtab.template.html >> "$newtabtemp"
 
 # Why think when you can pattern match?
@@ -20,7 +20,7 @@ echo """
 <label for="spoilerbutton" onclick=""><div id="nagbar-changelog">New features!</div>Changelog</label>
 <div id="changelog" class="spoiler">
 """ >> "$newtab"
-$(npm bin)/marked ../../CHANGELOG.md >> "$newtab"
+"$(npm bin)/marked" ../../CHANGELOG.md >> "$newtab"
 echo """
 </div>
 """ >> "$newtab"
