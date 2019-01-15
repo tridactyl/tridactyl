@@ -930,7 +930,7 @@ import * as finding from "@src/content/finding"
  *
  *  The behavior of this function is affected by the following setting:
  *
- *      - findcase: either "smart", "sensitive" or "unsensitive". If "smart", find will be case-sensitive if the pattern contains uppercase letters.
+ *      - findcase: either "smart", "sensitive" or "insensitive". If "smart", find will be case-sensitive if the pattern contains uppercase letters.
  *
  *  Know bugs: find will currently happily jump to a non-visible element.
  */

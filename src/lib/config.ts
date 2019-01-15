@@ -791,7 +791,7 @@ class default_config {
     /**
      * Whether find should be case-sensitive
      */
-    findcase: "smart" | "sensitive" | "unsensitive" = "smart"
+    findcase: "smart" | "sensitive" | "insensitive" = "smart"
 
     /**
      * Whether Tridactyl should jump to the first match when using `:find`
