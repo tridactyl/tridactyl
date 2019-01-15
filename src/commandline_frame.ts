@@ -94,7 +94,7 @@ function getCompletion() {
 export function enableCompletions() {
     if (!activeCompletions) {
         activeCompletions = [
-            FindCompletionSource,
+            // FindCompletionSource,
             BmarkCompletionSource,
             TabAllCompletionSource,
             BufferCompletionSource,
