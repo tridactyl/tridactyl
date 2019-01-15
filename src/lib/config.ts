@@ -221,6 +221,7 @@ class default_config {
         "?": "fillcmdline find -?",
         n: "findnext 1",
         N: "findnext -1",
+        ",<Space>": "nohlsearch",
         M: "gobble 1 quickmark",
         B: "fillcmdline taball",
         b: "fillcmdline tab",
@@ -409,6 +410,7 @@ class default_config {
         audelete: "autocmddelete",
         b: "tab",
         clsh: "clearsearchhighlight",
+        nohlsearch: "clearsearchhighlight",
         o: "open",
         w: "winopen",
         t: "tabopen",
@@ -784,12 +786,12 @@ class default_config {
     /**
      * Number of characters to use as context for the matches shown in completions
      */
-    findcontextlen = 10
+    findcontextlen = 100
 
     /**
      * Whether find should be case-sensitive
      */
-    findcase: "smart" | "sensitive" | "unsensitive" = "smart" 
+    findcase: "smart" | "sensitive" | "unsensitive" = "smart"
 
     /**
      * Whether Tridactyl should jump to the first match when using `:find`
