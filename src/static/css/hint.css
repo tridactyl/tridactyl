@@ -9,7 +9,7 @@ span.TridactylHint {
     border-width: var(--tridactyl-hintspan-border-width) !important;
     min-width: 0.75em !important;
     border-style: var(--tridactyl-hintspan-border-style) !important;
-    padding: 0 1pt !important;
+    padding: 2pt !important;
     text-align: center !important;
     z-index: 2147483646 !important;
 }
