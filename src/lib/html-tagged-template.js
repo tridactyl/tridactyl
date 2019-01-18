@@ -457,14 +457,24 @@
                                             substitutionValue.indexOf(":") !==
                                                 -1
                                         ) {
-                                            let protocol = substitutionValue.substring(
-                                                0,
-                                                5,
-                                            )
+                                            const authorized_protocols = [
+                                                "http://",
+                                                "https://",
+                                                "moz-extension://",
+                                                "about://",
+                                                "data:image/png;base64",
+                                                "data:image/gif;base64",
+                                                "data:image/jpg;base64",
+                                                "data:image/jpeg;base64",
+                                                "data:image/x-icon;base64",
+                                            ]
+                                            // If substitutionValue doesn't start with any of the authorized protocols
                                             if (
-                                                protocol.indexOf("http") ===
-                                                    -1 &&
-                                                protocol.indexOf("moz-") == -1
+                                                !authorized_protocols.find(p =>
+                                                    substitutionValue.startsWith(
+                                                        p,
+                                                    ),
+                                                )
                                             ) {
                                                 isRejected = true
                                             }
