@@ -2064,6 +2064,13 @@ export async function undo(item = "recent"): Promise<Number> {
                 return lastSession.window.id
             }
         }
+    } else if (!isNaN(parseInt(item))) {
+        const sessionId = item
+        const session = sessions.find(s => (s.tab || s.window).sessionId == sessionId)
+        if (session) {
+            browser.sessions.restore(sessionId)
+            return (session.tab || session.window).id
+        }
     } else {
         throw new Error(`[undo] Invalid argument: ${item}. Must be one of "tab", "window", "recent"`)
     }

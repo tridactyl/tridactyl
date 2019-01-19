@@ -30,6 +30,7 @@ import { HelpCompletionSource } from "@src/completions/Help"
 import { HistoryCompletionSource } from "@src/completions/History"
 import { PreferenceCompletionSource } from "@src/completions/Preferences"
 import { RssCompletionSource } from "@src/completions/Rss"
+import { SessionsCompletionSource } from "@src/completions/Sessions"
 import { SettingsCompletionSource } from "@src/completions/Settings"
 import * as Messaging from "@src/lib/messaging"
 import * as Config from "@src/lib/config"
@@ -101,8 +102,9 @@ export function enableCompletions() {
             HelpCompletionSource,
             HistoryCompletionSource,
             PreferenceCompletionSource,
-            SettingsCompletionSource,
             RssCompletionSource,
+            SessionsCompletionSource,
+            SettingsCompletionSource,
         ]
             .map(constructorr => {
                 try {
