@@ -240,3 +240,14 @@ a.url:hover {
 .HelpCompletionOption td.name {
     max-width: 25%;
 }
+
+#completions .SessionCompletionOption td.type {
+    width: 1ch !important;
+    padding: 0px 3pt;
+}
+
+#completions .SessionCompletionOption td.time {
+    width: 5ch !important;
+    padding: 0px 3pt;
+    text-align: right;
+}
