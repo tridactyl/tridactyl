@@ -253,27 +253,39 @@ export async function editor(file: string, content?: string) {
 }
 
 export async function read(file: string) {
-    return sendNativeMsg("read", { file })
+    return sendNativeMsg("read", { file }).catch(e => {
+        throw `Failed to read ${file}. ${e}`
+    })
 }
 
 export async function write(file: string, content: string) {
-    return sendNativeMsg("write", { file, content })
+    return sendNativeMsg("write", { file, content }).catch(e => {
+        throw `Failed to write '${content}' to '${file}'. ${e}`
+    })
 }
 
 export async function mkdir(dir: string, exist_ok: boolean) {
-    return sendNativeMsg("mkdir", { dir, exist_ok })
+    return sendNativeMsg("mkdir", { dir, exist_ok }).catch(e => {
+        throw `Failed to create directory '${dir}'. ${e}`
+    })
 }
 
 export async function temp(content: string, prefix: string) {
-    return sendNativeMsg("temp", { content, prefix })
+    return sendNativeMsg("temp", { content, prefix }).catch(e => {
+        throw `Failed to write '${content}' to temp file '${prefix}'. ${e}`
+    })
 }
 
 export async function move(from: string, to: string) {
-    return sendNativeMsg("move", { from, to })
+    return sendNativeMsg("move", { from, to }).catch(e => {
+        throw `Failed to move '${from}' to '${to}'. ${e}.`
+    })
 }
 
 export async function listDir(dir: string) {
-    return sendNativeMsg("list_dir", { path: dir })
+    return sendNativeMsg("list_dir", { path: dir }).catch(e => {
+        throw `Failed to read directory '${dir}'. ${e}`
+    })
 }
 
 export async function winFirefoxRestart(
