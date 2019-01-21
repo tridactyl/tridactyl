@@ -954,7 +954,7 @@ export async function getAsync(...target) {
  * Like set(), but for a specific pattern.
  */
 export function setURL(pattern, ...args) {
-    set("subconfigs", pattern, ...args)
+    return set("subconfigs", pattern, ...args)
 }
 /** Full target specification, then value
 
@@ -974,14 +974,14 @@ export function set(...args) {
     const value = args[args.length - 1]
 
     setDeepProperty(USERCONFIG, value, target)
-    save()
+    return save()
 }
 
 /** @hidden
  * Delete the key at USERCONFIG[pattern][target]
  */
 export function unsetURL(pattern, ...target) {
-    unset("subconfigs", pattern, ...target)
+    return unset("subconfigs", pattern, ...target)
 }
 
 /** Delete the key at target in USERCONFIG if it exists
@@ -989,7 +989,7 @@ export function unsetURL(pattern, ...target) {
 export function unset(...target) {
     const parent = getDeepProperty(USERCONFIG, target.slice(0, -1))
     if (parent !== undefined) delete parent[target[target.length - 1]]
-    save()
+    return save()
 }
 
 /** Save the config back to storage API.
@@ -1004,8 +1004,9 @@ export async function save(storage: "local" | "sync" = get("storageloc")) {
     // storageobj.set({CONFIGNAME: USERCONFIG})
     let settingsobj = o({})
     settingsobj[CONFIGNAME] = USERCONFIG
-    if (storage == "local") browser.storage.local.set(settingsobj)
-    else browser.storage.sync.set(settingsobj)
+    return storage == "local"
+        ? browser.storage.local.set(settingsobj)
+        : browser.storage.sync.set(settingsobj)
 }
 
 /** Updates the config to the latest version.
