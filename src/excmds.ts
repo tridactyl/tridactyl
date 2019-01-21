@@ -134,23 +134,25 @@ export async function getNativeVersion(): Promise<void> {
 //#content
 export async function getRssLinks(): Promise<{ type: string; url: string; title: string }[]> {
     let seen = new Set<string>()
-    return Array.from(document.querySelectorAll("a, link[rel='alternate']")).reduce((acc, e: any) => {
-        let type = ""
-        // Start by detecting type because url doesn't necessarily contain the words "rss" or "atom"
-        if (e.type) {
-            // if type doesn't match either rss or atom, don't include link
-            if (e.type.indexOf("rss") < 0 && e.type.indexOf("atom") < 0) return acc
-            type = e.type
-        } else {
-            // Making sure that we match either a dot or "xml" because "urss" and "atom" are actual words
-            if (e.href.match(/(\.rss)|(rss\.xml)/i)) type = "application/rss+xml"
-            else if (e.href.match(/(\.atom)|(atom\.xml)/i)) type = "application/atom+xml"
-            else return acc
-        }
-        if (seen.has(e.href)) return acc
-        seen.add(e.href)
-        return acc.concat({ type, url: e.href, title: e.title || e.innerText } as { type: string; url: string; title: string })
-    }, [])
+    return Array.from(document.querySelectorAll("a, link[rel='alternate']"))
+        .filter((e: any) => typeof e.href == "string")
+        .reduce((acc, e: any) => {
+            let type = ""
+            // Start by detecting type because url doesn't necessarily contain the words "rss" or "atom"
+            if (e.type) {
+                // if type doesn't match either rss or atom, don't include link
+                if (e.type.indexOf("rss") < 0 && e.type.indexOf("atom") < 0) return acc
+                type = e.type
+            } else {
+                // Making sure that we match either a dot or "xml" because "urss" and "atom" are actual words
+                if (e.href.match(/(\.rss)|(rss\.xml)/i)) type = "application/rss+xml"
+                else if (e.href.match(/(\.atom)|(atom\.xml)/i)) type = "application/atom+xml"
+                else return acc
+            }
+            if (seen.has(e.href)) return acc
+            seen.add(e.href)
+            return acc.concat({ type, url: e.href, title: e.title || e.innerText } as { type: string; url: string; title: string })
+        }, [])
 }
 
 /**
