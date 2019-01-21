@@ -2933,8 +2933,11 @@ function validateSetArgs(key: string, values: string[]) {
     if ((file = Metadata.everything.getFile("src/lib/config.ts")) && (default_config = file.getClass("default_config")) && (md = default_config.getMember(target[0]))) {
         const strval = values.join(" ")
         // Note: the conversion will throw if strval can't be converted to the right type
-        if (md.type.kind == "object") value = md.type.convertMember(target.slice(1), strval)
-        else value = md.type.convert(strval)
+        if (md.type.kind == "object" && target.length > 1) {
+            value = md.type.convertMember(target.slice(1), strval)
+        } else {
+            value = md.type.convert(strval)
+        }
     } else {
         // If we don't have metadata, fall back to the old way
         logger.warning("Could not fetch setting metadata. Falling back to type of current value.")
