@@ -38,6 +38,13 @@ bindurl reddit.com gu urlparent 4
 " Allow Ctrl-a to select all in the commandline
 unbind --mode=ex <C-a>
 
+" Let Ctrl-c to copy in the commandline
+unbind --mode=ex <C-c>
+
+" Handy multiwindow/multitasking binds
+bind gd tabdetach
+bind gD composite tabduplicate | tabdetach
+
 "
 " Misc settings
 "
