@@ -351,7 +351,7 @@ export async function guiset_quiet(rule: string, option: string) {
 //#background
 export async function guiset(rule: string, option: string) {
     await guiset_quiet(rule, option)
-    fillcmdline_tmp(3000, "userChrome.css written. Please restart Firefox to see the changes.")
+    return fillcmdline_tmp(3000, "userChrome.css written. Please restart Firefox to see the changes.")
 }
 
 /** @hidden */
@@ -419,8 +419,8 @@ export async function colourscheme(themename: string) {
  * `setpref extensions.webextensions.restricterDomains ""`
  */
 //#background
-export async function setpref(key: string, ...value: string[]) {
-    await Native.writePref(key, value.join(" "))
+export function setpref(key: string, ...value: string[]) {
+    return Native.writePref(key, value.join(" "))
 }
 
 /**
@@ -2769,13 +2769,11 @@ export function command(name: string, ...definition: string[]) {
     // Test if alias creates an alias loop.
     try {
         const def = definition.join(" ")
-        // Set alias
-        config.set("exaliases", name, def)
         aliases.expandExstr(name)
+        return config.set("exaliases", name, def)
     } catch (e) {
-        // Warn user about infinite loops
-        fillcmdline_notrail(e, " Alias unset.")
         config.unset("exaliases", name)
+        throw `Alias not set. ${e}`
     }
 }
 
@@ -2866,12 +2864,14 @@ function parse_bind_args(...args: string[]): bind_args {
 //#background
 export function bind(...args: string[]) {
     let args_obj = parse_bind_args(...args)
+    let p = Promise.resolve()
     if (args_obj.excmd != "") {
-        config.set(args_obj.configName, args_obj.key, args_obj.excmd)
+        p = config.set(args_obj.configName, args_obj.key, args_obj.excmd)
     } else if (args_obj.key.length) {
         // Display the existing bind
-        fillcmdline_notrail("#", args_obj.key, "=", config.get(args_obj.configName, args_obj.key))
+        p = fillcmdline_notrail("#", args_obj.key, "=", config.get(args_obj.configName, args_obj.key))
     }
+    return p
 }
 
 /**
@@ -2886,12 +2886,14 @@ export function bind(...args: string[]) {
 //#background
 export function bindurl(pattern: string, mode: string, keys: string, ...excmd: string[]) {
     let args_obj = parse_bind_args(mode, keys, ...excmd)
+    let p = Promise.resolve()
     if (args_obj.excmd != "") {
-        config.setURL(pattern, args_obj.configName, args_obj.key, args_obj.excmd)
+        p = config.setURL(pattern, args_obj.configName, args_obj.key, args_obj.excmd)
     } else if (args_obj.key.length) {
         // Display the existing bind
-        fillcmdline_notrail("#", args_obj.key, "=", config.getURL(pattern, [args_obj.configName, args_obj.key]))
+        p = fillcmdline_notrail("#", args_obj.key, "=", config.getURL(pattern, [args_obj.configName, args_obj.key]))
     }
+    return p
 }
 
 /**
@@ -2979,7 +2981,7 @@ export function seturl(pattern: string, key: string, ...values: string[]) {
         throw "seturl syntax: [pattern] key value"
     }
 
-    config.setURL(pattern, ...validateSetArgs(key, values))
+    return config.setURL(pattern, ...validateSetArgs(key, values))
 }
 
 /** Set a key value pair in config.
@@ -2997,8 +2999,7 @@ export function set(key: string, ...values: string[]) {
     if (!key) {
         throw "Key must be provided!"
     } else if (!values[0]) {
-        get(key)
-        return
+        return get(key)
     }
 
     if (key == "noiframeon") {
@@ -3012,7 +3013,7 @@ export function set(key: string, ...values: string[]) {
         throw "Warning: `noiframeon $url1 $url2` has been deprecated in favor of `:seturl $url1 noiframe true`. The right seturl calls have been made for you but from now on please use `:seturl`."
     }
 
-    config.set(...validateSetArgs(key, values))
+    return config.set(...validateSetArgs(key, values))
 }
 
 /** @hidden */
@@ -3099,7 +3100,7 @@ export async function unbind(...args: string[]) {
     let args_obj = parse_bind_args(...args)
     if (args_obj.excmd != "") throw new Error("unbind syntax: `unbind key`")
 
-    config.set(args_obj.configName, args_obj.key, "")
+    return config.set(args_obj.configName, args_obj.key, "")
 }
 
 /**
@@ -3119,7 +3120,7 @@ export async function unbind(...args: string[]) {
 export async function unbindurl(pattern: string, mode: string, keys: string) {
     let args_obj = parse_bind_args(mode, keys)
 
-    config.setURL(pattern, args_obj.configName, args_obj.key, "")
+    return config.setURL(pattern, args_obj.configName, args_obj.key, "")
 }
 
 /**
@@ -3135,7 +3136,7 @@ export async function unbindurl(pattern: string, mode: string, keys: string) {
 //#background
 export async function reset(mode: string, key: string) {
     let args_obj = parse_bind_args(mode, key)
-    config.unset(args_obj.configName, args_obj.key)
+    return config.unset(args_obj.configName, args_obj.key)
 }
 
 /**
@@ -3154,7 +3155,7 @@ export async function reset(mode: string, key: string) {
 export async function reseturl(pattern: string, mode: string, key: string) {
     let args = parse_bind_args(mode, key)
     let args_obj = parse_bind_args(mode, key)
-    config.unsetURL(pattern, args_obj.configName, args_obj.key)
+    return config.unsetURL(pattern, args_obj.configName, args_obj.key)
 }
 
 /** Deletes various privacy-related items.
