@@ -217,10 +217,11 @@ class default_config {
         s: "fillcmdline open search",
         S: "fillcmdline tabopen search",
         // find mode not suitable for general consumption yet.
-        // "/": "find",
-        // "?": "find -1",
-        // "n": "findnext 1",
-        // "N": "findnext -1",
+        // "/": "fillcmdline find",
+        // "?": "fillcmdline find -?",
+        // n: "findnext 1",
+        // N: "findnext -1",
+        //",<Space>": "nohlsearch",
         M: "gobble 1 quickmark",
         B: "fillcmdline taball",
         b: "fillcmdline tab",
@@ -408,6 +409,8 @@ class default_config {
         audel: "autocmddelete",
         audelete: "autocmddelete",
         b: "tab",
+        clsh: "clearsearchhighlight",
+        nohlsearch: "clearsearchhighlight",
         o: "open",
         w: "winopen",
         t: "tabopen",
@@ -774,6 +777,31 @@ class default_config {
      * Number of most recent results to ask Firefox for. We display the top 20 or so most frequently visited ones.
      */
     historyresults = 50
+
+    /**
+     * Number of results that should be shown in completions. -1 for unlimited
+     */
+    findresults = -1
+
+    /**
+     * Number of characters to use as context for the matches shown in completions
+     */
+    findcontextlen = 100
+
+    /**
+     * Whether find should be case-sensitive
+     */
+    findcase: "smart" | "sensitive" | "insensitive" = "smart"
+
+    /**
+     * Whether Tridactyl should jump to the first match when using `:find`
+     */
+    incsearch: "true" | "false" = "false"
+
+    /**
+     * How many characters should be typed before triggering incsearch/completions
+     */
+    minincsearchlen = 3
 
     /**
      * Change this to "clobber" to ruin the "Content Security Policy" of all sites a bit and make Tridactyl run a bit better on some of them, e.g. raw.github*

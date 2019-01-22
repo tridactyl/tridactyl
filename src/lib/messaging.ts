@@ -5,6 +5,7 @@ const logger = new Logger("messaging")
 export type TabMessageType =
     | "excmd_content"
     | "commandline_content"
+    | "finding_content"
     | "commandline_frame"
 export type NonTabMessageType =
     | "owntab_background"

@@ -21,6 +21,7 @@ import * as perf from "@src/perf"
 import "@src/lib/number.clamp"
 import "@src/lib/html-tagged-template"
 import * as Completions from "@src/completions"
+import { FindCompletionSource } from "./completions/Find"
 import { TabAllCompletionSource } from "@src/completions/TabAll"
 import { BufferCompletionSource } from "@src/completions/Tab"
 import { BmarkCompletionSource } from "@src/completions/Bmark"
@@ -94,6 +95,7 @@ function getCompletion() {
 export function enableCompletions() {
     if (!activeCompletions) {
         activeCompletions = [
+            // FindCompletionSource,
             BmarkCompletionSource,
             TabAllCompletionSource,
             BufferCompletionSource,

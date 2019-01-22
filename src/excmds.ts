@@ -932,26 +932,53 @@ export function scrollpage(n = 1) {
 //#content_helper
 import * as finding from "@src/content/finding"
 
-/** Start find mode. Work in progress.
+/**
+ *  Rudimentary find mode, left unbound by default as we don't currently support `incsearch`. Suggested binds:
  *
- * @param direction - the direction to search in: 1 is forwards, -1 is backwards.
+ *      bind / fillcmdline find
+ *      bind ? fillcmdline find -?
+ *      bind n findnext 1
+ *      bind N findnext -1
+ *      bind ,<Space> nohlsearch
  *
+ *  Argument: A string you want to search for.
+ *
+ *  This function accepts two flags: `-?` to search from the bottom rather than the top and `-: n` to jump directly to the nth match.
+ *
+ *  The behavior of this function is affected by the following setting:
+ *
+ *  `findcase`: either "smart", "sensitive" or "insensitive". If "smart", find will be case-sensitive if the pattern contains uppercase letters.
+ *
+ *  Known bugs: find will currently happily jump to a non-visible element, and pressing n or N without having searched for anything will cause an error.
  */
 //#content
-export function find(direction?: -1 | 1) {
-    throw new Error("Our find mode is currently broken. Please `unbind /` and use Firefox's default find mode on `/`")
-    if (direction === undefined) direction = 1
-    finding.findPage(direction)
+export function find(...args: string[]) {
+    let flagpos = args.indexOf("-?")
+    let reverse = flagpos >= 0
+    if (reverse) args.splice(flagpos, 1)
+
+    flagpos = args.indexOf("-:")
+    let startingFrom = 0
+    if (flagpos >= 0) {
+        startingFrom = parseInt(args[flagpos + 1]) || 0
+        args.splice(flagpos, 2)
+    }
+    finding.jumpToMatch(args.join(" "), reverse, startingFrom)
 }
 
-/** Highlight the next occurence of the previously searched for word.
+/** Jump to the next searched pattern.
  *
  * @param number - number of words to advance down the page (use 1 for next word, -1 for previous)
  *
  */
 //#content
 export function findnext(n: number) {
-    finding.navigate(n)
+    finding.jumpToNextMatch(n)
+}
+
+//#content
+export function clearsearchhighlight() {
+    finding.removeHighlighting()
 }
 
 /** @hidden */
@@ -2368,8 +2395,6 @@ export function mode(mode: ModeName) {
     // TODO: event emition on mode change.
     if (mode === "hint") {
         hint()
-    } else if (mode === "find") {
-        find()
     } else {
         contentState.mode = mode
     }

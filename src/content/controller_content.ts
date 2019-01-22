@@ -6,7 +6,6 @@ import * as messaging from "@src/lib/messaging"
 
 import { parser as exmode_parser } from "@src/parsers/exmode"
 import * as hinting from "@src/content/hinting"
-import * as finding from "@src/content/finding"
 import * as gobblemode from "@src/parsers/gobblemode"
 import * as generic from "@src/parsers/genericmode"
 
@@ -47,7 +46,6 @@ function* ParserController() {
         input: keys => generic.parser("inputmaps", keys),
         ignore: keys => generic.parser("ignoremaps", keys),
         hint: hinting.parser,
-        find: finding.parser,
         gobble: gobblemode.parser,
     }
 
@@ -69,8 +67,7 @@ function* ParserController() {
                 if (
                     currentMode !== "ignore" &&
                     currentMode !== "hint" &&
-                    currentMode !== "input" &&
-                    currentMode !== "find"
+                    currentMode !== "input"
                 ) {
                     if (textEditable) {
                         if (currentMode !== "insert") {

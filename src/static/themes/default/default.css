@@ -16,6 +16,9 @@
     --tridactyl-status-border: 1px lightgray solid;
     --tridactyl-status-border-radius: 2px;
 
+    /* Search highlight */
+    --tridactyl-search-highlight-color: yellow;
+
     /* Hinting */
 
     /* Hint character tags */

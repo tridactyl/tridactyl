@@ -133,6 +133,10 @@ a.url:hover {
     }
 }
 
+.FindCompletionOption .match {
+    font-weight: bold;
+}
+
 .hidden {
     display: none;
 }

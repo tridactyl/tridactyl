@@ -1,157 +1,266 @@
-/** Find mode.
-
-    TODO:
-
-    important
-        n/N
-        ?
-        show command line with user input?
-        performance
-        allow spaces
-*/
-
-import * as DOM from "@src/lib/dom"
-import { hasModifiers } from "@src/lib/keyseq"
-import { contentState } from "@src/content/state_content"
-import { messageActiveTab, message } from "@src/lib/messaging"
+// This file has various utilities used by the completion source for the find excmd
+import * as Messaging from "@src/lib/messaging"
 import * as config from "@src/lib/config"
-import Logger from "@src/lib/logging"
-import Mark from "mark.js"
-const logger = new Logger("finding")
+import * as DOM from "@src/lib/dom"
+import { zip } from "@src/lib/itertools"
+import { browserBg, activeTabId } from "@src/lib/webext"
 
-function elementswithtext() {
-    return DOM.getElemsBySelector(
-        "*",
-        // offsetHeight tells us which elements are drawn
-        [
-            hint => {
-                return (
-                    (hint as any).offsetHeight > 0 &&
-                    (hint as any).offsetHeight !== undefined
-                )
-            },
-            hint => {
-                return hint.textContent != ""
-            },
-        ],
+export class Match {
+    constructor(
+        public index,
+        public rangeData,
+        public rectData,
+        public precontext,
+        public postcontext,
+        public firstNode,
+    ) {}
+}
+
+function isCommandLineNode(n) {
+    let url = n.ownerDocument.location.href
+    return (
+        url.protocol == "moz-extension:" &&
+        url.pathname == "/static/commandline.html"
     )
 }
 
-/** Simple container for the state of a single frame's finds. */
-class findState {
-    readonly findHost = document.createElement("div")
-    public mark = new Mark(elementswithtext())
-    // ^ why does filtering by offsetHeight NOT work here
-    public markedels = []
-    public markpos = 0
-    public direction: 1 | -1 = 1
-    constructor() {
-        this.findHost.classList.add("TridactylfindHost")
-    }
-    public filter = ""
+/** Get all text nodes within the page.
+    TODO: cache the results. I tried to do it but since we need to invalidate the cache when nodes are added/removed from the page, the results are constantly being invalidated by the completion buffer.
+    The solution is obviously to pass `document.body` to createTreeWalker instead of just `document` but then you won't get all the text nodes in the page and this is a big problem because the results returned by browser.find.find() need absolutely all nodes existing within the page, even the ones belonging the commandline. */
+function getNodes() {
+    let nodes = []
+    let walker = document.createTreeWalker(
+        document,
+        NodeFilter.SHOW_TEXT,
+        null,
+        false,
+    )
+    let node = walker.nextNode()
+    do {
+        nodes.push(node)
+        node = walker.nextNode()
+    } while (node)
 
-    destructor() {
-        // Remove all finds from the DOM.
-        this.findHost.remove()
-    }
+    return nodes
 }
 
-let findModeState: findState = undefined
+let lastMatches = []
+/** Given "findings", an array matching the one returned by find(), will compute the context for every match in findings and prune the matches than happened in Tridactyl's command line. ContextLength is how many characters from before and after the match should be included into the returned Match object.
+ getMatches() will save its returned values in lastMatches. This is important for caching purposes in jumpToMatch, read its documentation to get the whole picture. */
+export function getMatches(findings, contextLength = 10): Match[] {
+    let result = []
 
-/** For each findable element, add a find */
+    if (findings.length == 0) return result
 
-/** Show only finds prefixed by fstr. Focus first match */
-function filter(fstr) {
-    // for some reason, doing the mark in the done function speeds this up immensely
-    // nb: https://jsfiddle.net/julmot/973gdh8g/ is pretty much what we want
-    findModeState.mark.unmark({
-        done: () => {
-            findModeState.mark.mark(fstr, {
-                separateWordSearch: false,
-                acrossElements: true,
-            })
-        },
-    })
-}
+    // Checks if a node belongs to the command line
+    let nodes = getNodes()
 
-/** Remove all finds, reset STATE. */
-function reset(args?) {
-    if (args.leavemarks == "false") findModeState.mark.unmark()
-    if (args.unfind == "true") {
-        findModeState.mark.unmark()
-        findModeState.destructor()
-        findModeState = undefined
-    }
-    contentState.mode = "normal"
-}
+    for (let i = 0; i < findings.length; ++i) {
+        let range = findings[i][0]
+        let firstnode = nodes[range.startTextNodePos]
+        let lastnode = nodes[range.endTextNodePos]
+        // We never want to match against nodes in the command line
+        if (
+            !firstnode ||
+            !lastnode ||
+            isCommandLineNode(firstnode) ||
+            isCommandLineNode(lastnode)
+        )
+            continue
 
-function mode(mode: "nav" | "search") {
-    if (mode == "nav") {
-        // really, this should happen all the time when in search - we always want first result to be green and the window to move to it (if not already on screen)
-        findModeState.markedels = Array.from(
-            window.document.getElementsByTagName("mark"),
-        ).filter(el => el.offsetHeight > 0)
-        // ^ why does filtering by offsetHeight work here
-        findModeState.markpos = 0
-        let el = findModeState.markedels[0]
-        if (el) {
-            if (!DOM.isVisible(el)) el.scrollIntoView()
-            // colour of the selected link
-            el.style.background = "lawngreen"
-        } else {
-            messageActiveTab("commandline_frame", "fillcmdline", [
-                "# Couldn't find pattern: " + findModeState.filter,
-            ])
+        // Get the context before the match
+        let precontext = firstnode.textContent.substring(
+            range.startOffset - contextLength,
+            range.startOffset,
+        )
+        if (precontext.length < contextLength) {
+            let missingChars = contextLength - precontext.length
+            let id = range.startTextNodePos - 1
+            while (missingChars > 0 && nodes[id]) {
+                let txt = nodes[id].textContent
+                precontext =
+                    txt.substring(txt.length - missingChars, txt.length) +
+                    precontext
+                missingChars = contextLength - precontext.length
+                id -= 1
+            }
         }
+
+        // Get the context after the match
+        let postcontext = lastnode.textContent.substr(
+            range.endOffset,
+            contextLength,
+        )
+        // If the last node doesn't have enough context and if there's a node after it
+        if (
+            postcontext.length < contextLength &&
+            nodes[range.endTextNodePos + 1]
+        ) {
+            // Add text from the following text node to the context
+            postcontext += nodes[range.endTextNodePos + 1].textContent.substr(
+                0,
+                contextLength - postcontext.length,
+            )
+        }
+
+        result.push(
+            new Match(
+                i,
+                findings[i][0],
+                findings[i][1],
+                precontext,
+                postcontext,
+                firstnode,
+            ),
+        )
     }
+
+    lastMatches = result
+    return result
 }
 
-import "@src/lib/number.mod"
-export function navigate(n: number = 1) {
-    // also - really - should probably actually make this be an excmd
-    // people will want to be able to scroll and stuff.
-    // should probably move this to an update function?
-    // don't hardcode this colour
-    findModeState.markedels[findModeState.markpos].style.background = "yellow"
-    findModeState.markpos = (
-        findModeState.markpos +
-        n * findModeState.direction
-    ).mod(findModeState.markedels.length)
-    // obvs need to do mod to wrap indices
-    let el = findModeState.markedels[findModeState.markpos]
-    if (!DOM.isVisible(el)) el.scrollIntoView()
-    el.style.background = "lawngreen"
-}
+let prevFind = null
+let findCount = 0
+/** Performs a call to browser.find.find() with the right parameters and returns the result as a zipped array of rangeData and rectData (see browser.find.find's documentation) sorted according to their vertical position within the document.
+ If count is different from -1 and lower than the number of matches returned by browser.find.find(), will return count results. Note that when this happens, `matchesCacheIsValid ` is set to false, which will prevent `jumpToMatch` from using cached matches. */
+export async function find(query, count = -1, reverse = false) {
+    findCount += 1
+    let findId = findCount
+    let findcase = await config.getAsync("findcase")
+    let caseSensitive =
+        findcase == "sensitive" ||
+        (findcase == "smart" && query.search(/[A-Z]/) >= 0)
+    let tabId = await activeTabId()
 
-export function findPage(direction?: 1 | -1) {
-    if (findModeState !== undefined) reset({ unfind: "true" })
-    contentState.mode = "find"
-    findModeState = new findState()
-    if (direction !== undefined) findModeState.direction = direction
-    document.body.appendChild(findModeState.findHost)
-}
+    // No point in searching for something that won't be used anyway
+    await prevFind
+    if (findId != findCount) return []
 
-/** If key is in findchars, add it to filtstr and filter */
-function pushKey(ke) {
-    if (ke.key === "Backspace") {
-        findModeState.filter = findModeState.filter.slice(0, -1)
-        filter(findModeState.filter)
-    } else if (ke.key === "Enter") {
-        mode("nav")
-        reset({ leavemarks: "true" })
-    } else if (ke.key === "Escape") {
-        reset({ unfind: "true" })
-    } else if (ke.key.length > 1) {
-        return
-    } else {
-        findModeState.filter += ke.key
-        filter(findModeState.filter)
+    prevFind = browserBg.find.find(query, {
+        tabId,
+        caseSensitive,
+        includeRangeData: true,
+        includeRectData: true,
+    })
+    let findings = await prevFind
+    findings = zip(findings.rangeData, findings.rectData).sort(
+        (a: any, b: any) => {
+            a = a[1].rectsAndTexts.rectList[0]
+            b = b[1].rectsAndTexts.rectList[0]
+            if (!a || !b) return 0
+            return a.top - b.top
+        },
+    )
+
+    let finder = e =>
+        e[1].rectsAndTexts.rectList[0] &&
+        e[1].rectsAndTexts.rectList[0].top > window.pageYOffset
+    if (reverse) {
+        findings = findings.reverse()
+        finder = e =>
+            e[1].rectsAndTexts.rectList[0] &&
+            e[1].rectsAndTexts.rectList[0].top < window.pageYOffset
     }
+
+    let pivot = findings.indexOf(findings.find(finder))
+    findings = findings.slice(pivot).concat(findings.slice(0, pivot))
+
+    if (count != -1 && count < findings.length) return findings.slice(0, count)
+
+    return findings
 }
 
-export function parser(keys: KeyboardEvent[]) {
-    for (const { key } of keys) {
-        pushKey(key)
-    }
-    return { keys: [], ex_str: "", isMatch: true }
+function createHighlightingElement(rect) {
+    let e = document.createElement("div")
+    e.className = "TridactylSearchHighlight"
+    e.style.display = "block"
+    e.style.position = "absolute"
+    e.style.top = rect.top + "px"
+    e.style.left = rect.left + "px"
+    e.style.width = rect.right - rect.left + "px"
+    e.style.height = rect.bottom - rect.top + "px"
+    return e
 }
+
+export function removeHighlighting(all = true) {
+    if (all) browserBg.find.removeHighlighting()
+    highlightingElements.forEach(e => e.parentNode.removeChild(e))
+    highlightingElements = []
+}
+
+/* Scrolls to the first visible node.
+ * i is the id of the node that should be scrolled to in allMatches
+ * direction is +1 if going forward and -1 if going backawrd
+ */
+export function findVisibleNode(allMatches, i, direction) {
+    let match = allMatches[i]
+    let n = i
+
+    do {
+        while (!match.firstNode.ownerDocument.contains(match.firstNode)) {
+            n += direction
+            match = lastMatches[n]
+            if (n == i) return null
+        }
+        match.firstNode.parentNode.scrollIntoView()
+    } while (!DOM.isVisible(match.firstNode.parentNode))
+
+    return match
+}
+
+let lastMatch = 0
+let highlightingElements = []
+/* Jumps to the startingFromth dom node matching pattern */
+export async function jumpToMatch(pattern, reverse, startingFrom) {
+    removeHighlighting(false)
+    let match
+
+    // When we already computed all the matches, don't recompute them
+    if (lastMatches[0] && lastMatches[0].rangeData.text == pattern)
+        match = lastMatches[startingFrom]
+
+    if (!match) {
+        lastMatches = getMatches(await find(pattern, -1, reverse))
+        match = lastMatches[startingFrom]
+    }
+
+    if (!match) return
+
+    // Note: using this function can cause bugs, see
+    // https://developer.mozilla.org/en-US/Add-ons/WebExtensions/API/find/highlightResults
+    // Ideally we should reimplement our own highlighting
+    browserBg.find.highlightResults()
+
+    match = findVisibleNode(lastMatches, startingFrom, reverse ? -1 : 1)
+
+    for (let rect of match.rectData.rectsAndTexts.rectList) {
+        let elem = createHighlightingElement(rect)
+        highlightingElements.push(elem)
+        document.body.appendChild(elem)
+    }
+
+    // Remember where we where and what actions we did. This is need for jumpToNextMatch
+    lastMatch = lastMatches.indexOf(match)
+}
+
+export function jumpToNextMatch(n: number) {
+    removeHighlighting(false)
+
+    browserBg.find.highlightResults()
+    let match = findVisibleNode(
+        lastMatches,
+        (n + lastMatch + lastMatches.length) % lastMatches.length,
+        n <= 0 ? -1 : 1,
+    )
+
+    for (let rect of match.rectData.rectsAndTexts.rectList) {
+        let elem = createHighlightingElement(rect)
+        highlightingElements.push(elem)
+        document.body.appendChild(elem)
+    }
+
+    lastMatch = lastMatches.indexOf(match)
+}
+
+import * as SELF from "@src/content/finding.ts"
+Messaging.addListener("finding_content", Messaging.attributeCaller(SELF))
