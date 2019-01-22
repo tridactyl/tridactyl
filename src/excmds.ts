@@ -922,7 +922,14 @@ export function scrollpage(n = 1) {
 //#content_helper
 import * as finding from "@src/content/finding"
 
-/** Use firefox's search function.
+/**
+ *  Rudimentary find mode, left unbound by default as we don't currently support `incsearch`. Suggested binds:
+ *
+ *      bind / fillcmdline find
+ *      bind ? fillcmdline find -?
+ *      bind n findnext 1
+ *      bind N findnext -1
+ *      bind ,<Space> nohlsearch
  *
  *  Argument: A string you want to search for.
  *
@@ -930,9 +937,9 @@ import * as finding from "@src/content/finding"
  *
  *  The behavior of this function is affected by the following setting:
  *
- *      - findcase: either "smart", "sensitive" or "insensitive". If "smart", find will be case-sensitive if the pattern contains uppercase letters.
+ *  `findcase`: either "smart", "sensitive" or "insensitive". If "smart", find will be case-sensitive if the pattern contains uppercase letters.
  *
- *  Know bugs: find will currently happily jump to a non-visible element.
+ *  Known bugs: find will currently happily jump to a non-visible element, and pressing n or N without having searched for anything will cause an error.
  */
 //#content
 export function find(...args: string[]) {
