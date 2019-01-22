@@ -4,12 +4,50 @@
 
 -   New features
 
+    -   Find mode is back, but still doesn't support incsearch. See `help find` for details on how to bind it if you value muscle-memory over stability :)
+
+    -   `rssexec` added with completions to help you find RSS feeds that exist on the current page. By default, it executes `yank`, but this can be changed with `rsscmd` to interface with your favourite feed reader, e.g, `set rsscmd ! echo %u >> ~/.newsbeuter/urls`.
+
+    -   `set` will now let you set complex objects such as `set searchurls {"google":"https://www.bing.com"}` ([#1289](https://github.com/tridactyl/tridactyl/issues/1289))
+
+    -   `undo` now comes with completions so you can pick an older tab or window to restore ([#1286](https://github.com/tridactyl/tridactyl/issues/1286))
+
     -   `no_mouse_mode` added to help users force themselves to use hints by preventing mouse clicks from reaching the page.
 
         -   What, we have 1337 stars on GitHub? I hadn't noticed ; )
         -   `snow_mouse_mode` also added to help people get into the Christmas spirit
 
-    -   the horrendously named `modeindicatorshowkeys` setting now allows you to see which fragments of valid key sequences you have typed.
+    -   The exceptionally well-hidden settings page now has a very well-hidden "reset your configuration button" at the very bottom of the page ([#1271](https://github.com/tridactyl/tridactyl/issues/1271)).
+
+    -   The horrendously named `modeindicatorshowkeys` setting now allows you to see which fragments of valid key sequences you have typed.
+
+-   Bug fixes
+
+    -   Hints are now slightly chubbier in solidarity with people who use bad fonts ([#1280](https://github.com/tridactyl/tridactyl/issues/1280))
+
+    -   Favicons are back on `:tab` completions! ([#986](https://github.com/tridactyl/tridactyl/issues/986))
+
+    -   `nativeopen` now checks for the presence of the native messenger rather than `tabopen`.
+
+    -   `tridactylrc` should now execute more reliably ([#1197](https://github.com/tridactyl/tridactyl/issues/1197))
+
+    -   `set` now refuses to let you set objects such as `searchurls` to simple strings ([#1288](https://github.com/tridactyl/tridactyl/issues/1288))
+
+    -   Completions should show slightly faster ([#1259](https://github.com/tridactyl/tridactyl/issues/1259))
+
+    -   Minor documentation fixes.
+
+-   Under the hood
+
+    -   The native messenger should now give more useful errors ([#1287](https://github.com/tridactyl/tridactyl/issues/1287))
+
+    -   We do slightly fewer mad things with promises ([#1262](https://github.com/tridactyl/tridactyl/issues/1262))
+
+    -   We remember to use our nice little vanity wrappers on ugly messaging more often ([#1257](https://github.com/tridactyl/tridactyl/issues/1257))
+
+    -   Try to prevent more race conditions in the background code ([#1248](https://github.com/tridactyl/tridactyl/issues/1248))
+
+    -   Prevent multiple commandlines from being inserted in to pages ([#1245](https://github.com/tridactyl/tridactyl/issues/1245)) ([#1243](https://github.com/tridactyl/tridactyl/issues/1243))
 
 ## Release 1.14.6 / 2018-12-14
 
@@ -64,8 +102,8 @@ Last, but not least - thank you to everyone who reported issues.
 
 -   Bug fixes
 
-    -   `tabnext/prev` now only cycles through visible tabs (#1084), for real this time (#1207)
-    -   `clipboard xselpaste` now works in the commandline (#1206)
+    -   `tabnext/prev` now only cycles through visible tabs ([#1084](https://github.com/tridactyl/tridactyl/issues/1084)), for real this time ([#1207](https://github.com/tridactyl/tridactyl/issues/1207))
+    -   `clipboard xselpaste` now works in the commandline ([#1206](https://github.com/tridactyl/tridactyl/issues/1206))
 
 Thanks to all of our contributors for this release: Oliver Blanthorn, glacambre, and scde.
 
@@ -79,23 +117,23 @@ Last, but not least - thank you to everyone who reported issues.
 
     -   New theme: `colours halloween`
     -   New command `clipboard xselpaste` pastes from primary selection into focused input field
-    -   New editors added to `editor` (#1162)
+    -   New editors added to `editor` ([#1162](https://github.com/tridactyl/tridactyl/issues/1162))
     -   You can now rebind key sequences in the commandline: `viewconfig exmaps` and `bind --mode=ex`
     -   `text.*` commands have been added for insert mode operations
 
 -   Bug fixes
 
     -   getURL now merges site-specific config objects (e.g, "example" and "example.org")
-    -   Tridactyl now scrolls on non-html pages (#1165)
+    -   Tridactyl now scrolls on non-html pages ([#1165](https://github.com/tridactyl/tridactyl/issues/1165))
     -   Various broken links fixed
-    -   Fewer errors when using the command line (#1168)
-    -   `set` gives more helpful error messages (#1166)
-    -   `tabnext/prev` now only cycles through visible tabs (#1084)
+    -   Fewer errors when using the command line ([#1168](https://github.com/tridactyl/tridactyl/issues/1168))
+    -   `set` gives more helpful error messages ([#1166](https://github.com/tridactyl/tridactyl/issues/1166))
+    -   `tabnext/prev` now only cycles through visible tabs ([#1084](https://github.com/tridactyl/tridactyl/issues/1084))
     -   Commands requiring the native messenger now give more helpful error messages if there is a problem
-    -   Internal commands are no longer shown in completions (#1154)
-    -   It is now possible to insert spaces in the middle of words in the commandline (#1147)
+    -   Internal commands are no longer shown in completions ([#1154](https://github.com/tridactyl/tridactyl/issues/1154))
+    -   It is now possible to insert spaces in the middle of words in the commandline ([#1147](https://github.com/tridactyl/tridactyl/issues/1147))
     -   scrolling.ts: Fix sticky scrolling
-    -   tabprev/tabnext is more robust (#1148)
+    -   tabprev/tabnext is more robust ([#1148](https://github.com/tridactyl/tridactyl/issues/1148))
 
 -   Miscellaneous
 
@@ -105,7 +143,7 @@ Last, but not least - thank you to everyone who reported issues.
 -   Under the bonnet
     -   Fewer bashisms in build process
     -   Rename buffers to tabs
-    -   Tridactyl uses approximately 0.03MB less RAM per tab (#1187)
+    -   Tridactyl uses approximately 0.03MB less RAM per tab ([#1187](https://github.com/tridactyl/tridactyl/issues/1187))
     -   `tab{first,last}` are now simple aliases
     -   Numerical config settings are now numbers rather than strings
 
@@ -202,8 +240,8 @@ Last, but not least - thank you to everyone who reported issues.
 
     -   Fixed the wrong invocation of urlmodify in the tridactylrc example
     -   Fix #948: set newtab about:home kinda works subject to usual caveats
-    -   Respect `profiledir` in more places (#946)
-    -   Pass `/` through to websites in abnormal modes (#954)
+    -   Respect `profiledir` in more places ([#946](https://github.com/tridactyl/tridactyl/issues/946))
+    -   Pass `/` through to websites in abnormal modes ([#954](https://github.com/tridactyl/tridactyl/issues/954))
     -   Fix `installnative` on some gourmet distributions
 
 Thanks to all of our contributors for this release: Oliver Blanthorn, Saul Reynolds-Haertle, glacambre, Colin Caine, William G Hatch, Noah Birnel, Roman Bogorodskiy, and quinoa42.
@@ -237,9 +275,9 @@ Last, but not least - thank you to everyone who reported issues.
 -   Bug fixes:
 
     -   Yank element text hint mode was broken (`;p`) and we fixed it by accident
-    -   You can now unbind keys which were bound to `Esc` by default (#921)
+    -   You can now unbind keys which were bound to `Esc` by default ([#921](https://github.com/tridactyl/tridactyl/issues/921))
     -   Less console spam: fixed "1.1" error if config was at latest version
-    -   Our command line now plays nicely with left scrollbars (#909)
+    -   Our command line now plays nicely with left scrollbars ([#909](https://github.com/tridactyl/tridactyl/issues/909))
     -   `guiset gui none` now pads maximised windows to fix a bug on Windows where the top of the page is cut off
 
 -   Boring internal changes:
@@ -283,31 +321,31 @@ Last, but not least - thank you to everyone who reported issues.
 
     -   Add `autocmddelete` to delete an autocmd.
 
-    -   Add `hintdelay` setting (measured in milliseconds) to add a short pause before hint mode is left after choosing a link (#386) with the `hintfiltermode vimperator*` hint modes so that one has time to stop typing before Tridactyl returns to normal mode.
+    -   Add `hintdelay` setting (measured in milliseconds) to add a short pause before hint mode is left after choosing a link ([#386](https://github.com/tridactyl/tridactyl/issues/386)) with the `hintfiltermode vimperator*` hint modes so that one has time to stop typing before Tridactyl returns to normal mode.
 
     -   Add binds for yankmd and yanktitle to `yt` and `ym` irrespectively.
 
-    -   Our GitHub has a new troublehooting guide and issue template (#522).
+    -   Our GitHub has a new troublehooting guide and issue template ([#522](https://github.com/tridactyl/tridactyl/issues/522)).
 
     -   Websites can no longer steal `/` from Firefox. If you are unhappy with this state of affairs, try `set leavegithubalone true`.
 
 -   Bug fixes:
 
-    -   Fix race condition in state.mode synchronization (#613).
+    -   Fix race condition in state.mode synchronization ([#613](https://github.com/tridactyl/tridactyl/issues/613)).
 
-    -   `set newtab about:blank` should work once again (#678).
+    -   `set newtab about:blank` should work once again ([#678](https://github.com/tridactyl/tridactyl/issues/678)).
 
     -   Make `tabprev` synchronous: it now works better in `composite` commands (i.e, `D` is less janky).
 
-    -   Fix `guiset hoverlink *` in Firefox 61 (#763).
+    -   Fix `guiset hoverlink *` in Firefox 61 ([#763](https://github.com/tridactyl/tridactyl/issues/763)).
 
     -   Make `source` ignore visually empty lines.
 
-    -   Completions will now be properly deselected upon typing (#833).
+    -   Completions will now be properly deselected upon typing ([#833](https://github.com/tridactyl/tridactyl/issues/833)).
 
-    -   `guiset` now gives helpful errors if given the wrong arguments (#844).
+    -   `guiset` now gives helpful errors if given the wrong arguments ([#844](https://github.com/tridactyl/tridactyl/issues/844)).
 
-    -   History completion insertion with space no longer inserts an extra space (#838).
+    -   History completion insertion with space no longer inserts an extra space ([#838](https://github.com/tridactyl/tridactyl/issues/838)).
 
     -   Ctrl-y actually scrolls up now
 
@@ -322,17 +360,17 @@ Last, but not least - thank you to everyone who reported issues.
         -   Windows install script no longer rage-quits if Python is not found.
             -   This means that the compiled executable will actually be used. It's much slower than the normal Python script, so we strongly recommend that you use that instead by installing Python 3, making sure it is on your PATH, and running `installnative` again.
 
-    -   Fix focus hijacking again (#768).
+    -   Fix focus hijacking again ([#768](https://github.com/tridactyl/tridactyl/issues/768)).
 
-    -   Fix scrolling on bugzilla.mozilla.org (#762).
+    -   Fix scrolling on bugzilla.mozilla.org ([#762](https://github.com/tridactyl/tridactyl/issues/762)).
 
-    -   Fix race condition in :sanitise (#724).
+    -   Fix race condition in :sanitise ([#724](https://github.com/tridactyl/tridactyl/issues/724)).
 
     -   Make sure bind/unbind use the same binding format: previously, modifiers on binds were case-sensitive for some commands.
 
     -   Container commands are now more case-insensitive.
 
-    -   Fix jumplist not being correctly restored on reloads (#680).
+    -   Fix jumplist not being correctly restored on reloads ([#680](https://github.com/tridactyl/tridactyl/issues/680)).
 
     -   Update 1.13.1 release date in time for 1.13.2
 
@@ -513,7 +551,7 @@ Last, but not least - thank you to everyone who reported issues.
     -   Native messenger documentation improved, making it clear that we haven't reimplemented IRC in the browser.
 
 -   Minor bug fixes
-    -   Remove pixel gap under command bar (#442)
+    -   Remove pixel gap under command bar ([#442](https://github.com/tridactyl/tridactyl/issues/442))
     -   Native installer no longer requires pip and supports Debian's `which`
     -   Help page links are more legible on rubbish screens
     -   Turn 'q' and 'qall' into aliases
@@ -561,7 +599,7 @@ Last, but not least - thank you to everyone who reported issues.
     -   Fix #446: you can now edit completions you select with space
     -   Completions will now pan to show you what you have selected
 
--   Mode indicator is now print friendly (#453)!
+-   Mode indicator is now print friendly ([#453](https://github.com/tridactyl/tridactyl/issues/453))!
 
 -   Fiddled with `help` theme
 
@@ -603,8 +641,8 @@ Last, but not least - thank you to everyone who reported issues.
 ## Release 1.9.6 / 2018-04-25
 
 -   Scrolling improvements
-    -   Faster (#395)
-    -   `G`/`gg` work on more pages (#382)
+    -   Faster ([#395](https://github.com/tridactyl/tridactyl/issues/395))
+    -   `G`/`gg` work on more pages ([#382](https://github.com/tridactyl/tridactyl/issues/382))
 -   Mode indicator improvements
     -   Can be disabled with `set modeindicator false`
     -   Text is not selectable to improve the lives of people who "Select All" a lot
@@ -663,7 +701,7 @@ Last, but not least - thank you to everyone who reported issues.
     -   Add tutorial on `tutor`
         -   Shown on first install of Tridactyl
     -   Add `viewconfig` command to open the current configuration in Firefox's native JSON viewer (which Tridactyl doesn't work in)
--   [Move betas to our own site](https://tridactyl.cmcaine.co.uk/betas) as addons.mozilla.org stopped supporting them (#307)
+-   [Move betas to our own site](https://tridactyl.cmcaine.co.uk/betas) as addons.mozilla.org stopped supporting them ([#307](https://github.com/tridactyl/tridactyl/issues/307))
     -   Add automatic updates for betas
         -   If you downloaded a beta before pre778, you will need to update manually to a later beta.
 -   Small new features
@@ -672,19 +710,19 @@ Last, but not least - thank you to everyone who reported issues.
     -   Add `viewsource` command
     -   `set allowautofocus false` to stop pages stealing focus on load (#266, #369)
     -   `^` now switches to last used tab by default
-    -   In command mode, `Space` now puts the URL from the selected completion into the command line (#224)
+    -   In command mode, `Space` now puts the URL from the selected completion into the command line ([#224](https://github.com/tridactyl/tridactyl/issues/224))
     -   Add find mode, left unbound by default
         -   Not ready for widespread usage: slow and probably buggy.
-    -   `hint -wp` to open hint in a private window (#317)
+    -   `hint -wp` to open hint in a private window ([#317](https://github.com/tridactyl/tridactyl/issues/317))
     -   Configuration can now upgrade itself to allow us to rename settings
-    -   Add dark theme: `set theme dark` (#230)
-    -   Tab opening settings for `tabopen` (#342)
+    -   Add dark theme: `set theme dark` ([#230](https://github.com/tridactyl/tridactyl/issues/230))
+    -   Tab opening settings for `tabopen` ([#342](https://github.com/tridactyl/tridactyl/issues/342))
         -   `set {related,tab}openpos next|last`
 -   Stuff only collaborators will care about
     -   Code is now run through the prettier formatter before each commit
 -   Moderately large bug fixes
     -   Fix scrolling on sites that use frames (#372, #63, #107, #273, #218)
-    -   Fix hinting on sites with frames (#67)
+    -   Fix hinting on sites with frames ([#67](https://github.com/tridactyl/tridactyl/issues/67))
     -   Hijack event listeners to put hints on more JavaScript links (#204, #163, #215)
 -   Small bug fixes
     -   Fix #276: ]] on Hacker News
@@ -695,7 +733,7 @@ Last, but not least - thank you to everyone who reported issues.
         -   Rename vimium-gi to gimode, default to firefox, version to configversion
     -   Fix hinting following JavaScript links because they look the same
 -   Introduce new bugs
-    -   Show useless hints on some sites (#225)
+    -   Show useless hints on some sites ([#225](https://github.com/tridactyl/tridactyl/issues/225))
     -   and more!
 
 ## Release 1.8.2 / 2018-03-07
@@ -703,32 +741,32 @@ Last, but not least - thank you to everyone who reported issues.
 -   Improve config API
     -   `set key.subkey.subsubkey value` now works
     -   Add user feedback to `bind` and `get`
--   Add save link/img hint submode (;s, ;S, ;a, ;A) (#148)
+-   Add save link/img hint submode (;s, ;S, ;a, ;A) ([#148](https://github.com/tridactyl/tridactyl/issues/148))
 -   Add `autocmd [event] [filter] [ex command]`
     -   Currently, only supports the event `DocStart`
     -   Most useful for entering ignore mode on certain websites: `autocmd DocStart mail.google.com mode ignore`
--   Add exmode aliases with `command [alias] [ex_command]`. Many aliases have been ported from Pentadactyl. (#236)
+-   Add exmode aliases with `command [alias] [ex_command]`. Many aliases have been ported from Pentadactyl. ([#236](https://github.com/tridactyl/tridactyl/issues/236))
 -   Add urlmodify command (#286, #298)
--   Support Emacs-style C-(a|e|k|u) in cmdline (#277)
+-   Support Emacs-style C-(a|e|k|u) in cmdline ([#277](https://github.com/tridactyl/tridactyl/issues/277))
 -   Support changing followpage pattern used in `]]` and `[[` to allow use with foreign languages
--   Add logging levels and make logging less verbose by default (#206)
--   Support %s magic string for search providers (#253)
+-   Add logging levels and make logging less verbose by default ([#206](https://github.com/tridactyl/tridactyl/issues/206))
+-   Support %s magic string for search providers ([#253](https://github.com/tridactyl/tridactyl/issues/253))
 -   Add hintfiltermode config and new "vimperator, vimperator-reflow" hinting modes
     -   Make hintPage follow link if there's only 1 option
--   Fix high resource usage when typing under some circumstances (#311)
--   `set newtab foo.bar` now changes all new tab pages (#235)
--   Fix hints on some sites via cleanslate.css (#220)
--   Fix new config system (#321)
+-   Fix high resource usage when typing under some circumstances ([#311](https://github.com/tridactyl/tridactyl/issues/311))
+-   `set newtab foo.bar` now changes all new tab pages ([#235](https://github.com/tridactyl/tridactyl/issues/235))
+-   Fix hints on some sites via cleanslate.css ([#220](https://github.com/tridactyl/tridactyl/issues/220))
+-   Fix new config system ([#321](https://github.com/tridactyl/tridactyl/issues/321))
 -   followpage now falls back to urlincrement
 -   `tabopen` now opens tabs to the right of the current tab
--   Fix floating commandline iframe on some sites (#289)
--   Enter insert mode on drop down menus (#281)
--   Support hinting on some dodgy old websites (#287)
--   Make :reloadall only refresh current window tabs (#288)
--   Remove `xx` binding (#262)
--   Fix gu in directories (#256)
+-   Fix floating commandline iframe on some sites ([#289](https://github.com/tridactyl/tridactyl/issues/289))
+-   Enter insert mode on drop down menus ([#281](https://github.com/tridactyl/tridactyl/issues/281))
+-   Support hinting on some dodgy old websites ([#287](https://github.com/tridactyl/tridactyl/issues/287))
+-   Make :reloadall only refresh current window tabs ([#288](https://github.com/tridactyl/tridactyl/issues/288))
+-   Remove `xx` binding ([#262](https://github.com/tridactyl/tridactyl/issues/262))
+-   Fix gu in directories ([#256](https://github.com/tridactyl/tridactyl/issues/256))
 -   Fix various typos (#247, #228)
--   Add FAQ and other updates to readme.md (#232)
+-   Add FAQ and other updates to readme.md ([#232](https://github.com/tridactyl/tridactyl/issues/232))
 
 ## Release 1.7.3 / 2017-12-21
 
@@ -741,13 +779,13 @@ Last, but not least - thank you to everyone who reported issues.
 -   Add relative zoom and `z{i,z,o}` binds
 -   Add `sanitize` excmd for deleting browsing/Tridactyl data
 -   Search engines:
-    -   Add `searchsetkeyword [keyword] [url]`: define your own search engines (#194)
-    -   Add Qwant and update startpage URL (#198)
+    -   Add `searchsetkeyword [keyword] [url]`: define your own search engines ([#194](https://github.com/tridactyl/tridactyl/issues/194))
+    -   Add Qwant and update startpage URL ([#198](https://github.com/tridactyl/tridactyl/issues/198))
     -   Add Google Scholar search engine
--   Fix problems where ignore mode would revert to normal mode on some websites with iframes (#176)
+-   Fix problems where ignore mode would revert to normal mode on some websites with iframes ([#176](https://github.com/tridactyl/tridactyl/issues/176))
 -   Add ^ and $ in normal mode for navigation to 0% or 100% in x-direction
 -   Buffer completion fixes
-    -   Use tab ID even if buffer has a trailing space (#223)
+    -   Use tab ID even if buffer has a trailing space ([#223](https://github.com/tridactyl/tridactyl/issues/223))
     -   completions: passthrough # in buffercompletion
 -   Support multiple URLs for quickmarks
 -   Blacklist default newtab url from history completions
@@ -765,20 +803,20 @@ Last, but not least - thank you to everyone who reported issues.
     -   set [setting] without a value will inform you of the current value
     -   Add configuration options for hinting: `hintchars` and `hintorder`
     -   Add unset for resetting a bind to default
-    -   You can now change default search engine with e.g, `set searchengine bing` (#60)
-    -   The default new tab page can be replaced with any URL via `set newtab [url]` (#59)
-    -   Add `gh` and `gH` and "homepages" setting (#96)
+    -   You can now change default search engine with e.g, `set searchengine bing` ([#60](https://github.com/tridactyl/tridactyl/issues/60))
+    -   The default new tab page can be replaced with any URL via `set newtab [url]` ([#59](https://github.com/tridactyl/tridactyl/issues/59))
+    -   Add `gh` and `gH` and "homepages" setting ([#96](https://github.com/tridactyl/tridactyl/issues/96))
 -   Shift-tab and tab now will cycle around completions correctly
 -   `ys` now works on some older pages
--   Add bmarks command for searching through bookmarks (#167)
+-   Add bmarks command for searching through bookmarks ([#167](https://github.com/tridactyl/tridactyl/issues/167))
 -   Add `hint -c [selector]`: add hints that match CSS selector
 -   Add text-to-speech hint mode on `;r`
 -   Allow `;p` to yank any element which contains text
 -   Add `;#` hint yank anchor mode
 -   Improve hint CSS by adding a border and making background semi-transparent
 -   Add `tabonly` command
--   Fix hinting mysteriously not working on some pages (#168)
--   Fix issue where command line would invisibly cover up part of the screen (#170)
+-   Fix hinting mysteriously not working on some pages ([#168](https://github.com/tridactyl/tridactyl/issues/168))
+-   Fix issue where command line would invisibly cover up part of the screen ([#170](https://github.com/tridactyl/tridactyl/issues/170))
 -   Bookmarks can now have spaces in their titles
 -   Fix some hints on sites such as pcgamer.co.uk
 -   Long page titles will no longer appear after URLs in completions
