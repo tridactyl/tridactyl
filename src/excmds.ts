@@ -88,7 +88,6 @@ import * as Controller from "@src/background/controller_background"
 /** @hidden */
 const logger = new Logging.Logger("excmds")
 
-
 // Set up the SELF import for excmds that work in both modes
 import * as SELF_CONTENT from "./.excmds_content.generated"
 import * as SELF_BACKGROUND from "./.excmds_background.generated"
@@ -106,6 +105,52 @@ SELF = SELF_CONTENT
 SELF = SELF_BACKGROUND
 // }
 
+/** @hidden **/
+const cmdframe_fns: { [key: string]: [string, any[]] } = {
+    accept_line: ["accept_line", []],
+    next_history: ["next_history", []],
+    prev_history: ["prev_history", []],
+    next_completion: ["next_completion", []],
+    prev_completion: ["prev_completion", []],
+    insert_completion: ["insert_completion", []],
+    insert_space_or_completion: ["insert_space_or_completion", []],
+    complete: ["complete", []],
+    hide_and_clear: ["hide_and_clear", []],
+}
+
+import * as tri_editor from "@src/lib/editor"
+
+//#content_helper
+// {
+for (let editorfn in tri_editor) {
+    // Re-expose every editor function as a text.$fn excmd that will forward the call to $fn to the commandline frame if it is selected or apply $fn to the last used input if it isn't
+    SELF["text." + editorfn] = arg => {
+        if ((document.activeElement as any).src === browser.extension.getURL("static/commandline.html")) return Messaging.messageOwnTab("commandline_frame", "editor_function", [editorfn].concat(arg))
+        return tri_editor[editorfn](DOM.getLastUsedInput(), arg)
+    }
+}
+for (let fn in cmdframe_fns) {
+    SELF["ex." + fn] = (...args) => (Messaging.messageOwnTab as any)("commandline_frame", cmdframe_fns[fn][0], cmdframe_fns[fn][1].concat(args))
+}
+
+// }
+
+/** @hidden */
+export const cmd_params = new Map<string, Map<string, string>>()
+
+//#background_helper
+// {
+for (let editorfn in tri_editor) {
+    let name = "text." + editorfn
+    cmd_params.set(name, new Map([["arr", "string[]"]]))
+    SELF[name] = (...args) => messageActiveTab("excmd_content", name, args)
+}
+for (let fn in cmdframe_fns) {
+    cmd_params.set("ex." + fn, new Map(cmdframe_fns[fn][1].map((a, i) => [`${i}`, typeof a] as [string, string])))
+    SELF["ex." + fn] = (...args) => messageActiveTab("commandline_frame", cmdframe_fns[fn][0], cmdframe_fns[fn][1].concat(args))
+}
+// }
+
 // Set up the controller to run excmds from the appropriate mode
 Controller.setExCmds(SELF)
 
@@ -116,7 +161,7 @@ Messaging.addListener("excmd_content", Messaging.attributeCaller(SELF_CONTENT))
 import { message } from "@src/lib/messaging"
 import { executeWithoutCommandLine } from "@src/content/commandline_content"
 // }
- 
+
 /** @hidden **/
 const TRI_VERSION = "REPLACE_ME_WITH_THE_VERSION_USING_SED"
 
@@ -146,9 +191,6 @@ import { activeTab, firefoxVersionAtLeast } from "@src/lib/webext"
 import * as Native from "@src/background/native_background"
 
 // }
-//
-/** @hidden */
-export const cmd_params = new Map<string, Map<string, string>>()
 
 // }}}
 
@@ -2474,8 +2516,7 @@ async function getnexttabs(tabid: number, n?: number) {
 
 // {{{ CMDLINE
 
-
-/** 
+/**
  * Here lies repeat
  * 2018 - 2019
  * Murdered by saulrh for the greater good
@@ -2483,7 +2524,7 @@ async function getnexttabs(tabid: number, n?: number) {
  */
 //   //#background_helper
 //   import * as controller from "@src/background/controller_background"
-//   
+//
 //   /** Repeats a `cmd` `n` times.
 //       Falls back to the last executed command if `cmd` doesn't exist.
 //       Executes the command once if `n` isn't defined either.
@@ -2595,49 +2636,6 @@ export async function fillcmdline_tmp(ms: number, ...strarr: string[]) {
         }, ms),
     )
 }
-
-/** @hidden **/
-const cmdframe_fns: { [key: string]: [string, any[]] } = {
-    accept_line: ["accept_line", []],
-    next_history: ["next_history", []],
-    prev_history: ["prev_history", []],
-    next_completion: ["next_completion", []],
-    prev_completion: ["prev_completion", []],
-    insert_completion: ["insert_completion", []],
-    insert_space_or_completion: ["insert_space_or_completion", []],
-    complete: ["complete", []],
-    hide_and_clear: ["hide_and_clear", []],
-}
-
-import * as tri_editor from "@src/lib/editor"
-
-//#content_helper
-// {
-for (let editorfn in tri_editor) {
-    // Re-expose every editor function as a text.$fn excmd that will forward the call to $fn to the commandline frame if it is selected or apply $fn to the last used input if it isn't
-    SELF["text." + editorfn] = arg => {
-        if ((document.activeElement as any).src === browser.extension.getURL("static/commandline.html")) return Messaging.messageOwnTab("commandline_frame", "editor_function", [editorfn].concat(arg))
-        return tri_editor[editorfn](DOM.getLastUsedInput(), arg)
-    }
-}
-for (let fn in cmdframe_fns) {
-    SELF["ex." + fn] = (...args) => (Messaging.messageOwnTab as any)("commandline_frame", cmdframe_fns[fn][0], cmdframe_fns[fn][1].concat(args))
-}
-
-// }
-
-//#background_helper
-// {
-for (let editorfn in tri_editor) {
-    let name = "text." + editorfn
-    cmd_params.set(name, new Map([["arr", "string[]"]]))
-    SELF[name] = (...args) => messageActiveTab("excmd_content", name, args)
-}
-for (let fn in cmdframe_fns) {
-    cmd_params.set("ex." + fn, new Map(cmdframe_fns[fn][1].map((a, i) => [`${i}`, typeof a] as [string, string])))
-    SELF["ex." + fn] = (...args) => messageActiveTab("commandline_frame", cmdframe_fns[fn][0], cmdframe_fns[fn][1].concat(args))
-}
-// }
 
 /**
  * Returns the current URL. For use with [[composite]].
