@@ -14,7 +14,7 @@ import time
 import unicodedata
 
 DEBUG = False
-VERSION = "0.1.8"
+VERSION = "0.1.10"
 
 
 class NoConnectionError(Exception):
@@ -413,6 +413,12 @@ def handleMessage(message):
         else:
             reply["code"] = "File not found"
 
+    elif cmd == "getconfigpath":
+        reply["content"] = findUserConfigFile()
+        reply["code"] = 0
+        if reply["content"] == None:
+            reply["code"] = "Path not found"
+
     elif cmd == "run":
         commands = message["command"]
         stdin = message.get("content", "").encode("utf-8")
@@ -450,6 +456,17 @@ def handleMessage(message):
         reply["content"] = ""
         reply["code"] = 0
 
+    elif cmd == "move":
+        dest = os.path.expanduser(message["to"])
+        if (os.path.isfile(dest)):
+            reply["code"] = 1
+        else:
+            try:
+                shutil.move(os.path.expanduser(message["from"]), dest)
+                reply["code"] = 0
+            except:
+                reply["code"] = 2
+
     elif cmd == "write":
         with open(message["file"], "w") as file:
             file.write(message["content"])
@@ -460,7 +477,7 @@ def handleMessage(message):
             prefix = ""
         prefix = "tmp_{}_".format(sanitizeFilename(prefix))
 
-        (handle, filepath) = tempfile.mkstemp(prefix=prefix)
+        (handle, filepath) = tempfile.mkstemp(prefix=prefix, suffix=".txt")
         with os.fdopen(handle, "w") as file:
             file.write(message["content"])
         reply["content"] = filepath
@@ -470,6 +487,16 @@ def handleMessage(message):
 
     elif cmd == "win_firefox_restart":
         reply = win_firefox_restart(message)
+
+    elif cmd == "list_dir":
+        path = os.path.expanduser(message.get("path"))
+        reply["sep"] = os.sep
+        reply["isDir"] = os.path.isdir(path)
+        if not reply["isDir"]:
+            path = os.path.dirname(path)
+            if not path:
+                path = "./"
+        reply["files"] = os.listdir(path)
 
     else:
         reply = {"cmd": "error", "error": "Unhandled message"}

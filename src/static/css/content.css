@@ -41,8 +41,18 @@
     pointer-events: none !important;
 }
 
+.TridactylEditing {
+    background: var(--tridactyl-externaledit-bg);
+}
+
 @media print {
     .TridactylStatusIndicator {
         display: none !important;
     }
+}
+
+.TridactylSearchHighlight {
+    opacity: 0.5 !important;
+    background-color: var(--tridactyl-search-highlight-color) !important;
+    z-index: 2147483647 !important;
 }

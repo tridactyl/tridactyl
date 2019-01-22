@@ -16,16 +16,52 @@ interface Window {
     eval(str: string): any
 }
 
+// Firefox Document interface
+interface Document {
+    fullscreenElement: HTMLElement | void
+}
+
+// Record that we've added a property with convenience objects to the
+// window object:
+interface Window {
+    tri: any
+}
+
 // Again, firefox-specific
 interface UIEvent {
     pageX: number
     pageY: number
 }
 
+// This isn't an actual firefox type but it's nice to have one for this kind of object
+// https://developer.mozilla.org/en-US/Add-ons/WebExtensions/API/find/find
+interface findResult {
+    count: number
+    rangeData: {
+        framePos: number
+        startTextNodePos: number
+        endTextNodePos: number
+        startOffset: number
+        endOffset: number
+        text: string
+    }[]
+    rectData: {
+        rectsAndTexts: {
+            top: number
+            left: number
+            bottom: number
+            right: number
+        }[]
+        textList: string[]
+    }
+}
+
 interface HTMLElement {
     // Let's be future proof:
     // https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement/focus
     focus(options: any): void
+    // Let's also implement the current function signature.
+    focus(): void
 }
 
 declare function exportFunction(

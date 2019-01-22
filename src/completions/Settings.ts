@@ -1,8 +1,7 @@
-import * as Completions from "../completions"
-import * as config from "../config"
-import { browserBg } from "../lib/webext"
-import * as metadata from "../.metadata.generated"
-import { typeToString } from "../metadata"
+import * as Completions from "@src/completions"
+import * as config from "@src/lib/config"
+import { browserBg } from "@src/lib/webext"
+import * as metadata from "@src/.metadata.generated"
 
 class SettingsCompletionOption extends Completions.CompletionOptionHTML
     implements Completions.CompletionOptionFuse {
@@ -62,18 +61,22 @@ export class SettingsCompletionSource extends Completions.CompletionSourceFuse {
 
         options += options ? " " : ""
 
-        let configmd =
-            metadata.everything["src/config.ts"].classes.default_config
-        let settings = config.get()
+        let file, default_config, settings
+        if (!(file = metadata.everything.getFile("src/lib/config.ts"))
+            || !(default_config = file.getClass("default_config"))
+            || !(settings = config.get()))
+            return
+
         this.options = Object.keys(settings)
             .filter(x => x.startsWith(query))
             .sort()
             .map(setting => {
+                let md = undefined
                 let doc = ""
                 let type = ""
-                if (configmd[setting]) {
-                    doc = configmd[setting].doc.join(" ")
-                    type = typeToString(configmd[setting].type)
+                if (md = default_config.getMember(setting)) {
+                    doc = md.doc
+                    type = md.type.toString()
                 }
                 return new SettingsCompletionOption(options + setting, {
                     name: setting,
@@ -82,7 +85,6 @@ export class SettingsCompletionSource extends Completions.CompletionSourceFuse {
                     type: type,
                 })
             })
-        // this.options = [new SettingsCompletionOption("ok", {name: "ok", docs:""})]
 
         this.updateChain()
     }

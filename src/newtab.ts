@@ -1,5 +1,7 @@
 // This file is only included in newtab.html, after content.js has been loaded
 
+import * as config from "@src/lib/config"
+
 // These functions work with the elements created by tridactyl/scripts/newtab.md.sh
 function getChangelogDiv() {
     const changelogDiv = document.getElementById("changelog")
@@ -34,4 +36,9 @@ window.addEventListener("load", _ => {
         return
     }
     spoilerbutton.addEventListener("click", readChangelog)
+    config.getAsync("newtabfocus").then(f => {
+        if (f === "page") {
+            window.focus()
+        }
+    })
 })

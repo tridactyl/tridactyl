@@ -1,6 +1,6 @@
-import * as convert from "../convert"
-import browserProxy from "./browser_proxy"
-import * as config from "../config"
+import * as convert from "@src/lib/convert"
+import browserProxy from "@src/lib/browser_proxy"
+import * as config from "@src/lib/config"
 
 export function inContentScript() {
     return getContext() == "content"
@@ -57,11 +57,29 @@ export async function activeTabContainerId() {
     return (await activeTab()).cookieStoreId
 }
 
+//#content_helper
+export async function ownTab() {
+    // Warning: this relies on the owntab_background listener being set in messaging.ts in order to work
+    return browser.runtime.sendMessage({ type: "owntab_background" })
+}
+
+//#content_helper
+export async function ownTabId() {
+    return (await ownTab()).id
+}
+
+//#content_helper
+export async function ownTabContainer() {
+    return browserBg.contextualIdentities.get(
+        (await ownTab()).cookieStoreId,
+    )
+}
+
 //#background_helper
 export async function activeTabContainer() {
     let containerId = await activeTabContainerId()
     if (containerId !== "firefox-default")
-        return await browserBg.contextualIdentities.get(containerId)
+        return browserBg.contextualIdentities.get(containerId)
     else
         throw new Error(
             "firefox-default is not a valid contextualIdentity (activeTabContainer)",
@@ -114,7 +132,9 @@ export async function openInNewTab(
             break
         case "last":
             // Infinity can't be serialised, apparently.
-            options.index = (await browserBg.tabs.query({currentWindow: true})).length
+            options.index = (await browserBg.tabs.query({
+                currentWindow: true,
+            })).length
             break
         case "related":
             if (await firefoxVersionAtLeast(57)) {

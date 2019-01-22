@@ -1,6 +1,6 @@
-import * as Completions from "../completions"
-import * as config from "../config"
-import { browserBg } from "../lib/webext"
+import * as Completions from "@src/completions"
+import * as config from "@src/lib/config"
+import { browserBg } from "@src/lib/webext"
 
 class HistoryCompletionOption extends Completions.CompletionOptionHTML
     implements Completions.CompletionOptionFuse {
@@ -14,7 +14,7 @@ class HistoryCompletionOption extends Completions.CompletionOptionHTML
 
         // Push properties we want to fuzmatch on
         this.fuseKeys.push(page.title, page.url) // weight by page.visitCount
-        
+
         // Create HTMLElement
         // need to download favicon
         const favIconUrl = Completions.DEFAULT_FAVICON
@@ -115,7 +115,7 @@ export class HistoryCompletionSource extends Completions.CompletionSourceFuse {
             // Search history, dedupe and sort by frecency
             let history = await browserBg.history.search({
                 text: query,
-                maxResults: Number(config.get("historyresults")),
+                maxResults: config.get("historyresults"),
                 startTime: 0,
             })
 

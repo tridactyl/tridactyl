@@ -1,26 +1,29 @@
 /** Background script entry point. */
 
-import "./lib/browser_proxy_background"
+import * as BackgroundController from "@src/background/controller_background"
+import "@src/lib/browser_proxy_background"
 
-import * as controller from "./controller"
-import * as messaging from "./messaging"
-import * as excmds from "./.excmds_background.generated"
-import * as commandline_background from "./commandline_background"
-import * as convert from "./convert"
-import * as config from "./config"
-import * as dom from "./dom"
-import * as download_background from "./download_background"
-import * as itertools from "./itertools"
-import * as keyseq from "./keyseq"
-import * as request from "./requests"
-import * as native from "./native_background"
-import state from "./state"
-import * as webext from "./lib/webext"
-import { AutoContain } from "./lib/autocontainers"
+// Add various useful modules to the window for debugging
+import * as perf from "@src/perf"
+import { listenForCounters } from "@src/perf"
+import * as messaging from "@src/lib/messaging"
+import * as excmds from "@src/.excmds_background.generated"
+import * as commandline_background from "@src/background/commandline_background"
+import * as convert from "@src/lib/convert"
+import * as config from "@src/lib/config"
+import * as dom from "@src/lib/dom"
+import * as download_background from "@src/background/download_background"
+import * as itertools from "@src/lib/itertools"
+import * as keyseq from "@src/lib/keyseq"
+import * as request from "@src/lib/requests"
+import * as native from "@src/background/native_background"
+import state from "@src/state"
+import * as webext from "@src/lib/webext"
+import { AutoContain } from "@src/lib/autocontainers"
+import * as controller from "@src/background/controller_background"
 
 controller.setExCmds(excmds)
 
-// Add various useful modules to the window for debugging
 ;(window as any).tri = Object.assign(Object.create(null), {
     messaging,
     excmds,
@@ -37,23 +40,24 @@ controller.setExCmds(excmds)
     webext,
     l: prom => prom.then(console.log).catch(console.error),
     contentLocation: window.location,
+    perf,
 })
 
 // {{{ tri.contentLocation
 // When loading the background, use the active tab to know what the current content url is
-let dateUpdated
 browser.tabs.query({ currentWindow: true, active: true }).then(t => {
     ;(window as any).tri.contentLocation = new URL(t[0].url)
-    dateUpdated = performance.now()
 })
 // After that, on every tab change, update the current url
-// Experiments show that context switching+performing the api call costs more than 2ms so performance.now()'s resolution should be precise enough for it to be used when we need to protect ourselves against race conditions
+let contentLocationCount = 0
 browser.tabs.onActivated.addListener(ev => {
+    let myId = contentLocationCount + 1
+    contentLocationCount = myId
     browser.tabs.get(ev.tabId).then(t => {
-        let perf = performance.now()
-        if (dateUpdated <= perf) {
+        // Note: we're using contentLocationCount and myId in order to make sure that only the last onActivated event is used in order to set contentLocation
+        // This is needed because otherWise the following chain of execution might happen: onActivated1 => onActivated2 => tabs.get2 => tabs.get1
+        if (contentLocationCount == myId) {
             ;(window as any).tri.contentLocation = new URL(t.url)
-            dateUpdated = perf
         }
     })
 })
@@ -79,13 +83,11 @@ function removeCSPListener() {
 
 config.getAsync("csp").then(csp => csp === "clobber" && addCSPListener())
 
-browser.storage.onChanged.addListener((changes, areaname) => {
-    if ("userconfig" in changes) {
-        if (changes.userconfig.newValue.csp === "clobber") {
-            addCSPListener()
-        } else {
-            removeCSPListener()
-        }
+config.addChangeListener("csp", (old, cur) => {
+    if (cur === "clobber") {
+        addCSPListener()
+    } else {
+        removeCSPListener()
     }
 })
 
@@ -110,6 +112,12 @@ browser.runtime.onStartup.addListener(_ => {
             })
         }
     })
+})
+
+// Nag people about updates.
+// Hope that they're on a tab we can access.
+config.getAsync("updatenag").then(nag => {
+    if (nag === true) excmds.updatecheck(true)
 })
 
 // }}}
@@ -161,4 +169,28 @@ browser.webRequest.onBeforeRequest.addListener(
     { urls: ["<all_urls>"], types: ["main_frame"] },
     ["blocking"],
 )
+// }}}
+
+// {{{ PERFORMANCE LOGGING
+
+// An object to collect all of our statistics in one place.
+const statsLogger: perf.StatsLogger = new perf.StatsLogger()
+messaging.addListener(
+    "performance_background",
+    messaging.attributeCaller(statsLogger),
+)
+// Listen for statistics from the background script and store
+// them. Set this one up to log directly to the statsLogger instead of
+// going through messaging.
+const perfObserver = listenForCounters(statsLogger)
+window.tri = Object.assign(window.tri || Object.create(null), {
+    // Attach the perf observer to the window object, since there
+    // appears to be a bug causing performance observers to be GC'd
+    // even if they're still the target of a callback.
+    perfObserver,
+    // Also attach the statsLogger so we can access our stats from the
+    // console.
+    statsLogger,
+})
+
 // }}}

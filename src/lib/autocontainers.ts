@@ -24,9 +24,9 @@
 
  */
 
-import * as Config from "../config"
-import * as Container from "./containers"
-import * as Logging from "../logging"
+import * as Config from "@src/lib/config"
+import * as Container from "@src/lib/containers"
+import * as Logging from "@src/lib/logging"
 
 const logger = new Logging.Logger("containers")
 
@@ -76,7 +76,7 @@ export class AutoContain implements IAutoContain {
         if (Object.keys(aucons).length === 0) return { cancel: false }
 
         // Do not handle private tabs or invalid tabIds.
-        if (details.tabId === -1) return { cancel: false}
+        if (details.tabId === -1) return { cancel: false }
         let tab = await browser.tabs.get(details.tabId)
         if (tab.incognito) return { cancel: false }
 
@@ -115,7 +115,10 @@ export class AutoContain implements IAutoContain {
         } else {
             let cancel = false
 
-            if (this.cancelledRequests[tab.id].requestIds[details.requestId] || this.cancelledRequests[tab.id].urls[details.url]) {
+            if (
+                this.cancelledRequests[tab.id].requestIds[details.requestId] ||
+                this.cancelledRequests[tab.id].urls[details.url]
+            ) {
                 cancel = true
             }
 
@@ -180,7 +183,7 @@ export class AutoContain implements IAutoContain {
                     )
                 }
             }
-            return await Container.getId(aucons[aukeyarr[0]])
+            return Container.getId(aucons[aukeyarr[0]])
         }
     }
 }

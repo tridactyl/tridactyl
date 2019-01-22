@@ -1,5 +1,5 @@
-import { browserBg } from "../lib/webext"
-import * as Completions from "../completions"
+import { browserBg } from "@src/lib/webext"
+import * as Completions from "@src/completions"
 
 class BmarkCompletionOption extends Completions.CompletionOptionHTML
     implements Completions.CompletionOptionFuse {
@@ -43,7 +43,8 @@ export class BmarkCompletionSource extends Completions.CompletionSourceFuse {
 
     public async filter(exstr: string) {
         this.lastExstr = exstr
-        const [prefix, query] = this.splitOnPrefix(exstr)
+        let [prefix, query] = this.splitOnPrefix(exstr)
+        let option = ""
 
         // Hide self and stop if prefixes don't match
         if (prefix) {
@@ -56,9 +57,14 @@ export class BmarkCompletionSource extends Completions.CompletionSourceFuse {
             return
         }
 
+        if (query.startsWith("-t ")) {
+            option = "-t "
+            query = query.slice(3)
+        }
+
         this.completion = undefined
         this.options = (await this.scoreOptions(query, 10)).map(
-            page => new BmarkCompletionOption(page.url, page),
+            page => new BmarkCompletionOption(option + page.url, page),
         )
 
         this.updateChain()
@@ -92,7 +98,7 @@ export class BmarkCompletionSource extends Completions.CompletionSourceFuse {
 
     select(option: Completions.CompletionOption) {
         if (this.lastExstr !== undefined && option !== undefined) {
-            this.completion = "open " + option.value
+            this.completion = "bmarks " + option.value
             option.state = "focused"
             this.lastFocused = option
         } else {

@@ -49,13 +49,16 @@ You can try `:help key` to know more about `key`. If it is an existing binding, 
 -   `gU` — go to the root domain of the current URL
 -   `gr` — open Firefox reader mode (note: Tridactyl will not work in this mode)
 -   `zi`/`zo`/`zz` — zoom in/out/reset zoom
+-   `<C-f>`/`<C-b>` — jump to the next/previous part of the page
 
 #### Find mode
 
-Find mode is still incomplete and uses the built-in Firefox search. This will be improved eventually.
+Find mode is still incomplete and uses the Firefox feature "Quick Find". This will be improved eventually.
 
 -   `/` — open the find search box
--   `C-g`/`C-G` — find the next/previous instance of the last find operation (note: these are the standard Firefox shortcuts)
+-   `<C-g>`/`<C-G>` — find the next/previous instance of the last find operation (note: these are the standard Firefox shortcuts)
+
+Please note that Tridactyl overrides Firefox's `<C-f>` search, replacing it with a binding to go to the next part of the page. If you want to be able to use `<C-f>` again to search for things, use `unbind <C-f>`.
 
 #### Bookmarks and quickmarks
 
@@ -63,6 +66,8 @@ Find mode is still incomplete and uses the built-in Firefox search. This will be
 -   `a` — bookmark the current page, but allow the URL to be modified first
 -   `M<key>` — bind a quickmark to the given key
 -   `go<key>`/`gn<key>`/`gw<key>` — open a given quickmark in current tab/new tab/new window
+
+If you want to use Firefox's default `<C-b>` binding to open the bookmarks sidebar, make sure to run `unbind <C-b>` because Tridactyl replaces this setting with one to go to the previous part of the page.
 
 #### Navigating to new pages:
 
@@ -108,15 +113,15 @@ You can bind your own shortcuts in normal mode with the `:bind` command. For exa
 -   Navigation to any about:\* pages using `:open` requires the native messenger.
 -   Firefox will not load Tridactyl on about:\*, some file:\* URIs, view-source:\*, or data:\*. On these pages Ctrl-L (or F6), Ctrl-Tab and Ctrl-W are your escape hatches.
     -   addons.mozilla.org is now supported so long as you run `fixamo` first.
--   Tridactyl now supports changing the Firefox GUI if you have the native messenger installed via `guiset`. There's quite a few options available, but `guiset gui none` is probably what you want, perhaps followed up with `guiset tabs always`.
+-   Tridactyl now supports changing the Firefox GUI if you have the native messenger installed via `guiset`. There's quite a few options available, but `guiset gui none` is probably what you want, perhaps followed up with `guiset tabs always`. See `:help guiset` for a list of all possible options.
 
 ## Frequently asked questions
 
 -   Why doesn't Tridactyl respect my search engine settings?
 
-    It's a webextension limitation. Firefox doesn't allow reading user preferences.
+    It used to be a webextension limitation but it's not anymore. There are plans to fix this, see [#792](https://github.com/tridactyl/tridactyl/issues/792).
 
--   Why doesn't Tridactyl work?
+-   Why doesn't Tridactyl work/why does it break the websites I'm trying to use? or 'Help! A website I use is totally blank when I try to use it with Tridactyl enabled!' or 'Why doesn't Tridactyl work on some pages?'
 
     Please visit our [troubleshooting guide](https://github.com/tridactyl/tridactyl/blob/master/doc/troubleshooting.md).
 
@@ -140,21 +145,15 @@ You can bind your own shortcuts in normal mode with the `:bind` command. For exa
 
     If you can't use the native messenger for some reason, there is a workaround: if you do `set storageloc local`, a JSON file will appear at `<your firefox profile>\browser-extension-data\tridactyl.vim@cmcaine.co.uk\storage.js`. You can find your profile folder by going to `about:support`. You can edit this file to your heart's content.
 
--   I hate the light, can I get a dark theme/dark mode?
+-   How can I change the colors or theme used by Tridactyl?
 
-    Yes: `set theme dark` or `colors dark`. Thanks to @fugerf.
+    Use `:colors dark` (authored by @furgerf), `:colors shydactyl` (authored by @atrnh) or `:colors greenmat` (authored by @caputchinefrobles). Tridactyl can also load themes from disk, which would let you use one of the themes authored by @bezmi ([#1012](https://github.com/tridactyl/tridactyl/pull/1012)), see `:help colors` for more information.
 
--   How can I pretend that I'm not a 1337 h4x0r?
+-   How to remap keybindings? or How can I bind keys using the control/alt key modifiers (eg: `ctrl+^`)?
 
-    We cater for you, too! `set theme shydactyl`. Thanks to @atrnh.
+    You can remap keys in normal, ignore, input and insert mode with `:bind --mode=$mode $key $excmd`. Hint mode and the command line are currently special and can't be rebound. See `:help bind` for more information.
 
--   How can I pretend that I'm a 1337 h4x0r?
-
-    We cater for you, too! `set theme greenmat`. Thanks to @caputchinefrobles.
-
--   How can I bind keys using the control/alt key modifiers (eg: `ctrl+^`)?
-
-    `:bind <C-f> scrollpage 1`. Special keys can be bound too: `:bind <F3> set theme dark` and with modifiers: `:bind <S-F3> set theme default` and with multiple modifiers: `:bind <SA-F3> composite set hintchars 1234567890 | set hintfiltermode vimperator-reflow`
+    Modifiers can be bound like this: `:bind <C-f> scrollpage 1`. Special keys can be bound too: `:bind <F3> colors dark` and with modifiers: `:bind <S-F3> colors default` and with multiple modifiers: `:bind <SA-F3> composite set hintchars 1234567890 | set hintfiltermode vimperator-reflow`
 
     The modifiers are case insensitive. Special key names are not. The names used are those reported by Javascript with a limited number of vim compatibility aliases (e.g. `CR == Enter`).
 
@@ -168,10 +167,6 @@ You can bind your own shortcuts in normal mode with the `:bind` command. For exa
 
     You can, thanks to @saulrh. First `set hintfiltermode vimperator` and then `set hintchars 1234567890`.
 
--   How to remap keybindings in both normal mode and ex mode?
-
-    You cannot. We only support normal mode bindings for now, with `bind [key] [excmd]`
-
 -   Where can I find a changelog for the different versions (to see what is new in the latest version)?
 
     [Here.](https://github.com/cmcaine/tridactyl/blob/master/CHANGELOG.md)
@@ -179,6 +174,10 @@ You can bind your own shortcuts in normal mode with the `:bind` command. For exa
 -   Why can't I use my bookmark keywords?
 
     Mozilla doesn't give us access to them. See [issue #73](https://github.com/cmcaine/tridactyl/issues/73).
+
+-   Can I set/get my bookmark tags from Tridactyl?
+
+    No, Mozilla doesn't give us access to them either.
 
 -   Why doesn't Tridactyl work on websites with frames?
 
@@ -190,15 +189,11 @@ You can bind your own shortcuts in normal mode with the `:bind` command. For exa
 
 -   How do I disable Tridactyl on certain sites?
 
-    In the beta you can use `blacklistadd`, like this: `blacklistadd mail.google.com/mail`.
+    You can use `blacklistadd`, like this: `blacklistadd mail.google.com/mail`. See `:help blacklistadd`. Also note that if you want something like the passkeys or ignorekeys features vimperator/pentadactyl had, you can use `bindurl`. See `:help bindurl`.
 
 -   How can I list the current bindings?
 
     `viewconfig nmaps` works OK, but Tridactyl commands won't work on the shown page for "security reasons". We'll eventually provide a better way. See [#98](https://github.com/cmcaine/tridactyl/issues/98).
-
--   Why doesn't Tridactyl work on some pages?
-
-    One possible reason is that the site has a strict content security policy. You can try to use `set csp clobber` to fix this, but know that it could worsen the security of sensitive pages.
 
 -   How can I know which mode I'm in/have a status line?
 
@@ -206,17 +201,21 @@ You can bind your own shortcuts in normal mode with the `:bind` command. For exa
 
 -   Does anyone actually use Tridactyl?
 
-    In addition to the developers, some other people do. Mozilla keeps tabs on them [here](https://addons.mozilla.org/en-US/firefox/addon/tridactyl-vim/statistics/?last=30).
+    In addition to the developers, some other people do. Mozilla keeps tabs on stable users [here](https://addons.mozilla.org/en-US/firefox/addon/tridactyl-vim/statistics/?last=30). The maintainers guess the number of unstable users from unique IPs downloading the betas each week when they feel like it. Last time they checked there were 2200 of them.
 
 -   How do I prevent websites from stealing focus?
 
     There are two ways to do that, the first one is `set allowautofocus false` (if you do this you'll probably also want to set `browser.autofocus` to false in `about:config`). This will prevent the page's `focus()` function from working and could break javascript text editors such as Ace or CodeMirror. Another solution is to use `autocmd TabEnter .* unfocus` in the beta, JS text editors should still work but pages won't steal focus when entering their tabs anymore.
 
--   Help! A website I use is totally blank when I try to use it with Tridactyl enabled!
-
-    Try `set noiframeon [space separated list of URLs to match]`. If that doesn't work, please file an issue.
-
 ## Contributing
+
+### Donations
+
+We gratefully accept donations via [PayPal](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=7JQHV4N2YZCTY). If you can, please make this a monthly donation as it makes it much easier to plan.
+
+<a href="https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=7JQHV4N2YZCTY"><img src="https://www.paypalobjects.com/en_US/GB/i/btn/btn_donateCC_LG.gif" alt="PayPal"></a>
+
+Funds will be used at the discretion of the main contributors (currently bovine3dom, cmcaine, glacambre and antonva) for Tridactyl-related expenditure, such as domain names, server costs, small thank-yous to contributors such as stickers, and victuals for hackathons.
 
 ### Building and installing
 
@@ -239,7 +238,7 @@ If you want to install a local copy of the add-on into your developer or nightly
 # Build tridactyl if you haven't done that yet
 npm run build
 # Package for a browser
-$(npm bin)/web-ext build -s build
+"$(npm bin)/web-ext" build -s build
 ```
 
 If you want to build a signed copy (e.g. for the non-developer release), you can do that with `web-ext sign`. You'll need some keys for AMO and to edit the application id in `src/manifest.json`. There's a helper script in `scripts/sign` that's used by our build bot and for manual releases.

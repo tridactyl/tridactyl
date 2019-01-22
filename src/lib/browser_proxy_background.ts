@@ -4,7 +4,7 @@ function shim(api, func, args) {
     return browser[api][func](...args)
 }
 
-import { addListener, attributeCaller, MessageType } from "../messaging"
+import { addListener, attributeCaller, MessageType } from "@src/lib/messaging"
 addListener(
     "browser_proxy_background" as MessageType,
     attributeCaller({ shim }),

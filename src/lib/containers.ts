@@ -1,6 +1,6 @@
-import { browserBg } from "./webext"
+import { browserBg } from "@src/lib/webext"
 import * as Fuse from "fuse.js"
-import * as Logging from "../logging"
+import * as Logging from "@src/lib/logging"
 const logger = new Logging.Logger("containers")
 
 // As per Mozilla specification: https://developer.mozilla.org/en-US/Add-ons/WebExtensions/API/contextualIdentities/ContextualIdentity
@@ -174,7 +174,7 @@ export function fromString(
  *  @returns An array representation of all containers.
  */
 export async function getAll(): Promise<any[]> {
-    return await browser.contextualIdentities.query({})
+    return browser.contextualIdentities.query({})
 }
 
 /** Fetches the cookieStoreId of a given container

@@ -1,6 +1,6 @@
 // This file is only loaded in tridacyl's help pages
 
-import * as config from "./config"
+import * as config from "@src/lib/config"
 
 /** Create the element that should contain keybinding information */
 function initTridactylSettingElem(
@@ -10,11 +10,11 @@ function initTridactylSettingElem(
     let bindingNode = elem.getElementsByClassName(`Tridactyl${kind}`)[0]
     if (bindingNode) {
         Array.from(bindingNode.children)
-            .filter(e => e.tagName == "LI")
+            .filter(e => e.tagName == "SPAN")
             .forEach(e => e.parentNode.removeChild(e))
     } else {
         // Otherwise, create it
-        bindingNode = document.createElement("ul")
+        bindingNode = document.createElement("p")
         bindingNode.className = `TridactylSetting Tridactyl${kind}`
         bindingNode.textContent = kind + ": "
         elem.insertBefore(bindingNode, elem.children[2])
@@ -41,7 +41,7 @@ async function addSetting(settingName: string) {
     // We're ignoring composite because it combines multiple excmds
     delete commandElems["composite"]
 
-    // Initialize or reset the <ul> element that will contain settings in each commandElem
+    // Initialize or reset the <p> element that will contain settings in each commandElem
     let settingElems = Object.keys(commandElems).reduce(
         (settingElems, cmdName) => {
             settingElems[cmdName] = initTridactylSettingElem(
@@ -71,11 +71,12 @@ async function addSetting(settingName: string) {
 
         // If there is an HTML element for settings that correspond to the excmd we just found
         if (settingElems[excmd]) {
-            let settingLi = document.createElement("li")
-            settingLi.innerText = setting
-            settingLi.title = settings[setting]
+            let settingSpan = document.createElement("span")
+            settingSpan.innerText = setting
+            settingSpan.title = settings[setting]
             // Add the setting to the element
-            settingElems[excmd].appendChild(settingLi)
+            settingElems[excmd].appendChild(settingSpan)
+            settingElems[excmd].appendChild(document.createTextNode(" "))
         }
     }
 
@@ -83,34 +84,143 @@ async function addSetting(settingName: string) {
     Object.values(settingElems)
         .filter(
             (e: HTMLElement) =>
-                !Array.from(e.children).find(c => c.tagName == "LI"),
+                !Array.from(e.children).find(c => c.tagName == "SPAN"),
         )
         .forEach((e: HTMLElement) => e.parentNode.removeChild(e))
 }
 
-browser.storage.onChanged.addListener((changes, areaname) => {
-    if ("userconfig" in changes) {
-        // JSON.stringify for comparisons like it's 2012
-        ;["nmaps", "imaps", "ignoremaps", "inputmaps", "exaliases"].forEach(
-            kind => {
-                if (
-                    JSON.stringify(changes.userconfig.newValue[kind]) !=
-                    JSON.stringify(changes.userconfig.oldValue[kind])
-                )
-                    addSetting(kind)
-            },
-        )
-    }
-})
+async function onExcmdPageLoad() {
+    browser.storage.onChanged.addListener((changes, areaname) => {
+        if ("userconfig" in changes) {
+            // JSON.stringify for comparisons like it's 2012
+            ;["nmaps", "imaps", "ignoremaps", "inputmaps", "exaliases"].forEach(
+                kind => {
+                    if (
+                        JSON.stringify(changes.userconfig.newValue[kind]) !=
+                        JSON.stringify(changes.userconfig.oldValue[kind])
+                    )
+                        addSetting(kind)
+                },
+            )
+        }
+    })
 
-addEventListener("load", async () => {
     await Promise.all(
-        ["nmaps", "imaps", "ignoremaps", "inputmaps", "exaliases"].map(
-            addSetting,
-        ),
+        [
+            "nmaps",
+            "imaps",
+            "ignoremaps",
+            "inputmaps",
+            "exaliases",
+            "exmaps",
+        ].map(addSetting),
     )
     // setCommandSetting() can change the height of nodes in the page so we need to scroll to the right place again
     if (document.location.hash) {
         document.location.hash = document.location.hash
     }
-})
+}
+
+function addSettingInputs() {
+    const inputClassName = " TridactylSettingInput "
+    const inputClassNameModified =
+        inputClassName + " TridactylSettingInputModified "
+
+    let onKeyUp = async ev => {
+        let input = ev.target
+        if (ev.key == "Enter") {
+            ;(window as any).tri.messaging.message(
+                "commandline_background",
+                "recvExStr",
+                ["set " + input.name + " " + input.value],
+            )
+        } else {
+            if (input.value == (await config.getAsync(input.name.split(".")))) {
+                input.className = inputClassName
+            } else {
+                input.className = inputClassNameModified
+            }
+        }
+    }
+
+    return Promise.all(
+        Array.from(document.querySelectorAll("a.tsd-anchor")).map(
+            async (a: HTMLAnchorElement) => {
+                let section = a.parentNode
+
+                let settingName = a.name.split(".")
+                let value = await config.getAsync(settingName)
+                if (!value) return console.log("Failed to grab value of ", a)
+                if (!["number", "boolean", "string"].includes(typeof value))
+                    return console.log(
+                        "Not embedding value of ",
+                        a,
+                        value,
+                        " because not easily represented as string",
+                    )
+
+                let input = document.createElement("input")
+                input.name = a.name
+                input.value = value
+                input.id = "TridactylSettingInput_" + input.name
+                input.className = inputClassName
+                input.addEventListener("keyup", onKeyUp)
+
+                let div = document.createElement("div")
+                div.appendChild(document.createTextNode("Current value:"))
+                div.appendChild(input)
+
+                section.appendChild(div)
+
+                config.addChangeListener(input.name as any, (_, newValue) => {
+                    input.value = newValue
+                    input.className = inputClassName
+                })
+            },
+            // Adding elements expands sections so if the user wants to see a specific hash, we need to focus it again
+        ),
+    ).then(_ => {
+        if (document.location.hash) {
+            document.location.hash = document.location.hash
+        }
+    })
+}
+
+function addResetConfigButton() {
+    let button = document.createElement("button")
+    button.innerText = "Reset Tridactyl config"
+    button.style.margin = "auto 50%"
+    button.style.minWidth = "200pt"
+    button.addEventListener("click", () => {
+        let sentence = "sanitise tridactylsync tridactyllocal tridactylhistory"
+        let p = prompt(
+            `Please write '${sentence}' without quotes in the following input field if you really want to reset your Tridactyl config.`,
+        )
+        if (p == sentence) {
+            ;(window as any).tri.messaging
+                .message("commandline_background", "recvExStr", [sentence])
+                .then(_ => alert("Config reset!"))
+        } else {
+            alert(`Config not reset because '${p}' != '${sentence}'`)
+        }
+    })
+    document.querySelector("div.container.container-main").appendChild(button)
+}
+
+function onSettingsPageLoad() {
+    addResetConfigButton()
+    return addSettingInputs()
+}
+
+addEventListener(
+    "load",
+    (() => {
+        switch (document.location.pathname) {
+            case "/static/docs/modules/_src_excmds_.html":
+                return onExcmdPageLoad
+            case "/static/docs/classes/_src_lib_config_.default_config.html":
+                return onSettingsPageLoad
+        }
+        return () => {}
+    })(),
+)

@@ -133,10 +133,9 @@ a.url:hover {
     }
 }
 
-/* .BufferCompletionOption span { */
-/*   white-space: pre; */
-/*   margin: 0 .5em; */
-/* } */
+.FindCompletionOption .match {
+    font-weight: bold;
+}
 
 .hidden {
     display: none;
@@ -240,4 +239,19 @@ a.url:hover {
 #completions .SettingsCompletionOption td.type {
     width: 15%;
     text-overflow: ellipsis;
+}
+
+.HelpCompletionOption td.name {
+    max-width: 25%;
+}
+
+#completions .SessionCompletionOption td.type {
+    width: 1ch !important;
+    padding: 0px 3pt;
+}
+
+#completions .SessionCompletionOption td.time {
+    width: 5ch !important;
+    padding: 0px 3pt;
+    text-align: right;
 }
