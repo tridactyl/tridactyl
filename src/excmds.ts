@@ -481,14 +481,22 @@ export async function nativeopen(url: string, ...firefoxArgs: string[]) {
         }
         browser.tabs.onCreated.addListener(selecttab)
 
-        if ((await browser.runtime.getPlatformInfo()).os === "mac") {
-            let osascriptArgs = ["-e 'on run argv'", "-e 'tell application \"Firefox\" to open location item 1 of argv'", "-e 'end run'"]
-            await Native.run("osascript " + osascriptArgs.join(" ") + " " + url)
-        } else {
-            if (firefoxArgs.length === 0) firefoxArgs = ["--new-tab"]
-            await Native.run(config.get("browser") + " " + firefoxArgs.join(" ") + " " + url)
+        try {
+            if ((await browser.runtime.getPlatformInfo()).os === "mac") {
+                if ((await browser.windows.getCurrent()).incognito) {
+                    throw "nativeopen isn't supported in private mode on OSX. Consider installing Linux or Windows :)."
+                }
+                let osascriptArgs = ["-e 'on run argv'", "-e 'tell application \"Firefox\" to open location item 1 of argv'", "-e 'end run'"]
+                await Native.run("osascript " + osascriptArgs.join(" ") + " " + url)
+            } else {
+                if (firefoxArgs.length === 0) firefoxArgs = ["--new-tab"]
+                await Native.run(config.get("browser") + " " + firefoxArgs.join(" ") + " " + url)
+            }
+            setTimeout(() => browser.tabs.onCreated.removeListener(selecttab), 100)
+        } catch (e) {
+            browser.tabs.onCreated.removeListener(selecttab)
+            throw e
         }
-        setTimeout(() => browser.tabs.onCreated.removeListener(selecttab), 100)
     }
 }
 
@@ -1851,20 +1859,18 @@ export async function tabopen(...addressarr: string[]) {
 
     if (address == "") address = config.get("newtab")
     if (!ABOUT_WHITELIST.includes(address) && address.match(/^(about|file):.*/)) {
-        if ((await browser.runtime.getPlatformInfo()).os === "mac" && (await browser.windows.getCurrent()).incognito) {
-            fillcmdline_notrail("# nativeopen isn't supported in private mode on OSX. Consider installing Linux or Windows :).")
-            return
-        } else {
-            nativeopen(address)
-            return
-        }
+        return nativeopen(address)
     } else if (address != "") url = forceURI(address)
 
-    activeTabContainerId().then(containerId => {
+    return activeTabContainerId().then(containerId => {
         // Ensure -c has priority.
-        if (container) openInNewTab(url, { active: active, cookieStoreId: container })
-        else if (containerId && config.get("tabopencontaineraware") === "true") openInNewTab(url, { active: active, cookieStoreId: containerId })
-        else openInNewTab(url, { active })
+        if (container) {
+            return openInNewTab(url, { active: active, cookieStoreId: container })
+        } else if (containerId && config.get("tabopencontaineraware") === "true") {
+            return openInNewTab(url, { active: active, cookieStoreId: containerId })
+        } else {
+            return openInNewTab(url, { active })
+        }
     })
 }
 
