@@ -3495,6 +3495,11 @@ export async function hint(option?: string, selectors?: string, ...rest: string[
         option = "-" + option.slice(2)
         rapid = true
     }
+    let jshints = true
+    if (option.startsWith("-j")) {
+        option = "-" + option.slice(2)
+        jshints = false
+    }
 
     let selectHints = new Promise(r => r())
     let hintTabOpen = async (href, active = !rapid) => {
@@ -3528,6 +3533,7 @@ export async function hint(option?: string, selectors?: string, ...rest: string[
                     return link
                 },
                 rapid,
+                jshints,
             )
             break
 
@@ -3541,6 +3547,7 @@ export async function hint(option?: string, selectors?: string, ...rest: string[
                     return elem
                 },
                 rapid,
+                jshints,
             )
             break
 
@@ -3598,6 +3605,7 @@ export async function hint(option?: string, selectors?: string, ...rest: string[
                     return elem
                 },
                 rapid,
+                jshints,
             )
             break
 
@@ -3610,6 +3618,7 @@ export async function hint(option?: string, selectors?: string, ...rest: string[
                     return elem
                 },
                 rapid,
+                jshints,
             )
             break
 
@@ -3618,6 +3627,7 @@ export async function hint(option?: string, selectors?: string, ...rest: string[
                 selectors,
                 elem => elem[rest.join(" ")],
                 rapid,
+                jshints,
             )
             break
 
@@ -3737,6 +3747,7 @@ export async function hint(option?: string, selectors?: string, ...rest: string[
                     return elem
                 },
                 rapid,
+                jshints,
             )
     }
 

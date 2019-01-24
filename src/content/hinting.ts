@@ -559,9 +559,10 @@ export function pipe(
     selectors = DOM.HINTTAGS_selectors,
     action: HintSelectedCallback = _ => _,
     rapid = false,
+    jshints = true,
 ): Promise<[Element, number]> {
     return new Promise((resolve, reject) => {
-        hintPage(hintables(selectors, true), action, resolve, reject, rapid)
+        hintPage(hintables(selectors, jshints), action, resolve, reject, rapid)
     })
 }
 
