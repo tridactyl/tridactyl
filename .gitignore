@@ -16,4 +16,3 @@ tags
 compiler/*.js
 compiler/**/*.js
 src/.metadata.generated.ts
-*.swp
