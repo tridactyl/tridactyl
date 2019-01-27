@@ -70,7 +70,7 @@
 
 // Shared
 import * as Messaging from "@src/lib/messaging"
-import { browserBg, activeTabId, activeTabContainerId, openInNewTab, openInNewWindow } from "@src/lib/webext"
+import { browserBg, activeTab, activeTabId, activeTabContainerId, openInNewTab, openInNewWindow, openInTab } from "@src/lib/webext"
 import * as Container from "@src/lib/containers"
 import state from "@src/state"
 import { contentState, ModeName } from "@src/content/state_content"
@@ -105,7 +105,7 @@ import * as BGSELF from "@src/.excmds_background.generated"
 import { messageTab, messageActiveTab } from "@src/lib/messaging"
 import { flatten } from "@src/lib/itertools"
 import "@src/lib/number.mod"
-import { activeTab, firefoxVersionAtLeast } from "@src/lib/webext"
+import { firefoxVersionAtLeast } from "@src/lib/webext"
 import * as CommandLineBackground from "@src/background/commandline_background"
 import * as rc from "@src/background/config_rc"
 import * as excmd_parser from "@src/parsers/exmode"
@@ -1034,7 +1034,7 @@ export async function reloadhard(n = 1) {
 // I went through the whole list https://developer.mozilla.org/en-US/Firefox/The_about_protocol
 // about:blank is even more special
 /** @hidden */
-export const ABOUT_WHITELIST = ["about:license", "about:logo", "about:rights"]
+export const ABOUT_WHITELIST = ["about:license", "about:logo", "about:rights", "about:blank"]
 
 /** Open a new page in the current tab.
  *
@@ -1052,19 +1052,20 @@ export const ABOUT_WHITELIST = ["about:license", "about:logo", "about:rights"]
 //#content
 export async function open(...urlarr: string[]) {
     let url = urlarr.join(" ")
+    let p = Promise.resolve()
 
     // Setting window.location to about:blank results in a page we can't access, tabs.update works.
-    if (url === "about:blank") {
-        browserBg.tabs.update(await activeTabId(), { url })
-    } else if (!ABOUT_WHITELIST.includes(url) && url.match(/^(about|file):.*/)) {
+    if (!ABOUT_WHITELIST.includes(url) && url.match(/^(about|file):.*/)) {
         // Open URLs that firefox won't let us by running `firefox <URL>` on the command line
-        Messaging.message("commandline_background", "recvExStr", ["nativeopen " + url])
+        p = Messaging.message("commandline_background", "recvExStr", ["nativeopen " + url])
     } else if (url.match(/^javascript:/)) {
         let bookmarklet = url.replace(/^javascript:/, "")
         ;(document.body as any).append(html`<script>${bookmarklet}</script>`)
-    } else if (url !== "") {
-        window.location.href = forceURI(url)
+    } else {
+        p = activeTab().then(tab => openInTab(tab, urlarr))
     }
+
+    return p
 }
 
 /**
@@ -1881,23 +1882,22 @@ export async function tabopen(...addressarr: string[]) {
         return args
     }
 
-    let url: string
-    let address = (await argParse(addressarr)).join(" ")
+    let query = await argParse(addressarr)
 
-    if (address == "") address = config.get("newtab")
+    let address = query.join(" ")
     if (!ABOUT_WHITELIST.includes(address) && address.match(/^(about|file):.*/)) {
         return nativeopen(address)
-    } else if (address != "") url = forceURI(address)
+    }
 
     return activeTabContainerId().then(containerId => {
+        let args = { active } as any
         // Ensure -c has priority.
         if (container) {
-            return openInNewTab(url, { active: active, cookieStoreId: container })
+            args.cookieStoreId = container
         } else if (containerId && config.get("tabopencontaineraware") === "true") {
-            return openInNewTab(url, { active: active, cookieStoreId: containerId })
-        } else {
-            return openInNewTab(url, { active })
+            args.cookieStoreId = containerId
         }
+        return openInNewTab(null, args).then(tab => openInTab(tab, query))
     })
 }
 

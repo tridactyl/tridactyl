@@ -97,6 +97,11 @@ declare namespace browser.webRequest {
     function filterResponseData(requestId: string): any
 }
 
+declare namespace browser.search {
+    function search(searchProperties: {query: string, engine?: string, tabId?: number}): never
+    function get(): {name: string, isDefault: boolean, alias?: string, faviconURL?: string}[]
+}
+
 // Stop typedoc complaining about toBeAll.
 declare namespace jest {
     interface Matchers<R> {
