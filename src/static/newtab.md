@@ -42,7 +42,7 @@ REPLACE_ME_WITH_THE_CHANGE_LOG_USING_SED
 
 -   You can only navigate to most about: and file: pages if you have Tridactyl's native executable installed.
 -   Firefox will not load Tridactyl on about:\*, some file:\* URIs, view-source:\*, or data:\*. On these pages Ctrl-L (or F6), Ctrl-Tab and Ctrl-W are your escape hatches.
--   You can change the Firefox GUI with `guiset` (e.g. `guiset gui none` and then `restart`) if you have the native messenger installed, or you can do it yourself by changing your userChrome. There is an example file available on our repository [[2]].
+-   You can change the Firefox GUI with `guiset` (e.g. `guiset gui none` and then `restart`) if you have the native messenger installed, or you can do it yourself by changing your userChrome.
 -   Tridactyl cannot capture key presses until web pages are loaded. You can use `:reloadall` to reload all tabs to make life more bearable, or flip `browser.sessionstore.restore_tabs_lazily` to false in `about:config`.
 
 ## Why do I see this here?
@@ -60,17 +60,13 @@ Also, if you want to use a new tab page provided by another extension, make sure
 
 You have more questions? Have a look at our [FAQ][faq-link].
 
-[1]: https://github.com/cmcaine/tridactyl/issues
-[2]: https://github.com/cmcaine/tridactyl/blob/master/src/static/css/userChrome-minimal.css
-[3]: https://www.mozilla.org/en-US/firefox/organizations/
+[1]: https://github.com/tridactyl/tridactyl/issues
 
 <div class="align-left">
-[1]: https://github.com/cmcaine/tridactyl/issues<br />
-[2]: https://github.com/cmcaine/tridactyl/blob/master/src/static/css/userChrome-minimal.css<br />
-[3]: https://www.mozilla.org/en-US/firefox/organizations/<br />
+[1]: https://github.com/tridactyl/tridactyl/issues<br />
 </div>
 
-[faq-link]: https://github.com/cmcaine/tridactyl#frequently-asked-questions
+[faq-link]: https://github.com/tridactyl/tridactyl#frequently-asked-questions
 [help]: /static/docs/modules/_src_excmds_.html
 [tutor]: /static/clippy/1-tutor.html
 [help-hint]: /static/docs/modules/_src_excmds_.html#hint

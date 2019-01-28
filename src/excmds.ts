@@ -38,11 +38,11 @@
 
     - To make Tridactyl work on addons.mozilla.org and some other Mozilla domains, you need to open `about:config`, run [[fixamo]] or add a new boolean `privacy.resistFingerprinting.block_mozAddonManager` with the value `true`, and remove the above domains from `extensions.webextensions.restrictedDomains`.
     - Tridactyl can't run on about:\*, some file:\* URIs, view-source:\*, or data:\*, URIs.
-    - To change/hide the GUI of Firefox from Tridactyl, you can use [[guiset]] with the native messenger installed (see [[native]] and [[installnative]]). Alternatively, you can edit your userChrome yourself. There is an [example file](2) available in our repository.
+    - To change/hide the GUI of Firefox from Tridactyl, you can use [[guiset]] with the native messenger installed (see [[native]] and [[installnative]]). Alternatively, you can edit your userChrome yourself.
 
     ## Getting help
 
-    For more information, and FAQs, check out our [readme][3] on github.
+    For more information, and FAQs, check out our [readme][2] on github.
 
     Tridactyl is in a pretty early stage of development. Please report any issues and make requests for missing features on the GitHub [project page][1]. You can also get in touch using Matrix, Gitter, or IRC chat clients:
 
@@ -53,9 +53,8 @@
     All three channels are mirrored together, so it doesn't matter which one you use.
 
 
-    [1]: https://github.com/cmcaine/tridactyl/issues
-    [2]: https://github.com/cmcaine/tridactyl/blob/master/src/static/userChrome-minimal.css
-    [3]: https://github.com/cmcaine/tridactyl#readme
+    [1]: https://github.com/tridactyl/tridactyl/issues
+    [2]: https://github.com/tridactyl/tridactyl#readme
 
     [gitter-badge]: /static/badges/gitter-badge.svg
     [gitter-link]: https://gitter.im/tridactyl/Lobby
