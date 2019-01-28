@@ -1036,15 +1036,17 @@ export async function reloadhard(n = 1) {
 /** @hidden */
 export const ABOUT_WHITELIST = ["about:license", "about:logo", "about:rights", "about:blank"]
 
-/** Open a new page in the current tab.
+/**
+ * Open a new page in the current tab.
  *
- *   @param urlarr
- *   - if first word looks like it has a schema, treat as a URI
- *   - else if the first word contains a dot, treat as a domain name
- *   - else if the first word is a key of [[SEARCH_URLS]], treat all following terms as search parameters for that provider
- *   - else treat as search parameters for [[searchengine]]
+ * @param urlarr
  *
- *   Related settings: [[searchengine]], [[historyresults]]
+ * - if first word looks like it has a schema, treat as a URI
+ * - else if the first word contains a dot, treat as a domain name
+ * - else if the first word is a key of [[SEARCH_URLS]], treat all following terms as search parameters for that provider
+ * - else treat as search parameters for [[searchengine]]
+ *
+ * Related settings: [[searchengine]], [[historyresults]]
  *
  * Can only open about:* or file:* URLs if you have the native messenger installed, and on OSX you must set `browser` to something that will open Firefox from a terminal pass it commmand line options.
  *
