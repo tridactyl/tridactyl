@@ -270,16 +270,28 @@ export async function editor() {
     let tab = await activeTab()
     let selector = await Messaging.messageTab(tab.id, "excmd_content", "getInputSelector", [])
     let classUpdate = Messaging.messageTab(tab.id, "excmd_content", "addTridactylEditorClass", [selector])
-    let url = new URL(tab.url)
-    if (!(await Native.nativegate())) return
-    const file = (await Native.temp(await getinput(), url.hostname)).content
-    const content = (await Native.editor(file)).content
-    // We're using Messaging.messageTab instead of `fillinput()` because fillinput() will execute in the currently active tab, which might not be the tab the user spawned the editor in
-    Messaging.messageTab(tab.id, "excmd_content", "fillinput", [selector, content])
-    // Make sure the class has been added before removing it
-    classUpdate.then(() => Messaging.messageTab(tab.id, "excmd_content", "removeTridactylEditorClass", [selector]))
-    // TODO: add annoying "This message was written with [Tridactyl](https://addons.mozilla.org/en-US/firefox/addon/tridactyl-vim/)" to everything written using editor
-    return [file, content]
+    // removeClass makes sure the class has been added before removing it
+    let removeClass = () => classUpdate.then(() => Messaging.messageTab(tab.id, "excmd_content", "removeTridactylEditorClass", [selector]))
+
+    if (!(await Native.nativegate())) {
+        removeClass()
+        return undefined
+    }
+
+    try {
+        const url = new URL(tab.url)
+        const file = (await Native.temp(await getinput(), url.hostname)).content
+        const content = (await Native.editor(file)).content
+        // We're using Messaging.messageTab instead of `fillinput()` because fillinput() will execute in the currently active tab, which might not be the tab the user spawned the editor in
+        Messaging.messageTab(tab.id, "excmd_content", "fillinput", [selector, content])
+
+        // TODO: add annoying "This message was written with [Tridactyl](https://addons.mozilla.org/en-US/firefox/addon/tridactyl-vim/)" to everything written using editor
+        return [file, content]
+    } catch (e) {
+        throw `:editor failed: ${e}`
+    } finally {
+        removeClass()
+    }
 }
 
 //#background_helper
