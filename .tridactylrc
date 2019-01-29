@@ -45,6 +45,9 @@ unbind --mode=ex <C-c>
 bind gd tabdetach
 bind gD composite tabduplicate | tabdetach
 
+" Julia docs' built in search is bad
+set searchurls.julia https://www.google.com/search?q=site:http://docs.julialang.org/en/v1.0%20
+
 "
 " Misc settings
 "
