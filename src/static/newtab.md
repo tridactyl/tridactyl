@@ -8,6 +8,8 @@ Tridactyl has to override your new tab page due to WebExtension limitations. You
 
 -   You can view your current configuration with `:viewconfig`.
 
+-   If Tridactyl breaks a website or is broken by a website, trying the steps in the [troubleshooting guide](https://github.com/tridactyl/tridactyl/blob/master/doc/troubleshooting.md) might help.
+
 -   You can contact the developers, other users and contributors for support or whatever on [Matrix][matrix-link], [Gitter][gitter-link], or [IRC][freenode-link].
 
 -   If you're enjoying Tridactyl (or not), please leave a review on [addons.mozilla.org][amo].
