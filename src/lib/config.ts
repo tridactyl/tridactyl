@@ -100,6 +100,7 @@ class default_config {
         "<CA-`>": "mode normal",
         "<S-Escape>": "mode normal",
         "<C-^>": "tab #",
+        "<C-6>": "tab #",
     }
 
     /**
@@ -118,6 +119,7 @@ class default_config {
         "<CA-Escape>": "mode normal",
         "<CA-`>": "mode normal",
         "<C-^>": "tab #",
+        "<C-6>": "tab #",
     }
 
     /**
