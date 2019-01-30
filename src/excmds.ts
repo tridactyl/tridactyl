@@ -356,10 +356,6 @@ export async function guiset_quiet(rule: string, option: string) {
  *      - top-left
  *      - top-right
  *
- * - titlebar
- *      - hide
- *      - show
- *
  * If you want to use guiset in your tridactylrc, you might want to use [[guiset_quiet]] instead.
  */
 //#background

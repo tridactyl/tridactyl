@@ -65,15 +65,15 @@ export const potentialRules = {
         options: {
             off: ``,
             on: `counter-reset: tab-counter;`,
-        }
+        },
     },
     tabcounters: {
         name: `.tab-label::before`,
         options: {
             hide: ``,
             show: ` counter-increment: tab-counter;
-                    content: counter(tab-counter) " - ";`
-        }
+                    content: counter(tab-counter) " - ";`,
+        },
     },
     navtoolboxunfocused: {
         name: `:root:not([customizing]) #navigator-toolbox:not(:hover):not(:focus-within)`,
@@ -169,7 +169,6 @@ export const metaRules = {
             hoverlink: "none",
             tabs: "none",
             navbar: "autohide",
-            titlebar: "hide",
             menubar: "grey",
             padwhenmaximised: "some",
         },
@@ -177,7 +176,6 @@ export const metaRules = {
             hoverlink: "left",
             tabs: "always",
             navbar: "always",
-            titlebar: "show",
             menubar: "default",
             padwhenmaximised: "none",
         },
@@ -204,7 +202,7 @@ export const metaRules = {
         nocount: {
             tabcounter: "off",
             tabcounters: "hide",
-        }
+        },
     },
     navbar: {
         autohide: {
