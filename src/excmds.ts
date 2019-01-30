@@ -42,7 +42,7 @@
 
     ## Getting help
 
-    For more information, and FAQs, check out our [readme][2] on github.
+    For more information, and FAQs, check out our [readme][2] and [troubleshooting guide][3] on github.
 
     Tridactyl is in a pretty early stage of development. Please report any issues and make requests for missing features on the GitHub [project page][1]. You can also get in touch using Matrix, Gitter, or IRC chat clients:
 
@@ -55,6 +55,7 @@
 
     [1]: https://github.com/tridactyl/tridactyl/issues
     [2]: https://github.com/tridactyl/tridactyl#readme
+    [3]: https://github.com/tridactyl/tridactyl/blob/master/doc/troubleshooting.md
 
     [gitter-badge]: /static/badges/gitter-badge.svg
     [gitter-link]: https://gitter.im/tridactyl/Lobby
