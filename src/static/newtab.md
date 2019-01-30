@@ -16,6 +16,8 @@ Tridactyl has to override your new tab page due to WebExtension limitations. You
 
 -   **Mozilla broke our userChrome**: if you used `guiset` in the past and find you can't change tabs, etc, using keyboard shortcuts, please follow [this guide](https://github.com/tridactyl/tridactyl/issues/1229#issuecomment-458583919) and then run `guiset` again.
 
+-   New permission needed: we needed a new permission for the `find` command. If you're reading this, you probably accepted it already, so thanks for trusting us : )
+
 REPLACE_ME_WITH_THE_CHANGE_LOG_USING_SED
 
 ## Highlighted features:

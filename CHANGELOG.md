@@ -1,6 +1,6 @@
 # Tridactyl changelog
 
-## Release 1.14.7 / Unreleased
+## Release 1.14.7 / 2019-01-30
 
 -   New features
 
@@ -37,6 +37,12 @@
 
     -   Minor documentation fixes.
 
+    -   The Tridactyl logo is now not placed on text boxes if we fail to find your editor.
+
+    -   Ctrl-6 is now bound to `buffer #` in all the modes it claims to be bound in.
+
+    -   `guiset` no longer fiddles with `titlebar` as this breaks quite a lot of Firefox. You might need to delete / fix your own userChrome.css manually.
+
 -   Under the hood
 
     -   The native messenger should now give more useful errors ([#1287](https://github.com/tridactyl/tridactyl/issues/1287))
@@ -48,6 +54,12 @@
     -   Try to prevent more race conditions in the background code ([#1248](https://github.com/tridactyl/tridactyl/issues/1248))
 
     -   Prevent multiple commandlines from being inserted in to pages ([#1245](https://github.com/tridactyl/tridactyl/issues/1245)) ([#1243](https://github.com/tridactyl/tridactyl/issues/1243))
+
+Thanks to all of our contributors for this release: Oliver Blanthorn, glacambre, Milan Vancura, and Martin André.
+
+Extra special thanks go to Martin André and Milan Vancura who both contributed for the first time.
+
+Last, but not least - thank you to everyone who reported issues.
 
 ## Release 1.14.6 / 2018-12-14
 
