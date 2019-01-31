@@ -33,6 +33,7 @@ import { PreferenceCompletionSource } from "@src/completions/Preferences"
 import { RssCompletionSource } from "@src/completions/Rss"
 import { SessionsCompletionSource } from "@src/completions/Sessions"
 import { SettingsCompletionSource } from "@src/completions/Settings"
+import { WindowCompletionSource } from "@src/completions/Window"
 import * as Messaging from "@src/lib/messaging"
 import * as Config from "@src/lib/config"
 import "@src/lib/number.clamp"
@@ -107,6 +108,7 @@ export function enableCompletions() {
             RssCompletionSource,
             SessionsCompletionSource,
             SettingsCompletionSource,
+            WindowCompletionSource,
         ]
             .map(constructorr => {
                 try {

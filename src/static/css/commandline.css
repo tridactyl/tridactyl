@@ -255,3 +255,9 @@ a.url:hover {
     padding: 0px 3pt;
     text-align: right;
 }
+
+#completions .WindowCompletionOption td.id {
+    width: 4ch !important;
+    text-align: right;
+    padding: 0px 3pt;
+}

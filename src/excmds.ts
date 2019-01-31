@@ -2275,9 +2275,19 @@ export async function winopen(...args: string[]) {
     browser.windows.create(createData)
 }
 
+/** 
+ * Close a tab.
+ *
+ * @param id - The window id. Defaults to the id of the current window.
+ *
+ * Example: `winclose 
+ */
 //#background
-export async function winclose() {
-    browser.windows.remove((await browser.windows.getCurrent()).id)
+export async function winclose(...ids: string[]) {
+    if (ids.length == 0) {
+        ids.push(`${(await browser.windows.getCurrent()).id}`)
+    }
+    return Promise.all(ids.map(id => browser.windows.remove(parseInt(id))))
 }
 
 /** Close all windows */
