@@ -512,7 +512,7 @@ Last, but not least - thank you to everyone who reported issues.
         -   `$XDG_CONFIG_DIR/tridactyl/tridactylrc`
         -   `~/.config/tridactyl/tridactylrc`
         -   `~/.tridactylrc`
-    -   [Example file available here](https://github.com/cmcaine/tridactyl/blob/master/.tridactylrc)
+    -   [Example file available here](https://github.com/tridactyl/tridactyl/blob/master/.tridactylrc)
     -   You can run any file you want with `source [absolute path to file]`. Bonus points if you can think of something sensible to do with `source` in an `autocmd`.
     -   If you want vim-style configuration where nothing persists except that which is in the rc file, simply add `sanitise tridactyllocal tridactylsync` to the top of your rc file.
     -   Only whole-line comments are supported at the moment, in the VimL style where lines start with a quote mark: "
