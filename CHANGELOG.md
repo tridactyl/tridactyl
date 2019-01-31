@@ -1,5 +1,17 @@
 # Tridactyl changelog
 
+## Release 1.14.8 / 2019-01-31
+
+-   New features
+
+    -   `winclose` now accepts arguments and completions
+
+-   Bug fixes
+
+    -   We've explained the ramifications of adding return values to lots of ex-commands in 1.14.7 for composite on the new tab page
+
+    -   All URLs pointing to the repository should now point to the new repository, tridactyl/tridactyl.
+
 ## Release 1.14.7 / 2019-01-30
 
 -   New features
