@@ -505,7 +505,7 @@ export function getLastUsedInput(): HTMLElement {
 
 /** WARNING: This function can potentially recieve malicious input! For the
  *  whole discussion about this, see
- *  https://github.com/cmcaine/tridactyl/pull/225
+ *  https://github.com/tridactyl/tridactyl/pull/225
  *
  *  Remember to check whether WebComponents change anything security-wise:
  *  https://developer.mozilla.org/en-US/docs/Web/Web_Components/Custom_Elements

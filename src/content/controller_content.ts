@@ -63,7 +63,7 @@ function* ParserController() {
 
                 // This code was sort of the cause of the most serious bug in Tridactyl
                 // to date (March 2018).
-                // https://github.com/cmcaine/tridactyl/issues/311
+                // https://github.com/tridactyl/tridactyl/issues/311
                 if (
                     currentMode !== "ignore" &&
                     currentMode !== "hint" &&

@@ -8,7 +8,7 @@ Replace Firefox's default control mechanism with one modelled on the one true ed
 
 ## Installing
 
-[Simply click this link in Firefox to install our latest "beta" build][riskyclick]. These [betas][betas] are updated with each commit to master on this repo. Your browser will automatically update from there once a day. If you want more frequent updates, you can change `extensions.update.interval` in `about:config` to whatever time you want, say, 15 minutes (900 seconds). Alternatively, you can get our "stable" builds straight from [Mozilla][amo]. The changelog for the stable versions can be found [here](https://github.com/cmcaine/tridactyl/blob/master/CHANGELOG.md). If you want to use advanced features such as edit-in-Vim, you'll also need to install the native messenger or executable, instructions for which can be found by typing `:installnative` and hitting enter once you are in Tridactyl.
+[Simply click this link in Firefox to install our latest "beta" build][riskyclick]. These [betas][betas] are updated with each commit to master on this repo. Your browser will automatically update from there once a day. If you want more frequent updates, you can change `extensions.update.interval` in `about:config` to whatever time you want, say, 15 minutes (900 seconds). Alternatively, you can get our "stable" builds straight from [Mozilla][amo]. The changelog for the stable versions can be found [here](https://github.com/tridactyl/tridactyl/blob/master/CHANGELOG.md). If you want to use advanced features such as edit-in-Vim, you'll also need to install the native messenger or executable, instructions for which can be found by typing `:installnative` and hitting enter once you are in Tridactyl.
 
 Type `:help` or press `<F1>` for online help once you're in :)
 
@@ -141,7 +141,7 @@ You can bind your own shortcuts in normal mode with the `:bind` command. For exa
 
 -   Can I import/export settings, and does Tridactyl use an external configuration file just like Vimperator?
 
-    Yes, if you have `native` working, `$XDG_CONFIG_DIR/tridactyl/tridactylrc` or `~/.tridactylrc` will be read at startup via an `autocmd` and `source`. There is an [example file available on our repository](https://github.com/cmcaine/tridactyl/blob/master/.tridactylrc).
+    Yes, if you have `native` working, `$XDG_CONFIG_DIR/tridactyl/tridactylrc` or `~/.tridactylrc` will be read at startup via an `autocmd` and `source`. There is an [example file available on our repository](https://github.com/tridactyl/tridactyl/blob/master/.tridactylrc).
 
     If you can't use the native messenger for some reason, there is a workaround: if you do `set storageloc local`, a JSON file will appear at `<your firefox profile>\browser-extension-data\tridactyl.vim@cmcaine.co.uk\storage.js`. You can find your profile folder by going to `about:support`. You can edit this file to your heart's content.
 
@@ -161,7 +161,7 @@ You can bind your own shortcuts in normal mode with the `:bind` command. For exa
 
 -   How can I tab complete from bookmarks?
 
-    `bmarks`. Bookmarks are not currently supported on `*open`: see [issue #214](https://github.com/cmcaine/tridactyl/issues/214).
+    `bmarks`. Bookmarks are not currently supported on `*open`: see [issue #214](https://github.com/tridactyl/tridactyl/issues/214).
 
 -   When I type 'f', can I type link names (like Vimperator) in order to narrow down the number of highlighted links?
 
@@ -169,11 +169,11 @@ You can bind your own shortcuts in normal mode with the `:bind` command. For exa
 
 -   Where can I find a changelog for the different versions (to see what is new in the latest version)?
 
-    [Here.](https://github.com/cmcaine/tridactyl/blob/master/CHANGELOG.md)
+    [Here.](https://github.com/tridactyl/tridactyl/blob/master/CHANGELOG.md)
 
 -   Why can't I use my bookmark keywords?
 
-    Mozilla doesn't give us access to them. See [issue #73](https://github.com/cmcaine/tridactyl/issues/73).
+    Mozilla doesn't give us access to them. See [issue #73](https://github.com/tridactyl/tridactyl/issues/73).
 
 -   Can I set/get my bookmark tags from Tridactyl?
 
@@ -181,7 +181,7 @@ You can bind your own shortcuts in normal mode with the `:bind` command. For exa
 
 -   Why doesn't Tridactyl work on websites with frames?
 
-    It should work on some frames now. See [#122](https://github.com/cmcaine/tridactyl/issues/122).
+    It should work on some frames now. See [#122](https://github.com/tridactyl/tridactyl/issues/122).
 
 -   Can I change proxy via commands?
 
@@ -193,11 +193,11 @@ You can bind your own shortcuts in normal mode with the `:bind` command. For exa
 
 -   How can I list the current bindings?
 
-    `viewconfig nmaps` works OK, but Tridactyl commands won't work on the shown page for "security reasons". We'll eventually provide a better way. See [#98](https://github.com/cmcaine/tridactyl/issues/98).
+    `viewconfig nmaps` works OK, but Tridactyl commands won't work on the shown page for "security reasons". We'll eventually provide a better way. See [#98](https://github.com/tridactyl/tridactyl/issues/98).
 
 -   How can I know which mode I'm in/have a status line?
 
-    Press `j` and see if you scroll down :) There's no status line yet: see [#210](https://github.com/cmcaine/tridactyl/issues/210), but we do have a "mode indicator" in the bottom right. It even goes purple when you're in a private window :).
+    Press `j` and see if you scroll down :) There's no status line yet: see [#210](https://github.com/tridactyl/tridactyl/issues/210), but we do have a "mode indicator" in the bottom right. It even goes purple when you're in a private window :).
 
 -   Does anyone actually use Tridactyl?
 
@@ -222,7 +222,7 @@ Funds will be used at the discretion of the main contributors (currently bovine3
 Onboarding:
 
 ```
-git clone https://github.com/cmcaine/tridactyl.git
+git clone https://github.com/tridactyl/tridactyl.git
 cd tridactyl
 npm install
 npm run build

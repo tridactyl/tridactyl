@@ -39,13 +39,13 @@ Take a look in src/static/themes to get an idea of what to do. There is a reason
 [Queensberry rules](https://en.oxforddictionaries.com/definition/queensberry_rules).
 
 [matrix]: https://riot.im/app/#/room/#tridactyl:matrix.org
-[issues]: https://github.com/cmcaine/tridactyl/issues?utf8=%E2%9C%93&q=is%3Aissue+is%3Aopen+
-[easyissues]: https://github.com/cmcaine/tridactyl/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22
-[helpus]: https://github.com/cmcaine/tridactyl/issues?q=is%3Aissue+is%3Aopen+label%3A%22help+wanted%22
-[prs]: https://github.com/cmcaine/tridactyl/pulls
-[readme]: https://github.com/cmcaine/tridactyl/blob/master/readme.md
+[issues]: https://github.com/tridactyl/tridactyl/issues?utf8=%E2%9C%93&q=is%3Aissue+is%3Aopen+
+[easyissues]: https://github.com/tridactyl/tridactyl/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22
+[helpus]: https://github.com/tridactyl/tridactyl/issues?q=is%3Aissue+is%3Aopen+label%3A%22help+wanted%22
+[prs]: https://github.com/tridactyl/tridactyl/pulls
+[readme]: https://github.com/tridactyl/tridactyl/blob/master/readme.md
 [amo]: https://addons.mozilla.org/en-US/firefox/addon/tridactyl-vim/
 [amoreviews]: https://addons.mozilla.org/en-US/firefox/addon/tridactyl-vim/reviews/
-[newtab]: https://github.com/cmcaine/tridactyl/blob/master/src/static/newtab.md
-[tutor]: https://github.com/cmcaine/tridactyl/issues/380
-[excmds]: https://github.com/cmcaine/tridactyl/blob/master/src/excmds.ts
+[newtab]: https://github.com/tridactyl/tridactyl/blob/master/src/static/newtab.md
+[tutor]: https://github.com/tridactyl/tridactyl/issues/380
+[excmds]: https://github.com/tridactyl/tridactyl/blob/master/src/excmds.ts
