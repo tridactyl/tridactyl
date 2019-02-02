@@ -91,7 +91,7 @@ Here's an example: you're writing the [`native()`](https://github.com/tridactyl/
 -   requests.ts: CSP-clobbering code.
 -   text_to_speech.ts: Various wrappers around Firefox's TTS APIs.
 -   url_util.ts: Url incrementation, query-extraction, interpolation.
--   webext.ts: Wrappers around Firefox's api (activeTab(), ownTab()...).
+-   webext.ts: Wrappers around Firefox's APIs (activeTab(), ownTab()...).
 
 ### src/
 
@@ -123,6 +123,16 @@ Here's an example: you're writing the [`native()`](https://github.com/tridactyl/
 -   newtab.template.html: Tridactyl's newtab page, without its content.
 -   themes/\*: Css files for each theme.
 -   typedoc: Typedoc templates and css.
+
+# Build Process
+
+Building Tridactyl is done with `npm run build`. This makes npm run [scripts/build.sh](https://github.com/tridactyl/tridactyl/blob/master/scripts/build.sh), which performs the following steps:
+
+-   Running the [macro preprocessor](https://github.com/tridactyl/tridactyl/blob/master/scripts/excmds_macros.py) to turn `src/excmds.ts` into `src/.excmds_background.ts` and `src/.excmds_content.ts` (see the "The macros" section for more info).
+-   Running the [metadata-generation](https://github.com/tridactyl/tridactyl/blob/master/compiler/gen_metadata.ts) which just re-injects type information and comment strings into Tridactyl's code in order to make them available to Tridactyl at runtime. It also checks what themes are available at compile time and adds this information to the metadata.
+-   Running webpack in order to compile Tridactyl down to one file per entry point.
+-   Generating the newtab, author and tutorial pages with custom scripts and the documentation using typedoc.
+-   Importing CSS files and embedding resources (other CSS files, base64 pictures) into them wherever they're needed
 
 # Code of conduct
 
