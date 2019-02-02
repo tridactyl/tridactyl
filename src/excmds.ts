@@ -3464,6 +3464,8 @@ import * as hinting from "@src/content/hinting"
         - `-pipe selector key` e.g, `-pipe a href` returns the key. Only makes sense with `composite`, e.g, `composite hint -pipe * textContent | yank`. If you don't select a hint (i.e. press <Esc>), will return an empty string.
         - `-W excmd...` append hint href to excmd and execute, e.g, `hint -W exclaim mpv` to open YouTube videos.
         - -q* quick (or rapid) hints mode. Stay in hint mode until you press <Esc>, e.g. `:hint -qb` to open multiple hints in the background or `:hint -qW excmd` to execute excmd once for each hint. This will return an array containing all elements or the result of executed functions (e.g. `hint -qpipe a href` will return an array of links).
+        - -J* disable javascript hints. Don't generate hints related to javascript events. This is particularly useful when used with the `-c` option when you want to generate only hints for the specified css selectors. Also useful on sites with plenty of useless javascript elements such as google.com
+          - For example, use `bind ;jg hint -Jc .rc > .r > a` on google.com to generate hints only for clickable search results of a given query
         - -br deprecated, use `-qb` instead
 
     Excepting the custom selector mode and background hint mode, each of these hint modes is available by default as `;<option character>`, so e.g. `;y` to yank a link's target; `;g<option character>` starts rapid hint mode for all modes where it makes sense, and some others.
@@ -3498,9 +3500,20 @@ export async function hint(option?: string, selectors?: string, ...rest: string[
     if (option == "-br") option = "-qb"
 
     let rapid = false
+    let jshints = true
+
     if (option.startsWith("-q")) {
         option = "-" + option.slice(2)
         rapid = true
+    }
+
+    if (option.startsWith("-J")) {
+        option = "-" + option.slice(2)
+        jshints = false
+        if (option.startsWith("-q")) {
+            option = "-" + option.slice(2)
+            rapid = true
+        }
     }
 
     let selectHints = new Promise(r => r())
@@ -3535,6 +3548,7 @@ export async function hint(option?: string, selectors?: string, ...rest: string[
                     return link
                 },
                 rapid,
+                jshints,
             )
             break
 
@@ -3548,6 +3562,7 @@ export async function hint(option?: string, selectors?: string, ...rest: string[
                     return elem
                 },
                 rapid,
+                jshints,
             )
             break
 
@@ -3605,6 +3620,7 @@ export async function hint(option?: string, selectors?: string, ...rest: string[
                     return elem
                 },
                 rapid,
+                jshints,
             )
             break
 
@@ -3617,6 +3633,7 @@ export async function hint(option?: string, selectors?: string, ...rest: string[
                     return elem
                 },
                 rapid,
+                jshints,
             )
             break
 
@@ -3625,6 +3642,7 @@ export async function hint(option?: string, selectors?: string, ...rest: string[
                 selectors,
                 elem => elem[rest.join(" ")],
                 rapid,
+                jshints,
             )
             break
 
@@ -3744,6 +3762,7 @@ export async function hint(option?: string, selectors?: string, ...rest: string[
                     return elem
                 },
                 rapid,
+                jshints,
             )
     }
 
