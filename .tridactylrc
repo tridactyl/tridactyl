@@ -35,6 +35,10 @@ bindurl wikiwand.com yy composite js document.location.href.replace("wikiwand.co
 " Make gu take you back to subreddit from comments
 bindurl reddit.com gu urlparent 4
 
+" Only hint search results on Google
+bindurl www.google.com f hint -Jc .rc > .r > a
+bindurl www.google.com F composite hint -Jpipe .rc>.r>a href | tabopen | buffer #
+
 " Allow Ctrl-a to select all in the commandline
 unbind --mode=ex <C-a>
 
