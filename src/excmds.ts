@@ -2403,11 +2403,18 @@ export function version() {
     fillcmdline_notrail(TRI_VERSION)
 }
 
-/** Example:
-        - `mode ignore` to ignore all keys.
-
-    Note that when in ignore mode, Tridactyl will not switch to insert mode when focusing text areas/inputs. This is by design.
-*/
+/**
+ *  Switch mode.
+ *
+ *  For now you probably shouldn't manually switch to other modes than `normal` and `ignore`. Make sure you're aware of the key bindings (ignoremaps) that will allow you to go come back to normal mode from ignore mode before you run `:mode ignore` otherwise you're going to have a hard time re-enabling Tridactyl.
+ *
+ *  Example:
+ *      - `mode ignore` to ignore almost all keys.
+ *
+ *  If you're looking for a way to temporarily disable Tridactyl, `mode ignore` might be what you're looking for.
+ *
+ *  Note that when in ignore mode, Tridactyl will not switch to insert mode when focusing text areas/inputs. This is by design.
+ */
 //#content
 export function mode(mode: ModeName) {
     // TODO: event emition on mode change.
@@ -3133,6 +3140,8 @@ export function autocmddelete(event: string, url: string) {
  *  Simply creates a DocStart [[autocmd]] that runs `mode ignore`.
  *
  *  Due to a Tridactyl bug, the only way to remove these rules once they are set is to delete all of your autocmds with `unset autocmds`.
+ *
+ *  If you're looking for a way to temporarily disable Tridactyl, this might be what you're looking for.
  *
  *  <!-- this should probably be moved to an ex alias once configuration has better help --!>
  *
