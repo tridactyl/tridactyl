@@ -356,6 +356,13 @@ export async function guiset_quiet(rule: string, option: string) {
  *      - top-left
  *      - top-right
  *
+ * - statuspanel (hoverlink + the indicator that appears when a website is loading)
+ *      - none
+ *      - left
+ *      - right
+ *      - top-left
+ *      - top-right
+ *
  * If you want to use guiset in your tridactylrc, you might want to use [[guiset_quiet]] instead.
  */
 //#background
@@ -2275,12 +2282,12 @@ export async function winopen(...args: string[]) {
     browser.windows.create(createData)
 }
 
-/** 
+/**
  * Close a tab.
  *
  * @param id - The window id. Defaults to the id of the current window.
  *
- * Example: `winclose 
+ * Example: `winclose
  */
 //#background
 export async function winclose(...ids: string[]) {

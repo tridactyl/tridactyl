@@ -36,6 +36,16 @@ export function findCssRules(
  *
  */
 export const potentialRules = {
+    statuspanel: {
+        name: `#statuspanel`,
+        options: {
+            none: `display: none !important;`,
+            right: `right: 0; display: inline;`,
+            left: ``,
+            "top-left": `top: 2em; z-index: 2; display: inline;`,
+            "top-right": `top: 2em; z-index: 2; right: 0; display: inline;`,
+        },
+    },
     hoverlink: {
         name: `statuspanel[type="overLink"], #statuspanel[type="overLink"]`,
         options: {
