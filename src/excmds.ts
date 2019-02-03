@@ -2287,7 +2287,7 @@ export async function winopen(...args: string[]) {
  *
  * @param id - The window id. Defaults to the id of the current window.
  *
- * Example: `winclose
+ * Example: `winclose`
  */
 //#background
 export async function winclose(...ids: string[]) {
