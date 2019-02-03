@@ -36,9 +36,9 @@ Take a look in src/static/themes to get an idea of what to do. There is a reason
 
 # Architecture of the project
 
-WebExtensions have multiple kinds of [processes](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/Anatomy_of_a_WebExtension) (or scripts). There's a bakground process, which is attached to the main Firefox process. There's also the content process, with at least one per tab (sometimes more, as content processes can live in frames too). There are other kinds of processes, but Tridactyl doesn't use them.
+WebExtensions have multiple kinds of [processes](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/Anatomy_of_a_WebExtension) (or scripts). There's a background process, which is attached to the main Firefox process. There's also the content process, with at least one per tab (sometimes more, as content processes can live in frames too). There are other kinds of processes, but Tridactyl doesn't use them.
 
-As of January 2019, Tridactyl uses 2n+1 processes: a background process and two content processes per tab (one for the page and one for the command line frame). These processes do not have the same privileges or access to APIs, they instead need to cooperate by sending messages to each other. Mozilla's API for sending messages is [browser.runtime.sendMessage](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/runtime/sendMessage). You will probably not need to use it directly: Tridactyl has its own [message](https://github.com/tridactyl/tridactyl/blob/bdaa65d216678776b0406f5be99800ef5dd8d50f/src/lib/messaging.ts#L67), [messageActiveTab](https://github.com/tridactyl/tridactyl/blob/bdaa65d216678776b0406f5be99800ef5dd8d50f/src/lib/messaging.ts#L73) and [messageOwnTab](https://github.com/tridactyl/tridactyl/blob/master/src/lib/messaging.ts) functions, which are themselves used by higher-level abstractions such as [browserBg](https://github.com/tridactyl/tridactyl/blob/bdaa65d216678776b0406f5be99800ef5dd8d50f/src/lib/browser_proxy.ts#L3), the [macro preprocessor](https://github.com/tridactyl/tridactyl/blob/master/scripts/excmds_macros.py) or the [ex-mode dispatcher](https://github.com/tridactyl/tridactyl/blob/bdaa65d216678776b0406f5be99800ef5dd8d50f/src/excmds.ts#L2603).
+As of January 2019, Tridactyl uses 2n+1 processes: a background process and two content processes per tab (one for the page and one for the command line frame). These processes do not have the same privileges or access to APIs, they instead need to cooperate by sending messages to each other. Mozilla's API for sending messages is [browser.runtime.sendMessage](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/runtime/sendMessage). You will probably not need to use it directly: Tridactyl has its own [message](https://github.com/tridactyl/tridactyl/blob/bdaa65d216678776b0406f5be99800ef5dd8d50f/src/lib/messaging.ts#L67), [messageActiveTab](https://github.com/tridactyl/tridactyl/blob/bdaa65d216678776b0406f5be99800ef5dd8d50f/src/lib/messaging.ts#L73) and [messageOwnTab](https://github.com/tridactyl/tridactyl/blob/master/src/lib/messaging.ts) functions, which are themselves used by higher-level abstractions such as [browserBg](https://github.com/tridactyl/tridactyl/blob/bdaa65d216678776b0406f5be99800ef5dd8d50f/src/lib/browser_proxy.ts#L3), the [macro preprocessor](https://github.com/tridactyl/tridactyl/blob/master/scripts/excmds_macros.py) and the [ex-mode dispatcher](https://github.com/tridactyl/tridactyl/blob/bdaa65d216678776b0406f5be99800ef5dd8d50f/src/excmds.ts#L2603).
 
 ## browserBg
 
@@ -133,6 +133,8 @@ Building Tridactyl is done with `npm run build`. This makes npm run [scripts/bui
 -   Running webpack in order to compile Tridactyl down to one file per entry point.
 -   Generating the newtab, author and tutorial pages with custom scripts and the documentation using typedoc.
 -   Importing CSS files and embedding resources (other CSS files, base64 pictures) into them wherever they're needed
+
+You can run Tridactyl easily in a temporary Firefox profile with `npm run run`.
 
 # Code of conduct
 
