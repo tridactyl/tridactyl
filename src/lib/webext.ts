@@ -71,9 +71,7 @@ export async function ownTabId() {
 
 //#content_helper
 export async function ownTabContainer() {
-    return browserBg.contextualIdentities.get(
-        (await ownTab()).cookieStoreId,
-    )
+    return browserBg.contextualIdentities.get((await ownTab()).cookieStoreId)
 }
 
 //#background_helper
@@ -164,64 +162,73 @@ export async function openInTab(tab, strarr: string[]) {
 
     const index = address.indexOf(" ")
     let firstWord = address
-    if (index > -1)
-        firstWord = address.substr(0, index)
+    if (index > -1) firstWord = address.substr(0, index)
 
     if (firstWord == "") {
         // No query, no newtab set, the user is asking for Tridactyl's newtab page
-        return browserBg.tabs.update(tab.id, {url: "/static/newtab.html"})
+        return browserBg.tabs.update(tab.id, { url: "/static/newtab.html" })
     }
 
-    // Perhaps the user typed an URL?
+    // Perhaps the user typed a URL?
     if (/^[a-zA-Z0-9+.-]+:[^\s:]/.test(address)) {
         try {
-            return browserBg.tabs.update(tab.id, {url: (new URL(address)).href})
+            return browserBg.tabs.update(tab.id, { url: new URL(address).href })
         } catch (e) {
             // Not a problem, we'll treat address as a regular search query
         }
     }
 
-
     const rest = address.substr(firstWord.length)
     const searchurls = config.get("searchurls")
     if (searchurls[firstWord]) {
-        let url = UrlUtil.interpolateSearchItem(new URL(searchurls[firstWord]), rest)
+        let url = UrlUtil.interpolateSearchItem(
+            new URL(searchurls[firstWord]),
+            rest,
+        )
         // firstWord is a searchurl, so let's use that
-        return browserBg.tabs.update(tab.id, {url: url.href})
-
+        return browserBg.tabs.update(tab.id, { url: url.href })
     }
 
     const searchEngines = await browserBg.search.get()
     let engine
     // Maybe firstWord is the name of a firefox search engine?
-    if (engine = searchEngines.find(engine => engine.alias == firstWord)) {
+    if ((engine = searchEngines.find(engine => engine.alias == firstWord))) {
         return browserBg.search.search({
             tabId: tab.id,
             engine: engine.name,
-            query: rest
+            query: rest,
         })
-
     }
-    
+
+    // if firstWord is "search", remove it from the query.
+    // This allows users to search for a URL or a word they defined as searchurl
+    let queryString = address
+    if (firstWord == "search") {
+        queryString = rest
+    }
+
     let enginename
     // firstWord is neither a searchurl nor a search engine, let's see if a search engine has been defined in Tridactyl
-    if (enginename = config.get("searchengine")) {
+    if ((enginename = config.get("searchengine"))) {
         if (searchurls[enginename]) {
-            let url = UrlUtil.interpolateSearchItem(new URL(searchurls[firstWord]), rest)
-            // firstWord is a searchurl, so let's use that
-            return browserBg.tabs.update(tab.id, {url: url.href})
+            let url = UrlUtil.interpolateSearchItem(
+                new URL(searchurls[enginename]),
+                queryString,
+            )
+            return browserBg.tabs.update(tab.id, { url: url.href })
         }
 
-        if (engine = searchEngines.find(engine => engine.alias == enginename)) {
+        if (
+            (engine = searchEngines.find(engine => engine.alias == enginename))
+        ) {
             return browserBg.search.search({
                 tabId: tab.id,
                 engine: engine.name,
-                query: address
+                query: queryString,
             })
         }
     }
 
     // No search engine has been defined in Tridactyl, let's use firefox's default search engine
-    return browserBg.search.search({tabId: tab.id, query: address})
+    return browserBg.search.search({ tabId: tab.id, query: queryString })
 }
-
