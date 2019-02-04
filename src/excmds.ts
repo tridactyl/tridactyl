@@ -658,65 +658,6 @@ export async function saveas(...filename: string[]) {
 // }}}
 
 /** @hidden */
-function hasScheme(uri: string) {
-    return uri.match(/^([\w-]+):/)
-}
-
-/** @hidden */
-function searchURL(provider: string, query: string) {
-    if (provider == "search") provider = config.get("searchengine")
-    const searchurlprovider = config.get("searchurls", provider)
-    if (searchurlprovider === undefined) {
-        throw new TypeError(`Unknown provider: '${provider}'`)
-    }
-
-    return UrlUtil.interpolateSearchItem(new URL(searchurlprovider), query)
-}
-
-/** Take a string and find a way to interpret it as a URI or search query. */
-/** @hidden */
-export function forceURI(maybeURI: string): string {
-    // Need undefined to be able to open about:newtab
-    if (maybeURI == "") return undefined
-
-    // If the uri looks like it might contain a schema and a domain, try url()
-    // test for a non-whitespace, non-colon character after the colon to avoid
-    // false positives like "error: can't reticulate spline" and "std::map".
-    //
-    // These heuristics mean that very unusual URIs will be coerced to
-    // something else by this function.
-    if (/^[a-zA-Z0-9+.-]+:[^\s:]/.test(maybeURI)) {
-        try {
-            return new URL(maybeURI).href
-        } catch (e) {
-            if (e.name !== "TypeError") throw e
-        }
-    }
-
-    // Else if search keyword:
-    try {
-        const args = maybeURI.split(" ")
-        return searchURL(args[0], args.slice(1).join(" ")).href
-    } catch (e) {
-        if (e.name !== "TypeError") throw e
-    }
-
-    // Else if it's a domain or something
-    try {
-        const url = new URL("http://" + maybeURI)
-        // Ignore unlikely domains
-        if (url.hostname.includes(".") || url.port || url.password) {
-            return url.href
-        }
-    } catch (e) {
-        if (e.name !== "TypeError") throw e
-    }
-
-    // Else search $searchengine
-    return searchURL("search", maybeURI).href
-}
-
-/** @hidden */
 //#background_helper
 function tabSetActive(id: number) {
     return browser.tabs.update(id, { active: true })
@@ -2932,22 +2873,6 @@ export function bindurl(pattern: string, mode: string, keys: string, ...excmd: s
 //#background
 export function keymap(source: string, target: string) {
     set("keytranslatemap." + source, target)
-}
-
-/**
- * Set a search engine keyword for use with *open or `set searchengine`
- *
- * @deprecated use `set searchurls.KEYWORD URL` instead
- *
- * @param keyword   the keyword to use for this search (e.g. 'esa')
- * @param url       the URL to interpolate the query into. If %s is found in
- *                  the URL, the query is inserted there, else it is appended.
- *                  If the insertion point is in the "query string" of the URL,
- *                  the query is percent-encoded, else it is verbatim.
- **/
-//#background
-export function searchsetkeyword(keyword: string, url: string) {
-    config.set("searchurls", keyword, forceURI(url))
 }
 
 /**
