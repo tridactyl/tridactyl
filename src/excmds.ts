@@ -2876,6 +2876,14 @@ export function keymap(source: string, target: string) {
 }
 
 /**
+ * @hidden
+ */
+//#background
+export function searchsetkeyword() {
+    throw ":searchsetkeyword has been deprecated. Use `set searchurls.KEYWORD URL` instead."
+}
+
+/**
  * Validates arguments for set/seturl
  * @hidden
  */
