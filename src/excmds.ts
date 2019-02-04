@@ -2248,23 +2248,19 @@ export async function mute(...muteArgs: string[]): Promise<void> {
 /** Like [[tabopen]], but in a new window. `winopen -private [...]` will open the result in a private window (and won't store the command in your ex-history ;) )*/
 //#background
 export async function winopen(...args: string[]) {
-    let address: string
+    let address = args.join(" ")
     const createData = {}
     let firefoxArgs = "--new-window"
     if (args[0] === "-private") {
         createData["incognito"] = true
         address = args.slice(1, args.length).join(" ")
         firefoxArgs = "--private-window"
-    } else address = args.join(" ")
-    if (!ABOUT_WHITELIST.includes(address) && address.match(/^(about|file):.*/)) {
-        if ((await browser.runtime.getPlatformInfo()).os === "mac") {
-            fillcmdline_notrail("# nativeopen isn't supported for winopen on OSX. Consider installing Linux or Windows :).")
-            return
-        } else {
-            nativeopen(address, firefoxArgs)
-            return
-        }
     }
+
+    if (!ABOUT_WHITELIST.includes(address) && address.match(/^(about|file):.*/)) {
+        return nativeopen(address, firefoxArgs)
+    }
+
     return browser.windows.create(createData).then(win => openInTab(win.tabs[0], address.split(" ")))
 }
 
