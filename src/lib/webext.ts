@@ -153,7 +153,7 @@ export async function openInNewWindow(createData = {}) {
     browserBg.windows.create(createData)
 }
 
-export async function openInTab(tab, strarr: string[]) {
+export async function openInTab(tab, opts = {}, strarr: string[]) {
     let address = strarr.join(" ")
 
     if (address == "") {
@@ -166,13 +166,19 @@ export async function openInTab(tab, strarr: string[]) {
 
     if (firstWord == "") {
         // No query, no newtab set, the user is asking for Tridactyl's newtab page
-        return browserBg.tabs.update(tab.id, { url: "/static/newtab.html" })
+        return browserBg.tabs.update(
+            tab.id,
+            Object.assign({ url: "/static/newtab.html" }, opts),
+        )
     }
 
     // Perhaps the user typed a URL?
     if (/^[a-zA-Z0-9+.-]+:[^\s:]/.test(address)) {
         try {
-            return browserBg.tabs.update(tab.id, { url: new URL(address).href })
+            return browserBg.tabs.update(
+                tab.id,
+                Object.assign({ url: new URL(address).href }, opts),
+            )
         } catch (e) {
             // Not a problem, we'll treat address as a regular search query
         }
@@ -186,7 +192,10 @@ export async function openInTab(tab, strarr: string[]) {
             rest,
         )
         // firstWord is a searchurl, so let's use that
-        return browserBg.tabs.update(tab.id, { url: url.href })
+        return browserBg.tabs.update(
+            tab.id,
+            Object.assign({ url: url.href }, opts),
+        )
     }
 
     const searchEngines = await browserBg.search.get()
@@ -205,7 +214,10 @@ export async function openInTab(tab, strarr: string[]) {
         const url = new URL("http://" + address)
         // Ignore unlikely domains
         if (url.hostname.includes(".") || url.port || url.password) {
-            return browserBg.tabs.update(tab.id, { url: url.href })
+            return browserBg.tabs.update(
+                tab.id,
+                Object.assign({ url: url.href }, opts),
+            )
         }
     } catch (e) {}
 
@@ -226,7 +238,10 @@ export async function openInTab(tab, strarr: string[]) {
                 new URL(searchurls[enginename]),
                 queryString,
             )
-            return browserBg.tabs.update(tab.id, { url: url.href })
+            return browserBg.tabs.update(
+                tab.id,
+                Object.assign({ url: url.href }, opts),
+            )
         }
 
         if (

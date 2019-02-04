@@ -96,6 +96,7 @@ Messaging.addListener("excmd_content", Messaging.attributeCaller(SELF))
 import * as DOM from "@src/lib/dom"
 import * as CommandLineContent from "@src/content/commandline_content"
 import * as scrolling from "@src/content/scrolling"
+import { ownTab } from "@src/lib/webext"
 // }
 
 //#background_helper
@@ -1064,7 +1065,7 @@ export async function open(...urlarr: string[]) {
         let bookmarklet = url.replace(/^javascript:/, "")
         ;(document.body as any).append(html`<script>${bookmarklet}</script>`)
     } else {
-        p = activeTab().then(tab => openInTab(tab, urlarr))
+        p = activeTab().then(tab => openInTab(tab, {}, urlarr))
     }
 
     return p
@@ -1088,17 +1089,13 @@ export async function bmarks(opt: string, ...urlarr: string[]) {
 //#content
 export async function open_quiet(...urlarr: string[]) {
     let url = urlarr.join(" ")
+    let p = Promise.resolve()
 
-    // Setting window.location to about:blank results in a page we can't access, tabs.update works.
-    if (["about:blank"].includes(url)) {
-        url = url || undefined
-        browserBg.tabs.update(await activeTabId(), { url })
-        // Open URLs that firefox won't let us by running `firefox <URL>` on the command line
-    } else if (!ABOUT_WHITELIST.includes(url) && url.match(/^(about|file):.*/)) {
-        Messaging.message("commandline_background", "recvExStr", ["nativeopen " + url])
-    } else if (url !== "") {
-        document.location.replace(forceURI(url))
+    if (!ABOUT_WHITELIST.includes(url) && url.match(/^(about|file):.*/)) {
+        return Messaging.message("commandline_background", "recvExStr", ["nativeopen " + url])
     }
+
+    return ownTab().then(tab => openInTab(tab, { loadReplace: true }, urlarr))
 }
 
 /**
@@ -1899,7 +1896,7 @@ export async function tabopen(...addressarr: string[]) {
         } else if (containerId && config.get("tabopencontaineraware") === "true") {
             args.cookieStoreId = containerId
         }
-        return openInNewTab(null, args).then(tab => openInTab(tab, query))
+        return openInNewTab(null, args).then(tab => openInTab(tab, {}, query))
     })
 }
 
@@ -2261,7 +2258,7 @@ export async function winopen(...args: string[]) {
         return nativeopen(address, firefoxArgs)
     }
 
-    return browser.windows.create(createData).then(win => openInTab(win.tabs[0], address.split(" ")))
+    return browser.windows.create(createData).then(win => openInTab(win.tabs[0], {}, address.split(" ")))
 }
 
 //#background
