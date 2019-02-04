@@ -2256,7 +2256,6 @@ export async function winopen(...args: string[]) {
         address = args.slice(1, args.length).join(" ")
         firefoxArgs = "--private-window"
     } else address = args.join(" ")
-    createData["url"] = address != "" ? forceURI(address) : forceURI(config.get("newtab"))
     if (!ABOUT_WHITELIST.includes(address) && address.match(/^(about|file):.*/)) {
         if ((await browser.runtime.getPlatformInfo()).os === "mac") {
             fillcmdline_notrail("# nativeopen isn't supported for winopen on OSX. Consider installing Linux or Windows :).")
@@ -2266,7 +2265,7 @@ export async function winopen(...args: string[]) {
             return
         }
     }
-    browser.windows.create(createData)
+    return browser.windows.create(createData).then(win => openInTab(win.tabs[0], address.split(" ")))
 }
 
 //#background
