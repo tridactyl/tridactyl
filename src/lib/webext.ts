@@ -200,6 +200,17 @@ export async function openInTab(tab, strarr: string[]) {
         })
     }
 
+    // Maybe it's a domain without protocol
+    try {
+        const url = new URL("http://" + address)
+        // Ignore unlikely domains
+        if (url.hostname.includes(".") || url.port || url.password) {
+            return browserBg.tabs.update(tab.id, { url: url.href })
+        }
+    } catch (e) {}
+
+    // Let's default to the user's search engine then
+
     // if firstWord is "search", remove it from the query.
     // This allows users to search for a URL or a word they defined as searchurl
     let queryString = address
