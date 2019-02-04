@@ -1837,7 +1837,7 @@ export async function tabopen(...addressarr: string[]) {
         } else if (containerId && config.get("tabopencontaineraware") === "true") {
             args.cookieStoreId = containerId
         }
-        return openInNewTab(null, args).then(tab => openInTab(tab, {}, query))
+        return openInNewTab(null, args).then(tab => openInTab(tab, { loadReplace: true }, query))
     })
 }
 
@@ -2199,7 +2199,7 @@ export async function winopen(...args: string[]) {
         return nativeopen(address, firefoxArgs)
     }
 
-    return browser.windows.create(createData).then(win => openInTab(win.tabs[0], {}, address.split(" ")))
+    return browser.windows.create(createData).then(win => openInTab(win.tabs[0], { loadReplace: true }, address.split(" ")))
 }
 
 //#background
