@@ -3797,12 +3797,10 @@ export async function hint(option?: string, selectors?: string, ...rest: string[
  * Hacky ex string parser.
  *
  * Use it for fire-and-forget running of background commands in content.
- *
- * @hidden
  */
-//#content_helper
+//#content
 export function run_exstr(...commands: string[]) {
-    Messaging.message("commandline_background", "recvExStr", commands)
+    return Messaging.message("commandline_background", "recvExStr", commands)
 }
 
 // }}}
