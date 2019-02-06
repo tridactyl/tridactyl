@@ -2468,11 +2468,11 @@ export async function sleep(time_ms: number) {
 
 /** @hidden */
 //#content
-export function showcmdline(focus = true) {
-    CommandLineContent.show()
+export async function showcmdline(focus = true) {
+    await CommandLineContent.show()
     let done = Promise.resolve()
     if (focus) {
-        CommandLineContent.focus()
+        await CommandLineContent.focus()
         done = Messaging.messageOwnTab("commandline_frame", "focus")
     }
     return done
@@ -2486,9 +2486,9 @@ export function hidecmdline() {
 
 /** Set the current value of the commandline to string *with* a trailing space */
 //#content
-export function fillcmdline(...strarr: string[]) {
+export async function fillcmdline(...strarr: string[]) {
     let str = strarr.join(" ")
-    showcmdline()
+    await showcmdline()
     return Messaging.messageOwnTab("commandline_frame", "fillcmdline", [str])
 }
 
