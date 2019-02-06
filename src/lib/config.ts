@@ -192,7 +192,7 @@ class default_config {
         "<C-o>": "jumpprev",
         "<C-i>": "jumpnext",
         d: "tabclose",
-        D: "composite tabprev; sleep 100; tabclose #",
+        D: "composite tabprev; tabclose #",
         gx0: "tabclosealltoleft",
         gx$: "tabclosealltoright",
         "<<": "tabmove -1",
