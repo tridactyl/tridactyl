@@ -70,7 +70,7 @@
 
 // Shared
 import * as Messaging from "@src/lib/messaging"
-import { browserBg, activeTabId, activeTabContainerId, openInNewTab, openInNewWindow } from "@src/lib/webext"
+import { browserBg, activeTab, activeTabId, activeTabContainerId, openInNewTab, openInNewWindow, openInTab } from "@src/lib/webext"
 import * as Container from "@src/lib/containers"
 import state from "@src/state"
 import { contentState, ModeName } from "@src/content/state_content"
@@ -96,6 +96,7 @@ Messaging.addListener("excmd_content", Messaging.attributeCaller(SELF))
 import * as DOM from "@src/lib/dom"
 import * as CommandLineContent from "@src/content/commandline_content"
 import * as scrolling from "@src/content/scrolling"
+import { ownTab } from "@src/lib/webext"
 // }
 
 //#background_helper
@@ -105,7 +106,7 @@ import * as BGSELF from "@src/.excmds_background.generated"
 import { messageTab, messageActiveTab } from "@src/lib/messaging"
 import { flatten } from "@src/lib/itertools"
 import "@src/lib/number.mod"
-import { activeTab, firefoxVersionAtLeast } from "@src/lib/webext"
+import { firefoxVersionAtLeast } from "@src/lib/webext"
 import * as CommandLineBackground from "@src/background/commandline_background"
 import * as rc from "@src/background/config_rc"
 import * as excmd_parser from "@src/parsers/exmode"
@@ -672,65 +673,6 @@ export async function saveas(...filename: string[]) {
 // }}}
 
 /** @hidden */
-function hasScheme(uri: string) {
-    return uri.match(/^([\w-]+):/)
-}
-
-/** @hidden */
-function searchURL(provider: string, query: string) {
-    if (provider == "search") provider = config.get("searchengine")
-    const searchurlprovider = config.get("searchurls", provider)
-    if (searchurlprovider === undefined) {
-        throw new TypeError(`Unknown provider: '${provider}'`)
-    }
-
-    return UrlUtil.interpolateSearchItem(new URL(searchurlprovider), query)
-}
-
-/** Take a string and find a way to interpret it as a URI or search query. */
-/** @hidden */
-export function forceURI(maybeURI: string): string {
-    // Need undefined to be able to open about:newtab
-    if (maybeURI == "") return undefined
-
-    // If the uri looks like it might contain a schema and a domain, try url()
-    // test for a non-whitespace, non-colon character after the colon to avoid
-    // false positives like "error: can't reticulate spline" and "std::map".
-    //
-    // These heuristics mean that very unusual URIs will be coerced to
-    // something else by this function.
-    if (/^[a-zA-Z0-9+.-]+:[^\s:]/.test(maybeURI)) {
-        try {
-            return new URL(maybeURI).href
-        } catch (e) {
-            if (e.name !== "TypeError") throw e
-        }
-    }
-
-    // Else if search keyword:
-    try {
-        const args = maybeURI.split(" ")
-        return searchURL(args[0], args.slice(1).join(" ")).href
-    } catch (e) {
-        if (e.name !== "TypeError") throw e
-    }
-
-    // Else if it's a domain or something
-    try {
-        const url = new URL("http://" + maybeURI)
-        // Ignore unlikely domains
-        if (url.hostname.includes(".") || url.port || url.password) {
-            return url.href
-        }
-    } catch (e) {
-        if (e.name !== "TypeError") throw e
-    }
-
-    // Else search $searchengine
-    return searchURL("search", maybeURI).href
-}
-
-/** @hidden */
 //#background_helper
 function tabSetActive(id: number) {
     return browser.tabs.update(id, { active: true })
@@ -1049,17 +991,19 @@ export async function reloadhard(n = 1) {
 // I went through the whole list https://developer.mozilla.org/en-US/Firefox/The_about_protocol
 // about:blank is even more special
 /** @hidden */
-export const ABOUT_WHITELIST = ["about:license", "about:logo", "about:rights"]
+export const ABOUT_WHITELIST = ["about:license", "about:logo", "about:rights", "about:blank"]
 
-/** Open a new page in the current tab.
+/**
+ * Open a new page in the current tab.
  *
- *   @param urlarr
- *   - if first word looks like it has a schema, treat as a URI
- *   - else if the first word contains a dot, treat as a domain name
- *   - else if the first word is a key of [[SEARCH_URLS]], treat all following terms as search parameters for that provider
- *   - else treat as search parameters for [[searchengine]]
+ * @param urlarr
  *
- *   Related settings: [[searchengine]], [[historyresults]]
+ * - if first word looks like it has a schema, treat as a URI
+ * - else if the first word contains a dot, treat as a domain name
+ * - else if the first word is a key of [[SEARCH_URLS]], treat all following terms as search parameters for that provider
+ * - else treat as search parameters for [[searchengine]]
+ *
+ * Related settings: [[searchengine]], [[historyresults]]
  *
  * Can only open about:* or file:* URLs if you have the native messenger installed, and on OSX you must set `browser` to something that will open Firefox from a terminal pass it commmand line options.
  *
@@ -1067,19 +1011,20 @@ export const ABOUT_WHITELIST = ["about:license", "about:logo", "about:rights"]
 //#content
 export async function open(...urlarr: string[]) {
     let url = urlarr.join(" ")
+    let p = Promise.resolve()
 
     // Setting window.location to about:blank results in a page we can't access, tabs.update works.
-    if (url === "about:blank") {
-        browserBg.tabs.update(await activeTabId(), { url })
-    } else if (!ABOUT_WHITELIST.includes(url) && url.match(/^(about|file):.*/)) {
+    if (!ABOUT_WHITELIST.includes(url) && url.match(/^(about|file):.*/)) {
         // Open URLs that firefox won't let us by running `firefox <URL>` on the command line
-        Messaging.message("commandline_background", "recvExStr", ["nativeopen " + url])
+        p = Messaging.message("commandline_background", "recvExStr", ["nativeopen " + url])
     } else if (url.match(/^javascript:/)) {
         let bookmarklet = url.replace(/^javascript:/, "")
         ;(document.body as any).append(html`<script>${bookmarklet}</script>`)
-    } else if (url !== "") {
-        window.location.href = forceURI(url)
+    } else {
+        p = activeTab().then(tab => openInTab(tab, {}, urlarr))
     }
+
+    return p
 }
 
 /**
@@ -1100,17 +1045,13 @@ export async function bmarks(opt: string, ...urlarr: string[]) {
 //#content
 export async function open_quiet(...urlarr: string[]) {
     let url = urlarr.join(" ")
+    let p = Promise.resolve()
 
-    // Setting window.location to about:blank results in a page we can't access, tabs.update works.
-    if (["about:blank"].includes(url)) {
-        url = url || undefined
-        browserBg.tabs.update(await activeTabId(), { url })
-        // Open URLs that firefox won't let us by running `firefox <URL>` on the command line
-    } else if (!ABOUT_WHITELIST.includes(url) && url.match(/^(about|file):.*/)) {
-        Messaging.message("commandline_background", "recvExStr", ["nativeopen " + url])
-    } else if (url !== "") {
-        document.location.replace(forceURI(url))
+    if (!ABOUT_WHITELIST.includes(url) && url.match(/^(about|file):.*/)) {
+        return Messaging.message("commandline_background", "recvExStr", ["nativeopen " + url])
     }
+
+    return ownTab().then(tab => openInTab(tab, { loadReplace: true }, urlarr))
 }
 
 /**
@@ -1896,23 +1837,22 @@ export async function tabopen(...addressarr: string[]) {
         return args
     }
 
-    let url: string
-    let address = (await argParse(addressarr)).join(" ")
+    let query = await argParse(addressarr)
 
-    if (address == "") address = config.get("newtab")
+    let address = query.join(" ")
     if (!ABOUT_WHITELIST.includes(address) && address.match(/^(about|file):.*/)) {
         return nativeopen(address)
-    } else if (address != "") url = forceURI(address)
+    }
 
     return activeTabContainerId().then(containerId => {
+        let args = { active } as any
         // Ensure -c has priority.
         if (container) {
-            return openInNewTab(url, { active: active, cookieStoreId: container })
+            args.cookieStoreId = container
         } else if (containerId && config.get("tabopencontaineraware") === "true") {
-            return openInNewTab(url, { active: active, cookieStoreId: containerId })
-        } else {
-            return openInNewTab(url, { active })
+            args.cookieStoreId = containerId
         }
+        return openInNewTab(null, args).then(tab => openInTab(tab, { loadReplace: true }, query))
     })
 }
 
@@ -2261,25 +2201,20 @@ export async function mute(...muteArgs: string[]): Promise<void> {
 /** Like [[tabopen]], but in a new window. `winopen -private [...]` will open the result in a private window (and won't store the command in your ex-history ;) )*/
 //#background
 export async function winopen(...args: string[]) {
-    let address: string
+    let address = args.join(" ")
     const createData = {}
     let firefoxArgs = "--new-window"
     if (args[0] === "-private") {
         createData["incognito"] = true
         address = args.slice(1, args.length).join(" ")
         firefoxArgs = "--private-window"
-    } else address = args.join(" ")
-    createData["url"] = address != "" ? forceURI(address) : forceURI(config.get("newtab"))
-    if (!ABOUT_WHITELIST.includes(address) && address.match(/^(about|file):.*/)) {
-        if ((await browser.runtime.getPlatformInfo()).os === "mac") {
-            fillcmdline_notrail("# nativeopen isn't supported for winopen on OSX. Consider installing Linux or Windows :).")
-            return
-        } else {
-            nativeopen(address, firefoxArgs)
-            return
-        }
     }
-    browser.windows.create(createData)
+
+    if (!ABOUT_WHITELIST.includes(address) && address.match(/^(about|file):.*/)) {
+        return nativeopen(address, firefoxArgs)
+    }
+
+    return browser.windows.create(createData).then(win => openInTab(win.tabs[0], { loadReplace: true }, address.split(" ")))
 }
 
 /**
@@ -2981,19 +2916,11 @@ export function keymap(source: string, target: string) {
 }
 
 /**
- * Set a search engine keyword for use with *open or `set searchengine`
- *
- * @deprecated use `set searchurls.KEYWORD URL` instead
- *
- * @param keyword   the keyword to use for this search (e.g. 'esa')
- * @param url       the URL to interpolate the query into. If %s is found in
- *                  the URL, the query is inserted there, else it is appended.
- *                  If the insertion point is in the "query string" of the URL,
- *                  the query is percent-encoded, else it is verbatim.
- **/
+ * @hidden
+ */
 //#background
-export function searchsetkeyword(keyword: string, url: string) {
-    config.set("searchurls", keyword, forceURI(url))
+export function searchsetkeyword() {
+    throw ":searchsetkeyword has been deprecated. Use `set searchurls.KEYWORD URL` instead."
 }
 
 /**
