@@ -242,16 +242,12 @@ export function refresh_completions(exstr) {
 }
 
 /** @hidden **/
-let timeoutId: any = 0
-/** @hidden **/
 let onInputPromise: Promise<any> = Promise.resolve()
 /** @hidden **/
 clInput.addEventListener("input", () => {
     const exstr = clInput.value
-    // Prevent starting previous completion computation if possible
-    clearTimeout(timeoutId)
     // Schedule completion computation. We do not start computing immediately because this would incur a slow down on quickly repeated input events (e.g. maintaining <Backspace> pressed)
-    let myTimeoutId = setTimeout(async () => {
+    setTimeout(async () => {
         try {
             // Make sure the previous computation has ended
             await onInputPromise
@@ -261,12 +257,10 @@ clInput.addEventListener("input", () => {
         }
 
         // If we're not the current completion computation anymore, stop
-        if (timeoutId != myTimeoutId) return
+        if (exstr != clInput.value) return
 
         onInputPromise = refresh_completions(exstr)
-    }, 100)
-    // Declare self as current completion computation
-    timeoutId = myTimeoutId
+    }, 1)
 })
 
 /** @hidden **/
