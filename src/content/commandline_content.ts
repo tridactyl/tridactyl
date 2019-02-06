@@ -34,7 +34,6 @@ let enabled = false
 async function init() {
     let noiframe = await config.getAsync("noiframe")
     if (noiframe == "false" && !enabled) {
-        hide()
         document.documentElement.appendChild(cmdline_iframe)
         enabled = true
         // first theming of page root
@@ -44,27 +43,40 @@ async function init() {
 
 // Load the iframe immediately if we can (happens if tridactyl is reloaded or on ImageDocument)
 // Else load lazily to avoid upsetting page JS that hates foreign iframes.
-try {
-    init()
-} catch (e) {
-    // Surrender event loop with setTimeout() to page JS in case it's still doing stuff.
-    document.addEventListener("DOMContentLoaded", () =>
-        setTimeout(() => {
-            try {
-                init()
-            } catch (e) {
-                logger.error("Couldn't initialise cmdline_iframe!", e)
-            }
-        }, 0),
-    )
-}
+// try {
+//     init()
+// } catch (e) {
+//     // Surrender event loop with setTimeout() to page JS in case it's still doing stuff.
+//     document.addEventListener("DOMContentLoaded", () =>
+//         setTimeout(() => {
+//             try {
+//                 init()
+//             } catch (e) {
+//                 logger.error("Couldn't initialise cmdline_iframe!", e)
+//             }
+//         }, 0),
+//     )
+// }
 
-export function show() {
+export async function show() {
     try {
+        await init()
         cmdline_iframe.classList.remove("hidden")
         const height =
             cmdline_iframe.contentWindow.document.body.offsetHeight + "px"
         cmdline_iframe.setAttribute("style", `height: ${height} !important;`)
+
+        // this actually helps a bit - an empty command line appears,
+        // so we're obviously not actually awaiting enough things.
+        //
+        // completions are broken though.
+        //
+        // setTimeout(_ => {
+        //     cmdline_iframe.classList.remove("hidden")
+        //     const height =
+        //         cmdline_iframe.contentWindow.document.body.offsetHeight + "px"
+        //     cmdline_iframe.setAttribute("style", `height: ${height} !important;`)
+        // },100)
     } catch (e) {
         // Note: We can't use cmdline_logger.error because it will try to log
         // the error in the commandline, which we can't show!
