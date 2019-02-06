@@ -2931,11 +2931,12 @@ export function bind(...args: string[]) {
     let args_obj = parse_bind_args(...args)
     let p = Promise.resolve()
     if (args_obj.excmd != "") {
-        for (let i = 0; i < args_obj.key.length; i++) {  // Check if any initial subsequence of the key exists and will shadow the new binding
-            let key_sub = args_obj.key.slice(0, i);
+        for (let i = 0; i < args_obj.key.length; i++) {
+            // Check if any initial subsequence of the key exists and will shadow the new binding
+            let key_sub = args_obj.key.slice(0, i)
             if (config.get(args_obj.configName, key_sub)) {
-                fillcmdline_notrail("# Warning: bind `"+key_sub+"` exists and will shadow `" + args_obj.key + "`. Try running `:unbind "+key_sub+"` first");
-                break;
+                fillcmdline_notrail("# Warning: bind `" + key_sub + "` exists and will shadow `" + args_obj.key + "`. Try running `:unbind --mode=" + args_obj.mode + " " + key_sub + "`")
+                break
             }
         }
         p = config.set(args_obj.configName, args_obj.key, args_obj.excmd)
