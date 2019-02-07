@@ -216,6 +216,12 @@ export function findVisibleNode(allMatches, i, direction) {
     return match
 }
 
+function focusMatch(match: Match) {
+    let elem = match.firstNode
+    while (elem && !(elem.focus instanceof Function)) elem = elem.parentElement
+    if (elem) elem.focus()
+}
+
 let lastMatch = 0
 let highlightingElements = []
 /* Jumps to the startingFromth dom node matching pattern */
@@ -247,6 +253,8 @@ export async function jumpToMatch(pattern, reverse, startingFrom) {
         document.body.appendChild(elem)
     }
 
+    focusMatch(match)
+
     // Remember where we where and what actions we did. This is need for jumpToNextMatch
     lastMatch = lastMatches.indexOf(match)
 }
@@ -274,6 +282,8 @@ export function jumpToNextMatch(n: number) {
         highlightingElements.push(elem)
         document.body.appendChild(elem)
     }
+
+    focusMatch(match)
 
     lastMatch = lastMatches.indexOf(match)
 }
