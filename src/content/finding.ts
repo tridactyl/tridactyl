@@ -2,6 +2,7 @@
 import * as Messaging from "@src/lib/messaging"
 import * as config from "@src/lib/config"
 import * as DOM from "@src/lib/dom"
+import state from "@src/state"
 import { zip } from "@src/lib/itertools"
 import { browserBg, activeTabId } from "@src/lib/webext"
 
@@ -252,6 +253,11 @@ export async function jumpToMatch(pattern, reverse, startingFrom) {
 
 export function jumpToNextMatch(n: number) {
     removeHighlighting(false)
+
+    if (lastMatches.length < 1) {
+        // Let's try to find new matches
+        return jumpToMatch(state.lastSearch, n == -1, 0)
+    }
 
     browserBg.find.highlightResults()
     let match = findVisibleNode(

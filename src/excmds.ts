@@ -920,7 +920,10 @@ export function find(...args: string[]) {
         startingFrom = parseInt(args[flagpos + 1]) || 0
         args.splice(flagpos, 2)
     }
-    finding.jumpToMatch(args.join(" "), reverse, startingFrom)
+
+    const searchQuery = args.join(" ")
+    state.lastSearch = searchQuery
+    finding.jumpToMatch(searchQuery, reverse, startingFrom)
 }
 
 /** Jump to the next searched pattern.
