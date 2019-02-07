@@ -929,13 +929,13 @@ export function find(...args: string[]) {
  *
  */
 //#content
-export function findnext(n: number) {
-    finding.jumpToNextMatch(n)
+export function findnext(n = 1) {
+    return finding.jumpToNextMatch(n)
 }
 
 //#content
 export function clearsearchhighlight() {
-    finding.removeHighlighting()
+    return finding.removeHighlighting()
 }
 
 /** @hidden */

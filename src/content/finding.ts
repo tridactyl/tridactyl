@@ -193,6 +193,8 @@ export function removeHighlighting(all = true) {
  * direction is +1 if going forward and -1 if going backawrd
  */
 export function findVisibleNode(allMatches, i, direction) {
+    if (allMatches.length < 1) return undefined
+
     let match = allMatches[i]
     let n = i
 
@@ -252,6 +254,9 @@ export function jumpToNextMatch(n: number) {
         (n + lastMatch + lastMatches.length) % lastMatches.length,
         n <= 0 ? -1 : 1,
     )
+
+    if (match == undefined)
+        throw `No matches found. The pattern looked for doesn't exist or ':find' hasn't been run yet`
 
     for (let rect of match.rectData.rectsAndTexts.rectList) {
         let elem = createHighlightingElement(rect)
