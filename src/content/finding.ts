@@ -172,13 +172,18 @@ export async function find(query, count = -1, reverse = false) {
 
 function createHighlightingElement(rect) {
     let e = document.createElement("div")
-    e.className = "TridactylSearchHighlight"
-    e.style.display = "block"
-    e.style.position = "absolute"
-    e.style.top = rect.top + "px"
-    e.style.left = rect.left + "px"
-    e.style.width = rect.right - rect.left + "px"
-    e.style.height = rect.bottom - rect.top + "px"
+    e.className = "cleanslate TridactylSearchHighlight"
+    e.setAttribute(
+        "style",
+        `
+        display: block !important;
+        position: absolute !important;
+        top:    ${rect.top}px !important;
+        left:   ${rect.left}px !important;
+        width:  ${rect.right - rect.left}px !important;
+        height: ${rect.bottom - rect.top}px !important;
+    `,
+    )
     return e
 }
 
