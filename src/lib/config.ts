@@ -248,6 +248,7 @@ class default_config {
         ";#": "hint -#",
         ";v": "hint -W exclaim_quiet mpv",
         ";w": "hint -w",
+        ";t": "hint -W tabopen",
         ";O": "hint -W fillcmdline_notrail open ",
         ";W": "hint -W fillcmdline_notrail winopen ",
         ";T": "hint -W fillcmdline_notrail tabopen ",
