@@ -1160,45 +1160,57 @@ export function home(all: "false" | "true" = "false") {
 
     On the ex command page, the "nmaps" list is a list of all the bindings for the command you're seeing and the "exaliases" list lists all its aliases.
 
-    If there's a conflict (e.g. you have a "go" binding that does something, a "go" excmd that does something else and a "go" setting that does a third thing), the binding is chosen first, then the setting, then the excmd.
+    If there's a conflict (e.g. you have a "go" binding that does something, a "go" excmd that does something else and a "go" setting that does a third thing), the binding is chosen first, then the setting, then the excmd. In such situations, if you want to let Tridactyl know you're looking for something specfic, you can specify the following flags as first arguments:
+
+    `-a`: look for an alias
+    `-b`: look for a binding
+    `-e`: look for an ex command
+    `-s`: look for a setting
 
     If the keyword you gave to `:help` is actually an alias for a composite command (see [[composite]]) , you will be taken to the help section for the first command of the pipeline. You will be able to see the whole pipeline by hovering your mouse over the alias in the "exaliases" list. Unfortunately there currently is no way to display these HTML tooltips from the keyboard.
 
     e.g. `:help bind`
 */
 //#background
-export async function help(helpItem?: string) {
-    let docpage = browser.extension.getURL("static/docs/modules/_src_excmds_.html")
-    if (helpItem === undefined) helpItem = ""
-    else {
-        let matched = false
-        const settings = await config.getAsync()
-
-        for (let mode of ["nmaps", "imaps", "inputmaps", "ignoremaps"]) {
-            let bindings = settings[mode]
-            // If 'helpItem' matches a binding, replace 'helpItem' with the command that would be executed when pressing the key sequence referenced by 'helpItem' and don't check other modes
-            if (helpItem in bindings) {
-                helpItem = bindings[helpItem].split(" ")
-                helpItem = ["composite", "fillcmdline"].includes(helpItem[0]) ? helpItem[1] : helpItem[0]
-                matched = true
-                break
+export async function help(...helpItems: string[]) {
+    const flags = {
+        // -a: look for an alias
+        "-a": (settings, helpItem) => {
+            let aliases = settings.exaliases
+            // As long as helpItem is an alias, try to resolve this alias to a real helpItem
+            let resolved = []
+            while (aliases[helpItem]) {
+                resolved.push(helpItem)
+                helpItem = aliases[helpItem].split(" ")
+                helpItem = helpItem[0] == "composite" ? helpItem[1] : helpItem[0]
+                // Prevent infinite loops
+                if (resolved.includes(helpItem)) break
             }
-        }
-
-        let aliases = settings.exaliases
-        // As long as helpItem is an alias, try to resolve this alias to a real helpItem
-        let resolved = []
-        while (aliases[helpItem]) {
-            matched = true
-            resolved.push(helpItem)
-            helpItem = aliases[helpItem].split(" ")
-            helpItem = helpItem[0] == "composite" ? helpItem[1] : helpItem[0]
-            // Prevent infinite loops
-            if (resolved.includes(helpItem)) break
-        }
-
-        // If we still haven't found either a binding or an alias, try a setting name
-        if (!matched) {
+            if (resolved.length > 0) {
+                return browser.extension.getURL("static/docs/modules/_src_excmds_.html") + "#" + helpItem
+            }
+            return ""
+        },
+        // -b: look for a binding
+        "-b": (settings, helpItem) => {
+            for (let mode of ["nmaps", "imaps", "inputmaps", "ignoremaps"]) {
+                let bindings = settings[mode]
+                // If 'helpItem' matches a binding, replace 'helpItem' with
+                // the command that would be executed when pressing the key
+                // sequence referenced by 'helpItem' and don't check other
+                // modes
+                if (helpItem in bindings) {
+                    helpItem = bindings[helpItem].split(" ")
+                    helpItem = ["composite", "fillcmdline"].includes(helpItem[0]) ? helpItem[1] : helpItem[0]
+                    return browser.extension.getURL("static/docs/modules/_src_excmds_.html") + "#" + helpItem
+                }
+            }
+            return ""
+        },
+        // -e: look for an excmd
+        "-e": (settings, helpItem) => browser.extension.getURL("static/docs/modules/_src_excmds_.html") + "#" + helpItem,
+        // -s: look for a setting
+        "-s": (settings, helpItem) => {
             let subSettings = settings
             let settingNames = helpItem.split(".")
             let settingHelpAnchor = ""
@@ -1210,16 +1222,42 @@ export async function help(helpItem?: string) {
                 }
             }
             if (settingHelpAnchor != "") {
-                docpage = browser.extension.getURL("static/docs/classes/_src_lib_config_.default_config.html")
-                helpItem = settingHelpAnchor.slice(0, -1)
+                return browser.extension.getURL("static/docs/classes/_src_lib_config_.default_config.html") + "#" + settingHelpAnchor.slice(0, -1)
             }
+            return ""
+        },
+    }
+
+    let flag = ""
+
+    if (helpItems.length > 0) {
+        if (Object.keys(flags).includes(helpItems[0])) {
+            flag = helpItems[0]
+            helpItems.splice(0, 1)
         }
     }
 
-    if ((await activeTab()).url.startsWith(docpage)) {
-        open(docpage + "#" + helpItem)
+    const subject = helpItems.join(" ")
+    const settings = await config.getAsync()
+    let url = ""
+
+    // If the user did specify what they wanted, specifically look for it
+    if (flag != "") {
+        url = flags[flag](settings, subject)
+    }
+
+    // Otherwise or if it couldn't be found, try all possible items
+    if (url == "") {
+        url = ["-b", "-s", "-a", "-e"].reduce((acc, curFlag) => {
+            if (acc != "") return acc
+            return flags[curFlag](settings, subject)
+        }, "")
+    }
+
+    if ((await activeTab()).url.startsWith(browser.extension.getURL("static/docs/"))) {
+        open(url)
     } else {
-        tabopen(docpage + "#" + helpItem)
+        tabopen(url)
     }
 }
 
