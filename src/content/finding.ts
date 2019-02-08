@@ -2,6 +2,7 @@
 import * as Messaging from "@src/lib/messaging"
 import * as config from "@src/lib/config"
 import * as DOM from "@src/lib/dom"
+import state from "@src/state"
 import { zip } from "@src/lib/itertools"
 import { browserBg, activeTabId } from "@src/lib/webext"
 
@@ -172,13 +173,18 @@ export async function find(query, count = -1, reverse = false) {
 
 function createHighlightingElement(rect) {
     let e = document.createElement("div")
-    e.className = "TridactylSearchHighlight"
-    e.style.display = "block"
-    e.style.position = "absolute"
-    e.style.top = rect.top + "px"
-    e.style.left = rect.left + "px"
-    e.style.width = rect.right - rect.left + "px"
-    e.style.height = rect.bottom - rect.top + "px"
+    e.className = "cleanslate TridactylSearchHighlight"
+    e.setAttribute(
+        "style",
+        `
+        display: block !important;
+        position: absolute !important;
+        top:    ${rect.top}px !important;
+        left:   ${rect.left}px !important;
+        width:  ${rect.right - rect.left}px !important;
+        height: ${rect.bottom - rect.top}px !important;
+    `,
+    )
     return e
 }
 
@@ -193,6 +199,8 @@ export function removeHighlighting(all = true) {
  * direction is +1 if going forward and -1 if going backawrd
  */
 export function findVisibleNode(allMatches, i, direction) {
+    if (allMatches.length < 1) return undefined
+
     let match = allMatches[i]
     let n = i
 
@@ -206,6 +214,18 @@ export function findVisibleNode(allMatches, i, direction) {
     } while (!DOM.isVisible(match.firstNode.parentNode))
 
     return match
+}
+
+function focusMatch(match: Match) {
+    let elem = match.firstNode
+    while (elem && !(elem.focus instanceof Function)) elem = elem.parentElement
+    if (elem) {
+        // We found a focusable element, but it's more important to focus anchors, even if they're higher up the DOM. So let's see if we can find one
+        let newElem = elem
+        while (newElem && newElem.tagName != "A") newElem = newElem.parentNode
+        if (newElem) newElem.focus()
+        else elem.focus()
+    }
 }
 
 let lastMatch = 0
@@ -239,12 +259,19 @@ export async function jumpToMatch(pattern, reverse, startingFrom) {
         document.body.appendChild(elem)
     }
 
+    focusMatch(match)
+
     // Remember where we where and what actions we did. This is need for jumpToNextMatch
     lastMatch = lastMatches.indexOf(match)
 }
 
 export function jumpToNextMatch(n: number) {
     removeHighlighting(false)
+
+    if (lastMatches.length < 1) {
+        // Let's try to find new matches
+        return jumpToMatch(state.lastSearch, n == -1, 0)
+    }
 
     browserBg.find.highlightResults()
     let match = findVisibleNode(
@@ -253,11 +280,16 @@ export function jumpToNextMatch(n: number) {
         n <= 0 ? -1 : 1,
     )
 
+    if (match == undefined)
+        throw `No matches found. The pattern looked for doesn't exist or ':find' hasn't been run yet`
+
     for (let rect of match.rectData.rectsAndTexts.rectList) {
         let elem = createHighlightingElement(rect)
         highlightingElements.push(elem)
         document.body.appendChild(elem)
     }
+
+    focusMatch(match)
 
     lastMatch = lastMatches.indexOf(match)
 }
