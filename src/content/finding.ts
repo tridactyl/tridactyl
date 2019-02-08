@@ -219,7 +219,13 @@ export function findVisibleNode(allMatches, i, direction) {
 function focusMatch(match: Match) {
     let elem = match.firstNode
     while (elem && !(elem.focus instanceof Function)) elem = elem.parentElement
-    if (elem) elem.focus()
+    if (elem) {
+        // We found a focusable element, but it's more important to focus anchors, even if they're higher up the DOM. So let's see if we can find one
+        let newElem = elem
+        while (newElem && newElem.tagName != "A") newElem = newElem.parentNode
+        if (newElem) newElem.focus()
+        else elem.focus()
+    }
 }
 
 let lastMatch = 0
