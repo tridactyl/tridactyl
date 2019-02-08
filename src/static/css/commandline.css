@@ -242,7 +242,7 @@ a.url:hover {
 }
 
 .HelpCompletionOption td.name {
-    max-width: 25%;
+    width: 25%;
 }
 
 #completions .SessionCompletionOption td.type {
