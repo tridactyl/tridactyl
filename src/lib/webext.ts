@@ -184,7 +184,8 @@ export async function openInTab(tab, opts = {}, strarr: string[]) {
         }
     }
 
-    const rest = address.substr(firstWord.length)
+    // `+ 1` because we want to get rid of the space
+    const rest = address.substr(firstWord.length + 1)
     const searchurls = config.get("searchurls")
     if (searchurls[firstWord]) {
         let url = UrlUtil.interpolateSearchItem(
