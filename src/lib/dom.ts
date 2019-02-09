@@ -217,6 +217,9 @@ export function widthMatters(style: CSSStyleDeclaration) {
 
  */
 export function isVisible(element: Element) {
+    while (!(element.getClientRects instanceof Function)) {
+        element = element.parentElement
+    }
     const clientRect = element.getClientRects()[0]
     const computedStyle = getComputedStyle(element)
     // remove elements that are barely within the viewport, tiny, or invisible
