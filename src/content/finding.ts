@@ -65,7 +65,8 @@ export function getMatches(findings, contextLength = 10): Match[] {
             !firstnode ||
             !lastnode ||
             isCommandLineNode(firstnode) ||
-            isCommandLineNode(lastnode)
+            isCommandLineNode(lastnode) ||
+            !DOM.isVisible(firstnode)
         )
             continue
 
