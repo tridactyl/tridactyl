@@ -149,6 +149,10 @@ let keyParser = keys => genericParser.parser("exmaps", keys)
 /** @hidden **/
 let keyEvents = []
 /** @hidden **/
+let history_called = false
+/** @hidden **/
+let prev_cmd_called_history = false
+/** @hidden **/
 clInput.addEventListener(
     "keydown",
     function(keyevent: KeyboardEvent) {
@@ -157,12 +161,20 @@ clInput.addEventListener(
         if (response.isMatch) {
             keyevent.preventDefault()
             keyevent.stopImmediatePropagation()
+        } else {
+            // Ideally, all keys that aren't explicitly bound to an ex command
+            // should be bound to a "self-insert" command that would input the
+            // key itself. Because it's not possible to generate events as if
+            // they originated from the user, we can't do this, but we still
+            // need to simulate it, in order to have history() work.
+            prev_cmd_called_history = false
         }
         if (response.exstr) {
             keyEvents = []
+            history_called = false
             Messaging.message("controller_background", "acceptExCmd", [
                 response.exstr,
-            ])
+            ]).then(_ => (prev_cmd_called_history = history_called))
         } else {
             keyEvents = response.keys
         }
@@ -317,10 +329,12 @@ export function prev_history() {
 
 /** @hidden **/
 function history(n) {
-    HISTORY_SEARCH_STRING =
-        HISTORY_SEARCH_STRING === undefined
-            ? clInput.value
-            : HISTORY_SEARCH_STRING
+    history_called = true
+
+    if (!prev_cmd_called_history) {
+        HISTORY_SEARCH_STRING = clInput.value
+    }
+
     let matches = state.cmdHistory.filter(key =>
         key.startsWith(HISTORY_SEARCH_STRING),
     )
