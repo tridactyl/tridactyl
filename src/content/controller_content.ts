@@ -38,6 +38,59 @@ function PrintableKey(k) {
     return result
 }
 
+/**
+ * KeyCanceller: keep track of keys that have been cancelled in the keydown
+ * handler (which takes care of dispatching ex commands) and also cancel them
+ * in keypress/keyup event handlers. This fixes
+ * https://github.com/tridactyl/tridactyl/issues/234.
+ *
+ * If you make modifications to this class, keep in mind that keyup events
+ * might not arrive in the same order as the keydown events (e.g. user presses
+ * A, then B, releases B and then A).
+ */
+class KeyCanceller {
+    private keyPress: KeyboardEvent[] = []
+    private keyUp: KeyboardEvent[] = []
+
+    constructor() {
+        this.cancelKeyUp = this.cancelKeyUp.bind(this)
+        this.cancelKeyPress = this.cancelKeyPress.bind(this)
+    }
+
+    push(ke: KeyboardEvent) {
+        this.keyPress.push(ke)
+        this.keyUp.push(ke)
+    }
+
+    private cancelKey(ke: KeyboardEvent, kes: KeyboardEvent[]) {
+        let index = kes.findIndex(
+            ke2 =>
+                ke.altKey == ke2.altKey &&
+                ke.code == ke2.code &&
+                ke.composed == ke2.composed &&
+                ke.ctrlKey == ke.ctrlKey &&
+                ke.metaKey == ke2.metaKey &&
+                ke.shiftKey == ke2.shiftKey &&
+                ke.target == ke2.target,
+        )
+        if (index >= 0) {
+            ke.preventDefault()
+            ke.stopImmediatePropagation()
+            kes.splice(index, 1)
+        }
+    }
+
+    cancelKeyPress(ke: KeyboardEvent) {
+        this.cancelKey(ke, this.keyPress)
+    }
+
+    cancelKeyUp(ke: KeyboardEvent) {
+        this.cancelKey(ke, this.keyUp)
+    }
+}
+
+export const canceller = new KeyCanceller()
+
 /** Accepts keyevents, resolves them to maps, maps to exstrs, executes exstrs */
 function* ParserController() {
     const parsers: { [mode_name in ModeName]: any } = {
@@ -99,6 +152,7 @@ function* ParserController() {
                 if (response.isMatch) {
                     keyevent.preventDefault()
                     keyevent.stopImmediatePropagation()
+                    canceller.push(keyevent)
                 }
 
                 if (response.exstr) {

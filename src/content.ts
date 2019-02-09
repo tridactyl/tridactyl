@@ -26,20 +26,33 @@ import {
 // Hook the keyboard up to the controller
 import * as ContentController from "@src/content/controller_content"
 import { getAllDocumentFrames } from "@src/lib/dom"
-window.addEventListener("keydown", ContentController.acceptKey, true)
-document.addEventListener("readystatechange", ev =>
-    getAllDocumentFrames().map(frame => {
-        frame.contentWindow.removeEventListener(
-            "keydown",
-            ContentController.acceptKey,
-            true,
-        )
-        frame.contentWindow.addEventListener(
-            "keydown",
-            ContentController.acceptKey,
-            true,
-        )
-    }),
+function listen(elem) {
+    elem.removeEventListener("keydown", ContentController.acceptKey, true)
+    elem.removeEventListener(
+        "keypress",
+        ContentController.canceller.cancelKeyPress,
+        true,
+    )
+    elem.removeEventListener(
+        "keyup",
+        ContentController.canceller.cancelKeyUp,
+        true,
+    )
+    elem.addEventListener("keydown", ContentController.acceptKey, true)
+    elem.addEventListener(
+        "keypress",
+        ContentController.canceller.cancelKeyPress,
+        true,
+    )
+    elem.addEventListener(
+        "keyup",
+        ContentController.canceller.cancelKeyUp,
+        true,
+    )
+}
+listen(window)
+document.addEventListener("readystatechange", _ =>
+    getAllDocumentFrames().forEach(f => listen(f)),
 )
 
 // Add various useful modules to the window for debugging
