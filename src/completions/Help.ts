@@ -30,6 +30,7 @@ export class HelpCompletionSource extends Completions.CompletionSourceFuse {
 
     public async filter(exstr: string) {
         this.lastExstr = exstr
+        this.completion = undefined
         let [prefix, query] = this.splitOnPrefix(exstr)
         let options = ""
 
