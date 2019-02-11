@@ -122,8 +122,8 @@ export async function getBestEditor(): Promise<string> {
             "urxvt -e",
             "alacritty -e", // alacritty is nice but takes ages to start and doesn't support class
             // Terminator and termite require  -e commands to be in quotes
-            'terminator -e "%f"',
-            'termite --class tridactyl_editor -e "%f"',
+            'terminator -u -e "%c"',
+            'termite --class tridactyl_editor -e "%c"',
             "sakura --class tridactyl_editor -e",
             "lilyterm -e",
             "mlterm -e",
@@ -146,7 +146,7 @@ export async function getBestEditor(): Promise<string> {
         ]
     }
 
-    tui_editors = ["vim", "nvim", "nano", "emacs -nw"]
+    tui_editors = ["vim %f", "nvim %f", "nano %f", "emacs -nw %f"]
 
     // Consider GUI editors
     let cmd = await firstinpath(gui_candidates)
@@ -157,7 +157,11 @@ export async function getBestEditor(): Promise<string> {
         if (cmd !== undefined) {
             // and a text editor
             let tuicmd = await firstinpath(tui_editors)
-            cmd = cmd + " " + tuicmd
+            if (cmd.includes("%c")) {
+                cmd = cmd.replace("%c", tuicmd)
+            } else {
+                cmd = cmd + " " + tuicmd
+            }
         } else {
             // or fall back to some really stupid stuff
             cmd = await firstinpath(last_resorts)

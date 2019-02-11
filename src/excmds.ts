@@ -255,7 +255,7 @@ export function removeTridactylEditorClass(selector: string) {
  *
  * The editorcmd needs to accept a filename, stay in the foreground while it's edited, save the file and exit. By default the filename is added to the end of editorcmd, if you require control over the position of that argument, the first occurrence of %f in editorcmd is replaced with the filename:
  * ```
- * set editorcmd 'terminator -e "%f"'
+ * set editorcmd 'terminator -u -e "vim %f"'
  * ```
  *
  * You're probably better off using the default insert mode bind of `<C-i>` (Ctrl-i) to access this.
