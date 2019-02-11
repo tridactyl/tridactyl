@@ -250,7 +250,7 @@ export function refresh_completions(exstr) {
     if (!activeCompletions) enableCompletions()
     return Promise.all(
         activeCompletions.map(comp => comp.filter(exstr).then(resizeArea)),
-    )
+    ).catch(err => console.error(err)) // We can't use the regular logging mechanism because the user is using the command line.
 }
 
 /** @hidden **/
