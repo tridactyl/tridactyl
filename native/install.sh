@@ -54,8 +54,18 @@ else
     curl -sS --create-dirs -o "$native_file" "$native_loc"
 fi
 
+if [[ ! -f "$manifest_file" ]] ; then
+    echoerr "Failed to create '$manifest_file'. Please make sure that the directories exist and that you have the necessary permissions."
+    exit 1
+fi
+
+if [[ ! -f "$native_file" ]] ; then
+    echoerr "Failed to create '$native_file'. Please make sure that the directories exist and that you have the necessary permissions."
+    exit 1
+fi
+
 sed -i.bak "s/REPLACE_ME_WITH_SED/$(sedEscape "$native_file_final")/" "$manifest_file"
-chmod +x $native_file
+chmod +x "$native_file"
 
 # Requirements for native messenger
 python_path=$(which python3) || python_path=""
