@@ -250,7 +250,10 @@ export function refresh_completions(exstr) {
     if (!activeCompletions) enableCompletions()
     return Promise.all(
         activeCompletions.map(comp => comp.filter(exstr).then(resizeArea)),
-    ).catch(err => console.error(err)) // We can't use the regular logging mechanism because the user is using the command line.
+    ).catch(err => {
+        console.error(err)
+        return []
+    }) // We can't use the regular logging mechanism because the user is using the command line.
 }
 
 /** @hidden **/
@@ -260,14 +263,8 @@ clInput.addEventListener("input", () => {
     const exstr = clInput.value
     // Schedule completion computation. We do not start computing immediately because this would incur a slow down on quickly repeated input events (e.g. maintaining <Backspace> pressed)
     setTimeout(async () => {
-        try {
-            // Make sure the previous computation has ended
-            await onInputPromise
-        } catch (e) {
-            // we don't actually care because this is the previous computation, which we will throw away
-            logger.warning(e)
-        }
-
+        // Make sure the previous computation has ended
+        await onInputPromise
         // If we're not the current completion computation anymore, stop
         if (exstr != clInput.value) return
 
