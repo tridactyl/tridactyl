@@ -58,7 +58,7 @@ async function addSetting(settingName: string) {
     for (let setting in settings) {
         let excmd = settings[setting].split(" ")
         // How can we automatically detect what commands can be skipped?
-        excmd = ["fillcmdline", "current_url"].includes(excmd[0])
+        excmd = ["composite", "fillcmdline", "current_url"].includes(excmd[0])
             ? excmd[1]
             : excmd[0]
         // Find the corresponding setting

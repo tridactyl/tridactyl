@@ -252,6 +252,10 @@ class default_config {
         ";O": "hint -W fillcmdline_notrail open ",
         ";W": "hint -W fillcmdline_notrail winopen ",
         ";T": "hint -W fillcmdline_notrail tabopen ",
+        ";m":
+            "composite hint -pipe img src | js -p tri.excmds.open('images.google.com/searchbyimage?image_url=' + JS_ARG)",
+        ";M":
+            "composite hint -pipe img src | jsb -p tri.excmds.tabopen('images.google.com/searchbyimage?image_url=' + JS_ARG)",
         ";gi": "hint -qi",
         ";gI": "hint -qI",
         ";gk": "hint -qk",
