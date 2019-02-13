@@ -460,8 +460,10 @@ export async function getProfileDir() {
         hacky_profile_finder =
             "find ../../../Library/'Application Support'/Firefox/Profiles -maxdepth 2 -name .parentlock"
     let profilecmd = await run(hacky_profile_finder)
-    if (profilecmd.code != 0) {
-        throw new Error("Profile not found")
+    if (profilecmd.code != 0 || profilecmd.content.length == 0) {
+        throw new Error(
+            "Profile not found, please set your 'profiledir' setting.",
+        )
     } else {
         // Remove trailing newline
         profilecmd.content = profilecmd.content.trim()
