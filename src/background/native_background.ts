@@ -479,6 +479,10 @@ export async function getProfileDir() {
     }
 }
 
+export function getProfile() {
+    return getProfileDir().then(p => p.split("/").slice(-1))
+}
+
 export async function parsePrefs(prefFileContent: string) {
     //  This RegExp currently only deals with " but for correctness it should
     //  also deal with ' and `
