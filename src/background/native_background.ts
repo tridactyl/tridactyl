@@ -418,7 +418,7 @@ export async function getProfileDir() {
         win_profiledir = win_profiledir.replace(/\\/g, "/")
         logger.info("[+] profiledir escaped: " + win_profiledir)
 
-        if (win_profiledir.length > 0) {
+        if (win_profiledir.length > 0 && win_profiledir != "auto") {
             return win_profiledir
         } else {
             throw new Error(
