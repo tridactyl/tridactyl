@@ -473,9 +473,18 @@ export async function fixamo() {
  * **Be *seriously* careful with this: you can use it to open any URL you can open in the Firefox address bar.**
  *
  * You've been warned.
+ *
+ * This uses the [[browser]] setting to know which binary to call. If you need to pass additional arguments to firefox (e.g. '--new-window'), make sure they appear before the url.
  */
 //#background
-export async function nativeopen(url: string, ...firefoxArgs: string[]) {
+export async function nativeopen(...args: string[]) {
+    const index = args.findIndex(arg => !arg.startsWith("-"))
+    let firefoxArgs = []
+    if (index >= 0) {
+        firefoxArgs = args.slice(0, index)
+    }
+    const url = args.slice(firefoxArgs.length).join(" ")
+
     if (await Native.nativegate()) {
         // First compute where the tab should be
         let pos = await config.getAsync("tabopenpos")
@@ -505,8 +514,16 @@ export async function nativeopen(url: string, ...firefoxArgs: string[]) {
                 let osascriptArgs = ["-e 'on run argv'", "-e 'tell application \"Firefox\" to open location item 1 of argv'", "-e 'end run'"]
                 await Native.run("osascript " + osascriptArgs.join(" ") + " " + url)
             } else {
-                if (firefoxArgs.length === 0) firefoxArgs = ["--new-tab"]
-                await Native.run(config.get("browser") + " " + firefoxArgs.join(" ") + " " + url)
+                if (firefoxArgs.length === 0) {
+                    try {
+                        firefoxArgs = [`-p ${await Native.getProfile()}`]
+                    } catch (e) {
+                        logger.debug(e)
+                        firefoxArgs = []
+                    }
+                    firefoxArgs.push("--new-tab")
+                }
+                await Native.run(`${config.get("browser")} ${firefoxArgs.join(" ")} '${url.replace(/'/g, "'\\''")}'`)
             }
             setTimeout(() => browser.tabs.onCreated.removeListener(selecttab), 100)
         } catch (e) {
