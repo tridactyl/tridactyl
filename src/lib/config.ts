@@ -295,6 +295,11 @@ class default_config {
     }
 
     /**
+     * Whether to allow pages (not necessarily github) to override `/`, which is a default Firefox binding.
+     */
+    leavegithubalone: "true" | "false" = "false"
+
+    /**
      * Autocommands that run when certain events happen, and other conditions are met.
      *
      * Related ex command: `autocmd`.
