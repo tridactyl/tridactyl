@@ -31,7 +31,7 @@ REPLACE_ME_WITH_THE_CHANGE_LOG_USING_SED
 -   `t`/`T` — open a URL in a new tab (`T` to pre-load current URL).
 -   `gt`/`gT` — go to the next/previous tab.
 -   `d` — close the current tab.
--   `/` — open the find search box.
+-   `/` — open the find search box. Use <kbd>ctrl</kbd> + g/G to cycle through search results.
 -   `A` — bookmark the current page
 -   `b` — bring up a list of open tabs in the current window.
 -   `s` — if you want to search for something that looks like a domain name or URL.
