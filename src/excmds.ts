@@ -1039,7 +1039,13 @@ export async function open(...urlarr: string[]) {
         p = Messaging.message("commandline_background", "recvExStr", ["nativeopen " + url])
     } else if (url.match(/^javascript:/)) {
         let bookmarklet = url.replace(/^javascript:/, "")
-        ;(document.body as any).append(html`<script>${bookmarklet}</script>`)
+        ;(document.body as any).append(
+            html`
+                <script>
+                    ${bookmarklet}
+                </script>
+            `,
+        )
     } else {
         p = activeTab().then(tab => openInTab(tab, {}, urlarr))
     }
@@ -2255,19 +2261,40 @@ export async function mute(...muteArgs: string[]): Promise<void> {
 // }}}
 
 // {{{ WINDOWS
-
-/** Like [[tabopen]], but in a new window. `winopen -private [...]` will open the result in a private window (and won't store the command in your ex-history ;) )*/
+/**
+ * Like [[tabopen]], but in a new window.
+ *
+ * `winopen -private [...]` will open the result in a private window (and won't store the command in your ex-history ;) ).
+ *
+ * `winopen -popup [...]` will open it in a popup window. You can combine the two for a private popup.
+ *
+ * Example: `winopen -popup -private ddg.gg`
+ */
 //#background
 export async function winopen(...args: string[]) {
-    let address = args.join(" ")
     const createData = {}
     let firefoxArgs = "--new-window"
-    if (args[0] === "-private") {
-        createData["incognito"] = true
-        address = args.slice(1, args.length).join(" ")
-        firefoxArgs = "--private-window"
+    let done = false
+    while (!done) {
+        switch (args[0]) {
+            case "-private":
+                createData["incognito"] = true
+                args = args.slice(1, args.length)
+                firefoxArgs = "--private-window"
+                break
+
+            case "-popup":
+                createData["type"] = "popup"
+                args = args.slice(1, args.length)
+                break
+
+            default:
+                done = true
+                break
+        }
     }
 
+    let address = args.join(" ")
     if (!ABOUT_WHITELIST.includes(address) && address.match(/^(about|file):.*/)) {
         return nativeopen(address, firefoxArgs)
     }
