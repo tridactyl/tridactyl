@@ -149,7 +149,7 @@ def main():
             }
 
     for context in ("background", "content"):
-        with open("src/excmds.ts") as source:
+        with open("src/excmds.ts", encoding="utf-8") as source:
             output = PRELUDE
             lines = iter(source)
             for line in lines:
@@ -162,7 +162,7 @@ def main():
                 else:
                     output += line
             # print(output.rstrip())
-            with open("src/.excmds_{context}.generated.ts".format(**locals()), "w") as sink:
+            with open("src/.excmds_{context}.generated.ts".format(**locals()), "w", encoding="utf-8") as sink:
                 print(output.rstrip(), file=sink)
 
 
