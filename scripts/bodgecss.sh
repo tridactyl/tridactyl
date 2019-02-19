@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-imports=$(find src/static/themes/ -name '*.css'| sed "s/^src\/static\///" | sed "s/^.*$/@import url\('..\/\0'\);/")
+imports=$(find src/static/themes/ -name '*.css'| awk -F"/" '{ printf "@import url('\''../%s/%s/%s'\'');\n", $3, $4, $5 }')
 
 shopt -s globstar
 
