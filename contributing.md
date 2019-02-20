@@ -58,7 +58,6 @@ Here's an example: you're writing the [`native()`](https://github.com/tridactyl/
 -   config_rc.ts: Functions related to loading and executing the tridactylrc.
 -   controller_background.ts: Parses and executes ex commands.
 -   download_background.ts: Utility functions related to downloading that have to live in the background because downloading APIs aren't available to other processes.
--   native_background.ts: Wrappers around Firefox's native messaging API. Also has "higher-level" functions that interact with the native messenger (finding the user's favorite editor, reading/setting preferences...).
 -   nearley_utils.ts: Remnant of Tridactyl's previous architecture, where keys were handled in the background script.
 
 ### src/content/
@@ -88,6 +87,7 @@ Here's an example: you're writing the [`native()`](https://github.com/tridactyl/
 -   logging.ts: Tridactyl's logging interfaces.
 -   math.ts: Math stuff.
 -   messaging.ts: Implementation of Tridactyl's messaging functions (attributeCaller, message, messageTab, messageOwnTab...).
+-   native.ts: Wrappers around Firefox's native messaging API. Also has "higher-level" functions that interact with the native messenger (finding the user's favorite editor, reading/setting preferences...).
 -   requests.ts: CSP-clobbering code.
 -   text_to_speech.ts: Various wrappers around Firefox's TTS APIs.
 -   url_util.ts: Url incrementation, query-extraction, interpolation.

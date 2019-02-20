@@ -2,7 +2,7 @@
  * Background download-related functions
  */
 
-import * as Native from "@src/background/native_background"
+import * as Native from "@src/lib/native"
 import { getDownloadFilenameForUrl } from "@src/lib/url_util"
 
 /** Construct an object URL string from a given data URL

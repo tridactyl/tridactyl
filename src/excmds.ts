@@ -84,6 +84,7 @@ import Mark from "mark.js"
 import * as CSS from "css"
 import * as Perf from "@src/perf"
 import * as Metadata from "@src/.metadata.generated"
+import * as Native from "@src/lib/native"
 
 /** @hidden **/
 const TRI_VERSION = "REPLACE_ME_WITH_THE_VERSION_USING_SED"
@@ -111,9 +112,6 @@ import * as CommandLineBackground from "@src/background/commandline_background"
 import * as rc from "@src/background/config_rc"
 import * as excmd_parser from "@src/parsers/exmode"
 import { mapstrToKeyseq } from "@src/lib/keyseq"
-
-//#background_helper
-import * as Native from "@src/background/native_background"
 
 /** @hidden */
 export const cmd_params = new Map<string, Map<string, string>>()
@@ -229,7 +227,7 @@ export function getinput() {
 
 /** @hidden */
 //#content
-export async function getInputSelector() {
+export function getInputSelector() {
     return DOM.getSelector(DOM.getLastUsedInput())
 }
 
@@ -251,7 +249,7 @@ export function removeTridactylEditorClass(selector: string) {
  * Opens your favourite editor (which is currently gVim) and fills the last used input with whatever you write into that file.
  * **Requires that the native messenger is installed, see [[native]] and [[installnative]]**.
  *
- * Uses the `editorcmd` config option, default = `auto` looks through a list defined in native_background.ts try find a sensible combination. If it's a bit slow, or chooses the wrong editor, or gives up completely, set editorcmd to something you want. The command must stay in the foreground until the editor exits.
+ * Uses the `editorcmd` config option, default = `auto` looks through a list defined in lib/native.ts try find a sensible combination. If it's a bit slow, or chooses the wrong editor, or gives up completely, set editorcmd to something you want. The command must stay in the foreground until the editor exits.
  *
  * The editorcmd needs to accept a filename, stay in the foreground while it's edited, save the file and exit. By default the filename is added to the end of editorcmd, if you require control over the position of that argument, the first occurrence of %f in editorcmd is replaced with the filename:
  * ```
@@ -267,32 +265,28 @@ export function removeTridactylEditorClass(selector: string) {
  * bind --mode=input <C-i> editor_rm
  * ```
  */
-//#background
+//#content
 export async function editor() {
-    let tab = await activeTab()
-    let selector = await Messaging.messageTab(tab.id, "excmd_content", "getInputSelector", [])
-    let classUpdate = Messaging.messageTab(tab.id, "excmd_content", "addTridactylEditorClass", [selector])
-    // removeClass makes sure the class has been added before removing it
-    let removeClass = () => classUpdate.then(() => Messaging.messageTab(tab.id, "excmd_content", "removeTridactylEditorClass", [selector]))
+    let elem = DOM.getLastUsedInput()
+    let selector = DOM.getSelector(elem)
+    addTridactylEditorClass(selector)
 
     if (!(await Native.nativegate())) {
-        removeClass()
+        removeTridactylEditorClass(selector)
         return undefined
     }
 
     try {
-        const url = new URL(tab.url)
-        const file = (await Native.temp(await getinput(), url.hostname)).content
+        const file = (await Native.temp(getinput(), document.location.hostname)).content
         const content = (await Native.editor(file)).content
-        // We're using Messaging.messageTab instead of `fillinput()` because fillinput() will execute in the currently active tab, which might not be the tab the user spawned the editor in
-        Messaging.messageTab(tab.id, "excmd_content", "fillinput", [selector, content])
+        fillinput(selector, content)
 
         // TODO: add annoying "This message was written with [Tridactyl](https://addons.mozilla.org/en-US/firefox/addon/tridactyl-vim/)" to everything written using editor
         return [file, content]
     } catch (e) {
         throw `:editor failed: ${e}`
     } finally {
-        removeClass()
+        removeTridactylEditorClass(selector)
     }
 }
 

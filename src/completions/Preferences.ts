@@ -1,5 +1,5 @@
 import * as Completions from "@src/completions"
-import * as Messaging from "@src/lib/messaging"
+import * as Native from "@src/lib/native"
 
 class PreferenceCompletionOption extends Completions.CompletionOptionHTML
     implements Completions.CompletionOptionFuse {
@@ -46,7 +46,7 @@ export class PreferenceCompletionSource extends Completions.CompletionSourceFuse
             return
         }
         this.lastExstr = exstr
-        let preferences = await Messaging.message("native_background", "getPrefs", [])
+        let preferences = await Native.getPrefs()
         this.options = Object.keys(preferences)
             .filter(key => key.startsWith(pref))
             .map(key => new PreferenceCompletionOption(key, preferences[key]))
