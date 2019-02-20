@@ -84,6 +84,7 @@ import Mark from "mark.js"
 import * as CSS from "css"
 import * as Perf from "@src/perf"
 import * as Metadata from "@src/.metadata.generated"
+import * as Native from "@src/lib/native"
 
 /** @hidden **/
 const TRI_VERSION = "REPLACE_ME_WITH_THE_VERSION_USING_SED"
@@ -111,9 +112,6 @@ import * as CommandLineBackground from "@src/background/commandline_background"
 import * as rc from "@src/background/config_rc"
 import * as excmd_parser from "@src/parsers/exmode"
 import { mapstrToKeyseq } from "@src/lib/keyseq"
-
-//#background_helper
-import * as Native from "@src/background/native_background"
 
 /** @hidden */
 export const cmd_params = new Map<string, Map<string, string>>()
@@ -251,7 +249,7 @@ export function removeTridactylEditorClass(selector: string) {
  * Opens your favourite editor (which is currently gVim) and fills the last used input with whatever you write into that file.
  * **Requires that the native messenger is installed, see [[native]] and [[installnative]]**.
  *
- * Uses the `editorcmd` config option, default = `auto` looks through a list defined in native_background.ts try find a sensible combination. If it's a bit slow, or chooses the wrong editor, or gives up completely, set editorcmd to something you want. The command must stay in the foreground until the editor exits.
+ * Uses the `editorcmd` config option, default = `auto` looks through a list defined in lib/native.ts try find a sensible combination. If it's a bit slow, or chooses the wrong editor, or gives up completely, set editorcmd to something you want. The command must stay in the foreground until the editor exits.
  *
  * The editorcmd needs to accept a filename, stay in the foreground while it's edited, save the file and exit. By default the filename is added to the end of editorcmd, if you require control over the position of that argument, the first occurrence of %f in editorcmd is replaced with the filename:
  * ```

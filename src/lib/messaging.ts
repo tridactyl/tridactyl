@@ -12,7 +12,6 @@ export type NonTabMessageType =
     | "commandline_background"
     | "controller_background"
     | "browser_proxy_background"
-    | "native_background"
     | "download_background"
     | "performance_background"
 export type MessageType = TabMessageType | NonTabMessageType

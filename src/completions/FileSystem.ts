@@ -1,5 +1,5 @@
 import * as Completions from "@src/completions"
-import * as Messaging from "@src/lib/messaging"
+import * as Native from "@src/lib/native"
 import * as config from "@src/lib/config"
 
 class FileSystemCompletionOption extends Completions.CompletionOptionHTML
@@ -53,9 +53,7 @@ export class FileSystemCompletionSource extends Completions.CompletionSourceFuse
 
         let req
         try {
-            req = await Messaging.message("native_background", "listDir", [
-                path,
-            ])
+            req = await Native.listDir(path)
         } catch (e) {
             // Failing silently because we can't nativegate (the user is typing stuff in the commandline)
             this.state = "hidden"
