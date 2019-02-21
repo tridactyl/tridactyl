@@ -14,11 +14,7 @@ Tridactyl has to override your new tab page due to WebExtension limitations. You
 
 -   If you're enjoying Tridactyl (or not), please leave a review on [addons.mozilla.org][amo].
 
--   **Mozilla broke our userChrome**: if you used `guiset` in the past and find you can't change tabs, etc, using keyboard shortcuts, please follow [this guide](https://github.com/tridactyl/tridactyl/issues/1229#issuecomment-458583919) and then run `guiset` again.
-
--   **Subtle breaking change related to composite**: We made lots of ex-commands return things, so if you're using `composite` with pipes `|`, you may experience surprising behaviour. The correct way to use composite if you are not wanting to pass the output of one command to another is to split it with semicolons `;` instead.
-
--   New permission needed: we needed a new permission for the `find` command. If you're reading this, you probably accepted it already, so thanks for trusting us : )
+-   **Tridactyl retreat**: 3-5 of the core Tridactyl developers are meeting up in the real world to work on Tridactyl for about a week at a top secret (i.e, undecided) location in the UK in late May. [Donate using this link](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=7JQHV4N2YZCTY) if you'd like to contribute to our travel, accommodation and subsistence costs. If you have any suggestions for things we should especially focus on, please comment on [this issue](https://github.com/tridactyl/tridactyl/issues/1379).
 
 REPLACE_ME_WITH_THE_CHANGE_LOG_USING_SED
 
