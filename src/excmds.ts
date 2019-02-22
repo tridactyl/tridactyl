@@ -510,7 +510,7 @@ export async function nativeopen(...args: string[]) {
             } else {
                 if (firefoxArgs.length === 0) {
                     try {
-                        firefoxArgs = [`-p ${await Native.getProfile()}`]
+                        firefoxArgs = [`-p ${await Native.getProfileName()}`]
                     } catch (e) {
                         logger.debug(e)
                         firefoxArgs = []
@@ -3774,7 +3774,7 @@ export async function hint(option?: string, selectors?: string, ...rest: string[
             )
             break
 
-       case "-wp":
+        case "-wp":
             selectHints = hinting.pipe_elements(
                 hinting.hintables(),
                 elem => {

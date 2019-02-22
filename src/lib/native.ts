@@ -397,91 +397,157 @@ export async function ff_cmdline(): Promise<string[]> {
     }
 }
 
-export async function getProfileDir() {
-    // Windows users must explicitly set their Firefox profile
-    // directory via 'set profiledir [directory]', or use the
-    // default 'profiledir' value as 'auto' (without quotes).
-    //
-    // Profile directory paths on Windows must _not_ be escaped, and
-    // should be used exactly as shown in the 'about:support' page.
-    //
-    // Example:
-    //
-    // :set profiledir C:\Users\<User-Name>\AppData\Roaming\Mozilla\Firefox\Profiles\8s21wzbh.Default
-    //
-    if ((await browserBg.runtime.getPlatformInfo()).os === "win") {
-        let win_profiledir = config.get("profiledir")
-        win_profiledir = win_profiledir.trim()
-        logger.info("[+] profiledir original: " + win_profiledir)
-
-        win_profiledir = win_profiledir.replace(/\\/g, "/")
-        logger.info("[+] profiledir escaped: " + win_profiledir)
-
-        if (win_profiledir.length > 0 && win_profiledir != "auto") {
-            return win_profiledir
-        } else {
-            throw new Error(
-                "Your profile directory must be set manually on Windows, which you can find on 'about:support', with `set profiledir [directory]`.",
-            )
+export function parseProfilesIni(content: string, basePath: string) {
+    let lines = content.split("\n")
+    let current = "General"
+    let match = null
+    let result = {}
+    for (let line of lines) {
+        if ((match = line.match(/^\[([^\]]+)\]$/))) {
+            current = match[1]
+            result[current] = {}
+        } else if ((match = line.match(/^([^=]+)=([^=]+)$/))) {
+            result[current][match[1]] = match[2]
         }
     }
-
-    if (config.get("profiledir") != "auto") {
-        return config.get("profiledir")
-    }
-
-    // First, see if we can get the profile from the arguments that were given
-    // to Firefox
-    let args = await ff_cmdline()
-
-    // --profile <path>: Start with profile at <path>
-    let prof = args.indexOf("--profile")
-    if (prof >= 0) return args[prof + 1]
-
-    // -P <profile>: Start with <profile>
-    // -P          : Start with profile manager
-    // Apparently, this argument is case-insensitive
-    let profileName = "*"
-    prof = args.indexOf("-P")
-    if (prof < 0) prof = args.indexOf("-p")
-    // args.length -1 because we need to make sure -P was given a value
-    if (prof >= 0 && prof < args.length - 1) profileName = args[prof + 1]
-
-    // Find active profile directory automatically by seeing where the lock exists
-    let home = "../../.."
-    try {
-        // We try not to use a relative path because ~/.local (the directory where
-        // the native messenger currently sits) might actually be a symlink
-        home = await getenv("HOME")
-    } catch (e) {}
-    let hacky_profile_finder = `find "${home}/.mozilla/firefox" -maxdepth 2 -path '*${profileName}/lock'`
-    if ((await browserBg.runtime.getPlatformInfo()).os === "mac")
-        hacky_profile_finder =
-            "find ../../../Library/'Application Support'/Firefox/Profiles -maxdepth 2 -name .parentlock"
-    let profilecmd = await run(hacky_profile_finder)
-    if (profilecmd.code != 0 || profilecmd.content.length == 0) {
-        throw new Error(
-            "Profile not found, please set your 'profiledir' setting.",
-        )
-    } else {
-        // Remove trailing newline
-        profilecmd.content = profilecmd.content.trim()
-        if (profilecmd.content.split("\n").length > 1) {
-            throw new Error(
-                "Multiple profiles in use. Can't tell which one you want. `set profiledir`, close other Firefox profiles or remove zombie lock files.",
-            )
-        } else {
-            // Get parent directory of lock file
-            return profilecmd.content
-                .split("/")
-                .slice(0, -1)
-                .join("/")
+    for (let profileName in result) {
+        let profile = result[profileName]
+        // profile.IsRelative can be 0, 1 or undefined
+        if (profile.IsRelative == 1) {
+            profile.relativePath = profile.Path
+            profile.absolutePath = basePath + profile.relativePath
+        } else if (profile.IsRelative == 0) {
+            if (profile.Path.substring(0, basePath.length) != basePath) {
+                throw new Error(
+                    `Error parsing profiles ini: basePath "${basePath}" doesn't match profile path ${
+                        profile.Path
+                    }`,
+                )
+            }
+            profile.relativePath = profile.Path.substring(basePath.length)
+            profile.absolutePath = profile.Path
         }
+    }
+    return result
+}
+
+export async function getFirefoxDir() {
+    switch ((await browserBg.runtime.getPlatformInfo()).os) {
+        case "win":
+            return getenv("APPDATA").then(path => path + "\\Mozilla\\Firefox\\")
+        case "mac":
+            return getenv("HOME").then(
+                path => path + "/Library/Application Support/Firefox/",
+            )
+        default:
+            return getenv("HOME").then(path => path + "/.mozilla/firefox/")
     }
 }
 
-export function getProfile() {
-    return getProfileDir().then(p => p.split("/").slice(-1))
+export async function getProfile() {
+    const ffDir = await getFirefoxDir()
+    const iniPath = ffDir + "profiles.ini"
+    const iniContent = await read(iniPath)
+    if (iniContent.code != 0 || iniContent.content.length == 0) {
+        throw new Error(`native.ts:getProfile() : Couldn't read "${iniPath}"`)
+    }
+    const iniObject = parseProfilesIni(iniContent.content, ffDir)
+    const curProfileDir = config.get("profiledir")
+
+    // First, try to see if the 'profiledir' setting matches a profile in profile.ini
+    if (curProfileDir != "auto") {
+        for (let profileName in iniObject) {
+            let profile = iniObject[profileName]
+            if (profile.absolutePath == curProfileDir) {
+                return profile
+            }
+        }
+        throw new Error(
+            `native.ts:getProfile() : profiledir setting set but couldn't find matching profile path in "${iniPath}".`,
+        )
+    }
+
+    // Then, try to find a profile path in the arguments given to Firefox
+    const cmdline = await ff_cmdline().catch(e => "")
+    const profile = cmdline.indexOf("--profile")
+    if (profile >= 0 && profile < cmdline.length - 1) {
+        const profilePath = cmdline[profile + 1]
+        for (let profileName in iniObject) {
+            let profile = iniObject[profileName]
+            if (profile.absolutePath == curProfileDir) {
+                return profile
+            }
+        }
+        throw new Error(
+            `native.ts:getProfile() : '--profile' found in command line arguments but no matching profile path found in "${iniPath}"`,
+        )
+    }
+
+    // Try to find a profile name in firefox's arguments
+    let p = cmdline.indexOf("-p")
+    if (p == -1) p = cmdline.indexOf("-P")
+    if (p >= 0 && p < cmdline.length - 1) {
+        const pName = cmdline[p + 1]
+        for (let profileName in iniObject) {
+            let profile = iniObject[profileName]
+            if (profile.Name == pName) {
+                return profile
+            }
+        }
+        throw new Error(
+            `native.ts:getProfile() : '${
+                cmdline[p]
+            }' found in command line arguments but no matching profile name found in "${iniPath}"`,
+        )
+    }
+
+    // Still nothing, try to find a profile in use
+    let hacky_profile_finder = `find "${ffDir}" -maxdepth 2 -name lock`
+    if ((await browserBg.runtime.getPlatformInfo()).os === "mac")
+        hacky_profile_finder = `find "${ffDir}" -maxdepth 2 -name .parentlock`
+    let profilecmd = await run(hacky_profile_finder)
+    if (profilecmd.code == 0 && profilecmd.content.length != 0) {
+        // Remove trailing newline
+        profilecmd.content = profilecmd.content.trim()
+        // If there's only one profile in use, use that to find the right profile
+        if (profilecmd.content.split("\n").length == 1) {
+            const path = profilecmd.content
+                .split("/")
+                .slice(0, -1)
+                .join("/")
+            for (let profileName in iniObject) {
+                let profile = iniObject[profileName]
+                if (profile.absolutePath == curProfileDir) {
+                    return profile
+                }
+            }
+            throw new Error(
+                `You found a bug! Tridactyl should have been able to match the profile you're using with the profiles found in "${iniPath}" but it couldn't. Please report this issue on https://github.com/tridactyl/tridactyl/issues .`,
+            )
+        }
+    }
+
+    // Multiple profiles used but no -p or --profile, this means that we're using the default profile
+    for (let profileName in iniObject) {
+        let profile = iniObject[profileName]
+        if (profile.Default == 1) {
+            return profile
+        }
+    }
+
+    throw new Error(
+        `Couldn't deduce which profile you want. See ':help profiledir'`,
+    )
+}
+
+export function getProfileName() {
+    return getProfile().then(p => p.Name)
+}
+
+export async function getProfileDir() {
+    let profiledir = config.get("profiledir")
+    if (profiledir != "auto") return Promise.resolve(() => profiledir)
+    return getProfile().then(p => p.absolutePath)
 }
 
 export async function parsePrefs(prefFileContent: string) {
