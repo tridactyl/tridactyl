@@ -31,7 +31,7 @@ main() {
 
   if [ -n "$stagedFiles" ]; then
     # Could use git-update-index --cacheinfo to add a file without creating directories and stuff.
-    local tmpdir=$(mktemp -p . -d "pretty.XXXXXXXXX")
+    local tmpdir=$(mktemp -d "pretty.XXXXXXXXX")
     IFS=$'\n'
     for file in $stagedFiles; do
       if cmp -s <(staged "$file") "$file"; then
