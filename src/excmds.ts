@@ -3473,6 +3473,7 @@ import * as hinting from "@src/content/hinting"
 /** Hint a page.
 
     @param option
+        - -t open in a new foreground tab
         - -b open in background
         - -y copy (yank) link's target to clipboard
         - -p copy an element's text to the clipboard
@@ -3530,22 +3531,13 @@ export async function hint(option?: string, selectors?: string, ...rest: string[
 
     if (option == "-br") option = "-qb"
 
-    let rapid = false
-    let jshints = true
+    // extract flags
+    const options = new Set(option.length ? option.slice(1).split("") : [])
+    const rapid = options.delete("q")
+    const jshints = options.delete("J")
+    const withSelectors = options.delete("c")
 
-    if (option.startsWith("-q")) {
-        option = "-" + option.slice(2)
-        rapid = true
-    }
-
-    if (option.startsWith("-J")) {
-        option = "-" + option.slice(2)
-        jshints = false
-        if (option.startsWith("-q")) {
-            option = "-" + option.slice(2)
-            rapid = true
-        }
-    }
+    option = "-" + Array.from(options).join("")
 
     let selectHints = new Promise(r => r())
     let hintTabOpen = async (href, active = !rapid) => {
@@ -3565,14 +3557,14 @@ export async function hint(option?: string, selectors?: string, ...rest: string[
     }
 
     switch (option) {
-        case "-b":
-            // Open in background
+        case "-b": // Open in background
+        case "-t": // Open in foreground
             selectHints = hinting.pipe(
-                DOM.HINTTAGS_selectors,
+                withSelectors ? [selectors, ...rest].join(" ") : DOM.HINTTAGS_selectors,
                 async link => {
                     link.focus()
                     if (link.href) {
-                        hintTabOpen(link.href, false).catch(() => DOM.simulateClick(link))
+                        hintTabOpen(link.href, option === "-t").catch(() => DOM.simulateClick(link))
                     } else {
                         DOM.simulateClick(link)
                     }
@@ -3640,18 +3632,6 @@ export async function hint(option?: string, selectors?: string, ...rest: string[
                     return link
                 },
                 rapid,
-            )
-            break
-
-        case "-c":
-            selectHints = hinting.pipe(
-                [selectors, ...rest].join(" "),
-                elem => {
-                    DOM.simulateClick(elem as HTMLElement)
-                    return elem
-                },
-                rapid,
-                jshints,
             )
             break
 
@@ -3774,7 +3754,7 @@ export async function hint(option?: string, selectors?: string, ...rest: string[
             )
             break
 
-       case "-wp":
+        case "-wp":
             selectHints = hinting.pipe_elements(
                 hinting.hintables(),
                 elem => {
@@ -3798,7 +3778,7 @@ export async function hint(option?: string, selectors?: string, ...rest: string[
 
         default:
             selectHints = hinting.pipe(
-                DOM.HINTTAGS_selectors,
+                withSelectors ? [selectors, ...rest].join(" ") : DOM.HINTTAGS_selectors,
                 elem => {
                     DOM.simulateClick(elem as HTMLElement)
                     return elem
