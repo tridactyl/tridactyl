@@ -27,6 +27,7 @@ import { BufferCompletionSource } from "@src/completions/Tab"
 import { BmarkCompletionSource } from "@src/completions/Bmark"
 import { ExcmdCompletionSource } from "@src/completions/Excmd"
 import { FileSystemCompletionSource } from "@src/completions/FileSystem"
+import { GuisetCompletionSource } from "@src/completions/Guiset"
 import { HelpCompletionSource } from "@src/completions/Help"
 import { HistoryCompletionSource } from "@src/completions/History"
 import { PreferenceCompletionSource } from "@src/completions/Preferences"
@@ -102,6 +103,7 @@ export function enableCompletions() {
             BufferCompletionSource,
             ExcmdCompletionSource,
             FileSystemCompletionSource,
+            GuisetCompletionSource,
             HelpCompletionSource,
             HistoryCompletionSource,
             PreferenceCompletionSource,
