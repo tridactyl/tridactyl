@@ -46,7 +46,7 @@ fi
 
 scripts/newtab.md.sh
 scripts/make_tutorial.sh
-scripts/make_docs.sh &
+scripts/make_docs.sh
 
 "$(npm bin)/nearleyc" src/grammars/bracketexpr.ne \
   > src/grammars/.bracketexpr.generated.ts
@@ -62,9 +62,7 @@ else
 fi
 
 (webpack --display errors-only \
-  && scripts/git_version.sh) &
-
-wait
+  && scripts/git_version.sh)
 
 scripts/bodgecss.sh
 scripts/authors.sh
