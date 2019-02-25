@@ -474,7 +474,7 @@ export async function getProfile() {
         const profilePath = cmdline[profile + 1]
         for (let profileName in iniObject) {
             let profile = iniObject[profileName]
-            if (profile.absolutePath == curProfileDir) {
+            if (profile.absolutePath == profilePath) {
                 return profile
             }
         }
@@ -517,7 +517,7 @@ export async function getProfile() {
                 .join("/")
             for (let profileName in iniObject) {
                 let profile = iniObject[profileName]
-                if (profile.absolutePath == curProfileDir) {
+                if (profile.absolutePath == path) {
                     return profile
                 }
             }
