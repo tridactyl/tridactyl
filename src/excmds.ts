@@ -3532,12 +3532,21 @@ export async function hint(option?: string, selectors?: string, ...rest: string[
     if (option == "-br") option = "-qb"
 
     // extract flags
+    // Note: we need to process 'pipe' separately because it could be interpreted as -p -i -e otherwise
+    const pipeIndex = option.indexOf("pipe")
+    if (pipeIndex >= 0) {
+        option = option.slice(0, pipeIndex) + option.slice(pipeIndex + 1)
+    }
+
     const options = new Set(option.length ? option.slice(1).split("") : [])
     const rapid = options.delete("q")
     const jshints = options.delete("J")
     const withSelectors = options.delete("c")
 
     option = "-" + Array.from(options).join("")
+    if (pipeIndex >= 0) {
+        option = "-pipe"
+    }
 
     let selectHints = new Promise(r => r())
     let hintTabOpen = async (href, active = !rapid) => {
