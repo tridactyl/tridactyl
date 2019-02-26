@@ -54,7 +54,6 @@ Here's an example: you're writing the [`native()`](https://github.com/tridactyl/
 
 ### src/background/
 
--   commandline_background.ts: A remnant of Tridactyl's previous architecture, where the command line was controlled from the background script. Not used much anymore besides for executing arbitrary ex commands.
 -   config_rc.ts: Functions related to loading and executing the tridactylrc.
 -   controller_background.ts: Parses and executes ex commands.
 -   download_background.ts: Utility functions related to downloading that have to live in the background because downloading APIs aren't available to other processes.

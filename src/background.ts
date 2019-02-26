@@ -8,7 +8,6 @@ import * as perf from "@src/perf"
 import { listenForCounters } from "@src/perf"
 import * as messaging from "@src/lib/messaging"
 import * as excmds from "@src/.excmds_background.generated"
-import * as commandline_background from "@src/background/commandline_background"
 import * as convert from "@src/lib/convert"
 import * as config from "@src/lib/config"
 import * as dom from "@src/lib/dom"
@@ -23,7 +22,6 @@ import { AutoContain } from "@src/lib/autocontainers"
 ;(window as any).tri = Object.assign(Object.create(null), {
     messaging,
     excmds,
-    commandline_background,
     convert,
     config,
     dom,
@@ -57,10 +55,6 @@ browser.tabs.onActivated.addListener(ev => {
         }
     })
 })
-//
-
-// Send commandline to controller
-commandline_background.onLine.addListener(BackgroundController.acceptExCmd)
 
 // {{{ Clobber CSP
 

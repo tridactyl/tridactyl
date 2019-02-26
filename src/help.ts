@@ -130,8 +130,8 @@ function addSettingInputs() {
         let input = ev.target
         if (ev.key == "Enter") {
             ;(window as any).tri.messaging.message(
-                "commandline_background",
-                "recvExStr",
+                "controller_background",
+                "acceptExCmd",
                 ["set " + input.name + " " + input.value],
             )
         } else {
@@ -198,7 +198,7 @@ function addResetConfigButton() {
         )
         if (p == sentence) {
             ;(window as any).tri.messaging
-                .message("commandline_background", "recvExStr", [sentence])
+                .message("controller_background", "acceptExCmd", [sentence])
                 .then(_ => alert("Config reset!"))
         } else {
             alert(`Config not reset because '${p}' != '${sentence}'`)

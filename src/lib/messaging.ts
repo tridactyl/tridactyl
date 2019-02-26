@@ -9,7 +9,6 @@ export type TabMessageType =
     | "commandline_frame"
 export type NonTabMessageType =
     | "owntab_background"
-    | "commandline_background"
     | "controller_background"
     | "browser_proxy_background"
     | "download_background"

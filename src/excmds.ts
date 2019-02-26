@@ -108,7 +108,6 @@ import { messageTab, messageActiveTab } from "@src/lib/messaging"
 import { flatten } from "@src/lib/itertools"
 import "@src/lib/number.mod"
 import { firefoxVersionAtLeast } from "@src/lib/webext"
-import * as CommandLineBackground from "@src/background/commandline_background"
 import * as rc from "@src/background/config_rc"
 import * as excmd_parser from "@src/parsers/exmode"
 import { mapstrToKeyseq } from "@src/lib/keyseq"
@@ -189,7 +188,7 @@ export async function rssexec(url: string, type?: string, ...title: string[]) {
     } else {
         rsscmd += " " + url
     }
-    return Messaging.message("commandline_background", "recvExStr", [rsscmd])
+    return Messaging.message("controller_background", "acceptExCmd", [rsscmd])
 }
 
 /**
@@ -1030,7 +1029,7 @@ export async function open(...urlarr: string[]) {
     // Setting window.location to about:blank results in a page we can't access, tabs.update works.
     if (!ABOUT_WHITELIST.includes(url) && url.match(/^(about|file):.*/)) {
         // Open URLs that firefox won't let us by running `firefox <URL>` on the command line
-        p = Messaging.message("commandline_background", "recvExStr", ["nativeopen " + url])
+        p = Messaging.message("controller_background", "acceptExCmd", ["nativeopen " + url])
     } else if (url.match(/^javascript:/)) {
         let bookmarklet = url.replace(/^javascript:/, "")
         ;(document.body as any).append(
@@ -1068,7 +1067,7 @@ export async function open_quiet(...urlarr: string[]) {
     let p = Promise.resolve()
 
     if (!ABOUT_WHITELIST.includes(url) && url.match(/^(about|file):.*/)) {
-        return Messaging.message("commandline_background", "recvExStr", ["nativeopen " + url])
+        return Messaging.message("controller_background", "acceptExCmd", ["nativeopen " + url])
     }
 
     return ownTab().then(tab => openInTab(tab, { loadReplace: true }, urlarr))
@@ -1640,7 +1639,7 @@ export async function loadaucmds(cmdType: "DocStart" | "DocLoad" | "DocEnd" | "T
     const ausites = Object.keys(aucmds)
     const aukeyarr = ausites.filter(e => window.document.location.href.search(e) >= 0)
     for (let aukey of aukeyarr) {
-        Messaging.message("commandline_background", "recvExStr", [aucmds[aukey]])
+        Messaging.message("controller_background", "acceptExCmd", [aucmds[aukey]])
     }
 }
 
@@ -3452,17 +3451,6 @@ export function unset(...keys: string[]) {
     config.unset(...target)
 }
 
-// not required as we automatically save all config
-////#background
-//export function saveconfig(){
-//    config.save(config.get("storageloc"))
-//}
-
-////#background
-//export function mktridactylrc(){
-//    saveconfig()
-//}
-
 // }}}
 
 // {{{ HINTMODE
@@ -3806,7 +3794,7 @@ export async function hint(option?: string, selectors?: string, ...rest: string[
  */
 //#content
 export function run_exstr(...commands: string[]) {
-    return Messaging.message("commandline_background", "recvExStr", commands)
+    return Messaging.message("controller_background", "acceptExCmd", commands)
 }
 
 // }}}

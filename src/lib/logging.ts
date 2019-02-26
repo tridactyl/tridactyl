@@ -52,8 +52,8 @@ export class Logger {
                         }
                         if (getContext() == "content")
                             return browser.runtime.sendMessage({
-                                type: "commandline_background",
-                                command: "recvExStr",
+                                type: "controller_background",
+                                command: "acceptExCmd",
                                 args: ["fillcmdline # " + message.join(" ")],
                             })
                         else
