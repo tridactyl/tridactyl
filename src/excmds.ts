@@ -3540,7 +3540,7 @@ export async function hint(option?: string, selectors?: string, ...rest: string[
 
     const options = new Set(option.length ? option.slice(1).split("") : [])
     const rapid = options.delete("q")
-    const jshints = options.delete("J")
+    const jshints = !options.delete("J")
     const withSelectors = options.delete("c")
 
     option = "-" + Array.from(options).join("")
