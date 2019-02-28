@@ -8,7 +8,7 @@ export interface Lexeme {
     readonly type: string
     readonly pos: number
     readonly raw_in: string
-    readonly processed: any
+    readonly processed: string | number
 }
 
 function scan(grammar: Token[], remaining: string, curpos: number): Lexeme[] {

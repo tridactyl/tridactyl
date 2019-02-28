@@ -6,6 +6,7 @@ import * as Config from "@src/lib/config"
 import * as aliases from "@src/lib/aliases"
 import * as Logging from "@src/lib/logging"
 import { enumerate, head, izip } from "@src/lib/itertools"
+import { exmodeScanner } from "@src/parsers/lex_grammar"
 const logger = new Logging.Logger("exmode")
 
 /* Converts numbers, boolean, string[].
@@ -48,7 +49,8 @@ function convertArgs(params, argv) {
 export function parser(exstr: string): any[] {
     // Expand aliases
     const expandedExstr = aliases.expandExstr(exstr)
-    const [func, ...args] = expandedExstr.trim().split(/\s+/)
+    const [excmd, ...rest] = exmodeScanner(expandedExstr)
+    const func = excmd.raw_in
 
     if (ExCmds.cmd_params.has(func)) {
         try {

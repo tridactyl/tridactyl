@@ -19,7 +19,16 @@ const lexicalGrammar: Token[] = [
         pattern: /^\d+(?:\.\d+)?/,
         processor: Number.parseFloat,
     },
+    {
+        type: "boolLit",
+        pattern: /^true|false/,
+        processor: parseBool,
+    },
     { type: "argument", pattern: /^\S+/ },
 ]
+
+function parseBool(x: string): boolean {
+    return x == "true"
+}
 
 export const exmodeScanner = makeLexer(lexicalGrammar)
