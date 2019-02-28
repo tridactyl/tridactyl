@@ -210,6 +210,13 @@ export function prev_completion() {
 }
 
 /**
+ * Deselects the currently selected completion.
+ */
+export function deselect_completion() {
+    if (activeCompletions) activeCompletions.forEach(comp => comp.deselect())
+}
+
+/**
  * Inserts the currently selected completion and a space in the command line.
  */
 export function insert_completion() {
