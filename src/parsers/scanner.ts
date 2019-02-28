@@ -53,6 +53,14 @@ function prepend<T>(arr: T[], elem: T): T[] {
     return arr
 }
 
+/**
+ * Makes a lexical analyser based on the given lexical grammar. All regular
+ * expressions in the grammar must be anchored at start of line (i.e. begin
+ * with '^'). (To make my life easier when implementid the analyser)
+ *
+ * @param grammar The lexical grammar, sorted by priority
+ * @return A function that turns a string into an array of lexemes
+ */
 export function makeLexer(grammar: Token[]): (input: string) => Lexeme[] {
     return function(input: string) {
         // Trailing whitespace is ignored
