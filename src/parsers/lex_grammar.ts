@@ -1,8 +1,8 @@
-import { Token } from "@src/parsers/scanner"
+import { Token, makeLexer } from "@src/parsers/scanner"
 
 // Define a basic lexical grammar
 
-const lexical_grammar: Token[] = [
+const lexicalGrammar: Token[] = [
     { type: "cmdname", pattern: /^\S+/ },
     // Put multi before single to match it first
     { type: "shortArgMulti", pattern: /^-[a-zA-Z]+/ },
@@ -16,3 +16,5 @@ const lexical_grammar: Token[] = [
         processor: Number.parseInt,
     },
 ]
+
+export const exmodeScanner = makeLexer(lexicalGrammar)
