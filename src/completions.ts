@@ -36,6 +36,7 @@ export abstract class CompletionSource {
     node: HTMLElement
     public completion: string
     protected prefixes: string[] = []
+    protected lastFocused: CompletionOption
 
     constructor(prefixes) {
         let commands = aliases.getCmdAliasMapping()
@@ -77,6 +78,11 @@ export abstract class CompletionSource {
 
     prev(inc = 1): boolean {
         return this.next(-1 * inc)
+    }
+
+    deselect() {
+        this.completion = undefined
+        if (this.lastFocused != undefined) this.lastFocused.state = "normal"
     }
 }
 
@@ -129,7 +135,6 @@ export abstract class CompletionSourceFuse extends CompletionSource {
     public node
     public options: CompletionOptionFuse[]
     protected lastExstr: string
-    protected lastFocused: CompletionOption
 
     protected optionContainer = html`<table class="optionContainer">`
 
@@ -195,11 +200,6 @@ export abstract class CompletionSourceFuse extends CompletionSource {
         } else {
             throw new Error("lastExstr and option must be defined!")
         }
-    }
-
-    deselect() {
-        this.completion = undefined
-        if (this.lastFocused != undefined) this.lastFocused.state = "normal"
     }
 
     splitOnPrefix(exstr: string) {

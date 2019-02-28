@@ -2606,14 +2606,15 @@ export async function fillcmdline_tmp(ms: number, ...strarr: string[]) {
 /** @hidden **/
 const cmdframe_fns: { [key: string]: [string, any[]] } = {
     accept_line: ["accept_line", []],
-    next_history: ["next_history", []],
-    prev_history: ["prev_history", []],
-    next_completion: ["next_completion", []],
-    prev_completion: ["prev_completion", []],
+    complete: ["complete", []],
+    deselect_completion: ["deselect_completion", []],
+    hide_and_clear: ["hide_and_clear", []],
     insert_completion: ["insert_completion", []],
     insert_space_or_completion: ["insert_space_or_completion", []],
-    complete: ["complete", []],
-    hide_and_clear: ["hide_and_clear", []],
+    next_completion: ["next_completion", []],
+    next_history: ["next_history", []],
+    prev_completion: ["prev_completion", []],
+    prev_history: ["prev_history", []],
 }
 
 import * as tri_editor from "@src/lib/editor"
