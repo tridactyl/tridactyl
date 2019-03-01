@@ -20,7 +20,8 @@ interface TokNN {
 function scan(grammar: TokNN[], remaining: string, curpos: number): Lexeme[] {
     // Ignore whitespace at token boundaries
     const trimmed = remaining.trimLeft()
-    const position = curpos + trimmed.length
+    const numTrimmed = remaining.length - trimmed.length
+    const position = curpos + numTrimmed
 
     // Base case: all input have been consumed
     if (!trimmed) {
