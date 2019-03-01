@@ -21,7 +21,7 @@ const lexicalGrammar: Token[] = [
     },
     {
         type: "boolLit",
-        pattern: /^true|false/,
+        pattern: /^(?:true|false)/,
         processor: parseBool,
     },
     { type: "argument", pattern: /^\S+/ },
