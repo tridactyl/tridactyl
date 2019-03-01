@@ -546,7 +546,7 @@ export function getProfileName() {
 
 export async function getProfileDir() {
     let profiledir = config.get("profiledir")
-    if (profiledir != "auto") return Promise.resolve(() => profiledir)
+    if (profiledir != "auto") return Promise.resolve(profiledir)
     return getProfile().then(p => p.absolutePath)
 }
 
