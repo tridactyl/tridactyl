@@ -1,17 +1,23 @@
 export interface Token {
     readonly pattern: RegExp
     readonly type: string
-    readonly processor?: (lexeme: string) => any
+    processor?: (lexeme: string) => any
 }
 
 export interface Lexeme {
     readonly type: string
     readonly pos: number
     readonly raw_in: string
-    readonly processed: string | number
+    readonly processed: string | number | boolean
 }
 
-function scan(grammar: Token[], remaining: string, curpos: number): Lexeme[] {
+interface TokNN {
+    readonly pattern: RegExp
+    readonly type: string
+    readonly processor: (lexeme: string) => any
+}
+
+function scan(grammar: TokNN[], remaining: string, curpos: number): Lexeme[] {
     // Ignore whitespace at token boundaries
     const trimmed = remaining.trimLeft()
     const position = curpos + trimmed.length
@@ -30,10 +36,7 @@ function scan(grammar: Token[], remaining: string, curpos: number): Lexeme[] {
                 type: tok.type,
                 pos: position,
                 raw_in: consumed,
-                processed:
-                    tok.processor === undefined
-                        ? consumed
-                        : tok.processor(consumed),
+                processed: tok.processor(consumed),
             }
 
             // Calculate next state
@@ -46,6 +49,10 @@ function scan(grammar: Token[], remaining: string, curpos: number): Lexeme[] {
 
     // None of the patterns match: invalid input
     throw Error(`Unexpected token at position ${position}`)
+}
+
+function identity<T>(x: T): T {
+    return x
 }
 
 function prepend<T>(arr: T[], elem: T): T[] {
@@ -62,10 +69,17 @@ function prepend<T>(arr: T[], elem: T): T[] {
  * @return A function that turns a string into an array of lexemes
  */
 export function makeLexer(grammar: Token[]): (input: string) => Lexeme[] {
+    // Make default processor to be the identity function
+    for (const rule of grammar) {
+        if (rule.processor === undefined) {
+            rule.processor = identity
+        }
+    }
+
     return function(input: string) {
         // Trailing whitespace is ignored
         const trimmed = input.trimRight()
-        const lexemes = scan(grammar, trimmed, 1)
+        const lexemes = scan(grammar as TokNN[], trimmed, 1)
         return lexemes
     }
 }

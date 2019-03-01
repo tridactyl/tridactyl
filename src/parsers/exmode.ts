@@ -51,13 +51,11 @@ export function parser(exstr: string): any[] {
     const expandedExstr = aliases.expandExstr(exstr)
     const [excmd, ...rest] = exmodeScanner(expandedExstr)
     const func = excmd.raw_in
+    const args = rest.map(x => x.processed)
 
     if (ExCmds.cmd_params.has(func)) {
         try {
-            return [
-                ExCmds[func],
-                convertArgs(ExCmds.cmd_params.get(func), args),
-            ]
+            return [ExCmds[func], args]
         } catch (e) {
             logger.error("Error executing or parsing:", exstr, e)
             throw e
