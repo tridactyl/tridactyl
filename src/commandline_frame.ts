@@ -133,6 +133,7 @@ let noblur = e => setTimeout(() => clInput.focus(), 0)
 /** @hidden **/
 export function focus() {
     clInput.focus()
+    clInput.removeEventListener("blur", noblur)
     clInput.addEventListener("blur", noblur)
 }
 
@@ -258,7 +259,13 @@ export function insert_space_or_completion() {
 export function refresh_completions(exstr) {
     if (!activeCompletions) enableCompletions()
     return Promise.all(
-        activeCompletions.map(comp => comp.filter(exstr).then(resizeArea)),
+        activeCompletions.map(comp =>
+            comp.filter(exstr).then(() => {
+                if (comp.shouldRefresh()) {
+                    return resizeArea()
+                }
+            }),
+        ),
     ).catch(err => {
         console.error(err)
         return []

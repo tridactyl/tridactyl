@@ -7,10 +7,7 @@ import * as aliases from "@src/lib/aliases"
 class ExcmdCompletionOption extends Completions.CompletionOptionHTML
     implements Completions.CompletionOptionFuse {
     public fuseKeys = []
-    constructor(
-        public value: string,
-        public documentation: string = "",
-    ) {
+    constructor(public value: string, public documentation: string = "") {
         super()
         this.fuseKeys.push(this.value)
 
@@ -32,6 +29,11 @@ export class ExcmdCompletionSource extends Completions.CompletionSourceFuse {
         this._parent.appendChild(this.node)
     }
 
+    async filter(exstr) {
+        this.lastExstr = exstr
+        return this.onInput(exstr)
+    }
+
     async onInput(exstr) {
         await this.updateOptions(exstr)
     }
@@ -43,8 +45,7 @@ export class ExcmdCompletionSource extends Completions.CompletionSourceFuse {
         this.updateDisplay()
     }
 
-    private async updateOptions(exstr?: string) {
-        if (!exstr) exstr = ""
+    private async updateOptions(exstr = "") {
         this.lastExstr = exstr
 
         let excmds = Metadata.everything.getFile("src/excmds.ts")
@@ -52,19 +53,31 @@ export class ExcmdCompletionSource extends Completions.CompletionSourceFuse {
         let fns = excmds.getFunctions()
 
         // Add all excmds that start with exstr and that tridactyl has metadata about to completions
-        this.options = this.scoreOptions(fns.filter(([name, fn]) => !fn.hidden && name.startsWith(exstr))
-            .map(([name, fn]) => new ExcmdCompletionOption(name, fn.doc)))
+        this.options = this.scoreOptions(
+            fns
+                .filter(([name, fn]) => !fn.hidden && name.startsWith(exstr))
+                .map(([name, fn]) => new ExcmdCompletionOption(name, fn.doc)),
+        )
 
         // Also add aliases to possible completions
-        let exaliases = Object.keys(config.get("exaliases")).filter(a => a.startsWith(exstr))
+        let exaliases = Object.keys(config.get("exaliases")).filter(a =>
+            a.startsWith(exstr),
+        )
         for (let alias of exaliases) {
             let cmd = aliases.expandExstr(alias)
             let fn = excmds.getFunction(cmd)
             if (fn) {
-                this.options.push(new ExcmdCompletionOption(alias, `Alias for \`${cmd}\`. ${fn.doc}`))
+                this.options.push(
+                    new ExcmdCompletionOption(
+                        alias,
+                        `Alias for \`${cmd}\`. ${fn.doc}`,
+                    ),
+                )
             } else {
                 // This can happen when the alias is a composite command or a command with arguments. We can't display doc because we don't know what parameter the alias takes or what it does.
-                this.options.push(new ExcmdCompletionOption(alias, `Alias for \`${cmd}\`.`))
+                this.options.push(
+                    new ExcmdCompletionOption(alias, `Alias for \`${cmd}\`.`),
+                )
             }
         }
 

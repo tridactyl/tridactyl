@@ -35,6 +35,20 @@ export class RssCompletionSource extends Completions.CompletionSourceFuse {
     }
 
     private async updateOptions(exstr = "") {
+        this.lastExstr = exstr
+        let [prefix, query] = this.splitOnPrefix(exstr)
+
+        // Hide self and stop if prefixes don't match
+        if (prefix) {
+            // Show self if prefix and currently hidden
+            if (this.state === "hidden") {
+                this.state = "normal"
+            }
+        } else {
+            this.state = "hidden"
+            return
+        }
+
         if (this.options.length < 1) {
             this.options = (await Messaging.messageOwnTab(
                 "excmd_content",

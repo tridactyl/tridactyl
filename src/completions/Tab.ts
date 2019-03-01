@@ -71,7 +71,19 @@ export class BufferCompletionSource extends Completions.CompletionSourceFuse {
 
     @Perf.measuredAsync
     private async updateOptions(exstr = "") {
-        const [prefix, query] = this.splitOnPrefix(exstr)
+        this.lastExstr = exstr
+        let [prefix, query] = this.splitOnPrefix(exstr)
+
+        // Hide self and stop if prefixes don't match
+        if (prefix) {
+            // Show self if prefix and currently hidden
+            if (this.state === "hidden") {
+                this.state = "normal"
+            }
+        } else {
+            this.state = "hidden"
+            return
+        }
 
         // When the user is asking for tabmove completions, don't autoselect if the query looks like a relative move https://github.com/tridactyl/tridactyl/issues/825
         this.shouldSetStateFromScore = !(
@@ -79,7 +91,9 @@ export class BufferCompletionSource extends Completions.CompletionSourceFuse {
         )
 
         /* console.log('updateOptions', this.optionContainer) */
-        const tabs: browser.tabs.Tab[] = await browserBg.tabs.query({ currentWindow: true })
+        const tabs: browser.tabs.Tab[] = await browserBg.tabs.query({
+            currentWindow: true,
+        })
         const options = []
 
         // Get alternative tab, defined as last accessed tab.
@@ -103,13 +117,23 @@ export class BufferCompletionSource extends Completions.CompletionSourceFuse {
 
         this.completion = undefined
         this.options = options
-        this.updateChain()
+        if (query && query.trim().length > 0) {
+            this.setStateFromScore(this.scoredOptions(query))
+        } else {
+            this.options.forEach(option => (option.state = "normal"))
+        }
+        this.updateDisplay()
     }
 
     async onInput(exstr) {
         // Schedule an update, if you like. Not very useful for tabs, but
         // will be for other things.
         this.updateOptions(exstr)
+    }
+
+    async filter(exstr) {
+        this.lastExstr = exstr
+        await this.onInput(exstr)
     }
 
     setStateFromScore(scoredOpts: Completions.ScoredOption[]) {

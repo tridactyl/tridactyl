@@ -50,7 +50,7 @@ export class TabAllCompletionSource extends Completions.CompletionSourceFuse {
     }
 
     async onInput(exstr) {
-        await this.updateOptions()
+        await this.updateOptions(exstr)
     }
 
     /**
@@ -64,7 +64,21 @@ export class TabAllCompletionSource extends Completions.CompletionSourceFuse {
     }
 
     @Perf.measuredAsync
-    private async updateOptions(exstr?: string) {
+    private async updateOptions(exstr = "") {
+        this.lastExstr = exstr
+        let [prefix, query] = this.splitOnPrefix(exstr)
+
+        // Hide self and stop if prefixes don't match
+        if (prefix) {
+            // Show self if prefix and currently hidden
+            if (this.state === "hidden") {
+                this.state = "normal"
+            }
+        } else {
+            this.state = "hidden"
+            return
+        }
+
         const tabsPromise = browserBg.tabs.query({})
         const windowsPromise = this.getWindows()
         const [tabs, windows] = await Promise.all([tabsPromise, windowsPromise])
