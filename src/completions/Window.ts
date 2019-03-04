@@ -12,11 +12,15 @@ class WindowCompletionOption extends Completions.CompletionOptionHTML
         this.fuseKeys.push(`${win.id}`)
 
         // Create HTMLElement
-        this.html = html`<tr class="WindowCompletionOption option ${win.incognito ? "incognito" : ""}">
+        this.html = html`<tr class="WindowCompletionOption option ${
+            win.incognito ? "incognito" : ""
+        }">
             <td class="privatewindow"></td>
             <td class="id">${win.id}</td>
             <td class="title">${win.title}</td>
-            <td class="tabcount">${win.tabs.length} tab${win.tabs.length != 1 ? "s" : ""}</td>
+            <td class="tabcount">${win.tabs.length} tab${
+            win.tabs.length != 1 ? "s" : ""
+        }</td>
         </tr>`
     }
 }
@@ -25,29 +29,45 @@ export class WindowCompletionSource extends Completions.CompletionSourceFuse {
     public options: WindowCompletionOption[]
 
     constructor(private _parent) {
-        super(
-            ["winclose"],
-            "WindowCompletionSource",
-            "Windows",
-        )
+        super(["winclose"], "WindowCompletionSource", "Windows")
 
         this.updateOptions()
         this._parent.appendChild(this.node)
     }
 
     private async updateOptions(exstr = "") {
-        const [prefix, query] = this.splitOnPrefix(exstr)
-        if (!prefix)
+        this.lastExstr = exstr
+        let [prefix, query] = this.splitOnPrefix(exstr)
+
+        // Hide self and stop if prefixes don't match
+        if (prefix) {
+            // Show self if prefix and currently hidden
+            if (this.state === "hidden") {
+                this.state = "normal"
+            }
+        } else {
+            this.state = "hidden"
             return
-        this.options = (await browserBg.windows.getAll({populate: true}))
-            .map(win => new WindowCompletionOption(win))
-        return this.updateChain()
+        }
+
+        this.options = (await browserBg.windows.getAll({ populate: true })).map(
+            win => {
+                let o = new WindowCompletionOption(win)
+                o.state = "normal"
+                return o
+            },
+        )
+        return this.updateDisplay()
     }
 
     async onInput(exstr) {
         // Schedule an update, if you like. Not very useful for windows, but
         // will be for other things.
-        this.updateOptions(exstr)
+        return this.updateOptions(exstr)
     }
 
+    async filter(exstr) {
+        this.lastExstr = exstr
+        return this.onInput(exstr)
+    }
 }

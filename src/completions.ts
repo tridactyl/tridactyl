@@ -55,6 +55,7 @@ export abstract class CompletionSource {
     public abstract filter(exstr: string): Promise<void>
 
     private _state: OptionState
+    private _prevState: OptionState
 
     /** Control presentation of Source */
     set state(newstate: OptionState) {
@@ -67,11 +68,17 @@ export abstract class CompletionSource {
                 this.node.classList.add("hidden")
                 break
         }
+        this._prevState = this._state
         this._state = newstate
     }
 
     get state() {
         return this._state
+    }
+
+    shouldRefresh() {
+        // A completion source should be refreshed if it is not hidden or if it just became hidden
+        return this._state != "hidden" || this.state != this._prevState
     }
 
     abstract next(inc?: number): boolean

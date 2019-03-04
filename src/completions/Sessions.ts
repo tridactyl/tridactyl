@@ -74,7 +74,20 @@ export class SessionsCompletionSource extends Completions.CompletionSourceFuse {
     }
 
     private async updateOptions(exstr = "") {
-        const [prefix, query] = this.splitOnPrefix(exstr)
+        this.lastExstr = exstr
+        let [prefix, query] = this.splitOnPrefix(exstr)
+
+        // Hide self and stop if prefixes don't match
+        if (prefix) {
+            // Show self if prefix and currently hidden
+            if (this.state === "hidden") {
+                this.state = "normal"
+            }
+        } else {
+            this.state = "hidden"
+            return
+        }
+
         const sessions = await browserBg.sessions.getRecentlyClosed()
         this.options = sessions.map(s => new SessionCompletionOption(s))
     }
