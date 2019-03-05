@@ -13,11 +13,11 @@ class SettingsCompletionOption extends Completions.CompletionOptionHTML
     ) {
         super()
         this.html = html`<tr class="SettingsCompletionOption option">
-            <td class="title">${setting.name}</td>
-            <td class="content">${setting.value}</td>
-            <td class="type">${setting.type}</td>
-            <td class="doc">${setting.doc}</td>
-        </tr>`
+                <td class="title">${setting.name}</td>
+                <td class="content">${setting.value}</td>
+                <td class="type">${setting.type}</td>
+                <td class="doc">${setting.doc}</td>
+            </tr>`
     }
 }
 
@@ -62,9 +62,11 @@ export class SettingsCompletionSource extends Completions.CompletionSourceFuse {
         options += options ? " " : ""
 
         let file, default_config, settings
-        if (!(file = metadata.everything.getFile("src/lib/config.ts"))
-            || !(default_config = file.getClass("default_config"))
-            || !(settings = config.get()))
+        if (
+            !(file = metadata.everything.getFile("src/lib/config.ts")) ||
+            !(default_config = file.getClass("default_config")) ||
+            !(settings = config.get())
+        )
             return
 
         this.options = Object.keys(settings)
@@ -74,7 +76,7 @@ export class SettingsCompletionSource extends Completions.CompletionSourceFuse {
                 let md = undefined
                 let doc = ""
                 let type = ""
-                if (md = default_config.getMember(setting)) {
+                if ((md = default_config.getMember(setting))) {
                     doc = md.doc
                     type = md.type.toString()
                 }
@@ -86,7 +88,7 @@ export class SettingsCompletionSource extends Completions.CompletionSourceFuse {
                 })
             })
 
-        this.updateChain()
+        return this.updateChain()
     }
 
     updateChain() {
@@ -94,7 +96,7 @@ export class SettingsCompletionSource extends Completions.CompletionSourceFuse {
         this.options.forEach(option => (option.state = "normal"))
 
         // Call concrete class
-        this.updateDisplay()
+        return this.updateDisplay()
     }
 
     onInput() {}

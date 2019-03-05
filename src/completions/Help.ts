@@ -13,9 +13,9 @@ class HelpCompletionOption extends Completions.CompletionOptionHTML
         super()
         this.value = `${flag} ${name}`
         this.html = html`<tr class="HelpCompletionOption option">
-            <td class="name">${name}</td>
-            <td class="doc">${doc}</td>
-        </tr>`
+                <td class="name">${name}</td>
+                <td class="doc">${doc}</td>
+            </tr>`
     }
 }
 
@@ -136,7 +136,7 @@ export class HelpCompletionSource extends Completions.CompletionSourceFuse {
         this.options = opts.sort((compopt1, compopt2) =>
             compopt1.name.localeCompare(compopt2.name),
         )
-        this.updateChain()
+        return this.updateChain()
     }
 
     updateChain() {
@@ -144,7 +144,7 @@ export class HelpCompletionSource extends Completions.CompletionSourceFuse {
         this.options.forEach(option => (option.state = "normal"))
 
         // Call concrete class
-        this.updateDisplay()
+        return this.updateDisplay()
     }
 
     onInput() {}

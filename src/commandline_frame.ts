@@ -285,7 +285,7 @@ clInput.addEventListener("input", () => {
         if (exstr != clInput.value) return
 
         onInputPromise = refresh_completions(exstr)
-    }, 1)
+    }, 100)
 })
 
 /** @hidden **/

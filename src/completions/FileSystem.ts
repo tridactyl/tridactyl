@@ -9,9 +9,11 @@ class FileSystemCompletionOption extends Completions.CompletionOptionHTML
     constructor(public value: string) {
         super()
         this.fuseKeys = [value]
-        this.html = html`<tr class="FileSystemCompletionOption option">
-            <td class="value">${value}</td>
-        </tr>`
+        this.html = html`
+            <tr class="FileSystemCompletionOption option">
+                <td class="value">${value}</td>
+            </tr>
+        `
     }
 }
 
@@ -25,7 +27,7 @@ export class FileSystemCompletionSource extends Completions.CompletionSourceFuse
     }
 
     public async onInput(exstr) {
-        this.filter(exstr)
+        return this.filter(exstr)
     }
 
     public async filter(exstr: string) {
@@ -71,6 +73,6 @@ export class FileSystemCompletionSource extends Completions.CompletionSourceFuse
         )
 
         this.state = "normal"
-        this.updateChain()
+        return this.updateChain()
     }
 }
