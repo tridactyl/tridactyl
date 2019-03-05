@@ -35,17 +35,18 @@ class BufferCompletionOption extends Completions.CompletionOptionHTML
         const favIconUrl = tab.favIconUrl
             ? tab.favIconUrl
             : Completions.DEFAULT_FAVICON
-        this.html = html`<tr class="BufferCompletionOption option container_${
-            container.color
-        } container_${container.icon} container_${container.name}">
-            <td class="prefix">${pre.padEnd(2)}</td>
-            <td class="container"></td>
-            <td class="icon"><img src="${favIconUrl}"/></td>
-            <td class="title">${tab.index + 1}: ${tab.title}</td>
-            <td class="content"><a class="url" target="_blank" href=${
-                tab.url
-            }>${tab.url}</a></td>
-        </tr>`
+        this.html = html`<tr class="BufferCompletionOption option container_${container.color} container_${container.icon} container_${container.name}"
+            >
+                <td class="prefix">${pre.padEnd(2)}</td>
+                <td class="container"></td>
+                <td class="icon"><img src="${favIconUrl}" /></td>
+                <td class="title">${tab.index + 1}: ${tab.title}</td>
+                <td class="content">
+                    <a class="url" target="_blank" href=${tab.url}
+                        >${tab.url}</a
+                    >
+                </td>
+            </tr>`
     }
 }
 
@@ -122,18 +123,18 @@ export class BufferCompletionSource extends Completions.CompletionSourceFuse {
         } else {
             this.options.forEach(option => (option.state = "normal"))
         }
-        this.updateDisplay()
+        return this.updateDisplay()
     }
 
     async onInput(exstr) {
         // Schedule an update, if you like. Not very useful for tabs, but
         // will be for other things.
-        this.updateOptions(exstr)
+        return this.updateOptions(exstr)
     }
 
     async filter(exstr) {
         this.lastExstr = exstr
-        await this.onInput(exstr)
+        return this.onInput(exstr)
     }
 
     setStateFromScore(scoredOpts: Completions.ScoredOption[]) {

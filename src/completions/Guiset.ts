@@ -5,16 +5,13 @@ class GuisetCompletionOption extends Completions.CompletionOptionHTML
     implements Completions.CompletionOptionFuse {
     public fuseKeys = []
 
-    constructor(
-        public value: string,
-        displayValue: string
-    ) {
+    constructor(public value: string, displayValue: string) {
         super()
         this.fuseKeys.push(value)
 
         this.html = html`<tr class="GuisetCompletionOption option">
-            <td class="value">${displayValue}</td>
-        </tr>`
+                <td class="value">${displayValue}</td>
+            </tr>`
     }
 }
 
@@ -55,14 +52,20 @@ export class GuisetCompletionSource extends Completions.CompletionSourceFuse {
         if (metaRules[ruleName]) {
             this.options = this.options.concat(
                 Object.keys(metaRules[ruleName])
-                .filter(s => s.startsWith(subRule))
-                .map(s => new GuisetCompletionOption(`${ruleName} ${s}`, s)))
+                    .filter(s => s.startsWith(subRule))
+                    .map(
+                        s => new GuisetCompletionOption(`${ruleName} ${s}`, s),
+                    ),
+            )
         }
         if (potentialRules[ruleName]) {
             this.options = this.options.concat(
                 Object.keys(potentialRules[ruleName].options)
-                .filter(s => s.startsWith(subRule))
-                .map(s => new GuisetCompletionOption(`${ruleName} ${s}`, s)))
+                    .filter(s => s.startsWith(subRule))
+                    .map(
+                        s => new GuisetCompletionOption(`${ruleName} ${s}`, s),
+                    ),
+            )
         }
         if (this.options.length == 0) {
             this.options = Object.keys(metaRules)
@@ -71,7 +74,7 @@ export class GuisetCompletionSource extends Completions.CompletionSourceFuse {
                 .map(s => new GuisetCompletionOption(s, s))
         }
 
-        this.updateChain()
+        return this.updateChain()
     }
 
     updateChain() {
@@ -79,10 +82,10 @@ export class GuisetCompletionSource extends Completions.CompletionSourceFuse {
         this.options.forEach(option => (option.state = "normal"))
 
         // Call concrete class
-        this.updateDisplay()
+        return this.updateDisplay()
     }
 
     onInput(arg) {
-        this.filter(arg)
+        return this.filter(arg)
     }
 }

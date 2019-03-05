@@ -22,20 +22,21 @@ class TabAllCompletionOption extends Completions.CompletionOptionHTML
         const favIconUrl = tab.favIconUrl
             ? tab.favIconUrl
             : Completions.DEFAULT_FAVICON
-        this.html = html`<tr class="BufferAllCompletionOption option container_${
-            container.color
-        } container_${container.icon} container_${container.name} ${
-            incognito ? "incognito" : ""
-        }">
-            <td class="prefix"></td>
-            <td class="privatewindow"></td>
-            <td class="container"></td>
-            <td class="icon"><img src="${favIconUrl}"/></td>
-            <td class="title">${this.value}: ${tab.title}</td>
-            <td class="content"><a class="url" target="_blank" href=${
-                tab.url
-            }>${tab.url}</a></td>
-        </tr>`
+        this.html = html`<tr class="BufferAllCompletionOption option container_${container.color} container_${container.icon} container_${container.name} ${incognito
+                    ? "incognito"
+                    : ""}"
+            >
+                <td class="prefix"></td>
+                <td class="privatewindow"></td>
+                <td class="container"></td>
+                <td class="icon"><img src="${favIconUrl}" /></td>
+                <td class="title">${this.value}: ${tab.title}</td>
+                <td class="content">
+                    <a class="url" target="_blank" href=${tab.url}
+                        >${tab.url}</a
+                    >
+                </td>
+            </tr>`
     }
 }
 
@@ -50,7 +51,7 @@ export class TabAllCompletionSource extends Completions.CompletionSourceFuse {
     }
 
     async onInput(exstr) {
-        await this.updateOptions(exstr)
+        return this.updateOptions(exstr)
     }
 
     /**
@@ -112,7 +113,7 @@ export class TabAllCompletionSource extends Completions.CompletionSourceFuse {
 
         this.completion = undefined
         this.options = options
-        this.updateChain()
+        return this.updateChain()
     }
 
     setStateFromScore(scoredOpts: Completions.ScoredOption[]) {

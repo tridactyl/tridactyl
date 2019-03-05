@@ -20,13 +20,15 @@ class HistoryCompletionOption extends Completions.CompletionOptionHTML
         const favIconUrl = Completions.DEFAULT_FAVICON
         // const favIconUrl = tab.favIconUrl ? tab.favIconUrl : DEFAULT_FAVICON
         this.html = html`<tr class="HistoryCompletionOption option">
-            <td class="prefix">${"".padEnd(2)}</td>
-            <td class="icon"></td>
-            <td class="title">${page.title}</td>
-            <td class="content"><a class="url" target="_blank" href=${
-                page.url
-            }>${page.url}</a></td>
-        </tr>`
+                <td class="prefix">${"".padEnd(2)}</td>
+                <td class="icon"></td>
+                <td class="title">${page.title}</td>
+                <td class="content">
+                    <a class="url" target="_blank" href=${page.url}
+                        >${page.url}</a
+                    >
+                </td>
+            </tr>`
     }
 }
 
@@ -85,7 +87,7 @@ export class HistoryCompletionSource extends Completions.CompletionSourceFuse {
             page => new HistoryCompletionOption(options + page.url, page),
         )
 
-        this.updateChain()
+        return this.updateChain()
     }
 
     updateChain() {
@@ -93,7 +95,7 @@ export class HistoryCompletionSource extends Completions.CompletionSourceFuse {
         this.options.forEach(option => (option.state = "normal"))
 
         // Call concrete class
-        this.updateDisplay()
+        return this.updateDisplay()
     }
 
     onInput() {}

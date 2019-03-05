@@ -42,10 +42,13 @@ export abstract class CompletionSource {
         let commands = aliases.getCmdAliasMapping()
 
         // Now, for each prefix given as argument, add it to the completionsource's prefix list and also add any alias it has
-        prefixes.map(p => p.trim()).forEach(p => {
-            this.prefixes.push(p)
-            if (commands[p]) this.prefixes = this.prefixes.concat(commands[p])
-        })
+        prefixes
+            .map(p => p.trim())
+            .forEach(p => {
+                this.prefixes.push(p)
+                if (commands[p])
+                    this.prefixes = this.prefixes.concat(commands[p])
+            })
 
         // Not sure this is necessary but every completion source has it
         this.prefixes = this.prefixes.map(p => p + " ")
@@ -143,7 +146,7 @@ export abstract class CompletionSourceFuse extends CompletionSource {
     public options: CompletionOptionFuse[]
     protected lastExstr: string
 
-    protected optionContainer = html`<table class="optionContainer">`
+    protected optionContainer = html`<table class="optionContainer"></table>`
 
     constructor(prefixes, className: string, title?: string) {
         super(prefixes)
@@ -162,7 +165,7 @@ export abstract class CompletionSourceFuse extends CompletionSource {
     public async filter(exstr: string) {
         this.lastExstr = exstr
         await this.onInput(exstr)
-        await this.updateChain()
+        return this.updateChain()
     }
 
     updateChain(exstr = this.lastExstr, options = this.options) {

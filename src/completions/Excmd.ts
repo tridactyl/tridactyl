@@ -13,9 +13,9 @@ class ExcmdCompletionOption extends Completions.CompletionOptionHTML
 
         // Create HTMLElement
         this.html = html`<tr class="ExcmdCompletionOption option">
-            <td class="excmd">${value}</td>
-            <td class="documentation">${documentation}</td>
-        </tr>`
+                <td class="excmd">${value}</td>
+                <td class="documentation">${documentation}</td>
+            </tr>`
     }
 }
 
@@ -35,7 +35,7 @@ export class ExcmdCompletionSource extends Completions.CompletionSourceFuse {
     }
 
     async onInput(exstr) {
-        await this.updateOptions(exstr)
+        return this.updateOptions(exstr)
     }
 
     updateChain(exstr = this.lastExstr, options = this.options) {
@@ -82,7 +82,7 @@ export class ExcmdCompletionSource extends Completions.CompletionSourceFuse {
         }
 
         this.options.forEach(o => (o.state = "normal"))
-        this.updateChain()
+        return this.updateChain()
     }
 
     private scoreOptions(options: ExcmdCompletionOption[]) {

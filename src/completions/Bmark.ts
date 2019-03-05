@@ -22,13 +22,15 @@ class BmarkCompletionOption extends Completions.CompletionOptionHTML
         const favIconUrl = Completions.DEFAULT_FAVICON
         // const favIconUrl = tab.favIconUrl ? tab.favIconUrl : DEFAULT_FAVICON
         this.html = html`<tr class="BmarkCompletionOption option">
-            <td class="prefix">${"".padEnd(2)}</td>
-            <td class="icon"></td>
-            <td class="title">${bmark.title}</td>
-            <td class="content"><a class="url" target="_blank" href=${
-                bmark.url
-            }>${bmark.url}</a></td>
-        </tr>`
+                <td class="prefix">${"".padEnd(2)}</td>
+                <td class="icon"></td>
+                <td class="title">${bmark.title}</td>
+                <td class="content">
+                    <a class="url" target="_blank" href=${bmark.url}
+                        >${bmark.url}</a
+                    >
+                </td>
+            </tr>`
     }
 }
 
@@ -67,7 +69,7 @@ export class BmarkCompletionSource extends Completions.CompletionSourceFuse {
             page => new BmarkCompletionOption(option + page.url, page),
         )
 
-        this.updateChain()
+        return this.updateChain()
     }
 
     updateChain() {
@@ -75,7 +77,7 @@ export class BmarkCompletionSource extends Completions.CompletionSourceFuse {
         this.options.forEach(option => (option.state = "normal"))
 
         // Call concrete class
-        this.updateDisplay()
+        return this.updateDisplay()
     }
 
     onInput() {}
