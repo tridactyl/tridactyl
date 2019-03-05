@@ -36,6 +36,10 @@ else
   scripts/excmds_macros.py
 fi
 
+# .bracketexpr.generated.ts is needed for metadata generation
+"$(npm bin)/nearleyc" src/grammars/bracketexpr.ne \
+  > src/grammars/.bracketexpr.generated.ts
+
 # It's important to generate the metadata before the documentation because
 # missing imports might break documentation generation on clean builds
 "$(npm bin)/tsc" compiler/gen_metadata.ts -m commonjs --target es2017 \
@@ -47,9 +51,6 @@ fi
 scripts/newtab.md.sh
 scripts/make_tutorial.sh
 scripts/make_docs.sh
-
-"$(npm bin)/nearleyc" src/grammars/bracketexpr.ne \
-  > src/grammars/.bracketexpr.generated.ts
 
 if [ "$(isWindowsMinGW)" = "True" ]; then
   powershell \
