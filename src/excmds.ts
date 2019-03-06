@@ -517,7 +517,19 @@ export async function nativeopen(...args: string[]) {
                     }
                     firefoxArgs.push("--new-tab")
                 }
-                await Native.run(`${config.get("browser")} ${firefoxArgs.join(" ")} '${url.replace(/'/g, "'\\''")}'`)
+                let escapedUrl = url
+                // On linux, we need to quote and escape single quotes in the
+                // url, otherwise an attacker could create an anchor with a url
+                // like 'file:// && $(touch /tmp/dead)' and achieve remote code
+                // execution when the user tries to follow it with `hint -W tabopen`
+                // But windows treats single quotes as "open this file from the
+                // user's directory", so we need to use double quotes there
+                if ((await browser.runtime.getPlatformInfo()).os === "win") {
+                    escapedUrl = `"${escapedUrl.replace(/\\/g, "\\\\").replace(/"/g, '\\"')}"`
+                } else {
+                    escapedUrl = `'${escapedUrl.replace(/'/g, `'"'"'`)}'`
+                }
+                await Native.run(`${config.get("browser")} ${firefoxArgs.join(" ")} ${escapedUrl}`)
             }
             setTimeout(() => browser.tabs.onCreated.removeListener(selecttab), 100)
         } catch (e) {
