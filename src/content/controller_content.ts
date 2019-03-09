@@ -68,7 +68,7 @@ class KeyCanceller {
                 ke.altKey == ke2.altKey &&
                 ke.code == ke2.code &&
                 ke.composed == ke2.composed &&
-                ke.ctrlKey == ke.ctrlKey &&
+                ke.ctrlKey == ke2.ctrlKey &&
                 ke.metaKey == ke2.metaKey &&
                 ke.shiftKey == ke2.shiftKey &&
                 ke.target == ke2.target,
