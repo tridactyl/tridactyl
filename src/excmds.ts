@@ -2528,21 +2528,32 @@ export function repeat(n = 1, ...exstr: string[]) {
 //#background
 export async function composite(...cmds: string[]) {
     try {
-        return cmds
-            .join(" ")
-            .split(";")
-            .reduce(
-                async (_, cmd) => {
-                    await _
-                    let cmds = cmd.split("|")
-                    let [fn, args] = excmd_parser.parser(cmds[0])
-                    return cmds.slice(1).reduce(async (pipedValue, cmd) => {
-                        let [fn, args] = excmd_parser.parser(cmd)
-                        return fn.call({}, ...args, await pipedValue)
-                    }, fn.call({}, ...args))
-                },
-                null as any,
-            )
+        return (
+            cmds
+                .join(" ")
+                // Semicolons delimit pipelines
+                .split(";")
+                // For each pipeline, wait for previous pipeline to finish, then
+                // execute each cmd in pipeline in order, passing the result of the
+                // previous cmd as the last argument to the next command.
+                .reduce(
+                    async (prev_pipeline, cmd) => {
+                        await prev_pipeline
+                        let cmds = cmd.split("|")
+
+                        // Compute the first piped value
+                        let [fn, args] = excmd_parser.parser(cmds[0])
+                        let first_value = fn.call({}, ...args)
+
+                        // Exec the rest of the pipe in sequence.
+                        return cmds.slice(1).reduce(async (pipedValue, cmd) => {
+                            let [fn, args] = excmd_parser.parser(cmd)
+                            return fn.call({}, ...args, await pipedValue)
+                        }, first_value)
+                    },
+                    null as any,
+                )
+        )
     } catch (e) {
         logger.error(e)
     }
