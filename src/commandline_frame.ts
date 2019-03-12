@@ -138,11 +138,6 @@ export function focus() {
 }
 
 /** @hidden **/
-async function sendExstr(exstr) {
-    Messaging.message("commandline_background", "recvExStr", [exstr])
-}
-
-/** @hidden **/
 let HISTORY_SEARCH_STRING: string
 
 /** @hidden
@@ -390,7 +385,7 @@ export function accept_line() {
     }
     cmdline_history_position = 0
 
-    sendExstr(command)
+    return Messaging.message("controller_background", "acceptExCmd", [command])
 }
 
 /** @hidden **/
