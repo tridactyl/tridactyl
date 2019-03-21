@@ -1,137 +1,84 @@
 # Tridactyl changelog
 
-## Release 1.14.9 / Unreleased
+## Release 1.14.9 / 2019-03-21
 
 -   New features
 
-    - We now support Firefox's built-in `OpenSearch` search engines
+    -   We now support Firefox's built-in `OpenSearch` search engines
 
-        - This is distinct from the "keyword" search engines - see [this page](https://support.mozilla.org/en-US/kb/add-or-remove-search-engine-firefox)
+        -   This is distinct from the "keyword" search engines - see [this page](https://support.mozilla.org/en-US/kb/add-or-remove-search-engine-firefox)
 
-68a8fcc Mobe background/native_background.ts to lib/native.ts
-c0a1e2a Merge pull request #1372 from MannySchneck/scrollto-hint
-ba2b47c Merge pull request #1384 from glacambre/guiset_completions
-f9fa447 Implement guiset completions
-026f409 Merge pull request #1381 from nfvs/hint_t
-31c1d52 Added `hint -t`, `hint -tc` and `hint -Jtc`, to open links in a new tab.
-b0bf0f1 Shorten Google exemplar in RC file
-b4efcd1 Merge pull request #1343 from glacambre/fix_1340
-32a4bc0 Merge pull request #1341 from glacambre/fix_1329
-6079c36 finding.ts: Make sure all matches are visible
-2dad1c0 dom.ts: make isVisible use parentElement clientRect if necessary
-8f33350 commandline_frame.ts: update HISTORY_SEARCH_STRING when needed
-053a2ab Cancel key{up,press} evts when corresponding keydown is cancelled
-7db70f1 Merge pull request #1335 from glacambre/fix_findnext
-a8d7cf6 finding.ts: Make focusMatch() prefer focusing anchors if possible
-a480a59 commandline.css: Force help completion width to 25% of available space
-65dc89c completions/Help.ts: Make help completion aware of new `:help` flags
-002de8a excmds.ts: Add flags to `:help`
-92f8201 Merge pull request #1333 from glacambre/fix_1279
-f1c0e52 finding.ts: Make find/findnext focus elements
-6a5fdef Make findnext default to global previous search if needed
-cc24a69 finding.ts: add cleanslate to TridactylSearchHighlight elements
-b4a5032 Make findnext default to 1 and display messages on errors
-462fbe4 config.ts: bind ;t to `hint -W tabopen` by default
-799f2d3 Merge branch 'fix_1295'
-4070aa0 Warn when adding a binding that is shadowed by other bind (#1309)
-5743f0c excmds.ts: uncomment run_exstr
-e9945e4 excmds.ts: Use loadReplace where possible
-d05b7ef excmds.ts: Add `:searchsetkeyword` back with an error message
-186c1a9 excmds.ts: Remove setsearchkeyword and forceURI functions
-db5461e excmds.ts: Make open_quiet use openInNewTab()
-7c26cf8 excmds.ts: Remove nativeopen checks from winopen
-c0bbdcb excmds.ts: Make winopen use openInTab
-5217227 webext.ts: Fix openInTab() not trying to treat search queries as domains
-509885c webext.ts: Fix "search" not performing a literal search in openInTab()
-880a759 Add some crazy binds to tridactylrc
-536dcb3 css_utils.ts: Add `statuspanel` rule
-ea257f3 Add searchengine support
-5d4f6b4 Add option -j in excmds hint() which disables javascript hinting
-8dc07f7 Change -j option to -J and fix option parsing
-f6dabba Add swp files
-24f2156 Update doc example for -Jc option
+    -   Hint modes changes:
+
+        -   Scroll to hinted element with `;z` ([#1372](https://github.com/tridactyl/tridactyl/issues/1372))
+
+        -   Open hint in new foreground tab with `;t` ([#1381](https://github.com/tridactyl/tridactyl/issues/1381))
+
+        -   You can add `-J` to any hint mode to disable JavaScript event hints
+
+        -   Reverse-image search with `;m` and `;M`
+
+            -   Known issue: `;m<Esc>` will still send you to Google
+
+    -   `guiset` now has completions
+
+    -   `help` now accepts the following flags: `help -{a,b,e,s}` to specify whether you are looking for an alias, a binding, an ex-command, or a setting.
+
+    -   You will now be warned when adding a binding that is shadowed by other bind ([#1309](https://github.com/tridactyl/tridactyl/issues/1309))
+
+        -   i.e, since `x` is bound to `stop`, you will now be warned when you bind something to `xx`
+
+    -   The new tab page now begs for donations to fund our coding-retreat ([#1373](https://github.com/tridactyl/tridactyl/issues/1373))
+
+    -   `ex.deselect_completion` ex-mode command added ([#1393](https://github.com/tridactyl/tridactyl/issues/1393))
+
+    -   `winopen -popup` added to open a URL in the "pop-up" style without the address bar etc showing.
 
 -   Bug fixes
-1f5d44e Merge pull request #1382 from glacambre/fix_1355
-02c133f native.ts: implement proper profile-checking
-69f21ce MacOS build fixes.
-ac6de14 Merge pull request #1373 from tridactyl/feedme
-295471d excmds.ts: Fix `hint -pipe` not working
-6555d2d Merge pull request #1385 from glacambre/fix_getprofile
-689994e native.ts: Fix profiledir != "auto" not working on windows
-4e6e9aa Resize command line only once per available completion source
-11329c7 Merge pull request #1393 from glacambre/deselect_completion
-bdd3e04 Implement deselect_completion ex command
-24228b8 Merge pull request #1391 from glacambre/fix_hint_j
-4ff992f excmds.ts: Fix hint -j
-0f0ab74 Merge pull request #1388 from glacambre/fix_hint_pipe
-ca43aad Merge pull request #1400 from glacambre/fix_completions
-5dd1ec3 completions: Make sure completion computation has ended before resizeArea
-5e13b87 Merge branch 'request_review'
-d34af73 Update packages and fix build errors
-fb46d63 Merge pull request #1396 from glacambre/fix_profile_not_auto_windows
-31e4777 Merge pull request #1402 from glacambre/fix_windows_nativeopen_escaping
-ce10ef2 Refactor bodgecss to use portable tooling.
-66b36cf Replace OSTYPE with uname and add yet another sed variant.
-d3e2d3d Use utf-8 explicitly for macro script.
-862fd2d feat/minor: add hint that scrolls element to the top of a page
-15a8b3d Add gentle invitation for donations on newtab
-4c2a702 Merge pull request #1368 from vviikk/patch-1
-88ad368 Merge pull request #1369 from rodrigoaguilera/master
-463593b Fix path to tutor page
-6488025 Add Ctrl+g shortcut info to cycle through search results
-00b6027 Merge pull request #1364 from robertgzr/winopen-popup
-f2541e4 Add -popup option to winopen excmd
-317d387 Merge pull request #1361 from glacambre/define_leavegithubalone
-bcb5182 config.ts: Add leavegithubalone setting to config.ts
-5466c1b Merge branch 'fix_234'
-7e844fe Merge pull request #1356 from glacambre/win_fail_profiledir
-aed8338 native_background.ts: Fail if profile couldn't be found on linux
-4734214 native_background.ts: make getProfileDir fail on win if profiledir unset
-c341ea4 Merge pull request #1355 from glacambre/better_nativeopen
-3c9fc84 nativeopen: detect profile, enable space in URLs
-f40689e Merge pull request #1354 from glacambre/fix_build_error
-f119a89 commandline_frame.ts: Fix compile-time error
-ec43f7b Merge pull request #1350 from glacambre/reverse_img_search_hint
-2d8481f help.ts: Display composite binds in help pages
-952a253 Merge pull request #1347 from glacambre/relieve_1345
-99289e4 config.ts: Add reverse-search bindings
-10cb692 commandline_frame.ts: Catch errors in refresh_completions
-3089c2e Merge pull request #1348 from glacambre/fix_terminator
-ed7476b Merge pull request #1349 from glacambre/fix_1099
-a287f82 native/install.sh: Warn user on failure to create manifest/messenger
-e0545ac native_background.ts: Fix terminator not working as editorcmd
-cd99fe7 Merge pull request #1344 from glacambre/fix_help_completions
-27fcabd completions/Help.ts: Fix completions not being properly deselected
-0e9d1a3 webext.ts: Fix openInTab() leaving a space in search queries
-431a7ec config.ts: Remove sleep from 'D' bind
-b992cac Remove editor specific files
-fcc9488 Merge pull request #1325 from glacambre/fix_viewsource
-65db93c viewsource.css: Make viewsource actually respect colorscheme
-a4ad43c tutor.template.html: Fix viewsource not being visible
-f5cfc0a static/typedoc/layouts/default.hbs: Fix viewsource not working correctly
+
+    -   Completions no longer get stuck showing you the command you just typed ([#1295](https://github.com/tridactyl/tridactyl/issues/1295))
+
+    -   `findnext` no longer highlights invisible elements ([#1340](https://github.com/tridactyl/tridactyl/issues/1340))
+
+    -   Command history search works again ([#1329](https://github.com/tridactyl/tridactyl/issues/1329))
+
+    -   `nativeopen` now automatically detects which profile you're using and can open URLs with spaces in ([#1355](https://github.com/tridactyl/tridactyl/issues/1355))
+
+    -   `leavegithubalone` is now a documented setting
+
+    -   `keyup` events are no longer sent to the page for keys which are bound in Tridactyl ([#234](https://github.com/tridactyl/tridactyl/issues/234))
+
+    -   `terminator` will now work as a terminal for `editorcmd`
+
+    -   The native install command will now tell you if it didn't manage to install the native messenger ([#1099](https://github.com/tridactyl/tridactyl/issues/1099))
+
+    -   `help` completions will now be deselected properly ([#1344](https://github.com/tridactyl/tridactyl/issues/1344))
+
+    -   `viewsource` now works on the `help` page
 
 -   Miscellaneous
-c0724f2 Add example to docs for hint -Jc command
-69a1c1a Merge pull request #1310 from glacambre/mention_disable
 
-- Under the bonnet
-b641735 Merge pull request #1363 from glacambre/content_editor
-755e42b excmds.ts: Move `:editor` to the content script
-1e152a1 Merge pull request #1383 from nfvs/bodgecss_sh
-3208b75 Merge pull request #1387 from nfvs/fix_travis
-60057e7 Merge pull request #1386 from nfvs/build_errors
-85b3e33 Remove commandline_background
-1e104e4 scripts/build.sh: Generate .bracketexpr.generated.ts before metadata
-6a4e2e3 excmds.ts: Fix nativeopen using wrong escaping scheme on windows
-e3ae6f8 Merge pull request #1401 from glacambre/improve_build_script
-4d3b86f Merge branch 'remove_commandline_background'
-64230c8 Merge pull request #1405 from glacambre/fix_1399
-6703e5b Merge pull request #1375 from antonva/bsd-build
-4b77ff9 contributing.md: Explain build process
-d5ac90a contributing.md: Add architecture and macro explanation
-e098e48 commandline_frame.ts: Simplify completion-updating mechanism
+    -   Various documentation improvements
 
+-   Under the bonnet
+
+    -   `D` no longer has a sleep in it
+
+    -   Build process should be more portable now
+
+    -   Build should be a bit more robust, too
+
+    -   Removed `native_background.ts` - the editor is now all done in content scripts
+
+    -   Removed commandline_background
+
+    -   `contributing.md` has been improved with more documentation of our architecture
+
+Thanks to all of our contributors for this release: Oliver Blanthorn, glacambre, Tadeas Uhlir, Nuno Santos, Anton Vilhelm Ásgeirsson, Colin Caine, Manny Schneck, Maximilian Roos, Robert Günzler, Rodrigo, Vik Ramanujam, heshamsafi, and pinusc.
+
+Extra special thanks go to heshamsafi, Manny Schneck, Maximilian Roos, Nuno Santos, pinusc, Robert Günzler, Rodrigo, Tadeas Uhlir, and Vik Ramanujam who all contributed for the first time.
+
+Last, but not least - thank you to everyone who reported issues.
 
 ## Release 1.14.8 / 2019-01-31
 
@@ -940,7 +887,7 @@ Last, but not least - thank you to everyone who reported issues.
     -   Add Qwant and update startpage URL ([#198](https://github.com/tridactyl/tridactyl/issues/198))
     -   Add Google Scholar search engine
 -   Fix problems where ignore mode would revert to normal mode on some websites with iframes ([#176](https://github.com/tridactyl/tridactyl/issues/176))
--   Add ^ and $ in normal mode for navigation to 0% or 100% in x-direction
+-   Add ^ and \$ in normal mode for navigation to 0% or 100% in x-direction
 -   Buffer completion fixes
     -   Use tab ID even if buffer has a trailing space ([#223](https://github.com/tridactyl/tridactyl/issues/223))
     -   completions: passthrough # in buffercompletion
