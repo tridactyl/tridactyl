@@ -228,7 +228,8 @@ export class AutoContain implements IAutoContain {
                 },
             )
             .catch(error => {
-                // TODO: figure out a good way to recover?
+                logger.warning("failed to communicate with multi-account containers extension: %o",
+                               error)
                 return false
             })
 
