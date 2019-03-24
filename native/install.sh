@@ -3,9 +3,9 @@
 set -e
 
 echoerr() {
-    red="\033[31m"
-    normal="\e[0m"
-    echo -e "$red$@$normal" >&2
+    red="\\033[31m"
+    normal="\\e[0m"
+    echo -e "$red$*$normal" >&2
 }
 
 sedEscape() {
@@ -68,7 +68,7 @@ sed -i.bak "s/REPLACE_ME_WITH_SED/$(sedEscape "$native_file_final")/" "$manifest
 chmod +x "$native_file"
 
 # Requirements for native messenger
-python_path=$(which python3) || python_path=""
+python_path=$(command -v python3) || python_path=""
 if [[ -x "$python_path" ]]; then
     sed -i.bak "1s/.*/#!$(sedEscape /usr/bin/env) $(sedEscape "$python_path")/" "$native_file"
     mv "$native_file" "$native_file_final"

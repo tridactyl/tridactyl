@@ -6,18 +6,18 @@ CLEANSLATE="node_modules/cleanslate/docs/files/cleanslate.css"
 TRIDACTYL_LOGO="src/static/logo/Tridactyl_64px.png"
 
 isWindowsMinGW() {
-  local is_mingw="False"
+  is_mingw="False"
   if [ "$(uname | cut -c 1-5)" = "MINGW" ] \
     || [ "$(uname | cut -c 1-4)" = "MSYS" ]; then
     is_mingw="True"
   fi
 
-  echo -n "${is_mingw}"
+  printf "%s" "${is_mingw}"
 }
 
 if [ "$(isWindowsMinGW)" = "True" ]; then
   WIN_PYTHON="py -3"
-  NPM_BIN_DIR="$(cygpath $(npm bin))"
+  NPM_BIN_DIR="$(cygpath "$(npm bin)")"
   PATH=$NPM_BIN_DIR:$PATH
 else
   PATH="$(npm bin):$PATH"

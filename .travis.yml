@@ -5,6 +5,12 @@ cache:
   directories:
   - node_modules
 
+script:
+  - bash -c 'GLOBIGNORE="node_modules" shellcheck **/*.sh'
+  - npm install
+  - npm run test
+  - npm run lint
+
 notifications:
   webhooks:
     urls:
