@@ -579,6 +579,8 @@ class default_config {
     /**
      * Controls whether the page can focus elements for you via js
      *
+     * NB: will break fancy editors such as CodeMirror on Jupyter. Simply use `seturl` to whitelist pages you need it on.
+     *
      * Best used in conjunction with browser.autofocus in `about:config`
      */
     allowautofocus: "true" | "false" = "true"
