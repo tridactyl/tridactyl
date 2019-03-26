@@ -2301,7 +2301,7 @@ export async function winopen(...args: string[]) {
 
     let address = args.join(" ")
     if (!ABOUT_WHITELIST.includes(address) && address.match(/^(about|file):.*/)) {
-        return nativeopen(address, firefoxArgs)
+        return nativeopen(firefoxArgs, address)
     }
 
     return browser.windows.create(createData).then(win => openInTab(win.tabs[0], { loadReplace: true }, address.split(" ")))
