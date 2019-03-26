@@ -6,5 +6,5 @@ imports=$(find src/static/themes -name '*.css'| awk -F"/" '{ printf "@import url
 
 
 for css in build/static/css/*.css; do
-    printf '%s\n%s\n' "$imports" "$(cat $css)" > $css
+    printf '%s\n%s\n' "$imports" "$(cat "$css")" > "$css"
 done
