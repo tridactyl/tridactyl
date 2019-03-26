@@ -8,15 +8,15 @@ export class ProgramMetadata {
         >(),
     ) {}
 
-    setFile(name: string, file: FileMetadata) {
+    public setFile(name: string, file: FileMetadata) {
         this.files.set(name, file)
     }
 
-    getFile(name: string) {
+    public getFile(name: string) {
         return this.files.get(name)
     }
 
-    toConstructor() {
+    public toConstructor() {
         return (
             `new ProgramMetadata(new Map<string, FileMetadata>([` +
             Array.from(this.files.entries())

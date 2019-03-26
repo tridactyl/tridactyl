@@ -1,5 +1,5 @@
-import { SymbolMetadata } from "./SymbolMetadata"
 import { ClassMetadata } from "./ClassMetadata"
+import { SymbolMetadata } from "./SymbolMetadata"
 
 export class FileMetadata {
     constructor(
@@ -13,35 +13,35 @@ export class FileMetadata {
         >(),
     ) {}
 
-    setClass(name: string, c: ClassMetadata) {
+    public setClass(name: string, c: ClassMetadata) {
         this.classes.set(name, c)
     }
 
-    getClass(name: string) {
+    public getClass(name: string) {
         return this.classes.get(name)
     }
 
-    getClasses() {
+    public getClasses() {
         return Array.from(this.classes.keys())
     }
 
-    setFunction(name: string, f: SymbolMetadata) {
+    public setFunction(name: string, f: SymbolMetadata) {
         this.functions.set(name, f)
     }
 
-    getFunction(name: string) {
+    public getFunction(name: string) {
         return this.functions.get(name)
     }
 
-    getFunctions() {
+    public getFunctions() {
         return Array.from(this.functions.entries())
     }
 
-    getFunctionNames() {
+    public getFunctionNames() {
         return Array.from(this.functions.keys())
     }
 
-    toConstructor() {
+    public toConstructor() {
         return (
             `new FileMetadata(new Map<string, ClassMetadata>([` +
             Array.from(this.classes.entries())

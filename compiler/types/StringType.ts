@@ -1,21 +1,23 @@
 import { Type } from "./Type"
 
 export class StringType implements Type {
-    static instance = new StringType()
-    kind = "string"
+    public static instance = new StringType()
+    public kind = "string"
 
     constructor() {}
 
-    toConstructor() {
+    public toConstructor() {
         return "StringType.instance"
     }
 
-    toString() {
+    public toString() {
         return this.kind
     }
 
-    convert(argument) {
-        if (typeof argument === "string") return argument
+    public convert(argument) {
+        if (typeof argument === "string") {
+            return argument
+        }
         throw new Error(`Can't convert to string: ${argument}`)
     }
 }

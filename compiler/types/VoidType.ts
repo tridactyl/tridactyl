@@ -1,20 +1,20 @@
 import { Type } from "./Type"
 
 export class VoidType implements Type {
-    static instance = new VoidType()
-    kind = "void"
+    public static instance = new VoidType()
+    public kind = "void"
 
     constructor() {}
 
-    toConstructor() {
+    public toConstructor() {
         return "VoidType.instance"
     }
 
-    toString() {
+    public toString() {
         return this.kind
     }
 
-    convert(argument) {
+    public convert(argument) {
         return null
     }
 }
