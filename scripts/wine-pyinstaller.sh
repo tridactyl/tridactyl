@@ -69,15 +69,12 @@ colorEcho() {
 
 checkPrerequisite() {
   local bin_name="$1"
-  local bin_loc;
-  bin_loc="$(command -v "${bin_name}" 2>/dev/null)"
 
-  if [ -z "${bin_loc}" ] \
-    || [ ! -f "${bin_loc}" ]; then
+  if command -v "${bin_name}" 1>/dev/null 2>/dev/null; then
+    printf '%s\n' "    - '${bin_name}' found."
+  else
     printf '%s\n' "    - '$1' not found, quitting ..."
     exit -1
-  else
-    printf '%s\n' "    - '${bin_name}' found at ${bin_loc}"
   fi
 }
 
