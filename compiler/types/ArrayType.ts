@@ -1,19 +1,19 @@
 import { Type } from "./Type"
 
 export class ArrayType implements Type {
-    kind = "array"
+    public kind = "array"
 
     constructor(public elemType: Type) {}
 
-    toConstructor() {
+    public toConstructor() {
         return `new ArrayType(${this.elemType.toConstructor()})`
     }
 
-    toString() {
+    public toString() {
         return `${this.elemType.toString()}[]`
     }
 
-    convert(argument) {
+    public convert(argument) {
         if (!Array.isArray(argument)) {
             try {
                 argument = JSON.parse(argument)

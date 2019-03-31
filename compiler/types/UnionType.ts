@@ -1,11 +1,11 @@
 import { Type } from "./Type"
 
 export class UnionType implements Type {
-    kind = "union"
+    public kind = "union"
 
     constructor(public types: Type[]) {}
 
-    toConstructor() {
+    public toConstructor() {
         return (
             `new UnionType([` +
             // Convert every type to its string constructor representation
@@ -14,12 +14,12 @@ export class UnionType implements Type {
         )
     }
 
-    toString() {
+    public toString() {
         return this.types.map(t => t.toString()).join(" | ")
     }
 
-    convert(argument) {
-        for (let t of this.types) {
+    public convert(argument) {
+        for (const t of this.types) {
             try {
                 return t.convert(argument)
             } catch (e) {}

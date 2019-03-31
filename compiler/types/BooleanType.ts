@@ -1,22 +1,23 @@
 import { Type } from "./Type"
 
 export class BooleanType implements Type {
-    static instance = new BooleanType()
-    kind = "boolean"
+    public static instance = new BooleanType()
+    public kind = "boolean"
 
-    constructor() {}
-
-    toConstructor() {
+    public toConstructor() {
         return "BooleanType.instance"
     }
 
-    toString() {
+    public toString() {
         return this.kind
     }
 
-    convert(argument) {
-        if (argument === "true") return true
-        else if (argument === "false") return false
+    public convert(argument) {
+        if (argument === "true") {
+            return true
+        } else if (argument === "false") {
+            return false
+        }
         throw new Error("Can't convert ${argument} to boolean")
     }
 }

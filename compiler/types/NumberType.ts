@@ -1,24 +1,26 @@
 import { Type } from "./Type"
 
 export class NumberType implements Type {
-    static instance = new NumberType()
-    kind = "number"
+    public static instance = new NumberType()
+    public kind = "number"
 
-    constructor() {}
-
-    toConstructor() {
+    public toConstructor() {
         return "NumberType.instance"
     }
 
-    toString() {
+    public toString() {
         return this.kind
     }
 
-    convert(argument) {
+    public convert(argument) {
         let n = parseInt(argument)
-        if (!Number.isNaN(n)) return n
+        if (!Number.isNaN(n)) {
+            return n
+        }
         n = parseFloat(argument)
-        if (!Number.isNaN(n)) return n
+        if (!Number.isNaN(n)) {
+            return n
+        }
         throw new Error(`Can't convert to number: ${argument}`)
     }
 }

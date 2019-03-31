@@ -1,11 +1,11 @@
 import { Type } from "./Type"
 
 export class FunctionType implements Type {
-    kind = "function"
+    public kind = "function"
 
     constructor(public args: Type[], public ret: Type) {}
 
-    toConstructor() {
+    public toConstructor() {
         return (
             `new FunctionType([` +
             // Convert every argument type to its string constructor representation
@@ -14,11 +14,11 @@ export class FunctionType implements Type {
         )
     }
 
-    toString() {
+    public toString() {
         return `(${this.args.map(a => a.toString()).join(", ")}) => ${this.ret.toString()}`
     }
 
-    convert(argument) {
+    public convert(argument) {
         // Possible strategies:
         // - eval()
         // - window[argument]

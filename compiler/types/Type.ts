@@ -5,5 +5,5 @@ export interface Type {
     name?: string
     toConstructor(): string
     toString(): string
-    convert: (argument: string) => any
+    convert(argument: string): any
 }

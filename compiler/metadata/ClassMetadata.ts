@@ -9,19 +9,19 @@ export class ClassMetadata {
         >(),
     ) {}
 
-    setMember(name: string, s: SymbolMetadata) {
+    public setMember(name: string, s: SymbolMetadata) {
         this.members.set(name, s)
     }
 
-    getMember(name: string) {
+    public getMember(name: string) {
         return this.members.get(name)
     }
 
-    getMembers() {
+    public getMembers() {
         return this.members.keys()
     }
 
-    toConstructor() {
+    public toConstructor() {
         return (
             `new ClassMetadata(new Map<string, SymbolMetadata>([` +
             Array.from(this.members.entries())

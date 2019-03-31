@@ -1,11 +1,11 @@
 import { Type } from "./Type"
 
 export class TupleType implements Type {
-    kind = "tuple"
+    public kind = "tuple"
 
     constructor(public elemTypes: Type[]) {}
 
-    toConstructor() {
+    public toConstructor() {
         return (
             `new TupleType([` +
             // Convert every element type to its constructor representation
@@ -14,11 +14,11 @@ export class TupleType implements Type {
         )
     }
 
-    toString() {
+    public toString() {
         return `[${this.elemTypes.map(e => e.toString()).join(", ")}]`
     }
 
-    convert(argument) {
+    public convert(argument) {
         if (!Array.isArray(argument)) {
             try {
                 argument = JSON.parse(argument)
@@ -29,7 +29,7 @@ export class TupleType implements Type {
                 throw new Error(`Can't convert to tuple: ${argument}`)
             }
         }
-        if (argument.length != this.elemTypes.length) {
+        if (argument.length !== this.elemTypes.length) {
             throw new Error(
                 `Error converting tuple: number of elements and type mismatch ${argument}`,
             )

@@ -13,12 +13,12 @@ export function jack_in() {
         "",
     )
     const colour = "#0F0" //green text
-    rain(chinese,colour)
+    rain(chinese, colour)
 }
 
-export let snow = () => rain(["❄"],"#FFF",0.15)
+export let snow = () => rain(["❄"], "#FFF", 0.15)
 
-export function rain(characters: string[], colour, darkening=0.05){
+export function rain(characters: string[], colour, darkening = 0.05) {
     let d = document.createElement("div")
     d.style.position = "fixed"
     d.style.display = "block"
@@ -53,7 +53,7 @@ export function rain(characters: string[], colour, darkening=0.05){
     function draw() {
         //Black BG for the canvas
         //translucent BG to show trail
-        ctx.fillStyle = "rgba(0, 0, 0, "+darkening+")"
+        ctx.fillStyle = "rgba(0, 0, 0, " + darkening + ")"
         ctx.fillRect(0, 0, c.width, c.height)
 
         ctx.fillStyle = colour
