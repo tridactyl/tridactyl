@@ -27,6 +27,8 @@
     "source-map-loader": "^0.2.4",
     "ts-jest": "^24.0.0",
     "ts-node": "^8.0.2",
+    "tslint": "^5.14.0",
+    "tslint-sonarts": "^1.9.0",
     "typedoc": "^0.14.2",
     "typedoc-default-themes": "git://github.com/tridactyl/typedoc-default-themes.git#fix_weird_member_names_bin",
     "typescript": "^3.3.3333",

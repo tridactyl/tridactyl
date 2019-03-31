@@ -10,6 +10,7 @@ script:
   - npm install
   - npm run test
   - npm run lint
+  - bash -c '"$(npm bin)/tslint" --project .'
 
 notifications:
   webhooks:
