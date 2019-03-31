@@ -410,7 +410,7 @@ function filterHintsSimple(fstr) {
 */
 function filterHintsVimperator(fstr, reflow = false) {
     /** Partition a fstr into a tagged array of substrings */
-    function partitionFstr(fstr): { str: string; isHintChar: boolean }[] {
+    function partitionFstr(fstr): Array<{ str: string; isHintChar: boolean }> {
         const peek = a => a[a.length - 1]
         const hintChars = defaultHintChars()
 
