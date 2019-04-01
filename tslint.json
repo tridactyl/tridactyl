@@ -3,7 +3,6 @@
   "rules": {
     "align": false,
     "arrow-parens": false,
-    "bool-param-default": false,
     "callable-types": false,
     "class-name": false,
     "cognitive-complexity": false,
