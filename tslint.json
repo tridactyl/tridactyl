@@ -2,7 +2,6 @@
   "extends": ["tslint:recommended", "tslint-sonarts"],
   "rules": {
     "align": false,
-    "array-type": false,
     "arrow-parens": false,
     "ban-types": false,
     "bool-param-default": false,

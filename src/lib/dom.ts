@@ -325,7 +325,7 @@ export function getSelector(e: HTMLElement) {
  */
 export function getElemsBySelector(
     selector: string,
-    filters: Array<ElementFilter>,
+    filters: ElementFilter[],
 ) {
     let elems = Array.from(document.querySelectorAll(selector))
     let frameElems = getAllDocumentFrames().reduce((acc, frame) => {
@@ -356,7 +356,7 @@ export function getElemsBySelector(
 export function getNthElement(
     selectors: string,
     nth: number,
-    filters: Array<ElementFilter>,
+    filters: ElementFilter[],
 ): HTMLElement {
     let inputs = getElemsBySelector(selectors, filters)
 

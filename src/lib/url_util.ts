@@ -209,7 +209,7 @@ export function getDownloadFilenameForUrl(url: URL): string {
  *
  * These could be like "query" or "query=val"
  */
-function getUrlQueries(url: URL): Array<string> {
+function getUrlQueries(url: URL): string[] {
     let qys = []
 
     if (url.search) {
@@ -223,7 +223,7 @@ function getUrlQueries(url: URL): Array<string> {
 /**
  * Update a URL with a new array of queries
  */
-function setUrlQueries(url: URL, qys: Array<string>) {
+function setUrlQueries(url: URL, qys: string[]) {
     url.search = ""
 
     if (qys.length) {

@@ -20,7 +20,7 @@ const logger = new Logger("state")
 class State {
     lastSearch: string = undefined
     cmdHistory: string[] = []
-    prevInputs: { inputId: string; tab: number; jumppos?: number }[] = [
+    prevInputs: Array<{ inputId: string; tab: number; jumppos?: number }> = [
         {
             inputId: undefined,
             tab: undefined,
