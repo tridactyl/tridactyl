@@ -2083,7 +2083,7 @@ export async function tabclosealltoleft() {
         The tab or window id of the restored item. Returns -1 if no items are found.
  */
 //#background
-export async function undo(item = "recent"): Promise<Number> {
+export async function undo(item = "recent"): Promise<number> {
     const current_win_id: number = (await browser.windows.getCurrent()).id
     const sessions = await browser.sessions.getRecentlyClosed()
 

@@ -101,7 +101,7 @@ type KeyEventLike = MinimalKey | KeyboardEvent
 
 // {{{ parser and completions
 
-type MapTarget = string | Function
+type MapTarget = string | ((...args: any[]) => any)
 type KeyMap = Map<MinimalKey[], MapTarget>
 
 export type ParserResponse = {

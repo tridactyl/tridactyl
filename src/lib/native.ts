@@ -185,7 +185,7 @@ export async function nativegate(
     interactive = true,
     desiredOS = ["mac", "win", "linux", "openbsd"],
     // desiredOS = ["mac", "win", "android", "cros", "linux", "openbsd"]
-): Promise<Boolean> {
+): Promise<boolean> {
     if (!desiredOS.includes((await browserBg.runtime.getPlatformInfo()).os)) {
         if (interactive == true)
             logger.error(
