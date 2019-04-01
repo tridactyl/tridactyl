@@ -2423,14 +2423,6 @@ export async function viewcontainers() {
 //
 // {{{ MISC
 
-/** Deprecated
- * @hidden
- */
-//#background
-export function suppress(preventDefault?: boolean, stopPropagation?: boolean) {
-    mode("ignore")
-}
-
 //#background
 export function version() {
     fillcmdline_notrail(TRI_VERSION)
