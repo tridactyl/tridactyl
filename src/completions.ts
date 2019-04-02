@@ -135,7 +135,7 @@ export interface CompletionOptionFuse extends CompletionOptionHTML {
     fuseKeys: any[]
 }
 
-export type ScoredOption = {
+export interface ScoredOption {
     index: number
     option: CompletionOptionFuse
     score: number
@@ -146,13 +146,17 @@ export abstract class CompletionSourceFuse extends CompletionSource {
     public options: CompletionOptionFuse[]
     protected lastExstr: string
 
-    protected optionContainer = html`<table class="optionContainer"></table>`
+    protected optionContainer = html`
+        <table class="optionContainer"></table>
+    `
 
     constructor(prefixes, className: string, title?: string) {
         super(prefixes)
-        this.node = html`<div class="${className} hidden">
+        this.node = html`
+            <div class="${className} hidden">
                 <div class="sectionHeader">${title || className}</div>
-            </div>`
+            </div>
+        `
         this.node.appendChild(this.optionContainer)
         this.state = "hidden"
     }

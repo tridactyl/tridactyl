@@ -2890,7 +2890,12 @@ export function comclear(name: string) {
 
 /** @hidden */
 //#background_helper
-type bind_args = { mode: string; configName: string; key: string; excmd: string }
+interface bind_args {
+    mode: string
+    configName: string
+    key: string
+    excmd: string
+}
 
 /** @hidden */
 //#background_helper
