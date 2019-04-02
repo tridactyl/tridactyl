@@ -48,6 +48,11 @@ export class FindCompletionSource extends Completions.CompletionSourceFuse {
         }
     }
 
+    //  Overriding this function is important, the default one has a tendency to hide options when you don't expect it
+    setStateFromScore(scoredOpts, autoselect) {
+        this.options.forEach(o => (o.state = "normal"))
+    }
+
     private async updateOptions(exstr?: string) {
         if (!exstr) return
 
@@ -109,10 +114,5 @@ export class FindCompletionSource extends Completions.CompletionSourceFuse {
                 this.updateChain(exstr, this.options)
             }
         }
-    }
-
-    //  Overriding this function is important, the default one has a tendency to hide options when you don't expect it
-    setStateFromScore(scoredOpts, autoselect) {
-        this.options.forEach(o => (o.state = "normal"))
     }
 }

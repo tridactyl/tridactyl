@@ -82,6 +82,16 @@ export class BmarkCompletionSource extends Completions.CompletionSourceFuse {
 
     onInput() {}
 
+    select(option: Completions.CompletionOption) {
+        if (this.lastExstr !== undefined && option !== undefined) {
+            this.completion = "bmarks " + option.value
+            option.state = "focused"
+            this.lastFocused = option
+        } else {
+            throw new Error("lastExstr and option must be defined!")
+        }
+    }
+
     private async scoreOptions(query: string, n: number) {
         // Search bookmarks, dedupe and sort by frecency
         let bookmarks = await browserBg.bookmarks.search({ query })
@@ -96,15 +106,5 @@ export class BmarkCompletionSource extends Completions.CompletionSourceFuse {
         bookmarks.sort((a, b) => b.dateAdded - a.dateAdded)
 
         return bookmarks.slice(0, n)
-    }
-
-    select(option: Completions.CompletionOption) {
-        if (this.lastExstr !== undefined && option !== undefined) {
-            this.completion = "bmarks " + option.value
-            option.state = "focused"
-            this.lastFocused = option
-        } else {
-            throw new Error("lastExstr and option must be defined!")
-        }
     }
 }

@@ -45,6 +45,16 @@ export class ExcmdCompletionSource extends Completions.CompletionSourceFuse {
         this.updateDisplay()
     }
 
+    select(option: ExcmdCompletionOption) {
+        this.completion = option.value
+        option.state = "focused"
+        this.lastFocused = option
+    }
+
+    setStateFromScore(scoredOpts: Completions.ScoredOption[]) {
+        super.setStateFromScore(scoredOpts, false)
+    }
+
     private async updateOptions(exstr = "") {
         this.lastExstr = exstr
 
@@ -101,15 +111,5 @@ export class ExcmdCompletionSource extends Completions.CompletionSourceFuse {
         //     // Finally, sort by history position
         //     return posa < posb ? -1 : 1
         // })
-    }
-
-    select(option: ExcmdCompletionOption) {
-        this.completion = option.value
-        option.state = "focused"
-        this.lastFocused = option
-    }
-
-    setStateFromScore(scoredOpts: Completions.ScoredOption[]) {
-        super.setStateFromScore(scoredOpts, false)
     }
 }

@@ -13,7 +13,6 @@
     "max-line-length": false,
     "max-union-size": false,
     "member-access": false,
-    "member-ordering": false,
     "missing-whitespace": false,
     "no-angle-bracket-type-assertion": false,
     "no-array-delete": false,

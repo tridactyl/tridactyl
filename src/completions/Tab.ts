@@ -70,6 +70,60 @@ export class BufferCompletionSource extends Completions.CompletionSourceFuse {
         this._parent.appendChild(this.node)
     }
 
+    async onInput(exstr) {
+        // Schedule an update, if you like. Not very useful for tabs, but
+        // will be for other things.
+        return this.updateOptions(exstr)
+    }
+
+    async filter(exstr) {
+        this.lastExstr = exstr
+        return this.onInput(exstr)
+    }
+
+    setStateFromScore(scoredOpts: Completions.ScoredOption[]) {
+        super.setStateFromScore(scoredOpts, this.shouldSetStateFromScore)
+    }
+
+    /** Score with fuse unless query is a single # or looks like a tab index */
+    scoredOptions(
+        query: string,
+        options = this.options,
+    ): Completions.ScoredOption[] {
+        const args = query.trim().split(/\s+/gu)
+        if (args.length === 1) {
+            // if query is an integer n and |n| < options.length
+            if (Number.isInteger(Number(args[0]))) {
+                let index = Number(args[0]) - 1
+                if (Math.abs(index) < options.length) {
+                    index = index.mod(options.length)
+                    return [
+                        {
+                            index,
+                            option: options[index],
+                            score: 0,
+                        },
+                    ]
+                }
+            } else if (args[0] === "#") {
+                for (const [index, option] of enumerate(options)) {
+                    if (option.isAlternative) {
+                        return [
+                            {
+                                index,
+                                option,
+                                score: 0,
+                            },
+                        ]
+                    }
+                }
+            }
+        }
+
+        // If not yet returned...
+        return super.scoredOptions(query, options)
+    }
+
     @Perf.measuredAsync
     private async updateOptions(exstr = "") {
         this.lastExstr = exstr
@@ -124,59 +178,5 @@ export class BufferCompletionSource extends Completions.CompletionSourceFuse {
             this.options.forEach(option => (option.state = "normal"))
         }
         return this.updateDisplay()
-    }
-
-    async onInput(exstr) {
-        // Schedule an update, if you like. Not very useful for tabs, but
-        // will be for other things.
-        return this.updateOptions(exstr)
-    }
-
-    async filter(exstr) {
-        this.lastExstr = exstr
-        return this.onInput(exstr)
-    }
-
-    setStateFromScore(scoredOpts: Completions.ScoredOption[]) {
-        super.setStateFromScore(scoredOpts, this.shouldSetStateFromScore)
-    }
-
-    /** Score with fuse unless query is a single # or looks like a tab index */
-    scoredOptions(
-        query: string,
-        options = this.options,
-    ): Completions.ScoredOption[] {
-        const args = query.trim().split(/\s+/gu)
-        if (args.length === 1) {
-            // if query is an integer n and |n| < options.length
-            if (Number.isInteger(Number(args[0]))) {
-                let index = Number(args[0]) - 1
-                if (Math.abs(index) < options.length) {
-                    index = index.mod(options.length)
-                    return [
-                        {
-                            index,
-                            option: options[index],
-                            score: 0,
-                        },
-                    ]
-                }
-            } else if (args[0] === "#") {
-                for (const [index, option] of enumerate(options)) {
-                    if (option.isAlternative) {
-                        return [
-                            {
-                                index,
-                                option,
-                                score: 0,
-                            },
-                        ]
-                    }
-                }
-            }
-        }
-
-        // If not yet returned...
-        return super.scoredOptions(query, options)
     }
 }
