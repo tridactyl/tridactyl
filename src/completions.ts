@@ -37,6 +37,8 @@ export abstract class CompletionSource {
     public completion: string
     protected prefixes: string[] = []
     protected lastFocused: CompletionOption
+    private _state: OptionState
+    private _prevState: OptionState
 
     constructor(prefixes) {
         let commands = aliases.getCmdAliasMapping()
@@ -56,9 +58,6 @@ export abstract class CompletionSource {
 
     /** Update [[node]] to display completions relevant to exstr */
     public abstract filter(exstr: string): Promise<void>
-
-    private _state: OptionState
-    private _prevState: OptionState
 
     /** Control presentation of Source */
     set state(newstate: OptionState) {
@@ -135,7 +134,7 @@ export interface CompletionOptionFuse extends CompletionOptionHTML {
     fuseKeys: any[]
 }
 
-export type ScoredOption = {
+export interface ScoredOption {
     index: number
     option: CompletionOptionFuse
     score: number
@@ -144,6 +143,18 @@ export type ScoredOption = {
 export abstract class CompletionSourceFuse extends CompletionSource {
     public node
     public options: CompletionOptionFuse[]
+
+    fuseOptions: Fuse.FuseOptions<any> = {
+        keys: ["fuseKeys"],
+        shouldSort: true,
+        id: "index",
+        includeScore: true,
+    }
+
+    // PERF: Could be expensive not to cache Fuse()
+    // yeah, it was.
+    fuse = undefined
+
     protected lastExstr: string
 
     protected optionContainer = html`<table class="optionContainer"></table>`
@@ -221,17 +232,6 @@ export abstract class CompletionSourceFuse extends CompletionSource {
         }
         return [undefined, undefined]
     }
-
-    fuseOptions: Fuse.FuseOptions<any> = {
-        keys: ["fuseKeys"],
-        shouldSort: true,
-        id: "index",
-        includeScore: true,
-    }
-
-    // PERF: Could be expensive not to cache Fuse()
-    // yeah, it was.
-    fuse = undefined
 
     /** Rtn sorted array of {option, score} */
     scoredOptions(query: string, options = this.options): ScoredOption[] {

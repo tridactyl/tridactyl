@@ -55,7 +55,7 @@ async function addSetting(settingName: string) {
 
     let settings = await config.getAsync(settingName)
     // For each setting
-    for (let setting in settings) {
+    for (let setting of Object.keys(settings)) {
         let excmd = settings[setting].split(" ")
         // How can we automatically detect what commands can be skipped?
         excmd = ["composite", "fillcmdline", "current_url"].includes(excmd[0])

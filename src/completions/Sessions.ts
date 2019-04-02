@@ -73,6 +73,10 @@ export class SessionsCompletionSource extends Completions.CompletionSourceFuse {
         this._parent.appendChild(this.node)
     }
 
+    async onInput(exstr) {
+        return this.updateOptions(exstr)
+    }
+
     private async updateOptions(exstr = "") {
         this.lastExstr = exstr
         let [prefix, query] = this.splitOnPrefix(exstr)
@@ -90,9 +94,5 @@ export class SessionsCompletionSource extends Completions.CompletionSourceFuse {
 
         const sessions = await browserBg.sessions.getRecentlyClosed()
         this.options = sessions.map(s => new SessionCompletionOption(s))
-    }
-
-    async onInput(exstr) {
-        return this.updateOptions(exstr)
     }
 }

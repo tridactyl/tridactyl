@@ -35,6 +35,17 @@ export class WindowCompletionSource extends Completions.CompletionSourceFuse {
         this._parent.appendChild(this.node)
     }
 
+    async onInput(exstr) {
+        // Schedule an update, if you like. Not very useful for windows, but
+        // will be for other things.
+        return this.updateOptions(exstr)
+    }
+
+    async filter(exstr) {
+        this.lastExstr = exstr
+        return this.onInput(exstr)
+    }
+
     private async updateOptions(exstr = "") {
         this.lastExstr = exstr
         let [prefix, query] = this.splitOnPrefix(exstr)
@@ -58,16 +69,5 @@ export class WindowCompletionSource extends Completions.CompletionSourceFuse {
             },
         )
         return this.updateDisplay()
-    }
-
-    async onInput(exstr) {
-        // Schedule an update, if you like. Not very useful for windows, but
-        // will be for other things.
-        return this.updateOptions(exstr)
-    }
-
-    async filter(exstr) {
-        this.lastExstr = exstr
-        return this.onInput(exstr)
     }
 }

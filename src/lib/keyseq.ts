@@ -28,7 +28,7 @@ const bracketexpr_parser = new Parser(bracketexpr_grammar)
 
 // {{{ General types
 
-export type KeyModifiers = {
+export interface KeyModifiers {
     altKey?: boolean
     ctrlKey?: boolean
     metaKey?: boolean
@@ -42,8 +42,10 @@ export class MinimalKey {
     readonly shiftKey = false
 
     constructor(readonly key: string, modifiers?: KeyModifiers) {
-        for (let mod in modifiers) {
-            this[mod] = modifiers[mod]
+        if (modifiers !== undefined) {
+            for (let mod of Object.keys(modifiers)) {
+                this[mod] = modifiers[mod]
+            }
         }
     }
 
@@ -104,7 +106,7 @@ type KeyEventLike = MinimalKey | KeyboardEvent
 type MapTarget = string | ((...args: any[]) => any)
 type KeyMap = Map<MinimalKey[], MapTarget>
 
-export type ParserResponse = {
+export interface ParserResponse {
     keys?: KeyEventLike[]
     value?: any
     exstr?: any

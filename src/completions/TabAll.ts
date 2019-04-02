@@ -54,6 +54,10 @@ export class TabAllCompletionSource extends Completions.CompletionSourceFuse {
         return this.updateOptions(exstr)
     }
 
+    setStateFromScore(scoredOpts: Completions.ScoredOption[]) {
+        super.setStateFromScore(scoredOpts, true)
+    }
+
     /**
      * Map all windows into a {[windowId]: window} object
      */
@@ -114,9 +118,5 @@ export class TabAllCompletionSource extends Completions.CompletionSourceFuse {
         this.completion = undefined
         this.options = options
         return this.updateChain()
-    }
-
-    setStateFromScore(scoredOpts: Completions.ScoredOption[]) {
-        super.setStateFromScore(scoredOpts, true)
     }
 }

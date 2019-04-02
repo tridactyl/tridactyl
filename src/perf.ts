@@ -199,6 +199,43 @@ export class StatsLogger {
 
     constructor() {}
 
+    /**
+     * Target for receiving stats entries from other threads - there
+     * was some issue with encoding that I couldn't figure out so I
+     * just kludged it.
+     */
+    public receiveStatsJson(entriesJson: string) {
+        this.pushList(JSON.parse(entriesJson) as PerformanceEntry[])
+    }
+
+    /**
+     * Ingests the given performance entries into the buffer.
+     */
+    public pushList(entries: PerformanceEntry[]) {
+        for (const entry of entries) {
+            this.pushEntry(entry)
+        }
+    }
+
+    /**
+     * Returns only entries that match _all_ of the given filter
+     * configs.
+     */
+    public getEntries(...filterConfigs: StatsFilterConfig[]) {
+        // Explicit stream fusion, wheeeee.
+        //
+        // Well, sort of. We're not fusing all the way up to the regex
+        // match, so that's a ton of duplicated work. Not that it
+        // matters, since this should only ever be invoked when a
+        // developer asks for data.
+        const filters: StatsFilter[] = filterConfigs.map(
+            fc => new StatsFilter(fc),
+        )
+        const filterFun: (input: PerformanceEntry) => boolean = e =>
+            filters.every(f => f.matches(e))
+        return this.buffer.filter(filterFun)
+    }
+
     private updateBuffersize() {
         // Changing the buffer length while this is running will
         // probably result in weirdness, but that shouldn't be a major
@@ -224,28 +261,6 @@ export class StatsLogger {
         }
     }
 
-    private incrementIdx() {
-        this.idx = (this.idx + 1) % this.buffersize
-    }
-
-    /**
-     * Target for receiving stats entries from other threads - there
-     * was some issue with encoding that I couldn't figure out so I
-     * just kludged it.
-     */
-    public receiveStatsJson(entriesJson: string) {
-        this.pushList(JSON.parse(entriesJson) as PerformanceEntry[])
-    }
-
-    /**
-     * Ingests the given performance entries into the buffer.
-     */
-    public pushList(entries: PerformanceEntry[]) {
-        for (const entry of entries) {
-            this.pushEntry(entry)
-        }
-    }
-
     private pushEntry(entry: PerformanceEntry) {
         logger.debug(
             "Pushing performance entry %o into performance counters",
@@ -263,24 +278,10 @@ export class StatsLogger {
         this.incrementIdx()
     }
 
-    /**
-     * Returns only entries that match _all_ of the given filter
-     * configs.
-     */
-    public getEntries(...filterConfigs: StatsFilterConfig[]) {
-        // Explicit stream fusion, wheeeee.
-        //
-        // Well, sort of. We're not fusing all the way up to the regex
-        // match, so that's a ton of duplicated work. Not that it
-        // matters, since this should only ever be invoked when a
-        // developer asks for data.
-        const filters: StatsFilter[] = filterConfigs.map(
-            fc => new StatsFilter(fc),
-        )
-        const filterFun: (input: PerformanceEntry) => boolean = e =>
-            filters.every(f => f.matches(e))
-        return this.buffer.filter(filterFun)
+    private incrementIdx() {
+        this.idx = (this.idx + 1) % this.buffersize
     }
+
 }
 
 /**

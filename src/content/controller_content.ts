@@ -62,6 +62,14 @@ class KeyCanceller {
         this.keyUp.push(ke)
     }
 
+    cancelKeyPress(ke: KeyboardEvent) {
+        this.cancelKey(ke, this.keyPress)
+    }
+
+    cancelKeyUp(ke: KeyboardEvent) {
+        this.cancelKey(ke, this.keyUp)
+    }
+
     private cancelKey(ke: KeyboardEvent, kes: KeyboardEvent[]) {
         let index = kes.findIndex(
             ke2 =>
@@ -78,14 +86,6 @@ class KeyCanceller {
             ke.stopImmediatePropagation()
             kes.splice(index, 1)
         }
-    }
-
-    cancelKeyPress(ke: KeyboardEvent) {
-        this.cancelKey(ke, this.keyPress)
-    }
-
-    cancelKeyUp(ke: KeyboardEvent) {
-        this.cancelKey(ke, this.keyUp)
     }
 }
 

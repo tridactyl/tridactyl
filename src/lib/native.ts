@@ -410,7 +410,7 @@ export function parseProfilesIni(content: string, basePath: string) {
             result[current][match[1]] = match[2]
         }
     }
-    for (let profileName in result) {
+    for (let profileName of Object.keys(result)) {
         let profile = result[profileName]
         // profile.IsRelative can be 0, 1 or undefined
         if (profile.IsRelative == 1) {
@@ -456,7 +456,7 @@ export async function getProfile() {
 
     // First, try to see if the 'profiledir' setting matches a profile in profile.ini
     if (curProfileDir != "auto") {
-        for (let profileName in iniObject) {
+        for (let profileName of Object.keys(iniObject)) {
             let profile = iniObject[profileName]
             if (profile.absolutePath == curProfileDir) {
                 return profile
@@ -472,7 +472,7 @@ export async function getProfile() {
     const profile = cmdline.indexOf("--profile")
     if (profile >= 0 && profile < cmdline.length - 1) {
         const profilePath = cmdline[profile + 1]
-        for (let profileName in iniObject) {
+        for (let profileName of Object.keys(iniObject)) {
             let profile = iniObject[profileName]
             if (profile.absolutePath == profilePath) {
                 return profile
@@ -488,7 +488,7 @@ export async function getProfile() {
     if (p == -1) p = cmdline.indexOf("-P")
     if (p >= 0 && p < cmdline.length - 1) {
         const pName = cmdline[p + 1]
-        for (let profileName in iniObject) {
+        for (let profileName of Object.keys(iniObject)) {
             let profile = iniObject[profileName]
             if (profile.Name == pName) {
                 return profile
@@ -515,7 +515,7 @@ export async function getProfile() {
                 .split("/")
                 .slice(0, -1)
                 .join("/")
-            for (let profileName in iniObject) {
+            for (let profileName of Object.keys(iniObject)) {
                 let profile = iniObject[profileName]
                 if (profile.absolutePath == path) {
                     return profile
@@ -528,7 +528,7 @@ export async function getProfile() {
     }
 
     // Multiple profiles used but no -p or --profile, this means that we're using the default profile
-    for (let profileName in iniObject) {
+    for (let profileName of Object.keys(iniObject)) {
         let profile = iniObject[profileName]
         if (profile.Default == 1) {
             return profile

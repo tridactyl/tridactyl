@@ -47,7 +47,7 @@ export function getCmdAliasMapping(
     let commands = {}
     // aliases look like this: {alias: command} but what we really need is this: {command: [alias1, alias2...]}
     // This is what this loop builds
-    for (let alias in aliases) {
+    for (let alias of Object.keys(aliases)) {
         let cmd = expandExstr(alias, aliases).trim()
         if (!commands[cmd]) commands[cmd] = []
         commands[cmd].push(alias.trim())

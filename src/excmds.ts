@@ -1102,7 +1102,7 @@ export async function url2args() {
     let searchurls = await config.getAsync("searchurls")
     let result = url
 
-    for (let engine in searchurls) {
+    for (let engine of Object.keys(searchurls)) {
         let [beginning, end] = [...searchurls[engine].split("%s"), ""]
         if (url.startsWith(beginning) && url.endsWith(end)) {
             // Get the string matching %s
@@ -2637,14 +2637,14 @@ import * as tri_editor from "@src/lib/editor"
 
 //#content_helper
 // {
-for (let editorfn in tri_editor) {
+for (let editorfn of Object.keys(tri_editor)) {
     // Re-expose every editor function as a text.$fn excmd that will forward the call to $fn to the commandline frame if it is selected or apply $fn to the last used input if it isn't
     SELF["text." + editorfn] = arg => {
         if ((document.activeElement as any).src === browser.extension.getURL("static/commandline.html")) return Messaging.messageOwnTab("commandline_frame", "editor_function", [editorfn].concat(arg))
         return tri_editor[editorfn](DOM.getLastUsedInput(), arg)
     }
 }
-for (let fn in cmdframe_fns) {
+for (let fn of Object.keys(cmdframe_fns)) {
     SELF["ex." + fn] = (...args) => (Messaging.messageOwnTab as any)("commandline_frame", cmdframe_fns[fn][0], cmdframe_fns[fn][1].concat(args))
 }
 
@@ -2652,12 +2652,12 @@ for (let fn in cmdframe_fns) {
 
 //#background_helper
 // {
-for (let editorfn in tri_editor) {
+for (let editorfn of Object.keys(tri_editor)) {
     let name = "text." + editorfn
     cmd_params.set(name, new Map([["arr", "string[]"]]))
     BGSELF[name] = (...args) => messageActiveTab("excmd_content", name, args)
 }
-for (let fn in cmdframe_fns) {
+for (let fn of Object.keys(cmdframe_fns)) {
     cmd_params.set("ex." + fn, new Map(cmdframe_fns[fn][1].map((a, i) => [`${i}`, typeof a] as [string, string])))
     BGSELF["ex." + fn] = (...args) => messageActiveTab("commandline_frame", cmdframe_fns[fn][0], cmdframe_fns[fn][1].concat(args))
 }
@@ -2890,7 +2890,12 @@ export function comclear(name: string) {
 
 /** @hidden */
 //#background_helper
-type bind_args = { mode: string; configName: string; key: string; excmd: string }
+interface bind_args {
+    mode: string
+    configName: string
+    key: string
+    excmd: string
+}
 
 /** @hidden */
 //#background_helper
