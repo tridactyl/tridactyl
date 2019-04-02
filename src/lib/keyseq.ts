@@ -42,7 +42,7 @@ export class MinimalKey {
     readonly shiftKey = false
 
     constructor(readonly key: string, modifiers?: KeyModifiers) {
-        for (let mod in modifiers) {
+        for (let mod of Object.keys(modifiers)) {
             this[mod] = modifiers[mod]
         }
     }
