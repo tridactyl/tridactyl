@@ -494,7 +494,6 @@ export function focus(e: HTMLElement): void {
 
 /** DOM reference to the last used Input field
  */
-//#content_helper
 let LAST_USED_INPUT: HTMLElement = null
 
 export function getLastUsedInput(): HTMLElement {

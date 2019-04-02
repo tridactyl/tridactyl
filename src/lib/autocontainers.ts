@@ -108,7 +108,7 @@ export class AutoContain implements IAutoContain {
         return { cancel: true }
     }
 
-    //Handles the requests after the initial checks made in this.autoContain.
+    // Handles the requests after the initial checks made in this.autoContain.
     cancelEarly = (tab: browser.tabs.Tab, details: IDetails): boolean => {
         if (!this.cancelledRequests[tab.id]) {
             this.cancelRequest(tab, details)

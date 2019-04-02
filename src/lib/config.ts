@@ -223,7 +223,7 @@ class default_config {
         // "?": "fillcmdline find -?",
         // n: "findnext 1",
         // N: "findnext -1",
-        //",<Space>": "nohlsearch",
+        // ",<Space>": "nohlsearch",
         M: "gobble 1 quickmark",
         B: "fillcmdline taball",
         b: "fillcmdline tab",
@@ -406,8 +406,8 @@ class default_config {
      * Each key corresponds to a URL fragment which, if contained within the page URL, the site will be opened in a container tab instead.
      */
     autocontain = o({
-        //"github.com": "microsoft",
-        //"youtube.com": "google",
+        // "github.com": "microsoft",
+        // "youtube.com": "google",
     })
 
     /**

@@ -9,7 +9,7 @@ const logger = new Logger("requests")
 
 class DefaultMap extends Map {
     constructor(private defaultFactory, ...args) {
-        //super(...args)
+        // super(...args)
         super()
     }
 
