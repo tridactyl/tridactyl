@@ -144,9 +144,7 @@ export function* elementsByXPath(xpath, parent?) {
 }
 
 /** Type for functions that can filter element arrays */
-interface ElementFilter {
-    (element: Element): boolean
-}
+type ElementFilter = (element: Element) => boolean
 
 /** Is the element of "substantial" size and shown on the page. The element
  * doesn't need to be in the viewport. This is useful when you want to
@@ -323,10 +321,7 @@ export function getSelector(e: HTMLElement) {
  * @param filters     filter to use (in thre given order) to further chose
  *                    items, or [] for all
  */
-export function getElemsBySelector(
-    selector: string,
-    filters: ElementFilter[],
-) {
+export function getElemsBySelector(selector: string, filters: ElementFilter[]) {
     let elems = Array.from(document.querySelectorAll(selector))
     let frameElems = getAllDocumentFrames().reduce((acc, frame) => {
         let newElems = []
@@ -499,7 +494,6 @@ export function focus(e: HTMLElement): void {
 
 /** DOM reference to the last used Input field
  */
-//#content_helper
 let LAST_USED_INPUT: HTMLElement = null
 
 export function getLastUsedInput(): HTMLElement {

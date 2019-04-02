@@ -90,7 +90,7 @@ export function getUrlParent(url, count = 1) {
 
             // more than domain + TLD
             if (domains.length > 2) {
-                //domains.pop()
+                // domains.pop()
                 parent.host = domains.slice(1).join(".")
                 return gup(parent, count - 1)
             }
@@ -368,14 +368,16 @@ export function interpolateSearchItem(urlPattern: URL, query: string): URL {
 
     // replace or append as needed
     if (hasInterpolationPoint) {
-        let resultingURL = new URL (urlPattern.href.replace(/%s\d+/g, function(x) {
-            const index = parseInt(x.slice(2)) - 1
-            if (index >= queryWords.length) {
-                return ""
-            }
+        let resultingURL = new URL(
+            urlPattern.href.replace(/%s\d+/g, function(x) {
+                const index = parseInt(x.slice(2)) - 1
+                if (index >= queryWords.length) {
+                    return ""
+                }
 
-            return queryWords[index]
-        }))
+                return queryWords[index]
+            }),
+        )
 
         return new URL(resultingURL.href.replace("%s", query))
     } else {

@@ -1,4 +1,4 @@
-import { browserBg, activeTabId, ownTabId } from "@src/lib/webext"
+import { browserBg, activeTabId, ownTabId, getContext } from "@src/lib/webext"
 import Logger from "@src/lib/logging"
 const logger = new Logger("messaging")
 
@@ -67,7 +67,6 @@ export async function message(type: NonTabMessageType, command, args?) {
 }
 
 /** Message the active tab of the currentWindow */
-//#background_helper
 export async function messageActiveTab(
     type: TabMessageType,
     command: string,
@@ -85,9 +84,7 @@ export async function messageTab(tabId, type: TabMessageType, command, args?) {
     return browserBg.tabs.sendMessage(tabId, message)
 }
 
-//#content_helper
 let _ownTabId = undefined
-//#content_helper
 export async function messageOwnTab(type: TabMessageType, command, args?) {
     if (_ownTabId === undefined) {
         _ownTabId = await ownTabId()
@@ -126,14 +123,18 @@ export function addListener(type: MessageType, callback: listener) {
     }
 }
 
-// Warning: lib/webext.ts:ownTab() relies on this listener being added in order to work
-//#content_helper
-addListener("owntab_background", (message, sender, sendResponse) => {
-    let x = Object.assign(Object.create(null), sender.tab)
-    x.mutedInfo = Object.assign(Object.create(null), sender.tab.mutedInfo)
-    x.sharingState = Object.assign(Object.create(null), sender.tab.sharingState)
-    sendResponse(new Promise(r => r(x)))
-})
+if (getContext() == "background") {
+    // Warning: lib/webext.ts:ownTab() relies on this listener being added in order to work
+    addListener("owntab_background", (message, sender, sendResponse) => {
+        let x = Object.assign(Object.create(null), sender.tab)
+        x.mutedInfo = Object.assign(Object.create(null), sender.tab.mutedInfo)
+        x.sharingState = Object.assign(
+            Object.create(null),
+            sender.tab.sharingState,
+        )
+        sendResponse(new Promise(r => r(x)))
+    })
+}
 
 /** Recv a message from runtime.onMessage and send to all listeners */
 function onMessage(message, sender, sendResponse) {

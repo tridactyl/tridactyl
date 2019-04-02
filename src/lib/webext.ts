@@ -40,7 +40,6 @@ if (inContentScript()) {
  * TODO: Highlander theory: Can there ever be more than one?
  *
  */
-//#background_helper
 export async function activeTab() {
     return (await browserBg.tabs.query({
         active: true,
@@ -48,33 +47,27 @@ export async function activeTab() {
     }))[0]
 }
 
-//#background_helper
 export async function activeTabId() {
     return (await activeTab()).id
 }
 
-//#background_helper
 export async function activeTabContainerId() {
     return (await activeTab()).cookieStoreId
 }
 
-//#content_helper
 export async function ownTab() {
     // Warning: this relies on the owntab_background listener being set in messaging.ts in order to work
     return browser.runtime.sendMessage({ type: "owntab_background" })
 }
 
-//#content_helper
 export async function ownTabId() {
     return (await ownTab()).id
 }
 
-//#content_helper
 export async function ownTabContainer() {
     return browserBg.contextualIdentities.get((await ownTab()).cookieStoreId)
 }
 
-//#background_helper
 export async function activeTabContainer() {
     let containerId = await activeTabContainerId()
     if (containerId !== "firefox-default")
