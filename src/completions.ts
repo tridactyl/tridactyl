@@ -157,17 +157,13 @@ export abstract class CompletionSourceFuse extends CompletionSource {
 
     protected lastExstr: string
 
-    protected optionContainer = html`
-        <table class="optionContainer"></table>
-    `
+    protected optionContainer = html`<table class="optionContainer"></table>`
 
     constructor(prefixes, className: string, title?: string) {
         super(prefixes)
-        this.node = html`
-            <div class="${className} hidden">
+        this.node = html`<div class="${className} hidden">
                 <div class="sectionHeader">${title || className}</div>
-            </div>
-        `
+            </div>`
         this.node.appendChild(this.optionContainer)
         this.state = "hidden"
     }
