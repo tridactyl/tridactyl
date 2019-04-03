@@ -23,8 +23,6 @@
     "no-eval": false,
     "no-extra-semicolon": false,
     "no-identical-functions": false,
-    "no-ignored-return": false,
-    "no-map-without-using": false,
     "no-misleading-array-reverse": false,
     "no-self-assignment": false,
     "no-shadowed-variable": false,

@@ -991,7 +991,7 @@ export function back(n = 1) {
 export async function reload(n = 1, hard = false) {
     let tabstoreload = await getnexttabs(await activeTabId(), n)
     let reloadProperties = { bypassCache: hard }
-    tabstoreload.map(n => browser.tabs.reload(n, reloadProperties))
+    tabstoreload.forEach(n => browser.tabs.reload(n, reloadProperties))
 }
 
 /** Reloads all tabs, bypassing the cache if hard is set to true */
@@ -999,7 +999,7 @@ export async function reload(n = 1, hard = false) {
 export async function reloadall(hard = false) {
     let tabs = await browser.tabs.query({ currentWindow: true })
     let reloadprops = { bypassCache: hard }
-    tabs.map(tab => browser.tabs.reload(tab.id, reloadprops))
+    tabs.forEach(tab => browser.tabs.reload(tab.id, reloadprops))
 }
 
 /** Reloads all tabs except the current one, bypassing the cache if hard is set to true */
@@ -1009,7 +1009,7 @@ export async function reloadallbut(hard = false) {
     let currId = await activeTabId()
     tabs = tabs.filter(tab => tab.id != currId)
     let reloadprops = { bypassCache: hard }
-    tabs.map(tab => browser.tabs.reload(tab.id, reloadprops))
+    tabs.forEach(tab => browser.tabs.reload(tab.id, reloadprops))
 }
 
 /** Reload the next n tabs, starting with activeTab. bypass cache for all */
@@ -2330,7 +2330,7 @@ export async function winclose(...ids: string[]) {
 //#background
 export async function qall() {
     let windows = await browser.windows.getAll()
-    windows.map(window => browser.windows.remove(window.id))
+    windows.forEach(window => browser.windows.remove(window.id))
 }
 
 // }}}
@@ -3345,7 +3345,7 @@ export async function sanitise(...args: string[]) {
         // We bother checking if dts[x] is false because
         // browser.browsingData.remove() is very strict on the format of the
         // object it expects
-        args.map(x => {
+        args.forEach(x => {
             if (dts[x] === false) dts[x] = true
         })
     }
@@ -4011,7 +4011,7 @@ export async function bmark(url?: string, ...titlearr: string[]) {
     let title = titlearr.join(" ")
     // if titlearr is given and we have duplicates, we probably want to give an error here.
     const dupbmarks = await browser.bookmarks.search({ url })
-    dupbmarks.map(bookmark => browser.bookmarks.remove(bookmark.id))
+    dupbmarks.forEach(bookmark => browser.bookmarks.remove(bookmark.id))
     if (dupbmarks.length != 0) return
     const path = title.substring(0, title.lastIndexOf("/") + 1)
     // TODO: if title is blank, get it from the page.
