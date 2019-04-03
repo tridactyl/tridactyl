@@ -529,7 +529,7 @@ export async function nativeopen(...args: string[]) {
                 if ((await browser.runtime.getPlatformInfo()).os === "win") {
                     escapedUrl = `"${escapedUrl.replace(/\\/g, "\\\\").replace(/"/g, '\\"')}"`
                 } else {
-                    escapedUrl = `'${escapedUrl.replace(/'/g, `'"'"'`)}'`
+                    escapedUrl = `'${escapedUrl.replace(/'/g, '"\'"')}'`
                 }
                 await Native.run(`${config.get("browser")} ${firefoxArgs.join(" ")} ${escapedUrl}`)
             }

@@ -26,8 +26,6 @@
     "no-ignored-return": false,
     "no-map-without-using": false,
     "no-misleading-array-reverse": false,
-    "no-nested-template-literals": false,
-    "no-nexted-template-literals": false,
     "no-redundant-boolean": false,
     "no-redundant-jump": false,
     "no-self-assignment": false,
