@@ -607,7 +607,9 @@ export async function nativeinstall() {
 //#background
 export async function source(...fileArr: string[]) {
     const file = fileArr.join(" ") || undefined
-    if (await Native.nativegate("0.1.3")) if (!(await rc.source(file))) logger.error("Could not find RC file")
+    if (await Native.nativegate("0.1.3") && !(await rc.source(file))) {
+        logger.error("Could not find RC file")
+    }
 }
 
 /**
@@ -1263,11 +1265,9 @@ export async function help(...helpItems: string[]) {
 
     let flag = ""
 
-    if (helpItems.length > 0) {
-        if (Object.keys(flags).includes(helpItems[0])) {
-            flag = helpItems[0]
-            helpItems.splice(0, 1)
-        }
+    if (helpItems.length > 0 && Object.keys(flags).includes(helpItems[0])) {
+        flag = helpItems[0]
+        helpItems.splice(0, 1)
     }
 
     const subject = helpItems.join(" ")
@@ -1591,8 +1591,8 @@ export function geturlsforlinks(reltype = "rel", rel: string) {
 //#background
 export async function zoom(level = 0, rel = "false") {
     level = level > 3 ? level / 100 : level
-    if (rel === "false") {
-        if (level > 3 || level < 0.3) throw new Error(`[zoom] level out of range: ${level}`)
+    if (rel === "false" && (level > 3 || level < 0.3)) {
+        throw new Error(`[zoom] level out of range: ${level}`)
     }
     if (rel === "true") {
         level += await browser.tabs.getZoom()

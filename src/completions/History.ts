@@ -74,11 +74,9 @@ export class HistoryCompletionSource extends Completions.CompletionSourceFuse {
                 options = args.slice(0, 1).join(" ")
                 query = args.slice(1).join(" ")
             }
-        } else if (prefix == "winopen ") {
-            if (query.startsWith("-private")) {
-                options = "-private"
-                query = query.substring(options.length)
-            }
+        } else if (prefix == "winopen " && query.startsWith("-private")) {
+            options = "-private"
+            query = query.substring(options.length)
         }
         options += options ? " " : ""
 
