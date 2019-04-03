@@ -15,7 +15,6 @@
     "member-access": false,
     "no-array-delete": false,
     "no-big-function": false,
-    "no-bitwise": false,
     "no-collapsible-if": false,
     "no-commented-code": false,
     "no-conditional-assignment": false,
