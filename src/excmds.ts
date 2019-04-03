@@ -3909,22 +3909,13 @@ export async function ttsvoices() {
  */
 //#content
 export async function ttscontrol(action: string) {
-    let ttsAction: TTS.Action = null
-
-    // convert user input to TTS.Action
     // only pause seems to be working, so only provide access to that
     // to avoid exposing users to things that won't work
-    switch (action) {
-        case "stop":
-            ttsAction = "stop"
-            break
-    }
-
-    if (ttsAction) {
-        TTS.doAction(ttsAction)
-    } else {
+    if (action != "stop") {
         throw new Error("Unknown text-to-speech action: " + action)
     }
+
+    TTS.doAction(action as TTS.Action)
 }
 
 //}}}

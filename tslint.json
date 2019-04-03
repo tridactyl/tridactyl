@@ -28,7 +28,6 @@
     "no-misleading-array-reverse": false,
     "no-self-assignment": false,
     "no-shadowed-variable": false,
-    "no-small-switch": false,
     "no-string-literal": false,
     "no-string-throw": false,
     "no-trailing-whitespace": false,

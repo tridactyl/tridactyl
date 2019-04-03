@@ -178,12 +178,10 @@ function defaultHintFilter() {
 }
 
 function defaultHintChars() {
-    switch (config.get("hintnames")) {
-        case "numeric":
-            return "1234567890"
-        default:
-            return config.get("hintchars")
+    if (config.get("hintnames") == "numeric") {
+        return "1234567890"
     }
+    return config.get("hintchars")
 }
 
 /** An infinite stream of hints
