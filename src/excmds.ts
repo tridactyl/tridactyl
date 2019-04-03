@@ -1,5 +1,6 @@
 /* tslint:disable:array-type */
 /* tslint:disable:comment-format */
+/* tslint:disable:no-consecutive-blank-lines */
 // '//#' is a start point for a simple text-replacement-type macro. See excmds_macros.py
 
 /** # Tridactyl help page
@@ -607,7 +608,7 @@ export async function nativeinstall() {
 //#background
 export async function source(...fileArr: string[]) {
     const file = fileArr.join(" ") || undefined
-    if (await Native.nativegate("0.1.3") && !(await rc.source(file))) {
+    if ((await Native.nativegate("0.1.3")) && !(await rc.source(file))) {
         logger.error("Could not find RC file")
     }
 }
@@ -1757,7 +1758,7 @@ export function focusinput(nth: number | string) {
     // either a number (not special) or we failed to find a special input when
     // asked and falling back is acceptable
     if ((!inputToFocus || !document.contains(inputToFocus)) && fallbackToNumeric) {
-        let index = isNaN(nth as number) ? 0 : nth as number
+        let index = isNaN(nth as number) ? 0 : (nth as number)
         inputToFocus = DOM.getNthElement(INPUTTAGS_selectors, index, [DOM.isSubstantial])
     }
 
