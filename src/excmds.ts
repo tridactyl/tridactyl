@@ -1349,7 +1349,7 @@ export function snow_mouse_mode() {
 //#content_helper
 function findRelLink(pattern: RegExp): HTMLAnchorElement | null {
     // querySelectorAll returns a "non-live NodeList" which is just a shit array without working reverse() or find() calls, so convert it.
-    const links = Array.from(<NodeListOf<HTMLAnchorElement>>document.querySelectorAll("a[href]"))
+    const links = Array.from(document.querySelectorAll("a[href]") as NodeListOf<HTMLAnchorElement>)
 
     // Find the last link that matches the test
     return links.reverse().find(link => pattern.test(link.innerText))
@@ -1364,7 +1364,7 @@ function findRelLink(pattern: RegExp): HTMLAnchorElement | null {
 // Return the last element in the document matching the supplied selector,
 // or null if there are no matches.
 function selectLast(selector: string): HTMLElement | null {
-    const nodes = <NodeListOf<HTMLElement>>document.querySelectorAll(selector)
+    const nodes = document.querySelectorAll(selector) as NodeListOf<HTMLElement>
     return nodes.length ? nodes[nodes.length - 1] : null
 }
 
@@ -1386,14 +1386,14 @@ function selectLast(selector: string): HTMLElement | null {
 */
 //#content
 export function followpage(rel: "next" | "prev" = "next") {
-    const link = <HTMLLinkElement>selectLast(`link[rel~=${rel}][href]`)
+    const link = selectLast(`link[rel~=${rel}][href]`) as HTMLLinkElement
 
     if (link) {
         window.location.href = link.href
         return
     }
 
-    const anchor = <HTMLAnchorElement>selectLast(`a[rel~=${rel}][href]`) || findRelLink(new RegExp(config.get("followpagepatterns", rel), "i"))
+    const anchor = (selectLast(`a[rel~=${rel}][href]`) || findRelLink(new RegExp(config.get("followpagepatterns", rel), "i"))) as HTMLAnchorElement
 
     if (anchor) {
         DOM.mouseEvent(anchor, "click")
@@ -1746,7 +1746,7 @@ export function focusinput(nth: number | string) {
         let inputs = DOM.getElemsBySelector(INPUTPASSWORD_selectors, [DOM.isSubstantial])
 
         if (inputs.length) {
-            inputToFocus = <HTMLElement>inputs[0]
+            inputToFocus = inputs[0] as HTMLElement
         }
     } else if (nth === "-b") {
         let inputs = DOM.getElemsBySelector(INPUTTAGS_selectors, [DOM.isSubstantial]) as HTMLElement[]
@@ -1757,7 +1757,7 @@ export function focusinput(nth: number | string) {
     // either a number (not special) or we failed to find a special input when
     // asked and falling back is acceptable
     if ((!inputToFocus || !document.contains(inputToFocus)) && fallbackToNumeric) {
-        let index = isNaN(<number>nth) ? 0 : <number>nth
+        let index = isNaN(nth as number) ? 0 : nth as number
         inputToFocus = DOM.getNthElement(INPUTTAGS_selectors, index, [DOM.isSubstantial])
     }
 

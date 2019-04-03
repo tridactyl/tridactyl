@@ -277,9 +277,7 @@ export function isVisible(element: Element) {
  */
 export function getAllDocumentFrames(doc = document) {
     if (!(doc instanceof HTMLDocument)) return []
-    let frames = (<HTMLIFrameElement[] & HTMLFrameElement[]>(
-        Array.from(doc.getElementsByTagName("iframe"))
-    ))
+    let frames = (Array.from(doc.getElementsByTagName("iframe")) as HTMLIFrameElement[] & HTMLFrameElement[])
         .concat(Array.from(doc.getElementsByTagName("frame")))
         .filter(frame => !frame.src.startsWith("moz-extension://"))
     return frames.concat(
@@ -360,7 +358,7 @@ export function getNthElement(
             .clamp(-inputs.length, inputs.length - 1)
             .mod(inputs.length)
 
-        return <HTMLElement>inputs[index]
+        return inputs[index] as HTMLElement
     }
 
     return null
