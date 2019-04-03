@@ -108,7 +108,7 @@ export function hintPage(
     contentState.mode = "hint"
     modeState = new HintState(filterHints, resolve, reject, rapid)
 
-    if (rapid == false) {
+    if (!rapid) {
         buildHints(hintableElements, hint => {
             modeState.cleanUpHints()
             hint.result = onSelect(hint.target)

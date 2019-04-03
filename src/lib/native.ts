@@ -187,17 +187,18 @@ export async function nativegate(
     // desiredOS = ["mac", "win", "android", "cros", "linux", "openbsd"]
 ): Promise<boolean> {
     if (!desiredOS.includes((await browserBg.runtime.getPlatformInfo()).os)) {
-        if (interactive == true)
+        if (interactive) {
             logger.error(
                 "# Tridactyl's native messenger doesn't support your operating system, yet.",
             )
+        }
         return false
     }
     try {
         const actualVersion = await getNativeMessengerVersion()
         if (actualVersion !== undefined) {
             if (semverCompare(version, actualVersion) > 0) {
-                if (interactive == true)
+                if (interactive)
                     logger.error(
                         "# Please update to native messenger " +
                             version +
@@ -207,13 +208,13 @@ export async function nativegate(
                 return false
             }
             return true
-        } else if (interactive == true)
+        } else if (interactive)
             logger.error(
                 "# Native messenger not found. Please run `:installnative` and follow the instructions.",
             )
         return false
     } catch (e) {
-        if (interactive == true)
+        if (interactive)
             logger.error(
                 "# Native messenger not found. Please run `:installnative` and follow the instructions.",
             )

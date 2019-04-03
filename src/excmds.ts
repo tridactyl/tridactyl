@@ -4113,7 +4113,7 @@ export async function updatecheck(polite = false) {
             const today = new Date()
             // any here are to shut up TS - it doesn't think Dates have subtraction defined :S
             const days_since = ((today as any) - (releasedate as any)) / (1000 * 60 * 60 * 24)
-            if (polite == false || (days_since > config.get("updatenagwait") && semverCompare(latest, config.get("updatenaglastversion")) > 0)) {
+            if (!polite || (days_since > config.get("updatenagwait") && semverCompare(latest, config.get("updatenaglastversion")) > 0)) {
                 config.set("updatenaglastversion", latest)
                 fillcmdline_tmp(30000, "Tridactyl " + latest + " is available. Visit about:addons, right click Tridactyl, click 'Find Updates'. Restart Firefox once it has downloaded.")
             }
