@@ -18,8 +18,6 @@
     "no-commented-code": false,
     "no-conditional-assignment": false,
     "no-console": false,
-    "no-construct": false,
-    "no-dead-store": false,
     "no-duplicate-string": false,
     "no-empty": false,
     "no-eval": false,

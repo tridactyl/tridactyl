@@ -12,7 +12,7 @@ export function expandExstr(
     prevExpansions: string[] = [],
 ): string {
     // Split on whitespace
-    const [command, ...args] = exstr.trim().split(/\s+/)
+    const [command] = exstr.trim().split(/\s+/)
 
     // Base case: alias not found; return original command
     if (aliases[command] === undefined) {

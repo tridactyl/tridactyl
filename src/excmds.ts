@@ -1081,7 +1081,6 @@ export async function bmarks(opt: string, ...urlarr: string[]) {
 //#content
 export async function open_quiet(...urlarr: string[]) {
     let url = urlarr.join(" ")
-    let p = Promise.resolve()
 
     if (!ABOUT_WHITELIST.includes(url) && url.match(/^(about|file):.*/)) {
         return Messaging.message("controller_background", "acceptExCmd", ["nativeopen " + url])
@@ -3031,7 +3030,6 @@ export function searchsetkeyword() {
  */
 function validateSetArgs(key: string, values: string[]) {
     const target: any[] = key.split(".")
-    const last = target[target.length - 1]
 
     let value, file, default_config, md
     if ((file = Metadata.everything.getFile("src/lib/config.ts")) && (default_config = file.getClass("default_config")) && (md = default_config.getMember(target[0]))) {
@@ -3260,7 +3258,6 @@ export async function reset(mode: string, key: string) {
  */
 //#background
 export async function reseturl(pattern: string, mode: string, key: string) {
-    let args = parse_bind_args(mode, key)
     let args_obj = parse_bind_args(mode, key)
     return config.unsetURL(pattern, args_obj.configName, args_obj.key)
 }
@@ -3538,7 +3535,7 @@ import * as hinting from "@src/content/hinting"
           links in the main body changes).
 */
 //#content
-export async function hint(option?: string, selectors?: string, ...rest: string[]) {
+export async function hint(option?: string, selectors?: string, ...rest: string[]): Promise<any> {
     if (!option) option = ""
 
     if (option == "-br") option = "-qb"
@@ -3560,7 +3557,7 @@ export async function hint(option?: string, selectors?: string, ...rest: string[
         option = "-pipe"
     }
 
-    let selectHints = new Promise(r => r())
+    let selectHints
     let hintTabOpen = async (href, active = !rapid) => {
         let containerId = await activeTabContainerId()
         if (containerId) {
@@ -4067,6 +4064,7 @@ export async function echo(...str: string[]) {
 //#content
 export async function js(...str: string[]) {
     if (str[0].startsWith("-p")) {
+        /* tslint:disable:no-dead-store */
         let JS_ARG = str[str.length - 1]
         return eval(str.slice(1, -1).join(" "))
     } else {
@@ -4080,6 +4078,7 @@ export async function js(...str: string[]) {
 //#background
 export async function jsb(...str: string[]) {
     if (str[0].startsWith("-p")) {
+        /* tslint:disable:no-dead-store */
         let JS_ARG = str[str.length - 1]
         return eval(str.slice(1, -1).join(" "))
     } else {

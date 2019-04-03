@@ -275,7 +275,7 @@ export function replaceQueryValue(
     let qys = getUrlQueries(url)
 
     let new_qys = qys.map(q => {
-        let [key, oldVal] = q.split("=")
+        let [key] = q.split("=")
 
         // found a matching query key
         if (q.split("=")[0] === matchQuery) {

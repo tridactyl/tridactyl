@@ -17,13 +17,8 @@ class BmarkCompletionOption extends Completions.CompletionOptionHTML
         // Push properties we want to fuzmatch on
         this.fuseKeys.push(bmark.title, bmark.url)
 
-        // Create HTMLElement
-        // need to download favicon
-        const favIconUrl = Completions.DEFAULT_FAVICON
-        // const favIconUrl = tab.favIconUrl ? tab.favIconUrl : DEFAULT_FAVICON
         this.html = html`<tr class="BmarkCompletionOption option">
                 <td class="prefix">${"".padEnd(2)}</td>
-                <td class="icon"></td>
                 <td class="title">${bmark.title}</td>
                 <td class="content">
                     <a class="url" target="_blank" href=${bmark.url}

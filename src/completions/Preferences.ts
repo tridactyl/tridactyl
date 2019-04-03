@@ -33,7 +33,7 @@ export class PreferenceCompletionSource extends Completions.CompletionSourceFuse
             this.state = "hidden"
             return
         }
-        let [cmd, pref] = this.splitOnPrefix(exstr)
+        let pref = this.splitOnPrefix(exstr)[1]
         if (pref === undefined) {
             this.state = "hidden"
             return

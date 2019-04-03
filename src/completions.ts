@@ -214,7 +214,7 @@ export abstract class CompletionSourceFuse extends CompletionSource {
 
     select(option: CompletionOption) {
         if (this.lastExstr !== undefined && option !== undefined) {
-            const [prefix, _] = this.splitOnPrefix(this.lastExstr)
+            const [prefix] = this.splitOnPrefix(this.lastExstr)
             this.completion = prefix + option.value
             option.state = "focused"
             this.lastFocused = option
