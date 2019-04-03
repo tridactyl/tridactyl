@@ -26,7 +26,6 @@
     "no-ignored-return": false,
     "no-map-without-using": false,
     "no-misleading-array-reverse": false,
-    "no-redundant-jump": false,
     "no-self-assignment": false,
     "no-shadowed-variable": false,
     "no-small-switch": false,

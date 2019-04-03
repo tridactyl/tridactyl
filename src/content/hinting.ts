@@ -497,7 +497,7 @@ function reset() {
 /** If key is in hintchars, add it to filtstr and filter */
 function pushKey(ke) {
     if (ke.ctrlKey || ke.altKey || ke.metaKey) {
-        return
+        // Do nothing
     } else if (ke.key === "Backspace") {
         modeState.filter = modeState.filter.slice(0, -1)
         modeState.filterFunc(modeState.filter)
