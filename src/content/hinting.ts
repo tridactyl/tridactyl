@@ -134,7 +134,7 @@ export function hintPage(
             let different = modeState.hints.find(h => {
                 return (
                     !(h.target instanceof HTMLAnchorElement) ||
-                    h.target.href !== (<HTMLAnchorElement>firstTarget).href
+                    h.target.href !== (firstTarget as HTMLAnchorElement).href
                 )
             })
 
@@ -364,7 +364,7 @@ function elementFilterableText(el: Element): string {
     const nodename = el.nodeName.toLowerCase()
     let text: string
     if (nodename == "input") {
-        text = (<HTMLInputElement>el).value
+        text = (el as HTMLInputElement).value
     } else if (0 < el.textContent.length) {
         text = el.textContent
     } else if (el.hasAttribute("title")) {

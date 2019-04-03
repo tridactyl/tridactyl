@@ -13,7 +13,6 @@ class FindCompletionOption extends Completions.CompletionOptionHTML
             (reverse ? "-? " : "") + ("-: " + m.index) + " " + m.rangeData.text
         this.fuseKeys.push(m.rangeData.text)
 
-        let contextLength = 4
         // Create HTMLElement
         this.html = html`<tr class="FindCompletionOption option">
             <td class="content">${m.precontext}<span class="match">${

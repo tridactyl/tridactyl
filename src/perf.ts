@@ -393,7 +393,7 @@ const extractRegExp = new RegExp(
 function extractMetricName(counterName: string): MetricNameInfo {
     const matchresult = counterName.match(extractRegExp)
     if (!matchresult) return
-    const [_, ownerName, functionName, uniqueSuffix, startOrEnd] = matchresult
+    const [ownerName, functionName, uniqueSuffix] = matchresult.slice(1)
 
     return {
         ownerName,
@@ -408,7 +408,6 @@ class MetricName {
     public readonly endName: string
 
     constructor(ownerName: string, functionName: string) {
-        const counterName = ownerName
         const uniqueSuffix = Math.floor(
             Math.random() * Math.floor(1e6),
         ).toString()

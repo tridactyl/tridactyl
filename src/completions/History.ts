@@ -16,12 +16,8 @@ class HistoryCompletionOption extends Completions.CompletionOptionHTML
         this.fuseKeys.push(page.title, page.url) // weight by page.visitCount
 
         // Create HTMLElement
-        // need to download favicon
-        const favIconUrl = Completions.DEFAULT_FAVICON
-        // const favIconUrl = tab.favIconUrl ? tab.favIconUrl : DEFAULT_FAVICON
         this.html = html`<tr class="HistoryCompletionOption option">
                 <td class="prefix">${"".padEnd(2)}</td>
-                <td class="icon"></td>
                 <td class="title">${page.title}</td>
                 <td class="content">
                     <a class="url" target="_blank" href=${page.url}
@@ -74,11 +70,9 @@ export class HistoryCompletionSource extends Completions.CompletionSourceFuse {
                 options = args.slice(0, 1).join(" ")
                 query = args.slice(1).join(" ")
             }
-        } else if (prefix == "winopen ") {
-            if (query.startsWith("-private")) {
-                options = "-private"
-                query = query.substring(options.length)
-            }
+        } else if (prefix == "winopen " && query.startsWith("-private")) {
+            options = "-private"
+            query = query.substring(options.length)
         }
         options += options ? " " : ""
 

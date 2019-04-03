@@ -1,5 +1,6 @@
 /* tslint:disable:array-type */
 /* tslint:disable:comment-format */
+/* tslint:disable:no-consecutive-blank-lines */
 // '//#' is a start point for a simple text-replacement-type macro. See excmds_macros.py
 
 /** # Tridactyl help page
@@ -607,7 +608,9 @@ export async function nativeinstall() {
 //#background
 export async function source(...fileArr: string[]) {
     const file = fileArr.join(" ") || undefined
-    if (await Native.nativegate("0.1.3")) if (!(await rc.source(file))) logger.error("Could not find RC file")
+    if ((await Native.nativegate("0.1.3")) && !(await rc.source(file))) {
+        logger.error("Could not find RC file")
+    }
 }
 
 /**
@@ -1078,7 +1081,6 @@ export async function bmarks(opt: string, ...urlarr: string[]) {
 //#content
 export async function open_quiet(...urlarr: string[]) {
     let url = urlarr.join(" ")
-    let p = Promise.resolve()
 
     if (!ABOUT_WHITELIST.includes(url) && url.match(/^(about|file):.*/)) {
         return Messaging.message("controller_background", "acceptExCmd", ["nativeopen " + url])
@@ -1263,11 +1265,9 @@ export async function help(...helpItems: string[]) {
 
     let flag = ""
 
-    if (helpItems.length > 0) {
-        if (Object.keys(flags).includes(helpItems[0])) {
-            flag = helpItems[0]
-            helpItems.splice(0, 1)
-        }
+    if (helpItems.length > 0 && Object.keys(flags).includes(helpItems[0])) {
+        flag = helpItems[0]
+        helpItems.splice(0, 1)
     }
 
     const subject = helpItems.join(" ")
@@ -1349,7 +1349,7 @@ export function snow_mouse_mode() {
 //#content_helper
 function findRelLink(pattern: RegExp): HTMLAnchorElement | null {
     // querySelectorAll returns a "non-live NodeList" which is just a shit array without working reverse() or find() calls, so convert it.
-    const links = Array.from(<NodeListOf<HTMLAnchorElement>>document.querySelectorAll("a[href]"))
+    const links = Array.from(document.querySelectorAll("a[href]") as NodeListOf<HTMLAnchorElement>)
 
     // Find the last link that matches the test
     return links.reverse().find(link => pattern.test(link.innerText))
@@ -1364,7 +1364,7 @@ function findRelLink(pattern: RegExp): HTMLAnchorElement | null {
 // Return the last element in the document matching the supplied selector,
 // or null if there are no matches.
 function selectLast(selector: string): HTMLElement | null {
-    const nodes = <NodeListOf<HTMLElement>>document.querySelectorAll(selector)
+    const nodes = document.querySelectorAll(selector) as NodeListOf<HTMLElement>
     return nodes.length ? nodes[nodes.length - 1] : null
 }
 
@@ -1386,14 +1386,14 @@ function selectLast(selector: string): HTMLElement | null {
 */
 //#content
 export function followpage(rel: "next" | "prev" = "next") {
-    const link = <HTMLLinkElement>selectLast(`link[rel~=${rel}][href]`)
+    const link = selectLast(`link[rel~=${rel}][href]`) as HTMLLinkElement
 
     if (link) {
         window.location.href = link.href
         return
     }
 
-    const anchor = <HTMLAnchorElement>selectLast(`a[rel~=${rel}][href]`) || findRelLink(new RegExp(config.get("followpagepatterns", rel), "i"))
+    const anchor = (selectLast(`a[rel~=${rel}][href]`) || findRelLink(new RegExp(config.get("followpagepatterns", rel), "i"))) as HTMLAnchorElement
 
     if (anchor) {
         DOM.mouseEvent(anchor, "click")
@@ -1591,8 +1591,8 @@ export function geturlsforlinks(reltype = "rel", rel: string) {
 //#background
 export async function zoom(level = 0, rel = "false") {
     level = level > 3 ? level / 100 : level
-    if (rel === "false") {
-        if (level > 3 || level < 0.3) throw new Error(`[zoom] level out of range: ${level}`)
+    if (rel === "false" && (level > 3 || level < 0.3)) {
+        throw new Error(`[zoom] level out of range: ${level}`)
     }
     if (rel === "true") {
         level += await browser.tabs.getZoom()
@@ -1746,7 +1746,7 @@ export function focusinput(nth: number | string) {
         let inputs = DOM.getElemsBySelector(INPUTPASSWORD_selectors, [DOM.isSubstantial])
 
         if (inputs.length) {
-            inputToFocus = <HTMLElement>inputs[0]
+            inputToFocus = inputs[0] as HTMLElement
         }
     } else if (nth === "-b") {
         let inputs = DOM.getElemsBySelector(INPUTTAGS_selectors, [DOM.isSubstantial]) as HTMLElement[]
@@ -1757,7 +1757,7 @@ export function focusinput(nth: number | string) {
     // either a number (not special) or we failed to find a special input when
     // asked and falling back is acceptable
     if ((!inputToFocus || !document.contains(inputToFocus)) && fallbackToNumeric) {
-        let index = isNaN(<number>nth) ? 0 : <number>nth
+        let index = isNaN(nth as number) ? 0 : (nth as number)
         inputToFocus = DOM.getNthElement(INPUTTAGS_selectors, index, [DOM.isSubstantial])
     }
 
@@ -3030,7 +3030,6 @@ export function searchsetkeyword() {
  */
 function validateSetArgs(key: string, values: string[]) {
     const target: any[] = key.split(".")
-    const last = target[target.length - 1]
 
     let value, file, default_config, md
     if ((file = Metadata.everything.getFile("src/lib/config.ts")) && (default_config = file.getClass("default_config")) && (md = default_config.getMember(target[0]))) {
@@ -3259,7 +3258,6 @@ export async function reset(mode: string, key: string) {
  */
 //#background
 export async function reseturl(pattern: string, mode: string, key: string) {
-    let args = parse_bind_args(mode, key)
     let args_obj = parse_bind_args(mode, key)
     return config.unsetURL(pattern, args_obj.configName, args_obj.key)
 }
@@ -3537,7 +3535,7 @@ import * as hinting from "@src/content/hinting"
           links in the main body changes).
 */
 //#content
-export async function hint(option?: string, selectors?: string, ...rest: string[]) {
+export async function hint(option?: string, selectors?: string, ...rest: string[]): Promise<any> {
     if (!option) option = ""
 
     if (option == "-br") option = "-qb"
@@ -3559,7 +3557,7 @@ export async function hint(option?: string, selectors?: string, ...rest: string[
         option = "-pipe"
     }
 
-    let selectHints = new Promise(r => r())
+    let selectHints
     let hintTabOpen = async (href, active = !rapid) => {
         let containerId = await activeTabContainerId()
         if (containerId) {
@@ -4066,6 +4064,7 @@ export async function echo(...str: string[]) {
 //#content
 export async function js(...str: string[]) {
     if (str[0].startsWith("-p")) {
+        /* tslint:disable:no-dead-store */
         let JS_ARG = str[str.length - 1]
         return eval(str.slice(1, -1).join(" "))
     } else {
@@ -4079,6 +4078,7 @@ export async function js(...str: string[]) {
 //#background
 export async function jsb(...str: string[]) {
     if (str[0].startsWith("-p")) {
+        /* tslint:disable:no-dead-store */
         let JS_ARG = str[str.length - 1]
         return eval(str.slice(1, -1).join(" "))
     } else {

@@ -73,7 +73,7 @@ export class SettingsCompletionSource extends Completions.CompletionSourceFuse {
             .filter(x => x.startsWith(query))
             .sort()
             .map(setting => {
-                let md = undefined
+                let md
                 let doc = ""
                 let type = ""
                 if ((md = default_config.getMember(setting))) {

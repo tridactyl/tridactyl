@@ -14,8 +14,8 @@ async function getDuration() {
     return opts.duration
 }
 
-config.addChangeListener("smoothscroll", (prev, cur) => opts.smooth = cur)
-config.addChangeListener("scrollduration", (prev, cur) => opts.duration = cur)
+config.addChangeListener("smoothscroll", (prev, cur) => (opts.smooth = cur))
+config.addChangeListener("scrollduration", (prev, cur) => (opts.duration = cur))
 
 class ScrollingData {
     // time at which the scrolling animation started
@@ -71,11 +71,8 @@ class ScrollingData {
     scheduleStep() {
         // If scrollStep() scrolled the element, reschedule a step
         // Otherwise, register that the element stopped scrolling
-        window.requestAnimationFrame(
-            () =>
-                this.scrollStep()
-                    ? this.scheduleStep()
-                    : (this.scrolling = false),
+        window.requestAnimationFrame(() =>
+            this.scrollStep() ? this.scheduleStep() : (this.scrolling = false),
         )
     }
 
@@ -153,8 +150,9 @@ export async function recursiveScroll(
 ) {
     let startingFromCached = false
     if (!node) {
-        // Check if x and lastX have the same sign and if y and lastY have the same sign
-        if (lastRecursiveScrolled && (x ^ lastX) >= 0 && (y ^ lastY) >= 0) {
+        const sameSignX = x < 0 == lastX < 0
+        const sameSignY = y < 0 == lastY < 0
+        if (lastRecursiveScrolled && sameSignX && sameSignY) {
             // We're scrolling in the same direction as the previous time so
             // let's try to pick up from where we left
             startingFromCached = true

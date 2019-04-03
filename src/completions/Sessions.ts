@@ -79,7 +79,7 @@ export class SessionsCompletionSource extends Completions.CompletionSourceFuse {
 
     private async updateOptions(exstr = "") {
         this.lastExstr = exstr
-        let [prefix, query] = this.splitOnPrefix(exstr)
+        let [prefix] = this.splitOnPrefix(exstr)
 
         // Hide self and stop if prefixes don't match
         if (prefix) {
