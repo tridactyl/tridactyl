@@ -1858,7 +1858,7 @@ export async function tabprev(increment = 1) {
     // return tabIndexSetActive((await activeTab()).index - increment + 1)
     // Kludge until https://bugzilla.mozilla.org/show_bug.cgi?id=1504775 is fixed:
     return browser.tabs.query({ currentWindow: true, hidden: false }).then(tabs => {
-        tabs = tabs.sort((t1, t2) => t1.index - t2.index)
+        tabs.sort((t1, t2) => t1.index - t2.index)
         let prevTab = (tabs.findIndex(t => t.active) - increment + tabs.length) % tabs.length
         return browser.tabs.update(tabs[prevTab].id, { active: true })
     })

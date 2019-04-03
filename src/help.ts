@@ -117,6 +117,7 @@ async function onExcmdPageLoad() {
     )
     // setCommandSetting() can change the height of nodes in the page so we need to scroll to the right place again
     if (document.location.hash) {
+        /* tslint:disable:no-self-assignment */
         document.location.hash = document.location.hash
     }
 }
@@ -181,6 +182,7 @@ function addSettingInputs() {
         ),
     ).then(_ => {
         if (document.location.hash) {
+            /* tslint:disable:no-self-assignment */
             document.location.hash = document.location.hash
         }
     })

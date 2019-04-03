@@ -23,7 +23,6 @@
     "no-eval": false,
     "no-extra-semicolon": false,
     "no-identical-functions": false,
-    "no-self-assignment": false,
     "no-shadowed-variable": false,
     "no-string-literal": false,
     "no-string-throw": false,
