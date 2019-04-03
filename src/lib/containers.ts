@@ -96,7 +96,7 @@ export async function update(
         icon: browser.contextualIdentities.IdentityIcon
     },
 ) {
-    if (isValidColor(updateObj["color"]) && isValidIcon(updateObj["icon"])) {
+    if (isValidColor(updateObj.color) && isValidIcon(updateObj.icon)) {
         try {
             browser.contextualIdentities.update(containerId, updateObj)
         } catch (e) {
@@ -193,7 +193,7 @@ export async function getId(name: string): Promise<string> {
         if (res.length !== 1) {
             throw new Error("")
         } else {
-            return res[0]["cookieStoreId"]
+            return res[0].cookieStoreId
         }
     } catch (e) {
         logger.error(

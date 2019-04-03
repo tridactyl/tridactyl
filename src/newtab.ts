@@ -12,7 +12,7 @@ function getChangelogDiv() {
 function updateChangelogStatus() {
     const changelogDiv = getChangelogDiv()
     const changelogContent = changelogDiv.textContent
-    if (localStorage["changelogContent"] == changelogContent) {
+    if (localStorage.changelogContent == changelogContent) {
         const changelogButton = document.querySelector('input[id^="spoiler"]')
         if (!changelogButton) {
             console.error("Couldn't find changelog button!")
@@ -24,7 +24,7 @@ function updateChangelogStatus() {
 
 function readChangelog() {
     const changelogDiv = getChangelogDiv()
-    localStorage["changelogContent"] = changelogDiv.textContent
+    localStorage.changelogContent = changelogDiv.textContent
     updateChangelogStatus()
 }
 

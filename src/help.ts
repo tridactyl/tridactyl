@@ -39,7 +39,7 @@ function getCommandElements() {
 async function addSetting(settingName: string) {
     let commandElems = getCommandElements()
     // We're ignoring composite because it combines multiple excmds
-    delete commandElems["composite"]
+    delete (commandElems as any).composite
 
     // Initialize or reset the <p> element that will contain settings in each commandElem
     let settingElems = Object.keys(commandElems).reduce(

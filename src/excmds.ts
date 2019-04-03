@@ -662,11 +662,11 @@ export async function restart() {
     if ((await browser.runtime.getPlatformInfo()).os === "win") {
         let reply = await Native.winFirefoxRestart(profiledir, browsercmd)
         logger.info("[+] win_firefox_restart 'reply' = " + JSON.stringify(reply))
-        if (Number(reply["code"]) === 0) {
-            fillcmdline("#" + reply["content"])
+        if (Number(reply.code) === 0) {
+            fillcmdline("#" + reply.content)
             qall()
         } else {
-            fillcmdline("#" + reply["error"])
+            fillcmdline("#" + reply.error)
         }
     } else {
         const firefox = (await Native.ff_cmdline()).join(" ")
@@ -1898,7 +1898,7 @@ export async function tabopen(...addressarr: string[]) {
         } else if (args[0] === "-c") {
             // Ignore the -c flag if incognito as containers are disabled.
             let win = await browser.windows.getCurrent()
-            if (!win["incognito"]) container = await Container.fuzzyMatch(args[1])
+            if (!win.incognito) container = await Container.fuzzyMatch(args[1])
             else logger.error("[tabopen] can't open a container in a private browsing window.")
 
             args.shift()
@@ -2279,19 +2279,19 @@ export async function mute(...muteArgs: string[]): Promise<void> {
  */
 //#background
 export async function winopen(...args: string[]) {
-    const createData = {}
+    const createData = {} as any
     let firefoxArgs = "--new-window"
     let done = false
     while (!done) {
         switch (args[0]) {
             case "-private":
-                createData["incognito"] = true
+                createData.incognito = true
                 args = args.slice(1, args.length)
                 firefoxArgs = "--private-window"
                 break
 
             case "-popup":
-                createData["type"] = "popup"
+                createData.type = "popup"
                 args = args.slice(1, args.length)
                 break
 
@@ -3599,7 +3599,7 @@ export async function hint(option?: string, selectors?: string, ...rest: string[
                 DOM.HINTTAGS_selectors,
                 elem => {
                     // /!\ Warning: This is racy! This can easily be fixed by adding an await but do we want this? yank can be pretty slow, especially with yankto=selection
-                    run_exstr("yank " + elem["href"])
+                    run_exstr("yank " + elem.href)
                     return elem
                 },
                 rapid,
@@ -3613,7 +3613,7 @@ export async function hint(option?: string, selectors?: string, ...rest: string[
                 DOM.elementsWithText(),
                 elem => {
                     // /!\ Warning: This is racy! This can easily be fixed by adding an await but do we want this? yank can be pretty slow, especially with yankto=selection
-                    run_exstr("yank " + elem["textContent"])
+                    run_exstr("yank " + elem.textContent)
                     return elem
                 },
                 rapid,
