@@ -108,7 +108,7 @@ export function hintPage(
     contentState.mode = "hint"
     modeState = new HintState(filterHints, resolve, reject, rapid)
 
-    if (rapid == false) {
+    if (!rapid) {
         buildHints(hintableElements, hint => {
             modeState.cleanUpHints()
             hint.result = onSelect(hint.target)
@@ -178,12 +178,10 @@ function defaultHintFilter() {
 }
 
 function defaultHintChars() {
-    switch (config.get("hintnames")) {
-        case "numeric":
-            return "1234567890"
-        default:
-            return config.get("hintchars")
+    if (config.get("hintnames") == "numeric") {
+        return "1234567890"
     }
+    return config.get("hintchars")
 }
 
 /** An infinite stream of hints
@@ -497,7 +495,7 @@ function reset() {
 /** If key is in hintchars, add it to filtstr and filter */
 function pushKey(ke) {
     if (ke.ctrlKey || ke.altKey || ke.metaKey) {
-        return
+        // Do nothing
     } else if (ke.key === "Backspace") {
         modeState.filter = modeState.filter.slice(0, -1)
         modeState.filterFunc(modeState.filter)

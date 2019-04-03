@@ -529,7 +529,7 @@ export async function nativeopen(...args: string[]) {
                 if ((await browser.runtime.getPlatformInfo()).os === "win") {
                     escapedUrl = `"${escapedUrl.replace(/\\/g, "\\\\").replace(/"/g, '\\"')}"`
                 } else {
-                    escapedUrl = `'${escapedUrl.replace(/'/g, `'"'"'`)}'`
+                    escapedUrl = `'${escapedUrl.replace(/'/g, '"\'"')}'`
                 }
                 await Native.run(`${config.get("browser")} ${firefoxArgs.join(" ")} ${escapedUrl}`)
             }
@@ -3909,22 +3909,13 @@ export async function ttsvoices() {
  */
 //#content
 export async function ttscontrol(action: string) {
-    let ttsAction: TTS.Action = null
-
-    // convert user input to TTS.Action
     // only pause seems to be working, so only provide access to that
     // to avoid exposing users to things that won't work
-    switch (action) {
-        case "stop":
-            ttsAction = "stop"
-            break
-    }
-
-    if (ttsAction) {
-        TTS.doAction(ttsAction)
-    } else {
+    if (action != "stop") {
         throw new Error("Unknown text-to-speech action: " + action)
     }
+
+    TTS.doAction(action as TTS.Action)
 }
 
 //}}}
@@ -4113,7 +4104,7 @@ export async function updatecheck(polite = false) {
             const today = new Date()
             // any here are to shut up TS - it doesn't think Dates have subtraction defined :S
             const days_since = ((today as any) - (releasedate as any)) / (1000 * 60 * 60 * 24)
-            if (polite == false || (days_since > config.get("updatenagwait") && semverCompare(latest, config.get("updatenaglastversion")) > 0)) {
+            if (!polite || (days_since > config.get("updatenagwait") && semverCompare(latest, config.get("updatenaglastversion")) > 0)) {
                 config.set("updatenaglastversion", latest)
                 fillcmdline_tmp(30000, "Tridactyl " + latest + " is available. Visit about:addons, right click Tridactyl, click 'Find Updates'. Restart Firefox once it has downloaded.")
             }
