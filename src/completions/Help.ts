@@ -133,7 +133,8 @@ export class HelpCompletionSource extends Completions.CompletionSourceFuse {
             )
         }
 
-        this.options = opts.sort((compopt1, compopt2) =>
+        this.options = opts
+        this.options.sort((compopt1, compopt2) =>
             compopt1.name.localeCompare(compopt2.name),
         )
         return this.updateChain()

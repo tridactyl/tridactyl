@@ -1750,8 +1750,8 @@ export function focusinput(nth: number | string) {
         }
     } else if (nth === "-b") {
         let inputs = DOM.getElemsBySelector(INPUTTAGS_selectors, [DOM.isSubstantial]) as HTMLElement[]
-
-        inputToFocus = inputs.sort(DOM.compareElementArea).slice(-1)[0]
+        inputs.sort(DOM.compareElementArea)
+        inputToFocus = inputs[inputs.length - 1]
     }
 
     // either a number (not special) or we failed to find a special input when
@@ -3896,9 +3896,9 @@ export async function ttsread(mode: "-t" | "-c", ...args: string[]) {
 //#background
 export async function ttsvoices() {
     let voices = TTS.listVoices()
-
+    voices.sort()
     // need a better way to show this to the user
-    fillcmdline_notrail("#", voices.sort().join(", "))
+    fillcmdline_notrail("#", voices.join(", "))
 }
 
 /**
