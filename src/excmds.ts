@@ -1349,6 +1349,7 @@ export function snow_mouse_mode() {
 //#content_helper
 function findRelLink(pattern: RegExp): HTMLAnchorElement | null {
     // querySelectorAll returns a "non-live NodeList" which is just a shit array without working reverse() or find() calls, so convert it.
+    /* tslint:disable:no-useless-cast */
     const links = Array.from(document.querySelectorAll("a[href]") as NodeListOf<HTMLAnchorElement>)
 
     // Find the last link that matches the test
@@ -1364,6 +1365,7 @@ function findRelLink(pattern: RegExp): HTMLAnchorElement | null {
 // Return the last element in the document matching the supplied selector,
 // or null if there are no matches.
 function selectLast(selector: string): HTMLElement | null {
+    /* tslint:disable:no-useless-cast */
     const nodes = document.querySelectorAll(selector) as NodeListOf<HTMLElement>
     return nodes.length ? nodes[nodes.length - 1] : null
 }
@@ -1574,7 +1576,7 @@ export function urlmodify(mode: "-t" | "-r" | "-q" | "-Q" | "-g", ...args: strin
  */
 //#content
 export function geturlsforlinks(reltype = "rel", rel: string) {
-    let elems = document.querySelectorAll("link[" + reltype + "='" + rel + "']") as NodeListOf<HTMLLinkElement>
+    let elems = document.querySelectorAll("link[" + reltype + "='" + rel + "']")
     if (elems) return Array.prototype.map.call(elems, x => x.href)
     return []
 }

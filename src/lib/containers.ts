@@ -217,7 +217,7 @@ export async function fuzzyMatch(partialName: string): Promise<string> {
     let fuse = new Fuse(containers, fuseOptions)
     let res = fuse.search(partialName)
 
-    if (res.length >= 1) return res[0] as string
+    if (res.length >= 1) return res[0]
     else {
         throw new Error(
             "[Container.fuzzyMatch] no container matched that string",

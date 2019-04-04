@@ -51,9 +51,7 @@ const logger = new Logger("cmdline")
 /** @hidden **/
 let activeCompletions: Completions.CompletionSource[] = undefined
 /** @hidden **/
-let completionsDiv = window.document.getElementById(
-    "completions",
-) as HTMLElement
+let completionsDiv = window.document.getElementById("completions")
 /** @hidden **/
 let clInput = window.document.getElementById(
     "tridactyl-input",

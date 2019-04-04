@@ -32,7 +32,7 @@ class State {
 // Don't change these from const or you risk breaking the Proxy below.
 const defaults = Object.freeze(new State())
 
-const overlay = {} as any
+const overlay = {} as State
 browser.storage.local
     .get("state")
     .then(res => {
@@ -57,10 +57,10 @@ const state = (new Proxy(overlay, {
     set: function(target, property, value) {
         logger.debug("State changed!", property, value)
         target[property] = value
-        browser.storage.local.set({ state: target })
+        browser.storage.local.set({ state: target } as any)
         return true
     },
-}) as any) as State
+}))
 
 browser.storage.onChanged.addListener((changes, areaname) => {
     if (areaname === "local" && "state" in changes) {
