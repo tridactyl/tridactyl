@@ -83,8 +83,8 @@ export class SettingsCompletionSource extends Completions.CompletionSourceFuse {
                 return new SettingsCompletionOption(options + setting, {
                     name: setting,
                     value: JSON.stringify(settings[setting]),
-                    doc: doc,
-                    type: type,
+                    doc,
+                    type,
                 })
             })
 

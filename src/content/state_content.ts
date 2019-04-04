@@ -48,11 +48,11 @@ export function addContentStateChangedListener(
 export const contentState = (new Proxy(
     { mode: "normal" },
     {
-        get: function(target, property: ContentStateProperty) {
+        get(target, property: ContentStateProperty) {
             return target[property]
         },
 
-        set: function(target, property: ContentStateProperty, newValue) {
+        set(target, property: ContentStateProperty, newValue) {
             logger.debug("Content state changed!", property, newValue)
 
             const oldValue = target[property]

@@ -147,7 +147,7 @@ export function fromString(
     id: string = "",
 ) {
     return {
-        name: name,
+        name,
         color: color as browser.contextualIdentities.IdentityColor,
         icon: icon as browser.contextualIdentities.IdentityIcon,
         cookieStoreId: id,

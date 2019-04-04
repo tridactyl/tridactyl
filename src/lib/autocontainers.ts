@@ -93,7 +93,7 @@ export class AutoContain implements IAutoContain {
         browser.tabs
             .create({
                 url: details.url,
-                cookieStoreId: cookieStoreId,
+                cookieStoreId,
                 active: tab.active,
                 windowId: tab.windowId,
             })

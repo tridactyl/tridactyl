@@ -31,7 +31,6 @@
     "no-var-keyword": false,
     "no-variable-usage-before-declaration": false,
     "object-literal-key-quotes": false,
-    "object-literal-shorthand": false,
     "object-literal-sort-keys": false,
     "one-variable-per-declaration": false,
     "only-arrow-functions": false,

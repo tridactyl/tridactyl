@@ -45,7 +45,7 @@ browser.storage.local
 
 const state = (new Proxy(overlay, {
     /** Give defaults if overlay doesn't have the key */
-    get: function(target, property) {
+    get(target, property) {
         if (property in target) {
             return target[property]
         } else {
@@ -54,7 +54,7 @@ const state = (new Proxy(overlay, {
     },
 
     /** Persist sets to storage immediately */
-    set: function(target, property, value) {
+    set(target, property, value) {
         logger.debug("State changed!", property, value)
         target[property] = value
         browser.storage.local.set({ state: target } as any)
