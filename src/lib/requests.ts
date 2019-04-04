@@ -33,7 +33,7 @@ class DefaultMap extends Map {
  * it when they fix the bug.
  */
 export function clobberCSP(response) {
-    const headers = response["responseHeaders"]
+    const headers = response.responseHeaders
     const cspHeader = headers.find(
         header => header.name.toLowerCase() === "content-security-policy",
     )

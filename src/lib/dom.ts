@@ -416,7 +416,7 @@ export function registerEvListenerAction(
         // Node prototype functions work on the C++ representation of the
         // Node, which a faked JS object won't have.
         // hasChildNodes() is chosen because it should be cheap.
-        Node.prototype.hasChildNodes.apply(elem as Node)
+        Node.prototype.hasChildNodes.apply(elem)
     } catch (e) {
         // Don't throw a real exception because addEventListener wouldn't and we
         // don't want to break content code.

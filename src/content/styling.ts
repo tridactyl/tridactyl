@@ -70,13 +70,11 @@ export async function theme(element) {
 
 function retheme() {
     THEMED_ELEMENTS.forEach(element => {
-        try {
-            theme(element)
-        } catch (e) {
+        theme(element).catch(e => {
             logger.warning(
                 `Failed to retheme element "${element}". Error: ${e}`,
             )
-        }
+        })
     })
 }
 

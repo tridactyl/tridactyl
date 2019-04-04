@@ -100,8 +100,7 @@ export class HistoryCompletionSource extends Completions.CompletionSourceFuse {
     }
 
     private async scoreOptions(query: string, n: number) {
-        const newtab = browser.runtime.getManifest()["chrome_url_overrides"]
-            .newtab
+        const newtab = (browser.runtime.getManifest()).chrome_url_overrides.newtab
         const newtaburl = browser.extension.getURL(newtab)
         if (!query || config.get("historyresults") == 0) {
             return (await browserBg.topSites.get())

@@ -96,12 +96,8 @@ export async function update(
         icon: browser.contextualIdentities.IdentityIcon
     },
 ) {
-    if (isValidColor(updateObj["color"]) && isValidIcon(updateObj["icon"])) {
-        try {
-            browser.contextualIdentities.update(containerId, updateObj)
-        } catch (e) {
-            throw e
-        }
+    if (isValidColor(updateObj.color) && isValidIcon(updateObj.icon)) {
+        browser.contextualIdentities.update(containerId, updateObj)
     } else {
         logger.debug(updateObj)
         throw new Error("[Container.update] invalid container icon or color")
@@ -193,7 +189,7 @@ export async function getId(name: string): Promise<string> {
         if (res.length !== 1) {
             throw new Error("")
         } else {
-            return res[0]["cookieStoreId"]
+            return res[0].cookieStoreId
         }
     } catch (e) {
         logger.error(
@@ -221,7 +217,7 @@ export async function fuzzyMatch(partialName: string): Promise<string> {
     let fuse = new Fuse(containers, fuseOptions)
     let res = fuse.search(partialName)
 
-    if (res.length >= 1) return res[0] as string
+    if (res.length >= 1) return res[0]
     else {
         throw new Error(
             "[Container.fuzzyMatch] no container matched that string",

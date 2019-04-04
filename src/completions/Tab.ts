@@ -150,14 +150,10 @@ export class BufferCompletionSource extends Completions.CompletionSourceFuse {
             currentWindow: true,
         })
         const options = []
-
         // Get alternative tab, defined as last accessed tab.
-        const alt = tabs.sort((a, b) => {
-            return a.lastAccessed < b.lastAccessed ? 1 : -1
-        })[1]
-        tabs.sort((a, b) => {
-            return a.index < b.index ? -1 : 1
-        })
+        tabs.sort((a, b) => (b.lastAccessed - a.lastAccessed))
+        const alt = tabs[1]
+        tabs.sort((a, b) => (a.index - b.index))
 
         for (const tab of tabs) {
             options.push(

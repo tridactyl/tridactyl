@@ -1087,9 +1087,9 @@ export async function update() {
                 // root namespace because we were young and bold.
                 let legacy_nmaps = await browser.storage.sync.get("nmaps")
                 if (Object.keys(legacy_nmaps).length > 0) {
-                    USERCONFIG["nmaps"] = Object.assign(
-                        legacy_nmaps["nmaps"],
-                        USERCONFIG["nmaps"],
+                    USERCONFIG.nmaps = Object.assign(
+                        legacy_nmaps.nmaps,
+                        USERCONFIG.nmaps,
                     )
                 }
             } finally {

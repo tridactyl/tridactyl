@@ -1,3 +1,4 @@
+/* tslint:disable:no-string-literal */
 import * as CSS from "css"
 
 // Layout (of bits we care about:

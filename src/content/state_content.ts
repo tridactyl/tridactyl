@@ -56,7 +56,7 @@ export const contentState = (new Proxy(
             logger.debug("Content state changed!", property, newValue)
 
             const oldValue = target[property]
-            const mode = target["mode"]
+            const mode = target.mode
             target[property] = newValue
 
             for (let listener of onChangedListeners) {

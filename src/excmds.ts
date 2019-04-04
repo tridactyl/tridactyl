@@ -662,11 +662,11 @@ export async function restart() {
     if ((await browser.runtime.getPlatformInfo()).os === "win") {
         let reply = await Native.winFirefoxRestart(profiledir, browsercmd)
         logger.info("[+] win_firefox_restart 'reply' = " + JSON.stringify(reply))
-        if (Number(reply["code"]) === 0) {
-            fillcmdline("#" + reply["content"])
+        if (Number(reply.code) === 0) {
+            fillcmdline("#" + reply.content)
             qall()
         } else {
-            fillcmdline("#" + reply["error"])
+            fillcmdline("#" + reply.error)
         }
     } else {
         const firefox = (await Native.ff_cmdline()).join(" ")
@@ -991,7 +991,7 @@ export function back(n = 1) {
 export async function reload(n = 1, hard = false) {
     let tabstoreload = await getnexttabs(await activeTabId(), n)
     let reloadProperties = { bypassCache: hard }
-    tabstoreload.map(n => browser.tabs.reload(n, reloadProperties))
+    tabstoreload.forEach(n => browser.tabs.reload(n, reloadProperties))
 }
 
 /** Reloads all tabs, bypassing the cache if hard is set to true */
@@ -999,7 +999,7 @@ export async function reload(n = 1, hard = false) {
 export async function reloadall(hard = false) {
     let tabs = await browser.tabs.query({ currentWindow: true })
     let reloadprops = { bypassCache: hard }
-    tabs.map(tab => browser.tabs.reload(tab.id, reloadprops))
+    tabs.forEach(tab => browser.tabs.reload(tab.id, reloadprops))
 }
 
 /** Reloads all tabs except the current one, bypassing the cache if hard is set to true */
@@ -1009,7 +1009,7 @@ export async function reloadallbut(hard = false) {
     let currId = await activeTabId()
     tabs = tabs.filter(tab => tab.id != currId)
     let reloadprops = { bypassCache: hard }
-    tabs.map(tab => browser.tabs.reload(tab.id, reloadprops))
+    tabs.forEach(tab => browser.tabs.reload(tab.id, reloadprops))
 }
 
 /** Reload the next n tabs, starting with activeTab. bypass cache for all */
@@ -1349,6 +1349,7 @@ export function snow_mouse_mode() {
 //#content_helper
 function findRelLink(pattern: RegExp): HTMLAnchorElement | null {
     // querySelectorAll returns a "non-live NodeList" which is just a shit array without working reverse() or find() calls, so convert it.
+    /* tslint:disable:no-useless-cast */
     const links = Array.from(document.querySelectorAll("a[href]") as NodeListOf<HTMLAnchorElement>)
 
     // Find the last link that matches the test
@@ -1364,6 +1365,7 @@ function findRelLink(pattern: RegExp): HTMLAnchorElement | null {
 // Return the last element in the document matching the supplied selector,
 // or null if there are no matches.
 function selectLast(selector: string): HTMLElement | null {
+    /* tslint:disable:no-useless-cast */
     const nodes = document.querySelectorAll(selector) as NodeListOf<HTMLElement>
     return nodes.length ? nodes[nodes.length - 1] : null
 }
@@ -1574,7 +1576,7 @@ export function urlmodify(mode: "-t" | "-r" | "-q" | "-Q" | "-g", ...args: strin
  */
 //#content
 export function geturlsforlinks(reltype = "rel", rel: string) {
-    let elems = document.querySelectorAll("link[" + reltype + "='" + rel + "']") as NodeListOf<HTMLLinkElement>
+    let elems = document.querySelectorAll("link[" + reltype + "='" + rel + "']")
     if (elems) return Array.prototype.map.call(elems, x => x.href)
     return []
 }
@@ -1750,8 +1752,8 @@ export function focusinput(nth: number | string) {
         }
     } else if (nth === "-b") {
         let inputs = DOM.getElemsBySelector(INPUTTAGS_selectors, [DOM.isSubstantial]) as HTMLElement[]
-
-        inputToFocus = inputs.sort(DOM.compareElementArea).slice(-1)[0]
+        inputs.sort(DOM.compareElementArea)
+        inputToFocus = inputs[inputs.length - 1]
     }
 
     // either a number (not special) or we failed to find a special input when
@@ -1858,7 +1860,7 @@ export async function tabprev(increment = 1) {
     // return tabIndexSetActive((await activeTab()).index - increment + 1)
     // Kludge until https://bugzilla.mozilla.org/show_bug.cgi?id=1504775 is fixed:
     return browser.tabs.query({ currentWindow: true, hidden: false }).then(tabs => {
-        tabs = tabs.sort((t1, t2) => t1.index - t2.index)
+        tabs.sort((t1, t2) => t1.index - t2.index)
         let prevTab = (tabs.findIndex(t => t.active) - increment + tabs.length) % tabs.length
         return browser.tabs.update(tabs[prevTab].id, { active: true })
     })
@@ -1898,7 +1900,7 @@ export async function tabopen(...addressarr: string[]) {
         } else if (args[0] === "-c") {
             // Ignore the -c flag if incognito as containers are disabled.
             let win = await browser.windows.getCurrent()
-            if (!win["incognito"]) container = await Container.fuzzyMatch(args[1])
+            if (!win.incognito) container = await Container.fuzzyMatch(args[1])
             else logger.error("[tabopen] can't open a container in a private browsing window.")
 
             args.shift()
@@ -2279,19 +2281,19 @@ export async function mute(...muteArgs: string[]): Promise<void> {
  */
 //#background
 export async function winopen(...args: string[]) {
-    const createData = {}
+    const createData = {} as any
     let firefoxArgs = "--new-window"
     let done = false
     while (!done) {
         switch (args[0]) {
             case "-private":
-                createData["incognito"] = true
+                createData.incognito = true
                 args = args.slice(1, args.length)
                 firefoxArgs = "--private-window"
                 break
 
             case "-popup":
-                createData["type"] = "popup"
+                createData.type = "popup"
                 args = args.slice(1, args.length)
                 break
 
@@ -2330,7 +2332,7 @@ export async function winclose(...ids: string[]) {
 //#background
 export async function qall() {
     let windows = await browser.windows.getAll()
-    windows.map(window => browser.windows.remove(window.id))
+    windows.forEach(window => browser.windows.remove(window.id))
 }
 
 // }}}
@@ -2785,11 +2787,15 @@ export async function clipboard(excmd: "open" | "yank" | "yankshort" | "yankcano
             break
         case "open":
             url = await getclip()
-            url && open(url)
+            if (url) {
+                open(url)
+            }
             break
         case "tabopen":
             url = await getclip()
-            url && tabopen(url)
+            if (url) {
+                tabopen(url)
+            }
             break
         case "xselpaste":
             content = await getclip("selection")
@@ -3345,7 +3351,7 @@ export async function sanitise(...args: string[]) {
         // We bother checking if dts[x] is false because
         // browser.browsingData.remove() is very strict on the format of the
         // object it expects
-        args.map(x => {
+        args.forEach(x => {
             if (dts[x] === false) dts[x] = true
         })
     }
@@ -3599,7 +3605,7 @@ export async function hint(option?: string, selectors?: string, ...rest: string[
                 DOM.HINTTAGS_selectors,
                 elem => {
                     // /!\ Warning: This is racy! This can easily be fixed by adding an await but do we want this? yank can be pretty slow, especially with yankto=selection
-                    run_exstr("yank " + elem["href"])
+                    run_exstr("yank " + elem.href)
                     return elem
                 },
                 rapid,
@@ -3613,7 +3619,7 @@ export async function hint(option?: string, selectors?: string, ...rest: string[
                 DOM.elementsWithText(),
                 elem => {
                     // /!\ Warning: This is racy! This can easily be fixed by adding an await but do we want this? yank can be pretty slow, especially with yankto=selection
-                    run_exstr("yank " + elem["textContent"])
+                    run_exstr("yank " + elem.textContent)
                     return elem
                 },
                 rapid,
@@ -3896,9 +3902,9 @@ export async function ttsread(mode: "-t" | "-c", ...args: string[]) {
 //#background
 export async function ttsvoices() {
     let voices = TTS.listVoices()
-
+    voices.sort()
     // need a better way to show this to the user
-    fillcmdline_notrail("#", voices.sort().join(", "))
+    fillcmdline_notrail("#", voices.join(", "))
 }
 
 /**
@@ -4011,7 +4017,7 @@ export async function bmark(url?: string, ...titlearr: string[]) {
     let title = titlearr.join(" ")
     // if titlearr is given and we have duplicates, we probably want to give an error here.
     const dupbmarks = await browser.bookmarks.search({ url })
-    dupbmarks.map(bookmark => browser.bookmarks.remove(bookmark.id))
+    dupbmarks.forEach(bookmark => browser.bookmarks.remove(bookmark.id))
     if (dupbmarks.length != 0) return
     const path = title.substring(0, title.lastIndexOf("/") + 1)
     // TODO: if title is blank, get it from the page.

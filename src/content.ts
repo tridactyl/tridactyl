@@ -1,8 +1,9 @@
 /** Content script entry point */
 
 // We need to grab a lock because sometimes Firefox will decide to insert the content script in the page multiple times
-if ((window as any).tridactyl_content_lock !== undefined)
+if ((window as any).tridactyl_content_lock !== undefined) {
     throw Error("Trying to load Tridactyl, but it's already loaded.")
+}
 ;(window as any).tridactyl_content_lock = "locked"
 
 // Be careful: typescript elides imports that appear not to be used if they're

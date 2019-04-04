@@ -141,7 +141,7 @@ function* ParserController() {
                 keyEvents.push(keyevent)
 
                 let response = undefined
-                response = (parsers[contentState.mode] as any)(keyEvents)
+                response = parsers[contentState.mode](keyEvents)
                 logger.debug(
                     currentMode,
                     contentState.mode,

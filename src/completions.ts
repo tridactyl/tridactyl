@@ -239,8 +239,7 @@ export abstract class CompletionSourceFuse extends CompletionSource {
             return { index, fuseKeys: elem.fuseKeys }
         })
         this.fuse = new Fuse(searchThis, this.fuseOptions)
-        return this.fuse.search(query).map(res => {
-            let result = res as any
+        return this.fuse.search(query).map(result => {
             // console.log(result, result.item, query)
             let index = toNumber(result.item)
             return {
