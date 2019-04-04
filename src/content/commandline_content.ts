@@ -44,20 +44,16 @@ async function init() {
 
 // Load the iframe immediately if we can (happens if tridactyl is reloaded or on ImageDocument)
 // Else load lazily to avoid upsetting page JS that hates foreign iframes.
-try {
-    init()
-} catch (e) {
+init().catch(e => {
     // Surrender event loop with setTimeout() to page JS in case it's still doing stuff.
     document.addEventListener("DOMContentLoaded", () =>
         setTimeout(() => {
-            try {
-                init()
-            } catch (e) {
-                logger.error("Couldn't initialise cmdline_iframe!", e)
-            }
+            init().catch(e =>
+                logger.error("Couldn't initialise cmdline_iframe!", e),
+            )
         }, 0),
     )
-}
+})
 
 export function show() {
     try {

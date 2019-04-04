@@ -97,11 +97,7 @@ export async function update(
     },
 ) {
     if (isValidColor(updateObj.color) && isValidIcon(updateObj.icon)) {
-        try {
-            browser.contextualIdentities.update(containerId, updateObj)
-        } catch (e) {
-            throw e
-        }
+        browser.contextualIdentities.update(containerId, updateObj)
     } else {
         logger.debug(updateObj)
         throw new Error("[Container.update] invalid container icon or color")
