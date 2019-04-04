@@ -2396,13 +2396,9 @@ export async function containerdelete(name: string) {
 //#background
 export async function containerupdate(name: string, uname: string, ucolor: string, uicon: string) {
     logger.debug("containerupdate parameters: " + name + ", " + uname + ", " + ucolor + ", " + uicon)
-    try {
-        let containerId = await Container.fuzzyMatch(name)
-        let containerObj = Container.fromString(uname, ucolor, uicon)
-        await Container.update(containerId, containerObj)
-    } catch (e) {
-        throw e
-    }
+    let containerId = await Container.fuzzyMatch(name)
+    let containerObj = Container.fromString(uname, ucolor, uicon)
+    await Container.update(containerId, containerObj)
 }
 
 /** Shows a list of the current containers in Firefox's native JSON viewer in the current tab.

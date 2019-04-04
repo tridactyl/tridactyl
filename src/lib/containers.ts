@@ -57,12 +57,8 @@ export async function create(
             `[Container.create] container already exists, aborting.`,
         )
     } else {
-        try {
-            let res = await browser.contextualIdentities.create(container)
-            return res.cookieStoreId
-        } catch (e) {
-            throw e
-        }
+        let res = await browser.contextualIdentities.create(container)
+        return res.cookieStoreId
     }
 }
 
@@ -71,13 +67,9 @@ export async function create(
  */
 export async function remove(name: string) {
     logger.debug(name)
-    try {
-        let id = await getId(name)
-        let res = await browser.contextualIdentities.remove(id)
-        logger.debug("[Container.remove] removed container:", res.cookieStoreId)
-    } catch (e) {
-        throw e
-    }
+    let id = await getId(name)
+    let res = await browser.contextualIdentities.remove(id)
+    logger.debug("[Container.remove] removed container:", res.cookieStoreId)
 }
 
 /** Updates the specified container.
@@ -154,16 +146,12 @@ export function fromString(
     icon: string,
     id: string = "",
 ) {
-    try {
-        return {
-            name: name,
-            color: color as browser.contextualIdentities.IdentityColor,
-            icon: icon as browser.contextualIdentities.IdentityIcon,
-            cookieStoreId: id,
-        } as browser.contextualIdentities.ContextualIdentity // rules are made to be broken
-    } catch (e) {
-        throw e
-    }
+    return {
+        name,
+        color: color as browser.contextualIdentities.IdentityColor,
+        icon: icon as browser.contextualIdentities.IdentityIcon,
+        cookieStoreId: id,
+    } as browser.contextualIdentities.ContextualIdentity // rules are made to be broken
 }
 
 /**

@@ -60,7 +60,7 @@ export async function downloadUrl(url: string, saveAs: boolean) {
     let downloadPromise = browser.downloads.download({
         url: urlToDownload,
         filename: fileName,
-        saveAs: saveAs,
+        saveAs,
     })
 
     // TODO: at this point, could give feeback using the promise returned
