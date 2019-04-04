@@ -204,6 +204,8 @@ class default_config {
         x: "stop",
         gi: "focusinput -l",
         "g;": "changelistjump -1",
+        J: "tabprev",
+        K: "tabnext",
         gt: "tabnext_gt",
         gT: "tabprev",
         // "<c-n>": "tabnext_gt", // c-n is reserved for new window
