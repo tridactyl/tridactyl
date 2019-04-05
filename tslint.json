@@ -6,7 +6,6 @@
     "class-name": false,
     "cognitive-complexity": false,
     "curly": false,
-    "import-spacing": false,
     "interface-name": false,
     "jsdoc-format": false,
     "max-classes-per-file": false,
@@ -38,7 +37,6 @@
     "semicolon": false,
     "trailing-comma": false,
     "triple-equals": false,
-    "use-primitive-type": false,
     "variable-name": false,
     "whitespace": false
   }

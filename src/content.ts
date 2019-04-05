@@ -73,6 +73,7 @@ import * as perf from "@src/perf"
 import * as keyseq from "@src/lib/keyseq"
 import * as native from "@src/lib/native"
 import * as styling from "@src/content/styling"
+/* tslint:disable:import-spacing */
 ;(window as any).tri = Object.assign(Object.create(null), {
     browserBg: webext.browserBg,
     commandline_content,
