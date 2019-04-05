@@ -35,7 +35,6 @@
     "only-arrow-functions": false,
     "ordered-imports": false,
     "prefer-const": false,
-    "prefer-promise-shorthand": false,
     "quotemark": false,
     "radix": false,
     "semicolon": false,
