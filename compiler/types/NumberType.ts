@@ -13,7 +13,7 @@ export class NumberType implements Type {
     }
 
     public convert(argument) {
-        let n = parseInt(argument)
+        let n = parseInt(argument, 10)
         if (!Number.isNaN(n)) {
             return n
         }
