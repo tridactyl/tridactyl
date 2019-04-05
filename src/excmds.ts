@@ -1,6 +1,7 @@
 /* tslint:disable:array-type */
 /* tslint:disable:comment-format */
 /* tslint:disable:no-consecutive-blank-lines */
+/* tslint:disable:quotemark */
 // '//#' is a start point for a simple text-replacement-type macro. See excmds_macros.py
 
 /** # Tridactyl help page
