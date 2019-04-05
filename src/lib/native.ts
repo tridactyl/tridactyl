@@ -559,7 +559,7 @@ export async function parsePrefs(prefFileContent: string) {
         /^(user_|sticky_|lock)?[pP]ref\("([^"]+)",\s*"?([^\)]+?)"?\);$/,
     )
     // Fragile parsing
-    let allPrefs = prefFileContent.split("\n").reduce((prefs, line) => {
+    return prefFileContent.split("\n").reduce((prefs, line) => {
         let matches = line.match(regex)
         if (!matches) {
             return prefs
@@ -571,7 +571,6 @@ export async function parsePrefs(prefFileContent: string) {
         prefs[key] = value
         return prefs
     }, {})
-    return allPrefs
 }
 
 /** When given the name of a firefox preference file, will load said file and
