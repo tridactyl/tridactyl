@@ -19,6 +19,7 @@ import * as native from "@src/lib/native"
 import state from "@src/state"
 import * as webext from "@src/lib/webext"
 import { AutoContain } from "@src/lib/autocontainers"
+/* tslint:disable:import-spacing */
 ;(window as any).tri = Object.assign(Object.create(null), {
     messaging,
     excmds,

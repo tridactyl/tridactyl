@@ -401,14 +401,17 @@ export async function ff_cmdline(): Promise<string[]> {
 export function parseProfilesIni(content: string, basePath: string) {
     let lines = content.split("\n")
     let current = "General"
-    let match = null
     let result = {}
     for (let line of lines) {
-        if ((match = line.match(/^\[([^\]]+)\]$/))) {
+        let match = line.match(/^\[([^\]]+)\]$/)
+        if (match !== null) {
             current = match[1]
             result[current] = {}
-        } else if ((match = line.match(/^([^=]+)=([^=]+)$/))) {
-            result[current][match[1]] = match[2]
+        } else {
+            match = line.match(/^([^=]+)=([^=]+)$/)
+            if (match !== null) {
+                result[current][match[1]] = match[2]
+            }
         }
     }
     for (let profileName of Object.keys(result)) {
@@ -559,7 +562,7 @@ export async function parsePrefs(prefFileContent: string) {
         /^(user_|sticky_|lock)?[pP]ref\("([^"]+)",\s*"?([^\)]+?)"?\);$/,
     )
     // Fragile parsing
-    let allPrefs = prefFileContent.split("\n").reduce((prefs, line) => {
+    return prefFileContent.split("\n").reduce((prefs, line) => {
         let matches = line.match(regex)
         if (!matches) {
             return prefs
@@ -571,7 +574,6 @@ export async function parsePrefs(prefFileContent: string) {
         prefs[key] = value
         return prefs
     }, {})
-    return allPrefs
 }
 
 /** When given the name of a firefox preference file, will load said file and

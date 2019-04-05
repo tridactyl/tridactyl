@@ -1,6 +1,7 @@
 /* tslint:disable:array-type */
 /* tslint:disable:comment-format */
 /* tslint:disable:no-consecutive-blank-lines */
+/* tslint:disable:quotemark */
 // '//#' is a start point for a simple text-replacement-type macro. See excmds_macros.py
 
 /** # Tridactyl help page
@@ -894,7 +895,7 @@ export function scrollline(n = 1) {
             // Get line height
             const cssHeight = window.getComputedStyle(elem).getPropertyValue("line-height")
             // Remove the "px" at the end
-            return parseInt(cssHeight.substr(0, cssHeight.length - 2))
+            return parseInt(cssHeight.substr(0, cssHeight.length - 2), 10)
         }
         lineHeight = getLineHeight(document.documentElement)
         if (!lineHeight) lineHeight = getLineHeight(document.body)
@@ -944,7 +945,7 @@ export function find(...args: string[]) {
     flagpos = args.indexOf("-:")
     let startingFrom = 0
     if (flagpos >= 0) {
-        startingFrom = parseInt(args[flagpos + 1]) || 0
+        startingFrom = parseInt(args[flagpos + 1], 10) || 0
         args.splice(flagpos, 2)
     }
 
@@ -2127,7 +2128,7 @@ export async function undo(item = "recent"): Promise<number> {
                 return lastSession.window.id
             }
         }
-    } else if (!isNaN(parseInt(item))) {
+    } else if (!isNaN(parseInt(item, 10))) {
         const sessionId = item
         const session = sessions.find(s => (s.tab || s.window).sessionId == sessionId)
         if (session) {
@@ -2323,7 +2324,7 @@ export async function winclose(...ids: string[]) {
     if (ids.length == 0) {
         ids.push(`${(await browser.windows.getCurrent()).id}`)
     }
-    return Promise.all(ids.map(id => browser.windows.remove(parseInt(id))))
+    return Promise.all(ids.map(id => browser.windows.remove(parseInt(id, 10))))
 }
 
 /** Close all windows */
@@ -2835,7 +2836,7 @@ export async function taball(id: string) {
         logger.info(`taball: Bad tab id: ${prevId}, defaulting to ${id}`)
     }
     let [winindex, tabindex] = id.split(".")
-    await browser.windows.update(windows[parseInt(winindex) - 1], { focused: true })
+    await browser.windows.update(windows[parseInt(winindex, 10) - 1], { focused: true })
     return browser.tabs.update(await idFromIndex(tabindex), { active: true })
 }
 
@@ -3301,7 +3302,7 @@ export async function sanitise(...args: string[]) {
             // If the arg of the flag matches Pentadactyl's sanitisetimespan format
             if (match !== null && match.length == 3) {
                 // Compute the timespan in milliseconds and get a Date object
-                let millis = parseInt(match[1]) * 1000
+                let millis = parseInt(match[1], 10) * 1000
                 switch (match[2]) {
                     case "w":
                         millis *= 7

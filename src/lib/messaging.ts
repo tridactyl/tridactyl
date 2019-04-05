@@ -55,7 +55,7 @@ export function attributeCaller(obj) {
                 `Error processing ${message.command}(${message.args})`,
                 e,
             )
-            return new Promise((resolve, error) => error(e))
+            return Promise.reject(e)
         }
     }
     return handler
@@ -132,7 +132,7 @@ if (getContext() == "background") {
             Object.create(null),
             sender.tab.sharingState,
         )
-        sendResponse(new Promise(r => r(x)))
+        sendResponse(Promise.resolve(x))
     })
 }
 

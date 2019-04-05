@@ -193,9 +193,9 @@ export async function openInTab(tab, opts = {}, strarr: string[]) {
     }
 
     const searchEngines = await browserBg.search.get()
-    let engine
+    let engine = searchEngines.find(engine => engine.alias == firstWord)
     // Maybe firstWord is the name of a firefox search engine?
-    if ((engine = searchEngines.find(engine => engine.alias == firstWord))) {
+    if (engine !== undefined) {
         return browserBg.search.search({
             tabId: tab.id,
             engine: engine.name,
@@ -224,9 +224,9 @@ export async function openInTab(tab, opts = {}, strarr: string[]) {
         queryString = rest
     }
 
-    let enginename
+    let enginename = config.get("searchengine")
     // firstWord is neither a searchurl nor a search engine, let's see if a search engine has been defined in Tridactyl
-    if ((enginename = config.get("searchengine"))) {
+    if (enginename) {
         if (searchurls[enginename]) {
             let url = UrlUtil.interpolateSearchItem(
                 new URL(searchurls[enginename]),
@@ -238,9 +238,8 @@ export async function openInTab(tab, opts = {}, strarr: string[]) {
             )
         }
 
-        if (
-            (engine = searchEngines.find(engine => engine.alias == enginename))
-        ) {
+        engine = searchEngines.find(engine => engine.alias == enginename)
+        if (engine !== undefined) {
             return browserBg.search.search({
                 tabId: tab.id,
                 engine: engine.name,
