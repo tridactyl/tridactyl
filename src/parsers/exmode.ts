@@ -26,7 +26,9 @@ function convertArgs(params, argv) {
     }
 
     const typedArgs = []
-    let type, arg, i
+    let type
+    let arg
+    let i
     for ([type, [i, arg]] of izip(params.values(), enumerate(argv))) {
         if (type in conversions) {
             typedArgs.push(conversions[type](arg))
