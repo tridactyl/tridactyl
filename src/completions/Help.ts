@@ -107,9 +107,9 @@ export class HelpCompletionSource extends Completions.CompletionSourceFuse {
                     Object.keys(settings)
                         .filter(x => x.startsWith(query))
                         .map(setting => {
-                            let member
+                            let member = default_config.getMember(setting)
                             let doc = ""
-                            if ((member = default_config.getMember(setting))) {
+                            if (member !== undefined) {
                                 doc = member.doc
                             }
                             return new HelpCompletionOption(

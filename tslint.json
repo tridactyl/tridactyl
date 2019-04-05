@@ -15,7 +15,6 @@
     "no-array-delete": false,
     "no-big-function": false,
     "no-commented-code": false,
-    "no-conditional-assignment": false,
     "no-console": false,
     "no-duplicate-string": false,
     "no-empty": false,
