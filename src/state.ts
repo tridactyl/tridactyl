@@ -43,7 +43,7 @@ browser.storage.local
     })
     .catch((...args) => logger.error(...args))
 
-const state = (new Proxy(overlay, {
+const state = new Proxy(overlay, {
     /** Give defaults if overlay doesn't have the key */
     get(target, property) {
         if (property in target) {
@@ -60,7 +60,7 @@ const state = (new Proxy(overlay, {
         browser.storage.local.set({ state: target } as any)
         return true
     },
-}))
+})
 
 browser.storage.onChanged.addListener((changes, areaname) => {
     if (areaname === "local" && "state" in changes) {

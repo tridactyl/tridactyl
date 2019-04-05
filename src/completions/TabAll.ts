@@ -91,7 +91,7 @@ export class TabAllCompletionSource extends Completions.CompletionSourceFuse {
         const options = []
 
         tabs.sort((a, b) => {
-            if (a.windowId == b.windowId) return a.index - b.index
+            if (a.windowId == b.windowId) { return a.index - b.index }
             return a.windowId - b.windowId
         })
 

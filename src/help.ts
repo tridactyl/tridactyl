@@ -30,7 +30,9 @@ function getCommandElements() {
         ),
     ).reduce((all, elem) => {
         let fnName = Array.from(elem.children).find(e => e.tagName == "H3")
-        if (fnName) all[fnName.textContent] = elem
+        if (fnName) {
+            all[fnName.textContent] = elem
+        }
         return all
     }, {})
 }
@@ -98,8 +100,9 @@ async function onExcmdPageLoad() {
                     if (
                         JSON.stringify(changes.userconfig.newValue[kind]) !=
                         JSON.stringify(changes.userconfig.oldValue[kind])
-                    )
+                    ) {
                         addSetting(kind)
+                    }
                 },
             )
         }
@@ -151,14 +154,17 @@ function addSettingInputs() {
 
                 let settingName = a.name.split(".")
                 let value = await config.getAsync(settingName)
-                if (!value) return console.log("Failed to grab value of ", a)
-                if (!["number", "boolean", "string"].includes(typeof value))
+                if (!value) {
+                    return console.log("Failed to grab value of ", a)
+                }
+                if (!["number", "boolean", "string"].includes(typeof value)) {
                     return console.log(
                         "Not embedding value of ",
                         a,
                         value,
                         " because not easily represented as string",
                     )
+                }
 
                 let input = document.createElement("input")
                 input.name = a.name

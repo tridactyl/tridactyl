@@ -904,7 +904,7 @@ function setDeepProperty(obj, value, target) {
 export function mergeDeep(o1, o2) {
     let r = Array.isArray(o1) ? o1.slice() : Object.create(o1)
     Object.assign(r, o1, o2)
-    if (o2 === undefined) return r
+    if (o2 === undefined) { return r }
     Object.keys(o1)
         .filter(key => typeof o1[key] == "object" && typeof o2[key] == "object")
         .forEach(key => Object.assign(r[key], mergeDeep(o1[key], o2[key])))
@@ -916,7 +916,7 @@ export function mergeDeep(o1, o2) {
  */
 
 export function getURL(url: string, target: string[]) {
-    if (!USERCONFIG.subconfigs) return undefined
+    if (!USERCONFIG.subconfigs) { return undefined }
     // For each key
     return (
         Object.keys(USERCONFIG.subconfigs)
@@ -940,8 +940,9 @@ export function getURL(url: string, target: string[]) {
                         USERCONFIG.subconfigs[curKey],
                         target,
                     )
-                    if (acc instanceof Object && curVal instanceof Object)
+                    if (acc instanceof Object && curVal instanceof Object) {
                         return mergeDeep(acc, curVal)
+                    }
                     return curVal
                 },
                 undefined as any,
@@ -958,8 +959,9 @@ export function getURL(url: string, target: string[]) {
 export function get(...target) {
     // Window.tri might not be defined when called from the untrusted page context
     let loc = window.location
-    if ((window as any).tri && (window as any).tri.contentLocation)
+    if ((window as any).tri && (window as any).tri.contentLocation) {
         loc = (window as any).tri.contentLocation
+    }
     // If there's a site-specifing setting, it overrides global settings
     const site = getURL(loc.href, target)
     const user = getDeepProperty(USERCONFIG, target)
@@ -1033,7 +1035,7 @@ export function unsetURL(pattern, ...target) {
  * @hidden */
 export function unset(...target) {
     const parent = getDeepProperty(USERCONFIG, target.slice(0, -1))
-    if (parent !== undefined) delete parent[target[target.length - 1]]
+    if (parent !== undefined) { delete parent[target[target.length - 1]] }
     return save()
 }
 
@@ -1100,10 +1102,11 @@ export async function update() {
         },
         "1.0": () => {
             let vimiumgi = getDeepProperty(USERCONFIG, ["vimium-gi"])
-            if (vimiumgi === true || vimiumgi === "true")
+            if (vimiumgi === true || vimiumgi === "true") {
                 set("gimode", "nextinput")
-            else if (vimiumgi === false || vimiumgi === "false")
+            } else if (vimiumgi === false || vimiumgi === "false") {
                 set("gimode", "firefox")
+ }
             unset("vimium-gi")
             set("configversion", "1.1")
         },
@@ -1117,10 +1120,11 @@ export async function update() {
             }
             let logging = getDeepProperty(USERCONFIG, ["logging"])
             // logging is not necessarily defined if the user didn't change default values
-            if (logging)
+            if (logging) {
                 Object.keys(logging).forEach(l =>
                     set("logging", l, leveltostr[logging[l]]),
                 )
+            }
             set("configversion", "1.2")
         },
         "1.2": () => {
@@ -1182,7 +1186,7 @@ export async function update() {
         },
         "1.6": () => {
             let updateSetting = mapObj => {
-                if (!mapObj) return mapObj
+                if (!mapObj) { return mapObj }
                 if (mapObj[" "] != undefined) {
                     mapObj["<Space>"] = mapObj[" "]
                     delete mapObj[" "]
@@ -1213,7 +1217,7 @@ export async function update() {
             set("configversion", "1.7")
         },
     }
-    if (!get("configversion")) set("configversion", "0.0")
+    if (!get("configversion")) { set("configversion", "0.0") }
     const updatetest = v => {
         return updaters.hasOwnProperty(v) && updaters[v] instanceof Function
     }
@@ -1268,9 +1272,9 @@ export function removeChangeListener<P extends keyof default_config>(
     listener: (old: default_config[P], neww: default_config[P]) => void,
 ) {
     let arr = changeListeners.get(name)
-    if (!arr) return
+    if (!arr) { return }
     let i = arr.indexOf(listener)
-    if (i >= 0) arr.splice(i, 1)
+    if (i >= 0) { arr.splice(i, 1) }
 }
 
 // Listen for changes to the storage and update the USERCONFIG if appropriate.

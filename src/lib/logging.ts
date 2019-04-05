@@ -47,16 +47,17 @@ export class Logger {
                                 browser.runtime.getURL(
                                     "_generated_background_page.html",
                                 ) == window.location.href
-                            )
+                            ) {
                                 return "background"
+ }
                         }
-                        if (getContext() == "content")
+                        if (getContext() == "content") {
                             return browser.runtime.sendMessage({
                                 type: "controller_background",
                                 command: "acceptExCmd",
                                 args: ["fillcmdline # " + message.join(" ")],
                             })
-                        else
+                        } else {
                             return browser.tabs.sendMessage(
                                 (await browser.tabs.query({
                                     active: true,
@@ -68,6 +69,7 @@ export class Logger {
                                     args: ["# " + message.join(" ")],
                                 },
                             )
+                        }
                     }
                 case "warning":
                     return console.warn

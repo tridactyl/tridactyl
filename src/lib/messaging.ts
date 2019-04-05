@@ -33,7 +33,7 @@ export function attributeCaller(obj) {
         logger.debug(message)
 
         // Args may be undefined, but you can't spread undefined...
-        if (message.args === undefined) message.args = []
+        if (message.args === undefined) { message.args = [] }
 
         // Call command on obj
         try {
@@ -89,8 +89,9 @@ export async function messageOwnTab(type: TabMessageType, command, args?) {
     if (_ownTabId === undefined) {
         _ownTabId = await ownTabId()
     }
-    if (_ownTabId === undefined)
+    if (_ownTabId === undefined) {
         throw new Error("Can't message own tab: _ownTabId is undefined")
+    }
     return messageTab(_ownTabId, type, command, args)
 }
 

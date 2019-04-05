@@ -54,8 +54,8 @@ export class MinimalKey {
         // 'in' doesn't include prototypes, so it's safe for this object.
         for (let attr in this) {
             // Don't check shiftKey for normal keys.
-            if (attr === "shiftKey" && this.key.length === 1) continue
-            if (this[attr] !== keyevent[attr]) return false
+            if (attr === "shiftKey" && this.key.length === 1) { continue }
+            if (this[attr] !== keyevent[attr]) { return false }
         }
         return true
     }
@@ -138,7 +138,7 @@ export function parse(keyseq: KeyEventLike[], map: KeyMap): ParserResponse {
             )
             return { value: perfect[1], exstr: perfect[1], isMatch: true }
         } catch (e) {
-            if (!(e instanceof RangeError)) throw e
+            if (!(e instanceof RangeError)) { throw e }
         }
     }
     return { keys: keyseq, isMatch: keyseq.length > 0 }
@@ -150,7 +150,7 @@ function prefixes(seq1: KeyEventLike[], seq2: MinimalKey[]) {
         return false
     } else {
         for (const [key1, key2] of izip(seq1, seq2)) {
-            if (!key2.match(key1)) return false
+            if (!key2.match(key1)) { return false }
         }
         return true
     }
@@ -184,8 +184,11 @@ function expandAliases(key: string) {
         bs: "Backspace",
         lt: "<",
     }
-    if (key.toLowerCase() in aliases) return aliases[key.toLowerCase()]
-    else return key
+    if (key.toLowerCase() in aliases) {
+        return aliases[key.toLowerCase()]
+    } else {
+        return key
+    }
 }
 
 /** String starting with a `<` to MinimalKey and remainder.

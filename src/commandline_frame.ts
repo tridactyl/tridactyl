@@ -82,7 +82,9 @@ function resizeArea() {
  * Should work so long as there's only one completion source per prefix.
  */
 function getCompletion() {
-    if (!activeCompletions) return undefined
+    if (!activeCompletions) {
+        return undefined
+    }
 
     for (const comp of activeCompletions) {
         if (comp.state === "normal" && comp.completion !== undefined) {
@@ -185,7 +187,9 @@ export function complete() {
     let fragment = clInput.value
     let matches = state.cmdHistory.filter(key => key.startsWith(fragment))
     let mostrecent = matches[matches.length - 1]
-    if (mostrecent != undefined) clInput.value = mostrecent
+    if (mostrecent != undefined) {
+        clInput.value = mostrecent
+    }
     return refresh_completions(clInput.value)
 }
 
@@ -193,21 +197,27 @@ export function complete() {
  * Selects the next completion.
  */
 export function next_completion() {
-    if (activeCompletions) activeCompletions.forEach(comp => comp.next())
+    if (activeCompletions) {
+        activeCompletions.forEach(comp => comp.next())
+    }
 }
 
 /**
  * Selects the previous completion.
  */
 export function prev_completion() {
-    if (activeCompletions) activeCompletions.forEach(comp => comp.prev())
+    if (activeCompletions) {
+        activeCompletions.forEach(comp => comp.prev())
+    }
 }
 
 /**
  * Deselects the currently selected completion.
  */
 export function deselect_completion() {
-    if (activeCompletions) activeCompletions.forEach(comp => comp.deselect())
+    if (activeCompletions) {
+        activeCompletions.forEach(comp => comp.deselect())
+    }
 }
 
 /**
@@ -250,7 +260,9 @@ export function insert_space_or_completion() {
 }
 
 export function refresh_completions(exstr) {
-    if (!activeCompletions) enableCompletions()
+    if (!activeCompletions) {
+        enableCompletions()
+    }
     return Promise.all(
         activeCompletions.map(comp =>
             comp.filter(exstr).then(() => {
@@ -275,7 +287,9 @@ clInput.addEventListener("input", () => {
         // Make sure the previous computation has ended
         await onInputPromise
         // If we're not the current completion computation anymore, stop
-        if (exstr != clInput.value) return
+        if (exstr != clInput.value) {
+            return
+        }
 
         onInputPromise = refresh_completions(exstr)
     }, 100)
@@ -292,7 +306,9 @@ let cmdline_history_current = ""
  *  Otherwise, no need to pass an argument.
  */
 export function clear(evlistener = false) {
-    if (evlistener) clInput.removeEventListener("blur", noblur)
+    if (evlistener) {
+        clInput.removeEventListener("blur", noblur)
+    }
     clInput.value = ""
     cmdline_history_position = 0
     cmdline_history_current = ""
@@ -308,8 +324,9 @@ export async function hide_and_clear() {
     Messaging.messageOwnTab("commandline_content", "blur")
     // Delete all completion sources - I don't think this is required, but this
     // way if there is a transient bug in completions it shouldn't persist.
-    if (activeCompletions)
+    if (activeCompletions) {
         activeCompletions.forEach(comp => completionsDiv.removeChild(comp.node))
+    }
     activeCompletions = undefined
     isVisible = false
 }
@@ -356,8 +373,9 @@ function history(n) {
 
     // if there was no clampage, update history position
     // there's a more sensible way of doing this but that would require more programmer time
-    if (clamped_ind == matches.length + n - cmdline_history_position)
+    if (clamped_ind == matches.length + n - cmdline_history_position) {
         cmdline_history_position = cmdline_history_position - n
+    }
 }
 
 /**
@@ -392,8 +410,11 @@ export function fillcmdline(
     trailspace = true,
     ffocus = true,
 ) {
-    if (trailspace) clInput.value = newcommand + " "
-    else clInput.value = newcommand
+    if (trailspace) {
+        clInput.value = newcommand + " "
+    } else {
+        clInput.value = newcommand
+    }
     isVisible = true
     let result = Promise.resolve([])
     // Focus is lost for some reason.
@@ -434,7 +455,9 @@ export async function setClipboard(content: string) {
         if (document.execCommand("Copy")) {
             // // todo: Maybe we can consider to using some logger and show it with status bar in the future
             logger.info("set clipboard:", scratchpad.value)
-        } else throw "Failed to copy!"
+        } else {
+            throw "Failed to copy!"
+        }
     })
     // Return focus to the document
     await Messaging.messageOwnTab("commandline_content", "hide")

@@ -38,7 +38,7 @@ function convertArgs(params, argv) {
         } else if (type === "string[]") {
             // Eat all remaining arguments
             return [...typedArgs, ...argv.slice(i)]
-        } else throw new TypeError(`Unknown type: ${type}`)
+        } else { throw new TypeError(`Unknown type: ${type}`) }
     }
     return typedArgs
 }

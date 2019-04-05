@@ -49,7 +49,7 @@ export function getCmdAliasMapping(
     // This is what this loop builds
     for (let alias of Object.keys(aliases)) {
         let cmd = expandExstr(alias, aliases).trim()
-        if (!commands[cmd]) commands[cmd] = []
+        if (!commands[cmd]) { commands[cmd] = [] }
         commands[cmd].push(alias.trim())
     }
     return commands

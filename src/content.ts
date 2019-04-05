@@ -130,7 +130,9 @@ if (
 
 // Really bad status indicator
 config.getAsync("modeindicator").then(mode => {
-    if (mode !== "true") return
+    if (mode !== "true") {
+        return
+    }
 
     // Do we want container indicators?
     let containerIndicator = config.get("containerindicator")
@@ -257,13 +259,17 @@ config.getAsync("modeindicator").then(mode => {
         statusIndicator.className +=
             " TridactylMode" + statusIndicator.textContent
 
-        if (config.get("modeindicator") !== "true") statusIndicator.remove()
+        if (config.get("modeindicator") !== "true") {
+            statusIndicator.remove()
+        }
     })
 })
 
 // Site specific fix for / on GitHub.com
 config.getAsync("leavegithubalone").then(v => {
-    if (v == "true") return
+    if (v == "true") {
+        return
+    }
     try {
         // On quick loading pages, the document is already loaded
         // if (document.location.host == "github.com") {

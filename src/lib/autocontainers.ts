@@ -73,22 +73,22 @@ export class AutoContain implements IAutoContain {
     ): Promise<browser.webRequest.BlockingResponse> => {
         // No autocontain directives, no nothing.
         let aucons = Config.get("autocontain")
-        if (Object.keys(aucons).length === 0) return { cancel: false }
+        if (Object.keys(aucons).length === 0) { return { cancel: false } }
 
         // Do not handle private tabs or invalid tabIds.
-        if (details.tabId === -1) return { cancel: false }
+        if (details.tabId === -1) { return { cancel: false } }
         let tab = await browser.tabs.get(details.tabId)
-        if (tab.incognito) return { cancel: false }
+        if (tab.incognito) { return { cancel: false } }
 
         // Only handle http requests.
-        if (details.url.search("^https?://") < 0) return { cancel: false }
+        if (details.url.search("^https?://") < 0) { return { cancel: false } }
 
         let cookieStoreId = await this.parseAucons(details)
 
         // Silently return if we're already in the correct container.
-        if (tab.cookieStoreId === cookieStoreId) return { cancel: false }
+        if (tab.cookieStoreId === cookieStoreId) { return { cancel: false } }
 
-        if (this.cancelEarly(tab, details)) return { cancel: true }
+        if (this.cancelEarly(tab, details)) { return { cancel: true } }
 
         browser.tabs
             .create({

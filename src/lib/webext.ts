@@ -70,12 +70,13 @@ export async function ownTabContainer() {
 
 export async function activeTabContainer() {
     let containerId = await activeTabContainerId()
-    if (containerId !== "firefox-default")
+    if (containerId !== "firefox-default") {
         return browserBg.contextualIdentities.get(containerId)
-    else
+    } else {
         throw new Error(
             "firefox-default is not a valid contextualIdentity (activeTabContainer)",
         )
+    }
 }
 
 /** Compare major firefox versions */
@@ -114,13 +115,17 @@ export async function openInNewTab(
 
     // Be nice to behrmann, #342
     let pos
-    if (kwargs.related) pos = config.get("relatedopenpos")
-    else pos = config.get("tabopenpos")
+    if (kwargs.related) {
+        pos = config.get("relatedopenpos")
+    } else {
+        pos = config.get("tabopenpos")
+    }
     switch (pos) {
         case "next":
             options.index = thisTab.index + 1
-            if (kwargs.related && (await firefoxVersionAtLeast(57)))
+            if (kwargs.related && (await firefoxVersionAtLeast(57))) {
                 options.openerTabId = thisTab.id
+            }
             break
         case "last":
             // Infinity can't be serialised, apparently.
@@ -155,7 +160,7 @@ export async function openInTab(tab, opts = {}, strarr: string[]) {
 
     const index = address.indexOf(" ")
     let firstWord = address
-    if (index > -1) firstWord = address.substr(0, index)
+    if (index > -1) { firstWord = address.substr(0, index) }
 
     if (firstWord == "") {
         // No query, no newtab set, the user is asking for Tridactyl's newtab page

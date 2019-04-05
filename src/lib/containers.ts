@@ -45,7 +45,7 @@ export async function create(
     color = "random",
     icon = "fingerprint",
 ): Promise<string> {
-    if (color === "random") color = chooseRandomColor()
+    if (color === "random") { color = chooseRandomColor() }
     let container = fromString(name, color, icon)
     // browser.contextualIdentities.create does not accept a cookieStoreId property.
     delete container.cookieStoreId
@@ -205,8 +205,7 @@ export async function fuzzyMatch(partialName: string): Promise<string> {
     let fuse = new Fuse(containers, fuseOptions)
     let res = fuse.search(partialName)
 
-    if (res.length >= 1) return res[0]
-    else {
+    if (res.length >= 1) { return res[0] } else {
         throw new Error(
             "[Container.fuzzyMatch] no container matched that string",
         )

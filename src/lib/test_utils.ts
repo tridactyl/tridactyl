@@ -2,8 +2,11 @@
 function wrapPrimitives(testcases) {
     // Wrap all args and answers in arrays if they're not already
     return testcases.map(argOrAns => {
-        if (argOrAns instanceof Array) return argOrAns
-        else return [argOrAns]
+        if (argOrAns instanceof Array) {
+            return argOrAns
+        } else {
+            return [argOrAns]
+        }
     })
 }
 
@@ -19,8 +22,11 @@ export function testAll(toTest, testcases) {
             expect(
                 (() => {
                     let result = toTest(...args)
-                    if (result instanceof Array) return result
-                    else return [result]
+                    if (result instanceof Array) {
+                        return result
+                    } else {
+                        return [result]
+                    }
                 })(),
             ).toEqual(expect.arrayContaining(ans)))
     }
@@ -40,8 +46,11 @@ export function testAllCustom(toTest, testcases, expectAttr, expectArg) {
             expect(
                 (() => {
                     let result = toTest(...args)
-                    if (result instanceof Array) return result
-                    else return [result]
+                    if (result instanceof Array) {
+                        return result
+                    } else {
+                        return [result]
+                    }
                 })(),
             )[expectAttr](eval(expectArg)))
     }

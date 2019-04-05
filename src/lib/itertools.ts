@@ -3,14 +3,17 @@ import "@src/lib/number.mod"
 export function head(iter) {
     iter = iter[Symbol.iterator]()
     let result = iter.next()
-    if (result.done) throw RangeError("Empty iterator has no head/tail")
-    else return result.value
+    if (result.done) {
+        throw RangeError("Empty iterator has no head/tail")
+    } else {
+        return result.value
+    }
 }
 
 /** Get the last item of an array or iterable */
 export function tail(iter) {
     if (Array.isArray(iter)) {
-        if (iter.length < 1) throw RangeError("Empty iterator has no head/tail")
+        if (iter.length < 1) { throw RangeError("Empty iterator has no head/tail") }
         return iter[iter.length - 1]
     } else {
         // Re-use error handling in head()
@@ -23,7 +26,7 @@ export function tail(iter) {
 
 export function* filter(iter, predicate) {
     for (let v of iter) {
-        if (predicate(v)) yield v
+        if (predicate(v)) { yield v }
     }
 }
 
@@ -43,7 +46,7 @@ export function zip(...arrays) {
 }
 
 export function* range(length) {
-    if (length < 0) return
+    if (length < 0) { return }
     for (let index = 0; index < length; index++) {
         yield index
     }
@@ -78,7 +81,7 @@ export function* izip(...arrays) {
 /* Test if two iterables are equal */
 export function iterEq(...arrays) {
     for (let a of zip(...arrays)) {
-        if (!a.reduce((x, y) => x === y)) return false
+        if (!a.reduce((x, y) => x === y)) { return false }
     }
     return true
 }
@@ -106,7 +109,7 @@ export function* islice(iterable, start: number, stop?: number) {
     // Skip elements until start
     for (let _ of range(start)) {
         const res = iter.next()
-        if (res.done) return
+        if (res.done) { return }
     }
 
     // Emit elements
@@ -115,8 +118,11 @@ export function* islice(iterable, start: number, stop?: number) {
     } else {
         for (let i = start; i < stop; i++) {
             const res = iter.next()
-            if (res.done) return
-            else yield res.value
+            if (res.done) {
+                return
+            } else {
+                yield res.value
+            }
         }
     }
 }
@@ -135,21 +141,22 @@ export function* permutationsWithReplacement(arr, n) {
     for (let _ of range(Math.pow(len, n))) {
         yield counters.map(i => arr[i])
         for (let i of range(counters.length)) {
-            if (index.mod(Math.pow(len, counters.length - 1 - i)) === 0)
+            if (index.mod(Math.pow(len, counters.length - 1 - i)) === 0) {
                 counters[i] = (counters[i] + 1).mod(len)
+            }
         }
         index++
     }
 }
 
 export function* map(arr, func) {
-    for (const v of arr) yield func(v)
+    for (const v of arr) { yield func(v) }
 }
 
 // Returns an array of unique elements.
 export function unique(arr) {
     return arr.reduce((acc, cur) => {
-        if (!acc.includes(cur)) acc.push(cur)
+        if (!acc.includes(cur)) { acc.push(cur) }
         return acc
     }, [])
 }

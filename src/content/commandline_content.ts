@@ -119,7 +119,7 @@ export function executeWithoutCommandLine(fn) {
     } catch (e) {
         cmdline_logger.error(e)
     }
-    if (cmdline_iframe) parent.appendChild(cmdline_iframe)
+    if (cmdline_iframe) { parent.appendChild(cmdline_iframe) }
     return result
 }
 

@@ -98,8 +98,17 @@ declare namespace browser.webRequest {
 }
 
 declare namespace browser.search {
-    function search(searchProperties: {query: string, engine?: string, tabId?: number}): never
-    function get(): {name: string, isDefault: boolean, alias?: string, faviconURL?: string}[]
+    function search(searchProperties: {
+        query: string
+        engine?: string
+        tabId?: number
+    }): never
+    function get(): {
+        name: string
+        isDefault: boolean
+        alias?: string
+        faviconURL?: string
+    }[]
 }
 
 // Stop typedoc complaining about toBeAll.

@@ -43,7 +43,7 @@ export class PreferenceCompletionSource extends Completions.CompletionSourceFuse
         this.options = Object.keys(preferences)
             .filter(key => key.startsWith(pref))
             .map(key => new PreferenceCompletionOption(key, preferences[key]))
-        if (this.options.length > 0) this.state = "normal"
+        if (this.options.length > 0) { this.state = "normal" }
         return this.updateChain()
     }
 }

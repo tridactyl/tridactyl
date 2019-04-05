@@ -66,11 +66,11 @@ class HintState {
     resolveHinting() {
         this.cleanUpHints()
 
-        if (this.rapid) this.resolve(this.selectedHints.map(h => h.result))
-        else
-            this.resolve(
-                this.selectedHints[0] ? this.selectedHints[0].result : "",
-            )
+        if (this.rapid) {
+            this.resolve(this.selectedHints.map(h => h.result))
+        } else {
+            this.resolve(this.selectedHints[0] ? this.selectedHints[0].result : "")
+        }
     }
 
     changeFocusedHintIndex(offset) {
@@ -226,8 +226,9 @@ function* hintnames_uniform(
     n: number,
     hintchars = defaultHintChars(),
 ): IterableIterator<string> {
-    if (n <= hintchars.length) yield* islice(hintchars[Symbol.iterator](), n)
-    else {
+    if (n <= hintchars.length) {
+        yield* islice(hintchars[Symbol.iterator](), n)
+    } else {
         // else calculate required length of each tag
         const taglen = Math.ceil(log(n, hintchars.length))
         // And return first n permutations
@@ -381,8 +382,9 @@ function filterHintsSimple(fstr) {
     const active: Hint[] = []
     let foundMatch
     for (let h of modeState.hints) {
-        if (!h.name.startsWith(fstr)) h.hidden = true
-        else {
+        if (!h.name.startsWith(fstr)) {
+            h.hidden = true
+        } else {
             if (!foundMatch) {
                 h.focused = true
                 modeState.focusedHint = h
@@ -437,7 +439,7 @@ function filterHintsVimperator(fstr, reflow = false) {
     let active = modeState.hints
 
     // If we're reflowing, the names may be wrong at this point, so apply the original names.
-    if (reflow) rename(active)
+    if (reflow) { rename(active) }
 
     // Filter down (renaming as required)
     for (const run of partitionFstr(fstr)) {
@@ -448,7 +450,7 @@ function filterHintsVimperator(fstr, reflow = false) {
             // By text
             active = active.filter(hint => hint.filterData.includes(run.str))
 
-            if (reflow) rename(active)
+            if (reflow) { rename(active) }
         }
     }
 
@@ -582,8 +584,11 @@ function selectFocusedHint(delay = false) {
         modeState.hints.forEach(h => (h.hidden = false))
         focused.select()
     }
-    if (delay) setTimeout(selectFocusedHintInternal, config.get("hintdelay"))
-    else selectFocusedHintInternal()
+    if (delay) {
+        setTimeout(selectFocusedHintInternal, config.get("hintdelay"))
+    } else {
+        selectFocusedHintInternal()
+    }
 }
 
 function focusNextHint() {

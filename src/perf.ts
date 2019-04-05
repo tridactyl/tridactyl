@@ -46,7 +46,9 @@ export function measured(
     propertyKey: string,
     descriptor: PropertyDescriptor,
 ): PropertyDescriptor {
-    if (!performanceApiAvailable()) return
+    if (!performanceApiAvailable()) {
+        return
+    }
 
     const originalMethod = descriptor.value
     descriptor.value = function(this, ...args) {
@@ -68,7 +70,9 @@ export function measuredAsync(
     propertyKey: string,
     descriptor: PropertyDescriptor,
 ): PropertyDescriptor {
-    if (!performanceApiAvailable()) return
+    if (!performanceApiAvailable()) {
+        return
+    }
 
     const originalMethod = descriptor.value
     descriptor.value = async function(this, ...args) {
@@ -111,7 +115,9 @@ export class Marker {
     ) {}
 
     public start() {
-        if (!this.active) return this
+        if (!this.active) {
+            return this
+        }
         logger.debug(
             "Marking startpoint of performance counter for %o",
             this.metricName,
@@ -121,7 +127,9 @@ export class Marker {
     }
 
     public end() {
-        if (!this.active) return this
+        if (!this.active) {
+            return this
+        }
         logger.debug(
             "Marking endpoint of performance counter for %o",
             this.metricName,
@@ -270,7 +278,9 @@ export class StatsLogger {
         // Drop samples that aren't for tridactyl, since performance
         // events are global and there are some badly-behaved
         // libraries spamming them all over our own data.
-        if (!entry.name.startsWith(TRI_PERFORMANCE_NAME_PREFIX)) return
+        if (!entry.name.startsWith(TRI_PERFORMANCE_NAME_PREFIX)) {
+            return
+        }
 
         // We depend on arrays auto-vivifying when elements past the
         // end are set to make this easy.
@@ -281,7 +291,6 @@ export class StatsLogger {
     private incrementIdx() {
         this.idx = (this.idx + 1) % this.buffersize
     }
-
 }
 
 /**
@@ -392,7 +401,9 @@ const extractRegExp = new RegExp(
 )
 function extractMetricName(counterName: string): MetricNameInfo {
     const matchresult = counterName.match(extractRegExp)
-    if (!matchresult) return
+    if (!matchresult) {
+        return
+    }
     const [ownerName, functionName, uniqueSuffix] = matchresult.slice(1)
 
     return {

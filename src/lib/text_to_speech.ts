@@ -32,11 +32,11 @@ export function readText(text: string): void {
     let volume = Config.get("ttsvolume")
     let rate = Config.get("ttsrate")
 
-    if (pitch >= 0 && pitch < 2) utterance.pitch = pitch
+    if (pitch >= 0 && pitch < 2) { utterance.pitch = pitch }
 
-    if (volume >= 0 && volume <= 1) utterance.volume = volume
+    if (volume >= 0 && volume <= 1) { utterance.volume = volume }
 
-    if (rate >= 0.1 && rate <= 10) utterance.rate = rate
+    if (rate >= 0.1 && rate <= 10) { utterance.rate = rate }
 
     let voiceObj = getVoiceFromName(voice)
     if (voiceObj) {

@@ -60,7 +60,7 @@ async function sendNativeMsg(
 export async function getrcpath(): Promise<string> {
     const res = await sendNativeMsg("getconfigpath", {})
 
-    if (res.code != 0) throw new Error("getrcpath error: " + res.code)
+    if (res.code != 0) { throw new Error("getrcpath error: " + res.code) }
 
     return res.content
 }
@@ -82,7 +82,7 @@ export async function getNativeMessengerVersion(
 ): Promise<number> {
     const res = await sendNativeMsg("version", {}, quiet)
     if (res === undefined) {
-        if (quiet) return undefined
+        if (quiet) { return undefined }
         throw `Error retrieving version: ${res.error}`
     }
     if (res.version && !res.error) {
@@ -198,26 +198,29 @@ export async function nativegate(
         const actualVersion = await getNativeMessengerVersion()
         if (actualVersion !== undefined) {
             if (semverCompare(version, actualVersion) > 0) {
-                if (interactive)
+                if (interactive) {
                     logger.error(
                         "# Please update to native messenger " +
                             version +
                             ", for example by running `:updatenative`.",
                     )
+                }
                 // TODO: add update procedure and document here.
                 return false
             }
             return true
-        } else if (interactive)
+        } else if (interactive) {
             logger.error(
                 "# Native messenger not found. Please run `:installnative` and follow the instructions.",
             )
+ }
         return false
     } catch (e) {
-        if (interactive)
+        if (interactive) {
             logger.error(
                 "# Native messenger not found. Please run `:installnative` and follow the instructions.",
             )
+        }
         return false
     }
 }
@@ -237,13 +240,13 @@ export async function firstinpath(cmdarray) {
     while (!(await inpath(cmd.split(" ")[0]))) {
         ind++
         cmd = cmdarray[ind]
-        if (cmd === undefined) break
+        if (cmd === undefined) { break }
     }
     return cmd
 }
 
 export async function editor(file: string, content?: string) {
-    if (content !== undefined) await write(file, content)
+    if (content !== undefined) { await write(file, content) }
     const editorcmd =
         config.get("editorcmd") == "auto"
             ? await getBestEditor()
@@ -336,7 +339,7 @@ export async function clipboard(
     str: string,
 ): Promise<string> {
     let clipcmd = await config.get("externalclipboardcmd")
-    if (clipcmd == "auto") clipcmd = await firstinpath(["xsel", "xclip"])
+    if (clipcmd == "auto") { clipcmd = await firstinpath(["xsel", "xclip"]) }
 
     if (clipcmd === undefined) {
         throw new Error("Couldn't find an external clipboard executable")
@@ -354,12 +357,13 @@ export async function clipboard(
         let required_version = "0.1.7"
         if (await nativegate(required_version, false)) {
             let result = await run(`${clipcmd} -i`, str)
-            if (result.code != 0)
+            if (result.code != 0) {
                 throw new Error(
                     `External command failed with code ${
                         result.code
                     }: ${clipcmd}`,
                 )
+            }
             return ""
         } else {
             // Fall back to hacky old fashioned way
@@ -370,8 +374,9 @@ export async function clipboard(
 
             // Find a delimiter that isn't in str
             let heredoc = "TRIDACTYL"
-            while (str.search(heredoc) != -1)
+            while (str.search(heredoc) != -1) {
                 heredoc += Math.round(Math.random() * 10)
+            }
 
             // Use delimiter to insert str into clipcmd's stdin
             // We use sed to remove the newline added by the here document
@@ -489,7 +494,7 @@ export async function getProfile() {
 
     // Try to find a profile name in firefox's arguments
     let p = cmdline.indexOf("-p")
-    if (p == -1) p = cmdline.indexOf("-P")
+    if (p == -1) { p = cmdline.indexOf("-P") }
     if (p >= 0 && p < cmdline.length - 1) {
         const pName = cmdline[p + 1]
         for (let profileName of Object.keys(iniObject)) {
@@ -507,8 +512,9 @@ export async function getProfile() {
 
     // Still nothing, try to find a profile in use
     let hacky_profile_finder = `find "${ffDir}" -maxdepth 2 -name lock`
-    if ((await browserBg.runtime.getPlatformInfo()).os === "mac")
+    if ((await browserBg.runtime.getPlatformInfo()).os === "mac") {
         hacky_profile_finder = `find "${ffDir}" -maxdepth 2 -name .parentlock`
+    }
     let profilecmd = await run(hacky_profile_finder)
     if (profilecmd.code == 0 && profilecmd.content.length != 0) {
         // Remove trailing newline
@@ -550,7 +556,7 @@ export function getProfileName() {
 
 export async function getProfileDir() {
     let profiledir = config.get("profiledir")
-    if (profiledir != "auto") return Promise.resolve(profiledir)
+    if (profiledir != "auto") { return Promise.resolve(profiledir) }
     return getProfile().then(p => p.absolutePath)
 }
 
@@ -570,7 +576,7 @@ export async function parsePrefs(prefFileContent: string) {
         const key = matches[2]
         let value = matches[3]
         // value = " means that it should be an empty string
-        if (value == '"') value = ""
+        if (value == '"') { value = "" }
         prefs[key] = value
         return prefs
     }, {})
@@ -584,7 +590,7 @@ export async function parsePrefs(prefFileContent: string) {
  */
 export async function loadPrefs(filename): Promise<{ [key: string]: string }> {
     const result = await read(filename)
-    if (result.code != 0) return {}
+    if (result.code != 0) { return {} }
     return parsePrefs(result.content)
 }
 
@@ -596,7 +602,7 @@ let cached_prefs = null
  *  Performance is slow so we need to cache the results.
  */
 export async function getPrefs(): Promise<{ [key: string]: string }> {
-    if (cached_prefs != null) return cached_prefs
+    if (cached_prefs != null) { return cached_prefs }
     const profile = (await getProfileDir()) + "/"
     const prefFiles = [
         // Debian has these
@@ -665,13 +671,13 @@ export async function getConfElsePrefElseDefault(
     def: any,
 ): Promise<any> {
     let option = await getConfElsePref(confName, prefName)
-    if (option === undefined) return def
+    if (option === undefined) { return def }
     return option
 }
 
 /** Writes a preference to user.js */
 export async function writePref(name: string, value: any) {
-    if (cached_prefs) cached_prefs[name] = value
+    if (cached_prefs) { cached_prefs[name] = value }
 
     const file = (await getProfileDir()) + "/user.js"
     // No need to check the return code because read returns "" when failing to

@@ -5,7 +5,6 @@
     "arrow-parens": false,
     "class-name": false,
     "cognitive-complexity": false,
-    "curly": false,
     "interface-name": false,
     "jsdoc-format": false,
     "max-classes-per-file": false,

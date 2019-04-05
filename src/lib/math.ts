@@ -5,7 +5,7 @@ export function log(x, base) {
 // Copied from Numeric Javascript under the MIT license
 // https://github.com/sloisel/numeric/blob/656fa1254be540f428710738ca9c1539625777f1/src/numeric.js#L922
 export function linspace(a: number, b: number, n?: number) {
-    if (typeof n === "undefined") n = Math.max(Math.round(b - a) + 1, 1)
+    if (typeof n === "undefined") { n = Math.max(Math.round(b - a) + 1, 1) }
     if (n < 2) {
         return n === 1 ? [a] : []
     }

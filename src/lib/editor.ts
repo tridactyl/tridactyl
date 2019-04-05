@@ -68,9 +68,9 @@ function getContentEditableValues(e: any): [string, number, number] {
     let selection = e.ownerDocument.getSelection()
     // The selection might actually not be in e so we need to make sure it is
     let n = selection.anchorNode
-    while (n && n != e) n = n.parentNode
+    while (n && n != e) { n = n.parentNode }
     // The selection isn't for e, so we can't do anything
-    if (!n) return [null, null, null]
+    if (!n) { return [null, null, null] }
     // selection might span multiple elements, might not start with the first element in e or end with the last element in e so the easiest way to compute caret position from beginning of e is to first compute distance from caret to end of e, then move beginning of selection to beginning of e and then use distance from end of selection to compute distance from beginning of selection
     let r = selection.getRangeAt(0).cloneRange()
     let selectionLength = r.toString().length
@@ -92,9 +92,9 @@ function getContentEditableValues(e: any): [string, number, number] {
  */
 function setSimpleValues(e, text, start, end) {
     return applyToElem(e, e => {
-        if (text !== null) e.value = text
+        if (text !== null) { e.value = text }
         if (start !== null) {
-            if (end === null) end = start
+            if (end === null) { end = start }
             e.selectionStart = start
             e.selectionEnd = end
         }
@@ -125,7 +125,7 @@ function setContentEditableValues(e, text, start, end) {
         e.ownerDocument.execCommand("insertText", false, text)
     }
     if (start !== null) {
-        if (end === null) end = start
+        if (end === null) { end = start }
         let range = selection.getRangeAt(0)
         range.setStart(range.startContainer, start)
         range = selection.getRangeAt(0)
@@ -152,7 +152,7 @@ function wrap_input(
             setValues = setContentEditableValues
         }
         const [origText, origStart, origEnd] = getValues(e)
-        if (origText === null || origStart === null) return false
+        if (origText === null || origStart === null) { return false }
         setValues(e, ...fn(origText, origStart, origEnd, arg))
         return true
     }
@@ -172,8 +172,9 @@ function needs_text(fn: editor_function, arg?: any): editor_function {
             text.length === 0 ||
             selectionStart === null ||
             selectionStart === undefined
-        )
+        ) {
             return [null, null, null]
+        }
         return fn(
             text,
             selectionStart,
@@ -191,12 +192,13 @@ export function getWordBoundaries(
     position: number,
     before: boolean,
 ): [number, number] {
-    if (position < 0 || position > text.length)
+    if (position < 0 || position > text.length) {
         throw new Error(
             `getWordBoundaries: position (${position}) should be within text ("${text}") boundaries (0, ${
                 text.length
             })`,
         )
+    }
     let pattern = new RegExp(config.get("wordpattern"), "g")
     let boundary1 = position < text.length ? position : text.length - 1
     let direction = before ? -1 : 1
@@ -209,8 +211,11 @@ export function getWordBoundaries(
         boundary1 += direction
     }
 
-    if (boundary1 < 0) boundary1 = 0
-    else if (boundary1 >= text.length) boundary1 = text.length - 1
+    if (boundary1 < 0) {
+        boundary1 = 0
+    } else if (boundary1 >= text.length) {
+        boundary1 = text.length - 1
+    }
 
     // if a word couldn't be found in this direction, try the other one
     while (
@@ -221,8 +226,11 @@ export function getWordBoundaries(
         boundary1 -= direction
     }
 
-    if (boundary1 < 0) boundary1 = 0
-    else if (boundary1 >= text.length) boundary1 = text.length - 1
+    if (boundary1 < 0) {
+        boundary1 = 0
+    } else if (boundary1 >= text.length) {
+        boundary1 = text.length - 1
+    }
 
     if (!text[boundary1].match(pattern)) {
         // there is no word in text
@@ -257,7 +265,7 @@ export function getWordBoundaries(
     boundary2 += direction
 
     // Add 1 to the end boundary because the end of a word is marked by the character after said word
-    if (boundary1 > boundary2) return [boundary2, boundary1 + 1]
+    if (boundary1 > boundary2) { return [boundary2, boundary1 + 1] }
     return [boundary1, boundary2 + 1]
 }
 
@@ -266,16 +274,19 @@ export function getWordBoundaries(
  * @return number The position of the next word in text or -1 if the next word can't be found.
  */
 export function wordAfterPos(text: string, position: number) {
-    if (position < 0)
+    if (position < 0) {
         throw new Error(`wordAfterPos: position (${position}) is less that 0`)
+    }
     let pattern = new RegExp(config.get("wordpattern"), "g")
     // move position out of the current word
-    while (position < text.length && !!text[position].match(pattern))
+    while (position < text.length && !!text[position].match(pattern)) {
         position += 1
+    }
     // try to find characters that match wordpattern
-    while (position < text.length && !text[position].match(pattern))
+    while (position < text.length && !text[position].match(pattern)) {
         position += 1
-    if (position >= text.length) return -1
+    }
+    if (position >= text.length) { return -1 }
     return position
 }
 
@@ -339,11 +350,11 @@ export const tab_insert = wrap_input((text, selectionStart, selectionEnd) => {
  **/
 export const transpose_chars = wrap_input(
     (text, selectionStart, selectionEnd) => {
-        if (text.length < 2) return [null, null, null]
+        if (text.length < 2) { return [null, null, null] }
         // When at the beginning of the text, transpose the first and second characters
-        if (selectionStart == 0) selectionStart = 1
+        if (selectionStart == 0) { selectionStart = 1 }
         // When at the end of the text, transpose the last and second-to-last characters
-        if (selectionStart >= text.length) selectionStart = text.length - 1
+        if (selectionStart >= text.length) { selectionStart = text.length - 1 }
 
         text =
             text.substring(0, selectionStart - 1) +
@@ -364,7 +375,7 @@ function applyWord(
     selectionEnd,
     fn: (string) => string,
 ): [string, number, number] {
-    if (text.length == 0) return [null, null, null]
+    if (text.length == 0) { return [null, null, null] }
     // If the caret is at the end of the text, move it just before the last character
     if (selectionStart >= text.length) {
         selectionStart = text.length - 1
@@ -462,7 +473,7 @@ export const kill_line = wrap_input(
         let newLine = text.substring(selectionStart).search("\n")
         if (newLine != -1) {
             // If the caret is right before the newline, kill the newline
-            if (newLine == 0) newLine = 1
+            if (newLine == 0) { newLine = 1 }
             text =
                 text.substring(0, selectionStart) +
                 text.substring(selectionStart + newLine)
@@ -537,8 +548,9 @@ export const kill_whole_line = wrap_input(
 export const kill_word = wrap_input(
     needs_text((text, selectionStart, selectionEnd) => {
         let boundaries = getWordBoundaries(text, selectionStart, false)
-        if (selectionStart > boundaries[0] && selectionStart < boundaries[1])
+        if (selectionStart > boundaries[0] && selectionStart < boundaries[1]) {
             boundaries[0] = selectionStart
+        }
         // Remove everything between the newline and the caret
         return [
             text.substring(0, boundaries[0]) +
@@ -555,8 +567,9 @@ export const kill_word = wrap_input(
 export const backward_kill_word = wrap_input(
     needs_text((text, selectionStart, selectionEnd) => {
         let boundaries = getWordBoundaries(text, selectionStart, true)
-        if (selectionStart > boundaries[0] && selectionStart < boundaries[1])
+        if (selectionStart > boundaries[0] && selectionStart < boundaries[1]) {
             boundaries[1] = selectionStart
+        }
         // Remove everything between the newline and the caret
         return [
             text.substring(0, boundaries[0]) + text.substring(boundaries[1]),
@@ -574,8 +587,9 @@ export const beginning_of_line = wrap_input(
         while (
             text[selectionStart - 1] != undefined &&
             text[selectionStart - 1] != "\n"
-        )
+        ) {
             selectionStart -= 1
+        }
         return [null, selectionStart, null]
     }),
 )
@@ -588,8 +602,9 @@ export const end_of_line = wrap_input(
         while (
             text[selectionStart] != undefined &&
             text[selectionStart] != "\n"
-        )
+        ) {
             selectionStart += 1
+        }
         return [null, selectionStart, null]
     }),
 )
@@ -616,8 +631,9 @@ export const backward_char = wrap_input(
 export const forward_word = wrap_input(
     needs_text((text, selectionStart, selectionEnd) => {
         let boundaries = getWordBoundaries(text, selectionStart, false)
-        if (selectionStart >= boundaries[0] && selectionStart < boundaries[1])
+        if (selectionStart >= boundaries[0] && selectionStart < boundaries[1]) {
             boundaries = getWordBoundaries(text, boundaries[1], false)
+        }
         return [null, boundaries[0], null]
     }),
 )
@@ -627,10 +643,11 @@ export const forward_word = wrap_input(
  **/
 export const backward_word = wrap_input(
     (text, selectionStart, selectionEnd) => {
-        if (selectionStart == 0) return [null, null, null]
+        if (selectionStart == 0) { return [null, null, null] }
         let boundaries = getWordBoundaries(text, selectionStart, true)
-        if (selectionStart >= boundaries[0] && selectionStart < boundaries[1])
+        if (selectionStart >= boundaries[0] && selectionStart < boundaries[1]) {
             boundaries = getWordBoundaries(text, boundaries[0] - 1, true)
+        }
         return [null, boundaries[0], null]
     },
 )

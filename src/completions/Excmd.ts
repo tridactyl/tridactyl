@@ -39,8 +39,11 @@ export class ExcmdCompletionSource extends Completions.CompletionSourceFuse {
     }
 
     updateChain(exstr = this.lastExstr, options = this.options) {
-        if (this.options.length > 0) this.state = "normal"
-        else this.state = "hidden"
+        if (this.options.length > 0) {
+            this.state = "normal"
+        } else {
+            this.state = "hidden"
+        }
 
         this.updateDisplay()
     }
@@ -59,7 +62,7 @@ export class ExcmdCompletionSource extends Completions.CompletionSourceFuse {
         this.lastExstr = exstr
 
         let excmds = Metadata.everything.getFile("src/excmds.ts")
-        if (!excmds) return
+        if (!excmds) { return }
         let fns = excmds.getFunctions()
 
         // Add all excmds that start with exstr and that tridactyl has metadata about to completions

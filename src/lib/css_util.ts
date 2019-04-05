@@ -275,6 +275,6 @@ export function changeCss(
             // have a metarule call itself for hours of fun
             sheet = changeCss(rule, metarule[rule], sheet)
         }
-    } else sheet = changeSingleCss(rulename, optionname, sheet)
+    } else { sheet = changeSingleCss(rulename, optionname, sheet) }
     return sheet
 }

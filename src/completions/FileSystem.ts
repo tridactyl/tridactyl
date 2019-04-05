@@ -42,7 +42,7 @@ export class FileSystemCompletionSource extends Completions.CompletionSourceFuse
             return
         }
 
-        if (!path) path = "."
+        if (!path) { path = "." }
 
         if (!["/", "$", "~", "."].find(s => path.startsWith(s))) {
             // If the path doesn't start with a special character, it is relative to the native messenger, thus use "." as starting point
@@ -63,7 +63,7 @@ export class FileSystemCompletionSource extends Completions.CompletionSourceFuse
         }
 
         if (req.isDir) {
-            if (!path.endsWith(req.sep)) path += req.sep
+            if (!path.endsWith(req.sep)) { path += req.sep }
         } else {
             path = path.substring(0, path.lastIndexOf("/") + 1)
         }

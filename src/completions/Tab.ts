@@ -18,12 +18,13 @@ class BufferCompletionOption extends Completions.CompletionOptionHTML
         super()
         // Two character tab properties prefix
         let pre = ""
-        if (tab.active) pre += "%"
-        else if (isAlternative) {
+        if (tab.active) {
+            pre += "%"
+        } else if (isAlternative) {
             pre += "#"
             this.value = "#"
         }
-        if (tab.pinned) pre += "@"
+        if (tab.pinned) { pre += "@" }
 
         // Push prefix before padding so we don't match on whitespace
         this.fuseKeys.push(pre)

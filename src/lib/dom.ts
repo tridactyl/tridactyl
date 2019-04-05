@@ -66,7 +66,7 @@ export function isTextEditable(element: Element) {
  * @param {HTMLInputElement} element
  */
 function isEditableHTMLInput(element: HTMLInputElement) {
-    if (element.disabled || element.readOnly) return false
+    if (element.disabled || element.readOnly) { return false }
     switch (element.type) {
         case undefined:
         case "text":
@@ -276,7 +276,7 @@ export function isVisible(element: Element) {
  * @param doc   The document the frames should be fetched from
  */
 export function getAllDocumentFrames(doc = document) {
-    if (!(doc instanceof HTMLDocument)) return []
+    if (!(doc instanceof HTMLDocument)) { return [] }
     let frames = (Array.from(doc.getElementsByTagName("iframe")) as HTMLIFrameElement[] & HTMLFrameElement[])
         .concat(Array.from(doc.getElementsByTagName("frame")))
         .filter(frame => !frame.src.startsWith("moz-extension://"))
@@ -297,9 +297,9 @@ export function getAllDocumentFrames(doc = document) {
 export function getSelector(e: HTMLElement) {
     function uniqueSelector(e: HTMLElement) {
         // Only matching alphanumeric selectors because others chars might have special meaning in CSS
-        if (e.id && e.id.match("^[a-zA-Z0-9]+$")) return "#" + e.id
+        if (e.id && e.id.match("^[a-zA-Z0-9]+$")) { return "#" + e.id }
         // If we reached the top of the document
-        if (!e.parentElement) return "HTML"
+        if (!e.parentElement) { return "HTML" }
         // Compute the position of the element
         let index =
             Array.from(e.parentElement.children)
@@ -437,7 +437,7 @@ export function registerEvListenerAction(
                 // elem even though it still has a "click" listener.
                 // Fixing this might not be worth the added complexity.
                 let index = hintworthy_js_elems.indexOf(elem)
-                if (index >= 0) hintworthy_js_elems.splice(index, 1)
+                if (index >= 0) { hintworthy_js_elems.splice(index, 1) }
             }
     }
 }
@@ -485,7 +485,7 @@ export function focus(e: HTMLElement): void {
         )
     ) {
         let pos = 0
-        if (config.get("cursorpos") === "end") pos = e.value.length
+        if (config.get("cursorpos") === "end") { pos = e.value.length }
         e.setSelectionRange(pos, pos)
     }
 }
@@ -632,15 +632,16 @@ export function simulateClick(target: HTMLElement) {
     ) {
         // Try to open the new tab in the same container as the current one.
         activeTabContainerId().then(containerId => {
-            if (containerId)
+            if (containerId) {
                 openInNewTab((target as HTMLAnchorElement).href, {
                     related: true,
                     cookieStoreId: containerId,
                 })
-            else
+            } else {
                 openInNewTab((target as HTMLAnchorElement).href, {
                     related: true,
                 })
+            }
         })
     } else {
         mouseEvent(target, "click")

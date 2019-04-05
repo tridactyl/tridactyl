@@ -48,8 +48,9 @@ export abstract class CompletionSource {
             .map(p => p.trim())
             .forEach(p => {
                 this.prefixes.push(p)
-                if (commands[p])
+                if (commands[p]) {
                     this.prefixes = this.prefixes.concat(commands[p])
+                }
             })
 
         // Not sure this is necessary but every completion source has it
@@ -91,7 +92,7 @@ export abstract class CompletionSource {
 
     deselect() {
         this.completion = undefined
-        if (this.lastFocused != undefined) this.lastFocused.state = "normal"
+        if (this.lastFocused != undefined) { this.lastFocused.state = "normal" }
     }
 }
 
@@ -259,8 +260,11 @@ export abstract class CompletionSourceFuse extends CompletionSource {
         let matches = scoredOpts.map(res => res.index)
 
         for (const [index, option] of enumerate(this.options)) {
-            if (matches.includes(index)) option.state = "normal"
-            else option.state = "hidden"
+            if (matches.includes(index)) {
+                option.state = "normal"
+            } else {
+                option.state = "hidden"
+            }
         }
 
         // ideally, this would not deselect anything unless it fell off the list of matches
@@ -284,8 +288,9 @@ export abstract class CompletionSourceFuse extends CompletionSource {
 
         for (const option of this.options) {
             /* newContainer.appendChild(option.html) */
-            if (option.state != "hidden")
+            if (option.state != "hidden") {
                 this.optionContainer.appendChild(option.html)
+            }
         }
 
         /* console.log('updateDisplay', this.optionContainer, newContainer) */
@@ -303,9 +308,9 @@ export abstract class CompletionSourceFuse extends CompletionSource {
             // visopts.length + 1 because we want an empty completion at the end
             let max = visopts.length + 1
             let opt = visopts[(currind + inc + max) % max]
-            if (opt) this.select(opt)
+            if (opt) { this.select(opt) }
             return true
-        } else return false
+        } else { return false }
     }
 }
 

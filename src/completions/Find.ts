@@ -53,7 +53,7 @@ export class FindCompletionSource extends Completions.CompletionSourceFuse {
     }
 
     private async updateOptions(exstr?: string) {
-        if (!exstr) return
+        if (!exstr) { return }
 
         // Flag parsing because -? should reverse completions
         let tokens = exstr.split(" ")
@@ -66,11 +66,11 @@ export class FindCompletionSource extends Completions.CompletionSourceFuse {
         let query = tokens.slice(1).join(" ")
         let minincsearchlen = await config.getAsync("minincsearchlen")
         // No point if continuing if the user hasn't started searching yet
-        if (query.length < minincsearchlen) return
+        if (query.length < minincsearchlen) { return }
 
         let findresults = await config.getAsync("findresults")
         let incsearch = (await config.getAsync("incsearch")) === "true"
-        if (findresults === 0 && !incsearch) return
+        if (findresults === 0 && !incsearch) { return }
 
         let incsearchonly = false
         if (findresults === 0) {
@@ -99,12 +99,13 @@ export class FindCompletionSource extends Completions.CompletionSourceFuse {
                 [findings, len],
             )
 
-            if (incsearch)
+            if (incsearch) {
                 Messaging.messageTab(tabId, "finding_content", "jumpToMatch", [
                     query,
                     false,
                     0,
                 ])
+            }
 
             if (!incsearchonly) {
                 this.options = matches.map(

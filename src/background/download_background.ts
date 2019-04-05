@@ -81,7 +81,7 @@ export async function downloadUrl(url: string, saveAs: boolean) {
  * If saveAs points to a directory, the name of the document will be inferred from the URL and the document will be placed inside the directory. If saveAs points to an already existing file, the document will be saved in the downloads directory but wont be moved to where it should be ; an error will be thrown. If any of the directories referred to in saveAs do not exist, the file will be kept in the downloads directory but won't be moved to where it should be.
  */
 export async function downloadUrlAs(url: string, saveAs: string) {
-    if (!(await Native.nativegate("0.1.9", true))) return
+    if (!(await Native.nativegate("0.1.9", true))) { return }
     const urlToSave = new URL(url)
 
     let urlToDownload
