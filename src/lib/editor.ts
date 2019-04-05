@@ -508,7 +508,8 @@ export const backward_kill_line = wrap_input(
  **/
 export const kill_whole_line = wrap_input(
     needs_text((text, selectionStart, selectionEnd) => {
-        let firstNewLine, secondNewLine
+        let firstNewLine
+        let secondNewLine
         // Find the newline before the caret
         for (
             firstNewLine = selectionStart;

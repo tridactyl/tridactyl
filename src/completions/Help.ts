@@ -45,17 +45,16 @@ export class HelpCompletionSource extends Completions.CompletionSourceFuse {
             return
         }
 
-        let file, default_config, excmds, fns, settings, exaliases, bindings
-        if (
-            !(file = Metadata.everything.getFile("src/lib/config.ts")) ||
-            !(default_config = file.getClass("default_config")) ||
-            !(excmds = Metadata.everything.getFile("src/excmds.ts")) ||
-            !(fns = excmds.getFunctions()) ||
-            !(settings = config.get()) ||
-            !(exaliases = settings.exaliases) ||
-            !(bindings = settings.nmaps)
-        )
+        let file = Metadata.everything.getFile("src/lib/config.ts")
+        let default_config = file.getClass("default_config")
+        let excmds = Metadata.everything.getFile("src/excmds.ts")
+        let fns = excmds.getFunctions()
+        let settings = config.get()
+        let exaliases = settings.exaliases
+        let bindings = settings.nmaps
+        if (fns === undefined || exaliases === undefined || bindings === undefined) {
             return
+        }
 
         const flags = {
             "-a": (options, query) =>
@@ -64,7 +63,7 @@ export class HelpCompletionSource extends Completions.CompletionSourceFuse {
                         .filter(alias => alias.startsWith(query))
                         .map(alias => {
                             let cmd = aliases.expandExstr(alias)
-                            let doc = (excmds.getFunction(cmd) || {}).doc || ""
+                            let doc = (excmds.getFunction(cmd) || {} as any).doc || ""
                             return new HelpCompletionOption(
                                 alias,
                                 `Alias for \`${cmd}\`. ${doc}`,
@@ -108,8 +107,8 @@ export class HelpCompletionSource extends Completions.CompletionSourceFuse {
                     Object.keys(settings)
                         .filter(x => x.startsWith(query))
                         .map(setting => {
-                            let member,
-                                doc = ""
+                            let member
+                            let doc = ""
                             if ((member = default_config.getMember(setting))) {
                                 doc = member.doc
                             }

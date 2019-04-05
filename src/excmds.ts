@@ -3033,12 +3033,15 @@ export function searchsetkeyword() {
 function validateSetArgs(key: string, values: string[]) {
     const target: any[] = key.split(".")
 
-    let value, file, default_config, md
-    if ((file = Metadata.everything.getFile("src/lib/config.ts")) && (default_config = file.getClass("default_config")) && (md = default_config.getMember(target[0]))) {
+    let value
+    let file = Metadata.everything.getFile("src/lib/config.ts")
+    let default_config = file.getClass("default_config")
+    let md = default_config.getMember(target[0])
+    if (md !== undefined) {
         const strval = values.join(" ")
         // Note: the conversion will throw if strval can't be converted to the right type
         if (md.type.kind == "object" && target.length > 1) {
-            value = md.type.convertMember(target.slice(1), strval)
+            value = (md as any).type.convertMember(target.slice(1), strval)
         } else {
             value = md.type.convert(strval)
         }

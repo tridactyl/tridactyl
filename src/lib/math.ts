@@ -9,8 +9,8 @@ export function linspace(a: number, b: number, n?: number) {
     if (n < 2) {
         return n === 1 ? [a] : []
     }
-    var i,
-        ret = Array(n)
+    let i
+    let ret = Array(n)
     n--
     for (i = n; i >= 0; i--) {
         ret[i] = (i * b + (n - i) * a) / n

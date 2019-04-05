@@ -61,13 +61,13 @@ export class SettingsCompletionSource extends Completions.CompletionSourceFuse {
 
         options += options ? " " : ""
 
-        let file, default_config, settings
-        if (
-            !(file = metadata.everything.getFile("src/lib/config.ts")) ||
-            !(default_config = file.getClass("default_config")) ||
-            !(settings = config.get())
-        )
+        let file = metadata.everything.getFile("src/lib/config.ts")
+        let default_config = file.getClass("default_config")
+        let settings = config.get()
+
+        if (default_config === undefined || settings === undefined) {
             return
+        }
 
         this.options = Object.keys(settings)
             .filter(x => x.startsWith(query))
