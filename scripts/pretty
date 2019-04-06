@@ -27,7 +27,7 @@ unlock() {
 trap "unlock $(git rev-parse --show-toplevel)/.git/index.lock || true" ERR
 
 main() {
-  local stagedFiles=$(cachedFiles)
+  local stagedFiles="$(cachedTSLintFiles)"$'\n'"$(cachedPrettierFiles)"
 
   if [ -n "$stagedFiles" ]; then
     # Could use git-update-index --cacheinfo to add a file without creating directories and stuff.
@@ -37,7 +37,10 @@ main() {
       if cmp -s <(staged "$file") "$file"; then
 	echo "WARN: Staged copy of '$file' matches working copy. Modifying both"
 	lock .git/index.lock
-	prettier --write "$file"
+	case "$file" in
+	  *.md | *.css) prettier --write "$file";;
+	  *) tslint --project . --fix "$file";;
+	esac
 	unlock .git/index.lock
 	git add "$file"
       else
@@ -46,7 +49,11 @@ main() {
 	  cd "$tmpdir"
 	  mkdir -p $(dirname $file)
 	  lock ../.git/index.lock
-	  staged "$file" | prettier --stdin-filepath "$file" > "$file"
+	  case "$file" in
+	    *.md | *.css) staged "$file" | prettier --stdin-filepath "$file" > "$file";;
+	    *) staged "$file" > "$file"
+	      tslint -c ../tslint.json --fix "$file" 2>/dev/null;;
+	  esac
 	  chmod --reference="../$file" "$file" # match permissions
 	  # Can't hold lock while git add occurs. Hopefully release and reacquire happen fast enough to prevent race.
 	  unlock ../.git/index.lock
