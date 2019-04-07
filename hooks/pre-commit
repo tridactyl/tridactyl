@@ -2,13 +2,15 @@
 
 source ./scripts/common
 
-jsfiles=$(cachedFiles)
-
-[ -z "$jsfiles" ] && exit 0
+jsfiles=$(cachedTSLintFiles)
+otherfiles=$(cachedPrettierFiles)
 
 # Check if any of the files are ugly or contain a console.log call
 consoleFiles=$(noisy $jsfiles)
-uglyFiles=$(ugly $jsfiles)
+uglyFiles="$(tslintUgly $jsfiles)"
+if [ ! -n "$uglyFiles" ]; then
+    uglyFiles="$(prettierUgly $otherfiles)"
+fi
 
 if [ -n "$consoleFiles" ]; then
     echo "Warning: adding console.log calls in ${consoleFiles[@]}"

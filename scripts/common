@@ -2,8 +2,14 @@
 
 # Accepts no arguments
 # Returns git-add'ed files as a list of filenames separated by a newline character
-cachedFiles() {
-    git diff --cached --name-only --diff-filter=ACM "*.js" "*.jsx" "*.ts" "*.tsx" "*.md" "*.css"
+cachedTSLintFiles() {
+    git diff --cached --name-only --diff-filter=ACM "*.js" "*.jsx" "*.ts" "*.tsx"
+}
+
+# Accepts no arguments
+# Returns git-add'ed files as a list of filenames separated by a newline character
+cachedPrettierFiles() {
+    git diff --cached --name-only --diff-filter=ACM "*.md" "*.css"
 }
 
 # Accepts a single argument which is the name of a file tracked by git
@@ -14,12 +20,26 @@ staged() {
 
 # Accepts a single string argument made of multiple file names separated by a newline
 # Returns an array of files that prettier wants to lint
-ugly() {
+prettierUgly() {
     local acc=""
     local IFS=$'\n'
     for jsfile in $1; do
         diff <(staged "$jsfile") <(staged "$jsfile" | "$(npm bin)/prettier" --stdin-filepath "$jsfile") >/dev/null || acc="$jsfile"$'\n'"$acc"
     done
+    echo "$acc"
+}
+
+tslintUgly() {
+    local acc=""
+    local IFS=$'\n'
+    local tmpdir=$(mktemp -d "tslint.XXXXXXXXX")
+    for jsfile in $1; do
+        tmpfile="$tmpdir/$jsfile"
+        mkdir -p "$(dirname "$tmpfile")"
+        staged "$jsfile" > "$tmpfile"
+        tslint -q "$tmpfile" 2>/dev/null || acc="$jsfile"$'\n'"$acc"
+    done
+    rm -rf "$tmpdir"
     echo "$acc"
 }
 
