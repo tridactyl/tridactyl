@@ -4083,6 +4083,44 @@ export async function jsb(...str: string[]) {
     }
 }
 
+/**
+ * Opens a new tab the url of which is "https://github.com/tridactyl/tridactyl/issues/new" and automatically fill add tridactyl, firefox and os version to the issue.
+ */
+//#content
+export async function issue() {
+    const newIssueUrl = "https://github.com/tridactyl/tridactyl/issues/new"
+    if (window.location.href !== newIssueUrl) {
+        return Messaging.message("controller_background", "acceptExCmd", ["tabopen " + newIssueUrl])
+    }
+    const textarea = document.getElementById("issue_body")
+    if (!(textarea instanceof HTMLTextAreaElement)) {
+        logger.warning("issue(): Couldn't find textarea element in github issue page.")
+        return
+    }
+    let template = await (fetch(browser.extension.getURL("issue_template.md"))
+        .then(resp => resp.body.getReader())
+        .then(reader => reader.read())
+        .then(r => (new TextDecoder("utf-8")).decode(r.value)))
+    if (textarea.value !== template) {
+        logger.debug("issue(): Textarea value differs from template, exiting early.")
+        return
+    }
+    const platform = await browserBg.runtime.getPlatformInfo();
+    // Remove the bit asking the user
+    template = template.replace("*   Operating system:\n", "")
+    // Add this piece of information to the top of the template
+    template = `Operating system: ${platform.os}\n` + template
+
+    const info = await browserBg.runtime.getBrowserInfo()
+    template = template.replace("*   Firefox version (Top right menu > Help > About Firefox):\n\n", "")
+    template = `Firefox version: ${info.vendor} ${info.name} ${info.version}\n` + template
+
+    template = template.replace("*   Tridactyl version (`:version`):\n\n", "")
+    template = `Tridactyl version: ${TRI_VERSION}\n` + template
+
+    textarea.value = template
+}
+
 //#background_helper
 import * as Parser from "rss-parser"
 import * as semverCompare from "semver-compare"
