@@ -56,6 +56,7 @@ module.exports = {
                 ignore: ["*.psd", "*1024px.png"],
             },
             { from: "generated/static", to: "static" },
+            { from: "issue_template.md" },
         ]),
     ],
     // Fix css
