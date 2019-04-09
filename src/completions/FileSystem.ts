@@ -9,11 +9,9 @@ class FileSystemCompletionOption extends Completions.CompletionOptionHTML
     constructor(public value: string) {
         super()
         this.fuseKeys = [value]
-        this.html = html`
-            <tr class="FileSystemCompletionOption option">
+        this.html = html`<tr class="FileSystemCompletionOption option">
                 <td class="value">${value}</td>
-            </tr>
-        `
+            </tr>`
     }
 }
 
