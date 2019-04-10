@@ -210,7 +210,7 @@ function* hintnames_simple(
     So it removes them. This function is not yet clever enough to realise that if n > h ** 2 it should remove
         h + (n - h**2 - h) / h ** 2
     and so on, but we hardly ever see that many hints, so whatever.
-    
+
 */
 function* hintnames_short(
     n: number,

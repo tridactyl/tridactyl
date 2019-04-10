@@ -34,7 +34,7 @@ export function find(iter, predicate) {
 /** Zip some arrays together
 
     If you need variable length args, you need izip for now.
-    
+
 */
 export function zip(...arrays) {
     // Make an array of length values
@@ -87,7 +87,7 @@ export function zeros(n) {
     return new Array(n).fill(0)
 }
 
-/** islice(iter, stop) = Give the first `stop` elements 
+/** islice(iter, stop) = Give the first `stop` elements
     islice(iter, start, stop)
         skip `start` elements, then give `stop - start` elements,
         unless `stop` is null, then emit indefinitely
