@@ -5,7 +5,7 @@ const logger = new Logger("rc")
 
 export async function source(filename = "auto") {
     let rctext = ""
-    if (filename == "auto") {
+    if (filename === "auto") {
         rctext = await Native.getrc()
     } else {
         rctext = (await Native.read(filename)).content

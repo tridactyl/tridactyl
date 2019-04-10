@@ -121,7 +121,7 @@ export function elementsWithText() {
     return getElemsBySelector("*", [
         isVisible,
         hint => {
-            return hint.textContent != ""
+            return hint.textContent !== ""
         },
     ])
 }
@@ -303,7 +303,7 @@ export function getSelector(e: HTMLElement) {
         // Compute the position of the element
         let index =
             Array.from(e.parentElement.children)
-                .filter(child => child.tagName == e.tagName)
+                .filter(child => child.tagName === e.tagName)
                 .indexOf(e) + 1
         return (
             uniqueSelector(e.parentElement) +
@@ -510,7 +510,7 @@ function onPageFocus(elem: HTMLElement, args: any[]): boolean {
     if (isTextEditable(elem)) {
         LAST_USED_INPUT = elem
     }
-    return config.get("allowautofocus") == "true"
+    return config.get("allowautofocus") === "true"
 }
 
 async function setInput(el) {

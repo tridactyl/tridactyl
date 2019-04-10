@@ -60,7 +60,7 @@ async function sendNativeMsg(
 export async function getrcpath(): Promise<string> {
     const res = await sendNativeMsg("getconfigpath", {})
 
-    if (res.code != 0) throw new Error("getrcpath error: " + res.code)
+    if (res.code !== 0) throw new Error("getrcpath error: " + res.code)
 
     return res.content
 }
@@ -224,7 +224,7 @@ export async function nativegate(
 
 export async function inpath(cmd) {
     const pathcmd =
-        (await browserBg.runtime.getPlatformInfo()).os == "win"
+        (await browserBg.runtime.getPlatformInfo()).os === "win"
             ? "where "
             : "which "
     return (await run(pathcmd + cmd.split(" ")[0])).code === 0
@@ -245,10 +245,10 @@ export async function firstinpath(cmdarray) {
 export async function editor(file: string, content?: string) {
     if (content !== undefined) await write(file, content)
     const editorcmd =
-        config.get("editorcmd") == "auto"
+        config.get("editorcmd") === "auto"
             ? await getBestEditor()
             : config.get("editorcmd")
-    if (editorcmd.indexOf("%f") != -1) {
+    if (editorcmd.indexOf("%f") !== -1) {
         await run(editorcmd.replace(/%f/, file))
     } else {
         await run(editorcmd + " " + file)
@@ -336,25 +336,25 @@ export async function clipboard(
     str: string,
 ): Promise<string> {
     let clipcmd = await config.get("externalclipboardcmd")
-    if (clipcmd == "auto") clipcmd = await firstinpath(["xsel", "xclip"])
+    if (clipcmd === "auto") clipcmd = await firstinpath(["xsel", "xclip"])
 
     if (clipcmd === undefined) {
         throw new Error("Couldn't find an external clipboard executable")
     }
 
-    if (action == "get") {
+    if (action === "get") {
         let result = await run(clipcmd + " -o")
-        if (result.code != 0) {
+        if (result.code !== 0) {
             throw new Error(
                 `External command failed with code ${result.code}: ${clipcmd}`,
             )
         }
         return result.content
-    } else if (action == "set") {
+    } else if (action === "set") {
         let required_version = "0.1.7"
         if (await nativegate(required_version, false)) {
             let result = await run(`${clipcmd} -i`, str)
-            if (result.code != 0)
+            if (result.code !== 0)
                 throw new Error(
                     `External command failed with code ${
                         result.code
@@ -370,7 +370,7 @@ export async function clipboard(
 
             // Find a delimiter that isn't in str
             let heredoc = "TRIDACTYL"
-            while (str.search(heredoc) != -1)
+            while (str.search(heredoc) !== -1)
                 heredoc += Math.round(Math.random() * 10)
 
             // Use delimiter to insert str into clipcmd's stdin
@@ -417,11 +417,11 @@ export function parseProfilesIni(content: string, basePath: string) {
     for (let profileName of Object.keys(result)) {
         let profile = result[profileName]
         // profile.IsRelative can be 0, 1 or undefined
-        if (profile.IsRelative == 1) {
+        if (profile.IsRelative === 1) {
             profile.relativePath = profile.Path
             profile.absolutePath = basePath + profile.relativePath
-        } else if (profile.IsRelative == 0) {
-            if (profile.Path.substring(0, basePath.length) != basePath) {
+        } else if (profile.IsRelative === 0) {
+            if (profile.Path.substring(0, basePath.length) !== basePath) {
                 throw new Error(
                     `Error parsing profiles ini: basePath "${basePath}" doesn't match profile path ${
                         profile.Path
@@ -452,17 +452,17 @@ export async function getProfile() {
     const ffDir = await getFirefoxDir()
     const iniPath = ffDir + "profiles.ini"
     const iniContent = await read(iniPath)
-    if (iniContent.code != 0 || iniContent.content.length == 0) {
+    if (iniContent.code !== 0 || iniContent.content.length === 0) {
         throw new Error(`native.ts:getProfile() : Couldn't read "${iniPath}"`)
     }
     const iniObject = parseProfilesIni(iniContent.content, ffDir)
     const curProfileDir = config.get("profiledir")
 
     // First, try to see if the 'profiledir' setting matches a profile in profile.ini
-    if (curProfileDir != "auto") {
+    if (curProfileDir !== "auto") {
         for (let profileName of Object.keys(iniObject)) {
             let profile = iniObject[profileName]
-            if (profile.absolutePath == curProfileDir) {
+            if (profile.absolutePath === curProfileDir) {
                 return profile
             }
         }
@@ -478,7 +478,7 @@ export async function getProfile() {
         const profilePath = cmdline[profile + 1]
         for (let profileName of Object.keys(iniObject)) {
             let profile = iniObject[profileName]
-            if (profile.absolutePath == profilePath) {
+            if (profile.absolutePath === profilePath) {
                 return profile
             }
         }
@@ -489,12 +489,12 @@ export async function getProfile() {
 
     // Try to find a profile name in firefox's arguments
     let p = cmdline.indexOf("-p")
-    if (p == -1) p = cmdline.indexOf("-P")
+    if (p === -1) p = cmdline.indexOf("-P")
     if (p >= 0 && p < cmdline.length - 1) {
         const pName = cmdline[p + 1]
         for (let profileName of Object.keys(iniObject)) {
             let profile = iniObject[profileName]
-            if (profile.Name == pName) {
+            if (profile.Name === pName) {
                 return profile
             }
         }
@@ -510,18 +510,18 @@ export async function getProfile() {
     if ((await browserBg.runtime.getPlatformInfo()).os === "mac")
         hacky_profile_finder = `find "${ffDir}" -maxdepth 2 -name .parentlock`
     let profilecmd = await run(hacky_profile_finder)
-    if (profilecmd.code == 0 && profilecmd.content.length != 0) {
+    if (profilecmd.code === 0 && profilecmd.content.length !== 0) {
         // Remove trailing newline
         profilecmd.content = profilecmd.content.trim()
         // If there's only one profile in use, use that to find the right profile
-        if (profilecmd.content.split("\n").length == 1) {
+        if (profilecmd.content.split("\n").length === 1) {
             const path = profilecmd.content
                 .split("/")
                 .slice(0, -1)
                 .join("/")
             for (let profileName of Object.keys(iniObject)) {
                 let profile = iniObject[profileName]
-                if (profile.absolutePath == path) {
+                if (profile.absolutePath === path) {
                     return profile
                 }
             }
@@ -534,7 +534,7 @@ export async function getProfile() {
     // Multiple profiles used but no -p or --profile, this means that we're using the default profile
     for (let profileName of Object.keys(iniObject)) {
         let profile = iniObject[profileName]
-        if (profile.Default == 1) {
+        if (profile.Default === 1) {
             return profile
         }
     }
@@ -550,7 +550,7 @@ export function getProfileName() {
 
 export async function getProfileDir() {
     let profiledir = config.get("profiledir")
-    if (profiledir != "auto") return Promise.resolve(profiledir)
+    if (profiledir !== "auto") return Promise.resolve(profiledir)
     return getProfile().then(p => p.absolutePath)
 }
 
@@ -570,7 +570,7 @@ export async function parsePrefs(prefFileContent: string) {
         const key = matches[2]
         let value = matches[3]
         // value = " means that it should be an empty string
-        if (value == '"') value = ""
+        if (value === '"') value = ""
         prefs[key] = value
         return prefs
     }, {})
@@ -584,7 +584,7 @@ export async function parsePrefs(prefFileContent: string) {
  */
 export async function loadPrefs(filename): Promise<{ [key: string]: string }> {
     const result = await read(filename)
-    if (result.code != 0) return {}
+    if (result.code !== 0) return {}
     return parsePrefs(result.content)
 }
 
@@ -596,7 +596,7 @@ let cached_prefs = null
  *  Performance is slow so we need to cache the results.
  */
 export async function getPrefs(): Promise<{ [key: string]: string }> {
-    if (cached_prefs != null) return cached_prefs
+    if (cached_prefs !== null) return cached_prefs
     const profile = (await getProfileDir()) + "/"
     const prefFiles = [
         // Debian has these

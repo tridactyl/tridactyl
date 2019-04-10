@@ -15,10 +15,10 @@ export function findCssRules(
     const filtSheet = [...sheet.stylesheet.rules.entries()].filter(x => {
         const rule = x[1]
         return (
-            rule.type == "rule" &&
+            rule.type === "rule" &&
             // Make sure that there are as many selectors in the current rule
             // as there are in the rule we're looking for
-            rule["selectors"].length == selectors.length &&
+            rule["selectors"].length === selectors.length &&
             // Also make sure that each of the selectors of the current rule
             // are present in the rule we're looking for
             !rule["selectors"].find(selector => !selectors.includes(selector))

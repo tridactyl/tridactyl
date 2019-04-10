@@ -59,7 +59,7 @@ export class HistoryCompletionSource extends Completions.CompletionSourceFuse {
 
         // Ignoring command-specific arguments
         // It's terrible but it's ok because it's just a stopgap until an actual commandline-parsing API is implemented
-        if (prefix == "tabopen ") {
+        if (prefix === "tabopen ") {
             if (query.startsWith("-c")) {
                 let args = query.split(" ")
                 options = args.slice(0, 2).join(" ")
@@ -70,7 +70,7 @@ export class HistoryCompletionSource extends Completions.CompletionSourceFuse {
                 options = args.slice(0, 1).join(" ")
                 query = args.slice(1).join(" ")
             }
-        } else if (prefix == "winopen " && query.startsWith("-private")) {
+        } else if (prefix === "winopen " && query.startsWith("-private")) {
             options = "-private"
             query = query.substring(options.length)
         }
@@ -102,7 +102,7 @@ export class HistoryCompletionSource extends Completions.CompletionSourceFuse {
     private async scoreOptions(query: string, n: number) {
         const newtab = (browser.runtime.getManifest()).chrome_url_overrides.newtab
         const newtaburl = browser.extension.getURL(newtab)
-        if (!query || config.get("historyresults") == 0) {
+        if (!query || config.get("historyresults") === 0) {
             return (await browserBg.topSites.get())
                 .filter(page => page.url !== newtaburl)
                 .slice(0, n)

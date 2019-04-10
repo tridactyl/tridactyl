@@ -51,7 +51,7 @@ browser.tabs.onActivated.addListener(ev => {
     browser.tabs.get(ev.tabId).then(t => {
         // Note: we're using contentLocationCount and myId in order to make sure that only the last onActivated event is used in order to set contentLocation
         // This is needed because otherWise the following chain of execution might happen: onActivated1 => onActivated2 => tabs.get2 => tabs.get1
-        if (contentLocationCount == myId) {
+        if (contentLocationCount === myId) {
             ;(window as any).tri.contentLocation = new URL(t.url)
         }
     })
@@ -91,7 +91,7 @@ browser.runtime.onStartup.addListener(_ => {
     config.getAsync("autocmds", "TriStart").then(aucmds => {
         let hosts = Object.keys(aucmds)
         // If there's only one rule and it's "all", no need to check the hostname
-        if (hosts.length == 1 && hosts[0] == ".*") {
+        if (hosts.length === 1 && hosts[0] === ".*") {
             BackgroundController.acceptExCmd(aucmds[hosts[0]])
         } else {
             native.run("hostname").then(hostname => {

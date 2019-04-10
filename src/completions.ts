@@ -80,7 +80,7 @@ export abstract class CompletionSource {
 
     shouldRefresh() {
         // A completion source should be refreshed if it is not hidden or if it just became hidden
-        return this._state != "hidden" || this.state != this._prevState
+        return this._state !== "hidden" || this.state !== this._prevState
     }
 
     abstract next(inc?: number): boolean
@@ -91,7 +91,7 @@ export abstract class CompletionSource {
 
     deselect() {
         this.completion = undefined
-        if (this.lastFocused != undefined) this.lastFocused.state = "normal"
+        if (this.lastFocused !== undefined) this.lastFocused.state = "normal"
     }
 }
 
@@ -284,7 +284,7 @@ export abstract class CompletionSourceFuse extends CompletionSource {
 
         for (const option of this.options) {
             /* newContainer.appendChild(option.html) */
-            if (option.state != "hidden")
+            if (option.state !== "hidden")
                 this.optionContainer.appendChild(option.html)
         }
 
@@ -296,9 +296,9 @@ export abstract class CompletionSourceFuse extends CompletionSource {
     }
 
     next(inc = 1) {
-        if (this.state != "hidden") {
-            let visopts = this.options.filter(o => o.state != "hidden")
-            let currind = visopts.findIndex(o => o.state == "focused")
+        if (this.state !== "hidden") {
+            let visopts = this.options.filter(o => o.state !== "hidden")
+            let currind = visopts.findIndex(o => o.state === "focused")
             this.deselect()
             // visopts.length + 1 because we want an empty completion at the end
             let max = visopts.length + 1

@@ -73,13 +73,13 @@ class KeyCanceller {
     private cancelKey(ke: KeyboardEvent, kes: KeyboardEvent[]) {
         let index = kes.findIndex(
             ke2 =>
-                ke.altKey == ke2.altKey &&
-                ke.code == ke2.code &&
-                ke.composed == ke2.composed &&
-                ke.ctrlKey == ke2.ctrlKey &&
-                ke.metaKey == ke2.metaKey &&
-                ke.shiftKey == ke2.shiftKey &&
-                ke.target == ke2.target,
+                ke.altKey === ke2.altKey &&
+                ke.code === ke2.code &&
+                ke.composed === ke2.composed &&
+                ke.ctrlKey === ke2.ctrlKey &&
+                ke.metaKey === ke2.metaKey &&
+                ke.shiftKey === ke2.shiftKey &&
+                ke.target === ke2.target,
         )
         if (index >= 0) {
             ke.preventDefault()

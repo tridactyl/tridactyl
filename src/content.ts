@@ -116,7 +116,7 @@ if (
     window.location.pathname === "/static/newtab.html"
 ) {
     config.getAsync("newtab").then(newtab => {
-        if (newtab == "about:blank") {
+        if (newtab === "about:blank") {
         } else if (newtab) {
             excmds.open_quiet(newtab)
         } else {
@@ -211,7 +211,7 @@ config.getAsync("modeindicator").then(mode => {
         let mode = newValue
         let suffix = ""
         let result = ""
-        if (property != "mode") {
+        if (property !== "mode") {
             if (property === "suffix") {
                 mode = oldMode
                 suffix = newValue
@@ -243,7 +243,7 @@ config.getAsync("modeindicator").then(mode => {
             result = mode
         }
         let modeindicatorshowkeys = Config.get("modeindicatorshowkeys")
-        if (modeindicatorshowkeys === "true" && suffix != "") {
+        if (modeindicatorshowkeys === "true" && suffix !== "") {
             result = mode + " " + suffix
         }
         logger.debug(
@@ -263,12 +263,12 @@ config.getAsync("modeindicator").then(mode => {
 
 // Site specific fix for / on GitHub.com
 config.getAsync("leavegithubalone").then(v => {
-    if (v == "true") return
+    if (v === "true") return
     try {
         // On quick loading pages, the document is already loaded
-        // if (document.location.host == "github.com") {
+        // if (document.location.host === "github.com") {
         document.body.addEventListener("keydown", function(e) {
-            if ("/".indexOf(e.key) != -1 && contentState.mode == "normal") {
+            if ("/".indexOf(e.key) !== -1 && contentState.mode === "normal") {
                 e.cancelBubble = true
                 e.stopImmediatePropagation()
             }
@@ -277,9 +277,9 @@ config.getAsync("leavegithubalone").then(v => {
     } catch (e) {
         // But on slower pages we wait for the document to load
         window.addEventListener("DOMContentLoaded", () => {
-            // if (document.location.host == "github.com") {
+            // if (document.location.host === "github.com") {
             document.body.addEventListener("keydown", function(e) {
-                if ("/".indexOf(e.key) != -1 && contentState.mode == "normal") {
+                if ("/".indexOf(e.key) !== -1 && contentState.mode === "normal") {
                     e.cancelBubble = true
                     e.stopImmediatePropagation()
                 }

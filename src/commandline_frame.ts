@@ -185,7 +185,7 @@ export function complete() {
     let fragment = clInput.value
     let matches = state.cmdHistory.filter(key => key.startsWith(fragment))
     let mostrecent = matches[matches.length - 1]
-    if (mostrecent != undefined) clInput.value = mostrecent
+    if (mostrecent !== undefined) clInput.value = mostrecent
     return refresh_completions(clInput.value)
 }
 
@@ -275,7 +275,7 @@ clInput.addEventListener("input", () => {
         // Make sure the previous computation has ended
         await onInputPromise
         // If we're not the current completion computation anymore, stop
-        if (exstr != clInput.value) return
+        if (exstr !== clInput.value) return
 
         onInputPromise = refresh_completions(exstr)
     }, 100)
@@ -344,7 +344,7 @@ function history(n) {
     let matches = state.cmdHistory.filter(key =>
         key.startsWith(HISTORY_SEARCH_STRING),
     )
-    if (cmdline_history_position == 0) {
+    if (cmdline_history_position === 0) {
         cmdline_history_current = clInput.value
     }
     let clamped_ind = matches.length + n - cmdline_history_position
@@ -352,11 +352,11 @@ function history(n) {
 
     const pot_history = matches[clamped_ind]
     clInput.value =
-        pot_history == undefined ? cmdline_history_current : pot_history
+        pot_history === undefined ? cmdline_history_current : pot_history
 
     // if there was no clampage, update history position
     // there's a more sensible way of doing this but that would require more programmer time
-    if (clamped_ind == matches.length + n - cmdline_history_position)
+    if (clamped_ind === matches.length + n - cmdline_history_position)
         cmdline_history_position = cmdline_history_position - n
 }
 

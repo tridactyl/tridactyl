@@ -82,7 +82,7 @@ export class MinimalKey {
         }
 
         let key = this.key
-        if (key == " ") {
+        if (key === " ") {
             key = "Space"
             needsBrackets = true
         }

@@ -29,7 +29,7 @@ export class FileSystemCompletionSource extends Completions.CompletionSourceFuse
     }
 
     public async filter(exstr: string) {
-        if (!exstr || exstr.indexOf(" ") == -1) {
+        if (!exstr || exstr.indexOf(" ") === -1) {
             this.state = "hidden"
             return
         }

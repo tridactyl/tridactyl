@@ -178,7 +178,7 @@ function defaultHintFilter() {
 }
 
 function defaultHintChars() {
-    if (config.get("hintnames") == "numeric") {
+    if (config.get("hintnames") === "numeric") {
         return "1234567890"
     }
     return config.get("hintchars")
@@ -278,7 +278,7 @@ class Hint {
         let offsetLeft = 0
         if (target.ownerDocument !== document) {
             let iframe = DOM.getAllDocumentFrames().find(
-                frame => frame.contentDocument == target.ownerDocument,
+                frame => frame.contentDocument === target.ownerDocument,
             )
             let rect = iframe.getClientRects()[0]
             offsetTop += rect.top
@@ -288,7 +288,7 @@ class Hint {
         const rect = target.getClientRects()[0]
         this.flag.textContent = name
         this.flag.className = "TridactylHint"
-        if (config.get("hintuppercase") == "true") {
+        if (config.get("hintuppercase") === "true") {
             this.flag.classList.add("TridactylHintUppercase")
         }
         this.flag.classList.add("TridactylHint" + target.tagName)
@@ -361,7 +361,7 @@ function buildHintsVimperator(els: Element[], onSelect: HintSelectedCallback) {
 function elementFilterableText(el: Element): string {
     const nodename = el.nodeName.toLowerCase()
     let text: string
-    if (nodename == "input") {
+    if (nodename === "input") {
         text = (el as HTMLInputElement).value
     } else if (0 < el.textContent.length) {
         text = el.textContent
@@ -392,7 +392,7 @@ function filterHintsSimple(fstr) {
             active.push(h)
         }
     }
-    if (active.length == 1) {
+    if (active.length === 1) {
         selectFocusedHint()
     }
 }
@@ -476,7 +476,7 @@ function filterHintsVimperator(fstr, reflow = false) {
     }
 
     // Select focused hint if it's the only match
-    if (active.length == 1) {
+    if (active.length === 1) {
         selectFocusedHint(true)
     }
 }

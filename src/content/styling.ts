@@ -85,7 +85,7 @@ config.addChangeListener("theme", retheme)
 let cb = async mutationList => {
     let theme = await config.getAsync("theme")
     mutationList
-        .filter(m => m.target.className.search(prefixTheme("")) == -1)
+        .filter(m => m.target.className.search(prefixTheme("")) === -1)
         .forEach(m => m.target.classList.add(prefixTheme(theme)))
 }
 

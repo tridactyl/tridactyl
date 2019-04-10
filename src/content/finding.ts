@@ -20,8 +20,8 @@ export class Match {
 function isCommandLineNode(n) {
     let url = n.ownerDocument.location.href
     return (
-        url.protocol == "moz-extension:" &&
-        url.pathname == "/static/commandline.html"
+        url.protocol === "moz-extension:" &&
+        url.pathname === "/static/commandline.html"
     )
 }
 
@@ -51,7 +51,7 @@ let lastMatches = []
 export function getMatches(findings, contextLength = 10): Match[] {
     let result = []
 
-    if (findings.length == 0) return result
+    if (findings.length === 0) return result
 
     // Checks if a node belongs to the command line
     let nodes = getNodes()
@@ -130,13 +130,13 @@ export async function find(query, count = -1, reverse = false) {
     let findId = findCount
     let findcase = await config.getAsync("findcase")
     let caseSensitive =
-        findcase == "sensitive" ||
-        (findcase == "smart" && query.search(/[A-Z]/) >= 0)
+        findcase === "sensitive" ||
+        (findcase === "smart" && query.search(/[A-Z]/) >= 0)
     let tabId = await activeTabId()
 
     // No point in searching for something that won't be used anyway
     await prevFind
-    if (findId != findCount) return []
+    if (findId !== findCount) return []
 
     prevFind = browserBg.find.find(query, {
         tabId,
@@ -167,7 +167,7 @@ export async function find(query, count = -1, reverse = false) {
     let pivot = findings.indexOf(findings.find(finder))
     findings = findings.slice(pivot).concat(findings.slice(0, pivot))
 
-    if (count != -1 && count < findings.length) return findings.slice(0, count)
+    if (count !== -1 && count < findings.length) return findings.slice(0, count)
 
     return findings
 }
@@ -209,7 +209,7 @@ export function findVisibleNode(allMatches, i, direction) {
         while (!match.firstNode.ownerDocument.contains(match.firstNode)) {
             n += direction
             match = lastMatches[n]
-            if (n == i) return null
+            if (n === i) return null
         }
         match.firstNode.parentNode.scrollIntoView()
     } while (!DOM.isVisible(match.firstNode.parentNode))
@@ -223,7 +223,7 @@ function focusMatch(match: Match) {
     if (elem) {
         // We found a focusable element, but it's more important to focus anchors, even if they're higher up the DOM. So let's see if we can find one
         let newElem = elem
-        while (newElem && newElem.tagName != "A") newElem = newElem.parentNode
+        while (newElem && newElem.tagName !== "A") newElem = newElem.parentNode
         if (newElem) newElem.focus()
         else elem.focus()
     }
@@ -237,7 +237,7 @@ export async function jumpToMatch(pattern, reverse, startingFrom) {
     let match
 
     // When we already computed all the matches, don't recompute them
-    if (lastMatches[0] && lastMatches[0].rangeData.text == pattern)
+    if (lastMatches[0] && lastMatches[0].rangeData.text === pattern)
         match = lastMatches[startingFrom]
 
     if (!match) {
@@ -271,7 +271,7 @@ export function jumpToNextMatch(n: number) {
 
     if (lastMatches.length < 1) {
         // Let's try to find new matches
-        return jumpToMatch(state.lastSearch, n == -1, 0)
+        return jumpToMatch(state.lastSearch, n === -1, 0)
     }
 
     browserBg.find.highlightResults()
@@ -281,7 +281,7 @@ export function jumpToNextMatch(n: number) {
         n <= 0 ? -1 : 1,
     )
 
-    if (match == undefined)
+    if (match === undefined)
         throw `No matches found. The pattern looked for doesn't exist or ':find' hasn't been run yet`
 
     for (let rect of match.rectData.rectsAndTexts.rectList) {
