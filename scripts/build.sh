@@ -40,6 +40,7 @@ fi
 (
 printf '/* tslint:disable:no-trailing-whitespace */\n'
 printf '/* tslint:disable:no-unnecessary-initializer */\n'
+printf '/* tslint:disable:no-variable-usage-before-declaration */\n'
 "$(npm bin)/nearleyc" src/grammars/bracketexpr.ne
 ) > src/grammars/.bracketexpr.generated.ts
 
