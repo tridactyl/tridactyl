@@ -23,7 +23,6 @@
     "no-identical-functions": false,
     "no-shadowed-variable": false,
     "no-string-throw": false,
-    "no-unnecessary-initializer": false,
     "no-unsafe-finally": false,
     "no-var-keyword": false,
     "no-variable-usage-before-declaration": false,

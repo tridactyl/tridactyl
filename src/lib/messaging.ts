@@ -84,7 +84,7 @@ export async function messageTab(tabId, type: TabMessageType, command, args?) {
     return browserBg.tabs.sendMessage(tabId, message)
 }
 
-let _ownTabId = undefined
+let _ownTabId
 export async function messageOwnTab(type: TabMessageType, command, args?) {
     if (_ownTabId === undefined) {
         _ownTabId = await ownTabId()

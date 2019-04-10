@@ -1130,7 +1130,7 @@ export async function url2args() {
 
 /** @hidden */
 //#content_helper
-let sourceElement = undefined
+let sourceElement
 /** @hidden */
 //#content_helper
 function removeSource() {
@@ -1516,7 +1516,7 @@ export function urlparent(count = 1) {
 //#content
 export function urlmodify(mode: "-t" | "-r" | "-q" | "-Q" | "-g", ...args: string[]) {
     let oldUrl = new URL(window.location.href)
-    let newUrl = undefined
+    let newUrl
 
     switch (mode) {
         case "-t":

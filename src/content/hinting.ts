@@ -93,7 +93,7 @@ class HintState {
     }
 }
 
-let modeState: HintState = undefined
+let modeState: HintState
 
 /** For each hintable element, add a hint */
 export function hintPage(

@@ -105,7 +105,7 @@ export async function scroll(
     x: number = 0,
     y: number = 0,
     e: Node,
-    duration: number = undefined,
+    duration?: number,
 ) {
     let smooth = await getSmooth()
     if (smooth == "false") duration = 0
@@ -145,8 +145,8 @@ let lastY = 0
 export async function recursiveScroll(
     x: number,
     y: number,
-    node: Element = undefined,
-    stopAt: Element = undefined,
+    node?: Element,
+    stopAt?: Element,
 ) {
     let startingFromCached = false
     if (!node) {

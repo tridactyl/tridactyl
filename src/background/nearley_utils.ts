@@ -13,7 +13,7 @@ export class Parser {
     }
 
     feedUntilError(input) {
-        let lastResult = undefined
+        let lastResult
         let consumedIndex = 0
         try {
             for (let val of input) {

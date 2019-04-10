@@ -140,8 +140,7 @@ function* ParserController() {
                 // unbounded length.
                 keyEvents.push(keyevent)
 
-                let response = undefined
-                response = parsers[contentState.mode](keyEvents)
+                let response = parsers[contentState.mode](keyEvents)
                 logger.debug(
                     currentMode,
                     contentState.mode,

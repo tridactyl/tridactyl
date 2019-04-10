@@ -39,6 +39,7 @@ fi
 # .bracketexpr.generated.ts is needed for metadata generation
 (
 printf '/* tslint:disable:no-trailing-whitespace */\n'
+printf '/* tslint:disable:no-unnecessary-initializer */\n'
 "$(npm bin)/nearleyc" src/grammars/bracketexpr.ne
 ) > src/grammars/.bracketexpr.generated.ts
 

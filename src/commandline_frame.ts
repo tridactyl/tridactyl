@@ -49,7 +49,7 @@ import * as tri_editor from "@src/lib/editor"
 const logger = new Logger("cmdline")
 
 /** @hidden **/
-let activeCompletions: Completions.CompletionSource[] = undefined
+let activeCompletions: Completions.CompletionSource[]
 /** @hidden **/
 let completionsDiv = window.document.getElementById("completions")
 /** @hidden **/
