@@ -1,5 +1,8 @@
 {
   "extends": ["tslint:recommended", "tslint-sonarts"],
+  "linterOptions": {
+    "exclude": [ "**/.*.generated.ts" ]
+  },
   "rules": {
     "align": false,
     "arrow-parens": false,

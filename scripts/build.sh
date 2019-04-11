@@ -37,13 +37,8 @@ else
 fi
 
 # .bracketexpr.generated.ts is needed for metadata generation
-(
-printf '/* tslint:disable:no-trailing-whitespace */\n'
-printf '/* tslint:disable:no-unnecessary-initializer */\n'
-printf '/* tslint:disable:no-var-keyword */\n'
-printf '/* tslint:disable:no-variable-usage-before-declaration */\n'
-"$(npm bin)/nearleyc" src/grammars/bracketexpr.ne
-) > src/grammars/.bracketexpr.generated.ts
+"$(npm bin)/nearleyc" src/grammars/bracketexpr.ne > \
+  src/grammars/.bracketexpr.generated.ts
 
 # It's important to generate the metadata before the documentation because
 # missing imports might break documentation generation on clean builds

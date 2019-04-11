@@ -1,8 +1,4 @@
-/* tslint:disable:array-type */
 /* tslint:disable:comment-format */
-/* tslint:disable:no-consecutive-blank-lines */
-/* tslint:disable:no-trailing-whitespace */
-/* tslint:disable:quotemark */
 // '//#' is a start point for a simple text-replacement-type macro. See excmds_macros.py
 
 /** # Tridactyl help page
@@ -56,7 +52,6 @@
     [![Freenode Chat][freenode-badge]][freenode-link]
 
     All three channels are mirrored together, so it doesn't matter which one you use.
-
 
     [1]: https://github.com/tridactyl/tridactyl/issues
     [2]: https://github.com/tridactyl/tridactyl#readme
@@ -135,7 +130,7 @@ export async function getNativeVersion(): Promise<void> {
  * This function is used by rssexec and rssexec completions.
  */
 //#content
-export async function getRssLinks(): Promise<{ type: string; url: string; title: string }[]> {
+export async function getRssLinks(): Promise<Array<{ type: string; url: string; title: string }>> {
     let seen = new Set<string>()
     return Array.from(document.querySelectorAll("a, link[rel='alternate']"))
         .filter((e: any) => typeof e.href === "string")
@@ -2957,7 +2952,6 @@ function parse_bind_args(...args: string[]): bind_args {
     Use [[composite]] if you want to execute multiple excmds. Use
     [[fillcmdline]] to put a string in the cmdline and focus the cmdline
     (otherwise the string is executed immediately).
-
 
     You can bind to other modes with `bind --mode={insert|ignore|normal|input} ...`, e.g, `bind --mode=insert emacs qall` (NB: unlike vim, all preceeding characters will not be input).
 
