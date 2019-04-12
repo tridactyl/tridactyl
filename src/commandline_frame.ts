@@ -482,6 +482,6 @@ Messaging.addListener("commandline_frame", Messaging.attributeCaller(SELF))
 // object since there's apparently a bug that causes performance
 // observers to be GC'd even if they're still the target of a
 // callback.
-;(window as any).tri = Object.assign(window.tri || {}, {
+; (window as any).tri = Object.assign(window.tri || {}, {
     perfObserver: perf.listenForCounters(),
 })

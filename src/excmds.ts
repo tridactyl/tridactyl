@@ -201,7 +201,7 @@ export async function fillinput(selector: string, ...content: string[]) {
     let inputToFill = document.querySelector(selector)
     if (!inputToFill) inputToFill = DOM.getLastUsedInput()
     if ("value" in inputToFill) {
-        ;(inputToFill as HTMLInputElement).value = content.join(" ")
+        (inputToFill as HTMLInputElement).value = content.join(" ")
     } else {
         inputToFill.textContent = content.join(" ")
     }
@@ -829,7 +829,7 @@ document.addEventListener("load", () => curJumps().then(() => jumpprev(0)))
 /** Blur (unfocus) the active element */
 //#content
 export function unfocus() {
-    ;(document.activeElement as HTMLInputElement).blur()
+    (document.activeElement as HTMLInputElement).blur()
     contentState.mode = "normal"
 }
 
@@ -1046,7 +1046,7 @@ export async function open(...urlarr: string[]) {
         p = Messaging.message("controller_background", "acceptExCmd", ["nativeopen " + url])
     } else if (url.match(/^javascript:/)) {
         let bookmarklet = url.replace(/^javascript:/, "")
-        ;(document.body as any).append(
+        ; (document.body as any).append(
             html`
                 <script>
                     ${bookmarklet}

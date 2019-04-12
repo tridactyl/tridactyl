@@ -93,7 +93,7 @@ async function onExcmdPageLoad() {
     browser.storage.onChanged.addListener((changes, areaname) => {
         if ("userconfig" in changes) {
             // JSON.stringify for comparisons like it's 2012
-            ;["nmaps", "imaps", "ignoremaps", "inputmaps", "exaliases"].forEach(
+            ["nmaps", "imaps", "ignoremaps", "inputmaps", "exaliases"].forEach(
                 kind => {
                     if (
                         JSON.stringify(changes.userconfig.newValue[kind]) !==
@@ -130,7 +130,7 @@ function addSettingInputs() {
     let onKeyUp = async ev => {
         let input = ev.target
         if (ev.key === "Enter") {
-            ;(window as any).tri.messaging.message(
+            (window as any).tri.messaging.message(
                 "controller_background",
                 "acceptExCmd",
                 ["set " + input.name + " " + input.value],
@@ -199,7 +199,7 @@ function addResetConfigButton() {
             `Please write '${sentence}' without quotes in the following input field if you really want to reset your Tridactyl config.`,
         )
         if (p === sentence) {
-            ;(window as any).tri.messaging
+            (window as any).tri.messaging
                 .message("controller_background", "acceptExCmd", [sentence])
                 .then(_ => alert("Config reset!"))
         } else {

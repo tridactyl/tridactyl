@@ -4,7 +4,7 @@
 if ((window as any).tridactyl_content_lock !== undefined) {
     throw Error("Trying to load Tridactyl, but it's already loaded.")
 }
-;(window as any).tridactyl_content_lock = "locked"
+(window as any).tridactyl_content_lock = "locked"
 
 // Be careful: typescript elides imports that appear not to be used if they're
 // assigned to a name.  If you want an import just for its side effects, make
@@ -74,7 +74,7 @@ import * as keyseq from "@src/lib/keyseq"
 import * as native from "@src/lib/native"
 import * as styling from "@src/content/styling"
 /* tslint:disable:import-spacing */
-;(window as any).tri = Object.assign(Object.create(null), {
+; (window as any).tri = Object.assign(Object.create(null), {
     browserBg: webext.browserBg,
     commandline_content,
     convert,
@@ -293,6 +293,6 @@ config.getAsync("leavegithubalone").then(v => {
 // background for collection. Attach the observer to the window object
 // since there's apparently a bug that causes performance observers to
 // be GC'd even if they're still the target of a callback.
-;(window as any).tri = Object.assign(window.tri, {
+; (window as any).tri = Object.assign(window.tri, {
     perfObserver: perf.listenForCounters(),
 })

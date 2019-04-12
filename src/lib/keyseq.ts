@@ -287,7 +287,7 @@ export function mapstrToKeyseq(mapstr: string): MinimalKey[] {
     // Reduce mapstr by one character or one bracket expression per iteration
     while (mapstr.length) {
         if (mapstr[0] === "<") {
-            ;[key, mapstr] = bracketexprToKey(mapstr)
+            [key, mapstr] = bracketexprToKey(mapstr)
             keyseq.push(key)
         } else {
             keyseq.push(new MinimalKey(mapstr[0]))

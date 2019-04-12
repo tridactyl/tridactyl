@@ -35,7 +35,6 @@
     "semicolon": false,
     "trailing-comma": false,
     "triple-equals": false,
-    "variable-name": false,
-    "whitespace": false
+    "variable-name": false
   }
 }
