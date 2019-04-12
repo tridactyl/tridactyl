@@ -19,7 +19,7 @@ class WindowCompletionOption extends Completions.CompletionOptionHTML
             <td class="id">${win.id}</td>
             <td class="title">${win.title}</td>
             <td class="tabcount">${win.tabs.length} tab${
-            win.tabs.length != 1 ? "s" : ""
+            win.tabs.length !== 1 ? "s" : ""
         }</td>
         </tr>`
     }

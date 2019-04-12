@@ -84,7 +84,7 @@ export async function messageTab(tabId, type: TabMessageType, command, args?) {
     return browserBg.tabs.sendMessage(tabId, message)
 }
 
-let _ownTabId = undefined
+let _ownTabId
 export async function messageOwnTab(type: TabMessageType, command, args?) {
     if (_ownTabId === undefined) {
         _ownTabId = await ownTabId()
@@ -123,7 +123,7 @@ export function addListener(type: MessageType, callback: listener) {
     }
 }
 
-if (getContext() == "background") {
+if (getContext() === "background") {
     // Warning: lib/webext.ts:ownTab() relies on this listener being added in order to work
     addListener("owntab_background", (message, sender, sendResponse) => {
         let x = Object.assign(Object.create(null), sender.tab)

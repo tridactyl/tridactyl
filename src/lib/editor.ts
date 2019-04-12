@@ -37,7 +37,7 @@ type editor_function = (
  **/
 function applyToElem(e, fn) {
     let result
-    if (e instanceof HTMLInputElement && e.type != "text") {
+    if (e instanceof HTMLInputElement && e.type !== "text") {
         let t = e.type
         e.type = "text"
         result = fn(e)
@@ -68,7 +68,7 @@ function getContentEditableValues(e: any): [string, number, number] {
     let selection = e.ownerDocument.getSelection()
     // The selection might actually not be in e so we need to make sure it is
     let n = selection.anchorNode
-    while (n && n != e) n = n.parentNode
+    while (n && n !== e) n = n.parentNode
     // The selection isn't for e, so we can't do anything
     if (!n) return [null, null, null]
     // selection might span multiple elements, might not start with the first element in e or end with the last element in e so the easiest way to compute caret position from beginning of e is to first compute distance from caret to end of e, then move beginning of selection to beginning of e and then use distance from end of selection to compute distance from beginning of selection
@@ -177,7 +177,7 @@ function needs_text(fn: editor_function, arg?: any): editor_function {
         return fn(
             text,
             selectionStart,
-            typeof selectionEnd == "number" ? selectionEnd : selectionStart,
+            typeof selectionEnd === "number" ? selectionEnd : selectionStart,
             arg,
         )
     }
@@ -284,7 +284,7 @@ export function wordAfterPos(text: string, position: number) {
  **/
 export const delete_char = wrap_input(
     needs_text((text, selectionStart, selectionEnd) => {
-        if (selectionStart != selectionEnd) {
+        if (selectionStart !== selectionEnd) {
             // If the user selected text, then we need to delete that instead of a single char
             text =
                 text.substring(0, selectionStart) + text.substring(selectionEnd)
@@ -302,7 +302,7 @@ export const delete_char = wrap_input(
  **/
 export const delete_backward_char = wrap_input(
     needs_text((text, selectionStart, selectionEnd) => {
-        if (selectionStart != selectionEnd) {
+        if (selectionStart !== selectionEnd) {
             text =
                 text.substring(0, selectionStart) + text.substring(selectionEnd)
         } else {
@@ -319,7 +319,7 @@ export const delete_backward_char = wrap_input(
  * Behaves like readline's [tab_insert](http://web.mit.edu/gnu/doc/html/rlman_1.html#SEC14), i.e. inserts a tab character to the left of the caret.
  **/
 export const tab_insert = wrap_input((text, selectionStart, selectionEnd) => {
-    if (selectionStart != selectionEnd) {
+    if (selectionStart !== selectionEnd) {
         text =
             text.substring(0, selectionStart) +
             "\t" +
@@ -341,7 +341,7 @@ export const transpose_chars = wrap_input(
     (text, selectionStart, selectionEnd) => {
         if (text.length < 2) return [null, null, null]
         // When at the beginning of the text, transpose the first and second characters
-        if (selectionStart == 0) selectionStart = 1
+        if (selectionStart === 0) selectionStart = 1
         // When at the end of the text, transpose the last and second-to-last characters
         if (selectionStart >= text.length) selectionStart = text.length - 1
 
@@ -364,7 +364,7 @@ function applyWord(
     selectionEnd,
     fn: (string) => string,
 ): [string, number, number] {
-    if (text.length == 0) return [null, null, null]
+    if (text.length === 0) return [null, null, null]
     // If the caret is at the end of the text, move it just before the last character
     if (selectionStart >= text.length) {
         selectionStart = text.length - 1
@@ -460,9 +460,9 @@ export const capitalize_word = wrap_input(
 export const kill_line = wrap_input(
     needs_text((text, selectionStart, selectionEnd) => {
         let newLine = text.substring(selectionStart).search("\n")
-        if (newLine != -1) {
+        if (newLine !== -1) {
             // If the caret is right before the newline, kill the newline
-            if (newLine == 0) newLine = 1
+            if (newLine === 0) newLine = 1
             text =
                 text.substring(0, selectionStart) +
                 text.substring(selectionStart + newLine)
@@ -479,7 +479,7 @@ export const kill_line = wrap_input(
 export const backward_kill_line = wrap_input(
     needs_text((text, selectionStart, selectionEnd) => {
         // If the caret is at the beginning of a line, join the lines
-        if (selectionStart > 0 && text[selectionStart - 1] == "\n") {
+        if (selectionStart > 0 && text[selectionStart - 1] === "\n") {
             return [
                 text.substring(0, selectionStart - 1) +
                     text.substring(selectionStart),
@@ -491,7 +491,7 @@ export const backward_kill_line = wrap_input(
         // Find the closest newline
         for (
             newLine = selectionStart;
-            newLine > 0 && text[newLine - 1] != "\n";
+            newLine > 0 && text[newLine - 1] !== "\n";
             --newLine
         ) {}
         // Remove everything between the newline and the caret
@@ -513,13 +513,13 @@ export const kill_whole_line = wrap_input(
         // Find the newline before the caret
         for (
             firstNewLine = selectionStart;
-            firstNewLine > 0 && text[firstNewLine - 1] != "\n";
+            firstNewLine > 0 && text[firstNewLine - 1] !== "\n";
             --firstNewLine
         ) {}
         // Find the newline after the caret
         for (
             secondNewLine = selectionStart;
-            secondNewLine < text.length && text[secondNewLine - 1] != "\n";
+            secondNewLine < text.length && text[secondNewLine - 1] !== "\n";
             ++secondNewLine
         ) {}
         // Remove everything between the newline and the caret
@@ -572,8 +572,8 @@ export const backward_kill_word = wrap_input(
 export const beginning_of_line = wrap_input(
     needs_text((text, selectionStart, selectionEnd) => {
         while (
-            text[selectionStart - 1] != undefined &&
-            text[selectionStart - 1] != "\n"
+            text[selectionStart - 1] !== undefined &&
+            text[selectionStart - 1] !== "\n"
         )
             selectionStart -= 1
         return [null, selectionStart, null]
@@ -586,8 +586,8 @@ export const beginning_of_line = wrap_input(
 export const end_of_line = wrap_input(
     needs_text((text, selectionStart, selectionEnd) => {
         while (
-            text[selectionStart] != undefined &&
-            text[selectionStart] != "\n"
+            text[selectionStart] !== undefined &&
+            text[selectionStart] !== "\n"
         )
             selectionStart += 1
         return [null, selectionStart, null]
@@ -627,7 +627,7 @@ export const forward_word = wrap_input(
  **/
 export const backward_word = wrap_input(
     (text, selectionStart, selectionEnd) => {
-        if (selectionStart == 0) return [null, null, null]
+        if (selectionStart === 0) return [null, null, null]
         let boundaries = getWordBoundaries(text, selectionStart, true)
         if (selectionStart >= boundaries[0] && selectionStart < boundaries[1])
             boundaries = getWordBoundaries(text, boundaries[0] - 1, true)

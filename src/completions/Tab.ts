@@ -142,7 +142,7 @@ export class BufferCompletionSource extends Completions.CompletionSourceFuse {
 
         // When the user is asking for tabmove completions, don't autoselect if the query looks like a relative move https://github.com/tridactyl/tridactyl/issues/825
         this.shouldSetStateFromScore = !(
-            prefix == "tabmove " && query.match("^[+-][0-9]+$")
+            prefix === "tabmove " && query.match("^[+-][0-9]+$")
         )
 
         /* console.log('updateOptions', this.optionContainer) */

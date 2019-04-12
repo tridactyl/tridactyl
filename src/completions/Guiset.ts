@@ -67,7 +67,7 @@ export class GuisetCompletionSource extends Completions.CompletionSourceFuse {
                     ),
             )
         }
-        if (this.options.length == 0) {
+        if (this.options.length === 0) {
             this.options = Object.keys(metaRules)
                 .concat(Object.keys(potentialRules))
                 .filter(s => s.startsWith(ruleName))

@@ -4,7 +4,7 @@ import * as config from "@src/lib/config"
 import * as UrlUtil from "@src/lib/url_util"
 
 export function inContentScript() {
-    return getContext() == "content"
+    return getContext() === "content"
 }
 
 /** WebExt code can be run from three contexts:
@@ -17,7 +17,7 @@ export function getContext() {
     if (!("tabs" in browser)) {
         return "content"
     } else if (
-        browser.runtime.getURL("_generated_background_page.html") ==
+        browser.runtime.getURL("_generated_background_page.html") ===
         window.location.href
     ) {
         return "background"
@@ -149,7 +149,7 @@ export async function openInNewWindow(createData = {}) {
 export async function openInTab(tab, opts = {}, strarr: string[]) {
     let address = strarr.join(" ")
 
-    if (address == "") {
+    if (address === "") {
         address = config.get("newtab")
     }
 
@@ -157,7 +157,7 @@ export async function openInTab(tab, opts = {}, strarr: string[]) {
     let firstWord = address
     if (index > -1) firstWord = address.substr(0, index)
 
-    if (firstWord == "") {
+    if (firstWord === "") {
         // No query, no newtab set, the user is asking for Tridactyl's newtab page
         return browserBg.tabs.update(
             tab.id,
@@ -193,7 +193,7 @@ export async function openInTab(tab, opts = {}, strarr: string[]) {
     }
 
     const searchEngines = await browserBg.search.get()
-    let engine = searchEngines.find(engine => engine.alias == firstWord)
+    let engine = searchEngines.find(engine => engine.alias === firstWord)
     // Maybe firstWord is the name of a firefox search engine?
     if (engine !== undefined) {
         return browserBg.search.search({
@@ -220,7 +220,7 @@ export async function openInTab(tab, opts = {}, strarr: string[]) {
     // if firstWord is "search", remove it from the query.
     // This allows users to search for a URL or a word they defined as searchurl
     let queryString = address
-    if (firstWord == "search") {
+    if (firstWord === "search") {
         queryString = rest
     }
 
@@ -238,7 +238,7 @@ export async function openInTab(tab, opts = {}, strarr: string[]) {
             )
         }
 
-        engine = searchEngines.find(engine => engine.alias == enginename)
+        engine = searchEngines.find(engine => engine.alias === enginename)
         if (engine !== undefined) {
             return browserBg.search.search({
                 tabId: tab.id,

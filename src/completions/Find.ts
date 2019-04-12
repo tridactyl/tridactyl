@@ -40,7 +40,7 @@ export class FindCompletionSource extends Completions.CompletionSourceFuse {
         // If there's already a promise being executed, wait for it to finish
         await this.prevCompletion
         // Since we might have awaited for this.prevCompletion, we don't have a guarantee we're the last completion the user asked for anymore
-        if (id == this.completionCount - 1) {
+        if (id === this.completionCount - 1) {
             // If we are the last completion
             this.prevCompletion = this.updateOptions(exstr)
             await this.prevCompletion

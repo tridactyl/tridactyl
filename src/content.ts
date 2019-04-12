@@ -4,7 +4,7 @@
 if ((window as any).tridactyl_content_lock !== undefined) {
     throw Error("Trying to load Tridactyl, but it's already loaded.")
 }
-;(window as any).tridactyl_content_lock = "locked"
+(window as any).tridactyl_content_lock = "locked"
 
 // Be careful: typescript elides imports that appear not to be used if they're
 // assigned to a name.  If you want an import just for its side effects, make
@@ -74,7 +74,7 @@ import * as keyseq from "@src/lib/keyseq"
 import * as native from "@src/lib/native"
 import * as styling from "@src/content/styling"
 /* tslint:disable:import-spacing */
-;(window as any).tri = Object.assign(Object.create(null), {
+; (window as any).tri = Object.assign(Object.create(null), {
     browserBg: webext.browserBg,
     commandline_content,
     convert,
@@ -116,7 +116,7 @@ if (
     window.location.pathname === "/static/newtab.html"
 ) {
     config.getAsync("newtab").then(newtab => {
-        if (newtab == "about:blank") {
+        if (newtab === "about:blank") {
         } else if (newtab) {
             excmds.open_quiet(newtab)
         } else {
@@ -211,7 +211,7 @@ config.getAsync("modeindicator").then(mode => {
         let mode = newValue
         let suffix = ""
         let result = ""
-        if (property != "mode") {
+        if (property !== "mode") {
             if (property === "suffix") {
                 mode = oldMode
                 suffix = newValue
@@ -243,7 +243,7 @@ config.getAsync("modeindicator").then(mode => {
             result = mode
         }
         let modeindicatorshowkeys = Config.get("modeindicatorshowkeys")
-        if (modeindicatorshowkeys === "true" && suffix != "") {
+        if (modeindicatorshowkeys === "true" && suffix !== "") {
             result = mode + " " + suffix
         }
         logger.debug(
@@ -263,12 +263,12 @@ config.getAsync("modeindicator").then(mode => {
 
 // Site specific fix for / on GitHub.com
 config.getAsync("leavegithubalone").then(v => {
-    if (v == "true") return
+    if (v === "true") return
     try {
         // On quick loading pages, the document is already loaded
-        // if (document.location.host == "github.com") {
+        // if (document.location.host === "github.com") {
         document.body.addEventListener("keydown", function(e) {
-            if ("/".indexOf(e.key) != -1 && contentState.mode == "normal") {
+            if ("/".indexOf(e.key) !== -1 && contentState.mode === "normal") {
                 e.cancelBubble = true
                 e.stopImmediatePropagation()
             }
@@ -277,9 +277,9 @@ config.getAsync("leavegithubalone").then(v => {
     } catch (e) {
         // But on slower pages we wait for the document to load
         window.addEventListener("DOMContentLoaded", () => {
-            // if (document.location.host == "github.com") {
+            // if (document.location.host === "github.com") {
             document.body.addEventListener("keydown", function(e) {
-                if ("/".indexOf(e.key) != -1 && contentState.mode == "normal") {
+                if ("/".indexOf(e.key) !== -1 && contentState.mode === "normal") {
                     e.cancelBubble = true
                     e.stopImmediatePropagation()
                 }
@@ -293,6 +293,6 @@ config.getAsync("leavegithubalone").then(v => {
 // background for collection. Attach the observer to the window object
 // since there's apparently a bug that causes performance observers to
 // be GC'd even if they're still the target of a callback.
-;(window as any).tri = Object.assign(window.tri, {
+; (window as any).tri = Object.assign(window.tri, {
     perfObserver: perf.listenForCounters(),
 })

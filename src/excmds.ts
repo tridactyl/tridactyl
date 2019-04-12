@@ -1,7 +1,4 @@
-/* tslint:disable:array-type */
 /* tslint:disable:comment-format */
-/* tslint:disable:no-consecutive-blank-lines */
-/* tslint:disable:quotemark */
 // '//#' is a start point for a simple text-replacement-type macro. See excmds_macros.py
 
 /** # Tridactyl help page
@@ -55,7 +52,6 @@
     [![Freenode Chat][freenode-badge]][freenode-link]
 
     All three channels are mirrored together, so it doesn't matter which one you use.
-
 
     [1]: https://github.com/tridactyl/tridactyl/issues
     [2]: https://github.com/tridactyl/tridactyl#readme
@@ -134,10 +130,10 @@ export async function getNativeVersion(): Promise<void> {
  * This function is used by rssexec and rssexec completions.
  */
 //#content
-export async function getRssLinks(): Promise<{ type: string; url: string; title: string }[]> {
+export async function getRssLinks(): Promise<Array<{ type: string; url: string; title: string }>> {
     let seen = new Set<string>()
     return Array.from(document.querySelectorAll("a, link[rel='alternate']"))
-        .filter((e: any) => typeof e.href == "string")
+        .filter((e: any) => typeof e.href === "string")
         .reduce((acc, e: any) => {
             let type = ""
             // Start by detecting type because url doesn't necessarily contain the words "rss" or "atom"
@@ -168,7 +164,7 @@ export async function getRssLinks(): Promise<{ type: string; url: string; title:
  */
 //#content
 export async function rssexec(url: string, type?: string, ...title: string[]) {
-    if (!url || url == "") {
+    if (!url || url === "") {
         let links = await getRssLinks()
         switch (links.length) {
             case 0:
@@ -205,7 +201,7 @@ export async function fillinput(selector: string, ...content: string[]) {
     let inputToFill = document.querySelector(selector)
     if (!inputToFill) inputToFill = DOM.getLastUsedInput()
     if ("value" in inputToFill) {
-        ;(inputToFill as HTMLInputElement).value = content.join(" ")
+        (inputToFill as HTMLInputElement).value = content.join(" ")
     } else {
         inputToFill.textContent = content.join(" ")
     }
@@ -379,7 +375,7 @@ export function cssparse(...css: string[]) {
 //#background
 export async function loadtheme(themename: string) {
     if (!(await Native.nativegate("0.1.9"))) return
-    const separator = (await browserBg.runtime.getPlatformInfo().os) == "win" ? "\\" : "/"
+    const separator = (await browserBg.runtime.getPlatformInfo().os) === "win" ? "\\" : "/"
     // remove the "tridactylrc" bit so that we're left with the directory
     const path =
         (await Native.getrcpath())
@@ -392,7 +388,7 @@ export async function loadtheme(themename: string) {
         themename +
         ".css"
     const file = await Native.read(path)
-    if (file.code != 0) throw new Error("Couldn't read theme " + path)
+    if (file.code !== 0) throw new Error("Couldn't read theme " + path)
     return set("customthemes." + themename, file.content)
 }
 
@@ -812,7 +808,7 @@ export function addJump(scrollEvent: UIEvent) {
         jumps.timeoutid = setTimeout(() => {
             let list = jumps.list
             // if the page hasn't moved, stop
-            if (list[jumps.cur].x == pageX && list[jumps.cur].y == pageY) return
+            if (list[jumps.cur].x === pageX && list[jumps.cur].y === pageY) return
             // Store the new jump
             // Could removing all jumps from list[cur] to list[list.length] be
             // a better/more intuitive behavior?
@@ -833,7 +829,7 @@ document.addEventListener("load", () => curJumps().then(() => jumpprev(0)))
 /** Blur (unfocus) the active element */
 //#content
 export function unfocus() {
-    ;(document.activeElement as HTMLInputElement).blur()
+    (document.activeElement as HTMLInputElement).blur()
     contentState.mode = "normal"
 }
 
@@ -856,7 +852,7 @@ export async function scrollpx(a: number, b: number) {
 */
 //#content
 export function scrollto(a: number | string, b: number | "x" | "y" = "y") {
-    if (typeof a == "string" && a.match(/c$/i)) {
+    if (typeof a === "string" && a.match(/c$/i)) {
         a = (Number(a.replace(/c$/, "")) * 100) / (2 * Math.PI)
     }
     a = Number(a)
@@ -865,16 +861,16 @@ export function scrollto(a: number | string, b: number | "x" | "y" = "y") {
     if (b === "y") {
         let top = elem.getClientRects()[0].top
         window.scrollTo(window.scrollX, (percentage * elem.scrollHeight) / 100)
-        if (top == elem.getClientRects()[0].top && (percentage == 0 || percentage == 100)) {
+        if (top === elem.getClientRects()[0].top && (percentage === 0 || percentage === 100)) {
             // scrollTo failed, if the user wants to go to the top/bottom of
             // the page try scrolling.recursiveScroll instead
-            scrolling.recursiveScroll(window.scrollX, 1073741824 * (percentage == 0 ? -1 : 1), document.documentElement)
+            scrolling.recursiveScroll(window.scrollX, 1073741824 * (percentage === 0 ? -1 : 1), document.documentElement)
         }
     } else if (b === "x") {
         let left = elem.getClientRects()[0].left
         window.scrollTo((percentage * elem.scrollWidth) / 100, window.scrollY)
-        if (left == elem.getClientRects()[0].left && (percentage == 0 || percentage == 100)) {
-            scrolling.recursiveScroll(1073741824 * (percentage == 0 ? -1 : 1), window.scrollX, document.documentElement)
+        if (left === elem.getClientRects()[0].left && (percentage === 0 || percentage === 100)) {
+            scrolling.recursiveScroll(1073741824 * (percentage === 0 ? -1 : 1), window.scrollX, document.documentElement)
         }
     } else {
         window.scrollTo(a, Number(b)) // a,b numbers
@@ -1008,7 +1004,7 @@ export async function reloadall(hard = false) {
 export async function reloadallbut(hard = false) {
     let tabs = await browser.tabs.query({ currentWindow: true })
     let currId = await activeTabId()
-    tabs = tabs.filter(tab => tab.id != currId)
+    tabs = tabs.filter(tab => tab.id !== currId)
     let reloadprops = { bypassCache: hard }
     tabs.forEach(tab => browser.tabs.reload(tab.id, reloadprops))
 }
@@ -1050,7 +1046,7 @@ export async function open(...urlarr: string[]) {
         p = Messaging.message("controller_background", "acceptExCmd", ["nativeopen " + url])
     } else if (url.match(/^javascript:/)) {
         let bookmarklet = url.replace(/^javascript:/, "")
-        ;(document.body as any).append(
+        ; (document.body as any).append(
             html`
                 <script>
                     ${bookmarklet}
@@ -1072,7 +1068,7 @@ export async function open(...urlarr: string[]) {
  */
 //#background
 export async function bmarks(opt: string, ...urlarr: string[]) {
-    if (opt == "-t") return tabopen(...urlarr)
+    if (opt === "-t") return tabopen(...urlarr)
     else return open(opt, ...urlarr)
 }
 
@@ -1129,7 +1125,7 @@ export async function url2args() {
 
 /** @hidden */
 //#content_helper
-let sourceElement = undefined
+let sourceElement
 /** @hidden */
 //#content_helper
 function removeSource() {
@@ -1218,7 +1214,7 @@ export async function help(...helpItems: string[]) {
             while (aliases[helpItem]) {
                 resolved.push(helpItem)
                 helpItem = aliases[helpItem].split(" ")
-                helpItem = helpItem[0] == "composite" ? helpItem[1] : helpItem[0]
+                helpItem = helpItem[0] === "composite" ? helpItem[1] : helpItem[0]
                 // Prevent infinite loops
                 if (resolved.includes(helpItem)) break
             }
@@ -1257,7 +1253,7 @@ export async function help(...helpItems: string[]) {
                     subSettings = subSettings[settingName]
                 }
             }
-            if (settingHelpAnchor != "") {
+            if (settingHelpAnchor !== "") {
                 return browser.extension.getURL("static/docs/classes/_src_lib_config_.default_config.html") + "#" + settingHelpAnchor.slice(0, -1)
             }
             return ""
@@ -1276,14 +1272,14 @@ export async function help(...helpItems: string[]) {
     let url = ""
 
     // If the user did specify what they wanted, specifically look for it
-    if (flag != "") {
+    if (flag !== "") {
         url = flags[flag](settings, subject)
     }
 
     // Otherwise or if it couldn't be found, try all possible items
-    if (url == "") {
+    if (url === "") {
         url = ["-b", "-s", "-a", "-e"].reduce((acc, curFlag) => {
-            if (acc != "") return acc
+            if (acc !== "") return acc
             return flags[curFlag](settings, subject)
         }, "")
     }
@@ -1515,7 +1511,7 @@ export function urlparent(count = 1) {
 //#content
 export function urlmodify(mode: "-t" | "-r" | "-q" | "-Q" | "-g", ...args: string[]) {
     let oldUrl = new URL(window.location.href)
-    let newUrl = undefined
+    let newUrl
 
     switch (mode) {
         case "-t":
@@ -2021,7 +2017,7 @@ export async function fullscreen() {
     const currwin = await browser.windows.getCurrent()
     const wid = currwin.id
     // This might have odd behaviour on non-tiling window managers, but no-one uses those, right?
-    const state = currwin.state == "fullscreen" ? "normal" : "fullscreen"
+    const state = currwin.state === "fullscreen" ? "normal" : "fullscreen"
     browser.windows.update(wid, { state })
 }
 
@@ -2130,7 +2126,7 @@ export async function undo(item = "recent"): Promise<number> {
         }
     } else if (!isNaN(parseInt(item, 10))) {
         const sessionId = item
-        const session = sessions.find(s => (s.tab || s.window).sessionId == sessionId)
+        const session = sessions.find(s => (s.tab || s.window).sessionId === sessionId)
         if (session) {
             browser.sessions.restore(sessionId)
             return (session.tab || session.window).id
@@ -2226,7 +2222,7 @@ export async function mute(...muteArgs: string[]): Promise<void> {
     let all = false
 
     let argParse = (args: string[]) => {
-        if (args == null) {
+        if (args === null) {
             return
         }
         if (args[0] === "all") {
@@ -2321,7 +2317,7 @@ export async function winopen(...args: string[]) {
  */
 //#background
 export async function winclose(...ids: string[]) {
-    if (ids.length == 0) {
+    if (ids.length === 0) {
         ids.push(`${(await browser.windows.getCurrent()).id}`)
     }
     return Promise.all(ids.map(id => browser.windows.remove(parseInt(id, 10))))
@@ -2609,7 +2605,7 @@ export async function fillcmdline_tmp(ms: number, ...strarr: string[]) {
     Messaging.messageOwnTab("commandline_frame", "fillcmdline", [strarr.join(" "), false, false])
     return new Promise(resolve =>
         setTimeout(async () => {
-            if ((await Messaging.messageOwnTab("commandline_frame", "getContent", [])) == str) {
+            if ((await Messaging.messageOwnTab("commandline_frame", "getContent", [])) === str) {
                 CommandLineContent.hide_and_blur()
                 resolve(Messaging.messageOwnTab("commandline_frame", "clear", [true]))
             }
@@ -2713,8 +2709,8 @@ async function setclip(str) {
  */
 //#background_helper
 async function getclip(fromm?: "clipboard" | "selection") {
-    if (fromm == undefined) fromm = await config.getAsync("putfrom")
-    if (fromm == "clipboard") {
+    if (fromm === undefined) fromm = await config.getAsync("putfrom")
+    if (fromm === "clipboard") {
         return messageActiveTab("commandline_frame", "getClipboard")
     } else {
         return Native.clipboard("get", "")
@@ -2723,17 +2719,17 @@ async function getclip(fromm?: "clipboard" | "selection") {
 
 /** Use the system clipboard.
 
-    If `excmd == "open"`, call [[open]] with the contents of the clipboard. Similarly for [[tabopen]].
+    If `excmd === "open"`, call [[open]] with the contents of the clipboard. Similarly for [[tabopen]].
 
-    If `excmd == "yank"`, copy the current URL, or if given, the value of toYank, into the system clipboard.
+    If `excmd === "yank"`, copy the current URL, or if given, the value of toYank, into the system clipboard.
 
-    If `excmd == "yankcanon"`, copy the canonical URL of the current page if it exists, otherwise copy the current URL.
+    If `excmd === "yankcanon"`, copy the canonical URL of the current page if it exists, otherwise copy the current URL.
 
-    If `excmd == "yankshort"`, copy the shortlink version of the current URL, and fall back to the canonical then actual URL. Known to work on https://yankshort.neocities.org/.
+    If `excmd === "yankshort"`, copy the shortlink version of the current URL, and fall back to the canonical then actual URL. Known to work on https://yankshort.neocities.org/.
 
-    If `excmd == "yanktitle"`, copy the title of the open page.
+    If `excmd === "yanktitle"`, copy the title of the open page.
 
-    If `excmd == "yankmd"`, copy the title and url of the open page formatted in Markdown for easy use on sites such as reddit.
+    If `excmd === "yankmd"`, copy the title and url of the open page formatted in Markdown for easy use on sites such as reddit.
 
     If you're on Linux and the native messenger is installed, Tridactyl will call an external binary (either xclip or xsel) to read or write to your X selection buffer. If you want another program to be used, set "externalclipboardcmd" to its name and make sure it has the same interface as xsel/xclip ("-i"/"-o" and reading from stdin).
 
@@ -2750,7 +2746,7 @@ export async function clipboard(excmd: "open" | "yank" | "yankshort" | "yankcano
     switch (excmd) {
         case "yankshort":
             urls = await geturlsforlinks("rel", "shortlink")
-            if (urls.length == 0) {
+            if (urls.length === 0) {
                 urls = await geturlsforlinks("rev", "canonical")
             }
             if (urls.length > 0) {
@@ -2768,7 +2764,7 @@ export async function clipboard(excmd: "open" | "yank" | "yankshort" | "yankcano
             }
         // Trying yank if yankcanon failed...
         case "yank":
-            content = content == "" ? (await activeTab()).url : content
+            content = content === "" ? (await activeTab()).url : content
             await yank(content)
             fillcmdline_tmp(3000, "# " + content + " copied to clipboard.")
             break
@@ -2903,7 +2899,7 @@ interface bind_args {
 /** @hidden */
 //#background_helper
 function parse_bind_args(...args: string[]): bind_args {
-    if (args.length == 0) throw new Error("Invalid bind/unbind arguments.")
+    if (args.length === 0) throw new Error("Invalid bind/unbind arguments.")
 
     let result = {} as bind_args
     result.mode = "normal"
@@ -2957,7 +2953,6 @@ function parse_bind_args(...args: string[]): bind_args {
     [[fillcmdline]] to put a string in the cmdline and focus the cmdline
     (otherwise the string is executed immediately).
 
-
     You can bind to other modes with `bind --mode={insert|ignore|normal|input} ...`, e.g, `bind --mode=insert emacs qall` (NB: unlike vim, all preceeding characters will not be input).
 
     See also:
@@ -2969,7 +2964,7 @@ function parse_bind_args(...args: string[]): bind_args {
 export function bind(...args: string[]) {
     let args_obj = parse_bind_args(...args)
     let p = Promise.resolve()
-    if (args_obj.excmd != "") {
+    if (args_obj.excmd !== "") {
         for (let i = 0; i < args_obj.key.length; i++) {
             // Check if any initial subsequence of the key exists and will shadow the new binding
             let key_sub = args_obj.key.slice(0, i)
@@ -2999,7 +2994,7 @@ export function bind(...args: string[]) {
 export function bindurl(pattern: string, mode: string, keys: string, ...excmd: string[]) {
     let args_obj = parse_bind_args(mode, keys, ...excmd)
     let p = Promise.resolve()
-    if (args_obj.excmd != "") {
+    if (args_obj.excmd !== "") {
         p = config.setURL(pattern, args_obj.configName, args_obj.key, args_obj.excmd)
     } else if (args_obj.key.length) {
         // Display the existing bind
@@ -3041,7 +3036,7 @@ function validateSetArgs(key: string, values: string[]) {
     if (md !== undefined) {
         const strval = values.join(" ")
         // Note: the conversion will throw if strval can't be converted to the right type
-        if (md.type.kind == "object" && target.length > 1) {
+        if (md.type.kind === "object" && target.length > 1) {
             value = (md as any).type.convertMember(target.slice(1), strval)
         } else {
             value = md.type.convert(strval)
@@ -3080,7 +3075,7 @@ function validateSetArgs(key: string, values: string[]) {
  */
 //#content
 export function seturl(pattern: string, key: string, ...values: string[]) {
-    if (values.length == 0 && key) {
+    if (values.length === 0 && key) {
         values = [key]
         key = pattern
         pattern = window.location.href
@@ -3111,7 +3106,7 @@ export function set(key: string, ...values: string[]) {
         return get(key)
     }
 
-    if (key == "noiframeon") {
+    if (key === "noiframeon") {
         let noiframes = config.get("noiframeon")
         // unset previous settings
         if (noiframes) noiframes.forEach(url => seturl(url, "noiframe", "false"))
@@ -3209,7 +3204,7 @@ export function blacklistadd(url: string) {
 //#background
 export async function unbind(...args: string[]) {
     let args_obj = parse_bind_args(...args)
-    if (args_obj.excmd != "") throw new Error("unbind syntax: `unbind key`")
+    if (args_obj.excmd !== "") throw new Error("unbind syntax: `unbind key`")
 
     return config.set(args_obj.configName, args_obj.key, "")
 }
@@ -3300,7 +3295,7 @@ export async function sanitise(...args: string[]) {
         if (flagpos < args.length - 1) {
             let match = args[flagpos + 1].match("^([0-9])+(m|h|d|w)$")
             // If the arg of the flag matches Pentadactyl's sanitisetimespan format
-            if (match !== null && match.length == 3) {
+            if (match !== null && match.length === 3) {
                 // Compute the timespan in milliseconds and get a Date object
                 let millis = parseInt(match[1], 10) * 1000
                 switch (match[2]) {
@@ -3345,7 +3340,7 @@ export async function sanitise(...args: string[]) {
         "serverBoundCertificates": false,
          */
     }
-    if (args.find(x => x == "all") !== undefined) {
+    if (args.find(x => x === "all") !== undefined) {
         for (let attr in dts) dts[attr] = true
     } else {
         // We bother checking if dts[x] is false because
@@ -3383,7 +3378,7 @@ export async function quickmark(key: string, ...addressarr: string[]) {
     }
 
     if (addressarr.length <= 1) {
-        let address = addressarr.length == 0 ? (await activeTab()).url : addressarr[0]
+        let address = addressarr.length === 0 ? (await activeTab()).url : addressarr[0]
         // Have to await these or they race!
         await bind("gn" + key, "tabopen", address)
         await bind("go" + key, "open", address)
@@ -3544,7 +3539,7 @@ import * as hinting from "@src/content/hinting"
 export async function hint(option?: string, selectors?: string, ...rest: string[]): Promise<any> {
     if (!option) option = ""
 
-    if (option == "-br") option = "-qb"
+    if (option === "-br") option = "-qb"
 
     // extract flags
     // Note: we need to process 'pipe' separately because it could be interpreted as -p -i -e otherwise
@@ -3722,11 +3717,11 @@ export async function hint(option?: string, selectors?: string, ...rest: string[
             // s: don't ask the user where to save the file
             // a: ask the user where to save the file
             let saveAs = true
-            if (option[1].toLowerCase() == "s") saveAs = false
+            if (option[1].toLowerCase() === "s") saveAs = false
             // Lowercase: anchors
             // Uppercase: images
             let attr = "href"
-            if (option[1].toLowerCase() == option[1]) {
+            if (option[1].toLowerCase() === option[1]) {
                 attr = "href"
                 elems = hinting.saveableElements()
             } else {
@@ -3917,7 +3912,7 @@ export async function ttsvoices() {
 export async function ttscontrol(action: string) {
     // only pause seems to be working, so only provide access to that
     // to avoid exposing users to things that won't work
-    if (action != "stop") {
+    if (action !== "stop") {
         throw new Error("Unknown text-to-speech action: " + action)
     }
 
@@ -3985,7 +3980,7 @@ export async function perfhistogram(...filters: string[]) {
     let filterconfigs = buildFilterConfigs(filters)
     filterconfigs.push({ kind: "eventType", eventType: "measure" })
     const entries = window.tri.statsLogger.getEntries(...filterconfigs)
-    if (entries.length == 0) {
+    if (entries.length === 0) {
         fillcmdline_tmp(3000, "perfhistogram: No samples found.")
         return
     }
@@ -4018,10 +4013,10 @@ export async function bmark(url?: string, ...titlearr: string[]) {
     // if titlearr is given and we have duplicates, we probably want to give an error here.
     const dupbmarks = await browser.bookmarks.search({ url })
     dupbmarks.forEach(bookmark => browser.bookmarks.remove(bookmark.id))
-    if (dupbmarks.length != 0) return
+    if (dupbmarks.length !== 0) return
     const path = title.substring(0, title.lastIndexOf("/") + 1)
     // TODO: if title is blank, get it from the page.
-    if (path != "") {
+    if (path !== "") {
         const tree = (await browser.bookmarks.getTree())[0] // Why would getTree return a tree? Obviously it returns an array of unit length.
         // I hate recursion.
         const treeClimber = (tree, treestr) => {
@@ -4032,7 +4027,7 @@ export async function bmark(url?: string, ...titlearr: string[]) {
         }
         const validpaths = flatten(treeClimber(tree, "")).filter(x => "path" in x)
         title = title.substring(title.lastIndexOf("/") + 1)
-        let pathobj = validpaths.find(p => p.path == path)
+        let pathobj = validpaths.find(p => p.path === path)
         // If strict look doesn't find it, be a bit gentler
         if (pathobj === undefined) pathobj = validpaths.find(p => p.path.includes(path))
         if (pathobj !== undefined) {
@@ -4162,8 +4157,8 @@ export async function updatecheck(polite = false) {
  */
 //#background_helper
 browser.runtime.onInstalled.addListener(details => {
-    if (details.reason == "install") tutor("newtab")
-    else if ((details as any).temporary !== true && details.reason == "update") updatenative(false)
+    if (details.reason === "install") tutor("newtab")
+    else if ((details as any).temporary !== true && details.reason === "update") updatenative(false)
     // could add elif "update" and show a changelog. Hide it behind a setting to make it less annoying?
 })
 

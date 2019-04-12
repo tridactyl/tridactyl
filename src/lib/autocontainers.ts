@@ -12,8 +12,8 @@
   * Unescaped periods will match *anything*. `autocontain google.co.uk work` will match `google!co$uk`. Escape your periods or accept that you might get some false positives.
   * You can use regex in your domain pattern. `autocontain google\,(co\.uk|com) work` will match either `google.co.uk` or `google.com`.
 
- TODO: Should try and detect Multi Account Containers and/or Contain Facebook extensions from Mozilla. 
- 
+ TODO: Should try and detect Multi Account Containers and/or Contain Facebook extensions from Mozilla.
+
  A lot of the inspiration for this code was drawn from the Mozilla `contain facebook` Extension.
  https://github.com/mozilla/contain-facebook/
 
@@ -31,7 +31,7 @@ import * as Logging from "@src/lib/logging"
 const logger = new Logging.Logger("containers")
 
 /** An interface for the additional object that's supplied in the BlockingResponse callback.
- 
+
  Details here:
  https://developer.mozilla.org/en-US/Add-ons/WebExtensions/API/webRequest/onBeforeRequest#details
 

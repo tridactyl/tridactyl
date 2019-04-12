@@ -17,7 +17,7 @@ export function my_mod(dividend, divisor) {
 }
 
 /** Always gives a positive result.
-    
+
     Equivalent to knuth_mod when divisor is +ve
     Equivalent to % when dividend is +ve
 */

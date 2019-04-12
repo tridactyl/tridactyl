@@ -20,7 +20,7 @@ import state from "@src/state"
 import * as webext from "@src/lib/webext"
 import { AutoContain } from "@src/lib/autocontainers"
 /* tslint:disable:import-spacing */
-;(window as any).tri = Object.assign(Object.create(null), {
+; (window as any).tri = Object.assign(Object.create(null), {
     messaging,
     excmds,
     convert,
@@ -41,7 +41,7 @@ import { AutoContain } from "@src/lib/autocontainers"
 // {{{ tri.contentLocation
 // When loading the background, use the active tab to know what the current content url is
 browser.tabs.query({ currentWindow: true, active: true }).then(t => {
-    ;(window as any).tri.contentLocation = new URL(t[0].url)
+    (window as any).tri.contentLocation = new URL(t[0].url)
 })
 // After that, on every tab change, update the current url
 let contentLocationCount = 0
@@ -51,8 +51,8 @@ browser.tabs.onActivated.addListener(ev => {
     browser.tabs.get(ev.tabId).then(t => {
         // Note: we're using contentLocationCount and myId in order to make sure that only the last onActivated event is used in order to set contentLocation
         // This is needed because otherWise the following chain of execution might happen: onActivated1 => onActivated2 => tabs.get2 => tabs.get1
-        if (contentLocationCount == myId) {
-            ;(window as any).tri.contentLocation = new URL(t.url)
+        if (contentLocationCount === myId) {
+            (window as any).tri.contentLocation = new URL(t.url)
         }
     })
 })
@@ -91,7 +91,7 @@ browser.runtime.onStartup.addListener(_ => {
     config.getAsync("autocmds", "TriStart").then(aucmds => {
         let hosts = Object.keys(aucmds)
         // If there's only one rule and it's "all", no need to check the hostname
-        if (hosts.length == 1 && hosts[0] == ".*") {
+        if (hosts.length === 1 && hosts[0] === ".*") {
             BackgroundController.acceptExCmd(aucmds[hosts[0]])
         } else {
             native.run("hostname").then(hostname => {

@@ -103,25 +103,25 @@ export async function downloadUrlAs(url: string, saveAs: string) {
     // We want to return a promise that will resolve once the file has been moved somewhere else
     return new Promise((resolve, reject) => {
         let onDownloadComplete = async downloadDelta => {
-            if (downloadDelta.id != downloadId) {
+            if (downloadDelta.id !== downloadId) {
                 return
             }
             // Note: this might be a little too drastic. For example, files that encounter a problem while being downloaded and the download of which is restarted by a user won't be moved
             // This seems acceptable for now as taking all states into account seems quite difficult
             if (
                 downloadDelta.state &&
-                downloadDelta.state.current != "in_progress"
+                downloadDelta.state.current !== "in_progress"
             ) {
                 browser.downloads.onChanged.removeListener(onDownloadComplete)
                 let downloadItem = (await browser.downloads.search({
                     id: downloadId,
                 }))[0]
-                if (downloadDelta.state.current == "complete") {
+                if (downloadDelta.state.current === "complete") {
                     let operation = await Native.move(
                         downloadItem.filename,
                         saveAs,
                     )
-                    if (operation.code != 0) {
+                    if (operation.code !== 0) {
                         reject(
                             new Error(
                                 `'${

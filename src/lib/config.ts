@@ -908,7 +908,7 @@ export function mergeDeep(o1, o2) {
     Object.assign(r, o1, o2)
     if (o2 === undefined) return r
     Object.keys(o1)
-        .filter(key => typeof o1[key] == "object" && typeof o2[key] == "object")
+        .filter(key => typeof o1[key] === "object" && typeof o2[key] === "object")
         .forEach(key => Object.assign(r[key], mergeDeep(o1[key], o2[key])))
     return r
 }
@@ -926,7 +926,7 @@ export function getURL(url: string, target: string[]) {
             .filter(
                 k =>
                     url.match(k) &&
-                    getDeepProperty(USERCONFIG.subconfigs[k], target) !=
+                    getDeepProperty(USERCONFIG.subconfigs[k], target) !==
                         undefined,
             )
             // Sort them from lowest to highest priority, default to a priority of 10
@@ -1047,11 +1047,11 @@ export function unset(...target) {
     @hidden
 */
 export async function save(storage: "local" | "sync" = get("storageloc")) {
-    // let storageobj = storage == "local" ? browser.storage.local : browser.storage.sync
+    // let storageobj = storage === "local" ? browser.storage.local : browser.storage.sync
     // storageobj.set({CONFIGNAME: USERCONFIG})
     let settingsobj = o({})
     settingsobj[CONFIGNAME] = USERCONFIG
-    return storage == "local"
+    return storage === "local"
         ? browser.storage.local.set(settingsobj)
         : browser.storage.sync.set(settingsobj)
 }
@@ -1126,7 +1126,7 @@ export async function update() {
             set("configversion", "1.2")
         },
         "1.2": () => {
-            ;["ignoremaps", "inputmaps", "imaps", "nmaps"]
+            ["ignoremaps", "inputmaps", "imaps", "nmaps"]
                 .map(mapname => [
                     mapname,
                     getDeepProperty(USERCONFIG, [mapname]),
@@ -1158,7 +1158,7 @@ export async function update() {
             set("configversion", "1.3")
         },
         "1.3": () => {
-            ;[
+            [
                 "priority",
                 "hintdelay",
                 "scrollduration",
@@ -1171,7 +1171,7 @@ export async function update() {
             set("configversion", "1.4")
         },
         "1.4": () => {
-            ;(getDeepProperty(USERCONFIG, ["noiframeon"]) || []).forEach(
+            (getDeepProperty(USERCONFIG, ["noiframeon"]) || []).forEach(
                 site => {
                     setURL(site, "noiframe", "true")
                 },
@@ -1185,11 +1185,11 @@ export async function update() {
         "1.6": () => {
             let updateSetting = mapObj => {
                 if (!mapObj) return mapObj
-                if (mapObj[" "] != undefined) {
+                if (mapObj[" "] !== undefined) {
                     mapObj["<Space>"] = mapObj[" "]
                     delete mapObj[" "]
                 }
-                ;[
+                [
                     "<A- >",
                     "<C- >",
                     "<M- >",
@@ -1201,7 +1201,7 @@ export async function update() {
                     "<CS- >",
                     "<MS- >",
                 ].forEach(binding => {
-                    if (mapObj[binding] != undefined) {
+                    if (mapObj[binding] !== undefined) {
                         let key = binding.replace(" ", "Space")
                         mapObj[key] = mapObj[binding]
                         delete mapObj[binding]
@@ -1209,7 +1209,7 @@ export async function update() {
                 })
                 return mapObj
             }
-            ;["nmaps", "exmaps", "imaps", "inputmaps", "ignoremaps"].forEach(
+            ["nmaps", "exmaps", "imaps", "inputmaps", "ignoremaps"].forEach(
                 settingName => updateAll([settingName], updateSetting),
             )
             set("configversion", "1.7")
@@ -1287,7 +1287,7 @@ browser.storage.onChanged.addListener(async (changes, areaname) => {
             let unsetKeys = Object.keys(USERCONFIG).filter(
                 k =>
                     changes[CONFIGNAME].newValue[k] === undefined &&
-                    JSON.stringify(USERCONFIG[k]) !=
+                    JSON.stringify(USERCONFIG[k]) !==
                         JSON.stringify(defaultConf[k]),
             )
 
@@ -1298,7 +1298,7 @@ browser.storage.onChanged.addListener(async (changes, areaname) => {
                         USERCONFIG[k] !== undefined
                             ? USERCONFIG[k]
                             : defaultConf[k],
-                    ) != JSON.stringify(changes[CONFIGNAME].newValue[k]),
+                    ) !== JSON.stringify(changes[CONFIGNAME].newValue[k]),
             )
 
             let old = USERCONFIG
@@ -1325,7 +1325,7 @@ browser.storage.onChanged.addListener(async (changes, areaname) => {
             USERCONFIG = o({})
 
             Object.keys(old)
-                .filter(key => old[key] != defaultConf[key])
+                .filter(key => old[key] !== defaultConf[key])
                 .forEach(key => {
                     let arr = changeListeners.get(key)
                     if (arr) {

@@ -51,7 +51,7 @@ class ScrollingData {
         let elapsed = performance.now() - this.startTime
 
         // If the animation should be done, return the position the element should have
-        if (elapsed >= this.duration || this.elem[this.pos] == this.endPos)
+        if (elapsed >= this.duration || this.elem[this.pos] === this.endPos)
             return this.endPos
 
         let result = ((this.endPos - this.startPos) * elapsed) / this.duration
@@ -63,7 +63,7 @@ class ScrollingData {
     scrollStep() {
         let val = this.elem[this.pos]
         this.elem[this.pos] = this.getStep()
-        return val != this.elem[this.pos]
+        return val !== this.elem[this.pos]
     }
 
     /** Calls this.scrollStep() until the element has been completely scrolled
@@ -105,14 +105,14 @@ export async function scroll(
     x: number = 0,
     y: number = 0,
     e: Node,
-    duration: number = undefined,
+    duration?: number,
 ) {
     let smooth = await getSmooth()
-    if (smooth == "false") duration = 0
+    if (smooth === "false") duration = 0
     else if (duration === undefined) duration = await getDuration()
 
     let result = false
-    if (x != 0) {
+    if (x !== 0) {
         // Don't create a new ScrollingData object if the element is already
         // being scrolled
         let scrollData = horizontallyScrolling.get(e)
@@ -122,7 +122,7 @@ export async function scroll(
         }
         result = result || scrollData.scroll(x, duration)
     }
-    if (y != 0) {
+    if (y !== 0) {
         let scrollData = verticallyScrolling.get(e)
         if (!scrollData) {
             scrollData = new ScrollingData(e, "scrollTop")
@@ -145,13 +145,13 @@ let lastY = 0
 export async function recursiveScroll(
     x: number,
     y: number,
-    node: Element = undefined,
-    stopAt: Element = undefined,
+    node?: Element,
+    stopAt?: Element,
 ) {
     let startingFromCached = false
     if (!node) {
-        const sameSignX = x < 0 == lastX < 0
-        const sameSignY = y < 0 == lastY < 0
+        const sameSignX = x < 0 === lastX < 0
+        const sameSignY = y < 0 === lastY < 0
         if (lastRecursiveScrolled && sameSignX && sameSignY) {
             // We're scrolling in the same direction as the previous time so
             // let's try to pick up from where we left

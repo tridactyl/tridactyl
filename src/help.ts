@@ -10,7 +10,7 @@ function initTridactylSettingElem(
     let bindingNode = elem.getElementsByClassName(`Tridactyl${kind}`)[0]
     if (bindingNode) {
         Array.from(bindingNode.children)
-            .filter(e => e.tagName == "SPAN")
+            .filter(e => e.tagName === "SPAN")
             .forEach(e => e.parentNode.removeChild(e))
     } else {
         // Otherwise, create it
@@ -29,7 +29,7 @@ function getCommandElements() {
             ".tsd-panel.tsd-member.tsd-kind-function.tsd-parent-kind-external-module",
         ),
     ).reduce((all, elem) => {
-        let fnName = Array.from(elem.children).find(e => e.tagName == "H3")
+        let fnName = Array.from(elem.children).find(e => e.tagName === "H3")
         if (fnName) all[fnName.textContent] = elem
         return all
     }, {})
@@ -84,7 +84,7 @@ async function addSetting(settingName: string) {
     Object.values(settingElems)
         .filter(
             (e: HTMLElement) =>
-                !Array.from(e.children).find(c => c.tagName == "SPAN"),
+                !Array.from(e.children).find(c => c.tagName === "SPAN"),
         )
         .forEach((e: HTMLElement) => e.parentNode.removeChild(e))
 }
@@ -93,10 +93,10 @@ async function onExcmdPageLoad() {
     browser.storage.onChanged.addListener((changes, areaname) => {
         if ("userconfig" in changes) {
             // JSON.stringify for comparisons like it's 2012
-            ;["nmaps", "imaps", "ignoremaps", "inputmaps", "exaliases"].forEach(
+            ["nmaps", "imaps", "ignoremaps", "inputmaps", "exaliases"].forEach(
                 kind => {
                     if (
-                        JSON.stringify(changes.userconfig.newValue[kind]) !=
+                        JSON.stringify(changes.userconfig.newValue[kind]) !==
                         JSON.stringify(changes.userconfig.oldValue[kind])
                     )
                         addSetting(kind)
@@ -129,14 +129,14 @@ function addSettingInputs() {
 
     let onKeyUp = async ev => {
         let input = ev.target
-        if (ev.key == "Enter") {
-            ;(window as any).tri.messaging.message(
+        if (ev.key === "Enter") {
+            (window as any).tri.messaging.message(
                 "controller_background",
                 "acceptExCmd",
                 ["set " + input.name + " " + input.value],
             )
         } else {
-            if (input.value == (await config.getAsync(input.name.split(".")))) {
+            if (input.value === (await config.getAsync(input.name.split(".")))) {
                 input.className = inputClassName
             } else {
                 input.className = inputClassNameModified
@@ -198,12 +198,12 @@ function addResetConfigButton() {
         let p = prompt(
             `Please write '${sentence}' without quotes in the following input field if you really want to reset your Tridactyl config.`,
         )
-        if (p == sentence) {
-            ;(window as any).tri.messaging
+        if (p === sentence) {
+            (window as any).tri.messaging
                 .message("controller_background", "acceptExCmd", [sentence])
                 .then(_ => alert("Config reset!"))
         } else {
-            alert(`Config not reset because '${p}' != '${sentence}'`)
+            alert(`Config not reset because '${p}' !== '${sentence}'`)
         }
     })
     document.querySelector("div.container.container-main").appendChild(button)
