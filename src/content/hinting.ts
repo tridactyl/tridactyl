@@ -103,8 +103,8 @@ export function hintPage(
     reject = () => {},
     rapid = false,
 ) {
-    let buildHints: HintBuilder = defaultHintBuilder()
-    let filterHints: HintFilter = defaultHintFilter()
+    const buildHints: HintBuilder = defaultHintBuilder()
+    const filterHints: HintFilter = defaultHintFilter()
     contentState.mode = "hint"
     modeState = new HintState(filterHints, resolve, reject, rapid)
 
@@ -123,15 +123,15 @@ export function hintPage(
     }
 
     if (modeState.hints.length) {
-        let firstTarget = modeState.hints[0].target
-        let shouldSelect =
+        const firstTarget = modeState.hints[0].target
+        const shouldSelect =
             firstTarget instanceof HTMLAnchorElement &&
             firstTarget.href !== "" &&
             !firstTarget.href.startsWith("javascript:")
         if (shouldSelect) {
             // Try to find an element that is not a link or that doesn't point
             // to the same URL as the first hint
-            let different = modeState.hints.find(h => {
+            const different = modeState.hints.find(h => {
                 return (
                     !(h.target instanceof HTMLAnchorElement) ||
                     h.target.href !== (firstTarget as HTMLAnchorElement).href
@@ -216,7 +216,7 @@ function* hintnames_short(
     n: number,
     hintchars = defaultHintChars(),
 ): IterableIterator<string> {
-    let source = hintnames_simple(hintchars)
+    const source = hintnames_simple(hintchars)
     const num2skip = Math.floor(n / hintchars.length)
     yield* islice(source, num2skip, n + num2skip)
 }
@@ -277,10 +277,10 @@ class Hint {
         let offsetTop = 0
         let offsetLeft = 0
         if (target.ownerDocument !== document) {
-            let iframe = DOM.getAllDocumentFrames().find(
+            const iframe = DOM.getAllDocumentFrames().find(
                 frame => frame.contentDocument === target.ownerDocument,
             )
-            let rect = iframe.getClientRects()[0]
+            const rect = iframe.getClientRects()[0]
             offsetTop += rect.top
             offsetLeft += rect.left
         }
@@ -334,8 +334,8 @@ class Hint {
 type HintBuilder = (els: Element[], onSelect: HintSelectedCallback) => void
 
 function buildHintsSimple(els: Element[], onSelect: HintSelectedCallback) {
-    let names = hintnames(els.length)
-    for (let [el, name] of izip(els, names)) {
+    const names = hintnames(els.length)
+    for (const [el, name] of izip(els, names)) {
         logger.debug({ el, name })
         modeState.hintchars += name
         modeState.hints.push(new Hint(el, name, null, onSelect))
@@ -343,12 +343,12 @@ function buildHintsSimple(els: Element[], onSelect: HintSelectedCallback) {
 }
 
 function buildHintsVimperator(els: Element[], onSelect: HintSelectedCallback) {
-    let names = hintnames(els.length)
+    const names = hintnames(els.length)
     // escape the hintchars string so that strange things don't happen
     // when special characters are used as hintchars (for example, ']')
     const escapedHintChars = defaultHintChars().replace(/^\^|[-\\\]]/g, "\\$&")
     const filterableTextFilter = new RegExp("[" + escapedHintChars + "]", "g")
-    for (let [el, name] of izip(els, names)) {
+    for (const [el, name] of izip(els, names)) {
         let ft = elementFilterableText(el)
         // strip out hintchars
         ft = ft.replace(filterableTextFilter, "")
@@ -380,7 +380,7 @@ type HintFilter = (string) => void
 function filterHintsSimple(fstr) {
     const active: Hint[] = []
     let foundMatch
-    for (let h of modeState.hints) {
+    for (const h of modeState.hints) {
         if (!h.name.startsWith(fstr)) h.hidden = true
         else {
             if (!foundMatch) {
@@ -577,7 +577,7 @@ export function pipe_elements(
 function selectFocusedHint(delay = false) {
     logger.debug("Selecting hint.", contentState.mode)
     const focused = modeState.focusedHint
-    let selectFocusedHintInternal = () => {
+    const selectFocusedHintInternal = () => {
         modeState.filter = ""
         modeState.hints.forEach(h => (h.hidden = false))
         focused.select()

@@ -31,7 +31,7 @@
     "object-literal-sort-keys": false,
     "only-arrow-functions": false,
     "ordered-imports": false,
-    "prefer-const": false,
+    "prefer-const": [true, {"destructuring": "all"}],
     "semicolon": false,
     "trailing-comma": false,
     "triple-equals": false,

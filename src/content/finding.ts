@@ -18,7 +18,7 @@ export class Match {
 }
 
 function isCommandLineNode(n) {
-    let url = n.ownerDocument.location.href
+    const url = n.ownerDocument.location.href
     return (
         url.protocol === "moz-extension:" &&
         url.pathname === "/static/commandline.html"
@@ -29,8 +29,8 @@ function isCommandLineNode(n) {
     TODO: cache the results. I tried to do it but since we need to invalidate the cache when nodes are added/removed from the page, the results are constantly being invalidated by the completion buffer.
     The solution is obviously to pass `document.body` to createTreeWalker instead of just `document` but then you won't get all the text nodes in the page and this is a big problem because the results returned by browser.find.find() need absolutely all nodes existing within the page, even the ones belonging the commandline. */
 function getNodes() {
-    let nodes = []
-    let walker = document.createTreeWalker(
+    const nodes = []
+    const walker = document.createTreeWalker(
         document,
         NodeFilter.SHOW_TEXT,
         null,
@@ -49,17 +49,17 @@ let lastMatches = []
 /** Given "findings", an array matching the one returned by find(), will compute the context for every match in findings and prune the matches than happened in Tridactyl's command line. ContextLength is how many characters from before and after the match should be included into the returned Match object.
  getMatches() will save its returned values in lastMatches. This is important for caching purposes in jumpToMatch, read its documentation to get the whole picture. */
 export function getMatches(findings, contextLength = 10): Match[] {
-    let result = []
+    const result = []
 
     if (findings.length === 0) return result
 
     // Checks if a node belongs to the command line
-    let nodes = getNodes()
+    const nodes = getNodes()
 
     for (let i = 0; i < findings.length; ++i) {
-        let range = findings[i][0]
-        let firstnode = nodes[range.startTextNodePos]
-        let lastnode = nodes[range.endTextNodePos]
+        const range = findings[i][0]
+        const firstnode = nodes[range.startTextNodePos]
+        const lastnode = nodes[range.endTextNodePos]
         // We never want to match against nodes in the command line
         if (
             !firstnode ||
@@ -79,7 +79,7 @@ export function getMatches(findings, contextLength = 10): Match[] {
             let missingChars = contextLength - precontext.length
             let id = range.startTextNodePos - 1
             while (missingChars > 0 && nodes[id]) {
-                let txt = nodes[id].textContent
+                const txt = nodes[id].textContent
                 precontext =
                     txt.substring(txt.length - missingChars, txt.length) +
                     precontext
@@ -127,12 +127,12 @@ let findCount = 0
  If count is different from -1 and lower than the number of matches returned by browser.find.find(), will return count results. Note that when this happens, `matchesCacheIsValid ` is set to false, which will prevent `jumpToMatch` from using cached matches. */
 export async function find(query, count = -1, reverse = false) {
     findCount += 1
-    let findId = findCount
-    let findcase = await config.getAsync("findcase")
-    let caseSensitive =
+    const findId = findCount
+    const findcase = await config.getAsync("findcase")
+    const caseSensitive =
         findcase === "sensitive" ||
         (findcase === "smart" && query.search(/[A-Z]/) >= 0)
-    let tabId = await activeTabId()
+    const tabId = await activeTabId()
 
     // No point in searching for something that won't be used anyway
     await prevFind
@@ -164,7 +164,7 @@ export async function find(query, count = -1, reverse = false) {
             e[1].rectsAndTexts.rectList[0].top < window.pageYOffset
     }
 
-    let pivot = findings.indexOf(findings.find(finder))
+    const pivot = findings.indexOf(findings.find(finder))
     findings = findings.slice(pivot).concat(findings.slice(0, pivot))
 
     if (count !== -1 && count < findings.length) return findings.slice(0, count)
@@ -173,7 +173,7 @@ export async function find(query, count = -1, reverse = false) {
 }
 
 function createHighlightingElement(rect) {
-    let e = document.createElement("div")
+    const e = document.createElement("div")
     e.className = "cleanslate TridactylSearchHighlight"
     e.setAttribute(
         "style",
@@ -254,8 +254,8 @@ export async function jumpToMatch(pattern, reverse, startingFrom) {
 
     match = findVisibleNode(lastMatches, startingFrom, reverse ? -1 : 1)
 
-    for (let rect of match.rectData.rectsAndTexts.rectList) {
-        let elem = createHighlightingElement(rect)
+    for (const rect of match.rectData.rectsAndTexts.rectList) {
+        const elem = createHighlightingElement(rect)
         highlightingElements.push(elem)
         document.body.appendChild(elem)
     }
@@ -275,7 +275,7 @@ export function jumpToNextMatch(n: number) {
     }
 
     browserBg.find.highlightResults()
-    let match = findVisibleNode(
+    const match = findVisibleNode(
         lastMatches,
         (n + lastMatch + lastMatches.length) % lastMatches.length,
         n <= 0 ? -1 : 1,
@@ -284,8 +284,8 @@ export function jumpToNextMatch(n: number) {
     if (match === undefined)
         throw `No matches found. The pattern looked for doesn't exist or ':find' hasn't been run yet`
 
-    for (let rect of match.rectData.rectsAndTexts.rectList) {
-        let elem = createHighlightingElement(rect)
+    for (const rect of match.rectData.rectsAndTexts.rectList) {
+        const elem = createHighlightingElement(rect)
         highlightingElements.push(elem)
         document.body.appendChild(elem)
     }

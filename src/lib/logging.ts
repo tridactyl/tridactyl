@@ -30,7 +30,7 @@ export class Logger {
      *                      retain the call site
      */
     private log(level: Config.LoggingLevel) {
-        let configedLevel = Config.get("logging", this.logModule)
+        const configedLevel = Config.get("logging", this.logModule)
 
         if (LevelToNum.get(level) <= LevelToNum.get(configedLevel)) {
             // hand over to console.log, error or debug as needed

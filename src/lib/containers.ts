@@ -46,7 +46,7 @@ export async function create(
     icon = "fingerprint",
 ): Promise<string> {
     if (color === "random") color = chooseRandomColor()
-    let container = fromString(name, color, icon)
+    const container = fromString(name, color, icon)
     // browser.contextualIdentities.create does not accept a cookieStoreId property.
     delete container.cookieStoreId
     logger.debug(container)
@@ -57,7 +57,7 @@ export async function create(
             `[Container.create] container already exists, aborting.`,
         )
     } else {
-        let res = await browser.contextualIdentities.create(container)
+        const res = await browser.contextualIdentities.create(container)
         return res.cookieStoreId
     }
 }
@@ -67,8 +67,8 @@ export async function create(
  */
 export async function remove(name: string) {
     logger.debug(name)
-    let id = await getId(name)
-    let res = await browser.contextualIdentities.remove(id)
+    const id = await getId(name)
+    const res = await browser.contextualIdentities.remove(id)
     logger.debug("[Container.remove] removed container:", res.cookieStoreId)
 }
 
@@ -117,8 +117,8 @@ export async function getFromId(
 export async function exists(cname: string): Promise<boolean> {
     let exists = false
     try {
-        let containers = await getAll()
-        let res = containers.filter(c => {
+        const containers = await getAll()
+        const res = containers.filter(c => {
             return c.name.toLowerCase() === cname.toLowerCase()
         })
         if (res.length > 0) {
@@ -170,8 +170,8 @@ export async function getAll(): Promise<any[]> {
  */
 export async function getId(name: string): Promise<string> {
     try {
-        let containers = await getAll()
-        let res = containers.filter(
+        const containers = await getAll()
+        const res = containers.filter(
             c => c.name.toLowerCase() === name.toLowerCase(),
         )
         if (res.length !== 1) {
@@ -191,7 +191,7 @@ export async function getId(name: string): Promise<string> {
     @param partialName The (partial) name of the container.
  */
 export async function fuzzyMatch(partialName: string): Promise<string> {
-    let fuseOptions = {
+    const fuseOptions = {
         id: "cookieStoreId",
         shouldSort: true,
         threshold: 0.5,
@@ -201,9 +201,9 @@ export async function fuzzyMatch(partialName: string): Promise<string> {
         keys: ["name"],
     }
 
-    let containers = await getAll()
-    let fuse = new Fuse(containers, fuseOptions)
-    let res = fuse.search(partialName)
+    const containers = await getAll()
+    const fuse = new Fuse(containers, fuseOptions)
+    const res = fuse.search(partialName)
 
     if (res.length >= 1) return res[0]
     else {
@@ -215,8 +215,8 @@ export async function fuzzyMatch(partialName: string): Promise<string> {
 
 /** Helper function for create, returns a random valid IdentityColor for use if no color is applied at creation.*/
 function chooseRandomColor(): string {
-    let max = Math.floor(ContainerColor.length)
-    let n = Math.floor(Math.random() * max)
+    const max = Math.floor(ContainerColor.length)
+    const n = Math.floor(Math.random() * max)
     return ContainerColor[n]
 }
 

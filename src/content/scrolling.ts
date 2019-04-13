@@ -2,7 +2,7 @@ import * as config from "@src/lib/config"
 
 type scrollingDirection = "scrollLeft" | "scrollTop"
 
-let opts = { smooth: null, duration: null }
+const opts = { smooth: null, duration: null }
 async function getSmooth() {
     if (opts.smooth === null)
         opts.smooth = await config.getAsync("smoothscroll")
@@ -48,20 +48,20 @@ class ScrollingData {
         if (this.startTime === undefined) {
             this.startTime = performance.now()
         }
-        let elapsed = performance.now() - this.startTime
+        const elapsed = performance.now() - this.startTime
 
         // If the animation should be done, return the position the element should have
         if (elapsed >= this.duration || this.elem[this.pos] === this.endPos)
             return this.endPos
 
-        let result = ((this.endPos - this.startPos) * elapsed) / this.duration
+        const result = ((this.endPos - this.startPos) * elapsed) / this.duration
         if (result >= 1 || result <= -1) return this.startPos + result
         return this.elem[this.pos] + (this.startPos < this.endPos ? 1 : -1)
     }
 
     /** Updates the position of this.elem, returns true if the element has been scrolled, false otherwise. */
     scrollStep() {
-        let val = this.elem[this.pos]
+        const val = this.elem[this.pos]
         this.elem[this.pos] = this.getStep()
         return val !== this.elem[this.pos]
     }
@@ -94,9 +94,9 @@ class ScrollingData {
 }
 
 // Stores elements that are currently being horizontally scrolled
-let horizontallyScrolling = new Map<Node, ScrollingData>()
+const horizontallyScrolling = new Map<Node, ScrollingData>()
 // Stores elements that are currently being vertically scrolled
-let verticallyScrolling = new Map<Node, ScrollingData>()
+const verticallyScrolling = new Map<Node, ScrollingData>()
 
 /** Tries to scroll e by x and y pixel, make the smooth scrolling animation
  *  last duration milliseconds
@@ -107,7 +107,7 @@ export async function scroll(
     e: Node,
     duration?: number,
 ) {
-    let smooth = await getSmooth()
+    const smooth = await getSmooth()
     if (smooth === "false") duration = 0
     else if (duration === undefined) duration = await getDuration()
 

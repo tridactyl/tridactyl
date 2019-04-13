@@ -71,7 +71,7 @@ class KeyCanceller {
     }
 
     private cancelKey(ke: KeyboardEvent, kes: KeyboardEvent[]) {
-        let index = kes.findIndex(
+        const index = kes.findIndex(
             ke2 =>
                 ke.altKey === ke2.altKey &&
                 ke.code === ke2.code &&
@@ -107,12 +107,12 @@ function* ParserController() {
         let keyEvents: KeyboardEvent[] = []
         try {
             while (true) {
-                let keyevent: KeyboardEvent = yield
+                const keyevent: KeyboardEvent = yield
 
                 // _just to be safe_, cache this to make the following
                 // code more thread-safe.
-                let currentMode = contentState.mode
-                let textEditable = isTextEditable(keyevent.target as Element)
+                const currentMode = contentState.mode
+                const textEditable = isTextEditable(keyevent.target as Element)
 
                 // This code was sort of the cause of the most serious bug in Tridactyl
                 // to date (March 2018).
@@ -140,7 +140,7 @@ function* ParserController() {
                 // unbounded length.
                 keyEvents.push(keyevent)
 
-                let response = parsers[contentState.mode](keyEvents)
+                const response = parsers[contentState.mode](keyEvents)
                 logger.debug(
                     currentMode,
                     contentState.mode,
@@ -175,7 +175,7 @@ function* ParserController() {
     }
 }
 
-let generator = ParserController() // var rather than let stops weirdness in repl.
+const generator = ParserController() // var rather than let stops weirdness in repl.
 generator.next()
 
 /** Feed keys to the ParserController */

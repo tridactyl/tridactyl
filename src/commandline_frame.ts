@@ -51,9 +51,9 @@ const logger = new Logger("cmdline")
 /** @hidden **/
 let activeCompletions: Completions.CompletionSource[]
 /** @hidden **/
-let completionsDiv = window.document.getElementById("completions")
+const completionsDiv = window.document.getElementById("completions")
 /** @hidden **/
-let clInput = window.document.getElementById(
+const clInput = window.document.getElementById(
     "tridactyl-input",
 ) as HTMLInputElement
 
@@ -126,7 +126,7 @@ export function enableCompletions() {
 /* document.addEventListener("DOMContentLoaded", enableCompletions) */
 
 /** @hidden **/
-let noblur = e => setTimeout(() => clInput.focus(), 0)
+const noblur = e => setTimeout(() => clInput.focus(), 0)
 
 /** @hidden **/
 export function focus() {
@@ -141,7 +141,7 @@ let HISTORY_SEARCH_STRING: string
 /** @hidden
  * Command line keybindings
  **/
-let keyParser = keys => genericParser.parser("exmaps", keys)
+const keyParser = keys => genericParser.parser("exmaps", keys)
 /** @hidden **/
 let keyEvents = []
 /** @hidden **/
@@ -153,7 +153,7 @@ clInput.addEventListener(
     "keydown",
     function(keyevent: KeyboardEvent) {
         keyEvents.push(keyevent)
-        let response = keyParser(keyEvents)
+        const response = keyParser(keyEvents)
         if (response.isMatch) {
             keyevent.preventDefault()
             keyevent.stopImmediatePropagation()
@@ -182,9 +182,9 @@ clInput.addEventListener(
  * Insert the first command line history line that starts with the content of the command line in the command line.
  */
 export function complete() {
-    let fragment = clInput.value
-    let matches = state.cmdHistory.filter(key => key.startsWith(fragment))
-    let mostrecent = matches[matches.length - 1]
+    const fragment = clInput.value
+    const matches = state.cmdHistory.filter(key => key.startsWith(fragment))
+    const mostrecent = matches[matches.length - 1]
     if (mostrecent !== undefined) clInput.value = mostrecent
     return refresh_completions(clInput.value)
 }
@@ -341,7 +341,7 @@ function history(n) {
         HISTORY_SEARCH_STRING = clInput.value
     }
 
-    let matches = state.cmdHistory.filter(key =>
+    const matches = state.cmdHistory.filter(key =>
         key.startsWith(HISTORY_SEARCH_STRING),
     )
     if (cmdline_history_position === 0) {

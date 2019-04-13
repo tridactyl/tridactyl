@@ -44,11 +44,11 @@ export function expandExstr(
 export function getCmdAliasMapping(
     aliases = config.get("exaliases"),
 ): { [str: string]: string[] } {
-    let commands = {}
+    const commands = {}
     // aliases look like this: {alias: command} but what we really need is this: {command: [alias1, alias2...]}
     // This is what this loop builds
-    for (let alias of Object.keys(aliases)) {
-        let cmd = expandExstr(alias, aliases).trim()
+    for (const alias of Object.keys(aliases)) {
+        const cmd = expandExstr(alias, aliases).trim()
         if (!commands[cmd]) commands[cmd] = []
         commands[cmd].push(alias.trim())
     }

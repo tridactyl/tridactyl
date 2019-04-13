@@ -26,8 +26,8 @@ export class GuisetCompletionSource extends Completions.CompletionSourceFuse {
 
     public async filter(exstr: string) {
         this.lastExstr = exstr
-        let [prefix, query] = this.splitOnPrefix(exstr)
-        let option = ""
+        const [prefix, query] = this.splitOnPrefix(exstr)
+        const option = ""
 
         // Hide self and stop if prefixes don't match
         if (prefix) {
@@ -44,7 +44,7 @@ export class GuisetCompletionSource extends Completions.CompletionSourceFuse {
         let ruleName = ""
         let subRule = ""
         if (query) {
-            let args = query.trim().split(" ")
+            const args = query.trim().split(" ")
             ruleName = args[0] || ""
             subRule = args[1] || ""
         }

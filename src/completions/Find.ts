@@ -36,7 +36,7 @@ export class FindCompletionSource extends Completions.CompletionSourceFuse {
     }
 
     async onInput(exstr) {
-        let id = this.completionCount++
+        const id = this.completionCount++
         // If there's already a promise being executed, wait for it to finish
         await this.prevCompletion
         // Since we might have awaited for this.prevCompletion, we don't have a guarantee we're the last completion the user asked for anymore
@@ -56,20 +56,20 @@ export class FindCompletionSource extends Completions.CompletionSourceFuse {
         if (!exstr) return
 
         // Flag parsing because -? should reverse completions
-        let tokens = exstr.split(" ")
-        let flagpos = tokens.indexOf("-?")
-        let reverse = flagpos >= 0
+        const tokens = exstr.split(" ")
+        const flagpos = tokens.indexOf("-?")
+        const reverse = flagpos >= 0
         if (reverse) {
             tokens.splice(flagpos, 1)
         }
 
-        let query = tokens.slice(1).join(" ")
-        let minincsearchlen = await config.getAsync("minincsearchlen")
+        const query = tokens.slice(1).join(" ")
+        const minincsearchlen = await config.getAsync("minincsearchlen")
         // No point if continuing if the user hasn't started searching yet
         if (query.length < minincsearchlen) return
 
         let findresults = await config.getAsync("findresults")
-        let incsearch = (await config.getAsync("incsearch")) === "true"
+        const incsearch = (await config.getAsync("incsearch")) === "true"
         if (findresults === 0 && !incsearch) return
 
         let incsearchonly = false
@@ -80,8 +80,8 @@ export class FindCompletionSource extends Completions.CompletionSourceFuse {
 
         // Note: the use of activeTabId here might break completions if the user starts searching for a pattern in a really big page and then switches to another tab.
         // Getting the tabId should probably be done in the constructor but you can't have async constructors.
-        let tabId = await activeTabId()
-        let findings = await Messaging.messageTab(
+        const tabId = await activeTabId()
+        const findings = await Messaging.messageTab(
             tabId,
             "finding_content",
             "find",
@@ -91,8 +91,8 @@ export class FindCompletionSource extends Completions.CompletionSourceFuse {
         // If the search was successful
         if (findings.length > 0) {
             // Get match context
-            let len = await config.getAsync("findcontextlen")
-            let matches = await Messaging.messageTab(
+            const len = await config.getAsync("findcontextlen")
+            const matches = await Messaging.messageTab(
                 tabId,
                 "finding_content",
                 "getMatches",

@@ -48,7 +48,7 @@ export async function downloadUrl(url: string, saveAs: boolean) {
         urlToDownload = urlToSave.href
     }
 
-    let fileName = getDownloadFilenameForUrl(urlToSave)
+    const fileName = getDownloadFilenameForUrl(urlToSave)
 
     // Save location limitations:
     //  - download() can't save outside the downloads dir without popping
@@ -57,7 +57,7 @@ export async function downloadUrl(url: string, saveAs: boolean) {
     //    feed in the dirctory for next time, and FF doesn't remember it
     //    itself (like it does if you right-click-save something)
 
-    let downloadPromise = browser.downloads.download({
+    const downloadPromise = browser.downloads.download({
         url: urlToDownload,
         filename: fileName,
         saveAs,
@@ -92,9 +92,9 @@ export async function downloadUrlAs(url: string, saveAs: string) {
         urlToDownload = urlToSave.href
     }
 
-    let fileName = getDownloadFilenameForUrl(urlToSave)
+    const fileName = getDownloadFilenameForUrl(urlToSave)
 
-    let downloadId = await browser.downloads.download({
+    const downloadId = await browser.downloads.download({
         conflictAction: "uniquify",
         url: urlToDownload,
         filename: fileName,
@@ -102,7 +102,7 @@ export async function downloadUrlAs(url: string, saveAs: string) {
 
     // We want to return a promise that will resolve once the file has been moved somewhere else
     return new Promise((resolve, reject) => {
-        let onDownloadComplete = async downloadDelta => {
+        const onDownloadComplete = async downloadDelta => {
             if (downloadDelta.id !== downloadId) {
                 return
             }
@@ -113,11 +113,11 @@ export async function downloadUrlAs(url: string, saveAs: string) {
                 downloadDelta.state.current !== "in_progress"
             ) {
                 browser.downloads.onChanged.removeListener(onDownloadComplete)
-                let downloadItem = (await browser.downloads.search({
+                const downloadItem = (await browser.downloads.search({
                     id: downloadId,
                 }))[0]
                 if (downloadDelta.state.current === "complete") {
-                    let operation = await Native.move(
+                    const operation = await Native.move(
                         downloadItem.filename,
                         saveAs,
                     )

@@ -37,7 +37,7 @@ export function attributeCaller(obj) {
 
         // Call command on obj
         try {
-            let response = obj[message.command](...message.args)
+            const response = obj[message.command](...message.args)
 
             // Return response to sender
             if (response instanceof Promise) {
@@ -76,7 +76,7 @@ export async function messageActiveTab(
 }
 
 export async function messageTab(tabId, type: TabMessageType, command, args?) {
-    let message: Message = {
+    const message: Message = {
         type,
         command,
         args,
@@ -99,8 +99,8 @@ export async function messageAllTabs(
     command: string,
     args?: any[],
 ) {
-    let responses = []
-    for (let tab of await browserBg.tabs.query({})) {
+    const responses = []
+    for (const tab of await browserBg.tabs.query({})) {
         try {
             responses.push(await messageTab(tab.id, type, command, args))
         } catch (e) {
@@ -126,7 +126,7 @@ export function addListener(type: MessageType, callback: listener) {
 if (getContext() === "background") {
     // Warning: lib/webext.ts:ownTab() relies on this listener being added in order to work
     addListener("owntab_background", (message, sender, sendResponse) => {
-        let x = Object.assign(Object.create(null), sender.tab)
+        const x = Object.assign(Object.create(null), sender.tab)
         x.mutedInfo = Object.assign(Object.create(null), sender.tab.mutedInfo)
         x.sharingState = Object.assign(
             Object.create(null),
@@ -139,7 +139,7 @@ if (getContext() === "background") {
 /** Recv a message from runtime.onMessage and send to all listeners */
 function onMessage(message, sender, sendResponse) {
     if (listeners.get(message.type)) {
-        for (let listener of listeners.get(message.type)) {
+        for (const listener of listeners.get(message.type)) {
             listener(message, sender, sendResponse)
         }
     }

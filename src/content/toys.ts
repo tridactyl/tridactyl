@@ -19,7 +19,7 @@ export function jack_in() {
 export let snow = () => rain(["❄"], "#FFF", 0.15)
 
 export function rain(characters: string[], colour, darkening = 0.05) {
-    let d = document.createElement("div")
+    const d = document.createElement("div")
     d.style.position = "fixed"
     d.style.display = "block"
     d.style.width = "100%"
@@ -30,10 +30,10 @@ export function rain(characters: string[], colour, darkening = 0.05) {
     d.style.bottom = "0"
     d.style.zIndex = "1000"
     d.style.opacity = "0.5"
-    let c = document.createElement("canvas")
+    const c = document.createElement("canvas")
     d.appendChild(c)
     document.body.appendChild(d)
-    let ctx = c.getContext("2d")
+    const ctx = c.getContext("2d")
 
     // making the canvas full screen
     c.height = window.innerHeight
@@ -41,10 +41,10 @@ export function rain(characters: string[], colour, darkening = 0.05) {
 
     // converting the string into an array of single characters
 
-    let font_size = 10
-    let columns = c.width / font_size // number of columns for the rain
+    const font_size = 10
+    const columns = c.width / font_size // number of columns for the rain
     // an array of drops - one per column
-    let drops = []
+    const drops = []
     // x below is the x coordinate
     // 1 = y co-ordinate of the drop(same for every drop initially)
     for (let x = 0; x < columns; x++) drops[x] = 1
@@ -61,7 +61,7 @@ export function rain(characters: string[], colour, darkening = 0.05) {
         // looping over drops
         for (let i = 0; i < drops.length; i++) {
             // a random chinese character to print
-            let text = characters[Math.floor(Math.random() * characters.length)]
+            const text = characters[Math.floor(Math.random() * characters.length)]
             // x = i*font_size, y = value of drops[i]*font_size
             ctx.fillText(text, i * font_size, drops[i] * font_size)
 

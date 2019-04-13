@@ -54,16 +54,16 @@ export class SettingsCompletionSource extends Completions.CompletionSourceFuse {
         // It's terrible but it's ok because it's just a stopgap until an actual commandline-parsing API is implemented
         // copy pasting code is fun and good
         if (prefix === "seturl " || prefix === "unseturl ") {
-            let args = query.split(" ")
+            const args = query.split(" ")
             options = args.slice(0, 1).join(" ")
             query = args.slice(1).join(" ")
         }
 
         options += options ? " " : ""
 
-        let file = metadata.everything.getFile("src/lib/config.ts")
-        let default_config = file.getClass("default_config")
-        let settings = config.get()
+        const file = metadata.everything.getFile("src/lib/config.ts")
+        const default_config = file.getClass("default_config")
+        const settings = config.get()
 
         if (default_config === undefined || settings === undefined) {
             return
@@ -73,7 +73,7 @@ export class SettingsCompletionSource extends Completions.CompletionSourceFuse {
             .filter(x => x.startsWith(query))
             .sort()
             .map(setting => {
-                let md = default_config.getMember(setting)
+                const md = default_config.getMember(setting)
                 let doc = ""
                 let type = ""
                 if (md !== undefined) {

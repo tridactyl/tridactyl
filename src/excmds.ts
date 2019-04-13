@@ -131,7 +131,7 @@ export async function getNativeVersion(): Promise<void> {
  */
 //#content
 export async function getRssLinks(): Promise<Array<{ type: string; url: string; title: string }>> {
-    let seen = new Set<string>()
+    const seen = new Set<string>()
     return Array.from(document.querySelectorAll("a, link[rel='alternate']"))
         .filter((e: any) => typeof e.href === "string")
         .reduce((acc, e: any) => {
@@ -165,7 +165,7 @@ export async function getRssLinks(): Promise<Array<{ type: string; url: string; 
 //#content
 export async function rssexec(url: string, type?: string, ...title: string[]) {
     if (!url || url === "") {
-        let links = await getRssLinks()
+        const links = await getRssLinks()
         switch (links.length) {
             case 0:
                 throw new Error("No rss link found on this page.")
@@ -233,14 +233,14 @@ export function getInputSelector() {
 /** @hidden */
 //#content
 export function addTridactylEditorClass(selector: string) {
-    let elem = document.querySelector(selector)
+    const elem = document.querySelector(selector)
     elem.className = elem.className + " TridactylEditing "
 }
 
 /** @hidden */
 //#content
 export function removeTridactylEditorClass(selector: string) {
-    let elem = document.querySelector(selector)
+    const elem = document.querySelector(selector)
     elem.className = elem.className.replace(" TridactylEditing ", "")
 }
 
@@ -266,8 +266,8 @@ export function removeTridactylEditorClass(selector: string) {
  */
 //#content
 export async function editor() {
-    let elem = DOM.getLastUsedInput()
-    let selector = DOM.getSelector(elem)
+    const elem = DOM.getLastUsedInput()
+    const selector = DOM.getSelector(elem)
     addTridactylEditorClass(selector)
 
     if (!(await Native.nativegate())) {
@@ -302,20 +302,20 @@ export async function guiset_quiet(rule: string, option: string) {
 
     // Check for native messenger and make sure we have a plausible profile directory
     if (!(await Native.nativegate("0.1.1"))) return
-    let profile_dir = await Native.getProfileDir()
+    const profile_dir = await Native.getProfileDir()
 
     // Make backups
     await Native.mkdir(profile_dir + "/chrome", true)
     let cssstr = (await Native.read(profile_dir + "/chrome/userChrome.css")).content
-    let cssstrOrig = (await Native.read(profile_dir + "/chrome/userChrome.orig.css")).content
+    const cssstrOrig = (await Native.read(profile_dir + "/chrome/userChrome.orig.css")).content
     if (cssstrOrig === "") await Native.write(profile_dir + "/chrome/userChrome.orig.css", cssstr)
     await Native.write(profile_dir + "/chrome/userChrome.css.tri.bak", cssstr)
 
     // Modify and write new CSS
     if (cssstr === "") cssstr = `@namespace url("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul");`
-    let stylesheet = CSS.parse(cssstr)
+    const stylesheet = CSS.parse(cssstr)
     // Trim due to https://github.com/reworkcss/css/issues/113
-    let stylesheetDone = CSS.stringify(css_util.changeCss(rule, option, stylesheet)).trim()
+    const stylesheetDone = CSS.stringify(css_util.changeCss(rule, option, stylesheet)).trim()
     return Native.write(profile_dir + "/chrome/userChrome.css", stylesheetDone)
 }
 
@@ -480,7 +480,7 @@ export async function nativeopen(...args: string[]) {
 
     if (await Native.nativegate()) {
         // First compute where the tab should be
-        let pos = await config.getAsync("tabopenpos")
+        const pos = await config.getAsync("tabopenpos")
         let index = (await activeTab()).index + 1
         switch (pos) {
             case "last":
@@ -492,7 +492,7 @@ export async function nativeopen(...args: string[]) {
         }
         // Then make sure the tab is made active and moved to the right place
         // when it is opened in the current window
-        let selecttab = tab => {
+        const selecttab = tab => {
             browser.tabs.onCreated.removeListener(selecttab)
             tabSetActive(tab.id)
             browser.tabs.move(tab.id, { index })
@@ -504,7 +504,7 @@ export async function nativeopen(...args: string[]) {
                 if ((await browser.windows.getCurrent()).incognito) {
                     throw "nativeopen isn't supported in private mode on OSX. Consider installing Linux or Windows :)."
                 }
-                let osascriptArgs = ["-e 'on run argv'", "-e 'tell application \"Firefox\" to open location item 1 of argv'", "-e 'end run'"]
+                const osascriptArgs = ["-e 'on run argv'", "-e 'tell application \"Firefox\" to open location item 1 of argv'", "-e 'end run'"]
                 await Native.run("osascript " + osascriptArgs.join(" ") + " " + url)
             } else {
                 if (firefoxArgs.length === 0) {
@@ -657,7 +657,7 @@ export async function restart() {
     const browsercmd = await config.get("browser")
 
     if ((await browser.runtime.getPlatformInfo()).os === "win") {
-        let reply = await Native.winFirefoxRestart(profiledir, browsercmd)
+        const reply = await Native.winFirefoxRestart(profiledir, browsercmd)
         logger.info("[+] win_firefox_restart 'reply' = " + JSON.stringify(reply))
         if (Number(reply.code) === 0) {
             fillcmdline("#" + reply.content)
@@ -732,16 +732,16 @@ export async function saveJumps(jumps) {
  */
 //#content_helper
 export async function curJumps() {
-    let tabid = await activeTabId()
+    const tabid = await activeTabId()
     let jumps = await browserBg.sessions.getTabValue(tabid, "jumps")
     if (!jumps) jumps = {}
     // This makes sure that `key` exists in `obj`, setting it to `def` if it doesn't
-    let ensure = (obj, key, def) => {
+    const ensure = (obj, key, def) => {
         if (obj[key] === null || obj[key] === undefined) obj[key] = def
     }
-    let page = getJumpPageId()
+    const page = getJumpPageId()
     ensure(jumps, page, {})
-    let dummy = new UIEvent("scroll")
+    const dummy = new UIEvent("scroll")
     ensure(jumps[page], "list", [{ x: dummy.pageX, y: dummy.pageY }])
     ensure(jumps[page], "cur", 0)
     saveJumps(jumps)
@@ -763,8 +763,8 @@ export function jumpnext(n = 1) {
 //#content
 export function jumpprev(n = 1) {
     curJumps().then(alljumps => {
-        let jumps = alljumps[getJumpPageId()]
-        let current = jumps.cur - n
+        const jumps = alljumps[getJumpPageId()]
+        const current = jumps.cur - n
         if (current < 0) {
             jumps.cur = 0
             saveJumps(alljumps)
@@ -775,7 +775,7 @@ export function jumpprev(n = 1) {
             return forward(current - jumps.list.length + 1)
         }
         jumps.cur = current
-        let p = jumps.list[jumps.cur]
+        const p = jumps.list[jumps.cur]
         saveJumps(alljumps)
         JUMPED = true
         window.scrollTo(p.x, p.y)
@@ -797,16 +797,16 @@ export function addJump(scrollEvent: UIEvent) {
         JUMPED = false
         return
     }
-    let pageX = scrollEvent.pageX
-    let pageY = scrollEvent.pageY
+    const pageX = scrollEvent.pageX
+    const pageY = scrollEvent.pageY
     // Get config for current page
     curJumps().then(alljumps => {
-        let jumps = alljumps[getJumpPageId()]
+        const jumps = alljumps[getJumpPageId()]
         // Prevent pending jump from being registered
         clearTimeout(jumps.timeoutid)
         // Schedule the registering of the current jump
         jumps.timeoutid = setTimeout(() => {
-            let list = jumps.list
+            const list = jumps.list
             // if the page hasn't moved, stop
             if (list[jumps.cur].x === pageX && list[jumps.cur].y === pageY) return
             // Store the new jump
@@ -856,10 +856,10 @@ export function scrollto(a: number | string, b: number | "x" | "y" = "y") {
         a = (Number(a.replace(/c$/, "")) * 100) / (2 * Math.PI)
     }
     a = Number(a)
-    let elem = window.document.scrollingElement || window.document.documentElement
-    let percentage = a.clamp(0, 100)
+    const elem = window.document.scrollingElement || window.document.documentElement
+    const percentage = a.clamp(0, 100)
     if (b === "y") {
-        let top = elem.getClientRects()[0].top
+        const top = elem.getClientRects()[0].top
         window.scrollTo(window.scrollX, (percentage * elem.scrollHeight) / 100)
         if (top === elem.getClientRects()[0].top && (percentage === 0 || percentage === 100)) {
             // scrollTo failed, if the user wants to go to the top/bottom of
@@ -867,7 +867,7 @@ export function scrollto(a: number | string, b: number | "x" | "y" = "y") {
             scrolling.recursiveScroll(window.scrollX, 1073741824 * (percentage === 0 ? -1 : 1), document.documentElement)
         }
     } else if (b === "x") {
-        let left = elem.getClientRects()[0].left
+        const left = elem.getClientRects()[0].left
         window.scrollTo((percentage * elem.scrollWidth) / 100, window.scrollY)
         if (left === elem.getClientRects()[0].left && (percentage === 0 || percentage === 100)) {
             scrolling.recursiveScroll(1073741824 * (percentage === 0 ? -1 : 1), window.scrollX, document.documentElement)
@@ -887,7 +887,7 @@ let lineHeight = null
 //#content
 export function scrollline(n = 1) {
     if (lineHeight === null) {
-        let getLineHeight = elem => {
+        const getLineHeight = elem => {
             // Get line height
             const cssHeight = window.getComputedStyle(elem).getPropertyValue("line-height")
             // Remove the "px" at the end
@@ -935,7 +935,7 @@ import * as finding from "@src/content/finding"
 //#content
 export function find(...args: string[]) {
     let flagpos = args.indexOf("-?")
-    let reverse = flagpos >= 0
+    const reverse = flagpos >= 0
     if (reverse) args.splice(flagpos, 1)
 
     flagpos = args.indexOf("-:")
@@ -986,16 +986,16 @@ export function back(n = 1) {
 /** Reload the next n tabs, starting with activeTab, possibly bypassingCache */
 //#background
 export async function reload(n = 1, hard = false) {
-    let tabstoreload = await getnexttabs(await activeTabId(), n)
-    let reloadProperties = { bypassCache: hard }
+    const tabstoreload = await getnexttabs(await activeTabId(), n)
+    const reloadProperties = { bypassCache: hard }
     tabstoreload.forEach(n => browser.tabs.reload(n, reloadProperties))
 }
 
 /** Reloads all tabs, bypassing the cache if hard is set to true */
 //#background
 export async function reloadall(hard = false) {
-    let tabs = await browser.tabs.query({ currentWindow: true })
-    let reloadprops = { bypassCache: hard }
+    const tabs = await browser.tabs.query({ currentWindow: true })
+    const reloadprops = { bypassCache: hard }
     tabs.forEach(tab => browser.tabs.reload(tab.id, reloadprops))
 }
 
@@ -1003,9 +1003,9 @@ export async function reloadall(hard = false) {
 //#background
 export async function reloadallbut(hard = false) {
     let tabs = await browser.tabs.query({ currentWindow: true })
-    let currId = await activeTabId()
+    const currId = await activeTabId()
     tabs = tabs.filter(tab => tab.id !== currId)
-    let reloadprops = { bypassCache: hard }
+    const reloadprops = { bypassCache: hard }
     tabs.forEach(tab => browser.tabs.reload(tab.id, reloadprops))
 }
 
@@ -1037,7 +1037,7 @@ export const ABOUT_WHITELIST = ["about:license", "about:logo", "about:rights", "
  */
 //#content
 export async function open(...urlarr: string[]) {
-    let url = urlarr.join(" ")
+    const url = urlarr.join(" ")
     let p = Promise.resolve()
 
     // Setting window.location to about:blank results in a page we can't access, tabs.update works.
@@ -1045,7 +1045,7 @@ export async function open(...urlarr: string[]) {
         // Open URLs that firefox won't let us by running `firefox <URL>` on the command line
         p = Messaging.message("controller_background", "acceptExCmd", ["nativeopen " + url])
     } else if (url.match(/^javascript:/)) {
-        let bookmarklet = url.replace(/^javascript:/, "")
+        const bookmarklet = url.replace(/^javascript:/, "")
         ; (document.body as any).append(
             html`
                 <script>
@@ -1077,7 +1077,7 @@ export async function bmarks(opt: string, ...urlarr: string[]) {
  */
 //#content
 export async function open_quiet(...urlarr: string[]) {
-    let url = urlarr.join(" ")
+    const url = urlarr.join(" ")
 
     if (!ABOUT_WHITELIST.includes(url) && url.match(/^(about|file):.*/)) {
         return Messaging.message("controller_background", "acceptExCmd", ["nativeopen " + url])
@@ -1097,26 +1097,26 @@ export async function open_quiet(...urlarr: string[]) {
  */
 //#content
 export async function url2args() {
-    let url = document.location.href
-    let searchurls = await config.getAsync("searchurls")
+    const url = document.location.href
+    const searchurls = await config.getAsync("searchurls")
     let result = url
 
-    for (let engine of Object.keys(searchurls)) {
-        let [beginning, end] = [...searchurls[engine].split("%s"), ""]
+    for (const engine of Object.keys(searchurls)) {
+        const [beginning, end] = [...searchurls[engine].split("%s"), ""]
         if (url.startsWith(beginning) && url.endsWith(end)) {
             // Get the string matching %s
             let encodedArgs = url.substring(beginning.length)
             encodedArgs = encodedArgs.substring(0, encodedArgs.length - end.length)
             // Remove any get parameters that might have been added by the search engine
             // This works because if the user's query contains an "&", it will be encoded as %26
-            let amperpos = encodedArgs.search("&")
+            const amperpos = encodedArgs.search("&")
             if (amperpos > 0) encodedArgs = encodedArgs.substring(0, amperpos)
 
             // Do transformations depending on the search engine
             if (beginning.search("duckduckgo") > 0) encodedArgs = encodedArgs.replace(/\+/g, " ")
             else if (beginning.search("wikipedia") > 0) encodedArgs = encodedArgs.replace(/_/g, " ")
 
-            let args = engine + " " + decodeURIComponent(encodedArgs)
+            const args = engine + " " + decodeURIComponent(encodedArgs)
             if (args.length < result.length) result = args
         }
     }
@@ -1152,7 +1152,7 @@ export function viewsource(url = "") {
     }
     if (!sourceElement) {
         sourceElement = CommandLineContent.executeWithoutCommandLine(() => {
-            let pre = document.createElement("pre")
+            const pre = document.createElement("pre")
             pre.id = "TridactylViewsourceElement"
             pre.className = "cleanslate " + config.get("theme")
             pre.innerText = document.documentElement.innerHTML
@@ -1177,7 +1177,7 @@ export function viewsource(url = "") {
  */
 //#background
 export function home(all: "false" | "true" = "false") {
-    let homepages = config.get("homepages")
+    const homepages = config.get("homepages")
     if (homepages.length > 0) {
         if (all === "false") open(homepages[homepages.length - 1])
         else {
@@ -1208,9 +1208,9 @@ export async function help(...helpItems: string[]) {
     const flags = {
         // -a: look for an alias
         "-a": (settings, helpItem) => {
-            let aliases = settings.exaliases
+            const aliases = settings.exaliases
             // As long as helpItem is an alias, try to resolve this alias to a real helpItem
-            let resolved = []
+            const resolved = []
             while (aliases[helpItem]) {
                 resolved.push(helpItem)
                 helpItem = aliases[helpItem].split(" ")
@@ -1225,8 +1225,8 @@ export async function help(...helpItems: string[]) {
         },
         // -b: look for a binding
         "-b": (settings, helpItem) => {
-            for (let mode of ["nmaps", "imaps", "inputmaps", "ignoremaps"]) {
-                let bindings = settings[mode]
+            for (const mode of ["nmaps", "imaps", "inputmaps", "ignoremaps"]) {
+                const bindings = settings[mode]
                 // If 'helpItem' matches a binding, replace 'helpItem' with
                 // the command that would be executed when pressing the key
                 // sequence referenced by 'helpItem' and don't check other
@@ -1244,10 +1244,10 @@ export async function help(...helpItems: string[]) {
         // -s: look for a setting
         "-s": (settings, helpItem) => {
             let subSettings = settings
-            let settingNames = helpItem.split(".")
+            const settingNames = helpItem.split(".")
             let settingHelpAnchor = ""
             // Try to match each piece of the path, this is done so that a correct object (e.g. followpagepatterns) with an incorrect key (e.g. nextt) will still match the parent object.
-            for (let settingName of settingNames) {
+            for (const settingName of settingNames) {
                 if (settingName in subSettings) {
                     settingHelpAnchor += settingName + "."
                     subSettings = subSettings[settingName]
@@ -1407,7 +1407,7 @@ export function followpage(rel: "next" | "prev" = "next") {
  */
 //#content
 export function urlincrement(count = 1) {
-    let newUrl = UrlUtil.incrementUrl(window.location.href, count)
+    const newUrl = UrlUtil.incrementUrl(window.location.href, count)
 
     if (newUrl !== null) {
         // This might throw an error when using incrementurl on a moz-extension:// page if the page we're trying to access doesn't exist
@@ -1423,7 +1423,7 @@ export function urlincrement(count = 1) {
  */
 //#content
 export function urlroot() {
-    let rootUrl = UrlUtil.getUrlRoot(window.location)
+    const rootUrl = UrlUtil.getUrlRoot(window.location)
 
     if (rootUrl !== null) {
         window.location.href = rootUrl.href
@@ -1434,7 +1434,7 @@ export function urlroot() {
  */
 //#content
 export function urlparent(count = 1) {
-    let parentUrl = UrlUtil.getUrlParent(window.location, count)
+    const parentUrl = UrlUtil.getUrlParent(window.location, count)
 
     if (parentUrl !== null) {
         window.location.href = parentUrl.href
@@ -1510,7 +1510,7 @@ export function urlparent(count = 1) {
  */
 //#content
 export function urlmodify(mode: "-t" | "-r" | "-q" | "-Q" | "-g", ...args: string[]) {
-    let oldUrl = new URL(window.location.href)
+    const oldUrl = new URL(window.location.href)
     let newUrl
 
     switch (mode) {
@@ -1531,7 +1531,7 @@ export function urlmodify(mode: "-t" | "-r" | "-q" | "-Q" | "-g", ...args: strin
                 throw new Error("RegExp replacement flags can only include 'g', 'i'" + ", Got '" + args[2] + "'")
             }
 
-            let regexp = new RegExp(args[0], args[2])
+            const regexp = new RegExp(args[0], args[2])
             newUrl = oldUrl.href.replace(regexp, args[1])
             break
 
@@ -1573,7 +1573,7 @@ export function urlmodify(mode: "-t" | "-r" | "-q" | "-Q" | "-g", ...args: strin
  */
 //#content
 export function geturlsforlinks(reltype = "rel", rel: string) {
-    let elems = document.querySelectorAll("link[" + reltype + "='" + rel + "']")
+    const elems = document.querySelectorAll("link[" + reltype + "='" + rel + "']")
     if (elems) return Array.prototype.map.call(elems, x => x.href)
     return []
 }
@@ -1609,7 +1609,7 @@ export async function zoom(level = 0, rel = "false") {
 //#background
 export async function reader() {
     if (await firefoxVersionAtLeast(58)) {
-        let aTab = await activeTab()
+        const aTab = await activeTab()
         if (aTab.isArticle) {
             browser.tabs.toggleReaderMode()
         } // else {
@@ -1648,10 +1648,10 @@ if (fullscreenApiIsPrefixed) {
 /** @hidden */
 //#content
 export async function loadaucmds(cmdType: "DocStart" | "DocLoad" | "DocEnd" | "TabEnter" | "TabLeft" | "FullscreenEnter" | "FullscreenLeft" | "FullscreenChange") {
-    let aucmds = await config.getAsync("autocmds", cmdType)
+    const aucmds = await config.getAsync("autocmds", cmdType)
     const ausites = Object.keys(aucmds)
     const aukeyarr = ausites.filter(e => window.document.location.href.search(e) >= 0)
-    for (let aukey of aukeyarr) {
+    for (const aukey of aukeyarr) {
         Messaging.message("controller_background", "acceptExCmd", [aucmds[aukey]])
     }
 }
@@ -1723,7 +1723,7 @@ export function focusinput(nth: number | string) {
         }
     } else if (nth === "-n" || nth === "-N") {
         // attempt to find next/previous input
-        let inputs = DOM.getElemsBySelector(INPUTTAGS_selectors, [DOM.isSubstantial]) as HTMLElement[]
+        const inputs = DOM.getElemsBySelector(INPUTTAGS_selectors, [DOM.isSubstantial]) as HTMLElement[]
         if (inputs.length) {
             let index = inputs.indexOf(DOM.getLastUsedInput())
             if (DOM.getLastUsedInput()) {
@@ -1742,13 +1742,13 @@ export function focusinput(nth: number | string) {
         // attempt to find a password input
         fallbackToNumeric = false
 
-        let inputs = DOM.getElemsBySelector(INPUTPASSWORD_selectors, [DOM.isSubstantial])
+        const inputs = DOM.getElemsBySelector(INPUTPASSWORD_selectors, [DOM.isSubstantial])
 
         if (inputs.length) {
             inputToFocus = inputs[0] as HTMLElement
         }
     } else if (nth === "-b") {
-        let inputs = DOM.getElemsBySelector(INPUTTAGS_selectors, [DOM.isSubstantial]) as HTMLElement[]
+        const inputs = DOM.getElemsBySelector(INPUTTAGS_selectors, [DOM.isSubstantial]) as HTMLElement[]
         inputs.sort(DOM.compareElementArea)
         inputToFocus = inputs[inputs.length - 1]
     }
@@ -1756,7 +1756,7 @@ export function focusinput(nth: number | string) {
     // either a number (not special) or we failed to find a special input when
     // asked and falling back is acceptable
     if ((!inputToFocus || !document.contains(inputToFocus)) && fallbackToNumeric) {
-        let index = isNaN(nth as number) ? 0 : (nth as number)
+        const index = isNaN(nth as number) ? 0 : (nth as number)
         inputToFocus = DOM.getNthElement(INPUTTAGS_selectors, index, [DOM.isSubstantial])
     }
 
@@ -1775,8 +1775,8 @@ export function focusinput(nth: number | string) {
  */
 //#background
 export async function changelistjump(n?: number) {
-    let tail = state.prevInputs[state.prevInputs.length - 1]
-    let jumppos = tail.jumppos ? tail.jumppos : state.prevInputs.length - 1
+    const tail = state.prevInputs[state.prevInputs.length - 1]
+    const jumppos = tail.jumppos ? tail.jumppos : state.prevInputs.length - 1
     const input = state.prevInputs[jumppos]
     await browser.tabs.update(input.tab, { active: true })
     const id = input.inputId
@@ -1858,7 +1858,7 @@ export async function tabprev(increment = 1) {
     // Kludge until https://bugzilla.mozilla.org/show_bug.cgi?id=1504775 is fixed:
     return browser.tabs.query({ currentWindow: true, hidden: false }).then(tabs => {
         tabs.sort((t1, t2) => t1.index - t2.index)
-        let prevTab = (tabs.findIndex(t => t.active) - increment + tabs.length) % tabs.length
+        const prevTab = (tabs.findIndex(t => t.active) - increment + tabs.length) % tabs.length
         return browser.tabs.update(tabs[prevTab].id, { active: true })
     })
 }
@@ -1896,7 +1896,7 @@ export async function tabopen(...addressarr: string[]) {
             argParse(args)
         } else if (args[0] === "-c") {
             // Ignore the -c flag if incognito as containers are disabled.
-            let win = await browser.windows.getCurrent()
+            const win = await browser.windows.getCurrent()
             if (!win.incognito) container = await Container.fuzzyMatch(args[1])
             else logger.error("[tabopen] can't open a container in a private browsing window.")
 
@@ -1907,15 +1907,15 @@ export async function tabopen(...addressarr: string[]) {
         return args
     }
 
-    let query = await argParse(addressarr)
+    const query = await argParse(addressarr)
 
-    let address = query.join(" ")
+    const address = query.join(" ")
     if (!ABOUT_WHITELIST.includes(address) && address.match(/^(about|file):.*/)) {
         return nativeopen(address)
     }
 
     return activeTabContainerId().then(containerId => {
-        let args = { active } as any
+        const args = { active } as any
         // Ensure -c has priority.
         if (container) {
             args.cookieStoreId = container
@@ -2051,7 +2051,7 @@ export async function tabclosealltoright() {
     })
 
     const atab = await activeTab()
-    let ids = tabs.filter(tab => tab.index > atab.index).map(tab => tab.id)
+    const ids = tabs.filter(tab => tab.index > atab.index).map(tab => tab.id)
     browser.tabs.remove(ids)
 }
 
@@ -2066,7 +2066,7 @@ export async function tabclosealltoleft() {
     })
 
     const atab = await activeTab()
-    let ids = tabs.filter(tab => tab.index < atab.index).map(tab => tab.id)
+    const ids = tabs.filter(tab => tab.index < atab.index).map(tab => tab.id)
     browser.tabs.remove(ids)
 }
 
@@ -2204,7 +2204,7 @@ export async function tabmove(index = "$") {
 /** Pin the current tab */
 //#background
 export async function pin() {
-    let aTab = await activeTab()
+    const aTab = await activeTab()
     browser.tabs.update(aTab.id, { pinned: !aTab.pinned })
 }
 
@@ -2221,7 +2221,7 @@ export async function mute(...muteArgs: string[]): Promise<void> {
     let toggle = false
     let all = false
 
-    let argParse = (args: string[]) => {
+    const argParse = (args: string[]) => {
         if (args === null) {
             return
         }
@@ -2244,20 +2244,20 @@ export async function mute(...muteArgs: string[]): Promise<void> {
 
     argParse(muteArgs)
 
-    let updateObj = { muted: false }
+    const updateObj = { muted: false }
     if (mute) {
         updateObj.muted = true
     }
     if (all) {
-        let tabs = await browser.tabs.query({ currentWindow: true })
-        for (let tab of tabs) {
+        const tabs = await browser.tabs.query({ currentWindow: true })
+        for (const tab of tabs) {
             if (toggle) {
                 updateObj.muted = !tab.mutedInfo.muted
             }
             browser.tabs.update(tab.id, updateObj)
         }
     } else {
-        let tab = await activeTab()
+        const tab = await activeTab()
         if (toggle) {
             updateObj.muted = !tab.mutedInfo.muted
         }
@@ -2300,7 +2300,7 @@ export async function winopen(...args: string[]) {
         }
     }
 
-    let address = args.join(" ")
+    const address = args.join(" ")
     if (!ABOUT_WHITELIST.includes(address) && address.match(/^(about|file):.*/)) {
         return nativeopen(firefoxArgs, address)
     }
@@ -2328,7 +2328,7 @@ export async function winclose(...ids: string[]) {
 // We might have to do it ourselves.
 //#background
 export async function qall() {
-    let windows = await browser.windows.getAll()
+    const windows = await browser.windows.getAll()
     windows.forEach(window => browser.windows.remove(window.id))
 }
 
@@ -2341,7 +2341,7 @@ export async function qall() {
  */
 //#background
 export async function containerclose(name: string) {
-    let containerId = await Container.getId(name)
+    const containerId = await Container.getId(name)
     browser.tabs.query({ cookieStoreId: containerId }).then(tabs => {
         browser.tabs.remove(
             tabs.map(tab => {
@@ -2393,8 +2393,8 @@ export async function containerdelete(name: string) {
 //#background
 export async function containerupdate(name: string, uname: string, ucolor: string, uicon: string) {
     logger.debug("containerupdate parameters: " + name + ", " + uname + ", " + ucolor + ", " + uicon)
-    let containerId = await Container.fuzzyMatch(name)
-    let containerObj = Container.fromString(uname, ucolor, uicon)
+    const containerId = await Container.fuzzyMatch(name)
+    const containerObj = Container.fromString(uname, ucolor, uicon)
     await Container.update(containerId, containerObj)
 }
 
@@ -2407,7 +2407,7 @@ export async function containerupdate(name: string, uname: string, ucolor: strin
 export async function viewcontainers() {
     // # and white space don't agree with FF's JSON viewer.
     // Probably other symbols too.
-    let containers = await browserBg.contextualIdentities.query({}) // Can't access src/lib/containers.ts from a content script.
+    const containers = await browserBg.contextualIdentities.query({}) // Can't access src/lib/containers.ts from a content script.
     window.location.href =
         "data:application/json," +
         JSON.stringify(containers)
@@ -2528,15 +2528,15 @@ export async function composite(...cmds: string[]) {
                 .reduce(
                     async (prev_pipeline, cmd) => {
                         await prev_pipeline
-                        let cmds = cmd.split("|")
+                        const cmds = cmd.split("|")
 
                         // Compute the first piped value
-                        let [fn, args] = excmd_parser.parser(cmds[0])
-                        let first_value = fn.call({}, ...args)
+                        const [fn, args] = excmd_parser.parser(cmds[0])
+                        const first_value = fn.call({}, ...args)
 
                         // Exec the rest of the pipe in sequence.
                         return cmds.slice(1).reduce(async (pipedValue, cmd) => {
-                            let [fn, args] = excmd_parser.parser(cmd)
+                            const [fn, args] = excmd_parser.parser(cmd)
                             return fn.call({}, ...args, await pipedValue)
                         }, first_value)
                     },
@@ -2577,7 +2577,7 @@ export function hidecmdline() {
 /** Set the current value of the commandline to string *with* a trailing space */
 //#content
 export function fillcmdline(...strarr: string[]) {
-    let str = strarr.join(" ")
+    const str = strarr.join(" ")
     showcmdline()
     return Messaging.messageOwnTab("commandline_frame", "fillcmdline", [str])
 }
@@ -2585,7 +2585,7 @@ export function fillcmdline(...strarr: string[]) {
 /** Set the current value of the commandline to string *without* a trailing space */
 //#content
 export function fillcmdline_notrail(...strarr: string[]) {
-    let str = strarr.join(" ")
+    const str = strarr.join(" ")
     showcmdline()
     return Messaging.messageOwnTab("commandline_frame", "fillcmdline", [str, false])
 }
@@ -2600,7 +2600,7 @@ export function fillcmdline_nofocus(...strarr: string[]) {
 /** Shows str in the command line for ms milliseconds. Recommended duration: 3000ms. */
 //#content
 export async function fillcmdline_tmp(ms: number, ...strarr: string[]) {
-    let str = strarr.join(" ")
+    const str = strarr.join(" ")
     showcmdline(false)
     Messaging.messageOwnTab("commandline_frame", "fillcmdline", [strarr.join(" "), false, false])
     return new Promise(resolve =>
@@ -2632,14 +2632,14 @@ import * as tri_editor from "@src/lib/editor"
 
 //#content_helper
 // {
-for (let editorfn of Object.keys(tri_editor)) {
+for (const editorfn of Object.keys(tri_editor)) {
     // Re-expose every editor function as a text.$fn excmd that will forward the call to $fn to the commandline frame if it is selected or apply $fn to the last used input if it isn't
     SELF["text." + editorfn] = arg => {
         if ((document.activeElement as any).src === browser.extension.getURL("static/commandline.html")) return Messaging.messageOwnTab("commandline_frame", "editor_function", [editorfn].concat(arg))
         return tri_editor[editorfn](DOM.getLastUsedInput(), arg)
     }
 }
-for (let fn of Object.keys(cmdframe_fns)) {
+for (const fn of Object.keys(cmdframe_fns)) {
     SELF["ex." + fn] = (...args) => (Messaging.messageOwnTab as any)("commandline_frame", cmdframe_fns[fn][0], cmdframe_fns[fn][1].concat(args))
 }
 
@@ -2647,12 +2647,12 @@ for (let fn of Object.keys(cmdframe_fns)) {
 
 //#background_helper
 // {
-for (let editorfn of Object.keys(tri_editor)) {
-    let name = "text." + editorfn
+for (const editorfn of Object.keys(tri_editor)) {
+    const name = "text." + editorfn
     cmd_params.set(name, new Map([["arr", "string[]"]]))
     BGSELF[name] = (...args) => messageActiveTab("excmd_content", name, args)
 }
-for (let fn of Object.keys(cmdframe_fns)) {
+for (const fn of Object.keys(cmdframe_fns)) {
     cmd_params.set("ex." + fn, new Map(cmdframe_fns[fn][1].map((a, i) => [`${i}`, typeof a] as [string, string])))
     BGSELF["ex." + fn] = (...args) => messageActiveTab("commandline_frame", cmdframe_fns[fn][0], cmdframe_fns[fn][1].concat(args))
 }
@@ -2684,8 +2684,8 @@ async function setclip(str) {
     // Functions to avoid retyping everything everywhere
 
     // Note: We're using fillcmdline here because exceptions are somehow not caught. We're rethrowing because otherwise the error message will be overwritten with the "yank successful" message.
-    let s = () => Native.clipboard("set", str)
-    let c = () => messageActiveTab("commandline_frame", "setClipboard", [str])
+    const s = () => Native.clipboard("set", str)
+    const c = () => messageActiveTab("commandline_frame", "setClipboard", [str])
 
     let promises = []
     switch (await config.getAsync("yankto")) {
@@ -2824,14 +2824,14 @@ export async function tab(index: number | "#") {
  */
 //#background
 export async function taball(id: string) {
-    let windows = (await browser.windows.getAll()).map(w => w.id).sort((a, b) => a - b)
+    const windows = (await browser.windows.getAll()).map(w => w.id).sort((a, b) => a - b)
     if (id === null || id === undefined || !id.match(/\d+\.\d+/)) {
         const tab = await activeTab()
-        let prevId = id
+        const prevId = id
         id = windows.indexOf(tab.windowId) + "." + (tab.index + 1)
         logger.info(`taball: Bad tab id: ${prevId}, defaulting to ${id}`)
     }
-    let [winindex, tabindex] = id.split(".")
+    const [winindex, tabindex] = id.split(".")
     await browser.windows.update(windows[parseInt(winindex, 10) - 1], { focused: true })
     return browser.tabs.update(await idFromIndex(tabindex), { active: true })
 }
@@ -2901,14 +2901,14 @@ interface bind_args {
 function parse_bind_args(...args: string[]): bind_args {
     if (args.length === 0) throw new Error("Invalid bind/unbind arguments.")
 
-    let result = {} as bind_args
+    const result = {} as bind_args
     result.mode = "normal"
 
     // TODO: This mapping is copy-pasted in controller_content.ts,
     // where it constructs the list of parsers. it should be
     // centralized, possibly as part of rewrite for content-local maps
     // and similar.
-    let mode2maps = new Map([["normal", "nmaps"], ["ignore", "ignoremaps"], ["insert", "imaps"], ["input", "inputmaps"], ["ex", "exmaps"]])
+    const mode2maps = new Map([["normal", "nmaps"], ["ignore", "ignoremaps"], ["insert", "imaps"], ["input", "inputmaps"], ["ex", "exmaps"]])
     if (args[0].startsWith("--mode=")) {
         result.mode = args.shift().replace("--mode=", "")
     }
@@ -2916,7 +2916,7 @@ function parse_bind_args(...args: string[]): bind_args {
 
     result.configName = mode2maps.get(result.mode)
 
-    let key = args.shift()
+    const key = args.shift()
     // Convert key to internal representation
     result.key = mapstrToKeyseq(key)
         .map(k => k.toMapstr())
@@ -2962,12 +2962,12 @@ function parse_bind_args(...args: string[]): bind_args {
 */
 //#background
 export function bind(...args: string[]) {
-    let args_obj = parse_bind_args(...args)
+    const args_obj = parse_bind_args(...args)
     let p = Promise.resolve()
     if (args_obj.excmd !== "") {
         for (let i = 0; i < args_obj.key.length; i++) {
             // Check if any initial subsequence of the key exists and will shadow the new binding
-            let key_sub = args_obj.key.slice(0, i)
+            const key_sub = args_obj.key.slice(0, i)
             if (config.get(args_obj.configName, key_sub)) {
                 fillcmdline_notrail("# Warning: bind `" + key_sub + "` exists and will shadow `" + args_obj.key + "`. Try running `:unbind --mode=" + args_obj.mode + " " + key_sub + "`")
                 break
@@ -2992,7 +2992,7 @@ export function bind(...args: string[]) {
  */
 //#background
 export function bindurl(pattern: string, mode: string, keys: string, ...excmd: string[]) {
-    let args_obj = parse_bind_args(mode, keys, ...excmd)
+    const args_obj = parse_bind_args(mode, keys, ...excmd)
     let p = Promise.resolve()
     if (args_obj.excmd !== "") {
         p = config.setURL(pattern, args_obj.configName, args_obj.key, args_obj.excmd)
@@ -3030,9 +3030,9 @@ function validateSetArgs(key: string, values: string[]) {
     const target: any[] = key.split(".")
 
     let value
-    let file = Metadata.everything.getFile("src/lib/config.ts")
-    let default_config = file.getClass("default_config")
-    let md = default_config.getMember(target[0])
+    const file = Metadata.everything.getFile("src/lib/config.ts")
+    const default_config = file.getClass("default_config")
+    const md = default_config.getMember(target[0])
     if (md !== undefined) {
         const strval = values.join(" ")
         // Note: the conversion will throw if strval can't be converted to the right type
@@ -3107,7 +3107,7 @@ export function set(key: string, ...values: string[]) {
     }
 
     if (key === "noiframeon") {
-        let noiframes = config.get("noiframeon")
+        const noiframes = config.get("noiframeon")
         // unset previous settings
         if (noiframes) noiframes.forEach(url => seturl(url, "noiframe", "false"))
         // store new settings
@@ -3122,7 +3122,7 @@ export function set(key: string, ...values: string[]) {
 
 /** @hidden */
 //#background_helper
-let AUCMDS = ["DocStart", "DocLoad", "DocEnd", "TriStart", "TabEnter", "TabLeft", "FullscreenChange", "FullscreenEnter", "FullscreenLeft"]
+const AUCMDS = ["DocStart", "DocLoad", "DocEnd", "TriStart", "TabEnter", "TabLeft", "FullscreenChange", "FullscreenEnter", "FullscreenLeft"]
 /** Set autocmds to run when certain events happen.
 
  @param event Curently, 'TriStart', 'DocStart', 'DocLoad', 'DocEnd', 'TabEnter', 'TabLeft', 'FullscreenChange', 'FullscreenEnter', and 'FullscreenLeft' are supported
@@ -3203,7 +3203,7 @@ export function blacklistadd(url: string) {
 */
 //#background
 export async function unbind(...args: string[]) {
-    let args_obj = parse_bind_args(...args)
+    const args_obj = parse_bind_args(...args)
     if (args_obj.excmd !== "") throw new Error("unbind syntax: `unbind key`")
 
     return config.set(args_obj.configName, args_obj.key, "")
@@ -3224,7 +3224,7 @@ export async function unbind(...args: string[]) {
  */
 //#background
 export async function unbindurl(pattern: string, mode: string, keys: string) {
-    let args_obj = parse_bind_args(mode, keys)
+    const args_obj = parse_bind_args(mode, keys)
 
     return config.setURL(pattern, args_obj.configName, args_obj.key, "")
 }
@@ -3241,7 +3241,7 @@ export async function unbindurl(pattern: string, mode: string, keys: string) {
  */
 //#background
 export async function reset(mode: string, key: string) {
-    let args_obj = parse_bind_args(mode, key)
+    const args_obj = parse_bind_args(mode, key)
     return config.unset(args_obj.configName, args_obj.key)
 }
 
@@ -3259,7 +3259,7 @@ export async function reset(mode: string, key: string) {
  */
 //#background
 export async function reseturl(pattern: string, mode: string, key: string) {
-    let args_obj = parse_bind_args(mode, key)
+    const args_obj = parse_bind_args(mode, key)
     return config.unsetURL(pattern, args_obj.configName, args_obj.key)
 }
 
@@ -3288,12 +3288,12 @@ export async function reseturl(pattern: string, mode: string, key: string) {
 */
 //#background
 export async function sanitise(...args: string[]) {
-    let flagpos = args.indexOf("-t")
+    const flagpos = args.indexOf("-t")
     let since = {}
     // If the -t flag has been given and there is an arg after it
     if (flagpos > -1) {
         if (flagpos < args.length - 1) {
-            let match = args[flagpos + 1].match("^([0-9])+(m|h|d|w)$")
+            const match = args[flagpos + 1].match("^([0-9])+(m|h|d|w)$")
             // If the arg of the flag matches Pentadactyl's sanitisetimespan format
             if (match !== null && match.length === 3) {
                 // Compute the timespan in milliseconds and get a Date object
@@ -3317,7 +3317,7 @@ export async function sanitise(...args: string[]) {
         }
     }
 
-    let dts = {
+    const dts = {
         cache: false,
         cookies: false,
         downloads: false,
@@ -3341,7 +3341,7 @@ export async function sanitise(...args: string[]) {
          */
     }
     if (args.find(x => x === "all") !== undefined) {
-        for (let attr in dts) dts[attr] = true
+        for (const attr in dts) dts[attr] = true
     } else {
         // We bother checking if dts[x] is false because
         // browser.browsingData.remove() is very strict on the format of the
@@ -3378,14 +3378,14 @@ export async function quickmark(key: string, ...addressarr: string[]) {
     }
 
     if (addressarr.length <= 1) {
-        let address = addressarr.length === 0 ? (await activeTab()).url : addressarr[0]
+        const address = addressarr.length === 0 ? (await activeTab()).url : addressarr[0]
         // Have to await these or they race!
         await bind("gn" + key, "tabopen", address)
         await bind("go" + key, "open", address)
         await bind("gw" + key, "winopen", address)
     } else {
-        let compstring = addressarr.join(" | tabopen ")
-        let compstringwin = addressarr.join(" | winopen ")
+        const compstring = addressarr.join(" | tabopen ")
+        const compstringwin = addressarr.join(" | winopen ")
         await bind("gn" + key, "composite tabopen", compstring)
         await bind("go" + key, "composite open", compstring)
         await bind("gw" + key, "composite winopen", compstringwin)
@@ -3559,8 +3559,8 @@ export async function hint(option?: string, selectors?: string, ...rest: string[
     }
 
     let selectHints
-    let hintTabOpen = async (href, active = !rapid) => {
-        let containerId = await activeTabContainerId()
+    const hintTabOpen = async (href, active = !rapid) => {
+        const containerId = await activeTabContainerId()
         if (containerId) {
             return openInNewTab(href, {
                 active,
@@ -3642,7 +3642,7 @@ export async function hint(option?: string, selectors?: string, ...rest: string[
             selectHints = hinting.pipe_elements(
                 DOM.anchors(),
                 link => {
-                    let anchorUrl = new URL(window.location.href)
+                    const anchorUrl = new URL(window.location.href)
                     // ???: What purpose does selecting elements with a name attribute have? Selecting values that only have meaning in forms doesn't seem very useful.
                     // https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes
                     anchorUrl.hash = link.id || link.name
@@ -3859,7 +3859,7 @@ import * as TTS from "@src/lib/text_to_speech"
  */
 //#content_helper
 function tssReadFromCss(selector: string): void {
-    let elems = DOM.getElemsBySelector(selector, [])
+    const elems = DOM.getElemsBySelector(selector, [])
 
     elems.forEach(e => {
         TTS.readText(e.textContent)
@@ -3896,7 +3896,7 @@ export async function ttsread(mode: "-t" | "-c", ...args: string[]) {
  */
 //#background
 export async function ttsvoices() {
-    let voices = TTS.listVoices()
+    const voices = TTS.listVoices()
     voices.sort()
     // need a better way to show this to the user
     fillcmdline_notrail("#", voices.join(", "))
@@ -3961,7 +3961,7 @@ export function buildFilterConfigs(filters: string[]): Perf.StatsFilterConfig[] 
  */
 //#background
 export async function perfdump(...filters: string[]) {
-    let filterconfigs = buildFilterConfigs(filters)
+    const filterconfigs = buildFilterConfigs(filters)
     const entries = window.tri.statsLogger.getEntries(...filterconfigs)
     console.log(filterconfigs)
     open("data:application/json;charset=UTF-8," + JSON.stringify(entries))
@@ -3977,7 +3977,7 @@ export async function perfdump(...filters: string[]) {
  */
 //#background
 export async function perfhistogram(...filters: string[]) {
-    let filterconfigs = buildFilterConfigs(filters)
+    const filterconfigs = buildFilterConfigs(filters)
     filterconfigs.push({ kind: "eventType", eventType: "measure" })
     const entries = window.tri.statsLogger.getEntries(...filterconfigs)
     if (entries.length === 0) {
@@ -4057,7 +4057,7 @@ export async function echo(...str: string[]) {
 export async function js(...str: string[]) {
     if (str[0].startsWith("-p")) {
         /* tslint:disable:no-dead-store */
-        let JS_ARG = str[str.length - 1]
+        const JS_ARG = str[str.length - 1]
         return eval(str.slice(1, -1).join(" "))
     } else {
         return eval(str.join(" "))
@@ -4071,7 +4071,7 @@ export async function js(...str: string[]) {
 export async function jsb(...str: string[]) {
     if (str[0].startsWith("-p")) {
         /* tslint:disable:no-dead-store */
-        let JS_ARG = str[str.length - 1]
+        const JS_ARG = str[str.length - 1]
         return eval(str.slice(1, -1).join(" "))
     } else {
         return eval(str.join(" "))

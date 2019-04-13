@@ -127,7 +127,7 @@ export class BufferCompletionSource extends Completions.CompletionSourceFuse {
     @Perf.measuredAsync
     private async updateOptions(exstr = "") {
         this.lastExstr = exstr
-        let [prefix, query] = this.splitOnPrefix(exstr)
+        const [prefix, query] = this.splitOnPrefix(exstr)
 
         // Hide self and stop if prefixes don't match
         if (prefix) {

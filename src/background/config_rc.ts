@@ -16,7 +16,7 @@ export async function source(filename = "auto") {
 }
 
 export async function runRc(rc: string) {
-    for (let cmd of rcFileToExCmds(rc)) {
+    for (const cmd of rcFileToExCmds(rc)) {
         await Controller.acceptExCmd(cmd)
     }
 }

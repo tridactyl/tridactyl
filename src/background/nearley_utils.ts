@@ -16,7 +16,7 @@ export class Parser {
         let lastResult
         let consumedIndex = 0
         try {
-            for (let val of input) {
+            for (const val of input) {
                 this.parser.feed(val)
                 lastResult = this.parser.results[0]
                 consumedIndex++

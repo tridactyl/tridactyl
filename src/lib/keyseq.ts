@@ -43,7 +43,7 @@ export class MinimalKey {
 
     constructor(readonly key: string, modifiers?: KeyModifiers) {
         if (modifiers !== undefined) {
-            for (let mod of Object.keys(modifiers)) {
+            for (const mod of Object.keys(modifiers)) {
                 this[mod] = modifiers[mod]
             }
         }
@@ -52,7 +52,7 @@ export class MinimalKey {
     /** Does this key match a given MinimalKey extending object? */
     public match(keyevent) {
         // 'in' doesn't include prototypes, so it's safe for this object.
-        for (let attr in this) {
+        for (const attr in this) {
             // Don't check shiftKey for normal keys.
             if (attr === "shiftKey" && this.key.length === 1) continue
             if (this[attr] !== keyevent[attr]) return false
@@ -132,7 +132,7 @@ export function parse(keyseq: KeyEventLike[], map: KeyMap): ParserResponse {
         // Check if any of the mappings is a perfect match (this will only
         // happen if some sequences in the KeyMap are prefixes of other seqs).
         try {
-            let perfect = find(
+            const perfect = find(
                 possibleMappings,
                 ([k, v]) => k.length === keyseq.length,
             )
@@ -339,7 +339,7 @@ export function translateKeysUsingKeyTranslateMap(
     keytranslatemap: { [inkey: string]: string },
 ) {
     for (let index = 0; index < keyEvents.length; index++) {
-        let keyEvent = keyEvents[index]
+        const keyEvent = keyEvents[index]
         const newkey = keytranslatemap[keyEvent.key]
 
         // KeyboardEvents can't have been translated, MinimalKeys may

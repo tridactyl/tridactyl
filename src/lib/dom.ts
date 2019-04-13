@@ -131,7 +131,7 @@ export function elementsWithText() {
     Adapted from stackoverflow
  */
 export function* elementsByXPath(xpath, parent?) {
-    let query = document.evaluate(
+    const query = document.evaluate(
         xpath,
         parent || document,
         null,
@@ -277,7 +277,7 @@ export function isVisible(element: Element) {
  */
 export function getAllDocumentFrames(doc = document) {
     if (!(doc instanceof HTMLDocument)) return []
-    let frames = (Array.from(doc.getElementsByTagName("iframe")) as HTMLIFrameElement[] & HTMLFrameElement[])
+    const frames = (Array.from(doc.getElementsByTagName("iframe")) as HTMLIFrameElement[] & HTMLFrameElement[])
         .concat(Array.from(doc.getElementsByTagName("frame")))
         .filter(frame => !frame.src.startsWith("moz-extension://"))
     return frames.concat(
@@ -285,7 +285,7 @@ export function getAllDocumentFrames(doc = document) {
             // Errors could be thrown because of CSP
             let newFrames = []
             try {
-                let doc = f.contentDocument || f.contentWindow.document
+                const doc = f.contentDocument || f.contentWindow.document
                 newFrames = getAllDocumentFrames(doc)
             } catch (e) {}
             return acc.concat(newFrames)
@@ -301,7 +301,7 @@ export function getSelector(e: HTMLElement) {
         // If we reached the top of the document
         if (!e.parentElement) return "HTML"
         // Compute the position of the element
-        let index =
+        const index =
             Array.from(e.parentElement.children)
                 .filter(child => child.tagName === e.tagName)
                 .indexOf(e) + 1
@@ -321,11 +321,11 @@ export function getSelector(e: HTMLElement) {
  */
 export function getElemsBySelector(selector: string, filters: ElementFilter[]) {
     let elems = Array.from(document.querySelectorAll(selector))
-    let frameElems = getAllDocumentFrames().reduce((acc, frame) => {
+    const frameElems = getAllDocumentFrames().reduce((acc, frame) => {
         let newElems = []
         // Errors could be thrown by CSP
         try {
-            let doc = frame.contentDocument || frame.contentWindow.document
+            const doc = frame.contentDocument || frame.contentWindow.document
             newElems = Array.from(doc.querySelectorAll(selector))
         } catch (e) {}
         return acc.concat(newElems)
@@ -333,7 +333,7 @@ export function getElemsBySelector(selector: string, filters: ElementFilter[]) {
 
     elems = elems.concat(frameElems)
 
-    for (let filter of filters) {
+    for (const filter of filters) {
         elems = elems.filter(filter)
     }
 
@@ -351,10 +351,10 @@ export function getNthElement(
     nth: number,
     filters: ElementFilter[],
 ): HTMLElement {
-    let inputs = getElemsBySelector(selectors, filters)
+    const inputs = getElemsBySelector(selectors, filters)
 
     if (inputs.length) {
-        let index = Number(nth)
+        const index = Number(nth)
             .clamp(-inputs.length, inputs.length - 1)
             .mod(inputs.length)
 
@@ -436,7 +436,7 @@ export function registerEvListenerAction(
                 // "mousedown" and removes "mousedown" twice, we lose track of the
                 // elem even though it still has a "click" listener.
                 // Fixing this might not be worth the added complexity.
-                let index = hintworthy_js_elems.indexOf(elem)
+                const index = hintworthy_js_elems.indexOf(elem)
                 if (index >= 0) hintworthy_js_elems.splice(index, 1)
             }
     }
@@ -447,10 +447,10 @@ export function registerEvListenerAction(
  *  same with removeEventListener.
  */
 export function hijackPageListenerFunctions(): void {
-    let exportedName = "registerEvListenerAction"
+    const exportedName = "registerEvListenerAction"
     exportFunction(registerEvListenerAction, window, { defineAs: exportedName })
 
-    let eval_str = ["addEventListener", "removeEventListener"].reduce(
+    const eval_str = ["addEventListener", "removeEventListener"].reduce(
         (acc, cur) => `${acc};
       EventTarget.prototype.${cur} = ((realFunction, register) => {
          return function (...args) {
@@ -514,7 +514,7 @@ function onPageFocus(elem: HTMLElement, args: any[]): boolean {
 }
 
 async function setInput(el) {
-    let tab = await activeTabId()
+    const tab = await activeTabId()
     // store maximum of 10 elements to stop this getting bonkers huge
     const arr = state.prevInputs.concat({ tab, inputId: el.id })
     state.prevInputs = arr.slice(Math.max(arr.length - 10, 0))
@@ -522,10 +522,10 @@ async function setInput(el) {
 
 /** Replaces the page's HTMLElement.prototype.focus with our own, onPageFocus */
 function hijackPageFocusFunction(): void {
-    let exportedName = "onPageFocus"
+    const exportedName = "onPageFocus"
     exportFunction(onPageFocus, window, { defineAs: exportedName })
 
-    let eval_str = `HTMLElement.prototype.focus = ((realFocus, ${exportedName}) => {
+    const eval_str = `HTMLElement.prototype.focus = ((realFocus, ${exportedName}) => {
         return function (...args) {
             if (${exportedName}(this, args))
                 return realFocus.apply(this, args)

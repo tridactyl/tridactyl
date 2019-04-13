@@ -38,7 +38,7 @@ type editor_function = (
 function applyToElem(e, fn) {
     let result
     if (e instanceof HTMLInputElement && e.type !== "text") {
-        let t = e.type
+        const t = e.type
         e.type = "text"
         result = fn(e)
         e.type = t
@@ -65,20 +65,20 @@ function getSimpleValues(e: any) {
  * @return [string, number, number] The content of the element, the position of the caret, the position of the end of the visual selection
  */
 function getContentEditableValues(e: any): [string, number, number] {
-    let selection = e.ownerDocument.getSelection()
+    const selection = e.ownerDocument.getSelection()
     // The selection might actually not be in e so we need to make sure it is
     let n = selection.anchorNode
     while (n && n !== e) n = n.parentNode
     // The selection isn't for e, so we can't do anything
     if (!n) return [null, null, null]
     // selection might span multiple elements, might not start with the first element in e or end with the last element in e so the easiest way to compute caret position from beginning of e is to first compute distance from caret to end of e, then move beginning of selection to beginning of e and then use distance from end of selection to compute distance from beginning of selection
-    let r = selection.getRangeAt(0).cloneRange()
-    let selectionLength = r.toString().length
+    const r = selection.getRangeAt(0).cloneRange()
+    const selectionLength = r.toString().length
     r.setEnd(e, e.childNodes.length)
-    let lengthFromCaretToEndOfText = r.toString().length
+    const lengthFromCaretToEndOfText = r.toString().length
     r.setStart(e, 0)
-    let s = r.toString()
-    let caretPos = s.length - lengthFromCaretToEndOfText
+    const s = r.toString()
+    const caretPos = s.length - lengthFromCaretToEndOfText
     return [s, caretPos, caretPos + selectionLength]
 }
 
@@ -111,7 +111,7 @@ function setSimpleValues(e, text, start, end) {
 function setContentEditableValues(e, text, start, end) {
     const selection = e.ownerDocument.getSelection()
     if (selection.rangeCount < 1) {
-        let r = new Range()
+        const r = new Range()
         r.setStart(e, 0)
         r.setEnd(e, e.childNodes.length)
         selection.addRange(r)
@@ -197,9 +197,9 @@ export function getWordBoundaries(
                 text.length
             })`,
         )
-    let pattern = new RegExp(config.get("wordpattern"), "g")
+    const pattern = new RegExp(config.get("wordpattern"), "g")
     let boundary1 = position < text.length ? position : text.length - 1
-    let direction = before ? -1 : 1
+    const direction = before ? -1 : 1
     // if the caret is not in a word, try to find the word before or after it
     while (
         boundary1 >= 0 &&
@@ -268,7 +268,7 @@ export function getWordBoundaries(
 export function wordAfterPos(text: string, position: number) {
     if (position < 0)
         throw new Error(`wordAfterPos: position (${position}) is less that 0`)
-    let pattern = new RegExp(config.get("wordpattern"), "g")
+    const pattern = new RegExp(config.get("wordpattern"), "g")
     // move position out of the current word
     while (position < text.length && !!text[position].match(pattern))
         position += 1
@@ -369,8 +369,8 @@ function applyWord(
     if (selectionStart >= text.length) {
         selectionStart = text.length - 1
     }
-    let boundaries = getWordBoundaries(text, selectionStart, false)
-    let beginning =
+    const boundaries = getWordBoundaries(text, selectionStart, false)
+    const beginning =
         text.substring(0, boundaries[0]) +
         fn(text.substring(boundaries[0], boundaries[1]))
     text = beginning + text.substring(boundaries[1])
@@ -390,7 +390,7 @@ export const transpose_words = wrap_input(
         let firstBoundaries = getWordBoundaries(text, selectionStart, false)
         let secondBoundaries = firstBoundaries
         // If there is a word after the word the caret is in, use it for the transselectionStartition, otherwise use the word before it
-        let nextWord = wordAfterPos(text, firstBoundaries[1])
+        const nextWord = wordAfterPos(text, firstBoundaries[1])
         if (nextWord > -1) {
             secondBoundaries = getWordBoundaries(text, nextWord, false)
         } else {
@@ -400,12 +400,12 @@ export const transpose_words = wrap_input(
                 true,
             )
         }
-        let firstWord = text.substring(firstBoundaries[0], firstBoundaries[1])
-        let secondWord = text.substring(
+        const firstWord = text.substring(firstBoundaries[0], firstBoundaries[1])
+        const secondWord = text.substring(
             secondBoundaries[0],
             secondBoundaries[1],
         )
-        let beginning =
+        const beginning =
             text.substring(0, firstBoundaries[0]) +
             secondWord +
             text.substring(firstBoundaries[1], secondBoundaries[0])
@@ -536,7 +536,7 @@ export const kill_whole_line = wrap_input(
  **/
 export const kill_word = wrap_input(
     needs_text((text, selectionStart, selectionEnd) => {
-        let boundaries = getWordBoundaries(text, selectionStart, false)
+        const boundaries = getWordBoundaries(text, selectionStart, false)
         if (selectionStart > boundaries[0] && selectionStart < boundaries[1])
             boundaries[0] = selectionStart
         // Remove everything between the newline and the caret
@@ -554,7 +554,7 @@ export const kill_word = wrap_input(
  **/
 export const backward_kill_word = wrap_input(
     needs_text((text, selectionStart, selectionEnd) => {
-        let boundaries = getWordBoundaries(text, selectionStart, true)
+        const boundaries = getWordBoundaries(text, selectionStart, true)
         if (selectionStart > boundaries[0] && selectionStart < boundaries[1])
             boundaries[1] = selectionStart
         // Remove everything between the newline and the caret
