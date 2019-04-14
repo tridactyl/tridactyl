@@ -904,7 +904,7 @@ function setDeepProperty(obj, value, target) {
  * Merges two objects and any child objects they may have
  */
 export function mergeDeep(o1, o2) {
-    let r = Array.isArray(o1) ? o1.slice() : Object.create(o1)
+    const r = Array.isArray(o1) ? o1.slice() : Object.create(o1)
     Object.assign(r, o1, o2)
     if (o2 === undefined) return r
     Object.keys(o1)
@@ -938,7 +938,7 @@ export function getURL(url: string, target: string[]) {
             // Merge their corresponding value if they're objects, otherwise return the last value
             .reduce(
                 (acc, curKey) => {
-                    let curVal = getDeepProperty(
+                    const curVal = getDeepProperty(
                         USERCONFIG.subconfigs[curKey],
                         target,
                     )
@@ -1049,7 +1049,7 @@ export function unset(...target) {
 export async function save(storage: "local" | "sync" = get("storageloc")) {
     // let storageobj = storage === "local" ? browser.storage.local : browser.storage.sync
     // storageobj.set({CONFIGNAME: USERCONFIG})
-    let settingsobj = o({})
+    const settingsobj = o({})
     settingsobj[CONFIGNAME] = USERCONFIG
     return storage === "local"
         ? browser.storage.local.set(settingsobj)
@@ -1068,12 +1068,12 @@ export async function save(storage: "local" | "sync" = get("storageloc")) {
 */
 export async function update() {
     // Updates a value both in the main config and in sub (=site specific) configs
-    let updateAll = (setting: any[], fn: (any) => any) => {
-        let val = getDeepProperty(USERCONFIG, setting)
+    const updateAll = (setting: any[], fn: (any) => any) => {
+        const val = getDeepProperty(USERCONFIG, setting)
         if (val) {
             set(...setting, fn(val))
         }
-        let subconfigs = getDeepProperty(USERCONFIG, ["subconfigs"])
+        const subconfigs = getDeepProperty(USERCONFIG, ["subconfigs"])
         if (subconfigs) {
             Object.keys(subconfigs)
                 .map(pattern => [pattern, getURL(pattern, setting)])
@@ -1084,12 +1084,12 @@ export async function update() {
         }
     }
 
-    let updaters = {
+    const updaters = {
         "0.0": async () => {
             try {
                 // Before we had a config system, we had nmaps, and we put them in the
                 // root namespace because we were young and bold.
-                let legacy_nmaps = await browser.storage.sync.get("nmaps")
+                const legacy_nmaps = await browser.storage.sync.get("nmaps")
                 if (Object.keys(legacy_nmaps).length > 0) {
                     USERCONFIG.nmaps = Object.assign(
                         legacy_nmaps.nmaps,
@@ -1101,7 +1101,7 @@ export async function update() {
             }
         },
         "1.0": () => {
-            let vimiumgi = getDeepProperty(USERCONFIG, ["vimium-gi"])
+            const vimiumgi = getDeepProperty(USERCONFIG, ["vimium-gi"])
             if (vimiumgi === true || vimiumgi === "true")
                 set("gimode", "nextinput")
             else if (vimiumgi === false || vimiumgi === "false")
@@ -1110,14 +1110,14 @@ export async function update() {
             set("configversion", "1.1")
         },
         "1.1": () => {
-            let leveltostr: { [key: number]: LoggingLevel } = {
+            const leveltostr: { [key: number]: LoggingLevel } = {
                 0: "never",
                 1: "error",
                 2: "warning",
                 3: "info",
                 4: "debug",
             }
-            let logging = getDeepProperty(USERCONFIG, ["logging"])
+            const logging = getDeepProperty(USERCONFIG, ["logging"])
             // logging is not necessarily defined if the user didn't change default values
             if (logging)
                 Object.keys(logging).forEach(l =>
@@ -1183,7 +1183,7 @@ export async function update() {
             set("configversion", "1.6")
         },
         "1.6": () => {
-            let updateSetting = mapObj => {
+            const updateSetting = mapObj => {
                 if (!mapObj) return mapObj
                 if (mapObj[" "] !== undefined) {
                     mapObj["<Space>"] = mapObj[" "]
@@ -1202,7 +1202,7 @@ export async function update() {
                     "<MS- >",
                 ].forEach(binding => {
                     if (mapObj[binding] !== undefined) {
-                        let key = binding.replace(" ", "Space")
+                        const key = binding.replace(" ", "Space")
                         mapObj[key] = mapObj[binding]
                         delete mapObj[binding]
                     }
@@ -1230,15 +1230,15 @@ export async function update() {
     @hidden
 */
 async function init() {
-    let syncConfig = await browser.storage.sync.get(CONFIGNAME)
+    const syncConfig = await browser.storage.sync.get(CONFIGNAME)
     schlepp(syncConfig[CONFIGNAME])
     // Local storage overrides sync
-    let localConfig = await browser.storage.local.get(CONFIGNAME)
+    const localConfig = await browser.storage.local.get(CONFIGNAME)
     schlepp(localConfig[CONFIGNAME])
 
     await update()
     INITIALISED = true
-    for (let waiter of WAITERS) {
+    for (const waiter of WAITERS) {
         waiter()
     }
 }
@@ -1269,9 +1269,9 @@ export function removeChangeListener<P extends keyof default_config>(
     name: P,
     listener: (old: default_config[P], neww: default_config[P]) => void,
 ) {
-    let arr = changeListeners.get(name)
+    const arr = changeListeners.get(name)
     if (!arr) return
-    let i = arr.indexOf(listener)
+    const i = arr.indexOf(listener)
     if (i >= 0) arr.splice(i, 1)
 }
 
@@ -1279,12 +1279,12 @@ export function removeChangeListener<P extends keyof default_config>(
 // TODO: BUG! Sync and local storage are merged at startup, but not by this thing.
 browser.storage.onChanged.addListener(async (changes, areaname) => {
     if (CONFIGNAME in changes) {
-        let defaultConf = new default_config()
+        const defaultConf = new default_config()
 
         // newValue is undefined when calling browser.storage.AREANAME.clear()
         if (changes[CONFIGNAME].newValue !== undefined) {
             // A key has been :unset if it exists in USERCONFIG and doesn't in changes and if its value in USERCONFIG is different from the one it has in default_config
-            let unsetKeys = Object.keys(USERCONFIG).filter(
+            const unsetKeys = Object.keys(USERCONFIG).filter(
                 k =>
                     changes[CONFIGNAME].newValue[k] === undefined &&
                     JSON.stringify(USERCONFIG[k]) !==
@@ -1292,7 +1292,7 @@ browser.storage.onChanged.addListener(async (changes, areaname) => {
             )
 
             // A key has changed if it is defined in USERCONFIG and its value in USERCONFIG is different from the one in `changes` or if the value in defaultConf is different from the one in `changes`
-            let changedKeys = Object.keys(changes[CONFIGNAME].newValue).filter(
+            const changedKeys = Object.keys(changes[CONFIGNAME].newValue).filter(
                 k =>
                     JSON.stringify(
                         USERCONFIG[k] !== undefined
@@ -1301,33 +1301,33 @@ browser.storage.onChanged.addListener(async (changes, areaname) => {
                     ) !== JSON.stringify(changes[CONFIGNAME].newValue[k]),
             )
 
-            let old = USERCONFIG
+            const old = USERCONFIG
             USERCONFIG = changes[CONFIGNAME].newValue
 
             // Trigger listeners
             unsetKeys.forEach(key => {
-                let arr = changeListeners.get(key)
+                const arr = changeListeners.get(key)
                 if (arr) {
                     arr.forEach(f => f(old[key], defaultConf[key]))
                 }
             })
 
             changedKeys.forEach(key => {
-                let arr = changeListeners.get(key)
+                const arr = changeListeners.get(key)
                 if (arr) {
-                    let v = old[key] === undefined ? defaultConf[key] : old[key]
+                    const v = old[key] === undefined ? defaultConf[key] : old[key]
                     arr.forEach(f => f(v, USERCONFIG[key]))
                 }
             })
         } else if (areaname === (await get("storageloc"))) {
             // If newValue is undefined and AREANAME is the same value as STORAGELOC, the user wants to clean their config
-            let old = USERCONFIG
+            const old = USERCONFIG
             USERCONFIG = o({})
 
             Object.keys(old)
                 .filter(key => old[key] !== defaultConf[key])
                 .forEach(key => {
-                    let arr = changeListeners.get(key)
+                    const arr = changeListeners.get(key)
                     if (arr) {
                         arr.forEach(f => f(old[key], defaultConf[key]))
                     }

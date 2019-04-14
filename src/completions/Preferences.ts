@@ -33,13 +33,13 @@ export class PreferenceCompletionSource extends Completions.CompletionSourceFuse
             this.state = "hidden"
             return
         }
-        let pref = this.splitOnPrefix(exstr)[1]
+        const pref = this.splitOnPrefix(exstr)[1]
         if (pref === undefined) {
             this.state = "hidden"
             return
         }
         this.lastExstr = exstr
-        let preferences = await Native.getPrefs()
+        const preferences = await Native.getPrefs()
         this.options = Object.keys(preferences)
             .filter(key => key.startsWith(pref))
             .map(key => new PreferenceCompletionOption(key, preferences[key]))

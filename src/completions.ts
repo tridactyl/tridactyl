@@ -41,7 +41,7 @@ export abstract class CompletionSource {
     private _prevState: OptionState
 
     constructor(prefixes) {
-        let commands = aliases.getCmdAliasMapping()
+        const commands = aliases.getCmdAliasMapping()
 
         // Now, for each prefix given as argument, add it to the completionsource's prefix list and also add any alias it has
         prefixes
@@ -235,13 +235,13 @@ export abstract class CompletionSourceFuse extends CompletionSource {
 
     /** Rtn sorted array of {option, score} */
     scoredOptions(query: string, options = this.options): ScoredOption[] {
-        let searchThis = this.options.map((elem, index) => {
+        const searchThis = this.options.map((elem, index) => {
             return { index, fuseKeys: elem.fuseKeys }
         })
         this.fuse = new Fuse(searchThis, this.fuseOptions)
         return this.fuse.search(query).map(result => {
             // console.log(result, result.item, query)
-            let index = toNumber(result.item)
+            const index = toNumber(result.item)
             return {
                 index,
                 option: this.options[index],
@@ -256,7 +256,7 @@ export abstract class CompletionSourceFuse extends CompletionSource {
         focus the best match.
     */
     setStateFromScore(scoredOpts: ScoredOption[], autoselect = false) {
-        let matches = scoredOpts.map(res => res.index)
+        const matches = scoredOpts.map(res => res.index)
 
         for (const [index, option] of enumerate(this.options)) {
             if (matches.includes(index)) option.state = "normal"
@@ -297,12 +297,12 @@ export abstract class CompletionSourceFuse extends CompletionSource {
 
     next(inc = 1) {
         if (this.state !== "hidden") {
-            let visopts = this.options.filter(o => o.state !== "hidden")
-            let currind = visopts.findIndex(o => o.state === "focused")
+            const visopts = this.options.filter(o => o.state !== "hidden")
+            const currind = visopts.findIndex(o => o.state === "focused")
             this.deselect()
             // visopts.length + 1 because we want an empty completion at the end
-            let max = visopts.length + 1
-            let opt = visopts[(currind + inc + max) % max]
+            const max = visopts.length + 1
+            const opt = visopts[(currind + inc + max) % max]
             if (opt) this.select(opt)
             return true
         } else return false

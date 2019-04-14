@@ -59,7 +59,7 @@ export const contentState = (new Proxy(
             const mode = target.mode
             target[property] = newValue
 
-            for (let listener of onChangedListeners) {
+            for (const listener of onChangedListeners) {
                 listener(property, mode, oldValue, newValue)
             }
             return true

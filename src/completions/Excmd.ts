@@ -58,9 +58,9 @@ export class ExcmdCompletionSource extends Completions.CompletionSourceFuse {
     private async updateOptions(exstr = "") {
         this.lastExstr = exstr
 
-        let excmds = Metadata.everything.getFile("src/excmds.ts")
+        const excmds = Metadata.everything.getFile("src/excmds.ts")
         if (!excmds) return
-        let fns = excmds.getFunctions()
+        const fns = excmds.getFunctions()
 
         // Add all excmds that start with exstr and that tridactyl has metadata about to completions
         this.options = this.scoreOptions(
@@ -70,12 +70,12 @@ export class ExcmdCompletionSource extends Completions.CompletionSourceFuse {
         )
 
         // Also add aliases to possible completions
-        let exaliases = Object.keys(config.get("exaliases")).filter(a =>
+        const exaliases = Object.keys(config.get("exaliases")).filter(a =>
             a.startsWith(exstr),
         )
-        for (let alias of exaliases) {
-            let cmd = aliases.expandExstr(alias)
-            let fn = excmds.getFunction(cmd)
+        for (const alias of exaliases) {
+            const cmd = aliases.expandExstr(alias)
+            const fn = excmds.getFunction(cmd)
             if (fn) {
                 this.options.push(
                     new ExcmdCompletionOption(

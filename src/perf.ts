@@ -197,8 +197,6 @@ export class StatsLogger {
     private buffersize: number = 10000
     private lastError: number = 0
 
-    constructor() {}
-
     /**
      * Target for receiving stats entries from other threads - there
      * was some issue with encoding that I couldn't figure out so I
@@ -242,7 +240,7 @@ export class StatsLogger {
         // issue - it's not like we need these to be in order or
         // otherwise coherent, we're just trying to store a big pile
         // of recent-ish samples.
-        let perfsamples = Number(config.get("perfsamples"))
+        const perfsamples = Number(config.get("perfsamples"))
         // Check for NaN or non-integer
         if (Number.isInteger(perfsamples)) {
             this.buffersize = perfsamples

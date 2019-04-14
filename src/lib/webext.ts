@@ -69,7 +69,7 @@ export async function ownTabContainer() {
 }
 
 export async function activeTabContainer() {
-    let containerId = await activeTabContainerId()
+    const containerId = await activeTabContainerId()
     if (containerId !== "firefox-default")
         return browserBg.contextualIdentities.get(containerId)
     else
@@ -181,7 +181,7 @@ export async function openInTab(tab, opts = {}, strarr: string[]) {
     const rest = address.substr(firstWord.length + 1)
     const searchurls = config.get("searchurls")
     if (searchurls[firstWord]) {
-        let url = UrlUtil.interpolateSearchItem(
+        const url = UrlUtil.interpolateSearchItem(
             new URL(searchurls[firstWord]),
             rest,
         )
@@ -224,11 +224,11 @@ export async function openInTab(tab, opts = {}, strarr: string[]) {
         queryString = rest
     }
 
-    let enginename = config.get("searchengine")
+    const enginename = config.get("searchengine")
     // firstWord is neither a searchurl nor a search engine, let's see if a search engine has been defined in Tridactyl
     if (enginename) {
         if (searchurls[enginename]) {
-            let url = UrlUtil.interpolateSearchItem(
+            const url = UrlUtil.interpolateSearchItem(
                 new URL(searchurls[enginename]),
                 queryString,
             )

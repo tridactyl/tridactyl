@@ -2,7 +2,7 @@ import "@src/lib/number.mod"
 
 export function head(iter) {
     iter = iter[Symbol.iterator]()
-    let result = iter.next()
+    const result = iter.next()
     if (result.done) throw RangeError("Empty iterator has no head/tail")
     else return result.value
 }
@@ -15,14 +15,13 @@ export function tail(iter) {
     } else {
         // Re-use error handling in head()
         let last = head(iter)
-        for (last of iter) {
-        }
+        for (last of iter);
         return last
     }
 }
 
 export function* filter(iter, predicate) {
-    for (let v of iter) {
+    for (const v of iter) {
         if (predicate(v)) yield v
     }
 }
@@ -51,7 +50,7 @@ export function* range(length) {
 
 export function* enumerate(iterable) {
     let index = 0
-    for (let element of iterable) {
+    for (const element of iterable) {
         yield [index, element]
         index++
     }
@@ -59,8 +58,8 @@ export function* enumerate(iterable) {
 
 /* Zip arbitrary iterators together */
 export function* izip(...arrays) {
-    let iterators = arrays.map(e => e[Symbol.iterator]())
-    let box = Array(arrays.length)
+    const iterators = arrays.map(e => e[Symbol.iterator]())
+    const box = Array(arrays.length)
     for (let v of iterators[0]) {
         box[0] = v
         let i
@@ -77,7 +76,7 @@ export function* izip(...arrays) {
 
 /* Test if two iterables are equal */
 export function iterEq(...arrays) {
-    for (let a of zip(...arrays)) {
+    for (const a of zip(...arrays)) {
         if (!a.reduce((x, y) => x === y)) return false
     }
     return true
@@ -104,7 +103,7 @@ export function* islice(iterable, start: number, stop?: number) {
     }
 
     // Skip elements until start
-    for (let _ of range(start)) {
+    for (const _ of range(start)) {
         const res = iter.next()
         if (res.done) return
     }
@@ -132,9 +131,9 @@ export function* permutationsWithReplacement(arr, n) {
     const len = arr.length
     const counters = zeros(n)
     let index = 1
-    for (let _ of range(Math.pow(len, n))) {
+    for (const _ of range(Math.pow(len, n))) {
         yield counters.map(i => arr[i])
-        for (let i of range(counters.length)) {
+        for (const i of range(counters.length)) {
             if (index.mod(Math.pow(len, counters.length - 1 - i)) === 0)
                 counters[i] = (counters[i] + 1).mod(len)
         }
@@ -157,8 +156,8 @@ export function unique(arr) {
 /** Yield values that are unique under hasher(value) */
 export function* uniqueBy(arr, hasher) {
     const hashes = new Set()
-    for (let e of arr) {
-        let hash = hasher(e)
+    for (const e of arr) {
+        const hash = hasher(e)
         if (!hashes.has(hash)) {
             yield e
             hashes.add(hash)
@@ -168,7 +167,7 @@ export function* uniqueBy(arr, hasher) {
 
 export function flatten(arr) {
     let result = []
-    for (let elem of arr) {
+    for (const elem of arr) {
         if (elem instanceof Array) {
             result = result.concat(flatten(elem))
         } else {

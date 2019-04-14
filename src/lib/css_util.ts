@@ -271,7 +271,7 @@ export function changeCss(
 ): CSS.Stylesheet {
     if (rulename in metaRules) {
         const metarule = metaRules[rulename][optionname]
-        for (let rule of Object.keys(metarule)) {
+        for (const rule of Object.keys(metarule)) {
             // have a metarule call itself for hours of fun
             sheet = changeCss(rule, metarule[rule], sheet)
         }

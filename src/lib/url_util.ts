@@ -12,15 +12,15 @@
  */
 export function incrementUrl(url, count) {
     // Find the final number in a URL
-    let matches = url.match(/(.*?)(\d+)(\D*)$/)
+    const matches = url.match(/(.*?)(\d+)(\D*)$/)
 
     // no number in URL - nothing to do here
     if (matches === null) {
         return null
     }
 
-    let [, pre, number, post] = matches
-    let newNumber = parseInt(number, 10) + count
+    const [, pre, number, post] = matches
+    const newNumber = parseInt(number, 10) + count
     let newNumberStr = String(newNumber > 0 ? newNumber : 0)
 
     // Re-pad numbers that were zero-padded to be the same length:
@@ -86,7 +86,7 @@ export function getUrlParent(url, count = 1) {
 
         // strip off the first subdomain if there is one
         {
-            let domains = parent.host.split(".")
+            const domains = parent.host.split(".")
 
             // more than domain + TLD
             if (domains.length > 2) {
@@ -105,7 +105,7 @@ export function getUrlParent(url, count = 1) {
         return null
     }
 
-    let parent = new URL(url)
+    const parent = new URL(url)
     return gup(parent, count)
 }
 
@@ -186,7 +186,7 @@ export function getDownloadFilenameForUrl(url: URL): string {
 
     // if there's a useful path, use that directly
     if (url.pathname !== "/") {
-        let paths = url.pathname.split("/").slice(1)
+        const paths = url.pathname.split("/").slice(1)
 
         // pop off empty pat bh tails
         // e.g. https://www.mozilla.org/en-GB/firefox/new/
@@ -244,11 +244,11 @@ function setUrlQueries(url: URL, qys: string[]) {
  * @return              the modified URL
  */
 export function deleteQuery(url: URL, matchQuery: string): URL {
-    let newUrl = new URL(url.href)
+    const newUrl = new URL(url.href)
 
-    let qys = getUrlQueries(url)
+    const qys = getUrlQueries(url)
 
-    let new_qys = qys.filter(q => {
+    const new_qys = qys.filter(q => {
         return q.split("=")[0] !== matchQuery
     })
 
@@ -269,13 +269,13 @@ export function replaceQueryValue(
     matchQuery: string,
     newVal: string,
 ): URL {
-    let newUrl = new URL(url.href)
+    const newUrl = new URL(url.href)
 
     // get each query separately, leave the "?" off
-    let qys = getUrlQueries(url)
+    const qys = getUrlQueries(url)
 
-    let new_qys = qys.map(q => {
-        let [key] = q.split("=")
+    const new_qys = qys.map(q => {
+        const [key] = q.split("=")
 
         // found a matching query key
         if (q.split("=")[0] === matchQuery) {
@@ -309,10 +309,10 @@ export function replaceQueryValue(
  *                      <0: start at the current path and count left
  */
 export function graftUrlPath(url: URL, newTail: string, level: number) {
-    let newUrl = new URL(url.href)
+    const newUrl = new URL(url.href)
 
     // path parts, ignore first /
-    let pathParts = url.pathname.split("/").splice(1)
+    const pathParts = url.pathname.split("/").splice(1)
 
     // more levels than we can handle
     // (remember, if level <0, we start at -1)
@@ -323,7 +323,7 @@ export function graftUrlPath(url: URL, newTail: string, level: number) {
         return null
     }
 
-    let graftPoint = level >= 0 ? level : pathParts.length + level + 1
+    const graftPoint = level >= 0 ? level : pathParts.length + level + 1
 
     // lop off parts after the graft point
     pathParts.splice(graftPoint, pathParts.length - graftPoint)
@@ -368,7 +368,7 @@ export function interpolateSearchItem(urlPattern: URL, query: string): URL {
 
     // replace or append as needed
     if (hasInterpolationPoint) {
-        let resultingURL = new URL(
+        const resultingURL = new URL(
             urlPattern.href.replace(/%s\d+/g, function(x) {
                 const index = parseInt(x.slice(2), 10) - 1
                 if (index >= queryWords.length) {

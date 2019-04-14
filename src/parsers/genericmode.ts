@@ -8,7 +8,7 @@ export function parser(conf, keys): keyseq.ParserResponse {
 
     // If so configured, translate keys using the key translation map
     if (config.get("keytranslatemodes")[conf] === "true") {
-        let translationmap = config.get("keytranslatemap")
+        const translationmap = config.get("keytranslatemap")
         keyseq.translateKeysUsingKeyTranslateMap(keys, translationmap)
     }
 

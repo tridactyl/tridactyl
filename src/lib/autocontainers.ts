@@ -72,18 +72,18 @@ export class AutoContain implements IAutoContain {
         details: IDetails,
     ): Promise<browser.webRequest.BlockingResponse> => {
         // No autocontain directives, no nothing.
-        let aucons = Config.get("autocontain")
+        const aucons = Config.get("autocontain")
         if (Object.keys(aucons).length === 0) return { cancel: false }
 
         // Do not handle private tabs or invalid tabIds.
         if (details.tabId === -1) return { cancel: false }
-        let tab = await browser.tabs.get(details.tabId)
+        const tab = await browser.tabs.get(details.tabId)
         if (tab.incognito) return { cancel: false }
 
         // Only handle http requests.
         if (details.url.search("^https?://") < 0) return { cancel: false }
 
-        let cookieStoreId = await this.parseAucons(details)
+        const cookieStoreId = await this.parseAucons(details)
 
         // Silently return if we're already in the correct container.
         if (tab.cookieStoreId === cookieStoreId) return { cancel: false }
@@ -160,7 +160,7 @@ export class AutoContain implements IAutoContain {
 
     // Parses autocontain directives and returns valid cookieStoreIds or errors.
     parseAucons = async (details): Promise<string> => {
-        let aucons = Config.get("autocontain")
+        const aucons = Config.get("autocontain")
         const ausites = Object.keys(aucons)
         const aukeyarr = ausites.filter(
             e => details.url.search("^https?://[^/]*" + e + "/") >= 0,
@@ -173,7 +173,7 @@ export class AutoContain implements IAutoContain {
         } else if (aukeyarr.length === 0) {
             return "firefox-default"
         } else {
-            let containerExists = await Container.exists(aucons[aukeyarr[0]])
+            const containerExists = await Container.exists(aucons[aukeyarr[0]])
             if (!containerExists) {
                 if (Config.get("auconcreatecontainer")) {
                     await Container.create(aucons[aukeyarr[0]])

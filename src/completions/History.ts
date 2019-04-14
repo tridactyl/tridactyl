@@ -61,12 +61,12 @@ export class HistoryCompletionSource extends Completions.CompletionSourceFuse {
         // It's terrible but it's ok because it's just a stopgap until an actual commandline-parsing API is implemented
         if (prefix === "tabopen ") {
             if (query.startsWith("-c")) {
-                let args = query.split(" ")
+                const args = query.split(" ")
                 options = args.slice(0, 2).join(" ")
                 query = args.slice(2).join(" ")
             }
             if (query.startsWith("-b")) {
-                let args = query.split(" ")
+                const args = query.split(" ")
                 options = args.slice(0, 1).join(" ")
                 query = args.slice(1).join(" ")
             }

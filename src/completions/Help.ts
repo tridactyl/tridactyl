@@ -31,8 +31,8 @@ export class HelpCompletionSource extends Completions.CompletionSourceFuse {
     public async filter(exstr: string) {
         this.lastExstr = exstr
         this.completion = undefined
-        let [prefix, query] = this.splitOnPrefix(exstr)
-        let options = ""
+        const [prefix, query] = this.splitOnPrefix(exstr)
+        const options = ""
 
         // Hide self and stop if prefixes don't match
         if (prefix) {
@@ -45,13 +45,13 @@ export class HelpCompletionSource extends Completions.CompletionSourceFuse {
             return
         }
 
-        let file = Metadata.everything.getFile("src/lib/config.ts")
-        let default_config = file.getClass("default_config")
-        let excmds = Metadata.everything.getFile("src/excmds.ts")
-        let fns = excmds.getFunctions()
-        let settings = config.get()
-        let exaliases = settings.exaliases
-        let bindings = settings.nmaps
+        const file = Metadata.everything.getFile("src/lib/config.ts")
+        const default_config = file.getClass("default_config")
+        const excmds = Metadata.everything.getFile("src/excmds.ts")
+        const fns = excmds.getFunctions()
+        const settings = config.get()
+        const exaliases = settings.exaliases
+        const bindings = settings.nmaps
         if (fns === undefined || exaliases === undefined || bindings === undefined) {
             return
         }
@@ -62,8 +62,8 @@ export class HelpCompletionSource extends Completions.CompletionSourceFuse {
                     Object.keys(exaliases)
                         .filter(alias => alias.startsWith(query))
                         .map(alias => {
-                            let cmd = aliases.expandExstr(alias)
-                            let doc = (excmds.getFunction(cmd) || {} as any).doc || ""
+                            const cmd = aliases.expandExstr(alias)
+                            const doc = (excmds.getFunction(cmd) || {} as any).doc || ""
                             return new HelpCompletionOption(
                                 alias,
                                 `Alias for \`${cmd}\`. ${doc}`,
@@ -107,7 +107,7 @@ export class HelpCompletionSource extends Completions.CompletionSourceFuse {
                     Object.keys(settings)
                         .filter(x => x.startsWith(query))
                         .map(setting => {
-                            let member = default_config.getMember(setting)
+                            const member = default_config.getMember(setting)
                             let doc = ""
                             if (member !== undefined) {
                                 doc = member.doc

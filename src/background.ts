@@ -46,7 +46,7 @@ browser.tabs.query({ currentWindow: true, active: true }).then(t => {
 // After that, on every tab change, update the current url
 let contentLocationCount = 0
 browser.tabs.onActivated.addListener(ev => {
-    let myId = contentLocationCount + 1
+    const myId = contentLocationCount + 1
     contentLocationCount = myId
     browser.tabs.get(ev.tabId).then(t => {
         // Note: we're using contentLocationCount and myId in order to make sure that only the last onActivated event is used in order to set contentLocation
@@ -85,17 +85,17 @@ config.addChangeListener("csp", (old, cur) => {
 // }}}
 
 // Prevent Tridactyl from being updated while it is running in the hope of fixing #290
-browser.runtime.onUpdateAvailable.addListener(_ => {})
+browser.runtime.onUpdateAvailable.addListener(_ => undefined)
 
 browser.runtime.onStartup.addListener(_ => {
     config.getAsync("autocmds", "TriStart").then(aucmds => {
-        let hosts = Object.keys(aucmds)
+        const hosts = Object.keys(aucmds)
         // If there's only one rule and it's "all", no need to check the hostname
         if (hosts.length === 1 && hosts[0] === ".*") {
             BackgroundController.acceptExCmd(aucmds[hosts[0]])
         } else {
             native.run("hostname").then(hostname => {
-                for (let host of hosts) {
+                for (const host of hosts) {
                     if (hostname.content.match(host)) {
                         BackgroundController.acceptExCmd(aucmds[host])
                     }
@@ -116,7 +116,7 @@ config.getAsync("updatenag").then(nag => {
 // {{{ AUTOCOMMANDS
 let curTab = null
 browser.tabs.onActivated.addListener(ev => {
-    let ignore = _ => _
+    const ignore = _ => _
     if (curTab !== null) {
         // messaging.messageTab failing can happen when leaving privileged tabs (e.g. about:addons)
         messaging
@@ -133,7 +133,7 @@ browser.tabs.onActivated.addListener(ev => {
 
 // {{{ AUTOCONTAINERS
 
-let aucon = new AutoContain()
+const aucon = new AutoContain()
 
 // Handle cancelled requests as a result of autocontain.
 browser.webRequest.onCompleted.addListener(

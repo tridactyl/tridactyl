@@ -4,8 +4,6 @@ export class StringType implements Type {
     public static instance = new StringType()
     public kind = "string"
 
-    constructor() {}
-
     public toConstructor() {
         return "StringType.instance"
     }

@@ -14,11 +14,11 @@ function wrapPrimitives(testcases) {
 */
 export function testAll(toTest, testcases) {
     testcases = testcases.map(wrapPrimitives)
-    for (let [args, ans] of testcases) {
+    for (const [args, ans] of testcases) {
         test(`${toTest.name}(${args}) == ${JSON.stringify(ans)}`, () =>
             expect(
                 (() => {
-                    let result = toTest(...args)
+                    const result = toTest(...args)
                     if (result instanceof Array) return result
                     else return [result]
                 })(),
@@ -35,11 +35,11 @@ export function testAll(toTest, testcases) {
 */
 export function testAllCustom(toTest, testcases, expectAttr, expectArg) {
     testcases = testcases.map(wrapPrimitives)
-    for (let [args, ans] of testcases) {
+    for (const [args, ans] of testcases) {
         test(`${toTest.name}(${args}) == ${JSON.stringify(ans)}`, () =>
             expect(
                 (() => {
-                    let result = toTest(...args)
+                    const result = toTest(...args)
                     if (result instanceof Array) return result
                     else return [result]
                 })(),
@@ -49,7 +49,7 @@ export function testAllCustom(toTest, testcases, expectAttr, expectArg) {
 
 /** Call function with each testcase and check it doesn't throw */
 export function testAllNoError(toTest, testcases) {
-    for (let args of wrapPrimitives(testcases)) {
+    for (const args of wrapPrimitives(testcases)) {
         test(`try: ${toTest.name}(${args})`, () =>
             expect(() => toTest(...args)).not.toThrow())
     }

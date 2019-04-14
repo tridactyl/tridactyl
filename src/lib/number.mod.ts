@@ -22,8 +22,8 @@ export function my_mod(dividend, divisor) {
     Equivalent to % when dividend is +ve
 */
 export function euclid_mod(dividend, divisor) {
-    let abs_divisor = Math.abs(divisor)
-    let quotient = Math.floor(dividend / abs_divisor)
+    const abs_divisor = Math.abs(divisor)
+    const quotient = Math.floor(dividend / abs_divisor)
     return dividend - abs_divisor * quotient
 }
 

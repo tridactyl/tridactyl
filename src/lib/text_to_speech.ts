@@ -8,7 +8,7 @@ import * as Config from "@src/lib/config"
  * @return voice from the TTS API, or undefined
  */
 function getVoiceFromName(name: string | "default"): SpeechSynthesisVoice {
-    let voices = window.speechSynthesis.getVoices()
+    const voices = window.speechSynthesis.getVoices()
 
     return voices.find(voice => voice.name === name)
 }
@@ -25,12 +25,12 @@ export function readText(text: string): void {
         throw new Error("No voice found: cannot use Text-To-Speech API")
     }
 
-    let utterance = new SpeechSynthesisUtterance(text)
+    const utterance = new SpeechSynthesisUtterance(text)
 
-    let pitch = Config.get("ttspitch")
-    let voice = Config.get("ttsvoice")
-    let volume = Config.get("ttsvolume")
-    let rate = Config.get("ttsrate")
+    const pitch = Config.get("ttspitch")
+    const voice = Config.get("ttsvoice")
+    const volume = Config.get("ttsvolume")
+    const rate = Config.get("ttsrate")
 
     if (pitch >= 0 && pitch < 2) utterance.pitch = pitch
 
@@ -38,7 +38,7 @@ export function readText(text: string): void {
 
     if (rate >= 0.1 && rate <= 10) utterance.rate = rate
 
-    let voiceObj = getVoiceFromName(voice)
+    const voiceObj = getVoiceFromName(voice)
     if (voiceObj) {
         utterance.voice = voiceObj
     }
@@ -58,7 +58,7 @@ export type Action = "stop" | "play" | "pause" | "playpause"
  * to be very useful right now
  */
 export function doAction(action: Action): void {
-    let synth = window.speechSynthesis
+    const synth = window.speechSynthesis
 
     switch (action) {
         case "play":
@@ -83,7 +83,7 @@ export function doAction(action: Action): void {
  * @return list of voice names
  */
 export function listVoices(): string[] {
-    let voices = window.speechSynthesis.getVoices()
+    const voices = window.speechSynthesis.getVoices()
 
     return voices.map(voice => voice.name)
 }

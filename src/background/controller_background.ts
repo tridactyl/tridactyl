@@ -12,7 +12,7 @@ export let last_ex_str = ""
 export async function acceptExCmd(exstr: string): Promise<any> {
     // TODO: Errors should go to CommandLine.
     try {
-        let [func, args] = exmode_parser(exstr)
+        const [func, args] = exmode_parser(exstr)
         // Stop the repeat excmd from recursing.
         if (func !== repeat) last_ex_str = exstr
         try {

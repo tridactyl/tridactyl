@@ -20,7 +20,7 @@ function prefixTheme(name) {
 const THEMED_ELEMENTS = []
 
 let insertedCSS = false
-let customCss = {
+const customCss = {
     allFrames: true,
     matchAboutBlank: true,
     code: "",
@@ -28,7 +28,7 @@ let customCss = {
 
 export async function theme(element) {
     // Remove any old theme
-    for (let theme of THEMES.map(prefixTheme)) {
+    for (const theme of THEMES.map(prefixTheme)) {
         element.classList.remove(theme)
     }
     if (insertedCSS) {
@@ -38,7 +38,7 @@ export async function theme(element) {
         insertedCSS = false
     }
 
-    let newTheme = await config.getAsync("theme")
+    const newTheme = await config.getAsync("theme")
 
     // Add a class corresponding to config.get('theme')
     if (newTheme !== "default") {
@@ -82,8 +82,8 @@ config.addChangeListener("theme", retheme)
 
 // Sometimes pages will overwrite class names of elements. We use a MutationObserver to make sure that the HTML element always has a TridactylTheme class
 // We can't just call theme() because it would first try to remove class names from the element, which would trigger the MutationObserver before we had a chance to add the theme class and thus cause infinite recursion
-let cb = async mutationList => {
-    let theme = await config.getAsync("theme")
+const cb = async mutationList => {
+    const theme = await config.getAsync("theme")
     mutationList
         .filter(m => m.target.className.search(prefixTheme("")) === -1)
         .forEach(m => m.target.classList.add(prefixTheme(theme)))

@@ -29,7 +29,7 @@ function getCommandElements() {
             ".tsd-panel.tsd-member.tsd-kind-function.tsd-parent-kind-external-module",
         ),
     ).reduce((all, elem) => {
-        let fnName = Array.from(elem.children).find(e => e.tagName === "H3")
+        const fnName = Array.from(elem.children).find(e => e.tagName === "H3")
         if (fnName) all[fnName.textContent] = elem
         return all
     }, {})
@@ -37,12 +37,12 @@ function getCommandElements() {
 
 /** Update the doc with aliases fetched from the config */
 async function addSetting(settingName: string) {
-    let commandElems = getCommandElements()
+    const commandElems = getCommandElements()
     // We're ignoring composite because it combines multiple excmds
     delete (commandElems as any).composite
 
     // Initialize or reset the <p> element that will contain settings in each commandElem
-    let settingElems = Object.keys(commandElems).reduce(
+    const settingElems = Object.keys(commandElems).reduce(
         (settingElems, cmdName) => {
             settingElems[cmdName] = initTridactylSettingElem(
                 commandElems[cmdName],
@@ -53,9 +53,9 @@ async function addSetting(settingName: string) {
         {},
     )
 
-    let settings = await config.getAsync(settingName)
+    const settings = await config.getAsync(settingName)
     // For each setting
-    for (let setting of Object.keys(settings)) {
+    for (const setting of Object.keys(settings)) {
         let excmd = settings[setting].split(" ")
         // How can we automatically detect what commands can be skipped?
         excmd = ["composite", "fillcmdline", "current_url"].includes(excmd[0])
@@ -71,7 +71,7 @@ async function addSetting(settingName: string) {
 
         // If there is an HTML element for settings that correspond to the excmd we just found
         if (settingElems[excmd]) {
-            let settingSpan = document.createElement("span")
+            const settingSpan = document.createElement("span")
             settingSpan.innerText = setting
             settingSpan.title = settings[setting]
             // Add the setting to the element
@@ -127,8 +127,8 @@ function addSettingInputs() {
     const inputClassNameModified =
         inputClassName + " TridactylSettingInputModified "
 
-    let onKeyUp = async ev => {
-        let input = ev.target
+    const onKeyUp = async ev => {
+        const input = ev.target
         if (ev.key === "Enter") {
             (window as any).tri.messaging.message(
                 "controller_background",
@@ -147,10 +147,10 @@ function addSettingInputs() {
     return Promise.all(
         Array.from(document.querySelectorAll("a.tsd-anchor")).map(
             async (a: HTMLAnchorElement) => {
-                let section = a.parentNode
+                const section = a.parentNode
 
-                let settingName = a.name.split(".")
-                let value = await config.getAsync(settingName)
+                const settingName = a.name.split(".")
+                const value = await config.getAsync(settingName)
                 if (!value) return console.log("Failed to grab value of ", a)
                 if (!["number", "boolean", "string"].includes(typeof value))
                     return console.log(
@@ -160,14 +160,14 @@ function addSettingInputs() {
                         " because not easily represented as string",
                     )
 
-                let input = document.createElement("input")
+                const input = document.createElement("input")
                 input.name = a.name
                 input.value = value
                 input.id = "TridactylSettingInput_" + input.name
                 input.className = inputClassName
                 input.addEventListener("keyup", onKeyUp)
 
-                let div = document.createElement("div")
+                const div = document.createElement("div")
                 div.appendChild(document.createTextNode("Current value:"))
                 div.appendChild(input)
 
@@ -189,13 +189,13 @@ function addSettingInputs() {
 }
 
 function addResetConfigButton() {
-    let button = document.createElement("button")
+    const button = document.createElement("button")
     button.innerText = "Reset Tridactyl config"
     button.style.margin = "auto 50%"
     button.style.minWidth = "200pt"
     button.addEventListener("click", () => {
-        let sentence = "sanitise tridactylsync tridactyllocal tridactylhistory"
-        let p = prompt(
+        const sentence = "sanitise tridactylsync tridactyllocal tridactylhistory"
+        const p = prompt(
             `Please write '${sentence}' without quotes in the following input field if you really want to reset your Tridactyl config.`,
         )
         if (p === sentence) {

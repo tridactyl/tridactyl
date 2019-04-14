@@ -116,14 +116,15 @@ if (
     window.location.pathname === "/static/newtab.html"
 ) {
     config.getAsync("newtab").then(newtab => {
-        if (newtab === "about:blank") {
-        } else if (newtab) {
-            excmds.open_quiet(newtab)
-        } else {
-            document.body.style.height = "100%"
-            document.body.style.opacity = "1"
-            document.body.style.overflow = "auto"
-            document.title = "Tridactyl Top Tips & New Tab Page"
+        if (newtab !== "about:blank") {
+            if (newtab) {
+                excmds.open_quiet(newtab)
+            } else {
+                document.body.style.height = "100%"
+                document.body.style.opacity = "1"
+                document.body.style.overflow = "auto"
+                document.title = "Tridactyl Top Tips & New Tab Page"
+            }
         }
     })
 }
@@ -133,12 +134,12 @@ config.getAsync("modeindicator").then(mode => {
     if (mode !== "true") return
 
     // Do we want container indicators?
-    let containerIndicator = config.get("containerindicator")
+    const containerIndicator = config.get("containerindicator")
 
     // Hide indicator in print mode
     // CSS not explicitly added to the dom doesn't make it to print mode:
     // https://bugzilla.mozilla.org/show_bug.cgi?id=1448507
-    let style = document.createElement("style")
+    const style = document.createElement("style")
     style.type = "text/css"
     style.innerHTML = `@media print {
         .TridactylStatusIndicator {
@@ -146,7 +147,7 @@ config.getAsync("modeindicator").then(mode => {
         }
     }`
 
-    let statusIndicator = document.createElement("span")
+    const statusIndicator = document.createElement("span")
     const privateMode = browser.extension.inIncognitoContext
         ? "TridactylPrivate"
         : ""
@@ -175,10 +176,10 @@ config.getAsync("modeindicator").then(mode => {
 
     // This listener makes the modeindicator disappear when the mouse goes over it
     statusIndicator.addEventListener("mouseenter", ev => {
-        let target = ev.target as any
-        let rect = target.getBoundingClientRect()
+        const target = ev.target as any
+        const rect = target.getBoundingClientRect()
         target.classList.add("TridactylInvisible")
-        let onMouseOut = ev => {
+        const onMouseOut = ev => {
             // If the mouse event happened out of the mode indicator boundaries
             if (
                 ev.clientX < rect.x ||
@@ -242,7 +243,7 @@ config.getAsync("modeindicator").then(mode => {
         } else {
             result = mode
         }
-        let modeindicatorshowkeys = Config.get("modeindicatorshowkeys")
+        const modeindicatorshowkeys = Config.get("modeindicatorshowkeys")
         if (modeindicatorshowkeys === "true" && suffix !== "") {
             result = mode + " " + suffix
         }

@@ -155,7 +155,7 @@ export async function getBestEditor(): Promise<string> {
         cmd = await firstinpath(term_emulators)
         if (cmd !== undefined) {
             // and a text editor
-            let tuicmd = await firstinpath(tui_editors)
+            const tuicmd = await firstinpath(tui_editors)
             if (cmd.includes("%c")) {
                 cmd = cmd.replace("%c", tuicmd)
             } else {
@@ -296,7 +296,7 @@ export async function winFirefoxRestart(
     profiledir: string,
     browsercmd: string,
 ) {
-    let required_version = "0.1.6"
+    const required_version = "0.1.6"
 
     if (!(await nativegate(required_version, false))) {
         throw `'restart' on Windows needs native messenger version >= ${required_version}.`
@@ -306,7 +306,7 @@ export async function winFirefoxRestart(
 }
 
 export async function run(command: string, content = "") {
-    let msg = await sendNativeMsg("run", { command, content })
+    const msg = await sendNativeMsg("run", { command, content })
     logger.info(msg)
     return msg
 }
@@ -319,7 +319,7 @@ export async function pyeval(command: string): Promise<MessageResp> {
 }
 
 export async function getenv(variable: string) {
-    let required_version = "0.1.2"
+    const required_version = "0.1.2"
 
     if (!(await nativegate(required_version, false))) {
         throw `'getenv' needs native messenger version >= ${required_version}.`
@@ -343,7 +343,7 @@ export async function clipboard(
     }
 
     if (action === "get") {
-        let result = await run(clipcmd + " -o")
+        const result = await run(clipcmd + " -o")
         if (result.code !== 0) {
             throw new Error(
                 `External command failed with code ${result.code}: ${clipcmd}`,
@@ -351,9 +351,9 @@ export async function clipboard(
         }
         return result.content
     } else if (action === "set") {
-        let required_version = "0.1.7"
+        const required_version = "0.1.7"
         if (await nativegate(required_version, false)) {
-            let result = await run(`${clipcmd} -i`, str)
+            const result = await run(`${clipcmd} -i`, str)
             if (result.code !== 0)
                 throw new Error(
                     `External command failed with code ${
@@ -390,7 +390,7 @@ export async function ff_cmdline(): Promise<string[]> {
     if ((await browserBg.runtime.getPlatformInfo()).os === "win") {
         throw `Error: "ff_cmdline() is currently broken on Windows and should be avoided."`
     } else {
-        let output = await pyeval(
+        const output = await pyeval(
             'handleMessage({"cmd": "run", ' +
                 '"command": "ps -p " + str(os.getppid()) + " -oargs="})["content"]',
         )
@@ -399,10 +399,10 @@ export async function ff_cmdline(): Promise<string[]> {
 }
 
 export function parseProfilesIni(content: string, basePath: string) {
-    let lines = content.split("\n")
+    const lines = content.split("\n")
     let current = "General"
-    let result = {}
-    for (let line of lines) {
+    const result = {}
+    for (const line of lines) {
         let match = line.match(/^\[([^\]]+)\]$/)
         if (match !== null) {
             current = match[1]
@@ -414,8 +414,8 @@ export function parseProfilesIni(content: string, basePath: string) {
             }
         }
     }
-    for (let profileName of Object.keys(result)) {
-        let profile = result[profileName]
+    for (const profileName of Object.keys(result)) {
+        const profile = result[profileName]
         // profile.IsRelative can be 0, 1 or undefined
         if (profile.IsRelative === 1) {
             profile.relativePath = profile.Path
@@ -460,8 +460,8 @@ export async function getProfile() {
 
     // First, try to see if the 'profiledir' setting matches a profile in profile.ini
     if (curProfileDir !== "auto") {
-        for (let profileName of Object.keys(iniObject)) {
-            let profile = iniObject[profileName]
+        for (const profileName of Object.keys(iniObject)) {
+            const profile = iniObject[profileName]
             if (profile.absolutePath === curProfileDir) {
                 return profile
             }
@@ -476,8 +476,8 @@ export async function getProfile() {
     const profile = cmdline.indexOf("--profile")
     if (profile >= 0 && profile < cmdline.length - 1) {
         const profilePath = cmdline[profile + 1]
-        for (let profileName of Object.keys(iniObject)) {
-            let profile = iniObject[profileName]
+        for (const profileName of Object.keys(iniObject)) {
+            const profile = iniObject[profileName]
             if (profile.absolutePath === profilePath) {
                 return profile
             }
@@ -492,8 +492,8 @@ export async function getProfile() {
     if (p === -1) p = cmdline.indexOf("-P")
     if (p >= 0 && p < cmdline.length - 1) {
         const pName = cmdline[p + 1]
-        for (let profileName of Object.keys(iniObject)) {
-            let profile = iniObject[profileName]
+        for (const profileName of Object.keys(iniObject)) {
+            const profile = iniObject[profileName]
             if (profile.Name === pName) {
                 return profile
             }
@@ -509,7 +509,7 @@ export async function getProfile() {
     let hacky_profile_finder = `find "${ffDir}" -maxdepth 2 -name lock`
     if ((await browserBg.runtime.getPlatformInfo()).os === "mac")
         hacky_profile_finder = `find "${ffDir}" -maxdepth 2 -name .parentlock`
-    let profilecmd = await run(hacky_profile_finder)
+    const profilecmd = await run(hacky_profile_finder)
     if (profilecmd.code === 0 && profilecmd.content.length !== 0) {
         // Remove trailing newline
         profilecmd.content = profilecmd.content.trim()
@@ -519,8 +519,8 @@ export async function getProfile() {
                 .split("/")
                 .slice(0, -1)
                 .join("/")
-            for (let profileName of Object.keys(iniObject)) {
-                let profile = iniObject[profileName]
+            for (const profileName of Object.keys(iniObject)) {
+                const profile = iniObject[profileName]
                 if (profile.absolutePath === path) {
                     return profile
                 }
@@ -532,8 +532,8 @@ export async function getProfile() {
     }
 
     // Multiple profiles used but no -p or --profile, this means that we're using the default profile
-    for (let profileName of Object.keys(iniObject)) {
-        let profile = iniObject[profileName]
+    for (const profileName of Object.keys(iniObject)) {
+        const profile = iniObject[profileName]
         if (profile.Default === 1) {
             return profile
         }
@@ -549,7 +549,7 @@ export function getProfileName() {
 }
 
 export async function getProfileDir() {
-    let profiledir = config.get("profiledir")
+    const profiledir = config.get("profiledir")
     if (profiledir !== "auto") return Promise.resolve(profiledir)
     return getProfile().then(p => p.absolutePath)
 }
@@ -563,7 +563,7 @@ export async function parsePrefs(prefFileContent: string) {
     )
     // Fragile parsing
     return prefFileContent.split("\n").reduce((prefs, line) => {
-        let matches = line.match(regex)
+        const matches = line.match(regex)
         if (!matches) {
             return prefs
         }
@@ -620,10 +620,10 @@ export async function getPrefs(): Promise<{ [key: string]: string }> {
         profile + "prefs.js",
         profile + "user.js",
     ]
-    let promises = []
+    const promises = []
     // Starting all promises before awaiting because we want the calls to be
     // made in parallel
-    for (let file of prefFiles) {
+    for (const file of prefFiles) {
         promises.push(loadPrefs(file))
     }
     cached_prefs = promises.reduce(async (a, b) =>
@@ -664,7 +664,7 @@ export async function getConfElsePrefElseDefault(
     prefName: string,
     def: any,
 ): Promise<any> {
-    let option = await getConfElsePref(confName, prefName)
+    const option = await getConfElsePref(confName, prefName)
     if (option === undefined) return def
     return option
 }
@@ -677,12 +677,12 @@ export async function writePref(name: string, value: any) {
     // No need to check the return code because read returns "" when failing to
     // read a file
     const text = (await read(file)).content
-    let prefPos = text.indexOf(`pref("${name}",`)
+    const prefPos = text.indexOf(`pref("${name}",`)
     if (prefPos < 0) {
         write(file, `${text}\nuser_pref("${name}", ${value});\n`)
     } else {
         let substr = text.substring(prefPos)
-        let prefEnd = substr.indexOf(";\n")
+        const prefEnd = substr.indexOf(";\n")
         substr = text.substring(prefPos, prefPos + prefEnd)
         write(file, text.replace(substr, `pref("${name}", ${value})`))
     }

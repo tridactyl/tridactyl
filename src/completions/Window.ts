@@ -48,7 +48,7 @@ export class WindowCompletionSource extends Completions.CompletionSourceFuse {
 
     private async updateOptions(exstr = "") {
         this.lastExstr = exstr
-        let [prefix] = this.splitOnPrefix(exstr)
+        const [prefix] = this.splitOnPrefix(exstr)
 
         // Hide self and stop if prefixes don't match
         if (prefix) {
@@ -63,7 +63,7 @@ export class WindowCompletionSource extends Completions.CompletionSourceFuse {
 
         this.options = (await browserBg.windows.getAll({ populate: true })).map(
             win => {
-                let o = new WindowCompletionOption(win)
+                const o = new WindowCompletionOption(win)
                 o.state = "normal"
                 return o
             },

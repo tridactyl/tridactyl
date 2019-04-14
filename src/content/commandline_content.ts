@@ -17,7 +17,7 @@ const cmdline_logger = new Logger("cmdline")
 
 // inject the commandline iframe into a content page
 
-let cmdline_iframe = window.document.createElementNS(
+const cmdline_iframe = window.document.createElementNS(
     "http://www.w3.org/1999/xhtml",
     "iframe",
 ) as HTMLIFrameElement
@@ -32,7 +32,7 @@ let enabled = false
 
 /** Initialise the cmdline_iframe element unless the window location is included in a value of config/noiframe */
 async function init() {
-    let noiframe = await config.getAsync("noiframe")
+    const noiframe = await config.getAsync("noiframe")
     if (noiframe === "false" && !enabled) {
         hide()
         document.documentElement.appendChild(cmdline_iframe)

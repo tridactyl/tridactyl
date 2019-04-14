@@ -38,7 +38,7 @@ export class RssCompletionSource extends Completions.CompletionSourceFuse {
 
     private async updateOptions(exstr = "") {
         this.lastExstr = exstr
-        let [prefix] = this.splitOnPrefix(exstr)
+        const [prefix] = this.splitOnPrefix(exstr)
 
         // Hide self and stop if prefixes don't match
         if (prefix) {
@@ -57,7 +57,7 @@ export class RssCompletionSource extends Completions.CompletionSourceFuse {
                 "getRssLinks",
                 [],
             )).map(link => {
-                let opt = new RssCompletionOption(
+                const opt = new RssCompletionOption(
                     link.url,
                     link.title,
                     link.type,

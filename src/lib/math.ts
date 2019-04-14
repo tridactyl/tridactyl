@@ -10,7 +10,7 @@ export function linspace(a: number, b: number, n?: number) {
         return n === 1 ? [a] : []
     }
     let i
-    let ret = Array(n)
+    const ret = Array(n)
     n--
     for (i = n; i >= 0; i--) {
         ret[i] = (i * b + (n - i) * a) / n
