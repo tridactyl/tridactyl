@@ -493,7 +493,7 @@ export const backward_kill_line = wrap_input(
             newLine = selectionStart;
             newLine > 0 && text[newLine - 1] !== "\n";
             --newLine
-        ) {}
+        );
         // Remove everything between the newline and the caret
         return [
             text.substring(0, newLine) + text.substring(selectionStart),
@@ -515,13 +515,13 @@ export const kill_whole_line = wrap_input(
             firstNewLine = selectionStart;
             firstNewLine > 0 && text[firstNewLine - 1] !== "\n";
             --firstNewLine
-        ) {}
+        );
         // Find the newline after the caret
         for (
             secondNewLine = selectionStart;
             secondNewLine < text.length && text[secondNewLine - 1] !== "\n";
             ++secondNewLine
-        ) {}
+        );
         // Remove everything between the newline and the caret
         return [
             text.substring(0, firstNewLine) + text.substring(secondNewLine),

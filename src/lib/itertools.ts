@@ -15,8 +15,7 @@ export function tail(iter) {
     } else {
         // Re-use error handling in head()
         let last = head(iter)
-        for (last of iter) {
-        }
+        for (last of iter);
         return last
     }
 }

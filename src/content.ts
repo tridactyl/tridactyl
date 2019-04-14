@@ -116,14 +116,15 @@ if (
     window.location.pathname === "/static/newtab.html"
 ) {
     config.getAsync("newtab").then(newtab => {
-        if (newtab === "about:blank") {
-        } else if (newtab) {
-            excmds.open_quiet(newtab)
-        } else {
-            document.body.style.height = "100%"
-            document.body.style.opacity = "1"
-            document.body.style.overflow = "auto"
-            document.title = "Tridactyl Top Tips & New Tab Page"
+        if (newtab !== "about:blank") {
+            if (newtab) {
+                excmds.open_quiet(newtab)
+            } else {
+                document.body.style.height = "100%"
+                document.body.style.opacity = "1"
+                document.body.style.overflow = "auto"
+                document.title = "Tridactyl Top Tips & New Tab Page"
+            }
         }
     })
 }

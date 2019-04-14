@@ -197,8 +197,6 @@ export class StatsLogger {
     private buffersize: number = 10000
     private lastError: number = 0
 
-    constructor() {}
-
     /**
      * Target for receiving stats entries from other threads - there
      * was some issue with encoding that I couldn't figure out so I

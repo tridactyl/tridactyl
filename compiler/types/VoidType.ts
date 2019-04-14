@@ -4,8 +4,6 @@ export class VoidType implements Type {
     public static instance = new VoidType()
     public kind = "void"
 
-    constructor() {}
-
     public toConstructor() {
         return "VoidType.instance"
     }

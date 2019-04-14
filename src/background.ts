@@ -85,7 +85,7 @@ config.addChangeListener("csp", (old, cur) => {
 // }}}
 
 // Prevent Tridactyl from being updated while it is running in the hope of fixing #290
-browser.runtime.onUpdateAvailable.addListener(_ => {})
+browser.runtime.onUpdateAvailable.addListener(_ => undefined)
 
 browser.runtime.onStartup.addListener(_ => {
     config.getAsync("autocmds", "TriStart").then(aucmds => {

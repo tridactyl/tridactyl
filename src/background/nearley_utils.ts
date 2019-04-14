@@ -21,7 +21,6 @@ export class Parser {
                 lastResult = this.parser.results[0]
                 consumedIndex++
             }
-        } catch (e) {
         } finally {
             this.reset()
             if (lastResult === undefined) {
