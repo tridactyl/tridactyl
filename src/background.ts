@@ -135,22 +135,18 @@ browser.tabs.onActivated.addListener(ev => {
 
 const aucon = new AutoContain()
 
+function cancelReq(details) {
+    if (aucon.getCancelledRequest(details.tabId)) {
+        aucon.clearCancelledRequests(details.tabId)
+    }
+}
+
 // Handle cancelled requests as a result of autocontain.
-browser.webRequest.onCompleted.addListener(
-    details => {
-        if (aucon.getCancelledRequest(details.tabId)) {
-            aucon.clearCancelledRequests(details.tabId)
-        }
-    },
+browser.webRequest.onCompleted.addListener(cancelReq,
     { urls: ["<all_urls"], types: ["main_frame"] },
 )
 
-browser.webRequest.onErrorOccurred.addListener(
-    details => {
-        if (aucon.getCancelledRequest(details.tabId)) {
-            aucon.clearCancelledRequests(details.tabId)
-        }
-    },
+browser.webRequest.onErrorOccurred.addListener(cancelReq,
     { urls: ["<all_urls>"], types: ["main_frame"] },
 )
 

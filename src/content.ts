@@ -262,30 +262,25 @@ config.getAsync("modeindicator").then(mode => {
     })
 })
 
-// Site specific fix for / on GitHub.com
+function protectSlash(e) {
+    if ("/".indexOf(e.key) !== -1 && contentState.mode === "normal") {
+        e.cancelBubble = true
+        e.stopImmediatePropagation()
+    }
+}
+
+// Some sites like to prevent firefox's `/` from working so we need to protect
+// ourselves against that
+// This was originally a github-specific fix
 config.getAsync("leavegithubalone").then(v => {
     if (v === "true") return
     try {
         // On quick loading pages, the document is already loaded
-        // if (document.location.host === "github.com") {
-        document.body.addEventListener("keydown", function(e) {
-            if ("/".indexOf(e.key) !== -1 && contentState.mode === "normal") {
-                e.cancelBubble = true
-                e.stopImmediatePropagation()
-            }
-        })
-        // }
+        document.body.addEventListener("keydown", protectSlash)
     } catch (e) {
         // But on slower pages we wait for the document to load
         window.addEventListener("DOMContentLoaded", () => {
-            // if (document.location.host === "github.com") {
-            document.body.addEventListener("keydown", function(e) {
-                if ("/".indexOf(e.key) !== -1 && contentState.mode === "normal") {
-                    e.cancelBubble = true
-                    e.stopImmediatePropagation()
-                }
-            })
-            // }
+            document.body.addEventListener("keydown", protectSlash)
         })
     }
 })
