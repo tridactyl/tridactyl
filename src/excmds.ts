@@ -4053,6 +4053,7 @@ export async function echo(...str: string[]) {
  *
  * `composite get_current_url | js -p alert(JS_ARG)`
  */
+/* tslint:disable:no-identical-functions */
 //#content
 export async function js(...str: string[]) {
     if (str[0].startsWith("-p")) {
@@ -4067,6 +4068,7 @@ export async function js(...str: string[]) {
 /**
  * Lets you execute JavaScript in the background context. All the help from [[js]] applies. Gives you a different `tri` object.
  */
+/* tslint:disable:no-identical-functions */
 //#background
 export async function jsb(...str: string[]) {
     if (str[0].startsWith("-p")) {

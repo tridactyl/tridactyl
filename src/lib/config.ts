@@ -1280,6 +1280,15 @@ export function removeChangeListener<P extends keyof default_config>(
 browser.storage.onChanged.addListener(async (changes, areaname) => {
     if (CONFIGNAME in changes) {
         const defaultConf = new default_config()
+        const old = USERCONFIG
+
+        function triggerChangeListeners(key) {
+            const arr = changeListeners.get(key)
+            if (arr) {
+                const v = old[key] === undefined ? defaultConf[key] : old[key]
+                arr.forEach(f => f(v, USERCONFIG[key]))
+            }
+        }
 
         // newValue is undefined when calling browser.storage.AREANAME.clear()
         if (changes[CONFIGNAME].newValue !== undefined) {
@@ -1301,7 +1310,6 @@ browser.storage.onChanged.addListener(async (changes, areaname) => {
                     ) !== JSON.stringify(changes[CONFIGNAME].newValue[k]),
             )
 
-            const old = USERCONFIG
             USERCONFIG = changes[CONFIGNAME].newValue
 
             // Trigger listeners
@@ -1312,26 +1320,14 @@ browser.storage.onChanged.addListener(async (changes, areaname) => {
                 }
             })
 
-            changedKeys.forEach(key => {
-                const arr = changeListeners.get(key)
-                if (arr) {
-                    const v = old[key] === undefined ? defaultConf[key] : old[key]
-                    arr.forEach(f => f(v, USERCONFIG[key]))
-                }
-            })
+            changedKeys.forEach(key => triggerChangeListeners(key))
         } else if (areaname === (await get("storageloc"))) {
             // If newValue is undefined and AREANAME is the same value as STORAGELOC, the user wants to clean their config
-            const old = USERCONFIG
             USERCONFIG = o({})
 
             Object.keys(old)
                 .filter(key => old[key] !== defaultConf[key])
-                .forEach(key => {
-                    const arr = changeListeners.get(key)
-                    if (arr) {
-                        arr.forEach(f => f(old[key], defaultConf[key]))
-                    }
-                })
+                .forEach(key => triggerChangeListeners(key))
         }
     }
 })

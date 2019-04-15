@@ -7,6 +7,12 @@ function wrapPrimitives(testcases) {
     })
 }
 
+function arrayify(toTest, args) {
+    const result = toTest(...args)
+    if (result instanceof Array) return result
+    else return [result]
+}
+
 /** Test each case in testcases.
 
     Warning: if your function really accepts an array, that array must be
@@ -16,13 +22,7 @@ export function testAll(toTest, testcases) {
     testcases = testcases.map(wrapPrimitives)
     for (const [args, ans] of testcases) {
         test(`${toTest.name}(${args}) == ${JSON.stringify(ans)}`, () =>
-            expect(
-                (() => {
-                    const result = toTest(...args)
-                    if (result instanceof Array) return result
-                    else return [result]
-                })(),
-            ).toEqual(expect.arrayContaining(ans)))
+            expect(arrayify(toTest, args)).toEqual(expect.arrayContaining(ans)))
     }
 }
 
@@ -37,13 +37,7 @@ export function testAllCustom(toTest, testcases, expectAttr, expectArg) {
     testcases = testcases.map(wrapPrimitives)
     for (const [args, ans] of testcases) {
         test(`${toTest.name}(${args}) == ${JSON.stringify(ans)}`, () =>
-            expect(
-                (() => {
-                    const result = toTest(...args)
-                    if (result instanceof Array) return result
-                    else return [result]
-                })(),
-            )[expectAttr](eval(expectArg)))
+            expect(arrayify(toTest, args))[expectAttr](eval(expectArg)))
     }
 }
 

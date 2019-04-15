@@ -23,7 +23,6 @@
     "no-empty": [true, "allow-empty-catch", "allow-empty-functions"],
     "no-eval": false,
     "no-extra-semicolon": false,
-    "no-identical-functions": false,
     "no-shadowed-variable": false,
     "no-string-throw": false,
     "no-unsafe-finally": false,
