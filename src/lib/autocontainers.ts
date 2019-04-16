@@ -119,7 +119,7 @@ export class AutoContain implements IAutoContain {
                 active: tab.active,
                 windowId: tab.windowId,
                 index: tab.index + 1,
-                // openerTabId: openerTabId,
+                openerTabId,
             }).then(result => {
                 logger.debug("Autocontainer created tab %o", result)
             })
@@ -132,7 +132,7 @@ export class AutoContain implements IAutoContain {
         return { cancel: true }
     }
 
-    //Handles the requests after the initial checks made in this.autoContain.
+    // Handles the requests after the initial checks made in this.autoContain.
     cancelEarly = (
         tab: browser.tabs.Tab,
         details: browser.webRequest.IDetails,

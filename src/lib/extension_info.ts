@@ -15,7 +15,7 @@ export const KNOWN_EXTENSIONS: { [name: string]: string } = {
 
 /** List of currently installed extensions.
  */
-let installedExtensions: {
+const installedExtensions: {
     [id: string]: browser.management.IExtensionInfo
 } = {}
 

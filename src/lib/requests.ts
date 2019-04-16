@@ -4,7 +4,7 @@ import Logger from "@src/lib/logging"
 
 const logger = new Logger("requests")
 
-class DefaultMap<K,V> extends Map<K,V> {
+class DefaultMap<K, V> extends Map<K, V> {
     constructor(private defaultFactory, ...args) {
         // super(...args)
         super()
