@@ -22,7 +22,7 @@
     "jest": "^24.1.0",
     "marked": "^0.6.1",
     "nearley": "^2.16.0",
-    "prettier": "^1.16.4",
+    "prettier": "^1.17.0",
     "shared-git-hooks": "^1.2.1",
     "source-map-loader": "^0.2.4",
     "ts-jest": "^24.0.0",
