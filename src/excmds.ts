@@ -80,7 +80,6 @@ import * as aliases from "@src/lib/aliases"
 import * as Logging from "@src/lib/logging"
 /** @hidden */
 const logger = new Logging.Logger("excmds")
-import Mark from "mark.js"
 import * as CSS from "css"
 import * as Perf from "@src/perf"
 import * as Metadata from "@src/.metadata.generated"
@@ -104,7 +103,8 @@ import { ownTab } from "@src/lib/webext"
 // {
 /** Message excmds_content.ts in the active tab of the currentWindow */
 import * as BGSELF from "@src/.excmds_background.generated"
-import { messageTab, messageActiveTab } from "@src/lib/messaging"
+import { messageActiveTab } from "@src/lib/messaging"
+/* tslint:disable:no-unused-declaration */
 import { flatten } from "@src/lib/itertools"
 import "@src/lib/number.mod"
 import { firefoxVersionAtLeast } from "@src/lib/webext"
@@ -4057,6 +4057,7 @@ export async function echo(...str: string[]) {
 //#content
 export async function js(...str: string[]) {
     if (str[0].startsWith("-p")) {
+        /* tslint:disable:no-unused-declaration */
         /* tslint:disable:no-dead-store */
         const JS_ARG = str[str.length - 1]
         return eval(str.slice(1, -1).join(" "))
@@ -4072,6 +4073,7 @@ export async function js(...str: string[]) {
 //#background
 export async function jsb(...str: string[]) {
     if (str[0].startsWith("-p")) {
+        /* tslint:disable:no-unused-declaration */
         /* tslint:disable:no-dead-store */
         const JS_ARG = str[str.length - 1]
         return eval(str.slice(1, -1).join(" "))

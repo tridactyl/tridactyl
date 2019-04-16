@@ -1,4 +1,3 @@
-import * as ts from "typescript"
 
 export interface Type {
     kind: string

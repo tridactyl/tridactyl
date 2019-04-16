@@ -21,7 +21,6 @@ import * as perf from "@src/perf"
 import "@src/lib/number.clamp"
 import "@src/lib/html-tagged-template"
 import * as Completions from "@src/completions"
-import { FindCompletionSource } from "./completions/Find"
 import { TabAllCompletionSource } from "@src/completions/TabAll"
 import { BufferCompletionSource } from "@src/completions/Tab"
 import { BmarkCompletionSource } from "@src/completions/Bmark"
@@ -36,7 +35,6 @@ import { SessionsCompletionSource } from "@src/completions/Sessions"
 import { SettingsCompletionSource } from "@src/completions/Settings"
 import { WindowCompletionSource } from "@src/completions/Window"
 import * as Messaging from "@src/lib/messaging"
-import * as Config from "@src/lib/config"
 import "@src/lib/number.clamp"
 import state from "@src/state"
 import Logger from "@src/lib/logging"
@@ -314,6 +312,7 @@ export async function hide_and_clear() {
     isVisible = false
 }
 
+/* tslint:disable:no-unused-declaration */
 /** @hidden **/
 function setCursor(n = 0) {
     clInput.setSelectionRange(n, n, "none")

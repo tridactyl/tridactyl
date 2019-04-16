@@ -1,6 +1,5 @@
 import * as Completions from "@src/completions"
 import * as config from "@src/lib/config"
-import { browserBg } from "@src/lib/webext"
 import * as metadata from "@src/.metadata.generated"
 
 class SettingsCompletionOption extends Completions.CompletionOptionHTML

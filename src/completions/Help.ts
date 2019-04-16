@@ -2,8 +2,6 @@ import * as Completions from "@src/completions"
 import * as Metadata from "@src/.metadata.generated"
 import * as aliases from "@src/lib/aliases"
 import * as config from "@src/lib/config"
-import state from "@src/state"
-import { browserBg } from "@src/lib/webext"
 
 class HelpCompletionOption extends Completions.CompletionOptionHTML
     implements Completions.CompletionOptionFuse {
@@ -32,7 +30,6 @@ export class HelpCompletionSource extends Completions.CompletionSourceFuse {
         this.lastExstr = exstr
         this.completion = undefined
         const [prefix, query] = this.splitOnPrefix(exstr)
-        const options = ""
 
         // Hide self and stop if prefixes don't match
         if (prefix) {

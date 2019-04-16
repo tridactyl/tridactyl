@@ -1,7 +1,5 @@
 import * as Controller from "@src/background/controller_background"
 import * as Native from "@src/lib/native"
-import Logger from "@src/lib/logging"
-const logger = new Logger("rc")
 
 export async function source(filename = "auto") {
     let rctext = ""

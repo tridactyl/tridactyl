@@ -27,7 +27,6 @@ export class GuisetCompletionSource extends Completions.CompletionSourceFuse {
     public async filter(exstr: string) {
         this.lastExstr = exstr
         const [prefix, query] = this.splitOnPrefix(exstr)
-        const option = ""
 
         // Hide self and stop if prefixes don't match
         if (prefix) {

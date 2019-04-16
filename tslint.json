@@ -1,5 +1,5 @@
 {
-  "extends": ["tslint:recommended", "tslint-sonarts"],
+  "extends": ["tslint:recommended", "tslint-sonarts", "tslint-etc"],
   "linterOptions": {
     "exclude": [ "**/.*.generated.ts" ]
   },
@@ -26,6 +26,7 @@
     "no-shadowed-variable": false,
     "no-string-throw": false,
     "no-unsafe-finally": false,
+    "no-unused-declaration": true,
     "object-literal-key-quotes": false,
     "object-literal-sort-keys": false,
     "only-arrow-functions": false,

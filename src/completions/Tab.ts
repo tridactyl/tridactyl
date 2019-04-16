@@ -2,7 +2,6 @@ import * as Perf from "@src/perf"
 import { browserBg } from "@src/lib/webext.ts"
 import { enumerate } from "@src/lib/itertools"
 import * as Containers from "@src/lib/containers"
-import * as Messaging from "@src/lib/messaging"
 import * as Completions from "@src/completions"
 
 class BufferCompletionOption extends Completions.CompletionOptionHTML

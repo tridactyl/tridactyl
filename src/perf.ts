@@ -20,7 +20,6 @@
 import * as messaging from "@src/lib/messaging"
 import * as config from "@src/lib/config"
 import * as math from "@src/lib/math"
-import * as itertools from "@src/lib/itertools"
 import * as logging from "@src/lib/logging"
 
 const logger = new logging.Logger("performance")
