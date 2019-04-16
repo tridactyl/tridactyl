@@ -1,4 +1,4 @@
-import { Type } from "../types/AllTypes"
+
 import { SymbolMetadata } from "./SymbolMetadata"
 
 export class ClassMetadata {

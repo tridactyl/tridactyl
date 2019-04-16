@@ -1,7 +1,6 @@
-import { browserBg, activeTabId } from "@src/lib/webext"
+import { activeTabId } from "@src/lib/webext"
 import * as Messaging from "@src/lib/messaging"
 import * as Completions from "../completions"
-import { executeWithoutCommandLine } from "@src/content/commandline_content"
 import * as config from "@src/lib/config"
 
 class FindCompletionOption extends Completions.CompletionOptionHTML
