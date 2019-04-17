@@ -1,5 +1,4 @@
 const { TsConfigPathsPlugin } = require("awesome-typescript-loader")
-const UglifyJSPlugin = require("uglifyjs-webpack-plugin")
 const CopyWebPackPlugin = require("copy-webpack-plugin")
 // const WebpackShellPlugin = require('webpack-shell-plugin')
 
