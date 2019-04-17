@@ -37,9 +37,26 @@ export function getExtensionInstalled(id: string): boolean {
     return id in installedExtensions
 }
 
+async function hasManagementPermission() {
+    return browser.permissions.contains({
+        "permissions": ["management"],
+    })
+}
+
 /** Read installed extensions to populate the list at startup time.
  */
 async function init() {
+    // If we don't have the permission, bail out. Our list of
+    // installed extensions will be left uninitialized, so all of our
+    // external interfaces will pretend that no other extensions
+    // exist. This SHOULD result in tridactyl acting the same as it
+    // did before the extension interoperability feature was added in
+    // the first place, which isn't a great loss.
+    const hasPermission = await hasManagementPermission()
+    if (!hasPermission) {
+        return
+    }
+
     // Code borrowed from
     // https://github.com/stoically/temporary-containers/blob/master/src/background/management.js
     let extensions = []
