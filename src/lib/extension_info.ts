@@ -45,7 +45,7 @@ async function hasManagementPermission() {
 
 /** Read installed extensions to populate the list at startup time.
  */
-async function init() {
+export async function init() {
     // If we don't have the permission, bail out. Our list of
     // installed extensions will be left uninitialized, so all of our
     // external interfaces will pretend that no other extensions
@@ -75,5 +75,3 @@ async function init() {
     browser.management.onDisabled.addListener(updateExtensionInfo)
     browser.management.onUninstalled.addListener(updateExtensionInfo)
 }
-
-init()

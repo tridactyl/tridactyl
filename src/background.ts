@@ -134,6 +134,8 @@ browser.tabs.onActivated.addListener(ev => {
 
 // {{{ AUTOCONTAINERS
 
+extension_info.init()
+
 const aucon = new AutoContain()
 
 // Handle cancelled requests as a result of autocontain.
