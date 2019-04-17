@@ -312,12 +312,6 @@ export async function hide_and_clear() {
     isVisible = false
 }
 
-/* tslint:disable:no-unused-declaration */
-/** @hidden **/
-function setCursor(n = 0) {
-    clInput.setSelectionRange(n, n, "none")
-}
-
 /**
  * Selects the next history line.
  */

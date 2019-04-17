@@ -1,4 +1,4 @@
-import { testAll, testAllNoError, testAllObject } from "@src/lib/test_utils"
+import { testAll, testAllObject } from "@src/lib/test_utils"
 import * as ks from "@src/lib/keyseq"
 import { mapstrToKeyseq as mks } from "@src/lib/keyseq"
 

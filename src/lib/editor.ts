@@ -362,7 +362,7 @@ function applyWord(
     text,
     selectionStart,
     selectionEnd,
-    fn: (string) => string,
+    fn: (s: string) => string,
 ): [string, number, number] {
     if (text.length === 0) return [null, null, null]
     // If the caret is at the end of the text, move it just before the last character

@@ -35,8 +35,8 @@ class HintState {
 
     constructor(
         public filterFunc: HintFilter,
-        public resolve: (Hint) => void,
-        public reject: (any) => void,
+        public resolve: (x) => void,
+        public reject: (x) => void,
         public rapid: boolean,
     ) {
         this.hintHost.classList.add("TridactylHintHost", "cleanslate")
@@ -256,7 +256,7 @@ function* hintnames(
     }
 }
 
-type HintSelectedCallback = (Hint) => any
+type HintSelectedCallback = (x: any) => any
 
 /** Place a flag by each hintworthy element */
 class Hint {
@@ -370,7 +370,7 @@ function elementFilterableText(el: Element): string {
     return text.slice(0, 2048).toLowerCase() || ""
 }
 
-type HintFilter = (string) => void
+type HintFilter = (s: string) => void
 
 /** Show only hints prefixed by fstr. Focus first match */
 function filterHintsSimple(fstr) {

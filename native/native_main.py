@@ -416,7 +416,7 @@ def handleMessage(message):
     elif cmd == "getconfigpath":
         reply["content"] = findUserConfigFile()
         reply["code"] = 0
-        if reply["content"] == None:
+        if reply["content"] is None:
             reply["code"] = "Path not found"
 
     elif cmd == "run":
@@ -464,7 +464,7 @@ def handleMessage(message):
             try:
                 shutil.move(os.path.expanduser(message["from"]), dest)
                 reply["code"] = 0
-            except:
+            except Exception:
                 reply["code"] = 2
 
     elif cmd == "write":

@@ -21,7 +21,7 @@ async function add_beta(versionstr) {
 }
 
 function make_update_json(versionstr) {
-    updatejson = {
+    return {
         addons: {
             "tridactyl.vim.betas@cmcaine.co.uk": {
                 updates: [
@@ -36,7 +36,6 @@ function make_update_json(versionstr) {
             },
         },
     }
-    return updatejson
 }
 
 function save_manifest(filename, manifest) {

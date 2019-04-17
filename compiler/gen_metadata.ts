@@ -81,8 +81,6 @@ export function toSimpleType(typeNode) {
         case ts.SyntaxKind.LiteralType:
             return new AllTypes.LiteralTypeType(typeNode.literal.text)
             break
-        case ts.SyntaxKind.IndexedAccessType:
-
         default:
             console.log(typeNode)
             throw new Error(`Unhandled kind (${typeNode.kind}) for ${typeNode}`)
