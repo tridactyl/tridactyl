@@ -4,7 +4,7 @@ import Logger from "@src/lib/logging"
 
 const logger = new Logger("requests")
 
-class DefaultMap extends Map {
+class DefaultMap<K, V> extends Map<K, V> {
     constructor(private defaultFactory, ...args) {
         // super(...args)
         super()
@@ -36,7 +36,7 @@ export function clobberCSP(response) {
     )
 
     if (cspHeader !== undefined) {
-        const policy = new DefaultMap(
+        const policy = new DefaultMap<string, Set<string>>(
             () => new Set(),
             csp.parse(cspHeader.value),
         )
