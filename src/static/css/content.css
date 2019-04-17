@@ -13,7 +13,6 @@
 
 .TridactylStatusIndicator {
     position: fixed !important;
-    bottom: 0 !important;
     font-family: var(--tridactyl-status-font-family) !important;
     background: var(--tridactyl-status-bg) !important;
     color: var(--tridactyl-status-fg) !important;

@@ -15,14 +15,12 @@
     font-size: 16px;
     content: "Tridactyl";
     height: 20px;
-    width: 100%;
-    background-color: #00007f !important;
-    height: 20px;
     color: white !important;
     display: block;
     width: 100% !important;
     padding: 0px 0px 0px 5px;
     background: unset;
+    background-color: #00007f !important;
     background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAD0AAAASCAYAAADomNYKAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH4goYBR4qQXRDGgAAAB1pVFh0Q29tbWVudAAAAAAAQ3JlYXRlZCB3aXRoIEdJTVBkLmUHAAAA0klEQVRYw+1XQRKDIAxcHA9+i5u/sk/hGb35FZ7hjR46maFOEQJRm6E5grvJQhKiAZaAzmxAhzamNsL2qCY1k0HYQhMeWETiIJ4i0QDgvWc7cs6J4aV5ikTXOtzj7Wyz363P9dQ4VNe0ne3XQ0ytV920lB3dZGmwxEMCiZPwuWxR3b1jsVzBqp+sWCRHsGrRcUlwykOt6Dil93Ut2shSpNzUkhR81Nx+ontzU5D7CnAOf2x1djb20tk7N8q1joJ38GRFv4f1emvFS/N8cP7/pzuxF1KeYRldxc/EAAAAAElFTkSuQmCC');
     background-repeat: no-repeat;
     background-position-x: right;
@@ -34,10 +32,6 @@
 
 .TridactylThemeHalloween #completions {
   order: 2 !important;
-}
-
-.TridactylThemeHalloween #command-line-holder {
-  order: 1 !important;
 }
 
 .TridactylThemeHalloween #completions > div {
@@ -97,11 +91,12 @@ html.TridactylOwnNamespace.TridactylThemeHalloween, .TridactylThemeHalloween #co
 }
 
 .TridactylThemeHalloween #command-line-holder {
+  border: solid black 1px;
   display: inline-block;
-  width: 99%;
   height: 20px;
   margin: 5px !important;
-  border: solid black 1px;
+  order: 1 !important;
+  width: 99%;
 }
 
 .TridactylThemeHalloween #command-line-holder:after {
