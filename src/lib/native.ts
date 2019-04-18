@@ -242,12 +242,14 @@ export async function firstinpath(cmdarray) {
     return cmd
 }
 
-export async function editor(file: string, content?: string) {
+export async function editor(file: string, line: number, col: number, content?: string) {
     if (content !== undefined) await write(file, content)
     const editorcmd =
-        config.get("editorcmd") === "auto"
+        (config.get("editorcmd") === "auto"
             ? await getBestEditor()
-            : config.get("editorcmd")
+            : config.get("editorcmd"))
+        .replace(/%l/, line)
+        .replace(/%c/, col)
     if (editorcmd.indexOf("%f") !== -1) {
         await run(editorcmd.replace(/%f/, file))
     } else {

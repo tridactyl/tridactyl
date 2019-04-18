@@ -85,6 +85,7 @@ import * as CSS from "css"
 import * as Perf from "@src/perf"
 import * as Metadata from "@src/.metadata.generated"
 import * as Native from "@src/lib/native"
+import * as tri_editor from "@src/lib/editor"
 
 /** @hidden **/
 const TRI_VERSION = "REPLACE_ME_WITH_THE_VERSION_USING_SED"
@@ -251,9 +252,9 @@ export function removeTridactylEditorClass(selector: string) {
  *
  * Uses the `editorcmd` config option, default = `auto` looks through a list defined in lib/native.ts try find a sensible combination. If it's a bit slow, or chooses the wrong editor, or gives up completely, set editorcmd to something you want. The command must stay in the foreground until the editor exits.
  *
- * The editorcmd needs to accept a filename, stay in the foreground while it's edited, save the file and exit. By default the filename is added to the end of editorcmd, if you require control over the position of that argument, the first occurrence of %f in editorcmd is replaced with the filename:
+ * The editorcmd needs to accept a filename, stay in the foreground while it's edited, save the file and exit. By default the filename is added to the end of editorcmd, if you require control over the position of that argument, the first occurrence of %f in editorcmd is replaced with the filename. %l, if it exists, is replaced with the line number of the cursor and %c with the column number. For example:
  * ```
- * set editorcmd terminator -u -e "vim %f"
+ * set editorcmd terminator -u -e "vim %f -c 'normal %lG%cl'"
  * ```
  *
  * You're probably better off using the default insert mode bind of `<C-i>` (Ctrl-i) to access this.
@@ -277,8 +278,15 @@ export async function editor() {
     }
 
     try {
-        const file = (await Native.temp(getinput(), document.location.hostname)).content
-        const exec = await Native.editor(file)
+        let text = ""
+        let line = 0
+        let col = 0
+        tri_editor.wrap_input((t, start, end) => {
+            [text, line, col] = tri_editor.getLineAndColNumber(t, start, end)
+            return [null, null, null]
+        })(elem)
+        const file = (await Native.temp(text, document.location.hostname)).content
+        const exec = await Native.editor(file, line, col)
         if (exec.code == 0) {
             fillinput(selector, exec.content)
 
@@ -2642,8 +2650,6 @@ const cmdframe_fns: { [key: string]: [string, any[]] } = {
     prev_completion: ["prev_completion", []],
     prev_history: ["prev_history", []],
 }
-
-import * as tri_editor from "@src/lib/editor"
 
 //#content_helper
 // {

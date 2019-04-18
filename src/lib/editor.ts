@@ -141,7 +141,7 @@ function setContentEditableValues(e, text, start, end) {
  * @return boolean Whether the editor function was actually called or not
  *
  **/
-function wrap_input(
+export function wrap_input(
     fn: editor_function,
 ): (e: HTMLElement, arg?: any) => boolean {
     return (e: HTMLElement, arg?: any) => {
@@ -181,6 +181,22 @@ function needs_text(fn: editor_function, arg?: any): editor_function {
             arg,
         )
     }
+}
+
+/** @hidden
+ * Returns line and column number.
+ */
+export function getLineAndColNumber(text: string, start: number, end: number): [string, number, number] {
+    const lines = text.split("\n")
+    let totalChars = 0
+    for (let i = 0; i < lines.length; ++i) {
+        // +1 because we also need to take '\n' into account
+        if (totalChars + lines[i].length + 1 > start) {
+            return [text, i + 1, start - totalChars]
+        }
+        totalChars += lines[i].length + 1
+    }
+    return [text, lines.length, 1]
 }
 
 /** @hidden
