@@ -278,11 +278,15 @@ export async function editor() {
 
     try {
         const file = (await Native.temp(getinput(), document.location.hostname)).content
-        const content = (await Native.editor(file)).content
-        fillinput(selector, content)
+        const exec = await Native.editor(file)
+        if (exec.code == 0) {
+            fillinput(selector, exec.content)
 
-        // TODO: add annoying "This message was written with [Tridactyl](https://addons.mozilla.org/en-US/firefox/addon/tridactyl-vim/)" to everything written using editor
-        return [file, content]
+            // TODO: add annoying "This message was written with [Tridactyl](https://addons.mozilla.org/en-US/firefox/addon/tridactyl-vim/)" to everything written using editor
+            return [file, exec.content]
+        } else {
+            logger.debug(`Editor terminated with non-zero exit code: ${exec.code}`)
+        }
     } catch (e) {
         throw `:editor failed: ${e}`
     } finally {
