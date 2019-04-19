@@ -250,11 +250,14 @@ export async function editor(file: string, line: number, col: number, content?: 
             : config.get("editorcmd"))
         .replace(/%l/, line)
         .replace(/%c/, col)
+    let exec
     if (editorcmd.indexOf("%f") !== -1) {
-        await run(editorcmd.replace(/%f/, file))
+        exec = await run(editorcmd.replace(/%f/, file))
     } else {
-        await run(editorcmd + " " + file)
+        exec = await run(editorcmd + " " + file)
     }
+    if (exec.code != 0)
+        return exec
     return read(file)
 }
 
