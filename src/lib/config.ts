@@ -771,6 +771,16 @@ class default_config {
     updatenaglastversion = "1.14.0"
 
     /**
+     * Time we last checked for an update, milliseconds since unix epoch.
+     */
+    updatelastcheck = 0
+
+    /**
+     * Minimum interval between automatic update checks, in seconds.
+     */
+    updatecheckintervalsecs = 60 * 60 * 24
+
+    /**
      * Profile directory to use with native messenger with e.g, `guiset`.
      */
     profiledir = "auto"

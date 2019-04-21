@@ -84,6 +84,7 @@ import * as keyseq from "@src/lib/keyseq"
 import * as native from "@src/lib/native"
 import * as styling from "@src/content/styling"
 import { EditorCmds as editor } from "@src/content/editor"
+import * as updates from "@src/lib/updates"
 /* tslint:disable:import-spacing */
 ; (window as any).tri = Object.assign(Object.create(null), {
     browserBg: webext.browserBg,
@@ -107,6 +108,7 @@ import { EditorCmds as editor } from "@src/content/editor"
     styling,
     contentLocation: window.location,
     perf,
+    updates,
 })
 
 logger.info("Loaded commandline content?", commandline_content)
