@@ -24,6 +24,16 @@ import {
     addContentStateChangedListener,
 } from "@src/content/state_content"
 
+// Set up our controller to execute content-mode excmds. All code
+// running from this entry point, which is to say, everything in the
+// content script, will use the excmds that we give to the module
+// here.
+import * as controller from "@src/lib/controller"
+import * as excmds_content from "@src/.excmds_content.generated"
+controller.setExCmds(excmds_content)
+messaging.addListener("excmd_content", messaging.attributeCaller(excmds_content))
+messaging.addListener("controller_content", messaging.attributeCaller(controller))
+
 // Hook the keyboard up to the controller
 import * as ContentController from "@src/content/controller_content"
 import { getAllDocumentFrames } from "@src/lib/dom"

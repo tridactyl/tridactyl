@@ -1,7 +1,7 @@
 import { isTextEditable } from "@src/lib/dom"
 import { contentState, ModeName } from "@src/content/state_content"
 import Logger from "@src/lib/logging"
-import * as messaging from "@src/lib/messaging"
+import * as controller from "@src/lib/controller"
 
 import * as hinting from "@src/content/hinting"
 import * as gobblemode from "@src/parsers/gobblemode"
@@ -164,7 +164,7 @@ function* ParserController() {
                     logger.debug("suffix: ", contentState.suffix)
                 }
             }
-            acceptExCmd(exstr)
+            controller.acceptExCmd(exstr)
             contentState.suffix = ""
         } catch (e) {
             // Rumsfeldian errors are caught here
@@ -179,9 +179,4 @@ generator.next()
 /** Feed keys to the ParserController */
 export function acceptKey(keyevent: KeyboardEvent) {
     return generator.next(keyevent)
-}
-
-/** Parse and execute ExCmds */
-export async function acceptExCmd(exstr: string): Promise<any> {
-    messaging.message("controller_background", "acceptExCmd", [exstr])
 }

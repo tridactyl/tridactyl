@@ -79,12 +79,34 @@ import * as config from "@src/lib/config"
 import * as aliases from "@src/lib/aliases"
 import * as Logging from "@src/lib/logging"
 import { AutoContain } from "@src/lib/autocontainers"
-/** @hidden */
-const logger = new Logging.Logger("excmds")
 import * as CSS from "css"
 import * as Perf from "@src/perf"
 import * as Metadata from "@src/.metadata.generated"
 import * as Native from "@src/lib/native"
+import * as TTS from "@src/lib/text_to_speech"
+import * as excmd_parser from "@src/parsers/exmode"
+
+/**
+  * This is used to drive some excmd handling in `composite`.
+  *
+  * @hidden
+  */
+let SELF
+
+// The entry-point script will make sure this has the right set of
+// excmds, so we can use it without futher configuration.
+import * as controller from "@src/lib/controller"
+
+/**
+ * Used to store the types of the parameters for each excmd for
+ * self-documenting functionality.
+ *
+ * @hidden
+ */
+export const cmd_params = new Map<string, Map<string, string>>()
+
+/** @hidden */
+const logger = new Logging.Logger("excmds")
 
 /** @hidden **/
 const TRI_VERSION = "REPLACE_ME_WITH_THE_VERSION_USING_SED"
@@ -92,30 +114,36 @@ const TRI_VERSION = "REPLACE_ME_WITH_THE_VERSION_USING_SED"
 //#content_helper
 // {
 import "@src/lib/number.clamp"
-import * as SELF from "@src/.excmds_content.generated"
-Messaging.addListener("excmd_content", Messaging.attributeCaller(SELF))
+import * as CTSELF from "@src/.excmds_content.generated"
+SELF = CTSELF
 import * as DOM from "@src/lib/dom"
 import * as CommandLineContent from "@src/content/commandline_content"
 import * as scrolling from "@src/content/scrolling"
 import { ownTab } from "@src/lib/webext"
 import { wrap_input, getLineAndColNumber } from "@src/lib/editor_utils"
+import * as finding from "@src/content/finding"
+import * as toys from "./content/toys"
+import * as hinting from "@src/content/hinting"
+import * as gobbleMode from "@src/parsers/gobblemode"
 // }
 
 //#background_helper
 // {
-/** Message excmds_content.ts in the active tab of the currentWindow */
+
+// tslint:disable-next-line:no-unused-declaration
+import "@src/lib/number.mod"
+
+import * as BGSELF from "@src/.excmds_background.generated"
+SELF = BGSELF
 import { messageActiveTab } from "@src/lib/messaging"
 import { EditorCmds } from "@src/background/editor"
-/* tslint:disable:no-unused-declaration */
 import { flatten } from "@src/lib/itertools"
-import "@src/lib/number.mod"
 import { firefoxVersionAtLeast } from "@src/lib/webext"
 import * as rc from "@src/background/config_rc"
-import * as excmd_parser from "@src/parsers/exmode"
 import { mapstrToKeyseq } from "@src/lib/keyseq"
+import * as css_util from "@src/lib/css_util"
 
 /** @hidden */
-export const cmd_params = new Map<string, Map<string, string>>()
 // }
 
 // }}}
@@ -190,7 +218,8 @@ export async function rssexec(url: string, type?: string, ...title: string[]) {
     } else {
         rsscmd += " " + url
     }
-    return Messaging.message("controller_background", "acceptExCmd", [rsscmd])
+    // Need actual excmd parsing here.
+    return controller.acceptExCmd(rsscmd)
 }
 
 /**
@@ -301,9 +330,6 @@ export async function editor() {
         removeTridactylEditorClass(selector)
     }
 }
-
-//#background_helper
-import * as css_util from "@src/lib/css_util"
 
 /**
  * Like [[guiset]] but quieter.
@@ -923,9 +949,6 @@ export function scrollpage(n = 1) {
     scrollpx(0, window.innerHeight * n)
 }
 
-//#content_helper
-import * as finding from "@src/content/finding"
-
 /**
  *  Rudimentary find mode, left unbound by default as we don't currently support `incsearch`. Suggested binds:
  *
@@ -1056,7 +1079,7 @@ export async function open(...urlarr: string[]) {
     // Setting window.location to about:blank results in a page we can't access, tabs.update works.
     if (!ABOUT_WHITELIST.includes(url) && url.match(/^(about|file):.*/)) {
         // Open URLs that firefox won't let us by running `firefox <URL>` on the command line
-        p = Messaging.message("controller_background", "acceptExCmd", ["nativeopen " + url])
+        p = nativeopen(url)
     } else if (url.match(/^javascript:/)) {
         const bookmarklet = url.replace(/^javascript:/, "")
         ; (document.body as any).append(
@@ -1093,7 +1116,7 @@ export async function open_quiet(...urlarr: string[]) {
     const url = urlarr.join(" ")
 
     if (!ABOUT_WHITELIST.includes(url) && url.match(/^(about|file):.*/)) {
-        return Messaging.message("controller_background", "acceptExCmd", ["nativeopen " + url])
+        return nativeopen(url)
     }
 
     return ownTab().then(tab => openInTab(tab, { loadReplace: true }, urlarr))
@@ -1322,9 +1345,6 @@ export async function credits(excmd?: string) {
     const creditspage = browser.extension.getURL("static/authors.html")
     tabopen(creditspage)
 }
-
-//#content_helper
-import * as toys from "./content/toys"
 
 /**
  * Cover the current page in an overlay to prevent clicking on links with the mouse to force yourself to use hint mode. Get rid of it by reloading the page.
@@ -1665,7 +1685,7 @@ export async function loadaucmds(cmdType: "DocStart" | "DocLoad" | "DocEnd" | "T
     const ausites = Object.keys(aucmds)
     const aukeyarr = ausites.filter(e => window.document.location.href.search(e) >= 0)
     for (const aukey of aukeyarr) {
-        Messaging.message("controller_background", "acceptExCmd", [aucmds[aukey]])
+        controller.acceptExCmd(aucmds[aukey])
     }
 }
 
@@ -2489,7 +2509,7 @@ async function getnexttabs(tabid: number, n?: number) {
 // Consider adding to buffers with incremental search
 //      maybe only if no other results in URL etc?
 // Find out how to return context of each result
-//#background
+// //#background
 /* export async function findintabs(query: string) { */
 /*     const tabs = await browser.tabs.query({currentWindow: true}) */
 /*     console.log(query) */
@@ -2511,19 +2531,26 @@ async function getnexttabs(tabid: number, n?: number) {
 
 // {{{ CMDLINE
 
-//#background_helper
-import * as controller from "@src/background/controller_background"
-
 /** Repeats a `cmd` `n` times.
-    Falls back to the last executed command if `cmd` doesn't exist.
+    If `cmd` doesn't exist, re-executes the last command.
     Executes the command once if `n` isn't defined either.
+
+    Note that "the last command" is a strange definition that depends
+    on some internal details of tridactyl. In general, `:repeat`
+    executed in the context of a tab will re-execute the last command
+    that was executed in that tab. However, many commands that touch
+    global state (for example, `:tabprev`) are also partially executed
+    in a global context, and if you manage to execute `:repeat` in
+    that global context it will repeat the last such global command.
 */
-//#background
+//#both
 export function repeat(n = 1, ...exstr: string[]) {
     let cmd = controller.last_ex_str
     if (exstr.length > 0) cmd = exstr.join(" ")
     logger.debug("repeating " + cmd + " " + n + " times")
-    for (let i = 0; i < n; i++) controller.acceptExCmd(cmd)
+    for (let i = 0; i < n; i++) {
+        controller.acceptExCmd(cmd)
+    }
 }
 
 /**
@@ -2537,7 +2564,7 @@ export function repeat(n = 1, ...exstr: string[]) {
  *
  * The behaviour of combining ; and | in the same composite command is left as an exercise for the reader.
  */
-//#background
+//#both
 export async function composite(...cmds: string[]) {
     try {
         return (
@@ -2553,13 +2580,20 @@ export async function composite(...cmds: string[]) {
                         await prev_pipeline
                         const cmds = cmd.split("|")
 
-                        // Compute the first piped value
-                        const [fn, args] = excmd_parser.parser(cmds[0])
+                        // Compute the first piped value.
+                        //
+                        // We could invoke controller.acceptExCmd, but
+                        // that would cause our pipeline section to be
+                        // stored as the last executed command for the
+                        // purposes of :repeat, which would be
+                        // nonsense. So we copy-paste the important
+                        // parts of the body of that function instead.
+                        const [fn, args] = excmd_parser.parser(cmds[0], SELF)
                         const first_value = fn.call({}, ...args)
 
                         // Exec the rest of the pipe in sequence.
                         return cmds.slice(1).reduce(async (pipedValue, cmd) => {
-                            const [fn, args] = excmd_parser.parser(cmd)
+                            const [fn, args] = excmd_parser.parser(cmd, SELF)
                             return fn.call({}, ...args, await pipedValue)
                         }, first_value)
                     },
@@ -2574,7 +2608,7 @@ export async function composite(...cmds: string[]) {
 /** Sleep time_ms milliseconds.
  *  This is probably only useful for composite commands that need to wait until the previous asynchronous command has finished running.
  */
-//#background
+//#both
 export async function sleep(time_ms: number) {
     await new Promise(resolve => setTimeout(resolve, time_ms))
 }
@@ -3458,9 +3492,6 @@ export function unset(...keys: string[]) {
 
 // {{{ HINTMODE
 
-//#content_helper
-import * as hinting from "@src/content/hinting"
-
 /** Hint a page.
 
     @param option
@@ -3813,9 +3844,6 @@ export function run_exstr(...commands: string[]) {
 
 // {{{ GOBBLE mode
 
-//#content_helper
-import * as gobbleMode from "@src/parsers/gobblemode"
-
 /** Initialize gobble mode.
 
     It will read `nChars` input keys, append them to `endCmd` and execute that
@@ -3830,8 +3858,6 @@ export async function gobble(nChars: number, endCmd: string) {
 // }}}
 
 // {{{TEXT TO SPEECH
-
-import * as TTS from "@src/lib/text_to_speech"
 
 /**
  * Read text content of elements matching the given selector
@@ -4070,7 +4096,7 @@ export async function jsb(...str: string[]) {
 export async function issue() {
     const newIssueUrl = "https://github.com/tridactyl/tridactyl/issues/new"
     if (window.location.href !== newIssueUrl) {
-        return Messaging.message("controller_background", "acceptExCmd", ["tabopen " + newIssueUrl])
+        return tabopen(newIssueUrl)
     }
     const textarea = document.getElementById("issue_body")
     if (!(textarea instanceof HTMLTextAreaElement)) {

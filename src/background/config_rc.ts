@@ -1,4 +1,4 @@
-import * as Controller from "@src/background/controller_background"
+import * as controller from "@src/lib/controller"
 import * as Native from "@src/lib/native"
 
 export async function source(filename = "auto") {
@@ -15,7 +15,7 @@ export async function source(filename = "auto") {
 
 export async function runRc(rc: string) {
     for (const cmd of rcFileToExCmds(rc)) {
-        await Controller.acceptExCmd(cmd)
+        await controller.acceptExCmd(cmd)
     }
 }
 

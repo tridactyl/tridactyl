@@ -2,7 +2,6 @@
 
 import { CmdlineCmds } from "@src/background/commandline_cmds"
 import { EditorCmds } from "@src/background/editor"
-import * as ExCmds from "@src/.excmds_background.generated"
 import * as convert from "@src/lib/convert"
 import * as aliases from "@src/lib/aliases"
 import * as Logging from "@src/lib/logging"
@@ -49,16 +48,16 @@ function convertArgs(params, argv) {
 // TODO: Quoting arguments
 // TODO: Pipe to separate commands
 // TODO: Abbreviated commands
-export function parser(exstr: string): any[] {
+export function parser(exstr: string, excmds: any): any[] {
     // Expand aliases
     const expandedExstr = aliases.expandExstr(exstr)
     const [func, ...args] = expandedExstr.trim().split(/\s+/)
 
-    if (ExCmds.cmd_params.has(func)) {
+    if (excmds.cmd_params.has(func)) {
         try {
             return [
-                ExCmds[func],
-                convertArgs(ExCmds.cmd_params.get(func), args),
+                excmds[func],
+                convertArgs(excmds.cmd_params.get(func), args),
             ]
         } catch (e) {
             logger.error("Error executing or parsing:", exstr, e)

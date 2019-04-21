@@ -1,13 +1,14 @@
 /** Background script entry point. */
 
-import * as BackgroundController from "@src/background/controller_background"
+/* tslint:disable:import-spacing */
+
 import "@src/lib/browser_proxy_background"
 
-// Add various useful modules to the window for debugging
+import * as controller from "@src/lib/controller"
 import * as perf from "@src/perf"
 import { listenForCounters } from "@src/perf"
 import * as messaging from "@src/lib/messaging"
-import * as excmds from "@src/.excmds_background.generated"
+import * as excmds_background from "@src/.excmds_background.generated"
 import * as convert from "@src/lib/convert"
 import * as config from "@src/lib/config"
 import * as dom from "@src/lib/dom"
@@ -20,10 +21,11 @@ import state from "@src/state"
 import * as webext from "@src/lib/webext"
 import { AutoContain } from "@src/lib/autocontainers"
 import * as extension_info from "@src/lib/extension_info"
-/* tslint:disable:import-spacing */
+
+// Add various useful modules to the window for debugging
 ; (window as any).tri = Object.assign(Object.create(null), {
     messaging,
-    excmds,
+    excmds: excmds_background,
     convert,
     config,
     dom,
@@ -38,6 +40,14 @@ import * as extension_info from "@src/lib/extension_info"
     contentLocation: window.location,
     perf,
 })
+
+// Set up our controller to execute background-mode excmds. All code
+// running from this entry point, which is to say, everything in the
+// background script, will use the excmds that we give to the module
+// here.
+controller.setExCmds(excmds_background)
+messaging.addListener("excmd_background", messaging.attributeCaller(excmds_background))
+messaging.addListener("controller_background", messaging.attributeCaller(controller))
 
 // {{{ tri.contentLocation
 // When loading the background, use the active tab to know what the current content url is
@@ -93,12 +103,12 @@ browser.runtime.onStartup.addListener(_ => {
         const hosts = Object.keys(aucmds)
         // If there's only one rule and it's "all", no need to check the hostname
         if (hosts.length === 1 && hosts[0] === ".*") {
-            BackgroundController.acceptExCmd(aucmds[hosts[0]])
+            controller.acceptExCmd(aucmds[hosts[0]])
         } else {
             native.run("hostname").then(hostname => {
                 for (const host of hosts) {
                     if (hostname.content.match(host)) {
-                        BackgroundController.acceptExCmd(aucmds[host])
+                        controller.acceptExCmd(aucmds[host])
                     }
                 }
             })
@@ -109,17 +119,24 @@ browser.runtime.onStartup.addListener(_ => {
 // Nag people about updates.
 // Hope that they're on a tab we can access.
 config.getAsync("updatenag").then(nag => {
-    if (nag === true) excmds.updatecheck(true)
+    if (nag === true) excmds_background.updatecheck(true)
 })
 
 // }}}
 
 // {{{ AUTOCOMMANDS
+
+// We could use ev.previousTabId here, but that field is empty when a
+// tab is closed, and we do want to run "TabLeft" commands when that
+// happens. Instead, we assume that the user can only be in one tab at
+// a time and the last tab we entered has to be the one we're leaving.
 let curTab = null
 browser.tabs.onActivated.addListener(ev => {
     const ignore = _ => _
     if (curTab !== null) {
-        // messaging.messageTab failing can happen when leaving privileged tabs (e.g. about:addons)
+        // messaging.messageTab failing can happen when leaving
+        // privileged tabs (e.g. about:addons) or when the tab is
+        // being closed.
         messaging
             .messageTab(curTab, "excmd_content", "loadaucmds", ["TabLeft"])
             .catch(ignore)
