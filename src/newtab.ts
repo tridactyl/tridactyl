@@ -1,5 +1,6 @@
 // This file is only included in newtab.html, after content.js has been loaded
 
+import * as Messaging from "@src/lib/messaging"
 import * as config from "@src/lib/config"
 
 // These functions work with the elements created by tridactyl/scripts/newtab.md.sh
@@ -41,4 +42,11 @@ window.addEventListener("load", _ => {
             window.focus()
         }
     })
+})
+
+// Periodically nag people about updates.
+window.addEventListener("load", _ => {
+    if (config.get("updatenag") === true) {
+        Messaging.message("controller_background", "acceptExCmd", ["updatecheck auto_polite"])
+    }
 })
