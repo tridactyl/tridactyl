@@ -24,7 +24,7 @@ interface TriVersionFeedItem {
 let highestKnownVersion: TriVersionFeedItem
 
 function secondsSinceLastCheck() {
-    const lastCheck = Config.get("lastupdatecheck")
+    const lastCheck = Config.get("update", "lastchecktime")
     return (Date.now() - lastCheck) / 1000
 }
 
@@ -32,7 +32,7 @@ function secondsSinceLastCheck() {
 // immediately if we've already recently checked for an update, so it
 // should be safe to invoke it relatively frequently.
 export async function getLatestVersion(force_check = false) {
-    const pastUpdateInterval = secondsSinceLastCheck() > Config.get("updatecheckintervalsecs")
+    const pastUpdateInterval = secondsSinceLastCheck() > Config.get("update", "checkintervalsecs")
     if (force_check || pastUpdateInterval) {
         await updateVersion()
     }
@@ -49,7 +49,7 @@ async function updateVersion() {
         const mostRecent = feed.items[0]
 
         // Update our last update check timestamp and the version itself.
-        Config.set("updatelastcheck", Date.now())
+        Config.set("update", "lastchecktime", Date.now())
         highestKnownVersion = {
             version: mostRecent.title,
             releaseDate: new Date(mostRecent.pubDate), // e.g. 2018-12-04T15:24:43.000Z
@@ -62,14 +62,14 @@ async function updateVersion() {
 
 export function shouldNagForVersion(version: TriVersionFeedItem) {
     const timeSinceRelease = (Date.now() - version.releaseDate.getTime()) / 1000
-    const updateNagWaitSeconds = Config.get("updatenagwait") * 24 * 60 * 60
+    const updateNagWaitSeconds = Config.get("update", "nagwait") * 24 * 60 * 60
     const newerThanInstalled = SemverCompare(version.version, getInstalledPatchVersion()) > 0
 
     return newerThanInstalled && timeSinceRelease > updateNagWaitSeconds
 }
 
 export function naggedForVersion(version: TriVersionFeedItem) {
-    const lastNaggedVersion = Config.get("updatenaglastversion")
+    const lastNaggedVersion = Config.get("update", "lastnaggedversion")
     if (lastNaggedVersion) {
         // If the version is <= the last nagged version, we've already
         // nagged for it.
@@ -80,7 +80,7 @@ export function naggedForVersion(version: TriVersionFeedItem) {
 }
 
 export function updateLatestNaggedVersion(version: TriVersionFeedItem) {
-    Config.set("updatenaglastversion", version.version)
+    Config.set("update", "lastnaggedversion", version.version)
 }
 
 export function getInstalledPatchVersion() {

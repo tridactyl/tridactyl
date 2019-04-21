@@ -4130,8 +4130,9 @@ export async function issue() {
  *
  * Related settings:
  *
- * - `updatenag = true | false` - checks for updates on Tridactyl start.
- * - `updatenagwait = 7` - waits 7 days before nagging you to update.
+ * - `update.nag = true | false` - checks for updates on Tridactyl start.
+ * - `update.nagwait = 7` - waits 7 days before nagging you to update.
+ * - `update.checkintervalsecs = 86400` - waits 24 hours between checking for an update.
  *
  */
 //#background
