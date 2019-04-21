@@ -2532,16 +2532,13 @@ async function getnexttabs(tabid: number, n?: number) {
 // {{{ CMDLINE
 
 /** Repeats a `cmd` `n` times.
-    If `cmd` doesn't exist, re-executes the last command.
+    If `cmd` doesn't exist, re-executes the last exstr that was executed in the tab.
     Executes the command once if `n` isn't defined either.
 
-    Note that "the last command" is a strange definition that depends
-    on some internal details of tridactyl. In general, `:repeat`
-    executed in the context of a tab will re-execute the last command
-    that was executed in that tab. However, many commands that touch
-    global state (for example, `:tabprev`) are also partially executed
-    in a global context, and if you manage to execute `:repeat` in
-    that global context it will repeat the last such global command.
+    This re-executes the last *exstr*, not the last *excmd*. Some excmds operate internally by constructing and evaluating exstrs, others by directly invoking excmds without going through the exstr parser. For example, aucmds and keybindings evaluate exstrs and are repeatable, while commands like `:bmarks` directly invoke `:tabopen` and you'll repeat the `:bmarks` rather than the internal `:tabopen`.
+
+    It's difficult to execute this in the background script (`:jsb`, `:run_excmd`, `:autocmd TriStart`, `:source`), but if you you do, it will re-execute the last exstr that was executed in the background script. What this may have been is unpredictable and not precisely encouraged.
+
 */
 //#both
 export function repeat(n = 1, ...exstr: string[]) {
