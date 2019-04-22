@@ -215,6 +215,13 @@ config.addChangeListener("autocmds", (previous, current) =>
     ),
 )
 
+// DownloadPost autocommand
+browser.downloads.onChanged.addListener((ev: any) => {
+    if (ev.state && ev.state.current === "complete") {
+        messaging
+            .messageActiveTab("excmd_content", "loadaucmds", ["DownloadPost"])
+    }
+})
 // }}}
 
 // {{{ AUTOCONTAINERS
