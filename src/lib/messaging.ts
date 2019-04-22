@@ -3,9 +3,11 @@ import Logger from "@src/lib/logging"
 const logger = new Logger("messaging")
 
 export type TabMessageType =
+    | "editorfn_content"
     | "excmd_content"
     | "commandline_content"
     | "finding_content"
+    | "commandline_cmd"
     | "commandline_frame"
 export type NonTabMessageType =
     | "owntab_background"

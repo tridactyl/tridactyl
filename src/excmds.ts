@@ -85,7 +85,6 @@ import * as CSS from "css"
 import * as Perf from "@src/perf"
 import * as Metadata from "@src/.metadata.generated"
 import * as Native from "@src/lib/native"
-import * as tri_editor from "@src/lib/editor"
 
 /** @hidden **/
 const TRI_VERSION = "REPLACE_ME_WITH_THE_VERSION_USING_SED"
@@ -99,13 +98,14 @@ import * as DOM from "@src/lib/dom"
 import * as CommandLineContent from "@src/content/commandline_content"
 import * as scrolling from "@src/content/scrolling"
 import { ownTab } from "@src/lib/webext"
+import { wrap_input, getLineAndColNumber } from "@src/lib/editor_utils"
 // }
 
 //#background_helper
 // {
 /** Message excmds_content.ts in the active tab of the currentWindow */
-import * as BGSELF from "@src/.excmds_background.generated"
 import { messageActiveTab } from "@src/lib/messaging"
+import { EditorCmds } from "@src/background/editor"
 /* tslint:disable:no-unused-declaration */
 import { flatten } from "@src/lib/itertools"
 import "@src/lib/number.mod"
@@ -281,8 +281,8 @@ export async function editor() {
         let text = ""
         let line = 0
         let col = 0
-        tri_editor.wrap_input((t, start, end) => {
-            [text, line, col] = tri_editor.getLineAndColNumber(t, start, end)
+        wrap_input((t, start, end) => {
+            [text, line, col] = getLineAndColNumber(t, start, end)
             return [null, null, null]
         })(elem)
         const file = (await Native.temp(text, document.location.hostname)).content
@@ -2637,48 +2637,6 @@ export async function fillcmdline_tmp(ms: number, ...strarr: string[]) {
     )
 }
 
-/** @hidden **/
-const cmdframe_fns: { [key: string]: [string, any[]] } = {
-    accept_line: ["accept_line", []],
-    complete: ["complete", []],
-    deselect_completion: ["deselect_completion", []],
-    hide_and_clear: ["hide_and_clear", []],
-    insert_completion: ["insert_completion", []],
-    insert_space_or_completion: ["insert_space_or_completion", []],
-    next_completion: ["next_completion", []],
-    next_history: ["next_history", []],
-    prev_completion: ["prev_completion", []],
-    prev_history: ["prev_history", []],
-}
-
-//#content_helper
-// {
-for (const editorfn of Object.keys(tri_editor)) {
-    // Re-expose every editor function as a text.$fn excmd that will forward the call to $fn to the commandline frame if it is selected or apply $fn to the last used input if it isn't
-    SELF["text." + editorfn] = arg => {
-        if ((document.activeElement as any).src === browser.extension.getURL("static/commandline.html")) return Messaging.messageOwnTab("commandline_frame", "editor_function", [editorfn].concat(arg))
-        return tri_editor[editorfn](DOM.getLastUsedInput(), arg)
-    }
-}
-for (const fn of Object.keys(cmdframe_fns)) {
-    SELF["ex." + fn] = (...args) => (Messaging.messageOwnTab as any)("commandline_frame", cmdframe_fns[fn][0], cmdframe_fns[fn][1].concat(args))
-}
-
-// }
-
-//#background_helper
-// {
-for (const editorfn of Object.keys(tri_editor)) {
-    const name = "text." + editorfn
-    cmd_params.set(name, new Map([["arr", "string[]"]]))
-    BGSELF[name] = (...args) => messageActiveTab("excmd_content", name, args)
-}
-for (const fn of Object.keys(cmdframe_fns)) {
-    cmd_params.set("ex." + fn, new Map(cmdframe_fns[fn][1].map((a, i) => [`${i}`, typeof a] as [string, string])))
-    BGSELF["ex." + fn] = (...args) => messageActiveTab("commandline_frame", cmdframe_fns[fn][0], cmdframe_fns[fn][1].concat(args))
-}
-// }
-
 /**
  * Returns the current URL. For use with [[composite]].
  */
@@ -2814,7 +2772,7 @@ export async function clipboard(excmd: "open" | "yank" | "yankshort" | "yankcano
         case "xselpaste":
             content = await getclip("selection")
             if (content.length > 0) {
-                BGSELF["text.insert_text"](content)
+                EditorCmds.insert_text(content)
             }
             break
         default:

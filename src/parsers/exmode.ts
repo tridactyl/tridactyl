@@ -1,10 +1,13 @@
 /** Ex Mode (AKA cmd mode) */
 
+import { CmdlineCmds } from "@src/background/commandline_cmds"
+import { EditorCmds } from "@src/background/editor"
 import * as ExCmds from "@src/.excmds_background.generated"
 import * as convert from "@src/lib/convert"
 import * as aliases from "@src/lib/aliases"
 import * as Logging from "@src/lib/logging"
 import { enumerate, izip } from "@src/lib/itertools"
+
 const logger = new Logging.Logger("exmode")
 
 /* Converts numbers, boolean, string[].
@@ -62,6 +65,17 @@ export function parser(exstr: string): any[] {
             throw e
         }
     } else {
+        const match = func.match("^\([^.]+\)\.\(.*\)")
+        if (match !== undefined) {
+            const [namespce, name] = match.slice(1)
+            const funcs = ({
+                "text": EditorCmds,
+                "ex": CmdlineCmds,
+            })[namespce]
+            if (funcs !== undefined) {
+                return [funcs[name] , args]
+            }
+        }
         logger.error("Not an excmd:", exstr)
         throw `Not an excmd: ${func}`
     }

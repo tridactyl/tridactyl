@@ -73,6 +73,7 @@ import * as perf from "@src/perf"
 import * as keyseq from "@src/lib/keyseq"
 import * as native from "@src/lib/native"
 import * as styling from "@src/content/styling"
+import { EditorCmds as editor } from "@src/content/editor"
 /* tslint:disable:import-spacing */
 ; (window as any).tri = Object.assign(Object.create(null), {
     browserBg: webext.browserBg,
@@ -80,6 +81,7 @@ import * as styling from "@src/content/styling"
     convert,
     config,
     dom,
+    editor,
     excmds,
     finding_content,
     hinting_content,
