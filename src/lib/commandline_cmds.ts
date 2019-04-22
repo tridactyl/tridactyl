@@ -1,4 +1,4 @@
-import { messageOwnTab, message } from "@src/lib/messaging"
+import { messageOwnTab } from "@src/lib/messaging"
 
 export function getCommandlineFns(cmdline_state) {
     return {
@@ -125,7 +125,15 @@ export function getCommandlineFns(cmdline_state) {
             }
             cmdline_state.cmdline_history_position = 0
 
-            return message("controller_background", "acceptExCmd", [command])
+            // Send excmds directly to our own tab, which fixes the
+            // old bug where a command would be issued in one tab but
+            // land in another because the active tab had
+            // changed. Background-mode excmds will be received by the
+            // own tab's content script and then bounced through a
+            // shim to the background, but the latency increase should
+            // be acceptable becuase the background-mode excmds tend
+            // to be a touch less latency-sensitive.
+            return messageOwnTab("controller_content", "acceptExCmd", [command])
         },
     }
 }
