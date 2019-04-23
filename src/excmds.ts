@@ -3221,7 +3221,6 @@ export function autocontain(domain: string, container: string) {
     config.set("autocontain", domain, container)
 }
 
-
 /**
  *  Helper function to put Tridactyl into ignore mode on the provided URL.
  *
