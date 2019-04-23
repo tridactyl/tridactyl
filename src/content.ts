@@ -30,7 +30,13 @@ import {
 // here.
 import * as controller from "@src/lib/controller"
 import * as excmds_content from "@src/.excmds_content.generated"
-controller.setExCmds(excmds_content)
+import { CmdlineCmds } from "@src/content/commandline_cmds"
+import { EditorCmds } from "@src/content/editor"
+controller.setExCmds({
+    "": excmds_content,
+    "ex": CmdlineCmds,
+    "text": EditorCmds
+})
 messaging.addListener("excmd_content", messaging.attributeCaller(excmds_content))
 messaging.addListener("controller_content", messaging.attributeCaller(controller))
 
