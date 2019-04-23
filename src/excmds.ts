@@ -142,6 +142,7 @@ import { firefoxVersionAtLeast } from "@src/lib/webext"
 import * as rc from "@src/background/config_rc"
 import { mapstrToKeyseq } from "@src/lib/keyseq"
 import * as css_util from "@src/lib/css_util"
+import * as Updates from "@src/lib/updates"
 
 /** @hidden */
 // }
@@ -4124,39 +4125,51 @@ export async function issue() {
     textarea.value = template
 }
 
-//#background_helper
-import * as Parser from "rss-parser"
-import * as semverCompare from "semver-compare"
-
 /**
  * Checks if there are any stable updates available for Tridactyl.
  *
  * Related settings:
  *
- * - `updatenag = true | false` - checks for updates on Tridactyl start.
- * - `updatenagwait = 7` - waits 7 days before nagging you to update.
+ * - `update.nag = true | false` - checks for updates on Tridactyl start.
+ * - `update.nagwait = 7` - waits 7 days before nagging you to update.
+ * - `update.checkintervalsecs = 86400` - waits 24 hours between checking for an update.
  *
  */
 //#background
-export async function updatecheck(polite = false) {
-    try {
-        // If any monster any makes a novelty tag this will break.
-        // So let's just ignore any errors.
-        const parser = new Parser()
-        const feed = await parser.parseURL("https://github.com/tridactyl/tridactyl/tags.atom")
-        const latest = feed.items[0].title
-        const current = TRI_VERSION.replace(/-.*/, "")
-        if (semverCompare(latest, current) > 0) {
-            const releasedate = new Date(feed.items[0].pubDate) // e.g. 2018-12-04T15:24:43.000Z
-            const today = new Date()
-            // any here are to shut up TS - it doesn't think Dates have subtraction defined :S
-            const days_since = ((today as any) - (releasedate as any)) / (1000 * 60 * 60 * 24)
-            if (!polite || (days_since > config.get("updatenagwait") && semverCompare(latest, config.get("updatenaglastversion")) > 0)) {
-                config.set("updatenaglastversion", latest)
-                fillcmdline_tmp(30000, "Tridactyl " + latest + " is available. Visit about:addons, right click Tridactyl, click 'Find Updates'. Restart Firefox once it has downloaded.")
-            }
+export async function updatecheck(source: "manual" | "auto_polite" | "auto_impolite" = "manual") {
+    const forceCheck = source == "manual"
+    const highestKnownVersion = await Updates.getLatestVersion(forceCheck)
+    if (!highestKnownVersion) {
+        return false
+    }
+
+    if (!Updates.shouldNagForVersion(highestKnownVersion)) {
+        if (source == "manual") {
+            fillcmdline_tmp(30000, "You're up to date! Tridactyl version " + highestKnownVersion.version + ".")
         }
-    } catch (e) {}
+        return false
+    }
+
+    const notify = () => {
+        fillcmdline_tmp(30000, "Tridactyl " + highestKnownVersion.version + " is available (you're on " + Updates.getInstalledVersion() + "). Visit about:addons, right click Tridactyl, click 'Find Updates'. Restart Firefox once it has downloaded.")
+    }
+
+    // A bit verbose, but I figured it was important to have the logic
+    // right when it comes to automatically nagging users about the
+    // version they're on.
+    if (source == "manual") {
+        notify()
+    } else if (source == "auto_impolite") {
+        logger.debug("Impolitely nagging user to update. Installed, latest: ",
+                     Updates.getInstalledVersion(), highestKnownVersion)
+        notify()
+        Updates.updateLatestNaggedVersion(highestKnownVersion)
+    } else if (source == "auto_polite" && !Updates.naggedForVersion(highestKnownVersion)) {
+        logger.debug("Politely nagging user to update. Installed, latest: ",
+                     Updates.getInstalledVersion(), highestKnownVersion)
+        notify()
+        Updates.updateLatestNaggedVersion(highestKnownVersion)
+    }
 }
 
 /**  Open a welcome page on first install.

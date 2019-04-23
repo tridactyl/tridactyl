@@ -756,19 +756,34 @@ class default_config {
     win_nativeinstallcmd = `powershell -NoProfile -InputFormat None -Command "Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/cmcaine/tridactyl/master/native/win_install.ps1'))"`
 
     /**
-     * Whether Tridactyl should check for available updates at startup.
+     * Used by :updatecheck and related built-in functionality to automatically check for updates and prompt users to upgrade.
      */
-    updatenag = true
+    update = {
+        /**
+         * Whether Tridactyl should check for available updates at startup.
+         */
+        nag: true,
 
-    /**
-     * How many days to wait after an update is first available until telling people.
-     */
-    updatenagwait = 7
+        /**
+         * How many days to wait after an update is first available until telling people.
+         */
+        nagwait: 7,
 
-    /**
-     * The version we last nagged you about. We only nag you once per version.
-     */
-    updatenaglastversion = "1.14.0"
+        /**
+         * The version we last nagged you about. We only nag you once per version.
+         */
+        lastnaggedversion: "1.14.0",
+
+        /**
+         * Time we last checked for an update, milliseconds since unix epoch.
+         */
+        lastchecktime: 0,
+
+        /**
+         * Minimum interval between automatic update checks, in seconds.
+         */
+        checkintervalsecs: 60 * 60 * 24,
+    }
 
     /**
      * Profile directory to use with native messenger with e.g, `guiset`.
