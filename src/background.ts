@@ -9,6 +9,8 @@ import * as perf from "@src/perf"
 import { listenForCounters } from "@src/perf"
 import * as messaging from "@src/lib/messaging"
 import * as excmds_background from "@src/.excmds_background.generated"
+import { CmdlineCmds } from "@src/background/commandline_cmds"
+import { EditorCmds } from "@src/background/editor"
 import * as convert from "@src/lib/convert"
 import * as config from "@src/lib/config"
 import * as dom from "@src/lib/dom"
@@ -45,7 +47,11 @@ import * as extension_info from "@src/lib/extension_info"
 // running from this entry point, which is to say, everything in the
 // background script, will use the excmds that we give to the module
 // here.
-controller.setExCmds(excmds_background)
+controller.setExCmds({
+    "": excmds_background,
+    "ex": CmdlineCmds,
+    "text": EditorCmds
+})
 messaging.addListener("excmd_background", messaging.attributeCaller(excmds_background))
 messaging.addListener("controller_background", messaging.attributeCaller(controller))
 
