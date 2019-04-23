@@ -1678,13 +1678,32 @@ if (fullscreenApiIsPrefixed) {
 }
 // }
 
+/** Expands all occurrences of "<.*>" to matching args.
+   @hidden
+ */
+
+//#content_helper
+export function parseaucmdargs(aucmd: string, args: AutocmdArgs): string {
+    const re = /^\"<(\w+)>\"$/
+    const aucmdarr = aucmd.split(" ").map((s: string) => {
+        const res = s.match(re)
+        if (res && args[res[1]]) {
+            s = args[res[1]]
+        }
+        return s
+    })
+    return aucmdarr.join(" ")
+}
 /** @hidden */
 //#content
-export async function loadaucmds(cmdType: AUCMDS) {
+export async function loadaucmds(cmdType: AUCMDS, args?: AutocmdArgs) {
     const aucmds = await config.getAsync("autocmds", cmdType)
     const ausites = Object.keys(aucmds)
     const aukeyarr = ausites.filter(e => window.document.location.href.search(e) >= 0)
     for (const aukey of aukeyarr) {
+        if (args) {
+            aucmds[aukey] = parseaucmdargs(aucmds[aukey], args)
+        }
         controller.acceptExCmd(aucmds[aukey])
     }
 }
