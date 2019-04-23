@@ -323,7 +323,7 @@ class default_config {
          * Each key corresponds to a URL fragment which, if contained within the page URL, will run the corresponding command.
          */
         DocLoad: {
-            "https://github.com/tridactyl/tridactyl/issues/new": "issue"
+            "^https://github.com/tridactyl/tridactyl/issues/new$": "issue"
         },
 
         /**
