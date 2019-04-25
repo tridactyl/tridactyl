@@ -18,7 +18,7 @@
     "@types/node": "^11.13.7",
     "awesome-typescript-loader": "^5.2.1",
     "cleanslate": "^0.10.1",
-    "copy-webpack-plugin": "^5.0.2",
+    "copy-webpack-plugin": "^5.0.3",
     "jest": "^24.7.1",
     "marked": "^0.6.2",
     "nearley": "^2.16.0",
