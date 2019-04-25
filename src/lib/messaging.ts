@@ -10,6 +10,8 @@ export type TabMessageType =
     | "finding_content"
     | "commandline_cmd"
     | "commandline_frame"
+    | "content_excmds/fillcmdline"
+    | "content_excmds/rss"
 export type NonTabMessageType =
     | "owntab_background"
     | "excmd_background"
@@ -17,6 +19,9 @@ export type NonTabMessageType =
     | "browser_proxy_background"
     | "download_background"
     | "performance_background"
+    | "background_excmds/clipboard"
+    | "background_excmds/open"
+    | "background_excmds/tabs"
 export type MessageType = TabMessageType | NonTabMessageType
 
 export interface Message {
@@ -127,6 +132,8 @@ export function addListener(type: MessageType, callback: listener) {
     }
 }
 
+// Add a function to the background that content scripts can use to
+// obtain the browser.tabs.Tab object for the tab they're in.
 if (getContext() === "background") {
     // Warning: lib/webext.ts:ownTab() relies on this listener being added in order to work
     addListener("owntab_background", (message, sender, sendResponse) => {
