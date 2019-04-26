@@ -91,7 +91,7 @@ import * as excmd_parser from "@src/parsers/exmode"
   *
   * @hidden
   */
-let SELF
+let ALL_EXCMDS
 
 // The entry-point script will make sure this has the right set of
 // excmds, so we can use it without futher configuration.
@@ -115,7 +115,8 @@ const TRI_VERSION = "REPLACE_ME_WITH_THE_VERSION_USING_SED"
 // {
 import "@src/lib/number.clamp"
 import * as CTSELF from "@src/.excmds_content.generated"
-SELF = CTSELF
+import { CmdlineCmds as CtCmdlineCmds } from "@src/background/commandline_cmds"
+import { EditorCmds as CtEditorCmds } from "@src/background/editor"
 import * as DOM from "@src/lib/dom"
 import * as CommandLineContent from "@src/content/commandline_content"
 import * as scrolling from "@src/content/scrolling"
@@ -125,6 +126,12 @@ import * as finding from "@src/content/finding"
 import * as toys from "./content/toys"
 import * as hinting from "@src/content/hinting"
 import * as gobbleMode from "@src/parsers/gobblemode"
+
+ALL_EXCMDS = {
+    "": CTSELF,
+    "ex": CtCmdlineCmds,
+    "text": CtEditorCmds,
+}
 // }
 
 //#background_helper
@@ -134,7 +141,8 @@ import * as gobbleMode from "@src/parsers/gobblemode"
 import "@src/lib/number.mod"
 
 import * as BGSELF from "@src/.excmds_background.generated"
-SELF = BGSELF
+import { CmdlineCmds as BgCmdlineCmds } from "@src/background/commandline_cmds"
+import { EditorCmds as BgEditorCmds } from "@src/background/editor"
 import { messageActiveTab } from "@src/lib/messaging"
 import { EditorCmds } from "@src/background/editor"
 import { flatten } from "@src/lib/itertools"
@@ -144,6 +152,11 @@ import { mapstrToKeyseq } from "@src/lib/keyseq"
 import * as css_util from "@src/lib/css_util"
 import * as Updates from "@src/lib/updates"
 
+ALL_EXCMDS = {
+    "": BGSELF,
+    "ex": BgCmdlineCmds,
+    "text": BgEditorCmds,
+}
 /** @hidden */
 // }
 
@@ -2586,12 +2599,12 @@ export async function composite(...cmds: string[]) {
                         // purposes of :repeat, which would be
                         // nonsense. So we copy-paste the important
                         // parts of the body of that function instead.
-                        const [fn, args] = excmd_parser.parser(cmds[0], SELF)
+                        const [fn, args] = excmd_parser.parser(cmds[0], ALL_EXCMDS)
                         const first_value = fn.call({}, ...args)
 
                         // Exec the rest of the pipe in sequence.
                         return cmds.slice(1).reduce(async (pipedValue, cmd) => {
-                            const [fn, args] = excmd_parser.parser(cmd, SELF)
+                            const [fn, args] = excmd_parser.parser(cmd, ALL_EXCMDS)
                             return fn.call({}, ...args, await pipedValue)
                         }, first_value)
                     },
