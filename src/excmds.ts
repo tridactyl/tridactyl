@@ -380,7 +380,7 @@ export async function guiset_quiet(rule: string, option: string) {
 //#background
 export async function guiset(rule: string, option: string) {
     await guiset_quiet(rule, option)
-    return fillcmdline_tmp(3000, "userChrome.css written. Please restart Firefox to see the changes.")
+    return excmd_fillcmdline.fillcmdline_tmp(3000, "userChrome.css written. Please restart Firefox to see the changes.")
 }
 
 /** @hidden */
@@ -475,7 +475,7 @@ export async function fixamo_quiet() {
 //#background
 export async function fixamo() {
     await fixamo_quiet()
-    fillcmdline_tmp(3000, "Permissions added to user.js. Please restart Firefox to make them take affect.")
+    excmd_fillcmdline.fillcmdline_tmp(3000, "Permissions added to user.js. Please restart Firefox to make them take affect.")
 }
 
 /**
@@ -504,7 +504,7 @@ export async function nativeopen(...args: string[]) {
 //#background
 export async function exclaim(...str: string[]) {
     if (await Native.nativegate()) {
-        fillcmdline((await Native.run(str.join(" "))).content)
+        excmd_fillcmdline.fillcmdline((await Native.run(str.join(" "))).content)
     }
 } // should consider how to give option to fillcmdline or not. We need flags.
 
@@ -525,8 +525,8 @@ export async function exclaim_quiet(...str: string[]) {
 //#background
 export async function native() {
     const version = await Native.getNativeMessengerVersion(true)
-    if (version !== undefined) fillcmdline("# Native messenger is correctly installed, version " + version)
-    else fillcmdline("# Native messenger not found. Please run `:installnative` and follow the instructions.")
+    if (version !== undefined) excmd_fillcmdline.fillcmdline("# Native messenger is correctly installed, version " + version)
+    else excmd_fillcmdline.fillcmdline("# Native messenger not found. Please run `:installnative` and follow the instructions.")
 }
 
 /**
@@ -538,11 +538,11 @@ export async function nativeinstall() {
     if ((await browser.runtime.getPlatformInfo()).os === "win") {
         const installstr = (await config.get("win_nativeinstallcmd")).replace("%WINTAG", "-Tag " + tag)
         await yank(installstr)
-        fillcmdline("# Installation command copied to clipboard. Please paste and run it from cmd.exe, PowerShell, or MinTTY to install the native messenger.")
+        excmd_fillcmdline.fillcmdline("# Installation command copied to clipboard. Please paste and run it from cmd.exe, PowerShell, or MinTTY to install the native messenger.")
     } else {
         const installstr = (await config.get("nativeinstallcmd")).replace("%TAG", tag)
         await yank(installstr)
-        fillcmdline("# Installation command copied to clipboard. Please paste and run it in your shell to install the native messenger.")
+        excmd_fillcmdline.fillcmdline("# Installation command copied to clipboard. Please paste and run it in your shell to install the native messenger.")
     }
 }
 
@@ -664,10 +664,10 @@ export async function restart() {
         const reply = await Native.winFirefoxRestart(profiledir, browsercmd)
         logger.info("[+] win_firefox_restart 'reply' = " + JSON.stringify(reply))
         if (Number(reply.code) === 0) {
-            fillcmdline("#" + reply.content)
+            excmd_fillcmdline.fillcmdline("#" + reply.content)
             qall()
         } else {
-            fillcmdline("#" + reply.error)
+            excmd_fillcmdline.fillcmdline("#" + reply.error)
         }
     } else {
         const firefox = (await Native.ff_cmdline()).join(" ")
@@ -1025,7 +1025,7 @@ export async function open(...urlarr: string[]) {
     // Setting window.location to about:blank results in a page we can't access, tabs.update works.
     if (!ABOUT_WHITELIST.includes(url) && url.match(/^(about|file):.*/)) {
         // Open URLs that firefox won't let us by running `firefox <URL>` on the command line
-        p = nativeopen(url)
+        p = excmd_open.nativeopen(url)
     } else if (url.match(/^javascript:/)) {
         const bookmarklet = url.replace(/^javascript:/, "")
         ; (document.body as any).append(
@@ -1050,7 +1050,7 @@ export async function open(...urlarr: string[]) {
  */
 //#background
 export async function bmarks(opt: string, ...urlarr: string[]) {
-    if (opt === "-t") return tabopen(...urlarr)
+    if (opt === "-t") return excmd_open.tabopen(...urlarr)
     else return open(opt, ...urlarr)
 }
 
@@ -1062,7 +1062,7 @@ export async function open_quiet(...urlarr: string[]) {
     const url = urlarr.join(" ")
 
     if (!ABOUT_WHITELIST.includes(url) && url.match(/^(about|file):.*/)) {
-        return nativeopen(url)
+        return excmd_open.nativeopen(url)
     }
 
     return ownTab().then(tab => openInTab(tab, { loadReplace: true }, urlarr))
@@ -1163,7 +1163,7 @@ export function home(all: "false" | "true" = "false") {
     if (homepages.length > 0) {
         if (all === "false") open(homepages[homepages.length - 1])
         else {
-            homepages.map(t => tabopen(t))
+            homepages.map(t => excmd_open.tabopen(t))
         }
     }
 }
@@ -1269,7 +1269,7 @@ export async function help(...helpItems: string[]) {
     if ((await activeTab()).url.startsWith(browser.runtime.getURL("static/docs/"))) {
         open(url)
     } else {
-        tabopen(url)
+        excmd_open.tabopen(url)
     }
 }
 
@@ -1279,7 +1279,7 @@ export async function help(...helpItems: string[]) {
 //#background
 export async function tutor(newtab?: string) {
     const tutor = browser.runtime.getURL("static/clippy/1-tutor.html")
-    if (newtab) tabopen(tutor)
+    if (newtab) excmd_open.tabopen(tutor)
     else open(tutor)
 }
 
@@ -1289,7 +1289,7 @@ export async function tutor(newtab?: string) {
 //#background
 export async function credits() {
     const creditspage = browser.runtime.getURL("static/authors.html")
-    tabopen(creditspage)
+    excmd_open.tabopen(creditspage)
 }
 
 /**
@@ -2167,7 +2167,7 @@ export async function winopen(...args: string[]) {
 
     const address = args.join(" ")
     if (!ABOUT_WHITELIST.includes(address) && address.match(/^(about|file):.*/)) {
-        return nativeopen(firefoxArgs, address)
+        return excmd_open.nativeopen(firefoxArgs, address)
     }
 
     return browser.windows.create(createData).then(win => openInTab(win.tabs[0], { loadReplace: true }, address.split(" ")))
@@ -2286,7 +2286,7 @@ export async function viewcontainers() {
 
 //#background
 export function version() {
-    fillcmdline_notrail(TRI_VERSION)
+    excmd_fillcmdline.fillcmdline_notrail(TRI_VERSION)
 }
 
 /**
@@ -2441,6 +2441,15 @@ export async function shellescape(...quoteme: string[]) {
 //#both
 export async function sleep(time_ms: number) {
     await new Promise(resolve => setTimeout(resolve, time_ms))
+}
+
+/** Hides the command-line.
+ *
+ * @hidden
+ */
+//#content
+export function hidecmdline() {
+    return excmd_fillcmdline.hidecmdline()
 }
 
 /** Set the current value of the commandline to string *with* a trailing space */
@@ -2679,14 +2688,14 @@ export function bind(...args: string[]) {
             // Check if any initial subsequence of the key exists and will shadow the new binding
             const key_sub = args_obj.key.slice(0, i)
             if (config.getDynamic(args_obj.configName, key_sub)) {
-                fillcmdline_notrail("# Warning: bind `" + key_sub + "` exists and will shadow `" + args_obj.key + "`. Try running `:unbind --mode=" + args_obj.mode + " " + key_sub + "`")
+                excmd_fillcmdline.fillcmdline_notrail("# Warning: bind `" + key_sub + "` exists and will shadow `" + args_obj.key + "`. Try running `:unbind --mode=" + args_obj.mode + " " + key_sub + "`")
                 break
             }
         }
         p = config.set(args_obj.configName, args_obj.key, args_obj.excmd)
     } else if (args_obj.key.length) {
         // Display the existing bind
-        p = fillcmdline_notrail("#", args_obj.key, "=", config.getDynamic(args_obj.configName, args_obj.key))
+        p = excmd_fillcmdline.fillcmdline_notrail("#", args_obj.key, "=", config.getDynamic(args_obj.configName, args_obj.key))
     }
     return p
 }
@@ -2708,7 +2717,7 @@ export function bindurl(pattern: string, mode: string, keys: string, ...excmd: s
         p = config.setURL(pattern, args_obj.configName, args_obj.key, args_obj.excmd)
     } else if (args_obj.key.length) {
         // Display the existing bind
-        p = fillcmdline_notrail("#", args_obj.key, "=", config.getURL(pattern, [args_obj.configName, args_obj.key]))
+        p = excmd_fillcmdline.fillcmdline_notrail("#", args_obj.key, "=", config.getURL(pattern, [args_obj.configName, args_obj.key]))
     }
     return p
 }
@@ -3120,9 +3129,9 @@ export function get(...keys: string[]) {
     const value = config.getDynamic(...target)
     console.log(value)
     if (typeof value === "object") {
-        fillcmdline_notrail(`# ${keys.join(".")} = ${JSON.stringify(value)}`)
+        excmd_fillcmdline.fillcmdline_notrail(`# ${keys.join(".")} = ${JSON.stringify(value)}`)
     } else {
-        fillcmdline_notrail(`# ${keys.join(".")} = ${value}`)
+        excmd_fillcmdline.fillcmdline_notrail(`# ${keys.join(".")} = ${value}`)
     }
 }
 
@@ -3662,7 +3671,7 @@ export async function ttsvoices() {
     const voices = TTS.listVoices()
     voices.sort()
     // need a better way to show this to the user
-    fillcmdline_notrail("#", voices.join(", "))
+    excmd_fillcmdline.fillcmdline_notrail("#", voices.join(", "))
 }
 
 /**
@@ -3744,7 +3753,7 @@ export async function perfhistogram(...filters: string[]) {
     filterconfigs.push({ kind: "eventType", eventType: "measure" })
     const entries = window.tri.statsLogger.getEntries(...filterconfigs)
     if (entries.length === 0) {
-        fillcmdline_tmp(3000, "perfhistogram: No samples found.")
+        excmd_fillcmdline.fillcmdline_tmp(3000, "perfhistogram: No samples found.")
         return
     }
     const histogram = Perf.renderStatsHistogram(entries)
@@ -3874,7 +3883,7 @@ export async function jsb(...str: string[]) {
 export async function issue() {
     const newIssueUrl = "https://github.com/tridactyl/tridactyl/issues/new"
     if (window.location.href !== newIssueUrl) {
-        return tabopen(newIssueUrl)
+        return excmd_open.tabopen(newIssueUrl)
     }
     const textarea = document.getElementById("issue_body")
     if (!(textarea instanceof HTMLTextAreaElement)) {
@@ -3925,13 +3934,13 @@ export async function updatecheck(source: "manual" | "auto_polite" | "auto_impol
 
     if (!Updates.shouldNagForVersion(highestKnownVersion)) {
         if (source == "manual") {
-            fillcmdline_tmp(30000, "You're up to date! Tridactyl version " + highestKnownVersion.version + ".")
+            excmd_fillcmdline.fillcmdline_tmp(30000, "You're up to date! Tridactyl version " + highestKnownVersion.version + ".")
         }
         return false
     }
 
     const notify = () => {
-        fillcmdline_tmp(30000, "Tridactyl " + highestKnownVersion.version + " is available (you're on " + Updates.getInstalledVersion() + "). Visit about:addons, right click Tridactyl, click 'Find Updates'. Restart Firefox once it has downloaded.")
+        excmd_fillcmdline.fillcmdline_tmp(30000, "Tridactyl " + highestKnownVersion.version + " is available (you're on " + Updates.getInstalledVersion() + "). Visit about:addons, right click Tridactyl, click 'Find Updates'. Restart Firefox once it has downloaded.")
     }
 
     // A bit verbose, but I figured it was important to have the logic
