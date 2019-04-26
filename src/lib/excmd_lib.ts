@@ -1,31 +1,27 @@
 import * as webext from "@src/lib/webext"
 import * as messaging from "@src/lib/messaging"
+import * as logging from "@src/lib/logging"
+
+const logger = new logging.Logger("exmcd")
 
 type ScriptLocation =
     | "content"
     | "background"
     | "commandline"
 
-function inCommandline() {
-    return (document.activeElement as any).src === browser.extension.getURL("static/commandline.html")
-}
-
 function getScriptLocation(): ScriptLocation {
     const webext_context = webext.getContext()
     if (webext_context === "background") {
         return "background"
     }
-    if (webext_context === "content") {
-        if (inCommandline()) {
-            return "commandline"
-        } else {
-            return "content"
-        }
+    if (webext_context === "content" || webext_context === "extension") {
+        return "content"
     }
 }
 
 export function forwardedToBackground(name: messaging.NonTabMessageType, cmds) {
     const location = getScriptLocation()
+    logger.debug(`Setting up forwarding for ${name} from ${location} to background`)
     if (location === "background") {
         messaging.addListener(name, messaging.attributeCaller(cmds))
     }
@@ -50,6 +46,7 @@ export function forwardedToBackground(name: messaging.NonTabMessageType, cmds) {
 
 export function forwardedToContent(name: messaging.TabMessageType, cmds) {
     const location = getScriptLocation()
+    logger.debug(`Setting up forwarding for ${name} from ${location} to content`)
     if (location === "content") {
         messaging.addListener(name, messaging.attributeCaller(cmds))
     }
