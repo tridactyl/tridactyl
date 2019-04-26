@@ -149,8 +149,6 @@ import "@src/lib/number.mod"
 import * as BGSELF from "@src/.excmds_background.generated"
 import { CmdlineCmds as BgCmdlineCmds } from "@src/background/commandline_cmds"
 import { EditorCmds as BgEditorCmds } from "@src/background/editor"
-import { messageActiveTab } from "@src/lib/messaging"
-import { EditorCmds } from "@src/background/editor"
 import { flatten } from "@src/lib/itertools"
 import { firefoxVersionAtLeast } from "@src/lib/webext"
 import * as rc from "@src/background/config_rc"
@@ -1832,14 +1830,7 @@ export async function tabclose(...indexes: string[]) {
  */
 //#background
 export async function tabclosealltoright() {
-    const tabs = await browser.tabs.query({
-        pinned: false,
-        currentWindow: true,
-    })
-
-    const atab = await activeTab()
-    const ids = tabs.filter(tab => tab.index > atab.index).map(tab => tab.id)
-    browser.tabs.remove(ids)
+    return excmd_tabs.tabclosealltoright()
 }
 
 /** Close all tabs to the left of the current one
@@ -1847,14 +1838,7 @@ export async function tabclosealltoright() {
  */
 //#background
 export async function tabclosealltoleft() {
-    const tabs = await browser.tabs.query({
-        pinned: false,
-        currentWindow: true,
-    })
-
-    const atab = await activeTab()
-    const ids = tabs.filter(tab => tab.index < atab.index).map(tab => tab.id)
-    browser.tabs.remove(ids)
+    return excmd_tabs.tabclosealltoleft()
 }
 
 /** Restore the most recently closed item.
@@ -1871,57 +1855,7 @@ export async function tabclosealltoleft() {
  */
 //#background
 export async function undo(item = "recent"): Promise<number> {
-    const current_win_id: number = (await browser.windows.getCurrent()).id
-    const sessions = await browser.sessions.getRecentlyClosed()
-
-    if (item === "tab") {
-        const lastSession = sessions.find(s => {
-            if (s.tab) return true
-        })
-        if (lastSession) {
-            browser.sessions.restore(lastSession.tab.sessionId)
-            return lastSession.tab.id
-        }
-    } else if (item === "window") {
-        const lastSession = sessions.find(s => {
-            if (s.window) return true
-        })
-        if (lastSession) {
-            browser.sessions.restore(lastSession.window.sessionId)
-            return lastSession.window.id
-        }
-    } else if (item === "recent") {
-        // The first session object that's a window or a tab from this window. Or undefined if sessions is empty.
-        const lastSession = sessions.find(s => {
-            if (s.window) {
-                return true
-            } else if (s.tab && s.tab.windowId === current_win_id) {
-                return true
-            } else {
-                return false
-            }
-        })
-
-        if (lastSession) {
-            if (lastSession.tab) {
-                browser.sessions.restore(lastSession.tab.sessionId)
-                return lastSession.tab.id
-            } else if (lastSession.window) {
-                browser.sessions.restore(lastSession.window.sessionId)
-                return lastSession.window.id
-            }
-        }
-    } else if (!isNaN(parseInt(item, 10))) {
-        const sessionId = item
-        const session = sessions.find(s => (s.tab || s.window).sessionId === sessionId)
-        if (session) {
-            browser.sessions.restore(sessionId)
-            return (session.tab || session.window).id
-        }
-    } else {
-        throw new Error(`[undo] Invalid argument: ${item}. Must be one of "tab", "window", "recent"`)
-    }
-    return -1
+    return excmd_tabs.undo(item)
 }
 
 /** Move the current tab to be just in front of the index specified.
@@ -1939,60 +1873,13 @@ export async function undo(item = "recent"): Promise<number> {
 */
 //#background
 export async function tabmove(index = "$") {
-    const aTab = await activeTab()
-    const windowTabs = await browser.tabs.query({ currentWindow: true })
-    const windowPinnedTabs = await browser.tabs.query({ currentWindow: true, pinned: true })
-    const maxPinnedIndex = windowPinnedTabs.length - 1
-
-    let minindex: number
-    let maxindex: number
-
-    if (aTab.pinned) {
-        minindex = 0
-        maxindex = maxPinnedIndex
-    } else {
-        minindex = maxPinnedIndex + 1
-        maxindex = windowTabs.length - 1
-    }
-
-    let newindex: number
-    let relative = false
-
-    if (index.startsWith("+") || index.startsWith("-")) {
-        relative = true
-        newindex = Number(index) + aTab.index
-    } else if (["end", "$", "0"].includes(index)) {
-        newindex = maxindex
-    } else if (["start", "^"].includes(index)) {
-        newindex = 0
-    } else {
-        newindex = Number(index) + minindex - 1
-    }
-
-    if (newindex > maxindex) {
-        if (relative) {
-            while (newindex > maxindex) {
-                newindex -= maxindex - minindex + 1
-            }
-        } else newindex = maxindex
-    }
-
-    if (newindex < minindex) {
-        if (relative) {
-            while (newindex < minindex) {
-                newindex += maxindex - minindex + 1
-            }
-        } else newindex = minindex
-    }
-
-    browser.tabs.move(aTab.id, { index: newindex })
+    return excmd_tabs.tabmove(index)
 }
 
 /** Pin the current tab */
 //#background
 export async function pin() {
-    const aTab = await activeTab()
-    browser.tabs.update(aTab.id, { pinned: !aTab.pinned })
+    return excmd_tabs.pin()
 }
 
 /**  Mute current tab or all tabs.
@@ -2004,52 +1891,7 @@ export async function pin() {
  */
 //#background
 export async function mute(...muteArgs: string[]): Promise<void> {
-    let mute = true
-    let toggle = false
-    let all = false
-
-    const argParse = (args: string[]) => {
-        if (args === null) {
-            return
-        }
-        if (args[0] === "all") {
-            all = true
-            args.shift()
-            argParse(args)
-        }
-        if (args[0] === "unmute") {
-            mute = false
-            args.shift()
-            argParse(args)
-        }
-        if (args[0] === "toggle") {
-            toggle = true
-            args.shift()
-            argParse(args)
-        }
-    }
-
-    argParse(muteArgs)
-
-    const updateObj = { muted: false }
-    if (mute) {
-        updateObj.muted = true
-    }
-    if (all) {
-        const tabs = await browser.tabs.query({ currentWindow: true })
-        for (const tab of tabs) {
-            if (toggle) {
-                updateObj.muted = !tab.mutedInfo.muted
-            }
-            browser.tabs.update(tab.id, updateObj)
-        }
-    } else {
-        const tab = await activeTab()
-        if (toggle) {
-            updateObj.muted = !tab.mutedInfo.muted
-        }
-        browser.tabs.update(tab.id, updateObj)
-    }
+    return excmd_tabs.mute(...muteArgs)
 }
 // }}}
 
