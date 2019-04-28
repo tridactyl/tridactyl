@@ -1,8 +1,11 @@
 import { browserBg, activeTabId, ownTabId, getContext } from "@src/lib/webext"
 import Logger from "@src/lib/logging"
+import * as AutoLibWrapper from "@src/lib/auto_lib_wrapper_names.generated.ts"
 const logger = new Logger("messaging")
 
 export type TabMessageType =
+    | AutoLibWrapper.AutoLibForwardingToContent
+    | AutoLibWrapper.AutoLibForwardingToCommandline
     | "editorfn_content"
     | "excmd_content"
     | "controller_content"
@@ -13,6 +16,7 @@ export type TabMessageType =
     | "content_excmds/fillcmdline"
     | "content_excmds/rss"
 export type NonTabMessageType =
+    | AutoLibWrapper.AutoLibForwardingToBackground
     | "owntab_background"
     | "excmd_background"
     | "controller_background"
