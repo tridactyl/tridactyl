@@ -111,11 +111,11 @@ const logger = new Logging.Logger("excmds")
 const TRI_VERSION = "REPLACE_ME_WITH_THE_VERSION_USING_SED"
 
 // Import excmd libs
-import excmd_rss from "@src/excmds/rss"
-import excmd_fillcmdline from "@src/excmds/fillcmdline"
-import excmd_clipboard from "@src/excmds/clipboard"
-import excmd_open from "@src/excmds/open"
-import excmd_tabs from "@src/excmds/tabs"
+import excmd_rss from "@src/lib/rss"
+import excmd_fillcmdline from "@src/lib/fillcmdline"
+import excmd_clipboard from "@src/lib/clipboard"
+import excmd_open from "@src/lib/open"
+import excmd_tabs from "@src/lib/tabs"
 
 //#content_helper
 // {
@@ -151,7 +151,7 @@ import { CmdlineCmds as BgCmdlineCmds } from "@src/background/commandline_cmds"
 import { EditorCmds as BgEditorCmds } from "@src/background/editor"
 import { flatten } from "@src/lib/itertools"
 import { firefoxVersionAtLeast } from "@src/lib/webext"
-import * as rc from "@src/background/config_rc"
+import * as rc from "@src/background_auto/config_rc"
 import { mapstrToKeyseq } from "@src/lib/keyseq"
 import * as css_util from "@src/lib/css_util"
 import * as Updates from "@src/lib/updates"
