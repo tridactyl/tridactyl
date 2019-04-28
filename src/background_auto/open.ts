@@ -4,7 +4,7 @@ import { AutoContain } from "@src/lib/autocontainers"
 import { activeTab, activeTabContainerId, openInTab, openInNewTab, ABOUT_WHITELIST } from "@src/lib/webext"
 import * as Container from "@src/lib/containers"
 import * as Native from "@src/lib/native"
-import excmd_tabs from "@src/excmds/tabs"
+import * as excmd_tabs from "@src/background_auto/tabs"
 
 const logger = new Logging.Logger("excmds")
 

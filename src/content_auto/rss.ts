@@ -1,6 +1,6 @@
 import * as config from "@src/lib/config"
 import * as controller from "@src/lib/controller"
-import excmd_fillcmdline from "@src/excmds/fillcmdline"
+import excmd_fillcmdline from "@src/lib/fillcmdline"
 
 export async function getRssLinks(): Promise<Array<{ type: string; url: string; title: string }>> {
     const seen = new Set<string>()
