@@ -19,7 +19,7 @@ function getScriptLocation(): ScriptLocation {
     }
 }
 
-export function forwardedToBackground(name: messaging.NonTabMessageType, cmds) {
+export function forwardedToBackground<Excmds extends object>(name: messaging.NonTabMessageType, cmds: Excmds): Excmds {
     const location = getScriptLocation()
     logger.debug(`Setting up forwarding for ${name} from ${location} to background`)
     if (location === "background") {
@@ -44,7 +44,7 @@ export function forwardedToBackground(name: messaging.NonTabMessageType, cmds) {
     })
 }
 
-export function forwardedToContent(name: messaging.TabMessageType, cmds) {
+export function forwardedToContent<Excmds extends object>(name: messaging.TabMessageType, cmds: Excmds): Excmds {
     const location = getScriptLocation()
     logger.debug(`Setting up forwarding for ${name} from ${location} to content`)
     if (location === "content") {
