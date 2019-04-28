@@ -57,7 +57,6 @@ Here's an example: you're writing the [`native()`](https://github.com/tridactyl/
 -   config_rc.ts: Functions related to loading and executing the tridactylrc.
 -   controller_background.ts: Parses and executes ex commands.
 -   download_background.ts: Utility functions related to downloading that have to live in the background because downloading APIs aren't available to other processes.
--   nearley_utils.ts: Remnant of Tridactyl's previous architecture, where keys were handled in the background script.
 
 ### src/content/
 
@@ -91,6 +90,7 @@ Here's an example: you're writing the [`native()`](https://github.com/tridactyl/
 -   text_to_speech.ts: Various wrappers around Firefox's TTS APIs.
 -   url_util.ts: Url incrementation, query-extraction, interpolation.
 -   webext.ts: Wrappers around Firefox's APIs (activeTab(), ownTab()...).
+-   nearley_utils.ts: Remnant of Tridactyl's previous architecture, where keys were handled in the background script.
 
 ### src/
 
