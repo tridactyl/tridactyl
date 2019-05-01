@@ -69,14 +69,13 @@ def WrapperNameToEnumMember(wrapper_name):
 def WriteWrapperNamesFile(wrapper_names):
     with open(MESSAGE_NAMES_FILE_PATH, 'w') as f:
         f.write(MESSAGE_NAMES_HEADER)
-        f.write("\n\n")
+        f.write("\n")
 
         for source, message_names in wrapper_names.items():
-            members = "\n".join(WrapperNameToEnumMember(wn) for wn in message_names)
             f.write("export type AutoLibForwardingTo{} =\n".format(source.title()))
             f.write(WrapperNameToEnumMember("UNUSED_SENTINEL") + "\n")
-            f.write(members)
-            f.write("\n\n")
+            for message_name in message_names:
+                f.write(WrapperNameToEnumMember(message_name) + "\n")
 
 def main(argv):
     # unused
