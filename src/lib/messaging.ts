@@ -1,6 +1,6 @@
 import { browserBg, activeTabId, ownTabId, getContext } from "@src/lib/webext"
 import Logger from "@src/lib/logging"
-import * as AutoLibWrapper from "@src/lib/auto_lib_wrapper_names.generated.ts"
+import * as AutoLibWrapper from "@src/lib/.auto_lib_wrapper_names.generated.ts"
 const logger = new Logger("messaging")
 
 export type TabMessageType =
