@@ -1,5 +1,34 @@
 # Tridactyl changelog
 
+## Release 1.14.10 / 2019-05-04
+
+-   New features
+
+    -   `:editor` now listens to the exit code of your editor so, e.g. `:cq` in Vim should prevent the text field from being changed; it also can provide line and column information - see `:help editor` for more details
+    -   A new `:issue` excmd opens a new issue on our GitHub page with your system information pre-filled
+
+-   Bug fixes
+
+    -   `DocStart` `autocmds` in the exemplar .tridactylrc will no longer run under `:viewconfig`
+    -   `updatecheck` should actually run now as it has been added to the new-tab page
+        -   its relevant settings may now be found under the `update.*` namespace
+    -   Private windows opened with the native messenger now work, e.g. `winopen -private about:addons`
+    -   `:saveas` completions fixed
+
+-   Under the bonnet
+    -   Added `tslint` and `shellcheck` checks to Travis CI for GitHub PRs and changed source to conform to their standards
+    -   Swapped `prettier` for `tslint` for most cases
+    -   excmds are now run from the content scripts which should hopefully reduce the number of round trips and generally improve responsiveness
+    -   Minor changes to codebase made as suggested by sonarcloud and lgtm
+    -   We've merged ([#953](https://github.com/tridactyl/tridactyl/issues/953)) which will eventually allow Tridactyl's `autocontain` and Mozilla's "Multi Account Containers" to co-exist peacefully once we enable a permission. We don't do that until the `updatecheck` has been out in the wild for a month or so first - see ([#708](https://github.com/tridactyl/tridactyl/issues/708)).
+    -   Fixed `wine-pyinstaller.sh` on some systems
+
+Thanks to all of our contributors for this release: Oliver Blanthorn, glacambre, dependabot, Saul Reynolds-Haertle, and Shahzeb Imran.
+
+Extra special thanks go to dependabot and Shahzeb Imran who both contributed for the first time. (dependabot is a bot, but that does not make his contributions any the less valued).
+
+Last, but not least - thank you to everyone who reported issues.
+
 ## Release 1.14.9 / 2019-03-21
 
 -   New features
