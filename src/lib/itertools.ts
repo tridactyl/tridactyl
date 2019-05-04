@@ -180,9 +180,7 @@ export function flatten(arr) {
 export function* drop(iterable, predicate) {
     let allmatched = true
     for (const elem of iterable) {
-        if (allmatched && predicate(elem)) {
-            continue
-        } else {
+        if (!(allmatched && predicate(elem))) {
             allmatched = false
             yield elem
         }
