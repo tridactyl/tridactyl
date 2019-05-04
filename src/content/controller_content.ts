@@ -102,6 +102,7 @@ function* ParserController() {
 
     while (true) {
         let exstr = ""
+        let repeat = 1
         let keyEvents: KeyboardEvent[] = []
         try {
             while (true) {
@@ -154,6 +155,7 @@ function* ParserController() {
 
                 if (response.exstr) {
                     exstr = response.exstr
+                    repeat = response.numericPrefix
                     break
                 } else {
                     keyEvents = response.keys
@@ -163,6 +165,10 @@ function* ParserController() {
                         .join("")
                     logger.debug("suffix: ", contentState.suffix)
                 }
+            }
+            if (repeat > 1) {
+                exstr = "repeat " + repeat.toString() + " " + exstr
+                logger.debug("repeating: ", repeat)
             }
             controller.acceptExCmd(exstr)
             contentState.suffix = ""
