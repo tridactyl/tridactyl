@@ -142,7 +142,11 @@ export function parse(keyseq: KeyEventLike[], map: KeyMap): ParserResponse {
                 possibleMappings,
                 ([k, v]) => k.length === keyseq.length,
             )
-            return { value: perfect[1], numericPrefix: keyseqToNumber(numericPrefix), exstr: perfect[1], isMatch: true }
+            return {
+                value: perfect[1],
+                exstr: perfect[1] + numericPrefixToExstrSuffix(numericPrefix),
+                isMatch: true,
+            }
         } catch (e) {
             if (!(e instanceof RangeError)) throw e
         }
@@ -345,9 +349,12 @@ export function isNumeric(keyEvent: KeyEventLike) {
     return !hasModifiers(keyEvent) && keyEvent.key.match(NUMERIC_REG)
 }
 
-function keyseqToNumber(keyseq: KeyEventLike[]): number {
-    if (keyseq.length === 0) { return 1 }
-    return Number(keyseq.map(k => k.key).join(""))
+function numericPrefixToExstrSuffix(numericPrefix: KeyEventLike[]) {
+    if (numericPrefix.length > 0) {
+        return " " + numericPrefix.map(k => k.key).join("")
+    } else {
+        return ""
+    }
 }
 
 /**
