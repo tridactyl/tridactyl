@@ -183,7 +183,7 @@ export async function getNativeVersion(): Promise<void> {
  * you're interested in. If a single rss feed is found, it will automatically
  * be selected.
  */
-//#content
+//#both
 export async function rssexec(url: string, type?: string, ...title: string[]) {
     return excmd_rss.rssexec(url, type, ...title)
 }
@@ -474,7 +474,7 @@ export async function fixamo() {
  *
  * This uses the [[browser]] setting to know which binary to call. If you need to pass additional arguments to firefox (e.g. '--new-window'), make sure they appear before the url.
  */
-//#background
+//#both
 export async function nativeopen(...args: string[]) {
     return excmd_open.nativeopen(...args)
 }
@@ -1738,7 +1738,7 @@ export function focusbyid(id: string) {
 
     If increment is specified, move that many tabs forwards.
  */
-//#background
+//#both
 export async function tabnext(increment = 1) {
     return excmd_tabs.tabnext(increment)
 }
@@ -1750,7 +1750,7 @@ export async function tabnext(increment = 1) {
     count that is out of bounds (and will mod it so that it is within bounds as
     per [[tabmove]], etc)).
  */
-//#background
+//#both
 export async function tabnext_gt(index?: number) {
     return excmd_tabs.tabnext_gt(index)
 }
@@ -1759,7 +1759,7 @@ export async function tabnext_gt(index?: number) {
 
     If increment is specified, move that many tabs backwards.
  */
-//#background
+//#both
 export async function tabprev(increment = 1) {
     return excmd_tabs.tabprev(increment)
 }
@@ -1784,13 +1784,13 @@ export async function tabprev(increment = 1) {
 
     Also see the [[searchengine]] and [[searchurls]] settings.
 */
-//#background
+//#both
 export async function tabopen(...addressarr: string[]) {
     return excmd_open.tabopen(...addressarr)
 }
 
 /** Close all other tabs in this window */
-//#background
+//#both
 export async function tabonly() {
     return excmd_tabs.tabonly()
 }
@@ -1800,7 +1800,7 @@ export async function tabonly() {
     @param index
         The 1-based index of the tab to target. index < 1 wraps. If omitted, this tab.
 */
-//#background
+//#both
 export async function tabduplicate(index?: number) {
     return excmd_tabs.tabduplicate(index)
 }
@@ -1810,7 +1810,7 @@ export async function tabduplicate(index?: number) {
     @param index
         The 1-based index of the tab to target. index < 1 wraps. If omitted, this tab.
 */
-//#background
+//#both
 export async function tabdetach(index?: number) {
     return excmd_tabs.tabdetach(index)
 }
@@ -1835,7 +1835,7 @@ export async function fullscreen() {
     @param indexes
         The 1-based indexes of the tabs to target. indexes < 1 wrap. If omitted, this tab.
 */
-//#background
+//#both
 export async function tabclose(...indexes: string[]) {
     return excmd_tabs.tabclose(...indexes)
 }
@@ -1843,7 +1843,7 @@ export async function tabclose(...indexes: string[]) {
 /** Close all tabs to the right of the current one
  *
  */
-//#background
+//#both
 export async function tabclosealltoright() {
     return excmd_tabs.tabclosealltoright()
 }
@@ -1851,7 +1851,7 @@ export async function tabclosealltoright() {
 /** Close all tabs to the left of the current one
  *
  */
-//#background
+//#both
 export async function tabclosealltoleft() {
     return excmd_tabs.tabclosealltoleft()
 }
@@ -1868,7 +1868,7 @@ export async function tabclosealltoleft() {
     @return
         The tab or window id of the restored item. Returns -1 if no items are found.
  */
-//#background
+//#both
 export async function undo(item = "recent"): Promise<number> {
     return excmd_tabs.undo(item)
 }
@@ -1886,13 +1886,13 @@ export async function undo(item = "recent"): Promise<number> {
 
         1,start,^ are aliases for the first index. 0,end,$ are aliases for the last index.
 */
-//#background
+//#both
 export async function tabmove(index = "$") {
     return excmd_tabs.tabmove(index)
 }
 
 /** Pin the current tab */
-//#background
+//#both
 export async function pin() {
     return excmd_tabs.pin()
 }
@@ -1904,7 +1904,7 @@ export async function pin() {
  Passing "toggle" to the excmd will toggle the state of `browser.tabs.tab.MutedInfo`
  @param string[] muteArgs
  */
-//#background
+//#both
 export async function mute(...muteArgs: string[]): Promise<void> {
     return excmd_tabs.mute(...muteArgs)
 }
@@ -2063,7 +2063,7 @@ export async function viewcontainers() {
 //
 // {{{ MISC
 
-//#background
+//#both
 export function version() {
     excmd_fillcmdline.fillcmdline_notrail(TRI_VERSION)
 }
@@ -2215,31 +2215,31 @@ export async function sleep(time_ms: number) {
  *
  * @hidden
  */
-//#content
+//#both
 export function hidecmdline() {
     return excmd_fillcmdline.hidecmdline()
 }
 
 /** Set the current value of the commandline to string *with* a trailing space */
-//#content
+//#both
 export function fillcmdline(...strarr: string[]) {
     return excmd_fillcmdline.fillcmdline(...strarr)
 }
 
 /** Set the current value of the commandline to string *without* a trailing space */
-//#content
+//#both
 export function fillcmdline_notrail(...strarr: string[]) {
     return excmd_fillcmdline.fillcmdline_notrail(...strarr)
 }
 
 /** Show and fill the command line without focusing it */
-//#content
+//#both
 export function fillcmdline_nofocus(...strarr: string[]) {
     return excmd_fillcmdline.fillcmdline_nofocus(...strarr)
 }
 
 /** Shows str in the command line for ms milliseconds. Recommended duration: 3000ms. */
-//#content
+//#both
 export async function fillcmdline_tmp(ms: number, ...strarr: string[]) {
     return excmd_fillcmdline.fillcmdline_tmp(ms, ...strarr)
 }
@@ -2265,7 +2265,7 @@ export async function getclip(fromm?: "clipboard" | "selection") {
 /**
  * Copy content to clipboard without feedback. Use `clipboard yank` for interactive use.
  */
-//#background
+//#both
 export function yank(...content: string[]) {
     return excmd_clipboard.yank(...content)
 }
@@ -2291,7 +2291,7 @@ export function yank(...content: string[]) {
     When doing a write operation, if "yankto" is set to "selection", only the X selection buffer will be written to. If "yankto" is set to "both", both the X selection and the clipboard will be written to. If "yankto" is set to "clipboard", only the clipboard will be written to.
 
 */
-//#background
+//#both
 export async function clipboard(excmd: "open" | "yank" | "yankshort" | "yankcanon" | "yanktitle" | "yankmd" | "xselpaste" | "tabopen" = "open", ...toYank: string[]) {
     return excmd_clipboard.clipboard(excmd, ...toYank)
 }
@@ -2305,7 +2305,7 @@ export async function clipboard(excmd: "open" | "yank" | "yankshort" | "yankcano
 
     This is different from [[taball]] because `index` is the position of the tab in the current window.
  */
-//#background
+//#both
 export async function tab(index: number | "#") {
     return excmd_tabs.tabIndexSetActive(index)
 }
@@ -2316,7 +2316,7 @@ export async function tab(index: number | "#") {
         A string following the following format: "[0-9]+.[0-9]+", the first number being the index of the window that should be selected and the second one being the index of the tab within that window.
 
  */
-//#background
+//#both
 export async function taball(id: string) {
     return excmd_tabs.taball(id)
 }
