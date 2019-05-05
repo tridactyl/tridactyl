@@ -23,6 +23,7 @@ import state from "@src/state"
 import * as webext from "@src/lib/webext"
 import { AutoContain } from "@src/lib/autocontainers"
 import * as extension_info from "@src/lib/extension_info"
+import * as omnibox from "@src/background/omnibox"
 
 // Add various useful modules to the window for debugging
 ; (window as any).tri = Object.assign(Object.create(null), {
@@ -206,5 +207,11 @@ window.tri = Object.assign(window.tri || Object.create(null), {
     // console.
     statsLogger,
 })
+
+// }}}
+
+// {{{ OMNIBOX
+
+omnibox.init()
 
 // }}}
