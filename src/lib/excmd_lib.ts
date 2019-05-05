@@ -2,7 +2,7 @@ import * as webext from "@src/lib/webext"
 import * as messaging from "@src/lib/messaging"
 import * as logging from "@src/lib/logging"
 
-const logger = new logging.Logger("exmcd")
+const logger = new logging.Logger("excmd")
 
 type ScriptLocation =
     | "content"
