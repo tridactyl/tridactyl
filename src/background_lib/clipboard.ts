@@ -4,8 +4,8 @@ import { EditorCmds } from "@src/background/editor"
 import * as config from "@src/lib/config"
 import { activeTab } from "@src/lib/webext"
 
-import excmd_fillcmdline from "@src/lib/fillcmdline"
-import * as excmd_open from "@src/background_auto/open"
+import excmd_fillcmdline from "@src/lib/generated/fillcmdline"
+import excmd_open from "@src/lib/generated/open"
 
 export async function yank(...content: string[]) {
     return setclip(content.join(" "))
