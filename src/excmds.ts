@@ -2382,7 +2382,7 @@ export async function clipboard(excmd: "open" | "yank" | "yankshort" | "yankcano
  */
 //#background
 export async function tab(index: number | "#") {
-    return excmd_tabs.tab(index)
+    return excmd_tabs.tabIndexSetActive(index)
 }
 
 /** Change active tab.

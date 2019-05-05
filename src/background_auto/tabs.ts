@@ -115,10 +115,6 @@ export async function tabclose(...indexes: string[]) {
     }
 }
 
-export async function tab(index: number | "#") {
-    tabIndexSetActive(index)
-}
-
 export async function taball(id: string) {
     const windows = (await browser.windows.getAll()).map(w => w.id).sort((a, b) => a - b)
     if (id === null || id === undefined || !id.match(/\d+\.\d+/)) {
