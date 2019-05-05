@@ -31,7 +31,7 @@ Command history will be synchronised using the storage API. We anticipate storin
 
 Some functionality runs in the content script, for example, changing the mode which is local to each tab. Some functionality runs in the background script, for example, opening a new tab which requires the `browser.tabs` API which only the background script can access. We don't want to be hand-rolling cross-context messaging for every function in Tridactyl, so we implement some functionality for forwarding invocations of some modules between contexts. To make this easier on Typescript's compiler, we currently handle this by generating wrapper code.
 
-Each module in `src/content_auto` and `src/background_auto` will have an identically-named wrapper generated for it in `src/lib`. That wrapper looks at the context it's being invoked from and sends an RPC to the appropriate context using the functions in `src/lib/messaging.ts`; for example, invoking a content-only function will use `messageActiveTab` if invoked in the background but `messageOwnTab` if invoked from the commandline iframe.
+Each module in `src/content_lib` and `src/background_lib` will have an identically-named wrapper generated for it in `src/lib`. That wrapper looks at the context it's being invoked from and sends an RPC to the appropriate context using the functions in `src/lib/messaging.ts`; for example, invoking a content-only function will use `messageActiveTab` if invoked in the background but `messageOwnTab` if invoked from the commandline iframe.
 
 ## The rest
 

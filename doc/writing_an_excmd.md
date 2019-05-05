@@ -50,13 +50,13 @@ Tridactyl builds the `:help` page, and provides inline help when completing an e
 
 To help us move toward a future without hacks like [`excmd_macros.py`](../scripts/excmd_macros.py), we're currently trying to move all of the actual code out of `excmds.ts`. Additionally, as many WebExtension APIs are only available in either the background or content scripts but not both (e.g. [`tabs`](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/tabs) is background-only), you need some way to run your excmd in the right context.
 
-This mechanism is provided by the [`content_auto`](../src/content_auto) and [`background_auto`](../src/background_auto) directories. For each context-specific module in these directories, an "ambidextrous" module will be generated in [`lib`](../src/lib) that either invokes the original function (if in the correct context) or inserts a shim which automatically forwards invocations to the right context using [an appropriate messaging API](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/runtime/sendMessage)). You can put the implementation of your excmd in `background`, `content`, and `lib` and handle the details yourself if need or want to, but for the most part you should stick with the automatic forwarding.
+This mechanism is provided by the [`content_lib`](../src/content_lib) and [`background_lib`](../src/background_lib) directories. For each context-specific module in these directories, an "ambidextrous" module will be generated in [`lib/generated`](../src/lib/generated) that either invokes the original function (if in the correct context) or inserts a shim which automatically forwards invocations to the right context using [an appropriate messaging API](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/runtime/sendMessage)). You can put the implementation of your excmd in `background`, `content`, and `lib` and handle the details yourself if need or want to, but for the most part you should stick with the automatic forwarding.
 
-If your excmd fits into an established module (e.g. [`background_auto/tabs.ts`](../src/background_auto/tabs.ts)) you can put your implementation there. Otherwise, you can create a new module patterned after one of those. If necessary, import the "ambidextrous" wrapper module (the generated one in `src/libs`) at the top of `excmds.ts`, in the portion marked `// Import excmd libs`. Then invoke the implementation in the declaration function you added earlier and you're done!
+If your excmd fits into an established module (e.g. [`background_lib/tabs.ts`](../src/background_lib/tabs.ts)) you can put your implementation there. Otherwise, you can create a new module patterned after one of those. If necessary, import the "ambidextrous" wrapper module (the generated one in `src/lib/generated`) at the top of `excmds.ts`, in the portion marked `// Import excmd libs`. Then invoke the implementation in the declaration function you added earlier and you're done!
 
 ## A complete example:
 
-> `src/background_auto/your_module.ts`
+> `src/background_lib/your_module.ts`
 ```typescript
 type Thingy:
     | "A_THING"
@@ -69,7 +69,7 @@ export async function doTheThing(arg1: string, arg2: Thingy) {
 
 > `src/excmds.ts`
 ```typescript
-import excmd_yours from "@src/lib/your_module"
+import excmd_yours from "@src/lib/generated/your_module"
 
 // ...
 
@@ -85,4 +85,4 @@ export async function yourexcmd(arg1: string, arg2: "A_THING" | "DIFF_THING") {
 }
 ```
 
-Note the annotation between the TypeDoc comment and the function. Note that you're creating your module in `background_auto` but importing from `lib`. Note that the excmd declaration in `excmds.ts` is complete in this example; all of the code should be in `your_module.ts`. Note that the union of string literal types can be used as intended in the module but has to be manually expanded in the declaration function's signature.
+Note the annotation between the TypeDoc comment and the function. Note that you're creating your module in `background_lib` but importing from `lib/generated`. Note that the excmd declaration in `excmds.ts` is complete in this example; all of the code should be in `your_module.ts`. Note that the union of string literal types can be used as intended in the module but has to be manually expanded in the declaration function's signature.
