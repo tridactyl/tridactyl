@@ -211,7 +211,7 @@ You can bind your own shortcuts in normal mode with the `:bind` command. For exa
 
 ### Donations
 
-We gratefully accept donations via [PayPal](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=7JQHV4N2YZCTY). If you can, please make this a monthly donation as it makes it much easier to plan.
+We gratefully accept donations via [PayPal](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=7JQHV4N2YZCTY) and [Patreon](https://www.patreon.com/tridactyl). If you can, please make this a monthly donation as it makes it much easier to plan.
 
 <a href="https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=7JQHV4N2YZCTY"><img src="https://www.paypalobjects.com/en_US/GB/i/btn/btn_donateCC_LG.gif" alt="PayPal"></a>
 
