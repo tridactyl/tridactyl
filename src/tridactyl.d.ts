@@ -16,11 +16,6 @@ interface Window {
     eval(str: string): any
 }
 
-// Firefox Document interface
-interface Document {
-    fullscreenElement: HTMLElement | void
-}
-
 // Record that we've added a property with convenience objects to the
 // window object:
 interface Window {
