@@ -422,10 +422,10 @@ export function parseProfilesIni(content: string, basePath: string) {
     for (const profileName of Object.keys(result)) {
         const profile = result[profileName]
         // profile.IsRelative can be 0, 1 or undefined
-        if (profile.IsRelative === 1) {
+        if (profile.IsRelative === "1") {
             profile.relativePath = profile.Path
             profile.absolutePath = basePath + profile.relativePath
-        } else if (profile.IsRelative === 0) {
+        } else if (profile.IsRelative === "0") {
             if (profile.Path.substring(0, basePath.length) !== basePath) {
                 throw new Error(
                     `Error parsing profiles ini: basePath "${basePath}" doesn't match profile path ${
