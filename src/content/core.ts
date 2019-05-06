@@ -167,7 +167,7 @@ export function runTridactylContent() {
 
     // Add the mode indicator, if configured
     if (config.get("modeindicator")) {
-        modeindicator.addModeIndicator()
+        modeindicator.addModeIndicator(state)
     }
 
     // The configuration to not protect slash was originally a

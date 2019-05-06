@@ -2,11 +2,7 @@ import * as Logging from "@src/lib/logging"
 import * as Config from "@src/lib/config"
 import * as webext from "@src/lib/webext"
 import * as dom from "@src/lib/dom"
-import {
-    State,
-    contentState,
-    addContentStateChangedListener,
-} from "@src/content/state_content"
+import { State } from "@src/content/state_content"
 
 // Set up our logger
 const logger = new Logging.Logger("content")
@@ -96,7 +92,7 @@ function showOnMouseLeave(
     }
 }
 
-function addStatusIndicatorToPage(statusIndicator: HTMLElement) {
+function addStatusIndicatorToPage(statusIndicator: HTMLElement, state: State) {
     // Hide indicator in print mode
     // CSS not explicitly added to the dom doesn't make it to print mode:
     // https://bugzilla.mozilla.org/show_bug.cgi?id=1448507
@@ -112,13 +108,13 @@ function addStatusIndicatorToPage(statusIndicator: HTMLElement) {
 
     try {
         // On quick loading pages, the document is already loaded
-        statusIndicator.textContent = contentState.mode || "normal"
+        statusIndicator.textContent = state.mode || "normal"
         document.body.appendChild(statusIndicator)
         document.head.appendChild(style)
     } catch (e) {
         // But on slower pages we wait for the document to load
         window.addEventListener("DOMContentLoaded", () => {
-            statusIndicator.textContent = contentState.mode || "normal"
+            statusIndicator.textContent = state.mode || "normal"
             document.body.appendChild(statusIndicator)
             document.head.appendChild(style)
         })
@@ -141,7 +137,7 @@ async function setColorByContainer(statusIndicator: HTMLElement) {
 }
 
 // Really bad status indicator
-export async function addModeIndicator() {
+export async function addModeIndicator(state: State) {
     const statusIndicator = document.createElement("span")
 
     const privateMode = browser.extension.inIncognitoContext
@@ -160,10 +156,11 @@ export async function addModeIndicator() {
     // Hide the status indicator when the mouse is over it
     statusIndicator.addEventListener("mouseenter", hideOnMouseEnter)
 
-    addStatusIndicatorToPage(statusIndicator)
+    // Add ourselves to the page
+    addStatusIndicatorToPage(statusIndicator, state)
 
     // Update when the mode changes.
-    addContentStateChangedListener((...args) =>
+    state.addContentStateChangedListener((...args) =>
         onModeChanged(statusIndicator, ...args),
     )
 }
