@@ -3,7 +3,7 @@ import * as Logging from "@src/lib/logging"
 import { AutoContain } from "@src/lib/autocontainers"
 import { activeTab, activeTabContainerId, openInTab, openInNewTab, ABOUT_WHITELIST } from "@src/lib/webext"
 import * as Container from "@src/lib/containers"
-import * as Native from "@src/lib/native"
+import Native from "@src/lib/generated/native"
 import excmd_tabs from "@src/lib/generated/tabs"
 
 const logger = new Logging.Logger("excmds")

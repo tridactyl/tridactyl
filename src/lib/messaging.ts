@@ -21,7 +21,6 @@ export type NonTabMessageType =
     | "excmd_background"
     | "controller_background"
     | "browser_proxy_background"
-    | "download_background"
     | "performance_background"
     | "background_excmds/clipboard"
     | "background_excmds/open"

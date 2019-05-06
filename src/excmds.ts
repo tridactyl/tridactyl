@@ -81,7 +81,7 @@ import * as Logging from "@src/lib/logging"
 import * as CSS from "css"
 import * as Perf from "@src/perf"
 import * as Metadata from "@src/.metadata.generated"
-import * as Native from "@src/lib/native"
+import Native from "@src/lib/generated/native"
 import * as TTS from "@src/lib/text_to_speech"
 import * as excmd_parser from "@src/parsers/exmode"
 
@@ -116,6 +116,12 @@ import excmd_fillcmdline from "@src/lib/generated/fillcmdline"
 import excmd_clipboard from "@src/lib/generated/clipboard"
 import excmd_open from "@src/lib/generated/open"
 import excmd_tabs from "@src/lib/generated/tabs"
+import excmd_windows from "@src/lib/generated/windows"
+import excmd_aboutconfig from "@src/lib/generated/about_config"
+import excmd_guiset from "@src/lib/generated/guiset"
+import excmd_nativeedit from "@src/lib/generated/nativeedit_excmd"
+import excmd_tridactylrc from "@src/lib/generated/tridactylrc"
+import excmd_download from "@src/lib/generated/download"
 
 //#content_helper
 // {
@@ -127,7 +133,6 @@ import * as DOM from "@src/lib/dom"
 import * as CommandLineContent from "@src/content/commandline_content"
 import * as scrolling from "@src/content/scrolling"
 import { ownTab } from "@src/lib/webext"
-import { wrap_input, getLineAndColNumber } from "@src/lib/editor_utils"
 import * as finding from "@src/content/finding"
 import * as toys from "./content/toys"
 import * as hinting from "@src/content/hinting"
@@ -151,7 +156,6 @@ import { CmdlineCmds as BgCmdlineCmds } from "@src/background/commandline_cmds"
 import { EditorCmds as BgEditorCmds } from "@src/background/editor"
 import { flatten } from "@src/lib/itertools"
 import { firefoxVersionAtLeast } from "@src/lib/webext"
-import * as rc from "@src/background_lib/config_rc"
 import { mapstrToKeyseq } from "@src/lib/keyseq"
 import * as css_util from "@src/lib/css_util"
 import * as Updates from "@src/lib/updates"
@@ -168,8 +172,17 @@ ALL_EXCMDS = {
 
 // {{{ Native messenger stuff
 
-/** @hidden **/
-//#background
+/**
+ *
+ * Gets the version of the native messenger, but doesn't do anything
+ * with it. getNativeMessengerVersion doesn't do any display itself,
+ * so I'm not sure what the point of this is - it might only be an
+ * excmd by accident and someone forgot the `_helper` part of the
+ * context annotation.
+ *
+ * @hidden
+ **/
+//#both
 export async function getNativeVersion(): Promise<void> {
     Native.getNativeMessengerVersion()
 }
@@ -193,52 +206,33 @@ export async function rssexec(url: string, type?: string, ...title: string[]) {
  *
  * That said, `bind gs fillinput null [Tridactyl](https://addons.mozilla.org/en-US/firefox/addon/tridactyl-vim/) is my favourite add-on` could probably come in handy.
  */
-//#content
+//#both
 export async function fillinput(selector: string, ...content: string[]) {
-    let inputToFill = document.querySelector(selector)
-    if (!inputToFill) inputToFill = DOM.getLastUsedInput()
-    if ("value" in inputToFill) {
-        (inputToFill as HTMLInputElement).value = content.join(" ")
-    } else {
-        inputToFill.textContent = content.join(" ")
-    }
+    return excmd_nativeedit.fillinput(selector, ...content)
 }
 
 /** @hidden */
-//#content_helper
-export function getInput(e: HTMLElement) {
-    // this should probably be subsumed by the focusinput code
-    if ("value" in e) {
-        return (e as HTMLInputElement).value
-    } else {
-        return e.textContent
-    }
-}
-
-/** @hidden */
-//#content
+//#both
 export function getinput() {
-    return getInput(DOM.getLastUsedInput())
+    return excmd_nativeedit.getInput()
 }
 
 /** @hidden */
-//#content
+//#both
 export function getInputSelector() {
-    return DOM.getSelector(DOM.getLastUsedInput())
+    return excmd_nativeedit.getInputSelector()
 }
 
 /** @hidden */
-//#content
+//#both
 export function addTridactylEditorClass(selector: string) {
-    const elem = document.querySelector(selector)
-    elem.className = elem.className + " TridactylEditing "
+    return excmd_nativeedit.addTridactylEditorClass(selector)
 }
 
 /** @hidden */
-//#content
+//#both
 export function removeTridactylEditorClass(selector: string) {
-    const elem = document.querySelector(selector)
-    elem.className = elem.className.replace(" TridactylEditing ", "")
+    return excmd_nativeedit.removeTridactylEditorClass(selector)
 }
 
 /**
@@ -261,67 +255,17 @@ export function removeTridactylEditorClass(selector: string) {
  * bind --mode=input <C-i> editor_rm
  * ```
  */
-//#content
+//#both
 export async function editor() {
-    const elem = DOM.getLastUsedInput()
-    const selector = DOM.getSelector(elem)
-    addTridactylEditorClass(selector)
-
-    if (!(await Native.nativegate())) {
-        removeTridactylEditorClass(selector)
-        return undefined
-    }
-
-    try {
-        let text = ""
-        let line = 0
-        let col = 0
-        wrap_input((t, start, end) => {
-            [text, line, col] = getLineAndColNumber(t, start, end)
-            return [null, null, null]
-        })(elem)
-        const file = (await Native.temp(text, document.location.hostname)).content
-        const exec = await Native.editor(file, line, col)
-        if (exec.code == 0) {
-            fillinput(selector, exec.content)
-
-            // TODO: add annoying "This message was written with [Tridactyl](https://addons.mozilla.org/en-US/firefox/addon/tridactyl-vim/)" to everything written using editor
-            return [file, exec.content]
-        } else {
-            logger.debug(`Editor terminated with non-zero exit code: ${exec.code}`)
-        }
-    } catch (e) {
-        throw `:editor failed: ${e}`
-    } finally {
-        removeTridactylEditorClass(selector)
-    }
+    return excmd_nativeedit.editor()
 }
 
 /**
  * Like [[guiset]] but quieter.
  */
-//#background
+//#both
 export async function guiset_quiet(rule: string, option: string) {
-    if (!rule || !option) throw new Error(":guiset requires two arguments. See `:help guiset` for more information.")
-    // Could potentially fall back to sending minimal example to clipboard if native not installed
-
-    // Check for native messenger and make sure we have a plausible profile directory
-    if (!(await Native.nativegate("0.1.1"))) return
-    const profile_dir = await Native.getProfileDir()
-
-    // Make backups
-    await Native.mkdir(profile_dir + "/chrome", true)
-    let cssstr = (await Native.read(profile_dir + "/chrome/userChrome.css")).content
-    const cssstrOrig = (await Native.read(profile_dir + "/chrome/userChrome.orig.css")).content
-    if (cssstrOrig === "") await Native.write(profile_dir + "/chrome/userChrome.orig.css", cssstr)
-    await Native.write(profile_dir + "/chrome/userChrome.css.tri.bak", cssstr)
-
-    // Modify and write new CSS
-    if (cssstr === "") cssstr = `@namespace url("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul");`
-    const stylesheet = CSS.parse(cssstr)
-    // Trim due to https://github.com/reworkcss/css/issues/113
-    const stylesheetDone = CSS.stringify(css_util.changeCss(rule, option, stylesheet)).trim()
-    return Native.write(profile_dir + "/chrome/userChrome.css", stylesheetDone)
+    return excmd_guiset.guiset(rule, option)
 }
 
 /**
@@ -364,9 +308,9 @@ export async function guiset_quiet(rule: string, option: string) {
  *
  * If you want to use guiset in your tridactylrc, you might want to use [[guiset_quiet]] instead.
  */
-//#background
+//#both
 export async function guiset(rule: string, option: string) {
-    await guiset_quiet(rule, option)
+    await excmd_guiset.guiset(rule, option)
     return excmd_fillcmdline.fillcmdline_tmp(3000, "userChrome.css written. Please restart Firefox to see the changes.")
 }
 
@@ -434,18 +378,17 @@ export async function colourscheme(themename: string) {
  * e.g.: `setpref general.warnOnAboutConfig false`
  * `setpref extensions.webextensions.restricterDomains ""`
  */
-//#background
+//#both
 export function setpref(key: string, ...value: string[]) {
-    return Native.writePref(key, value.join(" "))
+    return excmd_aboutconfig.writePref(key, value.join(" "))
 }
 
 /**
  * Like [[fixamo]] but quieter.
  */
-//#background
+//#both
 export async function fixamo_quiet() {
-    await setpref("privacy.resistFingerprinting.block_mozAddonManager", "true")
-    return setpref("extensions.webextensions.restrictedDomains", '""')
+    return excmd_aboutconfig.writeAMOPermissions()
 }
 
 /**
@@ -461,7 +404,7 @@ export async function fixamo_quiet() {
  */
 //#background
 export async function fixamo() {
-    await fixamo_quiet()
+    await excmd_aboutconfig.writeAMOPermissions()
     excmd_fillcmdline.fillcmdline_tmp(3000, "Permissions added to user.js. Please restart Firefox to make them take affect.")
 }
 
@@ -509,11 +452,9 @@ export async function exclaim_quiet(...str: string[]) {
  * Tells you if the native messenger is installed and its version.
  *
  */
-//#background
+//#both
 export async function native() {
-    const version = await Native.getNativeMessengerVersion(true)
-    if (version !== undefined) excmd_fillcmdline.fillcmdline("# Native messenger is correctly installed, version " + version)
-    else excmd_fillcmdline.fillcmdline("# Native messenger not found. Please run `:installnative` and follow the instructions.")
+    Native.checkNativeVersion()
 }
 
 /**
@@ -543,25 +484,17 @@ export async function nativeinstall() {
  *
  * @param fileArr the file to open. Must be an absolute path, but can contain environment variables and things like ~.
  */
-//#background
+//#both
 export async function source(...fileArr: string[]) {
-    const file = fileArr.join(" ") || undefined
-    if ((await Native.nativegate("0.1.3")) && !(await rc.source(file))) {
-        logger.error("Could not find RC file")
-    }
+    return excmd_tridactylrc.source(...fileArr)
 }
 
 /**
  * Same as [[source]] but suppresses all errors
  */
-//#background
+//#both
 export async function source_quiet(...fileArr: string[]) {
-    try {
-        const file = fileArr.join(" ") || undefined
-        if (await Native.nativegate("0.1.3", false)) rc.source(file)
-    } catch (e) {
-        logger.info("Automatic loading of RC file failed.")
-    }
+    return excmd_tridactylrc.source_quiet(...fileArr)
 }
 
 /**
@@ -569,21 +502,9 @@ export async function source_quiet(...fileArr: string[]) {
  *
  * If you want to disable this, or point it to your own native messenger, edit the `nativeinstallcmd` setting.
  */
-//#background
+//#both
 export async function updatenative(interactive = true) {
-    if (await Native.nativegate("0", interactive)) {
-        if ((await browser.runtime.getPlatformInfo()).os === "mac") {
-            if (interactive) logger.error("Updating the native messenger on OSX is broken. Please use `:installnative` instead.")
-            return
-        }
-        if ((await browser.runtime.getPlatformInfo()).os === "win") {
-            await Native.run(await config.get("win_nativeinstallcmd"))
-        } else {
-            await Native.run(await config.get("nativeinstallcmd"))
-        }
-
-        if (interactive) native()
-    }
+    return Native.updateNativeMessenger(interactive)
 }
 
 /**
@@ -592,26 +513,9 @@ export async function updatenative(interactive = true) {
  *  Warning: This can kill your tabs, especially if you :restart several times
  *  in a row
  */
-//#background
+//#both
 export async function restart() {
-    const profiledir = await Native.getProfileDir()
-    const browsercmd = await config.get("browser")
-
-    if ((await browser.runtime.getPlatformInfo()).os === "win") {
-        const reply = await Native.winFirefoxRestart(profiledir, browsercmd)
-        logger.info("[+] win_firefox_restart 'reply' = " + JSON.stringify(reply))
-        if (Number(reply.code) === 0) {
-            excmd_fillcmdline.fillcmdline("#" + reply.content)
-            qall()
-        } else {
-            excmd_fillcmdline.fillcmdline("#" + reply.error)
-        }
-    } else {
-        const firefox = (await Native.ff_cmdline()).join(" ")
-        // Wait for the lock to disappear, then wait a bit more, then start firefox
-        Native.run(`while readlink ${profiledir}/lock ; do sleep 1 ; done ; sleep 1 ; ${firefox}`)
-        qall()
-    }
+    return Native.restartFirefox()
 }
 
 /** Download the current document.
@@ -626,13 +530,9 @@ export async function restart() {
  *
  * @param filename The name the file should be saved as.
  */
-//#content
+//#both
 export async function saveas(...filename: string[]) {
-    if (filename.length > 0) {
-        return Messaging.message("download_background", "downloadUrlAs", [window.location.href, filename.join(" ")])
-    } else {
-        return Messaging.message("download_background", "downloadUrl", [window.location.href, true])
-    }
+    return excmd_download.saveAsExcmd(...filename)
 }
 
 // }}}
@@ -1920,60 +1820,27 @@ export async function mute(...muteArgs: string[]): Promise<void> {
  *
  * Example: `winopen -popup -private ddg.gg`
  */
-//#background
+//#both
 export async function winopen(...args: string[]) {
-    const createData = {} as any
-    let firefoxArgs = "--new-window"
-    let done = false
-    while (!done) {
-        switch (args[0]) {
-            case "-private":
-                createData.incognito = true
-                args = args.slice(1, args.length)
-                firefoxArgs = "--private-window"
-                break
-
-            case "-popup":
-                createData.type = "popup"
-                args = args.slice(1, args.length)
-                break
-
-            default:
-                done = true
-                break
-        }
-    }
-
-    const address = args.join(" ")
-    if (!ABOUT_WHITELIST.includes(address) && address.match(/^(about|file):.*/)) {
-        return excmd_open.nativeopen(firefoxArgs, address)
-    }
-
-    return browser.windows.create(createData).then(win => openInTab(win.tabs[0], { loadReplace: true }, address.split(" ")))
+    return excmd_windows.openTabInWindow()
 }
 
 /**
  * Close a tab.
  *
- * @param id - The window id. Defaults to the id of the current window.
+ * @param ids - Window ids to close. If empty, defaults to the id of the current window.
  *
  * Example: `winclose`
  */
-//#background
+//#both
 export async function winclose(...ids: string[]) {
-    if (ids.length === 0) {
-        ids.push(`${(await browser.windows.getCurrent()).id}`)
-    }
-    return Promise.all(ids.map(id => browser.windows.remove(parseInt(id, 10))))
+    return excmd_windows.closeWindows(...ids)
 }
 
 /** Close all windows */
-// It's unclear if this will leave a session that can be restored.
-// We might have to do it ourselves.
-//#background
+//#both
 export async function qall() {
-    const windows = await browser.windows.getAll()
-    windows.forEach(window => browser.windows.remove(window.id))
+    excmd_windows.closeAllWindows()
 }
 
 // }}}
@@ -3227,7 +3094,7 @@ export async function hint(option?: string, selectors?: string, ...rest: string[
             selectHints = hinting.pipe_elements(
                 elems,
                 elem => {
-                    Messaging.message("download_background", "downloadUrl", [new URL(elem[attr], window.location.href).href, saveAs])
+                    excmd_download.downloadUrl(new URL(elem[attr], window.location.href).href, saveAs)
                     return elem
                 },
                 rapid,
