@@ -208,7 +208,7 @@ config.getAsync("modeindicator").then(mode => {
                 ev.clientY > rect.y + rect.height
             ) {
                 target.classList.remove("TridactylInvisible")
-                window.removeEventListener("mousemouve", onMouseOut)
+                window.removeEventListener("mousemove", onMouseOut)
             }
         }
         window.addEventListener("mousemove", onMouseOut)
