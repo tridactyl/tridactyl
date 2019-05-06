@@ -68,7 +68,9 @@ export class State {
         this.runListeners("suffix", oldValue, newValue)
     }
 
-    public addContentStateChangedListener(callback: ContentStateChangedCallback) {
+    public addContentStateChangedListener(
+        callback: ContentStateChangedCallback,
+    ) {
         this._onChangedListeners.push(callback)
     }
 
@@ -80,13 +82,13 @@ export class State {
     }
 }
 
-export type ModeChangedListener = (oldMode: ModeName, newMode: ModeName) => void;
+export type ModeChangedListener = (oldMode: ModeName, newMode: ModeName) => void
 
 export type ContentStateChangedCallback = (
     property: keyof State,
     newState: State,
     oldValue: any,
-) => void;
+) => void
 
 // TODO: Pass enough down from the content script that we can get rid
 // of these globals.

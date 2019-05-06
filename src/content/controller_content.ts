@@ -137,12 +137,7 @@ export function* Parser(state: State, canceller: KeyCanceller) {
                 keyEvents.push(keyevent)
 
                 const response = parsers[state.mode](keyEvents)
-                logger.debug(
-                    currentMode,
-                    state.mode,
-                    keyEvents,
-                    response,
-                )
+                logger.debug(currentMode, state.mode, keyEvents, response)
 
                 if (response.isMatch) {
                     keyevent.preventDefault()
@@ -156,9 +151,7 @@ export function* Parser(state: State, canceller: KeyCanceller) {
                 } else {
                     keyEvents = response.keys
                     // show current keyEvents as a suffix of the contentState
-                    state.suffix = keyEvents
-                        .map(x => PrintableKey(x))
-                        .join("")
+                    state.suffix = keyEvents.map(x => PrintableKey(x)).join("")
                     logger.debug("suffix: ", state.suffix)
                 }
             }
@@ -176,14 +169,12 @@ export class Controller {
     canceller: KeyCanceller
     parser: Iterator<void>
 
-    constructor(
-        state: State
-    ) {
+    constructor(state: State) {
         this.canceller = new KeyCanceller()
         this.parser = Parser(state, this.canceller)
         // Advance the generator one for undocumented reasons
         this.parser.next()
-        this.accept_cb = (e) => this.parser.next(e)
+        this.accept_cb = e => this.parser.next(e)
     }
 
     addKeyEventListenersTo(elem) {
@@ -195,22 +186,11 @@ export class Controller {
             this.canceller.cancelKeyPress,
             true,
         )
-        elem.removeEventListener(
-            "keyup",
-            this.canceller.cancelKeyUp,
-            true,
-        )
+        elem.removeEventListener("keyup", this.canceller.cancelKeyUp, true)
 
         // Then add them all on.
         elem.addEventListener("keydown", this.accept_cb, true)
-        elem.addEventListener("keypress",
-            this.canceller.cancelKeyPress,
-            true,
-        )
-        elem.addEventListener(
-            "keyup",
-            this.canceller.cancelKeyUp,
-            true,
-        )
+        elem.addEventListener("keypress", this.canceller.cancelKeyPress, true)
+        elem.addEventListener("keyup", this.canceller.cancelKeyUp, true)
     }
 }

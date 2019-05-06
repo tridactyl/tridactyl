@@ -2,7 +2,11 @@ import * as Logging from "@src/lib/logging"
 import * as Config from "@src/lib/config"
 import * as webext from "@src/lib/webext"
 import * as dom from "@src/lib/dom"
-import { State, contentState, addContentStateChangedListener } from "@src/content/state_content"
+import {
+    State,
+    contentState,
+    addContentStateChangedListener,
+} from "@src/content/state_content"
 
 // Set up our logger
 const logger = new Logging.Logger("content")
@@ -26,7 +30,7 @@ function onModeChanged(
         "cleanslate TridactylStatusIndicator " + privateMode
     if (
         dom.isTextEditable(document.activeElement) &&
-            !["input", "ignore"].includes(newState.mode)
+        !["input", "ignore"].includes(newState.mode)
     ) {
         statusIndicator.textContent = "insert"
         // this doesn't work; statusIndicator.style is full of empty string
@@ -34,7 +38,7 @@ function onModeChanged(
         // need to fix loss of focus by click: doesn't do anything here.
     } else if (
         newState.mode === "insert" &&
-            !dom.isTextEditable(document.activeElement)
+        !dom.isTextEditable(document.activeElement)
     ) {
         statusIndicator.textContent = "normal"
         // statusIndicator.style.borderColor = "lightgray !important"
@@ -53,8 +57,7 @@ function onModeChanged(
         modeindicatorshowkeys,
     )
     statusIndicator.textContent = result
-    statusIndicator.className +=
-    " TridactylMode" + statusIndicator.textContent
+    statusIndicator.className += " TridactylMode" + statusIndicator.textContent
 
     if (Config.get("modeindicator") !== "true") statusIndicator.remove()
 }
@@ -68,20 +71,25 @@ function onModeChanged(
 function hideOnMouseEnter(ev: MouseEvent) {
     const target = ev.target as HTMLElement
     const rect = target.getBoundingClientRect() as DOMRect
-    const cb = (ev) => showOnMouseLeave(rect, target, ev, cb)
+    const cb = ev => showOnMouseLeave(rect, target, ev, cb)
 
     target.classList.add("TridactylInvisible")
     window.addEventListener("mousemove", cb)
 }
 
-function showOnMouseLeave(rect: DOMRect, target: HTMLElement, ev: MouseEvent, cb) {
+function showOnMouseLeave(
+    rect: DOMRect,
+    target: HTMLElement,
+    ev: MouseEvent,
+    cb,
+) {
     // If the mouse event happened outside the mode indicator
     // boundaries, re-show it.
     if (
         ev.clientX < rect.x ||
-            ev.clientX > rect.x + rect.width ||
-            ev.clientY < rect.y ||
-            ev.clientY > rect.y + rect.height
+        ev.clientX > rect.x + rect.width ||
+        ev.clientY < rect.y ||
+        ev.clientY > rect.y + rect.height
     ) {
         target.classList.remove("TridactylInvisible")
         window.removeEventListener("mousemove", cb)
@@ -94,11 +102,13 @@ function addStatusIndicatorToPage(statusIndicator: HTMLElement) {
     // https://bugzilla.mozilla.org/show_bug.cgi?id=1448507
     const style = document.createElement("style")
     style.type = "text/css"
-    style.innerHTML = ["@media print {",
-                       "  .TridactylStatusIndicator {",
-                       "    display: none !important;",
-                       "  }",
-                       "}"].join("\n")
+    style.innerHTML = [
+        "@media print {",
+        "  .TridactylStatusIndicator {",
+        "    display: none !important;",
+        "  }",
+        "}",
+    ].join("\n")
 
     try {
         // On quick loading pages, the document is already loaded
@@ -118,7 +128,9 @@ function addStatusIndicatorToPage(statusIndicator: HTMLElement) {
 async function setColorByContainer(statusIndicator: HTMLElement) {
     try {
         const ownTab = await webext.ownTabContainer()
-        const container = await webext.browserBg.contextualIdentities.get(ownTab.cookieStoreId)
+        const container = await webext.browserBg.contextualIdentities.get(
+            ownTab.cookieStoreId,
+        )
         statusIndicator.setAttribute(
             "style",
             `border: ${container.colorCode} solid 1.5px !important`,
@@ -135,10 +147,11 @@ export async function addModeIndicator() {
     const privateMode = browser.extension.inIncognitoContext
         ? "TridactylPrivate"
         : ""
-    statusIndicator.className = ["cleanslate",
-                                 "TridactylStatusIndicator",
-                                 privateMode +
-                                 "TridactylModenormal"].join(" ")
+    statusIndicator.className = [
+        "cleanslate",
+        "TridactylStatusIndicator",
+        privateMode + "TridactylModenormal",
+    ].join(" ")
 
     if (Config.get("containerindicator") === "true") {
         setColorByContainer(statusIndicator)
@@ -150,5 +163,7 @@ export async function addModeIndicator() {
     addStatusIndicatorToPage(statusIndicator)
 
     // Update when the mode changes.
-    addContentStateChangedListener((...args) => onModeChanged(statusIndicator, ...args))
+    addContentStateChangedListener((...args) =>
+        onModeChanged(statusIndicator, ...args),
+    )
 }

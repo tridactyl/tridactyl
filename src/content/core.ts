@@ -50,7 +50,7 @@ import * as updates from "@src/lib/updates"
 const logger = new Logging.Logger("content")
 
 function injectTriIntoWindow() {
-    (window as any).tri = Object.assign(Object.create(null), {
+    ;(window as any).tri = Object.assign(Object.create(null), {
         browserBg: webext.browserBg,
         commandline_content,
         convert,
@@ -105,7 +105,9 @@ function addProtectSlashListener(state: state_content.State) {
     } catch (e) {
         // But on slower pages we wait for the document to load
         window.addEventListener("DOMContentLoaded", () => {
-            document.body.addEventListener("keydown", e => protectSlash(state, e))
+            document.body.addEventListener("keydown", e =>
+                protectSlash(state, e),
+            )
         })
     }
 }
@@ -123,7 +125,7 @@ export function runTridactylContent() {
     if ((window as any).tridactyl_content_lock !== undefined) {
         throw Error("Trying to load Tridactyl, but it's already loaded.")
     }
-    (window as any).tridactyl_content_lock = "locked"
+    ;(window as any).tridactyl_content_lock = "locked"
 
     logger.debug("Tridactyl content script loaded, boss!")
 
@@ -134,23 +136,31 @@ export function runTridactylContent() {
 
     const excmd_acceptor = new controller.ExcmdAcceptor({
         "": excmds_content,
-        "ex": CmdlineCmds,
-        "text": EditorCmds
+        ex: CmdlineCmds,
+        text: EditorCmds,
     })
     // TODO: Propagate the excmdAccepter far enough down that we can
     // get rid of this global
     controller.setGlobalAccepter(excmd_acceptor)
 
     // Add listeners to handle RPCs over messaging
-    messaging.addListener("excmd_content", messaging.attributeCaller(excmds_content))
-    messaging.addListener("controller_content", messaging.attributeCaller(excmd_acceptor))
+    messaging.addListener(
+        "excmd_content",
+        messaging.attributeCaller(excmds_content),
+    )
+    messaging.addListener(
+        "controller_content",
+        messaging.attributeCaller(excmd_acceptor),
+    )
 
     // Add listeners to handle window events
     const key_controller = new controller_content.Controller(state)
     key_controller.addKeyEventListenersTo(window)
-    document.addEventListener(
-        "readystatechange", _ =>
-            getAllDocumentFrames().forEach(f => key_controller.addKeyEventListenersTo(f)))
+    document.addEventListener("readystatechange", _ =>
+        getAllDocumentFrames().forEach(f =>
+            key_controller.addKeyEventListenersTo(f),
+        ),
+    )
 
     // Hijack all of the page's event listeners so we can catch everything
     setupPageListenerHijacks()

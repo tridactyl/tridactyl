@@ -14,7 +14,7 @@ export class ExcmdAcceptor {
         // But excmds.ts still has a ton of variables and stuff in it,
         // so we can't do that and have to leave it as `any`.
         readonly excmds: { [ns: string]: { [excmd: string]: any } },
-    ) { }
+    ) {}
 
     async acceptExCmd(exstr: string): Promise<any> {
         // TODO: Errors should go to CommandLine.
