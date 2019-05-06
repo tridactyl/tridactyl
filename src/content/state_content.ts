@@ -15,7 +15,7 @@ export class PrevInput {
     jumppos?: number
 }
 
-class State {
+export class State {
     mode: ModeName = "normal"
     cmdHistory: string[] = []
     prevInputs: PrevInput[] = [
@@ -26,40 +26,40 @@ class State {
         },
     ]
     suffix: string = ""
+    onChangedListeners: ContentStateChangedCallback[] = []
 }
 
-export type ContentStateProperty = "mode" | "cmdHistory" | "prevInputs" | "suffix"
-
 export type ContentStateChangedCallback = (
-    property: ContentStateProperty,
+    property: keyof State,
+    oldMode: ModeName,
     oldValue: any,
     newValue: any,
-    suffix: any,
-) => void
-
-const onChangedListeners: ContentStateChangedCallback[] = []
+) => void;
 
 export function addContentStateChangedListener(
     callback: ContentStateChangedCallback,
 ) {
-    onChangedListeners.push(callback)
+    contentState.onChangedListeners.push(callback)
 }
 
-export const contentState = (new Proxy(
-    { mode: "normal" },
+export const contentState: State = (new Proxy(
+    new State(),
     {
-        get(target, property: ContentStateProperty) {
+        get(target, property: keyof State) {
             return target[property]
         },
 
-        set(target, property: ContentStateProperty, newValue) {
+        set(target, property: keyof State, newValue) {
             logger.debug("Content state changed!", property, newValue)
 
             const oldValue = target[property]
             const mode = target.mode
             target[property] = newValue
 
-            for (const listener of onChangedListeners) {
+            // Don't get into a loop on callbacks, lol
+            if (property === "onChangedListeners") { return true }
+
+            for (const listener of target.onChangedListeners) {
                 listener(property, mode, oldValue, newValue)
             }
             return true
