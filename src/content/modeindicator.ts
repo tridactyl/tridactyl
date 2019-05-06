@@ -2,7 +2,7 @@ import * as Logging from "@src/lib/logging"
 import * as Config from "@src/lib/config"
 import * as webext from "@src/lib/webext"
 import * as dom from "@src/lib/dom"
-import { ModeName, State, contentState, addContentStateChangedListener } from "@src/content/state_content"
+import { State, contentState, addContentStateChangedListener } from "@src/content/state_content"
 
 // Set up our logger
 const logger = new Logging.Logger("content")
@@ -98,7 +98,7 @@ function addStatusIndicatorToPage(statusIndicator: HTMLElement) {
                        "  .TridactylStatusIndicator {",
                        "    display: none !important;",
                        "  }",
-                       "}",].join("\n")
+                       "}"].join("\n")
 
     try {
         // On quick loading pages, the document is already loaded

@@ -1,5 +1,4 @@
 import Logger from "@src/lib/logging"
-import { addChangeListener } from "@src/lib/config";
 const logger = new Logger("state")
 
 export type ModeName =
@@ -18,23 +17,16 @@ export class PrevInput {
 
 export class State {
     private _mode: ModeName = "normal"
-    _cmdHistory: string[] = []
-    _prevInputs: PrevInput[] = [
+    private _cmdHistory: string[] = []
+    private _prevInputs: PrevInput[] = [
         {
             inputId: undefined,
             tab: undefined,
             jumppos: undefined,
         },
     ]
-    _suffix: string = ""
-    _onChangedListeners: ContentStateChangedCallback[] = []
-
-    private runListeners(property, oldValue, newValue) {
-        logger.debug("Content state changed!", property, oldValue, newValue)
-        for (const listener of this._onChangedListeners) {
-            listener(property, this, oldValue)
-        }
-    }
+    private _suffix: string = ""
+    private _onChangedListeners: ContentStateChangedCallback[] = []
 
     get mode(): ModeName {
         return this._mode
@@ -76,8 +68,15 @@ export class State {
         this.runListeners("suffix", oldValue, newValue)
     }
 
-    addContentStateChangedListener(callback: ContentStateChangedCallback) {
+    public addContentStateChangedListener(callback: ContentStateChangedCallback) {
         this._onChangedListeners.push(callback)
+    }
+
+    private runListeners(property, oldValue, newValue) {
+        logger.debug("Content state changed!", property, oldValue, newValue)
+        for (const listener of this._onChangedListeners) {
+            listener(property, this, oldValue)
+        }
     }
 }
 
@@ -88,7 +87,6 @@ export type ContentStateChangedCallback = (
     newState: State,
     oldValue: any,
 ) => void;
-
 
 // TODO: Pass enough down from the content script that we can get rid
 // of these globals.

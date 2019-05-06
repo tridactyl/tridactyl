@@ -3,13 +3,12 @@ import { parser as exmode_parser } from "@src/parsers/exmode"
 
 const logger = new Logger("controller")
 
-
-export class ExcmdAccepter {
+export class ExcmdAcceptor {
     private last_ex_str: string = ""
 
     constructor(
         // This should really be something like this:
-        // 
+        //
         //   readonly excmds: { [ns: string]: { [excmd: string]: (...any) => any } },
         //
         // But excmds.ts still has a ton of variables and stuff in it,
@@ -47,11 +46,11 @@ export class ExcmdAccepter {
 
 // TODO: Propagate the excmdAccepter far enough down that we can get
 // rid of these globals
-export let root_accepter: ExcmdAccepter
+export let root_accepter: ExcmdAcceptor
 export function setExCmds(excmds: any) {
-    root_accepter = new ExcmdAccepter(excmds)
+    root_accepter = new ExcmdAcceptor(excmds)
 }
-export function setGlobalAccepter(new_accepter: ExcmdAccepter) {
+export function setGlobalAccepter(new_accepter: ExcmdAcceptor) {
     root_accepter = new_accepter
 }
 export async function acceptExCmd(exstr: string) {

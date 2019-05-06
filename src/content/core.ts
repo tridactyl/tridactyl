@@ -12,7 +12,7 @@ import * as Logging from "@src/lib/logging"
 import * as modeindicator from "@src/content/modeindicator"
 
 // Our local state
-import { contentState } from "@src/content/state_content"
+import * as state_content from "@src/content/state_content"
 
 // Set up our controller to execute content-mode excmds. All code
 // running from this entry point, which is to say, everything in the
@@ -24,7 +24,7 @@ import { CmdlineCmds } from "@src/content/commandline_cmds"
 import { EditorCmds } from "@src/content/editor"
 
 // Hook the keyboard up to the controller
-import * as ContentController from "@src/content/controller_content"
+import * as controller_content from "@src/content/controller_content"
 import { getAllDocumentFrames } from "@src/lib/dom"
 
 // Add various useful modules to the window for debugging
@@ -82,31 +82,6 @@ function injectTriIntoWindow() {
     })
 }
 
-function addKeyEventListeners(elem) {
-    elem.removeEventListener("keydown", ContentController.acceptKey, true)
-    elem.removeEventListener(
-        "keypress",
-        ContentController.canceller.cancelKeyPress,
-        true,
-    )
-    elem.removeEventListener(
-        "keyup",
-        ContentController.canceller.cancelKeyUp,
-        true,
-    )
-    elem.addEventListener("keydown", ContentController.acceptKey, true)
-    elem.addEventListener(
-        "keypress",
-        ContentController.canceller.cancelKeyPress,
-        true,
-    )
-    elem.addEventListener(
-        "keyup",
-        ContentController.canceller.cancelKeyUp,
-        true,
-    )
-}
-
 function setupPageListenerHijacks() {
     // Don't hijack on the newtab page.
     if (webext.inContentScript()) {
@@ -123,20 +98,20 @@ function setupPageListenerHijacks() {
 
 // Some sites like to prevent firefox's `/` from working so we need to
 // protect ourselves against that
-function addProtectSlashListener() {
+function addProtectSlashListener(state: state_content.State) {
     try {
         // On quick loading pages, the document is already loaded
-        document.body.addEventListener("keydown", protectSlash)
+        document.body.addEventListener("keydown", e => protectSlash(state, e))
     } catch (e) {
         // But on slower pages we wait for the document to load
         window.addEventListener("DOMContentLoaded", () => {
-            document.body.addEventListener("keydown", protectSlash)
+            document.body.addEventListener("keydown", e => protectSlash(state, e))
         })
     }
 }
 
-function protectSlash(e) {
-    if ("/".indexOf(e.key) !== -1 && contentState.mode === "normal") {
+function protectSlash(state, e) {
+    if ("/".indexOf(e.key) !== -1 && state.mode === "normal") {
         e.cancelBubble = true
         e.stopImmediatePropagation()
     }
@@ -152,23 +127,30 @@ export function runTridactylContent() {
 
     logger.debug("Tridactyl content script loaded, boss!")
 
-    const excmd_accepter = new controller.ExcmdAccepter({
+    // Our mode and other "global" state.
+    //
+    // TODO: initialize this variable here and kill the global.
+    const state = state_content.contentState
+
+    const excmd_acceptor = new controller.ExcmdAcceptor({
         "": excmds_content,
         "ex": CmdlineCmds,
         "text": EditorCmds
     })
     // TODO: Propagate the excmdAccepter far enough down that we can
     // get rid of this global
-    controller.setGlobalAccepter(excmd_accepter)
+    controller.setGlobalAccepter(excmd_acceptor)
 
     // Add listeners to handle RPCs over messaging
     messaging.addListener("excmd_content", messaging.attributeCaller(excmds_content))
-    messaging.addListener("controller_content", messaging.attributeCaller(excmd_accepter))
+    messaging.addListener("controller_content", messaging.attributeCaller(excmd_acceptor))
 
     // Add listeners to handle window events
-    addKeyEventListeners(window)
-    document.addEventListener("readystatechange", _ =>
-                              getAllDocumentFrames().forEach(f => addKeyEventListeners(f)))
+    const key_controller = new controller_content.Controller(state)
+    key_controller.addKeyEventListenersTo(window)
+    document.addEventListener(
+        "readystatechange", _ =>
+            getAllDocumentFrames().forEach(f => key_controller.addKeyEventListenersTo(f)))
 
     // Hijack all of the page's event listeners so we can catch everything
     setupPageListenerHijacks()
@@ -181,7 +163,7 @@ export function runTridactylContent() {
     // The configuration to not protect slash was originally a
     // github-specific fix
     if (Config.get("leavegithubalone") === "true") {
-        addProtectSlashListener()
+        addProtectSlashListener(state)
     }
 
     injectTriIntoWindow()
