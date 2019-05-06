@@ -1,4 +1,5 @@
 import Logger from "@src/lib/logging"
+import { addChangeListener } from "@src/lib/config";
 const logger = new Logger("state")
 
 export type ModeName =
@@ -16,53 +17,84 @@ export class PrevInput {
 }
 
 export class State {
-    mode: ModeName = "normal"
-    cmdHistory: string[] = []
-    prevInputs: PrevInput[] = [
+    private _mode: ModeName = "normal"
+    _cmdHistory: string[] = []
+    _prevInputs: PrevInput[] = [
         {
             inputId: undefined,
             tab: undefined,
             jumppos: undefined,
         },
     ]
-    suffix: string = ""
-    onChangedListeners: ContentStateChangedCallback[] = []
+    _suffix: string = ""
+    _onChangedListeners: ContentStateChangedCallback[] = []
+
+    private runListeners(property, oldValue, newValue) {
+        logger.debug("Content state changed!", property, oldValue, newValue)
+        for (const listener of this._onChangedListeners) {
+            listener(property, this, oldValue)
+        }
+    }
+
+    get mode(): ModeName {
+        return this._mode
+    }
+
+    set mode(newValue: ModeName) {
+        const oldValue = this._mode
+        this._mode = newValue
+        this.runListeners("mode", oldValue, newValue)
+    }
+
+    get cmdHistory(): string[] {
+        return this._cmdHistory
+    }
+
+    set cmdHistory(newValue: string[]) {
+        const oldValue = this._cmdHistory
+        this._cmdHistory = newValue
+        this.runListeners("cmdHistory", oldValue, newValue)
+    }
+
+    get prevInputs(): PrevInput[] {
+        return this._prevInputs
+    }
+
+    set prevInputs(newValue: PrevInput[]) {
+        const oldValue = this._prevInputs
+        this.prevInputs = newValue
+        this.runListeners("prevInputs", oldValue, newValue)
+    }
+
+    get suffix(): string {
+        return this._suffix
+    }
+
+    set suffix(newValue: string) {
+        const oldValue = this._suffix
+        this._suffix = newValue
+        this.runListeners("suffix", oldValue, newValue)
+    }
+
+    addContentStateChangedListener(callback: ContentStateChangedCallback) {
+        this._onChangedListeners.push(callback)
+    }
 }
+
+export type ModeChangedListener = (oldMode: ModeName, newMode: ModeName) => void;
 
 export type ContentStateChangedCallback = (
     property: keyof State,
-    oldMode: ModeName,
+    newState: State,
     oldValue: any,
-    newValue: any,
 ) => void;
 
+
+// TODO: Pass enough down from the content script that we can get rid
+// of these globals.
 export function addContentStateChangedListener(
     callback: ContentStateChangedCallback,
 ) {
-    contentState.onChangedListeners.push(callback)
+    contentState.addContentStateChangedListener(callback)
 }
-
-export const contentState: State = (new Proxy(
-    new State(),
-    {
-        get(target, property: keyof State) {
-            return target[property]
-        },
-
-        set(target, property: keyof State, newValue) {
-            logger.debug("Content state changed!", property, newValue)
-
-            const oldValue = target[property]
-            const mode = target.mode
-            target[property] = newValue
-
-            // Don't get into a loop on callbacks, lol
-            if (property === "onChangedListeners") { return true }
-
-            for (const listener of target.onChangedListeners) {
-                listener(property, mode, oldValue, newValue)
-            }
-            return true
-        },
-    },
-) as any) as State
+export const contentState = new State()

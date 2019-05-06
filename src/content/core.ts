@@ -12,10 +12,7 @@ import * as Logging from "@src/lib/logging"
 import * as modeindicator from "@src/content/modeindicator"
 
 // Our local state
-import {
-    contentState,
-    addContentStateChangedListener,
-} from "@src/content/state_content"
+import { contentState } from "@src/content/state_content"
 
 // Set up our controller to execute content-mode excmds. All code
 // running from this entry point, which is to say, everything in the

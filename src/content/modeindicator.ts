@@ -10,20 +10,13 @@ const logger = new Logging.Logger("content")
 function onModeChanged(
     statusIndicator: HTMLElement,
     property: keyof State,
-    oldMode: ModeName,
+    newState: State,
     oldValue: any,
-    newValue: any
 ) {
-    let mode = newValue
-    let suffix = ""
     let result = ""
-    if (property !== "mode") {
-        if (property === "suffix") {
-            mode = oldMode
-            suffix = newValue
-        } else {
-            return
-        }
+
+    if (property !== "mode" && property !== "suffix") {
+        return
     }
 
     const privateMode = browser.extension.inIncognitoContext
@@ -33,24 +26,24 @@ function onModeChanged(
         "cleanslate TridactylStatusIndicator " + privateMode
     if (
         dom.isTextEditable(document.activeElement) &&
-            !["input", "ignore"].includes(mode)
+            !["input", "ignore"].includes(newState.mode)
     ) {
         statusIndicator.textContent = "insert"
         // this doesn't work; statusIndicator.style is full of empty string
         // statusIndicator.style.borderColor = "green !important"
         // need to fix loss of focus by click: doesn't do anything here.
     } else if (
-        mode === "insert" &&
+        newState.mode === "insert" &&
             !dom.isTextEditable(document.activeElement)
     ) {
         statusIndicator.textContent = "normal"
         // statusIndicator.style.borderColor = "lightgray !important"
     } else {
-        result = mode
+        result = newState.mode
     }
     const modeindicatorshowkeys = Config.get("modeindicatorshowkeys")
-    if (modeindicatorshowkeys === "true" && suffix !== "") {
-        result = mode + " " + suffix
+    if (modeindicatorshowkeys === "true" && newState.suffix !== "") {
+        result = newState.mode + " " + newState.suffix
     }
     logger.debug(
         "statusindicator: ",
