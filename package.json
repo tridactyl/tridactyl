@@ -32,7 +32,7 @@
     "tslint-sonarts": "^1.9.0",
     "typedoc": "^0.14.2",
     "typedoc-default-themes": "git://github.com/tridactyl/typedoc-default-themes.git#fix_weird_member_names_bin",
-    "typescript": "^3.3.3333",
+    "typescript": "^3.4.5",
     "uglify-es": "^3.3.9",
     "uglifyjs-webpack-plugin": "^2.1.2",
     "web-ext": "^3.0.0",
