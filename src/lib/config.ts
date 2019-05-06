@@ -566,7 +566,7 @@ class default_config {
     /**
      * Whether to optimise for the shortest possible names for each hint, or to use a simple numerical ordering. If set to `numeric`, overrides `hintchars` setting.
      */
-    hintnames: "short" | "numeric" = "short"
+    hintnames: "short" | "numeric" | "uniform" = "short"
 
     /**
      * Whether to display the names for hints in uppercase.
