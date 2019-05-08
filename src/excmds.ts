@@ -647,7 +647,7 @@ export async function nativeinstall() {
 /**
  * Runs an RC file from disk.
  *
- * If no argument given, it will try to open ~/.tridactylrc, ~/.config/tridactylrc or $XDG_CONFIG_HOME/tridactyl/tridactylrc in reverse order. You may use a `_` in place of a leading `.` if you wish, e.g, if you use Windows.
+ * If no argument given, it will try to open ~/.tridactylrc, ~/.config/tridactyl/tridactylrc or $XDG_CONFIG_HOME/tridactyl/tridactylrc in reverse order. You may use a `_` in place of a leading `.` if you wish, e.g, if you use Windows.
  *
  * On Windows, the `~` expands to `%USERPROFILE%`.
  *
