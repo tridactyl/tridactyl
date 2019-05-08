@@ -24,6 +24,15 @@ import * as config from "@src/lib/config"
 import Logger from "@src/lib/logging"
 const logger = new Logger("hinting")
 
+/** Calclate the distance between two segments. */
+function distance(l1: number, r1: number, l2: number, r2: number): number {
+    if (l1 < r2 && r1 > l2) {
+        return 0
+    } else {
+        return Math.min(Math.abs(l1 - r2), Math.abs(l2 - r1))
+    }
+}
+
 /** Simple container for the state of a single frame's hints. */
 class HintState {
     public focusedHint: Hint
@@ -85,6 +94,142 @@ class HintState {
         const nextFocusedIndex =
             (focusedIndex + offset + activeHints.length) % activeHints.length
         this.focusedHint = activeHints[nextFocusedIndex]
+        this.focusedHint.focused = true
+    }
+
+    changeFocusedHintTop() {
+        const focusedRect = this.focusedHint.rect
+
+        // Get all hints from the top area
+        const topHints = this.activeHints.filter(h => h.rect.top < focusedRect.top && h.rect.bottom < focusedRect.bottom)
+        if (!topHints.length) {
+            return
+        }
+
+        // Find the next top hint
+        const nextFocusedHint = topHints.reduce((a, b) => {
+            const aDistance = distance(a.rect.left, a.rect.right, focusedRect.left, focusedRect.right)
+            const bDistance = distance(b.rect.left, b.rect.right, focusedRect.left, focusedRect.right)
+            if (aDistance < bDistance) {
+                return a
+            } else if (aDistance > bDistance) {
+                return b
+            } else {
+                if (a.rect.bottom < b.rect.bottom) {
+                    return b
+                } else {
+                    return a
+                }
+            }
+        })
+
+        // Unfocus the currently focused hint
+        this.focusedHint.focused = false
+
+        // Focus the next hint
+        this.focusedHint = nextFocusedHint
+        this.focusedHint.focused = true
+    }
+
+    changeFocusedHintBottom() {
+        const focusedRect = this.focusedHint.rect
+
+        // Get all hints from the bottom area
+        const bottomHints = this.activeHints.filter(h => h.rect.top > focusedRect.top && h.rect.bottom > focusedRect.bottom)
+        if (!bottomHints.length) {
+            return
+        }
+
+        // Find the next bottom hint
+        const nextFocusedHint = bottomHints.reduce((a, b) => {
+            const aDistance = distance(a.rect.left, a.rect.right, focusedRect.left, focusedRect.right)
+            const bDistance = distance(b.rect.left, b.rect.right, focusedRect.left, focusedRect.right)
+            if (aDistance < bDistance) {
+                return a
+            } else if (aDistance > bDistance) {
+                return b
+            } else {
+                if (a.rect.top > b.rect.top) {
+                    return b
+                } else {
+                    return a
+                }
+            }
+        })
+
+        // Unfocus the currently focused hint
+        this.focusedHint.focused = false
+
+        // Focus the next hint
+        this.focusedHint = nextFocusedHint
+        this.focusedHint.focused = true
+    }
+
+    changeFocusedHintLeft() {
+        const focusedRect = this.focusedHint.rect
+
+        // Get all hints from the left area
+        const leftHints = this.activeHints.filter(h => h.rect.left < focusedRect.left && h.rect.right < focusedRect.right)
+        if (!leftHints.length) {
+            return
+        }
+
+        // Find the next left hint
+        const nextFocusedHint = leftHints.reduce((a, b) => {
+            const aDistance = distance(a.rect.top, a.rect.bottom, focusedRect.top, focusedRect.bottom)
+            const bDistance = distance(b.rect.top, b.rect.bottom, focusedRect.top, focusedRect.bottom)
+            if (aDistance < bDistance) {
+                return a
+            } else if (aDistance > bDistance) {
+                return b
+            } else {
+                if (a.rect.right < b.rect.right) {
+                    return b
+                } else {
+                    return a
+                }
+            }
+        })
+
+        // Unfocus the currently focused hint
+        this.focusedHint.focused = false
+
+        // Focus the next hint
+        this.focusedHint = nextFocusedHint
+        this.focusedHint.focused = true
+    }
+
+    changeFocusedHintRight() {
+        const focusedRect = this.focusedHint.rect
+
+        // Get all hints from the right area
+        const rightHints = this.activeHints.filter(h => h.rect.left > focusedRect.left && h.rect.right > focusedRect.right)
+        if (!rightHints.length) {
+            return
+        }
+
+        // Find the next right hint
+        const nextFocusedHint = rightHints.reduce((a, b) => {
+            const aDistance = distance(a.rect.top, a.rect.bottom, focusedRect.top, focusedRect.bottom)
+            const bDistance = distance(b.rect.top, b.rect.bottom, focusedRect.top, focusedRect.bottom)
+            if (aDistance < bDistance) {
+                return a
+            } else if (aDistance > bDistance) {
+                return b
+            } else {
+                if (a.rect.left > b.rect.left) {
+                    return b
+                } else {
+                    return a
+                }
+            }
+        })
+
+        // Unfocus the currently focused hint
+        this.focusedHint.focused = false
+
+        // Focus the next hint
+        this.focusedHint = nextFocusedHint
         this.focusedHint.focused = true
     }
 }
@@ -261,6 +406,7 @@ type HintSelectedCallback = (x: any) => any
 /** Place a flag by each hintworthy element */
 class Hint {
     public readonly flag = document.createElement("span")
+    public readonly rect: ClientRect = null
     public result: any = null
 
     constructor(
@@ -282,19 +428,24 @@ class Hint {
         }
 
         const rect = target.getClientRects()[0]
+        this.rect = {
+            top: rect.top + offsetTop,
+            bottom: rect.bottom + offsetTop,
+            left: rect.left + offsetLeft,
+            right: rect.right + offsetLeft,
+            width: rect.width,
+            height: rect.height
+        }
+
         this.flag.textContent = name
         this.flag.className = "TridactylHint"
         if (config.get("hintuppercase") === "true") {
             this.flag.classList.add("TridactylHintUppercase")
         }
         this.flag.classList.add("TridactylHint" + target.tagName)
-        /* this.flag.style.cssText = ` */
-        /*     top: ${rect.top}px; */
-        /*     left: ${rect.left}px; */
-        /* ` */
         this.flag.style.cssText = `
-            top: ${window.scrollY + offsetTop + rect.top}px !important;
-            left: ${window.scrollX + offsetLeft + rect.left}px !important;
+            top: ${window.scrollY + this.rect.top}px !important;
+            left: ${window.scrollX + this.rect.left}px !important;
         `
         modeState.hintHost.appendChild(this.flag)
         this.hidden = false
@@ -589,6 +740,26 @@ function focusPreviousHint() {
     modeState.changeFocusedHintIndex(-1)
 }
 
+function focusTopHint() {
+    logger.debug("Focusing top hint")
+    modeState.changeFocusedHintTop()
+}
+
+function focusBottomHint() {
+    logger.debug("Focusing bottom hint")
+    modeState.changeFocusedHintBottom()
+}
+
+function focusLeftHint() {
+    logger.debug("Focusing left hint")
+    modeState.changeFocusedHintLeft()
+}
+
+function focusRightHint() {
+    logger.debug("Focusing right hint")
+    modeState.changeFocusedHintRight()
+}
+
 export function parser(keys: KeyboardEvent[]) {
     for (const keyev of keys) {
         const key = keyev.key
@@ -602,6 +773,18 @@ export function parser(keys: KeyboardEvent[]) {
                 } else {
                     focusNextHint()
                 }
+                break
+            case "ArrowUp":
+                focusTopHint()
+                break
+            case "ArrowDown":
+                focusBottomHint()
+                break
+            case "ArrowLeft":
+                focusLeftHint()
+                break
+            case "ArrowRight":
+                focusRightHint()
                 break
             case "Enter":
             case " ":
