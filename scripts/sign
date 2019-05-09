@@ -12,7 +12,7 @@ publish_beta_nonewtab() {
     npm run build
     scripts/version.js beta
     sed 's/tridactyl.vim@cmcaine/tridactyl.vim.betas.nonewtab@cmcaine/' -i build/manifest.json
-    sed '/"newtab": "static\/newtab.html"/d' -i build/manifest.json
+    sed '/\s*"newtab":.*/d' -i build/manifest.json
     sign_and_submit
 }
 
