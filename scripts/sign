@@ -4,7 +4,7 @@ set -e
 
 sign_and_submit() {
     # Don't trust the return value of web-ext sign.
-    (source AMOKEYS && (web-ext sign -s build --api-key $AMOKEY --api-secret $AMOSECRET || true))
+    (source AMOKEYS && (web-ext sign -s build --api-key $AMOKEY --api-secret $AMOSECRET "$@" || true))
 }
 
 publish_beta_nonewtab() {
@@ -13,7 +13,7 @@ publish_beta_nonewtab() {
     scripts/version.js beta
     sed 's/tridactyl.vim@cmcaine/tridactyl.vim.betas.nonewtab@cmcaine/' -i build/manifest.json
     sed '/\s*"newtab":.*/d' -i build/manifest.json
-    sign_and_submit
+    sign_and_submit -a web-ext-artifacts/nonewtab
 }
 
 publish_beta() {
