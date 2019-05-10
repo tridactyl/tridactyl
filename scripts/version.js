@@ -34,6 +34,17 @@ function make_update_json(versionstr) {
                     },
                 ],
             },
+            "tridactyl.vim.betas.nonewtab@cmcaine.co.uk": {
+                updates: [
+                    {
+                        version: versionstr,
+                        update_link:
+                            "https://tridactyl.cmcaine.co.uk/nonewtab/tridactyl-" +
+                            versionstr +
+                            "-an+fx.xpi",
+                    },
+                ],
+            },
         },
     }
 }
