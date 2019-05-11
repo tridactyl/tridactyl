@@ -83,21 +83,15 @@ describe("webdriver", () => {
                 } catch(e) {}
         })
 
-        test("`:tabopen<CR>` opens the newtab page.", async () => {
+        async function newTabWithoutChangingOldTabs (callback) {
                 const tabsBefore = await driver.executeScript("return tri.browserBg.tabs.query({})")
-                await sendKeys(driver, ":tabopen<CR>")
-                await driver.sleep(500)
+                const result = await callback(tabsBefore);
                 const tabsAfter = await driver.executeScript("return tri.browserBg.tabs.query({})")
                 // A single new tab has been created
                 expect(tabsAfter.length).toBe(tabsBefore.length + 1)
 
-                // The new tab is active
-                const newtab = tabsAfter.find(tab2 => !tabsBefore.find(tab => tab.id == tab2.id))
-                expect(newtab.active).toEqual(true)
-                // Its url is the newtab page's url
-                expect(newtab.url).toMatch(new RegExp("moz-extension://.*/static/newtab.html"))
-
                 // None of the previous tabs changed, except maybe for their index
+                const newtab = tabsAfter.find(tab2 => !tabsBefore.find(tab => tab.id == tab2.id))
                 const notNewTabs = tabsAfter.slice()
                 notNewTabs.splice(tabsAfter.findIndex(tab => tab == newtab), 1)
                 const ignoreValues = {
@@ -111,5 +105,30 @@ describe("webdriver", () => {
                         let copy2 = Object.assign({}, notNewTabs[i], ignoreValues)
                         expect(copy1).toEqual(copy2)
                 }
+                return [newtab, result]
+        }
+
+        test("`:tabopen<CR>` opens the newtab page.", async () => {
+                return newTabWithoutChangingOldTabs(async () => {
+                        await sendKeys(driver, ":tabopen<CR>")
+                        await driver.sleep(500)
+                }).then(([newtab, _]) => {
+                        // The new tab is active
+                        expect(newtab.active).toEqual(true)
+                        // Its url is the newtab page's url
+                        expect(newtab.url).toMatch(new RegExp("moz-extension://.*/static/newtab.html"))
+                })
+        })
+
+        test("`:tabopen https://example.org<CR>` opens example.org.", async () => {
+                return newTabWithoutChangingOldTabs(async () => {
+                        await sendKeys(driver, ":tabopen https://example.org<CR>")
+                        await driver.sleep(500)
+                }).then(([newtab, _]) => {
+                        // The new tab is active
+                        expect(newtab.active).toEqual(true)
+                        // Its url is example.org
+                        expect(newtab.url).toMatch("https://example.org")
+                })
         })
 })
