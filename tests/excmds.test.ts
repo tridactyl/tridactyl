@@ -57,12 +57,11 @@ function sendKeys (driver, keys) {
 }
 
 describe("webdriver", () => {
-        let driver
-        beforeAll(async () => {
+        async function getDriver() {
                 const dir = "web-ext-artifacts"
                 const extensionName = "tridactyl.xpi"
                 const extensionPath = dir + "/" + extensionName
-                driver = new webdriver.Builder()
+                const driver = new webdriver.Builder()
                         .forBrowser("firefox")
                         .setFirefoxOptions((new Options())
                                 .setPreference("xpinstall.signatures.required", false)
@@ -71,22 +70,39 @@ describe("webdriver", () => {
                 // Wait until addon is loaded and :tutor is displayed
                 await driver.wait(webdriver.until.elementLocated(webdriver.By.id("cmdline_iframe")))
                 // And wait a bit more otherwise Tridactyl won't be happy
-                await driver.sleep(1000)
-        })
+                await driver.sleep(500)
+                return driver
+        }
 
-        afterAll(async () => {
+        async function killDriver(driver) {
                 try {
                         await driver.close()
                 } catch(e) {}
                 try {
                         await driver.quit()
                 } catch(e) {}
-        })
+        }
 
-        async function newTabWithoutChangingOldTabs (callback) {
+        async function untilTabUrlMatches(driver, tabId, pattern) {
+                let match
+                do {
+                        match = (await driver.executeScript(`return tri.browserBg.tabs.get(${tabId})`))
+                                .url
+                                .match(pattern)
+                } while (!match)
+                return match
+        }
+
+        async function newTabWithoutChangingOldTabs (driver, callback) {
                 const tabsBefore = await driver.executeScript("return tri.browserBg.tabs.query({})")
                 const result = await callback(tabsBefore);
-                const tabsAfter = await driver.executeScript("return tri.browserBg.tabs.query({})")
+                const tabsAfter = await driver.wait(async () => {
+                        let tabsAfter
+                        do {
+                                tabsAfter = await driver.executeScript("return tri.browserBg.tabs.query({})")
+                        } while (tabsAfter.length == tabsBefore.length)
+                        return tabsAfter
+                })
                 // A single new tab has been created
                 expect(tabsAfter.length).toBe(tabsBefore.length + 1)
 
@@ -95,7 +111,7 @@ describe("webdriver", () => {
                 const notNewTabs = tabsAfter.slice()
                 notNewTabs.splice(tabsAfter.findIndex(tab => tab == newtab), 1)
                 const ignoreValues = {
-                        active: false, // the previously-active tab isn't active anymore
+                        active: false, // the previously-active tab isn't necessarily active anymore
                         highlighted: true, // changing tabs changes highlights
                         index: 0, // indexes might not be the same depending on whether the new tab is
                         lastAccessed: 0, // lastAccessed has also changed for the previously-active tab
@@ -109,26 +125,50 @@ describe("webdriver", () => {
         }
 
         test("`:tabopen<CR>` opens the newtab page.", async () => {
-                return newTabWithoutChangingOldTabs(async () => {
+                const driver = await getDriver()
+                return newTabWithoutChangingOldTabs(driver, async (tabsBefore) => {
                         await sendKeys(driver, ":tabopen<CR>")
-                        await driver.sleep(500)
-                }).then(([newtab, _]) => {
+                }).then(async ([newtab, _]) => {
                         // The new tab is active
                         expect(newtab.active).toEqual(true)
                         // Its url is the newtab page's url
-                        expect(newtab.url).toMatch(new RegExp("moz-extension://.*/static/newtab.html"))
-                })
+                        await driver.wait(untilTabUrlMatches(driver, newtab.id, new RegExp("moz-extension://.*/static/newtab.html")), 10000)
+                }).finally(() => killDriver(driver))
         })
 
         test("`:tabopen https://example.org<CR>` opens example.org.", async () => {
-                return newTabWithoutChangingOldTabs(async () => {
+                const driver = await getDriver()
+                return newTabWithoutChangingOldTabs(driver, async () => {
                         await sendKeys(driver, ":tabopen https://example.org<CR>")
-                        await driver.sleep(500)
-                }).then(([newtab, _]) => {
+                }).then(async ([newtab, _]) => {
                         // The new tab is active
                         expect(newtab.active).toEqual(true)
                         // Its url is example.org
-                        expect(newtab.url).toMatch("https://example.org")
-                })
+                        await driver.wait(untilTabUrlMatches(driver, newtab.id, "https://example.org"), 10000)
+                }).finally(() => killDriver(driver))
+        })
+
+        test("`:tabopen qwant https://example.org<CR>` opens qwant.", async () => {
+                const driver = await getDriver()
+                return newTabWithoutChangingOldTabs(driver, async () => {
+                        await sendKeys(driver, ":tabopen qwant https://example.org<CR>")
+                }).then(async ([newtab, _]) => {
+                        // The new tab is active
+                        expect(newtab.active).toEqual(true)
+                        // Its url is qwant
+                        await driver.wait(untilTabUrlMatches(driver, newtab.id, new RegExp("^https://www.qwant.com/.*example.org")), 10000)
+                }).finally(() => killDriver(driver))
+        })
+
+        test("`:tabopen search https://example.org<CR>` opens google.", async () => {
+                const driver = await getDriver()
+                return newTabWithoutChangingOldTabs(driver, async () => {
+                        await sendKeys(driver, ":tabopen search https://example.org<CR>")
+                }).then(async ([newtab, _]) => {
+                        // The new tab is active
+                        expect(newtab.active).toEqual(true)
+                        // The url is google.com
+                        await driver.wait(untilTabUrlMatches(driver, newtab.id, new RegExp("^https://www.google.com/search.*example.org")), 10000)
+                }).finally(() => killDriver(driver))
         })
 })
