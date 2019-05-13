@@ -8,7 +8,7 @@ Replace Firefox's default control mechanism with one modelled on the one true ed
 
 ## Installing
 
-[Simply click this link in Firefox to install our latest "beta" build][riskyclick]. These [betas][betas] are updated with each commit to master on this repo. Your browser will automatically update from there once a day. If you want more frequent updates, you can change `extensions.update.interval` in `about:config` to whatever time you want, say, 15 minutes (900 seconds). Alternatively, you can get our "stable" builds straight from [Mozilla][amo]. The changelog for the stable versions can be found [here](https://github.com/tridactyl/tridactyl/blob/master/CHANGELOG.md). If you want to use advanced features such as edit-in-Vim, you'll also need to install the native messenger or executable, instructions for which can be found by typing `:installnative` and hitting enter once you are in Tridactyl.
+[Simply click this link in Firefox to install our latest "beta" build][riskyclick]. These [betas][betas] are updated with each commit to master on this repo. Your browser will automatically update from there once a day. If you want more frequent updates, you can change `extensions.update.interval` in `about:config` to whatever time you want, say, 15 minutes (900 seconds). Alternatively, you can get our "stable" builds straight from [Mozilla][amo]. The changelog for the stable versions can be found [here](https://github.com/tridactyl/tridactyl/blob/master/CHANGELOG.md). There is also another beta build that comes without a new tab page. You can get it from [here][nonewtablink]. If you want to use advanced features such as edit-in-Vim, you'll also need to install the native messenger or executable, instructions for which can be found by typing `:installnative` and hitting enter once you are in Tridactyl.
 
 Type `:help` or press `<F1>` for online help once you're in :)
 
@@ -367,4 +367,5 @@ The logo was designed by Jake Beazley using free vector art by <a target="_blank
 [matrix-link]: https://riot.im/app/#/room/#tridactyl:matrix.org
 [betas]: https://tridactyl.cmcaine.co.uk/betas/?sort=time&order=desc
 [riskyclick]: https://tridactyl.cmcaine.co.uk/betas/tridactyl-latest.xpi
+[nonewtablink]: https://tridactyl.cmcaine.co.uk/nonewtab/tridactyl-latest.xpi
 [amo]: https://addons.mozilla.org/en-US/firefox/addon/tridactyl-vim?src=external-github

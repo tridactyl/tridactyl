@@ -58,6 +58,9 @@ Tridactyl overrides your newtab page because it cannot insert its content script
 
 Also, if you want to use a new tab page provided by another extension, make sure to install said extension after Tridactyl. Uninstalling and re-installing the other extension should work too.
 
+Alternatively, if you don't need Tridactyl to work on the new tab page, you can install the beta build without new tab page. You can get it [here][nonewtablink].
+
+
 ## FAQ
 
 You have more questions? Have a look at our [FAQ][faq-link].
@@ -79,3 +82,4 @@ You have more questions? Have a look at our [FAQ][faq-link].
 [matrix-badge]: https://matrix.to/img/matrix-badge.svg
 [matrix-link]: https://riot.im/app/#/room/#tridactyl:matrix.org
 [amo]: https://addons.mozilla.org/en-US/firefox/addon/tridactyl-vim/reviews/
+[nonewtablink]: https://tridactyl.cmcaine.co.uk/nonewtab/tridactyl-latest.xpi
