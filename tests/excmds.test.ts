@@ -141,9 +141,7 @@ describe("webdriver", () => {
                 return newTabWithoutChangingOldTabs(driver, async () => {
                         await sendKeys(driver, ":tabopen https://example.org<CR>")
                 }).then(async ([newtab, _]) => {
-                        // The new tab is active
                         expect(newtab.active).toEqual(true)
-                        // Its url is example.org
                         await driver.wait(untilTabUrlMatches(driver, newtab.id, "https://example.org"), 10000)
                 }).finally(() => killDriver(driver))
         })
@@ -153,22 +151,38 @@ describe("webdriver", () => {
                 return newTabWithoutChangingOldTabs(driver, async () => {
                         await sendKeys(driver, ":tabopen qwant https://example.org<CR>")
                 }).then(async ([newtab, _]) => {
-                        // The new tab is active
                         expect(newtab.active).toEqual(true)
-                        // Its url is qwant
                         await driver.wait(untilTabUrlMatches(driver, newtab.id, new RegExp("^https://www.qwant.com/.*example.org")), 10000)
                 }).finally(() => killDriver(driver))
         })
 
-        test("`:tabopen search https://example.org<CR>` opens google.", async () => {
+        test("`:tabopen test<CR>` opens google.", async () => {
                 const driver = await getDriver()
                 return newTabWithoutChangingOldTabs(driver, async () => {
-                        await sendKeys(driver, ":tabopen search https://example.org<CR>")
+                        await sendKeys(driver, ":tabopen test<CR>")
                 }).then(async ([newtab, _]) => {
-                        // The new tab is active
                         expect(newtab.active).toEqual(true)
-                        // The url is google.com
-                        await driver.wait(untilTabUrlMatches(driver, newtab.id, new RegExp("^https://www.google.com/search.*example.org")), 10000)
+                        await driver.wait(untilTabUrlMatches(driver, newtab.id, new RegExp("^https://www.google.com/.*test")), 10000)
+                }).finally(() => killDriver(driver))
+        })
+
+        test("`:tabopen example.org<CR>` opens example.org.", async () => {
+                const driver = await getDriver()
+                return newTabWithoutChangingOldTabs(driver, async () => {
+                        await sendKeys(driver, ":tabopen example.org<CR>")
+                }).then(async ([newtab, _]) => {
+                        expect(newtab.active).toEqual(true)
+                        await driver.wait(untilTabUrlMatches(driver, newtab.id, "example.org"), 10000)
+                }).finally(() => killDriver(driver))
+        })
+
+        test("`:tabopen search duckduckgo<CR>` opens google.", async () => {
+                const driver = await getDriver()
+                return newTabWithoutChangingOldTabs(driver, async () => {
+                        await sendKeys(driver, ":tabopen search duckduckgo<CR>")
+                }).then(async ([newtab, _]) => {
+                        expect(newtab.active).toEqual(true)
+                        await driver.wait(untilTabUrlMatches(driver, newtab.id, new RegExp("^https://www.google.com/search.*duckduckgo")), 10000)
                 }).finally(() => killDriver(driver))
         })
 })
