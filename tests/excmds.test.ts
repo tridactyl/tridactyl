@@ -4,7 +4,7 @@ const fs = require("fs")
 const webdriver = require("selenium-webdriver")
 const Options = require("selenium-webdriver/firefox").Options
 
-jest.setTimeout(60000)
+jest.setTimeout(20000)
 
 // API docs because I waste too much time looking for them every time I go back to this:
 // https://seleniumhq.github.io/selenium/docs/api/javascript/
@@ -52,7 +52,7 @@ function sendKeys (driver, keys) {
                 .reduce((prom, key) => {
                         return prom.then(_ => driver.wait(driver.switchTo().activeElement()))
                                 .then(elem => elem.sendKeys(key))
-                                .then(_ => driver.sleep(5))
+                                .then(_ => driver.sleep(10))
                 }, Promise.resolve())
 }
 
@@ -183,6 +183,38 @@ describe("webdriver", () => {
                 }).then(async ([newtab, _]) => {
                         expect(newtab.active).toEqual(true)
                         await driver.wait(untilTabUrlMatches(driver, newtab.id, new RegExp("^https://www.google.com/search.*duckduckgo")), 10000)
+                }).finally(() => killDriver(driver))
+        })
+
+        test("`:tabopen -b about:blank<CR>` opens a background tab.", async () => {
+                const driver = await getDriver()
+                return newTabWithoutChangingOldTabs(driver, async () => {
+                        await sendKeys(driver, ":tabopen -b about:blank<CR>")
+                }).then(async ([newtab, _]) => {
+                        expect(newtab.active).toEqual(false)
+                        await driver.wait(untilTabUrlMatches(driver, newtab.id, "about:blank"))
+                }).finally(() => killDriver(driver))
+        })
+
+        test("`:tabopen -c work about:blank<CR>` opens about:blank in a container.", async () => {
+                const driver = await getDriver()
+                return newTabWithoutChangingOldTabs(driver, async () => {
+                        await sendKeys(driver, ":tabopen -c work about:blank<CR>")
+                }).then(async ([newtab, _]) => {
+                        expect(newtab.active).toEqual(true)
+                        expect(newtab.cookieStoreId).toMatch("firefox-container-")
+                        await driver.wait(untilTabUrlMatches(driver, newtab.id, "about:blank"))
+                }).finally(() => killDriver(driver))
+        })
+
+        test("`:tabopen -b -c work search qwant<CR>` opens about:blank in a container.", async () => {
+                const driver = await getDriver()
+                return newTabWithoutChangingOldTabs(driver, async () => {
+                        await sendKeys(driver, ":tabopen -b -c work search qwant<CR>")
+                }).then(async ([newtab, _]) => {
+                        expect(newtab.active).toEqual(false)
+                        expect(newtab.cookieStoreId).toMatch("firefox-container-")
+                        await driver.wait(untilTabUrlMatches(driver, newtab.id, new RegExp("^https://www.google.com/search.*qwant")))
                 }).finally(() => killDriver(driver))
         })
 })
