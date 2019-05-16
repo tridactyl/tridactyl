@@ -34,7 +34,7 @@
     "typedoc-default-themes": "git://github.com/tridactyl/typedoc-default-themes.git#fix_weird_member_names_bin",
     "typescript": "^3.4.5",
     "uglify-es": "^3.3.9",
-    "uglifyjs-webpack-plugin": "^2.1.2",
+    "uglifyjs-webpack-plugin": "^2.1.3",
     "web-ext": "^3.0.0",
     "web-ext-types": "^3.1.0",
     "webpack": "^4.31.0",
