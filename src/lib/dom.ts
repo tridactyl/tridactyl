@@ -5,6 +5,7 @@ import {
     activeTabId,
     openInNewTab,
     activeTabContainerId,
+    inContentScript
 } from "@src/lib/webext"
 const logger = new Logging.Logger("dom")
 
@@ -446,6 +447,9 @@ export function registerEvListenerAction(
  *  same with removeEventListener.
  */
 export function hijackPageListenerFunctions(): void {
+    if (!inContentScript()) {
+        return
+    }
     const exportedName = "registerEvListenerAction"
     exportFunction(registerEvListenerAction, window, { defineAs: exportedName })
 
@@ -543,7 +547,9 @@ export function setupFocusHandler(): void {
         }
     })
     // Handles when the page tries to select an input
-    hijackPageFocusFunction()
+    if (inContentScript()) {
+        hijackPageFocusFunction()
+    }
 }
 
 // CSS selectors. More readable for web developers. Not dead. Leaves browser to care about XML.

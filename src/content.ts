@@ -119,16 +119,11 @@ import * as updates from "@src/lib/updates"
 
 logger.info("Loaded commandline content?", commandline_content)
 
-// Don't hijack on the newtab page.
-if (webext.inContentScript()) {
-    try {
-        dom.setupFocusHandler()
-        dom.hijackPageListenerFunctions()
-    } catch (e) {
-        logger.warning("Could not hijack due to CSP:", e)
-    }
-} else {
-    logger.warning("No export func")
+try {
+    dom.setupFocusHandler()
+    dom.hijackPageListenerFunctions()
+} catch (e) {
+    logger.warning("Could not hijack due to CSP:", e)
 }
 
 if (
