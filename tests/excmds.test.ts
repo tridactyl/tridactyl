@@ -33,27 +33,56 @@ const modToSelenium = {
         "S": webdriver.Key.SHIFT,
 }
 
-function translateKeys(string) {
-        return string.replace(/<([^>-]+)-?([^>]*)>/g, (wholematch, modifier, key, pos, str) => {
-                // There only is a modifier if 'key' isn't empty (<Up> = no modifier)
-                if (key.length > 0) {
-                        return webdriver.Key.chord(
-                                ...(modifier.split("").map(m => modToSelenium[m])),
-                                (vimToSelenium[key] || key),
-                                webdriver.Key.NULL,
-                        )
-                }
-                return vimToSelenium[modifier] || modifier
-        })
-}
-
 function sendKeys (driver, keys) {
-        return translateKeys(keys).split("")
-                .reduce((prom, key) => {
-                        return prom.then(_ => driver.wait(driver.switchTo().activeElement()))
-                                .then(elem => elem.sendKeys(key))
-                                .then(_ => driver.sleep(10))
-                }, Promise.resolve())
+    const delay = 10
+    function chainRegularKeys (previousPromise, regularKeys) {
+        return regularKeys
+            .split("")
+            .reduce((p, key) => p
+                .then(() => driver.actions().sendKeys(key).perform())
+                .then(() => driver.sleep(delay))
+                , previousPromise)
+    }
+    function chainSpecialKey (previousPromise, specialKey) {
+        return previousPromise
+            .then(() => {
+                const noBrackets = specialKey.slice(1,-1)
+                if (noBrackets.includes("-")) {
+                    const [modifiers, key] = noBrackets.split("-")
+                    const mods = modifiers.split("").map(mod => modToSelenium[mod])
+                    return mods
+                        .reduce((actions, mod) => actions.keyUp(mod), 
+                            mods.reduce((actions, mod) => actions.keyDown(mod), driver.actions())
+                            .sendKeys(vimToSelenium[key] || key))
+                        .perform()
+                }
+                return driver.actions().sendKeys(vimToSelenium[noBrackets] || noBrackets).perform()
+            })
+            .then(() => driver.sleep(delay))
+    }
+
+    let result = Promise.resolve()
+    const regexp = /<[^>-]+-?[^>]*>/g
+    const specialKeys = keys.match(regexp)
+    if (!specialKeys) {
+        return chainRegularKeys(result, keys)
+    }
+    const regularKeys = keys.split(regexp)
+    let i
+    for (i = 0; i < Math.min(specialKeys.length, regularKeys.length); ++i) {
+        result = chainSpecialKey(chainRegularKeys(result, regularKeys[i]), specialKeys[i])
+    }
+    if (i < regularKeys.length) {
+        result = regularKeys
+            .slice(i)
+            .reduce((previousPromise, currentKeys) => chainRegularKeys(previousPromise, currentKeys), result)
+    }
+    if ( i < specialKeys.length) {
+        result = specialKeys
+            .slice(i)
+            .reduce((previousPromise, currentKey) => chainSpecialKey(previousPromise, currentKey), result)
+    }
+    return result
 }
 
 describe("webdriver", () => {
