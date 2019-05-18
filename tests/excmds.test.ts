@@ -189,27 +189,30 @@ describe("webdriver", () => {
         }
     })
 
-        test("`:tabopen<CR>` opens the newtab page.", async () => {
-                const driver = await getDriver()
-                return newTabWithoutChangingOldTabs(driver, async (tabsBefore) => {
-                        await sendKeys(driver, ":tabopen<CR>")
-                }).then(async ([newtab, _]) => {
-                        // The new tab is active
-                        expect(newtab.active).toEqual(true)
-                        // Its url is the newtab page's url
-                        await driver.wait(untilTabUrlMatches(driver, newtab.id, new RegExp("moz-extension://.*/static/newtab.html")), 10000)
-                }).finally(() => killDriver(driver))
-        })
+    test("`:editor` works", async () => {
+        const driver = await getDriver()
+        try {
+            const addedText = "There are %l lines and %c characters in this textarea."
+            await sendKeys(driver, `:set editorcmd echo -n '${addedText}' >> %f<CR>`)
 
-        test("`:tabopen https://example.org<CR>` opens example.org.", async () => {
-                const driver = await getDriver()
-                return newTabWithoutChangingOldTabs(driver, async () => {
-                        await sendKeys(driver, ":tabopen https://example.org<CR>")
-                }).then(async ([newtab, _]) => {
-                        expect(newtab.active).toEqual(true)
-                        await driver.wait(untilTabUrlMatches(driver, newtab.id, "https://example.org"), 10000)
-                }).finally(() => killDriver(driver))
-        })
+            const areaId = "editorTest"
+            await driver.executeScript(`
+                                const area = document.createElement("textarea")
+                                area.id = "${areaId}"
+                                document.body.appendChild(area)
+                                area.focus()
+                        `)
+            const text = "This is a line\nThis is another\nThis is a third."
+            await sendKeys(driver, text + "<C-i>")
+            await driver.sleep(1000)
+            expect(await driver.executeScript(`return document.getElementById("${areaId}").value`))
+                .toEqual(text + addedText.replace("%l", "3").replace("%c", "" + text.split("\n")[2].length))
+        } catch (e) {
+            fail(e)
+        } finally {
+            await killDriver(driver)
+        }
+    })
 
     test("`:tabopen<CR>` opens the newtab page.", async () => {
         const driver = await getDriver()
