@@ -17,10 +17,10 @@ jobs:
     docker:
       - image: circleci/node:latest
     steps:
-      # - run: sudo apt update
-      # - run: sudo apt install -qq shellcheck
+      - run: sudo apt update
+      - run: sudo apt install -qq shellcheck
       - commoncmd
-      # - run: bash -c 'GLOBIGNORE="node_modules" shellcheck **/*.sh'
+      - run: bash -c 'GLOBIGNORE="node_modules" shellcheck **/*.sh'
       - run: npm run lint
       - run: bash -c '"$(npm bin)/tslint" --project .'
   unit:
