@@ -57,6 +57,11 @@ function sendKeys (driver, keys) {
 }
 
 describe("webdriver", () => {
+
+        function iframeLoaded(driver) {
+                return driver.wait(webdriver.until.elementLocated(webdriver.By.id("cmdline_iframe")))
+        }
+
         async function getDriver() {
                 const dir = "web-ext-artifacts"
                 const extensionName = "tridactyl.xpi"
@@ -68,7 +73,7 @@ describe("webdriver", () => {
                                 .addExtensions(extensionPath))
                         .build()
                 // Wait until addon is loaded and :tutor is displayed
-                await driver.wait(webdriver.until.elementLocated(webdriver.By.id("cmdline_iframe")))
+                await iframeLoaded(driver)
                 // And wait a bit more otherwise Tridactyl won't be happy
                 await driver.sleep(500)
                 return driver
@@ -123,6 +128,35 @@ describe("webdriver", () => {
                 }
                 return [newtab, result]
         }
+
+        test("`:rssexec` works", async () => {
+                const driver = await getDriver()
+                try {
+                        await sendKeys(driver, ":set rsscmd js "
+                                + "const elem=document.createElement('span');"
+                                + "elem.id='rsscmdExecuted';"
+                                + "elem.innerText=`%u`;"
+                                + "document.body.appendChild(elem)<CR>")
+
+                        // First, make sure completions are offered
+                        await driver.get("https://www.bbc.co.uk/news/10628494")
+                        const iframe = await iframeLoaded(driver)
+                        await sendKeys(driver, ":rssexec ")
+                        await driver.switchTo().frame(iframe)
+                        const elements = await driver.findElements(webdriver.By.className("RssCompletionOption"))
+                        expect(elements.length).toBeGreaterThan(3)
+
+                        // Then, make sure rsscmd is executed and has the right arguments
+                        await sendKeys(driver, "<Tab><CR>")
+                        await driver.switchTo().parentFrame()
+                        const elem = await driver.wait(webdriver.until.elementLocated(webdriver.By.id("cmdline_iframe")))
+                        expect(elements[0].innerText).toEqual(elem.innerText)
+                } catch (e) {
+                        fail(e)
+                } finally {
+                        await killDriver(driver)
+                }
+        })
 
         test("`:tabopen<CR>` opens the newtab page.", async () => {
                 const driver = await getDriver()
