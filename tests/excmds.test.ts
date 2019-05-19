@@ -246,6 +246,22 @@ describe("webdriver", () => {
         }
     })
 
+    test("`:colourscheme` works", async () => {
+        const driver = await getDriver()
+        try {
+            expect(await driver.executeScript(`return document.documentElement.className`))
+                .toMatch("TridactylOwnNamespace TridactylThemeDefault")
+            await sendKeys(driver, ":colourscheme dark<CR>")
+            await driver.sleep(100)
+            expect(await driver.executeScript(`return document.documentElement.className`))
+                .toMatch("TridactylOwnNamespace TridactylThemeDark")
+        } catch (e) {
+            fail(e)
+        } finally {
+            killDriver(driver)
+        }
+    })
+
     test("`:tabopen<CR>` opens the newtab page.", async () => {
         const driver = await getDriver()
         return newTabWithoutChangingOldTabs(driver, async (tabsBefore) => {
