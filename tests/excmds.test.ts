@@ -110,6 +110,17 @@ describe("webdriver", () => {
         return driver
     }
 
+    async function getDriverAndProfileDirs() {
+        const rootDir = "/tmp/"
+        // First, find out what profile the driver is using
+        const profiles = fs.readdirSync(rootDir).map(p => rootDir + p)
+        const driver = await getDriver()
+        const newProfiles = fs.readdirSync("/tmp")
+            .map(p => rootDir + p)
+            .filter(p => p.match("moz") && !profiles.includes(p))
+        return { driver, newProfiles }
+    }
+
     async function killDriver(driver) {
         try {
             await driver.close()
@@ -207,6 +218,62 @@ describe("webdriver", () => {
             await driver.sleep(1000)
             expect(await driver.executeScript(`return document.getElementById("${areaId}").value`))
                 .toEqual(text + addedText.replace("%l", "3").replace("%c", "" + text.split("\n")[2].length))
+        } catch (e) {
+            fail(e)
+        } finally {
+            await killDriver(driver)
+        }
+    })
+
+    test("`:guiset` works", async () => {
+        const { driver, newProfiles } = await getDriverAndProfileDirs()
+        try {
+            // Then, make sure `:guiset` is offering completions
+            const iframe = await iframeLoaded(driver)
+            await sendKeys(driver, ":guiset ")
+            await driver.switchTo().frame(iframe)
+            const elements = await driver.findElements(By.className("GuisetCompletionOption"))
+            expect(elements.length).toBeGreaterThan(0)
+
+            // Use whatever the first suggestion is
+            await sendKeys(driver, "<Tab> <Tab><CR>")
+            await driver.sleep(1000)
+            expect(await driver.executeScript(`return document.getElementById("tridactyl-input").value`))
+                .toEqual("userChrome.css written. Please restart Firefox to see the changes.")
+            expect(newProfiles.find(path => fs
+                .readdirSync(path + "/chrome")
+                .find(files => files.match("userChrome.css$")))
+            ).toBeDefined()
+        } catch (e) {
+            fail(e)
+        } finally {
+            await killDriver(driver)
+        }
+    })
+
+    test("`:colourscheme` works", async () => {
+        const driver = await getDriver()
+        try {
+            expect(await driver.executeScript(`return document.documentElement.className`))
+                .toMatch("TridactylOwnNamespace TridactylThemeDefault")
+            await sendKeys(driver, ":colourscheme dark<CR>")
+            await driver.sleep(100)
+            expect(await driver.executeScript(`return document.documentElement.className`))
+                .toMatch("TridactylOwnNamespace TridactylThemeDark")
+        } catch (e) {
+            fail(e)
+        } finally {
+            await killDriver(driver)
+        }
+    })
+
+    test("`:setpref` works", async () => {
+        const { driver, newProfiles } = await getDriverAndProfileDirs()
+        try {
+            await sendKeys(driver, `:setpref a.b.c "d"<CR>`)
+            await driver.sleep(1000)
+            const file = fs.readFileSync(newProfiles[0] + "/user.js", { encoding: "utf-8" })
+            expect(file).toMatch(/user_pref\("a.b.c", "d"\);/)
         } catch (e) {
             fail(e)
         } finally {
