@@ -187,12 +187,13 @@ describe("webdriver", () => {
             await driver.switchTo().frame(iframe)
             const elements = await driver.findElements(By.className("RssCompletionOption"))
             expect(elements.length).toBeGreaterThan(3)
+            const url = await elements[0].getAttribute("innerText")
 
             // Then, make sure rsscmd is executed and has the right arguments
             await sendKeys(driver, "<Tab><CR>")
             await driver.switchTo().parentFrame()
-            const elem = await driver.wait(Until.elementLocated(By.id("cmdline_iframe")))
-            expect(elements[0].innerText).toEqual(elem.innerText)
+            const elem = await driver.wait(Until.elementLocated(By.id("rsscmdExecuted")))
+            expect(url).toMatch(await elem.getAttribute("innerText"))
         } catch (e) {
             fail(e)
         } finally {
