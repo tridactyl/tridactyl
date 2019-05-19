@@ -456,24 +456,34 @@ export async function getFirefoxDir() {
 export async function getProfile() {
     const ffDir = await getFirefoxDir()
     const iniPath = ffDir + "profiles.ini"
+    let iniObject = {}
+    let iniSucceeded = false
     const iniContent = await read(iniPath)
-    if (iniContent.code !== 0 || iniContent.content.length === 0) {
-        throw new Error(`native.ts:getProfile() : Couldn't read "${iniPath}"`)
+    if (iniContent.code === 0 && iniContent.content.length > 0) {
+        try {
+            iniObject = parseProfilesIni(iniContent.content, ffDir)
+            iniSucceeded = true
+        } catch (e) {}
     }
-    const iniObject = parseProfilesIni(iniContent.content, ffDir)
     const curProfileDir = config.get("profiledir")
 
     // First, try to see if the 'profiledir' setting matches a profile in profile.ini
     if (curProfileDir !== "auto") {
-        for (const profileName of Object.keys(iniObject)) {
-            const profile = iniObject[profileName]
-            if (profile.absolutePath === curProfileDir) {
-                return profile
+        if (iniSucceeded) {
+            for (const profileName of Object.keys(iniObject)) {
+                const profile = iniObject[profileName]
+                if (profile.absolutePath === curProfileDir) {
+                    return profile
+                }
             }
         }
-        throw new Error(
-            `native.ts:getProfile() : profiledir setting set but couldn't find matching profile path in "${iniPath}".`,
-        )
+        return {
+            Name: undefined,
+            IsRelative: "0",
+            Path: curProfileDir,
+            relativePath: undefined,
+            absolutePath: curProfileDir,
+        }
     }
 
     // Then, try to find a profile path in the arguments given to Firefox
@@ -483,10 +493,12 @@ export async function getProfile() {
         profile = cmdline.indexOf("-profile")
     if (profile >= 0 && profile < cmdline.length - 1) {
         const profilePath = cmdline[profile + 1]
-        for (const profileName of Object.keys(iniObject)) {
-            const profile = iniObject[profileName]
-            if (profile.absolutePath === profilePath) {
-                return profile
+        if (iniSucceeded) {
+            for (const profileName of Object.keys(iniObject)) {
+                const profile = iniObject[profileName]
+                if (profile.absolutePath === profilePath) {
+                    return profile
+                }
             }
         }
         // We're running in a profile that isn't stored in profiles.ini
@@ -500,22 +512,24 @@ export async function getProfile() {
         }
     }
 
-    // Try to find a profile name in firefox's arguments
-    let p = cmdline.indexOf("-p")
-    if (p === -1) p = cmdline.indexOf("-P")
-    if (p >= 0 && p < cmdline.length - 1) {
-        const pName = cmdline[p + 1]
-        for (const profileName of Object.keys(iniObject)) {
-            const profile = iniObject[profileName]
-            if (profile.Name === pName) {
-                return profile
+    if (iniSucceeded) {
+        // Try to find a profile name in firefox's arguments
+        let p = cmdline.indexOf("-p")
+        if (p === -1) p = cmdline.indexOf("-P")
+        if (p >= 0 && p < cmdline.length - 1) {
+            const pName = cmdline[p + 1]
+            for (const profileName of Object.keys(iniObject)) {
+                const profile = iniObject[profileName]
+                if (profile.Name === pName) {
+                    return profile
+                }
             }
+            throw new Error(
+                `native.ts:getProfile() : '${
+                    cmdline[p]
+                }' found in command line arguments but no matching profile name found in "${iniPath}"`,
+            )
         }
-        throw new Error(
-            `native.ts:getProfile() : '${
-                cmdline[p]
-            }' found in command line arguments but no matching profile name found in "${iniPath}"`,
-        )
     }
 
     // Still nothing, try to find a profile in use
@@ -532,23 +546,31 @@ export async function getProfile() {
                 .split("/")
                 .slice(0, -1)
                 .join("/")
-            for (const profileName of Object.keys(iniObject)) {
-                const profile = iniObject[profileName]
-                if (profile.absolutePath === path) {
-                    return profile
+            if (iniSucceeded) {
+                for (const profileName of Object.keys(iniObject)) {
+                    const profile = iniObject[profileName]
+                    if (profile.absolutePath === path) {
+                        return profile
+                    }
                 }
             }
-            throw new Error(
-                `You found a bug! Tridactyl should have been able to match the profile you're using with the profiles found in "${iniPath}" but it couldn't. Please report this issue on https://github.com/tridactyl/tridactyl/issues .`,
-            )
+            return {
+                Name: undefined,
+                IsRelative: "0",
+                Path: path,
+                relativePath: undefined,
+                absolutePath: path,
+            }
         }
     }
 
-    // Multiple profiles used but no -p or --profile, this means that we're using the default profile
-    for (const profileName of Object.keys(iniObject)) {
-        const profile = iniObject[profileName]
-        if (profile.Default === 1) {
-            return profile
+    if (iniSucceeded) {
+        // Multiple profiles used but no -p or --profile, this means that we're using the default profile
+        for (const profileName of Object.keys(iniObject)) {
+            const profile = iniObject[profileName]
+            if (profile.Default === 1) {
+                return profile
+            }
         }
     }
 
