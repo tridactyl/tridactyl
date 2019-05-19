@@ -110,6 +110,17 @@ describe("webdriver", () => {
         return driver
     }
 
+    async function getDriverAndProfileDirs() {
+        const rootDir = "/tmp/"
+        // First, find out what profile the driver is using
+        const profiles = fs.readdirSync(rootDir).map(p => rootDir + p)
+        const driver = await getDriver()
+        const newProfiles = fs.readdirSync("/tmp")
+            .map(p => rootDir + p)
+            .filter(p => p.match("moz") && !profiles.includes(p))
+        return { driver, newProfiles }
+    }
+
     async function killDriver(driver) {
         try {
             await driver.close()
@@ -215,13 +226,7 @@ describe("webdriver", () => {
     })
 
     test("`:guiset` works", async () => {
-        const rootDir = "/tmp/"
-        // First, find out what profile the driver is using
-        const profiles = fs.readdirSync(rootDir).map(p => rootDir + p)
-        const driver = await getDriver()
-        const newProfiles = fs.readdirSync("/tmp")
-            .map(p => rootDir + p)
-            .filter(p => p.match("moz") && !profiles.includes(p))
+        const { driver, newProfiles } = await getDriverAndProfileDirs()
         try {
             // Then, make sure `:guiset` is offering completions
             const iframe = await iframeLoaded(driver)
@@ -258,7 +263,21 @@ describe("webdriver", () => {
         } catch (e) {
             fail(e)
         } finally {
-            killDriver(driver)
+            await killDriver(driver)
+        }
+    })
+
+    test("`:setpref` works", async () => {
+        const { driver, newProfiles } = await getDriverAndProfileDirs()
+        try {
+            await sendKeys(driver, `:setpref a.b.c "d"<CR>`)
+            await driver.sleep(1000)
+            const file = fs.readFileSync(newProfiles[0] + "/user.js", { encoding: "utf-8" })
+            expect(file).toMatch(/user_pref\("a.b.c", "d"\);/)
+        } catch (e) {
+            fail(e)
+        } finally {
+            await killDriver(driver)
         }
     })
 
