@@ -562,7 +562,12 @@ export async function nativeopen(...args: string[]) {
             } else {
                 if (firefoxArgs.length === 0) {
                     try {
-                        firefoxArgs = [`-p ${await Native.getProfileName()}`]
+                        const profile = await Native.getProfile()
+                        if (profile.Name !== undefined) {
+                            firefoxArgs = [`-p ${profile.Name}`]
+                        } else if (profile.absolutePath !== undefined) {
+                            firefoxArgs = [`--profile '${profile.absolutePath}'`]
+                        }
                     } catch (e) {
                         logger.debug(e)
                         firefoxArgs = []

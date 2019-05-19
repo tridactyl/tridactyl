@@ -478,7 +478,9 @@ export async function getProfile() {
 
     // Then, try to find a profile path in the arguments given to Firefox
     const cmdline = await ff_cmdline().catch(e => "")
-    const profile = cmdline.indexOf("--profile")
+    let profile = cmdline.indexOf("--profile")
+    if (profile === -1)
+        profile = cmdline.indexOf("-profile")
     if (profile >= 0 && profile < cmdline.length - 1) {
         const profilePath = cmdline[profile + 1]
         for (const profileName of Object.keys(iniObject)) {
@@ -487,9 +489,15 @@ export async function getProfile() {
                 return profile
             }
         }
-        throw new Error(
-            `native.ts:getProfile() : '--profile' found in command line arguments but no matching profile path found in "${iniPath}"`,
-        )
+        // We're running in a profile that isn't stored in profiles.ini
+        // Let's fill in the default info profile.ini profiles have anyway
+        return {
+            Name: undefined,
+            IsRelative: "0",
+            Path: profilePath,
+            relativePath: undefined,
+            absolutePath: profilePath,
+        }
     }
 
     // Try to find a profile name in firefox's arguments

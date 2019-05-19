@@ -214,6 +214,38 @@ describe("webdriver", () => {
         }
     })
 
+    test("`:guiset` works", async () => {
+        const rootDir = "/tmp/"
+        // First, find out what profile the driver is using
+        const profiles = fs.readdirSync(rootDir).map(p => rootDir + p)
+        const driver = await getDriver()
+        const newProfiles = fs.readdirSync("/tmp")
+            .map(p => rootDir + p)
+            .filter(p => p.match("moz") && !profiles.includes(p))
+        try {
+            // Then, make sure `:guiset` is offering completions
+            const iframe = await iframeLoaded(driver)
+            await sendKeys(driver, ":guiset ")
+            await driver.switchTo().frame(iframe)
+            const elements = await driver.findElements(By.className("GuisetCompletionOption"))
+            expect(elements.length).toBeGreaterThan(0)
+
+            // Use whatever the first suggestion is
+            await sendKeys(driver, "<Tab> <Tab><CR>")
+            await driver.sleep(1000)
+            expect(await driver.executeScript(`return document.getElementById("tridactyl-input").value`))
+                .toEqual("userChrome.css written. Please restart Firefox to see the changes.")
+            expect(newProfiles.find(path => fs
+                .readdirSync(path + "/chrome")
+                .find(files => files.match("userChrome.css$")))
+            ).toBeDefined()
+        } catch (e) {
+            fail(e)
+        } finally {
+            await killDriver(driver)
+        }
+    })
+
     test("`:tabopen<CR>` opens the newtab page.", async () => {
         const driver = await getDriver()
         return newTabWithoutChangingOldTabs(driver, async (tabsBefore) => {
