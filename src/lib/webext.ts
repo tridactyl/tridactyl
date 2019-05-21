@@ -14,7 +14,7 @@ export function inContentScript() {
     Background page
 */
 export function getContext() {
-    if (!("tabs" in browser)) {
+    if (!browser.tabs) {
         return "content"
     } else if (
         browser.runtime.getURL("_generated_background_page.html") ===
