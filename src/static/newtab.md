@@ -81,5 +81,5 @@ You have more questions? Have a look at our [FAQ][faq-link].
 [matrix-badge]: https://matrix.to/img/matrix-badge.svg
 [matrix-link]: https://riot.im/app/#/room/#tridactyl:matrix.org
 [amo]: https://addons.mozilla.org/en-US/firefox/addon/tridactyl-vim/reviews/
-[nonewtablink]: https://tridactyl.cmcaine.co.uk/nonewtab/tridactyl_no_new_tab_beta-latest.xpi
+[nonewtablink]: https://tridactyl.cmcaine.co.uk/betas/nonewtab/tridactyl_no_new_tab_beta-latest.xpi
 [migratelink]: https://github.com/tridactyl/tridactyl/issues/79#issuecomment-351132451
