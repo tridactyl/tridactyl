@@ -28,7 +28,7 @@ function make_update_json(versionstr) {
                     {
                         version: versionstr,
                         update_link:
-                            "https://tridactyl.cmcaine.co.uk/betas/tridactyl-" +
+                            "https://tridactyl.cmcaine.co.uk/betas/tridactyl_beta-" +
                             versionstr +
                             "-an+fx.xpi",
                     },
@@ -39,7 +39,7 @@ function make_update_json(versionstr) {
                     {
                         version: versionstr,
                         update_link:
-                            "https://tridactyl.cmcaine.co.uk/nonewtab/tridactyl-" +
+                            "https://tridactyl.cmcaine.co.uk/betas/nonewtab/tridactyl_no_new_tab_beta-" +
                             versionstr +
                             "-an+fx.xpi",
                     },
