@@ -560,13 +560,18 @@ export async function nativeopen(...args: string[]) {
                 const osascriptArgs = ["-e 'on run argv'", "-e 'tell application \"Firefox\" to open location item 1 of argv'", "-e 'end run'"]
                 await Native.run("osascript " + osascriptArgs.join(" ") + " " + url)
             } else {
+                const os = (await browser.runtime.getPlatformInfo()).os
                 if (firefoxArgs.length === 0) {
                     try {
                         const profile = await Native.getProfile()
                         if (profile.Name !== undefined) {
                             firefoxArgs = [`-p ${profile.Name}`]
                         } else if (profile.absolutePath !== undefined) {
-                            firefoxArgs = [`--profile '${profile.absolutePath}'`]
+                            if (os === "win") {
+                                firefoxArgs = [`--profile "${profile.absolutePath}"`]
+                            } else {
+                                firefoxArgs = [`--profile '${profile.absolutePath}'`]
+                            }
                         }
                     } catch (e) {
                         logger.debug(e)
@@ -581,7 +586,7 @@ export async function nativeopen(...args: string[]) {
                 // execution when the user tries to follow it with `hint -W tabopen`
                 // But windows treats single quotes as "open this file from the
                 // user's directory", so we need to use double quotes there
-                if ((await browser.runtime.getPlatformInfo()).os === "win") {
+                if (os === "win") {
                     escapedUrl = `"${escapedUrl.replace(/\\/g, "\\\\").replace(/"/g, '\\"')}"`
                 } else {
                     escapedUrl = `'${escapedUrl.replace(/'/g, '"\'"')}'`
