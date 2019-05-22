@@ -4,7 +4,7 @@
 
 import * as semverCompare from "semver-compare"
 import * as config from "@src/lib/config"
-import { browserBg } from "@src/lib/webext"
+import { browserBg, getContext } from "@src/lib/webext"
 
 import Logger from "@src/lib/logging"
 const logger = new Logger("native")
@@ -403,7 +403,7 @@ export async function ff_cmdline(): Promise<string[]> {
     }
 }
 
-export function parseProfilesIni(content: string, basePath: string) {
+export async function parseProfilesIni(content: string, basePath: string) {
     const lines = content.split("\n")
     let current = "General"
     const result = {}
@@ -421,6 +421,16 @@ export function parseProfilesIni(content: string, basePath: string) {
     }
     for (const profileName of Object.keys(result)) {
         const profile = result[profileName]
+        // New profiles.ini have a useless section at the top
+        if (profile.Path == undefined) {
+            delete result[profileName]
+            continue
+        }
+        // On windows, profiles.ini paths will be expressed with `/`, but we're
+        // on windows, so we need `\`
+        if ((await browserBg.runtime.getPlatformInfo()).os === "win") {
+            profile.Path = profile.Path.replace("/", "\\")
+        }
         // profile.IsRelative can be 0, 1 or undefined
         if (profile.IsRelative === "1") {
             profile.relativePath = profile.Path
@@ -453,7 +463,7 @@ export async function getFirefoxDir() {
     }
 }
 
-export async function getProfile() {
+export async function getProfileUncached() {
     const ffDir = await getFirefoxDir()
     const iniPath = ffDir + "profiles.ini"
     let iniObject = {}
@@ -461,7 +471,7 @@ export async function getProfile() {
     const iniContent = await read(iniPath)
     if (iniContent.code === 0 && iniContent.content.length > 0) {
         try {
-            iniObject = parseProfilesIni(iniContent.content, ffDir)
+            iniObject = await parseProfilesIni(iniContent.content, ffDir)
             iniSucceeded = true
         } catch (e) {}
     }
@@ -578,6 +588,24 @@ export async function getProfile() {
         `Couldn't deduce which profile you want. See ':help profiledir'`,
     )
 }
+
+// Disk operations are extremely slow on windows, let's cache our profile info
+let cachedProfile
+export async function getProfile() {
+    if (cachedProfile === undefined)
+        cachedProfile = await getProfileUncached()
+    return cachedProfile
+}
+// It makes sense to pre-fetch this value in the background script because it's
+// long-lived. Other contexts are created and destroyed all the time so we
+// don't want to pre-fetch in these.
+if (getContext() === "background") {
+    getProfile()
+}
+config.addChangeListener("profiledir", (prev, cur) => {
+    cachedProfile = undefined
+    getProfile()
+})
 
 export function getProfileName() {
     return getProfile().then(p => p.Name)
