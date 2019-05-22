@@ -2734,10 +2734,10 @@ async function setclip(str) {
 /**
  * Fetches the content of the clipboard/selection buffer depending on user's preferences
  *
- * @hidden
+ * Exposed for use with [[composite]], e.g. `composite getclip | fillcmdline`
  */
-//#background_helper
-async function getclip(fromm?: "clipboard" | "selection") {
+//#background
+export async function getclip(fromm?: "clipboard" | "selection") {
     if (fromm === undefined) fromm = await config.getAsync("putfrom")
     if (fromm === "clipboard") {
         return messageActiveTab("commandline_frame", "getClipboard")
