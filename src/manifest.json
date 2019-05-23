@@ -1,7 +1,7 @@
 {
     "manifest_version": 2,
     "name": "Tridactyl",
-    "version": "1.14.10",
+    "version": "1.15.0",
     "icons": {
         "64": "static/logo/Tridactyl_64px.png",
         "100": "static/logo/Tridactyl_100px.png",
@@ -72,6 +72,6 @@
         "open_in_tab": true
     },
     "omnibox": {
-	"keyword": "tri"
+        "keyword": "tri"
     }
 }
