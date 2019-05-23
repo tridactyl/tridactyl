@@ -21,7 +21,7 @@
 */
 
 /** */
-import { find, filter, izip } from "@src/lib/itertools"
+import { drop, filter, find, izip, take } from "@src/lib/itertools"
 import { Parser } from "@src/lib/nearley_utils"
 import * as bracketexpr_grammar from "@src/grammars/.bracketexpr.generated"
 const bracketexpr_parser = new Parser(bracketexpr_grammar)
@@ -111,6 +111,7 @@ export interface ParserResponse {
     value?: any
     exstr?: any
     isMatch: boolean
+    numericPrefix?: number
 }
 
 export function parse(keyseq: KeyEventLike[], map: KeyMap): ParserResponse {
@@ -120,11 +121,16 @@ export function parse(keyseq: KeyEventLike[], map: KeyMap): ParserResponse {
             !["Control", "Shift", "Alt", "AltGraph", "Meta"].includes(key.key),
     )
 
+    // Split into numeric prefix and non-numeric suffix
+    let numericPrefix = Array.from(take(keyseq, isNumeric))
+    keyseq = Array.from(drop(keyseq, isNumeric))
+
     // If keyseq is a prefix of a key in map, proceed, else try dropping keys
     // from keyseq until it is empty or is a prefix.
     let possibleMappings = completions(keyseq, map)
     while (possibleMappings.size === 0 && keyseq.length > 0) {
         keyseq.shift()
+        numericPrefix = []
         possibleMappings = completions(keyseq, map)
     }
 
@@ -136,12 +142,21 @@ export function parse(keyseq: KeyEventLike[], map: KeyMap): ParserResponse {
                 possibleMappings,
                 ([k, v]) => k.length === keyseq.length,
             )
-            return { value: perfect[1], exstr: perfect[1], isMatch: true }
+            return {
+                value: perfect[1],
+                exstr: perfect[1] + numericPrefixToExstrSuffix(numericPrefix),
+                isMatch: true,
+            }
         } catch (e) {
             if (!(e instanceof RangeError)) throw e
         }
     }
-    return { keys: keyseq, isMatch: keyseq.length > 0 }
+
+    // keyseq is the longest suffix of keyseq that is the prefix of a
+    // command, numericPrefix is a numeric prefix of that. We want to
+    // preserve that whole thing, so concat them back together before
+    // returning.
+    return { keys: numericPrefix.concat(keyseq), isMatch: keyseq.length > 0 }
 }
 
 /** True if seq1 is a prefix or equal to seq2 */
@@ -327,6 +342,19 @@ export function hasNonShiftModifiers(keyEvent: KeyEventLike) {
 /** A simple key event is a non-special key (length 1) that is not modified by ctrl, alt, or shift. */
 export function isSimpleKey(keyEvent: KeyEventLike) {
     return !(keyEvent.key.length > 1 || hasNonShiftModifiers(keyEvent))
+}
+
+const NUMERIC_REG = /\d/
+export function isNumeric(keyEvent: KeyEventLike) {
+    return !hasModifiers(keyEvent) && keyEvent.key.match(NUMERIC_REG)
+}
+
+function numericPrefixToExstrSuffix(numericPrefix: KeyEventLike[]) {
+    if (numericPrefix.length > 0) {
+        return " " + numericPrefix.map(k => k.key).join("")
+    } else {
+        return ""
+    }
 }
 
 /**
