@@ -1,5 +1,33 @@
 # Tridactyl changelog
 
+## Release 1.15.0 / 2019-05-23
+
+-   New features
+
+    -   Numeric prefixes to binds are now appended to the end of the command, e.g. `1gt` goes to the first tab.
+        -   This isn't strictly a new feature as we had it about 18 months ago, but it fell down a plot hole.
+    -   We now have special builds that don't have the new tab page - see the new tab page for how to install them.
+    -   The internal `getclip` function has now been exposed as an ex-command by popular demand, for use with, e.g. `bind --mode=insert <C-v> composite getclip | text.insert_text`.
+    -   You can now select hints using the arrow keys if you are so inclined
+    -   You can now execute ex-commands from the "awesome bar" (i.e. Firefox's URL bar) by prefixing them with `tri`
+
+-   Bug fixes
+
+    -   A few weird bugs fixed on NetBSD ([#1562](https://github.com/tridactyl/tridactyl/issues/1562))
+    -   `gi` should now work on our help pages
+    -   `repeat` now waits for the execution of each command to finish before starting another one
+    -   `set hintnames uniform` won't give you a spurious error any more
+
+-   Under the bonnet
+    -   Added end-to-end testing for a few functions using Selenium and CircleCI
+    -   Calls to the internal getProfile() used for a variety of native messaging functions are now cached to improve performance
+
+Thanks to all of our contributors for this release: Oliver Blanthorn, glacambre, dependabot[bot], Marvin Ewald, Saul Reynolds-Haertle, Colin Caine, PHO, Evgeny Kurnevsky, and Jan Hruban.
+
+Extra special thanks go to Evgeny Kurnevsky, Jan Hruban, Marvin Ewald, and PHO who all contributed for the first time.
+
+Last, but not least - thank you to everyone who reported issues.
+
 ## Release 1.14.10 / 2019-05-04
 
 -   New features
