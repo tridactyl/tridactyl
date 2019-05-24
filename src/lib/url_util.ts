@@ -258,6 +258,35 @@ export function deleteQuery(url: URL, matchQuery: string): URL {
 }
 
 /**
+ * Sets the value of a query in a URL with a specific one
+ *
+ * @param url           the URL to act on
+ * @param matchQuery    the query key to set the value for
+ * @param value         the value to use
+ */
+export function addQueryValue(
+    url: URL,
+    matchQuery: string,
+    value: string,
+): URL {
+    const newUrl = new URL(url.href)
+
+    // get each query separately, leave the "?" off
+    const qys = getUrlQueries(url)
+
+    // if the query exists just replace it
+    if (qys.map(q => q.split("=")[0]).includes(matchQuery)) {
+        return replaceQueryValue(url, matchQuery, value)
+    }
+
+    // the query does not exist so add it
+    qys.push(matchQuery + "=" + value)
+    setUrlQueries(newUrl, qys)
+
+    return newUrl
+}
+
+/**
  * Replace the value of a query in a URL with a new one
  *
  * @param url           the URL to act on

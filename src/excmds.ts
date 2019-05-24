@@ -1515,6 +1515,12 @@ export function urlparent(count = 1) {
  *   all instances respectively
  *      * `http://example.com` -> (`-r [ea] X g`) -> `http://XxXmplX.com`
  *
+ * * Query set mode: `urlmodify -s <query> <value>`
+ *
+ *   Sets the value of a query to be a specific one. If the query already
+ *   exists, it will be replaced.
+ *      * `http://e.com?id=abc` -> (`-s foo bar`) -> `http://e.com?id=abc&foo=bar
+ *
  * * Query replace mode: `urlmodify -q <query> <new_val>`
  *
  *   Replace the value of a query with a new one:
@@ -1555,18 +1561,20 @@ export function urlparent(count = 1) {
  * @param mode      The replace mode:
  *  * -t text replace
  *  * -r regexp replace
+ *  * -s set the value of the given query
  *  * -q replace the value of the given query
  *  * -Q delete the given query
  *  * -g graft a new path onto URL or parent path of it
  * @param replacement the replacement arguments (depends on mode):
  *  * -t <old> <new>
  *  * -r <regexp> <new> [flags]
+ *  * -s <query> <value>
  *  * -q <query> <new_val>
  *  * -Q <query>
  *  * -g <graftPoint> <newPathTail>
  */
 //#content
-export function urlmodify(mode: "-t" | "-r" | "-q" | "-Q" | "-g", ...args: string[]) {
+export function urlmodify(mode: "-t" | "-r" | "-s" | "-q" | "-Q" | "-g", ...args: string[]) {
     const oldUrl = new URL(window.location.href)
     let newUrl
 
@@ -1592,6 +1600,13 @@ export function urlmodify(mode: "-t" | "-r" | "-q" | "-Q" | "-g", ...args: strin
             newUrl = oldUrl.href.replace(regexp, args[1])
             break
 
+        case "-s":
+            if (args.length !== 2) {
+                throw new Error("Query setting needs 2 arguments:" + "<query> <value>")
+            }
+
+            newUrl = UrlUtil.addQueryValue(oldUrl, args[0], args[1])
+            break
         case "-q":
             if (args.length !== 2) {
                 throw new Error("Query replacement needs 2 arguments:" + "<query> <new_val>")
