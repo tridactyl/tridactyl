@@ -264,7 +264,7 @@ export function deleteQuery(url: URL, matchQuery: string): URL {
  * @param matchQuery    the query key to set the value for
  * @param value         the value to use
  */
-export function addQueryValue(
+export function setQueryValue(
     url: URL,
     matchQuery: string,
     value: string,

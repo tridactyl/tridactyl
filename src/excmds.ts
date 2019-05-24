@@ -1605,7 +1605,7 @@ export function urlmodify(mode: "-t" | "-r" | "-s" | "-q" | "-Q" | "-g", ...args
                 throw new Error("Query setting needs 2 arguments:" + "<query> <value>")
             }
 
-            newUrl = UrlUtil.addQueryValue(oldUrl, args[0], args[1])
+            newUrl = UrlUtil.setQueryValue(oldUrl, args[0], args[1])
             break
         case "-q":
             if (args.length !== 2) {
