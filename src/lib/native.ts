@@ -578,7 +578,7 @@ export async function getProfileUncached() {
         // Multiple profiles used but no -p or --profile, this means that we're using the default profile
         for (const profileName of Object.keys(iniObject)) {
             const profile = iniObject[profileName]
-            if (profile.Default === 1) {
+            if (profile.Default === 1 || profile.Default === "1") {
                 return profile
             }
         }
