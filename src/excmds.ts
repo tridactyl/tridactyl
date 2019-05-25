@@ -3548,6 +3548,8 @@ export function unset(...keys: string[]) {
         - -# yank an element's anchor URL to clipboard
         - -c [selector] hint links that match the css selector
           - `bind ;c hint -c [class*="expand"],[class="togg"]` works particularly well on reddit and HN
+        - -f [text] hint links that contain given text
+          - `bind <c-e> hint -f Edit`
         - -w open in new window
         - -wp open in new private window
         - -z scroll an element to the top of the viewport
@@ -3624,6 +3626,16 @@ export async function hint(option?: string, selectors?: string, ...rest: string[
     }
 
     switch (option) {
+        case "-f": // Filter links by text
+            selectHints = hinting.pipe_elements(
+                hinting.hintByText([selectors, ...rest].join(" ")),
+                elem => {
+                    DOM.simulateClick(elem as HTMLElement)
+                    return elem
+                },
+                rapid,
+            )
+            break
         case "-b": // Open in background
         case "-t": // Open in foreground
             selectHints = hinting.pipe(

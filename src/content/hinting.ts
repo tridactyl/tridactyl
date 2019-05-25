@@ -689,6 +689,15 @@ export function hintableImages() {
     return DOM.getElemsBySelector(DOM.HINTTAGS_img_selectors, [DOM.isVisible])
 }
 
+export function hintByText(text) {
+    return DOM.getElemsBySelector("a", [
+        DOM.isVisible,
+        hint => {
+            return hint.textContent !== "" && hint.textContent.indexOf(text) >= 0
+        },
+    ])
+}
+
 /** Array of items that can be killed with hint kill
  */
 export function killables() {
