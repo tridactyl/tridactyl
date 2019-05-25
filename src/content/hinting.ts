@@ -689,11 +689,17 @@ export function hintableImages() {
     return DOM.getElemsBySelector(DOM.HINTTAGS_img_selectors, [DOM.isVisible])
 }
 
-export function hintByText(text) {
-    return DOM.getElemsBySelector("a", [
+export function hintByText(match) {
+    return DOM.getElemsBySelector(DOM.HINTTAGS_filter_by_text_selectors, [
         DOM.isVisible,
         hint => {
-            return hint.textContent !== "" && hint.textContent.indexOf(text) >= 0
+            let text
+            if (hint instanceof HTMLInputElement) {
+                text = (hint as HTMLInputElement).value
+            } else {
+                text = hint.textContent
+            }
+            return text.indexOf(match) >= 0
         },
     ])
 }

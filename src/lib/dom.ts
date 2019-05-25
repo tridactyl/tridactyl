@@ -588,6 +588,17 @@ summary,
 [tabindex]
 `
 
+// Selectors denoting elements where it makes sense to filter them by their
+// text
+export const HINTTAGS_filter_by_text_selectors = `
+input:not([type=hidden]):not([disabled]),
+a,
+textarea,
+button,
+select,
+[class*='button']
+`
+
 export const HINTTAGS_img_selectors = `
 img,
 [src]
