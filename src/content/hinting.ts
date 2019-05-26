@@ -263,37 +263,53 @@ export function hintPage(
         })
     }
 
-    if (modeState.hints.length) {
-        const firstTarget = modeState.hints[0].target
-        const shouldSelect =
-            firstTarget instanceof HTMLAnchorElement &&
+    if (! modeState.hints.length) {
+        // No more hints to display
+        reset()
+        return
+    }
+
+    // There are multiple hints. Normally we would just show all of them, but
+    // we try to be clever here. Automatically select the first one if all the
+    // conditions are true:
+    //  - it is <a>
+    //  - its href is not empty (does not point to the page itself)
+    //  - its href is not javascript
+    //  - all the remaining hints
+    //      - are either _not_ <a>
+    //      - or their href points to the sampe place as first one
+
+    const firstTarget = modeState.hints[0].target
+
+    const firstTargetIsSelectable = (): boolean => {
+        return firstTarget instanceof HTMLAnchorElement &&
             firstTarget.href !== "" &&
             !firstTarget.href.startsWith("javascript:")
-        if (shouldSelect) {
-            // Try to find an element that is not a link or that doesn't point
-            // to the same URL as the first hint
-            const different = modeState.hints.find(h => {
-                return (
-                    !(h.target instanceof HTMLAnchorElement) ||
-                    h.target.href !== (firstTarget as HTMLAnchorElement).href
-                )
-            })
-
-            if (different === undefined) {
-                modeState.cleanUpHints()
-                modeState.hints[0].select()
-                reset()
-                return
-            }
-        }
-
-        logger.debug("hints", modeState.hints)
-        modeState.focusedHint = modeState.hints[0]
-        modeState.focusedHint.focused = true
-        document.documentElement.appendChild(modeState.hintHost)
-    } else {
-        reset()
     }
+
+    const allTargetsAreEqual = (): boolean => {
+        return undefined === modeState.hints.find(h => {
+            return (
+                !(h.target instanceof HTMLAnchorElement) ||
+                h.target.href !== (firstTarget as HTMLAnchorElement).href
+            )
+        })
+    }
+
+    if (modeState.hints.length == 1 ||
+        (firstTargetIsSelectable() && allTargetsAreEqual())) {
+        // There is just a single link or all the links point to the same
+        // place. Select it.
+        modeState.cleanUpHints()
+        modeState.hints[0].select()
+        reset()
+        return
+    }
+
+    // Just focus first link
+    modeState.focusedHint = modeState.hints[0]
+    modeState.focusedHint.focused = true
+    document.documentElement.appendChild(modeState.hintHost)
 }
 
 function defaultHintBuilder() {
@@ -695,6 +711,7 @@ export function hintByText(match) {
         hint => {
             let text
             if (hint instanceof HTMLInputElement) {
+                // tslint:disable-next-line:no-useless-cast
                 text = (hint as HTMLInputElement).value
             } else {
                 text = hint.textContent
