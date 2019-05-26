@@ -13,7 +13,7 @@ function getChangelogDiv() {
 function updateChangelogStatus() {
     const changelogDiv = getChangelogDiv()
     const changelogContent = changelogDiv.textContent
-    if (localStorage.changelogContent === changelogContent) {
+    if (browser.extension.inIncognitoContext || (localStorage.changelogContent === changelogContent)) {
         const changelogButton = document.querySelector('input[id^="spoiler"]')
         if (!changelogButton) {
             console.error("Couldn't find changelog button!")
