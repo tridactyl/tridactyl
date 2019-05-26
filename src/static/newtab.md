@@ -12,11 +12,25 @@ Tridactyl has to override your new tab page due to WebExtension limitations. You
 
 -   **Tridactyl retreat** 👀: 4 of the core Tridactyl developers are meeting up in the real world to work on Tridactyl from 24th May - 1st June in the Peak District, UK in late May. [Donate using this link](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=7JQHV4N2YZCTY) if you'd like to contribute to our travel, accommodation and subsistence costs, which we estimate will be about £2,000. As of May 22nd, we have so far raised ~£680, so thanks to all of you who have donated. If you have any suggestions for things we should especially focus on, please comment on [this issue](https://github.com/tridactyl/tridactyl/issues/1379).
 
--   If Tridactyl breaks a website or is broken by a website, trying the steps in the [troubleshooting guide](https://github.com/tridactyl/tridactyl/blob/master/doc/troubleshooting.md) might help.
+-   Tridactyl retreat dev diary:
 
--   You can contact the developers, other users and contributors for support or whatever on [Matrix][matrix-link], [Gitter][gitter-link], or [IRC][freenode-link].
+    -   Day -1: Azk arrives; cmcaine, bovine3dom, azk go for a curry, have an accidental pilgrimage to Stephenson's Rocket, and trek to the Peak District.
+    -   Day 0: cmcaine & bovine3dom went for a walk. Azk did some work. glacambre arrived. Hugh Jackman visits Piccadilly Gardens the day after us, proving once again our trend-setting abilities.
+    -   Day 1:
+        -   We all looked at the most-thumbed-up issues to help organise our priorities and thumbed our noses at them; our main aim for the retreat is to reduce jank and have a more consistent UX
+        -   cmcaine worked on a functional version of Tridactyl's state considering immutable.js, meoisis, and immer.js [link](https://github.com/cmcaine/tridactyl-2-experiments)
+        -   azk discovered that hiding our iframe in a shadow DOM doesn't solve the page-refresh-loop bug. azk then ran some experiments with MithrilJS and began reimplementing the commandline
+        -   bovine3dom started looking through the backlog of issues, closing a few, updating others
+        -   We moved the keyboard API to the Tridactyl organisation; bovine3dom started rewriting it to comply with the current WebExtension experiment requirements
+            -   The plan is to first make a Firefox Developer Edition only Tridactyl build that comes with the keyboard API to prevent us getting bored of waiting for Mozilla (and vice versa)
+            -   But the WebExtension Experiment API has changed enough that we're currently in build-tool hell with the keyboard-api
+        -   glacambre fixed a bunch of issues with scrolling and focusing events, thanks glacambre!
 
--   If you're enjoying Tridactyl (or not), please leave a review on [addons.mozilla.org][amo].
+*   If Tridactyl breaks a website or is broken by a website, trying the steps in the [troubleshooting guide](https://github.com/tridactyl/tridactyl/blob/master/doc/troubleshooting.md) might help.
+
+*   You can contact the developers, other users and contributors for support or whatever on [Matrix][matrix-link], [Gitter][gitter-link], or [IRC][freenode-link].
+
+*   If you're enjoying Tridactyl (or not), please leave a review on [addons.mozilla.org][amo].
 
 REPLACE_ME_WITH_THE_CHANGE_LOG_USING_SED
 
