@@ -1366,6 +1366,91 @@ export function removeChangeListener<P extends keyof default_config>(
     if (i >= 0) arr.splice(i, 1)
 }
 
+/** Parse the config into a string representation of a .tridactylrc config file.
+    Tries to parse the config into sectionable chunks based on keywords. 
+    Binds, aliases, autocmds and logging settings each have their own section while the rest are dumped into "General Settings".
+
+    @returns string The parsed config file.
+
+ */
+export function parseConfig(): string {
+    // Parse the config into sections, this is my last resort.
+    const parsedConf = []
+    const parsedBinds = []
+    const parsedAliases = []
+    const parsedAucmds = []
+    const parsedAucons = []
+    const parsedLogging = []
+
+    for (const i in USERCONFIG) {
+        if (typeof USERCONFIG[i] !== "object")
+            parsedConf.push(`set ${i} ${USERCONFIG[i]}`)
+        else if (i === "nmaps") {
+            for (const e in USERCONFIG[i]) {
+                parsedBinds.push(`bind ${e} ${USERCONFIG[i][e]}`)
+            }
+        } else if (i === "exaliases") {
+            for (const e in USERCONFIG[i]) {
+                // Only really useful if mapping the entire config and not just USERCONFIG.
+                if (e === "alias")
+                    parsedAliases.push(`command ${e} ${USERCONFIG[i][e]}`)
+                parsedAliases.push(`alias ${e} ${USERCONFIG[i][e]}`)
+            }
+        } else if (i === "autocmds") {
+            for (const e in USERCONFIG[i]) {
+                for (const a in USERCONFIG[i][e]) {
+                    parsedAucmds.push(
+                        `autocmd ${e} ${a} ${USERCONFIG[i][e][a]}`,
+                    )
+                }
+            }
+        } else if (i === "autocontain") {
+            for (const e in USERCONFIG[i]) {
+                parsedAucmds.push(
+                    `autocontain ${e} ${USERCONFIG[i][e]}`,
+                )
+            }
+        } else if (i === "logging") {
+            for (const e in USERCONFIG[i]) {
+                // Map the int values in e to a log level
+                let level
+                if (USERCONFIG[i][e] === 0) level = "never"
+                if (USERCONFIG[i][e] === 1) level = "error"
+                if (USERCONFIG[i][e] === 2) level = "warning"
+                if (USERCONFIG[i][e] === 3) level = "info"
+                if (USERCONFIG[i][e] === 4) level = "debug"
+                parsedLogging.push(`set logging.${e} ${level}`)
+            }
+        } else {
+            for (let e in USERCONFIG[i]) {
+                parsedConf.push(`set ${i}.${e} ${USERCONFIG[i][e]}`)
+            }
+        }
+    }
+
+    let genSettings = ``
+    let bindSettings = ``
+    let aliasSettings = ``
+    let aucmdSettings = ``
+    let auconSettings = ``
+    let logSettings = ``
+
+    if (parsedConf.length > 0)
+        genSettings = `"General Settings\n${parsedConf.join("\n")}\n\n`
+    if (parsedBinds.length > 0)
+        bindSettings = `"Binds\n${parsedBinds.join("\n")}\n\n`
+    if (parsedAliases.length > 0)
+        aliasSettings = `"Aliases\n${parsedAliases.join("\n")}\n\n`
+    if (parsedAucmds.length > 0)
+        aucmdSettings = `"Autocmds\n${parsedAucmds.join("\n")}\n\n`
+    if (parsedAucons.length > 0)
+        auconSettings = `"Autocontainers\n${parsedAucons.join("\n")}\n\n`
+    if (parsedLogging.length > 0)
+        logSettings = `"Logging\n" + parsedLogging.join("\n")}\n\n`
+
+    return `${genSettings}${bindSettings}${aliasSettings}${aucmdSettings}${auconSettings}${logSettings}`
+}
+
 // Listen for changes to the storage and update the USERCONFIG if appropriate.
 // TODO: BUG! Sync and local storage are merged at startup, but not by this thing.
 browser.storage.onChanged.addListener(async (changes, areaname) => {
