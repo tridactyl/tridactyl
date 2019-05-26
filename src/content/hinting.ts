@@ -729,6 +729,7 @@ export function killables() {
     ])
 }
 
+/** HintPage wrapper, accepts CSS selectors to build a list of elements */
 export function pipe(
     selectors = DOM.HINTTAGS_selectors,
     action: HintSelectedCallback = _ => _,
@@ -740,6 +741,7 @@ export function pipe(
     })
 }
 
+/** HintPage wrapper, accepts array of elements to hint */
 export function pipe_elements(
     elements: any = DOM.elementsWithText,
     action: HintSelectedCallback = _ => _,
