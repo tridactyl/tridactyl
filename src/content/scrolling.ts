@@ -167,6 +167,7 @@ export async function recursiveScroll(
         if (
             (await scroll(x, y, treeWalker.currentNode)) ||
             ((treeWalker.currentNode as any).contentDocument &&
+                !(treeWalker.currentNode as any).src.startsWith("moz-extension://") &&
                 (await recursiveScroll(
                     x,
                     y,
