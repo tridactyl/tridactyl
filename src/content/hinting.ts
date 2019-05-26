@@ -705,7 +705,10 @@ export function hintableImages() {
     return DOM.getElemsBySelector(DOM.HINTTAGS_img_selectors, [DOM.isVisible])
 }
 
-export function hintByText(match) {
+/** Get array of selectable elements that display a text matching either plain
+ * text or RegExp rule
+ */
+export function hintByText(match: string|RegExp) {
     return DOM.getElemsBySelector(DOM.HINTTAGS_filter_by_text_selectors, [
         DOM.isVisible,
         hint => {
@@ -716,8 +719,12 @@ export function hintByText(match) {
             } else {
                 text = hint.textContent
             }
-            return text.indexOf(match) >= 0
-        },
+            if (match instanceof RegExp) {
+                return text.match(match) !== null
+            } else {
+                return text.includes(match)
+            }
+        }
     ])
 }
 

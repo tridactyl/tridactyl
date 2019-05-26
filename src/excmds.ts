@@ -3550,6 +3550,7 @@ export function unset(...keys: string[]) {
           - `bind ;c hint -c [class*="expand"],[class="togg"]` works particularly well on reddit and HN
         - -f [text] hint links and inputs that display the given text
           - `bind <c-e> hint -f Edit`
+        - -fr [text] use RegExp to hint the links and inputs
         - -w open in new window
         - -wp open in new private window
         - -z scroll an element to the top of the viewport
@@ -3626,9 +3627,15 @@ export async function hint(option?: string, selectors?: string, ...rest: string[
     }
 
     switch (option) {
-        case "-f": // Filter links by text
+        case "-f":  // Filter links by text
+        case "-fr": // Filter links by regex
+            let match: string | RegExp
+            match = [selectors, ...rest].join(" ")
+            if ( option == "-fr" ) {
+                match = new RegExp (match);
+            }
             selectHints = hinting.pipe_elements(
-                hinting.hintByText([selectors, ...rest].join(" ")),
+                hinting.hintByText(match),
                 elem => {
                     DOM.simulateClick(elem as HTMLElement)
                     return elem
