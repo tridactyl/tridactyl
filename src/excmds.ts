@@ -3548,7 +3548,7 @@ export function unset(...keys: string[]) {
         - -# yank an element's anchor URL to clipboard
         - -c [selector] hint links that match the css selector
           - `bind ;c hint -c [class*="expand"],[class="togg"]` works particularly well on reddit and HN
-        - -f [text] hint links that contain given text
+        - -f [text] hint links and inputs that display the given text
           - `bind <c-e> hint -f Edit`
         - -w open in new window
         - -wp open in new private window
