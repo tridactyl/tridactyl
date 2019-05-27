@@ -11,7 +11,7 @@ publish_beta_nonewtab() {
     npm run clean
     npm run build
     scripts/version.js beta
-    sed 's/tridactyl.vim@cmcaine/tridactyl.vim.betas.nonewtab@cmcaine/' -i build/manifest.json
+    sed 's/tridactyl.vim.betas@cmcaine/tridactyl.vim.betas.nonewtab@cmcaine/' -i build/manifest.json
     sed '/\s*"newtab":.*/d' -i build/manifest.json
     sed 's/"name": "Tridactyl"/"name": "Tridactyl: No New Tab"/' -i build/manifest.json
     sign_and_submit -a web-ext-artifacts/nonewtab
@@ -21,7 +21,6 @@ publish_beta() {
     npm run clean
     npm run build
     scripts/version.js beta
-    sed 's/tridactyl.vim@cmcaine/tridactyl.vim.betas@cmcaine/' -i build/manifest.json
     sed 's/"name": "Tridactyl"/"name": "Tridactyl: Beta"/' -i build/manifest.json
     sign_and_submit
 }
@@ -29,6 +28,7 @@ publish_beta() {
 publish_stable() {
     npm run clean
     npm run build
+    sed 's/tridactyl.vim.betas@cmcaine/tridactyl.vim@cmcaine/' -i build/manifest.json
     sign_and_submit
     tar --exclude-from=.gitignore -czf ../public_html/betas/tridactyl_source.tar.gz .
 }
