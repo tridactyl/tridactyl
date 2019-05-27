@@ -74,7 +74,7 @@ document.addEventListener("readystatechange", _ =>
 
 // Prevent pages from automatically focusing elements on load
 config.getAsync("preventautofocusjackhammer").then(allowautofocus => {
-    if (allowautofocus === "true") {
+    if (allowautofocus === "false") {
         return
     }
     const preventAutoFocus = () => {
