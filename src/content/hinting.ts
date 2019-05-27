@@ -722,7 +722,7 @@ export function hintByText(match: string|RegExp) {
             if (match instanceof RegExp) {
                 return text.match(match) !== null
             } else {
-                return text.includes(match)
+                return text.toUpperCase().includes(match.toUpperCase())
             }
         }
     ])
