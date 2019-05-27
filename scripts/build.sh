@@ -62,7 +62,7 @@ else
   native/install.sh local
 fi
 
-(webpack --display errors-only \
+(webpack --display errors-only --bail\
   && scripts/git_version.sh)
 
 scripts/bodgecss.sh
