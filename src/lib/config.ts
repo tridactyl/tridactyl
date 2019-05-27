@@ -47,7 +47,7 @@ export type LoggingLevel = "never" | "error" | "warning" | "info" | "debug"
  *
  * You can change anything here using `set key1.key2.key3 value` or specific things any of the various helper commands such as `bind` or `command`. You can also jump to the help section of a setting using `:help $settingname`. Some of the settings have an input field containing their current value. You can modify these values and save them by pressing `<Enter>` but using `:set $setting $value` is a good habit to take as it doesn't force you to leave the page you're visiting to change your settings.
  */
-class default_config {
+export class default_config {
     /**
      * Internal version number Tridactyl uses to know whether it needs to update from old versions of the configuration.
      *
@@ -700,6 +700,11 @@ class default_config {
     noiframe: "true" | "false" = "false"
 
     /**
+     * @deprecated A list of URLs on which to not load the iframe. Use `seturl [URL] noiframe true` instead, as shown in [[noiframe]].
+     */
+    noiframeon: string[] = []
+
+    /**
      * Insert / input mode edit-in-$EDITOR command to run
      * This has to be a command that stays in the foreground for the whole editing session
      * "auto" will attempt to find a sane editor in your path.
@@ -998,7 +1003,8 @@ export function getURL(url: string, target: string[]) {
     defaults, if one exists, else undefined.
     @hidden
 */
-export function get(...target) {
+export function get(target_typed?: keyof default_config, ...target: string[]) {
+    target = [(target_typed as string)].concat(target)
     // Window.tri might not be defined when called from the untrusted page context
     let loc = window.location
     if ((window as any).tri && (window as any).tri.contentLocation)
