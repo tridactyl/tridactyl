@@ -217,6 +217,12 @@ We gratefully accept donations via [PayPal](https://www.paypal.com/cgi-bin/websc
 
 Funds will be used at the discretion of the main contributors (currently bovine3dom, cmcaine, glacambre and antonva) for Tridactyl-related expenditure, such as domain names, server costs, small thank-yous to contributors such as stickers, and victuals for hackathons.
 
+### Merchandise
+
+We have some designs available on [REDBUBBLE](https://www.redbubble.com/people/bovine3dom/shop/top+selling?ref=artist_shop_category_refinement&asc=u). There are often discount codes available - `ART20` at the time of writing, for example. The T-shirts are quite good (I'm wearing one as I type this). The stickers are not the best quality we've ever seen. The clock looks amazing on the website. If anyone buys it I would love to see it.
+
+**We don't take any cut from the merchandise**, so if you would like to donate, please do so via PayPal or Patreon above.
+
 ### Building and installing
 
 Onboarding:
