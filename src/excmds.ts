@@ -2880,9 +2880,12 @@ export async function taball(id: string) {
         id = windows.indexOf(tab.windowId) + "." + (tab.index + 1)
         logger.info(`taball: Bad tab id: ${prevId}, defaulting to ${id}`)
     }
-    const [winindex, tabindex] = id.split(".")
-    await browser.windows.update(windows[parseInt(winindex, 10) - 1], { focused: true })
-    return browser.tabs.update(await idFromIndex(tabindex), { active: true })
+    const [winindex, tabindex_string] = id.split(".")
+    const winid = windows[parseInt(winindex, 10) - 1]
+    const tabindex_number = parseInt(tabindex_string, 10) - 1
+    const tabid = (await browser.tabs.query({ windowId: winid, index: tabindex_number }))[0].id
+    await browser.windows.update(winid, { focused: true })
+    return browser.tabs.update(tabid, { active: true })
 }
 
 // }}}
