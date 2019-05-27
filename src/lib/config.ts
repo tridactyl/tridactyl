@@ -590,6 +590,11 @@ class default_config {
     allowautofocus: "true" | "false" = "true"
 
     /**
+     * Uses a loop to prevent focus until you interact with a page. Only recommended for use via `seturl` for problematic sites as it can be a little heavy on CPU if running on all tabs. Should be used in conjuction with [[allowautofocus]]
+     */
+    preventautofocusjackhammer: "true" | "false" = "true"
+
+    /**
      * Controls whether the newtab focuses on tridactyl's newtab page or the firefox urlbar.
      *
      * To get FF default behaviour, use "urlbar".

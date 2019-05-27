@@ -73,7 +73,7 @@ document.addEventListener("readystatechange", _ =>
 )
 
 // Prevent pages from automatically focusing elements on load
-config.getAsync("allowautofocus").then(allowautofocus => {
+config.getAsync("preventautofocusjackhammer").then(allowautofocus => {
     if (allowautofocus === "true") {
         return
     }
@@ -90,7 +90,7 @@ config.getAsync("allowautofocus").then(allowautofocus => {
         // On top of blur/focusout events, we need to periodically check the
         // activeElement is the one we want because blur/focusout events aren't
         // always triggered when document.activeElement changes
-        const interval = setInterval(() => { if (document.activeElement != elem) focusElem() }, 10)
+        const interval = setInterval(() => { if (document.activeElement != elem) focusElem() }, 200)
         // When the user starts interacting with the page, stop resetting focus
         function stopResettingFocus() {
             elem.removeEventListener("blur", focusElem)
