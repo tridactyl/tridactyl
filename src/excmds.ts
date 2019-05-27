@@ -4066,6 +4066,7 @@ export async function perfhistogram(...filters: string[]) {
  */
 //#background
 export async function bmark(url?: string, ...titlearr: string[]) {
+    const auto_url = (url == undefined)
     url = url === undefined ? (await activeTab()).url : url
     let title = titlearr.join(" ")
     // if titlearr is given and we have duplicates, we probably want to give an error here.
@@ -4076,7 +4077,7 @@ export async function bmark(url?: string, ...titlearr: string[]) {
     // if title is blank, get it from the current page.
     // technically could race condition if someone switched tabs REALLY quick after
     // bookmarking, but too unlikely to bother with for now
-    if (title == "") {
+    if (title == "" && auto_url) {
         //retrieve title from current tab
         title = (await activeTab()).title
     }
@@ -4097,7 +4098,7 @@ export async function bmark(url?: string, ...titlearr: string[]) {
         if (pathobj === undefined) pathobj = validpaths.find(p => p.path.includes(path))
         //technically an initial title string like `Firefox/` can give us a blank title
         //once we remove the path, so let's fix that
-        if (title == "") {
+        if (title == "" && auto_url) {
             //retrieve title from current tab
             const currTitle = (await activeTab()).title
             title = currTitle
