@@ -310,6 +310,11 @@ class default_config {
     leavegithubalone: "true" | "false" = "false"
 
     /**
+     * Which keys to protect from pages that try to override them. Requires [[leavegithubalone]] to be set to false.
+     */
+    blacklistkeys: string[] = ["/"]
+
+    /**
      * Autocommands that run when certain events happen, and other conditions are met.
      *
      * Related ex command: `autocmd`.

@@ -319,10 +319,14 @@ config.getAsync("modeindicator").then(mode => {
 })
 
 function protectSlash(e) {
-    if ("/".indexOf(e.key) !== -1 && contentState.mode === "normal") {
-        e.cancelBubble = true
-        e.stopImmediatePropagation()
-    }
+    config.get("blacklistkeys").map(
+        protkey => {
+            if (protkey.indexOf(e.key) !== -1 && contentState.mode === "normal") {
+                e.cancelBubble = true
+                e.stopImmediatePropagation()
+            }
+        }
+    )
 }
 
 // Some sites like to prevent firefox's `/` from working so we need to protect
