@@ -58,7 +58,14 @@ class default_config {
     /**
      * Internal field to handle site-specific configs. Use :seturl/:unseturl to change these values.
      */
-    subconfigs: { [key: string]: default_config } = {}
+    subconfigs: { [key: string]: default_config } = {
+        "www.google.com": {
+            "followpagepatterns": {
+                "next": "Next",
+                "prev": "Previous"
+            }
+        } as default_config
+    }
 
     /**
      * Internal field to handle site-specific config priorities. Use :seturl/:unseturl to change this value.
