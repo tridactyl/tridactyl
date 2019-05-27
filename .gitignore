@@ -1,8 +1,6 @@
 AMOKEYS
 build
 node_modules
-src/.excmds_background.generated.ts
-src/.excmds_content.generated.ts
 src/grammars/*.ts
 generated
 web-ext-artifacts
@@ -15,4 +13,4 @@ native_main.spec
 tags
 compiler/*.js
 compiler/**/*.js
-src/.metadata.generated.ts
+.*.generated.ts
