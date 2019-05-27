@@ -945,37 +945,46 @@ export function mergeDeep(o1, o2) {
  */
 
 export function getURL(url: string, target: string[]) {
-    if (!USERCONFIG.subconfigs) return undefined
-    // For each key
-    return (
-        Object.keys(USERCONFIG.subconfigs)
-            // Keep only the ones that have a match
-            .filter(
-                k =>
-                    url.match(k) &&
-                    getDeepProperty(USERCONFIG.subconfigs[k], target) !==
-                        undefined,
-            )
-            // Sort them from lowest to highest priority, default to a priority of 10
-            .sort(
-                (k1, k2) =>
-                    (USERCONFIG.subconfigs[k1].priority || 10) -
-                    (USERCONFIG.subconfigs[k2].priority || 10),
-            )
-            // Merge their corresponding value if they're objects, otherwise return the last value
-            .reduce(
-                (acc, curKey) => {
-                    const curVal = getDeepProperty(
-                        USERCONFIG.subconfigs[curKey],
-                        target,
-                    )
-                    if (acc instanceof Object && curVal instanceof Object)
-                        return mergeDeep(acc, curVal)
-                    return curVal
-                },
-                undefined as any,
-            )
-    )
+    function _getURL(conf, url, target) {
+        if (!conf.subconfigs) return undefined
+        // For each key
+        return (
+            Object.keys(conf.subconfigs)
+                // Keep only the ones that have a match
+                .filter(
+                    k =>
+                        url.match(k) &&
+                        getDeepProperty(conf.subconfigs[k], target) !==
+                            undefined,
+                )
+                // Sort them from lowest to highest priority, default to a priority of 10
+                .sort(
+                    (k1, k2) =>
+                        (conf.subconfigs[k1].priority || 10) -
+                        (conf.subconfigs[k2].priority || 10),
+                )
+                // Merge their corresponding value if they're objects, otherwise return the last value
+                .reduce(
+                    (acc, curKey) => {
+                        const curVal = getDeepProperty(
+                            conf.subconfigs[curKey],
+                            target,
+                        )
+                        if (acc instanceof Object && curVal instanceof Object)
+                            return mergeDeep(acc, curVal)
+                        return curVal
+                    },
+                    undefined as any,
+                )
+        )
+    }
+    const user = _getURL(USERCONFIG, url, target)
+    const deflt = _getURL(DEFAULTS, url, target)
+    if (user === undefined || user === null)
+        return deflt
+    if (typeof user !== "object" || typeof deflt !== "object")
+        return user
+    return mergeDeep(deflt, user)
 }
 
 /** Get the value of the key target.
