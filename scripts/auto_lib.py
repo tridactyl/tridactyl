@@ -79,15 +79,17 @@ def WriteWrapperNamesFile(wrapper_names):
             for message_name in message_names:
                 f.write(WrapperNameToEnumMember(message_name) + "\n")
 
-def EnsureGeneratedDirExists():
+def EnsureGeneratedDirExistsAndIsEmpty():
     if not os.path.exists("src/lib/generated"):
         os.mkdir("src/lib/generated")
+    for existing_file in os.listdir("src/lib/generated"):
+        os.remove(os.path.join("src/lib/generated", existing_file))
 
 def main(argv):
     # unused
     del argv
 
-    EnsureGeneratedDirExists()
+    EnsureGeneratedDirExistsAndIsEmpty()
     wrapper_names = {}
     for source in ['content', 'background', 'commandline']:
         wrapper_names[source] = list(AutoLib(source, os.path.join('src', source + '_lib')))
