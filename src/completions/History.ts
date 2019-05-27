@@ -103,7 +103,7 @@ export class HistoryCompletionSource extends Completions.CompletionSourceFuse {
         // In the nonewtab version, this will return `null` and upset getURL.
         // Ternary op below prevents the runtime error.
         const newtab = (browser.runtime.getManifest()).chrome_url_overrides.newtab
-        const newtaburl = newtab !== null ? browser.extension.getURL(newtab) : null
+        const newtaburl = newtab !== null ? browser.runtime.getURL(newtab) : null
         if (!query || config.get("historyresults") === 0) {
             return (await browserBg.topSites.get())
                 .filter(page => page.url !== newtaburl)

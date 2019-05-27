@@ -6,7 +6,7 @@ export const EditorCmds = new Proxy(_EditorCmds, {
     get(target, property) {
         if (target[property]) {
             return (...args) => {
-                if ((document.activeElement as any).src === browser.extension.getURL("static/commandline.html")) {
+                if ((document.activeElement as any).src === browser.runtime.getURL("static/commandline.html")) {
                     return messageOwnTab("commandline_frame", "editor_function", [property].concat(args))
                 }
                 return _EditorCmds[property](DOM.getLastUsedInput(), ...args)

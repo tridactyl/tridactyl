@@ -24,7 +24,7 @@ const cmdline_iframe = window.document.createElementNS(
 cmdline_iframe.className = "cleanslate"
 cmdline_iframe.setAttribute(
     "src",
-    browser.extension.getURL("static/commandline.html"),
+    browser.runtime.getURL("static/commandline.html"),
 )
 cmdline_iframe.setAttribute("id", "cmdline_iframe")
 
