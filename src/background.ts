@@ -215,8 +215,6 @@ window.tri = Object.assign(window.tri || Object.create(null), {
 omnibox.init()
 
 // }}}
-//
-//
 
 // Disable all other versions of Tridactyl
 browser.management.getSelf().then(extinfo => {
