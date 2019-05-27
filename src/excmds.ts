@@ -1279,7 +1279,7 @@ export async function help(...helpItems: string[]) {
                 if (resolved.includes(helpItem)) break
             }
             if (resolved.length > 0) {
-                return browser.extension.getURL("static/docs/modules/_src_excmds_.html") + "#" + helpItem
+                return browser.runtime.getURL("static/docs/modules/_src_excmds_.html") + "#" + helpItem
             }
             return ""
         },
@@ -1294,13 +1294,13 @@ export async function help(...helpItems: string[]) {
                 if (helpItem in bindings) {
                     helpItem = bindings[helpItem].split(" ")
                     helpItem = ["composite", "fillcmdline"].includes(helpItem[0]) ? helpItem[1] : helpItem[0]
-                    return browser.extension.getURL("static/docs/modules/_src_excmds_.html") + "#" + helpItem
+                    return browser.runtime.getURL("static/docs/modules/_src_excmds_.html") + "#" + helpItem
                 }
             }
             return ""
         },
         // -e: look for an excmd
-        "-e": (settings, helpItem) => browser.extension.getURL("static/docs/modules/_src_excmds_.html") + "#" + helpItem,
+        "-e": (settings, helpItem) => browser.runtime.getURL("static/docs/modules/_src_excmds_.html") + "#" + helpItem,
         // -s: look for a setting
         "-s": (settings, helpItem) => {
             let subSettings = settings
@@ -1314,7 +1314,7 @@ export async function help(...helpItems: string[]) {
                 }
             }
             if (settingHelpAnchor !== "") {
-                return browser.extension.getURL("static/docs/classes/_src_lib_config_.default_config.html") + "#" + settingHelpAnchor.slice(0, -1)
+                return browser.runtime.getURL("static/docs/classes/_src_lib_config_.default_config.html") + "#" + settingHelpAnchor.slice(0, -1)
             }
             return ""
         },
@@ -1344,7 +1344,7 @@ export async function help(...helpItems: string[]) {
         }, "")
     }
 
-    if ((await activeTab()).url.startsWith(browser.extension.getURL("static/docs/"))) {
+    if ((await activeTab()).url.startsWith(browser.runtime.getURL("static/docs/"))) {
         open(url)
     } else {
         tabopen(url)
@@ -1356,7 +1356,7 @@ export async function help(...helpItems: string[]) {
  */
 //#background
 export async function tutor(newtab?: string) {
-    const tutor = browser.extension.getURL("static/clippy/1-tutor.html")
+    const tutor = browser.runtime.getURL("static/clippy/1-tutor.html")
     if (newtab) tabopen(tutor)
     else open(tutor)
 }
@@ -1366,7 +1366,7 @@ export async function tutor(newtab?: string) {
  */
 //#background
 export async function credits(excmd?: string) {
-    const creditspage = browser.extension.getURL("static/authors.html")
+    const creditspage = browser.runtime.getURL("static/authors.html")
     tabopen(creditspage)
 }
 
@@ -4151,7 +4151,7 @@ export async function issue() {
         logger.warning("issue(): Couldn't find textarea element in github issue page.")
         return
     }
-    let template = await (fetch(browser.extension.getURL("issue_template.md"))
+    let template = await (fetch(browser.runtime.getURL("issue_template.md"))
         .then(resp => resp.body.getReader())
         .then(reader => reader.read())
         .then(r => (new TextDecoder("utf-8")).decode(r.value)))

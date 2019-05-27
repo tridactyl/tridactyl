@@ -15,7 +15,7 @@ import { enumerate } from "@src/lib/itertools"
 import { toNumber } from "@src/lib/convert"
 import * as aliases from "@src/lib/aliases"
 
-export const DEFAULT_FAVICON = browser.extension.getURL(
+export const DEFAULT_FAVICON = browser.runtime.getURL(
     "static/defaultFavicon.svg",
 )
 
