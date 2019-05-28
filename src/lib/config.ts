@@ -297,6 +297,19 @@ class default_config {
             "open https://www.youtube.com/watch?v=M3iOROuTuMA",
     }
 
+    hintmaps = {
+        "<Backspace>": "hint.popKey",
+        "<Escape>": "hint.reset",
+        "<Tab>": "hint.focusPreviousHint",
+        "<S-Tab>": "hint.focusNextHint",
+        "<ArrowUp>": "hint.focusTopHint",
+        "<ArrowDown>": "hint.focusBottomHint",
+        "<ArrowLeft>": "hint.focusLeftHint",
+        "<ArrowRight>": "hint.focusRightHint",
+        "<Enter>": "hint.selectFocusedHint",
+        "<Space>": "hint.selectFocusedHint",
+    }
+
     /**
      * Whether to allow pages (not necessarily github) to override `/`, which is a default Firefox binding.
      */

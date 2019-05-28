@@ -23,6 +23,7 @@ import { contentState } from "@src/content/state_content"
 import * as config from "@src/lib/config"
 import Logger from "@src/lib/logging"
 const logger = new Logger("hinting")
+import * as keyseq from "@src/lib/keyseq"
 
 /** Calclate the distance between two segments. */
 function distance(l1: number, r1: number, l2: number, r2: number): number {
@@ -655,24 +656,22 @@ function reset() {
     contentState.mode = "normal"
 }
 
-/** If key is in hintchars, add it to filtstr and filter */
-function pushKey(ke) {
-    if (ke.ctrlKey || ke.altKey || ke.metaKey) {
-        // Do nothing
-    } else if (ke.key === "Backspace") {
-        modeState.filter = modeState.filter.slice(0, -1)
-        modeState.filterFunc(modeState.filter)
-    } else if (ke.key.length === 1 && modeState.hintchars.includes(ke.key)) {
-        // The new key can be used to filter the hints
-        const originalFilter = modeState.filter
-        modeState.filter += ke.key
-        modeState.filterFunc(modeState.filter)
+function popKey() {
+    modeState.filter = modeState.filter.slice(0, -1)
+    modeState.filterFunc(modeState.filter)
+}
 
-        if (modeState && !modeState.activeHints.length) {
-            // There are no more active hints, undo the change to the filter
-            modeState.filter = originalFilter
-            modeState.filterFunc(modeState.filter)
-        }
+/** If key is in hintchars, add it to filtstr and filter */
+function pushKey(key) {
+    // The new key can be used to filter the hints
+    const originalFilter = modeState.filter
+    modeState.filter += key
+    modeState.filterFunc(modeState.filter)
+
+    if (modeState && !modeState.activeHints.length) {
+        // There are no more active hints, undo the change to the filter
+        modeState.filter = originalFilter
+        modeState.filterFunc(modeState.filter)
     }
 }
 
@@ -795,38 +794,49 @@ function focusRightHint() {
 }
 
 export function parser(keys: KeyboardEvent[]) {
-    for (const keyev of keys) {
-        const key = keyev.key
-        switch (key) {
-            case "Escape":
-                reset()
-                break
-            case "Tab":
-                if (keyev.shiftKey) {
-                    focusPreviousHint()
-                } else {
-                    focusNextHint()
-                }
-                break
-            case "ArrowUp":
-                focusTopHint()
-                break
-            case "ArrowDown":
-                focusBottomHint()
-                break
-            case "ArrowLeft":
-                focusLeftHint()
-                break
-            case "ArrowRight":
-                focusRightHint()
-                break
-            case "Enter":
-            case " ":
-                selectFocusedHint()
-                break
-            default:
-                pushKey(keys[0])
+    const keymap = {}
+    // Build a map of actions that will match hint names
+    if (config.get("hintnames") == "numeric") {
+        for (let i = 0; i < 10; ++i) {
+            keymap[i.toString()] = `hint.pushKey ${i}`
         }
+    } else {
+        config.get("hintchars").split("").forEach(c => keymap[c] = `hint.pushKey ${c}`)
     }
-    return { keys: [], ex_str: "", isMatch: true }
+    // Add custom bindings on top of it
+    Object.assign(keymap, config.get("hintmaps"))
+    // If the key sequence matches, use this match
+    const parsed = keyseq.parse(keys, keyseq.mapstrMapToKeyMap(new Map(Object.entries(keymap))))
+    if (parsed.isMatch === true) {
+        return parsed
+    }
+    // If it doesn't and the user uses vimperator hints, any character is a match
+    const hintfiltermode = config.get("hintfiltermode")
+    if (hintfiltermode === "vimperator" || hintfiltermode === "vimperator-reflow") {
+        // Ignore modifiers since they can't match text
+        const simplekeys = keys.filter(key => !keyseq.hasModifiers(key))
+        let exstr
+        if (simplekeys.length > 1) {
+            exstr = simplekeys.reduce((acc, key) => `hint.pushKey ${key.key};`, "composite ")
+        } else {
+            exstr = `hint.pushKey ${keys[0].key}`
+        }
+        return { exstr, value: exstr, isMatch: true }
+    }
+    return { keys: [], isMatch: false }
 }
+
+export function getHintCommands() {
+    return {
+        reset,
+        focusPreviousHint,
+        focusNextHint,
+        focusTopHint,
+        focusBottomHint,
+        focusLeftHint,
+        focusRightHint,
+        selectFocusedHint,
+        pushKey,
+        popKey,
+    };
+};

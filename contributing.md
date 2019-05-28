@@ -57,6 +57,7 @@ Here's an example: you're writing the [`native()`](https://github.com/tridactyl/
 -   config_rc.ts: Functions related to loading and executing the tridactylrc.
 -   controller_background.ts: Parses and executes ex commands.
 -   download_background.ts: Utility functions related to downloading that have to live in the background because downloading APIs aren't available to other processes.
+-   hinting.ts: A simple proxy which just forwards ex command calls to the content script.
 
 ### src/content/
 
