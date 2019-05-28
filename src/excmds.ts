@@ -1378,11 +1378,21 @@ export async function credits(excmd?: string) {
  * Suggested usage: `autocmd DocLoad .* no_mouse_mode`
  *
  * "There is no mouse".
+ */
+//#content
+export function no_mouse_mode() {
+    toys.no_mouse()
+}
+
+/**
+ * Matrix variant of [[no_mouse_mode]]
+ *
+ * "There is no mouse".
  *
  * Coincidentally added to Tridactyl at the same time as we reached 1337 stars on GitHub.
  */
 //#content
-export function no_mouse_mode() {
+export function neo_mouse_mode() {
     toys.jack_in()
 }
 

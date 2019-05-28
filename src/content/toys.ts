@@ -16,6 +16,10 @@ export function jack_in() {
     rain(chinese, colour)
 }
 
+export function no_mouse() {
+    rain([" "], "#FFF", 0) // No characters, unused colour code, no darkening
+}
+
 export let snow = () => rain(["❄"], "#FFF", 0.15)
 
 export function rain(characters: string[], colour, darkening = 0.05) {
