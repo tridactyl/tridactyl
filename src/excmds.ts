@@ -9,6 +9,8 @@
 
     Tridactyl also provides a few functions to manipulate text in the command line or text areas that can be found [here](/static/docs/modules/_src_lib_editor_.html). There are also a few commands only available in the command line which can be found [here](/static/docs/modules/_src_commandline_frame_.html).
 
+    Ex-commands available exclusively in hint mode are listed [here](/static/docs/modules/_src_content_hinting_.html)
+
     ## How to use this help page
 
     Every function (excmd) on this page can be called via Tridactyl's command line which we call "ex". There is a slight change in syntax, however. Wherever you see:
@@ -3005,7 +3007,7 @@ function parse_bind_args(...args: string[]): bind_args {
     [[fillcmdline]] to put a string in the cmdline and focus the cmdline
     (otherwise the string is executed immediately).
 
-    You can bind to other modes with `bind --mode={insert|ignore|normal|input} ...`, e.g, `bind --mode=insert emacs qall` (NB: unlike vim, all preceeding characters will not be input).
+    You can bind to other modes with `bind --mode={insert|ignore|normal|input|ex|hint} ...`, e.g, `bind --mode=insert emacs qall` (NB: unlike vim, all preceeding characters will not be input), or `bind --mode=hint <C-[> hint.reset`.
 
     See also:
 
@@ -3566,6 +3568,8 @@ export function unset(...keys: string[]) {
     Excepting the custom selector mode and background hint mode, each of these hint modes is available by default as `;<option character>`, so e.g. `;y` to yank a link's target; `;g<option character>` starts rapid hint mode for all modes where it makes sense, and some others.
 
     To open a hint in the background, the default bind is `F`.
+
+    Ex-commands available exclusively in hint mode are listed [here](/static/docs/modules/_src_content_hinting_.html)
 
     Related settings:
         - "hintchars": "hjklasdfgyuiopqwertnmzxcvb"
