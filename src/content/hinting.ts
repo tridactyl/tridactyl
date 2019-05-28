@@ -1,3 +1,18 @@
+/** # Hint mode functions
+ *
+ * This file contains functions to interact with hint mode.
+ *
+ * If you want to bind them to keyboard shortcuts, be sure to prefix them with "hint.". For example, if you want to bind control-[ to `reset`, use:
+ *
+ * ```
+ * bind --mode=hint <C-[> hint.reset
+ * ```
+ *
+ * Contrary to the main tridactyl help page, this one doesn't tell you whether a specific function is bound to something. For now, you'll have to make do with `:bind` and `:viewconfig`.
+ *
+ */
+/** ignore this line */
+
 /** Hint links.
 
     TODO:
@@ -22,9 +37,14 @@ import {
 import { contentState } from "@src/content/state_content"
 import * as config from "@src/lib/config"
 import Logger from "@src/lib/logging"
-const logger = new Logger("hinting")
 
-/** Calclate the distance between two segments. */
+/** @hidden */
+const logger = new Logger("hinting")
+import * as keyseq from "@src/lib/keyseq"
+
+/** Calclate the distance between two segments.
+ * @hidden
+ * */
 function distance(l1: number, r1: number, l2: number, r2: number): number {
     if (l1 < r2 && r1 > l2) {
         return 0
@@ -33,7 +53,9 @@ function distance(l1: number, r1: number, l2: number, r2: number): number {
     }
 }
 
-/** Simple container for the state of a single frame's hints. */
+/** Simple container for the state of a single frame's hints.
+ * @hidden
+ * */
 class HintState {
     public focusedHint: Hint
     readonly hintHost = document.createElement("div")
@@ -234,9 +256,12 @@ class HintState {
     }
 }
 
+/** @hidden*/
 let modeState: HintState
 
-/** For each hintable element, add a hint */
+/** For each hintable element, add a hint
+ * @hidden
+ * */
 export function hintPage(
     hintableElements: Element[],
     onSelect: HintSelectedCallback,
@@ -312,6 +337,7 @@ export function hintPage(
     document.documentElement.appendChild(modeState.hintHost)
 }
 
+/** @hidden */
 function defaultHintBuilder() {
     switch (config.get("hintfiltermode")) {
         case "simple":
@@ -323,6 +349,7 @@ function defaultHintBuilder() {
     }
 }
 
+/** @hidden */
 function defaultHintFilter() {
     switch (config.get("hintfiltermode")) {
         case "simple":
@@ -334,6 +361,7 @@ function defaultHintFilter() {
     }
 }
 
+/** @hidden */
 function defaultHintChars() {
     if (config.get("hintnames") === "numeric") {
         return "1234567890"
@@ -343,6 +371,7 @@ function defaultHintChars() {
 
 /** An infinite stream of hints
 
+@hidden
     Earlier hints prefix later hints
 */
 function* hintnames_simple(
@@ -368,6 +397,7 @@ function* hintnames_simple(
         h + (n - h**2 - h) / h ** 2
     and so on, but we hardly ever see that many hints, so whatever.
 
+    @hidden
 */
 function* hintnames_short(
     n: number,
@@ -378,7 +408,9 @@ function* hintnames_short(
     yield* islice(source, num2skip, n + num2skip)
 }
 
-/** Uniform length hintnames */
+/** Uniform length hintnames
+ * @hidden
+ * */
 function* hintnames_uniform(
     n: number,
     hintchars = defaultHintChars(),
@@ -396,13 +428,14 @@ function* hintnames_uniform(
         )
     }
 }
-
+/** @hidden */
 function* hintnames_numeric(n: number): IterableIterator<string> {
     for (let i = 1; i <= n; i++) {
         yield String(i)
     }
 }
 
+/** @hidden */
 function* hintnames(
     n: number,
     hintchars = defaultHintChars(),
@@ -417,9 +450,11 @@ function* hintnames(
     }
 }
 
+/** @hidden */
 type HintSelectedCallback = (x: any) => any
 
-/** Place a flag by each hintworthy element */
+/** Place a flag by each hintworthy element
+@hidden */
 class Hint {
     public readonly flag = document.createElement("span")
     public readonly rect: ClientRect = null
@@ -494,8 +529,10 @@ class Hint {
     }
 }
 
+/** @hidden */
 type HintBuilder = (els: Element[], onSelect: HintSelectedCallback) => void
 
+/** @hidden */
 function buildHintsSimple(els: Element[], onSelect: HintSelectedCallback) {
     const names = hintnames(els.length)
     for (const [el, name] of izip(els, names)) {
@@ -505,6 +542,7 @@ function buildHintsSimple(els: Element[], onSelect: HintSelectedCallback) {
     }
 }
 
+/** @hidden */
 function buildHintsVimperator(els: Element[], onSelect: HintSelectedCallback) {
     const names = hintnames(els.length)
     // escape the hintchars string so that strange things don't happen
@@ -521,6 +559,7 @@ function buildHintsVimperator(els: Element[], onSelect: HintSelectedCallback) {
     }
 }
 
+/** @hidden */
 function elementFilterableText(el: Element): string {
     const nodename = el.nodeName.toLowerCase()
     let text: string
@@ -537,9 +576,11 @@ function elementFilterableText(el: Element): string {
     return text.slice(0, 2048).toLowerCase() || ""
 }
 
+/** @hidden */
 type HintFilter = (s: string) => void
 
-/** Show only hints prefixed by fstr. Focus first match */
+/** Show only hints prefixed by fstr. Focus first match
+@hidden */
 function filterHintsSimple(fstr) {
     const active: Hint[] = []
     let foundMatch
@@ -568,6 +609,8 @@ function filterHintsSimple(fstr) {
     Consider: This is a poster child for separating data and display. If they
     weren't so tied here we could do a neat dynamic programming thing and just
     throw the data at a reactalike.
+
+    @hidden
 */
 function filterHintsVimperator(fstr, reflow = false) {
     /** Partition a fstr into a tagged array of substrings */
@@ -644,7 +687,8 @@ function filterHintsVimperator(fstr, reflow = false) {
     }
 }
 
-/** Remove all hints, reset STATE.
+/**
+ * Remove all hints, reset STATE.
  **/
 function reset() {
     if (modeState) {
@@ -655,24 +699,22 @@ function reset() {
     contentState.mode = "normal"
 }
 
-/** If key is in hintchars, add it to filtstr and filter */
-function pushKey(ke) {
-    if (ke.ctrlKey || ke.altKey || ke.metaKey) {
-        // Do nothing
-    } else if (ke.key === "Backspace") {
-        modeState.filter = modeState.filter.slice(0, -1)
-        modeState.filterFunc(modeState.filter)
-    } else if (ke.key.length === 1 && modeState.hintchars.includes(ke.key)) {
-        // The new key can be used to filter the hints
-        const originalFilter = modeState.filter
-        modeState.filter += ke.key
-        modeState.filterFunc(modeState.filter)
+function popKey() {
+    modeState.filter = modeState.filter.slice(0, -1)
+    modeState.filterFunc(modeState.filter)
+}
 
-        if (modeState && !modeState.activeHints.length) {
-            // There are no more active hints, undo the change to the filter
-            modeState.filter = originalFilter
-            modeState.filterFunc(modeState.filter)
-        }
+/** If key is in hintchars, add it to filtstr and filter */
+function pushKey(key) {
+    // The new key can be used to filter the hints
+    const originalFilter = modeState.filter
+    modeState.filter += key
+    modeState.filterFunc(modeState.filter)
+
+    if (modeState && !modeState.activeHints.length) {
+        // There are no more active hints, undo the change to the filter
+        modeState.filter = originalFilter
+        modeState.filterFunc(modeState.filter)
     }
 }
 
@@ -683,6 +725,8 @@ function pushKey(ke) {
         2. they're visible
             1. Within viewport
             2. Not hidden by another element
+
+    @hidden
 */
 export function hintables(selectors = DOM.HINTTAGS_selectors, withjs = false) {
     let elems = DOM.getElemsBySelector(selectors, [])
@@ -694,12 +738,14 @@ export function hintables(selectors = DOM.HINTTAGS_selectors, withjs = false) {
 }
 
 /** Returns elements that point to a saveable resource
+ * @hidden
  */
 export function saveableElements() {
     return DOM.getElemsBySelector(DOM.HINTTAGS_saveable, [DOM.isVisible])
 }
 
 /** Get array of images in the viewport
+ * @hidden
  */
 export function hintableImages() {
     return DOM.getElemsBySelector(DOM.HINTTAGS_img_selectors, [DOM.isVisible])
@@ -707,6 +753,7 @@ export function hintableImages() {
 
 /** Get array of selectable elements that display a text matching either plain
  * text or RegExp rule
+ * @hidden
  */
 export function hintByText(match: string|RegExp) {
     return DOM.getElemsBySelector(DOM.HINTTAGS_filter_by_text_selectors, [
@@ -729,6 +776,7 @@ export function hintByText(match: string|RegExp) {
 }
 
 /** Array of items that can be killed with hint kill
+@hidden
  */
 export function killables() {
     return DOM.getElemsBySelector(DOM.HINTTAGS_killable_selectors, [
@@ -736,7 +784,9 @@ export function killables() {
     ])
 }
 
-/** HintPage wrapper, accepts CSS selectors to build a list of elements */
+/** HintPage wrapper, accepts CSS selectors to build a list of elements
+ * @hidden
+ * */
 export function pipe(
     selectors = DOM.HINTTAGS_selectors,
     action: HintSelectedCallback = _ => _,
@@ -748,7 +798,9 @@ export function pipe(
     })
 }
 
-/** HintPage wrapper, accepts array of elements to hint */
+/** HintPage wrapper, accepts array of elements to hint
+ * @hidden
+ * */
 export function pipe_elements(
     elements: any = DOM.elementsWithText,
     action: HintSelectedCallback = _ => _,
@@ -801,39 +853,52 @@ function focusRightHint() {
     modeState.changeFocusedHintRight()
 }
 
+/** @hidden */
 export function parser(keys: KeyboardEvent[]) {
-    for (const keyev of keys) {
-        const key = keyev.key
-        switch (key) {
-            case "Escape":
-                reset()
-                break
-            case "Tab":
-                if (keyev.shiftKey) {
-                    focusPreviousHint()
-                } else {
-                    focusNextHint()
-                }
-                break
-            case "ArrowUp":
-                focusTopHint()
-                break
-            case "ArrowDown":
-                focusBottomHint()
-                break
-            case "ArrowLeft":
-                focusLeftHint()
-                break
-            case "ArrowRight":
-                focusRightHint()
-                break
-            case "Enter":
-            case " ":
-                selectFocusedHint()
-                break
-            default:
-                pushKey(keys[0])
+    const keymap = {}
+    // Build a map of actions that will match hint names
+    if (config.get("hintnames") == "numeric") {
+        for (let i = 0; i < 10; ++i) {
+            keymap[i.toString()] = `hint.pushKey ${i}`
         }
+    } else {
+        config.get("hintchars").split("").forEach(c => keymap[c] = `hint.pushKey ${c}`)
     }
-    return { keys: [], ex_str: "", isMatch: true }
+    // Add custom bindings on top of it
+    Object.assign(keymap, config.get("hintmaps"))
+    // If the key sequence matches, use this match
+    const parsed = keyseq.parse(keys, keyseq.mapstrMapToKeyMap(new Map(Object.entries(keymap))))
+    if (parsed.isMatch === true) {
+        return parsed
+    }
+    // If it doesn't and the user uses vimperator hints, any character is a match
+    const hintfiltermode = config.get("hintfiltermode")
+    if (hintfiltermode === "vimperator" || hintfiltermode === "vimperator-reflow") {
+        // Ignore modifiers since they can't match text
+        const simplekeys = keys.filter(key => !keyseq.hasModifiers(key))
+        let exstr
+        if (simplekeys.length > 1) {
+            exstr = simplekeys.reduce((acc, key) => `hint.pushKey ${key.key};`, "composite ")
+        } else {
+            exstr = `hint.pushKey ${keys[0].key}`
+        }
+        return { exstr, value: exstr, isMatch: true }
+    }
+    return { keys: [], isMatch: false }
 }
+
+/** @hidden*/
+export function getHintCommands() {
+    return {
+        reset,
+        focusPreviousHint,
+        focusNextHint,
+        focusTopHint,
+        focusBottomHint,
+        focusLeftHint,
+        focusRightHint,
+        selectFocusedHint,
+        pushKey,
+        popKey,
+    };
+};

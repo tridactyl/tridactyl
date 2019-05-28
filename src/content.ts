@@ -32,10 +32,12 @@ import * as controller from "@src/lib/controller"
 import * as excmds_content from "@src/.excmds_content.generated"
 import { CmdlineCmds } from "@src/content/commandline_cmds"
 import { EditorCmds } from "@src/content/editor"
+import * as hinting_content from "@src/content/hinting"
 controller.setExCmds({
     "": excmds_content,
     "ex": CmdlineCmds,
-    "text": EditorCmds
+    "text": EditorCmds,
+    "hint": hinting_content.getHintCommands()
 })
 messaging.addListener("excmd_content", messaging.attributeCaller(excmds_content))
 messaging.addListener("controller_content", messaging.attributeCaller(controller))
@@ -119,7 +121,6 @@ import * as convert from "@src/lib/convert"
 import * as config from "@src/lib/config"
 import * as dom from "@src/lib/dom"
 import * as excmds from "@src/.excmds_content.generated"
-import * as hinting_content from "@src/content/hinting"
 import * as finding_content from "@src/content/finding"
 import * as itertools from "@src/lib/itertools"
 import * as messaging from "@src/lib/messaging"

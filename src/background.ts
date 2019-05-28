@@ -44,6 +44,7 @@ import * as omnibox from "@src/background/omnibox"
     perf,
 })
 
+import { HintingCmds } from "@src/background/hinting"
 // Set up our controller to execute background-mode excmds. All code
 // running from this entry point, which is to say, everything in the
 // background script, will use the excmds that we give to the module
@@ -51,7 +52,8 @@ import * as omnibox from "@src/background/omnibox"
 controller.setExCmds({
     "": excmds_background,
     "ex": CmdlineCmds,
-    "text": EditorCmds
+    "text": EditorCmds,
+    "hint": HintingCmds
 })
 messaging.addListener("excmd_background", messaging.attributeCaller(excmds_background))
 messaging.addListener("controller_background", messaging.attributeCaller(controller))
