@@ -16,7 +16,7 @@ export async function acceptExCmd(exstr: string): Promise<any> {
     try {
         const [func, args] = exmode_parser(exstr, stored_excmds)
         // Stop the repeat excmd from recursing.
-        if (func !== stored_excmds.repeat) last_ex_str = exstr
+        if (func !== stored_excmds[""].repeat) last_ex_str = exstr
         try {
             return await func(...args)
         } catch (e) {
