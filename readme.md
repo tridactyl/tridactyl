@@ -219,7 +219,7 @@ Funds will be used at the discretion of the main contributors (currently bovine3
 
 ### Merchandise
 
-We have some designs available on [REDBUBBLE](https://www.redbubble.com/people/bovine3dom/shop/top+selling?ref=artist_shop_category_refinement&asc=u). There are often discount codes available - `ART20` at the time of writing, for example. The T-shirts are quite good (I'm wearing one as I type this). The stickers are not the best quality we've ever seen. The clock looks amazing on the website. If anyone buys it I would love to see it.
+We have some designs available on [REDBUBBLE](https://www.redbubble.com/people/bovine3dom/shop/top+selling?ref=artist_shop_category_refinement&asc=u). There are often discount codes available - just search your favourite search engine for them. The T-shirts are quite good (I'm wearing one as I type this). The stickers are not the best quality we've ever seen. The clock looks amazing on the website. If anyone buys it I would love to see it.
 
 **We don't take any cut from the merchandise**, so if you would like to donate, please do so via PayPal or Patreon above.
 
