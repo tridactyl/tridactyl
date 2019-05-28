@@ -994,20 +994,13 @@ export function scrollpage(n = 1) {
  */
 //#content
 export function find(...args: string[]) {
-    let flagpos = args.indexOf("-?")
+    const flagpos = args.indexOf("-?")
     const reverse = flagpos >= 0
     if (reverse) args.splice(flagpos, 1)
 
-    flagpos = args.indexOf("-:")
-    let startingFrom = 0
-    if (flagpos >= 0) {
-        startingFrom = parseInt(args[flagpos + 1], 10) || 0
-        args.splice(flagpos, 2)
-    }
-
     const searchQuery = args.join(" ")
     state.lastSearch = searchQuery
-    finding.jumpToMatch(searchQuery, reverse, startingFrom)
+    return finding.jumpToMatch(searchQuery, reverse)
 }
 
 /** Jump to the next searched pattern.
