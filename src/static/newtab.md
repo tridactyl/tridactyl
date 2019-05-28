@@ -25,6 +25,10 @@ Tridactyl has to override your new tab page due to WebExtension limitations. You
             -   The plan is to first make a Firefox Developer Edition only Tridactyl build that comes with the keyboard API to prevent us getting bored of waiting for Mozilla (and vice versa)
             -   But the WebExtension Experiment API has changed enough that we're currently in build-tool hell with the keyboard-api
         -   glacambre fixed a bunch of issues with scrolling and focusing events, thanks glacambre!
+    -   Day 2:
+        -   azk and cmcaine continued work on the commandline and state redesign based off saulrh's earlier work. The current focus is on getting the CLI up and running, making the statusbar work and defining the states and the RPC communication between them.
+        -   bovine3dom went over old issues, fixing some, closing others, and accepting a few PRs. He also bashed his head against WebExtension Experiments for the keyboard API but didn't make any progress.
+        -   glacambre fixed some issues from the backlog and started work on turning hintmode into a real mode with user-configurable binds.
 
 *   If Tridactyl breaks a website or is broken by a website, trying the steps in the [troubleshooting guide](https://github.com/tridactyl/tridactyl/blob/master/doc/troubleshooting.md) might help.
 
