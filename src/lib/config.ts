@@ -47,7 +47,7 @@ export type LoggingLevel = "never" | "error" | "warning" | "info" | "debug"
  *
  * You can change anything here using `set key1.key2.key3 value` or specific things any of the various helper commands such as `bind` or `command`. You can also jump to the help section of a setting using `:help $settingname`. Some of the settings have an input field containing their current value. You can modify these values and save them by pressing `<Enter>` but using `:set $setting $value` is a good habit to take as it doesn't force you to leave the page you're visiting to change your settings.
  */
-class default_config {
+export class default_config {
     /**
      * Internal version number Tridactyl uses to know whether it needs to update from old versions of the configuration.
      *
@@ -682,6 +682,13 @@ class default_config {
     theme = "default"
 
     /**
+     * Storage for custom themes
+     *
+     * Maps theme names to CSS. Predominantly used automatically by [[colourscheme]] to store themes read from disk, as documented by [[colourscheme]]. Setting this manually is untested but might work provided that [[colourscheme]] is then used to change the theme to the right theme name.
+     */
+    customthemes = {}
+
+    /**
      * Whether to display the mode indicator or not.
      */
     modeindicator: "true" | "false" = "true"
@@ -711,6 +718,11 @@ class default_config {
      * Disables the commandline iframe. Dangerous setting, use [[seturl]] to set it. If you ever set this setting to "true" globally and then want to set it to false again, you can do this by opening Tridactyl's preferences page from about:addons.
      */
     noiframe: "true" | "false" = "false"
+
+    /**
+     * @deprecated A list of URLs on which to not load the iframe. Use `seturl [URL] noiframe true` instead, as shown in [[noiframe]].
+     */
+    noiframeon: string[] = []
 
     /**
      * Insert / input mode edit-in-$EDITOR command to run
@@ -1011,7 +1023,12 @@ export function getURL(url: string, target: string[]) {
     defaults, if one exists, else undefined.
     @hidden
 */
-export function get(...target) {
+export function get(target_typed?: keyof default_config, ...target: string[]) {
+    if (target_typed === undefined) {
+        target = []
+    } else {
+        target = [(target_typed as string)].concat(target)
+    }
     // Window.tri might not be defined when called from the untrusted page context
     let loc = window.location
     if ((window as any).tri && (window as any).tri.contentLocation)
@@ -1035,18 +1052,34 @@ export function get(...target) {
     }
 }
 
+/** Get the value of the key target.
+
+    Please only use this with targets that will be used at runtime - it skips static checks. Prefer [[get]].
+*/
+export function getDynamic(...target: string[]) {
+    return get(target[0] as keyof default_config, ...target.slice(1))
+}
+
+/** Get the value of the key target.
+
+    Please only use this with targets that will be used at runtime - it skips static checks. Prefer [[getAsync]].
+*/
+export async function getAsyncDynamic(...target: string[]) {
+    return getAsync(target[0] as keyof default_config, ...target.slice(1))
+}
+
 /** Get the value of the key target, but wait for config to be loaded from the
     database first if it has not been at least once before.
 
     This is useful if you are a content script and you've just been loaded.
     @hidden
 */
-export async function getAsync(...target) {
+export async function getAsync(target_typed?: keyof default_config, ...target: string[]) {
     if (INITIALISED) {
-        return get(...target)
+        return get(target_typed, ...target)
     } else {
         return new Promise(resolve =>
-            WAITERS.push(() => resolve(get(...target))),
+            WAITERS.push(() => resolve(get(target_typed, ...target))),
         )
     }
 }

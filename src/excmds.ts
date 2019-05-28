@@ -3022,7 +3022,7 @@ export function bind(...args: string[]) {
         for (let i = 0; i < args_obj.key.length; i++) {
             // Check if any initial subsequence of the key exists and will shadow the new binding
             const key_sub = args_obj.key.slice(0, i)
-            if (config.get(args_obj.configName, key_sub)) {
+            if (config.getDynamic(args_obj.configName, key_sub)) {
                 fillcmdline_notrail("# Warning: bind `" + key_sub + "` exists and will shadow `" + args_obj.key + "`. Try running `:unbind --mode=" + args_obj.mode + " " + key_sub + "`")
                 break
             }
@@ -3030,7 +3030,7 @@ export function bind(...args: string[]) {
         p = config.set(args_obj.configName, args_obj.key, args_obj.excmd)
     } else if (args_obj.key.length) {
         // Display the existing bind
-        p = fillcmdline_notrail("#", args_obj.key, "=", config.get(args_obj.configName, args_obj.key))
+        p = fillcmdline_notrail("#", args_obj.key, "=", config.getDynamic(args_obj.configName, args_obj.key))
     }
     return p
 }
@@ -3459,7 +3459,7 @@ export async function quickmark(key: string, ...addressarr: string[]) {
 //#background
 export function get(...keys: string[]) {
     const target = keys.join(".").split(".")
-    const value = config.get(...target)
+    const value = config.getDynamic(...target)
     console.log(value)
     if (typeof value === "object") {
         fillcmdline_notrail(`# ${keys.join(".")} = ${JSON.stringify(value)}`)
@@ -3489,7 +3489,7 @@ export function viewconfig(key?: string) {
     else
         window.location.href =
             "data:application/json," +
-            JSON.stringify(config.get(key))
+            JSON.stringify(config.getDynamic(key))
                 .replace(/#/g, "%23")
                 .replace(/ /g, "%20")
     // base 64 encoding is a cleverer way of doing this, but it doesn't seem to work for the whole config.
