@@ -1,299 +1,110 @@
-// This file has various utilities used by the completion source for the find excmd
-import * as Messaging from "@src/lib/messaging"
 import * as config from "@src/lib/config"
 import * as DOM from "@src/lib/dom"
-import state from "@src/state"
-import { zip } from "@src/lib/itertools"
 import { browserBg, activeTabId } from "@src/lib/webext"
 
-export class Match {
-    constructor(
-        public index,
-        public rangeData,
-        public rectData,
-        public precontext,
-        public postcontext,
-        public firstNode,
-    ) {}
-}
-
-function isCommandLineNode(n) {
-    const url = n.ownerDocument.location.href
-    return (
-        url.protocol === "moz-extension:" &&
-        url.pathname === "/static/commandline.html"
-    )
-}
-
-/** Get all text nodes within the page.
-    TODO: cache the results. I tried to do it but since we need to invalidate the cache when nodes are added/removed from the page, the results are constantly being invalidated by the completion buffer.
-    The solution is obviously to pass `document.body` to createTreeWalker instead of just `document` but then you won't get all the text nodes in the page and this is a big problem because the results returned by browser.find.find() need absolutely all nodes existing within the page, even the ones belonging the commandline. */
-function getNodes() {
-    const nodes = []
-    const walker = document.createTreeWalker(
-        document,
-        NodeFilter.SHOW_TEXT,
-        null,
-        false,
-    )
-    let node = walker.nextNode()
-    do {
-        nodes.push(node)
-        node = walker.nextNode()
-    } while (node)
-
-    return nodes
-}
-
-let lastMatches = []
-/** Given "findings", an array matching the one returned by find(), will compute the context for every match in findings and prune the matches than happened in Tridactyl's command line. ContextLength is how many characters from before and after the match should be included into the returned Match object.
- getMatches() will save its returned values in lastMatches. This is important for caching purposes in jumpToMatch, read its documentation to get the whole picture. */
-export function getMatches(findings, contextLength = 10): Match[] {
-    const result = []
-
-    if (findings.length === 0) return result
-
-    // Checks if a node belongs to the command line
-    const nodes = getNodes()
-
-    for (let i = 0; i < findings.length; ++i) {
-        const range = findings[i][0]
-        const firstnode = nodes[range.startTextNodePos]
-        const lastnode = nodes[range.endTextNodePos]
-        // We never want to match against nodes in the command line
-        if (
-            !firstnode ||
-            !lastnode ||
-            isCommandLineNode(firstnode) ||
-            isCommandLineNode(lastnode) ||
-            !DOM.isVisible(firstnode)
-        )
-            continue
-
-        // Get the context before the match
-        let precontext = firstnode.textContent.substring(
-            range.startOffset - contextLength,
-            range.startOffset,
-        )
-        if (precontext.length < contextLength) {
-            let missingChars = contextLength - precontext.length
-            let id = range.startTextNodePos - 1
-            while (missingChars > 0 && nodes[id]) {
-                const txt = nodes[id].textContent
-                precontext =
-                    txt.substring(txt.length - missingChars, txt.length) +
-                    precontext
-                missingChars = contextLength - precontext.length
-                id -= 1
-            }
-        }
-
-        // Get the context after the match
-        let postcontext = lastnode.textContent.substr(
-            range.endOffset,
-            contextLength,
-        )
-        // If the last node doesn't have enough context and if there's a node after it
-        if (
-            postcontext.length < contextLength &&
-            nodes[range.endTextNodePos + 1]
-        ) {
-            // Add text from the following text node to the context
-            postcontext += nodes[range.endTextNodePos + 1].textContent.substr(
-                0,
-                contextLength - postcontext.length,
-            )
-        }
-
-        result.push(
-            new Match(
-                i,
-                findings[i][0],
-                findings[i][1],
-                precontext,
-                postcontext,
-                firstnode,
-            ),
-        )
+// The host is the shadow root of a span used to contain all highlighting
+// elements. This is the least disruptive way of highlighting text in a page.
+// It needs to be placed at the very top of the page.
+let host
+function getFindHost() {
+    if (host) {
+        return host
     }
-
-    lastMatches = result
-    return result
-}
-
-let prevFind = null
-let findCount = 0
-/** Performs a call to browser.find.find() with the right parameters and returns the result as a zipped array of rangeData and rectData (see browser.find.find's documentation) sorted according to their vertical position within the document.
- If count is different from -1 and lower than the number of matches returned by browser.find.find(), will return count results. Note that when this happens, `matchesCacheIsValid ` is set to false, which will prevent `jumpToMatch` from using cached matches. */
-export async function find(query, count = -1, reverse = false) {
-    findCount += 1
-    const findId = findCount
-    const findcase = await config.getAsync("findcase")
-    const caseSensitive =
-        findcase === "sensitive" ||
-        (findcase === "smart" && query.search(/[A-Z]/) >= 0)
-    const tabId = await activeTabId()
-
-    // No point in searching for something that won't be used anyway
-    await prevFind
-    if (findId !== findCount) return []
-
-    prevFind = browserBg.find.find(query, {
-        tabId,
-        caseSensitive,
-        includeRangeData: true,
-        includeRectData: true,
-    })
-    let findings = await prevFind
-    findings = zip(findings.rangeData, findings.rectData).sort(
-        (a: any, b: any) => {
-            a = a[1].rectsAndTexts.rectList[0]
-            b = b[1].rectsAndTexts.rectList[0]
-            if (!a || !b) return 0
-            return a.top - b.top
-        },
-    )
-
-    let finder = e =>
-        e[1].rectsAndTexts.rectList[0] &&
-        e[1].rectsAndTexts.rectList[0].top > window.pageYOffset
-    if (reverse) {
-        findings = findings.reverse()
-        finder = e =>
-            e[1].rectsAndTexts.rectList[0] &&
-            e[1].rectsAndTexts.rectList[0].top < window.pageYOffset
-    }
-
-    const pivot = findings.indexOf(findings.find(finder))
-    findings = findings.slice(pivot).concat(findings.slice(0, pivot))
-
-    if (count !== -1 && count < findings.length) return findings.slice(0, count)
-
-    return findings
+    const elem = document.createElement("span")
+    elem.id = "TridactylFindHost"
+    elem.className = "cleanslate"
+    elem.style.position = "absolute"
+    elem.style.top = "0px"
+    elem.style.left = "0px"
+    document.body.appendChild(elem)
+    host = elem.attachShadow({mode: "closed"})
+    return host
 }
 
 function createHighlightingElement(rect) {
-    const e = document.createElement("div")
-    e.className = "cleanslate TridactylSearchHighlight"
-    e.setAttribute(
-        "style",
-        `
-        display: block !important;
-        position: absolute !important;
-        top:    ${rect.top}px !important;
-        left:   ${rect.left}px !important;
-        width:  ${rect.right - rect.left}px !important;
-        height: ${rect.bottom - rect.top}px !important;
-    `,
-    )
-    return e
+    const highlight = document.createElement("span")
+    highlight.className = "TridactylSearchHighlight"
+    highlight.style.position = "absolute"
+    highlight.style.top = `${rect.top}px`
+    highlight.style.left = `${rect.left}px`
+    highlight.style.width = `${rect.right - rect.left}px`
+    highlight.style.height = `${rect.bottom - rect.top}px`
+    unfocusHighlight(highlight)
+    return highlight
 }
 
-export function removeHighlighting(all = true) {
-    if (all) browserBg.find.removeHighlighting()
-    highlightingElements.forEach(e => e.parentNode.removeChild(e))
-    highlightingElements = []
+function unfocusHighlight(high) {
+    high.style.background = `rgba(127,255,255,0.5)`
 }
 
-/* Scrolls to the first visible node.
- * i is the id of the node that should be scrolled to in allMatches
- * direction is +1 if going forward and -1 if going backawrd
- */
-export function findVisibleNode(allMatches, i, direction) {
-    if (allMatches.length < 1) return undefined
+function focusHighlight(high) {
+    if (!DOM.isVisible(high)) {
+        high.scrollIntoView()
+    }
+    high.style.background = `rgba(255,127,255,0.5)`
+}
 
-    let match = allMatches[i]
-    let n = i
+// The previous find query
+let lastSearch
+// Highlights corresponding to the last search
+let lastHighlights
+// Which element of `lastSearch` was last selected
+let selected = 0
 
-    do {
-        while (!match.firstNode.ownerDocument.contains(match.firstNode)) {
-            n += direction
-            match = lastMatches[n]
-            if (n === i) return null
+export async function jumpToMatch(searchQuery, reverse) {
+    // First, search for the query
+    const findcase = config.get("findcase")
+    const sensitive = findcase === "sensitive" || (findcase === "smart" && searchQuery.match("[A-Z]"))
+    const results = await browserBg.find.find(searchQuery, {
+        tabId: await activeTabId(),
+        caseSensitive: sensitive,
+        entireWord: false,
+        includeRectData: true,
+    })
+    // results are sorted by the order they appear in the page, we need them to
+    // be sorted according to position instead
+    results.rectData.sort((a, b) => reverse
+        ? b.rectsAndTexts.rectList[0].top - a.rectsAndTexts.rectList[0].top
+        : a.rectsAndTexts.rectList[0].top - b.rectsAndTexts.rectList[0].top)
+    lastSearch = results
+    if (results.count < 1)
+        return
+
+    // Then, highlight it
+    removeHighlighting()
+    const host = getFindHost()
+    lastHighlights = []
+    let focused = false
+    for (let i = 0; i < results.rectData.length; ++i) {
+        const data = results.rectData[i]
+        const highlights = []
+        lastHighlights.push(highlights)
+        for (const rect of data.rectsAndTexts.rectList) {
+            const highlight = createHighlightingElement(rect)
+            highlights.push(highlight)
+            host.appendChild(highlight)
         }
-        match.firstNode.parentNode.scrollIntoView()
-    } while (!DOM.isVisible(match.firstNode.parentNode))
-
-    return match
-}
-
-function focusMatch(match: Match) {
-    let elem = match.firstNode
-    while (elem && !(elem.focus instanceof Function)) elem = elem.parentElement
-    if (elem) {
-        // We found a focusable element, but it's more important to focus anchors, even if they're higher up the DOM. So let's see if we can find one
-        let newElem = elem
-        while (newElem && newElem.tagName !== "A") newElem = newElem.parentNode
-        if (newElem) newElem.focus()
-        else elem.focus()
+        if (!focused && DOM.isVisible(highlights[0])) {
+            focused = true
+            focusHighlight(highlights[0])
+            selected = i
+        }
     }
-}
-
-let lastMatch = 0
-let highlightingElements = []
-/* Jumps to the startingFromth dom node matching pattern */
-export async function jumpToMatch(pattern, reverse, startingFrom) {
-    removeHighlighting(false)
-    let match
-
-    // When we already computed all the matches, don't recompute them
-    if (lastMatches[0] && lastMatches[0].rangeData.text === pattern)
-        match = lastMatches[startingFrom]
-
-    if (!match) {
-        lastMatches = getMatches(await find(pattern, -1, reverse))
-        match = lastMatches[startingFrom]
+    if (!focused) {
+        focusHighlight(lastHighlights[0][0])
     }
-
-    if (!match) return
-
-    // Note: using this function can cause bugs, see
-    // https://developer.mozilla.org/en-US/Add-ons/WebExtensions/API/find/highlightResults
-    // Ideally we should reimplement our own highlighting
-    browserBg.find.highlightResults()
-
-    match = findVisibleNode(lastMatches, startingFrom, reverse ? -1 : 1)
-
-    for (const rect of match.rectData.rectsAndTexts.rectList) {
-        const elem = createHighlightingElement(rect)
-        highlightingElements.push(elem)
-        document.body.appendChild(elem)
-    }
-
-    focusMatch(match)
-
-    // Remember where we where and what actions we did. This is need for jumpToNextMatch
-    lastMatch = lastMatches.indexOf(match)
 }
 
 export function jumpToNextMatch(n: number) {
-    removeHighlighting(false)
-
-    if (lastMatches.length < 1) {
-        // Let's try to find new matches
-        return jumpToMatch(state.lastSearch, n === -1, 0)
+    unfocusHighlight(lastHighlights[selected][0])
+    if (!lastSearch) {
+        return
     }
-
-    browserBg.find.highlightResults()
-    const match = findVisibleNode(
-        lastMatches,
-        (n + lastMatch + lastMatches.length) % lastMatches.length,
-        n <= 0 ? -1 : 1,
-    )
-
-    if (match === undefined)
-        throw `No matches found. The pattern looked for doesn't exist or ':find' hasn't been run yet`
-
-    for (const rect of match.rectData.rectsAndTexts.rectList) {
-        const elem = createHighlightingElement(rect)
-        highlightingElements.push(elem)
-        document.body.appendChild(elem)
-    }
-
-    focusMatch(match)
-
-    lastMatch = lastMatches.indexOf(match)
+    selected = (selected + n + lastSearch.count) % lastSearch.count
+    focusHighlight(lastHighlights[selected][0])
 }
 
-import * as SELF from "@src/content/finding.ts"
-Messaging.addListener("finding_content", Messaging.attributeCaller(SELF))
+export function removeHighlighting() {
+    const host = getFindHost();
+    while (host.firstChild) host.removeChild(host.firstChild)
+}
