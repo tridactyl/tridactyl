@@ -709,7 +709,7 @@ export async function getConfElsePref(
     confName: string,
     prefName: string,
 ): Promise<any> {
-    let option = await config.getAsync(confName)
+    let option = await config.getAsyncDynamic(confName)
     if (option === undefined) {
         try {
             option = await getPref(prefName)

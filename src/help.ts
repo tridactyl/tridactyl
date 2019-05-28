@@ -53,7 +53,7 @@ async function addSetting(settingName: string) {
         {},
     )
 
-    const settings = await config.getAsync(settingName)
+    const settings = await config.getAsyncDynamic(settingName)
     // For each setting
     for (const setting of Object.keys(settings)) {
         let excmd = settings[setting].split(" ")
@@ -150,7 +150,7 @@ function addSettingInputs() {
                 const section = a.parentNode
 
                 const settingName = a.name.split(".")
-                const value = await config.getAsync(settingName)
+                const value = await config.getAsyncDynamic(...settingName)
                 if (!value) return console.log("Failed to grab value of ", a)
                 if (!["number", "boolean", "string"].includes(typeof value))
                     return console.log(

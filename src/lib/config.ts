@@ -669,6 +669,13 @@ export class default_config {
     theme = "default"
 
     /**
+     * Storage for custom themes
+     *
+     * Maps theme names to CSS. Predominantly used automatically by [[colourscheme]] to store themes read from disk, as documented by [[colourscheme]]. Setting this manually is untested but might work provided that [[colourscheme]] is then used to change the theme to the right theme name.
+     */
+    customthemes = {}
+
+    /**
      * Whether to display the mode indicator or not.
      */
     modeindicator: "true" | "false" = "true"
@@ -1032,18 +1039,34 @@ export function get(target_typed?: keyof default_config, ...target: string[]) {
     }
 }
 
+/** Get the value of the key target.
+
+    Please only use this with targets that will be used at runtime - it skips static checks. Prefer [[get]].
+*/
+export function getDynamic(...target: string[]) {
+    return get(target[0] as keyof default_config, ...target.slice(1))
+}
+
+/** Get the value of the key target.
+
+    Please only use this with targets that will be used at runtime - it skips static checks. Prefer [[getAsync]].
+*/
+export async function getAsyncDynamic(...target: string[]) {
+    return getAsync(target[0] as keyof default_config, ...target.slice(1))
+}
+
 /** Get the value of the key target, but wait for config to be loaded from the
     database first if it has not been at least once before.
 
     This is useful if you are a content script and you've just been loaded.
     @hidden
 */
-export async function getAsync(...target) {
+export async function getAsync(target_typed?: keyof default_config, ...target: string[]) {
     if (INITIALISED) {
-        return get(...target)
+        return get(target_typed, ...target)
     } else {
         return new Promise(resolve =>
-            WAITERS.push(() => resolve(get(...target))),
+            WAITERS.push(() => resolve(get(target_typed, ...target))),
         )
     }
 }
