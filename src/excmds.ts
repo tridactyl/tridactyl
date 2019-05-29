@@ -2724,14 +2724,6 @@ export async function fillcmdline_tmp(ms: number, ...strarr: string[]) {
 }
 
 /**
- * Returns the current URL. For use with [[composite]].
- */
-//#content
-export async function get_current_url() {
-    return window.location.href
-}
-
-/**
  * Copy content to clipboard without feedback. Use `clipboard yank` for interactive use.
  */
 //#background
