@@ -55,6 +55,7 @@
         "storage",
         "tabs",
         "topSites",
+        "management",
         "nativeMessaging",
         "webNavigation",
         "webRequest",
