@@ -1,6 +1,7 @@
 import * as config from "@src/lib/config"
 import * as DOM from "@src/lib/dom"
 import { browserBg, activeTabId } from "@src/lib/webext"
+import state from "@src/state"
 
 // The host is the shadow root of a span used to contain all highlighting
 // elements. This is the least disruptive way of highlighting text in a page.
@@ -29,6 +30,7 @@ function createHighlightingElement(rect) {
     highlight.style.left = `${rect.left}px`
     highlight.style.width = `${rect.right - rect.left}px`
     highlight.style.height = `${rect.bottom - rect.top}px`
+    highlight.style.zIndex = "2147483645"
     unfocusHighlight(highlight)
     return highlight
 }
@@ -44,8 +46,6 @@ function focusHighlight(high) {
     high.style.background = `rgba(255,127,255,0.5)`
 }
 
-// The previous find query
-let lastSearch
 // Highlights corresponding to the last search
 let lastHighlights
 // Which element of `lastSearch` was last selected
@@ -55,6 +55,8 @@ export async function jumpToMatch(searchQuery, reverse) {
     // First, search for the query
     const findcase = config.get("findcase")
     const sensitive = findcase === "sensitive" || (findcase === "smart" && searchQuery.match("[A-Z]"))
+    state.lastSearchQuery = searchQuery
+    lastHighlights = []
     const results = await browserBg.find.find(searchQuery, {
         tabId: await activeTabId(),
         caseSensitive: sensitive,
@@ -63,20 +65,23 @@ export async function jumpToMatch(searchQuery, reverse) {
     })
     // results are sorted by the order they appear in the page, we need them to
     // be sorted according to position instead
-    results.rectData.sort((a, b) => reverse
-        ? b.rectsAndTexts.rectList[0].top - a.rectsAndTexts.rectList[0].top
-        : a.rectsAndTexts.rectList[0].top - b.rectsAndTexts.rectList[0].top)
-    lastSearch = results
-    if (results.count < 1)
-        return
+    const rectData = results
+        .rectData
+        .filter(data => data.rectsAndTexts.rectList.length > 0)
+        .sort((a, b) => reverse
+            ? b.rectsAndTexts.rectList[0].top - a.rectsAndTexts.rectList[0].top
+            : a.rectsAndTexts.rectList[0].top - b.rectsAndTexts.rectList[0].top)
+    if (rectData.length < 1) {
+        removeHighlighting()
+        throw new Error("Pattern not found: " + state.lastSearchQuery)
+    }
 
     // Then, highlight it
     removeHighlighting()
     const host = getFindHost()
-    lastHighlights = []
     let focused = false
-    for (let i = 0; i < results.rectData.length; ++i) {
-        const data = results.rectData[i]
+    for (let i = 0; i < rectData.length; ++i) {
+        const data = rectData[i]
         const highlights = []
         lastHighlights.push(highlights)
         for (const rect of data.rectsAndTexts.rectList) {
@@ -95,12 +100,24 @@ export async function jumpToMatch(searchQuery, reverse) {
     }
 }
 
+function drawHighlights(highlights) {
+    const host = getFindHost()
+    highlights.forEach(elems => elems.forEach(elem => host.appendChild(elem)))
+}
+
 export function jumpToNextMatch(n: number) {
-    unfocusHighlight(lastHighlights[selected][0])
-    if (!lastSearch) {
-        return
+    if (!lastHighlights) {
+        return state.lastSearchQuery ? jumpToMatch(state.lastSearchQuery, n < 0) : undefined
     }
-    selected = (selected + n + lastSearch.count) % lastSearch.count
+    if (!host.firstChild) {
+        drawHighlights(lastHighlights)
+    }
+    if (lastHighlights[selected] === undefined) {
+        removeHighlighting()
+        throw new Error("Pattern not found: " + state.lastSearchQuery)
+    }
+    unfocusHighlight(lastHighlights[selected][0])
+    selected = (selected + n + lastHighlights.length) % lastHighlights.length
     focusHighlight(lastHighlights[selected][0])
 }
 

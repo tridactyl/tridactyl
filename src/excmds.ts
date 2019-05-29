@@ -1001,7 +1001,6 @@ export function find(...args: string[]) {
     if (reverse) args.splice(flagpos, 1)
 
     const searchQuery = args.join(" ")
-    state.lastSearch = searchQuery
     return finding.jumpToMatch(searchQuery, reverse)
 }
 

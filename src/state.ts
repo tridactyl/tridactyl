@@ -18,7 +18,7 @@ import Logger from "@src/lib/logging"
 const logger = new Logger("state")
 
 class State {
-    lastSearch: string = undefined
+    lastSearchQuery: string = undefined
     cmdHistory: string[] = []
     prevInputs: Array<{ inputId: string; tab: number; jumppos?: number }> = [
         {
