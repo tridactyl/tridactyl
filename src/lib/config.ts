@@ -440,6 +440,7 @@ class default_config {
         b: "tab",
         clsh: "clearsearchhighlight",
         nohlsearch: "clearsearchhighlight",
+        noh: "clearsearchhighlight",
         o: "open",
         w: "winopen",
         t: "tabopen",
