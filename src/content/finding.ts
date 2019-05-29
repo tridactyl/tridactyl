@@ -95,11 +95,19 @@ export async function jumpToMatch(searchQuery, reverse) {
     }
 }
 
+function drawHighlights(highlights) {
+    const host = getFindHost()
+    highlights.forEach(elems => elems.forEach(elem => host.appendChild(elem)))
+}
+
 export function jumpToNextMatch(n: number) {
-    unfocusHighlight(lastHighlights[selected][0])
-    if (!lastSearch) {
+    if (!lastHighlights) {
         return
     }
+    if (!host.firstChild) {
+        drawHighlights(lastHighlights)
+    }
+    unfocusHighlight(lastHighlights[selected][0])
     selected = (selected + n + lastSearch.count) % lastSearch.count
     focusHighlight(lastHighlights[selected][0])
 }
