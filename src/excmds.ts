@@ -87,6 +87,8 @@ import * as Metadata from "@src/.metadata.generated"
 import * as Native from "@src/lib/native"
 import * as TTS from "@src/lib/text_to_speech"
 import * as excmd_parser from "@src/parsers/exmode"
+import * as shell_quote from "node-shell-quote"
+export let quote = shell_quote
 
 /**
   * This is used to drive some excmd handling in `composite`.
@@ -2643,6 +2645,13 @@ export async function composite(...cmds: string[]) {
     } catch (e) {
         logger.error(e)
     }
+}
+
+/**
+ * Escape command for safe use in shell with composite. E.g: `composite js MALICIOUS_WEBSITE_FUNCTION() | shellescape | exclaim ls`
+ */
+export async function shellescape(...quoteme: string[]) {
+    return shell_quote.quote(quoteme)
 }
 
 /** Sleep time_ms milliseconds.

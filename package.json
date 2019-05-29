@@ -23,6 +23,7 @@
     "jest": "^24.8.0",
     "marked": "^0.6.2",
     "nearley": "^2.16.0",
+    "node-shell-quote": "git://github.com/dy/node-shell-quote",
     "prettier": "^1.17.1",
     "selenium-webdriver": "^4.0.0-alpha.1",
     "shared-git-hooks": "^1.2.1",
