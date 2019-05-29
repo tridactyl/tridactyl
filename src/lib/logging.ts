@@ -54,7 +54,7 @@ export class Logger {
                             return browser.runtime.sendMessage({
                                 type: "controller_background",
                                 command: "acceptExCmd",
-                                args: ["fillcmdline # " + message.join(" ")],
+                                args: ["fillcmdline_nofocus # " + message.join(" ")],
                             })
                         else
                             return browser.tabs.sendMessage(
