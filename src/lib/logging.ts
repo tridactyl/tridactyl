@@ -50,24 +50,11 @@ export class Logger {
                             )
                                 return "background"
                         }
-                        if (getContext() === "content")
-                            return browser.runtime.sendMessage({
-                                type: "controller_background",
-                                command: "acceptExCmd",
-                                args: ["fillcmdline_nofocus # " + message.join(" ")],
-                            })
-                        else
-                            return browser.tabs.sendMessage(
-                                (await browser.tabs.query({
-                                    active: true,
-                                    currentWindow: true,
-                                }))[0].id,
-                                {
-                                    type: "commandline_frame",
-                                    command: "fillcmdline",
-                                    args: ["# " + message.join(" ")],
-                                },
-                            )
+                        return browser.runtime.sendMessage({
+                            type: "controller_background",
+                            command: "acceptExCmd",
+                            args: ["fillcmdline_nofocus # " + message.join(" ")],
+                        })
                     }
                 case "warning":
                     return console.warn
