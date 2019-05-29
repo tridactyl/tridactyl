@@ -3068,6 +3068,8 @@ export function bindurl(pattern: string, mode: string, keys: string, ...excmd: s
  *
  *  e.g,
  *      keymap ę e
+ *
+ *  See `:help keytranslatemodes` to enable keymaps in modes other than normal mode.
  */
 //#background
 export function keymap(source: string, target: string) {
