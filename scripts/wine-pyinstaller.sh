@@ -30,14 +30,14 @@ checkRequiredVersions() {
       colorEcho \
         '[-] p7zip minimum version '"${MIN_7ZIP_VER}"' required\n' \
         "alert"
-      exit -1
+      exit 1
    fi
 
    if ! wine --version 2> /dev/null | grep -q "wine-${MIN_WINE_VER}"; then
       colorecho \
         '[-] wine minimum version '"${MIN_WINE_VER}"' required\n' \
         "alert"
-      exit -1
+      exit 1
    fi
 }
 
@@ -59,7 +59,7 @@ colorEcho() {
   local str="$1"
   local color="${COLOR_GOOD}${COLOR_BOLD}"
 
-  if [ ! -z "$2" ] \
+  if [ -n "$2" ] \
     && [ "$(stripWhitespace "$2")" = "alert" ]; then
     color="${COLOR_BAD}${COLOR_BOLD}"
   fi
@@ -74,7 +74,7 @@ checkPrerequisite() {
     printf '%s\n' "    - '${bin_name}' found."
   else
     printf '%s\n' "    - '$1' not found, quitting ..."
-    exit -1
+    exit 1
   fi
 }
 
@@ -160,7 +160,7 @@ mainFunction() {
     colorEcho \
       '[-] PyInstaller compilation failed, quitting ...\n' \
       "alert"
-    exit -1
+    exit 1
   fi
 }
 

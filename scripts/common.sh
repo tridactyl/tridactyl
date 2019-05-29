@@ -32,7 +32,8 @@ prettierUgly() {
 tslintUgly() {
     local acc=""
     local IFS=$'\n'
-    local tmpdir=$(mktemp -d "tslint.XXXXXXXXX")
+    local tmpdir
+    tmpdir=$(mktemp -d "tslint.XXXXXXXXX")
     for jsfile in "$@"; do
         tmpfile="$tmpdir/$jsfile"
         mkdir -p "$(dirname "$tmpfile")"
@@ -50,5 +51,5 @@ noisy() {
             acc+=("jsfile")
         fi
     done
-    echo ${acc[@]}
+    echo "${acc[@]}"
 }
