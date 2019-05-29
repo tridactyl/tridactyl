@@ -460,6 +460,8 @@ export class default_config {
         w: "winopen",
         t: "tabopen",
         tabnew: "tabopen",
+        tabm: "tabmove",
+        tabo: "tabonly",
         tn: "tabnext_gt",
         bn: "tabnext_gt",
         tnext: "tabnext_gt",
