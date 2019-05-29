@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-source ./scripts/common
+source ./scripts/common.sh
 
 jsfiles=$(cachedTSLintFiles)
 otherfiles=$(cachedPrettierFiles)

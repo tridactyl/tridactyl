@@ -51,7 +51,7 @@
     "test": "npm run build && rm -rf web-ext-artifacts/* && web-ext build --source-dir ./build --overwrite-dest && mv web-ext-artifacts/*.zip web-ext-artifacts/tridactyl.xpi && jest --silent",
     "update-buildsystem": "rm -rf src/node_modules; npm run clean",
     "lint": "bash hooks/pre-commit",
-    "pretty": "bash scripts/pretty"
+    "pretty": "bash scripts/pretty.sh"
   },
   "jest": {
     "transform": {

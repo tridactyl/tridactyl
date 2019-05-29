@@ -2,7 +2,7 @@
 
 # Run prettier on each staged file that needs it without touching the working tree copy if they differ.
 
-source ./scripts/common
+source ./scripts/common.sh
 
 set -Eeuo pipefail
 
