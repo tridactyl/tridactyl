@@ -704,7 +704,7 @@ function popKey() {
     modeState.filterFunc(modeState.filter)
 }
 
-/** If key is in hintchars, add it to filtstr and filter */
+/** Add key to filtstr and filter */
 function pushKey(key) {
     // The new key can be used to filter the hints
     const originalFilter = modeState.filter
@@ -716,6 +716,11 @@ function pushKey(key) {
         modeState.filter = originalFilter
         modeState.filterFunc(modeState.filter)
     }
+}
+
+/** Just run pushKey(" "). This is needed because ex commands ignore whitespace. */
+function pushSpace() {
+    return pushKey(" ")
 }
 
 /** Array of hintable elements in viewport
@@ -867,7 +872,9 @@ export function parser(keys: KeyboardEvent[]) {
     // Add custom bindings on top of it
     Object.assign(keymap, config.get("hintmaps"))
     // If the key sequence matches, use this match
-    const parsed = keyseq.parse(keys, keyseq.mapstrMapToKeyMap(new Map(Object.entries(keymap))))
+    const parsed = keyseq.parse(keys,
+        keyseq.mapstrMapToKeyMap(new Map((Object.entries(keymap) as any)
+            .filter(([key, value]) => value != ""))))
     if (parsed.isMatch === true) {
         return parsed
     }
@@ -899,6 +906,7 @@ export function getHintCommands() {
         focusRightHint,
         selectFocusedHint,
         pushKey,
+        pushSpace,
         popKey,
     };
 };
