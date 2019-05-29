@@ -427,6 +427,8 @@ export class default_config {
         imaps: "false",
         inputmaps: "false",
         ignoremaps: "false",
+        exmaps: "false",
+        hintmaps: "false",
     }
 
     /**
