@@ -1,6 +1,7 @@
 import * as config from "@src/lib/config"
 import * as DOM from "@src/lib/dom"
 import { browserBg, activeTabId } from "@src/lib/webext"
+import state from "@src/state"
 
 // The host is the shadow root of a span used to contain all highlighting
 // elements. This is the least disruptive way of highlighting text in a page.
@@ -55,6 +56,7 @@ export async function jumpToMatch(searchQuery, reverse) {
     // First, search for the query
     const findcase = config.get("findcase")
     const sensitive = findcase === "sensitive" || (findcase === "smart" && searchQuery.match("[A-Z]"))
+    state.lastSearchQuery = searchQuery
     const results = await browserBg.find.find(searchQuery, {
         tabId: await activeTabId(),
         caseSensitive: sensitive,
@@ -102,7 +104,7 @@ function drawHighlights(highlights) {
 
 export function jumpToNextMatch(n: number) {
     if (!lastHighlights) {
-        return
+        return state.lastSearchQuery ? jumpToMatch(state.lastSearchQuery, n < 0) : undefined
     }
     if (!host.firstChild) {
         drawHighlights(lastHighlights)
