@@ -40,16 +40,6 @@ export class Logger {
                     // work out how to import messaging/webext without breaking everything
                     return async (...message) => {
                         console.error(...message)
-                        const getContext = () => {
-                            if (!("tabs" in browser)) {
-                                return "content"
-                            } else if (
-                                browser.runtime.getURL(
-                                    "_generated_background_page.html",
-                                ) === window.location.href
-                            )
-                                return "background"
-                        }
                         return browser.runtime.sendMessage({
                             type: "controller_background",
                             command: "acceptExCmd",
