@@ -29,6 +29,11 @@ Tridactyl has to override your new tab page due to WebExtension limitations. You
         -   azk and cmcaine continued work on the commandline and state redesign based off saulrh's earlier work. The current focus is on getting the CLI up and running, making the statusbar work and defining the states and the RPC communication between them.
         -   bovine3dom went over old issues, fixing some, closing others, and accepting a few PRs. He also bashed his head against WebExtension Experiments for the keyboard API but didn't make any progress.
         -   glacambre fixed some issues from the backlog and started work on turning hintmode into a real mode with user-configurable binds.
+    -   Day 3:
+        -   azk, cmcaine and saulrh continued work on the commandline/state redesign. cmcaine wrote some RPC stuff he was happy with. saulrh got Mithril working with iframes.
+        -   bovine3dom closed/fixed some more issues and made it harder to add undocumented config settings.
+        -   glacambre finished hint mode and got it merged; he also fixed our find mode up a little bit.
+        -   All of us went out for a curry, partially subsidised by our donors - so thanks!
 
 *   If Tridactyl breaks a website or is broken by a website, trying the steps in the [troubleshooting guide](https://github.com/tridactyl/tridactyl/blob/master/doc/troubleshooting.md) might help.
 
