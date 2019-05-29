@@ -34,6 +34,12 @@ Tridactyl has to override your new tab page due to WebExtension limitations. You
         -   bovine3dom closed/fixed some more issues and made it harder to add undocumented config settings.
         -   glacambre finished hint mode and got it merged; he also fixed our find mode up a little bit.
         -   All of us went out for a curry, partially subsidised by our donors - so thanks!
+    -   Day 4:
+        -   azk and cmcaine got an input box working in an iframe under Mithril. They're confident that they'll be able to get a little bit of Tridactyl working with it soon.
+        -   bovine3dom kept working through the backlog, closing duplicate issues and fixing easy ones. Particularly, error messages will no longer steal focus from the page.
+        -   bovine3dom and cmcaine looked at the keyboard API again; we've changed a few things and now we get different error messages.
+        -   In total, we closed 27 issues today.
+        -   glacambre worked on find mode to the point where it's quite useable now; he's also been experimenting with new ways of doing ex-commands such that they can be created at runtime.
 
 *   If Tridactyl breaks a website or is broken by a website, trying the steps in the [troubleshooting guide](https://github.com/tridactyl/tridactyl/blob/master/doc/troubleshooting.md) might help.
 
