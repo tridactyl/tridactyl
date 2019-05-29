@@ -360,6 +360,7 @@ export async function guiset_quiet(rule: string, option: string) {
     // Check for native messenger and make sure we have a plausible profile directory
     if (!(await Native.nativegate("0.1.1"))) return
     const profile_dir = await Native.getProfileDir()
+    await setpref("toolkit.legacyUserProfileCustomizations.stylesheets", "true")
 
     // Make backups
     await Native.mkdir(profile_dir + "/chrome", true)
@@ -380,6 +381,8 @@ export async function guiset_quiet(rule: string, option: string) {
  * Change which parts of the Firefox user interface are shown. **NB: This feature is experimental and might break stuff.**
  *
  * Might mangle your userChrome. Requires native messenger, and you must restart Firefox each time to see any changes (this can be done using [[restart]]). <!-- (unless you enable addon debugging and refresh using the browser toolbox) -->
+ *
+ * Also flips the preference `toolkit.legacyUserProfileCustomizations.stylesheets` to true so that FF will read your userChrome.
  *
  * View available rules and options [here](/static/docs/modules/_src_lib_css_util_.html#potentialrules) and [here](/static/docs/modules/_src_lib_css_util_.html#metarules).
  *
