@@ -71,8 +71,10 @@ export async function jumpToMatch(searchQuery, reverse) {
         .sort((a, b) => reverse
             ? b.rectsAndTexts.rectList[0].top - a.rectsAndTexts.rectList[0].top
             : a.rectsAndTexts.rectList[0].top - b.rectsAndTexts.rectList[0].top)
-    if (rectData.length < 1)
-        return
+    if (rectData.length < 1) {
+        removeHighlighting()
+        throw new Error("Pattern not found: " + state.lastSearchQuery)
+    }
 
     // Then, highlight it
     removeHighlighting()
@@ -109,6 +111,10 @@ export function jumpToNextMatch(n: number) {
     }
     if (!host.firstChild) {
         drawHighlights(lastHighlights)
+    }
+    if (lastHighlights[selected] === undefined) {
+        removeHighlighting()
+        throw new Error("Pattern not found: " + state.lastSearchQuery)
     }
     unfocusHighlight(lastHighlights[selected][0])
     selected = (selected + n + lastHighlights.length) % lastHighlights.length
