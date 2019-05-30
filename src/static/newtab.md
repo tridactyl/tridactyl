@@ -40,6 +40,14 @@ Tridactyl has to override your new tab page due to WebExtension limitations. You
         -   bovine3dom and cmcaine looked at the keyboard API again; we've changed a few things and now we get different error messages.
         -   In total, we closed 27 issues today.
         -   glacambre worked on find mode to the point where it's quite useable now; he's also been experimenting with new ways of doing ex-commands such that they can be created at runtime.
+    -   Day 5:
+        -   azk, cmcaine kept working on the iframe / commandline
+        -   bovine3dom kept working through the backlog, closing duplicate issues and fixing easy ones. He also added `keyfeed` and user-definable modes.
+        -   glacambre fixed smooth scrolling a bit, and made find mode a little better.
+        -   In total, we closed 4 issues today (but they were harder :()
+        -   nmx nqqrq ebg13 naq grkg.ebg13
+            -   bound to `g?` by default; text mode version is not bound.
+        -   glacambre, cmcaine and bovine3dom went for a walk up Higger Tor.
 
 *   If Tridactyl breaks a website or is broken by a website, trying the steps in the [troubleshooting guide](https://github.com/tridactyl/tridactyl/blob/master/doc/troubleshooting.md) might help.
 
