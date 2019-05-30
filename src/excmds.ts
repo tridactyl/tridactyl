@@ -4090,7 +4090,13 @@ export async function perfhistogram(...filters: string[]) {
 //#background
 export async function bmark(url?: string, ...titlearr: string[]) {
     const auto_url = (url == undefined)
-    url = url === undefined ? (await activeTab()).url : url
+    url = url === undefined ? (await activeTab()).url : (_ => {
+        try {
+            return (new URL(url).href)
+        } catch (e) {
+            return (new URL("http://" + url).href)
+        }
+    })()
     let title = titlearr.join(" ")
     // if titlearr is given and we have duplicates, we probably want to give an error here.
     const dupbmarks = await browser.bookmarks.search({ url })
