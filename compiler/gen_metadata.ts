@@ -11,6 +11,8 @@ export function toSimpleType(typeNode) {
         // IndexedAccessTypes are things like `fn<T keyof Class>(x: T, y: Class[T])`
         // This doesn't seem to be easy to deal with so let's kludge it for now
         case ts.SyntaxKind.IndexedAccessType:
+        // Unknown is just like any, but slightly stricter
+        case ts.SyntaxKind.UnknownKeyword:
         case ts.SyntaxKind.AnyKeyword:
             return new AllTypes.AnyType()
         case ts.SyntaxKind.BooleanKeyword:
