@@ -50,6 +50,7 @@ You can try `:help key` to know more about `key`. If it is an existing binding, 
 -   `gr` — open Firefox reader mode (note: Tridactyl will not work in this mode)
 -   `zi`/`zo`/`zz` — zoom in/out/reset zoom
 -   `<C-f>`/`<C-b>` — jump to the next/previous part of the page
+-   `g?` — Apply Caesar cipher to page (run `g?` again to switch back)
 
 #### Find mode
 
