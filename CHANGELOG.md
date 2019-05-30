@@ -1,5 +1,53 @@
 # Tridactyl changelog
 
+## Release X.XX.X / Unreleased
+
+-   New features
+
+    -   `keyfeed` command for feeding fake keys to Tridactyl (not the web page) added
+        -   mostly a precursor to `map` but `keyfeed g?g?g?g?g?g?g?g?g?g?g?g?g?` now for a good time
+    -   User-definable modes added: just do `bind --mode=[newmode] ...` and then `mode [newmode]`
+    -   Added `tabm` and `tabo` ex-aliases (hat-tip to [this blog](https://magai.hateblo.jp/entry/2018/09/25/142348) for pointing out that they were missing)
+    -   `guiset` now uses `setpref` to flip the preference which will soon be needed to read userChrome (#1572)
+    -   `shellescape` command added for use with `composite` (#1485)
+    -   Hint mode now has user-configurable binds (e.g. `bind --mode=hint <C-[> hint.reset`) (#304)
+    -   Error notifications will no longer steal focus
+    -   `no_mouse_mode` is now more sober; original mode renamed to `neo_mouse_mode` (#1303)
+    -   `hint -f [text]` prefilters hints with the provided text (#1580)
+        -   ditto for `hint -fr [regex]`
+    -   `blacklistkeys` setting to specify which keys to prevent pages from ever stealing from Firefox (#1185)
+        -   e.g. `set blacklistkeys ["/","'"]`
+    -   `bmark` with no arguments will now use the current page title as the bookmark name
+    -   Beta builds now have versions that look more like the filenames served by our build bot and the version shown on `about:addons` (#930)
+    -   `preventautofocusjackhammer` setting added for use with `seturl` for sites that steal autofocus even after `set allowautofocus false`
+        -   use sparingly as it will use 2-3pp of CPU per tab it is activated in
+    -   `urlmodify -s` adds a query to a URL (#1584)
+    -   `ebg13` shapgvbanyvgl nqqrq:
+        -   bound to `g?` by default
+
+-   Bug fixes
+
+    -   `bmark` is less fussy about URLs now (#1600)
+    -   Smooth scrolling made a bit less bad (but it's still quite bad)
+    -   `autocontain` should now co-exist with other addons more peacefully (#953)
+    -   Our `find` mode is pretty useable now - see `help find` to see how to bind it (#1608)
+    -   `repeat` should work a bit better but it's still quite broken (#1609)
+    -   `followpage` now works on Google via a site-specifc override
+    -   `taball` should now always move to the right tab
+    -   'new features' highlight on the changelog is now never shown in private windows (#749)
+    -   Scrolling should no longer cause infinite loops (#1247)
+    -   Profile-finding should be more resilient (#1585)
+
+-   Under the bonnet
+    -   Compile-time inheritance to inputmaps from imaps added
+        -   ideally we'd like runtime inheritance but that's trickier
+    -   Support for TypeScript 3.5
+    -   `get_current_url` is now an ex-alias
+    -   `config.get` is now typed, meaning that it's harder for us to add undocumented settings
+    -   `config.getURL` now merges site-specific defaults
+    -   webpack now exits with non-zero exit code on build errors (#869)
+    -   We're no longer using a deprecated API for determining our own extension page URLs (#1593)
+
 ## Release 1.15.0 / 2019-05-23
 
 -   New features
