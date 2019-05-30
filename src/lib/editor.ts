@@ -19,7 +19,7 @@
  */
 /** ignore this line */
 
-import { wrap_input, needs_text, getWordBoundaries, wordAfterPos } from "@src/lib/editor_utils"
+import { wrap_input, needs_text, getWordBoundaries, wordAfterPos, rot13_helper } from "@src/lib/editor_utils"
 
 /**
  * Behaves like readline's [delete_char](http://web.mit.edu/gnu/doc/html/rlman_1.html#SEC14), i.e. deletes the character to the right of the caret.
@@ -385,6 +385,16 @@ export const insert_text = wrap_input(
         return [
             text.slice(0, selectionStart) + arg + text.slice(selectionEnd),
             selectionStart + arg.length,
+            null,
+        ]
+    },
+)
+
+export const rot13 = wrap_input(
+    (text, selectionStart, selectionEnd) => {
+        return [
+            rot13_helper(text.slice(0, selectionStart) + text.slice(selectionEnd)),
+            selectionStart,
             null,
         ]
     },

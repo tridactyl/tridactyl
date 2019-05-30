@@ -203,6 +203,7 @@ export class default_config {
         R: "reloadhard",
         x: "stop",
         gi: "focusinput -l",
+        "g?": "rot13",
         "g;": "changelistjump -1",
         J: "tabprev",
         K: "tabnext",
