@@ -2,14 +2,14 @@
 
 If changing one of these settings fixes your bug, please visit the corresponding Github issue and let us know you encountered the bug.
 
--   `:seturl $URL_OF_THE_WEBSITE noiframe true` and then reload the page. This disables the Tridactyl commandline on a specific url. [CREATE CORRESPONDING ISSUE]
+-   `:seturl $URL_OF_THE_WEBSITE noiframe true` and then reload the page. This disables the Tridactyl commandline on a specific url. [#639](https://github.com/tridactyl/tridactyl/issues/639)
 -   `:set allowautofocus true` and then reload the page. This allows website to use the javascript `focus()` function. [#550](https://github.com/tridactyl/tridactyl/issues/550)
 -   `:set modeindicator false` and then reload the page. This disables the mode indicator. [#821](https://github.com/tridactyl/tridactyl/issues/821)
 -   `:get csp`. If the value returned is "untouched", try `:set csp clobber`. If the value is "clobber", try `:set csp untouched`. In both cases, please reload the page. This disables (or prevents disabling) some security settings of the page. [#109](https://github.com/tridactyl/tridactyl/issues/109)
 
 # Native Editor/Messenger issues
 
-If you're having trouble running your editor on OSX, you might be having $PATH issues: [#684](https://github.com/tridactyl/tridactyl/issues/684). The solution is to specify the absolute path to your editor, like this: `:set editorcmd /usr/local/bin/vimr`.
+If you're having trouble running your editor on OSX, you might be having \$PATH issues: [#684](https://github.com/tridactyl/tridactyl/issues/684). The solution is to specify the absolute path to your editor, like this: `:set editorcmd /usr/local/bin/vimr`.
 
 If you're encountering problems on windows, you might want to try some of the workarounds mentioned here: [#797](https://github.com/tridactyl/tridactyl/issues/797).
 
