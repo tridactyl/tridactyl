@@ -2526,6 +2526,8 @@ export function version() {
  *  If you're looking for a way to temporarily disable Tridactyl, `mode ignore` might be what you're looking for.
  *
  *  Note that when in ignore mode, Tridactyl will not switch to insert mode when focusing text areas/inputs. This is by design.
+ *
+ *  **New feature:** you can add modes as simply as adding binds with `bind --mode=[newmodename]` and then enter the mode with `mode [newmodename]`.
  */
 //#content
 export function mode(mode: ModeName) {
@@ -2972,9 +2974,11 @@ function parse_bind_args(...args: string[]): bind_args {
     if (args[0].startsWith("--mode=")) {
         result.mode = args.shift().replace("--mode=", "")
     }
-    if (!mode2maps.has(result.mode)) throw new Error("Mode " + result.mode + " does not yet have user-configurable binds.")
-
-    result.configName = mode2maps.get(result.mode)
+    if (!mode2maps.has(result.mode)) {
+        result.configName = result.mode + "maps"
+    } else {
+        result.configName = mode2maps.get(result.mode)
+    }
 
     const key = args.shift()
     // Convert key to internal representation

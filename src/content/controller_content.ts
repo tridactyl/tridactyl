@@ -138,7 +138,10 @@ function* ParserController() {
                 // unbounded length.
                 keyEvents.push(keyevent)
 
-                const response = parsers[contentState.mode](keyEvents)
+                const response = (
+                    parsers[contentState.mode] ||
+                    (keys => generic.parser(contentState.mode + "maps", keys))
+                )(keyEvents)
                 logger.debug(
                     currentMode,
                     contentState.mode,
