@@ -8,7 +8,7 @@
     "command-line-args": "^5.1.1",
     "csp-serdes": "github:cmcaine/csp-serdes",
     "css": "^2.2.4",
-    "fuse.js": "^3.4.4",
+    "fuse.js": "^3.4.5",
     "mark.js": "^8.11.1",
     "rss-parser": "^3.7.1",
     "semver-compare": "^1.0.0"
