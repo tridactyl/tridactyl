@@ -22,29 +22,56 @@ function getFindHost() {
     return host
 }
 
-function createHighlightingElement(rect) {
-    const highlight = document.createElement("span")
-    highlight.className = "TridactylSearchHighlight"
-    highlight.style.position = "absolute"
-    highlight.style.top = `${rect.top}px`
-    highlight.style.left = `${rect.left}px`
-    highlight.style.width = `${rect.right - rect.left}px`
-    highlight.style.height = `${rect.bottom - rect.top}px`
-    highlight.style.zIndex = "2147483645"
-    unfocusHighlight(highlight)
-    return highlight
-}
+class FindHighlight extends HTMLSpanElement {
+    public top = Infinity
 
-function unfocusHighlight(high) {
-    high.style.background = `rgba(127,255,255,0.5)`
-}
+    constructor(private rects, private node) {
+        super()
+        ; (this as any).unfocus = () => {
+            for (const node of this.children) {
+                (node as HTMLElement).style.background = `rgba(127,255,255,0.5)`
+            }
+        }
+        ; (this as any).focus = () => {
+            if (!DOM.isVisible(this.children[0])) {
+                this.children[0].scrollIntoView()
+            }
+            let parentNode = this.node.parentNode
+            while (parentNode && !(parentNode instanceof HTMLAnchorElement)) {
+                parentNode = parentNode.parentNode
+            }
+            if (parentNode) {
+                parentNode.focus()
+            }
+            for (const node of this.children) {
+                (node as HTMLElement).style.background = `rgba(255,127,255,0.5)`
+            }
+        }
 
-function focusHighlight(high) {
-    if (!DOM.isVisible(high)) {
-        high.scrollIntoView()
+        this.style.position = "absolute"
+        this.style.top = "0px";
+        this.style.left = "0px";
+        for (const rect of rects) {
+            if (rect.top < this.top) {
+                this.top = rect.top
+            }
+            const highlight = document.createElement("span")
+            highlight.className = "TridactylFindHighlight"
+            highlight.style.position = "absolute"
+            highlight.style.top = `${rect.top}px`
+            highlight.style.left = `${rect.left}px`
+            highlight.style.width = `${rect.right - rect.left}px`
+            highlight.style.height = `${rect.bottom - rect.top}px`
+            highlight.style.zIndex = "2147483645"
+            highlight.style.pointerEvents = "none"
+            this.appendChild(highlight)
+        }
+        ; (this as any).unfocus()
     }
-    high.style.background = `rgba(255,127,255,0.5)`
+
 }
+
+customElements.define("find-highlight", FindHighlight, { extends: "span" })
 
 // Highlights corresponding to the last search
 let lastHighlights
@@ -55,54 +82,66 @@ export async function jumpToMatch(searchQuery, reverse) {
     // First, search for the query
     const findcase = config.get("findcase")
     const sensitive = findcase === "sensitive" || (findcase === "smart" && searchQuery.match("[A-Z]"))
-    state.lastSearchQuery = searchQuery
-    lastHighlights = []
-    const results = await browserBg.find.find(searchQuery, {
+    const findPromise = await browserBg.find.find(searchQuery, {
         tabId: await activeTabId(),
         caseSensitive: sensitive,
         entireWord: false,
+        includeRangeData: true,
         includeRectData: true,
     })
-    // results are sorted by the order they appear in the page, we need them to
-    // be sorted according to position instead
-    const rectData = results
-        .rectData
-        .filter(data => data.rectsAndTexts.rectList.length > 0)
-        .sort((a, b) => reverse
-            ? b.rectsAndTexts.rectList[0].top - a.rectsAndTexts.rectList[0].top
-            : a.rectsAndTexts.rectList[0].top - b.rectsAndTexts.rectList[0].top)
-    if (rectData.length < 1) {
-        removeHighlighting()
-        throw new Error("Pattern not found: " + state.lastSearchQuery)
-    }
-
-    // Then, highlight it
+    state.lastSearchQuery = searchQuery
+    lastHighlights = []
     removeHighlighting()
+
+    // We need to grab all text nodes in order to find the corresponding element
+    const walker = document.createTreeWalker(document, NodeFilter.SHOW_TEXT, null, false)
+    const nodes = []
+    let node
+    do {
+        node = walker.nextNode()
+        nodes.push(node)
+    } while (node)
+
+    const results = await findPromise
+
     const host = getFindHost()
     let focused = false
-    for (let i = 0; i < rectData.length; ++i) {
-        const data = rectData[i]
-        const highlights = []
-        lastHighlights.push(highlights)
-        for (const rect of data.rectsAndTexts.rectList) {
-            const highlight = createHighlightingElement(rect)
-            highlights.push(highlight)
-            host.appendChild(highlight)
+    for (let i = 0; i < results.count; ++i) {
+        const data = results.rectData[i]
+        if (data.rectsAndTexts.rectList.length < 1) {
+            // When a result does not have any rectangles, it's not visible
+            continue;
         }
-        if (!focused && DOM.isVisible(highlights[0])) {
+        const range = results.rangeData[i]
+        const high = new FindHighlight(data.rectsAndTexts.rectList, nodes[range.startTextNodePos])
+        host.appendChild(high)
+        lastHighlights.push(high)
+        if (!focused && DOM.isVisible(high)) {
             focused = true
-            focusHighlight(highlights[0])
-            selected = i
+            ; (high as any).focus()
+            selected = lastHighlights.length - 1
         }
     }
+    if (lastHighlights.length < 1) {
+        throw new Error("Pattern not found: " + state.lastSearchQuery)
+    }
+    lastHighlights
+        .sort(reverse ? (a, b) => b.top - a.top : (a, b) => a.top - b.top)
     if (!focused) {
-        focusHighlight(lastHighlights[0][0])
+        selected = 0
+        /* tslint:disable:no-useless-cast */
+        ; (lastHighlights[selected] as any).focus()
     }
 }
 
 function drawHighlights(highlights) {
     const host = getFindHost()
-    highlights.forEach(elems => elems.forEach(elem => host.appendChild(elem)))
+    highlights.forEach(elem => host.appendChild(elem))
+}
+
+export function removeHighlighting() {
+    const host = getFindHost();
+    while (host.firstChild) host.removeChild(host.firstChild)
 }
 
 export function jumpToNextMatch(n: number) {
@@ -116,12 +155,9 @@ export function jumpToNextMatch(n: number) {
         removeHighlighting()
         throw new Error("Pattern not found: " + state.lastSearchQuery)
     }
-    unfocusHighlight(lastHighlights[selected][0])
+    /* tslint:disable:no-useless-cast */
+    ; (lastHighlights[selected] as any).unfocus()
     selected = (selected + n + lastHighlights.length) % lastHighlights.length
-    focusHighlight(lastHighlights[selected][0])
-}
-
-export function removeHighlighting() {
-    const host = getFindHost();
-    while (host.firstChild) host.removeChild(host.firstChild)
+    /* tslint:disable:no-useless-cast */
+    ; (lastHighlights[selected] as any).focus()
 }
