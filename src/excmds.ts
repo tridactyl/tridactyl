@@ -670,7 +670,7 @@ export async function nativeinstall() {
 
     TODO: Write documentation.
     Available flags:
-    - `--force` will overwrite the config file if it exists.
+    - `-f` will overwrite the config file if it exists.
     @param string[] argArr an optional string of arguments to be parsed.
     @returns the parsed config.
 
@@ -680,7 +680,7 @@ export async function mktridactylrc(...argArr: string[]) {
     let overwrite = false
 
     const argParse = (args: string[]): string[] => {
-        if (args[0] === "--force") {
+        if (args[0] === "-f") {
             overwrite = true
             args.shift()
             argParse(args)
@@ -689,13 +689,12 @@ export async function mktridactylrc(...argArr: string[]) {
     }
 
     const file = argParse(argArr).join(" ") || undefined
-    //TODO: Add actual native messenger code here.
-    //if (await Native.nativegate("0.1.3")) if (!await rc.source(file)) logger.error("Could not find RC file")
 
     const conf = config.parseConfig()
     console.log(conf)
     console.log(file)
     console.log(overwrite)
+    if (await Native.nativegate("0.1.3") && (!await rc.writeRc(conf, overwrite, file))) logger.error("Could not write RC file")
 
     return conf
 }

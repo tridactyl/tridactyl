@@ -13,12 +13,14 @@ export async function source(filename = "auto") {
     return true
 }
 
-export async function write(conf: string, force = false, filename = "auto") {
+export async function writeRc(conf: string, force = false, filename = "auto") {
     let path: string
     if (filename === "auto") {
         path = await Native.getrcpath()
+    } else {
+        path = filename
     }
-
+    return await Native.write(path, conf)
 }
 
 export async function runRc(rc: string) {

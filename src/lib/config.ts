@@ -1377,71 +1377,119 @@ export function removeChangeListener<P extends keyof default_config>(
 
  */
 export function parseConfig(): string {
-    // Parse the config into sections, this is my last resort.
-    const parsedConf = []
-    const parsedBinds = []
-    const parsedAliases = []
-    const parsedAucmds = []
-    const parsedAucons = []
-    const parsedLogging = []
+    let p = {
+        conf: [],
+        binds: [],
+        aliases: [],
+        subconfigs: [],
+        aucmds: [],
+        aucons: [],
+        logging: [],
+    }
 
-    for (const i in USERCONFIG) {
-        if (typeof USERCONFIG[i] !== "object")
-            parsedConf.push(`set ${i} ${USERCONFIG[i]}`)
+    p = parseConfigHelper(USERCONFIG, p)
+
+    const s = {
+        general: ``,
+        binds: ``,
+        aliases: ``,
+        aucmds: ``,
+        aucons: ``,
+        subconfigs: ``,
+        logging: ``,
+    }
+
+    if (p.conf.length > 0)
+        s.general = `" General Settings\n${p.conf.join("\n")}\n\n`
+    if (p.binds.length > 0)
+        s.binds = `" Binds\n${p.binds.join("\n")}\n\n`
+    if (p.aliases.length > 0)
+        s.aliases = `" Aliases\n${p.aliases.join("\n")}\n\n`
+    if (p.aucmds.length > 0)
+        s.aucmds = `" Autocmds\n${p.aucmds.join("\n")}\n\n`
+    if (p.aucons.length > 0)
+        s.aucons = `" Autocontainers\n${p.aucons.join("\n")}\n\n`
+    if (p.subconfigs.length > 0)
+        s.subconfigs = `" Subconfig Settings\n${p.subconfigs.join("\n")}\n\n`
+    if (p.logging.length > 0)
+        s.logging = `" Logging\n" + p.logging.join("\n")}\n\n`
+
+    return `${s.general}${s.binds}${s.subconfigs}${s.aliases}${s.aucmds}${s.aucons}${s.logging}`
+}
+
+const parseConfigHelper = (pconf, parseobj) => {
+    for (const i in pconf) {
+        if (typeof pconf[i] !== "object")
+            parseobj.conf.push(`set ${i} ${pconf[i]}`)
         else {
-            for (const e of Object.keys(USERCONFIG[i])) {
-                if (i === "nmaps") {
-                    parsedBinds.push(`bind ${e} ${USERCONFIG[i][e]}`)
-                } else if (i === "exaliases") {
-                    // Only really useful if mapping the entire config and not just USERCONFIG.
-                    if (e === "alias") {
-                        parsedAliases.push(`command ${e} ${USERCONFIG[i][e]}`)
+            for (const e of Object.keys(pconf[i])) {
+                if (i === "nmaps" ) {
+                    if (pconf[i][e].length > 0) {
+                        parseobj.binds.push(`bind ${e} "${pconf[i][e]}"`)
                     } else {
-                        parsedAliases.push(`alias ${e} ${USERCONFIG[i][e]}`)
+                        parseobj.binds.push(`unbind ${e}`)
+                    }
+                } else if (i === "exmaps" ) {
+                    if (pconf[i][e].length > 0) {
+                        parseobj.binds.push(`bind --mode=ex ${e} "${pconf[i][e]}"`)
+                    } else {
+                        parseobj.binds.push(`unbind --mode=ex ${e}`)
+                    }
+                } else if (i === "ignoremaps" ) {
+                    if (pconf[i][e].length > 0) {
+                        parseobj.binds.push(`bind --mode=ignore ${e} "${pconf[i][e]}"`)
+                    } else {
+                        parseobj.binds.push(`unbind --mode=ignore ${e}`)
+                    }
+                } else if (i === "imaps" ) {
+                    if (pconf[i][e].length > 0) {
+                        parseobj.binds.push(`bind --mode=insert ${e} "${pconf[i][e]}"`)
+                    } else {
+                        parseobj.binds.push(`unbind --mode=insert ${e}`)
+                    }
+                } else if (i === "inputmaps" ) {
+                    if (pconf[i][e].length > 0) {
+                        parseobj.binds.push(`bind --mode=input ${e} "${pconf[i][e]}"`)
+                    } else {
+                        parseobj.binds.push(`unbind --mode=input ${e}`)
+                    }
+                } else if (i === "hintmaps" ) {
+                    if (pconf[i][e].length > 0) {
+                        parseobj.binds.push(`bind --mode=hint ${e} "${pconf[i][e]}"`)
+                    } else {
+                        parseobj.binds.push(`unbind --mode=hint ${e}`)
+                    }
+                } else if (i === "subconfigs") {
+                    parseobj.subconfigs.push(`js tri.config.set("${i}, {"${e}": ${JSON.stringify(pconf[i][e])}})`)
+                } else if (i === "exaliases") {
+                    // Only really useful if mapping the entire config and not just pconf.
+                    if (e === "alias") {
+                        parseobj.aliases.push(`command ${e} ${pconf[i][e]}`)
+                    } else {
+                        parseobj.aliases.push(`alias ${e} ${pconf[i][e]}`)
                     }
                 } else if (i === "autocmds") {
-                    for (const a of Object.keys(USERCONFIG[i][e])) {
-                        parsedAucmds.push(`autocmd ${e} ${a} ${USERCONFIG[i][e][a]}`)
+                    for (const a of Object.keys(pconf[i][e])) {
+                        parseobj.aucmds.push(`autocmd ${e} ${a} ${pconf[i][e][a]}`)
                     }
                 } else if (i === "autocontain") {
-                    parsedAucmds.push(`autocontain ${e} ${USERCONFIG[i][e]}`)
+                    parseobj.aucmds.push(`autocontain ${e} ${pconf[i][e]}`)
                 } else if (i === "logging") {
                     // Map the int values in e to a log level
                     let level
-                    if (USERCONFIG[i][e] === 0) level = "never"
-                    if (USERCONFIG[i][e] === 1) level = "error"
-                    if (USERCONFIG[i][e] === 2) level = "warning"
-                    if (USERCONFIG[i][e] === 3) level = "info"
-                    if (USERCONFIG[i][e] === 4) level = "debug"
-                    parsedLogging.push(`set logging.${e} ${level}`)
+                    if (pconf[i][e] === 0) level = "never"
+                    if (pconf[i][e] === 1) level = "error"
+                    if (pconf[i][e] === 2) level = "warning"
+                    if (pconf[i][e] === 3) level = "info"
+                    if (pconf[i][e] === 4) level = "debug"
+                    parseobj.logging.push(`set logging.${e} ${level}`)
                 } else {
-                    parsedConf.push(`set ${i}.${e} ${USERCONFIG[i][e]}`)
+                    parseobj.conf.push(`set ${i}.${e} ${pconf[i][e]}`)
                 }
             }
         }
     }
-
-    let genSettings = ``
-    let bindSettings = ``
-    let aliasSettings = ``
-    let aucmdSettings = ``
-    let auconSettings = ``
-    let logSettings = ``
-
-    if (parsedConf.length > 0)
-        genSettings = `"General Settings\n${parsedConf.join("\n")}\n\n`
-    if (parsedBinds.length > 0)
-        bindSettings = `"Binds\n${parsedBinds.join("\n")}\n\n`
-    if (parsedAliases.length > 0)
-        aliasSettings = `"Aliases\n${parsedAliases.join("\n")}\n\n`
-    if (parsedAucmds.length > 0)
-        aucmdSettings = `"Autocmds\n${parsedAucmds.join("\n")}\n\n`
-    if (parsedAucons.length > 0)
-        auconSettings = `"Autocontainers\n${parsedAucons.join("\n")}\n\n`
-    if (parsedLogging.length > 0)
-        logSettings = `"Logging\n" + parsedLogging.join("\n")}\n\n`
-
-    return `${genSettings}${bindSettings}${aliasSettings}${aucmdSettings}${auconSettings}${logSettings}`
+    return parseobj
 }
 
 // Listen for changes to the storage and update the USERCONFIG if appropriate.

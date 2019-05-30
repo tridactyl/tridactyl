@@ -468,7 +468,8 @@ def handleMessage(message):
                 reply["code"] = 2
 
     elif cmd == "write":
-        with open(message["file"], "w") as file:
+        path = os.path.expanduser(message["file"])
+        with open(path, "w") as file:
             file.write(message["content"])
 
     elif cmd == "temp":
