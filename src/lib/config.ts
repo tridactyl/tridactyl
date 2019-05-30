@@ -501,6 +501,9 @@ export class default_config {
         zo: "zoom",
         installnative: "nativeinstall",
         nativeupdate: "updatenative",
+        mkt: "mktridactylrc",
+        "mkt!": "mktridactylrc -f",
+        "mktridactylrc!": "mktridactylrc -f"
     }
 
     /**
@@ -1367,7 +1370,7 @@ export function removeChangeListener<P extends keyof default_config>(
 }
 
 /** Parse the config into a string representation of a .tridactylrc config file.
-    Tries to parse the config into sectionable chunks based on keywords. 
+    Tries to parse the config into sectionable chunks based on keywords.
     Binds, aliases, autocmds and logging settings each have their own section while the rest are dumped into "General Settings".
 
     @returns string The parsed config file.
@@ -1385,45 +1388,35 @@ export function parseConfig(): string {
     for (const i in USERCONFIG) {
         if (typeof USERCONFIG[i] !== "object")
             parsedConf.push(`set ${i} ${USERCONFIG[i]}`)
-        else if (i === "nmaps") {
-            for (const e in USERCONFIG[i]) {
-                parsedBinds.push(`bind ${e} ${USERCONFIG[i][e]}`)
-            }
-        } else if (i === "exaliases") {
-            for (const e in USERCONFIG[i]) {
-                // Only really useful if mapping the entire config and not just USERCONFIG.
-                if (e === "alias")
-                    parsedAliases.push(`command ${e} ${USERCONFIG[i][e]}`)
-                parsedAliases.push(`alias ${e} ${USERCONFIG[i][e]}`)
-            }
-        } else if (i === "autocmds") {
-            for (const e in USERCONFIG[i]) {
-                for (const a in USERCONFIG[i][e]) {
-                    parsedAucmds.push(
-                        `autocmd ${e} ${a} ${USERCONFIG[i][e][a]}`,
-                    )
+        else {
+            for (const e of Object.keys(USERCONFIG[i])) {
+                if (i === "nmaps") {
+                    parsedBinds.push(`bind ${e} ${USERCONFIG[i][e]}`)
+                } else if (i === "exaliases") {
+                    // Only really useful if mapping the entire config and not just USERCONFIG.
+                    if (e === "alias") {
+                        parsedAliases.push(`command ${e} ${USERCONFIG[i][e]}`)
+                    } else {
+                        parsedAliases.push(`alias ${e} ${USERCONFIG[i][e]}`)
+                    }
+                } else if (i === "autocmds") {
+                    for (const a of Object.keys(USERCONFIG[i][e])) {
+                        parsedAucmds.push(`autocmd ${e} ${a} ${USERCONFIG[i][e][a]}`)
+                    }
+                } else if (i === "autocontain") {
+                    parsedAucmds.push(`autocontain ${e} ${USERCONFIG[i][e]}`)
+                } else if (i === "logging") {
+                    // Map the int values in e to a log level
+                    let level
+                    if (USERCONFIG[i][e] === 0) level = "never"
+                    if (USERCONFIG[i][e] === 1) level = "error"
+                    if (USERCONFIG[i][e] === 2) level = "warning"
+                    if (USERCONFIG[i][e] === 3) level = "info"
+                    if (USERCONFIG[i][e] === 4) level = "debug"
+                    parsedLogging.push(`set logging.${e} ${level}`)
+                } else {
+                    parsedConf.push(`set ${i}.${e} ${USERCONFIG[i][e]}`)
                 }
-            }
-        } else if (i === "autocontain") {
-            for (const e in USERCONFIG[i]) {
-                parsedAucmds.push(
-                    `autocontain ${e} ${USERCONFIG[i][e]}`,
-                )
-            }
-        } else if (i === "logging") {
-            for (const e in USERCONFIG[i]) {
-                // Map the int values in e to a log level
-                let level
-                if (USERCONFIG[i][e] === 0) level = "never"
-                if (USERCONFIG[i][e] === 1) level = "error"
-                if (USERCONFIG[i][e] === 2) level = "warning"
-                if (USERCONFIG[i][e] === 3) level = "info"
-                if (USERCONFIG[i][e] === 4) level = "debug"
-                parsedLogging.push(`set logging.${e} ${level}`)
-            }
-        } else {
-            for (let e in USERCONFIG[i]) {
-                parsedConf.push(`set ${i}.${e} ${USERCONFIG[i][e]}`)
             }
         }
     }
