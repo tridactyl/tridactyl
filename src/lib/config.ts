@@ -111,25 +111,6 @@ export class default_config {
     }
 
     /**
-     * inputmaps contain all of the bindings for "input mode".
-     *
-     * On top of regular ex commands, you can also bind [editor functions](/static/docs/modules/_src_lib_editor_.html) in input mode.
-     *
-     * They consist of key sequences mapped to ex commands.
-     */
-    inputmaps = {
-        "<Escape>": "composite unfocus | mode normal",
-        "<C-[>": "composite unfocus | mode normal",
-        "<C-i>": "editor",
-        "<Tab>": "focusinput -n",
-        "<S-Tab>": "focusinput -N",
-        "<CA-Escape>": "mode normal",
-        "<CA-`>": "mode normal",
-        "<C-^>": "tab #",
-        "<C-6>": "tab #",
-    }
-
-    /**
      * imaps contain all of the bindings for "insert mode".
      *
      * On top of regular ex commands, you can also bind [editor functions](/static/docs/modules/_src_lib_editor_.html) in insert mode.
@@ -146,6 +127,18 @@ export class default_config {
         "<C-^>": "tab #",
         "<S-Escape>": "mode ignore",
     }
+
+    /**
+     * inputmaps contain all of the bindings for "input mode".
+     *
+     * On top of regular ex commands, you can also bind [editor functions](/static/docs/modules/_src_lib_editor_.html) in input mode.
+     *
+     * They consist of key sequences mapped to ex commands.
+     */
+    inputmaps = mergeDeep(this.imaps, {
+        "<Tab>": "focusinput -n",
+        "<S-Tab>": "focusinput -N",
+    })
 
     /**
      * nmaps contain all of the bindings for "normal mode".
