@@ -54,9 +54,19 @@ class ScrollingData {
         if (elapsed >= this.duration || this.elem[this.pos] === this.endPos)
             return this.endPos
 
-        const result = ((this.endPos - this.startPos) * elapsed) / this.duration
-        if (result >= 1 || result <= -1) return this.startPos + result
-        return this.elem[this.pos] + (this.startPos < this.endPos ? 1 : -1)
+        let result = this.startPos + (((this.endPos - this.startPos) * elapsed) / this.duration)
+        if (this.startPos < this.endPos) {
+            // We need to ceil() because only highdpi screens have a decimal this.elem[this.pos]
+            result = Math.ceil(result)
+            // We *have* to make progress, otherwise we'll think the element can't be scrolled
+            if (result == this.elem[this.pos])
+                result += 1
+        } else {
+            result = Math.floor(result)
+            if (result == this.elem[this.pos])
+                result -= 1
+        }
+        return result
     }
 
     /** Updates the position of this.elem, returns true if the element has been scrolled, false otherwise. */
