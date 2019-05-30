@@ -125,7 +125,7 @@ import * as DOM from "@src/lib/dom"
 import * as CommandLineContent from "@src/content/commandline_content"
 import * as scrolling from "@src/content/scrolling"
 import { ownTab } from "@src/lib/webext"
-import { wrap_input, getLineAndColNumber } from "@src/lib/editor_utils"
+import { wrap_input, getLineAndColNumber, rot13_helper } from "@src/lib/editor_utils"
 import * as finding from "@src/content/finding"
 import * as toys from "./content/toys"
 import * as hinting from "@src/content/hinting"
@@ -3904,6 +3904,26 @@ export async function hint(option?: string, selectors?: string, ...rest: string[
 //    }
 //}
 
+/** Perform rot13.
+ *
+ * Transforms all text nodes in the current tab via rot13. Only characters in
+ * the ASCII range are considered.
+ */
+//#content
+export function rot13() {
+    const body = document.createTreeWalker(
+        document.body,
+        NodeFilter.SHOW_TEXT,
+        { acceptNode:
+            (node) => NodeFilter.FILTER_ACCEPT
+        }
+    )
+
+    while (body.nextNode()) {
+        const t = body.currentNode.textContent
+       body.currentNode.textContent = rot13_helper(t)
+    }
+}
 /**
  * Hacky ex string parser.
  *
