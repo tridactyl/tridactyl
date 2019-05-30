@@ -2,6 +2,7 @@ import { isTextEditable } from "@src/lib/dom"
 import { contentState, ModeName } from "@src/content/state_content"
 import Logger from "@src/lib/logging"
 import * as controller from "@src/lib/controller"
+import {KeyEventLike} from "@src/lib/keyseq"
 
 import * as hinting from "@src/content/hinting"
 import * as gobblemode from "@src/parsers/gobblemode"
@@ -79,7 +80,7 @@ class KeyCanceller {
                 ke.shiftKey === ke2.shiftKey &&
                 ke.target === ke2.target,
         )
-        if (index >= 0) {
+        if ((index >= 0) && (ke instanceof KeyboardEvent)) {
             ke.preventDefault()
             ke.stopImmediatePropagation()
             kes.splice(index, 1)
@@ -102,15 +103,15 @@ function* ParserController() {
 
     while (true) {
         let exstr = ""
-        let keyEvents: KeyboardEvent[] = []
+        let keyEvents: KeyEventLike[] = []
         try {
             while (true) {
-                const keyevent: KeyboardEvent = yield
+                const keyevent: KeyEventLike = yield
 
                 // _just to be safe_, cache this to make the following
                 // code more thread-safe.
                 const currentMode = contentState.mode
-                const textEditable = isTextEditable(keyevent.target as Element)
+                const textEditable = keyevent instanceof KeyboardEvent ? isTextEditable(keyevent.target as Element) : false
 
                 // This code was sort of the cause of the most serious bug in Tridactyl
                 // to date (March 2018).
@@ -149,7 +150,7 @@ function* ParserController() {
                     response,
                 )
 
-                if (response.isMatch) {
+                if ((response.isMatch) && (keyevent instanceof KeyboardEvent)) {
                     keyevent.preventDefault()
                     keyevent.stopImmediatePropagation()
                     canceller.push(keyevent)
@@ -176,7 +177,7 @@ function* ParserController() {
     }
 }
 
-const generator = ParserController() // var rather than let stops weirdness in repl.
+export const generator = ParserController() // var rather than let stops weirdness in repl.
 generator.next()
 
 /** Feed keys to the ParserController */

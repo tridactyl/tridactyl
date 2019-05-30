@@ -97,7 +97,7 @@ export class MinimalKey {
     }
 }
 
-type KeyEventLike = MinimalKey | KeyboardEvent
+export type KeyEventLike = MinimalKey | KeyboardEvent
 
 // }}}
 

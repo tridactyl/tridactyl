@@ -101,6 +101,9 @@ let ALL_EXCMDS
 // excmds, so we can use it without futher configuration.
 import * as controller from "@src/lib/controller"
 
+//#content_helper
+import { generator as KEY_MUNCHER } from "@src/content/controller_content"
+
 /**
  * Used to store the types of the parameters for each excmd for
  * self-documenting functionality.
@@ -138,6 +141,8 @@ ALL_EXCMDS = {
 }
 // }
 
+import { mapstrToKeyseq } from "@src/lib/keyseq"
+
 //#background_helper
 // {
 
@@ -152,7 +157,6 @@ import { EditorCmds } from "@src/background/editor"
 import { flatten } from "@src/lib/itertools"
 import { firefoxVersionAtLeast } from "@src/lib/webext"
 import * as rc from "@src/background/config_rc"
-import { mapstrToKeyseq } from "@src/lib/keyseq"
 import * as css_util from "@src/lib/css_util"
 import * as Updates from "@src/lib/updates"
 
@@ -4267,6 +4271,24 @@ export async function updatecheck(source: "manual" | "auto_polite" | "auto_impol
                      Updates.getInstalledVersion(), highestKnownVersion)
         notify()
         Updates.updateLatestNaggedVersion(highestKnownVersion)
+    }
+}
+
+/**
+ * Feed some keys to Tridactyl's parser. E.g. `keyfeed jkjkjkjkjkjkjkjkjkjkjkjkjkjkjkjkjkjkjkjkjkjjkj`.
+ *
+ * NB:
+ *
+ * - Does _not_ function like Vim's noremap - `bind j keyfeed j` will cause an infinite loop.
+ * - Doesn't work in exmode - i.e. `keyfeed t<CR>` won't work.
+ *
+ */
+//#content
+export async function keyfeed(mapstr: string) {
+    const keyseq = mapstrToKeyseq(mapstr)
+    for (const k of keyseq) {
+        KEY_MUNCHER.next(k)
+        await sleep(10)
     }
 }
 
