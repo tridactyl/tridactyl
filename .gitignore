@@ -4,7 +4,6 @@ node_modules
 src/grammars/*.ts
 generated
 web-ext-artifacts
-yarn.lock
 .vscode
 native/__pycache__
 native/native_main
