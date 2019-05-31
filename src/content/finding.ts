@@ -34,7 +34,7 @@ class FindHighlight extends HTMLSpanElement {
         }
         ; (this as any).focus = () => {
             if (!DOM.isVisible(this.children[0])) {
-                this.children[0].scrollIntoView()
+                this.children[0].scrollIntoView({ block: "center", inline: "center" })
             }
             let parentNode = this.node.parentNode
             while (parentNode && !(parentNode instanceof HTMLAnchorElement)) {
