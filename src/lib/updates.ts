@@ -97,7 +97,7 @@ export function getInstalledPatchVersion() {
     // to automatically update us if we're on the beta channel, and
     // disregard the pre-release information entirely when doing our
     // own update check.
-    return TRI_VERSION.replace(/-.*/, "")
+    return TRI_VERSION.replace(/pre.*/, "")
 }
 
 export function getInstalledVersion() {
