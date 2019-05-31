@@ -177,7 +177,8 @@ export function flatten(arr) {
     return result
 }
 
-export function* drop(iterable, predicate) {
+/** Drop from iterable until predicate is false */
+export function* dropwhile(iterable, predicate) {
     let allmatched = true
     for (const elem of iterable) {
         if (!(allmatched && predicate(elem))) {
@@ -187,7 +188,8 @@ export function* drop(iterable, predicate) {
     }
 }
 
-export function* take(iterable, predicate) {
+/** Take from iterable until predicate is false */
+export function* takewhile(iterable, predicate) {
     for (const elem of iterable) {
         if (predicate(elem)) {
             yield elem
