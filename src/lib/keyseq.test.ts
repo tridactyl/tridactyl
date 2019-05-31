@@ -24,6 +24,8 @@ function mk(k, mod?: ks.KeyModifiers) {
         [mks("gg"), "scrolltop"],
         [mks("gof"), "foo"],
         [mks("o"), "bar"],
+        [mks("<c-6>"), "tablast"],
+        [mks("<c-5><c-5>"), "tablast"],
     ])
 
     // This one actually found a bug once!
