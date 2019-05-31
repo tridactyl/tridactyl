@@ -178,7 +178,7 @@ export function parse(keyseq: KeyEventLike[], map: KeyMap): ParserResponse {
     // command, numericPrefix is a numeric prefix of that. We want to
     // preserve that whole thing, so concat them back together before
     // returning.
-    return { keys: numericPrefix.concat(keyseq), isMatch: keyseq.length > 0 || numericPrefix.length > 0 }
+    return { keys: numericPrefix.concat(keyseq), isMatch: keyseq.length > 0 }
 }
 
 /** True if seq1 is a prefix or equal to seq2 */
