@@ -18,8 +18,10 @@ trap "echoerr 'Failed to install!'" ERR
 
 XDG_CONFIG_HOME="${XDG_CONFIG_HOME:-$HOME/.config}/tridactyl"
 XDG_DATA_HOME="${XDG_DATA_HOME:-$HOME/.local/share}/tridactyl"
-manifest_loc="https://raw.githubusercontent.com/tridactyl/tridactyl/master/native/tridactyl.json"
-native_loc="https://raw.githubusercontent.com/tridactyl/tridactyl/master/native/native_main.py"
+
+# Use argument as version or 1.15.0, as that was the last version before we switched to using tags
+manifest_loc="https://raw.githubusercontent.com/tridactyl/tridactyl/${1:-1.15.0}/native/tridactyl.json"
+native_loc="https://raw.githubusercontent.com/tridactyl/tridactyl/${1:-1.15.0}/native/native_main.py"
 
 # Decide where to put the manifest based on OS
 case "$OSTYPE" in

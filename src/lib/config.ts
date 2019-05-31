@@ -788,14 +788,18 @@ export class default_config {
 
     /**
      * Set this to something weird if you want to have fun every time Tridactyl tries to update its native messenger.
+     *
+     * %TAG will be replaced with your version of Tridactyl for stable builds, or "master" for beta builds
      */
     nativeinstallcmd =
-        "curl -fsSl https://raw.githubusercontent.com/tridactyl/tridactyl/master/native/install.sh | bash"
+        "curl -fsSl https://raw.githubusercontent.com/tridactyl/tridactyl/master/native/install.sh -o /tmp/trinativeinstall.sh && bash /tmp/trinativeinstall.sh %TAG"
 
     /**
      * Set this to something weird if you want to have fun every time Tridactyl tries to update its native messenger.
+     *
+     * Replaces %WINTAG with "-Tag $TRI_VERSION", similarly to [[nativeinstallcmd]].
      */
-    win_nativeinstallcmd = `powershell -NoProfile -InputFormat None -Command "Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/cmcaine/tridactyl/master/native/win_install.ps1'))"`
+    win_nativeinstallcmd = `powershell -NoProfile -InputFormat None -Command "$TempFile = New-TemporaryFile; (New-Object System.Net.WebClient).DownloadFile('https://raw.githubusercontent.com/cmcaine/tridactyl/master/native/win_install.ps1',$TempFile); ./$TempFile %WINTAG"`
 
     /**
      * Used by :updatecheck and related built-in functionality to automatically check for updates and prompt users to upgrade.

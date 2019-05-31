@@ -2,7 +2,8 @@ Param (
     [switch]$Uninstall = $false,
     [switch]$NoPython= $false,
     [string]$DebugDirBase = "",
-    [string]$InstallDirBase = ""
+    [string]$InstallDirBase = "",
+    [string]$Tag = "1.15.0"
 )
 
 #
@@ -18,10 +19,8 @@ $global:WinPython3Command = "py -3 -u"
 $global:MessengerManifestReplaceStr = "REPLACE_ME_WITH_SED"
 $global:PowerShellMinimumVersion = 3
 
-# $git_repo_owner should be "cmcaine" in final release
-$git_repo_owner = "cmcaine"
-# $git_repo_branch should be "master" in final release
-$git_repo_branch = "master"
+$git_repo_owner = "tridactyl"
+$git_repo_branch = $Tag
 $git_repo_proto = "https"
 $git_repo_host = "raw.githubusercontent.com"
 $git_repo_name = "tridactyl"

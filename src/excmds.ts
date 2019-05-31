@@ -654,12 +654,13 @@ export async function native() {
  */
 //#background
 export async function nativeinstall() {
+    const tag = TRI_VERSION.includes("pre") ? "master" : TRI_VERSION
     if ((await browser.runtime.getPlatformInfo()).os === "win") {
-        const installstr = await config.get("win_nativeinstallcmd")
+        const installstr = (await config.get("win_nativeinstallcmd")).replace("%WINTAG", "-Tag " + tag)
         await yank(installstr)
         fillcmdline("# Installation command copied to clipboard. Please paste and run it from cmd.exe, PowerShell, or MinTTY to install the native messenger.")
     } else {
-        const installstr = await config.get("nativeinstallcmd")
+        const installstr = (await config.get("nativeinstallcmd")).replace("%TAG", tag)
         await yank(installstr)
         fillcmdline("# Installation command copied to clipboard. Please paste and run it in your shell to install the native messenger.")
     }
@@ -704,15 +705,16 @@ export async function source_quiet(...fileArr: string[]) {
  */
 //#background
 export async function updatenative(interactive = true) {
+    const tag = TRI_VERSION.includes("pre") ? "master" : TRI_VERSION
     if (await Native.nativegate("0", interactive)) {
         if ((await browser.runtime.getPlatformInfo()).os === "mac") {
             if (interactive) logger.error("Updating the native messenger on OSX is broken. Please use `:installnative` instead.")
             return
         }
         if ((await browser.runtime.getPlatformInfo()).os === "win") {
-            await Native.run(await config.get("win_nativeinstallcmd"))
+            await Native.run((await config.get("win_nativeinstallcmd")).replace("%WINTAG", "-Tag " + tag))
         } else {
-            await Native.run(await config.get("nativeinstallcmd"))
+            await Native.run((await config.get("nativeinstallcmd")).replace("%TAG", tag))
         }
 
         if (interactive) native()
