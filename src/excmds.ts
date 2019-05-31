@@ -1368,7 +1368,7 @@ export async function tutor(newtab?: string) {
  * Display Tridactyl's contributors in order of commits in a user-friendly fashion
  */
 //#background
-export async function credits(excmd?: string) {
+export async function credits() {
     const creditspage = browser.runtime.getURL("static/authors.html")
     tabopen(creditspage)
 }
