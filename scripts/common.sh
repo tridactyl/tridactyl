@@ -24,7 +24,7 @@ prettierUgly() {
     local acc=""
     local IFS=$'\n'
     for jsfile in $1; do
-        diff <(staged "$jsfile") <(staged "$jsfile" | "$(npm bin)/prettier" --stdin-filepath "$jsfile") >/dev/null || acc="$jsfile"$'\n'"$acc"
+        diff <(staged "$jsfile") <(staged "$jsfile" | "$(yarn bin)/prettier" --stdin-filepath "$jsfile") >/dev/null || acc="$jsfile"$'\n'"$acc"
     done
     echo "$acc"
 }

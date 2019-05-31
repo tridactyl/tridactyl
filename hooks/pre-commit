@@ -20,6 +20,6 @@ fi
 
 if [ -n "$uglyFiles" ]; then
     echo "Prettify your files first:"
-    echo 'npm run pretty'
+    echo 'yarn run pretty'
     exit 1
 fi

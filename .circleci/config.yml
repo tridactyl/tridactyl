@@ -6,12 +6,12 @@ commands:
       - restore_cache:
           keys:
             - dependency-cache-{{ checksum "package.json" }}
-      - run: npm install
+      - run: yarn install
       - save_cache:
           key: dependency-cache-{{ checksum "package.json" }}
           paths:
             - ./node_modules
-      - run: npm run build
+      - run: yarn run build
 jobs:
   lint:
     docker:
@@ -21,14 +21,14 @@ jobs:
       - run: sudo apt install -qq shellcheck
       - commoncmd
       - run: bash -c 'GLOBIGNORE="node_modules" shellcheck **/*.sh'
-      - run: npm run lint
-      - run: bash -c '"$(npm bin)/tslint" --project .'
+      - run: yarn run lint
+      - run: bash -c '"$(yarn bin)/tslint" --project .'
   unit:
     docker:
       - image: circleci/node:latest
     steps:
       - commoncmd
-      - run: bash -c '"$(npm bin)/jest" src'
+      - run: bash -c '"$(yarn bin)/jest" src'
   e2e:
     docker:
       - image: circleci/node:latest-browsers
@@ -36,12 +36,12 @@ jobs:
           MOZ_HEADLESS: 1 
     steps:
       - commoncmd
-      - run: sudo npm i -g get-firefox
+      - run: sudo yarn i -g get-firefox
       - run: get-firefox --branch nightly --platform linux --extract --target ~/
       - run: ~/firefox/firefox -v
-      - run: bash -c '"$(npm bin)/web-ext" build --source-dir ./build --overwrite-dest'
+      - run: bash -c '"$(yarn bin)/web-ext" build --source-dir ./build --overwrite-dest'
       - run: mv web-ext-artifacts/*.zip web-ext-artifacts/tridactyl.xpi
-      - run: bash -c 'PATH="$HOME/firefox:$PATH" "$(npm bin)/jest"'
+      - run: bash -c 'PATH="$HOME/firefox:$PATH" "$(yarn bin)/jest"'
 workflows:
   version: 2
   build_test_lint:

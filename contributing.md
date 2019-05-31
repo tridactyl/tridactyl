@@ -126,7 +126,7 @@ Here's an example: you're writing the [`native()`](https://github.com/tridactyl/
 
 # Build Process
 
-Building Tridactyl is done with `npm run build`. This makes npm run [scripts/build.sh](https://github.com/tridactyl/tridactyl/blob/master/scripts/build.sh), which performs the following steps:
+Building Tridactyl is done with `yarn run build`. This makes yarn run [scripts/build.sh](https://github.com/tridactyl/tridactyl/blob/master/scripts/build.sh), which performs the following steps:
 
 -   Running the [macro preprocessor](https://github.com/tridactyl/tridactyl/blob/master/scripts/excmds_macros.py) to turn `src/excmds.ts` into `src/.excmds_background.ts` and `src/.excmds_content.ts` (see the "The macros" section for more info).
 -   Running the [metadata-generation](https://github.com/tridactyl/tridactyl/blob/master/compiler/gen_metadata.ts) which just re-injects type information and comment strings into Tridactyl's code in order to make them available to Tridactyl at runtime. It also checks what themes are available at compile time and adds this information to the metadata.
@@ -134,7 +134,7 @@ Building Tridactyl is done with `npm run build`. This makes npm run [scripts/bui
 -   Generating the newtab, author and tutorial pages with custom scripts and the documentation using typedoc.
 -   Importing CSS files and embedding resources (other CSS files, base64 pictures) into them wherever they're needed
 
-You can run Tridactyl easily in a temporary Firefox profile with `npm run run`.
+You can run Tridactyl easily in a temporary Firefox profile with `yarn run run`.
 
 # Code of conduct
 

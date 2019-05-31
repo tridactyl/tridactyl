@@ -17,10 +17,10 @@ isWindowsMinGW() {
 
 if [ "$(isWindowsMinGW)" = "True" ]; then
   WIN_PYTHON="py -3"
-  NPM_BIN_DIR="$(cygpath "$(npm bin)")"
-  PATH=$NPM_BIN_DIR:$PATH
+  YARN_BIN_DIR="$(cygpath "$(yarn bin)")"
+  PATH=$yarn_BIN_DIR:$PATH
 else
-  PATH="$(npm bin):$PATH"
+  PATH="$(yarn bin):$PATH"
 fi
 
 export PATH
@@ -37,12 +37,12 @@ else
 fi
 
 # .bracketexpr.generated.ts is needed for metadata generation
-"$(npm bin)/nearleyc" src/grammars/bracketexpr.ne > \
+"$(yarn bin)/nearleyc" src/grammars/bracketexpr.ne > \
   src/grammars/.bracketexpr.generated.ts
 
 # It's important to generate the metadata before the documentation because
 # missing imports might break documentation generation on clean builds
-"$(npm bin)/tsc" compiler/gen_metadata.ts -m commonjs --target es2017 \
+"$(yarn bin)/tsc" compiler/gen_metadata.ts -m commonjs --target es2017 \
   && node compiler/gen_metadata.js \
           --out src/.metadata.generated.ts \
           --themeDir src/static/themes \
@@ -71,7 +71,7 @@ scripts/authors.sh
 if [ -e "$CLEANSLATE" ] ; then
 	cp -v "$CLEANSLATE" build/static/css/cleanslate.css
 else
-	echo "Couldn't find cleanslate.css. Try running 'npm install'"
+	echo "Couldn't find cleanslate.css. Try running 'yarn install'"
 fi
 
 if [ -e "$TRIDACTYL_LOGO" ] ; then

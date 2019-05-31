@@ -10,5 +10,5 @@ file_changed() {
 }
 
 if file_changed package.json; then
-	npm install
+	yarn install
 fi

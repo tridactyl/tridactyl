@@ -231,11 +231,11 @@ Onboarding:
 ```
 git clone https://github.com/tridactyl/tridactyl.git
 cd tridactyl
-npm install
-npm run build
+yarn install
+yarn run build
 ```
 
-Each time package.json or package-lock.json change after you checkout or pull, you should run `npm install` again.
+Each time package.json or package-lock.json change after you checkout or pull, you should run `yarn install` again.
 
 Addon is built in tridactyl/build. Load it as a temporary addon in firefox with `about:debugging` or see [Development loop](#Development-loop). The addon should work in Firefox 52+, but we're only deliberately supporting >=57.
 
@@ -243,9 +243,9 @@ If you want to install a local copy of the add-on into your developer or nightly
 
 ```
 # Build tridactyl if you haven't done that yet
-npm run build
+yarn run build
 # Package for a browser
-"$(npm bin)/web-ext" build -s build
+"$(yarn bin)/web-ext" build -s build
 ```
 
 If you want to build a signed copy (e.g. for the non-developer release), you can do that with `web-ext sign`. You'll need some keys for AMO and to edit the application id in `src/manifest.json`. There's a helper script in `scripts/sign` that's used by our build bot and for manual releases.
@@ -328,16 +328,16 @@ PS C:\Users\{USERNAME}\.tridactyl> gpg2 --verify .\native_main.exe.sig .\native_
 ### Development loop
 
 ```
-npm run build & npm run run
+yarn run build & yarn run run
 ```
 
 <!-- This will compile and deploy your files each time you save them. -->
 
-You'll need to run `npm run build` every time you edit the files, and press "r" in the `npm run run` window to make sure that the files are properly reloaded.
+You'll need to run `yarn run build` every time you edit the files, and press "r" in the `yarn run run` window to make sure that the files are properly reloaded.
 
 ### Committing
 
-A pre-commit hook is added by `npm install` that simply runs `npm test`. If you know that your commit doesn't break the tests you can commit with `git commit -n` to ignore the hooks. If you're making a PR, travis will check your build anyway.
+A pre-commit hook is added by `yarn install` that simply runs `yarn test`. If you know that your commit doesn't break the tests you can commit with `git commit -n` to ignore the hooks. If you're making a PR, travis will check your build anyway.
 
 ### Documentation
 
