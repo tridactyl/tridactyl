@@ -24,6 +24,8 @@ function mk(k, mod?: ks.KeyModifiers) {
         [mks("gg"), "scrolltop"],
         [mks("gof"), "foo"],
         [mks("o"), "bar"],
+        [mks("<C-6>"), "tablast"],
+        [mks("<C-5><C-5>"), "tablast"],
     ])
 
     // This one actually found a bug once!
@@ -69,8 +71,15 @@ function mk(k, mod?: ks.KeyModifiers) {
 
         // Don't match function keys as counts.
         [[mks("<F2>gg"), keymap2], { value: "scrolltop", exstr: "scrolltop", isMatch: true }],
+
+        // Don't match numbers with modifiers as counts
         [[mks("<C-6>"), keymap2], { value: "tablast", exstr: "tablast", isMatch: true }],
         [[mks("<C-5><C-5>"), keymap2], { value: "tablast", exstr: "tablast", isMatch: true }],
+
+        // Do return isMatch for numbers that are plausibly a count
+        [[mks("0"), keymap2], { keys: [], isMatch: false }], // keymap2 does not bind 0
+        [[mks("4"), keymap2], { keys: mks("4"), isMatch: true }],
+        [[mks("44"), keymap2], { keys: mks("44"), isMatch: true }],
 
         // Test prefix problems
         [[mks("g"), keymap2], { keys: mks("g"), isMatch: true }],
