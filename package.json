@@ -8,13 +8,17 @@
     "command-line-args": "^5.1.1",
     "csp-serdes": "github:cmcaine/csp-serdes",
     "css": "^2.2.4",
+    "flyd": "^0.2.8",
     "fuse.js": "^3.4.5",
+    "immer": "^3.1.2",
     "mark.js": "^8.11.1",
+    "mithril": "^1.1.6",
     "rss-parser": "^3.7.1",
     "semver-compare": "^1.0.0"
   },
   "devDependencies": {
     "@types/jest": "^24.0.13",
+    "@types/mithril": "^1.1.16",
     "@types/node": "^12.0.4",
     "awesome-typescript-loader": "^5.2.1",
     "cleanslate": "^0.10.1",
