@@ -3,7 +3,7 @@
 # Accepts no arguments
 # Returns git-add'ed files as a list of filenames separated by a newline character
 cachedTSLintFiles() {
-    git diff --cached --name-only --diff-filter=ACM "*.js" "*.jsx" "*.ts" "*.tsx" ":(exclude)*.d.ts" ":(exclude)tests/*"
+    git diff --cached --name-only --diff-filter=ACM "*.js" "*.jsx" "*.ts" "*.tsx" ":(exclude)*.d.ts" ":(exclude)tests/*" ":(exclude)*test.ts"
 }
 
 # Accepts no arguments
