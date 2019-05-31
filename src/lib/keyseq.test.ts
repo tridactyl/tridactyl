@@ -69,6 +69,8 @@ function mk(k, mod?: ks.KeyModifiers) {
 
         // Don't match function keys as counts.
         [[mks("<F2>gg"), keymap2], { value: "scrolltop", exstr: "scrolltop", isMatch: true }],
+        [[mks("<C-6>"), keymap2], { value: "tablast", exstr: "tablast", isMatch: true }],
+        [[mks("<C-5><C-5>"), keymap2], { value: "tablast", exstr: "tablast", isMatch: true }],
 
         // Test prefix problems
         [[mks("g"), keymap2], { keys: mks("g"), isMatch: true }],
