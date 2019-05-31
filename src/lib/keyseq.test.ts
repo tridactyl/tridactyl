@@ -17,6 +17,7 @@ function mk(k, mod?: ks.KeyModifiers) {
         [mks(":"), "fillcmdline"],
         [mks("Av"), "whatever"],
         [mks("i<c-j>"), "testmods"],
+        [mks("0"), "panleft"],
     ])
     // Keymap for negative tests
     const keymap2 = new Map([
@@ -52,6 +53,22 @@ function mk(k, mod?: ks.KeyModifiers) {
             [mks("i<C-Control><c-j>"), keymap],
             { value: "testmods", isMatch: true },
         ],
+
+        // Test count behaviour
+        // Zero isn't a prefix.
+        [[mks("0g"), keymap2], { keys: mks("g"), isMatch: true }],
+        [[mks("0gg"), keymap2], { value: "scrolltop", exstr: "scrolltop", isMatch: true, numericPrefix: undefined }],
+        // If zero is a map, then it should still work
+        [[mks("0"), keymap], { value: "panleft", exstr: "panleft", isMatch: true, numericPrefix: undefined }],
+
+        // Do match numbers starting with a non-zero
+        [[mks("2gg"), keymap2], { value: "scrolltop", exstr: "scrolltop 2", isMatch: true, numericPrefix: 2 }],
+        [[mks("20gg"), keymap2], { value: "scrolltop", exstr: "scrolltop 20", isMatch: true, numericPrefix: 20 }],
+        // If zero is a map, then you can still use zero in counts.
+        [[mks("20gg"), keymap], { value: "scrolltop", exstr: "scrolltop 20", isMatch: true, numericPrefix: 20 }],
+
+        // Don't match function keys as counts.
+        [[mks("<F2>gg"), keymap2], { value: "scrolltop", exstr: "scrolltop", isMatch: true }],
 
         // Test prefix problems
         [[mks("g"), keymap2], { keys: mks("g"), isMatch: true }],

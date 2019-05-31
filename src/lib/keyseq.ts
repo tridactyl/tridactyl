@@ -21,7 +21,7 @@
 */
 
 /** */
-import { drop, filter, find, izip, take } from "@src/lib/itertools"
+import { filter, find, izip } from "@src/lib/itertools"
 import { Parser } from "@src/lib/nearley_utils"
 import * as bracketexpr_grammar from "@src/grammars/.bracketexpr.generated"
 const bracketexpr_parser = new Parser(bracketexpr_grammar)
@@ -114,6 +114,23 @@ export interface ParserResponse {
     numericPrefix?: number
 }
 
+function splitNumericPrefix(keyseq: KeyEventLike[]): [KeyEventLike[], KeyEventLike[]] {
+    // If the first key is in 1:9, partition all numbers until you reach a non-number.
+    if ([1, 2, 3, 4, 5, 6, 7, 8, 9].includes(Number(keyseq[0].key))) {
+        const prefix = [keyseq[0]]
+        for (const ke of keyseq.slice(1)) {
+            if ([0, 1, 2, 3, 4, 5, 6, 7, 8, 9].includes(Number(ke.key)))
+                prefix.push(ke)
+            else
+                break
+        }
+        const rest = keyseq.slice(prefix.length)
+        return [prefix, rest]
+    } else {
+        return [[], keyseq]
+    }
+}
+
 export function parse(keyseq: KeyEventLike[], map: KeyMap): ParserResponse {
     // Remove bare modifiers
     keyseq = keyseq.filter(
@@ -122,8 +139,8 @@ export function parse(keyseq: KeyEventLike[], map: KeyMap): ParserResponse {
     )
 
     // Split into numeric prefix and non-numeric suffix
-    let numericPrefix = Array.from(take(keyseq, isNumeric))
-    keyseq = Array.from(drop(keyseq, isNumeric))
+    let numericPrefix: KeyEventLike[]
+    [numericPrefix, keyseq] = splitNumericPrefix(keyseq)
 
     // If keyseq is a prefix of a key in map, proceed, else try dropping keys
     // from keyseq until it is empty or is a prefix.
@@ -146,6 +163,7 @@ export function parse(keyseq: KeyEventLike[], map: KeyMap): ParserResponse {
                 value: perfect[1],
                 exstr: perfect[1] + numericPrefixToExstrSuffix(numericPrefix),
                 isMatch: true,
+                numericPrefix: numericPrefix.length ? Number(numericPrefix.map(ke => ke.key).join("")) : undefined,
             }
         } catch (e) {
             if (!(e instanceof RangeError)) throw e
@@ -342,11 +360,6 @@ export function hasNonShiftModifiers(keyEvent: KeyEventLike) {
 /** A simple key event is a non-special key (length 1) that is not modified by ctrl, alt, or shift. */
 export function isSimpleKey(keyEvent: KeyEventLike) {
     return !(keyEvent.key.length > 1 || hasNonShiftModifiers(keyEvent))
-}
-
-const NUMERIC_REG = /\d/
-export function isNumeric(keyEvent: KeyEventLike) {
-    return !hasModifiers(keyEvent) && keyEvent.key.match(NUMERIC_REG)
 }
 
 function numericPrefixToExstrSuffix(numericPrefix: KeyEventLike[]) {
