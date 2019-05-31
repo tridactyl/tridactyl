@@ -138,6 +138,10 @@ export function parse(keyseq: KeyEventLike[], map: KeyMap): ParserResponse {
             !["Control", "Shift", "Alt", "AltGraph", "Meta"].includes(key.key),
     )
 
+    // If the keyseq is now empty, abort.
+    if (keyseq.length === 0)
+        return { keys: [], isMatch: false }
+
     // Split into numeric prefix and non-numeric suffix
     let numericPrefix: KeyEventLike[]
     [numericPrefix, keyseq] = splitNumericPrefix(keyseq)
