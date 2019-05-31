@@ -1,11 +1,12 @@
 import { Type } from "./Type"
 
 export class NumberType implements Type {
-    public static instance = new NumberType()
     public kind = "number"
 
+    public constructor(public isDotDotDot = false, public isQuestion = false) {}
+
     public toConstructor() {
-        return "NumberType.instance"
+        return `new NumberType(${this.isDotDotDot}, ${this.isQuestion})`
     }
 
     public toString() {

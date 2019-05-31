@@ -3,14 +3,14 @@ import { Type } from "./Type"
 export class UnionType implements Type {
     public kind = "union"
 
-    constructor(public types: Type[]) {}
+    constructor(public types: Type[], public isDotDotDot = false, public isQuestion = false) {}
 
     public toConstructor() {
         return (
             `new UnionType([` +
             // Convert every type to its string constructor representation
             this.types.map(cur => cur.toConstructor()).join(",\n") +
-            `])`
+            `], ${this.isDotDotDot}, ${this.isQuestion})`
         )
     }
 

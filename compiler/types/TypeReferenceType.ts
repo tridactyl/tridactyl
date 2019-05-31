@@ -1,14 +1,14 @@
 import { Type } from "./Type"
 
 export class TypeReferenceType implements Type {
-    public constructor(public kind: string, public args: Type[]) {}
+    public constructor(public kind: string, public args: Type[], public isDotDotDot = false, public isQuestion = false) {}
 
     public toConstructor() {
         return (
             `new TypeReferenceType(${JSON.stringify(this.kind)}, [` +
             // Turn every type argument into its constructor representation
             this.args.map(cur => cur.toConstructor()).join(",\n") +
-            `])`
+            `], ${this.isDotDotDot}, ${this.isQuestion})`
         )
     }
 

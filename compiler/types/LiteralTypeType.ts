@@ -3,10 +3,10 @@ import { Type } from "./Type"
 export class LiteralTypeType implements Type {
     public kind = "LiteralType"
 
-    constructor(public value: string) {}
+    constructor(public value: string, public isDotDotDot = false, public isQuestion = false) {}
 
     public toConstructor() {
-        return `new LiteralTypeType(${JSON.stringify(this.value)})`
+        return `new LiteralTypeType(${JSON.stringify(this.value)}, ${this.isDotDotDot}, ${this.isQuestion})`
     }
 
     public toString() {

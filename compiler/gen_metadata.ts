@@ -26,6 +26,8 @@ export function toSimpleType(typeNode) {
         case ts.SyntaxKind.Parameter:
             let n = toSimpleType(typeNode.type)
             n.name = typeNode.name.original.escapedText
+            n.isDotDotDot = !!typeNode.dotDotDotToken
+            n.isQuestion = !!typeNode.questionToken
             return n
         case ts.SyntaxKind.TypeReference:
             if (!typeNode.typeArguments) {

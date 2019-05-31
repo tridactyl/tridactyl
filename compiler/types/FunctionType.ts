@@ -3,14 +3,14 @@ import { Type } from "./Type"
 export class FunctionType implements Type {
     public kind = "function"
 
-    constructor(public args: Type[], public ret: Type) {}
+    constructor(public args: Type[], public ret: Type, public isDotDotDot = false, public isQuestion = false) {}
 
     public toConstructor() {
         return (
             `new FunctionType([` +
             // Convert every argument type to its string constructor representation
             this.args.map(cur => cur.toConstructor()) +
-            `], ${this.ret.toConstructor()})`
+            `], ${this.ret.toConstructor()}, ${this.isDotDotDot}, ${this.isQuestion})`
         )
     }
 
