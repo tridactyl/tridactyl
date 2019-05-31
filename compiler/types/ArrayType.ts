@@ -3,10 +3,10 @@ import { Type } from "./Type"
 export class ArrayType implements Type {
     public kind = "array"
 
-    constructor(public elemType: Type) {}
+    constructor(public elemType: Type, public isDotDotDot = false, public isQuestion = false) {}
 
     public toConstructor() {
-        return `new ArrayType(${this.elemType.toConstructor()})`
+        return `new ArrayType(${this.elemType.toConstructor()}, ${this.isDotDotDot}, ${this.isQuestion})`
     }
 
     public toString() {

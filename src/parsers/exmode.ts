@@ -1,43 +1,23 @@
 /** Ex Mode (AKA cmd mode) */
 
+import { FunctionType } from "../../compiler/types/AllTypes"
+import { everything as metadata } from "@src/.metadata.generated"
 import * as convert from "@src/lib/convert"
 import * as aliases from "@src/lib/aliases"
 import * as Logging from "@src/lib/logging"
-import { enumerate, izip } from "@src/lib/itertools"
 
 const logger = new Logging.Logger("exmode")
 
-/* Converts numbers, boolean, string[].
-
-   string[] eats all remaining arguments, so it should only be used as a
-   type of the last arg.
-
-   TODO: quoted strings
-   TODO: shell style options
-   TODO: counts
-*/
-function convertArgs(params, argv) {
-    const conversions = {
-        number: convert.toNumber,
-        boolean: convert.toBoolean,
-        string: s => s,
-        ModeName: s => s,
-    }
-
+function convertArgs(types, argv) {
     const typedArgs = []
-    let type
-    let arg
-    let i
-    for ([type, [i, arg]] of izip(params.values(), enumerate(argv))) {
-        if (type in conversions) {
-            typedArgs.push(conversions[type](arg))
-        } else if (type.includes("|") || ["'", '"'].includes(type[0])) {
-            // Do your own conversions!
-            typedArgs.push(arg)
-        } else if (type === "string[]") {
-            // Eat all remaining arguments
-            return [...typedArgs, ...argv.slice(i)]
-        } else throw new TypeError(`Unknown type: ${type}`)
+    for (let itypes = 0, iargv = 0; itypes < types.length && iargv < argv.length; ++itypes && ++iargv) {
+        const curType = types[itypes]
+        const curArg = argv[iargv]
+        // Special casing arrays because that's why the previous arg conversion code did
+        if (curType.isDotDotDot || curType.kind === "array") {
+            return typedArgs.concat(curType.convert(argv.slice(iargv)))
+        }
+        typedArgs.push(curType.convert(curArg))
     }
     return typedArgs
 }
@@ -61,11 +41,21 @@ export function parser(exstr: string, all_excmds: any): any[] {
         throw new Error(`Unknwown namespace: ${namespce}.`);
     }
 
-    // Convert arguments
+    // Convert arguments, but only for ex commands
     let converted_args
-    if (excmds.cmd_params !== undefined && excmds.cmd_params.has(func)) {
+    if (namespce == "") {
+        let types
         try {
-            converted_args = convertArgs(excmds.cmd_params.get(func), args)
+            types = (metadata
+                .getFile("src/excmds.ts")
+                .getFunction(funcName)
+                .type as FunctionType)
+                .args
+        } catch (e) {
+            throw `Could not find type information for excmd ${funcName}`
+        }
+        try {
+            converted_args = convertArgs(types, args)
         } catch (e) {
             logger.error("Error executing or parsing:", exstr, e)
             throw e

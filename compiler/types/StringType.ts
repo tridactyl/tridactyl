@@ -1,11 +1,12 @@
 import { Type } from "./Type"
 
 export class StringType implements Type {
-    public static instance = new StringType()
     public kind = "string"
 
+    constructor(public isDotDotDot = false, public isQuestion = false) {}
+
     public toConstructor() {
-        return "StringType.instance"
+        return `new StringType(${this.isDotDotDot}, ${this.isQuestion})`
     }
 
     public toString() {

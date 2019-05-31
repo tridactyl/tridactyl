@@ -1,11 +1,12 @@
 import { Type } from "./Type"
 
 export class BooleanType implements Type {
-    public static instance = new BooleanType()
     public kind = "boolean"
 
+    constructor(public isDotDotDot = false, public isQuestion = false) {}
+
     public toConstructor() {
-        return "BooleanType.instance"
+        return `new BooleanType(${this.isDotDotDot}, ${this.isQuestion})`
     }
 
     public toString() {

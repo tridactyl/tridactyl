@@ -3,14 +3,14 @@ import { Type } from "./Type"
 export class TupleType implements Type {
     public kind = "tuple"
 
-    constructor(public elemTypes: Type[]) {}
+    constructor(public elemTypes: Type[], public isDotDotDot = false, public isQuestion = false) {}
 
     public toConstructor() {
         return (
             `new TupleType([` +
             // Convert every element type to its constructor representation
             this.elemTypes.map(cur => cur.toConstructor()).join(",\n") +
-            `])`
+            `], ${this.isDotDotDot}, ${this.isQuestion})`
         )
     }
 

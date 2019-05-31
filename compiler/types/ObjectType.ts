@@ -4,13 +4,13 @@ export class ObjectType implements Type {
     public kind = "object"
 
     // Note: a map that has an empty key ("") uses the corresponding type as default type
-    constructor(public members: Map<string, Type> = new Map<string, Type>()) {}
+    constructor(public members: Map<string, Type> = new Map<string, Type>(), public isDotDotDot = false, public isQuestion = false) {}
 
     public toConstructor() {
         return `new ObjectType(new Map<string, Type>([` +
             Array.from(this.members.entries()).map(([n, m]) => `[${JSON.stringify(n)}, ${m.toConstructor()}]`)
             .join(", ") +
-        `]))`
+        `]), ${this.isDotDotDot}, ${this.isQuestion})`
     }
 
     public toString() {
