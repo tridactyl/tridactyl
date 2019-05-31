@@ -18,7 +18,7 @@ isWindowsMinGW() {
 if [ "$(isWindowsMinGW)" = "True" ]; then
   WIN_PYTHON="py -3"
   YARN_BIN_DIR="$(cygpath "$(yarn bin)")"
-  PATH=$yarn_BIN_DIR:$PATH
+  PATH=$YARN_BIN_DIR:$PATH
 else
   PATH="$(yarn bin):$PATH"
 fi
