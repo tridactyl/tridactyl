@@ -860,38 +860,21 @@ function focusRightHint() {
 
 /** @hidden */
 export function parser(keys: KeyboardEvent[]) {
-    const keymap = {}
-    // Build a map of actions that will match hint names
-    if (config.get("hintnames") == "numeric") {
-        for (let i = 0; i < 10; ++i) {
-            keymap[i.toString()] = `hint.pushKey ${i}`
-        }
-    } else {
-        config.get("hintchars").split("").forEach(c => keymap[c] = `hint.pushKey ${c}`)
-    }
-    // Add custom bindings on top of it
-    Object.assign(keymap, config.get("hintmaps"))
-    // If the key sequence matches, use this match
     const parsed = keyseq.parse(keys,
-        keyseq.mapstrMapToKeyMap(new Map((Object.entries(keymap) as any)
+        keyseq.mapstrMapToKeyMap(new Map((Object.entries(config.get("hintmaps")) as any)
             .filter(([key, value]) => value != ""))))
     if (parsed.isMatch === true) {
         return parsed
     }
-    // If it doesn't and the user uses vimperator hints, any character is a match
-    const hintfiltermode = config.get("hintfiltermode")
-    if (hintfiltermode === "vimperator" || hintfiltermode === "vimperator-reflow") {
-        // Ignore modifiers since they can't match text
-        const simplekeys = keys.filter(key => !keyseq.hasModifiers(key))
-        let exstr
-        if (simplekeys.length > 1) {
-            exstr = simplekeys.reduce((acc, key) => `hint.pushKey ${key.key};`, "composite ")
-        } else {
-            exstr = `hint.pushKey ${keys[0].key}`
-        }
-        return { exstr, value: exstr, isMatch: true }
+    // Ignore modifiers since they can't match text
+    const simplekeys = keys.filter(key => !keyseq.hasModifiers(key))
+    let exstr
+    if (simplekeys.length > 1) {
+        exstr = simplekeys.reduce((acc, key) => `hint.pushKey ${key.key};`, "composite ")
+    } else {
+        exstr = `hint.pushKey ${keys[0].key}`
     }
-    return { keys: [], isMatch: false }
+    return { exstr, value: exstr, isMatch: true }
 }
 
 /** @hidden*/
