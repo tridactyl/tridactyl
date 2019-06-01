@@ -36,7 +36,7 @@ jobs:
           MOZ_HEADLESS: 1 
     steps:
       - commoncmd
-      - run: sudo yarn i -g get-firefox
+      - run: sudo yarn add -g get-firefox
       - run: get-firefox --branch nightly --platform linux --extract --target ~/
       - run: ~/firefox/firefox -v
       - run: bash -c '"$(yarn bin)/web-ext" build --source-dir ./build --overwrite-dest'
