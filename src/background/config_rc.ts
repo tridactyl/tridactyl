@@ -20,7 +20,7 @@ export async function writeRc(conf: string, force = false, filename = "auto") {
     } else {
         path = filename
     }
-    return await Native.write(path, conf)
+    return await Native.writerc(path, force, conf)
 }
 
 export async function runRc(rc: string) {

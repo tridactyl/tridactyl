@@ -936,7 +936,7 @@ const DEFAULTS = o(new default_config())
 
     @param target path of properties as an array
     @hidden
-*/
+ */
 function getDeepProperty(obj, target: string[]) {
     if (obj !== undefined && target.length) {
         return getDeepProperty(obj[target[0]], target.slice(1))
@@ -951,7 +951,7 @@ function getDeepProperty(obj, target: string[]) {
 
     @param target path of properties as an array
     @hidden
-*/
+ */
 function setDeepProperty(obj, value, target) {
     if (target.length > 1) {
         // If necessary antecedent objects don't exist, create them.
@@ -990,15 +990,15 @@ export function getURL(url: string, target: string[]) {
                 // Keep only the ones that have a match
                 .filter(
                     k =>
-                        url.match(k) &&
-                        getDeepProperty(conf.subconfigs[k], target) !==
-                            undefined,
+                    url.match(k) &&
+                    getDeepProperty(conf.subconfigs[k], target) !==
+                    undefined,
                 )
                 // Sort them from lowest to highest priority, default to a priority of 10
                 .sort(
                     (k1, k2) =>
-                        (conf.subconfigs[k1].priority || 10) -
-                        (conf.subconfigs[k2].priority || 10),
+                    (conf.subconfigs[k1].priority || 10) -
+                    (conf.subconfigs[k2].priority || 10),
                 )
                 // Merge their corresponding value if they're objects, otherwise return the last value
                 .reduce(
@@ -1029,7 +1029,7 @@ export function getURL(url: string, target: string[]) {
     If the user has not specified a key, use the corresponding key from
     defaults, if one exists, else undefined.
     @hidden
-*/
+ */
 export function get(target_typed?: keyof default_config, ...target: string[]) {
     if (target_typed === undefined) {
         target = []
@@ -1062,7 +1062,7 @@ export function get(target_typed?: keyof default_config, ...target: string[]) {
 /** Get the value of the key target.
 
     Please only use this with targets that will be used at runtime - it skips static checks. Prefer [[get]].
-*/
+ */
 export function getDynamic(...target: string[]) {
     return get(target[0] as keyof default_config, ...target.slice(1))
 }
@@ -1070,7 +1070,7 @@ export function getDynamic(...target: string[]) {
 /** Get the value of the key target.
 
     Please only use this with targets that will be used at runtime - it skips static checks. Prefer [[getAsync]].
-*/
+ */
 export async function getAsyncDynamic(...target: string[]) {
     return getAsync(target[0] as keyof default_config, ...target.slice(1))
 }
@@ -1080,7 +1080,7 @@ export async function getAsyncDynamic(...target: string[]) {
 
     This is useful if you are a content script and you've just been loaded.
     @hidden
-*/
+ */
 export async function getAsync(target_typed?: keyof default_config, ...target: string[]) {
     if (INITIALISED) {
         return get(target_typed, ...target)
@@ -1105,7 +1105,7 @@ export function setURL(pattern, ...args) {
         set("aucmd", "BufRead", "memrise.com", "open memrise.com")
 
     @hidden
-*/
+ */
 export function set(...args) {
     if (args.length < 2) {
         throw "You must provide at least two arguments!"
@@ -1139,7 +1139,7 @@ export function unset(...target) {
     sometime after this happens.
 
     @hidden
-*/
+ */
 export async function save(storage: "local" | "sync" = get("storageloc")) {
     // let storageobj = storage === "local" ? browser.storage.local : browser.storage.sync
     // storageobj.set({CONFIGNAME: USERCONFIG})
@@ -1159,7 +1159,7 @@ export async function save(storage: "local" | "sync" = get("storageloc")) {
 
     When adding updaters, don't forget to set("configversion", newversionnumber)!
     @hidden
-*/
+ */
 export async function update() {
     // Updates a value both in the main config and in sub (=site specific) configs
     const updateAll = (setting: any[], fn: (any) => any) => {
@@ -1225,19 +1225,19 @@ export async function update() {
                     mapname,
                     getDeepProperty(USERCONFIG, [mapname]),
                 ])
-                // mapobj is undefined if the user didn't define any bindings
+            // mapobj is undefined if the user didn't define any bindings
                 .filter(([mapname, mapobj]) => mapobj)
                 .forEach(([mapname, mapobj]) => {
                     // For each mapping
                     Object.keys(mapobj)
-                        // Keep only the ones with im_* functions
+                    // Keep only the ones with im_* functions
                         .filter(
                             key =>
-                                mapobj[key].search(
-                                    "^im_|([^a-zA-Z0-9_-])im_",
-                                ) >= 0,
+                            mapobj[key].search(
+                                "^im_|([^a-zA-Z0-9_-])im_",
+                            ) >= 0,
                         )
-                        // Replace the prefix
+                    // Replace the prefix
                         .forEach(key =>
                             setDeepProperty(
                                 USERCONFIG,
@@ -1322,7 +1322,7 @@ export async function update() {
 
     asynchronous calls generated by getAsync.
     @hidden
-*/
+ */
 async function init() {
     const syncConfig = await browser.storage.sync.get(CONFIGNAME)
     schlepp(syncConfig[CONFIGNAME])
@@ -1460,7 +1460,7 @@ const parseConfigHelper = (pconf, parseobj) => {
                         parseobj.binds.push(`unbind --mode=hint ${e}`)
                     }
                 } else if (i === "subconfigs") {
-                    parseobj.subconfigs.push(`js tri.config.set("${i}, {"${e}": ${JSON.stringify(pconf[i][e])}})`)
+                    parseobj.subconfigs.push(`js tri.config.set("${i}", {"${e}": ${JSON.stringify(pconf[i][e])}})`)
                 } else if (i === "exaliases") {
                     // Only really useful if mapping the entire config and not just pconf.
                     if (e === "alias") {
@@ -1512,19 +1512,19 @@ browser.storage.onChanged.addListener(async (changes, areaname) => {
             // A key has been :unset if it exists in USERCONFIG and doesn't in changes and if its value in USERCONFIG is different from the one it has in default_config
             const unsetKeys = Object.keys(USERCONFIG).filter(
                 k =>
-                    changes[CONFIGNAME].newValue[k] === undefined &&
-                    JSON.stringify(USERCONFIG[k]) !==
-                        JSON.stringify(defaultConf[k]),
+                changes[CONFIGNAME].newValue[k] === undefined &&
+                JSON.stringify(USERCONFIG[k]) !==
+                JSON.stringify(defaultConf[k]),
             )
 
             // A key has changed if it is defined in USERCONFIG and its value in USERCONFIG is different from the one in `changes` or if the value in defaultConf is different from the one in `changes`
             const changedKeys = Object.keys(changes[CONFIGNAME].newValue).filter(
                 k =>
-                    JSON.stringify(
-                        USERCONFIG[k] !== undefined
-                            ? USERCONFIG[k]
-                            : defaultConf[k],
-                    ) !== JSON.stringify(changes[CONFIGNAME].newValue[k]),
+                JSON.stringify(
+                    USERCONFIG[k] !== undefined
+                    ? USERCONFIG[k]
+                    : defaultConf[k],
+                ) !== JSON.stringify(changes[CONFIGNAME].newValue[k]),
             )
 
             USERCONFIG = changes[CONFIGNAME].newValue

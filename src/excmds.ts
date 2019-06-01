@@ -691,7 +691,7 @@ export async function mktridactylrc(...argArr: string[]) {
     const file = argParse(argArr).join(" ") || undefined
 
     const conf = config.parseConfig()
-    if (await Native.nativegate("0.1.3") && (!await rc.writeRc(conf, overwrite, file))) logger.error("Could not write RC file")
+    if (await Native.nativegate("0.1.11") && (!await rc.writeRc(conf, overwrite, file))) logger.error("Could not write RC file")
 
     return conf
 }
