@@ -990,15 +990,15 @@ export function getURL(url: string, target: string[]) {
                 // Keep only the ones that have a match
                 .filter(
                     k =>
-                    url.match(k) &&
-                    getDeepProperty(conf.subconfigs[k], target) !==
-                    undefined,
+                        url.match(k) &&
+                        getDeepProperty(conf.subconfigs[k], target) !==
+                        undefined,
                 )
                 // Sort them from lowest to highest priority, default to a priority of 10
                 .sort(
                     (k1, k2) =>
-                    (conf.subconfigs[k1].priority || 10) -
-                    (conf.subconfigs[k2].priority || 10),
+                        (conf.subconfigs[k1].priority || 10) -
+                        (conf.subconfigs[k2].priority || 10),
                 )
                 // Merge their corresponding value if they're objects, otherwise return the last value
                 .reduce(
@@ -1225,7 +1225,7 @@ export async function update() {
                     mapname,
                     getDeepProperty(USERCONFIG, [mapname]),
                 ])
-            // mapobj is undefined if the user didn't define any bindings
+                // mapobj is undefined if the user didn't define any bindings
                 .filter(([mapname, mapobj]) => mapobj)
                 .forEach(([mapname, mapobj]) => {
                     // For each mapping
@@ -1233,11 +1233,11 @@ export async function update() {
                     // Keep only the ones with im_* functions
                         .filter(
                             key =>
-                            mapobj[key].search(
-                                "^im_|([^a-zA-Z0-9_-])im_",
-                            ) >= 0,
+                                mapobj[key].search(
+                                    "^im_|([^a-zA-Z0-9_-])im_",
+                                ) >= 0,
                         )
-                    // Replace the prefix
+                        // Replace the prefix
                         .forEach(key =>
                             setDeepProperty(
                                 USERCONFIG,
