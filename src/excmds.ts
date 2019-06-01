@@ -159,6 +159,7 @@ import { firefoxVersionAtLeast } from "@src/lib/webext"
 import * as rc from "@src/background/config_rc"
 import * as css_util from "@src/lib/css_util"
 import * as Updates from "@src/lib/updates"
+import * as treestyletab from "@src/interop/tst"
 
 ALL_EXCMDS = {
     "": BGSELF,
@@ -1995,7 +1996,7 @@ export async function tabprev(increment = 1) {
     let hasTST = false
     try {
         // Not sure why this is an error
-        await browser.management.get("treestyletab@piro.sakura.ne.jp")
+        await browser.management.get(treestyletab.TST_ID)
         hasTST = true
     } catch (e) {
         hasTST = false
@@ -2004,9 +2005,12 @@ export async function tabprev(increment = 1) {
     if (config.get("treestyletabintegration") && hasTST) {
         // Ok so this entire piece here is really inefficient, it looks up all tabs, gets the active tab id, gets all tabs again (this time as a tree), iterates through all those tabs flattening them into an array, and then iterates over them once more to find the index of the active tab in that flattened array. This has a lot of room for improvement in the future.
         // Find the current TAB id
+        await treestyletab.registerWithTST()
         const activeTabId = (await activeTab()).id
         // Get the whole tab tree
-        const tabTree = await browser.runtime.sendMessage("treestyletab@piro.sakura.ne.jp", {
+
+        // Need to register since recent TST versions to be able to send any messages
+        const tabTree = await browser.runtime.sendMessage(treestyletab.TST_ID, {
             type: "get-tree",
             tabs: "*",
         })
@@ -4445,5 +4449,18 @@ browser.runtime.onInstalled.addListener(details => {
     else if ((details as any).temporary !== true && details.reason === "update") updatenative(false)
     // could add elif "update" and show a changelog. Hide it behind a setting to make it less annoying?
 })
+
+//#background
+export function register(addon: string) {
+    switch (addon) {
+        case "tst":
+        case "treestyletab":
+            // For some reason, errors from this don't bubble up to cmdline
+            treestyletab.registerWithTST(true)
+            break
+        default:
+            throw new Error("Extension " + addon + " is not currently supported. Please file an :issue.")
+    }
+}
 
 // vim: tabstop=4 shiftwidth=4 expandtab
