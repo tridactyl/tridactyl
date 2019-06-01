@@ -1412,7 +1412,7 @@ export function parseConfig(): string {
     if (p.subconfigs.length > 0)
         s.subconfigs = `" Subconfig Settings\n${p.subconfigs.join("\n")}\n\n`
     if (p.logging.length > 0)
-        s.logging = `" Logging\n" + p.logging.join("\n")}\n\n`
+        s.logging = `" Logging\n${p.logging.join("\n")}\n\n`
 
     return `${s.general}${s.binds}${s.subconfigs}${s.aliases}${s.aucmds}${s.aucons}${s.logging}`
 }
