@@ -1484,7 +1484,7 @@ const parseConfigHelper = (pconf, parseobj) => {
                     if (pconf[i][e] === 4) level = "debug"
                     parseobj.logging.push(`set logging.${e} ${level}`)
                 } else {
-                    parseobj.conf.push(`set ${i}.${e} ${pconf[i][e]}`)
+                    parseobj.conf.push(`js tri.config.set("${i}", {"${e}": ${JSON.stringify(pconf[i][e])}})`)
                 }
             }
         }
