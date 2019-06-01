@@ -871,8 +871,8 @@ export function parser(keys: KeyboardEvent[]) {
     let exstr
     if (simplekeys.length > 1) {
         exstr = simplekeys.reduce((acc, key) => `hint.pushKey ${key.key};`, "composite ")
-    } else if (simplekeys.length > 0) {
-        exstr = `hint.pushKey ${keys[0].key}`
+    } else if (simplekeys.length === 1) {
+        exstr = `hint.pushKey ${simplekeys[0].key}`
     } else {
         return { keys: [], isMatch: false }
     }
