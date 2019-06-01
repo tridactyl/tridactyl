@@ -32,8 +32,6 @@ main() {
 
   if [ -n "$stagedFiles" ]; then
     # Could use git-update-index --cacheinfo to add a file without creating directories and stuff.
-    local tmpdir
-    tmpdir=$(mktemp -d "pretty.XXXXXXXXX")
     IFS=$'\n'
     for file in $stagedFiles; do
       if cmp -s <(staged "$file") "$file"; then
@@ -48,24 +46,29 @@ main() {
       else
 	echo "WARN: Staged copy of '$file' does not match working copy: only prettifying staged copy."
 	(
+	  local tmpdir
+	  tmpdir=$(mktemp -d "pretty.XXXXXXXXX")
 	  cd "$tmpdir"
 	  mkdir -p "$(dirname "$file")"
 	  lock ../.git/index.lock
-      tmpfile=$(mktemp "pretty.XXXXXXXXX")
+	  tmpfile=$(mktemp "pretty.XXXXXXXXX")
 	  case "$file" in
-	    *.md | *.css) staged "$file" | prettier --stdin-filepath "$file" > "$tmpfile" && mv "$tmpfile" "$file";;
-	    *) staged "$file" > "$tmpfile"
-	      tslint -c ../tslint.json --fix "$tmpfile" 2>/dev/null
-          mv "$tmpfile" "$file";;
+	    *.md | *.css) 
+	      staged "$file" | prettier --stdin-filepath "$file" > "$tmpfile" &&
+		mv "$tmpfile" "$file";;
+	    *)
+	      staged "$file" > "$tmpfile"
+	      tslint -c ../tslint.json --fix "$tmpfile" 2>/dev/null &&
+		mv "$tmpfile" "$file";;
 	  esac
 	  chmod --reference="../$file" "$file" # match permissions
 	  # Can't hold lock while git add occurs. Hopefully release and reacquire happen fast enough to prevent race.
 	  unlock ../.git/index.lock
 	  GIT_WORK_TREE=. git add "$file"
+	  rm -rf "$tmpdir"
 	)
       fi
     done
-    rm -rf "$tmpdir"
   fi
 }
 
