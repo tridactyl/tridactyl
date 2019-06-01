@@ -1425,37 +1425,37 @@ const parseConfigHelper = (pconf, parseobj) => {
             for (const e of Object.keys(pconf[i])) {
                 if (i === "nmaps" ) {
                     if (pconf[i][e].length > 0) {
-                        parseobj.binds.push(`bind ${e} "${pconf[i][e]}"`)
+                        parseobj.binds.push(`bind ${e} ${pconf[i][e]}`)
                     } else {
                         parseobj.binds.push(`unbind ${e}`)
                     }
                 } else if (i === "exmaps" ) {
                     if (pconf[i][e].length > 0) {
-                        parseobj.binds.push(`bind --mode=ex ${e} "${pconf[i][e]}"`)
+                        parseobj.binds.push(`bind --mode=ex ${e} ${pconf[i][e]}`)
                     } else {
                         parseobj.binds.push(`unbind --mode=ex ${e}`)
                     }
                 } else if (i === "ignoremaps" ) {
                     if (pconf[i][e].length > 0) {
-                        parseobj.binds.push(`bind --mode=ignore ${e} "${pconf[i][e]}"`)
+                        parseobj.binds.push(`bind --mode=ignore ${e} ${pconf[i][e]}`)
                     } else {
                         parseobj.binds.push(`unbind --mode=ignore ${e}`)
                     }
                 } else if (i === "imaps" ) {
                     if (pconf[i][e].length > 0) {
-                        parseobj.binds.push(`bind --mode=insert ${e} "${pconf[i][e]}"`)
+                        parseobj.binds.push(`bind --mode=insert ${e} ${pconf[i][e]}`)
                     } else {
                         parseobj.binds.push(`unbind --mode=insert ${e}`)
                     }
                 } else if (i === "inputmaps" ) {
                     if (pconf[i][e].length > 0) {
-                        parseobj.binds.push(`bind --mode=input ${e} "${pconf[i][e]}"`)
+                        parseobj.binds.push(`bind --mode=input ${e} ${pconf[i][e]}`)
                     } else {
                         parseobj.binds.push(`unbind --mode=input ${e}`)
                     }
                 } else if (i === "hintmaps" ) {
                     if (pconf[i][e].length > 0) {
-                        parseobj.binds.push(`bind --mode=hint ${e} "${pconf[i][e]}"`)
+                        parseobj.binds.push(`bind --mode=hint ${e} ${pconf[i][e]}`)
                     } else {
                         parseobj.binds.push(`unbind --mode=hint ${e}`)
                     }
