@@ -37,8 +37,10 @@
     -   'new features' highlight on the changelog is now never shown in private windows (#749)
     -   Scrolling should no longer cause infinite loops (#1247)
     -   Profile-finding should be more resilient (#1585)
+    -   Fixed some bugs with numeric prefixes (#1606)
 
 -   Under the bonnet
+
     -   Compile-time inheritance to inputmaps from imaps added
         -   ideally we'd like runtime inheritance but that's trickier
     -   Support for TypeScript 3.5
@@ -47,6 +49,9 @@
     -   `config.getURL` now merges site-specific defaults
     -   webpack now exits with non-zero exit code on build errors (#869)
     -   We're no longer using a deprecated API for determining our own extension page URLs (#1593)
+    -   We've switched from `npm` to `yarn` as we got fed up with `npm` fighting with itself over package-lock.json. Hopefully this will make development a little less painful.
+    -   `:native{install,update}` will now install the version of the native messenger that existed at the same time as your version of Tridactyl
+    -   Added Mithril (currently unused) to make redevelopment of the commandline frame easier
 
 ## Release 1.15.0 / 2019-05-23
 
