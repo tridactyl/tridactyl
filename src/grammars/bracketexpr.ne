@@ -1,5 +1,6 @@
 @preprocessor typescript
 
+# Potentially will need to add special KeyUp section - e.g. :KeyUp:
 BracketExpr -> "<" Modifier ModKey ">" {% bexpr=>bexpr.slice(1,-1) %}
              | "<" Key ">" {% bexpr=>[{}].concat(bexpr.slice(1,-1)) %}
 Modifier -> [acmsACMS]:? [acmsACMS]:? [acmsACMS]:? [acmsACMS]:? "-" {%
@@ -11,6 +12,7 @@ Modifier -> [acmsACMS]:? [acmsACMS]:? [acmsACMS]:? [acmsACMS]:? "-" {%
             ["C", "ctrlKey"],
             ["M", "metaKey"],
             ["S", "shiftKey"],
+            /** Will need to add KeyUp here */
         ])
 
         let modifiersObj = {}

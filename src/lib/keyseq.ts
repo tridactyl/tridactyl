@@ -42,6 +42,7 @@ export class MinimalKey {
     readonly ctrlKey = false
     readonly metaKey = false
     readonly shiftKey = false
+    readonly type: "keyup" | "keydown" = "keydown"
 
     constructor(readonly key: string, modifiers?: KeyModifiers) {
         if (modifiers !== undefined) {
@@ -79,6 +80,12 @@ export class MinimalKey {
                 needsBrackets = true
             }
         }
+
+        // Only annotate KeyUp
+        if (this.type == "keyup") {
+            str = "KeyUp"
+        }
+
         if (str) {
             str += "-"
         }
