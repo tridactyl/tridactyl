@@ -468,7 +468,7 @@ def handleMessage(message):
                 reply["code"] = 2
 
     elif cmd == "write":
-        with open(path, "w") as file:
+        with open(message["file"], "w") as file:
             file.write(message["content"])
 
     elif cmd == "writerc":
