@@ -6,7 +6,7 @@ const Until = webdriver.until
 const By = webdriver.By
 const Options = require("selenium-webdriver/firefox").Options
 
-jest.setTimeout(20000)
+jest.setTimeout(100000)
 
 // API docs because I waste too much time looking for them every time I go back to this:
 // https://seleniumhq.github.io/selenium/docs/api/javascript/
