@@ -48,6 +48,14 @@ Tridactyl has to override your new tab page due to WebExtension limitations. You
         -   nmx nqqrq ebg13 naq grkg.ebg13
             -   bound to `g?` by default; text mode version is not bound.
         -   glacambre, cmcaine and bovine3dom went for a walk up Higger Tor.
+    -   Day 6:
+        -   glacambre made some progress towards allowing us to remove our python macro script, replacing it with the TypeScript compiler
+        -   glacambre fixed the find mode up a little more; it now focuses elements you select with it amongst other things
+        -   bovine3dom added some kind of rudimentary version checking to `nativeinstall` to allow us to make breaking changes to the native messenger without breaking all old versions of Tridactyl forever - untested on Windows, so please poke us if it seems to be broken
+        -   cmcaine fixed and broke numeric prefixes an odd number of times
+        -   cmcaine swapped npm out for yarn as we were all fed up of npm making random changes to package-lock.json
+        -   antonva looked at the keyboard-api and WebExtension experiments and got nowhere (like the rest of us :( )
+        -   All of us went out for a Chinese meal - again subsidised by donors, so thanks!
 
 *   If Tridactyl breaks a website or is broken by a website, trying the steps in the [troubleshooting guide](https://github.com/tridactyl/tridactyl/blob/master/doc/troubleshooting.md) might help.
 
