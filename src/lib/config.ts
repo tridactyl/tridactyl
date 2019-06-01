@@ -60,11 +60,11 @@ export class default_config {
      */
     subconfigs: { [key: string]: default_config } = {
         "www.google.com": {
-            "followpagepatterns": {
-                "next": "Next",
-                "prev": "Previous"
-            }
-        } as default_config
+            followpagepatterns: {
+                next: "Next",
+                prev: "Previous",
+            },
+        } as default_config,
     }
 
     /**
@@ -342,7 +342,7 @@ export class default_config {
          * Each key corresponds to a URL fragment which, if contained within the page URL, will run the corresponding command.
          */
         DocLoad: {
-            "^https://github.com/tridactyl/tridactyl/issues/new$": "issue"
+            "^https://github.com/tridactyl/tridactyl/issues/new$": "issue",
         },
 
         /**
@@ -503,7 +503,7 @@ export class default_config {
         nativeupdate: "updatenative",
         mkt: "mktridactylrc",
         "mkt!": "mktridactylrc -f",
-        "mktridactylrc!": "mktridactylrc -f"
+        "mktridactylrc!": "mktridactylrc -f",
     }
 
     /**
@@ -972,7 +972,9 @@ export function mergeDeep(o1, o2) {
     Object.assign(r, o1, o2)
     if (o2 === undefined) return r
     Object.keys(o1)
-        .filter(key => typeof o1[key] === "object" && typeof o2[key] === "object")
+        .filter(
+            key => typeof o1[key] === "object" && typeof o2[key] === "object",
+        )
         .forEach(key => Object.assign(r[key], mergeDeep(o1[key], o2[key])))
     return r
 }
@@ -992,7 +994,7 @@ export function getURL(url: string, target: string[]) {
                     k =>
                         url.match(k) &&
                         getDeepProperty(conf.subconfigs[k], target) !==
-                        undefined,
+                            undefined,
                 )
                 // Sort them from lowest to highest priority, default to a priority of 10
                 .sort(
@@ -1017,10 +1019,8 @@ export function getURL(url: string, target: string[]) {
     }
     const user = _getURL(USERCONFIG, url, target)
     const deflt = _getURL(DEFAULTS, url, target)
-    if (user === undefined || user === null)
-        return deflt
-    if (typeof user !== "object" || typeof deflt !== "object")
-        return user
+    if (user === undefined || user === null) return deflt
+    if (typeof user !== "object" || typeof deflt !== "object") return user
     return mergeDeep(deflt, user)
 }
 
@@ -1034,7 +1034,7 @@ export function get(target_typed?: keyof default_config, ...target: string[]) {
     if (target_typed === undefined) {
         target = []
     } else {
-        target = [(target_typed as string)].concat(target)
+        target = [target_typed as string].concat(target)
     }
     // Window.tri might not be defined when called from the untrusted page context
     let loc = window.location
@@ -1081,7 +1081,10 @@ export async function getAsyncDynamic(...target: string[]) {
     This is useful if you are a content script and you've just been loaded.
     @hidden
  */
-export async function getAsync(target_typed?: keyof default_config, ...target: string[]) {
+export async function getAsync(
+    target_typed?: keyof default_config,
+    ...target: string[]
+) {
     if (INITIALISED) {
         return get(target_typed, ...target)
     } else {
@@ -1220,7 +1223,7 @@ export async function update() {
             set("configversion", "1.2")
         },
         "1.2": () => {
-            ["ignoremaps", "inputmaps", "imaps", "nmaps"]
+            ; ["ignoremaps", "inputmaps", "imaps", "nmaps"]
                 .map(mapname => [
                     mapname,
                     getDeepProperty(USERCONFIG, [mapname]),
@@ -1230,7 +1233,7 @@ export async function update() {
                 .forEach(([mapname, mapobj]) => {
                     // For each mapping
                     Object.keys(mapobj)
-                    // Keep only the ones with im_* functions
+                        // Keep only the ones with im_* functions
                         .filter(
                             key =>
                                 mapobj[key].search(
@@ -1252,7 +1255,7 @@ export async function update() {
             set("configversion", "1.3")
         },
         "1.3": () => {
-            [
+            ; [
                 "priority",
                 "hintdelay",
                 "scrollduration",
@@ -1265,7 +1268,7 @@ export async function update() {
             set("configversion", "1.4")
         },
         "1.4": () => {
-            (getDeepProperty(USERCONFIG, ["noiframeon"]) || []).forEach(
+            ; (getDeepProperty(USERCONFIG, ["noiframeon"]) || []).forEach(
                 site => {
                     setURL(site, "noiframe", "true")
                 },
@@ -1283,7 +1286,7 @@ export async function update() {
                     mapObj["<Space>"] = mapObj[" "]
                     delete mapObj[" "]
                 }
-                [
+                ; [
                     "<A- >",
                     "<C- >",
                     "<M- >",
@@ -1303,7 +1306,7 @@ export async function update() {
                 })
                 return mapObj
             }
-            ["nmaps", "exmaps", "imaps", "inputmaps", "ignoremaps"].forEach(
+            ; ["nmaps", "exmaps", "imaps", "inputmaps", "ignoremaps"].forEach(
                 settingName => updateAll([settingName], updateSetting),
             )
             set("configversion", "1.7")
@@ -1401,12 +1404,10 @@ export function parseConfig(): string {
 
     if (p.conf.length > 0)
         s.general = `" General Settings\n${p.conf.join("\n")}\n\n`
-    if (p.binds.length > 0)
-        s.binds = `" Binds\n${p.binds.join("\n")}\n\n`
+    if (p.binds.length > 0) s.binds = `" Binds\n${p.binds.join("\n")}\n\n`
     if (p.aliases.length > 0)
         s.aliases = `" Aliases\n${p.aliases.join("\n")}\n\n`
-    if (p.aucmds.length > 0)
-        s.aucmds = `" Autocmds\n${p.aucmds.join("\n")}\n\n`
+    if (p.aucmds.length > 0) s.aucmds = `" Autocmds\n${p.aucmds.join("\n")}\n\n`
     if (p.aucons.length > 0)
         s.aucons = `" Autocontainers\n${p.aucons.join("\n")}\n\n`
     if (p.subconfigs.length > 0)
@@ -1414,7 +1415,9 @@ export function parseConfig(): string {
     if (p.logging.length > 0)
         s.logging = `" Logging\n${p.logging.join("\n")}\n\n`
 
-    return `${s.general}${s.binds}${s.subconfigs}${s.aliases}${s.aucmds}${s.aucons}${s.logging}`
+    return `${s.general}${s.binds}${s.subconfigs}${s.aliases}${s.aucmds}${
+        s.aucons
+    }${s.logging}`
 }
 
 const parseConfigHelper = (pconf, parseobj) => {
@@ -1423,44 +1426,58 @@ const parseConfigHelper = (pconf, parseobj) => {
             parseobj.conf.push(`set ${i} ${pconf[i]}`)
         else {
             for (const e of Object.keys(pconf[i])) {
-                if (i === "nmaps" ) {
+                if (i === "nmaps") {
                     if (pconf[i][e].length > 0) {
                         parseobj.binds.push(`bind ${e} ${pconf[i][e]}`)
                     } else {
                         parseobj.binds.push(`unbind ${e}`)
                     }
-                } else if (i === "exmaps" ) {
+                } else if (i === "exmaps") {
                     if (pconf[i][e].length > 0) {
-                        parseobj.binds.push(`bind --mode=ex ${e} ${pconf[i][e]}`)
+                        parseobj.binds.push(
+                            `bind --mode=ex ${e} ${pconf[i][e]}`,
+                        )
                     } else {
                         parseobj.binds.push(`unbind --mode=ex ${e}`)
                     }
-                } else if (i === "ignoremaps" ) {
+                } else if (i === "ignoremaps") {
                     if (pconf[i][e].length > 0) {
-                        parseobj.binds.push(`bind --mode=ignore ${e} ${pconf[i][e]}`)
+                        parseobj.binds.push(
+                            `bind --mode=ignore ${e} ${pconf[i][e]}`,
+                        )
                     } else {
                         parseobj.binds.push(`unbind --mode=ignore ${e}`)
                     }
-                } else if (i === "imaps" ) {
+                } else if (i === "imaps") {
                     if (pconf[i][e].length > 0) {
-                        parseobj.binds.push(`bind --mode=insert ${e} ${pconf[i][e]}`)
+                        parseobj.binds.push(
+                            `bind --mode=insert ${e} ${pconf[i][e]}`,
+                        )
                     } else {
                         parseobj.binds.push(`unbind --mode=insert ${e}`)
                     }
-                } else if (i === "inputmaps" ) {
+                } else if (i === "inputmaps") {
                     if (pconf[i][e].length > 0) {
-                        parseobj.binds.push(`bind --mode=input ${e} ${pconf[i][e]}`)
+                        parseobj.binds.push(
+                            `bind --mode=input ${e} ${pconf[i][e]}`,
+                        )
                     } else {
                         parseobj.binds.push(`unbind --mode=input ${e}`)
                     }
-                } else if (i === "hintmaps" ) {
+                } else if (i === "hintmaps") {
                     if (pconf[i][e].length > 0) {
-                        parseobj.binds.push(`bind --mode=hint ${e} ${pconf[i][e]}`)
+                        parseobj.binds.push(
+                            `bind --mode=hint ${e} ${pconf[i][e]}`,
+                        )
                     } else {
                         parseobj.binds.push(`unbind --mode=hint ${e}`)
                     }
                 } else if (i === "subconfigs") {
-                    parseobj.subconfigs.push(`js tri.config.set("${i}", {"${e}": ${JSON.stringify(pconf[i][e])}})`)
+                    parseobj.subconfigs.push(
+                        `js tri.config.set("${i}", {"${e}": ${JSON.stringify(
+                            pconf[i][e],
+                        )}})`,
+                    )
                 } else if (i === "exaliases") {
                     // Only really useful if mapping the entire config and not just pconf.
                     if (e === "alias") {
@@ -1470,7 +1487,9 @@ const parseConfigHelper = (pconf, parseobj) => {
                     }
                 } else if (i === "autocmds") {
                     for (const a of Object.keys(pconf[i][e])) {
-                        parseobj.aucmds.push(`autocmd ${e} ${a} ${pconf[i][e][a]}`)
+                        parseobj.aucmds.push(
+                            `autocmd ${e} ${a} ${pconf[i][e][a]}`,
+                        )
                     }
                 } else if (i === "autocontain") {
                     parseobj.aucmds.push(`autocontain ${e} ${pconf[i][e]}`)
@@ -1484,7 +1503,11 @@ const parseConfigHelper = (pconf, parseobj) => {
                     if (pconf[i][e] === 4) level = "debug"
                     parseobj.logging.push(`set logging.${e} ${level}`)
                 } else {
-                    parseobj.conf.push(`js tri.config.set("${i}", {"${e}": ${JSON.stringify(pconf[i][e])}})`)
+                    parseobj.conf.push(
+                        `js tri.config.set("${i}", {"${e}": ${JSON.stringify(
+                            pconf[i][e],
+                        )}})`,
+                    )
                 }
             }
         }
@@ -1512,19 +1535,21 @@ browser.storage.onChanged.addListener(async (changes, areaname) => {
             // A key has been :unset if it exists in USERCONFIG and doesn't in changes and if its value in USERCONFIG is different from the one it has in default_config
             const unsetKeys = Object.keys(USERCONFIG).filter(
                 k =>
-                changes[CONFIGNAME].newValue[k] === undefined &&
-                JSON.stringify(USERCONFIG[k]) !==
-                JSON.stringify(defaultConf[k]),
+                    changes[CONFIGNAME].newValue[k] === undefined &&
+                    JSON.stringify(USERCONFIG[k]) !==
+                        JSON.stringify(defaultConf[k]),
             )
 
             // A key has changed if it is defined in USERCONFIG and its value in USERCONFIG is different from the one in `changes` or if the value in defaultConf is different from the one in `changes`
-            const changedKeys = Object.keys(changes[CONFIGNAME].newValue).filter(
+            const changedKeys = Object.keys(
+                changes[CONFIGNAME].newValue,
+            ).filter(
                 k =>
-                JSON.stringify(
-                    USERCONFIG[k] !== undefined
-                    ? USERCONFIG[k]
-                    : defaultConf[k],
-                ) !== JSON.stringify(changes[CONFIGNAME].newValue[k]),
+                    JSON.stringify(
+                        USERCONFIG[k] !== undefined
+                            ? USERCONFIG[k]
+                            : defaultConf[k],
+                    ) !== JSON.stringify(changes[CONFIGNAME].newValue[k]),
             )
 
             USERCONFIG = changes[CONFIGNAME].newValue
