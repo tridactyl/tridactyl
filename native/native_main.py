@@ -14,7 +14,7 @@ import time
 import unicodedata
 
 DEBUG = False
-VERSION = "0.1.10"
+VERSION = "0.1.11"
 
 
 class NoConnectionError(Exception):
@@ -470,6 +470,18 @@ def handleMessage(message):
     elif cmd == "write":
         with open(message["file"], "w") as file:
             file.write(message["content"])
+
+    elif cmd == "writerc":
+        path = os.path.expanduser(message["file"])
+        if not os.path.isfile(path) or message["force"]: 
+            try:
+                with open(path, "w") as file:
+                    file.write(message["content"])
+                    reply["code"] = 0 # Success.
+            except EnvironmentError:
+                reply["code"] = 2 # Some OS related error.
+        else:
+            reply["code"] = 1 # File exist, send force="true" or try another filename.
 
     elif cmd == "temp":
         prefix = message.get("prefix")

@@ -15,6 +15,7 @@ type MessageCommand =
     | "run"
     | "read"
     | "write"
+    | "writerc"
     | "temp"
     | "list_dir"
     | "mkdir"
@@ -269,6 +270,12 @@ export async function read(file: string) {
 
 export async function write(file: string, content: string) {
     return sendNativeMsg("write", { file, content }).catch(e => {
+        throw `Failed to write '${content}' to '${file}'. ${e}`
+    })
+}
+
+export async function writerc(file: string, force: boolean, content: string) {
+    return sendNativeMsg("writerc", { file, force, content }).catch(e => {
         throw `Failed to write '${content}' to '${file}'. ${e}`
     })
 }

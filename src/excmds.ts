@@ -666,6 +666,54 @@ export async function nativeinstall() {
     }
 }
 
+/** Writes current config to a file.
+
+    With no arguments supplied the excmd will try to find an appropriate
+    config path and write the rc file to there. Any argument given to the
+    excmd excluding the `-f` flag will be treated as a path to write the rc
+    file to relative to the native messenger's location (`~/.local/share/tridactyl/`). By default, it silently refuses to overwrite existing files.
+
+    The RC file will be split into sections that will be created if a config
+    property is discovered within one of them:
+    - General settings
+    - Binds
+    - Aliases
+    - Autocmds
+    - Autocontainers
+    - Logging
+
+    Note:
+    - Subconfig paths fall back to using `js tri.config.set(key: obj)` notation.
+    - This method is also used as a fallback mechanism for objects that didn't hit
+      any of the heuristics.
+
+    Available flags:
+    - `-f` will overwrite the config file if it exists.
+    @param args an optional string of arguments to be parsed.
+    @returns the parsed config.
+
+*/
+//#background
+export async function mktridactylrc(...args: string[]) {
+    let overwrite = false
+
+    const argParse = (args: string[]): string[] => {
+        if (args[0] === "-f") {
+            overwrite = true
+            args.shift()
+            argParse(args)
+        }
+        return args
+    }
+
+    const file = argParse(args).join(" ") || undefined
+
+    const conf = config.parseConfig()
+    if (await Native.nativegate("0.1.11") && (!await rc.writeRc(conf, overwrite, file))) logger.error("Could not write RC file")
+
+    return conf
+}
+
 /**
  * Runs an RC file from disk.
  *
