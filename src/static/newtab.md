@@ -56,6 +56,16 @@ Tridactyl has to override your new tab page due to WebExtension limitations. You
         -   cmcaine swapped npm out for yarn as we were all fed up of npm making random changes to package-lock.json
         -   antonva looked at the keyboard-api and WebExtension experiments and got nowhere (like the rest of us :( )
         -   All of us went out for a Chinese meal - again subsidised by donors, so thanks!
+    -   Day 7:
+        -   glacambre left :(
+        -   antonva fixed up and finished `mktridactylrc`
+        -   bovine3dom investigated `keyup` binds and TreeStyleTab integration and opened draft PRs for both
+        -   cmcaine played with iframes and the shadow DOM some more
+    -   Day 8 - the final day:
+        -   antonva left :(
+        -   antonva fixed `set findcase smart` after leaving
+        -   bovine3dom merged `:mktridactylrc`
+        -   bovine3dom started to make a Sankey diagram accounting the funding and costs of the retreat for funsies
 
 *   If Tridactyl breaks a website or is broken by a website, trying the steps in the [troubleshooting guide](https://github.com/tridactyl/tridactyl/blob/master/doc/troubleshooting.md) might help.
 
