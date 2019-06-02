@@ -668,7 +668,25 @@ export async function nativeinstall() {
 
 /** Writes current config to a file.
 
-    TODO: Write documentation.
+    With no arguments supplied the excmd will try to find an appropriate
+    config path and write the rc file to there. Any argument given to the
+    excmd excluding the `-f` flag will be treated as a path to write the rc
+    file to. By default does not overwrite existing files,
+
+    The RC file will be split into sections that will be created if a config
+    property is discovered within one of them:
+    - General settings
+    - Binds
+    - Aliases
+    - Autocmds
+    - Autocontainers
+    - Logging
+
+    Note:
+    - Subconfig paths fall back to using `js tri.config.set(key: obj)` notation.
+    - This method is also used as a fallback mechanism for objects that didn't hit
+      any of the heuristics.
+
     Available flags:
     - `-f` will overwrite the config file if it exists.
     @param string[] argArr an optional string of arguments to be parsed.
