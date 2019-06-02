@@ -3538,7 +3538,7 @@ export function get(...keys: string[]) {
  *
  * NB: Tridactyl cannot run on this page!
  *
- * @param key - The specific key you wish to view (e.g, nmaps).
+ * @param key - The specific key you wish to view (e.g, nmaps), or `--default` or `--user` to view the default configuration, or your changes.
  *
  */
 //#content
@@ -3552,7 +3552,19 @@ export function viewconfig(key?: string) {
                 .replace(/#/g, "%23")
                 .replace(/ /g, "%20")
     // I think JS casts key to the string "undefined" if it isn't given.
-    else
+    else if (key === "--default") {
+        window.location.href =
+            "data:application/json," +
+            JSON.stringify(config.o(new config.default_config()))
+                .replace(/#/g, "%23")
+                .replace(/ /g, "%20")
+    } else if (key === "--user") {
+        window.location.href =
+            "data:application/json," +
+            JSON.stringify(config.USERCONFIG)
+                .replace(/#/g, "%23")
+                .replace(/ /g, "%20")
+    }
         window.location.href =
             "data:application/json," +
             JSON.stringify(config.getDynamic(key))

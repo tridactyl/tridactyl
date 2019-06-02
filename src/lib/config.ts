@@ -24,7 +24,7 @@ let INITIALISED = false
 
 /** @hidden */
 // make a naked object
-function o(object) {
+export function o(object) {
     return Object.assign(Object.create(null), object)
 }
 
@@ -35,7 +35,7 @@ function schlepp(settings) {
 }
 
 /** @hidden */
-let USERCONFIG = o({})
+export let USERCONFIG = o({})
 
 /** @hidden
  * Ideally, LoggingLevel should be in logging.ts and imported from there. However this would cause a circular dependency, which webpack can't deal with
