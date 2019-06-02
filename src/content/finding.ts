@@ -81,7 +81,7 @@ let selected = 0
 export async function jumpToMatch(searchQuery, reverse) {
     // First, search for the query
     const findcase = config.get("findcase")
-    const sensitive = findcase === "sensitive" || (findcase === "smart" && searchQuery.match("[A-Z]"))
+    const sensitive = findcase === "sensitive" || (findcase === "smart" && /[A-Z]/.test(searchQuery))
     const findPromise = await browserBg.find.find(searchQuery, {
         tabId: await activeTabId(),
         caseSensitive: sensitive,
