@@ -1,6 +1,6 @@
 # Tridactyl changelog
 
-## Release X.XX.X / Unreleased
+## Release 1.16.0 / Unreleased
 
 -   New features
 
@@ -24,6 +24,8 @@
     -   `urlmodify -s` adds a query to a URL (#1584)
     -   `ebg13` shapgvbanyvgl nqqrq:
         -   bound to `g?` by default
+    -   `viewconfig --{user,default}` will show you your changes to the config or the default config
+    -   `mktridactylrc` will make an RC file with your current settings. Use `mktridactylrc!` to overwrite an existing file.
 
 -   Bug fixes
 
@@ -38,6 +40,7 @@
     -   Scrolling should no longer cause infinite loops (#1247)
     -   Profile-finding should be more resilient (#1585)
     -   Fixed some bugs with numeric prefixes (#1606)
+    -   `set findcase smart` should actually work now (hat-tip to burntsushi for pointing this out in his RC file)
 
 -   Under the bonnet
 
