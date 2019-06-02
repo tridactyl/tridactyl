@@ -802,7 +802,7 @@ export class default_config {
      *
      * Replaces %WINTAG with "-Tag $TRI_VERSION", similarly to [[nativeinstallcmd]].
      */
-    win_nativeinstallcmd = `powershell -NoProfile -InputFormat None -Command "$TempFile = New-TemporaryFile; (New-Object System.Net.WebClient).DownloadFile('https://raw.githubusercontent.com/cmcaine/tridactyl/master/native/win_install.ps1',$TempFile); ./$TempFile %WINTAG"`
+     win_nativeinstallcmd = `powershell -NoProfile -InputFormat None -Command "Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/cmcaine/tridactyl/master/native/win_install.ps1'))"`
 
     /**
      * Used by :updatecheck and related built-in functionality to automatically check for updates and prompt users to upgrade.
