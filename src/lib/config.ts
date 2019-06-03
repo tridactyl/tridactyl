@@ -1492,7 +1492,7 @@ const parseConfigHelper = (pconf, parseobj) => {
                         )
                     }
                 } else if (i === "autocontain") {
-                    parseobj.aucmds.push(`autocontain ${e} ${pconf[i][e]}`)
+                    parseobj.aucons.push(`autocontain ${e} ${pconf[i][e]}`)
                 } else if (i === "logging") {
                     // Map the int values in e to a log level
                     let level
