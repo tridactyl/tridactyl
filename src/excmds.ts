@@ -3970,13 +3970,17 @@ export async function hint(option?: string, selectors?: string, ...rest: string[
 //    }
 //}
 
-/** Perform rot13.
+/**
+ * Perform rot13.
  *
  * Transforms all text nodes in the current tab via rot13. Only characters in
  * the ASCII range are considered.
+ *
+ * @param n number of characters to shift.
  */
 //#content
-export function rot13() {
+export function rot13(n: number) {
+    if (n === undefined) n = 13
     const body = document.createTreeWalker(
         document.body,
         NodeFilter.SHOW_TEXT,
@@ -3987,7 +3991,7 @@ export function rot13() {
 
     while (body.nextNode()) {
         const t = body.currentNode.textContent
-       body.currentNode.textContent = rot13_helper(t)
+       body.currentNode.textContent = rot13_helper(t, n)
     }
 }
 /**
