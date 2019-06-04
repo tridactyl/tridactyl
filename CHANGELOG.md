@@ -41,6 +41,7 @@
     -   Profile-finding should be more resilient (#1585)
     -   Fixed some bugs with numeric prefixes (#1606)
     -   `set findcase smart` should actually work now (hat-tip to burntsushi for pointing this out in his RC file)
+    -   It should be much harder for the command line to swap the order of keys pressed, especially `<Space>` (#1655)
 
 -   Under the bonnet
 
