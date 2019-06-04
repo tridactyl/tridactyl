@@ -167,13 +167,15 @@ commandline_state.clInput.addEventListener(
             // need to simulate it, in order to have history() work.
             prev_cmd_called_history = false
         }
-        if (response.exstr) {
+        if (response.value) {
             commandline_state.keyEvents = []
             history_called = false
 
             // If excmds start with 'ex.' they're coming back to us anyway, so skip that.
-            if (response.exstr.startsWith("ex.")) {
-                const funcname = response.exstr.slice(3)
+            // This is definitely a hack. Should expand aliases with exmode, etc.
+            // but this whole thing should be scrapped soon, so whatever.
+            if (response.value.startsWith("ex.")) {
+                const funcname = response.value.slice(3)
                 commandline_state.fns[funcname]()
                 prev_cmd_called_history = history_called
             } else {
@@ -186,7 +188,7 @@ commandline_state.clInput.addEventListener(
                 // be acceptable becuase the background-mode excmds tend
                 // to be a touch less latency-sensitive.
                 Messaging.messageOwnTab("controller_content", "acceptExCmd", [
-                    response.exstr,
+                    response.value,
                 ]).then(_ => (prev_cmd_called_history = history_called))
             }
         } else {
