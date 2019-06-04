@@ -171,17 +171,24 @@ commandline_state.clInput.addEventListener(
             commandline_state.keyEvents = []
             history_called = false
 
-            // Send excmds directly to our own tab, which fixes the
-            // old bug where a command would be issued in one tab but
-            // land in another because the active tab had
-            // changed. Background-mode excmds will be received by the
-            // own tab's content script and then bounced through a
-            // shim to the background, but the latency increase should
-            // be acceptable becuase the background-mode excmds tend
-            // to be a touch less latency-sensitive.
-            Messaging.messageOwnTab("controller_content", "acceptExCmd", [
-                response.exstr,
-            ]).then(_ => (prev_cmd_called_history = history_called))
+            // If excmds start with 'ex.' they're coming back to us anyway, so skip that.
+            if (response.exstr.startsWith("ex.")) {
+                const funcname = response.exstr.slice(3)
+                commandline_state.fns[funcname]()
+                prev_cmd_called_history = history_called
+            } else {
+                // Send excmds directly to our own tab, which fixes the
+                // old bug where a command would be issued in one tab but
+                // land in another because the active tab had
+                // changed. Background-mode excmds will be received by the
+                // own tab's content script and then bounced through a
+                // shim to the background, but the latency increase should
+                // be acceptable becuase the background-mode excmds tend
+                // to be a touch less latency-sensitive.
+                Messaging.messageOwnTab("controller_content", "acceptExCmd", [
+                    response.exstr,
+                ]).then(_ => (prev_cmd_called_history = history_called))
+            }
         } else {
             commandline_state.keyEvents = response.keys
         }
