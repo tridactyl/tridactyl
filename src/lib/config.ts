@@ -1415,9 +1415,11 @@ export function parseConfig(): string {
     if (p.logging.length > 0)
         s.logging = `" Logging\n${p.logging.join("\n")}\n\n`
 
+    const ftdetect = `" vim: set filetype=vim:`
+
     return `${s.general}${s.binds}${s.subconfigs}${s.aliases}${s.aucmds}${
         s.aucons
-    }${s.logging}`
+    }${s.logging}${ftdetect}`
 }
 
 const parseConfigHelper = (pconf, parseobj) => {
