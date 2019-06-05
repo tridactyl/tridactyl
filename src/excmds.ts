@@ -2663,6 +2663,8 @@ export async function repeat(n = 1, ...exstr: string[]) {
  *
  * `cmds` are also split with semicolons (;) and don't pass things along to each other.
  *
+ * If you wish to have a command that has semi-colons in it (e.g. some JavaScript or `hint -;`), first bind a [[command]] to it. For example, `command hint_focus -;`, and then `composite hint_focus; !s xdotool key Menu`.
+ *
  * The behaviour of combining ; and | in the same composite command is left as an exercise for the reader.
  */
 //#both
