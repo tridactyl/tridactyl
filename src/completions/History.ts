@@ -76,21 +76,26 @@ export class HistoryCompletionSource extends Completions.CompletionSourceFuse {
         }
         options += options ? " " : ""
 
-        this.completion = undefined
+        // Options are pre-trimmed to the right length.
         this.options = (await this.scoreOptions(query, 10)).map(
             page => new HistoryCompletionOption(options + page.url, page),
         )
 
-        return this.updateChain()
-    }
+        // Deselect any selected, but remember what they were.
+        const lastFocused = this.lastFocused
+        this.deselect()
 
-    updateChain() {
-        // Options are pre-trimmed to the right length.
-        this.options.forEach(option => (option.state = "normal"))
+        // Set initial state to normal, unless the option was selected a moment
+        // ago, then reselect it so that users don't lose their selections.
+        this.options.forEach(option => option.state = "normal")
+        for (const option of this.options) {
+            if (lastFocused !== undefined && lastFocused.value === option.value) this.select(option)
+        }
 
-        // Call concrete class
         return this.updateDisplay()
     }
+
+    updateChain() {}
 
     onInput() {}
 
