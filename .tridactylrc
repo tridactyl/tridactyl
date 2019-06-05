@@ -52,6 +52,12 @@ bind gD composite tabduplicate | tabdetach
 " Make yy use canonical / short links on the 5 websites that support them
 bind yy clipboard yankshort
 
+" Stupid workaround to let hint -; be used with composite which steals semi-colons
+command hint_focus hint -;
+
+" Open right click menu on links
+bind ;c composite hint_focus; !s xdotool key Menu
+
 " Julia docs' built in search is bad
 set searchurls.julia https://www.google.com/search?q=site:http://docs.julialang.org/en/v1.0%20
 
