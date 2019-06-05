@@ -75,6 +75,9 @@ jsb browser.runtime.getPlatformInfo().then(os=>{const profiledir = os.os=="win" 
 set hintfiltermode vimperator-reflow
 set hintnames numeric
 
+" Defaults to 300ms but I'm a 'move fast and close the wrong tabs' kinda chap
+set hintdelay 100
+
 " Make Tridactyl work on more sites at the expense of some security
 set csp clobber
 fixamo_quiet
