@@ -56,7 +56,7 @@ bind yy clipboard yankshort
 command hint_focus hint -;
 
 " Open right click menu on links
-bind ;c composite hint_focus; !s xdotool key Menu
+bind ;C composite hint_focus; !s xdotool key Menu
 
 " Julia docs' built in search is bad
 set searchurls.julia https://www.google.com/search?q=site:http://docs.julialang.org/en/v1.0%20
