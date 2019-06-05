@@ -87,12 +87,10 @@ export class HistoryCompletionSource extends Completions.CompletionSourceFuse {
 
         // Set initial state to normal, unless the option was selected a moment
         // ago, then reselect it so that users don't lose their selections.
-        this.options.forEach(option => {
-            if (lastFocused !== undefined && lastFocused.value === option.value) {
-                this.select(option)
-            } else
-                option.state = "normal"
-        })
+        this.options.forEach(option => option.state = "normal")
+        for (const option of this.options) {
+            if (lastFocused !== undefined && lastFocused.value === option.value) this.select(option)
+        }
 
         return this.updateDisplay()
     }
