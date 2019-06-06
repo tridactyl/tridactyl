@@ -160,7 +160,6 @@ import * as rc from "@src/background/config_rc"
 import * as css_util from "@src/lib/css_util"
 import * as Updates from "@src/lib/updates"
 import * as treestyletab from "@src/interop/tst"
-import * as ExtensionInfo from "@src/lib/extension_info"
 
 ALL_EXCMDS = {
     "": BGSELF,
