@@ -88,8 +88,10 @@ export class BmarkCompletionSource extends Completions.CompletionSourceFuse {
     }
 
     private async scoreOptions(query: string, n: number) {
-        // Search bookmarks, dedupe and sort by frecency
+        // Search bookmarks, dedupe and sort by most recent.
         let bookmarks = await browserBg.bookmarks.search({ query })
+
+        // Remove e.g. folder nodes
         bookmarks = bookmarks.filter(b => {
             try {
                 return new URL(b.url)
@@ -99,6 +101,17 @@ export class BmarkCompletionSource extends Completions.CompletionSourceFuse {
         })
 
         bookmarks.sort((a, b) => b.dateAdded - a.dateAdded)
+
+        // Remove duplicate bookmarks
+        const seen = new Map<string, string>()
+        bookmarks = bookmarks.filter(b => {
+            if (seen.get(b.title) === b.url)
+                return false
+            else {
+                seen.set(b.title, b.url)
+                return true
+            }
+        })
 
         return bookmarks.slice(0, n)
     }
