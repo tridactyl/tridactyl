@@ -74,7 +74,7 @@ export async function init() {
         return
     }
 
-    extensions.map(updateExtensionInfo)
+    extensions.forEach(updateExtensionInfo)
 
     browser.management.onInstalled.addListener(updateExtensionInfo)
     browser.management.onEnabled.addListener(updateExtensionInfo)
@@ -92,7 +92,7 @@ export async function listenForMessage(id: KnownExtensionId, callback: (message)
 
 export async function messageExtension(id: KnownExtensionId, message: any) {
     try {
-        return browser.runtime.sendMessage(KNOWN_EXTENSIONS[id], message)
+        return await browser.runtime.sendMessage(KNOWN_EXTENSIONS[id], message)
     } catch (e) {
         logger.error("Failed to communicate with extension ", id, e)
     }
