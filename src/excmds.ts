@@ -160,6 +160,7 @@ import * as rc from "@src/background/config_rc"
 import * as css_util from "@src/lib/css_util"
 import * as Updates from "@src/lib/updates"
 import * as treestyletab from "@src/interop/tst"
+import * as ExtensionInfo from "@src/lib/extension_info"
 
 ALL_EXCMDS = {
     "": BGSELF,
@@ -1989,66 +1990,12 @@ export async function tabnext_gt(index?: number) {
  */
 //#background
 export async function tabprev(increment = 1) {
-    // Proper way:
-    // return tabIndexSetActive((await activeTab()).index - increment + 1)
-    // Kludge until https://bugzilla.mozilla.org/show_bug.cgi?id=1504775 is fixed:
-
-    let hasTST = false
-    try {
-        // Not sure why this is an error
-        await browser.management.get(treestyletab.TST_ID)
-        hasTST = true
-    } catch (e) {
-        hasTST = false
-    }
-
-    if (config.get("treestyletabintegration") && hasTST) {
-        // Ok so this entire piece here is really inefficient, it looks up all tabs, gets the active tab id, gets all tabs again (this time as a tree), iterates through all those tabs flattening them into an array, and then iterates over them once more to find the index of the active tab in that flattened array. This has a lot of room for improvement in the future.
-        // Find the current TAB id
-        await treestyletab.registerWithTST()
-        const activeTabId = (await activeTab()).id
-        // Get the whole tab tree
-
-        // Need to register since recent TST versions to be able to send any messages
-        const tabTree = await browser.runtime.sendMessage(treestyletab.TST_ID, {
-            type: "get-tree",
-            tabs: "*",
-        })
-        // Convert the Tree to a flat array
-        function flattenVisibleTree(node) {
-            if (typeof node === "undefined") return []
-
-            // There is no root parent node so the first iteration should be delt with differently
-            const ids = []
-            if (node instanceof Array) {
-                node.forEach(child => {
-                    ids.push(...flattenVisibleTree(child))
-                })
-            } else {
-                // Tree is collapsed, therefore it nor it's children are visible
-                if (typeof node.states !== "undefined" && node.states.indexOf("collapsed") !== -1) return []
-
-                ids.push(node.id)
-                // Recurse over every child and add their ID array to ours
-                if (typeof node.children !== "undefined")
-                    node.children.forEach(child => {
-                        ids.push(...flattenVisibleTree(child))
-                    })
-            }
-
-            // Return our ids followed by our childrens as an array
-            return ids
-        }
-
-        if (typeof tabTree === undefined || tabTree.constructor !== Array) return null
-        const tabList = flattenVisibleTree(tabTree)
-
-        const prevTab = tabList[tabList.indexOf(activeTabId) - increment]
-
-        return browser.tabs.update(prevTab, { active: true })
-
-        //return browser.tabs.update(tabs[prevTab].id, { active: true })
+    if (treestyletab.doTstIntegration()) {
+        return treestyletab.focusPrevVisible(increment)
     } else {
+        // Proper way:
+        // return tabIndexSetActive((await activeTab()).index - increment + 1)
+        // Kludge until https://bugzilla.mozilla.org/show_bug.cgi?id=1504775 is fixed:
         return browser.tabs.query({ currentWindow: true, hidden: false }).then(tabs => {
             tabs.sort((t1, t2) => t1.index - t2.index)
             const prevTab = (tabs.findIndex(t => t.active) - increment + tabs.length) % tabs.length

@@ -1,3 +1,4 @@
+import * as config from "@src/lib/config"
 import * as ExtensionInfo from "@src/lib/extension_info"
 
 async function _registerWithTST(manual = false) {
@@ -134,6 +135,15 @@ export async function getFlatTabs(): Promise<Array<treestyletab.Tab>> {
         // to be duplicated!
         tabs: "*",
     })
+}
+
+export function doTstIntegration(): boolean {
+    // In order from fastest check to slowest - simple variable,
+    // function call and map lookup, and finally complicated
+    // config-state thing.
+    return REGISTERED
+        && ExtensionInfo.getExtensionEnabled("tree_style_tab")
+        && config.get("treestyletabintegration")
 }
 
 // WARNING: module-level state!
