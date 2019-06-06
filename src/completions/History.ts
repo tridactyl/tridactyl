@@ -89,7 +89,10 @@ export class HistoryCompletionSource extends Completions.CompletionSourceFuse {
         // ago, then reselect it so that users don't lose their selections.
         this.options.forEach(option => option.state = "normal")
         for (const option of this.options) {
-            if (lastFocused !== undefined && lastFocused.value === option.value) this.select(option)
+            if (lastFocused !== undefined && lastFocused.value === option.value) {
+                this.select(option)
+                break
+            }
         }
 
         return this.updateDisplay()
