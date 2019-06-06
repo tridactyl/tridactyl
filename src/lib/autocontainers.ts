@@ -205,9 +205,7 @@ export class AutoContain implements IAutoContain {
         details: browser.webRequest.IDetails,
     ): Promise<boolean> => {
         if (
-            !ExtensionInfo.getExtensionEnabled(
-                ExtensionInfo.KNOWN_EXTENSIONS.multi_account_containers,
-            )
+            !ExtensionInfo.getExtensionEnabled("multi_account_containers")
         ) {
             // It can't take priority if it's not enabled.
             logger.debug(
@@ -250,9 +248,7 @@ export class AutoContain implements IAutoContain {
         details: browser.webRequest.IDetails,
     ): Promise<boolean> => {
         if (
-            !ExtensionInfo.getExtensionEnabled(
-                ExtensionInfo.KNOWN_EXTENSIONS.temp_containers,
-            )
+            !ExtensionInfo.getExtensionEnabled("temp_containers")
         ) {
             // It can't take priority if it's not enabled.
             logger.debug(
