@@ -1,5 +1,6 @@
 import * as config from "@src/lib/config"
 import * as ExtensionInfo from "@src/lib/extension_info"
+import mergeDeep from "@src/lib/objects.ts"
 
 async function _registerWithTST(manual = false) {
     try {
@@ -86,11 +87,11 @@ export async function focusAncestor(levels: number = 1) {
 }
 
 export async function messageTSTTab(id: treestyletab.TabIdentifier, msg: "collapse-tree"|"expand-tree"|"indent"|"outdent", misc?) {
-    return await ExtensionInfo.messageExtension("tree_style_tab", {
+    const obj = {
         type: msg,
         tab: id,
-        misc
-    })
+    }
+    return await ExtensionInfo.messageExtension("tree_style_tab", mergeDeep(obj,misc))
 }
 
 export async function collapseTree(id: treestyletab.TabIdentifier) {
@@ -105,14 +106,14 @@ export async function indent(
     id: treestyletab.TabIdentifier,
     followChildren: boolean,
 ) {
-    return await messageTSTTab(id, "indent", followChildren)
+    return await messageTSTTab(id, "indent", {followChildren})
 }
 
 export async function outdent(
     id: treestyletab.TabIdentifier,
     followChildren: boolean,
 ) {
-    return await messageTSTTab(id, "outdent", followChildren)
+    return await messageTSTTab(id, "outdent", {followChildren})
 }
 
 export async function getTab(id: treestyletab.TabIdentifier): Promise<treestyletab.Tab> {
