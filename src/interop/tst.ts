@@ -60,18 +60,19 @@ export async function focusNextVisible(increment: number = 1) {
 export async function focusNextSibling(increment: number = 1, silently: boolean = false) {
     for (let i = 0 ; i < increment ; ++i) {
         await ExtensionInfo.messageExtension("tree_style_tab", {
-            type: 'focus',
-            tab: 'nextSibling',
+            type: "focus",
+            tab: "nextSibling",
             silently,
         })
     }
 }
 
 export async function focusPrevSibling(increment: number = 1, silently: boolean = false) {
+    // tslint:disable-next-line:no-unconditional-jump
     for (let i = 0 ; i < increment ; ++i) {
         return await ExtensionInfo.messageExtension("tree_style_tab", {
-            type: 'focus',
-            tab: 'previousSibling',
+            type: "focus",
+            tab: "previousSibling",
             silently,
         })
     }
@@ -84,40 +85,34 @@ export async function focusAncestor(levels: number = 1) {
     return browser.tabs.update(ancestorId, { active: true })
 }
 
-export async function collapseTree(id: treestyletab.TabIdentifier) {
+export async function messageTSTTab(id: treestyletab.TabIdentifier, msg: "collapse-tree"|"expand-tree"|"indent"|"outdent", misc?) {
     return await ExtensionInfo.messageExtension("tree_style_tab", {
-        type: 'collapse-tree',
+        type: msg,
         tab: id,
+        misc
     })
 }
 
+export async function collapseTree(id: treestyletab.TabIdentifier) {
+    return await messageTSTTab(id, "collapse-tree")
+}
+
 export async function expandTree(id: treestyletab.TabIdentifier) {
-    return await ExtensionInfo.messageExtension("tree_style_tab", {
-        type: 'expand-tree',
-        tab: id,
-    })
+    return await messageTSTTab(id, "expand-tree")
 }
 
 export async function indent(
     id: treestyletab.TabIdentifier,
     followChildren: boolean,
 ) {
-    return await ExtensionInfo.messageExtension("tree_style_tab", {
-        type: 'indent',
-        tab: 'current',
-        followChildren,
-    })
+    return await messageTSTTab(id, "indent", followChildren)
 }
 
 export async function outdent(
     id: treestyletab.TabIdentifier,
     followChildren: boolean,
 ) {
-    return await ExtensionInfo.messageExtension("tree_style_tab", {
-        type: 'outdent',
-        tab: 'current',
-        followChildren,
-    })
+    return await messageTSTTab(id, "outdent", followChildren)
 }
 
 export async function getTab(id: treestyletab.TabIdentifier): Promise<treestyletab.Tab> {
@@ -127,7 +122,7 @@ export async function getTab(id: treestyletab.TabIdentifier): Promise<treestylet
     })
 }
 
-export async function getFlatTabs(): Promise<Array<treestyletab.Tab>> {
+export async function getFlatTabs(): Promise<treestyletab.Tab[]> {
     return ExtensionInfo.messageExtension("tree_style_tab", {
         type: "get-tree",
         // Asking for tabs: '*' causes get-tree to return a flattened
