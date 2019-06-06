@@ -43,7 +43,99 @@ export async function registerWithTST(manual = false) {
     }
 }
 
+export async function focusPrevVisible(increment: number = 1) {
+    const alltabs = await getFlatTabs()
+    const visibleTabs = alltabs.filter(t => !t.states.includes("collapsed"))
+    const activeIdx = visibleTabs.findIndex(t => t.active)
+    const prevVisibleIdx = (activeIdx - increment + visibleTabs.length) % visibleTabs.length
+    const prevVisibleTabId = visibleTabs[prevVisibleIdx].id
+    return browser.tabs.update(prevVisibleTabId, { active: true })
+}
+
+export async function focusNextVisible(increment: number = 1) {
+    return focusPrevVisible(-increment)
+}
+
+export async function focusNextSibling(increment: number = 1, silently: boolean = false) {
+    for (let i = 0 ; i < increment ; ++i) {
+        await ExtensionInfo.messageExtension("tree_style_tab", {
+            type: 'focus',
+            tab: 'nextSibling',
+            silently,
+        })
+    }
+}
+
+export async function focusPrevSibling(increment: number = 1, silently: boolean = false) {
+    for (let i = 0 ; i < increment ; ++i) {
+        return await ExtensionInfo.messageExtension("tree_style_tab", {
+            type: 'focus',
+            tab: 'previousSibling',
+            silently,
+        })
+    }
+}
+
+export async function focusAncestor(levels: number = 1) {
+    const tab = await getTab("current")
+    const ancestorIndent = Math.max(0, tab.indent - levels)
+    const ancestorId = tab.ancestorTabIds[tab.ancestorTabIds.length - ancestorIndent - 1]
+    return browser.tabs.update(ancestorId, { active: true })
+}
+
+export async function collapseTree(id: treestyletab.TabIdentifier) {
+    return await ExtensionInfo.messageExtension("tree_style_tab", {
+        type: 'collapse-tree',
+        tab: id,
+    })
+}
+
+export async function expandTree(id: treestyletab.TabIdentifier) {
+    return await ExtensionInfo.messageExtension("tree_style_tab", {
+        type: 'expand-tree',
+        tab: id,
+    })
+}
+
+export async function indent(
+    id: treestyletab.TabIdentifier,
+    followChildren: boolean,
+) {
+    return await ExtensionInfo.messageExtension("tree_style_tab", {
+        type: 'indent',
+        tab: 'current',
+        followChildren,
+    })
+}
+
+export async function outdent(
+    id: treestyletab.TabIdentifier,
+    followChildren: boolean,
+) {
+    return await ExtensionInfo.messageExtension("tree_style_tab", {
+        type: 'outdent',
+        tab: 'current',
+        followChildren,
+    })
+}
+
+export async function getTab(id: treestyletab.TabIdentifier): Promise<treestyletab.Tab> {
+    return ExtensionInfo.messageExtension("tree_style_tab", {
+        type: "get-tree",
+        tab: id,
+    })
+}
+
+export async function getFlatTabs(): Promise<Array<treestyletab.Tab>> {
+    return ExtensionInfo.messageExtension("tree_style_tab", {
+        type: "get-tree",
+        // Asking for tabs: '*' causes get-tree to return a flattened
+        // array of every tab. Note that this causes parts of the tree
+        // to be duplicated!
+        tabs: "*",
+    })
+}
+
 // WARNING: module-level state!
 let REGISTERED = false
 registerWithTST()
-
