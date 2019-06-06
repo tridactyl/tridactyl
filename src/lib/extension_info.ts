@@ -14,6 +14,7 @@ const logger = new Logging.Logger("messaging")
 export const KNOWN_EXTENSIONS = {
     temp_containers: "{c607c8df-14a7-4f28-894f-29e8722976af}",
     multi_account_containers: "@testpilot-containers",
+    tree_style_tab: "treestyletab@piro.sakura.ne.jp",
 }
 
 type KnownExtensionId = keyof typeof KNOWN_EXTENSIONS
@@ -79,6 +80,14 @@ export async function init() {
     browser.management.onEnabled.addListener(updateExtensionInfo)
     browser.management.onDisabled.addListener(updateExtensionInfo)
     browser.management.onUninstalled.addListener(updateExtensionInfo)
+}
+
+export async function listenForMessage(id: KnownExtensionId, callback: (message) => void) {
+    browser.runtime.onMessageExternal.addListener((message, sender) => {
+        if (sender.id === KNOWN_EXTENSIONS[id]) {
+            callback(message)
+        }
+    })
 }
 
 export async function messageExtension(id: KnownExtensionId, message: any) {

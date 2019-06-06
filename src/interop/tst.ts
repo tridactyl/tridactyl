@@ -1,32 +1,49 @@
-export const TST_ID = "treestyletab@piro.sakura.ne.jp"
+import * as ExtensionInfo from "@src/lib/extension_info"
 
 async function _registerWithTST(manual = false) {
     try {
-        await browser.runtime.sendMessage(TST_ID, {
+        await ExtensionInfo.messageExtension("tree_style_tab", {
             type: "register-self",
-            name: browser.i18n.getMessage("extensionName"),
+            name: "Tridactyl",
             icons: browser.runtime.getManifest().icons,
-            listeningTypes: [],
+            listeningTypes: ["ready", "permissions-changed"],
             permissions: ["tabs"]
         })
     } catch (e) {
         if (manual) throw new Error("TreeStyleTab hasn't finished loading: " + e)
     }
+    REGISTERED = true
 }
 
 // Register once TST says that it is ready
 export async function registerWithTST(manual = false) {
-    try {
-        await browser.management.get(TST_ID)
-    } catch (e) {
-        // We get an error if TST isn't found
-        if (manual) throw new Error("TreeStyleTab couldn't be found: " + e)
+    // If we were invoked manually, bail out loudly if TST isn't
+    // installed and enabled.
+    if (!ExtensionInfo.getExtensionEnabled("tree_style_tab") && manual) {
+        throw new Error("TreeStyleTab not installed or not enabled")
     }
-    // Initial registration must be done manually (i.e. make an excmd)/ on install
-    // but after that TST will tell us it is ready
-    browser.runtime.onMessageExternal.addListener((message, sender) => {
-        if (sender.id === TST_ID && (message.type === "ready" || message.type === "permissions-changed")) _registerWithTST()
+
+    // If we've already registered with TST, it knows about us and
+    // will tell us whenever we need to reinitialize our connection
+    // with it.
+    ExtensionInfo.listenForMessage("tree_style_tab", message => {
+        if (message.type === "ready" || message.type === "permissions-changed") {
+            _registerWithTST()
+        }
     })
-    const tst_prom = _registerWithTST(manual) // TST won't send a message if we've never registered before, so try it anyway
-    if (manual) await tst_prom
+
+    // If we've never registered with TST it won't know to send us a
+    // message, so go out and try to make friends with it.
+    //
+    // If we were invoked manually, wait until we either get an error
+    // or our message is received from TST.
+    const tst_promise = _registerWithTST(manual)
+    if (manual) {
+        await tst_promise
+    }
 }
+
+// WARNING: module-level state!
+let REGISTERED = false
+registerWithTST()
+
