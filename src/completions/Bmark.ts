@@ -1,5 +1,5 @@
-import { browserBg } from "@src/lib/webext"
 import * as Completions from "@src/completions"
+import * as providers from "@src/completions/providers"
 
 class BmarkCompletionOption extends Completions.CompletionOptionHTML
     implements Completions.CompletionOptionFuse {
@@ -60,7 +60,7 @@ export class BmarkCompletionSource extends Completions.CompletionSourceFuse {
         }
 
         this.completion = undefined
-        this.options = (await this.scoreOptions(query, 10)).map(
+        this.options = (await providers.getBookmarks(query)).slice(0, 10).map(
             page => new BmarkCompletionOption(option + page.url, page),
         )
 
@@ -85,34 +85,5 @@ export class BmarkCompletionSource extends Completions.CompletionSourceFuse {
         } else {
             throw new Error("lastExstr and option must be defined!")
         }
-    }
-
-    private async scoreOptions(query: string, n: number) {
-        // Search bookmarks, dedupe and sort by most recent.
-        let bookmarks = await browserBg.bookmarks.search({ query })
-
-        // Remove e.g. folder nodes
-        bookmarks = bookmarks.filter(b => {
-            try {
-                return new URL(b.url)
-            } catch (e) {
-                return false
-            }
-        })
-
-        bookmarks.sort((a, b) => b.dateAdded - a.dateAdded)
-
-        // Remove duplicate bookmarks
-        const seen = new Map<string, string>()
-        bookmarks = bookmarks.filter(b => {
-            if (seen.get(b.title) === b.url)
-                return false
-            else {
-                seen.set(b.title, b.url)
-                return true
-            }
-        })
-
-        return bookmarks.slice(0, n)
     }
 }
