@@ -217,9 +217,7 @@ export class AutoContain implements IAutoContain {
         // Do not handle urls that are claimed by the multi-account
         // containers extension. Code from
         // https://github.com/mozilla/multi-account-containers/wiki/API
-        const macAssignment = await browser.runtime
-            .sendMessage(
-                ExtensionInfo.KNOWN_EXTENSIONS.multi_account_containers,
+        const macAssignment = await ExtensionInfo.messageExtension("multi_account_containers",
                 {
                     method: "getAssignment",
                     url: details.url,

@@ -3,7 +3,10 @@
  Looks us and communicates with other installed extensions so we can
  be compatible with them.
 
- */
+*/
+
+import * as Logging from "@src/lib/logging"
+const logger = new Logging.Logger("messaging")
 
 /** Friendly-names of extensions that are used in different places so
     that we can refer to them with more readable and less magic ids.
@@ -76,4 +79,12 @@ export async function init() {
     browser.management.onEnabled.addListener(updateExtensionInfo)
     browser.management.onDisabled.addListener(updateExtensionInfo)
     browser.management.onUninstalled.addListener(updateExtensionInfo)
+}
+
+export async function messageExtension(id: KnownExtensionId, message: any) {
+    try {
+        return browser.runtime.sendMessage(KNOWN_EXTENSIONS[id], message)
+    } catch (e) {
+        logger.error("Failed to communicate with extension ", id, e)
+    }
 }
