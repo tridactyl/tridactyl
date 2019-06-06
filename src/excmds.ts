@@ -2004,6 +2004,50 @@ export async function tabprev(increment = 1) {
     }
 }
 
+/**
+ * If Tree Style Tab is installed, switches to an ancestor of the current tab.
+ */
+//#background
+export async function tstup(levels = 1) {
+    return treestyletab.focusAncestor(levels)
+}
+
+/**
+ * If Tree Style Tab is installed, collapses the given tab's tree.
+ */
+//#background
+export async function tstcollapse(index: number | "current" = "current") {
+    return treestyletab.collapseTree(index)
+}
+
+/**
+ * If Tree Style Tab is installed, expands the given tab's tree.
+ */
+//#background
+export async function tstexpand(index: number | "current" = "current") {
+    return treestyletab.expandTree(index)
+}
+
+/**
+ * If Tree Style Tab is installed, indent the given tab.
+ *
+ * If followChildren is specified, also indent the tab's children.
+ */
+//#background
+export async function tstindent(index?: number | "current", followChildren = true) {
+    return treestyletab.indent(index, followChildren)
+}
+
+/**
+ * If Tree Style Tab is installed, outdent the given tab.
+ *
+ * If followChildren is specified, also outdent the tab's children.
+ */
+//#background
+export async function tstoutdent(index?: number | "current", followChildren = true) {
+    return treestyletab.outdent(index, followChildren)
+}
+
 /** Like [[open]], but in a new tab. If no address is given, it will open the newtab page, which can be set with `set newtab [url]`
 
     Use the `-c` flag followed by a container name to open a tab in said container. Tridactyl will try to fuzzy match a name if an exact match is not found. If any autocontainer directives are configured and -c is not set, Tridactyl will try to use the right container automatically using your configurations.
