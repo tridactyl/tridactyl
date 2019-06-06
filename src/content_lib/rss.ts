@@ -1,3 +1,4 @@
+import * as Messaging from "@src/lib/messaging"
 import * as config from "@src/lib/config"
 import * as controller from "@src/lib/controller"
 import excmd_fillcmdline from "@src/lib/generated/fillcmdline"
@@ -53,3 +54,21 @@ export async function rssexec(url: string, type?: string, ...title: string[]) {
     // Need actual excmd parsing here.
     return controller.acceptExCmd(rsscmd)
 }
+
+// This is a hack to get around a bad import-chain from
+// completions/Rss.ts to this to excmd_fillcmdline that causes
+// commandline_content.ts to be re-included in the commandline
+// iframe's script, which injects a commandline iframe into the
+// commandline iframe ad infinitum. In an ideal world this listener
+// wouldn't exist and completions/Rss.ts would pull in the
+// auto-generated lib/rss and use these functions directly.
+//
+// TODO: Once we can import types from commandline_content without
+// injecting a new commandline iframe, remove this and change
+// completions/Rss.ts to invoke getRssLinks via the auto-lib proxy.
+Messaging.addListener(
+    "content_excmds/rss",
+    Messaging.attributeCaller({
+        getRssLinks,
+    }),
+)
