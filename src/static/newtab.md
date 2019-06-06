@@ -10,7 +10,7 @@ Tridactyl has to override your new tab page due to WebExtension limitations. You
 
 -   Upcoming **userChrome.css** changes: Mozilla is going to require a preference to be set to true from Firefox 68 to read userChrome. See [this issue](https://github.com/tridactyl/tridactyl/issues/1572).
 
--   **Tridactyl retreat** 👀: 4 of the core Tridactyl developers are meeting up in the real world to work on Tridactyl from 24th May - 1st June in the Peak District, UK in late May. [Donate using this link](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=7JQHV4N2YZCTY) if you'd like to contribute to our travel, accommodation and subsistence costs, which we estimate will be about £2,000. As of May 22nd, we have so far raised ~£680, so thanks to all of you who have donated. If you have any suggestions for things we should especially focus on, please comment on [this issue](https://github.com/tridactyl/tridactyl/issues/1379).
+-   **Tridactyl retreat** 👀: 4 of the core Tridactyl developers met up in the real world to work on Tridactyl from 24th May - 1st June in the Peak District, UK. [Donate using this link](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=7JQHV4N2YZCTY) if you'd like to contribute to our travel, accommodation and subsistence costs, which costed about £2,300. As of June 3rd, we have so far raised ~£800, so thanks to all of you who have donated.
 
 -   Tridactyl retreat dev diary:
 
@@ -56,6 +56,16 @@ Tridactyl has to override your new tab page due to WebExtension limitations. You
         -   cmcaine swapped npm out for yarn as we were all fed up of npm making random changes to package-lock.json
         -   antonva looked at the keyboard-api and WebExtension experiments and got nowhere (like the rest of us :( )
         -   All of us went out for a Chinese meal - again subsidised by donors, so thanks!
+    -   Day 7:
+        -   glacambre left :(
+        -   antonva fixed up and finished `mktridactylrc`
+        -   bovine3dom investigated `keyup` binds and TreeStyleTab integration and opened draft PRs for both
+        -   cmcaine played with iframes and the shadow DOM some more
+    -   Day 8 - the final day:
+        -   antonva left :(
+        -   antonva fixed `set findcase smart` after leaving
+        -   bovine3dom merged `:mktridactylrc`
+        -   bovine3dom started to make a Sankey diagram accounting the funding and costs of the retreat for funsies
 
 *   If Tridactyl breaks a website or is broken by a website, trying the steps in the [troubleshooting guide](https://github.com/tridactyl/tridactyl/blob/master/doc/troubleshooting.md) might help.
 

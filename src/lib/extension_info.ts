@@ -3,38 +3,46 @@
  Looks us and communicates with other installed extensions so we can
  be compatible with them.
 
- */
+*/
+
+import * as Logging from "@src/lib/logging"
+const logger = new Logging.Logger("messaging")
 
 /** Friendly-names of extensions that are used in different places so
     that we can refer to them with more readable and less magic ids.
  */
-export const KNOWN_EXTENSIONS: { [name: string]: string } = {
+export const KNOWN_EXTENSIONS = {
     temp_containers: "{c607c8df-14a7-4f28-894f-29e8722976af}",
     multi_account_containers: "@testpilot-containers",
+    tree_style_tab: "treestyletab@piro.sakura.ne.jp",
 }
+
+type KnownExtensionId = keyof typeof KNOWN_EXTENSIONS
 
 /** List of currently installed extensions.
  */
-const installedExtensions: {
-    [id: string]: browser.management.IExtensionInfo
-} = {}
+const knownInstalledExtensions: Map<KnownExtensionId, browser.management.IExtensionInfo> = new Map()
 
 function updateExtensionInfo(
     extension: browser.management.IExtensionInfo,
 ): void {
-    installedExtensions[extension.id] = extension
+    Object.keys(KNOWN_EXTENSIONS).forEach((k: KnownExtensionId) => {
+        if (KNOWN_EXTENSIONS[k] === extension.id) {
+            knownInstalledExtensions.set(k, extension)
+        }
+    })
 }
 
-export function getExtensionEnabled(id: string): boolean {
+export function getExtensionEnabled(id: KnownExtensionId): boolean {
     if (getExtensionInstalled(id)) {
-        return installedExtensions[id].enabled
+        return knownInstalledExtensions.get(id).enabled
     } else {
         return false
     }
 }
 
-export function getExtensionInstalled(id: string): boolean {
-    return id in installedExtensions
+export function getExtensionInstalled(id: KnownExtensionId): boolean {
+    return knownInstalledExtensions.has(id)
 }
 
 async function hasManagementPermission() {
@@ -66,12 +74,26 @@ export async function init() {
         return
     }
 
-    for (const extension of extensions) {
-        installedExtensions[extension.id] = extension
-    }
+    extensions.map(updateExtensionInfo)
 
     browser.management.onInstalled.addListener(updateExtensionInfo)
     browser.management.onEnabled.addListener(updateExtensionInfo)
     browser.management.onDisabled.addListener(updateExtensionInfo)
     browser.management.onUninstalled.addListener(updateExtensionInfo)
+}
+
+export async function listenForMessage(id: KnownExtensionId, callback: (message) => void) {
+    browser.runtime.onMessageExternal.addListener((message, sender) => {
+        if (sender.id === KNOWN_EXTENSIONS[id]) {
+            callback(message)
+        }
+    })
+}
+
+export async function messageExtension(id: KnownExtensionId, message: any) {
+    try {
+        return browser.runtime.sendMessage(KNOWN_EXTENSIONS[id], message)
+    } catch (e) {
+        logger.error("Failed to communicate with extension ", id, e)
+    }
 }

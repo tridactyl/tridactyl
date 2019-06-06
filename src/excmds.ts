@@ -160,6 +160,7 @@ import * as rc from "@src/background/config_rc"
 import * as css_util from "@src/lib/css_util"
 import * as Updates from "@src/lib/updates"
 import * as treestyletab from "@src/interop/tst"
+import * as ExtensionInfo from "@src/lib/extension_info"
 
 ALL_EXCMDS = {
     "": BGSELF,
@@ -665,6 +666,54 @@ export async function nativeinstall() {
         await yank(installstr)
         fillcmdline("# Installation command copied to clipboard. Please paste and run it in your shell to install the native messenger.")
     }
+}
+
+/** Writes current config to a file.
+
+    With no arguments supplied the excmd will try to find an appropriate
+    config path and write the rc file to there. Any argument given to the
+    excmd excluding the `-f` flag will be treated as a path to write the rc
+    file to relative to the native messenger's location (`~/.local/share/tridactyl/`). By default, it silently refuses to overwrite existing files.
+
+    The RC file will be split into sections that will be created if a config
+    property is discovered within one of them:
+    - General settings
+    - Binds
+    - Aliases
+    - Autocmds
+    - Autocontainers
+    - Logging
+
+    Note:
+    - Subconfig paths fall back to using `js tri.config.set(key: obj)` notation.
+    - This method is also used as a fallback mechanism for objects that didn't hit
+      any of the heuristics.
+
+    Available flags:
+    - `-f` will overwrite the config file if it exists.
+    @param args an optional string of arguments to be parsed.
+    @returns the parsed config.
+
+*/
+//#background
+export async function mktridactylrc(...args: string[]) {
+    let overwrite = false
+
+    const argParse = (args: string[]): string[] => {
+        if (args[0] === "-f") {
+            overwrite = true
+            args.shift()
+            argParse(args)
+        }
+        return args
+    }
+
+    const file = argParse(args).join(" ") || undefined
+
+    const conf = config.parseConfig()
+    if (await Native.nativegate("0.1.11") && (!await rc.writeRc(conf, overwrite, file))) logger.error("Could not write RC file")
+
+    return conf
 }
 
 /**
@@ -1941,72 +1990,62 @@ export async function tabnext_gt(index?: number) {
  */
 //#background
 export async function tabprev(increment = 1) {
-    // Proper way:
-    // return tabIndexSetActive((await activeTab()).index - increment + 1)
-    // Kludge until https://bugzilla.mozilla.org/show_bug.cgi?id=1504775 is fixed:
-
-    let hasTST = false
-    try {
-        // Not sure why this is an error
-        await browser.management.get(treestyletab.TST_ID)
-        hasTST = true
-    } catch (e) {
-        hasTST = false
-    }
-
-    if (config.get("treestyletabintegration") && hasTST) {
-        // Ok so this entire piece here is really inefficient, it looks up all tabs, gets the active tab id, gets all tabs again (this time as a tree), iterates through all those tabs flattening them into an array, and then iterates over them once more to find the index of the active tab in that flattened array. This has a lot of room for improvement in the future.
-        // Find the current TAB id
-        await treestyletab.registerWithTST()
-        const activeTabId = (await activeTab()).id
-        // Get the whole tab tree
-
-        // Need to register since recent TST versions to be able to send any messages
-        const tabTree = await browser.runtime.sendMessage(treestyletab.TST_ID, {
-            type: "get-tree",
-            tabs: "*",
-        })
-        // Convert the Tree to a flat array
-        function flattenVisibleTree(node) {
-            if (typeof node === "undefined") return []
-
-            // There is no root parent node so the first iteration should be delt with differently
-            const ids = []
-            if (node instanceof Array) {
-                node.forEach(child => {
-                    ids.push(...flattenVisibleTree(child))
-                })
-            } else {
-                // Tree is collapsed, therefore it nor it's children are visible
-                if (typeof node.states !== "undefined" && node.states.indexOf("collapsed") !== -1) return []
-
-                ids.push(node.id)
-                // Recurse over every child and add their ID array to ours
-                if (typeof node.children !== "undefined")
-                    node.children.forEach(child => {
-                        ids.push(...flattenVisibleTree(child))
-                    })
-            }
-
-            // Return our ids followed by our childrens as an array
-            return ids
-        }
-
-        if (typeof tabTree === undefined || tabTree.constructor !== Array) return null
-        const tabList = flattenVisibleTree(tabTree)
-
-        const prevTab = tabList[tabList.indexOf(activeTabId) - increment]
-
-        return browser.tabs.update(prevTab, { active: true })
-
-        //return browser.tabs.update(tabs[prevTab].id, { active: true })
+    if (treestyletab.doTstIntegration()) {
+        return treestyletab.focusPrevVisible(increment)
     } else {
+        // Proper way:
+        // return tabIndexSetActive((await activeTab()).index - increment + 1)
+        // Kludge until https://bugzilla.mozilla.org/show_bug.cgi?id=1504775 is fixed:
         return browser.tabs.query({ currentWindow: true, hidden: false }).then(tabs => {
             tabs.sort((t1, t2) => t1.index - t2.index)
             const prevTab = (tabs.findIndex(t => t.active) - increment + tabs.length) % tabs.length
             return browser.tabs.update(tabs[prevTab].id, { active: true })
         })
     }
+}
+
+/**
+ * If Tree Style Tab is installed, switches to an ancestor of the current tab.
+ */
+//#background
+export async function tstup(levels = 1) {
+    return treestyletab.focusAncestor(levels)
+}
+
+/**
+ * If Tree Style Tab is installed, collapses the given tab's tree.
+ */
+//#background
+export async function tstcollapse(index: number | "current" = "current") {
+    return treestyletab.collapseTree(index)
+}
+
+/**
+ * If Tree Style Tab is installed, expands the given tab's tree.
+ */
+//#background
+export async function tstexpand(index: number | "current" = "current") {
+    return treestyletab.expandTree(index)
+}
+
+/**
+ * If Tree Style Tab is installed, indent the given tab.
+ *
+ * If followChildren is specified, also indent the tab's children.
+ */
+//#background
+export async function tstindent(index?: number | "current", followChildren = true) {
+    return treestyletab.indent(index, followChildren)
+}
+
+/**
+ * If Tree Style Tab is installed, outdent the given tab.
+ *
+ * If followChildren is specified, also outdent the tab's children.
+ */
+//#background
+export async function tstoutdent(index?: number | "current", followChildren = true) {
+    return treestyletab.outdent(index, followChildren)
 }
 
 /** Like [[open]], but in a new tab. If no address is given, it will open the newtab page, which can be set with `set newtab [url]`
@@ -2673,6 +2712,8 @@ export async function repeat(n = 1, ...exstr: string[]) {
  * Workaround: this should clearly be in the parser, but we haven't come up with a good way to deal with |s in URLs, search terms, etc. yet.
  *
  * `cmds` are also split with semicolons (;) and don't pass things along to each other.
+ *
+ * If you wish to have a command that has semi-colons in it (e.g. some JavaScript or `hint -;`), first bind a [[command]] to it. For example, `command hint_focus -;`, and then `composite hint_focus; !s xdotool key Menu`.
  *
  * The behaviour of combining ; and | in the same composite command is left as an exercise for the reader.
  */
@@ -3549,7 +3590,7 @@ export function get(...keys: string[]) {
  *
  * NB: Tridactyl cannot run on this page!
  *
- * @param key - The specific key you wish to view (e.g, nmaps).
+ * @param key - The specific key you wish to view (e.g, nmaps), or `--default` or `--user` to view the default configuration, or your changes.
  *
  */
 //#content
@@ -3563,7 +3604,19 @@ export function viewconfig(key?: string) {
                 .replace(/#/g, "%23")
                 .replace(/ /g, "%20")
     // I think JS casts key to the string "undefined" if it isn't given.
-    else
+    else if (key === "--default") {
+        window.location.href =
+            "data:application/json," +
+            JSON.stringify(config.o(new config.default_config()))
+                .replace(/#/g, "%23")
+                .replace(/ /g, "%20")
+    } else if (key === "--user") {
+        window.location.href =
+            "data:application/json," +
+            JSON.stringify(config.USERCONFIG)
+                .replace(/#/g, "%23")
+                .replace(/ /g, "%20")
+    }
         window.location.href =
             "data:application/json," +
             JSON.stringify(config.getDynamic(key))
@@ -3969,13 +4022,17 @@ export async function hint(option?: string, selectors?: string, ...rest: string[
 //    }
 //}
 
-/** Perform rot13.
+/**
+ * Perform rot13.
  *
  * Transforms all text nodes in the current tab via rot13. Only characters in
  * the ASCII range are considered.
+ *
+ * @param n number of characters to shift.
  */
 //#content
-export function rot13() {
+export function rot13(n: number) {
+    if (n === undefined) n = 13
     const body = document.createTreeWalker(
         document.body,
         NodeFilter.SHOW_TEXT,
@@ -3986,7 +4043,7 @@ export function rot13() {
 
     while (body.nextNode()) {
         const t = body.currentNode.textContent
-       body.currentNode.textContent = rot13_helper(t)
+       body.currentNode.textContent = rot13_helper(t, n)
     }
 }
 /**

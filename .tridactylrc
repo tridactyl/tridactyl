@@ -42,12 +42,21 @@ bindurl www.google.com F hint -Jtc .rc>.r>a
 " Allow Ctrl-a to select all in the commandline
 unbind --mode=ex <C-a>
 
-" Let Ctrl-c to copy in the commandline
+" Allow Ctrl-c to copy in the commandline
 unbind --mode=ex <C-c>
 
 " Handy multiwindow/multitasking binds
 bind gd tabdetach
 bind gD composite tabduplicate | tabdetach
+
+" Make yy use canonical / short links on the 5 websites that support them
+bind yy clipboard yankshort
+
+" Stupid workaround to let hint -; be used with composite which steals semi-colons
+command hint_focus hint -;
+
+" Open right click menu on links
+bind ;C composite hint_focus; !s xdotool key Menu
 
 " Julia docs' built in search is bad
 set searchurls.julia https://www.google.com/search?q=site:http://docs.julialang.org/en/v1.0%20
@@ -65,6 +74,9 @@ jsb browser.runtime.getPlatformInfo().then(os=>{const profiledir = os.os=="win" 
 " Sane hinting mode
 set hintfiltermode vimperator-reflow
 set hintnames numeric
+
+" Defaults to 300ms but I'm a 'move fast and close the wrong tabs' kinda chap
+set hintdelay 100
 
 " Make Tridactyl work on more sites at the expense of some security
 set csp clobber

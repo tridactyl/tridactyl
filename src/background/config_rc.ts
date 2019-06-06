@@ -13,6 +13,16 @@ export async function source(filename = "auto") {
     return true
 }
 
+export async function writeRc(conf: string, force = false, filename = "auto") {
+    let path: string
+    if (filename === "auto") {
+        path = await Native.getrcpath()
+    } else {
+        path = filename
+    }
+    return await Native.writerc(path, force, conf)
+}
+
 export async function runRc(rc: string) {
     for (const cmd of rcFileToExCmds(rc)) {
         await controller.acceptExCmd(cmd)

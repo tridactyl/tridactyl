@@ -205,9 +205,7 @@ export class AutoContain implements IAutoContain {
         details: browser.webRequest.IDetails,
     ): Promise<boolean> => {
         if (
-            !ExtensionInfo.getExtensionEnabled(
-                ExtensionInfo.KNOWN_EXTENSIONS.multi_account_containers,
-            )
+            !ExtensionInfo.getExtensionEnabled("multi_account_containers")
         ) {
             // It can't take priority if it's not enabled.
             logger.debug(
@@ -219,9 +217,7 @@ export class AutoContain implements IAutoContain {
         // Do not handle urls that are claimed by the multi-account
         // containers extension. Code from
         // https://github.com/mozilla/multi-account-containers/wiki/API
-        const macAssignment = await browser.runtime
-            .sendMessage(
-                ExtensionInfo.KNOWN_EXTENSIONS.multi_account_containers,
+        const macAssignment = await ExtensionInfo.messageExtension("multi_account_containers",
                 {
                     method: "getAssignment",
                     url: details.url,
@@ -250,9 +246,7 @@ export class AutoContain implements IAutoContain {
         details: browser.webRequest.IDetails,
     ): Promise<boolean> => {
         if (
-            !ExtensionInfo.getExtensionEnabled(
-                ExtensionInfo.KNOWN_EXTENSIONS.temp_containers,
-            )
+            !ExtensionInfo.getExtensionEnabled("temp_containers")
         ) {
             // It can't take priority if it's not enabled.
             logger.debug(

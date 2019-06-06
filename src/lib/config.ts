@@ -24,7 +24,7 @@ let INITIALISED = false
 
 /** @hidden */
 // make a naked object
-function o(object) {
+export function o(object) {
     return Object.assign(Object.create(null), object)
 }
 
@@ -35,7 +35,7 @@ function schlepp(settings) {
 }
 
 /** @hidden */
-let USERCONFIG = o({})
+export let USERCONFIG = o({})
 
 /** @hidden
  * Ideally, LoggingLevel should be in logging.ts and imported from there. However this would cause a circular dependency, which webpack can't deal with
@@ -60,11 +60,11 @@ export class default_config {
      */
     subconfigs: { [key: string]: default_config } = {
         "www.google.com": {
-            "followpagepatterns": {
-                "next": "Next",
-                "prev": "Previous"
-            }
-        } as default_config
+            followpagepatterns: {
+                next: "Next",
+                prev: "Previous",
+            },
+        } as default_config,
     }
 
     /**
@@ -342,7 +342,7 @@ export class default_config {
          * Each key corresponds to a URL fragment which, if contained within the page URL, will run the corresponding command.
          */
         DocLoad: {
-            "^https://github.com/tridactyl/tridactyl/issues/new$": "issue"
+            "^https://github.com/tridactyl/tridactyl/issues/new$": "issue",
         },
 
         /**
@@ -501,6 +501,9 @@ export class default_config {
         zo: "zoom",
         installnative: "nativeinstall",
         nativeupdate: "updatenative",
+        mkt: "mktridactylrc",
+        "mkt!": "mktridactylrc -f",
+        "mktridactylrc!": "mktridactylrc -f",
     }
 
     /**
@@ -799,7 +802,7 @@ export class default_config {
      *
      * Replaces %WINTAG with "-Tag $TRI_VERSION", similarly to [[nativeinstallcmd]].
      */
-    win_nativeinstallcmd = `powershell -NoProfile -InputFormat None -Command "$TempFile = New-TemporaryFile; (New-Object System.Net.WebClient).DownloadFile('https://raw.githubusercontent.com/cmcaine/tridactyl/master/native/win_install.ps1',$TempFile); ./$TempFile %WINTAG"`
+     win_nativeinstallcmd = `powershell -NoProfile -InputFormat None -Command "Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/cmcaine/tridactyl/master/native/win_install.ps1'))"`
 
     /**
      * Used by :updatecheck and related built-in functionality to automatically check for updates and prompt users to upgrade.
@@ -938,7 +941,7 @@ const DEFAULTS = o(new default_config())
 
     @param target path of properties as an array
     @hidden
-*/
+ */
 function getDeepProperty(obj, target: string[]) {
     if (obj !== undefined && target.length) {
         return getDeepProperty(obj[target[0]], target.slice(1))
@@ -953,7 +956,7 @@ function getDeepProperty(obj, target: string[]) {
 
     @param target path of properties as an array
     @hidden
-*/
+ */
 function setDeepProperty(obj, value, target) {
     if (target.length > 1) {
         // If necessary antecedent objects don't exist, create them.
@@ -974,7 +977,9 @@ export function mergeDeep(o1, o2) {
     Object.assign(r, o1, o2)
     if (o2 === undefined) return r
     Object.keys(o1)
-        .filter(key => typeof o1[key] === "object" && typeof o2[key] === "object")
+        .filter(
+            key => typeof o1[key] === "object" && typeof o2[key] === "object",
+        )
         .forEach(key => Object.assign(r[key], mergeDeep(o1[key], o2[key])))
     return r
 }
@@ -1019,10 +1024,8 @@ export function getURL(url: string, target: string[]) {
     }
     const user = _getURL(USERCONFIG, url, target)
     const deflt = _getURL(DEFAULTS, url, target)
-    if (user === undefined || user === null)
-        return deflt
-    if (typeof user !== "object" || typeof deflt !== "object")
-        return user
+    if (user === undefined || user === null) return deflt
+    if (typeof user !== "object" || typeof deflt !== "object") return user
     return mergeDeep(deflt, user)
 }
 
@@ -1031,12 +1034,12 @@ export function getURL(url: string, target: string[]) {
     If the user has not specified a key, use the corresponding key from
     defaults, if one exists, else undefined.
     @hidden
-*/
+ */
 export function get(target_typed?: keyof default_config, ...target: string[]) {
     if (target_typed === undefined) {
         target = []
     } else {
-        target = [(target_typed as string)].concat(target)
+        target = [target_typed as string].concat(target)
     }
     // Window.tri might not be defined when called from the untrusted page context
     let loc = window.location
@@ -1064,7 +1067,7 @@ export function get(target_typed?: keyof default_config, ...target: string[]) {
 /** Get the value of the key target.
 
     Please only use this with targets that will be used at runtime - it skips static checks. Prefer [[get]].
-*/
+ */
 export function getDynamic(...target: string[]) {
     return get(target[0] as keyof default_config, ...target.slice(1))
 }
@@ -1072,7 +1075,7 @@ export function getDynamic(...target: string[]) {
 /** Get the value of the key target.
 
     Please only use this with targets that will be used at runtime - it skips static checks. Prefer [[getAsync]].
-*/
+ */
 export async function getAsyncDynamic(...target: string[]) {
     return getAsync(target[0] as keyof default_config, ...target.slice(1))
 }
@@ -1082,8 +1085,11 @@ export async function getAsyncDynamic(...target: string[]) {
 
     This is useful if you are a content script and you've just been loaded.
     @hidden
-*/
-export async function getAsync(target_typed?: keyof default_config, ...target: string[]) {
+ */
+export async function getAsync(
+    target_typed?: keyof default_config,
+    ...target: string[]
+) {
     if (INITIALISED) {
         return get(target_typed, ...target)
     } else {
@@ -1107,7 +1113,7 @@ export function setURL(pattern, ...args) {
         set("aucmd", "BufRead", "memrise.com", "open memrise.com")
 
     @hidden
-*/
+ */
 export function set(...args) {
     if (args.length < 2) {
         throw "You must provide at least two arguments!"
@@ -1141,7 +1147,7 @@ export function unset(...target) {
     sometime after this happens.
 
     @hidden
-*/
+ */
 export async function save(storage: "local" | "sync" = get("storageloc")) {
     // let storageobj = storage === "local" ? browser.storage.local : browser.storage.sync
     // storageobj.set({CONFIGNAME: USERCONFIG})
@@ -1161,7 +1167,7 @@ export async function save(storage: "local" | "sync" = get("storageloc")) {
 
     When adding updaters, don't forget to set("configversion", newversionnumber)!
     @hidden
-*/
+ */
 export async function update() {
     // Updates a value both in the main config and in sub (=site specific) configs
     const updateAll = (setting: any[], fn: (any) => any) => {
@@ -1222,7 +1228,7 @@ export async function update() {
             set("configversion", "1.2")
         },
         "1.2": () => {
-            ["ignoremaps", "inputmaps", "imaps", "nmaps"]
+            ; ["ignoremaps", "inputmaps", "imaps", "nmaps"]
                 .map(mapname => [
                     mapname,
                     getDeepProperty(USERCONFIG, [mapname]),
@@ -1254,7 +1260,7 @@ export async function update() {
             set("configversion", "1.3")
         },
         "1.3": () => {
-            [
+            ; [
                 "priority",
                 "hintdelay",
                 "scrollduration",
@@ -1267,7 +1273,7 @@ export async function update() {
             set("configversion", "1.4")
         },
         "1.4": () => {
-            (getDeepProperty(USERCONFIG, ["noiframeon"]) || []).forEach(
+            ; (getDeepProperty(USERCONFIG, ["noiframeon"]) || []).forEach(
                 site => {
                     setURL(site, "noiframe", "true")
                 },
@@ -1285,7 +1291,7 @@ export async function update() {
                     mapObj["<Space>"] = mapObj[" "]
                     delete mapObj[" "]
                 }
-                [
+                ; [
                     "<A- >",
                     "<C- >",
                     "<M- >",
@@ -1305,7 +1311,7 @@ export async function update() {
                 })
                 return mapObj
             }
-            ["nmaps", "exmaps", "imaps", "inputmaps", "ignoremaps"].forEach(
+            ; ["nmaps", "exmaps", "imaps", "inputmaps", "ignoremaps"].forEach(
                 settingName => updateAll([settingName], updateSetting),
             )
             set("configversion", "1.7")
@@ -1324,7 +1330,7 @@ export async function update() {
 
     asynchronous calls generated by getAsync.
     @hidden
-*/
+ */
 async function init() {
     const syncConfig = await browser.storage.sync.get(CONFIGNAME)
     schlepp(syncConfig[CONFIGNAME])
@@ -1371,6 +1377,151 @@ export function removeChangeListener<P extends keyof default_config>(
     if (i >= 0) arr.splice(i, 1)
 }
 
+/** Parse the config into a string representation of a .tridactylrc config file.
+    Tries to parse the config into sectionable chunks based on keywords.
+    Binds, aliases, autocmds and logging settings each have their own section while the rest are dumped into "General Settings".
+
+    @returns string The parsed config file.
+
+ */
+export function parseConfig(): string {
+    let p = {
+        conf: [],
+        binds: [],
+        aliases: [],
+        subconfigs: [],
+        aucmds: [],
+        aucons: [],
+        logging: [],
+    }
+
+    p = parseConfigHelper(USERCONFIG, p)
+
+    const s = {
+        general: ``,
+        binds: ``,
+        aliases: ``,
+        aucmds: ``,
+        aucons: ``,
+        subconfigs: ``,
+        logging: ``,
+    }
+
+    if (p.conf.length > 0)
+        s.general = `" General Settings\n${p.conf.join("\n")}\n\n`
+    if (p.binds.length > 0) s.binds = `" Binds\n${p.binds.join("\n")}\n\n`
+    if (p.aliases.length > 0)
+        s.aliases = `" Aliases\n${p.aliases.join("\n")}\n\n`
+    if (p.aucmds.length > 0) s.aucmds = `" Autocmds\n${p.aucmds.join("\n")}\n\n`
+    if (p.aucons.length > 0)
+        s.aucons = `" Autocontainers\n${p.aucons.join("\n")}\n\n`
+    if (p.subconfigs.length > 0)
+        s.subconfigs = `" Subconfig Settings\n${p.subconfigs.join("\n")}\n\n`
+    if (p.logging.length > 0)
+        s.logging = `" Logging\n${p.logging.join("\n")}\n\n`
+
+    const ftdetect = `" vim: set filetype=vim:`
+
+    return `${s.general}${s.binds}${s.subconfigs}${s.aliases}${s.aucmds}${
+        s.aucons
+    }${s.logging}${ftdetect}`
+}
+
+const parseConfigHelper = (pconf, parseobj) => {
+    for (const i in pconf) {
+        if (typeof pconf[i] !== "object")
+            parseobj.conf.push(`set ${i} ${pconf[i]}`)
+        else {
+            for (const e of Object.keys(pconf[i])) {
+                if (i === "nmaps") {
+                    if (pconf[i][e].length > 0) {
+                        parseobj.binds.push(`bind ${e} ${pconf[i][e]}`)
+                    } else {
+                        parseobj.binds.push(`unbind ${e}`)
+                    }
+                } else if (i === "exmaps") {
+                    if (pconf[i][e].length > 0) {
+                        parseobj.binds.push(
+                            `bind --mode=ex ${e} ${pconf[i][e]}`,
+                        )
+                    } else {
+                        parseobj.binds.push(`unbind --mode=ex ${e}`)
+                    }
+                } else if (i === "ignoremaps") {
+                    if (pconf[i][e].length > 0) {
+                        parseobj.binds.push(
+                            `bind --mode=ignore ${e} ${pconf[i][e]}`,
+                        )
+                    } else {
+                        parseobj.binds.push(`unbind --mode=ignore ${e}`)
+                    }
+                } else if (i === "imaps") {
+                    if (pconf[i][e].length > 0) {
+                        parseobj.binds.push(
+                            `bind --mode=insert ${e} ${pconf[i][e]}`,
+                        )
+                    } else {
+                        parseobj.binds.push(`unbind --mode=insert ${e}`)
+                    }
+                } else if (i === "inputmaps") {
+                    if (pconf[i][e].length > 0) {
+                        parseobj.binds.push(
+                            `bind --mode=input ${e} ${pconf[i][e]}`,
+                        )
+                    } else {
+                        parseobj.binds.push(`unbind --mode=input ${e}`)
+                    }
+                } else if (i === "hintmaps") {
+                    if (pconf[i][e].length > 0) {
+                        parseobj.binds.push(
+                            `bind --mode=hint ${e} ${pconf[i][e]}`,
+                        )
+                    } else {
+                        parseobj.binds.push(`unbind --mode=hint ${e}`)
+                    }
+                } else if (i === "subconfigs") {
+                    parseobj.subconfigs.push(
+                        `js tri.config.set("${i}", {"${e}": ${JSON.stringify(
+                            pconf[i][e],
+                        )}})`,
+                    )
+                } else if (i === "exaliases") {
+                    // Only really useful if mapping the entire config and not just pconf.
+                    if (e === "alias") {
+                        parseobj.aliases.push(`command ${e} ${pconf[i][e]}`)
+                    } else {
+                        parseobj.aliases.push(`alias ${e} ${pconf[i][e]}`)
+                    }
+                } else if (i === "autocmds") {
+                    for (const a of Object.keys(pconf[i][e])) {
+                        parseobj.aucmds.push(
+                            `autocmd ${e} ${a} ${pconf[i][e][a]}`,
+                        )
+                    }
+                } else if (i === "autocontain") {
+                    parseobj.aucons.push(`autocontain ${e} ${pconf[i][e]}`)
+                } else if (i === "logging") {
+                    // Map the int values in e to a log level
+                    let level
+                    if (pconf[i][e] === 0) level = "never"
+                    if (pconf[i][e] === 1) level = "error"
+                    if (pconf[i][e] === 2) level = "warning"
+                    if (pconf[i][e] === 3) level = "info"
+                    if (pconf[i][e] === 4) level = "debug"
+                    parseobj.logging.push(`set logging.${e} ${level}`)
+                } else {
+                    parseobj.conf.push(
+                        `js tri.config.set("${i}", {"${e}": ${JSON.stringify(
+                            pconf[i][e],
+                        )}})`,
+                    )
+                }
+            }
+        }
+    }
+    return parseobj
+}
+
 // Listen for changes to the storage and update the USERCONFIG if appropriate.
 // TODO: BUG! Sync and local storage are merged at startup, but not by this thing.
 browser.storage.onChanged.addListener(async (changes, areaname) => {
@@ -1397,7 +1548,9 @@ browser.storage.onChanged.addListener(async (changes, areaname) => {
             )
 
             // A key has changed if it is defined in USERCONFIG and its value in USERCONFIG is different from the one in `changes` or if the value in defaultConf is different from the one in `changes`
-            const changedKeys = Object.keys(changes[CONFIGNAME].newValue).filter(
+            const changedKeys = Object.keys(
+                changes[CONFIGNAME].newValue,
+            ).filter(
                 k =>
                     JSON.stringify(
                         USERCONFIG[k] !== undefined
