@@ -8553,6 +8553,11 @@ web-ext@^4.2.0:
     yargs "15.1.0"
     zip-dir "1.0.2"
 
+webextension-polyfill-for-webpack@^0.0.1:
+  version "0.0.1"
+  resolved "https://registry.yarnpkg.com/webextension-polyfill-for-webpack/-/webextension-polyfill-for-webpack-0.0.1.tgz#c40c51a3a2e7b82d8312cb3c0e7eb0108c4f2aa3"
+  integrity sha512-T7oYLXNHvBeXqJPer6/jN8XxnUGezCxZfh01Crx+AXGRDlBdO0EDBUoZHo+BPMTia+twWO79cYlLVeb9B8N7WQ==
+
 webidl-conversions@^4.0.2:
   version "4.0.2"
   resolved "https://registry.yarnpkg.com/webidl-conversions/-/webidl-conversions-4.0.2.tgz#a855980b1f0b6b359ba1d5d9fb39ae941faa63ad"

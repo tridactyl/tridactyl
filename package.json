@@ -48,7 +48,8 @@
     "web-ext": "^4.2.0",
     "web-ext-types": "^3.2.1",
     "webpack": "^4.43.0",
-    "webpack-cli": "^3.3.11"
+    "webpack-cli": "^3.3.11",
+    "webextension-polyfill-for-webpack": "^0.0.1"
   },
   "scripts": {
     "build": "sh scripts/build.sh",
