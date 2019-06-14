@@ -26,17 +26,23 @@ import {
 // Hook the keyboard up to the controller
 import * as ContentController from "@src/content/controller_content"
 import { getAllDocumentFrames } from "@src/lib/dom"
-window.addEventListener("keydown", ContentController.acceptKey, true)
+
+// Important for security!
+const guardedAcceptKey = (event: KeyboardEvent) => {
+    if (!event.isTrusted) return
+    ContentController.acceptKey(event)
+}
+window.addEventListener("keydown", guardedAcceptKey, true)
 document.addEventListener("readystatechange", ev =>
     getAllDocumentFrames().map(frame => {
         frame.contentWindow.removeEventListener(
             "keydown",
-            ContentController.acceptKey,
+            guardedAcceptKey,
             true,
         )
         frame.contentWindow.addEventListener(
             "keydown",
-            ContentController.acceptKey,
+            guardedAcceptKey,
             true,
         )
     }),
@@ -160,10 +166,12 @@ config.getAsync("modeindicator").then(mode => {
 
     // This listener makes the modeindicator disappear when the mouse goes over it
     statusIndicator.addEventListener("mouseenter", ev => {
+        if (!ev.isTrusted) return
         let target = ev.target as any
         let rect = target.getBoundingClientRect()
         target.classList.add("TridactylInvisible")
         let onMouseOut = ev => {
+            if (!ev.isTrusted) return
             // If the mouse event happened out of the mode indicator boundaries
             if (
                 ev.clientX < rect.x ||
@@ -249,26 +257,25 @@ config.getAsync("modeindicator").then(mode => {
 // Site specific fix for / on GitHub.com
 config.getAsync("leavegithubalone").then(v => {
     if (v == "true") return
+
+    const slashsuppressor = (e) => {
+        if (!e.isTrusted) return
+        if ("/".indexOf(e.key) != -1 && contentState.mode == "normal") {
+            e.cancelBubble = true
+            e.stopImmediatePropagation()
+        }
+    }
+
     try {
         // On quick loading pages, the document is already loaded
         // if (document.location.host == "github.com") {
-        document.body.addEventListener("keydown", function(e) {
-            if ("/".indexOf(e.key) != -1 && contentState.mode == "normal") {
-                e.cancelBubble = true
-                e.stopImmediatePropagation()
-            }
-        })
+        document.body.addEventListener("keydown", slashsuppressor)
         // }
     } catch (e) {
         // But on slower pages we wait for the document to load
         window.addEventListener("DOMContentLoaded", () => {
             // if (document.location.host == "github.com") {
-            document.body.addEventListener("keydown", function(e) {
-                if ("/".indexOf(e.key) != -1 && contentState.mode == "normal") {
-                    e.cancelBubble = true
-                    e.stopImmediatePropagation()
-                }
-            })
+            document.body.addEventListener("keydown", slashsuppressor)
             // }
         })
     }

@@ -152,6 +152,7 @@ let keyEvents = []
 clInput.addEventListener(
     "keydown",
     function(keyevent: KeyboardEvent) {
+        if (!keyevent.isTrusted) return
         keyEvents.push(keyevent)
         let response = keyParser(keyEvents)
         if (response.isMatch) {
