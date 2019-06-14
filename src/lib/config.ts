@@ -264,7 +264,7 @@ class default_config {
         ";gA": "hint -qA",
         ";g;": "hint -q;",
         ";g#": "hint -q#",
-        ";gv": "hint -qW exclaim_quiet mpv",
+        ";gv": "hint -qW mpvsafe",
         ";gw": "hint -qw",
         ";gb": "hint -qb",
         "<S-Insert>": "mode ignore",
