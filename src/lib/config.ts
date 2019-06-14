@@ -246,7 +246,7 @@ class default_config {
         ";A": "hint -A",
         ";;": "hint -;",
         ";#": "hint -#",
-        ";v": "hint -W exclaim_quiet mpv",
+        ";v": "hint -W mpvsafe",
         ";w": "hint -w",
         ";O": "hint -W fillcmdline_notrail open ",
         ";W": "hint -W fillcmdline_notrail winopen ",
@@ -461,6 +461,7 @@ class default_config {
         zo: "zoom",
         installnative: "nativeinstall",
         nativeupdate: "updatenative",
+        mpvsafe: "js -p tri.excmds.shellescape(JS_ARG).then(url => tri.excmds.exclaim_quiet('mpv ' + url))",
     }
 
     /**
