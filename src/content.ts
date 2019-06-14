@@ -45,8 +45,13 @@ messaging.addListener("controller_content", messaging.attributeCaller(controller
 // Hook the keyboard up to the controller
 import * as ContentController from "@src/content/controller_content"
 import { getAllDocumentFrames } from "@src/lib/dom"
+
+const guardedAcceptKey = (keyevent: KeyboardEvent) => {
+    if (!keyevent.isTrusted) return
+    ContentController.acceptKey(keyevent)
+}
 function listen(elem) {
-    elem.removeEventListener("keydown", ContentController.acceptKey, true)
+    elem.removeEventListener("keydown", guardedAcceptKey, true)
     elem.removeEventListener(
         "keypress",
         ContentController.canceller.cancelKeyPress,
@@ -57,7 +62,7 @@ function listen(elem) {
         ContentController.canceller.cancelKeyUp,
         true,
     )
-    elem.addEventListener("keydown", ContentController.acceptKey, true)
+    elem.addEventListener("keydown", guardedAcceptKey, true)
     elem.addEventListener(
         "keypress",
         ContentController.canceller.cancelKeyPress,
@@ -94,7 +99,8 @@ config.getAsync("preventautofocusjackhammer").then(allowautofocus => {
         // always triggered when document.activeElement changes
         const interval = setInterval(() => { if (document.activeElement != elem) focusElem() }, 200)
         // When the user starts interacting with the page, stop resetting focus
-        function stopResettingFocus() {
+        function stopResettingFocus(event: Event) {
+            if (!event.isTrusted) return
             elem.removeEventListener("blur", focusElem)
             elem.removeEventListener("focusout", focusElem)
             clearInterval(interval)
@@ -320,6 +326,7 @@ config.getAsync("modeindicator").then(mode => {
 })
 
 function protectSlash(e) {
+    if (!e.isTrusted) return
     config.get("blacklistkeys").map(
         protkey => {
             if (protkey.indexOf(e.key) !== -1 && contentState.mode === "normal") {

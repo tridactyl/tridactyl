@@ -154,6 +154,7 @@ let prev_cmd_called_history = false
 commandline_state.clInput.addEventListener(
     "keydown",
     function(keyevent: KeyboardEvent) {
+        if (!keyevent.isTrusted) return
         commandline_state.keyEvents.push(keyevent)
         const response = keyParser(commandline_state.keyEvents)
         if (response.isMatch) {
