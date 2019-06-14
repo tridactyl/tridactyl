@@ -249,7 +249,7 @@ export class default_config {
         ";A": "hint -A",
         ";;": "hint -;",
         ";#": "hint -#",
-        ";v": "hint -W exclaim_quiet mpv",
+        ";v": "hint -W mpvsafe",
         ";w": "hint -w",
         ";t": "hint -W tabopen",
         ";O": "hint -W fillcmdline_notrail open ",
@@ -504,6 +504,7 @@ export class default_config {
         mkt: "mktridactylrc",
         "mkt!": "mktridactylrc -f",
         "mktridactylrc!": "mktridactylrc -f",
+        mpvsafe: "js -p tri.excmds.shellescape(JS_ARG).then(url => tri.excmds.exclaim_quiet('mpv ' + url))",
     }
 
     /**
