@@ -89,12 +89,6 @@ import * as TTS from "@src/lib/text_to_speech"
 import * as excmd_parser from "@src/parsers/exmode"
 import * as escape from "@src/lib/escape"
 
-// cmcaine: I have my doubts about this library.
-// Before using it, work out if it does do what you want.
-// The escape library I wrote above may be better.
-import * as shell_quote from "node-shell-quote"
-export const quote = shell_quote
-
 /**
   * This is used to drive some excmd handling in `composite`.
   *
@@ -2720,7 +2714,13 @@ export async function composite(...cmds: string[]) {
  * Escape command for safe use in shell with composite. E.g: `composite js MALICIOUS_WEBSITE_FUNCTION() | shellescape | exclaim ls`
  */
 export async function shellescape(...quoteme: string[]) {
-    return shell_quote.quote(quoteme)
+    const str = quoteme.join(" ")
+    const os = (await browserBg.runtime.getPlatformInfo()).os
+    if (os === "win") {
+        return escape.windows_cmd(str)
+    } else {
+        return escape.sh(str)
+    }
 }
 
 /** Sleep time_ms milliseconds.

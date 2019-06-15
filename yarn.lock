@@ -5368,15 +5368,6 @@ node-pre-gyp@^0.10.0:
     semver "^5.3.0"
     tar "^4"
 
-"node-shell-quote@git://github.com/dy/node-shell-quote":
-  version "1.6.1"
-  resolved "git://github.com/dy/node-shell-quote.git#daa9d313adb29edd3e2354d409078c9bb283127e"
-  dependencies:
-    array-filter "~0.0.0"
-    array-map "~0.0.0"
-    array-reduce "~0.0.0"
-    jsonify "~0.0.0"
-
 node-status-codes@^1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/node-status-codes/-/node-status-codes-1.0.0.tgz#5ae5541d024645d32a58fcddc9ceecea7ae3ac2f"

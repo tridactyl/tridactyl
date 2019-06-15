@@ -1,5 +1,15 @@
 # Tridactyl changelog
 
+## Release 1.16.1 / 2019-06-15
+
+-   New features
+    
+    -   `;v` now escapes the hrefs you choose (see `get exaliases.mpvsafe` to see how it does it)
+
+-   Bug fixes
+
+    -   `shellescape` will now actually properly escape stuff on Windows
+
 ## Release 1.16.0 / 2019-06-14
 
 -   New features
