@@ -251,7 +251,7 @@ describe("webdriver", () => {
 
             // Use whatever the first suggestion is
             await sendKeys(driver, "<Tab> <Tab><CR>")
-            await driver.sleep(1000)
+            await driver.sleep(2000)
             expect(await driver.executeScript(`return document.getElementById("tridactyl-input").value`))
                 .toEqual("userChrome.css written. Please restart Firefox to see the changes.")
             expect(newProfiles.find(p => fs
