@@ -88,7 +88,7 @@ def findUserConfigFile():
     """
     home = os.path.expanduser("~")
     config_dir = getenv(
-        "XDG_CONFIG_HOME", os.path.expanduser("~/.config")
+        "XDG_CONFIG_HOME", os.path.join(home, ".config")
     )
 
     # Will search for files in this order
@@ -120,7 +120,7 @@ def getUserConfig():
 
     # for now, this is a simple file read, but if the files can
     # include other files, that will need more work
-    return open(cfg_file, "r").read()
+    return open(cfg_file, "r", encoding="utf-8").read()
 
 
 def sanitizeFilename(fn):
@@ -440,7 +440,7 @@ def handleMessage(message):
                 os.path.expandvars(
                     os.path.expanduser(message["file"])
                 ),
-                "r",
+                "r", encoding="utf-8"
             ) as file:
                 reply["content"] = file.read()
                 reply["code"] = 0
@@ -468,14 +468,14 @@ def handleMessage(message):
                 reply["code"] = 2
 
     elif cmd == "write":
-        with open(message["file"], "w") as file:
+        with open(message["file"], "w", encoding="utf-8") as file:
             file.write(message["content"])
 
     elif cmd == "writerc":
         path = os.path.expanduser(message["file"])
-        if not os.path.isfile(path) or message["force"]: 
+        if not os.path.isfile(path) or message["force"]:
             try:
-                with open(path, "w") as file:
+                with open(path, "w", encoding="utf-8") as file:
                     file.write(message["content"])
                     reply["code"] = 0 # Success.
             except EnvironmentError:
@@ -490,7 +490,7 @@ def handleMessage(message):
         prefix = "tmp_{}_".format(sanitizeFilename(prefix))
 
         (handle, filepath) = tempfile.mkstemp(prefix=prefix, suffix=".txt")
-        with os.fdopen(handle, "w") as file:
+        with os.fdopen(handle, "w", encoding="utf-8") as file:
             file.write(message["content"])
         reply["content"] = filepath
 
