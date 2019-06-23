@@ -213,7 +213,12 @@ describe("webdriver", () => {
         const driver = await getDriver()
         try {
             const addedText = "There are %l lines and %c characters in this textarea."
-            await sendKeys(driver, `:set editorcmd echo -n '${addedText}' >> %f<CR>`)
+
+            if (os.platform() == "win32") {
+                await sendKeys(driver, `:set editorcmd echo | set /p text="${addedText}" >> %f<CR>`)
+            } else {
+                await sendKeys(driver, `:set editorcmd echo -n '${addedText}' >> %f<CR>`)
+            }
 
             const areaId = "editorTest"
             await driver.executeScript(`
