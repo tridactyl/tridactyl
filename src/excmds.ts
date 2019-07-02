@@ -87,8 +87,7 @@ import * as Metadata from "@src/.metadata.generated"
 import * as Native from "@src/lib/native"
 import * as TTS from "@src/lib/text_to_speech"
 import * as excmd_parser from "@src/parsers/exmode"
-import * as shell_quote from "node-shell-quote"
-export let quote = shell_quote
+import * as escape from "@src/lib/escape"
 
 /**
   * This is used to drive some excmd handling in `composite`.
@@ -527,7 +526,12 @@ export async function fixamo() {
 /**
  * Uses the native messenger to open URLs.
  *
- * **Be *seriously* careful with this: you can use it to open any URL you can open in the Firefox address bar.**
+ * **Be *seriously* careful with this:**
+ *
+ * 1. the implementation basically execs `firefox --new-tab <your shell escaped string here>`
+ * 2. you can use it to open any URL you can open in the Firefox address bar,
+ *    including ones that might cause side effects (firefox does not guarantee
+ *    that about: pages ignore query strings).
  *
  * You've been warned.
  *
@@ -590,17 +594,15 @@ export async function nativeopen(...args: string[]) {
                     }
                     firefoxArgs.push("--new-tab")
                 }
-                let escapedUrl = url
-                // On linux, we need to quote and escape single quotes in the
+                let escapedUrl: string
+                // We need to quote and escape single quotes in the
                 // url, otherwise an attacker could create an anchor with a url
                 // like 'file:// && $(touch /tmp/dead)' and achieve remote code
                 // execution when the user tries to follow it with `hint -W tabopen`
-                // But windows treats single quotes as "open this file from the
-                // user's directory", so we need to use double quotes there
                 if (os === "win") {
-                    escapedUrl = `"${escapedUrl.replace(/\\/g, "\\\\").replace(/"/g, '\\"')}"`
+                    escapedUrl = escape.windows_cmd(url)
                 } else {
-                    escapedUrl = `'${escapedUrl.replace(/'/g, '"\'"')}'`
+                    escapedUrl = escape.sh(url)
                 }
                 await Native.run(`${config.get("browser")} ${firefoxArgs.join(" ")} ${escapedUrl}`)
             }
@@ -2712,7 +2714,13 @@ export async function composite(...cmds: string[]) {
  * Escape command for safe use in shell with composite. E.g: `composite js MALICIOUS_WEBSITE_FUNCTION() | shellescape | exclaim ls`
  */
 export async function shellescape(...quoteme: string[]) {
-    return shell_quote.quote(quoteme)
+    const str = quoteme.join(" ")
+    const os = (await browserBg.runtime.getPlatformInfo()).os
+    if (os === "win") {
+        return escape.windows_cmd(str)
+    } else {
+        return escape.sh(str)
+    }
 }
 
 /** Sleep time_ms milliseconds.
