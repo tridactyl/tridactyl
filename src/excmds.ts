@@ -3083,6 +3083,9 @@ function parse_bind_args(...args: string[]): bind_args {
 
     You can bind to other modes with `bind --mode={insert|ignore|normal|input|ex|hint} ...`, e.g, `bind --mode=insert emacs qall` (NB: unlike vim, all preceeding characters will not be input), or `bind --mode=hint <C-[> hint.reset`.
 
+    A list of editor functions can be found
+    [here](/static/docs/modules/_src_lib_editor_.html).
+
     See also:
 
         - [[unbind]]
