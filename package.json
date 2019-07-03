@@ -34,7 +34,7 @@
     "ts-jest": "^24.0.2",
     "ts-node": "^8.2.0",
     "tslint": "^5.18.0",
-    "tslint-etc": "^1.5.3",
+    "tslint-etc": "^1.5.6",
     "tslint-sonarts": "^1.9.0",
     "typedoc": "git://github.com/TypeStrong/typedoc",
     "typedoc-default-themes": "git://github.com/tridactyl/typedoc-default-themes.git#fix_weird_member_names_bin",
