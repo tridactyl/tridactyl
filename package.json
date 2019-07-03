@@ -28,7 +28,7 @@
     "marked": "^0.6.2",
     "nearley": "^2.16.0",
     "prettier": "^1.17.1",
-    "selenium-webdriver": "^4.0.0-alpha.1",
+    "selenium-webdriver": "^4.0.0-alpha.4",
     "shared-git-hooks": "^1.2.1",
     "source-map-loader": "^0.2.4",
     "ts-jest": "^24.0.2",
