@@ -928,6 +928,12 @@ export class default_config {
      * Corresponds to 'showcmd' option of vi.
      */
     modeindicatorshowkeys: "true" | "false" = "false"
+
+    /**
+     * Whether a trailing slash is appended when we get the parent of a url with
+     * gu (or other means).
+     */
+    urlparenttrailingslash: "true" | "false" = "true"
 }
 
 /** @hidden */

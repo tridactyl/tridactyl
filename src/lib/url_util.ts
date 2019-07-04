@@ -57,31 +57,37 @@ export function getUrlRoot(url) {
  * * Remove one level from the path if there is one, or
  * * Remove one subdomain from the front if there is one
  *
- * @param url   the URL to get the parent of
- * @return      the parent of the URL, or null if there is no parent
- * @count       how many "generations" you wish to go back (1 = parent, 2 = grandparent, etc.)
+ * @param url               the URL to get the parent of
+ * @param trailingSlash     whether the returned URL has a trailing slash
+ * @param count             how many "generations" you wish to go back (1 = parent, 2 = grandparent, etc.)
+ * @return                  the parent of the URL, or null if there is no parent
  */
-export function getUrlParent(url, count = 1) {
+export function getUrlParent(url, trailingSlash, count = 1) {
     // Helper function.
-    function gup(parent, count) {
+    function gup(parent, trailingSlash, count) {
         if (count < 1) {
+            // remove trailing slash(s) if desired
+            if (!trailingSlash) {
+                // remove 1 or more trailing slashes
+                parent.pathname = parent.pathname.replace(/\/+$/, "")
+            }
             return parent
         }
         // strip, in turn, hash/fragment and query/search
         if (parent.hash) {
             parent.hash = ""
-            return gup(parent, count - 1)
+            return gup(parent, trailingSlash, count - 1)
         }
         if (parent.search) {
             parent.search = ""
-            return gup(parent, count - 1)
+            return gup(parent, trailingSlash, count - 1)
         }
 
         // empty path is '/'
         if (parent.pathname !== "/") {
             // Remove trailing slashes and everything to the next slash:
             parent.pathname = parent.pathname.replace(/\/[^\/]*?\/*$/, "/")
-            return gup(parent, count - 1)
+            return gup(parent, trailingSlash, count - 1)
         }
 
         // strip off the first subdomain if there is one
@@ -92,7 +98,7 @@ export function getUrlParent(url, count = 1) {
             if (domains.length > 2) {
                 // domains.pop()
                 parent.host = domains.slice(1).join(".")
-                return gup(parent, count - 1)
+                return gup(parent, trailingSlash, count - 1)
             }
         }
 
@@ -106,7 +112,7 @@ export function getUrlParent(url, count = 1) {
     }
 
     const parent = new URL(url)
-    return gup(parent, count)
+    return gup(parent, trailingSlash, count)
 }
 
 /** Very incomplete lookup of extension for common mime types that might be
