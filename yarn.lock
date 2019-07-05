@@ -8980,10 +8980,10 @@ wcwidth@^1.0.0:
   dependencies:
     defaults "^1.0.3"
 
-web-ext-types@^3.1.0:
-  version "3.1.0"
-  resolved "https://registry.yarnpkg.com/web-ext-types/-/web-ext-types-3.1.0.tgz#32aab56a3d0f4a3d499d43b4838b3356102d11eb"
-  integrity sha512-HKVibk040vuhpbOljcIYYYC8GP9w9REbHpquI3im/aoZqoDIRq9DnsHl4Zsg+4Fg3SBnWsnvlIr1rnspV4TdXQ==
+web-ext-types@^3.2.0:
+  version "3.2.0"
+  resolved "https://registry.yarnpkg.com/web-ext-types/-/web-ext-types-3.2.0.tgz#df5cfc6c5b614b8e5a98b51642d1b2ad3b9b41e2"
+  integrity sha512-85MBVBvZTCtc5yTfwz+xKzycrW6lUpBi68Sn8dlMwOFNDyWroUHXRJNCO4Bs80ScfePf7ciF2J2N+1UDWpq1Lg==
 
 web-ext@^3.1.0:
   version "3.1.0"
