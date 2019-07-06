@@ -3,7 +3,7 @@
 ## Release 1.16.1 / 2019-06-15
 
 -   New features
-    
+
     -   `;v` now escapes the hrefs you choose (see `get exaliases.mpvsafe` to see how it does it)
 
 -   Bug fixes
@@ -39,6 +39,7 @@
 
 -   Bug fixes
 
+    -   Websites can no longer feed Tridactyl fake key events (see the [security advisory](https://github.com/tridactyl/tridactyl/security/advisories/GHSA-7qr7-93pf-hr8f))
     -   Persist history completion selection if it is still valid on source update
     -   Make `;v` safer
     -   `bmark` is less fussy about URLs now ([#1600](https://github.com/tridactyl/tridactyl/issues/1600))
