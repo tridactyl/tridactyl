@@ -86,7 +86,7 @@ async function main() {
 
             // Make and write updates.json
             save_manifest(
-                "../public_html/betas/updates.json",
+                "../../public_html/betas/updates.json",
                 make_update_json(manifest.version),
             )
 
