@@ -74,12 +74,52 @@ function test_parent() {
     ]
 
     for (let [url, exp_parent] of cases) {
-        let parent = UrlUtil.getUrlParent(new URL(url))
+        let parent = UrlUtil.getUrlParent(new URL(url), true)
 
         test(`parent of ${url} --> ${exp_parent}`, () =>
             expect(parent ? parent.href : parent).toEqual(exp_parent))
     }
 }
+
+function test_parent_with_slash_strip() {
+    const cases = [
+        // root URL, nothing to do!
+        ["http://example.com", null],
+        // URL with query string
+        ["http://example.com?key=value", "http://example.com/"],
+        // url with hash/anchor - strip the fragment
+        ["http://example.com#anchor", "http://example.com/"],
+        // query + hash: lose the hash only
+        ["http://example.com?key=val#hash", "http://example.com/?key=val"],
+        // single level path
+        ["http://example.com/path", "http://example.com/"],
+        // multi-level path
+        ["http://example.com/path1/path2", "http://example.com/path1"],
+        [
+            "http://example.com/path1/path2/path3",
+            "http://example.com/path1/path2",
+        ],
+        // subdomains
+        ["http://sub.example.com", "http://example.com/"],
+        // subdom with path, leave subdom
+        ["http://sub.example.com/path", "http://sub.example.com/"],
+        // trailing slash
+        ["http://sub.example.com/path/", "http://sub.example.com/"],
+        ["http://sub.example.com/path/to/", "http://sub.example.com/path"],
+        // repeated slash
+        ["http://example.com/path//", "http://example.com/"],
+        ["http://example.com//path//", "http://example.com/"],
+        ["http://example.com//path//", "http://example.com/"],
+    ]
+
+    for (const [url, exp_parent] of cases) {
+        const parent = UrlUtil.getUrlParent(new URL(url), false)
+
+        test(`parent of ${url} --> ${exp_parent}`, () =>
+            expect(parent ? parent.href : parent).toEqual(exp_parent))
+    }
+}
+
 
 function test_download_filename() {
     let cases = [
@@ -321,6 +361,7 @@ function test_url_query_interpolation() {
 test_increment()
 test_root()
 test_parent()
+test_parent_with_slash_strip()
 test_download_filename()
 test_query_delete()
 test_query_replace()

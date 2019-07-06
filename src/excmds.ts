@@ -1556,7 +1556,9 @@ export function urlroot() {
  */
 //#content
 export function urlparent(count = 1) {
-    const parentUrl = UrlUtil.getUrlParent(window.location, count)
+    const trailingSlash = config.get("urlparenttrailingslash") === "true"
+
+    const parentUrl = UrlUtil.getUrlParent(window.location, trailingSlash, count)
 
     if (parentUrl !== null) {
         window.location.href = parentUrl.href
