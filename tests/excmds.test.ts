@@ -1,6 +1,8 @@
 require("geckodriver")
 
 const fs = require("fs")
+const os = require("os")
+const path = require("path")
 const webdriver = require("selenium-webdriver")
 const Until = webdriver.until
 const By = webdriver.By
@@ -111,13 +113,19 @@ describe("webdriver", () => {
     }
 
     async function getDriverAndProfileDirs() {
-        const rootDir = "/tmp/"
+        const rootDir = os.tmpdir()
         // First, find out what profile the driver is using
-        const profiles = fs.readdirSync(rootDir).map(p => rootDir + p)
+        const profiles = fs.readdirSync(rootDir).map(p => path.join(rootDir, p))
         const driver = await getDriver()
-        const newProfiles = fs.readdirSync("/tmp")
-            .map(p => rootDir + p)
+        const newProfiles = fs.readdirSync(rootDir).map(p => path.join(rootDir, p))
             .filter(p => p.match("moz") && !profiles.includes(p))
+
+        // Tridactyl's tmp profile detection is broken on windows
+        if (os.platform() == "win32") {
+            await sendKeys(driver, `:set profiledir ${newProfiles[0]}<CR>`)
+            await driver.sleep(1000)
+        }
+
         return { driver, newProfiles }
     }
 
@@ -205,7 +213,12 @@ describe("webdriver", () => {
         const driver = await getDriver()
         try {
             const addedText = "There are %l lines and %c characters in this textarea."
-            await sendKeys(driver, `:set editorcmd echo -n '${addedText}' >> %f<CR>`)
+
+            if (os.platform() == "win32") {
+                await sendKeys(driver, `:set editorcmd echo | set /p text="${addedText}" >> %f<CR>`)
+            } else {
+                await sendKeys(driver, `:set editorcmd echo -n '${addedText}' >> %f<CR>`)
+            }
 
             const areaId = "editorTest"
             await driver.executeScript(`
@@ -238,11 +251,11 @@ describe("webdriver", () => {
 
             // Use whatever the first suggestion is
             await sendKeys(driver, "<Tab> <Tab><CR>")
-            await driver.sleep(1000)
+            await driver.sleep(2000)
             expect(await driver.executeScript(`return document.getElementById("tridactyl-input").value`))
                 .toEqual("userChrome.css written. Please restart Firefox to see the changes.")
-            expect(newProfiles.find(path => fs
-                .readdirSync(path + "/chrome")
+            expect(newProfiles.find(p => fs
+                .readdirSync(path.join(p, "chrome"))
                 .find(files => files.match("userChrome.css$")))
             ).toBeDefined()
         } catch (e) {
@@ -272,8 +285,8 @@ describe("webdriver", () => {
         const { driver, newProfiles } = await getDriverAndProfileDirs()
         try {
             await sendKeys(driver, `:setpref a.b.c "d"<CR>`)
-            await driver.sleep(1000)
-            const file = fs.readFileSync(newProfiles[0] + "/user.js", { encoding: "utf-8" })
+            await driver.sleep(2000)
+            const file = fs.readFileSync(path.join(newProfiles[0], "user.js"), { encoding: "utf-8" })
             expect(file).toMatch(/user_pref\("a.b.c", "d"\);/)
         } catch (e) {
             fail(e)
