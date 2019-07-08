@@ -25,7 +25,7 @@
     "copy-webpack-plugin": "^5.0.3",
     "geckodriver": "^1.16.2",
     "jest": "^24.8.0",
-    "marked": "^0.6.3",
+    "marked": "^0.7.0",
     "nearley": "^2.16.0",
     "prettier": "^1.17.1",
     "selenium-webdriver": "^4.0.0-alpha.4",
