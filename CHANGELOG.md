@@ -1,5 +1,26 @@
 # Tridactyl changelog
 
+## Release 1.16.2 / 2019-07-11
+
+-   New features
+
+    -   New setting `urlparenttrailingslash` which allows you to choose whether `urlparent` adds a trailing slash or not (#1565)
+
+-   Bug fixes
+
+    -   Encoding errors with the RC file and `:editor` should be fixed (#1698)
+    -   End-to-end tests should work on Windows now (#1700)
+
+-   Miscellaneous
+
+    -   Link to `text` functions added to `:bind` help
+
+Thanks to all of our contributors for this release: Oliver Blanthorn, dependabot-preview[bot], Joao Sa, Robert Boyd III, and Guillermo R. Palavecino.
+
+Extra special thanks go to Guillermo R. Palavecino and Robert Boyd III who both contributed for the first time.
+
+Last, but not least - thank you to everyone who reported issues.
+
 ## Release 1.16.1 / 2019-06-15
 
 -   New features
