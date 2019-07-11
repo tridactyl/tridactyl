@@ -30,7 +30,7 @@ publish_stable() {
     yarn run build
     sed 's/tridactyl.vim.betas@cmcaine/tridactyl.vim@cmcaine/' -i build/manifest.json
     sign_and_submit
-    tar --exclude-from=.gitignore -czf ../public_html/betas/tridactyl_source.tar.gz .
+    tar --exclude-from=.gitignore -czf ../../public_html/betas/tridactyl_source.tar.gz .
 }
 
 case $1 in
