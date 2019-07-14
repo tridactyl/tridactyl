@@ -4924,11 +4924,6 @@ jetpack-id@1.0.0:
   resolved "https://registry.yarnpkg.com/jetpack-id/-/jetpack-id-1.0.0.tgz#2cf9fbae46d8074fc16b7de0071c8efebca473a6"
   integrity sha1-LPn7rkbYB0/Ba33gBxyO/rykc6Y=
 
-jquery@^2.2.4:
-  version "2.2.4"
-  resolved "https://registry.yarnpkg.com/jquery/-/jquery-2.2.4.tgz#2c89d6889b5eac522a7eea32c14521559c6cbf02"
-  integrity sha1-LInWiJterFIqfuoywUUhVZxsvwI=
-
 jquery@^3.3.1:
   version "3.4.1"
   resolved "https://registry.yarnpkg.com/jquery/-/jquery-3.4.1.tgz#714f1f8d9dde4bdfa55764ba37ef214630d80ef2"
@@ -5486,11 +5481,6 @@ mark.js@^8.11.1:
   version "8.11.1"
   resolved "https://registry.yarnpkg.com/mark.js/-/mark.js-8.11.1.tgz#180f1f9ebef8b0e638e4166ad52db879beb2ffc5"
   integrity sha1-GA8fnr74sOY45BZq1S24eb6y/8U=
-
-marked@^0.6.2:
-  version "0.6.3"
-  resolved "https://registry.yarnpkg.com/marked/-/marked-0.6.3.tgz#79babad78af638ba4d522a9e715cdfdd2429e946"
-  integrity sha512-Fqa7eq+UaxfMriqzYLayfqAE40WN03jf+zHjT18/uXNuzjq3TY0XTbrAoPeqSJrAmPz11VuUA+kBPYOhHt9oOQ==
 
 marked@^0.7.0:
   version "0.7.0"
@@ -8612,17 +8602,7 @@ typedarray@^0.0.6:
   resolved "https://registry.yarnpkg.com/typedarray/-/typedarray-0.0.6.tgz#867ac74e3864187b1d3d47d996a78ec5c8830777"
   integrity sha1-hnrHTjhkGHsdPUfZlqeOxciDB3c=
 
-typedoc-default-themes@^0.6.0-0:
-  version "0.6.0-0"
-  resolved "https://registry.yarnpkg.com/typedoc-default-themes/-/typedoc-default-themes-0.6.0-0.tgz#a4867eaf91fb7888efd01680f1328b72e8a33640"
-  integrity sha512-O7hBMS1yBCozvVUntIIdlBk04WiqM+f6NOEc9p+LimJSFKJMF66cgzejeiybuTk6mgbMJW+olg42BNYC8E9x9Q==
-  dependencies:
-    backbone "^1.1.2"
-    jquery "^2.2.4"
-    lunr "^2.3.6"
-    underscore "^1.9.1"
-
-"typedoc-default-themes@git://github.com/tridactyl/typedoc-default-themes.git#fix_weird_member_names_bin":
+typedoc-default-themes@^0.6.0-0, "typedoc-default-themes@git://github.com/tridactyl/typedoc-default-themes.git#fix_weird_member_names_bin":
   version "0.6.0-0"
   resolved "git://github.com/tridactyl/typedoc-default-themes.git#a28d333b26688511dae6d99d92abb082c5f23214"
   dependencies:
@@ -8633,26 +8613,22 @@ typedoc-default-themes@^0.6.0-0:
 
 "typedoc@git://github.com/TypeStrong/typedoc":
   version "0.15.0-0"
-  resolved "git://github.com/TypeStrong/typedoc.git#f781b20dda3dfafd453cf540f58fcd8cf4473316"
+  uid e9b28ee2c336617687a968820515b6a37d44515f
+  resolved "git://github.com/TypeStrong/typedoc#e9b28ee2c336617687a968820515b6a37d44515f"
   dependencies:
     "@types/minimatch" "3.0.3"
     fs-extra "^7.0.1"
     handlebars "^4.1.2"
     highlight.js "^9.13.1"
     lodash "^4.17.11"
-    marked "^0.6.2"
+    marked "^0.7.0"
     minimatch "^3.0.0"
     progress "^2.0.3"
     shelljs "^0.8.3"
     typedoc-default-themes "^0.6.0-0"
-    typescript "3.4.x"
+    typescript "3.5.x"
 
-typescript@3.4.x:
-  version "3.4.5"
-  resolved "https://registry.yarnpkg.com/typescript/-/typescript-3.4.5.tgz#2d2618d10bb566572b8d7aad5180d84257d70a99"
-  integrity sha512-YycBxUb49UUhdNMU5aJ7z5Ej2XGmaIBL0x34vZ82fn3hGvD+bgrMrVDpatgz2f7YxUMJxMkbWxJZeAvDxVe7Vw==
-
-typescript@^3.5.3:
+typescript@3.5.x, typescript@^3.5.3:
   version "3.5.3"
   resolved "https://registry.yarnpkg.com/typescript/-/typescript-3.5.3.tgz#c830f657f93f1ea846819e929092f5fe5983e977"
   integrity sha512-ACzBtm/PhXBDId6a6sDJfroT2pOWt/oOnk4/dElG5G33ZL776N3Y6/6bKZJBFpd+b05F3Ct9qDjMeJmRWtE2/g==
