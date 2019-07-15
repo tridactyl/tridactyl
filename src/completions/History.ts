@@ -1,6 +1,6 @@
 import * as Completions from "@src/completions"
 import * as config from "@src/lib/config"
-import { browserBg } from "@src/lib/webext"
+import * as providers from "@src/completions/providers"
 
 class HistoryCompletionOption extends Completions.CompletionOptionHTML
     implements Completions.CompletionOptionFuse {
@@ -35,7 +35,7 @@ export class HistoryCompletionSource extends Completions.CompletionSourceFuse {
         super(
             ["open", "tabopen", "winopen"],
             "HistoryCompletionSource",
-            "History",
+            "History and bookmarks",
         )
 
         this._parent.appendChild(this.node)
@@ -102,49 +102,11 @@ export class HistoryCompletionSource extends Completions.CompletionSourceFuse {
 
     onInput() {}
 
-    private frecency(item: browser.history.HistoryItem) {
-        // Doesn't actually care about recency yet.
-        return item.visitCount * -1
-    }
-
     private async scoreOptions(query: string, n: number) {
-        // In the nonewtab version, this will return `null` and upset getURL.
-        // Ternary op below prevents the runtime error.
-        const newtab = (browser.runtime.getManifest()).chrome_url_overrides.newtab
-        const newtaburl = newtab !== null ? browser.runtime.getURL(newtab) : null
         if (!query || config.get("historyresults") === 0) {
-            return (await browserBg.topSites.get())
-                .filter(page => page.url !== newtaburl)
-                .slice(0, n)
+            return (await providers.getTopSites()).slice(0, n)
         } else {
-            // Search history, dedupe and sort by frecency
-            let history = await browserBg.history.search({
-                text: query,
-                maxResults: config.get("historyresults"),
-                startTime: 0,
-            })
-
-            // Remove entries with duplicate URLs
-            const dedupe = new Map()
-            for (const page of history) {
-                if (page.url !== newtaburl) {
-                    if (dedupe.has(page.url)) {
-                        if (
-                            dedupe.get(page.url).title.length <
-                            page.title.length
-                        ) {
-                            dedupe.set(page.url, page)
-                        }
-                    } else {
-                        dedupe.set(page.url, page)
-                    }
-                }
-            }
-            history = [...dedupe.values()]
-
-            history.sort((a, b) => this.frecency(a) - this.frecency(b))
-
-            return history.slice(0, n)
+            return (await providers.getCombinedHistoryBmarks(query)).slice(0, n)
         }
     }
 }
