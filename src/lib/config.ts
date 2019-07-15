@@ -862,6 +862,11 @@ export class default_config {
     historyresults = 50
 
     /**
+     * When displaying bookmarks in history completions, how many page views to pretend they have.
+     */
+    bmarkweight = 100
+
+    /**
      * Number of results that should be shown in completions. -1 for unlimited
      */
     findresults = -1

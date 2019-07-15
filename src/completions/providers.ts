@@ -93,7 +93,7 @@ export async function getCombinedHistoryBmarks(query: string): Promise<Array<{ti
         else combinedMap.set(page.url, {title: page.title, url: page.url, history: page})
     })
 
-    const score = x => (x.history ? frecency(x.history) : 0) - (x.bmark ? 1000 : 0)
+    const score = x => (x.history ? frecency(x.history) : 0) - (x.bmark ? config.get("bmarkweight") : 0)
 
     return Array.from(combinedMap.values()).sort((a, b) => score(a) - score(b))
 }

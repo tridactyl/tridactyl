@@ -35,7 +35,7 @@ export class HistoryCompletionSource extends Completions.CompletionSourceFuse {
         super(
             ["open", "tabopen", "winopen"],
             "HistoryCompletionSource",
-            "History",
+            "History and bookmarks",
         )
 
         this._parent.appendChild(this.node)
