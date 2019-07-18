@@ -358,6 +358,7 @@ export async function editor() {
 //#background
 export async function guiset_quiet(rule: string, option: string) {
     if (!rule || !option) throw new Error(":guiset requires two arguments. See `:help guiset` for more information.")
+    if ((rule == "navbar") && (option == "none")) throw new Error("`:guiset navbar none` is currently broken, see https://github.com/tridactyl/tridactyl/issues/1728")
     // Could potentially fall back to sending minimal example to clipboard if native not installed
 
     // Check for native messenger and make sure we have a plausible profile directory
