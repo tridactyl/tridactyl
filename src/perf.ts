@@ -164,7 +164,7 @@ export function listenForCounters(
     }
 
     const perfObserver = new PerformanceObserver(callback)
-    perfObserver.observe({ entryTypes: ["mark", "measure"], buffered: true })
+    perfObserver.observe({ entryTypes: ["mark", "measure"] })
     return perfObserver
 }
 
