@@ -1541,48 +1541,42 @@ const parseConfigHelper = (pconf, parseobj) => {
 // TODO: BUG! Sync and local storage are merged at startup, but not by this thing.
 browser.storage.onChanged.addListener(async (changes, areaname) => {
     if (CONFIGNAME in changes) {
-        const defaultConf = new default_config()
+        const { newValue } = changes[CONFIGNAME]
         const old = USERCONFIG
 
-        function triggerChangeListeners(key) {
+        function triggerChangeListeners(key, value = USERCONFIG[key]) {
             const arr = changeListeners.get(key)
             if (arr) {
-                const v = old[key] === undefined ? defaultConf[key] : old[key]
-                arr.forEach(f => f(v, USERCONFIG[key]))
+                const v = old[key] === undefined ? DEFAULTS[key] : old[key]
+                arr.forEach(f => f(v, value))
             }
         }
 
-        // newValue is undefined when calling browser.storage.AREANAME.clear()
-        if (changes[CONFIGNAME].newValue !== undefined) {
+        if (newValue !== undefined) {
             // A key has been :unset if it exists in USERCONFIG and doesn't in changes and if its value in USERCONFIG is different from the one it has in default_config
             const unsetKeys = Object.keys(USERCONFIG).filter(
                 k =>
-                    changes[CONFIGNAME].newValue[k] === undefined &&
+                    newValue[k] === undefined &&
                     JSON.stringify(USERCONFIG[k]) !==
-                        JSON.stringify(defaultConf[k]),
+                        JSON.stringify(DEFAULTS[k]),
             )
 
             // A key has changed if it is defined in USERCONFIG and its value in USERCONFIG is different from the one in `changes` or if the value in defaultConf is different from the one in `changes`
             const changedKeys = Object.keys(
-                changes[CONFIGNAME].newValue,
+                newValue,
             ).filter(
                 k =>
                     JSON.stringify(
                         USERCONFIG[k] !== undefined
                             ? USERCONFIG[k]
-                            : defaultConf[k],
-                    ) !== JSON.stringify(changes[CONFIGNAME].newValue[k]),
+                            : DEFAULTS[k],
+                    ) !== JSON.stringify(newValue[k]),
             )
 
-            USERCONFIG = changes[CONFIGNAME].newValue
+            USERCONFIG = newValue
 
             // Trigger listeners
-            unsetKeys.forEach(key => {
-                const arr = changeListeners.get(key)
-                if (arr) {
-                    arr.forEach(f => f(old[key], defaultConf[key]))
-                }
-            })
+            unsetKeys.forEach(key => triggerChangeListeners(key, DEFAULTS[key]))
 
             changedKeys.forEach(key => triggerChangeListeners(key))
         } else if (areaname === (await get("storageloc"))) {
@@ -1590,7 +1584,7 @@ browser.storage.onChanged.addListener(async (changes, areaname) => {
             USERCONFIG = o({})
 
             Object.keys(old)
-                .filter(key => old[key] !== defaultConf[key])
+                .filter(key => old[key] !== DEFAULTS[key])
                 .forEach(key => triggerChangeListeners(key))
         }
     }
