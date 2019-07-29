@@ -1158,10 +1158,14 @@ export async function set(...args) {
 
     if (INITIALISED) {
         // wait for storage to settle, otherwise we could clobber a previous incomplete set()
-        await getAsyncDynamic(...target)
+        const previousValue = await getAsyncDynamic(...target)
 
         setDeepProperty(USERCONFIG, value, target)
 
+        if (target.length === 1 && target[0] === "storageloc" && previousValue !== value) {
+          // ensure storageloc is saved locally before switching
+          await save(previousValue)
+        }
         return save()
     } else {
         setDeepProperty(USERCONFIG, value, target)
@@ -1590,7 +1594,15 @@ browser.storage.onChanged.addListener((changes, areaname) => {
             }
         }
 
-        if (newValue !== undefined) {
+        if (areaname === "sync" && areaname !== get("storageloc")) {
+            // storageloc=local means ignoring changes that aren't set by us
+        } else if (newValue !== undefined) {
+            if (areaname === "sync") {
+              // prevent storageloc from being set remotely
+              delete old.storageloc
+              delete newValue.storageloc
+            }
+
             // A key has been :unset if it exists in USERCONFIG and doesn't in changes and if its value in USERCONFIG is different from the one it has in default_config
             const unsetKeys = Object.keys(old).filter(
                 k =>
@@ -1619,7 +1631,8 @@ browser.storage.onChanged.addListener((changes, areaname) => {
             unsetKeys.forEach(key => triggerChangeListeners(key, DEFAULTS[key]))
 
             changedKeys.forEach(key => triggerChangeListeners(key))
-        } else if (areaname === get("storageloc")) {
+        } else {
+            // newValue is undefined when calling browser.storage.AREANAME.clear()
             // If newValue is undefined and AREANAME is the same value as STORAGELOC, the user wants to clean their config
             USERCONFIG = o({})
 
