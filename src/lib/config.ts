@@ -1541,10 +1541,10 @@ const parseConfigHelper = (pconf, parseobj) => {
 // TODO: BUG! Sync and local storage are merged at startup, but not by this thing.
 browser.storage.onChanged.addListener((changes, areaname) => {
     if (CONFIGNAME in changes) {
-        const { newValue } = changes[CONFIGNAME]
-        const old = USERCONFIG
+        const { newValue, oldValue } = changes[CONFIGNAME]
+        const old = oldValue || {}
 
-        function triggerChangeListeners(key, value = USERCONFIG[key]) {
+        function triggerChangeListeners(key, value = newValue[key]) {
             const arr = changeListeners.get(key)
             if (arr) {
                 const v = old[key] === undefined ? DEFAULTS[key] : old[key]
@@ -1554,10 +1554,10 @@ browser.storage.onChanged.addListener((changes, areaname) => {
 
         if (newValue !== undefined) {
             // A key has been :unset if it exists in USERCONFIG and doesn't in changes and if its value in USERCONFIG is different from the one it has in default_config
-            const unsetKeys = Object.keys(USERCONFIG).filter(
+            const unsetKeys = Object.keys(old).filter(
                 k =>
                     newValue[k] === undefined &&
-                    JSON.stringify(USERCONFIG[k]) !==
+                    JSON.stringify(old[k]) !==
                         JSON.stringify(DEFAULTS[k]),
             )
 
@@ -1567,8 +1567,8 @@ browser.storage.onChanged.addListener((changes, areaname) => {
             ).filter(
                 k =>
                     JSON.stringify(
-                        USERCONFIG[k] !== undefined
-                            ? USERCONFIG[k]
+                        old[k] !== undefined
+                            ? old[k]
                             : DEFAULTS[k],
                     ) !== JSON.stringify(newValue[k]),
             )
