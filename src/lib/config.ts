@@ -1539,7 +1539,7 @@ const parseConfigHelper = (pconf, parseobj) => {
 
 // Listen for changes to the storage and update the USERCONFIG if appropriate.
 // TODO: BUG! Sync and local storage are merged at startup, but not by this thing.
-browser.storage.onChanged.addListener(async (changes, areaname) => {
+browser.storage.onChanged.addListener((changes, areaname) => {
     if (CONFIGNAME in changes) {
         const { newValue } = changes[CONFIGNAME]
         const old = USERCONFIG
@@ -1573,13 +1573,14 @@ browser.storage.onChanged.addListener(async (changes, areaname) => {
                     ) !== JSON.stringify(newValue[k]),
             )
 
-            USERCONFIG = newValue
+            // TODO: this should be a deep comparison but this is better than nothing
+            changedKeys.concat(unsetKeys).forEach(key => USERCONFIG[key] = newValue[key])
 
             // Trigger listeners
             unsetKeys.forEach(key => triggerChangeListeners(key, DEFAULTS[key]))
 
             changedKeys.forEach(key => triggerChangeListeners(key))
-        } else if (areaname === (await get("storageloc"))) {
+        } else if (areaname === get("storageloc")) {
             // If newValue is undefined and AREANAME is the same value as STORAGELOC, the user wants to clean their config
             USERCONFIG = o({})
 
