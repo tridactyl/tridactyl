@@ -1388,11 +1388,17 @@ export async function update() {
     @hidden
  */
 async function init() {
-    const syncConfig = await browser.storage.sync.get(CONFIGNAME)
-    schlepp(syncConfig[CONFIGNAME])
-    // Local storage overrides sync
     const localConfig = await browser.storage.local.get(CONFIGNAME)
-    schlepp(localConfig[CONFIGNAME])
+
+    if (localConfig === undefined || localConfig.storageloc !== "local") {
+        const syncConfig = await browser.storage.sync.get(CONFIGNAME)
+        if (syncConfig !== undefined) {
+          schlepp(syncConfig[CONFIGNAME])
+        }
+    } else {
+        // These could be merged instead, but the current design does not allow for that
+        schlepp(localConfig[CONFIGNAME])
+    }
 
     await update()
     await save()
