@@ -19,7 +19,7 @@
   "devDependencies": {
     "@types/jest": "^24.0.15",
     "@types/mithril": "^1.1.17",
-    "@types/node": "^12.6.8",
+    "@types/node": "^12.6.9",
     "awesome-typescript-loader": "^5.2.1",
     "cleanslate": "^0.10.1",
     "copy-webpack-plugin": "^5.0.3",
