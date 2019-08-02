@@ -58,6 +58,12 @@ export class BmarkCompletionSource extends Completions.CompletionSourceFuse {
             option = "-t "
             query = query.slice(3)
         }
+        if (query.startsWith("-c")) {
+            const args = query.split(" ")
+            option += args.slice(0, 2).join(" ")
+            option += " ";
+            query = args.slice(2).join(" ")
+        }
 
         this.completion = undefined
         this.options = (await providers.getBookmarks(query)).slice(0, 10).map(
