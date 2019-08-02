@@ -500,28 +500,30 @@ export function setpref(key: string, ...value: string[]) {
 
 /**
  * Like [[fixamo]] but quieter.
+ *
+ * Now purely a placebo as [[fixamo]] has been removed.
  */
 //#background
 export async function fixamo_quiet() {
-    await setpref("privacy.resistFingerprinting.block_mozAddonManager", "true")
-    return setpref("extensions.webextensions.restrictedDomains", '""')
+    return logger.warning("fixamo_quiet has been removed at the behest of the Firefox Security team. See :help fixamo for more info.")
 }
 
 /**
  *
- * Simply sets
+ * Used to simply set
  * ```js
  *  "privacy.resistFingerprinting.block_mozAddonManager":true
  *  "extensions.webextensions.restrictedDomains":""
  * ```
  * in about:config via user.js so that Tridactyl (and other extensions!) can be used on addons.mozilla.org and other sites.
  *
+ * Removed at the request of the Firefox Security team. Replacements exist in our exemplar RC file.
+ *
  * Requires `native` and a `restart`.
  */
 //#background
 export async function fixamo() {
-    await fixamo_quiet()
-    fillcmdline_tmp(3000, "Permissions added to user.js. Please restart Firefox to make them take affect.")
+    fillcmdline_tmp(10000, "fixamo has been removed at the request of the Firefox Security team. Alternatives exist in our exemplar RC file.")
 }
 
 /**
