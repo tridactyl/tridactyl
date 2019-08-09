@@ -42,6 +42,7 @@ export class HistoryCompletionSource extends Completions.CompletionSourceFuse {
     }
 
     public async filter(exstr: string) {
+        const prevStr = this.lastExstr
         this.lastExstr = exstr
         let [prefix, query] = this.splitOnPrefix(exstr)
         let options = ""
@@ -89,7 +90,7 @@ export class HistoryCompletionSource extends Completions.CompletionSourceFuse {
         // ago, then reselect it so that users don't lose their selections.
         this.options.forEach(option => option.state = "normal")
         for (const option of this.options) {
-            if (lastFocused !== undefined && lastFocused.value === option.value) {
+            if (lastFocused !== undefined && lastFocused.value === option.value && prevStr.length <= exstr.length) {
                 this.select(option)
                 break
             }
