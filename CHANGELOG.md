@@ -1,15 +1,40 @@
 # Tridactyl changelog
 
+## Release 1.16.3 / 2019-08-14
+
+-   New features
+
+    -   Bookmarks are now listed in `*open` completions. `set bmarkweight` to change how prominently they are listed. ([#214](https://github.com/tridactyl/tridactyl/issues/214))
+
+-   Bug fixes
+
+    -   Completions are now deselected if the string is shortened ([#1696](https://github.com/tridactyl/tridactyl/issues/1696))
+    -   Fix :bmarks -t -c <container> behavior ([#1772](https://github.com/tridactyl/tridactyl/issues/1772))
+    -   perf.ts: remove illegal string which was causing spurious errors
+    -   Duplicate bookmarks are no longer listed in `bmark` completions
+
+-   Miscellaneous
+
+    -   Remove `fixamo` at request of Firefox Security team ([#1773](https://github.com/tridactyl/tridactyl/issues/1773))
+    -   Add missing ignore mode shortcut to tutorial
+    -   Disable guiset navbar none as it had stopped working ([#1728](https://github.com/tridactyl/tridactyl/issues/1728))
+
+Thanks to all of our contributors for this release: Oliver Blanthorn, dependabot-preview[bot], Colin Caine, GiulioCentorame, Jakub Okoński and glacambre.
+
+Extra special thanks go to GiulioCentorame and Jakub Okoński who both contributed for the first time.
+
+Last, but not least - thank you to everyone who reported issues.
+
 ## Release 1.16.2 / 2019-07-11
 
 -   New features
 
-    -   New setting `urlparenttrailingslash` which allows you to choose whether `urlparent` adds a trailing slash or not (#1565)
+    -   New setting `urlparenttrailingslash` which allows you to choose whether `urlparent` adds a trailing slash or not ([#1565](https://github.com/tridactyl/tridactyl/issues/1565))
 
 -   Bug fixes
 
-    -   Encoding errors with the RC file and `:editor` should be fixed (#1698)
-    -   End-to-end tests should work on Windows now (#1700)
+    -   Encoding errors with the RC file and `:editor` should be fixed ([#1698](https://github.com/tridactyl/tridactyl/issues/1698))
+    -   End-to-end tests should work on Windows now ([#1700](https://github.com/tridactyl/tridactyl/issues/1700))
 
 -   Miscellaneous
 
