@@ -3234,7 +3234,9 @@ export function seturl(pattern: string, key: string, ...values: string[]) {
         set searchurls.google https://www.google.com/search?q=
         set logging.messaging info
 
-    If no value is given, the value of the of the key will be displayed
+    If no value is given, the value of the of the key will be displayed.
+
+    See also: [[unset]]
 */
 //#background
 export function set(key: string, ...values: string[]) {
