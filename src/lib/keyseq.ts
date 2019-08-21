@@ -24,6 +24,7 @@
 import { filter, find, izip } from "@src/lib/itertools"
 import { Parser } from "@src/lib/nearley_utils"
 import * as bracketexpr_grammar from "@src/grammars/.bracketexpr.generated"
+import { GamepadEvent } from "@src/lib/gamepad"
 const bracketexpr_parser = new Parser(bracketexpr_grammar)
 
 // {{{ General types
@@ -33,6 +34,7 @@ export interface KeyModifiers {
     ctrlKey?: boolean
     metaKey?: boolean
     shiftKey?: boolean
+    gamepad?: boolean
 }
 
 export class MinimalKey {
@@ -40,6 +42,7 @@ export class MinimalKey {
     readonly ctrlKey = false
     readonly metaKey = false
     readonly shiftKey = false
+    readonly gamepad = false
 
     constructor(readonly key: string, modifiers?: KeyModifiers) {
         if (modifiers !== undefined) {
@@ -52,10 +55,26 @@ export class MinimalKey {
     /** Does this key match a given MinimalKey extending object? */
     public match(keyevent) {
         // 'in' doesn't include prototypes, so it's safe for this object.
-        for (const attr in this) {
+        for (const attr of Object.keys(this)) {
             // Don't check shiftKey for normal keys.
-            if (attr === "shiftKey" && this.key.length === 1) continue
-            if (this[attr] !== keyevent[attr]) return false
+            switch (attr) {
+                case "shiftKey":
+                    if (this.key.length === 1) {
+                        continue
+                    }
+                    break
+                case "gamepad":
+                    const g = keyevent[attr] === undefined ? false : keyevent[attr];
+                    if (this.gamepad !== g) {
+                        return false
+                    }
+                    break
+                default:
+                    if (this[attr] !== keyevent[attr]) {
+                        return false
+                    }
+                    break
+            }
         }
         return true
     }
@@ -70,6 +89,7 @@ export class MinimalKey {
             ["C", "ctrlKey"],
             ["M", "metaKey"],
             ["S", "shiftKey"],
+            ["G", "gamepad"],
         ])
         for (const [letter, attr] of modifiers.entries()) {
             if (this[attr]) {
@@ -97,7 +117,7 @@ export class MinimalKey {
     }
 }
 
-export type KeyEventLike = MinimalKey | KeyboardEvent
+export type KeyEventLike = MinimalKey | KeyboardEvent | GamepadEvent
 
 // }}}
 
@@ -352,13 +372,14 @@ export function hasModifiers(keyEvent: KeyEventLike) {
         keyEvent.ctrlKey ||
         keyEvent.altKey ||
         keyEvent.metaKey ||
-        keyEvent.shiftKey
+        keyEvent.shiftKey ||
+        (keyEvent as any).gamepad
     )
 }
 
 /** shiftKey is true for any capital letter, most numbers, etc. Generally care about other modifiers. */
 export function hasNonShiftModifiers(keyEvent: KeyEventLike) {
-    return keyEvent.ctrlKey || keyEvent.altKey || keyEvent.metaKey
+    return keyEvent.ctrlKey || keyEvent.altKey || keyEvent.metaKey || (keyEvent as any).gamepad
 }
 
 /** A simple key event is a non-special key (length 1) that is not modified by ctrl, alt, or shift. */
@@ -407,6 +428,7 @@ export function translateKeysUsingKeyTranslateMap(
                 ctrlKey: keyEvent.ctrlKey,
                 metaKey: keyEvent.metaKey,
                 shiftKey: keyEvent.shiftKey,
+                gamepad: (keyEvent as any).gamepad,
             })
         }
     }

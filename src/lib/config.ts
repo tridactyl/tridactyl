@@ -294,8 +294,16 @@ export class default_config {
         zI: "zoom 3",
         zO: "zoom 0.3",
         ".": "repeat",
-        "<SA-ArrowUp><SA-ArrowUp><SA-ArrowDown><SA-ArrowDown><SA-ArrowLeft><SA-ArrowRight><SA-ArrowLeft><SA-ArrowRight>ba":
-            "open https://www.youtube.com/watch?v=M3iOROuTuMA",
+        // Mappings for an xbox 360 controller
+        "<G-0>": "fillcmdline", // A button
+        "<G-1>": "back", // B button
+        "<G-2>": "tabclose", // X button
+        "<G-3>": "forward", // Y button
+        "<G-4>": "tabprev", // right button
+        "<G-5>": "tabnext", // left button
+        "<G-6>": "followpage prev", // back button
+        "<G-7>": "followpage next", // start button
+        "<G-9>": "hint", // left-joystick click
     }
 
     hintmaps = {

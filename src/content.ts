@@ -6,6 +6,13 @@ if ((window as any).tridactyl_content_lock !== undefined) {
 }
 (window as any).tridactyl_content_lock = "locked"
 
+import * as gamepads from "@src/lib/gamepad"
+// This needs to be as early as possible, otherwise we won't get the event and
+// will never know about the gamepad
+window.addEventListener("gamepadconnected", (e) => {
+    gamepads.register((e as any).gamepad);
+});
+
 // Be careful: typescript elides imports that appear not to be used if they're
 // assigned to a name.  If you want an import just for its side effects, make
 // sure you import it like this:
@@ -75,6 +82,7 @@ function listen(elem) {
     )
 }
 listen(window)
+gamepads.addButtonListener(guardedAcceptKey)
 document.addEventListener("readystatechange", _ =>
     getAllDocumentFrames().forEach(f => listen(f)),
 )

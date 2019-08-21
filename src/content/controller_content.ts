@@ -31,6 +31,9 @@ function PrintableKey(k) {
     if (k.shiftKey) {
         result = "S-" + result
     }
+    if (k.gamepad) {
+        result = "G-" + result
+    }
     if (result.length > 1) {
         result = "<" + result + ">"
     }
