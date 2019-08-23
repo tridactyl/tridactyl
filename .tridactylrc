@@ -1,5 +1,21 @@
 " bovine3dom's dogfood
 
+" WARNING: This file defines and runs a command called fixamo_quiet. If you
+" also have a malicious addon that operates on `<all_urls>` installed this
+" will allow it to steal your firefox account credentials!
+"
+" With those credentials, an attacker can read anything in your sync account,
+" publish addons to the AMO, etc, etc.
+"
+" Without this command a malicious addon can steal credentials from any site
+" that you visit that is not in the restrictedDomains list.
+"
+" You should comment out the fixamo lines unless you are entirely that they
+" are what you want.
+"
+" The advantage of running the command is that you can use the tridactyl
+" interface on addons.mozilla.org and other restricted sites.
+
 " Provided only as an example.
 " Do not install/run without reading through as you may be surprised by some
 " of the settings.
@@ -81,11 +97,13 @@ set hintnames numeric
 " Defaults to 300ms but I'm a 'move fast and close the wrong tabs' kinda chap
 set hintdelay 100
 
-" Add helper commands that Mozillians think make Firefox irredeemably insecure
+" Add helper commands that Mozillians think make Firefox irredeemably
+" insecure. For details, read the comment at the top of this file.
 command fixamo_quiet jsb tri.excmds.setpref("privacy.resistFingerprinting.block_mozAddonManager", "true").then(tri.excmds.setpref("extensions.webextensions.restrictedDomains", '""'))
 command fixamo js tri.excmds.setpref("privacy.resistFingerprinting.block_mozAddonManager", "true").then(tri.excmds.setpref("extensions.webextensions.restrictedDomains", '""').then(tri.excmds.fillcmdline_tmp(3000, "Permissions added to user.js. Please restart Firefox to make them take affect.")))
 
-" Make Tridactyl work on more sites at the expense of some security
+" Make Tridactyl work on more sites at the expense of some security. For
+" details, read the comment at the top of this file.
 set csp clobber
 fixamo_quiet
 
