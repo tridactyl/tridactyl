@@ -859,6 +859,10 @@ function tabSetActive(id: number) {
 //#content_helper
 let JUMPED: boolean
 
+/** @hidden */
+//#content_helper
+let JUMP_TIMEOUTID
+
 /** This is used as an ID for the current page in the jumplist.
     It has a potentially confusing behavior: if you visit site A, then site B, then visit site A again, the jumplist that was created for your first visit on A will be re-used for your second visit.
     An ideal solution would be to have a counter that is incremented every time a new page is visited within the tab and use that as the return value for getJumpPageId but this doesn't seem to be trivial to implement.
@@ -941,35 +945,37 @@ export function jumpprev(n = 1) {
     @hidden
 */
 //#content_helper
-export function addJump(scrollEvent: UIEvent) {
+export function addJump() {
     if (JUMPED) {
         JUMPED = false
         return
     }
-    const pageX = scrollEvent.pageX
-    const pageY = scrollEvent.pageY
-    // Get config for current page
-    curJumps().then(alljumps => {
+    const {scrollX, scrollY} = window
+    // Prevent pending jump from being registered
+    clearTimeout(JUMP_TIMEOUTID)
+    // Schedule the registering of the current jump
+    const localTimeoutID = setTimeout(async () => {
+        // Get config for current page
+        const alljumps = await curJumps()
+        // if this handler was cancelled after the call to curJumps(), bail out
+        if (localTimeoutID !== JUMP_TIMEOUTID) return
+
         const jumps = alljumps[getJumpPageId()]
-        // Prevent pending jump from being registered
-        clearTimeout(jumps.timeoutid)
-        // Schedule the registering of the current jump
-        jumps.timeoutid = setTimeout(() => {
-            const list = jumps.list
-            // if the page hasn't moved, stop
-            if (list[jumps.cur].x === pageX && list[jumps.cur].y === pageY) return
-            // Store the new jump
-            // Could removing all jumps from list[cur] to list[list.length] be
-            // a better/more intuitive behavior?
-            list.push({ x: pageX, y: pageY })
-            jumps.cur = jumps.list.length - 1
-            saveJumps(alljumps)
-        }, config.get("jumpdelay"))
-    })
+        const list = jumps.list
+        // if the page hasn't moved, stop
+        if (list[jumps.cur].x === scrollX && list[jumps.cur].y === scrollY) return
+        // Store the new jump
+        // Could removing all jumps from list[cur] to list[list.length] be
+        // a better/more intuitive behavior?
+        list.push({ x: scrollX, y: scrollY })
+        jumps.cur = jumps.list.length - 1
+        saveJumps(alljumps)
+    }, config.get("jumpdelay"))
+    JUMP_TIMEOUTID = localTimeoutID
 }
 
 //#content_helper
-document.addEventListener("scroll", addJump)
+document.addEventListener("scroll", addJump, {passive: true})
 
 // Try to restore the previous jump position every time a page is loaded
 //#content_helper
