@@ -10,8 +10,8 @@
 " Without this command a malicious addon can steal credentials from any site
 " that you visit that is not in the restrictedDomains list.
 "
-" You should comment out the fixamo lines unless you are entirely that they
-" are what you want.
+" You should comment out the fixamo lines unless you are entirely sure that
+" they are what you want.
 "
 " The advantage of running the command is that you can use the tridactyl
 " interface on addons.mozilla.org and other restricted sites.
