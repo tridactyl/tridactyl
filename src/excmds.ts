@@ -3120,7 +3120,7 @@ export function bind(...args: string[]) {
 /**
  * Like [[bind]] but for a specific url pattern (also see [[seturl]]).
  *
- * @param pattern Mandatory. The pattern on which the binding should take effect.
+ * @param pattern Mandatory. The regex pattern on which the binding should take effect.
  * @param mode Optional. The mode the binding should be in (e.g. normal, insert, ignore, input). Defaults to normal.
  * @param keys Mandatory. The keys that should be bound.
  * @param excmd Optional. Without it, will display what `keys` are bound to in `mode`.
@@ -3199,7 +3199,7 @@ function validateSetArgs(key: string, values: string[]) {
 /**
  * Usage: `seturl [pattern] key values`
  *
- * @param pattern The URL pattern the setting should be set for, e.g. `en.wikipedia.org` or `/index.html`. Defaults to the current url if `values` is a single word.
+ * @param pattern The URL regex pattern the setting should be set for, e.g. `^https://en.wikipedia.org` or `/index.html`. Defaults to the current url if `values` is a single word.
  * @param key The name of the setting you want to set, e.g. `followpagepatterns.next`
  * @param values The value you wish for, e.g. `next`
  *
@@ -3354,7 +3354,7 @@ export async function unbind(...args: string[]) {
 /**
  * Unbind a sequence of keys you have set with [[bindurl]]. Note that this **kills** a bind, which means Tridactyl will pass it to the page on `pattern`. If instead you want to use the default setting again, use [[reseturl]].
  *
- * @param pattern the url on which the key should be unbound
+ * @param pattern a regex to match URLs on which the key should be unbound
  * @param mode Optional. The mode in which the key should be unbound. Defaults to normal.
  * @param keys The keybinding that should be unbound
  *
@@ -3388,7 +3388,7 @@ export async function reset(mode: string, key: string) {
 }
 
 /**
- * Restores a sequence of keys to their value in the global config for a specific URL.
+ * Restores a sequence of keys to their value in the global config for a specific URL pattern.
  *
  * See also:
  *  - [[bind]]
