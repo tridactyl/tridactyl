@@ -8583,10 +8583,10 @@ tslib@^1, tslib@^1.8.0, tslib@^1.8.1, tslib@^1.9.0, tslib@^1.9.3:
   resolved "https://registry.yarnpkg.com/tslib/-/tslib-1.10.0.tgz#c3c19f95973fb0a62973fb09d90d961ee43e5c8a"
   integrity sha512-qOebF53frne81cf0S9B41ByenJ3/IuH8yJKngAX35CmiZySA0khhkovshKK+jGCaMnVomla7gVlIcc3EvKPbTQ==
 
-tslint-etc@^1.6.0:
-  version "1.6.0"
-  resolved "https://registry.yarnpkg.com/tslint-etc/-/tslint-etc-1.6.0.tgz#99d1ddf79dc5eaefa14ddbd94742197d0ba0ff45"
-  integrity sha512-+7YkUcHhRowg3odIKV8V4FtrHyf2q/jlabSvn4KjMV+Uansncdq10s0MhFPFCYrSv6Eyhh0vUyu3+T/PcuDO/g==
+tslint-etc@^1.7.0:
+  version "1.7.0"
+  resolved "https://registry.yarnpkg.com/tslint-etc/-/tslint-etc-1.7.0.tgz#7cd5b500bca458067c7061aad6f53e352d0872d5"
+  integrity sha512-8NOGfr4zRquMNugz8D9gr0Tz8xxNA1Zrd2OFqURaWNKV779GO4LhqHjFL572m3MusUwSxPkUOMSmsqAwkvu6qQ==
   dependencies:
     "@phenomnomnominal/tsquery" "^3.0.0"
     tslib "^1.8.0"
