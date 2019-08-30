@@ -3786,7 +3786,7 @@ export async function hint(option?: string, selectors?: string, ...rest: string[
                 DOM.elementsWithText(),
                 elem => {
                     // /!\ Warning: This is racy! This can easily be fixed by adding an await but do we want this? yank can be pretty slow, especially with yankto=selection
-                    run_exstr("yank " + elem.textContent)
+                    yank(elem.textContent)
                     return elem
                 },
                 rapid,
