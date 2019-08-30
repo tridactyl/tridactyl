@@ -233,7 +233,7 @@ export class default_config {
         ZZ: "qall",
         f: "hint",
         F: "hint -b",
-        gF: "hint -br",
+        gF: "hint -qb",
         ";i": "hint -i",
         ";b": "hint -b",
         ";o": "hint",
@@ -276,6 +276,10 @@ export class default_config {
         ";gv": "hint -qW mpvsafe",
         ";gw": "hint -qw",
         ";gb": "hint -qb",
+        // These two don't strictly follow the "bind is ;g[flag]" rule but they make sense
+        ";gF": "hint -qb",
+        ";gf": "hint -q",
+
         "<S-Insert>": "mode ignore",
         "<CA-Escape>": "mode ignore",
         "<CA-`>": "mode ignore",
