@@ -165,18 +165,6 @@ export function* uniqueBy(arr, hasher) {
     }
 }
 
-export function flatten(arr) {
-    let result = []
-    for (const elem of arr) {
-        if (elem instanceof Array) {
-            result = result.concat(flatten(elem))
-        } else {
-            result.push(elem)
-        }
-    }
-    return result
-}
-
 /** Drop from iterable until predicate is false */
 export function* dropwhile(iterable, predicate) {
     let allmatched = true

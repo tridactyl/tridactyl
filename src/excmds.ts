@@ -153,7 +153,6 @@ import { CmdlineCmds as BgCmdlineCmds } from "@src/background/commandline_cmds"
 import { EditorCmds as BgEditorCmds } from "@src/background/editor"
 import { messageActiveTab } from "@src/lib/messaging"
 import { EditorCmds } from "@src/background/editor"
-import { flatten } from "@src/lib/itertools"
 import { firefoxVersionAtLeast } from "@src/lib/webext"
 import * as rc from "@src/background/config_rc"
 import * as css_util from "@src/lib/css_util"
@@ -4227,10 +4226,12 @@ export async function bmark(url?: string, ...titlearr: string[]) {
         const treeClimber = (tree, treestr) => {
             if (tree.type !== "folder") return {}
             treestr += tree.title + "/"
-            if (!("children" in tree) || tree.children.length === 0) return { path: treestr, id: tree.id }
+            if (!("children" in tree) || tree.children.length === 0) return [{ path: treestr, id: tree.id }]
             return [{ path: treestr, id: tree.id }, tree.children.map(child => treeClimber(child, treestr))]
         }
-        const validpaths = flatten(treeClimber(tree, "")).filter(x => "path" in x)
+        const treeClimberResult = treeClimber(tree, "")
+        let validpaths = []
+        if (treeClimberResult instanceof Array) validpaths = treeClimberResult.flat(Infinity).filter(x => "path" in x)
         title = title.substring(title.lastIndexOf("/") + 1)
         let pathobj = validpaths.find(p => p.path === path)
         // If strict look doesn't find it, be a bit gentler
