@@ -6,7 +6,7 @@
     "outDir": "build/tsc-out",
     "sourceMap": true,
     "target": "ES2017",
-    "lib": ["ES2017","dom", "dom.iterable"],
+    "lib": ["ES2017","es2019.array","dom", "dom.iterable"],
     "typeRoots": ["node_modules/@types", "node_modules/web-ext-types/"],
     "experimentalDecorators": true,
     "alwaysStrict": true,
