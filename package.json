@@ -33,7 +33,7 @@
     "source-map-loader": "^0.2.4",
     "ts-jest": "^24.0.2",
     "ts-node": "^8.3.0",
-    "tslint": "^5.19.0",
+    "tslint": "^5.20.0",
     "tslint-etc": "^1.7.0",
     "tslint-sonarts": "^1.9.0",
     "typedoc": "^0.15.0",
