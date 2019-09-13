@@ -2984,6 +2984,9 @@ export async function taball(id: string) {
  *  - `command tn tabnext_gt`
  *  - `command hello t` This will expand recursively into 'hello'->'tabopen'
  *
+ * Commands/aliases are expanded as in a shell, so, given the commands above,
+ * entering `:tn 43` will expand to `:tabnext_gt 43`.
+ *
  * Note that this is only for excmd->excmd mappings. To map a normal-mode
  * command to an excommand, see [[bind]].
  *
