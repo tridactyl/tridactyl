@@ -64,14 +64,9 @@ Alternatively, if you don't need Tridactyl to work on the new tab page, you can 
 
 ## FAQ
 
-You have more questions? Have a look at our [FAQ][faq-link].
+You have more questions? Have a look at our [FAQ][faq-link] or search our [issues][issues].
 
-[1]: https://github.com/tridactyl/tridactyl/issues
-
-<div class="align-left">
-[1]: https://github.com/tridactyl/tridactyl/issues<br />
-</div>
-
+[issues]: https://github.com/tridactyl/tridactyl/issues
 [faq-link]: https://github.com/tridactyl/tridactyl#frequently-asked-questions
 [help]: /static/docs/modules/_src_excmds_.html
 [tutor]: /static/clippy/1-tutor.html
