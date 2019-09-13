@@ -278,6 +278,10 @@
     border-color: var(--tridactyl-photon-colours-in-content-box-border-color);
 }
 
+:root.TridactylThemeDark.TridactylOwnNamespace a {
+    color: var(--tridactyl-photon-colours-accent-1)
+}
+
 /* These rules have greater specificity than the rules applying the variables
  * above, which causes *issues*. */
 
