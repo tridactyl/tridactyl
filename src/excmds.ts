@@ -2982,7 +2982,7 @@ export async function taball(id: string) {
  * Examples:
  *  - `command t tabopen`
  *  - `command tn tabnext_gt`
- *  = `command hello t` This will expand recursively into 'hello'->'tabopen'
+ *  - `command hello t` This will expand recursively into 'hello'->'tabopen'
  *
  * Note that this is only for excmd->excmd mappings. To map a normal-mode
  * command to an excommand, see [[bind]].
