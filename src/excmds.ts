@@ -4409,4 +4409,13 @@ browser.runtime.onInstalled.addListener(details => {
     // could add elif "update" and show a changelog. Hide it behind a setting to make it less annoying?
 })
 
+/** Opens optionsUrl for the selected extension in a new tab.
+ *
+ * NB: Tridactyl cannot run on this page!
+ */
+//#content
+export async function extoptions(optionsUrl: string) {
+    return tabopen(optionsUrl)
+}
+
 // vim: tabstop=4 shiftwidth=4 expandtab
