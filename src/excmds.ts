@@ -158,6 +158,7 @@ import { firefoxVersionAtLeast } from "@src/lib/webext"
 import * as rc from "@src/background/config_rc"
 import * as css_util from "@src/lib/css_util"
 import * as Updates from "@src/lib/updates"
+import * as Extensions from "@src/lib/extension_info"
 
 ALL_EXCMDS = {
     "": BGSELF,
@@ -4409,13 +4410,16 @@ browser.runtime.onInstalled.addListener(details => {
     // could add elif "update" and show a changelog. Hide it behind a setting to make it less annoying?
 })
 
-/** Opens optionsUrl for the selected extension in a new tab.
+/** Opens optionsUrl for the selected extension in a popup window.
  *
  * NB: Tridactyl cannot run on this page!
  */
-//#content
-export async function extoptions(optionsUrl: string) {
-    return tabopen(optionsUrl)
+//#background
+export async function extoptions(...optionNameArgs: string[]) {
+    const optionName = optionNameArgs.join(" ")
+    const extensions = await Extensions.listExtensions()
+    const selectedExtension = extensions.find(ext => ext.name === optionName)
+    return winopen("-popup", selectedExtension.optionsUrl)
 }
 
 // vim: tabstop=4 shiftwidth=4 expandtab
