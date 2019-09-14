@@ -2,7 +2,7 @@ import { isTextEditable } from "@src/lib/dom"
 import { contentState, ModeName } from "@src/content/state_content"
 import Logger from "@src/lib/logging"
 import * as controller from "@src/lib/controller"
-import {KeyEventLike} from "@src/lib/keyseq"
+import { KeyEventLike } from "@src/lib/keyseq"
 
 import * as hinting from "@src/content/hinting"
 import * as gobblemode from "@src/parsers/gobblemode"
@@ -110,10 +110,20 @@ function* ParserController() {
             while (true) {
                 const keyevent: KeyEventLike = yield
 
+                const shadowRoot =
+                    keyevent instanceof KeyboardEvent
+                        ? (keyevent.target as Element).shadowRoot
+                        : null
+
                 // _just to be safe_, cache this to make the following
                 // code more thread-safe.
                 const currentMode = contentState.mode
-                const textEditable = keyevent instanceof KeyboardEvent ? isTextEditable(keyevent.target as Element) : false
+                const textEditable =
+                    keyevent instanceof KeyboardEvent
+                        ? shadowRoot === null
+                            ? isTextEditable(keyevent.target as Element)
+                            : isTextEditable(shadowRoot.activeElement)
+                        : false
 
                 // This code was sort of the cause of the most serious bug in Tridactyl
                 // to date (March 2018).
