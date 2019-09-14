@@ -144,8 +144,6 @@ You can bind your own shortcuts in normal mode with the `:bind` command. For exa
 
     Yes, if you have `native` working, `$XDG_CONFIG_DIR/tridactyl/tridactylrc` or `~/.tridactylrc` will be read at startup via an `autocmd` and `source`. There is an [example file available on our repository](https://github.com/tridactyl/tridactyl/blob/master/.tridactylrc).
 
-    If you can't use the native messenger for some reason, there is a workaround: if you do `set storageloc local`, a JSON file will appear at `<your firefox profile>\browser-extension-data\tridactyl.vim@cmcaine.co.uk\storage.js`. You can find your profile folder by going to `about:support`. You can edit this file to your heart's content.
-
 -   How can I change the colors or theme used by Tridactyl?
 
     Use `:colors dark` (authored by @furgerf), `:colors shydactyl` (authored by @atrnh) or `:colors greenmat` (authored by @caputchinefrobles). Tridactyl can also load themes from disk, which would let you use one of the themes authored by @bezmi ([bezmi/base16-tridactyl](https://github.com/bezmi/base16-tridactyl)), see `:help colors` for more information.
