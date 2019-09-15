@@ -90,10 +90,10 @@ import * as excmd_parser from "@src/parsers/exmode"
 import * as escape from "@src/lib/escape"
 
 /**
-  * This is used to drive some excmd handling in `composite`.
-  *
-  * @hidden
-  */
+ * This is used to drive some excmd handling in `composite`.
+ *
+ * @hidden
+ */
 let ALL_EXCMDS
 
 // The entry-point script will make sure this has the right set of
@@ -135,8 +135,8 @@ import * as gobbleMode from "@src/parsers/gobblemode"
 
 ALL_EXCMDS = {
     "": CTSELF,
-    "ex": CtCmdlineCmds,
-    "text": CtEditorCmds,
+    ex: CtCmdlineCmds,
+    text: CtEditorCmds,
 }
 // }
 
@@ -161,8 +161,8 @@ import * as Updates from "@src/lib/updates"
 
 ALL_EXCMDS = {
     "": BGSELF,
-    "ex": BgCmdlineCmds,
-    "text": BgEditorCmds,
+    ex: BgCmdlineCmds,
+    text: BgEditorCmds,
 }
 /** @hidden */
 // }
@@ -253,7 +253,7 @@ export async function fillinput(selector: string, ...content: string[]) {
     let inputToFill = document.querySelector(selector)
     if (!inputToFill) inputToFill = DOM.getLastUsedInput()
     if ("value" in inputToFill) {
-        (inputToFill as HTMLInputElement).value = content.join(" ")
+        ; (inputToFill as HTMLInputElement).value = content.join(" ")
     } else {
         inputToFill.textContent = content.join(" ")
     }
@@ -332,7 +332,7 @@ export async function editor() {
         let line = 0
         let col = 0
         wrap_input((t, start, end) => {
-            [text, line, col] = getLineAndColNumber(t, start, end)
+            ; [text, line, col] = getLineAndColNumber(t, start, end)
             return [null, null, null]
         })(elem)
         const file = (await Native.temp(text, document.location.hostname)).content
@@ -358,7 +358,7 @@ export async function editor() {
 //#background
 export async function guiset_quiet(rule: string, option: string) {
     if (!rule || !option) throw new Error(":guiset requires two arguments. See `:help guiset` for more information.")
-    if ((rule == "navbar") && (option == "none")) throw new Error("`:guiset navbar none` is currently broken, see https://github.com/tridactyl/tridactyl/issues/1728")
+    if (rule == "navbar" && option == "none") throw new Error("`:guiset navbar none` is currently broken, see https://github.com/tridactyl/tridactyl/issues/1728")
     // Could potentially fall back to sending minimal example to clipboard if native not installed
 
     // Check for native messenger and make sure we have a plausible profile directory
@@ -714,7 +714,7 @@ export async function mktridactylrc(...args: string[]) {
     const file = argParse(args).join(" ") || undefined
 
     const conf = config.parseConfig()
-    if (await Native.nativegate("0.1.11") && (!await rc.writeRc(conf, overwrite, file))) logger.error("Could not write RC file")
+    if ((await Native.nativegate("0.1.11")) && !(await rc.writeRc(conf, overwrite, file))) logger.error("Could not write RC file")
 
     return conf
 }
@@ -958,7 +958,7 @@ document.addEventListener("load", () => curJumps().then(() => jumpprev(0)))
 /** Blur (unfocus) the active element */
 //#content
 export function unfocus() {
-    (document.activeElement as HTMLInputElement).blur()
+    document.activeElement.shadowRoot ? (document.activeElement.shadowRoot.activeElement as HTMLInputElement).blur() : (document.activeElement as HTMLInputElement).blur()
     contentState.mode = "normal"
 }
 
@@ -3588,11 +3588,11 @@ export function viewconfig(key?: string) {
                 .replace(/#/g, "%23")
                 .replace(/ /g, "%20")
     }
-        window.location.href =
-            "data:application/json," +
-            JSON.stringify(config.getDynamic(key))
-                .replace(/#/g, "%23")
-                .replace(/ /g, "%20")
+    window.location.href =
+        "data:application/json," +
+        JSON.stringify(config.getDynamic(key))
+            .replace(/#/g, "%23")
+            .replace(/ /g, "%20")
     // base 64 encoding is a cleverer way of doing this, but it doesn't seem to work for the whole config.
     //window.location.href = "data:application/json;base64," + btoa(JSON.stringify(config.get()))
 }
@@ -3735,12 +3735,12 @@ export async function hint(option?: string, selectors?: string, ...rest: string[
     }
 
     switch (option) {
-        case "-f":  // Filter links by text
+        case "-f": // Filter links by text
         case "-fr": // Filter links by regex
             let match: string | RegExp
             match = [selectors, ...rest].join(" ")
-            if ( option == "-fr" ) {
-                match = new RegExp (match);
+            if (option == "-fr") {
+                match = new RegExp(match)
             }
             selectHints = hinting.pipe_elements(
                 hinting.hintByText(match),
@@ -4004,17 +4004,11 @@ export async function hint(option?: string, selectors?: string, ...rest: string[
 //#content
 export function rot13(n: number) {
     if (n === undefined) n = 13
-    const body = document.createTreeWalker(
-        document.body,
-        NodeFilter.SHOW_TEXT,
-        { acceptNode:
-            (node) => NodeFilter.FILTER_ACCEPT
-        }
-    )
+    const body = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, { acceptNode: node => NodeFilter.FILTER_ACCEPT })
 
     while (body.nextNode()) {
         const t = body.currentNode.textContent
-       body.currentNode.textContent = rot13_helper(t, n)
+        body.currentNode.textContent = rot13_helper(t, n)
     }
 }
 /**
@@ -4202,14 +4196,17 @@ export async function perfhistogram(...filters: string[]) {
  */
 //#background
 export async function bmark(url?: string, ...titlearr: string[]) {
-    const auto_url = (url == undefined)
-    url = url === undefined ? (await activeTab()).url : (_ => {
-        try {
-            return (new URL(url).href)
-        } catch (e) {
-            return (new URL("http://" + url).href)
-        }
-    })()
+    const auto_url = url == undefined
+    url =
+        url === undefined
+            ? (await activeTab()).url
+            : (_ => {
+                  try {
+                      return new URL(url).href
+                  } catch (e) {
+                      return new URL("http://" + url).href
+                  }
+              })()
     let title = titlearr.join(" ")
     // if titlearr is given and we have duplicates, we probably want to give an error here.
     const dupbmarks = await browser.bookmarks.search({ url })
@@ -4312,15 +4309,15 @@ export async function issue() {
         logger.warning("issue(): Couldn't find textarea element in github issue page.")
         return
     }
-    let template = await (fetch(browser.runtime.getURL("issue_template.md"))
+    let template = await fetch(browser.runtime.getURL("issue_template.md"))
         .then(resp => resp.body.getReader())
         .then(reader => reader.read())
-        .then(r => (new TextDecoder("utf-8")).decode(r.value)))
+        .then(r => new TextDecoder("utf-8").decode(r.value))
     if (textarea.value !== template) {
         logger.debug("issue(): Textarea value differs from template, exiting early.")
         return
     }
-    const platform = await browserBg.runtime.getPlatformInfo();
+    const platform = await browserBg.runtime.getPlatformInfo()
     // Remove the bit asking the user
     template = template.replace("*   Operating system:\n", "")
     // Add this piece of information to the top of the template
@@ -4371,13 +4368,11 @@ export async function updatecheck(source: "manual" | "auto_polite" | "auto_impol
     if (source == "manual") {
         notify()
     } else if (source == "auto_impolite") {
-        logger.debug("Impolitely nagging user to update. Installed, latest: ",
-                     Updates.getInstalledVersion(), highestKnownVersion)
+        logger.debug("Impolitely nagging user to update. Installed, latest: ", Updates.getInstalledVersion(), highestKnownVersion)
         notify()
         Updates.updateLatestNaggedVersion(highestKnownVersion)
     } else if (source == "auto_polite" && !Updates.naggedForVersion(highestKnownVersion)) {
-        logger.debug("Politely nagging user to update. Installed, latest: ",
-                     Updates.getInstalledVersion(), highestKnownVersion)
+        logger.debug("Politely nagging user to update. Installed, latest: ", Updates.getInstalledVersion(), highestKnownVersion)
         notify()
         Updates.updateLatestNaggedVersion(highestKnownVersion)
     }
