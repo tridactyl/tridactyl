@@ -5,7 +5,7 @@ import {
     activeTabId,
     openInNewTab,
     activeTabContainerId,
-    inContentScript
+    inContentScript,
 } from "@src/lib/webext"
 const logger = new Logging.Logger("dom")
 
@@ -277,7 +277,9 @@ export function isVisible(element: Element) {
  */
 export function getAllDocumentFrames(doc = document) {
     if (!(doc instanceof HTMLDocument)) return []
-    const frames = (Array.from(doc.getElementsByTagName("iframe")) as HTMLIFrameElement[] & HTMLFrameElement[])
+    const frames = (Array.from(
+        doc.getElementsByTagName("iframe"),
+    ) as HTMLIFrameElement[] & HTMLFrameElement[])
         .concat(Array.from(doc.getElementsByTagName("frame")))
         .filter(frame => !frame.src.startsWith("moz-extension://"))
     return frames.concat(
@@ -313,6 +315,17 @@ export function getSelector(e: HTMLElement) {
     return uniqueSelector(e)
 }
 
+/* Get all the elements that match the given selector inside shadow DOM */
+function getShadowElementsBySelector(selector: string) {
+    let elems = []
+    document.querySelectorAll("*").forEach(elem => {
+        if (elem.shadowRoot) {
+            elems = elems.concat(...elem.shadowRoot.querySelectorAll(selector))
+        }
+    })
+    return elems
+}
+
 /** Get all elements that match the given selector
  *
  * @param selector   `the CSS selector to choose elements with
@@ -321,6 +334,7 @@ export function getSelector(e: HTMLElement) {
  */
 export function getElemsBySelector(selector: string, filters: ElementFilter[]) {
     let elems = Array.from(document.querySelectorAll(selector))
+    elems = elems.concat(...getShadowElementsBySelector(selector))
     const frameElems = getAllDocumentFrames().reduce((acc, frame) => {
         let newElems = []
         // Errors could be thrown by CSP
