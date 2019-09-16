@@ -49,6 +49,7 @@
   "scripts": {
     "build": "sh scripts/build.sh",
     "run": "web-ext run -s build/ -u 'txti.es'",
+    "forrest-run": "yarn run run",
     "watch": "echo 'watch is broken, use build instead'; exit 0;",
     "clean": "rm -rf build generated",
     "test": "yarn run build && rm -rf web-ext-artifacts/* && web-ext build --source-dir ./build --overwrite-dest && mv web-ext-artifacts/*.zip web-ext-artifacts/tridactyl.xpi && jest --silent",
