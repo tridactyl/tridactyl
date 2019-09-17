@@ -1,12 +1,12 @@
 {
   "compilerOptions": {
-    "moduleResolution": "Node",
+    "moduleResolution": "node",
     "noImplicitAny": false,
     "noEmitOnError": true,
     "outDir": "build/tsc-out",
     "sourceMap": true,
-    "target": "ES2017",
-    "lib": ["ES2017","dom", "dom.iterable"],
+    "target": "es2017",
+    "lib": ["es2017","dom", "dom.iterable"],
     "typeRoots": ["node_modules/@types", "node_modules/web-ext-types/"],
     "experimentalDecorators": true,
     "alwaysStrict": true,
