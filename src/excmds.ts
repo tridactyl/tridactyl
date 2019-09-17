@@ -439,7 +439,7 @@ export function cssparse(...css: string[]) {
 //#background
 export async function loadtheme(themename: string) {
     if (!(await Native.nativegate("0.1.9"))) return
-    const separator = (await browserBg.runtime.getPlatformInfo().os) === "win" ? "\\" : "/"
+    const separator = (await browserBg.runtime.getPlatformInfo()).os === "win" ? "\\" : "/"
     // remove the "tridactylrc" bit so that we're left with the directory
     const path =
         (await Native.getrcpath())
