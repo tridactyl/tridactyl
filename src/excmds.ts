@@ -2909,13 +2909,13 @@ export async function clipboard(excmd: "open" | "yank" | "yankshort" | "yankcano
         case "open":
             url = await getclip()
             if (url) {
-                open(url)
+                open(url.trim())
             }
             break
         case "tabopen":
             url = await getclip()
             if (url) {
-                tabopen(url)
+                tabopen(url.trim())
             }
             break
         case "xselpaste":
