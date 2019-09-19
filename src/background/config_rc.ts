@@ -13,6 +13,25 @@ export async function source(filename = "auto") {
     return true
 }
 
+async function fetchConfig(url: string) {
+    const response = await fetch(url)
+    const reader = response.body.getReader()
+    let rctext = ""
+    const decoder = new TextDecoder("utf-8")
+    while (true) {
+        const { value: chunk, done: isDone } = await reader.read()
+        if (isDone) return rctext
+        rctext += decoder.decode(chunk)
+    }
+}
+
+export async function sourceFromUrl(url: string) {
+    const rctext = await fetchConfig(url)
+    if (!rctext) return false
+    await runRc(rctext)
+    return true
+}
+
 export async function writeRc(conf: string, force = false, filename = "auto") {
     let path: string
     if (filename === "auto") {

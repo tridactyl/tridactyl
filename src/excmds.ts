@@ -751,6 +751,26 @@ export async function source_quiet(...fileArr: string[]) {
     }
 }
 
+/** Use tridactylrc located at the given url
+ * @param url the url where the raw version of tridactylrc can be found
+ */
+//#background
+export async function source_from_url(url: string) {
+    if (!url) return
+    await rc.sourceFromUrl(url)
+}
+
+/**
+ * Same as [[source_from_url]] but suppresses all errors
+ */
+//#background
+export async function source_from_url_quiet(url: string) {
+    if (!url) return
+    try {
+        await rc.sourceFromUrl(url)
+    } catch (e) {}
+}
+
 /**
  * Updates the native messenger if it is installed, using our GitHub repo. This is run every time Tridactyl is updated.
  *
