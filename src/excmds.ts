@@ -726,6 +726,8 @@ export async function mktridactylrc(...args: string[]) {
  *
  * If no argument given, it will try to open ~/.tridactylrc, ~/.config/tridactyl/tridactylrc or $XDG_CONFIG_HOME/tridactyl/tridactylrc in reverse order. You may use a `_` in place of a leading `.` if you wish, e.g, if you use Windows.
  *
+ * If no url is specified with the `--url` flag, the current page's URL is used to locate the RC file.
+ *
  * On Windows, the `~` expands to `%USERPROFILE%`.
  *
  * The RC file is just a bunch of Tridactyl excmds (i.e, the stuff on this help page). Settings persist in local storage; add `sanitise tridactyllocal tridactylsync` to make it more Vim like. There's an [example file](https://raw.githubusercontent.com/cmcaine/tridactyl/master/.tridactylrc) if you want it.
@@ -736,7 +738,7 @@ export async function mktridactylrc(...args: string[]) {
 export async function source(...args: string[]) {
     if (args[0] === "--url") {
         let url = args[1]
-        if (!url) return
+        if (!url || url === "%") url = window.location.href
         if (!(url.startsWith("http://") || url.startsWith("https://"))) url = "http://" + url
         await rc.sourceFromUrl(url)
     } else {
@@ -755,7 +757,7 @@ export async function source_quiet(...args: string[]) {
     try {
         if (args[0] === "--url") {
             let url = args[1]
-            if (!url) return
+            if (!url || url === "%") url = window.location.href
             if (!(url.startsWith("http://") || url.startsWith("https://"))) url = "http://" + url
             await rc.sourceFromUrl(url)
         } else {
