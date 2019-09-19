@@ -720,7 +720,9 @@ export async function mktridactylrc(...args: string[]) {
 }
 
 /**
- * Runs an RC file from disk.
+ * Runs an RC file from disk or a URL
+ *
+ * This function accepts a flag: `--url` to load a RC from a URL.
  *
  * If no argument given, it will try to open ~/.tridactylrc, ~/.config/tridactyl/tridactylrc or $XDG_CONFIG_HOME/tridactyl/tridactylrc in reverse order. You may use a `_` in place of a leading `.` if you wish, e.g, if you use Windows.
  *
@@ -728,13 +730,20 @@ export async function mktridactylrc(...args: string[]) {
  *
  * The RC file is just a bunch of Tridactyl excmds (i.e, the stuff on this help page). Settings persist in local storage; add `sanitise tridactyllocal tridactylsync` to make it more Vim like. There's an [example file](https://raw.githubusercontent.com/cmcaine/tridactyl/master/.tridactylrc) if you want it.
  *
- * @param fileArr the file to open. Must be an absolute path, but can contain environment variables and things like ~.
+ * @param args the file/URL to open. For files: must be an absolute path, but can contain environment variables and things like ~.
  */
 //#background
-export async function source(...fileArr: string[]) {
-    const file = fileArr.join(" ") || undefined
-    if ((await Native.nativegate("0.1.3")) && !(await rc.source(file))) {
-        logger.error("Could not find RC file")
+export async function source(...args: string[]) {
+    if (args[0] === "--url") {
+        let url = args[1]
+        if (!url) return
+        if (!(url.startsWith("http://") || url.startsWith("https://"))) url = "http://" + url
+        await rc.sourceFromUrl(url)
+    } else {
+        const file = args.join(" ") || undefined
+        if ((await Native.nativegate("0.1.3")) && !(await rc.source(file))) {
+            logger.error("Could not find RC file")
+        }
     }
 }
 
@@ -742,33 +751,20 @@ export async function source(...fileArr: string[]) {
  * Same as [[source]] but suppresses all errors
  */
 //#background
-export async function source_quiet(...fileArr: string[]) {
+export async function source_quiet(...args: string[]) {
     try {
-        const file = fileArr.join(" ") || undefined
-        if (await Native.nativegate("0.1.3", false)) rc.source(file)
+        if (args[0] === "--url") {
+            let url = args[1]
+            if (!url) return
+            if (!(url.startsWith("http://") || url.startsWith("https://"))) url = "http://" + url
+            await rc.sourceFromUrl(url)
+        } else {
+            const file = args.join(" ") || undefined
+            if (await Native.nativegate("0.1.3", false)) rc.source(file)
+        }
     } catch (e) {
         logger.info("Automatic loading of RC file failed.")
     }
-}
-
-/** Use tridactylrc located at the given url
- * @param url the url where the raw version of tridactylrc can be found
- */
-//#background
-export async function source_from_url(url: string) {
-    if (!url) return
-    await rc.sourceFromUrl(url)
-}
-
-/**
- * Same as [[source_from_url]] but suppresses all errors
- */
-//#background
-export async function source_from_url_quiet(url: string) {
-    if (!url) return
-    try {
-        await rc.sourceFromUrl(url)
-    } catch (e) {}
 }
 
 /**
