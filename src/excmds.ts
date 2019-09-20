@@ -720,21 +720,34 @@ export async function mktridactylrc(...args: string[]) {
 }
 
 /**
- * Runs an RC file from disk.
+ * Runs an RC file from disk or a URL
+ *
+ * This function accepts a flag: `--url` to load a RC from a URL.
  *
  * If no argument given, it will try to open ~/.tridactylrc, ~/.config/tridactyl/tridactylrc or $XDG_CONFIG_HOME/tridactyl/tridactylrc in reverse order. You may use a `_` in place of a leading `.` if you wish, e.g, if you use Windows.
+ *
+ * If no url is specified with the `--url` flag, the current page's URL is used to locate the RC file. Ensure the URL you pass (or page you are on) is a "raw" RC file, e.g. https://raw.githubusercontent.com/tridactyl/tridactyl/master/.tridactylrc and not https://github.com/tridactyl/tridactyl/blob/master/.tridactylrc.
+ *
+ * Tridactyl won't run on many raw pages due to a Firefox bug with Content Security Policy, so you may need to use the `source --url [URL]` form.
  *
  * On Windows, the `~` expands to `%USERPROFILE%`.
  *
  * The RC file is just a bunch of Tridactyl excmds (i.e, the stuff on this help page). Settings persist in local storage; add `sanitise tridactyllocal tridactylsync` to make it more Vim like. There's an [example file](https://raw.githubusercontent.com/cmcaine/tridactyl/master/.tridactylrc) if you want it.
  *
- * @param fileArr the file to open. Must be an absolute path, but can contain environment variables and things like ~.
+ * @param args the file/URL to open. For files: must be an absolute path, but can contain environment variables and things like ~.
  */
 //#background
-export async function source(...fileArr: string[]) {
-    const file = fileArr.join(" ") || undefined
-    if ((await Native.nativegate("0.1.3")) && !(await rc.source(file))) {
-        logger.error("Could not find RC file")
+export async function source(...args: string[]) {
+    if (args[0] === "--url") {
+        let url = args[1]
+        if (!url || url === "%") url = window.location.href
+        if (!(url.startsWith("http://") || url.startsWith("https://"))) url = "http://" + url
+        await rc.sourceFromUrl(url)
+    } else {
+        const file = args.join(" ") || undefined
+        if ((await Native.nativegate("0.1.3")) && !(await rc.source(file))) {
+            logger.error("Could not find RC file")
+        }
     }
 }
 
@@ -742,10 +755,17 @@ export async function source(...fileArr: string[]) {
  * Same as [[source]] but suppresses all errors
  */
 //#background
-export async function source_quiet(...fileArr: string[]) {
+export async function source_quiet(...args: string[]) {
     try {
-        const file = fileArr.join(" ") || undefined
-        if (await Native.nativegate("0.1.3", false)) rc.source(file)
+        if (args[0] === "--url") {
+            let url = args[1]
+            if (!url || url === "%") url = window.location.href
+            if (!(url.startsWith("http://") || url.startsWith("https://"))) url = "http://" + url
+            await rc.sourceFromUrl(url)
+        } else {
+            const file = args.join(" ") || undefined
+            if (await Native.nativegate("0.1.3", false)) rc.source(file)
+        }
     } catch (e) {
         logger.info("Automatic loading of RC file failed.")
     }
