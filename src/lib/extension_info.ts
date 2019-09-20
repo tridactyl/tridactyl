@@ -75,3 +75,12 @@ export async function init() {
     browser.management.onDisabled.addListener(updateExtensionInfo)
     browser.management.onUninstalled.addListener(updateExtensionInfo)
 }
+
+/** Return a list of extensions installed by the user.
+ */
+export async function listExtensions() {
+    await init()
+    return Object.keys(installedExtensions)
+        .map(key => installedExtensions[key])
+        .filter(obj => obj.optionsUrl.length > 0)
+}

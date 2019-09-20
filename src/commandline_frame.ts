@@ -33,6 +33,7 @@ import { RssCompletionSource } from "@src/completions/Rss"
 import { SessionsCompletionSource } from "@src/completions/Sessions"
 import { SettingsCompletionSource } from "@src/completions/Settings"
 import { WindowCompletionSource } from "@src/completions/Window"
+import { ExtensionsCompletionSource } from "@src/completions/Extensions"
 import * as Messaging from "@src/lib/messaging"
 import "@src/lib/number.clamp"
 import state from "@src/state"
@@ -113,6 +114,7 @@ export function enableCompletions() {
             SessionsCompletionSource,
             SettingsCompletionSource,
             WindowCompletionSource,
+            ExtensionsCompletionSource,
         ]
             .map(constructorr => {
                 try {
