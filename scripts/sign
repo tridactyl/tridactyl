@@ -31,7 +31,7 @@ build_no_sign_beta(){
     scripts/version.js beta
     sed 's/"name": "Tridactyl"/"name": "Tridactyl: Beta"/' -i build/manifest.json
     mkdir -p web-ext-artifacts
-    web-ext build --source-dir ./build --overwrite-dest
+    $(yarn bin)/web-ext build --source-dir ./build --overwrite-dest
     for f in web-ext-artifacts/*.zip; do
         mv $f ${f%.zip}.xpi
     done
@@ -40,10 +40,9 @@ build_no_sign_beta(){
 build_no_sign_stable(){
     yarn run clean
     yarn run build
-    scripts/version.js beta
     sed 's/tridactyl.vim.betas@cmcaine/tridactyl.vim@cmcaine/' -i build/manifest.json
     mkdir -p web-ext-artifacts
-    web-ext build --source-dir ./build --overwrite-dest
+    $(yarn bin)/web-ext build --source-dir ./build --overwrite-dest
     for f in web-ext-artifacts/*.zip; do
         mv $f ${f%.zip}.xpi
     done
@@ -59,6 +58,8 @@ publish_stable() {
 
 case $1 in
     stable) publish_stable;;
+    nosignstable) build_no_sign_stable;;
+    nosignbeta) build_no_sign_beta;;
     nonewtab) publish_beta_nonewtab;;
     *|beta) publish_beta;;
 esac
