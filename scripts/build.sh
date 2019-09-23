@@ -52,14 +52,16 @@ scripts/newtab.md.sh
 scripts/make_tutorial.sh
 scripts/make_docs.sh
 
-if [ "$(isWindowsMinGW)" = "True" ]; then
-  powershell \
-    -NoProfile \
-    -InputFormat None \
-    -ExecutionPolicy Bypass \
-    native/win_install.ps1 -DebugDirBase native
-else
-  native/install.sh local
+if [ "$1" != "--no-native" ]; then
+    if [ "$(isWindowsMinGW)" = "True" ]; then
+      powershell \
+        -NoProfile \
+        -InputFormat None \
+        -ExecutionPolicy Bypass \
+        native/win_install.ps1 -DebugDirBase native
+    else
+      native/install.sh local
+    fi
 fi
 
 (webpack --display errors-only --bail\
