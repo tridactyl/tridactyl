@@ -20,7 +20,7 @@ jobs:
       - run: sudo apt update
       - run: sudo apt install -qq shellcheck
       - commoncmd
-      - run: bash -c 'GLOBIGNORE="node_modules" shellcheck **/*.sh'
+      - run: bash -c 'GLOBIGNORE="node_modules" shellcheck -e2012 **/*.sh'
       - run: yarn run lint
       - run: bash -c '"$(yarn bin)/tslint" --project .'
   unit:
