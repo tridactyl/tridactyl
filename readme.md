@@ -248,6 +248,10 @@ yarn run build
 
 If you want to build a signed copy (e.g. for the non-developer release), you can do that with `web-ext sign`. You'll need some keys for AMO and to edit the application id in `src/manifest.json`. There's a helper script in `scripts/sign` that's used by our build bot and for manual releases.
 
+You can build unsigned copies with `scripts/sign nosign{stable,beta}`. NB: The `stable` versus `beta` part of the argument tells our build process which extension ID to use (and therefore which settings to use). If you want a stable build, make sure you are on the latest tag, i.e. `git checkout $(git tag | grep '^[0-9]\+\.[0-9]\+\.[0-9]\+$' | sort -t. -k 1,1n -k 2,2n -k 3,3n | tail -1)`.
+
+If you are on a distribution which builds Firefox with `--with-unsigned-addon-scopes=` set to `app` and/or `system` (which is most of them by users: Arch, Debian, Ubuntu), you can install your unsigned copy of Tridactyl with `scripts/install.sh [directory]`. If you're on Arch, the correct directory is probably selected by default; on other distributions you might have to go hunting, but it probably looks like `/usr/lib/firefox/browser/extensions`.
+
 ### Building on Windows
 
 -   Install [Git for Windows][win-git]
