@@ -762,25 +762,29 @@ export async function writePref(name: string, value: any) {
 export async function unfixamo() {
     try {
         if (localStorage.unfixedamo === "true") {
-            // fixamo already ran for the tridactyl instance in this profile
-            return;
+            // unfixamo already ran for the tridactyl instance in this profile
+            return
         }
-        const profile = (await getProfileDir()) + "/";
-        const userjs = await loadPrefs(profile + "user.js");
+
+        const profile = (await getProfileDir()) + "/"
+        const userjs = await loadPrefs(profile + "user.js")
         const tridactylPref = "tridactyl.unfixedamo"
         if (userjs[tridactylPref] === "true") {
-            // fixamo already ran for this firefox profile
-            return;
+            // unfixamo already ran for this firefox profile
+            return
         }
-        const prefName = "privacy.resistFingerprinting.block_mozAddonManager"
-        if (userjs[prefName] !== undefined && userjs[prefName] !== "false") {
-            await writePref(prefName, "false");
-            await writePref(tridactylPref, "true");
+
+        const restricted = "extensions.webextensions.restrictedDomains"
+        const restrictedDomains = '"accounts-static.cdn.mozilla.net,accounts.firefox.com,addons.cdn.mozilla.net,addons.mozilla.org,api.accounts.firefox.com,content.cdn.mozilla.net,discovery.addons.mozilla.org,install.mozilla.org,oauth.accounts.firefox.com,profile.accounts.firefox.com,support.mozilla.org,sync.services.mozilla.com"'
+        if (userjs[restricted] !== undefined && userjs[restricted] !== restrictedDomains) {
+            await writePref(restricted, restrictedDomains)
+            await writePref(tridactylPref, "true")
         }
+
         // Note: we store unfixedamo in localStorage and not in config because
         //       users might clear their config with :sanitize
-        localStorage.unfixedamo = "true";
-        return;
+        localStorage.unfixedamo = "true"
+        return
     } catch (e) {
         // if an exception is thrown, this means that the native messenger
         // isn't installed
