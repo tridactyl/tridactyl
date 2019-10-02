@@ -779,6 +779,7 @@ export async function unfixamo() {
         if (userjs[restricted] !== undefined && userjs[restricted] !== restrictedDomains) {
             await writePref(restricted, restrictedDomains)
             await writePref(tridactylPref, "true")
+            browserBg.tabs.create({url: browserBg.runtime.getURL("static/unfixamo.html")})
         }
 
         // Note: we store unfixedamo in localStorage and not in config because
