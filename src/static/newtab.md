@@ -4,7 +4,7 @@
 
 Tridactyl has to override your new tab page due to WebExtension limitations. You can learn how to change it at the bottom of the page, otherwise please read on for some tips and tricks.
 
--   **Tridactyl might die on/after August 21**: We have found ourselves in a disagreement with Mozilla's add-on reviewers, who now "reserve the right to start blocking \[Tridactyl\] after August 21". Please see [this issue](https://github.com/tridactyl/tridactyl/issues/1800) for more information.
+-   **Mozilla asked us to revert changes you might have applied to your firefox profile**. See [this issue](https://github.com/tridactyl/tridactyl/issues/1800) for more information.
 
 -   You can view the main help page by typing [`:help`][help], and access the tutorial with [`:tutor`][tutor].
 

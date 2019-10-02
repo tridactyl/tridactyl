@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>Tridactyl: Some of your preferences have been reverted.</title>
+        <style>
+        #content {
+            width: 80ch;
+            margin: auto;
+            text-align: justify;
+        }
+        .special {
+            font-family: monospace;
+        }
+        </style>
+    </head>
+    <body>
+        <div id="content"/>
+            <p>You're seeing this page because Tridactyl thinks you ran the <span class="special">fixamo</span> command at some point. This command changed two preferences in your <span class="special">user.js</span> file: <span class="special">extensions.webextensions.restrictedDomains</span> and <span class="special">privacy.resistFingerprinting.block_mozAddonManager</span>. Mozilla reviewers think these settings are very dangerous and should never be changed by end users. They gave Tridactyl maintainers an ultimatum: either remove the command and the changes it made to user's files before october 2019 or be blocked.</p>
+            <p>Tridactyl maintainers reluctantly complied and Tridactyl has restored the <span class="special">restrictedDomains</span> preference to its original value in your <span class="special">user.js</span>. It also added a new preference named <span class="special">tridactyl.unfixedamo</span> in order to know that it shouldn't touch your <span class="special">extensions.webextensions.restrictedDomains</span> setting ever again.</p>
+            <p>You can find more information <a href="https://github.com/tridactyl/tridactyl/issues/1800">here</a>.</p>
+        </div>
+    </body>
+</html>
