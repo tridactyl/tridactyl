@@ -77,33 +77,6 @@ browser.tabs.onActivated.addListener(ev => {
     })
 })
 
-// {{{ Clobber CSP
-
-// This should be removed once https://bugzilla.mozilla.org/show_bug.cgi?id=1267027 is fixed
-function addCSPListener() {
-    browser.webRequest.onHeadersReceived.addListener(
-        request.clobberCSP,
-        { urls: ["<all_urls>"], types: ["main_frame"] },
-        ["blocking", "responseHeaders"],
-    )
-}
-
-function removeCSPListener() {
-    browser.webRequest.onHeadersReceived.removeListener(request.clobberCSP)
-}
-
-config.getAsync("csp").then(csp => csp === "clobber" && addCSPListener())
-
-config.addChangeListener("csp", (old, cur) => {
-    if (cur === "clobber") {
-        addCSPListener()
-    } else {
-        removeCSPListener()
-    }
-})
-
-// }}}
-
 // Prevent Tridactyl from being updated while it is running in the hope of fixing #290
 browser.runtime.onUpdateAvailable.addListener(_ => undefined)
 

@@ -3280,6 +3280,12 @@ export function set(key: string, ...values: string[]) {
         throw "Warning: `noiframeon $url1 $url2` has been deprecated in favor of `:seturl $url1 noiframe true`. The right seturl calls have been made for you but from now on please use `:seturl`."
     }
 
+    if (key === "csp" && values[0] === "clobber") {
+        const msg = "#Error: Mozilla asked us to remove our csp-clobbering code. See https://github.com/tridactyl/tridactyl/issues/1800"
+        fillcmdline_tmp(3000, msg)
+        throw msg
+    }
+
     return config.set(...validateSetArgs(key, values))
 }
 

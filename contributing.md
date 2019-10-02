@@ -87,7 +87,7 @@ Here's an example: you're writing the [`native()`](https://github.com/tridactyl/
 -   math.ts: Math stuff.
 -   messaging.ts: Implementation of Tridactyl's messaging functions (attributeCaller, message, messageTab, messageOwnTab...).
 -   native.ts: Wrappers around Firefox's native messaging API. Also has "higher-level" functions that interact with the native messenger (finding the user's favorite editor, reading/setting preferences...).
--   requests.ts: CSP-clobbering code.
+-   requests.ts: CSP-clobbering code. Not used anymore.
 -   text_to_speech.ts: Various wrappers around Firefox's TTS APIs.
 -   url_util.ts: Url incrementation, query-extraction, interpolation.
 -   webext.ts: Wrappers around Firefox's APIs (activeTab(), ownTab()...).
@@ -95,7 +95,7 @@ Here's an example: you're writing the [`native()`](https://github.com/tridactyl/
 
 ### src/
 
--   background.ts: Entry point of Tridactyl's background script. Deals with various things that didn't deserve their own file when they were implemented: autocommands, autocontainers, CSP hijacking...
+-   background.ts: Entry point of Tridactyl's background script. Deals with various things that didn't deserve their own file when they were implemented: autocommands, autocontainers...
 -   commandline_frame.ts: Entry point of the command line. Sets up various event listeners and updates completions when needed.
 -   completions/\*.ts: All completion sources available to Tridactyl. Imported by commandline_frame.ts
 -   completions.ts: Scaffolding used by completion sources in the "completions" folder.
