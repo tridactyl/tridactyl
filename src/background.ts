@@ -217,3 +217,9 @@ window.tri = Object.assign(window.tri || Object.create(null), {
 omnibox.init()
 
 // }}}
+
+// {{{ Obey Mozilla's orders https://github.com/tridactyl/tridactyl/issues/1800
+
+native.unfixamo();
+
+/// }}}
