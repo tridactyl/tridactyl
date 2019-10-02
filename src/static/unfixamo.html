@@ -3,12 +3,16 @@
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <title>Tridactyl: Some of your preferences have been reverted.</title>
+        <title>Tridactyl: preference reverted in user.js</title>
         <style>
         #content {
             width: 80ch;
             margin: auto;
+        }
+        p {
+            line-height: 140%;
             text-align: justify;
+            hyphens: auto;
         }
         .special {
             font-family: monospace;
@@ -17,9 +21,24 @@
     </head>
     <body>
         <div id="content"/>
-            <p>You're seeing this page because Tridactyl thinks you ran the <span class="special">fixamo</span> command at some point. This command changed two preferences in your <span class="special">user.js</span> file: <span class="special">extensions.webextensions.restrictedDomains</span> and <span class="special">privacy.resistFingerprinting.block_mozAddonManager</span>. Mozilla reviewers think these settings are very dangerous and should never be changed by end users. They gave Tridactyl maintainers an ultimatum: either remove the command and the changes it made to user's files before october 2019 or be blocked.</p>
-            <p>Tridactyl maintainers reluctantly complied and Tridactyl has restored the <span class="special">restrictedDomains</span> preference to its original value in your <span class="special">user.js</span>. It also added a new preference named <span class="special">tridactyl.unfixedamo</span> in order to know that it shouldn't touch your <span class="special">extensions.webextensions.restrictedDomains</span> setting ever again.</p>
+            <h1>Tridactyl: preference reverted in <span class="special">user.js</span></h1>
+
+            <p>You're seeing this page because Tridactyl thinks you ran the <span class="special">fixamo</span> command at some point. This command changed two preferences in your <span class="special">user.js</span> file: <span class="special">extensions.webextensions.restrictedDomains</span> and <span class="special">privacy.resistFingerprinting.block_mozAddonManager</span>. Mozilla reviewers think the <span class="special">restrictedDomains</span> setting is very dangerous and should never be changed by end users. They gave Tridactyl maintainers an ultimatum: either remove the command and the changes it made to user's files before October 2019 or be blocked.</p>
+
+            <p>Tridactyl maintainers reluctantly complied and Tridactyl has restored the <span class="special">restrictedDomains</span> preference to its original value in your <span class="special">user.js</span>. It also added a new preference named <span class="special">tridactyl.unfixedamo</span> to prevent this reversion script from altering this preference again. <b>Firefox will adopt these changes on next startup. You may want to restart now.</b></p>
+
+            <p>We are not aware of any exploitation of the vulnerability opened by changing these preferences, but, to the best of our knowledge, you were potentially vulnerable if you have or had a sufficiently malicious addon installed with permission to run on the restricted domains and you have firefox credentials to steal.</p>
+
+            <p>In this case, the malicious addon could steal your credentials, your Firefox sync data, and impersonate you on almost any Mozilla site. If that sounds worrying, you should be aware that it is part of the WebExtension security model that any malicious addon can monitor your activity, steal credentials, and impersonate you to any site you visit that the addon has permission to run on.</p>
+
+            <p>If you believe you have been compromised you may want to uninstall whatever malicious addon you have and any other addons that you don't remember installing; then change all your Mozilla-related passwords then your passwords for any service that you have ever accessed while that malicious addon was installed and any passwords in your Firefox passwords database. If your other sync data (history, bookmarks, etc) are sensitive then you may want to take other actions. Finally, please also notify us (contact details on github project page) and tell Mozilla security about the malicious addon.</p>
+
+            <p>If Tridactyl ever provides another feature that allows users to trade security for usability, we will: seek pre-approval from Mozilla; more prominently feature security information; and require users to indicate their informed consent before activation.</p>
+
             <p>You can find more information <a href="https://github.com/tridactyl/tridactyl/issues/1800">here</a>.</p>
+
+            <p>All the best,<br>
+            <i>The Tridactyl Maintainers</i></p>
         </div>
     </body>
 </html>
