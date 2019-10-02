@@ -900,6 +900,7 @@ export class default_config {
     minincsearchlen = 3
 
     /**
+     * Deprecated.
      * Change this to "clobber" to ruin the "Content Security Policy" of all sites a bit and make Tridactyl run a bit better on some of them, e.g. raw.github*
      */
     csp: "untouched" | "clobber" = "untouched"

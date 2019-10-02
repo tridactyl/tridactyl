@@ -107,7 +107,6 @@ command fixamo js tri.excmds.setpref("privacy.resistFingerprinting.block_mozAddo
 
 " Make Tridactyl work on more sites at the expense of some security. For
 " details, read the comment at the top of this file.
-set csp clobber
 fixamo_quiet
 
 " Make quickmarks for the sane Tridactyl issue view
