@@ -1,5 +1,31 @@
 # Tridactyl changelog
 
+## Release 1.17.0 / 2019-10-03
+
+- Reversions requested by Mozilla reviewers
+
+    - The `csp` setting is now inactive
+    - Automatically revert any changes made by `fixamo` to the `restricedDomains` setting in `user.js`
+
+- New features
+
+    - Source RC from an arbitrary URL ([#1866](https://github.com/tridactyl/tridactyl/issues/1866))
+    - `extoption` excmd to open the options page of other addons ([#1660](https://github.com/tridactyl/tridactyl/issues/1660)) ([#1851](https://github.com/tridactyl/tridactyl/issues/1851))
+    - Hint fancy webcomponents ([#1853](https://github.com/tridactyl/tridactyl/issues/1853))
+    - Add `;g{f,F}` default binds for `hint -q` and `hint -qb`
+
+- Bug fixes
+
+    - Pasting a url with `p` or `P` now trims whitespace to avoid searching for the URL ([#1865](https://github.com/tridactyl/tridactyl/issues/1865))
+    - Fix OS detection for windows in `loadtheme` ([#1862](https://github.com/tridactyl/tridactyl/issues/1862))
+    - Fix ([#1041](https://github.com/tridactyl/tridactyl/issues/1041)): ;p now preserves newlines
+
+Thanks to all of our contributors for this release: Oliver Blanthorn, dependabot-preview[bot], rektrex, Colin Caine, glacambre, ELLIOTTCABLE, avalonv, pvs, Chris, Daniel Schmid
+
+Extra special thanks go to avalonv, Chris, Daniel Schmid, ELLIOTTCABLE, pvs, rektrex who have contributed for the first time.
+
+Last, but not least - thank you to everyone who reported issues.
+
 ## Release 1.16.3 / 2019-08-14
 
 -   New features
