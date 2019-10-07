@@ -4,13 +4,13 @@
 
 Tridactyl has to override your new tab page due to WebExtension limitations. You can learn how to change it at the bottom of the page, otherwise please read on for some tips and tricks.
 
--   **Mozilla asked us to revert changes you might have applied to your firefox profile**. See [this issue](https://github.com/tridactyl/tridactyl/issues/1800) for more information.
+-   **Mozilla asked us to revert changes you might have applied to your firefox profile**. `set csp clobber` has also been disabled. See [this issue](https://github.com/tridactyl/tridactyl/issues/1800) for more information.
 
 -   You can view the main help page by typing [`:help`][help], and access the tutorial with [`:tutor`][tutor].
 
 -   You can view your current configuration with `:viewconfig`.
 
--   Tridactyl retreat 👀: 4 of the core Tridactyl developers met up in the real world to work on Tridactyl from 24th May - 1st June in the Peak District, UK. [Donate using this link](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=7JQHV4N2YZCTY) if you'd like to contribute to our travel, accommodation and subsistence costs, which costed about £2,300. As of August 14th, we have so far raised ~£1000, so thanks to all of you who have donated.
+-   Tridactyl retreat 👀: 4 of the core Tridactyl developers met up in the real world to work on Tridactyl from 24th May - 1st June in the Peak District, UK. [Donate using this link](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=7JQHV4N2YZCTY) if you'd like to contribute to our travel, accommodation and subsistence costs, which came to about £2,300. As of October 7th, we have so far raised ~£1500, so thanks to all of you who have donated.
 
 *   If Tridactyl breaks a website or is broken by a website, trying the steps in the [troubleshooting guide](https://github.com/tridactyl/tridactyl/blob/master/doc/troubleshooting.md) might help.
 
