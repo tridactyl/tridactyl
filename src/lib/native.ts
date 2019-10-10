@@ -784,16 +784,19 @@ export async function unfixamo() {
         const profile = (await getProfileDir()) + "/"
         const userjs = await loadPrefs(profile + "user.js")
         const tridactylPref = "tridactyl.unfixedamo"
+        const restricted = "extensions.webextensions.restrictedDomains"
         if (userjs[tridactylPref] === "true") {
-            // unfixamo already ran for this firefox profile
+            // unfixamo already ran for this Firefox profile in the Beta
+            await removePref(restricted)
             return
         }
 
-        const restricted = "extensions.webextensions.restrictedDomains"
+        // Have to have another pref for this second attempt
+        const tridactylPref2 = "tridactyl.unfixedamo_removed"
         const restrictedDomains = '"accounts-static.cdn.mozilla.net,accounts.firefox.com,addons.cdn.mozilla.net,addons.mozilla.org,api.accounts.firefox.com,content.cdn.mozilla.net,discovery.addons.mozilla.org,install.mozilla.org,oauth.accounts.firefox.com,profile.accounts.firefox.com,support.mozilla.org,sync.services.mozilla.com"'
         if (userjs[restricted] === "") {
-            await writePref(restricted, restrictedDomains)
-            await writePref(tridactylPref, "true")
+            await removePref(restricted)
+            await writePref(tridactylPref2, "true")
             browserBg.tabs.create({url: browserBg.runtime.getURL("static/unfixamo.html")})
         }
 
