@@ -158,10 +158,6 @@ You can bind your own shortcuts in normal mode with the `:bind` command. For exa
 
     If you want to bind <C-^> you'll find that you'll probably need to press Control+Shift+6 to trigger it. The default bind is <C-6> which does not require you to press shift.
 
--   How can I tab complete from bookmarks?
-
-    `bmarks`. Bookmarks are not currently supported on `*open`: see [issue #214](https://github.com/tridactyl/tridactyl/issues/214).
-
 -   When I type 'f', can I type link names (like Vimperator) in order to narrow down the number of highlighted links?
 
     You can, thanks to @saulrh. First `set hintfiltermode vimperator` and then `set hintchars 1234567890`.
