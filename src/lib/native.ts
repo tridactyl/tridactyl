@@ -758,6 +758,21 @@ export async function writePref(name: string, value: any) {
     }
 }
 
+/** Removes a preference from user.js */
+export async function removePref(name: string) {
+    const file = (await getProfileDir()) + "/user.js"
+    // No need to check the return code because read returns "" when failing to
+    // read a file
+    const text = (await read(file)).content
+    const prefPos = text.indexOf(`user_pref("${name}",`)
+    if (prefPos >= 0) {
+        let substr = text.substring(prefPos)
+        const prefEnd = substr.indexOf(";\n") + 1
+        substr = text.substring(prefPos, prefPos + prefEnd)
+        write(file, text.replace(substr, ``))
+    }
+}
+
 /** Obey Mozilla's orders https://github.com/tridactyl/tridactyl/issues/1800 */
 export async function unfixamo() {
     try {

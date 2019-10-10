@@ -491,11 +491,21 @@ export async function colourscheme(themename: string) {
  * Note that not all of the keys Firefox uses are suggested by Tridactyl.
  *
  * e.g.: `setpref general.warnOnAboutConfig false`
- * `setpref extensions.webextensions.restricterDomains ""`
  */
 //#background
 export function setpref(key: string, ...value: string[]) {
     return Native.writePref(key, value.join(" "))
+}
+
+/**
+ * Remove a setting from your user.js file.
+ *
+ * @param key The key that should be set. Must not be quoted. Must not contain spaces.
+ *
+ */
+//#background
+export function removepref(key: string) {
+    return Native.removePref(key)
 }
 
 /**
