@@ -776,7 +776,7 @@ export async function removePref(name: string) {
 /** Obey Mozilla's orders https://github.com/tridactyl/tridactyl/issues/1800 */
 export async function unfixamo() {
     try {
-        if (localStorage.unfixedamo === "true") {
+        if (localStorage.unfixedamo2 === "true") {
             // unfixamo already ran for the tridactyl instance in this profile
             return
         }
@@ -788,6 +788,7 @@ export async function unfixamo() {
         if (userjs[tridactylPref] === "true") {
             // unfixamo already ran for this Firefox profile in the Beta
             await removePref(restricted)
+            browserBg.tabs.create({url: browserBg.runtime.getURL("static/unfixamo.html")})
             return
         }
 
@@ -803,6 +804,7 @@ export async function unfixamo() {
         // Note: we store unfixedamo in localStorage and not in config because
         //       users might clear their config with :sanitize
         localStorage.unfixedamo = "true"
+        localStorage.unfixedamo2 = "true"
         return
     } catch (e) {
         // if an exception is thrown, this means that the native messenger
