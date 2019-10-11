@@ -10,7 +10,7 @@ Tridactyl has to override your new tab page due to WebExtension limitations. You
 
 -   You can view your current configuration with `:viewconfig`.
 
--   Tridactyl retreat 👀: 4 of the core Tridactyl developers met up in the real world to work on Tridactyl from 24th May - 1st June in the Peak District, UK. [Donate using this link](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=7JQHV4N2YZCTY) if you'd like to contribute to our travel, accommodation and subsistence costs, which came to about £2,300. As of October 7th, we have so far raised ~£1500, so thanks to all of you who have donated.
+-   Tridactyl retreat 👀: 4 of the core Tridactyl developers met up in the real world to work on Tridactyl from 24th May - 1st June in the Peak District, UK. [Donate using this link](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=7JQHV4N2YZCTY), or _new_ via [GitHub sponsors](https://github.com/users/bovine3dom/sponsorship) who will double your donation and take zero fees, if you'd like to contribute to our travel, accommodation and subsistence costs, which came to about £2,300. As of October 7th, we have so far raised ~£1500, so thanks to all of you who have donated.
 
 *   If Tridactyl breaks a website or is broken by a website, trying the steps in the [troubleshooting guide](https://github.com/tridactyl/tridactyl/blob/master/doc/troubleshooting.md) might help.
 
