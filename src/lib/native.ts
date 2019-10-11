@@ -795,19 +795,20 @@ export async function unfixamo() {
         // Have to have another pref for this second attempt
         const tridactylPref2 = "tridactyl.unfixedamo_removed"
         const restrictedDomains = '"accounts-static.cdn.mozilla.net,accounts.firefox.com,addons.cdn.mozilla.net,addons.mozilla.org,api.accounts.firefox.com,content.cdn.mozilla.net,discovery.addons.mozilla.org,install.mozilla.org,oauth.accounts.firefox.com,profile.accounts.firefox.com,support.mozilla.org,sync.services.mozilla.com"'
-        if (userjs[restricted] === "") {
+        if (userjs[tridactylPref2] === "true") return;
+        if (userjs[restricted] === "" || userjs[restricted] === restrictedDomains) {
             await removePref(restricted)
             await writePref(tridactylPref2, "true")
             browserBg.tabs.create({url: browserBg.runtime.getURL("static/unfixamo.html")})
         }
 
-        // Note: we store unfixedamo in localStorage and not in config because
-        //       users might clear their config with :sanitize
-        localStorage.unfixedamo = "true"
-        localStorage.unfixedamo2 = "true"
         return
     } catch (e) {
         // if an exception is thrown, this means that the native messenger
         // isn't installed
+    } finally {
+        // Note: we store unfixedamo in localStorage and not in config because
+        //       users might clear their config with :sanitize
+        localStorage.unfixedamo2 = "true"
     }
 }

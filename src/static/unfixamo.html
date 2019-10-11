@@ -23,6 +23,8 @@
         <div id="content"/>
             <h1>Tridactyl: preference reverted in <span class="special">user.js</span></h1>
 
+            <p>(Beta users: sorry if you're seeing this a second time. Mozilla asked us to change how we reverted the setting, so we have had to do it a second time for you.)</p>
+
             <p>You're seeing this page because Tridactyl thinks you ran the <span class="special">fixamo</span> command at some point. This command changed two preferences in your <span class="special">user.js</span> file: <span class="special">extensions.webextensions.restrictedDomains</span> and <span class="special">privacy.resistFingerprinting.block_mozAddonManager</span>. Mozilla reviewers think the <span class="special">restrictedDomains</span> setting is very dangerous and should never be changed by end users. They gave Tridactyl maintainers an ultimatum: either remove the command and the changes it made to user's files before October 2019 or be blocked.</p>
 
             <p>Tridactyl maintainers reluctantly complied and Tridactyl has restored the <span class="special">restrictedDomains</span> preference to its original value in your <span class="special">user.js</span>. It also added a new preference named <span class="special">tridactyl.unfixedamo</span> to prevent this reversion script from altering this preference again. <b>Firefox will adopt these changes on next startup. You may want to restart now.</b></p>
@@ -41,4 +43,5 @@
             <i>The Tridactyl Maintainers</i></p>
         </div>
     </body>
+    <script src="../content.js"></script>
 </html>
