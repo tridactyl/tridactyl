@@ -3955,7 +3955,7 @@ export async function hint(option?: string, selectors?: string, ...rest: string[
             selectHints = hinting.pipe_elements(
                 hinting.hintables(selectors),
                 elem => {
-                    DOM.mouseEvent(elem,"context")
+                    DOM.mouseEvent(elem, "context")
                     return elem
                 },
                 rapid,
