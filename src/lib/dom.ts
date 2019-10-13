@@ -91,7 +91,7 @@ function isEditableHTMLInput(element: HTMLInputElement) {
  */
 export function mouseEvent(
     element: Element,
-    type: "hover" | "unhover" | "click",
+    type: "hover" | "unhover" | "click" | "context",
     modifierKeys = {},
 ) {
     let events = []
@@ -103,6 +103,9 @@ export function mouseEvent(
             events = ["mousedown", "mouseup", "click"]
         case "hover":
             events = ["mouseover", "mouseenter", "mousemove"].concat(events)
+            break
+        case "context":
+            events = ["contextmenu"]
             break
     }
     events.forEach(type => {

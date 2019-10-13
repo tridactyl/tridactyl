@@ -3680,6 +3680,7 @@ export function unset(...keys: string[]) {
         - -# yank an element's anchor URL to clipboard
         - -c [selector] hint links that match the css selector
           - `bind ;c hint -c [class*="expand"],[class="togg"]` works particularly well on reddit and HN
+        - -C open context menu
         - -f [text] hint links and inputs that display the given text
           - `bind <c-e> hint -f Edit`
         - -fr [text] use RegExp to hint the links and inputs
@@ -3944,6 +3945,17 @@ export async function hint(option?: string, selectors?: string, ...rest: string[
                 hinting.hintables(selectors),
                 elem => {
                     elem.focus()
+                    return elem
+                },
+                rapid,
+            )
+            break
+
+        case "-C":
+            selectHints = hinting.pipe_elements(
+                hinting.hintables(selectors),
+                elem => {
+                    DOM.mouseEvent(elem,"context")
                     return elem
                 },
                 rapid,
