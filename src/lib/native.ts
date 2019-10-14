@@ -784,7 +784,9 @@ export async function unfixamo() {
         const profile = (await getProfileDir()) + "/"
         const userjs = await loadPrefs(profile + "user.js")
         const tridactylPref = "tridactyl.unfixedamo"
+        const tridactylPref2 = "tridactyl.unfixedamo_removed"
         const restricted = "extensions.webextensions.restrictedDomains"
+        if (userjs[tridactylPref2] === "true") return;
         if (userjs[tridactylPref] === "true") {
             // unfixamo already ran for this Firefox profile in the Beta
             await removePref(restricted)
@@ -793,9 +795,7 @@ export async function unfixamo() {
         }
 
         // Have to have another pref for this second attempt
-        const tridactylPref2 = "tridactyl.unfixedamo_removed"
         const restrictedDomains = '"accounts-static.cdn.mozilla.net,accounts.firefox.com,addons.cdn.mozilla.net,addons.mozilla.org,api.accounts.firefox.com,content.cdn.mozilla.net,discovery.addons.mozilla.org,install.mozilla.org,oauth.accounts.firefox.com,profile.accounts.firefox.com,support.mozilla.org,sync.services.mozilla.com"'
-        if (userjs[tridactylPref2] === "true") return;
         if (userjs[restricted] === "" || userjs[restricted] === restrictedDomains) {
             await removePref(restricted)
             await writePref(tridactylPref2, "true")
