@@ -1331,6 +1331,16 @@ export async function update() {
             )
             set("configversion", "1.7")
         },
+        "1.7": () => {
+            const autocontain = getDeepProperty(USERCONFIG, ["autocontain"])
+            unset("autocontain")
+            if (autocontain !== undefined) {
+              Object.entries(autocontain).forEach(([domain, container]) => {
+                set("autocontain", `^https?://[^/]*${domain}/`, container)
+              })
+            }
+            set("configversion", "1.8")
+        },
     }
     if (!get("configversion")) set("configversion", "0.0")
     const updatetest = v => {
