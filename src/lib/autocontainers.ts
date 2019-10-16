@@ -281,7 +281,7 @@ export class AutoContain implements IAutoContain {
         const aucons = Config.get("autocontain")
         const ausites = Object.keys(aucons)
         const aukeyarr = ausites.filter(
-            e => url.search("^https?://[^/]*" + e + "/") >= 0,
+            e => url.search(e) >= 0,
         )
         if (aukeyarr.length > 1) {
             logger.error(
