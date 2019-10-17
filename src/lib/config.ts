@@ -440,6 +440,13 @@ export class default_config {
     })
 
     /**
+     * Strict mode will always ensure a domain is open in the correct container, replacing the current tab if necessary.
+     *
+     * Relaxed mode is less aggressive and instead treats container domains as a default when opening a new tab.
+     */
+    autocontainmode: "strict" | "relaxed" = "strict"
+
+    /**
      * Aliases for the commandline.
      *
      * You can make a new one with `command alias ex-command`.

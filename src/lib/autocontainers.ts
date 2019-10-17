@@ -77,6 +77,9 @@ export class AutoContain implements IAutoContain {
     ): Promise<browser.webRequest.BlockingResponse> => {
         if (!this.autocontainConfigured()) return { cancel: false }
 
+        // Only handle in strict mode.
+        if (Config.get("autocontainmode") === "relaxed") return { cancel: false }
+
         // Only handle http requests.
         if (details.url.search("^https?://") < 0) return { cancel: false }
 
