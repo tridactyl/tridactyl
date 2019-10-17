@@ -1595,7 +1595,8 @@ browser.storage.onChanged.addListener((changes, areaname) => {
             )
 
             // TODO: this should be a deep comparison but this is better than nothing
-            changedKeys.concat(unsetKeys).forEach(key => USERCONFIG[key] = newValue[key])
+            changedKeys.forEach(key => USERCONFIG[key] = newValue[key])
+            unsetKeys.forEach(key => delete USERCONFIG[key])
 
             // Trigger listeners
             unsetKeys.forEach(key => triggerChangeListeners(key, DEFAULTS[key]))
