@@ -3319,6 +3319,9 @@ export function autocmd(event: string, url: string, ...excmd: string[]) {
 /**
  * Automatically open a domain and all its subdomains in a specified container.
  *
+ * This function accepts a `-u` flag to treat the pattern as a URL rather than a domain.
+ * For example: `autocontain -u ^https?://[^/]*youtube\.com/ google` is equivalent to `autocontain youtube\.com google`
+ *
  * For declaring containers that do not yet exist, consider using `auconscreatecontainer true` in your tridactylrc.
  * This allows tridactyl to automatically create containers from your autocontain directives. Note that they will be random icons and colors.
  *
@@ -3326,17 +3329,29 @@ export function autocmd(event: string, url: string, ...excmd: string[]) {
  *
  * The domain is passed through as a regular expression so there are a few gotchas to be aware of:
  * * Unescaped periods will match *anything*. `autocontain google.co.uk work` will match `google!co$uk`. Escape your periods or accept that you might get some false positives.
- * * You can use regex in your domain pattern. `autocontain google\,(co\.uk|com) work` will match either `google.co.uk` or `google.com`.
+ * * You can use regex in your pattern. `autocontain google\.(co\.uk|com) work` will match either `google.co.uk` or `google.com`.
  *
  * This *should* now peacefully coexist with the Temporary Containers and Multi-Account Containers addons. Do not trust this claim. If a fight starts the participants will try to open infinite tabs. It is *strongly* recommended that you use a tridactylrc so that you can abort a sorceror's-apprentice scenario by killing firefox, commenting out all of autocontainer directives in your rc file, and restarting firefox to clean up the mess. There are a number of strange behaviors resulting from limited coordination between extensions. Redirects can be particularly surprising; for example, with `:autocontain will-redirect.example.org example` set and `will-redirect.example.org` redirecting to `redirected.example.org`, navigating to `will-redirect.example.org` will result in the new tab being in the `example` container under some conditions and in the `firefox-default` container under others.
  *
- * @param domain The domain which will trigger the autoContain directive. Includes all subdomains.
- * @param container The container to open the url in.
- *
+ * @param args a regex pattern to match URLs followed by the container to open the URL in.
  */
 //#background
-export function autocontain(domain: string, container: string) {
-    config.set("autocontain", domain, container)
+export function autocontain(...args: string[]) {
+    if (args.length === 0) throw new Error("Invalid autocontain arguments.")
+
+    const urlMode = args[0] === "-u"
+    if (urlMode) {
+        args.splice(0, 1)
+    }
+    if (args.length !== 2) throw new Error("syntax: autocontain [-u] pattern container")
+
+    let [pattern, container] = args
+
+    if (!urlMode) {
+        pattern = `^https?://[^/]*${pattern}/`
+    }
+
+    config.set("autocontain", pattern, container)
 }
 
 /** Remove autocmds
