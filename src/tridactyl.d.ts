@@ -59,11 +59,6 @@ declare function exportFunction(
     options?: { defineAs?: string; allowCrossOriginArguments?: boolean },
 ): Function
 
-// Fix typescript bugs
-interface StringConstructor {
-    toLowerCase(): string
-}
-
 // Web extension types not in web-ext-types yet
 declare namespace browser.find {
     function find(query, object): any
