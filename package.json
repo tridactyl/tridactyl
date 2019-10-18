@@ -58,30 +58,6 @@
     "lint": "bash hooks/pre-commit",
     "pretty": "bash scripts/pretty.sh"
   },
-  "jest": {
-    "preset": "ts-jest",
-    "testRegex": "(/__tests__/.*|(\\.|/)(test|spec))\\.(jsx?|tsx?)$",
-    "moduleFileExtensions": [
-      "ts",
-      "tsx",
-      "js",
-      "jsx",
-      "json"
-    ],
-    "moduleNameMapper": {
-      "@src/(.*)": "<rootDir>/src/$1"
-    },
-    "globals": {
-      "ts-jest": {
-        "tsConfig": "tsconfig.test.json",
-        "diagnostics": {
-          "ignoreCodes": [
-            151001
-          ]
-        }
-      }
-    }
-  },
   "author": "Colin Caine",
   "repository": {
     "type": "git",
