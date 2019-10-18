@@ -20,6 +20,7 @@
     "@types/jest": "^24.0.19",
     "@types/mithril": "^2.0.0",
     "@types/node": "^12.11.1",
+    "@types/selenium-webdriver": "^4.0.5",
     "awesome-typescript-loader": "^5.2.1",
     "cleanslate": "^0.10.1",
     "copy-webpack-plugin": "^5.0.4",
@@ -56,31 +57,6 @@
     "update-buildsystem": "rm -rf src/node_modules; yarn run clean",
     "lint": "bash hooks/pre-commit",
     "pretty": "bash scripts/pretty.sh"
-  },
-  "jest": {
-    "transform": {
-      "^.+\\.tsx?$": "ts-jest"
-    },
-    "testRegex": "(/__tests__/.*|(\\.|/)(test|spec))\\.(jsx?|tsx?)$",
-    "moduleFileExtensions": [
-      "ts",
-      "tsx",
-      "js",
-      "jsx",
-      "json"
-    ],
-    "moduleNameMapper": {
-      "@src/(.*)": "<rootDir>/src/$1"
-    },
-    "globals": {
-      "ts-jest": {
-        "diagnostics": {
-          "ignoreCodes": [
-            151001
-          ]
-        }
-      }
-    }
   },
   "author": "Colin Caine",
   "repository": {

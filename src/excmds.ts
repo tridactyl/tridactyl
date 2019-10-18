@@ -861,7 +861,7 @@ let JUMPED: boolean
 
 /** @hidden */
 //#content_helper
-let JUMP_TIMEOUTID
+let JUMP_TIMEOUTID: number | undefined
 
 /** This is used as an ID for the current page in the jumplist.
     It has a potentially confusing behavior: if you visit site A, then site B, then visit site A again, the jumplist that was created for your first visit on A will be re-used for your second visit.
@@ -894,8 +894,7 @@ export async function curJumps() {
     }
     const page = getJumpPageId()
     ensure(jumps, page, {})
-    const dummy = new UIEvent("scroll")
-    ensure(jumps[page], "list", [{ x: dummy.pageX, y: dummy.pageY }])
+    ensure(jumps[page], "list", [{ x: window.scrollX, y: window.scrollY }])
     ensure(jumps[page], "cur", 0)
     saveJumps(jumps)
     return jumps

@@ -22,12 +22,6 @@ interface Window {
     tri: any
 }
 
-// Again, firefox-specific
-interface UIEvent {
-    pageX: number
-    pageY: number
-}
-
 // This isn't an actual firefox type but it's nice to have one for this kind of object
 // https://developer.mozilla.org/en-US/Add-ons/WebExtensions/API/find/find
 interface findResult {
@@ -64,11 +58,6 @@ declare function exportFunction(
     targetScope: object,
     options?: { defineAs?: string; allowCrossOriginArguments?: boolean },
 ): Function
-
-// Fix typescript bugs
-interface StringConstructor {
-    toLowerCase(): string
-}
 
 // Web extension types not in web-ext-types yet
 declare namespace browser.find {
@@ -224,14 +213,6 @@ declare function html(
     ...values: any[]
 ): HTMLElement
 
-declare namespace browser.webRequest {
-    function filterResponseData(requestId: string): any
-}
-
-declare namespace browser.search {
-    function search(searchProperties: {query: string, engine?: string, tabId?: number}): never
-    function get(): {name: string, isDefault: boolean, alias?: string, faviconURL?: string}[]
-}
 
 // Stop typedoc complaining about toBeAll.
 declare namespace jest {
