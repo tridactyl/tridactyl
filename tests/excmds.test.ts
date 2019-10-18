@@ -3,7 +3,7 @@ import "geckodriver"
 import * as fs from "fs"
 import * as os from "os"
 import * as path from "path"
-import * as webdriver from "selenium-webdriver"
+import * as webdriver from "./selenium-webdriver-tridactyl"
 const {until, By} = webdriver
 import {Options} from "selenium-webdriver/firefox"
 

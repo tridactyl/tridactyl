@@ -894,8 +894,7 @@ export async function curJumps() {
     }
     const page = getJumpPageId()
     ensure(jumps, page, {})
-    const dummy = new UIEvent("scroll")
-    ensure(jumps[page], "list", [{ x: dummy.pageX, y: dummy.pageY }])
+    ensure(jumps[page], "list", [{ x: 0, y: 0 }])
     ensure(jumps[page], "cur", 0)
     saveJumps(jumps)
     return jumps
