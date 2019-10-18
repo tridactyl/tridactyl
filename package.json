@@ -20,6 +20,7 @@
     "@types/jest": "^24.0.19",
     "@types/mithril": "^2.0.0",
     "@types/node": "^12.11.1",
+    "@types/selenium-webdriver": "^4.0.5",
     "awesome-typescript-loader": "^5.2.1",
     "cleanslate": "^0.10.1",
     "copy-webpack-plugin": "^5.0.4",
@@ -58,9 +59,7 @@
     "pretty": "bash scripts/pretty.sh"
   },
   "jest": {
-    "transform": {
-      "^.+\\.tsx?$": "ts-jest"
-    },
+    "preset": "ts-jest",
     "testRegex": "(/__tests__/.*|(\\.|/)(test|spec))\\.(jsx?|tsx?)$",
     "moduleFileExtensions": [
       "ts",
@@ -74,6 +73,7 @@
     },
     "globals": {
       "ts-jest": {
+        "tsConfig": "tsconfig.test.json",
         "diagnostics": {
           "ignoreCodes": [
             151001

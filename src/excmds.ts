@@ -861,7 +861,7 @@ let JUMPED: boolean
 
 /** @hidden */
 //#content_helper
-let JUMP_TIMEOUTID
+let JUMP_TIMEOUTID: number | undefined
 
 /** This is used as an ID for the current page in the jumplist.
     It has a potentially confusing behavior: if you visit site A, then site B, then visit site A again, the jumplist that was created for your first visit on A will be re-used for your second visit.

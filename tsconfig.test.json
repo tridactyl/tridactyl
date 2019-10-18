@@ -1,13 +1,15 @@
 {
   "compilerOptions": {
+    "allowJs": true,
     "moduleResolution": "node",
     "noImplicitAny": false,
     "noEmitOnError": true,
     "outDir": "build/tsc-out",
     "sourceMap": true,
     "target": "es2017",
-    "lib": ["es2017","es2019.array","dom", "dom.iterable"],
-    "types": ["web-ext-types"],
+    "lib": ["es2017", "es2019.array", "es2018.promise", "dom", "dom.iterable"],
+    "typeRoots": ["node_modules/@types"],
+    "types": ["jest", "node"],
     "experimentalDecorators": true,
     "alwaysStrict": true,
     "baseUrl": "src/",
@@ -19,7 +21,6 @@
     "./src/**/*"
   ],
   "exclude": [
-      "./src/**/*.test.ts",
-      "./src/lib/test_utils.ts"
+      "./src/**/*.test.ts"
   ]
 }
