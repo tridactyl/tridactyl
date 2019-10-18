@@ -3,8 +3,9 @@ import "geckodriver"
 import * as fs from "fs"
 import * as os from "os"
 import * as path from "path"
-import * as webdriver from "./selenium-webdriver-tridactyl"
-const {until, By} = webdriver
+import * as webdriver from "selenium-webdriver"
+import * as Until from "selenium-webdriver/lib/until"
+const {By} = webdriver
 import {Options} from "selenium-webdriver/firefox"
 
 jest.setTimeout(100000)
@@ -91,7 +92,7 @@ function sendKeys (driver, keys) {
 describe("webdriver", () => {
 
     function iframeLoaded(driver) {
-        return driver.wait(until.elementLocated(By.id("cmdline_iframe")))
+        return driver.wait(Until.elementLocated(By.id("cmdline_iframe")))
     }
 
     async function getDriver() {
@@ -199,7 +200,7 @@ describe("webdriver", () => {
             // Then, make sure rsscmd is executed and has the right arguments
             await sendKeys(driver, "<Tab><CR>")
             await (driver.switchTo() as any).parentFrame()
-            const elem = await driver.wait(until.elementLocated(By.id("rsscmdExecuted")))
+            const elem = await driver.wait(Until.elementLocated(By.id("rsscmdExecuted")))
             expect(url).toMatch(await elem.getAttribute("innerText"))
         } catch (e) {
             fail(e)
