@@ -64,7 +64,7 @@ const commandline_state = {
      * tl;dr TODO: delete this and better resolve race condition
      */
     isVisible: false,
-    keyEvents: [],
+    keyEvents: new Array<KeyEventLike>(),
     refresh_completions,
     state,
 }
@@ -369,6 +369,7 @@ import * as SELF from "@src/commandline_frame"
 Messaging.addListener("commandline_frame", Messaging.attributeCaller(SELF))
 
 import { getCommandlineFns } from "@src/lib/commandline_cmds"
+import { KeyEventLike } from "./lib/keyseq"
 commandline_state.fns = getCommandlineFns(commandline_state)
 Messaging.addListener("commandline_cmd", Messaging.attributeCaller(commandline_state.fns))
 

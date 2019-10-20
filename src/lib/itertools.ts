@@ -1,14 +1,14 @@
 import "@src/lib/number.mod"
 
-export function head(iter) {
-    iter = iter[Symbol.iterator]()
-    const result = iter.next()
+export function head<T>(iterable: Iterable<T>) {
+    const iterator = iterable[Symbol.iterator]()
+    const result = iterator.next()
     if (result.done) throw RangeError("Empty iterator has no head/tail")
     else return result.value
 }
 
 /** Get the last item of an array or iterable */
-export function tail(iter) {
+export function tail<T>(iter: Iterable<T>) {
     if (Array.isArray(iter)) {
         if (iter.length < 1) throw RangeError("Empty iterator has no head/tail")
         return iter[iter.length - 1]
@@ -20,13 +20,13 @@ export function tail(iter) {
     }
 }
 
-export function* filter(iter, predicate) {
+export function* filter<T>(iter: Iterable<T>, predicate: (item: T) => boolean) {
     for (const v of iter) {
         if (predicate(v)) yield v
     }
 }
 
-export function find(iter, predicate) {
+export function find<T>(iter: Iterable<T>, predicate: (item: T) => boolean) {
     return head(filter(iter, predicate))
 }
 
