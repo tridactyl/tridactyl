@@ -10,6 +10,9 @@
     "types": ["web-ext-types"],
     "experimentalDecorators": true,
     "alwaysStrict": true,
+    "strictBindCallApply": true,
+    "noImplicitThis": true,
+    "strictFunctionTypes": true,
     "baseUrl": "src/",
     "paths": {
         "@src/*": ["*"]

@@ -9,7 +9,7 @@ export async function inputStartedListener() {
 
 export async function inputChangedListener(
     currentInput: string,
-    emitSuggestion: (suggestions: browser.omnibox.SuggestResult[]) => null
+    emitSuggestion: (suggestions: browser.omnibox.SuggestResult[]) => void
 ) {
 }
 

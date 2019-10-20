@@ -42,7 +42,7 @@ async function addSetting(settingName: string) {
     delete (commandElems as any).composite
 
     // Initialize or reset the <p> element that will contain settings in each commandElem
-    const settingElems = Object.keys(commandElems).reduce(
+    const settingElems: {[key: string]: HTMLElement} = Object.keys(commandElems).reduce(
         (settingElems, cmdName) => {
             settingElems[cmdName] = initTridactylSettingElem(
                 commandElems[cmdName],
@@ -145,7 +145,7 @@ function addSettingInputs() {
     }
 
     return Promise.all(
-        Array.from(document.querySelectorAll("a.tsd-anchor")).map(
+        Array.from(document.querySelectorAll<HTMLAnchorElement>("a.tsd-anchor")).map(
             async (a: HTMLAnchorElement) => {
                 const section = a.parentNode
 
