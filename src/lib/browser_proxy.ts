@@ -1,11 +1,11 @@
-import { message } from "../messaging"
+import { message } from "@src/lib/messaging"
 
 const browserProxy = new Proxy(Object.create(null), {
-    get: function(target, api) {
+    get(target, api) {
         return new Proxy(
             {},
             {
-                get: function(_, func) {
+                get(_, func) {
                     return (...args) =>
                         message("browser_proxy_background", "shim", [
                             api,

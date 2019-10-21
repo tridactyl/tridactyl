@@ -14,12 +14,13 @@
     If this turns out to be expensive there are improvements available.
 */
 
-import Logger from "./logging"
+import Logger from "@src/lib/logging"
 const logger = new Logger("state")
 
 class State {
+    lastSearchQuery: string = undefined
     cmdHistory: string[] = []
-    prevInputs: { inputId: string; tab: number; jumppos?: number }[] = [
+    prevInputs: Array<{ inputId: string; tab: number; jumppos?: number }> = [
         {
             inputId: undefined,
             tab: undefined,
@@ -31,7 +32,7 @@ class State {
 // Don't change these from const or you risk breaking the Proxy below.
 const defaults = Object.freeze(new State())
 
-const overlay = {} as any
+const overlay = {} as State
 browser.storage.local
     .get("state")
     .then(res => {
@@ -44,7 +45,7 @@ browser.storage.local
 
 const state = (new Proxy(overlay, {
     /** Give defaults if overlay doesn't have the key */
-    get: function(target, property) {
+    get(target, property) {
         if (property in target) {
             return target[property]
         } else {
@@ -53,13 +54,13 @@ const state = (new Proxy(overlay, {
     },
 
     /** Persist sets to storage immediately */
-    set: function(target, property, value) {
+    set(target, property, value) {
         logger.debug("State changed!", property, value)
         target[property] = value
-        browser.storage.local.set({ state: target })
+        browser.storage.local.set({ state: target } as any)
         return true
     },
-}) as any) as State
+}))
 
 browser.storage.onChanged.addListener((changes, areaname) => {
     if (areaname === "local" && "state" in changes) {

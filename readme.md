@@ -8,7 +8,7 @@ Replace Firefox's default control mechanism with one modelled on the one true ed
 
 ## Installing
 
-[Simply click this link in Firefox to install our latest "beta" build][riskyclick]. These [betas][betas] are updated with each commit to master on this repo. Your browser will automatically update from there once a day. If you want more frequent updates, you can change `extensions.update.interval` in `about:config` to whatever time you want, say, 15 minutes (900 seconds). Alternatively, you can get our "stable" builds straight from [Mozilla][amo]. The changelog for the stable versions can be found [here](https://github.com/cmcaine/tridactyl/blob/master/CHANGELOG.md). If you want to use advanced features such as edit-in-Vim, you'll also need to install the native messenger or executable, instructions for which can be found by typing `:installnative` and hitting enter once you are in Tridactyl.
+[Simply click this link in Firefox to install our latest "beta" build][riskyclick]. These [betas][betas] are updated with each commit to master on this repo. Your browser will automatically update from there once a day. If you want more frequent updates, you can change `extensions.update.interval` in `about:config` to whatever time you want, say, 15 minutes (900 seconds). Alternatively, you can get our "stable" builds straight from the Arch Linux community repository: Arch users should just run `pacman -S firefox-tridactyl` in a terminal and then restart Firefox twice; everyone else can install manually from [an Arch mirror here](https://archive.archlinux.org/packages/f/firefox-tridactyl/firefox-tridactyl-1.16.3-1-any.pkg.tar.xz): extract the XPI from that archive and then open it with Firefox. The changelog for the stable versions can be found [here](https://github.com/tridactyl/tridactyl/blob/master/CHANGELOG.md). There is also another beta build that comes without a new tab page. You can get it from [here][nonewtablink]. If you want to use advanced features such as edit-in-Vim, you'll also need to install the native messenger or executable, instructions for which can be found by typing `:installnative` and hitting enter once you are in Tridactyl. Arch users can install the [AUR package](https://aur.archlinux.org/packages/firefox-tridactyl-native/) `firefox-tridactyl-native` instead. To migrate your configuration across builds, see [this comment][migratelink] or [this issue](https://github.com/tridactyl/tridactyl/issues/1353#issuecomment-463094704).
 
 Type `:help` or press `<F1>` for online help once you're in :)
 
@@ -39,7 +39,7 @@ You can try `:help key` to know more about `key`. If it is an existing binding, 
 -   `h`/`l` — scroll left/right
 -   `^`/`$` — scroll to left/right margin
 -   `gg`/`G` — scroll to start/end of page
--   `f`/`F` — enter "hint mode" to select a link to follow. `F` to open in a background tab (note: hint characters should be typed in lowercase)
+-   `f`/`F`/`gF` — enter "hint mode" to select a link to follow. `F` to open in a background tab (note: hint characters should be typed in lowercase). `gF` to repeatedly open links until you hit `<Escape>`.
 -   `gi` — scroll to and focus the last-used input on the page
 -   `r`/`R` — reload page or hard reload page
 -   `yy` — copy the current page URL to the clipboard
@@ -49,13 +49,17 @@ You can try `:help key` to know more about `key`. If it is an existing binding, 
 -   `gU` — go to the root domain of the current URL
 -   `gr` — open Firefox reader mode (note: Tridactyl will not work in this mode)
 -   `zi`/`zo`/`zz` — zoom in/out/reset zoom
+-   `<C-f>`/`<C-b>` — jump to the next/previous part of the page
+-   `g?` — Apply Caesar cipher to page (run `g?` again to switch back)
 
 #### Find mode
 
-Find mode is still incomplete and uses the built-in Firefox search. This will be improved eventually.
+Find mode is still incomplete and uses the Firefox feature "Quick Find". This will be improved eventually.
 
 -   `/` — open the find search box
--   `C-g`/`C-G` — find the next/previous instance of the last find operation (note: these are the standard Firefox shortcuts)
+-   `<C-g>`/`<C-G>` — find the next/previous instance of the last find operation (note: these are the standard Firefox shortcuts)
+
+Please note that Tridactyl overrides Firefox's `<C-f>` search, replacing it with a binding to go to the next part of the page. If you want to be able to use `<C-f>` again to search for things, use `unbind <C-f>`.
 
 #### Bookmarks and quickmarks
 
@@ -63,6 +67,8 @@ Find mode is still incomplete and uses the built-in Firefox search. This will be
 -   `a` — bookmark the current page, but allow the URL to be modified first
 -   `M<key>` — bind a quickmark to the given key
 -   `go<key>`/`gn<key>`/`gw<key>` — open a given quickmark in current tab/new tab/new window
+
+If you want to use Firefox's default `<C-b>` binding to open the bookmarks sidebar, make sure to run `unbind <C-b>` because Tridactyl replaces this setting with one to go to the previous part of the page.
 
 #### Navigating to new pages:
 
@@ -106,17 +112,17 @@ You can bind your own shortcuts in normal mode with the `:bind` command. For exa
 ## WebExtension-related issues
 
 -   Navigation to any about:\* pages using `:open` requires the native messenger.
--   Firefox will not load Tridactyl on about:\*, some file:\* URIs, view-source:\*, or data:\*. On these pages Ctrl-L (or F6), Ctrl-Tab and Ctrl-W are your escape hatches.
+-   Firefox will not load Tridactyl on about:\*, some file:\* URIs, view-source:\*, or data:\*. On these pages Ctrl-L (or F6), Ctrl-Tab, Ctrl-W, and the `tri` [omnibox keyword](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/user_interface/Omnibox) are your escape hatches.
     -   addons.mozilla.org is now supported so long as you run `fixamo` first.
--   Tridactyl now supports changing the Firefox GUI if you have the native messenger installed via `guiset`. There's quite a few options available, but `guiset gui none` is probably what you want, perhaps followed up with `guiset tabs always`.
+-   Tridactyl now supports changing the Firefox GUI if you have the native messenger installed via `guiset`. There's quite a few options available, but `guiset gui none` is probably what you want, perhaps followed up with `guiset tabs always`. See `:help guiset` for a list of all possible options.
 
 ## Frequently asked questions
 
 -   Why doesn't Tridactyl respect my search engine settings?
 
-    It's a webextension limitation. Firefox doesn't allow reading user preferences.
+    It used to be a webextension limitation but it's not anymore. There are plans to fix this, see [#792](https://github.com/tridactyl/tridactyl/issues/792).
 
--   Why doesn't Tridactyl work?
+-   Why doesn't Tridactyl work/why does it break the websites I'm trying to use? or 'Help! A website I use is totally blank when I try to use it with Tridactyl enabled!' or 'Why doesn't Tridactyl work on some pages?'
 
     Please visit our [troubleshooting guide](https://github.com/tridactyl/tridactyl/blob/master/doc/troubleshooting.md).
 
@@ -136,53 +142,41 @@ You can bind your own shortcuts in normal mode with the `:bind` command. For exa
 
 -   Can I import/export settings, and does Tridactyl use an external configuration file just like Vimperator?
 
-    Yes, if you have `native` working, `$XDG_CONFIG_DIR/tridactyl/tridactylrc` or `~/.tridactylrc` will be read at startup via an `autocmd` and `source`. There is an [example file available on our repository](https://github.com/cmcaine/tridactyl/blob/master/.tridactylrc).
+    Yes, if you have `native` working, `$XDG_CONFIG_DIR/tridactyl/tridactylrc` or `~/.tridactylrc` will be read at startup via an `autocmd` and `source`. There is an [example file available on our repository](https://github.com/tridactyl/tridactyl/blob/master/.tridactylrc).
 
-    If you can't use the native messenger for some reason, there is a workaround: if you do `set storageloc local`, a JSON file will appear at `<your firefox profile>\browser-extension-data\tridactyl.vim@cmcaine.co.uk\storage.js`. You can find your profile folder by going to `about:support`. You can edit this file to your heart's content.
+-   How can I change the colors or theme used by Tridactyl?
 
--   I hate the light, can I get a dark theme/dark mode?
+    Use `:colors dark` (authored by @furgerf), `:colors shydactyl` (authored by @atrnh) or `:colors greenmat` (authored by @caputchinefrobles). Tridactyl can also load themes from disk, which would let you use one of the themes authored by @bezmi ([bezmi/base16-tridactyl](https://github.com/bezmi/base16-tridactyl)), see `:help colors` for more information.
 
-    Yes: `set theme dark` or `colors dark`. Thanks to @fugerf.
+-   How to remap keybindings? or How can I bind keys using the control/alt key modifiers (eg: `ctrl+^`)?
 
--   How can I pretend that I'm not a 1337 h4x0r?
+    You can remap keys in normal, ignore, input and insert mode with `:bind --mode=$mode $key $excmd`. Hint mode and the command line are currently special and can't be rebound. See `:help bind` for more information.
 
-    We cater for you, too! `set theme shydactyl`. Thanks to @atrnh.
-
--   How can I pretend that I'm a 1337 h4x0r?
-
-    We cater for you, too! `set theme greenmat`. Thanks to @caputchinefrobles.
-
--   How can I bind keys using the control/alt key modifiers (eg: `ctrl+^`)?
-
-    `:bind <C-f> scrollpage 1`. Special keys can be bound too: `:bind <F3> set theme dark` and with modifiers: `:bind <S-F3> set theme default` and with multiple modifiers: `:bind <SA-F3> composite set hintchars 1234567890 | set hintfiltermode vimperator-reflow`
+    Modifiers can be bound like this: `:bind <C-f> scrollpage 1`. Special keys can be bound too: `:bind <F3> colors dark` and with modifiers: `:bind <S-F3> colors default` and with multiple modifiers: `:bind <SA-F3> composite set hintchars 1234567890 | set hintfiltermode vimperator-reflow`
 
     The modifiers are case insensitive. Special key names are not. The names used are those reported by Javascript with a limited number of vim compatibility aliases (e.g. `CR == Enter`).
 
     If you want to bind <C-^> you'll find that you'll probably need to press Control+Shift+6 to trigger it. The default bind is <C-6> which does not require you to press shift.
 
--   How can I tab complete from bookmarks?
-
-    `bmarks`. Bookmarks are not currently supported on `*open`: see [issue #214](https://github.com/cmcaine/tridactyl/issues/214).
-
 -   When I type 'f', can I type link names (like Vimperator) in order to narrow down the number of highlighted links?
 
     You can, thanks to @saulrh. First `set hintfiltermode vimperator` and then `set hintchars 1234567890`.
 
--   How to remap keybindings in both normal mode and ex mode?
-
-    You cannot. We only support normal mode bindings for now, with `bind [key] [excmd]`
-
 -   Where can I find a changelog for the different versions (to see what is new in the latest version)?
 
-    [Here.](https://github.com/cmcaine/tridactyl/blob/master/CHANGELOG.md)
+    [Here.](https://github.com/tridactyl/tridactyl/blob/master/CHANGELOG.md)
 
 -   Why can't I use my bookmark keywords?
 
-    Mozilla doesn't give us access to them. See [issue #73](https://github.com/cmcaine/tridactyl/issues/73).
+    Mozilla doesn't give us access to them. See [issue #73](https://github.com/tridactyl/tridactyl/issues/73).
+
+-   Can I set/get my bookmark tags from Tridactyl?
+
+    No, Mozilla doesn't give us access to them either.
 
 -   Why doesn't Tridactyl work on websites with frames?
 
-    It should work on some frames now. See [#122](https://github.com/cmcaine/tridactyl/issues/122).
+    It should work on some frames now. See [#122](https://github.com/tridactyl/tridactyl/issues/122).
 
 -   Can I change proxy via commands?
 
@@ -190,46 +184,52 @@ You can bind your own shortcuts in normal mode with the `:bind` command. For exa
 
 -   How do I disable Tridactyl on certain sites?
 
-    In the beta you can use `blacklistadd`, like this: `blacklistadd mail.google.com/mail`.
+    You can use `blacklistadd`, like this: `blacklistadd mail.google.com/mail`. See `:help blacklistadd`. Also note that if you want something like the passkeys or ignorekeys features vimperator/pentadactyl had, you can use `bindurl`. See `:help bindurl`.
 
 -   How can I list the current bindings?
 
-    `viewconfig nmaps` works OK, but Tridactyl commands won't work on the shown page for "security reasons". We'll eventually provide a better way. See [#98](https://github.com/cmcaine/tridactyl/issues/98).
-
--   Why doesn't Tridactyl work on some pages?
-
-    One possible reason is that the site has a strict content security policy. You can try to use `set csp clobber` to fix this, but know that it could worsen the security of sensitive pages.
+    `viewconfig nmaps` works OK, but Tridactyl commands won't work on the shown page for "security reasons". We'll eventually provide a better way. See [#98](https://github.com/tridactyl/tridactyl/issues/98).
 
 -   How can I know which mode I'm in/have a status line?
 
-    Press `j` and see if you scroll down :) There's no status line yet: see [#210](https://github.com/cmcaine/tridactyl/issues/210), but we do have a "mode indicator" in the bottom right. It even goes purple when you're in a private window :).
+    Press `j` and see if you scroll down :) There's no status line yet: see [#210](https://github.com/tridactyl/tridactyl/issues/210), but we do have a "mode indicator" in the bottom right. It even goes purple when you're in a private window :).
 
 -   Does anyone actually use Tridactyl?
 
-    In addition to the developers, some other people do. Mozilla keeps tabs on them [here](https://addons.mozilla.org/en-US/firefox/addon/tridactyl-vim/statistics/?last=30).
+    In addition to the developers, some other people do. Mozilla keeps tabs on stable users [here](https://addons.mozilla.org/en-US/firefox/addon/tridactyl-vim/statistics/?last=30). The maintainers guess the number of unstable users from unique IPs downloading the betas each week when they feel like it. Last time they checked there were 3000 of them.
 
 -   How do I prevent websites from stealing focus?
 
     There are two ways to do that, the first one is `set allowautofocus false` (if you do this you'll probably also want to set `browser.autofocus` to false in `about:config`). This will prevent the page's `focus()` function from working and could break javascript text editors such as Ace or CodeMirror. Another solution is to use `autocmd TabEnter .* unfocus` in the beta, JS text editors should still work but pages won't steal focus when entering their tabs anymore.
 
--   Help! A website I use is totally blank when I try to use it with Tridactyl enabled!
-
-    Try `set noiframeon [space separated list of URLs to match]`. If that doesn't work, please file an issue.
-
 ## Contributing
+
+### Donations
+
+We gratefully accept donations via [GitHub Sponsors](https://github.com/users/bovine3dom/sponsorship) (who will double any donations until October 2020), [PayPal](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=7JQHV4N2YZCTY) and [Patreon](https://www.patreon.com/tridactyl). If you can, please make this a monthly donation as it makes it much easier to plan.
+
+<a href="https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=7JQHV4N2YZCTY"><img src="https://www.paypalobjects.com/en_US/GB/i/btn/btn_donateCC_LG.gif" alt="PayPal"></a>
+
+Funds will be used at the discretion of the main contributors (currently bovine3dom, cmcaine, glacambre and antonva) for Tridactyl-related expenditure, such as domain names, server costs, small thank-yous to contributors such as stickers, and victuals for hackathons.
+
+### Merchandise
+
+We have some designs available on [REDBUBBLE](https://www.redbubble.com/people/bovine3dom/shop/top+selling?ref=artist_shop_category_refinement&asc=u). There are often discount codes available - just search your favourite search engine for them. The T-shirts are quite good (I'm wearing one as I type this). The stickers are not the best quality we've ever seen. The clock looks amazing on the website. If anyone buys it I would love to see it.
+
+**We don't take any cut from the merchandise**, so if you would like to donate, please do so via PayPal or Patreon above.
 
 ### Building and installing
 
 Onboarding:
 
 ```
-git clone https://github.com/cmcaine/tridactyl.git
+git clone https://github.com/tridactyl/tridactyl.git
 cd tridactyl
-npm install
-npm run build
+yarn install
+yarn run build
 ```
 
-Each time package.json or package-lock.json change after you checkout or pull, you should run `npm install` again.
+Each time package.json or package-lock.json change after you checkout or pull, you should run `yarn install` again.
 
 Addon is built in tridactyl/build. Load it as a temporary addon in firefox with `about:debugging` or see [Development loop](#Development-loop). The addon should work in Firefox 52+, but we're only deliberately supporting >=57.
 
@@ -237,12 +237,16 @@ If you want to install a local copy of the add-on into your developer or nightly
 
 ```
 # Build tridactyl if you haven't done that yet
-npm run build
+yarn run build
 # Package for a browser
-$(npm bin)/web-ext build -s build
+"$(yarn bin)/web-ext" build -s build
 ```
 
 If you want to build a signed copy (e.g. for the non-developer release), you can do that with `web-ext sign`. You'll need some keys for AMO and to edit the application id in `src/manifest.json`. There's a helper script in `scripts/sign` that's used by our build bot and for manual releases.
+
+You can build unsigned copies with `scripts/sign nosign{stable,beta}`. NB: The `stable` versus `beta` part of the argument tells our build process which extension ID to use (and therefore which settings to use). If you want a stable build, make sure you are on the latest tag, i.e. `git checkout $(git tag | grep '^[0-9]\+\.[0-9]\+\.[0-9]\+$' | sort -t. -k 1,1n -k 2,2n -k 3,3n | tail -1)`.
+
+If you are on a distribution which builds Firefox with `--with-unsigned-addon-scopes=` set to `app` and/or `system` (which is most of them by users: Arch, Debian, Ubuntu), you can install your unsigned copy of Tridactyl with `scripts/install.sh [directory]`. If you're on Arch, the correct directory is probably selected by default; on other distributions you might have to go hunting, but it probably looks like `/usr/lib/firefox/browser/extensions`.
 
 ### Building on Windows
 
@@ -322,22 +326,22 @@ PS C:\Users\{USERNAME}\.tridactyl> gpg2 --verify .\native_main.exe.sig .\native_
 ### Development loop
 
 ```
-npm run build & npm run run
+yarn run build & yarn run run
 ```
 
 <!-- This will compile and deploy your files each time you save them. -->
 
-You'll need to run `npm run build` every time you edit the files, and press "r" in the `npm run run` window to make sure that the files are properly reloaded.
+You'll need to run `yarn run build` every time you edit the files, and press "r" in the `yarn run run` window to make sure that the files are properly reloaded.
 
 ### Committing
 
-A pre-commit hook is added by `npm install` that simply runs `npm test`. If you know that your commit doesn't break the tests you can commit with `git commit -n` to ignore the hooks. If you're making a PR, travis will check your build anyway.
+A pre-commit hook is added by `yarn install` that simply runs `yarn test`. If you know that your commit doesn't break the tests you can commit with `git commit -n` to ignore the hooks. If you're making a PR, travis will check your build anyway.
 
 ### Documentation
 
 Ask in `#tridactyl` on [matrix.org][matrix-link], freenode, or [gitter][gitter-link]. We're friendly!
 
-Default keybindings are currently best discovered by reading the [default config](./src/config.ts).
+Default keybindings are currently best discovered by reading the [default config](./src/lib/config.ts).
 
 Development notes are in the doc directory, but they're mostly out of date now. Code is quite short and not _too_ badly commented, though.
 
@@ -368,4 +372,6 @@ The logo was designed by Jake Beazley using free vector art by <a target="_blank
 [matrix-link]: https://riot.im/app/#/room/#tridactyl:matrix.org
 [betas]: https://tridactyl.cmcaine.co.uk/betas/?sort=time&order=desc
 [riskyclick]: https://tridactyl.cmcaine.co.uk/betas/tridactyl-latest.xpi
+[nonewtablink]: https://tridactyl.cmcaine.co.uk/betas/nonewtab/tridactyl_no_new_tab_beta-latest.xpi
 [amo]: https://addons.mozilla.org/en-US/firefox/addon/tridactyl-vim?src=external-github
+[migratelink]: https://github.com/tridactyl/tridactyl/issues/79#issuecomment-351132451

@@ -17,16 +17,16 @@ init:
   - ps: Write-Host "[+] Location of Bash ..."
   - ps: Get-Command -Name 'bash'
 
-  # Verify NPM
-  - ps: Write-Host "[+] Location of NPM ..."
-  - ps: Get-Command -Name 'npm'
+  # Verify yarn
+  - ps: Write-Host "[+] Location of yarn ..."
+  - ps: Get-Command -Name 'yarn'
 
   # Verify software versions
   - ps: Write-Host "[+] Verifying software verisons ..."
   - sh --version
   - bash --version
   - node --version
-  - npm --version
+  - yarn --version
 
   #
   # Python version will show "2.7" below, which is required to keep
@@ -72,8 +72,8 @@ install:
   - ps: Get-Location
   - bash -e -l -c "cd $APPVEYOR_BUILD_FOLDER && ls -alh"
 
-  # Install NPM modules
-  - bash -e -l -c "cd $APPVEYOR_BUILD_FOLDER && npm install"
+  # Install yarn modules
+  - bash -e -l -c "cd $APPVEYOR_BUILD_FOLDER && yarn install"
 
 build_script:
   # Add Python-3.6 to %PATH%
@@ -101,8 +101,8 @@ build_script:
   - ps: Write-Host "[+] Current directory under Bash ..."
   - bash -e -l -c "cd $APPVEYOR_BUILD_FOLDER && ls -alh"
 
-  - ps: Write-Host "[+] Starting 'npm run build' ..."
-  - bash -e -l -c "cd $APPVEYOR_BUILD_FOLDER && export PYINSTALLER=1 && npm run build"
+  - ps: Write-Host "[+] Starting 'yarn run build' ..."
+  - bash -e -l -c "cd $APPVEYOR_BUILD_FOLDER && export PYINSTALLER=1 && yarn run build"
 
 test_script:
   # Add Python-3.6 to %PATH%
@@ -130,5 +130,5 @@ test_script:
   - ps: Write-Host "[+] Current directory under Bash ..."
   - bash -e -l -c "cd $APPVEYOR_BUILD_FOLDER && ls -alh"
 
-  - ps: Write-Host "[+] Starting 'npm run test' ..."
-  - bash -e -l -c "cd $APPVEYOR_BUILD_FOLDER && export PYINSTALLER=1 && npm run test"
+  - ps: Write-Host "[+] Starting 'yarn run test' ..."
+  - bash -e -l -c "cd $APPVEYOR_BUILD_FOLDER && export PYINSTALLER=1 && yarn run test"

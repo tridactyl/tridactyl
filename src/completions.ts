@@ -11,12 +11,11 @@ Concrete completion classes have been moved to src/completions/.
 */
 
 import * as Fuse from "fuse.js"
-import { enumerate } from "./itertools"
-import { toNumber } from "./convert"
-import * as config from "./config"
-import * as aliases from "./aliases"
+import { enumerate } from "@src/lib/itertools"
+import { toNumber } from "@src/lib/convert"
+import * as aliases from "@src/lib/aliases"
 
-export const DEFAULT_FAVICON = browser.extension.getURL(
+export const DEFAULT_FAVICON = browser.runtime.getURL(
     "static/defaultFavicon.svg",
 )
 
@@ -36,15 +35,21 @@ export abstract class CompletionSource {
     node: HTMLElement
     public completion: string
     protected prefixes: string[] = []
+    protected lastFocused: CompletionOption
+    private _state: OptionState
+    private _prevState: OptionState
 
     constructor(prefixes) {
-        let commands = aliases.getCmdAliasMapping()
+        const commands = aliases.getCmdAliasMapping()
 
         // Now, for each prefix given as argument, add it to the completionsource's prefix list and also add any alias it has
-        prefixes.map(p => p.trim()).forEach(p => {
-            this.prefixes.push(p)
-            if (commands[p]) this.prefixes = this.prefixes.concat(commands[p])
-        })
+        prefixes
+            .map(p => p.trim())
+            .forEach(p => {
+                this.prefixes.push(p)
+                if (commands[p])
+                    this.prefixes = this.prefixes.concat(commands[p])
+            })
 
         // Not sure this is necessary but every completion source has it
         this.prefixes = this.prefixes.map(p => p + " ")
@@ -52,8 +57,6 @@ export abstract class CompletionSource {
 
     /** Update [[node]] to display completions relevant to exstr */
     public abstract filter(exstr: string): Promise<void>
-
-    private _state: OptionState
 
     /** Control presentation of Source */
     set state(newstate: OptionState) {
@@ -66,6 +69,7 @@ export abstract class CompletionSource {
                 this.node.classList.add("hidden")
                 break
         }
+        this._prevState = this._state
         this._state = newstate
     }
 
@@ -73,10 +77,20 @@ export abstract class CompletionSource {
         return this._state
     }
 
+    shouldRefresh() {
+        // A completion source should be refreshed if it is not hidden or if it just became hidden
+        return this._state !== "hidden" || this.state !== this._prevState
+    }
+
     abstract next(inc?: number): boolean
 
     prev(inc = 1): boolean {
         return this.next(-1 * inc)
+    }
+
+    deselect() {
+        this.completion = undefined
+        if (this.lastFocused !== undefined) this.lastFocused.state = "normal"
     }
 }
 
@@ -119,7 +133,7 @@ export interface CompletionOptionFuse extends CompletionOptionHTML {
     fuseKeys: any[]
 }
 
-export type ScoredOption = {
+export interface ScoredOption {
     index: number
     option: CompletionOptionFuse
     score: number
@@ -128,10 +142,21 @@ export type ScoredOption = {
 export abstract class CompletionSourceFuse extends CompletionSource {
     public node
     public options: CompletionOptionFuse[]
-    protected lastExstr: string
-    protected lastFocused: CompletionOption
 
-    protected optionContainer = html`<table class="optionContainer">`
+    fuseOptions: Fuse.FuseOptions<any> = {
+        keys: ["fuseKeys"],
+        shouldSort: true,
+        id: "index",
+        includeScore: true,
+    }
+
+    // PERF: Could be expensive not to cache Fuse()
+    // yeah, it was.
+    fuse = undefined
+
+    protected lastExstr: string
+
+    protected optionContainer = html`<table class="optionContainer"></table>`
 
     constructor(prefixes, className: string, title?: string) {
         super(prefixes)
@@ -150,7 +175,7 @@ export abstract class CompletionSourceFuse extends CompletionSource {
     public async filter(exstr: string) {
         this.lastExstr = exstr
         await this.onInput(exstr)
-        await this.updateChain()
+        return this.updateChain()
     }
 
     updateChain(exstr = this.lastExstr, options = this.options) {
@@ -188,18 +213,13 @@ export abstract class CompletionSourceFuse extends CompletionSource {
 
     select(option: CompletionOption) {
         if (this.lastExstr !== undefined && option !== undefined) {
-            const [prefix, _] = this.splitOnPrefix(this.lastExstr)
+            const [prefix] = this.splitOnPrefix(this.lastExstr)
             this.completion = prefix + option.value
             option.state = "focused"
             this.lastFocused = option
         } else {
             throw new Error("lastExstr and option must be defined!")
         }
-    }
-
-    deselect() {
-        this.completion = undefined
-        if (this.lastFocused != undefined) this.lastFocused.state = "normal"
     }
 
     splitOnPrefix(exstr: string) {
@@ -212,27 +232,15 @@ export abstract class CompletionSourceFuse extends CompletionSource {
         return [undefined, undefined]
     }
 
-    fuseOptions = {
-        keys: ["fuseKeys"],
-        shouldSort: true,
-        id: "index",
-        includeScore: true,
-    }
-
-    // PERF: Could be expensive not to cache Fuse()
-    // yeah, it was.
-    fuse = undefined
-
     /** Rtn sorted array of {option, score} */
     scoredOptions(query: string, options = this.options): ScoredOption[] {
-        let searchThis = this.options.map((elem, index) => {
+        const searchThis = this.options.map((elem, index) => {
             return { index, fuseKeys: elem.fuseKeys }
         })
         this.fuse = new Fuse(searchThis, this.fuseOptions)
-        return this.fuse.search(query).map(res => {
-            let result = res as any
+        return this.fuse.search(query).map(result => {
             // console.log(result, result.item, query)
-            let index = toNumber(result.item)
+            const index = toNumber(result.item)
             return {
                 index,
                 option: this.options[index],
@@ -247,7 +255,7 @@ export abstract class CompletionSourceFuse extends CompletionSource {
         focus the best match.
     */
     setStateFromScore(scoredOpts: ScoredOption[], autoselect = false) {
-        let matches = scoredOpts.map(res => res.index)
+        const matches = scoredOpts.map(res => res.index)
 
         for (const [index, option] of enumerate(this.options)) {
             if (matches.includes(index)) option.state = "normal"
@@ -275,7 +283,7 @@ export abstract class CompletionSourceFuse extends CompletionSource {
 
         for (const option of this.options) {
             /* newContainer.appendChild(option.html) */
-            if (option.state != "hidden")
+            if (option.state !== "hidden")
                 this.optionContainer.appendChild(option.html)
         }
 
@@ -287,60 +295,16 @@ export abstract class CompletionSourceFuse extends CompletionSource {
     }
 
     next(inc = 1) {
-        if (this.state != "hidden") {
-            let visopts = this.options.filter(o => o.state != "hidden")
-            let currind = visopts.findIndex(o => o.state == "focused")
+        if (this.state !== "hidden") {
+            const visopts = this.options.filter(o => o.state !== "hidden")
+            const currind = visopts.findIndex(o => o.state === "focused")
             this.deselect()
             // visopts.length + 1 because we want an empty completion at the end
-            let max = visopts.length + 1
-            let opt = visopts[(currind + inc + max) % max]
+            const max = visopts.length + 1
+            const opt = visopts[(currind + inc + max) % max]
             if (opt) this.select(opt)
             return true
         } else return false
-    }
-}
-
-// }}}
-
-// {{{ UNUSED: MANAGING ASYNC CHANGES
-
-/** If first to modify epoch, commit change. May want to change epoch after commiting. */
-async function commitIfCurrent(
-    epochref: any,
-    asyncFunc: Function,
-    commitFunc: Function,
-    ...args: any[]
-): Promise<any> {
-    // I *think* sync stuff in here is guaranteed to happen immediately after
-    // being called, up to the first await, despite this being an async
-    // function. But I don't know. Should check.
-    const epoch = epochref
-    const res = await asyncFunc(...args)
-    if (epoch === epochref) return commitFunc(res)
-    else console.error(new Error("Update failed: epoch out of date!"))
-}
-
-/** Indicate changes to completions we would like.
-
-    This will probably never be used for original designed purpose.
-*/
-function updateCompletions(filter: string, sources: CompletionSource[]) {
-    for (let [index, source] of enumerate(sources)) {
-        // Tell each compOpt to filter, and if they finish fast enough they:
-        //      0. Leave a note for any siblings that they got here first
-        //      1. Take over their parent's slot in compOpts
-        //      2. Update their display
-        commitIfCurrent(
-            source.obsolete, // Flag/epoch
-            source.filter, // asyncFunc
-            childSource => {
-                // commitFunc
-                source.obsolete = true
-                sources[index] = childSource
-                childSource.activate()
-            },
-            filter, // argument to asyncFunc
-        )
     }
 }
 

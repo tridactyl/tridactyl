@@ -6,6 +6,7 @@
     --tridactyl-small-font-size: 12px;
     --tridactyl-bg: white;
     --tridactyl-fg: black;
+    --tridactyl-logo: url('data:image/png;base64,REPLACE_ME_WITH_BASE64_TRIDACTYL_LOGO');
 
     /* Mode indicator */
     --tridactyl-status-font-family: var(--tridactyl-font-family);
@@ -14,6 +15,9 @@
     --tridactyl-status-fg: var(--tridactyl-fg);
     --tridactyl-status-border: 1px lightgray solid;
     --tridactyl-status-border-radius: 2px;
+
+    /* Search highlight */
+    --tridactyl-search-highlight-color: yellow;
 
     /* Hinting */
 
@@ -120,4 +124,7 @@
     --tridactyl-container-color-red: #ff613d;
     --tridactyl-container-color-pink: #ff4bda;
     --tridactyl-container-color-purple: #af51f5;
+
+    --tridactyl-externaledit-bg: var(--tridactyl-logo) no-repeat center;
+
 }

@@ -1,0 +1,51 @@
+version: 2.1
+commands:
+  commoncmd:
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - dependency-cache-{{ checksum "package.json" }}
+      - run: yarn install
+      - save_cache:
+          key: dependency-cache-{{ checksum "package.json" }}
+          paths:
+            - ./node_modules
+      - run: yarn run build
+jobs:
+  lint:
+    docker:
+      - image: circleci/node:latest
+    steps:
+      - run: sudo apt update
+      - run: sudo apt install -qq shellcheck
+      - commoncmd
+      - run: bash -c 'GLOBIGNORE="node_modules" shellcheck -e2012 **/*.sh'
+      - run: yarn run lint
+      - run: bash -c '"$(yarn bin)/tslint" --project .'
+  unit:
+    docker:
+      - image: circleci/node:latest
+    steps:
+      - commoncmd
+      - run: bash -c '"$(yarn bin)/jest" src'
+  e2e:
+    docker:
+      - image: circleci/node:latest-browsers
+        environment:
+          MOZ_HEADLESS: 1 
+    steps:
+      - commoncmd
+      - run: sudo yarn global add get-firefox
+      - run: get-firefox --branch nightly --platform linux --extract --target ~/
+      - run: ~/firefox/firefox -v
+      - run: bash -c '"$(yarn bin)/web-ext" build --source-dir ./build --overwrite-dest'
+      - run: mv web-ext-artifacts/*.zip web-ext-artifacts/tridactyl.xpi
+      - run: bash -c 'PATH="$HOME/firefox:$PATH" "$(yarn bin)/jest"'
+workflows:
+  version: 2
+  build_test_lint:
+    jobs:
+      - lint
+      - unit
+      - e2e

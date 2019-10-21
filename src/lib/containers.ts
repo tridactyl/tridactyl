@@ -1,6 +1,6 @@
-import { browserBg } from "./webext"
+import { browserBg } from "@src/lib/webext"
 import * as Fuse from "fuse.js"
-import * as Logging from "../logging"
+import * as Logging from "@src/lib/logging"
 const logger = new Logging.Logger("containers")
 
 // As per Mozilla specification: https://developer.mozilla.org/en-US/Add-ons/WebExtensions/API/contextualIdentities/ContextualIdentity
@@ -46,7 +46,7 @@ export async function create(
     icon = "fingerprint",
 ): Promise<string> {
     if (color === "random") color = chooseRandomColor()
-    let container = fromString(name, color, icon)
+    const container = fromString(name, color, icon)
     // browser.contextualIdentities.create does not accept a cookieStoreId property.
     delete container.cookieStoreId
     logger.debug(container)
@@ -57,12 +57,8 @@ export async function create(
             `[Container.create] container already exists, aborting.`,
         )
     } else {
-        try {
-            let res = await browser.contextualIdentities.create(container)
-            return res.cookieStoreId
-        } catch (e) {
-            throw e
-        }
+        const res = await browser.contextualIdentities.create(container)
+        return res.cookieStoreId
     }
 }
 
@@ -71,13 +67,9 @@ export async function create(
  */
 export async function remove(name: string) {
     logger.debug(name)
-    try {
-        let id = await getId(name)
-        let res = await browser.contextualIdentities.remove(id)
-        logger.debug("[Container.remove] removed container:", res.cookieStoreId)
-    } catch (e) {
-        throw e
-    }
+    const id = await getId(name)
+    const res = await browser.contextualIdentities.remove(id)
+    logger.debug("[Container.remove] removed container:", res.cookieStoreId)
 }
 
 /** Updates the specified container.
@@ -96,12 +88,8 @@ export async function update(
         icon: browser.contextualIdentities.IdentityIcon
     },
 ) {
-    if (isValidColor(updateObj["color"]) && isValidIcon(updateObj["icon"])) {
-        try {
-            browser.contextualIdentities.update(containerId, updateObj)
-        } catch (e) {
-            throw e
-        }
+    if (isValidColor(updateObj.color) && isValidIcon(updateObj.icon)) {
+        browser.contextualIdentities.update(containerId, updateObj)
     } else {
         logger.debug(updateObj)
         throw new Error("[Container.update] invalid container icon or color")
@@ -129,8 +117,8 @@ export async function getFromId(
 export async function exists(cname: string): Promise<boolean> {
     let exists = false
     try {
-        let containers = await getAll()
-        let res = containers.filter(c => {
+        const containers = await getAll()
+        const res = containers.filter(c => {
             return c.name.toLowerCase() === cname.toLowerCase()
         })
         if (res.length > 0) {
@@ -158,23 +146,19 @@ export function fromString(
     icon: string,
     id: string = "",
 ) {
-    try {
-        return {
-            name: name,
-            color: color as browser.contextualIdentities.IdentityColor,
-            icon: icon as browser.contextualIdentities.IdentityIcon,
-            cookieStoreId: id,
-        } as browser.contextualIdentities.ContextualIdentity // rules are made to be broken
-    } catch (e) {
-        throw e
-    }
+    return {
+        name,
+        color: color as browser.contextualIdentities.IdentityColor,
+        icon: icon as browser.contextualIdentities.IdentityIcon,
+        cookieStoreId: id,
+    } as browser.contextualIdentities.ContextualIdentity // rules are made to be broken
 }
 
 /**
  *  @returns An array representation of all containers.
  */
 export async function getAll(): Promise<any[]> {
-    return await browser.contextualIdentities.query({})
+    return browser.contextualIdentities.query({})
 }
 
 /** Fetches the cookieStoreId of a given container
@@ -186,14 +170,14 @@ export async function getAll(): Promise<any[]> {
  */
 export async function getId(name: string): Promise<string> {
     try {
-        let containers = await getAll()
-        let res = containers.filter(
+        const containers = await getAll()
+        const res = containers.filter(
             c => c.name.toLowerCase() === name.toLowerCase(),
         )
         if (res.length !== 1) {
             throw new Error("")
         } else {
-            return res[0]["cookieStoreId"]
+            return res[0].cookieStoreId
         }
     } catch (e) {
         logger.error(
@@ -207,7 +191,7 @@ export async function getId(name: string): Promise<string> {
     @param partialName The (partial) name of the container.
  */
 export async function fuzzyMatch(partialName: string): Promise<string> {
-    let fuseOptions = {
+    const fuseOptions = {
         id: "cookieStoreId",
         shouldSort: true,
         threshold: 0.5,
@@ -217,11 +201,11 @@ export async function fuzzyMatch(partialName: string): Promise<string> {
         keys: ["name"],
     }
 
-    let containers = await getAll()
-    let fuse = new Fuse(containers, fuseOptions)
-    let res = fuse.search(partialName)
+    const containers = await getAll()
+    const fuse = new Fuse(containers, fuseOptions)
+    const res = fuse.search(partialName)
 
-    if (res.length >= 1) return res[0] as string
+    if (res.length >= 1) return res[0]
     else {
         throw new Error(
             "[Container.fuzzyMatch] no container matched that string",
@@ -231,8 +215,8 @@ export async function fuzzyMatch(partialName: string): Promise<string> {
 
 /** Helper function for create, returns a random valid IdentityColor for use if no color is applied at creation.*/
 function chooseRandomColor(): string {
-    let max = Math.floor(ContainerColor.length)
-    let n = Math.floor(Math.random() * max)
+    const max = Math.floor(ContainerColor.length)
+    const n = Math.floor(Math.random() * max)
     return ContainerColor[n]
 }
 

@@ -1,28 +1,21 @@
-import * as Completions from "../completions"
-import { typeToSimpleString } from "../metadata"
-import * as Metadata from "../.metadata.generated"
-import state from "../state"
-import * as config from "../config"
-import * as aliases from "../aliases"
+import * as Completions from "@src/completions"
+import * as Metadata from "@src/.metadata.generated"
+import * as config from "@src/lib/config"
+import * as aliases from "@src/lib/aliases"
 
 class ExcmdCompletionOption extends Completions.CompletionOptionHTML
     implements Completions.CompletionOptionFuse {
     public fuseKeys = []
-    constructor(
-        public value: string,
-        public ttype: string = "",
-        public documentation: string = "",
-    ) {
+    constructor(public value: string, public documentation: string = "") {
         super()
         this.fuseKeys.push(this.value)
 
         // Create HTMLElement
         this.html = html`<tr class="ExcmdCompletionOption option">
-            <td class="excmd">${value}</td>
-            <td class="documentation">${documentation}</td>
-        </tr>`
+                <td class="excmd">${value}</td>
+                <td class="documentation">${documentation}</td>
+            </tr>`
     }
-    // <td class="type">${ttype}</td>
 }
 
 export class ExcmdCompletionSource extends Completions.CompletionSourceFuse {
@@ -35,8 +28,13 @@ export class ExcmdCompletionSource extends Completions.CompletionSourceFuse {
         this._parent.appendChild(this.node)
     }
 
+    async filter(exstr) {
+        this.lastExstr = exstr
+        return this.onInput(exstr)
+    }
+
     async onInput(exstr) {
-        await this.updateOptions(exstr)
+        return this.updateOptions(exstr)
     }
 
     updateChain(exstr = this.lastExstr, options = this.options) {
@@ -46,49 +44,58 @@ export class ExcmdCompletionSource extends Completions.CompletionSourceFuse {
         this.updateDisplay()
     }
 
-    private async updateOptions(exstr?: string) {
-        if (!exstr) exstr = ""
-        this.lastExstr = exstr
-        let fns = Metadata.everything["src/excmds.ts"].functions
-        this.options = (await this.scoreOptions(
-            Object.keys(fns).filter(f => f.startsWith(exstr)),
-        )).map(f => {
-            let t = ""
-            if (fns[f].type) t = typeToSimpleString(fns[f].type)
-            return new ExcmdCompletionOption(f, t, fns[f].doc)
-        })
+    select(option: ExcmdCompletionOption) {
+        this.completion = option.value
+        option.state = "focused"
+        this.lastFocused = option
+    }
 
-        let exaliases = config.get("exaliases")
-        for (let alias of Object.keys(exaliases).filter(a =>
+    setStateFromScore(scoredOpts: Completions.ScoredOption[]) {
+        super.setStateFromScore(scoredOpts, false)
+    }
+
+    private async updateOptions(exstr = "") {
+        this.lastExstr = exstr
+
+        const excmds = Metadata.everything.getFile("src/excmds.ts")
+        if (!excmds) return
+        const fns = excmds.getFunctions()
+
+        // Add all excmds that start with exstr and that tridactyl has metadata about to completions
+        this.options = this.scoreOptions(
+            fns
+                .filter(([name, fn]) => !fn.hidden && name.startsWith(exstr))
+                .map(([name, fn]) => new ExcmdCompletionOption(name, fn.doc)),
+        )
+
+        // Also add aliases to possible completions
+        const exaliases = Object.keys(config.get("exaliases")).filter(a =>
             a.startsWith(exstr),
-        )) {
-            let cmd = aliases.expandExstr(alias)
-            if (fns[cmd]) {
-                this.options = this.options.concat(
+        )
+        for (const alias of exaliases) {
+            const cmd = aliases.expandExstr(alias)
+            const fn = excmds.getFunction(cmd)
+            if (fn) {
+                this.options.push(
                     new ExcmdCompletionOption(
                         alias,
-                        fns[cmd].type ? typeToSimpleString(fns[cmd].type) : "",
-                        `Alias for \`${cmd}\`. ${fns[cmd].doc}`,
+                        `Alias for \`${cmd}\`. ${fn.doc}`,
                     ),
                 )
             } else {
-                // This can happen when the alias is a composite command or a command with arguments. We can't display type or doc because we don't know what parameter the alias takes or what it does.
-                this.options = this.options.concat(
-                    new ExcmdCompletionOption(
-                        alias,
-                        "",
-                        `Alias for \`${cmd}\`.`,
-                    ),
+                // This can happen when the alias is a composite command or a command with arguments. We can't display doc because we don't know what parameter the alias takes or what it does.
+                this.options.push(
+                    new ExcmdCompletionOption(alias, `Alias for \`${cmd}\`.`),
                 )
             }
         }
 
         this.options.forEach(o => (o.state = "normal"))
-        this.updateChain()
+        return this.updateChain()
     }
 
-    private async scoreOptions(exstrs: string[]) {
-        return exstrs.sort()
+    private scoreOptions(options: ExcmdCompletionOption[]) {
+        return options.sort((o1, o2) => o1.value.localeCompare(o2.value))
 
         // Too slow with large profiles
         // let histpos = state.cmdHistory.map(s => s.split(" ")[0]).reverse()
@@ -103,15 +110,5 @@ export class ExcmdCompletionSource extends Completions.CompletionSourceFuse {
         //     // Finally, sort by history position
         //     return posa < posb ? -1 : 1
         // })
-    }
-
-    select(option: ExcmdCompletionOption) {
-        this.completion = option.value
-        option.state = "focused"
-        this.lastFocused = option
-    }
-
-    setStateFromScore(scoredOpts: Completions.ScoredOption[]) {
-        super.setStateFromScore(scoredOpts, false)
     }
 }

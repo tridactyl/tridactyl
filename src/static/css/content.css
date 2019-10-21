@@ -13,7 +13,6 @@
 
 .TridactylStatusIndicator {
     position: fixed !important;
-    bottom: 0 !important;
     font-family: var(--tridactyl-status-font-family) !important;
     background: var(--tridactyl-status-bg) !important;
     color: var(--tridactyl-status-fg) !important;
@@ -41,8 +40,18 @@
     pointer-events: none !important;
 }
 
+.TridactylEditing {
+    background: var(--tridactyl-externaledit-bg);
+}
+
 @media print {
     .TridactylStatusIndicator {
         display: none !important;
     }
+}
+
+.TridactylSearchHighlight {
+    opacity: 0.5 !important;
+    background-color: var(--tridactyl-search-highlight-color) !important;
+    z-index: 2147483647 !important;
 }

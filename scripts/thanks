@@ -1,0 +1,12 @@
+#!/bin/bash
+
+export LAST_VERSION="$1"
+
+allcontributors="$(git shortlog -sn $LAST_VERSION..HEAD | cut -c8- | awk '!seen[$0]++' | paste -sd "," - | sed 's/,/, /g')"
+newcontributors="$(diff --changed-group-format='%<' --unchanged-group-format='' <(git shortlog -sn $LAST_VERSION..HEAD | cut -c8- | awk '!seen[$0]++'| sort) <(git shortlog -sn $LAST_VERSION | cut -c8- | awk '!seen[$0]++'| sort) | paste -sd "," - | sed 's/,/, /g')"
+
+echo "Thanks to all of our contributors for this release: $allcontributors"
+echo
+echo "Extra special thanks go to $newcontributors"
+echo
+echo Last, but not least - thank you to everyone who reported issues.

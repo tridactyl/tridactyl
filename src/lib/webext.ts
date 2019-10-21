@@ -1,9 +1,10 @@
-import * as convert from "../convert"
-import browserProxy from "./browser_proxy"
-import * as config from "../config"
+import * as convert from "@src/lib/convert"
+import browserProxy from "@src/lib/browser_proxy"
+import * as config from "@src/lib/config"
+import * as UrlUtil from "@src/lib/url_util"
 
 export function inContentScript() {
-    return getContext() == "content"
+    return getContext() === "content"
 }
 
 /** WebExt code can be run from three contexts:
@@ -13,10 +14,10 @@ export function inContentScript() {
     Background page
 */
 export function getContext() {
-    if (!("tabs" in browser)) {
+    if (!browser.tabs) {
         return "content"
     } else if (
-        browser.runtime.getURL("_generated_background_page.html") ==
+        browser.runtime.getURL("_generated_background_page.html") ===
         window.location.href
     ) {
         return "background"
@@ -39,7 +40,6 @@ if (inContentScript()) {
  * TODO: Highlander theory: Can there ever be more than one?
  *
  */
-//#background_helper
 export async function activeTab() {
     return (await browserBg.tabs.query({
         active: true,
@@ -47,21 +47,31 @@ export async function activeTab() {
     }))[0]
 }
 
-//#background_helper
 export async function activeTabId() {
     return (await activeTab()).id
 }
 
-//#background_helper
 export async function activeTabContainerId() {
     return (await activeTab()).cookieStoreId
 }
 
-//#background_helper
+export async function ownTab() {
+    // Warning: this relies on the owntab_background listener being set in messaging.ts in order to work
+    return browser.runtime.sendMessage({ type: "owntab_background" })
+}
+
+export async function ownTabId() {
+    return (await ownTab()).id
+}
+
+export async function ownTabContainer() {
+    return browserBg.contextualIdentities.get((await ownTab()).cookieStoreId)
+}
+
 export async function activeTabContainer() {
-    let containerId = await activeTabContainerId()
+    const containerId = await activeTabContainerId()
     if (containerId !== "firefox-default")
-        return await browserBg.contextualIdentities.get(containerId)
+        return browserBg.contextualIdentities.get(containerId)
     else
         throw new Error(
             "firefox-default is not a valid contextualIdentity (activeTabContainer)",
@@ -114,7 +124,9 @@ export async function openInNewTab(
             break
         case "last":
             // Infinity can't be serialised, apparently.
-            options.index = (await browserBg.tabs.query({currentWindow: true})).length
+            options.index = (await browserBg.tabs.query({
+                currentWindow: true,
+            })).length
             break
         case "related":
             if (await firefoxVersionAtLeast(57)) {
@@ -132,4 +144,110 @@ export async function openInNewTab(
 // Should consider changing interface of this to match openInNewTab or vice versa
 export async function openInNewWindow(createData = {}) {
     browserBg.windows.create(createData)
+}
+
+export async function openInTab(tab, opts = {}, strarr: string[]) {
+    let address = strarr.join(" ")
+
+    if (address === "") {
+        address = config.get("newtab")
+    }
+
+    const index = address.indexOf(" ")
+    let firstWord = address
+    if (index > -1) firstWord = address.substr(0, index)
+
+    if (firstWord === "") {
+        // No query, no newtab set, the user is asking for Tridactyl's newtab page
+        return browserBg.tabs.update(
+            tab.id,
+            Object.assign({ url: "/static/newtab.html" }, opts),
+        )
+    }
+
+    // Perhaps the user typed a URL?
+    if (/^[a-zA-Z0-9+.-]+:[^\s:]/.test(address)) {
+        try {
+            return browserBg.tabs.update(
+                tab.id,
+                Object.assign({ url: new URL(address).href }, opts),
+            )
+        } catch (e) {
+            // Not a problem, we'll treat address as a regular search query
+        }
+    }
+
+    // `+ 1` because we want to get rid of the space
+    const rest = address.substr(firstWord.length + 1)
+    const searchurls = config.get("searchurls")
+    if (searchurls[firstWord]) {
+        const url = UrlUtil.interpolateSearchItem(
+            new URL(searchurls[firstWord]),
+            rest,
+        )
+        // firstWord is a searchurl, so let's use that
+        return browserBg.tabs.update(
+            tab.id,
+            Object.assign({ url: url.href }, opts),
+        )
+    }
+
+    const searchEngines = await browserBg.search.get()
+    let engine = searchEngines.find(engine => engine.alias === firstWord)
+    // Maybe firstWord is the name of a firefox search engine?
+    if (engine !== undefined) {
+        return browserBg.search.search({
+            tabId: tab.id,
+            engine: engine.name,
+            query: rest,
+        })
+    }
+
+    // Maybe it's a domain without protocol
+    try {
+        const url = new URL("http://" + address)
+        // Ignore unlikely domains
+        if (url.hostname.includes(".") || url.port || url.password) {
+            return browserBg.tabs.update(
+                tab.id,
+                Object.assign({ url: url.href }, opts),
+            )
+        }
+    } catch (e) {}
+
+    // Let's default to the user's search engine then
+
+    // if firstWord is "search", remove it from the query.
+    // This allows users to search for a URL or a word they defined as searchurl
+    let queryString = address
+    if (firstWord === "search") {
+        queryString = rest
+    }
+
+    const enginename = config.get("searchengine")
+    // firstWord is neither a searchurl nor a search engine, let's see if a search engine has been defined in Tridactyl
+    if (enginename) {
+        if (searchurls[enginename]) {
+            const url = UrlUtil.interpolateSearchItem(
+                new URL(searchurls[enginename]),
+                queryString,
+            )
+            return browserBg.tabs.update(
+                tab.id,
+                Object.assign({ url: url.href }, opts),
+            )
+        }
+
+        engine = searchEngines.find(engine => engine.alias === enginename)
+        if (engine !== undefined) {
+            return browserBg.search.search({
+                tabId: tab.id,
+                engine: engine.name,
+                query: queryString,
+            })
+        }
+    }
+
+    // No search engine has been defined in Tridactyl, let's use firefox's default search engine
+    return browserBg.search.search({ tabId: tab.id, query: queryString })
 }

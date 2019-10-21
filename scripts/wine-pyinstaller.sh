@@ -22,60 +22,59 @@ export DISPLAY=
 
 PREREQUISITES="tput printf 7z wine"
 
-MIN_WINE_VER="3"
+MIN_WINE_VER="4"
 MIN_7ZIP_VER="16"
 
 checkRequiredVersions() {
-   if [ -z "$(7z \
-              | awk '/Version/{print $3}' \
-              | grep "${MIN_7ZIP_VER}")" ]; then
+   if ! 7z | awk '/Version/{print $3}' | grep -q "${MIN_7ZIP_VER}"; then
       colorEcho \
-        "[-] p7zip minimum version ${MIN_7ZIP_VER} required\n" \
+        '[-] p7zip minimum version '"${MIN_7ZIP_VER}"' required\n' \
         "alert"
-      exit -1
+      exit 1
    fi
 
-   if [ -z "$(wine --version 2> /dev/null \
-              | grep "wine-${MIN_WINE_VER}")" ]; then
-      colorEcho \
-        "[-] wine minimum version ${MIN_WINE_VER} required\n" \
+   if ! wine --version 2> /dev/null | grep -q "wine-${MIN_WINE_VER}"; then
+      colorecho \
+        '[-] wine minimum version '"${MIN_WINE_VER}"' required\n' \
         "alert"
-      exit -1
+      exit 1
    fi
 }
 
 stripWhitespace() {
-  local input="$@"
-  printf "${input}\n" | tr -d "[:space:]"
+  local input="$*"
+  printf '%s\n' "${input}" | tr -d "[:space:]"
 }
 
 colorEcho() {
-  local COLOR_RESET=$(tput sgr0 2>/dev/null)
-  local COLOR_BOLD=$(tput bold 2>/dev/null)
-  local COLOR_BAD=$(tput setaf 1 2>/dev/null)
-  local COLOR_GOOD=$(tput setaf 2 2>/dev/null)
+  local COLOR_RESET;
+  COLOR_RESET="$(tput sgr0 2>/dev/null)"
+  local COLOR_BOLD;
+  COLOR_BOLD="$(tput bold 2>/dev/null)"
+  local COLOR_BAD;
+  COLOR_BAD="$(tput setaf 1 2>/dev/null)"
+  local COLOR_GOOD;
+  COLOR_GOOD="$(tput setaf 2 2>/dev/null)"
 
   local str="$1"
   local color="${COLOR_GOOD}${COLOR_BOLD}"
 
-  if [ ! -z "$2" ] \
+  if [ -n "$2" ] \
     && [ "$(stripWhitespace "$2")" = "alert" ]; then
     color="${COLOR_BAD}${COLOR_BOLD}"
   fi
 
-  printf "${color}${str}${COLOR_RESET}"
+  printf '%s' "${color}${str}${COLOR_RESET}"
 }
 
 checkPrerequisite() {
   local bin_name="$1"
-  local bin_loc=$(which "${bin_name}" 2>/dev/null)
 
-  if [ -z "${bin_loc}" ] \
-    || [ ! -f "${bin_loc}" ]; then
-    printf "    - '$1' not found, quitting ...\n"
-    exit -1
+  if command -v "${bin_name}" 1>/dev/null 2>/dev/null; then
+    printf '%s\n' "    - '${bin_name}' found."
   else
-    printf "    - '${bin_name}' found at ${bin_loc}\n"
+    printf '%s\n' "    - '$1' not found, quitting ..."
+    exit 1
   fi
 }
 
@@ -86,7 +85,7 @@ mainFunction() {
 
 
   ## Check prerequisites
-  colorEcho "[+] Checking prerequisites ...\n"
+  colorEcho '[+] Checking prerequisites ...\n'
   for bin in ${PREREQUISITES}; do
     checkPrerequisite "${bin}"
   done
@@ -102,7 +101,7 @@ mainFunction() {
 
 
   ## Download Python and Pip
-  colorEcho "[+] Downloading necessary files ...\n"
+  colorEcho '[+] Downloading necessary files ...\n'
 
   if [ ! -f "${WINPY_EXE}" ]; then
     wget \
@@ -112,7 +111,7 @@ mainFunction() {
 
   if [ ! "$(sha256sum "${WINPY_EXE}" \
     | cut -d" " -f1)" = ${WINPY_HASH} ]; then
-    colorEcho "[-] ${WINPY_EXE} has incorrect hash, quitting ...\n"
+    colorEcho '[-] '"${WINPY_EXE}"' has incorrect hash, quitting ...\n'
     exit 1
   fi
 
@@ -122,17 +121,17 @@ mainFunction() {
   local winepython="wine $PYDIR/python.exe"
 
   if [ ! -f "$PYDIR/python.exe" ]; then
-    colorEcho "[+] Extract Python-${PYVER}\n"
+    colorEcho '[+] Extract Python-'${PYVER}'\n'
     7z x "${DLDIR}/winpython-${PYVER}.exe" "python-$PYVER" -o"$BUILDROOT"
 
     $winepython -m pip install --upgrade pip
 
-    colorEcho "[+] Installing PyInstaller ...\n"
+    colorEcho '[+] Installing PyInstaller ...\n'
     $winepython -m pip install pyinstaller
   fi
 
   ## Compile with PyInstaller
-  colorEcho "[+] Compiling with PyInstaller under Wine ...\n"
+  colorEcho '[+] Compiling with PyInstaller under Wine ...\n'
   rm -rf "${OUTDIR}"
   PYTHONHASHSEED=1 wine "$PYDIR"/Scripts/pyinstaller.exe \
     --clean \
@@ -146,7 +145,7 @@ mainFunction() {
     "$TRIDIR/native/native_main.py"
 
   ## Test the compiled EXE
-  colorEcho "[+] Checking compiled binary ...\n"
+  colorEcho '[+] Checking compiled binary ...\n'
   OUTFILE="${OUTDIR}/native_main.exe"
   cp "$OUTFILE" "$TRIDIR"/web-ext-artifacts/
 
@@ -155,13 +154,13 @@ mainFunction() {
       "$TRIDIR/native/gen_native_message.py" cmd..version \
       | wine "$TRIDIR"/web-ext-artifacts/native_main.exe
 
-    printf "\n"
-    colorEcho "[+] PyInstaller with Wine was successful!\n"
+    printf '\n'
+    colorEcho '[+] PyInstaller with Wine was successful!\n'
   else
     colorEcho \
-      "[-] PyInstaller compilation failed, quitting ...\n" \
+      '[-] PyInstaller compilation failed, quitting ...\n' \
       "alert"
-    exit -1
+    exit 1
   fi
 }
 

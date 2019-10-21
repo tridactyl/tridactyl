@@ -1,14 +1,16 @@
 #!/usr/bin/env bash
 
-source ./scripts/common
+source ./scripts/common.sh
 
-jsfiles=$(cachedFiles)
-
-[ -z "$jsfiles" ] && exit 0
+jsfiles=$(cachedTSLintFiles)
+otherfiles=$(cachedPrettierFiles)
 
 # Check if any of the files are ugly or contain a console.log call
 consoleFiles=$(noisy $jsfiles)
-uglyFiles=$(ugly $jsfiles)
+uglyFiles="$(tslintUgly $jsfiles)"
+if [ ! -n "$uglyFiles" ]; then
+    uglyFiles="$(prettierUgly $otherfiles)"
+fi
 
 if [ -n "$consoleFiles" ]; then
     echo "Warning: adding console.log calls in ${consoleFiles[@]}"
@@ -18,6 +20,6 @@ fi
 
 if [ -n "$uglyFiles" ]; then
     echo "Prettify your files first:"
-    echo 'npm run pretty'
+    echo 'yarn run pretty'
     exit 1
 fi

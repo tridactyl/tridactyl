@@ -1,19 +1,28 @@
 {
   "compilerOptions": {
-    "moduleResolution": "Node",
+    "moduleResolution": "node",
     "noImplicitAny": false,
     "noEmitOnError": true,
     "outDir": "build/tsc-out",
     "sourceMap": true,
-    "target": "ES2017",
-    "lib": ["ES2017","dom", "dom.iterable"],
-    "typeRoots": ["node_modules/@types", "node_modules/web-ext-types/"],
-    "alwaysStrict": true
+    "target": "es2017",
+    "lib": ["es2017","es2019.array", "es2018.promise", "dom", "dom.iterable"],
+    "types": ["web-ext-types"],
+    "experimentalDecorators": true,
+    "alwaysStrict": true,
+    "strictBindCallApply": true,
+    "noImplicitThis": true,
+    "strictFunctionTypes": true,
+    "baseUrl": "src/",
+    "paths": {
+        "@src/*": ["*"]
+    }
   },
   "include": [
     "./src/**/*"
   ],
   "exclude": [
-    "./src/**/*.test.ts"
+      "./src/**/*.test.ts",
+      "./src/lib/test_utils.ts"
   ]
 }

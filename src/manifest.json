@@ -1,7 +1,7 @@
 {
     "manifest_version": 2,
     "name": "Tridactyl",
-    "version": "1.14.0",
+    "version": "1.17.0",
     "icons": {
         "64": "static/logo/Tridactyl_64px.png",
         "100": "static/logo/Tridactyl_100px.png",
@@ -48,11 +48,14 @@
         "clipboardWrite",
         "clipboardRead",
         "downloads",
+        "find",
         "history",
+        "search",
         "sessions",
         "storage",
         "tabs",
         "topSites",
+        "management",
         "nativeMessaging",
         "webNavigation",
         "webRequest",
@@ -61,8 +64,15 @@
     ],
     "applications": {
         "gecko": {
-            "id": "tridactyl.vim@cmcaine.co.uk",
-            "strict_min_version": "54.0"
+            "id": "tridactyl.vim.betas@cmcaine.co.uk",
+            "strict_min_version": "66.0"
         }
+    },
+    "options_ui": {
+        "page": "static/docs/classes/_src_lib_config_.default_config.html",
+        "open_in_tab": true
+    },
+    "omnibox": {
+        "keyword": "tri"
     }
 }

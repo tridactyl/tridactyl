@@ -1,42 +1,23 @@
 /** Ex Mode (AKA cmd mode) */
 
-import * as ExCmds from "../.excmds_background.generated"
-import * as convert from "../convert"
-import * as Config from "../config"
-import * as aliases from "../aliases"
-import * as Logging from "../logging"
-import { enumerate, head, izip } from "../itertools"
+import { FunctionType } from "../../compiler/types/AllTypes"
+import { everything as metadata } from "@src/.metadata.generated"
+import * as convert from "@src/lib/convert"
+import * as aliases from "@src/lib/aliases"
+import * as Logging from "@src/lib/logging"
+
 const logger = new Logging.Logger("exmode")
 
-/* Converts numbers, boolean, string[].
-
-   string[] eats all remaining arguments, so it should only be used as a
-   type of the last arg.
-
-   TODO: quoted strings
-   TODO: shell style options
-   TODO: counts
-*/
-function convertArgs(params, argv) {
-    const conversions = {
-        number: convert.toNumber,
-        boolean: convert.toBoolean,
-        string: s => s,
-        ModeName: s => s,
-    }
-
+function convertArgs(types, argv) {
     const typedArgs = []
-    let type, arg, i
-    for ([type, [i, arg]] of izip(params.values(), enumerate(argv))) {
-        if (type in conversions) {
-            typedArgs.push(conversions[type](arg))
-        } else if (type.includes("|") || ["'", '"'].includes(type[0])) {
-            // Do your own conversions!
-            typedArgs.push(arg)
-        } else if (type === "string[]") {
-            // Eat all remaining arguments
-            return [...typedArgs, ...argv.slice(i)]
-        } else throw new TypeError(`Unknown type: ${type}`)
+    for (let itypes = 0, iargv = 0; itypes < types.length && iargv < argv.length; ++itypes && ++iargv) {
+        const curType = types[itypes]
+        const curArg = argv[iargv]
+        // Special casing arrays because that's why the previous arg conversion code did
+        if (curType.isDotDotDot || curType.kind === "array") {
+            return typedArgs.concat(curType.convert(argv.slice(iargv)))
+        }
+        typedArgs.push(curType.convert(curArg))
     }
     return typedArgs
 }
@@ -45,23 +26,48 @@ function convertArgs(params, argv) {
 // TODO: Quoting arguments
 // TODO: Pipe to separate commands
 // TODO: Abbreviated commands
-export function parser(exstr: string): any[] {
+export function parser(exstr: string, all_excmds: any): any[] {
     // Expand aliases
     const expandedExstr = aliases.expandExstr(exstr)
     const [func, ...args] = expandedExstr.trim().split(/\s+/)
 
-    if (ExCmds.cmd_params.has(func)) {
+    // Try to find which namespace (ex, text, ...) the command is in
+    const dotIndex = func.indexOf(".")
+    const namespce = func.substring(0, dotIndex)
+    const funcName = func.substring(dotIndex + 1)
+    const excmds = all_excmds[namespce]
+
+    if (excmds === undefined) {
+        throw new Error(`Unknwown namespace: ${namespce}.`);
+    }
+
+    // Convert arguments, but only for ex commands
+    let converted_args
+    if (namespce == "") {
+        let types
         try {
-            return [
-                ExCmds[func],
-                convertArgs(ExCmds.cmd_params.get(func), args),
-            ]
+            types = (metadata
+                .getFile("src/excmds.ts")
+                .getFunction(funcName)
+                .type as FunctionType)
+                .args
+        } catch (e) {
+            throw `Could not find type information for excmd ${funcName}`
+        }
+        try {
+            converted_args = convertArgs(types, args)
         } catch (e) {
             logger.error("Error executing or parsing:", exstr, e)
             throw e
         }
     } else {
+        converted_args = args
+    }
+
+    if (excmds[funcName] === undefined) {
         logger.error("Not an excmd:", exstr)
         throw `Not an excmd: ${func}`
     }
+
+    return [excmds[funcName], converted_args]
 }

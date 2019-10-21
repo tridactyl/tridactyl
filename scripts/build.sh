@@ -3,23 +3,24 @@
 set -e
 
 CLEANSLATE="node_modules/cleanslate/docs/files/cleanslate.css"
+TRIDACTYL_LOGO="src/static/logo/Tridactyl_64px.png"
 
 isWindowsMinGW() {
-  local is_mingw="False"
+  is_mingw="False"
   if [ "$(uname | cut -c 1-5)" = "MINGW" ] \
     || [ "$(uname | cut -c 1-4)" = "MSYS" ]; then
     is_mingw="True"
   fi
 
-  echo -n "${is_mingw}"
+  printf "%s" "${is_mingw}"
 }
 
 if [ "$(isWindowsMinGW)" = "True" ]; then
   WIN_PYTHON="py -3"
-  NPM_BIN_DIR="$(cygpath $(npm bin))"
-  PATH=$NPM_BIN_DIR:$PATH
+  YARN_BIN_DIR="$(cygpath "$(yarn bin)")"
+  PATH=$YARN_BIN_DIR:$PATH
 else
-  PATH="$(npm bin):$PATH"
+  PATH="$(yarn bin):$PATH"
 fi
 
 export PATH
@@ -35,35 +36,36 @@ else
   scripts/excmds_macros.py
 fi
 
+# .bracketexpr.generated.ts is needed for metadata generation
+"$(yarn bin)/nearleyc" src/grammars/bracketexpr.ne > \
+  src/grammars/.bracketexpr.generated.ts
+
 # It's important to generate the metadata before the documentation because
 # missing imports might break documentation generation on clean builds
-"$(npm bin)/tsc" compiler/gen_metadata.ts -m commonjs --target es2016 \
+"$(yarn bin)/tsc" compiler/gen_metadata.ts -m commonjs --target es2017 \
   && node compiler/gen_metadata.js \
           --out src/.metadata.generated.ts \
           --themeDir src/static/themes \
-          src/excmds.ts src/config.ts
+          src/excmds.ts src/lib/config.ts
 
 scripts/newtab.md.sh
 scripts/make_tutorial.sh
-scripts/make_docs.sh &
+scripts/make_docs.sh
 
-$(npm bin)/nearleyc src/grammars/bracketexpr.ne \
-  > src/grammars/.bracketexpr.generated.ts
-
-if [ "$(isWindowsMinGW)" = "True" ]; then
-  powershell \
-    -NoProfile \
-    -InputFormat None \
-    -ExecutionPolicy Bypass \
-    native/win_install.ps1 -DebugDirBase native
-else
-  native/install.sh local
+if [ "$1" != "--no-native" ]; then
+    if [ "$(isWindowsMinGW)" = "True" ]; then
+      powershell \
+        -NoProfile \
+        -InputFormat None \
+        -ExecutionPolicy Bypass \
+        native/win_install.ps1 -DebugDirBase native
+    else
+      native/install.sh local
+    fi
 fi
 
-(webpack --display errors-only \
-  && scripts/git_version.sh) &
-
-wait
+(webpack --display errors-only --bail\
+  && scripts/git_version.sh)
 
 scripts/bodgecss.sh
 scripts/authors.sh
@@ -71,5 +73,16 @@ scripts/authors.sh
 if [ -e "$CLEANSLATE" ] ; then
 	cp -v "$CLEANSLATE" build/static/css/cleanslate.css
 else
-	echo "Couldn't find cleanslate.css. Try running 'npm install'"
+	echo "Couldn't find cleanslate.css. Try running 'yarn install'"
+fi
+
+if [ -e "$TRIDACTYL_LOGO" ] ; then
+    # sed and base64 take different arguments on Mac
+    case "$(uname)" in
+      Darwin*) sed -i "" "s@REPLACE_ME_WITH_BASE64_TRIDACTYL_LOGO@$(base64 "$TRIDACTYL_LOGO")@" build/static/themes/default/default.css;;
+      *BSD) sed -in "s@REPLACE_ME_WITH_BASE64_TRIDACTYL_LOGO@$(base64 "$TRIDACTYL_LOGO" | tr -d '\r\n')@" build/static/themes/default/default.css;;
+      *) sed "s@REPLACE_ME_WITH_BASE64_TRIDACTYL_LOGO@$(base64 --wrap 0 "$TRIDACTYL_LOGO")@" -i build/static/themes/default/default.css;;
+    esac
+else
+	echo "Couldn't find Tridactyl logo ($TRIDACTYL_LOGO)"
 fi

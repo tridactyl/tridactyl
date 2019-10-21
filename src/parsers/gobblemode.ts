@@ -1,5 +1,5 @@
-import { contentState } from "../state_content"
-import { isSimpleKey } from "../keyseq"
+import { contentState } from "@src/content/state_content"
+import { isSimpleKey } from "@src/lib/keyseq"
 
 /** Simple container for the gobble state. */
 class GobbleState {
@@ -8,7 +8,7 @@ class GobbleState {
     public endCommand = ""
 }
 
-let modeState: GobbleState = undefined
+let modeState: GobbleState
 
 /** Init gobble mode. After parsing the defined number of input keys, execute
 `endCmd` with attached parsed input. `Escape` cancels the mode and returns to

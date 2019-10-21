@@ -10,14 +10,11 @@
 }
 
 :root.TridactylThemeShydactyl #tridactyl-input {
-    padding: 1rem;
     color: var(--tridactyl-fg);
     width: 90%;
     font-size: 1.5rem;
     line-height: 1.5;
-    color: black;
     background: white;
-    padding-left: unset;
     padding: 1rem;
 }
 
