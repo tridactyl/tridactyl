@@ -103,8 +103,8 @@ export class default_config {
      */
     ignoremaps = {
         "<S-Insert>": "mode normal",
-        "<CA-Escape>": "mode normal",
-        "<CA-`>": "mode normal",
+        "AC-Escape>": "mode normal",
+        "<AC-`>": "mode normal",
         "<S-Escape>": "mode normal",
         "<C-^>": "tab #",
         "<C-6>": "tab #",
@@ -281,8 +281,8 @@ export class default_config {
         ";gf": "hint -q",
 
         "<S-Insert>": "mode ignore",
-        "<CA-Escape>": "mode ignore",
-        "<CA-`>": "mode ignore",
+        "<AC-Escape>": "mode ignore",
+        "<AC-`>": "mode ignore",
         "<S-Escape>": "mode ignore",
         "<Escape>": "composite mode normal ; hidecmdline",
         "<C-[>": "composite mode normal ; hidecmdline",
@@ -298,7 +298,7 @@ export class default_config {
         zI: "zoom 3",
         zO: "zoom 0.3",
         ".": "repeat",
-        "<SA-ArrowUp><SA-ArrowUp><SA-ArrowDown><SA-ArrowDown><SA-ArrowLeft><SA-ArrowRight><SA-ArrowLeft><SA-ArrowRight>ba":
+        "<AS-ArrowUp><AS-ArrowUp><AS-ArrowDown><AS-ArrowDown><AS-ArrowLeft><AS-ArrowRight><AS-ArrowLeft><AS-ArrowRight>ba":
             "open https://www.youtube.com/watch?v=M3iOROuTuMA",
     }
 
