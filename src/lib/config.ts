@@ -1123,7 +1123,7 @@ export async function getAsync(
                 browserconfig = await browser.storage.sync.get(CONFIGNAME)
                 break
         }
-        USERCONFIG = browserconfig[CONFIGNAME]
+        USERCONFIG = browserconfig[CONFIGNAME] || o({})
 
         return get(target_typed, ...target)
     } else {
