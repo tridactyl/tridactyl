@@ -18,7 +18,7 @@
   },
   "devDependencies": {
     "@types/jest": "^24.0.19",
-    "@types/mithril": "^2.0.1",
+    "@types/mithril": "^2.0.2",
     "@types/node": "^12.11.5",
     "@types/selenium-webdriver": "^4.0.5",
     "cleanslate": "^0.10.1",
