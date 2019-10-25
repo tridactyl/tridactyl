@@ -3755,6 +3755,12 @@ export async function hint(option?: string, selectors?: string, ...rest: string[
         option = option.slice(0, pipeIndex) + option.slice(pipeIndex + 1)
     }
 
+    // Hacky fix for #1374 - join rapid-hinted yanks
+    if (option === "-qy") {
+        run_exstr('composite hint -qpipe a href | js -p JS_ARG.join(" ") | yank')
+        return
+    }
+
     const options = new Set(option.length ? option.slice(1).split("") : [])
     const rapid = options.delete("q")
     const jshints = !options.delete("J")
