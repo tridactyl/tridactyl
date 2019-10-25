@@ -2820,7 +2820,9 @@ export async function fillcmdline_tmp(ms: number, ...strarr: string[]) {
 }
 
 /**
- * Copy content to clipboard without feedback. Use `clipboard yank` for interactive use.
+ * Copy `content` to clipboard without feedback. Use `clipboard yank` for interactive use.
+ *
+ * e.g. `yank bob` puts "bob" in the clipboard; `composite js document.title | yank` puts the document title in the clipboard.
  */
 //#background
 export function yank(...content: string[]) {
