@@ -11,6 +11,8 @@
 
     Ex-commands available exclusively in hint mode are listed [here](/static/docs/modules/_src_content_hinting_.html)
 
+    We also have a [wiki](https://github.com/tridactyl/tridactyl/wiki) which may be edited by anyone.
+
     ## How to use this help page
 
     Every function (excmd) on this page can be called via Tridactyl's command line which we call "ex". There is a slight change in syntax, however. Wherever you see:

@@ -6,7 +6,7 @@ Tridactyl has to override your new tab page due to WebExtension limitations. You
 
 -   **Mozilla asked us to revert changes you might have applied to your firefox profile**. `set csp clobber` has also been disabled. See [this issue](https://github.com/tridactyl/tridactyl/issues/1800) for more information.
 
--   You can view the main help page by typing [`:help`][help], and access the tutorial with [`:tutor`][tutor].
+-   You can view the main help page by typing [`:help`][help], and access the tutorial with [`:tutor`][tutor]. There's a [wiki](https://github.com/tridactyl/tridactyl/wiki) too - feel free to add to it.
 
 -   You can view your current configuration with `:viewconfig`.
 
