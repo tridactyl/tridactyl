@@ -117,11 +117,7 @@ You can bind your own shortcuts in normal mode with the `:bind` command. For exa
     -   addons.mozilla.org is now supported so long as you run `fixamo` first.
 -   Tridactyl now supports changing the Firefox GUI if you have the native messenger installed via `guiset`. There's quite a few options available, but `guiset gui none` is probably what you want, perhaps followed up with `guiset tabs always`. See `:help guiset` for a list of all possible options.
 
-## Frequently asked questions
-
--   Why doesn't Tridactyl respect my search engine settings?
-
-    It used to be a webextension limitation but it's not anymore. There are plans to fix this, see [#792](https://github.com/tridactyl/tridactyl/issues/792).
+## Frequently asked questions (FAQ)
 
 -   Why doesn't Tridactyl work/why does it break the websites I'm trying to use? or 'Help! A website I use is totally blank when I try to use it with Tridactyl enabled!' or 'Why doesn't Tridactyl work on some pages?'
 
@@ -143,7 +139,9 @@ You can bind your own shortcuts in normal mode with the `:bind` command. For exa
 
 -   Can I import/export settings, and does Tridactyl use an external configuration file just like Vimperator?
 
-    Yes, if you have `native` working, `$XDG_CONFIG_DIR/tridactyl/tridactylrc` or `~/.tridactylrc` will be read at startup via an `autocmd` and `source`. There is an [example file available on our repository](https://github.com/tridactyl/tridactyl/blob/master/.tridactylrc).
+    Yes. `:source --url [URL]` accepts a URL (which must contain only an RC file, e.g. `raw.githubusercontent.com/...`). If you have `native` working, `$XDG_CONFIG_DIR/tridactyl/tridactylrc` or `~/.tridactylrc` will be read at startup via an `autocmd` and `source`. There is an [example file available on our repository](https://github.com/tridactyl/tridactyl/blob/master/.tridactylrc).
+
+    There's also `mkt` which exports your configuration to a file which may be read with `source`. (NB: this currently requires `native`).
 
 -   How can I change the colors or theme used by Tridactyl?
 
@@ -158,6 +156,8 @@ You can bind your own shortcuts in normal mode with the `:bind` command. For exa
     The modifiers are case insensitive. Special key names are not. The names used are those reported by Javascript with a limited number of vim compatibility aliases (e.g. `CR == Enter`).
 
     If you want to bind <C-^> you'll find that you'll probably need to press Control+Shift+6 to trigger it. The default bind is <C-6> which does not require you to press shift.
+
+    You can also create site specific binds with `bindurl [url] ...`
 
 -   When I type 'f', can I type link names (like Vimperator) in order to narrow down the number of highlighted links?
 
@@ -197,7 +197,7 @@ You can bind your own shortcuts in normal mode with the `:bind` command. For exa
 
 -   Does anyone actually use Tridactyl?
 
-    In addition to the developers, some other people do. Mozilla keeps tabs on stable users [here](https://addons.mozilla.org/en-US/firefox/addon/tridactyl-vim/statistics/?last=30). The maintainers guess the number of unstable users from unique IPs downloading the betas each week when they feel like it. Last time they checked there were 3000 of them.
+    In addition to the developers, some other people do. Mozilla keeps tabs on stable users [here](https://addons.mozilla.org/en-US/firefox/addon/tridactyl-vim/statistics/?last=30). The maintainers guess the number of unstable users from unique IPs downloading the betas each week when they feel like it. Last time they checked there were 4600 of them.
 
 -   How do I prevent websites from stealing focus?
 
