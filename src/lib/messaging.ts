@@ -95,6 +95,8 @@ export function setupListener<Root>(root: Root) {
     });
 }
 
+type StripPromise<T> = T extends Promise<infer U> ? U : T
+
 /** Send a message to non-content scripts */
 export async function message<
     Type extends keyof Messages.Background,
@@ -107,7 +109,7 @@ export async function message<
         args
     }
 
-    return browser.runtime.sendMessage<typeof message, ReturnType<F>>(message)
+    return browser.runtime.sendMessage<typeof message, StripPromise<ReturnType<F>>>(message)
 }
 
 /** Message the active tab of the currentWindow */
