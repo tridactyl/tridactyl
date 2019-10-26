@@ -1,4 +1,5 @@
 import { browserBg, activeTabId, ownTabId, getContext } from "@src/lib/webext"
+import * as Messages from "@src/message_protocols"
 import Logger from "@src/lib/logging"
 const logger = new Logger("messaging")
 
@@ -65,9 +66,48 @@ export function attributeCaller(obj) {
     return handler
 }
 
+interface TypedMessage<Root, Type extends keyof Root, Command extends keyof Root[Type]> {
+    type: Type
+    command: Command
+    args: Parameters<Root[Type][Command]>
+}
+
+function backgroundHandler<
+    Root,
+    Type extends keyof Root,
+    Command extends keyof Root[Type]
+    >(root: Root,
+      message: TypedMessage<Root, Type, Command>,
+      sender: browser.runtime.MessageSender,
+    ): ReturnType<Root[Type][Command]> {
+    return root[message.type][message.command](...message.args)
+}
+
+export function setupListener<Root>(root: Root) {
+    browser.runtime.onMessage.addListener((message: any, sender: browser.runtime.MessageSender) => {
+        if (message.type in root) {
+            if (!(message.command in root[message.type]))
+                throw new Error(`missing handler in protocol ${message.type} ${message.command}`)
+            if (!Array.isArray(message.args))
+                throw new Error(`wrong arguments in protocol ${message.type} ${message.command}`)
+            return backgroundHandler(root, message, sender)
+        }
+    });
+}
+
 /** Send a message to non-content scripts */
-export async function message(type: NonTabMessageType, command, args?) {
-    return browser.runtime.sendMessage({ type, command, args } as Message)
+export async function message<
+    Type extends keyof Messages.Background,
+    Command extends keyof Messages.Background[Type],
+    F extends ((...args: any) => any) & Messages.Background[Type][Command]
+  >(type: Type, command: Command, ...args: Parameters<F>) {
+    const message: TypedMessage<Messages.Background, Type, Command> = {
+        type,
+        command,
+        args
+    }
+
+    return browser.runtime.sendMessage<typeof message, ReturnType<F>>(message)
 }
 
 /** Message the active tab of the currentWindow */
