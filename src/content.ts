@@ -229,7 +229,7 @@ config.getAsync("modeindicator").then(mode => {
             .then(container => {
                 statusIndicator.setAttribute(
                     "style",
-                    `border: ${container.colorCode} solid 1.5px !important`,
+                    `border: ${(container as any).colorCode} solid 1.5px !important`,
                 )
             })
             .catch(error => {
