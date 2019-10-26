@@ -79,7 +79,7 @@ export class HistoryCompletionSource extends Completions.CompletionSourceFuse {
 
         // Options are pre-trimmed to the right length.
         this.options = (await this.scoreOptions(query, 10)).map(
-            page => new HistoryCompletionOption(options + page.url, page),
+            page => new HistoryCompletionOption(options + page.url, page as any),
         )
 
         // Deselect any selected, but remember what they were.

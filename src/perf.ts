@@ -21,6 +21,7 @@ import * as messaging from "@src/lib/messaging"
 import * as config from "@src/lib/config"
 import * as math from "@src/lib/math"
 import * as logging from "@src/lib/logging"
+import * as Messages from "@src/message_protocols"
 
 const logger = new logging.Logger("performance")
 
@@ -416,7 +417,7 @@ class MetricName {
 }
 
 function sendStats(list: PerformanceEntryList) {
-    messaging.message("performance_background", "receiveStatsJson", [
+    messaging.message<Messages.Background>()("performance_background", "receiveStatsJson", [
         JSON.stringify(list),
     ])
 }

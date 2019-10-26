@@ -30,6 +30,7 @@ import {
 // here.
 import * as controller from "@src/lib/controller"
 import * as excmds_content from "@src/.excmds_content.generated"
+import * as Messaging from "@src/lib/messaging"
 import { CmdlineCmds } from "@src/content/commandline_cmds"
 import { EditorCmds } from "@src/content/editor"
 import * as hinting_content from "@src/content/hinting"
@@ -39,8 +40,14 @@ controller.setExCmds({
     "text": EditorCmds,
     "hint": hinting_content.getHintCommands()
 })
-messaging.addListener("excmd_content", messaging.attributeCaller(excmds_content))
-messaging.addListener("controller_content", messaging.attributeCaller(controller))
+const messages = {
+    excmd_content: excmds_content,
+    controller_content: controller
+} as const
+
+export type Messages = typeof messages
+
+Messaging.setupListener(messages)
 
 // Hook the keyboard up to the controller
 import * as ContentController from "@src/content/controller_content"
@@ -229,7 +236,7 @@ config.getAsync("modeindicator").then(mode => {
             .then(container => {
                 statusIndicator.setAttribute(
                     "style",
-                    `border: ${container.colorCode} solid 1.5px !important`,
+                    `border: ${(container as any).colorCode} solid 1.5px !important`,
                 )
             })
             .catch(error => {

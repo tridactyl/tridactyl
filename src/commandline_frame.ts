@@ -39,6 +39,9 @@ import "@src/lib/number.clamp"
 import state from "@src/state"
 import Logger from "@src/lib/logging"
 import { theme } from "@src/content/styling"
+import * as Messages from "@src/message_protocols"
+import { getCommandlineFns } from "@src/lib/commandline_cmds"
+import { KeyEventLike } from "./lib/keyseq"
 
 import * as genericParser from "@src/parsers/genericmode"
 import * as tri_editor from "@src/lib/editor"
@@ -53,7 +56,7 @@ const commandline_state = {
     clear,
     cmdline_history_position: 0,
     completionsDiv: window.document.getElementById("completions"),
-    fns: undefined,
+    fns: undefined as ReturnType<typeof getCommandlineFns>,
     getCompletion,
     history,
     /** @hidden
@@ -75,8 +78,8 @@ theme(document.querySelector(":root"))
 /** @hidden **/
 function resizeArea() {
     if (commandline_state.isVisible) {
-        Messaging.messageOwnTab("commandline_content", "show")
-        Messaging.messageOwnTab("commandline_content", "focus")
+        Messaging.messageOwnTab<Messages.CommandlineContent>()("commandline_content", "show", [])
+        Messaging.messageOwnTab<Messages.CommandlineContent>()("commandline_content", "focus", [])
         focus()
     }
 }
@@ -190,7 +193,7 @@ commandline_state.clInput.addEventListener(
                 // shim to the background, but the latency increase should
                 // be acceptable becuase the background-mode excmds tend
                 // to be a touch less latency-sensitive.
-                Messaging.messageOwnTab("controller_content", "acceptExCmd", [
+                Messaging.messageOwnTab<Messages.Content>()("controller_content", "acceptExCmd", [
                     response.value,
                 ]).then(_ => (prev_cmd_called_history = history_called))
             }
@@ -318,7 +321,7 @@ function applyWithTmpTextArea(fn) {
 
 /** @hidden **/
 export async function setClipboard(content: string) {
-    await Messaging.messageOwnTab("commandline_content", "focus")
+    await Messaging.messageOwnTab<Messages.CommandlineContent>()("commandline_content", "focus", [])
     applyWithTmpTextArea(scratchpad => {
         scratchpad.value = content
         scratchpad.select()
@@ -328,21 +331,21 @@ export async function setClipboard(content: string) {
         } else throw "Failed to copy!"
     })
     // Return focus to the document
-    await Messaging.messageOwnTab("commandline_content", "hide")
-    return Messaging.messageOwnTab("commandline_content", "blur")
+    await Messaging.messageOwnTab<Messages.CommandlineContent>()("commandline_content", "hide", [])
+    return Messaging.messageOwnTab<Messages.CommandlineContent>()("commandline_content", "blur", [])
 }
 
 /** @hidden **/
 export async function getClipboard() {
-    await Messaging.messageOwnTab("commandline_content", "focus")
+    await Messaging.messageOwnTab<Messages.CommandlineContent>()("commandline_content", "focus", [])
     const result = applyWithTmpTextArea(scratchpad => {
         scratchpad.focus()
         document.execCommand("Paste")
         return scratchpad.textContent
     })
     // Return focus to the document
-    await Messaging.messageOwnTab("commandline_content", "hide")
-    await Messaging.messageOwnTab("commandline_content", "blur")
+    await Messaging.messageOwnTab<Messages.CommandlineContent>()("commandline_content", "hide", [])
+    await Messaging.messageOwnTab<Messages.CommandlineContent>()("commandline_content", "blur", [])
     return result
 }
 
@@ -366,12 +369,15 @@ export function editor_function(fn_name, ...args) {
 }
 
 import * as SELF from "@src/commandline_frame"
-Messaging.addListener("commandline_frame", Messaging.attributeCaller(SELF))
-
-import { getCommandlineFns } from "@src/lib/commandline_cmds"
-import { KeyEventLike } from "./lib/keyseq"
 commandline_state.fns = getCommandlineFns(commandline_state)
-Messaging.addListener("commandline_cmd", Messaging.attributeCaller(commandline_state.fns))
+
+export const messages = {
+    commandline_cmd: commandline_state.fns,
+    commandline_frame: SELF
+}
+export type Messages = typeof messages
+
+Messaging.setupListener(messages)
 
 // Listen for statistics from the commandline iframe and send them to
 // the background for collection. Attach the observer to the window

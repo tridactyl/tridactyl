@@ -90,6 +90,7 @@ import * as Native from "@src/lib/native"
 import * as TTS from "@src/lib/text_to_speech"
 import * as excmd_parser from "@src/parsers/exmode"
 import * as escape from "@src/lib/escape"
+import * as Messages from "@src/message_protocols"
 
 /**
  * This is used to drive some excmd handling in `composite`.
@@ -839,9 +840,9 @@ export async function restart() {
 //#content
 export async function saveas(...filename: string[]) {
     if (filename.length > 0) {
-        return Messaging.message("download_background", "downloadUrlAs", [window.location.href, filename.join(" ")])
+        return Messaging.message<Messages.Background>()("download_background", "downloadUrlAs", [window.location.href, filename.join(" ")])
     } else {
-        return Messaging.message("download_background", "downloadUrl", [window.location.href, true])
+        return Messaging.message<Messages.Background>()("download_background", "downloadUrl", [window.location.href, true])
     }
 }
 
@@ -1183,15 +1184,14 @@ export const ABOUT_WHITELIST = ["about:license", "about:logo", "about:rights", "
 //#content
 export async function open(...urlarr: string[]) {
     const url = urlarr.join(" ")
-    let p = Promise.resolve()
 
     // Setting window.location to about:blank results in a page we can't access, tabs.update works.
     if (!ABOUT_WHITELIST.includes(url) && url.match(/^(about|file):.*/)) {
         // Open URLs that firefox won't let us by running `firefox <URL>` on the command line
-        p = nativeopen(url)
+        return nativeopen(url)
     } else if (url.match(/^javascript:/)) {
         const bookmarklet = url.replace(/^javascript:/, "")
-        ; (document.body as any).append(
+        document.body.append(
             html`
                 <script>
                     ${bookmarklet}
@@ -1199,10 +1199,9 @@ export async function open(...urlarr: string[]) {
             `,
         )
     } else {
-        p = activeTab().then(tab => openInTab(tab, {}, urlarr))
+        const tab = await activeTab()
+        return openInTab(tab, {}, urlarr)
     }
-
-    return p
 }
 
 /**
@@ -2765,14 +2764,12 @@ export async function sleep(time_ms: number) {
 
 /** @hidden */
 //#content
-export function showcmdline(focus = true) {
+export async function showcmdline(focus = true) {
     CommandLineContent.show()
-    let done = Promise.resolve()
     if (focus) {
         CommandLineContent.focus()
-        done = Messaging.messageOwnTab("commandline_frame", "focus")
+        return Messaging.messageOwnTab<Messages.CmdlineFrame>()("commandline_frame", "focus", [])
     }
-    return done
 }
 
 /** @hidden */
@@ -2783,25 +2780,25 @@ export function hidecmdline() {
 
 /** Set the current value of the commandline to string *with* a trailing space */
 //#content
-export function fillcmdline(...strarr: string[]) {
+export async function fillcmdline(...strarr: string[]) {
     const str = strarr.join(" ")
     showcmdline()
-    return Messaging.messageOwnTab("commandline_frame", "fillcmdline", [str])
+    return Messaging.messageOwnTab<Messages.CmdlineFrame>()("commandline_frame", "fillcmdline", [str])
 }
 
 /** Set the current value of the commandline to string *without* a trailing space */
 //#content
-export function fillcmdline_notrail(...strarr: string[]) {
+export async function fillcmdline_notrail(...strarr: string[]) {
     const str = strarr.join(" ")
     showcmdline()
-    return Messaging.messageOwnTab("commandline_frame", "fillcmdline", [str, false])
+    return Messaging.messageOwnTab<Messages.CmdlineFrame>()("commandline_frame", "fillcmdline", [str, false])
 }
 
 /** Show and fill the command line without focusing it */
 //#content
 export function fillcmdline_nofocus(...strarr: string[]) {
     showcmdline(false)
-    return Messaging.messageOwnTab("commandline_frame", "fillcmdline", [strarr.join(" "), false, false])
+    return Messaging.messageOwnTab<Messages.CmdlineFrame>()("commandline_frame", "fillcmdline", [strarr.join(" "), false, false])
 }
 
 /** Shows str in the command line for ms milliseconds. Recommended duration: 3000ms. */
@@ -2809,12 +2806,12 @@ export function fillcmdline_nofocus(...strarr: string[]) {
 export async function fillcmdline_tmp(ms: number, ...strarr: string[]) {
     const str = strarr.join(" ")
     showcmdline(false)
-    Messaging.messageOwnTab("commandline_frame", "fillcmdline", [strarr.join(" "), false, false])
+    Messaging.messageOwnTab<Messages.CmdlineFrame>()("commandline_frame", "fillcmdline", [strarr.join(" "), false, false])
     return new Promise(resolve =>
         setTimeout(async () => {
-            if ((await Messaging.messageOwnTab("commandline_frame", "getContent", [])) === str) {
+            if ((await Messaging.messageOwnTab<Messages.CmdlineFrame>()("commandline_frame", "getContent", [])) === str) {
                 CommandLineContent.hide_and_blur()
-                resolve(Messaging.messageOwnTab("commandline_frame", "clear", [true]))
+                resolve(Messaging.messageOwnTab<Messages.CmdlineFrame>()("commandline_frame", "clear", [true]))
             }
             resolve()
         }, ms),
@@ -2842,9 +2839,9 @@ async function setclip(str) {
 
     // Note: We're using fillcmdline here because exceptions are somehow not caught. We're rethrowing because otherwise the error message will be overwritten with the "yank successful" message.
     const s = () => Native.clipboard("set", str)
-    const c = () => messageActiveTab("commandline_frame", "setClipboard", [str])
+    const c = () => messageActiveTab<Messages.CmdlineFrame>()("commandline_frame", "setClipboard", [str])
 
-    let promises = []
+    let promises = new Array<Promise<any>>()
     switch (await config.getAsync("yankto")) {
         case "selection":
             promises = [s()]
@@ -2868,7 +2865,7 @@ async function setclip(str) {
 export async function getclip(fromm?: "clipboard" | "selection") {
     if (fromm === undefined) fromm = await config.getAsync("putfrom")
     if (fromm === "clipboard") {
-        return messageActiveTab("commandline_frame", "getClipboard")
+        return Messaging.messageActiveTab<Messages.CmdlineFrame>()("commandline_frame", "getClipboard", [])
     } else {
         return Native.clipboard("get", "")
     }
@@ -2899,7 +2896,7 @@ export async function getclip(fromm?: "clipboard" | "selection") {
 export async function clipboard(excmd: "open" | "yank" | "yankshort" | "yankcanon" | "yanktitle" | "yankmd" | "xselpaste" | "tabopen" = "open", ...toYank: string[]) {
     let content = toYank.join(" ")
     let url = ""
-    let urls = []
+    let urls
     switch (excmd) {
         case "yankshort":
             urls = await geturlsforlinks("rel", "shortlink")
@@ -3129,9 +3126,8 @@ function parse_bind_args(...args: string[]): bind_args {
         - [[reset]]
 */
 //#background
-export function bind(...args: string[]) {
+export async function bind(...args: string[]) {
     const args_obj = parse_bind_args(...args)
-    let p = Promise.resolve()
     if (args_obj.excmd !== "") {
         for (let i = 0; i < args_obj.key.length; i++) {
             // Check if any initial subsequence of the key exists and will shadow the new binding
@@ -3141,12 +3137,11 @@ export function bind(...args: string[]) {
                 break
             }
         }
-        p = config.set(args_obj.configName, args_obj.key, args_obj.excmd)
+        return config.set(args_obj.configName, args_obj.key, args_obj.excmd)
     } else if (args_obj.key.length) {
         // Display the existing bind
-        p = fillcmdline_notrail("#", args_obj.key, "=", config.getDynamic(args_obj.configName, args_obj.key))
+        return fillcmdline_notrail("#", args_obj.key, "=", config.getDynamic(args_obj.configName, args_obj.key))
     }
-    return p
 }
 
 /**
@@ -3159,16 +3154,14 @@ export function bind(...args: string[]) {
  *
  */
 //#background
-export function bindurl(pattern: string, mode: string, keys: string, ...excmd: string[]) {
+export async function bindurl(pattern: string, mode: string, keys: string, ...excmd: string[]) {
     const args_obj = parse_bind_args(mode, keys, ...excmd)
-    let p = Promise.resolve()
     if (args_obj.excmd !== "") {
-        p = config.setURL(pattern, args_obj.configName, args_obj.key, args_obj.excmd)
+        return config.setURL(pattern, args_obj.configName, args_obj.key, args_obj.excmd)
     } else if (args_obj.key.length) {
         // Display the existing bind
-        p = fillcmdline_notrail("#", args_obj.key, "=", config.getURL(pattern, [args_obj.configName, args_obj.key]))
+        return fillcmdline_notrail("#", args_obj.key, "=", config.getURL(pattern, [args_obj.configName, args_obj.key]))
     }
-    return p
 }
 
 /**
@@ -3964,7 +3957,7 @@ export async function hint(option?: string, selectors?: string, ...rest: string[
             selectHints = hinting.pipe_elements(
                 elems,
                 elem => {
-                    Messaging.message("download_background", "downloadUrl", [new URL(elem[attr], window.location.href).href, saveAs])
+                    Messaging.message<Messages.Background>()("download_background", "downloadUrl", [new URL((elem as any)[attr], window.location.href).href, saveAs])
                     return elem
                 },
                 rapid,
@@ -4075,8 +4068,8 @@ export function rot13(n: number) {
  * Use it for fire-and-forget running of background commands in content.
  */
 //#content
-export function run_exstr(...commands: string[]) {
-    return Messaging.message("controller_background", "acceptExCmd", commands)
+export function run_exstr(command: string) {
+    return Messaging.message<Messages.Background>()("controller_background", "acceptExCmd", [command])
 }
 
 // }}}

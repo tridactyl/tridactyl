@@ -146,14 +146,3 @@ export async function downloadUrlAs(url: string, saveAs: string) {
         browser.downloads.onChanged.addListener(onDownloadComplete)
     })
 }
-
-import * as Messaging from "@src/lib/messaging"
-
-// Get messages from content
-Messaging.addListener(
-    "download_background",
-    Messaging.attributeCaller({
-        downloadUrl,
-        downloadUrlAs,
-    }),
-)

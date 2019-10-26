@@ -213,6 +213,10 @@ declare function html(
     ...values: any[]
 ): HTMLElement
 
+declare namespace browser.search {
+    function search(searchProperties: {query: string, engine?: string, tabId?: number}): void
+    function get(): Promise<{name: string, isDefault: boolean, alias?: string, faviconURL?: string}[]>
+}
 
 // Stop typedoc complaining about toBeAll.
 declare namespace jest {
