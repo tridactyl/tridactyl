@@ -26,14 +26,8 @@ export function getContext() {
     }
 }
 
-export let browserBg
-
 // Make this library work for both content and background.
-if (inContentScript()) {
-    browserBg = browserProxy
-} else {
-    browserBg = browser
-}
+export const browserBg = inContentScript() ? browserProxy : browser
 
 /** The first active tab in the currentWindow.
  *

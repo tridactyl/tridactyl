@@ -1183,15 +1183,14 @@ export const ABOUT_WHITELIST = ["about:license", "about:logo", "about:rights", "
 //#content
 export async function open(...urlarr: string[]) {
     const url = urlarr.join(" ")
-    let p = Promise.resolve()
 
     // Setting window.location to about:blank results in a page we can't access, tabs.update works.
     if (!ABOUT_WHITELIST.includes(url) && url.match(/^(about|file):.*/)) {
         // Open URLs that firefox won't let us by running `firefox <URL>` on the command line
-        p = nativeopen(url)
+        return nativeopen(url)
     } else if (url.match(/^javascript:/)) {
         const bookmarklet = url.replace(/^javascript:/, "")
-        ; (document.body as any).append(
+        document.body.append(
             html`
                 <script>
                     ${bookmarklet}
@@ -1199,10 +1198,9 @@ export async function open(...urlarr: string[]) {
             `,
         )
     } else {
-        p = activeTab().then(tab => openInTab(tab, {}, urlarr))
+        const tab = await activeTab()
+        return openInTab(tab, {}, urlarr)
     }
-
-    return p
 }
 
 /**

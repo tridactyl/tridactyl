@@ -79,7 +79,7 @@ export async function messageActiveTab(
     return messageTab(await activeTabId(), type, command, args)
 }
 
-export async function messageTab(tabId, type: TabMessageType, command, args?) {
+export async function messageTab(tabId, type: TabMessageType, command, args?): Promise<any> {
     const message: Message = {
         type,
         command,
