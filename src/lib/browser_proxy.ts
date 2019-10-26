@@ -1,4 +1,5 @@
 import { message } from "@src/lib/messaging"
+import * as Messages from "@src/message_protocols"
 
 const browserProxy = new Proxy(Object.create(null), {
     get(target, api) {
@@ -7,7 +8,7 @@ const browserProxy = new Proxy(Object.create(null), {
             {
                 get(_, func) {
                     return (...args) =>
-                        message("browser_proxy_background", "shim", [
+                        message<Messages.Background>()("browser_proxy_background", "shim", [
                             api,
                             func,
                             args,

@@ -68,7 +68,7 @@ def get_block(lines):
     """next(lines) contains an open brace: return all the lines up to close brace.
 
     Moves the lines iterator, so useful for consuming a block.
-    
+
     """
     brace_balance = 0
     block = ""
@@ -101,7 +101,7 @@ def content(lines, context):
                {cmd_params}
                {sig.raw}
                    logger.debug("shimming excmd {sig.name} from background to content")
-                   return Messaging.messageActiveTab(
+                   return Messaging.messageActiveTab<Messages.Content>()(
                        "excmd_content",
                        "{sig.name}",
                        [{message_params}],
@@ -136,7 +136,7 @@ def background(lines, context):
                {cmd_params}
                {sig.raw}
                    logger.debug("shimming excmd {sig.name} from content to background")
-                   return Messaging.message(
+                   return Messaging.message<Messages.Background>()(
                        "excmd_background",
                        "{sig.name}",
                        [{message_params}],

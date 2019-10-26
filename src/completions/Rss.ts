@@ -1,5 +1,6 @@
 import * as Messaging from "@src/lib/messaging"
 import * as Completions from "@src/completions"
+import * as Messages from "@src/message_protocols"
 
 class RssCompletionOption extends Completions.CompletionOptionHTML
     implements Completions.CompletionOptionFuse {
@@ -52,7 +53,7 @@ export class RssCompletionSource extends Completions.CompletionSourceFuse {
         }
 
         if (this.options.length < 1) {
-            this.options = (await Messaging.messageOwnTab(
+            this.options = (await Messaging.messageOwnTab<Messages.Content>()(
                 "excmd_content",
                 "getRssLinks",
                 [],

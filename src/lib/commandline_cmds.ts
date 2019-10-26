@@ -1,4 +1,5 @@
 import { messageOwnTab } from "@src/lib/messaging"
+import * as Messages from "@src/message_protocols"
 
 export function getCommandlineFns(cmdline_state) {
     return {
@@ -79,8 +80,8 @@ export function getCommandlineFns(cmdline_state) {
             cmdline_state.keyEvents = []
 
             // Try to make the close cmdline animation as smooth as possible.
-            messageOwnTab("commandline_content", "hide")
-            messageOwnTab("commandline_content", "blur")
+            messageOwnTab<Messages.CommandlineContent>()("commandline_content", "hide", [])
+            messageOwnTab<Messages.CommandlineContent>()("commandline_content", "blur", [])
             // Delete all completion sources - I don't think this is required, but this
             // way if there is a transient bug in completions it shouldn't persist.
             if (cmdline_state.activeCompletions)
@@ -133,7 +134,7 @@ export function getCommandlineFns(cmdline_state) {
             // shim to the background, but the latency increase should
             // be acceptable becuase the background-mode excmds tend
             // to be a touch less latency-sensitive.
-            return messageOwnTab("controller_content", "acceptExCmd", [command])
+            return messageOwnTab<Messages.Content>()("controller_content", "acceptExCmd", [command])
         },
     }
 }

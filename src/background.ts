@@ -2,7 +2,7 @@
 
 /* tslint:disable:import-spacing */
 
-import "@src/lib/browser_proxy_background"
+import * as proxy_background from "@src/lib/browser_proxy_background"
 
 import * as controller from "@src/lib/controller"
 import * as perf from "@src/perf"
@@ -24,6 +24,7 @@ import * as webext from "@src/lib/webext"
 import { AutoContain } from "@src/lib/autocontainers"
 import * as extension_info from "@src/lib/extension_info"
 import * as omnibox from "@src/background/omnibox"
+import * as Messages from "@src/message_protocols"
 
 // Add various useful modules to the window for debugging
 ; (window as any).tri = Object.assign(Object.create(null), {
@@ -55,8 +56,6 @@ controller.setExCmds({
     "text": EditorCmds,
     "hint": HintingCmds
 })
-messaging.addListener("excmd_background", messaging.attributeCaller(excmds_background))
-messaging.addListener("controller_background", messaging.attributeCaller(controller))
 
 // {{{ tri.contentLocation
 // When loading the background, use the active tab to know what the current content url is
@@ -120,12 +119,12 @@ browser.tabs.onActivated.addListener(ev => {
         // privileged tabs (e.g. about:addons) or when the tab is
         // being closed.
         messaging
-            .messageTab(curTab, "excmd_content", "loadaucmds", ["TabLeft"])
+            .messageTab<Messages.Content>()(curTab, "excmd_content", "loadaucmds", ["TabLeft"])
             .catch(ignore)
     }
     curTab = ev.tabId
     messaging
-        .messageTab(curTab, "excmd_content", "loadaucmds", ["TabEnter"])
+        .messageTab<Messages.Content>()(curTab, "excmd_content", "loadaucmds", ["TabEnter"])
         .catch(ignore)
 })
 
@@ -165,10 +164,19 @@ browser.tabs.onCreated.addListener(
 
 // An object to collect all of our statistics in one place.
 const statsLogger: perf.StatsLogger = new perf.StatsLogger()
-messaging.addListener(
-    "performance_background",
-    messaging.attributeCaller(statsLogger),
-)
+export const messages = {
+    excmd_background: excmds_background,
+    controller_background: controller,
+    performance_background: statsLogger,
+    download_background: {
+        downloadUrl: download_background.downloadUrl,
+        downloadUrlAs: download_background.downloadUrlAs,
+    },
+    browser_proxy_background: {shim: proxy_background.shim}
+}
+export type Messages = typeof messages
+
+messaging.setupListener(messages)
 // Listen for statistics from the background script and store
 // them. Set this one up to log directly to the statsLogger instead of
 // going through messaging.

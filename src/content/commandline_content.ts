@@ -125,4 +125,8 @@ export function executeWithoutCommandLine(fn) {
 
 import * as Messaging from "@src/lib/messaging"
 import * as SELF from "@src/content/commandline_content"
-Messaging.addListener("commandline_content", Messaging.attributeCaller(SELF))
+const messages = {
+    commandline_content: SELF
+} as const
+export type Messages = typeof messages
+Messaging.setupListener(messages)

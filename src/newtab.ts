@@ -2,6 +2,7 @@
 
 import * as Messaging from "@src/lib/messaging"
 import * as config from "@src/lib/config"
+import * as Messages from "@src/message_protocols"
 
 // These functions work with the elements created by tridactyl/scripts/newtab.md.sh
 function getChangelogDiv() {
@@ -47,6 +48,6 @@ window.addEventListener("load", _ => {
 // Periodically nag people about updates.
 window.addEventListener("load", _ => {
     if (config.get("update", "nag") === true) {
-        Messaging.message("controller_background", "acceptExCmd", ["updatecheck auto_polite"])
+        Messaging.message<Messages.Background>()("controller_background", "acceptExCmd", ["updatecheck auto_polite"])
     }
 })
