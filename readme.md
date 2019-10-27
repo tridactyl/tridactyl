@@ -8,13 +8,41 @@ Replace Firefox's default control mechanism with one modelled on the one true ed
 
 ## Installing
 
-[Simply click this link in Firefox to install our latest "beta" build][riskyclick]. These [betas][betas] are updated with each commit to master on this repo. Your browser will automatically update from there once a day. If you want more frequent updates, you can change `extensions.update.interval` in `about:config` to whatever time you want, say, 15 minutes (900 seconds). Alternatively, you can get our "stable" builds straight from the Arch Linux community repository: Arch users should just run `pacman -S firefox-tridactyl` in a terminal and then restart Firefox twice; everyone else can install manually from [an Arch mirror here](https://archive.archlinux.org/packages/f/firefox-tridactyl/firefox-tridactyl-1.16.3-1-any.pkg.tar.xz): extract the XPI from that archive and then open it with Firefox. The changelog for the stable versions can be found [here](https://github.com/tridactyl/tridactyl/blob/master/CHANGELOG.md). There is also another beta build that comes without a new tab page. You can get it from [here][nonewtablink]. If you want to use advanced features such as edit-in-Vim, you'll also need to install the native messenger or executable, instructions for which can be found by typing `:installnative` and hitting enter once you are in Tridactyl. Arch users can install the [AUR package](https://aur.archlinux.org/packages/firefox-tridactyl-native/) `firefox-tridactyl-native` instead. To migrate your configuration across builds, see [this comment][migratelink] or [this issue](https://github.com/tridactyl/tridactyl/issues/1353#issuecomment-463094704).
+[Simply click this link in Firefox to install our latest "beta" build][riskyclick]. If you want more options, read on.
+
+### Stable
+
+Our "stable" builds are essentially just frozen versions of our beta builds. Our beta builds themselves are not much less stable; all our developers and about half of our users use the beta builds. Stable builds, however, do get new features documented in the changelog, whereas beta builds get new features before they are documented there.
+
+#### Arch Linux
+
+run `pacman -S firefox-tridactyl` in a terminal and then restart Firefox _twice_.
+
+#### All other operating systems (Microsoft Windows, Macintosh, Linux etc.)
+
+Tridactyl is currently missing from the Firefox Add-ons website due to a (hopefully soon-to-be-resolved) [dispute](https://github.com/tridactyl/tridactyl/issues/1800). As such the best way to install Tridactyl stable is to extract this [archive](https://archive.archlinux.org/packages/f/firefox-tridactyl/firefox-tridactyl-1.16.3-1-any.pkg.tar.xz) and open the `.xpi` using Firefox.
+
+### Beta
+
+[Click this in Firefox to install our "beta" builds][riskyclick]. These [betas][betas] are updated with each commit to master on this repo. Your browser will automatically update from there once a day. If you want more frequent updates, you can change `extensions.update.interval` in `about:config` to whatever time you want, say, 15 minutes (900 seconds). There is also another beta build that comes without a new tab page. You can get it from [here][nonewtablink].
+
+### Extra features
+
+If you want to use advanced features such as edit-in-Vim, you'll also need to install the native messenger or executable, instructions for which can be found by typing `:installnative` and hitting enter once you are in Tridactyl. Arch users can install the [AUR package](https://aur.archlinux.org/packages/firefox-tridactyl-native/) `firefox-tridactyl-native` instead.
+
+## Migrating between beta and stable builds
+
+Our beta and stable versions store their configurations in separate places. To migrate between the two, see [this comment][migratelink] or [this issue](https://github.com/tridactyl/tridactyl/issues/1353#issuecomment-463094704).
+
+## Changelog
+
+The changelog for the stable versions can be found [here](https://github.com/tridactyl/tridactyl/blob/master/CHANGELOG.md).
+
+## First look
 
 Type `:help` or press `<F1>` for online help once you're in :)
 
 Remember that Tridactyl cannot run on any page on about:\*, data:\*, view-source:\* and file:\*. We're sorry about that and we're working with Firefox to improve this situation by removing restrictions on existing APIs and developing a new API.
-
-We can now run on addons.mozilla.org and a few other websites if you run `fixamo` once you've installed the native messenger. `help fixamo` tells you exactly what it does.
 
 If you're enjoying Tridactyl, or not, please leave a review on the [AMO](https://addons.mozilla.org/en-US/firefox/addon/tridactyl-vim/reviews/).
 
