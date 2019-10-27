@@ -163,7 +163,7 @@ browser.tabs.onCreated.addListener(
 
 // An object to collect all of our statistics in one place.
 const statsLogger: perf.StatsLogger = new perf.StatsLogger()
-export const messages = {
+const messages = {
     excmd_background: excmds_background,
     controller_background: controller,
     performance_background: statsLogger,
