@@ -777,7 +777,7 @@ export async function removePref(name: string) {
 export async function unfixamo() {
     try {
         if (localStorage.unfixedamo2 === "true") {
-            // unfixamo already ran for the tridactyl instance in this profile
+            // this version of unfixamo already ran for the tridactyl instance in this profile
             return
         }
 
@@ -786,18 +786,16 @@ export async function unfixamo() {
         const tridactylPref = "tridactyl.unfixedamo"
         const tridactylPref2 = "tridactyl.unfixedamo_removed"
         const restricted = "extensions.webextensions.restrictedDomains"
-        if (userjs[tridactylPref2] === "true") return;
-        if (userjs[tridactylPref] === "true") {
-            // unfixamo already ran for this Firefox profile in the Beta
-            await removePref(restricted)
-            browserBg.tabs.create({url: browserBg.runtime.getURL("static/unfixamo.html")})
-            return
-        }
-
-        // Have to have another pref for this second attempt
+        const amoblocker = "privacy.resistFingerprinting.block_mozAddonManager"
         const restrictedDomains = '"accounts-static.cdn.mozilla.net,accounts.firefox.com,addons.cdn.mozilla.net,addons.mozilla.org,api.accounts.firefox.com,content.cdn.mozilla.net,discovery.addons.mozilla.org,install.mozilla.org,oauth.accounts.firefox.com,profile.accounts.firefox.com,support.mozilla.org,sync.services.mozilla.com"'
+
+        // Exit if we've already run this once
+        if (userjs[tridactylPref2] === "true") return
+
         if (userjs[restricted] === "" || userjs[restricted] === restrictedDomains) {
+            await removePref(tridactylPref) // Clean up after first attempt if it exists
             await removePref(restricted)
+            await removePref(amoblocker)
             await writePref(tridactylPref2, "true")
             browserBg.tabs.create({url: browserBg.runtime.getURL("static/unfixamo.html")})
         }
