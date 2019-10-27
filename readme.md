@@ -8,26 +8,35 @@ Replace Firefox's default control mechanism with one modelled on the one true ed
 
 ## Installing
 
+[Simply click this link in Firefox to install our latest "beta" build][riskyclick]. If you want more options, read on.
+
 ### Stable
 
+Our "stable" builds are essentially just frozen versions of our beta builds. Our beta builds themselves are not much less stable; all our developers and about half of our users use the beta builds. Stable builds, however, do get new features documented in the changelog, whereas beta builds get new features before they are documented there.
+
 #### Arch Linux
-run `pacman -S firefox-tridactyl` in a terminal and then restart Firefox *twice*.
 
-#### All other OSs (Microsoft Windows, Macintosh, Linux)
+run `pacman -S firefox-tridactyl` in a terminal and then restart Firefox _twice_.
 
-Tridactyl is currently missing from the addons website due to a (recently resolved) dispute. As such the best way to install Tridactyl stable is to download (https://archive.archlinux.org/packages/f/firefox-tridactyl/firefox-tridactyl-1.16.3-1-any.pkg.tar.xz)[Tridactyl archive] and open the `.xpi` using Firefox.
+#### All other operating systems (Microsoft Windows, Macintosh, Linux etc.)
+
+Tridactyl is currently missing from the Firefox Add-ons website due to a (hopefully soon-to-be-resolved) [dispute](https://github.com/tridactyl/tridactyl/issues/1800). As such the best way to install Tridactyl stable is to extract this (https://archive.archlinux.org/packages/f/firefox-tridactyl/firefox-tridactyl-1.16.3-1-any.pkg.tar.xz)[archive] and open the `.xpi` using Firefox.
 
 ### Beta
 
-[Simply click this link in Firefox to install our latest "beta" build][riskyclick]. These [betas][betas] are updated with each commit to master on this repo. Your browser will automatically update from there once a day. If you want more frequent updates, you can change `extensions.update.interval` in `about:config` to whatever time you want, say, 15 minutes (900 seconds). There is also another beta build that comes without a new tab page. You can get it from [here][nonewtablink].
+[Click this in Firefox to install our "beta" builds][riskyclick]. These [betas][betas] are updated with each commit to master on this repo. Your browser will automatically update from there once a day. If you want more frequent updates, you can change `extensions.update.interval` in `about:config` to whatever time you want, say, 15 minutes (900 seconds). There is also another beta build that comes without a new tab page. You can get it from [here][nonewtablink].
 
 ### Extra features
 
-If you want to use advanced features such as edit-in-Vim, you'll also need to install the native messenger or executable, instructions for which can be found by typing `:installnative` and hitting enter once you are in Tridactyl. Arch users can install the [AUR package](https://aur.archlinux.org/packages/firefox-tridactyl-native/) `firefox-tridactyl-native` instead. To migrate your configuration across builds, see [this comment][migratelink] or [this issue](https://github.com/tridactyl/tridactyl/issues/1353#issuecomment-463094704).
+If you want to use advanced features such as edit-in-Vim, you'll also need to install the native messenger or executable, instructions for which can be found by typing `:installnative` and hitting enter once you are in Tridactyl. Arch users can install the [AUR package](https://aur.archlinux.org/packages/firefox-tridactyl-native/) `firefox-tridactyl-native` instead.
+
+## Migrating between beta and stable builds
+
+Our beta and stable versions store their configurations in separate places. To migrate between the two, see [this comment][migratelink] or [this issue](https://github.com/tridactyl/tridactyl/issues/1353#issuecomment-463094704).
 
 ## Changelog
 
-The changelog for the stable versions can be found [here](https://github.com/tridactyl/tridactyl/blob/master/CHANGELOG.md). 
+The changelog for the stable versions can be found [here](https://github.com/tridactyl/tridactyl/blob/master/CHANGELOG.md).
 
 ## First look
 
