@@ -1,24 +1,61 @@
 # Tridactyl changelog
 
+## Release 1.17.1 / Unreleased
+
+-   Reversions requested by Mozilla reviewers
+
+    -   Automatically revert any changes made which could have been made by `fixamo` to the `restricedDomains` and `block_mozAddonManager` settings in `user.js` ([#1800](https://github.com/tridactyl/tridactyl/issues/1800))
+
+-   New features
+
+    -   `hint -qy` now merges yanked hints ([#1945](https://github.com/tridactyl/tridactyl/issues/1945))
+        -   Known issues: it ignores all other flags
+    -   `set autocontainmode strict|relaxed` controls whether links opened in the current tab are forced to enter the "correct" container in a new tab ([#1902](https://github.com/tridactyl/tridactyl/issues/1902))
+    -   `autocontain -u` added, allowing you to match on an entire URL ([#1901](https://github.com/tridactyl/tridactyl/issues/1901))
+
+-   Bug fixes
+
+    -   Some default binds which couldn't be unbound can now be unbound ([#1923](https://github.com/tridactyl/tridactyl/issues/1923))
+    -   `<C-i>` and `<C-o>` fixed and more performant ([#1816](https://github.com/tridactyl/tridactyl/issues/1816))
+    -   `source` should have fewer race conditions ([#1764](https://github.com/tridactyl/tridactyl/issues/1764))
+        -   this was quite a big change to the way we handle configuration so please keep an eye out for bugs and report them
+
+-   Miscellaneous
+
+    -   Readme now has sections for different installation steps ([#1947](https://github.com/tridactyl/tridactyl/issues/1947))
+
+-   Under the bonnet
+
+    -   `browserBg` is now properly typed ([#1949](https://github.com/tridactyl/tridactyl/issues/1949))
+    -   We have switched to `ts-loader` ([#1914](https://github.com/tridactyl/tridactyl/issues/1914))
+    -   TypeScript is now a bit stricter ([#1915](https://github.com/tridactyl/tridactyl/issues/1915))
+    -   Tests which run in `node` now use node types ([#1913](https://github.com/tridactyl/tridactyl/issues/1913))
+
+Thanks to all of our contributors for this release: Oliver Blanthorn, dependabot-preview[bot], arcnmx, Jakub Okoński, notJerl, Dylan Lloyd, Kelly Stannard and SRGOM.
+
+Extra special thanks go to Dylan Lloyd, Kelly Stannard and SRGOM who contributed for the first time.
+
+Last, but not least - thank you to everyone who reported issues.
+
 ## Release 1.17.0 / 2019-10-03
 
-- Reversions requested by Mozilla reviewers
+-   Reversions requested by Mozilla reviewers
 
-    - The `csp` setting is now inactive
-    - Automatically revert any changes made by `fixamo` to the `restricedDomains` setting in `user.js`
+    -   The `csp` setting is now inactive
+    -   Automatically revert any changes made by `fixamo` to the `restricedDomains` setting in `user.js`
 
-- New features
+-   New features
 
-    - Source RC from an arbitrary URL ([#1866](https://github.com/tridactyl/tridactyl/issues/1866))
-    - `extoption` excmd to open the options page of other addons ([#1660](https://github.com/tridactyl/tridactyl/issues/1660)) ([#1851](https://github.com/tridactyl/tridactyl/issues/1851))
-    - Hint fancy webcomponents ([#1853](https://github.com/tridactyl/tridactyl/issues/1853))
-    - Add `;g{f,F}` default binds for `hint -q` and `hint -qb`
+    -   Source RC from an arbitrary URL ([#1866](https://github.com/tridactyl/tridactyl/issues/1866))
+    -   `extoption` excmd to open the options page of other addons ([#1660](https://github.com/tridactyl/tridactyl/issues/1660)) ([#1851](https://github.com/tridactyl/tridactyl/issues/1851))
+    -   Hint fancy webcomponents ([#1853](https://github.com/tridactyl/tridactyl/issues/1853))
+    -   Add `;g{f,F}` default binds for `hint -q` and `hint -qb`
 
-- Bug fixes
+-   Bug fixes
 
-    - Pasting a url with `p` or `P` now trims whitespace to avoid searching for the URL ([#1865](https://github.com/tridactyl/tridactyl/issues/1865))
-    - Fix OS detection for windows in `loadtheme` ([#1862](https://github.com/tridactyl/tridactyl/issues/1862))
-    - Fix ([#1041](https://github.com/tridactyl/tridactyl/issues/1041)): ;p now preserves newlines
+    -   Pasting a url with `p` or `P` now trims whitespace to avoid searching for the URL ([#1865](https://github.com/tridactyl/tridactyl/issues/1865))
+    -   Fix OS detection for windows in `loadtheme` ([#1862](https://github.com/tridactyl/tridactyl/issues/1862))
+    -   Fix ([#1041](https://github.com/tridactyl/tridactyl/issues/1041)): ;p now preserves newlines
 
 Thanks to all of our contributors for this release: Oliver Blanthorn, dependabot-preview[bot], rektrex, Colin Caine, glacambre, ELLIOTTCABLE, avalonv, pvs, Chris, Daniel Schmid
 
