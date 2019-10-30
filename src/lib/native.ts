@@ -758,36 +758,55 @@ export async function writePref(name: string, value: any) {
     }
 }
 
+/** Removes a preference from user.js */
+export async function removePref(name: string) {
+    const file = (await getProfileDir()) + "/user.js"
+    // No need to check the return code because read returns "" when failing to
+    // read a file
+    const text = (await read(file)).content
+    const prefPos = text.indexOf(`user_pref("${name}",`)
+    if (prefPos >= 0) {
+        let substr = text.substring(prefPos)
+        const prefEnd = substr.indexOf(";\n") + 1
+        substr = text.substring(prefPos, prefPos + prefEnd)
+        write(file, text.replace(substr, ``))
+    }
+}
+
 /** Obey Mozilla's orders https://github.com/tridactyl/tridactyl/issues/1800 */
 export async function unfixamo() {
     try {
-        if (localStorage.unfixedamo === "true") {
-            // unfixamo already ran for the tridactyl instance in this profile
+        if (localStorage.unfixedamo2 === "true") {
+            // this version of unfixamo already ran for the tridactyl instance in this profile
             return
         }
 
         const profile = (await getProfileDir()) + "/"
         const userjs = await loadPrefs(profile + "user.js")
         const tridactylPref = "tridactyl.unfixedamo"
-        if (userjs[tridactylPref] === "true") {
-            // unfixamo already ran for this firefox profile
-            return
-        }
-
+        const tridactylPref2 = "tridactyl.unfixedamo_removed"
         const restricted = "extensions.webextensions.restrictedDomains"
+        const amoblocker = "privacy.resistFingerprinting.block_mozAddonManager"
         const restrictedDomains = '"accounts-static.cdn.mozilla.net,accounts.firefox.com,addons.cdn.mozilla.net,addons.mozilla.org,api.accounts.firefox.com,content.cdn.mozilla.net,discovery.addons.mozilla.org,install.mozilla.org,oauth.accounts.firefox.com,profile.accounts.firefox.com,support.mozilla.org,sync.services.mozilla.com"'
-        if (userjs[restricted] === "") {
-            await writePref(restricted, restrictedDomains)
-            await writePref(tridactylPref, "true")
+
+        // Exit if we've already run this once
+        if (userjs[tridactylPref2] === "true") return
+
+        if (userjs[restricted] === "" || userjs[restricted] === restrictedDomains) {
+            await removePref(tridactylPref) // Clean up after first attempt if it exists
+            await removePref(restricted)
+            await removePref(amoblocker)
+            await writePref(tridactylPref2, "true")
             browserBg.tabs.create({url: browserBg.runtime.getURL("static/unfixamo.html")})
         }
 
-        // Note: we store unfixedamo in localStorage and not in config because
-        //       users might clear their config with :sanitize
-        localStorage.unfixedamo = "true"
         return
     } catch (e) {
         // if an exception is thrown, this means that the native messenger
         // isn't installed
+    } finally {
+        // Note: we store unfixedamo in localStorage and not in config because
+        //       users might clear their config with :sanitize
+        localStorage.unfixedamo2 = "true"
     }
 }

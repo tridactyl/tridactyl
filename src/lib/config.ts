@@ -519,6 +519,8 @@ export class default_config {
         exto: "extoptions",
         extpreferences: "extoptions",
         extp: "extpreferences",
+        prefset: "setpref",
+        prefremove: "removepref",
     }
 
     /**
