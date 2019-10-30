@@ -103,7 +103,7 @@ export class default_config {
      */
     ignoremaps = {
         "<S-Insert>": "mode normal",
-        "AC-Escape>": "mode normal",
+        "<AC-Escape>": "mode normal",
         "<AC-`>": "mode normal",
         "<S-Escape>": "mode normal",
         "<C-^>": "tab #",
