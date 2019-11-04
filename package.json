@@ -36,7 +36,7 @@
     "ts-node": "^8.4.1",
     "tsconfig-paths-webpack-plugin": "^3.2.0",
     "tslint": "^5.20.0",
-    "tslint-etc": "^1.7.1",
+    "tslint-etc": "^1.9.1",
     "tslint-sonarts": "^1.9.0",
     "typedoc": "^0.15.0",
     "typedoc-default-themes": "git://github.com/tridactyl/typedoc-default-themes.git#fix_weird_member_names_bin",
