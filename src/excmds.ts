@@ -3589,8 +3589,8 @@ export async function quickmark(key: string, ...addressarr: string[]) {
         await bind("go" + key, "open", address)
         await bind("gw" + key, "winopen", address)
     } else {
-        const compstring = addressarr.join(" | tabopen ")
-        const compstringwin = addressarr.join(" | winopen ")
+        const compstring = addressarr.join("; tabopen ")
+        const compstringwin = addressarr.join("; winopen ")
         await bind("gn" + key, "composite tabopen", compstring)
         await bind("go" + key, "composite open", compstring)
         await bind("gw" + key, "composite winopen", compstringwin)
