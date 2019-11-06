@@ -27,6 +27,7 @@ import { ExcmdCompletionSource } from "@src/completions/Excmd"
 import { FileSystemCompletionSource } from "@src/completions/FileSystem"
 import { GuisetCompletionSource } from "@src/completions/Guiset"
 import { HelpCompletionSource } from "@src/completions/Help"
+import { AproposCompletionSource } from "@src/completions/Apropos"
 import { HistoryCompletionSource } from "@src/completions/History"
 import { PreferenceCompletionSource } from "@src/completions/Preferences"
 import { RssCompletionSource } from "@src/completions/Rss"
@@ -108,6 +109,7 @@ export function enableCompletions() {
             FileSystemCompletionSource,
             GuisetCompletionSource,
             HelpCompletionSource,
+            AproposCompletionSource,
             HistoryCompletionSource,
             PreferenceCompletionSource,
             RssCompletionSource,

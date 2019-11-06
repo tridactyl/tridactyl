@@ -1444,6 +1444,14 @@ export async function help(...helpItems: string[]) {
     }
 }
 
+/**
+ * Search through the help pages. Accepts the same flags as [[help]]. Only useful in interactive usage with completions; the command itself is just a wrapper for [[help]].
+ */
+//#background
+export async function apropos(...helpItems: string[]) {
+    help(...helpItems)
+}
+
 /** Start the tutorial
  * @param newtab - whether to start the tutorial in a newtab. Defaults to current tab.
  */
