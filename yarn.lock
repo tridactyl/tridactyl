@@ -8188,10 +8188,10 @@ web-ext-types@^3.2.1:
   resolved "https://registry.yarnpkg.com/web-ext-types/-/web-ext-types-3.2.1.tgz#3edc0e3c2e8fe121d7d7e4ca0b7ee0c883cea832"
   integrity sha512-oQZYDU3W8X867h8Jmt3129kRVKklz70db40Y6OzoTTuzOJpF/dB2KULJUf0txVPyUUXuyzV8GmT3nVvRHoG+Ew==
 
-web-ext@^3.2.0:
-  version "3.2.0"
-  resolved "https://registry.yarnpkg.com/web-ext/-/web-ext-3.2.0.tgz#090fe43d777acc7a4741e034e36cc116fcf13843"
-  integrity sha512-UM2ucXzEKs6tD+YT6FjmfIeQtLy4t9CwdwyQl8Nthn2BbGgDLht+wBWsU8VYnNXtrObxX24Co8oaF7Id06JbgA==
+web-ext@^3.2.1:
+  version "3.2.1"
+  resolved "https://registry.yarnpkg.com/web-ext/-/web-ext-3.2.1.tgz#5fa9f683d4ca804b42324593b1acedca375ab68d"
+  integrity sha512-WzZbCDIjIUshZRVaiYFbaMp/1/xPjW7qeTQ0F7Xx1MYkamZ4RN5dnhxWFz+Hzg6GzhFdny+zucNDKOwYfAV3LA==
   dependencies:
     "@babel/polyfill" "7.6.0"
     "@babel/runtime" "7.6.2"
