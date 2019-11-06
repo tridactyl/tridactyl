@@ -17,7 +17,7 @@
     "semver-compare": "^1.0.0"
   },
   "devDependencies": {
-    "@types/jest": "^24.0.21",
+    "@types/jest": "^24.0.22",
     "@types/mithril": "^2.0.2",
     "@types/node": "^12.12.6",
     "@types/selenium-webdriver": "^4.0.5",
