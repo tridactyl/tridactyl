@@ -1,6 +1,6 @@
 # Tridactyl changelog
 
-## Release 1.17.1 / Unreleased
+## Release 1.17.1 / 2019-11-06
 
 -   Reversions requested by Mozilla reviewers
 
@@ -12,6 +12,7 @@
         -   Known issues: it ignores all other flags
     -   `set autocontainmode strict|relaxed` controls whether links opened in the current tab are forced to enter the "correct" container in a new tab ([#1902](https://github.com/tridactyl/tridactyl/issues/1902))
     -   `autocontain -u` added, allowing you to match on an entire URL ([#1901](https://github.com/tridactyl/tridactyl/issues/1901))
+    -   `prefremove` ex-mode command added to remove a setting from user.js if you have the native messenger installed
 
 -   Bug fixes
 
@@ -19,6 +20,7 @@
     -   `<C-i>` and `<C-o>` fixed and more performant ([#1816](https://github.com/tridactyl/tridactyl/issues/1816))
     -   `source` should have fewer race conditions ([#1764](https://github.com/tridactyl/tridactyl/issues/1764))
         -   this was quite a big change to the way we handle configuration so please keep an eye out for bugs and report them
+    -   New quickmarks with multiple URLs no longer have `[object Object]` appended to them. If any of your quickmarks are currently affected, re-adding them with `:quickmark [key] [url1] [url2] [url3] ...` should fix them.
 
 -   Miscellaneous
 
