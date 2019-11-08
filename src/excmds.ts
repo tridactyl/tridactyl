@@ -1051,7 +1051,8 @@ let lineHeight = null
  *  The height of a line is defined by the site's CSS. If Tridactyl can't get it, it'll default to 22 pixels.
  */
 //#content
-export function scrollline(n = 1) {
+export function scrollline(n = 1, mult = 1) {
+    n = mult * n
     if (lineHeight === null) {
         const getLineHeight = elem => {
             // Get line height
