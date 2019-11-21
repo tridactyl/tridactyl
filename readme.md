@@ -16,11 +16,11 @@ Our "stable" builds are essentially just frozen versions of our beta builds. Our
 
 #### Arch Linux
 
-run `pacman -S firefox-tridactyl` in a terminal and then restart Firefox _twice_.
+Run `pacman -S firefox-tridactyl` in a terminal and then restart Firefox _twice_.
 
 #### All other operating systems (Microsoft Windows, Macintosh, Linux etc.)
 
-Tridactyl is currently missing from the Firefox Add-ons website due to a (hopefully soon-to-be-resolved) [dispute](https://github.com/tridactyl/tridactyl/issues/1800). As such the best way to install Tridactyl stable is to extract this [archive](https://archive.archlinux.org/packages/f/firefox-tridactyl/firefox-tridactyl-1.16.3-1-any.pkg.tar.xz) and open the `.xpi` using Firefox.
+Tridactyl stable can be installed from the [Mozilla add-ons website (the AMO)][amo].
 
 ### Beta
 
