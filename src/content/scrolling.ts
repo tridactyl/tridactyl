@@ -87,12 +87,15 @@ class ScrollingData {
     }
 
     scroll(distance: number, duration: number) {
+        this.duration = duration
         this.startTime = performance.now()
         this.startPos = this.elem[this.pos]
+        // If we're already scrolling, update the endPos based off the current endPos
+        if (this.scrolling) {
+            this.endPos = this.endPos + distance
+            return true
+        }
         this.endPos = this.startPos + distance
-        this.duration = duration
-        // If we're already scrolling we don't need to try to scroll
-        if (this.scrolling) return true
         if ("style" in this.elem)
             (this.elem as any).style.scrollBehavior = "unset"
         this.scrolling = this.scrollStep()
