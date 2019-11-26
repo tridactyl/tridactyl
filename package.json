@@ -14,7 +14,8 @@
     "mark.js": "^8.11.1",
     "mithril": "^2.0.4",
     "rss-parser": "^3.7.3",
-    "semver-compare": "^1.0.0"
+    "semver-compare": "^1.0.0",
+    "typedoc-default-themes": "^0.6.1"
   },
   "devDependencies": {
     "@types/jest": "^24.0.23",
@@ -39,7 +40,6 @@
     "tslint-etc": "^1.9.2",
     "tslint-sonarts": "^1.9.0",
     "typedoc": "^0.15.3",
-    "typedoc-default-themes": "git://github.com/tridactyl/typedoc-default-themes.git#fix_weird_member_names_bin",
     "typescript": "^3.6.4",
     "uglify-es": "^3.3.9",
     "uglifyjs-webpack-plugin": "^2.2.0",
