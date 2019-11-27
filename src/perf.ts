@@ -416,7 +416,5 @@ class MetricName {
 }
 
 function sendStats(list: PerformanceEntryList) {
-    messaging.message("performance_background", "receiveStatsJson", [
-        JSON.stringify(list),
-    ])
+    messaging.message("performance_background", "receiveStatsJson", JSON.stringify(list))
 }

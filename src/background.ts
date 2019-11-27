@@ -2,7 +2,7 @@
 
 /* tslint:disable:import-spacing */
 
-import "@src/lib/browser_proxy_background"
+import * as proxy_background from "@src/lib/browser_proxy_background"
 
 import * as controller from "@src/lib/controller"
 import * as perf from "@src/perf"
@@ -55,8 +55,6 @@ controller.setExCmds({
     "text": EditorCmds,
     "hint": HintingCmds
 })
-messaging.addListener("excmd_background", messaging.attributeCaller(excmds_background))
-messaging.addListener("controller_background", messaging.attributeCaller(controller))
 
 // {{{ tri.contentLocation
 // When loading the background, use the active tab to know what the current content url is
@@ -165,10 +163,19 @@ browser.tabs.onCreated.addListener(
 
 // An object to collect all of our statistics in one place.
 const statsLogger: perf.StatsLogger = new perf.StatsLogger()
-messaging.addListener(
-    "performance_background",
-    messaging.attributeCaller(statsLogger),
-)
+const messages = {
+    excmd_background: excmds_background,
+    controller_background: controller,
+    performance_background: statsLogger,
+    download_background: {
+        downloadUrl: download_background.downloadUrl,
+        downloadUrlAs: download_background.downloadUrlAs,
+    },
+    browser_proxy_background: {shim: proxy_background.shim}
+}
+export type Messages = typeof messages
+
+messaging.setupListener(messages)
 // Listen for statistics from the background script and store
 // them. Set this one up to log directly to the statsLogger instead of
 // going through messaging.

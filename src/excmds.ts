@@ -849,9 +849,9 @@ export async function restart() {
 //#content
 export async function saveas(...filename: string[]) {
     if (filename.length > 0) {
-        return Messaging.message("download_background", "downloadUrlAs", [window.location.href, filename.join(" ")])
+        return Messaging.message("download_background", "downloadUrlAs", window.location.href, filename.join(" "))
     } else {
-        return Messaging.message("download_background", "downloadUrl", [window.location.href, true])
+        return Messaging.message("download_background", "downloadUrl", window.location.href, true)
     }
 }
 
@@ -3981,7 +3981,7 @@ export async function hint(option?: string, selectors?: string, ...rest: string[
             selectHints = hinting.pipe_elements(
                 elems,
                 elem => {
-                    Messaging.message("download_background", "downloadUrl", [new URL(elem[attr], window.location.href).href, saveAs])
+                    Messaging.message("download_background", "downloadUrl", new URL(elem[attr], window.location.href).href, saveAs)
                     return elem
                 },
                 rapid,
@@ -4093,7 +4093,7 @@ export function rot13(n: number) {
  */
 //#content
 export function run_exstr(...commands: string[]) {
-    return Messaging.message("controller_background", "acceptExCmd", commands)
+    return Messaging.message("controller_background", "acceptExCmd", commands.join(""))
 }
 
 // }}}

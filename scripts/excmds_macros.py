@@ -68,7 +68,7 @@ def get_block(lines):
     """next(lines) contains an open brace: return all the lines up to close brace.
 
     Moves the lines iterator, so useful for consuming a block.
-    
+
     """
     brace_balance = 0
     block = ""
@@ -139,7 +139,7 @@ def background(lines, context):
                    return Messaging.message(
                        "excmd_background",
                        "{sig.name}",
-                       [{message_params}],
+                       {message_params}
                    )
                }}\n""".format(**locals()))
 

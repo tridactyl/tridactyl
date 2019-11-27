@@ -47,6 +47,6 @@ window.addEventListener("load", _ => {
 // Periodically nag people about updates.
 window.addEventListener("load", _ => {
     if (config.get("update", "nag") === true) {
-        Messaging.message("controller_background", "acceptExCmd", ["updatecheck auto_polite"])
+        Messaging.message("controller_background", "acceptExCmd", "updatecheck auto_polite")
     }
 })
