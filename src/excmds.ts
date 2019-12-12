@@ -370,13 +370,12 @@ export async function guiset_quiet(rule: string, option: string) {
 
     // Make backups
     await Native.mkdir(profile_dir + "/chrome", true)
-    let cssstr = (await Native.read(profile_dir + "/chrome/userChrome.css")).content
+    const cssstr = (await Native.read(profile_dir + "/chrome/userChrome.css")).content
     const cssstrOrig = (await Native.read(profile_dir + "/chrome/userChrome.orig.css")).content
     if (cssstrOrig === "") await Native.write(profile_dir + "/chrome/userChrome.orig.css", cssstr)
     await Native.write(profile_dir + "/chrome/userChrome.css.tri.bak", cssstr)
 
     // Modify and write new CSS
-    if (cssstr === "") cssstr = `@namespace url("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul");`
     const stylesheet = CSS.parse(cssstr)
     // Trim due to https://github.com/reworkcss/css/issues/113
     const stylesheetDone = CSS.stringify(css_util.changeCss(rule, option, stylesheet)).trim()
