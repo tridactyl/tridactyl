@@ -42,13 +42,18 @@ function frecency(item: browser.history.HistoryItem) {
     return item.visitCount * -1
 }
 
+const sleep = async time_ms => new Promise(resolve => setTimeout(resolve, time_ms))
+
 export async function getHistory(query: string): Promise<browser.history.HistoryItem[]> {
     // Search history, dedupe and sort by frecency
-    let history = await browserBg.history.search({
-        text: query,
-        maxResults: config.get("historyresults"),
-        startTime: 0,
-    })
+    let history = await (async _ => {
+        await sleep(Math.random() * 1000)
+        return browserBg.history.search({
+            text: query,
+            maxResults: config.get("historyresults"),
+            startTime: 0,
+        })
+    })()
 
     // Remove entries with duplicate URLs
     const dedupe = new Map()
