@@ -139,6 +139,7 @@ import * as native from "@src/lib/native"
 import * as styling from "@src/content/styling"
 import { EditorCmds as editor } from "@src/content/editor"
 import * as updates from "@src/lib/updates"
+import * as urlutils from "@src/lib/url_util"
 /* tslint:disable:import-spacing */
 ; (window as any).tri = Object.assign(Object.create(null), {
     browserBg: webext.browserBg,
@@ -163,6 +164,7 @@ import * as updates from "@src/lib/updates"
     contentLocation: window.location,
     perf,
     updates,
+    urlutils,
 })
 
 logger.info("Loaded commandline content?", commandline_content)
