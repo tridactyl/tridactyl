@@ -302,6 +302,12 @@ export class default_config {
             "open https://www.youtube.com/watch?v=M3iOROuTuMA",
     }
 
+    vmaps = mergeDeep(this.nmaps, { // we really want a real-time merge as this means that user normal binds will no longer work while text is selected
+        "<Escape>": "composite js document.getSelection().empty(); mode normal; hidecmdline",
+        "<C-[>": "composite js document.getSelection().empty(); mode normal ; hidecmdline",
+        "y": "composite js document.getSelection().toString() | yank",
+    })
+
     hintmaps = {
         "<Backspace>": "hint.popKey",
         "<Escape>": "hint.reset",
