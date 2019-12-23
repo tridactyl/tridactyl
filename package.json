@@ -4,7 +4,7 @@
   "description": "Vimperator/Pentadactyl successor",
   "dependencies": {
     "@types/css": "0.0.31",
-    "@types/nearley": "^2.11.0",
+    "@types/nearley": "^2.11.1",
     "command-line-args": "^5.1.1",
     "csp-serdes": "github:cmcaine/csp-serdes",
     "css": "^2.2.4",
