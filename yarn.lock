@@ -453,10 +453,10 @@
   resolved "https://registry.yarnpkg.com/@types/nearley/-/nearley-2.11.1.tgz#6ac3f57c00ca28071a1774ec72d2e45750f21420"
   integrity sha512-oaAg5gn74VFpPYs6Ou2pjDao3WJxnlnH29q9rLOxSGb0PTw2QtBQcTAN9xs1OAHrtI9En5kIXKM96stf7//c9w==
 
-"@types/node@*", "@types/node@^13.1.1":
-  version "13.1.1"
-  resolved "https://registry.yarnpkg.com/@types/node/-/node-13.1.1.tgz#6d11a8c2d58405b3db9388ab740106cbfa64c3c9"
-  integrity sha512-hx6zWtudh3Arsbl3cXay+JnkvVgCKzCWKv42C9J01N2T2np4h8w5X8u6Tpz5mj38kE3M9FM0Pazx8vKFFMnjLQ==
+"@types/node@*", "@types/node@^13.1.2":
+  version "13.1.2"
+  resolved "https://registry.yarnpkg.com/@types/node/-/node-13.1.2.tgz#fe94285bf5e0782e1a9e5a8c482b1c34465fa385"
+  integrity sha512-B8emQA1qeKerqd1dmIsQYnXi+mmAzTB7flExjmy5X1aVAKFNNNDubkavwR13kR6JnpeLp3aLoJhwn9trWPAyFQ==
 
 "@types/selenium-webdriver@^4.0.6":
   version "4.0.6"
