@@ -1485,7 +1485,7 @@ export function parseConfig(): string {
     if (p.logging.length > 0)
         s.logging = `" Logging\n${p.logging.join("\n")}\n\n`
 
-    const ftdetect = `" vim: set filetype=vim:`
+    const ftdetect = `" For syntax highlighting see https://github.com/tridactyl/vim-tridactyl\n" vim: set filetype=tridactyl`
 
     return `${s.general}${s.binds}${s.subconfigs}${s.aliases}${s.aucmds}${
         s.aucons

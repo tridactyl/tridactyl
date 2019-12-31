@@ -148,5 +148,5 @@ autocmd DocStart ^http(s?)://www.reddit.com js tri.excmds.urlmodify("-t", "www",
 " Mosquito nets won't make themselves
 autocmd DocStart ^http(s?)://www.amazon.co.uk js tri.excmds.urlmodify("-t", "www", "smile")
 
-" This will have to do until someone writes us a nice syntax file :)
-" vim: set filetype=vim:
+" For syntax highlighting see https://github.com/tridactyl/vim-tridactyl
+" vim: set filetype=tridactyl
