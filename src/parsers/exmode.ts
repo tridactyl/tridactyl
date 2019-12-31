@@ -38,7 +38,7 @@ export function parser(exstr: string, all_excmds: any): any[] {
     const excmds = all_excmds[namespce]
 
     if (excmds === undefined) {
-        throw new Error(`Unknwown namespace: ${namespce}.`);
+        throw new Error(`Unknown namespace: ${namespce}.`);
     }
 
     // Convert arguments, but only for ex commands
