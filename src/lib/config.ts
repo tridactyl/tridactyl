@@ -135,10 +135,11 @@ export class default_config {
      *
      * They consist of key sequences mapped to ex commands.
      */
-    inputmaps = mergeDeep(this.imaps, {
+    inputmaps = {
         "<Tab>": "focusinput -n",
         "<S-Tab>": "focusinput -N",
-    })
+        "__INHERITS__": "imaps",
+    }
 
     /**
      * nmaps contain all of the bindings for "normal mode".
@@ -302,11 +303,12 @@ export class default_config {
             "open https://www.youtube.com/watch?v=M3iOROuTuMA",
     }
 
-    vmaps = mergeDeep(this.nmaps, { // we really want a real-time merge as this means that user normal binds will no longer work while text is selected
+    vmaps = {
         "<Escape>": "composite js document.getSelection().empty(); mode normal; hidecmdline",
         "<C-[>": "composite js document.getSelection().empty(); mode normal ; hidecmdline",
         "y": "composite js document.getSelection().toString() | yank",
-    })
+        "__INHERITS__": "nmaps",
+    }
 
     hintmaps = {
         "<Backspace>": "hint.popKey",
@@ -974,9 +976,18 @@ const DEFAULTS = o(new default_config())
  */
 function getDeepProperty(obj, target: string[]) {
     if (obj !== undefined && target.length) {
-        return getDeepProperty(obj[target[0]], target.slice(1))
+        if (obj.__INHERITS__ === undefined)  {
+            return getDeepProperty(obj[target[0]], target.slice(1))
+        } else {
+            return getDeepProperty(mergeDeep(obj, get(obj.__INHERITS__))[target[0]], target.slice(1))
+        }
     } else {
-        return obj
+        if (obj === undefined) return obj
+        if (obj.__INHERITS__ !== undefined) {
+            return mergeDeep(obj, get(obj.__INHERITS__))
+        } else {
+            return obj
+        }
     }
 }
 
