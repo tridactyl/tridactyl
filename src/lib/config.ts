@@ -314,6 +314,15 @@ export class default_config {
         "<Escape>": "composite js document.getSelection().empty(); mode normal; hidecmdline",
         "<C-[>": "composite js document.getSelection().empty(); mode normal ; hidecmdline",
         "y": "composite js document.getSelection().toString() | clipboard yank",
+        "l": 'js document.getSelection().modify("extend","forward","character")',
+        "h": 'js document.getSelection().modify("extend","backward","character")',
+        "e": 'js document.getSelection().modify("extend","forward","word")',
+        "w": 'js document.getSelection().modify("extend","forward","word"); js document.getSelection().modify("extend","forward","character")',
+        "j": 'js document.getSelection().modify("extend","forward","line")',
+        // "j": 'js document.getSelection().modify("extend","forward","paragraph")', // not implemented in Firefox
+        "k": 'js document.getSelection().modify("extend","backward","line")',
+        "$": 'js document.getSelection().modify("extend","forward","lineboundary")',
+        "0": 'js document.getSelection().modify("extend","backward","lineboundary")',
         "🕷🕷INHERITS🕷🕷": "nmaps",
     }
 
