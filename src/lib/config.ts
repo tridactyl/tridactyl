@@ -313,7 +313,7 @@ export class default_config {
     vmaps = {
         "<Escape>": "composite js document.getSelection().empty(); mode normal; hidecmdline",
         "<C-[>": "composite js document.getSelection().empty(); mode normal ; hidecmdline",
-        "y": "composite js document.getSelection().toString() | yank",
+        "y": "composite js document.getSelection().toString() | clipboard yank",
         "🕷🕷INHERITS🕷🕷": "nmaps",
     }
 
