@@ -138,7 +138,14 @@ export class default_config {
     inputmaps = {
         "<Tab>": "focusinput -n",
         "<S-Tab>": "focusinput -N",
-        "__INHERITS__": "imaps",
+        /**
+         * Config objects with this key inherit their keys from the object specified.
+         *
+         * Only supports "root" objects. Subconfigs (`seturl`) work as expected.
+         *
+         * Here, this means that input mode is the same as insert mode except it has added binds for tab and shift-tab.
+         */
+        "🕷🕷INHERITS🕷🕷": "imaps",
     }
 
     /**
@@ -307,7 +314,7 @@ export class default_config {
         "<Escape>": "composite js document.getSelection().empty(); mode normal; hidecmdline",
         "<C-[>": "composite js document.getSelection().empty(); mode normal ; hidecmdline",
         "y": "composite js document.getSelection().toString() | yank",
-        "__INHERITS__": "nmaps",
+        "🕷🕷INHERITS🕷🕷": "nmaps",
     }
 
     hintmaps = {
@@ -976,15 +983,15 @@ const DEFAULTS = o(new default_config())
  */
 function getDeepProperty(obj, target: string[]) {
     if (obj !== undefined && target.length) {
-        if (obj.__INHERITS__ === undefined)  {
+        if (obj["🕷🕷INHERITS🕷🕷"] === undefined)  {
             return getDeepProperty(obj[target[0]], target.slice(1))
         } else {
-            return getDeepProperty(mergeDeep(obj, get(obj.__INHERITS__))[target[0]], target.slice(1))
+            return getDeepProperty(mergeDeep(obj, get(obj["🕷🕷INHERITS🕷🕷"]))[target[0]], target.slice(1))
         }
     } else {
         if (obj === undefined) return obj
-        if (obj.__INHERITS__ !== undefined) {
-            return mergeDeep(obj, get(obj.__INHERITS__))
+        if (obj["🕷🕷INHERITS🕷🕷"] !== undefined) {
+            return mergeDeep(obj, get(obj["🕷🕷INHERITS🕷🕷"]))
         } else {
             return obj
         }
