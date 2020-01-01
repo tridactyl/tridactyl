@@ -317,7 +317,7 @@ export class default_config {
         "l": 'js document.getSelection().modify("extend","forward","character")',
         "h": 'js document.getSelection().modify("extend","backward","character")',
         "e": 'js document.getSelection().modify("extend","forward","word")',
-        "w": 'js document.getSelection().modify("extend","forward","word"); js document.getSelection().modify("extend","forward","character")',
+        "w": 'js document.getSelection().modify("extend","forward","word"); document.getSelection().modify("extend","forward","character")',
         "j": 'js document.getSelection().modify("extend","forward","line")',
         // "j": 'js document.getSelection().modify("extend","forward","paragraph")', // not implemented in Firefox
         "k": 'js document.getSelection().modify("extend","backward","line")',
