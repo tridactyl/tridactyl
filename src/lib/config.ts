@@ -986,12 +986,12 @@ function getDeepProperty(obj, target: string[]) {
         if (obj["🕷🕷INHERITS🕷🕷"] === undefined)  {
             return getDeepProperty(obj[target[0]], target.slice(1))
         } else {
-            return getDeepProperty(mergeDeep(obj, get(obj["🕷🕷INHERITS🕷🕷"]))[target[0]], target.slice(1))
+            return getDeepProperty(mergeDeep(get(obj["🕷🕷INHERITS🕷🕷"]), obj)[target[0]], target.slice(1))
         }
     } else {
         if (obj === undefined) return obj
         if (obj["🕷🕷INHERITS🕷🕷"] !== undefined) {
-            return mergeDeep(obj, get(obj["🕷🕷INHERITS🕷🕷"]))
+            return mergeDeep(get(obj["🕷🕷INHERITS🕷🕷"]), obj)
         } else {
             return obj
         }
