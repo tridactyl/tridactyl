@@ -3709,6 +3709,7 @@ export function unset(...keys: string[]) {
         - -b open in background
         - -y copy (yank) link's target to clipboard
         - -p copy an element's text to the clipboard
+        - -h select an element (as if you click-n-dragged over it)
         - -P copy an element's title/alt text to the clipboard
         - -r read an element's text with text-to-speech
         - -i view an image
@@ -3864,6 +3865,23 @@ export async function hint(option?: string, selectors?: string, ...rest: string[
                 elem => {
                     // /!\ Warning: This is racy! This can easily be fixed by adding an await but do we want this? yank can be pretty slow, especially with yankto=selection
                     yank(elem.textContent)
+                    return elem
+                },
+                rapid,
+            )
+            break
+
+        case "-h":
+            // Highlight element
+            selectHints = hinting.pipe_elements(
+                DOM.elementsWithText(),
+                elem => {
+                    const r = document.createRange()
+                    r.setStart(elem, 0)
+                    r.setEnd(elem, 1)
+                    const s = document.getSelection()
+                    s.empty()
+                    s.addRange(r)
                     return elem
                 },
                 rapid,
