@@ -135,10 +135,18 @@ export class default_config {
      *
      * They consist of key sequences mapped to ex commands.
      */
-    inputmaps = mergeDeep(this.imaps, {
+    inputmaps = {
         "<Tab>": "focusinput -n",
         "<S-Tab>": "focusinput -N",
-    })
+        /**
+         * Config objects with this key inherit their keys from the object specified.
+         *
+         * Only supports "root" objects. Subconfigs (`seturl`) work as expected.
+         *
+         * Here, this means that input mode is the same as insert mode except it has added binds for tab and shift-tab.
+         */
+        "🕷🕷INHERITS🕷🕷": "imaps",
+    }
 
     /**
      * nmaps contain all of the bindings for "normal mode".
@@ -300,6 +308,23 @@ export class default_config {
         ".": "repeat",
         "<AS-ArrowUp><AS-ArrowUp><AS-ArrowDown><AS-ArrowDown><AS-ArrowLeft><AS-ArrowRight><AS-ArrowLeft><AS-ArrowRight>ba":
             "open https://www.youtube.com/watch?v=M3iOROuTuMA",
+    }
+
+    vmaps = {
+        "<Escape>": "composite js document.getSelection().empty(); mode normal; hidecmdline",
+        "<C-[>": "composite js document.getSelection().empty(); mode normal ; hidecmdline",
+        "y": "composite js document.getSelection().toString() | clipboard yank",
+        "l": 'js document.getSelection().modify("extend","forward","character")',
+        "h": 'js document.getSelection().modify("extend","backward","character")',
+        "e": 'js document.getSelection().modify("extend","forward","word")',
+        "w": 'js document.getSelection().modify("extend","forward","word"); document.getSelection().modify("extend","forward","character")',
+        "b": 'js document.getSelection().modify("extend","backward","word"); document.getSelection().modify("extend",forward","character")',
+        "j": 'js document.getSelection().modify("extend","forward","line")',
+        // "j": 'js document.getSelection().modify("extend","forward","paragraph")', // not implemented in Firefox
+        "k": 'js document.getSelection().modify("extend","backward","line")',
+        "$": 'js document.getSelection().modify("extend","forward","lineboundary")',
+        "0": 'js document.getSelection().modify("extend","backward","lineboundary")',
+        "🕷🕷INHERITS🕷🕷": "nmaps",
     }
 
     hintmaps = {
@@ -968,9 +993,18 @@ const DEFAULTS = o(new default_config())
  */
 function getDeepProperty(obj, target: string[]) {
     if (obj !== undefined && target.length) {
-        return getDeepProperty(obj[target[0]], target.slice(1))
+        if (obj["🕷🕷INHERITS🕷🕷"] === undefined)  {
+            return getDeepProperty(obj[target[0]], target.slice(1))
+        } else {
+            return getDeepProperty(mergeDeep(get(obj["🕷🕷INHERITS🕷🕷"]), obj)[target[0]], target.slice(1))
+        }
     } else {
-        return obj
+        if (obj === undefined) return obj
+        if (obj["🕷🕷INHERITS🕷🕷"] !== undefined) {
+            return mergeDeep(get(obj["🕷🕷INHERITS🕷🕷"]), obj)
+        } else {
+            return obj
+        }
     }
 }
 

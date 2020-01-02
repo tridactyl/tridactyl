@@ -101,6 +101,7 @@ function* ParserController() {
         ignore: keys => generic.parser("ignoremaps", keys),
         hint: hinting.parser,
         gobble: gobblemode.parser,
+        visual: keys => generic.parser("vmaps", keys),
     }
 
     while (true) {

@@ -8,6 +8,7 @@ export type ModeName =
     | "ignore"
     | "gobble"
     | "input"
+    | "visual"
 
 export class PrevInput {
     inputId: string

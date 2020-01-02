@@ -355,6 +355,15 @@ config.getAsync("leavegithubalone").then(v => {
     }
 })
 
+document.addEventListener("selectionchange", () => {
+    const selection = document.getSelection()
+    if (selection.anchorOffset == selection.focusOffset) {
+        contentState.mode = "normal"
+    } else {
+        contentState.mode = "visual"
+    }
+})
+
 // Listen for statistics from each content script and send them to the
 // background for collection. Attach the observer to the window object
 // since there's apparently a bug that causes performance observers to
