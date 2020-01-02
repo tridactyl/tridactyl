@@ -249,6 +249,7 @@ export class default_config {
         ";k": "hint -k",
         ";y": "hint -y",
         ";p": "hint -p",
+        ";h": "hint -h",
         ";P": "hint -P",
         ";r": "hint -r",
         ";s": "hint -s",
