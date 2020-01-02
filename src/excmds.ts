@@ -3880,7 +3880,6 @@ export async function hint(option?: string, selectors?: string, ...rest: string[
                     r.setStart(elem, 0)
                     r.setEnd(elem, 1)
                     const s = document.getSelection()
-                    s.empty()
                     s.addRange(r)
                     return elem
                 },
