@@ -1,5 +1,39 @@
 # Tridactyl changelog
 
+## Release 1.18.0 / Unreleased
+
+-   New features
+
+    -   Rudimentary visual mode!
+
+        -   Enter it by selecting text: e.g. with the mouse, with text-selection `;h` hint mode, by searching with `/`, or by using Firefox's "caret" mode on `F7`.
+        -   Yank selected text with `y`
+        -   Search for selected text with `s` and `S`
+
+    -   Select text hint mode added, bound to `;h` by default
+
+    -   `apropos` command which searches through help text - very handy for finding settings or commands you didn't know about (#1980)
+
+        -   Known issue: on some machines, this command doesn't work.
+
+    -   RC files can have escaped newlines with backslashes (#2003)
+
+-   Bug fixes
+
+    -   Smooth scroll is now much smoother (#2016)
+
+    -   Counts work with scrollline (#1984)
+
+    -   Reading RC files might now be a bit more reliable (#1983)
+
+-   Miscellaneous
+
+    -   Our internal `urlutils` object is now attached to the `tri` object and accessible through `js`
+
+    -   We no longer add a `namespace` to userChrome in `guiset`
+
+    -   Our messaging system now has type checking
+
 ## Release 1.17.1 / 2019-11-06
 
 -   Reversions requested by Mozilla reviewers
