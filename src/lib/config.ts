@@ -250,6 +250,7 @@ export class default_config {
         ";y": "hint -y",
         ";p": "hint -p",
         ";h": "hint -h",
+        "v": "hint -h", // Easiest way of entering visual mode for now. Expect this bind to change
         ";P": "hint -P",
         ";r": "hint -r",
         ";s": "hint -s",
