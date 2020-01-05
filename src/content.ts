@@ -356,6 +356,7 @@ config.getAsync("leavegithubalone").then(v => {
 })
 
 document.addEventListener("selectionchange", () => {
+    if (contentState.mode == "ignore") return
     const selection = document.getSelection()
     if (selection.anchorOffset == selection.focusOffset) {
         contentState.mode = "normal"
