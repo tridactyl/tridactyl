@@ -140,6 +140,7 @@ import * as styling from "@src/content/styling"
 import { EditorCmds as editor } from "@src/content/editor"
 import * as updates from "@src/lib/updates"
 import * as urlutils from "@src/lib/url_util"
+import * as scrolling from "@src/content/scrolling"
 /* tslint:disable:import-spacing */
 ; (window as any).tri = Object.assign(Object.create(null), {
     browserBg: webext.browserBg,
@@ -157,6 +158,7 @@ import * as urlutils from "@src/lib/url_util"
     keyseq,
     messaging,
     state,
+    scrolling,
     webext,
     l: prom => prom.then(console.log).catch(console.error),
     native,
