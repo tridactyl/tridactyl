@@ -334,8 +334,8 @@ export class default_config {
     hintmaps = {
         "<Backspace>": "hint.popKey",
         "<Escape>": "hint.reset",
-        "<Tab>": "hint.focusPreviousHint",
-        "<S-Tab>": "hint.focusNextHint",
+        "<Tab>": "hint.focusNextHint",
+        "<S-Tab>": "hint.focusPreviousHint",
         "<ArrowUp>": "hint.focusTopHint",
         "<ArrowDown>": "hint.focusBottomHint",
         "<ArrowLeft>": "hint.focusLeftHint",
