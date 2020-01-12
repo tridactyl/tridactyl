@@ -985,6 +985,11 @@ export class default_config {
      * gu (or other means).
      */
     urlparenttrailingslash: "true" | "false" = "true"
+
+    /**
+     * Whether to enter visual mode when text is selected. Visual mode can always be entered with `:mode visual`.
+     */
+    visualenterauto: "true" | "false" = "true"
 }
 
 /** @hidden */
