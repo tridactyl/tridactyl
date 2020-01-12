@@ -357,15 +357,16 @@ config.getAsync("leavegithubalone").then(v => {
     }
 })
 
-config.getAsync("visualenterauto").then(v => {
-    if (v === "false") return
-    document.addEventListener("selectionchange", () => {
-        if (contentState.mode !== "normal") return
-        const selection = document.getSelection()
-        if (selection.anchorOffset !== selection.focusOffset) {
-            contentState.mode = "visual"
-        }
-    })
+document.addEventListener("selectionchange", () => {
+    const selection = document.getSelection()
+    if ((contentState.mode == "visual") && (config.get("visualexitauto") == "true") && (selection.anchorOffset == selection.focusOffset)) {
+        contentState.mode = "normal"
+        return
+    }
+    if ((contentState.mode !== "normal") || (config.get("visualenterauto") == "false")) return
+    if (selection.anchorOffset !== selection.focusOffset) {
+        contentState.mode = "visual"
+    }
 })
 
 // Listen for statistics from each content script and send them to the

@@ -990,6 +990,11 @@ export class default_config {
      * Whether to enter visual mode when text is selected. Visual mode can always be entered with `:mode visual`.
      */
     visualenterauto: "true" | "false" = "true"
+
+    /**
+     * Whether to return to visual mode when text is deselected.
+     */
+    visualexitauto: "true" | "false" = "true"
 }
 
 /** @hidden */
