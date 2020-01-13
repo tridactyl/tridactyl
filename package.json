@@ -15,7 +15,7 @@
     "mithril": "^2.0.4",
     "rss-parser": "^3.7.3",
     "semver-compare": "^1.0.0",
-    "typedoc-default-themes": "^0.6.3"
+    "typedoc-default-themes": "^0.7.0"
   },
   "devDependencies": {
     "@types/jest": "^24.0.25",
