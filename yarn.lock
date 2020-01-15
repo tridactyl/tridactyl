@@ -3736,10 +3736,10 @@ immediate@~3.0.5:
   resolved "https://registry.yarnpkg.com/immediate/-/immediate-3.0.6.tgz#9db1dbd0faf8de6fbe0f5dd5e56bb606280de69b"
   integrity sha1-nbHb0Pr43m++D13V5Wu2BigN5ps=
 
-immer@^5.2.1:
-  version "5.2.1"
-  resolved "https://registry.yarnpkg.com/immer/-/immer-5.2.1.tgz#7d4f74c242178e87151d595f48db1b5c51580485"
-  integrity sha512-9U1GEbJuH6nVoyuFRgTQDGMzcBuNBPfXM3M7Pp/sdmYKTKYOBUZGgeUb9H57GfLK/xC1DMLarWX2FrhMBfUJ8g==
+immer@^5.3.0:
+  version "5.3.0"
+  resolved "https://registry.yarnpkg.com/immer/-/immer-5.3.0.tgz#4fd8328def4d2962f7082775764aa96063902850"
+  integrity sha512-kx1vWMcIxGGg/3j4gTckWVc0buyxI4CC5usMDWE/7LXPK6Poxz1ivf0opC9Ma+G6/dN85F5y2SQ2xBFvdreh8Q==
 
 immutable@^3.8.2:
   version "3.8.2"
