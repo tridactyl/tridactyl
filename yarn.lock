@@ -7755,10 +7755,10 @@ typedarray@^0.0.6:
   resolved "https://registry.yarnpkg.com/typedarray/-/typedarray-0.0.6.tgz#867ac74e3864187b1d3d47d996a78ec5c8830777"
   integrity sha1-hnrHTjhkGHsdPUfZlqeOxciDB3c=
 
-typedoc-default-themes@^0.7.0:
-  version "0.7.0"
-  resolved "https://registry.yarnpkg.com/typedoc-default-themes/-/typedoc-default-themes-0.7.0.tgz#ab02068a006d06443c1dce8ba157f5f16dc78e27"
-  integrity sha512-yeD56oPXMKJ5nDiCZ27x/SIxx11646Gr5GscxtLSmrh3ucMX6Lklgo7cSABafQXlGPSN5Kb/oLxmfN33BeqMWw==
+typedoc-default-themes@^0.7.0, typedoc-default-themes@^0.7.1:
+  version "0.7.1"
+  resolved "https://registry.yarnpkg.com/typedoc-default-themes/-/typedoc-default-themes-0.7.1.tgz#1b92999162dc816b52b8094f503f254c87f07c28"
+  integrity sha512-s3jeUHc4EY8snIta6lNkUu9+36WMDUnkKm0UQ59w5iPo/4Y2d4+M9CDIKoenYKT5hkg/UnTc3oX48VZZytv8Xw==
   dependencies:
     backbone "^1.4.0"
     jquery "^3.4.1"
