@@ -12,6 +12,7 @@ const logger = new Logger("controller")
 
 function PrintableKey(k) {
     let result = k.key
+    console.log(k)
     if (
         result === "Control" ||
         result === "Meta" ||
@@ -173,10 +174,17 @@ function* ParserController() {
                     exstr = response.exstr
                     break
                 } else {
-                    keyEvents = response.keys
+                    keyEvents = response.potMatches
+                    console.log([...keyEvents.keys()])
                     // show current keyEvents as a suffix of the contentState
-                    contentState.suffix = keyEvents
-                        .map(x => PrintableKey(x))
+                    contentState.suffix = [...keyEvents.keys()]
+                        .map(y => {
+                            console.log(y)
+                            ; (y as any).map(x => {
+                                console.log(x)
+                                PrintableKey(x.key)
+                            }).join(" ")
+                        })
                         .join("")
                     logger.debug("suffix: ", contentState.suffix)
                 }
