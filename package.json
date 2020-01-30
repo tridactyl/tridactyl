@@ -18,7 +18,7 @@
     "typedoc-default-themes": "^0.7.2"
   },
   "devDependencies": {
-    "@types/jest": "^24.9.1",
+    "@types/jest": "^25.1.1",
     "@types/mithril": "^2.0.2",
     "@types/node": "^13.5.0",
     "@types/selenium-webdriver": "^4.0.6",
