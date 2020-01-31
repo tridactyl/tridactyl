@@ -3,6 +3,7 @@ import { browserBg } from "@src/lib/webext.ts"
 import { enumerate } from "@src/lib/itertools"
 import * as Containers from "@src/lib/containers"
 import * as Completions from "@src/completions"
+import * as config from "@src/lib/config"
 
 class BufferCompletionOption extends Completions.CompletionOptionHTML
     implements Completions.CompletionOptionFuse {
@@ -152,7 +153,11 @@ export class BufferCompletionSource extends Completions.CompletionSourceFuse {
         // Get alternative tab, defined as last accessed tab.
         tabs.sort((a, b) => (b.lastAccessed - a.lastAccessed))
         const alt = tabs[1]
-        tabs.sort((a, b) => (a.index - b.index))
+
+        const useMruTabOrder = (config.get("tabsort") === "mru")
+        if (!useMruTabOrder) {
+            tabs.sort((a, b) => (a.index - b.index))
+        }
 
         for (const tab of tabs) {
             options.push(

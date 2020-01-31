@@ -691,6 +691,11 @@ export class default_config {
     tabopenpos: "next" | "last" = "next"
 
     /**
+     * Controls which tab order to use when opening the tab/buffer list. Either mru = sort by most recent tab or default = by tab index
+     */
+    tabsort: "mru" | "default" = "default"
+
+    /**
      * Where to open tabs opened with hinting - as if it had been middle clicked, to the right of the current tab, or at the end of the tabs.
      */
     relatedopenpos: "related" | "next" | "last" = "related"
