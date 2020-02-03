@@ -15,6 +15,7 @@
 */
 
 import Logger from "@src/lib/logging"
+import * as messaging from "@src/lib/messaging"
 const logger = new Logger("state")
 
 class State {
@@ -55,17 +56,39 @@ const state = (new Proxy(overlay, {
 
     /** Persist sets to storage immediately */
     set(target, property, value) {
+        // Claim named lock
+
+        //
+        // TODO: not implemented!
+        //
+
         logger.debug("State changed!", property, value)
         target[property] = value
         browser.storage.local.set({ state: target } as any)
+        // dispatch message to all content state.ts's
+        // it doesn't currently appear to be used in background - if it is, "simply" need to use farnoy's typed messages
+        messaging.messageAllTabs("state", "stateUpdate", [{state: target}])
+
+        // Wait for reply from each tab to say that they have updated their own state
+        // (probably with a moderate timeout in case a tab is closed etc. while trying to update)
+
+        //
+        // TODO: not implemented!
+        //
+
+        // Release named lock
+
+        //
+        // TODO: not implemented!
+        //
         return true
     },
 }))
 
-browser.storage.onChanged.addListener((changes, areaname) => {
-    if (areaname === "local" && "state" in changes) {
-        Object.assign(overlay, changes.state.newValue)
-    }
+// Keep instances of state.ts synchronised with each other
+messaging.addListener("state", message => {
+    if (message.command !== "stateUpdate") throw("Unsupported message to state, type " + message.command)
+    Object.assign(overlay, message.args[0].state)
 })
 
 export { state as default }
