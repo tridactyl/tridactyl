@@ -1439,6 +1439,19 @@ export async function update() {
             }
             set("configversion", "1.8")
         },
+        "1.8": () => {
+            const updateSetting = mapObj => {
+                if (!mapObj) return mapObj
+                return R.map(val => {
+                    if (val === "") return null
+                    return val
+                }, mapObj)
+            }
+            ; ["nmaps", "exmaps", "imaps", "inputmaps", "ignoremaps", "hintmaps", "vmaps"].forEach(
+                settingName => updateAll([settingName], updateSetting),
+            )
+            set("configversion", "1.9")
+        },
     }
     if (!get("configversion")) set("configversion", "0.0")
     const updatetest = v => {

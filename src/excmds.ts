@@ -3419,7 +3419,7 @@ export async function unbind(...args: string[]) {
     const args_obj = parse_bind_args(...args)
     if (args_obj.excmd !== "") throw new Error("unbind syntax: `unbind key`")
 
-    return config.set(args_obj.configName, args_obj.key, "")
+    return config.set(args_obj.configName, args_obj.key, null)
 }
 
 /**
