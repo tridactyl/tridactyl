@@ -3699,10 +3699,10 @@ export function unset(...keys: string[]) {
 }
 
 /**
- * "Delete" a default setting. E.g. `configrm searchurls.github` means `open github test` would search your default search engine for "github test".
+ * "Delete" a default setting. E.g. `setnull searchurls.github` means `open github test` would search your default search engine for "github test".
  */
 //#background
-export function configrm(...keys: string[]) {
+export function setnull(...keys: string[]) {
     const target = keys.join(".").split(".")
     if (target === undefined) throw "You must define a target!"
     config.set(...target, null)
