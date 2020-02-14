@@ -19,11 +19,11 @@ import * as R from "ramda"
 /* Remove all empty strings from objects recursively
  * NB: also applies to arrays
  */
-const removeEmpty = R.when(
+const removeNull = R.when(
     R.is(Object),
     R.pipe(
-        R.reject(val => val == ""),
-        R.map(a => removeEmpty(a))
+        R.reject(val => val === null),
+        R.map(a => removeNull(a))
     )
 )
 
@@ -1064,13 +1064,13 @@ function setDeepProperty(obj, value, target) {
 export function mergeDeep(o1, o2) {
     const r = Array.isArray(o1) ? o1.slice() : Object.create(o1)
     Object.assign(r, o1, o2)
-    if (o2 === undefined) return removeEmpty(r)
+    if (o2 === undefined) return removeNull(r)
     Object.keys(o1)
         .filter(
             key => typeof o1[key] === "object" && typeof o2[key] === "object",
         )
         .forEach(key => Object.assign(r[key], mergeDeep(o1[key], o2[key])))
-    return removeEmpty(r)
+    return removeNull(r)
 }
 
 /** @hidden
