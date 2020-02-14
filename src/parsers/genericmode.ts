@@ -13,10 +13,9 @@ export function parser(conf, keys): keyseq.ParserResponse {
         keyseq.translateKeysUsingKeyTranslateMap(keys, translationmap)
     }
 
-    // Remove unbound keys
-    maps = Object.entries(maps).filter(([k, v]) => v !== "")
     // Convert to KeyMap
-    maps = keyseq.mapstrMapToKeyMap(new Map(maps))
+    maps = new Map(Object.entries(maps))
+    maps = keyseq.mapstrMapToKeyMap(maps)
 
     return keyseq.parse(keys, maps)
 }

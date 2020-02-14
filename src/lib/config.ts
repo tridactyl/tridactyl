@@ -14,6 +14,18 @@
  * We very strongly recommend that you pretty much ignore this page and instead follow the link below DEFAULTS that will take you to our own source code which is formatted in a marginally more sane fashion.
  *
  */
+import * as R from "ramda"
+
+/* Remove all empty strings from objects recursively
+ * NB: also applies to arrays
+ */
+const removeNull = R.when(
+    R.is(Object),
+    R.pipe(
+        R.reject(val => val === null),
+        R.map(a => removeNull(a))
+    )
+)
 
 /** @hidden */
 const CONFIGNAME = "userconfig"
@@ -1015,12 +1027,12 @@ function getDeepProperty(obj, target: string[]) {
         if (obj["🕷🕷INHERITS🕷🕷"] === undefined)  {
             return getDeepProperty(obj[target[0]], target.slice(1))
         } else {
-            return getDeepProperty(mergeDeep(get(obj["🕷🕷INHERITS🕷🕷"]), obj)[target[0]], target.slice(1))
+            return getDeepProperty(mergeDeepCull(get(obj["🕷🕷INHERITS🕷🕷"]), obj)[target[0]], target.slice(1))
         }
     } else {
         if (obj === undefined) return obj
         if (obj["🕷🕷INHERITS🕷🕷"] !== undefined) {
-            return mergeDeep(get(obj["🕷🕷INHERITS🕷🕷"]), obj)
+            return mergeDeepCull(get(obj["🕷🕷INHERITS🕷🕷"]), obj)
         } else {
             return obj
         }
@@ -1062,6 +1074,11 @@ export function mergeDeep(o1, o2) {
 }
 
 /** @hidden
+ * Merges two objects and removes all keys with null values at all levels
+ */
+export const mergeDeepCull = R.pipe(mergeDeep, removeNull)
+
+/** @hidden
  * Gets a site-specific setting.
  */
 
@@ -1092,7 +1109,7 @@ export function getURL(url: string, target: string[]) {
                             target,
                         )
                         if (acc instanceof Object && curVal instanceof Object)
-                            return mergeDeep(acc, curVal)
+                            return mergeDeepCull(acc, curVal)
                         return curVal
                     },
                     undefined as any,
@@ -1103,7 +1120,7 @@ export function getURL(url: string, target: string[]) {
     const deflt = _getURL(DEFAULTS, url, target)
     if (user === undefined || user === null) return deflt
     if (typeof user !== "object" || typeof deflt !== "object") return user
-    return mergeDeep(deflt, user)
+    return mergeDeepCull(deflt, user)
 }
 
 /** Get the value of the key target.
@@ -1129,7 +1146,7 @@ export function get(target_typed?: keyof default_config, ...target: string[]) {
 
     // Merge results if there's a default value and it's not an Array or primitive.
     if (typeof defult === "object") {
-        return mergeDeep(mergeDeep(defult, user), site)
+        return mergeDeepCull(mergeDeepCull(defult, user), site)
     } else {
         if (site !== undefined) {
             return site
@@ -1426,6 +1443,19 @@ export async function update() {
               })
             }
             set("configversion", "1.8")
+        },
+        "1.8": () => {
+            const updateSetting = mapObj => {
+                if (!mapObj) return mapObj
+                return R.map(val => {
+                    if (val === "") return null
+                    return val
+                }, mapObj)
+            }
+            ; ["nmaps", "exmaps", "imaps", "inputmaps", "ignoremaps", "hintmaps", "vmaps"].forEach(
+                settingName => updateAll([settingName], updateSetting),
+            )
+            set("configversion", "1.9")
         },
     }
     if (!get("configversion")) set("configversion", "0.0")

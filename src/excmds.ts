@@ -3419,7 +3419,7 @@ export async function unbind(...args: string[]) {
     const args_obj = parse_bind_args(...args)
     if (args_obj.excmd !== "") throw new Error("unbind syntax: `unbind key`")
 
-    return config.set(args_obj.configName, args_obj.key, "")
+    return config.set(args_obj.configName, args_obj.key, null)
 }
 
 /**
@@ -3696,6 +3696,16 @@ export function unset(...keys: string[]) {
     const target = keys.join(".").split(".")
     if (target === undefined) throw "You must define a target!"
     config.unset(...target)
+}
+
+/**
+ * "Delete" a default setting. E.g. `setnull searchurls.github` means `open github test` would search your default search engine for "github test".
+ */
+//#background
+export function setnull(...keys: string[]) {
+    const target = keys.join(".").split(".")
+    if (target === undefined) throw "You must define a target!"
+    config.set(...target, null)
 }
 
 // }}}
