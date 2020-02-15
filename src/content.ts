@@ -142,6 +142,7 @@ import * as updates from "@src/lib/updates"
 import * as urlutils from "@src/lib/url_util"
 import * as scrolling from "@src/content/scrolling"
 import * as R from "ramda"
+import * as locks from "@src/lib/locks"
 /* tslint:disable:import-spacing */
 ; (window as any).tri = Object.assign(Object.create(null), {
     browserBg: webext.browserBg,
@@ -169,6 +170,7 @@ import * as R from "ramda"
     R,
     updates,
     urlutils,
+    locks,
 })
 
 logger.info("Loaded commandline content?", commandline_content)

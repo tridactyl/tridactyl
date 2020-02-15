@@ -11,6 +11,8 @@ export type TabMessageType =
     | "finding_content"
     | "commandline_cmd"
     | "commandline_frame"
+    | "lock"
+
 export type NonTabMessageType =
     | "owntab_background"
     | "excmd_background"

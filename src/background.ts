@@ -25,6 +25,7 @@ import { AutoContain } from "@src/lib/autocontainers"
 import * as extension_info from "@src/lib/extension_info"
 import * as omnibox from "@src/background/omnibox"
 import * as R from "ramda"
+import * as locks from "@src/lib/locks"
 
 // Add various useful modules to the window for debugging
 ; (window as any).tri = Object.assign(Object.create(null), {
@@ -44,6 +45,7 @@ import * as R from "ramda"
     contentLocation: window.location,
     R,
     perf,
+    locks,
 })
 
 import { HintingCmds } from "@src/background/hinting"
