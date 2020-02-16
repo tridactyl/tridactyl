@@ -469,6 +469,7 @@ class Hint {
         // We need to compute the offset for elements that are in an iframe
         let offsetTop = 0
         let offsetLeft = 0
+        const pad = 4
         if (target.ownerDocument !== document) {
             const iframe = DOM.getAllDocumentFrames().find(
                 frame => frame.contentDocument === target.ownerDocument,
@@ -478,7 +479,7 @@ class Hint {
             offsetLeft += rect.left
         }
 
-        const rect = target.getClientRects()[0]
+        const rect = target.getBoundingClientRect()
         this.rect = {
             top: rect.top + offsetTop,
             bottom: rect.bottom + offsetTop,
@@ -494,9 +495,12 @@ class Hint {
             this.flag.classList.add("TridactylHintUppercase")
         }
         this.flag.classList.add("TridactylHint" + target.tagName)
+
+        const top = rect.top > 0 ? this.rect.top : offsetTop + pad
+        const left = rect.left > 0 ? this.rect.left : offsetLeft + pad
         this.flag.style.cssText = `
-            top: ${window.scrollY + this.rect.top}px !important;
-            left: ${window.scrollX + this.rect.left}px !important;
+            top: ${window.scrollY + top}px !important;
+            left: ${window.scrollX + left}px !important;
         `
         modeState.hintHost.appendChild(this.flag)
         this.hidden = false
