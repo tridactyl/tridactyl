@@ -14,6 +14,7 @@
     If this turns out to be expensive there are improvements available.
 */
 
+import * as locks from "@src/lib/locks"
 import Logger from "@src/lib/logging"
 import * as messaging from "@src/lib/messaging"
 const logger = new Logger("state")
@@ -54,41 +55,32 @@ const state = (new Proxy(overlay, {
         }
     },
 
-    /** Persist sets to storage immediately */
+    /** Persist sets to storage "immediately" */
     set(target, property, value) {
-        // Claim named lock
+        (async () => {
+            await locks.acquire("state")
 
-        //
-        // TODO: not implemented!
-        //
+            logger.debug("State changed!", property, value)
+            target[property] = value
+            browser.storage.local.set({ state: target } as any)
+            // dispatch message to all content state.ts's
+            // it doesn't currently appear to be used in background - if it is, "simply" need to use farnoy's typed messages
+            // Wait for reply from each tab to say that they have updated their own state
+            await messaging.messageAllTabs("state", "stateUpdate", [{state: target}])
 
-        logger.debug("State changed!", property, value)
-        target[property] = value
-        browser.storage.local.set({ state: target } as any)
-        // dispatch message to all content state.ts's
-        // it doesn't currently appear to be used in background - if it is, "simply" need to use farnoy's typed messages
-        messaging.messageAllTabs("state", "stateUpdate", [{state: target}])
+            // Release named lock
+            await locks.release("state")
+        })()
 
-        // Wait for reply from each tab to say that they have updated their own state
-        // (probably with a moderate timeout in case a tab is closed etc. while trying to update)
-
-        //
-        // TODO: not implemented!
-        //
-
-        // Release named lock
-
-        //
-        // TODO: not implemented!
-        //
         return true
     },
 }))
 
 // Keep instances of state.ts synchronised with each other
-messaging.addListener("state", message => {
+messaging.addListener("state", (message, sender, sendResponse) => {
     if (message.command !== "stateUpdate") throw("Unsupported message to state, type " + message.command)
     Object.assign(overlay, message.args[0].state)
+    sendResponse(true)
 })
 
 export { state as default }
