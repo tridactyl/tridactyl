@@ -16,7 +16,8 @@
     "rss-parser": "^3.7.5",
     "ramda": "^0.27.0",
     "semver-compare": "^1.0.0",
-    "typedoc-default-themes": "^0.7.2"
+    "typedoc-default-themes": "^0.7.2",
+    "uuid": "^3.4.0"
   },
   "devDependencies": {
     "@types/jest": "^25.1.2",
