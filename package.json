@@ -23,7 +23,7 @@
     "@types/jest": "^25.1.2",
     "@types/mithril": "^2.0.2",
     "@types/node": "^13.7.1",
-    "@types/selenium-webdriver": "^4.0.6",
+    "@types/selenium-webdriver": "^4.0.7",
     "cleanslate": "^0.10.1",
     "copy-webpack-plugin": "^5.1.1",
     "geckodriver": "^1.19.1",
