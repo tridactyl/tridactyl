@@ -11,6 +11,7 @@ export type TabMessageType =
     | "finding_content"
     | "commandline_cmd"
     | "commandline_frame"
+    | "state"
     | "lock"
 
 export type NonTabMessageType =
