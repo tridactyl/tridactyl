@@ -124,28 +124,7 @@ export class BufferCompletionSource extends Completions.CompletionSourceFuse {
         return super.scoredOptions(query, options)
     }
 
-    @Perf.measuredAsync
-    private async updateOptions(exstr = "") {
-        this.lastExstr = exstr
-        const [prefix, query] = this.splitOnPrefix(exstr)
-
-        // Hide self and stop if prefixes don't match
-        if (prefix) {
-            // Show self if prefix and currently hidden
-            if (this.state === "hidden") {
-                this.state = "normal"
-            }
-        } else {
-            this.state = "hidden"
-            return
-        }
-
-        // When the user is asking for tabmove completions, don't autoselect if the query looks like a relative move https://github.com/tridactyl/tridactyl/issues/825
-        this.shouldSetStateFromScore = !(
-            prefix === "tabmove " && query.match("^[+-][0-9]+$")
-        )
-
-        /* console.log('updateOptions', this.optionContainer) */
+    private async fillOptions() {
         const tabs: browser.tabs.Tab[] = await browserBg.tabs.query({
             currentWindow: true,
         })
@@ -180,8 +159,36 @@ export class BufferCompletionSource extends Completions.CompletionSourceFuse {
             )
         }
 
-        this.completion = undefined
         this.options = options
+    }
+
+    @Perf.measuredAsync
+    private async updateOptions(exstr = "") {
+        this.lastExstr = exstr
+        const [prefix, query] = this.splitOnPrefix(exstr)
+
+        // Hide self and stop if prefixes don't match
+        if (prefix) {
+            // Show self if prefix and currently hidden
+            if (this.state === "hidden") {
+                this.state = "normal"
+            }
+        } else {
+            this.state = "hidden"
+            return
+        }
+
+        // When the user is asking for tabmove completions, don't autoselect if the query looks like a relative move https://github.com/tridactyl/tridactyl/issues/825
+        this.shouldSetStateFromScore = !(
+            prefix === "tabmove " && query.match("^[+-][0-9]+$")
+        )
+
+        if (!this.options) {
+            await this.fillOptions()
+        }
+        this.completion = undefined
+
+        /* console.log('updateOptions', this.optionContainer) */
         if (query && query.trim().length > 0) {
             this.setStateFromScore(this.scoredOptions(query))
         } else {
