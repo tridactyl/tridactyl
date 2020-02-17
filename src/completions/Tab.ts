@@ -159,13 +159,23 @@ export class BufferCompletionSource extends Completions.CompletionSourceFuse {
             tabs.sort((a, b) => (a.index - b.index))
         }
 
+        const container_all = await browserBg.contextualIdentities.query({})
+        const container_map = new Map()
+        container_all.forEach(elem => container_map.set(elem.cookieStoreId, elem))
+        // firefox-default is not in contextualIdenetities
+        container_map.set("firefox-default", Containers.DefaultContainer)
+
         for (const tab of tabs) {
+            let tab_container = container_map.get(tab.cookieStoreId)
+            if (!tab_container) {
+                tab_container = Containers.DefaultContainer
+            }
             options.push(
                 new BufferCompletionOption(
                     (tab.index + 1).toString(),
                     tab,
                     tab === alt,
-                    await Containers.getFromId(tab.cookieStoreId),
+                    tab_container
                 ),
             )
         }
