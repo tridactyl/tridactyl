@@ -257,9 +257,13 @@ export abstract class CompletionSourceFuse extends CompletionSource {
     setStateFromScore(scoredOpts: ScoredOption[], autoselect = false) {
         const matches = scoredOpts.map(res => res.index)
 
+        const hidden_options = []
         for (const [index, option] of enumerate(this.options)) {
             if (matches.includes(index)) option.state = "normal"
-            else option.state = "hidden"
+            else {
+                option.state = "hidden"
+                hidden_options.push(option)
+            }
         }
 
         // ideally, this would not deselect anything unless it fell off the list of matches
@@ -268,6 +272,10 @@ export abstract class CompletionSourceFuse extends CompletionSource {
         } else {
             this.deselect()
         }
+
+        // sort this.options by score
+        const sorted_options = matches.map(index => this.options[index])
+        this.options = sorted_options.concat(hidden_options)
     }
 
     /** Call to replace the current display */
