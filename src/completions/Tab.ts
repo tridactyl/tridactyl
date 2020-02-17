@@ -124,6 +124,44 @@ export class BufferCompletionSource extends Completions.CompletionSourceFuse {
         return super.scoredOptions(query, options)
     }
 
+    private async fillOptions() {
+        const tabs: browser.tabs.Tab[] = await browserBg.tabs.query({
+            currentWindow: true,
+        })
+        const options = []
+        // Get alternative tab, defined as last accessed tab.
+        tabs.sort((a, b) => (b.lastAccessed - a.lastAccessed))
+        const alt = tabs[1]
+
+        const useMruTabOrder = (config.get("tabsort") === "mru")
+        if (!useMruTabOrder) {
+            tabs.sort((a, b) => (a.index - b.index))
+        }
+
+        const container_all = await browserBg.contextualIdentities.query({})
+        const container_map = new Map()
+        container_all.forEach(elem => container_map.set(elem.cookieStoreId, elem))
+        // firefox-default is not in contextualIdenetities
+        container_map.set("firefox-default", Containers.DefaultContainer)
+
+        for (const tab of tabs) {
+            let tab_container = container_map.get(tab.cookieStoreId)
+            if (!tab_container) {
+                tab_container = Containers.DefaultContainer
+            }
+            options.push(
+                new BufferCompletionOption(
+                    (tab.index + 1).toString(),
+                    tab,
+                    tab === alt,
+                    tab_container
+                ),
+            )
+        }
+
+        this.options = options
+    }
+
     @Perf.measuredAsync
     private async updateOptions(exstr = "") {
         this.lastExstr = exstr
@@ -145,33 +183,12 @@ export class BufferCompletionSource extends Completions.CompletionSourceFuse {
             prefix === "tabmove " && query.match("^[+-][0-9]+$")
         )
 
-        /* console.log('updateOptions', this.optionContainer) */
-        const tabs: browser.tabs.Tab[] = await browserBg.tabs.query({
-            currentWindow: true,
-        })
-        const options = []
-        // Get alternative tab, defined as last accessed tab.
-        tabs.sort((a, b) => (b.lastAccessed - a.lastAccessed))
-        const alt = tabs[1]
-
-        const useMruTabOrder = (config.get("tabsort") === "mru")
-        if (!useMruTabOrder) {
-            tabs.sort((a, b) => (a.index - b.index))
+        if (!this.options) {
+            await this.fillOptions()
         }
-
-        for (const tab of tabs) {
-            options.push(
-                new BufferCompletionOption(
-                    (tab.index + 1).toString(),
-                    tab,
-                    tab === alt,
-                    await Containers.getFromId(tab.cookieStoreId),
-                ),
-            )
-        }
-
         this.completion = undefined
-        this.options = options
+
+        /* console.log('updateOptions', this.optionContainer) */
         if (query && query.trim().length > 0) {
             this.setStateFromScore(this.scoredOptions(query))
         } else {
