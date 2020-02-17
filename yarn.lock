@@ -608,10 +608,10 @@
   resolved "https://registry.yarnpkg.com/@types/node/-/node-13.7.1.tgz#238eb34a66431b71d2aaddeaa7db166f25971a0d"
   integrity sha512-Zq8gcQGmn4txQEJeiXo/KiLpon8TzAl0kmKH4zdWctPj05nWwp1ClMdAVEloqrQKfaC48PNLdgN/aVaLqUrluA==
 
-"@types/selenium-webdriver@^4.0.7":
-  version "4.0.7"
-  resolved "https://registry.yarnpkg.com/@types/selenium-webdriver/-/selenium-webdriver-4.0.7.tgz#ae235f7981ce3eaa7b599bbf11f3ae4ef64cf9ff"
-  integrity sha512-IlHGwyTzzuphPZBTalJ0LmpS1wguHYODpJuo01xvbtPQy+o7DpCNZARQY7YyvbHC0EzcleoKFE8EX/BHIGa9Fg==
+"@types/selenium-webdriver@^4.0.8":
+  version "4.0.8"
+  resolved "https://registry.yarnpkg.com/@types/selenium-webdriver/-/selenium-webdriver-4.0.8.tgz#87a28a43197903ba2bd8dafa91850760582487b8"
+  integrity sha512-a5/HYMlBM4RNKZHGtIZRpFuk5HChp7raLt9SPiVLP9woUdd65Ix5CEJzjvqQUV68QXdd7xtzyL2n4kMLqCDL6g==
 
 "@types/stack-utils@^1.0.1":
   version "1.0.1"
