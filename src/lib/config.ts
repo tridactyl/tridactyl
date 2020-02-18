@@ -1706,6 +1706,6 @@ const updateHandler = (message, sender, sendResponse) => {
     sendResponse(true)
 }
 
-browser.runtime.onMessage.addListener(updateHandler) // Messaging.addListener doesn't allow us to send async responses - is this on purpose?
+browser.runtime.onMessage.addListener(updateHandler) // messaging.addListener doesn't load quickly enough for us to use it here
 
 init()
