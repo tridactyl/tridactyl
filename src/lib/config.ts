@@ -17,6 +17,7 @@
 import * as locks from "@src/lib/locks"
 import * as messaging from "@src/lib/messaging"
 import * as R from "ramda"
+import {diff} from "deep-object-diff"
 
 /* Remove all nulls from objects recursively
  * NB: also applies to arrays
@@ -1702,6 +1703,23 @@ const parseConfigHelper = (pconf, parseobj) => {
 const updateHandler = (message, sender, sendResponse) => {
     if (message.type !== "config") return false
     if (message.command !== "confUpdate") throw("Unsupported message to config, type " + message.command)
+    const newconfig = message.args[0][CONFIGNAME]
+    function triggerChangeListeners(key, value = newconfig[key]) {
+        const arr = changeListeners.get(key)
+        if (arr) {
+            const v = USERCONFIG[key] === undefined ? DEFAULTS[key] : USERCONFIG[key]
+            arr.forEach(f => f(v, value))
+        }
+    }
+    const differences = diff(USERCONFIG, newconfig) // deleted keys become undefined
+
+    // Trigger listeners
+    // Deleted keys
+    R.keys(R.filter(x => x === undefined, differences))?.forEach(key => triggerChangeListeners(key, DEFAULTS[key]))
+
+    // Changed keys
+    R.keys(R.filter(x => x !== undefined, differences))?.forEach(key => triggerChangeListeners(key))
+
     Object.assign(USERCONFIG, message.args[0][CONFIGNAME])
     sendResponse(true)
 }
