@@ -8,6 +8,7 @@ import * as config from "@src/lib/config"
 class BufferCompletionOption extends Completions.CompletionOptionHTML
     implements Completions.CompletionOptionFuse {
     public fuseKeys = []
+    public tabIndex: number
 
     constructor(
         public value: string,
@@ -16,6 +17,8 @@ class BufferCompletionOption extends Completions.CompletionOptionHTML
         container: browser.contextualIdentities.ContextualIdentity,
     ) {
         super()
+        this.tabIndex = tab.index
+
         // Two character tab properties prefix
         let pre = ""
         if (tab.active) pre += "%"
@@ -66,6 +69,7 @@ export class BufferCompletionSource extends Completions.CompletionSourceFuse {
             "Tabs",
         )
 
+        this.sortScoredOptions = true
         this.updateOptions()
         this._parent.appendChild(this.node)
     }
@@ -97,13 +101,8 @@ export class BufferCompletionSource extends Completions.CompletionSourceFuse {
                 let index = Number(args[0]) - 1
                 if (Math.abs(index) < options.length) {
                     index = index.mod(options.length)
-                    return [
-                        {
-                            index,
-                            option: options[index],
-                            score: 0,
-                        },
-                    ]
+                    // options order might change by scored sorting
+                    return this.nthTabscoredOptions(index, options)
                 }
             } else if (args[0] === "#") {
                 for (const [index, option] of enumerate(options)) {
@@ -122,6 +121,22 @@ export class BufferCompletionSource extends Completions.CompletionSourceFuse {
 
         // If not yet returned...
         return super.scoredOptions(query, options)
+    }
+
+    /** Return the scoredOption[] result for the nth tab */
+    private nthTabscoredOptions(
+        n: number,
+        options: BufferCompletionOption[]
+    ): Completions.ScoredOption[] {
+        for (const [index, option] of enumerate(options)) {
+            if (option.tabIndex === n) {
+                return [{
+                    index,
+                    option,
+                    score: 0,
+                }, ]
+            }
+        }
     }
 
     private async fillOptions() {

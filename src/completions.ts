@@ -155,6 +155,7 @@ export abstract class CompletionSourceFuse extends CompletionSource {
     fuse = undefined
 
     protected lastExstr: string
+    protected sortScoredOptions = false
 
     protected optionContainer = html`<table class="optionContainer"></table>`
 
@@ -257,9 +258,13 @@ export abstract class CompletionSourceFuse extends CompletionSource {
     setStateFromScore(scoredOpts: ScoredOption[], autoselect = false) {
         const matches = scoredOpts.map(res => res.index)
 
+        const hidden_options = []
         for (const [index, option] of enumerate(this.options)) {
             if (matches.includes(index)) option.state = "normal"
-            else option.state = "hidden"
+            else {
+                option.state = "hidden"
+                hidden_options.push(option)
+            }
         }
 
         // ideally, this would not deselect anything unless it fell off the list of matches
@@ -267,6 +272,12 @@ export abstract class CompletionSourceFuse extends CompletionSource {
             this.select(this.options[matches[0]])
         } else {
             this.deselect()
+        }
+
+        // sort this.options by score
+        if (this.sortScoredOptions) {
+            const sorted_options = matches.map(index => this.options[index])
+            this.options = sorted_options.concat(hidden_options)
         }
     }
 
@@ -286,6 +297,7 @@ export abstract class CompletionSourceFuse extends CompletionSource {
             if (option.state !== "hidden")
                 this.optionContainer.appendChild(option.html)
         }
+        this.next(0)
 
         /* console.log('updateDisplay', this.optionContainer, newContainer) */
 
