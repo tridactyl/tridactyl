@@ -155,6 +155,7 @@ export abstract class CompletionSourceFuse extends CompletionSource {
     fuse = undefined
 
     protected lastExstr: string
+    protected sortScoredOptions = false
 
     protected optionContainer = html`<table class="optionContainer"></table>`
 
@@ -274,8 +275,10 @@ export abstract class CompletionSourceFuse extends CompletionSource {
         }
 
         // sort this.options by score
-        const sorted_options = matches.map(index => this.options[index])
-        this.options = sorted_options.concat(hidden_options)
+        if (this.sortScoredOptions) {
+            const sorted_options = matches.map(index => this.options[index])
+            this.options = sorted_options.concat(hidden_options)
+        }
     }
 
     /** Call to replace the current display */

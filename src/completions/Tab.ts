@@ -66,6 +66,7 @@ export class BufferCompletionSource extends Completions.CompletionSourceFuse {
             "Tabs",
         )
 
+        this.sortScoredOptions = true
         this.updateOptions()
         this._parent.appendChild(this.node)
     }
