@@ -11,6 +11,7 @@ export type TabMessageType =
     | "finding_content"
     | "commandline_cmd"
     | "commandline_frame"
+    | "state"
     | "lock"
 
 export type NonTabMessageType =
@@ -152,7 +153,10 @@ export async function messageAllTabs(
         try {
             responses.push(await messageTab(tab.id, type, command, args))
         } catch (e) {
-            logger.error(e)
+            // Skip errors caused by tabs we aren't running on
+            if (e.message != "Could not establish connection. Receiving end does not exist.") {
+                logger.error(e)
+            }
         }
     }
     return responses
