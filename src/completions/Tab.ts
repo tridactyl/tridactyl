@@ -89,22 +89,6 @@ export class BufferCompletionSource extends Completions.CompletionSourceFuse {
         super.setStateFromScore(scoredOpts, this.shouldSetStateFromScore)
     }
 
-    /** Return the scoredOption[] result for the nth tab */
-    private nthTabscoredOptions(
-        n: number,
-        options: BufferCompletionOption[]
-    ): Completions.ScoredOption[] {
-        for (const [index, option] of enumerate(options)) {
-            if (option.tabIndex === n) {
-                return [{
-                    index,
-                    option,
-                    score: 0,
-                },]
-            }
-        }
-    }
-
     /** Score with fuse unless query is a single # or looks like a tab index */
     scoredOptions(
         query: string,
@@ -137,6 +121,22 @@ export class BufferCompletionSource extends Completions.CompletionSourceFuse {
 
         // If not yet returned...
         return super.scoredOptions(query, options)
+    }
+
+    /** Return the scoredOption[] result for the nth tab */
+    private nthTabscoredOptions(
+        n: number,
+        options: BufferCompletionOption[]
+    ): Completions.ScoredOption[] {
+        for (const [index, option] of enumerate(options)) {
+            if (option.tabIndex === n) {
+                return [{
+                    index,
+                    option,
+                    score: 0,
+                }, ]
+            }
+        }
     }
 
     private async fillOptions() {
