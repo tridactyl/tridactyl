@@ -22,7 +22,7 @@ export async function acquire(lockname: string) {
         let p
         try {
             p = await browser.runtime.sendMessage({type: "lock", command: "acquire", args: [lockname, time, ID]})
-        } catch(e) {
+        } catch (e) {
             if (e.message != "Could not establish connection. Receiving end does not exist.") {
                 throw e
             }
