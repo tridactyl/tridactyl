@@ -16,7 +16,7 @@
  */
 import * as R from "ramda"
 
-/* Remove all empty strings from objects recursively
+/* Remove all nulls from objects recursively
  * NB: also applies to arrays
  */
 const removeNull = R.when(
