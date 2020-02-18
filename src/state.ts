@@ -70,7 +70,7 @@ const state = (new Proxy(overlay, {
 
             // Ideally this V would use Farnoy's typed messages but
             // I haven't had time to get my head around them
-            await browser.runtime.sendMessage({type:"state", command: "stateUpdate", args: [{state: target}]})
+            await browser.runtime.sendMessage({type: "state", command: "stateUpdate", args: [{state: target}]})
 
             // Release named lock
             await locks.release("state")
