@@ -14,6 +14,7 @@
  * We very strongly recommend that you pretty much ignore this page and instead follow the link below DEFAULTS that will take you to our own source code which is formatted in a marginally more sane fashion.
  *
  */
+import * as locks from "@src/lib/locks"
 import * as R from "ramda"
 
 /* Remove all nulls from objects recursively
@@ -1269,11 +1270,14 @@ export function unset(...target) {
 export async function save(storage: "local" | "sync" = get("storageloc")) {
     // let storageobj = storage === "local" ? browser.storage.local : browser.storage.sync
     // storageobj.set({CONFIGNAME: USERCONFIG})
+    await locks.acquire("config")
     const settingsobj = o({})
     settingsobj[CONFIGNAME] = USERCONFIG
-    return storage === "local"
+    const ans = storage === "local"
         ? browser.storage.local.set(settingsobj)
         : browser.storage.sync.set(settingsobj)
+    locks.release("config")
+    return ans
 }
 
 /** Updates the config to the latest version.
