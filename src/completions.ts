@@ -297,6 +297,7 @@ export abstract class CompletionSourceFuse extends CompletionSource {
             if (option.state !== "hidden")
                 this.optionContainer.appendChild(option.html)
         }
+        this.next(0)
 
         /* console.log('updateDisplay', this.optionContainer, newContainer) */
 
