@@ -64,16 +64,18 @@ const state = (new Proxy(overlay, {
             target[property] = value
             browser.storage.local.set({ state: target } as any)
 
-            // dispatch message to all content state.ts's
-            // Wait for reply from each tab to say that they have updated their own state
-            await messaging.messageAllTabs("state", "stateUpdate", [{state: target}])
+            // Wait for reply from each script to say that they have updated their own state
+            await Promise.all([
+                // dispatch message to all content state.ts's
+                messaging.messageAllTabs("state", "stateUpdate", [{state: target}]),
 
-            // Ideally this V would use Farnoy's typed messages but
-            // I haven't had time to get my head around them
-            await browser.runtime.sendMessage({type: "state", command: "stateUpdate", args: [{state: target}]})
+                // Ideally this V would use Farnoy's typed messages but
+                // I haven't had time to get my head around them
+                browser.runtime.sendMessage({type: "state", command: "stateUpdate", args: [{state: target}]}),
+            ])
 
             // Release named lock
-            await locks.release("state")
+            locks.release("state")
         })()
 
         return true
