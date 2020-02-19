@@ -2,10 +2,10 @@
 
 /* tslint:disable:import-spacing */
 
-/* HVC SVNT DRACONES */
+/* HC SVNT DRACONES */
 // If you move this ~25 lines down Tridactyl will break
 import * as locks from "@src/lib/locks"
-/* HVC NON SVNT DRACONES */
+/* HC NON SVNT DRACONES */
 
 import * as proxy_background from "@src/lib/browser_proxy_background"
 
