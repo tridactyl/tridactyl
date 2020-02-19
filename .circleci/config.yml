@@ -34,7 +34,7 @@ jobs:
       - image: circleci/node:latest
     steps:
       - commoncmd
-      - run: bash -c 'cd build; "$(yarn bin)/web-ext lint" src'
+      - run: bash -c 'cd build; "$(yarn bin)/web-ext" lint'
   e2e:
     docker:
       - image: circleci/node:latest-browsers
