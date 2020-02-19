@@ -5,7 +5,7 @@ const CopyWebPackPlugin = require("copy-webpack-plugin")
 const fileExtensions = [".ts", ".tsx", ".js", ".json"]
 
 module.exports = {
-    mode: "development",
+    mode: "production",
     entry: {
         background: "./src/background.ts",
         content: "./src/content.ts",
@@ -19,7 +19,7 @@ module.exports = {
     },
 
     // Enable sourcemaps for debugging webpack's output.
-    devtool: "inline-source-map",
+    devtool: "source-map",
 
     resolve: {
         // Add '.ts' and '.tsx' as resolvable extensions.
