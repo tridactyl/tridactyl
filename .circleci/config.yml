@@ -29,6 +29,12 @@ jobs:
     steps:
       - commoncmd
       - run: bash -c '"$(yarn bin)/jest" src'
+  mozilla:
+    docker:
+      - image: circleci/node:latest
+    steps:
+      - commoncmd
+      - run: bash -c 'cd build; "$(yarn bin)/web-ext lint" src'
   e2e:
     docker:
       - image: circleci/node:latest-browsers
@@ -47,5 +53,6 @@ workflows:
   build_test_lint:
     jobs:
       - lint
+      - mozilla
       - unit
       - e2e
