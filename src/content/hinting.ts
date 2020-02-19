@@ -479,7 +479,16 @@ class Hint {
             offsetLeft += rect.left
         }
 
-        const rect = target.getBoundingClientRect()
+        // Find the first visible client rect of the target
+        const clientRects = target.getClientRects()
+        let rect = clientRects[0]
+        for (const recti of clientRects) {
+            if (recti.bottom + offsetTop > 0 && recti.right + offsetLeft > 0) {
+                rect = recti
+                break
+            }
+        }
+
         this.rect = {
             top: rect.top + offsetTop,
             bottom: rect.bottom + offsetTop,
