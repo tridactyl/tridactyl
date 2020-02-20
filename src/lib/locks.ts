@@ -17,24 +17,10 @@ export async function acquire(lockname: string) {
 
     DESIRED_LOCKS[lockname] = time
 
-    // Ignore errors about background pages that aren't listening
-    const friendly_bg_messenger = async () => {
-        let p
-        try {
-            p = await browser.runtime.sendMessage({type: "lock", command: "acquire", args: [lockname, time, ID]})
-        } catch (e) {
-            if (e.message != "Could not establish connection. Receiving end does not exist.") {
-                throw e
-            }
-            p = true
-        }
-        return p
-    }
-
     await Promise.all([
-        friendly_bg_messenger(),
-        messageAllTabs("lock", "acquire", [lockname, time, ID])
-    ])
+        browser.runtime.sendMessage({type: "lock", command: "acquire", args: [lockname, time, ID]}),
+        messageAllTabs("lock", "acquire", [lockname, time, ID])]
+    )
 
     delete DESIRED_LOCKS[lockname]
     OWNED_LOCKS.add(lockname)

@@ -12,7 +12,6 @@ export type TabMessageType =
     | "commandline_cmd"
     | "commandline_frame"
     | "state"
-    | "config"
     | "lock"
 
 export type NonTabMessageType =
