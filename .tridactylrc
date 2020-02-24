@@ -36,6 +36,9 @@
 " Binds
 "
 
+" Expand a selected range to encompass contents of parent node. Usefull in visual mode for copying formatted text. For example, syntax highlighted code.
+bind --mode=visual = js let n = document.getSelection().anchorNode.parentNode; let s = window.getSelection(); let r = document.createRange(); s.removeAllRanges(); r.selectNodeContents(n); s.addRange(r);
+
 " Comment toggler for Reddit and Hacker News
 bind ;c hint -c [class*="expand"],[class="togg"]
 
