@@ -27,7 +27,7 @@ type MessageCommand =
     | "win_firefox_restart"
 interface MessageResp {
     cmd: string
-    version: number | null
+    version: string | null
     content: string | null
     code: number | null
     error: string | null
@@ -80,7 +80,7 @@ export async function getrc(): Promise<string> {
 
 export async function getNativeMessengerVersion(
     quiet = false,
-): Promise<number> {
+): Promise<string> {
     const res = await sendNativeMsg("version", {}, quiet)
     if (res === undefined) {
         if (quiet) return undefined
@@ -88,7 +88,7 @@ export async function getNativeMessengerVersion(
     }
     if (res.version && !res.error) {
         logger.info(`Native version: ${res.version}`)
-        return res.version
+        return res.version.toString()
     }
 }
 
