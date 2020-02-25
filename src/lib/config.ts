@@ -340,7 +340,7 @@ export class default_config {
         "k": 'js document.getSelection().modify("extend","backward","line")',
         "$": 'js document.getSelection().modify("extend","forward","lineboundary")',
         "0": 'js document.getSelection().modify("extend","backward","lineboundary")',
-        "=": 'js let n = document.getSelection().anchorNode.parentNode; let s = window.getSelection(); let r = document.createRange(); s.removeAllRanges(); r.selectNodeContents(n); s.addRange(r)',
+        "=": "js let n = document.getSelection().anchorNode.parentNode; let s = window.getSelection(); let r = document.createRange(); s.removeAllRanges(); r.selectNodeContents(n); s.addRange(r)",
         "🕷🕷INHERITS🕷🕷": "nmaps",
     }
 
