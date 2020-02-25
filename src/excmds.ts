@@ -4360,6 +4360,48 @@ export async function echo(...str: string[]) {
     return str.join(" ")
 }
 
+/** helper function for js and jsb
+ *
+ * -p to take an extra argument located at the end of str[]
+ * -s to load js script of a source file from the config path
+ *
+ * @hidden
+ */
+async function js_helper(str: string[]) {
+    let doSource = false
+    let jsContent = null
+    let JS_ARG
+
+    while (true) {
+        if (str[0].startsWith("-p")) {
+            /* tslint:disable:no-unused-declaration */
+            /* tslint:disable:no-dead-store */
+            JS_ARG = str[str.length - 1]
+            str = str.slice(1, -1)
+        } else if (str[0].startsWith("-s")) {
+            doSource = true
+            str = str.slice(1)
+        } else {
+            break
+        }
+    }
+
+    if (doSource) {
+        const sourceFilename = str.join(" ")
+        if (sourceFilename.search(/(^|[\/\\])..[\/\\]/) >= 0) {
+            throw new Error('Source Filename cannot contains "/../"')
+            return
+        }
+        const sep = "/"
+        const rcPath = (await Native.getrcpath()).split(sep).slice(0, -1)
+        const jsPath = [...rcPath, sourceFilename].join(sep)
+        jsContent = (await Native.read(jsPath)).content
+    } else {
+        jsContent = str.join(" ")
+    }
+    return eval(jsContent)
+}
+
 /**
  * Lets you execute JavaScript in the page context. If you want to get the result back, use `composite js ... | fillcmdline`
  *
@@ -4372,14 +4414,7 @@ export async function echo(...str: string[]) {
 /* tslint:disable:no-identical-functions */
 //#content
 export async function js(...str: string[]) {
-    if (str[0].startsWith("-p")) {
-        /* tslint:disable:no-unused-declaration */
-        /* tslint:disable:no-dead-store */
-        const JS_ARG = str[str.length - 1]
-        return eval(str.slice(1, -1).join(" "))
-    } else {
-        return eval(str.join(" "))
-    }
+    return js_helper(str)
 }
 
 /**
@@ -4388,14 +4423,7 @@ export async function js(...str: string[]) {
 /* tslint:disable:no-identical-functions */
 //#background
 export async function jsb(...str: string[]) {
-    if (str[0].startsWith("-p")) {
-        /* tslint:disable:no-unused-declaration */
-        /* tslint:disable:no-dead-store */
-        const JS_ARG = str[str.length - 1]
-        return eval(str.slice(1, -1).join(" "))
-    } else {
-        return eval(str.join(" "))
-    }
+    return js_helper(str)
 }
 
 /**
