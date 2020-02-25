@@ -4370,12 +4370,12 @@ export async function echo(...str: string[]) {
 async function js_helper(str: string[]) {
     let doSource = false
     let jsContent = null
-    let JS_ARG
+    /* tslint:disable:no-unused-declaration */
+    /* tslint:disable:no-dead-store */
+    let JS_ARG = null
 
     while (true) {
         if (str[0].startsWith("-p")) {
-            /* tslint:disable:no-unused-declaration */
-            /* tslint:disable:no-dead-store */
             JS_ARG = str[str.length - 1]
             str = str.slice(1, -1)
         } else if (str[0].startsWith("-s")) {
