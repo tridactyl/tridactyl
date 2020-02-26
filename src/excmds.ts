@@ -1657,7 +1657,7 @@ export function urlparent(count = 1) {
  *   path). -1 will append to the existing path, -2 will remove the last path
  *   level, and so on.
  *
- *   ```text
+ *   ```plaintext
  *   http://website.com/this/is/the/path/component
  *   Graft point:       ^    ^  ^   ^    ^        ^
  *   From left:         0    1  2   3    4        5
