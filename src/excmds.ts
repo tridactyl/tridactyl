@@ -4400,9 +4400,6 @@ async function js_helper(str: string[]) {
 
     if (doSource) {
         let sourcePath = str.join(" ")
-        if (sourcePath.search(/(^|[\/\\])..[\/\\]/) >= 0) {
-            throw new Error('Source Path cannot contains "/../"')
-        }
         if (fromRC) {
             const sep = "/"
             const rcPath = (await Native.getrcpath()).split(sep).slice(0, -1)
