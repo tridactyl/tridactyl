@@ -4416,13 +4416,50 @@ async function js_helper(str: string[]) {
 }
 
 /**
- * Lets you execute JavaScript in the page context. If you want to get the result back, use `composite js ... | fillcmdline`
+ * Lets you execute JavaScript in the page context. If you want to get the
+ * result back, use
  *
- * Some of Tridactyl's functions are accessible here via the `tri` object. Just do `console.log(tri)` in the web console on the new tab page to see what's available.
+ *     `composite js ... | fillcmdline`
  *
- * If you want to pipe an argument to `js`, you need to use the "-p" flag and then use the JS_ARG global variable, e.g:
+ *  @returns Last value of the Javascript statement
  *
- * `composite get_current_url | js -p alert(JS_ARG)`
+ * Usage:
+ *
+ *        `js [-p] javascript code ... [arg]`
+ *
+ *        `js [-s|-r|-p] javascript_filename [arg]`
+ *
+ *   - options
+ *     - -p pass an argument to js. The argument is passed as the last
+ *          argument of the cmdline, i.e. `str[str.length-1]`
+ *     - -s load the js source from a Javascript file.
+ *     - -r load the js source from a Javascript file inside config directory.
+ *          Default: `~/.config/tridactyl/`.
+ *
+ * Some of Tridactyl's functions are accessible here via the `tri` object. Just
+ * do `console.log(tri)` in the web console on the new tab page to see what's
+ * available.
+ *
+ * If you want to pipe an argument to `js`, you need to use the "-p" flag and
+ * then use the JS_ARG global variable, e.g:
+ *
+ *     `composite get_current_url | js -p alert(JS_ARG)`
+ *
+ * To run Javasript from a source file:
+ *
+ *     `js -s ~/JSLib/my_script.js`
+ *
+ * To run Javascript file under config dir: `~/.config/tridactyl/sample.js`
+ *
+ *     `js -r sample.js`
+ *
+ * The Javascript were executed in local scope. If you want to reuse the code
+ * in other :js calls, you can add your functions or variables into a global
+ * namespace, like `window.` or `tri.`, e.g.:
+ *
+ *     `js tri.hello = function (){ alert("hello world!") };`
+ *     `js tri.hello()`
+ *
  */
 /* tslint:disable:no-identical-functions */
 //#content
