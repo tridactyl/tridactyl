@@ -4368,34 +4368,50 @@ export async function echo(...str: string[]) {
  * @hidden
  */
 async function js_helper(str: string[]) {
-    let doSource = false
-    let jsContent = null
     /* tslint:disable:no-unused-declaration */
     /* tslint:disable:no-dead-store */
     let JS_ARG = null
+    let jsContent = null
 
-    while (true) {
-        if (str[0].startsWith("-p")) {
-            JS_ARG = str[str.length - 1]
-            str = str.slice(1, -1)
-        } else if (str[0].startsWith("-s")) {
-            doSource = true
-            str = str.slice(1)
-        } else {
-            break
+    let doSource = false
+    let fromRC = false
+    let done = false
+
+    while (!done) {
+        switch (str[0]) {
+            case "-p":
+                // arg of -p comes from the end of str[]
+                JS_ARG = str.pop()
+                break
+            case "-s":
+                doSource = true
+                break
+            case "-r":
+                doSource = true
+                fromRC = true
+                break
+            default:
+                done = true
+                break
         }
+        if (!done)
+            str.shift()
     }
 
     if (doSource) {
-        const sourceFilename = str.join(" ")
-        if (sourceFilename.search(/(^|[\/\\])..[\/\\]/) >= 0) {
-            throw new Error('Source Filename cannot contains "/../"')
-            return
+        let sourcePath = str.join(" ")
+        if (sourcePath.search(/(^|[\/\\])..[\/\\]/) >= 0) {
+            throw new Error('Source Path cannot contains "/../"')
         }
-        const sep = "/"
-        const rcPath = (await Native.getrcpath()).split(sep).slice(0, -1)
-        const jsPath = [...rcPath, sourceFilename].join(sep)
-        jsContent = (await Native.read(jsPath)).content
+        if (fromRC) {
+            const sep = "/"
+            const rcPath = (await Native.getrcpath()).split(sep).slice(0, -1)
+            sourcePath = [...rcPath, sourcePath].join(sep)
+        }
+        const file = await Native.read(sourcePath)
+        if (file.code !== 0)
+            throw new Error("Couldn't read js file " + sourcePath)
+        jsContent = file.content
     } else {
         jsContent = str.join(" ")
     }
