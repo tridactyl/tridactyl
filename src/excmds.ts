@@ -4416,8 +4416,7 @@ async function js_helper(str: string[]) {
 }
 
 /**
- * Lets you execute JavaScript in the page context. If you want to get the
- * result back, use
+ * Lets you execute JavaScript in the page context. If you want to get the result back, use
  *
  *     `composite js ... | fillcmdline`
  *
@@ -4430,17 +4429,13 @@ async function js_helper(str: string[]) {
  *        `js [-s|-r|-p] javascript_filename [arg]`
  *
  *   - options
- *     - -p pass an argument to js for use with `composite`. The argument is passed as the last
- *          space-separated argument of `js`, i.e. `str[str.length-1]` and stored in the magic variable JS_ARG - see below for example usage.
+ *     - -p pass an argument to js for use with `composite`. The argument is passed as the last space-separated argument of `js`, i.e. `str[str.length-1]` and stored in the magic variable JS_ARG - see below for example usage.
  *     - -s load the js source from a Javascript file.
  *     - -r load the js source from a Javascript file relative to your RC file. (NB: will throw an error if no RC file exists)
  *
- * Some of Tridactyl's functions are accessible here via the `tri` object. Just
- * do `console.log(tri)` in the web console on the new tab page to see what's
- * available.
+ * Some of Tridactyl's functions are accessible here via the `tri` object. Just do `console.log(tri)` in the web console on the new tab page to see what's available.
  *
- * If you want to pipe an argument to `js`, you need to use the "-p" flag and
- * then use the JS_ARG global variable, e.g:
+ * If you want to pipe an argument to `js`, you need to use the "-p" flag and then use the JS_ARG global variable, e.g:
  *
  *     `composite get_current_url | js -p alert(JS_ARG)`
  *
@@ -4452,9 +4447,7 @@ async function js_helper(str: string[]) {
  *
  *     `js -r sample.js`
  *
- * `js` executes JavaScript in local scope. If you want to reuse the code
- * in other :js calls, you can add your functions or variables into a global
- * namespace, like `window.` or `tri.`, e.g.:
+ * `js` executes JavaScript in local scope. If you want to reuse the code in other :js calls, you can add your functions or variables into a global namespace, like `window.` or `tri.`, e.g.:
  *
  *     `js tri.hello = function (){ alert("hello world!") };`
  *     `js tri.hello()`
