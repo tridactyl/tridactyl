@@ -1657,7 +1657,7 @@ export function urlparent(count = 1) {
  *   path). -1 will append to the existing path, -2 will remove the last path
  *   level, and so on.
  *
- *   ```text
+ *   ```plaintext
  *   http://website.com/this/is/the/path/component
  *   Graft point:       ^    ^  ^   ^    ^        ^
  *   From left:         0    1  2   3    4        5
@@ -4360,42 +4360,112 @@ export async function echo(...str: string[]) {
     return str.join(" ")
 }
 
+/** helper function for js and jsb
+ *
+ * -p to take an extra argument located at the end of str[]
+ * -s to load js script of a source file from the config path
+ *
+ * @hidden
+ */
+async function js_helper(str: string[]) {
+    /* tslint:disable:no-unused-declaration */
+    /* tslint:disable:no-dead-store */
+    let JS_ARG = null
+    let jsContent = null
+
+    let doSource = false
+    let fromRC = false
+    let done = false
+
+    while (!done) {
+        switch (str[0]) {
+            case "-p":
+                // arg of -p comes from the end of str[]
+                JS_ARG = str.pop()
+                break
+            case "-s":
+                doSource = true
+                break
+            case "-r":
+                doSource = true
+                fromRC = true
+                break
+            default:
+                done = true
+                break
+        }
+        if (!done)
+            str.shift()
+    }
+
+    if (doSource) {
+        let sourcePath = str.join(" ")
+        if (fromRC) {
+            const sep = "/"
+            const rcPath = (await Native.getrcpath()).split(sep).slice(0, -1)
+            sourcePath = [...rcPath, sourcePath].join(sep)
+        }
+        const file = await Native.read(sourcePath)
+        if (file.code !== 0)
+            throw new Error("Couldn't read js file " + sourcePath)
+        jsContent = file.content
+    } else {
+        jsContent = str.join(" ")
+    }
+    return eval(jsContent)
+}
+
 /**
- * Lets you execute JavaScript in the page context. If you want to get the result back, use `composite js ... | fillcmdline`
+ * Lets you execute JavaScript in the page context. If you want to get the result back, use
+ *
+ *     `composite js ... | fillcmdline`
+ *
+ *  @returns Last value of the JavaScript statement
+ *
+ * Usage:
+ *
+ *        `js [-p] javascript code ... [arg]`
+ *
+ *        `js [-s|-r|-p] javascript_filename [arg]`
+ *
+ *   - options
+ *     - -p pass an argument to js for use with `composite`. The argument is passed as the last space-separated argument of `js`, i.e. `str[str.length-1]` and stored in the magic variable JS_ARG - see below for example usage.
+ *     - -s load the js source from a Javascript file.
+ *     - -r load the js source from a Javascript file relative to your RC file. (NB: will throw an error if no RC file exists)
  *
  * Some of Tridactyl's functions are accessible here via the `tri` object. Just do `console.log(tri)` in the web console on the new tab page to see what's available.
  *
  * If you want to pipe an argument to `js`, you need to use the "-p" flag and then use the JS_ARG global variable, e.g:
  *
- * `composite get_current_url | js -p alert(JS_ARG)`
+ *     `composite get_current_url | js -p alert(JS_ARG)`
+ *
+ * To run JavaScript from a source file:
+ *
+ *     `js -s ~/JSLib/my_script.js`
+ *
+ * To run a JavaScript file relative to your RC file, e.g. `~/.config/tridactyl/sample.js`
+ *
+ *     `js -r sample.js`
+ *
+ * `js` executes JavaScript in local scope. If you want to reuse the code in other :js calls, you can add your functions or variables into a global namespace, like `window.` or `tri.`, e.g.:
+ *
+ *     `js tri.hello = function (){ alert("hello world!") };`
+ *     `js tri.hello()`
+ *
  */
 /* tslint:disable:no-identical-functions */
 //#content
 export async function js(...str: string[]) {
-    if (str[0].startsWith("-p")) {
-        /* tslint:disable:no-unused-declaration */
-        /* tslint:disable:no-dead-store */
-        const JS_ARG = str[str.length - 1]
-        return eval(str.slice(1, -1).join(" "))
-    } else {
-        return eval(str.join(" "))
-    }
+    return js_helper(str)
 }
 
 /**
- * Lets you execute JavaScript in the background context. All the help from [[js]] applies. Gives you a different `tri` object.
+ * Lets you execute JavaScript in the background context. All the help from [[js]] applies. Gives you a different `tri` object which has access to more excmds and web-extension APIs.
  */
 /* tslint:disable:no-identical-functions */
 //#background
 export async function jsb(...str: string[]) {
-    if (str[0].startsWith("-p")) {
-        /* tslint:disable:no-unused-declaration */
-        /* tslint:disable:no-dead-store */
-        const JS_ARG = str[str.length - 1]
-        return eval(str.slice(1, -1).join(" "))
-    } else {
-        return eval(str.join(" "))
-    }
+    return js_helper(str)
 }
 
 /**

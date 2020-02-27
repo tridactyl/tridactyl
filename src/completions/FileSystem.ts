@@ -18,7 +18,7 @@ export class FileSystemCompletionSource extends Completions.CompletionSourceFuse
     public options: FileSystemCompletionOption[]
 
     constructor(private _parent) {
-        super(["saveas", "source"], "FileSystemCompletionSource", "FileSystem")
+        super(["saveas", "source", "js -s", "jsb -s"], "FileSystemCompletionSource", "FileSystem")
 
         this._parent.appendChild(this.node)
     }
