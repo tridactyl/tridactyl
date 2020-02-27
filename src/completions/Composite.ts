@@ -1,28 +1,18 @@
 import * as Completions from "@src/completions"
+import * as ExcmdCompletions from "@src/completions/Excmd"
 import * as Metadata from "@src/.metadata.generated"
 import * as config from "@src/lib/config"
 import * as aliases from "@src/lib/aliases"
 
-export class ExcmdCompletionOption extends Completions.CompletionOptionHTML
-    implements Completions.CompletionOptionFuse {
-    public fuseKeys = []
-    constructor(public value: string, public documentation: string = "") {
-        super()
-        this.fuseKeys.push(this.value)
+const PREFIX = "composite"
+const regex = new RegExp("^" + PREFIX + " ")
 
-        // Create HTMLElement
-        this.html = html`<tr class="ExcmdCompletionOption option">
-                <td class="excmd">${value}</td>
-                <td class="documentation">${documentation}</td>
-            </tr>`
-    }
-}
-
-export class ExcmdCompletionSource extends Completions.CompletionSourceFuse {
-    public options: ExcmdCompletionOption[]
+// Most of this is copied verbatim from Excmd.ts - would have liked to inherit but constructor posed difficulties
+export class CompositeCompletionSource extends Completions.CompletionSourceFuse {
+    public options: ExcmdCompletions.ExcmdCompletionOption[]
 
     constructor(private _parent) {
-        super([], "ExcmdCompletionSource", "ex commands")
+        super([PREFIX], "CompositeCompletionSource", "ex commands")
 
         this.updateOptions()
         this._parent.appendChild(this.node)
@@ -44,8 +34,8 @@ export class ExcmdCompletionSource extends Completions.CompletionSourceFuse {
         this.updateDisplay()
     }
 
-    select(option: ExcmdCompletionOption) {
-        this.completion = option.value
+    select(option: ExcmdCompletions.ExcmdCompletionOption) {
+        this.completion = this.lastExstr.replace(new RegExp(this.getendexstr(this.lastExstr) + "$"), "") + option.value
         option.state = "focused"
         this.lastFocused = option
     }
@@ -55,7 +45,20 @@ export class ExcmdCompletionSource extends Completions.CompletionSourceFuse {
     }
 
     private async updateOptions(exstr = "") {
+        const end_exstr = this.getendexstr(exstr)
         this.lastExstr = exstr
+        const [prefix] = this.splitOnPrefix(exstr)
+
+        // Hide self and stop if prefixes don't match
+        if (prefix) {
+            // Show self if prefix and currently hidden
+            if (this.state === "hidden") {
+                this.state = "normal"
+            }
+        } else {
+            this.state = "hidden"
+            return
+        }
 
         const excmds = Metadata.everything.getFile("src/excmds.ts")
         if (!excmds) return
@@ -64,20 +67,20 @@ export class ExcmdCompletionSource extends Completions.CompletionSourceFuse {
         // Add all excmds that start with exstr and that tridactyl has metadata about to completions
         this.options = this.scoreOptions(
             fns
-                .filter(([name, fn]) => !fn.hidden && name.startsWith(exstr))
-                .map(([name, fn]) => new ExcmdCompletionOption(name, fn.doc)),
+                .filter(([name, fn]) => !fn.hidden && name.startsWith(end_exstr))
+                .map(([name, fn]) => new ExcmdCompletions.ExcmdCompletionOption(name, fn.doc)),
         )
 
         // Also add aliases to possible completions
         const exaliases = Object.keys(config.get("exaliases")).filter(a =>
-            a.startsWith(exstr),
+            a.startsWith(end_exstr),
         )
         for (const alias of exaliases) {
             const cmd = aliases.expandExstr(alias)
             const fn = excmds.getFunction(cmd)
             if (fn) {
                 this.options.push(
-                    new ExcmdCompletionOption(
+                    new ExcmdCompletions.ExcmdCompletionOption(
                         alias,
                         `Alias for \`${cmd}\`. ${fn.doc}`,
                     ),
@@ -85,7 +88,7 @@ export class ExcmdCompletionSource extends Completions.CompletionSourceFuse {
             } else {
                 // This can happen when the alias is a composite command or a command with arguments. We can't display doc because we don't know what parameter the alias takes or what it does.
                 this.options.push(
-                    new ExcmdCompletionOption(alias, `Alias for \`${cmd}\`.`),
+                    new ExcmdCompletions.ExcmdCompletionOption(alias, `Alias for \`${cmd}\`.`),
                 )
             }
         }
@@ -94,21 +97,11 @@ export class ExcmdCompletionSource extends Completions.CompletionSourceFuse {
         return this.updateChain()
     }
 
-    private scoreOptions(options: ExcmdCompletionOption[]) {
+    private scoreOptions(options: ExcmdCompletions.ExcmdCompletionOption[]) {
         return options.sort((o1, o2) => o1.value.localeCompare(o2.value))
+    }
 
-        // Too slow with large profiles
-        // let histpos = state.cmdHistory.map(s => s.split(" ")[0]).reverse()
-        // return exstrs.sort((a, b) => {
-        //     let posa = histpos.findIndex(x => x == a)
-        //     let posb = histpos.findIndex(x => x == b)
-        //     // If two ex commands have the same position, sort lexically
-        //     if (posa == posb) return a < b ? -1 : 1
-        //     // If they aren't found in the list they get lower priority
-        //     if (posa == -1) return 1
-        //     if (posb == -1) return -1
-        //     // Finally, sort by history position
-        //     return posa < posb ? -1 : 1
-        // })
+    private getendexstr(exstr) {
+        return exstr.replace(regex, "").split("|").slice(-1)[0].split(";").slice(-1)[0].trim()
     }
 }

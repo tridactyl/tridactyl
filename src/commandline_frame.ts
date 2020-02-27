@@ -24,6 +24,7 @@ import { TabAllCompletionSource } from "@src/completions/TabAll"
 import { BufferCompletionSource } from "@src/completions/Tab"
 import { BmarkCompletionSource } from "@src/completions/Bmark"
 import { ExcmdCompletionSource } from "@src/completions/Excmd"
+import { CompositeCompletionSource } from "@src/completions/Composite"
 import { FileSystemCompletionSource } from "@src/completions/FileSystem"
 import { GuisetCompletionSource } from "@src/completions/Guiset"
 import { HelpCompletionSource } from "@src/completions/Help"
@@ -106,6 +107,7 @@ export function enableCompletions() {
             TabAllCompletionSource,
             BufferCompletionSource,
             ExcmdCompletionSource,
+            CompositeCompletionSource,
             FileSystemCompletionSource,
             GuisetCompletionSource,
             HelpCompletionSource,
