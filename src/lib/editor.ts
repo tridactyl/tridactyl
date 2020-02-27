@@ -360,6 +360,8 @@ export const forward_word = wrap_input(
         let boundaries = getWordBoundaries(text, selectionStart, false)
         if (selectionStart >= boundaries[0] && selectionStart < boundaries[1])
             boundaries = getWordBoundaries(text, boundaries[1], false)
+        if (selectionStart >= boundaries[0])  // last word
+            return [null, boundaries[1], null]
         return [null, boundaries[0], null]
     }),
 )
