@@ -90,6 +90,15 @@ export class ExcmdCompletionSource extends Completions.CompletionSourceFuse {
             }
         }
 
+        // Add partial matched funcs like: 'conf' ~= 'viewconfig'
+        const seen = new Set(this.options.map(o => o.value))
+        const partial_options = this.scoreOptions(
+            fns
+                .filter(([name, fn]) => !fn.hidden && name.includes(exstr) && !seen.has(name))
+                .map(([name, fn]) => new ExcmdCompletionOption(name, fn.doc)),
+        )
+        this.options = this.options.concat(partial_options)
+
         this.options.forEach(o => (o.state = "normal"))
         return this.updateChain()
     }
