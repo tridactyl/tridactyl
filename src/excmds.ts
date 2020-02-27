@@ -1715,6 +1715,22 @@ export function urlparent(count = 1) {
  */
 //#content
 export function urlmodify(mode: "-t" | "-r" | "-s" | "-q" | "-Q" | "-g", ...args: string[]) {
+    const newUrl = urlmodify_js(mode, ...args)
+    // TODO: once we have an arg parser, have a quiet flag that prevents the page from being added to history
+    if (newUrl && newUrl !== window.location.href) {
+        window.location.replace(newUrl)
+    }
+}
+
+/**
+ * Like [[urlmodify]] but returns the modified URL for use with [[js]] and [[composite]]
+ *
+ * E.g.
+ *
+ * `:composite urlmodify_js -t www. old. | tabopen `
+ */
+//#content
+export function urlmodify_js(mode: "-t" | "-r" | "-s" | "-q" | "-Q" | "-g", ...args: string[]) {
     const oldUrl = new URL(window.location.href)
     let newUrl
 
@@ -1771,10 +1787,7 @@ export function urlmodify(mode: "-t" | "-r" | "-s" | "-q" | "-Q" | "-g", ...args
             break
     }
 
-    // TODO: once we have an arg parser, have a quiet flag that prevents the page from being added to history
-    if (newUrl && newUrl !== oldUrl) {
-        window.location.replace(newUrl)
-    }
+    return newUrl
 }
 
 /** Returns the url of links that have a matching rel.
