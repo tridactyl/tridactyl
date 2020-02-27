@@ -4421,7 +4421,7 @@ async function js_helper(str: string[]) {
  *
  *     `composite js ... | fillcmdline`
  *
- *  @returns Last value of the Javascript statement
+ *  @returns Last value of the JavaScript statement
  *
  * Usage:
  *
@@ -4430,11 +4430,10 @@ async function js_helper(str: string[]) {
  *        `js [-s|-r|-p] javascript_filename [arg]`
  *
  *   - options
- *     - -p pass an argument to js. The argument is passed as the last
- *          argument of the cmdline, i.e. `str[str.length-1]`
+ *     - -p pass an argument to js for use with `composite`. The argument is passed as the last
+ *          space-separated argument of `js`, i.e. `str[str.length-1]` and stored in the magic variable JS_ARG - see below for example usage.
  *     - -s load the js source from a Javascript file.
- *     - -r load the js source from a Javascript file inside config directory.
- *          Default: `~/.config/tridactyl/`.
+ *     - -r load the js source from a Javascript file relative to your RC file. (NB: will throw an error if no RC file exists)
  *
  * Some of Tridactyl's functions are accessible here via the `tri` object. Just
  * do `console.log(tri)` in the web console on the new tab page to see what's
@@ -4445,15 +4444,15 @@ async function js_helper(str: string[]) {
  *
  *     `composite get_current_url | js -p alert(JS_ARG)`
  *
- * To run Javasript from a source file:
+ * To run JavaScript from a source file:
  *
  *     `js -s ~/JSLib/my_script.js`
  *
- * To run Javascript file under config dir: `~/.config/tridactyl/sample.js`
+ * To run a JavaScript file relative to your RC file, e.g. `~/.config/tridactyl/sample.js`
  *
  *     `js -r sample.js`
  *
- * The Javascript were executed in local scope. If you want to reuse the code
+ * `js` executes JavaScript in local scope. If you want to reuse the code
  * in other :js calls, you can add your functions or variables into a global
  * namespace, like `window.` or `tri.`, e.g.:
  *
@@ -4468,7 +4467,7 @@ export async function js(...str: string[]) {
 }
 
 /**
- * Lets you execute JavaScript in the background context. All the help from [[js]] applies. Gives you a different `tri` object.
+ * Lets you execute JavaScript in the background context. All the help from [[js]] applies. Gives you a different `tri` object which has access to more excmds and web-extension APIs.
  */
 /* tslint:disable:no-identical-functions */
 //#background
