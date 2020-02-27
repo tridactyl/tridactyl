@@ -196,6 +196,9 @@ export function getWordBoundaries(
     let boundary1 = position < text.length ? position : text.length - 1
     const direction = before ? -1 : 1
     // if the caret is not in a word, try to find the word before or after it
+    // For `before`, we should check the char before the caret
+    if (before && boundary1 > 0)
+        boundary1 -= 1
     while (
         boundary1 >= 0 &&
         boundary1 < text.length &&
