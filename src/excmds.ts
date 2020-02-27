@@ -175,8 +175,8 @@ ALL_EXCMDS = {
 
 /** @hidden **/
 //#background
-export async function getNativeVersion(): Promise<void> {
-    Native.getNativeMessengerVersion()
+export async function getNativeVersion(): Promise<string> {
+    return Native.getNativeMessengerVersion()
 }
 
 /** @hidden
@@ -251,7 +251,7 @@ export async function rssexec(url: string, type?: string, ...title: string[]) {
  * That said, `bind gs fillinput null [Tridactyl](https://addons.mozilla.org/en-US/firefox/addon/tridactyl-vim/) is my favourite add-on` could probably come in handy.
  */
 //#content
-export async function fillinput(selector: string, ...content: string[]) {
+export function fillinput(selector: string, ...content: string[]) {
     let inputToFill = document.querySelector(selector)
     if (!inputToFill) inputToFill = DOM.getLastUsedInput()
     if ("value" in inputToFill) {
@@ -350,7 +350,7 @@ export async function editor() {
     } catch (e) {
         throw `:editor failed: ${e}`
     } finally {
-        removeTridactylEditorClass(selector)
+        return removeTridactylEditorClass(selector)
     }
 }
 
@@ -460,7 +460,7 @@ export async function loadtheme(themename: string) {
 /** @hidden */
 //#background
 export async function unloadtheme(themename: string) {
-    unset("customthemes." + themename)
+    return unset("customthemes." + themename)
 }
 
 /** Changes the current theme.
@@ -639,9 +639,11 @@ export async function nativeopen(...args: string[]) {
  */
 //#background
 export async function exclaim(...str: string[]) {
+    let done = Promise.resolve()
     if (await Native.nativegate()) {
-        fillcmdline((await Native.run(str.join(" "))).content)
+        done = fillcmdline((await Native.run(str.join(" "))).content)
     }
+    return done
 } // should consider how to give option to fillcmdline or not. We need flags.
 
 /**
@@ -649,9 +651,11 @@ export async function exclaim(...str: string[]) {
  */
 //#background
 export async function exclaim_quiet(...str: string[]) {
+    let result = ""
     if (await Native.nativegate()) {
-        return (await Native.run(str.join(" "))).content
+        result = (await Native.run(str.join(" "))).content
     }
+    return result
 }
 
 /**
@@ -661,8 +665,13 @@ export async function exclaim_quiet(...str: string[]) {
 //#background
 export async function native() {
     const version = await Native.getNativeMessengerVersion(true)
-    if (version !== undefined) fillcmdline("# Native messenger is correctly installed, version " + version)
-    else fillcmdline("# Native messenger not found. Please run `:installnative` and follow the instructions.")
+    let done
+    if (version !== undefined) {
+        done = fillcmdline("# Native messenger is correctly installed, version " + version)
+    } else {
+        done = fillcmdline("# Native messenger not found. Please run `:installnative` and follow the instructions.")
+    }
+    return done
 }
 
 /**
@@ -671,15 +680,17 @@ export async function native() {
 //#background
 export async function nativeinstall() {
     const tag = TRI_VERSION.includes("pre") ? "master" : TRI_VERSION
+    let done
     if ((await browser.runtime.getPlatformInfo()).os === "win") {
         const installstr = (await config.get("win_nativeinstallcmd")).replace("%WINTAG", "-Tag " + tag)
         await yank(installstr)
-        fillcmdline("# Installation command copied to clipboard. Please paste and run it from cmd.exe, PowerShell, or MinTTY to install the native messenger.")
+        done = fillcmdline("# Installation command copied to clipboard. Please paste and run it from cmd.exe, PowerShell, or MinTTY to install the native messenger.")
     } else {
         const installstr = (await config.get("nativeinstallcmd")).replace("%TAG", tag)
         await yank(installstr)
-        fillcmdline("# Installation command copied to clipboard. Please paste and run it in your shell to install the native messenger.")
+        done = fillcmdline("# Installation command copied to clipboard. Please paste and run it in your shell to install the native messenger.")
     }
+    return done
 }
 
 /** Writes current config to a file.
@@ -887,7 +898,7 @@ export function getJumpPageId() {
 /** @hidden */
 //#content_helper
 export async function saveJumps(jumps) {
-    browserBg.sessions.setTabValue(await activeTabId(), "jumps", jumps)
+    return browserBg.sessions.setTabValue(await activeTabId(), "jumps", jumps)
 }
 
 /** Returns a promise for an object containing the jumplist of all pages accessed in the current tab.
@@ -914,7 +925,7 @@ export async function curJumps() {
 /** Calls [[jumpprev]](-n) */
 //#content
 export function jumpnext(n = 1) {
-    jumpprev(-n)
+    return jumpprev(-n)
 }
 
 /** Similar to Pentadactyl or vim's jump list.
@@ -925,7 +936,7 @@ export function jumpnext(n = 1) {
  */
 //#content
 export function jumpprev(n = 1) {
-    curJumps().then(alljumps => {
+    return curJumps().then(alljumps => {
         const jumps = alljumps[getJumpPageId()]
         const current = jumps.cur - n
         if (current < 0) {
@@ -1002,7 +1013,11 @@ export function unfocus() {
  */
 //#content
 export async function scrollpx(a: number, b: number) {
-    if (!(await scrolling.scroll(a, b, document.documentElement))) scrolling.recursiveScroll(a, b)
+    let done = Promise.resolve(undefined as any)
+    if (!(await scrolling.scroll(a, b, document.documentElement))) {
+        done = scrolling.recursiveScroll(a, b)
+    }
+    return done.then(() => undefined)
 }
 
 /** If two numbers are given, treat as x and y values to give to window.scrollTo
@@ -1023,23 +1038,25 @@ export function scrollto(a: number | string, b: number | "x" | "y" = "y") {
     a = Number(a)
     const elem = window.document.scrollingElement || window.document.documentElement
     const percentage = a.clamp(0, 100)
+    let done = Promise.resolve(undefined as any)
     if (b === "y") {
         const top = elem.getClientRects()[0].top
         window.scrollTo(window.scrollX, (percentage * elem.scrollHeight) / 100)
         if (top === elem.getClientRects()[0].top && (percentage === 0 || percentage === 100)) {
             // scrollTo failed, if the user wants to go to the top/bottom of
             // the page try scrolling.recursiveScroll instead
-            scrolling.recursiveScroll(window.scrollX, 1073741824 * (percentage === 0 ? -1 : 1), document.documentElement)
+            done = scrolling.recursiveScroll(window.scrollX, 1073741824 * (percentage === 0 ? -1 : 1), document.documentElement)
         }
     } else if (b === "x") {
         const left = elem.getClientRects()[0].left
         window.scrollTo((percentage * elem.scrollWidth) / 100, window.scrollY)
         if (left === elem.getClientRects()[0].left && (percentage === 0 || percentage === 100)) {
-            scrolling.recursiveScroll(1073741824 * (percentage === 0 ? -1 : 1), window.scrollX, document.documentElement)
+            done = scrolling.recursiveScroll(1073741824 * (percentage === 0 ? -1 : 1), window.scrollX, document.documentElement)
         }
     } else {
         window.scrollTo(a, Number(b)) // a,b numbers
     }
+    return done.then(() => undefined)
 }
 
 /** @hidden */
@@ -1064,7 +1081,7 @@ export function scrollline(n = 1, mult = 1) {
         // Is there a better way to compute a fallback? Maybe fetch from about:preferences?
         if (!lineHeight) lineHeight = 22
     }
-    scrolling.recursiveScroll(0, lineHeight * n)
+    return scrolling.recursiveScroll(0, lineHeight * n)
 }
 
 /** Scrolls the document by n pages.
@@ -1073,7 +1090,7 @@ export function scrollline(n = 1, mult = 1) {
  */
 //#content
 export function scrollpage(n = 1) {
-    scrollpx(0, window.innerHeight * n)
+    return scrollpx(0, window.innerHeight * n)
 }
 
 /**
@@ -1143,7 +1160,7 @@ export function back(n = 1) {
 export async function reload(n = 1, hard = false) {
     const tabstoreload = await getnexttabs(await activeTabId(), n)
     const reloadProperties = { bypassCache: hard }
-    tabstoreload.forEach(n => browser.tabs.reload(n, reloadProperties))
+    return Promise.all(tabstoreload.map(n => browser.tabs.reload(n, reloadProperties)))
 }
 
 /** Reloads all tabs, bypassing the cache if hard is set to true */
@@ -1151,7 +1168,7 @@ export async function reload(n = 1, hard = false) {
 export async function reloadall(hard = false) {
     const tabs = await browser.tabs.query({ currentWindow: true })
     const reloadprops = { bypassCache: hard }
-    tabs.forEach(tab => browser.tabs.reload(tab.id, reloadprops))
+    return Promise.all(tabs.map(tab => browser.tabs.reload(tab.id, reloadprops)))
 }
 
 /** Reloads all tabs except the current one, bypassing the cache if hard is set to true */
@@ -1161,13 +1178,13 @@ export async function reloadallbut(hard = false) {
     const currId = await activeTabId()
     tabs = tabs.filter(tab => tab.id !== currId)
     const reloadprops = { bypassCache: hard }
-    tabs.forEach(tab => browser.tabs.reload(tab.id, reloadprops))
+    return Promise.all(tabs.map(tab => browser.tabs.reload(tab.id, reloadprops)))
 }
 
 /** Reload the next n tabs, starting with activeTab. bypass cache for all */
 //#background
 export async function reloadhard(n = 1) {
-    reload(n, true)
+    return reload(n, true)
 }
 
 // I went through the whole list https://developer.mozilla.org/en-US/Firefox/The_about_protocol
@@ -1331,12 +1348,15 @@ export function viewsource(url = "") {
 //#background
 export function home(all: "false" | "true" = "false") {
     const homepages = config.get("homepages")
+    let done = Promise.resolve(undefined as any)
     if (homepages.length > 0) {
-        if (all === "false") open(homepages[homepages.length - 1])
-        else {
-            homepages.map(t => tabopen(t))
+        if (all === "false") {
+            done = open(homepages[homepages.length - 1])
+        } else {
+            done = Promise.all(homepages.map(t => tabopen(t)))
         }
     }
+    return done.then(() => undefined)
 }
 
 /** Show this page.
@@ -1437,11 +1457,13 @@ export async function help(...helpItems: string[]) {
         }, "")
     }
 
+    let done
     if ((await activeTab()).url.startsWith(browser.runtime.getURL("static/docs/"))) {
-        open(url)
+        done = open(url)
     } else {
-        tabopen(url)
+        done = tabopen(url)
     }
+    return done.then(() => undefined)
 }
 
 /**
@@ -1449,7 +1471,7 @@ export async function help(...helpItems: string[]) {
  */
 //#background
 export async function apropos(...helpItems: string[]) {
-    help(...helpItems)
+    return help(...helpItems)
 }
 
 /** Start the tutorial
@@ -1458,8 +1480,13 @@ export async function apropos(...helpItems: string[]) {
 //#background
 export async function tutor(newtab?: string) {
     const tutor = browser.runtime.getURL("static/clippy/1-tutor.html")
-    if (newtab) tabopen(tutor)
-    else open(tutor)
+    let done
+    if (newtab) {
+        done = tabopen(tutor)
+    } else {
+        done = open(tutor)
+    }
+    return done.then(() => undefined)
 }
 
 /**
@@ -1468,7 +1495,7 @@ export async function tutor(newtab?: string) {
 //#background
 export async function credits() {
     const creditspage = browser.runtime.getURL("static/authors.html")
-    tabopen(creditspage)
+    return tabopen(creditspage)
 }
 
 /**
@@ -1657,7 +1684,7 @@ export function urlparent(count = 1) {
  *   path). -1 will append to the existing path, -2 will remove the last path
  *   level, and so on.
  *
- *   ```text
+ *   ```plaintext
  *   http://website.com/this/is/the/path/component
  *   Graft point:       ^    ^  ^   ^    ^        ^
  *   From left:         0    1  2   3    4        5
@@ -1785,7 +1812,7 @@ export async function zoom(level = 0, rel = "false") {
         if (level > 3) level = 3
         if (level < 0.3) level = 0.3
     }
-    browser.tabs.setZoom(level)
+    return browser.tabs.setZoom(level)
 }
 
 /** Opens the current page in Firefox's reader mode.
@@ -1796,7 +1823,7 @@ export async function reader() {
     if (await firefoxVersionAtLeast(58)) {
         const aTab = await activeTab()
         if (aTab.isArticle) {
-            browser.tabs.toggleReaderMode()
+            return browser.tabs.toggleReaderMode()
         } // else {
         //  // once a statusbar exists an error can be displayed there
         // }
@@ -1837,7 +1864,11 @@ export async function loadaucmds(cmdType: "DocStart" | "DocLoad" | "DocEnd" | "T
     const ausites = Object.keys(aucmds)
     const aukeyarr = ausites.filter(e => window.document.location.href.search(e) >= 0)
     for (const aukey of aukeyarr) {
-        controller.acceptExCmd(aucmds[aukey])
+        try {
+            await controller.acceptExCmd(aucmds[aukey])
+        } catch (e) {
+            logger.error(e.toString())
+        }
     }
 }
 
@@ -2025,11 +2056,13 @@ export async function tabnext(increment = 1) {
  */
 //#background
 export async function tabnext_gt(index?: number) {
+    let done
     if (index === undefined) {
-        tabnext()
+        done = tabnext()
     } else {
-        tabIndexSetActive(index)
+        done = tabIndexSetActive(index)
     }
+    return done.then(() => undefined)
 }
 
 /** Switch to the previous tab, wrapping round.
@@ -2169,7 +2202,7 @@ export async function tabonly() {
         currentWindow: true,
     })
     const tabsIds = tabs.map(tab => tab.id)
-    browser.tabs.remove(tabsIds)
+    return browser.tabs.remove(tabsIds)
 }
 
 /** Duplicate a tab.
@@ -2179,7 +2212,7 @@ export async function tabonly() {
 */
 //#background
 export async function tabduplicate(index?: number) {
-    browser.tabs.duplicate(await idFromIndex(index))
+    return browser.tabs.duplicate(await idFromIndex(index))
 }
 
 /** Detach a tab, opening it in a new window.
@@ -2189,7 +2222,7 @@ export async function tabduplicate(index?: number) {
 */
 //#background
 export async function tabdetach(index?: number) {
-    browser.windows.create({ tabId: await idFromIndex(index) })
+    return browser.windows.create({ tabId: await idFromIndex(index) })
 }
 
 /** Get list of tabs sorted by most recent use
@@ -2213,7 +2246,7 @@ export async function fullscreen() {
     const wid = currwin.id
     // This might have odd behaviour on non-tiling window managers, but no-one uses those, right?
     const state = currwin.state === "fullscreen" ? "normal" : "fullscreen"
-    browser.windows.update(wid, { state })
+    return browser.windows.update(wid, { state })
 }
 
 /** Close a tab.
@@ -2225,14 +2258,16 @@ export async function fullscreen() {
 */
 //#background
 export async function tabclose(...indexes: string[]) {
+    let done
     if (indexes.length > 0) {
         let ids: number[]
         ids = await Promise.all(indexes.map(index => idFromIndex(index)))
-        browser.tabs.remove(ids)
+        done = browser.tabs.remove(ids)
     } else {
         // Close current tab
-        browser.tabs.remove(await activeTabId())
+        done = browser.tabs.remove(await activeTabId())
     }
+    return done
 }
 
 /** Close all tabs to the right of the current one
@@ -2247,7 +2282,7 @@ export async function tabclosealltoright() {
 
     const atab = await activeTab()
     const ids = tabs.filter(tab => tab.index > atab.index).map(tab => tab.id)
-    browser.tabs.remove(ids)
+    return browser.tabs.remove(ids)
 }
 
 /** Close all tabs to the left of the current one
@@ -2262,7 +2297,7 @@ export async function tabclosealltoleft() {
 
     const atab = await activeTab()
     const ids = tabs.filter(tab => tab.index < atab.index).map(tab => tab.id)
-    browser.tabs.remove(ids)
+    return browser.tabs.remove(ids)
 }
 
 /** Restore the most recently closed item.
@@ -2393,14 +2428,14 @@ export async function tabmove(index = "$") {
         } else newindex = minindex
     }
 
-    browser.tabs.move(aTab.id, { index: newindex })
+    return browser.tabs.move(aTab.id, { index: newindex })
 }
 
 /** Pin the current tab */
 //#background
 export async function pin() {
     const aTab = await activeTab()
-    browser.tabs.update(aTab.id, { pinned: !aTab.pinned })
+    return browser.tabs.update(aTab.id, { pinned: !aTab.pinned })
 }
 
 /**  Mute current tab or all tabs.
@@ -2443,21 +2478,25 @@ export async function mute(...muteArgs: string[]): Promise<void> {
     if (mute) {
         updateObj.muted = true
     }
+    let done
     if (all) {
         const tabs = await browser.tabs.query({ currentWindow: true })
+        const promises = []
         for (const tab of tabs) {
             if (toggle) {
                 updateObj.muted = !tab.mutedInfo.muted
             }
-            browser.tabs.update(tab.id, updateObj)
+            promises.push(browser.tabs.update(tab.id, updateObj))
         }
+        done = Promise.all(promises)
     } else {
         const tab = await activeTab()
         if (toggle) {
             updateObj.muted = !tab.mutedInfo.muted
         }
-        browser.tabs.update(tab.id, updateObj)
+        done = browser.tabs.update(tab.id, updateObj)
     }
+    return done.then(() => undefined)
 }
 // }}}
 
@@ -2524,7 +2563,7 @@ export async function winclose(...ids: string[]) {
 //#background
 export async function qall() {
     const windows = await browser.windows.getAll()
-    windows.forEach(window => browser.windows.remove(window.id))
+    return Promise.all(windows.map(window => browser.windows.remove(window.id)))
 }
 
 // }}}
@@ -2537,8 +2576,8 @@ export async function qall() {
 //#background
 export async function containerclose(name: string) {
     const containerId = await Container.getId(name)
-    browser.tabs.query({ cookieStoreId: containerId }).then(tabs => {
-        browser.tabs.remove(
+    return browser.tabs.query({ cookieStoreId: containerId }).then(tabs => {
+        return browser.tabs.remove(
             tabs.map(tab => {
                 return tab.id
             }),
@@ -2616,7 +2655,7 @@ export async function viewcontainers() {
 
 //#background
 export function version() {
-    fillcmdline_notrail(TRI_VERSION)
+    return fillcmdline_notrail(TRI_VERSION)
 }
 
 /**
@@ -2775,8 +2814,8 @@ export async function shellescape(...quoteme: string[]) {
  *  This is probably only useful for composite commands that need to wait until the previous asynchronous command has finished running.
  */
 //#both
-export async function sleep(time_ms: number) {
-    await new Promise(resolve => setTimeout(resolve, time_ms))
+export function sleep(time_ms: number) {
+    return new Promise(resolve => setTimeout(resolve, time_ms))
 }
 
 /** @hidden */
@@ -2916,6 +2955,7 @@ export async function clipboard(excmd: "open" | "yank" | "yankshort" | "yankcano
     let content = toYank.join(" ")
     let url = ""
     let urls = []
+    let done = Promise.resolve(undefined as any)
     switch (excmd) {
         case "yankshort":
             urls = await geturlsforlinks("rel", "shortlink")
@@ -2924,7 +2964,7 @@ export async function clipboard(excmd: "open" | "yank" | "yankshort" | "yankcano
             }
             if (urls.length > 0) {
                 await yank(urls[0])
-                fillcmdline_tmp(3000, "# " + urls[0] + " copied to clipboard.")
+                done = fillcmdline_tmp(3000, "# " + urls[0] + " copied to clipboard.")
                 break
             }
         // Trying yankcanon if yankshort failed...
@@ -2932,35 +2972,35 @@ export async function clipboard(excmd: "open" | "yank" | "yankshort" | "yankcano
             urls = await geturlsforlinks("rel", "canonical")
             if (urls.length > 0) {
                 await yank(urls[0])
-                fillcmdline_tmp(3000, "# " + urls[0] + " copied to clipboard.")
+                done = fillcmdline_tmp(3000, "# " + urls[0] + " copied to clipboard.")
                 break
             }
         // Trying yank if yankcanon failed...
         case "yank":
             content = content === "" ? (await activeTab()).url : content
             await yank(content)
-            fillcmdline_tmp(3000, "# " + content + " copied to clipboard.")
+            done = fillcmdline_tmp(3000, "# " + content + " copied to clipboard.")
             break
         case "yanktitle":
             content = (await activeTab()).title
             await yank(content)
-            fillcmdline_tmp(3000, "# " + content + " copied to clipboard.")
+            done = fillcmdline_tmp(3000, "# " + content + " copied to clipboard.")
             break
         case "yankmd":
             content = "[" + (await activeTab()).title + "](" + (await activeTab()).url + ")"
             await yank(content)
-            fillcmdline_tmp(3000, "# " + content + " copied to clipboard.")
+            done = fillcmdline_tmp(3000, "# " + content + " copied to clipboard.")
             break
         case "open":
             url = await getclip()
             if (url) {
-                open(url.trim())
+                done = open(url.trim())
             }
             break
         case "tabopen":
             url = await getclip()
             if (url) {
-                tabopen(url.trim())
+                done = tabopen(url.trim())
             }
             break
         case "xselpaste":
@@ -2973,6 +3013,7 @@ export async function clipboard(excmd: "open" | "yank" | "yankshort" | "yankcano
             // todo: maybe we should have some common error and error handler
             throw new Error(`[clipboard] unknown excmd: ${excmd}`)
     }
+    return done.then(() => undefined)
 }
 
 /** Change active tab.
@@ -2986,7 +3027,7 @@ export async function clipboard(excmd: "open" | "yank" | "yankshort" | "yankcano
  */
 //#background
 export async function tab(index: number | "#") {
-    tabIndexSetActive(index)
+    return tabIndexSetActive(index)
 }
 
 /** Change active tab.
@@ -3197,7 +3238,7 @@ export function bindurl(pattern: string, mode: string, keys: string, ...excmd: s
  */
 //#background
 export function keymap(source: string, target: string) {
-    set("keytranslatemap." + source, target)
+    return set("keytranslatemap." + source, target)
 }
 
 /**
@@ -3338,7 +3379,7 @@ export function autocmd(event: string, url: string, ...excmd: string[]) {
     // rudimentary run time type checking
     // TODO: Decide on autocmd event names
     if (!AUCMDS.includes(event)) throw event + " is not a supported event."
-    config.set("autocmds", event, url, excmd.join(" "))
+    return config.set("autocmds", event, url, excmd.join(" "))
 }
 
 /**
@@ -3376,7 +3417,7 @@ export function autocontain(...args: string[]) {
         pattern = `^https?://[^/]*${pattern}/`
     }
 
-    config.set("autocontain", pattern, container)
+    return config.set("autocontain", pattern, container)
 }
 
 /** Remove autocmds
@@ -3387,7 +3428,7 @@ export function autocontain(...args: string[]) {
 //#background
 export function autocmddelete(event: string, url: string) {
     if (!AUCMDS.includes(event)) throw event + " is not a supported event."
-    config.unset("autocmds", event, url)
+    return config.unset("autocmds", event, url)
 }
 
 /**
@@ -3404,7 +3445,7 @@ export function autocmddelete(event: string, url: string) {
  */
 //#background
 export function blacklistadd(url: string) {
-    autocmd("DocStart", url, "mode ignore")
+    return autocmd("DocStart", url, "mode ignore")
 }
 
 /** Unbind a sequence of keys so that they do nothing at all.
@@ -3571,7 +3612,7 @@ export async function sanitise(...args: string[]) {
     if (dts.tridactylsync === true) await browser.storage.sync.clear()
     delete dts.tridactylsync
     // Global items
-    browser.browsingData.remove(since, dts)
+    return browser.browsingData.remove(since, dts)
 }
 
 /** Bind a quickmark for the current URL or space-separated list of URLs to a key on the keyboard.
@@ -3618,11 +3659,13 @@ export function get(...keys: string[]) {
     const target = keys.join(".").split(".")
     const value = config.getDynamic(...target)
     console.log(value)
+    let done
     if (typeof value === "object") {
-        fillcmdline_notrail(`# ${keys.join(".")} = ${JSON.stringify(value)}`)
+        done = fillcmdline_notrail(`# ${keys.join(".")} = ${JSON.stringify(value)}`)
     } else {
-        fillcmdline_notrail(`# ${keys.join(".")} = ${value}`)
+        done = fillcmdline_notrail(`# ${keys.join(".")} = ${value}`)
     }
+    return done
 }
 
 /** Opens the current configuration in Firefox's native JSON viewer in the current tab.
@@ -3685,7 +3728,7 @@ export function unseturl(pattern: string, key: string) {
         key = pattern
         pattern = window.location.href
     }
-    config.unsetURL(pattern, key.split("."))
+    return config.unsetURL(pattern, key.split("."))
 }
 
 /**
@@ -3695,7 +3738,7 @@ export function unseturl(pattern: string, key: string) {
 export function unset(...keys: string[]) {
     const target = keys.join(".").split(".")
     if (target === undefined) throw "You must define a target!"
-    config.unset(...target)
+    return config.unset(...target)
 }
 
 /**
@@ -3705,7 +3748,7 @@ export function unset(...keys: string[]) {
 export function setnull(...keys: string[]) {
     const target = keys.join(".").split(".")
     if (target === undefined) throw "You must define a target!"
-    config.set(...target, null)
+    return config.set(...target, null)
 }
 
 // }}}
@@ -4134,7 +4177,7 @@ export function run_exstr(...commands: string[]) {
 */
 //#content
 export async function gobble(nChars: number, endCmd: string) {
-    gobbleMode.init(nChars, endCmd)
+    return gobbleMode.init(nChars, endCmd)
 }
 
 // }}}
@@ -4188,7 +4231,7 @@ export async function ttsvoices() {
     const voices = TTS.listVoices()
     voices.sort()
     // need a better way to show this to the user
-    fillcmdline_notrail("#", voices.join(", "))
+    return fillcmdline_notrail("#", voices.join(", "))
 }
 
 /**
@@ -4205,7 +4248,7 @@ export async function ttscontrol(action: string) {
         throw new Error("Unknown text-to-speech action: " + action)
     }
 
-    TTS.doAction(action as TTS.Action)
+    return TTS.doAction(action as TTS.Action)
 }
 
 //}}}
@@ -4253,7 +4296,7 @@ export async function perfdump(...filters: string[]) {
     const filterconfigs = buildFilterConfigs(filters)
     const entries = window.tri.statsLogger.getEntries(...filterconfigs)
     console.log(filterconfigs)
-    open("data:application/json;charset=UTF-8," + JSON.stringify(entries))
+    return open("data:application/json;charset=UTF-8," + JSON.stringify(entries))
 }
 
 /**
@@ -4270,12 +4313,11 @@ export async function perfhistogram(...filters: string[]) {
     filterconfigs.push({ kind: "eventType", eventType: "measure" })
     const entries = window.tri.statsLogger.getEntries(...filterconfigs)
     if (entries.length === 0) {
-        fillcmdline_tmp(3000, "perfhistogram: No samples found.")
-        return
+        return fillcmdline_tmp(3000, "perfhistogram: No samples found.")
     }
     const histogram = Perf.renderStatsHistogram(entries)
     console.log(histogram)
-    open("data:text/plain;charset=UTF-8;base64," + btoa(histogram))
+    return open("data:text/plain;charset=UTF-8;base64," + btoa(histogram))
 }
 
 // }}}
@@ -4347,55 +4389,124 @@ export async function bmark(url?: string, ...titlearr: string[]) {
         }
 
         if (pathobj !== undefined) {
-            browser.bookmarks.create({ url, title, parentId: pathobj.id })
-            return
+            return browser.bookmarks.create({ url, title, parentId: pathobj.id })
         } // otherwise, give the user an error, probably with [v.path for v in validpaths]
     }
 
-    browser.bookmarks.create({ url, title })
+    return browser.bookmarks.create({ url, title })
 }
 
 //#background
-export async function echo(...str: string[]) {
+export function echo(...str: string[]) {
     return str.join(" ")
 }
 
+/** helper function for js and jsb
+ *
+ * -p to take an extra argument located at the end of str[]
+ * -s to load js script of a source file from the config path
+ *
+ * @hidden
+ */
+async function js_helper(str: string[]) {
+    /* tslint:disable:no-unused-declaration */
+    /* tslint:disable:no-dead-store */
+    let JS_ARG = null
+    let jsContent = null
+
+    let doSource = false
+    let fromRC = false
+    let done = false
+
+    while (!done) {
+        switch (str[0]) {
+            case "-p":
+                // arg of -p comes from the end of str[]
+                JS_ARG = str.pop()
+                break
+            case "-s":
+                doSource = true
+                break
+            case "-r":
+                doSource = true
+                fromRC = true
+                break
+            default:
+                done = true
+                break
+        }
+        if (!done)
+            str.shift()
+    }
+
+    if (doSource) {
+        let sourcePath = str.join(" ")
+        if (fromRC) {
+            const sep = "/"
+            const rcPath = (await Native.getrcpath()).split(sep).slice(0, -1)
+            sourcePath = [...rcPath, sourcePath].join(sep)
+        }
+        const file = await Native.read(sourcePath)
+        if (file.code !== 0)
+            throw new Error("Couldn't read js file " + sourcePath)
+        jsContent = file.content
+    } else {
+        jsContent = str.join(" ")
+    }
+    return eval(jsContent)
+}
+
 /**
- * Lets you execute JavaScript in the page context. If you want to get the result back, use `composite js ... | fillcmdline`
+ * Lets you execute JavaScript in the page context. If you want to get the result back, use
+ *
+ *     `composite js ... | fillcmdline`
+ *
+ *  @returns Last value of the JavaScript statement
+ *
+ * Usage:
+ *
+ *        `js [-p] javascript code ... [arg]`
+ *
+ *        `js [-s|-r|-p] javascript_filename [arg]`
+ *
+ *   - options
+ *     - -p pass an argument to js for use with `composite`. The argument is passed as the last space-separated argument of `js`, i.e. `str[str.length-1]` and stored in the magic variable JS_ARG - see below for example usage.
+ *     - -s load the js source from a Javascript file.
+ *     - -r load the js source from a Javascript file relative to your RC file. (NB: will throw an error if no RC file exists)
  *
  * Some of Tridactyl's functions are accessible here via the `tri` object. Just do `console.log(tri)` in the web console on the new tab page to see what's available.
  *
  * If you want to pipe an argument to `js`, you need to use the "-p" flag and then use the JS_ARG global variable, e.g:
  *
- * `composite get_current_url | js -p alert(JS_ARG)`
+ *     `composite get_current_url | js -p alert(JS_ARG)`
+ *
+ * To run JavaScript from a source file:
+ *
+ *     `js -s ~/JSLib/my_script.js`
+ *
+ * To run a JavaScript file relative to your RC file, e.g. `~/.config/tridactyl/sample.js`
+ *
+ *     `js -r sample.js`
+ *
+ * `js` executes JavaScript in local scope. If you want to reuse the code in other :js calls, you can add your functions or variables into a global namespace, like `window.` or `tri.`, e.g.:
+ *
+ *     `js tri.hello = function (){ alert("hello world!") };`
+ *     `js tri.hello()`
+ *
  */
 /* tslint:disable:no-identical-functions */
 //#content
 export async function js(...str: string[]) {
-    if (str[0].startsWith("-p")) {
-        /* tslint:disable:no-unused-declaration */
-        /* tslint:disable:no-dead-store */
-        const JS_ARG = str[str.length - 1]
-        return eval(str.slice(1, -1).join(" "))
-    } else {
-        return eval(str.join(" "))
-    }
+    return js_helper(str)
 }
 
 /**
- * Lets you execute JavaScript in the background context. All the help from [[js]] applies. Gives you a different `tri` object.
+ * Lets you execute JavaScript in the background context. All the help from [[js]] applies. Gives you a different `tri` object which has access to more excmds and web-extension APIs.
  */
 /* tslint:disable:no-identical-functions */
 //#background
 export async function jsb(...str: string[]) {
-    if (str[0].startsWith("-p")) {
-        /* tslint:disable:no-unused-declaration */
-        /* tslint:disable:no-dead-store */
-        const JS_ARG = str[str.length - 1]
-        return eval(str.slice(1, -1).join(" "))
-    } else {
-        return eval(str.join(" "))
-    }
+    return js_helper(str)
 }
 
 /**

@@ -1,7 +1,7 @@
 // This attempts to implement the Ricart-Agrawala algorithm: https://www.wikipedia.org/wiki/Ricart%E2%80%93Agrawala_algorithm
 import {messageAllTabs} from "@src/lib/messaging"
 
-import * as uuid from "uuid/v1"
+import {v1 as uuid} from "uuid"
 
 export const OWNED_LOCKS = new Set()
 
