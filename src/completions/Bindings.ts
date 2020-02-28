@@ -1,6 +1,6 @@
 import * as Completions from "@src/completions"
 import * as config from "@src/lib/config"
-import { mode2maps, maps2mode } from "@src/lib/binding"
+import * as Binding from "@src/lib/binding"
 
 class BindingsCompletionOption extends Completions.CompletionOptionHTML
     implements Completions.CompletionOptionFuse {
@@ -52,6 +52,8 @@ export class BindingsCompletionSource extends Completions.CompletionSourceFuse {
             return
         }
 
+        this.deselect()
+
         // url pattern is mandatory: bindurl, unbindurl, reseturl
         if (prefix.trim().endsWith("url")) {
             urlPattern = args.length > 0 ? args.shift() : ""
@@ -80,7 +82,7 @@ export class BindingsCompletionSource extends Completions.CompletionSourceFuse {
             const margs = args[0].split("=")
             if ("--mode".includes(margs[0])) {
                 const modeStr = margs.length > 1 ? margs[1] : ""
-                this.options = Array.from(mode2maps.keys())
+                this.options = Binding.modes
                 .filter(k => k.startsWith(modeStr))
                 .map(name => {
                     return new BindingsCompletionOption(
@@ -99,10 +101,10 @@ export class BindingsCompletionSource extends Completions.CompletionSourceFuse {
             const mode = modeStr.replace("--mode=", "")
 
             modeName = mode
-            if (maps2mode.has(mode + "maps")) {
-                modeName = maps2mode.get(mode + "maps")
+            if (Binding.maps2mode.has(mode + "maps")) {
+                modeName = Binding.maps2mode.get(mode + "maps")
             }
-            configName = mode2maps.get(modeName)
+            configName = Binding.mode2maps.get(modeName)
             options += `--mode=${modeName} `
         }
 
