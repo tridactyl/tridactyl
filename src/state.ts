@@ -29,6 +29,7 @@ class State {
             jumppos: undefined,
         },
     ]
+    last_ex_str: string = "echo"
 }
 
 // Don't change these from const or you risk breaking the Proxy below.
