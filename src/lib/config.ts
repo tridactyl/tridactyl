@@ -98,8 +98,8 @@ export class default_config {
         "<ArrowUp>": "ex.prev_history",
         "<ArrowDown>": "ex.next_history",
 
-        "<S-ArrowLeft>": "text.backward_word",
-        "<S-ArrowRight>": "text.forward_word",
+        "<A-b>": "text.backward_word",
+        "<A-f>": "text.forward_word",
         "<C-a>": "text.beginning_of_line",
         "<C-e>": "text.end_of_line",
         "<A-d>": "text.kill_word",
