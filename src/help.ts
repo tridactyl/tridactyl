@@ -1,6 +1,7 @@
 // This file is only loaded in tridacyl's help pages
 
 import * as config from "@src/lib/config"
+import { modeMaps } from "@src/lib/binding"
 
 /** Create the element that should contain keybinding information */
 function initTridactylSettingElem(
@@ -93,7 +94,7 @@ async function onExcmdPageLoad() {
     browser.storage.onChanged.addListener((changes, areaname) => {
         if ("userconfig" in changes) {
             // JSON.stringify for comparisons like it's 2012
-            ["nmaps", "imaps", "ignoremaps", "inputmaps", "exaliases"].forEach(
+            [...modeMaps, "exaliases"].forEach(
                 kind => {
                     if (
                         JSON.stringify(changes.userconfig.newValue[kind]) !==
@@ -105,16 +106,7 @@ async function onExcmdPageLoad() {
         }
     })
 
-    await Promise.all(
-        [
-            "nmaps",
-            "imaps",
-            "ignoremaps",
-            "inputmaps",
-            "exaliases",
-            "exmaps",
-        ].map(addSetting),
-    )
+    await Promise.all([...modeMaps, "exaliases"].map(addSetting))
     // setCommandSetting() can change the height of nodes in the page so we need to scroll to the right place again
     if (document.location.hash) {
         /* tslint:disable:no-self-assignment */

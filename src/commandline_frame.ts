@@ -21,6 +21,7 @@ import * as perf from "@src/perf"
 import "@src/lib/number.clamp"
 import "@src/lib/html-tagged-template"
 import { TabAllCompletionSource } from "@src/completions/TabAll"
+import { BindingsCompletionSource } from "@src/completions/Bindings"
 import { BufferCompletionSource } from "@src/completions/Tab"
 import { BmarkCompletionSource } from "@src/completions/Bmark"
 import { ExcmdCompletionSource } from "@src/completions/Excmd"
@@ -103,6 +104,7 @@ export function enableCompletions() {
     if (!commandline_state.activeCompletions) {
         commandline_state.activeCompletions = [
             // FindCompletionSource,
+            BindingsCompletionSource,
             BmarkCompletionSource,
             TabAllCompletionSource,
             BufferCompletionSource,

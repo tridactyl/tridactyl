@@ -108,8 +108,16 @@ export abstract class CompletionOptionHTML extends CompletionOption {
         switch (newstate) {
             case "focused":
                 this.html.classList.add("focused")
-                this.html.scrollIntoView()
                 this.html.classList.remove("hidden")
+                const myRect = this.html.getClientRects()[0]
+                if (myRect) {
+                    const container = document.getElementById("completions")
+                    const boxRect = container.getClientRects()[0]
+                    if (myRect.bottom > boxRect.bottom)
+                        this.html.scrollIntoView()
+                    else if (myRect.top < boxRect.top)
+                        this.html.scrollIntoView(false)
+                }
                 break
             case "normal":
                 this.html.classList.remove("focused")
