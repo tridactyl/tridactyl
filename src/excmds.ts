@@ -156,6 +156,7 @@ import { EditorCmds as BgEditorCmds } from "@src/background/editor"
 import { messageActiveTab } from "@src/lib/messaging"
 import { EditorCmds } from "@src/background/editor"
 import { firefoxVersionAtLeast } from "@src/lib/webext"
+import { parse_bind_args } from "@src/lib/binding"
 import * as rc from "@src/background/config_rc"
 import * as css_util from "@src/lib/css_util"
 import * as Updates from "@src/lib/updates"
@@ -3064,48 +3065,6 @@ export function command(name: string, ...definition: string[]) {
 //#background
 export function comclear(name: string) {
     config.unset("exaliases", name)
-}
-
-/** @hidden */
-//#background_helper
-interface bind_args {
-    mode: string
-    configName: string
-    key: string
-    excmd: string
-}
-
-/** @hidden */
-//#background_helper
-function parse_bind_args(...args: string[]): bind_args {
-    if (args.length === 0) throw new Error("Invalid bind/unbind arguments.")
-
-    const result = {} as bind_args
-    result.mode = "normal"
-
-    // TODO: This mapping is copy-pasted in controller_content.ts,
-    // where it constructs the list of parsers. it should be
-    // centralized, possibly as part of rewrite for content-local maps
-    // and similar.
-    const mode2maps = new Map([["normal", "nmaps"], ["ignore", "ignoremaps"], ["insert", "imaps"], ["input", "inputmaps"], ["ex", "exmaps"], ["hint", "hintmaps"], ["visual", "vmaps"]])
-    if (args[0].startsWith("--mode=")) {
-        result.mode = args.shift().replace("--mode=", "")
-    }
-    if (!mode2maps.has(result.mode)) {
-        result.configName = result.mode + "maps"
-    } else {
-        result.configName = mode2maps.get(result.mode)
-    }
-
-    const key = args.shift()
-    // Convert key to internal representation
-    result.key = mapstrToKeyseq(key)
-        .map(k => k.toMapstr())
-        .join("")
-
-    result.excmd = args.join(" ")
-
-    return result
 }
 
 /** Bind a sequence of keys to an excmd or view bound sequence.
