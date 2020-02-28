@@ -11,7 +11,7 @@ export const ID = uuid()
 
 const now = () => (new Date()).getTime() + Math.random() // getTime is accurate only to ms, so fake microseconds with random
 
-export async function acquire(lockname: string) {
+export async function acquire(lockname: string, timeout= 2000) {
     if (OWNED_LOCKS.has(lockname) || DESIRED_LOCKS.hasOwnProperty(lockname)) return;
     const time = now()
 
@@ -19,8 +19,9 @@ export async function acquire(lockname: string) {
 
     await Promise.all([
         browser.runtime.sendMessage({type: "lock", command: "acquire", args: [lockname, time, ID]}),
-        messageAllTabs("lock", "acquire", [lockname, time, ID])]
-    )
+        messageAllTabs("lock", "acquire", [lockname, time, ID]),
+        new Promise(resolve => setTimeout(resolve, timeout)), // Take lock anyway after timeout
+    ])
 
     delete DESIRED_LOCKS[lockname]
     OWNED_LOCKS.add(lockname)
