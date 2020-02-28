@@ -97,11 +97,17 @@ export class default_config {
         "<Escape>": "ex.hide_and_clear",
         "<ArrowUp>": "ex.prev_history",
         "<ArrowDown>": "ex.next_history",
+
+        "<A-b>": "text.backward_word",
+        "<A-f>": "text.forward_word",
         "<C-a>": "text.beginning_of_line",
         "<C-e>": "text.end_of_line",
+        "<A-d>": "text.kill_word",
+        "<S-Backspace>": "text.backward_kill_word",
         "<C-u>": "text.backward_kill_line",
         "<C-k>": "text.kill_line",
         "<C-c>": "text.kill_whole_line",
+
         "<C-f>": "ex.complete",
         "<Tab>": "ex.next_completion",
         "<S-Tab>": "ex.prev_completion",
