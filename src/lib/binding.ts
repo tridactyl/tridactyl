@@ -12,8 +12,8 @@ export const mode2maps = new Map([
 export const maps2mode = new Map(
     Array.from(mode2maps.keys()).map(k => [mode2maps.get(k), k]))
 
-export const modeNames = Array.from(mode2maps.keys())
-export const modes = Array.from(maps2mode.keys())
+export const modes = Array.from(mode2maps.keys())
+export const modeMaps = Array.from(maps2mode.keys())
 
 interface bind_args {
     mode: string

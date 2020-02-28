@@ -1,5 +1,6 @@
 import * as Completions from "@src/completions"
 import * as config from "@src/lib/config"
+import { mode2maps, maps2mode } from "@src/lib/binding"
 
 class BindingsCompletionOption extends Completions.CompletionOptionHTML
     implements Completions.CompletionOptionFuse {
@@ -73,13 +74,6 @@ export class BindingsCompletionSource extends Completions.CompletionSourceFuse {
                 return this.updateChain()
             }
         }
-
-        const mode2maps = new Map([
-            ["normal", "nmaps"], ["ignore", "ignoremaps"],
-            ["insert", "imaps"], ["input", "inputmaps"], ["ex", "exmaps"],
-            ["hint", "hintmaps"], ["visual", "vmaps"]])
-        const maps2mode = new Map(
-            Array.from(mode2maps.keys()).map(k => [mode2maps.get(k), k]))
 
         // completion maps mode
         if (args.length === 1 && args[0].startsWith("--m")) {

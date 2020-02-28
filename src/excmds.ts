@@ -156,7 +156,7 @@ import { EditorCmds as BgEditorCmds } from "@src/background/editor"
 import { messageActiveTab } from "@src/lib/messaging"
 import { EditorCmds } from "@src/background/editor"
 import { firefoxVersionAtLeast } from "@src/lib/webext"
-import { parse_bind_args } from "@src/lib/binding"
+import { parse_bind_args, modeMaps } from "@src/lib/binding"
 import * as rc from "@src/background/config_rc"
 import * as css_util from "@src/lib/css_util"
 import * as Updates from "@src/lib/updates"
@@ -1379,7 +1379,7 @@ export async function help(...helpItems: string[]) {
         },
         // -b: look for a binding
         "-b": (settings, helpItem) => {
-            for (const mode of ["nmaps", "imaps", "inputmaps", "ignoremaps"]) {
+            for (const mode of modeMaps) {
                 const bindings = settings[mode]
                 // If 'helpItem' matches a binding, replace 'helpItem' with
                 // the command that would be executed when pressing the key
