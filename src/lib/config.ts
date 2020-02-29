@@ -14,7 +14,10 @@
  * We very strongly recommend that you pretty much ignore this page and instead follow the link below DEFAULTS that will take you to our own source code which is formatted in a marginally more sane fashion.
  *
  */
+import * as locks from "@src/lib/locks"
+import * as messaging from "@src/lib/messaging"
 import * as R from "ramda"
+import {diff} from "deep-object-diff"
 
 /* Remove all nulls from objects recursively
  * NB: also applies to arrays
@@ -1276,11 +1279,38 @@ export function unset(...target) {
 export async function save(storage: "local" | "sync" = get("storageloc")) {
     // let storageobj = storage === "local" ? browser.storage.local : browser.storage.sync
     // storageobj.set({CONFIGNAME: USERCONFIG})
+    await locks.acquire("config")
     const settingsobj = o({})
     settingsobj[CONFIGNAME] = USERCONFIG
-    return storage === "local"
+    const ans = storage === "local"
         ? browser.storage.local.set(settingsobj)
         : browser.storage.sync.set(settingsobj)
+
+    // Ignore errors about background pages that aren't listening
+    const friendly_bg_messenger = async () => {
+        let p
+        try {
+            p = await browser.runtime.sendMessage({type: "config", command: "confUpdate", args: [settingsobj]})
+        } catch (e) {
+            if (e.message != "Could not establish connection. Receiving end does not exist.") {
+                throw e
+            }
+            p = true
+        }
+        return p
+    }
+
+    await Promise.all([
+        // dispatch message to all content state.ts's
+        messaging.messageAllTabs("config", "confUpdate", [settingsobj]),
+
+        // Ideally this V would use Farnoy's typed messages but
+        // I haven't had time to get my head around them
+        friendly_bg_messenger()
+    ])
+
+    locks.release("config")
+    return ans
 }
 
 /** Updates the config to the latest version.
@@ -1677,68 +1707,30 @@ const parseConfigHelper = (pconf, parseobj) => {
     return parseobj
 }
 
-// Listen for changes to the storage and update the USERCONFIG if appropriate.
-// TODO: BUG! Sync and local storage are merged at startup, but not by this thing.
-browser.storage.onChanged.addListener((changes, areaname) => {
-    if (CONFIGNAME in changes) {
-        const { newValue, oldValue } = changes[CONFIGNAME]
-        const old = oldValue || {}
-
-        function triggerChangeListeners(key, value = newValue[key]) {
-            const arr = changeListeners.get(key)
-            if (arr) {
-                const v = old[key] === undefined ? DEFAULTS[key] : old[key]
-                arr.forEach(f => f(v, value))
-            }
-        }
-
-        if (areaname === "sync" && areaname !== get("storageloc")) {
-            // storageloc=local means ignoring changes that aren't set by us
-        } else if (newValue !== undefined) {
-            if (areaname === "sync") {
-              // prevent storageloc from being set remotely
-              delete old.storageloc
-              delete newValue.storageloc
-            }
-
-            // A key has been :unset if it exists in USERCONFIG and doesn't in changes and if its value in USERCONFIG is different from the one it has in default_config
-            const unsetKeys = Object.keys(old).filter(
-                k =>
-                    newValue[k] === undefined &&
-                    JSON.stringify(old[k]) !==
-                        JSON.stringify(DEFAULTS[k]),
-            )
-
-            // A key has changed if it is defined in USERCONFIG and its value in USERCONFIG is different from the one in `changes` or if the value in defaultConf is different from the one in `changes`
-            const changedKeys = Object.keys(
-                newValue,
-            ).filter(
-                k =>
-                    JSON.stringify(
-                        old[k] !== undefined
-                            ? old[k]
-                            : DEFAULTS[k],
-                    ) !== JSON.stringify(newValue[k]),
-            )
-
-            // TODO: this should be a deep comparison but this is better than nothing
-            changedKeys.forEach(key => USERCONFIG[key] = newValue[key])
-            unsetKeys.forEach(key => delete USERCONFIG[key])
-
-            // Trigger listeners
-            unsetKeys.forEach(key => triggerChangeListeners(key, DEFAULTS[key]))
-
-            changedKeys.forEach(key => triggerChangeListeners(key))
-        } else {
-            // newValue is undefined when calling browser.storage.AREANAME.clear()
-            // If newValue is undefined and AREANAME is the same value as STORAGELOC, the user wants to clean their config
-            USERCONFIG = o({})
-
-            Object.keys(old)
-                .filter(key => old[key] !== DEFAULTS[key])
-                .forEach(key => triggerChangeListeners(key))
+const updateHandler = (message, sender, sendResponse) => {
+    if (message.type !== "config") return false
+    if (message.command !== "confUpdate") throw("Unsupported message to config, type " + message.command)
+    const newconfig = message.args[0][CONFIGNAME]
+    function triggerChangeListeners(key, value = newconfig[key]) {
+        const arr = changeListeners.get(key)
+        if (arr) {
+            const v = USERCONFIG[key] === undefined ? DEFAULTS[key] : USERCONFIG[key]
+            arr.forEach(f => f(v, value))
         }
     }
-})
+    const differences = diff(USERCONFIG, newconfig) // deleted keys become undefined
+
+    // Trigger listeners
+    // Deleted keys
+    R.keys(R.filter(x => x === undefined, differences))?.forEach(key => triggerChangeListeners(key, DEFAULTS[key]))
+
+    // Changed keys
+    R.keys(R.filter(x => x !== undefined, differences))?.forEach(key => triggerChangeListeners(key))
+
+    Object.assign(USERCONFIG, message.args[0][CONFIGNAME])
+    sendResponse(true)
+}
+
+browser.runtime.onMessage.addListener(updateHandler) // messaging.addListener doesn't load quickly enough for us to use it here
 
 init()
