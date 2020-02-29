@@ -17,9 +17,11 @@ export async function acquire(lockname: string, timeout= 2000) {
 
     DESIRED_LOCKS[lockname] = time
 
-    await Promise.all([
-        browser.runtime.sendMessage({type: "lock", command: "acquire", args: [lockname, time, ID]}),
-        messageAllTabs("lock", "acquire", [lockname, time, ID]),
+    await Promise.race([
+        Promise.all([
+            browser.runtime.sendMessage({type: "lock", command: "acquire", args: [lockname, time, ID]}),
+            messageAllTabs("lock", "acquire", [lockname, time, ID]),
+        ]),
         new Promise(resolve => setTimeout(resolve, timeout)), // Take lock anyway after timeout
     ])
 
