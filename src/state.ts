@@ -58,9 +58,7 @@ const state = (new Proxy(overlay, {
 
     /** Persist sets to storage "immediately" */
     set(target, property, value) {
-        (async () => {
-            await locks.acquire("state")
-
+        locks.withlock("state", async () => {
             logger.debug("State changed!", property, value)
             target[property] = value
             browser.storage.local.set({ state: target } as any)
@@ -74,10 +72,7 @@ const state = (new Proxy(overlay, {
                 // I haven't had time to get my head around them
                 browser.runtime.sendMessage({type: "state", command: "stateUpdate", args: [{state: target}]}),
             ])
-
-            // Release named lock
-            locks.release("state")
-        })()
+        })
 
         return true
     },
