@@ -43,7 +43,7 @@ export function parser(exstr: string, all_excmds: any): any[] {
 
     // Convert arguments, but only for ex commands
     let converted_args
-    if (namespce == "") {
+    if (namespce == "" && args.length > 0) {
         let types
         try {
             types = (metadata
@@ -52,13 +52,17 @@ export function parser(exstr: string, all_excmds: any): any[] {
                 .type as FunctionType)
                 .args
         } catch (e) {
-            throw `Could not find type information for excmd ${funcName}`
+            // user defined functions?
+            types = null
+            converted_args = args
         }
-        try {
-            converted_args = convertArgs(types, args)
-        } catch (e) {
-            logger.error("Error executing or parsing:", exstr, e)
-            throw e
+        if (types !== null) {
+            try {
+                converted_args = convertArgs(types, args)
+            } catch (e) {
+                logger.error("Error executing or parsing:", exstr, e)
+                throw e
+            }
         }
     } else {
         converted_args = args
