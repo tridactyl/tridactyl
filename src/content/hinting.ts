@@ -665,7 +665,9 @@ function filterHintsVimperator(fstr, reflow = false) {
             active = active.filter(hint => hint.name.startsWith(run.str))
         } else {
             // By text
-            active = active.filter(hint => hint.filterData.includes(run.str))
+            // match every part of run splited by space.
+            active = active.filter(hint => run.str.split(/\s+/).every(
+                runi => hint.filterData.includes(runi)))
 
             if (reflow) rename(active)
         }
@@ -729,6 +731,12 @@ function pushKey(key) {
         modeState.filter = originalFilter
         modeState.filterFunc(modeState.filter)
     }
+}
+
+/** Covert to char and pushKey(). This is needed because ex commands ignore whitespace. */
+function pushKeyCodePoint(codepoint) {
+    const key = String.fromCodePoint(parseInt(codepoint, 0))
+    return pushKey(key)
 }
 
 /** Just run pushKey(" "). This is needed because ex commands ignore whitespace. */
@@ -885,7 +893,7 @@ export function parser(keys: KeyboardEvent[]) {
     if (simplekeys.length > 1) {
         exstr = simplekeys.reduce((acc, key) => `hint.pushKey ${key.key};`, "composite ")
     } else if (simplekeys.length === 1) {
-        exstr = `hint.pushKey ${simplekeys[0].key}`
+        exstr = `hint.pushKeyCodePoint ${simplekeys[0].key.codePointAt(0)}`
     } else {
         return { keys: [], isMatch: false }
     }
@@ -905,6 +913,7 @@ export function getHintCommands() {
         selectFocusedHint,
         pushKey,
         pushSpace,
+        pushKeyCodePoint,
         popKey,
     };
 };
