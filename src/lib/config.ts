@@ -1366,7 +1366,7 @@ export async function update() {
                         // Keep only the ones with im_* functions
                         .filter(
                             key =>
-                                mapobj[key].search(
+                                mapobj[key]?.search(
                                     "^im_|([^a-zA-Z0-9_-])im_",
                                 ) >= 0,
                         )
