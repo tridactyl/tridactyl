@@ -14,16 +14,24 @@ export const ID = uuid()
 
 const now = () => (new Date()).getTime() + Math.random() // getTime is accurate only to ms, so fake microseconds with random
 
-export async function acquire(lockname: string) {
+export async function acquire(lockname: string, timeout = 2000) {
     if (OWNED_LOCKS.has(lockname) || DESIRED_LOCKS.hasOwnProperty(lockname)) return;
     const time = now()
 
     DESIRED_LOCKS[lockname] = time
 
-    await Promise.all([
-        browser.runtime.sendMessage({type: "lock", command: "acquire", args: [lockname, time, ID]}),
-        messageAllTabs("lock", "acquire", [lockname, time, ID]),
+    const a = await Promise.race([
+        Promise.all([
+            browser.runtime.sendMessage({type: "lock", command: "acquire", args: [lockname, time, ID]}),
+            messageAllTabs("lock", "acquire", [lockname, time, ID]),
+        ]),
+        new Promise(resolve => setTimeout(
+            () => {
+                resolve("ERROR: LOST THE RACE")
+            },
+        timeout)), // Take the lock anyway after timeout
     ])
+    if (a === "ERROR: LOST THE RACE") {logger.warning("lock " + lockname + " was taken without confirmation")}
 
     delete DESIRED_LOCKS[lockname]
     OWNED_LOCKS.add(lockname)
@@ -33,7 +41,7 @@ export async function acquire(lockname: string) {
  * Execute func after acquiring a named lock. If func takes longer than timeout, release the lock early.
  * Returns the value of func.
  */
-export async function withlock(lockname: string, func, timeout= 2000) {
+export async function withlock(lockname: string, func, timeout = 500) {
     await acquire(lockname)
     const p = (async () => func())() // Ensure function is promisified
     const a = await Promise.race([
