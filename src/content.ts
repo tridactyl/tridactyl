@@ -149,6 +149,7 @@ import * as locks from "@src/lib/locks"
     commandline_content,
     convert,
     config,
+    controller,
     dom,
     editor,
     excmds,

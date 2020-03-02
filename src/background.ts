@@ -33,6 +33,7 @@ import * as locks from "@src/lib/locks"
     excmds: excmds_background,
     convert,
     config,
+    controller,
     dom,
     download_background,
     itertools,
