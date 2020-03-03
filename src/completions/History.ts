@@ -78,7 +78,7 @@ export class HistoryCompletionSource extends Completions.CompletionSourceFuse {
         options += options ? " " : ""
 
         // Options are pre-trimmed to the right length.
-        this.options = (await this.scoreOptions(query, 10)).map(
+        this.options = (await this.scoreOptions(query, config.get("historyresults"))).map(
             page => new HistoryCompletionOption(options + page.url, page as any),
         )
 
