@@ -1030,14 +1030,14 @@ const DEFAULTS = o(new default_config())
     @hidden
  */
 function getDeepProperty(obj, target: string[]) {
-    if (obj !== undefined && target.length) {
+    if (obj !== undefined && obj !== null && target.length) {
         if (obj["🕷🕷INHERITS🕷🕷"] === undefined)  {
             return getDeepProperty(obj[target[0]], target.slice(1))
         } else {
             return getDeepProperty(mergeDeepCull(get(obj["🕷🕷INHERITS🕷🕷"]), obj)[target[0]], target.slice(1))
         }
     } else {
-        if (obj === undefined) return obj
+        if (obj === undefined || obj === null) return obj
         if (obj["🕷🕷INHERITS🕷🕷"] !== undefined) {
             return mergeDeepCull(get(obj["🕷🕷INHERITS🕷🕷"]), obj)
         } else {
