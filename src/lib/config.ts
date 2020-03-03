@@ -15,6 +15,7 @@
  *
  */
 import * as R from "ramda"
+import * as binding from "@src/lib/binding"
 
 /* Remove all nulls from objects recursively
  * NB: also applies to arrays
@@ -1582,64 +1583,34 @@ export function parseConfig(): string {
     }${s.logging}${ftdetect}`
 }
 
-const parseConfigHelper = (pconf, parseobj) => {
+const parseConfigHelper = (pconf, parseobj, prefix= []) => {
     for (const i in pconf) {
-        if (typeof pconf[i] !== "object")
-            parseobj.conf.push(`set ${i} ${pconf[i]}`)
-        else {
+        if (typeof pconf[i] !== "object") {
+            if (prefix[0] === "subconfigs") {
+                prefix.shift()
+                const pattern = prefix.shift()
+                parseobj.subconfigs.push(`seturl ${pattern} ${[...prefix, i].join(".")} ${pconf[i]}`)
+            } else {
+                parseobj.conf.push(
+                    `set ${[...prefix, i].join(".")} ${pconf[i]}`)
+            }
+        } else {
             for (const e of Object.keys(pconf[i])) {
-                if (i === "nmaps") {
-                    if (pconf[i][e].length > 0) {
-                        parseobj.binds.push(`bind ${e} ${pconf[i][e]}`)
-                    } else {
-                        parseobj.binds.push(`unbind ${e}`)
+                if (binding.modeMaps.includes(i)) {
+                    let cmd = "bind"
+                    if (prefix[0] === "subconfigs")
+                        cmd = cmd + "url " + prefix[1]
+
+                    if (i !== "nmaps") {
+                        const mode = binding.maps2mode.get(i)
+                        cmd += ` --mode=${mode}`
                     }
-                } else if (i === "exmaps") {
+
                     if (pconf[i][e].length > 0) {
-                        parseobj.binds.push(
-                            `bind --mode=ex ${e} ${pconf[i][e]}`,
-                        )
+                        parseobj.binds.push(`${cmd} ${e} ${pconf[i][e]}`)
                     } else {
-                        parseobj.binds.push(`unbind --mode=ex ${e}`)
+                        parseobj.binds.push(`un${cmd} ${e}`)
                     }
-                } else if (i === "ignoremaps") {
-                    if (pconf[i][e].length > 0) {
-                        parseobj.binds.push(
-                            `bind --mode=ignore ${e} ${pconf[i][e]}`,
-                        )
-                    } else {
-                        parseobj.binds.push(`unbind --mode=ignore ${e}`)
-                    }
-                } else if (i === "imaps") {
-                    if (pconf[i][e].length > 0) {
-                        parseobj.binds.push(
-                            `bind --mode=insert ${e} ${pconf[i][e]}`,
-                        )
-                    } else {
-                        parseobj.binds.push(`unbind --mode=insert ${e}`)
-                    }
-                } else if (i === "inputmaps") {
-                    if (pconf[i][e].length > 0) {
-                        parseobj.binds.push(
-                            `bind --mode=input ${e} ${pconf[i][e]}`,
-                        )
-                    } else {
-                        parseobj.binds.push(`unbind --mode=input ${e}`)
-                    }
-                } else if (i === "hintmaps") {
-                    if (pconf[i][e].length > 0) {
-                        parseobj.binds.push(
-                            `bind --mode=hint ${e} ${pconf[i][e]}`,
-                        )
-                    } else {
-                        parseobj.binds.push(`unbind --mode=hint ${e}`)
-                    }
-                } else if (i === "subconfigs") {
-                    parseobj.subconfigs.push(
-                        `js tri.config.set("${i}", {"${e}": ${JSON.stringify(
-                            pconf[i][e],
-                        )}})`,
-                    )
                 } else if (i === "exaliases") {
                     // Only really useful if mapping the entire config and not just pconf.
                     if (e === "alias") {
@@ -1665,11 +1636,8 @@ const parseConfigHelper = (pconf, parseobj) => {
                     if (pconf[i][e] === 4) level = "debug"
                     parseobj.logging.push(`set logging.${e} ${level}`)
                 } else {
-                    parseobj.conf.push(
-                        `js tri.config.set("${i}", {"${e}": ${JSON.stringify(
-                            pconf[i][e],
-                        )}})`,
-                    )
+                    parseConfigHelper(pconf[i], parseobj, [...prefix, i])
+                    break
                 }
             }
         }
