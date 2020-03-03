@@ -2,6 +2,7 @@ import * as config from "@src/lib/config"
 import * as DOM from "@src/lib/dom"
 import { browserBg, activeTabId } from "@src/lib/webext"
 import state from "@src/state"
+import * as State from "@src/state"
 
 // The host is the shadow root of a span used to contain all highlighting
 // elements. This is the least disruptive way of highlighting text in a page.
@@ -123,7 +124,7 @@ export async function jumpToMatch(searchQuery, reverse) {
         }
     }
     if (lastHighlights.length < 1) {
-        throw new Error("Pattern not found: " + state.lastSearchQuery)
+        throw new Error("Pattern not found: " + searchQuery)
     }
     lastHighlights
         .sort(reverse ? (a, b) => b.top - a.top : (a, b) => a.top - b.top)
@@ -144,16 +145,17 @@ export function removeHighlighting() {
     while (host.firstChild) host.removeChild(host.firstChild)
 }
 
-export function jumpToNextMatch(n: number) {
+export async function jumpToNextMatch(n: number) {
+    const lastSearchQuery = await State.getAsync("lastSearchQuery")
     if (!lastHighlights) {
-        return state.lastSearchQuery ? jumpToMatch(state.lastSearchQuery, n < 0) : undefined
+        return lastSearchQuery ? jumpToMatch(lastSearchQuery, n < 0) : undefined
     }
     if (!host.firstChild) {
         drawHighlights(lastHighlights)
     }
     if (lastHighlights[selected] === undefined) {
         removeHighlighting()
-        throw new Error("Pattern not found: " + state.lastSearchQuery)
+        throw new Error("Pattern not found: " + lastSearchQuery)
     }
     /* tslint:disable:no-useless-cast */
     ; (lastHighlights[selected] as any).unfocus()

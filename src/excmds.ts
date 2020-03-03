@@ -2747,7 +2747,7 @@ async function getnexttabs(tabid: number, n?: number) {
     It's difficult to execute this in the background script (`:jsb`, `:run_excmd`, `:autocmd TriStart`, `:source`), but if you you do, it will re-execute the last exstr that was executed in the background script. What this may have been is unpredictable and not precisely encouraged.
 
 */
-//#both
+//#background
 export async function repeat(n = 1, ...exstr: string[]) {
     let cmd = state.last_ex_str
     if (exstr.length > 0) cmd = exstr.join(" ")

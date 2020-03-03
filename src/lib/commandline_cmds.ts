@@ -1,13 +1,14 @@
 import { messageOwnTab } from "@src/lib/messaging"
+import * as State from "@src/state"
 
 export function getCommandlineFns(cmdline_state) {
     return {
         /**
          * Insert the first command line history line that starts with the content of the command line in the command line.
          */
-        "complete": () => {
+        "complete": async () => {
             const fragment = cmdline_state.clInput.value
-            const matches = cmdline_state.state.cmdHistory.filter(key => key.startsWith(fragment))
+            const matches = (await State.getAsync("cmdHistory")).filter(key => key.startsWith(fragment))
             const mostrecent = matches[matches.length - 1]
             if (mostrecent !== undefined) cmdline_state.clInput.value = mostrecent
             return cmdline_state.refresh_completions(cmdline_state.clInput.value)
@@ -121,7 +122,9 @@ export function getCommandlineFns(cmdline_state) {
                 !browser.extension.inIncognitoContext &&
                 !(func === "winopen" && args[0] === "-private")
             ) {
-                cmdline_state.state.cmdHistory = cmdline_state.state.cmdHistory.concat([command])
+                State.getAsync("cmdHistory").then(c => {
+                    cmdline_state.state.cmdHistory = c.concat([command])
+                })
             }
             cmdline_state.cmdline_history_position = 0
 

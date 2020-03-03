@@ -7,6 +7,10 @@ export function inContentScript() {
     return getContext() === "content"
 }
 
+export function notBackground() {
+    return getContext() !== "background"
+}
+
 /** WebExt code can be run from three contexts:
 
     Content script
