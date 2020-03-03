@@ -555,17 +555,41 @@ function buildHintsSimple(els: Element[], onSelect: HintSelectedCallback) {
     }
 }
 
+/** Helper for vimperator hinting.
+
+    Allow customize vimperator hinting filter by overriding functions of the
+    helper object.
+ */
+export const vimpHelper = {
+    filterableTextFilter: null,
+    sanitiseHintText: function sanitiseHintText(str) {
+        // Clean up hint text
+        // strip out hintchars from hint text
+        if (vimpHelper.filterableTextFilter === null) {
+            // escape the hintchars string so that strange things don't happen
+            // when special characters are used as hintchars (for example, ']')
+            const escapedHintChars = defaultHintChars().replace(
+                /^\^|[-\\\]]/g, "\\$&")
+            const filterableTextFilter = new RegExp(
+                "[" + escapedHintChars + "]", "g")
+            vimpHelper.filterableTextFilter = filterableTextFilter
+        }
+        return str.replace(vimpHelper.filterableTextFilter, "")
+    },
+
+    matchHint: function matchHint(str, key) {
+        // Match a hint key to hint text
+        // match every part of key splited by space.
+        return key.split(/\s+/).every(keyi => str.includes(keyi))
+    },
+}
+
 /** @hidden */
 function buildHintsVimperator(els: Element[], onSelect: HintSelectedCallback) {
     const names = hintnames(els.length)
-    // escape the hintchars string so that strange things don't happen
-    // when special characters are used as hintchars (for example, ']')
-    const escapedHintChars = defaultHintChars().replace(/^\^|[-\\\]]/g, "\\$&")
-    const filterableTextFilter = new RegExp("[" + escapedHintChars + "]", "g")
     for (const [el, name] of izip(els, names)) {
         let ft = elementFilterableText(el)
-        // strip out hintchars
-        ft = ft.replace(filterableTextFilter, "")
+        ft = vimpHelper.sanitiseHintText(ft)
         logger.debug({ el, name, ft })
         modeState.hintchars += name + ft
         modeState.hints.push(new Hint(el, name, ft, onSelect))
@@ -665,9 +689,7 @@ function filterHintsVimperator(fstr, reflow = false) {
             active = active.filter(hint => hint.name.startsWith(run.str))
         } else {
             // By text
-            // match every part of run splited by space.
-            active = active.filter(hint => run.str.split(/\s+/).every(
-                runi => hint.filterData.includes(runi)))
+            active = active.filter(hint => vimpHelper.matchHint(hint.filterData, run.str))
 
             if (reflow) rename(active)
         }
