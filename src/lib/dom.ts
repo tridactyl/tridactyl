@@ -219,14 +219,18 @@ export function isVisible(element: Element) {
         element = element.parentElement
     }
     const clientRect = element.getBoundingClientRect()
-    const computedStyle = getComputedStyle(element)
-    // remove elements that are barely within the viewport, tiny, or invisible
     switch (true) {
         case !clientRect:
         case clientRect.bottom < 4:
         case clientRect.top >= innerHeight - 4:
         case clientRect.right < 4:
         case clientRect.left >= innerWidth - 4:
+            return false
+    }
+
+    // remove elements that are barely within the viewport, tiny, or invisible
+    const computedStyle = getComputedStyle(element)
+    switch (true) {
         case widthMatters(computedStyle) && clientRect.width < 3:
         case heightMatters(computedStyle) && clientRect.height < 3:
         case computedStyle.visibility !== "visible":
