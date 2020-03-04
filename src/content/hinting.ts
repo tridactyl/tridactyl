@@ -748,7 +748,8 @@ function pushSpace() {
 export function hintables(selectors = DOM.HINTTAGS_selectors, withjs = false) {
     let elems = DOM.getElemsBySelector(selectors, [])
     if (withjs) {
-        elems = [...elems, ...DOM.hintworthy_js_elems]
+        const elemSet = new Set([...elems, ...DOM.hintworthy_js_elems])
+        elems = [...elemSet]
     }
     return elems.filter(DOM.isVisible)
 }

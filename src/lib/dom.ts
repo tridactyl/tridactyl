@@ -229,6 +229,7 @@ export function isVisible(element: Element) {
     }
 
     // remove elements that are barely within the viewport, tiny, or invisible
+    // Only call getComputedStyle when necessary
     const computedStyle = getComputedStyle(element)
     switch (true) {
         case widthMatters(computedStyle) && clientRect.width < 3:
