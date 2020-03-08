@@ -14,9 +14,7 @@
     If this turns out to be expensive there are improvements available.
 */
 
-import * as locks from "@src/lib/locks"
 import Logger from "@src/lib/logging"
-import * as messaging from "@src/lib/messaging"
 const logger = new Logger("state")
 
 class State {
@@ -56,33 +54,19 @@ const state = (new Proxy(overlay, {
         }
     },
 
-    /** Persist sets to storage "immediately" */
+    /** Persist sets to storage immediately */
     set(target, property, value) {
-        locks.withlock("state", async () => {
-            logger.debug("State changed!", property, value)
-            target[property] = value
-            browser.storage.local.set({ state: target } as any)
-
-            // Wait for reply from each script to say that they have updated their own state
-            await Promise.all([
-                // dispatch message to all content state.ts's
-                messaging.messageAllTabs("state", "stateUpdate", [{state: target}]),
-
-                // Ideally this V would use Farnoy's typed messages but
-                // I haven't had time to get my head around them
-                browser.runtime.sendMessage({type: "state", command: "stateUpdate", args: [{state: target}]}),
-            ])
-        })
-
+        logger.debug("State changed!", property, value)
+        target[property] = value
+        browser.storage.local.set({ state: target } as any)
         return true
     },
 }))
 
-// Keep instances of state.ts synchronised with each other
-messaging.addListener("state", (message, sender, sendResponse) => {
-    if (message.command !== "stateUpdate") throw("Unsupported message to state, type " + message.command)
-    Object.assign(overlay, message.args[0].state)
-    sendResponse(true)
+browser.storage.onChanged.addListener((changes, areaname) => {
+    if (areaname === "local" && "state" in changes) {
+        Object.assign(overlay, changes.state.newValue)
+    }
 })
 
 export { state as default }
