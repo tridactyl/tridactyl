@@ -219,14 +219,19 @@ export function isVisible(element: Element) {
         element = element.parentElement
     }
     const clientRect = element.getBoundingClientRect()
-    const computedStyle = getComputedStyle(element)
-    // remove elements that are barely within the viewport, tiny, or invisible
     switch (true) {
         case !clientRect:
         case clientRect.bottom < 4:
         case clientRect.top >= innerHeight - 4:
         case clientRect.right < 4:
         case clientRect.left >= innerWidth - 4:
+            return false
+    }
+
+    // remove elements that are barely within the viewport, tiny, or invisible
+    // Only call getComputedStyle when necessary
+    const computedStyle = getComputedStyle(element)
+    switch (true) {
         case widthMatters(computedStyle) && clientRect.width < 3:
         case heightMatters(computedStyle) && clientRect.height < 3:
         case computedStyle.visibility !== "visible":
@@ -388,7 +393,7 @@ export function compareElementArea(a: HTMLElement, b: HTMLElement): number {
     return aArea - bArea
 }
 
-export const hintworthy_js_elems = []
+export const hintworthy_js_elems: Set<Element> = new Set()
 
 /** Adds or removes an element from the hintworthy_js_elems array of the
  *  current tab.
@@ -444,14 +449,13 @@ export function registerEvListenerAction(
         case "mouseup":
         case "mouseover":
             if (add) {
-                hintworthy_js_elems.push(elem)
+                hintworthy_js_elems.add(elem)
             } else {
                 // Possible bug: If a page adds an event listener for "click" and
                 // "mousedown" and removes "mousedown" twice, we lose track of the
                 // elem even though it still has a "click" listener.
                 // Fixing this might not be worth the added complexity.
-                const index = hintworthy_js_elems.indexOf(elem)
-                if (index >= 0) hintworthy_js_elems.splice(index, 1)
+                hintworthy_js_elems.delete(elem)
             }
     }
 }

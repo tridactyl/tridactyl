@@ -32,7 +32,6 @@ import {
     islice,
     izip,
     map,
-    unique,
 } from "@src/lib/itertools"
 import { contentState } from "@src/content/state_content"
 import * as config from "@src/lib/config"
@@ -779,8 +778,8 @@ function pushSpace() {
 export function hintables(selectors = DOM.HINTTAGS_selectors, withjs = false) {
     let elems = DOM.getElemsBySelector(selectors, [])
     if (withjs) {
-        elems = elems.concat(DOM.hintworthy_js_elems)
-        elems = unique(elems)
+        const elemSet = new Set([...elems, ...DOM.hintworthy_js_elems])
+        elems = [...elemSet]
     }
     return elems.filter(DOM.isVisible)
 }
