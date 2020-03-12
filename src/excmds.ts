@@ -3798,7 +3798,7 @@ export async function hint(option?: string, selectors?: string, ...rest: string[
     // Note: we need to process 'pipe' separately because it could be interpreted as -p -i -e otherwise
     const pipeIndex = option.indexOf("pipe")
     if (pipeIndex >= 0) {
-        option = option.slice(0, pipeIndex) + option.slice(pipeIndex + 1)
+        option = option.slice(0, pipeIndex) + option.slice(pipeIndex + 4)
     }
 
     // Hacky fix for #1374 - join rapid-hinted yanks
