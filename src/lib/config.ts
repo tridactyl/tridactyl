@@ -621,6 +621,22 @@ export class default_config {
         gentoo_wiki:
             "https://wiki.gentoo.org/index.php?title=Special%3ASearch&profile=default&fulltext=Search&search=",
         qwant: "https://www.qwant.com/?q=",
+        alternativeto: "https://alternativeto.net/browse/search/?q=",
+        boardgamegeek: "https://boardgamegeek.com/geeksearch.php?action=search&objecttype=boardgame&q=",
+        boardgameprices: "https://boardgameprices.com/compare-prices-for?q=",
+        boardgamepricesuk: "https://boardgameprices.co.uk/item/search?search=",
+        booksprice: "https://booksprice.com/compare.do?inputData=",
+        bookspriceuk: "http://booksprice.co.uk/compare.do?inputData=",
+        chambersbiog: "https://chambers.co.uk/search/?query=%s&title=biog",
+        chambersdict: "https://chambers.co.uk/search/?query=%s&title=21st",
+        chambersthes: "https://chambers.co.uk/search/?query=%s&title=thes",
+        ebay: "https://www.ebay.com/sch/i.html?_nkw=",
+        ebayuk: "https://www.ebay.co.uk/sch/i.html?_nkw=",
+        etymonline: "https://www.etymonline.com/search?q=",
+        goodreads: "https://www.goodreads.com/search?q=",
+        hotukdeals: "https://www.hotukdeals.com/search?q=",
+        oeis: "https://oeis.org/search?q=",
+        powerthesaurus: "https://www.powerthesaurus.org/_search?q=",
     }
 
     /**
