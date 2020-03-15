@@ -148,6 +148,7 @@ function* ParserController() {
 
                 const newMode = contentState.mode
                 if (newMode !== currentMode) {
+                    keyEvents = []
                     previousSuffix = null
                 }
 
