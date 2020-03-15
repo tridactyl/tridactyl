@@ -32,7 +32,7 @@ If you want to use advanced features such as edit-in-Vim, you'll also need to in
 
 ## Migrating between beta and stable builds
 
-Our beta and stable versions store their configurations in separate places. To migrate between the two, see [this comment][migratelink] or [this issue](https://github.com/tridactyl/tridactyl/issues/1353#issuecomment-463094704).
+Our beta and stable versions store their configurations in separate places. To migrate between the two, see [the wiki](https://github.com/tridactyl/tridactyl/wiki/Migration-from-stable-to-beta).
 
 ## Changelog
 
