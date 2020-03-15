@@ -302,7 +302,7 @@ config.getAsync("modeindicator").then(mode => {
             dom.isTextEditable(document.activeElement) &&
             !["input", "ignore"].includes(mode)
         ) {
-            statusIndicator.textContent = "insert"
+            result = "insert"
             // this doesn't work; statusIndicator.style is full of empty string
             // statusIndicator.style.borderColor = "green !important"
             // need to fix loss of focus by click: doesn't do anything here.
@@ -310,7 +310,7 @@ config.getAsync("modeindicator").then(mode => {
             mode === "insert" &&
             !dom.isTextEditable(document.activeElement)
         ) {
-            statusIndicator.textContent = "normal"
+            result = "normal"
             // statusIndicator.style.borderColor = "lightgray !important"
         } else {
             result = mode
