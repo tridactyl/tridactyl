@@ -102,7 +102,7 @@ export class BufferCompletionSource extends Completions.CompletionSourceFuse {
                 if (Math.abs(index) < options.length) {
                     index = index.mod(options.length)
                     // options order might change by scored sorting
-                    return this.nthTabscoredOptions(index, options)
+                    return this.TabscoredOptionsStartsWidthN(index, options)
                 }
             } else if (args[0] === "#") {
                 for (const [index, option] of enumerate(options)) {
@@ -137,6 +137,28 @@ export class BufferCompletionSource extends Completions.CompletionSourceFuse {
                 }, ]
             }
         }
+    }
+
+    /** Return the scoredOption[] result for the tab index startswith n */
+    private TabscoredOptionsStartsWidthN(
+        n: number,
+        options: BufferCompletionOption[]
+    ): Completions.ScoredOption[] {
+        n += 1  // Make sure log(n) is valid
+        const nDigits = Math.floor(Math.log10(n))
+        const res = [];
+        for (const [index, option] of enumerate(options)) {
+            const tabIndex = option.tabIndex + 1
+            const indexDigits = Math.floor(Math.log10(tabIndex))
+            if (Math.floor(tabIndex / 10 ** (indexDigits - nDigits)) === n) {
+                res.push({
+                    index, // index is not tabIndex, changed by score
+                    option,
+                    score: 0,
+                })
+            }
+        }
+        return res;
     }
 
     private async fillOptions() {
