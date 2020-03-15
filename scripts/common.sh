@@ -38,7 +38,7 @@ tslintUgly() {
         tmpfile="$tmpdir/$jsfile"
         mkdir -p "$(dirname "$tmpfile")"
         staged "$jsfile" > "$tmpfile"
-        tslint -q "$tmpfile" 2>/dev/null || acc="$jsfile"$'\n'"$acc"
+        "$(yarn bin)/tslint" -q "$tmpfile" 2>/dev/null || acc="$jsfile"$'\n'"$acc"
     done
     rm -rf "$tmpdir"
     echo "$acc"
