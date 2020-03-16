@@ -144,7 +144,7 @@ export class BufferCompletionSource extends Completions.CompletionSourceFuse {
         n: number,
         options: BufferCompletionOption[]
     ): Completions.ScoredOption[] {
-        const nstr = (n + 1).toString()  // Make sure log(n) is valid
+        const nstr = (n + 1).toString()
         const res = [];
         for (const [index, option] of enumerate(options)) {
             if ((option.tabIndex + 1).toString().startsWith(nstr)) {
