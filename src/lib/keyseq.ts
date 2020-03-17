@@ -169,6 +169,7 @@ export function parse(keyseq: KeyEventLike[], map: KeyMap): ParserResponse {
                 exstr: perfect[1] + numericPrefixToExstrSuffix(numericPrefix),
                 isMatch: true,
                 numericPrefix: numericPrefix.length ? Number(numericPrefix.map(ke => ke.key).join("")) : undefined,
+                keys: [],
             }
         } catch (e) {
             if (!(e instanceof RangeError)) throw e
