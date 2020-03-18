@@ -102,7 +102,7 @@ export async function getBestEditor(): Promise<string> {
     const vim_positioning_arg = ` ${arg_quote}+normal!%lGzv%c|${arg_quote}`
     if (os === "mac") {
         gui_candidates = [
-            "/Applications/MacVim.app/Contents/bin/mvim -f",
+            "/Applications/MacVim.app/Contents/bin/mvim -f" + vim_positioning_arg,
             "/usr/local/bin/vimr --wait --nvim +only",
         ]
         // if anyone knows of any "sensible" terminals that let you send them commands to run,
@@ -113,7 +113,7 @@ export async function getBestEditor(): Promise<string> {
         last_resorts = ["open -nWt"]
     } else {
         // Tempted to put this behind another config setting: prefergui
-        gui_candidates = ["gvim -f"]
+        gui_candidates = ["gvim -f" + vim_positioning_arg]
 
         // we generally try to give the terminal the class "tridactyl_editor" so that
         // it can be made floating, e.g in i3:
@@ -149,7 +149,7 @@ export async function getBestEditor(): Promise<string> {
         ]
     }
 
-    tui_editors = ["vim %f", "nvim %f", "nano %f", "emacs -nw %f"]
+    tui_editors = ["vim" + vim_positioning_arg, "nvim" + vim_positioning_arg, "nano %f", "emacs -nw %f"]
 
     // Consider GUI editors
     let cmd = await firstinpath(gui_candidates)
