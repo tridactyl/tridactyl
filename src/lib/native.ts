@@ -97,7 +97,10 @@ export async function getBestEditor(): Promise<string> {
     let term_emulators = []
     let tui_editors = []
     let last_resorts = []
-    if ((await browserBg.runtime.getPlatformInfo()).os === "mac") {
+    const os = (await browserBg.runtime.getPlatformInfo()).os
+    const arg_quote = os === "win" ? '"' : "'"
+    const vim_positioning_arg = ` ${arg_quote}+normal!%lGzv%c|${arg_quote}`
+    if (os === "mac") {
         gui_candidates = [
             "/Applications/MacVim.app/Contents/bin/mvim -f",
             "/usr/local/bin/vimr --wait --nvim +only",
