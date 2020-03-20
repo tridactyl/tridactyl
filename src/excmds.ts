@@ -3452,7 +3452,7 @@ export async function unbind(...args: string[]) {
 export async function unbindurl(pattern: string, mode: string, keys: string) {
     const args_obj = parse_bind_args(mode, keys)
 
-    return config.setURL(pattern, args_obj.configName, args_obj.key, "")
+    return config.setURL(pattern, args_obj.configName, args_obj.key, null)
 }
 
 /**
