@@ -179,15 +179,16 @@ function* ParserController() {
                 if (response.exstr) {
                     exstr = response.exstr
                     break
-                } else if (!["input", "insert", "ignore"].includes(newMode)) {
+                } else {
                     keyEvents = response.keys
                     // show current keyEvents as a suffix of the contentState
                     const suffix = keyEvents
                         .map(x => PrintableKey(x))
                         .join("")
-                    if (previousSuffix !== suffix)
+                    if (previousSuffix !== suffix) {
                         contentState.suffix = suffix
-                    previousSuffix = suffix
+                        previousSuffix = suffix
+                    }
                     logger.debug("suffix: ", suffix)
                 }
             }
