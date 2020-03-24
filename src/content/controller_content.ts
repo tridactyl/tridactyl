@@ -106,6 +106,7 @@ function* ParserController() {
 
     while (true) {
         let exstr = ""
+        let previousSuffix = null
         let keyEvents: KeyEventLike[] = []
         try {
             while (true) {
@@ -145,6 +146,12 @@ function* ParserController() {
                     contentState.mode = "normal"
                 }
 
+                const newMode = contentState.mode
+                if (newMode !== currentMode) {
+                    keyEvents = []
+                    previousSuffix = null
+                }
+
                 // Accumulate key events. The parser will cut this
                 // down whenever it's not a valid prefix of a known
                 // binding, so it can't grow indefinitely unless you
@@ -175,14 +182,18 @@ function* ParserController() {
                 } else {
                     keyEvents = response.keys
                     // show current keyEvents as a suffix of the contentState
-                    contentState.suffix = keyEvents
+                    const suffix = keyEvents
                         .map(x => PrintableKey(x))
                         .join("")
-                    logger.debug("suffix: ", contentState.suffix)
+                    if (previousSuffix !== suffix) {
+                        contentState.suffix = suffix
+                        previousSuffix = suffix
+                    }
+                    logger.debug("suffix: ", suffix)
                 }
             }
-            controller.acceptExCmd(exstr)
             contentState.suffix = ""
+            controller.acceptExCmd(exstr)
         } catch (e) {
             // Rumsfeldian errors are caught here
             logger.error("An error occurred in the content controller: ", e)
