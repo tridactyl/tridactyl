@@ -106,7 +106,7 @@ class HintState {
         for (const h of this.hints) {
             for (const vh of visited) {
                 if (h.overlapsWith(vh)) {
-                    if (vh.x + vh.width > h.rect.right)
+                    if (vh.x + vh.width < h.rect.right)
                         h.x = vh.x + vh.width
                     else
                         h.y = vh.y + vh.height
