@@ -22,7 +22,7 @@
   "devDependencies": {
     "@types/jest": "^25.1.4",
     "@types/mithril": "^2.0.2",
-    "@types/node": "^13.9.6",
+    "@types/node": "^13.9.7",
     "@types/selenium-webdriver": "^4.0.9",
     "cleanslate": "^0.10.1",
     "copy-webpack-plugin": "^5.1.1",
