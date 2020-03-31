@@ -1471,9 +1471,12 @@ export async function update() {
     const updatetest = v => {
         return updaters.hasOwnProperty(v) && updaters[v] instanceof Function
     }
+    let updated = false
     while (updatetest(get("configversion"))) {
         await updaters[get("configversion")]()
+        updated = true
     }
+    return updated
 }
 
 /** Read all user configuration from storage API then notify any waiting asynchronous calls
@@ -1494,8 +1497,10 @@ async function init() {
         schlepp(localConfig[CONFIGNAME])
     }
 
-    await update()
-    await save()
+    const configUpdated = await update()
+    if (configUpdated)
+        await save()
+
     INITIALISED = true
     for (const waiter of WAITERS) {
         waiter()
