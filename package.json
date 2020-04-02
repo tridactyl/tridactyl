@@ -20,7 +20,7 @@
     "uuid": "^7.0.2"
   },
   "devDependencies": {
-    "@types/jest": "^25.1.4",
+    "@types/jest": "^25.1.5",
     "@types/mithril": "^2.0.2",
     "@types/node": "^13.11.0",
     "@types/selenium-webdriver": "^4.0.9",
