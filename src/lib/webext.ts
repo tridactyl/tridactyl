@@ -190,11 +190,12 @@ export async function openInTab(tab, opts = {}, strarr: string[]) {
     let engine = searchEngines.find(engine => engine.alias === firstWord)
     // Maybe firstWord is the name of a firefox search engine?
     if (engine !== undefined) {
-        return browserBg.search.search({
+        browserBg.search.search({
             tabId: tab.id,
             engine: engine.name,
             query: rest,
         })
+        return tab
     }
 
     // Maybe it's a domain without protocol
@@ -234,14 +235,16 @@ export async function openInTab(tab, opts = {}, strarr: string[]) {
 
         engine = searchEngines.find(engine => engine.alias === enginename)
         if (engine !== undefined) {
-            return browserBg.search.search({
+            browserBg.search.search({
                 tabId: tab.id,
                 engine: engine.name,
                 query: queryString,
             })
+            return tab
         }
     }
 
     // No search engine has been defined in Tridactyl, let's use firefox's default search engine
-    return browserBg.search.search({ tabId: tab.id, query: queryString })
+    browserBg.search.search({ tabId: tab.id, query: queryString })
+    return tab;
 }

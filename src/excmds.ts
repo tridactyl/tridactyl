@@ -2168,6 +2168,52 @@ export async function tabopen(...addressarr: string[]) {
     })
 }
 
+/**
+  Passes its first argument to `tabopen -b`. Once the tab opened by `tabopen
+  -b` is activated/selected/focused, opens its second argument with `tabopen
+  -b`. Once the second tab is activated/selected/focused, opens its third
+  argument with `tabopen -b` and so on and so forth until all arguments have
+  been opened in a new tab or until a tab is closed without being
+  activated/selected/focused.
+
+  Example usage:
+    `tabqueue http://example.org http://example.com http://example.net`
+    `composite hint -qpipe a href | tabqueue`
+*/
+//#background
+export function tabqueue(...addresses: string[]) {
+    // addresses[0] is a string when called with `tabopen a b c` but an array
+    // when called from `composite hint -qpipe a href | tabqueue`.
+    addresses = addresses.flat(Infinity);
+    if (addresses.length === 0) {
+        return Promise.resolve();
+    }
+    return tabopen("-b", addresses[0]).then(tab =>
+        new Promise ((resolve, reject) => {
+            function openNextTab(activeInfo) {
+                if (activeInfo.tabId === tab.id) {
+                    resolve(tabqueue(...(addresses.slice(1))));
+                    removeTabqueueListeners(tab.id);
+                }
+            }
+            function removeTabqueueListeners(tabId) {
+                if (tabId === tab.id) {
+                    browser.tabs.onActivated.removeListener(openNextTab);
+                    browser.tabs.onRemoved.removeListener(removeTabqueueListeners);
+                    // FIXME: This should actually be `reject(tab)` to
+                    // interrupt pipelines, but this results in an impossible
+                    // to debug `Error: undefined` message being printed on the
+                    // command line. So we silently resolve the promise and
+                    // hope for the best.
+                    resolve(tab);
+                }
+            }
+            browser.tabs.onActivated.addListener(openNextTab);
+            browser.tabs.onRemoved.addListener(removeTabqueueListeners);
+        })
+    );
+}
+
 /** Resolve a tab index to the tab id of the corresponding tab in this window.
 
     @param index
