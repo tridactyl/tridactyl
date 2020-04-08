@@ -97,7 +97,7 @@ export async function update(
         logger.debug(updateObj)
         throw new Error("[Container.update] invalid container icon: " + icon)
     }
-    browser.contextualIdentities.update(containerId, updateObj)
+    browser.contextualIdentities.update(containerId, {name, color, icon})
 }
 
 /** Gets a container object from a supplied container id string. If no container corresponds to containerId, returns a default empty container.
