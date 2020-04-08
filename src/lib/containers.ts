@@ -88,12 +88,16 @@ export async function update(
         icon: browser.contextualIdentities.IdentityIcon
     },
 ) {
-    if (isValidColor(updateObj.color) && isValidIcon(updateObj.icon)) {
-        browser.contextualIdentities.update(containerId, updateObj)
-    } else {
+    const {name, color, icon} = updateObj
+    if (!isValidColor(color)) {
         logger.debug(updateObj)
-        throw new Error("[Container.update] invalid container icon or color")
+        throw new Error("[Container.update] invalid container color: " + color)
     }
+    if (!isValidIcon(icon)) {
+        logger.debug(updateObj)
+        throw new Error("[Container.update] invalid container icon: " + icon)
+    }
+    browser.contextualIdentities.update(containerId, updateObj)
 }
 
 /** Gets a container object from a supplied container id string. If no container corresponds to containerId, returns a default empty container.
