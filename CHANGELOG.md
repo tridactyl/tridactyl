@@ -5,34 +5,47 @@
 -   New features
 
     -   Rudimentary visual mode!
-
         -   Enter it by selecting text: e.g. with the mouse, with text-selection `;h` hint mode, by searching with `/`, or by using Firefox's "caret" mode on `F7`.
         -   Yank selected text with `y`
         -   Search for selected text with `s` and `S`
-
     -   Select text hint mode added, bound to `;h` by default
-
-    -   `apropos` command which searches through help text - very handy for finding settings or commands you didn't know about (#1980)
-
+    -   `apropos` command which searches through help text - very handy for finding settings or commands you didn't know about ([#1980](https://github.com/tridactyl/tridactyl/issues/1980))
         -   Known issue: on some machines, this command doesn't work.
-
-    -   RC files can have escaped newlines with backslashes (#2003)
+    -   RC files can have escaped newlines with backslashes ([#2003](https://github.com/tridactyl/tridactyl/issues/2003))
+    -   `:setnull` ex-cmd added to delete a default setting, e.g. `setnull searchurls.github` to remove the `github` searchurl
+    -   Tab completions now list all tabs starting with a numeric filter ([#2010](https://github.com/tridactyl/tridactyl/issues/2010))
+    -   The default `editorcmd` is now more resilient to user mappings and starts with the correct column ([#2237](https://github.com/tridactyl/tridactyl/issues/2237))
+    -   Vimperator-style hinting can now be overridden with a custom filtering function ([#2212](https://github.com/tridactyl/tridactyl/issues/2212))
+    -   `set historyresults [n]` now shows you `n` results in tabopen ([#2159](https://github.com/tridactyl/tridactyl/issues/2159))
 
 -   Bug fixes
 
-    -   Smooth scroll is now much smoother (#2016)
-
-    -   Counts work with scrollline (#1984)
-
-    -   Reading RC files might now be a bit more reliable (#1983)
+    -   Smooth scroll is now much smoother ([#2016](https://github.com/tridactyl/tridactyl/issues/2016))
+    -   Counts work with scrollline ([#1984](https://github.com/tridactyl/tridactyl/issues/1984))
+    -   Reading RC files might now be a bit more reliable ([#1983](https://github.com/tridactyl/tridactyl/issues/1983))
+    -   `containerupdate` was broken ([#2294](https://github.com/tridactyl/tridactyl/issues/2294))
+    -   Performance improvement to `config`: we no longer save the `config` every time we load it ([#2272](https://github.com/tridactyl/tridactyl/issues/2272))
+    -   The mode indicator now displays "insert" mode more reliably ([#2232](https://github.com/tridactyl/tridactyl/issues/2232))
+    -   Key events are now reset on mode change ([#1769](https://github.com/tridactyl/tridactyl/issues/1769))
+    -   `hint -qpipe` now actually works ([#2224](https://github.com/tridactyl/tridactyl/issues/2224))
+    -   Commandline history is more reliable ([#2236](https://github.com/tridactyl/tridactyl/issues/2236))
+    -   Hinting is now a bit faster ([#2215](https://github.com/tridactyl/tridactyl/issues/2215))
+    -   `mktridactylrc` now works for nested keys ([#2211](https://github.com/tridactyl/tridactyl/issues/2211))
+    -   `repeat` now works more reliably ([#1538](https://github.com/tridactyl/tridactyl/issues/1538))
 
 -   Miscellaneous
 
     -   Our internal `urlutils` object is now attached to the `tri` object and accessible through `js`
-
     -   We no longer add a `namespace` to userChrome in `guiset`
-
     -   Our messaging system now has type checking
+    -   We have a `locks` library which we are using to synchronise some state between the content and background scripts. We'd like to move `config` to using this approach but have some bugs to iron out first ([#2137](https://github.com/tridactyl/tridactyl/issues/2137))
+    -   Our pre-commit hook is finally fixed! ([#2231](https://github.com/tridactyl/tridactyl/issues/2231))
+
+Thanks to all of our contributors for this release: Oliver Blanthorn, dependabot-preview[bot], mozbug, Jakub Okoński, Saul Reynolds-Haertle, glacambre, Ingo Karkat, Caleb Maclennan, Colin Caine, Spindlyskit, josh, user753 and yuri.
+
+Extra special thanks go to Caleb Maclennan, Ingo Karkat, josh, mozbug, Spindlyskit, user753 and yuri who were all first time contributors. I think we can afford to thank mozbug, aka mozbugbox, in particular for opening a whopping _fourteen_ pull requests, earning a well-deserved 9th place on `:credits`.
+
+Last, but not least - thank you to everyone who reported issues.
 
 ## Release 1.17.1 / 2019-11-06
 
