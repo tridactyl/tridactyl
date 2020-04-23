@@ -4,6 +4,8 @@
 
 Tridactyl has to override your new tab page due to WebExtension limitations. You can learn how to change it at the bottom of the page, otherwise please read on for some tips and tricks.
 
+-   _Breaking change_: when you select text in normal mode, you will now enter our experimental visual mode. Press `<Esc>` to leave it. `:set visualenterauto false` to disable it.
+
 -   You can view the main help page by typing [`:help`][help], and access the tutorial with [`:tutor`][tutor]. There's a [wiki](https://github.com/tridactyl/tridactyl/wiki) too - feel free to add to it. You may find `:apropos` useful for finding relevant settings and commands.
 
 -   You can view your current configuration with `:viewconfig`.
