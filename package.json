@@ -27,7 +27,7 @@
     "cleanslate": "^0.10.1",
     "copy-webpack-plugin": "^5.1.1",
     "geckodriver": "^1.19.1",
-    "jest": "^25.3.0",
+    "jest": "^25.4.0",
     "marked": "^0.8.2",
     "nearley": "^2.19.2",
     "prettier": "^1.19.1",
