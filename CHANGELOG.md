@@ -1,5 +1,11 @@
 # Tridactyl changelog
 
+## Release 1.18.1 / 26-04-2020
+
+-   Bug fixes
+
+    -   Configuration was occasionally broken by `null`s appearing in unexpected places: ([#2324](https://github.com/tridactyl/tridactyl/issues/2324))
+
 ## Release 1.18.0 / 23-04-2020
 
 -   New features
