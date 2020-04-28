@@ -35,7 +35,12 @@ export async function sourceFromUrl(url: string) {
 export async function writeRc(conf: string, force = false, filename = "auto") {
     let path: string
     if (filename === "auto") {
-        path = await Native.getrcpath()
+        try {
+            path = await Native.getrcpath()
+        } catch (e) {
+            // TODO: respect XDG_CONFIG_DIR without breaking on systems that don't have it set
+            path = "~/.tridactylrc"
+        }
     } else {
         path = filename
     }
