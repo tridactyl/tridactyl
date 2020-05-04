@@ -1024,7 +1024,7 @@ export class default_config {
 }
 
 /** @hidden */
-const DEFAULTS = o(new default_config())
+export const DEFAULTS = o(new default_config())
 
 /** Given an object and a target, extract the target if it exists, else return undefined
 
@@ -1091,7 +1091,6 @@ export const mergeDeepCull = R.pipe(mergeDeep, removeNull)
 /** @hidden
  * Gets a site-specific setting.
  */
-
 export function getURL(url: string, target: string[]) {
     function _getURL(conf, url, target) {
         if (!conf.subconfigs) return undefined
@@ -1119,7 +1118,7 @@ export function getURL(url: string, target: string[]) {
                             target,
                         )
                         if (acc instanceof Object && curVal instanceof Object)
-                            return mergeDeepCull(acc, curVal)
+                            return mergeDeep(acc, curVal)
                         return curVal
                     },
                     undefined as any,
