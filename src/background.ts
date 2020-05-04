@@ -79,6 +79,14 @@ browser.tabs.onActivated.addListener(ev => {
         }
     })
 })
+// Update on navigation too (but remember that sometimes people open tabs in the background :) )
+browser.webNavigation.onDOMContentLoaded.addListener(
+    () => {
+        browser.tabs.query({ currentWindow: true, active: true }).then(t => {
+                (window as any).tri.contentLocation = new URL(t[0].url)
+        })
+    },
+)
 
 // Prevent Tridactyl from being updated while it is running in the hope of fixing #290
 browser.runtime.onUpdateAvailable.addListener(_ => undefined)
