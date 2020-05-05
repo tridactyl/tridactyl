@@ -143,6 +143,7 @@ import * as urlutils from "@src/lib/url_util"
 import * as scrolling from "@src/content/scrolling"
 import * as R from "ramda"
 import * as locks from "@src/lib/locks"
+import * as visual from "@src/lib/visual"
 /* tslint:disable:import-spacing */
 ; (window as any).tri = Object.assign(Object.create(null), {
     browserBg: webext.browserBg,
@@ -162,6 +163,7 @@ import * as locks from "@src/lib/locks"
     messaging,
     state,
     scrolling,
+    visual,
     webext,
     l: prom => prom.then(console.log).catch(console.error),
     native,

@@ -348,6 +348,7 @@ export class default_config {
         "$": 'js document.getSelection().modify("extend","forward","lineboundary")',
         "0": 'js document.getSelection().modify("extend","backward","lineboundary")',
         "=": "js let n = document.getSelection().anchorNode.parentNode; let s = window.getSelection(); let r = document.createRange(); s.removeAllRanges(); r.selectNodeContents(n); s.addRange(r)",
+        "o": "js tri.visual.reverseSelection(document.getSelection())",
         "🕷🕷INHERITS🕷🕷": "nmaps",
     }
 
