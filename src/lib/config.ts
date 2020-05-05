@@ -676,6 +676,20 @@ export class default_config {
     hintdelay = 300
 
     /**
+     * Controls whether hints should be shifted in quick-hints mode.
+     *
+     * Here's what it means: let's say you have hints from a to z but are only
+     * interested in every second hint. You first press `a`, then `c`.
+     * Tridactyl will realize that you skipped over `b`, and so that the next
+     * hint you're going to trigger is probably `e`. Tridactyl will shift all
+     * hint names so that `e` becomes `c`, `d` becomes `b`, `c` becomes `a` and
+     * so on.
+     * This means that once you pressed `c`, you can keep on pressing `c` to
+     * trigger every second hint. Only makes sense with hintnames = short.
+     */
+    hintshift: "true" | "false" = "false"
+
+    /**
      * Controls whether the page can focus elements for you via js
      *
      * NB: will break fancy editors such as CodeMirror on Jupyter. Simply use `seturl` to whitelist pages you need it on.

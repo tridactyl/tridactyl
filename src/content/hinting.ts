@@ -253,6 +253,61 @@ class HintState {
         this.focusedHint = nextFocusedHint
         this.focusedHint.focused = true
     }
+
+    // Attempt to make the next hint the same as the previous one
+    shiftHints() {
+        // Pages often have their "interesting" hints separated by the same
+        // amount of "uninteresting" hints. We can use this to try to predict
+        // what the next interesting hint will be and provide the same hint
+        // name as the previous one, so that the user can keep on pressing the
+        // same key in order to select all interesting hints.
+
+        // To do this, compute the number of hints between the last selected
+        // hint and the hint selected before it
+        const lastIndex = this.hints.indexOf(this.selectedHints[this.selectedHints.length - 1])
+        const prevIndex = this.hints.indexOf(this.selectedHints[this.selectedHints.length - 2])
+        const distance = lastIndex - prevIndex
+
+        if (distance > 0) {
+            // Then, shift the hint names "forward". This requires saving the
+            // last N hints (the ones that will end up at the beginning of the
+            // hint array).
+            const savedNames = []
+            for (let i = 0; i < distance; ++i) {
+                savedNames.push(this.hints[this.hints.length - 1 - i].name)
+            }
+
+            // Actually shift the names.
+            for (let i = this.hints.length - 1; i >= distance; --i) {
+                this.hints[i].setName(this.hints[i - distance].name)
+            }
+
+            // Set the names that should go at the beginning
+            for (let i = savedNames.length - 1; i >= 0; --i) {
+                this.hints[i].setName(savedNames[i])
+            }
+        } else if (distance < 0) {
+            // Then, shift the hint names "backward". This requires saving the
+            // first N hints (the ones that will end up at the end of the hint
+            // array).
+            const savedNames = []
+            for (let i = 0; i < Math.abs(distance); ++i) {
+                savedNames.push(this.hints[i].name)
+            }
+
+            // Actually shift the names.
+            for (let i = 0; i < this.hints.length + distance; ++i) {
+                this.hints[i].setName(this.hints[i - distance].name)
+            }
+
+            // Set the names that should go at the end
+            for (let i = 0; i < savedNames.length; ++i) {
+                this.hints[this.hints.length + distance + i].setName(savedNames[i])
+            }
+        }
+
+        // All done!
+    }
 }
 
 /** @hidden*/
@@ -284,6 +339,9 @@ export function hintPage(
         buildHints(hintableElements, hint => {
             hint.result = onSelect(hint.target)
             modeState.selectedHints.push(hint)
+            if (modeState.selectedHints.length > 1 && (config.get("hintshift") === "true")) {
+                modeState.shiftHints();
+            }
         })
     }
 
@@ -461,7 +519,7 @@ class Hint {
 
     constructor(
         public readonly target: Element,
-        public readonly name: string,
+        public name: string,
         public readonly filterData: any,
         private readonly onSelect: HintSelectedCallback,
     ) {
@@ -512,6 +570,11 @@ class Hint {
         `
         modeState.hintHost.appendChild(this.flag)
         this.hidden = false
+    }
+
+    setName(n: string) {
+        this.name = n
+        this.flag.textContent = this.name
     }
 
     // These styles would be better with pseudo selectors. Can we do custom ones?
