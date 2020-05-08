@@ -134,6 +134,7 @@ import * as finding from "@src/content/finding"
 import * as toys from "./content/toys"
 import * as hinting from "@src/content/hinting"
 import * as gobbleMode from "@src/parsers/gobblemode"
+import * as nMode from "@src/parsers/nmode"
 
 ALL_EXCMDS = {
     "": CTSELF,
@@ -4199,6 +4200,17 @@ export async function gobble(nChars: number, endCmd: string) {
 }
 
 // }}}
+
+/**
+ * Initialize n [mode] mode mode.
+ *
+ * Accepts n valid key sequences in mode then executes endexArr, which defaults to `mode ignore`, e.g. `:nmode normal 1 mode ignore`
+ */
+//#content
+export async function nmode(mode: string, n: number, ...endexArr: string[]) {
+    const endex = endexArr.join(" ") || "mode ignore"
+    return nMode.init(endex, mode, n)
+}
 
 // {{{TEXT TO SPEECH
 

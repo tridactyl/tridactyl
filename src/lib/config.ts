@@ -127,6 +127,7 @@ export class default_config {
         "<S-Escape>": "mode normal",
         "<C-^>": "tab #",
         "<C-6>": "tab #",
+        "<C-o>": "nmode normal 1 mode ignore",
     }
 
     /**
@@ -209,6 +210,7 @@ export class default_config {
         "<C-d>": "scrollpage 0.5",
         "<C-f>": "scrollpage 1",
         "<C-b>": "scrollpage -1",
+        "<C-v>": "nmode ignore 1 mode normal", // Is this a terrible idea? Pentadactyl did it http://bug.5digits.org/help/pentadactyl/browsing.xhtml#send-key
         $: "scrollto 100 x",
         // "0": "scrollto 0 x", // will get interpreted as a count
         "^": "scrollto 0 x",

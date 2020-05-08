@@ -7,6 +7,7 @@ import { KeyEventLike } from "@src/lib/keyseq"
 import * as hinting from "@src/content/hinting"
 import * as gobblemode from "@src/parsers/gobblemode"
 import * as generic from "@src/parsers/genericmode"
+import * as nmode from "@src/parsers/nmode"
 
 const logger = new Logger("controller")
 
@@ -102,6 +103,7 @@ function* ParserController() {
         hint: hinting.parser,
         gobble: gobblemode.parser,
         visual: keys => generic.parser("vmaps", keys),
+        nmode: nmode.parser,
     }
 
     while (true) {
