@@ -4202,7 +4202,7 @@ export async function gobble(nChars: number, endCmd: string) {
 // }}}
 
 /**
- * Initialize n [mode] mode mode.
+ * Initialize n [mode] mode.
  *
  * In this special mode, a series of key sequences are executed as bindings from a different mode, as specified by the
  * `mode` argument. After the count of accepted sequences is `n`, the finalizing ex command given as the `endexArr`
