@@ -4210,7 +4210,8 @@ export async function gobble(nChars: number, endCmd: string) {
  *
  * Example: `:nmode normal 1 mode ignore`
  * This looks up the next key sequence in the normal mode bindings, executes it, and switches the mode to `ignore`.
- * If the key sequence does not match a binding, it will be silently passed through to Firefox.
+ * If the key sequence does not match a binding, it will be silently passed through to Firefox, but it will be counted
+ * for the termination condition.
  */
 //#content
 export async function nmode(mode: string, n: number, ...endexArr: string[]) {
