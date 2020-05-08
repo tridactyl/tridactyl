@@ -58,6 +58,7 @@ This is a (non-exhaustive) list of the most common normal-mode bindings. Type `:
 -   `Shift` + `Insert` — enter "ignore mode". Press `Shift` + `Insert` again to return to "normal mode".
 -   `ZZ` — close all tabs and windows, but only "save" them if your about:preferences are set to "show your tabs and windows from last time"
 -   `.` — repeat the last command
+-   `<C-v>` – send a single keystroke to the current website, bypassing bindings
 
 You can try `:help key` to know more about `key`. If it is an existing binding, it will take you to the help section of the command that will be executed when pressing `key`. For example `:help .` will take you to the help section of the `repeat` command.
 
