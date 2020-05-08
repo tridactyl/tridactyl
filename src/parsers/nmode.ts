@@ -3,6 +3,7 @@
 import { contentState } from "@src/content/state_content"
 import * as config from "@src/lib/config"
 import * as keyseq from "@src/lib/keyseq"
+import { mode2maps } from "@src/lib/binding"
 
 /** Simple container for the nmode state. */
 class NModeState {
@@ -24,18 +25,9 @@ export function init(endCommand: string, mode = "normal", numCommands: number = 
     modeState.mode = mode
 }
 
-// Borrowed from content/controller_content.ts
-const configs = {
-    normal: "nmaps",
-    insert: "imaps",
-    input: "inputmaps",
-    ignore: "ignoremaps",
-    visual: "vmaps",
-}
-
 /** Receive keypress. If applicable, execute a command. */
 export function parser(keys: KeyboardEvent[]) {
-    const conf = configs[modeState.mode] || modeState.mode + "maps"
+    const conf = mode2maps[modeState.mode] || modeState.mode + "maps"
     const maps: any = keyseq.keyMap(conf, keys)
     const key = keys[0].key
 
