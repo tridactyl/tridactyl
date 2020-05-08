@@ -4,7 +4,7 @@ import { contentState } from "@src/content/state_content"
 import * as config from "@src/lib/config"
 import * as keyseq from "@src/lib/keyseq"
 
-/** Simple container for the gobble state. */
+/** Simple container for the nmode state. */
 class NModeState {
     public numCommands = 1
     public curCommands = 0
@@ -35,22 +35,8 @@ const configs = {
 
 /** Receive keypress. If applicable, execute a command. */
 export function parser(keys: KeyboardEvent[]) {
-    // Borrowed from genericmode.ts
     const conf = configs[modeState.mode] || modeState.mode + "maps"
-    let maps: any = config.get(conf)
-    if (maps === undefined) throw new Error("No binds defined for this mode. Reload page with <C-r> and add binds, e.g. :bind --mode=[mode] <Esc> mode normal")
-
-    // If so configured, translate keys using the key translation map
-    if (config.get("keytranslatemodes")[conf] === "true") {
-        const translationmap = config.get("keytranslatemap")
-        keyseq.translateKeysUsingKeyTranslateMap(keys, translationmap)
-    }
-
-    // Convert to KeyMap
-    maps = new Map(Object.entries(maps))
-    maps = keyseq.mapstrMapToKeyMap(maps)
-    // genericmode.ts borrowing ends
-
+    const maps: any = keyseq.keyMap(conf, keys)
     const key = keys[0].key
 
     if (key === "Escape") {
