@@ -73,7 +73,7 @@ export class ExcmdCompletionSource extends Completions.CompletionSourceFuse {
             a.startsWith(exstr),
         )
         for (const alias of exaliases) {
-            const cmd = aliases.expandExstr(alias)
+            const cmd = aliases.expandExstr(alias, exaliases)
             const fn = excmds.getFunction(cmd)
             if (fn) {
                 this.options.push(
