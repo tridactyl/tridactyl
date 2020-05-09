@@ -1,5 +1,6 @@
 import Logger from "@src/lib/logging"
 import { parser as exmode_parser } from "@src/parsers/exmode"
+import * as State from "@src/state"
 import state from "@src/state"
 
 const logger = new Logger("controller")
@@ -15,7 +16,11 @@ export async function acceptExCmd(exstr: string): Promise<any> {
     try {
         const [func, args] = exmode_parser(exstr, stored_excmds)
         // Stop the repeat excmd from recursing.
-        if (func !== stored_excmds[""].repeat && state.last_ex_str != exstr) state.last_ex_str = exstr
+        if (func !== stored_excmds[""].repeat){
+            State.getAsync("last_ex_str").then(last_ex_str => {
+                if (last_ex_str != exstr) state.last_ex_str = exstr
+            })
+        }
         try {
             return await func(...args)
         } catch (e) {
