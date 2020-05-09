@@ -1296,9 +1296,10 @@ export async function save(storage: "local" | "sync" = get("storageloc")) {
     // storageobj.set({CONFIGNAME: USERCONFIG})
     const settingsobj = o({})
     settingsobj[CONFIGNAME] = USERCONFIG
-    return storage === "local"
+    storage === "local"
         ? browser.storage.local.set(settingsobj)
         : browser.storage.sync.set(settingsobj)
+    return new Promise(resolve => setTimeout(resolve, 0))
 }
 
 /** Updates the config to the latest version.

@@ -3207,7 +3207,7 @@ export function comclear(name: string) {
 //#background
 export function bind(...args: string[]) {
     const args_obj = parse_bind_args(...args)
-    let p = Promise.resolve()
+    let p: Promise<any> = Promise.resolve()
     if (args_obj.excmd !== "") {
         for (let i = 0; i < args_obj.key.length; i++) {
             // Check if any initial subsequence of the key exists and will shadow the new binding
@@ -3237,7 +3237,7 @@ export function bind(...args: string[]) {
 //#background
 export function bindurl(pattern: string, mode: string, keys: string, ...excmd: string[]) {
     const args_obj = parse_bind_args(mode, keys, ...excmd)
-    let p = Promise.resolve()
+    let p: Promise<any> = Promise.resolve()
     if (args_obj.excmd !== "") {
         p = config.setURL(pattern, args_obj.configName, args_obj.key, args_obj.excmd)
     } else if (args_obj.key.length) {
