@@ -1,7 +1,6 @@
 /** Accept n [mode] commands then execute the other command */
 
 import { contentState } from "@src/content/state_content"
-import * as config from "@src/lib/config"
 import * as keyseq from "@src/lib/keyseq"
 import { mode2maps } from "@src/lib/binding"
 
