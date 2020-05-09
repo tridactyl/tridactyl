@@ -26,6 +26,8 @@ export function init(endCommand: string, mode = "normal", numCommands: number = 
 
 /** Receive keypress. If applicable, execute a command. */
 export function parser(keys: KeyboardEvent[]) {
+    keys = keyseq.stripOnlyModifiers(keys)
+    if (keys.length === 0) return { keys: [], isMatch: false }
     const conf = mode2maps.get(modeState.mode) || modeState.mode + "maps"
     const maps: any = keyseq.keyMap(conf, keys)
     const key = keys[0].key

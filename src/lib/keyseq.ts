@@ -133,12 +133,16 @@ function splitNumericPrefix(keyseq: KeyEventLike[]): [KeyEventLike[], KeyEventLi
     }
 }
 
-export function parse(keyseq: KeyEventLike[], map: KeyMap): ParserResponse {
-    // Remove bare modifiers
-    keyseq = keyseq.filter(
+export function stripOnlyModifiers(keyseq) {
+    return keyseq.filter(
         key =>
             !["Control", "Shift", "Alt", "AltGraph", "Meta"].includes(key.key),
     )
+}
+
+export function parse(keyseq: KeyEventLike[], map: KeyMap): ParserResponse {
+    // Remove bare modifiers
+    keyseq = stripOnlyModifiers(keyseq)
 
     // If the keyseq is now empty, abort.
     if (keyseq.length === 0)
