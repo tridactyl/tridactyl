@@ -14,9 +14,10 @@
     If this turns out to be expensive there are improvements available.
 */
 
-import * as locks from "@src/lib/locks"
 import Logger from "@src/lib/logging"
 import * as messaging from "@src/lib/messaging"
+import {notBackground} from "@src/lib/webext"
+
 const logger = new Logger("state")
 
 class State {
@@ -49,6 +50,7 @@ browser.storage.local
 const state = (new Proxy(overlay, {
     /** Give defaults if overlay doesn't have the key */
     get(target, property) {
+        if (notBackground()) throw "State object must be accessed with getAsync in content"
         if (property in target) {
             return target[property]
         } else {
@@ -58,31 +60,30 @@ const state = (new Proxy(overlay, {
 
     /** Persist sets to storage "immediately" */
     set(target, property, value) {
-        locks.withlock("state", async () => {
-            logger.debug("State changed!", property, value)
-            target[property] = value
+        logger.debug("State changed!", property, value)
+        target[property] = value
+        if (notBackground()) {
+            browser.runtime.sendMessage({type: "state", command: "stateUpdate", args: [{state: target}]})
+        } else {
+            // Do we need a global storage lock?
             browser.storage.local.set({ state: target } as any)
-
-            // Wait for reply from each script to say that they have updated their own state
-            await Promise.all([
-                // dispatch message to all content state.ts's
-                messaging.messageAllTabs("state", "stateUpdate", [{state: target}]),
-
-                // Ideally this V would use Farnoy's typed messages but
-                // I haven't had time to get my head around them
-                browser.runtime.sendMessage({type: "state", command: "stateUpdate", args: [{state: target}]}),
-            ])
-        })
-
+        }
         return true
     },
 }))
 
+export async function getAsync(property) {
+    if (notBackground()) return browser.runtime.sendMessage({type: "state", command: "stateGet", args: [{prop: property}]})
+    else return state[property]
+}
+
 // Keep instances of state.ts synchronised with each other
 messaging.addListener("state", (message, sender, sendResponse) => {
-    if (message.command !== "stateUpdate") throw("Unsupported message to state, type " + message.command)
-    Object.assign(overlay, message.args[0].state)
-    sendResponse(true)
+    if (message.command == "stateUpdate") {
+        Object.assign(overlay, message.args[0].state)
+    } else if (message.command == "stateGet") {
+        sendResponse(state[message.args[0].prop])
+    } else throw("Unsupported message to state, type " + message.command)
 })
 
 export { state as default }

@@ -131,6 +131,7 @@ import * as finding_content from "@src/content/finding"
 import * as itertools from "@src/lib/itertools"
 import * as messaging from "@src/lib/messaging"
 import state from "@src/state"
+import * as State from "@src/state"
 import * as webext from "@src/lib/webext"
 import Mark from "mark.js"
 import * as perf from "@src/perf"
@@ -162,6 +163,7 @@ import * as visual from "@src/lib/visual"
     keyseq,
     messaging,
     state,
+    State,
     scrolling,
     visual,
     webext,

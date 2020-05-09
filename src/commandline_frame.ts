@@ -40,6 +40,7 @@ import { ExtensionsCompletionSource } from "@src/completions/Extensions"
 import * as Messaging from "@src/lib/messaging"
 import "@src/lib/number.clamp"
 import state from "@src/state"
+import * as State from "@src/state"
 import Logger from "@src/lib/logging"
 import { theme } from "@src/content/styling"
 
@@ -256,14 +257,14 @@ export function clear(evlistener = false) {
 commandline_state.clear = clear
 
 /** @hidden **/
-function history(n) {
+async function history(n) {
     history_called = true
 
     if (!prev_cmd_called_history) {
         HISTORY_SEARCH_STRING = commandline_state.clInput.value
     }
 
-    const matches = state.cmdHistory.filter(key =>
+    const matches = (await State.getAsync("cmdHistory")).filter(key =>
         key.startsWith(HISTORY_SEARCH_STRING),
     )
     if (commandline_state.cmdline_history_position === 0) {
