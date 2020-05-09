@@ -134,6 +134,7 @@ import * as finding from "@src/content/finding"
 import * as toys from "./content/toys"
 import * as hinting from "@src/content/hinting"
 import * as gobbleMode from "@src/parsers/gobblemode"
+import * as nMode from "@src/parsers/nmode"
 
 ALL_EXCMDS = {
     "": CTSELF,
@@ -4199,6 +4200,24 @@ export async function gobble(nChars: number, endCmd: string) {
 }
 
 // }}}
+
+/**
+ * Initialize n [mode] mode.
+ *
+ * In this special mode, a series of key sequences are executed as bindings from a different mode, as specified by the
+ * `mode` argument. After the count of accepted sequences is `n`, the finalizing ex command given as the `endexArr`
+ * argument is executed, which defaults to `mode ignore`.
+ *
+ * Example: `:nmode normal 1 mode ignore`
+ * This looks up the next key sequence in the normal mode bindings, executes it, and switches the mode to `ignore`.
+ * If the key sequence does not match a binding, it will be silently passed through to Firefox, but it will be counted
+ * for the termination condition.
+ */
+//#content
+export async function nmode(mode: string, n: number, ...endexArr: string[]) {
+    const endex = endexArr.join(" ") || "mode ignore"
+    return nMode.init(endex, mode, n)
+}
 
 // {{{TEXT TO SPEECH
 

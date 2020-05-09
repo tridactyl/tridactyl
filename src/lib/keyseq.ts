@@ -23,6 +23,7 @@
 /** */
 import { filter, find, izip } from "@src/lib/itertools"
 import { Parser } from "@src/lib/nearley_utils"
+import * as config from "@src/lib/config"
 import grammar from "@src/grammars/.bracketexpr.generated"
 const bracketexpr_grammar = grammar
 const bracketexpr_parser = new Parser(bracketexpr_grammar)
@@ -132,12 +133,16 @@ function splitNumericPrefix(keyseq: KeyEventLike[]): [KeyEventLike[], KeyEventLi
     }
 }
 
-export function parse(keyseq: KeyEventLike[], map: KeyMap): ParserResponse {
-    // Remove bare modifiers
-    keyseq = keyseq.filter(
+export function stripOnlyModifiers(keyseq) {
+    return keyseq.filter(
         key =>
             !["Control", "Shift", "Alt", "AltGraph", "Meta"].includes(key.key),
     )
+}
+
+export function parse(keyseq: KeyEventLike[], map: KeyMap): ParserResponse {
+    // Remove bare modifiers
+    keyseq = stripOnlyModifiers(keyseq)
 
     // If the keyseq is now empty, abort.
     if (keyseq.length === 0)
@@ -343,6 +348,21 @@ export function mapstrMapToKeyMap(mapstrMap: Map<string, MapTarget>): KeyMap {
         newKeyMap.set(mapstrToKeyseq(mapstr), target)
     }
     return newKeyMap
+}
+
+export function keyMap(conf, keys): KeyMap {
+    let maps: any = config.get(conf)
+    if (maps === undefined) throw new Error("No binds defined for this mode. Reload page with <C-r> and add binds, e.g. :bind --mode=[mode] <Esc> mode normal")
+
+    // If so configured, translate keys using the key translation map
+    if (config.get("keytranslatemodes")[conf] === "true") {
+        const translationmap = config.get("keytranslatemap")
+        translateKeysUsingKeyTranslateMap(keys, translationmap)
+    }
+
+    // Convert to KeyMap
+    maps = new Map(Object.entries(maps))
+    return mapstrMapToKeyMap(maps)
 }
 
 // }}}

@@ -9,6 +9,7 @@ export type ModeName =
     | "gobble"
     | "input"
     | "visual"
+    | "nmode"
 
 export class PrevInput {
     inputId: string
