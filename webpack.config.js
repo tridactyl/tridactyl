@@ -1,11 +1,17 @@
 const TsconfigPathsPlugin = require("tsconfig-paths-webpack-plugin")
 const CopyWebPackPlugin = require("copy-webpack-plugin")
-// const WebpackShellPlugin = require('webpack-shell-plugin')
 
 const fileExtensions = [".ts", ".tsx", ".js", ".json"]
 
 module.exports = {
-    mode: "production",
+
+    mode: "development",
+    // mode: "production", // Uncomment me for more helpful error messages
+
+    // Enable sourcemaps for debugging webpack's output.
+    devtool: "source-map",
+    // devtool: "inline-source-map", // Uncomment me for more helpful error messages
+
     entry: {
         background: "./src/background.ts",
         content: "./src/content.ts",
@@ -18,8 +24,6 @@ module.exports = {
         path: __dirname + "/build",
     },
 
-    // Enable sourcemaps for debugging webpack's output.
-    devtool: "source-map",
 
     resolve: {
         // Add '.ts' and '.tsx' as resolvable extensions.
@@ -38,17 +42,6 @@ module.exports = {
     },
 
     plugins: [
-        // new UglifyJSPlugin({
-        //     uglifyOptions: {
-        //         ecma: 8
-        //     }
-        // }),
-        // new WebpackShellPlugin({onBuildStart: [
-        //     'mkdir -p generated/static',
-        //     'scripts/excmds_macros.py',
-        //     'scripts/newtab.md.sh',
-        //     'scripts/make_docs.sh',
-        // ]}),
         new CopyWebPackPlugin([
             { from: "src/manifest.json" },
             {
