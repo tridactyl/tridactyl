@@ -2,12 +2,15 @@ const tsConfig = require('./tsconfig');
 
 module.exports = {
   preset: "ts-jest",
+  setupFiles: [
+    "jest-webextension-mock"
+  ],
   testRegex: "(/__tests__/.*|(\\.|/)(test|spec))\\.(jsx?|tsx?)$",
   globals: {
     "ts-jest": {
       tsConfig: {
         ...tsConfig.compilerOptions,
-        types: ["jest", "node"]
+        types: ["jest", "node", "web-ext-types"]
       },
       diagnostics: {
         ignoreCodes: [151001]

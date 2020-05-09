@@ -13,8 +13,8 @@
     "immer": "^6.0.3",
     "mark.js": "^8.11.1",
     "mithril": "^2.0.4",
-    "rss-parser": "^3.7.6",
     "ramda": "^0.27.0",
+    "rss-parser": "^3.7.6",
     "semver-compare": "^1.0.0",
     "typedoc-default-themes": "^0.9.0",
     "uuid": "^7.0.3"
@@ -28,6 +28,7 @@
     "copy-webpack-plugin": "^5.1.1",
     "geckodriver": "^1.19.1",
     "jest": "^25.5.3",
+    "jest-webextension-mock": "^3.5.4",
     "marked": "^0.8.2",
     "nearley": "^2.19.2",
     "prettier": "^1.19.1",
