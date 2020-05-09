@@ -50,7 +50,7 @@ browser.storage.local
 const state = (new Proxy(overlay, {
     /** Give defaults if overlay doesn't have the key */
     get(target, property) {
-        // if (notBackground()) throw "State object must be accessed with getAsync in content"
+        if (notBackground()) throw "State object must be accessed with getAsync in content"
         if (property in target) {
             return target[property]
         } else {
