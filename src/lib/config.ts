@@ -803,7 +803,6 @@ export class default_config {
         performance: "warning",
         state: "warning",
         styling: "warning",
-        locks: "warning",
     }
 
     /**
