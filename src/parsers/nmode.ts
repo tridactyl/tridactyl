@@ -39,7 +39,7 @@ export function parser(keys: KeyboardEvent[]) {
     }
     const response = keyseq.parse(keys, maps)
 
-    if (response.exstr != "") modeState.curCommands += 1
+    if ((response.exstr !== undefined && response.isMatch) || !response.isMatch) modeState.curCommands += 1
     if (modeState.curCommands >= modeState.numCommands) {
         const prefix =
           (response.exstr === undefined) ? "" : ("composite " + response.exstr + "; ")
