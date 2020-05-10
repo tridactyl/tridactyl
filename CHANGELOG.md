@@ -1,5 +1,39 @@
 # Tridactyl changelog
 
+## Release 1.19.0 / 10-05-2020
+
+-   New features
+
+    -   "passthrough" mode has been added - press `<C-v>` in normal mode to send the next key combination to the page ([#57](https://github.com/tridactyl/tridactyl/issues/57))
+
+        -   similarly, `<C-o>` in ignore mode will execute a single key sequence in normal mode
+        -   this is accomplished with a new mode called `nmode` which executes a number of key sequences in a specified mode and then executes an ex-command. See `:help nmode` for more details.
+
+    -   `o` in visual mode moves the (invisible) cursor to the other end of the selection
+
+    -   `:tabqueue` allows you to open a series of tabs, opening the next one in the background every time one is viewed. See `:help tabqueue` for suggested usage.
+
+    -   `:set hintshift true` (which only works with non-vimperator hint modes) tries to predict which links you are pressing in rapid hint modes and allows you to repeatedly press the same key to open the next link once it has worked it out. See `:help -s hintshift` for more details.
+
+-   Bug fixes
+
+    -   Tridactyl now uses less energy ([#2329](https://github.com/tridactyl/tridactyl/issues/2329))
+    -   Commandline history is more reliable, but for real this time ([#2236](https://github.com/tridactyl/tridactyl/issues/2236))
+    -   `:mkt` now works even if no `tridactylrc` exists ([#2124](https://github.com/tridactyl/tridactyl/issues/2124))
+    -   Nested subconfigs with unbinds no longer annihilate ([#2338](https://github.com/tridactyl/tridactyl/issues/2338))
+    -   `:get` now displays the correct value according to subconfigs ([#2352](https://github.com/tridactyl/tridactyl/issues/2352))
+
+-   Miscellaneous
+
+    -   Our locks library has been removed since it was causing so many issues
+    -   The commandline completions now call `config.get` much less often ([#2353](https://github.com/tridactyl/tridactyl/issues/2353))
+
+Thanks to all of our contributors for this release: Oliver Blanthorn, Torsten Schmits, dependabot-preview[bot], glacambre and Simon Lydell.
+
+Extra special thanks go to Simon Lydell and Torsten Schmits who were both first-time contributors.
+
+Last, but not least - thank you to everyone who reported issues.
+
 ## Release 1.18.1 / 26-04-2020
 
 -   Bug fixes
