@@ -2604,7 +2604,7 @@ export async function winopen(...args: string[]) {
 }
 
 /**
- * Close a tab.
+ * Close a window.
  *
  * @param id - The window id. Defaults to the id of the current window.
  *
