@@ -135,7 +135,7 @@ export async function scroll(
         }
         didScroll = didScroll || scrollData.scroll(xDistance, duration)
     }
-    if (yDinstance !== 0) {
+    if (yDistance !== 0) {
         let scrollData = verticallyScrolling.get(e)
         if (!scrollData) {
             scrollData = new ScrollingData(e, "scrollTop")
