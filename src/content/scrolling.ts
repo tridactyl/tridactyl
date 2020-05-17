@@ -160,7 +160,7 @@ export async function recursiveScroll(
     yDistance: number,
     node?: Element,
     stopAt?: Element,
-)  {
+) {
     let startingFromCached = false
     if (!node) {
         const sameSignX = xDistance < 0 === lastX < 0
