@@ -141,7 +141,7 @@ export async function scroll(
             scrollData = new ScrollingData(e, "scrollTop")
             verticallyScrolling.set(e, scrollData)
         }
-        didScroll = didScroll || scrollData.scroll(yDinstance, duration)
+        didScroll = didScroll || scrollData.scroll(yDistance, duration)
     }
     return didScroll
 }
