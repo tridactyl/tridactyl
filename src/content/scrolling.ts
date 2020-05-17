@@ -116,7 +116,7 @@ const verticallyScrolling = new Map<Node, ScrollingData>()
  */
 export async function scroll(
     xDistance : number = 0,
-    yDinstance : number = 0,
+    yDistance : number = 0,
     e: Node,
     duration?: number,
 ) : Promise<boolean> {
