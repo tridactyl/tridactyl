@@ -3,12 +3,12 @@ import * as config from "@src/lib/config"
 type scrollingDirection = "scrollLeft" | "scrollTop"
 
 const opts = { smooth: null, duration: null }
-async function getSmooth() {
+async function getSmooth() : Promise<string> {
     if (opts.smooth === null)
         opts.smooth = await config.getAsync("smoothscroll")
     return opts.smooth
 }
-async function getDuration() {
+async function getDuration() : Promise<number> {
     if (opts.duration === null)
         opts.duration = await config.getAsync("scrollduration")
     return opts.duration
@@ -48,7 +48,7 @@ class ScrollingData {
         if (this.startTime === undefined) {
             this.startTime = performance.now()
         }
-        const elapsed = performance.now() - this.startTime
+        const elapsed : number = performance.now() - this.startTime
 
         // If the animation should be done, return the position the element should have
         if (elapsed >= this.duration || this.elem[this.scrollDirection] === this.endPos)
@@ -71,9 +71,9 @@ class ScrollingData {
 
     /** Updates the position of this.elem, returns true if the element has been scrolled, false otherwise. */
     private scrollStep() : boolean{
-        const val = this.elem[this.scrollDirection]
+        const prevScrollPos : number = this.elem[this.scrollDirection]
         this.elem[this.scrollDirection] = this.getStep()
-        return val !== this.elem[this.scrollDirection]
+        return prevScrollPos !== this.elem[this.scrollDirection]
     }
 
     /** Calls this.scrollStep() until the element has been completely scrolled
@@ -115,8 +115,8 @@ const verticallyScrolling = new Map<Node, ScrollingData>()
  *  last duration milliseconds
  */
 export async function scroll(
-    xDistance: number = 0,
-    yDinstance: number = 0,
+    xDistance : number = 0,
+    yDinstance : number = 0,
     e: Node,
     duration?: number,
 ) : Promise<Boolean> {
@@ -160,7 +160,7 @@ export async function recursiveScroll(
     yDistance: number,
     node?: Element,
     stopAt?: Element,
-) {
+)  {
     let startingFromCached = false
     if (!node) {
         const sameSignX = xDistance < 0 === lastX < 0
