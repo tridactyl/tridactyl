@@ -3,12 +3,12 @@ import * as config from "@src/lib/config"
 type scrollingDirection = "scrollLeft" | "scrollTop"
 
 const opts = { smooth: null, duration: null }
-async function getSmooth() : Promise<string> {
+async function getSmooth(): Promise<string> {
     if (opts.smooth === null)
         opts.smooth = await config.getAsync("smoothscroll")
     return opts.smooth
 }
-async function getDuration() : Promise<number> {
+async function getDuration(): Promise<number> {
     if (opts.duration === null)
         opts.duration = await config.getAsync("scrollduration")
     return opts.duration
@@ -38,55 +38,7 @@ class ScrollingData {
         private scrollDirection: scrollingDirection = "scrollTop",
     ) {}
 
-    /** Computes where the element should be.
-     *  This changes depending on how long ago the first scrolling attempt was
-     *  made.
-     *  It might be useful to make this function more configurable by making it
-     *  accept an argument instead of using performance.now()
-     */
-   private getStep() : number {
-        if (this.startTime === undefined) {
-            this.startTime = performance.now()
-        }
-        const elapsed : number = performance.now() - this.startTime
-
-        // If the animation should be done, return the position the element should have
-        if (elapsed >= this.duration || this.elem[this.scrollDirection] === this.endPos)
-            return this.endPos
-
-        let pixelToScrollTo : number = this.startPos + (((this.endPos - this.startPos) * elapsed) / this.duration)
-        if (this.startPos < this.endPos) {
-            // We need to ceil() because only highdpi screens have a decimal this.elem[this.pos]
-            pixelToScrollTo = Math.ceil(pixelToScrollTo)
-            // We *have* to make progress, otherwise we'll think the element can't be scrolled
-            if (pixelToScrollTo == this.elem[this.scrollDirection])
-                pixelToScrollTo += 1
-        } else {
-            pixelToScrollTo = Math.floor(pixelToScrollTo)
-            if (pixelToScrollTo == this.elem[this.scrollDirection])
-                pixelToScrollTo -= 1
-        }
-        return pixelToScrollTo
-    }
-
-    /** Updates the position of this.elem, returns true if the element has been scrolled, false otherwise. */
-    private scrollStep() : boolean{
-        const prevScrollPos : number = this.elem[this.scrollDirection]
-        this.elem[this.scrollDirection] = this.getStep()
-        return prevScrollPos !== this.elem[this.scrollDirection]
-    }
-
-    /** Calls this.scrollStep() until the element has been completely scrolled
-     * or the scrolling animation is complete */
-    private scheduleStep() {
-        // If scrollStep() scrolled the element, reschedule a step
-        // Otherwise, register that the element stopped scrolling
-        window.requestAnimationFrame(() =>
-            this.scrollStep() ? this.scheduleStep() : (this.scrolling = false),
-        )
-    }
-
-    public scroll(distance: number, duration: number) : boolean {
+    public scroll(distance: number, duration: number): boolean {
         this.duration = duration
         this.startTime = performance.now()
         this.startPos = this.elem[this.scrollDirection]
@@ -104,6 +56,55 @@ class ScrollingData {
             this.scheduleStep()
         return this.scrolling
     }
+
+    /** Computes where the element should be.
+     *  This changes depending on how long ago the first scrolling attempt was
+     *  made.
+     *  It might be useful to make this function more configurable by making it
+     *  accept an argument instead of using performance.now()
+     */
+   private getStep(): number {
+        if (this.startTime === undefined) {
+            this.startTime = performance.now()
+        }
+        const elapsed: number = performance.now() - this.startTime
+
+        // If the animation should be done, return the position the element should have
+        if (elapsed >= this.duration || this.elem[this.scrollDirection] === this.endPos)
+            return this.endPos
+
+        let pixelToScrollTo: number = this.startPos + (((this.endPos - this.startPos) * elapsed) / this.duration)
+        if (this.startPos < this.endPos) {
+            // We need to ceil() because only highdpi screens have a decimal this.elem[this.pos]
+            pixelToScrollTo = Math.ceil(pixelToScrollTo)
+            // We *have* to make progress, otherwise we'll think the element can't be scrolled
+            if (pixelToScrollTo == this.elem[this.scrollDirection])
+                pixelToScrollTo += 1
+        } else {
+            pixelToScrollTo = Math.floor(pixelToScrollTo)
+            if (pixelToScrollTo == this.elem[this.scrollDirection])
+                pixelToScrollTo -= 1
+        }
+        return pixelToScrollTo
+    }
+
+    /** Updates the position of this.elem, returns true if the element has been scrolled, false otherwise. */
+    private scrollStep(): boolean {
+        const prevScrollPos: number = this.elem[this.scrollDirection]
+        this.elem[this.scrollDirection] = this.getStep()
+        return prevScrollPos !== this.elem[this.scrollDirection]
+    }
+
+    /** Calls this.scrollStep() until the element has been completely scrolled
+     * or the scrolling animation is complete */
+    private scheduleStep() {
+        // If scrollStep() scrolled the element, reschedule a step
+        // Otherwise, register that the element stopped scrolling
+        window.requestAnimationFrame(() =>
+            this.scrollStep() ? this.scheduleStep() : (this.scrolling = false),
+        )
+    }
+
 }
 
 // Stores elements that are currently being horizontally scrolled
@@ -115,11 +116,11 @@ const verticallyScrolling = new Map<Node, ScrollingData>()
  *  last duration milliseconds
  */
 export async function scroll(
-    xDistance : number = 0,
-    yDistance : number = 0,
+    xDistance: number = 0,
+    yDistance: number = 0,
     e: Node,
     duration?: number,
-) : Promise<boolean> {
+): Promise<boolean> {
     const smooth = await getSmooth()
     if (smooth === "false") duration = 0
     else if (duration === undefined) duration = await getDuration()
