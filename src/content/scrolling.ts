@@ -119,7 +119,7 @@ export async function scroll(
     yDinstance : number = 0,
     e: Node,
     duration?: number,
-) : Promise<Boolean> {
+) : Promise<boolean> {
     const smooth = await getSmooth()
     if (smooth === "false") duration = 0
     else if (duration === undefined) duration = await getDuration()
