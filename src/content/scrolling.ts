@@ -31,11 +31,11 @@ class ScrollingData {
     duration = 0
 
     /** elem: The element that should be scrolled
-     *  pos: "scrollLeft" if the element should be scrolled on the horizontal axis, "scrollTop" otherwise
+     * scrollDirection: "scrollLeft" if the element should be scrolled on the horizontal axis, "scrollTop" otherwise
      */
     constructor(
         private elem: Node,
-        private pos: scrollingDirection = "scrollTop",
+        private scrollDirection: scrollingDirection = "scrollTop",
     ) {}
 
     /** Computes where the element should be.
@@ -44,41 +44,41 @@ class ScrollingData {
      *  It might be useful to make this function more configurable by making it
      *  accept an argument instead of using performance.now()
      */
-    getStep() {
+   private getStep() : number {
         if (this.startTime === undefined) {
             this.startTime = performance.now()
         }
         const elapsed = performance.now() - this.startTime
 
         // If the animation should be done, return the position the element should have
-        if (elapsed >= this.duration || this.elem[this.pos] === this.endPos)
+        if (elapsed >= this.duration || this.elem[this.scrollDirection] === this.endPos)
             return this.endPos
 
-        let result = this.startPos + (((this.endPos - this.startPos) * elapsed) / this.duration)
+        let pixelToScrollTo : number = this.startPos + (((this.endPos - this.startPos) * elapsed) / this.duration)
         if (this.startPos < this.endPos) {
             // We need to ceil() because only highdpi screens have a decimal this.elem[this.pos]
-            result = Math.ceil(result)
+            pixelToScrollTo = Math.ceil(pixelToScrollTo)
             // We *have* to make progress, otherwise we'll think the element can't be scrolled
-            if (result == this.elem[this.pos])
-                result += 1
+            if (pixelToScrollTo == this.elem[this.scrollDirection])
+                pixelToScrollTo += 1
         } else {
-            result = Math.floor(result)
-            if (result == this.elem[this.pos])
-                result -= 1
+            pixelToScrollTo = Math.floor(pixelToScrollTo)
+            if (pixelToScrollTo == this.elem[this.scrollDirection])
+                pixelToScrollTo -= 1
         }
-        return result
+        return pixelToScrollTo
     }
 
     /** Updates the position of this.elem, returns true if the element has been scrolled, false otherwise. */
-    scrollStep() {
-        const val = this.elem[this.pos]
-        this.elem[this.pos] = this.getStep()
-        return val !== this.elem[this.pos]
+    private scrollStep() : boolean{
+        const val = this.elem[this.scrollDirection]
+        this.elem[this.scrollDirection] = this.getStep()
+        return val !== this.elem[this.scrollDirection]
     }
 
     /** Calls this.scrollStep() until the element has been completely scrolled
      * or the scrolling animation is complete */
-    scheduleStep() {
+    private scheduleStep() {
         // If scrollStep() scrolled the element, reschedule a step
         // Otherwise, register that the element stopped scrolling
         window.requestAnimationFrame(() =>
@@ -86,10 +86,10 @@ class ScrollingData {
         )
     }
 
-    scroll(distance: number, duration: number) {
+    public scroll(distance: number, duration: number) : boolean {
         this.duration = duration
         this.startTime = performance.now()
-        this.startPos = this.elem[this.pos]
+        this.startPos = this.elem[this.scrollDirection]
         // If we're already scrolling, update the endPos based off the current endPos
         if (this.scrolling) {
             this.endPos = this.endPos + distance
@@ -115,17 +115,17 @@ const verticallyScrolling = new Map<Node, ScrollingData>()
  *  last duration milliseconds
  */
 export async function scroll(
-    x: number = 0,
-    y: number = 0,
+    xDistance: number = 0,
+    yDinstance: number = 0,
     e: Node,
     duration?: number,
-) {
+) : Promise<Boolean> {
     const smooth = await getSmooth()
     if (smooth === "false") duration = 0
     else if (duration === undefined) duration = await getDuration()
 
-    let result = false
-    if (x !== 0) {
+    let didScroll = false
+    if (xDistance !== 0) {
         // Don't create a new ScrollingData object if the element is already
         // being scrolled
         let scrollData = horizontallyScrolling.get(e)
@@ -133,17 +133,17 @@ export async function scroll(
             scrollData = new ScrollingData(e, "scrollLeft")
             horizontallyScrolling.set(e, scrollData)
         }
-        result = result || scrollData.scroll(x, duration)
+        didScroll = didScroll || scrollData.scroll(xDistance, duration)
     }
-    if (y !== 0) {
+    if (yDinstance !== 0) {
         let scrollData = verticallyScrolling.get(e)
         if (!scrollData) {
             scrollData = new ScrollingData(e, "scrollTop")
             verticallyScrolling.set(e, scrollData)
         }
-        result = result || scrollData.scroll(y, duration)
+        didScroll = didScroll || scrollData.scroll(yDinstance, duration)
     }
-    return result
+    return didScroll
 }
 
 let lastRecursiveScrolled = null
@@ -156,15 +156,15 @@ let lastY = 0
  *  attempts at optimizing the function in order to reduce GC pressure.
  */
 export async function recursiveScroll(
-    x: number,
-    y: number,
+    xDistance: number,
+    yDistance: number,
     node?: Element,
     stopAt?: Element,
 ) {
     let startingFromCached = false
     if (!node) {
-        const sameSignX = x < 0 === lastX < 0
-        const sameSignY = y < 0 === lastY < 0
+        const sameSignX = xDistance < 0 === lastX < 0
+        const sameSignY = yDistance < 0 === lastY < 0
         if (lastRecursiveScrolled && sameSignX && sameSignY) {
             // We're scrolling in the same direction as the previous time so
             // let's try to pick up from where we left
@@ -178,19 +178,19 @@ export async function recursiveScroll(
     do {
         // If node is undefined or if we managed to scroll it
         if (
-            (await scroll(x, y, treeWalker.currentNode)) ||
+            (await scroll(xDistance, yDistance, treeWalker.currentNode)) ||
             ((treeWalker.currentNode as any).contentDocument &&
                 !(treeWalker.currentNode as any).src.startsWith("moz-extension://") &&
                 (await recursiveScroll(
-                    x,
-                    y,
+                    xDistance,
+                    yDistance,
                     (treeWalker.currentNode as any).contentDocument.body,
                 )))
         ) {
             // Cache the node for next time and stop trying to scroll
             lastRecursiveScrolled = treeWalker.currentNode
-            lastX = x
-            lastY = y
+            lastX = xDistance
+            lastY = yDistance
             return true
         }
     } while (treeWalker.nextNode())
@@ -199,17 +199,17 @@ export async function recursiveScroll(
         treeWalker = document.createTreeWalker(node, NodeFilter.SHOW_ELEMENT)
         do {
             // If node is undefined or if we managed to scroll it
-            if (await scroll(x, y, treeWalker.currentNode)) {
+            if (await scroll(xDistance, yDistance, treeWalker.currentNode)) {
                 // Cache the node for next time and stop trying to scroll
                 lastRecursiveScrolled = treeWalker.currentNode
-                lastX = x
-                lastY = y
+                lastX = xDistance
+                lastY = yDistance
                 return true
             }
         } while (treeWalker.previousNode())
     }
     lastRecursiveScrolled = null
-    lastX = x
-    lastY = y
+    lastX = xDistance
+    lastY = yDistance
     return false
 }
