@@ -1,5 +1,5 @@
 import { browserBg } from "@src/lib/webext"
-import * as Fuse from "fuse.js"
+import Fuse from "fuse.js"
 import * as Logging from "@src/lib/logging"
 const logger = new Logging.Logger("containers")
 
@@ -209,7 +209,7 @@ export async function fuzzyMatch(partialName: string): Promise<string> {
     const fuse = new Fuse(containers, fuseOptions)
     const res = fuse.search(partialName)
 
-    if (res.length >= 1) return res[0]
+    if (res.length >= 1) return res[0].item.cookieStoreId
     else {
         throw new Error(
             "[Container.fuzzyMatch] no container matched that string",
