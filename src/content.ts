@@ -270,13 +270,13 @@ config.getAsync("modeindicator").then(mode => {
 
     try {
         // On quick loading pages, the document is already loaded
-        statusIndicator.textContent = contentState.mode || "normal"
+        statusIndicator.textContent = modeindicatorcontent()
         document.body.appendChild(statusIndicator)
         document.head.appendChild(style)
     } catch (e) {
         // But on slower pages we wait for the document to load
         window.addEventListener("DOMContentLoaded", () => {
-            statusIndicator.textContent = contentState.mode || "normal"
+            statusIndicator.textContent = modeindicatorcontent()
             document.body.appendChild(statusIndicator)
             document.head.appendChild(style)
         })
@@ -328,13 +328,17 @@ config.getAsync("modeindicator").then(mode => {
             "config",
             modeindicatorshowkeys,
         )
-        statusIndicator.textContent = result
+        statusIndicator.textContent = modeindicatorcontent(result)
         statusIndicator.className +=
-            " TridactylMode" + statusIndicator.textContent
+            " TridactylMode" + result
 
         if (config.get("modeindicator") !== "true") statusIndicator.remove()
     })
 })
+
+function modeindicatorcontent(modeoveride?) {
+    return (config.get("modeindicatorshowurl") == "true" ? document.location.href + " " : "") + (modeoveride || contentState.mode || "normal")
+}
 
 function protectSlash(e) {
     if (!e.isTrusted) return
