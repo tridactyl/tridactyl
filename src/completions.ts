@@ -248,7 +248,7 @@ export abstract class CompletionSourceFuse extends CompletionSource {
         this.fuse = new Fuse(searchThis, this.fuseOptions)
         return this.fuse.search(query).map(result => {
             // console.log(result, result.item, query)
-            const index = toNumber(result.item)
+            const index = toNumber(result.item.index)
             return {
                 index,
                 option: this.options[index],
