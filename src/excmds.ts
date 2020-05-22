@@ -2335,7 +2335,7 @@ export async function tabclose(...indexes: string[]) {
  *
  */
 //#background
-export async function tabcloseallto(side) {
+export async function tabcloseallto(side: string) {
     const tabs = await browser.tabs.query({
         pinned: false,
         currentWindow: true,
