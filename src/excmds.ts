@@ -2331,35 +2331,26 @@ export async function tabclose(...indexes: string[]) {
     return done
 }
 
-/** Close all tabs to the right of the current one
+/** Close all tabs to the side specified
  *
  */
 //#background
-export async function tabclosealltoright() {
+export async function tabcloseallto(side) {
     const tabs = await browser.tabs.query({
         pinned: false,
         currentWindow: true,
     })
 
     const atab = await activeTab()
+    if (side == "right") {
     const ids = tabs.filter(tab => tab.index > atab.index).map(tab => tab.id)
-    return browser.tabs.remove(ids)
-}
-
-/** Close all tabs to the left of the current one
- *
- */
-//#background
-export async function tabclosealltoleft() {
-    const tabs = await browser.tabs.query({
-        pinned: false,
-        currentWindow: true,
-    })
-
-    const atab = await activeTab()
+	}
+	else if (side == "left"){
     const ids = tabs.filter(tab => tab.index < atab.index).map(tab => tab.id)
+	}
     return browser.tabs.remove(ids)
 }
+
 
 /** Restore the most recently closed item.
     The default behaviour is to restore the most recently closed tab in the
