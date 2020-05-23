@@ -4043,10 +4043,10 @@ immediate@~3.0.5:
   resolved "https://registry.yarnpkg.com/immediate/-/immediate-3.0.6.tgz#9db1dbd0faf8de6fbe0f5dd5e56bb606280de69b"
   integrity sha1-nbHb0Pr43m++D13V5Wu2BigN5ps=
 
-immer@^6.0.3:
-  version "6.0.3"
-  resolved "https://registry.yarnpkg.com/immer/-/immer-6.0.3.tgz#94d5051cd724668160a900d66d85ec02816f29bd"
-  integrity sha512-12VvNrfSrXZdm/BJgi/KDW2soq5freVSf3I1+4CLunUM8mAGx2/0Njy0xBVzi5zewQZiwM7z1/1T+8VaI7NkmQ==
+immer@^6.0.7:
+  version "6.0.7"
+  resolved "https://registry.yarnpkg.com/immer/-/immer-6.0.7.tgz#9fd60fb4da099523aebb3aea32f1e542c2679578"
+  integrity sha512-zL/G/EGh53bliFt0v68J/eJdckf3Yjg+ict/yc1SQQypzH1XRjjpKxkWGoQJKKSfbNgm7AWJbbKmXWUhPjPUww==
 
 immutable@^3.8.2:
   version "3.8.2"
