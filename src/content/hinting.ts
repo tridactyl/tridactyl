@@ -844,6 +844,14 @@ export function hintables(selectors = DOM.HINTTAGS_selectors, withjs = false) {
         const elemSet = new Set([...elems, ...DOM.hintworthy_js_elems])
         elems = [...elemSet]
     }
+    elems.forEach((element, index) => {
+        if (element.childNodes.length === 0 || element.tagName !== "A") return;
+        element.childNodes.forEach((child) => {
+            if (child.nodeName === "DIV" || child.nodeName === "SPAN") {
+                elems[index] = child as Element;
+            }
+        })
+    })
     return elems.filter(DOM.isVisible)
 }
 
