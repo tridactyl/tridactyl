@@ -2336,18 +2336,15 @@ export async function tabclose(...indexes: string[]) {
  */
 //#background
 export async function tabcloseallto(side: string) {
+   if !(["left", "right"].includes(side)) throw("side argument must be left or right") 
     const tabs = await browser.tabs.query({
         pinned: false,
         currentWindow: true,
     })
 
     const atab = await activeTab()
-    if (side == "right") {
-    const ids = tabs.filter(tab => tab.index > atab.index).map(tab => tab.id)
-	}
-	else if (side == "left"){
-    const ids = tabs.filter(tab => tab.index < atab.index).map(tab => tab.id)
-	}
+    const comp = side == "right" ? tab => tab.index > atab.index : tab => tab.index < atab.index
+    const ids = tabs.filter(comp).map(tab => tab.id)
     return browser.tabs.remove(ids)
 }
 
