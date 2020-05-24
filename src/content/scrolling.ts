@@ -148,6 +148,7 @@ export async function scroll(
 }
 
 let lastRecursiveScrolled = null
+let lastFocused = null
 let lastX = 0
 let lastY = 0
 /** Tries to find a node which can be scrolled either x pixels to the right or
@@ -166,12 +167,23 @@ export async function recursiveScroll(
     if (!node) {
         const sameSignX = xDistance < 0 === lastX < 0
         const sameSignY = yDistance < 0 === lastY < 0
-        if (lastRecursiveScrolled && sameSignX && sameSignY) {
+        const sameElement = lastFocused == document.activeElement
+        if (lastRecursiveScrolled && sameSignX && sameSignY && sameElement) {
             // We're scrolling in the same direction as the previous time so
             // let's try to pick up from where we left
             startingFromCached = true
             node = lastRecursiveScrolled
         } else {
+
+            // Try scrolling the active node or one of its parent elements
+            node = document.activeElement
+            while (true) {
+                if ((await scroll(xDistance, yDistance, node))) return true
+                node = node.parentElement
+                if (node === null) break
+            }
+
+            // If that didn't work, go on to recursive scroll
             node = document.documentElement
         }
     }
@@ -190,6 +202,7 @@ export async function recursiveScroll(
         ) {
             // Cache the node for next time and stop trying to scroll
             lastRecursiveScrolled = treeWalker.currentNode
+            lastFocused = document.activeElement // Invalidate the cache if the user changes focus
             lastX = xDistance
             lastY = yDistance
             return true
