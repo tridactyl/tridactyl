@@ -2337,8 +2337,8 @@ export async function tabclose(...indexes: string[]) {
 //#background
 export async function tabcloseallto(side: string) {
     if (!(["left", "right"].includes(side))) {
-     throw "side argument must be left or right"
-    } else {
+        throw "side argument must be left or right"
+    }
     const tabs = await browser.tabs.query({
         pinned: false,
         currentWindow: true,
@@ -2348,7 +2348,6 @@ export async function tabcloseallto(side: string) {
     const comp = side == "right" ? tab => tab.index > atab.index : tab => tab.index < atab.index
     const ids = tabs.filter(comp).map(tab => tab.id)
     return browser.tabs.remove(ids)
-    }
 }
 
 /** Restore the most recently closed item.
