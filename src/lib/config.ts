@@ -573,8 +573,8 @@ export class default_config {
         extp: "extpreferences",
         prefset: "setpref",
         prefremove: "removepref",
-	tabclosealltoright: "tabcloseallto right"
-	tabclosealltoleft: "tabcloseallto left"
+        tabclosealltoright: "tabcloseallto right",
+        tabclosealltoleft: "tabcloseallto left"
     }
 
     /**
