@@ -2701,6 +2701,38 @@ export async function viewcontainers() {
             .replace(/ /g, "%20")
 }
 
+/** Opens the current tab in another container.
+
+    This is probably not a good idea if you care about tracking protection!
+    Transfering URLs from one container to another allows websites to track
+    you across those containers.
+
+    Read more here:
+    https://github.com/mozilla/multi-account-containers/wiki/Moving-between-containers
+
+    @param containerName The container name, fuzzy matched like `-c` on [[tabopen]]. Leave empty to uncontain.
+ */
+//#background
+export async function recontain(containerName: string) {
+    const thisTab = await activeTab()
+
+    let container
+    await Container.fuzzyMatch(containerName)
+        .then(match => {
+            container = match
+        })
+        .catch(() => {
+            container = Container.DefaultContainer.cookieStoreId
+        })
+
+    await openInNewTab(thisTab.url, {
+        active: true,
+        related: true,
+        cookieStoreId: container,
+    })
+    return browser.tabs.remove(thisTab.id)
+}
+
 // }}}
 //
 // {{{ MISC
