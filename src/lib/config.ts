@@ -278,7 +278,7 @@ export class default_config {
         ";S": "hint -S",
         ";a": "hint -a",
         ";A": "hint -A",
-        ";;": "hint -;",
+        ";;": "hint -; *",
         ";#": "hint -#",
         ";v": "hint -W mpvsafe",
         ";w": "hint -w",
