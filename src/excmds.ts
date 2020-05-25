@@ -3780,7 +3780,7 @@ export function setnull(...keys: string[]) {
         - -S save the linked image
         - -a save-as the linked resource
         - -A save-as the linked image
-        - -; focus an element
+        - -; focus an element and set it as the element or the child of the element to scroll
         - -# yank an element's anchor URL to clipboard
         - -c [selector] hint links that match the css selector
           - `bind ;c hint -c [class*="expand"],[class="togg"]` works particularly well on reddit and HN
@@ -4070,6 +4070,7 @@ export async function hint(option?: string, selectors?: string, ...rest: string[
                 hinting.hintables(selectors),
                 elem => {
                     elem.focus()
+                    scrolling.setCurrentFocus(elem)
                     return elem
                 },
                 rapid,

@@ -153,6 +153,11 @@ let currentFocused = document.activeElement as any
 let lastX = 0
 let lastY = 0
 
+// export let currentFocused exports it as readonly, so we have to write a function
+export function setCurrentFocus(v) {
+    currentFocused = v
+}
+
 document.addEventListener("mousedown", event => {
     currentFocused = event.target
 })
