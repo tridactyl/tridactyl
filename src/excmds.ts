@@ -2579,11 +2579,11 @@ export async function viewcontainers() {
     @param containerName The container name, fuzzy matched like `-c` on [[tabopen]]. Leave empty to uncontain.
  */
 //#background
-export async function recontain(containerName = "") {
+export async function recontain(containerName: string) {
     const thisTab = await activeTab()
 
     let container
-    await Container.fuzzyMatch(containerName[0])
+    await Container.fuzzyMatch(containerName)
         .then(match => {
             container = match
         })
