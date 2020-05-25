@@ -180,7 +180,7 @@ export async function recursiveScroll(
             while (true) {
                 if ((await scroll(xDistance, yDistance, node))) return true
                 node = node.parentElement
-                if (node === null) break
+                if (!node) break
             }
 
             // If that didn't work, go on to recursive scroll
