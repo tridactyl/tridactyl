@@ -844,7 +844,47 @@ export function hintables(selectors = DOM.HINTTAGS_selectors, withjs = false) {
         const elemSet = new Set([...elems, ...DOM.hintworthy_js_elems])
         elems = [...elemSet]
     }
-    return elems.filter(DOM.isVisible)
+    elems = elems.filter(DOM.isVisible)
+    return changeHintablesToLargestChild(elems);
+}
+
+/**
+ * Changes html elements in an array to their largest child,
+ * if it is larger than the element in the array.
+ * @hidden
+ */
+function changeHintablesToLargestChild(elements: Element[]): Element[] {
+    elements.forEach((element, index) => {
+        if (element.childNodes.length === 0) return;
+        let largestChild: Element;
+        // Find largest child.
+        element.childNodes.forEach((c) => {
+            const currentChild = (c as Element);
+            if (!largestChild || isElementLargerThan(currentChild, largestChild)) {
+                largestChild = currentChild;
+            }
+        })
+        // Change element if child is larger
+        if (isElementLargerThan(largestChild, element)) {
+            elements[index] = largestChild;
+        }
+    })
+    return elements;
+}
+
+/**
+ * Returns true if e1 is larger than e2, otherwise false.
+ * @hidden
+ */
+function isElementLargerThan(e1: Element, e2: Element): boolean {
+    if (typeof e1.getBoundingClientRect !== "function") {
+        return false;
+    } else if (typeof e2.getBoundingClientRect !== "function") {
+        return true;
+    }
+    const e1BR = e1.getBoundingClientRect();
+    const e2BR = e2.getBoundingClientRect();
+    return e1BR.height > e2BR.height && e1BR.width > e2BR.width;
 }
 
 /** Returns elements that point to a saveable resource
