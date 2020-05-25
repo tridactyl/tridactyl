@@ -148,8 +148,24 @@ export async function scroll(
 }
 
 let lastRecursiveScrolled = null
+let lastFocused = null
+let currentFocused = document.activeElement as any
 let lastX = 0
 let lastY = 0
+
+// export let currentFocused exports it as readonly, so we have to write a function
+export function setCurrentFocus(v) {
+    currentFocused = v
+}
+
+document.addEventListener("mousedown", event => {
+    currentFocused = event.target
+})
+
+document.addEventListener("focusin", event => {
+    currentFocused = event.target
+})
+
 /** Tries to find a node which can be scrolled either x pixels to the right or
  *  y pixels down among the Elements in {nodes} and children of these Elements.
  *
@@ -166,13 +182,31 @@ export async function recursiveScroll(
     if (!node) {
         const sameSignX = xDistance < 0 === lastX < 0
         const sameSignY = yDistance < 0 === lastY < 0
-        if (lastRecursiveScrolled && sameSignX && sameSignY) {
+        const sameElement = lastFocused == currentFocused
+        if (lastRecursiveScrolled && sameSignX && sameSignY && sameElement) {
             // We're scrolling in the same direction as the previous time so
             // let's try to pick up from where we left
             startingFromCached = true
             node = lastRecursiveScrolled
         } else {
+
+            // Try scrolling the active node or one of its parent elements
+
+            // If nothing has been given focus explicitly use the activeElement
+            if (!currentFocused || currentFocused.nodeName == "#document") currentFocused = document.activeElement
+
+            node = currentFocused
+            while (true) {
+                if ((await scroll(xDistance, yDistance, node))) return true
+                node = node.parentElement
+                if (!node) break
+            }
+
+            // If that didn't work, go on to recursive scroll
             node = document.documentElement
+
+            // Invalidate the cache if the user changes focus
+            lastFocused = currentFocused
         }
     }
     let treeWalker = document.createTreeWalker(node, NodeFilter.SHOW_ELEMENT)
