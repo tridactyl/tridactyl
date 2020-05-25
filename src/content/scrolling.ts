@@ -185,6 +185,9 @@ export async function recursiveScroll(
 
             // If that didn't work, go on to recursive scroll
             node = document.documentElement
+
+            // Invalidate the cache if the user changes focus
+            lastFocused = document.activeElement
         }
     }
     let treeWalker = document.createTreeWalker(node, NodeFilter.SHOW_ELEMENT)
@@ -202,7 +205,6 @@ export async function recursiveScroll(
         ) {
             // Cache the node for next time and stop trying to scroll
             lastRecursiveScrolled = treeWalker.currentNode
-            lastFocused = document.activeElement // Invalidate the cache if the user changes focus
             lastX = xDistance
             lastY = yDistance
             return true
