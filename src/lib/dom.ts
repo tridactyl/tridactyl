@@ -1,5 +1,6 @@
 import * as config from "@src/lib/config"
 import state from "@src/state"
+import * as State from "@src/state"
 import * as Logging from "@src/lib/logging"
 import {
     activeTabId,
@@ -537,7 +538,7 @@ function onPageFocus(elem: HTMLElement, args: any[]): boolean {
 async function setInput(el) {
     const tab = await activeTabId()
     // store maximum of 10 elements to stop this getting bonkers huge
-    const arr = state.prevInputs.concat({ tab, inputId: el.id })
+    const arr = (await State.getAsync("prevInputs")).concat({ tab, inputId: el.id })
     state.prevInputs = arr.slice(Math.max(arr.length - 10, 0))
 }
 
