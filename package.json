@@ -14,7 +14,7 @@
     "mark.js": "^8.11.1",
     "mithril": "^2.0.4",
     "ramda": "^0.27.0",
-    "rss-parser": "^3.7.6",
+    "rss-parser": "^3.8.0",
     "semver-compare": "^1.0.0",
     "typedoc-default-themes": "^0.10.1"
   },
