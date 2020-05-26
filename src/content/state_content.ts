@@ -17,16 +17,8 @@ export class PrevInput {
     jumppos?: number
 }
 
-class State {
+class ContentState {
     mode: ModeName = "normal"
-    cmdHistory: string[] = []
-    prevInputs: PrevInput[] = [
-        {
-            inputId: undefined,
-            tab: undefined,
-            jumppos: undefined,
-        },
-    ]
     suffix: string = ""
 }
 
@@ -67,4 +59,4 @@ export const contentState = (new Proxy(
             return true
         },
     },
-) as any) as State
+) as any) as ContentState
