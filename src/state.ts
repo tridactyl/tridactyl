@@ -64,13 +64,13 @@ const state = (new Proxy(overlay, {
         if (browser.extension.inIncognitoContext) return false
 
         logger.debug("State changed!", property, value)
-        target[property] = value
         if (notBackground()) {
-            browser.runtime.sendMessage({type: "state", command: "stateUpdate", args: [{state: target}]})
-        } else {
-            // Do we need a global storage lock?
-            browser.storage.local.set({ state: target } as any)
+            browser.runtime.sendMessage({type: "state", command: "stateUpdate", args: {property, value}})
+            return true
         }
+        // Do we need a global storage lock?
+        target[property] = value
+        browser.storage.local.set({ state: target } as any)
         return true
     },
 }))
@@ -83,7 +83,10 @@ export async function getAsync(property) {
 // Keep instances of state.ts synchronised with each other
 messaging.addListener("state", (message, sender, sendResponse) => {
     if (message.command == "stateUpdate") {
-        Object.assign(overlay, message.args[0].state)
+        const property = message.args.property
+        const value = message.args.value
+        logger.debug("State changed!", property, value)
+        overlay[property] = value
     } else if (message.command == "stateGet") {
         sendResponse(state[message.args[0].prop])
     } else throw("Unsupported message to state, type " + message.command)
