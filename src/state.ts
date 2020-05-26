@@ -60,6 +60,9 @@ const state = (new Proxy(overlay, {
 
     /** Persist sets to storage "immediately" */
     set(target, property, value) {
+        // Ensure we don't accidentally store anything sensitive
+        if (browser.extension.inIncognitoContext) return false
+
         logger.debug("State changed!", property, value)
         target[property] = value
         if (notBackground()) {
