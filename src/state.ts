@@ -1,18 +1,14 @@
-/** Tridactyl shared state
-
-    Any context with access to browser.storage can safely import this file and
-    get a self-updating consistent copy of the shared program state.
-
-    Any context may modify their copy of the state and that modification will
-    be propagated to the rest of the program.
-
-    This works by proxying the state object such that setting any property
-    causes the entire state to be saved to storage and adding a listener that
-    listens for storage events and updates the proxied object on each storage
-    event.
-
-    If this turns out to be expensive there are improvements available.
-*/
+/**
+ * Tridactyl shared state
+ *
+ * __NB__: Here be dragons.
+ *
+ * In the background script, "state" can be used as a normal object. Just "import state from "@src/state"
+ *
+ * In the content scripts, "state" can be set as a normal object and changes will propagate to the background script.
+ *
+ * In the content scripts, "state" must be read using "import * as State from "@src/state" and "State.getAsync(property)". If you read it directly with `state` you should get an error at runtime. Certain methods like `concat` will not throw an error but their behaviour is not defined and should be avoided.
+ */
 
 import Logger from "@src/lib/logging"
 import * as messaging from "@src/lib/messaging"
