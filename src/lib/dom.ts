@@ -48,7 +48,7 @@ export function isTextEditable(element: Element) {
 
         // ARIA stuff isn't pulled out into fields, so we have to
         // manually inspect the attributes to find it.
-        // Google products perform some witchcraft with it's search input as
+        // Google products perform some witchcraft with its search input as
         // seen in #1031, the conditional seems to be enough to fix it.
         if (element.hasOwnProperty("attributes")) {
             for (const attr of element.attributes) {
