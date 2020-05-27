@@ -1331,8 +1331,11 @@ export async function update() {
         }
     }
 
-    const updaters = {
-        "0.0": async () => {
+    if (!get("configversion")) set("configversion", "0.0")
+
+    let updated = false
+    switch (get("configversion")) {
+        case "0.0": {
             try {
                 // Before we had a config system, we had nmaps, and we put them in the
                 // root namespace because we were young and bold.
@@ -1346,8 +1349,8 @@ export async function update() {
             } finally {
                 set("configversion", "1.0")
             }
-        },
-        "1.0": () => {
+        }
+        case "1.0": {
             const vimiumgi = getDeepProperty(USERCONFIG, ["vimium-gi"])
             if (vimiumgi === true || vimiumgi === "true")
                 set("gimode", "nextinput")
@@ -1355,8 +1358,8 @@ export async function update() {
                 set("gimode", "firefox")
             unset("vimium-gi")
             set("configversion", "1.1")
-        },
-        "1.1": () => {
+        }
+        case "1.1": {
             const leveltostr: { [key: number]: LoggingLevel } = {
                 0: "never",
                 1: "error",
@@ -1371,8 +1374,8 @@ export async function update() {
                     set("logging", l, leveltostr[logging[l]]),
                 )
             set("configversion", "1.2")
-        },
-        "1.2": () => {
+        }
+        case "1.2": {
             ; ["ignoremaps", "inputmaps", "imaps", "nmaps"]
                 .map(mapname => [
                     mapname,
@@ -1403,8 +1406,8 @@ export async function update() {
                         )
                 })
             set("configversion", "1.3")
-        },
-        "1.3": () => {
+        }
+        case "1.3": {
             ; [
                 "priority",
                 "hintdelay",
@@ -1416,20 +1419,20 @@ export async function update() {
                 "historyresults",
             ].forEach(setting => updateAll([setting], parseInt))
             set("configversion", "1.4")
-        },
-        "1.4": () => {
+        }
+        case "1.4": {
             ; (getDeepProperty(USERCONFIG, ["noiframeon"]) || []).forEach(
                 site => {
                     setURL(site, "noiframe", "true")
                 },
             )
             set("configversion", "1.5")
-        },
-        "1.5": () => {
+        }
+        case "1.5": {
             unset("exaliases", "tab")
             set("configversion", "1.6")
-        },
-        "1.6": () => {
+        }
+        case "1.6": {
             const updateSetting = mapObj => {
                 if (!mapObj) return mapObj
                 if (mapObj[" "] !== undefined) {
@@ -1460,8 +1463,8 @@ export async function update() {
                 settingName => updateAll([settingName], updateSetting),
             )
             set("configversion", "1.7")
-        },
-        "1.7": () => {
+        }
+        case "1.7": {
             const autocontain = getDeepProperty(USERCONFIG, ["autocontain"])
             unset("autocontain")
             if (autocontain !== undefined) {
@@ -1470,8 +1473,8 @@ export async function update() {
               })
             }
             set("configversion", "1.8")
-        },
-        "1.8": () => {
+        }
+        case "1.8": {
             const updateSetting = mapObj => {
                 if (!mapObj) return mapObj
                 return R.map(val => {
@@ -1483,16 +1486,8 @@ export async function update() {
                 settingName => updateAll([settingName], updateSetting),
             )
             set("configversion", "1.9")
-        },
-    }
-    if (!get("configversion")) set("configversion", "0.0")
-    const updatetest = v => {
-        return updaters.hasOwnProperty(v) && updaters[v] instanceof Function
-    }
-    let updated = false
-    while (updatetest(get("configversion"))) {
-        await updaters[get("configversion")]()
-        updated = true
+            updated = true // NB: when adding a new updater, move this line to the end of it
+        }
     }
     return updated
 }
