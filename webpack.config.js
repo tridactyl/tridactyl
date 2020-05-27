@@ -42,16 +42,18 @@ module.exports = {
     },
 
     plugins: [
-        new CopyWebPackPlugin([
+        new CopyWebPackPlugin({patterns: [
             { from: "src/manifest.json" },
             {
                 from: "src/static",
                 to: "static",
-                ignore: ["*.psd", "*1024px.png"],
+                globOptions: {
+                    ignore: ["*.psd", "*1024px.png"],
+                },
             },
             { from: "generated/static", to: "static" },
             { from: "issue_template.md" },
-        ]),
+        ]}),
     ],
     // Fix css
     // https://github.com/webpack-contrib/css-loader/issues/447#issuecomment-285598881
