@@ -1,5 +1,7 @@
 import "geckodriver"
 
+import * as process from "process"
+const env = process.env
 import * as fs from "fs"
 import * as os from "os"
 import * as path from "path"
@@ -99,11 +101,15 @@ describe("webdriver", () => {
         const dir = "web-ext-artifacts"
         const extensionName = "tridactyl.xpi"
         const extensionPath = dir + "/" + extensionName
+        const options = (new Options())
+                .setPreference("xpinstall.signatures.required", false)
+                .addExtensions(extensionPath)
+        if (env["HEADLESS"]) {
+            options.headless();
+        }
         const driver = new webdriver.Builder()
             .forBrowser("firefox")
-            .setFirefoxOptions((new Options())
-                .setPreference("xpinstall.signatures.required", false)
-                .addExtensions(extensionPath))
+            .setFirefoxOptions(options)
             .build()
         // Wait until addon is loaded and :tutor is displayed
         await iframeLoaded(driver)

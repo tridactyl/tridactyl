@@ -9,7 +9,7 @@ on:
       - '*'
 
 env:
-  TESTING: 1
+  HEADLESS: 1
 
 jobs:
   test:
