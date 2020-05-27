@@ -1573,6 +1573,7 @@ export function parseConfig(): string {
         aucmds: [],
         aucons: [],
         logging: [],
+        nulls: [],
     }
 
     p = parseConfigHelper(USERCONFIG, p)
@@ -1585,6 +1586,7 @@ export function parseConfig(): string {
         aucons: ``,
         subconfigs: ``,
         logging: ``,
+        nulls: ``,
     }
 
     if (p.conf.length > 0)
@@ -1599,16 +1601,18 @@ export function parseConfig(): string {
         s.subconfigs = `" Subconfig Settings\n${p.subconfigs.join("\n")}\n\n`
     if (p.logging.length > 0)
         s.logging = `" Logging\n${p.logging.join("\n")}\n\n`
+    if (p.nulls.length > 0)
+        s.nulls = `" Removed settings\n${p.nulls.join("\n")}\n\n`
 
     const ftdetect = `" For syntax highlighting see https://github.com/tridactyl/vim-tridactyl\n" vim: set filetype=tridactyl`
 
     return `${s.general}${s.binds}${s.subconfigs}${s.aliases}${s.aucmds}${
         s.aucons
-    }${s.logging}${ftdetect}`
+    }${s.logging}${s.nulls}${ftdetect}`
 }
 
 const parseConfigHelper = (pconf, parseobj, prefix= []) => {
-    for (const i in pconf) {
+    for (const i of Object.keys(pconf)) {
         if (typeof pconf[i] !== "object") {
             if (prefix[0] === "subconfigs") {
                 prefix.shift()
@@ -1618,6 +1622,8 @@ const parseConfigHelper = (pconf, parseobj, prefix= []) => {
                 parseobj.conf.push(
                     `set ${[...prefix, i].join(".")} ${pconf[i]}`)
             }
+        } else if (pconf[i] === null) {
+            parseobj.nulls.push(`setnull ${[...prefix, i].join(".")}`)
         } else {
             for (const e of Object.keys(pconf[i])) {
                 if (binding.modeMaps.includes(i)) {
@@ -1640,6 +1646,8 @@ const parseConfigHelper = (pconf, parseobj, prefix= []) => {
                     } else {
                         parseobj.binds.push(`un${cmd} ${e}`)
                     }
+                } else if (pconf[i][e] === null) {
+                        parseobj.nulls.push(`setnull ${i}.${e}`)
                 } else if (i === "exaliases") {
                     // Only really useful if mapping the entire config and not just pconf.
                     if (e === "alias") {
