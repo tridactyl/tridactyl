@@ -1630,6 +1630,11 @@ const parseConfigHelper = (pconf, parseobj, prefix= []) => {
                         cmd += ` --mode=${mode}`
                     }
 
+                    if (pconf[i][e] === null) {
+                        parseobj.binds.push(`un${cmd} ${e}`)
+                        continue
+                    }
+
                     if (pconf[i][e].length > 0) {
                         parseobj.binds.push(`${cmd} ${e} ${pconf[i][e]}`)
                     } else {
