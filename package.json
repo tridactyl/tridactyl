@@ -23,6 +23,7 @@
     "@types/mithril": "^2.0.3",
     "@types/node": "^14.0.1",
     "@types/selenium-webdriver": "^4.0.9",
+    "awesome-typescript-loader": "^5.2.1",
     "cleanslate": "^0.10.1",
     "copy-webpack-plugin": "^5.1.1",
     "geckodriver": "^1.19.1",
