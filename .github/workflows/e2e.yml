@@ -8,9 +8,6 @@ on:
     branches:
       - '*'
 
-env:
-  HEADLESS: 1
-
 jobs:
   test:
     strategy:
@@ -57,19 +54,16 @@ jobs:
       run: |
         choco install firefox-dev --pre
         echo "::add-path::C:\Program Files\Firefox Dev Edition"
-    - name: Build Tridactyl
+    - name: Pack Tridactyl
       run: |
-        bash -c '"$(yarn bin)/web-ext" build --source-dir ./build --overwrite-dest'
+        yarn make-zip
         mv web-ext-artifacts/*.zip web-ext-artifacts/tridactyl.xpi
     - name: Test (Firefox)
       if: matrix.browser != 'chrome'
       env:
         HEADLESS: 1
       run: |
-        bash -c '"$(yarn bin)/jest" ||
-        "$(yarn bin)/jest" ||
-        "$(yarn bin)/jest" ||
-        "$(yarn bin)/jest"'
+        yarn jest || yarn jest || yarn jest || yarn jest
     # - name: Test (Chrome, Linux)
     #   if: matrix.browser == 'chrome' && matrix.os == 'ubuntu'
     #   run: xvfb-run --auto-servernum npm run jest -- ${{ matrix.browser }} || xvfb-run --auto-servernum npm run jest -- ${{ matrix.browser }}
