@@ -51,6 +51,10 @@ jobs:
       - run: bash -c 'PATH="$HOME/firefox:$PATH" "$(yarn bin)/jest" ||
           PATH="$HOME/firefox:$PATH" "$(yarn bin)/jest" ||
           PATH="$HOME/firefox:$PATH" "$(yarn bin)/jest" ||
+          PATH="$HOME/firefox:$PATH" "$(yarn bin)/jest" ||
+          PATH="$HOME/firefox:$PATH" "$(yarn bin)/jest" ||
+          PATH="$HOME/firefox:$PATH" "$(yarn bin)/jest" ||
+          PATH="$HOME/firefox:$PATH" "$(yarn bin)/jest" ||
           PATH="$HOME/firefox:$PATH" "$(yarn bin)/jest"'
 workflows:
   version: 2
