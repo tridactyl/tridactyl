@@ -10,7 +10,7 @@ import * as Until from "selenium-webdriver/lib/until"
 const {By} = webdriver
 import {Options} from "selenium-webdriver/firefox"
 
-jest.setTimeout(20000)
+jest.setTimeout(100000)
 
 // API docs because I waste too much time looking for them every time I go back to this:
 // https://seleniumhq.github.io/selenium/docs/api/javascript/
