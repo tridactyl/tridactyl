@@ -6,7 +6,7 @@ const fileExtensions = [".ts", ".tsx", ".js", ".json"]
 module.exports = {
 
     mode: "development",
-    // mode: "production", // Uncomment me for more helpful error messages
+    // mode: "production", // Uncomment me for less helpful error messages
 
     // Enable sourcemaps for debugging webpack's output.
     devtool: "source-map",
