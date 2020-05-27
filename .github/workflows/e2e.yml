@@ -24,6 +24,10 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@master
+    - name: Install deps and build extension
+      run: |
+        yarn install
+        yarn run build
     - name: Install Firefox Dev Edition (Linux)
       if: matrix.browser == 'firefox' && matrix.os == 'ubuntu'
       run: |
@@ -40,8 +44,6 @@ jobs:
       run: |
         choco install firefox-dev --pre
         echo "::add-path::C:\Program Files\Firefox Dev Edition"
-    - name: Install NPM dependencies
-      run: yarn install
     - name: Build Tridactyl
       run: |
         bash -c '"$(yarn bin)/web-ext" build --source-dir ./build --overwrite-dest'
