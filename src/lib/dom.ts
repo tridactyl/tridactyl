@@ -23,6 +23,7 @@ const logger = new Logging.Logger("dom")
  */
 export function isTextEditable(element: Element) {
     if (element) {
+        if (element.readOnly === true) return false
         // HTML is always upper case, but XHTML is not necessarily upper case
         if (element.nodeName.toUpperCase() === "INPUT") {
             return isEditableHTMLInput(element as HTMLInputElement)
