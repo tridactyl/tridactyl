@@ -27,7 +27,7 @@
     "copy-webpack-plugin": "^6.0.1",
     "geckodriver": "^1.19.1",
     "jest": "^25.5.4",
-    "jest-webextension-mock": "^3.5.4",
+    "jest-webextension-mock": "^3.6.0",
     "marked": "^1.1.0",
     "nearley": "^2.19.2",
     "prettier": "^2.0.5",
