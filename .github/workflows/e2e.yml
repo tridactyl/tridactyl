@@ -1,0 +1,63 @@
+name: e2e
+
+on:
+  push:
+    branches:
+      - '*'
+  pull_request:
+    branches:
+      - '*'
+
+env:
+  TESTING: 1
+
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu, macos, windows]
+        browser: [firefox]
+
+    runs-on: ${{ matrix.os }}-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@master
+    - name: Install Firefox Dev Edition (Linux)
+      if: matrix.browser == 'firefox' && matrix.os == 'ubuntu'
+      run: |
+        sudo yarn global add get-firefox
+        get-firefox --platform linux --branch devedition --extract --target $HOME
+        echo "::add-path::$HOME/firefox"
+    - name: Install Firefox Dev Edition (MacOS)
+      if: matrix.browser == 'firefox' && matrix.os == 'macos'
+      run: |
+        brew cask --verbose --debug install homebrew/cask-versions/firefox-developer-edition
+        echo "::add-path::/Applications/Firefox Developer Edition.app/Contents/MacOS/"
+    - name: Install Firefox Dev Edition (Windows)
+      if: matrix.browser == 'firefox' && matrix.os == 'windows'
+      run: |
+        choco install firefox-dev --pre
+        echo "::add-path::C:\Program Files\Firefox Dev Edition"
+    - name: Install NPM dependencies
+      run: yarn install
+    - name: Build Tridactyl
+      run: |
+        bash -c '"$(yarn bin)/web-ext" build --source-dir ./build --overwrite-dest'
+        mv web-ext-artifacts/*.zip web-ext-artifacts/tridactyl.xpi
+    - name: Test (Firefox)
+      if: matrix.browser != 'chrome'
+      env:
+        HEADLESS: 1
+      run: |
+        bash -c 'PATH="$HOME/firefox:$PATH" "$(yarn bin)/jest" ||
+        PATH="$HOME/firefox:$PATH" "$(yarn bin)/jest" ||
+        PATH="$HOME/firefox:$PATH" "$(yarn bin)/jest" ||
+        PATH="$HOME/firefox:$PATH" "$(yarn bin)/jest"
+    # - name: Test (Chrome, Linux)
+    #   if: matrix.browser == 'chrome' && matrix.os == 'ubuntu'
+    #   run: xvfb-run --auto-servernum npm run jest -- ${{ matrix.browser }} || xvfb-run --auto-servernum npm run jest -- ${{ matrix.browser }}
+    # - name: Test (Chrome, Windows/MacOs)
+    #   if: matrix.browser == 'chrome' && matrix.os != 'ubuntu'
+    #   run: npm run jest -- ${{ matrix.browser }} || npm run jest -- ${{ matrix.browser }}
