@@ -43,6 +43,7 @@ export class MinimalKey {
     readonly metaKey = false
     readonly shiftKey = false
     readonly keyup = false // keyup == false <=> it is a keydown event
+    readonly keydown = false // explicit keydown <=> it is not a repeat event
 
     constructor(readonly key: string, modifiers?: KeyModifiers) {
         if (modifiers !== undefined) {
@@ -53,11 +54,16 @@ export class MinimalKey {
     }
 
     /** Does this key match a given MinimalKey extending object? */
+    // NB: not symmetric!
     public match(keyevent) {
         // 'in' doesn't include prototypes, so it's safe for this object.
         for (const attr in this) {
             // Don't check shiftKey for normal keys.
             if (attr === "shiftKey" && this.key.length === 1) continue
+            if (attr === "keydown") {
+                if (this[attr] && keyevent.repeat) return false // if keydown is set to true, match only if repeat is false
+                continue
+            }
             if (this[attr] !== keyevent[attr]) return false
         }
         return true
@@ -74,6 +80,7 @@ export class MinimalKey {
             ["M", "metaKey"],
             ["S", "shiftKey"],
             ["U", "keyup"],
+            ["D", "keydown"],
         ])
         for (const [letter, attr] of modifiers.entries()) {
             if (this[attr]) {
