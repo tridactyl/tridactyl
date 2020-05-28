@@ -42,7 +42,7 @@ export class MinimalKey {
     readonly ctrlKey = false
     readonly metaKey = false
     readonly shiftKey = false
-    readonly type: "keyup" | "keydown" = "keydown"
+    readonly keyup = false // keyup == false <=> it is a keydown event
 
     constructor(readonly key: string, modifiers?: KeyModifiers) {
         if (modifiers !== undefined) {
@@ -73,6 +73,7 @@ export class MinimalKey {
             ["C", "ctrlKey"],
             ["M", "metaKey"],
             ["S", "shiftKey"],
+            ["U", "keyup"],
         ])
         for (const [letter, attr] of modifiers.entries()) {
             if (this[attr]) {
@@ -80,12 +81,6 @@ export class MinimalKey {
                 needsBrackets = true
             }
         }
-
-        // Only annotate KeyUp
-        if (this.type == "keyup") {
-            str = "KeyUp"
-        }
-
         if (str) {
             str += "-"
         }

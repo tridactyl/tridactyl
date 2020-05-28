@@ -48,6 +48,7 @@ import { getAllDocumentFrames } from "@src/lib/dom"
 
 const guardedAcceptKey = (keyevent: KeyboardEvent) => {
     if (!keyevent.isTrusted) return
+    (keyevent as any).keyup = keyevent.type == "keyup"
     ContentController.acceptKey(keyevent)
 }
 function listen(elem) {
