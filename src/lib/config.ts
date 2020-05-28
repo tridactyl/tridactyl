@@ -413,7 +413,7 @@ export class default_config {
         /**
          * Commands that will be run when Tridactyl first runs each time you start your browser.
          *
-         * Each key corresponds to a URL fragment which, if contained within the page URL, will run the corresponding command.
+         * Each key corresponds to a javascript regex that matches the hostname of the computer Firefox is running on. Note that fetching the hostname could be a little slow, if you want to execute something unconditionally, use ".*" as Tridactyl special-cases this pattern to avoid hostname lookups.
          */
         TriStart: {
             ".*": "source_quiet",
