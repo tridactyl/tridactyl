@@ -21,7 +21,7 @@
 */
 
 /** */
-import { filter, find, izip } from "@src/lib/itertools"
+import { filter, find } from "@src/lib/itertools"
 import { Parser } from "@src/lib/nearley_utils"
 import * as config from "@src/lib/config"
 import grammar from "@src/grammars/.bracketexpr.generated"
