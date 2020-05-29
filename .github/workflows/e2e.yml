@@ -54,15 +54,12 @@ jobs:
       run: |
         choco install firefox-dev --pre
         echo "::add-path::C:\Program Files\Firefox Dev Edition"
-    - name: Pack Tridactyl
-      run: |
-        yarn make-zip
-        mv web-ext-artifacts/*.zip web-ext-artifacts/tridactyl.xpi
     - name: Test (Firefox)
       if: matrix.browser != 'chrome'
       env:
         HEADLESS: 1
       run: |
+        yarn make-zip
         yarn jest || yarn jest || yarn jest || yarn jest
     # - name: Test (Chrome, Linux)
     #   if: matrix.browser == 'chrome' && matrix.os == 'ubuntu'

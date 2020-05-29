@@ -10,86 +10,13 @@ import * as Until from "selenium-webdriver/lib/until"
 const {By} = webdriver
 import {Options} from "selenium-webdriver/firefox"
 
+import { getNewestFileIn, sendKeys } from "./utils";
+
 jest.setTimeout(100000)
 
 // API docs because I waste too much time looking for them every time I go back to this:
 // https://seleniumhq.github.io/selenium/docs/api/javascript/
 
-const vimToSelenium = {
-    "Down": webdriver.Key.ARROW_DOWN,
-    "Left": webdriver.Key.ARROW_LEFT,
-    "Right": webdriver.Key.ARROW_RIGHT,
-    "Up": webdriver.Key.ARROW_UP,
-    "BS": webdriver.Key.BACK_SPACE,
-    "Del": webdriver.Key.DELETE,
-    "End": webdriver.Key.END,
-    "CR": webdriver.Key.ENTER,
-    "Esc": webdriver.Key.ESCAPE,
-    "Home": webdriver.Key.HOME,
-    "PageDown": webdriver.Key.PAGE_DOWN,
-    "PageUp": webdriver.Key.PAGE_UP,
-    "Tab": webdriver.Key.TAB,
-    "lt": "<",
-}
-
-const modToSelenium = {
-    "A": webdriver.Key.ALT,
-    "C": webdriver.Key.CONTROL,
-    "M": webdriver.Key.META,
-    "S": webdriver.Key.SHIFT,
-}
-
-function sendKeys (driver, keys) {
-    const delay = 10
-    function chainRegularKeys (previousPromise, regularKeys) {
-        return regularKeys
-            .split("")
-            .reduce((p, key) => p
-                .then(() => driver.actions().sendKeys(key).perform())
-                .then(() => driver.sleep(delay))
-                , previousPromise)
-    }
-    function chainSpecialKey (previousPromise, specialKey) {
-        return previousPromise
-            .then(() => {
-                const noBrackets = specialKey.slice(1,-1)
-                if (noBrackets.includes("-")) {
-                    const [modifiers, key] = noBrackets.split("-")
-                    const mods = modifiers.split("").map(mod => modToSelenium[mod])
-                    return mods
-                        .reduce((actions, mod) => actions.keyUp(mod),
-                            mods.reduce((actions, mod) => actions.keyDown(mod), driver.actions())
-                            .sendKeys(vimToSelenium[key] || key))
-                        .perform()
-                }
-                return driver.actions().sendKeys(vimToSelenium[noBrackets] || noBrackets).perform()
-            })
-            .then(() => driver.sleep(delay))
-    }
-
-    let result = Promise.resolve()
-    const regexp = /<[^>-]+-?[^>]*>/g
-    const specialKeys = keys.match(regexp)
-    if (!specialKeys) {
-        return chainRegularKeys(result, keys)
-    }
-    const regularKeys = keys.split(regexp)
-    let i
-    for (i = 0; i < Math.min(specialKeys.length, regularKeys.length); ++i) {
-        result = chainSpecialKey(chainRegularKeys(result, regularKeys[i]), specialKeys[i])
-    }
-    if (i < regularKeys.length) {
-        result = regularKeys
-            .slice(i)
-            .reduce((previousPromise, currentKeys) => chainRegularKeys(previousPromise, currentKeys), result)
-    }
-    if ( i < specialKeys.length) {
-        result = specialKeys
-            .slice(i)
-            .reduce((previousPromise, currentKey) => chainSpecialKey(previousPromise, currentKey), result)
-    }
-    return result
-}
 
 describe("webdriver", () => {
 
@@ -98,9 +25,11 @@ describe("webdriver", () => {
     }
 
     async function getDriver() {
-        const dir = "web-ext-artifacts"
-        const extensionName = "tridactyl.xpi"
-        const extensionPath = dir + "/" + extensionName
+        const extensionPath = await getNewestFileIn(path.resolve("web-ext-artifacts"))
+        if (extensionPath === undefined) {
+            throw new Error("Couldn't find extension path");
+        }
+
         const options = (new Options())
                 .setPreference("xpinstall.signatures.required", false)
                 .addExtensions(extensionPath)
