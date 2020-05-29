@@ -44,6 +44,7 @@ export class MinimalKey {
     readonly shiftKey = false
     readonly keyup = false // keyup == false <=> it is a keydown event
     readonly keydown = false // explicit keydown <=> it is not a repeat event
+    readonly optional = false
 
     constructor(readonly key: string, modifiers?: KeyModifiers) {
         if (modifiers !== undefined) {
@@ -55,7 +56,7 @@ export class MinimalKey {
 
     /** Does this key match a given MinimalKey extending object? */
     // NB: not symmetric!
-    public match(keyevent) {
+    public match(keyevent): true | false | "skip" {
         // 'in' doesn't include prototypes, so it's safe for this object.
         for (const attr in this) {
             // Don't check shiftKey for normal keys.
@@ -64,7 +65,13 @@ export class MinimalKey {
                 if (this[attr] && keyevent.repeat) return false // if keydown is set to true, match only if repeat is false
                 continue
             }
-            if (this[attr] !== keyevent[attr]) return false
+            if (attr === "optional") {
+                continue
+            }
+            if (this[attr] !== keyevent[attr]) {
+                if (this.optional) return "skip"
+                return false
+            }
         }
         return true
     }
@@ -81,6 +88,7 @@ export class MinimalKey {
             ["S", "shiftKey"],
             ["U", "keyup"],
             ["D", "keydown"],
+            ["?", "optional"],
         ])
         for (const [letter, attr] of modifiers.entries()) {
             if (this[attr]) {
@@ -202,8 +210,18 @@ function prefixes(seq1: KeyEventLike[], seq2: MinimalKey[]) {
     if (seq1.length > seq2.length) {
         return false
     } else {
-        for (const [key1, key2] of izip(seq1, seq2)) {
-            if (!key2.match(key1)) return false
+        let i = 0
+        for (const real_key of seq1) {
+            switch (seq2[i].match(real_key)) {
+                case false:
+                    return false
+                case "skip":
+                    i = i - 1
+                    break
+                case true:
+                    break
+            }
+            i = i + 1
         }
         return true
     }
