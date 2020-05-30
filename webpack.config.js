@@ -31,7 +31,8 @@ module.exports = (env, argv) => {
         plugins.push(
             new webpack.ProvidePlugin({
                 browser: 'webextension-polyfill-for-webpack',
-            }),
+                // customElements: '@webcomponents/custom-elements'
+            })
         )
     }
     return {

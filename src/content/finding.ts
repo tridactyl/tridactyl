@@ -72,6 +72,12 @@ class FindHighlight extends HTMLSpanElement {
 
 }
 
+// TODO: Conditionally import customElements-polyfill needed for the chrome browser:
+if (!customElements) {
+    // tslint:disable-next-line
+    require("@webcomponents/custom-elements");
+}
+
 customElements.define("find-highlight", FindHighlight, { extends: "span" })
 
 // Highlights corresponding to the last search

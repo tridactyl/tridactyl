@@ -23,6 +23,7 @@
     "@types/mithril": "^2.0.3",
     "@types/node": "^14.0.1",
     "@types/selenium-webdriver": "^4.0.9",
+    "@webcomponents/custom-elements": "^1.4.1",
     "awesome-typescript-loader": "^5.2.1",
     "cleanslate": "^0.10.1",
     "copy-webpack-plugin": "^5.1.1",
@@ -48,9 +49,9 @@
     "uglifyjs-webpack-plugin": "^2.2.0",
     "web-ext": "^4.2.0",
     "web-ext-types": "^3.2.1",
+    "webextension-polyfill-for-webpack": "^0.0.1",
     "webpack": "^4.43.0",
-    "webpack-cli": "^3.3.11",
-    "webextension-polyfill-for-webpack": "^0.0.1"
+    "webpack-cli": "^3.3.11"
   },
   "scripts": {
     "build": "sh scripts/build.sh",
