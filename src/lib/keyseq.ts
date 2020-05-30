@@ -211,12 +211,13 @@ function prefixes(seq1: KeyEventLike[], seq2: MinimalKey[]) {
         return false
     } else {
         let i = 0
-        for (const real_key of seq1) {
-            switch (seq2[i].match(real_key)) {
+        for (const desired_key of seq2) {
+            if (seq1[i] == undefined) break
+            switch (desired_key.match(seq1[i])) {
                 case false:
                     return false
                 case "skip":
-                    i = i - 1
+                    i = i - 1 // if skipped, we want to try the real key again against the next thin in the sequence
                     break
                 case true:
                     break
