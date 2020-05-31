@@ -4209,10 +4209,10 @@ immediate@~3.0.5:
   resolved "https://registry.yarnpkg.com/immediate/-/immediate-3.0.6.tgz#9db1dbd0faf8de6fbe0f5dd5e56bb606280de69b"
   integrity sha1-nbHb0Pr43m++D13V5Wu2BigN5ps=
 
-immer@^6.0.8:
-  version "6.0.8"
-  resolved "https://registry.yarnpkg.com/immer/-/immer-6.0.8.tgz#3758890d66ed7baed5703b9e0763785a16156478"
-  integrity sha512-wmVdrkqL6OzhX5z2k/c0t8g+YzGy+V8B/r1GRdCTO0UcTiFkB0XVAxpJQT045KaNV2u14HzbLCYKJmt7yVCakg==
+immer@^6.0.9:
+  version "6.0.9"
+  resolved "https://registry.yarnpkg.com/immer/-/immer-6.0.9.tgz#b9dd69b8e69b3a12391e87db1e3ff535d1b26485"
+  integrity sha512-SyCYnAuiRf67Lvk0VkwFvwtDoEiCMjeamnHvRfnVDyc7re1/rQrNxuL+jJ7lA3WvdC4uznrvbmm+clJ9+XXatg==
 
 immutable@^3.8.2:
   version "3.8.2"
