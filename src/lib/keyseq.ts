@@ -35,6 +35,9 @@ export interface KeyModifiers {
     ctrlKey?: boolean
     metaKey?: boolean
     shiftKey?: boolean
+    keyup?: boolean
+    keydown?: boolean
+    optional?: boolean
 }
 
 export class MinimalKey {
@@ -359,10 +362,11 @@ export function mapstrToKeyseq(mapstr: string): MinimalKey[] {
     // Reduce mapstr by one character or one bracket expression per iteration
     while (mapstr.length) {
         if (mapstr[0] === "<") {
-            [key, mapstr] = bracketexprToKey(mapstr)
+            [key, mapstr] = bracketexprToKey(mapstr) // TODO: add R and then ?U to all ones that don't have R, U or D
             keyseq.push(key)
         } else {
             keyseq.push(new MinimalKey(mapstr[0]))
+            if (mapstr.length > 1) keyseq.push(new MinimalKey(mapstr[0], {keyup: true, optional: true})) // Only add optional ups to keys that aren't the final ones
             mapstr = mapstr.slice(1)
         }
     }
