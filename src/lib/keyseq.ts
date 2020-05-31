@@ -352,10 +352,6 @@ export function mapstrMapToKeyMap(mapstrMap: Map<string, MapTarget>): KeyMap {
 
 let KEYMAP_CACHE = {}
 
-export function reset_cache() {
-    KEYMAP_CACHE = {}
-}
-
 export function translateKeysInPlace(keys, conf): void {
     // If so configured, translate keys using the key translation map
     if (config.get("keytranslatemodes")[conf] === "true") {
@@ -449,3 +445,9 @@ export function translateKeysUsingKeyTranslateMap(
 }
 
 // }}}
+
+browser.storage.onChanged.addListener((changes, areaname) => {
+    if ("userconfig" in changes) {
+        KEYMAP_CACHE = {}
+    }
+})
