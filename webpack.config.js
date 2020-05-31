@@ -1,27 +1,18 @@
-const { TsConfigPathsPlugin } = require("awesome-typescript-loader")
+const TsconfigPathsPlugin = require("tsconfig-paths-webpack-plugin")
 const CopyWebPackPlugin = require("copy-webpack-plugin")
 const webpack = require("webpack")
-// const WebpackShellPlugin = require('webpack-shell-plugin')
+const fileExtensions = [".ts", "tsx", ".js", ".json"]
 
 module.exports = (env, argv) => {
     let plugins = [
-        // new UglifyJSPlugin({
-        //     uglifyOptions: {
-        //         ecma: 8
-        //     }
-        // }),
-        // new WebpackShellPlugin({onBuildStart: [
-        //     'mkdir -p generated/static',
-        //     'scripts/excmds_macros.py',
-        //     'scripts/newtab.md.sh',
-        //     'scripts/make_docs.sh',
-        // ]}),
         new CopyWebPackPlugin([
             { from: "src/manifest.json" },
             {
                 from: "src/static",
                 to: "static",
-                ignore: ["*.psd", "*1024px.png"],
+                globOptions: {
+                    ignore: ["*.psd", "*1024px.png"],
+                }
             },
             { from: "generated/static", to: "static" },
             { from: "issue_template.md" },
@@ -31,7 +22,6 @@ module.exports = (env, argv) => {
         plugins.push(
             new webpack.ProvidePlugin({
                 browser: 'webextension-polyfill-for-webpack',
-                // customElements: '@webcomponents/custom-elements'
             })
         )
     }
@@ -50,18 +40,18 @@ module.exports = (env, argv) => {
         },
 
         // Enable sourcemaps for debugging webpack's output.
-        devtool: "inline-source-map",
+        devtool: "source-map",
 
         resolve: {
             // Add '.ts' and '.tsx' as resolvable extensions.
-            extensions: [".ts", ".tsx", ".js", ".json"],
-            plugins: [new TsConfigPathsPlugin()],
+            extensions: fileExtensions,
+            plugins: [new TsconfigPathsPlugin({extensions: fileExtensions})]
         },
 
         module: {
             rules: [
                 // All files with a '.ts' or '.tsx' extension will be handled by 'awesome-typescript-loader'.
-                { test: /\.tsx?$/, loader: "awesome-typescript-loader" },
+                { test: /\.tsx?$/, loader: "ts-loader" },
 
                 // All output '.js' files will have any sourcemaps re-processed by 'source-map-loader'.
                 { enforce: "pre", test: /\.js$/, loader: "source-map-loader" },

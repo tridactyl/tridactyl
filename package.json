@@ -24,7 +24,6 @@
     "@types/node": "^14.0.1",
     "@types/selenium-webdriver": "^4.0.9",
     "@webcomponents/custom-elements": "^1.4.1",
-    "awesome-typescript-loader": "^5.2.1",
     "cleanslate": "^0.10.1",
     "copy-webpack-plugin": "^5.1.1",
     "geckodriver": "^1.19.1",
@@ -55,7 +54,9 @@
   },
   "scripts": {
     "build": "sh scripts/build.sh",
-    "run": "web-ext run -t chromium -s build/ -u 'txti.es'",
+    "build:chrome": "sh scripts/build.sh chrome",
+    "run": "web-ext run -s build/ -u 'txti.es'",
+    "run:chrome": "web-ext run -t chromium -s build/ -u 'txti.es'",
     "forrest-run": "yarn run run",
     "watch": "echo 'watch is broken, use build instead'; exit 0;",
     "clean": "rm -rf build generated",

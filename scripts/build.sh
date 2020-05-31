@@ -4,6 +4,12 @@ set -e
 
 CLEANSLATE="node_modules/cleanslate/docs/files/cleanslate.css"
 TRIDACTYL_LOGO="src/static/logo/Tridactyl_64px.png"
+BROWSER="firefox"
+
+if [ $1 = "chrome" ]; then
+  BROWSER="chrome"
+fi
+
 
 isWindowsMinGW() {
   is_mingw="False"
@@ -64,7 +70,7 @@ if [ "$1" != "--no-native" ]; then
     fi
 fi
 
-(webpack --display errors-only --bail\
+(webpack --display errors-only --bail --browser $BROWSER\
   && scripts/git_version.sh)
 
 scripts/bodgecss.sh
