@@ -350,6 +350,12 @@ export function mapstrMapToKeyMap(mapstrMap: Map<string, MapTarget>): KeyMap {
     return newKeyMap
 }
 
+let KEYMAP_CACHE = {}
+
+export function reset_cache() {
+    KEYMAP_CACHE = {}
+}
+
 export function translateKeysInPlace(keys, conf): void {
     // If so configured, translate keys using the key translation map
     if (config.get("keytranslatemodes")[conf] === "true") {
@@ -362,12 +368,15 @@ export function translateKeysInPlace(keys, conf): void {
  * Return a "*maps" config converted into sequences of minimalkeys (e.g. "nmaps")
  */
 export function keyMap(conf): KeyMap {
+    if (KEYMAP_CACHE[conf]) return KEYMAP_CACHE[conf]
+
     let maps: any = config.get(conf)
     if (maps === undefined) throw new Error("No binds defined for this mode. Reload page with <C-r> and add binds, e.g. :bind --mode=[mode] <Esc> mode normal")
 
     // Convert to KeyMap
     maps = new Map(Object.entries(maps))
-    return mapstrMapToKeyMap(maps)
+    KEYMAP_CACHE[conf] = mapstrMapToKeyMap(maps)
+    return KEYMAP_CACHE[conf]
 }
 
 // }}}

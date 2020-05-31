@@ -143,7 +143,7 @@ ALL_EXCMDS = {
 }
 // }
 
-import { mapstrToKeyseq } from "@src/lib/keyseq"
+import { mapstrToKeyseq, reset_cache } from "@src/lib/keyseq"
 
 //#background_helper
 // {
@@ -3236,6 +3236,7 @@ export function comclear(name: string) {
 */
 //#background
 export function bind(...args: string[]) {
+    clear_keymap_cache()
     const args_obj = parse_bind_args(...args)
     let p = Promise.resolve()
     if (args_obj.excmd !== "") {
@@ -3253,6 +3254,16 @@ export function bind(...args: string[]) {
         p = fillcmdline_notrail("#", args_obj.key, "=", config.getDynamic(args_obj.configName, args_obj.key))
     }
     return p
+}
+
+/*
+ * Internal function called by [[bind]] and [[unbind]] to ensure binds are updated without needing a page reload.
+ *
+ * You never need to call this manually unless you have used e.g. `set nmaps.` directly.
+ */
+//#content
+export function clear_keymap_cache() {
+    reset_cache()
 }
 
 /**
@@ -3506,6 +3517,7 @@ export function blacklistadd(url: string) {
 */
 //#background
 export async function unbind(...args: string[]) {
+    clear_keymap_cache()
     const args_obj = parse_bind_args(...args)
     if (args_obj.excmd !== "") throw new Error("unbind syntax: `unbind key`")
 
