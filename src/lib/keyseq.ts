@@ -21,6 +21,7 @@
 */
 
 /** */
+import * as R from "ramda"
 import { filter, find } from "@src/lib/itertools"
 import { Parser } from "@src/lib/nearley_utils"
 import * as config from "@src/lib/config"
@@ -38,6 +39,21 @@ export interface KeyModifiers {
     keyup?: boolean
     keydown?: boolean
     optional?: boolean
+}
+
+/**
+ * Do I really have to do this, JS?
+ */
+export function minimalKeyFromObj(obj) {
+    return new MinimalKey(obj.key, {
+        altKey: obj.altKey,
+        ctrlKey: obj.ctrlKey,
+        metaKey: obj.metaKey,
+        shiftKey: obj.shiftKey,
+        keyup: obj.keyup,
+        keydown: obj.keyup,
+        optional: obj.optional,
+    })
 }
 
 export class MinimalKey {
@@ -362,8 +378,9 @@ export function mapstrToKeyseq(mapstr: string): MinimalKey[] {
     // Reduce mapstr by one character or one bracket expression per iteration
     while (mapstr.length) {
         if (mapstr[0] === "<") {
-            [key, mapstr] = bracketexprToKey(mapstr) // TODO: add R and then ?U to all ones that don't have R, U or D
+            [key, mapstr] = bracketexprToKey(mapstr)
             keyseq.push(key)
+            if (mapstr.length > 1 && !hasExplicitDirection(key)) keyseq.push(minimalKeyFromObj(R.mergeRight(key, {keyup: true, optional: true})))
         } else {
             keyseq.push(new MinimalKey(mapstr[0]))
             if (mapstr.length > 1) keyseq.push(new MinimalKey(mapstr[0], {keyup: true, optional: true})) // Only add optional ups to keys that aren't the final ones
@@ -372,6 +389,8 @@ export function mapstrToKeyseq(mapstr: string): MinimalKey[] {
     }
     return keyseq
 }
+
+const hasExplicitDirection = (key) => key.keyup || key.keydown
 
 /** Convert a map of mapstrs (e.g. from config) to a KeyMap */
 export function mapstrMapToKeyMap(mapstrMap: Map<string, MapTarget>): KeyMap {
