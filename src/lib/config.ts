@@ -413,7 +413,7 @@ export class default_config {
         /**
          * Commands that will be run when Tridactyl first runs each time you start your browser.
          *
-         * Each key corresponds to a URL fragment which, if contained within the page URL, will run the corresponding command.
+         * Each key corresponds to a javascript regex that matches the hostname of the computer Firefox is running on. Note that fetching the hostname could be a little slow, if you want to execute something unconditionally, use ".*" as Tridactyl special-cases this pattern to avoid hostname lookups.
          */
         TriStart: {
             ".*": "source_quiet",
@@ -1331,8 +1331,11 @@ export async function update() {
         }
     }
 
-    const updaters = {
-        "0.0": async () => {
+    if (!get("configversion")) set("configversion", "0.0")
+
+    let updated = false
+    switch (get("configversion")) {
+        case "0.0": {
             try {
                 // Before we had a config system, we had nmaps, and we put them in the
                 // root namespace because we were young and bold.
@@ -1346,8 +1349,8 @@ export async function update() {
             } finally {
                 set("configversion", "1.0")
             }
-        },
-        "1.0": () => {
+        }
+        case "1.0": {
             const vimiumgi = getDeepProperty(USERCONFIG, ["vimium-gi"])
             if (vimiumgi === true || vimiumgi === "true")
                 set("gimode", "nextinput")
@@ -1355,8 +1358,8 @@ export async function update() {
                 set("gimode", "firefox")
             unset("vimium-gi")
             set("configversion", "1.1")
-        },
-        "1.1": () => {
+        }
+        case "1.1": {
             const leveltostr: { [key: number]: LoggingLevel } = {
                 0: "never",
                 1: "error",
@@ -1371,8 +1374,8 @@ export async function update() {
                     set("logging", l, leveltostr[logging[l]]),
                 )
             set("configversion", "1.2")
-        },
-        "1.2": () => {
+        }
+        case "1.2": {
             ; ["ignoremaps", "inputmaps", "imaps", "nmaps"]
                 .map(mapname => [
                     mapname,
@@ -1403,8 +1406,8 @@ export async function update() {
                         )
                 })
             set("configversion", "1.3")
-        },
-        "1.3": () => {
+        }
+        case "1.3": {
             ; [
                 "priority",
                 "hintdelay",
@@ -1416,20 +1419,20 @@ export async function update() {
                 "historyresults",
             ].forEach(setting => updateAll([setting], parseInt))
             set("configversion", "1.4")
-        },
-        "1.4": () => {
+        }
+        case "1.4": {
             ; (getDeepProperty(USERCONFIG, ["noiframeon"]) || []).forEach(
                 site => {
                     setURL(site, "noiframe", "true")
                 },
             )
             set("configversion", "1.5")
-        },
-        "1.5": () => {
+        }
+        case "1.5": {
             unset("exaliases", "tab")
             set("configversion", "1.6")
-        },
-        "1.6": () => {
+        }
+        case "1.6": {
             const updateSetting = mapObj => {
                 if (!mapObj) return mapObj
                 if (mapObj[" "] !== undefined) {
@@ -1460,8 +1463,8 @@ export async function update() {
                 settingName => updateAll([settingName], updateSetting),
             )
             set("configversion", "1.7")
-        },
-        "1.7": () => {
+        }
+        case "1.7": {
             const autocontain = getDeepProperty(USERCONFIG, ["autocontain"])
             unset("autocontain")
             if (autocontain !== undefined) {
@@ -1470,8 +1473,8 @@ export async function update() {
               })
             }
             set("configversion", "1.8")
-        },
-        "1.8": () => {
+        }
+        case "1.8": {
             const updateSetting = mapObj => {
                 if (!mapObj) return mapObj
                 return R.map(val => {
@@ -1483,16 +1486,8 @@ export async function update() {
                 settingName => updateAll([settingName], updateSetting),
             )
             set("configversion", "1.9")
-        },
-    }
-    if (!get("configversion")) set("configversion", "0.0")
-    const updatetest = v => {
-        return updaters.hasOwnProperty(v) && updaters[v] instanceof Function
-    }
-    let updated = false
-    while (updatetest(get("configversion"))) {
-        await updaters[get("configversion")]()
-        updated = true
+            updated = true // NB: when adding a new updater, move this line to the end of it
+        }
     }
     return updated
 }
@@ -1573,6 +1568,7 @@ export function parseConfig(): string {
         aucmds: [],
         aucons: [],
         logging: [],
+        nulls: [],
     }
 
     p = parseConfigHelper(USERCONFIG, p)
@@ -1585,6 +1581,7 @@ export function parseConfig(): string {
         aucons: ``,
         subconfigs: ``,
         logging: ``,
+        nulls: ``,
     }
 
     if (p.conf.length > 0)
@@ -1599,16 +1596,18 @@ export function parseConfig(): string {
         s.subconfigs = `" Subconfig Settings\n${p.subconfigs.join("\n")}\n\n`
     if (p.logging.length > 0)
         s.logging = `" Logging\n${p.logging.join("\n")}\n\n`
+    if (p.nulls.length > 0)
+        s.nulls = `" Removed settings\n${p.nulls.join("\n")}\n\n`
 
     const ftdetect = `" For syntax highlighting see https://github.com/tridactyl/vim-tridactyl\n" vim: set filetype=tridactyl`
 
     return `${s.general}${s.binds}${s.subconfigs}${s.aliases}${s.aucmds}${
         s.aucons
-    }${s.logging}${ftdetect}`
+    }${s.logging}${s.nulls}${ftdetect}`
 }
 
 const parseConfigHelper = (pconf, parseobj, prefix= []) => {
-    for (const i in pconf) {
+    for (const i of Object.keys(pconf)) {
         if (typeof pconf[i] !== "object") {
             if (prefix[0] === "subconfigs") {
                 prefix.shift()
@@ -1618,6 +1617,8 @@ const parseConfigHelper = (pconf, parseobj, prefix= []) => {
                 parseobj.conf.push(
                     `set ${[...prefix, i].join(".")} ${pconf[i]}`)
             }
+        } else if (pconf[i] === null) {
+            parseobj.nulls.push(`setnull ${[...prefix, i].join(".")}`)
         } else {
             for (const e of Object.keys(pconf[i])) {
                 if (binding.modeMaps.includes(i)) {
@@ -1630,11 +1631,18 @@ const parseConfigHelper = (pconf, parseobj, prefix= []) => {
                         cmd += ` --mode=${mode}`
                     }
 
+                    if (pconf[i][e] === null) {
+                        parseobj.binds.push(`un${cmd} ${e}`)
+                        continue
+                    }
+
                     if (pconf[i][e].length > 0) {
                         parseobj.binds.push(`${cmd} ${e} ${pconf[i][e]}`)
                     } else {
                         parseobj.binds.push(`un${cmd} ${e}`)
                     }
+                } else if (pconf[i][e] === null) {
+                        parseobj.nulls.push(`setnull ${i}.${e}`)
                 } else if (i === "exaliases") {
                     // Only really useful if mapping the entire config and not just pconf.
                     if (e === "alias") {

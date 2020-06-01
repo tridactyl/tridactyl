@@ -2100,7 +2100,7 @@ export async function tabprev(increment = 1) {
 
 /** Like [[open]], but in a new tab. If no address is given, it will open the newtab page, which can be set with `set newtab [url]`
 
-    Use the `-c` flag followed by a container name to open a tab in said container. Tridactyl will try to fuzzy match a name if an exact match is not found. If any autocontainer directives are configured and -c is not set, Tridactyl will try to use the right container automatically using your configurations.
+    Use the `-c` flag followed by a container name to open a tab in said container. Tridactyl will try to fuzzy match a name if an exact match is not found (opening the tab in no container can be enforced with "firefox-default" or "none"). If any autocontainer directives are configured and -c is not set, Tridactyl will try to use the right container automatically using your configurations.
     Use the `-b` flag to open the tab in the background.
     These two can be combined in any order, but need to be placed as the first arguments.
 
@@ -2133,8 +2133,13 @@ export async function tabopen(...addressarr: string[]) {
             argParse(args)
         } else if (args[0] === "-c") {
             // Ignore the -c flag if incognito as containers are disabled.
-            if (!win.incognito) container = await Container.fuzzyMatch(args[1])
-            else logger.error("[tabopen] can't open a container in a private browsing window.")
+            if (!win.incognito) {
+                if (args[1] === "firefox-default" || args[1].toLowerCase() === "none") {
+                    container = "firefox-default"
+                } else {
+                    container = await Container.fuzzyMatch(args[1])
+                }
+            } else logger.error("[tabopen] can't open a container in a private browsing window.")
 
             args.shift()
             args.shift()
@@ -2163,7 +2168,9 @@ export async function tabopen(...addressarr: string[]) {
         const args = { active } as any
         // Ensure -c has priority.
         if (container) {
-            args.cookieStoreId = container
+            if (container !== "firefox-default") {
+                args.cookieStoreId = container
+            }
         } else if (containerId && config.get("tabopencontaineraware") === "true") {
             args.cookieStoreId = containerId
         }

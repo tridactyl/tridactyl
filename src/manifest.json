@@ -1,7 +1,7 @@
 {
     "manifest_version": 2,
     "name": "Tridactyl",
-    "version": "1.19.0",
+    "version": "1.19.1",
     "icons": {
         "64": "static/logo/Tridactyl_64px.png",
         "100": "static/logo/Tridactyl_100px.png",
@@ -65,7 +65,7 @@
     "applications": {
         "gecko": {
             "id": "tridactyl.vim.betas@cmcaine.co.uk",
-            "strict_min_version": "75.0"
+            "strict_min_version": "68.0"
         }
     },
     "options_ui": {

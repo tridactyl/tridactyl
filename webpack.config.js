@@ -5,7 +5,7 @@ const fileExtensions = [".ts", "tsx", ".js", ".json"]
 
 module.exports = (env, argv) => {
     let plugins = [
-        new CopyWebPackPlugin([
+        new CopyWebPackPlugin({patterns: [
             { from: "src/manifest.json" },
             {
                 from: "src/static",
@@ -16,7 +16,7 @@ module.exports = (env, argv) => {
             },
             { from: "generated/static", to: "static" },
             { from: "issue_template.md" },
-        ]),
+        ]}),
     ]
     if (argv.browser === 'chrome') {
         plugins.push(

@@ -6,8 +6,10 @@ CLEANSLATE="node_modules/cleanslate/docs/files/cleanslate.css"
 TRIDACTYL_LOGO="src/static/logo/Tridactyl_64px.png"
 BROWSER="firefox"
 
-if [ $1 = "chrome" ]; then
-  BROWSER="chrome"
+if [ -n "$1" ]; then
+  if [ "$1" = "chrome" ]; then
+    BROWSER="chrome"
+  fi
 fi
 
 
