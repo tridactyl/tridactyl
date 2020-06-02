@@ -52,7 +52,7 @@
   },
   "scripts": {
     "build": "sh scripts/build.sh",
-    "run": "web-ext run -s build/ -u 'txti.es'",
+    "run": "web-ext run -s build/ -u 'txti.es' -t chromium",
     "forrest-run": "yarn run run",
     "watch": "echo 'watch is broken, use build instead'; exit 0;",
     "clean": "rm -rf build generated",

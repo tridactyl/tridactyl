@@ -64,7 +64,7 @@ if [ "$1" != "--no-native" ]; then
     fi
 fi
 
-(webpack --display errors-only --bail\
+(webpack --display errors-only --bail --browser chrome\
   && scripts/git_version.sh)
 
 scripts/bodgecss.sh
