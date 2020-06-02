@@ -247,7 +247,7 @@ function prefixes(seq1: KeyEventLike[], seq2: MinimalKey[]) {
                 case false:
                     return false
                 case "skip":
-                    i = i - 1 // if skipped, we want to try the real key again against the next thin in the sequence
+                    i = i - 1 // if skipped, we want to try the real key again against the next thing in the sequence
                     break
                 case true:
                     break
