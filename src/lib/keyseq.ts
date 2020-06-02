@@ -152,19 +152,28 @@ export interface ParserResponse {
     numericPrefix?: number
 }
 
-const isDigit = (d: string) => [1, 2, 3, 4, 5, 6, 7, 8, 9].includes(Number(d))
+const isDigit = (d: string) => [0, 1, 2, 3, 4, 5, 6, 7, 8, 9].includes(Number(d))
 
-function splitNumericPrefix(keyseq: KeyEventLike[]): [KeyEventLike[], KeyEventLike[]] {
+const isKeyup = (k: any) => k.keyup
+// tri.keyseq.splitNumericPrefix(tri.keyseq.mapstrToKeyseq("22b"))
+export function splitNumericPrefix(keyseq: KeyEventLike[]): [KeyEventLike[], KeyEventLike[]] {
     // If the first key is in 1:9, partition all numbers until you reach a non-number.
-    if (!hasModifiers(keyseq[0]) && isDigit(keyseq[0].key)) {
+    if (!hasModifiers(keyseq[0]) && !isKeyup(keyseq[0]) && isDigit(keyseq[0].key) && keyseq[0].key !== "0") {
         const prefix = [keyseq[0]]
+        let skipcount = 0
         for (const ke of keyseq.slice(1)) {
-            if (!hasModifiers(ke) && isDigit(ke.key))
+            if (isKeyup(ke)) {
+                if (!isDigit(ke.key)) break
+                skipcount++
+                continue
+            }
+            if (!hasModifiers(ke) && isDigit(ke.key)) {
+                skipcount++
                 prefix.push(ke)
-            else
+            } else
                 break
         }
-        const rest = keyseq.slice(prefix.length)
+        const rest = keyseq.slice(skipcount + 1)
         return [prefix, rest]
     } else {
         return [[], keyseq]
