@@ -2,6 +2,7 @@
  * Helper functions for logging
  */
 
+import { browser } from "webextension-polyfill-ts"
 import * as Config from "@src/lib/config"
 
 const LevelToNum = new Map<Config.LoggingLevel, number>()

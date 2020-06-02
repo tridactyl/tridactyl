@@ -1,5 +1,6 @@
 // This file is only loaded in tridacyl's help pages
 
+import { browser } from "webextension-polyfill-ts"
 import * as config from "@src/lib/config"
 import { modeMaps } from "@src/lib/binding"
 

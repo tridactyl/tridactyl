@@ -1,6 +1,7 @@
 /** Background script entry point. */
 
 /* tslint:disable:import-spacing */
+import { browser } from "webextension-polyfill-ts"
 
 import * as proxy_background from "@src/lib/browser_proxy_background"
 

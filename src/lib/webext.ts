@@ -1,3 +1,4 @@
+import { browser } from "webextension-polyfill-ts"
 import * as convert from "@src/lib/convert"
 import browserProxy from "@src/lib/browser_proxy"
 import * as config from "@src/lib/config"

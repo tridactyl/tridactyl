@@ -1,3 +1,4 @@
+import { Tabs, Windows, ContextualIdentities } from "webextension-polyfill-ts"
 import * as Perf from "@src/perf"
 import { browserBg } from "@src/lib/webext"
 import * as Containers from "@src/lib/containers"
@@ -8,9 +9,9 @@ class TabAllCompletionOption extends Completions.CompletionOptionHTML
     public fuseKeys = []
     constructor(
         public value: string,
-        tab: browser.tabs.Tab,
+        tab: Tabs.Tab,
         winindex: number,
-        container: browser.contextualIdentities.ContextualIdentity,
+        container: ContextualIdentities.ContextualIdentity,
         incognito: boolean,
     ) {
         super()
@@ -62,7 +63,7 @@ export class TabAllCompletionSource extends Completions.CompletionSourceFuse {
      */
     private async getWindows() {
         const windows = await browserBg.windows.getAll()
-        const response: { [windowId: number]: browser.windows.Window } = {}
+        const response: { [windowId: number]: Windows.Window } = {}
         windows.forEach(win => (response[win.id] = win))
         return response
     }

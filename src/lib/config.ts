@@ -14,6 +14,7 @@
  * We very strongly recommend that you pretty much ignore this page and instead follow the link below DEFAULTS that will take you to our own source code which is formatted in a marginally more sane fashion.
  *
  */
+import { browser } from "webextension-polyfill-ts"
 import * as R from "ramda"
 import * as binding from "@src/lib/binding"
 

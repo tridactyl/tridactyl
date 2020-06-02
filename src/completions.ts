@@ -10,6 +10,7 @@ Concrete completion classes have been moved to src/completions/.
 
 */
 
+import { browser } from "webextension-polyfill-ts"
 import Fuse from "fuse.js"
 import { enumerate } from "@src/lib/itertools"
 import { toNumber } from "@src/lib/convert"

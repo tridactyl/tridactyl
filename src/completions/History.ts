@@ -1,3 +1,4 @@
+import { History } from "webextension-polyfill-ts"
 import * as Completions from "@src/completions"
 import * as config from "@src/lib/config"
 import * as providers from "@src/completions/providers"
@@ -6,7 +7,7 @@ class HistoryCompletionOption extends Completions.CompletionOptionHTML
     implements Completions.CompletionOptionFuse {
     public fuseKeys = []
 
-    constructor(public value: string, page: browser.history.HistoryItem) {
+    constructor(public value: string, page: History.HistoryItem) {
         super()
         if (!page.title) {
             page.title = new URL(page.url).host

@@ -21,6 +21,7 @@
 */
 
 /** */
+import { browser } from "webextension-polyfill-ts"
 import { filter, find, izip } from "@src/lib/itertools"
 import { Parser } from "@src/lib/nearley_utils"
 import * as config from "@src/lib/config"

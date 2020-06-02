@@ -1,3 +1,4 @@
+import { browser, Runtime } from "webextension-polyfill-ts"
 import { browserBg, activeTabId, ownTabId, getContext } from "@src/lib/webext"
 import * as Messages from "@src/message_protocols"
 import Logger from "@src/lib/logging"
@@ -81,13 +82,13 @@ function backgroundHandler<
     Command extends keyof Root[Type]
     >(root: Root,
       message: TypedMessage<Root, Type, Command>,
-      sender: browser.runtime.MessageSender,
+      sender: Runtime.MessageSender,
     ): ReturnType<Root[Type][Command]> {
     return root[message.type][message.command](...message.args)
 }
 
 export function setupListener<Root>(root: Root) {
-    browser.runtime.onMessage.addListener((message: any, sender: browser.runtime.MessageSender) => {
+    browser.runtime.onMessage.addListener((message: any, sender: Runtime.MessageSender) => {
         if (message.type in root) {
             if (!(message.command in root[message.type]))
                 throw new Error(`missing handler in protocol ${message.type} ${message.command}`)

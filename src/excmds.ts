@@ -73,6 +73,7 @@
 // {{{ setup
 
 // Shared
+import { browser } from "webextension-polyfill-ts"
 import * as Messaging from "@src/lib/messaging"
 import { browserBg, activeTab, activeTabId, activeTabContainerId, openInNewTab, openInNewWindow, openInTab } from "@src/lib/webext"
 import * as Container from "@src/lib/containers"
@@ -2295,12 +2296,14 @@ export async function tabdetach(index?: number) {
     return browser.windows.create({ tabId: await idFromIndex(index) })
 }
 
+//#background_helper
+import { Tabs } from "webextension-polyfill-ts"
 /** Get list of tabs sorted by most recent use
 
     @hidden
 */
 //#background_helper
-async function getSortedWinTabs(): Promise<browser.tabs.Tab[]> {
+async function getSortedWinTabs(): Promise<Tabs.Tab[]> {
     const tabs = await browser.tabs.query({ currentWindow: true })
     tabs.sort((a, b) => (a.lastAccessed < b.lastAccessed ? 1 : -1))
     return tabs
@@ -2777,13 +2780,13 @@ export function mode(mode: ModeName) {
 //#background_helper
 async function getnexttabs(tabid: number, n?: number) {
     const curIndex: number = (await browser.tabs.get(tabid)).index
-    const tabs: browser.tabs.Tab[] = await browser.tabs.query({
+    const tabs: Tabs.Tab[] = await browser.tabs.query({
         currentWindow: true,
     })
-    const indexFilter = ((tab: browser.tabs.Tab) => {
+    const indexFilter = ((tab: Tabs.Tab) => {
         return curIndex <= tab.index && (n ? tab.index < curIndex + Number(n) : true)
     }).bind(n)
-    return tabs.filter(indexFilter).map((tab: browser.tabs.Tab) => {
+    return tabs.filter(indexFilter).map((tab: Tabs.Tab) => {
         return tab.id
     })
 }

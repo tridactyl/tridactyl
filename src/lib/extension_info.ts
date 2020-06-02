@@ -4,6 +4,7 @@
  be compatible with them.
 
  */
+import { browser } from "webextension-polyfill-ts"
 
 /** Friendly-names of extensions that are used in different places so
     that we can refer to them with more readable and less magic ids.

@@ -1,3 +1,4 @@
+import { browser, History } from "webextension-polyfill-ts"
 import * as config from "@src/lib/config"
 import { browserBg } from "@src/lib/webext"
 
@@ -37,12 +38,12 @@ export async function getBookmarks(query: string) {
     return bookmarks
 }
 
-function frecency(item: browser.history.HistoryItem) {
+function frecency(item: History.HistoryItem) {
     // Doesn't actually care about recency yet.
     return item.visitCount * -1
 }
 
-export async function getHistory(query: string): Promise<browser.history.HistoryItem[]> {
+export async function getHistory(query: string): Promise<History.HistoryItem[]> {
     // Search history, dedupe and sort by frecency
     let history = await browserBg.history.search({
         text: query,

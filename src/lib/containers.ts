@@ -1,3 +1,4 @@
+import { browser, ContextualIdentities } from "webextension-polyfill-ts"
 import { browserBg } from "@src/lib/webext"
 import Fuse from "fuse.js"
 import * as Logging from "@src/lib/logging"
@@ -84,8 +85,8 @@ export async function update(
     containerId: string,
     updateObj: {
         name: string
-        color: browser.contextualIdentities.IdentityColor
-        icon: browser.contextualIdentities.IdentityIcon
+        color: ContextualIdentities.IdentityColor
+        icon: ContextualIdentities.IdentityIcon
     },
 ) {
     const {name, color, icon} = updateObj
@@ -105,7 +106,7 @@ export async function update(
  */
 export async function getFromId(
     containerId: string,
-): Promise<browser.contextualIdentities.ContextualIdentity> {
+): Promise<ContextualIdentities.ContextualIdentity> {
     try {
         return await browserBg.contextualIdentities.get(containerId)
     } catch (e) {
@@ -152,10 +153,10 @@ export function fromString(
 ) {
     return {
         name,
-        color: color as browser.contextualIdentities.IdentityColor,
-        icon: icon as browser.contextualIdentities.IdentityIcon,
+        color: color as ContextualIdentities.IdentityColor,
+        icon: icon as ContextualIdentities.IdentityIcon,
         cookieStoreId: id,
-    } as browser.contextualIdentities.ContextualIdentity // rules are made to be broken
+    } as ContextualIdentities.ContextualIdentity // rules are made to be broken
 }
 
 /**

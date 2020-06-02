@@ -10,6 +10,7 @@
  * In the content scripts, "state" must be read using "import * as State from "@src/state" and "State.getAsync(property)". If you read it directly with `state` you should get an error at runtime. Certain methods like `concat` will not throw an error but their behaviour is not defined and should be avoided.
  */
 
+import { browser } from "webextension-polyfill-ts"
 import Logger from "@src/lib/logging"
 import * as messaging from "@src/lib/messaging"
 import {notBackground} from "@src/lib/webext"

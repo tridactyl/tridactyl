@@ -2,6 +2,7 @@
  * Background download-related functions
  */
 
+import { browser } from "webextension-polyfill-ts"
 import * as Native from "@src/lib/native"
 import { getDownloadFilenameForUrl } from "@src/lib/url_util"
 

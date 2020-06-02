@@ -7,7 +7,6 @@
     "sourceMap": true,
     "target": "es2017",
     "lib": ["es2017","es2019.array", "es2018.promise", "dom", "dom.iterable"],
-    "types": ["web-ext-types"],
     "experimentalDecorators": true,
     "alwaysStrict": true,
     "strictBindCallApply": true,

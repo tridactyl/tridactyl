@@ -1,3 +1,4 @@
+import { Tabs, ContextualIdentities } from "webextension-polyfill-ts"
 import * as Perf from "@src/perf"
 import { browserBg } from "@src/lib/webext.ts"
 import { enumerate } from "@src/lib/itertools"
@@ -12,9 +13,9 @@ class BufferCompletionOption extends Completions.CompletionOptionHTML
 
     constructor(
         public value: string,
-        tab: browser.tabs.Tab,
+        tab: Tabs.Tab,
         public isAlternative = false,
-        container: browser.contextualIdentities.ContextualIdentity,
+        container: ContextualIdentities.ContextualIdentity,
     ) {
         super()
         this.tabIndex = tab.index
@@ -162,7 +163,7 @@ export class BufferCompletionSource extends Completions.CompletionSourceFuse {
     }
 
     private async fillOptions() {
-        const tabs: browser.tabs.Tab[] = await browserBg.tabs.query({
+        const tabs: Tabs.Tab[] = await browserBg.tabs.query({
             currentWindow: true,
         })
         const options = []

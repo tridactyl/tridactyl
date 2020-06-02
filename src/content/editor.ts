@@ -1,3 +1,4 @@
+import { browser } from "webextension-polyfill-ts"
 import { messageOwnTab, addListener, attributeCaller } from "@src/lib/messaging.ts"
 import * as DOM from "@src/lib/dom"
 import * as _EditorCmds from "@src/lib/editor.ts"

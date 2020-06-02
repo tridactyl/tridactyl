@@ -1,3 +1,4 @@
+import { Bookmarks } from "webextension-polyfill-ts"
 import * as Completions from "@src/completions"
 import * as providers from "@src/completions/providers"
 
@@ -7,7 +8,7 @@ class BmarkCompletionOption extends Completions.CompletionOptionHTML
 
     constructor(
         public value: string,
-        bmark: browser.bookmarks.BookmarkTreeNode,
+        bmark: Bookmarks.BookmarkTreeNode,
     ) {
         super()
         if (!bmark.title) {

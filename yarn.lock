@@ -8751,11 +8751,6 @@ wcwidth@^1.0.0:
   dependencies:
     defaults "^1.0.3"
 
-web-ext-types@^3.2.1:
-  version "3.2.1"
-  resolved "https://registry.yarnpkg.com/web-ext-types/-/web-ext-types-3.2.1.tgz#3edc0e3c2e8fe121d7d7e4ca0b7ee0c883cea832"
-  integrity sha512-oQZYDU3W8X867h8Jmt3129kRVKklz70db40Y6OzoTTuzOJpF/dB2KULJUf0txVPyUUXuyzV8GmT3nVvRHoG+Ew==
-
 web-ext@^4.2.0:
   version "4.2.0"
   resolved "https://registry.yarnpkg.com/web-ext/-/web-ext-4.2.0.tgz#04a1d2a6dec1a621b9feca48e8fd75bb1ffe14e9"
@@ -8795,6 +8790,18 @@ web-ext@^4.2.0:
     ws "7.2.3"
     yargs "15.1.0"
     zip-dir "1.0.2"
+
+webextension-polyfill-ts@^0.16.0:
+  version "0.16.0"
+  resolved "https://registry.yarnpkg.com/webextension-polyfill-ts/-/webextension-polyfill-ts-0.16.0.tgz#3c4fffdf16885127eabfeb067da071e641296cfc"
+  integrity sha512-ibuzJf6lVbH5kKjRBzqNaF+C2tjfDNUtkT/h6RQlEt0zvW3HpLO9ESNJcyXCsPGgeBuXQfJprND/EiwCzIkYRw==
+  dependencies:
+    webextension-polyfill "^0.6.0"
+
+webextension-polyfill@^0.6.0:
+  version "0.6.0"
+  resolved "https://registry.yarnpkg.com/webextension-polyfill/-/webextension-polyfill-0.6.0.tgz#1afd925f3274a0d4848083579b9c0b649a5c6763"
+  integrity sha512-PlYwiX8e4bNZrEeBFxbFFsLtm0SMPxJliLTGdNCA0Bq2XkWrAn2ejUd+89vZm+8BnfFB1BclJyCz3iKsm2atNg==
 
 webidl-conversions@^4.0.2:
   version "4.0.2"

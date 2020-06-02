@@ -1,3 +1,4 @@
+import { browser } from "webextension-polyfill-ts"
 import { message } from "@src/lib/messaging"
 
 const browserProxy = new Proxy(Object.create(null), {

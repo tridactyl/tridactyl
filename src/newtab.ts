@@ -1,5 +1,6 @@
 // This file is only included in newtab.html, after content.js has been loaded
 
+import { browser } from "webextension-polyfill-ts"
 import * as Messaging from "@src/lib/messaging"
 import * as config from "@src/lib/config"
 

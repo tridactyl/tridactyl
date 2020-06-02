@@ -6,6 +6,7 @@ if ((window as any).tridactyl_content_lock !== undefined) {
 }
 (window as any).tridactyl_content_lock = "locked"
 
+import { browser } from "webextension-polyfill-ts"
 // Be careful: typescript elides imports that appear not to be used if they're
 // assigned to a name.  If you want an import just for its side effects, make
 // sure you import it like this:

@@ -2,6 +2,7 @@
  * Allows users to enter tridactyl commands from the omnibox by using
  * the `:` keyword.
  */
+import { browser, Omnibox } from "webextension-polyfill-ts"
 import * as controller from "@src/lib/controller"
 
 export async function inputStartedListener() {
@@ -9,13 +10,13 @@ export async function inputStartedListener() {
 
 export async function inputChangedListener(
     currentInput: string,
-    emitSuggestion: (suggestions: browser.omnibox.SuggestResult[]) => void
+    emitSuggestion: (suggestions: Omnibox.SuggestResult[]) => void
 ) {
 }
 
 export async function inputEnteredListener(
     input: string, disposition:
-    browser.omnibox.OnInputEnteredDisposition) {
+    Omnibox.OnInputEnteredDisposition) {
     controller.acceptExCmd(input)
 }
 

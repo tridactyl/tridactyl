@@ -1,3 +1,4 @@
+import { browser } from "webextension-polyfill-ts"
 import { messageOwnTab } from "@src/lib/messaging"
 import * as State from "@src/state"
 

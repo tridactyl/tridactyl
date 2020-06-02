@@ -22,6 +22,7 @@
 
  */
 
+import { browser, Tabs, WebRequest } from "webextension-polyfill-ts"
 import * as Config from "@src/lib/config"
 import * as Container from "@src/lib/containers"
 import * as Logging from "@src/lib/logging"
@@ -37,11 +38,11 @@ interface ICancelledRequest {
 interface IAutoContain {
     autoContain(details: browser.webRequest.IDetails): any
     cancelEarly(
-        tab: browser.tabs.Tab,
+        tab: Tabs.Tab,
         details: browser.webRequest.IDetails,
     ): boolean
     cancelRequest(
-        tab: browser.tabs.Tab,
+        tab: Tabs.Tab,
         details: browser.webRequest.IDetails,
     ): void
     clearCancelledRequests(tabId: number): void
@@ -73,8 +74,8 @@ export class AutoContain implements IAutoContain {
     }
 
     autoContain = async (
-        details: browser.webRequest.IDetails,
-    ): Promise<browser.webRequest.BlockingResponse> => {
+        details: WebRequest.IDetails,
+    ): Promise<WebRequest.BlockingResponse> => {
         if (!this.autocontainConfigured()) return { cancel: false }
 
         // Only handle in strict mode.
@@ -137,7 +138,7 @@ export class AutoContain implements IAutoContain {
 
     // Handles the requests after the initial checks made in this.autoContain.
     cancelEarly = (
-        tab: browser.tabs.Tab,
+        tab: Tabs.Tab,
         details: browser.webRequest.IDetails,
     ): boolean => {
         if (!this.cancelledRequests[tab.id]) {
@@ -161,7 +162,7 @@ export class AutoContain implements IAutoContain {
     }
 
     cancelRequest = (
-        tab: browser.tabs.Tab,
+        tab: Tabs.Tab,
         details: browser.webRequest.IDetails,
     ): void => {
         this.cancelledRequests[tab.id] = {
