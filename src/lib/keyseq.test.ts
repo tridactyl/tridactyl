@@ -43,7 +43,7 @@ function mk(k, mod?: ks.KeyModifiers) {
             ,
         ],
         [
-            [[mk("A", { shiftKey: true }), mk("v")], keymap],
+            [[mk("A", { shiftKey: true }), mk("A", { shiftKey: true, keyup: true }), mk("v")], keymap],
             { value: "whatever", isMatch: true },
         ],
         // Test bare modifiers
@@ -112,14 +112,14 @@ testAllObject(ks.mapstrMapToKeyMap, [
         new Map([["j", "scrollline 10"], ["gg", "scrolltop"]]),
         new Map([
             [[mk("j")], "scrollline 10"],
-            [[mk("g"), mk("g")], "scrolltop"],
+            [[mk("g"), mk("g", {keyup: true, optional: true}), mk("g")], "scrolltop"],
         ]),
     ],
     [
         new Map([["<C-u>j", "scrollline 10"], ["gg", "scrolltop"]]),
         new Map([
             [[mk("u", { ctrlKey: true }), mk("j")], "scrollline 10"],
-            [[mk("g"), mk("g")], "scrolltop"],
+            [[mk("g"), mk("g", {keyup: true, optional: true}), mk("g")], "scrolltop"],
         ]),
     ],
 ])
