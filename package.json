@@ -53,9 +53,11 @@
     "webpack-cli": "^3.3.11"
   },
   "scripts": {
-    "build": "sh scripts/build.sh",
-    "build:chrome": "sh scripts/build.sh chrome",
-    "run": "web-ext run -s build/ -u 'txti.es'",
+    "build": "yarn run build:firefox",
+    "build:firefox": "sh scripts/build.sh --browser=firefox",
+    "build:chrome": "sh scripts/build.sh --browser=chrome",
+    "run": "yarn run run:firefox",
+    "run:firefox": "web-ext run -t firefox-desktop -s build/ -u 'txti.es'",
     "run:chrome": "web-ext run -t chromium -s build/ -u 'txti.es'",
     "forrest-run": "yarn run run",
     "watch": "echo 'watch is broken, use build instead'; exit 0;",

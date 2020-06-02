@@ -1,17 +1,48 @@
 #!/bin/sh
 
+showHelp() {
+cat << EOF
+Usage: ./build.sh -b <browser> [-h]
+
+-h, -help            --help            Display help
+
+-b, -browser         --browser         Browser to build for [ firefox | chrome ]
+
+EOF
+}
+
+OPTIONS=$(getopt -l "help,browser:" -o "hb:" -a -- "$@")
+
+if [ "$?" != 0 ] || [ "$1" = "" ]; then
+  showHelp
+  exit 0
+fi
+
+eval set -- "$OPTIONS"
+
+while true; do
+  case $1 in
+    -b|--browser)
+      shift
+      BROWSER="$1"
+      if [ "$BROWSER" != "firefox" ] && [ "$BROWSER" != "chrome" ]; then
+        echo "Browser must be firefox or chrome."
+        exit 0
+      fi
+      shift;;
+    --)
+      shift
+      break;;
+    -h|--help|*)
+      showHelp
+      exit 0;;
+  esac
+done
+
 set -e
 
 CLEANSLATE="node_modules/cleanslate/docs/files/cleanslate.css"
 TRIDACTYL_LOGO="src/static/logo/Tridactyl_64px.png"
-BROWSER="firefox"
-
-if [ -n "$1" ]; then
-  if [ "$1" = "chrome" ]; then
-    BROWSER="chrome"
-  fi
-fi
-
 
 isWindowsMinGW() {
   is_mingw="False"
@@ -72,7 +103,7 @@ if [ "$1" != "--no-native" ]; then
     fi
 fi
 
-(webpack --display errors-only --bail --browser $BROWSER\
+(webpack --display errors-only --bail --browser "$BROWSER"\
   && scripts/git_version.sh)
 
 scripts/bodgecss.sh

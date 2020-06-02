@@ -74,7 +74,7 @@ class FindHighlight extends HTMLSpanElement {
 
 // TODO: Conditionally import customElements-polyfill needed for the chrome browser:
 if (!customElements) {
-    // tslint:disable-next-line
+    // tslint:disable-next-line: no-var-requires
     require("@webcomponents/custom-elements");
 }
 
