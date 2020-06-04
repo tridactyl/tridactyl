@@ -54,11 +54,11 @@ jobs:
           PATH="$HOME/firefox:$PATH" "$(yarn bin)/jest e2e_tests" ||
           PATH="$HOME/firefox:$PATH" "$(yarn bin)/jest e2e_tests"'
 
-    workflows:
-      version: 2
-      build_test_lint:
-        jobs:
-          - lint
-          - mozilla
-          - unit
-          - e2e
+workflows:
+  version: 2
+  build_test_lint:
+    jobs:
+      - lint
+      - mozilla
+      - unit
+      - e2e
