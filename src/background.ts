@@ -25,6 +25,7 @@ import { AutoContain } from "@src/lib/autocontainers"
 import * as extension_info from "@src/lib/extension_info"
 import * as omnibox from "@src/background/omnibox"
 import * as R from "ramda"
+import * as webrequests from "@src/background/webrequests"
 
 // Add various useful modules to the window for debugging
 ;(window as any).tri = Object.assign(Object.create(null), {
@@ -41,6 +42,7 @@ import * as R from "ramda"
     request,
     state,
     webext,
+    webrequests,
     l: prom => prom.then(console.log).catch(console.error),
     contentLocation: window.location,
     R,
@@ -96,7 +98,7 @@ browser.runtime.onStartup.addListener(_ => {
         } else {
             native.run("hostname").then(hostname => {
                 for (const host of hosts) {
-                    if ((new RegExp(host)).exec(hostname.content)) {
+                    if (new RegExp(host).exec(hostname.content)) {
                         controller.acceptExCmd(aucmds[host])
                     }
                 }
@@ -135,6 +137,43 @@ browser.tabs.onActivated.addListener(ev => {
         .messageTab(curTab, "excmd_content", "loadaucmds", ["TabEnter"])
         .catch(ignore)
 })
+
+// Valid events listed here: https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/webRequest#Events
+for (const requestEvent of webrequests.requestEvents) {
+    config.getAsync("autocmds", requestEvent).then(aucmds => {
+        if (!aucmds) return
+        const patterns = Object.keys(aucmds)
+        patterns.forEach(pattern =>
+            webrequests.registerWebRequestAutocmd(
+                requestEvent,
+                pattern,
+                aucmds[pattern],
+            ),
+        )
+    })
+}
+
+config.addChangeListener("autocmds", (previous, current) =>
+    webrequests.requestEvents.forEach(
+        requestEvent =>
+            // If there are autocmd(s) for this requestEvent
+            current[requestEvent] !== undefined &&
+            Object.entries(
+                current[requestEvent] as Record<string, string>,
+            ).forEach(([pattern, func]) => {
+                // R.path returns undefined if any part of the path is missing rather than saying "computer says no"
+                const path = R.path([requestEvent, pattern])
+
+                // If this is a new autocmd, register it
+                !R.equals(...R.map(path, [current, previous])) &&
+                    webrequests.registerWebRequestAutocmd(
+                        requestEvent,
+                        pattern,
+                        func,
+                    )
+            }),
+    ),
+)
 
 // }}}
 
