@@ -1,5 +1,39 @@
 # Tridactyl changelog
 
+## Release 1.19.1 / 29-05-2020
+
+-   New features
+
+    -   All of our scrolling commands (e.g. j/k) now scroll the focused element ([#2417](https://github.com/tridactyl/tridactyl/issues/2417))
+    -   The bind focus hint mode, `;;`, now hints more selectors to make it easier to select an element to scroll
+    -   `:recontain` command to change the container of the current tab added
+        -   See `:help recontain` before use as it has potentially surprising privacy implications
+
+-   Bug fixes
+
+    -   The commandline history works again, but for real this time ([#2236](https://github.com/tridactyl/tridactyl/issues/2236))
+    -   `g;` works again ([#2407](https://github.com/tridactyl/tridactyl/issues/2407))
+    -   We no longer enter insert mode on readonly elements ([#2389](https://github.com/tridactyl/tridactyl/issues/2389))
+    -   `mkt` now works even if you have used `setnull` or `unbind` ([#2415](https://github.com/tridactyl/tridactyl/issues/2415))
+    -   We ensure nothing is written to local storage in private windows ([#2423](https://github.com/tridactyl/tridactyl/issues/2423))
+        -   (very little was being written - namely the last ex string you executed and the tab ID of the last input you used; both of these would be overwritten regularly so the danger is low)
+        -   this does mean that `repeat` will no longer function in private windows
+    -   `winopen -private [url]` is no longer stored for `repeat` ([#2424](https://github.com/tridactyl/tridactyl/issues/2424))
+    -   We now accurately attach hints to more elements ([#487](https://github.com/tridactyl/tridactyl/issues/487))
+
+-   Miscellaneous
+
+    -   Our config updater no longer uses a while loop which could spin forever in certain circumstances ([#2349](https://github.com/tridactyl/tridactyl/issues/2349))
+    -   Our E2E tests fail less often (by retrying a few times) ([#2387](https://github.com/tridactyl/tridactyl/issues/2387))
+    -   There is now less duplication between lib/state and content/state_content ([#2422](https://github.com/tridactyl/tridactyl/issues/2422))
+    -   Our scrolling code is now a little easier to read ([#2384](https://github.com/tridactyl/tridactyl/issues/2384))
+
+Thanks to all of our contributors for this release: Oliver Blanthorn, dependabot-preview[bot], Matias Ammentorp Storm, MatiasStorm, Dranaxel, glacambre, Alexandre, Robert Günzler and Tanath.
+
+Extra special thanks go to Alexandre, Dranaxel, Matias Ammentorp Storm, MatiasStorm and Tanath who all contributed for the first time.
+
+Last, but not least - thank you to everyone who reported issues.
+
 ## Release 1.19.0 / 10-05-2020
 
 -   New features

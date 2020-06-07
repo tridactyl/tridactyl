@@ -11,8 +11,8 @@ Replace Firefox's control mechanism with one modelled on VIM. This is a "Firefox
 -   Notice that this tab is rubbish and you want to close it? `d`.
 -   Regret that decision? `u` restores it.
 -   Want to write something in Vim? `Ctrl-i` in a text box opens it in Vim, if you have `:native` working.
--   Temporarily disable all that magic because you can't stand it? `Shift-Insert`.
--   But how do you use your browser now? `Shift-Insert` again and we're back on.
+-   Temporarily disable all that magic because you can't stand it? `Shift-Insert` or `Ctrl-Alt-Escape`.
+-   But how do you use your browser now? `Shift-Insert` or `Ctrl-Alt-Escape` again and we're back on.
 
 The list could go on a bit here, but I guess you'll get the point. If you feel lost sometimes `:help` might help you a lot, and there's always `:tutor`.
 
