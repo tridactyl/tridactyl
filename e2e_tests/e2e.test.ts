@@ -239,6 +239,7 @@ describe("webdriver", () => {
         }
     })
 
+    // Tests the native messenger + completions
     test("`:guiset` works", async () => {
         const { driver, newProfiles } = await getDriverAndProfileDirs()
         try {
@@ -295,68 +296,75 @@ describe("webdriver", () => {
         }
     })
 
-    test("`:tabopen<CR>` opens the newtab page.", async () => {
-        const driver = await getDriver()
-        return newTabWithoutChangingOldTabs(driver, async (tabsBefore) => {
-            await sendKeys(driver, ":tabopen<CR>")
-        }).then(async ([newtab, _]) => {
-            // The new tab is active
-            expect(newtab.active).toEqual(true)
-            // Its url is the newtab page's url
-            await driver.wait(untilTabUrlMatches(driver, newtab.id, new RegExp("moz-extension://.*/static/newtab.html")), 10000)
-        }).finally(() => killDriver(driver))
-    })
+    // // We can test this with a mock - expect browser.tabs to be called with the specified url
+    // test("`:tabopen<CR>` opens the newtab page.", async () => {
+    //     const driver = await getDriver()
+    //     return newTabWithoutChangingOldTabs(driver, async (tabsBefore) => {
+    //         await sendKeys(driver, ":tabopen<CR>")
+    //     }).then(async ([newtab, _]) => {
+    //         // The new tab is active
+    //         expect(newtab.active).toEqual(true)
+    //         // Its url is the newtab page's url
+    //         await driver.wait(untilTabUrlMatches(driver, newtab.id, new RegExp("moz-extension://.*/static/newtab.html")), 10000)
+    //     }).finally(() => killDriver(driver))
+    // })
 
-    test("`:tabopen https://example.org<CR>` opens example.org.", async () => {
-        const driver = await getDriver()
-        return newTabWithoutChangingOldTabs(driver, async () => {
-            await sendKeys(driver, ":tabopen https://example.org<CR>")
-        }).then(async ([newtab, _]) => {
-            expect(newtab.active).toEqual(true)
-            await driver.wait(untilTabUrlMatches(driver, newtab.id, "https://example.org"), 10000)
-        }).finally(() => killDriver(driver))
-    })
+    // // We can test this with a mock - expect browser.tabs to be called with the specified url
+    // test("`:tabopen https://example.org<CR>` opens example.org.", async () => {
+    //     const driver = await getDriver()
+    //     return newTabWithoutChangingOldTabs(driver, async () => {
+    //         await sendKeys(driver, ":tabopen https://example.org<CR>")
+    //     }).then(async ([newtab, _]) => {
+    //         expect(newtab.active).toEqual(true)
+    //         await driver.wait(untilTabUrlMatches(driver, newtab.id, "https://example.org"), 10000)
+    //     }).finally(() => killDriver(driver))
+    // })
 
-    test("`:tabopen qwant https://example.org<CR>` opens qwant.", async () => {
-        const driver = await getDriver()
-        return newTabWithoutChangingOldTabs(driver, async () => {
-            await sendKeys(driver, ":tabopen qwant https://example.org<CR>")
-        }).then(async ([newtab, _]) => {
-            expect(newtab.active).toEqual(true)
-            await driver.wait(untilTabUrlMatches(driver, newtab.id, new RegExp("^https://www.qwant.com/.*example.org")), 10000)
-        }).finally(() => killDriver(driver))
-    })
+    // // We can test this with a mock - expect browser.tabs to be called with the specified url
+    // test("`:tabopen qwant https://example.org<CR>` opens qwant.", async () => {
+    //     const driver = await getDriver()
+    //     return newTabWithoutChangingOldTabs(driver, async () => {
+    //         await sendKeys(driver, ":tabopen qwant https://example.org<CR>")
+    //     }).then(async ([newtab, _]) => {
+    //         expect(newtab.active).toEqual(true)
+    //         await driver.wait(untilTabUrlMatches(driver, newtab.id, new RegExp("^https://www.qwant.com/.*example.org")), 10000)
+    //     }).finally(() => killDriver(driver))
+    // })
 
-    test("`:tabopen test<CR>` opens google.", async () => {
-        const driver = await getDriver()
-        return newTabWithoutChangingOldTabs(driver, async () => {
-            await sendKeys(driver, ":tabopen test<CR>")
-        }).then(async ([newtab, _]) => {
-            expect(newtab.active).toEqual(true)
-            await driver.wait(untilTabUrlMatches(driver, newtab.id, new RegExp("^https://www.google.com/.*test")), 10000)
-        }).finally(() => killDriver(driver))
-    })
+    // // We can test this with a mock - expect browser.tabs to be called with the specified url
+    // test("`:tabopen test<CR>` opens google.", async () => {
+    //     const driver = await getDriver()
+    //     return newTabWithoutChangingOldTabs(driver, async () => {
+    //         await sendKeys(driver, ":tabopen test<CR>")
+    //     }).then(async ([newtab, _]) => {
+    //         expect(newtab.active).toEqual(true)
+    //         await driver.wait(untilTabUrlMatches(driver, newtab.id, new RegExp("^https://www.google.com/.*test")), 10000)
+    //     }).finally(() => killDriver(driver))
+    // })
 
-    test("`:tabopen example.org<CR>` opens example.org.", async () => {
-        const driver = await getDriver()
-        return newTabWithoutChangingOldTabs(driver, async () => {
-            await sendKeys(driver, ":tabopen example.org<CR>")
-        }).then(async ([newtab, _]) => {
-            expect(newtab.active).toEqual(true)
-            await driver.wait(untilTabUrlMatches(driver, newtab.id, "example.org"), 10000)
-        }).finally(() => killDriver(driver))
-    })
+    // // We can test this with a mock - expect browser.tabs to be called with the specified url
+    // test("`:tabopen example.org<CR>` opens example.org.", async () => {
+    //     const driver = await getDriver()
+    //     return newTabWithoutChangingOldTabs(driver, async () => {
+    //         await sendKeys(driver, ":tabopen example.org<CR>")
+    //     }).then(async ([newtab, _]) => {
+    //         expect(newtab.active).toEqual(true)
+    //         await driver.wait(untilTabUrlMatches(driver, newtab.id, "example.org"), 10000)
+    //     }).finally(() => killDriver(driver))
+    // })
 
-    test("`:tabopen search duckduckgo<CR>` opens google.", async () => {
-        const driver = await getDriver()
-        return newTabWithoutChangingOldTabs(driver, async () => {
-            await sendKeys(driver, ":tabopen search duckduckgo<CR>")
-        }).then(async ([newtab, _]) => {
-            expect(newtab.active).toEqual(true)
-            await driver.wait(untilTabUrlMatches(driver, newtab.id, new RegExp("^https://www.google.com/search.*duckduckgo")), 10000)
-        }).finally(() => killDriver(driver))
-    })
+    // // We can test this with a mock - expect browser.tabs to be called with the specified url
+    // test("`:tabopen search duckduckgo<CR>` opens google.", async () => {
+    //     const driver = await getDriver()
+    //     return newTabWithoutChangingOldTabs(driver, async () => {
+    //         await sendKeys(driver, ":tabopen search duckduckgo<CR>")
+    //     }).then(async ([newtab, _]) => {
+    //         expect(newtab.active).toEqual(true)
+    //         await driver.wait(untilTabUrlMatches(driver, newtab.id, new RegExp("^https://www.google.com/search.*duckduckgo")), 10000)
+    //     }).finally(() => killDriver(driver))
+    // })
 
+    // // This is probably justified as a real test as about:blank relies on magic
     test("`:tabopen -b about:blank<CR>` opens a background tab.", async () => {
         const driver = await getDriver()
         return newTabWithoutChangingOldTabs(driver, async () => {
@@ -367,27 +375,29 @@ describe("webdriver", () => {
         }).finally(() => killDriver(driver))
     })
 
-    test("`:tabopen -c work about:blank<CR>` opens about:blank in a container.", async () => {
-        const driver = await getDriver()
-        return newTabWithoutChangingOldTabs(driver, async () => {
-            await sendKeys(driver, ":tabopen -c work about:blank<CR>")
-        }).then(async ([newtab, _]) => {
-            expect(newtab.active).toEqual(true)
-            expect(newtab.cookieStoreId).toMatch("firefox-container-")
-            await driver.wait(untilTabUrlMatches(driver, newtab.id, "about:blank"))
-        }).finally(() => killDriver(driver))
-    })
+    // // We can test this with a mock - expect browser.tabs to be called with the specified url and a container
+    // test("`:tabopen -c work about:blank<CR>` opens about:blank in a container.", async () => {
+    //     const driver = await getDriver()
+    //     return newTabWithoutChangingOldTabs(driver, async () => {
+    //         await sendKeys(driver, ":tabopen -c work about:blank<CR>")
+    //     }).then(async ([newtab, _]) => {
+    //         expect(newtab.active).toEqual(true)
+    //         expect(newtab.cookieStoreId).toMatch("firefox-container-")
+    //         await driver.wait(untilTabUrlMatches(driver, newtab.id, "about:blank"))
+    //     }).finally(() => killDriver(driver))
+    // })
 
-    test("`:tabopen -b -c work search qwant<CR>` opens about:blank in a container.", async () => {
-        const driver = await getDriver()
-        return newTabWithoutChangingOldTabs(driver, async () => {
-            await sendKeys(driver, ":tabopen -b -c work search qwant<CR>")
-        }).then(async ([newtab, _]) => {
-            expect(newtab.active).toEqual(false)
-            expect(newtab.cookieStoreId).toMatch("firefox-container-")
-            await driver.wait(untilTabUrlMatches(driver, newtab.id, new RegExp("^https://www.google.com/search.*qwant")))
-        }).finally(() => killDriver(driver))
-    })
+    // // We can test this with a mock - expect browser.tabs to be called with the specified url and a container
+    // test("`:tabopen -b -c work search qwant<CR>` opens about:blank in a container.", async () => {
+    //     const driver = await getDriver()
+    //     return newTabWithoutChangingOldTabs(driver, async () => {
+    //         await sendKeys(driver, ":tabopen -b -c work search qwant<CR>")
+    //     }).then(async ([newtab, _]) => {
+    //         expect(newtab.active).toEqual(false)
+    //         expect(newtab.cookieStoreId).toMatch("firefox-container-")
+    //         await driver.wait(untilTabUrlMatches(driver, newtab.id, new RegExp("^https://www.google.com/search.*qwant")))
+    //     }).finally(() => killDriver(driver))
+    // })
 })
 
 // vim: tabstop=4 shiftwidth=4 expandtab
