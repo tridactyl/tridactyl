@@ -35,24 +35,6 @@ jobs:
     steps:
       - commoncmd
       - run: bash -c 'cd build; "$(yarn bin)/web-ext" lint'
-  e2e:
-    docker:
-      - image: circleci/node:latest-browsers
-        environment:
-          MOZ_HEADLESS: 1 
-    steps:
-      - commoncmd
-      - run: sudo yarn global add get-firefox
-      - run: get-firefox --branch nightly --platform linux --extract --target ~/
-      - run: ~/firefox/firefox -v
-      - run: bash -c '"$(yarn bin)/web-ext" build --source-dir ./build --overwrite-dest'
-      - run: mv web-ext-artifacts/*.zip web-ext-artifacts/tridactyl.xpi
-      # selenium is temperamental - give it lots of chances to succeed
-      - run: bash -c 'PATH="$HOME/firefox:$PATH" "$(yarn bin)/jest" e2e_tests ||
-          PATH="$HOME/firefox:$PATH" "$(yarn bin)/jest" e2e_tests ||
-          PATH="$HOME/firefox:$PATH" "$(yarn bin)/jest" e2e_tests ||
-          PATH="$HOME/firefox:$PATH" "$(yarn bin)/jest" e2e_tests ||
-          PATH="$HOME/firefox:$PATH" "$(yarn bin)/jest" e2e_tests'
 
 workflows:
   version: 2
