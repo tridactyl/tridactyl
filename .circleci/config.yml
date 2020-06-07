@@ -43,4 +43,3 @@ workflows:
       - lint
       - mozilla
       - unit
-      - e2e
