@@ -13,7 +13,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu, macos, windows]
+        os: [ubuntu, windows]
+        # os: [ubuntu, macos, windows]
         browser: [firefox]
 
     runs-on: ${{ matrix.os }}-latest
