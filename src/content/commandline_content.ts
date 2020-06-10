@@ -60,8 +60,6 @@ export function show(hidehover = false) {
         /* Hide "hoverlink" pop-up which obscures command line
          *
          * Inspired by VVimpulation: https://github.com/amedama41/vvimpulation/commit/53065d015d1e9a892496619b51be83771f57b3d5
-         *
-         * Known issue: currently scrolls the page to the bottom.
          */
 
         if (hidehover) {
