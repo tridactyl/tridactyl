@@ -57,7 +57,6 @@ init().catch(e => {
 
 export function show() {
     try {
-        cmdline_iframe.classList.remove("hidden")
         /* Hide "hoverlink" pop-up which obscures command line
          *
          * Inspired by VVimpulation: https://github.com/amedama41/vvimpulation/commit/53065d015d1e9a892496619b51be83771f57b3d5
@@ -70,6 +69,7 @@ export function show() {
         a.focus({preventScroll: true})
         document.body.removeChild(a)
 
+        cmdline_iframe.classList.remove("hidden")
         const height =
             cmdline_iframe.contentWindow.document.body.offsetHeight + "px"
         cmdline_iframe.setAttribute("style", `height: ${height} !important;`)
