@@ -2912,7 +2912,8 @@ export function sleep(time_ms: number) {
 /** @hidden */
 //#content
 export function showcmdline(focus = true) {
-    CommandLineContent.show()
+    const hidehover = true
+    CommandLineContent.show(hidehover)
     let done = Promise.resolve()
     if (focus) {
         CommandLineContent.focus()
