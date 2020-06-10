@@ -55,7 +55,7 @@ init().catch(e => {
     )
 })
 
-export function show() {
+export function show(hidehover = false) {
     try {
         /* Hide "hoverlink" pop-up which obscures command line
          *
@@ -63,11 +63,14 @@ export function show() {
          *
          * Known issue: currently scrolls the page to the bottom.
          */
-        const a = window.document.createElement("A")
-        ; (a as any).href = ""
-        document.body.appendChild(a)
-        a.focus({preventScroll: true})
-        document.body.removeChild(a)
+
+        if (hidehover) {
+            const a = window.document.createElement("A")
+            ; (a as any).href = ""
+            document.body.appendChild(a)
+            a.focus({preventScroll: true})
+            document.body.removeChild(a)
+        }
 
         cmdline_iframe.classList.remove("hidden")
         const height =
