@@ -65,9 +65,9 @@ export function show() {
          * Known issue: currently scrolls the page to the bottom.
          */
         const a = window.document.createElement("A")
-        ; (a as any).href = "#"
+        ; (a as any).href = ""
         document.body.appendChild(a)
-        a.focus()
+        a.focus({preventScroll: true})
         document.body.removeChild(a)
 
         const height =
