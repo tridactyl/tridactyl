@@ -783,7 +783,7 @@ export async function source(...args: string[]) {
 //#background
 export async function source_quiet(args: string[]) {
     try {
-        source(...args)
+        await source(...args)
     } catch (e) {
         logger.info("Automatic loading of RC file failed.")
     }
