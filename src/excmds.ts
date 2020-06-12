@@ -781,17 +781,9 @@ export async function source(...args: string[]) {
  * Same as [[source]] but suppresses all errors
  */
 //#background
-export async function source_quiet(...args: string[]) {
+export async function source_quiet(args: string[]) {
     try {
-        if (args[0] === "--url") {
-            let url = args[1]
-            if (!url || url === "%") url = window.location.href
-            if (!(url.startsWith("http://") || url.startsWith("https://"))) url = "http://" + url
-            await rc.sourceFromUrl(url)
-        } else {
-            const file = args.join(" ") || undefined
-            if (await Native.nativegate("0.1.3", false)) rc.source(file)
-        }
+        source(...args)
     } catch (e) {
         logger.info("Automatic loading of RC file failed.")
     }
