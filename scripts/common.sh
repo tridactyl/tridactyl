@@ -29,16 +29,16 @@ prettierUgly() {
     echo "$acc"
 }
 
-tslintUgly() {
+eslintUgly() {
     local acc=""
     local IFS=$'\n'
     local tmpdir
-    tmpdir=$(mktemp -d "tslint.XXXXXXXXX")
+    tmpdir=$(mktemp -d "eslint.XXXXXXXXX")
     for jsfile in "$@"; do
         tmpfile="$tmpdir/$jsfile"
         mkdir -p "$(dirname "$tmpfile")"
         staged "$jsfile" > "$tmpfile"
-        "$(yarn bin)/tslint" -q "$tmpfile" 2>/dev/null || acc="$jsfile"$'\n'"$acc"
+        "$(yarn bin)/eslint" --quiet -o /dev/null "$tmpfile" || acc="$jsfile"$'\n'"$acc"
     done
     rm -rf "$tmpdir"
     echo "$acc"

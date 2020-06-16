@@ -7,7 +7,7 @@ otherfiles=$(cachedPrettierFiles)
 
 # Check if any of the files are ugly or contain a console.log call
 consoleFiles=$(noisy $jsfiles)
-uglyFiles="$(tslintUgly $jsfiles)"
+uglyFiles = "$(eslintUgly) $jsfiles"
 if [ ! -n "$uglyFiles" ]; then
     uglyFiles="$(prettierUgly $otherfiles)"
 fi
