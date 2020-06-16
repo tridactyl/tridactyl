@@ -8342,13 +8342,18 @@ tslib@^1.8.0, tslib@^1.8.1, tslib@^1.9.0:
   resolved "https://registry.yarnpkg.com/tslib/-/tslib-1.10.0.tgz#c3c19f95973fb0a62973fb09d90d961ee43e5c8a"
   integrity sha512-qOebF53frne81cf0S9B41ByenJ3/IuH8yJKngAX35CmiZySA0khhkovshKK+jGCaMnVomla7gVlIcc3EvKPbTQ==
 
-tslint-etc@^1.10.1:
-  version "1.10.1"
-  resolved "https://registry.yarnpkg.com/tslint-etc/-/tslint-etc-1.10.1.tgz#e0efed4b8f2cb1fe2ed104bc732a8fc01aa28259"
-  integrity sha512-8mtyUaOSuN7FTVg/8QYlxTb+Ih+x3p5mZkouN031ZfmDQlPED5ulG/gK8wcXJwrYwC09GxaoV8g3HYq1vlfa0Q==
+tslib@^2.0.0:
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/tslib/-/tslib-2.0.0.tgz#18d13fc2dce04051e20f074cc8387fd8089ce4f3"
+  integrity sha512-lTqkx847PI7xEDYJntxZH89L2/aXInsyF2luSafe/+0fHOMjlBNXdH6th7f70qxLDhul7KZK0zC8V5ZIyHl0/g==
+
+tslint-etc@^1.11.0:
+  version "1.11.0"
+  resolved "https://registry.yarnpkg.com/tslint-etc/-/tslint-etc-1.11.0.tgz#38198119ab73a5b607854baf1c1af79cc3df8d63"
+  integrity sha512-/Td1CcCI5uDnCkrGO8+m4grC/kFwCRmJePgSWCfS+58Vuf3mVcrmaSAHdzu0Z89EfrJUfXKhUfe5fiG0rsSFog==
   dependencies:
     "@phenomnomnominal/tsquery" "^4.0.0"
-    tslib "^1.8.0"
+    tslib "^2.0.0"
     tsutils "^3.0.0"
     tsutils-etc "^1.0.0"
 
