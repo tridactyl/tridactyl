@@ -9,7 +9,7 @@
     "csp-serdes": "github:cmcaine/csp-serdes",
     "css": "^2.2.4",
     "flyd": "^0.2.8",
-    "fuse.js": "^6.0.0",
+    "fuse.js": "^6.0.4",
     "immer": "^6.0.9",
     "mark.js": "^8.11.1",
     "mithril": "^2.0.4",
