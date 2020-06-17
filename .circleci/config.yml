@@ -22,7 +22,7 @@ jobs:
       - commoncmd
       - run: bash -c 'GLOBIGNORE="node_modules" shellcheck -e2012 **/*.sh'
       - run: yarn run lint
-      - run: bash -c '"$(yarn bin)/tslint" --project .'
+      - run: bash -c '"$(yarn bin)/eslint" src --ext .ts'
   unit:
     docker:
       - image: circleci/node:latest
