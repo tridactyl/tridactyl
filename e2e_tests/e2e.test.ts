@@ -124,7 +124,7 @@ describe("webdriver", () => {
                 + "document.body.appendChild(elem)<CR>")
 
             // First, make sure completions are offered
-            await driver.get("http://localhost:8080/rss.html")
+            await driver.get("file:///" + process.cwd() + "/e2e_tests/html/rss.html")
             const iframe = await iframeLoaded(driver)
             await sendKeys(driver, ":rssexec ")
             await driver.switchTo().frame(iframe)
