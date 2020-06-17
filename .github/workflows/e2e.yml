@@ -10,6 +10,7 @@ on:
 
 jobs:
   test:
+    timeout-minutes: 120
     strategy:
       fail-fast: false
       matrix:
@@ -56,12 +57,16 @@ jobs:
         choco install firefox-dev --pre
         echo "::add-path::C:\Program Files\Firefox Dev Edition"
     - name: Test (Firefox)
+      uses: nick-invision/retry@v1
       if: matrix.browser != 'chrome'
       env:
         HEADLESS: 1
-      run: |
-        yarn make-zip
-        yarn jest || yarn jest || yarn jest || yarn jest || yarn jest || yarn jest || yarn jest || yarn jest
+      with: 
+        max_attempts: 6
+        timeout_minutes: 10
+        command: |
+          yarn make-zip
+          yarn jest || yarn jest || yarn jest || yarn jest || yarn jest || yarn jest || yarn jest || yarn jest
     # - name: Test (Chrome, Linux)
     #   if: matrix.browser == 'chrome' && matrix.os == 'ubuntu'
     #   run: xvfb-run --auto-servernum npm run jest -- ${{ matrix.browser }} || xvfb-run --auto-servernum npm run jest -- ${{ matrix.browser }}
