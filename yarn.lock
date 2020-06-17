@@ -4707,6 +4707,13 @@ istanbul-reports@^3.0.2:
     html-escaper "^2.0.0"
     istanbul-lib-report "^3.0.0"
 
+jasmine-fail-fast@^2.0.1:
+  version "2.0.1"
+  resolved "https://registry.yarnpkg.com/jasmine-fail-fast/-/jasmine-fail-fast-2.0.1.tgz#222daa16c89b675aba4ed9552d62cf0d1e759d71"
+  integrity sha512-En8ONwvDQOV+jyiZEZvbvUSLWSdJFj9HiWjhLdGq/V/gxs4XyST730ooe928BbRxv4bfy05OpykKuoOU4aLC5w==
+  dependencies:
+    lodash "^4.17.15"
+
 jed@1.1.1:
   version "1.1.1"
   resolved "https://registry.yarnpkg.com/jed/-/jed-1.1.1.tgz#7a549bbd9ffe1585b0cd0a191e203055bee574b4"
