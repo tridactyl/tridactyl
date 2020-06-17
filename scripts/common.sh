@@ -33,12 +33,14 @@ eslintUgly() {
     local acc=""
     local IFS=$'\n'
     local tmpdir
-    tmpdir=$(mktemp -d "eslint.XXXXXXXXX")
+
+    mkdir -p .tmp
+    tmpdir=$(mktemp --tmpdir=".tmp/" -d "tslint.XXXXXXXXX")
     for jsfile in "$@"; do
         tmpfile="$tmpdir/$jsfile"
         mkdir -p "$(dirname "$tmpfile")"
         staged "$jsfile" > "$tmpfile"
-        "$(yarn bin)/eslint" --quiet -o /dev/null "$tmpfile" || acc="$jsfile"$'\n'"$acc"
+        "$(yarn bin)/eslint" --no-ignore --quiet -o /dev/null "$tmpfile" || acc="$jsfile"$'\n'"$acc"
     done
     rm -rf "$tmpdir"
     echo "$acc"

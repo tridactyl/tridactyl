@@ -13,3 +13,4 @@ tags
 compiler/*.js
 compiler/**/*.js
 .*.generated.ts
+.tmp/
