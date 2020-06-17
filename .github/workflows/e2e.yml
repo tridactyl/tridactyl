@@ -56,17 +56,19 @@ jobs:
       run: |
         choco install firefox-dev --pre
         echo "::add-path::C:\Program Files\Firefox Dev Edition"
+
+    - name: Make zip (Firefox)
+      if: matrix.browser != 'chrome'
+      run: yarn make-zip
     - name: Test (Firefox)
       uses: nick-invision/retry@v1
       if: matrix.browser != 'chrome'
       env:
         HEADLESS: 1
       with: 
-        max_attempts: 6
+        max_attempts: 100
         timeout_minutes: 10
-        command: |
-          yarn make-zip
-          yarn jest || yarn jest || yarn jest || yarn jest || yarn jest || yarn jest || yarn jest || yarn jest
+        command: yarn jest
     # - name: Test (Chrome, Linux)
     #   if: matrix.browser == 'chrome' && matrix.os == 'ubuntu'
     #   run: xvfb-run --auto-servernum npm run jest -- ${{ matrix.browser }} || xvfb-run --auto-servernum npm run jest -- ${{ matrix.browser }}
