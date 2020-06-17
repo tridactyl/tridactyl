@@ -36,10 +36,9 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-yarn-
 
-    - name: Install deps and build extension
+    - name: Install deps
       run: |
         yarn install
-        yarn run build
     - name: Install Firefox Dev Edition (Linux)
       if: matrix.browser == 'firefox' && matrix.os == 'ubuntu'
       run: |
@@ -57,10 +56,7 @@ jobs:
         choco install firefox-dev --pre
         echo "::add-path::C:\Program Files\Firefox Dev Edition"
 
-    - name: Make zip (Firefox)
-      if: matrix.browser != 'chrome'
-      run: yarn make-zip
-    - name: Test (Firefox)
+    - name: Build and test (Firefox)
       uses: nick-invision/retry@v1
       if: matrix.browser != 'chrome'
       env:
@@ -68,8 +64,9 @@ jobs:
       with: 
         max_attempts: 100
         timeout_minutes: 10
-        retry_wait_seconds: 1
-        command: yarn jest
+        retry_wait_seconds: 10
+        command: |
+          yarn run clean && yarn run build && yarn make-zip && yarn jest
     # - name: Test (Chrome, Linux)
     #   if: matrix.browser == 'chrome' && matrix.os == 'ubuntu'
     #   run: xvfb-run --auto-servernum npm run jest -- ${{ matrix.browser }} || xvfb-run --auto-servernum npm run jest -- ${{ matrix.browser }}
