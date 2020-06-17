@@ -6,7 +6,7 @@ module.exports = {
     "jest-webextension-mock"
   ],
   setupFilesAfterEnv: [
-    "e2e_tests/failfast.js"
+    "./e2e_tests/failfast.js"
   ],
   testRegex: "(/__tests__/.*|(\\.|/)(test|spec))\\.(jsx?|tsx?)$",
   globals: {
