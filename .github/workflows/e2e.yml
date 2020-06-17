@@ -68,6 +68,7 @@ jobs:
       with: 
         max_attempts: 100
         timeout_minutes: 10
+        retry_wait_seconds: 1
         command: yarn jest
     # - name: Test (Chrome, Linux)
     #   if: matrix.browser == 'chrome' && matrix.os == 'ubuntu'
