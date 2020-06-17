@@ -10,7 +10,7 @@
     "css": "^2.2.4",
     "flyd": "^0.2.8",
     "fuse.js": "^6.2.0",
-    "immer": "^6.0.9",
+    "immer": "^7.0.1",
     "jasmine-fail-fast": "^2.0.1",
     "mark.js": "^8.11.1",
     "mithril": "^2.0.4",
