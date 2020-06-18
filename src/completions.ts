@@ -55,9 +55,6 @@ export abstract class CompletionSource {
         this.prefixes = this.prefixes.map(p => p + " ")
     }
 
-    /** Update [[node]] to display completions relevant to exstr */
-    public abstract filter(exstr: string): Promise<void>
-
     /** Control presentation of Source */
     set state(newstate: OptionState) {
         switch (newstate) {
@@ -82,8 +79,6 @@ export abstract class CompletionSource {
         return this._state !== "hidden" || this.state !== this._prevState
     }
 
-    abstract next(inc?: number): boolean
-
     prev(inc = 1): boolean {
         return this.next(-1 * inc)
     }
@@ -92,6 +87,11 @@ export abstract class CompletionSource {
         this.completion = undefined
         if (this.lastFocused !== undefined) this.lastFocused.state = "normal"
     }
+
+    /** Update [[node]] to display completions relevant to exstr */
+    public abstract filter(exstr: string): Promise<void>
+
+    abstract next(inc?: number): boolean
 }
 
 // Default classes
@@ -174,9 +174,6 @@ export abstract class CompletionSourceFuse extends CompletionSource {
         this.node.appendChild(this.optionContainer)
         this.state = "hidden"
     }
-
-    /* abstract onUpdate(query: string, prefix: string, options: CompletionOptionFuse[]) */
-    abstract onInput(exstr: string)
 
     // Helpful default implementations
 
@@ -325,6 +322,9 @@ export abstract class CompletionSourceFuse extends CompletionSource {
             return true
         } else return false
     }
+
+    /* abstract onUpdate(query: string, prefix: string, options: CompletionOptionFuse[]) */
+    abstract onInput(exstr: string)
 }
 
 // }}}

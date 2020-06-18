@@ -24,9 +24,9 @@ export type NonTabMessageType =
 export type MessageType = TabMessageType | NonTabMessageType
 
 export interface Message {
+    [key: string]: any
     type: MessageType
     // and other unknown attributes...
-    [key: string]: any
 }
 
 export type listener = (

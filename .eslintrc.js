@@ -98,7 +98,7 @@ module.exports = {
                 }
             }
         ],
-        "@typescript-eslint/member-ordering": "off", //"error",
+        "@typescript-eslint/member-ordering": "error",
         "@typescript-eslint/no-array-constructor": "error",
         "@typescript-eslint/no-empty-function": "off", //"error",
         "@typescript-eslint/no-empty-interface": "error",
