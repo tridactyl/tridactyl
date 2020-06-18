@@ -20,7 +20,7 @@ export function no_mouse() {
     rain([" "], "#FFF", 0) // No characters, unused colour code, no darkening
 }
 
-export let snow = () => rain(["❄"], "#FFF", 0.15)
+export const snow = () => rain(["❄"], "#FFF", 0.15)
 
 export function rain(characters: string[], colour, darkening = 0.05) {
     const d = document.createElement("div")

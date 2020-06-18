@@ -272,19 +272,19 @@
 
             // template tags allow any HTML (even <tr> elements out of context)
             // @see https://developer.mozilla.org/en-US/docs/Web/HTML/Element/template
-            let template = document.createElement("template")
+            const template = document.createElement("template")
             template.innerHTML = str
 
             // find all substitution values and safely encode them using DOM APIs and
             // contextual auto-escaping
-            let walker = document.createNodeIterator(
+            const walker = document.createNodeIterator(
                 template.content,
                 NodeFilter.SHOW_ALL,
             )
             let node
             while ((node = walker.nextNode())) {
                 let tag = null
-                let attributesToRemove = []
+                const attributesToRemove = []
 
                 // --------------------------------------------------
                 // node name substitution
@@ -319,7 +319,7 @@
                 // tag and append its contents which will make it execute correctly.
                 // @see http://stackoverflow.com/questions/1197575/can-scripts-be-inserted-with-innerhtml
                 else if (node.nodeName === "SCRIPT") {
-                    let script = document.createElement("script")
+                    const script = document.createElement("script")
                     tag = script
 
                     node._replacedWith = script
@@ -338,20 +338,20 @@
                     // object so the loop will still work as expected.
                     if (!(node.attributes instanceof NamedNodeMap)) {
                         // first clone the node so we can isolate it from any children
-                        let temp = node.cloneNode()
+                        const temp = node.cloneNode()
 
                         // parse the node string for all attributes
-                        let attributeMatches = temp.outerHTML.match(
+                        const attributeMatches = temp.outerHTML.match(
                             ATTRIBUTE_PARSER_REGEX,
                         )
 
                         // get all attribute names and their value
                         attributes = []
-                        for (let i = 0; i < attributeMatches.length; i++) {
-                            let attributeName = attributeMatches[i]
+                        for (const attribute of attributeMatches.length) {
+                            const attributeName = attribute
                                 .trim()
                                 .split("=")[0]
-                            let attributeValue = node.getAttribute(
+                            const attributeValue = node.getAttribute(
                                 attributeName,
                             )
 
@@ -367,8 +367,7 @@
                         attributes = Array.from(node.attributes)
                     }
 
-                    for (let i = 0; i < attributes.length; i++) {
-                        let attribute = attributes[i]
+                    for (const attribute of attributes) {
                         let name = attribute.name
                         let value = attribute.value
                         let hasSubstitution = false
@@ -431,7 +430,7 @@
                                     CUSTOM_URI_ATTRIBUTES_REGEX.test(name)
                                 ) {
                                     // percent encode if the value is inside of a query parameter
-                                    let queryParamIndex = value.indexOf("=")
+                                    const queryParamIndex = value.indexOf("=")
                                     if (
                                         queryParamIndex !== -1 &&
                                         offset > queryParamIndex
@@ -506,7 +505,7 @@
                         // all of that for us
                         // @see https://www.mediawiki.org/wiki/DOM-based_XSS
                         if (tag || hasSubstitution) {
-                            let el = tag || node
+                            const el = tag || node
 
                             // optional attribute
                             if (name.substr(-1) === "?") {
@@ -553,13 +552,13 @@
                     node.nodeType === 3 &&
                     node.nodeValue.indexOf(SUBSTITUTION_INDEX) !== -1
                 ) {
-                    let nodeValue = node.nodeValue.replace(
+                    const nodeValue = node.nodeValue.replace(
                         SUBSTITUTION_REGEX,
                         replaceSubstitution,
                     )
 
                     // createTextNode() should not need to be escaped to prevent XSS?
-                    let text = document.createTextNode(nodeValue)
+                    const text = document.createTextNode(nodeValue)
 
                     // since the parent node has already gone through the iterator, we can use
                     // replaceChild() here

@@ -2322,8 +2322,7 @@ export async function fullscreen() {
 export async function tabclose(...indexes: string[]) {
     let done
     if (indexes.length > 0) {
-        let ids: number[]
-        ids = await Promise.all(indexes.map(index => idFromIndex(index)))
+        const ids = await Promise.all(indexes.map(index => idFromIndex(index)))
         done = browser.tabs.remove(ids)
     } else {
         // Close current tab

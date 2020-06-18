@@ -224,7 +224,7 @@ module.exports = {
         ],
         "prefer-arrow/prefer-arrow-functions": "off",
         "prefer-const": [
-            "off", //"error",
+            "error",
             {
                 "destructuring": "all"
             }
