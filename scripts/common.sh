@@ -3,7 +3,7 @@
 # Accepts no arguments
 # Returns git-add'ed files as a list of filenames separated by a newline character
 cachedTSLintFiles() {
-    git diff --cached --name-only --diff-filter=ACM "*.js" "*.jsx" "*.ts" "*.tsx" ":(exclude)*.d.ts" ":(exclude)tests/*" ":(exclude)*test.ts"
+    git diff --cached --name-only --diff-filter=ACM "*.ts" "*.tsx" ":(exclude)*.d.ts" ":(exclude)tests/*" ":(exclude)*test.ts" ":(exclude)e2e_tests/*"
 }
 
 # Accepts no arguments
@@ -29,17 +29,18 @@ prettierUgly() {
     echo "$acc"
 }
 
-tslintUgly() {
+eslintUgly() {
     local acc=""
     local IFS=$'\n'
     local tmpdir
+
     mkdir -p .tmp
     tmpdir=$(mktemp --tmpdir=".tmp/" -d "tslint.XXXXXXXXX")
     for jsfile in "$@"; do
         tmpfile="$tmpdir/$jsfile"
         mkdir -p "$(dirname "$tmpfile")"
         staged "$jsfile" > "$tmpfile"
-        "$(yarn bin)/tslint" -q "$tmpfile" 2>/dev/null || acc="$jsfile"$'\n'"$acc"
+        "$(yarn bin)/eslint" --no-ignore --quiet -o /dev/null "$tmpfile" || acc="$jsfile"$'\n'"$acc"
     done
     rm -rf "$tmpdir"
     echo "$acc"
