@@ -36,6 +36,7 @@ main() {
     for file in $stagedFiles; do
       if cmp -s <(staged "$file") "$file"; then
 	echo "WARN: Staged copy of '$file' matches working copy. Modifying both"
+	echo "WARN: Modifications may break builds: check that your code still builds"
 	lock .git/index.lock
 	case "$file" in
 	  *.md | *.css) prettier --write "$file";;
@@ -45,6 +46,7 @@ main() {
 	git add "$file"
       else
 	echo "WARN: Staged copy of '$file' does not match working copy: only prettifying staged copy."
+	echo "WARN: Modifications may break builds: check that your code still builds"
 	(
 	  local tmpdir
 	  tmpdir=$(mktemp -d "pretty.XXXXXXXXX")

@@ -16,12 +16,13 @@ export function findCssRules(
         const rule = x[1]
         return (
             rule.type === "rule" &&
+            "selectors" in rule &&
             // Make sure that there are as many selectors in the current rule
             // as there are in the rule we're looking for
-            rule["selectors"].length === selectors.length &&
+            rule.selectors.length === selectors.length &&
             // Also make sure that each of the selectors of the current rule
             // are present in the rule we're looking for
-            !rule["selectors"].find(selector => !selectors.includes(selector))
+            !rule.selectors.find(selector => !selectors.includes(selector))
         )
     })
     return filtSheet.map(x => x[0])
@@ -246,14 +247,14 @@ export function changeSingleCss(
     optionname: string,
     sheet: CSS.Stylesheet,
 ): CSS.Stylesheet {
-    const selector = potentialRules[rulename]["name"]
+    const selector = potentialRules[rulename].name
     const newRule = `${selector} {
-        ${potentialRules[rulename]["options"][optionname]}
+        ${potentialRules[rulename].options[optionname]}
     }`
     const miniSheet = CSS.parse(newRule).stylesheet.rules[0]
 
     // Find pre-existing rules
-    const oldRuleIndexes = findCssRules(miniSheet["selectors"], sheet)
+    const oldRuleIndexes = findCssRules("selectors" in miniSheet ? miniSheet.selectors : [], sheet)
     if (oldRuleIndexes.length > 0) {
         sheet.stylesheet.rules[oldRuleIndexes[0]] = miniSheet
     } else {
