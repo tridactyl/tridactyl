@@ -105,7 +105,7 @@ export async function openInNewTab(
 ) {
     const thisTab = await activeTab()
     const options: any = {
-        active: kwargs.active,
+        active: false,
         url,
         cookieStoreId: kwargs.cookieStoreId,
     }
@@ -135,7 +135,11 @@ export async function openInNewTab(
             break
     }
 
-    return browserBg.tabs.create(options)
+    if (kwargs.active === false) { // load in background
+        return browserBg.tabs.create(options)
+    } else { // load in background and then activate, per issue #1993
+        return browserBg.tabs.create(options).then(newtab => browserBg.tabs.update(newtab.id, { active: true }))
+    }
 }
 
 // lazily copied from excmds.ts' winopen - forceURI really ought to be moved to lib/webext

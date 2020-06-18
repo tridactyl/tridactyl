@@ -148,5 +148,9 @@ autocmd DocStart ^http(s?)://www.reddit.com js tri.excmds.urlmodify("-t", "www",
 " Mosquito nets won't make themselves
 autocmd DocStart ^http(s?)://www.amazon.co.uk js tri.excmds.urlmodify("-t", "www", "smile")
 
+" Isolate Facebook in its own container
+" set auconcreatecontainer true
+" autocontain facebook\.com facebook
+
 " For syntax highlighting see https://github.com/tridactyl/vim-tridactyl
 " vim: set filetype=tridactyl
