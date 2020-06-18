@@ -233,7 +233,7 @@ module.exports = {
         "radix": "off", //"error",
         "require-await": "off",
         "space-before-function-paren": [
-            "off", //"error",
+            "error",
             {
                 "anonymous": "never",
                 "asyncArrow": "always",
