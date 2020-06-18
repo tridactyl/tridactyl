@@ -40,7 +40,7 @@ module.exports = {
         "sonarjs/no-unused-collection": "off", //"error",
         "@typescript-eslint/adjacent-overload-signatures": "error",
         "@typescript-eslint/array-type": [
-            "off", //"error",
+            "error",
             {
                 "default": "array-simple"
             }
