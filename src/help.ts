@@ -215,6 +215,9 @@ addEventListener(
             case "/static/docs/classes/_src_lib_config_.default_config.html":
                 return onSettingsPageLoad
         }
+
+        // If we're on a different help page we don't need any side-effects
+        // eslint-disable-next-line @typescript-eslint/no-empty-function
         return () => {}
     })(),
 )

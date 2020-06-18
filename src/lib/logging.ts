@@ -56,6 +56,7 @@ export class Logger {
         }
 
         // do nothing with the message
+        // eslint-disable-next-line @typescript-eslint/no-empty-function
         return function(...args) {}
     }
 

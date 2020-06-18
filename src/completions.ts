@@ -324,7 +324,10 @@ export abstract class CompletionSourceFuse extends CompletionSource {
     }
 
     /* abstract onUpdate(query: string, prefix: string, options: CompletionOptionFuse[]) */
-    abstract onInput(exstr: string)
+
+    // Lots of methods don't need this but some do
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
+    async onInput(exstr: string) {}
 }
 
 // }}}
