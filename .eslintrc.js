@@ -241,7 +241,7 @@ module.exports = {
             }
         ],
         "spaced-comment": [
-            "off", //"error",
+            "error",
             "always",
             {
                 "markers": [

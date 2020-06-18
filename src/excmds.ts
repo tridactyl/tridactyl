@@ -1,4 +1,4 @@
-/* tslint:disable:comment-format */
+/* eslint-disable spaced-comment */
 // '//#' is a start point for a simple text-replacement-type macro. See excmds_macros.py
 
 /** # Tridactyl help page

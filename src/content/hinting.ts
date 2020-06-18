@@ -319,8 +319,8 @@ let modeState: HintState
 export function hintPage(
     hintableElements: Element[],
     onSelect: HintSelectedCallback,
-    resolve = () => {}, //eslint-disable-line @typescript-eslint/no-empty-function
-    reject = () => {},  //eslint-disable-line @typescript-eslint/no-empty-function
+    resolve = () => {}, // eslint-disable-line @typescript-eslint/no-empty-function
+    reject = () => {},  // eslint-disable-line @typescript-eslint/no-empty-function
     rapid = false,
 ) {
     const buildHints: HintBuilder = defaultHintBuilder()
