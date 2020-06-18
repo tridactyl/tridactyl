@@ -144,5 +144,5 @@ export class BindingsCompletionSource extends Completions.CompletionSourceFuse {
         return this.updateDisplay()
     }
 
-    onInput() {}
+
 }

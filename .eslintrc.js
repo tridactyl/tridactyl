@@ -36,11 +36,11 @@ module.exports = {
     ],
     "rules": {
         "sonarjs/cognitive-complexity": "off", //"error",
-        "sonarjs/no-duplicate-string": "off", //"error",
+        "sonarjs/no-duplicate-string": "off",
         "sonarjs/no-unused-collection": "off", //"error",
         "@typescript-eslint/adjacent-overload-signatures": "error",
         "@typescript-eslint/array-type": [
-            "off", //"error",
+            "error",
             {
                 "default": "array-simple"
             }
@@ -48,7 +48,7 @@ module.exports = {
         "@typescript-eslint/await-thenable": "error",
         "@typescript-eslint/ban-ts-comment": "error",
         "@typescript-eslint/ban-types": [
-            "off", //"error",
+            "error",
             {
                 "types": {
                     "Object": {
@@ -75,7 +75,7 @@ module.exports = {
         "@typescript-eslint/class-name-casing": "off",
         "@typescript-eslint/consistent-type-assertions": "error",
         "@typescript-eslint/consistent-type-definitions": "error",
-        "@typescript-eslint/dot-notation": "off", //"error",
+        "@typescript-eslint/dot-notation": "error",
         "@typescript-eslint/explicit-member-accessibility": [
             "off",
             {
@@ -98,9 +98,9 @@ module.exports = {
                 }
             }
         ],
-        "@typescript-eslint/member-ordering": "off", //"error",
+        "@typescript-eslint/member-ordering": "error",
         "@typescript-eslint/no-array-constructor": "error",
-        "@typescript-eslint/no-empty-function": "off", //"error",
+        "@typescript-eslint/no-empty-function": "error",
         "@typescript-eslint/no-empty-interface": "error",
         "@typescript-eslint/no-explicit-any": "off",
         "@typescript-eslint/no-extra-non-null-assertion": "error",
@@ -230,10 +230,10 @@ module.exports = {
             }
         ],
         "quote-props": "off",
-        "radix": "off", //"error",
+        "radix": "error",
         "require-await": "off",
         "space-before-function-paren": [
-            "off", //"error",
+            "error",
             {
                 "anonymous": "never",
                 "asyncArrow": "always",
@@ -241,7 +241,7 @@ module.exports = {
             }
         ],
         "spaced-comment": [
-            "off", //"error",
+            "error",
             "always",
             {
                 "markers": [
@@ -251,5 +251,12 @@ module.exports = {
         ],
         "use-isnan": "error",
         "valid-typeof": "off"
-    }
+    },
+    // // We ultimately didn't need this but I thought I should document it anyway
+    // "overrides": [{
+    //     "files": ["src/completions/*.ts",],
+    //     "rules": {
+    //         "@typescript-eslint/no-empty-function": "off",
+    //     },
+    // }],
 };

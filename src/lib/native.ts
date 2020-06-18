@@ -38,7 +38,7 @@ interface MessageResp {
  */
 async function sendNativeMsg(
     cmd: MessageCommand,
-    opts: object,
+    opts: Record<string, unknown>,
     quiet = false,
 ): Promise<MessageResp> {
     const send = Object.assign({ cmd }, opts)

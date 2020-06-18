@@ -26,21 +26,21 @@ interface Window {
 // https://developer.mozilla.org/en-US/Add-ons/WebExtensions/API/find/find
 interface findResult {
     count: number
-    rangeData: {
+    rangeData: Array<{
         framePos: number
         startTextNodePos: number
         endTextNodePos: number
         startOffset: number
         endOffset: number
         text: string
-    }[]
+    }>
     rectData: {
-        rectsAndTexts: {
+        rectsAndTexts: Array<{
             top: number
             left: number
             bottom: number
             right: number
-        }[]
+        }>
         textList: string[]
     }
 }
@@ -53,11 +53,14 @@ interface HTMLElement {
     focus(): void
 }
 
+/* eslint-disable @typescript-eslint/ban-types */
+// these functions really can be anything, ditto for the objects
 declare function exportFunction(
     func: Function,
     targetScope: object,
     options?: { defineAs?: string; allowCrossOriginArguments?: boolean },
 ): Function
+/* eslint-enable @typescript-eslint/ban-types */
 
 // Web extension types not in web-ext-types yet
 declare namespace browser.find {
@@ -215,7 +218,7 @@ declare function html(
 
 declare namespace browser.search {
     function search(searchProperties: {query: string, engine?: string, tabId?: number}): void
-    function get(): Promise<{name: string, isDefault: boolean, alias?: string, faviconURL?: string}[]>
+    function get(): Promise<Array<{name: string, isDefault: boolean, alias?: string, faviconURL?: string}>>
 }
 
 // Stop typedoc complaining about toBeAll.

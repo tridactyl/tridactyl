@@ -319,8 +319,8 @@ let modeState: HintState
 export function hintPage(
     hintableElements: Element[],
     onSelect: HintSelectedCallback,
-    resolve = () => {},
-    reject = () => {},
+    resolve = () => {}, // eslint-disable-line @typescript-eslint/no-empty-function
+    reject = () => {},  // eslint-disable-line @typescript-eslint/no-empty-function
     rapid = false,
 ) {
     const buildHints: HintBuilder = defaultHintBuilder()
@@ -819,6 +819,9 @@ function pushKey(key) {
 
 /** Covert to char and pushKey(). This is needed because ex commands ignore whitespace. */
 function pushKeyCodePoint(codepoint) {
+    // Codepoints can be hex or base-10
+    // We know we're not running in old browsers so this is safe
+    // eslint-disable-next-line radix
     const key = String.fromCodePoint(parseInt(codepoint, 0))
     return pushKey(key)
 }

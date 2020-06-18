@@ -199,6 +199,8 @@ export class BufferCompletionSource extends Completions.CompletionSourceFuse {
         this.options = options
     }
 
+    // Eslint doesn't like this decorator but there's nothing we can do about it
+    // eslint-disable-next-line @typescript-eslint/member-ordering
     @Perf.measuredAsync
     private async updateOptions(exstr = "") {
         this.lastExstr = exstr

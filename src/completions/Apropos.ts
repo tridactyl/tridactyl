@@ -144,5 +144,4 @@ export class AproposCompletionSource extends Completions.CompletionSourceFuse {
         return this.updateDisplay()
     }
 
-    onInput() {}
 }

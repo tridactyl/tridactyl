@@ -24,9 +24,9 @@ export type NonTabMessageType =
 export type MessageType = TabMessageType | NonTabMessageType
 
 export interface Message {
+    [key: string]: any
     type: MessageType
     // and other unknown attributes...
-    [key: string]: any
 }
 
 export type listener = (
@@ -104,7 +104,7 @@ type StripPromise<T> = T extends Promise<infer U> ? U : T
 export async function message<
     Type extends keyof Messages.Background,
     Command extends keyof Messages.Background[Type],
-    F extends ((...args: any) => any) & Messages.Background[Type][Command]
+    F extends((...args: any) => any) & Messages.Background[Type][Command]
   >(type: Type, command: Command, ...args: Parameters<F>) {
     const message: TypedMessage<Messages.Background, Type, Command> = {
         type,

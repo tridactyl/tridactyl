@@ -99,9 +99,10 @@ export class HistoryCompletionSource extends Completions.CompletionSourceFuse {
         return this.updateDisplay()
     }
 
+    // We don't need this inherited function
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
     updateChain() {}
 
-    onInput() {}
 
     private async scoreOptions(query: string, n: number) {
         if (!query || config.get("historyresults") === 0) {

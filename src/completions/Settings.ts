@@ -98,5 +98,5 @@ export class SettingsCompletionSource extends Completions.CompletionSourceFuse {
         return this.updateDisplay()
     }
 
-    onInput() {}
+
 }

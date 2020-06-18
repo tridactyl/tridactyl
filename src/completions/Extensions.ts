@@ -51,7 +51,6 @@ export class ExtensionsCompletionSource extends Completions.CompletionSourceFuse
         return this.updateChain()
     }
 
-    onInput() {}
 
     updateChain() {
         this.options.forEach(option => (option.state = "normal"))

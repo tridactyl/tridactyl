@@ -81,7 +81,6 @@ export class BmarkCompletionSource extends Completions.CompletionSourceFuse {
         return this.updateDisplay()
     }
 
-    onInput() {}
 
     select(option: Completions.CompletionOption) {
         if (this.lastExstr !== undefined && option !== undefined) {
