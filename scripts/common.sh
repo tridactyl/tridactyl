@@ -33,7 +33,8 @@ tslintUgly() {
     local acc=""
     local IFS=$'\n'
     local tmpdir
-    tmpdir=$(mktemp -d "tslint.XXXXXXXXX")
+    mkdir -p .tmp
+    tmpdir=$(mktemp --tmpdir=".tmp/" -d "tslint.XXXXXXXXX")
     for jsfile in "$@"; do
         tmpfile="$tmpdir/$jsfile"
         mkdir -p "$(dirname "$tmpfile")"
