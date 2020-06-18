@@ -1,5 +1,7 @@
 import "geckodriver"
 
+import * as process from "process"
+const env = process.env
 import * as fs from "fs"
 import * as os from "os"
 import * as path from "path"
@@ -8,86 +10,13 @@ import * as Until from "selenium-webdriver/lib/until"
 const {By} = webdriver
 import {Options} from "selenium-webdriver/firefox"
 
-jest.setTimeout(20000)
+import { getNewestFileIn, sendKeys } from "./utils";
+
+jest.setTimeout(100000)
 
 // API docs because I waste too much time looking for them every time I go back to this:
 // https://seleniumhq.github.io/selenium/docs/api/javascript/
 
-const vimToSelenium = {
-    "Down": webdriver.Key.ARROW_DOWN,
-    "Left": webdriver.Key.ARROW_LEFT,
-    "Right": webdriver.Key.ARROW_RIGHT,
-    "Up": webdriver.Key.ARROW_UP,
-    "BS": webdriver.Key.BACK_SPACE,
-    "Del": webdriver.Key.DELETE,
-    "End": webdriver.Key.END,
-    "CR": webdriver.Key.ENTER,
-    "Esc": webdriver.Key.ESCAPE,
-    "Home": webdriver.Key.HOME,
-    "PageDown": webdriver.Key.PAGE_DOWN,
-    "PageUp": webdriver.Key.PAGE_UP,
-    "Tab": webdriver.Key.TAB,
-    "lt": "<",
-}
-
-const modToSelenium = {
-    "A": webdriver.Key.ALT,
-    "C": webdriver.Key.CONTROL,
-    "M": webdriver.Key.META,
-    "S": webdriver.Key.SHIFT,
-}
-
-function sendKeys (driver, keys) {
-    const delay = 10
-    function chainRegularKeys (previousPromise, regularKeys) {
-        return regularKeys
-            .split("")
-            .reduce((p, key) => p
-                .then(() => driver.actions().sendKeys(key).perform())
-                .then(() => driver.sleep(delay))
-                , previousPromise)
-    }
-    function chainSpecialKey (previousPromise, specialKey) {
-        return previousPromise
-            .then(() => {
-                const noBrackets = specialKey.slice(1,-1)
-                if (noBrackets.includes("-")) {
-                    const [modifiers, key] = noBrackets.split("-")
-                    const mods = modifiers.split("").map(mod => modToSelenium[mod])
-                    return mods
-                        .reduce((actions, mod) => actions.keyUp(mod),
-                            mods.reduce((actions, mod) => actions.keyDown(mod), driver.actions())
-                            .sendKeys(vimToSelenium[key] || key))
-                        .perform()
-                }
-                return driver.actions().sendKeys(vimToSelenium[noBrackets] || noBrackets).perform()
-            })
-            .then(() => driver.sleep(delay))
-    }
-
-    let result = Promise.resolve()
-    const regexp = /<[^>-]+-?[^>]*>/g
-    const specialKeys = keys.match(regexp)
-    if (!specialKeys) {
-        return chainRegularKeys(result, keys)
-    }
-    const regularKeys = keys.split(regexp)
-    let i
-    for (i = 0; i < Math.min(specialKeys.length, regularKeys.length); ++i) {
-        result = chainSpecialKey(chainRegularKeys(result, regularKeys[i]), specialKeys[i])
-    }
-    if (i < regularKeys.length) {
-        result = regularKeys
-            .slice(i)
-            .reduce((previousPromise, currentKeys) => chainRegularKeys(previousPromise, currentKeys), result)
-    }
-    if ( i < specialKeys.length) {
-        result = specialKeys
-            .slice(i)
-            .reduce((previousPromise, currentKey) => chainSpecialKey(previousPromise, currentKey), result)
-    }
-    return result
-}
 
 describe("webdriver", () => {
 
@@ -96,14 +25,20 @@ describe("webdriver", () => {
     }
 
     async function getDriver() {
-        const dir = "web-ext-artifacts"
-        const extensionName = "tridactyl.xpi"
-        const extensionPath = dir + "/" + extensionName
+        const extensionPath = await getNewestFileIn(path.resolve("web-ext-artifacts"))
+        if (extensionPath === undefined) {
+            throw new Error("Couldn't find extension path");
+        }
+
+        const options = (new Options())
+                .setPreference("xpinstall.signatures.required", false)
+                .addExtensions(extensionPath)
+        if (env["HEADLESS"]) {
+            options.headless();
+        }
         const driver = new webdriver.Builder()
             .forBrowser("firefox")
-            .setFirefoxOptions((new Options())
-                .setPreference("xpinstall.signatures.required", false)
-                .addExtensions(extensionPath))
+            .setFirefoxOptions(options)
             .build()
         // Wait until addon is loaded and :tutor is displayed
         await iframeLoaded(driver)
@@ -189,7 +124,7 @@ describe("webdriver", () => {
                 + "document.body.appendChild(elem)<CR>")
 
             // First, make sure completions are offered
-            await driver.get("https://www.bbc.co.uk/news/10628494")
+            await driver.get("file:///" + process.cwd() + "/e2e_tests/html/rss.html")
             const iframe = await iframeLoaded(driver)
             await sendKeys(driver, ":rssexec ")
             await driver.switchTo().frame(iframe)
@@ -307,87 +242,87 @@ describe("webdriver", () => {
         }).finally(() => killDriver(driver))
     })
 
-    test("`:tabopen https://example.org<CR>` opens example.org.", async () => {
-        const driver = await getDriver()
-        return newTabWithoutChangingOldTabs(driver, async () => {
-            await sendKeys(driver, ":tabopen https://example.org<CR>")
-        }).then(async ([newtab, _]) => {
-            expect(newtab.active).toEqual(true)
-            await driver.wait(untilTabUrlMatches(driver, newtab.id, "https://example.org"), 10000)
-        }).finally(() => killDriver(driver))
-    })
+//     test("`:tabopen https://example.org<CR>` opens example.org.", async () => {
+//         const driver = await getDriver()
+//         return newTabWithoutChangingOldTabs(driver, async () => {
+//             await sendKeys(driver, ":tabopen https://example.org<CR>")
+//         }).then(async ([newtab, _]) => {
+//             expect(newtab.active).toEqual(true)
+//             await driver.wait(untilTabUrlMatches(driver, newtab.id, "https://example.org"), 10000)
+//         }).finally(() => killDriver(driver))
+//     })
 
-    test("`:tabopen qwant https://example.org<CR>` opens qwant.", async () => {
-        const driver = await getDriver()
-        return newTabWithoutChangingOldTabs(driver, async () => {
-            await sendKeys(driver, ":tabopen qwant https://example.org<CR>")
-        }).then(async ([newtab, _]) => {
-            expect(newtab.active).toEqual(true)
-            await driver.wait(untilTabUrlMatches(driver, newtab.id, new RegExp("^https://www.qwant.com/.*example.org")), 10000)
-        }).finally(() => killDriver(driver))
-    })
+//     test("`:tabopen qwant https://example.org<CR>` opens qwant.", async () => {
+//         const driver = await getDriver()
+//         return newTabWithoutChangingOldTabs(driver, async () => {
+//             await sendKeys(driver, ":tabopen qwant https://example.org<CR>")
+//         }).then(async ([newtab, _]) => {
+//             expect(newtab.active).toEqual(true)
+//             await driver.wait(untilTabUrlMatches(driver, newtab.id, new RegExp("^https://www.qwant.com/.*example.org")), 10000)
+//         }).finally(() => killDriver(driver))
+//     })
 
-    test("`:tabopen test<CR>` opens google.", async () => {
-        const driver = await getDriver()
-        return newTabWithoutChangingOldTabs(driver, async () => {
-            await sendKeys(driver, ":tabopen test<CR>")
-        }).then(async ([newtab, _]) => {
-            expect(newtab.active).toEqual(true)
-            await driver.wait(untilTabUrlMatches(driver, newtab.id, new RegExp("^https://www.google.com/.*test")), 10000)
-        }).finally(() => killDriver(driver))
-    })
+//     test("`:tabopen test<CR>` opens google.", async () => {
+//         const driver = await getDriver()
+//         return newTabWithoutChangingOldTabs(driver, async () => {
+//             await sendKeys(driver, ":tabopen test<CR>")
+//         }).then(async ([newtab, _]) => {
+//             expect(newtab.active).toEqual(true)
+//             await driver.wait(untilTabUrlMatches(driver, newtab.id, new RegExp("^https://www.google.com/.*test")), 10000)
+//         }).finally(() => killDriver(driver))
+//     })
 
-    test("`:tabopen example.org<CR>` opens example.org.", async () => {
-        const driver = await getDriver()
-        return newTabWithoutChangingOldTabs(driver, async () => {
-            await sendKeys(driver, ":tabopen example.org<CR>")
-        }).then(async ([newtab, _]) => {
-            expect(newtab.active).toEqual(true)
-            await driver.wait(untilTabUrlMatches(driver, newtab.id, "example.org"), 10000)
-        }).finally(() => killDriver(driver))
-    })
+//     test("`:tabopen example.org<CR>` opens example.org.", async () => {
+//         const driver = await getDriver()
+//         return newTabWithoutChangingOldTabs(driver, async () => {
+//             await sendKeys(driver, ":tabopen example.org<CR>")
+//         }).then(async ([newtab, _]) => {
+//             expect(newtab.active).toEqual(true)
+//             await driver.wait(untilTabUrlMatches(driver, newtab.id, "example.org"), 10000)
+//         }).finally(() => killDriver(driver))
+//     })
 
-    test("`:tabopen search duckduckgo<CR>` opens google.", async () => {
-        const driver = await getDriver()
-        return newTabWithoutChangingOldTabs(driver, async () => {
-            await sendKeys(driver, ":tabopen search duckduckgo<CR>")
-        }).then(async ([newtab, _]) => {
-            expect(newtab.active).toEqual(true)
-            await driver.wait(untilTabUrlMatches(driver, newtab.id, new RegExp("^https://www.google.com/search.*duckduckgo")), 10000)
-        }).finally(() => killDriver(driver))
-    })
+//     test("`:tabopen search duckduckgo<CR>` opens google.", async () => {
+//         const driver = await getDriver()
+//         return newTabWithoutChangingOldTabs(driver, async () => {
+//             await sendKeys(driver, ":tabopen search duckduckgo<CR>")
+//         }).then(async ([newtab, _]) => {
+//             expect(newtab.active).toEqual(true)
+//             await driver.wait(untilTabUrlMatches(driver, newtab.id, new RegExp("^https://www.google.com/search.*duckduckgo")), 10000)
+//         }).finally(() => killDriver(driver))
+//     })
 
-    test("`:tabopen -b about:blank<CR>` opens a background tab.", async () => {
-        const driver = await getDriver()
-        return newTabWithoutChangingOldTabs(driver, async () => {
-            await sendKeys(driver, ":tabopen -b about:blank<CR>")
-        }).then(async ([newtab, _]) => {
-            expect(newtab.active).toEqual(false)
-            await driver.wait(untilTabUrlMatches(driver, newtab.id, "about:blank"))
-        }).finally(() => killDriver(driver))
-    })
+//     test("`:tabopen -b about:blank<CR>` opens a background tab.", async () => {
+//         const driver = await getDriver()
+//         return newTabWithoutChangingOldTabs(driver, async () => {
+//             await sendKeys(driver, ":tabopen -b about:blank<CR>")
+//         }).then(async ([newtab, _]) => {
+//             expect(newtab.active).toEqual(false)
+//             await driver.wait(untilTabUrlMatches(driver, newtab.id, "about:blank"))
+//         }).finally(() => killDriver(driver))
+//     })
 
-    test("`:tabopen -c work about:blank<CR>` opens about:blank in a container.", async () => {
-        const driver = await getDriver()
-        return newTabWithoutChangingOldTabs(driver, async () => {
-            await sendKeys(driver, ":tabopen -c work about:blank<CR>")
-        }).then(async ([newtab, _]) => {
-            expect(newtab.active).toEqual(true)
-            expect(newtab.cookieStoreId).toMatch("firefox-container-")
-            await driver.wait(untilTabUrlMatches(driver, newtab.id, "about:blank"))
-        }).finally(() => killDriver(driver))
-    })
+//     test("`:tabopen -c work about:blank<CR>` opens about:blank in a container.", async () => {
+//         const driver = await getDriver()
+//         return newTabWithoutChangingOldTabs(driver, async () => {
+//             await sendKeys(driver, ":tabopen -c work about:blank<CR>")
+//         }).then(async ([newtab, _]) => {
+//             expect(newtab.active).toEqual(true)
+//             expect(newtab.cookieStoreId).toMatch("firefox-container-")
+//             await driver.wait(untilTabUrlMatches(driver, newtab.id, "about:blank"))
+//         }).finally(() => killDriver(driver))
+//     })
 
-    test("`:tabopen -b -c work search qwant<CR>` opens about:blank in a container.", async () => {
-        const driver = await getDriver()
-        return newTabWithoutChangingOldTabs(driver, async () => {
-            await sendKeys(driver, ":tabopen -b -c work search qwant<CR>")
-        }).then(async ([newtab, _]) => {
-            expect(newtab.active).toEqual(false)
-            expect(newtab.cookieStoreId).toMatch("firefox-container-")
-            await driver.wait(untilTabUrlMatches(driver, newtab.id, new RegExp("^https://www.google.com/search.*qwant")))
-        }).finally(() => killDriver(driver))
-    })
+//     test("`:tabopen -b -c work search qwant<CR>` opens about:blank in a container.", async () => {
+//         const driver = await getDriver()
+//         return newTabWithoutChangingOldTabs(driver, async () => {
+//             await sendKeys(driver, ":tabopen -b -c work search qwant<CR>")
+//         }).then(async ([newtab, _]) => {
+//             expect(newtab.active).toEqual(false)
+//             expect(newtab.cookieStoreId).toMatch("firefox-container-")
+//             await driver.wait(untilTabUrlMatches(driver, newtab.id, new RegExp("^https://www.google.com/search.*qwant")))
+//         }).finally(() => killDriver(driver))
+//     })
 })
 
 // vim: tabstop=4 shiftwidth=4 expandtab

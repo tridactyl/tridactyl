@@ -3,7 +3,7 @@
  Hook into webRequests and make sure that your (least) favorite domain is contained
  and doesn't touch your default browsing environment.
 
-  For declaring containers that do not yet exist, consider using `auconscreatecontainer true` in your tridactylrc.
+  For declaring containers that do not yet exist, consider using `auconcreatecontainer true` in your tridactylrc.
   This allows tridactyl to automatically create containers from your autocontain directives. Note that they will be random icons and colors.
 
  ** NB: This is an experimental feature, if you encounter issues please create an issue on github. **

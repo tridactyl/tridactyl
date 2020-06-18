@@ -781,17 +781,9 @@ export async function source(...args: string[]) {
  * Same as [[source]] but suppresses all errors
  */
 //#background
-export async function source_quiet(...args: string[]) {
+export async function source_quiet(args: string[]) {
     try {
-        if (args[0] === "--url") {
-            let url = args[1]
-            if (!url || url === "%") url = window.location.href
-            if (!(url.startsWith("http://") || url.startsWith("https://"))) url = "http://" + url
-            await rc.sourceFromUrl(url)
-        } else {
-            const file = args.join(" ") || undefined
-            if (await Native.nativegate("0.1.3", false)) rc.source(file)
-        }
+        await source(...args)
     } catch (e) {
         logger.info("Automatic loading of RC file failed.")
     }
@@ -2912,7 +2904,8 @@ export function sleep(time_ms: number) {
 /** @hidden */
 //#content
 export function showcmdline(focus = true) {
-    CommandLineContent.show()
+    const hidehover = true
+    CommandLineContent.show(hidehover)
     let done = Promise.resolve()
     if (focus) {
         CommandLineContent.focus()
@@ -3374,6 +3367,8 @@ export function seturl(pattern: string, key: string, ...values: string[]) {
 
     If no value is given, the value of the of the key will be displayed.
 
+    If the setting you are changing has a dot or period character (.) in it, it cannot be set with `:set` directly. You must either use a helper command for that specific setting - e.g. [[seturl]] or [[autocontain]], or you must use Tridactyl's JavaScript API with `:js tri.config.set("path", "to", "key", "value")` to set `{path: {to: {key: value}}}`.
+
     See also: [[unset]]
 */
 //#background
@@ -3437,7 +3432,7 @@ export function autocmd(event: string, url: string, ...excmd: string[]) {
  * This function accepts a `-u` flag to treat the pattern as a URL rather than a domain.
  * For example: `autocontain -u ^https?://[^/]*youtube\.com/ google` is equivalent to `autocontain youtube\.com google`
  *
- * For declaring containers that do not yet exist, consider using `auconscreatecontainer true` in your tridactylrc.
+ * For declaring containers that do not yet exist, consider using `auconcreatecontainer true` in your tridactylrc.
  * This allows tridactyl to automatically create containers from your autocontain directives. Note that they will be random icons and colors.
  *
  * __NB: This is an experimental feature, if you encounter issues please create an issue on GitHub.__
@@ -3831,8 +3826,8 @@ export function setnull(...keys: string[]) {
         - -w open in new window
         - -wp open in new private window
         - -z scroll an element to the top of the viewport
-        - `-pipe selector key` e.g, `-pipe a href` returns the key. Only makes sense with `composite`, e.g, `composite hint -pipe * textContent | yank`. If you don't select a hint (i.e. press <Esc>), will return an empty string.
-        - `-W excmd...` append hint href to excmd and execute, e.g, `hint -W mpvsafe` to open YouTube videos. NB: appending to bare [[exclaim]] is dangerous - see `get exaliases.mpvsafe` for an example of how to to it safely.
+        - `-pipe selector key` e.g, `-pipe a href` returns the URL of the chosen link on a page. Only makes sense with `composite`, e.g, `composite hint -pipe .some-class>a textContent | yank`. If you don't select a hint (i.e. press <Esc>), will return an empty string. Most useful when used like `-c` to do things other than opening links. NB: the query selector cannot contain any spaces.
+        - `-W excmd...` append hint href to excmd and execute, e.g, `hint -W mpvsafe` to open YouTube videos. NB: appending to bare [[exclaim]] is dangerous - see `get exaliases.mpvsafe` for an example of how to to it safely. If you need to use a query selector, use `-pipe` instead.
         - -q* quick (or rapid) hints mode. Stay in hint mode until you press <Esc>, e.g. `:hint -qb` to open multiple hints in the background or `:hint -qW excmd` to execute excmd once for each hint. This will return an array containing all elements or the result of executed functions (e.g. `hint -qpipe a href` will return an array of links).
         - -J* disable javascript hints. Don't generate hints related to javascript events. This is particularly useful when used with the `-c` option when you want to generate only hints for the specified css selectors. Also useful on sites with plenty of useless javascript elements such as google.com
           - For example, use `bind ;jg hint -Jc .rc > .r > a` on google.com to generate hints only for clickable search results of a given query

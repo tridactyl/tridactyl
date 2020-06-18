@@ -6,6 +6,10 @@ If changing one of these settings fixes your bug, please visit the corresponding
 -   `:set allowautofocus true` and then reload the page. This allows website to use the javascript `focus()` function. [#550](https://github.com/tridactyl/tridactyl/issues/550)
 -   `:set modeindicator false` and then reload the page. This disables the mode indicator. [#821](https://github.com/tridactyl/tridactyl/issues/821)
 
+# Firefox settings that can break Tridactyl
+
+If you have `privacy.resistFingerprinting` set to `true` in `about:config`, Tridactyl will have a lot of trouble understanding your keypresses. See [#760](https://github.com/tridactyl/tridactyl/issues/760#issuecomment-433679201) and [#1699](https://github.com/tridactyl/tridactyl/issues/1699). We strongly recommend setting it to `false`, as it is by default.
+
 # Native Editor/Messenger issues
 
 If you're having trouble running your editor on OSX, you might be having \$PATH issues: [#684](https://github.com/tridactyl/tridactyl/issues/684). The solution is to specify the absolute path to your editor, like this: `:set editorcmd /usr/local/bin/vimr`.
