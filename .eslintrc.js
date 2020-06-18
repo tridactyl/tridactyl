@@ -37,7 +37,7 @@ module.exports = {
     "rules": {
         "sonarjs/cognitive-complexity": "off", //"error",
         "sonarjs/no-duplicate-string": "off",
-        "sonarjs/no-unused-collection": "off", //"error",
+        "sonarjs/no-unused-collection": "off", 
         "@typescript-eslint/adjacent-overload-signatures": "error",
         "@typescript-eslint/array-type": [
             "error",
