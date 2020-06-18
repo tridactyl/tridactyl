@@ -819,6 +819,9 @@ function pushKey(key) {
 
 /** Covert to char and pushKey(). This is needed because ex commands ignore whitespace. */
 function pushKeyCodePoint(codepoint) {
+    // Codepoints can be hex or base-10
+    // We know we're not running in old browsers so this is safe
+    // eslint-disable-next-line radix
     const key = String.fromCodePoint(parseInt(codepoint, 0))
     return pushKey(key)
 }

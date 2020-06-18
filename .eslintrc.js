@@ -230,7 +230,7 @@ module.exports = {
             }
         ],
         "quote-props": "off",
-        "radix": "off", //"error",
+        "radix": "error",
         "require-await": "off",
         "space-before-function-paren": [
             "error",
