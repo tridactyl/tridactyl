@@ -121,7 +121,13 @@ module.exports = {
         "@typescript-eslint/no-unsafe-call": "off", //"error",
         "@typescript-eslint/no-unsafe-member-access": "off", //"error",
         "@typescript-eslint/no-unsafe-return": "off", //"error",
-        "@typescript-eslint/no-unused-expressions": "off", //"error",
+        "@typescript-eslint/no-unused-expressions": [
+            "error",
+            {
+                "allowShortCircuit": true,
+                "allowTernary": true,
+            }
+        ],
         "@typescript-eslint/no-unused-vars": [
             "error",
             {

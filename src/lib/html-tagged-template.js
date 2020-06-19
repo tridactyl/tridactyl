@@ -8,6 +8,8 @@
             const tag = function tag(strings, ...values) {
                 return
             }
+            // We don't need this value - we're just checking if its attempted creation causes any errors
+            // eslint-disable-next-line @typescript-eslint/no-unused-expressions
             tag`test`
         })()
 
