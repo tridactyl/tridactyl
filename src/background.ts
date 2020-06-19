@@ -96,7 +96,7 @@ browser.runtime.onStartup.addListener(_ => {
         } else {
             native.run("hostname").then(hostname => {
                 for (const host of hosts) {
-                    if (new RegExp(host).exec(hostname.content)) {
+                    if ((new RegExp(host)).exec(hostname.content)) {
                         controller.acceptExCmd(aucmds[host])
                     }
                 }
