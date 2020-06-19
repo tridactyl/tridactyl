@@ -138,8 +138,8 @@ module.exports = {
             }
         ],
         "@typescript-eslint/require-await": "off", //"error",
-        "@typescript-eslint/restrict-plus-operands": "off", //"error",
-        "@typescript-eslint/restrict-template-expressions": "off", //"error",
+        "@typescript-eslint/restrict-plus-operands": "off", //"error", // We use this a lot - fixing it is a problem for a rainy day
+        "@typescript-eslint/restrict-template-expressions": "off",
         "@typescript-eslint/semi": [
             "off",
             null
