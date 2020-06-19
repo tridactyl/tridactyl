@@ -82,7 +82,7 @@ module.exports = {
                 "accessibility": "explicit"
             }
         ],
-        "@typescript-eslint/explicit-module-boundary-types": "off", //"warn",
+        "@typescript-eslint/explicit-module-boundary-types": "off", //"warn", // This is another hard one to enable
         "@typescript-eslint/indent": "off",
         "@typescript-eslint/interface-name-prefix": "off",
         "@typescript-eslint/member-delimiter-style": [
