@@ -1019,7 +1019,7 @@ export async function scrollpx(a: number, b: number) {
 */
 //#content
 export function scrollto(a: number | string, b: number | "x" | "y" = "y") {
-    if (typeof a === "string" && a.match(/c$/i)) {
+    if (typeof a === "string" && /c$/i.exec(a)) {
         a = (Number(a.replace(/c$/, "")) * 100) / (2 * Math.PI)
     }
     a = Number(a)
@@ -1199,10 +1199,10 @@ export async function open(...urlarr: string[]) {
     const url = urlarr.join(" ")
 
     // Setting window.location to about:blank results in a page we can't access, tabs.update works.
-    if (!ABOUT_WHITELIST.includes(url) && url.match(/^(about|file):.*/)) {
+    if (!ABOUT_WHITELIST.includes(url) && /^(about|file):.*/.exec(url)) {
         // Open URLs that firefox won't let us by running `firefox <URL>` on the command line
         return nativeopen(url)
-    } else if (url.match(/^javascript:/)) {
+    } else if (/^javascript:/.exec(url)) {
         const bookmarklet = url.replace(/^javascript:/, "")
         document.body.append(
             html`
@@ -1236,7 +1236,7 @@ export async function bmarks(opt: string, ...urlarr: string[]) {
 export async function open_quiet(...urlarr: string[]) {
     const url = urlarr.join(" ")
 
-    if (!ABOUT_WHITELIST.includes(url) && url.match(/^(about|file):.*/)) {
+    if (!ABOUT_WHITELIST.includes(url) && /^(about|file):.*/.exec(url)) {
         return nativeopen(url)
     }
 
@@ -2134,7 +2134,7 @@ export async function tabopen(...addressarr: string[]) {
     const query = await argParse(addressarr)
 
     const address = query.join(" ")
-    if (!ABOUT_WHITELIST.includes(address) && address.match(/^(about|file):.*/)) {
+    if (!ABOUT_WHITELIST.includes(address) && /^(about|file):.*/.exec(address)) {
         return nativeopen(address)
     }
 
@@ -2579,7 +2579,7 @@ export async function winopen(...args: string[]) {
     }
 
     const address = args.join(" ")
-    if (!ABOUT_WHITELIST.includes(address) && address.match(/^(about|file):.*/)) {
+    if (!ABOUT_WHITELIST.includes(address) && /^(about|file):.*/.exec(address)) {
         return nativeopen(firefoxArgs, address)
     }
 
@@ -3099,7 +3099,7 @@ export async function tab(index: number | "#") {
 //#background
 export async function taball(id: string) {
     const windows = (await browser.windows.getAll()).map(w => w.id).sort((a, b) => a - b)
-    if (id === null || id === undefined || !id.match(/\d+\.\d+/)) {
+    if (id === null || id === undefined || /\d+\.\d+/.exec(id)) {
         const tab = await activeTab()
         const prevId = id
         id = windows.indexOf(tab.windowId) + "." + (tab.index + 1)
@@ -3567,7 +3567,7 @@ export async function sanitise(...args: string[]) {
     // If the -t flag has been given and there is an arg after it
     if (flagpos > -1) {
         if (flagpos < args.length - 1) {
-            const match = args[flagpos + 1].match("^([0-9])+(m|h|d|w)$")
+            const match = /^([0-9])+(m|h|d|w)$/.exec(args[flagpos + 1])
             // If the arg of the flag matches Pentadactyl's sanitisetimespan format
             if (match !== null && match.length === 3) {
                 // Compute the timespan in milliseconds and get a Date object

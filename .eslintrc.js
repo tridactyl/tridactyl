@@ -129,7 +129,7 @@ module.exports = {
         "@typescript-eslint/prefer-for-of": "error",
         "@typescript-eslint/prefer-function-type": "error",
         "@typescript-eslint/prefer-namespace-keyword": "error",
-        "@typescript-eslint/prefer-regexp-exec": "off", //"error",
+        "@typescript-eslint/prefer-regexp-exec": "error",
         "@typescript-eslint/quotes": [
             "error",
             "double",

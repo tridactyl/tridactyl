@@ -1,4 +1,3 @@
-
 // We have a single dependency on config: getting the value of the WORDPATTERN setting
 // Perhaps we could find a way to get rid of it?
 import * as config from "@src/lib/config"
@@ -165,7 +164,11 @@ export function needs_text(fn: editor_function, arg?: any): editor_function {
 /**
  * Returns line and column number.
  */
-export function getLineAndColNumber(text: string, start: number, end: number): [string, number, number] {
+export function getLineAndColNumber(
+    text: string,
+    start: number,
+    end: number,
+): [string, number, number] {
     const lines = text.split("\n")
     let totalChars = 0
     for (let i = 0; i < lines.length; ++i) {
@@ -188,21 +191,18 @@ export function getWordBoundaries(
 ): [number, number] {
     if (position < 0 || position > text.length)
         throw new Error(
-            `getWordBoundaries: position (${position}) should be within text ("${text}") boundaries (0, ${
-                text.length
-            })`,
+            `getWordBoundaries: position (${position}) should be within text ("${text}") boundaries (0, ${text.length})`,
         )
     const pattern = new RegExp(config.get("wordpattern"), "g")
     let boundary1 = position < text.length ? position : text.length - 1
     const direction = before ? -1 : 1
     // if the caret is not in a word, try to find the word before or after it
     // For `before`, we should check the char before the caret
-    if (before && boundary1 > 0)
-        boundary1 -= 1
+    if (before && boundary1 > 0) boundary1 -= 1
     while (
         boundary1 >= 0 &&
         boundary1 < text.length &&
-        !text[boundary1].match(pattern)
+        !pattern.exec(text[boundary1])
     ) {
         boundary1 += direction
     }
@@ -214,7 +214,7 @@ export function getWordBoundaries(
     while (
         boundary1 >= 0 &&
         boundary1 < text.length &&
-        !text[boundary1].match(pattern)
+        !pattern.exec(text[boundary1])
     ) {
         boundary1 -= direction
     }
@@ -222,12 +222,10 @@ export function getWordBoundaries(
     if (boundary1 < 0) boundary1 = 0
     else if (boundary1 >= text.length) boundary1 = text.length - 1
 
-    if (!text[boundary1].match(pattern)) {
+    if (!pattern.exec(text[boundary1])) {
         // there is no word in text
         throw new Error(
-            `getWordBoundaries: no characters matching wordpattern (${
-                pattern.source
-            }) in text (${text})`,
+            `getWordBoundaries: no characters matching wordpattern (${pattern.source}) in text (${text})`,
         )
     }
 
@@ -235,7 +233,7 @@ export function getWordBoundaries(
     while (
         boundary1 >= 0 &&
         boundary1 < text.length &&
-        !!text[boundary1].match(pattern)
+        !!pattern.exec(text[boundary1])
     ) {
         boundary1 += direction
     }
@@ -247,7 +245,7 @@ export function getWordBoundaries(
     while (
         boundary2 >= 0 &&
         boundary2 < text.length &&
-        !!text[boundary2].match(pattern)
+        !!pattern.exec(text[boundary2])
     ) {
         boundary2 -= direction
     }
@@ -268,10 +266,10 @@ export function wordAfterPos(text: string, position: number) {
         throw new Error(`wordAfterPos: position (${position}) is less that 0`)
     const pattern = new RegExp(config.get("wordpattern"), "g")
     // move position out of the current word
-    while (position < text.length && !!text[position].match(pattern))
+    while (position < text.length && !!pattern.exec(text[position]))
         position += 1
     // try to find characters that match wordpattern
-    while (position < text.length && !text[position].match(pattern))
+    while (position < text.length && !pattern.exec(text[position]))
         position += 1
     if (position >= text.length) return -1
     return position
@@ -289,8 +287,8 @@ export const rot13_helper = (s: string, n: number = 13): string => {
 export const charesar = (c: string, n: number = 13): string => {
     const cn = c.charCodeAt(0)
     if (cn >= 65 && cn <= 90)
-         return String.fromCharCode((((cn - 65) + n) % 26) + 65)
+        return String.fromCharCode(((cn - 65 + n) % 26) + 65)
     if (cn >= 97 && cn <= 122)
-        return String.fromCharCode((((cn - 97) + n) % 26) + 97)
+        return String.fromCharCode(((cn - 97 + n) % 26) + 97)
     return c
 }

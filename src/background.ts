@@ -27,7 +27,7 @@ import * as omnibox from "@src/background/omnibox"
 import * as R from "ramda"
 
 // Add various useful modules to the window for debugging
-; (window as any).tri = Object.assign(Object.create(null), {
+;(window as any).tri = Object.assign(Object.create(null), {
     messaging,
     excmds: excmds_background,
     convert,
@@ -54,9 +54,9 @@ import { HintingCmds } from "@src/background/hinting"
 // here.
 controller.setExCmds({
     "": excmds_background,
-    "ex": CmdlineCmds,
-    "text": EditorCmds,
-    "hint": HintingCmds
+    ex: CmdlineCmds,
+    text: EditorCmds,
+    hint: HintingCmds,
 })
 
 // {{{ tri.contentLocation
@@ -78,13 +78,11 @@ browser.tabs.onActivated.addListener(ev => {
     })
 })
 // Update on navigation too (but remember that sometimes people open tabs in the background :) )
-browser.webNavigation.onDOMContentLoaded.addListener(
-    () => {
-        browser.tabs.query({ currentWindow: true, active: true }).then(t => {
-                (window as any).tri.contentLocation = new URL(t[0].url)
-        })
-    },
-)
+browser.webNavigation.onDOMContentLoaded.addListener(() => {
+    browser.tabs.query({ currentWindow: true, active: true }).then(t => {
+        (window as any).tri.contentLocation = new URL(t[0].url)
+    })
+})
 
 // Prevent Tridactyl from being updated while it is running in the hope of fixing #290
 browser.runtime.onUpdateAvailable.addListener(_ => undefined)
@@ -98,7 +96,7 @@ browser.runtime.onStartup.addListener(_ => {
         } else {
             native.run("hostname").then(hostname => {
                 for (const host of hosts) {
-                    if (hostname.content.match(host)) {
+                    if (new RegExp(host).exec(hostname.content)) {
                         controller.acceptExCmd(aucmds[host])
                     }
                 }
@@ -164,9 +162,7 @@ browser.webRequest.onBeforeRequest.addListener(
     ["blocking"],
 )
 
-browser.tabs.onCreated.addListener(
-    aucon.tabCreatedListener,
-)
+browser.tabs.onCreated.addListener(aucon.tabCreatedListener)
 
 // }}}
 
@@ -182,7 +178,7 @@ const messages = {
         downloadUrl: download_background.downloadUrl,
         downloadUrlAs: download_background.downloadUrlAs,
     },
-    browser_proxy_background: {shim: proxy_background.shim}
+    browser_proxy_background: { shim: proxy_background.shim },
 }
 export type Messages = typeof messages
 
@@ -211,6 +207,6 @@ omnibox.init()
 
 // {{{ Obey Mozilla's orders https://github.com/tridactyl/tridactyl/issues/1800
 
-native.unfixamo();
+native.unfixamo()
 
 /// }}}

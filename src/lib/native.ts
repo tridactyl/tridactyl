@@ -426,12 +426,12 @@ export async function parseProfilesIni(content: string, basePath: string) {
     let current = "General"
     const result = {}
     for (const line of lines) {
-        let match = line.match(/^\[([^\]]+)\]$/)
+        let match = /^\[([^\]]+)\]$/.exec(line)
         if (match !== null) {
             current = match[1]
             result[current] = {}
         } else {
-            match = line.match(/^([^=]+)=([^=]+)$/)
+            match = /^([^=]+)=([^=]+)$/.exec(line)
             if (match !== null) {
                 result[current][match[1]] = match[2]
             }
@@ -635,7 +635,7 @@ export function parsePrefs(prefFileContent: string) {
     )
     // Fragile parsing
     return prefFileContent.split("\n").reduce((prefs, line) => {
-        const matches = line.match(regex)
+        const matches = regex.exec(line)
         if (!matches) {
             return prefs
         }
