@@ -2,7 +2,6 @@
 
 import { FunctionType } from "../../compiler/types/AllTypes"
 import { everything as metadata } from "@src/.metadata.generated"
-import * as convert from "@src/lib/convert"
 import * as aliases from "@src/lib/aliases"
 import * as Logging from "@src/lib/logging"
 
@@ -10,7 +9,11 @@ const logger = new Logging.Logger("exmode")
 
 function convertArgs(types, argv) {
     const typedArgs = []
-    for (let itypes = 0, iargv = 0; itypes < types.length && iargv < argv.length; ++itypes && ++iargv) {
+    for (
+        let itypes = 0, iargv = 0;
+        itypes < types.length && iargv < argv.length;
+        ++itypes && ++iargv
+    ) {
         const curType = types[itypes]
         const curArg = argv[iargv]
         // Special casing arrays because that's why the previous arg conversion code did
@@ -38,7 +41,7 @@ export function parser(exstr: string, all_excmds: any): any[] {
     const excmds = all_excmds[namespce]
 
     if (excmds === undefined) {
-        throw new Error(`Unknown namespace: ${namespce}.`);
+        throw new Error(`Unknown namespace: ${namespce}.`)
     }
 
     // Convert arguments, but only for ex commands
@@ -46,11 +49,8 @@ export function parser(exstr: string, all_excmds: any): any[] {
     if (namespce == "" && args.length > 0) {
         let types
         try {
-            types = (metadata
-                .getFile("src/excmds.ts")
-                .getFunction(funcName)
-                .type as FunctionType)
-                .args
+            types = (metadata.getFile("src/excmds.ts").getFunction(funcName)
+                .type as FunctionType).args
         } catch (e) {
             // user defined functions?
             types = null

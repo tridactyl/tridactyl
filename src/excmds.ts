@@ -4439,6 +4439,8 @@ async function js_helper(str: string[]) {
         switch (str[0]) {
             case "-p":
                 // arg of -p comes from the end of str[]
+                // and we don't know if the user will use it or not
+                // eslint-disable-next-line @typescript-eslint/no-unused-vars
                 JS_ARG = str.pop()
                 break
             case "-s":

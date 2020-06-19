@@ -122,7 +122,12 @@ module.exports = {
         "@typescript-eslint/no-unsafe-member-access": "off", //"error",
         "@typescript-eslint/no-unsafe-return": "off", //"error",
         "@typescript-eslint/no-unused-expressions": "off", //"error",
-        "@typescript-eslint/no-unused-vars": "off", //"warn",
+        "@typescript-eslint/no-unused-vars": [
+            "error",
+            {
+                "args": "none",
+            }
+        ],
         "@typescript-eslint/no-use-before-define": "off",
         "@typescript-eslint/no-var-requires": "error",
         "@typescript-eslint/prefer-as-const": "error",
