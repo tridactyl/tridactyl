@@ -48,9 +48,7 @@ interface findResult {
 interface HTMLElement {
     // Let's be future proof:
     // https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement/focus
-    focus(options: any): void
-    // Let's also implement the current function signature.
-    focus(): void
+    focus(options?: any): void
 }
 
 /* eslint-disable @typescript-eslint/ban-types */
@@ -67,9 +65,10 @@ declare namespace browser.find {
     function find(query, object): any
 }
 
-// setZoom has an optional first argument of tabId. Unclear how first argument can be optional.
 declare namespace browser.tabs {
     function setZoom(zoomFactor: number): Promise<void>
+    // setZoom has an optional first argument of tabId: https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/tabs/setZoom#Parameters
+    // eslint-disable-next-line @typescript-eslint/unified-signatures
     function setZoom(tabId: number, zoomFactor: number): Promise<void>
     function toggleReaderMode(tabId?: number): Promise<void>
 }
