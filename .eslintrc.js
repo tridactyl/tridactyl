@@ -116,7 +116,7 @@ module.exports = {
         "@typescript-eslint/no-non-null-assertion": "warn",
         "@typescript-eslint/no-parameter-properties": "off",
         "@typescript-eslint/no-this-alias": "error",
-        "@typescript-eslint/no-unnecessary-type-assertion": "off", //"error",
+        "@typescript-eslint/no-unnecessary-type-assertion": "error",
         "@typescript-eslint/no-unsafe-assignment": "off", //"error",
         "@typescript-eslint/no-unsafe-call": "off", //"error",
         "@typescript-eslint/no-unsafe-member-access": "off", //"error", // We've done this a lot, but it would be a good idea to fix it

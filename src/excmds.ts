@@ -1528,7 +1528,7 @@ export function snow_mouse_mode() {
 //#content_helper
 function findRelLink(pattern: RegExp): HTMLAnchorElement | null {
     // querySelectorAll returns a "non-live NodeList" which is just a shit array without working reverse() or find() calls, so convert it.
-    /* tslint:disable:no-useless-cast */
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
     const links = Array.from(document.querySelectorAll("a[href]") as NodeListOf<HTMLAnchorElement>)
 
     // Find the last link that matches the test
@@ -1544,7 +1544,7 @@ function findRelLink(pattern: RegExp): HTMLAnchorElement | null {
 // Return the last element in the document matching the supplied selector,
 // or null if there are no matches.
 function selectLast(selector: string): HTMLElement | null {
-    /* tslint:disable:no-useless-cast */
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
     const nodes = document.querySelectorAll(selector) as NodeListOf<HTMLElement>
     return nodes.length ? nodes[nodes.length - 1] : null
 }
