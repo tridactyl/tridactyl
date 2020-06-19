@@ -19,7 +19,7 @@ function getFindHost() {
     elem.style.top = "0px"
     elem.style.left = "0px"
     document.body.appendChild(elem)
-    host = elem.attachShadow({mode: "closed"})
+    host = elem.attachShadow({ mode: "closed" })
     return host
 }
 
@@ -28,14 +28,17 @@ class FindHighlight extends HTMLSpanElement {
 
     constructor(private rects, private node) {
         super()
-        ; (this as any).unfocus = () => {
+        ;(this as any).unfocus = () => {
             for (const node of this.children) {
                 (node as HTMLElement).style.background = `rgba(127,255,255,0.5)`
             }
         }
-        ; (this as any).focus = () => {
+        ;(this as any).focus = () => {
             if (!DOM.isVisible(this.children[0])) {
-                this.children[0].scrollIntoView({ block: "center", inline: "center" })
+                this.children[0].scrollIntoView({
+                    block: "center",
+                    inline: "center",
+                })
             }
             let parentNode = this.node.parentNode
             while (parentNode && !(parentNode instanceof HTMLAnchorElement)) {
@@ -50,8 +53,8 @@ class FindHighlight extends HTMLSpanElement {
         }
 
         this.style.position = "absolute"
-        this.style.top = "0px";
-        this.style.left = "0px";
+        this.style.top = "0px"
+        this.style.left = "0px"
         for (const rect of rects) {
             if (rect.top < this.top) {
                 this.top = rect.top
@@ -67,9 +70,8 @@ class FindHighlight extends HTMLSpanElement {
             highlight.style.pointerEvents = "none"
             this.appendChild(highlight)
         }
-        ; (this as any).unfocus()
+        (this as any).unfocus()
     }
-
 }
 
 customElements.define("find-highlight", FindHighlight, { extends: "span" })
@@ -82,7 +84,9 @@ let selected = 0
 export async function jumpToMatch(searchQuery, reverse) {
     // First, search for the query
     const findcase = config.get("findcase")
-    const sensitive = findcase === "sensitive" || (findcase === "smart" && /[A-Z]/.test(searchQuery))
+    const sensitive =
+        findcase === "sensitive" ||
+        (findcase === "smart" && /[A-Z]/.test(searchQuery))
     const findPromise = await browserBg.find.find(searchQuery, {
         tabId: await activeTabId(),
         caseSensitive: sensitive,
@@ -95,7 +99,12 @@ export async function jumpToMatch(searchQuery, reverse) {
     removeHighlighting()
 
     // We need to grab all text nodes in order to find the corresponding element
-    const walker = document.createTreeWalker(document, NodeFilter.SHOW_TEXT, null, false)
+    const walker = document.createTreeWalker(
+        document,
+        NodeFilter.SHOW_TEXT,
+        null,
+        false,
+    )
     const nodes = []
     let node
     do {
@@ -111,27 +120,31 @@ export async function jumpToMatch(searchQuery, reverse) {
         const data = results.rectData[i]
         if (data.rectsAndTexts.rectList.length < 1) {
             // When a result does not have any rectangles, it's not visible
-            continue;
+            continue
         }
         const range = results.rangeData[i]
-        const high = new FindHighlight(data.rectsAndTexts.rectList, nodes[range.startTextNodePos])
+        const high = new FindHighlight(
+            data.rectsAndTexts.rectList,
+            nodes[range.startTextNodePos],
+        )
         host.appendChild(high)
         lastHighlights.push(high)
         if (!focused && DOM.isVisible(high)) {
             focused = true
-            ; (high as any).focus()
+            ;(high as any).focus()
             selected = lastHighlights.length - 1
         }
     }
     if (lastHighlights.length < 1) {
         throw new Error("Pattern not found: " + searchQuery)
     }
-    lastHighlights
-        .sort(reverse ? (a, b) => b.top - a.top : (a, b) => a.top - b.top)
+    lastHighlights.sort(
+        reverse ? (a, b) => b.top - a.top : (a, b) => a.top - b.top,
+    )
     if (!focused) {
         selected = 0
         /* tslint:disable:no-useless-cast */
-        ; (lastHighlights[selected] as any).focus()
+        ;(lastHighlights[selected] as any).focus()
     }
 }
 
@@ -141,7 +154,7 @@ function drawHighlights(highlights) {
 }
 
 export function removeHighlighting() {
-    const host = getFindHost();
+    const host = getFindHost()
     while (host.firstChild) host.removeChild(host.firstChild)
 }
 
@@ -158,8 +171,8 @@ export async function jumpToNextMatch(n: number) {
         throw new Error("Pattern not found: " + lastSearchQuery)
     }
     /* tslint:disable:no-useless-cast */
-    ; (lastHighlights[selected] as any).unfocus()
+    (lastHighlights[selected] as any).unfocus()
     selected = (selected + n + lastHighlights.length) % lastHighlights.length
     /* tslint:disable:no-useless-cast */
-    ; (lastHighlights[selected] as any).focus()
+    ;(lastHighlights[selected] as any).focus()
 }

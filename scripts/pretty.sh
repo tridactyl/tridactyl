@@ -40,7 +40,7 @@ main() {
 	lock .git/index.lock
 	case "$file" in
 	  *.md | *.css) prettier --write "$file";;
-	  *) eslint --fix "$file";;
+	  *) prettier --write "$file"; eslint --fix "$file";;
 	esac
 	unlock .git/index.lock
 	git add "$file"

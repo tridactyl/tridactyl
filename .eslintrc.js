@@ -198,7 +198,7 @@ module.exports = {
         ],
         "no-empty-function": "off",
         "no-eval": "off",
-        "no-extra-semi": "off", //"off",
+        "no-extra-semi": "error",
         "no-fallthrough": "off",
         "no-invalid-this": "off",
         "no-multiple-empty-lines": "error",

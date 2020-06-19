@@ -1,10 +1,10 @@
-;(function(window) {
+(function(window) {
     "use strict"
 
     // test for es6 support of needed functionality
     try {
         // spread operator and template strings support
-        ;(function testSpreadOpAndTemplate() {
+        (function testSpreadOpAndTemplate() {
             const tag = function tag(strings, ...values) {
                 return
             }
@@ -541,7 +541,7 @@
                     (node._replacedWith && node.childNodes.length === 0) ||
                     (parentNode && parentNode.childNodes.length === 0)
                 ) {
-                    ;(parentNode || node).remove()
+                    (parentNode || node).remove()
                 }
 
                 // --------------------------------------------------

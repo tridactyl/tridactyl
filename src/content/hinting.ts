@@ -122,15 +122,29 @@ class HintState {
         const focusedRect = this.focusedHint.rect
 
         // Get all hints from the top area
-        const topHints = this.activeHints.filter(h => h.rect.top < focusedRect.top && h.rect.bottom < focusedRect.bottom)
+        const topHints = this.activeHints.filter(
+            h =>
+                h.rect.top < focusedRect.top &&
+                h.rect.bottom < focusedRect.bottom,
+        )
         if (!topHints.length) {
             return
         }
 
         // Find the next top hint
         const nextFocusedHint = topHints.reduce((a, b) => {
-            const aDistance = distance(a.rect.left, a.rect.right, focusedRect.left, focusedRect.right)
-            const bDistance = distance(b.rect.left, b.rect.right, focusedRect.left, focusedRect.right)
+            const aDistance = distance(
+                a.rect.left,
+                a.rect.right,
+                focusedRect.left,
+                focusedRect.right,
+            )
+            const bDistance = distance(
+                b.rect.left,
+                b.rect.right,
+                focusedRect.left,
+                focusedRect.right,
+            )
             if (aDistance < bDistance) {
                 return a
             } else if (aDistance > bDistance) {
@@ -156,15 +170,29 @@ class HintState {
         const focusedRect = this.focusedHint.rect
 
         // Get all hints from the bottom area
-        const bottomHints = this.activeHints.filter(h => h.rect.top > focusedRect.top && h.rect.bottom > focusedRect.bottom)
+        const bottomHints = this.activeHints.filter(
+            h =>
+                h.rect.top > focusedRect.top &&
+                h.rect.bottom > focusedRect.bottom,
+        )
         if (!bottomHints.length) {
             return
         }
 
         // Find the next bottom hint
         const nextFocusedHint = bottomHints.reduce((a, b) => {
-            const aDistance = distance(a.rect.left, a.rect.right, focusedRect.left, focusedRect.right)
-            const bDistance = distance(b.rect.left, b.rect.right, focusedRect.left, focusedRect.right)
+            const aDistance = distance(
+                a.rect.left,
+                a.rect.right,
+                focusedRect.left,
+                focusedRect.right,
+            )
+            const bDistance = distance(
+                b.rect.left,
+                b.rect.right,
+                focusedRect.left,
+                focusedRect.right,
+            )
             if (aDistance < bDistance) {
                 return a
             } else if (aDistance > bDistance) {
@@ -190,15 +218,29 @@ class HintState {
         const focusedRect = this.focusedHint.rect
 
         // Get all hints from the left area
-        const leftHints = this.activeHints.filter(h => h.rect.left < focusedRect.left && h.rect.right < focusedRect.right)
+        const leftHints = this.activeHints.filter(
+            h =>
+                h.rect.left < focusedRect.left &&
+                h.rect.right < focusedRect.right,
+        )
         if (!leftHints.length) {
             return
         }
 
         // Find the next left hint
         const nextFocusedHint = leftHints.reduce((a, b) => {
-            const aDistance = distance(a.rect.top, a.rect.bottom, focusedRect.top, focusedRect.bottom)
-            const bDistance = distance(b.rect.top, b.rect.bottom, focusedRect.top, focusedRect.bottom)
+            const aDistance = distance(
+                a.rect.top,
+                a.rect.bottom,
+                focusedRect.top,
+                focusedRect.bottom,
+            )
+            const bDistance = distance(
+                b.rect.top,
+                b.rect.bottom,
+                focusedRect.top,
+                focusedRect.bottom,
+            )
             if (aDistance < bDistance) {
                 return a
             } else if (aDistance > bDistance) {
@@ -224,15 +266,29 @@ class HintState {
         const focusedRect = this.focusedHint.rect
 
         // Get all hints from the right area
-        const rightHints = this.activeHints.filter(h => h.rect.left > focusedRect.left && h.rect.right > focusedRect.right)
+        const rightHints = this.activeHints.filter(
+            h =>
+                h.rect.left > focusedRect.left &&
+                h.rect.right > focusedRect.right,
+        )
         if (!rightHints.length) {
             return
         }
 
         // Find the next right hint
         const nextFocusedHint = rightHints.reduce((a, b) => {
-            const aDistance = distance(a.rect.top, a.rect.bottom, focusedRect.top, focusedRect.bottom)
-            const bDistance = distance(b.rect.top, b.rect.bottom, focusedRect.top, focusedRect.bottom)
+            const aDistance = distance(
+                a.rect.top,
+                a.rect.bottom,
+                focusedRect.top,
+                focusedRect.bottom,
+            )
+            const bDistance = distance(
+                b.rect.top,
+                b.rect.bottom,
+                focusedRect.top,
+                focusedRect.bottom,
+            )
             if (aDistance < bDistance) {
                 return a
             } else if (aDistance > bDistance) {
@@ -264,8 +320,12 @@ class HintState {
 
         // To do this, compute the number of hints between the last selected
         // hint and the hint selected before it
-        const lastIndex = this.hints.indexOf(this.selectedHints[this.selectedHints.length - 1])
-        const prevIndex = this.hints.indexOf(this.selectedHints[this.selectedHints.length - 2])
+        const lastIndex = this.hints.indexOf(
+            this.selectedHints[this.selectedHints.length - 1],
+        )
+        const prevIndex = this.hints.indexOf(
+            this.selectedHints[this.selectedHints.length - 2],
+        )
         const distance = lastIndex - prevIndex
 
         if (distance > 0) {
@@ -302,7 +362,9 @@ class HintState {
 
             // Set the names that should go at the end
             for (let i = 0; i < savedNames.length; ++i) {
-                this.hints[this.hints.length + distance + i].setName(savedNames[i])
+                this.hints[this.hints.length + distance + i].setName(
+                    savedNames[i],
+                )
             }
         }
 
@@ -320,7 +382,7 @@ export function hintPage(
     hintableElements: Element[],
     onSelect: HintSelectedCallback,
     resolve = () => {}, // eslint-disable-line @typescript-eslint/no-empty-function
-    reject = () => {},  // eslint-disable-line @typescript-eslint/no-empty-function
+    reject = () => {}, // eslint-disable-line @typescript-eslint/no-empty-function
     rapid = false,
 ) {
     const buildHints: HintBuilder = defaultHintBuilder()
@@ -339,13 +401,16 @@ export function hintPage(
         buildHints(hintableElements, hint => {
             hint.result = onSelect(hint.target)
             modeState.selectedHints.push(hint)
-            if (modeState.selectedHints.length > 1 && (config.get("hintshift") === "true")) {
-                modeState.shiftHints();
+            if (
+                modeState.selectedHints.length > 1 &&
+                config.get("hintshift") === "true"
+            ) {
+                modeState.shiftHints()
             }
         })
     }
 
-    if (! modeState.hints.length) {
+    if (!modeState.hints.length) {
         // No more hints to display
         reset()
         return
@@ -364,22 +429,29 @@ export function hintPage(
     const firstTarget = modeState.hints[0].target
 
     const firstTargetIsSelectable = (): boolean => {
-        return firstTarget instanceof HTMLAnchorElement &&
+        return (
+            firstTarget instanceof HTMLAnchorElement &&
             firstTarget.href !== "" &&
             !firstTarget.href.startsWith("javascript:")
+        )
     }
 
     const allTargetsAreEqual = (): boolean => {
-        return undefined === modeState.hints.find(h => {
-            return (
-                !(h.target instanceof HTMLAnchorElement) ||
-                h.target.href !== (firstTarget as HTMLAnchorElement).href
-            )
-        })
+        return (
+            undefined ===
+            modeState.hints.find(h => {
+                return (
+                    !(h.target instanceof HTMLAnchorElement) ||
+                    h.target.href !== (firstTarget as HTMLAnchorElement).href
+                )
+            })
+        )
     }
 
-    if (modeState.hints.length == 1 ||
-        (firstTargetIsSelectable() && allTargetsAreEqual())) {
+    if (
+        modeState.hints.length == 1 ||
+        (firstTargetIsSelectable() && allTargetsAreEqual())
+    ) {
         // There is just a single link or all the links point to the same
         // place. Select it.
         modeState.cleanUpHints()
@@ -552,7 +624,7 @@ class Hint {
             left: rect.left + offsetLeft,
             right: rect.right + offsetLeft,
             width: rect.width,
-            height: rect.height
+            height: rect.height,
         }
 
         this.flag.textContent = name
@@ -631,9 +703,13 @@ export const vimpHelper = {
             // escape the hintchars string so that strange things don't happen
             // when special characters are used as hintchars (for example, ']')
             const escapedHintChars = defaultHintChars().replace(
-                /^\^|[-\\\]]/g, "\\$&")
+                /^\^|[-\\\]]/g,
+                "\\$&",
+            )
             const filterableTextFilter = new RegExp(
-                "[" + escapedHintChars + "]", "g")
+                "[" + escapedHintChars + "]",
+                "g",
+            )
             vimpHelper.filterableTextFilter = filterableTextFilter
         }
         return str.replace(vimpHelper.filterableTextFilter, "")
@@ -751,7 +827,9 @@ function filterHintsVimperator(fstr, reflow = false) {
             active = active.filter(hint => hint.name.startsWith(run.str))
         } else {
             // By text
-            active = active.filter(hint => vimpHelper.matchHint(hint.filterData, run.str))
+            active = active.filter(hint =>
+                vimpHelper.matchHint(hint.filterData, run.str),
+            )
 
             if (reflow) rename(active)
         }
@@ -848,7 +926,7 @@ export function hintables(selectors = DOM.HINTTAGS_selectors, withjs = false) {
         elems = [...elemSet]
     }
     elems = elems.filter(DOM.isVisible)
-    return changeHintablesToLargestChild(elems);
+    return changeHintablesToLargestChild(elems)
 }
 
 /**
@@ -858,21 +936,24 @@ export function hintables(selectors = DOM.HINTTAGS_selectors, withjs = false) {
  */
 function changeHintablesToLargestChild(elements: Element[]): Element[] {
     elements.forEach((element, index) => {
-        if (element.childNodes.length === 0) return;
-        let largestChild: Element;
+        if (element.childNodes.length === 0) return
+        let largestChild: Element
         // Find largest child.
-        element.childNodes.forEach((c) => {
-            const currentChild = (c as Element);
-            if (!largestChild || isElementLargerThan(currentChild, largestChild)) {
-                largestChild = currentChild;
+        element.childNodes.forEach(c => {
+            const currentChild = c as Element
+            if (
+                !largestChild ||
+                isElementLargerThan(currentChild, largestChild)
+            ) {
+                largestChild = currentChild
             }
         })
         // Change element if child is larger
         if (isElementLargerThan(largestChild, element)) {
-            elements[index] = largestChild;
+            elements[index] = largestChild
         }
     })
-    return elements;
+    return elements
 }
 
 /**
@@ -881,13 +962,13 @@ function changeHintablesToLargestChild(elements: Element[]): Element[] {
  */
 function isElementLargerThan(e1: Element, e2: Element): boolean {
     if (typeof e1.getBoundingClientRect !== "function") {
-        return false;
+        return false
     } else if (typeof e2.getBoundingClientRect !== "function") {
-        return true;
+        return true
     }
-    const e1BR = e1.getBoundingClientRect();
-    const e2BR = e2.getBoundingClientRect();
-    return e1BR.height > e2BR.height && e1BR.width > e2BR.width;
+    const e1BR = e1.getBoundingClientRect()
+    const e2BR = e2.getBoundingClientRect()
+    return e1BR.height > e2BR.height && e1BR.width > e2BR.width
 }
 
 /** Returns elements that point to a saveable resource
@@ -908,7 +989,7 @@ export function hintableImages() {
  * text or RegExp rule
  * @hidden
  */
-export function hintByText(match: string|RegExp) {
+export function hintByText(match: string | RegExp) {
     return DOM.getElemsBySelector(DOM.HINTTAGS_filter_by_text_selectors, [
         DOM.isVisible,
         hint => {
@@ -924,7 +1005,7 @@ export function hintByText(match: string|RegExp) {
             } else {
                 return text.toUpperCase().includes(match.toUpperCase())
             }
-        }
+        },
     ])
 }
 
@@ -1008,9 +1089,16 @@ function focusRightHint() {
 
 /** @hidden */
 export function parser(keys: KeyboardEvent[]) {
-    const parsed = keyseq.parse(keys,
-        keyseq.mapstrMapToKeyMap(new Map((Object.entries(config.get("hintmaps")) as any)
-            .filter(([key, value]) => value != ""))))
+    const parsed = keyseq.parse(
+        keys,
+        keyseq.mapstrMapToKeyMap(
+            new Map(
+                (Object.entries(config.get("hintmaps")) as any).filter(
+                    ([key, value]) => value != "",
+                ),
+            ),
+        ),
+    )
     if (parsed.isMatch === true) {
         return parsed
     }
@@ -1018,7 +1106,10 @@ export function parser(keys: KeyboardEvent[]) {
     const simplekeys = keys.filter(key => !keyseq.hasModifiers(key))
     let exstr
     if (simplekeys.length > 1) {
-        exstr = simplekeys.reduce((acc, key) => `hint.pushKey ${key.key};`, "composite ")
+        exstr = simplekeys.reduce(
+            (acc, key) => `hint.pushKey ${key.key};`,
+            "composite ",
+        )
     } else if (simplekeys.length === 1) {
         exstr = `hint.pushKeyCodePoint ${simplekeys[0].key.codePointAt(0)}`
     } else {
@@ -1042,5 +1133,5 @@ export function getHintCommands() {
         pushSpace,
         pushKeyCodePoint,
         popKey,
-    };
-};
+    }
+}
