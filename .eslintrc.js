@@ -104,7 +104,7 @@ module.exports = {
         "@typescript-eslint/no-empty-interface": "error",
         "@typescript-eslint/no-explicit-any": "off",
         "@typescript-eslint/no-extra-non-null-assertion": "error",
-        "@typescript-eslint/no-extra-semi": "off", //"error",
+        "@typescript-eslint/no-extra-semi": "error",
         "@typescript-eslint/no-floating-promises": "off", //"error", // We should turn this on eventually but it will take a while to fix
         "@typescript-eslint/no-for-in-array": "error",
         "@typescript-eslint/no-implied-eval": "error",
