@@ -192,9 +192,9 @@ export class StatsLogger {
     // mapped symbol instead of the name so we're storing more like 50
     // bytes per sample instead of 130 @_@
     public buffer: PerformanceEntry[] = []
-    private idx: number = 0
-    private buffersize: number = 10000
-    private lastError: number = 0
+    private idx = 0
+    private buffersize = 10000
+    private lastError = 0
 
     /**
      * Target for receiving stats entries from other threads - there
@@ -301,8 +301,8 @@ export class StatsLogger {
  */
 export function renderStatsHistogram(
     samples: PerformanceEntry[],
-    buckets: number = 15,
-    width: number = 80,
+    buckets = 15,
+    width = 80,
 ): string {
     const durs: number[] = samples.map(sample => sample.duration)
 
@@ -362,7 +362,7 @@ export class StatsFilter {
     }
 }
 
-const TRI_PERFORMANCE_NAME_PREFIX: string = "tri"
+const TRI_PERFORMANCE_NAME_PREFIX = "tri"
 
 function performanceApiAvailable(): boolean {
     return performance.mark !== undefined

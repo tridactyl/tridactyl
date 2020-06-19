@@ -143,7 +143,7 @@ export async function jumpToMatch(searchQuery, reverse) {
     )
     if (!focused) {
         selected = 0
-        /* tslint:disable:no-useless-cast */
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
         ;(lastHighlights[selected] as any).focus()
     }
 }
@@ -170,9 +170,9 @@ export async function jumpToNextMatch(n: number) {
         removeHighlighting()
         throw new Error("Pattern not found: " + lastSearchQuery)
     }
-    /* tslint:disable:no-useless-cast */
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
     (lastHighlights[selected] as any).unfocus()
     selected = (selected + n + lastHighlights.length) % lastHighlights.length
-    /* tslint:disable:no-useless-cast */
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
     ;(lastHighlights[selected] as any).focus()
 }

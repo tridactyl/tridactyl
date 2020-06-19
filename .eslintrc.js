@@ -37,7 +37,7 @@ module.exports = {
     "rules": {
         "sonarjs/cognitive-complexity": "off", //"error",
         "sonarjs/no-duplicate-string": "off",
-        "sonarjs/no-unused-collection": "off", //"error",
+        "sonarjs/no-unused-collection": "off", //"error", // There seems to be a bug with this rule - exported collections are assumed unused
         "@typescript-eslint/adjacent-overload-signatures": "error",
         "@typescript-eslint/array-type": [
             "error",
@@ -82,7 +82,7 @@ module.exports = {
                 "accessibility": "explicit"
             }
         ],
-        "@typescript-eslint/explicit-module-boundary-types": "off", //"warn",
+        "@typescript-eslint/explicit-module-boundary-types": "off", //"warn", // This is another hard one to enable
         "@typescript-eslint/indent": "off",
         "@typescript-eslint/interface-name-prefix": "off",
         "@typescript-eslint/member-delimiter-style": [
@@ -104,25 +104,40 @@ module.exports = {
         "@typescript-eslint/no-empty-interface": "error",
         "@typescript-eslint/no-explicit-any": "off",
         "@typescript-eslint/no-extra-non-null-assertion": "error",
-        "@typescript-eslint/no-extra-semi": "off", //"error",
-        "@typescript-eslint/no-floating-promises": "off", //"error",
+        "@typescript-eslint/no-extra-semi": "error",
+        "@typescript-eslint/no-floating-promises": "off", //"error", // We should turn this on eventually but it will take a while to fix
         "@typescript-eslint/no-for-in-array": "error",
         "@typescript-eslint/no-implied-eval": "error",
-        "@typescript-eslint/no-inferrable-types": "off", //"error",
+        "@typescript-eslint/no-inferrable-types": "error",
         "@typescript-eslint/no-misused-new": "error",
-        "@typescript-eslint/no-misused-promises": "off", //"error",
+        "@typescript-eslint/no-misused-promises": ["error",
+            {
+                "checksVoidReturn": false,
+            },
+        ],
         "@typescript-eslint/no-namespace": "error",
         "@typescript-eslint/no-non-null-asserted-optional-chain": "error",
         "@typescript-eslint/no-non-null-assertion": "warn",
         "@typescript-eslint/no-parameter-properties": "off",
         "@typescript-eslint/no-this-alias": "error",
-        "@typescript-eslint/no-unnecessary-type-assertion": "off", //"error",
+        "@typescript-eslint/no-unnecessary-type-assertion": "error",
         "@typescript-eslint/no-unsafe-assignment": "off", //"error",
         "@typescript-eslint/no-unsafe-call": "off", //"error",
-        "@typescript-eslint/no-unsafe-member-access": "off", //"error",
-        "@typescript-eslint/no-unsafe-return": "off", //"error",
-        "@typescript-eslint/no-unused-expressions": "off", //"error",
-        "@typescript-eslint/no-unused-vars": "off", //"warn",
+        "@typescript-eslint/no-unsafe-member-access": "off", //"error", // We've done this a lot, but it would be a good idea to fix it
+        "@typescript-eslint/no-unsafe-return": "off", //"error", // We've done this a lot, but it would be a good idea to fix it
+        "@typescript-eslint/no-unused-expressions": [
+            "error",
+            {
+                "allowShortCircuit": true,
+                "allowTernary": true,
+            }
+        ],
+        "@typescript-eslint/no-unused-vars": [
+            "error",
+            {
+                "args": "none",
+            }
+        ],
         "@typescript-eslint/no-use-before-define": "off",
         "@typescript-eslint/no-var-requires": "error",
         "@typescript-eslint/prefer-as-const": "error",

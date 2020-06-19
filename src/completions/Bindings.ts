@@ -12,10 +12,10 @@ class BindingsCompletionOption extends Completions.CompletionOptionHTML
     ) {
         super()
         this.html = html`<tr class="BindingsCompletionOption option">
-                <td class="name">${binding.name}</td>
-                <td class="content">${binding.value}</td>
-                <td class="type">${binding.mode}</td>
-            </tr>`
+            <td class="name">${binding.name}</td>
+            <td class="content">${binding.value}</td>
+            <td class="type">${binding.mode}</td>
+        </tr>`
     }
 }
 
@@ -36,10 +36,10 @@ export class BindingsCompletionSource extends Completions.CompletionSourceFuse {
         this.lastExstr = exstr
         let options = ""
         let [prefix, query] = this.splitOnPrefix(exstr)
-        const args = query ?  query.split(/\s+/) : []
-        let configName: string = "nmaps"
+        const args = query ? query.split(/\s+/) : []
+        let configName = "nmaps"
         let modeName = "normal"
-        let urlPattern: string  = null
+        let urlPattern: string = null
 
         // Hide self and stop if prefixes don't match
         if (prefix) {
@@ -64,12 +64,14 @@ export class BindingsCompletionSource extends Completions.CompletionSourceFuse {
                 this.options = Object.keys(patterns)
                     .filter(pattern => pattern.startsWith(urlPattern))
                     .sort()
-                    .map(pattern => new BindingsCompletionOption(
-                            pattern, {
-                            name: pattern,
-                            value: "",
-                            mode: "URL Pattern",
-                        }))
+                    .map(
+                        pattern =>
+                            new BindingsCompletionOption(pattern, {
+                                name: pattern,
+                                value: "",
+                                mode: "URL Pattern",
+                            }),
+                    )
 
                 return this.updateChain()
             }
@@ -81,13 +83,18 @@ export class BindingsCompletionSource extends Completions.CompletionSourceFuse {
             if ("--mode".includes(margs[0])) {
                 const modeStr = margs.length > 1 ? margs[1] : ""
                 this.options = Binding.modes
-                .filter(k => k.startsWith(modeStr))
-                .map(name => new BindingsCompletionOption(
-                        options + "--mode=" + name, {
-                            name,
-                            value: "",
-                            mode: "Mode Name",
-                        }))
+                    .filter(k => k.startsWith(modeStr))
+                    .map(
+                        name =>
+                            new BindingsCompletionOption(
+                                options + "--mode=" + name,
+                                {
+                                    name,
+                                    value: "",
+                                    mode: "Mode Name",
+                                },
+                            ),
+                    )
                 return this.updateChain()
             }
         }
@@ -109,7 +116,9 @@ export class BindingsCompletionSource extends Completions.CompletionSourceFuse {
             return this.updateChain()
         }
 
-        const bindings = urlPattern ? config.getURL(urlPattern, [configName]) : config.get(configName as any)
+        const bindings = urlPattern
+            ? config.getURL(urlPattern, [configName])
+            : config.get(configName as any)
 
         if (bindings === undefined) {
             this.options = []
@@ -118,14 +127,19 @@ export class BindingsCompletionSource extends Completions.CompletionSourceFuse {
 
         query = args.join(" ").toLowerCase()
         this.options = Object.keys(bindings)
-            .filter(x => x.toLowerCase().startsWith(query) )
+            .filter(x => x.toLowerCase().startsWith(query))
             .sort()
-            .map(keystr => new BindingsCompletionOption(
-                    options + keystr + " " + bindings[keystr], {
-                    name: keystr,
-                    value: JSON.stringify(bindings[keystr]),
-                    mode: `${configName} (${modeName})`,
-                }))
+            .map(
+                keystr =>
+                    new BindingsCompletionOption(
+                        options + keystr + " " + bindings[keystr],
+                        {
+                            name: keystr,
+                            value: JSON.stringify(bindings[keystr]),
+                            mode: `${configName} (${modeName})`,
+                        },
+                    ),
+            )
 
         return this.updateChain()
     }
@@ -137,6 +151,4 @@ export class BindingsCompletionSource extends Completions.CompletionSourceFuse {
         // Call concrete class
         return this.updateDisplay()
     }
-
-
 }

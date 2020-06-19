@@ -428,18 +428,17 @@ export function hintPage(
 
     const firstTarget = modeState.hints[0].target
 
-    const firstTargetIsSelectable = (): boolean => (
-            firstTarget instanceof HTMLAnchorElement &&
-            firstTarget.href !== "" &&
-            !firstTarget.href.startsWith("javascript:")
-        )
+    const firstTargetIsSelectable = (): boolean =>
+        firstTarget instanceof HTMLAnchorElement &&
+        firstTarget.href !== "" &&
+        !firstTarget.href.startsWith("javascript:")
 
-    const allTargetsAreEqual = (): boolean => (
-            undefined ===
-            modeState.hints.find(h => (
-                    !(h.target instanceof HTMLAnchorElement) ||
-                    h.target.href !== (firstTarget as HTMLAnchorElement).href
-                ))
+    const allTargetsAreEqual = (): boolean =>
+        undefined ===
+        modeState.hints.find(
+            h =>
+                !(h.target instanceof HTMLAnchorElement) ||
+                h.target.href !== (firstTarget as HTMLAnchorElement).href,
         )
 
     if (
@@ -987,7 +986,7 @@ export function hintByText(match: string | RegExp) {
         hint => {
             let text
             if (hint instanceof HTMLInputElement) {
-                // tslint:disable-next-line:no-useless-cast
+                // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
                 text = (hint as HTMLInputElement).value
             } else {
                 text = hint.textContent

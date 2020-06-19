@@ -19,10 +19,14 @@ export class PrevInput {
 
 class ContentState {
     mode: ModeName = "normal"
-    suffix: string = ""
+    suffix = ""
 }
 
-export type ContentStateProperty = "mode" | "cmdHistory" | "prevInputs" | "suffix"
+export type ContentStateProperty =
+    | "mode"
+    | "cmdHistory"
+    | "prevInputs"
+    | "suffix"
 
 export type ContentStateChangedCallback = (
     property: ContentStateProperty,

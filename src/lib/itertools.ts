@@ -103,6 +103,7 @@ export function* islice(iterable, start: number, stop?: number) {
     }
 
     // Skip elements until start
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     for (const _ of range(start)) {
         const res = iter.next()
         if (res.done) return
@@ -131,6 +132,7 @@ export function* permutationsWithReplacement(arr, n) {
     const len = arr.length
     const counters = zeros(n)
     let index = 1
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     for (const _ of range(Math.pow(len, n))) {
         yield counters.map(i => arr[i])
         for (const i of range(counters.length)) {
