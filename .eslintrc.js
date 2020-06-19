@@ -131,11 +131,12 @@ module.exports = {
         "@typescript-eslint/prefer-namespace-keyword": "error",
         "@typescript-eslint/prefer-regexp-exec": "off", //"error",
         "@typescript-eslint/quotes": [
-            "off", //"error",
+            "error",
             "double",
             {
-                "avoidEscape": true
-            }
+                "avoidEscape": true,
+                "allowTemplateLiterals": true,
+            },
         ],
         "@typescript-eslint/require-await": "error",
         "@typescript-eslint/restrict-plus-operands": "off", //"error", // We use this a lot - fixing it is a problem for a rainy day
