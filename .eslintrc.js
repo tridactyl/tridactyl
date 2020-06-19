@@ -110,7 +110,11 @@ module.exports = {
         "@typescript-eslint/no-implied-eval": "error",
         "@typescript-eslint/no-inferrable-types": "off", //"error",
         "@typescript-eslint/no-misused-new": "error",
-        "@typescript-eslint/no-misused-promises": "off", //"error",
+        "@typescript-eslint/no-misused-promises": ["error",
+            {
+                "checksVoidReturn": false,
+            },
+        ],
         "@typescript-eslint/no-namespace": "error",
         "@typescript-eslint/no-non-null-asserted-optional-chain": "error",
         "@typescript-eslint/no-non-null-assertion": "warn",
