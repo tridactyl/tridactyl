@@ -137,7 +137,7 @@ module.exports = {
                 "avoidEscape": true
             }
         ],
-        "@typescript-eslint/require-await": "off", //"error",
+        "@typescript-eslint/require-await": "error",
         "@typescript-eslint/restrict-plus-operands": "off", //"error", // We use this a lot - fixing it is a problem for a rainy day
         "@typescript-eslint/restrict-template-expressions": "off",
         "@typescript-eslint/semi": [
@@ -252,11 +252,12 @@ module.exports = {
         "use-isnan": "error",
         "valid-typeof": "off"
     },
-    // // We ultimately didn't need this but I thought I should document it anyway
-    // "overrides": [{
-    //     "files": ["src/completions/*.ts",],
-    //     "rules": {
-    //         "@typescript-eslint/no-empty-function": "off",
-    //     },
-    // }],
+    "overrides": [{
+        "files": ["src/completions/*.ts", "src/excmds.ts"],
+        "rules": {
+            // We have methods that must be async in some classes but not in others
+            // In src/excmds anything that crosses between content<->background must be async even if it looks like it isn't
+            "@typescript-eslint/require-await": "off",
+        },
+    }],
 };

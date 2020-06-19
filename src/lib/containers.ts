@@ -80,7 +80,7 @@ export async function remove(name: string) {
     @param color the new color of the container
     @param icon the new icon of the container
  */
-export async function update(
+export function update(
     containerId: string,
     updateObj: {
         name: string
@@ -88,7 +88,7 @@ export async function update(
         icon: browser.contextualIdentities.IdentityIcon
     },
 ) {
-    const {name, color, icon} = updateObj
+    const { name, color, icon } = updateObj
     if (!isValidColor(color)) {
         logger.debug(updateObj)
         throw new Error("[Container.update] invalid container color: " + color)
@@ -97,7 +97,7 @@ export async function update(
         logger.debug(updateObj)
         throw new Error("[Container.update] invalid container icon: " + icon)
     }
-    browser.contextualIdentities.update(containerId, {name, color, icon})
+    browser.contextualIdentities.update(containerId, { name, color, icon })
 }
 
 /** Gets a container object from a supplied container id string. If no container corresponds to containerId, returns a default empty container.
@@ -122,7 +122,9 @@ export async function exists(cname: string): Promise<boolean> {
     let exists = false
     try {
         const containers = await getAll()
-        const res = containers.filter(c => c.name.toLowerCase() === cname.toLowerCase())
+        const res = containers.filter(
+            c => c.name.toLowerCase() === cname.toLowerCase(),
+        )
         if (res.length > 0) {
             exists = true
         }

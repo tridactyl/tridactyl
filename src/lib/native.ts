@@ -102,7 +102,8 @@ export async function getBestEditor(): Promise<string> {
     const vim_positioning_arg = ` ${arg_quote}+normal!%lGzv%c|${arg_quote}`
     if (os === "mac") {
         gui_candidates = [
-            "/Applications/MacVim.app/Contents/bin/mvim -f" + vim_positioning_arg,
+            "/Applications/MacVim.app/Contents/bin/mvim -f" +
+                vim_positioning_arg,
             "/usr/local/bin/vimr --wait --nvim +only",
         ]
         // if anyone knows of any "sensible" terminals that let you send them commands to run,
@@ -149,7 +150,12 @@ export async function getBestEditor(): Promise<string> {
         ]
     }
 
-    tui_editors = ["vim" + vim_positioning_arg, "nvim" + vim_positioning_arg, "nano %f", "emacs -nw %f"]
+    tui_editors = [
+        "vim" + vim_positioning_arg,
+        "nvim" + vim_positioning_arg,
+        "nano %f",
+        "emacs -nw %f",
+    ]
 
     // Consider GUI editors
     let cmd = await firstinpath(gui_candidates)
@@ -246,12 +252,17 @@ export async function firstinpath(cmdarray) {
     return cmd
 }
 
-export async function editor(file: string, line: number, col: number, content?: string) {
+export async function editor(
+    file: string,
+    line: number,
+    col: number,
+    content?: string,
+) {
     if (content !== undefined) await write(file, content)
-    const editorcmd =
-        (config.get("editorcmd") === "auto"
-            ? await getBestEditor()
-            : config.get("editorcmd"))
+    const editorcmd = (config.get("editorcmd") === "auto"
+        ? await getBestEditor()
+        : config.get("editorcmd")
+    )
         .replace(/%l/, line)
         .replace(/%c/, col)
     let exec
@@ -260,8 +271,7 @@ export async function editor(file: string, line: number, col: number, content?: 
     } else {
         exec = await run(editorcmd + " " + file)
     }
-    if (exec.code != 0)
-        return exec
+    if (exec.code != 0) return exec
     return read(file)
 }
 
@@ -371,9 +381,7 @@ export async function clipboard(
             const result = await run(`${clipcmd} -i`, str)
             if (result.code !== 0)
                 throw new Error(
-                    `External command failed with code ${
-                        result.code
-                    }: ${clipcmd}`,
+                    `External command failed with code ${result.code}: ${clipcmd}`,
                 )
             return ""
         } else {
@@ -448,9 +456,7 @@ export async function parseProfilesIni(content: string, basePath: string) {
         } else if (profile.IsRelative === "0") {
             if (profile.Path.substring(0, basePath.length) !== basePath) {
                 throw new Error(
-                    `Error parsing profiles ini: basePath "${basePath}" doesn't match profile path ${
-                        profile.Path
-                    }`,
+                    `Error parsing profiles ini: basePath "${basePath}" doesn't match profile path ${profile.Path}`,
                 )
             }
             profile.relativePath = profile.Path.substring(basePath.length)
@@ -509,8 +515,7 @@ export async function getProfileUncached() {
     // Then, try to find a profile path in the arguments given to Firefox
     const cmdline = await ff_cmdline().catch(e => "")
     let profile = cmdline.indexOf("--profile")
-    if (profile === -1)
-        profile = cmdline.indexOf("-profile")
+    if (profile === -1) profile = cmdline.indexOf("-profile")
     if (profile >= 0 && profile < cmdline.length - 1) {
         const profilePath = cmdline[profile + 1]
         if (iniSucceeded) {
@@ -545,9 +550,7 @@ export async function getProfileUncached() {
                 }
             }
             throw new Error(
-                `native.ts:getProfile() : '${
-                    cmdline[p]
-                }' found in command line arguments but no matching profile name found in "${iniPath}"`,
+                `native.ts:getProfile() : '${cmdline[p]}' found in command line arguments but no matching profile name found in "${iniPath}"`,
             )
         }
     }
@@ -562,10 +565,7 @@ export async function getProfileUncached() {
         profilecmd.content = profilecmd.content.trim()
         // If there's only one profile in use, use that to find the right profile
         if (profilecmd.content.split("\n").length === 1) {
-            const path = profilecmd.content
-                .split("/")
-                .slice(0, -1)
-                .join("/")
+            const path = profilecmd.content.split("/").slice(0, -1).join("/")
             if (iniSucceeded) {
                 for (const profileName of Object.keys(iniObject)) {
                     const profile = iniObject[profileName]
@@ -602,8 +602,7 @@ export async function getProfileUncached() {
 // Disk operations are extremely slow on windows, let's cache our profile info
 let cachedProfile
 export async function getProfile() {
-    if (cachedProfile === undefined)
-        cachedProfile = await getProfileUncached()
+    if (cachedProfile === undefined) cachedProfile = await getProfileUncached()
     return cachedProfile
 }
 // It makes sense to pre-fetch this value in the background script because it's
@@ -627,7 +626,7 @@ export async function getProfileDir() {
     return getProfile().then(p => p.absolutePath)
 }
 
-export async function parsePrefs(prefFileContent: string) {
+export function parsePrefs(prefFileContent: string) {
     //  This RegExp currently only deals with " but for correctness it should
     //  also deal with ' and `
     //  We could also just give up on parsing and eval() the whole thing
@@ -790,17 +789,23 @@ export async function unfixamo() {
         const tridactylPref2 = "tridactyl.unfixedamo_removed"
         const restricted = "extensions.webextensions.restrictedDomains"
         const amoblocker = "privacy.resistFingerprinting.block_mozAddonManager"
-        const restrictedDomains = '"accounts-static.cdn.mozilla.net,accounts.firefox.com,addons.cdn.mozilla.net,addons.mozilla.org,api.accounts.firefox.com,content.cdn.mozilla.net,discovery.addons.mozilla.org,install.mozilla.org,oauth.accounts.firefox.com,profile.accounts.firefox.com,support.mozilla.org,sync.services.mozilla.com"'
+        const restrictedDomains =
+            '"accounts-static.cdn.mozilla.net,accounts.firefox.com,addons.cdn.mozilla.net,addons.mozilla.org,api.accounts.firefox.com,content.cdn.mozilla.net,discovery.addons.mozilla.org,install.mozilla.org,oauth.accounts.firefox.com,profile.accounts.firefox.com,support.mozilla.org,sync.services.mozilla.com"'
 
         // Exit if we've already run this once
         if (userjs[tridactylPref2] === "true") return
 
-        if (userjs[restricted] === "" || userjs[restricted] === restrictedDomains) {
+        if (
+            userjs[restricted] === "" ||
+            userjs[restricted] === restrictedDomains
+        ) {
             await removePref(tridactylPref) // Clean up after first attempt if it exists
             await removePref(restricted)
             await removePref(amoblocker)
             await writePref(tridactylPref2, "true")
-            browserBg.tabs.create({url: browserBg.runtime.getURL("static/unfixamo.html")})
+            browserBg.tabs.create({
+                url: browserBg.runtime.getURL("static/unfixamo.html"),
+            })
         }
 
         return

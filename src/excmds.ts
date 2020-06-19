@@ -2620,9 +2620,7 @@ export async function qall() {
 //#background
 export async function containerclose(name: string) {
     const containerId = await Container.getId(name)
-    return browser.tabs.query({ cookieStoreId: containerId }).then(tabs => browser.tabs.remove(
-            tabs.map(tab => tab.id),
-        ))
+    return browser.tabs.query({ cookieStoreId: containerId }).then(tabs => browser.tabs.remove(tabs.map(tab => tab.id)))
 }
 /** Creates a new container. Note that container names must be unique and that the checks are case-insensitive.
 
@@ -2669,7 +2667,7 @@ export async function containerupdate(name: string, uname: string, ucolor: strin
     logger.debug("containerupdate parameters: " + name + ", " + uname + ", " + ucolor + ", " + uicon)
     const containerId = await Container.fuzzyMatch(name)
     const containerObj = Container.fromString(uname, ucolor, uicon)
-    await Container.update(containerId, containerObj)
+    Container.update(containerId, containerObj)
 }
 
 /** Shows a list of the current containers in Firefox's native JSON viewer in the current tab.
@@ -3617,8 +3615,7 @@ export async function sanitise(...args: string[]) {
          */
     }
     if (args.find(x => x === "all") !== undefined) {
-        for (const attr in dts)
-            if (Object.prototype.hasOwnProperty.call(dts, attr)) dts[attr] = true
+        for (const attr in dts) if (Object.prototype.hasOwnProperty.call(dts, attr)) dts[attr] = true
     } else {
         // We bother checking if dts[x] is false because
         // browser.browsingData.remove() is very strict on the format of the
