@@ -129,17 +129,18 @@ module.exports = {
         "@typescript-eslint/prefer-for-of": "error",
         "@typescript-eslint/prefer-function-type": "error",
         "@typescript-eslint/prefer-namespace-keyword": "error",
-        "@typescript-eslint/prefer-regexp-exec": "off", //"error",
+        "@typescript-eslint/prefer-regexp-exec": "error",
         "@typescript-eslint/quotes": [
-            "off", //"error",
+            "error",
             "double",
             {
-                "avoidEscape": true
-            }
+                "avoidEscape": true,
+                "allowTemplateLiterals": true,
+            },
         ],
-        "@typescript-eslint/require-await": "off", //"error",
-        "@typescript-eslint/restrict-plus-operands": "off", //"error",
-        "@typescript-eslint/restrict-template-expressions": "off", //"error",
+        "@typescript-eslint/require-await": "error",
+        "@typescript-eslint/restrict-plus-operands": "off", //"error", // We use this a lot - fixing it is a problem for a rainy day
+        "@typescript-eslint/restrict-template-expressions": "off",
         "@typescript-eslint/semi": [
             "off",
             null
@@ -153,15 +154,15 @@ module.exports = {
             }
         ],
         "@typescript-eslint/type-annotation-spacing": "error",
-        "@typescript-eslint/unbound-method": "off", //"error",
-        "@typescript-eslint/unified-signatures": "off", //"error",
-        "arrow-body-style": "off", //"error",
+        "@typescript-eslint/unbound-method": "error",
+        "@typescript-eslint/unified-signatures": "error",
+        "arrow-body-style": "error",
         "arrow-parens": [
             "off",
             "always"
         ],
         "brace-style": [
-            "off", //"error",
+            "error",
             "1tbs"
         ],
         "camelcase": "off",
@@ -174,7 +175,7 @@ module.exports = {
             "off",
             "always"
         ],
-        "guard-for-in": "off", //"error",
+        "guard-for-in": "error",
         "id-blacklist": "off",
         "id-match": "off",
         "import/order": "off",
@@ -198,7 +199,7 @@ module.exports = {
         ],
         "no-empty-function": "off",
         "no-eval": "off",
-        "no-extra-semi": "off", //"off",
+        "no-extra-semi": "error",
         "no-fallthrough": "off",
         "no-invalid-this": "off",
         "no-multiple-empty-lines": "error",
@@ -252,11 +253,12 @@ module.exports = {
         "use-isnan": "error",
         "valid-typeof": "off"
     },
-    // // We ultimately didn't need this but I thought I should document it anyway
-    // "overrides": [{
-    //     "files": ["src/completions/*.ts",],
-    //     "rules": {
-    //         "@typescript-eslint/no-empty-function": "off",
-    //     },
-    // }],
+    "overrides": [{
+        "files": ["src/completions/*.ts", "src/excmds.ts"],
+        "rules": {
+            // We have methods that must be async in some classes but not in others
+            // In src/excmds anything that crosses between content<->background must be async even if it looks like it isn't
+            "@typescript-eslint/require-await": "off",
+        },
+    }],
 };

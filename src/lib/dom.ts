@@ -120,12 +120,7 @@ export function mouseEvent(
 }
 
 export function elementsWithText() {
-    return getElemsBySelector("*", [
-        isVisible,
-        hint => {
-            return hint.textContent !== ""
-        },
-    ])
+    return getElemsBySelector("*", [isVisible, hint => hint.textContent !== ""])
 }
 
 /** Iterable of elements that match xpath.
@@ -306,7 +301,7 @@ export function getAllDocumentFrames(doc = document) {
 export function getSelector(e: HTMLElement) {
     function uniqueSelector(e: HTMLElement) {
         // Only matching alphanumeric selectors because others chars might have special meaning in CSS
-        if (e.id && e.id.match("^[a-zA-Z0-9]+$")) return "#" + e.id
+        if (e.id && /^[a-zA-Z0-9]+$/.exec(e.id)) return "#" + e.id
         // If we reached the top of the document
         if (!e.parentElement) return "HTML"
         // Compute the position of the element
@@ -539,7 +534,10 @@ function onPageFocus(elem: HTMLElement, args: any[]): boolean {
 async function setInput(el) {
     const tab = await activeTabId()
     // store maximum of 10 elements to stop this getting bonkers huge
-    const arr = (await State.getAsync("prevInputs")).concat({ tab, inputId: el.id })
+    const arr = (await State.getAsync("prevInputs")).concat({
+        tab,
+        inputId: el.id,
+    })
     state.prevInputs = arr.slice(Math.max(arr.length - 10, 0))
 }
 

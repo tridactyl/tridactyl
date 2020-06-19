@@ -239,9 +239,7 @@ export abstract class CompletionSourceFuse extends CompletionSource {
 
     /** Rtn sorted array of {option, score} */
     scoredOptions(query: string, options = this.options): ScoredOption[] {
-        const searchThis = this.options.map((elem, index) => {
-            return { index, fuseKeys: elem.fuseKeys }
-        })
+        const searchThis = this.options.map((elem, index) => ({ index, fuseKeys: elem.fuseKeys }))
         this.fuse = new Fuse(searchThis, this.fuseOptions)
         return this.fuse.search(query).map(result => {
             // console.log(result, result.item, query)

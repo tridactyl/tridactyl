@@ -278,7 +278,6 @@ export class StatsLogger {
     private incrementIdx() {
         this.idx = (this.idx + 1) % this.buffersize
     }
-
 }
 
 /**
@@ -388,7 +387,7 @@ const extractRegExp = new RegExp(
     // sample itself.
 )
 function extractMetricName(counterName: string): MetricNameInfo {
-    const matchresult = counterName.match(extractRegExp)
+    const matchresult = extractRegExp.exec(counterName)
     if (!matchresult) return
     const [ownerName, functionName, uniqueSuffix] = matchresult.slice(1)
 
@@ -416,5 +415,9 @@ class MetricName {
 }
 
 function sendStats(list: PerformanceEntryList) {
-    messaging.message("performance_background", "receiveStatsJson", JSON.stringify(list))
+    messaging.message(
+        "performance_background",
+        "receiveStatsJson",
+        JSON.stringify(list),
+    )
 }

@@ -93,16 +93,12 @@ export function getCommandlineFns(cmdline_state) {
         /**
          * Selects the next history line.
          */
-        "next_history": () => {
-            return cmdline_state.history(1)
-        },
+        "next_history": () => cmdline_state.history(1),
 
         /**
          * Selects the prev history line.
          */
-        "prev_history": () => {
-            return cmdline_state.history(-1)
-        },
+        "prev_history": () => cmdline_state.history(-1),
         /**
          * Execute the content of the command line and hide it.
          **/

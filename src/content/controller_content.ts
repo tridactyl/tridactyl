@@ -62,12 +62,12 @@ class KeyCanceller {
         this.keyUp.push(ke)
     }
 
-    cancelKeyPress(ke: KeyboardEvent) {
+    public cancelKeyPress = (ke: KeyboardEvent) => {
         if (!ke.isTrusted) return
         this.cancelKey(ke, this.keyPress)
     }
 
-    cancelKeyUp(ke: KeyboardEvent) {
+    public cancelKeyUp = (ke: KeyboardEvent) => {
         if (!ke.isTrusted) return
         this.cancelKey(ke, this.keyUp)
     }

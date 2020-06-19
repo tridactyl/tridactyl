@@ -39,10 +39,12 @@ export const browserBg = inContentScript() ? browserProxy : browser
  *
  */
 export async function activeTab() {
-    return (await browserBg.tabs.query({
-        active: true,
-        currentWindow: true,
-    }))[0]
+    return (
+        await browserBg.tabs.query({
+            active: true,
+            currentWindow: true,
+        })
+    )[0]
 }
 
 export async function activeTabId() {
@@ -122,9 +124,11 @@ export async function openInNewTab(
             break
         case "last":
             // Infinity can't be serialised, apparently.
-            options.index = (await browserBg.tabs.query({
-                currentWindow: true,
-            })).length
+            options.index = (
+                await browserBg.tabs.query({
+                    currentWindow: true,
+                })
+            ).length
             break
         case "related":
             if (await firefoxVersionAtLeast(57)) {
@@ -135,16 +139,20 @@ export async function openInNewTab(
             break
     }
 
-    if (kwargs.active === false) { // load in background
+    if (kwargs.active === false) {
+        // load in background
         return browserBg.tabs.create(options)
-    } else { // load in background and then activate, per issue #1993
-        return browserBg.tabs.create(options).then(newtab => browserBg.tabs.update(newtab.id, { active: true }))
+    } else {
+        // load in background and then activate, per issue #1993
+        return browserBg.tabs
+            .create(options)
+            .then(newtab => browserBg.tabs.update(newtab.id, { active: true }))
     }
 }
 
 // lazily copied from excmds.ts' winopen - forceURI really ought to be moved to lib/webext
 // Should consider changing interface of this to match openInNewTab or vice versa
-export async function openInNewWindow(createData = {}) {
+export function openInNewWindow(createData = {}) {
     browserBg.windows.create(createData)
 }
 
@@ -254,5 +262,5 @@ export async function openInTab(tab, opts = {}, strarr: string[]) {
 
     // No search engine has been defined in Tridactyl, let's use firefox's default search engine
     browserBg.search.search({ tabId: tab.id, query: queryString })
-    return tab;
+    return tab
 }

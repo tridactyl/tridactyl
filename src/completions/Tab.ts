@@ -38,18 +38,17 @@ class BufferCompletionOption extends Completions.CompletionOptionHTML
         const favIconUrl = tab.favIconUrl
             ? tab.favIconUrl
             : Completions.DEFAULT_FAVICON
-        this.html = html`<tr class="BufferCompletionOption option container_${container.color} container_${container.icon} container_${container.name}"
-            >
-                <td class="prefix">${pre.padEnd(2)}</td>
-                <td class="container"></td>
-                <td class="icon"><img src="${favIconUrl}" /></td>
-                <td class="title">${tab.index + 1}: ${tab.title}</td>
-                <td class="content">
-                    <a class="url" target="_blank" href=${tab.url}
-                        >${tab.url}</a
-                    >
-                </td>
-            </tr>`
+        this.html = html`<tr
+            class="BufferCompletionOption option container_${container.color} container_${container.icon} container_${container.name}"
+        >
+            <td class="prefix">${pre.padEnd(2)}</td>
+            <td class="container"></td>
+            <td class="icon"><img src="${favIconUrl}" /></td>
+            <td class="title">${tab.index + 1}: ${tab.title}</td>
+            <td class="content">
+                <a class="url" target="_blank" href=${tab.url}>${tab.url}</a>
+            </td>
+        </tr>`
     }
 }
 
@@ -126,15 +125,17 @@ export class BufferCompletionSource extends Completions.CompletionSourceFuse {
     /** Return the scoredOption[] result for the nth tab */
     private nthTabscoredOptions(
         n: number,
-        options: BufferCompletionOption[]
+        options: BufferCompletionOption[],
     ): Completions.ScoredOption[] {
         for (const [index, option] of enumerate(options)) {
             if (option.tabIndex === n) {
-                return [{
-                    index,
-                    option,
-                    score: 0,
-                }, ]
+                return [
+                    {
+                        index,
+                        option,
+                        score: 0,
+                    },
+                ]
             }
         }
     }
@@ -142,10 +143,10 @@ export class BufferCompletionSource extends Completions.CompletionSourceFuse {
     /** Return the scoredOption[] result for the tab index startswith n */
     private TabscoredOptionsStartsWithN(
         n: number,
-        options: BufferCompletionOption[]
+        options: BufferCompletionOption[],
     ): Completions.ScoredOption[] {
         const nstr = (n + 1).toString()
-        const res = [];
+        const res = []
         for (const [index, option] of enumerate(options)) {
             if ((option.tabIndex + 1).toString().startsWith(nstr)) {
                 res.push({
@@ -158,7 +159,7 @@ export class BufferCompletionSource extends Completions.CompletionSourceFuse {
 
         // old input will change order: 12 => 123 => 12
         res.sort((a, b) => a.option.tabIndex - b.option.tabIndex)
-        return res;
+        return res
     }
 
     private async fillOptions() {
@@ -167,17 +168,19 @@ export class BufferCompletionSource extends Completions.CompletionSourceFuse {
         })
         const options = []
         // Get alternative tab, defined as last accessed tab.
-        tabs.sort((a, b) => (b.lastAccessed - a.lastAccessed))
+        tabs.sort((a, b) => b.lastAccessed - a.lastAccessed)
         const alt = tabs[1]
 
-        const useMruTabOrder = (config.get("tabsort") === "mru")
+        const useMruTabOrder = config.get("tabsort") === "mru"
         if (!useMruTabOrder) {
-            tabs.sort((a, b) => (a.index - b.index))
+            tabs.sort((a, b) => a.index - b.index)
         }
 
         const container_all = await browserBg.contextualIdentities.query({})
         const container_map = new Map()
-        container_all.forEach(elem => container_map.set(elem.cookieStoreId, elem))
+        container_all.forEach(elem =>
+            container_map.set(elem.cookieStoreId, elem),
+        )
         // firefox-default is not in contextualIdenetities
         container_map.set("firefox-default", Containers.DefaultContainer)
 
@@ -191,7 +194,7 @@ export class BufferCompletionSource extends Completions.CompletionSourceFuse {
                     (tab.index + 1).toString(),
                     tab,
                     tab === alt,
-                    tab_container
+                    tab_container,
                 ),
             )
         }
@@ -219,7 +222,7 @@ export class BufferCompletionSource extends Completions.CompletionSourceFuse {
 
         // When the user is asking for tabmove completions, don't autoselect if the query looks like a relative move https://github.com/tridactyl/tridactyl/issues/825
         this.shouldSetStateFromScore = !(
-            prefix === "tabmove " && query.match("^[+-][0-9]+$")
+            prefix === "tabmove " && /^[+-][0-9]+$/.exec(query)
         )
 
         if (!this.options) {

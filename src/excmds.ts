@@ -257,7 +257,7 @@ export function fillinput(selector: string, ...content: string[]) {
     let inputToFill = document.querySelector(selector)
     if (!inputToFill) inputToFill = DOM.getLastUsedInput()
     if ("value" in inputToFill) {
-        ; (inputToFill as HTMLInputElement).value = content.join(" ")
+        (inputToFill as HTMLInputElement).value = content.join(" ")
     } else {
         inputToFill.textContent = content.join(" ")
     }
@@ -336,7 +336,7 @@ export async function editor() {
         let line = 0
         let col = 0
         wrap_input((t, start, end) => {
-            ; [text, line, col] = getLineAndColNumber(t, start, end)
+            [text, line, col] = getLineAndColNumber(t, start, end)
             return [null, null, null]
         })(elem)
         const file = (await Native.temp(text, document.location.hostname)).content
@@ -444,16 +444,7 @@ export async function loadtheme(themename: string) {
     if (!(await Native.nativegate("0.1.9"))) return
     const separator = (await browserBg.runtime.getPlatformInfo()).os === "win" ? "\\" : "/"
     // remove the "tridactylrc" bit so that we're left with the directory
-    const path =
-        (await Native.getrcpath())
-            .split(separator)
-            .slice(0, -1)
-            .join(separator) +
-        separator +
-        "themes" +
-        separator +
-        themename +
-        ".css"
+    const path = (await Native.getrcpath()).split(separator).slice(0, -1).join(separator) + separator + "themes" + separator + themename + ".css"
     const file = await Native.read(path)
     if (file.code !== 0) throw new Error("Couldn't read theme " + path)
     return set("customthemes." + themename, file.content)
@@ -967,7 +958,7 @@ export function addJump() {
         JUMPED = false
         return
     }
-    const {scrollX, scrollY} = window
+    const { scrollX, scrollY } = window
     // Prevent pending jump from being registered
     clearTimeout(JUMP_TIMEOUTID)
     // Schedule the registering of the current jump
@@ -992,7 +983,7 @@ export function addJump() {
 }
 
 //#content_helper
-document.addEventListener("scroll", addJump, {passive: true})
+document.addEventListener("scroll", addJump, { passive: true })
 
 // Try to restore the previous jump position every time a page is loaded
 //#content_helper
@@ -1028,7 +1019,7 @@ export async function scrollpx(a: number, b: number) {
 */
 //#content
 export function scrollto(a: number | string, b: number | "x" | "y" = "y") {
-    if (typeof a === "string" && a.match(/c$/i)) {
+    if (typeof a === "string" && /c$/i.exec(a)) {
         a = (Number(a.replace(/c$/, "")) * 100) / (2 * Math.PI)
     }
     a = Number(a)
@@ -1208,10 +1199,10 @@ export async function open(...urlarr: string[]) {
     const url = urlarr.join(" ")
 
     // Setting window.location to about:blank results in a page we can't access, tabs.update works.
-    if (!ABOUT_WHITELIST.includes(url) && url.match(/^(about|file):.*/)) {
+    if (!ABOUT_WHITELIST.includes(url) && /^(about|file):.*/.exec(url)) {
         // Open URLs that firefox won't let us by running `firefox <URL>` on the command line
         return nativeopen(url)
-    } else if (url.match(/^javascript:/)) {
+    } else if (/^javascript:/.exec(url)) {
         const bookmarklet = url.replace(/^javascript:/, "")
         document.body.append(
             html`
@@ -1245,7 +1236,7 @@ export async function bmarks(opt: string, ...urlarr: string[]) {
 export async function open_quiet(...urlarr: string[]) {
     const url = urlarr.join(" ")
 
-    if (!ABOUT_WHITELIST.includes(url) && url.match(/^(about|file):.*/)) {
+    if (!ABOUT_WHITELIST.includes(url) && /^(about|file):.*/.exec(url)) {
         return nativeopen(url)
     }
 
@@ -2143,7 +2134,7 @@ export async function tabopen(...addressarr: string[]) {
     const query = await argParse(addressarr)
 
     const address = query.join(" ")
-    if (!ABOUT_WHITELIST.includes(address) && address.match(/^(about|file):.*/)) {
+    if (!ABOUT_WHITELIST.includes(address) && /^(about|file):.*/.exec(address)) {
         return nativeopen(address)
     }
 
@@ -2186,34 +2177,35 @@ export async function tabopen(...addressarr: string[]) {
 export function tabqueue(...addresses: string[]) {
     // addresses[0] is a string when called with `tabopen a b c` but an array
     // when called from `composite hint -qpipe a href | tabqueue`.
-    addresses = addresses.flat(Infinity);
+    addresses = addresses.flat(Infinity)
     if (addresses.length === 0) {
-        return Promise.resolve();
+        return Promise.resolve()
     }
-    return tabopen("-b", addresses[0]).then(tab =>
-        new Promise ((resolve, reject) => {
-            function openNextTab(activeInfo) {
-                if (activeInfo.tabId === tab.id) {
-                    resolve(tabqueue(...(addresses.slice(1))));
-                    removeTabqueueListeners(tab.id);
+    return tabopen("-b", addresses[0]).then(
+        tab =>
+            new Promise((resolve, reject) => {
+                function openNextTab(activeInfo) {
+                    if (activeInfo.tabId === tab.id) {
+                        resolve(tabqueue(...addresses.slice(1)))
+                        removeTabqueueListeners(tab.id)
+                    }
                 }
-            }
-            function removeTabqueueListeners(tabId) {
-                if (tabId === tab.id) {
-                    browser.tabs.onActivated.removeListener(openNextTab);
-                    browser.tabs.onRemoved.removeListener(removeTabqueueListeners);
-                    // FIXME: This should actually be `reject(tab)` to
-                    // interrupt pipelines, but this results in an impossible
-                    // to debug `Error: undefined` message being printed on the
-                    // command line. So we silently resolve the promise and
-                    // hope for the best.
-                    resolve(tab);
+                function removeTabqueueListeners(tabId) {
+                    if (tabId === tab.id) {
+                        browser.tabs.onActivated.removeListener(openNextTab)
+                        browser.tabs.onRemoved.removeListener(removeTabqueueListeners)
+                        // FIXME: This should actually be `reject(tab)` to
+                        // interrupt pipelines, but this results in an impossible
+                        // to debug `Error: undefined` message being printed on the
+                        // command line. So we silently resolve the promise and
+                        // hope for the best.
+                        resolve(tab)
+                    }
                 }
-            }
-            browser.tabs.onActivated.addListener(openNextTab);
-            browser.tabs.onRemoved.addListener(removeTabqueueListeners);
-        })
-    );
+                browser.tabs.onActivated.addListener(openNextTab)
+                browser.tabs.onRemoved.addListener(removeTabqueueListeners)
+            }),
+    )
 }
 
 /** Resolve a tab index to the tab id of the corresponding tab in this window.
@@ -2246,10 +2238,12 @@ async function idFromIndex(index?: number | "%" | "#" | string): Promise<number>
         index = (index - 1).mod((await browser.tabs.query({ currentWindow: true })).length) + 1
 
         // Return id of tab with that index.
-        return (await browser.tabs.query({
-            currentWindow: true,
-            index: index - 1,
-        }))[0].id
+        return (
+            await browser.tabs.query({
+                currentWindow: true,
+                index: index - 1,
+            })
+        )[0].id
     } else {
         return activeTabId()
     }
@@ -2336,7 +2330,7 @@ export async function tabclose(...indexes: string[]) {
  */
 //#background
 export async function tabcloseallto(side: string) {
-    if (!(["left", "right"].includes(side))) {
+    if (!["left", "right"].includes(side)) {
         throw "side argument must be left or right"
     }
     const tabs = await browser.tabs.query({
@@ -2585,7 +2579,7 @@ export async function winopen(...args: string[]) {
     }
 
     const address = args.join(" ")
-    if (!ABOUT_WHITELIST.includes(address) && address.match(/^(about|file):.*/)) {
+    if (!ABOUT_WHITELIST.includes(address) && /^(about|file):.*/.exec(address)) {
         return nativeopen(firefoxArgs, address)
     }
 
@@ -2626,13 +2620,7 @@ export async function qall() {
 //#background
 export async function containerclose(name: string) {
     const containerId = await Container.getId(name)
-    return browser.tabs.query({ cookieStoreId: containerId }).then(tabs => {
-        return browser.tabs.remove(
-            tabs.map(tab => {
-                return tab.id
-            }),
-        )
-    })
+    return browser.tabs.query({ cookieStoreId: containerId }).then(tabs => browser.tabs.remove(tabs.map(tab => tab.id)))
 }
 /** Creates a new container. Note that container names must be unique and that the checks are case-insensitive.
 
@@ -2679,7 +2667,7 @@ export async function containerupdate(name: string, uname: string, ucolor: strin
     logger.debug("containerupdate parameters: " + name + ", " + uname + ", " + ucolor + ", " + uicon)
     const containerId = await Container.fuzzyMatch(name)
     const containerObj = Container.fromString(uname, ucolor, uicon)
-    await Container.update(containerId, containerObj)
+    Container.update(containerId, containerObj)
 }
 
 /** Shows a list of the current containers in Firefox's native JSON viewer in the current tab.
@@ -2692,11 +2680,7 @@ export async function viewcontainers() {
     // # and white space don't agree with FF's JSON viewer.
     // Probably other symbols too.
     const containers = await browserBg.contextualIdentities.query({}) // Can't access src/lib/containers.ts from a content script.
-    window.location.href =
-        "data:application/json," +
-        JSON.stringify(containers)
-            .replace(/#/g, "%23")
-            .replace(/ /g, "%20")
+    window.location.href = "data:application/json," + JSON.stringify(containers).replace(/#/g, "%23").replace(/ /g, "%20")
 }
 
 /** Opens the current tab in another container.
@@ -2771,12 +2755,8 @@ async function getnexttabs(tabid: number, n?: number) {
     const tabs: browser.tabs.Tab[] = await browser.tabs.query({
         currentWindow: true,
     })
-    const indexFilter = ((tab: browser.tabs.Tab) => {
-        return curIndex <= tab.index && (n ? tab.index < curIndex + Number(n) : true)
-    }).bind(n)
-    return tabs.filter(indexFilter).map((tab: browser.tabs.Tab) => {
-        return tab.id
-    })
+    const indexFilter = ((tab: browser.tabs.Tab) => curIndex <= tab.index && (n ? tab.index < curIndex + Number(n) : true)).bind(n)
+    return tabs.filter(indexFilter).map((tab: browser.tabs.Tab) => tab.id)
 }
 
 // Moderately slow; should load in results as they arrive, perhaps
@@ -2849,30 +2829,27 @@ export async function composite(...cmds: string[]) {
                 // For each pipeline, wait for previous pipeline to finish, then
                 // execute each cmd in pipeline in order, passing the result of the
                 // previous cmd as the last argument to the next command.
-                .reduce(
-                    async (prev_pipeline, cmd) => {
-                        await prev_pipeline
-                        const cmds = cmd.split("|")
+                .reduce(async (prev_pipeline, cmd) => {
+                    await prev_pipeline
+                    const cmds = cmd.split("|")
 
-                        // Compute the first piped value.
-                        //
-                        // We could invoke controller.acceptExCmd, but
-                        // that would cause our pipeline section to be
-                        // stored as the last executed command for the
-                        // purposes of :repeat, which would be
-                        // nonsense. So we copy-paste the important
-                        // parts of the body of that function instead.
-                        const [fn, args] = excmd_parser.parser(cmds[0], ALL_EXCMDS)
-                        const first_value = fn.call({}, ...args)
+                    // Compute the first piped value.
+                    //
+                    // We could invoke controller.acceptExCmd, but
+                    // that would cause our pipeline section to be
+                    // stored as the last executed command for the
+                    // purposes of :repeat, which would be
+                    // nonsense. So we copy-paste the important
+                    // parts of the body of that function instead.
+                    const [fn, args] = excmd_parser.parser(cmds[0], ALL_EXCMDS)
+                    const first_value = fn.call({}, ...args)
 
-                        // Exec the rest of the pipe in sequence.
-                        return cmds.slice(1).reduce(async (pipedValue, cmd) => {
-                            const [fn, args] = excmd_parser.parser(cmd, ALL_EXCMDS)
-                            return fn.call({}, ...args, await pipedValue)
-                        }, first_value)
-                    },
-                    null as any,
-                )
+                    // Exec the rest of the pipe in sequence.
+                    return cmds.slice(1).reduce(async (pipedValue, cmd) => {
+                        const [fn, args] = excmd_parser.parser(cmd, ALL_EXCMDS)
+                        return fn.call({}, ...args, await pipedValue)
+                    }, first_value)
+                }, null as any)
         )
     } catch (e) {
         logger.error(e)
@@ -3122,7 +3099,7 @@ export async function tab(index: number | "#") {
 //#background
 export async function taball(id: string) {
     const windows = (await browser.windows.getAll()).map(w => w.id).sort((a, b) => a - b)
-    if (id === null || id === undefined || !id.match(/\d+\.\d+/)) {
+    if (id === null || id === undefined || /\d+\.\d+/.exec(id)) {
         const tab = await activeTab()
         const prevId = id
         id = windows.indexOf(tab.windowId) + "." + (tab.index + 1)
@@ -3590,7 +3567,7 @@ export async function sanitise(...args: string[]) {
     // If the -t flag has been given and there is an arg after it
     if (flagpos > -1) {
         if (flagpos < args.length - 1) {
-            const match = args[flagpos + 1].match("^([0-9])+(m|h|d|w)$")
+            const match = /^([0-9])+(m|h|d|w)$/.exec(args[flagpos + 1])
             // If the arg of the flag matches Pentadactyl's sanitisetimespan format
             if (match !== null && match.length === 3) {
                 // Compute the timespan in milliseconds and get a Date object
@@ -3638,7 +3615,7 @@ export async function sanitise(...args: string[]) {
          */
     }
     if (args.find(x => x === "all") !== undefined) {
-        for (const attr in dts) dts[attr] = true
+        for (const attr in dts) if (Object.prototype.hasOwnProperty.call(dts, attr)) dts[attr] = true
     } else {
         // We bother checking if dts[x] is false because
         // browser.browsingData.remove() is very strict on the format of the
@@ -3722,31 +3699,14 @@ export function get(...keys: string[]) {
 export function viewconfig(key?: string) {
     // # and white space don't agree with FF's JSON viewer.
     // Probably other symbols too.
-    if (!key)
-        window.location.href =
-            "data:application/json," +
-            JSON.stringify(config.get())
-                .replace(/#/g, "%23")
-                .replace(/ /g, "%20")
+    if (!key) window.location.href = "data:application/json," + JSON.stringify(config.get()).replace(/#/g, "%23").replace(/ /g, "%20")
     // I think JS casts key to the string "undefined" if it isn't given.
     else if (key === "--default") {
-        window.location.href =
-            "data:application/json," +
-            JSON.stringify(config.o(new config.default_config()))
-                .replace(/#/g, "%23")
-                .replace(/ /g, "%20")
+        window.location.href = "data:application/json," + JSON.stringify(config.o(new config.default_config())).replace(/#/g, "%23").replace(/ /g, "%20")
     } else if (key === "--user") {
-        window.location.href =
-            "data:application/json," +
-            JSON.stringify(config.USERCONFIG)
-                .replace(/#/g, "%23")
-                .replace(/ /g, "%20")
+        window.location.href = "data:application/json," + JSON.stringify(config.USERCONFIG).replace(/#/g, "%23").replace(/ /g, "%20")
     }
-    window.location.href =
-        "data:application/json," +
-        JSON.stringify(config.getDynamic(key))
-            .replace(/#/g, "%23")
-            .replace(/ /g, "%20")
+    window.location.href = "data:application/json," + JSON.stringify(config.getDynamic(key)).replace(/#/g, "%23").replace(/ /g, "%20")
     // base 64 encoding is a cleverer way of doing this, but it doesn't seem to work for the whole config.
     //window.location.href = "data:application/json;base64," + btoa(JSON.stringify(config.get()))
 }
@@ -4030,12 +3990,7 @@ export async function hint(option?: string, selectors?: string, ...rest: string[
             break
 
         case "-pipe":
-            selectHints = hinting.pipe(
-                selectors,
-                elem => elem[rest.join(" ")],
-                rapid,
-                jshints,
-            )
+            selectHints = hinting.pipe(selectors, elem => elem[rest.join(" ")], rapid, jshints)
             break
 
         case "-i":
@@ -4497,8 +4452,7 @@ async function js_helper(str: string[]) {
                 done = true
                 break
         }
-        if (!done)
-            str.shift()
+        if (!done) str.shift()
     }
 
     if (doSource) {
@@ -4509,8 +4463,7 @@ async function js_helper(str: string[]) {
             sourcePath = [...rcPath, sourcePath].join(sep)
         }
         const file = await Native.read(sourcePath)
-        if (file.code !== 0)
-            throw new Error("Couldn't read js file " + sourcePath)
+        if (file.code !== 0) throw new Error("Couldn't read js file " + sourcePath)
         jsContent = file.content
     } else {
         jsContent = str.join(" ")

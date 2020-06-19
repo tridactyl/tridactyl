@@ -254,9 +254,7 @@ export function deleteQuery(url: URL, matchQuery: string): URL {
 
     const qys = getUrlQueries(url)
 
-    const new_qys = qys.filter(q => {
-        return q.split("=")[0] !== matchQuery
-    })
+    const new_qys = qys.filter(q => q.split("=")[0] !== matchQuery)
 
     setUrlQueries(newUrl, new_qys)
 

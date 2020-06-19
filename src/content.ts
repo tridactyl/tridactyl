@@ -35,12 +35,18 @@ import { EditorCmds } from "@src/content/editor"
 import * as hinting_content from "@src/content/hinting"
 controller.setExCmds({
     "": excmds_content,
-    "ex": CmdlineCmds,
-    "text": EditorCmds,
-    "hint": hinting_content.getHintCommands()
+    ex: CmdlineCmds,
+    text: EditorCmds,
+    hint: hinting_content.getHintCommands(),
 })
-messaging.addListener("excmd_content", messaging.attributeCaller(excmds_content))
-messaging.addListener("controller_content", messaging.attributeCaller(controller))
+messaging.addListener(
+    "excmd_content",
+    messaging.attributeCaller(excmds_content),
+)
+messaging.addListener(
+    "controller_content",
+    messaging.attributeCaller(controller),
+)
 
 // Hook the keyboard up to the controller
 import * as ContentController from "@src/content/controller_content"
@@ -87,7 +93,7 @@ config.getAsync("preventautofocusjackhammer").then(allowautofocus => {
     const preventAutoFocus = () => {
         // First, blur whatever element is active. This will make sure
         // activeElement is the "default" active element
-        ; (document.activeElement as any).blur()
+        (document.activeElement as any).blur()
         const elem = document.activeElement as any
         // ???: We need to set tabIndex, otherwise we won't get focus/blur events!
         elem.tabIndex = 0
@@ -97,7 +103,9 @@ config.getAsync("preventautofocusjackhammer").then(allowautofocus => {
         // On top of blur/focusout events, we need to periodically check the
         // activeElement is the one we want because blur/focusout events aren't
         // always triggered when document.activeElement changes
-        const interval = setInterval(() => { if (document.activeElement != elem) focusElem() }, 200)
+        const interval = setInterval(() => {
+            if (document.activeElement != elem) focusElem()
+        }, 200)
         // When the user starts interacting with the page, stop resetting focus
         function stopResettingFocus(event: Event) {
             if (!event.isTrusted) return
@@ -145,7 +153,7 @@ import * as scrolling from "@src/content/scrolling"
 import * as R from "ramda"
 import * as visual from "@src/lib/visual"
 /* tslint:disable:import-spacing */
-; (window as any).tri = Object.assign(Object.create(null), {
+;(window as any).tri = Object.assign(Object.create(null), {
     browserBg: webext.browserBg,
     commandline_content,
     convert,
@@ -240,7 +248,9 @@ config.getAsync("modeindicator").then(mode => {
             .then(container => {
                 statusIndicator.setAttribute(
                     "style",
-                    `border: ${(container as any).colorCode} solid 1.5px !important`,
+                    `border: ${
+                        (container as any).colorCode
+                    } solid 1.5px !important`,
                 )
             })
             .catch(error => {
@@ -338,14 +348,12 @@ config.getAsync("modeindicator").then(mode => {
 
 function protectSlash(e) {
     if (!e.isTrusted) return
-    config.get("blacklistkeys").map(
-        protkey => {
-            if (protkey.indexOf(e.key) !== -1 && contentState.mode === "normal") {
-                e.cancelBubble = true
-                e.stopImmediatePropagation()
-            }
+    config.get("blacklistkeys").map(protkey => {
+        if (protkey.indexOf(e.key) !== -1 && contentState.mode === "normal") {
+            e.cancelBubble = true
+            e.stopImmediatePropagation()
         }
-    )
+    })
 }
 
 // Some sites like to prevent firefox's `/` from working so we need to protect
@@ -366,11 +374,19 @@ config.getAsync("leavegithubalone").then(v => {
 
 document.addEventListener("selectionchange", () => {
     const selection = document.getSelection()
-    if ((contentState.mode == "visual") && (config.get("visualexitauto") == "true") && (selection.anchorOffset == selection.focusOffset)) {
+    if (
+        contentState.mode == "visual" &&
+        config.get("visualexitauto") == "true" &&
+        selection.anchorOffset == selection.focusOffset
+    ) {
         contentState.mode = "normal"
         return
     }
-    if ((contentState.mode !== "normal") || (config.get("visualenterauto") == "false")) return
+    if (
+        contentState.mode !== "normal" ||
+        config.get("visualenterauto") == "false"
+    )
+        return
     if (selection.anchorOffset !== selection.focusOffset) {
         contentState.mode = "visual"
     }
@@ -380,6 +396,6 @@ document.addEventListener("selectionchange", () => {
 // background for collection. Attach the observer to the window object
 // since there's apparently a bug that causes performance observers to
 // be GC'd even if they're still the target of a callback.
-; (window as any).tri = Object.assign(window.tri, {
+;(window as any).tri = Object.assign(window.tri, {
     perfObserver: perf.listenForCounters(),
 })

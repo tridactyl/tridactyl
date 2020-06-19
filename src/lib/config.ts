@@ -26,8 +26,8 @@ const removeNull = R.when(
     R.is(Object),
     R.pipe(
         R.reject(val => val === null),
-        R.map(a => removeNull(a))
-    )
+        R.map(a => removeNull(a)),
+    ),
 )
 
 /** @hidden */
@@ -276,7 +276,7 @@ export class default_config {
         ";y": "hint -y",
         ";p": "hint -p",
         ";h": "hint -h",
-        "v": "hint -h", // Easiest way of entering visual mode for now. Expect this bind to change
+        v: "hint -h", // Easiest way of entering visual mode for now. Expect this bind to change
         ";P": "hint -P",
         ";r": "hint -r",
         ";s": "hint -s",
@@ -339,23 +339,32 @@ export class default_config {
     }
 
     vmaps = {
-        "<Escape>": "composite js document.getSelection().empty(); mode normal; hidecmdline",
-        "<C-[>": "composite js document.getSelection().empty(); mode normal ; hidecmdline",
-        "y": "composite js document.getSelection().toString() | clipboard yank",
-        "s": "composite js document.getSelection().toString() | fillcmdline open search",
-        "S": "composite js document.getSelection().toString() | fillcmdline tabopen search",
-        "l": 'js document.getSelection().modify("extend","forward","character")',
-        "h": 'js document.getSelection().modify("extend","backward","character")',
-        "e": 'js document.getSelection().modify("extend","forward","word")',
-        "w": 'js document.getSelection().modify("extend","forward","word"); document.getSelection().modify("extend","forward","character")',
-        "b": 'js document.getSelection().modify("extend","backward","character"); document.getSelection().modify("extend","backward","word"); document.getSelection().modify("extend","forward","character")',
-        "j": 'js document.getSelection().modify("extend","forward","line")',
+        "<Escape>":
+            "composite js document.getSelection().empty(); mode normal; hidecmdline",
+        "<C-[>":
+            "composite js document.getSelection().empty(); mode normal ; hidecmdline",
+        y: "composite js document.getSelection().toString() | clipboard yank",
+        s:
+            "composite js document.getSelection().toString() | fillcmdline open search",
+        S:
+            "composite js document.getSelection().toString() | fillcmdline tabopen search",
+        l: 'js document.getSelection().modify("extend","forward","character")',
+        h: 'js document.getSelection().modify("extend","backward","character")',
+        e: 'js document.getSelection().modify("extend","forward","word")',
+        w:
+            'js document.getSelection().modify("extend","forward","word"); document.getSelection().modify("extend","forward","character")',
+        b:
+            'js document.getSelection().modify("extend","backward","character"); document.getSelection().modify("extend","backward","word"); document.getSelection().modify("extend","forward","character")',
+        j: 'js document.getSelection().modify("extend","forward","line")',
         // "j": 'js document.getSelection().modify("extend","forward","paragraph")', // not implemented in Firefox
-        "k": 'js document.getSelection().modify("extend","backward","line")',
-        "$": 'js document.getSelection().modify("extend","forward","lineboundary")',
-        "0": 'js document.getSelection().modify("extend","backward","lineboundary")',
-        "=": "js let n = document.getSelection().anchorNode.parentNode; let s = window.getSelection(); let r = document.createRange(); s.removeAllRanges(); r.selectNodeContents(n); s.addRange(r)",
-        "o": "js tri.visual.reverseSelection(document.getSelection())",
+        k: 'js document.getSelection().modify("extend","backward","line")',
+        $:
+            'js document.getSelection().modify("extend","forward","lineboundary")',
+        "0":
+            'js document.getSelection().modify("extend","backward","lineboundary")',
+        "=":
+            "js let n = document.getSelection().anchorNode.parentNode; let s = window.getSelection(); let r = document.createRange(); s.removeAllRanges(); r.selectNodeContents(n); s.addRange(r)",
+        o: "js tri.visual.reverseSelection(document.getSelection())",
         "🕷🕷INHERITS🕷🕷": "nmaps",
     }
 
@@ -572,14 +581,15 @@ export class default_config {
         mkt: "mktridactylrc",
         "mkt!": "mktridactylrc -f",
         "mktridactylrc!": "mktridactylrc -f",
-        mpvsafe: "js -p tri.excmds.shellescape(JS_ARG).then(url => tri.excmds.exclaim_quiet('mpv ' + url))",
+        mpvsafe:
+            "js -p tri.excmds.shellescape(JS_ARG).then(url => tri.excmds.exclaim_quiet('mpv ' + url))",
         exto: "extoptions",
         extpreferences: "extoptions",
         extp: "extpreferences",
         prefset: "setpref",
         prefremove: "removepref",
         tabclosealltoright: "tabcloseallto right",
-        tabclosealltoleft: "tabcloseallto left"
+        tabclosealltoleft: "tabcloseallto left",
     }
 
     /**
@@ -897,7 +907,7 @@ export class default_config {
      *
      * Replaces %WINTAG with "-Tag $TRI_VERSION", similarly to [[nativeinstallcmd]].
      */
-     win_nativeinstallcmd = `powershell -NoProfile -InputFormat None -Command "Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/cmcaine/tridactyl/master/native/win_install.ps1'))"`
+    win_nativeinstallcmd = `powershell -NoProfile -InputFormat None -Command "Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/cmcaine/tridactyl/master/native/win_install.ps1'))"`
 
     /**
      * Used by :updatecheck and related built-in functionality to automatically check for updates and prompt users to upgrade.
@@ -1056,10 +1066,13 @@ export const DEFAULTS = o(new default_config())
  */
 function getDeepProperty(obj, target: string[]) {
     if (obj !== undefined && obj !== null && target.length) {
-        if (obj["🕷🕷INHERITS🕷🕷"] === undefined)  {
+        if (obj["🕷🕷INHERITS🕷🕷"] === undefined) {
             return getDeepProperty(obj[target[0]], target.slice(1))
         } else {
-            return getDeepProperty(mergeDeepCull(get(obj["🕷🕷INHERITS🕷🕷"]), obj)[target[0]], target.slice(1))
+            return getDeepProperty(
+                mergeDeepCull(get(obj["🕷🕷INHERITS🕷🕷"]), obj)[target[0]],
+                target.slice(1),
+            )
         }
     } else {
         if (obj === undefined || obj === null) return obj
@@ -1102,7 +1115,11 @@ export function mergeDeep(o1, o2) {
         .filter(
             key => typeof o1[key] === "object" && typeof o2[key] === "object",
         )
-        .forEach(key => r[key] == null ? null : Object.assign(r[key], mergeDeep(o1[key], o2[key])))
+        .forEach(key =>
+            r[key] == null
+                ? null
+                : Object.assign(r[key], mergeDeep(o1[key], o2[key])),
+        )
     return r
 }
 
@@ -1134,18 +1151,15 @@ export function getURL(url: string, target: string[]) {
                         (conf.subconfigs[k2].priority || 10),
                 )
                 // Merge their corresponding value if they're objects, otherwise return the last value
-                .reduce(
-                    (acc, curKey) => {
-                        const curVal = getDeepProperty(
-                            conf.subconfigs[curKey],
-                            target,
-                        )
-                        if (acc instanceof Object && curVal instanceof Object)
-                            return mergeDeep(acc, curVal)
-                        return curVal
-                    },
-                    undefined as any,
-                )
+                .reduce((acc, curKey) => {
+                    const curVal = getDeepProperty(
+                        conf.subconfigs[curKey],
+                        target,
+                    )
+                    if (acc instanceof Object && curVal instanceof Object)
+                        return mergeDeep(acc, curVal)
+                    return curVal
+                }, undefined as any)
         )
     }
     const user = _getURL(USERCONFIG, url, target)
@@ -1266,9 +1280,13 @@ export async function set(...args) {
 
         setDeepProperty(USERCONFIG, value, target)
 
-        if (target.length === 1 && target[0] === "storageloc" && previousValue !== value) {
-          // ensure storageloc is saved locally before switching
-          await save(previousValue)
+        if (
+            target.length === 1 &&
+            target[0] === "storageloc" &&
+            previousValue !== value
+        ) {
+            // ensure storageloc is saved locally before switching
+            await save(previousValue)
         }
         return save()
     } else {
@@ -1381,7 +1399,7 @@ export async function update() {
             set("configversion", "1.2")
         }
         case "1.2": {
-            ; ["ignoremaps", "inputmaps", "imaps", "nmaps"]
+            ["ignoremaps", "inputmaps", "imaps", "nmaps"]
                 .map(mapname => [
                     mapname,
                     getDeepProperty(USERCONFIG, [mapname]),
@@ -1413,7 +1431,7 @@ export async function update() {
             set("configversion", "1.3")
         }
         case "1.3": {
-            ; [
+            [
                 "priority",
                 "hintdelay",
                 "scrollduration",
@@ -1426,7 +1444,7 @@ export async function update() {
             set("configversion", "1.4")
         }
         case "1.4": {
-            ; (getDeepProperty(USERCONFIG, ["noiframeon"]) || []).forEach(
+            (getDeepProperty(USERCONFIG, ["noiframeon"]) || []).forEach(
                 site => {
                     setURL(site, "noiframe", "true")
                 },
@@ -1444,7 +1462,7 @@ export async function update() {
                     mapObj["<Space>"] = mapObj[" "]
                     delete mapObj[" "]
                 }
-                ; [
+                [
                     "<A- >",
                     "<C- >",
                     "<M- >",
@@ -1464,18 +1482,22 @@ export async function update() {
                 })
                 return mapObj
             }
-            ; ["nmaps", "exmaps", "imaps", "inputmaps", "ignoremaps"].forEach(
-                settingName => updateAll([settingName], updateSetting),
-            )
+            ;[
+                "nmaps",
+                "exmaps",
+                "imaps",
+                "inputmaps",
+                "ignoremaps",
+            ].forEach(settingName => updateAll([settingName], updateSetting))
             set("configversion", "1.7")
         }
         case "1.7": {
             const autocontain = getDeepProperty(USERCONFIG, ["autocontain"])
             unset("autocontain")
             if (autocontain !== undefined) {
-              Object.entries(autocontain).forEach(([domain, container]) => {
-                set("autocontain", `^https?://[^/]*${domain}/`, container)
-              })
+                Object.entries(autocontain).forEach(([domain, container]) => {
+                    set("autocontain", `^https?://[^/]*${domain}/`, container)
+                })
             }
             set("configversion", "1.8")
         }
@@ -1487,9 +1509,15 @@ export async function update() {
                     return val
                 }, mapObj)
             }
-            ; ["nmaps", "exmaps", "imaps", "inputmaps", "ignoremaps", "hintmaps", "vmaps"].forEach(
-                settingName => updateAll([settingName], updateSetting),
-            )
+            ;[
+                "nmaps",
+                "exmaps",
+                "imaps",
+                "inputmaps",
+                "ignoremaps",
+                "hintmaps",
+                "vmaps",
+            ].forEach(settingName => updateAll([settingName], updateSetting))
             set("configversion", "1.9")
             updated = true // NB: when adding a new updater, move this line to the end of it
         }
@@ -1508,7 +1536,7 @@ async function init() {
     if (localConfig === undefined || localConfig.storageloc !== "local") {
         const syncConfig = await browser.storage.sync.get(CONFIGNAME)
         if (syncConfig !== undefined) {
-          schlepp(syncConfig[CONFIGNAME])
+            schlepp(syncConfig[CONFIGNAME])
         }
     } else {
         // These could be merged instead, but the current design does not allow for that
@@ -1516,8 +1544,7 @@ async function init() {
     }
 
     const configUpdated = await update()
-    if (configUpdated)
-        await save()
+    if (configUpdated) await save()
 
     INITIALISED = true
     for (const waiter of WAITERS) {
@@ -1606,21 +1633,22 @@ export function parseConfig(): string {
 
     const ftdetect = `" For syntax highlighting see https://github.com/tridactyl/vim-tridactyl\n" vim: set filetype=tridactyl`
 
-    return `${s.general}${s.binds}${s.subconfigs}${s.aliases}${s.aucmds}${
-        s.aucons
-    }${s.logging}${s.nulls}${ftdetect}`
+    return `${s.general}${s.binds}${s.subconfigs}${s.aliases}${s.aucmds}${s.aucons}${s.logging}${s.nulls}${ftdetect}`
 }
 
-const parseConfigHelper = (pconf, parseobj, prefix= []) => {
+const parseConfigHelper = (pconf, parseobj, prefix = []) => {
     for (const i of Object.keys(pconf)) {
         if (typeof pconf[i] !== "object") {
             if (prefix[0] === "subconfigs") {
                 prefix.shift()
                 const pattern = prefix.shift()
-                parseobj.subconfigs.push(`seturl ${pattern} ${[...prefix, i].join(".")} ${pconf[i]}`)
+                parseobj.subconfigs.push(
+                    `seturl ${pattern} ${[...prefix, i].join(".")} ${pconf[i]}`,
+                )
             } else {
                 parseobj.conf.push(
-                    `set ${[...prefix, i].join(".")} ${pconf[i]}`)
+                    `set ${[...prefix, i].join(".")} ${pconf[i]}`,
+                )
             }
         } else if (pconf[i] === null) {
             parseobj.nulls.push(`setnull ${[...prefix, i].join(".")}`)
@@ -1647,7 +1675,7 @@ const parseConfigHelper = (pconf, parseobj, prefix= []) => {
                         parseobj.binds.push(`un${cmd} ${e}`)
                     }
                 } else if (pconf[i][e] === null) {
-                        parseobj.nulls.push(`setnull ${i}.${e}`)
+                    parseobj.nulls.push(`setnull ${i}.${e}`)
                 } else if (i === "exaliases") {
                     // Only really useful if mapping the entire config and not just pconf.
                     if (e === "alias") {
@@ -1701,33 +1729,28 @@ browser.storage.onChanged.addListener((changes, areaname) => {
             // storageloc=local means ignoring changes that aren't set by us
         } else if (newValue !== undefined) {
             if (areaname === "sync") {
-              // prevent storageloc from being set remotely
-              delete old.storageloc
-              delete newValue.storageloc
+                // prevent storageloc from being set remotely
+                delete old.storageloc
+                delete newValue.storageloc
             }
 
             // A key has been :unset if it exists in USERCONFIG and doesn't in changes and if its value in USERCONFIG is different from the one it has in default_config
             const unsetKeys = Object.keys(old).filter(
                 k =>
                     newValue[k] === undefined &&
-                    JSON.stringify(old[k]) !==
-                        JSON.stringify(DEFAULTS[k]),
+                    JSON.stringify(old[k]) !== JSON.stringify(DEFAULTS[k]),
             )
 
             // A key has changed if it is defined in USERCONFIG and its value in USERCONFIG is different from the one in `changes` or if the value in defaultConf is different from the one in `changes`
-            const changedKeys = Object.keys(
-                newValue,
-            ).filter(
+            const changedKeys = Object.keys(newValue).filter(
                 k =>
                     JSON.stringify(
-                        old[k] !== undefined
-                            ? old[k]
-                            : DEFAULTS[k],
+                        old[k] !== undefined ? old[k] : DEFAULTS[k],
                     ) !== JSON.stringify(newValue[k]),
             )
 
             // TODO: this should be a deep comparison but this is better than nothing
-            changedKeys.forEach(key => USERCONFIG[key] = newValue[key])
+            changedKeys.forEach(key => (USERCONFIG[key] = newValue[key]))
             unsetKeys.forEach(key => delete USERCONFIG[key])
 
             // Trigger listeners
