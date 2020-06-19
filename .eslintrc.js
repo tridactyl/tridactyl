@@ -120,7 +120,7 @@ module.exports = {
         "@typescript-eslint/no-unsafe-assignment": "off", //"error",
         "@typescript-eslint/no-unsafe-call": "off", //"error",
         "@typescript-eslint/no-unsafe-member-access": "off", //"error",
-        "@typescript-eslint/no-unsafe-return": "off", //"error",
+        "@typescript-eslint/no-unsafe-return": "off", //"error", // We've done this a lot, but it would be a good idea to fix it
         "@typescript-eslint/no-unused-expressions": [
             "error",
             {
