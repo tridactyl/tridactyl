@@ -174,7 +174,7 @@ module.exports = {
             "off",
             "always"
         ],
-        "guard-for-in": "off", //"error",
+        "guard-for-in": "error",
         "id-blacklist": "off",
         "id-match": "off",
         "import/order": "off",

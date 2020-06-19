@@ -3625,7 +3625,8 @@ export async function sanitise(...args: string[]) {
          */
     }
     if (args.find(x => x === "all") !== undefined) {
-        for (const attr in dts) dts[attr] = true
+        for (const attr in dts)
+            if (Object.prototype.hasOwnProperty.call(dts, attr)) dts[attr] = true
     } else {
         // We bother checking if dts[x] is false because
         // browser.browsingData.remove() is very strict on the format of the
