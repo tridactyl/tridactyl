@@ -428,25 +428,19 @@ export function hintPage(
 
     const firstTarget = modeState.hints[0].target
 
-    const firstTargetIsSelectable = (): boolean => {
-        return (
+    const firstTargetIsSelectable = (): boolean => (
             firstTarget instanceof HTMLAnchorElement &&
             firstTarget.href !== "" &&
             !firstTarget.href.startsWith("javascript:")
         )
-    }
 
-    const allTargetsAreEqual = (): boolean => {
-        return (
+    const allTargetsAreEqual = (): boolean => (
             undefined ===
-            modeState.hints.find(h => {
-                return (
+            modeState.hints.find(h => (
                     !(h.target instanceof HTMLAnchorElement) ||
                     h.target.href !== (firstTarget as HTMLAnchorElement).href
-                )
-            })
+                ))
         )
-    }
 
     if (
         modeState.hints.length == 1 ||
@@ -551,9 +545,7 @@ function* hintnames_uniform(
         // And return first n permutations
         yield* map(
             islice(permutationsWithReplacement(hintchars, taglen), n),
-            perm => {
-                return perm.join("")
-            },
+            perm => perm.join(""),
         )
     }
 }

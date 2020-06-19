@@ -155,7 +155,7 @@ module.exports = {
         "@typescript-eslint/type-annotation-spacing": "error",
         "@typescript-eslint/unbound-method": "off", //"error",
         "@typescript-eslint/unified-signatures": "off", //"error",
-        "arrow-body-style": "off", //"error",
+        "arrow-body-style": "error",
         "arrow-parens": [
             "off",
             "always"

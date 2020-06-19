@@ -180,9 +180,7 @@ export class AutoContain implements IAutoContain {
         }, 2000)
     }
 
-    getCancelledRequest = (tabId: number): ICancelledRequest => {
-        return this.cancelledRequests[tabId]
-    }
+    getCancelledRequest = (tabId: number): ICancelledRequest => this.cancelledRequests[tabId]
 
     // Clear the cancelled requests.
     clearCancelledRequests = (tabId: number): void => {
@@ -311,7 +309,5 @@ export class AutoContain implements IAutoContain {
     // Parses autocontain directives and returns valid cookieStoreIds or errors.
     getAuconForDetails = async (
         details: browser.webRequest.IDetails,
-    ): Promise<string> => {
-        return this.getAuconForUrl(details.url)
-    }
+    ): Promise<string> => this.getAuconForUrl(details.url)
 }

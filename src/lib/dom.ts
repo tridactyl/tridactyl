@@ -122,9 +122,7 @@ export function mouseEvent(
 export function elementsWithText() {
     return getElemsBySelector("*", [
         isVisible,
-        hint => {
-            return hint.textContent !== ""
-        },
+        hint => hint.textContent !== "",
     ])
 }
 

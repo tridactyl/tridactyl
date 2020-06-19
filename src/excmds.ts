@@ -2620,13 +2620,9 @@ export async function qall() {
 //#background
 export async function containerclose(name: string) {
     const containerId = await Container.getId(name)
-    return browser.tabs.query({ cookieStoreId: containerId }).then(tabs => {
-        return browser.tabs.remove(
-            tabs.map(tab => {
-                return tab.id
-            }),
-        )
-    })
+    return browser.tabs.query({ cookieStoreId: containerId }).then(tabs => browser.tabs.remove(
+            tabs.map(tab => tab.id),
+        ))
 }
 /** Creates a new container. Note that container names must be unique and that the checks are case-insensitive.
 
@@ -2761,12 +2757,8 @@ async function getnexttabs(tabid: number, n?: number) {
     const tabs: browser.tabs.Tab[] = await browser.tabs.query({
         currentWindow: true,
     })
-    const indexFilter = ((tab: browser.tabs.Tab) => {
-        return curIndex <= tab.index && (n ? tab.index < curIndex + Number(n) : true)
-    }).bind(n)
-    return tabs.filter(indexFilter).map((tab: browser.tabs.Tab) => {
-        return tab.id
-    })
+    const indexFilter = ((tab: browser.tabs.Tab) => curIndex <= tab.index && (n ? tab.index < curIndex + Number(n) : true)).bind(n)
+    return tabs.filter(indexFilter).map((tab: browser.tabs.Tab) => tab.id)
 }
 
 // Moderately slow; should load in results as they arrive, perhaps

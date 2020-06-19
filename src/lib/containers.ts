@@ -122,9 +122,7 @@ export async function exists(cname: string): Promise<boolean> {
     let exists = false
     try {
         const containers = await getAll()
-        const res = containers.filter(c => {
-            return c.name.toLowerCase() === cname.toLowerCase()
-        })
+        const res = containers.filter(c => c.name.toLowerCase() === cname.toLowerCase())
         if (res.length > 0) {
             exists = true
         }

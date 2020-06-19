@@ -64,14 +64,12 @@ export class BindingsCompletionSource extends Completions.CompletionSourceFuse {
                 this.options = Object.keys(patterns)
                     .filter(pattern => pattern.startsWith(urlPattern))
                     .sort()
-                    .map(pattern => {
-                        return new BindingsCompletionOption(
+                    .map(pattern => new BindingsCompletionOption(
                             pattern, {
                             name: pattern,
                             value: "",
                             mode: "URL Pattern",
-                        })
-                    })
+                        }))
 
                 return this.updateChain()
             }
@@ -84,14 +82,12 @@ export class BindingsCompletionSource extends Completions.CompletionSourceFuse {
                 const modeStr = margs.length > 1 ? margs[1] : ""
                 this.options = Binding.modes
                 .filter(k => k.startsWith(modeStr))
-                .map(name => {
-                    return new BindingsCompletionOption(
+                .map(name => new BindingsCompletionOption(
                         options + "--mode=" + name, {
                             name,
                             value: "",
                             mode: "Mode Name",
-                        })
-                })
+                        }))
                 return this.updateChain()
             }
         }
@@ -124,14 +120,12 @@ export class BindingsCompletionSource extends Completions.CompletionSourceFuse {
         this.options = Object.keys(bindings)
             .filter(x => x.toLowerCase().startsWith(query) )
             .sort()
-            .map(keystr => {
-                return new BindingsCompletionOption(
+            .map(keystr => new BindingsCompletionOption(
                     options + keystr + " " + bindings[keystr], {
                     name: keystr,
                     value: JSON.stringify(bindings[keystr]),
                     mode: `${configName} (${modeName})`,
-                })
-            })
+                }))
 
         return this.updateChain()
     }
