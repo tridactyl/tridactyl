@@ -2643,6 +2643,7 @@ export async function containercreate(name: string, color?: string, icon?: strin
  */
 //#background
 export async function containerdelete(name: string) {
+    if (name == undefined) return
     await containerclose(name)
     await Container.remove(name)
 }
