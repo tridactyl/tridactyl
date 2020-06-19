@@ -108,7 +108,7 @@ module.exports = {
         "@typescript-eslint/no-floating-promises": "off", //"error",
         "@typescript-eslint/no-for-in-array": "error",
         "@typescript-eslint/no-implied-eval": "error",
-        "@typescript-eslint/no-inferrable-types": "off", //"error",
+        "@typescript-eslint/no-inferrable-types": "error",
         "@typescript-eslint/no-misused-new": "error",
         "@typescript-eslint/no-misused-promises": ["error",
             {

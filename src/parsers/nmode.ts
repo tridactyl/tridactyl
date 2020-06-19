@@ -16,7 +16,7 @@ let modeState: NModeState
 
 /** Init n [mode] mode. After parsing the defined number of commands, execute
 `endCmd`. `Escape` cancels the mode and executes `endCmd`. */
-export function init(endCommand: string, mode = "normal", numCommands: number = 1) {
+export function init(endCommand: string, mode = "normal", numCommands = 1) {
     contentState.mode = "nmode"
     modeState = new NModeState()
     modeState.endCommand = endCommand
@@ -40,10 +40,13 @@ export function parser(keys: KeyboardEvent[]) {
     }
     const response = keyseq.parse(keys, maps)
 
-    if ((response.exstr !== undefined && response.isMatch) || !response.isMatch) modeState.curCommands += 1
+    if ((response.exstr !== undefined && response.isMatch) || !response.isMatch)
+        modeState.curCommands += 1
     if (modeState.curCommands >= modeState.numCommands) {
         const prefix =
-          (response.exstr === undefined) ? "" : ("composite " + response.exstr + "; ")
+            response.exstr === undefined
+                ? ""
+                : "composite " + response.exstr + "; "
         response.exstr = prefix + modeState.endCommand // NB: this probably breaks any `js` binds
         modeState = undefined
     }

@@ -1031,7 +1031,7 @@ export class default_config {
      * statistics, so somewhere around 10k samples.
      *
      */
-    perfsamples: string = "10000"
+    perfsamples = "10000"
 
     /**
      * Show (partial) command in the mode indicator.

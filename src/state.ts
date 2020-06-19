@@ -12,7 +12,7 @@
 
 import Logger from "@src/lib/logging"
 import * as messaging from "@src/lib/messaging"
-import {notBackground} from "@src/lib/webext"
+import { notBackground } from "@src/lib/webext"
 
 const logger = new Logger("state")
 
@@ -26,7 +26,7 @@ class State {
             jumppos: undefined,
         },
     ]
-    last_ex_str: string = "echo"
+    last_ex_str = "echo"
 }
 
 // Don't change these from const or you risk breaking the Proxy below.
@@ -43,10 +43,11 @@ browser.storage.local
     })
     .catch((...args) => logger.error(...args))
 
-const state = (new Proxy(overlay, {
+const state = new Proxy(overlay, {
     /** Give defaults if overlay doesn't have the key */
     get(target, property) {
-        if (notBackground()) throw "State object must be accessed with getAsync in content"
+        if (notBackground())
+            throw "State object must be accessed with getAsync in content"
         if (property in target) {
             return target[property]
         } else {
@@ -61,7 +62,11 @@ const state = (new Proxy(overlay, {
 
         logger.debug("State changed!", property, value)
         if (notBackground()) {
-            browser.runtime.sendMessage({type: "state", command: "stateUpdate", args: {property, value}})
+            browser.runtime.sendMessage({
+                type: "state",
+                command: "stateUpdate",
+                args: { property, value },
+            })
             return true
         }
         // Do we need a global storage lock?
@@ -69,10 +74,15 @@ const state = (new Proxy(overlay, {
         browser.storage.local.set({ state: target } as any)
         return true
     },
-}))
+})
 
 export async function getAsync(property) {
-    if (notBackground()) return browser.runtime.sendMessage({type: "state", command: "stateGet", args: [{prop: property}]})
+    if (notBackground())
+        return browser.runtime.sendMessage({
+            type: "state",
+            command: "stateGet",
+            args: [{ prop: property }],
+        })
     else return state[property]
 }
 
@@ -85,7 +95,7 @@ messaging.addListener("state", (message, sender, sendResponse) => {
         overlay[property] = value
     } else if (message.command == "stateGet") {
         sendResponse(state[message.args[0].prop])
-    } else throw("Unsupported message to state, type " + message.command)
+    } else throw "Unsupported message to state, type " + message.command
 })
 
 export { state as default }

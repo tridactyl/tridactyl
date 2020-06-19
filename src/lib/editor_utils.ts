@@ -278,13 +278,13 @@ export function wordAfterPos(text: string, position: number) {
 /** @hidden
  * Rots by 13.
  */
-export const rot13_helper = (s: string, n: number = 13): string => {
+export const rot13_helper = (s: string, n = 13): string => {
     let sa = s.split("")
     sa = sa.map(x => charesar(x, n))
     return sa.join("")
 }
 
-export const charesar = (c: string, n: number = 13): string => {
+export const charesar = (c: string, n = 13): string => {
     const cn = c.charCodeAt(0)
     if (cn >= 65 && cn <= 90)
         return String.fromCharCode(((cn - 65 + n) % 26) + 65)

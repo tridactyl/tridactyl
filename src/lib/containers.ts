@@ -144,12 +144,7 @@ export async function exists(cname: string): Promise<boolean> {
     @param color
     @param icon
  */
-export function fromString(
-    name: string,
-    color: string,
-    icon: string,
-    id: string = "",
-) {
+export function fromString(name: string, color: string, icon: string, id = "") {
     return {
         name,
         color: color as browser.contextualIdentities.IdentityColor,

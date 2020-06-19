@@ -63,17 +63,22 @@ class ScrollingData {
      *  It might be useful to make this function more configurable by making it
      *  accept an argument instead of using performance.now()
      */
-   private getStep(): number {
+    private getStep(): number {
         if (this.startTime === undefined) {
             this.startTime = performance.now()
         }
         const elapsed: number = performance.now() - this.startTime
 
         // If the animation should be done, return the position the element should have
-        if (elapsed >= this.duration || this.elem[this.scrollDirection] === this.endPos)
+        if (
+            elapsed >= this.duration ||
+            this.elem[this.scrollDirection] === this.endPos
+        )
             return this.endPos
 
-        let pixelToScrollTo: number = this.startPos + (((this.endPos - this.startPos) * elapsed) / this.duration)
+        let pixelToScrollTo: number =
+            this.startPos +
+            ((this.endPos - this.startPos) * elapsed) / this.duration
         if (this.startPos < this.endPos) {
             // We need to ceil() because only highdpi screens have a decimal this.elem[this.pos]
             pixelToScrollTo = Math.ceil(pixelToScrollTo)
@@ -104,7 +109,6 @@ class ScrollingData {
             this.scrollStep() ? this.scheduleStep() : (this.scrolling = false),
         )
     }
-
 }
 
 // Stores elements that are currently being horizontally scrolled
@@ -116,8 +120,8 @@ const verticallyScrolling = new Map<Node, ScrollingData>()
  *  last duration milliseconds
  */
 export async function scroll(
-    xDistance: number = 0,
-    yDistance: number = 0,
+    xDistance = 0,
+    yDistance = 0,
     e: Node,
     duration?: number,
 ): Promise<boolean> {
@@ -189,15 +193,15 @@ export async function recursiveScroll(
             startingFromCached = true
             node = lastRecursiveScrolled
         } else {
-
             // Try scrolling the active node or one of its parent elements
 
             // If nothing has been given focus explicitly use the activeElement
-            if (!currentFocused || currentFocused.nodeName == "#document") currentFocused = document.activeElement
+            if (!currentFocused || currentFocused.nodeName == "#document")
+                currentFocused = document.activeElement
 
             node = currentFocused
             while (true) {
-                if ((await scroll(xDistance, yDistance, node))) return true
+                if (await scroll(xDistance, yDistance, node)) return true
                 node = node.parentElement
                 if (!node) break
             }
@@ -215,7 +219,9 @@ export async function recursiveScroll(
         if (
             (await scroll(xDistance, yDistance, treeWalker.currentNode)) ||
             ((treeWalker.currentNode as any).contentDocument &&
-                !(treeWalker.currentNode as any).src.startsWith("moz-extension://") &&
+                !(treeWalker.currentNode as any).src.startsWith(
+                    "moz-extension://",
+                ) &&
                 (await recursiveScroll(
                     xDistance,
                     yDistance,
