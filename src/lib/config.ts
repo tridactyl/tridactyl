@@ -118,6 +118,8 @@ export class default_config {
         "<Tab>": "ex.next_completion",
         "<S-Tab>": "ex.prev_completion",
         "<Space>": "ex.insert_space_or_completion",
+
+        "<C-o>yy": "ex.copy_completion",
     }
 
     /**

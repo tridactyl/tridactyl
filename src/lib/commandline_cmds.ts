@@ -134,5 +134,11 @@ export function getCommandlineFns(cmdline_state) {
             // to be a touch less latency-sensitive.
             return messageOwnTab("controller_content", "acceptExCmd", [command])
         },
+
+        "copy_completion": () => {
+            const command = cmdline_state.getCompletion()
+            cmdline_state.fns.hide_and_clear()
+            return messageOwnTab("controller_content", "acceptExCmd", ["clipboard yank " + command])
+        },
     }
 }
