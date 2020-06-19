@@ -161,7 +161,7 @@ module.exports = {
             "always"
         ],
         "brace-style": [
-            "off", //"error",
+            "error",
             "1tbs"
         ],
         "camelcase": "off",
