@@ -14,8 +14,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu]
-        # os: [ubuntu, macos, windows]
+        os: [ubuntu, macos, windows]
         browser: [firefox]
 
     runs-on: ${{ matrix.os }}-latest
@@ -62,7 +61,7 @@ jobs:
       env:
         HEADLESS: 1
       with: 
-        max_attempts: 100
+        max_attempts: 10
         timeout_minutes: 10
         retry_wait_seconds: 10
         command: |
