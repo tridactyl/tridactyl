@@ -152,7 +152,7 @@ describe("webdriver", () => {
             if (os.platform() == "win32") {
                 await sendKeys(driver, `:set editorcmd echo | set /p text="${addedText}" >> %f<CR>`)
             } else {
-                await sendKeys(driver, `:set editorcmd echo -n '${addedText}' >> %f<CR>`)
+                await sendKeys(driver, `:set editorcmd /bin/echo -n '${addedText}' >> %f<CR>`)
             }
 
             const areaId = "editorTest"
