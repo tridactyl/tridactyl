@@ -55,8 +55,8 @@ describe("webdriver", () => {
         const newProfiles = fs.readdirSync(rootDir).map(p => path.join(rootDir, p))
             .filter(p => p.match("moz") && !profiles.includes(p))
 
-        // Tridactyl's tmp profile detection is broken on windows
-        if (os.platform() == "win32") {
+        // Tridactyl's tmp profile detection is broken on windows and OSX
+        if (["win32", "darwin"].includes(os.platform())) {
             await sendKeys(driver, `:set profiledir ${newProfiles[0]}<CR>`)
             await driver.sleep(1000)
         }
