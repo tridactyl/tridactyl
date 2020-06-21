@@ -73,10 +73,6 @@ jobs:
       if: matrix.os == 'ubuntu' || matrix.os == 'macos'
       run: firefox --version
 
-    - name: Print Firefox version (Windows)
-      if: matrix.os == 'windows'
-      run: firefox.exe -version
-
     - name: Build and test (Firefox)
       uses: nick-invision/retry@v1
       if: matrix.browser != 'chrome'
