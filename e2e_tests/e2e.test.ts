@@ -114,6 +114,15 @@ describe("webdriver", () => {
         return [newtab, result]
     }
 
+    // A simple ternany doesn't work inline :(
+    function testbutskipplatforms(...platforms){
+        if (platforms.includes(os.platform)) {
+            return test.skip
+        }
+        return test
+    }
+
+
     test("`:rssexec` works", async () => {
         const driver = await getDriver()
         try {
@@ -174,30 +183,30 @@ describe("webdriver", () => {
         }
     })
 
-    test("`:guiset` works", async () => {
-        const { driver, newProfiles } = await getDriverAndProfileDirs()
-        try {
-            // Then, make sure `:guiset` is offering completions
-            const iframe = await iframeLoaded(driver)
-            await sendKeys(driver, ":guiset ")
-            await driver.switchTo().frame(iframe)
-            const elements = await driver.findElements(By.className("GuisetCompletionOption"))
-            expect(elements.length).toBeGreaterThan(0)
+    testbutskipplatforms("darwin")("`:guiset` works", async () => {
+            const { driver, newProfiles } = await getDriverAndProfileDirs()
+            try {
+                // Then, make sure `:guiset` is offering completions
+                const iframe = await iframeLoaded(driver)
+                await sendKeys(driver, ":guiset ")
+                await driver.switchTo().frame(iframe)
+                const elements = await driver.findElements(By.className("GuisetCompletionOption"))
+                expect(elements.length).toBeGreaterThan(0)
 
-            // Use whatever the first suggestion is
-            await sendKeys(driver, "<Tab> <Tab><CR>")
-            await driver.sleep(2000)
-            expect(await driver.executeScript(`return document.getElementById("tridactyl-input").value`))
+                // Use whatever the first suggestion is
+                await sendKeys(driver, "<Tab> <Tab><CR>")
+                await driver.sleep(2000)
+                expect(await driver.executeScript(`return document.getElementById("tridactyl-input").value`))
                 .toEqual("userChrome.css written. Please restart Firefox to see the changes.")
-            expect(newProfiles.find(p => fs
-                .readdirSync(path.join(p, "chrome"))
-                .find(files => files.match("userChrome.css$")))
-            ).toBeDefined()
-        } catch (e) {
-            fail(e)
-        } finally {
-            await killDriver(driver)
-        }
+                expect(newProfiles.find(p => fs
+                                        .readdirSync(path.join(p, "chrome"))
+                                        .find(files => files.match("userChrome.css$")))
+                      ).toBeDefined()
+            } catch (e) {
+                fail(e)
+            } finally {
+                await killDriver(driver)
+            }
     })
 
     test("`:colourscheme` works", async () => {
