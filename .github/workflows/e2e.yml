@@ -66,8 +66,8 @@ jobs:
     - name: Install Firefox ESR (Windows)
       if: matrix.browser == 'firefoxesr' && matrix.os == 'windows'
       run: |
-        choco install firefoxesr  /InstallDir:"C:\Program Files\Firefox ESR"
-        echo "::add-path::C:\Program Files\Firefox ESR"
+        choco install firefoxesr
+        echo "::add-path::C:\Program Files\Mozilla Firefox"
 
     - name: Build and test (Firefox)
       uses: nick-invision/retry@v1
