@@ -116,7 +116,7 @@ describe("webdriver", () => {
 
     // A simple ternany doesn't work inline :(
     function testbutskipplatforms(...platforms){
-        if (platforms.includes(os.platform)) {
+        if (platforms.includes(os.platform())) {
             return test.skip
         }
         return test
