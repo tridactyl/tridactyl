@@ -55,8 +55,8 @@ describe("webdriver", () => {
         const newProfiles = fs.readdirSync(rootDir).map(p => path.join(rootDir, p))
             .filter(p => p.match("moz") && !profiles.includes(p))
 
-        // Tridactyl's tmp profile detection is broken on windows
-        if (os.platform() == "win32") {
+        // Tridactyl's tmp profile detection is broken on windows and OSX
+        if (["win32", "darwin"].includes(os.platform())) {
             await sendKeys(driver, `:set profiledir ${newProfiles[0]}<CR>`)
             await driver.sleep(1000)
         }
@@ -114,6 +114,15 @@ describe("webdriver", () => {
         return [newtab, result]
     }
 
+    // A simple ternany doesn't work inline :(
+    function testbutskipplatforms(...platforms){
+        if (platforms.includes(os.platform())) {
+            return test.skip
+        }
+        return test
+    }
+
+
     test("`:rssexec` works", async () => {
         const driver = await getDriver()
         try {
@@ -152,7 +161,7 @@ describe("webdriver", () => {
             if (os.platform() == "win32") {
                 await sendKeys(driver, `:set editorcmd echo | set /p text="${addedText}" >> %f<CR>`)
             } else {
-                await sendKeys(driver, `:set editorcmd echo -n '${addedText}' >> %f<CR>`)
+                await sendKeys(driver, `:set editorcmd /bin/echo -n '${addedText}' >> %f<CR>`)
             }
 
             const areaId = "editorTest"
@@ -174,30 +183,30 @@ describe("webdriver", () => {
         }
     })
 
-    test("`:guiset` works", async () => {
-        const { driver, newProfiles } = await getDriverAndProfileDirs()
-        try {
-            // Then, make sure `:guiset` is offering completions
-            const iframe = await iframeLoaded(driver)
-            await sendKeys(driver, ":guiset ")
-            await driver.switchTo().frame(iframe)
-            const elements = await driver.findElements(By.className("GuisetCompletionOption"))
-            expect(elements.length).toBeGreaterThan(0)
+    testbutskipplatforms("darwin")("`:guiset` works", async () => {
+            const { driver, newProfiles } = await getDriverAndProfileDirs()
+            try {
+                // Then, make sure `:guiset` is offering completions
+                const iframe = await iframeLoaded(driver)
+                await sendKeys(driver, ":guiset ")
+                await driver.switchTo().frame(iframe)
+                const elements = await driver.findElements(By.className("GuisetCompletionOption"))
+                expect(elements.length).toBeGreaterThan(0)
 
-            // Use whatever the first suggestion is
-            await sendKeys(driver, "<Tab> <Tab><CR>")
-            await driver.sleep(2000)
-            expect(await driver.executeScript(`return document.getElementById("tridactyl-input").value`))
+                // Use whatever the first suggestion is
+                await sendKeys(driver, "<Tab> <Tab><CR>")
+                await driver.sleep(2000)
+                expect(await driver.executeScript(`return document.getElementById("tridactyl-input").value`))
                 .toEqual("userChrome.css written. Please restart Firefox to see the changes.")
-            expect(newProfiles.find(p => fs
-                .readdirSync(path.join(p, "chrome"))
-                .find(files => files.match("userChrome.css$")))
-            ).toBeDefined()
-        } catch (e) {
-            fail(e)
-        } finally {
-            await killDriver(driver)
-        }
+                expect(newProfiles.find(p => fs
+                                        .readdirSync(path.join(p, "chrome"))
+                                        .find(files => files.match("userChrome.css$")))
+                      ).toBeDefined()
+            } catch (e) {
+                fail(e)
+            } finally {
+                await killDriver(driver)
+            }
     })
 
     test("`:colourscheme` works", async () => {

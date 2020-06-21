@@ -14,9 +14,11 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu]
-        # os: [ubuntu, macos, windows]
-        browser: [firefox]
+        os: [ubuntu, macos, windows]
+        browser: [firefox, firefoxesr]
+        exclude:
+          - os: macos
+            browser: firefoxesr
 
     runs-on: ${{ matrix.os }}-latest
 
@@ -45,6 +47,12 @@ jobs:
         sudo yarn global add get-firefox
         get-firefox --platform linux --branch devedition --extract --target $HOME
         echo "::add-path::$HOME/firefox"
+    - name: Install Firefox ESR (Linux)
+      if: matrix.browser == 'firefoxesr' && matrix.os == 'ubuntu'
+      run: |
+        sudo yarn global add get-firefox
+        get-firefox --platform linux --branch esr --extract --target $HOME
+        echo "::add-path::$HOME/firefox"
     - name: Install Firefox Dev Edition (MacOS)
       if: matrix.browser == 'firefox' && matrix.os == 'macos'
       run: |
@@ -55,6 +63,15 @@ jobs:
       run: |
         choco install firefox-dev --pre
         echo "::add-path::C:\Program Files\Firefox Dev Edition"
+    - name: Install Firefox ESR (Windows)
+      if: matrix.browser == 'firefoxesr' && matrix.os == 'windows'
+      run: |
+        choco install firefoxesr
+        echo "::add-path::C:\Program Files\Mozilla Firefox"
+
+    - name: Print Firefox version (Unix-like)
+      if: matrix.os == 'ubuntu' || matrix.os == 'macos'
+      run: firefox --version
 
     - name: Build and test (Firefox)
       uses: nick-invision/retry@v1
@@ -62,7 +79,7 @@ jobs:
       env:
         HEADLESS: 1
       with: 
-        max_attempts: 100
+        max_attempts: 10
         timeout_minutes: 10
         retry_wait_seconds: 10
         command: |
