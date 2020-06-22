@@ -3179,17 +3179,17 @@ eslint-plugin-import@^2.21.2:
     resolve "^1.17.0"
     tsconfig-paths "^3.9.0"
 
-eslint-plugin-jsdoc@^27.1.2:
-  version "27.1.2"
-  resolved "https://registry.yarnpkg.com/eslint-plugin-jsdoc/-/eslint-plugin-jsdoc-27.1.2.tgz#76247ff14604b2170b3a959a6a0d4d0ceb3e65e7"
-  integrity sha512-iWrG2ZK4xrxamoMkoyzgkukdmfqWc5Ncd6K+CnwRgxrbwjQQpzmt5Kl8GB0l12R0oUK2AF+9tGFJKNGzuyz79Q==
+eslint-plugin-jsdoc@^28.0.0:
+  version "28.0.0"
+  resolved "https://registry.yarnpkg.com/eslint-plugin-jsdoc/-/eslint-plugin-jsdoc-28.0.0.tgz#e726a79b4a0e16e8602022d55e0e705e91dc0f50"
+  integrity sha512-Etne7B8AQcgXrnDPXdfV4x+szHVEP+JVZ2cYNfZGn+HoaZigIOzxxJGU+QUhymz6vuz0fpzFM6fTt64XOvw69w==
   dependencies:
     comment-parser "^0.7.5"
     debug "^4.1.1"
-    jsdoctypeparser "^6.1.0"
+    jsdoctypeparser "^7.0.0"
     lodash "^4.17.15"
     regextras "^0.7.1"
-    semver "^6.3.0"
+    semver "^7.3.2"
     spdx-expression-parse "^3.0.1"
 
 eslint-plugin-no-unsafe-innerhtml@1.0.16:
@@ -5423,10 +5423,10 @@ jsbn@~0.1.0:
   resolved "https://registry.yarnpkg.com/jsbn/-/jsbn-0.1.1.tgz#a5e654c2e5a2deb5f201d96cefbca80c0ef2f513"
   integrity sha1-peZUwuWi3rXyAdls77yoDA7y9RM=
 
-jsdoctypeparser@^6.1.0:
-  version "6.1.0"
-  resolved "https://registry.yarnpkg.com/jsdoctypeparser/-/jsdoctypeparser-6.1.0.tgz#acfb936c26300d98f1405cb03e20b06748e512a8"
-  integrity sha512-UCQBZ3xCUBv/PLfwKAJhp6jmGOSLFNKzrotXGNgbKhWvz27wPsCsVeP7gIcHPElQw2agBmynAitXqhxR58XAmA==
+jsdoctypeparser@^7.0.0:
+  version "7.0.0"
+  resolved "https://registry.yarnpkg.com/jsdoctypeparser/-/jsdoctypeparser-7.0.0.tgz#957192fbcb8c574240092cca4635383a6ed706eb"
+  integrity sha512-6vWPn5qSy+MbgCVjXsQKVkRywhs+IxFU7Chw72DKsWoGueYp6QX8eTc55+EA0yPGYfhmglb1gfi283asXirfGQ==
 
 jsdom@^15.2.1:
   version "15.2.1"
