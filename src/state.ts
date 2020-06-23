@@ -95,8 +95,9 @@ export async function getAsync(property) {
     else return state[property]
 }
 
+// Skip this in mock testing - the mock doesn't like notBackground
 // Keep instances of state.ts synchronised with each other
-!notBackground() && messaging.addListener("state", (message, sender, sendResponse) => {
+notBackground && !notBackground() && messaging.addListener("state", (message, sender, sendResponse) => {
     if (message.command == "stateUpdate") {
         const property = message.args.property
         const value = message.args.value
