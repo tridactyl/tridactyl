@@ -58,7 +58,10 @@ const state = new Proxy(overlay, {
     /** Persist sets to storage "immediately" */
     set(target, property, value) {
         // Ensure we don't accidentally store anything sensitive
-        if (browser.extension.inIncognitoContext) return false
+        if (browser.extension.inIncognitoContext) {
+            console.error("Attempted to write to storage in private window.")
+            return false
+        }
 
         logger.debug("State changed!", property, value)
         if (notBackground()) {
