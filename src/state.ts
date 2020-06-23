@@ -90,12 +90,12 @@ export async function getAsync(property) {
 }
 
 // Keep instances of state.ts synchronised with each other
-messaging.addListener("state", (message, sender, sendResponse) => {
+!notBackground() && messaging.addListener("state", (message, sender, sendResponse) => {
     if (message.command == "stateUpdate") {
         const property = message.args.property
         const value = message.args.value
         logger.debug("State changed!", property, value)
-        overlay[property] = value
+        state[property] = value
     } else if (message.command == "stateGet") {
         sendResponse(state[message.args[0].prop])
     } else throw "Unsupported message to state, type " + message.command
