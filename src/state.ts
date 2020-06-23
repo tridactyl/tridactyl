@@ -13,6 +13,7 @@
 import Logger from "@src/lib/logging"
 import * as messaging from "@src/lib/messaging"
 import { notBackground } from "@src/lib/webext"
+import * as R from "ramda"
 
 const logger = new Logger("state")
 
@@ -28,6 +29,9 @@ class State {
     ]
     last_ex_str = "echo"
 }
+
+// Store these keys in the local browser storage to persist between restarts
+const PERSISTENT_KEYS: Array<keyof State> = ["cmdHistory"]
 
 // Don't change these from const or you risk breaking the Proxy below.
 const defaults = Object.freeze(new State())
@@ -55,14 +59,7 @@ const state = new Proxy(overlay, {
         }
     },
 
-    /** Persist sets to storage "immediately" */
-    set(target, property, value) {
-        // Ensure we don't accidentally store anything sensitive
-        if (browser.extension.inIncognitoContext) {
-            console.error("Attempted to write to storage in private window.")
-            return false
-        }
-
+    set(target, property: keyof State, value) {
         logger.debug("State changed!", property, value)
         if (notBackground()) {
             browser.runtime.sendMessage({
@@ -74,7 +71,16 @@ const state = new Proxy(overlay, {
         }
         // Do we need a global storage lock?
         target[property] = value
-        browser.storage.local.set({ state: target } as any)
+
+        // Persist "sets" to storage in the background for some keys
+        if (PERSISTENT_KEYS.includes(property)) {
+            // Ensure we don't accidentally store anything sensitive
+            if (browser.extension.inIncognitoContext) {
+                console.error("Attempted to write to storage in private window.")
+                return false
+            }
+            browser.storage.local.set({ state: R.pick(PERSISTENT_KEYS, target) } as any)
+        }
         return true
     },
 })
