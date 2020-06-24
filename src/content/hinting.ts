@@ -399,7 +399,7 @@ export function hintPage(
                 hint.result = onSelect(hint.target)
                 modeState.selectedHints.push(hint)
                 reset()
-            })
+            }, hints.style)
         }
     } else {
         for (const hints of hintableElements) {
@@ -412,7 +412,7 @@ export function hintPage(
                 ) {
                     modeState.shiftHints()
                 }
-            })
+            }, hints.style)
         }
     }
 
@@ -591,6 +591,7 @@ class Hint {
         public name: string,
         public readonly filterData: any,
         private readonly onSelect: HintSelectedCallback,
+        private readonly extrastyle: string,
     ) {
         // We need to compute the offset for elements that are in an iframe
         let offsetTop = 0
@@ -636,7 +637,11 @@ class Hint {
         this.flag.style.cssText = `
             top: ${window.scrollY + top}px !important;
             left: ${window.scrollX + left}px !important;
+            ${extrastyle}
+            font-family: monospace;
         `
+        console.log(extrastyle)
+        console.log(this.flag.style.cssText)
         modeState.hintHost.appendChild(this.flag)
         this.hidden = false
     }
@@ -674,7 +679,7 @@ class Hint {
 }
 
 /** @hidden */
-type HintBuilder = (els: Element[], onSelect: HintSelectedCallback) => void
+type HintBuilder = (els: Element[], onSelect: HintSelectedCallback, style: string) => void
 
 /** @hidden */
 function buildHintsSimple(els: Element[], onSelect: HintSelectedCallback) {
@@ -682,7 +687,7 @@ function buildHintsSimple(els: Element[], onSelect: HintSelectedCallback) {
     for (const [el, name] of izip(els, names)) {
         logger.debug({ el, name })
         modeState.hintchars += name
-        modeState.hints.push(new Hint(el, name, null, onSelect))
+        modeState.hints.push(new Hint(el, name, null, onSelect, "background: pink; null: wat;"))
     }
 }
 
@@ -727,7 +732,7 @@ function buildHintsVimperator(els: Element[], onSelect: HintSelectedCallback) {
         ft = vimpHelper.sanitiseHintText(ft)
         logger.debug({ el, name, ft })
         modeState.hintchars += name + ft
-        modeState.hints.push(new Hint(el, name, ft, onSelect))
+        modeState.hints.push(new Hint(el, name, ft, onSelect, "background: pink; null: wat;"))
     }
 }
 
