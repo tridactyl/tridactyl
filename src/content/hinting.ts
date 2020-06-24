@@ -375,11 +375,13 @@ class HintState {
 /** @hidden*/
 let modeState: HintState
 
+interface Hintables { elements: Element[]; style: string }
+
 /** For each hintable element, add a hint
  * @hidden
  * */
 export function hintPage(
-    hintableElements: Element[],
+    hintableElements: Hintables[],
     onSelect: HintSelectedCallback,
     resolve = () => {}, // eslint-disable-line @typescript-eslint/no-empty-function
     reject = () => {}, // eslint-disable-line @typescript-eslint/no-empty-function
@@ -391,23 +393,27 @@ export function hintPage(
     modeState = new HintState(filterHints, resolve, reject, rapid)
 
     if (!rapid) {
-        buildHints(hintableElements, hint => {
-            modeState.cleanUpHints()
-            hint.result = onSelect(hint.target)
-            modeState.selectedHints.push(hint)
-            reset()
-        })
+        for (const hints of hintableElements) {
+            buildHints(hints.elements, hint => {
+                modeState.cleanUpHints()
+                hint.result = onSelect(hint.target)
+                modeState.selectedHints.push(hint)
+                reset()
+            })
+        }
     } else {
-        buildHints(hintableElements, hint => {
-            hint.result = onSelect(hint.target)
-            modeState.selectedHints.push(hint)
-            if (
-                modeState.selectedHints.length > 1 &&
-                config.get("hintshift") === "true"
-            ) {
-                modeState.shiftHints()
-            }
-        })
+        for (const hints of hintableElements) {
+            buildHints(hints.elements, hint => {
+                hint.result = onSelect(hint.target)
+                modeState.selectedHints.push(hint)
+                if (
+                    modeState.selectedHints.length > 1 &&
+                    config.get("hintshift") === "true"
+                ) {
+                    modeState.shiftHints()
+                }
+            })
+        }
     }
 
     if (!modeState.hints.length) {
@@ -1019,7 +1025,13 @@ export function pipe(
     jshints = true,
 ): Promise<[Element, number]> {
     return new Promise((resolve, reject) => {
-        hintPage(hintables(selectors, jshints), action, resolve, reject, rapid)
+        hintPage(
+            [{ elements: hintables(selectors, jshints), style: "" }],
+            action,
+            resolve,
+            reject,
+            rapid,
+        )
     })
 }
 
@@ -1032,7 +1044,7 @@ export function pipe_elements(
     rapid = false,
 ): Promise<[Element, number]> {
     return new Promise((resolve, reject) => {
-        hintPage(elements, action, resolve, reject, rapid)
+        hintPage([{ elements, style: "" }], action, resolve, reject, rapid)
     })
 }
 
