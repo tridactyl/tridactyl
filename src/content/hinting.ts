@@ -100,6 +100,23 @@ class HintState {
             )
     }
 
+    // move overlapping hints around
+    deOverlap() {
+        this.hints.sort((a, b) => a.y - b.y)
+        const visited: Hint[] = []
+        for (const h of this.hints) {
+            for (const vh of visited) {
+                if (h.overlapsWith(vh)) {
+                    if (vh.x + vh.width < h.rect.right)
+                        h.x = vh.x + vh.width
+                    else
+                        h.y = vh.y + vh.height
+                }
+            }
+            visited.push(h)
+        }
+    }
+
     changeFocusedHintIndex(offset) {
         const activeHints = this.activeHints
         if (!activeHints.length) {
@@ -467,6 +484,7 @@ export function hintPage(
     modeState.focusedHint = modeState.hints[0]
     modeState.focusedHint.focused = true
     document.documentElement.appendChild(modeState.hintHost)
+    modeState.deOverlap()
 }
 
 /** @hidden */
@@ -590,6 +608,11 @@ class Hint {
     public readonly rect: ClientRect = null
     public result: any = null
 
+    public width: number = 0
+    public height: number = 0
+    private _x: number = 0
+    private _y: number = 0
+
     constructor(
         public readonly target: Element,
         public name: string,
@@ -639,10 +662,9 @@ class Hint {
 
         const top = rect.top > 0 ? this.rect.top : offsetTop + pad
         const left = rect.left > 0 ? this.rect.left : offsetLeft + pad
-        this.flag.style.cssText = `
-            top: ${window.scrollY + top}px !important;
-            left: ${window.scrollX + left}px !important;
-        `
+        this.x = window.scrollX + left
+        this.y = window.scrollY + top
+
         modeState.hintHost.appendChild(this.flag)
         this.hidden = false
     }
@@ -676,6 +698,44 @@ class Hint {
 
     select() {
         this.onSelect(this)
+    }
+
+    set x(X: number) {
+        this._x = X
+        this.updatePosition()
+    }
+
+    get x() {
+        return this._x
+    }
+
+    set y(Y: number) {
+        this._y = Y
+        this.updatePosition()
+    }
+
+    get y() {
+        return this._y
+    }
+
+    public overlapsWith(h: Hint) {
+        if (h.width == 0) h.width = h.flag.getClientRects()[0].width
+        if (h.height == 0) h.height = h.flag.getClientRects()[0].height
+        if (this.width == 0) this.width = this.flag.getClientRects()[0].width
+        if (this.height == 0) this.height = this.flag.getClientRects()[0].height
+        return (
+            this.x < h.x + h.width &&
+            this.x + this.width > h.x &&
+            this.y < h.y + h.height &&
+            this.y + this.height > h.y
+        )
+    }
+
+    private updatePosition() {
+        this.flag.style.cssText = `
+        top: ${this._y}px !important;
+        left: ${this._x}px !important;
+        `
     }
 }
 
