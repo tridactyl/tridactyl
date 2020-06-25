@@ -36,6 +36,7 @@ import {
 import { contentState } from "@src/content/state_content"
 import * as config from "@src/lib/config"
 import Logger from "@src/lib/logging"
+import * as R from "ramda"
 
 /** @hidden */
 const logger = new Logger("hinting")
@@ -375,7 +376,10 @@ class HintState {
 /** @hidden*/
 let modeState: HintState
 
-interface Hintables { elements: Element[]; style: string }
+interface Hintables {
+    elements: Element[]
+    hintclasses?: string[]
+}
 
 /** For each hintable element, add a hint
  * @hidden
@@ -394,16 +398,16 @@ export function hintPage(
 
     if (!rapid) {
         for (const hints of hintableElements) {
-            buildHints(hints.elements, hint => {
+            buildHints(hints, hint => {
                 modeState.cleanUpHints()
                 hint.result = onSelect(hint.target)
                 modeState.selectedHints.push(hint)
                 reset()
-            }, hints.style)
+            })
         }
     } else {
         for (const hints of hintableElements) {
-            buildHints(hints.elements, hint => {
+            buildHints(hints, hint => {
                 hint.result = onSelect(hint.target)
                 modeState.selectedHints.push(hint)
                 if (
@@ -412,7 +416,7 @@ export function hintPage(
                 ) {
                     modeState.shiftHints()
                 }
-            }, hints.style)
+            })
         }
     }
 
@@ -591,7 +595,7 @@ class Hint {
         public name: string,
         public readonly filterData: any,
         private readonly onSelect: HintSelectedCallback,
-        private readonly extrastyle: string,
+        private readonly classes?: string[],
     ) {
         // We need to compute the offset for elements that are in an iframe
         let offsetTop = 0
@@ -631,17 +635,14 @@ class Hint {
             this.flag.classList.add("TridactylHintUppercase")
         }
         this.flag.classList.add("TridactylHint" + target.tagName)
+        classes?.forEach(f => this.flag.classList.add(f))
 
         const top = rect.top > 0 ? this.rect.top : offsetTop + pad
         const left = rect.left > 0 ? this.rect.left : offsetLeft + pad
         this.flag.style.cssText = `
             top: ${window.scrollY + top}px !important;
             left: ${window.scrollX + left}px !important;
-            ${extrastyle}
-            font-family: monospace;
         `
-        console.log(extrastyle)
-        console.log(this.flag.style.cssText)
         modeState.hintHost.appendChild(this.flag)
         this.hidden = false
     }
@@ -679,15 +680,24 @@ class Hint {
 }
 
 /** @hidden */
-type HintBuilder = (els: Element[], onSelect: HintSelectedCallback, style: string) => void
+type HintBuilder = (
+    hintables: Hintables,
+    onSelect: HintSelectedCallback,
+) => void
 
 /** @hidden */
-function buildHintsSimple(els: Element[], onSelect: HintSelectedCallback) {
+function buildHintsSimple(
+    hintables: Hintables,
+    onSelect: HintSelectedCallback,
+) {
+    const els = hintables.elements
     const names = hintnames(els.length)
     for (const [el, name] of izip(els, names)) {
         logger.debug({ el, name })
         modeState.hintchars += name
-        modeState.hints.push(new Hint(el, name, null, onSelect, "background: pink; null: wat;"))
+        modeState.hints.push(
+            new Hint(el, name, null, onSelect, hintables.hintclasses),
+        )
     }
 }
 
@@ -725,14 +735,20 @@ export const vimpHelper = {
 }
 
 /** @hidden */
-function buildHintsVimperator(els: Element[], onSelect: HintSelectedCallback) {
+function buildHintsVimperator(
+    hintables: Hintables,
+    onSelect: HintSelectedCallback,
+) {
+    const els = hintables.elements
     const names = hintnames(els.length)
     for (const [el, name] of izip(els, names)) {
         let ft = elementFilterableText(el)
         ft = vimpHelper.sanitiseHintText(ft)
         logger.debug({ el, name, ft })
         modeState.hintchars += name + ft
-        modeState.hints.push(new Hint(el, name, ft, onSelect, "background: pink; null: wat;"))
+        modeState.hints.push(
+            new Hint(el, name, ft, onSelect, hintables.hintclasses),
+        )
     }
 }
 
@@ -922,13 +938,24 @@ function pushSpace() {
     @hidden
 */
 export function hintables(selectors = DOM.HINTTAGS_selectors, withjs = false) {
-    let elems = DOM.getElemsBySelector(selectors, [])
+    const elems = R.pipe(
+        DOM.getElemsBySelector,
+        R.filter(DOM.isVisible),
+        changeHintablesToLargestChild,
+    )(selectors, [])
+    const hintables: Hintables[] = [{ elements: elems }]
     if (withjs) {
-        const elemSet = new Set([...elems, ...DOM.hintworthy_js_elems])
-        elems = [...elemSet]
+        hintables.push({
+            elements: R.pipe(
+                Array.from,
+                R.filter(DOM.isVisible),
+                R.without(elems),
+                changeHintablesToLargestChild,
+            )(DOM.hintworthy_js_elems),
+            hintclasses: ["TridactylJSHint"],
+        })
     }
-    elems = elems.filter(DOM.isVisible)
-    return changeHintablesToLargestChild(elems)
+    return hintables
 }
 
 /**
@@ -1030,13 +1057,7 @@ export function pipe(
     jshints = true,
 ): Promise<[Element, number]> {
     return new Promise((resolve, reject) => {
-        hintPage(
-            [{ elements: hintables(selectors, jshints), style: "" }],
-            action,
-            resolve,
-            reject,
-            rapid,
-        )
+        hintPage(hintables(selectors, jshints), action, resolve, reject, rapid)
     })
 }
 
@@ -1049,7 +1070,7 @@ export function pipe_elements(
     rapid = false,
 ): Promise<[Element, number]> {
     return new Promise((resolve, reject) => {
-        hintPage([{ elements, style: "" }], action, resolve, reject, rapid)
+        hintPage([{ elements }], action, resolve, reject, rapid)
     })
 }
 

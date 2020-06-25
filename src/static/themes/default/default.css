@@ -6,7 +6,7 @@
     --tridactyl-small-font-size: 12px;
     --tridactyl-bg: white;
     --tridactyl-fg: black;
-    --tridactyl-logo: url('data:image/png;base64,REPLACE_ME_WITH_BASE64_TRIDACTYL_LOGO');
+    --tridactyl-logo: url("data:image/png;base64,REPLACE_ME_WITH_BASE64_TRIDACTYL_LOGO");
 
     /* Mode indicator */
     --tridactyl-status-font-family: var(--tridactyl-font-family);
@@ -30,6 +30,7 @@
     --tridactyl-hintspan-border-color: ButtonShadow;
     --tridactyl-hintspan-border-width: 0px;
     --tridactyl-hintspan-border-style: solid;
+    --tridactyl-hintspan-js-background: hsla(0, 0%, 65%);
 
     /* Element highlights */
     --tridactyl-hint-active-fg: var(--tridactyl-fg);
@@ -126,5 +127,4 @@
     --tridactyl-container-color-purple: #af51f5;
 
     --tridactyl-externaledit-bg: var(--tridactyl-logo) no-repeat center;
-
 }
