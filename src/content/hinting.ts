@@ -107,10 +107,8 @@ class HintState {
         for (const h of this.hints) {
             for (const vh of visited) {
                 if (h.overlapsWith(vh)) {
-                    if (vh.x + vh.width < h.rect.right)
-                        h.x = vh.x + vh.width
-                    else
-                        h.y = vh.y + vh.height
+                    if (vh.x + vh.width < h.rect.right) h.x = vh.x + vh.width
+                    else h.y = vh.y + vh.height
                 }
             }
             visited.push(h)
@@ -608,10 +606,10 @@ class Hint {
     public readonly rect: ClientRect = null
     public result: any = null
 
-    public width: number = 0
-    public height: number = 0
-    private _x: number = 0
-    private _y: number = 0
+    public width = 0
+    public height = 0
+    private _x = 0
+    private _y = 0
 
     constructor(
         public readonly target: Element,
