@@ -3100,7 +3100,7 @@ export async function tab(index: number | "#") {
 //#background
 export async function taball(id: string) {
     const windows = (await browser.windows.getAll()).map(w => w.id).sort((a, b) => a - b)
-    if (id === null || id === undefined || /\d+\.\d+/.exec(id)) {
+    if (id === null || id === undefined || !/\d+\.\d+/.exec(id)) {
         const tab = await activeTab()
         const prevId = id
         id = windows.indexOf(tab.windowId) + "." + (tab.index + 1)
