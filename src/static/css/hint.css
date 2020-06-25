@@ -42,3 +42,7 @@ span.TridactylHintUppercase {
 div.TridactylHintHost {
     position: static !important !important;
 }
+
+span.TridactylJSHint {
+    background-color: var(--tridactyl-hintspan-js-background) !important;
+}
