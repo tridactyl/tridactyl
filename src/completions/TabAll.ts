@@ -43,7 +43,7 @@ export class TabAllCompletionSource extends Completions.CompletionSourceFuse {
     public options: TabAllCompletionOption[]
 
     constructor(private _parent) {
-        super(["taball"], "TabAllCompletionSource", "All Tabs")
+        super(["taball", "tabgrab"], "TabAllCompletionSource", "All Tabs")
 
         this.updateOptions()
         this._parent.appendChild(this.node)

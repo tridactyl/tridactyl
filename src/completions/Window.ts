@@ -29,7 +29,7 @@ export class WindowCompletionSource extends Completions.CompletionSourceFuse {
     public options: WindowCompletionOption[]
 
     constructor(private _parent) {
-        super(["winclose"], "WindowCompletionSource", "Windows")
+        super(["tabpush", "winclose"], "WindowCompletionSource", "Windows")
 
         this.updateOptions()
         this._parent.appendChild(this.node)

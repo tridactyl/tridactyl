@@ -2081,6 +2081,50 @@ export async function tabprev(increment = 1) {
     })
 }
 
+/**
+ * Pushes a tab to another window. Only works for windows of the same type
+ * (can't push a non-private tab to a private window or a private tab to
+ * a non-private window).
+ */
+//#background
+export async function tabpush(windowId: number) {
+    return activeTabId().then(tabId => browser.tabs.move(tabId, { index: -1, windowId }))
+}
+
+/**
+ * Given a string of the format windowIndex.tabIndex, returns a tuple of
+ * numbers corresponding to the window index and tab index or the current
+ * window and tab if the string doesn't have the right format.
+ */
+//#background_helper
+async function parseWinTabIndex(id: string) {
+    const windows = (await browser.windows.getAll()).map(w => w.id).sort((a, b) => a - b)
+    if (id === null || id === undefined || !/\d+\.\d+/.exec(id)) {
+        const tab = await activeTab()
+        const prevId = id
+        id = windows.indexOf(tab.windowId) + "." + (tab.index + 1)
+        logger.info(`taball: Bad tab id: ${prevId}, defaulting to ${id}`)
+    }
+    const [winindex, tabindex_string] = id.split(".")
+    return [windows[parseInt(winindex, 10) - 1], parseInt(tabindex_string, 10) - 1]
+}
+
+/**
+ * Puts a tab identified by a windowIndex.tabIndex id in the current window.
+ * Only works for windows of the same type (can't grab a non-private tab from a
+ * private window and can't grab a private tab from a non-private window).
+ */
+//#background
+export async function tabgrab(id: string) {
+    // Figure out what tab should be grabbed
+    const [winid, tabindex_number] = await parseWinTabIndex(id)
+    const tabid = (await browser.tabs.query({ windowId: winid, index: tabindex_number }))[0].id
+    // Figure out where it should be put
+    const windowId = (await browser.windows.getLastFocused({ windowTypes: ["normal"] })).id
+    // Move window
+    return browser.tabs.move(tabid, { index: -1, windowId })
+}
+
 /** Like [[open]], but in a new tab. If no address is given, it will open the newtab page, which can be set with `set newtab [url]`
 
     Use the `-c` flag followed by a container name to open a tab in said container. Tridactyl will try to fuzzy match a name if an exact match is not found (opening the tab in no container can be enforced with "firefox-default" or "none"). If any autocontainer directives are configured and -c is not set, Tridactyl will try to use the right container automatically using your configurations.
@@ -3099,16 +3143,7 @@ export async function tab(index: number | "#") {
  */
 //#background
 export async function taball(id: string) {
-    const windows = (await browser.windows.getAll()).map(w => w.id).sort((a, b) => a - b)
-    if (id === null || id === undefined || !/\d+\.\d+/.exec(id)) {
-        const tab = await activeTab()
-        const prevId = id
-        id = windows.indexOf(tab.windowId) + "." + (tab.index + 1)
-        logger.info(`taball: Bad tab id: ${prevId}, defaulting to ${id}`)
-    }
-    const [winindex, tabindex_string] = id.split(".")
-    const winid = windows[parseInt(winindex, 10) - 1]
-    const tabindex_number = parseInt(tabindex_string, 10) - 1
+    const [winid, tabindex_number] = await parseWinTabIndex(id)
     const tabid = (await browser.tabs.query({ windowId: winid, index: tabindex_number }))[0].id
     await browser.windows.update(winid, { focused: true })
     return browser.tabs.update(tabid, { active: true })
