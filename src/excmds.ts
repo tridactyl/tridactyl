@@ -2082,7 +2082,7 @@ export async function tabprev(increment = 1) {
 }
 
 /**
- * Pushes a tab to another window. Only works for windows of the same type
+ * Pushes the current tab to another window. Only works for windows of the same type
  * (can't push a non-private tab to a private window or a private tab to
  * a non-private window).
  */
@@ -2110,7 +2110,7 @@ async function parseWinTabIndex(id: string) {
 }
 
 /**
- * Puts a tab identified by a windowIndex.tabIndex id in the current window.
+ * Moves a tab identified by a windowIndex.tabIndex id to the current window.
  * Only works for windows of the same type (can't grab a non-private tab from a
  * private window and can't grab a private tab from a non-private window).
  */
