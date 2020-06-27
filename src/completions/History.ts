@@ -17,14 +17,12 @@ class HistoryCompletionOption extends Completions.CompletionOptionHTML
 
         // Create HTMLElement
         this.html = html`<tr class="HistoryCompletionOption option">
-                <td class="prefix">${"".padEnd(2)}</td>
-                <td class="title">${page.title}</td>
-                <td class="content">
-                    <a class="url" target="_blank" href=${page.url}
-                        >${page.url}</a
-                    >
-                </td>
-            </tr>`
+            <td class="prefix">${"".padEnd(2)}</td>
+            <td class="title">${page.title}</td>
+            <td class="content">
+                <a class="url" target="_blank" href=${page.url}>${page.url}</a>
+            </td>
+        </tr>`
     }
 }
 
@@ -78,8 +76,13 @@ export class HistoryCompletionSource extends Completions.CompletionSourceFuse {
         options += options ? " " : ""
 
         // Options are pre-trimmed to the right length.
-        this.options = (await this.scoreOptions(query, config.get("historyresults"))).map(
-            page => new HistoryCompletionOption(options + page.url, page as any),
+        // Typescript throws an error here - further investigation is probably warranted
+        this.options = ((await this.scoreOptions(
+            query,
+            config.get("historyresults"),
+        )) as any).map(
+            page =>
+                new HistoryCompletionOption(options + page.url, page),
         )
 
         // Deselect any selected, but remember what they were.
@@ -88,9 +91,13 @@ export class HistoryCompletionSource extends Completions.CompletionSourceFuse {
 
         // Set initial state to normal, unless the option was selected a moment
         // ago, then reselect it so that users don't lose their selections.
-        this.options.forEach(option => option.state = "normal")
+        this.options.forEach(option => (option.state = "normal"))
         for (const option of this.options) {
-            if (lastFocused !== undefined && lastFocused.value === option.value && prevStr.length <= exstr.length) {
+            if (
+                lastFocused !== undefined &&
+                lastFocused.value === option.value &&
+                prevStr.length <= exstr.length
+            ) {
                 this.select(option)
                 break
             }
@@ -102,7 +109,6 @@ export class HistoryCompletionSource extends Completions.CompletionSourceFuse {
     // We don't need this inherited function
     // eslint-disable-next-line @typescript-eslint/no-empty-function
     updateChain() {}
-
 
     private async scoreOptions(query: string, n: number) {
         if (!query || config.get("historyresults") === 0) {

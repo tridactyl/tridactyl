@@ -84,8 +84,8 @@ export function update(
     containerId: string,
     updateObj: {
         name: string
-        color: browser.contextualIdentities.IdentityColor
-        icon: browser.contextualIdentities.IdentityIcon
+        color: string
+        icon: string
     },
 ) {
     const { name, color, icon } = updateObj
@@ -147,8 +147,8 @@ export async function exists(cname: string): Promise<boolean> {
 export function fromString(name: string, color: string, icon: string, id = "") {
     return {
         name,
-        color: color as browser.contextualIdentities.IdentityColor,
-        icon: icon as browser.contextualIdentities.IdentityIcon,
+        color,
+        icon,
         cookieStoreId: id,
     } as browser.contextualIdentities.ContextualIdentity // rules are made to be broken
 }
