@@ -14,6 +14,7 @@ import Fuse from "fuse.js"
 import { enumerate } from "@src/lib/itertools"
 import { toNumber } from "@src/lib/convert"
 import * as aliases from "@src/lib/aliases"
+import { backoff } from "@src/lib/patience"
 
 export const DEFAULT_FAVICON = browser.runtime.getURL(
     "static/defaultFavicon.svg",
@@ -79,7 +80,7 @@ export abstract class CompletionSource {
         return this._state !== "hidden" || this.state !== this._prevState
     }
 
-    prev(inc = 1): boolean {
+    prev(inc = 1): Promise<boolean> {
         return this.next(-1 * inc)
     }
 
@@ -91,7 +92,7 @@ export abstract class CompletionSource {
     /** Update [[node]] to display completions relevant to exstr */
     public abstract filter(exstr: string): Promise<void>
 
-    abstract next(inc?: number): boolean
+    abstract async next(inc?: number): Promise<boolean>
 }
 
 // Default classes
@@ -169,8 +170,8 @@ export abstract class CompletionSourceFuse extends CompletionSource {
     constructor(prefixes, className: string, title?: string) {
         super(prefixes)
         this.node = html`<div class="${className} hidden">
-                <div class="sectionHeader">${title || className}</div>
-            </div>`
+            <div class="sectionHeader">${title || className}</div>
+        </div>`
         this.node.appendChild(this.optionContainer)
         this.state = "hidden"
     }
@@ -239,7 +240,10 @@ export abstract class CompletionSourceFuse extends CompletionSource {
 
     /** Rtn sorted array of {option, score} */
     scoredOptions(query: string, options = this.options): ScoredOption[] {
-        const searchThis = this.options.map((elem, index) => ({ index, fuseKeys: elem.fuseKeys }))
+        const searchThis = this.options.map((elem, index) => ({
+            index,
+            fuseKeys: elem.fuseKeys,
+        }))
         this.fuse = new Fuse(searchThis, this.fuseOptions)
         return this.fuse.search(query).map(result => {
             // console.log(result, result.item, query)
@@ -308,16 +312,21 @@ export abstract class CompletionSourceFuse extends CompletionSource {
         /* console.log('results', result1, res2) */
     }
 
-    next(inc = 1) {
+    async next(inc = 1) {
         if (this.state !== "hidden") {
-            const visopts = this.options.filter(o => o.state !== "hidden")
-            const currind = visopts.findIndex(o => o.state === "focused")
-            this.deselect()
-            // visopts.length + 1 because we want an empty completion at the end
-            const max = visopts.length + 1
-            const opt = visopts[(currind + inc + max) % max]
-            if (opt) this.select(opt)
-            return true
+            // We're abusing `async` here to help us to catch errors in backoff
+            // and to make it easier to return consistent types
+            /* eslint-disable-next-line @typescript-eslint/require-await */
+            return backoff(async () => {
+                const visopts = this.options.filter(o => o.state !== "hidden")
+                const currind = visopts.findIndex(o => o.state === "focused")
+                this.deselect()
+                // visopts.length + 1 because we want an empty completion at the end
+                const max = visopts.length + 1
+                const opt = visopts[(currind + inc + max) % max]
+                if (opt) this.select(opt)
+                return true
+            })
         } else return false
     }
 
