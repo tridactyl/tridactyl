@@ -2092,6 +2092,20 @@ export async function tabpush(windowId: number) {
 }
 
 /**
+ * Moves all of the targetted window's tabs to the current window. Only works for windows of the same type
+ * (can't merge a non-private tab with a private window).
+ */
+//#background
+export async function winmerge(windowId: number) {
+    const target_win = await browser.windows.get(windowId, { populate: true })
+    const active_win = await browser.windows.getCurrent()
+    return browser.tabs.move(
+        target_win.tabs.map(t => t.id),
+        { index: -1, windowId: active_win.id },
+    )
+}
+
+/**
  * Given a string of the format windowIndex.tabIndex, returns a tuple of
  * numbers corresponding to the window index and tab index or the current
  * window and tab if the string doesn't have the right format.
