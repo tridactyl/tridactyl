@@ -12,16 +12,18 @@ class WindowCompletionOption extends Completions.CompletionOptionHTML
         this.fuseKeys.push(`${win.id}`)
 
         // Create HTMLElement
-        this.html = html`<tr class="WindowCompletionOption option ${
-            win.incognito ? "incognito" : ""
-        }">
+        this.html = html`<tr
+            class="WindowCompletionOption option ${win.incognito
+                ? "incognito"
+                : ""}"
+        >
             <td class="privatewindow"></td>
             <td class="prefix">${win.focused ? "%" : ""}</td>
             <td class="id">${win.id}</td>
             <td class="title">${win.title}</td>
-            <td class="tabcount">${win.tabs.length} tab${
-            win.tabs.length !== 1 ? "s" : ""
-        }</td>
+            <td class="tabcount">
+                ${win.tabs.length} tab${win.tabs.length !== 1 ? "s" : ""}
+            </td>
         </tr>`
     }
 }
