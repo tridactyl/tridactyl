@@ -16,6 +16,7 @@ class WindowCompletionOption extends Completions.CompletionOptionHTML
             win.incognito ? "incognito" : ""
         }">
             <td class="privatewindow"></td>
+            <td class="prefix">${win.focused ? "%" : ""}</td>
             <td class="id">${win.id}</td>
             <td class="title">${win.title}</td>
             <td class="tabcount">${win.tabs.length} tab${
