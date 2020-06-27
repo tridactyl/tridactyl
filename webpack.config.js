@@ -12,6 +12,8 @@ module.exports = {
     devtool: "source-map",
     // devtool: "inline-source-map", // Uncomment me for more helpful error messages
 
+    watch: true,
+
     entry: {
         background: "./src/background.ts",
         content: "./src/content.ts",
@@ -34,7 +36,7 @@ module.exports = {
     module: {
         rules: [
             // All files with a '.ts' or '.tsx' extension will be handled by 'ts-loader'.
-            { test: /\.tsx?$/, loader: "ts-loader" },
+            { test: /\.tsx?$/, loader: "ts-loader", options: {experimentalWatchApi: true} },
 
             // All output '.js' files will have any sourcemaps re-processed by 'source-map-loader'.
             { enforce: "pre", test: /\.js$/, loader: "source-map-loader" },
