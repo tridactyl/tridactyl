@@ -905,9 +905,6 @@ function filterHintsVimperator(query: string, reflow = false) {
     // Start with all hints
     let active = modeState.hints
 
-    // If we're reflowing, the names may be wrong at this point, so apply the original names.
-    if (reflow) rename(active)
-
     // Filter down (renaming as required)
     for (const run of partitionquery(query)) {
         if (run.isHintChar) {
