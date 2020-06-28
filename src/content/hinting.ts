@@ -749,7 +749,9 @@ function buildHintsSimple(
     onSelect: HintSelectedCallback,
 ) {
     const els = hintables.elements
-    const names = Array.from(hintnames(els.length + modeState.hints.length)).slice(modeState.hints.length)
+    const names = Array.from(
+        hintnames(els.length + modeState.hints.length),
+    ).slice(modeState.hints.length)
     for (const [el, name] of izip(els, names)) {
         logger.debug({ el, name })
         modeState.hintchars += name
@@ -798,7 +800,9 @@ function buildHintsVimperator(
     onSelect: HintSelectedCallback,
 ) {
     const els = hintables.elements
-    const names = Array.from(hintnames(els.length + modeState.hints.length)).slice(modeState.hints.length)
+    const names = Array.from(
+        hintnames(els.length + modeState.hints.length),
+    ).slice(modeState.hints.length)
     for (const [el, name] of izip(els, names)) {
         let ft = elementFilterableText(el)
         ft = vimpHelper.sanitiseHintText(ft)
@@ -835,7 +839,15 @@ type HintFilter = (s: string) => void
 function filterHintsSimple(fstr) {
     const active: Hint[] = []
     let foundMatch
-    for (const h of modeState.hints) {
+
+    // Fix bug where sometimes a bigger number would be selected (e.g. 10 rather than 1)
+    // such that smaller numbers couldn't be selected
+    let hints = modeState.hints
+    if (config.get("hintnames") == "numeric") {
+        hints = R.sortBy(R.pipe(R.prop("name"), parseInt), modeState.hints)
+    }
+
+    for (const h of hints) {
         if (!h.name.startsWith(fstr)) h.hidden = true
         else {
             if (!foundMatch) {
