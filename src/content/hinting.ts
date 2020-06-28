@@ -749,7 +749,7 @@ function buildHintsSimple(
     onSelect: HintSelectedCallback,
 ) {
     const els = hintables.elements
-    const names = hintnames(els.length)
+    const names = Array.from(hintnames(els.length + modeState.hints.length)).slice(modeState.hints.length)
     for (const [el, name] of izip(els, names)) {
         logger.debug({ el, name })
         modeState.hintchars += name
@@ -798,7 +798,7 @@ function buildHintsVimperator(
     onSelect: HintSelectedCallback,
 ) {
     const els = hintables.elements
-    const names = hintnames(els.length)
+    const names = Array.from(hintnames(els.length + modeState.hints.length)).slice(modeState.hints.length)
     for (const [el, name] of izip(els, names)) {
         let ft = elementFilterableText(el)
         ft = vimpHelper.sanitiseHintText(ft)
