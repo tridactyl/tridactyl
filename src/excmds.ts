@@ -2096,12 +2096,14 @@ export async function tabpush(windowId: number) {
  * (can't merge a non-private tab with a private window).
  */
 //#background
-export async function winmerge(windowId: number) {
-    const target_win = await browser.windows.get(windowId, { populate: true })
+export async function winmerge(...windowIds: string[]) {
+    const target_wins = windowIds.length > 0 ? await Promise.all(windowIds.map(windowId => browser.windows.get(parseInt(windowId, 10), { populate: true }))) : await browser.windows.getAll({ populate: true })
     const active_win = await browser.windows.getCurrent()
-    return browser.tabs.move(
-        target_win.tabs.map(t => t.id),
-        { index: -1, windowId: active_win.id },
+    return target_wins.forEach(target_win =>
+        browser.tabs.move(
+            target_win.tabs.map(t => t.id),
+            { index: -1, windowId: active_win.id },
+        ),
     )
 }
 
