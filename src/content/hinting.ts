@@ -875,16 +875,16 @@ function filterHintsSimple(fstr) {
 
     @hidden
 */
-function filterHintsVimperator(fstr, reflow = false) {
-    /** Partition a fstr into a tagged array of substrings */
-    function partitionFstr(fstr): Array<{ str: string; isHintChar: boolean }> {
+function filterHintsVimperator(query: string, reflow = false) {
+    /** Partition a query into a tagged array of substrings */
+    function partitionquery(query): Array<{ str: string; isHintChar: boolean }> {
         const peek = a => a[a.length - 1]
         const hintChars = defaultHintChars()
 
         // For each char, either add it to the existing run if there is one and
         // it's a matching type or start a new run
         const runs = []
-        for (const char of fstr) {
+        for (const char of query) {
             const isHintChar = hintChars.includes(char)
             if (!peek(runs) || peek(runs).isHintChar !== isHintChar) {
                 runs.push({ str: char, isHintChar })
@@ -909,7 +909,7 @@ function filterHintsVimperator(fstr, reflow = false) {
     if (reflow) rename(active)
 
     // Filter down (renaming as required)
-    for (const run of partitionFstr(fstr)) {
+    for (const run of partitionquery(query)) {
         if (run.isHintChar) {
             // Filter by label
             active = active.filter(hint => hint.name.startsWith(run.str))
