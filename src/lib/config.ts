@@ -525,6 +525,7 @@ export class default_config {
         aucon: "autocontain",
         audel: "autocmddelete",
         audelete: "autocmddelete",
+        blacklistremove: "autocmddelete DocStart",
         b: "tab",
         clsh: "clearsearchhighlight",
         nohlsearch: "clearsearchhighlight",

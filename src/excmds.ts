@@ -3508,7 +3508,7 @@ export function autocmddelete(event: string, url: string) {
  *
  *  Simply creates a DocStart [[autocmd]] that runs `mode ignore`.
  *
- *  Due to a Tridactyl bug, the only way to remove these rules once they are set is to delete all of your autocmds with `unset autocmds`.
+ *  Remove sites from the blacklist with `blacklistremove [url]` or `autocmddelete DocStart [url]`.
  *
  *  If you're looking for a way to temporarily disable Tridactyl, this might be what you're looking for.
  *
