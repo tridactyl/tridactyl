@@ -877,7 +877,9 @@ function filterHintsSimple(fstr) {
 */
 function filterHintsVimperator(query: string, reflow = false) {
     /** Partition a query into a tagged array of substrings */
-    function partitionquery(query): Array<{ str: string; isHintChar: boolean }> {
+    function partitionquery(
+        query,
+    ): Array<{ str: string; isHintChar: boolean }> {
         const peek = a => a[a.length - 1]
         const hintChars = defaultHintChars()
 
@@ -1132,13 +1134,24 @@ export function pipe(
  * @hidden
  * */
 export function pipe_elements(
-    elements: any = DOM.elementsWithText,
+    elements: Element[] | Hintables[] = DOM.elementsWithText(),
     action: HintSelectedCallback = _ => _,
     rapid = false,
 ): Promise<[Element, number]> {
     return new Promise((resolve, reject) => {
-        hintPage([{ elements }], action, resolve, reject, rapid)
+        hintPage(toHintablesArray(elements), action, resolve, reject, rapid)
     })
+}
+
+// Multiple dispatch? who needs it
+function toHintablesArray(
+    hintablesOrElements: Element[] | Hintables[],
+): Hintables[] {
+    return "className" in hintablesOrElements[0]
+        ? [{ elements: hintablesOrElements } as Hintables]
+        : "elements" in hintablesOrElements[0]
+        ? (hintablesOrElements as Hintables[])
+        : undefined
 }
 
 function selectFocusedHint(delay = false) {
