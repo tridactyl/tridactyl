@@ -110,8 +110,8 @@ type KeyMap = Map<MinimalKey[], MapTarget>
 
 export interface ParserResponse {
     keys?: KeyEventLike[]
-    value?: any
-    exstr?: any
+    value?: string
+    exstr?: string
     isMatch?: boolean
     numericPrefix?: number
 }
