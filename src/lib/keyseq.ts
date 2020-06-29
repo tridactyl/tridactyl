@@ -374,14 +374,14 @@ export function translateKeysInPlace(keys, conf): void {
 export function keyMap(conf): KeyMap {
     if (KEYMAP_CACHE[conf]) return KEYMAP_CACHE[conf]
 
-    let maps: any = config.get(conf)
-    if (maps === undefined)
+    const mapobj: {[keyseq: string]: string} = config.get(conf)
+    if (mapobj === undefined)
         throw new Error(
             "No binds defined for this mode. Reload page with <C-r> and add binds, e.g. :bind --mode=[mode] <Esc> mode normal",
         )
 
     // Convert to KeyMap
-    maps = new Map(Object.entries(maps))
+    const maps = new Map(Object.entries(mapobj))
     KEYMAP_CACHE[conf] = mapstrMapToKeyMap(maps)
     return KEYMAP_CACHE[conf]
 }
