@@ -1341,7 +1341,7 @@ export async function save(storage: "local" | "sync" = get("storageloc")) {
  */
 export async function update() {
     // Updates a value both in the main config and in sub (=site specific) configs
-    const updateAll = (setting: any[], fn: (any) => any) => {
+    const updateAll = (setting: string[], fn: (any) => any) => {
         const val = getDeepProperty(USERCONFIG, setting)
         if (val) {
             set(...setting, fn(val))
