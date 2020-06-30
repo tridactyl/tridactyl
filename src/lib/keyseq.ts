@@ -110,21 +110,28 @@ type KeyMap = Map<MinimalKey[], MapTarget>
 
 export interface ParserResponse {
     keys?: KeyEventLike[]
-    value?: any
-    exstr?: any
-    isMatch: boolean
+    value?: string
+    exstr?: string
+    isMatch?: boolean
     numericPrefix?: number
 }
 
-function splitNumericPrefix(keyseq: KeyEventLike[]): [KeyEventLike[], KeyEventLike[]] {
+function splitNumericPrefix(
+    keyseq: KeyEventLike[],
+): [KeyEventLike[], KeyEventLike[]] {
     // If the first key is in 1:9, partition all numbers until you reach a non-number.
-    if (!hasModifiers(keyseq[0]) && [1, 2, 3, 4, 5, 6, 7, 8, 9].includes(Number(keyseq[0].key))) {
+    if (
+        !hasModifiers(keyseq[0]) &&
+        [1, 2, 3, 4, 5, 6, 7, 8, 9].includes(Number(keyseq[0].key))
+    ) {
         const prefix = [keyseq[0]]
         for (const ke of keyseq.slice(1)) {
-            if (!hasModifiers(ke) && [0, 1, 2, 3, 4, 5, 6, 7, 8, 9].includes(Number(ke.key)))
+            if (
+                !hasModifiers(ke) &&
+                [0, 1, 2, 3, 4, 5, 6, 7, 8, 9].includes(Number(ke.key))
+            )
                 prefix.push(ke)
-            else
-                break
+            else break
         }
         const rest = keyseq.slice(prefix.length)
         return [prefix, rest]
@@ -145,12 +152,11 @@ export function parse(keyseq: KeyEventLike[], map: KeyMap): ParserResponse {
     keyseq = stripOnlyModifiers(keyseq)
 
     // If the keyseq is now empty, abort.
-    if (keyseq.length === 0)
-        return { keys: [], isMatch: false }
+    if (keyseq.length === 0) return { keys: [], isMatch: false }
 
     // Split into numeric prefix and non-numeric suffix
     let numericPrefix: KeyEventLike[]
-    [numericPrefix, keyseq] = splitNumericPrefix(keyseq)
+    ;[numericPrefix, keyseq] = splitNumericPrefix(keyseq)
 
     // If keyseq is a prefix of a key in map, proceed, else try dropping keys
     // from keyseq until it is empty or is a prefix.
@@ -173,7 +179,9 @@ export function parse(keyseq: KeyEventLike[], map: KeyMap): ParserResponse {
                 value: perfect[1],
                 exstr: perfect[1] + numericPrefixToExstrSuffix(numericPrefix),
                 isMatch: true,
-                numericPrefix: numericPrefix.length ? Number(numericPrefix.map(ke => ke.key).join("")) : undefined,
+                numericPrefix: numericPrefix.length
+                    ? Number(numericPrefix.map(ke => ke.key).join(""))
+                    : undefined,
                 keys: [],
             }
         } catch (e) {
@@ -366,11 +374,14 @@ export function translateKeysInPlace(keys, conf): void {
 export function keyMap(conf): KeyMap {
     if (KEYMAP_CACHE[conf]) return KEYMAP_CACHE[conf]
 
-    let maps: any = config.get(conf)
-    if (maps === undefined) throw new Error("No binds defined for this mode. Reload page with <C-r> and add binds, e.g. :bind --mode=[mode] <Esc> mode normal")
+    const mapobj: {[keyseq: string]: string} = config.get(conf)
+    if (mapobj === undefined)
+        throw new Error(
+            "No binds defined for this mode. Reload page with <C-r> and add binds, e.g. :bind --mode=[mode] <Esc> mode normal",
+        )
 
     // Convert to KeyMap
-    maps = new Map(Object.entries(maps))
+    const maps = new Map(Object.entries(mapobj))
     KEYMAP_CACHE[conf] = mapstrMapToKeyMap(maps)
     return KEYMAP_CACHE[conf]
 }

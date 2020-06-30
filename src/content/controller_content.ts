@@ -2,7 +2,7 @@ import { isTextEditable } from "@src/lib/dom"
 import { contentState, ModeName } from "@src/content/state_content"
 import Logger from "@src/lib/logging"
 import * as controller from "@src/lib/controller"
-import { KeyEventLike } from "@src/lib/keyseq"
+import { KeyEventLike, ParserResponse } from "@src/lib/keyseq"
 
 import * as hinting from "@src/content/hinting"
 import * as gobblemode from "@src/parsers/gobblemode"
@@ -83,7 +83,7 @@ class KeyCanceller {
                 ke.shiftKey === ke2.shiftKey &&
                 ke.target === ke2.target,
         )
-        if ((index >= 0) && (ke instanceof KeyboardEvent)) {
+        if (index >= 0 && ke instanceof KeyboardEvent) {
             ke.preventDefault()
             ke.stopImmediatePropagation()
             kes.splice(index, 1)
@@ -95,7 +95,9 @@ export const canceller = new KeyCanceller()
 
 /** Accepts keyevents, resolves them to maps, maps to exstrs, executes exstrs */
 function* ParserController() {
-    const parsers: { [mode_name in ModeName]: any } = {
+    const parsers: {
+        [mode_name in ModeName]: (keys: KeyEventLike[]) => ParserResponse
+    } = {
         normal: keys => generic.parser("nmaps", keys),
         insert: keys => generic.parser("imaps", keys),
         input: keys => generic.parser("inputmaps", keys),
@@ -172,7 +174,7 @@ function* ParserController() {
                     response,
                 )
 
-                if ((response.isMatch) && (keyevent instanceof KeyboardEvent)) {
+                if (response.isMatch && keyevent instanceof KeyboardEvent) {
                     keyevent.preventDefault()
                     keyevent.stopImmediatePropagation()
                     canceller.push(keyevent)
@@ -184,9 +186,7 @@ function* ParserController() {
                 } else {
                     keyEvents = response.keys
                     // show current keyEvents as a suffix of the contentState
-                    const suffix = keyEvents
-                        .map(x => PrintableKey(x))
-                        .join("")
+                    const suffix = keyEvents.map(x => PrintableKey(x)).join("")
                     if (previousSuffix !== suffix) {
                         contentState.suffix = suffix
                         previousSuffix = suffix

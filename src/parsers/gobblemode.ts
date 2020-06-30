@@ -1,5 +1,5 @@
 import { contentState } from "@src/content/state_content"
-import { isSimpleKey } from "@src/lib/keyseq"
+import { isSimpleKey, KeyEventLike } from "@src/lib/keyseq"
 
 /** Simple container for the gobble state. */
 class GobbleState {
@@ -27,7 +27,7 @@ function reset() {
 }
 
 /** Receive keypress. If applicable, execute a command. */
-export function parser(keys: KeyboardEvent[]) {
+export function parser(keys: KeyEventLike[]) {
     const key = keys[0].key
 
     if (key === "Escape") {

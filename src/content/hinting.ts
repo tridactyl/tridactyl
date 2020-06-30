@@ -1197,7 +1197,7 @@ function focusRightHint() {
 }
 
 /** @hidden */
-export function parser(keys: KeyboardEvent[]) {
+export function parser(keys: keyseq.KeyEventLike[]) {
     const parsed = keyseq.parse(
         keys,
         keyseq.mapstrMapToKeyMap(
