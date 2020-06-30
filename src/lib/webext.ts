@@ -106,7 +106,7 @@ export async function openInNewTab(
     },
 ) {
     const thisTab = await activeTab()
-    const options: any = {
+    const options: Parameters<typeof browser.tabs.create>[0] = {
         active: false,
         url,
         cookieStoreId: kwargs.cookieStoreId,
