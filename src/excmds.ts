@@ -3831,6 +3831,7 @@ export function setnull(...keys: string[]) {
         - -# yank an element's anchor URL to clipboard
         - -c [selector] hint links that match the css selector
           - `bind ;c hint -c [class*="expand"],[class="togg"]` works particularly well on reddit and HN
+          - this works with most other hint modes, with the caveat that if other hint mode takes arguments your selector must contain no spaces, i.e. `hint -c[yourOtherFlag] [selector] [your other flag's arguments, which may contain spaces]`
         - -f [text] hint links and inputs that display the given text
           - `bind <c-e> hint -f Edit`
         - -fr [text] use RegExp to hint the links and inputs
@@ -3843,6 +3844,7 @@ export function setnull(...keys: string[]) {
         - -J* disable javascript hints. Don't generate hints related to javascript events. This is particularly useful when used with the `-c` option when you want to generate only hints for the specified css selectors. Also useful on sites with plenty of useless javascript elements such as google.com
           - For example, use `bind ;jg hint -Jc .rc > .r > a` on google.com to generate hints only for clickable search results of a given query
         - -br deprecated, use `-qb` instead
+        - -F [callback] - run a custom callback on the selected hint, e.g. `hint -JF e => {tri.excmds.tabopen("-b",e.href); e.remove()}`.
 
     Excepting the custom selector mode and background hint mode, each of these hint modes is available by default as `;<option character>`, so e.g. `;y` to yank a link's target; `;g<option character>` starts rapid hint mode for all modes where it makes sense, and some others.
 
@@ -4163,6 +4165,10 @@ export async function hint(option?: string, selectors?: string, ...rest: string[
                 },
                 rapid,
             )
+            break
+
+        case "-F": // DIY callback
+            selectHints = hinting.pipe(withSelectors ? selectors : DOM.HINTTAGS_selectors, eval([withSelectors ? "" : selectors, ...rest].join(" ")), rapid, jshints)
             break
 
         default:
