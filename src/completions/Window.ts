@@ -5,7 +5,7 @@ class WindowCompletionOption extends Completions.CompletionOptionHTML
     implements Completions.CompletionOptionFuse {
     public fuseKeys = []
 
-    constructor(win) {
+    constructor(win: browser.windows.Window) {
         super()
         this.value = win.id
         this.fuseKeys.push(`${win.title}`)

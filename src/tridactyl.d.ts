@@ -186,29 +186,6 @@ declare namespace browser.management {
     const onUninstalled: WebExtEvent<(info: IExtensionInfo) => void>
 }
 
-/** An interface for the additional object that's supplied in the BlockingResponse callback.
-
- Details here:
- https://developer.mozilla.org/en-US/Add-ons/WebExtensions/API/webRequest/onBeforeRequest#details
-
-*/
-declare namespace browser.webRequest {
-    interface IDetails {
-        // frameAncestors: any[]
-        frameId: number
-        method: string
-        originUrl: string
-        parentFrameId: number
-        proxyInfo?: any
-        requestBody?: any
-        requestId: string
-        tabId: number
-        timeStamp: number
-        type: ResourceType
-        url: string
-    }
-}
-
 // html-tagged-template.js
 declare function html(
     strings: TemplateStringsArray,

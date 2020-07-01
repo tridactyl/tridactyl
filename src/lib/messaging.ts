@@ -69,7 +69,11 @@ export function attributeCaller(obj) {
     return handler
 }
 
-interface TypedMessage<Root, Type extends keyof Root, Command extends keyof Root[Type]> {
+interface TypedMessage<
+    Root,
+    Type extends keyof Root,
+    Command extends keyof Root[Type]
+> {
     type: Type
     command: Command
     args: Parameters<Root[Type][Command]>
@@ -79,23 +83,80 @@ function backgroundHandler<
     Root,
     Type extends keyof Root,
     Command extends keyof Root[Type]
-    >(root: Root,
-      message: TypedMessage<Root, Type, Command>,
-      sender: browser.runtime.MessageSender,
-    ): ReturnType<Root[Type][Command]> {
+>(
+    root: Root,
+    message: TypedMessage<Root, Type, Command>,
+    sender: browser.runtime.MessageSender,
+): ReturnType<Root[Type][Command]> {
     return root[message.type][message.command](...message.args)
 }
 
 export function setupListener<Root>(root: Root) {
-    browser.runtime.onMessage.addListener((message: any, sender: browser.runtime.MessageSender) => {
-        if (message.type in root) {
-            if (!(message.command in root[message.type]))
-                throw new Error(`missing handler in protocol ${message.type} ${message.command}`)
-            if (!Array.isArray(message.args))
-                throw new Error(`wrong arguments in protocol ${message.type} ${message.command}`)
-            return backgroundHandler(root, message, sender)
-        }
-    });
+    // What part of
+    //
+    // ```
+    // ERROR in /home/olie/projects/tridactyl/src/lib/messaging.ts
+    // ./src/lib/messaging.ts
+    // [tsl] ERROR in /home/olie/projects/tridactyl/src/lib/messaging.ts(90,43)
+    //       TS2345: Argument of type '(message: any, sender: browser.runtime.MessageSender) => ReturnType<Root[keyof Root][keyof Root[keyof Root]]>' is not assignable to parameter of type '(message: any, sender: MessageSender, sendResponse: (response?: any) => void) => boolean | void | Promise<any>'.
+    //   Type 'ReturnType<Root[keyof Root][keyof Root[keyof Root]]>' is not assignable to type 'boolean | void | Promise<any>'.
+    //     Type 'unknown' is not assignable to type 'boolean | void | Promise<any>'.
+    //       Type 'unknown' is not assignable to type 'Promise<any>'.
+    //         Type 'ReturnType<Root[keyof Root][string | number | symbol]>' is not assignable to type 'boolean | void | Promise<any>'.
+    //           Type 'unknown' is not assignable to type 'boolean | void | Promise<any>'.
+    //             Type 'unknown' is not assignable to type 'Promise<any>'.
+    //               Type 'ReturnType<Root[keyof Root][string]> | ReturnType<Root[keyof Root][number]> | ReturnType<Root[keyof Root][symbol]>' is not assignable to type 'boolean | void | Promise<any>'.
+    //                 Type 'ReturnType<Root[keyof Root][string]>' is not assignable to type 'boolean | void | Promise<any>'.
+    //                   Type 'unknown' is not assignable to type 'boolean | void | Promise<any>'.
+    //                     Type 'unknown' is not assignable to type 'Promise<any>'.
+    //                       Type 'ReturnType<Root[string | number | symbol][string]>' is not assignable to type 'boolean | void | Promise<any>'.
+    //                         Type 'unknown' is not assignable to type 'boolean | void | Promise<any>'.
+    //                           Type 'unknown' is not assignable to type 'Promise<any>'.
+    //                             Type 'ReturnType<Root[string][string]> | ReturnType<Root[number][string]> | ReturnType<Root[symbol][string]>' is not assignable to type 'boolean | void | Promise<any>'.
+    //                               Type 'ReturnType<Root[string][string]>' is not assignable to type 'boolean | void | Promise<any>'.
+    //                                 Type 'unknown' is not assignable to type 'boolean | void | Promise<any>'.
+    //                                   Type 'unknown' is not assignable to type 'Promise<any>'.
+    //                                     Type 'ReturnType<Root[string][string]>' is not assignable to type 'Promise<any>'.
+    //                                       Type 'ReturnType<Root[string | number | symbol][string]>' is not assignable to type 'Promise<any>'.
+    //                                         Type 'ReturnType<Root[keyof Root][string]>' is not assignable to type 'Promise<any>'.
+    //                                           Type 'ReturnType<Root[keyof Root][string | number | symbol]>' is not assignable to type 'Promise<any>'.
+    //                                             Type 'ReturnType<Root[keyof Root][keyof Root[keyof Root]]>' is not assignable to type 'Promise<any>'.
+    //                                               Type 'unknown' is not assignable to type 'Promise<any>'.
+    //                                                 Type 'ReturnType<Root[keyof Root][string | number | symbol]>' is not assignable to type 'Promise<any>'.
+    //                                                   Type 'unknown' is not assignable to type 'Promise<any>'.
+    //                                                     Type 'ReturnType<Root[keyof Root][string]> | ReturnType<Root[keyof Root][number]> | ReturnType<Root[keyof Root][symbol]>' is not assignable to type 'Promise<any>'.
+    //                                                       Type 'ReturnType<Root[keyof Root][string]>' is not assignable to type 'Promise<any>'.
+    //                                                         Type 'unknown' is not assignable to type 'Promise<any>'.
+    //                                                           Type 'ReturnType<Root[string | number | symbol][string]>' is not assignable to type 'Promise<any>'.
+    //                                                             Type 'unknown' is not assignable to type 'Promise<any>'.
+    //                                                               Type 'ReturnType<Root[string][string]> | ReturnType<Root[number][string]> | ReturnType<Root[symbol][string]>' is not assignable to type 'Promise<any>'.
+    //                                                                 Type 'ReturnType<Root[string][string]>' is not assignable to type 'Promise<any>'.
+    //                                                                   Type '{}' is missing the following properties from type 'Promise<any>': then, catch, [Symbol.toStringTag], finally
+    //
+    // ERROR in /home/olie/projects/tridactyl/src/lib/messaging.ts
+    // ./src/lib/messaging.ts
+    // [tsl] ERROR in /home/olie/projects/tridactyl/src/lib/messaging.ts(115,40)
+    //       TS2558: Expected 0 type arguments, but got 2.
+    // ```
+    //
+    // don't you understand?
+    //
+    // (This is why there is an `: any => `)
+    browser.runtime.onMessage.addListener(
+        (message: any, sender: browser.runtime.MessageSender): any => {
+            if (message.type in root) {
+                if (!(message.command in root[message.type]))
+                    throw new Error(
+                        `missing handler in protocol ${message.type} ${message.command}`,
+                    )
+                if (!Array.isArray(message.args))
+                    throw new Error(
+                        `wrong arguments in protocol ${message.type} ${message.command}`,
+                    )
+                return backgroundHandler(root, message, sender)
+            }
+        },
+    )
 }
 
 type StripPromise<T> = T extends Promise<infer U> ? U : T
@@ -105,14 +166,16 @@ export async function message<
     Type extends keyof Messages.Background,
     Command extends keyof Messages.Background[Type],
     F extends((...args: any) => any) & Messages.Background[Type][Command]
-  >(type: Type, command: Command, ...args: Parameters<F>) {
+>(type: Type, command: Command, ...args: Parameters<F>) {
     const message: TypedMessage<Messages.Background, Type, Command> = {
         type,
         command,
-        args
+        args,
     }
 
-    return browser.runtime.sendMessage<typeof message, StripPromise<ReturnType<F>>>(message)
+    // Typescript didn't like this
+    // return browser.runtime.sendMessage<typeof message, StripPromise<ReturnType<F>>>(message)
+    return browser.runtime.sendMessage(message)
 }
 
 /** Message the active tab of the currentWindow */
@@ -124,7 +187,12 @@ export async function messageActiveTab(
     return messageTab(await activeTabId(), type, command, args)
 }
 
-export async function messageTab(tabId, type: TabMessageType, command, args?): Promise<any> {
+export async function messageTab(
+    tabId,
+    type: TabMessageType,
+    command,
+    args?,
+): Promise<any> {
     const message: Message = {
         type,
         command,
@@ -154,7 +222,10 @@ export async function messageAllTabs(
             responses.push(await messageTab(tab.id, type, command, args))
         } catch (e) {
             // Skip errors caused by tabs we aren't running on
-            if (e.message != "Could not establish connection. Receiving end does not exist.") {
+            if (
+                e.message !=
+                "Could not establish connection. Receiving end does not exist."
+            ) {
                 logger.error(e)
             }
         }

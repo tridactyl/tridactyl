@@ -35,32 +35,26 @@ interface ICancelledRequest {
 }
 
 interface IAutoContain {
-    autoContain(details: browser.webRequest.IDetails): any
-    cancelEarly(
-        tab: browser.tabs.Tab,
-        details: browser.webRequest.IDetails,
-    ): boolean
-    cancelRequest(
-        tab: browser.tabs.Tab,
-        details: browser.webRequest.IDetails,
-    ): void
+    autoContain(details): any
+    cancelEarly(tab: browser.tabs.Tab, details): boolean
+    cancelRequest(tab: browser.tabs.Tab, details): void
     clearCancelledRequests(tabId: number): void
     getCancelledRequest(tabId: number): ICancelledRequest
-    completedRequestListener(details: browser.webRequest.IDetails): void
+    completedRequestListener(details): void
     autocontainConfigured(): boolean
     getAuconForUrl(url: string): Promise<string>
-    getAuconForDetails(details: browser.webRequest.IDetails): Promise<string>
+    getAuconForDetails(details): Promise<string>
 }
 
 export class AutoContain implements IAutoContain {
     private cancelledRequests: ICancelledRequest[] = []
     private lastCreatedTab = null
 
-    tabCreatedListener = (tab) => {
+    tabCreatedListener = tab => {
         this.lastCreatedTab = tab
     }
 
-    completedRequestListener = (details: browser.webRequest.IDetails) => {
+    completedRequestListener = details => {
         if (this.getCancelledRequest(details.tabId)) {
             this.clearCancelledRequests(details.tabId)
         }
@@ -73,12 +67,13 @@ export class AutoContain implements IAutoContain {
     }
 
     autoContain = async (
-        details: browser.webRequest.IDetails,
+        details,
     ): Promise<browser.webRequest.BlockingResponse> => {
         if (!this.autocontainConfigured()) return { cancel: false }
 
         // Only handle in strict mode.
-        if (Config.get("autocontainmode") === "relaxed") return { cancel: false }
+        if (Config.get("autocontainmode") === "relaxed")
+            return { cancel: false }
 
         // Only handle http requests.
         if (details.url.search("^https?://") < 0) return { cancel: false }
@@ -87,13 +82,15 @@ export class AutoContain implements IAutoContain {
         if (details.tabId === -1) return { cancel: false }
 
         // Do all of our async lookups in parallel.
-        const [tab, otherExtensionHasPriority, cookieStoreId] = await Promise.all(
-            [
-                browser.tabs.get(details.tabId),
-                this.checkOtherExtensionsHavePriority(details),
-                this.getAuconForDetails(details),
-            ],
-        )
+        const [
+            tab,
+            otherExtensionHasPriority,
+            cookieStoreId,
+        ] = await Promise.all([
+            browser.tabs.get(details.tabId),
+            this.checkOtherExtensionsHavePriority(details),
+            this.getAuconForDetails(details),
+        ])
 
         // If any other extensions claim this request, we'll ignore it and let them handle it.
         if (otherExtensionHasPriority) return { cancel: false }
@@ -108,22 +105,30 @@ export class AutoContain implements IAutoContain {
 
         // If this navigation created a tab, we cancel and then kill
         // the newly-created tab after opening.
-        const removeTab = this.lastCreatedTab && (this.lastCreatedTab.id === tab.id)
+        const removeTab =
+            this.lastCreatedTab && this.lastCreatedTab.id === tab.id
 
         // Figure out which tab should be the parent of the tab we'll
         // be creating in the selected container.
         const openerTabId = removeTab ? tab.openerTabId : tab.id
 
-        logger.debug("in tab %o and with details %o, reopening from container %o to container %o",
-                     tab, details, tab.cookieStoreId, cookieStoreId)
-        browser.tabs.create({
+        logger.debug(
+            "in tab %o and with details %o, reopening from container %o to container %o",
+            tab,
+            details,
+            tab.cookieStoreId,
+            cookieStoreId,
+        )
+        browser.tabs
+            .create({
                 url: details.url,
                 cookieStoreId,
                 active: tab.active,
                 windowId: tab.windowId,
                 index: tab.index + 1,
                 openerTabId,
-            }).then(result => {
+            })
+            .then(result => {
                 logger.debug("Autocontainer created tab %o", result)
             })
 
@@ -136,10 +141,7 @@ export class AutoContain implements IAutoContain {
     }
 
     // Handles the requests after the initial checks made in this.autoContain.
-    cancelEarly = (
-        tab: browser.tabs.Tab,
-        details: browser.webRequest.IDetails,
-    ): boolean => {
+    cancelEarly = (tab: browser.tabs.Tab, details): boolean => {
         if (!this.cancelledRequests[tab.id]) {
             this.cancelRequest(tab, details)
         } else {
@@ -160,10 +162,7 @@ export class AutoContain implements IAutoContain {
         return false
     }
 
-    cancelRequest = (
-        tab: browser.tabs.Tab,
-        details: browser.webRequest.IDetails,
-    ): void => {
+    cancelRequest = (tab: browser.tabs.Tab, details): void => {
         this.cancelledRequests[tab.id] = {
             requestIds: {
                 [details.requestId]: true,
@@ -180,7 +179,8 @@ export class AutoContain implements IAutoContain {
         }, 2000)
     }
 
-    getCancelledRequest = (tabId: number): ICancelledRequest => this.cancelledRequests[tabId]
+    getCancelledRequest = (tabId: number): ICancelledRequest =>
+        this.cancelledRequests[tabId]
 
     // Clear the cancelled requests.
     clearCancelledRequests = (tabId: number): void => {
@@ -191,9 +191,7 @@ export class AutoContain implements IAutoContain {
 
     // Checks to see if there are any other container-related extensions and avoids getting into
     // fights with them.
-    checkOtherExtensionsHavePriority = async (
-        details: browser.webRequest.IDetails,
-    ): Promise<boolean> => {
+    checkOtherExtensionsHavePriority = async (details): Promise<boolean> => {
         // The checks for each extension can be done in parallel.
         const priorities = await Promise.all([
             this.checkMACPriority(details),
@@ -202,18 +200,14 @@ export class AutoContain implements IAutoContain {
         return priorities.some(t => t)
     }
 
-    checkMACPriority = async (
-        details: browser.webRequest.IDetails,
-    ): Promise<boolean> => {
+    checkMACPriority = async (details): Promise<boolean> => {
         if (
             !ExtensionInfo.getExtensionEnabled(
                 ExtensionInfo.KNOWN_EXTENSIONS.multi_account_containers,
             )
         ) {
             // It can't take priority if it's not enabled.
-            logger.debug(
-                "multi-account containers extension does not exist",
-            )
+            logger.debug("multi-account containers extension does not exist")
             return false
         }
 
@@ -229,8 +223,10 @@ export class AutoContain implements IAutoContain {
                 },
             )
             .catch(error => {
-                logger.warning("failed to communicate with multi-account containers extension: %o",
-                               error)
+                logger.warning(
+                    "failed to communicate with multi-account containers extension: %o",
+                    error,
+                )
                 return false
             })
 
@@ -247,18 +243,14 @@ export class AutoContain implements IAutoContain {
         }
     }
 
-    checkTempContainersPriority = async (
-        details: browser.webRequest.IDetails,
-    ): Promise<boolean> => {
+    checkTempContainersPriority = async (details): Promise<boolean> => {
         if (
             !ExtensionInfo.getExtensionEnabled(
                 ExtensionInfo.KNOWN_EXTENSIONS.temp_containers,
             )
         ) {
             // It can't take priority if it's not enabled.
-            logger.debug(
-                "temporary containers extension does not exist",
-            )
+            logger.debug("temporary containers extension does not exist")
             return false
         }
 
@@ -281,9 +273,7 @@ export class AutoContain implements IAutoContain {
     getAuconForUrl = async (url: string): Promise<string> => {
         const aucons = Config.get("autocontain")
         const ausites = Object.keys(aucons)
-        const aukeyarr = ausites.filter(
-            e => url.search(e) >= 0,
-        )
+        const aukeyarr = ausites.filter(e => url.search(e) >= 0)
         if (aukeyarr.length > 1) {
             logger.error(
                 "Too many autocontain directives match this url. Not containing.",
@@ -307,7 +297,6 @@ export class AutoContain implements IAutoContain {
     }
 
     // Parses autocontain directives and returns valid cookieStoreIds or errors.
-    getAuconForDetails = async (
-        details: browser.webRequest.IDetails,
-    ): Promise<string> => this.getAuconForUrl(details.url)
+    getAuconForDetails = async (details): Promise<string> =>
+        this.getAuconForUrl(details.url)
 }
