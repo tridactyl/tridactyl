@@ -104,7 +104,6 @@ module.exports = {
         "@typescript-eslint/no-empty-interface": "error",
         "@typescript-eslint/no-explicit-any": "off",
         "@typescript-eslint/no-extra-non-null-assertion": "error",
-        "@typescript-eslint/no-extra-semi": "error",
         "@typescript-eslint/no-floating-promises": "off", //"error", // We should turn this on eventually but it will take a while to fix
         "@typescript-eslint/no-for-in-array": "error",
         "@typescript-eslint/no-implied-eval": "error",
@@ -214,7 +213,6 @@ module.exports = {
         ],
         "no-empty-function": "off",
         "no-eval": "off",
-        "no-extra-semi": "error",
         "no-fallthrough": "off",
         "no-invalid-this": "off",
         "no-multiple-empty-lines": "error",
@@ -248,14 +246,6 @@ module.exports = {
         "quote-props": "off",
         "radix": "error",
         "require-await": "off",
-        "space-before-function-paren": [
-            "error",
-            {
-                "anonymous": "never",
-                "asyncArrow": "always",
-                "named": "never"
-            }
-        ],
         "spaced-comment": [
             "error",
             "always",
