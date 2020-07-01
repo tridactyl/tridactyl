@@ -162,6 +162,7 @@ import * as rc from "@src/background/config_rc"
 import * as css_util from "@src/lib/css_util"
 import * as Updates from "@src/lib/updates"
 import * as Extensions from "@src/lib/extension_info"
+import * as webrequests from "@src/background/webrequests"
 
 ALL_EXCMDS = {
     "": BGSELF,
@@ -3429,10 +3430,10 @@ export function set(key: string, ...values: string[]) {
 
 /** @hidden */
 //#background_helper
-const AUCMDS = ["DocStart", "DocLoad", "DocEnd", "TriStart", "TabEnter", "TabLeft", "FullscreenChange", "FullscreenEnter", "FullscreenLeft"]
+const AUCMDS = ["DocStart", "DocLoad", "DocEnd", "TriStart", "TabEnter", "TabLeft", "FullscreenChange", "FullscreenEnter", "FullscreenLeft"].concat(webrequests.requestEvents)
 /** Set autocmds to run when certain events happen.
 
- @param event Curently, 'TriStart', 'DocStart', 'DocLoad', 'DocEnd', 'TabEnter', 'TabLeft', 'FullscreenChange', 'FullscreenEnter', and 'FullscreenLeft' are supported
+ @param event Curently, 'TriStart', 'DocStart', 'DocLoad', 'DocEnd', 'TabEnter', 'TabLeft', 'FullscreenChange', 'FullscreenEnter', 'FullscreenLeft', 'AuthRequired', 'BeforeRedirect', 'BeforeRequest', 'BeforeSendHeaders', 'Completed', 'ErrorOccured', 'HeadersReceived', 'ResponseStarted', and 'SendHeaders' are supported
 
  @param url For DocStart, DocEnd, TabEnter, and TabLeft: a JavaScript regex (e.g. `www\.amazon\.co.*\`)
 
@@ -3443,7 +3444,11 @@ const AUCMDS = ["DocStart", "DocLoad", "DocEnd", "TriStart", "TabEnter", "TabLef
  installed, except for the ".*" regular expression which will always be
  triggered, even without the native messenger.
 
- @param excmd The excmd to run (use [[composite]] to run multiple commands)
+ For AuthRequired, BeforeRedirect, BeforeRequest, BeforeSendHeaders, Completed, ErrorOccured, HeadersReceived, ResponseStarted and SendHeaders, a [URL match pattern](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/Match_patterns)
+
+ @param excmd The excmd to run (use [[composite]] to run multiple commands), __except__ for AuthRequired, BeforeRedirect, BeforeRequest, BeforeSendHeaders, Completed, ErrorOccured, HeadersReceived, ResponseStarted and SendHeaders, events where it must be an inline JavaScript function which maps [details objects specific to the event](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/webRequest#Events) to [blocking responses](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/webRequest/BlockingResponse). This JavaScript function will run in the background context.
+
+ For example: `autocmd BeforeRequest https://www.bbc.co.uk/* () => ({redirectUrl: "https://old.reddit.com"})`. Note the brackets which ensure JavaScript returns a blocking response object rather than interpreting it as a block statement.
 
 */
 //#background
@@ -3493,13 +3498,16 @@ export function autocontain(...args: string[]) {
 }
 
 /** Remove autocmds
- @param event Curently, 'TriStart', 'DocStart', 'DocLoad', 'DocEnd', 'TabEnter', 'TabLeft', 'FullscreenChange', 'FullscreenEnter', and 'FullscreenLeft' are supported
+ @param event An event from [[autocmd]]
 
- @param url For DocStart, DocEnd, TabEnter, and TabLeft: a fragment of the URL on which the events will trigger, or a JavaScript regex (e.g, `/www\.amazon\.co.*\/`)
+ @param url Exactly the "url" you entered when you made the [[autocmd]] you wish to delete. See `:viewconfig autocmds` if you have forgotten.
 */
 //#background
 export function autocmddelete(event: string, url: string) {
     if (!AUCMDS.includes(event)) throw event + " is not a supported event."
+    if (webrequests.requestEvents.includes(event)) {
+        webrequests.unregisterWebRequestAutocmd(event, url)
+    }
     return config.unset("autocmds", event, url)
 }
 
