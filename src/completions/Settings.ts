@@ -12,11 +12,11 @@ class SettingsCompletionOption extends Completions.CompletionOptionHTML
     ) {
         super()
         this.html = html`<tr class="SettingsCompletionOption option">
-                <td class="title">${setting.name}</td>
-                <td class="content">${setting.value}</td>
-                <td class="type">${setting.type}</td>
-                <td class="doc">${setting.doc}</td>
-            </tr>`
+            <td class="title">${setting.name}</td>
+            <td class="content">${setting.value}</td>
+            <td class="type">${setting.type}</td>
+            <td class="doc">${setting.doc}</td>
+        </tr>`
     }
 }
 
@@ -97,6 +97,4 @@ export class SettingsCompletionSource extends Completions.CompletionSourceFuse {
         // Call concrete class
         return this.updateDisplay()
     }
-
-
 }

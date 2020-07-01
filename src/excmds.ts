@@ -258,7 +258,7 @@ export function fillinput(selector: string, ...content: string[]) {
     let inputToFill = document.querySelector(selector)
     if (!inputToFill) inputToFill = DOM.getLastUsedInput()
     if ("value" in inputToFill) {
-        (inputToFill as HTMLInputElement).value = content.join(" ")
+        ;(inputToFill as HTMLInputElement).value = content.join(" ")
     } else {
         inputToFill.textContent = content.join(" ")
     }
@@ -337,7 +337,7 @@ export async function editor() {
         let line = 0
         let col = 0
         wrap_input((t, start, end) => {
-            [text, line, col] = getLineAndColNumber(t, start, end)
+            ;[text, line, col] = getLineAndColNumber(t, start, end)
             return [null, null, null]
         })(elem)
         const file = (await Native.temp(text, document.location.hostname)).content

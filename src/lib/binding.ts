@@ -5,12 +5,18 @@
 import { mapstrToKeyseq } from "@src/lib/keyseq"
 
 export const mode2maps = new Map([
-    ["normal", "nmaps"], ["ignore", "ignoremaps"],
-    ["insert", "imaps"], ["input", "inputmaps"], ["ex", "exmaps"],
-    ["hint", "hintmaps"], ["visual", "vmaps"]])
+    ["normal", "nmaps"],
+    ["ignore", "ignoremaps"],
+    ["insert", "imaps"],
+    ["input", "inputmaps"],
+    ["ex", "exmaps"],
+    ["hint", "hintmaps"],
+    ["visual", "vmaps"],
+])
 
 export const maps2mode = new Map(
-    Array.from(mode2maps.keys()).map(k => [mode2maps.get(k), k]))
+    Array.from(mode2maps.keys()).map(k => [mode2maps.get(k), k]),
+)
 
 export const modes = Array.from(mode2maps.keys())
 export const modeMaps = Array.from(maps2mode.keys())

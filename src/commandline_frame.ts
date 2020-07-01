@@ -53,7 +53,9 @@ const logger = new Logger("cmdline")
 /** @hidden **/
 const commandline_state = {
     activeCompletions: undefined,
-    clInput: (window.document.getElementById("tridactyl-input") as HTMLInputElement),
+    clInput: window.document.getElementById(
+        "tridactyl-input",
+    ) as HTMLInputElement,
     clear,
     cmdline_history_position: 0,
     completionsDiv: window.document.getElementById("completions"),
@@ -131,7 +133,9 @@ export function enableCompletions() {
             .filter(c => c)
 
         const fragment = document.createDocumentFragment()
-        commandline_state.activeCompletions.forEach(comp => fragment.appendChild(comp.node))
+        commandline_state.activeCompletions.forEach(comp =>
+            fragment.appendChild(comp.node),
+        )
         commandline_state.completionsDiv.appendChild(fragment)
         logger.debug(commandline_state.activeCompletions)
     }
@@ -162,7 +166,7 @@ let prev_cmd_called_history = false
 /** @hidden **/
 commandline_state.clInput.addEventListener(
     "keydown",
-    function(keyevent: KeyboardEvent) {
+    function (keyevent: KeyboardEvent) {
         if (!keyevent.isTrusted) return
         commandline_state.keyEvents.push(keyevent)
         const response = keyParser(commandline_state.keyEvents)
@@ -249,7 +253,8 @@ let cmdline_history_current = ""
  *  Otherwise, no need to pass an argument.
  */
 export function clear(evlistener = false) {
-    if (evlistener) commandline_state.clInput.removeEventListener("blur", noblur)
+    if (evlistener)
+        commandline_state.clInput.removeEventListener("blur", noblur)
     commandline_state.clInput.value = ""
     commandline_state.cmdline_history_position = 0
     cmdline_history_current = ""
@@ -270,7 +275,8 @@ async function history(n) {
     if (commandline_state.cmdline_history_position === 0) {
         cmdline_history_current = commandline_state.clInput.value
     }
-    let clamped_ind = matches.length + n - commandline_state.cmdline_history_position
+    let clamped_ind =
+        matches.length + n - commandline_state.cmdline_history_position
     clamped_ind = clamped_ind.clamp(0, matches.length)
 
     const pot_history = matches[clamped_ind]
@@ -279,8 +285,12 @@ async function history(n) {
 
     // if there was no clampage, update history position
     // there's a more sensible way of doing this but that would require more programmer time
-    if (clamped_ind === matches.length + n - commandline_state.cmdline_history_position)
-        commandline_state.cmdline_history_position = commandline_state.cmdline_history_position - n
+    if (
+        clamped_ind ===
+        matches.length + n - commandline_state.cmdline_history_position
+    )
+        commandline_state.cmdline_history_position =
+            commandline_state.cmdline_history_position - n
 }
 commandline_state.history = history
 
@@ -378,13 +388,16 @@ Messaging.addListener("commandline_frame", Messaging.attributeCaller(SELF))
 import { getCommandlineFns } from "@src/lib/commandline_cmds"
 import { KeyEventLike } from "./lib/keyseq"
 commandline_state.fns = getCommandlineFns(commandline_state)
-Messaging.addListener("commandline_cmd", Messaging.attributeCaller(commandline_state.fns))
+Messaging.addListener(
+    "commandline_cmd",
+    Messaging.attributeCaller(commandline_state.fns),
+)
 
 // Listen for statistics from the commandline iframe and send them to
 // the background for collection. Attach the observer to the window
 // object since there's apparently a bug that causes performance
 // observers to be GC'd even if they're still the target of a
 // callback.
-; (window as any).tri = Object.assign(window.tri || {}, {
+;(window as any).tri = Object.assign(window.tri || {}, {
     perfObserver: perf.listenForCounters(),
 })

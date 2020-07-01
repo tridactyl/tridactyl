@@ -13,7 +13,10 @@ function getChangelogDiv() {
 function updateChangelogStatus() {
     const changelogDiv = getChangelogDiv()
     const changelogContent = changelogDiv.textContent
-    if (browser.extension.inIncognitoContext || (localStorage.changelogContent === changelogContent)) {
+    if (
+        browser.extension.inIncognitoContext ||
+        localStorage.changelogContent === changelogContent
+    ) {
         const changelogButton = document.querySelector('input[id^="spoiler"]')
         if (!changelogButton) {
             console.error("Couldn't find changelog button!")
@@ -47,6 +50,10 @@ window.addEventListener("load", _ => {
 // Periodically nag people about updates.
 window.addEventListener("load", _ => {
     if (config.get("update", "nag") === true) {
-        Messaging.message("controller_background", "acceptExCmd", "updatecheck auto_polite")
+        Messaging.message(
+            "controller_background",
+            "acceptExCmd",
+            "updatecheck auto_polite",
+        )
     }
 })

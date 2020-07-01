@@ -4,7 +4,7 @@ import { browserBg } from "@src/lib/webext"
 export function newtaburl() {
     // In the nonewtab version, this will return `null` and upset getURL.
     // Ternary op below prevents the runtime error.
-    const newtab = (browser.runtime.getManifest()).chrome_url_overrides.newtab
+    const newtab = browser.runtime.getManifest().chrome_url_overrides.newtab
     return newtab !== null ? browser.runtime.getURL(newtab) : null
 }
 
@@ -26,8 +26,7 @@ export async function getBookmarks(query: string) {
     // Remove duplicate bookmarks
     const seen = new Map<string, string>()
     bookmarks = bookmarks.filter(b => {
-        if (seen.get(b.title) === b.url)
-            return false
+        if (seen.get(b.title) === b.url) return false
         else {
             seen.set(b.title, b.url)
             return true
@@ -42,7 +41,9 @@ function frecency(item: browser.history.HistoryItem) {
     return item.visitCount * -1
 }
 
-export async function getHistory(query: string): Promise<browser.history.HistoryItem[]> {
+export async function getHistory(
+    query: string,
+): Promise<browser.history.HistoryItem[]> {
     // Search history, dedupe and sort by frecency
     let history = await browserBg.history.search({
         text: query,
@@ -55,10 +56,7 @@ export async function getHistory(query: string): Promise<browser.history.History
     for (const page of history) {
         if (page.url !== newtaburl()) {
             if (dedupe.has(page.url)) {
-                if (
-                    dedupe.get(page.url).title.length <
-                    page.title.length
-                ) {
+                if (dedupe.get(page.url).title.length < page.title.length) {
                     dedupe.set(page.url, page)
                 }
             } else {
@@ -74,26 +72,39 @@ export async function getHistory(query: string): Promise<browser.history.History
 }
 
 export async function getTopSites() {
-    return (await browserBg.topSites.get())
-        .filter(page => page.url !== newtaburl())
+    return (await browserBg.topSites.get()).filter(
+        page => page.url !== newtaburl(),
+    )
 }
 
-export async function getCombinedHistoryBmarks(query: string): Promise<Array<{title: string, url: string}>> {
+export async function getCombinedHistoryBmarks(
+    query: string,
+): Promise<Array<{ title: string; url: string }>> {
     const [history, bookmarks] = await Promise.all([
         getHistory(query),
         getBookmarks(query),
     ])
 
     // Join records by URL, using the title from bookmarks by preference.
-    const combinedMap = new Map<string, any>(bookmarks.map(bmark => [
-        bmark.url, {title: bmark.title, url: bmark.url, bmark}
-    ]))
+    const combinedMap = new Map<string, any>(
+        bookmarks.map(bmark => [
+            bmark.url,
+            { title: bmark.title, url: bmark.url, bmark },
+        ]),
+    )
     history.forEach(page => {
         if (combinedMap.has(page.url)) combinedMap.get(page.url).history = page
-        else combinedMap.set(page.url, {title: page.title, url: page.url, history: page})
+        else
+            combinedMap.set(page.url, {
+                title: page.title,
+                url: page.url,
+                history: page,
+            })
     })
 
-    const score = x => (x.history ? frecency(x.history) : 0) - (x.bmark ? config.get("bmarkweight") : 0)
+    const score = x =>
+        (x.history ? frecency(x.history) : 0) -
+        (x.bmark ? config.get("bmarkweight") : 0)
 
     return Array.from(combinedMap.values()).sort((a, b) => score(a) - score(b))
 }

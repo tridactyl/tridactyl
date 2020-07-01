@@ -18,14 +18,14 @@ class BmarkCompletionOption extends Completions.CompletionOptionHTML
         this.fuseKeys.push(bmark.title, bmark.url)
 
         this.html = html`<tr class="BmarkCompletionOption option">
-                <td class="prefix">${"".padEnd(2)}</td>
-                <td class="title">${bmark.title}</td>
-                <td class="content">
-                    <a class="url" target="_blank" href=${bmark.url}
-                        >${bmark.url}</a
-                    >
-                </td>
-            </tr>`
+            <td class="prefix">${"".padEnd(2)}</td>
+            <td class="title">${bmark.title}</td>
+            <td class="content">
+                <a class="url" target="_blank" href=${bmark.url}
+                    >${bmark.url}</a
+                >
+            </td>
+        </tr>`
     }
 }
 
@@ -61,14 +61,14 @@ export class BmarkCompletionSource extends Completions.CompletionSourceFuse {
         if (query.startsWith("-c")) {
             const args = query.split(" ")
             option += args.slice(0, 2).join(" ")
-            option += " ";
+            option += " "
             query = args.slice(2).join(" ")
         }
 
         this.completion = undefined
-        this.options = (await providers.getBookmarks(query)).slice(0, 10).map(
-            page => new BmarkCompletionOption(option + page.url, page),
-        )
+        this.options = (await providers.getBookmarks(query))
+            .slice(0, 10)
+            .map(page => new BmarkCompletionOption(option + page.url, page))
 
         return this.updateChain()
     }
@@ -80,7 +80,6 @@ export class BmarkCompletionSource extends Completions.CompletionSourceFuse {
         // Call concrete class
         return this.updateDisplay()
     }
-
 
     select(option: Completions.CompletionOption) {
         if (this.lastExstr !== undefined && option !== undefined) {

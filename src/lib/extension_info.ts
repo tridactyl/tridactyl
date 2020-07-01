@@ -39,7 +39,7 @@ export function getExtensionInstalled(id: string): boolean {
 
 async function hasManagementPermission() {
     return browser.permissions.contains({
-        "permissions": ["management"],
+        permissions: ["management"],
     })
 }
 

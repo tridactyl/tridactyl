@@ -6,47 +6,59 @@ export function getCommandlineFns(cmdline_state) {
         /**
          * Insert the first command line history line that starts with the content of the command line in the command line.
          */
-        "complete": async () => {
+        complete: async () => {
             const fragment = cmdline_state.clInput.value
-            const matches = (await State.getAsync("cmdHistory")).filter(key => key.startsWith(fragment))
+            const matches = (await State.getAsync("cmdHistory")).filter(key =>
+                key.startsWith(fragment),
+            )
             const mostrecent = matches[matches.length - 1]
-            if (mostrecent !== undefined) cmdline_state.clInput.value = mostrecent
-            return cmdline_state.refresh_completions(cmdline_state.clInput.value)
+            if (mostrecent !== undefined)
+                cmdline_state.clInput.value = mostrecent
+            return cmdline_state.refresh_completions(
+                cmdline_state.clInput.value,
+            )
         },
 
         /**
          * Selects the next completion.
          */
-        "next_completion": () => {
-            if (cmdline_state.activeCompletions) cmdline_state.activeCompletions.forEach(comp => comp.next())
+        next_completion: () => {
+            if (cmdline_state.activeCompletions)
+                cmdline_state.activeCompletions.forEach(comp => comp.next())
         },
 
         /**
          * Selects the previous completion.
          */
-        "prev_completion": () => {
-            if (cmdline_state.activeCompletions) cmdline_state.activeCompletions.forEach(comp => comp.prev())
+        prev_completion: () => {
+            if (cmdline_state.activeCompletions)
+                cmdline_state.activeCompletions.forEach(comp => comp.prev())
         },
 
         /**
          * Deselects the currently selected completion.
          */
-        "deselect_completion": () => {
-            if (cmdline_state.activeCompletions) cmdline_state.activeCompletions.forEach(comp => comp.deselect())
+        deselect_completion: () => {
+            if (cmdline_state.activeCompletions)
+                cmdline_state.activeCompletions.forEach(comp => comp.deselect())
         },
 
         /**
          * Inserts the currently selected completion and a space in the command line.
          */
-        "insert_completion": () => {
+        insert_completion: () => {
             const command = cmdline_state.getCompletion()
             if (cmdline_state.activeCompletions) {
-                cmdline_state.activeCompletions.forEach(comp => (comp.completion = undefined))
+                cmdline_state.activeCompletions.forEach(
+                    comp => (comp.completion = undefined),
+                )
             }
             let result = Promise.resolve([])
             if (command) {
                 cmdline_state.clInput.value = command + " "
-                result = cmdline_state.refresh_completions(cmdline_state.clInput.value)
+                result = cmdline_state.refresh_completions(
+                    cmdline_state.clInput.value,
+                )
             }
             return result
         },
@@ -55,10 +67,12 @@ export function getCommandlineFns(cmdline_state) {
          * If a completion is selected, inserts it in the command line with a space.
          * If no completion is selected, inserts a space where the caret is.
          */
-        "insert_space_or_completion": () => {
+        insert_space_or_completion: () => {
             const command = cmdline_state.getCompletion()
             if (cmdline_state.activeCompletions) {
-                cmdline_state.activeCompletions.forEach(comp => (comp.completion = undefined))
+                cmdline_state.activeCompletions.forEach(
+                    comp => (comp.completion = undefined),
+                )
             }
             if (command) {
                 cmdline_state.clInput.value = command + " "
@@ -69,13 +83,16 @@ export function getCommandlineFns(cmdline_state) {
                     cmdline_state.clInput.value.substring(0, selectionStart) +
                     " " +
                     cmdline_state.clInput.value.substring(selectionEnd)
-                cmdline_state.clInput.selectionStart = cmdline_state.clInput.selectionEnd = selectionStart + 1
+                cmdline_state.clInput.selectionStart = cmdline_state.clInput.selectionEnd =
+                    selectionStart + 1
             }
-            return cmdline_state.refresh_completions(cmdline_state.clInput.value)
+            return cmdline_state.refresh_completions(
+                cmdline_state.clInput.value,
+            )
         },
 
         /** Hide the command line and cmdline_state.clear its content without executing it. **/
-        "hide_and_clear": () => {
+        hide_and_clear: () => {
             cmdline_state.clear(true)
             cmdline_state.keyEvents = []
 
@@ -85,7 +102,9 @@ export function getCommandlineFns(cmdline_state) {
             // Delete all completion sources - I don't think this is required, but this
             // way if there is a transient bug in completions it shouldn't persist.
             if (cmdline_state.activeCompletions)
-                cmdline_state.activeCompletions.forEach(comp => cmdline_state.completionsDiv.removeChild(comp.node))
+                cmdline_state.activeCompletions.forEach(comp =>
+                    cmdline_state.completionsDiv.removeChild(comp.node),
+                )
             cmdline_state.activeCompletions = undefined
             cmdline_state.isVisible = false
         },
@@ -93,17 +112,18 @@ export function getCommandlineFns(cmdline_state) {
         /**
          * Selects the next history line.
          */
-        "next_history": () => cmdline_state.history(1),
+        next_history: () => cmdline_state.history(1),
 
         /**
          * Selects the prev history line.
          */
-        "prev_history": () => cmdline_state.history(-1),
+        prev_history: () => cmdline_state.history(-1),
         /**
          * Execute the content of the command line and hide it.
          **/
-        "accept_line": () => {
-            const command = cmdline_state.getCompletion() || cmdline_state.clInput.value
+        accept_line: () => {
+            const command =
+                cmdline_state.getCompletion() || cmdline_state.clInput.value
 
             cmdline_state.fns.hide_and_clear()
 
@@ -135,10 +155,12 @@ export function getCommandlineFns(cmdline_state) {
             return messageOwnTab("controller_content", "acceptExCmd", [command])
         },
 
-        "copy_completion": () => {
+        copy_completion: () => {
             const command = cmdline_state.getCompletion()
             cmdline_state.fns.hide_and_clear()
-            return messageOwnTab("controller_content", "acceptExCmd", ["clipboard yank " + command])
+            return messageOwnTab("controller_content", "acceptExCmd", [
+                "clipboard yank " + command,
+            ])
         },
     }
 }

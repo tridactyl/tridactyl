@@ -35,7 +35,11 @@ export class CompositeCompletionSource extends Completions.CompletionSourceFuse 
     }
 
     select(option: ExcmdCompletions.ExcmdCompletionOption) {
-        this.completion = this.lastExstr.replace(new RegExp(this.getendexstr(this.lastExstr) + "$"), "") + option.value
+        this.completion =
+            this.lastExstr.replace(
+                new RegExp(this.getendexstr(this.lastExstr) + "$"),
+                "",
+            ) + option.value
         option.state = "focused"
         this.lastFocused = option
     }
@@ -67,8 +71,16 @@ export class CompositeCompletionSource extends Completions.CompletionSourceFuse 
         // Add all excmds that start with exstr and that tridactyl has metadata about to completions
         this.options = this.scoreOptions(
             fns
-                .filter(([name, fn]) => !fn.hidden && name.startsWith(end_exstr))
-                .map(([name, fn]) => new ExcmdCompletions.ExcmdCompletionOption(name, fn.doc)),
+                .filter(
+                    ([name, fn]) => !fn.hidden && name.startsWith(end_exstr),
+                )
+                .map(
+                    ([name, fn]) =>
+                        new ExcmdCompletions.ExcmdCompletionOption(
+                            name,
+                            fn.doc,
+                        ),
+                ),
         )
 
         // Also add aliases to possible completions
@@ -88,7 +100,10 @@ export class CompositeCompletionSource extends Completions.CompletionSourceFuse 
             } else {
                 // This can happen when the alias is a composite command or a command with arguments. We can't display doc because we don't know what parameter the alias takes or what it does.
                 this.options.push(
-                    new ExcmdCompletions.ExcmdCompletionOption(alias, `Alias for \`${cmd}\`.`),
+                    new ExcmdCompletions.ExcmdCompletionOption(
+                        alias,
+                        `Alias for \`${cmd}\`.`,
+                    ),
                 )
             }
         }
@@ -102,6 +117,12 @@ export class CompositeCompletionSource extends Completions.CompletionSourceFuse 
     }
 
     private getendexstr(exstr) {
-        return exstr.replace(regex, "").split("|").slice(-1)[0].split(";").slice(-1)[0].trim()
+        return exstr
+            .replace(regex, "")
+            .split("|")
+            .slice(-1)[0]
+            .split(";")
+            .slice(-1)[0]
+            .trim()
     }
 }

@@ -9,8 +9,8 @@ class FileSystemCompletionOption extends Completions.CompletionOptionHTML
         super()
         this.fuseKeys = [value]
         this.html = html`<tr class="FileSystemCompletionOption option">
-                <td class="value">${value}</td>
-            </tr>`
+            <td class="value">${value}</td>
+        </tr>`
     }
 }
 
@@ -18,7 +18,11 @@ export class FileSystemCompletionSource extends Completions.CompletionSourceFuse
     public options: FileSystemCompletionOption[]
 
     constructor(private _parent) {
-        super(["saveas", "source", "js -s", "jsb -s"], "FileSystemCompletionSource", "FileSystem")
+        super(
+            ["saveas", "source", "js -s", "jsb -s"],
+            "FileSystemCompletionSource",
+            "FileSystem",
+        )
 
         this._parent.appendChild(this.node)
     }

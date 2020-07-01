@@ -254,7 +254,10 @@ export function changeSingleCss(
     const miniSheet = CSS.parse(newRule).stylesheet.rules[0]
 
     // Find pre-existing rules
-    const oldRuleIndexes = findCssRules("selectors" in miniSheet ? miniSheet.selectors : [], sheet)
+    const oldRuleIndexes = findCssRules(
+        "selectors" in miniSheet ? miniSheet.selectors : [],
+        sheet,
+    )
     if (oldRuleIndexes.length > 0) {
         sheet.stylesheet.rules[oldRuleIndexes[0]] = miniSheet
     } else {

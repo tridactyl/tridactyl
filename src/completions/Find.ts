@@ -14,9 +14,10 @@ class FindCompletionOption extends Completions.CompletionOptionHTML
 
         // Create HTMLElement
         this.html = html`<tr class="FindCompletionOption option">
-            <td class="content">${m.precontext}<span class="match">${
-            m.rangeData.text
-        }</span>${m.postcontext}</td>
+            <td class="content">
+                ${m.precontext}<span class="match">${m.rangeData.text}</span
+                >${m.postcontext}
+            </td>
         </tr>`
     }
 }

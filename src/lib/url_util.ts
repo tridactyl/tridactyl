@@ -402,7 +402,7 @@ export function interpolateSearchItem(urlPattern: URL, query: string): URL {
     // replace or append as needed
     if (hasInterpolationPoint) {
         const resultingURL = new URL(
-            urlPattern.href.replace(/%s\d+/g, function(x) {
+            urlPattern.href.replace(/%s\d+/g, function (x) {
                 const index = parseInt(x.slice(2), 10) - 1
                 if (index >= queryWords.length) {
                     return ""

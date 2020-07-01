@@ -11,9 +11,9 @@ class HelpCompletionOption extends Completions.CompletionOptionHTML
         super()
         this.value = `${flag} ${name}`
         this.html = html`<tr class="HelpCompletionOption option">
-                <td class="name">${name}</td>
-                <td class="doc">${doc}</td>
-            </tr>`
+            <td class="name">${name}</td>
+            <td class="doc">${doc}</td>
+        </tr>`
     }
 }
 
@@ -49,7 +49,11 @@ export class HelpCompletionSource extends Completions.CompletionSourceFuse {
         const settings = config.get()
         const exaliases = settings.exaliases
         const bindings = settings.nmaps
-        if (fns === undefined || exaliases === undefined || bindings === undefined) {
+        if (
+            fns === undefined ||
+            exaliases === undefined ||
+            bindings === undefined
+        ) {
             return
         }
 
@@ -60,7 +64,9 @@ export class HelpCompletionSource extends Completions.CompletionSourceFuse {
                         .filter(alias => alias.startsWith(query))
                         .map(alias => {
                             const cmd = aliases.expandExstr(alias)
-                            const doc = (excmds.getFunction(cmd) || {} as any).doc || ""
+                            const doc =
+                                (excmds.getFunction(cmd) || ({} as any)).doc ||
+                                ""
                             return new HelpCompletionOption(
                                 alias,
                                 `Alias for \`${cmd}\`. ${doc}`,
@@ -76,9 +82,7 @@ export class HelpCompletionSource extends Completions.CompletionSourceFuse {
                             binding =>
                                 new HelpCompletionOption(
                                     binding,
-                                    `Normal mode binding for \`${
-                                        bindings[binding]
-                                    }\``,
+                                    `Normal mode binding for \`${bindings[binding]}\``,
                                     "-b",
                                 ),
                         ),
@@ -143,6 +147,4 @@ export class HelpCompletionSource extends Completions.CompletionSourceFuse {
         // Call concrete class
         return this.updateDisplay()
     }
-
-
 }

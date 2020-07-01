@@ -81,8 +81,7 @@ export class HistoryCompletionSource extends Completions.CompletionSourceFuse {
             query,
             config.get("historyresults"),
         )) as any).map(
-            page =>
-                new HistoryCompletionOption(options + page.url, page),
+            page => new HistoryCompletionOption(options + page.url, page),
         )
 
         // Deselect any selected, but remember what they were.

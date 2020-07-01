@@ -1,7 +1,8 @@
 import * as Extensions from "@src/lib/extension_info"
 import * as Completions from "@src/completions"
 
-class ExtensionsCompletionOption extends Completions.CompletionOptionHTML implements Completions.CompletionOptionFuse {
+class ExtensionsCompletionOption extends Completions.CompletionOptionHTML
+    implements Completions.CompletionOptionFuse {
     public fuseKeys = []
 
     constructor(public name: string, public optionsUrl: string) {
@@ -9,8 +10,8 @@ class ExtensionsCompletionOption extends Completions.CompletionOptionHTML implem
         this.fuseKeys.push(this.name)
 
         this.html = html`<tr class="option">
-                <td class="title">${name}</td>
-            </tr>`
+            <td class="title">${name}</td>
+        </tr>`
     }
 }
 
@@ -18,11 +19,7 @@ export class ExtensionsCompletionSource extends Completions.CompletionSourceFuse
     public options: ExtensionsCompletionOption[]
 
     constructor(private _parent) {
-        super(
-            ["extoptions"],
-            "ExtensionsCompletionSource",
-            "Extension options",
-        )
+        super(["extoptions"], "ExtensionsCompletionSource", "Extension options")
 
         this._parent.appendChild(this.node)
     }
@@ -45,12 +42,17 @@ export class ExtensionsCompletionSource extends Completions.CompletionSourceFuse
         this.options = this.scoreOptions(
             extensions
                 .filter(extension => extension.name.startsWith(query))
-                .map(extension => new ExtensionsCompletionOption(extension.name, extension.optionsUrl))
+                .map(
+                    extension =>
+                        new ExtensionsCompletionOption(
+                            extension.name,
+                            extension.optionsUrl,
+                        ),
+                ),
         )
 
         return this.updateChain()
     }
-
 
     updateChain() {
         this.options.forEach(option => (option.state = "normal"))

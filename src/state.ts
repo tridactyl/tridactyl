@@ -76,10 +76,14 @@ const state = new Proxy(overlay, {
         if (PERSISTENT_KEYS.includes(property)) {
             // Ensure we don't accidentally store anything sensitive
             if (browser.extension.inIncognitoContext) {
-                console.error("Attempted to write to storage in private window.")
+                console.error(
+                    "Attempted to write to storage in private window.",
+                )
                 return false
             }
-            browser.storage.local.set({ state: R.pick(PERSISTENT_KEYS, target) } as any)
+            browser.storage.local.set({
+                state: R.pick(PERSISTENT_KEYS, target),
+            } as any)
         }
         return true
     },
@@ -97,15 +101,17 @@ export async function getAsync(property) {
 
 // Skip this in mock testing - the mock doesn't like notBackground
 // Keep instances of state.ts synchronised with each other
-notBackground && !notBackground() && messaging.addListener("state", (message, sender, sendResponse) => {
-    if (message.command == "stateUpdate") {
-        const property = message.args.property
-        const value = message.args.value
-        logger.debug("State changed!", property, value)
-        state[property] = value
-    } else if (message.command == "stateGet") {
-        sendResponse(state[message.args[0].prop])
-    } else throw "Unsupported message to state, type " + message.command
-})
+notBackground &&
+    !notBackground() &&
+    messaging.addListener("state", (message, sender, sendResponse) => {
+        if (message.command == "stateUpdate") {
+            const property = message.args.property
+            const value = message.args.value
+            logger.debug("State changed!", property, value)
+            state[property] = value
+        } else if (message.command == "stateGet") {
+            sendResponse(state[message.args[0].prop])
+        } else throw "Unsupported message to state, type " + message.command
+    })
 
 export { state as default }
