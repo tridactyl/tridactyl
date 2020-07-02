@@ -236,10 +236,10 @@ declare namespace treestyletab {
 
     interface ITreeTab {
         id: number
-        states: Array<TabState>
+        states: TabState[]
         indent: number
-        children: Array<ITreeTab>
-        ancestorTabIds: Array<number>
+        children: ITreeTab[]
+        ancestorTabIds: number[]
     }
 
     type ExcludedTabProperties = "title" | "url" | "favIconUrl" | "cookeStoreId"
