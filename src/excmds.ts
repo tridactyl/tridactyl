@@ -429,7 +429,10 @@ export async function guiset_quiet(rule: string, option: string) {
  */
 //#background
 export async function guiset(rule: string, option: string) {
-    await guiset_quiet(rule, option)
+    if (!(await guiset_quiet(rule, option))) {
+        throw new Error(":guiset failed. Please ensure native messenger is installed.")
+    }
+
     return fillcmdline_tmp(3000, "userChrome.css written. Please restart Firefox to see the changes.")
 }
 
