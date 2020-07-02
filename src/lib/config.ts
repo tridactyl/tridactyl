@@ -31,6 +31,9 @@ const removeNull = R.when(
 )
 
 /** @hidden */
+import mergeDeep from "@src/lib/objects.ts"
+
+/** @hidden */
 const CONFIGNAME = "userconfig"
 /** @hidden */
 const WAITERS = []
@@ -1057,6 +1060,11 @@ export class default_config {
      * Whether to return to visual mode when text is deselected.
      */
     visualexitauto: "true" | "false" = "true"
+
+    /**
+     * Whether or not to integrate with the TST tab
+     */
+    treestyletabintegration: boolean = true
 }
 
 /** @hidden */

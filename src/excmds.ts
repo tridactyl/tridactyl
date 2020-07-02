@@ -163,6 +163,7 @@ import * as css_util from "@src/lib/css_util"
 import * as Updates from "@src/lib/updates"
 import * as Extensions from "@src/lib/extension_info"
 import * as webrequests from "@src/background/webrequests"
+import * as treestyletab from "@src/interop/tst"
 
 ALL_EXCMDS = {
     "": BGSELF,
@@ -733,6 +734,54 @@ export async function mktridactylrc(...args: string[]) {
 
     const conf = config.parseConfig()
     if ((await Native.nativegate("0.1.11")) && !(await rc.writeRc(conf, overwrite, file))) logger.error("Could not write RC file")
+
+    return conf
+}
+
+/** Writes current config to a file.
+
+    With no arguments supplied the excmd will try to find an appropriate
+    config path and write the rc file to there. Any argument given to the
+    excmd excluding the `-f` flag will be treated as a path to write the rc
+    file to relative to the native messenger's location (`~/.local/share/tridactyl/`). By default, it silently refuses to overwrite existing files.
+
+    The RC file will be split into sections that will be created if a config
+    property is discovered within one of them:
+    - General settings
+    - Binds
+    - Aliases
+    - Autocmds
+    - Autocontainers
+    - Logging
+
+    Note:
+    - Subconfig paths fall back to using `js tri.config.set(key: obj)` notation.
+    - This method is also used as a fallback mechanism for objects that didn't hit
+      any of the heuristics.
+
+    Available flags:
+    - `-f` will overwrite the config file if it exists.
+    @param args an optional string of arguments to be parsed.
+    @returns the parsed config.
+
+*/
+//#background
+export async function mktridactylrc(...args: string[]) {
+    let overwrite = false
+
+    const argParse = (args: string[]): string[] => {
+        if (args[0] === "-f") {
+            overwrite = true
+            args.shift()
+            argParse(args)
+        }
+        return args
+    }
+
+    const file = argParse(args).join(" ") || undefined
+
+    const conf = config.parseConfig()
+    if (await Native.nativegate("0.1.11") && (!await rc.writeRc(conf, overwrite, file))) logger.error("Could not write RC file")
 
     return conf
 }
@@ -2072,14 +2121,62 @@ export async function tabnext_gt(index?: number) {
  */
 //#background
 export async function tabprev(increment = 1) {
-    // Proper way:
-    // return tabIndexSetActive((await activeTab()).index - increment + 1)
-    // Kludge until https://bugzilla.mozilla.org/show_bug.cgi?id=1504775 is fixed:
-    return browser.tabs.query({ currentWindow: true, hidden: false }).then(tabs => {
-        tabs.sort((t1, t2) => t1.index - t2.index)
-        const prevTab = (tabs.findIndex(t => t.active) - increment + tabs.length) % tabs.length
-        return browser.tabs.update(tabs[prevTab].id, { active: true })
-    })
+    if (treestyletab.doTstIntegration()) {
+        return treestyletab.focusPrevVisible(increment)
+    } else {
+        // Proper way:
+        // return tabIndexSetActive((await activeTab()).index - increment + 1)
+        // Kludge until https://bugzilla.mozilla.org/show_bug.cgi?id=1504775 is fixed:
+        return browser.tabs.query({ currentWindow: true, hidden: false }).then(tabs => {
+            tabs.sort((t1, t2) => t1.index - t2.index)
+            const prevTab = (tabs.findIndex(t => t.active) - increment + tabs.length) % tabs.length
+            return browser.tabs.update(tabs[prevTab].id, { active: true })
+        })
+    }
+}
+
+/**
+ * If Tree Style Tab is installed, switches to an ancestor of the current tab.
+ */
+//#background
+export async function tstup(levels = 1) {
+    return treestyletab.focusAncestor(levels)
+}
+
+/**
+ * If Tree Style Tab is installed, collapses the given tab's tree.
+ */
+//#background
+export async function tstcollapse(index: number | "current" = "current") {
+    return treestyletab.collapseTree(index)
+}
+
+/**
+ * If Tree Style Tab is installed, expands the given tab's tree.
+ */
+//#background
+export async function tstexpand(index: number | "current" = "current") {
+    return treestyletab.expandTree(index)
+}
+
+/**
+ * If Tree Style Tab is installed, indent the given tab.
+ *
+ * If followChildren is specified, also indent the tab's children.
+ */
+//#background
+export async function tstindent(index?: number | "current", followChildren = true) {
+    return treestyletab.indent(index, followChildren)
+}
+
+/**
+ * If Tree Style Tab is installed, outdent the given tab.
+ *
+ * If followChildren is specified, also outdent the tab's children.
+ */
+//#background
+export async function tstoutdent(index?: number | "current", followChildren = true) {
+    return treestyletab.outdent(index, followChildren)
 }
 
 /**
@@ -4714,6 +4811,19 @@ export async function extoptions(...optionNameArgs: string[]) {
     const extensions = await Extensions.listExtensions()
     const selectedExtension = extensions.find(ext => ext.name === optionName)
     return winopen("-popup", selectedExtension.optionsUrl)
+}
+
+//#background
+export function register(addon: string) {
+    switch (addon) {
+        case "tst":
+        case "treestyletab":
+            // For some reason, errors from this don't bubble up to cmdline
+            treestyletab.registerWithTST(true)
+            break
+        default:
+            throw new Error("Extension " + addon + " is not currently supported. Please file an :issue.")
+    }
 }
 
 // vim: tabstop=4 shiftwidth=4 expandtab
