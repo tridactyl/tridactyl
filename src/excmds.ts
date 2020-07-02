@@ -2114,20 +2114,20 @@ export async function tstexpand(index: number | "current" = "current") {
 /**
  * If Tree Style Tab is installed, indent the given tab.
  *
- * If followChildren is specified, also indent the tab's children.
+ * If followChildren is false, don't indent the tab's children.
  */
 //#background
-export async function tstindent(index?: number | "current", followChildren = true) {
+export async function tstindent(index: number | "current" = "current", followChildren = true) {
     return treestyletab.indent(index, followChildren)
 }
 
 /**
  * If Tree Style Tab is installed, outdent the given tab.
  *
- * If followChildren is specified, also outdent the tab's children.
+ * If followChildren is false, don't outdent the tab's children.
  */
 //#background
-export async function tstoutdent(index?: number | "current", followChildren = true) {
+export async function tstoutdent(index: number | "current" = "current", followChildren = true) {
     return treestyletab.outdent(index, followChildren)
 }
 
