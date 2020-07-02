@@ -92,58 +92,8 @@ function backgroundHandler<
 }
 
 export function setupListener<Root>(root: Root) {
-    // What part of
-    //
-    // ```
-    // ERROR in /home/olie/projects/tridactyl/src/lib/messaging.ts
-    // ./src/lib/messaging.ts
-    // [tsl] ERROR in /home/olie/projects/tridactyl/src/lib/messaging.ts(90,43)
-    //       TS2345: Argument of type '(message: any, sender: browser.runtime.MessageSender) => ReturnType<Root[keyof Root][keyof Root[keyof Root]]>' is not assignable to parameter of type '(message: any, sender: MessageSender, sendResponse: (response?: any) => void) => boolean | void | Promise<any>'.
-    //   Type 'ReturnType<Root[keyof Root][keyof Root[keyof Root]]>' is not assignable to type 'boolean | void | Promise<any>'.
-    //     Type 'unknown' is not assignable to type 'boolean | void | Promise<any>'.
-    //       Type 'unknown' is not assignable to type 'Promise<any>'.
-    //         Type 'ReturnType<Root[keyof Root][string | number | symbol]>' is not assignable to type 'boolean | void | Promise<any>'.
-    //           Type 'unknown' is not assignable to type 'boolean | void | Promise<any>'.
-    //             Type 'unknown' is not assignable to type 'Promise<any>'.
-    //               Type 'ReturnType<Root[keyof Root][string]> | ReturnType<Root[keyof Root][number]> | ReturnType<Root[keyof Root][symbol]>' is not assignable to type 'boolean | void | Promise<any>'.
-    //                 Type 'ReturnType<Root[keyof Root][string]>' is not assignable to type 'boolean | void | Promise<any>'.
-    //                   Type 'unknown' is not assignable to type 'boolean | void | Promise<any>'.
-    //                     Type 'unknown' is not assignable to type 'Promise<any>'.
-    //                       Type 'ReturnType<Root[string | number | symbol][string]>' is not assignable to type 'boolean | void | Promise<any>'.
-    //                         Type 'unknown' is not assignable to type 'boolean | void | Promise<any>'.
-    //                           Type 'unknown' is not assignable to type 'Promise<any>'.
-    //                             Type 'ReturnType<Root[string][string]> | ReturnType<Root[number][string]> | ReturnType<Root[symbol][string]>' is not assignable to type 'boolean | void | Promise<any>'.
-    //                               Type 'ReturnType<Root[string][string]>' is not assignable to type 'boolean | void | Promise<any>'.
-    //                                 Type 'unknown' is not assignable to type 'boolean | void | Promise<any>'.
-    //                                   Type 'unknown' is not assignable to type 'Promise<any>'.
-    //                                     Type 'ReturnType<Root[string][string]>' is not assignable to type 'Promise<any>'.
-    //                                       Type 'ReturnType<Root[string | number | symbol][string]>' is not assignable to type 'Promise<any>'.
-    //                                         Type 'ReturnType<Root[keyof Root][string]>' is not assignable to type 'Promise<any>'.
-    //                                           Type 'ReturnType<Root[keyof Root][string | number | symbol]>' is not assignable to type 'Promise<any>'.
-    //                                             Type 'ReturnType<Root[keyof Root][keyof Root[keyof Root]]>' is not assignable to type 'Promise<any>'.
-    //                                               Type 'unknown' is not assignable to type 'Promise<any>'.
-    //                                                 Type 'ReturnType<Root[keyof Root][string | number | symbol]>' is not assignable to type 'Promise<any>'.
-    //                                                   Type 'unknown' is not assignable to type 'Promise<any>'.
-    //                                                     Type 'ReturnType<Root[keyof Root][string]> | ReturnType<Root[keyof Root][number]> | ReturnType<Root[keyof Root][symbol]>' is not assignable to type 'Promise<any>'.
-    //                                                       Type 'ReturnType<Root[keyof Root][string]>' is not assignable to type 'Promise<any>'.
-    //                                                         Type 'unknown' is not assignable to type 'Promise<any>'.
-    //                                                           Type 'ReturnType<Root[string | number | symbol][string]>' is not assignable to type 'Promise<any>'.
-    //                                                             Type 'unknown' is not assignable to type 'Promise<any>'.
-    //                                                               Type 'ReturnType<Root[string][string]> | ReturnType<Root[number][string]> | ReturnType<Root[symbol][string]>' is not assignable to type 'Promise<any>'.
-    //                                                                 Type 'ReturnType<Root[string][string]>' is not assignable to type 'Promise<any>'.
-    //                                                                   Type '{}' is missing the following properties from type 'Promise<any>': then, catch, [Symbol.toStringTag], finally
-    //
-    // ERROR in /home/olie/projects/tridactyl/src/lib/messaging.ts
-    // ./src/lib/messaging.ts
-    // [tsl] ERROR in /home/olie/projects/tridactyl/src/lib/messaging.ts(115,40)
-    //       TS2558: Expected 0 type arguments, but got 2.
-    // ```
-    //
-    // don't you understand?
-    //
-    // (This is why there is an `: any => `)
     browser.runtime.onMessage.addListener(
-        (message: any, sender: browser.runtime.MessageSender): any => {
+        (message: any, sender: browser.runtime.MessageSender) => {
             if (message.type in root) {
                 if (!(message.command in root[message.type]))
                     throw new Error(
@@ -153,7 +103,7 @@ export function setupListener<Root>(root: Root) {
                     throw new Error(
                         `wrong arguments in protocol ${message.type} ${message.command}`,
                     )
-                return backgroundHandler(root, message, sender)
+                return Promise.resolve(backgroundHandler(root, message, sender))
             }
         },
     )
