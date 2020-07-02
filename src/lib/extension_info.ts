@@ -21,7 +21,10 @@ type KnownExtensionId = keyof typeof KNOWN_EXTENSIONS
 
 /** List of currently installed extensions.
  */
-const knownInstalledExtensions: Map<KnownExtensionId, browser.management.IExtensionInfo> = new Map()
+const knownInstalledExtensions: Map<
+    KnownExtensionId,
+    browser.management.IExtensionInfo
+> = new Map()
 
 function updateExtensionInfo(
     extension: browser.management.IExtensionInfo,
@@ -91,7 +94,10 @@ export async function listExtensions() {
         .filter(obj => obj.optionsUrl.length > 0)
 }
 
-export async function listenForMessage(id: KnownExtensionId, callback: (message) => void) {
+export async function listenForMessage(
+    id: KnownExtensionId,
+    callback: (message) => void,
+) {
     browser.runtime.onMessageExternal.addListener((message, sender) => {
         if (sender.id === KNOWN_EXTENSIONS[id]) {
             callback(message)

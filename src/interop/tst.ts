@@ -9,10 +9,11 @@ async function _registerWithTST(manual = false) {
             name: "Tridactyl",
             icons: browser.runtime.getManifest().icons,
             listeningTypes: ["ready", "permissions-changed"],
-            permissions: ["tabs"]
+            permissions: ["tabs"],
         })
     } catch (e) {
-        if (manual) throw new Error("TreeStyleTab hasn't finished loading: " + e)
+        if (manual)
+            throw new Error("TreeStyleTab hasn't finished loading: " + e)
     }
     REGISTERED = true
 }
@@ -29,7 +30,10 @@ export async function registerWithTST(manual = false) {
     // will tell us whenever we need to reinitialize our connection
     // with it.
     ExtensionInfo.listenForMessage("tree_style_tab", message => {
-        if (message.type === "ready" || message.type === "permissions-changed") {
+        if (
+            message.type === "ready" ||
+            message.type === "permissions-changed"
+        ) {
             _registerWithTST()
         }
     })
@@ -45,21 +49,25 @@ export async function registerWithTST(manual = false) {
     }
 }
 
-export async function focusPrevVisible(increment: number = 1) {
+export async function focusPrevVisible(increment = 1) {
     const alltabs = await getFlatTabs()
     const visibleTabs = alltabs.filter(t => !t.states.includes("collapsed"))
     const activeIdx = visibleTabs.findIndex(t => t.active)
-    const prevVisibleIdx = (activeIdx - increment + visibleTabs.length) % visibleTabs.length
+    const prevVisibleIdx =
+        (activeIdx - increment + visibleTabs.length) % visibleTabs.length
     const prevVisibleTabId = visibleTabs[prevVisibleIdx].id
     return browser.tabs.update(prevVisibleTabId, { active: true })
 }
 
-export async function focusNextVisible(increment: number = 1) {
+export async function focusNextVisible(increment = 1) {
     return focusPrevVisible(-increment)
 }
 
-export async function focusNextSibling(increment: number = 1, silently: boolean = false) {
-    for (let i = 0 ; i < increment ; ++i) {
+export async function focusNextSibling(
+    increment = 1,
+    silently = false,
+) {
+    for (let i = 0; i < increment; ++i) {
         await ExtensionInfo.messageExtension("tree_style_tab", {
             type: "focus",
             tab: "nextSibling",
@@ -68,9 +76,12 @@ export async function focusNextSibling(increment: number = 1, silently: boolean 
     }
 }
 
-export async function focusPrevSibling(increment: number = 1, silently: boolean = false) {
+export async function focusPrevSibling(
+    increment = 1,
+    silently = false,
+) {
     // tslint:disable-next-line:no-unconditional-jump
-    for (let i = 0 ; i < increment ; ++i) {
+    for (let i = 0; i < increment; ++i) {
         return await ExtensionInfo.messageExtension("tree_style_tab", {
             type: "focus",
             tab: "previousSibling",
@@ -79,19 +90,27 @@ export async function focusPrevSibling(increment: number = 1, silently: boolean 
     }
 }
 
-export async function focusAncestor(levels: number = 1) {
+export async function focusAncestor(levels = 1) {
     const tab = await getTab("current")
     const ancestorIndent = Math.max(0, tab.indent - levels)
-    const ancestorId = tab.ancestorTabIds[tab.ancestorTabIds.length - ancestorIndent - 1]
+    const ancestorId =
+        tab.ancestorTabIds[tab.ancestorTabIds.length - ancestorIndent - 1]
     return browser.tabs.update(ancestorId, { active: true })
 }
 
-export async function messageTSTTab(id: treestyletab.TabIdentifier, msg: "collapse-tree"|"expand-tree"|"indent"|"outdent", misc?) {
+export async function messageTSTTab(
+    id: treestyletab.TabIdentifier,
+    msg: "collapse-tree" | "expand-tree" | "indent" | "outdent",
+    misc?,
+) {
     const obj = {
         type: msg,
         tab: id,
     }
-    return await ExtensionInfo.messageExtension("tree_style_tab", mergeDeep(obj,misc))
+    return await ExtensionInfo.messageExtension(
+        "tree_style_tab",
+        mergeDeep(obj, misc),
+    )
 }
 
 export async function collapseTree(id: treestyletab.TabIdentifier) {
@@ -106,17 +125,19 @@ export async function indent(
     id: treestyletab.TabIdentifier,
     followChildren: boolean,
 ) {
-    return await messageTSTTab(id, "indent", {followChildren})
+    return await messageTSTTab(id, "indent", { followChildren })
 }
 
 export async function outdent(
     id: treestyletab.TabIdentifier,
     followChildren: boolean,
 ) {
-    return await messageTSTTab(id, "outdent", {followChildren})
+    return await messageTSTTab(id, "outdent", { followChildren })
 }
 
-export async function getTab(id: treestyletab.TabIdentifier): Promise<treestyletab.Tab> {
+export async function getTab(
+    id: treestyletab.TabIdentifier,
+): Promise<treestyletab.Tab> {
     return ExtensionInfo.messageExtension("tree_style_tab", {
         type: "get-tree",
         tab: id,
@@ -137,9 +158,11 @@ export function doTstIntegration(): boolean {
     // In order from fastest check to slowest - simple variable,
     // function call and map lookup, and finally complicated
     // config-state thing.
-    return REGISTERED
-        && ExtensionInfo.getExtensionEnabled("tree_style_tab")
-        && config.get("treestyletabintegration")
+    return (
+        REGISTERED &&
+        ExtensionInfo.getExtensionEnabled("tree_style_tab") &&
+        config.get("treestyletabintegration")
+    )
 }
 
 // WARNING: module-level state!

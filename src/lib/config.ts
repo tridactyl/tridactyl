@@ -1064,7 +1064,7 @@ export class default_config {
     /**
      * Whether or not to integrate with the TST tab
      */
-    treestyletabintegration: boolean = true
+    treestyletabintegration = true
 }
 
 /** @hidden */
