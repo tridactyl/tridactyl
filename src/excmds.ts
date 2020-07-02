@@ -3514,7 +3514,7 @@ export function autocmddelete(event: string, url: string) {
 /**
  *  Helper function to put Tridactyl into ignore mode on the provided URL.
  *
- *  Simply creates a DocStart [[autocmd]] that runs `mode ignore`.
+ *  Simply creates a DocStart [[autocmd]] that runs `mode ignore`. NB: ignore mode does have a few keybinds by default - see `:viewconfig ignoremaps`. These can be unbound with, e.g. `:unbind --mode=ignore <C-o>`, or `:unbindurl [url] --mode=ignore <C-o>`.
  *
  *  Remove sites from the blacklist with `blacklistremove [url]` or `autocmddelete DocStart [url]`.
  *
