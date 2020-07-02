@@ -12,9 +12,9 @@ export class ExcmdCompletionOption extends Completions.CompletionOptionHTML
 
         // Create HTMLElement
         this.html = html`<tr class="ExcmdCompletionOption option">
-                <td class="excmd">${value}</td>
-                <td class="documentation">${documentation}</td>
-            </tr>`
+            <td class="excmd">${value}</td>
+            <td class="documentation">${documentation}</td>
+        </tr>`
     }
 }
 
@@ -94,7 +94,10 @@ export class ExcmdCompletionSource extends Completions.CompletionSourceFuse {
         const seen = new Set(this.options.map(o => o.value))
         const partial_options = this.scoreOptions(
             fns
-                .filter(([name, fn]) => !fn.hidden && name.includes(exstr) && !seen.has(name))
+                .filter(
+                    ([name, fn]) =>
+                        !fn.hidden && name.includes(exstr) && !seen.has(name),
+                )
                 .map(([name, fn]) => new ExcmdCompletionOption(name, fn.doc)),
         )
         this.options = this.options.concat(partial_options)

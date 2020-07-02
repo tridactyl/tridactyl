@@ -65,7 +65,8 @@ export function rain(characters: string[], colour, darkening = 0.05) {
         // looping over drops
         for (let i = 0; i < drops.length; i++) {
             // a random chinese character to print
-            const text = characters[Math.floor(Math.random() * characters.length)]
+            const text =
+                characters[Math.floor(Math.random() * characters.length)]
             // x = i*font_size, y = value of drops[i]*font_size
             ctx.fillText(text, i * font_size, drops[i] * font_size)
 

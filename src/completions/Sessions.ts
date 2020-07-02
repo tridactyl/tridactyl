@@ -54,8 +54,9 @@ class SessionCompletionOption extends Completions.CompletionOptionHTML
         this.html = html`<tr class="SessionCompletionOption option">
             <td class="type">${session.tab ? "T" : "W"}</td>
             <td class="time">${howLong}${qualifier}</td>
-            <td class="icon"><img src="${tab.favIconUrl ||
-                Completions.DEFAULT_FAVICON}"/></td>
+            <td class="icon">
+                <img src="${tab.favIconUrl || Completions.DEFAULT_FAVICON}" />
+            </td>
             <td class="title">${tab.title}</td>
             <td class="extraInfo">${extraInfo}</td>
         </tr>`

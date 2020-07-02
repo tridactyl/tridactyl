@@ -120,7 +120,6 @@ function test_parent_with_slash_strip() {
     }
 }
 
-
 function test_download_filename() {
     let cases = [
         // simple domain only

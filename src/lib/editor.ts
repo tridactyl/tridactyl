@@ -19,7 +19,13 @@
  */
 /** ignore this line */
 
-import { wrap_input, needs_text, getWordBoundaries, wordAfterPos, rot13_helper } from "@src/lib/editor_utils"
+import {
+    wrap_input,
+    needs_text,
+    getWordBoundaries,
+    wordAfterPos,
+    rot13_helper,
+} from "@src/lib/editor_utils"
 
 /**
  * Behaves like readline's [delete_char](http://web.mit.edu/gnu/doc/html/rlman_1.html#SEC14), i.e. deletes the character to the right of the caret.
@@ -164,30 +170,36 @@ export const transpose_words = wrap_input(
  * Behaves like readline's [upcase_word](http://web.mit.edu/gnu/doc/html/rlman_1.html#SEC14). Makes the word the caret is in uppercase.
  **/
 export const upcase_word = wrap_input(
-    needs_text((text, selectionStart, selectionEnd) => applyWord(text, selectionStart, selectionEnd, word =>
+    needs_text((text, selectionStart, selectionEnd) =>
+        applyWord(text, selectionStart, selectionEnd, word =>
             word.toUpperCase(),
-        )),
+        ),
+    ),
 )
 
 /**
  * Behaves like readline's [downcase_word](http://web.mit.edu/gnu/doc/html/rlman_1.html#SEC14). Makes the word the caret is in lowercase.
  **/
 export const downcase_word = wrap_input(
-    needs_text((text, selectionStart, selectionEnd) => applyWord(text, selectionStart, selectionEnd, word =>
+    needs_text((text, selectionStart, selectionEnd) =>
+        applyWord(text, selectionStart, selectionEnd, word =>
             word.toLowerCase(),
-        )),
+        ),
+    ),
 )
 
 /**
  * Behaves like readline's [capitalize_word](http://web.mit.edu/gnu/doc/html/rlman_1.html#SEC14). Makes the initial character of the word the caret is in uppercase.
  **/
 export const capitalize_word = wrap_input(
-    needs_text((text, selectionStart, selectionEnd) => applyWord(
+    needs_text((text, selectionStart, selectionEnd) =>
+        applyWord(
             text,
             selectionStart,
             selectionEnd,
             word => word[0].toUpperCase() + word.substring(1),
-        )),
+        ),
+    ),
 )
 
 /**
@@ -333,7 +345,11 @@ export const end_of_line = wrap_input(
 /**
  * Behaves like readline's [forward_char](http://web.mit.edu/gnu/doc/html/rlman_1.html#SEC12). Moves the caret one character to the right.
  **/
-export const forward_char = wrap_input((text, selectionStart, selectionEnd) => [null, selectionStart + 1, null])
+export const forward_char = wrap_input((text, selectionStart, selectionEnd) => [
+    null,
+    selectionStart + 1,
+    null,
+])
 
 /**
  * Behaves like readline's [backward_char](http://web.mit.edu/gnu/doc/html/rlman_1.html#SEC12). Moves the caret one character to the left.
@@ -350,7 +366,8 @@ export const forward_word = wrap_input(
         let boundaries = getWordBoundaries(text, selectionStart, false)
         if (selectionStart >= boundaries[0] && selectionStart < boundaries[1])
             boundaries = getWordBoundaries(text, boundaries[1], false)
-        if (selectionStart >= boundaries[0])  // last word
+        if (selectionStart >= boundaries[0])
+            // last word
             return [null, boundaries[1], null]
         return [null, boundaries[0], null]
     }),
@@ -374,16 +391,14 @@ export const backward_word = wrap_input(
  **/
 export const insert_text = wrap_input(
     (text, selectionStart, selectionEnd, arg) => [
-            text.slice(0, selectionStart) + arg + text.slice(selectionEnd),
-            selectionStart + arg.length,
-            null,
-        ],
+        text.slice(0, selectionStart) + arg + text.slice(selectionEnd),
+        selectionStart + arg.length,
+        null,
+    ],
 )
 
-export const rot13 = wrap_input(
-    (text, selectionStart, selectionEnd) => [
-            rot13_helper(text.slice(0, selectionStart) + text.slice(selectionEnd)),
-            selectionStart,
-            null,
-        ],
-)
+export const rot13 = wrap_input((text, selectionStart, selectionEnd) => [
+    rot13_helper(text.slice(0, selectionStart) + text.slice(selectionEnd)),
+    selectionStart,
+    null,
+])

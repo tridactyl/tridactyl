@@ -10,8 +10,8 @@ class GuisetCompletionOption extends Completions.CompletionOptionHTML
         this.fuseKeys.push(value)
 
         this.html = html`<tr class="GuisetCompletionOption option">
-                <td class="value">${displayValue}</td>
-            </tr>`
+            <td class="value">${displayValue}</td>
+        </tr>`
     }
 }
 

@@ -64,9 +64,9 @@ export function show(hidehover = false) {
 
         if (hidehover) {
             const a = window.document.createElement("A")
-            ; (a as any).href = ""
+            ;(a as any).href = ""
             document.body.appendChild(a)
-            a.focus({preventScroll: true})
+            a.focus({ preventScroll: true })
             document.body.removeChild(a)
         }
 

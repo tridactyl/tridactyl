@@ -59,20 +59,69 @@ function mk(k, mod?: ks.KeyModifiers) {
         // Test count behaviour
         // Zero isn't a prefix.
         [[mks("0g"), keymap2], { keys: mks("g"), isMatch: true }],
-        [[mks("0gg"), keymap2], { value: "scrolltop", exstr: "scrolltop", isMatch: true, numericPrefix: undefined }],
+        [
+            [mks("0gg"), keymap2],
+            {
+                value: "scrolltop",
+                exstr: "scrolltop",
+                isMatch: true,
+                numericPrefix: undefined,
+            },
+        ],
         // If zero is a map, then it should still work
-        [[mks("0"), keymap], { value: "panleft", exstr: "panleft", isMatch: true, numericPrefix: undefined }],
+        [
+            [mks("0"), keymap],
+            {
+                value: "panleft",
+                exstr: "panleft",
+                isMatch: true,
+                numericPrefix: undefined,
+            },
+        ],
 
         // Do match numbers starting with a non-zero
-        [[mks("2gg"), keymap2], { value: "scrolltop", exstr: "scrolltop 2", isMatch: true, numericPrefix: 2 }],
-        [[mks("20gg"), keymap2], { value: "scrolltop", exstr: "scrolltop 20", isMatch: true, numericPrefix: 20 }],
+        [
+            [mks("2gg"), keymap2],
+            {
+                value: "scrolltop",
+                exstr: "scrolltop 2",
+                isMatch: true,
+                numericPrefix: 2,
+            },
+        ],
+        [
+            [mks("20gg"), keymap2],
+            {
+                value: "scrolltop",
+                exstr: "scrolltop 20",
+                isMatch: true,
+                numericPrefix: 20,
+            },
+        ],
         // If zero is a map, then you can still use zero in counts.
-        [[mks("20gg"), keymap], { value: "scrolltop", exstr: "scrolltop 20", isMatch: true, numericPrefix: 20 }],
+        [
+            [mks("20gg"), keymap],
+            {
+                value: "scrolltop",
+                exstr: "scrolltop 20",
+                isMatch: true,
+                numericPrefix: 20,
+            },
+        ],
 
         // Don't match function keys as counts.
-        [[mks("<F2>gg"), keymap2], { value: "scrolltop", exstr: "scrolltop", isMatch: true }],
-        [[mks("<C-6>"), keymap2], { value: "tablast", exstr: "tablast", isMatch: true }],
-        [[mks("<C-5><C-5>"), keymap2], { value: "tablast", exstr: "tablast", isMatch: true }],
+        [
+            [mks("<F2>gg"), keymap2],
+            { value: "scrolltop", exstr: "scrolltop", isMatch: true },
+        ],
+        [
+            [mks("<C-6>"), keymap2],
+            { value: "tablast", exstr: "tablast", isMatch: true },
+        ],
+        [
+            [mks("<C-5><C-5>"), keymap2],
+            { value: "tablast", exstr: "tablast", isMatch: true },
+        ],
 
         // Test prefix problems
         [[mks("g"), keymap2], { keys: mks("g"), isMatch: true }],
@@ -109,14 +158,20 @@ testAll(ks.bracketexprToKey, [
 
 testAllObject(ks.mapstrMapToKeyMap, [
     [
-        new Map([["j", "scrollline 10"], ["gg", "scrolltop"]]),
+        new Map([
+            ["j", "scrollline 10"],
+            ["gg", "scrolltop"],
+        ]),
         new Map([
             [[mk("j")], "scrollline 10"],
             [[mk("g"), mk("g")], "scrolltop"],
         ]),
     ],
     [
-        new Map([["<C-u>j", "scrollline 10"], ["gg", "scrolltop"]]),
+        new Map([
+            ["<C-u>j", "scrollline 10"],
+            ["gg", "scrolltop"],
+        ]),
         new Map([
             [[mk("u", { ctrlKey: true }), mk("j")], "scrollline 10"],
             [[mk("g"), mk("g")], "scrolltop"],

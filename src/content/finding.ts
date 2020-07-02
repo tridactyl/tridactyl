@@ -30,7 +30,7 @@ class FindHighlight extends HTMLSpanElement {
         super()
         ;(this as any).unfocus = () => {
             for (const node of this.children) {
-                (node as HTMLElement).style.background = `rgba(127,255,255,0.5)`
+                ;(node as HTMLElement).style.background = `rgba(127,255,255,0.5)`
             }
         }
         ;(this as any).focus = () => {
@@ -48,7 +48,7 @@ class FindHighlight extends HTMLSpanElement {
                 parentNode.focus()
             }
             for (const node of this.children) {
-                (node as HTMLElement).style.background = `rgba(255,127,255,0.5)`
+                ;(node as HTMLElement).style.background = `rgba(255,127,255,0.5)`
             }
         }
 
@@ -70,7 +70,7 @@ class FindHighlight extends HTMLSpanElement {
             highlight.style.pointerEvents = "none"
             this.appendChild(highlight)
         }
-        (this as any).unfocus()
+        ;(this as any).unfocus()
     }
 }
 
@@ -171,7 +171,7 @@ export async function jumpToNextMatch(n: number) {
         throw new Error("Pattern not found: " + lastSearchQuery)
     }
     // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
-    (lastHighlights[selected] as any).unfocus()
+    ;(lastHighlights[selected] as any).unfocus()
     selected = (selected + n + lastHighlights.length) % lastHighlights.length
     // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
     ;(lastHighlights[selected] as any).focus()

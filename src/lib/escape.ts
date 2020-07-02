@@ -11,8 +11,7 @@
  * https://www.gnu.org/savannah-checkouts/gnu/bash/manual/bash.html#Single-Quotes
  *
  */
-export const sh = (dangerous: string) =>
-    `'${dangerous.replace(/'/g, "'\\''")}'`
+export const sh = (dangerous: string) => `'${dangerous.replace(/'/g, "'\\''")}'`
 
 /** Escape every cmd metacharacter
  *

@@ -4,7 +4,7 @@
 if ((window as any).tridactyl_content_lock !== undefined) {
     throw Error("Trying to load Tridactyl, but it's already loaded.")
 }
-(window as any).tridactyl_content_lock = "locked"
+;(window as any).tridactyl_content_lock = "locked"
 
 // Be careful: typescript elides imports that appear not to be used if they're
 // assigned to a name.  If you want an import just for its side effects, make
@@ -93,7 +93,7 @@ config.getAsync("preventautofocusjackhammer").then(allowautofocus => {
     const preventAutoFocus = () => {
         // First, blur whatever element is active. This will make sure
         // activeElement is the "default" active element
-        (document.activeElement as any).blur()
+        ;(document.activeElement as any).blur()
         const elem = document.activeElement as any
         // ???: We need to set tabIndex, otherwise we won't get focus/blur events!
         elem.tabIndex = 0

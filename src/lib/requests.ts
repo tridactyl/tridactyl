@@ -1,4 +1,3 @@
-
 import * as csp from "csp-serdes"
 import Logger from "@src/lib/logging"
 
@@ -55,10 +54,7 @@ export function clobberCSP(response) {
             policy.set("style-src", policy.get("default-src"))
         }
         if (policy.has("style-src")) {
-            policy
-                .get("style-src")
-                .add("'unsafe-inline'")
-                .add("'self'")
+            policy.get("style-src").add("'unsafe-inline'").add("'self'")
         }
 
         // Replace old CSP

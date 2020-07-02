@@ -1402,7 +1402,7 @@ export async function update() {
             set("configversion", "1.2")
         }
         case "1.2": {
-            ["ignoremaps", "inputmaps", "imaps", "nmaps"]
+            ;["ignoremaps", "inputmaps", "imaps", "nmaps"]
                 .map(mapname => [
                     mapname,
                     getDeepProperty(USERCONFIG, [mapname]),
@@ -1434,7 +1434,7 @@ export async function update() {
             set("configversion", "1.3")
         }
         case "1.3": {
-            [
+            ;[
                 "priority",
                 "hintdelay",
                 "scrollduration",
@@ -1447,7 +1447,7 @@ export async function update() {
             set("configversion", "1.4")
         }
         case "1.4": {
-            (getDeepProperty(USERCONFIG, ["noiframeon"]) || []).forEach(
+            ;(getDeepProperty(USERCONFIG, ["noiframeon"]) || []).forEach(
                 site => {
                     setURL(site, "noiframe", "true")
                 },
@@ -1465,7 +1465,7 @@ export async function update() {
                     mapObj["<Space>"] = mapObj[" "]
                     delete mapObj[" "]
                 }
-                [
+                ;[
                     "<A- >",
                     "<C- >",
                     "<M- >",

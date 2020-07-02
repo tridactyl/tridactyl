@@ -113,9 +113,11 @@ export async function downloadUrlAs(url: string, saveAs: string) {
                 downloadDelta.state.current !== "in_progress"
             ) {
                 browser.downloads.onChanged.removeListener(onDownloadComplete)
-                const downloadItem = (await browser.downloads.search({
-                    id: downloadId,
-                }))[0]
+                const downloadItem = (
+                    await browser.downloads.search({
+                        id: downloadId,
+                    })
+                )[0]
                 if (downloadDelta.state.current === "complete") {
                     const operation = await Native.move(
                         downloadItem.filename,
@@ -124,9 +126,7 @@ export async function downloadUrlAs(url: string, saveAs: string) {
                     if (operation.code !== 0) {
                         reject(
                             new Error(
-                                `'${
-                                    downloadItem.filename
-                                }' could not be moved to '${saveAs}'. Make sure it doesn't already exist and that all directories of the path exist.`,
+                                `'${downloadItem.filename}' could not be moved to '${saveAs}'. Make sure it doesn't already exist and that all directories of the path exist.`,
                             ),
                         )
                     } else {
@@ -135,9 +135,7 @@ export async function downloadUrlAs(url: string, saveAs: string) {
                 } else {
                     reject(
                         new Error(
-                            `'${
-                                downloadItem.filename
-                            }' state not in_progress anymore but not complete either (would have been moved to '${saveAs}')`,
+                            `'${downloadItem.filename}' state not in_progress anymore but not complete either (would have been moved to '${saveAs}')`,
                         ),
                     )
                 }

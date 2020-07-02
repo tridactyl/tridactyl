@@ -11,9 +11,9 @@ class AproposCompletionOption extends Completions.CompletionOptionHTML
         super()
         this.value = `${flag} ${name}`
         this.html = html`<tr class="AproposCompletionOption option">
-                <td class="name">${name}</td>
-                <td class="doc">${doc}</td>
-            </tr>`
+            <td class="name">${name}</td>
+            <td class="doc">${doc}</td>
+        </tr>`
     }
 }
 
@@ -49,7 +49,11 @@ export class AproposCompletionSource extends Completions.CompletionSourceFuse {
         const settings = config.get()
         const exaliases = settings.exaliases
         const bindings = settings.nmaps
-        if (fns === undefined || exaliases === undefined || bindings === undefined) {
+        if (
+            fns === undefined ||
+            exaliases === undefined ||
+            bindings === undefined
+        ) {
             return
         }
 
@@ -57,10 +61,20 @@ export class AproposCompletionSource extends Completions.CompletionSourceFuse {
             "-a": (options, query) =>
                 options.concat(
                     Object.keys(exaliases)
-                        .filter(alias => (alias + aliases.expandExstr(alias) + excmds.getFunction(aliases.expandExstr(alias))).toLowerCase().includes(query))
+                        .filter(alias =>
+                            (
+                                alias +
+                                aliases.expandExstr(alias) +
+                                excmds.getFunction(aliases.expandExstr(alias))
+                            )
+                                .toLowerCase()
+                                .includes(query),
+                        )
                         .map(alias => {
                             const cmd = aliases.expandExstr(alias)
-                            const doc = (excmds.getFunction(cmd) || {} as any).doc || ""
+                            const doc =
+                                (excmds.getFunction(cmd) || ({} as any)).doc ||
+                                ""
                             return new AproposCompletionOption(
                                 alias,
                                 `Alias for \`${cmd}\`. ${doc}`,
@@ -71,14 +85,16 @@ export class AproposCompletionSource extends Completions.CompletionSourceFuse {
             "-b": (options, query) =>
                 options.concat(
                     Object.keys(bindings)
-                        .filter(binding => (binding + bindings[binding]).toLowerCase().includes(query))
+                        .filter(binding =>
+                            (binding + bindings[binding])
+                                .toLowerCase()
+                                .includes(query),
+                        )
                         .map(
                             binding =>
                                 new AproposCompletionOption(
                                     binding,
-                                    `Normal mode binding for \`${
-                                        bindings[binding]
-                                    }\``,
+                                    `Normal mode binding for \`${bindings[binding]}\``,
                                     "-b",
                                 ),
                         ),
@@ -88,7 +104,8 @@ export class AproposCompletionSource extends Completions.CompletionSourceFuse {
                     fns
                         .filter(
                             ([name, fn]) =>
-                                !fn.hidden && (name + fn.doc).toLowerCase().includes(query),
+                                !fn.hidden &&
+                                (name + fn.doc).toLowerCase().includes(query),
                         )
                         .map(
                             ([name, fn]) =>
@@ -102,7 +119,11 @@ export class AproposCompletionSource extends Completions.CompletionSourceFuse {
             "-s": (options, query) =>
                 options.concat(
                     Object.keys(settings)
-                        .filter(x => (x + default_config.getMember(x).doc).toLowerCase().includes(query))
+                        .filter(x =>
+                            (x + default_config.getMember(x).doc)
+                                .toLowerCase()
+                                .includes(query),
+                        )
                         .map(setting => {
                             const member = default_config.getMember(setting)
                             let doc = ""
@@ -143,5 +164,4 @@ export class AproposCompletionSource extends Completions.CompletionSourceFuse {
         // Call concrete class
         return this.updateDisplay()
     }
-
 }

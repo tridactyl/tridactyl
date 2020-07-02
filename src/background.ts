@@ -64,7 +64,7 @@ controller.setExCmds({
 // {{{ tri.contentLocation
 // When loading the background, use the active tab to know what the current content url is
 browser.tabs.query({ currentWindow: true, active: true }).then(t => {
-    (window as any).tri.contentLocation = new URL(t[0].url)
+    ;(window as any).tri.contentLocation = new URL(t[0].url)
 })
 // After that, on every tab change, update the current url
 let contentLocationCount = 0
@@ -75,14 +75,14 @@ browser.tabs.onActivated.addListener(ev => {
         // Note: we're using contentLocationCount and myId in order to make sure that only the last onActivated event is used in order to set contentLocation
         // This is needed because otherWise the following chain of execution might happen: onActivated1 => onActivated2 => tabs.get2 => tabs.get1
         if (contentLocationCount === myId) {
-            (window as any).tri.contentLocation = new URL(t.url)
+            ;(window as any).tri.contentLocation = new URL(t.url)
         }
     })
 })
 // Update on navigation too (but remember that sometimes people open tabs in the background :) )
 browser.webNavigation.onDOMContentLoaded.addListener(() => {
     browser.tabs.query({ currentWindow: true, active: true }).then(t => {
-        (window as any).tri.contentLocation = new URL(t[0].url)
+        ;(window as any).tri.contentLocation = new URL(t[0].url)
     })
 })
 
