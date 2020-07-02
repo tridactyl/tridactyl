@@ -31,9 +31,6 @@ const removeNull = R.when(
 )
 
 /** @hidden */
-import mergeDeep from "@src/lib/objects.ts"
-
-/** @hidden */
 const CONFIGNAME = "userconfig"
 /** @hidden */
 const WAITERS = []
@@ -1116,6 +1113,8 @@ function setDeepProperty(obj, value, target) {
 
 /** @hidden
  * Merges two objects and any child objects they may have
+ *
+ * Has special handling for `null`
  */
 export function mergeDeep(o1, o2) {
     if (o1 === null) return Object.assign({}, o2)

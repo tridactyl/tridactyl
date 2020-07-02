@@ -29,7 +29,7 @@ const knownInstalledExtensions: Map<
 function updateExtensionInfo(
     extension: browser.management.IExtensionInfo,
 ): void {
-    Object.keys(KNOWN_EXTENSIONS).forEach((k: KnownExtensionId) => {
+    ;(Object.keys(KNOWN_EXTENSIONS) as KnownExtensionId[]).forEach(k => {
         if (KNOWN_EXTENSIONS[k] === extension.id) {
             knownInstalledExtensions.set(k, extension)
         }
@@ -94,7 +94,7 @@ export async function listExtensions() {
         .filter(obj => obj.optionsUrl.length > 0)
 }
 
-export async function listenForMessage(
+export function listenForMessage(
     id: KnownExtensionId,
     callback: (message) => void,
 ) {

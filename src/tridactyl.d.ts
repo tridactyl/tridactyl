@@ -214,3 +214,35 @@ declare namespace jest {
         toBeAll: any
     }
 }
+
+
+declare namespace treestyletab {
+    // https://github.com/piroor/treestyletab/wiki/API-for-other-addons#data-format
+    type TabIdentifier =
+        | "current"
+        | "active"
+        | "next"
+        | "nextSibling"
+        | "prev"
+        | "previous"
+        | "prevSibling"
+        | "previousSibling"
+        | "senderTab"
+        | "highlighted"
+        | "multiselected"
+        | number
+
+    type TabState = "collapsed" | "subtree-collapsed" | "group-tab"
+
+    interface ITreeTab {
+        id: number
+        states: Array<TabState>
+        indent: number
+        children: Array<ITreeTab>
+        ancestorTabIds: Array<number>
+    }
+
+    type ExcludedTabProperties = "title" | "url" | "favIconUrl" | "cookeStoreId"
+
+    type Tab = ITreeTab & Pick<browser.tabs.Tab, Exclude<keyof browser.tabs.Tab, ExcludedTabProperties>>
+}
