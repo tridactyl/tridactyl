@@ -1057,6 +1057,11 @@ export class default_config {
      * Whether to return to visual mode when text is deselected.
      */
     visualexitauto: "true" | "false" = "true"
+
+    /**
+     * Whether or not to integrate with the TST tab
+     */
+    treestyletabintegration = true
 }
 
 /** @hidden */
@@ -1108,6 +1113,8 @@ function setDeepProperty(obj, value, target) {
 
 /** @hidden
  * Merges two objects and any child objects they may have
+ *
+ * Has special handling for `null`
  */
 export function mergeDeep(o1, o2) {
     if (o1 === null) return Object.assign({}, o2)

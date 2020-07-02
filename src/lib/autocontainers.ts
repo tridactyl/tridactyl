@@ -201,11 +201,7 @@ export class AutoContain implements IAutoContain {
     }
 
     checkMACPriority = async (details): Promise<boolean> => {
-        if (
-            !ExtensionInfo.getExtensionEnabled(
-                ExtensionInfo.KNOWN_EXTENSIONS.multi_account_containers,
-            )
-        ) {
+        if (!ExtensionInfo.getExtensionEnabled("multi_account_containers")) {
             // It can't take priority if it's not enabled.
             logger.debug("multi-account containers extension does not exist")
             return false
@@ -214,21 +210,19 @@ export class AutoContain implements IAutoContain {
         // Do not handle urls that are claimed by the multi-account
         // containers extension. Code from
         // https://github.com/mozilla/multi-account-containers/wiki/API
-        const macAssignment = await browser.runtime
-            .sendMessage(
-                ExtensionInfo.KNOWN_EXTENSIONS.multi_account_containers,
-                {
-                    method: "getAssignment",
-                    url: details.url,
-                },
+        const macAssignment = await ExtensionInfo.messageExtension(
+            "multi_account_containers",
+            {
+                method: "getAssignment",
+                url: details.url,
+            },
+        ).catch(error => {
+            logger.warning(
+                "failed to communicate with multi-account containers extension: %o",
+                error,
             )
-            .catch(error => {
-                logger.warning(
-                    "failed to communicate with multi-account containers extension: %o",
-                    error,
-                )
-                return false
-            })
+            return false
+        })
 
         if (macAssignment) {
             logger.debug(
@@ -244,11 +238,7 @@ export class AutoContain implements IAutoContain {
     }
 
     checkTempContainersPriority = async (details): Promise<boolean> => {
-        if (
-            !ExtensionInfo.getExtensionEnabled(
-                ExtensionInfo.KNOWN_EXTENSIONS.temp_containers,
-            )
-        ) {
+        if (!ExtensionInfo.getExtensionEnabled("temp_containers")) {
             // It can't take priority if it's not enabled.
             logger.debug("temporary containers extension does not exist")
             return false

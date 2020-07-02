@@ -163,6 +163,7 @@ import * as css_util from "@src/lib/css_util"
 import * as Updates from "@src/lib/updates"
 import * as Extensions from "@src/lib/extension_info"
 import * as webrequests from "@src/background/webrequests"
+import * as treestyletab from "@src/interop/tst"
 
 ALL_EXCMDS = {
     "": BGSELF,
@@ -2072,14 +2073,62 @@ export async function tabnext_gt(index?: number) {
  */
 //#background
 export async function tabprev(increment = 1) {
-    // Proper way:
-    // return tabIndexSetActive((await activeTab()).index - increment + 1)
-    // Kludge until https://bugzilla.mozilla.org/show_bug.cgi?id=1504775 is fixed:
-    return browser.tabs.query({ currentWindow: true, hidden: false }).then(tabs => {
-        tabs.sort((t1, t2) => t1.index - t2.index)
-        const prevTab = (tabs.findIndex(t => t.active) - increment + tabs.length) % tabs.length
-        return browser.tabs.update(tabs[prevTab].id, { active: true })
-    })
+    if (treestyletab.doTstIntegration()) {
+        return treestyletab.focusPrevVisible(increment)
+    } else {
+        // Proper way:
+        // return tabIndexSetActive((await activeTab()).index - increment + 1)
+        // Kludge until https://bugzilla.mozilla.org/show_bug.cgi?id=1504775 is fixed:
+        return browser.tabs.query({ currentWindow: true, hidden: false }).then(tabs => {
+            tabs.sort((t1, t2) => t1.index - t2.index)
+            const prevTab = (tabs.findIndex(t => t.active) - increment + tabs.length) % tabs.length
+            return browser.tabs.update(tabs[prevTab].id, { active: true })
+        })
+    }
+}
+
+/**
+ * If Tree Style Tab is installed, switches to an ancestor of the current tab.
+ */
+//#background
+export async function tstup(levels = 1) {
+    return treestyletab.focusAncestor(levels)
+}
+
+/**
+ * If Tree Style Tab is installed, collapses the given tab's tree.
+ */
+//#background
+export async function tstcollapse(index: number | "current" = "current") {
+    return treestyletab.collapseTree(index)
+}
+
+/**
+ * If Tree Style Tab is installed, expands the given tab's tree.
+ */
+//#background
+export async function tstexpand(index: number | "current" = "current") {
+    return treestyletab.expandTree(index)
+}
+
+/**
+ * If Tree Style Tab is installed, indent the given tab.
+ *
+ * If followChildren is false, don't indent the tab's children.
+ */
+//#background
+export async function tstindent(index: number | "current" = "current", followChildren = true) {
+    return treestyletab.indent(index, followChildren)
+}
+
+/**
+ * If Tree Style Tab is installed, outdent the given tab.
+ *
+ * If followChildren is false, don't outdent the tab's children.
+ */
+//#background
+export async function tstoutdent(index: number | "current" = "current", followChildren = true) {
+    return treestyletab.outdent(index, followChildren)
 }
 
 /**
@@ -4714,6 +4763,19 @@ export async function extoptions(...optionNameArgs: string[]) {
     const extensions = await Extensions.listExtensions()
     const selectedExtension = extensions.find(ext => ext.name === optionName)
     return winopen("-popup", selectedExtension.optionsUrl)
+}
+
+//#background
+export function register(addon: string) {
+    switch (addon) {
+        case "tst":
+        case "treestyletab":
+            // For some reason, errors from this don't bubble up to cmdline
+            treestyletab.registerWithTST(true)
+            break
+        default:
+            throw new Error("Extension " + addon + " is not currently supported. Please file an :issue.")
+    }
 }
 
 // vim: tabstop=4 shiftwidth=4 expandtab
