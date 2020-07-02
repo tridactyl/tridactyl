@@ -80,9 +80,8 @@ export async function focusPrevSibling(
     increment = 1,
     silently = false,
 ) {
-    // tslint:disable-next-line:no-unconditional-jump
     for (let i = 0; i < increment; ++i) {
-        return await ExtensionInfo.messageExtension("tree_style_tab", {
+        await ExtensionInfo.messageExtension("tree_style_tab", {
             type: "focus",
             tab: "previousSibling",
             silently,
