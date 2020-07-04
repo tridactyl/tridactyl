@@ -2936,6 +2936,10 @@ export async function shellescape(...quoteme: string[]) {
  *  Magic escape hatch: return to a tab in the current window where Tridactyl can run, making such a tab if it doesn't currently exist.
  *
  *  Only useful if called from a background context, e.g. at the end of an RC file to ensure that when you start the browser you don't get trapped on an about: page.
+ *
+ *  By default, bound to `<C-,>` via the commands API which may be changed via about:addons, the cog icon in the top right, then "Manage Extension Shortcuts"
+ *
+ *  <!-- TODO: add `bind --mode=mozilla` to rebind this + remove the special casing in background.ts -->
  */
 //#background
 export async function escapehatch() {

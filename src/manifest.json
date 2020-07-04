@@ -15,6 +15,14 @@
     "chrome_url_overrides": {
         "newtab": "static/newtab.html"
     },
+    "commands": {
+        "escape_hatch": {
+            "suggested_key": {
+                "default": "Ctrl+Comma"
+            },
+            "description": "Focus or create a tab in which Tridactyl can run"
+        }
+    },
     "content_scripts": [
         {
             "matches": [
