@@ -48,6 +48,9 @@ messaging.addListener(
     messaging.attributeCaller(controller),
 )
 
+// eslint-disable-next-line @typescript-eslint/require-await
+messaging.addListener("alive", async () => true)
+
 // Hook the keyboard up to the controller
 import * as ContentController from "@src/content/controller_content"
 import { getAllDocumentFrames } from "@src/lib/dom"
