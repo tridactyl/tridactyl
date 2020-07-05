@@ -2973,8 +2973,8 @@ export async function escapehatch() {
         // - js("window.focus()") doesn't work: https://bugzilla.mozilla.org/show_bug.cgi?id=1415860
         // - switching to a different tab and then back to the current tab keeps focus in the URL bar
 
-        // For now: assume the user wants to use e.g. :buffer so open a new tab
-        return tabopen()
+        // For now: assume the user wants to get out of a flash-like video player and return focus to the page
+        return unfocus()
     }
 
     return tabSetActive(best.id)
