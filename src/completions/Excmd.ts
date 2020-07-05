@@ -68,13 +68,19 @@ export class ExcmdCompletionSource extends Completions.CompletionSourceFuse {
                 .map(([name, fn]) => new ExcmdCompletionOption(name, fn.doc)),
         )
 
-        // Also add aliases to possible completions
-        const exaliases = Object.keys(config.get("exaliases")).filter(a =>
-            a.startsWith(exstr),
-        )
-        for (const alias of exaliases) {
+        // Also narrow down aliases map to possible completions
+        const exaliasesConfig = config.get("exaliases")
+        const exaliases = Object.keys(exaliasesConfig)
+            .filter(a => a.startsWith(exstr))
+            .reduce((obj, key) => {
+                obj[key] = exaliasesConfig[key]
+                return obj
+            }, {})
+
+        for (const alias of Object.keys(exaliases)) {
             const cmd = aliases.expandExstr(alias, exaliases)
             const fn = excmds.getFunction(cmd)
+
             if (fn) {
                 this.options.push(
                     new ExcmdCompletionOption(
