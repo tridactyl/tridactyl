@@ -244,9 +244,15 @@ omnibox.init()
 
 // }}}
 
-browser.commands.onCommand.addListener((command_name: string) => {
-    if (command_name !== "escape_hatch") return
-    excmds_background.escapehatch()
+browser.commands.onCommand.addListener(async (command_name: string) => {
+    const commands = await browser.commands.getAll()
+    const command = commands.filter(c => c.name == command_name)[0]
+    return controller.acceptExCmd(
+        config.get(
+            "browsermaps",
+            keyseq.mozMapToMinimalKey(command.shortcut).toMapstr(),
+        ),
+    )
 })
 
 // {{{ Obey Mozilla's orders https://github.com/tridactyl/tridactyl/issues/1800

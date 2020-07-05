@@ -132,8 +132,6 @@ export class default_config {
         "<AC-Escape>": "mode normal",
         "<AC-`>": "mode normal",
         "<S-Escape>": "mode normal",
-        "<C-^>": "tab #",
-        "<C-6>": "tab #",
         "<C-o>": "nmode normal 1 mode ignore",
     }
 
@@ -150,8 +148,6 @@ export class default_config {
         "<C-i>": "editor",
         "<AC-Escape>": "mode normal",
         "<AC-`>": "mode normal",
-        "<C-6>": "tab #",
-        "<C-^>": "tab #",
         "<S-Escape>": "mode ignore",
     }
 
@@ -221,8 +217,6 @@ export class default_config {
         $: "scrollto 100 x",
         // "0": "scrollto 0 x", // will get interpreted as a count
         "^": "scrollto 0 x",
-        "<C-6>": "tab #",
-        "<C-^>": "tab #",
         H: "back",
         L: "forward",
         "<C-o>": "jumpprev",
@@ -381,6 +375,16 @@ export class default_config {
         "<ArrowRight>": "hint.focusRightHint",
         "<Enter>": "hint.selectFocusedHint",
         "<Space>": "hint.selectFocusedHint",
+    }
+
+    /**
+     * Browser-wide binds accessible in all modes and on pages where Tridactyl "cannot run".
+     * <!-- Note to developers: binds here need to also be listed in manifest.json -->
+     */
+    browsermaps = {
+        "<C-,>": "escapehatch",
+        "<C-6>": "tab #",
+        "<CS-6>": "tab #",
     }
 
     /**

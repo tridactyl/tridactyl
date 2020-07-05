@@ -144,7 +144,7 @@ ALL_EXCMDS = {
 }
 // }
 
-import { mapstrToKeyseq } from "@src/lib/keyseq"
+import { mapstrToKeyseq, mozMapToMinimalKey, minimalKeyToMozMap } from "@src/lib/keyseq"
 
 //#background_helper
 // {
@@ -3306,7 +3306,7 @@ export function comclear(name: string) {
         - [[reset]]
 */
 //#background
-export function bind(...args: string[]) {
+export async function bind(...args: string[]) {
     const args_obj = parse_bind_args(...args)
     let p = Promise.resolve()
     if (args_obj.excmd !== "") {
@@ -3317,6 +3317,18 @@ export function bind(...args: string[]) {
                 fillcmdline_notrail("# Warning: bind `" + key_sub + "` exists and will shadow `" + args_obj.key + "`. Try running `:unbind --mode=" + args_obj.mode + " " + key_sub + "`")
                 break
             }
+        }
+        if (args_obj.mode == "browser") {
+            const commands = await browser.commands.getAll()
+
+            // Check for an existing command with this bind
+            let command = commands.filter(c => mozMapToMinimalKey(c.shortcut).toMapstr() == args_obj.key)[0]
+
+            // If there isn't one, find an unused command
+            command = command === undefined ? (command = commands.filter(c => c.shortcut === "")[0]) : command
+            if (command === undefined) throw new Error("You have reached the maximum number of browser binds. `:unbind` one you don't want from `:viewconfig browsermaps`.")
+
+            browser.commands.update({ name: command.name, shortcut: minimalKeyToMozMap(mapstrToKeyseq(args_obj.key)[0]) })
         }
         p = config.set(args_obj.configName, args_obj.key, args_obj.excmd)
     } else if (args_obj.key.length) {
@@ -3338,6 +3350,7 @@ export function bind(...args: string[]) {
 //#background
 export function bindurl(pattern: string, mode: string, keys: string, ...excmd: string[]) {
     const args_obj = parse_bind_args(mode, keys, ...excmd)
+    if (args_obj.mode === "browser") throw new Error("Browser-wide binds are not supported per-URL")
     let p = Promise.resolve()
     if (args_obj.excmd !== "") {
         p = config.setURL(pattern, args_obj.configName, args_obj.key, args_obj.excmd)
@@ -3588,6 +3601,16 @@ export function blacklistadd(url: string) {
 export async function unbind(...args: string[]) {
     const args_obj = parse_bind_args(...args)
     if (args_obj.excmd !== "") throw new Error("unbind syntax: `unbind key`")
+    if (args_obj.mode == "browser") {
+        const commands = await browser.commands.getAll()
+
+        const command = commands.filter(c => mozMapToMinimalKey(c.shortcut).toMapstr() == args_obj.key)[0]
+
+        // Fail quietly if bind doesn't exist so people can safely run it in their RC files
+        if (command !== undefined) {
+            browser.commands.update({ name: command.name, shortcut: "" })
+        }
+    }
 
     return config.set(args_obj.configName, args_obj.key, null)
 }

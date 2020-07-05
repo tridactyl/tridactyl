@@ -16,11 +16,38 @@
         "newtab": "static/newtab.html"
     },
     "commands": {
-        "escape_hatch": {
+        "command_1": {
             "suggested_key": {
-                "default": "Ctrl+Comma"
+                "default": "MacCtrl+Comma"
             },
-            "description": "Focus or create a tab in which Tridactyl can run"
+            "description": "Internal use. See `:help bind`. Use `:bind --mode=browser` to change - do not change here."
+        },
+        "command_2": {
+            "suggested_key": {
+                "default": "MacCtrl+6"
+            },
+            "description": "Internal use. See `:help bind`. Use `:bind --mode=browser` to change - do not change here."
+        },
+        "command_3": {
+            "description": "Internal use. See `:help bind`. Use `:bind --mode=browser` to change - do not change here.",
+            "suggested_key": {
+                "default": "MacCtrl+Shift+6"
+            }
+        },
+        "command_4": {
+            "description": "Internal use. See `:help bind`. Use `:bind --mode=browser` to change - do not change here."
+        },
+        "command_5": {
+            "description": "Internal use. See `:help bind`. Use `:bind --mode=browser` to change - do not change here."
+        },
+        "command_6": {
+            "description": "Internal use. See `:help bind`. Use `:bind --mode=browser` to change - do not change here."
+        },
+        "command_7": {
+            "description": "Internal use. See `:help bind`. Use `:bind --mode=browser` to change - do not change here."
+        },
+        "command_8": {
+            "description": "Internal use. See `:help bind`. Use `:bind --mode=browser` to change - do not change here."
         }
     },
     "content_scripts": [
