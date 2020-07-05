@@ -13,6 +13,7 @@ export type TabMessageType =
     | "commandline_frame"
     | "state"
     | "lock"
+    | "alive"
 
 export type NonTabMessageType =
     | "owntab_background"
@@ -140,7 +141,7 @@ export async function messageActiveTab(
 export async function messageTab(
     tabId,
     type: TabMessageType,
-    command,
+    command?,
     args?,
 ): Promise<any> {
     const message: Message = {

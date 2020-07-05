@@ -244,6 +244,11 @@ omnibox.init()
 
 // }}}
 
+browser.commands.onCommand.addListener((command_name: string) => {
+    if (command_name !== "escape_hatch") return
+    excmds_background.escapehatch()
+})
+
 // {{{ Obey Mozilla's orders https://github.com/tridactyl/tridactyl/issues/1800
 
 native.unfixamo()

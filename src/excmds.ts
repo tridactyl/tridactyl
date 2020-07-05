@@ -90,6 +90,7 @@ import * as Native from "@src/lib/native"
 import * as TTS from "@src/lib/text_to_speech"
 import * as excmd_parser from "@src/parsers/exmode"
 import * as escape from "@src/lib/escape"
+import * as R from "ramda"
 
 /**
  * This is used to drive some excmd handling in `composite`.
@@ -2932,6 +2933,51 @@ export async function shellescape(...quoteme: string[]) {
     } else {
         return escape.sh(str)
     }
+}
+
+/**
+ *  Magic escape hatch: return to a tab in the current window where Tridactyl can run, making such a tab if it doesn't currently exist.
+ *
+ *  Only useful if called from a background context, e.g. at the end of an RC file to ensure that when you start the browser you don't get trapped on an about: page.
+ *
+ *  By default, bound to `<C-,>` via the commands API which may be changed via about:addons, the cog icon in the top right, then "Manage Extension Shortcuts"
+ *
+ *  <!-- TODO: add `bind --mode=mozilla` to rebind this + remove the special casing in background.ts -->
+ */
+//#background
+export async function escapehatch() {
+    const tabs = await browser.tabs.query({ currentWindow: true })
+    const tridactyl_tabs: browser.tabs.Tab[] = []
+    await Promise.all(
+        tabs.map(async tab => {
+            try {
+                // This doesn't actually return "true" like it is supposed to
+                await Messaging.messageTab(tab.id, "alive")
+                tridactyl_tabs.push(tab)
+                return true
+            } catch (e) {
+                return false
+            }
+        }),
+    )
+    const curr_pos = tabs.filter(t => t.active)[0].index
+
+    // If Tridactyl isn't running in any tabs in the current window open a new tab
+    if (tridactyl_tabs.length == 0) return tabopen()
+
+    const best = R.sortBy(tab => Math.abs(tab.index - curr_pos), tridactyl_tabs)[0] as browser.tabs.Tab
+
+    if (best.active) {
+        // TODO: If Tridactyl is running in the current tab, focus the page content
+        // AFAICT, impossible at the time of writing:
+        // - js("window.focus()") doesn't work: https://bugzilla.mozilla.org/show_bug.cgi?id=1415860
+        // - switching to a different tab and then back to the current tab keeps focus in the URL bar
+
+        // For now: assume the user wants to use e.g. :buffer so open a new tab
+        return tabopen()
+    }
+
+    return tabSetActive(best.id)
 }
 
 /** Sleep time_ms milliseconds.
