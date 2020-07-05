@@ -214,3 +214,8 @@ declare namespace jest {
         toBeAll: any
     }
 }
+
+// jest-webextension-mock doesn't know about this Firefox specific API
+declare namespace browser.commands {
+    function update(details)
+}
