@@ -50,16 +50,5 @@ export function parse_bind_args(...args: string[]): bind_args {
 
     result.excmd = args.join(" ")
 
-    // On second thought - I don't think we need this as browser.commands.update() will throw an error for us
-    //
-    // Check we have a Mozilla-compatible sequence for Commands binds
-    // TODO: check that the key is compatible too
-    // NB: +!! is a crazy way of coercing a boolean | undefined to a number
-    // if (result.mode == "browser" && (
-    //     keyseq.length > 1  ||
-    //     [+!!keyseq[0].ctrlKey, +!!keyseq[0].altKey, +!!keyseq[0].shiftKey, +!!keyseq[0].metaKey].reduce((l,r) => Number(l) + Number(r)) < 1 ||
-    //     [+!!keyseq[0].ctrlKey, +!!keyseq[0].altKey, +!!keyseq[0].shiftKey, +!!keyseq[0].metaKey].reduce((l,r) => Number(l) + Number(r)) > 2
-    // )) throw "Error: Incompatible key sequence specified for 'browser' mode binds. Use one or two modifiers with a single key, e.g. <C-.>"
-
     return result
 }

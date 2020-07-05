@@ -107,6 +107,17 @@
         "page": "static/docs/classes/_src_lib_config_.default_config.html",
         "open_in_tab": true
     },
+    "sidebar_action": {
+        "default_icon": {
+            "64": "static/logo/Tridactyl_64px.png",
+            "100": "static/logo/Tridactyl_100px.png",
+            "150": "static/logo/Tridactyl_150px.png"
+        },
+        "default_title": "Tridactyl sidebar",
+        "default_panel": "static/newtab.html",
+        "browser_style": false,
+        "open_at_install": false
+    },
     "omnibox": {
         "keyword": "tri"
     }

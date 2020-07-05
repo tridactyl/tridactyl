@@ -26,6 +26,7 @@ import * as extension_info from "@src/lib/extension_info"
 import * as omnibox from "@src/background/omnibox"
 import * as R from "ramda"
 import * as webrequests from "@src/background/webrequests"
+import * as commands from "@src/background/commands"
 
 // Add various useful modules to the window for debugging
 ;(window as any).tri = Object.assign(Object.create(null), {
@@ -244,16 +245,7 @@ omnibox.init()
 
 // }}}
 
-browser.commands.onCommand.addListener(async (command_name: string) => {
-    const commands = await browser.commands.getAll()
-    const command = commands.filter(c => c.name == command_name)[0]
-    return controller.acceptExCmd(
-        config.get(
-            "browsermaps",
-            keyseq.mozMapToMinimalKey(command.shortcut).toMapstr(),
-        ),
-    )
-})
+commands.updateListener()
 
 // {{{ Obey Mozilla's orders https://github.com/tridactyl/tridactyl/issues/1800
 

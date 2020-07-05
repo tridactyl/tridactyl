@@ -90,7 +90,6 @@ import * as Native from "@src/lib/native"
 import * as TTS from "@src/lib/text_to_speech"
 import * as excmd_parser from "@src/parsers/exmode"
 import * as escape from "@src/lib/escape"
-import * as R from "ramda"
 
 /**
  * This is used to drive some excmd handling in `composite`.
@@ -164,6 +163,7 @@ import * as css_util from "@src/lib/css_util"
 import * as Updates from "@src/lib/updates"
 import * as Extensions from "@src/lib/extension_info"
 import * as webrequests from "@src/background/webrequests"
+import * as commandsHelper from "@src/background/commands"
 
 ALL_EXCMDS = {
     "": BGSELF,
@@ -2935,6 +2935,9 @@ export async function shellescape(...quoteme: string[]) {
     }
 }
 
+//#background_helper
+import * as useractions from "@src/background/user_actions"
+
 /**
  *  Magic escape hatch: return to a tab in the current window where Tridactyl can run, making such a tab if it doesn't currently exist.
  *
@@ -2946,38 +2949,7 @@ export async function shellescape(...quoteme: string[]) {
  */
 //#background
 export async function escapehatch() {
-    const tabs = await browser.tabs.query({ currentWindow: true })
-    const tridactyl_tabs: browser.tabs.Tab[] = []
-    await Promise.all(
-        tabs.map(async tab => {
-            try {
-                // This doesn't actually return "true" like it is supposed to
-                await Messaging.messageTab(tab.id, "alive")
-                tridactyl_tabs.push(tab)
-                return true
-            } catch (e) {
-                return false
-            }
-        }),
-    )
-    const curr_pos = tabs.filter(t => t.active)[0].index
-
-    // If Tridactyl isn't running in any tabs in the current window open a new tab
-    if (tridactyl_tabs.length == 0) return tabopen()
-
-    const best = R.sortBy(tab => Math.abs(tab.index - curr_pos), tridactyl_tabs)[0] as browser.tabs.Tab
-
-    if (best.active) {
-        // TODO: If Tridactyl is running in the current tab, focus the page content
-        // AFAICT, impossible at the time of writing:
-        // - js("window.focus()") doesn't work: https://bugzilla.mozilla.org/show_bug.cgi?id=1415860
-        // - switching to a different tab and then back to the current tab keeps focus in the URL bar
-
-        // For now: assume the user wants to use e.g. :buffer so open a new tab
-        return tabopen()
-    }
-
-    return tabSetActive(best.id)
+    useractions.escapehatch()
 }
 
 /** Sleep time_ms milliseconds.
@@ -3334,7 +3306,8 @@ export async function bind(...args: string[]) {
             command = command === undefined ? (command = commands.filter(c => c.shortcut === "")[0]) : command
             if (command === undefined) throw new Error("You have reached the maximum number of browser binds. `:unbind` one you don't want from `:viewconfig browsermaps`.")
 
-            browser.commands.update({ name: command.name, shortcut: minimalKeyToMozMap(mapstrToKeyseq(args_obj.key)[0]) })
+            await browser.commands.update({ name: command.name, shortcut: minimalKeyToMozMap(mapstrToKeyseq(args_obj.key)[0]) })
+            await commandsHelper.updateListener()
         }
         p = config.set(args_obj.configName, args_obj.key, args_obj.excmd)
     } else if (args_obj.key.length) {
@@ -3614,7 +3587,8 @@ export async function unbind(...args: string[]) {
 
         // Fail quietly if bind doesn't exist so people can safely run it in their RC files
         if (command !== undefined) {
-            browser.commands.update({ name: command.name, shortcut: "" })
+            await browser.commands.update({ name: command.name, shortcut: "" })
+            await commandsHelper.updateListener()
         }
     }
 
