@@ -7,6 +7,7 @@ Replace Firefox's control mechanism with one modelled on VIM. This is a "Firefox
 -   You want to go to the bottom of the page? Hit `G`. Or the top? `gg`.
 -   You want to focus the text field on Wikipedia to search for another term? `gi`.
 -   Switch to the next tab? `gt`.
+-   Got trapped in a place where Tridactyl can't run? `Ctrl-,`
 -   Go back in time? `H`.
 -   Notice that this tab is rubbish and you want to close it? `d`.
 -   Regret that decision? `u` restores it.
