@@ -258,12 +258,21 @@ module.exports = {
         "use-isnan": "error",
         "valid-typeof": "off"
     },
-    "overrides": [{
-        "files": ["src/completions/*.ts", "src/excmds.ts"],
-        "rules": {
-            // We have methods that must be async in some classes but not in others
-            // In src/excmds anything that crosses between content<->background must be async even if it looks like it isn't
-            "@typescript-eslint/require-await": "off",
+    "overrides": [
+        {
+            "files": ["src/completions/*.ts", "src/excmds.ts"],
+            "rules": {
+                // We have methods that must be async in some classes but not in others
+                // In src/excmds anything that crosses between content<->background must be async even if it looks like it isn't
+                "@typescript-eslint/require-await": "off",
+            },
         },
-    }],
+        {
+            "files": ["src/lib/editor_utils.ts"],
+            "rules": {
+                // The regexes use the /g flag which match handles differently to exec
+                "@typescript-eslint/prefer-regexp-exec": "off",
+            },
+        },
+    ],
 };
