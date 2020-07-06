@@ -24,7 +24,7 @@ export class Parser {
         } finally {
             this.reset()
             if (lastResult === undefined) {
-                throw "Error: no result!"
+                throw new Error("Error: no result!")
             } else {
                 return [lastResult, input.slice(consumedIndex)]
             }

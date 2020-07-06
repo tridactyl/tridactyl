@@ -342,7 +342,7 @@ export async function setClipboard(content: string) {
         if (document.execCommand("Copy")) {
             // // todo: Maybe we can consider to using some logger and show it with status bar in the future
             logger.info("set clipboard:", scratchpad.value)
-        } else throw "Failed to copy!"
+        } else throw new Error("Failed to copy!")
     })
     // Return focus to the document
     await Messaging.messageOwnTab("commandline_content", "hide")

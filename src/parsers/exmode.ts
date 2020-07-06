@@ -70,7 +70,7 @@ export function parser(exstr: string, all_excmds: any): any[] {
 
     if (excmds[funcName] === undefined) {
         logger.error("Not an excmd:", exstr)
-        throw `Not an excmd: ${func}`
+        throw new Error(`Not an excmd: ${func}`)
     }
 
     return [excmds[funcName], converted_args]
