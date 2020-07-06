@@ -51,7 +51,9 @@ const state = new Proxy(overlay, {
     /** Give defaults if overlay doesn't have the key */
     get(target, property) {
         if (notBackground())
-            throw "State object must be accessed with getAsync in content"
+            throw new Error(
+                "State object must be accessed with getAsync in content",
+            )
         if (property in target) {
             return target[property]
         } else {
@@ -111,7 +113,10 @@ notBackground &&
             state[property] = value
         } else if (message.command == "stateGet") {
             sendResponse(state[message.args[0].prop])
-        } else throw "Unsupported message to state, type " + message.command
+        } else
+            throw new Error(
+                "Unsupported message to state, type " + message.command,
+            )
     })
 
 export { state as default }

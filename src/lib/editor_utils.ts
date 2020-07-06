@@ -202,7 +202,7 @@ export function getWordBoundaries(
     while (
         boundary1 >= 0 &&
         boundary1 < text.length &&
-        !pattern.exec(text[boundary1])
+        !text[boundary1].match(pattern)
     ) {
         boundary1 += direction
     }
@@ -214,7 +214,7 @@ export function getWordBoundaries(
     while (
         boundary1 >= 0 &&
         boundary1 < text.length &&
-        !pattern.exec(text[boundary1])
+        !text[boundary1].match(pattern)
     ) {
         boundary1 -= direction
     }
@@ -222,7 +222,7 @@ export function getWordBoundaries(
     if (boundary1 < 0) boundary1 = 0
     else if (boundary1 >= text.length) boundary1 = text.length - 1
 
-    if (!pattern.exec(text[boundary1])) {
+    if (!text[boundary1].match(pattern)) {
         // there is no word in text
         throw new Error(
             `getWordBoundaries: no characters matching wordpattern (${pattern.source}) in text (${text})`,
@@ -233,7 +233,7 @@ export function getWordBoundaries(
     while (
         boundary1 >= 0 &&
         boundary1 < text.length &&
-        !!pattern.exec(text[boundary1])
+        !!text[boundary1].match(pattern)
     ) {
         boundary1 += direction
     }
@@ -245,7 +245,7 @@ export function getWordBoundaries(
     while (
         boundary2 >= 0 &&
         boundary2 < text.length &&
-        !!pattern.exec(text[boundary2])
+        !!text[boundary2].match(pattern)
     ) {
         boundary2 -= direction
     }
@@ -266,10 +266,10 @@ export function wordAfterPos(text: string, position: number) {
         throw new Error(`wordAfterPos: position (${position}) is less that 0`)
     const pattern = new RegExp(config.get("wordpattern"), "g")
     // move position out of the current word
-    while (position < text.length && !!pattern.exec(text[position]))
+    while (position < text.length && !!text[position].match(pattern))
         position += 1
     // try to find characters that match wordpattern
-    while (position < text.length && !pattern.exec(text[position]))
+    while (position < text.length && !text[position].match(pattern))
         position += 1
     if (position >= text.length) return -1
     return position

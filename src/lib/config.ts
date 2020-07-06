@@ -1275,7 +1275,7 @@ export function setURL(pattern, ...args) {
  */
 export async function set(...args) {
     if (args.length < 2) {
-        throw "You must provide at least two arguments!"
+        throw new Error("You must provide at least two arguments!")
     }
 
     const target = args.slice(0, args.length - 1)

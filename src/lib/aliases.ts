@@ -21,7 +21,9 @@ export function expandExstr(
 
     // Infinite loop detected
     if (prevExpansions.includes(command)) {
-        throw `Infinite loop detected while expanding aliases. Stack: ${prevExpansions}.`
+        throw new Error(
+            `Infinite loop detected while expanding aliases. Stack: ${prevExpansions}.`,
+        )
     }
 
     // Add command to expansions used so far

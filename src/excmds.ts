@@ -352,7 +352,7 @@ export async function editor() {
             logger.debug(`Editor terminated with non-zero exit code: ${exec.code}`)
         }
     } catch (e) {
-        throw `:editor failed: ${e}`
+        throw new Error(`:editor failed: ${e}`)
     } finally {
         return removeTridactylEditorClass(selector)
     }
@@ -582,7 +582,7 @@ export async function nativeopen(...args: string[]) {
         try {
             if ((await browser.runtime.getPlatformInfo()).os === "mac") {
                 if ((await browser.windows.getCurrent()).incognito) {
-                    throw "nativeopen isn't supported in private mode on OSX. Consider installing Linux or Windows :)."
+                    throw new Error("nativeopen isn't supported in private mode on OSX. Consider installing Linux or Windows :).")
                 }
                 const osascriptArgs = ["-e 'on run argv'", "-e 'tell application \"Firefox\" to open location item 1 of argv'", "-e 'end run'"]
                 await Native.run("osascript " + osascriptArgs.join(" ") + " " + url)
@@ -2396,7 +2396,7 @@ export async function tabclose(...indexes: string[]) {
 //#background
 export async function tabcloseallto(side: string) {
     if (!["left", "right"].includes(side)) {
-        throw "side argument must be left or right"
+        throw new Error("side argument must be left or right")
     }
     const tabs = await browser.tabs.query({
         pinned: false,
@@ -3222,7 +3222,7 @@ export function command(name: string, ...definition: string[]) {
         return config.set("exaliases", name, def)
     } catch (e) {
         config.unset("exaliases", name)
-        throw `Alias not set. ${e}`
+        throw new Error(`Alias not set. ${e}`)
     }
 }
 
@@ -3358,7 +3358,7 @@ export function keymap(source: string, target: string) {
  */
 //#background
 export function searchsetkeyword() {
-    throw ":searchsetkeyword has been deprecated. Use `set searchurls.KEYWORD URL` instead."
+    throw new Error(":searchsetkeyword has been deprecated. Use `set searchurls.KEYWORD URL` instead.")
 }
 
 /**
@@ -3389,7 +3389,7 @@ function validateSetArgs(key: string, values: string[]) {
         } else if (currentValue === undefined || typeof currentValue === "string") {
             value = values.join(" ")
         } else {
-            throw "Unsupported setting type!"
+            throw new Error("Unsupported setting type!")
         }
     }
 
@@ -3421,7 +3421,7 @@ export function seturl(pattern: string, key: string, ...values: string[]) {
     }
 
     if (!pattern || !key || !values.length) {
-        throw "seturl syntax: [pattern] key value"
+        throw new Error("seturl syntax: [pattern] key value")
     }
 
     return config.setURL(pattern, ...validateSetArgs(key, values))
@@ -3444,7 +3444,7 @@ export function seturl(pattern: string, key: string, ...values: string[]) {
 //#background
 export function set(key: string, ...values: string[]) {
     if (!key) {
-        throw "Key must be provided!"
+        throw new Error("Key must be provided!")
     } else if (!values[0]) {
         return get(key)
     }
@@ -3457,7 +3457,7 @@ export function set(key: string, ...values: string[]) {
         values.forEach(url => seturl(url, "noiframe", "true"))
         // save as deprecated setting for compatibility
         config.set("noiframeon", values)
-        throw "Warning: `noiframeon $url1 $url2` has been deprecated in favor of `:seturl $url1 noiframe true`. The right seturl calls have been made for you but from now on please use `:seturl`."
+        throw new Error("Warning: `noiframeon $url1 $url2` has been deprecated in favor of `:seturl $url1 noiframe true`. The right seturl calls have been made for you but from now on please use `:seturl`.")
     }
 
     if (key === "csp" && values[0] === "clobber") {
@@ -3852,7 +3852,7 @@ export function unseturl(pattern: string, key: string) {
 //#background
 export function unset(...keys: string[]) {
     const target = keys.join(".").split(".")
-    if (target === undefined) throw "You must define a target!"
+    if (target === undefined) throw new Error("You must define a target!")
     return config.unset(...target)
 }
 
@@ -3862,7 +3862,7 @@ export function unset(...keys: string[]) {
 //#background
 export function setnull(...keys: string[]) {
     const target = keys.join(".").split(".")
-    if (target === undefined) throw "You must define a target!"
+    if (target === undefined) throw new Error("You must define a target!")
     return config.set(...target, null)
 }
 
@@ -4350,10 +4350,10 @@ export async function ttsread(mode: "-t" | "-c", ...args: string[]) {
         if (args.length > 0) {
             tssReadFromCss(args[0])
         } else {
-            throw "Error: no CSS selector supplied"
+            throw new Error("Error: no CSS selector supplied")
         }
     } else {
-        throw "Unknown mode for ttsread command: " + mode
+        throw new Error("Unknown mode for ttsread command: " + mode)
     }
 }
 
