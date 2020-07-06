@@ -84,7 +84,7 @@ export async function getNativeMessengerVersion(
     const res = await sendNativeMsg("version", {}, quiet)
     if (res === undefined) {
         if (quiet) return undefined
-        throw `Error retrieving version: ${res.error}`
+        throw new Error(`Error retrieving version: ${res.error}`)
     }
     if (res.version && !res.error) {
         logger.info(`Native version: ${res.version}`)
@@ -277,43 +277,45 @@ export async function editor(
 
 export async function read(file: string) {
     return sendNativeMsg("read", { file }).catch(e => {
-        throw `Failed to read ${file}. ${e}`
+        throw new Error(`Failed to read ${file}. ${e}`)
     })
 }
 
 export async function write(file: string, content: string) {
     return sendNativeMsg("write", { file, content }).catch(e => {
-        throw `Failed to write '${content}' to '${file}'. ${e}`
+        throw new Error(`Failed to write '${content}' to '${file}'. ${e}`)
     })
 }
 
 export async function writerc(file: string, force: boolean, content: string) {
     return sendNativeMsg("writerc", { file, force, content }).catch(e => {
-        throw `Failed to write '${content}' to '${file}'. ${e}`
+        throw new Error(`Failed to write '${content}' to '${file}'. ${e}`)
     })
 }
 
 export async function mkdir(dir: string, exist_ok: boolean) {
     return sendNativeMsg("mkdir", { dir, exist_ok }).catch(e => {
-        throw `Failed to create directory '${dir}'. ${e}`
+        throw new Error(`Failed to create directory '${dir}'. ${e}`)
     })
 }
 
 export async function temp(content: string, prefix: string) {
     return sendNativeMsg("temp", { content, prefix }).catch(e => {
-        throw `Failed to write '${content}' to temp file '${prefix}'. ${e}`
+        throw new Error(
+            `Failed to write '${content}' to temp file '${prefix}'. ${e}`,
+        )
     })
 }
 
 export async function move(from: string, to: string) {
     return sendNativeMsg("move", { from, to }).catch(e => {
-        throw `Failed to move '${from}' to '${to}'. ${e}.`
+        throw new Error(`Failed to move '${from}' to '${to}'. ${e}.`)
     })
 }
 
 export async function listDir(dir: string) {
     return sendNativeMsg("list_dir", { path: dir }).catch(e => {
-        throw `Failed to read directory '${dir}'. ${e}`
+        throw new Error(`Failed to read directory '${dir}'. ${e}`)
     })
 }
 
@@ -324,7 +326,9 @@ export async function winFirefoxRestart(
     const required_version = "0.1.6"
 
     if (!(await nativegate(required_version, false))) {
-        throw `'restart' on Windows needs native messenger version >= ${required_version}.`
+        throw new Error(
+            `'restart' on Windows needs native messenger version >= ${required_version}.`,
+        )
     }
 
     return sendNativeMsg("win_firefox_restart", { profiledir, browsercmd })
@@ -347,7 +351,9 @@ export async function getenv(variable: string) {
     const required_version = "0.1.2"
 
     if (!(await nativegate(required_version, false))) {
-        throw `'getenv' needs native messenger version >= ${required_version}.`
+        throw new Error(
+            `'getenv' needs native messenger version >= ${required_version}.`,
+        )
     }
 
     return (await sendNativeMsg("env", { var: variable })).content
@@ -411,7 +417,9 @@ export async function clipboard(
 export async function ff_cmdline(): Promise<string[]> {
     // Using ' and + rather that ` because we don't want newlines
     if ((await browserBg.runtime.getPlatformInfo()).os === "win") {
-        throw `Error: "ff_cmdline() is currently broken on Windows and should be avoided."`
+        throw new Error(
+            `Error: "ff_cmdline() is currently broken on Windows and should be avoided."`,
+        )
     } else {
         const output = await pyeval(
             'handleMessage({"cmd": "run", ' +
