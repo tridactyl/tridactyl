@@ -371,7 +371,7 @@ export function mozMapToMinimalKey(mozmap: string): MinimalKey {
         metaKey: arr.includes("Command"),
     }
     let key = arr[arr.length - 1]
-    key = R.propOr(key, key, commandKey2jsKey)
+    key = R.propOr(key.toLowerCase(), key, commandKey2jsKey)
     // TODO: support mediakeys: https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/manifest.json/commands#Media_keys
 
     return new MinimalKey(key, modifiers)
@@ -389,7 +389,7 @@ export function minimalKeyToMozMap(key: MinimalKey): string {
     key.shiftKey && mozMap.push("Shift")
     key.metaKey && mozMap.push("Command")
     const jsKey2commandKey = R.invertObj(commandKey2jsKey)
-    mozMap.push(R.propOr(key.key, key.key, jsKey2commandKey))
+    mozMap.push(R.propOr(key.key.toUpperCase(), key.key, jsKey2commandKey))
     return mozMap.join("+")
 }
 
