@@ -2939,13 +2939,12 @@ export async function shellescape(...quoteme: string[]) {
 import * as useractions from "@src/background/user_actions"
 
 /**
- *  Magic escape hatch: return to a tab in the current window where Tridactyl can run, making such a tab if it doesn't currently exist.
+ *  Magic escape hatch: if Tridactyl can't run in the current tab, return to a tab in the current window where Tridactyl can run, making such a tab if it doesn't currently exist. If Tridactyl can run in the current tab, return focus to the document body from e.g. the URL bar or a video player.
  *
- *  Only useful if called from a background context, e.g. at the end of an RC file to ensure that when you start the browser you don't get trapped on an about: page.
+ *  Only useful if called from a background context, e.g. at the end of an RC file to ensure that when you start the browser you don't get trapped on an about: page, or via `bind --mode=browser escapehatch` (bound to `<C-,>` by default).
  *
- *  By default, bound to `<C-,>` via the commands API which may be changed via about:addons, the cog icon in the top right, then "Manage Extension Shortcuts"
+ *  NB: when called via `bind --mode=browser`, we return focus from the address bar by opening and closing the "sidebar" (which is used exclusively for this purpose). If escapehatch is called in any other way, we cannot do this as Mozilla thinks it might [spook](https://extensionworkshop.com/documentation/publish/add-on-policies/#no-surprises) [you](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/User_actions) : ).
  *
- *  <!-- TODO: add `bind --mode=mozilla` to rebind this + remove the special casing in background.ts -->
  */
 //#background
 export async function escapehatch() {
