@@ -1,5 +1,41 @@
 # Tridactyl changelog
 
+# Release 1.20.0 / unreleased
+
+-   New features
+
+    -   `<C-,>` browser-wide bind added to new ex-command, `:escapehatch` which returns focus to the page and returns you to a tab where Tridactyl can run.
+    -   User-configurable browser-wide binds added with lots of caveats. See `:help bind` and `:bind --mode=browser` for more details.
+        -   `<C-6>` and `<CS-6>` are now bound to `:tab #` browser-wide.
+    -   Autocommands now support `WebRequest` events - see `:help autocmd` for more details. Particularly useful for e.g. redirecting sites.
+    -   Callback hintmode on `hint -F` added for running arbitrary JS on an element you select. ([#2552](https://github.com/tridactyl/tridactyl/issues/2552))
+    -   `:blacklistdelete` alias added as the inverse of `:blacklistadd`
+    -   Hints on elements due to JavaScript `onclick` events now appear grey. If an element has a grey hint and a normal hint, the normal hint is probably the right one. ([#2259](https://github.com/tridactyl/tridactyl/issues/2259))
+    -   Hints can no longer overlap. ([#2534](https://github.com/tridactyl/tridactyl/issues/2534))
+    -   `:winmerge` ex-command added to merge windows ([#404](https://github.com/tridactyl/tridactyl/issues/404))
+    -   `:tabgrab` and `tabpush` ex-commands added to move tabs between windows ([#2540](https://github.com/tridactyl/tridactyl/issues/2540))
+    -   `:ex.copy_completion` ex-mode command added to copy the currently selected completion, bound to `<C-o>yy` while the command line is open
+    -   `:tabopen` now never puts focus in the address bar ([#2490](https://github.com/tridactyl/tridactyl/issues/2490))
+    -   The little pop-up telling you the address of a link you are hovering over is now hidden when the command line is opened ([#1896](https://github.com/tridactyl/tridactyl/issues/1896))
+    -   `:tabopen -c firefox-default` opens a new tab in the default container (handy with `set tabopencontaineraware true`)
+
+-   Bug fixes
+
+    -   Scrolling should now work on more pages ([#2583](https://github.com/tridactyl/tridactyl/issues/2583))
+    -   Some errors should be more informative ([#2585](https://github.com/tridactyl/tridactyl/issues/2585))
+    -   Ex-aliases now have correct help text in completions ([#2483](https://github.com/tridactyl/tridactyl/issues/2483))
+    -   `:guiset` no longer claims to work if it has not ([#2210](https://github.com/tridactyl/tridactyl/issues/2210))
+    -   Pressing `<Tab>` in completions is now a bit more reliable (but not much :))
+    -   `:find` now works in private windows ([#2520](https://github.com/tridactyl/tridactyl/issues/2520))
+    -   `:containerdelete` with no arguments is now a no-op ([#2239](https://github.com/tridactyl/tridactyl/issues/2239))
+
+-   Miscellaneous
+
+    -   We have switched from tslint to eslint ([#2477](https://github.com/tridactyl/tridactyl/issues/2477))
+    -   Our E2E tests now actually work most of the time
+    -   Unit tests for our excmds added ([#2449](https://github.com/tridactyl/tridactyl/issues/2449))
+    -   There should be slightly less latency on keypresses ([#2440](https://github.com/tridactyl/tridactyl/issues/2440))
+
 ## Release 1.19.1 / 29-05-2020
 
 -   New features
