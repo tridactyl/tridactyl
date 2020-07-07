@@ -9,13 +9,9 @@ import * as R from "ramda"
 import { messageTab } from "@src/lib/messaging"
 
 export function escapehatch() {
-    try {
-        // Only works if called via commands API command - fail silently if called otherwise
-        browser.sidebarAction.open()
-        browser.sidebarAction.close()
-    } catch (e) {
-        ;
-    }
+    // Only works if called via commands API command - fail silently if called otherwise
+    browser.sidebarAction.open().catch()
+    browser.sidebarAction.close().catch()
     ;(async () => {
         const tabs = await browser.tabs.query({ currentWindow: true })
         const tridactyl_tabs: browser.tabs.Tab[] = []
