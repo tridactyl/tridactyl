@@ -90,7 +90,6 @@ import * as Native from "@src/lib/native"
 import * as TTS from "@src/lib/text_to_speech"
 import * as excmd_parser from "@src/parsers/exmode"
 import * as escape from "@src/lib/escape"
-import * as R from "ramda"
 
 /**
  * This is used to drive some excmd handling in `composite`.
@@ -144,7 +143,7 @@ ALL_EXCMDS = {
 }
 // }
 
-import { mapstrToKeyseq } from "@src/lib/keyseq"
+import { mapstrToKeyseq, mozMapToMinimalKey, minimalKeyToMozMap } from "@src/lib/keyseq"
 
 //#background_helper
 // {
@@ -164,6 +163,7 @@ import * as css_util from "@src/lib/css_util"
 import * as Updates from "@src/lib/updates"
 import * as Extensions from "@src/lib/extension_info"
 import * as webrequests from "@src/background/webrequests"
+import * as commandsHelper from "@src/background/commands"
 
 ALL_EXCMDS = {
     "": BGSELF,
@@ -2935,49 +2935,20 @@ export async function shellescape(...quoteme: string[]) {
     }
 }
 
+//#background_helper
+import * as useractions from "@src/background/user_actions"
+
 /**
- *  Magic escape hatch: return to a tab in the current window where Tridactyl can run, making such a tab if it doesn't currently exist.
+ *  Magic escape hatch: if Tridactyl can't run in the current tab, return to a tab in the current window where Tridactyl can run, making such a tab if it doesn't currently exist. If Tridactyl can run in the current tab, return focus to the document body from e.g. the URL bar or a video player.
  *
- *  Only useful if called from a background context, e.g. at the end of an RC file to ensure that when you start the browser you don't get trapped on an about: page.
+ *  Only useful if called from a background context, e.g. at the end of an RC file to ensure that when you start the browser you don't get trapped on an about: page, or via `bind --mode=browser escapehatch` (bound to `<C-,>` by default).
  *
- *  By default, bound to `<C-,>` via the commands API which may be changed via about:addons, the cog icon in the top right, then "Manage Extension Shortcuts"
+ *  NB: when called via `bind --mode=browser`, we return focus from the address bar by opening and closing the "sidebar" (which is used exclusively for this purpose). If escapehatch is called in any other way, we cannot do this as Mozilla thinks it might [spook](https://extensionworkshop.com/documentation/publish/add-on-policies/#no-surprises) [you](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/User_actions) : ).
  *
- *  <!-- TODO: add `bind --mode=mozilla` to rebind this + remove the special casing in background.ts -->
  */
 //#background
 export async function escapehatch() {
-    const tabs = await browser.tabs.query({ currentWindow: true })
-    const tridactyl_tabs: browser.tabs.Tab[] = []
-    await Promise.all(
-        tabs.map(async tab => {
-            try {
-                // This doesn't actually return "true" like it is supposed to
-                await Messaging.messageTab(tab.id, "alive")
-                tridactyl_tabs.push(tab)
-                return true
-            } catch (e) {
-                return false
-            }
-        }),
-    )
-    const curr_pos = tabs.filter(t => t.active)[0].index
-
-    // If Tridactyl isn't running in any tabs in the current window open a new tab
-    if (tridactyl_tabs.length == 0) return tabopen()
-
-    const best = R.sortBy(tab => Math.abs(tab.index - curr_pos), tridactyl_tabs)[0] as browser.tabs.Tab
-
-    if (best.active) {
-        // TODO: If Tridactyl is running in the current tab, focus the page content
-        // AFAICT, impossible at the time of writing:
-        // - js("window.focus()") doesn't work: https://bugzilla.mozilla.org/show_bug.cgi?id=1415860
-        // - switching to a different tab and then back to the current tab keeps focus in the URL bar
-
-        // For now: assume the user wants to get out of a flash-like video player and return focus to the page
-        return unfocus()
-    }
-
-    return tabSetActive(best.id)
+    useractions.escapehatch()
 }
 
 /** Sleep time_ms milliseconds.
@@ -3297,6 +3268,12 @@ export function comclear(name: string) {
 
     You can bind to other modes with `bind --mode={insert|ignore|normal|input|ex|hint} ...`, e.g, `bind --mode=insert emacs qall` (NB: unlike vim, all preceeding characters will not be input), or `bind --mode=hint <C-[> hint.reset`.
 
+    `bind --mode=browser [key sequence] [ex command]` binds to a special mode which can be accessed all the time in all browser tabs - even tabs in which Tridactyl cannot run. It comes with a few caveats:
+
+    - you may only have a few browser-mode binds at once. At the time of writing, this is 8, with 3 initially taken by Tridactyl. If you desperately need more, file an [[issue]].
+    - the key sequence must consist of a single, simple key with at least one and no more than two modifiers. An error will be thrown if you try to bind to an invalid key sequence.
+    - the `ex command` you bind to may not work fully unless you are on a tab which Tridactyl has access to. Generally, browser-wide actions like making or closing tabs will work but tab-specific actions like scrolling down or entering hint mode will not.
+
     A list of editor functions can be found
     [here](/static/docs/modules/_src_lib_editor_.html).
 
@@ -3306,7 +3283,7 @@ export function comclear(name: string) {
         - [[reset]]
 */
 //#background
-export function bind(...args: string[]) {
+export async function bind(...args: string[]) {
     const args_obj = parse_bind_args(...args)
     let p = Promise.resolve()
     if (args_obj.excmd !== "") {
@@ -3317,6 +3294,19 @@ export function bind(...args: string[]) {
                 fillcmdline_notrail("# Warning: bind `" + key_sub + "` exists and will shadow `" + args_obj.key + "`. Try running `:unbind --mode=" + args_obj.mode + " " + key_sub + "`")
                 break
             }
+        }
+        if (args_obj.mode == "browser") {
+            const commands = await browser.commands.getAll()
+
+            // Check for an existing command with this bind
+            let command = commands.filter(c => mozMapToMinimalKey(c.shortcut).toMapstr() == args_obj.key)[0]
+
+            // If there isn't one, find an unused command
+            command = command === undefined ? (command = commands.filter(c => c.shortcut === "")[0]) : command
+            if (command === undefined) throw new Error("You have reached the maximum number of browser binds. `:unbind` one you don't want from `:viewconfig browsermaps`.")
+
+            await browser.commands.update({ name: command.name, shortcut: minimalKeyToMozMap(mapstrToKeyseq(args_obj.key)[0]) })
+            await commandsHelper.updateListener()
         }
         p = config.set(args_obj.configName, args_obj.key, args_obj.excmd)
     } else if (args_obj.key.length) {
@@ -3338,6 +3328,7 @@ export function bind(...args: string[]) {
 //#background
 export function bindurl(pattern: string, mode: string, keys: string, ...excmd: string[]) {
     const args_obj = parse_bind_args(mode, keys, ...excmd)
+    if (args_obj.mode === "browser") throw new Error("Browser-wide binds are not supported per-URL")
     let p = Promise.resolve()
     if (args_obj.excmd !== "") {
         p = config.setURL(pattern, args_obj.configName, args_obj.key, args_obj.excmd)
@@ -3588,6 +3579,17 @@ export function blacklistadd(url: string) {
 export async function unbind(...args: string[]) {
     const args_obj = parse_bind_args(...args)
     if (args_obj.excmd !== "") throw new Error("unbind syntax: `unbind key`")
+    if (args_obj.mode == "browser") {
+        const commands = await browser.commands.getAll()
+
+        const command = commands.filter(c => mozMapToMinimalKey(c.shortcut).toMapstr() == args_obj.key)[0]
+
+        // Fail quietly if bind doesn't exist so people can safely run it in their RC files
+        if (command !== undefined) {
+            await browser.commands.update({ name: command.name, shortcut: "" })
+            await commandsHelper.updateListener()
+        }
+    }
 
     return config.set(args_obj.configName, args_obj.key, null)
 }

@@ -45,9 +45,8 @@ export function parse_bind_args(...args: string[]): bind_args {
 
     const key = args.shift()
     // Convert key to internal representation
-    result.key = mapstrToKeyseq(key)
-        .map(k => k.toMapstr())
-        .join("")
+    const keyseq = mapstrToKeyseq(key)
+    result.key = keyseq.map(k => k.toMapstr()).join("")
 
     result.excmd = args.join(" ")
 

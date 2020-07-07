@@ -4,7 +4,7 @@
 
 Tridactyl has to override your new tab page due to WebExtension limitations. You can learn how to change it at the bottom of the page, otherwise please read on for some tips and tricks.
 
--   _Breaking change_: when you select text in normal mode, you will now enter our experimental visual mode. Press `<Esc>` to leave it. `:set visualenterauto false` to disable it.
+-   _Breaking change_: `<C-6>` and `<CS-6>` now work browser-wide. If you have previously unbound them, you'll need to unbind them again with `unbind --mode=browser <C-6>`, etc.
 
 -   You can view the main help page by typing [`:help`][help], and access the tutorial with [`:tutor`][tutor]. There's a [wiki](https://github.com/tridactyl/tridactyl/wiki) too - feel free to add to it. You may find `:apropos` useful for finding relevant settings and commands.
 
@@ -29,8 +29,8 @@ REPLACE_ME_WITH_THE_CHANGE_LOG_USING_SED
 -   `t`/`T` — open a URL in a new tab (`T` to pre-load current URL).
 -   `gt`/`gT` — go to the next/previous tab.
 -   `d` — close the current tab.
+-   `<C-,>` — "escape hatch": get to a place where you can use Tridactyl. Works anywhere in the browser.
 -   `/` — open the find search box. Use <kbd>ctrl</kbd> + g/G to cycle through search results.
--   `A` — bookmark the current page
 -   `b` — bring up a list of open tabs in the current window.
 -   `s` — if you want to search for something that looks like a domain name or URL.
 -   `gi` — scroll to and focus the last-used input on the page.
@@ -47,7 +47,7 @@ REPLACE_ME_WITH_THE_CHANGE_LOG_USING_SED
 ## Important limitations due to WebExtensions
 
 -   You can only navigate to most about: and file: pages if you have Tridactyl's native executable installed.
--   Firefox will not load Tridactyl on about:\*, some file:\* URIs, view-source:\*, or data:\*. On these pages Ctrl-L (or F6), Ctrl-Tab and Ctrl-W are your escape hatches.
+-   Firefox will not load Tridactyl on about:\*, some file:\* URIs, view-source:\*, or data:\*. On these pages `Ctrl-Comma` (that's `<C-,>` in Tridactyl-speal) is your escape hatch.
 -   You can change the Firefox GUI with `guiset` (e.g. `guiset gui none` and then `restart`) if you have the native messenger installed, or you can do it yourself by changing your userChrome.
 -   Tridactyl cannot capture key presses until web pages are loaded. You can use `:reloadall` to reload all tabs to make life more bearable, or flip `browser.sessionstore.restore_tabs_lazily` to false in `about:config`.
 

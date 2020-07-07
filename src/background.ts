@@ -26,6 +26,7 @@ import * as extension_info from "@src/lib/extension_info"
 import * as omnibox from "@src/background/omnibox"
 import * as R from "ramda"
 import * as webrequests from "@src/background/webrequests"
+import * as commands from "@src/background/commands"
 
 // Add various useful modules to the window for debugging
 ;(window as any).tri = Object.assign(Object.create(null), {
@@ -244,10 +245,7 @@ omnibox.init()
 
 // }}}
 
-browser.commands.onCommand.addListener((command_name: string) => {
-    if (command_name !== "escape_hatch") return
-    excmds_background.escapehatch()
-})
+commands.updateListener()
 
 // {{{ Obey Mozilla's orders https://github.com/tridactyl/tridactyl/issues/1800
 

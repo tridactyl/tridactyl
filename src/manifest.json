@@ -16,11 +16,38 @@
         "newtab": "static/newtab.html"
     },
     "commands": {
-        "escape_hatch": {
+        "command_1": {
             "suggested_key": {
-                "default": "Ctrl+Comma"
+                "default": "MacCtrl+Comma"
             },
-            "description": "Focus or create a tab in which Tridactyl can run"
+            "description": "Internal use. See `:help bind`. Use `:bind --mode=browser` to change - do not change here."
+        },
+        "command_2": {
+            "suggested_key": {
+                "default": "MacCtrl+6"
+            },
+            "description": "Internal use. See `:help bind`. Use `:bind --mode=browser` to change - do not change here."
+        },
+        "command_3": {
+            "description": "Internal use. See `:help bind`. Use `:bind --mode=browser` to change - do not change here.",
+            "suggested_key": {
+                "default": "MacCtrl+Shift+6"
+            }
+        },
+        "command_4": {
+            "description": "Internal use. See `:help bind`. Use `:bind --mode=browser` to change - do not change here."
+        },
+        "command_5": {
+            "description": "Internal use. See `:help bind`. Use `:bind --mode=browser` to change - do not change here."
+        },
+        "command_6": {
+            "description": "Internal use. See `:help bind`. Use `:bind --mode=browser` to change - do not change here."
+        },
+        "command_7": {
+            "description": "Internal use. See `:help bind`. Use `:bind --mode=browser` to change - do not change here."
+        },
+        "command_8": {
+            "description": "Internal use. See `:help bind`. Use `:bind --mode=browser` to change - do not change here."
         }
     },
     "content_scripts": [
@@ -79,6 +106,17 @@
     "options_ui": {
         "page": "static/docs/classes/_src_lib_config_.default_config.html",
         "open_in_tab": true
+    },
+    "sidebar_action": {
+        "default_icon": {
+            "64": "static/logo/Tridactyl_64px.png",
+            "100": "static/logo/Tridactyl_100px.png",
+            "150": "static/logo/Tridactyl_150px.png"
+        },
+        "default_title": "Tridactyl sidebar",
+        "default_panel": "static/newtab.html",
+        "browser_style": false,
+        "open_at_install": false
     },
     "omnibox": {
         "keyword": "tri"

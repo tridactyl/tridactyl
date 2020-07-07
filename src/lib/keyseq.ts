@@ -24,6 +24,7 @@
 import { filter, find, izip } from "@src/lib/itertools"
 import { Parser } from "@src/lib/nearley_utils"
 import * as config from "@src/lib/config"
+import * as R from "ramda"
 import grammar from "@src/grammars/.bracketexpr.generated"
 const bracketexpr_grammar = grammar
 const bracketexpr_parser = new Parser(bracketexpr_grammar)
@@ -347,6 +348,49 @@ export function mapstrToKeyseq(mapstr: string): MinimalKey[] {
         }
     }
     return keyseq
+}
+
+export const commandKey2jsKey = {
+    Comma: ",",
+    Period: ".",
+    Up: "ArrowUp",
+    Down: "ArrowDown",
+    Left: "ArrowLeft",
+    Right: "ArrowRight",
+}
+
+/*
+ * Convert a Commands API shortcut string to a MinimalKey. NB: no error checking done, media keys probably unsupported.
+ */
+export function mozMapToMinimalKey(mozmap: string): MinimalKey {
+    const arr = mozmap.split("+")
+    const modifiers = {
+        altKey: arr.includes("Alt"),
+        ctrlKey: arr.includes("MacCtrl"), // MacCtrl gives us _actual_ ctrl on all platforms rather than splat on Mac and Ctrl everywhere else
+        shiftKey: arr.includes("Shift"),
+        metaKey: arr.includes("Command"),
+    }
+    let key = arr[arr.length - 1]
+    key = R.propOr(key.toLowerCase(), key, commandKey2jsKey)
+    // TODO: support mediakeys: https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/manifest.json/commands#Media_keys
+
+    return new MinimalKey(key, modifiers)
+}
+
+/*
+ * Convert a minimal key to a Commands API compatible bind. NB: no error checking done.
+ *
+ * Ctrl-key behaviour on Mac may be surprising.
+ */
+export function minimalKeyToMozMap(key: MinimalKey): string {
+    const mozMap: string[] = []
+    key.altKey && mozMap.push("Alt")
+    key.ctrlKey && mozMap.push("MacCtrl")
+    key.shiftKey && mozMap.push("Shift")
+    key.metaKey && mozMap.push("Command")
+    const jsKey2commandKey = R.invertObj(commandKey2jsKey)
+    mozMap.push(R.propOr(key.key.toUpperCase(), key.key, jsKey2commandKey))
+    return mozMap.join("+")
 }
 
 /** Convert a map of mapstrs (e.g. from config) to a KeyMap */
