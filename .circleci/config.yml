@@ -11,7 +11,7 @@ commands:
           key: dependency-cache-{{ checksum "package.json" }}
           paths:
             - ./node_modules
-      - run: yarn run build
+      - run: bash -c 'yarn run build'
 jobs:
   lint:
     docker:
@@ -20,21 +20,19 @@ jobs:
       - run: sudo apt update
       - run: sudo apt install -qq shellcheck
       - commoncmd
-      - run: bash -c 'GLOBIGNORE="node_modules" shellcheck -e2012 **/*.sh'
-      - run: yarn run lint
-      - run: bash -c '"$(yarn bin)/eslint" src --ext .ts'
+      - run: bash -c './ci/lint.sh'
   unit:
     docker:
       - image: circleci/node:latest
     steps:
       - commoncmd
-      - run: bash -c '"$(yarn bin)/jest" src'
+      - run: bash -c './ci/unit.sh'
   mozilla:
     docker:
       - image: circleci/node:latest
     steps:
       - commoncmd
-      - run: bash -c 'cd build; "$(yarn bin)/web-ext" lint'
+      - run: bash -c 'ci/mozilla.sh'
 
 workflows:
   version: 2
