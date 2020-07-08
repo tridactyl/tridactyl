@@ -4,6 +4,8 @@ import { enumerate } from "@src/lib/itertools"
 import * as Containers from "@src/lib/containers"
 import * as Completions from "@src/completions"
 import * as config from "@src/lib/config"
+import * as R from "ramda"
+import * as tst from "@src/interop/tst"
 
 class BufferCompletionOption extends Completions.CompletionOptionHTML
     implements Completions.CompletionOptionFuse {
@@ -15,6 +17,7 @@ class BufferCompletionOption extends Completions.CompletionOptionHTML
         tab: browser.tabs.Tab,
         public isAlternative = false,
         container: browser.contextualIdentities.ContextualIdentity,
+        indent = 5,
     ) {
         super()
         this.tabIndex = tab.index
@@ -44,11 +47,12 @@ class BufferCompletionOption extends Completions.CompletionOptionHTML
             <td class="prefix">${pre.padEnd(2)}</td>
             <td class="container"></td>
             <td class="icon"><img src="${favIconUrl}" /></td>
-            <td class="title">${tab.index + 1}: ${tab.title}</td>
+            <td class="title">${R.repeat("\u00A0",2*indent).join("")}${tab.index + 1}: ${tab.title}</td>
             <td class="content">
                 <a class="url" target="_blank" href=${tab.url}>${tab.url}</a>
             </td>
         </tr>`
+        // NB: "\u00A0" is unicode magic for a non-breaking space
     }
 }
 
@@ -195,17 +199,27 @@ export class BufferCompletionSource extends Completions.CompletionSourceFuse {
         // firefox-default is not in contextualIdenetities
         container_map.set("firefox-default", Containers.DefaultContainer)
 
+        // This doesn't work in content scripts
+        // const tst_tabs = tst.doTstIntegration() ? await tst.getFlatTabs() : false
+        
+        // This is probably slow - should not do it very often
+        const tst_tabs = await tst.getFlatTabs() // Assume, for now, that TST is installed and that we want to use it
+        
+        console.log(tst_tabs)
+
         for (const tab of tabs) {
             let tab_container = container_map.get(tab.cookieStoreId)
             if (!tab_container) {
                 tab_container = Containers.DefaultContainer
             }
+            const indent = tst_tabs ? R.prop('indent', R.find(R.propEq('id',tab.id), tst_tabs)) : 0
             options.push(
                 new BufferCompletionOption(
                     (tab.index + 1).toString(),
                     tab,
                     tab === alt,
                     tab_container,
+                    indent
                 ),
             )
         }
