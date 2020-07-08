@@ -339,10 +339,9 @@ export async function setClipboard(content: string) {
     applyWithTmpTextArea(scratchpad => {
         scratchpad.value = content
         scratchpad.select()
-        if (document.execCommand("Copy")) {
-            // // todo: Maybe we can consider to using some logger and show it with status bar in the future
-            logger.info("set clipboard:", scratchpad.value)
-        } else throw new Error("Failed to copy!")
+        // This can return false spuriously so just ignore its return value
+        document.execCommand("Copy")
+        logger.info("set clipboard:", scratchpad.value)
     })
     // Return focus to the document
     await Messaging.messageOwnTab("commandline_content", "hide")
