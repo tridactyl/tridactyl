@@ -1,6 +1,6 @@
 import * as config from "@src/lib/config"
 import * as DOM from "@src/lib/dom"
-import { browserBg, activeTabId } from "@src/lib/webext"
+import { browserBg } from "@src/lib/webext"
 import state from "@src/state"
 import * as State from "@src/state"
 
@@ -88,7 +88,6 @@ export async function jumpToMatch(searchQuery, reverse) {
         findcase === "sensitive" ||
         (findcase === "smart" && /[A-Z]/.test(searchQuery))
     const findPromise = await browserBg.find.find(searchQuery, {
-        tabId: await activeTabId(),
         caseSensitive: sensitive,
         entireWord: false,
         includeRangeData: true,
