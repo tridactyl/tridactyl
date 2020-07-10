@@ -1,7 +1,7 @@
-import { activeTabId } from "@src/lib/webext"
-import * as Messaging from "@src/lib/messaging"
+import { browserBg } from "@src/lib/webext"
 import * as Completions from "../completions"
 import * as config from "@src/lib/config"
+import * as finding from "@src/content/finding"
 
 class FindCompletionOption extends Completions.CompletionOptionHTML
     implements Completions.CompletionOptionFuse {
@@ -78,33 +78,28 @@ export class FindCompletionSource extends Completions.CompletionSourceFuse {
             incsearchonly = true
         }
 
-        // Note: the use of activeTabId here might break completions if the user starts searching for a pattern in a really big page and then switches to another tab.
-        // Getting the tabId should probably be done in the constructor but you can't have async constructors.
-        const tabId = await activeTabId()
-        const findings = await Messaging.messageTab(
-            tabId,
-            "finding_content",
-            "find",
-            [query, findresults, reverse],
-        )
+        const findings = await browserBg.find.find(query, {
+            includeRectData: true,
+            includeRangeData: true,
+        })
+        const matches = []
+
+        for (let i = 0; i < findings.count; i++) {
+            matches.push({
+                rectData: findings.rectData[i],
+                rangeData: findings.rangeData[i],
+                precontext: "",
+                postcontext: "",
+            })
+            // pre, post context todo - see commit e878b93fd
+        }
 
         // If the search was successful
-        if (findings.length > 0) {
+        if (findings.count > 0) {
             // Get match context
-            const len = await config.getAsync("findcontextlen")
-            const matches = await Messaging.messageTab(
-                tabId,
-                "finding_content",
-                "getMatches",
-                [findings, len],
-            )
+            // const len = await config.getAsync("findcontextlen")
 
-            if (incsearch)
-                Messaging.messageTab(tabId, "finding_content", "jumpToMatch", [
-                    query,
-                    false,
-                    0,
-                ])
+            if (incsearch) finding.jumpToMatch(query, false)
 
             if (!incsearchonly) {
                 this.options = matches.map(
