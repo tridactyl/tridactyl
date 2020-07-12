@@ -114,7 +114,7 @@ If you want to use Firefox's default `<C-b>` binding to open the bookmarks sideb
 -   `d` — close the current tab
 -   `u` — undo the last tab/window closure
 -   `gt`/`gT` — go to the next/previous tab
--   `g^`/`g$` — go to the first/last tab
+-   `g^ OR g0`/`g$` — go to the first/last tab
 -   `<C-^>` — go to the last active tab
 -   `b` — bring up a list of open tabs in the current window; you can type the tab ID or part of the title or URL to choose a tab
 
