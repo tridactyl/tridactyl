@@ -157,7 +157,7 @@ export function removeHighlighting() {
     while (host.firstChild) host.removeChild(host.firstChild)
 }
 
-export async function jumpToNextMatch(n: number) {
+export async function jumpToNextMatch(n: number, relative = true) {
     const lastSearchQuery = await State.getAsync("lastSearchQuery")
     if (!lastHighlights) {
         return lastSearchQuery ? jumpToMatch(lastSearchQuery, n < 0) : undefined
@@ -171,7 +171,9 @@ export async function jumpToNextMatch(n: number) {
     }
     // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
     ;(lastHighlights[selected] as any).unfocus()
-    selected = (selected + n + lastHighlights.length) % lastHighlights.length
+    selected = ((relative ? selected : -1) + n + lastHighlights.length) % lastHighlights.length
     // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
     ;(lastHighlights[selected] as any).focus()
 }
+
+export const jumpToNthMatch = n => jumpToNextMatch(n, false)
