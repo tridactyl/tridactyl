@@ -8,8 +8,8 @@ class FindCompletionOption extends Completions.CompletionOptionHTML
     public fuseKeys = []
     constructor(m, reverse = false) {
         super()
-        this.value =
-            (reverse ? "-? " : "") + ("-: " + m.index) + " " + m.rangeData.text
+        this.value = m.id
+        // (reverse ? "-? " : "") + ("-: " + m.index) + " " + m.rangeData.text
         this.fuseKeys.push(m.rangeData.text)
 
         // Create HTMLElement
@@ -52,6 +52,16 @@ export class FindCompletionSource extends Completions.CompletionSourceFuse {
         this.options.forEach(o => (o.state = "normal"))
     }
 
+    select(option) {
+        if (this.lastExstr !== undefined && option !== undefined) {
+            this.completion = "findjumpto " + option.value
+            option.state = "focused"
+            this.lastFocused = option
+        } else {
+            throw new Error("lastExstr and option must be defined!")
+        }
+    }
+
     private async updateOptions(exstr?: string) {
         if (!exstr) return
 
@@ -82,12 +92,15 @@ export class FindCompletionSource extends Completions.CompletionSourceFuse {
             includeRectData: true,
             includeRangeData: true,
         })
+        // TODO: don't do this twice
+        await finding.jumpToMatch(query, false)
         const matches = []
 
         for (let i = 0; i < findings.count; i++) {
             matches.push({
                 rectData: findings.rectData[i],
                 rangeData: findings.rangeData[i],
+                id: i + 1,
                 precontext: "",
                 postcontext: "",
             })
@@ -109,4 +122,5 @@ export class FindCompletionSource extends Completions.CompletionSourceFuse {
             }
         }
     }
+
 }
