@@ -52,7 +52,7 @@ export class FindCompletionSource extends Completions.CompletionSourceFuse {
         this.options.forEach(o => (o.state = "normal"))
     }
 
-    select(option) {
+    select(option: FindCompletionOption) {
         if (this.lastExstr !== undefined && option !== undefined) {
             this.completion = "findjumpto " + option.value
             option.state = "focused"
@@ -78,8 +78,8 @@ export class FindCompletionSource extends Completions.CompletionSourceFuse {
         // No point if continuing if the user hasn't started searching yet
         if (query.length < minincsearchlen) return
 
-        let findresults = await config.getAsync("findresults")
-        const incsearch = (await config.getAsync("incsearch")) === "true"
+        let findresults = config.get("findresults")
+        const incsearch = config.get("incsearch") === "true"
         if (findresults === 0 && !incsearch) return
 
         let incsearchonly = false
@@ -92,7 +92,7 @@ export class FindCompletionSource extends Completions.CompletionSourceFuse {
             includeRectData: true,
             includeRangeData: true,
         })
-        // TODO: don't do this twice
+        // TODO: don't do this twice / thrice
         await finding.jumpToMatch(query, false)
         const matches = []
 
