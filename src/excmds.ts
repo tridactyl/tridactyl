@@ -3503,7 +3503,7 @@ export function autocmd(event: string, url: string, ...excmd: string[]) {
  * Automatically open a domain and all its subdomains in a specified container.
  *
  * This function accepts a `-u` flag to treat the pattern as a URL rather than a domain.
- * For example: `autocontain -u ^https?://[^/]*youtube\.com/ google` is equivalent to `autocontain youtube\.com google`
+ * For example: `autocontain -u ^https?://([^/]*\.|)youtube\.com/ google` is equivalent to `autocontain youtube\.com google`
  *
  * For declaring containers that do not yet exist, consider using `auconcreatecontainer true` in your tridactylrc.
  * This allows tridactyl to automatically create containers from your autocontain directives. Note that they will be random icons and colors.
@@ -3531,7 +3531,7 @@ export function autocontain(...args: string[]) {
     let [pattern, container] = args
 
     if (!urlMode) {
-        pattern = `^https?://[^/]*${pattern}/`
+        pattern = `^https?://([^/]*\\.|)${pattern}/`
     }
 
     return config.set("autocontain", pattern, container)
