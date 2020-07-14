@@ -155,6 +155,39 @@ export function getCommandlineFns(cmdline_state) {
             return messageOwnTab("controller_content", "acceptExCmd", [command])
         },
 
+        // Execute the excmd parameter on the completion args.
+        // Ignores the completion func.
+        execute_ex_on_completion: (excmd: string) => {
+            const command = cmdline_state.getCompletion()
+
+            cmdline_state.fns.hide_and_clear()
+
+            if (command === undefined) return
+
+            const [func, ...args] = command.trim().split(/\s+/)
+
+            if (func.length === 0 || func.startsWith("#") || args.length === 0) {
+                return
+            }
+
+            // Create new cmd to execute excmd with the completion
+            // args, discarding the completion func
+            const cmdToExec = excmd + " " + args.join(" ")
+
+            // Save non-secret commandlines to the history.
+            if (
+                !browser.extension.inIncognitoContext &&
+                !(excmd === "winopen" && args[0] === "-private")
+            ) {
+                State.getAsync("cmdHistory").then(c => {
+                    cmdline_state.state.cmdHistory = c.concat([cmdToExec])
+                })
+            }
+            cmdline_state.cmdline_history_position = 0
+
+            return messageOwnTab("controller_content", "acceptExCmd", [cmdToExec])
+        },
+
         copy_completion: () => {
             const command = cmdline_state.getCompletion()
             cmdline_state.fns.hide_and_clear()

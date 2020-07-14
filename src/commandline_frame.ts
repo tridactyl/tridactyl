@@ -189,8 +189,14 @@ commandline_state.clInput.addEventListener(
             // This is definitely a hack. Should expand aliases with exmode, etc.
             // but this whole thing should be scrapped soon, so whatever.
             if (response.value.startsWith("ex.")) {
-                const funcname = response.value.slice(3)
-                commandline_state.fns[funcname]()
+                const [funcname, ...args] = response.value.slice(3).split(/\s+/)
+
+                if (args.length === 0) {
+                    commandline_state.fns[funcname]()
+                } else {
+                    commandline_state.fns[funcname](args)
+                }
+
                 prev_cmd_called_history = history_called
             } else {
                 // Send excmds directly to our own tab, which fixes the

@@ -105,6 +105,7 @@ export class default_config {
         "<Escape>": "ex.hide_and_clear",
         "<ArrowUp>": "ex.prev_history",
         "<ArrowDown>": "ex.next_history",
+        "<S-Del>": "ex.execute_ex_on_completion tabclose",
 
         "<A-b>": "text.backward_word",
         "<A-f>": "text.forward_word",
