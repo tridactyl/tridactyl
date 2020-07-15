@@ -35,7 +35,7 @@ export function escapehatch() {
         const best = R.sortBy(
             tab => Math.abs(tab.index - curr_pos),
             tridactyl_tabs,
-        )[0] as browser.tabs.Tab
+        )[0]
 
         if (best.active) {
             return excmds.unfocus()
