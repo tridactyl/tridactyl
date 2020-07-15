@@ -3404,7 +3404,7 @@ function validateSetArgs(key: string, values: string[]) {
  * @param values The value you wish for, e.g. `next`
  *
  * Example:
- * - `seturl .*\.fr followpagepatterns.next suivant`
+ * - `seturl .*\\.fr followpagepatterns.next suivant`
  * - `seturl website.fr followpagepatterns.next next`
  *
  * When multiple patterns can apply to a same URL, the pattern that has the highest priority is used. You can set the priority of a pattern by using `:seturl pattern priority 10`. By default every pattern has a priority of 10.
@@ -3475,7 +3475,7 @@ const AUCMDS = ["DocStart", "DocLoad", "DocEnd", "TriStart", "TabEnter", "TabLef
 
  @param event Curently, 'TriStart', 'DocStart', 'DocLoad', 'DocEnd', 'TabEnter', 'TabLeft', 'FullscreenChange', 'FullscreenEnter', 'FullscreenLeft', 'AuthRequired', 'BeforeRedirect', 'BeforeRequest', 'BeforeSendHeaders', 'Completed', 'ErrorOccured', 'HeadersReceived', 'ResponseStarted', and 'SendHeaders' are supported
 
- @param url For DocStart, DocEnd, TabEnter, and TabLeft: a JavaScript regex (e.g. `www\.amazon\.co.*\`)
+ @param url For DocStart, DocEnd, TabEnter, and TabLeft: a JavaScript regex (e.g. `www\\.amazon\\.co.*`)
 
  We just use [URL.search](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/search).
 

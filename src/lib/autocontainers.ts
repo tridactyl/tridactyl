@@ -10,7 +10,7 @@
 
   The domain is passed through as a regular expression so there are a few gotchas to be aware of:
   * Unescaped periods will match *anything*. `autocontain google.co.uk work` will match `google!co$uk`. Escape your periods or accept that you might get some false positives.
-  * You can use regex in your domain pattern. `autocontain google\,(co\.uk|com) work` will match either `google.co.uk` or `google.com`.
+  * You can use regex in your domain pattern. `autocontain google\\.(co\\.uk|com) work` will match either `google.co.uk` or `google.com`.
 
  A lot of the inspiration for this code was drawn from the Mozilla `contain facebook` Extension.
  https://github.com/mozilla/contain-facebook/
