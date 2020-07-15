@@ -25,7 +25,8 @@ import * as binding from "@src/lib/binding"
 const removeNull = R.when(
     R.is(Object),
     R.pipe(
-        R.reject(val => val === null),
+        // Ramda gives an error here without the any
+        R.reject(val => val === null) as any,
         R.map(a => removeNull(a)),
     ),
 )

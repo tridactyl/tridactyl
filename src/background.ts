@@ -166,7 +166,7 @@ config.addChangeListener("autocmds", (previous, current) =>
                 const path = R.path([requestEvent, pattern])
 
                 // If this is a new autocmd, register it
-                !R.equals(...R.map(path, [current, previous])) &&
+                path(current) !== path(previous) &&
                     webrequests.registerWebRequestAutocmd(
                         requestEvent,
                         pattern,

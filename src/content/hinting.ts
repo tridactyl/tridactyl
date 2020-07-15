@@ -1017,7 +1017,9 @@ export function hintables(selectors = DOM.HINTTAGS_selectors, withjs = false) {
         hintables.push({
             elements: R.pipe(
                 Array.from,
-                R.filter(DOM.isVisible),
+                // Ramda gives an error here without the "any"
+                // Problem for a rainy day :)
+                R.filter(DOM.isVisible) as any,
                 R.without(elems),
                 changeHintablesToLargestChild,
             )(DOM.hintworthy_js_elems),
