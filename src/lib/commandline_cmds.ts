@@ -155,8 +155,6 @@ export function getCommandlineFns(cmdline_state) {
             return messageOwnTab("controller_content", "acceptExCmd", [command])
         },
 
-        // Execute the excmd parameter on the completion args.
-        // Ignores the completion func.
         execute_ex_on_completion: (excmd: string) => {
             const command = cmdline_state.getCompletion()
 
@@ -166,18 +164,23 @@ export function getCommandlineFns(cmdline_state) {
 
             const [func, ...args] = command.trim().split(/\s+/)
 
-            if (func.length === 0 || func.startsWith("#") || args.length === 0) {
+            if (func.length === 0 || func.startsWith("#")) {
                 return
             }
 
-            // Create new cmd to execute excmd with the completion
-            // args, discarding the completion func
-            const cmdToExec = excmd + " " + args.join(" ")
+            let cmdToExec
+            if (excmd === "tabclose" && args.length !== 0) {
+              // Drop "tab" because "tabclose tab \d+" fails
+              // but "tabclose \d+" succeeds
+              cmdToExec = excmd + " " + args.join(" ")
+            } else {
+              cmdToExec = excmd + " " + command
+            }
 
             // Save non-secret commandlines to the history.
             if (
                 !browser.extension.inIncognitoContext &&
-                !(excmd === "winopen" && args[0] === "-private")
+                !cmdToExec.includes("winopen -private")
             ) {
                 State.getAsync("cmdHistory").then(c => {
                     cmdline_state.state.cmdHistory = c.concat([cmdToExec])

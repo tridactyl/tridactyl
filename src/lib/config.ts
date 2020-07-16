@@ -122,7 +122,7 @@ export class default_config {
         "<S-Tab>": "ex.prev_completion",
         "<Space>": "ex.insert_space_or_completion",
 
-        "<C-o>yy": "ex.copy_completion",
+        "<C-o>yy": "ex.execute_ex_on_completion clipboard yank",
     }
 
     /**

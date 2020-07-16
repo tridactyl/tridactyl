@@ -194,7 +194,7 @@ commandline_state.clInput.addEventListener(
                 if (args.length === 0) {
                     commandline_state.fns[funcname]()
                 } else {
-                    commandline_state.fns[funcname](args)
+                    commandline_state.fns[funcname](args.join(" "))
                 }
 
                 prev_cmd_called_history = history_called
