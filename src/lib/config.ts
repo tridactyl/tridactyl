@@ -623,6 +623,8 @@ export class default_config {
      * Examples:
      * - When running `open gi cute puppies`, with a `gi` searchurl defined with `set searchurls.gi https://www.google.com/search?q=%s&tbm=isch`, tridactyl will navigate to `https://www.google.com/search?q=cute puppies&tbm=isch`.
      * - When running `tabopen translate en ja Tridactyl`, with a `translate` searchurl defined with `set searchurls.translate https://translate.google.com/#view=home&op=translate&sl=%s1&tl=%s2&text=%s3`, tridactyl will navigate to `https://translate.google.com/#view=home&op=translate&sl=en&tl=ja&text=Tridactyl`.
+     *
+     * [[setnull]] can be used to "delete" the default search engines. E.g. `setnull searchurls.google`.
      */
     searchurls = {
         google: "https://www.google.com/search?q=",
