@@ -110,6 +110,38 @@ export function getCommandlineFns(cmdline_state) {
         },
 
         /**
+         * Check if the command is valid
+         */
+        is_valid_commandline: (command: string): boolean => {
+            if (command === undefined) return false
+
+            const func = command.trim().split(/\s+/)[0]
+
+            if (func.length === 0 || func.startsWith("#")) {
+                return false
+            }
+            return true
+        },
+
+        /**
+         * Save non-secret commands to the cmdHistory and update the cmdline_history_position
+         */
+        store_ex_string: (command: string) => {
+            const [func, ...args] = command.trim().split(/\s+/)
+
+            // Save non-secret commandlines to the history.
+            if (
+                !browser.extension.inIncognitoContext &&
+                !(func === "winopen" && args[0] === "-private")
+            ) {
+                State.getAsync("cmdHistory").then(c => {
+                    cmdline_state.state.cmdHistory = c.concat([command])
+                })
+                cmdline_state.cmdline_history_position = 0
+            }
+        },
+
+        /**
          * Selects the next history line.
          */
         next_history: () => cmdline_state.history(1),
@@ -127,22 +159,9 @@ export function getCommandlineFns(cmdline_state) {
 
             cmdline_state.fns.hide_and_clear()
 
-            const [func, ...args] = command.trim().split(/\s+/)
+            if (cmdline_state.fns.is_valid_commandline(command) === false) return
 
-            if (func.length === 0 || func.startsWith("#")) {
-                return
-            }
-
-            // Save non-secret commandlines to the history.
-            if (
-                !browser.extension.inIncognitoContext &&
-                !(func === "winopen" && args[0] === "-private")
-            ) {
-                State.getAsync("cmdHistory").then(c => {
-                    cmdline_state.state.cmdHistory = c.concat([command])
-                })
-            }
-            cmdline_state.cmdline_history_position = 0
+            cmdline_state.fns.store_ex_string(command)
 
             // Send excmds directly to our own tab, which fixes the
             // old bug where a command would be issued in one tab but
@@ -160,13 +179,10 @@ export function getCommandlineFns(cmdline_state) {
 
             cmdline_state.fns.hide_and_clear()
 
-            if (command === undefined) return
+            if (cmdline_state.fns.is_valid_commandline(command) === false) return
 
-            const [func, ...args] = command.trim().split(/\s+/)
-
-            if (func.length === 0 || func.startsWith("#")) {
-                return
-            }
+            const args = command.trim().split(/\s+/)
+            args.shift()
 
             let cmdToExec
             if (excmd === "tabclose" && args.length !== 0) {
@@ -177,16 +193,7 @@ export function getCommandlineFns(cmdline_state) {
               cmdToExec = excmd + " " + command
             }
 
-            // Save non-secret commandlines to the history.
-            if (
-                !browser.extension.inIncognitoContext &&
-                !cmdToExec.includes("winopen -private")
-            ) {
-                State.getAsync("cmdHistory").then(c => {
-                    cmdline_state.state.cmdHistory = c.concat([cmdToExec])
-                })
-            }
-            cmdline_state.cmdline_history_position = 0
+            cmdline_state.fns.store_ex_string(cmdToExec)
 
             return messageOwnTab("controller_content", "acceptExCmd", [cmdToExec])
         },
