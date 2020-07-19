@@ -1,3 +1,3 @@
 #! /bin/sh
-cd ${0%/}
+cd ${0%/*}
 "$(yarn bin)/jest" src
