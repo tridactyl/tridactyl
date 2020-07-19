@@ -11,7 +11,6 @@ commands:
           key: dependency-cache-{{ checksum "package.json" }}
           paths:
             - ./node_modules
-      - run: bash -c 'yarn run build'
 jobs:
   lint:
     docker:
