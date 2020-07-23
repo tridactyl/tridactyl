@@ -4,6 +4,7 @@ import { enumerate } from "@src/lib/itertools"
 import * as Containers from "@src/lib/containers"
 import * as Completions from "@src/completions"
 import * as config from "@src/lib/config"
+import * as Messaging from "@src/lib/messaging"
 
 class BufferCompletionOption extends Completions.CompletionOptionHTML
     implements Completions.CompletionOptionFuse {
@@ -67,10 +68,11 @@ export class BufferCompletionSource extends Completions.CompletionSourceFuse {
             "BufferCompletionSource",
             "Tabs",
         )
-
         this.sortScoredOptions = true
         this.updateOptions()
         this._parent.appendChild(this.node)
+
+        Messaging.addListener("tab_changes", () => this.reactToTabRemove())
     }
 
     async onInput(exstr) {
@@ -237,5 +239,33 @@ export class BufferCompletionSource extends Completions.CompletionSourceFuse {
             this.options.forEach(option => (option.state = "normal"))
         }
         return this.updateDisplay()
+    }
+
+    /**
+     * Update the list of possible tab options and select (focus on)
+     * the option that was selected before the most recently focused item
+     * (because we assume the most recently focused tab has been removed)
+     */
+    private async reactToTabRemove(): Promise<void> {
+        this.options = null
+        await this.updateOptions(this.lastExstr)
+        if (this.lastFocused) {
+            const prevFocusedOption = this.getNthFromLastFocused(1)
+            this.select(prevFocusedOption)
+        }
+    }
+
+    /**
+     * Returns the option that n tab before the last focused option
+     */
+    private getNthFromLastFocused(n): BufferCompletionOption {
+        const lastFocusedTabCompletion = this
+            .lastFocused as BufferCompletionOption
+        const lastFocusedTabIdx = lastFocusedTabCompletion.tabIndex
+        if (lastFocusedTabIdx - n < 0) {
+            return this.options[0]
+        }
+
+        return this.options[lastFocusedTabIdx - n]
     }
 }

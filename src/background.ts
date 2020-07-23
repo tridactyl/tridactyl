@@ -80,6 +80,12 @@ browser.tabs.onActivated.addListener(ev => {
         }
     })
 })
+
+// If a tab is deleted notify all tabs
+browser.tabs.onRemoved.addListener(tabId => {
+    messaging.messageAllTabs("tab_changes", "tabclose", [tabId])
+})
+
 // Update on navigation too (but remember that sometimes people open tabs in the background :) )
 browser.webNavigation.onDOMContentLoaded.addListener(() => {
     browser.tabs.query({ currentWindow: true, active: true }).then(t => {

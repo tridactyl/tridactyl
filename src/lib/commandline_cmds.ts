@@ -177,8 +177,6 @@ export function getCommandlineFns(cmdline_state) {
         execute_ex_on_completion: (excmd: string) => {
             const command = cmdline_state.getCompletion()
 
-            cmdline_state.fns.hide_and_clear()
-
             if (cmdline_state.fns.is_valid_commandline(command) === false) return
 
             const args = command.trim().split(/\s+/)
@@ -186,11 +184,11 @@ export function getCommandlineFns(cmdline_state) {
 
             let cmdToExec
             if (excmd === "tabclose" && args.length !== 0) {
-              // Drop "tab" because "tabclose tab \d+" fails
-              // but "tabclose \d+" succeeds
-              cmdToExec = excmd + " " + args.join(" ")
+                // Drop "tab" because "tabclose tab \d+" fails
+                // but "tabclose \d+" succeeds
+                cmdToExec = excmd + " " + args.join(" ")
             } else {
-              cmdToExec = excmd + " " + command
+                cmdToExec = excmd + " " + command
             }
 
             cmdline_state.fns.store_ex_string(cmdToExec)

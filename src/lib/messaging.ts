@@ -14,6 +14,7 @@ export type TabMessageType =
     | "state"
     | "lock"
     | "alive"
+    | "tab_changes"
 
 export type NonTabMessageType =
     | "owntab_background"
