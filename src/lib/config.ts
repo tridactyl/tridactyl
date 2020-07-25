@@ -18,6 +18,7 @@
  */
 import * as R from "ramda"
 import * as binding from "@src/lib/binding"
+import * as platform from "@src/lib/platform"
 
 /* Remove all nulls from objects recursively
  * NB: also applies to arrays
@@ -1059,8 +1060,17 @@ export class default_config {
     visualexitauto: "true" | "false" = "true"
 }
 
+const windows_defaults = {
+} as default_config
+
+
+/** @hidden
+ * Merges two objects and removes all keys with null values at all levels
+ */
+export const mergeDeepCull = R.pipe(mergeDeep, removeNull)
+
 /** @hidden */
-export const DEFAULTS = o(new default_config())
+export const DEFAULTS = platform.getPlatformOs() == "win" ? mergeDeepCull(o(new default_config()), windows_defaults) : o(new default_config())
 
 /** Given an object and a target, extract the target if it exists, else return undefined
 
@@ -1125,11 +1135,6 @@ export function mergeDeep(o1, o2) {
         )
     return r
 }
-
-/** @hidden
- * Merges two objects and removes all keys with null values at all levels
- */
-export const mergeDeepCull = R.pipe(mergeDeep, removeNull)
 
 /** @hidden
  * Gets a site-specific setting.
