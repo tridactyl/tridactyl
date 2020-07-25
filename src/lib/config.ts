@@ -1060,24 +1060,26 @@ export class default_config {
     visualexitauto: "true" | "false" = "true"
 }
 
-const windows_defaults = {
-    browsermaps: {
-        "<C-6>": null,
-        "<A-6>": "buffer #",
-    } as unknown, // typescript doesn't like me adding new binds like this
-    nmaps: {
-        "<C-6>": "buffer #",
-    } as unknown,
-    imaps: {
-        "<C-6>": "buffer #",
-    } as unknown,
-    inputmaps: {
-        "<C-6>": "buffer #",
-    } as unknown,
-    ignoremaps: {
-        "<C-6>": "buffer #",
-    } as unknown,
-} as default_config
+const platform_defaults = {
+    win: {
+        browsermaps: {
+            "<C-6>": null,
+            "<A-6>": "buffer #",
+        } as unknown, // typescript doesn't like me adding new binds like this
+        nmaps: {
+            "<C-6>": "buffer #",
+        } as unknown,
+        imaps: {
+            "<C-6>": "buffer #",
+        } as unknown,
+        inputmaps: {
+            "<C-6>": "buffer #",
+        } as unknown,
+        ignoremaps: {
+            "<C-6>": "buffer #",
+        } as unknown,
+    },
+} as Record<browser.runtime.PlatformOs, default_config>
 
 
 /** @hidden
@@ -1086,7 +1088,7 @@ const windows_defaults = {
 export const mergeDeepCull = R.pipe(mergeDeep, removeNull)
 
 /** @hidden */
-export const DEFAULTS = platform.getPlatformOs() == "win" ? mergeDeepCull(o(new default_config()), windows_defaults) : o(new default_config())
+export const DEFAULTS = mergeDeepCull(o(new default_config()), platform_defaults[platform.getPlatformOs()])
 
 /** Given an object and a target, extract the target if it exists, else return undefined
 
