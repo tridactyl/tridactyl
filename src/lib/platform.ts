@@ -6,7 +6,7 @@ import * as R from "ramda"
 export function getPlatformOs(): browser.runtime.PlatformOs {
     const platform = navigator.platform
     const mapping = {
-        "win":  "Windows",
+        "win":  "Win",
         "openbsd": "BSD",
         "mac": "Mac",
         "linux": "Linux",
