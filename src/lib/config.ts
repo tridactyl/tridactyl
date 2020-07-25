@@ -18,6 +18,7 @@
  */
 import * as R from "ramda"
 import * as binding from "@src/lib/binding"
+import * as platform from "@src/lib/platform"
 
 /* Remove all nulls from objects recursively
  * NB: also applies to arrays
@@ -1059,8 +1060,35 @@ export class default_config {
     visualexitauto: "true" | "false" = "true"
 }
 
+const platform_defaults = {
+    win: {
+        browsermaps: {
+            "<C-6>": null,
+            "<A-6>": "buffer #",
+        } as unknown, // typescript doesn't like me adding new binds like this
+        nmaps: {
+            "<C-6>": "buffer #",
+        } as unknown,
+        imaps: {
+            "<C-6>": "buffer #",
+        } as unknown,
+        inputmaps: {
+            "<C-6>": "buffer #",
+        } as unknown,
+        ignoremaps: {
+            "<C-6>": "buffer #",
+        } as unknown,
+    },
+} as Record<browser.runtime.PlatformOs, default_config>
+
+
+/** @hidden
+ * Merges two objects and removes all keys with null values at all levels
+ */
+export const mergeDeepCull = R.pipe(mergeDeep, removeNull)
+
 /** @hidden */
-export const DEFAULTS = o(new default_config())
+export const DEFAULTS = mergeDeepCull(o(new default_config()), platform_defaults[platform.getPlatformOs()])
 
 /** Given an object and a target, extract the target if it exists, else return undefined
 
@@ -1125,11 +1153,6 @@ export function mergeDeep(o1, o2) {
         )
     return r
 }
-
-/** @hidden
- * Merges two objects and removes all keys with null values at all levels
- */
-export const mergeDeepCull = R.pipe(mergeDeep, removeNull)
 
 /** @hidden
  * Gets a site-specific setting.
