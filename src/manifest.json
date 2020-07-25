@@ -24,7 +24,8 @@
         },
         "command_2": {
             "suggested_key": {
-                "default": "MacCtrl+6"
+                "default": "MacCtrl+6",
+                "windows": "Alt+6"
             },
             "description": "Internal use. See `:help bind`. Use `:bind --mode=browser` to change - do not change here."
         },

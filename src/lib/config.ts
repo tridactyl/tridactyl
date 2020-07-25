@@ -1061,6 +1061,22 @@ export class default_config {
 }
 
 const windows_defaults = {
+    browsermaps: {
+        "<C-6>": null,
+        "<A-6>": "buffer #",
+    } as unknown, // typescript doesn't like me adding new binds like this
+    nmaps: {
+        "<C-6>": "buffer #",
+    } as unknown,
+    imaps: {
+        "<C-6>": "buffer #",
+    } as unknown,
+    inputmaps: {
+        "<C-6>": "buffer #",
+    } as unknown,
+    ignoremaps: {
+        "<C-6>": "buffer #",
+    } as unknown,
 } as default_config
 
 
