@@ -1275,6 +1275,20 @@ export async function getAsync(
     }
 }
 
+/*
+ * Replaces the sync storage with your current userconfig. Does not merge: it overwrites.
+ */
+export async function push() {
+    return browser.storage.sync.set(await browser.storage.local.get(CONFIGNAME))
+}
+
+/*
+ * Replaces the local storage with your sync storage. Does not merge: it overwrites.
+ */
+export async function pull() {
+    return browser.storage.local.set(await browser.storage.sync.get(CONFIGNAME))
+}
+
 /** @hidden
  * Like set(), but for a specific pattern.
  */

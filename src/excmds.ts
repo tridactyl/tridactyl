@@ -3485,6 +3485,32 @@ export function set(key: string, ...values: string[]) {
     return config.set(...validateSetArgs(key, values))
 }
 
+/**
+ * Replaces your local configuration with that stored in the Firefox Sync area.
+ *
+ * It does not merge your configurations: it overwrites.
+ *
+ * Also see [[firefoxsyncpush]].
+ */
+//#background
+export function firefoxsyncpull() {
+    return config.pull()
+}
+
+/**
+ * Pushes your local configuration to the Firefox Sync area.
+ *
+ * It does not merge your configurations: it overwrites.
+ *
+ * NB: [[unset]] and [[reset]] settings cannot be synchronised. You may instead use [[sanitise]]: `sanitise tridactylsync` then `firefoxsyncpush`.
+ *
+ * Also see [[firefoxsyncpull]].
+ */
+//#background
+export function firefoxsyncpush() {
+    return config.push()
+}
+
 /** @hidden */
 //#background_helper
 const AUCMDS = ["DocStart", "DocLoad", "DocEnd", "TriStart", "TabEnter", "TabLeft", "FullscreenChange", "FullscreenEnter", "FullscreenLeft"].concat(webrequests.requestEvents)
