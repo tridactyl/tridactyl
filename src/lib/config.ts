@@ -1551,6 +1551,24 @@ export async function update() {
                 "vmaps",
             ].forEach(settingName => updateAll([settingName], updateSetting))
             set("configversion", "1.9")
+        }
+        case "1.9": {
+            const local = (await browser.storage.local.get(CONFIGNAME))[CONFIGNAME]
+            const sync = (await browser.storage.sync.get(CONFIGNAME))[CONFIGNAME]
+            // Possible combinations:
+            // storage:storageloc_setting => winning storageloc setting
+            // l:l, s:* => l
+            // l:undefined, s:l =>  l
+            // l:undefined, s:s => s
+            // l: undefined, s:undefined => s
+            // l:s, s:* =>  s
+            const current_storageloc = local?.storageloc !== undefined ? local.storageloc : sync?.storageloc !== undefined ? sync.storageloc : "sync"
+            if (current_storageloc == "sync") {
+                await pull()
+            } else if (current_storageloc != "local") {
+                throw new Error("storageloc was set to something weird: " + current_storageloc + ", automatic migration of settings was not possible.")
+            }
+            set("configversion", "1.10")
             updated = true // NB: when adding a new updater, move this line to the end of it
         }
     }
