@@ -53,7 +53,7 @@
     "typescript": "^3.9.7",
     "uglify-es": "^3.3.9",
     "uglifyjs-webpack-plugin": "^2.2.0",
-    "web-ext": "^4.3.0",
+    "web-ext": "^5.0.0",
     "web-ext-types": "^3.2.1",
     "webpack": "^4.44.0",
     "webpack-cli": "^3.3.12"
