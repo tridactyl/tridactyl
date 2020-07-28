@@ -1553,8 +1553,8 @@ export async function update() {
             set("configversion", "1.9")
         }
         case "1.9": {
-            const local = (await browser.storage.local.get(CONFIGNAME))[CONFIGNAME]
-            const sync = (await browser.storage.sync.get(CONFIGNAME))[CONFIGNAME]
+            const local = (await browser.storage.local.get(CONFIGNAME))[CONFIGNAME] as {storageloc?: "local" | "sync"}
+            const sync = (await browser.storage.sync.get(CONFIGNAME))[CONFIGNAME] as {storageloc?: "local" | "sync"}
             // Possible combinations:
             // storage:storageloc_setting => winning storageloc setting
             // l:l, s:* => l
