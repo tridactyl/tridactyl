@@ -285,15 +285,18 @@ export const kill_whole_line = wrap_input(
 export const kill_word = wrap_input(
     needs_text((text, selectionStart, selectionEnd) => {
         const boundaries = getWordBoundaries(text, selectionStart, false)
-        if (selectionStart > boundaries[0] && selectionStart < boundaries[1])
+        if (selectionStart < boundaries[1]) {
             boundaries[0] = selectionStart
-        // Remove everything between the newline and the caret
-        return [
-            text.substring(0, boundaries[0]) +
-                text.substring(boundaries[1] + 1),
-            boundaries[0],
-            null,
-        ]
+            // Remove everything between the newline and the caret
+            return [
+                text.substring(0, boundaries[0]) +
+                    text.substring(boundaries[1]),
+                boundaries[0],
+                null,
+            ]
+        } else {
+            return [null, selectionStart, null]
+        }
     }),
 )
 
@@ -303,14 +306,18 @@ export const kill_word = wrap_input(
 export const backward_kill_word = wrap_input(
     needs_text((text, selectionStart, selectionEnd) => {
         const boundaries = getWordBoundaries(text, selectionStart, true)
-        if (selectionStart > boundaries[0] && selectionStart < boundaries[1])
+        if (selectionStart > boundaries[0]) {
             boundaries[1] = selectionStart
-        // Remove everything between the newline and the caret
-        return [
-            text.substring(0, boundaries[0]) + text.substring(boundaries[1]),
-            boundaries[0],
-            null,
-        ]
+            // Remove everything between the newline and the caret
+            return [
+                text.substring(0, boundaries[0]) +
+                    text.substring(boundaries[1]),
+                boundaries[0],
+                null,
+            ]
+        } else {
+            return [null, selectionStart, null]
+        }
     }),
 )
 
@@ -363,25 +370,19 @@ export const backward_char = wrap_input(
  **/
 export const forward_word = wrap_input(
     needs_text((text, selectionStart, selectionEnd) => {
-        let boundaries = getWordBoundaries(text, selectionStart, false)
-        if (selectionStart >= boundaries[0] && selectionStart < boundaries[1])
-            boundaries = getWordBoundaries(text, boundaries[1], false)
-        if (selectionStart >= boundaries[0])
-            // last word
-            return [null, boundaries[1], null]
-        return [null, boundaries[0], null]
+        if (selectionStart === text.length) return [null, null, null]
+        const boundaries = getWordBoundaries(text, selectionStart, false)
+        return [null, boundaries[1], null]
     }),
 )
 
 /**
- * Behaves like readline's [backward_word](http://web.mit.edu/gnu/doc/html/rlman_1.html#SEC12). Moves the caret one word to the right, with words being defined by the wordpattern setting.
+ * Behaves like readline's [backward_word](http://web.mit.edu/gnu/doc/html/rlman_1.html#SEC12). Moves the caret one word to the left, with words being defined by the wordpattern setting.
  **/
 export const backward_word = wrap_input(
     (text, selectionStart, selectionEnd) => {
         if (selectionStart === 0) return [null, null, null]
-        let boundaries = getWordBoundaries(text, selectionStart, true)
-        if (selectionStart >= boundaries[0] && selectionStart < boundaries[1])
-            boundaries = getWordBoundaries(text, boundaries[0] - 1, true)
+        const boundaries = getWordBoundaries(text, selectionStart, true)
         return [null, boundaries[0], null]
     },
 )
