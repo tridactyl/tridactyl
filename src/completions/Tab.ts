@@ -5,11 +5,13 @@ import * as Containers from "@src/lib/containers"
 import * as Completions from "@src/completions"
 import * as config from "@src/lib/config"
 import * as Messaging from "@src/lib/messaging"
+import * as R from "ramda"
 
 class BufferCompletionOption extends Completions.CompletionOptionHTML
     implements Completions.CompletionOptionFuse {
     public fuseKeys = []
     public tabIndex: number
+    public tabId: number
 
     constructor(
         public value: string,
@@ -19,6 +21,7 @@ class BufferCompletionOption extends Completions.CompletionOptionHTML
     ) {
         super()
         this.tabIndex = tab.index
+        this.tabId = tab.id
 
         // Two character tab properties prefix
         let pre = ""
@@ -72,7 +75,7 @@ export class BufferCompletionSource extends Completions.CompletionSourceFuse {
         this.updateOptions()
         this._parent.appendChild(this.node)
 
-        Messaging.addListener("tab_changes", () => this.reactToTabRemove())
+        Messaging.addListener("tab_changes", (message) => this.reactToTabChanges(message.command))
     }
 
     async onInput(exstr) {
@@ -227,9 +230,7 @@ export class BufferCompletionSource extends Completions.CompletionSourceFuse {
             prefix === "tabmove " && /^[+-][0-9]+$/.exec(query)
         )
 
-        if (!this.options) {
-            await this.fillOptions()
-        }
+        await this.fillOptions()
         this.completion = undefined
 
         /* console.log('updateOptions', this.optionContainer) */
@@ -243,29 +244,32 @@ export class BufferCompletionSource extends Completions.CompletionSourceFuse {
 
     /**
      * Update the list of possible tab options and select (focus on)
-     * the option that was selected before the most recently focused item
-     * (because we assume the most recently focused tab has been removed)
+     * the appropriate option.
      */
-    private async reactToTabRemove(): Promise<void> {
-        this.options = null
+    private async reactToTabChanges(command: string): Promise<void> {
+        const prevOptions = this.options
         await this.updateOptions(this.lastExstr)
-        if (this.lastFocused) {
-            const prevFocusedOption = this.getNthFromLastFocused(1)
-            this.select(prevFocusedOption)
+
+        if (!prevOptions  || !this.options || !this.lastFocused) return
+
+        // Determine which option to focus on
+        const diff = R.differenceWith((x, y) => x.tabId === y.tabId, prevOptions, this.options)
+        const lastFocusedTabCompletion = this.lastFocused as BufferCompletionOption
+
+        // If the focused option was removed then focus on the next option
+        if (diff.length === 1 && diff[0].tabId === lastFocusedTabCompletion.tabId) {
+            this.select(this.getTheNextTabOption(lastFocusedTabCompletion))
         }
     }
 
     /**
-     * Returns the option that n tab before the last focused option
+     * Gets the next option in this BufferCompletionSource assuming
+     * that this BufferCompletionSource length has been reduced by 1
      */
-    private getNthFromLastFocused(n): BufferCompletionOption {
-        const lastFocusedTabCompletion = this
-            .lastFocused as BufferCompletionOption
-        const lastFocusedTabIdx = lastFocusedTabCompletion.tabIndex
-        if (lastFocusedTabIdx - n < 0) {
-            return this.options[0]
+    private getTheNextTabOption(option: BufferCompletionOption) {
+        if (option.tabIndex === this.options.length) {
+            return this.options[this.options.length - 1]
         }
-
-        return this.options[lastFocusedTabIdx - n]
+        return this.options[option.tabIndex]
     }
 }
