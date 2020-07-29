@@ -1767,7 +1767,6 @@ browser.storage.onChanged.addListener((changes, areaname) => {
         }
 
         if (areaname === "sync") {
-            // storageloc=local means ignoring changes that aren't set by us
             // Probably do something here with push/pull?
         } else if (newValue !== undefined) {
             // A key has been :unset if it exists in USERCONFIG and doesn't in changes and if its value in USERCONFIG is different from the one it has in default_config
