@@ -4,6 +4,8 @@
 
 Tridactyl has to override your new tab page due to WebExtension limitations. You can learn how to change it at the bottom of the page, otherwise please read on for some tips and tricks.
 
+-   _Breaking change_: Tridactyl no longer tries to keep its configuration in sync automatically with the Firefox Sync storage. The `storageloc` setting has been removed. If you wish to synchronise your configurations, you can use the new `:firefoxsync{push,pull}` manually.
+
 -   _Breaking change_: `<C-6>` and `<CS-6>` now work browser-wide. If you have previously unbound them, you'll need to unbind them again with `unbind --mode=browser <C-6>`, etc.
 
 -   You can view the main help page by typing [`:help`][help], and access the tutorial with [`:tutor`][tutor]. There's a [wiki](https://github.com/tridactyl/tridactyl/wiki) too - feel free to add to it. You may find `:apropos` useful for finding relevant settings and commands.
