@@ -899,6 +899,13 @@ export class default_config {
     externalclipboardcmd = "auto"
 
     /**
+     * Whether downloads (e.g. via ;s hint modes) appear in your download history.
+     *
+     * NB: will cause downloads to fail silently if Tridactyl is not allowed to run in private windows (regardless of whether you are trying to call it in a private window).
+     */
+    downloadsskiphistory: "true" | "false" = "false"
+
+    /**
      * Set this to something weird if you want to have fun every time Tridactyl tries to update its native messenger.
      *
      * %TAG will be replaced with your version of Tridactyl for stable builds, or "master" for beta builds

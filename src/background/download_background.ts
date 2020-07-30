@@ -3,6 +3,7 @@
  */
 
 import * as Native from "@src/lib/native"
+import * as config from "@src/lib/config"
 import { getDownloadFilenameForUrl } from "@src/lib/url_util"
 
 /** Construct an object URL string from a given data URL
@@ -60,6 +61,7 @@ export async function downloadUrl(url: string, saveAs: boolean) {
     const downloadPromise = browser.downloads.download({
         url: urlToDownload,
         filename: fileName,
+        incognito: config.get("downloadsskiphistory") === "true",
         saveAs,
     })
 
