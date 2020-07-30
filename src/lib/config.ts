@@ -1562,7 +1562,10 @@ export async function update() {
             // l:undefined, s:s => s
             // l: undefined, s:undefined => s
             // l:s, s:* =>  s
-            const current_storageloc = local?.storageloc !== undefined ? local.storageloc : sync?.storageloc !== undefined ? sync.storageloc : "sync"
+            const current_storageloc =
+                local?.storageloc !== undefined ? local.storageloc :
+                sync?.storageloc !== undefined ? sync.storageloc :
+                "sync"
             if (current_storageloc == "sync") {
                 await pull()
             } else if (current_storageloc != "local") {
