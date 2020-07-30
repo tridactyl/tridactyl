@@ -69,7 +69,7 @@ unbind --mode=ex <C-c>
 
 " Handy multiwindow/multitasking binds
 bind gd tabdetach
-bind gD composite tabduplicate | tabdetach
+bind gD composite tabduplicate; tabdetach
 
 " Make yy use canonical / short links on the 5 websites that support them
 bind yy clipboard yankcanon
