@@ -100,6 +100,7 @@ export async function downloadUrlAs(url: string, saveAs: string) {
         conflictAction: "uniquify",
         url: urlToDownload,
         filename: fileName,
+        incognito: config.get("downloadsskiphistory") === "true",
     })
 
     // We want to return a promise that will resolve once the file has been moved somewhere else
