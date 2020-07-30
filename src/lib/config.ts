@@ -1571,7 +1571,7 @@ export async function update() {
             } else if (current_storageloc != "local") {
                 throw new Error("storageloc was set to something weird: " + current_storageloc + ", automatic migration of settings was not possible.")
             }
-            set("configversion", "1.10")
+            set("configversion", "2.0")
             updated = true // NB: when adding a new updater, move this line to the end of it
         }
     }
