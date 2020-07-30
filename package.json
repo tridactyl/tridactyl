@@ -11,7 +11,7 @@
     "fuse.js": "^6.4.1",
     "jasmine-fail-fast": "^2.0.1",
     "mark.js": "^8.11.1",
-    "ramda": "^0.27.0",
+    "ramda": "^0.27.1",
     "rss-parser": "^3.9.0",
     "semver-compare": "^1.0.0",
     "typedoc-default-themes": "^0.10.2"
