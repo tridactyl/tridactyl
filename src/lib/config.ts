@@ -1587,9 +1587,6 @@ async function init() {
     const localConfig = await browser.storage.local.get(CONFIGNAME)
     schlepp(localConfig[CONFIGNAME])
 
-    const configUpdated = await update()
-    if (configUpdated) await save()
-
     INITIALISED = true
     for (const waiter of WAITERS) {
         waiter()
