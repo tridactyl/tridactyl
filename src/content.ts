@@ -53,24 +53,12 @@ messaging.addListener("alive", async () => true)
 
 // Hook the keyboard up to the controller
 import * as ContentController from "@src/content/controller_content"
-import { getAllDocumentFrames } from "@src/lib/dom"
 
 const guardedAcceptKey = (keyevent: KeyboardEvent) => {
     if (!keyevent.isTrusted) return
     ContentController.acceptKey(keyevent)
 }
 function listen(elem) {
-    elem.removeEventListener("keydown", guardedAcceptKey, true)
-    elem.removeEventListener(
-        "keypress",
-        ContentController.canceller.cancelKeyPress,
-        true,
-    )
-    elem.removeEventListener(
-        "keyup",
-        ContentController.canceller.cancelKeyUp,
-        true,
-    )
     elem.addEventListener("keydown", guardedAcceptKey, true)
     elem.addEventListener(
         "keypress",
@@ -84,9 +72,24 @@ function listen(elem) {
     )
 }
 listen(window)
-document.addEventListener("readystatechange", _ =>
-    getAllDocumentFrames().forEach(f => listen(f)),
-)
+
+async function iframeMutationCallback(mutations: MutationRecord[], observer: MutationObserver) {
+    const leavegithubalone = await config.getAsync("leavegithubalone")
+
+    for (const mutation of mutations) {
+        if (mutation.type === "childList")
+            for (const node of mutation.addedNodes)
+                if ((node instanceof HTMLIFrameElement) || (node instanceof HTMLFrameElement)) {
+                    listen(node.contentDocument);
+                    observer.observe(node.contentDocument, {subtree: true, childList: true})
+                    if (leavegithubalone !== "true")
+                        node.contentDocument.body.addEventListener("keydown", protectSlash)
+                }
+    }
+}
+
+const iframeMutationObserver = new MutationObserver(iframeMutationCallback)
+iframeMutationObserver.observe(document, {subtree: true, childList: true})
 
 // Prevent pages from automatically focusing elements on load
 config.getAsync("preventautofocusjackhammer").then(allowautofocus => {

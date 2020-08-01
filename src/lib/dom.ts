@@ -279,9 +279,8 @@ export function isVisible(element: Element) {
  */
 export function getAllDocumentFrames(doc = document) {
     if (!(doc instanceof HTMLDocument)) return []
-    const frames = (Array.from(
-        doc.getElementsByTagName("iframe"),
-    ) as HTMLIFrameElement[] & HTMLFrameElement[])
+    const frames = Array
+        .from<HTMLIFrameElement | HTMLFrameElement>(doc.getElementsByTagName("iframe"))
         .concat(Array.from(doc.getElementsByTagName("frame")))
         .filter(frame => !frame.src.startsWith("moz-extension://"))
     return frames.concat(
