@@ -683,3 +683,14 @@ export function simulateClick(target: HTMLElement) {
         focus(target)
     }
 }
+
+/** Recursively resolves an active shadow DOM element. */
+export function deepestShadowRoot(sr: ShadowRoot|null): ShadowRoot|null {
+	if (sr === null) return sr
+	let shadowRoot = sr
+	while (shadowRoot.activeElement.shadowRoot != null) {
+		shadowRoot = shadowRoot.activeElement.shadowRoot
+	}
+	return shadowRoot
+}
+
