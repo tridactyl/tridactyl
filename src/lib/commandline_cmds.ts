@@ -2,7 +2,10 @@ import { messageOwnTab } from "@src/lib/messaging"
 import * as State from "@src/state"
 
 // One day we'll use typeof commandline_state from commandline_frame.ts
-export function getCommandlineFns(cmdline_state: { [otherStuff: string]: any, fns: ReturnType<typeof getCommandlineFns> }) {
+export function getCommandlineFns(cmdline_state: {
+    [otherStuff: string]: any
+    fns: ReturnType<typeof getCommandlineFns>
+}) {
     return {
         /**
          * Insert the first command line history line that starts with the content of the command line in the command line.
@@ -160,7 +163,8 @@ export function getCommandlineFns(cmdline_state: { [otherStuff: string]: any, fn
 
             cmdline_state.fns.hide_and_clear()
 
-            if (cmdline_state.fns.is_valid_commandline(command) === false) return
+            if (cmdline_state.fns.is_valid_commandline(command) === false)
+                return
 
             cmdline_state.fns.store_ex_string(command)
 
@@ -175,26 +179,15 @@ export function getCommandlineFns(cmdline_state: { [otherStuff: string]: any, fn
             return messageOwnTab("controller_content", "acceptExCmd", [command])
         },
 
-        execute_ex_on_completion: (excmd: string) => {
-            const command = cmdline_state.getCompletion()
+        execute_ex_on_completion_args: (excmd: string) => {
+            const args = cmdline_state.getCompletion(true)
 
-            if (cmdline_state.fns.is_valid_commandline(command) === false) return
-
-            const args = command.trim().split(/\s+/)
-            args.shift()
-
-            let cmdToExec
-            if (excmd === "tabclose" && args.length !== 0) {
-                // Drop "tab" because "tabclose tab \d+" fails
-                // but "tabclose \d+" succeeds
-                cmdToExec = excmd + " " + args.join(" ")
-            } else {
-                cmdToExec = excmd + " " + command
-            }
-
+            const cmdToExec = excmd + " " + args
             cmdline_state.fns.store_ex_string(cmdToExec)
 
-            return messageOwnTab("controller_content", "acceptExCmd", [cmdToExec])
+            return messageOwnTab("controller_content", "acceptExCmd", [
+                cmdToExec,
+            ])
         },
 
         copy_completion: () => {
