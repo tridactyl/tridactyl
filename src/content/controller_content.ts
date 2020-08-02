@@ -93,6 +93,16 @@ class KeyCanceller {
 
 export const canceller = new KeyCanceller()
 
+/** Recursively resolves an active shadow DOM element. */
+function deepestShadowRoot(sr: ShadowRoot|null): ShadowRoot|null {
+	if (sr === null) return sr
+	let shadowRoot = sr
+	while (shadowRoot.activeElement.shadowRoot != null) {
+		shadowRoot = shadowRoot.activeElement.shadowRoot
+	}
+	return shadowRoot
+}
+
 /** Accepts keyevents, resolves them to maps, maps to exstrs, executes exstrs */
 function* ParserController() {
     const parsers: {
@@ -118,7 +128,7 @@ function* ParserController() {
 
                 const shadowRoot =
                     keyevent instanceof KeyboardEvent
-                        ? (keyevent.target as Element).shadowRoot
+                        ? deepestShadowRoot((keyevent.target as Element).shadowRoot)
                         : null
 
                 // _just to be safe_, cache this to make the following
