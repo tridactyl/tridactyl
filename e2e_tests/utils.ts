@@ -54,7 +54,7 @@ const modToSelenium = {
 }
 
 export function sendKeys (driver, keys) {
-    const delay = 100
+    const delay = 300
     function chainRegularKeys (previousPromise, regularKeys) {
         return regularKeys
             .split("")
