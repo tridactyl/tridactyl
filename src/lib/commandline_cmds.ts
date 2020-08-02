@@ -179,16 +179,9 @@ export function getCommandlineFns(cmdline_state: {
             return messageOwnTab("controller_content", "acceptExCmd", [command])
         },
 
-        execute_ex_on_completion_args: (excmd: string) => {
-            const args = cmdline_state.getCompletion(true)
+        execute_ex_on_completion_args: (excmd: string) => execute_ex_on_x(true, cmdline_state, excmd),
 
-            const cmdToExec = excmd + " " + args
-            cmdline_state.fns.store_ex_string(cmdToExec)
-
-            return messageOwnTab("controller_content", "acceptExCmd", [
-                cmdToExec,
-            ])
-        },
+        execute_ex_on_completion: (excmd: string) => execute_ex_on_x(false, cmdline_state, excmd),
 
         copy_completion: () => {
             const command = cmdline_state.getCompletion()
@@ -198,4 +191,15 @@ export function getCommandlineFns(cmdline_state: {
             ])
         },
     }
+}
+
+function execute_ex_on_x(args_only: boolean, cmdline_state, excmd: string){
+    const args = cmdline_state.getCompletion(args_only) || cmdline_state.clInput.value
+
+    const cmdToExec = (excmd ? excmd : "") + " " + args
+    cmdline_state.fns.store_ex_string(cmdToExec)
+
+    return messageOwnTab("controller_content", "acceptExCmd", [
+        cmdToExec,
+    ])
 }

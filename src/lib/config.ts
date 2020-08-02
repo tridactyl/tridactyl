@@ -100,6 +100,7 @@ export class default_config {
      */
     exmaps = {
         "<Enter>": "ex.accept_line",
+        "<C-Enter>": "ex.execute_ex_on_completion",
         "<C-j>": "ex.accept_line",
         "<C-m>": "ex.accept_line",
         "<Escape>": "ex.hide_and_clear",
