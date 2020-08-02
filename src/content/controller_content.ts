@@ -3,6 +3,7 @@ import { contentState, ModeName } from "@src/content/state_content"
 import Logger from "@src/lib/logging"
 import * as controller from "@src/lib/controller"
 import { KeyEventLike, ParserResponse } from "@src/lib/keyseq"
+import { deepestShadowRoot } from "@src/lib/dom"
 
 import * as hinting from "@src/content/hinting"
 import * as gobblemode from "@src/parsers/gobblemode"
@@ -92,16 +93,6 @@ class KeyCanceller {
 }
 
 export const canceller = new KeyCanceller()
-
-/** Recursively resolves an active shadow DOM element. */
-function deepestShadowRoot(sr: ShadowRoot|null): ShadowRoot|null {
-	if (sr === null) return sr
-	let shadowRoot = sr
-	while (shadowRoot.activeElement.shadowRoot != null) {
-		shadowRoot = shadowRoot.activeElement.shadowRoot
-	}
-	return shadowRoot
-}
 
 /** Accepts keyevents, resolves them to maps, maps to exstrs, executes exstrs */
 function* ParserController() {
