@@ -100,11 +100,13 @@ export class default_config {
      */
     exmaps = {
         "<Enter>": "ex.accept_line",
+        "<C-Enter>": "ex.execute_ex_on_completion",
         "<C-j>": "ex.accept_line",
         "<C-m>": "ex.accept_line",
         "<Escape>": "ex.hide_and_clear",
         "<ArrowUp>": "ex.prev_history",
         "<ArrowDown>": "ex.next_history",
+        "<S-Del>": "ex.execute_ex_on_completion_args tabclose",
 
         "<A-b>": "text.backward_word",
         "<A-f>": "text.forward_word",
@@ -121,7 +123,7 @@ export class default_config {
         "<S-Tab>": "ex.prev_completion",
         "<Space>": "ex.insert_space_or_completion",
 
-        "<C-o>yy": "ex.copy_completion",
+        "<C-o>yy": "ex.execute_ex_on_completion_args clipboard yank",
     }
 
     /**
@@ -1088,14 +1090,16 @@ const platform_defaults = {
     },
 } as Record<browser.runtime.PlatformOs, default_config>
 
-
 /** @hidden
  * Merges two objects and removes all keys with null values at all levels
  */
 export const mergeDeepCull = R.pipe(mergeDeep, removeNull)
 
 /** @hidden */
-export const DEFAULTS = mergeDeepCull(o(new default_config()), platform_defaults[platform.getPlatformOs()])
+export const DEFAULTS = mergeDeepCull(
+    o(new default_config()),
+    platform_defaults[platform.getPlatformOs()],
+)
 
 /** Given an object and a target, extract the target if it exists, else return undefined
 
@@ -1529,7 +1533,11 @@ export async function update() {
             unset("autocontain")
             if (autocontain !== undefined) {
                 Object.entries(autocontain).forEach(([domain, container]) => {
-                    set("autocontain", `^https?://([^/]*\\.|)*${domain}/`, container)
+                    set(
+                        "autocontain",
+                        `^https?://([^/]*\\.|)*${domain}/`,
+                        container,
+                    )
                 })
             }
             set("configversion", "1.8")

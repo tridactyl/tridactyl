@@ -80,6 +80,30 @@ browser.tabs.onActivated.addListener(ev => {
         }
     })
 })
+
+/**
+ * Declare Tab Event Listeners
+ */
+browser.tabs.onRemoved.addListener((tabId) => {
+    messaging.messageAllTabs("tab_changes", "tab_close", [tabId])
+})
+// Fired when a tab is attached to a window, for example because it was moved between windows.
+browser.tabs.onAttached.addListener((tabId) => {
+    messaging.messageAllTabs("tab_changes", "tab_attached", [tabId])
+})
+// Fired when a tab is created. Note that the tab's URL may not be set at the time this event fired.
+browser.tabs.onCreated.addListener((tabId) => {
+    messaging.messageAllTabs("tab_changes", "tab_created", [tabId])
+})
+// Fired when a tab is detached from a window, for example because it is being moved between windows.
+browser.tabs.onDetached.addListener((tabId) => {
+    messaging.messageAllTabs("tab_changes", "tab_detached", [tabId])
+})
+// Fired when a tab is moved within a window.
+browser.tabs.onMoved.addListener((tabId) => {
+    messaging.messageAllTabs("tab_changes", "tab_moved", [tabId])
+})
+
 // Update on navigation too (but remember that sometimes people open tabs in the background :) )
 browser.webNavigation.onDOMContentLoaded.addListener(() => {
     browser.tabs.query({ currentWindow: true, active: true }).then(t => {

@@ -35,6 +35,7 @@ export abstract class CompletionSource {
     readonly options: CompletionOption[]
     node: HTMLElement
     public completion: string
+    public args: string
     protected prefixes: string[] = []
     protected lastFocused: CompletionOption
     private _state: OptionState
@@ -221,6 +222,7 @@ export abstract class CompletionSourceFuse extends CompletionSource {
         if (this.lastExstr !== undefined && option !== undefined) {
             const [prefix] = this.splitOnPrefix(this.lastExstr)
             this.completion = prefix + option.value
+            this.args = option.value
             option.state = "focused"
             this.lastFocused = option
         } else {

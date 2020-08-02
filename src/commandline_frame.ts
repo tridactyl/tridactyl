@@ -91,12 +91,12 @@ function resizeArea() {
  * This is a bit loosely defined at the moment.
  * Should work so long as there's only one completion source per prefix.
  */
-function getCompletion() {
+function getCompletion(args_only = false) {
     if (!commandline_state.activeCompletions) return undefined
 
     for (const comp of commandline_state.activeCompletions) {
         if (comp.state === "normal" && comp.completion !== undefined) {
-            return comp.completion
+            return args_only ? comp.args : comp.completion
         }
     }
 }
@@ -189,8 +189,14 @@ commandline_state.clInput.addEventListener(
             // This is definitely a hack. Should expand aliases with exmode, etc.
             // but this whole thing should be scrapped soon, so whatever.
             if (response.value.startsWith("ex.")) {
-                const funcname = response.value.slice(3)
-                commandline_state.fns[funcname]()
+                const [funcname, ...args] = response.value.slice(3).split(/\s+/)
+
+                if (args.length === 0) {
+                    commandline_state.fns[funcname]()
+                } else {
+                    commandline_state.fns[funcname](args.join(" "))
+                }
+
                 prev_cmd_called_history = history_called
             } else {
                 // Send excmds directly to our own tab, which fixes the
