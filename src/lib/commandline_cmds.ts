@@ -1,7 +1,8 @@
 import { messageOwnTab } from "@src/lib/messaging"
 import * as State from "@src/state"
 
-export function getCommandlineFns(cmdline_state) {
+// One day we'll use typeof commandline_state from commandline_frame.ts
+export function getCommandlineFns(cmdline_state: { [otherStuff: string]: any, fns: ReturnType<typeof getCommandlineFns> }) {
     return {
         /**
          * Insert the first command line history line that starts with the content of the command line in the command line.
