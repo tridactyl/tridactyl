@@ -997,7 +997,7 @@ document.addEventListener("load", () => curJumps().then(() => jumpprev(0)))
 /** Blur (unfocus) the active element */
 //#content
 export function unfocus() {
-    document.activeElement.shadowRoot ? (document.activeElement.shadowRoot.activeElement as HTMLInputElement).blur() : (document.activeElement as HTMLInputElement).blur()
+    ;((document.activeElement.shadowRoot ? DOM.deepestShadowRoot(document.activeElement.shadowRoot) : document).activeElement as HTMLInputElement).blur()
     contentState.mode = "normal"
 }
 
