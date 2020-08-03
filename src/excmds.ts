@@ -2222,7 +2222,6 @@ export async function tabopen(...addressarr: string[]): Promise<browser.tabs.Tab
     } else if (containerId && config.get("tabopencontaineraware") === "true") {
         args.cookieStoreId = containerId
     }
-    // return openInNewTab(query.join(" "), args).then(tab => openInTab(tab, { loadReplace: true }, query))
     const maybeURL = await queryAndURLwrangler(query)
     if (typeof maybeURL === "string") {
         return openInNewTab(maybeURL, args)
