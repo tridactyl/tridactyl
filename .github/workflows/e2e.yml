@@ -12,7 +12,7 @@ on:
 
 jobs:
   test:
-    timeout-minutes: 20
+    timeout-minutes: 120
     strategy:
       fail-fast: false
       matrix:
@@ -81,7 +81,7 @@ jobs:
       env:
         HEADLESS: 1
       with: 
-        max_attempts: 10
+        max_attempts: 40
         timeout_minutes: 10
         retry_wait_seconds: 10
         command: |
