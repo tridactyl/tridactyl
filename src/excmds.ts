@@ -2228,8 +2228,16 @@ export async function tabopen(...addressarr: string[]): Promise<browser.tabs.Tab
         return openInNewTab(maybeURL, args)
     }
 
-    // This ignores :set tabopenpos / issue #342. TODO: fix that.
     if (typeof maybeURL === "object") {
+        if (await firefoxVersionAtLeast(80)) {
+            // work around #2695 until we can work out what is going on
+            if (args.active === false || args.cookieStoreId !== undefined) {
+                throw new Error("Firefox search engines do not support containers or background tabs in FF >80. `:set searchengine google` or see issue https://github.com/tridactyl/tridactyl/issues/2695")
+            }
+
+            // This ignores :set tabopenpos / issue #342. TODO: fix that somehow.
+            return browser.search.search(maybeURL)
+        }
         return openInNewTab(null, args).then(tab => browser.search.search({ tabId: tab.id, ...maybeURL }))
     }
 
