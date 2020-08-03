@@ -1344,14 +1344,10 @@ export function unset(...target) {
 
     @hidden
  */
-export async function save(storage: "local" | "sync" = "local") {
-    // let storageobj = storage === "local" ? browser.storage.local : browser.storage.sync
-    // storageobj.set({CONFIGNAME: USERCONFIG})
+export async function save() {
     const settingsobj = o({})
     settingsobj[CONFIGNAME] = USERCONFIG
-    return storage === "local"
-        ? browser.storage.local.set(settingsobj)
-        : browser.storage.sync.set(settingsobj)
+    return browser.storage.local.set(settingsobj)
 }
 
 /** Updates the config to the latest version.
