@@ -74,7 +74,7 @@
 
 // Shared
 import * as Messaging from "@src/lib/messaging"
-import { browserBg, activeTab, activeTabId, activeTabContainerId, openInNewTab, openInNewWindow, openInTab } from "@src/lib/webext"
+import { browserBg, activeTab, activeTabId, activeTabContainerId, openInNewTab, openInNewWindow, openInTab, queryAndURLwrangler } from "@src/lib/webext"
 import * as Container from "@src/lib/containers"
 import state from "@src/state"
 import { contentState, ModeName } from "@src/content/state_content"
@@ -2167,7 +2167,7 @@ export async function tabgrab(id: string) {
     Also see the [[searchengine]] and [[searchurls]] settings.
 */
 //#background
-export async function tabopen(...addressarr: string[]) {
+export async function tabopen(...addressarr: string[]): Promise<browser.tabs.Tab> {
     let active
     let container
 
@@ -2200,7 +2200,7 @@ export async function tabopen(...addressarr: string[]) {
 
     const address = query.join(" ")
     if (!ABOUT_WHITELIST.includes(address) && /^(about|file):.*/.exec(address)) {
-        return nativeopen(address)
+        return (nativeopen(address) as unknown) as browser.tabs.Tab // I don't understand why changing the final return below meant I had to change this
     }
 
     const aucon = new AutoContain()
@@ -2212,18 +2212,28 @@ export async function tabopen(...addressarr: string[]) {
         }
     }
 
-    return activeTabContainerId().then(containerId => {
-        const args = { active } as any
-        // Ensure -c has priority.
-        if (container) {
-            if (container !== "firefox-default") {
-                args.cookieStoreId = container
-            }
-        } else if (containerId && config.get("tabopencontaineraware") === "true") {
-            args.cookieStoreId = containerId
+    const containerId = await activeTabContainerId()
+    const args = { active } as any
+    // Ensure -c has priority.
+    if (container) {
+        if (container !== "firefox-default") {
+            args.cookieStoreId = container
         }
-        return openInNewTab(null, args).then(tab => openInTab(tab, { loadReplace: true }, query))
-    })
+    } else if (containerId && config.get("tabopencontaineraware") === "true") {
+        args.cookieStoreId = containerId
+    }
+    // return openInNewTab(query.join(" "), args).then(tab => openInTab(tab, { loadReplace: true }, query))
+    const maybeURL = await queryAndURLwrangler(query)
+    if (typeof maybeURL === "string") {
+        return openInNewTab(maybeURL, args)
+    }
+
+    // This ignores :set tabopenpos / issue #342. TODO: fix that.
+    if (typeof maybeURL === "object") {
+        return openInNewTab(null, args).then(tab => browser.search.search({ tabId: tab.id, ...maybeURL }))
+    }
+
+    throw new Error("Unreachable code reached")
 }
 
 /**
