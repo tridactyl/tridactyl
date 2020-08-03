@@ -156,8 +156,11 @@ export function openInNewWindow(createData = {}) {
     browserBg.windows.create(createData)
 }
 
-export async function openInTab(tab, opts = {}, strarr: string[]) {
-    let address = strarr.join(" ")
+// Returns object if we should use the search engine instead
+export async function queryAndURLwrangler(
+    query: string[],
+): Promise<string | { engine?: string; query: string }> {
+    let address = query.join(" ")
 
     if (address === "") {
         address = config.get("newtab")
@@ -169,19 +172,13 @@ export async function openInTab(tab, opts = {}, strarr: string[]) {
 
     if (firstWord === "") {
         // No query, no newtab set, the user is asking for Tridactyl's newtab page
-        return browserBg.tabs.update(
-            tab.id,
-            Object.assign({ url: "/static/newtab.html" }, opts),
-        )
+        return "/static/newtab.html" // TODO: get extension url
     }
 
     // Perhaps the user typed a URL?
     if (/^[a-zA-Z0-9+.-]+:[^\s:]/.test(address)) {
         try {
-            return browserBg.tabs.update(
-                tab.id,
-                Object.assign({ url: new URL(address).href }, opts),
-            )
+            return new URL(address).href
         } catch (e) {
             // Not a problem, we'll treat address as a regular search query
         }
@@ -196,22 +193,14 @@ export async function openInTab(tab, opts = {}, strarr: string[]) {
             rest,
         )
         // firstWord is a searchurl, so let's use that
-        return browserBg.tabs.update(
-            tab.id,
-            Object.assign({ url: url.href }, opts),
-        )
+        return url.href
     }
 
     const searchEngines = await browserBg.search.get()
     let engine = searchEngines.find(engine => engine.alias === firstWord)
     // Maybe firstWord is the name of a firefox search engine?
     if (engine !== undefined) {
-        browserBg.search.search({
-            tabId: tab.id,
-            engine: engine.name,
-            query: rest,
-        })
-        return tab
+        return { engine: engine.name, query: rest }
     }
 
     // Maybe it's a domain without protocol
@@ -219,10 +208,7 @@ export async function openInTab(tab, opts = {}, strarr: string[]) {
         const url = new URL("http://" + address)
         // Ignore unlikely domains
         if (url.hostname.includes(".") || url.port || url.password) {
-            return browserBg.tabs.update(
-                tab.id,
-                Object.assign({ url: url.href }, opts),
-            )
+            return url.href
         }
     } catch (e) {}
 
@@ -243,24 +229,30 @@ export async function openInTab(tab, opts = {}, strarr: string[]) {
                 new URL(searchurls[enginename]),
                 queryString,
             )
-            return browserBg.tabs.update(
-                tab.id,
-                Object.assign({ url: url.href }, opts),
-            )
+            return url.href
         }
 
         engine = searchEngines.find(engine => engine.alias === enginename)
         if (engine !== undefined) {
-            browserBg.search.search({
-                tabId: tab.id,
-                engine: engine.name,
-                query: queryString,
-            })
-            return tab
+            return { engine: engine.name, query: queryString }
         }
     }
 
     // No search engine has been defined in Tridactyl, let's use firefox's default search engine
-    browserBg.search.search({ tabId: tab.id, query: queryString })
-    return tab
+    return { query: queryString }
+}
+
+export async function openInTab(tab, opts = {}, strarr: string[]) {
+    const maybeURL = await queryAndURLwrangler(strarr)
+    if (typeof maybeURL === "string") {
+        return browserBg.tabs.update(
+            tab.id,
+            Object.assign({ url: maybeURL }, opts),
+        )
+    }
+    if (typeof maybeURL === "object") {
+        return browserBg.search.search({ tabId: tab.id, ...maybeURL })
+    }
+
+    throw new Error("Unreachable code reached.")
 }

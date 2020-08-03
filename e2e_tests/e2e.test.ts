@@ -251,25 +251,25 @@ describe("webdriver", () => {
         }).finally(() => killDriver(driver))
     })
 
-//     test("`:tabopen https://example.org<CR>` opens example.org.", async () => {
-//         const driver = await getDriver()
-//         return newTabWithoutChangingOldTabs(driver, async () => {
-//             await sendKeys(driver, ":tabopen https://example.org<CR>")
-//         }).then(async ([newtab, _]) => {
-//             expect(newtab.active).toEqual(true)
-//             await driver.wait(untilTabUrlMatches(driver, newtab.id, "https://example.org"), 10000)
-//         }).finally(() => killDriver(driver))
-//     })
+    test("`:tabopen https://example.org<CR>` opens example.org.", async () => {
+        const driver = await getDriver()
+        return newTabWithoutChangingOldTabs(driver, async () => {
+            await sendKeys(driver, ":tabopen https://example.org<CR>")
+        }).then(async ([newtab, _]) => {
+            expect(newtab.active).toEqual(true)
+            await driver.wait(untilTabUrlMatches(driver, newtab.id, "https://example.org"), 10000)
+        }).finally(() => killDriver(driver))
+    })
 
-//     test("`:tabopen qwant https://example.org<CR>` opens qwant.", async () => {
-//         const driver = await getDriver()
-//         return newTabWithoutChangingOldTabs(driver, async () => {
-//             await sendKeys(driver, ":tabopen qwant https://example.org<CR>")
-//         }).then(async ([newtab, _]) => {
-//             expect(newtab.active).toEqual(true)
-//             await driver.wait(untilTabUrlMatches(driver, newtab.id, new RegExp("^https://www.qwant.com/.*example.org")), 10000)
-//         }).finally(() => killDriver(driver))
-//     })
+    test("`:tabopen qwant https://example.org<CR>` opens qwant.", async () => {
+        const driver = await getDriver()
+        return newTabWithoutChangingOldTabs(driver, async () => {
+            await sendKeys(driver, ":tabopen qwant https://example.org<CR>")
+        }).then(async ([newtab, _]) => {
+            expect(newtab.active).toEqual(true)
+            await driver.wait(untilTabUrlMatches(driver, newtab.id, new RegExp("^https://www.qwant.com/.*example.org")), 10000)
+        }).finally(() => killDriver(driver))
+    })
 
 //     test("`:tabopen test<CR>` opens google.", async () => {
 //         const driver = await getDriver()
