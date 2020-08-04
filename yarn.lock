@@ -766,12 +766,12 @@
   dependencies:
     "@types/yargs-parser" "*"
 
-"@typescript-eslint/eslint-plugin-tslint@^3.7.1":
-  version "3.7.1"
-  resolved "https://registry.yarnpkg.com/@typescript-eslint/eslint-plugin-tslint/-/eslint-plugin-tslint-3.7.1.tgz#bda532a21645a620c7f5a0d9cb12ab3b6524701d"
-  integrity sha512-rxb6axnU/T2viGc5al10eKX4fXiprTLS4f1xI4uY8oB1VJUSyzdwTuAa1KaIVebYCMnRDT/6SlS6tBuLej7X9w==
+"@typescript-eslint/eslint-plugin-tslint@^3.8.0":
+  version "3.8.0"
+  resolved "https://registry.yarnpkg.com/@typescript-eslint/eslint-plugin-tslint/-/eslint-plugin-tslint-3.8.0.tgz#9b0f1d0f26408c2ab170f878eb51d1a096d9b82c"
+  integrity sha512-21JffyPyqES8g5dG4ae+gLQDdujsf0CsGzQTIsttToJLE/Q3i682N2weg0re3Y4L44DBvuyxw4EpVE31vFFuAg==
   dependencies:
-    "@typescript-eslint/experimental-utils" "3.7.1"
+    "@typescript-eslint/experimental-utils" "3.8.0"
     lodash "^4.17.15"
 
 "@typescript-eslint/eslint-plugin@^3.7.1":
