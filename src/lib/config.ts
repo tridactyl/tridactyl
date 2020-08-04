@@ -669,11 +669,6 @@ export class default_config {
     viewsource: "tridactyl" | "default" = "tridactyl"
 
     /**
-     * Which storage to use. Sync storage will synchronise your settings via your Firefox Account.
-     */
-    storageloc: "sync" | "local" = "sync"
-
-    /**
      * Pages opened with `gH`. In order to set this value, use `:set homepages ["example.org", "example.net", "example.com"]` and so on.
      */
     homepages: string[] = []
@@ -1269,15 +1264,7 @@ export async function getAsync(
 ) {
     if (INITIALISED) {
         // TODO: consider storing keys directly
-        let browserconfig
-        switch (get("storageloc")) {
-            case "local":
-                browserconfig = await browser.storage.local.get(CONFIGNAME)
-                break
-            case "sync":
-                browserconfig = await browser.storage.sync.get(CONFIGNAME)
-                break
-        }
+        const browserconfig = await browser.storage.local.get(CONFIGNAME)
         USERCONFIG = browserconfig[CONFIGNAME] || o({})
 
         return get(target_typed, ...target)
@@ -1286,6 +1273,20 @@ export async function getAsync(
             WAITERS.push(() => resolve(get(target_typed, ...target))),
         )
     }
+}
+
+/*
+ * Replaces the configuration in your sync storage with your current configuration. Does not merge: it overwrites.
+ */
+export async function push() {
+    return browser.storage.sync.set(await browser.storage.local.get(CONFIGNAME))
+}
+
+/*
+ * Replaces the local configuration with the configuration from your sync storage. Does not merge: it overwrites.
+ */
+export async function pull() {
+    return browser.storage.local.set(await browser.storage.sync.get(CONFIGNAME))
 }
 
 /** @hidden
@@ -1313,18 +1314,8 @@ export async function set(...args) {
 
     if (INITIALISED) {
         // wait for storage to settle, otherwise we could clobber a previous incomplete set()
-        const previousValue = await getAsyncDynamic(...target)
-
         setDeepProperty(USERCONFIG, value, target)
 
-        if (
-            target.length === 1 &&
-            target[0] === "storageloc" &&
-            previousValue !== value
-        ) {
-            // ensure storageloc is saved locally before switching
-            await save(previousValue)
-        }
         return save()
     } else {
         setDeepProperty(USERCONFIG, value, target)
@@ -1353,14 +1344,10 @@ export function unset(...target) {
 
     @hidden
  */
-export async function save(storage: "local" | "sync" = get("storageloc")) {
-    // let storageobj = storage === "local" ? browser.storage.local : browser.storage.sync
-    // storageobj.set({CONFIGNAME: USERCONFIG})
+export async function save() {
     const settingsobj = o({})
     settingsobj[CONFIGNAME] = USERCONFIG
-    return storage === "local"
-        ? browser.storage.local.set(settingsobj)
-        : browser.storage.sync.set(settingsobj)
+    return browser.storage.local.set(settingsobj)
 }
 
 /** Updates the config to the latest version.
@@ -1560,6 +1547,27 @@ export async function update() {
                 "vmaps",
             ].forEach(settingName => updateAll([settingName], updateSetting))
             set("configversion", "1.9")
+        }
+        case "1.9": {
+            const local = (await browser.storage.local.get(CONFIGNAME))[CONFIGNAME] as {storageloc?: "local" | "sync"}
+            const sync = (await browser.storage.sync.get(CONFIGNAME))[CONFIGNAME] as {storageloc?: "local" | "sync"}
+            // Possible combinations:
+            // storage:storageloc_setting => winning storageloc setting
+            // l:l, s:* => l
+            // l:undefined, s:l =>  l
+            // l:undefined, s:s => s
+            // l: undefined, s:undefined => s
+            // l:s, s:* =>  s
+            const current_storageloc =
+                local?.storageloc !== undefined ? local.storageloc :
+                sync?.storageloc !== undefined ? sync.storageloc :
+                "sync"
+            if (current_storageloc == "sync") {
+                await pull()
+            } else if (current_storageloc != "local") {
+                throw new Error("storageloc was set to something weird: " + current_storageloc + ", automatic migration of settings was not possible.")
+            }
+            set("configversion", "2.0")
             updated = true // NB: when adding a new updater, move this line to the end of it
         }
     }
@@ -1573,19 +1581,7 @@ export async function update() {
  */
 async function init() {
     const localConfig = await browser.storage.local.get(CONFIGNAME)
-
-    if (localConfig === undefined || localConfig.storageloc !== "local") {
-        const syncConfig = await browser.storage.sync.get(CONFIGNAME)
-        if (syncConfig !== undefined) {
-            schlepp(syncConfig[CONFIGNAME])
-        }
-    } else {
-        // These could be merged instead, but the current design does not allow for that
-        schlepp(localConfig[CONFIGNAME])
-    }
-
-    const configUpdated = await update()
-    if (configUpdated) await save()
+    schlepp(localConfig[CONFIGNAME])
 
     INITIALISED = true
     for (const waiter of WAITERS) {
@@ -1766,15 +1762,9 @@ browser.storage.onChanged.addListener((changes, areaname) => {
             }
         }
 
-        if (areaname === "sync" && areaname !== get("storageloc")) {
-            // storageloc=local means ignoring changes that aren't set by us
+        if (areaname === "sync") {
+            // Probably do something here with push/pull?
         } else if (newValue !== undefined) {
-            if (areaname === "sync") {
-                // prevent storageloc from being set remotely
-                delete old.storageloc
-                delete newValue.storageloc
-            }
-
             // A key has been :unset if it exists in USERCONFIG and doesn't in changes and if its value in USERCONFIG is different from the one it has in default_config
             const unsetKeys = Object.keys(old).filter(
                 k =>

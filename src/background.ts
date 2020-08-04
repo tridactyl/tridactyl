@@ -269,6 +269,9 @@ omnibox.init()
 
 // }}}
 
+
+setTimeout(config.update, 5000)
+
 commands.updateListener()
 
 // {{{ Obey Mozilla's orders https://github.com/tridactyl/tridactyl/issues/1800

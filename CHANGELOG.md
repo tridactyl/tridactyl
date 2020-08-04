@@ -6,7 +6,7 @@
 
     -   `<C-,>` browser-wide bind added to new ex-command, `:escapehatch` which returns focus to the page and returns you to a tab where Tridactyl can run.
     -   User-configurable browser-wide binds added with lots of caveats. See `:help bind` and `:bind --mode=browser` for more details.
-        -   `<C-6>` and `<CS-6>` are now bound to `:tab #` browser-wide.
+        -   `<C-6>` and `<CS-6>` are now bound to `:tab #` browser-wide, except on Windows, where the previous behaviour remains, with a new `<A-6>` bind instead.
     -   Autocommands now support `WebRequest` events - see `:help autocmd` for more details. Particularly useful for e.g. redirecting sites.
     -   Callback hintmode on `hint -F` added for running arbitrary JS on an element you select. ([#2552](https://github.com/tridactyl/tridactyl/issues/2552))
     -   `:blacklistdelete` alias added as the inverse of `:blacklistadd`
@@ -18,9 +18,20 @@
     -   `:tabopen` now never puts focus in the address bar ([#2490](https://github.com/tridactyl/tridactyl/issues/2490))
     -   The little pop-up telling you the address of a link you are hovering over is now hidden when the command line is opened ([#1896](https://github.com/tridactyl/tridactyl/issues/1896))
     -   `:tabopen -c firefox-default` opens a new tab in the default container (handy with `set tabopencontaineraware true`)
+    -   `<S-Delete>` closes the tab corresponding to the highlighted completion in the commandline ([#2617](https://github.com/tridactyl/tridactyl/issues/2617))
+    -   `<C-Enter>` executes the highlighted completion and keeps the window open (useful for, e.g. `:winopen` or `:tabopen -b`)
+    -   `:set downloadsskiphistory true` prevents downloads via Tridactyl (e.g. `;s` hint mode) from being stored in your download history
+        -   NB: Tridactyl must be allowed to run in private mode for this to work
+    -   `:autocontain -s [url] [container]` added with a bug fix - `:autocontain` with no flags is deprecated ([#2629](https://github.com/tridactyl/tridactyl/issues/2629))
+
+-   Removed features
+-   We no longer use Firefox sync automatically ([#2665](https://github.com/tridactyl/tridactyl/issues/2665))
+    -   Use `:firefoxsync{push,pull}` to synchronise manually if you wish
+-   Broken setting `newtabfocus` removed ([#2632](https://github.com/tridactyl/tridactyl/issues/2632))
 
 -   Bug fixes
 
+    -   `:tabopen` works again in FF80+ ([#2695](https://github.com/tridactyl/tridactyl/issues/2695))
     -   Scrolling should now work on more pages ([#2583](https://github.com/tridactyl/tridactyl/issues/2583))
     -   Some errors should be more informative ([#2585](https://github.com/tridactyl/tridactyl/issues/2585))
     -   Ex-aliases now have correct help text in completions ([#2483](https://github.com/tridactyl/tridactyl/issues/2483))
@@ -28,6 +39,10 @@
     -   Pressing `<Tab>` in completions is now a bit more reliable (but not much :))
     -   `:find` now works in private windows ([#2520](https://github.com/tridactyl/tridactyl/issues/2520))
     -   `:containerdelete` with no arguments is now a no-op ([#2239](https://github.com/tridactyl/tridactyl/issues/2239))
+    -   `insert` mode now works better on some sites ([#2696](https://github.com/tridactyl/tridactyl/issues/2696))
+    -   `text.` functions are now more readline compliant ([#2679](https://github.com/tridactyl/tridactyl/issues/2679))
+    -   Form labels may now be clicked ([#2646](https://github.com/tridactyl/tridactyl/issues/2646))
+    -   `yy` should no longer give spurious errors ([#1239](https://github.com/tridactyl/tridactyl/issues/1239))
 
 -   Miscellaneous
 
@@ -35,6 +50,9 @@
     -   Our E2E tests now actually work most of the time
     -   Unit tests for our excmds added ([#2449](https://github.com/tridactyl/tridactyl/issues/2449))
     -   There should be slightly less latency on keypresses ([#2440](https://github.com/tridactyl/tridactyl/issues/2440))
+    -   Our settings tutorial is slightly more comprehensive ([#2465](https://github.com/tridactyl/tridactyl/issues/2465))
+    -   Default settings can now be platform specific ([#2664](https://github.com/tridactyl/tridactyl/issues/2664))
+    -   It is now easier to replicate CI tests locally ([#2591](https://github.com/tridactyl/tridactyl/issues/2591))
 
 ## Release 1.19.1 / 29-05-2020
 
