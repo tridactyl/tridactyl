@@ -48,7 +48,7 @@ module.exports = {
                 from: "src/static",
                 to: "static",
                 globOptions: {
-                    ignore: ["*.psd", "*1024px.png"],
+                    ignore: ["**/*.psd", "**/*1024px.png"],
                 },
             },
             { from: "generated/static", to: "static" },
