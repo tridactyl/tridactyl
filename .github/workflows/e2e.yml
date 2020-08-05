@@ -16,7 +16,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu, macos, windows]
+        os: [ubuntu, windows]
+        # os: [ubuntu, macos, windows]
         browser: [firefox, firefoxesr]
         exclude:
           - os: macos
