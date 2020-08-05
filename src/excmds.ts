@@ -1435,18 +1435,21 @@ export async function help(...helpItems: string[]) {
     const subject = helpItems.join(" ")
     const settings = await config.getAsync()
     let url = ""
+    if (subject === "") {
+        url = browser.runtime.getURL("static/docs/modules/_src_excmds_.html")
+    } else {
+        // If the user did specify what they wanted, specifically look for it
+        if (flag !== "") {
+            url = flags[flag](settings, subject)
+        }
 
-    // If the user did specify what they wanted, specifically look for it
-    if (flag !== "") {
-        url = flags[flag](settings, subject)
-    }
-
-    // Otherwise or if it couldn't be found, try all possible items
-    if (url === "") {
-        url = ["-b", "-s", "-a", "-e"].reduce((acc, curFlag) => {
-            if (acc !== "") return acc
-            return flags[curFlag](settings, subject)
-        }, "")
+        // Otherwise or if it couldn't be found, try all possible items
+        if (url === "") {
+            url = ["-b", "-s", "-a", "-e"].reduce((acc, curFlag) => {
+                if (acc !== "") return acc
+                return flags[curFlag](settings, subject)
+            }, "")
+        }
     }
 
     let done
