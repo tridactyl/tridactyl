@@ -3445,7 +3445,9 @@ export function seturl(pattern: string, key: string, ...values: string[]) {
 
 /** Set a key value pair in config.
 
-    Use to set any string values found [here](/static/docs/classes/_src_lib_config_.default_config.html).
+    Use to set any values found [here](/static/docs/classes/_src_lib_config_.default_config.html).
+
+    Arrays should be set using JS syntax, e.g. `:set blacklistkeys ["/",","]`.
 
     e.g.
         set searchurls.google https://www.google.com/search?q=
