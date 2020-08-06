@@ -1,6 +1,6 @@
 # Tridactyl changelog
 
-# Release 1.20.0 / unreleased
+# Release 1.20.0 / 2020-08-06
 
 -   New features
 
@@ -25,9 +25,10 @@
     -   `:autocontain -s [url] [container]` added with a bug fix - `:autocontain` with no flags is deprecated ([#2629](https://github.com/tridactyl/tridactyl/issues/2629))
 
 -   Removed features
--   We no longer use Firefox sync automatically ([#2665](https://github.com/tridactyl/tridactyl/issues/2665))
-    -   Use `:firefoxsync{push,pull}` to synchronise manually if you wish
--   Broken setting `newtabfocus` removed ([#2632](https://github.com/tridactyl/tridactyl/issues/2632))
+
+    -   We no longer use Firefox sync automatically ([#2665](https://github.com/tridactyl/tridactyl/issues/2665))
+        -   Use `:firefoxsync{push,pull}` to synchronise manually if you wish
+    -   Broken setting `newtabfocus` removed ([#2632](https://github.com/tridactyl/tridactyl/issues/2632))
 
 -   Bug fixes
 
@@ -43,6 +44,8 @@
     -   `text.` functions are now more readline compliant ([#2679](https://github.com/tridactyl/tridactyl/issues/2679))
     -   Form labels may now be clicked ([#2646](https://github.com/tridactyl/tridactyl/issues/2646))
     -   `yy` should no longer give spurious errors ([#1239](https://github.com/tridactyl/tridactyl/issues/1239))
+    -   `:help` now takes you to the right page ([#2707](https://github.com/tridactyl/tridactyl/issues/2707))
+    -   Tridactyl is now ~30% smaller ([#2710](https://github.com/tridactyl/tridactyl/issues/2710))
 
 -   Miscellaneous
 
@@ -53,6 +56,12 @@
     -   Our settings tutorial is slightly more comprehensive ([#2465](https://github.com/tridactyl/tridactyl/issues/2465))
     -   Default settings can now be platform specific ([#2664](https://github.com/tridactyl/tridactyl/issues/2664))
     -   It is now easier to replicate CI tests locally ([#2591](https://github.com/tridactyl/tridactyl/issues/2591))
+
+Thanks to all of our contributors for this release: Oliver Blanthorn, dependabot-preview[bot], Michael Kaufman, MatiasStorm, glacambre, Dranaxel, Christian Heinrich, Csaba Henk, Morgan Connolly, mozbug, Aurélien Ooms, David Ludovino, Imran Khan, Jakub Okoński, Josehkn, Luke Granger-Brown, Makkonan, and dependabot[bot].
+
+Extra special thanks go to Aurélien Ooms, Christian Heinrich, Csaba Henk, David Ludovino, Imran Khan, Josehkn, Luke Granger-Brown, Makkonan, Michael Kaufman and Morgan Connolly who all contributed for the first time.
+
+Last, but not least - thank you to everyone who reported issues.
 
 ## Release 1.19.1 / 29-05-2020
 
