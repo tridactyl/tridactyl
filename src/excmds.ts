@@ -74,7 +74,7 @@
 
 // Shared
 import * as Messaging from "@src/lib/messaging"
-import { browserBg, activeTab, activeTabId, activeTabContainerId, openInNewTab, openInNewWindow, openInTab, queryAndURLwrangler } from "@src/lib/webext"
+import { getTriVersion, browserBg, activeTab, activeTabId, activeTabContainerId, openInNewTab, openInNewWindow, openInTab, queryAndURLwrangler } from "@src/lib/webext"
 import * as Container from "@src/lib/containers"
 import state from "@src/state"
 import { contentState, ModeName } from "@src/content/state_content"
@@ -117,7 +117,7 @@ export const cmd_params = new Map<string, Map<string, string>>()
 const logger = new Logging.Logger("excmds")
 
 /** @hidden **/
-const TRI_VERSION = "REPLACE_ME_WITH_THE_VERSION_USING_SED"
+const TRI_VERSION = getTriVersion()
 
 //#content_helper
 // {

@@ -7,6 +7,16 @@ export function inContentScript() {
     return getContext() === "content"
 }
 
+export function getTriVersion() {
+    const manifest = browser.runtime.getManifest()
+    return manifest.version_name
+}
+
+export function getPrettyTriVersion() {
+    const manifest = browser.runtime.getManifest()
+    return manifest.name + " " + getTriVersion()
+}
+
 export function notBackground() {
     return getContext() !== "background"
 }

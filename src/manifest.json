@@ -2,6 +2,7 @@
     "manifest_version": 2,
     "name": "Tridactyl",
     "version": "1.20.0",
+    "version_name": "1.20.0",
     "icons": {
         "64": "static/logo/Tridactyl_64px.png",
         "100": "static/logo/Tridactyl_100px.png",
