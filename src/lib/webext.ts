@@ -166,6 +166,11 @@ export async function queryAndURLwrangler(
         address = config.get("newtab")
     }
 
+    // Special ritual for about:newtab: we can access it but only if we don't ask for it
+    if (address === "about:newtab") {
+        return undefined
+    }
+
     const index = address.indexOf(" ")
     let firstWord = address
     if (index > -1) firstWord = address.substr(0, index)
