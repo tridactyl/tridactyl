@@ -10,10 +10,11 @@ import * as RssParser from "rss-parser"
 import * as SemverCompare from "semver-compare"
 import * as Config from "@src/lib/config"
 import * as Logging from "@src/lib/logging"
+import { getTriVersion } from "@src/lib/webext"
 
 const logger = new Logging.Logger("updates")
 
-const TRI_VERSION = "REPLACE_ME_WITH_THE_VERSION_USING_SED"
+const TRI_VERSION = getTriVersion()
 
 interface TriVersionFeedItem {
     releaseDate: Date

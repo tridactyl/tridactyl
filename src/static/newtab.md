@@ -1,7 +1,3 @@
-![Tridactyl logo](logo/Tridactyl_100px.png)
-
-# Tridactyl REPLACE_ME_WITH_THE_VERSION_USING_SED
-
 Tridactyl has to override your new tab page due to WebExtension limitations. You can learn how to change it at the bottom of the page, otherwise please read on for some tips and tricks.
 
 -   _Breaking change_: Tridactyl no longer tries to keep its configuration in sync automatically with the Firefox Sync storage. The `storageloc` setting has been removed. If you wish to synchronise your configurations, you can use the new `:firefoxsync{push,pull}` manually.

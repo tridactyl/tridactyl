@@ -20,6 +20,15 @@ async function add_beta(versionstr) {
     })
 }
 
+async function get_hash() {
+    return new Promise((resolve, err) => {
+        exec("git rev-parse --short HEAD", (execerr, stdout, stderr) => {
+            if (execerr) err(execerr)
+            resolve(stdout.trim())
+        })
+    })
+}
+
 function make_update_json(versionstr) {
     return {
         addons: {
@@ -66,6 +75,7 @@ async function main() {
                 manifest.version,
                 Number(process.argv[3]),
             )
+            manifest.version_name = manifest.version
             save_manifest(filename, manifest)
             exec(
                 `git add ${filename} && git commit -m 'release ${
@@ -81,14 +91,19 @@ async function main() {
             filename = "./build/manifest.json"
             manifest = require("." + filename)
             manifest.version = await add_beta(manifest.version)
+            manifest.version_name = manifest.version + "-" + (await get_hash())
             manifest.applications.gecko.update_url =
                 "https://tridactyl.cmcaine.co.uk/betas/updates.json"
 
-            // Make and write updates.json
-            save_manifest(
-                "../../public_html/betas/updates.json",
-                make_update_json(manifest.version),
-            )
+            try {
+                // Make and write updates.json
+                save_manifest(
+                    "../../public_html/betas/updates.json",
+                    make_update_json(manifest.version),
+                )
+            } catch(e) {
+                console.warn("updates.json wasn't updated: " + e)
+            }
 
             // Save manifest.json
             save_manifest(filename, manifest)
