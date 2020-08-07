@@ -2243,7 +2243,8 @@ export async function tabopen(...addressarr: string[]): Promise<browser.tabs.Tab
         return openInNewTab(null, args).then(tab => browser.search.search({ tabId: tab.id, ...maybeURL }))
     }
 
-    throw new Error("Unreachable code reached")
+    // Fall back to about:newtab
+    return openInNewTab(null, args)
 }
 
 /**

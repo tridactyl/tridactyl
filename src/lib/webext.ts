@@ -171,8 +171,8 @@ export async function queryAndURLwrangler(
     if (index > -1) firstWord = address.substr(0, index)
 
     if (firstWord === "") {
-        // No query, no newtab set, the user is asking for Tridactyl's newtab page
-        return "/static/newtab.html" // TODO: get extension url
+        // No query, no newtab set, the user is asking for Tridactyl's newtab page, which we deal with in :tabopen / :open directly
+        return undefined
     }
 
     // Perhaps the user typed a URL?
@@ -254,5 +254,9 @@ export async function openInTab(tab, opts = {}, strarr: string[]) {
         return browserBg.search.search({ tabId: tab.id, ...maybeURL })
     }
 
-    throw new Error("Unreachable code reached.")
+    // Fall back to our new tab page
+    return browserBg.tabs.update(
+        tab.id,
+        Object.assign({ url: "/static/newtab.html" }, opts),
+    )
 }
