@@ -777,7 +777,7 @@ export async function source(...args: string[]) {
  * Same as [[source]] but suppresses all errors
  */
 //#background
-export async function source_quiet(args: string[]) {
+export async function source_quiet(...args: string[]) {
     try {
         await source(...args)
     } catch (e) {
