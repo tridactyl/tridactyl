@@ -114,7 +114,7 @@ import { generator as KEY_MUNCHER } from "@src/content/controller_content"
 export const cmd_params = new Map<string, Map<string, string>>()
 
 /** @hidden */
-const logger = new Logging.Logger("excmds")
+const logger = new Logging.Logger("excmd")
 
 /** @hidden **/
 const TRI_VERSION = getTriVersion()
