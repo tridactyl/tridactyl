@@ -1,5 +1,13 @@
 # Tridactyl changelog
 
+# Release 1.20.1 / Unreleased
+
+-   Bug fixes
+    -   Tridactyl should now display the right version number on the new tab page and elsewhere (#2262)
+    -   RC files will again be sourced at startup (#2726)
+    -   ex-command logs now use the right name: `excmd` (#2727)
+    -   the no-new-tab build no longer shows our new tab page with `:tabopen` (#1571)
+
 # Release 1.20.0 / 2020-08-06
 
 -   New features
