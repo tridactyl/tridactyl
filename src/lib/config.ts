@@ -104,6 +104,7 @@ export class default_config {
         "<C-j>": "ex.accept_line",
         "<C-m>": "ex.accept_line",
         "<Escape>": "ex.hide_and_clear",
+        "<C-[>": "ex.hide_and_clear",
         "<ArrowUp>": "ex.prev_history",
         "<ArrowDown>": "ex.next_history",
         "<S-Del>": "ex.execute_ex_on_completion_args tabclose",
@@ -371,6 +372,7 @@ export class default_config {
     hintmaps = {
         "<Backspace>": "hint.popKey",
         "<Escape>": "hint.reset",
+        "<C-[>": "hint.reset",
         "<Tab>": "hint.focusNextHint",
         "<S-Tab>": "hint.focusPreviousHint",
         "<ArrowUp>": "hint.focusTopHint",
@@ -1549,8 +1551,12 @@ export async function update() {
             set("configversion", "1.9")
         }
         case "1.9": {
-            const local = (await browser.storage.local.get(CONFIGNAME))[CONFIGNAME] as {storageloc?: "local" | "sync"}
-            const sync = (await browser.storage.sync.get(CONFIGNAME))[CONFIGNAME] as {storageloc?: "local" | "sync"}
+            const local = (await browser.storage.local.get(CONFIGNAME))[
+                CONFIGNAME
+            ] as { storageloc?: "local" | "sync" }
+            const sync = (await browser.storage.sync.get(CONFIGNAME))[
+                CONFIGNAME
+            ] as { storageloc?: "local" | "sync" }
             // Possible combinations:
             // storage:storageloc_setting => winning storageloc setting
             // l:l, s:* => l
@@ -1559,13 +1565,19 @@ export async function update() {
             // l: undefined, s:undefined => s
             // l:s, s:* =>  s
             const current_storageloc =
-                local?.storageloc !== undefined ? local.storageloc :
-                sync?.storageloc !== undefined ? sync.storageloc :
-                "sync"
+                local?.storageloc !== undefined
+                    ? local.storageloc
+                    : sync?.storageloc !== undefined
+                    ? sync.storageloc
+                    : "sync"
             if (current_storageloc == "sync") {
                 await pull()
             } else if (current_storageloc != "local") {
-                throw new Error("storageloc was set to something weird: " + current_storageloc + ", automatic migration of settings was not possible.")
+                throw new Error(
+                    "storageloc was set to something weird: " +
+                        current_storageloc +
+                        ", automatic migration of settings was not possible.",
+                )
             }
             set("configversion", "2.0")
             updated = true // NB: when adding a new updater, move this line to the end of it
