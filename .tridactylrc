@@ -48,6 +48,11 @@ bind yg composite js "git clone " + document.location.href.replace(/https?:\/\//
 " As above but execute it and open terminal in folder
 bind ,g js let uri = document.location.href.replace(/https?:\/\//,"git@").replace("/",":").replace(/$/,".git"); tri.native.run("cd ~/projects; git clone " + uri + "; cd \"$(basename \"" + uri + "\" .git)\"; st")
 
+
+" make d take you to the tab you were just on (I find it much less confusing)
+bind d composite tab #; tabclose #
+bind D tabclose
+
 " I like wikiwand but I don't like the way it changes URLs
 bindurl wikiwand.com yy composite js document.location.href.replace("wikiwand.com/en","wikipedia.org/wiki") | clipboard yank
 
