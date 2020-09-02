@@ -10,6 +10,8 @@ Use `.` to repeat the last action.
 
 Many keypresses in normal mode take you into another mode. `t`, for example, puts you into command mode prefilled with the command for opening a new tab; `F` puts you into hinting mode to open a link in a background tab; `gi` focuses the first text box on the page and allows you to press `Tab` to switch between text boxes.
 
+Tridactyl uses a similar notation to Vim for keys with modifiers: `<C-x>` means press Ctrl, tap x, release Ctrl; i.e. `Ctrl-x`. `<C-` almost always means a literal Ctrl key, even on Macs: `<M-` means the Meta ("splat") key. The exception is when describing default Firefox binds for Macintosh: then `<C-` means Meta. This arises most often for find mode where the `<C-g>`, `<C-G>` and `<C-f>` default binds are all in fact `<M-g>`, `<M-G>` and `<M-f>`.
+
 ## Useful normal mode keybinds
 
 -   `b` brings up a list of your current tabs. Press `Tab`/`Shift-Tab` to cycle through them and enter to select. You can also type to filter down the tabs based on their titles and URLs
@@ -25,7 +27,7 @@ Many keypresses in normal mode take you into another mode. `t`, for example, put
 -   `p` opens the clipboard contents as a web page, or searches for it, in the current tab. `P` opens it in a new tab
     -   Protip: quickly search for the source of a quote by using `;p` to copy a paragraph, and `P` to search the internet for it
 -   `zi`,`zo`,`zz` zoom in, out and return to the default zoom
--   Search text with Firefox's standard `/` binding, jump from match to match with `<C-g>` or `<C-G>` (note that it isn't possible to rebind searching/jumping between matches for now). If you want to use Firefox's `<C-f>` search you'll have to run `unbind <C-f>`.
+-   Search text with Firefox's standard `/` binding, jump from match to match with `<C-g>` or `<C-G>` (note that it isn't possible to rebind searching/jumping between matches for now). If you want to use Firefox's `<C-f>` search you'll have to run `unbind <C-f>` (unless you're on a Mac where Firefox's find mode is bound to `<M-f>`).
 
 *   `<C-v>` sends the next keystroke to the current website, bypassing bindings
 
