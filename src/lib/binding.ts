@@ -12,6 +12,7 @@ export const mode2maps = new Map([
     ["ex", "exmaps"],
     ["hint", "hintmaps"],
     ["visual", "vmaps"],
+    ["browser", "browsermaps"],
 ])
 
 export const maps2mode = new Map(
