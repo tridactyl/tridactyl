@@ -1806,9 +1806,12 @@ export async function geturlsforlinks(reltype = "rel", rel: string) {
  * @param level - The zoom level to set.
  * Expects percentages when changing the absolute zoom value and percentage points when making relative adjustments.
  * @param rel - Set the zoom adjustment to be relative to current zoom level.
+ * @param tabId - The tabId to apply zoom level too.
+ * If set to 'auto' it will default to the current active tab.
+ * This uses mozilla's internal tabId and not tridactyl's tabId.
  */
 //#background
-export async function zoom(level = 0, rel = "false") {
+export async function zoom(level = 0, rel = "false", tabId = "auto") {
     level = level > 3 ? level / 100 : level
     if (rel === "false" && (level > 3 || level < 0.3)) {
         throw new Error(`[zoom] level out of range: ${level}`)
@@ -1820,7 +1823,12 @@ export async function zoom(level = 0, rel = "false") {
         if (level > 3) level = 3
         if (level < 0.3) level = 0.3
     }
-    return browser.tabs.setZoom(level)
+
+    if (tabId === "auto") {
+        return browser.tabs.setZoom(level)
+    } else {
+        return browser.tabs.setZoom(parseInt(tabId, 10), level)
+    }
 }
 
 /** Opens the current page in Firefox's reader mode.
