@@ -74,7 +74,7 @@
 
 // Shared
 import * as Messaging from "@src/lib/messaging"
-import { getTriVersion, browserBg, activeTab, activeTabId, activeTabContainerId, openInNewTab, openInNewWindow, openInTab, queryAndURLwrangler } from "@src/lib/webext"
+import { ownTabId, getTriVersion, browserBg, activeTab, activeTabId, activeTabContainerId, openInNewTab, openInNewWindow, openInTab, queryAndURLwrangler } from "@src/lib/webext"
 import * as Container from "@src/lib/containers"
 import state from "@src/state"
 import { contentState, ModeName } from "@src/content/state_content"
@@ -1879,9 +1879,10 @@ export async function loadaucmds(cmdType: "DocStart" | "DocLoad" | "DocEnd" | "T
     const aucmds = await config.getAsync("autocmds", cmdType)
     const ausites = Object.keys(aucmds)
     const aukeyarr = ausites.filter(e => window.document.location.href.search(e) >= 0)
+    const tabId = await ownTabId()
     for (const aukey of aukeyarr) {
         try {
-            await controller.acceptExCmd(aucmds[aukey])
+            await controller.acceptExCmd(aucmds[aukey].replace("TRI_FIRED_MOZ_TABID", tabId))
         } catch (e) {
             logger.error(e.toString())
         }
@@ -3527,25 +3528,29 @@ export function firefoxsyncpush() {
 //#background_helper
 const AUCMDS = ["DocStart", "DocLoad", "DocEnd", "TriStart", "TabEnter", "TabLeft", "FullscreenChange", "FullscreenEnter", "FullscreenLeft"].concat(webrequests.requestEvents)
 /** Set autocmds to run when certain events happen.
-
- @param event Curently, 'TriStart', 'DocStart', 'DocLoad', 'DocEnd', 'TabEnter', 'TabLeft', 'FullscreenChange', 'FullscreenEnter', 'FullscreenLeft', 'AuthRequired', 'BeforeRedirect', 'BeforeRequest', 'BeforeSendHeaders', 'Completed', 'ErrorOccured', 'HeadersReceived', 'ResponseStarted', and 'SendHeaders' are supported
-
- @param url For DocStart, DocEnd, TabEnter, and TabLeft: a JavaScript regex (e.g. `www\\.amazon\\.co.*`)
-
- We just use [URL.search](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/search).
-
- For TriStart: A regular expression that matches the hostname of the computer
- the autocmd should be run on. This requires the native messenger to be
- installed, except for the ".*" regular expression which will always be
- triggered, even without the native messenger.
-
- For AuthRequired, BeforeRedirect, BeforeRequest, BeforeSendHeaders, Completed, ErrorOccured, HeadersReceived, ResponseStarted and SendHeaders, a [URL match pattern](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/Match_patterns)
-
- @param excmd The excmd to run (use [[composite]] to run multiple commands), __except__ for AuthRequired, BeforeRedirect, BeforeRequest, BeforeSendHeaders, Completed, ErrorOccured, HeadersReceived, ResponseStarted and SendHeaders, events where it must be an inline JavaScript function which maps [details objects specific to the event](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/webRequest#Events) to [blocking responses](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/webRequest/BlockingResponse). This JavaScript function will run in the background context.
-
- For example: `autocmd BeforeRequest https://www.bbc.co.uk/* () => ({redirectUrl: "https://old.reddit.com"})`. Note the brackets which ensure JavaScript returns a blocking response object rather than interpreting it as a block statement.
-
-*/
+ *
+ * @param event Curently, 'TriStart', 'DocStart', 'DocLoad', 'DocEnd', 'TabEnter', 'TabLeft', 'FullscreenChange', 'FullscreenEnter', 'FullscreenLeft', 'AuthRequired', 'BeforeRedirect', 'BeforeRequest', 'BeforeSendHeaders', 'Completed', 'ErrorOccured', 'HeadersReceived', 'ResponseStarted', and 'SendHeaders' are supported
+ *
+ * @param url For DocStart, DocEnd, TabEnter, and TabLeft: a JavaScript regex (e.g. `www\\.amazon\\.co.*`)
+ *
+ * We just use [URL.search](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/search).
+ *
+ * For TriStart: A regular expression that matches the hostname of the computer
+ * the autocmd should be run on. This requires the native messenger to be
+ * installed, except for the ".*" regular expression which will always be
+ * triggered, even without the native messenger.
+ *
+ * For AuthRequired, BeforeRedirect, BeforeRequest, BeforeSendHeaders, Completed, ErrorOccured, HeadersReceived, ResponseStarted and SendHeaders, a [URL match pattern](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/Match_patterns)
+ *
+ * @param excmd The excmd to run (use [[composite]] to run multiple commands), __except__ for AuthRequired, BeforeRedirect, BeforeRequest, BeforeSendHeaders, Completed, ErrorOccured, HeadersReceived, ResponseStarted and SendHeaders, events where it must be an inline JavaScript function which maps [details objects specific to the event](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/webRequest#Events) to [blocking responses](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/webRequest/BlockingResponse). This JavaScript function will run in the background context.
+ *
+ * For example: `autocmd BeforeRequest https://www.bbc.co.uk/* () => ({redirectUrl: "https://old.reddit.com"})`. Note the brackets which ensure JavaScript returns a blocking response object rather than interpreting it as a block statement.
+ *
+ * For DocStart, DocLoad, DocEnd, TabEnter, TabLeft, FullscreenEnter, FullscreenLeft and FullscreenChange: a magic variable called `TRI_FIRED_MOZ_TABID` is also available which will be replaced with the Mozilla `tabId` of the window/tab associated with the fired event.
+ *
+ *  For example: `autocmd DocStart .*example\.com.* zoom 150 false TRI_FIRED_MOZ_TABID`.
+ *
+ */
 //#background
 export function autocmd(event: string, url: string, ...excmd: string[]) {
     // rudimentary run time type checking
