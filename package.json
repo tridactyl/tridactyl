@@ -23,7 +23,7 @@
     "@types/ramda": "^0.27.11",
     "@types/selenium-webdriver": "^4.0.9",
     "@typescript-eslint/eslint-plugin": "^4.0.0",
-    "@typescript-eslint/eslint-plugin-tslint": "^3.10.1",
+    "@typescript-eslint/eslint-plugin-tslint": "^4.1.0",
     "@typescript-eslint/parser": "^3.10.1",
     "cleanslate": "^0.10.1",
     "copy-webpack-plugin": "^6.1.0",
