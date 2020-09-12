@@ -14,7 +14,7 @@
     "ramda": "^0.27.1",
     "rss-parser": "^3.9.0",
     "semver-compare": "^1.0.0",
-    "typedoc-default-themes": "^0.10.2"
+    "typedoc-default-themes": "^0.11.3"
   },
   "devDependencies": {
     "@types/firefox-webext-browser": "^78.0.1",
