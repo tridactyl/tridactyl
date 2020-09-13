@@ -74,7 +74,7 @@
 
 // Shared
 import * as Messaging from "@src/lib/messaging"
-import { ownTabId, getTriVersion, browserBg, activeTab, activeTabId, activeTabContainerId, openInNewTab, openInNewWindow, openInTab, queryAndURLwrangler } from "@src/lib/webext"
+import { getTriVersion, browserBg, activeTab, activeTabId, activeTabContainerId, openInNewTab, openInNewWindow, openInTab, queryAndURLwrangler } from "@src/lib/webext"
 import * as Container from "@src/lib/containers"
 import state from "@src/state"
 import { contentState, ModeName } from "@src/content/state_content"
@@ -1879,10 +1879,17 @@ export async function loadaucmds(cmdType: "DocStart" | "DocLoad" | "DocEnd" | "T
     const aucmds = await config.getAsync("autocmds", cmdType)
     const ausites = Object.keys(aucmds)
     const aukeyarr = ausites.filter(e => window.document.location.href.search(e) >= 0)
-    const tabId = await ownTabId()
+    const owntab = await ownTab()
+    const replacements = {
+        TRI_FIRED_MOZ_TABID: owntab.id,
+        TRI_FIRED_TRI_TABINDEX: owntab.index + 1,
+    }
     for (const aukey of aukeyarr) {
+        for (const [k, v] of Object.entries(replacements)) {
+            aucmds[aukey] = aucmds[aukey].replace(k, v)
+        }
         try {
-            await controller.acceptExCmd(aucmds[aukey].replace("TRI_FIRED_MOZ_TABID", tabId))
+            await controller.acceptExCmd(aucmds[aukey])
         } catch (e) {
             logger.error(e.toString())
         }
@@ -3546,9 +3553,11 @@ const AUCMDS = ["DocStart", "DocLoad", "DocEnd", "TriStart", "TabEnter", "TabLef
  *
  * For example: `autocmd BeforeRequest https://www.bbc.co.uk/* () => ({redirectUrl: "https://old.reddit.com"})`. Note the brackets which ensure JavaScript returns a blocking response object rather than interpreting it as a block statement.
  *
- * For DocStart, DocLoad, DocEnd, TabEnter, TabLeft, FullscreenEnter, FullscreenLeft and FullscreenChange: a magic variable called `TRI_FIRED_MOZ_TABID` is also available which will be replaced with the Mozilla `tabId` of the window/tab associated with the fired event.
+ * For DocStart, DocLoad, DocEnd, TabEnter, TabLeft, FullscreenEnter, FullscreenLeft and FullscreenChange: magic variables are available that provide information useful in some excmd's such as:
+        - `TRI_FIRED_MOZ_TABID`: Provides Mozilla's `tabID` associated with the fired event.
+        - `TRI_FIRED_TRI_TABINDEX`: Provides tridactyls internal tab index associated with the fired event.
  *
- *  For example: `autocmd DocStart .*example\.com.* zoom 150 false TRI_FIRED_MOZ_TABID`.
+ * For example: `autocmd DocStart .*example\.com.* zoom 150 false TRI_FIRED_MOZ_TABID`.
  *
  */
 //#background
