@@ -1883,6 +1883,7 @@ export async function loadaucmds(cmdType: "DocStart" | "DocLoad" | "DocEnd" | "T
     const replacements = {
         TRI_FIRED_MOZ_TABID: owntab.id,
         TRI_FIRED_TRI_TABINDEX: owntab.index + 1,
+        TRI_FIRED_MOZ_WINID: owntab.windowId,
     }
     for (const aukey of aukeyarr) {
         for (const [k, v] of Object.entries(replacements)) {
@@ -3556,6 +3557,7 @@ const AUCMDS = ["DocStart", "DocLoad", "DocEnd", "TriStart", "TabEnter", "TabLef
  * For DocStart, DocLoad, DocEnd, TabEnter, TabLeft, FullscreenEnter, FullscreenLeft and FullscreenChange: magic variables are available that provide information useful in some excmd's such as:
         - `TRI_FIRED_MOZ_TABID`: Provides Mozilla's `tabID` associated with the fired event.
         - `TRI_FIRED_TRI_TABINDEX`: Provides tridactyls internal tab index associated with the fired event.
+        - `TRI_FIRED_MOZ_WINID`: Provides Mozilla's `windowId` associated with the fired event.
  *
  * For example: `autocmd DocStart .*example\.com.* zoom 150 false TRI_FIRED_MOZ_TABID`.
  *
