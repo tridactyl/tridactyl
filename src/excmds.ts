@@ -1884,6 +1884,21 @@ export async function loadaucmds(cmdType: "DocStart" | "DocLoad" | "DocEnd" | "T
         TRI_FIRED_MOZ_TABID: owntab.id,
         TRI_FIRED_TRI_TABINDEX: owntab.index + 1,
         TRI_FIRED_MOZ_WINID: owntab.windowId,
+        /* TRI_FIRED_TRI_WININDEX: owntab.windowId, */
+        TRI_FIRED_MOZ_OPENERTABID: owntab.openerTabId,
+        TRI_FIRED_ACTIVE: owntab.active,
+        TRI_FIRED_AUDIBLE: owntab.audible,
+        TRI_FIRED_MUTED: owntab.mutedInfo.muted,
+        TRI_FIRED_DISCARDED: owntab.discarded,
+        TRI_FIRED_HEIGHT: owntab.height,
+        TRI_FIRED_WIDTH: owntab.width,
+        TRI_FIRED_HIDDEN: owntab.hidden,
+        TRI_FIRED_INCOGNITO: owntab.incognito,
+        TRI_FIRED_ISARTICLE: owntab.isArticle,
+        TRI_FIRED_LASTACCESSED: owntab.lastAccessed,
+        TRI_FIRED_PINNED: owntab.pinned,
+        TRI_FIRED_TITLE: owntab.title,
+        TRI_FIRED_URL: owntab.url,
     }
     for (const aukey of aukeyarr) {
         for (const [k, v] of Object.entries(replacements)) {
@@ -3558,6 +3573,20 @@ const AUCMDS = ["DocStart", "DocLoad", "DocEnd", "TriStart", "TabEnter", "TabLef
         - `TRI_FIRED_MOZ_TABID`: Provides Mozilla's `tabID` associated with the fired event.
         - `TRI_FIRED_TRI_TABINDEX`: Provides tridactyls internal tab index associated with the fired event.
         - `TRI_FIRED_MOZ_WINID`: Provides Mozilla's `windowId` associated with the fired event.
+        - `TRI_FIRED_MOZ_OPENERTABID`: The ID of the tab that opened this tab.
+        - `TRI_FIRED_ACTIVE`: Whether the tab is active in its window. This may be true even if the tab's window is not currently focused.
+        - `TRI_FIRED_AUDIBLE`: Indicates whether the tab is producing sound (even if muted).
+        - `TRI_FIRED_MUTED`: Indicates whether the tab is muted.
+        - `TRI_FIRED_DISCARDED`: Whether the tab is discarded. A discarded tab is one whose content has been unloaded from memory.
+        - `TRI_FIRED_HEIGHT`: The height of the tab in pixels. 
+        - `TRI_FIRED_WIDTH`: The width of the tab in pixels.
+        - `TRI_FIRED_HIDDEN`: Whether the tab is hidden.
+        - `TRI_FIRED_INCOGNITO`: Whether the tab is in a private browsing window.
+        - `TRI_FIRED_ISARTICLE`: True if the tab can be rendered in Reader Mode, false otherwise.
+        - `TRI_FIRED_LASTACCESSED`: Time at which the tab was last accessed, in milliseconds since the epoch.
+        - `TRI_FIRED_PINNED`: Whether the tab is pinned.
+        - `TRI_FIRED_TITLE`: The title of the tab.
+        - `TRI_FIRED_URL`: The URL of the document that the tab is displaying.
  *
  * For example: `autocmd DocStart .*example\.com.* zoom 150 false TRI_FIRED_MOZ_TABID`.
  *
