@@ -74,7 +74,7 @@
 
 // Shared
 import * as Messaging from "@src/lib/messaging"
-import { getTriVersion, browserBg, activeTab, activeTabId, activeTabContainerId, openInNewTab, openInNewWindow, openInTab, queryAndURLwrangler } from "@src/lib/webext"
+import { ownWinTriIndex, getTriVersion, browserBg, activeTab, activeTabId, activeTabContainerId, openInNewTab, openInNewWindow, openInTab, queryAndURLwrangler } from "@src/lib/webext"
 import * as Container from "@src/lib/containers"
 import state from "@src/state"
 import { contentState, ModeName } from "@src/content/state_content"
@@ -1884,7 +1884,7 @@ export async function loadaucmds(cmdType: "DocStart" | "DocLoad" | "DocEnd" | "T
         TRI_FIRED_MOZ_TABID: owntab.id,
         TRI_FIRED_TRI_TABINDEX: owntab.index + 1,
         TRI_FIRED_MOZ_WINID: owntab.windowId,
-        /* TRI_FIRED_TRI_WININDEX: owntab.windowId, */
+        TRI_FIRED_TRI_WININDEX: await ownWinTriIndex(),
         TRI_FIRED_MOZ_OPENERTABID: owntab.openerTabId,
         TRI_FIRED_ACTIVE: owntab.active,
         TRI_FIRED_AUDIBLE: owntab.audible,
