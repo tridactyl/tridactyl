@@ -38,7 +38,7 @@
     "jest-webextension-mock": "^3.6.1",
     "marked": "^1.1.1",
     "nearley": "^2.19.6",
-    "prettier": "^2.1.1",
+    "prettier": "^2.1.2",
     "selenium-webdriver": "^4.0.0-alpha.7",
     "shared-git-hooks": "^1.2.1",
     "source-map-loader": "^1.1.0",
