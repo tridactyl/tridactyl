@@ -74,7 +74,11 @@ export async function ownTabId() {
     return (await ownTab()).id
 }
 
-async function windows () { return (await browser.windows.getAll()).map(w => w.id).sort((a, b) => a - b) }
+async function windows() {
+    return (await browserBg.windows.getAll())
+        .map(w => w.id)
+        .sort((a, b) => a - b)
+}
 
 /* Returns tridactyls window index. */
 export async function ownWinTriIndex() {
