@@ -80,12 +80,12 @@ async function windows() {
         .sort((a, b) => a - b)
 }
 
-/* Returns tridactyls window index. */
+/* Returns Tridactyl's window index. */
 export async function ownWinTriIndex() {
     return (await windows()).indexOf((await ownTab()).windowId)
 }
 
-/* Returns mozilla's internal window id from tridactyls index. */
+/* Returns mozilla's internal window id from Tridactyl's index. */
 export async function getWinIdFromIndex(index: string) {
     return (await windows())[index]
 }

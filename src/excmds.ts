@@ -3569,7 +3569,7 @@ const AUCMDS = ["DocStart", "DocLoad", "DocEnd", "TriStart", "TabEnter", "TabLef
  *
  * For example: `autocmd BeforeRequest https://www.bbc.co.uk/* () => ({redirectUrl: "https://old.reddit.com"})`. Note the brackets which ensure JavaScript returns a blocking response object rather than interpreting it as a block statement.
  *
- * For DocStart, DocLoad, DocEnd, TabEnter, TabLeft, FullscreenEnter, FullscreenLeft and FullscreenChange: magic variables are available that provide information useful in some excmd's such as:
+ * For DocStart, DocLoad, DocEnd, TabEnter, TabLeft, FullscreenEnter, FullscreenLeft and FullscreenChange: magic variables are available which are replaced with the relevant string at runtime:
         - `TRI_FIRED_MOZ_TABID`: Provides Mozilla's `tabID` associated with the fired event.
         - `TRI_FIRED_TRI_TABINDEX`: Provides tridactyls internal tab index associated with the fired event.
         - `TRI_FIRED_MOZ_WINID`: Provides Mozilla's `windowId` associated with the fired event.
@@ -3578,7 +3578,7 @@ const AUCMDS = ["DocStart", "DocLoad", "DocEnd", "TriStart", "TabEnter", "TabLef
         - `TRI_FIRED_AUDIBLE`: Indicates whether the tab is producing sound (even if muted).
         - `TRI_FIRED_MUTED`: Indicates whether the tab is muted.
         - `TRI_FIRED_DISCARDED`: Whether the tab is discarded. A discarded tab is one whose content has been unloaded from memory.
-        - `TRI_FIRED_HEIGHT`: The height of the tab in pixels. 
+        - `TRI_FIRED_HEIGHT`: The height of the tab in pixels.
         - `TRI_FIRED_WIDTH`: The width of the tab in pixels.
         - `TRI_FIRED_HIDDEN`: Whether the tab is hidden.
         - `TRI_FIRED_INCOGNITO`: Whether the tab is in a private browsing window.
