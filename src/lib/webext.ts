@@ -74,6 +74,22 @@ export async function ownTabId() {
     return (await ownTab()).id
 }
 
+async function windows() {
+    return (await browserBg.windows.getAll())
+        .map(w => w.id)
+        .sort((a, b) => a - b)
+}
+
+/* Returns Tridactyl's window index. */
+export async function ownWinTriIndex() {
+    return (await windows()).indexOf((await ownTab()).windowId)
+}
+
+/* Returns mozilla's internal window id from Tridactyl's index. */
+export async function getWinIdFromIndex(index: string) {
+    return (await windows())[index]
+}
+
 export async function ownTabContainer() {
     return browserBg.contextualIdentities.get((await ownTab()).cookieStoreId)
 }

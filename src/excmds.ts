@@ -74,7 +74,7 @@
 
 // Shared
 import * as Messaging from "@src/lib/messaging"
-import { getTriVersion, browserBg, activeTab, activeTabId, activeTabContainerId, openInNewTab, openInNewWindow, openInTab, queryAndURLwrangler } from "@src/lib/webext"
+import { ownWinTriIndex, getTriVersion, browserBg, activeTab, activeTabId, activeTabContainerId, openInNewTab, openInNewWindow, openInTab, queryAndURLwrangler } from "@src/lib/webext"
 import * as Container from "@src/lib/containers"
 import state from "@src/state"
 import { contentState, ModeName } from "@src/content/state_content"
@@ -1879,7 +1879,31 @@ export async function loadaucmds(cmdType: "DocStart" | "DocLoad" | "DocEnd" | "T
     const aucmds = await config.getAsync("autocmds", cmdType)
     const ausites = Object.keys(aucmds)
     const aukeyarr = ausites.filter(e => window.document.location.href.search(e) >= 0)
+    const owntab = await ownTab()
+    const replacements = {
+        TRI_FIRED_MOZ_TABID: owntab.id,
+        TRI_FIRED_TRI_TABINDEX: owntab.index + 1,
+        TRI_FIRED_MOZ_WINID: owntab.windowId,
+        TRI_FIRED_TRI_WININDEX: await ownWinTriIndex(),
+        TRI_FIRED_MOZ_OPENERTABID: owntab.openerTabId,
+        TRI_FIRED_ACTIVE: owntab.active,
+        TRI_FIRED_AUDIBLE: owntab.audible,
+        TRI_FIRED_MUTED: owntab.mutedInfo.muted,
+        TRI_FIRED_DISCARDED: owntab.discarded,
+        TRI_FIRED_HEIGHT: owntab.height,
+        TRI_FIRED_WIDTH: owntab.width,
+        TRI_FIRED_HIDDEN: owntab.hidden,
+        TRI_FIRED_INCOGNITO: owntab.incognito,
+        TRI_FIRED_ISARTICLE: owntab.isArticle,
+        TRI_FIRED_LASTACCESSED: owntab.lastAccessed,
+        TRI_FIRED_PINNED: owntab.pinned,
+        TRI_FIRED_TITLE: owntab.title,
+        TRI_FIRED_URL: owntab.url,
+    }
     for (const aukey of aukeyarr) {
+        for (const [k, v] of Object.entries(replacements)) {
+            aucmds[aukey] = aucmds[aukey].replace(k, v)
+        }
         try {
             await controller.acceptExCmd(aucmds[aukey])
         } catch (e) {
@@ -3527,25 +3551,46 @@ export function firefoxsyncpush() {
 //#background_helper
 const AUCMDS = ["DocStart", "DocLoad", "DocEnd", "TriStart", "TabEnter", "TabLeft", "FullscreenChange", "FullscreenEnter", "FullscreenLeft"].concat(webrequests.requestEvents)
 /** Set autocmds to run when certain events happen.
-
- @param event Curently, 'TriStart', 'DocStart', 'DocLoad', 'DocEnd', 'TabEnter', 'TabLeft', 'FullscreenChange', 'FullscreenEnter', 'FullscreenLeft', 'AuthRequired', 'BeforeRedirect', 'BeforeRequest', 'BeforeSendHeaders', 'Completed', 'ErrorOccured', 'HeadersReceived', 'ResponseStarted', and 'SendHeaders' are supported
-
- @param url For DocStart, DocEnd, TabEnter, and TabLeft: a JavaScript regex (e.g. `www\\.amazon\\.co.*`)
-
- We just use [URL.search](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/search).
-
- For TriStart: A regular expression that matches the hostname of the computer
- the autocmd should be run on. This requires the native messenger to be
- installed, except for the ".*" regular expression which will always be
- triggered, even without the native messenger.
-
- For AuthRequired, BeforeRedirect, BeforeRequest, BeforeSendHeaders, Completed, ErrorOccured, HeadersReceived, ResponseStarted and SendHeaders, a [URL match pattern](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/Match_patterns)
-
- @param excmd The excmd to run (use [[composite]] to run multiple commands), __except__ for AuthRequired, BeforeRedirect, BeforeRequest, BeforeSendHeaders, Completed, ErrorOccured, HeadersReceived, ResponseStarted and SendHeaders, events where it must be an inline JavaScript function which maps [details objects specific to the event](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/webRequest#Events) to [blocking responses](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/webRequest/BlockingResponse). This JavaScript function will run in the background context.
-
- For example: `autocmd BeforeRequest https://www.bbc.co.uk/* () => ({redirectUrl: "https://old.reddit.com"})`. Note the brackets which ensure JavaScript returns a blocking response object rather than interpreting it as a block statement.
-
-*/
+ *
+ * @param event Curently, 'TriStart', 'DocStart', 'DocLoad', 'DocEnd', 'TabEnter', 'TabLeft', 'FullscreenChange', 'FullscreenEnter', 'FullscreenLeft', 'AuthRequired', 'BeforeRedirect', 'BeforeRequest', 'BeforeSendHeaders', 'Completed', 'ErrorOccured', 'HeadersReceived', 'ResponseStarted', and 'SendHeaders' are supported
+ *
+ * @param url For DocStart, DocEnd, TabEnter, and TabLeft: a JavaScript regex (e.g. `www\\.amazon\\.co.*`)
+ *
+ * We just use [URL.search](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/search).
+ *
+ * For TriStart: A regular expression that matches the hostname of the computer
+ * the autocmd should be run on. This requires the native messenger to be
+ * installed, except for the ".*" regular expression which will always be
+ * triggered, even without the native messenger.
+ *
+ * For AuthRequired, BeforeRedirect, BeforeRequest, BeforeSendHeaders, Completed, ErrorOccured, HeadersReceived, ResponseStarted and SendHeaders, a [URL match pattern](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/Match_patterns)
+ *
+ * @param excmd The excmd to run (use [[composite]] to run multiple commands), __except__ for AuthRequired, BeforeRedirect, BeforeRequest, BeforeSendHeaders, Completed, ErrorOccured, HeadersReceived, ResponseStarted and SendHeaders, events where it must be an inline JavaScript function which maps [details objects specific to the event](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/webRequest#Events) to [blocking responses](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/webRequest/BlockingResponse). This JavaScript function will run in the background context.
+ *
+ * For example: `autocmd BeforeRequest https://www.bbc.co.uk/* () => ({redirectUrl: "https://old.reddit.com"})`. Note the brackets which ensure JavaScript returns a blocking response object rather than interpreting it as a block statement.
+ *
+ * For DocStart, DocLoad, DocEnd, TabEnter, TabLeft, FullscreenEnter, FullscreenLeft and FullscreenChange: magic variables are available which are replaced with the relevant string at runtime:
+        - `TRI_FIRED_MOZ_TABID`: Provides Mozilla's `tabID` associated with the fired event.
+        - `TRI_FIRED_TRI_TABINDEX`: Provides tridactyls internal tab index associated with the fired event.
+        - `TRI_FIRED_MOZ_WINID`: Provides Mozilla's `windowId` associated with the fired event.
+        - `TRI_FIRED_MOZ_OPENERTABID`: The ID of the tab that opened this tab.
+        - `TRI_FIRED_ACTIVE`: Whether the tab is active in its window. This may be true even if the tab's window is not currently focused.
+        - `TRI_FIRED_AUDIBLE`: Indicates whether the tab is producing sound (even if muted).
+        - `TRI_FIRED_MUTED`: Indicates whether the tab is muted.
+        - `TRI_FIRED_DISCARDED`: Whether the tab is discarded. A discarded tab is one whose content has been unloaded from memory.
+        - `TRI_FIRED_HEIGHT`: The height of the tab in pixels.
+        - `TRI_FIRED_WIDTH`: The width of the tab in pixels.
+        - `TRI_FIRED_HIDDEN`: Whether the tab is hidden.
+        - `TRI_FIRED_INCOGNITO`: Whether the tab is in a private browsing window.
+        - `TRI_FIRED_ISARTICLE`: True if the tab can be rendered in Reader Mode, false otherwise.
+        - `TRI_FIRED_LASTACCESSED`: Time at which the tab was last accessed, in milliseconds since the epoch.
+        - `TRI_FIRED_PINNED`: Whether the tab is pinned.
+        - `TRI_FIRED_TITLE`: The title of the tab.
+        - `TRI_FIRED_URL`: The URL of the document that the tab is displaying.
+ *
+ * For example: `autocmd DocStart .*example\.com.* zoom 150 false TRI_FIRED_MOZ_TABID`.
+ *
+ */
 //#background
 export function autocmd(event: string, url: string, ...excmd: string[]) {
     // rudimentary run time type checking
