@@ -6,12 +6,15 @@
 
 import * as excmds from "@src/.excmds_background.generated"
 import * as R from "ramda"
+import * as config from "@src/lib/config"
 import { messageTab } from "@src/lib/messaging"
 
 export function escapehatch() {
-    // Only works if called via commands API command - fail silently if called otherwise
-    browser.sidebarAction.open().catch()
-    browser.sidebarAction.close().catch()
+    if (config.get("escapehatchsidebarhack") == "true") {
+        // Only works if called via commands API command - fail silently if called otherwise
+        browser.sidebarAction.open().catch()
+        browser.sidebarAction.close().catch()
+    }
     ;(async () => {
         const tabs = await browser.tabs.query({ currentWindow: true })
         const tridactyl_tabs: browser.tabs.Tab[] = []
