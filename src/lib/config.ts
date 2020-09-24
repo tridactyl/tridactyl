@@ -1064,6 +1064,15 @@ export class default_config {
      * Whether to return to visual mode when text is deselected.
      */
     visualexitauto: "true" | "false" = "true"
+
+    /**
+     * Whether to open and close the sidebar quickly to get focus back to the page when <C-,> is pressed.
+     *
+     * Disable if the fact that it closes TreeStyleTabs gets on your nerves too much : )
+     *
+     * NB: when disabled, <C-,> can't get focus back from the address bar, but it can still get it back from lots of other places (e.g. Flash-style video players)
+     */
+    escapehatchsidebarhack: "true" | "false" = "true"
 }
 
 const platform_defaults = {
