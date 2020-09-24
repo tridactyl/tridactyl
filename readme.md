@@ -403,5 +403,5 @@ The logo was designed by Jake Beazley using free vector art by <a target="_blank
 [betas]: https://tridactyl.cmcaine.co.uk/betas/?sort=time&order=desc
 [riskyclick]: https://tridactyl.cmcaine.co.uk/betas/tridactyl-latest.xpi
 [nonewtablink]: https://tridactyl.cmcaine.co.uk/betas/nonewtab/tridactyl_no_new_tab_beta-latest.xpi
-[amo]: https://addons.mozilla.org/en-US/firefox/addon/tridactyl-vim?src=external-github
+[amo]: https://addons.mozilla.org/en-US/firefox/addon/tridactyl-vim?utm_source=github.com&utm_content=readme.md
 [migratelink]: https://github.com/tridactyl/tridactyl/issues/79#issuecomment-351132451
