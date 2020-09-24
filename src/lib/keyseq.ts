@@ -418,6 +418,9 @@ export function translateKeysInPlace(keys, conf): void {
 export function keyMap(conf): KeyMap {
     if (KEYMAP_CACHE[conf]) return KEYMAP_CACHE[conf]
 
+    // Fail silently and pass keys through to page if Tridactyl hasn't loaded yet
+    if (!config.INITIALISED) return new Map()
+
     const mapobj: { [keyseq: string]: string } = config.get(conf)
     if (mapobj === undefined)
         throw new Error(

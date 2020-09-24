@@ -37,7 +37,7 @@ const CONFIGNAME = "userconfig"
 /** @hidden */
 const WAITERS = []
 /** @hidden */
-let INITIALISED = false
+export let INITIALISED = false
 
 /** @hidden */
 // make a naked object
