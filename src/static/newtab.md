@@ -1,14 +1,10 @@
 Tridactyl has to override your new tab page due to WebExtension limitations. You can learn how to change it at the bottom of the page, otherwise please read on for some tips and tricks.
 
--   _Breaking change_: Tridactyl 1.20.0+ no longer tries to keep its configuration in sync automatically with the Firefox Sync storage. The `storageloc` setting has been removed. If you wish to synchronise your configurations, you can use the new `:firefoxsync{push,pull}` manually. NB: **if your settings disappeared**, `:firefoxsyncpull` will probably get them back.
-
--   _Breaking change_: As of Tridactyl 1.20.0, `<C-6>` and `<CS-6>` now work browser-wide. If you have previously unbound them, you'll need to unbind them again with `unbind --mode=browser <C-6>`, etc.
-
 -   You can view the main help page by typing [`:help`][help], and access the tutorial with [`:tutor`][tutor]. There's a [wiki](https://github.com/tridactyl/tridactyl/wiki) too - feel free to add to it. You may find `:apropos` useful for finding relevant settings and commands.
 
 -   You can view your current configuration with `:viewconfig`.
 
--   Tridactyl retreat 👀: 4 of the core Tridactyl developers met up in the real world to work on Tridactyl from 24th May - 1st June 2019 in the Peak District, UK. We've now raised back all the costs we incurred for that week, so thanks to all of you who have donated. If you'd like to chip in towards the next one, [donate using via GitHub sponsors](https://github.com/users/glacambre/sponsorship) who will double your donation and take zero fees, or via [PayPal](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=7JQHV4N2YZCTY).
+-   Tridactyl funding 👀: **GitHub will double any donations to us via GitHub sponsors until the end of November 2020**; if you think you will ever donate to Tridacytl, now is a great time to do it. [Donate using via GitHub sponsors here](https://github.com/users/glacambre/sponsorship). Donors get a nice little newsletter once every few months. You can also donate via [PayPal](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=7JQHV4N2YZCTY), but they charge fairly high fees and won't double your donation. Donations currently go towards ensuring that bovine3dom can afford to work one day a week on Tridactyl. Previously the donations have funded an in-person developer retreat.
 
 *   If Tridactyl breaks a website or is broken by a website, trying the steps in the [troubleshooting guide](https://github.com/tridactyl/tridactyl/blob/master/doc/troubleshooting.md) might help.
 
