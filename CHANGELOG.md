@@ -1,5 +1,23 @@
 # Tridactyl changelog
 
+# Release 1.20.2 / Unreleased
+
+-   New features
+
+    -   `:set escapehatchsidebarhack false` stops `<C-,>` from closing the sidebar (usually Tree Style Tab) at the expense of not being able to grab focus back from the address bar ([#2775](https://github.com/tridactyl/tridactyl/issues/2775))
+    -   `:autocmd` now provides magic variables for many events (so, e.g. you can tell an ex command which tab it should close). See `:help autocmd` and scroll down to the `...excmd` parameter for more information ([#2814](https://github.com/tridactyl/tridactyl/issues/2814))
+        -   `:zoom` now accepts a tab ID to tell it which tab to zoom ([#2809](https://github.com/tridactyl/tridactyl/issues/2809))
+
+-   Bug fixes
+    -   Normal mode now waits for user configuration to load before accepting any keypresses ([#2839](https://github.com/tridactyl/tridactyl/issues/2839))
+    -   Browser-wide maps now show up in `:bind` completions
+
+Thanks to all of our contributors for this release: dependabot-preview[bot], Oliver Blanthorn and Simon H Moore
+
+Extra special thanks go to Simon H Moore who contributed for the first time.
+
+Last, but not least - thank you to everyone who reported issues.
+
 # Release 1.20.1 / 2020-08-17
 
 -   Bug fixes
