@@ -35,6 +35,7 @@ export abstract class CompletionSource {
     readonly options: CompletionOption[]
     node: HTMLElement
     public completion: string
+    public defaultCompletion: string
     public args: string
     protected prefixes: string[] = []
     protected lastFocused: CompletionOption

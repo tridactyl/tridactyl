@@ -31,6 +31,7 @@ class BmarkCompletionOption extends Completions.CompletionOptionHTML
 
 export class BmarkCompletionSource extends Completions.CompletionSourceFuse {
     public options: BmarkCompletionOption[]
+    public defaultCompletion: string
 
     constructor(private _parent) {
         super(["bmarks"], "BmarkCompletionSource", "Bookmarks")
@@ -77,11 +78,16 @@ export class BmarkCompletionSource extends Completions.CompletionSourceFuse {
         // Options are pre-trimmed to the right length.
         this.options.forEach(option => (option.state = "normal"))
 
+        if (this.completion === undefined && this.lastExstr !== undefined && this.options.length != 0) {
+            this.defaultCompletion = "bmarks " + this.options[0].value
+        }
+
         // Call concrete class
         return this.updateDisplay()
     }
 
     select(option: Completions.CompletionOption) {
+        this.defaultCompletion = undefined
         if (this.lastExstr !== undefined && option !== undefined) {
             this.completion = "bmarks " + option.value
             option.state = "focused"
