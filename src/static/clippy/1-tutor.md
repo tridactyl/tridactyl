@@ -20,7 +20,7 @@ The idea behind Tridactyl is to allow you to navigate the web more efficiently w
     -   This is most often used for following links, but it has many other submodes.
     -   You can enter this mode with `f` and exit it with `Escape` or `Enter`.
     -   Hint characters are displayed as uppercase letters, but you should type the lowercase letter.
--   Visual mode
+-   Visual mode (experimental)
     -   This mode allows you to select text on the web page and copy it to the clipboard or search for it using `s` and `S`.
     -   You can enter this mode with `v`, by selecting text with the mouse, `;h` hint mode, `/` searching or by using Firefox's "caret" mode on `F7` and exit it with `Escape` or `Ctrl-[`.
 -   Command mode ("ex-mode")
