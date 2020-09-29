@@ -402,8 +402,9 @@ export function editor_function(fn_name, ...args) {
 
 import * as SELF from "@src/commandline_frame"
 Messaging.addListener("commandline_frame", Messaging.attributeCaller(SELF))
-
 import { getCommandlineFns } from "@src/lib/commandline_cmds"
+import { KeyEventLike } from "./lib/keyseq"
+
 commandline_state.fns = getCommandlineFns(commandline_state)
 Messaging.addListener(
     "commandline_cmd",
