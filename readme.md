@@ -25,8 +25,9 @@ Tridactyl
 
 <br>
 
-
-![Gigantic GIF showing Tridactyl in action](doc/AMO_screenshots/trishowcase.gif)
+<p align="center">
+<img src="doc/AMO_screenshots/trishowcase.gif" alt="Tridactyl GIF">
+</p>
 
 ## Installation
 
