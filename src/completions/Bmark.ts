@@ -31,11 +31,13 @@ class BmarkCompletionOption extends Completions.CompletionOptionHTML
 
 export class BmarkCompletionSource extends Completions.CompletionSourceFuse {
     public options: BmarkCompletionOption[]
+    private shouldSetStateFromScore = true
 
     constructor(private _parent) {
         super(["bmarks"], "BmarkCompletionSource", "Bookmarks")
 
         this._parent.appendChild(this.node)
+        this.sortScoredOptions = true
     }
 
     public async filter(exstr: string) {
@@ -73,9 +75,18 @@ export class BmarkCompletionSource extends Completions.CompletionSourceFuse {
         return this.updateChain()
     }
 
+    setStateFromScore(scoredOpts: Completions.ScoredOption[]) {
+        super.setStateFromScore(scoredOpts, this.shouldSetStateFromScore)
+    }
+
     updateChain() {
-        // Options are pre-trimmed to the right length.
-        this.options.forEach(option => (option.state = "normal"))
+        const [prefix, query] = this.splitOnPrefix(this.lastExstr)
+
+        if (query && query.trim().length > 0) {
+            this.setStateFromScore(this.scoredOptions(query))
+        } else {
+            this.options.forEach(option => (option.state = "normal"))
+        }
 
         // Call concrete class
         return this.updateDisplay()
