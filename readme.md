@@ -10,6 +10,7 @@ Tridactyl
 
 <p align="center">
 <a href="https://travis-ci.org/tridactyl/tridactyl"><img src="https://travis-ci.org/tridactyl/tridactyl.svg?branch=master" alt="Build Status"></a>
+<a href="https://riot.im/app/#/room/#tridactyl:matrix.org"><img src="https://img.shields.io/matrix/tridactyl:matrix.org alt="Matrix Chat"></a>
 <a href="https://gitter.im/tridactyl/Lobby"><img src="https://badges.gitter.im/Join%20Chat.svg" alt="Join Gitter Chat"></a>
 <a href="https://addons.mozilla.org/en-US/firefox/addon/tridactyl-vim/"><img src="https://img.shields.io/amo/users/tridactyl-vim" alt="Mozilla Addon Store"></a>
 </p>
