@@ -6,13 +6,13 @@ Tridactyl
 <br>
 </h1>
 
-<h4 align="center">Replace Firefox's default control mechanism with one modelled on the one true editor, Vim. </h4>
+<h4>Replace Firefox's default control mechanism with one modelled on the one true editor, Vim. </h4>
 
 <p align="center">
 <a href="https://travis-ci.org/tridactyl/tridactyl"><img src="https://travis-ci.org/tridactyl/tridactyl.svg?branch=master" alt="Build Status"></a>
-<a href="https://riot.im/app/#/room/#tridactyl:matrix.org"><img src="https://img.shields.io/matrix/tridactyl:matrix.org alt="Matrix Chat"></a>
+<a href="https://riot.im/app/#/room/#tridactyl:matrix.org"><img src="https://img.shields.io/badge/matrix-join%20chat-green" alt="Matrix Chat"></a>
 <a href="https://gitter.im/tridactyl/Lobby"><img src="https://badges.gitter.im/Join%20Chat.svg" alt="Join Gitter Chat"></a>
-<a href="https://addons.mozilla.org/en-US/firefox/addon/tridactyl-vim/"><img src="https://img.shields.io/amo/users/tridactyl-vim" alt="Mozilla Addon Store"></a>
+<a href="https://addons.mozilla.org/en-US/firefox/addon/tridactyl-vim/"><img src="https://img.shields.io/amo/rating/tridactyl-vim" alt="Mozilla Addon Store"></a>
 </p>
 
 <p align="center">
@@ -170,7 +170,7 @@ You can bind your own shortcuts in normal mode with the `:bind` command. For exa
     -   addons.mozilla.org is now supported so long as you run `fixamo` first.
 -   Tridactyl now supports changing the Firefox GUI if you have the native messenger installed via `guiset`. There's quite a few options available, but `guiset gui none` is probably what you want, perhaps followed up with `guiset tabs always`. See `:help guiset` for a list of all possible options.
 
-## Frequently Asked Questions
+## Frequently asked questions (FAQ)
 
 -   Why doesn't Tridactyl work/why does it break the websites I'm trying to use? or 'Help! A website I use is totally blank when I try to use it with Tridactyl enabled!' or 'Why doesn't Tridactyl work on some pages?'
 
