@@ -3463,6 +3463,8 @@ function validateSetArgs(key: string, values: string[]) {
  * When multiple patterns can apply to a same URL, the pattern that has the highest priority is used. You can set the priority of a pattern by using `:seturl pattern priority 10`. By default every pattern has a priority of 10.
  *
  * Note that the patterns a regex-like, not glob-like. This means that if you want to match everything, you need to use `.*` instead of `*`.
+ *
+ * If you'd like to run an ex-command every time a page loads, see [[autocmd]] instead.
  */
 //#content
 export function seturl(pattern: string, key: string, ...values: string[]) {
