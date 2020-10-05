@@ -4651,7 +4651,8 @@ export function echo(...str: string[]) {
 
 /** helper function for js and jsb
  *
- * -p to take an extra argument located at the end of str[]
+ * -p to take a single extra argument located at the end of str[]
+ * -d[delimiter character] to take a space-separated array of arguments after the delimiter
  * -s to load js script of a source file from the config path
  *
  * @hidden
@@ -4660,36 +4661,62 @@ async function js_helper(str: string[]) {
     /* tslint:disable:no-unused-declaration */
     /* tslint:disable:no-dead-store */
     let JS_ARG = null
-    let jsContent = null
+    /* tslint:disable:no-unused-declaration */
+    /* tslint:disable:no-dead-store */
+    let JS_ARGS = []
+    let jsContent: string = null
 
     let doSource = false
     let fromRC = false
-    let done = false
+    let separator = null
 
-    while (!done) {
-        switch (str[0]) {
-            case "-p":
-                // arg of -p comes from the end of str[]
-                // and we don't know if the user will use it or not
-                // eslint-disable-next-line @typescript-eslint/no-unused-vars
-                JS_ARG = str.pop()
-                break
-            case "-s":
-                doSource = true
-                break
-            case "-r":
-                doSource = true
-                fromRC = true
-                break
-            default:
-                done = true
-                break
+    while (true) {
+        const flag = str[0]
+
+        if (flag == "-p") {
+            // arg of -p comes from the end of str[]
+            // and we don't know if the user will use it or not
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            JS_ARG = str.pop()
+            str.shift()
+            continue
         }
-        if (!done) str.shift()
+
+        if (flag == "-s") {
+            doSource = true
+            str.shift()
+            continue
+        }
+
+        if (flag == "-r") {
+            doSource = true
+            fromRC = true
+            str.shift()
+            continue
+        }
+
+        // d for delimiter innit
+        const match = /-d(.)/.exec(flag)
+        if (match !== null) {
+            separator = match[1]
+            str.shift()
+            continue
+        }
+
+        break
+    }
+
+    if (separator !== null) {
+        // user may or may not use JS_ARGS
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        JS_ARGS = str.join(" ").split(separator)[1].split(" ")
+        jsContent = str.join(" ").split(separator)[0]
+    } else {
+        jsContent = str.join(" ")
     }
 
     if (doSource) {
-        let sourcePath = str.join(" ")
+        let sourcePath = jsContent
         if (fromRC) {
             const sep = "/"
             const rcPath = (await Native.getrcpath()).split(sep).slice(0, -1)
@@ -4698,9 +4725,8 @@ async function js_helper(str: string[]) {
         const file = await Native.read(sourcePath)
         if (file.code !== 0) throw new Error("Couldn't read js file " + sourcePath)
         jsContent = file.content
-    } else {
-        jsContent = str.join(" ")
     }
+
     return eval(jsContent)
 }
 
@@ -4719,12 +4745,13 @@ async function js_helper(str: string[]) {
  *
  *   - options
  *     - -p pass an argument to js for use with `composite`. The argument is passed as the last space-separated argument of `js`, i.e. `str[str.length-1]` and stored in the magic variable JS_ARG - see below for example usage.
+ *    -d[delimiter character] to take a space-separated array of arguments after the delimiter, stored in the magic variable `JS_ARGS` (which is an array).
  *     - -s load the js source from a Javascript file.
  *     - -r load the js source from a Javascript file relative to your RC file. (NB: will throw an error if no RC file exists)
  *
  * Some of Tridactyl's functions are accessible here via the `tri` object. Just do `console.log(tri)` in the web console on the new tab page to see what's available.
  *
- * If you want to pipe an argument to `js`, you need to use the "-p" flag and then use the JS_ARG global variable, e.g:
+ * If you want to pipe an argument to `js`, you need to use the "-p" flag or "-d" flag with an argument and then use the JS_ARG global variable, e.g:
  *
  *     `composite get_current_url | js -p alert(JS_ARG)`
  *
@@ -4740,6 +4767,10 @@ async function js_helper(str: string[]) {
  *
  *     `js tri.hello = function (){ alert("hello world!") };`
  *     `js tri.hello()`
+ *
+ *  You can use `-d` to make your own ex-commands:
+ *
+ *      `command loudecho js -d€ window.alert(JS_ARGS.join(" "))€`
  *
  */
 /* tslint:disable:no-identical-functions */
