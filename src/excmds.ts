@@ -471,6 +471,17 @@ export async function unloadtheme(themename: string) {
  *
  * Example: `:colourscheme mysupertheme`
  * On linux, this will load ~/.config/tridactyl/themes/mysupertheme.css
+ *
+ * __NB__: due to Tridactyl's architecture, the theme will take a small amount of time to apply as each page is loaded. If this annoys you, you may use [userContent.css](http://kb.mozillazine.org/index.php?title=UserContent.css&printable=yes) to make changes to Tridactyl earlier. For example, users using the dark theme may like to put
+ *
+ * ```
+ * :root {
+ *     --tridactyl-bg: black !important;
+ *     --tridactyl-fg: white !important;
+ * }
+ * ```
+ *
+ * in their `userContent.css`. Follow [issue #2510](https://github.com/tridactyl/tridactyl/issues/2510) if you would like to find out when we have made a more user-friendly solution.
  */
 //#background
 export async function colourscheme(themename: string) {
