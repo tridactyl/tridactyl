@@ -2480,10 +2480,11 @@ export async function tabcloseallto(side: string) {
     current window unless the most recently closed item is a window.
 
     Supplying either "tab" or "window" as an argument will specifically only
-    restore an item of the specified type.
+    restore an item of the specified type. Supplying "tab_strict" only restores
+    tabs that were open in the current window.
 
     @param item
-        The type of item to restore. Valid inputs are "recent", "tab" and "window".
+        The type of item to restore. Valid inputs are "recent", "tab", "tab_strict" and "window".
     @return
         The tab or window id of the restored item. Returns -1 if no items are found.
  */
@@ -2495,6 +2496,16 @@ export async function undo(item = "recent"): Promise<number> {
     if (item === "tab") {
         const lastSession = sessions.find(s => {
             if (s.tab) return true
+        })
+        if (lastSession) {
+            browser.sessions.restore(lastSession.tab.sessionId)
+            return lastSession.tab.id
+        }
+    } else if (item === "tab_strict") {
+        const lastSession = sessions.find(s => {
+            if (s.tab && s.tab.windowId === current_win_id) {
+                return true
+            }
         })
         if (lastSession) {
             browser.sessions.restore(lastSession.tab.sessionId)
