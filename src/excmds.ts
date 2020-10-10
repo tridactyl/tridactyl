@@ -2492,63 +2492,25 @@ export async function tabcloseallto(side: string) {
 export async function undo(item = "recent"): Promise<number> {
     const current_win_id: number = (await browser.windows.getCurrent()).id
     const sessions = await browser.sessions.getRecentlyClosed()
+    const reUndoType = /^tab|tab_strict|window|recent$/
 
-    if (item === "tab") {
-        const lastSession = sessions.find(s => {
-            if (s.tab) return true
-        })
-        if (lastSession) {
-            browser.sessions.restore(lastSession.tab.sessionId)
-            return lastSession.tab.id
-        }
-    } else if (item === "tab_strict") {
-        const lastSession = sessions.find(s => {
-            if (s.tab && s.tab.windowId === current_win_id) {
-                return true
-            }
-        })
-        if (lastSession) {
-            browser.sessions.restore(lastSession.tab.sessionId)
-            return lastSession.tab.id
-        }
-    } else if (item === "window") {
-        const lastSession = sessions.find(s => {
-            if (s.window) return true
-        })
-        if (lastSession) {
-            browser.sessions.restore(lastSession.window.sessionId)
-            return lastSession.window.id
-        }
-    } else if (item === "recent") {
-        // The first session object that's a window or a tab from this window. Or undefined if sessions is empty.
-        const lastSession = sessions.find(s => {
-            if (s.window) {
-                return true
-            } else if (s.tab && s.tab.windowId === current_win_id) {
-                return true
-            } else {
-                return false
-            }
-        })
+    if (!reUndoType.test(item) && isNaN(parseInt(item, 10))) {
+        throw new Error(`[undo] Invalid argument: ${item}. Must be one of "recent", "tab", "tab_strict" or "window"`)
+    }
 
-        if (lastSession) {
-            if (lastSession.tab) {
-                browser.sessions.restore(lastSession.tab.sessionId)
-                return lastSession.tab.id
-            } else if (lastSession.window) {
-                browser.sessions.restore(lastSession.window.sessionId)
-                return lastSession.window.id
-            }
-        }
-    } else if (!isNaN(parseInt(item, 10))) {
-        const sessionId = item
-        const session = sessions.find(s => (s.tab || s.window).sessionId === sessionId)
-        if (session) {
-            browser.sessions.restore(sessionId)
-            return (session.tab || session.window).id
-        }
-    } else {
-        throw new Error(`[undo] Invalid argument: ${item}. Must be one of "tab", "window", "recent"`)
+    // Pick the first session object that is a window or a tab from this window ("recent"), a tab ("tab"), a tab
+    // from this window ("tab_strict"), a window ("window") or pick by sessionId.
+    const session = sessions.find(s =>
+        (item === "recent" && (s.window || (s.tab && s.tab.windowId === current_win_id))) ||
+        (item === "tab" && s.tab) ||
+        (item === "tab_strict" && s.tab && s.tab.windowId === current_win_id) ||
+        (item === "window" && s.window) ||
+        (!isNaN(parseInt(item, 10)) && (s.tab || s.window).sessionId === item)
+    )
+
+    if (session) {
+        browser.sessions.restore((session.tab || session.window).sessionId)
+        return (session.tab || session.window).id
     }
     return -1
 }
