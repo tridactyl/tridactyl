@@ -6,10 +6,6 @@ body {
     overflow: hidden;
 }
 
-* {
-    text-align: center !important;
-}
-
 .fade {
     position: relative;
     width: 100%;
@@ -29,9 +25,22 @@ body {
     font-size: 500%;
     font-weight: 600;
     letter-spacing: 6px;
-    line-height: 150%;
     transform: perspective(400px) rotateX(20deg);
-    text-align: justify;
+    text-align: left;
+}
+
+h3 {
+    line-height: 130%;
+}
+
+h2 {
+    line-height: 140%;
+}
+
+p {
+    margin-top: 0;
+    line-height: 95%;
+    margin-bottom: 0.5em;
 }
 
 .crawl {
