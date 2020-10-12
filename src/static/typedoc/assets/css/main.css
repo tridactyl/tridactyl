@@ -2929,6 +2929,16 @@ body {
     background: #fff;
 }
 
+body {
+    font-family: var(--tridactyl-font-family-sans);
+    font-size: var(--tridactyl-font-size);
+    color: var(--tridactyl-fg);
+    background: var(--tridactyl-bg);
+    /* max-width: 40em; */
+    line-height: 140%;
+    margin: auto;
+}
+
 .tsd-panel {
     box-shadow: unset;
     /* border: solid rgba(220,220,220) 1px; */
