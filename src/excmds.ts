@@ -2492,21 +2492,25 @@ export async function tabcloseallto(side: string) {
 export async function undo(item = "recent"): Promise<number> {
     const current_win_id: number = (await browser.windows.getCurrent()).id
     const sessions = await browser.sessions.getRecentlyClosed()
-    const reUndoType = /^tab|tab_strict|window|recent$/
-
-    if (!reUndoType.test(item) && isNaN(parseInt(item, 10))) {
-        throw new Error(`[undo] Invalid argument: ${item}. Must be one of "recent", "tab", "tab_strict" or "window"`)
-    }
 
     // Pick the first session object that is a window or a tab from this window ("recent"), a tab ("tab"), a tab
     // from this window ("tab_strict"), a window ("window") or pick by sessionId.
-    const session = sessions.find(s =>
-        (item === "recent" && (s.window || (s.tab && s.tab.windowId === current_win_id))) ||
-        (item === "tab" && s.tab) ||
-        (item === "tab_strict" && s.tab && s.tab.windowId === current_win_id) ||
-        (item === "window" && s.window) ||
-        (!isNaN(parseInt(item, 10)) && (s.tab || s.window).sessionId === item)
-    )
+    const predicate =
+        item === "recent"
+            ? s => s.window || (s.tab && s.tab.windowId === current_win_id)
+            : item === "tab"
+            ? s => s.tab
+            : item === "tab_strict"
+            ? s => s.tab && s.tab.windowId === current_win_id
+            : item === "window"
+            ? s => s.window
+            : !isNaN(parseInt(item, 10))
+            ? s => (s.tab || s.window).sessionId === item
+            : s => {
+                  throw new Error("blah")
+              } // this won't throw an error if there isn't anything in the session list, but I don't think that matters
+
+    const session = sessions.find(predicate)
 
     if (session) {
         browser.sessions.restore((session.tab || session.window).sessionId)
