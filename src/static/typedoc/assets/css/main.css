@@ -2338,6 +2338,11 @@ footer .tsd-legend {
     text-decoration: none;
     transition: border-left-color 0.1s;
 }
+
+.tsd-navigation.secondary a {
+    color: var(--tridactyl-fg);
+}
+
 .tsd-navigation a:hover {
     text-decoration: underline;
 }
@@ -2916,6 +2921,9 @@ img {
     margin-top: 0px;
 }
 
+.tsd-navigation {
+    background: var(--tridactyl-bg);
+}
 /* Unhide return values as they can be used in composite now*/
 .tsd-returns-title {
     /* display: none; */
@@ -2943,6 +2951,10 @@ body {
     box-shadow: unset;
     /* border: solid rgba(220,220,220) 1px; */
     border-top: solid lightgrey 1.5px;
+}
+
+.tsd-panel {
+    background: var(--tridactyl-bg);
 }
 
 a {
