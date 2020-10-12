@@ -2339,15 +2339,10 @@ footer .tsd-legend {
     padding-top: 2px;
     padding-bottom: 2px;
     border-left: 2px solid transparent;
-    color: #222;
+    color: var(--tridactyl-fg);
     text-decoration: none;
     transition: border-left-color 0.1s;
 }
-
-.tsd-navigation.secondary a {
-    color: var(--tridactyl-fg);
-}
-
 .tsd-navigation a:hover {
     text-decoration: underline;
 }
@@ -2924,9 +2919,6 @@ img {
 }
 .tsd-navigation {
     margin-top: 0px;
-}
-
-.tsd-navigation {
     background: var(--tridactyl-bg);
 }
 /* Unhide return values as they can be used in composite now*/
@@ -2935,30 +2927,18 @@ img {
 }
 
 body {
-    font-family: sans-serif;
-    font-size: 1rem;
-    text-align: justify;
-    -moz-hyphens: auto;
-    background: #fff;
-}
-
-body {
     font-family: var(--tridactyl-font-family-sans);
     font-size: var(--tridactyl-font-size);
+    text-align: justify;
+    -moz-hyphens: auto;
     color: var(--tridactyl-fg);
     background: var(--tridactyl-bg);
-    /* max-width: 40em; */
-    line-height: 140%;
-    margin: auto;
 }
 
 .tsd-panel {
     box-shadow: unset;
     /* border: solid rgba(220,220,220) 1px; */
     border-top: solid lightgrey 1.5px;
-}
-
-.tsd-panel {
     background: var(--tridactyl-bg);
 }
 
