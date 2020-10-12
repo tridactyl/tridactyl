@@ -1,0 +1,15 @@
+:root.TridactylThemeQuakelight #completions .sectionHeader {
+    display: none;
+}
+
+:root.TridactylThemeQuakelight #tridactyl-colon::before {
+    content: "] ";
+}
+
+:root.TridactylThemeQuakelight #cmdline_iframe {
+    position: fixed !important;
+    bottom: unset;
+    top: 0% !important;
+    left: 0% !important;
+    box-shadow: rgba(0, 0, 0, 0.5) 0px 0px 15px !important;
+}
