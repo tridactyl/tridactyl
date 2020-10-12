@@ -2326,6 +2326,11 @@ footer .tsd-legend {
     border-bottom: none;
 }
 
+.scroller{
+  scrollbar-color: var(--tridactyl-bg) var(--tridactyl-fg);
+  scrollbar-width: thin;
+}
+
 .tsd-navigation {
     padding: 0 0 0 40px;
 }
