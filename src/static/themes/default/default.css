@@ -7,6 +7,7 @@
     --tridactyl-bg: white;
     --tridactyl-fg: black;
     --tridactyl-logo: url("data:image/png;base64,REPLACE_ME_WITH_BASE64_TRIDACTYL_LOGO");
+    --tridactyl-scrollbar-color: auto;
 
     /* Mode indicator */
     --tridactyl-status-font-family: var(--tridactyl-font-family);

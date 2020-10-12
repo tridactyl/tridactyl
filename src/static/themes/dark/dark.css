@@ -232,6 +232,8 @@
     --tridactyl-fg: var(--tridactyl-photon-colours-in-content-page-color);
     --tridactyl-bg: var(--tridactyl-photon-colours-in-content-page-background);
 
+    --tridactyl-scrollbar-color: var(--tridactyl-bg) var(--tridactyl-fg);
+
     --tridactyl-cmdl-fg: var(--tridactyl-photon-colours-in-content-text-color);
     --tridactyl-cmdl-bg: var(
         --tridactyl-photon-colours-in-content-category-header-background

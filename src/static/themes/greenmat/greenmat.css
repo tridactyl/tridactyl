@@ -5,6 +5,8 @@
     --tridactyl-cmdl-bg: #001500;
     --tridactyl-font-family: "Aldrich";
 
+    --tridactyl-scrollbar-color: var(--tridactyl-bg) var(--tridactyl-fg);
+
     --tridactyl-header-first-bg: black;
     --tridactyl-header-second-bg: #003500;
     --tridactyl-header-third-bg: black;

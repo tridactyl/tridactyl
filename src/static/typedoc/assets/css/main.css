@@ -2327,7 +2327,7 @@ footer .tsd-legend {
 }
 
 .scroller{
-  scrollbar-color: var(--tridactyl-bg) var(--tridactyl-fg);
+  scrollbar-color: var(--tridactyl-scrollbar-color);
   scrollbar-width: thin;
 }
 

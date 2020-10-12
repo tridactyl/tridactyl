@@ -1,6 +1,7 @@
 :root.TridactylThemeQuake {
     --tridactyl-bg: black;
     --tridactyl-fg: lightgreen;
+    --tridactyl-scrollbar-color: var(--tridactyl-bg) var(--tridactyl-fg);
 }
 
 :root.TridactylThemeQuake #completions .sectionHeader {
