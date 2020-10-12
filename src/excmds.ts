@@ -2507,9 +2507,8 @@ export async function undo(item = "recent"): Promise<number> {
             : !isNaN(parseInt(item, 10))
             ? s => (s.tab || s.window).sessionId === item
             : s => {
-                  throw new Error("blah")
+                  throw new Error(`[undo] Invalid argument: ${item}. Must be one of "recent, "tab", "tab_strict" or "window"`)
               } // this won't throw an error if there isn't anything in the session list, but I don't think that matters
-
     const session = sessions.find(predicate)
 
     if (session) {
