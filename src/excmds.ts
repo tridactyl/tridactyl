@@ -471,6 +471,17 @@ export async function unloadtheme(themename: string) {
  *
  * Example: `:colourscheme mysupertheme`
  * On linux, this will load ~/.config/tridactyl/themes/mysupertheme.css
+ *
+ * __NB__: due to Tridactyl's architecture, the theme will take a small amount of time to apply as each page is loaded. If this annoys you, you may use [userContent.css](http://kb.mozillazine.org/index.php?title=UserContent.css&printable=yes) to make changes to Tridactyl earlier. For example, users using the dark theme may like to put
+ *
+ * ```
+ * :root {
+ *     --tridactyl-bg: black !important;
+ *     --tridactyl-fg: white !important;
+ * }
+ * ```
+ *
+ * in their `userContent.css`. Follow [issue #2510](https://github.com/tridactyl/tridactyl/issues/2510) if you would like to find out when we have made a more user-friendly solution.
  */
 //#background
 export async function colourscheme(themename: string) {
@@ -754,7 +765,9 @@ export async function mktridactylrc(...args: string[]) {
  *
  * On Windows, the `~` expands to `%USERPROFILE%`.
  *
- * The RC file is just a bunch of Tridactyl excmds (i.e, the stuff on this help page). Settings persist in local storage; add `sanitise tridactyllocal tridactylsync` to make it more Vim like. There's an [example file](https://raw.githubusercontent.com/tridactyl/tridactyl/master/.tridactylrc) if you want it.
+ * The RC file is just a bunch of Tridactyl excmds (i.e, the stuff on this help page). Settings persist in local storage. There's an [example file](https://raw.githubusercontent.com/tridactyl/tridactyl/master/.tridactylrc) if you want it.
+ *
+ * There is a [bug](https://github.com/tridactyl/tridactyl/issues/1409) where not all lines of the RC file are executed if you use `sanitise` at the top of it. We instead recommend you put `:bind ZZ composite sanitise tridactyllocal; qall` in your RC file and use `ZZ` to exit Firefox.
  *
  * @param args the file/URL to open. For files: must be an absolute path, but can contain environment variables and things like ~.
  */
@@ -2467,10 +2480,11 @@ export async function tabcloseallto(side: string) {
     current window unless the most recently closed item is a window.
 
     Supplying either "tab" or "window" as an argument will specifically only
-    restore an item of the specified type.
+    restore an item of the specified type. Supplying "tab_strict" only restores
+    tabs that were open in the current window.
 
     @param item
-        The type of item to restore. Valid inputs are "recent", "tab" and "window".
+        The type of item to restore. Valid inputs are "recent", "tab", "tab_strict" and "window".
     @return
         The tab or window id of the restored item. Returns -1 if no items are found.
  */
@@ -2479,52 +2493,27 @@ export async function undo(item = "recent"): Promise<number> {
     const current_win_id: number = (await browser.windows.getCurrent()).id
     const sessions = await browser.sessions.getRecentlyClosed()
 
-    if (item === "tab") {
-        const lastSession = sessions.find(s => {
-            if (s.tab) return true
-        })
-        if (lastSession) {
-            browser.sessions.restore(lastSession.tab.sessionId)
-            return lastSession.tab.id
-        }
-    } else if (item === "window") {
-        const lastSession = sessions.find(s => {
-            if (s.window) return true
-        })
-        if (lastSession) {
-            browser.sessions.restore(lastSession.window.sessionId)
-            return lastSession.window.id
-        }
-    } else if (item === "recent") {
-        // The first session object that's a window or a tab from this window. Or undefined if sessions is empty.
-        const lastSession = sessions.find(s => {
-            if (s.window) {
-                return true
-            } else if (s.tab && s.tab.windowId === current_win_id) {
-                return true
-            } else {
-                return false
-            }
-        })
+    // Pick the first session object that is a window or a tab from this window ("recent"), a tab ("tab"), a tab
+    // from this window ("tab_strict"), a window ("window") or pick by sessionId.
+    const predicate =
+        item === "recent"
+            ? s => s.window || (s.tab && s.tab.windowId === current_win_id)
+            : item === "tab"
+            ? s => s.tab
+            : item === "tab_strict"
+            ? s => s.tab && s.tab.windowId === current_win_id
+            : item === "window"
+            ? s => s.window
+            : !isNaN(parseInt(item, 10))
+            ? s => (s.tab || s.window).sessionId === item
+            : s => {
+                  throw new Error(`[undo] Invalid argument: ${item}. Must be one of "recent, "tab", "tab_strict", "window" or a sessionId (by selecting a session using the undo completion).`)
+              } // this won't throw an error if there isn't anything in the session list, but I don't think that matters
+    const session = sessions.find(predicate)
 
-        if (lastSession) {
-            if (lastSession.tab) {
-                browser.sessions.restore(lastSession.tab.sessionId)
-                return lastSession.tab.id
-            } else if (lastSession.window) {
-                browser.sessions.restore(lastSession.window.sessionId)
-                return lastSession.window.id
-            }
-        }
-    } else if (!isNaN(parseInt(item, 10))) {
-        const sessionId = item
-        const session = sessions.find(s => (s.tab || s.window).sessionId === sessionId)
-        if (session) {
-            browser.sessions.restore(sessionId)
-            return (session.tab || session.window).id
-        }
-    } else {
-        throw new Error(`[undo] Invalid argument: ${item}. Must be one of "tab", "window", "recent"`)
+    if (session) {
+        browser.sessions.restore((session.tab || session.window).sessionId)
+        return (session.tab || session.window).id
     }
     return -1
 }
@@ -3463,6 +3452,8 @@ function validateSetArgs(key: string, values: string[]) {
  * When multiple patterns can apply to a same URL, the pattern that has the highest priority is used. You can set the priority of a pattern by using `:seturl pattern priority 10`. By default every pattern has a priority of 10.
  *
  * Note that the patterns a regex-like, not glob-like. This means that if you want to match everything, you need to use `.*` instead of `*`.
+ *
+ * If you'd like to run an ex-command every time a page loads, see [[autocmd]] instead.
  */
 //#content
 export function seturl(pattern: string, key: string, ...values: string[]) {
@@ -4638,7 +4629,8 @@ export function echo(...str: string[]) {
 
 /** helper function for js and jsb
  *
- * -p to take an extra argument located at the end of str[]
+ * -p to take a single extra argument located at the end of str[]
+ * -d[delimiter character] to take a space-separated array of arguments after the delimiter
  * -s to load js script of a source file from the config path
  *
  * @hidden
@@ -4647,36 +4639,62 @@ async function js_helper(str: string[]) {
     /* tslint:disable:no-unused-declaration */
     /* tslint:disable:no-dead-store */
     let JS_ARG = null
-    let jsContent = null
+    /* tslint:disable:no-unused-declaration */
+    /* tslint:disable:no-dead-store */
+    let JS_ARGS = []
+    let jsContent: string = null
 
     let doSource = false
     let fromRC = false
-    let done = false
+    let separator = null
 
-    while (!done) {
-        switch (str[0]) {
-            case "-p":
-                // arg of -p comes from the end of str[]
-                // and we don't know if the user will use it or not
-                // eslint-disable-next-line @typescript-eslint/no-unused-vars
-                JS_ARG = str.pop()
-                break
-            case "-s":
-                doSource = true
-                break
-            case "-r":
-                doSource = true
-                fromRC = true
-                break
-            default:
-                done = true
-                break
+    while (true) {
+        const flag = str[0]
+
+        if (flag == "-p") {
+            // arg of -p comes from the end of str[]
+            // and we don't know if the user will use it or not
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            JS_ARG = str.pop()
+            str.shift()
+            continue
         }
-        if (!done) str.shift()
+
+        if (flag == "-s") {
+            doSource = true
+            str.shift()
+            continue
+        }
+
+        if (flag == "-r") {
+            doSource = true
+            fromRC = true
+            str.shift()
+            continue
+        }
+
+        // d for delimiter innit
+        const match = /-d(.)/.exec(flag)
+        if (match !== null) {
+            separator = match[1]
+            str.shift()
+            continue
+        }
+
+        break
+    }
+
+    if (separator !== null) {
+        // user may or may not use JS_ARGS
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        JS_ARGS = str.join(" ").split(separator)[1].split(" ")
+        jsContent = str.join(" ").split(separator)[0]
+    } else {
+        jsContent = str.join(" ")
     }
 
     if (doSource) {
-        let sourcePath = str.join(" ")
+        let sourcePath = jsContent
         if (fromRC) {
             const sep = "/"
             const rcPath = (await Native.getrcpath()).split(sep).slice(0, -1)
@@ -4685,9 +4703,8 @@ async function js_helper(str: string[]) {
         const file = await Native.read(sourcePath)
         if (file.code !== 0) throw new Error("Couldn't read js file " + sourcePath)
         jsContent = file.content
-    } else {
-        jsContent = str.join(" ")
     }
+
     return eval(jsContent)
 }
 
@@ -4706,12 +4723,13 @@ async function js_helper(str: string[]) {
  *
  *   - options
  *     - -p pass an argument to js for use with `composite`. The argument is passed as the last space-separated argument of `js`, i.e. `str[str.length-1]` and stored in the magic variable JS_ARG - see below for example usage.
+ *    -d[delimiter character] to take a space-separated array of arguments after the delimiter, stored in the magic variable `JS_ARGS` (which is an array).
  *     - -s load the js source from a Javascript file.
  *     - -r load the js source from a Javascript file relative to your RC file. (NB: will throw an error if no RC file exists)
  *
  * Some of Tridactyl's functions are accessible here via the `tri` object. Just do `console.log(tri)` in the web console on the new tab page to see what's available.
  *
- * If you want to pipe an argument to `js`, you need to use the "-p" flag and then use the JS_ARG global variable, e.g:
+ * If you want to pipe an argument to `js`, you need to use the "-p" flag or "-d" flag with an argument and then use the JS_ARG global variable, e.g:
  *
  *     `composite get_current_url | js -p alert(JS_ARG)`
  *
@@ -4727,6 +4745,10 @@ async function js_helper(str: string[]) {
  *
  *     `js tri.hello = function (){ alert("hello world!") };`
  *     `js tri.hello()`
+ *
+ *  You can use `-d` to make your own ex-commands:
+ *
+ *      `command loudecho js -d€ window.alert(JS_ARGS.join(" "))€`
  *
  */
 /* tslint:disable:no-identical-functions */

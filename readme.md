@@ -1,12 +1,36 @@
-![Tridactyl logo](src/static/logo/Tridactyl_200px.png)
+<h1 align="center">
+<br>
+<img src="src/static/logo/Tridactyl_200px.png" alt="Tridactyl Logo" width="200">
+<br>
+Tridactyl
+<br>
+</h1>
 
-# Tridactyl [![Build Status](https://travis-ci.org/tridactyl/tridactyl.svg?branch=master)](https://travis-ci.org/tridactyl/tridactyl) [![Matrix Chat][matrix-badge]][matrix-link] [![Gitter Chat][gitter-badge]][gitter-link]
+<h4>Replace Firefox's default control mechanism with one modelled on the one true editor, Vim. </h4>
 
-Replace Firefox's default control mechanism with one modelled on the one true editor, Vim.
+<p align="center">
+<a href="https://travis-ci.org/tridactyl/tridactyl"><img src="https://travis-ci.org/tridactyl/tridactyl.svg?branch=master" alt="Build Status"></a>
+<a href="https://riot.im/app/#/room/#tridactyl:matrix.org"><img src="https://img.shields.io/badge/matrix-join%20chat-green" alt="Matrix Chat"></a>
+<a href="https://gitter.im/tridactyl/Lobby"><img src="https://badges.gitter.im/Join%20Chat.svg" alt="Join Gitter Chat"></a>
+<a href="https://addons.mozilla.org/en-US/firefox/addon/tridactyl-vim/"><img src="https://img.shields.io/amo/rating/tridactyl-vim" alt="Mozilla Addon Store"></a>
+</p>
 
-![Gigantic GIF showing Tridactyl in action](doc/AMO_screenshots/trishowcase.gif)
+<p align="center">
+<a href="#installation">Installation</a> •
+<a href="#changelog">Changelog</a> •
+<a href="#first-look">First Look</a> •
+<a href="#highlighted-features">Features</a> •
+<a href="#frequently-asked-questions">FAQ</a> •
+<a href="#contributing">Contributing</a>
+</p>
 
-## Installing
+<br>
+
+<p align="center">
+<img src="doc/AMO_screenshots/trishowcase.gif" alt="Tridactyl GIF">
+</p>
+
+## Installation
 
 [Simply click this link in Firefox to install our latest "beta" build][riskyclick]. If you want more options, read on.
 
@@ -30,7 +54,7 @@ Tridactyl stable can be installed from the [Mozilla add-ons website (the AMO)][a
 
 If you want to use advanced features such as edit-in-Vim, you'll also need to install the native messenger or executable, instructions for which can be found by typing `:installnative` and hitting enter once you are in Tridactyl. Arch users can install the [AUR package](https://aur.archlinux.org/packages/firefox-tridactyl-native/) `firefox-tridactyl-native` instead.
 
-## Migrating between beta and stable builds
+### Migrating between beta and stable builds
 
 Our beta and stable versions store their configurations in separate places. To migrate between the two, see [the wiki](https://github.com/tridactyl/tridactyl/wiki/Migration-from-stable-to-beta).
 
