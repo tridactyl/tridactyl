@@ -1,7 +1,9 @@
 import * as Messaging from "@src/lib/messaging"
 import * as Completions from "@src/completions"
+import * as config from "@src/lib/config"
 
-class RssCompletionOption extends Completions.CompletionOptionHTML
+class RssCompletionOption
+    extends Completions.CompletionOptionHTML
     implements Completions.CompletionOptionFuse {
     public fuseKeys = []
 
@@ -29,6 +31,8 @@ export class RssCompletionSource extends Completions.CompletionSourceFuse {
         super(["rssexec"], "RssCompletionSource", "Feeds")
 
         this.updateOptions()
+        this.shouldSetStateFromScore =
+            config.get("completions", "Rss", "autoselect") === "true"
         this._parent.appendChild(this.node)
     }
 

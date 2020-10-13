@@ -1,5 +1,6 @@
 import { browserBg } from "@src/lib/webext.ts"
 import * as Completions from "@src/completions"
+import * as config from "@src/lib/config"
 
 function computeDate(session) {
     let howLong = Math.round(
@@ -41,7 +42,8 @@ function getTabInfo(session) {
     return [tab, extraInfo]
 }
 
-class SessionCompletionOption extends Completions.CompletionOptionHTML
+class SessionCompletionOption
+    extends Completions.CompletionOptionHTML
     implements Completions.CompletionOptionFuse {
     public fuseKeys = []
 
@@ -71,6 +73,8 @@ export class SessionsCompletionSource extends Completions.CompletionSourceFuse {
         super(["undo"], "SessionCompletionSource", "sessions")
 
         this.updateOptions()
+        this.shouldSetStateFromScore =
+            config.get("completions", "Sessions", "autoselect") === "true"
         this._parent.appendChild(this.node)
     }
 

@@ -982,6 +982,24 @@ export class default_config {
     bmarkweight = 100
 
     /**
+     * General completions options - NB: options are set according to our internal completion source name - see - `src/completions/[name].ts` in the Tridactyl source.
+     */
+    completions = {
+        Tab: {
+            /**
+             * Whether to automatically select the closest matching completion
+             */
+            autoselect: "true",
+        },
+        Rss: {
+            autoselect: "true",
+        },
+        Sessions: {
+            autoselect: "true",
+        },
+    }
+
+    /**
      * Number of results that should be shown in completions. -1 for unlimited
      */
     findresults = -1

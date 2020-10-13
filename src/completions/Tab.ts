@@ -7,7 +7,8 @@ import * as config from "@src/lib/config"
 import * as Messaging from "@src/lib/messaging"
 import * as R from "ramda"
 
-class BufferCompletionOption extends Completions.CompletionOptionHTML
+class BufferCompletionOption
+    extends Completions.CompletionOptionHTML
     implements Completions.CompletionOptionFuse {
     public fuseKeys = []
     public tabIndex: number
@@ -72,10 +73,14 @@ export class BufferCompletionSource extends Completions.CompletionSourceFuse {
             "Tabs",
         )
         this.sortScoredOptions = true
+        this.shouldSetStateFromScore =
+            config.get("completions", "Tab", "autoselect") === "true"
         this.updateOptions()
         this._parent.appendChild(this.node)
 
-        Messaging.addListener("tab_changes", (message) => this.reactToTabChanges(message.command))
+        Messaging.addListener("tab_changes", message =>
+            this.reactToTabChanges(message.command),
+        )
     }
 
     async onInput(exstr) {
@@ -226,9 +231,8 @@ export class BufferCompletionSource extends Completions.CompletionSourceFuse {
         }
 
         // When the user is asking for tabmove completions, don't autoselect if the query looks like a relative move https://github.com/tridactyl/tridactyl/issues/825
-        this.shouldSetStateFromScore = !(
-            prefix === "tabmove " && /^[+-][0-9]+$/.exec(query)
-        )
+        if (prefix === "tabmove")
+            this.shouldSetStateFromScore = !/^[+-][0-9]+$/.exec(query)
 
         await this.fillOptions()
         this.completion = undefined
@@ -250,14 +254,22 @@ export class BufferCompletionSource extends Completions.CompletionSourceFuse {
         const prevOptions = this.options
         await this.updateOptions(this.lastExstr)
 
-        if (!prevOptions  || !this.options || !this.lastFocused) return
+        if (!prevOptions || !this.options || !this.lastFocused) return
 
         // Determine which option to focus on
-        const diff = R.differenceWith((x, y) => x.tabId === y.tabId, prevOptions, this.options)
-        const lastFocusedTabCompletion = this.lastFocused as BufferCompletionOption
+        const diff = R.differenceWith(
+            (x, y) => x.tabId === y.tabId,
+            prevOptions,
+            this.options,
+        )
+        const lastFocusedTabCompletion = this
+            .lastFocused as BufferCompletionOption
 
         // If the focused option was removed then focus on the next option
-        if (diff.length === 1 && diff[0].tabId === lastFocusedTabCompletion.tabId) {
+        if (
+            diff.length === 1 &&
+            diff[0].tabId === lastFocusedTabCompletion.tabId
+        ) {
             this.select(this.getTheNextTabOption(lastFocusedTabCompletion))
         }
     }
