@@ -805,6 +805,19 @@ export class default_config {
     modeindicator: "true" | "false" = "true"
 
     /**
+     * Whether to display the mode indicator in various modes. Ignored if modeindicator set to false.
+     */
+    modeindicatormodes: { [key: string]: "true" | "false" } = {
+        normal: "true",
+        insert: "true",
+        input: "true",
+        ignore: "true",
+        ex: "true",
+        hint: "true",
+        visual: "true"
+    }
+
+    /**
      * Milliseconds before registering a scroll in the jumplist
      */
     jumpdelay = 3000

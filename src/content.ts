@@ -345,7 +345,9 @@ config.getAsync("modeindicator").then(mode => {
         statusIndicator.className +=
             " TridactylMode" + statusIndicator.textContent
 
-        if (config.get("modeindicator") !== "true") statusIndicator.remove()
+        if ((config.get("modeindicator") !== "true") || (config.get("modeindicatormodes",mode) !== "true")) {
+            statusIndicator.remove()
+        }
     })
 })
 
