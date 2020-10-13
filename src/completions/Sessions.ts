@@ -82,6 +82,10 @@ export class SessionsCompletionSource extends Completions.CompletionSourceFuse {
         return this.updateOptions(exstr)
     }
 
+    setStateFromScore(scoredOpts: Completions.ScoredOption[]) {
+        super.setStateFromScore(scoredOpts, this.shouldSetStateFromScore)
+    }
+
     private async updateOptions(exstr = "") {
         this.lastExstr = exstr
         const [prefix] = this.splitOnPrefix(exstr)

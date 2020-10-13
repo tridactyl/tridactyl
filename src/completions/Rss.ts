@@ -36,6 +36,10 @@ export class RssCompletionSource extends Completions.CompletionSourceFuse {
         this._parent.appendChild(this.node)
     }
 
+    setStateFromScore(scoredOpts: Completions.ScoredOption[]) {
+        super.setStateFromScore(scoredOpts, this.shouldSetStateFromScore)
+    }
+
     onInput(...whatever) {
         return this.updateOptions(...whatever)
     }
