@@ -1,5 +1,6 @@
 import * as Completions from "@src/completions"
 import * as providers from "@src/completions/providers"
+import * as config from "@src/lib/config"
 
 class BmarkCompletionOption extends Completions.CompletionOptionHTML
     implements Completions.CompletionOptionFuse {
@@ -38,6 +39,8 @@ export class BmarkCompletionSource extends Completions.CompletionSourceFuse {
 
         this._parent.appendChild(this.node)
         this.sortScoredOptions = true
+        this.shouldSetStateFromScore =
+            config.get("completions", "Bmark", "autoselect") === "true"
     }
 
     public async filter(exstr: string) {

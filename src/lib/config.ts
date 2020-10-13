@@ -994,6 +994,9 @@ export class default_config {
         Rss: {
             autoselect: "true",
         },
+        Bmark: {
+            autoselect: "true",
+        },
         Sessions: {
             autoselect: "true",
         },
