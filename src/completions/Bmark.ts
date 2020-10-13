@@ -2,7 +2,8 @@ import * as Completions from "@src/completions"
 import * as providers from "@src/completions/providers"
 import * as config from "@src/lib/config"
 
-class BmarkCompletionOption extends Completions.CompletionOptionHTML
+class BmarkCompletionOption
+    extends Completions.CompletionOptionHTML
     implements Completions.CompletionOptionFuse {
     public fuseKeys = []
 
@@ -83,7 +84,7 @@ export class BmarkCompletionSource extends Completions.CompletionSourceFuse {
     }
 
     updateChain() {
-        const [prefix, query] = this.splitOnPrefix(this.lastExstr)
+        const query = this.splitOnPrefix(this.lastExstr)[1]
 
         if (query && query.trim().length > 0) {
             this.setStateFromScore(this.scoredOptions(query))
