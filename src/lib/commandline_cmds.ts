@@ -160,23 +160,28 @@ export function getCommandlineFns(cmdline_state: {
         accept_line: () => {
             const command =
                 cmdline_state.getCompletion() || cmdline_state.clInput.value
+            // this has a value if no completion is selected and we dont want the clInput value
+            const defaultCommand = cmdline_state.getdefaultCompletion()
 
             cmdline_state.fns.hide_and_clear()
 
-            if (cmdline_state.fns.is_valid_commandline(command) === false)
+            if (cmdline_state.fns.is_valid_commandline(defaultCommand)) {
+                cmdline_state.fns.store_ex_string(defaultCommand)
+                return messageOwnTab("controller_content", "acceptExCmd", [defaultCommand])
+            } else if (cmdline_state.fns.is_valid_commandline(command)) {
+                cmdline_state.fns.store_ex_string(command)
+                // Send excmds directly to our own tab, which fixes the
+                // old bug where a command would be issued in one tab but
+                // land in another because the active tab had
+                // changed. Background-mode excmds will be received by the
+                // own tab's content script and then bounced through a
+                // shim to the background, but the latency increase should
+                // be acceptable becuase the background-mode excmds tend
+                // to be a touch less latency-sensitive.
+                return messageOwnTab("controller_content", "acceptExCmd", [command])
+            } else {
                 return
-
-            cmdline_state.fns.store_ex_string(command)
-
-            // Send excmds directly to our own tab, which fixes the
-            // old bug where a command would be issued in one tab but
-            // land in another because the active tab had
-            // changed. Background-mode excmds will be received by the
-            // own tab's content script and then bounced through a
-            // shim to the background, but the latency increase should
-            // be acceptable becuase the background-mode excmds tend
-            // to be a touch less latency-sensitive.
-            return messageOwnTab("controller_content", "acceptExCmd", [command])
+            }
         },
 
         execute_ex_on_completion_args: (excmd: string) => execute_ex_on_x(true, cmdline_state, excmd),

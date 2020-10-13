@@ -61,6 +61,7 @@ const commandline_state = {
     completionsDiv: window.document.getElementById("completions"),
     fns: undefined,
     getCompletion,
+    getdefaultCompletion,
     history,
     /** @hidden
      * This is to handle Escape key which, while the cmdline is focused,
@@ -101,6 +102,18 @@ function getCompletion(args_only = false) {
     }
 }
 commandline_state.getCompletion = getCompletion
+
+/** @hidden **/
+function getdefaultCompletion(args_only = false) {
+    if (!commandline_state.activeCompletions) return undefined
+
+    for (const comp of commandline_state.activeCompletions) {
+        if (comp.state === "normal" && comp.defaultCompletion !== undefined) {
+            return comp.defaultCompletion
+        }
+    }
+}
+commandline_state.getdefaultCompletion = getdefaultCompletion
 
 /** @hidden **/
 export function enableCompletions() {
@@ -389,9 +402,9 @@ export function editor_function(fn_name, ...args) {
 
 import * as SELF from "@src/commandline_frame"
 Messaging.addListener("commandline_frame", Messaging.attributeCaller(SELF))
-
 import { getCommandlineFns } from "@src/lib/commandline_cmds"
 import { KeyEventLike } from "./lib/keyseq"
+
 commandline_state.fns = getCommandlineFns(commandline_state)
 Messaging.addListener(
     "commandline_cmd",
