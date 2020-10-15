@@ -3205,7 +3205,10 @@ export async function clipboard(excmd: "open" | "yank" | "yankshort" | "yankcano
     @param index
         Starts at 1. 0 refers to last tab of the current window, -1 to penultimate tab, etc.
 
-        "#" means the tab that was last accessed in this window
+        "%" denotes the current tab and "#" denotes the tab that was last accessed in this window.
+        "P", "A", "M" and "D" indicate tab status (i.e. a pinned, audible, muted or discarded tab.
+        Use `:set completions.Tab.statusstylepretty true` to display unicode characters instead.
+        "P","A","M","D" can be used to filter by tab status in either setting.
 
     This is different from [[taball]] because `index` is the position of the tab in the current window.
  */
