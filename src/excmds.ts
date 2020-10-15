@@ -65,7 +65,7 @@
     [gitter-link]: https://gitter.im/tridactyl/Lobby
     [freenode-badge]: /static/badges/freenode-badge.svg
     [freenode-link]: ircs://chat.freenode.net/tridactyl
-    [matrix-badge]: https://matrix.to/img/matrix-badge.svg
+    [matrix-badge]: /static/badges/matrix-badge.svg
     [matrix-link]: https://riot.im/app/#/room/#tridactyl:matrix.org
 */
 /** ignore this line */
