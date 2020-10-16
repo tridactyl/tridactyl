@@ -292,3 +292,40 @@ export const charesar = (c: string, n = 13): string => {
         return String.fromCharCode(((cn - 97 + n) % 26) + 97)
     return c
 }
+
+/** @hidden
+ * Shuffles only letters except for the first and last letter in a word, where "word"
+ * is a sequence of one of: only lowercase letters OR 5 or more uppercase letters OR an uppercase letter followed
+ * by only lowercase letters.
+ */
+export const jumble_helper = (text: string): string => {
+    const wordSplitRegex = new RegExp("([^a-zA-Z]|[A-Z][a-z]+)")
+    return text.split(wordSplitRegex).map(jumbleWord).join("")
+}
+
+function jumbleWord(word: string): string {
+    if (word.length < 4 || isAcronym()) {
+        return word
+    }
+    const innerText = word.slice(1, -1)
+    return word.charAt(0) + shuffle(innerText) + word.charAt(word.length - 1)
+
+    function isAcronym() {
+        return word.length < 5 && word.toUpperCase() === word
+    }
+}
+
+/**
+ * Shuffles input string
+ * @param text string to be shuffled
+ */
+export const shuffle = (text: string): string => {
+    const arr = text.split("")
+    for (let i = arr.length - 1; i >= 0; i--) {
+        const j = Math.floor(Math.random() * i + 1)
+        const t = arr[i]
+        arr[i] = arr[j]
+        arr[j] = t
+    }
+    return arr.join("")
+}

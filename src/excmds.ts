@@ -129,7 +129,7 @@ import * as DOM from "@src/lib/dom"
 import * as CommandLineContent from "@src/content/commandline_content"
 import * as scrolling from "@src/content/scrolling"
 import { ownTab } from "@src/lib/webext"
-import { wrap_input, getLineAndColNumber, rot13_helper } from "@src/lib/editor_utils"
+import { wrap_input, getLineAndColNumber, rot13_helper, jumble_helper } from "@src/lib/editor_utils"
 import * as finding from "@src/content/finding"
 import * as toys from "./content/toys"
 import * as hinting from "@src/content/hinting"
@@ -4361,6 +4361,23 @@ export function rot13(n: number) {
     while (body.nextNode()) {
         const t = body.currentNode.textContent
         body.currentNode.textContent = rot13_helper(t, n)
+    }
+}
+/**
+ * Perform text jumbling (reibadailty).
+ *
+ * Shuffles letters except for first and last in all words in text nodes in the current tab. Only characters in
+ * the ASCII range are considered.
+ *
+ * Inspired by: https://www.newscientist.com/letter/mg16221887-600-reibadailty/
+ */
+//#content
+export function jumble() {
+    const body = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, { acceptNode: node => NodeFilter.FILTER_ACCEPT })
+
+    while (body.nextNode()) {
+        const t = body.currentNode.textContent
+        body.currentNode.textContent = jumble_helper(t)
     }
 }
 /**
