@@ -239,6 +239,7 @@ export class default_config {
         x: "stop",
         gi: "focusinput -l",
         "g?": "rot13",
+        "g!": "jumble",
         "g;": "changelistjump -1",
         J: "tabprev",
         K: "tabnext",
@@ -603,6 +604,7 @@ export class default_config {
         prefremove: "removepref",
         tabclosealltoright: "tabcloseallto right",
         tabclosealltoleft: "tabcloseallto left",
+        reibadailty: "jumble",
     }
 
     /**

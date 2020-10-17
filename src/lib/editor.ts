@@ -25,6 +25,7 @@ import {
     getWordBoundaries,
     wordAfterPos,
     rot13_helper,
+    jumble_helper
 } from "@src/lib/editor_utils"
 
 /**
@@ -400,6 +401,12 @@ export const insert_text = wrap_input(
 
 export const rot13 = wrap_input((text, selectionStart, selectionEnd) => [
     rot13_helper(text.slice(0, selectionStart) + text.slice(selectionEnd)),
+    selectionStart,
+    null,
+])
+
+export const jumble = wrap_input((text, selectionStart, selectionEnd) => [
+    jumble_helper(text.slice(0, selectionStart) + text.slice(selectionEnd)),
     selectionStart,
     null,
 ])
