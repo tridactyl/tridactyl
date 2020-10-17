@@ -232,7 +232,8 @@
     --tridactyl-fg: var(--tridactyl-photon-colours-in-content-page-color);
     --tridactyl-bg: var(--tridactyl-photon-colours-in-content-page-background);
 
-    --tridactyl-scrollbar-color: var(--tridactyl-bg) var(--tridactyl-fg);
+    --tridactyl-scrollbar-color: var(--tridactyl-photon-colours-tone-8)
+        var(--tridactyl-fg);
 
     --tridactyl-cmdl-fg: var(--tridactyl-photon-colours-in-content-text-color);
     --tridactyl-cmdl-bg: var(
@@ -281,7 +282,7 @@
 }
 
 :root.TridactylThemeDark.TridactylOwnNamespace a {
-    color: var(--tridactyl-photon-colours-accent-1)
+    color: var(--tridactyl-photon-colours-accent-1);
 }
 
 /* These rules have greater specificity than the rules applying the variables
