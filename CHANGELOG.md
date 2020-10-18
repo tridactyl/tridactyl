@@ -1,5 +1,26 @@
 # Tridactyl changelog
 
+# Release 1.20.3 / Unreleased
+
+-   New features
+
+    -   `g!` jumbles all text on the page, inspired by [this letter](https://www.newscientist.com/letter/mg16221887-600-reibadailty/) (#2913)
+    -   `:set modeindicatormodes.[mode] true|false` controls whether the mode indicator should show in a specific mode (#2690)
+    -   New theme, `quakelight`, essentially identical to the default theme but with the command line at the top of the page.
+    -   Whether a completion autoselects the closest match is now configurable with `:set completions.[CompletionSource].autoselect true|false`. The completion sources are the ones Tridactyl uses internally - use `:get completions` to see the list (#2901)
+    -   `:bmarks` now autoselects its completion by default. `:set completions.Bmark.autoselect false` to disable (#2863)
+    -   `:undo tab_strict` only restores tabs in the current window (#2883)
+    -   `:js` now accepts a flag, `-d`, to specify an EOF character which allows space-separated arguments to be given to it, stored in the array `JS_ARGS` (#2859)
+        -   for example, `composite command only_second js -d% window.alert(JS_ARGS[1])%; only_second ignoreme SHOW_THIS! ignoreme ignoreme`
+
+-   Bug fixes
+
+    -   `:undo` and `:rssexec` completions now autoselect the closest match, as was always intended (#2901)
+    -   `:credits` no longer disappears before showing all authors (#665)
+
+-   Miscellaneous
+    -   Various improvements to docs from a few different contributors
+
 # Release 1.20.2 / 2020-09-27
 
 -   New features
