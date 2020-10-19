@@ -74,9 +74,22 @@
 
 // Shared
 import * as Messaging from "@src/lib/messaging"
-import { ownWinTriIndex, getTriVersion, browserBg, activeTab, activeTabId, activeTabContainerId, openInNewTab, openInNewWindow, openInTab, queryAndURLwrangler } from "@src/lib/webext"
+import {
+    ownWinTriIndex,
+    getTriVersion,
+    browserBg,
+    activeTab,
+    activeTabId,
+    activeTabContainerId,
+    openInNewTab,
+    openInNewWindow,
+    openInTab,
+    queryAndURLwrangler,
+    goToTab,
+} from "@src/lib/webext"
 import * as Container from "@src/lib/containers"
 import state from "@src/state"
+import * as State from "@src/state"
 import { contentState, ModeName } from "@src/content/state_content"
 import * as UrlUtil from "@src/lib/url_util"
 import * as config from "@src/lib/config"
@@ -1041,6 +1054,185 @@ export function jumpprev(n = 1) {
         JUMPED = true
         window.scrollTo(p.x, p.y)
     })
+}
+
+/**
+ * Jumps to a local mark, a global mark, or the location before the last mark jump.
+ * [a-z] are local marks, [A-Z] are global marks and '`' is the location before the last mark jump.
+ * @param key the key associated with the mark
+ */
+//#content
+export async function markjump(key: string) {
+    if (key.length !== 1) {
+        throw new Error("markjump accepts only a single letter or '`'");
+    }
+    if (key === "`") {
+        return markjumpbefore()
+    }
+    if (!/[a-z]/i.exec(key)) {
+        throw new Error("markjump accepts only a single letter or '`'");
+    }
+    if (key === key.toUpperCase()) {
+        return markjumpglobal(key);
+    }
+    return markjumplocal(key);
+}
+
+/**
+ * Jumps to a local mark.
+ * @param key the key associated with the mark
+ */
+//#content
+export async function markjumplocal(key: string) {
+    const urlWithoutAnchor = window.location.href.split("#")[0]
+    const localMarks = await State.getAsync("localMarks");
+    const mark = localMarks.get(urlWithoutAnchor)?.get(key);
+    if (mark) {
+        const currentTabId = await activeTabId();
+        state.beforeJumpMark = { url: urlWithoutAnchor, scrollX: window.scrollX, scrollY: window.scrollY, tabId: currentTabId};
+        scrolltab(currentTabId, mark.scrollX, mark.scrollY, `Jumped to mark '${key}'`);
+    }
+    return fillcmdline_tmp(3000, `Mark '${key}' is not set`);
+}
+
+/**
+ * Jumps to a global mark. If the tab with the mark no longer exists or its url differs from the mark's url,
+ * jumps to another tab with the mark's url or creates it first if such tab does not exist.
+ * @param key the key associated with the mark
+ */
+//#content
+export async function markjumpglobal(key: string) {
+    const globalMarks = await State.getAsync("globalMarks");
+    const mark = globalMarks.get(key);
+    if (!mark) {
+        return fillcmdline_tmp(3000, `Mark '${key}' is not set`);
+    }
+    const currentTabId = await activeTabId();
+    state.beforeJumpMark = {
+        url: window.location.href.split("#")[0],
+        scrollX: window.scrollX,
+        scrollY: window.scrollY,
+        tabId: currentTabId
+    };
+    try {
+        const tab = await browserBg.tabs.get(mark.tabId);
+        return onTabExists(tab);
+    } catch (e) {
+        return onTabNoLongerValid();
+    }
+
+    async function onTabExists(tab) {
+        const tabUrl = tab.url.split("#")[0]
+        if (mark.url !== tabUrl) {
+            return onTabNoLongerValid();
+        }
+        return goToTab(tab.id).then(() => {
+            scrolltab(tab.id, mark.scrollX, mark.scrollY, `Jumped to mark '${key}'`);
+        });
+    }
+
+    // the tab with mark's tabId doesn't exist or it has a different url than the mark's url
+    async function onTabNoLongerValid() {
+        const matchingTabs = await browserBg.tabs.query({url: mark.url});
+        // If there are no matching tabs, open a new one and update the mark's tabId for future use in this session
+        if (!matchingTabs.length) {
+            return openInNewTab(mark.url).then(updateMarkAndScroll());
+        }
+        // If there are multiple tabs open with the same url, just pick the first one and update the mark's tabId
+        // for future use in this session
+        return goToTab(matchingTabs[0].id).then(updateMarkAndScroll());
+    }
+
+    function updateMarkAndScroll() {
+        return (tab) => {
+            mark.tabId = tab.id;
+            state.globalMarks = globalMarks;
+            scrolltab(tab.id, mark.scrollX, mark.scrollY, `Jumped to mark '${key}'`);
+        };
+    }
+}
+
+/**
+ * Jumps to a location saved before the last mark jump as long as the tab it's located in exists and its url didn't change.
+ * Overwrites the location before the last mark jump - repeating this method will jump back and forth between two locations.
+ */
+//#content
+export async function markjumpbefore() {
+    const beforeJumpMark = await State.getAsync("beforeJumpMark");
+    if (!beforeJumpMark) {
+        return;
+    }
+    try {
+        const tab = await browserBg.tabs.get(beforeJumpMark.tabId);
+        const tabUrl = tab.url.split("#")[0]
+        const {url, scrollX, scrollY, tabId} = beforeJumpMark;
+        if (url !== tabUrl) {
+            return;
+        }
+        const currentTabId = await activeTabId();
+        state.beforeJumpMark = {url: window.location.href.split("#")[0], scrollX: window.scrollX, scrollY: window.scrollY, tabId: currentTabId};
+        goToTab(tabId).then(() => scrolltab(tabId, scrollX, scrollY, "Jumped to the last location before a mark jump"));
+    } catch (e) {
+        // the mark's tab is no longer valid
+    }
+}
+
+/**
+ * Scrolls to a given position in a given tab and prints a message in it.
+ */
+//#content
+export async function scrolltab(tabId: number, scrollX: number, scrollY: number, message: string) {
+    browserBg.tabs.executeScript({
+        code: `window.scrollTo(${scrollX},${scrollY})`
+    }).then(() => acceptExCmd(tabId, [`fillcmdline_tmp 3000 ${message}`]));
+}
+
+/**
+ * Adds a global or a local mark. Assigns a global mark to a key or a local mark the current url and a key.
+ * If a mark is already assigned, it is overwritten.
+ * @param key the key associated with the mark
+ */
+//#content
+export async function markadd(key: string) {
+    if (!/[a-z]/i.exec(key) || key.length !== 1) {
+        throw new Error("markadd accepts only a single letter");
+    }
+    if (key === key.toUpperCase()) {
+        return markaddglobal(key);
+    }
+    return markaddlocal(key);
+}
+
+/**
+ * Assigns a local mark to the current url and the given key. If a mark is already assigned, it is overwritten.
+ * Two urls are considered the same if they're identical ignoring anchors.
+ * Local marks are not persisted between browser restarts.
+ */
+//#content
+export async function markaddlocal(key: string) {
+    const urlWithoutAnchor = window.location.href.split("#")[0]
+    const localMarks = await State.getAsync("localMarks");
+    const localUrlMarks = localMarks.get(urlWithoutAnchor) ? localMarks.get(urlWithoutAnchor) : new Map();
+    const newLocalMark = { scrollX: window.scrollX, scrollY: window.scrollY};
+    localUrlMarks.set(key, newLocalMark);
+    localMarks.set(urlWithoutAnchor, localUrlMarks);
+    state.localMarks = localMarks;
+    fillcmdline_tmp(3000, `Mark '${key}' set`);
+}
+
+/**
+ * Assigns a global mark to the given key. If a mark is already assigned, it is overwritten.
+ * Global marks are persisted between browser restarts.
+ */
+//#content
+export async function markaddglobal(key: string) {
+    const urlWithoutAnchor = window.location.href.split("#")[0]
+    const globalMarks = await State.getAsync("globalMarks");
+    const tabId = await activeTabId()
+    const newGlobalMark = { url: urlWithoutAnchor, scrollX: window.scrollX, scrollY: window.scrollY, tabId };
+    globalMarks.set(key, newGlobalMark);
+    state.globalMarks = globalMarks;
+    fillcmdline_tmp(3000, `Mark '${key}' set`);
 }
 
 /** Called on 'scroll' events.
@@ -4734,6 +4926,18 @@ export function jumble() {
         body.currentNode.textContent = jumble_helper(t)
     }
 }
+
+/**
+ * Run a command in a tab with an internal firefox identifier specified by destination or in background if destination is "background".
+ */
+//#content
+export function acceptExCmd(destination: number | "background", ex_string: string[]) {
+    if (destination === "background") {
+        return run_exstr(...ex_string);
+    }
+    return Messaging.messageTab(destination, "controller_content", "acceptExCmd", ex_string)
+}
+
 /**
  * Hacky ex string parser.
  *

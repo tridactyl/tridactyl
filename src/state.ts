@@ -28,10 +28,27 @@ class State {
         },
     ]
     last_ex_str = "echo"
+    globalMarks: Map<string, {
+        url: string,
+        scrollX: string,
+        scrollY: string
+        tabId: number
+    }> = new Map()
+    localMarks: Map<string,
+        Map<string, {
+            scrollX: number,
+            scrollY: number
+        }>> = new Map()
+    beforeJumpMark: {
+        url: string,
+        scrollX: number,
+        scrollY: number,
+        tabId: number
+    } = undefined
 }
 
 // Store these keys in the local browser storage to persist between restarts
-const PERSISTENT_KEYS: Array<keyof State> = ["cmdHistory"]
+const PERSISTENT_KEYS: Array<keyof State> = ["cmdHistory", "globalMarks"]
 
 // Don't change these from const or you risk breaking the Proxy below.
 const defaults = Object.freeze(new State())
