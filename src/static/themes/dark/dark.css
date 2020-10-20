@@ -281,6 +281,11 @@
     border-color: var(--tridactyl-photon-colours-in-content-box-border-color);
 }
 
+:root.TridactylThemeDark.TridactylOwnNamespace {
+  scrollbar-color: var(--tridactyl-scrollbar-color);
+  scrollbar-width: thin;
+}
+
 :root.TridactylThemeDark.TridactylOwnNamespace a {
     color: var(--tridactyl-photon-colours-accent-1);
 }

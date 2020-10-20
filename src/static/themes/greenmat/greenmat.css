@@ -54,6 +54,11 @@
     );
 }
 
+:root.TridactylThemeGreenmat.TridactylOwnNamespace {
+  scrollbar-color: var(--tridactyl-scrollbar-color);
+  scrollbar-width: thin;
+}
+
 :root.TridactylThemeGreenmat.TridactylOwnNamespace table {
     border-collapse: collapse;
 }
