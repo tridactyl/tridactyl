@@ -4224,7 +4224,7 @@ export async function hint(option?: string, selectors?: string, ...rest: string[
             selectHints = hinting.pipe_elements(
                 hinting.killables(),
                 elem => {
-                    elem.remove()
+                    elem.classList.add("TridactylKilledElem")
                     return elem
                 },
                 rapid,
