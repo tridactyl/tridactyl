@@ -3413,25 +3413,33 @@ function validateSetArgs(key: string, values: string[]) {
     const file = Metadata.everything.getFile("src/lib/config.ts")
     const default_config = file.getClass("default_config")
     const md = default_config.getMember(target[0])
-    if (md !== undefined) {
-        const strval = values.join(" ")
-        // Note: the conversion will throw if strval can't be converted to the right type
-        if (md.type.kind === "object" && target.length > 1) {
-            value = (md as any).type.convertMember(target.slice(1), strval)
-        } else {
-            value = md.type.convert(strval)
-        }
-    } else {
-        // If we don't have metadata, fall back to the old way
+    function fallback(values) {
         logger.warning("Could not fetch setting metadata. Falling back to type of current value.")
+        console.log("blah")
         const currentValue = config.get(...target)
         if (Array.isArray(currentValue)) {
-            // Do nothing
+            return JSON.parse(values.join(" "))
         } else if (currentValue === undefined || typeof currentValue === "string") {
-            value = values.join(" ")
+            return values.join(" ")
         } else {
             throw new Error("Unsupported setting type!")
         }
+    }
+    if (md !== undefined) {
+        const strval = values.join(" ")
+        // Note: the conversion will throw if strval can't be converted to the right type
+        if (md.type.kind === "object" && target.length == 2) {
+            value = (md as any).type.convertMember(target.slice(1), strval)
+        } else if (target.length == 1) {
+            value = md.type.convert(strval)
+        } else {
+            values = fallback(values) // nested objects
+            console.log(values)
+        }
+    } else {
+        // If we don't have metadata, fall back to the old way
+        values = fallback(values)
+        console.log(values)
     }
 
     target.push(value)
