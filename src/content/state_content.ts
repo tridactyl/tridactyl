@@ -20,6 +20,7 @@ export class PrevInput {
 class ContentState {
     mode: ModeName = "normal"
     suffix = ""
+    killStack: Element[] = []
 }
 
 export type ContentStateProperty =
@@ -27,6 +28,7 @@ export type ContentStateProperty =
     | "cmdHistory"
     | "prevInputs"
     | "suffix"
+    | "killStack"
 
 export type ContentStateChangedCallback = (
     property: ContentStateProperty,
@@ -44,7 +46,9 @@ export function addContentStateChangedListener(
 }
 
 export const contentState = (new Proxy(
-    { mode: "normal" },
+    { mode: "normal", 
+      killStack: [] 
+    },
     {
         get(target, property: ContentStateProperty) {
             return target[property]

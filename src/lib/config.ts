@@ -275,6 +275,7 @@ export class default_config {
         ";o": "hint",
         ";I": "hint -I",
         ";k": "hint -k",
+        ";K": "hint -K",
         ";y": "hint -y",
         ";p": "hint -p",
         ";h": "hint -h",

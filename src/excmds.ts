@@ -3974,6 +3974,7 @@ export function setnull(...keys: string[]) {
         - -i view an image
         - -I view an image in a new tab
         - -k delete an element from the page
+        - -K restores deleted elements in LIFO order
         - -s save (download) the linked resource
         - -S save the linked image
         - -a save-as the linked resource
@@ -4069,7 +4070,6 @@ export async function hint(option?: string, selectors?: string, ...rest: string[
             })
         }
     }
-
     switch (option) {
         case "-f": // Filter links by text
         case "-fr": // Filter links by regex
@@ -4225,12 +4225,16 @@ export async function hint(option?: string, selectors?: string, ...rest: string[
                 hinting.killables(),
                 elem => {
                     elem.classList.add("TridactylKilledElem")
+                    contentState.killStack.push(elem)
                     return elem
                 },
                 rapid,
             )
             break
-
+        case "-K":
+            let elem = contentState.killStack.pop() 
+            elem.classList.remove("TridactylKilledElem")
+            break
         case "-s":
         case "-a":
         case "-S":
