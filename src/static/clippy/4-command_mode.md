@@ -18,4 +18,4 @@ We support a handful of keybinds in the console:
 *   `Ctrl-F` to complete the command from command history
 *   `Space` to insert the URL of the highlighted completion into the command line
 
-The [next page](./5-settings.html) will talk about the various settings available. <a href='./3.5-visual_mode.html' rel="prev"></a>
+The [next page](./5-settings.html) will talk about the various settings available. <a href='./3-1-visual_mode.html' rel="prev"></a>

@@ -14,4 +14,4 @@ If there is ever only a single hint remaining (for example, because you have wit
 
 Some hints have their tags (the labels which show which characters to press to activate them) in grey in the default theme. These correspond to elements which have JavaScript mouse events attached to them. If an element has a grey and a red hint tag next to it, pick the red one as this is almost always the correct tag.
 
-The [next page](./3.5-visual_mode.html) will cover the visual mode. <a href='./2-normal_mode.html' rel="prev"></a>
+The [next page](./3-1-visual_mode.html) will cover the visual mode. <a href='./2-normal_mode.html' rel="prev"></a>
