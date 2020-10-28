@@ -47,5 +47,5 @@ span.TridactylJSHint {
     background-color: var(--tridactyl-hintspan-js-background) !important;
 }
 .TridactylKilledElem {
-	visibility: hidden !important;
+	display: none !important;
 }
