@@ -1136,19 +1136,17 @@ export async function markjumpglobal(key: string) {
         const matchingTabs = await browserBg.tabs.query({url: mark.url})
         // If there are no matching tabs, open a new one and update the mark's tabId for future use in this session
         if (!matchingTabs.length) {
-            return openInNewTab(mark.url).then(updateMarkAndScroll())
+            return openInNewTab(mark.url).then(updateMarkAndScroll)
         }
         // If there are multiple tabs open with the same url, just pick the first one and update the mark's tabId
         // for future use in this session
-        return goToTab(matchingTabs[0].id).then(updateMarkAndScroll())
+        return goToTab(matchingTabs[0].id).then(updateMarkAndScroll)
     }
 
-    function updateMarkAndScroll() {
-        return (tab) => {
-            mark.tabId = tab.id
-            state.globalMarks = globalMarks
-            scrolltab(tab.id, mark.scrollX, mark.scrollY, `Jumped to mark '${key}'`)
-        }
+    function updateMarkAndScroll(tab) {
+        mark.tabId = tab.id
+        state.globalMarks = globalMarks
+        scrolltab(tab.id, mark.scrollX, mark.scrollY, `Jumped to mark '${key}'`)
     }
 }
 
