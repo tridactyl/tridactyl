@@ -1182,9 +1182,7 @@ export async function markjumpbefore() {
  */
 //#content
 export async function scrolltab(tabId: number, scrollX: number, scrollY: number, message: string) {
-    browserBg.tabs.executeScript({
-        code: `window.scrollTo(${scrollX},${scrollY})`
-    }).then(() => acceptExCmd(tabId, [`fillcmdline_tmp 3000 ${message}`]));
+    acceptExCmd(tabId, [`composite scrollto ${scrollX} ${scrollY}; fillcmdline_tmp 3000 ${message}`])
 }
 
 /**
