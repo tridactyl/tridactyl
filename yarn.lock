@@ -3101,10 +3101,10 @@ eslint-plugin-import@^2.22.1:
     resolve "^1.17.0"
     tsconfig-paths "^3.9.0"
 
-eslint-plugin-jsdoc@^30.7.3:
-  version "30.7.3"
-  resolved "https://registry.yarnpkg.com/eslint-plugin-jsdoc/-/eslint-plugin-jsdoc-30.7.3.tgz#1087642d7c4aba13b97dd7c1fdbcec49cd7dcc72"
-  integrity sha512-slzJeKrm3vXabRYcFBpbUgWgdnATN9rNOFAr7IhmkxmR9Vk/6qN1c/IdvTqVSEctDRQ08chR+Lvk8fRayXgYZg==
+eslint-plugin-jsdoc@^30.7.5:
+  version "30.7.5"
+  resolved "https://registry.yarnpkg.com/eslint-plugin-jsdoc/-/eslint-plugin-jsdoc-30.7.5.tgz#cfabed98f3d23e32fa0617452a1ec9df57010e45"
+  integrity sha512-Fue8NQruLtniEuQSv3LO1rzQ+wOTX+nGaKPSiiNtkfJTUuYYXu255IvJBtMzV6bCfWe/AfPvPNHOV36l40hqjw==
   dependencies:
     comment-parser "^0.7.6"
     debug "^4.2.0"
