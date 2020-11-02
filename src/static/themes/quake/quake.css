@@ -1,6 +1,12 @@
 :root.TridactylThemeQuake {
     --tridactyl-bg: black;
     --tridactyl-fg: lightgreen;
+    --tridactyl-scrollbar-color: #131 var(--tridactyl-fg);
+}
+
+:root.TridactylThemeQuake.TridactylOwnNamespace {
+  scrollbar-color: var(--tridactyl-scrollbar-color);
+  scrollbar-width: thin;
 }
 
 :root.TridactylThemeQuake #completions .sectionHeader {
