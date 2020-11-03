@@ -3976,8 +3976,8 @@ const KILL_STACK: Element[] = []
         - -r read an element's text with text-to-speech
         - -i view an image
         - -I view an image in a new tab
-        - -k delete an element from the page
-        - -K deletes an element from the page; deleted elements can be restored using :restorekilled.
+        - -k irreversibly deletes an element from the page (until reload)
+        - -K hides an element on the page; hidden elements can be restored using :restorekilled.
         - -s save (download) the linked resource
         - -S save the linked image
         - -a save-as the linked resource
@@ -4919,9 +4919,10 @@ export async function extoptions(...optionNameArgs: string[]) {
     return winopen("-popup", selectedExtension.optionsUrl)
 }
 
-/** Restores elements killed using ;K.
+/**
+ * Restore the most recently hidden element. Repeated invocations restore the next-most-recently-hidden element.
  *
- *NB: The most recently killed element that has not already been restored will be restored.
+ * (Elements can be hidden with `;K` and `:hint -K`.)
  */
 //#content
 export async function restorekill() {
