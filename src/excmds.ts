@@ -3977,7 +3977,7 @@ const KILL_STACK: Element[] = []
         - -i view an image
         - -I view an image in a new tab
         - -k irreversibly deletes an element from the page (until reload)
-        - -K hides an element on the page; hidden elements can be restored using :restorekilled.
+        - -K hides an element on the page; hidden elements can be restored using [[elementunhide]].
         - -s save (download) the linked resource
         - -S save the linked image
         - -a save-as the linked resource
@@ -4925,7 +4925,7 @@ export async function extoptions(...optionNameArgs: string[]) {
  * (Elements can be hidden with `;K` and `:hint -K`.)
  */
 //#content
-export async function restorekill() {
+export async function elementunhide() {
     const elem = KILL_STACK.pop()
     elem.className = elem.className.replace("TridactylKilledElem", "")
 }
