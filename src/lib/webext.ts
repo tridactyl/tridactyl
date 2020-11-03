@@ -130,6 +130,7 @@ export async function openInNewTab(
         related: false,
         cookieStoreId: undefined,
     },
+    waitForDom = false,
 ) {
     const thisTab = await activeTab()
     const options: Parameters<typeof browser.tabs.create>[0] = {
@@ -165,15 +166,31 @@ export async function openInNewTab(
             break
     }
 
-    if (kwargs.active === false) {
-        // load in background
-        return browserBg.tabs.create(options)
-    } else {
-        // load in background and then activate, per issue #1993
-        return browserBg.tabs
-            .create(options)
-            .then(newtab => browserBg.tabs.update(newtab.id, { active: true }))
+    // load in background
+    let tab = browserBg.tabs.create(options)
+
+    if (kwargs.active) {
+        // activate once tab has been opened, per issue #1993
+        tab = tab.then(newtab =>
+            browserBg.tabs.update(newtab.id, { active: true }),
+        )
     }
+
+    if (waitForDom) {
+        browserBg.tabs.executeScript(
+            (await tab).id,
+            {
+                code: `
+                        window.addEventListener("DOMContentLoaded", () => console.log("IMPLEMENT ME"))
+                        `,
+            }, // need to add a listener here and have the tab send it a message once the
+            // DOMContentLoaded event fires
+            // probably need to make the listener / message contain the tab id / window to prevent race conditions?
+        )
+        // tab promise should only resolve once the DOMContentLoaded event has fired
+    }
+
+    return tab
 }
 
 // lazily copied from excmds.ts' winopen - forceURI really ought to be moved to lib/webext
