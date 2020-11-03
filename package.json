@@ -8,7 +8,7 @@
     "command-line-args": "^5.1.1",
     "csp-serdes": "github:cmcaine/csp-serdes",
     "css": "^3.0.0",
-    "fuse.js": "^6.4.2",
+    "fuse.js": "^6.4.3",
     "jasmine-fail-fast": "^2.0.1",
     "mark.js": "^8.11.1",
     "ramda": "^0.27.1",
