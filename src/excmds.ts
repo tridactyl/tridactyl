@@ -293,6 +293,7 @@ export function getInputSelector() {
 export function addTridactylEditorClass(selector: string) {
     const elem = document.querySelector(selector)
     elem.className = elem.className + " TridactylEditing "
+    return elem
 }
 
 /** @hidden */
@@ -3959,6 +3960,8 @@ export function setnull(...keys: string[]) {
 
 // }}}
 
+//#content_helper
+const KILL_STACK: Element[] = []
 // {{{ HINTMODE
 
 /** Hint a page.
@@ -3973,7 +3976,8 @@ export function setnull(...keys: string[]) {
         - -r read an element's text with text-to-speech
         - -i view an image
         - -I view an image in a new tab
-        - -k delete an element from the page
+        - -k irreversibly deletes an element from the page (until reload)
+        - -K hides an element on the page; hidden elements can be restored using [[elementunhide]].
         - -s save (download) the linked resource
         - -S save the linked image
         - -a save-as the linked resource
@@ -4069,7 +4073,6 @@ export async function hint(option?: string, selectors?: string, ...rest: string[
             })
         }
     }
-
     switch (option) {
         case "-f": // Filter links by text
         case "-fr": // Filter links by regex
@@ -4230,7 +4233,17 @@ export async function hint(option?: string, selectors?: string, ...rest: string[
                 rapid,
             )
             break
-
+        case "-K":
+            selectHints = hinting.pipe_elements(
+                hinting.killables(),
+                elem => {
+                    elem.className = elem.className + " TridactylKilledElem "
+                    KILL_STACK.push(elem)
+                    return elem
+                },
+                rapid,
+            )
+            break
         case "-s":
         case "-a":
         case "-S":
@@ -4907,4 +4920,14 @@ export async function extoptions(...optionNameArgs: string[]) {
     return winopen("-popup", selectedExtension.optionsUrl)
 }
 
+/**
+ * Restore the most recently hidden element. Repeated invocations restore the next-most-recently-hidden element.
+ *
+ * (Elements can be hidden with `;K` and `:hint -K`.)
+ */
+//#content
+export async function elementunhide() {
+    const elem = KILL_STACK.pop()
+    elem.className = elem.className.replace("TridactylKilledElem", "")
+}
 // vim: tabstop=4 shiftwidth=4 expandtab
