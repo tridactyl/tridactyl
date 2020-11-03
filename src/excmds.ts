@@ -3984,8 +3984,9 @@ const KILL_STACK: Element[] = []
         - -A save-as the linked image
         - -; focus an element and set it as the element or the child of the element to scroll
         - -# yank an element's anchor URL to clipboard
-        - -c [selector] hint links that match the css selector `bind ;c hint
-        - -c [class*="expand"],[class="togg"]` works particularly well on reddit and HN this works with most other hint modes, with the caveat that if other hint mode takes arguments your selector must contain no spaces, i.e. `hint -c[yourOtherFlag] [selector] [your other flag's arguments, which may contain spaces]`
+        - -c [selector] hint links that match the css selector
+          - `bind ;c hint -c [class*="expand"],[class="togg"]` works particularly well on reddit and HN
+          - this works with most other hint modes, with the caveat that if other hint mode takes arguments your selector must contain no spaces, i.e. `hint -c[yourOtherFlag] [selector] [your other flag's arguments, which may contain spaces]`
         - -f [text] hint links and inputs that display the given text
           - `bind <c-e> hint -f Edit`
         - -fr [text] use RegExp to hint the links and inputs
