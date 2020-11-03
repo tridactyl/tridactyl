@@ -812,12 +812,12 @@
   resolved "https://registry.yarnpkg.com/@types/prettier/-/prettier-1.19.1.tgz#33509849f8e679e4add158959fdb086440e9553f"
   integrity sha512-5qOlnZscTn4xxM5MeGXAMOsIOIKIbh9e85zJWfBRVPlRMEVawzoPhINYbRGkBZCI8LxvBe7tJCdWiarA99OZfQ==
 
-"@types/ramda@^0.27.11":
-  version "0.27.11"
-  resolved "https://registry.yarnpkg.com/@types/ramda/-/ramda-0.27.11.tgz#a2efedc1fecc0faa2d3530eb53cf468e219f7c51"
-  integrity sha512-pojA0+wBhjMWfwZ1tAea/OdUqZxaRQOi/vHldthrOIEPdRQdJb/hvU4yM1uHKGTT89ZZpxe43KM1sq5YGxS5lw==
+"@types/ramda@^0.27.32":
+  version "0.27.32"
+  resolved "https://registry.yarnpkg.com/@types/ramda/-/ramda-0.27.32.tgz#4f62ff4fc3a41dc32dd9df3cde53861b6ee69e6f"
+  integrity sha512-vdwZcWC+hlTxB//LZQLS1+VEdArImGI4yVKUpeqB8b9mBXgDFXCuQoOt8spQbi8fTyNLOdqRv6liSm2ckxWLog==
   dependencies:
-    ts-toolbelt "^6.3.3"
+    ts-toolbelt "^6.15.1"
 
 "@types/selenium-webdriver@^4.0.9":
   version "4.0.9"
@@ -8372,10 +8372,10 @@ ts-node@^9.0.0:
     source-map-support "^0.5.17"
     yn "3.1.1"
 
-ts-toolbelt@^6.3.3:
-  version "6.13.4"
-  resolved "https://registry.yarnpkg.com/ts-toolbelt/-/ts-toolbelt-6.13.4.tgz#313a1a380341c99db3f669cb8cdbfd33354aa98f"
-  integrity sha512-6DJVcjPYdgF0NR2G80vNrRAChgks16DQ/a49UzQOF9opMixAv61vCQcSUSKX64sXAf2OKqke0gapxtTZGE/qrg==
+ts-toolbelt@^6.15.1:
+  version "6.15.5"
+  resolved "https://registry.yarnpkg.com/ts-toolbelt/-/ts-toolbelt-6.15.5.tgz#cb3b43ed725cb63644782c64fbcad7d8f28c0a83"
+  integrity sha512-FZIXf1ksVyLcfr7M317jbB67XFJhOO1YqdTcuGaq9q5jLUoTikukZ+98TPjKiP2jC5CgmYdWWYs0s2nLSU0/1A==
 
 tsconfig-paths-webpack-plugin@^3.3.0:
   version "3.3.0"
