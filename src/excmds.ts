@@ -3961,7 +3961,7 @@ export function setnull(...keys: string[]) {
 // }}}
 
 //#content_helper
-const KILL_STACK: Element [] = []
+const KILL_STACK: Element[] = []
 // {{{ HINTMODE
 
 /** Hint a page.
@@ -3970,7 +3970,23 @@ const KILL_STACK: Element [] = []
         - -t open in a new foreground tab
         - -b open in background
         - -y copy (yank) link's target to clipboard
-        - -p copy an element's text to the clipboard -h select an element (as if you click-n-dragged over it) -P copy an element's title/alt text to the clipboard -r read an element's text with text-to-speech -i view an image -I view an image in a new tab -k delete an element from the page -K deletes an element from the page; deleted elements can be restored using :restorekilled.  -s save (download) the linked resource -S save the linked image -a save-as the linked resource -A save-as the linked image -; focus an element and set it as the element or the child of the element to scroll -# yank an element's anchor URL to clipboard -c [selector] hint links that match the css selector `bind ;c hint -c [class*="expand"],[class="togg"]` works particularly well on reddit and HN this works with most other hint modes, with the caveat that if other hint mode takes arguments your selector must contain no spaces, i.e. `hint -c[yourOtherFlag] [selector] [your other flag's arguments, which may contain spaces]` -f [text] hint links and inputs that display the given text
+        - -p copy an element's text to the clipboard
+        - -h select an element (as if you click-n-dragged over it)
+        - -P copy an element's title/alt text to the clipboard
+        - -r read an element's text with text-to-speech
+        - -i view an image
+        - -I view an image in a new tab
+        - -k delete an element from the page
+        - -K deletes an element from the page; deleted elements can be restored using :restorekilled.
+        - -s save (download) the linked resource
+        - -S save the linked image
+        - -a save-as the linked resource
+        - -A save-as the linked image
+        - -; focus an element and set it as the element or the child of the element to scroll
+        - -# yank an element's anchor URL to clipboard
+        - -c [selector] hint links that match the css selector `bind ;c hint
+        - -c [class*="expand"],[class="togg"]` works particularly well on reddit and HN this works with most other hint modes, with the caveat that if other hint mode takes arguments your selector must contain no spaces, i.e. `hint -c[yourOtherFlag] [selector] [your other flag's arguments, which may contain spaces]`
+        - -f [text] hint links and inputs that display the given text
           - `bind <c-e> hint -f Edit`
         - -fr [text] use RegExp to hint the links and inputs
         - -w open in new window
@@ -4903,13 +4919,13 @@ export async function extoptions(...optionNameArgs: string[]) {
     return winopen("-popup", selectedExtension.optionsUrl)
 }
 
-/** Restores elements killed using ;K. 
+/** Restores elements killed using ;K.
  *
  *NB: The most recently killed element that has not already been restored will be restored.
  */
 //#content
 export async function restorekill() {
-    const elem = KILL_STACK.pop() 
-    elem.className = elem.className.replace("TridactylKilledElem", "") 
+    const elem = KILL_STACK.pop()
+    elem.className = elem.className.replace("TridactylKilledElem", "")
 }
 // vim: tabstop=4 shiftwidth=4 expandtab
