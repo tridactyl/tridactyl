@@ -575,12 +575,13 @@ export const HINTTAGS_selectors = `
 input:not([type=hidden]):not([disabled]),
 a,
 area,
-iframe,
-textarea,
 button,
+details,
+iframe,
+label,
 select,
 summary,
-label,
+textarea,
 [onclick],
 [onmouseover],
 [onmousedown],
@@ -678,6 +679,9 @@ export function simulateClick(target: HTMLElement) {
                 })
         })
     } else {
+        if (target instanceof HTMLDetailsElement) {
+            target.open = !target.open
+        }
         mouseEvent(target, "click")
         // DOM.focus has additional logic for focusing inputs
         focus(target)
