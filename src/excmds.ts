@@ -1866,6 +1866,22 @@ export async function reader() {
 loadaucmds("DocStart")
 window.addEventListener("pagehide", () => loadaucmds("DocEnd"))
 window.addEventListener("DOMContentLoaded", () => loadaucmds("DocLoad"))
+
+// Unsupported edge-case: a SPA that doesn't have a UriChange autocmd changes URL to one that does.
+config.getAsync("autocmds", "UriChange").then(ausites => {
+    const aukeyarr = Object.keys(ausites).filter(e => window.document.location.href.search(e) >= 0)
+    if (aukeyarr.length > 0) {
+        let currUri = window.document.location.href
+        function maybeLoad() {
+            const nowUri = window.document.location.href
+            if (nowUri != currUri) {
+                currUri = nowUri
+                loadaucmds("UriChange")
+            }
+        }
+        setInterval(maybeLoad, 100)
+    }
+})
 /** @hidden */
 const fullscreenhandler = () => {
     loadaucmds("FullscreenChange")
@@ -1889,7 +1905,7 @@ if (fullscreenApiIsPrefixed) {
 
 /** @hidden */
 //#content
-export async function loadaucmds(cmdType: "DocStart" | "DocLoad" | "DocEnd" | "TabEnter" | "TabLeft" | "FullscreenEnter" | "FullscreenLeft" | "FullscreenChange") {
+export async function loadaucmds(cmdType: "DocStart" | "DocLoad" | "DocEnd" | "TabEnter" | "TabLeft" | "FullscreenEnter" | "FullscreenLeft" | "FullscreenChange" | "UriChange") {
     const aucmds = await config.getAsync("autocmds", cmdType)
     const ausites = Object.keys(aucmds)
     const aukeyarr = ausites.filter(e => window.document.location.href.search(e) >= 0)
@@ -3541,10 +3557,12 @@ export function firefoxsyncpush() {
 
 /** @hidden */
 //#background_helper
-const AUCMDS = ["DocStart", "DocLoad", "DocEnd", "TriStart", "TabEnter", "TabLeft", "FullscreenChange", "FullscreenEnter", "FullscreenLeft"].concat(webrequests.requestEvents)
+const AUCMDS = ["DocStart", "DocLoad", "DocEnd", "TriStart", "TabEnter", "TabLeft", "FullscreenChange", "FullscreenEnter", "FullscreenLeft", "UriChange"].concat(webrequests.requestEvents)
 /** Set autocmds to run when certain events happen.
  *
- * @param event Curently, 'TriStart', 'DocStart', 'DocLoad', 'DocEnd', 'TabEnter', 'TabLeft', 'FullscreenChange', 'FullscreenEnter', 'FullscreenLeft', 'AuthRequired', 'BeforeRedirect', 'BeforeRequest', 'BeforeSendHeaders', 'Completed', 'ErrorOccured', 'HeadersReceived', 'ResponseStarted', and 'SendHeaders' are supported
+ * @param event Currently, 'TriStart', 'DocStart', 'DocLoad', 'DocEnd', 'TabEnter', 'TabLeft', 'FullscreenChange', 'FullscreenEnter', 'FullscreenLeft', 'UriChange', 'AuthRequired', 'BeforeRedirect', 'BeforeRequest', 'BeforeSendHeaders', 'Completed', 'ErrorOccured', 'HeadersReceived', 'ResponseStarted', and 'SendHeaders' are supported
+ *
+ * The 'UriChange' event is for "single page applications" which change their URIs without triggering DocStart or DocLoad events. It uses a timer to check whether the URI has changed, which has a small impact on battery life on pages matching the `url` parameter. We suggest using it sparingly.
  *
  * @param url For DocStart, DocEnd, TabEnter, and TabLeft: a JavaScript regex (e.g. `www\\.amazon\\.co.*`)
  *
@@ -3561,7 +3579,7 @@ const AUCMDS = ["DocStart", "DocLoad", "DocEnd", "TriStart", "TabEnter", "TabLef
  *
  * For example: `autocmd BeforeRequest https://www.bbc.co.uk/* () => ({redirectUrl: "https://old.reddit.com"})`. Note the brackets which ensure JavaScript returns a blocking response object rather than interpreting it as a block statement.
  *
- * For DocStart, DocLoad, DocEnd, TabEnter, TabLeft, FullscreenEnter, FullscreenLeft and FullscreenChange: magic variables are available which are replaced with the relevant string at runtime:
+ * For DocStart, DocLoad, DocEnd, TabEnter, TabLeft, FullscreenEnter, FullscreenLeft, FullscreenChange and UriChange: magic variables are available which are replaced with the relevant string at runtime:
         - `TRI_FIRED_MOZ_TABID`: Provides Mozilla's `tabID` associated with the fired event.
         - `TRI_FIRED_TRI_TABINDEX`: Provides tridactyls internal tab index associated with the fired event.
         - `TRI_FIRED_MOZ_WINID`: Provides Mozilla's `windowId` associated with the fired event.
@@ -3587,7 +3605,7 @@ const AUCMDS = ["DocStart", "DocLoad", "DocEnd", "TriStart", "TabEnter", "TabLef
 export function autocmd(event: string, url: string, ...excmd: string[]) {
     // rudimentary run time type checking
     // TODO: Decide on autocmd event names
-    if (!AUCMDS.includes(event)) throw event + " is not a supported event."
+    if (!AUCMDS.includes(event)) throw new Error(event + " is not a supported event.")
     return config.set("autocmds", event, url, excmd.join(" "))
 }
 
