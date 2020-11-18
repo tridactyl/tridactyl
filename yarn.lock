@@ -725,10 +725,10 @@
   resolved "https://registry.yarnpkg.com/@types/eslint-visitor-keys/-/eslint-visitor-keys-1.0.0.tgz#1ee30d79544ca84d68d4b3cdb0af4f205663dd2d"
   integrity sha512-OCutwjDZ4aFS6PB1UZ988C4YgwlBHJd6wCeQqaLdmadZ/7e+w79+hbMUFC1QXDNCmdyoRfAFdm0RypzwR+Qpag==
 
-"@types/firefox-webext-browser@^78.0.1":
-  version "78.0.1"
-  resolved "https://registry.yarnpkg.com/@types/firefox-webext-browser/-/firefox-webext-browser-78.0.1.tgz#9c3b929c65a8263facac03ab930b0fb0f8addfbb"
-  integrity sha512-0d7oiI9K6Y4efP4Crl3JB88zYl7vaRdLtumqz8v6axMF8RCnK0NaGUjL4DnyQ7GLPo98b+s0BSRalaxAXgvPAQ==
+"@types/firefox-webext-browser@^82.0.0":
+  version "82.0.0"
+  resolved "https://registry.yarnpkg.com/@types/firefox-webext-browser/-/firefox-webext-browser-82.0.0.tgz#4d0f5cfebd7321d2cbf0ccfb6032570f0138b958"
+  integrity sha512-zKHePkjMx42KIUUZCPcUiyu1tpfQXH9VR4iDYfns3HvmKVJzt/TAFT+DFVroos8BI9RH78YgF3Hi/wlC6R6cKA==
 
 "@types/graceful-fs@^4.1.2":
   version "4.1.3"
