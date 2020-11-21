@@ -58,12 +58,16 @@ async function sendNativeMsg(
     }
 }
 
-export async function getrcpath(): Promise<string> {
+export async function getrcpath(separator: "unix" | "auto" = "auto"): Promise<string> {
     const res = await sendNativeMsg("getconfigpath", {})
 
     if (res.code !== 0) throw new Error("getrcpath error: " + res.code)
 
-    return res.content
+    if (separator == "unix" && (await browserBg.runtime.getPlatformInfo()).os == "win") {
+        return res.content.replace(/\\/g, "/")
+    }
+    else
+        return res.content
 }
 
 export async function getrc(): Promise<string> {
@@ -103,7 +107,7 @@ export async function getBestEditor(): Promise<string> {
     if (os === "mac") {
         gui_candidates = [
             "/Applications/MacVim.app/Contents/bin/mvim -f" +
-                vim_positioning_arg,
+            vim_positioning_arg,
             "/usr/local/bin/vimr --wait --nvim +only",
         ]
         // if anyone knows of any "sensible" terminals that let you send them commands to run,
@@ -211,8 +215,8 @@ export async function nativegate(
                 if (interactive)
                     logger.error(
                         "# Please update to native messenger " +
-                            version +
-                            ", for example by running `:updatenative`.",
+                        version +
+                        ", for example by running `:updatenative`.",
                     )
                 // TODO: add update procedure and document here.
                 return false
@@ -423,7 +427,7 @@ export async function ff_cmdline(): Promise<string[]> {
     } else {
         const output = await pyeval(
             'handleMessage({"cmd": "run", ' +
-                '"command": "ps -p " + str(os.getppid()) + " -oargs="})["content"]',
+            '"command": "ps -p " + str(os.getppid()) + " -oargs="})["content"]',
         )
         return output.content.trim().split(" ")
     }
@@ -497,7 +501,7 @@ export async function getProfileUncached() {
         try {
             iniObject = await parseProfilesIni(iniContent.content, ffDir)
             iniSucceeded = true
-        } catch (e) {}
+        } catch (e) { }
     }
     const curProfileDir = config.get("profiledir")
 
@@ -730,7 +734,7 @@ export async function getConfElsePref(
     if (option === undefined) {
         try {
             option = await getPref(prefName)
-        } catch (e) {}
+        } catch (e) { }
     }
     return option
 }
