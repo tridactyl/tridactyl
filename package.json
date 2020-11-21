@@ -33,7 +33,7 @@
     "eslint-plugin-jsdoc": "^30.7.8",
     "eslint-plugin-prefer-arrow": "^1.2.2",
     "eslint-plugin-sonarjs": "^0.5.0",
-    "geckodriver": "^1.20.0",
+    "geckodriver": "^1.21.0",
     "jest": "^25.5.4",
     "jest-webextension-mock": "^3.7.3",
     "marked": "^1.2.5",
