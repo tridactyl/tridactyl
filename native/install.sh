@@ -19,8 +19,8 @@ run() {
     XDG_DATA_HOME="${XDG_DATA_HOME:-$HOME/.local/share}/tridactyl"
 
     # Use argument as version or 1.15.0, as that was the last version before we switched to using tags
-    manifest_loc="https://raw.githubusercontent.com/tridactyl/tridactyl/${1:+-1.15.0}/native/tridactyl.json"
-    native_loc="https://raw.githubusercontent.com/tridactyl/tridactyl/${1:+-1.15.0}/native/native_main.py"
+    manifest_loc="https://raw.githubusercontent.com/tridactyl/tridactyl/${1:-1.15.0}/native/tridactyl.json"
+    native_loc="https://raw.githubusercontent.com/tridactyl/tridactyl/${1:-1.15.0}/native/native_main.py"
 
     # Decide where to put the manifest based on OS
     # Get OSTYPE from bash if it's installed. If it's not, then this will
