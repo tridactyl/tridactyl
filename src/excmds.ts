@@ -4745,7 +4745,7 @@ async function js_helper(str: string[]) {
         let sourcePath = jsContent
         if (fromRC) {
             const sep = "/"
-            const rcPath = (await Native.getrcpath()).split(sep).slice(0, -1)
+            const rcPath = (await Native.getrcpath("unix")).split(sep).slice(0, -1)
             sourcePath = [...rcPath, sourcePath].join(sep)
         }
         const file = await Native.read(sourcePath)
