@@ -933,7 +933,7 @@ export class default_config {
      *
      * Replaces %WINTAG with "-Tag $TRI_VERSION", similarly to [[nativeinstallcmd]].
      */
-    win_nativeinstallcmd = `powershell -NoProfile -Command "(New-Object System.Net.WebClient).DownloadFile('https://raw.githubusercontent.com/tridactyl/tridactyl/master/native/win_install.ps1', """$env:temp/tridactyl_installnative.ps1"")" & powershell -NoProfile -File %temp%\\tridactyl_installnative.ps1 %WINTAG & del %temp%\\tridactyl_installnative.ps1`
+    win_nativeinstallcmd = `powershell -NoProfile -Command "(New-Object System.Net.WebClient).DownloadFile('https://raw.githubusercontent.com/tridactyl/tridactyl/master/native/win_install.ps1', """$env:temp/tridactyl_installnative.ps1""")" & powershell -NoProfile -File %temp%\\tridactyl_installnative.ps1 %WINTAG & del %temp%\\tridactyl_installnative.ps1`
 
     /**
      * Used by :updatecheck and related built-in functionality to automatically check for updates and prompt users to upgrade.
