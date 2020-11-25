@@ -3499,8 +3499,6 @@ export function seturl(pattern: string, key: string, ...values: string[]) {
 
     If no value is given, the value of the of the key will be displayed.
 
-    If the setting you are changing has a dot or period character (.) in it, it cannot be set with `:set` directly. You must either use a helper command for that specific setting - e.g. [[seturl]] or [[autocontain]], or you must use Tridactyl's JavaScript API with `:js tri.config.set("path", "to", "key", "value")` to set `{path: {to: {key: value}}}`.
-
     See also: [[unset]]
 */
 //#background
