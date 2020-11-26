@@ -1,5 +1,14 @@
 #!/usr/bin/env bash
 
+case $(uname) in
+    *CYGWIN*|*MINGW*|*MSYS*)
+        echo "Cygwin/MinGW/MSYS detected, skipping pre-commit hook"
+        exit 0
+        ;;
+esac
+
+echo "Running pre-commit hook..."
+
 source ./scripts/common.sh
 
 jsfiles=$(cachedTSLintFiles)
