@@ -40,7 +40,6 @@
     "nearley": "^2.19.8",
     "prettier": "^2.2.0",
     "selenium-webdriver": "^4.0.0-alpha.7",
-    "shared-git-hooks": "^1.2.1",
     "source-map-loader": "^1.1.2",
     "ts-jest": "^25.5.1",
     "ts-loader": "^8.0.11",
@@ -69,7 +68,8 @@
     "run": "web-ext run -s build/ -u 'txti.es'",
     "test": "yarn run build && web-ext build --source-dir ./build --overwrite-dest && jest --silent",
     "update-buildsystem": "rm -rf src/node_modules; yarn run clean",
-    "watch": "echo 'watch is broken, use build instead'; exit 0;"
+    "watch": "echo 'watch is broken, use build instead'; exit 0;",
+    "install": "git config core.hookspath hooks/"
   },
   "author": "Colin Caine",
   "repository": {
