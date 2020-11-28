@@ -1,6 +1,6 @@
 # Tridactyl changelog
 
-# Release 1.20.3 / Unreleased
+# Release 1.20.3 / 2020-11-28
 
 -   New features
 
@@ -12,14 +12,23 @@
     -   `:undo tab_strict` only restores tabs in the current window (#2883)
     -   `:js` now accepts a flag, `-d`, to specify an EOF character which allows space-separated arguments to be given to it, stored in the array `JS_ARGS` (#2859)
         -   for example, `composite command only_second js -d% window.alert(JS_ARGS[1])%; only_second ignoreme SHOW_THIS! ignoreme ignoreme`
+    -   `UriChange` event has been added for `:autocmd`, for use on modern web applications which update their URI without navigating to a new page (#3003)
+        -   this should only be used as a last resort as it uses a timer which can reduce battery life
+    -   `;K` hint mode added to reversibly hide elements from the page; hidden elements can be restored with `:elementunhide` (#2934)
 
 -   Bug fixes
 
     -   `:undo` and `:rssexec` completions now autoselect the closest match, as was always intended (#2901)
     -   `:credits` no longer disappears before showing all authors (#665)
+    -   `:js -r` now works on Windows (#3017)
+    -   `:hint` now can operate on `HTMLDetailsElements` (#2984)
+    -   `:help` and `:tutor` now follow the Tridactyl theme (#2895)
 
 -   Miscellaneous
+
     -   Various improvements to docs from a few different contributors
+    -   `nativeinstall` on Windows now installs the native messenger corresponding to your version of Tridactyl, meaning that we can finally make breaking changes to the native messenger! (#3027)
+    -   `git hooks` no longer prevent committing from Windows (#3033)
 
 # Release 1.20.2 / 2020-09-27
 
