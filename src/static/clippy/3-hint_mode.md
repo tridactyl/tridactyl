@@ -9,7 +9,7 @@ Here are some of the most useful hint modes:
 -   `:hint -p` or `;p`: copy element text (such as a paragraph) to clipboard
 -   `:hint -#` or `;#`: copy anchor location. Useful for linking someone to a specific part of a page.
 -   `:hint -k` or `;k`: kill an element. Very satisfying.
--   `:hint -K` or `;K`: kill an element. Killed elements can be restored with :restorekill
+-   `:hint -K` or `;K`: kill an element. Killed elements can be restored with :elementunhide
 
 If there is ever only a single hint remaining (for example, because you have wittled them down, or there is only a single link visible on the page) the hint mode will follow it automatically.
 
