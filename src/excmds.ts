@@ -3266,7 +3266,8 @@ export async function taball(id: string) {
  * entering `:tn 43` will expand to `:tabnext_gt 43`.
  *
  * Note that this is only for excmd->excmd mappings. To map a normal-mode
- * command to an excommand, see [[bind]].
+ * command to an excommand, see [[bind]]. For defining your own excommands,
+ * see [[js]].
  *
  * See also:
  *  - [[comclear]]
