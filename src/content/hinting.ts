@@ -1149,11 +1149,12 @@ export function pipe_elements(
 function toHintablesArray(
     hintablesOrElements: Element[] | Hintables[],
 ): Hintables[] {
+    if (!hintablesOrElements.length) return []
     return "className" in hintablesOrElements[0]
         ? [{ elements: hintablesOrElements } as Hintables]
         : "elements" in hintablesOrElements[0]
-        ? (hintablesOrElements as Hintables[])
-        : undefined
+            ? (hintablesOrElements as Hintables[])
+            : []
 }
 
 function selectFocusedHint(delay = false) {
