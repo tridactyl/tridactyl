@@ -43,7 +43,7 @@
     "source-map-loader": "^1.1.2",
     "ts-jest": "^25.5.1",
     "ts-loader": "^8.0.11",
-    "ts-node": "^9.0.0",
+    "ts-node": "^9.1.0",
     "tsconfig-paths-webpack-plugin": "^3.3.0",
     "tslint": "^5.20.1",
     "tslint-etc": "^1.13.9",
