@@ -1869,6 +1869,7 @@ window.addEventListener("DOMContentLoaded", () => loadaucmds("DocLoad"))
 
 // Unsupported edge-case: a SPA that doesn't have a UriChange autocmd changes URL to one that does.
 config.getAsync("autocmds", "UriChange").then(ausites => {
+    if (!ausites) return
     const aukeyarr = Object.keys(ausites).filter(e => window.document.location.href.search(e) >= 0)
     if (aukeyarr.length > 0) {
         let currUri = window.document.location.href
