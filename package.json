@@ -37,7 +37,7 @@
     "jest": "^25.5.4",
     "jest-webextension-mock": "^3.7.3",
     "marked": "^1.2.5",
-    "nearley": "^2.19.9",
+    "nearley": "^2.20.0",
     "prettier": "^2.2.1",
     "selenium-webdriver": "^4.0.0-alpha.7",
     "source-map-loader": "^1.1.3",
