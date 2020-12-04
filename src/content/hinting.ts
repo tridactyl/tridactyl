@@ -1150,11 +1150,11 @@ function toHintablesArray(
     hintablesOrElements: Element[] | Hintables[],
 ): Hintables[] {
     if (!hintablesOrElements.length) return []
-    return "className" in hintablesOrElements[0]
-        ? [{ elements: hintablesOrElements } as Hintables]
-        : "elements" in hintablesOrElements[0]
-            ? (hintablesOrElements as Hintables[])
-            : []
+    if ("className" in hintablesOrElements[0])
+        return [{ elements: hintablesOrElements } as Hintables]
+    if ("elements" in hintablesOrElements[0])
+        return hintablesOrElements as Hintables[]
+    return []
 }
 
 function selectFocusedHint(delay = false) {
