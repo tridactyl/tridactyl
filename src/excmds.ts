@@ -41,7 +41,7 @@
     ## Caveats
     There are some caveats common to all webextension vimperator-alikes:
 
-    - To make Tridactyl work on addons.mozilla.org and some other Mozilla domains, you need to open `about:config`, run [[fixamo]] or add a new boolean `privacy.resistFingerprinting.block_mozAddonManager` with the value `true`, and remove the above domains from `extensions.webextensions.restrictedDomains`.
+    - To make Tridactyl work on addons.mozilla.org and some other Mozilla domains, you need to open `about:config` and add a new boolean `privacy.resistFingerprinting.block_mozAddonManager` with the value `true`, as well as remove those domains from `extensions.webextensions.restrictedDomains`.
     - Tridactyl can't run on about:\*, some file:\* URIs, view-source:\*, or data:\*, URIs.
     - To change/hide the GUI of Firefox from Tridactyl, you can use [[guiset]] with the native messenger installed (see [[native]] and [[installnative]]). Alternatively, you can edit your userChrome yourself.
 
@@ -3976,6 +3976,9 @@ export function setnull(...keys: string[]) {
 
 // }}}
 
+/**
+ * @hidden
+ */
 //#content_helper
 const KILL_STACK: Element[] = []
 // {{{ HINTMODE
