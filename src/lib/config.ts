@@ -926,7 +926,7 @@ export class default_config {
      * %TAG will be replaced with your version of Tridactyl for stable builds, or "master" for beta builds
      */
     nativeinstallcmd =
-        "curl -fsSl https://raw.githubusercontent.com/tridactyl/tridactyl/master/native/install.sh -o /tmp/trinativeinstall.sh && bash /tmp/trinativeinstall.sh %TAG"
+        "curl -fsSl https://raw.githubusercontent.com/tridactyl/tridactyl/master/native/install.sh -o /tmp/trinativeinstall.sh && sh /tmp/trinativeinstall.sh %TAG"
 
     /**
      * Set this to something weird if you want to have fun every time Tridactyl tries to update its native messenger.
