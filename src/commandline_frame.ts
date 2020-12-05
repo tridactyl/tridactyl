@@ -278,9 +278,11 @@ async function history(n) {
     }
 
     // Check for matches in history, removing duplicates
-    const matches = (R.reverse(
-        R.uniq(R.reverse(await State.getAsync("cmdHistory"))),
-    )).filter(key => key.startsWith(HISTORY_SEARCH_STRING))
+    const matches = R.reverse(
+        // for some reason ramda loses the type information here
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
+        R.uniq(R.reverse((await State.getAsync("cmdHistory")) as string[])),
+    ).filter(key => key.startsWith(HISTORY_SEARCH_STRING))
     if (commandline_state.cmdline_history_position === 0) {
         cmdline_history_current = commandline_state.clInput.value
     }
