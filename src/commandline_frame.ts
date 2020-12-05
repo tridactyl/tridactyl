@@ -47,6 +47,8 @@ import { theme } from "@src/content/styling"
 import * as genericParser from "@src/parsers/genericmode"
 import * as tri_editor from "@src/lib/editor"
 
+import * as R from "ramda"
+
 /** @hidden **/
 const logger = new Logger("cmdline")
 
@@ -275,9 +277,10 @@ async function history(n) {
         HISTORY_SEARCH_STRING = commandline_state.clInput.value
     }
 
-    const matches = (await State.getAsync("cmdHistory")).filter(key =>
-        key.startsWith(HISTORY_SEARCH_STRING),
-    )
+    // Check for matches in history, removing duplicates
+    const matches = (R.reverse(
+        R.uniq(R.reverse(await State.getAsync("cmdHistory"))),
+    )).filter(key => key.startsWith(HISTORY_SEARCH_STRING))
     if (commandline_state.cmdline_history_position === 0) {
         cmdline_history_current = commandline_state.clInput.value
     }
