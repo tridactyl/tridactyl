@@ -37,6 +37,7 @@ REPLACE_ME_WITH_THE_CHANGE_LOG_USING_SED
 -   `<C-o>` – run a single normal mode binding when in ignore mode
 -   [`:help hint`][help-hint] to see all the other useful hint modes (this is the `f` magic. :) ).
 -   `:help <keybinding>` to learn more about what a specific key binding does.
+-   `:colours [dark|quake|...]` to change Tridactyl's theme (and the colour of this page)
 
 ## Important limitations due to WebExtensions
 
