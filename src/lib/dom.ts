@@ -689,12 +689,24 @@ export function simulateClick(target: HTMLElement) {
 }
 
 /** Recursively resolves an active shadow DOM element. */
-export function deepestShadowRoot(sr: ShadowRoot|null): ShadowRoot|null {
-	if (sr === null) return sr
-	let shadowRoot = sr
-	while (shadowRoot.activeElement.shadowRoot != null) {
-		shadowRoot = shadowRoot.activeElement.shadowRoot
-	}
-	return shadowRoot
+export function deepestShadowRoot(sr: ShadowRoot | null): ShadowRoot | null {
+    if (sr === null) return sr
+    let shadowRoot = sr
+    while (shadowRoot.activeElement.shadowRoot != null) {
+        shadowRoot = shadowRoot.activeElement.shadowRoot
+    }
+    return shadowRoot
 }
 
+export function getElementCentre(el) {
+    const pos = el.getBoundingClientRect()
+    return { x: 0.5 * (pos.left + pos.right), y: 0.5 * (pos.top + pos.bottom) }
+}
+
+export function getAbsolutePosition(el) {
+    const pos = getElementCentre(el)
+    return {
+        x: pos.x + (window as any).mozInnerScreenX,
+        y: pos.y + (window as any).mozInnerScreenY,
+    }
+}
