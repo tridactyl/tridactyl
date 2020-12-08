@@ -18,7 +18,7 @@
   },
   "devDependencies": {
     "@types/firefox-webext-browser": "^82.0.0",
-    "@types/jest": "^26.0.16",
+    "@types/jest": "^26.0.17",
     "@types/node": "^14.14.10",
     "@types/ramda": "^0.27.32",
     "@types/selenium-webdriver": "^4.0.10",
