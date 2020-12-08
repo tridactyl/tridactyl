@@ -32,7 +32,7 @@ Tridactyl
 
 ## Installation
 
-[Simply click this link in Firefox to install our latest "beta" build][riskyclick]. If you want more options, read on.
+[Click this link in Firefox to install our latest "beta" build][riskyclick]. If it doesn't install automatically, you may need to 1) rename the extension from `.zip` to `.xpi` and 2) open it with Firefox; a fool-proof method is to go to `about:addons`, click the extensions tab, click the cog in the top right, then click "Install Add-on From File...". If you want more options, read on.
 
 ### Stable
 
