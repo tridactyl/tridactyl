@@ -86,6 +86,12 @@ export class default_config {
                 prev: "Previous",
             },
         },
+        "^https://web.whatsapp.com": {
+            nmaps: {
+                f: "hint -c [tabindex]:not(.two)>div,a",
+                F: "hint -bc [tabindex]:not(.two)>div,a",
+            },
+        },
     }
 
     /**
