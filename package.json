@@ -14,6 +14,7 @@
     "ramda": "^0.27.1",
     "rss-parser": "^3.9.0",
     "semver-compare": "^1.0.0",
+    "tsdef": "^0.0.14",
     "typedoc-default-themes": "^0.11.4"
   },
   "devDependencies": {

@@ -19,6 +19,7 @@
 import * as R from "ramda"
 import * as binding from "@src/lib/binding"
 import * as platform from "@src/lib/platform"
+import { DeepPartial } from "tsdef"
 
 /* Remove all nulls from objects recursively
  * NB: also applies to arrays
@@ -78,13 +79,13 @@ export class default_config {
     /**
      * Internal field to handle site-specific configs. Use :seturl/:unseturl to change these values.
      */
-    subconfigs: { [key: string]: default_config } = {
+    subconfigs: { [key: string]: DeepPartial<default_config> } = {
         "www.google.com": {
             followpagepatterns: {
                 next: "Next",
                 prev: "Previous",
             },
-        } as default_config,
+        },
     }
 
     /**
@@ -817,7 +818,7 @@ export class default_config {
         ignore: "true",
         ex: "true",
         hint: "true",
-        visual: "true"
+        visual: "true",
     }
 
     /**

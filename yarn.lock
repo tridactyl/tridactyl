@@ -8419,6 +8419,11 @@ tsconfig-paths@^3.4.0, tsconfig-paths@^3.9.0:
     minimist "^1.2.0"
     strip-bom "^3.0.0"
 
+tsdef@^0.0.14:
+  version "0.0.14"
+  resolved "https://registry.yarnpkg.com/tsdef/-/tsdef-0.0.14.tgz#fb401d58d5c08699091942981ac1b5fa8ef23412"
+  integrity sha512-UjMD4XKRWWFlFBfwKVQmGFT5YzW/ZaF8x6KpCDf92u9wgKeha/go3FU0e5WqDjXsCOdfiavCkfwfVHNDxRDGMA==
+
 tslib@^1.8.0, tslib@^1.8.1, tslib@^1.9.0:
   version "1.10.0"
   resolved "https://registry.yarnpkg.com/tslib/-/tslib-1.10.0.tgz#c3c19f95973fb0a62973fb09d90d961ee43e5c8a"
