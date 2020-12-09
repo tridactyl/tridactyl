@@ -3103,10 +3103,10 @@ async function setclip(data: string) {
             promises = [setclip_selection()]
             break
         case "clipboard":
-            promises = [setclip_api(data)]
+            promises = [setclip_webapi(data)]
             break
         case "both":
-            promises = [setclip_selection(), setclip_api(data)]
+            promises = [setclip_selection(), setclip_webapi(data)]
             break
     }
     return Promise.all(promises)
@@ -3117,7 +3117,7 @@ async function setclip(data: string) {
  * @hidden
  */
 //#background_helper
-async function setclip_api(data: string) {
+async function setclip_webapi(data: string) {
     return window.navigator.clipboard.writeText(data)
 }
 
@@ -3130,7 +3130,7 @@ async function setclip_api(data: string) {
 export async function getclip(from?: "clipboard" | "selection") {
     if (from === undefined) from = await config.getAsync("putfrom")
     if (from === "clipboard") {
-        return getclip_api()
+        return getclip_webapi()
     } else {
         return Native.clipboard("get", "")
     }
@@ -3141,7 +3141,7 @@ export async function getclip(from?: "clipboard" | "selection") {
  * @hidden
  */
 //#background_helper
-async function getclip_api() {
+async function getclip_webapi() {
     return window.navigator.clipboard.readText()
 }
 
