@@ -703,7 +703,7 @@ export function getElementCentre(el) {
     return { x: 0.5 * (pos.left + pos.right), y: 0.5 * (pos.top + pos.bottom) }
 }
 
-export function getAbsolutePosition(el) {
+export function getAbsoluteCentre(el) {
     const pos = getElementCentre(el)
     return {
         x: pos.x + (window as any).mozInnerScreenX,
