@@ -321,28 +321,6 @@ export function fillcmdline(
     return result
 }
 
-/** @hidden
- * Create a temporary textarea and give it to fn. Remove the textarea afterwards
- *
- * Useful for document.execCommand
- **/
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-function applyWithTmpTextArea(fn) {
-    let textarea
-    try {
-        textarea = document.createElement("textarea")
-        // Scratchpad must be `display`ed, but can be tiny and invisible.
-        // Being tiny and invisible means it won't make the parent page move.
-        textarea.style.cssText =
-            "visible: invisible; width: 0; height: 0; position: fixed"
-        textarea.contentEditable = "true"
-        document.documentElement.appendChild(textarea)
-        return fn(textarea)
-    } finally {
-        document.documentElement.removeChild(textarea)
-    }
-}
-
 /** @hidden **/
 export function getContent() {
     return commandline_state.clInput.value
