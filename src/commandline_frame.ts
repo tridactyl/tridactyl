@@ -326,6 +326,7 @@ export function fillcmdline(
  *
  * Useful for document.execCommand
  **/
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function applyWithTmpTextArea(fn) {
     let textarea
     try {
@@ -340,35 +341,6 @@ function applyWithTmpTextArea(fn) {
     } finally {
         document.documentElement.removeChild(textarea)
     }
-}
-
-/** @hidden **/
-export async function setClipboard(content: string) {
-    await Messaging.messageOwnTab("commandline_content", "focus")
-    applyWithTmpTextArea(scratchpad => {
-        scratchpad.value = content
-        scratchpad.select()
-        // This can return false spuriously so just ignore its return value
-        document.execCommand("Copy")
-        logger.info("set clipboard:", scratchpad.value)
-    })
-    // Return focus to the document
-    await Messaging.messageOwnTab("commandline_content", "hide")
-    return Messaging.messageOwnTab("commandline_content", "blur")
-}
-
-/** @hidden **/
-export async function getClipboard() {
-    await Messaging.messageOwnTab("commandline_content", "focus")
-    const result = applyWithTmpTextArea(scratchpad => {
-        scratchpad.focus()
-        document.execCommand("Paste")
-        return scratchpad.textContent
-    })
-    // Return focus to the document
-    await Messaging.messageOwnTab("commandline_content", "hide")
-    await Messaging.messageOwnTab("commandline_content", "blur")
-    return result
 }
 
 /** @hidden **/
