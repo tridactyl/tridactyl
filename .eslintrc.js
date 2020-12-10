@@ -39,12 +39,7 @@ module.exports = {
         "sonarjs/no-duplicate-string": "off",
         "sonarjs/no-unused-collection": "off", //"error", // There seems to be a bug with this rule - exported collections are assumed unused
         "@typescript-eslint/adjacent-overload-signatures": "error",
-        "@typescript-eslint/array-type": [
-            "error",
-            {
-                "default": "array-simple"
-            }
-        ],
+        "@typescript-eslint/array-type": "off",
         "@typescript-eslint/await-thenable": "error",
         "@typescript-eslint/ban-ts-comment": "error",
         "@typescript-eslint/ban-types": [
