@@ -56,7 +56,7 @@
     "web-ext": "^5.4.1",
     "web-ext-types": "^3.2.1",
     "webpack": "^4.44.2",
-    "webpack-cli": "^3.3.12"
+    "webpack-cli": "^4.2.0"
   },
   "scripts": {
     "build": "sh scripts/build.sh",
