@@ -6051,16 +6051,15 @@ ncp@~2.0.0:
   resolved "https://registry.yarnpkg.com/ncp/-/ncp-2.0.0.tgz#195a21d6c46e361d2fb1281ba38b91e9df7bdbb3"
   integrity sha1-GVoh1sRuNh0vsSgbo4uR6d9727M=
 
-nearley@^2.19.9:
-  version "2.19.9"
-  resolved "https://registry.yarnpkg.com/nearley/-/nearley-2.19.9.tgz#a6a06362025be043d3b06bca65355c75af45dc4e"
-  integrity sha512-KpCXvcVWPmZrEs95tIkqWi+CgL48O8CJDVDgY/AQGWXR1O8KQPHt5iQrTLior0k0v3PGKIV2xPi879wR1sawwg==
+nearley@^2.20.1:
+  version "2.20.1"
+  resolved "https://registry.yarnpkg.com/nearley/-/nearley-2.20.1.tgz#246cd33eff0d012faf197ff6774d7ac78acdd474"
+  integrity sha512-+Mc8UaAebFzgV+KpI5n7DasuuQCHA89dmwm7JXw3TV43ukfNQ9DnBH3Mdb2g/I4Fdxc26pwimBWvjIw0UAILSQ==
   dependencies:
     commander "^2.19.0"
     moo "^0.5.0"
     railroad-diagrams "^1.0.0"
     randexp "0.4.6"
-    semver "^5.4.1"
 
 needle@^2.2.1:
   version "2.2.4"
