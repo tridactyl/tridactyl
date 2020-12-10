@@ -685,7 +685,7 @@ export async function native() {
 }
 
 /**
- * Simply copies "curl -fsSl https://raw.githubusercontent.com/tridactyl/tridactyl/master/native/install.sh | bash" to the clipboard and tells the user to run it.
+ * Simply copies "curl -fsSl https://raw.githubusercontent.com/tridactyl/tridactyl/[your tridactyl version]/native/install.sh | bash" to the clipboard and tells the user to run it.
  */
 //#background
 export async function nativeinstall() {
