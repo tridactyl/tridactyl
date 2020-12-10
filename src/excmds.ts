@@ -3095,18 +3095,18 @@ export function yank(...content: string[]) {
 //#background_helper
 async function setclip(data: string) {
     // Function to avoid retyping everything everywhere
-    const setclip_selection = () => Native.clipboard("set", data)
+    const setclip_selection = data => Native.clipboard("set", data)
 
-    let promises: Array<Promise<any>> = []
+    let promises: Promise<any>[]
     switch (await config.getAsync("yankto")) {
         case "selection":
-            promises = [setclip_selection()]
+            promises = [setclip_selection(data)]
             break
         case "clipboard":
             promises = [setclip_webapi(data)]
             break
         case "both":
-            promises = [setclip_selection(), setclip_webapi(data)]
+            promises = [setclip_selection(data), setclip_webapi(data)]
             break
     }
     return Promise.all(promises)
