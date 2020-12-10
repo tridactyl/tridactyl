@@ -154,7 +154,6 @@ import "@src/lib/number.mod"
 import * as BGSELF from "@src/.excmds_background.generated"
 import { CmdlineCmds as BgCmdlineCmds } from "@src/background/commandline_cmds"
 import { EditorCmds as BgEditorCmds } from "@src/background/editor"
-import { messageActiveTab } from "@src/lib/messaging"
 import { EditorCmds } from "@src/background/editor"
 import { firefoxVersionAtLeast } from "@src/lib/webext"
 import { parse_bind_args, modeMaps } from "@src/lib/binding"
@@ -3089,31 +3088,39 @@ export function yank(...content: string[]) {
 }
 
 /**
- * Copies a string to the clipboard/selection buffer depending on the user's preferences
+ * Copies a string to the clipboard/selection buffer depending on the user's preferences.
  *
  * @hidden
  */
 //#background_helper
-async function setclip(str) {
-    // Functions to avoid retyping everything everywhere
+async function setclip(data: string) {
+    // Function to avoid retyping everything everywhere
+    const setclip_selection = data => Native.clipboard("set", data)
 
-    // Note: We're using fillcmdline here because exceptions are somehow not caught. We're rethrowing because otherwise the error message will be overwritten with the "yank successful" message.
-    const s = () => Native.clipboard("set", str)
-    const c = () => messageActiveTab("commandline_frame", "setClipboard", [str])
-
-    let promises = []
+    let promises: Promise<any>[]
     switch (await config.getAsync("yankto")) {
         case "selection":
-            promises = [s()]
+            promises = [setclip_selection(data)]
             break
         case "clipboard":
-            promises = [c()]
+            promises = [setclip_webapi(data)]
             break
         case "both":
-            promises = [s(), c()]
+            promises = [setclip_selection(data), setclip_webapi(data)]
             break
     }
     return Promise.all(promises)
+}
+
+/**
+ * Copies a string to the clipboard using the Clipboard API.
+ * @hidden
+ *
+ * Has to be a background helper as it's only available on HTTPS and background pages. We want to be able to copy stuff to the clipboard from HTTP pages too.
+ */
+//#background_helper
+async function setclip_webapi(data: string) {
+    return window.navigator.clipboard.writeText(data)
 }
 
 /**
@@ -3122,13 +3129,22 @@ async function setclip(str) {
  * Exposed for use with [[composite]], e.g. `composite getclip | fillcmdline`
  */
 //#background
-export async function getclip(fromm?: "clipboard" | "selection") {
-    if (fromm === undefined) fromm = await config.getAsync("putfrom")
-    if (fromm === "clipboard") {
-        return messageActiveTab("commandline_frame", "getClipboard")
+export async function getclip(from?: "clipboard" | "selection") {
+    if (from === undefined) from = await config.getAsync("putfrom")
+    if (from === "clipboard") {
+        return getclip_webapi()
     } else {
         return Native.clipboard("get", "")
     }
+}
+
+/**
+ * Gets the clipboard content using the Clipboard API.
+ * @hidden
+ */
+//#background_helper
+async function getclip_webapi() {
+    return window.navigator.clipboard.readText()
 }
 
 /** Use the system clipboard.

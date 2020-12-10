@@ -321,56 +321,6 @@ export function fillcmdline(
     return result
 }
 
-/** @hidden
- * Create a temporary textarea and give it to fn. Remove the textarea afterwards
- *
- * Useful for document.execCommand
- **/
-function applyWithTmpTextArea(fn) {
-    let textarea
-    try {
-        textarea = document.createElement("textarea")
-        // Scratchpad must be `display`ed, but can be tiny and invisible.
-        // Being tiny and invisible means it won't make the parent page move.
-        textarea.style.cssText =
-            "visible: invisible; width: 0; height: 0; position: fixed"
-        textarea.contentEditable = "true"
-        document.documentElement.appendChild(textarea)
-        return fn(textarea)
-    } finally {
-        document.documentElement.removeChild(textarea)
-    }
-}
-
-/** @hidden **/
-export async function setClipboard(content: string) {
-    await Messaging.messageOwnTab("commandline_content", "focus")
-    applyWithTmpTextArea(scratchpad => {
-        scratchpad.value = content
-        scratchpad.select()
-        // This can return false spuriously so just ignore its return value
-        document.execCommand("Copy")
-        logger.info("set clipboard:", scratchpad.value)
-    })
-    // Return focus to the document
-    await Messaging.messageOwnTab("commandline_content", "hide")
-    return Messaging.messageOwnTab("commandline_content", "blur")
-}
-
-/** @hidden **/
-export async function getClipboard() {
-    await Messaging.messageOwnTab("commandline_content", "focus")
-    const result = applyWithTmpTextArea(scratchpad => {
-        scratchpad.focus()
-        document.execCommand("Paste")
-        return scratchpad.textContent
-    })
-    // Return focus to the document
-    await Messaging.messageOwnTab("commandline_content", "hide")
-    await Messaging.messageOwnTab("commandline_content", "blur")
-    return result
-}
-
 /** @hidden **/
 export function getContent() {
     return commandline_state.clInput.value
