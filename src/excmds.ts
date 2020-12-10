@@ -3115,6 +3115,8 @@ async function setclip(data: string) {
 /**
  * Copies a string to the clipboard using the Clipboard API.
  * @hidden
+ *
+ * Has to be a background helper as it's only available on HTTPS and background pages. We want to be able to copy stuff to the clipboard from HTTP pages too.
  */
 //#background_helper
 async function setclip_webapi(data: string) {
