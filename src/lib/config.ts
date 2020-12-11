@@ -1138,6 +1138,12 @@ const platform_defaults = {
             "<C-6>": "buffer #",
         } as unknown,
     },
+    linux: {
+        nmaps: {
+            ";x": 'hint -F e => { const pos = tri.dom.getAbsoluteCentre(e); tri.excmds.exclaim_quiet("xdotool mousemove --sync " + pos.x + " " + pos.y + "; xdotool click 1")}',
+            ";X": 'hint -F e => { const pos = tri.dom.getAbsoluteCentre(e); tri.excmds.exclaim_quiet("xdotool mousemove --sync " + pos.x + " " + pos.y + "; xdotool keydown ctrl+shift; xdotool click 1; xdotool keyup ctrl+shift")}',
+        } as unknown,
+    },
 } as Record<browser.runtime.PlatformOs, default_config>
 
 /** @hidden

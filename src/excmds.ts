@@ -4064,6 +4064,13 @@ const KILL_STACK: Element[] = []
           (e.g., a news site will have the same hints for its
           boilerplate each time you visit it, even if the number of
           links in the main body changes).
+
+    There are some extra hint "modes" that are actually just normal-mode binds. We'll list them here:
+
+    - `;gv` - "open link in MPV" - only available if you have [[native]] installed and `mpv` on your PATH
+    - `;m` and `;M` - do a reverse image search using Google in the current tab and a new tab
+    - `;x` and `;X` - move cursor to element and perform a real click or ctrl-shift-click (to open in a new foreground tab). Only available on Linux, if you have [[native]] installed and `xdotool` on your PATH
+
 */
 //#content
 export async function hint(option?: string, selectors?: string, ...rest: string[]): Promise<any> {
