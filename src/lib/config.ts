@@ -303,9 +303,9 @@ export class default_config {
         ";T": "hint -W fillcmdline_notrail tabopen ",
         ";z": "hint -z",
         ";m":
-            "composite hint -pipe img src | js -p tri.excmds.open('images.google.com/searchbyimage?image_url=' + JS_ARG)",
+            "composite hint -Jpipe img src | open images.google.com/searchbyimage?image_url=",
         ";M":
-            "composite hint -pipe img src | jsb -p tri.excmds.tabopen('images.google.com/searchbyimage?image_url=' + JS_ARG)",
+            "composite hint -Jpipe img src | tabopen images.google.com/searchbyimage?image_url=",
         ";gi": "hint -qi",
         ";gI": "hint -qI",
         ";gk": "hint -qk",
