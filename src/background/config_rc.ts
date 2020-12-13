@@ -62,5 +62,10 @@ export function rcFileToExCmds(rcText: string): string[] {
     const excmds = joined.split("\n")
 
     // Remove empty and comment lines
-    return excmds.filter(x => /\S/.test(x) && !x.trim().startsWith('"'))
+    return excmds.filter(
+        x =>
+            /\S/.test(x) &&
+            !x.trim().startsWith('"') &&
+            !x.trim().startsWith("#"),
+    )
 }
