@@ -3928,7 +3928,7 @@ export function get(...keys: string[]) {
 
 /** Opens the current configuration in Firefox's native JSON viewer in the current tab.
  *
- * NB: Tridactyl cannot run on this page!
+ * NB: only works well from a "normal" page, e.g not a Tridactyl help or new tab page.
  *
  * @param key - The specific key you wish to view (e.g, nmaps), or `--default` or `--user` to view the default configuration, or your changes.
  *
@@ -3937,16 +3937,25 @@ export function get(...keys: string[]) {
 export function viewconfig(key?: string) {
     // # and white space don't agree with FF's JSON viewer.
     // Probably other symbols too.
-    if (!key) window.location.href = "data:application/json," + JSON.stringify(config.get()).replace(/#/g, "%23").replace(/ /g, "%20")
+    let json
+    if (!key) json = config.get()
     // I think JS casts key to the string "undefined" if it isn't given.
     else if (key === "--default") {
-        window.location.href = "data:application/json," + JSON.stringify(config.o(new config.default_config())).replace(/#/g, "%23").replace(/ /g, "%20")
+        json = config.o(new config.default_config())
     } else if (key === "--user") {
-        window.location.href = "data:application/json," + JSON.stringify(config.USERCONFIG).replace(/#/g, "%23").replace(/ /g, "%20")
+        json = config.USERCONFIG
+    } else {
+        json = config.getDynamic(key)
     }
-    window.location.href = "data:application/json," + JSON.stringify(config.getDynamic(key)).replace(/#/g, "%23").replace(/ /g, "%20")
-    // base 64 encoding is a cleverer way of doing this, but it doesn't seem to work for the whole config.
-    //window.location.href = "data:application/json;base64," + btoa(JSON.stringify(config.get()))
+    jsonview(JSON.stringify(json))
+}
+
+/**
+ * View a JSON object in Firefox's JSON viewer. NB: only works well from a "normal" page, e.g not a Tridactyl help or new tab page.
+ */
+//#content
+export function jsonview(...json: string[]) {
+    window.location.href = "data:application/json," + json.join(" ").replace(/#/g, "%23").replace(/ /g, "%20")
 }
 
 /**
