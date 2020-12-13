@@ -3930,22 +3930,22 @@ export function get(...keys: string[]) {
  *
  * NB: only works well from a "normal" page, e.g not a Tridactyl help or new tab page.
  *
- * @param key - The specific key you wish to view (e.g, nmaps), or `--default` or `--user` to view the default configuration, or your changes.
+ * @param key - The specific key you wish to view (e.g, nmaps, autocmds.DocLoad). Also accepts the arguments `--default` or `--user` to view the default configuration, or your changes.
  *
  */
 //#content
-export function viewconfig(key?: string) {
+export function viewconfig(...key: string[]) {
     // # and white space don't agree with FF's JSON viewer.
     // Probably other symbols too.
     let json
-    if (!key) json = config.get()
+    if (key.length === 0) json = config.get()
     // I think JS casts key to the string "undefined" if it isn't given.
-    else if (key === "--default") {
-        json = config.o(new config.default_config())
-    } else if (key === "--user") {
-        json = config.USERCONFIG
+    else if (key[0] === "--default") {
+        json = config.getDeepProperty(config.o(new config.default_config()), key[1].split("."))
+    } else if (key[0] === "--user") {
+        json = config.getDeepProperty(config.USERCONFIG, key[1].split("."))
     } else {
-        json = config.getDynamic(key)
+        json = config.getDynamic(...key.join(".").split("."))
     }
     jsonview(JSON.stringify(json))
 }

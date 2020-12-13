@@ -2,7 +2,8 @@ import * as Completions from "@src/completions"
 import * as config from "@src/lib/config"
 import * as metadata from "@src/.metadata.generated"
 
-class SettingsCompletionOption extends Completions.CompletionOptionHTML
+class SettingsCompletionOption
+    extends Completions.CompletionOptionHTML
     implements Completions.CompletionOptionFuse {
     public fuseKeys = []
 
@@ -25,7 +26,7 @@ export class SettingsCompletionSource extends Completions.CompletionSourceFuse {
 
     constructor(private _parent) {
         super(
-            ["set", "get", "unset", "seturl", "unseturl"],
+            ["set", "get", "unset", "seturl", "unseturl", "viewconfig"],
             "SettingsCompletionSource",
             "Settings",
         )
@@ -56,6 +57,12 @@ export class SettingsCompletionSource extends Completions.CompletionSourceFuse {
             const args = query.split(" ")
             options = args.slice(0, 1).join(" ")
             query = args.slice(1).join(" ")
+        } else if (prefix === "viewconfig ") {
+            if (query.startsWith("--user") || query.startsWith("--default")) {
+                const args = query.split(" ")
+                options = args.slice(0, 1).join(" ")
+                query = args.slice(1).join(" ")
+            }
         }
 
         options += options ? " " : ""

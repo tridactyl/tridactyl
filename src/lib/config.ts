@@ -1162,7 +1162,7 @@ export const DEFAULTS = mergeDeepCull(
     @param target path of properties as an array
     @hidden
  */
-function getDeepProperty(obj, target: string[]) {
+export function getDeepProperty(obj, target: string[]) {
     if (obj !== undefined && obj !== null && target.length) {
         if (obj["🕷🕷INHERITS🕷🕷"] === undefined) {
             return getDeepProperty(obj[target[0]], target.slice(1))
