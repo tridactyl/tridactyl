@@ -417,3 +417,16 @@ export function interpolateSearchItem(urlPattern: URL, query: string): URL {
         return new URL(urlPattern.href + query)
     }
 }
+
+/**
+ * @param url May be either an absolute or a relative URL.
+ * @param baseURI The URL the absolute URL should be relative to. This is
+ * usually the URL of the current page.
+ */
+export function getAbsoluteURL(url: string, baseURI: string = document.baseURI) {
+    // We can choose between using complicated RegEx and string manipulation,
+    // or just letting the browser do it for us. The latter is probably safer,
+    // which should make it worth the (small) overhead of constructing an URL
+    // just for this.
+    return new URL(url, baseURI).href
+}

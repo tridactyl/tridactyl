@@ -284,6 +284,8 @@ export class default_config {
         ";k": "hint -k",
         ";K": "hint -K",
         ";y": "hint -y",
+        ";Y":
+            "hint -cF img i => tri.excmds.yankimage(tri.urlutils.getAbsoluteURL(i.src))",
         ";p": "hint -p",
         ";h": "hint -h",
         v: "hint -h", // Easiest way of entering visual mode for now. Expect this bind to change

@@ -3234,6 +3234,29 @@ export async function clipboard(excmd: "open" | "yank" | "yankshort" | "yankcano
     return done.then(() => undefined)
 }
 
+/** Copy an image to the clipboard.
+
+    @param url
+        Absolute URL to the image to be copied. You can obtain an absolute URL from a relative one using [tri.urlutils.getAbsoluteURL](_src_lib_url_util_.html#getabsoluteurl).
+*/
+//#background
+export async function yankimage(url: string): Promise<void> {
+    const absoluteUrl = UrlUtil.getAbsoluteURL(url, document.baseURI)
+    const image = await window.fetch(absoluteUrl)
+    const blob = await image.blob()
+    // Blob.type returns a MIME type like image/jpeg, but the Clipboard API expects only the second half
+    const imageType = blob.type.split("/")[1]
+    try {
+        browser.clipboard.setImageData(await blob.arrayBuffer(), imageType as browser.clipboard._SetImageDataImageType)
+    } catch (err) {
+        if (err instanceof Error && err.message.includes("imageType")) {
+            throw new Error(`Image type ${blob.type} is not supported`)
+        } else {
+            throw err
+        }
+    }
+}
+
 /** Change active tab.
 
     @param index
