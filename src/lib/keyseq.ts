@@ -357,6 +357,7 @@ export const commandKey2jsKey = {
     Down: "ArrowDown",
     Left: "ArrowLeft",
     Right: "ArrowRight",
+    Space: " ",
 }
 
 /*
