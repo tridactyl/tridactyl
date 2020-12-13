@@ -493,7 +493,7 @@ export async function colourscheme(themename: string) {
 }
 
 /**
- * Write a setting to your user.js file.
+ * Write a setting to your user.js file. Requires a [[restart]] after running to take effect.
  *
  * @param key The key that should be set. Must not be quoted. Must not contain spaces.
  * @param value The value the key should take. Quoted if a string, unquoted otherwise.
