@@ -1,15 +1,15 @@
-import { activeTabId } from "@src/lib/webext"
-import * as Messaging from "@src/lib/messaging"
+import { browserBg } from "@src/lib/webext"
 import * as Completions from "../completions"
 import * as config from "@src/lib/config"
+import * as finding from "@src/content/finding"
 
 class FindCompletionOption extends Completions.CompletionOptionHTML
     implements Completions.CompletionOptionFuse {
     public fuseKeys = []
     constructor(m, reverse = false) {
         super()
-        this.value =
-            (reverse ? "-? " : "") + ("-: " + m.index) + " " + m.rangeData.text
+        this.value = m.id
+        // (reverse ? "-? " : "") + ("-: " + m.index) + " " + m.rangeData.text
         this.fuseKeys.push(m.rangeData.text)
 
         // Create HTMLElement
@@ -52,6 +52,16 @@ export class FindCompletionSource extends Completions.CompletionSourceFuse {
         this.options.forEach(o => (o.state = "normal"))
     }
 
+    select(option: FindCompletionOption) {
+        if (this.lastExstr !== undefined && option !== undefined) {
+            this.completion = "findjumpto " + option.value
+            option.state = "focused"
+            this.lastFocused = option
+        } else {
+            throw new Error("lastExstr and option must be defined!")
+        }
+    }
+
     private async updateOptions(exstr?: string) {
         if (!exstr) return
 
@@ -68,8 +78,8 @@ export class FindCompletionSource extends Completions.CompletionSourceFuse {
         // No point if continuing if the user hasn't started searching yet
         if (query.length < minincsearchlen) return
 
-        let findresults = await config.getAsync("findresults")
-        const incsearch = (await config.getAsync("incsearch")) === "true"
+        let findresults = config.get("findresults")
+        const incsearch = config.get("incsearch") === "true"
         if (findresults === 0 && !incsearch) return
 
         let incsearchonly = false
@@ -78,33 +88,31 @@ export class FindCompletionSource extends Completions.CompletionSourceFuse {
             incsearchonly = true
         }
 
-        // Note: the use of activeTabId here might break completions if the user starts searching for a pattern in a really big page and then switches to another tab.
-        // Getting the tabId should probably be done in the constructor but you can't have async constructors.
-        const tabId = await activeTabId()
-        const findings = await Messaging.messageTab(
-            tabId,
-            "finding_content",
-            "find",
-            [query, findresults, reverse],
-        )
+        const findings = await browserBg.find.find(query, {
+            includeRectData: true,
+            includeRangeData: true,
+        })
+        // TODO: don't do this twice / thrice
+        await finding.jumpToMatch(query, false)
+        const matches = []
+
+        for (let i = 0; i < findings.count; i++) {
+            matches.push({
+                rectData: findings.rectData[i],
+                rangeData: findings.rangeData[i],
+                id: i + 1,
+                precontext: "",
+                postcontext: "",
+            })
+            // pre, post context todo - see commit e878b93fd
+        }
 
         // If the search was successful
-        if (findings.length > 0) {
+        if (findings.count > 0) {
             // Get match context
-            const len = await config.getAsync("findcontextlen")
-            const matches = await Messaging.messageTab(
-                tabId,
-                "finding_content",
-                "getMatches",
-                [findings, len],
-            )
+            // const len = await config.getAsync("findcontextlen")
 
-            if (incsearch)
-                Messaging.messageTab(tabId, "finding_content", "jumpToMatch", [
-                    query,
-                    false,
-                    0,
-                ])
+            if (incsearch) finding.jumpToMatch(query, false)
 
             if (!incsearchonly) {
                 this.options = matches.map(
@@ -114,4 +122,5 @@ export class FindCompletionSource extends Completions.CompletionSourceFuse {
             }
         }
     }
+
 }

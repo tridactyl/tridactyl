@@ -37,6 +37,7 @@ import { SessionsCompletionSource } from "@src/completions/Sessions"
 import { SettingsCompletionSource } from "@src/completions/Settings"
 import { WindowCompletionSource } from "@src/completions/Window"
 import { ExtensionsCompletionSource } from "@src/completions/Extensions"
+import { FindCompletionSource } from "@src/completions/Find"
 import * as Messaging from "@src/lib/messaging"
 import "@src/lib/number.clamp"
 import state from "@src/state"
@@ -108,7 +109,7 @@ commandline_state.getCompletion = getCompletion
 export function enableCompletions() {
     if (!commandline_state.activeCompletions) {
         commandline_state.activeCompletions = [
-            // FindCompletionSource,
+            FindCompletionSource,
             BindingsCompletionSource,
             BmarkCompletionSource,
             TabAllCompletionSource,

@@ -1137,6 +1137,14 @@ export function findnext(n = 1) {
     return finding.jumpToNextMatch(n)
 }
 
+/** Jump to the nth match for the searched pattern
+ *
+ */
+//#content
+export function findjumpto(n = 1) {
+    return finding.jumpToNthMatch(n)
+}
+
 //#content
 export function clearsearchhighlight() {
     return finding.removeHighlighting()
