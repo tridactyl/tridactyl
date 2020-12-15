@@ -149,6 +149,8 @@ export interface ScoredOption {
     score: number
 }
 
+let FILTERING = 0
+
 export abstract class CompletionSourceFuse extends CompletionSource {
     public node
     public options: CompletionOptionFuse[]
@@ -183,6 +185,13 @@ export abstract class CompletionSourceFuse extends CompletionSource {
         this.lastExstr = exstr
         await this.onInput(exstr)
         return this.updateChain()
+    }
+
+    public async filterWrapper(exstr: string) {
+        FILTERING += 1
+        const ans = await this.filter(exstr)
+        FILTERING -= 1
+        return ans
     }
 
     updateChain(exstr = this.lastExstr, options = this.options) {
@@ -316,10 +325,20 @@ export abstract class CompletionSourceFuse extends CompletionSource {
 
     async next(inc = 1) {
         if (this.state !== "hidden") {
-            // We're abusing `async` here to help us to catch errors in backoff
-            // and to make it easier to return consistent types
-            /* eslint-disable-next-line @typescript-eslint/require-await */
             return backoff(async () => {
+                // we should run another backoff here
+                try {
+                    // We're abusing `async` here to help us to catch errors in backoff
+                    // and to make it easier to return consistent types
+                    /* eslint-disable-next-line @typescript-eslint/require-await */
+                    await backoff(async () => {
+                        if (FILTERING > 0) {
+                            throw "Filtering in progress, tabnext ignored"
+                        }
+                    })
+                } catch (e) {
+                    // If after n tries it still hasn't finished, continue anyway
+                }
                 const visopts = this.options.filter(o => o.state !== "hidden")
                 const currind = visopts.findIndex(o => o.state === "focused")
                 this.deselect()

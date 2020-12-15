@@ -224,7 +224,7 @@ export function refresh_completions(exstr) {
     if (!commandline_state.activeCompletions) enableCompletions()
     return Promise.all(
         commandline_state.activeCompletions.map(comp =>
-            comp.filter(exstr).then(() => {
+            comp.filterWrapper(exstr).then(() => {
                 if (comp.shouldRefresh()) {
                     return resizeArea()
                 }
