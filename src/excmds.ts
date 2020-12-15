@@ -3798,16 +3798,16 @@ export async function reseturl(pattern: string, mode: string, key: string) {
     return config.unsetURL(pattern, args_obj.configName, args_obj.key)
 }
 
-/** Deletes various privacy-related items.
+/** Deletes various bits of Firefox or Tridactyl data
 
     The list of possible arguments can be found here:
     https://developer.mozilla.org/en-US/Add-ons/WebExtensions/API/browsingData/DataTypeSet
 
-    Additional, tridactyl-specific arguments are:
-    - commandline: Removes the in-memory commandline history.
-    - tridactyllocal: Removes all tridactyl storage local to this machine. Use it with
+    Additional Tridactyl-specific arguments are:
+    - `commandline`: Removes the in-memory commandline history.
+    - `tridactyllocal`: Removes all tridactyl storage local to this machine. Use it with
         commandline if you want to delete your commandline history.
-    - tridactylsync: Removes all tridactyl storage associated with your Firefox Account (i.e, all user configuration, by default).
+    - `tridactylsync`: Removes all tridactyl storage associated with your Firefox Account (i.e, all user configuration, by default).
     These arguments aren't affected by the timespan parameter.
 
     Timespan parameter:
@@ -3815,7 +3815,7 @@ export async function reseturl(pattern: string, mode: string, key: string) {
 
     Examples:
 
-    - `sanitise all` -> Deletes everything
+    - `sanitise all` -> Deletes __everything__, including any saved usernames / passwords(!)
     - `sanitise history` -> Deletes all history
     - `sanitise commandline tridactyllocal tridactylsync` -> Deletes every bit of data Tridactyl holds
     - `sanitise cookies -t 3d` -> Deletes cookies that were set during the last three days.
