@@ -27,6 +27,7 @@ export class CompositeCompletionSource extends Completions.CompletionSourceFuse 
         return this.updateOptions(exstr)
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars-experimental
     updateChain(exstr = this.lastExstr, options = this.options) {
         if (this.options.length > 0) this.state = "normal"
         else this.state = "hidden"

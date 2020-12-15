@@ -126,12 +126,13 @@ module.exports = {
                 "allowTernary": true,
             }
         ],
-        "@typescript-eslint/no-unused-vars": [
+        "@typescript-eslint/no-unused-vars-experimental": [
             "error",
             {
-                "args": "none",
-            }
+                "ignoreArgsIfArgsAfterAreUsed": true,
+            },
         ],
+        "@typescript-eslint/no-unused-vars": "off",
         "@typescript-eslint/no-use-before-define": "off",
         "@typescript-eslint/no-var-requires": "error",
         "@typescript-eslint/prefer-as-const": "error",

@@ -1434,7 +1434,7 @@ export async function update() {
         if (subconfigs) {
             Object.keys(subconfigs)
                 .map(pattern => [pattern, getURL(pattern, setting)])
-                .filter(([pattern, value]) => value)
+                .filter(([_pattern, value]) => value)
                 .forEach(([pattern, value]) =>
                     setURL(pattern, ...setting, fn(value)),
                 )
@@ -1492,7 +1492,7 @@ export async function update() {
                     getDeepProperty(USERCONFIG, [mapname]),
                 ])
                 // mapobj is undefined if the user didn't define any bindings
-                .filter(([mapname, mapobj]) => mapobj)
+                .filter(([_mapname, mapobj]) => mapobj)
                 .forEach(([mapname, mapobj]) => {
                     // For each mapping
                     Object.keys(mapobj)

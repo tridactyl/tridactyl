@@ -524,7 +524,7 @@ export function getLastUsedInput(): HTMLElement {
  *  https://developer.mozilla.org/en-US/docs/Web/Web_Components/Custom_Elements
  *  https://bugzilla.mozilla.org/show_bug.cgi?id=1406825
  * */
-function onPageFocus(elem: HTMLElement, args: any[]): boolean {
+function onPageFocus(elem: HTMLElement): boolean {
     if (isTextEditable(elem)) {
         LAST_USED_INPUT = elem
     }

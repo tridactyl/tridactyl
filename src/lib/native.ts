@@ -65,9 +65,9 @@ export async function getrcpath(separator: "unix" | "auto" = "auto"): Promise<st
 
     if (separator == "unix" && (await browserBg.runtime.getPlatformInfo()).os == "win") {
         return res.content.replace(/\\/g, "/")
-    }
-    else
+    } else {
         return res.content
+    }
 }
 
 export async function getrc(): Promise<string> {
@@ -525,7 +525,7 @@ export async function getProfileUncached() {
     }
 
     // Then, try to find a profile path in the arguments given to Firefox
-    const cmdline = await ff_cmdline().catch(e => "")
+    const cmdline = await ff_cmdline().catch(() => "")
     let profile = cmdline.indexOf("--profile")
     if (profile === -1) profile = cmdline.indexOf("-profile")
     if (profile >= 0 && profile < cmdline.length - 1) {
@@ -623,7 +623,7 @@ export async function getProfile() {
 if (getContext() === "background") {
     getProfile()
 }
-config.addChangeListener("profiledir", (prev, cur) => {
+config.addChangeListener("profiledir", () => {
     cachedProfile = undefined
     getProfile()
 })
