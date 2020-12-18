@@ -145,7 +145,7 @@ export function enableCompletions() {
 /* document.addEventListener("DOMContentLoaded", enableCompletions) */
 
 /** @hidden **/
-const noblur = e => setTimeout(() => commandline_state.clInput.focus(), 0)
+const noblur = () => setTimeout(() => commandline_state.clInput.focus(), 0)
 
 /** @hidden **/
 export function focus() {

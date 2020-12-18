@@ -241,7 +241,7 @@ export abstract class CompletionSourceFuse extends CompletionSource {
     }
 
     /** Rtn sorted array of {option, score} */
-    scoredOptions(query: string, options = this.options): ScoredOption[] {
+    scoredOptions(query: string): ScoredOption[] {
         const searchThis = this.options.map((elem, index) => ({
             index,
             fuseKeys: elem.fuseKeys,
@@ -335,7 +335,7 @@ export abstract class CompletionSourceFuse extends CompletionSource {
     /* abstract onUpdate(query: string, prefix: string, options: CompletionOptionFuse[]) */
 
     // Lots of methods don't need this but some do
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
+    // eslint-disable-next-line @typescript-eslint/no-empty-function, @typescript-eslint/no-unused-vars-experimental
     async onInput(exstr: string) {}
 }
 

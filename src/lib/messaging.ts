@@ -88,14 +88,13 @@ function backgroundHandler<
 >(
     root: Root,
     message: TypedMessage<Root, Type, Command>,
-    sender: browser.runtime.MessageSender,
 ): ReturnType<Root[Type][Command]> {
     return root[message.type][message.command](...message.args)
 }
 
 export function setupListener<Root>(root: Root) {
     browser.runtime.onMessage.addListener(
-        (message: any, sender: browser.runtime.MessageSender) => {
+        (message: any) => {
             if (message.type in root) {
                 if (!(message.command in root[message.type]))
                     throw new Error(
@@ -105,19 +104,19 @@ export function setupListener<Root>(root: Root) {
                     throw new Error(
                         `wrong arguments in protocol ${message.type} ${message.command}`,
                     )
-                return Promise.resolve(backgroundHandler(root, message, sender))
+                return Promise.resolve(backgroundHandler(root, message))
             }
         },
     )
 }
 
-type StripPromise<T> = T extends Promise<infer U> ? U : T
+// type StripPromise<T> = T extends Promise<infer U> ? U : T
 
 /** Send a message to non-content scripts */
 export async function message<
     Type extends keyof Messages.Background,
     Command extends keyof Messages.Background[Type],
-    F extends ((...args: any) => any) & Messages.Background[Type][Command]
+    F extends ((...args: any[]) => any) & Messages.Background[Type][Command]
 >(type: Type, command: Command, ...args: Parameters<F>) {
     const message: TypedMessage<Messages.Background, Type, Command> = {
         type,

@@ -78,9 +78,7 @@ export class BufferCompletionSource extends Completions.CompletionSourceFuse {
         this.updateOptions()
         this._parent.appendChild(this.node)
 
-        Messaging.addListener("tab_changes", message =>
-            this.reactToTabChanges(message.command),
-        )
+        Messaging.addListener("tab_changes", () => this.reactToTabChanges())
     }
 
     async onInput(exstr) {
@@ -129,25 +127,7 @@ export class BufferCompletionSource extends Completions.CompletionSourceFuse {
         }
 
         // If not yet returned...
-        return super.scoredOptions(query, options)
-    }
-
-    /** Return the scoredOption[] result for the nth tab */
-    private nthTabscoredOptions(
-        n: number,
-        options: BufferCompletionOption[],
-    ): Completions.ScoredOption[] {
-        for (const [index, option] of enumerate(options)) {
-            if (option.tabIndex === n) {
-                return [
-                    {
-                        index,
-                        option,
-                        score: 0,
-                    },
-                ]
-            }
-        }
+        return super.scoredOptions(query)
     }
 
     /** Return the scoredOption[] result for the tab index startswith n */
@@ -250,7 +230,7 @@ export class BufferCompletionSource extends Completions.CompletionSourceFuse {
      * Update the list of possible tab options and select (focus on)
      * the appropriate option.
      */
-    private async reactToTabChanges(command: string): Promise<void> {
+    private async reactToTabChanges(): Promise<void> {
         const prevOptions = this.options
         await this.updateOptions(this.lastExstr)
 

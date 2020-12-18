@@ -337,8 +337,8 @@ export async function editor() {
         let text = ""
         let line = 0
         let col = 0
-        wrap_input((t, start, end) => {
-            ;[text, line, col] = getLineAndColNumber(t, start, end)
+        wrap_input((t, start) => {
+            ;[text, line, col] = getLineAndColNumber(t, start)
             return [null, null, null]
         })(elem)
         const file = (await Native.temp(text, document.location.hostname)).content
@@ -2060,7 +2060,7 @@ export function focusinput(nth: number | string) {
  * Currently just goes to the last focussed input; being able to jump forwards and backwards is planned.
  */
 //#background
-export async function changelistjump(n?: number) {
+export async function changelistjump() {
     const tail = state.prevInputs[state.prevInputs.length - 1]
     const jumppos = tail.jumppos ? tail.jumppos : state.prevInputs.length - 1
     const input = state.prevInputs[jumppos]
@@ -2331,7 +2331,7 @@ export function tabqueue(...addresses: string[]) {
     }
     return tabopen("-b", addresses[0]).then(
         tab =>
-            new Promise((resolve, reject) => {
+            new Promise((resolve) => {
                 function openNextTab(activeInfo) {
                     if (activeInfo.tabId === tab.id) {
                         resolve(tabqueue(...addresses.slice(1)))
@@ -2523,7 +2523,7 @@ export async function undo(item = "recent"): Promise<number> {
             ? s => s.window
             : !isNaN(parseInt(item, 10))
             ? s => (s.tab || s.window).sessionId === item
-            : s => {
+            : () => {
                   throw new Error(`[undo] Invalid argument: ${item}. Must be one of "recent, "tab", "tab_strict", "window" or a sessionId (by selecting a session using the undo completion).`)
               } // this won't throw an error if there isn't anything in the session list, but I don't think that matters
     const session = sessions.find(predicate)
@@ -4445,7 +4445,7 @@ export async function hint(option?: string, selectors?: string, ...rest: string[
 //#content
 export function rot13(n: number) {
     if (n === undefined) n = 13
-    const body = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, { acceptNode: node => NodeFilter.FILTER_ACCEPT })
+    const body = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, { acceptNode: () => NodeFilter.FILTER_ACCEPT })
 
     while (body.nextNode()) {
         const t = body.currentNode.textContent
@@ -4462,7 +4462,7 @@ export function rot13(n: number) {
  */
 //#content
 export function jumble() {
-    const body = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, { acceptNode: node => NodeFilter.FILTER_ACCEPT })
+    const body = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, { acceptNode: () => NodeFilter.FILTER_ACCEPT })
 
     while (body.nextNode()) {
         const t = body.currentNode.textContent
@@ -4742,11 +4742,9 @@ export function echo(...str: string[]) {
  * @hidden
  */
 async function js_helper(str: string[]) {
-    /* tslint:disable:no-unused-declaration */
-    /* tslint:disable:no-dead-store */
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars-experimental
     let JS_ARG = null
-    /* tslint:disable:no-unused-declaration */
-    /* tslint:disable:no-dead-store */
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars-experimental
     let JS_ARGS = []
     let jsContent: string = null
 

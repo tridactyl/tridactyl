@@ -44,7 +44,7 @@ async function init() {
 
 // Load the iframe immediately if we can (happens if tridactyl is reloaded or on ImageDocument)
 // Else load lazily to avoid upsetting page JS that hates foreign iframes.
-init().catch(e => {
+init().catch(() => {
     // Surrender event loop with setTimeout() to page JS in case it's still doing stuff.
     document.addEventListener("DOMContentLoaded", () =>
         setTimeout(() => {

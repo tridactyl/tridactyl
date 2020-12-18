@@ -174,7 +174,7 @@ export function parse(keyseq: KeyEventLike[], map: KeyMap): ParserResponse {
         try {
             const perfect = find(
                 possibleMappings,
-                ([k, v]) => k.length === keyseq.length,
+                ([k, _v]) => k.length === keyseq.length,
             )
             return {
                 value: perfect[1],
@@ -212,7 +212,7 @@ function prefixes(seq1: KeyEventLike[], seq2: MinimalKey[]) {
 /** returns the fragment of `map` that keyseq is a valid prefix of. */
 export function completions(keyseq: KeyEventLike[], map: KeyMap): KeyMap {
     return new Map(
-        filter(map.entries(), ([ks, maptarget]) => prefixes(keyseq, ks)),
+        filter(map.entries(), ([ks, _maptarget]) => prefixes(keyseq, ks)),
     )
 }
 
@@ -505,7 +505,7 @@ export function translateKeysUsingKeyTranslateMap(
 
 // }}}
 
-browser.storage.onChanged.addListener((changes, areaname) => {
+browser.storage.onChanged.addListener((changes) => {
     if ("userconfig" in changes) {
         KEYMAP_CACHE = {}
     }

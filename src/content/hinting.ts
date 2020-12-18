@@ -616,7 +616,7 @@ class Hint {
         public name: string,
         public readonly filterData: any,
         private readonly onSelect: HintSelectedCallback,
-        private readonly classes?: string[],
+        classes?: string[],
     ) {
         // We need to compute the offset for elements that are in an iframe
         let offsetTop = 0
@@ -1206,7 +1206,7 @@ export function parser(keys: keyseq.KeyEventLike[]) {
         keyseq.mapstrMapToKeyMap(
             new Map(
                 (Object.entries(config.get("hintmaps")) as any).filter(
-                    ([key, value]) => value != "",
+                    ([_key, value]) => value != "",
                 ),
             ),
         ),

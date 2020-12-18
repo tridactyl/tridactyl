@@ -139,6 +139,7 @@ export function wrap_input(
 /**
  * Take an editor function as parameter and wrap it in a function that will handle error conditions
  */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars-experimental
 export function needs_text(fn: editor_function, arg?: any): editor_function {
     return (
         text: string,
@@ -167,7 +168,6 @@ export function needs_text(fn: editor_function, arg?: any): editor_function {
 export function getLineAndColNumber(
     text: string,
     start: number,
-    end: number,
 ): [string, number, number] {
     const lines = text.split("\n")
     let totalChars = 0

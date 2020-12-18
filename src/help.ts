@@ -90,7 +90,7 @@ async function addSetting(settingName: string) {
 }
 
 async function onExcmdPageLoad() {
-    browser.storage.onChanged.addListener((changes, areaname) => {
+    browser.storage.onChanged.addListener((changes) => {
         if ("userconfig" in changes) {
             // JSON.stringify for comparisons like it's 2012
             ;[...modeMaps, "exaliases"].forEach(kind => {

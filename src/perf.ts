@@ -154,11 +154,11 @@ export function listenForCounters(
         observer: PerformanceObserver,
     ) => void
     if (statsLogger === undefined) {
-        callback = (list, observer) => {
+        callback = (list) => {
             sendStats(list.getEntries())
         }
     } else {
-        callback = (list, observer) => {
+        callback = (list) => {
             statsLogger.pushList(list.getEntries())
         }
     }
@@ -233,7 +233,7 @@ export class StatsLogger {
         return this.buffer.filter(filterFun)
     }
 
-    private updateBuffersize() {
+    public updateBuffersize() {
         // Changing the buffer length while this is running will
         // probably result in weirdness, but that shouldn't be a major
         // issue - it's not like we need these to be in order or
