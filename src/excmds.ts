@@ -3964,9 +3964,9 @@ export function viewconfig(...key: string[]) {
     if (key.length === 0) json = config.get()
     // I think JS casts key to the string "undefined" if it isn't given.
     else if (key[0] === "--default") {
-        json = config.getDeepProperty(config.o(new config.default_config()), key[1].split("."))
+        json = key[1] !== undefined ? config.getDeepProperty(config.o(new config.default_config()), key[1].split(".")) : config.o(new config.default_config())
     } else if (key[0] === "--user") {
-        json = config.getDeepProperty(config.USERCONFIG, key[1].split("."))
+        json = key[1] !== undefined ? config.getDeepProperty(config.USERCONFIG, key[1].split(".")) : config.USERCONFIG
     } else {
         json = config.getDynamic(...key.join(".").split("."))
     }
