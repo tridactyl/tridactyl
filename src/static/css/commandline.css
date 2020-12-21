@@ -32,6 +32,10 @@ input {
     /* border-top: solid 1px lightgray; */
 }
 
+input:focus {
+    outline: none;
+}
+
 #tridactyl-colon::before {
     content: ":";
 }
