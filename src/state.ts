@@ -28,7 +28,7 @@ class State {
         },
     ]
     last_ex_str = "echo"
-    lastFocusInputSelector = "" // used for focusinput, not for changing tabs like prevInputs
+    lastFocusInputSelectors: Map<number, string> = new Map() // used for focusinput, not for changing tabs like prevInputs
 }
 
 // Store these keys in the local browser storage to persist between restarts

@@ -509,7 +509,8 @@ export function focus(e: HTMLElement): void {
 }
 
 export async function getLastUsedInputSelector(): Promise<string> {
-    return State.getAsync("lastFocusInputSelector")
+    const tabid = await activeTabId()
+    return (await State.getAsync("lastFocusInputSelectors")).get(tabid)
 }
 
 export async function getLastUsedInput(): Promise<HTMLElement> {
@@ -532,9 +533,12 @@ export async function getLastUsedInput(): Promise<HTMLElement> {
  *  https://developer.mozilla.org/en-US/docs/Web/Web_Components/Custom_Elements
  *  https://bugzilla.mozilla.org/show_bug.cgi?id=1406825
  * */
-function onPageFocus(elem: HTMLElement): boolean {
+async function onPageFocus(elem: HTMLElement): Promise<boolean> {
     if (isTextEditable(elem)) {
-        state.lastFocusInputSelector = getSelector(elem)
+        const t = await activeTabId()
+        state.lastFocusInputSelectors = (
+            await State.getAsync("lastFocusInputSelectors")
+        ).set(t, getSelector(elem))
     }
     return config.get("allowautofocus") === "true"
 }
@@ -566,9 +570,12 @@ function hijackPageFocusFunction(): void {
 
 export function setupFocusHandler(): void {
     // Handles when a user selects an input
-    document.addEventListener("focusin", e => {
+    document.addEventListener("focusin", async e => {
         if (isTextEditable(e.target as HTMLElement)) {
-            state.lastFocusInputSelector = getSelector(e.target as HTMLElement)
+            const t = await activeTabId()
+            state.lastFocusInputSelectors = (
+                await State.getAsync("lastFocusInputSelectors")
+            ).set(t, getSelector(e.target as HTMLElement))
             setInput(e.target as HTMLInputElement)
         }
     })
