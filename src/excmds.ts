@@ -254,9 +254,9 @@ export async function rssexec(url: string, type?: string, ...title: string[]) {
  * That said, `bind gs fillinput null [Tridactyl](https://addons.mozilla.org/en-US/firefox/addon/tridactyl-vim/) is my favourite add-on` could probably come in handy.
  */
 //#content
-export function fillinput(selector: string, ...content: string[]) {
+export async function fillinput(selector: string, ...content: string[]) {
     let inputToFill = document.querySelector(selector)
-    if (!inputToFill) inputToFill = DOM.getLastUsedInput()
+    if (!inputToFill) inputToFill = await DOM.getLastUsedInput()
     if ("value" in inputToFill) {
         ;(inputToFill as HTMLInputElement).value = content.join(" ")
     } else {
@@ -277,14 +277,14 @@ export function getInput(e: HTMLElement) {
 
 /** @hidden */
 //#content
-export function getinput() {
-    return getInput(DOM.getLastUsedInput())
+export async function getinput() {
+    return getInput(await DOM.getLastUsedInput())
 }
 
 /** @hidden */
 //#content
-export function getInputSelector() {
-    return DOM.getSelector(DOM.getLastUsedInput())
+export async function getInputSelector() {
+    return DOM.getSelector(await DOM.getLastUsedInput())
 }
 
 /** @hidden */
@@ -324,7 +324,7 @@ export function removeTridactylEditorClass(selector: string) {
  */
 //#content
 export async function editor() {
-    const elem = DOM.getLastUsedInput()
+    const elem = await DOM.getLastUsedInput()
     const selector = DOM.getSelector(elem)
     addTridactylEditorClass(selector)
 
@@ -1987,19 +1987,21 @@ input[type='password']
  *                  "-b": biggest input field
  */
 //#content
-export function focusinput(nth: number | string) {
+export async function focusinput(nth: number | string) {
     let inputToFocus: HTMLElement = null
 
     // set to false to avoid falling back on the first available input
     // if a special finder fails
     let fallbackToNumeric = true
 
+    const lastInput = await DOM.getLastUsedInput()
+
     // nth = "-l" -> use the last used input for this page
     if (nth === "-l") {
         // try to recover the last used input stored as a
         // DOM node, which should be exactly the one used before (or null)
-        if (DOM.getLastUsedInput()) {
-            inputToFocus = DOM.getLastUsedInput()
+        if (lastInput) {
+            inputToFocus = lastInput
         } else {
             // Pick the first input in the DOM.
             inputToFocus = DOM.getElemsBySelector(INPUTTAGS_selectors, [DOM.isSubstantial])[0] as HTMLElement
@@ -2011,8 +2013,8 @@ export function focusinput(nth: number | string) {
         // attempt to find next/previous input
         const inputs = DOM.getElemsBySelector(INPUTTAGS_selectors, [DOM.isSubstantial]) as HTMLElement[]
         if (inputs.length) {
-            let index = inputs.indexOf(DOM.getLastUsedInput())
-            if (DOM.getLastUsedInput()) {
+            let index = inputs.indexOf(lastInput)
+            if (lastInput) {
                 if (nth === "-n") {
                     index++
                 } else {
@@ -2331,7 +2333,7 @@ export function tabqueue(...addresses: string[]) {
     }
     return tabopen("-b", addresses[0]).then(
         tab =>
-            new Promise((resolve) => {
+            new Promise(resolve => {
                 function openNextTab(activeInfo) {
                     if (activeInfo.tabId === tab.id) {
                         resolve(tabqueue(...addresses.slice(1)))

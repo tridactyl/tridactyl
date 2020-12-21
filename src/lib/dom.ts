@@ -508,12 +508,20 @@ export function focus(e: HTMLElement): void {
     }
 }
 
-/** DOM reference to the last used Input field
- */
-let LAST_USED_INPUT: HTMLElement = null
+export async function getLastUsedInputSelector(): Promise<string> {
+    return State.getAsync("lastFocusInputSelector")
+}
 
-export function getLastUsedInput(): HTMLElement {
-    return LAST_USED_INPUT
+export async function getLastUsedInput(): Promise<HTMLElement> {
+    try {
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
+        return document.querySelector(
+            await getLastUsedInputSelector(),
+        ) as HTMLElement
+    } catch (e) {
+        if (e instanceof DOMException) return undefined
+        throw e
+    }
 }
 
 /** WARNING: This function can potentially recieve malicious input! For the
@@ -526,7 +534,7 @@ export function getLastUsedInput(): HTMLElement {
  * */
 function onPageFocus(elem: HTMLElement): boolean {
     if (isTextEditable(elem)) {
-        LAST_USED_INPUT = elem
+        state.lastFocusInputSelector = getSelector(elem)
     }
     return config.get("allowautofocus") === "true"
 }
@@ -560,7 +568,7 @@ export function setupFocusHandler(): void {
     // Handles when a user selects an input
     document.addEventListener("focusin", e => {
         if (isTextEditable(e.target as HTMLElement)) {
-            LAST_USED_INPUT = e.target as HTMLElement
+            state.lastFocusInputSelector = getSelector(e.target as HTMLElement)
             setInput(e.target as HTMLInputElement)
         }
     })

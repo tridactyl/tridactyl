@@ -28,6 +28,7 @@ class State {
         },
     ]
     last_ex_str = "echo"
+    lastFocusInputSelector = "" // used for focusinput, not for changing tabs like prevInputs
 }
 
 // Store these keys in the local browser storage to persist between restarts
@@ -91,7 +92,9 @@ const state = new Proxy(overlay, {
     },
 })
 
-export async function getAsync<K extends keyof State>(property: K): Promise<State[K]> {
+export async function getAsync<K extends keyof State>(
+    property: K,
+): Promise<State[K]> {
     if (notBackground())
         return browser.runtime.sendMessage({
             type: "state",
