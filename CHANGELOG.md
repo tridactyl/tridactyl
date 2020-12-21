@@ -1,5 +1,35 @@
 # Tridactyl changelog
 
+# Release 1.20.4 / 2020-12-21
+
+-   New features
+
+    -   `;Y` image-to-clipboard hint mode ([#3085](https://github.com/tridactyl/tridactyl/issues/3085))
+    -   `:viewconfig` can now accept a dot-delimited path like `:set`, e.g. `:viewconfig completions.Tab`
+    -   `;x` and `;X` "emergency" hint modes added. They use `xdotool` and `:native` to move the mouse and click on the hinted element - if you don't have `xdotool` or `:native` installed they won't work. ([#3077](https://github.com/tridactyl/tridactyl/issues/3077))
+    -   Duplicates are now skipped in command history ([#3042](https://github.com/tridactyl/tridactyl/issues/3042))
+
+-   Bug fixes
+
+    -   `:viewconfig` now gets completions and `:viewconfig --{user,default}` now accept a key to examine ([#3098](https://github.com/tridactyl/tridactyl/issues/3098))
+    -   `#` comments are now skipped in RC files ([#3100](https://github.com/tridactyl/tridactyl/issues/3100))
+    -   `:bind --mode=browser` now works with binds involving `Space` ([#3101](https://github.com/tridactyl/tridactyl/issues/3101))
+    -   `<C-Enter>` on the command line no longer inserts a space before its invocation ([#3089](https://github.com/tridactyl/tridactyl/issues/3089))
+    -   All "normal" clipboard operations now use the newer Clipboard API, fixing various bugs ([#3078](https://github.com/tridactyl/tridactyl/issues/3078))
+    -   web.whatsapp.com now has a special default hint mode so that hints actually work ([#1567](https://github.com/tridactyl/tridactyl/issues/1567))
+    -   `:nativeintall` can now run on POSIX-y systems without needing `bash` ([#3020](https://github.com/tridactyl/tridactyl/issues/3020))
+    -   `;#` hint mode now throws no errors if no anchors are found ([#2964](https://github.com/tridactyl/tridactyl/issues/2964))
+
+-   Miscellaneous
+
+    -   Fix linter errors on src/excmds.ts by switching to `no-unused-vars-experimental` ([#3111](https://github.com/tridactyl/tridactyl/issues/3111))
+
+Thanks to all of our contributors for this release: dependabot-preview[bot], Oliver Blanthorn, Rummskartoffel and Timothy Robert Bednarzyk.
+
+Extra special thanks go to Timothy Robert Bednarzyk who contributed for the first time.
+
+Last, but not least - thank you to everyone who reported issues.
+
 # Release 1.20.3 / 2020-11-28
 
 -   New features
