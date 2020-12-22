@@ -2331,7 +2331,7 @@ export function tabqueue(...addresses: string[]) {
     }
     return tabopen("-b", addresses[0]).then(
         tab =>
-            new Promise((resolve) => {
+            new Promise(resolve => {
                 function openNextTab(activeInfo) {
                     if (activeInfo.tabId === tab.id) {
                         resolve(tabqueue(...addresses.slice(1)))
@@ -3244,8 +3244,8 @@ export async function yankimage(url: string): Promise<void> {
     const absoluteUrl = UrlUtil.getAbsoluteURL(url, document.baseURI)
     const image = await window.fetch(absoluteUrl)
     const blob = await image.blob()
-    // Blob.type returns a MIME type like image/jpeg, but the Clipboard API expects only the second half
-    const imageType = blob.type.split("/")[1]
+    // Blob.type returns a MIME type like "image/jpeg; charset=UTF-8", but the Clipboard API needs a type like "jpeg"
+    const imageType = blob.type.split("/")[1].split(";")[0]
     try {
         browser.clipboard.setImageData(await blob.arrayBuffer(), imageType as browser.clipboard._SetImageDataImageType)
     } catch (err) {
