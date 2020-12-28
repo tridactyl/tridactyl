@@ -15,7 +15,7 @@
     "rss-parser": "^3.9.0",
     "semver-compare": "^1.0.0",
     "tsdef": "^0.0.14",
-    "typedoc-default-themes": "^0.11.4"
+    "typedoc-default-themes": "^0.12.0"
   },
   "devDependencies": {
     "@types/firefox-webext-browser": "^82.0.0",
