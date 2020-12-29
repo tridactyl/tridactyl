@@ -3835,10 +3835,10 @@ functional-red-black-tree@^1.0.1:
   resolved "https://registry.yarnpkg.com/functional-red-black-tree/-/functional-red-black-tree-1.0.1.tgz#1b0ab3bd553b2a0d6399d29c0e3ea0b252078327"
   integrity sha1-GwqzvVU7Kg1jmdKcDj6gslIHgyc=
 
-fuse.js@^6.4.3:
-  version "6.4.3"
-  resolved "https://registry.yarnpkg.com/fuse.js/-/fuse.js-6.4.3.tgz#aadd6ac34aab5b1d6e6c60462fcb4d1c3f53bb01"
-  integrity sha512-JNgngolukIrqwayWnvy6NLH63hmwKPhm63o0uyBg51jPD0j09IvAzlV1rTXfAsgxpghI7khAo6Mv+EmvjDWXig==
+fuse.js@^6.4.4:
+  version "6.4.4"
+  resolved "https://registry.yarnpkg.com/fuse.js/-/fuse.js-6.4.4.tgz#68b92aad73f2a00980c34afaf5a727761c314c3b"
+  integrity sha512-tw9+6zGBerQG207qz4r9TJRA4xhVWiB/4UTA8cw8b2X5v7t94YbgxZ0/9ey9X7268D28HKHlWn10Q0s+kHe+xw==
 
 fx-runner@1.0.13:
   version "1.0.13"
