@@ -416,18 +416,29 @@ export async function clipboard(
     throw new Error("Unknown action!")
 }
 
-/** This returns the commandline that was used to start firefox.
- You'll get both firefox binary (not necessarily an absolute path) and flags */
+/**
+ * This returns the commandline that was used to start Firefox.
+ * You'll get both the binary (not necessarily an absolute path) and flags.
+ *
+ * On Windows, the main Firefox process is not the direct parent of the native
+ * messenger's process, so we need to go up the process tree till we find it.
+ * That's rather slow, so this function shouldn't be called unless really necessary.
+ */
 export async function ff_cmdline(): Promise<string[]> {
-    // Using ' and + rather that ` because we don't want newlines
     if ((await browserBg.runtime.getPlatformInfo()).os === "win") {
-        throw new Error(
-            `Error: "ff_cmdline() is currently broken on Windows and should be avoided."`,
+        const output = await run(
+            "powershell -Command " +
+                '"$ppid = Get-CimInstance -Property ProcessId,ParentProcessId Win32_Process | Where-Object -Property ProcessId -EQ $PID | Select-Object -ExpandProperty ParentProcessId;' +
+                "$pproc = Get-CimInstance -Property ProcessId,ParentProcessId,Name,CommandLine Win32_Process | Where-Object -Property ProcessId -EQ $ppid;" +
+                "while ($pproc.Name -notmatch 'firefox') { $ppid = $pproc.ParentProcessId;" +
+                '$pproc = Get-CimInstance Win32_Process | Where-Object -Property ProcessId -EQ $ppid}; Write-Output $pproc.CommandLine"',
         )
+        return output.content.trim().split(" ")
     } else {
         const output = await pyeval(
+            // Using ' and + rather than ` because we don't want newlines
             'handleMessage({"cmd": "run", ' +
-            '"command": "ps -p " + str(os.getppid()) + " -oargs="})["content"]',
+                '"command": "ps -p " + str(os.getppid()) + " -oargs="})["content"]',
         )
         return output.content.trim().split(" ")
     }
