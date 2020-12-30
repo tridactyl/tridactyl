@@ -425,17 +425,17 @@ export async function clipboard(
  * That's rather slow, so this function shouldn't be called unless really necessary.
  */
 export async function ff_cmdline(): Promise<string[]> {
+    let output: MessageResp
     if ((await browserBg.runtime.getPlatformInfo()).os === "win") {
-        const output = await run(
+        output = await run(
             "powershell -Command " +
                 '"$ppid = Get-CimInstance -Property ProcessId,ParentProcessId Win32_Process | Where-Object -Property ProcessId -EQ $PID | Select-Object -ExpandProperty ParentProcessId;' +
                 "$pproc = Get-CimInstance -Property ProcessId,ParentProcessId,Name,CommandLine Win32_Process | Where-Object -Property ProcessId -EQ $ppid;" +
                 "while ($pproc.Name -notmatch 'firefox') { $ppid = $pproc.ParentProcessId;" +
                 '$pproc = Get-CimInstance Win32_Process | Where-Object -Property ProcessId -EQ $ppid}; Write-Output $pproc.CommandLine"',
         )
-        return output.content.trim().split(" ")
     } else {
-        const output = await pyeval(
+        output = await pyeval(
             // Using ' and + rather than ` because we don't want newlines
             'handleMessage({"cmd": "run", ' +
                 '"command": "ps -p " + str(os.getppid()) + " -oargs="})["content"]',
