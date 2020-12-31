@@ -1607,10 +1607,12 @@ export function followpage(rel: "next" | "prev" = "next") {
 /** Increment the current tab URL
  *
  * @param count   the increment step, can be positive or negative
+ *
+ * @param multiplier    multiplies the count so that e.g. `5<C-x>` works.
  */
 //#content
-export function urlincrement(count = 1) {
-    const newUrl = UrlUtil.incrementUrl(window.location.href, count)
+export function urlincrement(count = 1, multiplier = 1) {
+    const newUrl = UrlUtil.incrementUrl(window.location.href, count * multiplier)
 
     if (newUrl !== null) {
         // This might throw an error when using incrementurl on a moz-extension:// page if the page we're trying to access doesn't exist
