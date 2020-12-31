@@ -1142,8 +1142,10 @@ const platform_defaults = {
     },
     linux: {
         nmaps: {
-            ";x": 'hint -F e => { const pos = tri.dom.getAbsoluteCentre(e); tri.excmds.exclaim_quiet("xdotool mousemove --sync " + pos.x + " " + pos.y + "; xdotool click 1")}',
-            ";X": 'hint -F e => { const pos = tri.dom.getAbsoluteCentre(e); tri.excmds.exclaim_quiet("xdotool mousemove --sync " + pos.x + " " + pos.y + "; xdotool keydown ctrl+shift; xdotool click 1; xdotool keyup ctrl+shift")}',
+            ";x":
+                'hint -F e => { const pos = tri.dom.getAbsoluteCentre(e); tri.excmds.exclaim_quiet("xdotool mousemove --sync " + pos.x + " " + pos.y + "; xdotool click 1")}',
+            ";X":
+                'hint -F e => { const pos = tri.dom.getAbsoluteCentre(e); tri.excmds.exclaim_quiet("xdotool mousemove --sync " + pos.x + " " + pos.y + "; xdotool keydown ctrl+shift; xdotool click 1; xdotool keyup ctrl+shift")}',
         } as unknown,
     },
 } as Record<browser.runtime.PlatformOs, default_config>
@@ -1356,7 +1358,14 @@ export async function pull() {
  * Like set(), but for a specific pattern.
  */
 export function setURL(pattern, ...args) {
-    return set("subconfigs", pattern, ...args)
+    try {
+        new RegExp(pattern)
+        return set("subconfigs", pattern, ...args)
+    } catch (err) {
+        if (err instanceof SyntaxError)
+            throw new SyntaxError(`invalid pattern: ${err.message}`)
+        throw err
+    }
 }
 /** Full target specification, then value
 
