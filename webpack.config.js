@@ -28,7 +28,16 @@ module.exports = {
     resolve: {
         // Add '.ts' and '.tsx' as resolvable extensions.
         extensions: fileExtensions,
-        plugins: [new TsconfigPathsPlugin({extensions: fileExtensions})]
+        plugins: [new TsconfigPathsPlugin({extensions: fileExtensions})],
+        fallback: {
+            "url": false,
+            "fs": false,
+            "https": false,
+            "http": false,
+            "path": false,
+            "timers": false,
+            "stream": require.resolve("stream-browserify"),
+        },
     },
 
     module: {
@@ -55,9 +64,4 @@ module.exports = {
             { from: "issue_template.md" },
         ]}),
     ],
-    // Fix css
-    // https://github.com/webpack-contrib/css-loader/issues/447#issuecomment-285598881
-    node: {
-        fs: "empty",
-    },
 }
