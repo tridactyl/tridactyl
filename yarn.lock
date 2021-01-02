@@ -836,10 +836,10 @@
   dependencies:
     ts-toolbelt "^6.15.1"
 
-"@types/selenium-webdriver@^4.0.10":
-  version "4.0.10"
-  resolved "https://registry.yarnpkg.com/@types/selenium-webdriver/-/selenium-webdriver-4.0.10.tgz#1aa370a14747b51752e65622999848c4f037b058"
-  integrity sha512-Xavn3fE+uM2aeIHtefIwpy0zAf2HQOyip/jU7ZR0ailt/B0ww/TJ6yMnfZ5pM0F4+Kx+9AQSnxQio3P5QAl1yQ==
+"@types/selenium-webdriver@^4.0.11":
+  version "4.0.11"
+  resolved "https://registry.yarnpkg.com/@types/selenium-webdriver/-/selenium-webdriver-4.0.11.tgz#740d1b3a47badec6784015ee8f3e89d3cb5fd985"
+  integrity sha512-VHv3kVxdploPZRa5Epsrgae9f8Wp0B+TVj3L93Yv0nB2RCRGRTKuhz/vRUZR4yItLqzdIxsxALe3qT3yqTAJTg==
 
 "@types/stack-utils@^1.0.1":
   version "1.0.1"
