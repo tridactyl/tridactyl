@@ -58,12 +58,17 @@ async function sendNativeMsg(
     }
 }
 
-export async function getrcpath(separator: "unix" | "auto" = "auto"): Promise<string> {
+export async function getrcpath(
+    separator: "unix" | "auto" = "auto",
+): Promise<string> {
     const res = await sendNativeMsg("getconfigpath", {})
 
     if (res.code !== 0) throw new Error("getrcpath error: " + res.code)
 
-    if (separator == "unix" && (await browserBg.runtime.getPlatformInfo()).os == "win") {
+    if (
+        separator == "unix" &&
+        (await browserBg.runtime.getPlatformInfo()).os == "win"
+    ) {
         return res.content.replace(/\\/g, "/")
     } else {
         return res.content
@@ -97,91 +102,117 @@ export async function getNativeMessengerVersion(
 }
 
 export async function getBestEditor(): Promise<string> {
-    let gui_candidates = []
-    let term_emulators = []
-    let tui_editors = []
-    let last_resorts = []
+    const gui_candidates: string[] = []
+    const term_emulators: string[] = []
+    const tui_editors: string[] = []
+    const last_resorts: string[] = []
     const os = (await browserBg.runtime.getPlatformInfo()).os
     const arg_quote = os === "win" ? '"' : "'"
     const vim_positioning_arg = ` ${arg_quote}+normal!%lGzv%c|${arg_quote}`
     if (os === "mac") {
-        gui_candidates = [
-            "/Applications/MacVim.app/Contents/bin/mvim -f" +
-            vim_positioning_arg,
-            "/usr/local/bin/vimr --wait --nvim +only",
-        ]
+        gui_candidates.push(
+            ...[
+                "/Applications/MacVim.app/Contents/bin/mvim -f" +
+                    vim_positioning_arg,
+                "/usr/local/bin/vimr --wait --nvim +only",
+            ],
+        )
         // if anyone knows of any "sensible" terminals that let you send them commands to run,
         // please let us know in issue #451!
-        term_emulators = [
-            "/Applications/cool-retro-term.app/Contents/MacOS/cool-retro-term -e",
-        ]
-        last_resorts = ["open -nWt"]
+        term_emulators.push(
+            ...[
+                "/Applications/cool-retro-term.app/Contents/MacOS/cool-retro-term -e",
+            ],
+        )
+        last_resorts.push(...["open -nWt"])
     } else {
         // Tempted to put this behind another config setting: prefergui
-        gui_candidates = ["gvim -f" + vim_positioning_arg]
+        gui_candidates.push(...["gvim -f" + vim_positioning_arg])
 
-        // we generally try to give the terminal the class "tridactyl_editor" so that
-        // it can be made floating, e.g in i3:
-        // for_window [class="tridactyl_editor"] floating enable border pixel 1
-        term_emulators = [
-            "st -c tridactyl_editor",
-            "xterm -class tridactyl_editor -e",
-            "uxterm -class tridactyl_editor -e",
-            "urxvt -e",
-            "alacritty -e", // alacritty is nice but takes ages to start and doesn't support class
-            // Terminator and termite require  -e commands to be in quotes
-            'terminator -u -e "%c"',
-            'termite --class tridactyl_editor -e "%c"',
-            "sakura --class tridactyl_editor -e",
-            "lilyterm -e",
-            "mlterm -e",
-            "roxterm -e",
-            "cool-retro-term -e",
-            // Gnome-terminal doesn't work consistently, see issue #1035
-            // "dbus-launch gnome-terminal --",
+        // These terminal emulators can't normally be run on Windows, usually because they require X11.
+        if (os === "linux" || os === "openbsd") {
+            term_emulators.push(
+                ...[
+                    // we generally try to give the terminal the class "tridactyl_editor" so that
+                    // it can be made floating, e.g in i3:
+                    // for_window [class="tridactyl_editor"] floating enable border pixel 1
+                    "st -c tridactyl_editor",
+                    "xterm -class tridactyl_editor -e",
+                    "uxterm -class tridactyl_editor -e",
+                    "urxvt -e",
+                    'termite --class tridactyl_editor -e "%c"',
+                    "sakura --class tridactyl_editor -e",
+                    "lilyterm -e",
+                    "mlterm -N tridactyl_editor -e",
+                    "roxterm -e",
+                    "cool-retro-term -e",
+                    // Terminator doesn't appear to honour -c, but the option is
+                    // documented in its manpage and seems to cause no errors when supplied.
+                    'terminator -u -c tridactyl_editor -e "%c"',
+                    // Gnome-terminal doesn't work consistently, see issue #1035
+                    // "dbus-launch gnome-terminal --",
+                ],
+            )
+        }
+        if (os === "win") {
+            term_emulators.push(
+                ...["wt", "conemu -run", "mintty --class tridactyl_editor -e"],
+            )
+        }
+        // These terminal emulators are cross-platform.
+        term_emulators.push(
+            ...[
+                "alacritty --class tridactyl_editor -e",
 
-            // I wanted to put hyper.js here as a joke but you can't start it running a command,
-            // which is a far better joke: a terminal emulator that you can't send commands to.
-            // You win this time, web artisans.
-        ]
-        last_resorts = [
-            "emacs",
-            "gedit",
-            "kate",
-            "abiword",
-            "sublime",
-            "atom -w",
-        ]
+                // I wanted to put hyper.js here as a joke but you can't start it running a command,
+                // which is a far better joke: a terminal emulator that you can't send commands to.
+                // You win this time, web artisans.
+                // Still true in 2021.
+            ],
+        )
+        last_resorts.push(
+            ...[
+                "emacs",
+                "gedit",
+                "kate",
+                "sublime",
+                "atom -w",
+                "code -nw",
+                "abiword",
+                "notepad",
+            ],
+        )
     }
 
-    tui_editors = [
-        "vim" + vim_positioning_arg,
-        "nvim" + vim_positioning_arg,
-        "nano %f",
-        "emacs -nw %f",
-    ]
+    tui_editors.push(
+        ...[
+            "vim" + vim_positioning_arg,
+            "nvim" + vim_positioning_arg,
+            "nano %f",
+            "emacs -nw %f",
+        ],
+    )
 
-    // Consider GUI editors
-    let cmd = await firstinpath(gui_candidates)
+    // Try GUI editors.
+    const guicmd: string = await firstinpath(gui_candidates)
+    if (guicmd) {
+        return guicmd
+    }
 
-    if (cmd === undefined) {
-        // Try to find a terminal emulator
-        cmd = await firstinpath(term_emulators)
-        if (cmd !== undefined) {
-            // and a text editor
-            const tuicmd = await firstinpath(tui_editors)
-            if (cmd.includes("%c")) {
-                cmd = cmd.replace("%c", tuicmd)
-            } else {
-                cmd = cmd + " " + tuicmd
-            }
+    // Try TUI editors.
+    const termcmd: string = await firstinpath(term_emulators)
+    const tuicmd: string = await firstinpath(tui_editors)
+    if (termcmd && tuicmd) {
+        if (termcmd.includes("%c")) {
+            return tuicmd.replace("%c", tuicmd)
         } else {
-            // or fall back to some really stupid stuff
-            cmd = await firstinpath(last_resorts)
+            return termcmd + " " + tuicmd
         }
     }
 
-    return cmd
+    // If all else fails, try some stupid stuff to scare users into setting
+    // their editorcmd.
+    return await firstinpath(last_resorts)
 }
 
 /**
@@ -215,8 +246,8 @@ export async function nativegate(
                 if (interactive)
                     logger.error(
                         "# Please update to native messenger " +
-                        version +
-                        ", for example by running `:updatenative`.",
+                            version +
+                            ", for example by running `:updatenative`.",
                     )
                 // TODO: add update procedure and document here.
                 return false
@@ -512,7 +543,7 @@ export async function getProfileUncached() {
         try {
             iniObject = await parseProfilesIni(iniContent.content, ffDir)
             iniSucceeded = true
-        } catch (e) { }
+        } catch (e) {}
     }
     const curProfileDir = config.get("profiledir")
 
@@ -745,7 +776,7 @@ export async function getConfElsePref(
     if (option === undefined) {
         try {
             option = await getPref(prefName)
-        } catch (e) { }
+        } catch (e) {}
     }
     return option
 }
