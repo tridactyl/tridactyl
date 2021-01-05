@@ -2163,6 +2163,15 @@ export async function tabpush(windowId: number) {
     return activeTabId().then(tabId => browser.tabs.move(tabId, { index: -1, windowId }))
 }
 
+/** Switch to the tab currently playing audio, if any. */
+//#background
+export async function tabaudio() {
+    const tabs = await browser.tabs.query({ currentWindow: true, hidden: false, audible: true })
+    if (tabs.length > 0) {
+        return browser.tabs.update(tabs[0].id, { active: true })
+    }
+}
+
 /**
  * Moves all of the targetted window's tabs to the current window. Only works for windows of the same type
  * (can't merge a non-private tab with a private window).
