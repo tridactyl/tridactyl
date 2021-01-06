@@ -2166,8 +2166,9 @@ export async function tabpush(windowId: number) {
 /** Switch to the tab currently playing audio, if any. */
 //#background
 export async function tabaudio() {
-    const tabs = await browser.tabs.query({ currentWindow: true, hidden: false, audible: true })
+    const tabs = await browser.tabs.query({ audible: true })
     if (tabs.length > 0) {
+        await browser.windows.update(tabs[0].windowId, { focused: true })
         return browser.tabs.update(tabs[0].id, { active: true })
     }
 }
