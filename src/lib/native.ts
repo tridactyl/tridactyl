@@ -20,12 +20,12 @@ type MessageCommand =
     | "list_dir"
     | "mkdir"
     | "move"
-    | "eval" // Deprecated - only works in native < 0.2.0
+    | "eval" // Only works in native < 0.2.0 (NB: use "run" for non-Python eval)
     | "getconfig"
     | "getconfigpath"
     | "env"
     | "win_firefox_restart"
-    | "ppid" // Deprecated on Windows since native >= 0.2.0
+    | "ppid" // Removed from Windows since native >= 0.2.0
 interface MessageResp {
     cmd: string
     version: string | null
