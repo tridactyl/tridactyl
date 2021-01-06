@@ -156,7 +156,7 @@ export async function getBestEditor(): Promise<string> {
         }
         if (os === "win") {
             term_emulators.push(
-                ...["wt", "conemu -run", "mintty --class tridactyl_editor -e"],
+                ...["conemu -run", "mintty --class tridactyl_editor -e"],
             )
         }
         // These terminal emulators are cross-platform.
