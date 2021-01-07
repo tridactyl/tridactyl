@@ -471,8 +471,8 @@ export async function ff_cmdline(): Promise<string[]> {
             'handleMessage({"cmd": "run", ' +
                 '"command": "ps -p " + str(os.getppid()) + " -oargs="})["content"]',
         )
-        return output.content.trim().split(" ")
     }
+    return output.content.trim().split(" ")
 }
 
 export async function parseProfilesIni(content: string, basePath: string) {
