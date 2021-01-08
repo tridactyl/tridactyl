@@ -1,5 +1,23 @@
 import { messageOwnTab } from "@src/lib/messaging"
 import * as State from "@src/state"
+import { contentState } from "@src/content/state_content"
+
+const sleep = ms => new Promise((resolve) => setTimeout(resolve, ms))
+
+async function awaitProxyEq(proxy, a: string, b: string) {
+    return Promise.race(
+        [(async () => {
+            while (proxy[a] != proxy[b]) {
+                sleep(10)
+            }
+            return true
+        })(),
+        (async () => {
+            sleep(100)
+            return false
+        })()]
+    )
+}
 
 // One day we'll use typeof commandline_state from commandline_frame.ts
 export function getCommandlineFns(cmdline_state: {
@@ -26,7 +44,9 @@ export function getCommandlineFns(cmdline_state: {
         /**
          * Selects the next completion.
          */
-        next_completion: () => {
+        next_completion: async () => {
+            const success = await awaitProxyEq(contentState, "current_cmdline", "cmdline_filter")
+            console.log("Didn't give up: " + success)
             if (cmdline_state.activeCompletions)
                 cmdline_state.activeCompletions.forEach(comp => comp.next())
         },
