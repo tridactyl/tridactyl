@@ -165,6 +165,11 @@ const keyParser = keys => genericParser.parser("exmaps", keys)
 let history_called = false
 /** @hidden **/
 let prev_cmd_called_history = false
+
+// Queue for commandline commands:
+// each must wait for the previous to finish before running
+const QUEUE: Promise<any>[] = [Promise.resolve()]
+
 /** @hidden **/
 commandline_state.clInput.addEventListener(
     "keydown",
@@ -193,11 +198,13 @@ commandline_state.clInput.addEventListener(
             if (response.value.startsWith("ex.")) {
                 const [funcname, ...args] = response.value.slice(3).split(/\s+/)
 
-                if (args.length === 0) {
-                    commandline_state.fns[funcname]()
-                } else {
-                    commandline_state.fns[funcname](args.join(" "))
-                }
+                QUEUE.push(
+                    QUEUE[QUEUE.length - 1].finally(() =>
+                        commandline_state.fns[funcname](
+                            args.length === 0 ? undefined : args.join(" "),
+                        ),
+                    ),
+                )
 
                 prev_cmd_called_history = history_called
             } else {
@@ -248,7 +255,10 @@ commandline_state.clInput.addEventListener("input", () => {
         // If we're not the current completion computation anymore, stop
         if (exstr !== commandline_state.clInput.value) return
 
-        onInputPromise = refresh_completions(exstr)
+        onInputPromise = QUEUE[QUEUE.length - 1].finally(() =>
+            refresh_completions(exstr),
+        )
+        QUEUE.push(onInputPromise)
     }, 100)
 })
 
