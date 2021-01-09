@@ -379,8 +379,6 @@ export async function run(command: string, content = "") {
 /** Evaluates a string in the native messenger. This has to be python code. If
  *  you want to run shell strings, use run() instead.
  *
- *  __DEPRECATED!__
- *
  *  Only works for native messenger versions < 0.2.0.
  */
 export async function pyeval(command: string): Promise<MessageResp> {

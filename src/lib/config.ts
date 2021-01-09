@@ -845,7 +845,7 @@ export class default_config {
         excmd: "error",
         hinting: "warning",
         messaging: "warning",
-        native: "debug",
+        native: "warning",
         performance: "warning",
         state: "warning",
         styling: "warning",
