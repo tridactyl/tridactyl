@@ -166,6 +166,11 @@ const keyParser = keys => genericParser.parser("exmaps", keys)
 let history_called = false
 /** @hidden **/
 let prev_cmd_called_history = false
+
+// Save programmer time by generating an immediately resolved promise
+// eslint-disable-next-line @typescript-eslint/no-empty-function
+const QUEUE: Promise<any>[] = [(async () => {})()]
+
 /** @hidden **/
 commandline_state.clInput.addEventListener(
     "keydown",
@@ -194,11 +199,16 @@ commandline_state.clInput.addEventListener(
             if (response.value.startsWith("ex.")) {
                 const [funcname, ...args] = response.value.slice(3).split(/\s+/)
 
-                if (args.length === 0) {
-                    commandline_state.fns[funcname]()
-                } else {
-                    commandline_state.fns[funcname](args.join(" "))
-                }
+                QUEUE[QUEUE.length - 1].then(() =>
+                    QUEUE.push(
+                        // Abuse async to wrap non-promises in a promise
+                        // eslint-disable-next-line @typescript-eslint/require-await
+                        (async () =>
+                            commandline_state.fns[funcname](
+                                args.length === 0 ? undefined : args.join(" "),
+                            ))(),
+                    ),
+                )
 
                 prev_cmd_called_history = history_called
             } else {
