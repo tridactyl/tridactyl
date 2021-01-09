@@ -20,6 +20,8 @@ export class PrevInput {
 class ContentState {
     mode: ModeName = "normal"
     suffix = ""
+    current_cmdline = ""
+    cmdline_filter = ""
 }
 
 export type ContentStateProperty =

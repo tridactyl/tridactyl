@@ -43,6 +43,7 @@ import state from "@src/state"
 import * as State from "@src/state"
 import Logger from "@src/lib/logging"
 import { theme } from "@src/content/styling"
+import { contentState } from "@src/content/state_content"
 
 import * as genericParser from "@src/parsers/genericmode"
 import * as tri_editor from "@src/lib/editor"
@@ -165,6 +166,11 @@ const keyParser = keys => genericParser.parser("exmaps", keys)
 let history_called = false
 /** @hidden **/
 let prev_cmd_called_history = false
+
+// Save programmer time by generating an immediately resolved promise
+// eslint-disable-next-line @typescript-eslint/no-empty-function
+const QUEUE: Promise<any>[] = [(async () => {})()]
+
 /** @hidden **/
 commandline_state.clInput.addEventListener(
     "keydown",
@@ -193,11 +199,16 @@ commandline_state.clInput.addEventListener(
             if (response.value.startsWith("ex.")) {
                 const [funcname, ...args] = response.value.slice(3).split(/\s+/)
 
-                if (args.length === 0) {
-                    commandline_state.fns[funcname]()
-                } else {
-                    commandline_state.fns[funcname](args.join(" "))
-                }
+                QUEUE[QUEUE.length - 1].then(() =>
+                    QUEUE.push(
+                        // Abuse async to wrap non-promises in a promise
+                        // eslint-disable-next-line @typescript-eslint/require-await
+                        (async () =>
+                            commandline_state.fns[funcname](
+                                args.length === 0 ? undefined : args.join(" "),
+                            ))(),
+                    ),
+                )
 
                 prev_cmd_called_history = history_called
             } else {
@@ -241,6 +252,8 @@ let onInputPromise: Promise<any> = Promise.resolve()
 /** @hidden **/
 commandline_state.clInput.addEventListener("input", () => {
     const exstr = commandline_state.clInput.value
+    contentState.current_cmdline = exstr
+    contentState.cmdline_filter = ""
     // Schedule completion computation. We do not start computing immediately because this would incur a slow down on quickly repeated input events (e.g. maintaining <Backspace> pressed)
     setTimeout(async () => {
         // Make sure the previous computation has ended
@@ -249,6 +262,9 @@ commandline_state.clInput.addEventListener("input", () => {
         if (exstr !== commandline_state.clInput.value) return
 
         onInputPromise = refresh_completions(exstr)
+        onInputPromise.then(() => {
+            contentState.cmdline_filter = exstr
+        })
     }, 100)
 })
 
