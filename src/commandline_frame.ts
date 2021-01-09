@@ -243,6 +243,7 @@ let onInputPromise: Promise<any> = Promise.resolve()
 commandline_state.clInput.addEventListener("input", () => {
     const exstr = commandline_state.clInput.value
     contentState.current_cmdline = exstr
+    contentState.cmdline_filter = ""
     // Schedule completion computation. We do not start computing immediately because this would incur a slow down on quickly repeated input events (e.g. maintaining <Backspace> pressed)
     setTimeout(async () => {
         // Make sure the previous computation has ended
@@ -251,7 +252,10 @@ commandline_state.clInput.addEventListener("input", () => {
         if (exstr !== commandline_state.clInput.value) return
 
         onInputPromise = refresh_completions(exstr)
-        onInputPromise.then(() => {contentState.cmdline_filter = exstr})
+        onInputPromise.then(() => {
+            contentState.cmdline_filter = exstr
+            console.log("input promise kept")
+        })
     }, 100)
 })
 

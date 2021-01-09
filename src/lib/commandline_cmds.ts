@@ -5,18 +5,14 @@ import { contentState } from "@src/content/state_content"
 const sleep = ms => new Promise((resolve) => setTimeout(resolve, ms))
 
 async function awaitProxyEq(proxy, a: string, b: string) {
-    return Promise.race(
-        [(async () => {
-            while (proxy[a] != proxy[b]) {
-                sleep(10)
-            }
-            return true
-        })(),
-        (async () => {
-            sleep(100)
-            return false
-        })()]
-    )
+    let counter = 0
+    while ((proxy[a] != proxy[b]) && (counter < 10)) {
+        sleep(100)
+        console.log("current: ", proxy[a])
+        console.log("filtered: ", proxy[b])
+        counter+=1
+    }
+    return proxy[a] == proxy[b]
 }
 
 // One day we'll use typeof commandline_state from commandline_frame.ts
