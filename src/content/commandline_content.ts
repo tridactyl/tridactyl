@@ -27,6 +27,7 @@ cmdline_iframe.setAttribute(
     browser.runtime.getURL("static/commandline.html"),
 )
 cmdline_iframe.setAttribute("id", "cmdline_iframe")
+cmdline_iframe.setAttribute("loading", "lazy")
 
 let enabled = false
 
