@@ -264,7 +264,6 @@ commandline_state.clInput.addEventListener("input", () => {
         onInputPromise = refresh_completions(exstr)
         onInputPromise.then(() => {
             contentState.cmdline_filter = exstr
-            console.log("input promise kept")
         })
     }, 100)
 })
