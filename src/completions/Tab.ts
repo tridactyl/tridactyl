@@ -51,7 +51,7 @@ class BufferCompletionOption
         >
             <td class="prefix">${pre.padEnd(2)}</td>
             <td class="container"></td>
-            <td class="icon"><img src="${favIconUrl}" /></td>
+            <td class="icon"><img loading="lazy" src="${favIconUrl}" /></td>
             <td class="title">${tab.index + 1}: ${indicator} ${tab.title}</td>
             <td class="content">
                 <a class="url" target="_blank" href=${tab.url}>${tab.url}</a>
