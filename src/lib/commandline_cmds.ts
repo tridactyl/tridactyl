@@ -7,7 +7,7 @@ const sleep = ms => new Promise((resolve) => setTimeout(resolve, ms))
 async function awaitProxyEq(proxy, a: string, b: string) {
     let counter = 0
     while ((proxy[a] != proxy[b]) && (counter < 10)) {
-        sleep(100)
+        await sleep(100)
         console.log("current: ", proxy[a])
         console.log("filtered: ", proxy[b])
         counter+=1
