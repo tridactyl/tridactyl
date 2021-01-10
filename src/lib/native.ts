@@ -472,7 +472,7 @@ export async function ff_cmdline(): Promise<string[]> {
         const actualVersion = await getNativeMessengerVersion()
 
         // Backwards-compat for Python native messenger
-        if ( semverCompare("0.2.0", actualVersion) > 0 ) {
+        if (semverCompare("0.2.0", actualVersion) > 0) {
             output = await pyeval(
                 // Using ' and + rather than ` because we don't want newlines
                 'handleMessage({"cmd": "run", ' +
@@ -482,7 +482,7 @@ export async function ff_cmdline(): Promise<string[]> {
             const ppid = (await sendNativeMsg("ppid", {})).content.trim()
             output = await run("ps -p " + ppid + " -oargs=")
         }
-        return output.content.replace("\n", "").trim().split(" ")
+        output.content = output.content.replace("\n", "")
     }
     return output.content.trim().split(" ")
 }
