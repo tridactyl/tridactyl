@@ -56,7 +56,7 @@
     "uglifyjs-webpack-plugin": "^2.2.0",
     "web-ext": "^5.4.1",
     "web-ext-types": "^3.2.1",
-    "webpack": "^5.12.2",
+    "webpack": "^5.12.3",
     "webpack-cli": "^4.3.1"
   },
   "scripts": {
