@@ -684,7 +684,11 @@ export async function native() {
 }
 
 /**
- * Simply copies "curl -fsSl https://raw.githubusercontent.com/tridactyl/tridactyl/[your tridactyl version]/native/install.sh | bash" to the clipboard and tells the user to run it.
+ * Copies the installation command for the native messenger to the clipboard and asks the user to run it in their shell.
+ *
+ * The native messenger's source code may be found here: https://github.com/tridactyl/native_messenger/blob/master/src/native_main.nim
+ *
+ * If your corporate IT policy disallows execution of binaries which have not been whitelisted but allows Python scripts, you may instead use the old native messenger by running `install.sh` or `win_install.ps1` from https://github.com/tridactyl/tridactyl/tree/master/native - the main downside is that it is significantly slower.
  */
 //#background
 export async function nativeinstall() {
