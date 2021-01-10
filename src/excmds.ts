@@ -2475,8 +2475,15 @@ export async function fullscreen() {
 //#background
 export async function tabclose(...indexes: string[]) {
     let done
+    async function maybeWinTabToTabId(id: string) {
+        if (id.includes(".")) {
+            const [winid, tabindex_number] = await parseWinTabIndex(id)
+            return (await browser.tabs.query({ windowId: winid, index: tabindex_number }))[0].id
+        }
+        return idFromIndex(id)
+    }
     if (indexes.length > 0) {
-        const ids = await Promise.all(indexes.map(index => idFromIndex(index)))
+        const ids = await Promise.all(indexes.map(index => maybeWinTabToTabId(index)))
         done = browser.tabs.remove(ids)
     } else {
         // Close current tab
