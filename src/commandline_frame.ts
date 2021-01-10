@@ -259,7 +259,10 @@ commandline_state.clInput.addEventListener("input", () => {
         // Make sure the previous computation has ended
         await onInputPromise
         // If we're not the current completion computation anymore, stop
-        if (exstr !== commandline_state.clInput.value) return
+        if (exstr !== commandline_state.clInput.value) {
+            contentState.cmdline_filter = exstr
+            return
+        }
 
         onInputPromise = refresh_completions(exstr)
         onInputPromise.then(() => {
