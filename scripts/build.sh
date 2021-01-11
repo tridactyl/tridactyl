@@ -54,6 +54,19 @@ scripts/make_docs.sh
 
 webpack --stats errors-only --bail
 
+# "temporary" fix until we can install new native on CI: install the old native messenger
+if [ "$1" = "--old-native" ]; then
+    if [ "$(isWindowsMinGW)" = "True" ]; then
+      powershell \
+        -NoProfile \
+        -InputFormat None \
+        -ExecutionPolicy Bypass \
+        native/win_install.ps1 -DebugDirBase native
+    else
+      native/install.sh local
+    fi
+fi
+
 scripts/bodgecss.sh
 scripts/authors.sh
 
