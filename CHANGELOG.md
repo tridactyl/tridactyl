@@ -1,5 +1,32 @@
 # Tridactyl changelog
 
+# Release 1.21.0 / Unreleased
+
+-   New features
+
+    -   `:tabclose` now accepts `window_number.tab_number` arguments; this is particularly useful for use with `<S-Del>` to close `:taball` completions
+    -   `:tab` completions now show which tabs are playing audio
+    -   `:tabaudio` tab with `ga` default bind takes you to the window and tab which is currently playing audio (#3184)
+    -   Favicons are lazy loaded in `:tab` completions
+    -   `:urlincrement` binds now accept numeric prefixes, e.g. `10<C-a>` increments the URL by 10 (#3145)
+    -   `:seturl` now checks that you have entered a valid RegEx (#3134)
+        -   previously, failing to do so broke Tridactyl
+
+-   Bug fixes
+
+    -   We now queue up commands that interact with completions alongside those completions (#3196)
+        -   this means in practice that, once the command line has loaded, you can type as quickly as you like and still get the results you expect
+    -   Profile directory detection has been improved on Windows (#3191)
+    -   Speed of `:editor` selection on Windows has improved (#3170)
+    -   The command line no longer has a blue outline on OSX (#3123)
+    -   `:yankimage` now accepts more MIME types (#3127)
+
+<!-- -   Miscellaneous
+
+    -   The native messenger is now written in `Nim` and is much faster. You may need to follow `:nativeinstall` again to update it - the latest `:native` version is `0.2.0`
+        -   We have removed `pyeval` support from this version - you are very unlikely to have used this since it was an internal Tridactyl command. `:exclaim` is unaffected.
+-->
+
 # Release 1.20.4 / 2020-12-21
 
 -   New features
