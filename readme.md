@@ -320,65 +320,6 @@ If you are on a distribution which builds Firefox with `--with-unsigned-addon-sc
 [pyinstaller]: https://www.pyinstaller.org
 [gpg4win]: https://www.gpg4win.org
 
-<!--- ## Disable GPG signing for now, until decided otherwise later
-
-### Cryptographically Verifying the Compiled Native Binary on Windows
-
-  - `native_main.py` is compiled to `native_main.exe` for Windows using [PyInstaller][pyinstaller]. The goal is to relieve Tridactyl users on Windows from having to install the whole Python 3 distribution.
-
-  - Due to `native_main.exe` being a binary-blob and difficult to easily review like the plain-text `native_main.py` counterpart, it is **strongly** recommended the users verify the SHA-256 hash and GPG signatures using the following commands on Powershell.
-
-**Verifying SHA-256 Hash**
-
-```
-## Change directory to Tridactyl's native-messanger directory
-PS C:\> cd "$env:HOME\.tridactyl"
-
-## Run `dir` and check `native_main.exe` is found
-PS C:\Users\{USERNAME}\.tridactyl> dir
-
-## Download `native_main.exe.sha256` containing the SHA-256 sum
-PS C:\Users\{USERNAME}\.tridactyl> iwr https://raw.githubusercontent.com/gsbabil/tridactyl/master/native/native_main.exe.sha256 -OutFile native_main.exe.sha256
-
-## Print the SHA-256 sum from `native_main.exe.sha256`
-PS C:\Users\{USERNAME}\.tridactyl> (Get-FileHash native_main.exe -Algorithm SHA256).Hash.ToLower()
-
-## Compute SHA-256 sum from `native_main.exe`
-PS C:\Users\{USERNAME}\.tridactyl> Get-Content -Path native_main.exe.sha256 | %{$_ .Split(' ')[0]}
-
-## Compare results of the of the last two commands ...
-```
-
-**Verifying OpenPGP Signature***
-
-  - First, download [`GPG4Win`][gpg4win] from this website and
-      install in on your system
-
-  - Once `gpg2` is on your path, go to Powershell and run the
-      following commands to verify OpenPGP signature:
-
-```
-## Change directory to Tridactyl's native-messanger directory
-PS C:\> cd "$env:HOME\.tridactyl"
-
-## Run `dir` and check `native_main.exe` is found
-PS C:\Users\{USERNAME}\.tridactyl> dir
-
-## Download `native_main.exe.sig` containing the OpenPGP signature
-PS C:\Users\{USERNAME}\.tridactyl> iwr https://raw.githubusercontent.com/gsbabil/tridactyl/master/native/native_main.exe.sig -OutFile native_main.exe.sig
-
-## Download `gsbabil-pub.asc` to verify the signature
-PS C:\Users\{USERNAME}\.tridactyl> iwr https://raw.githubusercontent.com/gsbabil/tridactyl/master/native/gsbabil-pub.asc -OutFile gsbabil-pub.asc
-
-## Import `gsbabil-pub.asc` into your GPG key-ring
-PS C:\Users\{USERNAME}\.tridactyl> gpg2 --armor --import gsbabil-pub.asc
-
-## Verify signature using `gpg2`
-PS C:\Users\{USERNAME}\.tridactyl> gpg2 --verify .\native_main.exe.sig .\native_main.exe
-```
-
---->
-
 ### Development loop
 
 ```

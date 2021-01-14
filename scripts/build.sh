@@ -52,7 +52,10 @@ scripts/newtab.md.sh
 scripts/make_tutorial.sh
 scripts/make_docs.sh
 
-if [ "$1" != "--no-native" ]; then
+webpack --stats errors-only --bail
+
+# "temporary" fix until we can install new native on CI: install the old native messenger
+if [ "$1" = "--old-native" ]; then
     if [ "$(isWindowsMinGW)" = "True" ]; then
       powershell \
         -NoProfile \
@@ -63,8 +66,6 @@ if [ "$1" != "--no-native" ]; then
       native/install.sh local
     fi
 fi
-
-webpack --stats errors-only --bail
 
 scripts/bodgecss.sh
 scripts/authors.sh
