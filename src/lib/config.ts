@@ -934,16 +934,11 @@ export class default_config {
      * Set this to something weird if you want to have fun every time Tridactyl tries to update its native messenger.
      *
      * %TAG will be replaced with your version of Tridactyl for stable builds, or "master" for beta builds
+     *
+     * NB: Windows has its own platform-specific default - this is used only for Linux and OSX
      */
     nativeinstallcmd =
         "curl -fsSl https://raw.githubusercontent.com/tridactyl/native_messenger/master/installers/install.sh -o /tmp/trinativeinstall.sh && sh /tmp/trinativeinstall.sh %TAG"
-
-    /**
-     * Set this to something weird if you want to have fun every time Tridactyl tries to update its native messenger.
-     *
-     * Replaces %WINTAG with "-Tag $TRI_VERSION", similarly to [[nativeinstallcmd]].
-     */
-    win_nativeinstallcmd = `powershell -NoProfile -Command "(New-Object System.Net.WebClient).DownloadFile('https://raw.githubusercontent.com/tridactyl/tridactyl/master/native/win_install.ps1', """$env:temp/tridactyl_installnative.ps1""")" & powershell -NoProfile -File %temp%\\tridactyl_installnative.ps1 %WINTAG & del %temp%\\tridactyl_installnative.ps1`
 
     /**
      * Used by :updatecheck and related built-in functionality to automatically check for updates and prompt users to upgrade.
@@ -1140,6 +1135,8 @@ const platform_defaults = {
         ignoremaps: {
             "<C-6>": "buffer #",
         } as unknown,
+
+        nativeinstallcmd: `powershell -NoProfile -Command "(New-Object System.Net.WebClient).DownloadFile('https://raw.githubusercontent.com/tridactyl/tridactyl/master/native/win_install.ps1', """$env:temp/tridactyl_installnative.ps1""")" & powershell -NoProfile -File %temp%\\tridactyl_installnative.ps1 %TAG & del %temp%\\tridactyl_installnative.ps1`,
     },
     linux: {
         nmaps: {
