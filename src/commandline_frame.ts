@@ -199,7 +199,7 @@ commandline_state.clInput.addEventListener(
             if (response.value.startsWith("ex.")) {
                 const [funcname, ...args] = response.value.slice(3).split(/\s+/)
 
-                QUEUE[QUEUE.length - 1].then(() =>
+                QUEUE[QUEUE.length - 1].then(() => {
                     QUEUE.push(
                         // Abuse async to wrap non-promises in a promise
                         // eslint-disable-next-line @typescript-eslint/require-await
@@ -207,10 +207,9 @@ commandline_state.clInput.addEventListener(
                             commandline_state.fns[funcname](
                                 args.length === 0 ? undefined : args.join(" "),
                             ))(),
-                    ),
-                )
-
-                prev_cmd_called_history = history_called
+                    )
+                    prev_cmd_called_history = history_called
+                })
             } else {
                 // Send excmds directly to our own tab, which fixes the
                 // old bug where a command would be issued in one tab but
