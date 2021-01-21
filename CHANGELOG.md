@@ -21,11 +21,10 @@
     -   The command line no longer has a blue outline on OSX (#3123)
     -   `:yankimage` now accepts more MIME types (#3127)
 
-<!-- -   Miscellaneous
+-   Miscellaneous
 
-    -   The native messenger is now written in `Nim` and is much faster. You may need to follow `:nativeinstall` again to update it - the latest `:native` version is `0.2.0`
+    -   The native messenger is now written in `Nim` and is much faster (especially noticeable on `:editor`). You may need to run `:nativeupate` to update it - the latest `:native` version is `0.2.0`
         -   We have removed `pyeval` support from this version - you are very unlikely to have used this since it was an internal Tridactyl command. `:exclaim` is unaffected.
--->
 
 # Release 1.20.4 / 2020-12-21
 
