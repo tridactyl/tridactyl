@@ -694,13 +694,11 @@ export async function native() {
 export async function nativeinstall() {
     const tag = TRI_VERSION.includes("pre") ? "master" : TRI_VERSION
     let done
+    const installstr = (await config.get("nativeinstallcmd")).replace("%TAG", tag)
+    await yank(installstr)
     if ((await browser.runtime.getPlatformInfo()).os === "win") {
-        const installstr = (await config.get("win_nativeinstallcmd")).replace("%WINTAG", "-Tag " + tag)
-        await yank(installstr)
         done = fillcmdline("# Installation command copied to clipboard. Please paste and run it in cmd.exe (other shells won't work) to install the native messenger.")
     } else {
-        const installstr = (await config.get("nativeinstallcmd")).replace("%TAG", tag)
-        await yank(installstr)
         done = fillcmdline("# Installation command copied to clipboard. Please paste and run it in your shell to install the native messenger.")
     }
     return done
@@ -815,11 +813,7 @@ export async function updatenative(interactive = true) {
             if (interactive) logger.error("Updating the native messenger on OSX is broken. Please use `:installnative` instead.")
             return
         }
-        if ((await browser.runtime.getPlatformInfo()).os === "win") {
-            await Native.run((await config.get("win_nativeinstallcmd")).replace("%WINTAG", "-Tag " + tag))
-        } else {
-            await Native.run((await config.get("nativeinstallcmd")).replace("%TAG", tag))
-        }
+        await Native.run((await config.get("nativeinstallcmd")).replace("%TAG", tag))
 
         if (interactive) native()
     }

@@ -934,16 +934,11 @@ export class default_config {
      * Set this to something weird if you want to have fun every time Tridactyl tries to update its native messenger.
      *
      * %TAG will be replaced with your version of Tridactyl for stable builds, or "master" for beta builds
+     *
+     * NB: Windows and OSX have their own platform-specific defaults - this is used only for Linux, for now. OSX will use this eventually.
      */
     nativeinstallcmd =
-        "curl -fsSl https://raw.githubusercontent.com/tridactyl/tridactyl/master/native/install.sh -o /tmp/trinativeinstall.sh && sh /tmp/trinativeinstall.sh %TAG"
-
-    /**
-     * Set this to something weird if you want to have fun every time Tridactyl tries to update its native messenger.
-     *
-     * Replaces %WINTAG with "-Tag $TRI_VERSION", similarly to [[nativeinstallcmd]].
-     */
-    win_nativeinstallcmd = `powershell -NoProfile -Command "(New-Object System.Net.WebClient).DownloadFile('https://raw.githubusercontent.com/tridactyl/tridactyl/master/native/win_install.ps1', """$env:temp/tridactyl_installnative.ps1""")" & powershell -NoProfile -File %temp%\\tridactyl_installnative.ps1 %WINTAG & del %temp%\\tridactyl_installnative.ps1`
+        "curl -fsSl https://raw.githubusercontent.com/tridactyl/native_messenger/master/installers/install.sh -o /tmp/trinativeinstall.sh && sh /tmp/trinativeinstall.sh %TAG"
 
     /**
      * Used by :updatecheck and related built-in functionality to automatically check for updates and prompt users to upgrade.
@@ -1140,6 +1135,8 @@ const platform_defaults = {
         ignoremaps: {
             "<C-6>": "buffer #",
         } as unknown,
+
+        nativeinstallcmd: `powershell -NoProfile -Command "(New-Object System.Net.WebClient).DownloadFile('https://raw.githubusercontent.com/tridactyl/tridactyl/master/native/win_install.ps1', """$env:temp/tridactyl_installnative.ps1""")" & powershell -NoProfile -File %temp%\\tridactyl_installnative.ps1 %TAG & del %temp%\\tridactyl_installnative.ps1`,
     },
     linux: {
         nmaps: {
@@ -1148,6 +1145,10 @@ const platform_defaults = {
             ";X":
                 'hint -F e => { const pos = tri.dom.getAbsoluteCentre(e); tri.excmds.exclaim_quiet("xdotool mousemove --sync " + window.devicePixelRatio * pos.x + " " + window.devicePixelRatio * pos.y + "; xdotool keydown ctrl+shift; xdotool click 1; xdotool keyup ctrl+shift")}',
         } as unknown,
+    },
+    mac: {
+        nativeinstallcmd:
+            "curl -fsSl https://raw.githubusercontent.com/tridactyl/tridactyl/master/native/install.sh -o /tmp/trinativeinstall.sh && sh /tmp/trinativeinstall.sh %TAG",
     },
 } as Record<browser.runtime.PlatformOs, default_config>
 
