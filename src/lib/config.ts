@@ -208,6 +208,7 @@ export class default_config {
         ys: "clipboard yankshort",
         yc: "clipboard yankcanon",
         ym: "clipboard yankmd",
+        yo: "clipboard yankorg",
         yt: "clipboard yanktitle",
         gh: "home",
         gH: "home true",

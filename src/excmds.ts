@@ -3176,7 +3176,7 @@ async function getclip_webapi() {
 
     If `excmd === "yanktitle"`, copy the title of the open page.
 
-    If `excmd === "yankmd"`, copy the title and url of the open page formatted in Markdown for easy use on sites such as reddit.
+    If `excmd === "yankmd"`, copy the title and url of the open page formatted in Markdown for easy use on sites such as reddit. `yankorg` is similar but for Emacs orgmode.
 
     If you're on Linux and the native messenger is installed, Tridactyl will call an external binary (either xclip or xsel) to read or write to your X selection buffer. If you want another program to be used, set "externalclipboardcmd" to its name and make sure it has the same interface as xsel/xclip ("-i"/"-o" and reading from stdin).
 
@@ -3186,7 +3186,7 @@ async function getclip_webapi() {
 
 */
 //#background
-export async function clipboard(excmd: "open" | "yank" | "yankshort" | "yankcanon" | "yanktitle" | "yankmd" | "xselpaste" | "tabopen" = "open", ...toYank: string[]) {
+export async function clipboard(excmd: "open" | "yank" | "yankshort" | "yankcanon" | "yanktitle" | "yankmd" | "yankorg" | "xselpaste" | "tabopen" = "open", ...toYank: string[]) {
     let content = toYank.join(" ")
     let url = ""
     let urls = []
@@ -3223,6 +3223,11 @@ export async function clipboard(excmd: "open" | "yank" | "yankshort" | "yankcano
             break
         case "yankmd":
             content = "[" + (await activeTab()).title + "](" + (await activeTab()).url + ")"
+            await yank(content)
+            done = fillcmdline_tmp(3000, "# " + content + " copied to clipboard.")
+            break
+        case "yankorg":
+            content = "[[" + (await activeTab()).url + "][" + (await activeTab()).title + "]]"
             await yank(content)
             done = fillcmdline_tmp(3000, "# " + content + " copied to clipboard.")
             break
