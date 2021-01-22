@@ -12,7 +12,6 @@ Command mode, i.e, "the console", is used for accessing less frequently used com
 
 We support a handful of keybinds in the console:
 
-*   `Ctrl-C` to exit to normal mode, or copy selected text.
 *   `Up`/`Down` to search in command history: e.g. `:tabopen` `Up` will show you the most recent tabopen command.
 *   `Tab`/`Shift-Tab` cycle completion, enter to select
 *   `Ctrl-F` to complete the command from command history
