@@ -43,7 +43,7 @@
 
     - To make Tridactyl work on addons.mozilla.org and some other Mozilla domains, you need to open `about:config` and add a new boolean `privacy.resistFingerprinting.block_mozAddonManager` with the value `true`, as well as remove those domains from `extensions.webextensions.restrictedDomains`.
     - Tridactyl can't run on about:\*, some file:\* URIs, view-source:\*, or data:\*, URIs.
-    - To change/hide the GUI of Firefox from Tridactyl, you can use [[guiset]] with the native messenger installed (see [[native]] and [[installnative]]). Alternatively, you can edit your userChrome yourself.
+    - To change/hide the GUI of Firefox from Tridactyl, you can use [[guiset]] with the native messenger installed (see [[native]] and [[nativeinstall]]). Alternatively, you can edit your userChrome yourself.
 
     ## Getting help
 
@@ -304,7 +304,7 @@ export function removeTridactylEditorClass(selector: string) {
 
 /**
  * Opens your favourite editor (which is currently gVim) and fills the last used input with whatever you write into that file.
- * **Requires that the native messenger is installed, see [[native]] and [[installnative]]**.
+ * **Requires that the native messenger is installed, see [[native]] and [[nativeinstall]]**.
  *
  * Uses the `editorcmd` config option, default = `auto` looks through a list defined in lib/native.ts try find a sensible combination. If it's a bit slow, or chooses the wrong editor, or gives up completely, set editorcmd to something you want. The command must stay in the foreground until the editor exits.
  *
@@ -678,7 +678,7 @@ export async function native() {
     if (version !== undefined) {
         done = fillcmdline("# Native messenger is correctly installed, version " + version)
     } else {
-        done = fillcmdline("# Native messenger not found. Please run `:installnative` and follow the instructions.")
+        done = fillcmdline("# Native messenger not found. Please run `:nativeinstall` and follow the instructions.")
     }
     return done
 }
@@ -810,7 +810,7 @@ export async function updatenative(interactive = true) {
     const tag = TRI_VERSION.includes("pre") ? "master" : TRI_VERSION
     if (await Native.nativegate("0", interactive)) {
         if ((await browser.runtime.getPlatformInfo()).os === "mac") {
-            if (interactive) logger.error("Updating the native messenger on OSX is broken. Please use `:installnative` instead.")
+            if (interactive) logger.error("Updating the native messenger on OSX is broken. Please use `:nativeinstall` instead.")
             return
         }
         await Native.run((await config.get("nativeinstallcmd")).replace("%TAG", tag))
