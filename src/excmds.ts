@@ -1236,8 +1236,10 @@ export async function open(...urlarr: string[]) {
 /**
  * Works exactly like [[open]], but only suggests bookmarks.
  *
+ * If you want to use optional flags, you should run `:set completions.Bmark.autoselect false` to prevent the spacebar from inserting the URL of the top bookmark.
+ *
  * @param opt Optional. Has to be `-t` in order to make bmarks open your bookmarks in a new tab.
- * @param urlarr any argument accepted by [[open]], or [[tabopen]] if opt is "-t"
+ * @param urlarr any argument accepted by [[open]], or [[tabopen]] if opt is "-t" (e.g. `-c [container]` to open a bookmark in a container)
  */
 //#background
 export async function bmarks(opt: string, ...urlarr: string[]) {
