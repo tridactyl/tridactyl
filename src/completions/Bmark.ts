@@ -76,6 +76,7 @@ export class BmarkCompletionSource extends Completions.CompletionSourceFuse {
             .slice(0, 10)
             .map(page => new BmarkCompletionOption(option + page.url, page))
 
+        this.lastExstr = prefix + query
         return this.updateChain()
     }
 
