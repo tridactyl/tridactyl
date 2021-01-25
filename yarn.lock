@@ -3665,10 +3665,10 @@ gauge@~2.7.3:
     strip-ansi "^3.0.1"
     wide-align "^1.1.0"
 
-geckodriver@^1.21.1:
-  version "1.21.1"
-  resolved "https://registry.yarnpkg.com/geckodriver/-/geckodriver-1.21.1.tgz#d54314472378a239786f50b0f424d52bd9502418"
-  integrity sha512-i5pYkYFEjTMkSCWh8agNFJPCUxVPr9I3JsRQ+bAypt73urXFnB73GQxDbJPKzELUeLhbQybhNKNlKjxfgS1yAA==
+geckodriver@^1.22.1:
+  version "1.22.1"
+  resolved "https://registry.yarnpkg.com/geckodriver/-/geckodriver-1.22.1.tgz#051defed83d50f2fe1e0c3771628aa224cbebdb5"
+  integrity sha512-pT5Wf3AVszsvu0I8XWQT6VX7GzVYtASxzluVMlMXb3wb+jlmE0IFNQ7VGfjpdDrwF/MraukmdFtVQLpSJH0M2A==
   dependencies:
     adm-zip "0.4.16"
     bluebird "3.7.2"
