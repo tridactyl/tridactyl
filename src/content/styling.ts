@@ -46,8 +46,14 @@ export async function theme(element) {
     }
 
     // Insert custom css if needed
-    if (newTheme !== "default" && !THEMES.includes(newTheme)) {
-        customCss.code = await config.getAsync("customthemes", newTheme)
+    if (newTheme !== "default") {
+        customCss.code = THEMES.includes(newTheme)
+            ? "@import url('" +
+              browser.runtime.getURL(
+                  "static/themes/" + newTheme + "/" + newTheme + ".css",
+              ) +
+              "');"
+            : await config.getAsync("customthemes", newTheme)
         if (customCss.code) {
             await browserBg.tabs.insertCSS(await ownTabId(), customCss)
             insertedCSS = true
