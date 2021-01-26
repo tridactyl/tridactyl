@@ -465,7 +465,9 @@ export async function unloadtheme(themename: string) {
  *
  * If THEMENAME is any of the themes that can be found in the [Tridactyl repo](https://github.com/tridactyl/tridactyl/tree/master/src/static/themes) (e.g. 'dark'), the theme will be loaded from Tridactyl's internal storage.
  *
- * If THEMENAME is set to any other value, Tridactyl will attempt to use its native binary (see [[native]]) in order to load a CSS file named THEMENAME from disk. The CSS file has to be in a directory named "themes" and this directory has to be in the same directory as your tridactylrc.
+ * If THEMENAME is set to any other value except `--url`, Tridactyl will attempt to use its native binary (see [[native]]) in order to load a CSS file named THEMENAME from disk. The CSS file has to be in a directory named "themes" and this directory has to be in the same directory as your tridactylrc.
+ *
+ * Lastly, themes can be loaded from URLs with `:colourscheme --url [url] [themename]`. They are stored locally - if you want to update the theme run the command again. As a little "gotcha", you cannot switch back to a theme set by URL using `:colourscheme [themename]`. You must instead use `:set theme [themename]`.
  *
  * Note that the theme name should NOT contain any dot.
  *
@@ -484,11 +486,22 @@ export async function unloadtheme(themename: string) {
  * in their `userContent.css`. Follow [issue #2510](https://github.com/tridactyl/tridactyl/issues/2510) if you would like to find out when we have made a more user-friendly solution.
  */
 //#background
-export async function colourscheme(themename: string) {
-    // If this is a builtin theme, no need to bother with native messaging stuff
+export async function colourscheme(...args: string[]) {
+    const themename = args[0] == "--url" ? args[2] : args[0]
+
+    // If this is a builtin theme, no need to bother with slow stuff
     if (Metadata.staticThemes.includes(themename)) return set("theme", themename)
     if (themename.search("\\.") >= 0) throw new Error(`Theme name should not contain any dots! (given name: ${themename}).`)
-    await loadtheme(themename)
+    if (args[0] == "--url") {
+        if (themename === undefined) throw new Error(`You must provide a theme name!`)
+        let url = args[1]
+        if (url === "%") url = window.location.href // this is basically an easter egg
+        if (!(url.startsWith("http://") || url.startsWith("https://"))) url = "http://" + url
+        const css = await rc.fetchText(url)
+        set("customthemes." + themename, css)
+    } else {
+        await loadtheme(themename)
+    }
     return set("theme", themename)
 }
 

@@ -13,7 +13,10 @@ export async function source(filename = "auto") {
     return true
 }
 
-async function fetchConfig(url: string) {
+/*
+ * This should be moved out to a library but I am lazy
+ */
+export async function fetchText(url: string) {
     const response = await fetch(url)
     const reader = response.body.getReader()
     let rctext = ""
@@ -24,6 +27,7 @@ async function fetchConfig(url: string) {
         rctext += decoder.decode(chunk)
     }
 }
+const fetchConfig = fetchText
 
 export async function sourceFromUrl(url: string) {
     const rctext = await fetchConfig(url)
