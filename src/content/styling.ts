@@ -28,9 +28,19 @@ const customCss = {
 
 export async function theme(element) {
     // Remove any old theme
+
+    /**
+     * DEPRECATED
+     *
+     * You don't need to add weird classnames to your themes any more, but you can if you want.
+     *
+     * Retained for backwards compatibility.
+     **/
     for (const theme of THEMES.map(prefixTheme)) {
         element.classList.remove(theme)
     }
+    // DEPRECATION ENDS
+
     if (insertedCSS) {
         // Typescript doesn't seem to be aware than remove/insertCSS's tabid
         // argument is optional
@@ -40,10 +50,17 @@ export async function theme(element) {
 
     const newTheme = await config.getAsync("theme")
 
-    // Add a class corresponding to config.get('theme')
+    /**
+     * DEPRECATED
+     *
+     * You don't need to add weird classnames to your themes any more, but you can if you want.
+     *
+     * Retained for backwards compatibility.
+     **/
     if (newTheme !== "default") {
         element.classList.add(prefixTheme(newTheme))
     }
+    // DEPRECATION ENDS
 
     // Insert custom css if needed
     if (newTheme !== "default") {
@@ -86,6 +103,13 @@ function retheme() {
 
 config.addChangeListener("theme", retheme)
 
+/**
+ * DEPRECATED
+ *
+ * You don't need to add weird classnames to your themes any more, but you can if you want.
+ *
+ * Retained for backwards compatibility.
+ **/
 // Sometimes pages will overwrite class names of elements. We use a MutationObserver to make sure that the HTML element always has a TridactylTheme class
 // We can't just call theme() because it would first try to remove class names from the element, which would trigger the MutationObserver before we had a chance to add the theme class and thus cause infinite recursion
 const cb = async mutationList => {
@@ -103,3 +127,4 @@ new MutationObserver(cb).observe(document.documentElement, {
     attributeOldValue: false,
     attributeFilter: ["class"],
 })
+// DEPRECATION ENDS
