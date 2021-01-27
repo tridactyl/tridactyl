@@ -1343,9 +1343,13 @@ export async function getAsync(
 
 /*
  * Replaces the configuration in your sync storage with your current configuration. Does not merge: it overwrites.
+ *
+ * Does not synchronise custom themes due to storage constraints.
  */
 export async function push() {
-    return browser.storage.sync.set(await browser.storage.local.get(CONFIGNAME))
+    const local_conf = await browser.storage.local.get(CONFIGNAME)
+    delete local_conf[CONFIGNAME].customthemes
+    return browser.storage.sync.set(local_conf)
 }
 
 /*
