@@ -934,7 +934,7 @@ export class default_config {
      *
      * %TAG will be replaced with your version of Tridactyl for stable builds, or "master" for beta builds
      *
-     * NB: Windows and OSX have their own platform-specific defaults - this is used only for Linux, for now. OSX will use this eventually.
+     * NB: Windows has its own platform-specific default.
      */
     nativeinstallcmd =
         "curl -fsSl https://raw.githubusercontent.com/tridactyl/native_messenger/master/installers/install.sh -o /tmp/trinativeinstall.sh && sh /tmp/trinativeinstall.sh %TAG"
@@ -1144,10 +1144,6 @@ const platform_defaults = {
             ";X":
                 'hint -F e => { const pos = tri.dom.getAbsoluteCentre(e); tri.excmds.exclaim_quiet("xdotool mousemove --sync " + window.devicePixelRatio * pos.x + " " + window.devicePixelRatio * pos.y + "; xdotool keydown ctrl+shift; xdotool click 1; xdotool keyup ctrl+shift")}',
         } as unknown,
-    },
-    mac: {
-        nativeinstallcmd:
-            "curl -fsSl https://raw.githubusercontent.com/tridactyl/tridactyl/master/native/install.sh -o /tmp/trinativeinstall.sh && sh /tmp/trinativeinstall.sh %TAG",
     },
 } as Record<browser.runtime.PlatformOs, default_config>
 
