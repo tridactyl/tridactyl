@@ -1348,7 +1348,8 @@ export async function getAsync(
  */
 export async function push() {
     const local_conf = await browser.storage.local.get(CONFIGNAME)
-    delete (local_conf[CONFIGNAME] as default_config).customthemes
+    // eslint-disable-next-line @typescript-eslint/dot-notation
+    delete local_conf[CONFIGNAME]["customthemes"]
     return browser.storage.sync.set(local_conf)
 }
 
