@@ -1824,6 +1824,9 @@ const parseConfigHelper = (pconf, parseobj, prefix = []) => {
                     if (pconf[i][e] === 3) level = "info"
                     if (pconf[i][e] === 4) level = "debug"
                     parseobj.logging.push(`set logging.${e} ${level}`)
+                } else if (i === "customthemes") {
+                    // Skip custom themes for now because writing their CSS is hard
+                    // parseobj.themes.push(`colourscheme ${e}`) // TODO: check if userconfig.theme == e and write this, otherwise don't.
                 } else {
                     parseConfigHelper(pconf[i], parseobj, [...prefix, i])
                     break

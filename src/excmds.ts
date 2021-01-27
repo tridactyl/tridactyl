@@ -719,7 +719,7 @@ export async function nativeinstall() {
 
 /** Writes current config to a file.
 
-    NB: an RC file is not required for your settings to persist: all settings are stored in the Firefox Sync storage by default as soon as you set them.
+    NB: an RC file is not required for your settings to persist: all settings are stored in a local Firefox storage database by default as soon as you set them.
 
     With no arguments supplied the excmd will try to find an appropriate
     config path and write the rc file to there. Any argument given to the
@@ -3305,10 +3305,8 @@ export async function yankimage(url: string): Promise<void> {
  */
 //#background
 export async function tab(id: string) {
-    if (Number.isInteger(Number(id)))
-        return tabIndexSetActive(Number(id));
-    if (id === "#")
-        return tabIndexSetActive(id);
+    if (Number.isInteger(Number(id))) return tabIndexSetActive(Number(id))
+    if (id === "#") return tabIndexSetActive(id)
 
     const [winid, tabindex_number] = await parseWinTabIndex(id)
     const tabid = (await browser.tabs.query({ windowId: winid, index: tabindex_number }))[0].id
@@ -3320,7 +3318,7 @@ export async function tab(id: string) {
  */
 //#background
 export async function taball(id: string) {
-    return tab(id);
+    return tab(id)
 }
 
 // }}}
