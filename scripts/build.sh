@@ -67,7 +67,6 @@ if [ "$1" = "--old-native" ]; then
     fi
 fi
 
-scripts/bodgecss.sh
 scripts/authors.sh
 
 if [ -e "$CLEANSLATE" ] ; then

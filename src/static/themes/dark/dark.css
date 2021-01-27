@@ -1,4 +1,4 @@
-:root.TridactylThemeDark {
+:root {
     /* {{{ photon-colours */
 
     /* From https://github.com/overdodactyl/ShadowFox/blob/7dbe9343da87bde804e8fb88dd3b5eaaeb4817b2/css/common-files/color_variables.css */
@@ -277,28 +277,28 @@
     );
 }
 
-:root.TridactylThemeDark.TridactylOwnNamespace input[id^="spoiler"] ~ .spoiler {
+:root.TridactylOwnNamespace input[id^="spoiler"] ~ .spoiler {
     border-color: var(--tridactyl-photon-colours-in-content-box-border-color);
 }
 
-:root.TridactylThemeDark.TridactylOwnNamespace {
-  scrollbar-color: var(--tridactyl-scrollbar-color);
-  scrollbar-width: thin;
+:root.TridactylOwnNamespace {
+    scrollbar-color: var(--tridactyl-scrollbar-color);
+    scrollbar-width: thin;
 }
 
-:root.TridactylThemeDark.TridactylOwnNamespace a {
+:root.TridactylOwnNamespace a {
     color: var(--tridactyl-photon-colours-accent-1);
 }
 
 /* These rules have greater specificity than the rules applying the variables
  * above, which causes *issues*. */
 
-/* :root.TridactylThemeDark.TridactylOwnNamespace */
+/* :root.TridactylOwnNamespace */
 /* a:link { */
 /*     color: var(--tridactyl-photon-colours-in-content-link-color); */
 /* } */
 
-/* :root.TridactylThemeDark.TridactylOwnNamespace */
+/* :root.TridactylOwnNamespace */
 /* a:link:visited { */
 /*     --tridactyl-photon-colours-in-content-link-color-visited: #0a8dff; */
 /* } */
