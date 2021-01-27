@@ -3296,30 +3296,31 @@ export async function yankimage(url: string): Promise<void> {
 
 /** Change active tab.
 
-    @param index
-        Starts at 1. 0 refers to last tab of the current window, -1 to penultimate tab, etc.
+    @param id
+        A bare number means the current window is used. Starts at 1. 0 refers to last tab of the current window, -1 to penultimate tab, etc.
+
+        A string following the following format: "[0-9]+.[0-9]+" means the first number being the index of the window that should be selected and the second one being the index of the tab within that window. [[taball]] has completions for this format.
 
         "#" means the tab that was last accessed in this window
-
-    This is different from [[taball]] because `index` is the position of the tab in the current window.
  */
 //#background
-export async function tab(index: number | "#") {
-    return tabIndexSetActive(index)
-}
+export async function tab(id: string) {
+    if (Number.isInteger(Number(id)))
+        return tabIndexSetActive(Number(id));
+    if (id === "#")
+        return tabIndexSetActive(id);
 
-/** Change active tab.
-
-    @param id
-        A string following the following format: "[0-9]+.[0-9]+", the first number being the index of the window that should be selected and the second one being the index of the tab within that window.
-
- */
-//#background
-export async function taball(id: string) {
     const [winid, tabindex_number] = await parseWinTabIndex(id)
     const tabid = (await browser.tabs.query({ windowId: winid, index: tabindex_number }))[0].id
     await browser.windows.update(winid, { focused: true })
     return browser.tabs.update(tabid, { active: true })
+}
+
+/** Wrapper for [[tab]] with multi-window completions
+ */
+//#background
+export async function taball(id: string) {
+    return tab(id);
 }
 
 // }}}
