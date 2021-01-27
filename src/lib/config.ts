@@ -1348,7 +1348,7 @@ export async function getAsync(
  */
 export async function push() {
     const local_conf = await browser.storage.local.get(CONFIGNAME)
-    delete local_conf[CONFIGNAME].customthemes
+    delete (local_conf[CONFIGNAME] as default_config).customthemes
     return browser.storage.sync.set(local_conf)
 }
 
