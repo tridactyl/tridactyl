@@ -742,6 +742,8 @@ export async function nativeinstall() {
 
     Available flags:
     - `-f` will overwrite the config file if it exists.
+    - `--clipboard` write config to clipboard - no [[native]] required
+
     @param args an optional string of arguments to be parsed.
     @returns the parsed config.
 
@@ -762,6 +764,10 @@ export async function mktridactylrc(...args: string[]) {
     const file = argParse(args).join(" ") || undefined
 
     const conf = config.parseConfig()
+    if (file == "--clipboard") {
+        setclip(conf)
+        return fillcmdline_tmp(3000, "# RC copied to clipboard")
+    }
     if ((await Native.nativegate("0.1.11")) && !(await rc.writeRc(conf, overwrite, file))) logger.error("Could not write RC file")
 
     return conf
