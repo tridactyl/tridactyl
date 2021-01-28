@@ -8,7 +8,7 @@ Please search our `:help` page and through the other issues on this repository; 
 
 # Reporting a bug / getting help
 
-If you're opening this issue to report a bug with a specific site, please read and follow the "Settings that can fix websites" paragraph of the (troubleshooting steps)[https://github.com/tridactyl/tridactyl/tree/master/doc/troubleshooting.md] first.
+Please read and follow the (troubleshooting steps)[https://github.com/tridactyl/tridactyl/tree/master/doc/troubleshooting.md] first!
 
 If that does not solve your problem, please fill in the following template and then delete all the lines above it, and any other lines which you do not feel are applicable:
 
