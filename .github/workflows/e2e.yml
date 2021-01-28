@@ -16,8 +16,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu, windows]
-        # os: [ubuntu, macos, windows]
+        os: [ubuntu, macos, windows]
         browser: [firefox, firefoxesr]
         exclude:
           - os: macos
@@ -59,7 +58,7 @@ jobs:
     - name: Install Firefox Dev Edition (MacOS)
       if: matrix.browser == 'firefox' && matrix.os == 'macos'
       run: |
-        brew cask --verbose --debug install homebrew/cask-versions/firefox-developer-edition
+        brew install --cask homebrew/cask-versions/firefox-developer-edition
         echo "/Applications/Firefox Developer Edition.app/Contents/MacOS/" >> $GITHUB_PATH
     - name: Install Firefox Dev Edition (Windows)
       if: matrix.browser == 'firefox' && matrix.os == 'windows'
