@@ -1193,7 +1193,9 @@ export async function reloadall(hard = false) {
     return Promise.all(tabs.map(tab => browser.tabs.reload(tab.id, reloadprops)))
 }
 
-/** Reloads all tabs except the current one, bypassing the cache if hard is set to true */
+/** Reloads all tabs except the current one, bypassing the cache if hard is set to true
+ *  You probably want to use [[reloaddead]] instead if you just want to be able to ensure Tridactyl is loaded in all tabs where it can be
+ * */
 //#background
 export async function reloadallbut(hard = false) {
     let tabs = await browser.tabs.query({ currentWindow: true })
@@ -1201,6 +1203,17 @@ export async function reloadallbut(hard = false) {
     tabs = tabs.filter(tab => tab.id !== currId)
     const reloadprops = { bypassCache: hard }
     return Promise.all(tabs.map(tab => browser.tabs.reload(tab.id, reloadprops)))
+}
+
+//#background_helper
+import { getTridactylTabs } from "@src/background/meta"
+/** Reloads all tabs which Tridactyl isn't loaded in */
+//#background
+export async function reloaddead(hard = false) {
+    const tabs = await browser.tabs.query({ currentWindow: true })
+    const not_tridactyl_tabs = await getTridactylTabs(tabs, true)
+    const reloadprops = { bypassCache: hard }
+    return Promise.all(not_tridactyl_tabs.map(tab => browser.tabs.reload(tab.id, reloadprops)))
 }
 
 /** Reload the next n tabs, starting with activeTab. bypass cache for all */
