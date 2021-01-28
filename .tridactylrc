@@ -30,8 +30,6 @@
 " NB: If you want "vim-like" behaviour where removing a line from
 " here makes the setting disappear, uncomment the line below.
 
-"sanitise tridactyllocal tridactylsync
-
 "
 " Binds
 "
