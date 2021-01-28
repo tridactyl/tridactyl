@@ -58,8 +58,9 @@ bindurl wikiwand.com yy composite js document.location.href.replace("wikiwand.co
 bindurl reddit.com gu urlparent 4
 
 " Only hint search results on Google and DDG
-bindurl www.google.com f hint -Jc .rc > div > a
-bindurl www.google.com F hint -Jbc .rc > div > a
+bindurl www.google.com f hint -Jc .g > div > div > a
+bindurl www.google.com F hint -Jbc .g > div > div > a
+
 
 bindurl ^https://duckduckgo.com f hint -Jc [class=result__a]
 bindurl ^https://duckduckgo.com F hint -Jbc [class=result__a]
