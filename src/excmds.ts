@@ -4204,6 +4204,8 @@ export async function hint(option?: string, selectors?: string, ...rest: string[
             })
         }
     }
+    const selectorsOr = (fallback = DOM.HINTTAGS_selectors) => (withSelectors ? [selectors, ...rest].join(" ") : fallback)
+
     switch (option) {
         case "-f": // Filter links by text
         case "-fr": // Filter links by regex
@@ -4224,7 +4226,7 @@ export async function hint(option?: string, selectors?: string, ...rest: string[
         case "-b": // Open in background
         case "-t": // Open in foreground
             selectHints = hinting.pipe(
-                withSelectors ? [selectors, ...rest].join(" ") : DOM.HINTTAGS_selectors,
+                selectorsOr(),
                 async link => {
                     link.focus()
                     if (link.href) {
@@ -4242,7 +4244,7 @@ export async function hint(option?: string, selectors?: string, ...rest: string[
         case "-y":
             // Yank link
             selectHints = hinting.pipe(
-                DOM.HINTTAGS_selectors,
+                selectorsOr(),
                 elem => {
                     // /!\ Warning: This is racy! This can easily be fixed by adding an await but do we want this? yank can be pretty slow, especially with yankto=selection
                     run_exstr("yank " + elem.href)
@@ -4288,7 +4290,7 @@ export async function hint(option?: string, selectors?: string, ...rest: string[
             // https://developer.mozilla.org/en-US/docs/Web/HTML/Element/a
             // https://developer.mozilla.org/en-US/docs/Web/HTML/Element/link
             selectHints = hinting.pipe_elements(
-                DOM.getElemsBySelector("[title], [alt]", [DOM.isVisible]),
+                DOM.getElemsBySelector(selectorsOr("[title], [alt]"), [DOM.isVisible]),
                 link => {
                     // /!\ Warning: This is racy! This can easily be fixed by adding an await but do we want this? yank can be pretty slow, especially with yankto=selection
                     run_exstr("yank " + (link.title ? link.title : link.alt))
@@ -4317,10 +4319,10 @@ export async function hint(option?: string, selectors?: string, ...rest: string[
 
         case "-W":
             selectHints = hinting.pipe(
-                DOM.HINTTAGS_selectors,
+                selectorsOr(),
                 elem => {
                     // /!\ RACY RACY RACY!
-                    run_exstr(selectors + " " + rest.join(" ") + " " + elem)
+                    run_exstr((withSelectors ? selectors + " " : "") + rest.join(" ") + " " + elem)
                     return elem
                 },
                 rapid,
@@ -4329,7 +4331,7 @@ export async function hint(option?: string, selectors?: string, ...rest: string[
             break
 
         case "-pipe":
-            selectHints = hinting.pipe(selectors, elem => elem[rest.join(" ")], rapid, jshints)
+            selectHints = hinting.pipe(selectorsOr(selectors), elem => elem[rest.join(" ")], rapid, jshints)
             break
 
         case "-i":
@@ -4406,7 +4408,7 @@ export async function hint(option?: string, selectors?: string, ...rest: string[
 
         case "-;":
             selectHints = hinting.pipe_elements(
-                hinting.hintables(selectors),
+                hinting.hintables(selectorsOr(selectors)),
                 elem => {
                     elem.focus()
                     scrolling.setCurrentFocus(elem)
@@ -4429,7 +4431,7 @@ export async function hint(option?: string, selectors?: string, ...rest: string[
 
         case "-w":
             selectHints = hinting.pipe_elements(
-                hinting.hintables(),
+                hinting.hintables(selectorsOr()),
                 elem => {
                     elem.focus()
                     if (elem.href) openInNewWindow({ url: new URL(elem.href, window.location.href).href })
@@ -4442,7 +4444,7 @@ export async function hint(option?: string, selectors?: string, ...rest: string[
 
         case "-wp":
             selectHints = hinting.pipe_elements(
-                hinting.hintables(),
+                hinting.hintables(selectorsOr()),
                 elem => {
                     elem.focus()
                     if (elem.href) return openInNewWindow({ url: elem.href, incognito: true })
@@ -4463,12 +4465,12 @@ export async function hint(option?: string, selectors?: string, ...rest: string[
             break
 
         case "-F": // DIY callback
-            selectHints = hinting.pipe(withSelectors ? selectors : DOM.HINTTAGS_selectors, eval([withSelectors ? "" : selectors, ...rest].join(" ")), rapid, jshints)
+            selectHints = hinting.pipe(selectorsOr(), eval([withSelectors ? "" : selectors, ...rest].join(" ")), rapid, jshints)
             break
 
         default:
             selectHints = hinting.pipe(
-                withSelectors ? [selectors, ...rest].join(" ") : DOM.HINTTAGS_selectors,
+                selectorsOr(),
                 elem => {
                     DOM.simulateClick(elem as HTMLElement)
                     return elem
