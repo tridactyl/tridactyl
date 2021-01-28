@@ -805,6 +805,11 @@ export class default_config {
     theme = "default"
 
     /**
+     * The themes to use.
+     */
+    themes: string[] = []
+
+    /**
      * Storage for custom themes
      *
      * Maps theme names to CSS. Predominantly used automatically by [[colourscheme]] to store themes read from disk, as documented by [[colourscheme]]. Setting this manually is untested but might work provided that [[colourscheme]] is then used to change the theme to the right theme name.
