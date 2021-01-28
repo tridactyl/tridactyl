@@ -27,6 +27,7 @@ import * as omnibox from "@src/background/omnibox"
 import * as R from "ramda"
 import * as webrequests from "@src/background/webrequests"
 import * as commands from "@src/background/commands"
+import * as meta from "@src/background/meta"
 
 // Add various useful modules to the window for debugging
 ;(window as any).tri = Object.assign(Object.create(null), {
@@ -48,6 +49,7 @@ import * as commands from "@src/background/commands"
     contentLocation: window.location,
     R,
     perf,
+    meta,
 })
 
 import { HintingCmds } from "@src/background/hinting"
@@ -84,23 +86,23 @@ browser.tabs.onActivated.addListener(ev => {
 /**
  * Declare Tab Event Listeners
  */
-browser.tabs.onRemoved.addListener((tabId) => {
+browser.tabs.onRemoved.addListener(tabId => {
     messaging.messageAllTabs("tab_changes", "tab_close", [tabId])
 })
 // Fired when a tab is attached to a window, for example because it was moved between windows.
-browser.tabs.onAttached.addListener((tabId) => {
+browser.tabs.onAttached.addListener(tabId => {
     messaging.messageAllTabs("tab_changes", "tab_attached", [tabId])
 })
 // Fired when a tab is created. Note that the tab's URL may not be set at the time this event fired.
-browser.tabs.onCreated.addListener((tabId) => {
+browser.tabs.onCreated.addListener(tabId => {
     messaging.messageAllTabs("tab_changes", "tab_created", [tabId])
 })
 // Fired when a tab is detached from a window, for example because it is being moved between windows.
-browser.tabs.onDetached.addListener((tabId) => {
+browser.tabs.onDetached.addListener(tabId => {
     messaging.messageAllTabs("tab_changes", "tab_detached", [tabId])
 })
 // Fired when a tab is moved within a window.
-browser.tabs.onMoved.addListener((tabId) => {
+browser.tabs.onMoved.addListener(tabId => {
     messaging.messageAllTabs("tab_changes", "tab_moved", [tabId])
 })
 
@@ -268,7 +270,6 @@ window.tri = Object.assign(window.tri || Object.create(null), {
 omnibox.init()
 
 // }}}
-
 
 setTimeout(config.update, 5000)
 

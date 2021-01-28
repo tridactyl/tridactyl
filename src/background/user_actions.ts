@@ -7,7 +7,7 @@
 import * as excmds from "@src/.excmds_background.generated"
 import * as R from "ramda"
 import * as config from "@src/lib/config"
-import { messageTab } from "@src/lib/messaging"
+import { getTridactylTabs } from "@src/background/meta"
 
 export function escapehatch() {
     if (config.get("escapehatchsidebarhack") == "true") {
@@ -17,19 +17,7 @@ export function escapehatch() {
     }
     ;(async () => {
         const tabs = await browser.tabs.query({ currentWindow: true })
-        const tridactyl_tabs: browser.tabs.Tab[] = []
-        await Promise.all(
-            tabs.map(async tab => {
-                try {
-                    // This doesn't actually return "true" like it is supposed to
-                    await messageTab(tab.id, "alive")
-                    tridactyl_tabs.push(tab)
-                    return true
-                } catch (e) {
-                    return false
-                }
-            }),
-        )
+        const tridactyl_tabs = await getTridactylTabs(tabs)
         const curr_pos = tabs.filter(t => t.active)[0].index
 
         // If Tridactyl isn't running in any tabs in the current window open a new tab
