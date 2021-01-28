@@ -27,8 +27,6 @@
 " install the native messenger (:installnative in Tridactyl). Run :source to
 " get it in the browser, or just restart.
 
-" NB: If you want "vim-like" behaviour where removing a line from
-" here makes the setting disappear, uncomment the line below.
 
 "
 " Binds
