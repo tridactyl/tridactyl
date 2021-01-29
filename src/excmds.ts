@@ -3321,11 +3321,62 @@ export async function yankimage(url: string): Promise<void> {
         A string following the following format: "[0-9]+.[0-9]+" means the first number being the index of the window that should be selected and the second one being the index of the tab within that window. [[taball]] has completions for this format.
 
         "#" means the tab that was last accessed in this window
+
+        A non integer string means to search the URL and title for matches, in this window if called from tab, all windows if called from anytab. Title matches can contain '*' as a wildcard.
  */
 //#background
-export async function tab(id: string) {
+export async function tab(...id: string[]) {
+    return tab_helper(true, false, ...id)
+}
+
+/** Wrapper for [[tab]] with multi-window completions
+ */
+//#background
+export async function taball(...id: string[]) {
+    return tab_helper(true, true, ...id);
+}
+
+/** Helper to change active tab. Used by [[tab]] and [[taball]].
+
+    @param interactive
+        Controls if we should prompt if multiple matches are found, or just pick the first match
+
+    @param anyWindow
+        True if we should search in all windows, or just the current one.
+
+    @param key
+        String or int tab search key, see [[tab]] for usage.
+ */
+//#background
+export async function tab_helper(interactive: boolean, anyWindow: boolean, ...key: string[]) {
+    const id = key.join(" ")
     if (Number.isInteger(Number(id))) return tabIndexSetActive(Number(id))
     if (id === "#") return tabIndexSetActive(id)
+
+    if (id !== null && id !== undefined && !/\d+\.\d+/.exec(id)) {
+        let defaultQuery = {}
+        if (!anyWindow)
+            defaultQuery = {windowId: (await activeTab()).windowId};
+
+        const results = new Map()
+        try {
+            (await browser.tabs.query({...defaultQuery, ...{url: id}})).forEach(tab => results.set(tab.id, tab))
+        } catch (e) { }
+        if (results.size < 2)
+            (await browser.tabs.query({...defaultQuery, ...{title: id.replace("*", "\\*")}})).forEach(tab => results.set(tab.id, tab))
+        if (results.size < 2)
+            (await browser.tabs.query(defaultQuery)).filter((tab => tab.url.includes(id))).forEach(tab => results.set(tab.id, tab))
+        if (results.size < 2)
+            (await browser.tabs.query({...defaultQuery, ...{title: "*" + id + "*"}})).forEach(tab => results.set(tab.id, tab))
+        if (results.size) {
+            if (interactive && results.size > 1)
+                return fillcmdline_notrail(anyWindow ? "taball" : "tab", id)
+            const firstTab = results.values().next().value
+            await browser.windows.update(firstTab.windowId, { focused: true })
+            return browser.tabs.update(firstTab.id, { active: true })
+        }
+        throw new Error("No tab found matching: " + id)
+    }
 
     const [winid, tabindex_number] = await parseWinTabIndex(id)
     const tabid = (await browser.tabs.query({ windowId: winid, index: tabindex_number }))[0].id
@@ -3333,12 +3384,6 @@ export async function tab(id: string) {
     return browser.tabs.update(tabid, { active: true })
 }
 
-/** Wrapper for [[tab]] with multi-window completions
- */
-//#background
-export async function taball(id: string) {
-    return tab(id)
-}
 
 // }}}
 
