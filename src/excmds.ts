@@ -4016,13 +4016,17 @@ export async function quickmark(key: string, ...addressarr: string[]) {
         const address = addressarr.length === 0 ? (await activeTab()).url : addressarr[0]
         // Have to await these or they race!
         await bind("gn" + key, "tabopen", address)
+        await sleep(50)
         await bind("go" + key, "open", address)
+        await sleep(50)
         await bind("gw" + key, "winopen", address)
     } else {
         const compstring = addressarr.join("; tabopen ")
         const compstringwin = addressarr.join("; winopen ")
         await bind("gn" + key, "composite tabopen", compstring)
+        await sleep(50)
         await bind("go" + key, "composite open", compstring)
+        await sleep(50)
         await bind("gw" + key, "composite winopen", compstringwin)
     }
 }
