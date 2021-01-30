@@ -801,11 +801,17 @@ export class default_config {
      * The theme to use.
      *
      * Permitted values: run `:composite js tri.styling.THEMES | fillcmdline` to find out.
+     *
+     * If [[themes]] is set, this setting is ignored.
      */
     theme = "default"
 
     /**
-     * The themes to use.
+     * An array of themes to apply simultaneously.
+     *
+     * Set like this: `:set ["dark", "quakelight"]
+     *
+     * If this is set, [[theme]] is ignored.
      */
     themes: string[] = []
 
