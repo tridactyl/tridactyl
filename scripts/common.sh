@@ -35,7 +35,10 @@ eslintUgly() {
     local tmpdir
 
     mkdir -p .tmp
-    tmpdir=$(mktemp --tmpdir=".tmp/" -d "tslint.XXXXXXXXX")
+    tmpdir=$(
+        mktemp --tmpdir=".tmp/" -d "tslint.XXXX" 2>/dev/null \
+            || TMPDIR=".tmp/" mktemp -d "tslint.XXXX"
+    )
     for jsfile in "$@"; do
         tmpfile="$tmpdir/$jsfile"
         mkdir -p "$(dirname "$tmpfile")"
