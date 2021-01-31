@@ -445,7 +445,9 @@ export function cssparse(...css: string[]) {
 
 /** @hidden */
 //#background
-export async function loadtheme(themename: string) {
+export async function loadtheme(themename: string, forcerefresh = true) {
+    if (!forcerefresh && Object.keys(await config.get("customthemes")).includes(themename)) return
+
     if (!(await Native.nativegate("0.1.9"))) return
     const separator = (await browserBg.runtime.getPlatformInfo()).os === "win" ? "\\" : "/"
     // remove the "tridactylrc" bit so that we're left with the directory
@@ -461,13 +463,14 @@ export async function unloadtheme(themename: string) {
     return unset("customthemes." + themename)
 }
 
-/** Changes the current theme.
+/**
+ * Changes the current theme.
  *
- * If THEMENAME is any of the themes that can be found in the [Tridactyl repo](https://github.com/tridactyl/tridactyl/tree/master/src/static/themes) (e.g. 'dark'), the theme will be loaded from Tridactyl's internal storage.
+ * `:colours [themename]` will load a theme from Tridactyl's internal storage if it already exists there - for example, if it is a default theme or if you have already loaded the theme from a URL or disk first. If you want to update a theme from disk you should run `:colours --refresh [themename]`.
  *
  * If THEMENAME is set to any other value except `--url`, Tridactyl will attempt to use its native binary (see [[native]]) in order to load a CSS file named THEMENAME from disk. The CSS file has to be in a directory named "themes" and this directory has to be in the same directory as your tridactylrc.
  *
- * Lastly, themes can be loaded from URLs with `:colourscheme --url [url] [themename]`. They are stored locally - if you want to update the theme run the command again. As a little "gotcha", you cannot switch back to a theme set by URL using `:colourscheme [themename]`. You must instead use `:set theme [themename]`.
+ * Lastly, themes can be loaded from URLs with `:colourscheme --url [url] [themename]`. They are stored internally - if you want to update the theme run the whole command again.
  *
  * Note that the theme name should NOT contain any dot.
  *
@@ -487,7 +490,7 @@ export async function unloadtheme(themename: string) {
  */
 //#background
 export async function colourscheme(...args: string[]) {
-    const themename = args[0] == "--url" ? args[2] : args[0]
+    const themename = args[0] == "--url" ? args[2] : args[0] == "--reload" ? args[1] : args[0]
 
     // If this is a builtin theme, no need to bother with slow stuff
     if (Metadata.staticThemes.includes(themename)) return set("theme", themename)
@@ -500,7 +503,7 @@ export async function colourscheme(...args: string[]) {
         const css = await rc.fetchText(url)
         set("customthemes." + themename, css)
     } else {
-        await loadtheme(themename)
+        await loadtheme(themename, args[0] == "--reload")
     }
     return set("theme", themename)
 }
@@ -3333,7 +3336,7 @@ export async function tab(...id: string[]) {
  */
 //#background
 export async function taball(...id: string[]) {
-    return tab_helper(true, true, ...id);
+    return tab_helper(true, true, ...id)
 }
 
 /** Helper to change active tab. Used by [[tab]] and [[taball]].
@@ -3355,22 +3358,17 @@ export async function tab_helper(interactive: boolean, anyWindow: boolean, ...ke
 
     if (id !== null && id !== undefined && !/\d+\.\d+/.exec(id)) {
         let defaultQuery = {}
-        if (!anyWindow)
-            defaultQuery = {windowId: (await activeTab()).windowId};
+        if (!anyWindow) defaultQuery = { windowId: (await activeTab()).windowId }
 
         const results = new Map()
         try {
-            (await browser.tabs.query({...defaultQuery, ...{url: id}})).forEach(tab => results.set(tab.id, tab))
-        } catch (e) { }
-        if (results.size < 2)
-            (await browser.tabs.query({...defaultQuery, ...{title: id.replace("*", "\\*")}})).forEach(tab => results.set(tab.id, tab))
-        if (results.size < 2)
-            (await browser.tabs.query(defaultQuery)).filter((tab => tab.url.includes(id))).forEach(tab => results.set(tab.id, tab))
-        if (results.size < 2)
-            (await browser.tabs.query({...defaultQuery, ...{title: "*" + id + "*"}})).forEach(tab => results.set(tab.id, tab))
+            ;(await browser.tabs.query({ ...defaultQuery, ...{ url: id } })).forEach(tab => results.set(tab.id, tab))
+        } catch (e) {}
+        if (results.size < 2) (await browser.tabs.query({ ...defaultQuery, ...{ title: id.replace("*", "\\*") } })).forEach(tab => results.set(tab.id, tab))
+        if (results.size < 2) (await browser.tabs.query(defaultQuery)).filter(tab => tab.url.includes(id)).forEach(tab => results.set(tab.id, tab))
+        if (results.size < 2) (await browser.tabs.query({ ...defaultQuery, ...{ title: "*" + id + "*" } })).forEach(tab => results.set(tab.id, tab))
         if (results.size) {
-            if (interactive && results.size > 1)
-                return fillcmdline_notrail(anyWindow ? "taball" : "tab", id)
+            if (interactive && results.size > 1) return fillcmdline_notrail(anyWindow ? "taball" : "tab", id)
             const firstTab = results.values().next().value
             await browser.windows.update(firstTab.windowId, { focused: true })
             return browser.tabs.update(firstTab.id, { active: true })
@@ -3383,7 +3381,6 @@ export async function tab_helper(interactive: boolean, anyWindow: boolean, ...ke
     await browser.windows.update(winid, { focused: true })
     return browser.tabs.update(tabid, { active: true })
 }
-
 
 // }}}
 
