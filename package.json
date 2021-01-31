@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "cleanslate": "^0.10.1",
+    "@mozilla/readability": "^0.4.1",
     "csp-serdes": "github:cmcaine/csp-serdes",
     "css": "^3.0.0",
     "editor-adapter": "^0.0.5",
