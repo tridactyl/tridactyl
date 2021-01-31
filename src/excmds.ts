@@ -451,7 +451,7 @@ export async function loadtheme(themename: string) {
     // remove the "tridactylrc" bit so that we're left with the directory
     const path = (await Native.getrcpath()).split(separator).slice(0, -1).join(separator) + separator + "themes" + separator + themename + ".css"
     const file = await Native.read(path)
-    if (file.code !== 0)  {
+    if (file.code !== 0) {
         if (Object.keys(await config.get("customthemes")).includes(themename)) return
         throw new Error("Couldn't read theme " + path)
     }
@@ -5094,6 +5094,15 @@ export async function extoptions(...optionNameArgs: string[]) {
     const extensions = await Extensions.listExtensions()
     const selectedExtension = extensions.find(ext => ext.name === optionName)
     return winopen("-popup", selectedExtension.optionsUrl)
+}
+
+//#content_helper
+import { Readability } from "@mozilla/readability"
+
+//#content
+export async function reader2() {
+    const article = new Readability(document).parse()
+    document.body.innerHTML = article.content
 }
 
 /**
