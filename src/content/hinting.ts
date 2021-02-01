@@ -467,11 +467,12 @@ export function hintPage(
         )
 
     if (
-        modeState.hints.length == 1 ||
-        (firstTargetIsSelectable() && allTargetsAreEqual())
+        (modeState.hints.length == 1 ||
+            (firstTargetIsSelectable() && allTargetsAreEqual())) &&
+        config.get("hintautoselect") === "true"
     ) {
         // There is just a single link or all the links point to the same
-        // place. Select it.
+        // place. Select it unless `hintautoselect` is set to `false`.
         modeState.cleanUpHints()
         modeState.hints[0].select()
         reset()
@@ -859,7 +860,7 @@ function filterHintsSimple(fstr) {
             active.push(h)
         }
     }
-    if (active.length === 1) {
+    if (active.length === 1 && config.get("hintautoselect") === "true") {
         selectFocusedHint()
     }
 }
@@ -945,8 +946,8 @@ function filterHintsVimperator(query: string, reflow = false) {
         modeState.focusedHint.focused = true
     }
 
-    // Select focused hint if it's the only match
-    if (active.length === 1) {
+    // Select focused hint if it's the only match unless turned off in config
+    if (active.length === 1 && config.get("hintautoselect") === "true") {
         selectFocusedHint(true)
     }
 }

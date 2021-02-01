@@ -451,7 +451,7 @@ export async function loadtheme(themename: string) {
     // remove the "tridactylrc" bit so that we're left with the directory
     const path = (await Native.getrcpath()).split(separator).slice(0, -1).join(separator) + separator + "themes" + separator + themename + ".css"
     const file = await Native.read(path)
-    if (file.code !== 0)  {
+    if (file.code !== 0) {
         if (Object.keys(await config.get("customthemes")).includes(themename)) return
         throw new Error("Couldn't read theme " + path)
     }
@@ -4184,6 +4184,9 @@ const KILL_STACK: Element[] = []
         - "relatedopenpos": "related" | "next" | "last"
         - "hintuppercase": "true" | "false"
         - "hintnames": "short" | "uniform" | "numeric"
+        - "hintdelay": 300
+        - "hintshift": "true" | "false"
+        - "hintautoselect": "true" | "false"
 
           With "short" names, Tridactyl will generate short hints that
           are never prefixes of each other. With "uniform", Tridactyl
