@@ -1851,11 +1851,9 @@ export async function geturlsforlinks(reltype = "rel", rel: string) {
 
 /** Sets the current page's zoom level anywhere between 30% and 300%.
  *
- * If you overshoot the level while using relative adjustments i.e. level > 300% or level < 30%
- * the zoom level will be set to it's maximum or minimum position.
+ * If you overshoot the level while using relative adjustments i.e. level > 300% or level < 30% the zoom level will be set to it's maximum or minimum position. Relative adjustments are made * in percentage points, i.e. `:zoom +10 true` increases the zoom level from 50% to 60% or from * 200% to 210%.
  *
- * @param level - The zoom level to set.
- * Expects percentages when changing the absolute zoom value and percentage points when making relative adjustments.
+ * @param level - The zoom level to set. Treated as percentage value if larger than 3 or smaller than -3.
  * @param rel - Set the zoom adjustment to be relative to current zoom level.
  * @param tabId - The tabId to apply zoom level too.
  * If set to 'auto' it will default to the current active tab.
@@ -1863,7 +1861,7 @@ export async function geturlsforlinks(reltype = "rel", rel: string) {
  */
 //#background
 export async function zoom(level = 0, rel = "false", tabId = "auto") {
-    level = level > 3 ? level / 100 : level
+    level = Math.abs(level) > 3 ? level / 100 : level
     if (rel === "false" && (level > 3 || level < 0.3)) {
         throw new Error(`[zoom] level out of range: ${level}`)
     }
