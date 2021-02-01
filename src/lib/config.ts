@@ -731,6 +731,13 @@ export class default_config {
     hintshift: "true" | "false" = "false"
 
     /**
+     * Controls whether hints should be followed automatically.
+     *
+     * If set to `false`, hints will only be followed upon confirmation. This applies to cases when there is only a single match or only one link on the page.
+     */
+    hintautoselect: "true" | "false" = "true"
+
+    /**
      * Controls whether the page can focus elements for you via js
      *
      * NB: will break fancy editors such as CodeMirror on Jupyter. Simply use `seturl` to whitelist pages you need it on.
