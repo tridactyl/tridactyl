@@ -5,8 +5,6 @@ import { everything as metadata } from "@src/.metadata.generated"
 import * as aliases from "@src/lib/aliases"
 import * as Logging from "@src/lib/logging"
 
-import * as Excmd from "excmd"
-
 const logger = new Logging.Logger("exmode")
 
 function convertArgs(types, argv) {
@@ -31,16 +29,10 @@ function convertArgs(types, argv) {
 // TODO: Quoting arguments
 // TODO: Pipe to separate commands
 // TODO: Abbreviated commands
-export function parser(exstr: string, all_excmds: any): any[] {
+export function parser2020(exstr: string, all_excmds: any): any[] {
     // Expand aliases
     const expandedExstr = aliases.expandExstr(exstr)
-    const statement = Excmd.Parser.statementOfString(expandedExstr)
-
-    const func = statement.command
-    // This is mutative; it [resolves][] ambiguous statement-elements into
-    // positional arguments instead of flag-payloads.
-    // [resolves]: <https://excmd.js.org/excmd/Excmd/Statement/index.html#reso>
-    const args = statement.getPositionals()
+    const [func, ...args] = expandedExstr.trim().split(/\s+/)
 
     // Try to find which namespace (ex, text, ...) the command is in
     const dotIndex = func.indexOf(".")

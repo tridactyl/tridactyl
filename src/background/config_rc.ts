@@ -54,7 +54,7 @@ export async function writeRc(conf: string, force = false, filename = "auto") {
 export async function runRc(rc: string) {
     for (const cmd of rcFileToExCmds(rc)) {
         await new Promise(resolve => setTimeout(resolve, 100))
-        await controller.acceptExCmd(cmd)
+        await controller.acceptExCmd2020(cmd)
     }
 }
 

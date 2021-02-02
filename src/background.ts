@@ -121,12 +121,12 @@ browser.runtime.onStartup.addListener(() => {
         const hosts = Object.keys(aucmds)
         // If there's only one rule and it's "all", no need to check the hostname
         if (hosts.length === 1 && hosts[0] === ".*") {
-            controller.acceptExCmd(aucmds[hosts[0]])
+            controller.acceptExCmd2020(aucmds[hosts[0]])
         } else {
             native.run("hostname").then(hostname => {
                 for (const host of hosts) {
                     if (new RegExp(host).exec(hostname.content)) {
-                        controller.acceptExCmd(aucmds[host])
+                        controller.acceptExCmd2020(aucmds[host])
                     }
                 }
             })

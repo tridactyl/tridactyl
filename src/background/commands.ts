@@ -11,7 +11,7 @@ function makelistener(commands) {
             keyseq.mozMapToMinimalKey(command.shortcut).toMapstr(),
         )
         if (exstring in useractions) return useractions[exstring]()
-        return controller.acceptExCmd(exstring)
+        return controller.acceptExCmd2020(exstring)
     }
 }
 

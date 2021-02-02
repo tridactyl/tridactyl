@@ -1,5 +1,5 @@
 import Logger from "@src/lib/logging"
-import { parser as exmode_parser } from "@src/parsers/exmode"
+import { parser2020 } from "@src/parsers/exmode2020"
 import * as State from "@src/state"
 import state from "@src/state"
 
@@ -11,10 +11,10 @@ export function setExCmds(excmds: any) {
 }
 
 /** Parse and execute ExCmds */
-export async function acceptExCmd(exstr: string): Promise<any> {
+export async function acceptExCmd2020(exstr: string): Promise<any> {
     // TODO: Errors should go to CommandLine.
     try {
-        const [func, args] = exmode_parser(exstr, stored_excmds)
+        const [func, args] = parser2020(exstr, stored_excmds)
         // Stop the repeat excmd from recursing and don't store private window commands
         if (
             func !== stored_excmds[""].repeat &&

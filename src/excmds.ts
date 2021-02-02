@@ -88,7 +88,7 @@ import * as Perf from "@src/perf"
 import * as Metadata from "@src/.metadata.generated"
 import * as Native from "@src/lib/native"
 import * as TTS from "@src/lib/text_to_speech"
-import * as excmd_parser from "@src/parsers/exmode"
+import { parser2020 } from "@src/parsers/exmode2020"
 import * as escape from "@src/lib/escape"
 
 /**
@@ -245,7 +245,7 @@ export async function rssexec(url: string, type?: string, ...title: string[]) {
         rsscmd += " " + url
     }
     // Need actual excmd parsing here.
-    return controller.acceptExCmd(rsscmd)
+    return controller.acceptExCmd2020(rsscmd)
 }
 
 /**
@@ -1969,7 +1969,7 @@ export async function loadaucmds(cmdType: "DocStart" | "DocLoad" | "DocEnd" | "T
             aucmds[aukey] = aucmds[aukey].replace(k, v)
         }
         try {
-            await controller.acceptExCmd(aucmds[aukey])
+            await controller.acceptExCmd2020(aucmds[aukey])
         } catch (e) {
             logger.error(e.toString())
         }
@@ -2977,7 +2977,7 @@ export async function repeat(n = 1, ...exstr: string[]) {
     if (exstr.length > 0) cmd = exstr.join(" ")
     logger.debug("repeating " + cmd + " " + n + " times")
     for (let i = 0; i < n; i++) {
-        await controller.acceptExCmd(cmd)
+        await controller.acceptExCmd2020(cmd)
     }
 }
 
@@ -3017,12 +3017,12 @@ export async function composite(...cmds: string[]) {
                     // purposes of :repeat, which would be
                     // nonsense. So we copy-paste the important
                     // parts of the body of that function instead.
-                    const [fn, args] = excmd_parser.parser(cmds[0], ALL_EXCMDS)
+                    const [fn, args] = parser2020(cmds[0], ALL_EXCMDS)
                     const first_value = fn.call({}, ...args)
 
                     // Exec the rest of the pipe in sequence.
                     return cmds.slice(1).reduce(async (pipedValue, cmd) => {
-                        const [fn, args] = excmd_parser.parser(cmd, ALL_EXCMDS)
+                        const [fn, args] = parser2020(cmd, ALL_EXCMDS)
                         return fn.call({}, ...args, await pipedValue)
                     }, first_value)
                 }, null as any)
@@ -3333,7 +3333,7 @@ export async function tab(...id: string[]) {
  */
 //#background
 export async function taball(...id: string[]) {
-    return tab_helper(true, true, ...id);
+    return tab_helper(true, true, ...id)
 }
 
 /** Helper to change active tab. Used by [[tab]] and [[taball]].
@@ -3355,22 +3355,17 @@ export async function tab_helper(interactive: boolean, anyWindow: boolean, ...ke
 
     if (id !== null && id !== undefined && !/\d+\.\d+/.exec(id)) {
         let defaultQuery = {}
-        if (!anyWindow)
-            defaultQuery = {windowId: (await activeTab()).windowId};
+        if (!anyWindow) defaultQuery = { windowId: (await activeTab()).windowId }
 
         const results = new Map()
         try {
-            (await browser.tabs.query({...defaultQuery, ...{url: id}})).forEach(tab => results.set(tab.id, tab))
-        } catch (e) { }
-        if (results.size < 2)
-            (await browser.tabs.query({...defaultQuery, ...{title: id.replace("*", "\\*")}})).forEach(tab => results.set(tab.id, tab))
-        if (results.size < 2)
-            (await browser.tabs.query(defaultQuery)).filter((tab => tab.url.includes(id))).forEach(tab => results.set(tab.id, tab))
-        if (results.size < 2)
-            (await browser.tabs.query({...defaultQuery, ...{title: "*" + id + "*"}})).forEach(tab => results.set(tab.id, tab))
+            ;(await browser.tabs.query({ ...defaultQuery, ...{ url: id } })).forEach(tab => results.set(tab.id, tab))
+        } catch (e) {}
+        if (results.size < 2) (await browser.tabs.query({ ...defaultQuery, ...{ title: id.replace("*", "\\*") } })).forEach(tab => results.set(tab.id, tab))
+        if (results.size < 2) (await browser.tabs.query(defaultQuery)).filter(tab => tab.url.includes(id)).forEach(tab => results.set(tab.id, tab))
+        if (results.size < 2) (await browser.tabs.query({ ...defaultQuery, ...{ title: "*" + id + "*" } })).forEach(tab => results.set(tab.id, tab))
         if (results.size) {
-            if (interactive && results.size > 1)
-                return fillcmdline_notrail(anyWindow ? "taball" : "tab", id)
+            if (interactive && results.size > 1) return fillcmdline_notrail(anyWindow ? "taball" : "tab", id)
             const firstTab = results.values().next().value
             await browser.windows.update(firstTab.windowId, { focused: true })
             return browser.tabs.update(firstTab.id, { active: true })
@@ -3383,7 +3378,6 @@ export async function tab_helper(interactive: boolean, anyWindow: boolean, ...ke
     await browser.windows.update(winid, { focused: true })
     return browser.tabs.update(tabid, { active: true })
 }
-
 
 // }}}
 
@@ -4580,7 +4574,7 @@ export function jumble() {
  */
 //#content
 export function run_exstr(...commands: string[]) {
-    return Messaging.message("controller_background", "acceptExCmd", commands.join(""))
+    return Messaging.message("controller_background", "acceptExCmd2020", commands.join(""))
 }
 
 // }}}

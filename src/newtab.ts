@@ -48,7 +48,7 @@ window.addEventListener("load", _ => {
     if (config.get("update", "nag") === true) {
         Messaging.message(
             "controller_background",
-            "acceptExCmd",
+            "acceptExCmd2020",
             "updatecheck auto_polite",
         )
     }
