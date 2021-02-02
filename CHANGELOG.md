@@ -11,6 +11,16 @@
     -   `:urlincrement` binds now accept numeric prefixes, e.g. `10<C-a>` increments the URL by 10 (#3145)
     -   `:seturl` now checks that you have entered a valid RegEx (#3134)
         -   previously, failing to do so broke Tridactyl
+    -   `:colours` now accepts a `--url` option to load a theme from the internet with no need for `:native` (#3148)
+    -   `:colours` now has completions for default and installed themes (i.e. themes for which you have already run `:colours` once)
+    -   `:colours` will fall back to loading custom themes from the Tridactyl storage if they cannot be found on disk
+    -   `yo` bind added to yank URLs and titles in an Emacs-compatible org-mode format
+    -   `:tab [string]` now switches to the first tab that matches that string (#3263)
+        -   predominantly for non-interactive use. If you wish to use it interactively run `:set completions.Tab.autoselect false` first.
+    -   `:reloaddead` command added to force all tabs which Tridactyl is not running in to load. Useful for making tab switching more pleasurable (#3260)
+    -   `:mkt --clipboard` added to put a Tridactyl RC file in your clipboard. Use with e.g. GitHub Gist and `:source --url` to avoid needing `:native` installed
+    -   Custom themes no longer require special classnames - see `:help colours` to see current requirements (there are essentially none) (#3288)
+    -   `:set hintautoselect [true|false]` added to determine whether hints are automatically followed if there is only one (#3097)
 
 -   Bug fixes
 
@@ -20,11 +30,19 @@
     -   Speed of `:editor` selection on Windows has improved (#3170)
     -   The command line no longer has a blue outline on OSX (#3123)
     -   `:yankimage` now accepts more MIME types (#3127)
+    -   `:quickmarks` should now be a little more reliable (#3299)
+    -   `:mkt` now no longer breaks with custom themes (#2535)
+    -   `:firefoxsyncpush` no longer breaks with custom themes (#3050)
+    -   `:bmark` completions no longer interfere with flags (#3274)
+    -   `:zoom` works with negative relative increments (#3031)
 
 -   Miscellaneous
 
     -   The native messenger is now written in `Nim` and is much faster (especially noticeable on `:editor`). You may need to run `:nativeupate` to update it - the latest `:native` version is `0.2.0`
         -   We have removed `pyeval` support from this version - you are very unlikely to have used this since it was an internal Tridactyl command. `:exclaim` is unaffected.
+    -   `:taball` now internally uses `:tab` (#3262)
+    -   We no longer load all default themes into every tab (#3288)
+    -   `<C-c>` and `<C-a>` binds have been removed from the command line as they were widely disliked (#3229)
 
 # Release 1.20.4 / 2020-12-21
 
