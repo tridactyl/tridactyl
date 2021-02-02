@@ -208,7 +208,7 @@ export function getCommandlineFns(cmdline_state: {
             // shim to the background, but the latency increase should
             // be acceptable becuase the background-mode excmds tend
             // to be a touch less latency-sensitive.
-            return messageOwnTab("controller_content", "acceptExCmd2020", [
+            return messageOwnTab("controller_content", "dispatchExmodeScript", [
                 command,
             ])
         },

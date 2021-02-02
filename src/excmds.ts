@@ -89,6 +89,7 @@ import * as Metadata from "@src/.metadata.generated"
 import * as Native from "@src/lib/native"
 import * as TTS from "@src/lib/text_to_speech"
 import { parser2020 } from "@src/parsers/exmode2020"
+import { ExpressionEval } from "excmd"
 import * as escape from "@src/lib/escape"
 
 /**
@@ -2253,6 +2254,19 @@ export async function tabgrab(id: string) {
     const windowId = (await browser.windows.getLastFocused({ windowTypes: ["normal"] })).id
     // Move window
     return browser.tabs.move(tabid, { index: -1, windowId })
+}
+
+export async function $tabopen(f: typeof tabopen, expr: ExpressionEval): Promise<browser.tabs.Tab> {
+    const container = (await expr.getFlag("c")) || (await expr.getFlag("container"))
+
+    const background = (await expr.getFlag("b")) || expr.hasFlag("b") || (await expr.getFlag("background")) || expr.hasFlag("background")
+
+    let addresses = await expr.getPositionals()
+
+    if (container) addresses = ["-c", container].concat(addresses)
+    if (background) addresses = ["-b"].concat(addresses)
+
+    return f(...addresses)
 }
 
 /** Like [[open]], but in a new tab. If no address is given, it will open the newtab page, which can be set with `set newtab [url]`
