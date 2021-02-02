@@ -3162,10 +3162,10 @@ events@^3.2.0:
   resolved "https://registry.yarnpkg.com/events/-/events-3.2.0.tgz#93b87c18f8efcd4202a461aec4dfc0556b639379"
   integrity sha512-/46HWwbfCX2xTawVfkKLGxMifJYQBWMwY1mjywRtb4c9x8l5NP3KoJtnIOiL1hfdRkIuYhETxQlo62IF8tcnlg==
 
-excmd@2.0.0-alpha.0:
-  version "2.0.0-alpha.0"
-  resolved "https://registry.yarnpkg.com/excmd/-/excmd-2.0.0-alpha.0.tgz#e9c305d6c5163bc4c37a4e5ccf58d4ee302c75b6"
-  integrity sha512-QGYC4Y0rOaWXyGqahuX0mLhMurz9RTIQ3W02DFtDi5VrVmGeGFgNfD9JlqorIxavxUYc4NmvMRiMPwcYkXse/Q==
+excmd@2.0.0-alpha.1:
+  version "2.0.0-alpha.1"
+  resolved "https://registry.yarnpkg.com/excmd/-/excmd-2.0.0-alpha.1.tgz#943a113f34c8ccf4a1ebd68033b7324f0bd3df7c"
+  integrity sha512-+DpEeuQwP7K57HkR59J80f35giOG4CSJDYpaC0o3ZBngbxAtjeEp+DY+M9jFlNOIiBkdH77nLStxBdrke5zT+g==
   dependencies:
     "@babel/runtime" "~7.12.5"
 
