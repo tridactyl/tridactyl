@@ -2320,14 +2320,18 @@ export async function tabopen(address?: string, container?: string, background: 
 
     const win = await browser.windows.getCurrent()
 
-    // Ignore the -c flag if incognito as containers are disabled.
-    if (!win.incognito) {
-        if (container === "firefox-default" || container === "none") {
-            container = "firefox-default"
+    if (typeof container !== "undefined") {
+        // Ignore the -c flag if incognito as containers are disabled.
+        if (!win.incognito) {
+            if (container === "firefox-default" || container === "none") {
+                container = "firefox-default"
+            } else {
+                container = await Container.fuzzyMatch(container)
+            }
         } else {
-            container = await Container.fuzzyMatch(container)
+            logger.error("[tabopen] can't open a container in a private browsing window.")
         }
-    } else logger.error("[tabopen] can't open a container in a private browsing window.")
+    }
 
     if (!ABOUT_WHITELIST.includes(address) && /^(about|file):.*/.exec(address)) {
         return (nativeopen(address) as unknown) as browser.tabs.Tab // I don't understand why changing the final return below meant I had to change this

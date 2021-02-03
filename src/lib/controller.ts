@@ -94,7 +94,7 @@ export async function dispatchExmodeExpr(expr: ExpressionEval) {
     }
 
     if (handler === undefined) {
-        logger.error("Missing runtime-conv function: $", funcName)
+        logger.warning(`Missing runtime-conv function: $${funcName}`)
 
         // If there's no `$func` to accept an expr and handle argument-conversion, we fall back on
         // reducing *all* values to positionals and let the 2020 argument-handling code deal with
