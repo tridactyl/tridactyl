@@ -4,10 +4,8 @@
  */
 import * as controller from "@src/lib/controller"
 
-export function inputEnteredListener(
-    input: string,
-) {
-    controller.acceptExCmd(input)
+export function inputEnteredListener(input: string) {
+    controller.acceptExCmd2020(input)
 }
 
 export function init() {

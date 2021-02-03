@@ -119,7 +119,9 @@ function* ParserController() {
 
                 const shadowRoot =
                     keyevent instanceof KeyboardEvent
-                        ? deepestShadowRoot((keyevent.target as Element).shadowRoot)
+                        ? deepestShadowRoot(
+                              (keyevent.target as Element).shadowRoot,
+                          )
                         : null
 
                 // _just to be safe_, cache this to make the following
@@ -196,7 +198,7 @@ function* ParserController() {
                 }
             }
             contentState.suffix = ""
-            controller.acceptExCmd(exstr)
+            controller.acceptExCmd2020(exstr)
         } catch (e) {
             // Rumsfeldian errors are caught here
             logger.error("An error occurred in the content controller: ", e)

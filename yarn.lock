@@ -252,7 +252,7 @@
     core-js "^2.6.5"
     regenerator-runtime "^0.13.4"
 
-"@babel/runtime@7.12.5":
+"@babel/runtime@7.12.5", "@babel/runtime@~7.12.5":
   version "7.12.5"
   resolved "https://registry.yarnpkg.com/@babel/runtime/-/runtime-7.12.5.tgz#410e7e487441e1b360c29be715d870d9b985882e"
   integrity sha512-plcc+hbExy3McchJCEQG3knOsuh3HH+Prx1P6cLIkET/0dLuQDEnrT+s27Axgc9bqfsmNUNHfscgMUdBpC9xfg==
@@ -3161,6 +3161,13 @@ events@^3.2.0:
   version "3.2.0"
   resolved "https://registry.yarnpkg.com/events/-/events-3.2.0.tgz#93b87c18f8efcd4202a461aec4dfc0556b639379"
   integrity sha512-/46HWwbfCX2xTawVfkKLGxMifJYQBWMwY1mjywRtb4c9x8l5NP3KoJtnIOiL1hfdRkIuYhETxQlo62IF8tcnlg==
+
+excmd@2.0.0-alpha.2:
+  version "2.0.0-alpha.2"
+  resolved "https://registry.yarnpkg.com/excmd/-/excmd-2.0.0-alpha.2.tgz#6b7efd1568909b3b700eb3e7eedf9f38ff3baa4a"
+  integrity sha512-awWyek04H8Gva7DycVlwqSuNH/6D0hLivmw8gGisnUF+SDhB0ig3/kcrzYKi0KZTmQND/Bodfa9Win3SBhFjww==
+  dependencies:
+    "@babel/runtime" "~7.12.5"
 
 exec-sh@^0.3.2:
   version "0.3.2"

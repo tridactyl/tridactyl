@@ -42,7 +42,7 @@ export class Logger {
                         console.error(...message)
                         return browser.runtime.sendMessage({
                             type: "controller_background",
-                            command: "acceptExCmd",
+                            command: "acceptExCmd2020",
                             args: [
                                 "fillcmdline_nofocus # " + message.join(" "),
                             ],

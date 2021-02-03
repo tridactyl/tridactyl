@@ -221,9 +221,11 @@ commandline_state.clInput.addEventListener(
                 // shim to the background, but the latency increase should
                 // be acceptable becuase the background-mode excmds tend
                 // to be a touch less latency-sensitive.
-                Messaging.messageOwnTab("controller_content", "acceptExCmd", [
-                    response.value,
-                ]).then(_ => (prev_cmd_called_history = history_called))
+                Messaging.messageOwnTab(
+                    "controller_content",
+                    "acceptExCmd2020",
+                    [response.value],
+                ).then(_ => (prev_cmd_called_history = history_called))
             }
         } else {
             commandline_state.keyEvents = response.keys

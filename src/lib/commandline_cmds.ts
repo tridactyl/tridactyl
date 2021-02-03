@@ -208,7 +208,9 @@ export function getCommandlineFns(cmdline_state: {
             // shim to the background, but the latency increase should
             // be acceptable becuase the background-mode excmds tend
             // to be a touch less latency-sensitive.
-            return messageOwnTab("controller_content", "acceptExCmd", [command])
+            return messageOwnTab("controller_content", "dispatchExmodeScript", [
+                command,
+            ])
         },
 
         execute_ex_on_completion_args: (excmd: string) =>
@@ -220,7 +222,7 @@ export function getCommandlineFns(cmdline_state: {
         copy_completion: () => {
             const command = cmdline_state.getCompletion()
             cmdline_state.fns.hide_and_clear()
-            return messageOwnTab("controller_content", "acceptExCmd", [
+            return messageOwnTab("controller_content", "acceptExCmd2020", [
                 "clipboard yank " + command,
             ])
         },
@@ -234,5 +236,5 @@ function execute_ex_on_x(args_only: boolean, cmdline_state, excmd: string) {
     const cmdToExec = (excmd ? excmd + " " : "") + args
     cmdline_state.fns.store_ex_string(cmdToExec)
 
-    return messageOwnTab("controller_content", "acceptExCmd", [cmdToExec])
+    return messageOwnTab("controller_content", "acceptExCmd2020", [cmdToExec])
 }

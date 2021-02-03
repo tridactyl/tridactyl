@@ -29,7 +29,7 @@ function convertArgs(types, argv) {
 // TODO: Quoting arguments
 // TODO: Pipe to separate commands
 // TODO: Abbreviated commands
-export function parser(exstr: string, all_excmds: any): any[] {
+export function parser2020(exstr: string, all_excmds: any): any[] {
     // Expand aliases
     const expandedExstr = aliases.expandExstr(exstr)
     const [func, ...args] = expandedExstr.trim().split(/\s+/)

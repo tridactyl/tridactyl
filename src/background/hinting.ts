@@ -11,7 +11,7 @@ export const HintingCmds = new Proxy(functions as any, {
             return (...args) =>
                 messageActiveTab(
                     "controller_content",
-                    "acceptExCmd",
+                    "acceptExCmd2020",
                     [property].concat(args),
                 )
         }

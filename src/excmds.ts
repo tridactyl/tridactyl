@@ -88,7 +88,8 @@ import * as Perf from "@src/perf"
 import * as Metadata from "@src/.metadata.generated"
 import * as Native from "@src/lib/native"
 import * as TTS from "@src/lib/text_to_speech"
-import * as excmd_parser from "@src/parsers/exmode"
+import { parser2020 } from "@src/parsers/exmode2020"
+import { ExpressionEval } from "excmd"
 import * as escape from "@src/lib/escape"
 
 /**
@@ -245,7 +246,7 @@ export async function rssexec(url: string, type?: string, ...title: string[]) {
         rsscmd += " " + url
     }
     // Need actual excmd parsing here.
-    return controller.acceptExCmd(rsscmd)
+    return controller.acceptExCmd2020(rsscmd)
 }
 
 /**
@@ -1281,7 +1282,7 @@ export async function open(...urlarr: string[]) {
  */
 //#background
 export async function bmarks(opt: string, ...urlarr: string[]) {
-    if (opt === "-t") return tabopen(...urlarr)
+    if (opt === "-t") return tabopen2020(...urlarr)
     else return open(opt, ...urlarr)
 }
 
@@ -1973,7 +1974,7 @@ export async function loadaucmds(cmdType: "DocStart" | "DocLoad" | "DocEnd" | "T
             aucmds[aukey] = aucmds[aukey].replace(k, v)
         }
         try {
-            await controller.acceptExCmd(aucmds[aukey])
+            await controller.acceptExCmd2020(aucmds[aukey])
         } catch (e) {
             logger.error(e.toString())
         }
@@ -2259,6 +2260,44 @@ export async function tabgrab(id: string) {
     return browser.tabs.move(tabid, { index: -1, windowId })
 }
 
+/* Temporary backwards-compatible interface to [[tabopen]] */
+export async function tabopen2020(...addressarr: string[]): Promise<browser.tabs.Tab> {
+    let background
+    let container
+
+    // Lets us pass both -b and -c in no particular order as long as they are up front.
+    function argParse(args): string[] {
+        if (args[0] === "-b") {
+            background = "bg"
+
+            args.shift()
+            argParse(args)
+        } else if (args[0] === "-c") {
+            container = args[1]
+
+            args.shift()
+            args.shift()
+            argParse(args)
+        }
+        return args
+    }
+
+    const query = argParse(addressarr)
+
+    const address = query.join(" ")
+    return tabopen(address, container, background)
+}
+
+export async function $tabopen(f: typeof tabopen, expr: ExpressionEval): Promise<browser.tabs.Tab> {
+    const container = (await expr.getFlag("c")) || (await expr.getFlag("container"))
+    const background = expr.hasFlag("b") || expr.hasFlag("background")
+
+    // TODO: Replace with a "getRest" API to handle this
+    const address = (await expr.getPositionals()).join(" ")
+
+    return f(address, container, background ? "bg" : "fg")
+}
+
 /** Like [[open]], but in a new tab. If no address is given, it will open the newtab page, which can be set with `set newtab [url]`
 
     Use the `-c` flag followed by a container name to open a tab in said container. Tridactyl will try to fuzzy match a name if an exact match is not found (opening the tab in no container can be enforced with "firefox-default" or "none"). If any autocontainer directives are configured and -c is not set, Tridactyl will try to use the right container automatically using your configurations.
@@ -2280,38 +2319,24 @@ export async function tabgrab(id: string) {
     Also see the [[searchengine]] and [[searchurls]] settings.
 */
 //#background
-export async function tabopen(...addressarr: string[]): Promise<browser.tabs.Tab> {
-    let active
-    let container
+export async function tabopen(address?: string, container?: string, background: "fg" | "bg" = "fg"): Promise<browser.tabs.Tab> {
+    const active = background === "fg"
 
     const win = await browser.windows.getCurrent()
 
-    // Lets us pass both -b and -c in no particular order as long as they are up front.
-    async function argParse(args): Promise<string[]> {
-        if (args[0] === "-b") {
-            active = false
-            args.shift()
-            argParse(args)
-        } else if (args[0] === "-c") {
-            // Ignore the -c flag if incognito as containers are disabled.
-            if (!win.incognito) {
-                if (args[1] === "firefox-default" || args[1].toLowerCase() === "none") {
-                    container = "firefox-default"
-                } else {
-                    container = await Container.fuzzyMatch(args[1])
-                }
-            } else logger.error("[tabopen] can't open a container in a private browsing window.")
-
-            args.shift()
-            args.shift()
-            argParse(args)
+    if (typeof container !== "undefined") {
+        // Ignore the -c flag if incognito as containers are disabled.
+        if (!win.incognito) {
+            if (container === "firefox-default" || container === "none") {
+                container = "firefox-default"
+            } else {
+                container = await Container.fuzzyMatch(container)
+            }
+        } else {
+            logger.error("[tabopen] can't open a container in a private browsing window.")
         }
-        return args
     }
 
-    const query = await argParse(addressarr)
-
-    const address = query.join(" ")
     if (!ABOUT_WHITELIST.includes(address) && /^(about|file):.*/.exec(address)) {
         return (nativeopen(address) as unknown) as browser.tabs.Tab // I don't understand why changing the final return below meant I had to change this
     }
@@ -2335,7 +2360,7 @@ export async function tabopen(...addressarr: string[]): Promise<browser.tabs.Tab
     } else if (containerId && config.get("tabopencontaineraware") === "true") {
         args.cookieStoreId = containerId
     }
-    const maybeURL = await queryAndURLwrangler(query)
+    const maybeURL = await queryAndURLwrangler([address])
     if (typeof maybeURL === "string") {
         return openInNewTab(maybeURL, args)
     }
@@ -2377,7 +2402,7 @@ export function tabqueue(...addresses: string[]) {
     if (addresses.length === 0) {
         return Promise.resolve()
     }
-    return tabopen("-b", addresses[0]).then(
+    return tabopen(addresses[0], undefined, "bg").then(
         tab =>
             new Promise(resolve => {
                 function openNextTab(activeInfo) {
@@ -2981,7 +3006,7 @@ export async function repeat(n = 1, ...exstr: string[]) {
     if (exstr.length > 0) cmd = exstr.join(" ")
     logger.debug("repeating " + cmd + " " + n + " times")
     for (let i = 0; i < n; i++) {
-        await controller.acceptExCmd(cmd)
+        await controller.acceptExCmd2020(cmd)
     }
 }
 
@@ -3021,12 +3046,12 @@ export async function composite(...cmds: string[]) {
                     // purposes of :repeat, which would be
                     // nonsense. So we copy-paste the important
                     // parts of the body of that function instead.
-                    const [fn, args] = excmd_parser.parser(cmds[0], ALL_EXCMDS)
+                    const [fn, args] = parser2020(cmds[0], ALL_EXCMDS)
                     const first_value = fn.call({}, ...args)
 
                     // Exec the rest of the pipe in sequence.
                     return cmds.slice(1).reduce(async (pipedValue, cmd) => {
-                        const [fn, args] = excmd_parser.parser(cmd, ALL_EXCMDS)
+                        const [fn, args] = parser2020(cmd, ALL_EXCMDS)
                         return fn.call({}, ...args, await pipedValue)
                     }, first_value)
                 }, null as any)
@@ -4581,7 +4606,7 @@ export function jumble() {
  */
 //#content
 export function run_exstr(...commands: string[]) {
-    return Messaging.message("controller_background", "acceptExCmd", commands.join(""))
+    return Messaging.message("controller_background", "acceptExCmd2020", commands.join(""))
 }
 
 // }}}
