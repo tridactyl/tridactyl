@@ -1111,12 +1111,14 @@ export function scrollline(n = 1, mult = 1) {
 }
 
 /** Scrolls the document by n pages.
+ * The height of a page is the current height of the window.
  *
- *  The height of a page is the current height of the window.
+ * @param count How many times to scroll. Used to facilitate key
+ * binds with counts for `<C-F>` etc., not really useful otherwise.
  */
 //#content
-export function scrollpage(n = 1) {
-    return scrollpx(0, window.innerHeight * n)
+export function scrollpage(n = 1, count = 1) {
+    return scrollpx(0, window.innerHeight * n * count)
 }
 
 /**
