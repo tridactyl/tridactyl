@@ -10,7 +10,7 @@ Tridactyl
 
 <p align="center">
 <a href="https://travis-ci.org/tridactyl/tridactyl"><img src="https://travis-ci.org/tridactyl/tridactyl.svg?branch=master" alt="Build Status"></a>
-<a href="https://riot.im/app/#/room/#tridactyl:matrix.org"><img src="https://img.shields.io/badge/matrix-join%20chat-green" alt="Matrix Chat"></a>
+<a href="https://app.element.io/#/room/#tridactyl:matrix.org"><img src="https://img.shields.io/badge/matrix-join%20chat-green" alt="Matrix Chat"></a>
 <a href="https://gitter.im/tridactyl/Lobby"><img src="https://badges.gitter.im/Join%20Chat.svg" alt="Join Gitter Chat"></a>
 <a href="https://addons.mozilla.org/en-US/firefox/addon/tridactyl-vim/"><img src="https://img.shields.io/amo/rating/tridactyl-vim" alt="Mozilla Addon Store"></a>
 </p>
@@ -366,7 +366,7 @@ The logo was designed by Jake Beazley using free vector art by <a target="_blank
 [gitter-badge]: /static/badges/gitter-badge.svg
 [gitter-link]: https://gitter.im/tridactyl/Lobby
 [matrix-badge]: /static/badges/matrix-badge.svg
-[matrix-link]: https://riot.im/app/#/room/#tridactyl:matrix.org
+[matrix-link]: https://app.element.io/#/room/#tridactyl:matrix.org
 [betas]: https://tridactyl.cmcaine.co.uk/betas/?sort=time&order=desc
 [riskyclick]: https://tridactyl.cmcaine.co.uk/betas/tridactyl-latest.xpi
 [nonewtablink]: https://tridactyl.cmcaine.co.uk/betas/nonewtab/tridactyl_no_new_tab_beta-latest.xpi
