@@ -7,6 +7,9 @@ import { everything as metadata } from "@src/.metadata.generated"
 
 import { Parser, ExpressionEval } from "excmd"
 
+type eximpl<Ret> = (this: void, ...args: unknown[]) => Ret
+type exhandler<Ret> = (this: void, f: eximpl<Ret>, expr: ExpressionEval) => Ret
+
 const logger = new Logger("controller")
 
 const excmds_metadata = metadata.getFile("src/excmds.ts")
@@ -82,8 +85,8 @@ export async function dispatchExmodeExpr(expr: ExpressionEval) {
         throw new Error(`Unknown namespace: ${namespace}.`)
     }
 
-    const excmd = excmds[funcName]
-    const handler = excmds["$" + funcName]
+    const excmd: eximpl<unknown> | undefined = excmds[funcName]
+    const handler: exhandler<unknown> | undefined = excmds["$" + funcName]
 
     // FIXME: Proper error(s), with location information
     if (excmd === undefined) {

@@ -1276,7 +1276,7 @@ export async function open(...urlarr: string[]) {
  */
 //#background
 export async function bmarks(opt: string, ...urlarr: string[]) {
-    if (opt === "-t") return tabopen(...urlarr)
+    if (opt === "-t") return tabopen2020(...urlarr)
     else return open(opt, ...urlarr)
 }
 
@@ -2256,17 +2256,42 @@ export async function tabgrab(id: string) {
     return browser.tabs.move(tabid, { index: -1, windowId })
 }
 
+/* Temporary backwards-compatible interface to [[tabopen]] */
+export async function tabopen2020(...addressarr: string[]): Promise<browser.tabs.Tab> {
+    let background
+    let container
+
+    // Lets us pass both -b and -c in no particular order as long as they are up front.
+    function argParse(args): string[] {
+        if (args[0] === "-b") {
+            background = "bg"
+
+            args.shift()
+            argParse(args)
+        } else if (args[0] === "-c") {
+            container = args[1]
+
+            args.shift()
+            args.shift()
+            argParse(args)
+        }
+        return args
+    }
+
+    const query = argParse(addressarr)
+
+    const address = query.join(" ")
+    return tabopen(address, container, background)
+}
+
 export async function $tabopen(f: typeof tabopen, expr: ExpressionEval): Promise<browser.tabs.Tab> {
     const container = (await expr.getFlag("c")) || (await expr.getFlag("container"))
+    const background = expr.hasFlag("b") || expr.hasFlag("background")
 
-    const background = (await expr.getFlag("b")) || expr.hasFlag("b") || (await expr.getFlag("background")) || expr.hasFlag("background")
+    // TODO: Replace with a "getRest" API to handle this
+    const address = (await expr.getPositionals()).join(" ")
 
-    let addresses = await expr.getPositionals()
-
-    if (container) addresses = ["-c", container].concat(addresses)
-    if (background) addresses = ["-b"].concat(addresses)
-
-    return f(...addresses)
+    return f(address, container, background ? "bg" : "fg")
 }
 
 /** Like [[open]], but in a new tab. If no address is given, it will open the newtab page, which can be set with `set newtab [url]`
@@ -2290,38 +2315,20 @@ export async function $tabopen(f: typeof tabopen, expr: ExpressionEval): Promise
     Also see the [[searchengine]] and [[searchurls]] settings.
 */
 //#background
-export async function tabopen(...addressarr: string[]): Promise<browser.tabs.Tab> {
-    let active
-    let container
+export async function tabopen(address?: string, container?: string, background: "fg" | "bg" = "fg"): Promise<browser.tabs.Tab> {
+    const active = background === "fg"
 
     const win = await browser.windows.getCurrent()
 
-    // Lets us pass both -b and -c in no particular order as long as they are up front.
-    async function argParse(args): Promise<string[]> {
-        if (args[0] === "-b") {
-            active = false
-            args.shift()
-            argParse(args)
-        } else if (args[0] === "-c") {
-            // Ignore the -c flag if incognito as containers are disabled.
-            if (!win.incognito) {
-                if (args[1] === "firefox-default" || args[1].toLowerCase() === "none") {
-                    container = "firefox-default"
-                } else {
-                    container = await Container.fuzzyMatch(args[1])
-                }
-            } else logger.error("[tabopen] can't open a container in a private browsing window.")
-
-            args.shift()
-            args.shift()
-            argParse(args)
+    // Ignore the -c flag if incognito as containers are disabled.
+    if (!win.incognito) {
+        if (container === "firefox-default" || container === "none") {
+            container = "firefox-default"
+        } else {
+            container = await Container.fuzzyMatch(container)
         }
-        return args
-    }
+    } else logger.error("[tabopen] can't open a container in a private browsing window.")
 
-    const query = await argParse(addressarr)
-
-    const address = query.join(" ")
     if (!ABOUT_WHITELIST.includes(address) && /^(about|file):.*/.exec(address)) {
         return (nativeopen(address) as unknown) as browser.tabs.Tab // I don't understand why changing the final return below meant I had to change this
     }
@@ -2345,7 +2352,7 @@ export async function tabopen(...addressarr: string[]): Promise<browser.tabs.Tab
     } else if (containerId && config.get("tabopencontaineraware") === "true") {
         args.cookieStoreId = containerId
     }
-    const maybeURL = await queryAndURLwrangler(query)
+    const maybeURL = await queryAndURLwrangler([address])
     if (typeof maybeURL === "string") {
         return openInNewTab(maybeURL, args)
     }
@@ -2387,7 +2394,7 @@ export function tabqueue(...addresses: string[]) {
     if (addresses.length === 0) {
         return Promise.resolve()
     }
-    return tabopen("-b", addresses[0]).then(
+    return tabopen(addresses[0], undefined, "bg").then(
         tab =>
             new Promise(resolve => {
                 function openNextTab(activeInfo) {
