@@ -3790,7 +3790,7 @@ export function autocontain(...args: string[]) {
 */
 //#background
 export function autocmddelete(event: string, url: string) {
-    if (!AUCMDS.includes(event)) throw event + " is not a supported event."
+    if (!AUCMDS.includes(event)) throw new Error(`${event} is not a supported event.`)
     if (webrequests.requestEvents.includes(event)) {
         webrequests.unregisterWebRequestAutocmd(event, url)
     }
