@@ -2291,6 +2291,7 @@ export async function tabopen(...addressarr: string[]): Promise<browser.tabs.Tab
             args.shift()
             argParse(args)
         } else if (args[0] === "-c") {
+            if (args.length < 2) throw new Error(`You must provide a container name!`)
             // Ignore the -c flag if incognito as containers are disabled.
             if (!win.incognito) {
                 if (args[1] === "firefox-default" || args[1].toLowerCase() === "none") {
@@ -2729,6 +2730,8 @@ export async function mute(...muteArgs: string[]): Promise<void> {
  *
  * `winopen -popup [...]` will open it in a popup window. You can combine the two for a private popup.
  *
+ * `winopen -c containername [...]` will open the result in a container while ignoring other options given. See [[tabopen]] for more details on containers.
+ *
  * Example: `winopen -popup -private ddg.gg`
  */
 //#background
@@ -2740,14 +2743,19 @@ export async function winopen(...args: string[]) {
         switch (args[0]) {
             case "-private":
                 createData.incognito = true
-                args = args.slice(1, args.length)
+                args.shift()
                 firefoxArgs = "--private-window"
                 break
 
             case "-popup":
                 createData.type = "popup"
-                args = args.slice(1, args.length)
+                args.shift()
                 break
+
+            case "-c":
+                if (args.length < 2) throw new Error(`You must provide a container name!`)
+                args.shift()
+                return composite(`tabopen -c ${args.join(" ")} | sleep 100 | tabdetach`)
 
             default:
                 done = true

@@ -9,8 +9,10 @@ The perceived benefits of this feature are as described by the Firefox Test Pilo
 
 ### Container related commands
 * `containercreate name [color] [icon]` Creates a new container. Supplying `name` only will create a container called `name`, a random color and the fingerprint icon.
-* `containerupdate name newname color icon` Updates the container. 
+* `containerupdate name newname color icon` Updates the container.
 * `containerclose name` Closes all tabs in a specified container.
 * `containerdelete name` Deletes a container, calls `containerclose` before deletion
+* `tabopen -c name [url]` Opens a new tab in the container called `name`
+* `winopen -c name [url]` Opens a new window in the container called `name`
 
 The <a href='./7-native_messenger.html' rel='next'>next page</a> is about the native messenger. <a href='./5-settings.html' rel="prev"></a>
