@@ -44,7 +44,7 @@
     "selenium-webdriver": "^4.0.0-alpha.8",
     "source-map-loader": "^2.0.0",
     "ts-jest": "^25.5.1",
-    "ts-loader": "^8.0.14",
+    "ts-loader": "^8.0.15",
     "ts-node": "^9.1.1",
     "tsconfig-paths-webpack-plugin": "^3.3.0",
     "tslint": "^5.20.1",
