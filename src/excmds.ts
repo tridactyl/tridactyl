@@ -2739,6 +2739,7 @@ export async function winopen(...args: string[]) {
     const createData = {} as any
     let firefoxArgs = "--new-window"
     let done = false
+    let useContainer = false
     while (!done) {
         switch (args[0]) {
             case "-private":
@@ -2755,7 +2756,8 @@ export async function winopen(...args: string[]) {
             case "-c":
                 if (args.length < 2) throw new Error(`You must provide a container name!`)
                 args.shift()
-                return composite(`tabopen -c ${args.join(" ")} | sleep 100 | tabdetach`)
+                useContainer = true
+                break
 
             default:
                 done = true
@@ -2764,6 +2766,15 @@ export async function winopen(...args: string[]) {
     }
 
     const address = args.join(" ")
+
+    if (useContainer) {
+        if (firefoxArgs === "--private-window") {
+            throw new Error("Can't open a container in a private browsing window.")
+        } else {
+            return composite(`tabopen -c ${address} ; sleep 100 ; tabdetach`)
+        }
+    }
+
     if (!ABOUT_WHITELIST.includes(address) && /^(about|file):.*/.exec(address)) {
         return nativeopen(firefoxArgs, address)
     }
