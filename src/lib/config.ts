@@ -1018,6 +1018,9 @@ export class default_config {
              */
             autoselect: "true",
         },
+        TabAll: {
+            autoselect: "true",
+        },
         Rss: {
             autoselect: "true",
         },
