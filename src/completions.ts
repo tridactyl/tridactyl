@@ -15,6 +15,7 @@ import { enumerate } from "@src/lib/itertools"
 import { toNumber } from "@src/lib/convert"
 import * as aliases from "@src/lib/aliases"
 import { backoff } from "@src/lib/patience"
+import * as config from "@src/lib/config"
 
 export const DEFAULT_FAVICON = browser.runtime.getURL(
     "static/defaultFavicon.svg",
@@ -152,6 +153,8 @@ export interface ScoredOption {
 export abstract class CompletionSourceFuse extends CompletionSource {
     public node
     public options: CompletionOptionFuse[]
+    public shouldSetStateFromScore = false
+    public name = ""
 
     fuseOptions = {
         keys: ["fuseKeys"],
@@ -168,12 +171,15 @@ export abstract class CompletionSourceFuse extends CompletionSource {
 
     protected optionContainer = html`<table class="optionContainer"></table>`
 
-    constructor(prefixes, className: string, title?: string) {
+    constructor(prefixes, className: string, title?: string, name = "") {
         super(prefixes)
         this.node = html`<div class="${className} hidden">
             <div class="sectionHeader">${title || className}</div>
         </div>`
+        this.name = name
         this.node.appendChild(this.optionContainer)
+        this.shouldSetStateFromScore =
+            config.get("completions", this.name, "autoselect") === "true"
         this.state = "hidden"
     }
 
@@ -263,7 +269,8 @@ export abstract class CompletionSourceFuse extends CompletionSource {
         For now just displays all scored elements (see threshold in fuse) and
         focus the best match.
     */
-    setStateFromScore(scoredOpts: ScoredOption[], autoselect = false) {
+    setStateFromScore(scoredOpts: ScoredOption[], _?) {
+        const autoselect = this.shouldSetStateFromScore
         const matches = scoredOpts.map(res => res.index)
 
         const hidden_options = []
