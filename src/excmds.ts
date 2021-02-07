@@ -2579,6 +2579,7 @@ export async function undo(item = "recent"): Promise<number> {
             : () => {
                   throw new Error(`[undo] Invalid argument: ${item}. Must be one of "recent, "tab", "tab_strict", "window" or a sessionId (by selecting a session using the undo completion).`)
               } // this won't throw an error if there isn't anything in the session list, but I don't think that matters
+    sessions.sort((a, b) => a.lastModified - b.lastModified)
     const session = sessions.find(predicate)
 
     if (session) {
