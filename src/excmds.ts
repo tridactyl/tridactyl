@@ -2735,7 +2735,7 @@ export async function mute(...muteArgs: string[]): Promise<void> {
  */
 //#background
 export async function winopen(...args: string[]) {
-    const createData = {} as any
+    const createData = {} as Parameters<typeof browser.windows.create>[0]
     let firefoxArgs = "--new-window"
     let done = false
     while (!done) {
@@ -2761,6 +2761,8 @@ export async function winopen(...args: string[]) {
     if (!ABOUT_WHITELIST.includes(address) && /^(about|file):.*/.exec(address)) {
         return nativeopen(firefoxArgs, address)
     }
+
+    createData.url = "https://fix-a-firefox-bug.invalid"
 
     return browser.windows.create(createData).then(win => openInTab(win.tabs[0], { loadReplace: true }, address.split(" ")))
 }
