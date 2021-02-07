@@ -252,7 +252,7 @@ You can bind your own shortcuts in normal mode with the `:bind` command. For exa
 
 -   Does anyone actually use Tridactyl?
 
-    In addition to the developers, some other people do. Mozilla keeps tabs on stable users [here](https://addons.mozilla.org/en-US/firefox/addon/tridactyl-vim/statistics/?last=30). The maintainers guess the number of unstable users from unique IPs downloading the betas each week when they feel like it. Last time they checked there were 4600 of them.
+    In addition to the developers, some other people do. Mozilla keeps tabs on stable users [here](https://addons.mozilla.org/en-US/firefox/addon/tridactyl-vim/statistics/?last=30), but, as of a while ago, you can't see that link if you aren't listed as a Tridactyl developer on the AMO. The maintainers guess the number of unstable users from unique IPs downloading the betas each week when they feel like it. Last time they checked there were 4600 of them.
 
 -   How do I prevent websites from stealing focus?
 
