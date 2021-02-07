@@ -2771,7 +2771,8 @@ export async function winopen(...args: string[]) {
         if (firefoxArgs === "--private-window") {
             throw new Error("Can't open a container in a private browsing window.")
         } else {
-            return composite(`tabopen -c ${address} ; sleep 100 ; tabdetach`)
+            args.unshift("-c")
+            return tabopen(...args).then(() => tabdetach())
         }
     }
 
