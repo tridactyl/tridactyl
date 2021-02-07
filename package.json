@@ -38,7 +38,7 @@
     "geckodriver": "^1.22.1",
     "jest": "^25.5.4",
     "jest-webextension-mock": "^3.7.7",
-    "marked": "^1.2.9",
+    "marked": "^2.0.0",
     "nearley": "^2.20.1",
     "prettier": "^2.2.1",
     "selenium-webdriver": "^4.0.0-alpha.8",
