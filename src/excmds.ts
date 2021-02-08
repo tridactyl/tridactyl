@@ -2293,6 +2293,7 @@ export async function tabopen(...addressarr: string[]): Promise<browser.tabs.Tab
             args.shift()
             argParse(args)
         } else if (args[0] === "-c") {
+            if (args.length < 2) throw new Error(`You must provide a container name!`)
             // Ignore the -c flag if incognito as containers are disabled.
             if (!win.incognito) {
                 if (args[1] === "firefox-default" || args[1].toLowerCase() === "none") {
@@ -2731,6 +2732,8 @@ export async function mute(...muteArgs: string[]): Promise<void> {
  *
  * `winopen -popup [...]` will open it in a popup window. You can combine the two for a private popup.
  *
+ * `winopen -c containername [...]` will open the result in a container while ignoring other options given. See [[tabopen]] for more details on containers.
+ *
  * Example: `winopen -popup -private ddg.gg`
  */
 //#background
@@ -2738,17 +2741,24 @@ export async function winopen(...args: string[]) {
     const createData = {} as Parameters<typeof browser.windows.create>[0]
     let firefoxArgs = "--new-window"
     let done = false
+    let useContainer = false
     while (!done) {
         switch (args[0]) {
             case "-private":
                 createData.incognito = true
-                args = args.slice(1, args.length)
+                args.shift()
                 firefoxArgs = "--private-window"
                 break
 
             case "-popup":
                 createData.type = "popup"
-                args = args.slice(1, args.length)
+                args.shift()
+                break
+
+            case "-c":
+                if (args.length < 2) throw new Error(`You must provide a container name!`)
+                args.shift()
+                useContainer = true
                 break
 
             default:
@@ -2758,6 +2768,16 @@ export async function winopen(...args: string[]) {
     }
 
     const address = args.join(" ")
+
+    if (useContainer) {
+        if (firefoxArgs === "--private-window") {
+            throw new Error("Can't open a container in a private browsing window.")
+        } else {
+            args.unshift("-c")
+            return tabopen(...args).then(() => tabdetach())
+        }
+    }
+
     if (!ABOUT_WHITELIST.includes(address) && /^(about|file):.*/.exec(address)) {
         return nativeopen(firefoxArgs, address)
     }
