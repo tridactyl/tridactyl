@@ -238,7 +238,7 @@ export async function queryAndURLwrangler(
     try {
         const url = new URL("http://" + address)
         // Ignore unlikely domains
-        if (url.hostname.includes(".") || url.port || url.password) {
+        if (url.hostname.indexOf(".") > 0 || url.port || url.password) {
             return url.href
         }
     } catch (e) {}
