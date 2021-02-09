@@ -51,7 +51,7 @@
     "tslint-etc": "^1.13.9",
     "tslint-sonarts": "^1.9.0",
     "typedoc": "^0.19.2",
-    "typescript": "^3.9.7",
+    "typescript": "^3.9.8",
     "uglify-es": "^3.3.9",
     "uglifyjs-webpack-plugin": "^2.2.0",
     "web-ext": "^5.5.0",
