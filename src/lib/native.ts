@@ -343,8 +343,13 @@ export async function temp(content: string, prefix: string) {
     })
 }
 
-export async function move(from: string, to: string) {
-    return sendNativeMsg("move", { from, to }).catch(e => {
+export async function move(
+    from: string,
+    to: string,
+    overwrite: boolean,
+    cleanup: boolean,
+) {
+    return sendNativeMsg("move", { from, to, overwrite, cleanup }).catch(e => {
         throw new Error(`Failed to move '${from}' to '${to}'. ${e}.`)
     })
 }

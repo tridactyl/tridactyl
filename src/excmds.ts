@@ -883,9 +883,23 @@ export async function restart() {
  * @param filename The name the file should be saved as.
  */
 //#content
-export async function saveas(...filename: string[]) {
-    if (filename.length > 0) {
-        return Messaging.message("download_background", "downloadUrlAs", window.location.href, filename.join(" "))
+export async function saveas(...args: string[]) {
+    if (args.length > 0) {
+        let overwrite = false
+        let cleanup = false
+        const uniq_args_set = new Set(args)
+
+        if (uniq_args_set.has("--overwrite")) {
+            overwrite = true
+            uniq_args_set.delete("--overwrite")
+        }
+
+        if (uniq_args_set.has("--cleanup")) {
+            cleanup = true
+            uniq_args_set.delete("--cleanup")
+        }
+
+        return Messaging.message("download_background", "downloadUrlAs", window.location.href, [...uniq_args_set].join(" "), overwrite, cleanup)
     } else {
         return Messaging.message("download_background", "downloadUrl", window.location.href, true)
     }
