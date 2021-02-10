@@ -42,7 +42,7 @@
     "nearley": "^2.20.1",
     "prettier": "^2.2.1",
     "selenium-webdriver": "^4.0.0-alpha.8",
-    "source-map-loader": "^2.0.0",
+    "source-map-loader": "^2.0.1",
     "ts-jest": "^25.5.1",
     "ts-loader": "^8.0.16",
     "ts-node": "^9.1.1",
