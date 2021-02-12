@@ -349,17 +349,18 @@ export async function move(
     overwrite: boolean,
     cleanup: boolean,
 ) {
-    const requireNativeMessengerVersion = "0.3.0"
-
-    if (!(await nativegate(requireNativeMessengerVersion, false))) {
-        throw new Error(
-            `'restart' on Windows needs native messenger version >= ${requireNativeMessengerVersion}.`,
-        )
+    const requiredNativeMessengerVersion = "0.3.0"
+    if ((await nativegate(requiredNativeMessengerVersion, false))) {
+        return sendNativeMsg("move", { from, to, overwrite, cleanup }).catch(e => {
+            throw new Error(`Failed to move '${from}' to '${to}'. ${e}.`)
+        })
+    } else {
+        // older "saveas" scenario for native-messenger < 0.3.0
+        return sendNativeMsg("move", { from, to }).catch(e => {
+            throw new Error(`Failed to move '${from}' to '${to}'. ${e}.`)
+        })
     }
 
-    return sendNativeMsg("move", { from, to, overwrite, cleanup }).catch(e => {
-        throw new Error(`Failed to move '${from}' to '${to}'. ${e}.`)
-    })
 }
 
 export async function listDir(dir: string) {

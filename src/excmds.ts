@@ -884,22 +884,24 @@ export async function restart() {
  */
 //#content
 export async function saveas(...args: string[]) {
-    if (args.length > 0) {
-        let overwrite = false
-        let cleanup = false
-        const uniq_args_set = new Set(args)
+    let overwrite = false
+    let cleanup = false
+    const uniqueArgs = new Set(args)
 
-        if (uniq_args_set.has("--overwrite")) {
+    const requiredNativeMessengerVersion = "0.3.0"
+    if (await Native.nativegate(requiredNativeMessengerVersion, false)) {
+        if (uniqueArgs.has("--overwrite")) {
             overwrite = true
-            uniq_args_set.delete("--overwrite")
+            uniqueArgs.delete("--overwrite")
         }
-
-        if (uniq_args_set.has("--cleanup")) {
+        if (uniqueArgs.has("--cleanup")) {
             cleanup = true
-            uniq_args_set.delete("--cleanup")
+            uniqueArgs.delete("--cleanup")
         }
+    }
 
-        return Messaging.message("download_background", "downloadUrlAs", window.location.href, [...uniq_args_set].join(" "), overwrite, cleanup)
+    if (args.length > 0) {
+        return Messaging.message("download_background", "downloadUrlAs", window.location.href, [...uniqueArgs].join(" "), overwrite, cleanup)
     } else {
         return Messaging.message("download_background", "downloadUrl", window.location.href, true)
     }
