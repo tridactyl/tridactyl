@@ -793,9 +793,9 @@ export class default_config {
     ttspitch = 1
 
     /**
-     * When set to "nextinput", pressing &lt;Tab&gt; after gi selects the next input.
+     * When set to "nextinput", pressing `<Tab>` after gi selects the next input.
      *
-     * When set to "firefox", &lt;Tab&gt; behaves like normal, focusing the next tab-indexed element regardless of type.
+     * When set to "firefox", `<Tab>` behaves like normal, focusing the next tab-indexed element regardless of type.
      */
     gimode: "nextinput" | "firefox" = "nextinput"
 
