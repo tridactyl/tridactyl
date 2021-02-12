@@ -349,6 +349,14 @@ export async function move(
     overwrite: boolean,
     cleanup: boolean,
 ) {
+    const requireNativeMessengerVersion = "0.3.0"
+
+    if (!(await nativegate(requireNativeMessengerVersion, false))) {
+        throw new Error(
+            `'restart' on Windows needs native messenger version >= ${requireNativeMessengerVersion}.`,
+        )
+    }
+
     return sendNativeMsg("move", { from, to, overwrite, cleanup }).catch(e => {
         throw new Error(`Failed to move '${from}' to '${to}'. ${e}.`)
     })
