@@ -2,6 +2,7 @@
  * Background download-related functions
  */
 
+import * as Messaging from "@src/lib/messaging"
 import * as Native from "@src/lib/native"
 import * as config from "@src/lib/config"
 import { getDownloadFilenameForUrl } from "@src/lib/url_util"
@@ -136,25 +137,31 @@ export async function downloadUrlAs(
                     if (operation.code == 1) {
                         reject(
                             new Error(
-                                `'${downloadItem.filename}' could not be moved to '${saveAs}' (FILEEXISTS::code==${operation.code}) ...`,
+                                `# 🔴 '${downloadItem.filename}' could not be moved to '${saveAs}' (FILE-EXISTS::code==${operation.code}) ...`,
                             ),
                         )
                     }
                     if (operation.code == 2) {
                         reject(
                             new Error(
-                                `'${downloadItem.filename}' could not be moved to '${saveAs}' (OSERROR::code==${operation.code}) ...`,
+                                `# 🔴 '${downloadItem.filename}' could not be moved to '${saveAs}' (OS-ERROR::code==${operation.code}) ...`,
                             ),
                         )
                     }
                     if (operation.code != 0) {
                         reject(
                             new Error(
-                                `'${downloadItem.filename}' could not be moved to '${saveAs}' (UNKNOWN::code==${operation.code}) ...`,
+                                `# 🔴  '${downloadItem.filename}' could not be moved to '${saveAs}' (UNKNOWN::code==${operation.code}) ...`,
                             ),
                         )
                     } else {
-                        resolve(operation)
+                        resolve(
+                            function() {
+                                const timestamp =  new Date().toLocaleString()
+                                const download_success_message = `# 🟢 [${timestamp}] :: '${downloadItem.filename}' moved to '${saveAs}' successfully! 🎉🍻🎊`
+                                Messaging.messageActiveTab("commandline_frame", "fillcmdline", [download_success_message])
+                            }()
+                        )
                     }
                 } else {
                     reject(
