@@ -917,7 +917,8 @@ export async function saveas(...args: string[]) {
     }
 
     if (args.length > 0) {
-        return Messaging.message("download_background", "downloadUrlAs", window.location.href, [...uniqueArgs].join(" "), overwrite, cleanup)
+        const filename = await Messaging.message("download_background", "downloadUrlAs", window.location.href, [...uniqueArgs].join(" "), overwrite, cleanup)
+        return fillcmdline_tmp(10000, `Download completed: ${filename} stored in ${Array.from(uniqueArgs).join(" ")}`)
     } else {
         return Messaging.message("download_background", "downloadUrl", window.location.href, true)
     }

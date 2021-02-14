@@ -156,17 +156,7 @@ export async function downloadUrlAs(
                             ),
                         )
                     } else {
-                        resolve(
-                            (function() {
-                                const timestamp = new Date().toLocaleString()
-                                const download_success_message = `# 🟢 [${timestamp}] :: '${downloadItem.filename}' moved to '${saveAs}' successfully! 🎉🍻🎊`
-                                Messaging.messageActiveTab(
-                                    "commandline_frame",
-                                    "fillcmdline",
-                                    [download_success_message],
-                                )
-                            })(),
-                        )
+                        resolve(downloadItem.filename)
                     }
                 } else {
                     reject(
