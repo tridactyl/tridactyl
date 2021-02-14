@@ -2519,14 +2519,22 @@ export async function tabclose(...indexes: string[]) {
         }
         return idFromIndex(id)
     }
+    let ids
     if (indexes.length > 0) {
-        const ids = await Promise.all(indexes.map(index => maybeWinTabToTabId(index)))
-        done = browser.tabs.remove(ids)
+        // Request to close multiple tabs
+        ids = await Promise.all(indexes.map(index => maybeWinTabToTabId(index)))
     } else {
-        // Close current tab
-        done = browser.tabs.remove(await activeTabId())
+        // Request to close the current tab
+        ids = [await activeTabId()]
     }
-    return done
+    const tabclosepinned = (await config.getAsync("tabclosepinned") === "true")
+    for (let tab_id of ids) {
+        const tab = (await browser.tabs.query({index: tab_id}))[0]
+        if (tab.pinned && !tabclosepinned) {
+            throw new Error(`Tab $tab_id is pinned and tabclosepinned is false, aborting tabclose`)
+        }
+    }
+    return browser.tabs.remove(ids)
 }
 
 /** Close all tabs to the side specified
