@@ -904,16 +904,18 @@ export async function saveas(...args: string[]) {
     let cleanup = false
     const uniqueArgs = new Set(args)
 
+    if (uniqueArgs.has("--overwrite")) {
+        overwrite = true
+        uniqueArgs.delete("--overwrite")
+    }
+    if (uniqueArgs.has("--cleanup")) {
+        cleanup = true
+        uniqueArgs.delete("--cleanup")
+    }
+
     const requiredNativeMessengerVersion = "0.3.0"
-    if (await Native.nativegate(requiredNativeMessengerVersion, false)) {
-        if (uniqueArgs.has("--overwrite")) {
-            overwrite = true
-            uniqueArgs.delete("--overwrite")
-        }
-        if (uniqueArgs.has("--cleanup")) {
-            cleanup = true
-            uniqueArgs.delete("--cleanup")
-        }
+    if ((overwrite || cleanup) && await Native.nativegate(requiredNativeMessengerVersion, false)) {
+        throw new Error(`":saveas --{overwrite, cleanup}" requires native ${requiredNativeMessengerVersion} or later`)
     }
 
     if (args.length > 0) {
