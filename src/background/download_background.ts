@@ -140,7 +140,7 @@ export async function downloadUrlAs(
                     if (operation.code != 0) {
                         reject(
                             new Error(
-                                `# 🔴 '${downloadItem.filename}' could not be moved to '${saveAs}' (${code2human(operation.code)}. Code: ${operation.code}) ...`,
+                                `${code2human(operation.code)}. '${downloadItem.filename}' could not be moved to '${saveAs}'. Error code: ${operation.code}`,
                             ),
                         )
                     } else {
