@@ -2529,7 +2529,7 @@ export async function tabclose(...indexes: string[]) {
     }
     const tabclosepinned = (await config.getAsync("tabclosepinned") === "true")
     if (!tabclosepinned) {
-        // Pinned tabs should not be closed
+        // Pinned tabs should not be closed, abort if one of the tabs is pinned
         for (let tab_id of ids) {
             const tab = (await browser.tabs.query({index: tab_id}))[0]
             if (tab.pinned) {
