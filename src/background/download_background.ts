@@ -5,6 +5,7 @@
 import * as Messaging from "@src/lib/messaging"
 import * as Native from "@src/lib/native"
 import * as config from "@src/lib/config"
+import * as R from "ramda"
 import { getDownloadFilenameForUrl } from "@src/lib/url_util"
 
 /** Construct an object URL string from a given data URL
@@ -135,24 +136,11 @@ export async function downloadUrlAs(
                         overwrite,
                         cleanup,
                     )
-                    if (operation.code == 1) {
-                        reject(
-                            new Error(
-                                `# 🔴 '${downloadItem.filename}' could not be moved to '${saveAs}' (FILE-EXISTS::code==${operation.code}) ...`,
-                            ),
-                        )
-                    }
-                    if (operation.code == 2) {
-                        reject(
-                            new Error(
-                                `# 🔴 '${downloadItem.filename}' could not be moved to '${saveAs}' (OS-ERROR::code==${operation.code}) ...`,
-                            ),
-                        )
-                    }
+                    const code2human = n => R.defaultTo("Unknown error", {1: "File already exists", 2: "Other OS error"}[n])
                     if (operation.code != 0) {
                         reject(
                             new Error(
-                                `# 🔴 '${downloadItem.filename}' could not be moved to '${saveAs}' (UNKNOWN::code==${operation.code}) ...`,
+                                `# 🔴 '${downloadItem.filename}' could not be moved to '${saveAs}' (${code2human(operation.code)}. Code: ${operation.code}) ...`,
                             ),
                         )
                     } else {
