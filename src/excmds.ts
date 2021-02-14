@@ -2534,7 +2534,7 @@ export async function tabclose(...indexes: string[]) {
         // Pinned tabs should not be closed, abort if one of the tabs is pinned
         for (const tab of tabs) {
             if (tab.pinned) {
-                throw new Error(`Tab ${tab.windowId}:${tab.index} is pinned and tabclosepinned is false, aborting tabclose`)
+                throw new Error(`Tab ${tab.windowId}:${tab.index + 1} is pinned and tabclosepinned is false, aborting tabclose`)
             }
         }
     }
