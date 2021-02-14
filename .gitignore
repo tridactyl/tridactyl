@@ -14,3 +14,4 @@ compiler/*.js
 compiler/**/*.js
 .*.generated.ts
 .tmp/
+.DS_Store
