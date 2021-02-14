@@ -82,7 +82,12 @@ export async function downloadUrl(url: string, saveAs: boolean) {
  * @param saveAs If beginning with a slash, this is the absolute path the document should be moved to. If the first character of the string is a tilda, it will be expanded to an absolute path to the user's home directory. If saveAs begins with any other character, it will be considered a path relative to where the native messenger binary is located (e.g. "$HOME/.local/share/tridactyl" on linux).
  * If saveAs points to a directory, the name of the document will be inferred from the URL and the document will be placed inside the directory. If saveAs points to an already existing file, the document will be saved in the downloads directory but wont be moved to where it should be ; an error will be thrown. If any of the directories referred to in saveAs do not exist, the file will be kept in the downloads directory but won't be moved to where it should be.
  */
-export async function downloadUrlAs(url: string, saveAs: string) {
+export async function downloadUrlAs(
+    url: string,
+    saveAs: string,
+    overwrite: boolean,
+    cleanup: boolean,
+) {
     if (!(await Native.nativegate("0.1.9", true))) return
     const urlToSave = new URL(url)
 
@@ -125,11 +130,27 @@ export async function downloadUrlAs(url: string, saveAs: string) {
                     const operation = await Native.move(
                         downloadItem.filename,
                         saveAs,
+                        overwrite,
+                        cleanup,
                     )
-                    if (operation.code !== 0) {
+                    if (operation.code == 1) {
                         reject(
                             new Error(
-                                `'${downloadItem.filename}' could not be moved to '${saveAs}'. Make sure it doesn't already exist and that all directories of the path exist.`,
+                                `'${downloadItem.filename}' could not be moved to '${saveAs}' (FILEEXISTS::code==${operation.code}) ...`,
+                            ),
+                        )
+                    }
+                    if (operation.code == 2) {
+                        reject(
+                            new Error(
+                                `'${downloadItem.filename}' could not be moved to '${saveAs}' (OSERROR::code==${operation.code}) ...`,
+                            ),
+                        )
+                    }
+                    if (operation.code != 0) {
+                        reject(
+                            new Error(
+                                `'${downloadItem.filename}' could not be moved to '${saveAs}' (UNKNOWN::code==${operation.code}) ...`,
                             ),
                         )
                     } else {
