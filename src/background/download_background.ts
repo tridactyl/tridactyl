@@ -79,9 +79,10 @@ export async function downloadUrl(url: string, saveAs: boolean) {
  *
  * Note: this requires a native messenger >=0.1.9. Make sure to nativegate for this.
  *
- * @param url the URL to download
+ * @param URL the URL to download
  * @param saveAs If beginning with a slash, this is the absolute path the document should be moved to. If the first character of the string is a tilda, it will be expanded to an absolute path to the user's home directory. If saveAs begins with any other character, it will be considered a path relative to where the native messenger binary is located (e.g. "$HOME/.local/share/tridactyl" on linux).
- * If saveAs points to a directory, the name of the document will be inferred from the URL and the document will be placed inside the directory. If saveAs points to an already existing file, the document will be saved in the downloads directory but wont be moved to where it should be ; an error will be thrown. If any of the directories referred to in saveAs do not exist, the file will be kept in the downloads directory but won't be moved to where it should be.
+ * @param If true, overwrite the destination file, returns error code 1 otherwise if file exists
+ * @param If true, cleans up temporary downloaded source file e.g. in $HOME/Downlods/downloaded.doc when the move operation fails e.g. due to target destination exists, OS error etc.
  */
 export async function downloadUrlAs(
     url: string,
@@ -151,16 +152,20 @@ export async function downloadUrlAs(
                     if (operation.code != 0) {
                         reject(
                             new Error(
-                                `# 🔴  '${downloadItem.filename}' could not be moved to '${saveAs}' (UNKNOWN::code==${operation.code}) ...`,
+                                `# 🔴 '${downloadItem.filename}' could not be moved to '${saveAs}' (UNKNOWN::code==${operation.code}) ...`,
                             ),
                         )
                     } else {
                         resolve(
-                            function() {
-                                const timestamp =  new Date().toLocaleString()
+                            (function() {
+                                const timestamp = new Date().toLocaleString()
                                 const download_success_message = `# 🟢 [${timestamp}] :: '${downloadItem.filename}' moved to '${saveAs}' successfully! 🎉🍻🎊`
-                                Messaging.messageActiveTab("commandline_frame", "fillcmdline", [download_success_message])
-                            }()
+                                Messaging.messageActiveTab(
+                                    "commandline_frame",
+                                    "fillcmdline",
+                                    [download_success_message],
+                                )
+                            })(),
                         )
                     }
                 } else {
