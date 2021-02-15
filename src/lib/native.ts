@@ -88,9 +88,13 @@ export async function getrc(): Promise<string> {
     }
 }
 
+let NATIVE_VERSION_CACHE: string
 export async function getNativeMessengerVersion(
     quiet = false,
 ): Promise<string> {
+    if (NATIVE_VERSION_CACHE !== undefined) {
+        return NATIVE_VERSION_CACHE
+    }
     const res = await sendNativeMsg("version", {}, quiet)
     if (res === undefined) {
         if (quiet) return undefined
@@ -98,7 +102,10 @@ export async function getNativeMessengerVersion(
     }
     if (res.version && !res.error) {
         logger.info(`Native version: ${res.version}`)
-        return res.version.toString()
+        NATIVE_VERSION_CACHE = res.version.toString()
+        // Wipe cache after 500ms
+        setTimeout(() => (NATIVE_VERSION_CACHE = undefined), 500)
+        return NATIVE_VERSION_CACHE
     }
 }
 
