@@ -2521,14 +2521,14 @@ export async function fullscreen() {
 */
 //#background
 export async function tabclose(...indexes: string[]) {
-    async function maybeWinTabToTabId(id: string) {
+    async function maybeWinTabToTab(id: string) {
         if (id.includes(".")) {
             const [winid, tabindex_number] = await parseWinTabIndex(id)
             return (await browser.tabs.query({ windowId: winid, index: tabindex_number }))[0]
         }
         return tabFromIndex(id)
     }
-    const tabs = await Promise.all(indexes.length > 0 ? indexes.map(maybeWinTabToTabId) : [activeTab()])
+    const tabs = await Promise.all(indexes.length > 0 ? indexes.map(maybeWinTabToTab) : [activeTab()])
     const tabclosepinned = (await config.getAsync("tabclosepinned")) === "true"
     if (!tabclosepinned) {
         // Pinned tabs should not be closed, abort if one of the tabs is pinned
