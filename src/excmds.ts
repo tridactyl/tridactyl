@@ -2420,6 +2420,16 @@ export function tabqueue(...addresses: string[]) {
 */
 //#background_helper
 async function idFromIndex(index?: number | "%" | "#" | string): Promise<number> {
+    return (await tabFromIndex(index)).id
+}
+
+/**
+ * Like [[idFromIndex]] but returns the whole tab object
+ *
+ * @hidden
+ */
+//#background_helper
+async function tabFromIndex(index?: number | "%" | "#" | string): Promise<browser.tabs.Tab> {
     if (index === "#") {
         // Support magic previous/current tab syntax everywhere
         const tabs = await getSortedWinTabs()
@@ -2427,9 +2437,9 @@ async function idFromIndex(index?: number | "%" | "#" | string): Promise<number>
             // In vim, '#' is the id of the previous buffer even if said buffer has been wiped
             // However, firefox doesn't store tab ids for closed tabs
             // Since vim makes '#' default to the current buffer if only one buffer has ever been opened for the current session, it seems reasonable to return the id of the current tab if only one tab is opened in firefox
-            return activeTabId()
+            return activeTab()
         }
-        return tabs[1].id
+        return tabs[1]
     } else if (index !== undefined && index !== "%") {
         // Wrap
         index = Number(index)
@@ -2441,9 +2451,9 @@ async function idFromIndex(index?: number | "%" | "#" | string): Promise<number>
                 currentWindow: true,
                 index: index - 1,
             })
-        )[0].id
+        )[0]
     } else {
-        return activeTabId()
+        return activeTab()
     }
 }
 
@@ -2512,22 +2522,24 @@ export async function fullscreen() {
 */
 //#background
 export async function tabclose(...indexes: string[]) {
-    let done
-    async function maybeWinTabToTabId(id: string) {
+    async function maybeWinTabToTab(id: string) {
         if (id.includes(".")) {
             const [winid, tabindex_number] = await parseWinTabIndex(id)
-            return (await browser.tabs.query({ windowId: winid, index: tabindex_number }))[0].id
+            return (await browser.tabs.query({ windowId: winid, index: tabindex_number }))[0]
         }
-        return idFromIndex(id)
+        return tabFromIndex(id)
     }
-    if (indexes.length > 0) {
-        const ids = await Promise.all(indexes.map(index => maybeWinTabToTabId(index)))
-        done = browser.tabs.remove(ids)
-    } else {
-        // Close current tab
-        done = browser.tabs.remove(await activeTabId())
+    const tabs = await Promise.all(indexes.length > 0 ? indexes.map(maybeWinTabToTab) : [activeTab()])
+    const tabclosepinned = (await config.getAsync("tabclosepinned")) === "true"
+    if (!tabclosepinned) {
+        // Pinned tabs should not be closed, abort if one of the tabs is pinned
+        for (const tab of tabs) {
+            if (tab.pinned) {
+                throw new Error(`Tab ${tab.windowId}:${tab.index + 1} is pinned and tabclosepinned is false, aborting tabclose`)
+            }
+        }
     }
-    return done
+    return browser.tabs.remove(tabs.map(t => t.id))
 }
 
 /** Close all tabs to the side specified

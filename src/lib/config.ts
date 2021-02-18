@@ -767,6 +767,11 @@ export class default_config {
     tabopenpos: "next" | "last" | "related" = "next"
 
     /**
+     * When enabled (the default), running tabclose will close the tabs whether they are pinned or not. When disabled, tabclose will fail with an error if a tab is pinned.
+     */
+    tabclosepinned: "true" | "false" = "true"
+
+    /**
      * Controls which tab order to use when opening the tab/buffer list. Either mru = sort by most recent tab or default = by tab index
      */
     tabsort: "mru" | "default" = "default"
