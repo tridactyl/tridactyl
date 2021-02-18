@@ -90,6 +90,7 @@ import * as Native from "@src/lib/native"
 import * as TTS from "@src/lib/text_to_speech"
 import * as excmd_parser from "@src/parsers/exmode"
 import * as escape from "@src/lib/escape"
+import * as R from "ramda"
 
 /**
  * This is used to drive some excmd handling in `composite`.
@@ -2653,6 +2654,26 @@ export async function tabmove(index = "$") {
     }
 
     return browser.tabs.move(aTab.id, { index: newindex })
+}
+
+/**
+ * Move tabs in current window according to various criteria:
+ *
+ * - `--containers` groups tabs by containers
+ * - `--title` sorts tabs by title
+ * - `--url` sorts tabs by url (the default)
+ * - `(tab1, tab2) => true|false`
+ *      - sort by arbitrary comparison function. `tab{1,2}` are objects with properties described here: https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/tabs/Tab
+ */
+//#background
+export async function tabsort(...callbackchunks: string[]) {
+    const argument = callbackchunks.join(" ")
+    const comparator = argument == "--containers" ? (l, r) => l.cookieStoreId < r.cookieStoreId : argument == "--title" ? (l, r) => l.title < r.title : argument == "--url" || argument == "" ? (l, r) => l.url < r.url : eval(argument)
+    const windowTabs = await browser.tabs.query({ currentWindow: true })
+    windowTabs.sort(comparator)
+    R.forEachObjIndexed((tab, index) => {
+        browser.tabs.move((tab as browser.tabs.Tab).id, { index: parseInt(index as string) })
+    }, windowTabs)
 }
 
 /** Pin the current tab */
