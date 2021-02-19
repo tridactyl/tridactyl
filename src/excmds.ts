@@ -86,6 +86,7 @@ import { AutoContain } from "@src/lib/autocontainers"
 import * as CSS from "css"
 import * as Perf from "@src/perf"
 import * as Metadata from "@src/.metadata.generated"
+import { ObjectType } from "../compiler/types/ObjectType"
 import * as Native from "@src/lib/native"
 import * as TTS from "@src/lib/text_to_speech"
 import * as excmd_parser from "@src/parsers/exmode"
@@ -189,9 +190,9 @@ export async function getNativeVersion(): Promise<string> {
 //#content
 export async function getRssLinks(): Promise<Array<{ type: string; url: string; title: string }>> {
     const seen = new Set<string>()
-    return Array.from(document.querySelectorAll("a, link[rel='alternate']"))
-        .filter((e: any) => typeof e.href === "string")
-        .reduce((acc, e: any) => {
+    return Array.from(document.querySelectorAll<HTMLAnchorElement | HTMLLinkElement>("a, link[rel='alternate']"))
+        .filter((e) => typeof e.href === "string")
+        .reduce((acc, e) => {
             let type = ""
             // Start by detecting type because url doesn't necessarily contain the words "rss" or "atom"
             if (e.type) {
@@ -1339,7 +1340,7 @@ export async function url2args() {
 
 /** @hidden */
 //#content_helper
-let sourceElement
+let sourceElement: Element
 /** @hidden */
 //#content_helper
 function removeSource() {
@@ -1527,7 +1528,7 @@ export async function apropos(...helpItems: string[]) {
 //#background
 export async function tutor(newtab?: string) {
     const tutor = browser.runtime.getURL("static/clippy/1-tutor.html")
-    let done
+    let done: Promise<any>
     if (newtab) {
         done = tabopen(tutor)
     } else {
@@ -1976,7 +1977,7 @@ export async function loadaucmds(cmdType: "DocStart" | "DocLoad" | "DocEnd" | "T
         try {
             await controller.acceptExCmd(aucmds[aukey])
         } catch (e) {
-            logger.error(e.toString())
+            logger.error((e as Error).toString())
         }
     }
 }
@@ -2165,7 +2166,7 @@ export async function tabnext(increment = 1) {
  */
 //#background
 export async function tabnext_gt(index?: number) {
-    let done
+    let done: Promise<any>
     if (index === undefined) {
         done = tabnext()
     } else {
@@ -2288,7 +2289,7 @@ export async function tabopen(...addressarr: string[]): Promise<browser.tabs.Tab
     const win = await browser.windows.getCurrent()
 
     // Lets us pass both -b and -c in no particular order as long as they are up front.
-    async function argParse(args): Promise<string[]> {
+    async function argParse(args: string[]): Promise<string[]> {
         if (args[0] === "-b") {
             active = false
             args.shift()
@@ -2735,7 +2736,7 @@ export async function mute(...muteArgs: string[]): Promise<void> {
     if (mute) {
         updateObj.muted = true
     }
-    let done
+    let done: Promise<any>
     if (all) {
         const tabs = await browser.tabs.query({ currentWindow: true })
         const promises = []
@@ -3628,7 +3629,7 @@ function validateSetArgs(key: string, values: string[]) {
         const strval = values.join(" ")
         // Note: the conversion will throw if strval can't be converted to the right type
         if (md.type.kind === "object" && target.length > 1) {
-            value = (md as any).type.convertMember(target.slice(1), strval)
+            value = (md.type as ObjectType).convertMember(target.slice(1), strval)
         } else {
             value = md.type.convert(strval)
         }
@@ -4859,7 +4860,7 @@ export async function bmark(url?: string, ...titlearr: string[]) {
     if (path != "") {
         const tree = (await browser.bookmarks.getTree())[0] // Why would getTree return a tree? Obviously it returns an array of unit length.
         // I hate recursion.
-        const treeClimber = (tree, treestr) => {
+        const treeClimber = (tree: browser.bookmarks.BookmarkTreeNode, treestr) => {
             if (tree.type !== "folder") return {}
             treestr += tree.title + "/"
             if (!("children" in tree) || tree.children.length === 0) return [{ path: treestr, id: tree.id }]

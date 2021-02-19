@@ -45,7 +45,7 @@ import * as meta from "@src/background/meta"
     state,
     webext,
     webrequests,
-    l: prom => prom.then(console.log).catch(console.error),
+    l: (prom: Promise<any>) => prom.then(console.log).catch(console.error),
     contentLocation: window.location,
     R,
     perf,

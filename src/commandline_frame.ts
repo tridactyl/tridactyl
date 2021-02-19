@@ -17,53 +17,54 @@
 
 /** Script used in the commandline iframe. Communicates with background. */
 
-import * as perf from "@src/perf"
-import "@src/lib/number.clamp"
-import "@src/lib/html-tagged-template"
-import { TabAllCompletionSource } from "@src/completions/TabAll"
+import * as SELF from "@src/commandline_frame"
+import { CompletionSourceFuse } from "@src/completions"
+import { AproposCompletionSource } from "@src/completions/Apropos"
 import { BindingsCompletionSource } from "@src/completions/Bindings"
-import { BufferCompletionSource } from "@src/completions/Tab"
 import { BmarkCompletionSource } from "@src/completions/Bmark"
-import { ExcmdCompletionSource } from "@src/completions/Excmd"
-import { ThemeCompletionSource } from "@src/completions/Theme"
 import { CompositeCompletionSource } from "@src/completions/Composite"
+import { ExcmdCompletionSource } from "@src/completions/Excmd"
+import { ExtensionsCompletionSource } from "@src/completions/Extensions"
 import { FileSystemCompletionSource } from "@src/completions/FileSystem"
 import { GuisetCompletionSource } from "@src/completions/Guiset"
 import { HelpCompletionSource } from "@src/completions/Help"
-import { AproposCompletionSource } from "@src/completions/Apropos"
 import { HistoryCompletionSource } from "@src/completions/History"
 import { PreferenceCompletionSource } from "@src/completions/Preferences"
 import { RssCompletionSource } from "@src/completions/Rss"
 import { SessionsCompletionSource } from "@src/completions/Sessions"
 import { SettingsCompletionSource } from "@src/completions/Settings"
+import { BufferCompletionSource } from "@src/completions/Tab"
+import { TabAllCompletionSource } from "@src/completions/TabAll"
+import { ThemeCompletionSource } from "@src/completions/Theme"
 import { WindowCompletionSource } from "@src/completions/Window"
-import { ExtensionsCompletionSource } from "@src/completions/Extensions"
+import { contentState } from "@src/content/state_content"
+import { theme } from "@src/content/styling"
+import { getCommandlineFns } from "@src/lib/commandline_cmds"
+import * as tri_editor from "@src/lib/editor"
+import "@src/lib/html-tagged-template"
+import Logger from "@src/lib/logging"
 import * as Messaging from "@src/lib/messaging"
 import "@src/lib/number.clamp"
-import state from "@src/state"
-import * as State from "@src/state"
-import Logger from "@src/lib/logging"
-import { theme } from "@src/content/styling"
-import { contentState } from "@src/content/state_content"
-
 import * as genericParser from "@src/parsers/genericmode"
-import * as tri_editor from "@src/lib/editor"
-
+import * as perf from "@src/perf"
+import state, * as State from "@src/state"
 import * as R from "ramda"
+import { KeyEventLike } from "./lib/keyseq"
+
 
 /** @hidden **/
 const logger = new Logger("cmdline")
 
 /** @hidden **/
 const commandline_state = {
-    activeCompletions: undefined,
+    activeCompletions: undefined as CompletionSourceFuse[],
     clInput: window.document.getElementById(
         "tridactyl-input",
     ) as HTMLInputElement,
     clear,
     cmdline_history_position: 0,
     completionsDiv: window.document.getElementById("completions"),
-    fns: undefined,
+    fns: undefined as ReturnType<typeof getCommandlineFns>,
     getCompletion,
     history,
     /** @hidden
@@ -206,7 +207,7 @@ commandline_state.clInput.addEventListener(
                         // Abuse async to wrap non-promises in a promise
                         // eslint-disable-next-line @typescript-eslint/require-await
                         (async () =>
-                            commandline_state.fns[funcname](
+                            commandline_state.fns[funcname as keyof typeof commandline_state.fns](
                                 args.length === 0 ? undefined : args.join(" "),
                             ))(),
                     )
@@ -347,7 +348,7 @@ export function getContent() {
 }
 
 /** @hidden **/
-export function editor_function(fn_name, ...args) {
+export function editor_function(fn_name: keyof typeof tri_editor, ...args) {
     let result = Promise.resolve([])
     if (tri_editor[fn_name]) {
         tri_editor[fn_name](commandline_state.clInput, ...args)
@@ -360,11 +361,8 @@ export function editor_function(fn_name, ...args) {
     return result
 }
 
-import * as SELF from "@src/commandline_frame"
 Messaging.addListener("commandline_frame", Messaging.attributeCaller(SELF))
 
-import { getCommandlineFns } from "@src/lib/commandline_cmds"
-import { KeyEventLike } from "./lib/keyseq"
 commandline_state.fns = getCommandlineFns(commandline_state)
 Messaging.addListener(
     "commandline_cmd",

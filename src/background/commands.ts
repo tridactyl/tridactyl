@@ -3,14 +3,14 @@ import * as config from "@src/lib/config"
 import * as keyseq from "@src/lib/keyseq"
 import * as controller from "@src/lib/controller"
 
-function makelistener(commands) {
+function makelistener(commands: Array<browser.commands.Command>) {
     return (command_name: string) => {
         const command = commands.filter(c => c.name == command_name)[0]
         const exstring = config.get(
             "browsermaps",
             keyseq.mozMapToMinimalKey(command.shortcut).toMapstr(),
         )
-        if (exstring in useractions) return useractions[exstring]()
+        if (exstring in useractions && typeof useractions[exstring] === "function") return (useractions[exstring] as () => void)()
         return controller.acceptExCmd(exstring)
     }
 }
