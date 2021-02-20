@@ -108,7 +108,7 @@ export const transpose_chars = wrap_input(
  * Applies a function to the word the caret is in, or to the next word if the caret is not in a word, or to the previous word if the current word is empty.
  */
 function applyWord(
-    text,
+    text: string,
     selectionStart,
     selectionEnd,
     fn: (s: string) => string,

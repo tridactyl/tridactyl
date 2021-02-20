@@ -9,7 +9,7 @@ import * as R from "ramda"
 import * as config from "@src/lib/config"
 import { getTridactylTabs } from "@src/background/meta"
 
-export function escapehatch() {
+function escapehatch() {
     if (config.get("escapehatchsidebarhack") == "true") {
         // Only works if called via commands API command - fail silently if called otherwise
         browser.sidebarAction.open().catch()
@@ -34,4 +34,8 @@ export function escapehatch() {
 
         return browser.tabs.update(best.id, { active: true })
     })()
+}
+
+export const useractions: Record<string, () => void> = {
+    escapehatch,
 }
