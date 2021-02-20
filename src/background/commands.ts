@@ -10,7 +10,7 @@ function makelistener(commands: Array<browser.commands.Command>) {
             "browsermaps",
             keyseq.mozMapToMinimalKey(command.shortcut).toMapstr(),
         )
-        if (exstring in useractions) useractions[exstring]()
+        if (exstring in useractions) return useractions[exstring]()
         return controller.acceptExCmd(exstring)
     }
 }
