@@ -1,4 +1,4 @@
-import * as useractions from "@src/background/user_actions"
+import { useractions } from "@src/background/user_actions"
 import * as config from "@src/lib/config"
 import * as keyseq from "@src/lib/keyseq"
 import * as controller from "@src/lib/controller"
@@ -10,7 +10,7 @@ function makelistener(commands: Array<browser.commands.Command>) {
             "browsermaps",
             keyseq.mozMapToMinimalKey(command.shortcut).toMapstr(),
         )
-        if (exstring in useractions && typeof useractions[exstring] === "function") return (useractions[exstring] as () => void)()
+        if (exstring in useractions) useractions[exstring]()
         return controller.acceptExCmd(exstring)
     }
 }

@@ -3106,7 +3106,7 @@ export async function shellescape(...quoteme: string[]) {
 }
 
 //#background_helper
-import * as useractions from "@src/background/user_actions"
+import { useractions } from "@src/background/user_actions"
 
 /**
  *  Magic escape hatch: if Tridactyl can't run in the current tab, return to a tab in the current window where Tridactyl can run, making such a tab if it doesn't currently exist. If Tridactyl can run in the current tab, return focus to the document body from e.g. the URL bar or a video player.
