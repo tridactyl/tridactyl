@@ -83,6 +83,7 @@
      * ????
      */
 
+    --tridactyl-header-font-size: inherit;
     --tridactyl-header-font-weight: bold;
     /* i don't think 0.5px is redered */
     --tridactyl-header-border-bottom: 1px solid bottom;

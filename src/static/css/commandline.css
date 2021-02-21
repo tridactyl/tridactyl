@@ -106,6 +106,7 @@ input:focus {
         var(--tridactyl-header-second-bg),
         var(--tridactyl-header-third-bg)
     );
+    font-size: var(--tridactyl-header-font-size);
     font-weight: var(--tridactyl-header-font-weight);
     border-bottom: var(--tridactyl-header-border-bottom);
     padding-left: 0.5ex;
