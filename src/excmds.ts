@@ -1903,6 +1903,7 @@ export async function reader() {
 //#content_helper
 // {
 loadaucmds("DocStart")
+const autocmd_logger = new Logging.Logger("autocmds")
 window.addEventListener("pagehide", () => loadaucmds("DocEnd"))
 window.addEventListener("DOMContentLoaded", () => loadaucmds("DocLoad"))
 
@@ -1975,9 +1976,10 @@ export async function loadaucmds(cmdType: "DocStart" | "DocLoad" | "DocEnd" | "T
             aucmds[aukey] = aucmds[aukey].replace(k, v)
         }
         try {
+            autocmd_logger.debug(`${cmdType} matched ${aukey}: ${aucmds[aukey]}`)
             await controller.acceptExCmd(aucmds[aukey])
         } catch (e) {
-            logger.error((e as Error).toString())
+            autocmd_logger.error((e as Error).toString())
         }
     }
 }
@@ -3792,6 +3794,8 @@ const AUCMDS = ["DocStart", "DocLoad", "DocEnd", "TriStart", "TabEnter", "TabLef
         - `TRI_FIRED_URL`: The URL of the document that the tab is displaying.
  *
  * For example: `autocmd DocStart .*example\.com.* zoom 150 false TRI_FIRED_MOZ_TABID`.
+ *
+ * For debugging, use `:set logging.autocmds debug` and check the Firefox web console. `WebRequest` events have no logging.
  *
  */
 //#background

@@ -28,6 +28,7 @@ import * as R from "ramda"
 import * as webrequests from "@src/background/webrequests"
 import * as commands from "@src/background/commands"
 import * as meta from "@src/background/meta"
+import * as Logging from "@src/lib/logging"
 
 // Add various useful modules to the window for debugging
 ;(window as any).tri = Object.assign(Object.create(null), {
@@ -116,16 +117,23 @@ browser.webNavigation.onDOMContentLoaded.addListener(() => {
 // Prevent Tridactyl from being updated while it is running in the hope of fixing #290
 browser.runtime.onUpdateAvailable.addListener(_ => undefined)
 
+const autocmd_logger = new Logging.Logger("autocmds")
 browser.runtime.onStartup.addListener(() => {
     config.getAsync("autocmds", "TriStart").then(aucmds => {
         const hosts = Object.keys(aucmds)
         // If there's only one rule and it's "all", no need to check the hostname
         if (hosts.length === 1 && hosts[0] === ".*") {
+            autocmd_logger.debug(
+                `TriStart matched ${hosts[0]}: ${aucmds[hosts[0]]}`,
+            )
             controller.acceptExCmd(aucmds[hosts[0]])
         } else {
             native.run("hostname").then(hostname => {
                 for (const host of hosts) {
                     if (new RegExp(host).exec(hostname.content)) {
+                        autocmd_logger.debug(
+                            `TriStart matched ${host}: ${aucmds[host]}`,
+                        )
                         controller.acceptExCmd(aucmds[host])
                     }
                 }
