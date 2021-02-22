@@ -1,62 +1,68 @@
 # Tridactyl changelog
 
-# Release 1.21.0 / Unreleased
+# Release 1.21.0 / 22-02-2021
 
 -   New features
 
     -   `:tabclose` now accepts `window_number.tab_number` arguments; this is particularly useful for use with `<S-Del>` to close `:taball` completions
     -   `:tab` completions now show which tabs are playing audio
-    -   `:tabaudio` tab with `ga` default bind takes you to the window and tab which is currently playing audio (#3184)
+    -   `:tabaudio` tab with `ga` default bind takes you to the window and tab which is currently playing audio ([#3184](https://github.com/tridactyl/tridactyl/issues/3184))
     -   Favicons are lazy loaded in `:tab` completions
-    -   `:urlincrement` binds now accept numeric prefixes, e.g. `10<C-a>` increments the URL by 10 (#3145)
-    -   `:seturl` now checks that you have entered a valid RegEx (#3134)
+    -   `:urlincrement` binds now accept numeric prefixes, e.g. `10<C-a>` increments the URL by 10 ([#3145](https://github.com/tridactyl/tridactyl/issues/3145))
+    -   `:seturl` now checks that you have entered a valid RegEx ([#3134](https://github.com/tridactyl/tridactyl/issues/3134))
         -   previously, failing to do so broke Tridactyl
-    -   `:colours` now accepts a `--url` option to load a theme from the internet with no need for `:native` (#3148)
+    -   `:colours` now accepts a `--url` option to load a theme from the internet with no need for `:native` ([#3148](https://github.com/tridactyl/tridactyl/issues/3148))
     -   `:colours` now has completions for default and installed themes (i.e. themes for which you have already run `:colours` once)
     -   `:colours` will fall back to loading custom themes from the Tridactyl storage if they cannot be found on disk
     -   `yo` bind added to yank URLs and titles in an Emacs-compatible org-mode format
-    -   `:tab [string]` now switches to the first tab that matches that string (#3263)
+    -   `:tab [string]` now switches to the first tab that matches that string ([#3263](https://github.com/tridactyl/tridactyl/issues/3263))
         -   predominantly for non-interactive use. If you wish to use it interactively run `:set completions.Tab.autoselect false` first.
-    -   `:reloaddead` command added to force all tabs which Tridactyl is not running in to load. Useful for making tab switching more pleasurable (#3260)
+    -   `:reloaddead` command added to force all tabs which Tridactyl is not running in to load. Useful for making tab switching more pleasurable ([#3260](https://github.com/tridactyl/tridactyl/issues/3260))
     -   `:mkt --clipboard` added to put a Tridactyl RC file in your clipboard. Use with e.g. GitHub Gist and `:source --url` to avoid needing `:native` installed
-    -   Custom themes no longer require special classnames - see `:help colours` to see current requirements (there are essentially none) (#3288)
-    -   `:set hintautoselect [true|false]` added to determine whether hints are automatically followed if there is only one (#3097)
-    -   `:set logging.autocmds debug|info|warning|error` added to make debugging autocmds easier (#3381)
-    -   `:set tabclosepinned true|false` added to prevent `d` from closing pinned tabs (#3363)
-    -   `:tabsort` command added to sort tabs according to titles, URLs or container (#3364)
-    -   `:winopen -c [container]` added for opening containers in new windows (#3326)
-    -   `:set completions.TabAll.autoselect true|false` added to allow spaces to be used when filtering (#1835)
-    -   `:scrollpage` binds now accept counts (#3319)
+    -   Custom themes no longer require special classnames - see `:help colours` to see current requirements (there are essentially none) ([#3288](https://github.com/tridactyl/tridactyl/issues/3288))
+    -   `:set hintautoselect [true|false]` added to determine whether hints are automatically followed if there is only one ([#3097](https://github.com/tridactyl/tridactyl/issues/3097))
+    -   `:set logging.autocmds debug|info|warning|error` added to make debugging autocmds easier ([#3381](https://github.com/tridactyl/tridactyl/issues/3381))
+    -   `:set tabclosepinned true|false` added to prevent `d` from closing pinned tabs ([#3363](https://github.com/tridactyl/tridactyl/issues/3363))
+    -   `:tabsort` command added to sort tabs according to titles, URLs or container ([#3364](https://github.com/tridactyl/tridactyl/issues/3364))
+    -   `:winopen -c [container]` added for opening containers in new windows ([#3326](https://github.com/tridactyl/tridactyl/issues/3326))
+    -   `:set completions.TabAll.autoselect true|false` added to allow spaces to be used when filtering ([#1835](https://github.com/tridactyl/tridactyl/issues/1835))
+    -   `:scrollpage` binds now accept counts ([#3319](https://github.com/tridactyl/tridactyl/issues/3319))
 
 -   Bug fixes
 
-    -   We now queue up commands that interact with completions alongside those completions (#3196)
+    -   We now queue up commands that interact with completions alongside those completions ([#3196](https://github.com/tridactyl/tridactyl/issues/3196))
         -   this means in practice that, once the command line has loaded, you can type as quickly as you like and still get the results you expect
-    -   Profile directory detection has been improved on Windows (#3191)
-    -   Speed of `:editor` selection on Windows has improved (#3170)
-    -   The command line no longer has a blue outline on OSX (#3123)
-    -   `:yankimage` now accepts more MIME types (#3127)
-    -   `:quickmarks` should now be a little more reliable (#3299)
-    -   `:mkt` now no longer breaks with custom themes (#2535)
-    -   `:firefoxsyncpush` no longer breaks with custom themes (#3050)
-    -   `:bmark` completions no longer interfere with flags (#3274)
-    -   `:zoom` works with negative relative increments (#3031)
-    -   `:undo` completions now show negative times more gracefully (#3339)
-    -   `:tabopen .thing` now searches for `.thing` (#3398)
+    -   Profile directory detection has been improved on Windows ([#3191](https://github.com/tridactyl/tridactyl/issues/3191))
+    -   Speed of `:editor` selection on Windows has improved ([#3170](https://github.com/tridactyl/tridactyl/issues/3170))
+    -   The command line no longer has a blue outline on OSX ([#3123](https://github.com/tridactyl/tridactyl/issues/3123))
+    -   `:yankimage` now accepts more MIME types ([#3127](https://github.com/tridactyl/tridactyl/issues/3127))
+    -   `:quickmarks` should now be a little more reliable ([#3299](https://github.com/tridactyl/tridactyl/issues/3299))
+    -   `:mkt` now no longer breaks with custom themes ([#2535](https://github.com/tridactyl/tridactyl/issues/2535))
+    -   `:firefoxsyncpush` no longer breaks with custom themes ([#3050](https://github.com/tridactyl/tridactyl/issues/3050))
+    -   `:bmark` completions no longer interfere with flags ([#3274](https://github.com/tridactyl/tridactyl/issues/3274))
+    -   `:zoom` works with negative relative increments ([#3031](https://github.com/tridactyl/tridactyl/issues/3031))
+    -   `:undo` completions now show negative times more gracefully ([#3339](https://github.com/tridactyl/tridactyl/issues/3339))
+    -   `:tabopen .thing` now searches for `.thing` ([#3398](https://github.com/tridactyl/tridactyl/issues/3398))
     -   `:winopen` no longer puts focus in the URL bar
 
 -   Miscellaneous
 
     -   The native messenger is now written in `Nim` and is much faster (especially noticeable on `:editor`). You may need to run `:nativeupate` to update it - the latest `:native` version is `0.2.5`
         -   We have removed `pyeval` support from this version - you are very unlikely to have used this since it was an internal Tridactyl command. `:exclaim` is unaffected.
-    -   `:taball` now internally uses `:tab` (#3262)
-    -   We no longer load all default themes into every tab (#3288)
-    -   `<C-c>` and `<C-a>` binds have been removed from the command line as they were widely disliked (#3229)
-    -   `:colours shydactyl` now uses more CSS variables (#3390)
-    -   Type checking has been tightened a little (#3386)
-    -   Privacy policy added (summary: we don't collect anything outside of IP logs on our servers) (#3375)
-    -   `:native` is now cached for a few milliseconds to speed up repeated version checks (#3366)
+    -   `:taball` now internally uses `:tab` ([#3262](https://github.com/tridactyl/tridactyl/issues/3262))
+    -   We no longer load all default themes into every tab ([#3288](https://github.com/tridactyl/tridactyl/issues/3288))
+    -   `<C-c>` and `<C-a>` binds have been removed from the command line as they were widely disliked ([#3229](https://github.com/tridactyl/tridactyl/issues/3229))
+    -   `:colours shydactyl` now uses more CSS variables ([#3390](https://github.com/tridactyl/tridactyl/issues/3390))
+    -   Type checking has been tightened a little ([#3386](https://github.com/tridactyl/tridactyl/issues/3386))
+    -   Privacy policy added (summary: we don't collect anything outside of IP logs on our servers) ([#3375](https://github.com/tridactyl/tridactyl/issues/3375))
+    -   `:native` is now cached for a few milliseconds to speed up repeated version checks ([#3366](https://github.com/tridactyl/tridactyl/issues/3366))
     -   `no-throw-literal` eslint rule added to ensure Tridactyl errors get to the user usefully
+
+Thanks to all of our contributors for this release: dependabot-preview[bot], Oliver Blanthorn, Rummskartoffel, fluem, Benoit de Chezelles, Bruno Garcia, Jay Kamat, Babil Golam Sarwar, Elliott Shugerman, Annie Zhang, Tiago Epifânio, glacambre and yellowmoneybank.
+
+Extra special thanks go to Annie Zhang, Benoit de Chezelles, Bruno Garcia, Elliott Shugerman, Jay Kamat, Tiago Epifânio and yellowmoneybank who all contributed for the first time.
+
+Last, but not least - thank you to everyone who reported issues.
 
 # Release 1.20.4 / 2020-12-21
 
