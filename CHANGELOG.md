@@ -21,6 +21,12 @@
     -   `:mkt --clipboard` added to put a Tridactyl RC file in your clipboard. Use with e.g. GitHub Gist and `:source --url` to avoid needing `:native` installed
     -   Custom themes no longer require special classnames - see `:help colours` to see current requirements (there are essentially none) (#3288)
     -   `:set hintautoselect [true|false]` added to determine whether hints are automatically followed if there is only one (#3097)
+    -   `:set logging.autocmds debug|info|warning|error` added to make debugging autocmds easier (#3381)
+    -   `:set tabclosepinned true|false` added to prevent `d` from closing pinned tabs (#3363)
+    -   `:tabsort` command added to sort tabs according to titles, URLs or container (#3364)
+    -   `:winopen -c [container]` added for opening containers in new windows (#3326)
+    -   `:set completions.TabAll.autoselect true|false` added to allow spaces to be used when filtering (#1835)
+    -   `:scrollpage` binds now accept counts (#3319)
 
 -   Bug fixes
 
@@ -35,14 +41,22 @@
     -   `:firefoxsyncpush` no longer breaks with custom themes (#3050)
     -   `:bmark` completions no longer interfere with flags (#3274)
     -   `:zoom` works with negative relative increments (#3031)
+    -   `:undo` completions now show negative times more gracefully (#3339)
+    -   `:tabopen .thing` now searches for `.thing` (#3398)
+    -   `:winopen` no longer puts focus in the URL bar
 
 -   Miscellaneous
 
-    -   The native messenger is now written in `Nim` and is much faster (especially noticeable on `:editor`). You may need to run `:nativeupate` to update it - the latest `:native` version is `0.2.0`
+    -   The native messenger is now written in `Nim` and is much faster (especially noticeable on `:editor`). You may need to run `:nativeupate` to update it - the latest `:native` version is `0.2.5`
         -   We have removed `pyeval` support from this version - you are very unlikely to have used this since it was an internal Tridactyl command. `:exclaim` is unaffected.
     -   `:taball` now internally uses `:tab` (#3262)
     -   We no longer load all default themes into every tab (#3288)
     -   `<C-c>` and `<C-a>` binds have been removed from the command line as they were widely disliked (#3229)
+    -   `:colours shydactyl` now uses more CSS variables (#3390)
+    -   Type checking has been tightened a little (#3386)
+    -   Privacy policy added (summary: we don't collect anything outside of IP logs on our servers) (#3375)
+    -   `:native` is now cached for a few milliseconds to speed up repeated version checks (#3366)
+    -   `no-throw-literal` eslint rule added to ensure Tridactyl errors get to the user usefully
 
 # Release 1.20.4 / 2020-12-21
 
