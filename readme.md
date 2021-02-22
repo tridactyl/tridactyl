@@ -210,7 +210,7 @@ You can bind your own shortcuts in normal mode with the `:bind` command. For exa
 
     The modifiers are case insensitive. Special key names are not. The names used are those reported by Javascript with a limited number of vim compatibility aliases (e.g. `CR == Enter`).
 
-    If you want to bind <C-^> you'll find that you'll probably need to press Control+Shift+6 to trigger it. The default bind is <C-6> which does not require you to press shift.
+    If you want to bind `<C-^>` you'll find that you'll probably need to press Control+Shift+6 to trigger it. The default bind is `<C-6>` which does not require you to press shift.
 
     You can also create site specific binds with `bindurl [url] ...`
 
