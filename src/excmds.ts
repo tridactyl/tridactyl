@@ -3596,7 +3596,7 @@ export function bindurl(pattern: string, mode: string, keys: string, ...excmd: s
 }
 
 /**
- *  Makes one key equivalent to another for the purposes of most of our parsers. Useful for international keyboard layouts.
+ *  Makes one key equivalent to another for the purposes of most of our parsers. Useful for international keyboard layouts. See user-provided examples for various layouts on our wiki: https://github.com/tridactyl/tridactyl/wiki/Internationalisation
  *
  *  e.g,
  *      keymap ę e
