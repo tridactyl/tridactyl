@@ -262,11 +262,11 @@ You can bind your own shortcuts in normal mode with the `:bind` command. For exa
 
 ### Donations
 
-We gratefully accept donations via [GitHub Sponsors](https://github.com/users/bovine3dom/sponsorship) (we receive 100% of your donation), [PayPal](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=7JQHV4N2YZCTY) (about 70% of your donation makes it to our bank account after fees) and [Patreon](https://www.patreon.com/tridactyl) (about 70% of your donation makes it to our account). If you can, please make this a monthly donation as it makes it much easier to plan.
+We gratefully accept donations via [GitHub Sponsors](https://github.com/users/bovine3dom/sponsorship) (we receive 100% of your donation), [PayPal](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=7JQHV4N2YZCTY) (about 70% of your donation makes it to our bank account after fees) and [Patreon](https://www.patreon.com/tridactyl) (about 70% of your donation makes it to our account). If you can, please make this a monthly donation as it makes it much easier to plan. People who donate more than 10USD a month via GitHub or Patreon get a special monthly "tips and tricks" newsletter - see an example [here](https://github.com/tridactyl/tridactyl/blob/master/doc/newsletters/tips-and-tricks/1-hint-css-selectors.md). All GitHub and Patreon donors get a quarterly newsletter on Tridactyl development.
 
 <a href="https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=7JQHV4N2YZCTY"><img src="https://www.paypalobjects.com/en_US/GB/i/btn/btn_donateCC_LG.gif" alt="PayPal"></a>
 
-Funds will be used at the discretion of the main contributors (currently bovine3dom, cmcaine, glacambre and antonva) for Tridactyl-related expenditure, such as domain names, server costs, small thank-yous to contributors such as stickers, and victuals for hackathons.
+Funds currently ensure that bovine3dom can afford to work on Tridactyl about one day a week.
 
 ### Merchandise
 

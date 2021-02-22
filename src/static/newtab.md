@@ -4,7 +4,7 @@ Tridactyl has to override your new tab page due to WebExtension limitations. You
 
 -   You can view your current configuration with `:viewconfig`.
 
--   Tridactyl funding 👀: [donate via GitHub sponsors here](https://github.com/users/bovine3dom/sponsorship). All GitHub and Patreon donors get a nice little newsletter once every few months; people who donate at least 10USD a month get a "tips & tricks" newsletter roughly once a month. You can also donate via [PayPal](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=7JQHV4N2YZCTY), but they charge fairly high fees and you won't get any newsletters. Donations currently go towards ensuring that bovine3dom can afford to work one day a week on Tridactyl. Previously the donations have funded an in-person developer retreat.
+-   Tridactyl funding 👀: [donate via GitHub sponsors here](https://github.com/users/bovine3dom/sponsorship). All GitHub and Patreon donors get a nice little newsletter once every few months; people who donate at least 10USD a month get a "tips & tricks" newsletter roughly once a month ([see an example here](https://github.com/tridactyl/tridactyl/blob/master/doc/newsletters/tips-and-tricks/1-hint-css-selectors.md)). You can also donate via [PayPal](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=7JQHV4N2YZCTY), but they charge fairly high fees and you won't get any newsletters. Donations currently go towards ensuring that bovine3dom can afford to work one day a week on Tridactyl. Previously the donations have funded an in-person developer retreat.
 
 *   If Tridactyl breaks a website or is broken by a website, trying the steps in the [troubleshooting guide](https://github.com/tridactyl/tridactyl/blob/master/doc/troubleshooting.md) might help.
 
