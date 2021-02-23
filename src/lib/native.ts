@@ -13,6 +13,7 @@ const NATIVE_NAME = "tridactyl"
 type MessageCommand =
     | "version"
     | "run"
+    | "run_async"
     | "read"
     | "write"
     | "writerc"
@@ -381,6 +382,16 @@ export async function run(command: string, content = "") {
     const msg = await sendNativeMsg("run", { command, content })
     logger.info(msg)
     return msg
+}
+
+export async function runAsync(command: string) {
+    const required_version = "0.3.1"
+    if (!await nativegate(required_version, false)) {
+        throw new Error(
+            `runAsync needs native messenger version >= ${required_version}.`,
+        )
+    }
+    logger.info(await sendNativeMsg("run_async", { command }))
 }
 
 /** Evaluates a string in the native messenger. This has to be python code. If
