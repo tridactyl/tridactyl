@@ -194,7 +194,7 @@ export function getWordBoundaries(
             `getWordBoundaries: position (${position}) should be within text ("${text}") boundaries (0, ${text.length})`,
         )
     const pattern = new RegExp(config.get("wordpattern"), "g")
-    let boundary1 = position < text.length ? position : text.length - 1
+    let boundary1 = position < text.length ? position : text.length
     const direction = before ? -1 : 1
     // if the caret is not in a word, try to find the word before or after it
     // For `before`, we should check the char before the caret
