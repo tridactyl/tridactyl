@@ -1136,7 +1136,8 @@ export async function markjumpglobal(key: string) {
         const matchingTabs = await browserBg.tabs.query({url: mark.url})
         // If there are no matching tabs, open a new one and update the mark's tabId for future use in this session
         if (!matchingTabs.length) {
-            return openInNewTab(mark.url).then(updateMarkAndScroll)
+            // This (and only this) needs to run in the background
+            return tabopenwait(mark.url).then(updateMarkAndScroll)
         }
         // If there are multiple tabs open with the same url, just pick the first one and update the mark's tabId
         // for future use in this session
@@ -2602,6 +2603,22 @@ export async function tabgrab(id: string) {
 */
 //#background
 export async function tabopen(...addressarr: string[]): Promise<browser.tabs.Tab> {
+    return tabopen_helper({addressarr})
+}
+
+/**
+ * Like [[tabopen]] but waits for the DOM to load before resolving its promise. Useful if you're hoping to execute ex-commands in that tab.
+ */
+//#background
+export async function tabopenwait(...addressarr: string[]): Promise<browser.tabs.Tab> {
+    return tabopen_helper({addressarr, waitForDom: true})
+}
+
+/**
+ * @hidden
+ */
+//#background_helper
+export async function tabopen_helper({addressarr = [], waitForDom = false}): Promise<browser.tabs.Tab> {
     let active
     let waitForDom
     let container
