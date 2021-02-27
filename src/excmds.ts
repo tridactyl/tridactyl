@@ -74,19 +74,7 @@
 
 // Shared
 import * as Messaging from "@src/lib/messaging"
-import {
-    ownWinTriIndex,
-    getTriVersion,
-    browserBg,
-    activeTab,
-    activeTabId,
-    activeTabContainerId,
-    openInNewTab,
-    openInNewWindow,
-    openInTab,
-    queryAndURLwrangler,
-    goToTab,
-} from "@src/lib/webext"
+import { ownWinTriIndex, getTriVersion, browserBg, activeTab, activeTabId, activeTabContainerId, openInNewTab, openInNewWindow, openInTab, queryAndURLwrangler, goToTab } from "@src/lib/webext"
 import * as Container from "@src/lib/containers"
 import state from "@src/state"
 import * as State from "@src/state"
@@ -1089,7 +1077,7 @@ export async function markjumplocal(key: string) {
     const mark = localMarks.get(urlWithoutAnchor)?.get(key)
     if (mark) {
         const currentTabId = await activeTabId()
-        state.beforeJumpMark = { url: urlWithoutAnchor, scrollX: window.scrollX, scrollY: window.scrollY, tabId: currentTabId}
+        state.beforeJumpMark = { url: urlWithoutAnchor, scrollX: window.scrollX, scrollY: window.scrollY, tabId: currentTabId }
         scrolltab(currentTabId, mark.scrollX, mark.scrollY, `Jumped to mark '${key}'`)
     }
     return fillcmdline_tmp(3000, `Mark '${key}' is not set`)
@@ -1112,7 +1100,7 @@ export async function markjumpglobal(key: string) {
         url: window.location.href.split("#")[0],
         scrollX: window.scrollX,
         scrollY: window.scrollY,
-        tabId: currentTabId
+        tabId: currentTabId,
     }
     try {
         const tab = await browserBg.tabs.get(mark.tabId)
@@ -1133,7 +1121,7 @@ export async function markjumpglobal(key: string) {
 
     // the tab with mark's tabId doesn't exist or it has a different url than the mark's url
     async function onTabNoLongerValid() {
-        const matchingTabs = await browserBg.tabs.query({url: mark.url})
+        const matchingTabs = await browserBg.tabs.query({ url: mark.url })
         // If there are no matching tabs, open a new one and update the mark's tabId for future use in this session
         if (!matchingTabs.length) {
             // This (and only this) needs to run in the background
@@ -1164,12 +1152,12 @@ export async function markjumpbefore() {
     try {
         const tab = await browserBg.tabs.get(beforeJumpMark.tabId)
         const tabUrl = tab.url.split("#")[0]
-        const {url, scrollX, scrollY, tabId} = beforeJumpMark
+        const { url, scrollX, scrollY, tabId } = beforeJumpMark
         if (url !== tabUrl) {
             return
         }
         const currentTabId = await activeTabId()
-        state.beforeJumpMark = {url: window.location.href.split("#")[0], scrollX: window.scrollX, scrollY: window.scrollY, tabId: currentTabId}
+        state.beforeJumpMark = { url: window.location.href.split("#")[0], scrollX: window.scrollX, scrollY: window.scrollY, tabId: currentTabId }
         goToTab(tabId).then(() => scrolltab(tabId, scrollX, scrollY, "Jumped to the last location before a mark jump"))
     } catch (e) {
         // the mark's tab is no longer valid
@@ -1210,7 +1198,7 @@ export async function markaddlocal(key: string) {
     const urlWithoutAnchor = window.location.href.split("#")[0]
     const localMarks = await State.getAsync("localMarks")
     const localUrlMarks = localMarks.get(urlWithoutAnchor) ? localMarks.get(urlWithoutAnchor) : new Map()
-    const newLocalMark = { scrollX: window.scrollX, scrollY: window.scrollY}
+    const newLocalMark = { scrollX: window.scrollX, scrollY: window.scrollY }
     localUrlMarks.set(key, newLocalMark)
     localMarks.set(urlWithoutAnchor, localUrlMarks)
     state.localMarks = localMarks
@@ -2603,7 +2591,7 @@ export async function tabgrab(id: string) {
 */
 //#background
 export async function tabopen(...addressarr: string[]): Promise<browser.tabs.Tab> {
-    return tabopen_helper({addressarr})
+    return tabopen_helper({ addressarr })
 }
 
 /**
@@ -2611,14 +2599,14 @@ export async function tabopen(...addressarr: string[]): Promise<browser.tabs.Tab
  */
 //#background
 export async function tabopenwait(...addressarr: string[]): Promise<browser.tabs.Tab> {
-    return tabopen_helper({addressarr, waitForDom: true})
+    return tabopen_helper({ addressarr, waitForDom: true })
 }
 
 /**
  * @hidden
  */
 //#background_helper
-export async function tabopen_helper({addressarr = [], waitForDom = false}): Promise<browser.tabs.Tab> {
+export async function tabopen_helper({ addressarr = [], waitForDom = false }): Promise<browser.tabs.Tab> {
     let active
     let waitForDom
     let container
@@ -4946,7 +4934,7 @@ export function jumble() {
 //#content
 export function acceptExCmd(destination: number | "background", ex_string: string[]) {
     if (destination === "background") {
-        return run_exstr(...ex_string);
+        return run_exstr(...ex_string)
     }
     return Messaging.messageTab(destination, "controller_content", "acceptExCmd", ex_string)
 }
