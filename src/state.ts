@@ -28,21 +28,29 @@ class State {
         },
     ]
     last_ex_str = "echo"
-    globalMarks: Map<string, {
-        url: string,
-        scrollX: string,
-        scrollY: string
-        tabId: number
-    }> = new Map()
-    localMarks: Map<string,
-        Map<string, {
-            scrollX: number,
+    globalMarks: Map<
+        string,
+        {
+            url: string
+            scrollX: number
             scrollY: number
-        }>> = new Map()
+            tabId: number
+        }
+    > = new Map()
+    localMarks: Map<
+        string,
+        Map<
+            string,
+            {
+                scrollX: number
+                scrollY: number
+            }
+        >
+    > = new Map()
     beforeJumpMark: {
-        url: string,
-        scrollX: number,
-        scrollY: number,
+        url: string
+        scrollX: number
+        scrollY: number
         tabId: number
     } = undefined
 }
