@@ -2,6 +2,7 @@ import * as convert from "@src/lib/convert"
 import browserProxy from "@src/lib/browser_proxy"
 import * as config from "@src/lib/config"
 import * as UrlUtil from "@src/lib/url_util"
+import { sleep } from "@src/lib/patience"
 
 export function inContentScript() {
     return getContext() === "content"
@@ -130,6 +131,7 @@ export async function openInNewTab(
         related: false,
         cookieStoreId: undefined,
     },
+    waitForDOM = false,
 ) {
     const thisTab = await activeTab()
     const options: Parameters<typeof browser.tabs.create>[0] = {
@@ -165,14 +167,43 @@ export async function openInNewTab(
             break
     }
 
+    const tabCreateWrapper = async options => {
+        const tab = await browserBg.tabs.create(options)
+        const answer: Promise<browser.tabs.Tab> = new Promise(resolve => {
+            // This can't run in content scripts, obviously
+            // surely we never call this from a content script?
+            if (waitForDOM) {
+                const listener = (message, sender) => {
+                    if (
+                        message === "dom_loaded_background" &&
+                        sender?.tab?.id === tab.id
+                    ) {
+                        browserBg.runtime.onMessage.removeListener(listener)
+                        resolve(tab)
+                    }
+                }
+                browserBg.runtime.onMessage.addListener(listener)
+            } else {
+                resolve(tab)
+            }
+        })
+        // Return on slow- / extremely quick- loading pages anyway
+        return Promise.race([
+            answer,
+            (async () => {
+                await sleep(750)
+                return tab
+            })(),
+        ])
+    }
     if (kwargs.active === false) {
         // load in background
-        return browserBg.tabs.create(options)
+        return tabCreateWrapper(options)
     } else {
         // load in background and then activate, per issue #1993
-        return browserBg.tabs
-            .create(options)
-            .then(newtab => browserBg.tabs.update(newtab.id, { active: true }))
+        return tabCreateWrapper(options).then(newtab =>
+            browserBg.tabs.update(newtab.id, { active: true }),
+        )
     }
 }
 

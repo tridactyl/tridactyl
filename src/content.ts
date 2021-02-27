@@ -347,7 +347,10 @@ config.getAsync("modeindicator").then(mode => {
         statusIndicator.className +=
             " TridactylMode" + statusIndicator.textContent
 
-        if ((config.get("modeindicator") !== "true") || (config.get("modeindicatormodes",mode) !== "true")) {
+        if (
+            config.get("modeindicator") !== "true" ||
+            config.get("modeindicatormodes", mode) !== "true"
+        ) {
             statusIndicator.remove()
         }
     })
@@ -378,6 +381,16 @@ config.getAsync("leavegithubalone").then(v => {
         })
     }
 })
+
+// I still don't get lib/messaging.ts
+const phoneHome = () => browser.runtime.sendMessage("dom_loaded_background")
+if (document.readyState === "interactive") {
+    phoneHome()
+} else {
+    window.addEventListener("DOMContentLoaded", () => {
+        phoneHome()
+    })
+}
 
 document.addEventListener("selectionchange", () => {
     const selection = document.getSelection()
