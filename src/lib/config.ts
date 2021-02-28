@@ -1151,7 +1151,11 @@ const platform_defaults = {
             "<C-6>": "buffer #",
         } as unknown,
 
-        nativeinstallcmd: `powershell -NoProfile -Command "(New-Object System.Net.WebClient).DownloadFile('https://raw.githubusercontent.com/tridactyl/native_messenger/master/installers/windows.ps1', """$env:temp/tridactyl_installnative.ps1""")" & powershell -NoProfile -File %temp%\\tridactyl_installnative.ps1 -Tag %TAG & del %temp%\\tridactyl_installnative.ps1`,
+        nativeinstallcmd: `powershell -NoProfile -Command "\
+[Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12;\
+(New-Object System.Net.WebClient).DownloadFile('https://raw.githubusercontent.com/tridactyl/native_messenger/master/installers/windows.ps1', '%TEMP%/tridactyl_installnative.ps1');\
+& '%TEMP%/tridactyl_installnative.ps1' -Tag %TAG;\
+Remove-Item '%TEMP%/tridactyl_installnative.ps1'"`,
     },
     linux: {
         nmaps: {

@@ -92,6 +92,7 @@ import * as TTS from "@src/lib/text_to_speech"
 import * as excmd_parser from "@src/parsers/exmode"
 import * as escape from "@src/lib/escape"
 import * as R from "ramda"
+import * as semverCompare from "semver-compare"
 
 /**
  * This is used to drive some excmd handling in `composite`.
@@ -832,16 +833,29 @@ export async function source_quiet(...args: string[]) {
  */
 //#background
 export async function updatenative(interactive = true) {
-    const tag = TRI_VERSION.includes("pre") ? "master" : TRI_VERSION
-    if (await Native.nativegate("0", interactive)) {
-        if ((await browser.runtime.getPlatformInfo()).os === "mac") {
-            if (interactive) logger.error("Updating the native messenger on OSX is broken. Please use `:nativeinstall` instead.")
-            return
-        }
-        await Native.run((await config.get("nativeinstallcmd")).replace("%TAG", tag))
-
-        if (interactive) native()
+    if (!(await Native.nativegate("0", interactive))) {
+        return
+    } else if ((await browser.runtime.getPlatformInfo()).os === "mac") {
+        if (interactive) logger.error("Updating the native messenger on OSX is broken. Please use `:nativeinstall` instead.")
+        return
     }
+
+    const tag = TRI_VERSION.includes("pre") ? "master" : TRI_VERSION
+    const update_command = (await config.get("nativeinstallcmd")).replace("%TAG", tag)
+    const native_version = await Native.getNativeMessengerVersion()
+
+    if (semverCompare(native_version, "0.2.0") < 0) {
+        await Native.run(update_command)
+    } else if (semverCompare(native_version, "0.3.1") < 0) {
+        if (interactive) {
+            throw new Error("Updating is broken on this version of the native messenger. Please use `:nativeinstall` instead.")
+        }
+        return
+    } else {
+        await Native.runAsync(update_command)
+    }
+
+    if (interactive) native()
 }
 
 /**
