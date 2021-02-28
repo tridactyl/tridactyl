@@ -1152,6 +1152,7 @@ const platform_defaults = {
         } as unknown,
 
         nativeinstallcmd: `powershell -NoProfile -Command "\
+[Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12;\
 (New-Object System.Net.WebClient).DownloadFile('https://raw.githubusercontent.com/tridactyl/native_messenger/master/installers/windows.ps1', '%TEMP%/tridactyl_installnative.ps1');\
 & '%TEMP%/tridactyl_installnative.ps1' -Tag %TAG;\
 Remove-Item '%TEMP%/tridactyl_installnative.ps1'"`,
