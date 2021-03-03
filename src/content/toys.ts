@@ -9,21 +9,17 @@
  */
 export function jack_in() {
     // chinese characters - taken from the unicode charset
-    const chinese = "田由甲申甴电甶男甸甹町画甼甽甾甿畀畁畂畃畄畅畆畇畈畉畊畋界畍畎畏畐畑".split(
-        "",
-    )
+    const chinese = "田由甲申甴电甶男甸甹町画甼甽甾甿畀畁畂畃畄畅畆畇畈畉畊畋界畍畎畏畐畑".split("")
     const colour = "#0F0" // green text
-    rain(chinese, colour)
+    rain(makeBlock(), chinese, colour)
 }
-
 export function no_mouse() {
-    rain([" "], "#FFF", 0) // No characters, unused colour code, no darkening
+    makeBlock()
 }
 
-export const snow = () => rain(["❄"], "#FFF", 0.15)
-
-export function rain(characters: string[], colour, darkening = 0.05) {
+function makeBlock() {
     const d = document.createElement("div")
+    d.className = "_tridactyl_no_mouse_"
     d.style.position = "fixed"
     d.style.display = "block"
     d.style.width = "100%"
@@ -33,7 +29,17 @@ export function rain(characters: string[], colour, darkening = 0.05) {
     d.style.right = "0"
     d.style.bottom = "0"
     d.style.zIndex = "1000"
-    d.style.opacity = "0.5"
+    d.style.opacity = "1"
+    return d
+}
+
+function removeBlock() {
+    document.getElementsByClassName("_tridactyl_no_mouse_").map(el=>{clearInterval(el.intid); el.remove()})
+}
+
+export const snow = () => rain(makeBlock(), ["❄"], "#FFF", 0.15)
+
+export function rain(d, characters: string[], colour, darkening = 0.05) {
     const c = document.createElement("canvas")
     d.appendChild(c)
     document.body.appendChild(d)
@@ -79,6 +85,6 @@ export function rain(characters: string[], colour, darkening = 0.05) {
             drops[i]++
         }
     }
-
-    setInterval(draw, 33)
+    intid = setInterval(draw, 33)
+    d.intid = intid
 }
