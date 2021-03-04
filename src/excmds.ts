@@ -66,7 +66,7 @@
     [freenode-badge]: /static/badges/freenode-badge.svg
     [freenode-link]: ircs://chat.freenode.net/tridactyl
     [matrix-badge]: /static/badges/matrix-badge.svg
-    [matrix-link]: https://app.element.io/#/room/#tridactyl:matrix.org
+    [matrix-link]: https://matrix.to/#/#tridactyl:matrix.org
 */
 /** ignore this line */
 
