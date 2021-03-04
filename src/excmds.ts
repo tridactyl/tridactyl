@@ -1565,6 +1565,8 @@ export async function credits() {
  *
  * Suggested usage: `autocmd DocLoad .* no_mouse_mode`
  *
+ * To revert, use [[mouse_mode]]
+ *
  * "There is no mouse".
  */
 //#content
@@ -1585,11 +1587,29 @@ export function neo_mouse_mode() {
 }
 
 /**
- * Christmas variant of [[no_mouse_mode]] (if you live in $DEFAULT hemisphere).
+ * Christmas variant of [[no_mouse_mode]].
  */
 //#content
 export function snow_mouse_mode() {
     toys.snow()
+}
+
+/**
+* Music variant of [[no_mouse_mode]].
+*/
+//#content
+export function pied_piper_mouse_mode() {
+    toys.music()
+}
+
+/**
+ * Revert any variant of the no_mouse_mode
+ *
+ * Suggested usage: `bind <C-]> mouse_mode`
+ */
+//#content
+export function mouse_mode() {
+    toys.removeBlock()
 }
 
 /** @hidden */
