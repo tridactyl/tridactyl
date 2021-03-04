@@ -20,7 +20,7 @@ Tridactyl
 <a href="#changelog">Changelog</a> •
 <a href="#first-look">First Look</a> •
 <a href="#highlighted-features">Features</a> •
-<a href="#frequently-asked-questions">FAQ</a> •
+<a href="#frequently-asked-questions-faq">FAQ</a> •
 <a href="#contributing">Contributing</a>
 </p>
 
