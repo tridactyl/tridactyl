@@ -471,21 +471,34 @@ export async function clipboard(
 /**
  * This returns the commandline that was used to start Firefox.
  * You'll get both the binary (not necessarily an absolute path) and flags.
- *
- * On Windows, the main Firefox process is not the direct parent of the native
- * messenger's process, so we need to go up the process tree till we find it.
- * That's rather slow, so this function shouldn't be called unless really necessary.
  */
 export async function ff_cmdline(): Promise<string[]> {
     let output: MessageResp
     if ((await browserBg.runtime.getPlatformInfo()).os === "win") {
-        output = await run(
-            "powershell -Command " +
-                '"$ppid = Get-CimInstance -Property ProcessId,ParentProcessId Win32_Process | Where-Object -Property ProcessId -EQ $PID | Select-Object -ExpandProperty ParentProcessId;' +
-                "$pproc = Get-CimInstance -Property ProcessId,ParentProcessId,Name,CommandLine Win32_Process | Where-Object -Property ProcessId -EQ $ppid;" +
-                "while ($pproc.Name -notmatch 'firefox') { $ppid = $pproc.ParentProcessId;" +
-                '$pproc = Get-CimInstance Win32_Process | Where-Object -Property ProcessId -EQ $ppid}; Write-Output $pproc.CommandLine"',
-        )
+        if (!(await nativegate("0.3.3", false))) {
+            const browser = await config.get("browser")
+            output = await run(
+                `powershell -NoProfile -Command "\
+$processes = Get-CimInstance -Property ProcessId,ParentProcessId,Name,CommandLine -ClassName Win32_Process;\
+if (-not ($processes | where { $_.Name -match '^${browser}' })) { exit 1; };\
+$ppid = ($processes | where { $_.ProcessId -EQ $PID }).ParentProcessId;\
+$pproc = $processes | where { $_.ProcessId -EQ $ppid };\
+while ($pproc.Name -notmatch '^${browser}') {\
+    $ppid = $pproc.ParentProcessId;\
+    $pproc = $processes | where { $_.ProcessId -EQ $ppid };\
+};\
+Write-Output $pproc.CommandLine;\
+"`,
+            )
+        } else {
+            output = await run(
+                `powershell -NoProfile -Command "\
+Get-CimInstance -Property CommandLine,ProcessId -ClassName Win32_Process \
+| where { $_.ProcessId -EQ ${(await sendNativeMsg("ppid", {})).content} } \
+| select -ExpandProperty CommandLine | Write-Output\
+"`
+            )
+        }
     } else {
         const actualVersion = await getNativeMessengerVersion()
 
