@@ -1603,7 +1603,7 @@ export function pied_piper_mouse_mode() {
 }
 
 /**
- * Revert any variant of the no_mouse_mode
+ * Revert any variant of the [[no_mouse_mode]]
  *
  * Suggested usage: `bind <C-]> mouse_mode`
  */
