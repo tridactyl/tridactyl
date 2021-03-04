@@ -73,7 +73,7 @@ You have more questions? Have a look at our [FAQ][faq-link] or search our [issue
 [freenode-badge]: /static/badges/freenode-badge.svg
 [freenode-link]: ircs://chat.freenode.net/tridactyl
 [matrix-badge]: /static/badges/matrix-badge.svg
-[matrix-link]: https://app.element.io/#/room/#tridactyl:matrix.org
+[matrix-link]: https://matrix.to/#/#tridactyl:matrix.org
 [amo]: https://addons.mozilla.org/en-US/firefox/addon/tridactyl-vim/reviews/
 [nonewtablink]: https://tridactyl.cmcaine.co.uk/betas/nonewtab/tridactyl_no_new_tab_beta-latest.xpi
 [migratelink]: https://github.com/tridactyl/tridactyl/issues/79#issuecomment-351132451
