@@ -22,19 +22,25 @@ function makeBlock() {
     d.className = "_tridactyl_no_mouse_"
     d.style.position = "fixed"
     d.style.display = "block"
-    d.style.width = "100%"
-    d.style.height = "100%"
+    d.style.width = window.innerWidth
+    d.style.height = window.innerHeight
     d.style.top = "0"
     d.style.left = "0"
     d.style.right = "0"
     d.style.bottom = "0"
     d.style.zIndex = "1000"
     d.style.opacity = "1"
+    document.body.appendChild(d)
     return d
 }
 
 function removeBlock() {
-    document.getElementsByClassName("_tridactyl_no_mouse_").map(el=>{clearInterval(el.intid); el.remove()})
+    document.getElementsByClassName("_tridactyl_no_mouse_").map(el=>{
+        if(el.intid!=null){
+            clearInterval(el.intid)
+        }
+        el.remove();
+    });
 }
 
 export const snow = () => rain(makeBlock(), ["❄"], "#FFF", 0.15)
@@ -42,7 +48,6 @@ export const snow = () => rain(makeBlock(), ["❄"], "#FFF", 0.15)
 export function rain(d, characters: string[], colour, darkening = 0.05) {
     const c = document.createElement("canvas")
     d.appendChild(c)
-    document.body.appendChild(d)
     const ctx = c.getContext("2d")
 
     // making the canvas full screen
