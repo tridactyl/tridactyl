@@ -140,7 +140,7 @@ You can run Tridactyl easily in a temporary Firefox profile with `yarn run run`.
 
 [Queensberry rules](https://en.oxforddictionaries.com/definition/queensberry_rules).
 
-[matrix]: https://app.element.io/#/room/#tridactyl:matrix.org
+[matrix]: https://matrix.to/#/#tridactyl:matrix.org
 [issues]: https://github.com/tridactyl/tridactyl/issues?utf8=%E2%9C%93&q=is%3Aissue+is%3Aopen+
 [easyissues]: https://github.com/tridactyl/tridactyl/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22
 [helpus]: https://github.com/tridactyl/tridactyl/issues?q=is%3Aissue+is%3Aopen+label%3A%22help+wanted%22
