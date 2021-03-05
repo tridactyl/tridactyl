@@ -476,14 +476,14 @@ export async function ff_cmdline(): Promise<string[]> {
     let output: MessageResp
     if ((await browserBg.runtime.getPlatformInfo()).os === "win") {
         if (!(await nativegate("0.3.3", false))) {
-            const browser = await config.get("browser")
+            const browser_name = await config.get("browser")
             output = await run(
                 `powershell -NoProfile -Command "\
 $processes = Get-CimInstance -Property ProcessId,ParentProcessId,Name,CommandLine -ClassName Win32_Process;\
-if (-not ($processes | where { $_.Name -match '^${browser}' })) { exit 1; };\
+if (-not ($processes | where { $_.Name -match '^${browser_name}' })) { exit 1; };\
 $ppid = ($processes | where { $_.ProcessId -EQ $PID }).ParentProcessId;\
 $pproc = $processes | where { $_.ProcessId -EQ $ppid };\
-while ($pproc.Name -notmatch '^${browser}') {\
+while ($pproc.Name -notmatch '^${browser_name}') {\
     $ppid = $pproc.ParentProcessId;\
     $pproc = $processes | where { $_.ProcessId -EQ $ppid };\
 };\
