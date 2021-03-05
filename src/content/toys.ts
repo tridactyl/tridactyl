@@ -31,8 +31,8 @@ function makeBlock() {
     d.className = "_tridactyl_no_mouse_"
     d.style.position = "fixed"
     d.style.display = "block"
-    d.style.width = window.innerWidth
-    d.style.height = window.innerHeight
+    d.style.width = String(window.innerWidth)
+    d.style.height = String(window.innerHeight)
     d.style.top = "0"
     d.style.left = "0"
     d.style.right = "0"
@@ -43,13 +43,13 @@ function makeBlock() {
     return d
 }
 
-function removeBlock() {
-    document.getElementsByClassName("_tridactyl_no_mouse_").map(el=>{
-        if(el.intid!=null){
-            clearInterval(el.intid)
+export function removeBlock() {
+    Array.from(document.getElementsByClassName("_tridactyl_no_mouse_")).map(el=>{
+        if((el as any).intid!=null){
+            clearInterval((el as any).intid)
         }
-        el.remove();
-    });
+        el.remove()
+    })
 }
 
 export const snow = () => rain(makeBlock(), ["❄"], "#FFF", 0.15)
@@ -99,6 +99,5 @@ export function rain(d, characters: string[], colour, darkening = 0.05) {
             drops[i]++
         }
     }
-    intid = setInterval(draw, 33)
-    d.intid = intid
+    d.intid = setInterval(draw, 33)
 }
