@@ -1587,7 +1587,7 @@ export function neo_mouse_mode() {
 }
 
 /**
- * Christmas variant of [[no_mouse_mode]].
+ * Christmas variant of [[no_mouse_mode]] (if you live in $DEFAULT hemisphere).
  */
 //#content
 export function snow_mouse_mode() {
