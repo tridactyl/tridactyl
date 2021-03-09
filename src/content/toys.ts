@@ -44,9 +44,9 @@ function makeBlock() {
 }
 
 export function removeBlock() {
-    Array.from(document.getElementsByClassName("_tridactyl_no_mouse_")).map(el=>{
-        if((el as any).intid!=null){
-            clearInterval((el as any).intid)
+    Array.from(document.getElementsByClassName("_tridactyl_no_mouse_")).map((el: Element & { intid?: number | null}) => {
+        if(typeof el.intid === "number") {
+            clearInterval(el.intid)
         }
         el.remove()
     })
