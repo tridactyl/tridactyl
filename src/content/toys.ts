@@ -54,9 +54,9 @@ export function removeBlock() {
 
 export const snow = () => rain(makeBlock(), ["❄"], "#FFF", 0.15)
 
-export function rain(d, characters: string[], colour, darkening = 0.05) {
+export function rain(overlaydiv, characters: string[], colour, darkening = 0.05) {
     const c = document.createElement("canvas")
-    d.appendChild(c)
+    overlaydiv.appendChild(c)
     const ctx = c.getContext("2d")
 
     // making the canvas full screen
@@ -99,5 +99,5 @@ export function rain(d, characters: string[], colour, darkening = 0.05) {
             drops[i]++
         }
     }
-    d.intid = setInterval(draw, 33)
+    overlaydiv.intid = setInterval(draw, 33)
 }
