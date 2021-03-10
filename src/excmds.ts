@@ -1563,9 +1563,9 @@ export async function credits() {
 /**
  * Cover the current page in an overlay to prevent clicking on links with the mouse to force yourself to use hint mode. Get rid of it by reloading the page.
  *
- * Suggested usage: `autocmd DocLoad .* no_mouse_mode`
+ * To bring back mouse control, use [[mouse_mode]] or refresh the page.
  *
- * To revert, use [[mouse_mode]]
+ * Suggested usage: `autocmd DocLoad .* no_mouse_mode`
  *
  * "There is no mouse".
  */
@@ -1605,7 +1605,7 @@ export function pied_piper_mouse_mode() {
 /**
  * Revert any variant of the [[no_mouse_mode]]
  *
- * Suggested usage: `bind <C-]> mouse_mode`
+ * Suggested usage: `bind <C-\> mouse_mode` with the autocmd mentioned in [[no_mouse_mode]].
  */
 //#content
 export function mouse_mode() {
