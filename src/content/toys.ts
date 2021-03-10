@@ -27,20 +27,20 @@ export function no_mouse() {
 }
 
 function makeBlock() {
-    const d = document.createElement("div")
-    d.className = "_tridactyl_no_mouse_"
-    d.style.position = "fixed"
-    d.style.display = "block"
-    d.style.width = String(window.innerWidth)
-    d.style.height = String(window.innerHeight)
-    d.style.top = "0"
-    d.style.left = "0"
-    d.style.right = "0"
-    d.style.bottom = "0"
-    d.style.zIndex = "1000"
-    d.style.opacity = "0.5"
-    document.body.appendChild(d)
-    return d
+    const overlaydiv = document.createElement("div")
+    overlaydiv.className = "_tridactyl_no_mouse_"
+    overlaydiv.style.position = "fixed"
+    overlaydiv.style.display = "block"
+    overlaydiv.style.width = String(window.innerWidth)
+    overlaydiv.style.height = String(window.innerHeight)
+    overlaydiv.style.top = "0"
+    overlaydiv.style.left = "0"
+    overlaydiv.style.right = "0"
+    overlaydiv.style.bottom = "0"
+    overlaydiv.style.zIndex = "1000"
+    overlaydiv.style.opacity = "0.5"
+    document.body.appendChild(overlaydiv)
+    return overlaydiv
 }
 
 export function removeBlock() {
@@ -54,7 +54,7 @@ export function removeBlock() {
 
 export const snow = () => rain(makeBlock(), ["❄"], "#FFF", 0.15)
 
-export function rain(overlaydiv, characters: string[], colour, darkening = 0.05) {
+function rain(overlaydiv, characters: string[], colour, darkening = 0.05) {
     const c = document.createElement("canvas")
     overlaydiv.appendChild(c)
     const ctx = c.getContext("2d")
