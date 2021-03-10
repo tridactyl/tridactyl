@@ -1563,6 +1563,8 @@ export async function credits() {
 /**
  * Cover the current page in an overlay to prevent clicking on links with the mouse to force yourself to use hint mode. Get rid of it by reloading the page.
  *
+ * To bring back mouse control, use [[mouse_mode]] or refresh the page.
+ *
  * Suggested usage: `autocmd DocLoad .* no_mouse_mode`
  *
  * "There is no mouse".
@@ -1590,6 +1592,24 @@ export function neo_mouse_mode() {
 //#content
 export function snow_mouse_mode() {
     toys.snow()
+}
+
+/**
+* Music variant of [[no_mouse_mode]].
+*/
+//#content
+export function pied_piper_mouse_mode() {
+    toys.music()
+}
+
+/**
+ * Revert any variant of the [[no_mouse_mode]]
+ *
+ * Suggested usage: `bind <C-\> mouse_mode` with the autocmd mentioned in [[no_mouse_mode]].
+ */
+//#content
+export function mouse_mode() {
+    toys.removeBlock()
 }
 
 /** @hidden */

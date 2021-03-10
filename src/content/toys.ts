@@ -9,34 +9,54 @@
  */
 export function jack_in() {
     // chinese characters - taken from the unicode charset
-    const chinese = "田由甲申甴电甶男甸甹町画甼甽甾甿畀畁畂畃畄畅畆畇畈畉畊畋界畍畎畏畐畑".split(
-        "",
-    )
+    const chinese = "田由甲申甴电甶男甸甹町画甼甽甾甿畀畁畂畃畄畅畆畇畈畉畊畋界畍畎畏畐畑".split("")
     const colour = "#0F0" // green text
-    rain(chinese, colour)
+    rain(makeBlock(), chinese, colour)
+}
+
+
+export function music() {
+    // music characters - taken from the unicode charset
+    const music = "𝄞𝄟𝄰𝅘𝅥𝅮𝅘𝅥𝅯𝅘𝅥𝅰𝄽".split("")
+    const colour = "#ead115"
+    rain(makeBlock(), music, colour)
 }
 
 export function no_mouse() {
-    rain([" "], "#FFF", 0) // No characters, unused colour code, no darkening
+    makeBlock()
 }
 
-export const snow = () => rain(["❄"], "#FFF", 0.15)
+function makeBlock() {
+    const overlaydiv = document.createElement("div")
+    overlaydiv.className = "_tridactyl_no_mouse_"
+    overlaydiv.style.position = "fixed"
+    overlaydiv.style.display = "block"
+    overlaydiv.style.width = String(window.innerWidth)
+    overlaydiv.style.height = String(window.innerHeight)
+    overlaydiv.style.top = "0"
+    overlaydiv.style.left = "0"
+    overlaydiv.style.right = "0"
+    overlaydiv.style.bottom = "0"
+    overlaydiv.style.zIndex = "1000"
+    overlaydiv.style.opacity = "0.5"
+    document.body.appendChild(overlaydiv)
+    return overlaydiv
+}
 
-export function rain(characters: string[], colour, darkening = 0.05) {
-    const d = document.createElement("div")
-    d.style.position = "fixed"
-    d.style.display = "block"
-    d.style.width = "100%"
-    d.style.height = "100%"
-    d.style.top = "0"
-    d.style.left = "0"
-    d.style.right = "0"
-    d.style.bottom = "0"
-    d.style.zIndex = "1000"
-    d.style.opacity = "0.5"
+export function removeBlock() {
+    Array.from(document.getElementsByClassName("_tridactyl_no_mouse_")).map((el: Element & { intid?: number | null}) => {
+        if(typeof el.intid === "number") {
+            clearInterval(el.intid)
+        }
+        el.remove()
+    })
+}
+
+export const snow = () => rain(makeBlock(), ["❄"], "#FFF", 0.15)
+
+function rain(overlaydiv, characters: string[], colour, darkening = 0.05) {
     const c = document.createElement("canvas")
-    d.appendChild(c)
-    document.body.appendChild(d)
+    overlaydiv.appendChild(c)
     const ctx = c.getContext("2d")
 
     // making the canvas full screen
@@ -79,6 +99,5 @@ export function rain(characters: string[], colour, darkening = 0.05) {
             drops[i]++
         }
     }
-
-    setInterval(draw, 33)
+    overlaydiv.intid = setInterval(draw, 33)
 }
