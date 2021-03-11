@@ -364,7 +364,7 @@ export class default_config {
         h: 'js document.getSelection().modify("extend","backward","character")',
         e: 'js document.getSelection().modify("extend","forward","word")',
         w:
-            'js document.getSelection().modify("extend","forward","word"); document.getSelection().modify("extend","forward","character")',
+            'js document.getSelection().modify("extend","forward","word"); document.getSelection().modify("extend","forward","word"); document.getSelection().modify("extend","backward","word"); document.getSelection().modify("extend","forward","character")',
         b:
             'js document.getSelection().modify("extend","backward","character"); document.getSelection().modify("extend","backward","word"); document.getSelection().modify("extend","forward","character")',
         j: 'js document.getSelection().modify("extend","forward","line")',
