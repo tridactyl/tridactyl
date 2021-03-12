@@ -3,7 +3,6 @@
 set -e
 
 CLEANSLATE="node_modules/cleanslate/docs/files/cleanslate.css"
-TRIDACTYL_LOGO="src/static/logo/Tridactyl_64px.png"
 
 isWindowsMinGW() {
   is_mingw="False"
@@ -73,15 +72,4 @@ if [ -e "$CLEANSLATE" ] ; then
 	cp -v "$CLEANSLATE" build/static/css/cleanslate.css
 else
 	echo "Couldn't find cleanslate.css. Try running 'yarn install'"
-fi
-
-if [ -e "$TRIDACTYL_LOGO" ] ; then
-    # sed and base64 take different arguments on Mac
-    case "$(uname)" in
-      Darwin*) sed -i "" "s@REPLACE_ME_WITH_BASE64_TRIDACTYL_LOGO@$(base64 "$TRIDACTYL_LOGO")@" build/static/themes/default/default.css;;
-      *BSD) sed -in "s@REPLACE_ME_WITH_BASE64_TRIDACTYL_LOGO@$(base64 "$TRIDACTYL_LOGO" | tr -d '\r\n')@" build/static/themes/default/default.css;;
-      *) sed "s@REPLACE_ME_WITH_BASE64_TRIDACTYL_LOGO@$(base64 --wrap 0 "$TRIDACTYL_LOGO")@" -i build/static/themes/default/default.css;;
-    esac
-else
-	echo "Couldn't find Tridactyl logo ($TRIDACTYL_LOGO)"
 fi
