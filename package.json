@@ -29,7 +29,7 @@
     "@typescript-eslint/parser": "^4.17.0",
     "cleanslate": "^0.10.1",
     "copy-webpack-plugin": "^7.0.0",
-    "eslint": "^7.21.0",
+    "eslint": "^7.22.0",
     "eslint-config-prettier": "^7.2.0",
     "eslint-plugin-import": "^2.22.1",
     "eslint-plugin-jsdoc": "^32.2.0",
