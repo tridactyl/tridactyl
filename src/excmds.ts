@@ -202,8 +202,8 @@ export async function getRssLinks(): Promise<Array<{ type: string; url: string; 
                 type = e.type
             } else {
                 // Making sure that we match either a dot or "xml" because "urss" and "atom" are actual words
-                if (e.href.match(/(\.rss)|(rss\.xml)/i)) type = "application/rss+xml"
-                else if (e.href.match(/(\.atom)|(atom\.xml)/i)) type = "application/atom+xml"
+                if (/(\.rss)|(rss\.xml)/i.test(e.href)) type = "application/rss+xml"
+                else if (/(\.atom)|(atom\.xml)/i.test(e.href)) type = "application/atom+xml"
                 else return acc
             }
             if (seen.has(e.href)) return acc
