@@ -31,6 +31,7 @@ The idea behind Tridactyl is to allow you to navigate the web more efficiently w
     -   This mode passes all keypresses through to the web page. It is useful for websites that have their own keybinds, such as games and Gmail.
     -   You can toggle the mode with `Shift-Insert`, `Ctrl-Alt-Escape`, `Ctrl-Alt-Backtick`, or `Shift-Esc`.
     -   While in ignore mode, you can execute a single normal mode binding by pressing `<C-o>` followed by the keys for the binding.
+    -   Tridactyl can be configured to enter ignore mode for specified URLs. Run `:blacklistadd [url]` to put Tridactyl in ignore mode on the provided URL. Use the command `:blacklistremove [url]` to remove the URL from the blacklist.
 
 Almost all of the modes are controlled by series of keypresses. In this tutorial, a sequence of keys such as `zz` should be entered by pressing the key `z`, letting go, and then pressing the key `z`. There is no need to hold both keys at once, if that were even possible. (`zz` resets the zoom level to the default, so it probably didn't seem to do anything). Sometimes `help` refers to a command that must be entered in command mode; it should hopefully always be clear from context which we mean.
 
