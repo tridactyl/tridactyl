@@ -888,7 +888,7 @@ export async function restart() {
 
 /** Download the current document.
  *
- * If you have the native messenger v>=0.1.9 installed, the function accepts one optional argument, filename, which can be:
+ * If you have the native messenger v>=0.1.9 installed, the function accepts an optional argument, filename, which can be:
  * - An absolute path
  * - A path starting with ~, which will be expanded to your home directory
  * - A relative path, relative to the native messenger executable (e.g. ~/.local/share/tridactyl on linux).
@@ -896,12 +896,39 @@ export async function restart() {
  *
  * **NB**: if a non-default save location is chosen, Firefox's download manager will say the file is missing. It is not - it is where you asked it to be saved.
  *
- * @param filename The name the file should be saved as.
+ * Flags:
+ * - `--overwrite`: overwrite the destination file.
+ * - `--cleanup`: removes the downloaded source file e.g. `$HOME/Downlods/downloaded.doc` if moving it to the desired directory fails.
  */
 //#content
-export async function saveas(...filename: string[]) {
-    if (filename.length > 0) {
-        return Messaging.message("download_background", "downloadUrlAs", window.location.href, filename.join(" "))
+export async function saveas(...args: string[]) {
+    let overwrite = false
+    let cleanup = false
+
+    const argParse = (args: string[]): string[] => {
+        if (args[0] === "--overwrite") {
+            overwrite = true
+            args.shift()
+            argParse(args)
+        }
+        if (args[0] === "--cleanup") {
+            cleanup = true
+            args.shift()
+            argParse(args)
+        }
+        return args
+    }
+
+    const file = argParse(args).join(" ") || undefined
+
+    const requiredNativeMessengerVersion = "0.3.2"
+    if ((overwrite || cleanup) && !(await Native.nativegate(requiredNativeMessengerVersion, false))) {
+        throw new Error(`":saveas --{overwrite, cleanup}" requires native ${requiredNativeMessengerVersion} or later`)
+    }
+
+    if (args.length > 0) {
+        const filename = await Messaging.message("download_background", "downloadUrlAs", window.location.href, file, overwrite, cleanup)
+        return fillcmdline_tmp(10000, `Download completed: ${filename} stored in ${file}`)
     } else {
         return Messaging.message("download_background", "downloadUrl", window.location.href, true)
     }

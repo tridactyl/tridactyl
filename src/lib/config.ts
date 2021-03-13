@@ -581,6 +581,7 @@ export class default_config {
         q: "tabclose",
         qa: "qall",
         sanitize: "sanitise",
+        "saveas!": "saveas --cleanup --overwrite",
         tutorial: "tutor",
         h: "help",
         unmute: "mute unmute",

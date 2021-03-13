@@ -351,10 +351,24 @@ export async function temp(content: string, prefix: string) {
     })
 }
 
-export async function move(from: string, to: string) {
-    return sendNativeMsg("move", { from, to }).catch(e => {
-        throw new Error(`Failed to move '${from}' to '${to}'. ${e}.`)
-    })
+export async function move(
+    from: string,
+    to: string,
+    overwrite: boolean,
+    cleanup: boolean,
+) {
+    const requiredNativeMessengerVersion = "0.3.0"
+    if ((await nativegate(requiredNativeMessengerVersion, false))) {
+        return sendNativeMsg("move", { from, to, overwrite, cleanup }).catch(e => {
+            throw new Error(`Failed to move '${from}' to '${to}'. ${e}.`)
+        })
+    } else {
+        // older "saveas" scenario for native-messenger < 0.3.0
+        return sendNativeMsg("move", { from, to }).catch(e => {
+            throw new Error(`Failed to move '${from}' to '${to}'. ${e}.`)
+        })
+    }
+
 }
 
 export async function listDir(dir: string) {
