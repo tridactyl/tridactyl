@@ -904,25 +904,31 @@ export async function restart() {
 export async function saveas(...args: string[]) {
     let overwrite = false
     let cleanup = false
-    const uniqueArgs = new Set(args)
 
-    if (uniqueArgs.has("--overwrite")) {
-        overwrite = true
-        uniqueArgs.delete("--overwrite")
-    }
-    if (uniqueArgs.has("--cleanup")) {
-        cleanup = true
-        uniqueArgs.delete("--cleanup")
+    const argParse = (args: string[]): string[] => {
+        if (args[0] === "--overwrite") {
+            overwrite = true
+            args.shift()
+            argParse(args)
+        }
+        if (args[0] === "--cleanup") {
+            cleanup = true
+            args.shift()
+            argParse(args)
+        }
+        return args
     }
 
-    const requiredNativeMessengerVersion = "0.3.0"
-    if ((overwrite || cleanup) && (await Native.nativegate(requiredNativeMessengerVersion, false))) {
+    const file = argParse(args).join(" ") || undefined
+
+    const requiredNativeMessengerVersion = "0.3.2"
+    if ((overwrite || cleanup) && !(await Native.nativegate(requiredNativeMessengerVersion, false))) {
         throw new Error(`":saveas --{overwrite, cleanup}" requires native ${requiredNativeMessengerVersion} or later`)
     }
 
     if (args.length > 0) {
-        const filename = await Messaging.message("download_background", "downloadUrlAs", window.location.href, [...uniqueArgs].join(" "), overwrite, cleanup)
-        return fillcmdline_tmp(10000, `Download completed: ${filename} stored in ${Array.from(uniqueArgs).join(" ")}`)
+        const filename = await Messaging.message("download_background", "downloadUrlAs", window.location.href, file, overwrite, cleanup)
+        return fillcmdline_tmp(10000, `Download completed: ${filename} stored in ${file}`)
     } else {
         return Messaging.message("download_background", "downloadUrl", window.location.href, true)
     }
