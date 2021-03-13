@@ -888,7 +888,7 @@ export async function restart() {
 
 /** Download the current document.
  *
- * If you have the native messenger v>=0.1.9 installed, the function accepts one optional argument, filename, which can be:
+ * If you have the native messenger v>=0.1.9 installed, the function accepts an optional argument, filename, which can be:
  * - An absolute path
  * - A path starting with ~, which will be expanded to your home directory
  * - A relative path, relative to the native messenger executable (e.g. ~/.local/share/tridactyl on linux).
@@ -896,7 +896,9 @@ export async function restart() {
  *
  * **NB**: if a non-default save location is chosen, Firefox's download manager will say the file is missing. It is not - it is where you asked it to be saved.
  *
- * @param filename The name the file should be saved as.
+ * Flags:
+ * - `--overwrite`: overwrite the destination file.
+ * - `--cleanup`: removes the downloaded source file e.g. `$HOME/Downlods/downloaded.doc` if moving it to the desired directory fails.
  */
 //#content
 export async function saveas(...args: string[]) {
@@ -914,7 +916,7 @@ export async function saveas(...args: string[]) {
     }
 
     const requiredNativeMessengerVersion = "0.3.0"
-    if ((overwrite || cleanup) && await Native.nativegate(requiredNativeMessengerVersion, false)) {
+    if ((overwrite || cleanup) && (await Native.nativegate(requiredNativeMessengerVersion, false))) {
         throw new Error(`":saveas --{overwrite, cleanup}" requires native ${requiredNativeMessengerVersion} or later`)
     }
 
