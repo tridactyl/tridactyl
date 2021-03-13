@@ -2719,7 +2719,7 @@ export async function tabsort(...callbackchunks: string[]) {
     const windowTabs = await browser.tabs.query({ currentWindow: true })
     windowTabs.sort(comparator)
     R.forEachObjIndexed((tab, index) => {
-        browser.tabs.move((tab as browser.tabs.Tab).id, { index: parseInt(index as string) })
+        browser.tabs.move((tab as browser.tabs.Tab).id, { index: parseInt(index as string, 10) })
     }, windowTabs)
 }
 
