@@ -54,7 +54,7 @@
     "typescript": "^3.9.9",
     "uglify-es": "^3.3.9",
     "uglifyjs-webpack-plugin": "^2.2.0",
-    "web-ext": "^5.5.0",
+    "web-ext": "^6.0.0",
     "web-ext-types": "^3.2.1",
     "webpack": "^5.25.1",
     "webpack-cli": "^4.5.0"
