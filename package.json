@@ -30,7 +30,7 @@
     "cleanslate": "^0.10.1",
     "copy-webpack-plugin": "^7.0.0",
     "eslint": "^7.22.0",
-    "eslint-config-prettier": "^7.2.0",
+    "eslint-config-prettier": "^8.1.0",
     "eslint-plugin-import": "^2.22.1",
     "eslint-plugin-jsdoc": "^32.3.0",
     "eslint-plugin-prefer-arrow": "^1.2.3",
