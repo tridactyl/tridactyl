@@ -17,6 +17,7 @@
     "css": "^3.0.0",
     "editor-adapter": "^0.0.3",
     "esbuild": "^0.14.38",
+    "eslint-plugin-compat": "^4.0.2",
     "fuse.js": "^6.6.2",
     "nearley": "^2.20.1",
     "ramda": "^0.28.0",
@@ -86,5 +87,9 @@
   "bugs": {
     "url": "https://github.com/tridactyl/tridactyl/issues"
   },
+  "browserslist": [
+    "firefox >= 68",
+    "last 2 Chrome versions"
+  ],
   "homepage": "https://github.com/tridactyl/tridactyl#readme"
 }

@@ -20,6 +20,7 @@ module.exports = {
     "extends": [
         "plugin:@typescript-eslint/recommended",
         "plugin:@typescript-eslint/recommended-requiring-type-checking",
+        "plugin:compat/recommended",
         "prettier",
         "plugin:sonarjs/recommended"
     ],
@@ -33,6 +34,10 @@ module.exports = {
         "@typescript-eslint/tslint",
         "sonarjs"
     ],
+    // For eslint-plugin-compat: ignore polyfills
+    "settings": {
+        "lintAllEsApis": true
+    },
     "rules": {
         "sonarjs/cognitive-complexity": "off", //"error",
         "sonarjs/no-duplicate-string": "off",
