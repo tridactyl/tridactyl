@@ -7412,10 +7412,10 @@ ts-toolbelt@^6.15.1:
   resolved "https://registry.yarnpkg.com/ts-toolbelt/-/ts-toolbelt-6.15.5.tgz#cb3b43ed725cb63644782c64fbcad7d8f28c0a83"
   integrity sha512-FZIXf1ksVyLcfr7M317jbB67XFJhOO1YqdTcuGaq9q5jLUoTikukZ+98TPjKiP2jC5CgmYdWWYs0s2nLSU0/1A==
 
-tsconfig-paths-webpack-plugin@^3.5.0:
-  version "3.5.0"
-  resolved "https://registry.yarnpkg.com/tsconfig-paths-webpack-plugin/-/tsconfig-paths-webpack-plugin-3.5.0.tgz#00094d95748db2531b649d440a9b8bc88acfb4e9"
-  integrity sha512-cVDJxryqbcfuqXhlLpJTPvAJ/D6qj+e33oOm62uXnZts9XBI2fd/M2/txxdYZle5X7pSi8t+w+DOj+BbtPhL7g==
+tsconfig-paths-webpack-plugin@^3.5.1:
+  version "3.5.1"
+  resolved "https://registry.yarnpkg.com/tsconfig-paths-webpack-plugin/-/tsconfig-paths-webpack-plugin-3.5.1.tgz#e4dbf492a20dca9caab60086ddacb703afc2b726"
+  integrity sha512-n5CMlUUj+N5pjBhBACLq4jdr9cPTitySCjIosoQm0zwK99gmrcTGAfY9CwxRFT9+9OleNWXPRUcxsKP4AYExxQ==
   dependencies:
     chalk "^4.1.0"
     enhanced-resolve "^5.7.0"
