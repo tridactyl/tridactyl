@@ -2,7 +2,6 @@
  * Background download-related functions
  */
 
-import * as Messaging from "@src/lib/messaging"
 import * as Native from "@src/lib/native"
 import * as config from "@src/lib/config"
 import * as R from "ramda"
