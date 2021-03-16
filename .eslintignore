@@ -3,3 +3,5 @@ build
 coverage
 *.test.ts
 test_utils.ts
+e2e_tests
+compiler
