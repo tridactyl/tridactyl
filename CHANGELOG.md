@@ -1,6 +1,28 @@
 # Tridactyl changelog
 
-# Release 1.21.0 / 22-02-2021
+# Release 1.21.1 / Unreleased
+
+-   New features
+
+    -   `:saveas` has new `--overwrite` and `--cleanup` flags (#3362)
+    -   `:mousemode` added to revert `:nomousemode` (#3442)
+    -   `:tabopen -w` added, which waits for the page to load before returning. Useful in `:composite` with e.g. `:composite tabopen -b -w news.bbc.co.uk ; tabnext` (#3396)
+
+-   Bug fixes
+
+    -   `:nativeinstall` now correctly bypasses execution policy on Windows
+    -   `gi` now supports "textbox" ARIA roles - i.e. it works on Twitter now (#3459)
+    -   `w` in visual mode now selects the first character of the next word (#3455)
+    -   Native messenger doesn't get stuck in an infinite loop on Windows for non-Firefox Firefox-derivate browsers (e.g. Waterfox) (#3443)
+    -   `:native` now behaves better when reading non-existent files (#3418)
+    -   `:nativeupdate` now works on Windows and elsewhere (#3404)
+        -   NB: the success/failure messages are no longer meaningful; improving these again is a work in progress.
+    -   `text.backward_kill_word` command fixed on single characters (#3405)
+
+-   Miscellaneous
+    -   CI linting now works (#3477)
+
+# Release 1.21.0 / 2021-02-22
 
 -   New features
 
