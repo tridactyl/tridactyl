@@ -2325,8 +2325,12 @@ export async function tabgrab(id: string) {
 /** Like [[open]], but in a new tab. If no address is given, it will open the newtab page, which can be set with `set newtab [url]`
 
     Use the `-c` flag followed by a container name to open a tab in said container. Tridactyl will try to fuzzy match a name if an exact match is not found (opening the tab in no container can be enforced with "firefox-default" or "none"). If any autocontainer directives are configured and -c is not set, Tridactyl will try to use the right container automatically using your configurations.
+
     Use the `-b` flag to open the tab in the background.
-    These two can be combined in any order, but need to be placed as the first arguments.
+
+    Use the `-w` flag to wait for the web page to load before "returning". This only makes sense for use with [[composite]], which waits for each command to return before moving on to the next one, e.g. `composite tabopen -b -w news.bbc.co.uk ; tabnext`.
+
+    These three can be combined in any order, but need to be placed as the first arguments.
 
     Unlike Firefox's Ctrl-t shortcut, this opens tabs immediately after the
     currently active tab rather than at the end of the tab list because that is
@@ -2345,6 +2349,7 @@ export async function tabgrab(id: string) {
 //#background
 export async function tabopen(...addressarr: string[]): Promise<browser.tabs.Tab> {
     let active
+    let waitForDom
     let container
 
     const win = await browser.windows.getCurrent()
@@ -2353,6 +2358,10 @@ export async function tabopen(...addressarr: string[]): Promise<browser.tabs.Tab
     async function argParse(args: string[]): Promise<string[]> {
         if (args[0] === "-b") {
             active = false
+            args.shift()
+            argParse(args)
+        } else if (args[0] === "-w") {
+            waitForDom = true
             args.shift()
             argParse(args)
         } else if (args[0] === "-c") {
@@ -2401,24 +2410,24 @@ export async function tabopen(...addressarr: string[]): Promise<browser.tabs.Tab
     }
     const maybeURL = await queryAndURLwrangler(query)
     if (typeof maybeURL === "string") {
-        return openInNewTab(maybeURL, args)
+        return openInNewTab(maybeURL, args, waitForDom)
     }
 
     if (typeof maybeURL === "object") {
         if (await firefoxVersionAtLeast(80)) {
             // work around #2695 until we can work out what is going on
-            if (args.active === false || args.cookieStoreId !== undefined) {
+            if (args.active === false || args.cookieStoreId !== undefined || waitForDom === true) {
                 throw new Error("Firefox search engines do not support containers or background tabs in FF >80. `:set searchengine google` or see issue https://github.com/tridactyl/tridactyl/issues/2695")
             }
 
             // This ignores :set tabopenpos / issue #342. TODO: fix that somehow.
             return browser.search.search(maybeURL)
         }
-        return openInNewTab(null, args).then(tab => browser.search.search({ tabId: tab.id, ...maybeURL }))
+        return openInNewTab(null, args, waitForDom).then(tab => browser.search.search({ tabId: tab.id, ...maybeURL }))
     }
 
     // Fall back to about:newtab
-    return openInNewTab(null, args)
+    return openInNewTab(null, args, waitForDom)
 }
 
 /**
