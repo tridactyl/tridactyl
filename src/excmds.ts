@@ -4338,6 +4338,8 @@ const KILL_STACK: Element[] = []
     - `;m` and `;M` - do a reverse image search using Google in the current tab and a new tab
     - `;x` and `;X` - move cursor to element and perform a real click or ctrl-shift-click (to open in a new foreground tab). Only available on Linux, if you have [[native]] installed and `xdotool` on your PATH
 
+    NB: by default, hinting respects whether links say they should be opened in new tabs (i.e. `target=_blank`). If you wish to override this you can use `:hint -JW open` to force the hints to open in the current tab. JavaScript hints (grey ones) will always open wherever they want, but if you want to include these anyway you can use `:hint -W open`.
+
 */
 //#content
 export async function hint(option?: string, selectors?: string, ...rest: string[]): Promise<any> {
