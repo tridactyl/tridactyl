@@ -4183,12 +4183,10 @@ export function get(...keys: string[]) {
 
 /** Opens the current configuration in Firefox's native JSON viewer in the current tab.
  *
- * NB: only works well from a "normal" page, e.g not a Tridactyl help or new tab page.
- *
  * @param key - The specific key you wish to view (e.g, nmaps, autocmds.DocLoad). Also accepts the arguments `--default` or `--user` to view the default configuration, or your changes.
  *
  */
-//#content
+//#background
 export function viewconfig(...key: string[]) {
     // # and white space don't agree with FF's JSON viewer.
     // Probably other symbols too.
@@ -4206,11 +4204,13 @@ export function viewconfig(...key: string[]) {
 }
 
 /**
- * View a JSON object in Firefox's JSON viewer. NB: only works well from a "normal" page, e.g not a Tridactyl help or new tab page.
+ * View a JSON object in Firefox's JSON viewer.
  */
-//#content
-export function jsonview(...json: string[]) {
-    window.location.href = "data:application/json," + json.join(" ").replace(/#/g, "%23").replace(/ /g, "%20")
+//#background
+export async function jsonview(...json: string[]) {
+    const tab = await tabopen("-w")
+    const url = "data:application/json," + json.join(" ").replace(/#/g, "%23").replace(/ /g, "%20")
+    return browser.tabs.executeScript(tab.id, {code: `window.location.href = "${url}";`})
 }
 
 /**
