@@ -1,26 +1,32 @@
 # Tridactyl changelog
 
-# Release 1.21.1 / Unreleased
+# Release 1.21.1 / 2020-03-19
 
 -   New features
 
-    -   `:saveas` has new `--overwrite` and `--cleanup` flags (#3362)
-    -   `:mousemode` added to revert `:nomousemode` (#3442)
-    -   `:tabopen -w` added, which waits for the page to load before returning. Useful in `:composite` with e.g. `:composite tabopen -b -w news.bbc.co.uk ; tabnext` (#3396)
+    -   `:saveas` has new `--overwrite` and `--cleanup` flags ([#3362](https://github.com/tridactyl/tridactyl/issues/3362))
+    -   `:mousemode` added to revert `:nomousemode` ([#3442](https://github.com/tridactyl/tridactyl/issues/3442))
+    -   `:tabopen -w` added, which waits for the page to load before returning. Useful in `:composite` with e.g. `:composite tabopen -b -w news.bbc.co.uk ; tabnext` ([#3396](https://github.com/tridactyl/tridactyl/issues/3396))
 
 -   Bug fixes
 
     -   `:nativeinstall` now correctly bypasses execution policy on Windows
-    -   `gi` now supports "textbox" ARIA roles - i.e. it works on Twitter now (#3459)
-    -   `w` in visual mode now selects the first character of the next word (#3455)
-    -   Native messenger doesn't get stuck in an infinite loop on Windows for non-Firefox Firefox-derivate browsers (e.g. Waterfox) (#3443)
-    -   `:native` now behaves better when reading non-existent files (#3418)
-    -   `:nativeupdate` now works on Windows and elsewhere (#3404)
+    -   `gi` now supports "textbox" ARIA roles - i.e. it works on Twitter now ([#3459](https://github.com/tridactyl/tridactyl/issues/3459))
+    -   `w` in visual mode now selects the first character of the next word ([#3455](https://github.com/tridactyl/tridactyl/issues/3455))
+    -   Native messenger doesn't get stuck in an infinite loop on Windows for non-Firefox Firefox-derivate browsers (e.g. Waterfox) ([#3443](https://github.com/tridactyl/tridactyl/issues/3443))
+    -   `:native` now behaves better when reading non-existent files ([#3418](https://github.com/tridactyl/tridactyl/issues/3418))
+    -   `:nativeupdate` now works on Windows and elsewhere ([#3404](https://github.com/tridactyl/tridactyl/issues/3404))
         -   NB: the success/failure messages are no longer meaningful; improving these again is a work in progress.
-    -   `text.backward_kill_word` command fixed on single characters (#3405)
+    -   `text.backward_kill_word` command fixed on single characters ([#3405](https://github.com/tridactyl/tridactyl/issues/3405))
 
 -   Miscellaneous
-    -   CI linting now works (#3477)
+    -   CI linting now works ([#3477](https://github.com/tridactyl/tridactyl/issues/3477))
+
+Thanks to all of our contributors for this release: dependabot-preview[bot], Oliver Blanthorn, Dhruva Sambrani, Rummskartoffel, Jez Cope, Babil G. Sarwar, Babil Golam Sarwar, Hosein Naghdbishi, Laura, William, WorldCodeCentral and fluem.
+
+Extra special thanks go to Babil G. Sarwar, Dhruva Sambrani, Hosein Naghdbishi, Jez Cope, Laura and William who all contributed for the first time.
+
+Last, but not least - thank you to everyone who reported issues.
 
 # Release 1.21.0 / 2021-02-22
 
