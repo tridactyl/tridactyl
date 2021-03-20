@@ -4181,9 +4181,12 @@ export function get(...keys: string[]) {
     return done
 }
 
-/** Opens the current configuration in Firefox's native JSON viewer in the current tab.
+/**
+ * Opens the current configuration in Firefox's native JSON viewer in a new tab.
  *
  * @param key - The specific key you wish to view (e.g, nmaps, autocmds.DocLoad). Also accepts the arguments `--default` or `--user` to view the default configuration, or your changes.
+ *
+ * NB: the configuration won't update if you refresh the page - you need to run `:viewconfig` again.
  *
  */
 //#background
@@ -4210,7 +4213,7 @@ export function viewconfig(...key: string[]) {
 export async function jsonview(...json: string[]) {
     const tab = await tabopen("-w")
     const url = "data:application/json," + encodeURIComponent(json.join(" "))
-    return browser.tabs.executeScript(tab.id, {code: `window.location.href = "${url}";`})
+    return browser.tabs.executeScript(tab.id, { code: `window.location.href = "${url}";` })
 }
 
 /**
