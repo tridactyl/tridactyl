@@ -4209,7 +4209,7 @@ export function viewconfig(...key: string[]) {
 //#background
 export async function jsonview(...json: string[]) {
     const tab = await tabopen("-w")
-    const url = "data:application/json," + json.join(" ").replace(/#/g, "%23").replace(/ /g, "%20")
+    const url = "data:application/json," + encodeURIComponent(json.join(" "))
     return browser.tabs.executeScript(tab.id, {code: `window.location.href = "${url}";`})
 }
 
