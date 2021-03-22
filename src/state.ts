@@ -89,10 +89,11 @@ const state = new Proxy(overlay, {
     set(target, property: keyof State, value) {
         logger.debug("State changed!", property, value)
         if (notBackground()) {
+            const inIncognitoContext = browser.extension.inIncognitoContext
             browser.runtime.sendMessage({
                 type: "state",
                 command: "stateUpdate",
-                args: { property, value },
+                args: { property, value, inIncognitoContext },
             })
             return true
         }
@@ -101,13 +102,6 @@ const state = new Proxy(overlay, {
 
         // Persist "sets" to storage in the background for some keys
         if (PERSISTENT_KEYS.includes(property)) {
-            // Ensure we don't accidentally store anything sensitive
-            if (browser.extension.inIncognitoContext) {
-                console.error(
-                    "Attempted to write to storage in private window.",
-                )
-                return false
-            }
             browser.storage.local.set({
                 state: R.pick(PERSISTENT_KEYS, target),
             } as any)
@@ -136,6 +130,15 @@ notBackground &&
         if (message.command == "stateUpdate") {
             const property = message.args.property
             const value = message.args.value
+            // Ensure we don't accidentally store anything sensitive
+            const inIncognitoContext = message.args.inIncognitoContext
+            if (inIncognitoContext && PERSISTENT_KEYS.includes(property)) {
+                overlay[property] = value
+                console.error(
+                    "Attempted to write to storage in private window.",
+                )
+                return
+            }
             logger.debug("State changed!", property, value)
             state[property] = value
         } else if (message.command == "stateGet") {

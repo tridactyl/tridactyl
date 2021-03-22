@@ -2609,7 +2609,6 @@ export async function tabopenwait(...addressarr: string[]): Promise<browser.tabs
 //#background_helper
 export async function tabopen_helper({ addressarr = [], waitForDom = false }): Promise<browser.tabs.Tab> {
     let active
-    let waitForDom
     let container
 
     const win = await browser.windows.getCurrent()
