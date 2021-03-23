@@ -4593,8 +4593,16 @@ export async function hint(option?: string, selectors?: string, ...rest: string[
             selectHints = hinting.pipe_elements(
                 hinting.hintables(selectors),
                 elem => {
+                    let tabindexAdded = false
+                    // img can only be focused when they have the tabindex attribute
+                    if (elem instanceof HTMLImageElement && !elem.getAttribute("tabindex")) {
+                        elem.setAttribute("tabindex", "-1")
+                        tabindexAdded = true
+                    }
                     elem.focus()
                     scrolling.setCurrentFocus(elem)
+                    // img doesn't get unfocused when its tabindex is removed, so no need to keep it around
+                    if (tabindexAdded) elem.removeAttribute("tabindex")
                     return elem
                 },
                 rapid,
