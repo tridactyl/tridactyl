@@ -4427,10 +4427,10 @@ export async function hint(option?: string, selectors?: string, ...rest: string[
         case "-y":
             // Yank link
             selectHints = hinting.pipe(
-                DOM.HINTTAGS_selectors,
+                'a[href]:not([href="#"])',
                 elem => {
                     // /!\ Warning: This is racy! This can easily be fixed by adding an await but do we want this? yank can be pretty slow, especially with yankto=selection
-                    run_exstr("yank " + elem.href)
+                    yank(elem.href)
                     return elem
                 },
                 rapid,
