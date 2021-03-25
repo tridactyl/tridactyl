@@ -167,6 +167,9 @@ export async function getBestEditor(): Promise<string> {
             term_emulators.push(
                 ...["conemu -run", "mintty --class tridactyl_editor -e"],
             )
+            if (await nativegate("0.2.1", false)) {
+                term_emulators.push("start /wait")
+            }
         }
         // These terminal emulators are cross-platform.
         term_emulators.push(
