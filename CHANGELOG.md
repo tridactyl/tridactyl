@@ -1,6 +1,6 @@
 # Tridactyl changelog
 
-# Release 1.21.1 / 2020-03-19
+# Release 1.21.1 / 2021-03-19
 
 -   New features
 
