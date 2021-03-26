@@ -1158,18 +1158,19 @@ export async function markjumpbefore() {
         }
         const currentTabId = await activeTabId()
         state.beforeJumpMark = { url: window.location.href.split("#")[0], scrollX: window.scrollX, scrollY: window.scrollY, tabId: currentTabId }
-        goToTab(tabId).then(() => scrolltab(tabId, scrollX, scrollY, "# Jumped to the last location before a mark jump"))
+        goToTab(tabId).then(() => scrolltab(tabId, scrollX, scrollY, "# Jumped back"))
     } catch (e) {
         // the mark's tab is no longer valid
     }
 }
 
 /**
- * Scrolls to a given position in a given tab and prints a message in it.
+ * Scrolls to a given position in a tab identified by tabId and prints a message in it.
  */
 //#content
 export async function scrolltab(tabId: number, scrollX: number, scrollY: number, message: string) {
-    acceptExCmd(tabId, [`composite scrollto ${scrollX} ${scrollY}; fillcmdline_tmp 3000 ${message}`])
+    await Messaging.messageTab(tabId, "controller_content", "acceptExCmd", [`composite scrollto ${scrollX} ${scrollY}`])
+    Messaging.messageTab(tabId, "controller_content", "acceptExCmd", [`fillcmdline_tmp 3000 ${message}`])
 }
 
 /**
@@ -4926,17 +4927,6 @@ export function jumble() {
         const t = body.currentNode.textContent
         body.currentNode.textContent = jumble_helper(t)
     }
-}
-
-/**
- * Run a command in a tab with an internal firefox identifier specified by destination or in background if destination is "background".
- */
-//#content
-export function acceptExCmd(destination: number | "background", ex_string: string[]) {
-    if (destination === "background") {
-        return run_exstr(...ex_string)
-    }
-    return Messaging.messageTab(destination, "controller_content", "acceptExCmd", ex_string)
 }
 
 /**
