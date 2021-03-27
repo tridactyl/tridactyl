@@ -1169,7 +1169,7 @@ export async function markjumpbefore() {
  */
 //#content
 export async function scrolltab(tabId: number, scrollX: number, scrollY: number, message: string) {
-    await Messaging.messageTab(tabId, "controller_content", "acceptExCmd", [`composite scrollto ${scrollX} ${scrollY}`])
+    await Messaging.messageTab(tabId, "controller_content", "acceptExCmd", [`scrollto ${scrollX} ${scrollY}`])
     Messaging.messageTab(tabId, "controller_content", "acceptExCmd", [`fillcmdline_tmp 3000 ${message}`])
 }
 
