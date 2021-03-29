@@ -119,8 +119,11 @@ export function mouseEvent(
     })
 }
 
-export function elementsWithText() {
-    return getElemsBySelector("*", [isVisible, hint => hint.textContent !== ""])
+export function elementsWithText(includeInvisible = false) {
+    return getElemsBySelector("*", [
+        isVisibleFilter(includeInvisible),
+        hint => hint.textContent !== "",
+    ])
 }
 
 /** Iterable of elements that match xpath.
@@ -200,6 +203,12 @@ export function widthMatters(style: CSSStyleDeclaration) {
             return false
     }
     return true
+}
+
+export function isVisibleFilter(
+    includeInvisible: boolean,
+): (_: Element) => boolean {
+    return (elem: Element) => includeInvisible || isVisible(elem)
 }
 
 // Saka-key caches getComputedStyle. Maybe it's a good idea!
@@ -651,8 +660,10 @@ export const HINTTAGS_saveable = `
 /** Get array of "anchors": elements which have id or name and can be addressed
  * with the hash/fragment in the URL
  */
-export function anchors() {
-    return getElemsBySelector(HINTTAGS_anchor_selectors, [isVisible])
+export function anchors(includeInvisible = false) {
+    return getElemsBySelector(HINTTAGS_anchor_selectors, [
+        isVisibleFilter(includeInvisible),
+    ])
 }
 
 /** if `target === _blank` clicking the link is treated as opening a popup and is blocked. Use webext API to avoid that. */

@@ -1001,16 +1001,21 @@ function pushSpace() {
 
     Elements are hintable if
         1. they can be meaningfully selected, clicked, etc
-        2. they're visible
+        2. they're visible (unless includeInvisible is true)
             1. Within viewport
             2. Not hidden by another element
 
     @hidden
 */
-export function hintables(selectors = DOM.HINTTAGS_selectors, withjs = false) {
+export function hintables(
+    selectors = DOM.HINTTAGS_selectors,
+    withjs = false,
+    includeInvisible = false,
+) {
+    const visibleFilter = DOM.isVisibleFilter(includeInvisible)
     const elems = R.pipe(
         DOM.getElemsBySelector,
-        R.filter(DOM.isVisible),
+        R.filter(visibleFilter),
         changeHintablesToLargestChild,
     )(selectors, [])
     const hintables: Hintables[] = [{ elements: elems }]
@@ -1020,7 +1025,7 @@ export function hintables(selectors = DOM.HINTTAGS_selectors, withjs = false) {
                 Array.from,
                 // Ramda gives an error here without the "any"
                 // Problem for a rainy day :)
-                R.filter(DOM.isVisible) as any,
+                R.filter(visibleFilter) as any,
                 R.without(elems),
                 changeHintablesToLargestChild,
             )(DOM.hintworthy_js_elems),
@@ -1075,15 +1080,19 @@ function isElementLargerThan(e1: Element, e2: Element): boolean {
 /** Returns elements that point to a saveable resource
  * @hidden
  */
-export function saveableElements() {
-    return DOM.getElemsBySelector(DOM.HINTTAGS_saveable, [DOM.isVisible])
+export function saveableElements(includeInvisible = false) {
+    return DOM.getElemsBySelector(DOM.HINTTAGS_saveable, [
+        DOM.isVisibleFilter(includeInvisible),
+    ])
 }
 
-/** Get array of images in the viewport
+/** Get array of images in the viewport, or all images if includeInvisible is true
  * @hidden
  */
-export function hintableImages() {
-    return DOM.getElemsBySelector(DOM.HINTTAGS_img_selectors, [DOM.isVisible])
+export function hintableImages(includeInvisible = false) {
+    return DOM.getElemsBySelector(DOM.HINTTAGS_img_selectors, [
+        DOM.isVisibleFilter(includeInvisible),
+    ])
 }
 
 /** Get array of selectable elements that display a text matching either plain
@@ -1093,29 +1102,36 @@ export function hintableImages() {
 export function hintByText(match: string | RegExp) {
     return DOM.getElemsBySelector(DOM.HINTTAGS_filter_by_text_selectors, [
         DOM.isVisible,
-        hint => {
-            let text
-            if (hint instanceof HTMLInputElement) {
-                // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
-                text = (hint as HTMLInputElement).value
-            } else {
-                text = hint.textContent
-            }
-            if (match instanceof RegExp) {
-                return text.match(match) !== null
-            } else {
-                return text.toUpperCase().includes(match.toUpperCase())
-            }
-        },
+        hintByTextFilter(match),
     ])
+}
+
+/** Return a predicate that checks whether an element matches a given text hinting filter
+ * @hidden
+ */
+export function hintByTextFilter(match: string | RegExp): HintSelectedCallback {
+    return hint => {
+        let text
+        if (hint instanceof HTMLInputElement) {
+            // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
+            text = (hint as HTMLInputElement).value
+        } else {
+            text = hint.textContent
+        }
+        if (match instanceof RegExp) {
+            return text.match(match) !== null
+        } else {
+            return text.toUpperCase().includes(match.toUpperCase())
+        }
+    }
 }
 
 /** Array of items that can be killed with hint kill
 @hidden
  */
-export function killables() {
+export function killables(includeInvisible = false) {
     return DOM.getElemsBySelector(DOM.HINTTAGS_killable_selectors, [
-        DOM.isVisible,
+        DOM.isVisibleFilter(includeInvisible),
     ])
 }
 
@@ -1147,7 +1163,10 @@ export function pipe_elements(
 }
 
 // Multiple dispatch? who needs it
-function toHintablesArray(
+/** Returns an array of hintable objects from an array of elements
+ * @hidden
+ * */
+export function toHintablesArray(
     hintablesOrElements: Element[] | Hintables[],
 ): Hintables[] {
     if (!hintablesOrElements.length) return []

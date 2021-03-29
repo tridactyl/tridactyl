@@ -4274,7 +4274,7 @@ const KILL_STACK: Element[] = []
 
 /** Hint a page.
 
-    @param option
+    @param args
         - -t open in a new foreground tab
         - -b open in background
         - -y copy (yank) link's target to clipboard
@@ -4292,11 +4292,9 @@ const KILL_STACK: Element[] = []
         - -A save-as the linked image
         - -; focus an element and set it as the element or the child of the element to scroll
         - -# yank an element's anchor URL to clipboard
-        - -c [selector] hint links that match the css selector
-          - `bind ;c hint -c [class*="expand"],[class="togg"]` works particularly well on reddit and HN
-          - this works with most other hint modes, with the caveat that if other hint mode takes arguments your selector must contain no spaces, i.e. `hint -c[yourOtherFlag] [selector] [your other flag's arguments, which may contain spaces]`
         - -f [text] hint links and inputs that display the given text
           - `bind <c-e> hint -f Edit`
+          - Backslashes can escape spaces: `bind <c-s> hint -f Save\ as`
         - -fr [text] use RegExp to hint the links and inputs
         - -w open in new window
         - -wp open in new private window
@@ -4306,8 +4304,12 @@ const KILL_STACK: Element[] = []
         - -q* quick (or rapid) hints mode. Stay in hint mode until you press <Esc>, e.g. `:hint -qb` to open multiple hints in the background or `:hint -qW excmd` to execute excmd once for each hint. This will return an array containing all elements or the result of executed functions (e.g. `hint -qpipe a href` will return an array of links).
         - -J* disable javascript hints. Don't generate hints related to javascript events. This is particularly useful when used with the `-c` option when you want to generate only hints for the specified css selectors. Also useful on sites with plenty of useless javascript elements such as google.com
           - For example, use `bind ;jg hint -Jc .rc > .r > a` on google.com to generate hints only for clickable search results of a given query
-        - -br deprecated, use `-qb` instead
         - -F [callback] - run a custom callback on the selected hint, e.g. `hint -JF e => {tri.excmds.tabopen("-b",e.href); e.remove()}`.
+        - -V create hints for invisible elements. By default, elements outside the viewport when calling :hint are not hinted, this includes them anyways.
+        - -! perform action immediately. This effectively selects every hinted element in sequence
+          - For example, `hint -!bf Comments` opens in background tabs all visible links whose text matches `Comments`
+        - [selector] hint links that match the css selector
+          - `bind ;c hint [class*="expand"],[class="togg"]` works particularly well on reddit and HN
 
     Excepting the custom selector mode and background hint mode, each of these hint modes is available by default as `;<option character>`, so e.g. `;y` to yank a link's target; `;g<option character>` starts rapid hint mode for all modes where it makes sense, and some others.
 
@@ -4349,35 +4351,231 @@ const KILL_STACK: Element[] = []
 
 */
 //#content
-export async function hint(option?: string, selectors?: string, ...rest: string[]): Promise<any> {
-    if (!option) option = ""
-
-    if (option === "-br") option = "-qb"
-
-    // extract flags
-    // Note: we need to process 'pipe' separately because it could be interpreted as -p -i -e otherwise
-    const pipeIndex = option.indexOf("pipe")
-    if (pipeIndex >= 0) {
-        option = option.slice(0, pipeIndex) + option.slice(pipeIndex + 4)
+export async function hint(...args: string[]): Promise<any> {
+    // Argument parser state
+    enum State {
+        Initial,
+        ExpectF,
+        ExpectFR,
+        ExpectCallback,
+        ExpectExcmd,
     }
 
-    // Hacky fix for #1374 - join rapid-hinted yanks
-    if (option === "-qy") {
-        run_exstr('composite hint -qpipe a href | js -p JS_ARG.join(" ") | yank')
-        return
+    // Open mode: how to act on the selected hintable element
+    enum OpenMode {
+        Default,
+        Tab,
+        BackgroundTab,
+        Window,
+        WindowPrivate,
+        Highlight,
+        Images,
+        ImagesTab,
+        Kill,
+        KillTridactyl,
+        Scroll,
+        SaveResource,
+        SaveImage,
+        SaveAsResource,
+        SaveAsImage,
+        // TODO: What does this actually do? The doc is unclear
+        Semicolon,
+        TTSRead,
+        YankAlt,
+        YankAnchor,
+        YankLink,
+        YankText,
     }
 
-    const options = new Set(option.length ? option.slice(1).split("") : [])
-    const rapid = options.delete("q")
-    const jshints = !options.delete("J")
-    const withSelectors = options.delete("c")
+    // Hint config
+    let rapid = false
+    let textFilter = null
+    let openMode = OpenMode.Default
+    let includeInvisible = false
+    let immediate = false
+    let jshints = true
+    let callback = null
+    let excmd = null
 
-    option = "-" + Array.from(options).join("")
-    if (pipeIndex >= 0) {
-        option = "-pipe"
+    // Parser state
+    let state = State.Initial
+
+    // Remaining positional arguments. To be used as selectors
+    const positionals = []
+
+    outer: for (let argI = 0; argI < args.length; ++argI) {
+        const arg = args[argI]
+
+        switch (state) {
+            case State.Initial:
+                if (arg.length >= 2 && arg[0] === "-" && arg[1] !== "-") {
+                    // Parse short arguments, i.e. - followed by (mostly) single-letter arguments,
+                    // and some two-letter arguments.
+
+                    let last = ""
+                    for (let i = 1; i < arg.length; ++i) {
+                        const letter = arg[i]
+                        let flag = letter
+
+                        // Fix two-letter flags like fr
+                        if ((last === "f" && letter === "r") || (last === "w" && letter === "p")) {
+                            flag = last + letter
+                        }
+
+                        // Process flag
+                        let newOpenMode: undefined | OpenMode
+                        switch (flag) {
+                            case "q":
+                                rapid = true
+                                break
+                            case "f":
+                                state = State.ExpectF
+                                break
+                            case "fr":
+                                state = State.ExpectFR
+                                break
+                            case "V":
+                                includeInvisible = true
+                                break
+                            case "J":
+                                jshints = false
+                                break
+                            case "F":
+                                state = State.ExpectCallback
+                                break
+                            case "W":
+                                state = State.ExpectExcmd
+                                break
+                            case "!":
+                                immediate = true
+                                break
+                            case "t":
+                                newOpenMode = OpenMode.Tab
+                                break
+                            case "b":
+                                newOpenMode = OpenMode.BackgroundTab
+                                break
+                            case "w":
+                                newOpenMode = OpenMode.Window
+                                break
+                            case "wp":
+                                newOpenMode = OpenMode.WindowPrivate
+                                break
+                            case "h":
+                                newOpenMode = OpenMode.Highlight
+                                break
+                            case "i":
+                                newOpenMode = OpenMode.Images
+                                break
+                            case "I":
+                                newOpenMode = OpenMode.ImagesTab
+                                break
+                            case "k":
+                                newOpenMode = OpenMode.Kill
+                                break
+                            case "K":
+                                newOpenMode = OpenMode.KillTridactyl
+                                break
+                            case "z":
+                                newOpenMode = OpenMode.Scroll
+                                break
+                            case "s":
+                                newOpenMode = OpenMode.SaveResource
+                                break
+                            case "S":
+                                newOpenMode = OpenMode.SaveImage
+                                break
+                            case "a":
+                                newOpenMode = OpenMode.SaveAsResource
+                                break
+                            case "A":
+                                newOpenMode = OpenMode.SaveAsImage
+                                break
+                            case ";":
+                                newOpenMode = OpenMode.Semicolon
+                                break
+                            case "r":
+                                newOpenMode = OpenMode.TTSRead
+                                break
+                            case "P":
+                                newOpenMode = OpenMode.YankAlt
+                                break
+                            case "#":
+                                newOpenMode = OpenMode.YankAnchor
+                                break
+                            case "y":
+                                newOpenMode = OpenMode.YankLink
+                                break
+                            case "p":
+                                newOpenMode = OpenMode.YankText
+                                break
+                            default:
+                                logger.warning(`unknown flag -${flag}`)
+                                break
+                        }
+
+                        if (newOpenMode !== undefined) {
+                            if (openMode !== OpenMode.Default) {
+                                // Notify that multiple open modes doesn't make sense
+                                logger.warning("multiple open mode flags specified, overriding the previous ones")
+                            }
+
+                            openMode = newOpenMode
+                        }
+
+                        // If we are now expecting a value, check that this is the last flag
+                        if (state !== State.Initial && i < arg.length - 1) {
+                            const remaining = arg.substring(i + 1)
+
+                            if ((flag === "f" && remaining !== "r") || (flag === "w" && remaining !== "p")) {
+                                logger.warning(`-${flag} expects a value, so it should be the last flag in a combined option. The following flags (${remaining}) were ignored`)
+                                break
+                            }
+                        }
+
+                        last = letter
+                    }
+                } else {
+                    // Not something that looks like an argument, add it to positionals for later processing
+                    positionals.push(arg)
+                }
+                break
+            case State.ExpectF:
+            case State.ExpectFR:
+                // Collect arguments using escapes
+                let filter = arg
+                while (filter.endsWith("\\")) {
+                    filter = filter.substring(0, filter.length - 1)
+
+                    if (argI + 1 < args.length) {
+                        filter += " " + args[++argI]
+                    } else {
+                        break
+                    }
+                }
+
+                if (state == State.ExpectF) {
+                    // -f
+                    textFilter = filter
+                } else {
+                    // -fr
+                    textFilter = new RegExp(filter)
+                }
+
+                state = State.Initial
+
+                break
+            case State.ExpectExcmd:
+                // Collect all the remaining arguments into a excmd callback
+                excmd = args.slice(argI).join(" ")
+                break outer
+            case State.ExpectCallback:
+                // Collect all the remaining arguments into a Javascript callback
+                callback = args.slice(argI).join(" ")
+                break outer
+        }
     }
 
-    let selectHints
     const hintTabOpen = async (href, active = !rapid) => {
         const containerId = await activeTabContainerId()
         if (containerId) {
@@ -4393,289 +4591,216 @@ export async function hint(option?: string, selectors?: string, ...rest: string[
             })
         }
     }
-    switch (option) {
-        case "-f": // Filter links by text
-        case "-fr": // Filter links by regex
-            let match: string | RegExp
-            match = [selectors, ...rest].join(" ")
-            if (option == "-fr") {
-                match = new RegExp(match)
+
+    return new Promise((resolve, reject) => {
+        let hintables
+
+        // Use the selectors to find hintable elements
+        switch (openMode) {
+            case OpenMode.YankText:
+            case OpenMode.Highlight:
+            case OpenMode.Scroll:
+                // For text-based opens, look for elements with text by default
+                hintables = hinting.toHintablesArray(DOM.elementsWithText(includeInvisible))
+                break
+
+            case OpenMode.YankAlt:
+                hintables = hinting.toHintablesArray(DOM.getElemsBySelector("[title],[alt]", [DOM.isVisibleFilter(includeInvisible)]))
+                break
+
+            case OpenMode.YankAnchor:
+                hintables = hinting.toHintablesArray(DOM.anchors(includeInvisible))
+                break
+
+            case OpenMode.Images:
+            case OpenMode.ImagesTab:
+            case OpenMode.SaveImage:
+            case OpenMode.SaveAsImage:
+                // TODO: Support custom image selectors?
+                hintables = hinting.toHintablesArray(hinting.hintableImages(includeInvisible))
+                break
+
+            case OpenMode.Kill:
+            case OpenMode.KillTridactyl:
+                // TODO: Support custom killable selectors?
+                hintables = hinting.toHintablesArray(hinting.killables(includeInvisible))
+                break
+
+            case OpenMode.SaveResource:
+            case OpenMode.SaveAsResource:
+                // TODO: Support custom saveable selectors?
+                hintables = hinting.toHintablesArray(hinting.saveableElements(includeInvisible))
+                break
+
+            default:
+                hintables = hinting.hintables(positionals.length ? positionals.join(" ") : DOM.HINTTAGS_selectors, jshints, includeInvisible)
+                break
+        }
+
+        // Do we have text filters to refine this?
+        if (textFilter !== null) {
+            for (const elements of hintables) {
+                elements.elements = elements.elements.filter(hinting.hintByTextFilter(textFilter))
             }
-            selectHints = hinting.pipe_elements(
-                hinting.hintByText(match),
-                elem => {
-                    DOM.simulateClick(elem as HTMLElement)
-                    return elem
-                },
-                rapid,
-            )
-            break
-        case "-b": // Open in background
-        case "-t": // Open in foreground
-            selectHints = hinting.pipe(
-                withSelectors ? [selectors, ...rest].join(" ") : DOM.HINTTAGS_selectors,
-                async link => {
-                    link.focus()
-                    if (link.href) {
-                        hintTabOpen(link.href, option === "-t").catch(() => DOM.simulateClick(link))
-                    } else {
-                        DOM.simulateClick(link)
+        }
+
+        // If the user specified a callback, eval it, else use the default
+        // action which performs the action matching the open mode
+        const action = callback
+            ? eval(callback)
+            : (elem: any) => {
+                  if (excmd) {
+                      // We have an excmd to run. By spec, we append the element's href
+                      if (elem.href) {
+                          // /!\ RACY RACY RACY!
+                          run_exstr(excmd + " " + elem.href)
+                          return elem
+                      }
+
+                      // Otherwise, no href so nothing to do
+                      return
+                  }
+
+                  switch (openMode) {
+                      case OpenMode.Highlight:
+                          const r = document.createRange()
+                          r.setStart(elem, 0)
+                          r.setEnd(elem, 1)
+                          const s = document.getSelection()
+                          s.addRange(r)
+                          return elem
+
+                      case OpenMode.Images:
+                      case OpenMode.ImagesTab:
+                          const src = elem.getAttribute("src")
+                          if (src) {
+                              if (openMode === OpenMode.ImagesTab) {
+                                  // TODO: await? Other hintTabOpen calls don't seem to use one
+                                  hintTabOpen(new URL(src, window.location.href).href)
+                              } else {
+                                  open(new URL(src, window.location.href).href)
+                              }
+                              return elem
+                          }
+
+                          return
+
+                      case OpenMode.Kill:
+                          elem.remove()
+                          return elem
+
+                      case OpenMode.KillTridactyl:
+                          elem.classList.add("TridactylKilledElem")
+                          return elem
+
+                      case OpenMode.SaveResource:
+                      case OpenMode.SaveImage:
+                      case OpenMode.SaveAsResource:
+                      case OpenMode.SaveAsImage:
+                          const saveAs = openMode === OpenMode.SaveAsResource || openMode === OpenMode.SaveAsImage
+                          const attr = openMode === OpenMode.SaveImage || openMode === OpenMode.SaveAsImage ? "src" : "href"
+                          Messaging.message("download_background", "downloadUrl", new URL(elem[attr], window.location.href).href, saveAs)
+                          return elem
+
+                      case OpenMode.Scroll:
+                          elem.scrollIntoView(true)
+                          return elem
+
+                      case OpenMode.Semicolon:
+                          let tabindexAdded = false
+                          // img can only be focused when they have the tabindex attribute
+                          if (elem instanceof HTMLImageElement && !elem.getAttribute("tabindex")) {
+                              elem.setAttribute("tabindex", "-1")
+                              tabindexAdded = true
+                          }
+                          elem.focus()
+                          scrolling.setCurrentFocus(elem)
+                          // img doesn't get unfocused when its tabindex is removed, so no need to keep it around
+                          if (tabindexAdded) elem.removeAttribute("tabindex")
+                          return elem
+
+                      case OpenMode.TTSRead:
+                          TTS.readText(elem.textContent)
+                          return elem
+
+                      case OpenMode.YankAlt:
+                          // Yank link alt text
+                          // ???: Neither anchors nor links posses an "alt" attribute. I'm assuming that the person who wrote this code also wanted to select the alt text of images
+
+                          // /!\ Warning: This is racy! This can easily be fixed by adding an await but do we want this? yank can be pretty slow, especially with yankto=selection
+                          run_exstr("yank " + (elem.title ? elem.title : elem.alt))
+                          return elem
+
+                      case OpenMode.YankAnchor:
+                          const anchorUrl = new URL(window.location.href)
+                          // ???: What purpose does selecting elements with a name attribute have? Selecting values that only have meaning in forms doesn't seem very useful.
+                          // https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes
+                          anchorUrl.hash = elem.id || elem.name
+                          // /!\ Warning: This is racy! This can easily be fixed by adding an await but do we want this? yank can be pretty slow, especially with yankto=selection
+                          run_exstr("yank " + anchorUrl.href)
+                          return elem
+
+                      case OpenMode.YankText:
+                          yank(elem.textContent)
+                          return elem
+                  }
+
+                  if (elem.href) {
+                      elem.focus()
+
+                      switch (openMode) {
+                          case OpenMode.Default:
+                              DOM.simulateClick(elem)
+                              break
+                          case OpenMode.Tab:
+                              hintTabOpen(elem.href, true).catch(() => DOM.simulateClick(elem))
+                              break
+                          case OpenMode.BackgroundTab:
+                              hintTabOpen(elem.href, false).catch(() => DOM.simulateClick(elem))
+                              break
+                          case OpenMode.Window:
+                              openInNewWindow({ url: new URL(elem.href, window.location.href).href })
+                              break
+                          case OpenMode.WindowPrivate:
+                              openInNewWindow({ url: elem.href, incognito: true })
+                              break
+                          case OpenMode.YankLink:
+                              yank(elem.href)
+                              break
+                      }
+                  } else {
+                      if (openMode === OpenMode.WindowPrivate) {
+                          // We want a private window, but the element doesn't have an href, so
+                          // we avoid opening the target by accident
+                          return
+                      } else {
+                          elem.focus()
+                          DOM.simulateClick(elem)
+                      }
+                  }
+
+                  return elem
+              }
+
+        if (immediate) {
+            // Immediate mode, perform the target action on all matching nodes
+            for (const elements of hintables) {
+                for (const hintable of elements.elements) {
+                    try {
+                        action(hintable)
+                    } catch (error) {
+                        logger.error(error)
                     }
-                    return link
-                },
-                rapid,
-                jshints,
-            )
-            break
-
-        case "-y":
-            // Yank link
-            selectHints = hinting.pipe(
-                'a[href]:not([href="#"])',
-                elem => {
-                    // /!\ Warning: This is racy! This can easily be fixed by adding an await but do we want this? yank can be pretty slow, especially with yankto=selection
-                    yank(elem.href)
-                    return elem
-                },
-                rapid,
-                jshints,
-            )
-            break
-
-        case "-p":
-            // Yank text content
-            selectHints = hinting.pipe_elements(
-                DOM.elementsWithText(),
-                elem => {
-                    // /!\ Warning: This is racy! This can easily be fixed by adding an await but do we want this? yank can be pretty slow, especially with yankto=selection
-                    yank(elem.textContent)
-                    return elem
-                },
-                rapid,
-            )
-            break
-
-        case "-h":
-            // Highlight element
-            selectHints = hinting.pipe_elements(
-                DOM.elementsWithText(),
-                elem => {
-                    const r = document.createRange()
-                    r.setStart(elem, 0)
-                    r.setEnd(elem, 1)
-                    const s = document.getSelection()
-                    s.addRange(r)
-                    return elem
-                },
-                rapid,
-            )
-            break
-
-        case "-P":
-            // Yank link alt text
-            // ???: Neither anchors nor links posses an "alt" attribute. I'm assuming that the person who wrote this code also wanted to select the alt text of images
-            // https://developer.mozilla.org/en-US/docs/Web/HTML/Element/a
-            // https://developer.mozilla.org/en-US/docs/Web/HTML/Element/link
-            selectHints = hinting.pipe_elements(
-                DOM.getElemsBySelector("[title], [alt]", [DOM.isVisible]),
-                link => {
-                    // /!\ Warning: This is racy! This can easily be fixed by adding an await but do we want this? yank can be pretty slow, especially with yankto=selection
-                    run_exstr("yank " + (link.title ? link.title : link.alt))
-                    return link
-                },
-                rapid,
-            )
-            break
-
-        case "-#":
-            // Yank anchor
-            selectHints = hinting.pipe_elements(
-                DOM.anchors(),
-                link => {
-                    const anchorUrl = new URL(window.location.href)
-                    // ???: What purpose does selecting elements with a name attribute have? Selecting values that only have meaning in forms doesn't seem very useful.
-                    // https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes
-                    anchorUrl.hash = link.id || link.name
-                    // /!\ Warning: This is racy! This can easily be fixed by adding an await but do we want this? yank can be pretty slow, especially with yankto=selection
-                    run_exstr("yank " + anchorUrl.href)
-                    return link
-                },
-                rapid,
-            )
-            break
-
-        case "-W":
-            selectHints = hinting.pipe(
-                DOM.HINTTAGS_selectors,
-                elem => {
-                    // /!\ RACY RACY RACY!
-                    run_exstr(selectors + " " + rest.join(" ") + " " + elem)
-                    return elem
-                },
-                rapid,
-                jshints,
-            )
-            break
-
-        case "-pipe":
-            selectHints = hinting.pipe(selectors, elem => elem[rest.join(" ")], rapid, jshints)
-            break
-
-        case "-i":
-            selectHints = hinting.pipe_elements(
-                hinting.hintableImages(),
-                elem => {
-                    open(new URL(elem.getAttribute("src"), window.location.href).href)
-                    return elem
-                },
-                rapid,
-            )
-            break
-
-        case "-I":
-            selectHints = hinting.pipe_elements(
-                hinting.hintableImages(),
-                async elem => {
-                    await hintTabOpen(new URL(elem.getAttribute("src"), window.location.href).href)
-                    return elem
-                },
-                rapid,
-            )
-            break
-
-        case "-k":
-            selectHints = hinting.pipe_elements(
-                hinting.killables(),
-                elem => {
-                    elem.remove()
-                    return elem
-                },
-                rapid,
-            )
-            break
-        case "-K":
-            selectHints = hinting.pipe_elements(
-                hinting.killables(),
-                elem => {
-                    elem.className = elem.className + " TridactylKilledElem "
-                    KILL_STACK.push(elem)
-                    return elem
-                },
-                rapid,
-            )
-            break
-        case "-s":
-        case "-a":
-        case "-S":
-        case "-A":
-            let elems = []
-            // s: don't ask the user where to save the file
-            // a: ask the user where to save the file
-            let saveAs = true
-            if (option[1].toLowerCase() === "s") saveAs = false
-            // Lowercase: anchors
-            // Uppercase: images
-            let attr = "href"
-            if (option[1].toLowerCase() === option[1]) {
-                attr = "href"
-                elems = hinting.saveableElements()
-            } else {
-                attr = "src"
-                elems = hinting.hintableImages()
+                }
             }
-            selectHints = hinting.pipe_elements(
-                elems,
-                elem => {
-                    Messaging.message("download_background", "downloadUrl", new URL(elem[attr], window.location.href).href, saveAs)
-                    return elem
-                },
-                rapid,
-            )
-            break
 
-        case "-;":
-            selectHints = hinting.pipe_elements(
-                hinting.hintables(selectors),
-                elem => {
-                    let tabindexAdded = false
-                    // img can only be focused when they have the tabindex attribute
-                    if (elem instanceof HTMLImageElement && !elem.getAttribute("tabindex")) {
-                        elem.setAttribute("tabindex", "-1")
-                        tabindexAdded = true
-                    }
-                    elem.focus()
-                    scrolling.setCurrentFocus(elem)
-                    // img doesn't get unfocused when its tabindex is removed, so no need to keep it around
-                    if (tabindexAdded) elem.removeAttribute("tabindex")
-                    return elem
-                },
-                rapid,
-            )
-            break
-
-        case "-r":
-            selectHints = hinting.pipe_elements(
-                DOM.elementsWithText(),
-                elem => {
-                    TTS.readText(elem.textContent)
-                    return elem
-                },
-                rapid,
-            )
-            break
-
-        case "-w":
-            selectHints = hinting.pipe_elements(
-                hinting.hintables(),
-                elem => {
-                    elem.focus()
-                    if (elem.href) openInNewWindow({ url: new URL(elem.href, window.location.href).href })
-                    else DOM.simulateClick(elem)
-                    return elem
-                },
-                rapid,
-            )
-            break
-
-        case "-wp":
-            selectHints = hinting.pipe_elements(
-                hinting.hintables(),
-                elem => {
-                    elem.focus()
-                    if (elem.href) return openInNewWindow({ url: elem.href, incognito: true })
-                },
-                rapid,
-            )
-            break
-
-        case "-z":
-            selectHints = hinting.pipe_elements(
-                DOM.elementsWithText(),
-                elem => {
-                    elem.scrollIntoView(true)
-                    return elem
-                },
-                rapid,
-            )
-            break
-
-        case "-F": // DIY callback
-            selectHints = hinting.pipe(withSelectors ? selectors : DOM.HINTTAGS_selectors, eval([withSelectors ? "" : selectors, ...rest].join(" ")), rapid, jshints)
-            break
-
-        default:
-            selectHints = hinting.pipe(
-                withSelectors ? [selectors, ...rest].join(" ") : DOM.HINTTAGS_selectors,
-                elem => {
-                    DOM.simulateClick(elem as HTMLElement)
-                    return elem
-                },
-                rapid,
-                jshints,
-            )
-    }
-
-    return selectHints
+            // TODO: Check if this is correct?
+            resolve()
+        } else {
+            // Perform hinting
+            hinting.hintPage(hintables, action, resolve, reject, rapid)
+        }
+    })
 }
 
 // how 2 crash pc
