@@ -4361,6 +4361,8 @@ export async function hint(...args: string[]): Promise<any> {
         ExpectCallback,
         ExpectExcmd,
         ExpectSelector,
+        ExpectPipeSelector,
+        ExpectPipeAttribute,
     }
 
     // Open mode: how to act on the selected hintable element
@@ -4398,6 +4400,7 @@ export async function hint(...args: string[]): Promise<any> {
     let jshints = true
     let callback = null
     let excmd = null
+    let pipeAttribute = null
 
     // Parser state
     let state = State.Initial
@@ -4410,7 +4413,10 @@ export async function hint(...args: string[]): Promise<any> {
 
         switch (state) {
             case State.Initial:
-                if (arg.length >= 2 && arg[0] === "-" && arg[1] !== "-") {
+                if (arg == "-pipe") {
+                    // Special case for -pipe, which is not a |1,2]-letter argument
+                    state = State.ExpectPipeSelector
+                } else if (arg.length >= 2 && arg[0] === "-" && arg[1] !== "-") {
                     // Parse short arguments, i.e. - followed by (mostly) single-letter arguments,
                     // and some two-letter arguments.
 
@@ -4586,6 +4592,18 @@ export async function hint(...args: string[]): Promise<any> {
                 positionals.push(arg)
                 state = State.Initial
                 break
+            case State.ExpectPipeSelector:
+                // -pipe, first expect a selector
+                positionals.push(arg)
+                // Then, expect the attribute
+                state = State.ExpectPipeAttribute
+                break
+            case State.ExpectPipeAttribute:
+                // -pipe, second argument
+                pipeAttribute = arg
+                // Keep parsing options when we're done
+                state = State.Initial
+                break
         }
     }
 
@@ -4667,6 +4685,11 @@ export async function hint(...args: string[]): Promise<any> {
         const action = callback
             ? eval(callback)
             : (elem: any) => {
+                  if (pipeAttribute !== null) {
+                      // We have an attribute to pipe
+                      return elem[pipeAttribute]
+                  }
+
                   if (excmd) {
                       // We have an excmd to run. By spec, we append the element's href
                       if (elem.href) {
