@@ -4631,46 +4631,48 @@ export async function hint(...args: string[]): Promise<any> {
     return new Promise((resolve, reject) => {
         let hintables
 
-        // Use the selectors to find hintable elements
-        switch (openMode) {
-            case OpenMode.YankText:
-            case OpenMode.Highlight:
-            case OpenMode.Scroll:
-                // For text-based opens, look for elements with text by default
-                hintables = hinting.toHintablesArray(DOM.elementsWithText(includeInvisible))
-                break
+        // User selectors always override default built-ins
+        if (positionals.length > 0) {
+            hintables = hinting.hintables(positionals.join(" "), jshints, includeInvisible)
+        } else {
+            // Use the default selectors to find hintable elements
+            switch (openMode) {
+                case OpenMode.YankText:
+                case OpenMode.Highlight:
+                case OpenMode.Scroll:
+                    // For text-based opens, look for elements with text by default
+                    hintables = hinting.toHintablesArray(DOM.elementsWithText(includeInvisible))
+                    break
 
-            case OpenMode.YankAlt:
-                hintables = hinting.toHintablesArray(DOM.getElemsBySelector("[title],[alt]", [DOM.isVisibleFilter(includeInvisible)]))
-                break
+                case OpenMode.YankAlt:
+                    hintables = hinting.toHintablesArray(DOM.getElemsBySelector("[title],[alt]", [DOM.isVisibleFilter(includeInvisible)]))
+                    break
 
-            case OpenMode.YankAnchor:
-                hintables = hinting.toHintablesArray(DOM.anchors(includeInvisible))
-                break
+                case OpenMode.YankAnchor:
+                    hintables = hinting.toHintablesArray(DOM.anchors(includeInvisible))
+                    break
 
-            case OpenMode.Images:
-            case OpenMode.ImagesTab:
-            case OpenMode.SaveImage:
-            case OpenMode.SaveAsImage:
-                // TODO: Support custom image selectors?
-                hintables = hinting.toHintablesArray(hinting.hintableImages(includeInvisible))
-                break
+                case OpenMode.Images:
+                case OpenMode.ImagesTab:
+                case OpenMode.SaveImage:
+                case OpenMode.SaveAsImage:
+                    hintables = hinting.toHintablesArray(hinting.hintableImages(includeInvisible))
+                    break
 
-            case OpenMode.Kill:
-            case OpenMode.KillTridactyl:
-                // TODO: Support custom killable selectors?
-                hintables = hinting.toHintablesArray(hinting.killables(includeInvisible))
-                break
+                case OpenMode.Kill:
+                case OpenMode.KillTridactyl:
+                    hintables = hinting.toHintablesArray(hinting.killables(includeInvisible))
+                    break
 
-            case OpenMode.SaveResource:
-            case OpenMode.SaveAsResource:
-                // TODO: Support custom saveable selectors?
-                hintables = hinting.toHintablesArray(hinting.saveableElements(includeInvisible))
-                break
+                case OpenMode.SaveResource:
+                case OpenMode.SaveAsResource:
+                    hintables = hinting.toHintablesArray(hinting.saveableElements(includeInvisible))
+                    break
 
-            default:
-                hintables = hinting.hintables(positionals.length ? positionals.join(" ") : DOM.HINTTAGS_selectors, jshints, includeInvisible)
-                break
+                default:
+                    hintables = hinting.hintables(DOM.HINTTAGS_selectors, jshints, includeInvisible)
+                    break
+            }
         }
 
         // Do we have text filters to refine this?
