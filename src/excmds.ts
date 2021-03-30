@@ -4572,10 +4572,14 @@ export async function hint(...args: string[]): Promise<any> {
             case State.ExpectExcmd:
                 // Collect all the remaining arguments into a excmd callback
                 excmd = args.slice(argI).join(" ")
+                // Reset state to initial, parsing was successful
+                state = State.Initial
                 break outer
             case State.ExpectCallback:
                 // Collect all the remaining arguments into a Javascript callback
                 callback = args.slice(argI).join(" ")
+                // Reset state to initial, parsing was successful
+                state = State.Initial
                 break outer
             case State.ExpectSelector:
                 // -c, expect a single selector
@@ -4583,6 +4587,11 @@ export async function hint(...args: string[]): Promise<any> {
                 state = State.Initial
                 break
         }
+    }
+
+    if (state !== State.Initial) {
+        // If we didn't return to the initial state, we were expecting an option value
+        logger.warning("error parsing options: expected a value")
     }
 
     const hintTabOpen = async (href, active = !rapid) => {
