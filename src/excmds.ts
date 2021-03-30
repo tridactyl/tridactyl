@@ -4292,6 +4292,9 @@ const KILL_STACK: Element[] = []
         - -A save-as the linked image
         - -; focus an element and set it as the element or the child of the element to scroll
         - -# yank an element's anchor URL to clipboard
+        - -c [selector] hint links that match the css selector
+          - `bind ;c hint -c [class*="expand"],[class="togg"]` works particularly well on reddit and HN
+          - this works with most other hint modes, with the caveat that if other hint mode takes arguments your selector must contain no spaces, i.e. `hint -c[yourOtherFlag] [selector] [your other flag's arguments, which may contain spaces]`
         - -f [text] hint links and inputs that display the given text
           - `bind <c-e> hint -f Edit`
           - Backslashes can escape spaces: `bind <c-s> hint -f Save\ as`
@@ -4308,8 +4311,6 @@ const KILL_STACK: Element[] = []
         - -V create hints for invisible elements. By default, elements outside the viewport when calling :hint are not hinted, this includes them anyways.
         - -! perform action immediately. This effectively selects every hinted element in sequence
           - For example, `hint -!bf Comments` opens in background tabs all visible links whose text matches `Comments`
-        - [selector] hint links that match the css selector
-          - `bind ;c hint [class*="expand"],[class="togg"]` works particularly well on reddit and HN
 
     Excepting the custom selector mode and background hint mode, each of these hint modes is available by default as `;<option character>`, so e.g. `;y` to yank a link's target; `;g<option character>` starts rapid hint mode for all modes where it makes sense, and some others.
 
@@ -4359,6 +4360,7 @@ export async function hint(...args: string[]): Promise<any> {
         ExpectFR,
         ExpectCallback,
         ExpectExcmd,
+        ExpectSelector,
     }
 
     // Open mode: how to act on the selected hintable element
@@ -4446,6 +4448,8 @@ export async function hint(...args: string[]): Promise<any> {
                             case "W":
                                 state = State.ExpectExcmd
                                 break
+                            case "c":
+                                state = State.ExpectSelector
                             case "!":
                                 immediate = true
                                 break
@@ -4573,6 +4577,11 @@ export async function hint(...args: string[]): Promise<any> {
                 // Collect all the remaining arguments into a Javascript callback
                 callback = args.slice(argI).join(" ")
                 break outer
+            case State.ExpectSelector:
+                // -c, expect a single selector
+                positionals.push(arg)
+                state = State.Initial
+                break
         }
     }
 
