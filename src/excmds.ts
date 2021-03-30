@@ -4456,6 +4456,7 @@ export async function hint(...args: string[]): Promise<any> {
                                 break
                             case "c":
                                 state = State.ExpectSelector
+                                break
                             case "!":
                                 immediate = true
                                 break
