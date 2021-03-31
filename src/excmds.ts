@@ -93,6 +93,7 @@ import * as excmd_parser from "@src/parsers/exmode"
 import * as escape from "@src/lib/escape"
 import * as R from "ramda"
 import semverCompare from "semver-compare"
+import * as hint_util from "@src/lib/hint_util"
 
 /**
  * This is used to drive some excmd handling in `composite`.
@@ -4353,267 +4354,14 @@ const KILL_STACK: Element[] = []
 */
 //#content
 export async function hint(...args: string[]): Promise<any> {
-    // Argument parser state
-    enum State {
-        Initial,
-        ExpectF,
-        ExpectFR,
-        ExpectCallback,
-        ExpectExcmd,
-        ExpectSelector,
-        ExpectPipeSelector,
-        ExpectPipeAttribute,
-    }
+    // Alias to save some typing
+    const OpenMode = hint_util.OpenMode
 
-    // Open mode: how to act on the selected hintable element
-    enum OpenMode {
-        Default,
-        Tab,
-        BackgroundTab,
-        Window,
-        WindowPrivate,
-        Highlight,
-        Images,
-        ImagesTab,
-        Kill,
-        KillTridactyl,
-        Scroll,
-        SaveResource,
-        SaveImage,
-        SaveAsResource,
-        SaveAsImage,
-        // TODO: What does this actually do? The doc is unclear
-        Semicolon,
-        TTSRead,
-        YankAlt,
-        YankAnchor,
-        YankLink,
-        YankText,
-    }
+    // Parse configuration and print parsing warnings
+    const config = hint_util.HintConfig.parse(args)
+    config.printWarnings(logger)
 
-    // Hint config
-    let rapid = false
-    let textFilter = null
-    let openMode = OpenMode.Default
-    let includeInvisible = false
-    let immediate = false
-    let jshints = true
-    let callback = null
-    let excmd = null
-    let pipeAttribute = null
-
-    // Parser state
-    let state = State.Initial
-
-    // Remaining positional arguments. To be used as selectors
-    const positionals = []
-
-    outer: for (let argI = 0; argI < args.length; ++argI) {
-        const arg = args[argI]
-
-        switch (state) {
-            case State.Initial:
-                if (arg == "-pipe") {
-                    // Special case for -pipe, which is not a |1,2]-letter argument
-                    state = State.ExpectPipeSelector
-                } else if (arg.length >= 2 && arg[0] === "-" && arg[1] !== "-") {
-                    // Parse short arguments, i.e. - followed by (mostly) single-letter arguments,
-                    // and some two-letter arguments.
-
-                    let last = ""
-                    for (let i = 1; i < arg.length; ++i) {
-                        const letter = arg[i]
-                        let flag = letter
-
-                        // Fix two-letter flags like fr
-                        if ((last === "f" && letter === "r") || (last === "w" && letter === "p")) {
-                            flag = last + letter
-                        }
-
-                        // Process flag
-                        let newOpenMode: undefined | OpenMode
-                        switch (flag) {
-                            case "q":
-                                rapid = true
-                                break
-                            case "f":
-                                state = State.ExpectF
-                                break
-                            case "fr":
-                                state = State.ExpectFR
-                                break
-                            case "V":
-                                includeInvisible = true
-                                break
-                            case "J":
-                                jshints = false
-                                break
-                            case "F":
-                                state = State.ExpectCallback
-                                break
-                            case "W":
-                                state = State.ExpectExcmd
-                                break
-                            case "c":
-                                state = State.ExpectSelector
-                                break
-                            case "!":
-                                immediate = true
-                                break
-                            case "t":
-                                newOpenMode = OpenMode.Tab
-                                break
-                            case "b":
-                                newOpenMode = OpenMode.BackgroundTab
-                                break
-                            case "w":
-                                newOpenMode = OpenMode.Window
-                                break
-                            case "wp":
-                                newOpenMode = OpenMode.WindowPrivate
-                                break
-                            case "h":
-                                newOpenMode = OpenMode.Highlight
-                                break
-                            case "i":
-                                newOpenMode = OpenMode.Images
-                                break
-                            case "I":
-                                newOpenMode = OpenMode.ImagesTab
-                                break
-                            case "k":
-                                newOpenMode = OpenMode.Kill
-                                break
-                            case "K":
-                                newOpenMode = OpenMode.KillTridactyl
-                                break
-                            case "z":
-                                newOpenMode = OpenMode.Scroll
-                                break
-                            case "s":
-                                newOpenMode = OpenMode.SaveResource
-                                break
-                            case "S":
-                                newOpenMode = OpenMode.SaveImage
-                                break
-                            case "a":
-                                newOpenMode = OpenMode.SaveAsResource
-                                break
-                            case "A":
-                                newOpenMode = OpenMode.SaveAsImage
-                                break
-                            case ";":
-                                newOpenMode = OpenMode.Semicolon
-                                break
-                            case "r":
-                                newOpenMode = OpenMode.TTSRead
-                                break
-                            case "P":
-                                newOpenMode = OpenMode.YankAlt
-                                break
-                            case "#":
-                                newOpenMode = OpenMode.YankAnchor
-                                break
-                            case "y":
-                                newOpenMode = OpenMode.YankLink
-                                break
-                            case "p":
-                                newOpenMode = OpenMode.YankText
-                                break
-                            default:
-                                logger.warning(`unknown flag -${flag}`)
-                                break
-                        }
-
-                        if (newOpenMode !== undefined) {
-                            if (openMode !== OpenMode.Default) {
-                                // Notify that multiple open modes doesn't make sense
-                                logger.warning("multiple open mode flags specified, overriding the previous ones")
-                            }
-
-                            openMode = newOpenMode
-                        }
-
-                        // If we are now expecting a value, check that this is the last flag
-                        if (state !== State.Initial && i < arg.length - 1) {
-                            const remaining = arg.substring(i + 1)
-
-                            if ((flag === "f" && remaining !== "r") || (flag === "w" && remaining !== "p")) {
-                                logger.warning(`-${flag} expects a value, so it should be the last flag in a combined option. The following flags (${remaining}) were ignored`)
-                                break
-                            }
-                        }
-
-                        last = letter
-                    }
-                } else {
-                    // Not something that looks like an argument, add it to positionals for later processing
-                    positionals.push(arg)
-                }
-                break
-            case State.ExpectF:
-            case State.ExpectFR:
-                // Collect arguments using escapes
-                let filter = arg
-                while (filter.endsWith("\\")) {
-                    filter = filter.substring(0, filter.length - 1)
-
-                    if (argI + 1 < args.length) {
-                        filter += " " + args[++argI]
-                    } else {
-                        break
-                    }
-                }
-
-                if (state == State.ExpectF) {
-                    // -f
-                    textFilter = filter
-                } else {
-                    // -fr
-                    textFilter = new RegExp(filter)
-                }
-
-                state = State.Initial
-
-                break
-            case State.ExpectExcmd:
-                // Collect all the remaining arguments into a excmd callback
-                excmd = args.slice(argI).join(" ")
-                // Reset state to initial, parsing was successful
-                state = State.Initial
-                break outer
-            case State.ExpectCallback:
-                // Collect all the remaining arguments into a Javascript callback
-                callback = args.slice(argI).join(" ")
-                // Reset state to initial, parsing was successful
-                state = State.Initial
-                break outer
-            case State.ExpectSelector:
-                // -c, expect a single selector
-                positionals.push(arg)
-                state = State.Initial
-                break
-            case State.ExpectPipeSelector:
-                // -pipe, first expect a selector
-                positionals.push(arg)
-                // Then, expect the attribute
-                state = State.ExpectPipeAttribute
-                break
-            case State.ExpectPipeAttribute:
-                // -pipe, second argument
-                pipeAttribute = arg
-                // Keep parsing options when we're done
-                state = State.Initial
-                break
-        }
-    }
-
-    if (state !== State.Initial) {
-        // If we didn't return to the initial state, we were expecting an option value
-        logger.warning("error parsing options: expected a value")
-    }
-
-    const hintTabOpen = async (href, active = !rapid) => {
+    const hintTabOpen = async (href, active = !config.rapid) => {
         const containerId = await activeTabContainerId()
         if (containerId) {
             return openInNewTab(href, {
@@ -4630,74 +4378,23 @@ export async function hint(...args: string[]): Promise<any> {
     }
 
     return new Promise((resolve, reject) => {
-        let hintables
-
-        // User selectors always override default built-ins
-        if (positionals.length > 0) {
-            hintables = hinting.hintables(positionals.join(" "), jshints, includeInvisible)
-        } else {
-            // Use the default selectors to find hintable elements
-            switch (openMode) {
-                case OpenMode.YankText:
-                case OpenMode.Highlight:
-                case OpenMode.Scroll:
-                    // For text-based opens, look for elements with text by default
-                    hintables = hinting.toHintablesArray(DOM.elementsWithText(includeInvisible))
-                    break
-
-                case OpenMode.YankAlt:
-                    hintables = hinting.toHintablesArray(DOM.getElemsBySelector("[title],[alt]", [DOM.isVisibleFilter(includeInvisible)]))
-                    break
-
-                case OpenMode.YankAnchor:
-                    hintables = hinting.toHintablesArray(DOM.anchors(includeInvisible))
-                    break
-
-                case OpenMode.Images:
-                case OpenMode.ImagesTab:
-                case OpenMode.SaveImage:
-                case OpenMode.SaveAsImage:
-                    hintables = hinting.toHintablesArray(hinting.hintableImages(includeInvisible))
-                    break
-
-                case OpenMode.Kill:
-                case OpenMode.KillTridactyl:
-                    hintables = hinting.toHintablesArray(hinting.killables(includeInvisible))
-                    break
-
-                case OpenMode.SaveResource:
-                case OpenMode.SaveAsResource:
-                    hintables = hinting.toHintablesArray(hinting.saveableElements(includeInvisible))
-                    break
-
-                default:
-                    hintables = hinting.hintables(DOM.HINTTAGS_selectors, jshints, includeInvisible)
-                    break
-            }
-        }
-
-        // Do we have text filters to refine this?
-        if (textFilter !== null) {
-            for (const elements of hintables) {
-                elements.elements = elements.elements.filter(hinting.hintByTextFilter(textFilter))
-            }
-        }
+        const hintables = config.hintables()
 
         // If the user specified a callback, eval it, else use the default
         // action which performs the action matching the open mode
-        const action = callback
-            ? eval(callback)
+        const action = config.callback
+            ? eval(config.callback)
             : (elem: any) => {
-                  if (pipeAttribute !== null) {
+                  if (config.pipeAttribute !== null) {
                       // We have an attribute to pipe
-                      return elem[pipeAttribute]
+                      return elem[config.pipeAttribute]
                   }
 
-                  if (excmd) {
+                  if (config.excmd) {
                       // We have an excmd to run. By spec, we append the element's href
                       if (elem.href) {
                           // /!\ RACY RACY RACY!
-                          run_exstr(excmd + " " + elem.href)
+                          run_exstr(config.excmd + " " + elem.href)
                           return elem
                       }
 
@@ -4705,7 +4402,7 @@ export async function hint(...args: string[]): Promise<any> {
                       return
                   }
 
-                  switch (openMode) {
+                  switch (config.openMode) {
                       case OpenMode.Highlight:
                           const r = document.createRange()
                           r.setStart(elem, 0)
@@ -4718,7 +4415,7 @@ export async function hint(...args: string[]): Promise<any> {
                       case OpenMode.ImagesTab:
                           const src = elem.getAttribute("src")
                           if (src) {
-                              if (openMode === OpenMode.ImagesTab) {
+                              if (config.openMode === OpenMode.ImagesTab) {
                                   // TODO: await? Other hintTabOpen calls don't seem to use one
                                   hintTabOpen(new URL(src, window.location.href).href)
                               } else {
@@ -4741,8 +4438,8 @@ export async function hint(...args: string[]): Promise<any> {
                       case OpenMode.SaveImage:
                       case OpenMode.SaveAsResource:
                       case OpenMode.SaveAsImage:
-                          const saveAs = openMode === OpenMode.SaveAsResource || openMode === OpenMode.SaveAsImage
-                          const attr = openMode === OpenMode.SaveImage || openMode === OpenMode.SaveAsImage ? "src" : "href"
+                          const saveAs = config.openMode === OpenMode.SaveAsResource || config.openMode === OpenMode.SaveAsImage
+                          const attr = config.openMode === OpenMode.SaveImage || config.openMode === OpenMode.SaveAsImage ? "src" : "href"
                           Messaging.message("download_background", "downloadUrl", new URL(elem[attr], window.location.href).href, saveAs)
                           return elem
 
@@ -4792,7 +4489,7 @@ export async function hint(...args: string[]): Promise<any> {
                   if (elem.href) {
                       elem.focus()
 
-                      switch (openMode) {
+                      switch (config.openMode) {
                           case OpenMode.Default:
                               DOM.simulateClick(elem)
                               break
@@ -4813,7 +4510,7 @@ export async function hint(...args: string[]): Promise<any> {
                               break
                       }
                   } else {
-                      if (openMode === OpenMode.WindowPrivate) {
+                      if (config.openMode === OpenMode.WindowPrivate) {
                           // We want a private window, but the element doesn't have an href, so
                           // we avoid opening the target by accident
                           return
@@ -4826,7 +4523,7 @@ export async function hint(...args: string[]): Promise<any> {
                   return elem
               }
 
-        if (immediate) {
+        if (config.immediate) {
             // Immediate mode, perform the target action on all matching nodes
             for (const elements of hintables) {
                 for (const hintable of elements.elements) {
@@ -4842,7 +4539,7 @@ export async function hint(...args: string[]): Promise<any> {
             resolve()
         } else {
             // Perform hinting
-            hinting.hintPage(hintables, action, resolve, reject, rapid)
+            hinting.hintPage(hintables, action, resolve, reject, config.rapid)
         }
     })
 }
