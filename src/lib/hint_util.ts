@@ -81,7 +81,7 @@ export class HintConfig implements HintOptions {
         }
 
         const result = new HintConfig()
-        const twoLetterFlags = ["fr", "wp", "br"]
+        const multiLetterFlags = ["fr", "wp", "br", "pipe"]
 
         // Parser state
         let state = State.Initial
@@ -91,34 +91,32 @@ export class HintConfig implements HintOptions {
 
             switch (state) {
                 case State.Initial:
-                    if (arg == "-pipe") {
-                        // Special case for -pipe, which is not a |1,2]-letter argument
-                        state = State.ExpectPipeSelector
-                    } else if (
-                        arg.length >= 2 &&
-                        arg[0] === "-" &&
-                        arg[1] !== "-"
-                    ) {
+                    if (arg.length >= 2 && arg[0] === "-" && arg[1] !== "-") {
                         // Parse short arguments, i.e. - followed by (mostly) single-letter arguments,
                         // and some two-letter arguments.
 
                         for (let i = 1; i < arg.length; ++i) {
-                            const letter = arg[i]
-                            let flag = letter
+                            let flag = arg[i]
 
                             // Fix two-letter flags using lookahead
                             if (i < arg.length - 1) {
-                                const twoLetterFlag = letter + arg[i + 1]
+                                const multiLetterFlag = multiLetterFlags.find(
+                                    tlf =>
+                                        arg.substring(i, i + tlf.length) ===
+                                        tlf,
+                                )
 
-                                if (twoLetterFlags.includes(twoLetterFlag)) {
-                                    flag = twoLetterFlag
-                                    i++
+                                if (multiLetterFlag !== undefined) {
+                                    flag = multiLetterFlag
+                                    i += multiLetterFlag.length - 1
                                 }
                             }
 
                             // Process flag
                             let newOpenMode: undefined | OpenMode
                             let newState: undefined | State
+
+                            // eslint-disable-next-line sonarjs/max-switch-cases
                             switch (flag) {
                                 case "br":
                                     // Equivalent to -qb, but deprecated
@@ -151,6 +149,9 @@ export class HintConfig implements HintOptions {
                                     break
                                 case "c":
                                     newState = State.ExpectSelector
+                                    break
+                                case "pipe":
+                                    newState = State.ExpectPipeSelector
                                     break
                                 case "t":
                                     newOpenMode = OpenMode.Tab

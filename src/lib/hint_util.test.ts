@@ -141,6 +141,15 @@ const testCases = [
             warnings: [],
         },
     },
+    {
+        sources: ["-qpipe a href"],
+        expected: {
+            rapid: true,
+            pipeAttribute: "href",
+            selectors: ["a"],
+            warnings: [],
+        },
+    },
 ]
 
 // Check all test cases
