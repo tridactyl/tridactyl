@@ -1135,33 +1135,6 @@ export function killables(includeInvisible = false) {
     ])
 }
 
-/** HintPage wrapper, accepts CSS selectors to build a list of elements
- * @hidden
- * */
-export function pipe(
-    selectors = DOM.HINTTAGS_selectors,
-    action: HintSelectedCallback = _ => _,
-    rapid = false,
-    jshints = true,
-): Promise<[Element, number]> {
-    return new Promise((resolve, reject) => {
-        hintPage(hintables(selectors, jshints), action, resolve, reject, rapid)
-    })
-}
-
-/** HintPage wrapper, accepts array of elements to hint
- * @hidden
- * */
-export function pipe_elements(
-    elements: Element[] | Hintables[] = DOM.elementsWithText(),
-    action: HintSelectedCallback = _ => _,
-    rapid = false,
-): Promise<[Element, number]> {
-    return new Promise((resolve, reject) => {
-        hintPage(toHintablesArray(elements), action, resolve, reject, rapid)
-    })
-}
-
 // Multiple dispatch? who needs it
 /** Returns an array of hintable objects from an array of elements
  * @hidden
