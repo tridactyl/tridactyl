@@ -25,8 +25,7 @@ export enum OpenMode {
     SaveImage = "-S",
     SaveAsResource = "-a",
     SaveAsImage = "-A",
-    // TODO: What does this actually do? The doc is unclear
-    Semicolon = "-;",
+    ScrollFocus = "-;",
     TTSRead = "-r",
     YankAlt = "-P",
     YankAnchor = "-#",
@@ -187,7 +186,7 @@ export class HintConfig implements HintOptions {
                                     newOpenMode = OpenMode.SaveAsImage
                                     break
                                 case ";":
-                                    newOpenMode = OpenMode.Semicolon
+                                    newOpenMode = OpenMode.ScrollFocus
                                     break
                                 case "r":
                                     newOpenMode = OpenMode.TTSRead

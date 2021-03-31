@@ -4447,7 +4447,7 @@ export async function hint(...args: string[]): Promise<any> {
                           elem.scrollIntoView(true)
                           return elem
 
-                      case OpenMode.Semicolon:
+                      case OpenMode.ScrollFocus:
                           let tabindexAdded = false
                           // img can only be focused when they have the tabindex attribute
                           if (elem instanceof HTMLImageElement && !elem.getAttribute("tabindex")) {
