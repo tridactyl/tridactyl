@@ -77,9 +77,11 @@ export class HintConfig implements HintOptions {
             ExpectSelector,
             ExpectPipeSelector,
             ExpectPipeAttribute,
+            ExpectSelectorCallback,
         }
 
         const result = new HintConfig()
+        const twoLetterFlags = ["fr", "wp", "br"]
 
         // Parser state
         let state = State.Initial
@@ -100,30 +102,37 @@ export class HintConfig implements HintOptions {
                         // Parse short arguments, i.e. - followed by (mostly) single-letter arguments,
                         // and some two-letter arguments.
 
-                        let last = ""
                         for (let i = 1; i < arg.length; ++i) {
                             const letter = arg[i]
                             let flag = letter
 
-                            // Fix two-letter flags like fr
-                            if (
-                                (last === "f" && letter === "r") ||
-                                (last === "w" && letter === "p")
-                            ) {
-                                flag = last + letter
+                            // Fix two-letter flags using lookahead
+                            if (i < arg.length - 1) {
+                                const twoLetterFlag = letter + arg[i + 1]
+
+                                if (twoLetterFlags.includes(twoLetterFlag)) {
+                                    flag = twoLetterFlag
+                                    i++
+                                }
                             }
 
                             // Process flag
                             let newOpenMode: undefined | OpenMode
+                            let newState: undefined | State
                             switch (flag) {
+                                case "br":
+                                    // Equivalent to -qb, but deprecated
+                                    result.rapid = true
+                                    newOpenMode = OpenMode.BackgroundTab
+                                    break
                                 case "q":
                                     result.rapid = true
                                     break
                                 case "f":
-                                    state = State.ExpectF
+                                    newState = State.ExpectF
                                     break
                                 case "fr":
-                                    state = State.ExpectFR
+                                    newState = State.ExpectFR
                                     break
                                 case "V":
                                     result.includeInvisible = true
@@ -132,13 +141,13 @@ export class HintConfig implements HintOptions {
                                     result.jshints = false
                                     break
                                 case "F":
-                                    state = State.ExpectCallback
+                                    newState = State.ExpectCallback
                                     break
                                 case "W":
-                                    state = State.ExpectExcmd
+                                    newState = State.ExpectExcmd
                                     break
                                 case "c":
-                                    state = State.ExpectSelector
+                                    newState = State.ExpectSelector
                                     break
                                 case "!":
                                     result.immediate = true
@@ -210,6 +219,7 @@ export class HintConfig implements HintOptions {
                                     break
                             }
 
+                            // Check openMode changes
                             if (newOpenMode !== undefined) {
                                 if (result.openMode !== OpenMode.Default) {
                                     // Notify that multiple open modes doesn't make sense
@@ -221,22 +231,30 @@ export class HintConfig implements HintOptions {
                                 result.openMode = newOpenMode
                             }
 
-                            // If we are now expecting a value, check that this is the last flag
-                            if (state !== State.Initial && i < arg.length - 1) {
-                                const remaining = arg.substring(i + 1)
+                            // Check state changes
+                            if (newState !== undefined) {
+                                // Some state transitions are dubious, specifically all the ones that go from (argument
+                                // expecting value) to (other argument expecting value), except for -cF
+                                if (
+                                    (state === State.ExpectSelector &&
+                                        newState === State.ExpectCallback) ||
+                                    (state === State.ExpectCallback &&
+                                        newState === State.ExpectSelector)
+                                ) {
+                                    newState = State.ExpectSelectorCallback
+                                }
 
                                 if (
-                                    (flag === "f" && remaining !== "r") ||
-                                    (flag === "w" && remaining !== "p")
+                                    state !== State.Initial &&
+                                    newState !== State.ExpectSelectorCallback
                                 ) {
                                     result.warnings.push(
-                                        `-${flag} expects a value, so it should be the last flag in a combined option. The following flags (${remaining}) were ignored`,
+                                        `multiple flags taking a value were specified, only the last one (-${flag}) will be processed`,
                                     )
-                                    break
                                 }
-                            }
 
-                            last = letter
+                                state = newState
+                            }
                         }
                     } else {
                         // Not something that looks like an argument, add it to positionals for later processing
@@ -296,6 +314,11 @@ export class HintConfig implements HintOptions {
                     result.pipeAttribute = arg
                     // Keep parsing options when we're done
                     state = State.Initial
+                    break
+                case State.ExpectSelectorCallback:
+                    // -cF, expect selector, then callback
+                    result.selectors.push(arg)
+                    state = State.ExpectCallback
                     break
             }
         }
