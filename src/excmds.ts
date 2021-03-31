@@ -4544,7 +4544,11 @@ export async function hint(...args: string[]): Promise<any> {
     }).then(value => {
         // Fix #1374 for all types of yanks: join returned results
         if (config.isYank) {
-            yank((value as string[]).join("\n"))
+            if (Array.isArray(value)) {
+                yank(value.join("\n"))
+            } else {
+                yank(value as string)
+            }
         }
 
         return value
