@@ -284,7 +284,7 @@ export class AutoContain implements IAutoContain {
         } else {
             const containerExists = await Container.exists(aucons[aukeyarr[0]])
             if (!containerExists) {
-                if (Config.get("auconcreatecontainer")) {
+                if (Config.get("auconcreatecontainer") === "true") {
                     await Container.create(aucons[aukeyarr[0]])
                 } else {
                     logger.error(
