@@ -4468,23 +4468,24 @@ export async function hint(...args: string[]): Promise<any> {
                       case OpenMode.YankAlt:
                           // Yank link alt text
                           // ???: Neither anchors nor links posses an "alt" attribute. I'm assuming that the person who wrote this code also wanted to select the alt text of images
-
-                          // /!\ Warning: This is racy! This can easily be fixed by adding an await but do we want this? yank can be pretty slow, especially with yankto=selection
-                          run_exstr("yank " + (elem.title ? elem.title : elem.alt))
-                          return elem
+                          return elem.title ? elem.title : elem.alt
 
                       case OpenMode.YankAnchor:
                           const anchorUrl = new URL(window.location.href)
                           // ???: What purpose does selecting elements with a name attribute have? Selecting values that only have meaning in forms doesn't seem very useful.
                           // https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes
                           anchorUrl.hash = elem.id || elem.name
-                          // /!\ Warning: This is racy! This can easily be fixed by adding an await but do we want this? yank can be pretty slow, especially with yankto=selection
-                          run_exstr("yank " + anchorUrl.href)
-                          return elem
+                          return anchorUrl.href
+
+                      case OpenMode.YankLink:
+                          if (elem.href) {
+                              return elem.href
+                          }
+
+                          return
 
                       case OpenMode.YankText:
-                          yank(elem.textContent)
-                          return elem
+                          return elem.textContent
                   }
 
                   if (elem.href) {
@@ -4506,9 +4507,6 @@ export async function hint(...args: string[]): Promise<any> {
                           case OpenMode.WindowPrivate:
                               openInNewWindow({ url: elem.href, incognito: true })
                               break
-                          case OpenMode.YankLink:
-                              yank(elem.href)
-                              break
                       }
                   } else {
                       if (config.openMode === OpenMode.WindowPrivate) {
@@ -4526,22 +4524,30 @@ export async function hint(...args: string[]): Promise<any> {
 
         if (config.immediate) {
             // Immediate mode, perform the target action on all matching nodes
+            const results = []
+
             for (const elements of hintables) {
                 for (const hintable of elements.elements) {
                     try {
-                        action(hintable)
+                        results.push(action(hintable))
                     } catch (error) {
                         logger.error(error)
                     }
                 }
             }
 
-            // TODO: Check if this is correct?
-            resolve()
+            resolve(results)
         } else {
             // Perform hinting
             hinting.hintPage(hintables, action, resolve, reject, config.rapid)
         }
+    }).then(value => {
+        // Fix #1374 for all types of yanks: join returned results
+        if (config.isYank) {
+            yank((value as string[]).join("\n"))
+        }
+
+        return value
     })
 }
 

@@ -412,4 +412,13 @@ export class HintConfig implements HintOptions {
 
         return hintables
     }
+
+    public get isYank() {
+        return (
+            this.openMode === OpenMode.YankAnchor ||
+            this.openMode === OpenMode.YankAlt ||
+            this.openMode === OpenMode.YankLink ||
+            this.openMode === OpenMode.YankText
+        )
+    }
 }
