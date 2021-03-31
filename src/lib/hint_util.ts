@@ -140,6 +140,9 @@ export class HintConfig implements HintOptions {
                                 case "J":
                                     result.jshints = false
                                     break
+                                case "!":
+                                    result.immediate = true
+                                    break
                                 case "F":
                                     newState = State.ExpectCallback
                                     break
@@ -148,9 +151,6 @@ export class HintConfig implements HintOptions {
                                     break
                                 case "c":
                                     newState = State.ExpectSelector
-                                    break
-                                case "!":
-                                    result.immediate = true
                                     break
                                 case "t":
                                     newOpenMode = OpenMode.Tab
