@@ -607,7 +607,7 @@ export class default_config {
         "mkt!": "mktridactylrc -f",
         "mktridactylrc!": "mktridactylrc -f",
         mpvsafe:
-            "js -p tri.excmds.shellescape(JS_ARG).then(url => tri.excmds.exclaim_quiet('mpv ' + url))",
+            "js -p tri.excmds.shellescape(JS_ARG).then(url => tri.excmds.exclaim_quiet('mpv --no-terminal ' + url))",
         exto: "extoptions",
         extpreferences: "extoptions",
         extp: "extpreferences",
