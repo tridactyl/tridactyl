@@ -49,6 +49,9 @@ bind ,g js let uri = document.location.href.replace(/https?:\/\//,"git@").replac
 bind d composite tab #; tabclose #
 bind D tabclose
 
+" make t open the selection with tabopen
+bind --mode=visual t composite js document.getSelection().toString() | fillcmdline tabopen
+
 " I like wikiwand but I don't like the way it changes URLs
 bindurl wikiwand.com yy composite js document.location.href.replace("wikiwand.com/en","wikipedia.org/wiki") | clipboard yank
 
