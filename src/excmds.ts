@@ -2986,7 +2986,7 @@ export async function viewcontainers() {
     // # and white space don't agree with FF's JSON viewer.
     // Probably other symbols too.
     const containers = await browserBg.contextualIdentities.query({}) // Can't access src/lib/containers.ts from a content script.
-    window.location.href = "data:application/json," + JSON.stringify(containers).replace(/#/g, "%23").replace(/ /g, "%20")
+    jsonview(JSON.stringify(containers))
 }
 
 /** Opens the current tab in another container.
