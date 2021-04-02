@@ -386,7 +386,7 @@ export async function guiset_quiet(rule: string, option: string) {
     const stylesheet = CSS.parse(cssstr, { silent: true })
     if (stylesheet.stylesheet.parsingErrors.length) {
         const error = stylesheet.stylesheet.parsingErrors[0]
-        throw new Error(`userChrome.css is malformed and cannot be parsed: ${error.reason} at ${error.line}:${error.column}. Please manually fix or delete it, then try again.`)
+        throw new Error(`Your current userChrome.css is malformed: ${error.reason} at ${error.line}:${error.column}. Fix or delete it and try again.`)
     }
     // Trim due to https://github.com/reworkcss/css/issues/113
     const stylesheetDone = CSS.stringify(css_util.changeCss(rule, option, stylesheet)).trim()
