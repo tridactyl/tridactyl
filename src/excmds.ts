@@ -383,7 +383,11 @@ export async function guiset_quiet(rule: string, option: string) {
     await Native.write(profile_dir + "/chrome/userChrome.css.tri.bak", cssstr)
 
     // Modify and write new CSS
-    const stylesheet = CSS.parse(cssstr)
+    const stylesheet = CSS.parse(cssstr, { silent: true })
+    if (stylesheet.stylesheet.parsingErrors.length) {
+        const error = stylesheet.stylesheet.parsingErrors[0]
+        throw new Error(`Your current userChrome.css is malformed: ${error.reason} at ${error.line}:${error.column}. Fix or delete it and try again.`)
+    }
     // Trim due to https://github.com/reworkcss/css/issues/113
     const stylesheetDone = CSS.stringify(css_util.changeCss(rule, option, stylesheet)).trim()
     return Native.write(profile_dir + "/chrome/userChrome.css", stylesheetDone)
