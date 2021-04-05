@@ -4311,10 +4311,10 @@ const KILL_STACK: Element[] = []
         - -br deprecated, use `-qb` instead
         - -F [callback] - run a custom callback on the selected hint, e.g. `hint -JF e => {tri.excmds.tabopen("-b",e.href); e.remove()}`.
         - -V create hints for invisible elements. By default, elements outside the viewport when calling :hint are not hinted, this includes them anyways.
-        - -! perform action immediately. This effectively selects every hinted element in sequence
+        - -! execute all hints without waiting for a selection
           - For example, `hint -!bf Comments` opens in background tabs all visible links whose text matches `Comments`
 
-    Excepting the custom selector mode and background hint mode, each of these hint modes is available by default as `;<option character>`, so e.g. `;y` to yank a link's target; `;g<option character>` starts rapid hint mode for all modes where it makes sense, and some others.
+    Excepting the custom selector mode, background hint mode and the "immediate" modifier, each of these hint modes is available by default as `;<option character>`, so e.g. `;y` to yank a link's target; `;g<option character>` starts rapid hint mode for all modes where it makes sense, and some others.
 
     To open a hint in the background, the default bind is `F`.
 
