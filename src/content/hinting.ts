@@ -1113,8 +1113,7 @@ export function hintByTextFilter(match: string | RegExp): HintSelectedCallback {
     return hint => {
         let text
         if (hint instanceof HTMLInputElement) {
-            // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
-            text = (hint as HTMLInputElement).value
+            text = hint.value
         } else {
             text = hint.textContent
         }
