@@ -4275,7 +4275,11 @@ const KILL_STACK: Element[] = []
 
 /** Hint a page.
 
-    @param args
+    @param args Arguments to the `:hint` command. Multiple flags can be combined as long as they don't conflict.
+    Selectors can be specified either standalone (without a flag preceding them) or with the `-c` option. Arguments that
+    take callbacks (`-F` or `-W`) should be specified last, as they consume the rest of the command line.
+
+    Hinting action flags (only one can be specified):
         - -t open in a new foreground tab
         - -b open in background
         - -y copy (yank) link's target to clipboard
@@ -4293,6 +4297,14 @@ const KILL_STACK: Element[] = []
         - -A save-as the linked image
         - -; focus an element and set it as the element or the child of the element to scroll
         - -# yank an element's anchor URL to clipboard
+        - -w open in new window
+        - -wp open in new private window
+        - -z scroll an element to the top of the viewport
+        - `-pipe selector key` e.g, `-pipe a href` returns the URL of the chosen link on a page. Only makes sense with `composite`, e.g, `composite hint -pipe .some-class>a textContent | yank`. If you don't select a hint (i.e. press <Esc>), will return an empty string. Most useful when used like `-c` to do things other than opening links. NB: the query selector cannot contain any spaces.
+        - `-W excmd...` append hint href to excmd and execute, e.g, `hint -W mpvsafe` to open YouTube videos. NB: appending to bare [[exclaim]] is dangerous - see `get exaliases.mpvsafe` for an example of how to to it safely. If you need to use a query selector, use `-pipe` instead.
+        - -F [callback] - run a custom callback on the selected hint, e.g. `hint -JF e => {tri.excmds.tabopen("-b",e.href); e.remove()}`.
+
+    Element selection flags:
         - -c [selector] hint links that match the css selector
           - `bind ;c hint -c [class*="expand"],[class="togg"]` works particularly well on reddit and HN
           - this works with most other hint modes, with the caveat that if other hint mode takes arguments your selector must contain no spaces, i.e. `hint -c[yourOtherFlag] [selector] [your other flag's arguments, which may contain spaces]`
@@ -4300,19 +4312,17 @@ const KILL_STACK: Element[] = []
           - `bind <c-e> hint -f Edit`
           - Backslashes can escape spaces: `bind <c-s> hint -f Save\ as`
         - -fr [text] use RegExp to hint the links and inputs
-        - -w open in new window
-        - -wp open in new private window
-        - -z scroll an element to the top of the viewport
-        - `-pipe selector key` e.g, `-pipe a href` returns the URL of the chosen link on a page. Only makes sense with `composite`, e.g, `composite hint -pipe .some-class>a textContent | yank`. If you don't select a hint (i.e. press <Esc>), will return an empty string. Most useful when used like `-c` to do things other than opening links. NB: the query selector cannot contain any spaces.
-        - `-W excmd...` append hint href to excmd and execute, e.g, `hint -W mpvsafe` to open YouTube videos. NB: appending to bare [[exclaim]] is dangerous - see `get exaliases.mpvsafe` for an example of how to to it safely. If you need to use a query selector, use `-pipe` instead.
-        - -q* quick (or rapid) hints mode. Stay in hint mode until you press <Esc>, e.g. `:hint -qb` to open multiple hints in the background or `:hint -qW excmd` to execute excmd once for each hint. This will return an array containing all elements or the result of executed functions (e.g. `hint -qpipe a href` will return an array of links).
         - -J* disable javascript hints. Don't generate hints related to javascript events. This is particularly useful when used with the `-c` option when you want to generate only hints for the specified css selectors. Also useful on sites with plenty of useless javascript elements such as google.com
-          - For example, use `bind ;jg hint -Jc .rc > .r > a` on google.com to generate hints only for clickable search results of a given query
-        - -br deprecated, use `-qb` instead
-        - -F [callback] - run a custom callback on the selected hint, e.g. `hint -JF e => {tri.excmds.tabopen("-b",e.href); e.remove()}`.
         - -V create hints for invisible elements. By default, elements outside the viewport when calling :hint are not hinted, this includes them anyways.
+
+    Hinting mode selection:
+        - -q* quick (or rapid) hints mode. Stay in hint mode until you press <Esc>, e.g. `:hint -qb` to open multiple hints in the background or `:hint -qW excmd` to execute excmd once for each hint. This will return an array containing all elements or the result of executed functions (e.g. `hint -qpipe a href` will return an array of links).
+          - For example, use `bind ;jg hint -Jc .rc > .r > a` on google.com to generate hints only for clickable search results of a given query
         - -! execute all hints without waiting for a selection
           - For example, `hint -!bf Comments` opens in background tabs all visible links whose text matches `Comments`
+
+    Deprecated options:
+        - -br deprecated, use `-qb` instead
 
     Excepting the custom selector mode, background hint mode and the "immediate" modifier, each of these hint modes is available by default as `;<option character>`, so e.g. `;y` to yank a link's target; `;g<option character>` starts rapid hint mode for all modes where it makes sense, and some others.
 
