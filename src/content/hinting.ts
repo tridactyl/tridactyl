@@ -668,6 +668,10 @@ class Hint {
         this.hidden = false
     }
 
+    public static isHintable(target: Element): boolean {
+        return target.getClientRects().length > 0
+    }
+
     setName(n: string) {
         this.name = n
         this.flag.textContent = this.name
@@ -749,7 +753,7 @@ function buildHintsSimple(
     hintables: Hintables,
     onSelect: HintSelectedCallback,
 ) {
-    const els = hintables.elements
+    const els = hintables.elements.filter((el) => Hint.isHintable(el))
     const names = Array.from(
         hintnames(els.length + modeState.hints.length),
     ).slice(modeState.hints.length)
@@ -800,7 +804,7 @@ function buildHintsVimperator(
     hintables: Hintables,
     onSelect: HintSelectedCallback,
 ) {
-    const els = hintables.elements
+    const els = hintables.elements.filter((el) => Hint.isHintable(el))
     const names = Array.from(
         hintnames(els.length + modeState.hints.length),
     ).slice(modeState.hints.length)
