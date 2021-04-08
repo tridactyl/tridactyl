@@ -15,6 +15,7 @@ import { enumerate } from "@src/lib/itertools"
 import { toNumber } from "@src/lib/convert"
 import * as aliases from "@src/lib/aliases"
 import { backoff } from "@src/lib/patience"
+import * as config from "@src/lib/config"
 
 export const DEFAULT_FAVICON = browser.runtime.getURL(
     "static/defaultFavicon.svg",
@@ -157,6 +158,10 @@ export abstract class CompletionSourceFuse extends CompletionSource {
         keys: ["fuseKeys"],
         shouldSort: true,
         includeScore: true,
+        findAllMatches: true,
+        ignoreLocation: true,
+        threshold: config.get("fuzzy_threshold"),
+        minMatchCharLength: 3,
     }
 
     // PERF: Could be expensive not to cache Fuse()

@@ -1131,6 +1131,11 @@ export class default_config {
      * NB: when disabled, <C-,> can't get focus back from the address bar, but it can still get it back from lots of other places (e.g. Flash-style video players)
      */
     escapehatchsidebarhack: "true" | "false" = "true"
+
+    /**
+     * Threshold for fuzzy matching on completions. Lower => stricter matching
+     */
+    fuzzy_threshold: 0.3
 }
 
 const platform_defaults = {
