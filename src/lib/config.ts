@@ -1135,7 +1135,7 @@ export class default_config {
     /**
      * Threshold for fuzzy matching on completions. Lower => stricter matching
      */
-    fuzzy_threshold: 0.3
+    fuzzy_threshold = 0.3
 }
 
 const platform_defaults = {
