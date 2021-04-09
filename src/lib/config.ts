@@ -1131,6 +1131,13 @@ export class default_config {
      * NB: when disabled, <C-,> can't get focus back from the address bar, but it can still get it back from lots of other places (e.g. Flash-style video players)
      */
     escapehatchsidebarhack: "true" | "false" = "true"
+
+    /**
+     * Threshold for fuzzy matching on completions. Lower => stricter matching. Range between 0 and 1: 0 corresponds to perfect matches only. 1 will match anything.
+     *
+     * https://fusejs.io/api/options.html#threshold
+     */
+    completionfuzziness = 0.3
 }
 
 const platform_defaults = {
