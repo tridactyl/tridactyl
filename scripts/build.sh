@@ -2,6 +2,20 @@
 
 set -e
 
+for arg in "$@"
+do
+    case $arg in
+        --quick)
+            QUICK_BUILD=1
+            shift
+            ;;
+        --old-native)
+            OLD_NATIVE=1
+            shift
+            ;;
+    esac
+done
+
 CLEANSLATE="node_modules/cleanslate/docs/files/cleanslate.css"
 
 isWindowsMinGW() {
@@ -39,22 +53,28 @@ fi
 "$(yarn bin)/nearleyc" src/grammars/bracketexpr.ne > \
   src/grammars/.bracketexpr.generated.ts
 
-# It's important to generate the metadata before the documentation because
-# missing imports might break documentation generation on clean builds
-"$(yarn bin)/tsc" compiler/gen_metadata.ts -m commonjs --target es2017 \
-  && node compiler/gen_metadata.js \
-          --out src/.metadata.generated.ts \
-          --themeDir src/static/themes \
-          src/excmds.ts src/lib/config.ts
+# You can use `--quick` to test out small changes without updating docs / metadata etc.
+# If you get weird behaviour just run a full build
+if [ "$QUICK_BUILD" != "1" ]; then
 
-scripts/newtab.md.sh
-scripts/make_tutorial.sh
-scripts/make_docs.sh
+    # It's important to generate the metadata before the documentation because
+    # missing imports might break documentation generation on clean builds
+    "$(yarn bin)/tsc" compiler/gen_metadata.ts -m commonjs --target es2017 \
+      && node compiler/gen_metadata.js \
+              --out src/.metadata.generated.ts \
+              --themeDir src/static/themes \
+              src/excmds.ts src/lib/config.ts
+
+    scripts/newtab.md.sh
+    scripts/make_tutorial.sh
+    scripts/make_docs.sh
+
+fi
 
 webpack --stats errors-only --bail
 
 # "temporary" fix until we can install new native on CI: install the old native messenger
-if [ "$1" = "--old-native" ]; then
+if [ "$OLD_NATIVE" = "1" ]; then
     if [ "$(isWindowsMinGW)" = "True" ]; then
       powershell \
         -NoProfile \

@@ -60,6 +60,7 @@
   },
   "scripts": {
     "build": "sh scripts/build.sh",
+    "rebuild": "sh scripts/build.sh --quick",
     "clean": "rm -rf build generated",
     "forrest-run": "yarn run run",
     "jest": "jest --bail --runInBand",
