@@ -160,8 +160,8 @@ export abstract class CompletionSourceFuse extends CompletionSource {
         includeScore: true,
         findAllMatches: true,
         ignoreLocation: true,
-        threshold: config.get("fuzzy_threshold"),
-        minMatchCharLength: 3,
+        threshold: config.get("completionfuzziness"),
+        minMatchCharLength: 1,
     }
 
     // PERF: Could be expensive not to cache Fuse()
