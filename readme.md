@@ -330,6 +330,8 @@ yarn run build & yarn run run
 
 You'll need to run `yarn run build` every time you edit the files, and press "r" in the `yarn run run` window to make sure that the files are properly reloaded.
 
+You can speed up the build process after your first build by using `yarn run rebuild` instead. This skips rebuilding the metadata (used in completions), documentation, new tab page, and tutor, so don't use it if that's what you're trying to test.
+
 ### Committing
 
 A pre-commit hook is added by `yarn install` that simply runs `yarn test`. If you know that your commit doesn't break the tests you can commit with `git commit -n` to ignore the hooks. If you're making a PR, travis will check your build anyway.
