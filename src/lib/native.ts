@@ -2,7 +2,7 @@
  * Background functions for the native messenger interface
  */
 
-import * as semverCompare from "semver-compare"
+import semverCompare from "semver-compare"
 import * as config from "@src/lib/config"
 import { browserBg, getContext } from "@src/lib/webext"
 
