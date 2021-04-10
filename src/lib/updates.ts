@@ -6,7 +6,7 @@
 
  */
 
-import * as RssParser from "rss-parser"
+import Parser from "rss-parser"
 import * as SemverCompare from "semver-compare"
 import * as Config from "@src/lib/config"
 import * as Logging from "@src/lib/logging"
@@ -46,7 +46,7 @@ async function updateVersion() {
     try {
         // If any monster any makes a novelty tag this will break.
         // So let's just ignore any errors.
-        const parser = new RssParser()
+        const parser = new Parser()
         const feed = await parser.parseURL(
             "https://github.com/tridactyl/tridactyl/tags.atom",
         )
