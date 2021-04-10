@@ -47,9 +47,14 @@ fi
           --themeDir src/static/themes \
           src/excmds.ts src/lib/config.ts
 
-scripts/newtab.md.sh
-scripts/make_tutorial.sh
-scripts/make_docs.sh
+# Skip docs to speed up build times. Only works on rebuilds.
+if [ "$1" = "--no-docs" ]; then
+  echo "Skipping docs..."
+else
+  scripts/newtab.md.sh
+  scripts/make_tutorial.sh
+  scripts/make_docs.sh
+fi
 
 webpack --stats errors-only --bail
 

@@ -67,6 +67,7 @@
     "lint": "bash hooks/pre-commit",
     "make-zip": "web-ext build --source-dir build --overwrite-dest",
     "pretty": "bash scripts/pretty.sh",
+    "rebuild": "sh scripts/build.sh --no-docs",
     "run": "web-ext run -s build/ -u 'txti.es'",
     "test": "yarn run build && web-ext build --source-dir ./build --overwrite-dest && jest --silent",
     "update-buildsystem": "rm -rf src/node_modules; yarn run clean",
