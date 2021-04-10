@@ -69,6 +69,10 @@ if [ "$QUICK_BUILD" != "1" ]; then
     scripts/make_tutorial.sh
     scripts/make_docs.sh
 
+else
+
+    echo "Warning: dirty rebuild. Skipping docs and metadata..."
+
 fi
 
 webpack --stats errors-only --bail
