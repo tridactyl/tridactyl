@@ -5230,8 +5230,15 @@ export async function keyfeed(mapstr: string) {
 //#background_helper
 browser.runtime.onInstalled.addListener(details => {
     if (details.reason === "install") tutor("newtab")
-    else if ((details as any).temporary !== true && details.reason === "update") updatenative(false)
-    // could add elif "update" and show a changelog. Hide it behind a setting to make it less annoying?
+    else if (details.reason === "update") {
+        if ((details as any).temporary !== true) {
+            updatenative(false)
+        } else {
+            // Temporary extension has been updated in place
+            // Reload all pages so Tridactyl can work in them
+            reloadall()
+        }
+    }
 })
 
 /** Opens optionsUrl for the selected extension in a popup window.
