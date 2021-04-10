@@ -49,13 +49,13 @@ else
   scripts/excmds_macros.py
 fi
 
-# .bracketexpr.generated.ts is needed for metadata generation
-"$(yarn bin)/nearleyc" src/grammars/bracketexpr.ne > \
-  src/grammars/.bracketexpr.generated.ts
-
 # You can use `--quick` to test out small changes without updating docs / metadata etc.
 # If you get weird behaviour just run a full build
 if [ "$QUICK_BUILD" != "1" ]; then
+
+    # .bracketexpr.generated.ts is needed for metadata generation
+    "$(yarn bin)/nearleyc" src/grammars/bracketexpr.ne > \
+      src/grammars/.bracketexpr.generated.ts
 
     # It's important to generate the metadata before the documentation because
     # missing imports might break documentation generation on clean builds
