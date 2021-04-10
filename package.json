@@ -2,13 +2,22 @@
   "name": "tridactyl",
   "version": "0.1.0",
   "description": "Vimperator/Pentadactyl successor",
+  "browser": {
+    "url": false,
+    "fs": false,
+    "https": false,
+    "http": false,
+    "path": false,
+    "timers": false,
+    "stream": "stream-browserify"
+  },
   "dependencies": {
     "@types/css": "0.0.31",
     "@types/nearley": "^2.11.1",
     "command-line-args": "^5.1.1",
     "csp-serdes": "github:cmcaine/csp-serdes",
     "css": "^3.0.0",
-    "esbuild-loader": "^2.11.0",
+    "esbuild": "^0.11.7",
     "fuse.js": "^6.4.6",
     "jasmine-fail-fast": "^2.0.1",
     "mark.js": "^8.11.1",

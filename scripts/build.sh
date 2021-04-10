@@ -73,7 +73,7 @@ if [ "$QUICK_BUILD" != "1" ]; then
 else
 
     echo "Warning: dirty rebuild. Skipping docs, metadata and type checking..."
-    webpack --stats errors-only --bail --env quick
+    node scripts/esbuild.js
 
 fi
 

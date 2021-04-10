@@ -13,6 +13,7 @@ module.exports = function(env, argv) {
         devtool: "source-map",
         // devtool: "inline-source-map", // Uncomment me for more helpful error messages
 
+        // NB: duplicate these files in scripts/esbuild.js
         entry: {
             background: "./src/background.ts",
             content: "./src/content.ts",
@@ -30,6 +31,8 @@ module.exports = function(env, argv) {
             // Add '.ts' and '.tsx' as resolvable extensions.
             extensions: fileExtensions,
             plugins: [new TsconfigPathsPlugin({extensions: fileExtensions})],
+            // NB: items below also need to be added to the package.json "browser" field
+            // or quick builds won't work
             fallback: {
                 "url": false,
                 "fs": false,
@@ -43,8 +46,6 @@ module.exports = function(env, argv) {
 
         module: {
             rules: [
-                // Quick builds use esbuild, everything else uses `tsc`
-                env.quick ? { test: /\.ts?$/, loader: "esbuild-loader", options: { loader: "ts", target: "firefox68" } } :
                 { test: /\.ts?$/, loader: "ts-loader" },
 
                 // All output '.js' files will have any sourcemaps re-processed by 'source-map-loader'.
