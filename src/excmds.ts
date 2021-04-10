@@ -92,7 +92,7 @@ import * as TTS from "@src/lib/text_to_speech"
 import * as excmd_parser from "@src/parsers/exmode"
 import * as escape from "@src/lib/escape"
 import * as R from "ramda"
-import * as semverCompare from "semver-compare"
+import semverCompare from "semver-compare"
 
 /**
  * This is used to drive some excmd handling in `composite`.
