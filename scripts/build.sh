@@ -69,13 +69,14 @@ if [ "$QUICK_BUILD" != "1" ]; then
     scripts/make_tutorial.sh
     scripts/make_docs.sh
 
+    webpack --stats errors-only --bail
 else
 
-    echo "Warning: dirty rebuild. Skipping docs and metadata..."
+    echo "Warning: dirty rebuild. Skipping docs, metadata and type checking..."
+    webpack --stats errors-only --bail --env quick
 
 fi
 
-webpack --stats errors-only --bail
 
 # "temporary" fix until we can install new native on CI: install the old native messenger
 if [ "$OLD_NATIVE" = "1" ]; then
