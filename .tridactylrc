@@ -45,8 +45,8 @@ bind yg composite js "git clone " + document.location.href.replace(/https?:\/\//
 bind ,g js let uri = document.location.href.replace(/https?:\/\//,"git@").replace("/",":").replace(/$/,".git"); tri.native.run("cd ~/projects; git clone " + uri + "; cd \"$(basename \"" + uri + "\" .git)\"; st")
 
 
-" make d take you to the tab you were just on (I find it much less confusing)
-bind d composite tab #; tabclose #
+" make d take you to the left (I find it much less confusing)
+bind d composite tabprev; tabclose #
 bind D tabclose
 
 " make t open the selection with tabopen
