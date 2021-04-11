@@ -3458,7 +3458,30 @@ export async function yankimage(url: string): Promise<void> {
 
         "#" means the tab that was last accessed in this window
 
-        A non integer string means to search the URL and title for matches, in this window if called from tab, all windows if called from anytab. Title matches can contain '*' as a wildcard.
+        A non integer string means to search the URL and the TITLE for matches, in this window if called from tab, all windows if called from anytab.<br>
+
+        White space acts as an AND operator, while a single pipe (|) character acts as an OR operator.<br>
+        To escape white space, use double quote ex. ="scheme language" for exact match.<br>
+
+        Each word can be prefixed with an extended search token, otherwise it will be fuzzy matched.<br>
+        All combinations possible, results ordered via scoring against all Tokens & Fuzzyness Factor.<br>
+
+        | Token     |  	Match type 	                  |    Description<br>|
+        |:-----------|:------------------------------:|--------------------------------------:|
+        | jscript 	|   fuzzy-match 	              |   Items that fuzzy match jscript|
+        | =scheme 	|   exact-match 	              |   Items that are scheme|
+        | 'python 	|   include-match 	              |   Items that include python|
+        | !ruby 	    |   inverse-exact-match 	      |   Items that do not include ruby|
+        | ^java 	    |   prefix-exact-match 	          |   Items that start with java|
+        | !^earlang 	|   inverse-prefix-exact-match 	  |   Items that do not start with earlang|
+        | .js$ 	    |   suffix-exact-match 	          |   Items that end with .js|
+        | !.go$ 	    |   inverse-suffix-exact-match 	  |   Items that do not end with .go|
+
+        The Fuzzyness Factor cant be set via the "fuzzy_threshold" (value between 0 and 1).<br>
+        0.1 "almost" only hits exact matches, <br>
+        0.3 "some" minor typos, missing chars also hit (default)<br>
+        Higher values if u have no clue what you are searching for...<br>
+
  */
 //#background
 export async function tab(...id: string[]) {

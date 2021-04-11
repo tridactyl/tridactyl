@@ -43,9 +43,7 @@ class BufferCompletionOption
         const favIconUrl = tab.favIconUrl
             ? tab.favIconUrl
             : Completions.DEFAULT_FAVICON
-        const indicator = tab.audible
-            ? String.fromCodePoint(0x1F50A)
-            : ""
+        // const indicator = tab.audible ? String.fromCodePoint(0x1f50a) : ""
         this.html = html`<tr
             class="BufferCompletionOption option container_${container.color} container_${container.icon} container_${container.name}"
         >
@@ -76,8 +74,9 @@ export class BufferCompletionSource extends Completions.CompletionSourceFuse {
             "Tabs",
         )
         this.sortScoredOptions = true
-        this.shouldSetStateFromScore =
-            config.get("completions", "Tab", "autoselect") === "true"
+        this.shouldSetStateFromScore = false
+        // autoselect after space sucks for (fuzzy-) searching with multiple words
+        // config.get("completions", "Tab", "autoselect") === "true"
         this.updateOptions()
         this._parent.appendChild(this.node)
 
@@ -102,6 +101,7 @@ export class BufferCompletionSource extends Completions.CompletionSourceFuse {
     /** Score with fuse unless query is a single # or looks like a tab index */
     scoredOptions(
         query: string,
+        extended = true,
         options = this.options,
     ): Completions.ScoredOption[] {
         const args = query.trim().split(/\s+/gu)
@@ -130,7 +130,7 @@ export class BufferCompletionSource extends Completions.CompletionSourceFuse {
         }
 
         // If not yet returned...
-        return super.scoredOptions(query)
+        return super.scoredOptions(query, true)
     }
 
     /** Return the scoredOption[] result for the tab index startswith n */
