@@ -160,6 +160,7 @@ export abstract class CompletionSourceFuse extends CompletionSource {
         includeScore: true,
         findAllMatches: true,
         ignoreLocation: true,
+        ignoreFieldNorm: true,
         threshold: config.get("completionfuzziness"),
         minMatchCharLength: 1,
     }
