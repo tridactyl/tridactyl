@@ -160,8 +160,10 @@ export abstract class CompletionSourceFuse extends CompletionSource {
         includeScore: true,
         findAllMatches: true,
         ignoreLocation: true,
-        threshold: config.get("completionfuzziness"),
-        minMatchCharLength: 1,
+        threshold: config.get("fuzzy_threshold"),
+        ignoreFieldNorm: true,
+        useExtendedSearch: false,
+        // minMatchCharLength: 3,
     }
 
     // PERF: Could be expensive not to cache Fuse()
@@ -169,7 +171,7 @@ export abstract class CompletionSourceFuse extends CompletionSource {
     fuse = undefined
 
     protected lastExstr: string
-    protected sortScoredOptions = false
+    protected sortScoredOptions = true
 
     protected optionContainer = html`<table class="optionContainer"></table>`
 
@@ -213,7 +215,10 @@ export abstract class CompletionSourceFuse extends CompletionSource {
 
         // Filter by query if query is not empty
         if (query) {
-            this.setStateFromScore(this.scoredOptions(query))
+            this.setStateFromScore(
+                this.scoredOptions(query, prefix === "taball " ? true : false),
+            )
+            // this.setStateFromScore(this.scoredOptions(query))
             // Else show all options
         } else {
             options.forEach(option => (option.state = "normal"))
@@ -246,14 +251,15 @@ export abstract class CompletionSourceFuse extends CompletionSource {
     }
 
     /** Rtn sorted array of {option, score} */
-    scoredOptions(query: string): ScoredOption[] {
+    scoredOptions(query: string, extended = false): ScoredOption[] {
         const searchThis = this.options.map((elem, index) => ({
             index,
             fuseKeys: elem.fuseKeys,
         }))
+        this.fuseOptions.useExtendedSearch = extended
         this.fuse = new Fuse(searchThis, this.fuseOptions)
         return this.fuse.search(query).map(result => {
-            // console.log(result, result.item, query)
+            // console.log(result.item.index, result.score as number)
             const index = toNumber(result.item.index)
             return {
                 index,
