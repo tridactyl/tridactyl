@@ -94,6 +94,7 @@ import * as escape from "@src/lib/escape"
 import * as R from "ramda"
 import semverCompare from "semver-compare"
 import * as hint_util from "@src/lib/hint_util"
+import { OpenMode } from "@src/lib/hint_util"
 
 /**
  * This is used to drive some excmd handling in `composite`.
@@ -4365,9 +4366,6 @@ const KILL_STACK: Element[] = []
 */
 //#content
 export async function hint(...args: string[]): Promise<any> {
-    // Alias to save some typing
-    const OpenMode = hint_util.OpenMode
-
     // Parse configuration and print parsing warnings
     const config = hint_util.HintConfig.parse(args)
     config.printWarnings(logger)
