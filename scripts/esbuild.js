@@ -6,6 +6,6 @@ for (let f of ["content", "background", "help", "newtab", "commandline_frame"]) 
         bundle: true,
         sourcemap: true,
         target: "firefox68",
-        outfile: `build/${f}.js`,
+        outfile: `buildtemp/${f}.js`,
     }).catch(() => process.exit(1))
 }
