@@ -5235,8 +5235,8 @@ browser.runtime.onInstalled.addListener(details => {
             updatenative(false)
         } else {
             // Temporary extension has been updated in place
-            // Reload all pages so Tridactyl can work in them
-            reloadall()
+            // Open a new tab where Tridactyl will work for convenience
+            tabopen()
         }
     }
 })
