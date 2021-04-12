@@ -298,6 +298,7 @@ export class default_config {
         ";;": "hint -; *",
         ";#": "hint -#",
         ";v": "hint -W mpvsafe",
+        ";V": "hint -V",
         ";w": "hint -w",
         ";t": "hint -W tabopen",
         ";O": "hint -W fillcmdline_notrail open ",

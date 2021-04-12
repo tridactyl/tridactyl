@@ -668,6 +668,10 @@ class Hint {
         this.hidden = false
     }
 
+    public static isHintable(target: Element): boolean {
+        return target.getClientRects().length > 0
+    }
+
     setName(n: string) {
         this.name = n
         this.flag.textContent = this.name
@@ -749,7 +753,7 @@ function buildHintsSimple(
     hintables: Hintables,
     onSelect: HintSelectedCallback,
 ) {
-    const els = hintables.elements
+    const els = hintables.elements.filter((el) => Hint.isHintable(el))
     const names = Array.from(
         hintnames(els.length + modeState.hints.length),
     ).slice(modeState.hints.length)
@@ -800,7 +804,7 @@ function buildHintsVimperator(
     hintables: Hintables,
     onSelect: HintSelectedCallback,
 ) {
-    const els = hintables.elements
+    const els = hintables.elements.filter((el) => Hint.isHintable(el))
     const names = Array.from(
         hintnames(els.length + modeState.hints.length),
     ).slice(modeState.hints.length)
@@ -1001,16 +1005,21 @@ function pushSpace() {
 
     Elements are hintable if
         1. they can be meaningfully selected, clicked, etc
-        2. they're visible
+        2. they're visible (unless includeInvisible is true)
             1. Within viewport
             2. Not hidden by another element
 
     @hidden
 */
-export function hintables(selectors = DOM.HINTTAGS_selectors, withjs = false) {
+export function hintables(
+    selectors = DOM.HINTTAGS_selectors,
+    withjs = false,
+    includeInvisible = false,
+) {
+    const visibleFilter = DOM.isVisibleFilter(includeInvisible)
     const elems = R.pipe(
         DOM.getElemsBySelector,
-        R.filter(DOM.isVisible),
+        R.filter(visibleFilter),
         changeHintablesToLargestChild,
     )(selectors, [])
     const hintables: Hintables[] = [{ elements: elems }]
@@ -1020,7 +1029,7 @@ export function hintables(selectors = DOM.HINTTAGS_selectors, withjs = false) {
                 Array.from,
                 // Ramda gives an error here without the "any"
                 // Problem for a rainy day :)
-                R.filter(DOM.isVisible) as any,
+                R.filter(visibleFilter) as any,
                 R.without(elems),
                 changeHintablesToLargestChild,
             )(DOM.hintworthy_js_elems),
@@ -1075,15 +1084,19 @@ function isElementLargerThan(e1: Element, e2: Element): boolean {
 /** Returns elements that point to a saveable resource
  * @hidden
  */
-export function saveableElements() {
-    return DOM.getElemsBySelector(DOM.HINTTAGS_saveable, [DOM.isVisible])
+export function saveableElements(includeInvisible = false) {
+    return DOM.getElemsBySelector(DOM.HINTTAGS_saveable, [
+        DOM.isVisibleFilter(includeInvisible),
+    ])
 }
 
-/** Get array of images in the viewport
+/** Get array of images in the viewport, or all images if includeInvisible is true
  * @hidden
  */
-export function hintableImages() {
-    return DOM.getElemsBySelector(DOM.HINTTAGS_img_selectors, [DOM.isVisible])
+export function hintableImages(includeInvisible = false) {
+    return DOM.getElemsBySelector(DOM.HINTTAGS_img_selectors, [
+        DOM.isVisibleFilter(includeInvisible),
+    ])
 }
 
 /** Get array of selectable elements that display a text matching either plain
@@ -1093,61 +1106,43 @@ export function hintableImages() {
 export function hintByText(match: string | RegExp) {
     return DOM.getElemsBySelector(DOM.HINTTAGS_filter_by_text_selectors, [
         DOM.isVisible,
-        hint => {
-            let text
-            if (hint instanceof HTMLInputElement) {
-                // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
-                text = (hint as HTMLInputElement).value
-            } else {
-                text = hint.textContent
-            }
-            if (match instanceof RegExp) {
-                return text.match(match) !== null
-            } else {
-                return text.toUpperCase().includes(match.toUpperCase())
-            }
-        },
+        hintByTextFilter(match),
     ])
+}
+
+/** Return a predicate that checks whether an element matches a given text hinting filter
+ * @hidden
+ */
+export function hintByTextFilter(match: string | RegExp): HintSelectedCallback {
+    return hint => {
+        let text
+        if (hint instanceof HTMLInputElement) {
+            text = hint.value
+        } else {
+            text = hint.textContent
+        }
+        if (match instanceof RegExp) {
+            return text.match(match) !== null
+        } else {
+            return text.toUpperCase().includes(match.toUpperCase())
+        }
+    }
 }
 
 /** Array of items that can be killed with hint kill
 @hidden
  */
-export function killables() {
+export function killables(includeInvisible = false) {
     return DOM.getElemsBySelector(DOM.HINTTAGS_killable_selectors, [
-        DOM.isVisible,
+        DOM.isVisibleFilter(includeInvisible),
     ])
 }
 
-/** HintPage wrapper, accepts CSS selectors to build a list of elements
- * @hidden
- * */
-export function pipe(
-    selectors = DOM.HINTTAGS_selectors,
-    action: HintSelectedCallback = _ => _,
-    rapid = false,
-    jshints = true,
-): Promise<[Element, number]> {
-    return new Promise((resolve, reject) => {
-        hintPage(hintables(selectors, jshints), action, resolve, reject, rapid)
-    })
-}
-
-/** HintPage wrapper, accepts array of elements to hint
- * @hidden
- * */
-export function pipe_elements(
-    elements: Element[] | Hintables[] = DOM.elementsWithText(),
-    action: HintSelectedCallback = _ => _,
-    rapid = false,
-): Promise<[Element, number]> {
-    return new Promise((resolve, reject) => {
-        hintPage(toHintablesArray(elements), action, resolve, reject, rapid)
-    })
-}
-
 // Multiple dispatch? who needs it
-function toHintablesArray(
+/** Returns an array of hintable objects from an array of elements
+ * @hidden
+ * */
+export function toHintablesArray(
     hintablesOrElements: Element[] | Hintables[],
 ): Hintables[] {
     if (!hintablesOrElements.length) return []
