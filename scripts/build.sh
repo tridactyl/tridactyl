@@ -73,7 +73,10 @@ if [ "$QUICK_BUILD" != "1" ]; then
 else
 
     echo "Warning: dirty rebuild. Skipping docs, metadata and type checking..."
+    mkdir -p buildtemp
     node scripts/esbuild.js
+    mv buildtemp/* build/
+    rmdir buildtemp
 
 fi
 
