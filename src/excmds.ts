@@ -1315,7 +1315,7 @@ export async function open(...urlarr: string[]) {
             `,
         )
     } else {
-        const tab = await activeTab()
+        const tab = await ownTab()
         return openInTab(tab, {}, urlarr)
     }
 }
