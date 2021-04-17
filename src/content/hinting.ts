@@ -1017,22 +1017,17 @@ export function hintables(
     includeInvisible = false,
 ) {
     const visibleFilter = DOM.isVisibleFilter(includeInvisible)
-    const elems = R.pipe(
-        DOM.getElemsBySelector,
-        R.filter(visibleFilter),
-        changeHintablesToLargestChild,
-    )(selectors, [])
+    const elems = changeHintablesToLargestChild(
+        DOM.getElemsBySelector(selectors, []).filter(visibleFilter),
+    )
     const hintables: Hintables[] = [{ elements: elems }]
     if (withjs) {
         hintables.push({
-            elements: R.pipe(
-                Array.from,
-                // Ramda gives an error here without the "any"
-                // Problem for a rainy day :)
-                R.filter(visibleFilter) as any,
-                R.without(elems),
-                changeHintablesToLargestChild,
-            )(DOM.hintworthy_js_elems),
+            elements: changeHintablesToLargestChild(
+                Array.from(DOM.hintworthy_js_elems).filter(
+                    el => visibleFilter(el) && !elems.includes(el),
+                ),
+            ),
             hintclasses: ["TridactylJSHint"],
         })
     }
