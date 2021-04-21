@@ -296,28 +296,17 @@ export abstract class CompletionSourceFuse extends CompletionSource {
     }
 
     /** Call to replace the current display */
-    // TODO: optionContainer.replaceWith and optionContainer.remove don't work.
-    // I don't know why, but it means we can't replace the div in one go. Maybe
-    // an iframe thing.
     updateDisplay() {
-        /* const newContainer = html`<div>` */
-
-        while (this.optionContainer.hasChildNodes()) {
-            this.optionContainer.removeChild(this.optionContainer.lastChild)
-        }
+        const newContainer = document.createElement("div")
 
         for (const option of this.options) {
-            /* newContainer.appendChild(option.html) */
             if (option.state !== "hidden")
-                this.optionContainer.appendChild(option.html)
+                // This is probably slow: `.html` means the HTML parser will be invoked
+                newContainer.appendChild(option.html)
         }
+        this.optionContainer.replaceWith(newContainer)
+        this.optionContainer = newContainer
         this.next(0)
-
-        /* console.log('updateDisplay', this.optionContainer, newContainer) */
-
-        /* let result1 = this.optionContainer.remove() */
-        /* let res2 = this.node.appendChild(newContainer) */
-        /* console.log('results', result1, res2) */
     }
 
     async next(inc = 1) {
