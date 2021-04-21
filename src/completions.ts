@@ -297,7 +297,7 @@ export abstract class CompletionSourceFuse extends CompletionSource {
 
     /** Call to replace the current display */
     updateDisplay() {
-        const newContainer = document.createElement("div")
+        const newContainer = this.optionContainer.cloneNode(false)
 
         for (const option of this.options) {
             if (option.state !== "hidden")
