@@ -1634,7 +1634,20 @@ export function snow_mouse_mode() {
 export function pied_piper_mouse_mode() {
     toys.music()
 }
-
+/**
+ * Drawable variant of [[no_mouse_mode]]
+ */
+//#content
+export function drawable_mouse_mode() {
+    toys.drawable()
+}
+/**
+ * Toggle pen and erasor for drawable 
+ */
+//#content
+export function toggle_pen() {
+    toys.toggle_pen()
+}
 /**
  * Revert any variant of the [[no_mouse_mode]]
  *

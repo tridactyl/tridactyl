@@ -7,13 +7,21 @@
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
+
+var erasor = false;
+export function toggle_pen() {
+    erasor = !erasor
+}
+
+export function drawable() {
+    make_drawable(makeBlock())
+}
 export function jack_in() {
     // chinese characters - taken from the unicode charset
     const chinese = "田由甲申甴电甶男甸甹町画甼甽甾甿畀畁畂畃畄畅畆畇畈畉畊畋界畍畎畏畐畑".split("")
     const colour = "#0F0" // green text
     rain(makeBlock(), chinese, colour)
 }
-
 
 export function music() {
     // music characters - taken from the unicode charset
@@ -41,6 +49,38 @@ function makeBlock() {
     overlaydiv.style.opacity = "0.5"
     document.body.appendChild(overlaydiv)
     return overlaydiv
+}
+
+function make_drawable(overlaydiv){
+    const c = document.createElement("canvas")
+    overlaydiv.appendChild(c)
+    
+    // making the canvas full screen
+    c.height = window.innerHeight
+    c.width = window.innerWidth
+
+    const state = {
+        mousedown: false,
+        context: c.getContext("2d"),
+        x: 0,
+        y: 0}
+    c.addEventListener("mousedown", () => state.mousedown = true)
+    c.addEventListener("mouseup", () => state.mousedown = false)
+    c.addEventListener("mousemove", e => { state.x = e.clientX; state.y = e.clientY })
+    function draw() {
+        window.requestAnimationFrame(() => {
+            if(erasor){
+                state.context.globalCompositeOperation = "destination-out";
+            } else {
+                state.context.fillStyle = "black"
+            }
+            if (state.mousedown) {
+                state.context.fillRect(state.x, state.y, 3, 3)
+            }
+            draw()
+        })
+    }
+    draw()
 }
 
 export function removeBlock() {
