@@ -1,6 +1,7 @@
 {
   "compilerOptions": {
     "moduleResolution": "node",
+    "esModuleInterop": true,
     "noImplicitAny": false,
     "noEmitOnError": true,
     "outDir": "build/tsc-out",

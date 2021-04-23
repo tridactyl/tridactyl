@@ -2,7 +2,7 @@
  * Background functions for the native messenger interface
  */
 
-import * as semverCompare from "semver-compare"
+import semverCompare from "semver-compare"
 import * as config from "@src/lib/config"
 import { browserBg, getContext } from "@src/lib/webext"
 
@@ -167,6 +167,9 @@ export async function getBestEditor(): Promise<string> {
             term_emulators.push(
                 ...["conemu -run", "mintty --class tridactyl_editor -e"],
             )
+            if (await nativegate("0.2.1", false)) {
+                term_emulators.push("start /wait")
+            }
         }
         // These terminal emulators are cross-platform.
         term_emulators.push(
@@ -351,10 +354,24 @@ export async function temp(content: string, prefix: string) {
     })
 }
 
-export async function move(from: string, to: string) {
-    return sendNativeMsg("move", { from, to }).catch(e => {
-        throw new Error(`Failed to move '${from}' to '${to}'. ${e}.`)
-    })
+export async function move(
+    from: string,
+    to: string,
+    overwrite: boolean,
+    cleanup: boolean,
+) {
+    const requiredNativeMessengerVersion = "0.3.0"
+    if ((await nativegate(requiredNativeMessengerVersion, false))) {
+        return sendNativeMsg("move", { from, to, overwrite, cleanup }).catch(e => {
+            throw new Error(`Failed to move '${from}' to '${to}'. ${e}.`)
+        })
+    } else {
+        // older "saveas" scenario for native-messenger < 0.3.0
+        return sendNativeMsg("move", { from, to }).catch(e => {
+            throw new Error(`Failed to move '${from}' to '${to}'. ${e}.`)
+        })
+    }
+
 }
 
 export async function listDir(dir: string) {
@@ -471,21 +488,34 @@ export async function clipboard(
 /**
  * This returns the commandline that was used to start Firefox.
  * You'll get both the binary (not necessarily an absolute path) and flags.
- *
- * On Windows, the main Firefox process is not the direct parent of the native
- * messenger's process, so we need to go up the process tree till we find it.
- * That's rather slow, so this function shouldn't be called unless really necessary.
  */
 export async function ff_cmdline(): Promise<string[]> {
     let output: MessageResp
     if ((await browserBg.runtime.getPlatformInfo()).os === "win") {
-        output = await run(
-            "powershell -Command " +
-                '"$ppid = Get-CimInstance -Property ProcessId,ParentProcessId Win32_Process | Where-Object -Property ProcessId -EQ $PID | Select-Object -ExpandProperty ParentProcessId;' +
-                "$pproc = Get-CimInstance -Property ProcessId,ParentProcessId,Name,CommandLine Win32_Process | Where-Object -Property ProcessId -EQ $ppid;" +
-                "while ($pproc.Name -notmatch 'firefox') { $ppid = $pproc.ParentProcessId;" +
-                '$pproc = Get-CimInstance Win32_Process | Where-Object -Property ProcessId -EQ $ppid}; Write-Output $pproc.CommandLine"',
-        )
+        if (!(await nativegate("0.3.3", false))) {
+            const browser_name = await config.get("browser")
+            output = await run(
+                `powershell -NoProfile -Command "\
+$processes = Get-CimInstance -Property ProcessId,ParentProcessId,Name,CommandLine -ClassName Win32_Process;\
+if (-not ($processes | where { $_.Name -match '^${browser_name}' })) { exit 1; };\
+$ppid = ($processes | where { $_.ProcessId -EQ $PID }).ParentProcessId;\
+$pproc = $processes | where { $_.ProcessId -EQ $ppid };\
+while ($pproc.Name -notmatch '^${browser_name}') {\
+    $ppid = $pproc.ParentProcessId;\
+    $pproc = $processes | where { $_.ProcessId -EQ $ppid };\
+};\
+Write-Output $pproc.CommandLine;\
+"`,
+            )
+        } else {
+            output = await run(
+                `powershell -NoProfile -Command "\
+Get-CimInstance -Property CommandLine,ProcessId -ClassName Win32_Process \
+| where { $_.ProcessId -EQ ${(await sendNativeMsg("ppid", {})).content} } \
+| select -ExpandProperty CommandLine | Write-Output\
+"`
+            )
+        }
     } else {
         const actualVersion = await getNativeMessengerVersion()
 

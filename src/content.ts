@@ -349,7 +349,7 @@ config.getAsync("modeindicator").then(mode => {
 
         if (
             config.get("modeindicator") !== "true" ||
-            config.get("modeindicatormodes", mode) !== "true"
+            config.get("modeindicatormodes", mode) === "false"
         ) {
             statusIndicator.remove()
         }

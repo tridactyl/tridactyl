@@ -6,7 +6,7 @@
     --tridactyl-small-font-size: 12px;
     --tridactyl-bg: white;
     --tridactyl-fg: black;
-    --tridactyl-logo: url("data:image/png;base64,REPLACE_ME_WITH_BASE64_TRIDACTYL_LOGO");
+    --tridactyl-logo: url("moz-extension://__MSG_@@extension_id__/static/logo/tridactyl_64px.png");
     --tridactyl-scrollbar-color: auto;
 
     /* Mode indicator */

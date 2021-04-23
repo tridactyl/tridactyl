@@ -92,7 +92,9 @@ import * as TTS from "@src/lib/text_to_speech"
 import * as excmd_parser from "@src/parsers/exmode"
 import * as escape from "@src/lib/escape"
 import * as R from "ramda"
-import * as semverCompare from "semver-compare"
+import semverCompare from "semver-compare"
+import * as hint_util from "@src/lib/hint_util"
+import { OpenMode } from "@src/lib/hint_util"
 
 /**
  * This is used to drive some excmd handling in `composite`.
@@ -192,7 +194,7 @@ export async function getNativeVersion(): Promise<string> {
 export async function getRssLinks(): Promise<Array<{ type: string; url: string; title: string }>> {
     const seen = new Set<string>()
     return Array.from(document.querySelectorAll<HTMLAnchorElement | HTMLLinkElement>("a, link[rel='alternate']"))
-        .filter((e) => typeof e.href === "string")
+        .filter(e => typeof e.href === "string")
         .reduce((acc, e) => {
             let type = ""
             // Start by detecting type because url doesn't necessarily contain the words "rss" or "atom"
@@ -202,8 +204,8 @@ export async function getRssLinks(): Promise<Array<{ type: string; url: string; 
                 type = e.type
             } else {
                 // Making sure that we match either a dot or "xml" because "urss" and "atom" are actual words
-                if (e.href.match(/(\.rss)|(rss\.xml)/i)) type = "application/rss+xml"
-                else if (e.href.match(/(\.atom)|(atom\.xml)/i)) type = "application/atom+xml"
+                if (/(\.rss)|(rss\.xml)/i.test(e.href)) type = "application/rss+xml"
+                else if (/(\.atom)|(atom\.xml)/i.test(e.href)) type = "application/atom+xml"
                 else return acc
             }
             if (seen.has(e.href)) return acc
@@ -383,7 +385,11 @@ export async function guiset_quiet(rule: string, option: string) {
     await Native.write(profile_dir + "/chrome/userChrome.css.tri.bak", cssstr)
 
     // Modify and write new CSS
-    const stylesheet = CSS.parse(cssstr)
+    const stylesheet = CSS.parse(cssstr, { silent: true })
+    if (stylesheet.stylesheet.parsingErrors.length) {
+        const error = stylesheet.stylesheet.parsingErrors[0]
+        throw new Error(`Your current userChrome.css is malformed: ${error.reason} at ${error.line}:${error.column}. Fix or delete it and try again.`)
+    }
     // Trim due to https://github.com/reworkcss/css/issues/113
     const stylesheetDone = CSS.stringify(css_util.changeCss(rule, option, stylesheet)).trim()
     return Native.write(profile_dir + "/chrome/userChrome.css", stylesheetDone)
@@ -804,7 +810,7 @@ export async function source(...args: string[]) {
     if (args[0] === "--url") {
         let url = args[1]
         if (!url || url === "%") url = window.location.href
-        if (!(url.startsWith("http://") || url.startsWith("https://"))) url = "http://" + url
+        if (!new RegExp("^(https?://)|data:").test(url)) url = "http://" + url
         await rc.sourceFromUrl(url)
     } else {
         const file = args.join(" ") || undefined
@@ -888,7 +894,7 @@ export async function restart() {
 
 /** Download the current document.
  *
- * If you have the native messenger v>=0.1.9 installed, the function accepts one optional argument, filename, which can be:
+ * If you have the native messenger v>=0.1.9 installed, the function accepts an optional argument, filename, which can be:
  * - An absolute path
  * - A path starting with ~, which will be expanded to your home directory
  * - A relative path, relative to the native messenger executable (e.g. ~/.local/share/tridactyl on linux).
@@ -896,12 +902,39 @@ export async function restart() {
  *
  * **NB**: if a non-default save location is chosen, Firefox's download manager will say the file is missing. It is not - it is where you asked it to be saved.
  *
- * @param filename The name the file should be saved as.
+ * Flags:
+ * - `--overwrite`: overwrite the destination file.
+ * - `--cleanup`: removes the downloaded source file e.g. `$HOME/Downlods/downloaded.doc` if moving it to the desired directory fails.
  */
 //#content
-export async function saveas(...filename: string[]) {
-    if (filename.length > 0) {
-        return Messaging.message("download_background", "downloadUrlAs", window.location.href, filename.join(" "))
+export async function saveas(...args: string[]) {
+    let overwrite = false
+    let cleanup = false
+
+    const argParse = (args: string[]): string[] => {
+        if (args[0] === "--overwrite") {
+            overwrite = true
+            args.shift()
+            argParse(args)
+        }
+        if (args[0] === "--cleanup") {
+            cleanup = true
+            args.shift()
+            argParse(args)
+        }
+        return args
+    }
+
+    const file = argParse(args).join(" ") || undefined
+
+    const requiredNativeMessengerVersion = "0.3.2"
+    if ((overwrite || cleanup) && !(await Native.nativegate(requiredNativeMessengerVersion, false))) {
+        throw new Error(`":saveas --{overwrite, cleanup}" requires native ${requiredNativeMessengerVersion} or later`)
+    }
+
+    if (args.length > 0) {
+        const filename = await Messaging.message("download_background", "downloadUrlAs", window.location.href, file, overwrite, cleanup)
+        return fillcmdline_tmp(10000, `Download completed: ${filename} stored in ${file}`)
     } else {
         return Messaging.message("download_background", "downloadUrl", window.location.href, true)
     }
@@ -1282,7 +1315,7 @@ export async function open(...urlarr: string[]) {
             `,
         )
     } else {
-        const tab = await activeTab()
+        const tab = await ownTab()
         return openInTab(tab, {}, urlarr)
     }
 }
@@ -1595,8 +1628,8 @@ export function snow_mouse_mode() {
 }
 
 /**
-* Music variant of [[no_mouse_mode]].
-*/
+ * Music variant of [[no_mouse_mode]].
+ */
 //#content
 export function pied_piper_mouse_mode() {
     toys.music()
@@ -2043,7 +2076,8 @@ input:not([disabled]):not([readonly]):-moz-any(
 ),
 textarea:not([disabled]):not([readonly]),
 object,
-[role='application']
+[role='application'],
+[contenteditable='true'][role='textbox']
 `
 
 /** Password field selectors
@@ -2217,9 +2251,6 @@ export async function tabnext_gt(index?: number) {
  */
 //#background
 export async function tabprev(increment = 1) {
-    // Proper way:
-    // return tabIndexSetActive((await activeTab()).index - increment + 1)
-    // Kludge until https://bugzilla.mozilla.org/show_bug.cgi?id=1504775 is fixed:
     return browser.tabs.query({ currentWindow: true, hidden: false }).then(tabs => {
         tabs.sort((t1, t2) => t1.index - t2.index)
         const prevTab = (tabs.findIndex(t => t.active) - increment + tabs.length) % tabs.length
@@ -2300,8 +2331,12 @@ export async function tabgrab(id: string) {
 /** Like [[open]], but in a new tab. If no address is given, it will open the newtab page, which can be set with `set newtab [url]`
 
     Use the `-c` flag followed by a container name to open a tab in said container. Tridactyl will try to fuzzy match a name if an exact match is not found (opening the tab in no container can be enforced with "firefox-default" or "none"). If any autocontainer directives are configured and -c is not set, Tridactyl will try to use the right container automatically using your configurations.
+
     Use the `-b` flag to open the tab in the background.
-    These two can be combined in any order, but need to be placed as the first arguments.
+
+    Use the `-w` flag to wait for the web page to load before "returning". This only makes sense for use with [[composite]], which waits for each command to return before moving on to the next one, e.g. `composite tabopen -b -w news.bbc.co.uk ; tabnext`.
+
+    These three can be combined in any order, but need to be placed as the first arguments.
 
     Unlike Firefox's Ctrl-t shortcut, this opens tabs immediately after the
     currently active tab rather than at the end of the tab list because that is
@@ -2320,6 +2355,7 @@ export async function tabgrab(id: string) {
 //#background
 export async function tabopen(...addressarr: string[]): Promise<browser.tabs.Tab> {
     let active
+    let waitForDom
     let container
 
     const win = await browser.windows.getCurrent()
@@ -2328,6 +2364,10 @@ export async function tabopen(...addressarr: string[]): Promise<browser.tabs.Tab
     async function argParse(args: string[]): Promise<string[]> {
         if (args[0] === "-b") {
             active = false
+            args.shift()
+            argParse(args)
+        } else if (args[0] === "-w") {
+            waitForDom = true
             args.shift()
             argParse(args)
         } else if (args[0] === "-c") {
@@ -2376,24 +2416,24 @@ export async function tabopen(...addressarr: string[]): Promise<browser.tabs.Tab
     }
     const maybeURL = await queryAndURLwrangler(query)
     if (typeof maybeURL === "string") {
-        return openInNewTab(maybeURL, args)
+        return openInNewTab(maybeURL, args, waitForDom)
     }
 
     if (typeof maybeURL === "object") {
         if (await firefoxVersionAtLeast(80)) {
             // work around #2695 until we can work out what is going on
-            if (args.active === false || args.cookieStoreId !== undefined) {
+            if (args.active === false || args.cookieStoreId !== undefined || waitForDom === true) {
                 throw new Error("Firefox search engines do not support containers or background tabs in FF >80. `:set searchengine google` or see issue https://github.com/tridactyl/tridactyl/issues/2695")
             }
 
             // This ignores :set tabopenpos / issue #342. TODO: fix that somehow.
             return browser.search.search(maybeURL)
         }
-        return openInNewTab(null, args).then(tab => browser.search.search({ tabId: tab.id, ...maybeURL }))
+        return openInNewTab(null, args, waitForDom).then(tab => browser.search.search({ tabId: tab.id, ...maybeURL }))
     }
 
     // Fall back to about:newtab
-    return openInNewTab(null, args)
+    return openInNewTab(null, args, waitForDom)
 }
 
 /**
@@ -2721,7 +2761,7 @@ export async function tabsort(...callbackchunks: string[]) {
     const windowTabs = await browser.tabs.query({ currentWindow: true })
     windowTabs.sort(comparator)
     R.forEachObjIndexed((tab, index) => {
-        browser.tabs.move((tab as browser.tabs.Tab).id, { index: parseInt(index as string) })
+        browser.tabs.move((tab as browser.tabs.Tab).id, { index: parseInt(index as string, 10) })
     }, windowTabs)
 }
 
@@ -2952,7 +2992,7 @@ export async function viewcontainers() {
     // # and white space don't agree with FF's JSON viewer.
     // Probably other symbols too.
     const containers = await browserBg.contextualIdentities.query({}) // Can't access src/lib/containers.ts from a content script.
-    window.location.href = "data:application/json," + JSON.stringify(containers).replace(/#/g, "%23").replace(/ /g, "%20")
+    jsonview(JSON.stringify(containers))
 }
 
 /** Opens the current tab in another container.
@@ -3150,7 +3190,7 @@ import { useractions } from "@src/background/user_actions"
  *  Only useful if called from a background context, e.g. at the end of an RC file to ensure that when you start the browser you don't get trapped on an about: page, or via `bind --mode=browser escapehatch` (bound to `<C-,>` by default).
  *
  *  NB: when called via `bind --mode=browser`, we return focus from the address bar by opening and closing the "sidebar" (which is used exclusively for this purpose). If escapehatch is called in any other way, we cannot do this as Mozilla thinks it might [spook](https://extensionworkshop.com/documentation/publish/add-on-policies/#no-surprises) [you](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/User_actions) : ).
- *  
+ *
  *  This sidebar hack will close other sidebars such a TreestyleTabs. You can disable it with `:set escapehatchsidebarhack false`, but Tridactyl will no longer be able to get focus back from certain places such as the address bar.
  *
  */
@@ -4147,14 +4187,15 @@ export function get(...keys: string[]) {
     return done
 }
 
-/** Opens the current configuration in Firefox's native JSON viewer in the current tab.
- *
- * NB: only works well from a "normal" page, e.g not a Tridactyl help or new tab page.
+/**
+ * Opens the current configuration in Firefox's native JSON viewer in a new tab.
  *
  * @param key - The specific key you wish to view (e.g, nmaps, autocmds.DocLoad). Also accepts the arguments `--default` or `--user` to view the default configuration, or your changes.
  *
+ * NB: the configuration won't update if you refresh the page - you need to run `:viewconfig` again.
+ *
  */
-//#content
+//#background
 export function viewconfig(...key: string[]) {
     // # and white space don't agree with FF's JSON viewer.
     // Probably other symbols too.
@@ -4172,11 +4213,13 @@ export function viewconfig(...key: string[]) {
 }
 
 /**
- * View a JSON object in Firefox's JSON viewer. NB: only works well from a "normal" page, e.g not a Tridactyl help or new tab page.
+ * View a JSON object in Firefox's JSON viewer.
  */
-//#content
-export function jsonview(...json: string[]) {
-    window.location.href = "data:application/json," + json.join(" ").replace(/#/g, "%23").replace(/ /g, "%20")
+//#background
+export async function jsonview(...json: string[]) {
+    const tab = await tabopen("-w")
+    const url = "data:application/json," + encodeURIComponent(json.join(" "))
+    return browser.tabs.executeScript(tab.id, { code: `window.location.href = "${url}";` })
 }
 
 /**
@@ -4233,7 +4276,11 @@ const KILL_STACK: Element[] = []
 
 /** Hint a page.
 
-    @param option
+    @param args Arguments to the `:hint` command. Multiple flags can be combined as long as they don't conflict.
+    Selectors can be specified either standalone (without a flag preceding them) or with the `-c` option. Arguments that
+    take callbacks (`-F` or `-W`) should be specified last, as they consume the rest of the command line.
+
+    Hinting action flags (only one can be specified):
         - -t open in a new foreground tab
         - -b open in background
         - -y copy (yank) link's target to clipboard
@@ -4251,24 +4298,34 @@ const KILL_STACK: Element[] = []
         - -A save-as the linked image
         - -; focus an element and set it as the element or the child of the element to scroll
         - -# yank an element's anchor URL to clipboard
-        - -c [selector] hint links that match the css selector
-          - `bind ;c hint -c [class*="expand"],[class="togg"]` works particularly well on reddit and HN
-          - this works with most other hint modes, with the caveat that if other hint mode takes arguments your selector must contain no spaces, i.e. `hint -c[yourOtherFlag] [selector] [your other flag's arguments, which may contain spaces]`
-        - -f [text] hint links and inputs that display the given text
-          - `bind <c-e> hint -f Edit`
-        - -fr [text] use RegExp to hint the links and inputs
         - -w open in new window
         - -wp open in new private window
         - -z scroll an element to the top of the viewport
         - `-pipe selector key` e.g, `-pipe a href` returns the URL of the chosen link on a page. Only makes sense with `composite`, e.g, `composite hint -pipe .some-class>a textContent | yank`. If you don't select a hint (i.e. press <Esc>), will return an empty string. Most useful when used like `-c` to do things other than opening links. NB: the query selector cannot contain any spaces.
         - `-W excmd...` append hint href to excmd and execute, e.g, `hint -W mpvsafe` to open YouTube videos. NB: appending to bare [[exclaim]] is dangerous - see `get exaliases.mpvsafe` for an example of how to to it safely. If you need to use a query selector, use `-pipe` instead.
-        - -q* quick (or rapid) hints mode. Stay in hint mode until you press <Esc>, e.g. `:hint -qb` to open multiple hints in the background or `:hint -qW excmd` to execute excmd once for each hint. This will return an array containing all elements or the result of executed functions (e.g. `hint -qpipe a href` will return an array of links).
-        - -J* disable javascript hints. Don't generate hints related to javascript events. This is particularly useful when used with the `-c` option when you want to generate only hints for the specified css selectors. Also useful on sites with plenty of useless javascript elements such as google.com
-          - For example, use `bind ;jg hint -Jc .rc > .r > a` on google.com to generate hints only for clickable search results of a given query
-        - -br deprecated, use `-qb` instead
         - -F [callback] - run a custom callback on the selected hint, e.g. `hint -JF e => {tri.excmds.tabopen("-b",e.href); e.remove()}`.
 
-    Excepting the custom selector mode and background hint mode, each of these hint modes is available by default as `;<option character>`, so e.g. `;y` to yank a link's target; `;g<option character>` starts rapid hint mode for all modes where it makes sense, and some others.
+    Element selection flags:
+        - -c [selector] hint links that match the css selector
+          - `bind ;c hint -c [class*="expand"],[class="togg"]` works particularly well on reddit and HN
+          - this works with most other hint modes, with the caveat that if other hint mode takes arguments your selector must contain no spaces, i.e. `hint -c[yourOtherFlag] [selector] [your other flag's arguments, which may contain spaces]`
+        - -f [text] hint links and inputs that display the given text
+          - `bind <c-e> hint -f Edit`
+          - Backslashes can escape spaces: `bind <c-s> hint -f Save\ as`
+        - -fr [text] use RegExp to hint the links and inputs
+        - -J* disable javascript hints. Don't generate hints related to javascript events. This is particularly useful when used with the `-c` option when you want to generate only hints for the specified css selectors. Also useful on sites with plenty of useless javascript elements such as google.com
+        - -V create hints for invisible elements. By default, elements outside the viewport when calling :hint are not hinted, this includes them anyways.
+
+    Hinting mode selection:
+        - -q* quick (or rapid) hints mode. Stay in hint mode until you press <Esc>, e.g. `:hint -qb` to open multiple hints in the background or `:hint -qW excmd` to execute excmd once for each hint. This will return an array containing all elements or the result of executed functions (e.g. `hint -qpipe a href` will return an array of links).
+          - For example, use `bind ;jg hint -Jc .rc > .r > a` on google.com to generate hints only for clickable search results of a given query
+        - -! execute all hints without waiting for a selection
+          - For example, `hint -!bf Comments` opens in background tabs all visible links whose text matches `Comments`
+
+    Deprecated options:
+        - -br deprecated, use `-qb` instead
+
+    Excepting the custom selector mode, background hint mode and the "immediate" modifier, each of these hint modes is available by default as `;<option character>`, so e.g. `;y` to yank a link's target; `;g<option character>` starts rapid hint mode for all modes where it makes sense, and some others.
 
     To open a hint in the background, the default bind is `F`.
 
@@ -4304,38 +4361,16 @@ const KILL_STACK: Element[] = []
     - `;m` and `;M` - do a reverse image search using Google in the current tab and a new tab
     - `;x` and `;X` - move cursor to element and perform a real click or ctrl-shift-click (to open in a new foreground tab). Only available on Linux, if you have [[native]] installed and `xdotool` on your PATH
 
+    NB: by default, hinting respects whether links say they should be opened in new tabs (i.e. `target=_blank`). If you wish to override this you can use `:hint -JW open` to force the hints to open in the current tab. JavaScript hints (grey ones) will always open wherever they want, but if you want to include these anyway you can use `:hint -W open`.
+
 */
 //#content
-export async function hint(option?: string, selectors?: string, ...rest: string[]): Promise<any> {
-    if (!option) option = ""
+export async function hint(...args: string[]): Promise<any> {
+    // Parse configuration and print parsing warnings
+    const config = hint_util.HintConfig.parse(args)
+    config.printWarnings(logger)
 
-    if (option === "-br") option = "-qb"
-
-    // extract flags
-    // Note: we need to process 'pipe' separately because it could be interpreted as -p -i -e otherwise
-    const pipeIndex = option.indexOf("pipe")
-    if (pipeIndex >= 0) {
-        option = option.slice(0, pipeIndex) + option.slice(pipeIndex + 4)
-    }
-
-    // Hacky fix for #1374 - join rapid-hinted yanks
-    if (option === "-qy") {
-        run_exstr('composite hint -qpipe a href | js -p JS_ARG.join(" ") | yank')
-        return
-    }
-
-    const options = new Set(option.length ? option.slice(1).split("") : [])
-    const rapid = options.delete("q")
-    const jshints = !options.delete("J")
-    const withSelectors = options.delete("c")
-
-    option = "-" + Array.from(options).join("")
-    if (pipeIndex >= 0) {
-        option = "-pipe"
-    }
-
-    let selectHints
-    const hintTabOpen = async (href, active = !rapid) => {
+    const hintTabOpen = async (href, active = !config.rapid) => {
         const containerId = await activeTabContainerId()
         if (containerId) {
             return openInNewTab(href, {
@@ -4350,281 +4385,182 @@ export async function hint(option?: string, selectors?: string, ...rest: string[
             })
         }
     }
-    switch (option) {
-        case "-f": // Filter links by text
-        case "-fr": // Filter links by regex
-            let match: string | RegExp
-            match = [selectors, ...rest].join(" ")
-            if (option == "-fr") {
-                match = new RegExp(match)
-            }
-            selectHints = hinting.pipe_elements(
-                hinting.hintByText(match),
-                elem => {
-                    DOM.simulateClick(elem as HTMLElement)
-                    return elem
-                },
-                rapid,
-            )
-            break
-        case "-b": // Open in background
-        case "-t": // Open in foreground
-            selectHints = hinting.pipe(
-                withSelectors ? [selectors, ...rest].join(" ") : DOM.HINTTAGS_selectors,
-                async link => {
-                    link.focus()
-                    if (link.href) {
-                        hintTabOpen(link.href, option === "-t").catch(() => DOM.simulateClick(link))
-                    } else {
-                        DOM.simulateClick(link)
+
+    return new Promise((resolve, reject) => {
+        const hintables = config.hintables()
+
+        // If the user specified a callback, eval it, else use the default
+        // action which performs the action matching the open mode
+        const action = config.callback
+            ? eval(config.callback)
+            : (elem: any) => {
+                  if (config.pipeAttribute !== null) {
+                      // We have an attribute to pipe
+                      return elem[config.pipeAttribute]
+                  }
+
+                  if (config.excmd) {
+                      // We have an excmd to run. By spec, we append the element's href
+                      if (elem.href) {
+                          // /!\ RACY RACY RACY!
+                          run_exstr(config.excmd + " " + elem.href)
+                          return elem
+                      }
+
+                      // Otherwise, no href so nothing to do
+                      return
+                  }
+
+                  switch (config.openMode) {
+                      case OpenMode.Highlight:
+                          const r = document.createRange()
+                          r.setStart(elem, 0)
+                          r.setEnd(elem, 1)
+                          const s = document.getSelection()
+                          s.addRange(r)
+                          return elem
+
+                      case OpenMode.Images:
+                      case OpenMode.ImagesTab:
+                          const src = elem.getAttribute("src")
+                          if (src) {
+                              if (config.openMode === OpenMode.ImagesTab) {
+                                  // TODO: await? Other hintTabOpen calls don't seem to use one
+                                  hintTabOpen(new URL(src, window.location.href).href)
+                              } else {
+                                  open(new URL(src, window.location.href).href)
+                              }
+                              return elem
+                          }
+
+                          return
+
+                      case OpenMode.Kill:
+                          elem.remove()
+                          return elem
+
+                      case OpenMode.KillTridactyl:
+                          elem.classList.add("TridactylKilledElem")
+                          return elem
+
+                      case OpenMode.SaveResource:
+                      case OpenMode.SaveImage:
+                      case OpenMode.SaveAsResource:
+                      case OpenMode.SaveAsImage:
+                          const saveAs = config.openMode === OpenMode.SaveAsResource || config.openMode === OpenMode.SaveAsImage
+                          const attr = config.openMode === OpenMode.SaveImage || config.openMode === OpenMode.SaveAsImage ? "src" : "href"
+                          Messaging.message("download_background", "downloadUrl", new URL(elem[attr], window.location.href).href, saveAs)
+                          return elem
+
+                      case OpenMode.Scroll:
+                          elem.scrollIntoView(true)
+                          return elem
+
+                      case OpenMode.ScrollFocus:
+                          let tabindexAdded = false
+                          // img can only be focused when they have the tabindex attribute
+                          if (elem instanceof HTMLImageElement && !elem.getAttribute("tabindex")) {
+                              elem.setAttribute("tabindex", "-1")
+                              tabindexAdded = true
+                          }
+                          elem.focus()
+                          scrolling.setCurrentFocus(elem)
+                          // img doesn't get unfocused when its tabindex is removed, so no need to keep it around
+                          if (tabindexAdded) elem.removeAttribute("tabindex")
+                          return elem
+
+                      case OpenMode.TTSRead:
+                          TTS.readText(elem.textContent)
+                          return elem
+
+                      case OpenMode.YankAlt:
+                          // Yank link alt text
+                          // ???: Neither anchors nor links posses an "alt" attribute. I'm assuming that the person who wrote this code also wanted to select the alt text of images
+                          return elem.title ? elem.title : elem.alt
+
+                      case OpenMode.YankAnchor:
+                          const anchorUrl = new URL(window.location.href)
+                          // ???: What purpose does selecting elements with a name attribute have? Selecting values that only have meaning in forms doesn't seem very useful.
+                          // https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes
+                          anchorUrl.hash = elem.id || elem.name
+                          return anchorUrl.href
+
+                      case OpenMode.YankLink:
+                          if (elem.href) {
+                              return elem.href
+                          }
+
+                          return
+
+                      case OpenMode.YankText:
+                          return elem.textContent
+                  }
+
+                  if (elem.href) {
+                      elem.focus()
+
+                      switch (config.openMode) {
+                          case OpenMode.Default:
+                              DOM.simulateClick(elem)
+                              break
+                          case OpenMode.Tab:
+                              hintTabOpen(elem.href, true).catch(() => DOM.simulateClick(elem))
+                              break
+                          case OpenMode.BackgroundTab:
+                              hintTabOpen(elem.href, false).catch(() => DOM.simulateClick(elem))
+                              break
+                          case OpenMode.Window:
+                              openInNewWindow({ url: new URL(elem.href, window.location.href).href })
+                              break
+                          case OpenMode.WindowPrivate:
+                              openInNewWindow({ url: elem.href, incognito: true })
+                              break
+                      }
+                  } else {
+                      if (config.openMode === OpenMode.WindowPrivate) {
+                          // We want a private window, but the element doesn't have an href, so
+                          // we avoid opening the target by accident
+                          return
+                      } else {
+                          elem.focus()
+                          DOM.simulateClick(elem)
+                      }
+                  }
+
+                  return elem
+              }
+
+        if (config.immediate) {
+            // Immediate mode, perform the target action on all matching nodes
+            const results = []
+
+            for (const elements of hintables) {
+                for (const hintable of elements.elements) {
+                    try {
+                        results.push(action(hintable))
+                    } catch (error) {
+                        logger.error(error)
                     }
-                    return link
-                },
-                rapid,
-                jshints,
-            )
-            break
-
-        case "-y":
-            // Yank link
-            selectHints = hinting.pipe(
-                DOM.HINTTAGS_selectors,
-                elem => {
-                    // /!\ Warning: This is racy! This can easily be fixed by adding an await but do we want this? yank can be pretty slow, especially with yankto=selection
-                    run_exstr("yank " + elem.href)
-                    return elem
-                },
-                rapid,
-                jshints,
-            )
-            break
-
-        case "-p":
-            // Yank text content
-            selectHints = hinting.pipe_elements(
-                DOM.elementsWithText(),
-                elem => {
-                    // /!\ Warning: This is racy! This can easily be fixed by adding an await but do we want this? yank can be pretty slow, especially with yankto=selection
-                    yank(elem.textContent)
-                    return elem
-                },
-                rapid,
-            )
-            break
-
-        case "-h":
-            // Highlight element
-            selectHints = hinting.pipe_elements(
-                DOM.elementsWithText(),
-                elem => {
-                    const r = document.createRange()
-                    r.setStart(elem, 0)
-                    r.setEnd(elem, 1)
-                    const s = document.getSelection()
-                    s.addRange(r)
-                    return elem
-                },
-                rapid,
-            )
-            break
-
-        case "-P":
-            // Yank link alt text
-            // ???: Neither anchors nor links posses an "alt" attribute. I'm assuming that the person who wrote this code also wanted to select the alt text of images
-            // https://developer.mozilla.org/en-US/docs/Web/HTML/Element/a
-            // https://developer.mozilla.org/en-US/docs/Web/HTML/Element/link
-            selectHints = hinting.pipe_elements(
-                DOM.getElemsBySelector("[title], [alt]", [DOM.isVisible]),
-                link => {
-                    // /!\ Warning: This is racy! This can easily be fixed by adding an await but do we want this? yank can be pretty slow, especially with yankto=selection
-                    run_exstr("yank " + (link.title ? link.title : link.alt))
-                    return link
-                },
-                rapid,
-            )
-            break
-
-        case "-#":
-            // Yank anchor
-            selectHints = hinting.pipe_elements(
-                DOM.anchors(),
-                link => {
-                    const anchorUrl = new URL(window.location.href)
-                    // ???: What purpose does selecting elements with a name attribute have? Selecting values that only have meaning in forms doesn't seem very useful.
-                    // https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes
-                    anchorUrl.hash = link.id || link.name
-                    // /!\ Warning: This is racy! This can easily be fixed by adding an await but do we want this? yank can be pretty slow, especially with yankto=selection
-                    run_exstr("yank " + anchorUrl.href)
-                    return link
-                },
-                rapid,
-            )
-            break
-
-        case "-W":
-            selectHints = hinting.pipe(
-                DOM.HINTTAGS_selectors,
-                elem => {
-                    // /!\ RACY RACY RACY!
-                    run_exstr(selectors + " " + rest.join(" ") + " " + elem)
-                    return elem
-                },
-                rapid,
-                jshints,
-            )
-            break
-
-        case "-pipe":
-            selectHints = hinting.pipe(selectors, elem => elem[rest.join(" ")], rapid, jshints)
-            break
-
-        case "-i":
-            selectHints = hinting.pipe_elements(
-                hinting.hintableImages(),
-                elem => {
-                    open(new URL(elem.getAttribute("src"), window.location.href).href)
-                    return elem
-                },
-                rapid,
-            )
-            break
-
-        case "-I":
-            selectHints = hinting.pipe_elements(
-                hinting.hintableImages(),
-                async elem => {
-                    await hintTabOpen(new URL(elem.getAttribute("src"), window.location.href).href)
-                    return elem
-                },
-                rapid,
-            )
-            break
-
-        case "-k":
-            selectHints = hinting.pipe_elements(
-                hinting.killables(),
-                elem => {
-                    elem.remove()
-                    return elem
-                },
-                rapid,
-            )
-            break
-        case "-K":
-            selectHints = hinting.pipe_elements(
-                hinting.killables(),
-                elem => {
-                    elem.className = elem.className + " TridactylKilledElem "
-                    KILL_STACK.push(elem)
-                    return elem
-                },
-                rapid,
-            )
-            break
-        case "-s":
-        case "-a":
-        case "-S":
-        case "-A":
-            let elems = []
-            // s: don't ask the user where to save the file
-            // a: ask the user where to save the file
-            let saveAs = true
-            if (option[1].toLowerCase() === "s") saveAs = false
-            // Lowercase: anchors
-            // Uppercase: images
-            let attr = "href"
-            if (option[1].toLowerCase() === option[1]) {
-                attr = "href"
-                elems = hinting.saveableElements()
-            } else {
-                attr = "src"
-                elems = hinting.hintableImages()
+                }
             }
-            selectHints = hinting.pipe_elements(
-                elems,
-                elem => {
-                    Messaging.message("download_background", "downloadUrl", new URL(elem[attr], window.location.href).href, saveAs)
-                    return elem
-                },
-                rapid,
-            )
-            break
 
-        case "-;":
-            selectHints = hinting.pipe_elements(
-                hinting.hintables(selectors),
-                elem => {
-                    elem.focus()
-                    scrolling.setCurrentFocus(elem)
-                    return elem
-                },
-                rapid,
-            )
-            break
+            resolve(results)
+        } else {
+            // Perform hinting
+            hinting.hintPage(hintables, action, resolve, reject, config.rapid)
+        }
+    }).then(value => {
+        // Fix #1374 for all types of yanks: join returned results
+        if (config.isYank) {
+            if (Array.isArray(value)) {
+                yank(value.join("\n"))
+            } else {
+                yank(value as string)
+            }
+        }
 
-        case "-r":
-            selectHints = hinting.pipe_elements(
-                DOM.elementsWithText(),
-                elem => {
-                    TTS.readText(elem.textContent)
-                    return elem
-                },
-                rapid,
-            )
-            break
-
-        case "-w":
-            selectHints = hinting.pipe_elements(
-                hinting.hintables(),
-                elem => {
-                    elem.focus()
-                    if (elem.href) openInNewWindow({ url: new URL(elem.href, window.location.href).href })
-                    else DOM.simulateClick(elem)
-                    return elem
-                },
-                rapid,
-            )
-            break
-
-        case "-wp":
-            selectHints = hinting.pipe_elements(
-                hinting.hintables(),
-                elem => {
-                    elem.focus()
-                    if (elem.href) return openInNewWindow({ url: elem.href, incognito: true })
-                },
-                rapid,
-            )
-            break
-
-        case "-z":
-            selectHints = hinting.pipe_elements(
-                DOM.elementsWithText(),
-                elem => {
-                    elem.scrollIntoView(true)
-                    return elem
-                },
-                rapid,
-            )
-            break
-
-        case "-F": // DIY callback
-            selectHints = hinting.pipe(withSelectors ? selectors : DOM.HINTTAGS_selectors, eval([withSelectors ? "" : selectors, ...rest].join(" ")), rapid, jshints)
-            break
-
-        default:
-            selectHints = hinting.pipe(
-                withSelectors ? [selectors, ...rest].join(" ") : DOM.HINTTAGS_selectors,
-                elem => {
-                    DOM.simulateClick(elem as HTMLElement)
-                    return elem
-                },
-                rapid,
-                jshints,
-            )
-    }
-
-    return selectHints
+        return value
+    })
 }
 
 // how 2 crash pc
@@ -5179,8 +5115,15 @@ export async function keyfeed(mapstr: string) {
 //#background_helper
 browser.runtime.onInstalled.addListener(details => {
     if (details.reason === "install") tutor("newtab")
-    else if ((details as any).temporary !== true && details.reason === "update") updatenative(false)
-    // could add elif "update" and show a changelog. Hide it behind a setting to make it less annoying?
+    else if (details.reason === "update") {
+        if ((details as any).temporary !== true) {
+            updatenative(false)
+        } else {
+            // Temporary extension has been updated in place
+            // Open a new tab where Tridactyl will work for convenience
+            tabopen()
+        }
+    }
 })
 
 /** Opens optionsUrl for the selected extension in a popup window.

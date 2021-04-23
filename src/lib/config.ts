@@ -298,6 +298,7 @@ export class default_config {
         ";;": "hint -; *",
         ";#": "hint -#",
         ";v": "hint -W mpvsafe",
+        ";V": "hint -V",
         ";w": "hint -w",
         ";t": "hint -W tabopen",
         ";O": "hint -W fillcmdline_notrail open ",
@@ -364,7 +365,7 @@ export class default_config {
         h: 'js document.getSelection().modify("extend","backward","character")',
         e: 'js document.getSelection().modify("extend","forward","word")',
         w:
-            'js document.getSelection().modify("extend","forward","word"); document.getSelection().modify("extend","forward","character")',
+            'js document.getSelection().modify("extend","forward","word"); document.getSelection().modify("extend","forward","word"); document.getSelection().modify("extend","backward","word"); document.getSelection().modify("extend","forward","character")',
         b:
             'js document.getSelection().modify("extend","backward","character"); document.getSelection().modify("extend","backward","word"); document.getSelection().modify("extend","forward","character")',
         j: 'js document.getSelection().modify("extend","forward","line")',
@@ -581,6 +582,7 @@ export class default_config {
         q: "tabclose",
         qa: "qall",
         sanitize: "sanitise",
+        "saveas!": "saveas --cleanup --overwrite",
         tutorial: "tutor",
         h: "help",
         unmute: "mute unmute",
@@ -606,7 +608,7 @@ export class default_config {
         "mkt!": "mktridactylrc -f",
         "mktridactylrc!": "mktridactylrc -f",
         mpvsafe:
-            "js -p tri.excmds.shellescape(JS_ARG).then(url => tri.excmds.exclaim_quiet('mpv ' + url))",
+            "js -p tri.excmds.shellescape(JS_ARG).then(url => tri.excmds.exclaim_quiet('mpv --no-terminal ' + url))",
         exto: "extoptions",
         extpreferences: "extoptions",
         extp: "extpreferences",
@@ -1130,6 +1132,13 @@ export class default_config {
      * NB: when disabled, <C-,> can't get focus back from the address bar, but it can still get it back from lots of other places (e.g. Flash-style video players)
      */
     escapehatchsidebarhack: "true" | "false" = "true"
+
+    /**
+     * Threshold for fuzzy matching on completions. Lower => stricter matching. Range between 0 and 1: 0 corresponds to perfect matches only. 1 will match anything.
+     *
+     * https://fusejs.io/api/options.html#threshold
+     */
+    completionfuzziness = 0.3
 }
 
 const platform_defaults = {
@@ -1151,7 +1160,7 @@ const platform_defaults = {
             "<C-6>": "buffer #",
         } as unknown,
 
-        nativeinstallcmd: `powershell -NoProfile -Command "\
+        nativeinstallcmd: `powershell -ExecutionPolicy Bypass -NoProfile -Command "\
 [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12;\
 (New-Object System.Net.WebClient).DownloadFile('https://raw.githubusercontent.com/tridactyl/native_messenger/master/installers/windows.ps1', '%TEMP%/tridactyl_installnative.ps1');\
 & '%TEMP%/tridactyl_installnative.ps1' -Tag %TAG;\
