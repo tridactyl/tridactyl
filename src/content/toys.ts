@@ -8,7 +8,7 @@
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-var erasor = false;
+let erasor = false;
 export function toggle_pen() {
     erasor = !erasor
 }
@@ -54,7 +54,7 @@ function makeBlock() {
 function make_drawable(overlaydiv){
     const c = document.createElement("canvas")
     overlaydiv.appendChild(c)
-    
+
     // making the canvas full screen
     c.height = window.innerHeight
     c.width = window.innerWidth
@@ -66,7 +66,10 @@ function make_drawable(overlaydiv){
         y: 0}
     c.addEventListener("mousedown", () => state.mousedown = true)
     c.addEventListener("mouseup", () => state.mousedown = false)
-    c.addEventListener("mousemove", e => { state.x = e.clientX; state.y = e.clientY })
+    c.addEventListener("mousemove", e => {
+        state.x = e.clientX
+        state.y = e.clientY
+    })
     function draw() {
         window.requestAnimationFrame(() => {
             if(erasor){

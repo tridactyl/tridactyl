@@ -1642,7 +1642,7 @@ export function drawable_mouse_mode() {
     toys.drawable()
 }
 /**
- * Toggle pen and erasor for drawable 
+ * Toggle pen and erasor for drawable
  */
 //#content
 export function toggle_pen() {
