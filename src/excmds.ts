@@ -1645,8 +1645,8 @@ export function drawable_mouse_mode() {
     toys.drawable()
 }
 /**
- * Toggle pen and eraser for [[drawable_mouse_mode]]
- * Suggested usage: `bind e eraser_toggle` and map pen button to `e`
+ * Switch between pen and eraser for [[drawable_mouse_mode]]
+ * Suggested usage: `bind e eraser_toggle`. If you have a digital pen, map the button to `e` to switch easily.
  */
 //#content
 export function eraser_toggle() {
