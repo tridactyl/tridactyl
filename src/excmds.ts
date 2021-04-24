@@ -1636,22 +1636,26 @@ export function pied_piper_mouse_mode() {
 }
 /**
  * Drawable variant of [[no_mouse_mode]]
+ * In this mode, you can click the mouse to draw. To erase any drawings, use [[eraser_toggle]]
+ * Use [[mouse_mode]] to return, or refresh page.
+ * Suggested usage: `autocmd DocLoad .* drawable_mouse_mode`
  */
 //#content
 export function drawable_mouse_mode() {
     toys.drawable()
 }
 /**
- * Toggle pen and erasor for drawable
+ * Toggle pen and eraser for [[drawable_mouse_mode]]
+ * Suggested usage: `bind e eraser_toggle` and map pen button to `e`
  */
 //#content
-export function toggle_pen() {
-    toys.toggle_pen()
+export function eraser_toggle() {
+    toys.eraser_toggle()
 }
 /**
  * Revert any variant of the [[no_mouse_mode]]
  *
- * Suggested usage: `bind <C-\> mouse_mode` with the autocmd mentioned in [[no_mouse_mode]].
+ * Suggested usage: `bind <C-\> mouse_mode` with the autocmd mentioned in [[no_mouse_mode]] or [[drawable_mouse_mode]].
  */
 //#content
 export function mouse_mode() {

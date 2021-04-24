@@ -8,14 +8,6 @@
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-let erasor = false;
-export function toggle_pen() {
-    erasor = !erasor
-}
-
-export function drawable() {
-    make_drawable(makeBlock())
-}
 export function jack_in() {
     // chinese characters - taken from the unicode charset
     const chinese = "田由甲申甴电甶男甸甹町画甼甽甾甿畀畁畂畃畄畅畆畇畈畉畊畋界畍畎畏畐畑".split("")
@@ -40,50 +32,88 @@ function makeBlock() {
     overlaydiv.style.position = "fixed"
     overlaydiv.style.display = "block"
     overlaydiv.style.width = String(window.innerWidth)
-    overlaydiv.style.height = String(window.innerHeight)
-    overlaydiv.style.top = "0"
-    overlaydiv.style.left = "0"
-    overlaydiv.style.right = "0"
-    overlaydiv.style.bottom = "0"
-    overlaydiv.style.zIndex = "1000"
-    overlaydiv.style.opacity = "0.5"
+    overlaydiv.style.height = String(document.documentElement.scrollHeight)
+    overlaydiv.style.top = "0px"
+    overlaydiv.style.bottom = "0px"
+    overlaydiv.style.left = "0px"
+    overlaydiv.style.right = "0px"
+    overlaydiv.style.zIndex = "100"
+    overlaydiv.style.opacity = "0.8"
     document.body.appendChild(overlaydiv)
     return overlaydiv
 }
 
-function make_drawable(overlaydiv){
+export function drawable() {
+    make_drawable(makeBlock())
+}
+
+const clickX = []
+const clickY = []
+const clickDrag = []
+let ink
+
+let eraser = false;
+export function eraser_toggle() {
+    eraser = !eraser
+}
+
+function addClick(x, y, dragging) {
+    clickX.push(x)
+    clickY.push(y)
+    clickDrag.push(dragging)
+}
+
+function redraw(context) {
+    if(eraser) {
+        context.globalCompositeOperation = "destination-out"
+        context.lineWidth = 18
+    } else {
+        context.globalCompositeOperation = "source-over"
+        context.lineWidth = 3
+    }
+    context.strokeStyle = "#000000"
+    context.lineJoin = "round"
+    for(let i=0; i < clickX.length; i++) {
+        context.beginPath()
+        if(clickDrag[i] && i){
+            context.moveTo(clickX[i-1], clickY[i-1])
+        } else {
+            context.moveTo(clickX[i]-1, clickY[i])
+        }
+        context.lineTo(clickX[i], clickY[i])
+        context.closePath()
+        context.stroke()
+    }
+}
+
+function make_drawable(overlaydiv) {
+    overlaydiv.style.position = "absolute"
     const c = document.createElement("canvas")
     overlaydiv.appendChild(c)
-
+    const context = c.getContext("2d")
     // making the canvas full screen
-    c.height = window.innerHeight
-    c.width = window.innerWidth
+    c.height = document.documentElement.scrollHeight
+    c.width = window.innerWidth*0.98
 
-    const state = {
-        mousedown: false,
-        context: c.getContext("2d"),
-        x: 0,
-        y: 0}
-    c.addEventListener("mousedown", () => state.mousedown = true)
-    c.addEventListener("mouseup", () => state.mousedown = false)
-    c.addEventListener("mousemove", e => {
-        state.x = e.clientX
-        state.y = e.clientY
+    c.addEventListener("mousedown", (e) => {
+        ink = true
+        let mouseX = e.pageX
+        let  mouseY = e.pageY
+        addClick(mouseX, mouseY, false)
+        redraw(context)
     })
-    function draw() {
-        window.requestAnimationFrame(() => {
-            if(erasor){
-                state.context.globalCompositeOperation = "destination-out";
-            } else {
-                state.context.fillStyle = "black"
-            }
-            if (state.mousedown) {
-                state.context.fillRect(state.x, state.y, 3, 3)
-            }
-            draw()
-        })
-    }
-    draw()
+    c.addEventListener("mouseup", () => {
+        ink = false
+        clickX.length = 0
+        clickY.length = 0
+        clickDrag.length = 0
+    })
+    c.addEventListener("mousemove", e => {
+        if(ink){
+            addClick(e.pageX, e.pageY, true);
+            redraw(context);
+        }
+    })
 }
 
 export function removeBlock() {
