@@ -97,9 +97,7 @@ function make_drawable(overlaydiv) {
 
     c.addEventListener("mousedown", (e) => {
         ink = true
-        let mouseX = e.pageX
-        let  mouseY = e.pageY
-        addClick(mouseX, mouseY, false)
+        addClick(e.pageX, e.pageY, false)
         redraw(context)
     })
     c.addEventListener("mouseup", () => {
