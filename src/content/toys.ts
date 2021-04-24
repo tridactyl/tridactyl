@@ -37,7 +37,7 @@ function makeBlock() {
     overlaydiv.style.bottom = "0px"
     overlaydiv.style.left = "0px"
     overlaydiv.style.right = "0px"
-    overlaydiv.style.zIndex = "100"
+    overlaydiv.style.zIndex = "1000"
     overlaydiv.style.opacity = "0.8"
     document.body.appendChild(overlaydiv)
     return overlaydiv
@@ -93,7 +93,7 @@ function make_drawable(overlaydiv) {
     const context = c.getContext("2d")
     // making the canvas full screen
     c.height = document.documentElement.scrollHeight
-    c.width = window.innerWidth*0.98
+    c.width = window.innerWidth*0.98  // workaround to fix canvas overflow
 
     c.addEventListener("mousedown", (e) => {
         ink = true
