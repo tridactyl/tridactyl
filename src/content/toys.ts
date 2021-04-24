@@ -38,7 +38,7 @@ function makeBlock() {
     overlaydiv.style.left = "0px"
     overlaydiv.style.right = "0px"
     overlaydiv.style.zIndex = "1000"
-    overlaydiv.style.opacity = "0.8"
+    overlaydiv.style.opacity = "0.5"
     document.body.appendChild(overlaydiv)
     return overlaydiv
 }
@@ -88,6 +88,7 @@ function redraw(context) {
 
 function make_drawable(overlaydiv) {
     overlaydiv.style.position = "absolute"
+    overlaydiv.style.opacity = "0.8"
     const c = document.createElement("canvas")
     overlaydiv.appendChild(c)
     const context = c.getContext("2d")
