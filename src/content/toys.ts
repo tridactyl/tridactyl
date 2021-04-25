@@ -44,6 +44,7 @@ function makeBlock() {
 }
 
 export function drawable() {
+    eraser = false
     make_drawable(makeBlock())
 }
 
@@ -72,7 +73,7 @@ function redraw(context) {
         context.lineWidth = 3
     }
     context.strokeStyle = "#000000"
-    context.lineJoin = "round"
+    context.lineJoin = "miter"
     for(let i=0; i < clickX.length; i++) {
         context.beginPath()
         if(clickDrag[i] && i){
@@ -85,7 +86,29 @@ function redraw(context) {
         context.stroke()
     }
 }
-
+function handleDown(e, context){
+    ink = true
+    addClick(e.pageX, e.pageY, false)
+    redraw(context)
+    e.preventDefault()
+    e.stopPropagation()
+}
+function handleUp(e){
+    ink = false
+    clickX.length = 0
+    clickY.length = 0
+    clickDrag.length = 0
+    e.stopPropagation()
+    e.preventDefault()
+}
+function handleMove(e, context) {
+    if(ink){
+        addClick(e.pageX, e.pageY, true);
+        redraw(context);
+    }
+    e.preventDefault()
+    e.stopPropagation()
+}
 function make_drawable(overlaydiv) {
     overlaydiv.style.position = "absolute"
     overlaydiv.style.opacity = "0.8"
@@ -95,24 +118,10 @@ function make_drawable(overlaydiv) {
     // making the canvas full screen
     c.height = document.documentElement.scrollHeight
     c.width = window.innerWidth*0.98  // workaround to fix canvas overflow
-
-    c.addEventListener("mousedown", (e) => {
-        ink = true
-        addClick(e.pageX, e.pageY, false)
-        redraw(context)
-    })
-    c.addEventListener("mouseup", () => {
-        ink = false
-        clickX.length = 0
-        clickY.length = 0
-        clickDrag.length = 0
-    })
-    c.addEventListener("mousemove", e => {
-        if(ink){
-            addClick(e.pageX, e.pageY, true);
-            redraw(context);
-        }
-    })
+    c.style.touchAction = "none" // for pen tablet to work
+    c.addEventListener("pointerdown", e=>handleDown(e,context))
+    c.addEventListener("pointerup", handleUp)
+    c.addEventListener("pointermove", e=>handleMove(e,context))
 }
 
 export function removeBlock() {

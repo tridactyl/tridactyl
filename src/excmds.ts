@@ -1636,9 +1636,11 @@ export function pied_piper_mouse_mode() {
 }
 /**
  * Drawable variant of [[no_mouse_mode]]
- * In this mode, you can click the mouse to draw. To erase any drawings, use [[eraser_toggle]]
+ * In this mode, you can use the mouse or a pen table to draw. To erase any drawings, use [[eraser_toggle]]
  * Use [[mouse_mode]] to return, or refresh page.
  * Suggested usage: `autocmd DocLoad .* drawable_mouse_mode`
+ *
+ * **Warning**: Windows Ink enabled input devices don't work, disable it for your browser, or use a mouse.
  */
 //#content
 export function drawable_mouse_mode() {
