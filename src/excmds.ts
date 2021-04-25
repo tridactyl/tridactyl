@@ -1636,7 +1636,7 @@ export function pied_piper_mouse_mode() {
 }
 /**
  * Drawable variant of [[no_mouse_mode]]
- * In this mode, you can use the mouse or a pen table to draw. To erase any drawings, use [[eraser_toggle]]
+ * In this mode, you can use the mouse or a digital stylus to draw. To switch to an eraser, use [[eraser_toggle]]
  * Use [[mouse_mode]] to return, or refresh page.
  * Suggested usage: `autocmd DocLoad .* drawable_mouse_mode`
  *
