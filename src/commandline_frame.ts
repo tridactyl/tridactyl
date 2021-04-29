@@ -48,9 +48,8 @@ import "@src/lib/number.clamp"
 import * as genericParser from "@src/parsers/genericmode"
 import * as perf from "@src/perf"
 import state, * as State from "@src/state"
-import * as R from "ramda"
+import * as R from "rambda"
 import { KeyEventLike } from "./lib/keyseq"
-
 
 /** @hidden **/
 const logger = new Logger("cmdline")

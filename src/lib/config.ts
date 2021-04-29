@@ -16,7 +16,7 @@
  * Intrepid Tridactyl users: this page is how Tridactyl arranges and manages its settings internally. To view your own settings, use `:viewconfig` and `:viewconfig --user`. To understand how to set settings, see `:help set`.
  *
  */
-import * as R from "ramda"
+import * as R from "rambda"
 import * as binding from "@src/lib/binding"
 import * as platform from "@src/lib/platform"
 import { DeepPartial } from "tsdef"

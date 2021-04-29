@@ -5,7 +5,7 @@ import * as Containers from "@src/lib/containers"
 import * as Completions from "@src/completions"
 import * as config from "@src/lib/config"
 import * as Messaging from "@src/lib/messaging"
-import * as R from "ramda"
+import * as R from "rambda"
 
 class BufferCompletionOption
     extends Completions.CompletionOptionHTML
