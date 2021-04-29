@@ -207,7 +207,9 @@ commandline_state.clInput.addEventListener(
                         // Abuse async to wrap non-promises in a promise
                         // eslint-disable-next-line @typescript-eslint/require-await
                         (async () =>
-                            commandline_state.fns[funcname as keyof typeof commandline_state.fns](
+                            commandline_state.fns[
+                                funcname as keyof typeof commandline_state.fns
+                            ](
                                 args.length === 0 ? undefined : args.join(" "),
                             ))(),
                     )

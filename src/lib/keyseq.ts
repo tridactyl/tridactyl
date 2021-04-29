@@ -505,7 +505,7 @@ export function translateKeysUsingKeyTranslateMap(
 
 // }}}
 
-browser.storage.onChanged.addListener((changes) => {
+browser.storage.onChanged.addListener(changes => {
     if ("userconfig" in changes) {
         KEYMAP_CACHE = {}
     }

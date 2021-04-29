@@ -135,11 +135,21 @@ export async function downloadUrlAs(
                         overwrite,
                         cleanup,
                     )
-                    const code2human = n => R.defaultTo("Unknown error", {1: "File already exists", 2: "Other OS error"}[n])
+                    const code2human = n =>
+                        R.defaultTo(
+                            "Unknown error",
+                            { 1: "File already exists", 2: "Other OS error" }[
+                                n
+                            ],
+                        )
                     if (operation.code != 0) {
                         reject(
                             new Error(
-                                `${code2human(operation.code)}. '${downloadItem.filename}' could not be moved to '${saveAs}'. Error code: ${operation.code}`,
+                                `${code2human(operation.code)}. '${
+                                    downloadItem.filename
+                                }' could not be moved to '${saveAs}'. Error code: ${
+                                    operation.code
+                                }`,
                             ),
                         )
                     } else {

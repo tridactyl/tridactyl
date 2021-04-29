@@ -43,9 +43,7 @@ class BufferCompletionOption
         const favIconUrl = tab.favIconUrl
             ? tab.favIconUrl
             : Completions.DEFAULT_FAVICON
-        const indicator = tab.audible
-            ? String.fromCodePoint(0x1F50A)
-            : ""
+        const indicator = tab.audible ? String.fromCodePoint(0x1f50a) : ""
         this.html = html`<tr
             class="BufferCompletionOption option container_${container.color} container_${container.icon} container_${container.name}"
         >

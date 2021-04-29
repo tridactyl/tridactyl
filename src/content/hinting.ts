@@ -753,7 +753,7 @@ function buildHintsSimple(
     hintables: Hintables,
     onSelect: HintSelectedCallback,
 ) {
-    const els = hintables.elements.filter((el) => Hint.isHintable(el))
+    const els = hintables.elements.filter(el => Hint.isHintable(el))
     const names = Array.from(
         hintnames(els.length + modeState.hints.length),
     ).slice(modeState.hints.length)
@@ -804,7 +804,7 @@ function buildHintsVimperator(
     hintables: Hintables,
     onSelect: HintSelectedCallback,
 ) {
-    const els = hintables.elements.filter((el) => Hint.isHintable(el))
+    const els = hintables.elements.filter(el => Hint.isHintable(el))
     const names = Array.from(
         hintnames(els.length + modeState.hints.length),
     ).slice(modeState.hints.length)
