@@ -4,7 +4,7 @@ set -e
 
 sign_and_submit() {
     # Don't trust the return value of web-ext sign.
-    (source AMOKEYS && (web-ext sign -s build --api-key $AMOKEY --api-secret $AMOSECRET "$@" || true))
+    (source AMOKEYS && (yarn run web-ext sign -s build --api-key "$AMOKEY" --api-secret "$AMOSECRET" "$@" || true))
 }
 
 publish_beta_nonewtab() {
@@ -23,7 +23,7 @@ publish_beta() {
     scripts/version.js beta
     sed 's/"name": "Tridactyl"/"name": "Tridactyl: Beta"/' -i build/manifest.json
     sign_and_submit
-    tar --exclude-from=<(cat .gitignore | grep -v .build_cache/) --exclude-vcs -czf ../../public_html/betas/tridactyl_source_beta.tar.gz .
+    tar --exclude-from=<(.grep -v .build_cache/ .gitignore) --exclude-vcs -czf ../../public_html/betas/tridactyl_source_beta.tar.gz .
 }
 
 build_no_sign_beta(){
@@ -32,9 +32,9 @@ build_no_sign_beta(){
     scripts/version.js beta
     sed 's/"name": "Tridactyl"/"name": "Tridactyl: Beta"/' -i build/manifest.json
     mkdir -p web-ext-artifacts
-    $(yarn bin)/web-ext build --source-dir ./build --overwrite-dest
+    yarn run web-ext build --source-dir ./build --overwrite-dest
     for f in web-ext-artifacts/*.zip; do
-        mv $f ${f%.zip}.xpi
+        mv "$f" "${f%.zip}".xpi
     done
 }
 
@@ -43,9 +43,9 @@ build_no_sign_stable(){
     yarn run build --no-native
     sed 's/tridactyl.vim.betas@cmcaine/tridactyl.vim@cmcaine/' -i build/manifest.json
     mkdir -p web-ext-artifacts
-    $(yarn bin)/web-ext build --source-dir ./build --overwrite-dest
+    yarn run web-ext build --source-dir ./build --overwrite-dest
     for f in web-ext-artifacts/*.zip; do
-        mv $f ${f%.zip}.xpi
+        mv "$f" "${f%.zip}".xpi
     done
 }
 
@@ -54,7 +54,7 @@ publish_stable() {
     yarn run build --no-native
     sed 's/tridactyl.vim.betas@cmcaine/tridactyl.vim@cmcaine/' -i build/manifest.json
     sign_and_submit
-    tar --exclude-from=<(cat .gitignore | grep -v .build_cache/) --exclude-vcs -czf ../../public_html/betas/tridactyl_source.tar.gz .
+    tar --exclude-from=<(grep -v .build_cache/ .gitignore) --exclude-vcs -czf ../../public_html/betas/tridactyl_source.tar.gz .
 }
 
 case $1 in
@@ -62,5 +62,6 @@ case $1 in
     nosignstable) build_no_sign_stable;;
     nosignbeta) build_no_sign_beta;;
     nonewtab) publish_beta_nonewtab;;
-    *|beta) publish_beta;;
+    beta) publish_beta;;
+    *) publish_beta;;
 esac
