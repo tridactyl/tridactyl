@@ -23,7 +23,7 @@ publish_beta() {
     scripts/version.js beta
     sed 's/"name": "Tridactyl"/"name": "Tridactyl: Beta"/' -i build/manifest.json
     sign_and_submit
-    tar --exclude-from=<(.grep -v .build_cache/ .gitignore) --exclude-vcs -czf ../../public_html/betas/tridactyl_source_beta.tar.gz .
+    tar --exclude-from=<(grep -v .build_cache/ .gitignore) --exclude-vcs -czf ../../public_html/betas/tridactyl_source_beta.tar.gz .
 }
 
 build_no_sign_beta(){
