@@ -10,7 +10,12 @@ export function inContentScript() {
 
 export function getTriVersion() {
     const manifest = browser.runtime.getManifest()
-    return manifest.version_name
+
+    // version_name only really exists in Chrome
+    // but we're using it anyway for our own purposes
+    return (manifest as browser._manifest.WebExtensionManifest & {
+        version_name: string
+    }).version_name
 }
 
 export function getPrettyTriVersion() {

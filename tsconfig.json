@@ -14,7 +14,7 @@
     "noImplicitThis": true,
     "strictFunctionTypes": true,
     "baseUrl": "src/",
-    "types": ["@types/ramda", "@types/firefox-webext-browser", "web-ext-types"],
+    "types": ["@types/ramda", "@types/firefox-webext-browser"],
     "paths": {
         "@src/*": ["*"]
     }
