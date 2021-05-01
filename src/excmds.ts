@@ -1636,28 +1636,28 @@ export function pied_piper_mouse_mode() {
 }
 /**
  * Drawable variant of [[no_mouse_mode]]
- * In this mode, you can use the mouse or a digital stylus to draw. To switch to an eraser, use [[eraser_toggle]]
+ * In this mode, you can use the mouse or a digital stylus to draw. To switch to an eraser, use [[drawingerasertoggle]]
  * Use [[mouse_mode]] to return, or refresh page.
- * Suggested usage: `autocmd DocLoad .* drawable_mouse_mode`
+ * Suggested usage: `autocmd DocLoad .* drawingstart
  *
  * **Warning**: Windows Ink enabled input devices don't work, disable it for your browser, or use a mouse.
  */
 //#content
-export function drawable_mouse_mode() {
+export function drawingstart() {
     toys.drawable()
 }
 /**
- * Switch between pen and eraser for [[drawable_mouse_mode]]
- * Suggested usage: `bind e eraser_toggle`. If you have a digital pen, map the button to `e` to switch easily.
+ * Switch between pen and eraser for [[drawingstart]]
+ * Suggested usage: `bind e drawingerasertoggle`. If you have a digital pen, map the button to `e` to switch easily.
  */
 //#content
-export function eraser_toggle() {
+export function drawingerasertoggle() {
     toys.eraser_toggle()
 }
 /**
  * Revert any variant of the [[no_mouse_mode]]
  *
- * Suggested usage: `bind <C-\> mouse_mode` with the autocmd mentioned in [[no_mouse_mode]] or [[drawable_mouse_mode]].
+ * Suggested usage: `bind <C-\> mouse_mode` with the autocmd mentioned in [[no_mouse_mode]] or [[drawingstart]].
  */
 //#content
 export function mouse_mode() {

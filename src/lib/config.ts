@@ -609,6 +609,7 @@ export class default_config {
         "mktridactylrc!": "mktridactylrc -f",
         mpvsafe:
             "js -p tri.excmds.shellescape(JS_ARG).then(url => tri.excmds.exclaim_quiet('mpv --no-terminal ' + url))",
+        drawingstop: "no_mouse_mode",
         exto: "extoptions",
         extpreferences: "extoptions",
         extp: "extpreferences",
