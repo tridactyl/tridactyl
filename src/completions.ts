@@ -29,7 +29,7 @@ export abstract class CompletionOption {
     /** What to fill into cmdline */
     value: string
     /** Control presentation of the option */
-    state: OptionState
+    abstract state: OptionState
 }
 
 export abstract class CompletionSource {
@@ -94,7 +94,7 @@ export abstract class CompletionSource {
     /** Update [[node]] to display completions relevant to exstr */
     public abstract filter(exstr: string): Promise<void>
 
-    abstract async next(inc?: number): Promise<boolean>
+    abstract next(inc?: number): Promise<boolean>
 }
 
 // Default classes

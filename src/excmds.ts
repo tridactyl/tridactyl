@@ -3274,7 +3274,7 @@ export async function fillcmdline_tmp(ms: number, ...strarr: string[]) {
     const str = strarr.join(" ")
     showcmdline(false)
     Messaging.messageOwnTab("commandline_frame", "fillcmdline", [strarr.join(" "), false, false])
-    return new Promise(resolve =>
+    return new Promise<void>(resolve =>
         setTimeout(async () => {
             if ((await Messaging.messageOwnTab("commandline_frame", "getContent", [])) === str) {
                 CommandLineContent.hide_and_blur()
@@ -4762,7 +4762,11 @@ export function buildFilterConfigs(filters: string[]): Perf.StatsFilterConfig[] 
             } else if (filter === ":measure") {
                 return { kind: "eventType", eventType: "measure" }
             } else {
-                return { kind: "functionName", functionName: name }
+                // This used to say `functionName: name`
+                // which didn't seem to exist anywhere
+                //
+                // So at least we return something now
+                return { kind: "functionName", functionName: filter }
             }
         },
     )
