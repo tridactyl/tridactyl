@@ -1,7 +1,8 @@
-import { browserBg } from "@src/lib/webext.ts"
+import { browserBg } from "@src/lib/webext"
 import * as Completions from "@src/completions"
 
-class WindowCompletionOption extends Completions.CompletionOptionHTML
+class WindowCompletionOption
+    extends Completions.CompletionOptionHTML
     implements Completions.CompletionOptionFuse {
     public fuseKeys = []
 
