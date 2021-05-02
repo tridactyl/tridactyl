@@ -402,8 +402,8 @@ interface Hintables {
 export function hintPage(
     hintableElements: Hintables[],
     onSelect: HintSelectedCallback,
-    resolve = () => {}, // eslint-disable-line @typescript-eslint/no-empty-function
-    reject = () => {}, // eslint-disable-line @typescript-eslint/no-empty-function
+    resolve: (x?) => void = () => {}, // eslint-disable-line @typescript-eslint/no-empty-function
+    reject: (x?) => void = () => {}, // eslint-disable-line @typescript-eslint/no-empty-function
     rapid = false,
 ) {
     const buildHints: HintBuilder = defaultHintBuilder()

@@ -15,3 +15,5 @@ compiler/**/*.js
 .*.generated.ts
 .tmp/
 .DS_Store
+.build_cache/
+yarn-error.log

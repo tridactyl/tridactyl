@@ -86,6 +86,9 @@ command hint_focus hint -;
 " Open right click menu on links
 bind ;C composite hint_focus; !s xdotool key Menu
 
+" Suspend / "discard" all tabs - handy for stretching out battery life
+command discardall jsb browser.tabs.query({}).then(ts => browser.tabs.discard(ts.map(t=>t.id)))
+
 " Julia docs' built in search is bad
 set searchurls.julia https://www.google.com/search?q=site:http://docs.julialang.org/en/v1%20
 

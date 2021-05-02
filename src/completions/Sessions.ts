@@ -1,4 +1,4 @@
-import { browserBg } from "@src/lib/webext.ts"
+import { browserBg } from "@src/lib/webext"
 import * as Completions from "@src/completions"
 import * as config from "@src/lib/config"
 
