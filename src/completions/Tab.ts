@@ -5,7 +5,6 @@ import * as Containers from "@src/lib/containers"
 import * as Completions from "@src/completions"
 import * as config from "@src/lib/config"
 import * as Messaging from "@src/lib/messaging"
-import * as R from "rambda"
 
 class BufferCompletionOption
     extends Completions.CompletionOptionHTML
@@ -238,11 +237,15 @@ export class BufferCompletionSource extends Completions.CompletionSourceFuse {
         if (!prevOptions || !this.options || !this.lastFocused) return
 
         // Determine which option to focus on
-        const diff = R.differenceWith(
-            (x, y) => x.tabId === y.tabId,
-            prevOptions,
-            this.options,
-        )
+        const diff: BufferCompletionOption[] = []
+        for (const prevOption of prevOptions) {
+            if (
+                !this.options.find(
+                    newOption => prevOption.tabId === newOption.tabId,
+                )
+            )
+                diff.push(prevOption)
+        }
         const lastFocusedTabCompletion = this
             .lastFocused as BufferCompletionOption
 
