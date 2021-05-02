@@ -36,7 +36,7 @@ import {
 import { contentState } from "@src/content/state_content"
 import * as config from "@src/lib/config"
 import Logger from "@src/lib/logging"
-import * as R from "ramda"
+import * as R from "rambda"
 
 /** @hidden */
 const logger = new Logger("hinting")
@@ -847,10 +847,10 @@ function filterHintsSimple(fstr) {
 
     // Fix bug where sometimes a bigger number would be selected (e.g. 10 rather than 1)
     // such that smaller numbers couldn't be selected
-    let hints = modeState.hints
-    if (config.get("hintnames") == "numeric") {
-        hints = R.sortBy(R.pipe(R.prop("name"), parseInt), modeState.hints)
-    }
+    const hints =
+        config.get("hintnames") == "numeric"
+            ? R.sortBy(R.pipe(R.prop("name"), parseInt), modeState.hints)
+            : modeState.hints
 
     for (const h of hints) {
         if (!h.name.startsWith(fstr)) h.hidden = true

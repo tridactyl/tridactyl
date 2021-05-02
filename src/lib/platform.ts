@@ -1,4 +1,4 @@
-import * as R from "ramda"
+import * as R from "rambda"
 
 // Synchronous version of runtime.getPlatformInfo()
 // Not as exhaustive as the real thing

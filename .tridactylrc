@@ -63,8 +63,9 @@ bindurl www.google.com f hint -Jc #search div:not(.action-menu) > a
 bindurl www.google.com F hint -Jbc #search div:not(.action-menu) > a
 
 
-bindurl ^https://duckduckgo.com f hint -Jc [class=result__a]
-bindurl ^https://duckduckgo.com F hint -Jbc [class=result__a]
+" DDG binds are broken as of May 2021
+" bindurl ^https://duckduckgo.com f hint -Jc [class=result__a]
+" bindurl ^https://duckduckgo.com F hint -Jbc [class=result__a]
 
 " Allow Ctrl-a to select all in the commandline
 unbind --mode=ex <C-a>

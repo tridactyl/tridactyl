@@ -91,7 +91,6 @@ import * as Native from "@src/lib/native"
 import * as TTS from "@src/lib/text_to_speech"
 import * as excmd_parser from "@src/parsers/exmode"
 import * as escape from "@src/lib/escape"
-import * as R from "ramda"
 import semverCompare from "semver-compare"
 import * as hint_util from "@src/lib/hint_util"
 import { OpenMode } from "@src/lib/hint_util"
@@ -2779,9 +2778,9 @@ export async function tabsort(...callbackchunks: string[]) {
     const comparator = argument == "--containers" ? (l, r) => l.cookieStoreId < r.cookieStoreId : argument == "--title" ? (l, r) => l.title < r.title : argument == "--url" || argument == "" ? (l, r) => l.url < r.url : eval(argument)
     const windowTabs = await browser.tabs.query({ currentWindow: true })
     windowTabs.sort(comparator)
-    R.forEachObjIndexed((tab, index) => {
-        browser.tabs.move((tab as browser.tabs.Tab).id, { index: parseInt(index as string, 10) })
-    }, windowTabs)
+    Object.entries(windowTabs).forEach(([index, tab]) => {
+        browser.tabs.move(tab.id, { index: parseInt(index, 10) })
+    })
 }
 
 /** Pin the current tab */

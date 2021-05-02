@@ -5,7 +5,7 @@
  */
 
 import * as excmds from "@src/.excmds_background.generated"
-import * as R from "ramda"
+import * as R from "rambda"
 import * as config from "@src/lib/config"
 import { getTridactylTabs } from "@src/background/meta"
 

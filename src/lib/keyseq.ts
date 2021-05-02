@@ -24,7 +24,7 @@
 import { filter, find, izip } from "@src/lib/itertools"
 import { Parser } from "@src/lib/nearley_utils"
 import * as config from "@src/lib/config"
-import * as R from "ramda"
+import * as R from "rambda"
 import grammar from "@src/grammars/.bracketexpr.generated"
 const bracketexpr_grammar = grammar
 const bracketexpr_parser = new Parser(bracketexpr_grammar)
@@ -389,7 +389,9 @@ export function minimalKeyToMozMap(key: MinimalKey): string {
     key.ctrlKey && mozMap.push("MacCtrl")
     key.shiftKey && mozMap.push("Shift")
     key.metaKey && mozMap.push("Command")
-    const jsKey2commandKey = R.invertObj(commandKey2jsKey)
+    const jsKey2commandKey = Object.fromEntries(
+        Object.entries(commandKey2jsKey).map(([key, value]) => [value, key]),
+    )
     mozMap.push(R.propOr(key.key.toUpperCase(), key.key, jsKey2commandKey))
     return mozMap.join("+")
 }

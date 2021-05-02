@@ -13,7 +13,7 @@
 import Logger from "@src/lib/logging"
 import * as messaging from "@src/lib/messaging"
 import { notBackground } from "@src/lib/webext"
-import * as R from "ramda"
+import * as R from "rambda"
 
 const logger = new Logger("state")
 
