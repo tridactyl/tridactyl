@@ -3754,7 +3754,7 @@ function validateSetArgs(key: string, values: string[]) {
  * @param values The value you wish for, e.g. `next`
  *
  * Example:
- * - `seturl .*\\.fr followpagepatterns.next suivant`
+ * - `seturl .*\.fr followpagepatterns.next suivant`
  * - `seturl website.fr followpagepatterns.next next`
  *
  * When multiple patterns can apply to a same URL, the pattern that has the highest priority is used. You can set the priority of a pattern by using `:seturl pattern priority 10`. By default every pattern has a priority of 10.
@@ -3853,7 +3853,7 @@ const AUCMDS = ["DocStart", "DocLoad", "DocEnd", "TriStart", "TabEnter", "TabLef
  *
  * The 'UriChange' event is for "single page applications" which change their URIs without triggering DocStart or DocLoad events. It uses a timer to check whether the URI has changed, which has a small impact on battery life on pages matching the `url` parameter. We suggest using it sparingly.
  *
- * @param url For DocStart, DocEnd, TabEnter, and TabLeft: a JavaScript regex (e.g. `www\\.amazon\\.co.*`)
+ * @param url For DocStart, DocEnd, TabEnter, and TabLeft: a JavaScript regex (e.g. `www\.amazon\.co.*`)
  *
  * We just use [URL.search](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/search).
  *
@@ -3906,14 +3906,14 @@ export function autocmd(event: string, url: string, ...excmd: string[]) {
  * __NB:__ You should use this command with an -s (sane mode) or -u (URL mode) flag. Usage without a flag uses an incorrect regular expression which may cause weird behaviour and has been left in for compatibility reasons.
  *
  * This function accepts a `-u` flag to treat the pattern as a URL rather than a domain.
- * For example: `autocontain -u ^https?://([^/]*\\.|)youtube\\.com/ google` is equivalent to `autocontain -s youtube\.com google`
+ * For example: `autocontain -u ^https?://([^/]*\.|)youtube\.com/ google` is equivalent to `autocontain -s youtube\.com google`
  *
  * For declaring containers that do not yet exist, consider using `auconcreatecontainer true` in your tridactylrc.
  * This allows Tridactyl to automatically create containers from your autocontain directives. Note that they will be random icons and colors.
  *
  * The domain is passed through as a regular expression so there are a few gotchas to be aware of:
- * * Unescaped periods will match *anything*. `autocontain -s google.co.uk work` will match `google!co$uk`. Escape your periods [twice](https://javascript.info/regexp-escaping#new-regexp) (i.e. `\\.` rather than `\.`) or accept that you might get some false positives.
- * * You can use regex in your pattern. `autocontain -s google\\.(co\\.uk|com) work` will match either `google.co.uk` or `google.com`.
+ * * Unescaped periods will match *anything*. `autocontain -s google.co.uk work` will match `google!co$uk`. Escape your periods  (i.e. `\.`) or accept that you might get some false positives.
+ * * You can use regex in your pattern. `autocontain -s google\.(co\.uk|com) work` will match either `google.co.uk` or `google.com`.
  *
  * This *should* now peacefully coexist with the Temporary Containers and Multi-Account Containers addons. Do not trust this claim. If a fight starts the participants will try to open infinite tabs. It is *strongly* recommended that you use a tridactylrc so that you can abort a sorceror's-apprentice scenario by killing firefox, commenting out all of autocontainer directives in your rc file, and restarting firefox to clean up the mess. There are a number of strange behaviors resulting from limited coordination between extensions. Redirects can be particularly surprising; for example, with `:autocontain -s will-redirect.example.org example` set and `will-redirect.example.org` redirecting to `redirected.example.org`, navigating to `will-redirect.example.org` will result in the new tab being in the `example` container under some conditions and in the `firefox-default` container under others.
  *
