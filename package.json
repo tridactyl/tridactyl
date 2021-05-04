@@ -33,7 +33,7 @@
     "@types/jest": "^26.0.23",
     "@types/node": "^15.0.1",
     "@types/selenium-webdriver": "^4.0.12",
-    "@typescript-eslint/eslint-plugin": "^4.22.0",
+    "@typescript-eslint/eslint-plugin": "^4.22.1",
     "@typescript-eslint/eslint-plugin-tslint": "^4.22.1",
     "@typescript-eslint/parser": "^4.22.0",
     "cleanslate": "^0.10.1",
