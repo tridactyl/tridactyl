@@ -42,7 +42,7 @@
     "eslint": "^7.25.0",
     "eslint-config-prettier": "^8.3.0",
     "eslint-plugin-import": "^2.22.1",
-    "eslint-plugin-jsdoc": "^33.0.0",
+    "eslint-plugin-jsdoc": "^33.1.0",
     "eslint-plugin-prefer-arrow": "^1.2.3",
     "eslint-plugin-sonarjs": "^0.7.0",
     "geckodriver": "^1.22.3",
