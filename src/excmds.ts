@@ -5080,7 +5080,13 @@ export async function issue() {
 //#background
 export async function updatecheck(source: "manual" | "auto_polite" | "auto_impolite" = "manual") {
     const forceCheck = source == "manual"
-    const highestKnownVersion = await Updates.getLatestVersion(forceCheck)
+
+    // Skip check unless it's due or forced
+    if (!(forceCheck || Updates.secondsSinceLastCheck() > config.get("update", "checkintervalsecs"))) {
+        return false
+    }
+
+    const highestKnownVersion = await Updates.getLatestVersion()
     if (!highestKnownVersion) {
         return false
     }
