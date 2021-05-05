@@ -1049,7 +1049,7 @@ export function addJump() {
     // Prevent pending jump from being registered
     clearTimeout(JUMP_TIMEOUTID)
     // Schedule the registering of the current jump
-    const localTimeoutID = setTimeout(async () => {
+    const localTimeoutID = window.setTimeout(async () => {
         // Get config for current page
         const alljumps = await curJumps()
         // if this handler was cancelled after the call to curJumps(), bail out
@@ -5080,7 +5080,13 @@ export async function issue() {
 //#background
 export async function updatecheck(source: "manual" | "auto_polite" | "auto_impolite" = "manual") {
     const forceCheck = source == "manual"
-    const highestKnownVersion = await Updates.getLatestVersion(forceCheck)
+
+    // Skip check unless it's due or forced
+    if (!(forceCheck || Updates.secondsSinceLastCheck() > config.get("update", "checkintervalsecs"))) {
+        return false
+    }
+
+    const highestKnownVersion = await Updates.getLatestVersion()
     if (!highestKnownVersion) {
         return false
     }

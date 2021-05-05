@@ -69,17 +69,31 @@ if [ "$QUICK_BUILD" != "1" ]; then
     scripts/make_tutorial.sh
     scripts/make_docs.sh
 
-    webpack --stats errors-only --bail
+    tsc --project tsconfig.json --noEmit
 else
 
     echo "Warning: dirty rebuild. Skipping docs, metadata and type checking..."
-    mkdir -p buildtemp
-    node scripts/esbuild.js
-    mv buildtemp/* build/
-    rmdir buildtemp
 
 fi
 
+# Actually build the thing
+
+mkdir -p buildtemp
+node scripts/esbuild.js
+mv buildtemp/* build/
+rmdir buildtemp
+
+# Copy extra static files across
+
+cp src/manifest.json build/
+cp -r src/static build
+cp -r generated/static build
+cp issue_template.md build/
+
+# Remove large unused files
+
+rm build/static/logo/Tridactyl.psd
+rm build/static/logo/Tridactyl_1024px.png
 
 # "temporary" fix until we can install new native on CI: install the old native messenger
 if [ "$OLD_NATIVE" = "1" ]; then
