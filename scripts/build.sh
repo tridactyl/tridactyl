@@ -86,16 +86,14 @@ rmdir buildtemp
 # Copy extra static files across
 
 cp src/manifest.json build/
-
-# TODO: exclude psds and 1024px.png here
-# Try not to break builds on OSX / BSD in the process
-# //                        ignore: ["**/*.psd", "**/*1024px.png"],
 cp -r src/static build
-
-
 cp -r generated/static build
 cp issue_template.md build/
 
+# Remove large unused files
+
+rm build/static/logo/Tridactyl.psd
+rm build/static/logo/Tridactyl_1024px.png
 
 # "temporary" fix until we can install new native on CI: install the old native messenger
 if [ "$OLD_NATIVE" = "1" ]; then
