@@ -144,7 +144,6 @@ import * as messaging from "@src/lib/messaging"
 import state from "@src/state"
 import * as State from "@src/state"
 import * as webext from "@src/lib/webext"
-import Mark from "mark.js"
 import * as perf from "@src/perf"
 import * as keyseq from "@src/lib/keyseq"
 import * as native from "@src/lib/native"
@@ -170,7 +169,6 @@ import * as metadata from "@src/.metadata.generated"
     hinting_content,
     itertools,
     logger,
-    Mark,
     metadata,
     keyseq,
     messaging,
