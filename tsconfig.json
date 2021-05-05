@@ -14,7 +14,7 @@
     "noImplicitThis": true,
     "strictFunctionTypes": true,
     "baseUrl": "src/",
-    "types": ["@types/firefox-webext-browser"],
+    "types": ["@types/firefox-webext-browser", "@types/node"],
     "paths": {
         "@src/*": ["*"]
     }

@@ -1049,7 +1049,7 @@ export function addJump() {
     // Prevent pending jump from being registered
     clearTimeout(JUMP_TIMEOUTID)
     // Schedule the registering of the current jump
-    const localTimeoutID = setTimeout(async () => {
+    const localTimeoutID = window.setTimeout(async () => {
         // Get config for current page
         const alljumps = await curJumps()
         // if this handler was cancelled after the call to curJumps(), bail out
