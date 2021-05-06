@@ -205,9 +205,8 @@ if (
             if (newtab) {
                 excmds.open_quiet(newtab)
             } else {
-                document.body.style.height = "100%"
-                document.body.style.opacity = "1"
-                document.body.style.overflow = "auto"
+                const content = document.getElementById("trinewtab")
+                content.style.display = "block"
                 document.title = "Tridactyl Top Tips & New Tab Page"
             }
         }
