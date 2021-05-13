@@ -2281,10 +2281,10 @@ eslint-plugin-import@^2.22.1:
     resolve "^1.17.0"
     tsconfig-paths "^3.9.0"
 
-eslint-plugin-jsdoc@^33.3.0:
-  version "33.3.0"
-  resolved "https://registry.yarnpkg.com/eslint-plugin-jsdoc/-/eslint-plugin-jsdoc-33.3.0.tgz#a287db838d2cac4b36b76d99213901be6a31e9f5"
-  integrity sha512-wt6I9X8JoOyUtnsafM7AWBEfLCD3BI1wR5/vTu0hti4CoZc37bB4ZX9A7DsWKbEC/xROAAcBV2VAT638w9VKyQ==
+eslint-plugin-jsdoc@^34.1.0:
+  version "34.1.0"
+  resolved "https://registry.yarnpkg.com/eslint-plugin-jsdoc/-/eslint-plugin-jsdoc-34.1.0.tgz#b153670a679fb5ce39286f770446f0a2e02ecbf6"
+  integrity sha512-7uk6vD92LCGBLwl7imvf7YzZrMbLmHZVSULBJClZpYTNdTpPXOtuPNKDi8nLcXYtZf3UopNs5qR7coapBSaUtw==
   dependencies:
     "@es-joy/jsdoccomment" "^0.4.4"
     comment-parser "1.1.5"
