@@ -50,7 +50,7 @@
     "selenium-webdriver": "^4.0.0-beta.3",
     "ts-jest": "^25.5.1",
     "tslint": "^5.20.1",
-    "tslint-etc": "^1.13.9",
+    "tslint-etc": "^1.13.10",
     "tslint-sonarts": "^1.9.0",
     "typescript": "^3.9.9",
     "web-ext": "^6.1.0"
