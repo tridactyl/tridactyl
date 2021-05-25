@@ -4098,10 +4098,10 @@ jest-watcher@^25.5.0:
     jest-util "^25.5.0"
     string-length "^3.1.0"
 
-jest-webextension-mock@^3.7.10:
-  version "3.7.10"
-  resolved "https://registry.yarnpkg.com/jest-webextension-mock/-/jest-webextension-mock-3.7.10.tgz#3017db6932c5ba59163d63039d46b34fcc327484"
-  integrity sha512-AgFLTjoPUzHjAUnhTwP05AVKOqriO9JITGS0C2A3iUla9WxqRmzGdSMx+4uKX6HzbxjDIwqAMi89OMMdjI4Pfg==
+jest-webextension-mock@^3.7.11:
+  version "3.7.11"
+  resolved "https://registry.yarnpkg.com/jest-webextension-mock/-/jest-webextension-mock-3.7.11.tgz#22fad016e77d19cc11e33eb9b7cd36fa312e20fd"
+  integrity sha512-imbSHA8Idlf4XG9Um8jVvhhiw/NrTXDz64HqA7QCRakDq2AEQcmBXqxXz/tzEDI/HJ7810UvkZABi9xZBXJd9w==
 
 jest-worker@^25.5.0:
   version "25.5.0"
