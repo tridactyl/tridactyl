@@ -1,3 +1,68 @@
+" THIS FILE IS FOR HUMANS TO READ ONLY
+" DON'T RUN THIS FILE
+" THIS FILE IS FOR HUMANS TO READ ONLY
+" DON'T RUN THIS FILE
+" THIS FILE IS FOR HUMANS TO READ ONLY
+" DON'T RUN THIS FILE
+" THIS FILE IS FOR HUMANS TO READ ONLY
+" DON'T RUN THIS FILE
+"                            __    _                          
+"                       _wr""        "-q__                    
+"                    _dP                 9m_                  
+"                  _#P                     9#_                
+"                 d#@                       9#m               
+"                d##                         ###              
+"               J###                         ###L             
+"               {###K                       J###K             
+"               ]####K      ___aaa___      J####F             
+"           __gmM######_  w#P""   ""9#m  _d#####Mmw__         
+"        _g##############mZ_         __g##############m_      
+"      _d####M@PPPP@@M#######Mmp gm#########@@PPP9@M####m_    
+"     a###""          ,Z"#####@" '######"\g          ""M##m   
+"    J#@"             0L  "*##     ##@"  J#              *#K  
+"    #"               `#    "_gmwgm_~    dF               `#_ 
+"   7F                 "#_   ]#####F   _dK                 JE 
+"   ]                    *m__ ##### __g@"                   F 
+"                          "PJ#####LP"                        
+"    `                       0######_                      '  
+"                          _0########_                          
+"        .               _d#####^#####m__              ,      
+"         "*w_________am#####P"   ~9#####mw_________w*"         
+"             ""9@#####@M""           ""P@#####@M""           
+"   
+" DON'T RUN THIS FILE
+" THIS FILE IS FOR HUMANS TO READ ONLY
+" DON'T RUN THIS FILE
+" THIS FILE IS FOR HUMANS TO READ ONLY
+" DON'T RUN THIS FILE
+" THIS FILE IS FOR HUMANS TO READ ONLY
+" DON'T RUN THIS FILE
+" THIS FILE IS FOR HUMANS TO READ ONLY
+
+
+" DON'T RUN THIS FILE
+" THIS FILE IS FOR HUMANS TO READ ONLY
+" No matter how many warnings I put on this file people still run it
+" Don't. Unless you're bovine3dom (it's his RC file).
+
+" Literally everything in this file is in some way a bad idea
+"
+" If it was a good idea it would be the default setting in Tridactyl
+"
+" This file is on the Tridactyl repo simply for people to read and learn from
+"
+"
+" Among many other lesser crimes, it does some things that people who know much more about security than me say severely weaken the security of Firefox
+"
+"
+" So DON'T RUN THIS FILE
+" THIS FILE IS FOR HUMANS TO READ ONLY
+
+" ......
+" More warnings follow
+" ......
+
+
 " bovine3dom's dogfood
 
 " WARNING: This file defines and runs a command called fixamo_quiet. If you
