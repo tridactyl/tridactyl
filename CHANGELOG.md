@@ -1,5 +1,57 @@
 # Tridactyl changelog
 
+# Release 1.22.0 / Unreleased
+
+-   New features
+
+    -   `:drawing{start,stop,erasertoggle}` added to scribble on pages
+
+    -   `:hint -V` hint mode added, bound to `;V`, which adds hints to all matching elements on the page, including ones outside the viewport (#3534)
+
+    -   `:set completionfuzziness [0-1]` added to control strictness of completion matches (#3556)
+
+-   Bug fixes
+
+    -   The new tab page no longer has invisible links on it when set to `about:blank` (#1743)
+
+    -   `:viewconfig` might now work more reliably but we are not sure (#3653)
+
+        -   it also works from Tridactyl pages now, at least some of the time
+
+    -   `:nmode` is now shown in the mode indicator
+
+    -   `:open` will now always run in its own tab (#3583)
+
+    -   Hint modes now accept a much wider array of arguments (#3534)
+
+    -   `:source --url` now works on data URIs (#3540)
+
+    -   `:guiset` now gives a more useful error on reading a malformed userChrome.css (#3541)
+
+    -   `:mpvsafe` now leaves MPV running after Firefox exits on all platforms (#3538)
+
+    -   `:viewcontainers` uses `:jsonview` internally which should fix how it is displayed from Tridactyl pages (#3539)
+
+    -   `:containerdelete` no longer closes all normal tabs if an invalid container is given (#3536)
+
+    -   `:set auconcreatecontainer fales` is now respected (#3537)
+
+-   Miscellaneous
+
+    -   We've switched from webpack to esbuild which has reduced dev-build times from 40 seconds to about 1 second (#3645)
+
+    -   Tridactyl can now be built from ~5MB of source, down from ~100MB (#3632)
+
+    -   We've switched from ramda to rambda which is a bit faster (#3628)
+
+    -   We've switched from web-ext-types to definitely typed types, which are a bit better maintained
+
+    -   We update the DOM in place a bit less, which could speed up `:tab` completions
+
+    -   Hint mode is a bit faster (#3582)
+
+    -   Dev builds of Tridactyl now open a new tab page when Tridactyl code is updated (#3564)
+
 # Release 1.21.1 / 2021-03-19
 
 -   New features
