@@ -95,6 +95,21 @@ export class default_config {
     }
 
     /**
+     * Internal field to handle mode-specific configs. Use :setmode/:unsetmode to change these values.
+     *
+     * Changing this might do weird stuff.
+     */
+    modesubconfigs: { [key: string]: DeepPartial<default_config> } = {
+        "normal": {},
+        "insert": {},
+        "input": {},
+        "ignore": {},
+        "ex": {},
+        "hint": {},
+        "visual": {},
+    }
+
+    /**
      * Internal field to handle site-specific config priorities. Use :seturl/:unseturl to change this value.
      */
     priority = 0
@@ -748,21 +763,6 @@ export class default_config {
      * Best used in conjunction with browser.autofocus in `about:config`
      */
     allowautofocus: "true" | "false" = "true"
-
-    /**
-     * Controls modes which the [[allowautofocus]] setting will affect.
-     *
-     * This lets you suppress the effects of [[allowautofocus]] to allow page behavior in certain modes - by default this setting always allows the setting to take effect.
-     */
-    preventautofocusmodes: { [key: string]: "true" | "false" } = {
-        normal: "true",
-        insert: "true",
-        input: "true",
-        ignore: "true",
-        ex: "true",
-        hint: "true",
-        visual: "true",
-    }
 
     /**
      * Uses a loop to prevent focus until you interact with a page. Only recommended for use via `seturl` for problematic sites as it can be a little heavy on CPU if running on all tabs. Should be used in conjuction with [[allowautofocus]]

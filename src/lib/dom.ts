@@ -538,8 +538,8 @@ function onPageFocus(elem: HTMLElement): boolean {
     if (isTextEditable(elem)) {
         LAST_USED_INPUT = elem
     }
-    const suppressSetting = config.get("preventautofocusmodes", contentState.mode) === "false"
-    return suppressSetting || config.get("allowautofocus") === "true"
+    const setting = config.get("modesubconfigs", contentState.mode, "allowautofocus") || config.get("allowautofocus")
+    return setting === "true"
 }
 
 async function setInput(el) {
