@@ -3796,6 +3796,8 @@ export function setmode(mode: string, key: string, ...values: string[]) {
     if (!mode || !key || !values.length) {
         throw new Error("seturl syntax: mode key value")
     }
+    if (key !== "allowautofocus")
+        throw new Error("Setting '" + key + "' not supported with setmode")
 
     return config.set("modesubconfigs", mode, ...validateSetArgs(key, values))
 }
