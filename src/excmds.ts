@@ -2280,10 +2280,17 @@ export async function tabprev(increment = 1) {
  * Pushes the current tab to another window. Only works for windows of the same type
  * (can't push a non-private tab to a private window or a private tab to
  * a non-private window).
+ * If *windowId* is not specified, pushes to the next newest window,
+ * wrapping around.
  */
 //#background
-export async function tabpush(windowId: number) {
-    return activeTabId().then(tabId => browser.tabs.move(tabId, { index: -1, windowId }))
+export async function tabpush(windowId?: number) {
+    const currentWindow = await browser.windows.getCurrent()
+    const windows = (await browser.windows.getAll()).filter(w => w.incognito === currentWindow.incognito)
+    windows.sort((w1, w2) => w1.id - w2.id)
+    const nextWindow = windows[(windows.findIndex(window => window.id === currentWindow.id) + 1) % windows.length]
+    const tabId = await activeTabId()
+    return browser.tabs.move(tabId, { index: -1, windowId: windowId ?? nextWindow.id })
 }
 
 /** Switch to the tab currently playing audio, if any. */
