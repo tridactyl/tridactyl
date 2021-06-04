@@ -2782,7 +2782,7 @@ export async function tabmove(index = "$") {
 //#background
 export async function tabsort(...callbackchunks: string[]) {
     const argument = callbackchunks.join(" ")
-    const comparator = argument == "--containers" ? (l, r) => l.cookieStoreId < r.cookieStoreId : argument == "--title" ? (l, r) => l.title < r.title : argument == "--url" || argument == "" ? (l, r) => l.url < r.url : window.eval(argument)
+    const comparator = argument == "--containers" ? (l, r) => l.cookieStoreId < r.cookieStoreId : argument == "--title" ? (l, r) => l.title < r.title : argument == "--url" || argument == "" ? (l, r) => l.url < r.url : eval(argument)
     const windowTabs = await browser.tabs.query({ currentWindow: true })
     windowTabs.sort(comparator)
     Object.entries(windowTabs).forEach(([index, tab]) => {
@@ -4417,7 +4417,7 @@ export async function hint(...args: string[]): Promise<any> {
         // If the user specified a callback, eval it, else use the default
         // action which performs the action matching the open mode
         const action = config.callback
-            ? window.eval(config.callback)
+            ? eval(config.callback)
             : (elem: any) => {
                   if (config.pipeAttribute !== null) {
                       // We have an attribute to pipe
@@ -4975,7 +4975,7 @@ async function js_helper(str: string[]) {
         jsContent = file.content
     }
 
-    return window.eval(jsContent)
+    return eval(jsContent)
 }
 
 /**
