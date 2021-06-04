@@ -2417,7 +2417,7 @@ export async function tabopen(...addressarr: string[]): Promise<browser.tabs.Tab
 
     const address = query.join(" ")
     if (!ABOUT_WHITELIST.includes(address) && /^(about|file):.*/.exec(address)) {
-        return (nativeopen(address) as unknown) as browser.tabs.Tab // I don't understand why changing the final return below meant I had to change this
+        return nativeopen(address) as unknown as browser.tabs.Tab // I don't understand why changing the final return below meant I had to change this
     }
 
     const aucon = new AutoContain()
@@ -2782,7 +2782,7 @@ export async function tabmove(index = "$") {
 //#background
 export async function tabsort(...callbackchunks: string[]) {
     const argument = callbackchunks.join(" ")
-    const comparator = argument == "--containers" ? (l, r) => l.cookieStoreId < r.cookieStoreId : argument == "--title" ? (l, r) => l.title < r.title : argument == "--url" || argument == "" ? (l, r) => l.url < r.url : eval(argument)
+    const comparator = argument == "--containers" ? (l, r) => l.cookieStoreId < r.cookieStoreId : argument == "--title" ? (l, r) => l.title < r.title : argument == "--url" || argument == "" ? (l, r) => l.url < r.url : (0, eval)(argument)
     const windowTabs = await browser.tabs.query({ currentWindow: true })
     windowTabs.sort(comparator)
     Object.entries(windowTabs).forEach(([index, tab]) => {
@@ -4417,7 +4417,7 @@ export async function hint(...args: string[]): Promise<any> {
         // If the user specified a callback, eval it, else use the default
         // action which performs the action matching the open mode
         const action = config.callback
-            ? eval(config.callback)
+            ? (0, eval)(config.callback)
             : (elem: any) => {
                   if (config.pipeAttribute !== null) {
                       // We have an attribute to pipe
@@ -4757,25 +4757,23 @@ export async function ttscontrol(action: string) {
  */
 //#background_helper
 export function buildFilterConfigs(filters: string[]): Perf.StatsFilterConfig[] {
-    return filters.map(
-        (filter: string): Perf.StatsFilterConfig => {
-            if (filter.endsWith("/")) {
-                return { kind: "ownerName", ownerName: filter.slice(0, -1) }
-            } else if (filter === ":start") {
-                return { kind: "eventType", eventType: "start" }
-            } else if (filter === ":end") {
-                return { kind: "eventType", eventType: "end" }
-            } else if (filter === ":measure") {
-                return { kind: "eventType", eventType: "measure" }
-            } else {
-                // This used to say `functionName: name`
-                // which didn't seem to exist anywhere
-                //
-                // So at least we return something now
-                return { kind: "functionName", functionName: filter }
-            }
-        },
-    )
+    return filters.map((filter: string): Perf.StatsFilterConfig => {
+        if (filter.endsWith("/")) {
+            return { kind: "ownerName", ownerName: filter.slice(0, -1) }
+        } else if (filter === ":start") {
+            return { kind: "eventType", eventType: "start" }
+        } else if (filter === ":end") {
+            return { kind: "eventType", eventType: "end" }
+        } else if (filter === ":measure") {
+            return { kind: "eventType", eventType: "measure" }
+        } else {
+            // This used to say `functionName: name`
+            // which didn't seem to exist anywhere
+            //
+            // So at least we return something now
+            return { kind: "functionName", functionName: filter }
+        }
+    })
 }
 
 /**
@@ -4975,7 +4973,7 @@ async function js_helper(str: string[]) {
         jsContent = file.content
     }
 
-    return eval(jsContent)
+    return (0, eval)(jsContent)
 }
 
 /**
