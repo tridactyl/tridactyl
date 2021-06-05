@@ -200,7 +200,18 @@ You can bind your own shortcuts in normal mode with the `:bind` command. For exa
 
 -   How can I change the colors or theme used by Tridactyl?
 
-    Use `:colors dark` (authored by @furgerf), `:colors shydactyl` (authored by @atrnh) or `:colors greenmat` (authored by @caputchinefrobles). Tridactyl can also load themes from disk, which would let you use one of the themes authored by @bezmi ([bezmi/base16-tridactyl](https://github.com/bezmi/base16-tridactyl)), see `:help colors` for more information.
+    To use one of the built in themes use: `:colors <color>`. The current options are:
+    
+    - default
+    - dark (authored by @furgerf)
+    - shydactyl (authored by @atrnh)
+    - greenmat (authored by @caputchinefrobles)
+    - halloween
+    - quake
+    - quakelight
+    - midnight (authored by @karizma)
+
+    Tridactyl can also load themes from disk, which would let you use one of the themes authored by @bezmi ([bezmi/base16-tridactyl](https://github.com/bezmi/base16-tridactyl)), see `:help colors` for more information.
 
 -   How to remap keybindings? or How can I bind keys using the control/alt key modifiers (eg: `ctrl+^`)?
 
