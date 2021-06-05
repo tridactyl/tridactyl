@@ -1,0 +1,129 @@
+:root {
+    --tridactyl-font-family: "San Francisco", sans-serif;
+    --tridactyl-bg: #161a20; 
+    --tridactyl-fg: white;
+
+    --tridactyl-status-font-size: 12px;
+    --tridactyl-status-font-family: "Fira Code", "San Francisco";
+    --tridactyl-status-font-bg: var(--tridactyl-cmdl-bg);
+    --tridactyl-status-border: 2px solid black;
+    --tridactyl-status-border-radius: 4px;
+
+    --tridactyl-header-font-size: 16px;
+    
+    --tridactyl-of-fg: black;
+    --tridactyl-of-bg: #FFD662;
+
+    --tridactyl-hintspan-fg: white;
+    --tridactyl-hintspan-bg: #204e8a;
+
+    --tridactyl-hint-active-fg: #333;
+    --tridactyl-hint-active-bg: #006E51;
+    --tridactyl-hint-active-outline: 1px solid #000;
+
+    --tridactyl-hint-bg: rgba(13, 31, 54, 0.25);
+    --tridactyl-hint-outline: 1px solid var(--tridactyl-hintspan-bg);
+
+    --tridactyl-cmdl-font-size: 1.5rem;
+    --tridactyl-cmplt-option-height: 1.9em;
+    
+    --tridactyl-border-radius: 4px;
+}
+
+
+:root.TridactylOwnNamespace {
+    scrollbar-width: thin;
+}
+
+:root.TridactylOwnNamespace a {
+    color: #3b84ef;
+}
+
+:root.TridactylOwnNamespace code {
+    background-color: #2a333c;
+    padding: 3px 7px;
+}
+
+:root #command-line-holder {
+    order: 1;
+}
+
+:root #command-line-holder, :root #tridactyl-input {
+    border-radius: var(--tridactyl-border-radius) !important;
+}
+
+:root #tridactyl-colon::before {
+    content: "";
+}
+
+:root #tridactyl-input {
+    width: 96%;
+    padding: 1rem;
+}
+
+:root #completions table {
+    font-weight: 200;
+    table-layout: fixed;
+    padding: 1rem;
+    padding-top: 0;
+}
+
+:root #completions > div {
+    max-height: calc(20 * var(--tridactyl-cmplt-option-height));
+    min-height: calc(10 * var(--tridactyl-cmplt-option-height));
+}
+
+:root #completions {
+    border: none !important;
+    font-family: var(--tridactyl-font-family);
+    order: 2;
+    margin-top: 10px;
+    border-radius: var(--tridactyl-border-radius);
+}
+
+:root #completions .HistoryCompletionSource table {
+    width: 100%;
+    border-spacing: 0;
+    table-layout: fixed;
+}
+
+
+:root #completions .BufferCompletionSource table {
+    width: unset;
+    font-size: unset;
+    border-spacing: unset;
+    table-layout: unset;
+}
+
+:root #completions table tr .title {
+    width: 50%;
+}
+
+:root #completions tr .documentation {
+    white-space: nowrap;
+    overflow: auto;
+    text-overflow: ellipsis;
+}
+
+:root #completions .sectionHeader {
+    background: transparent;
+    padding: 1rem 1rem 0.4rem !important;
+}
+
+:root #cmdline_iframe {
+    position: fixed !important;
+    bottom: unset;
+    top: 25% !important;
+    left: 10% !important;
+    z-index: 2147483647 !important;
+    width: 80% !important;
+    filter: drop-shadow(0px 0px 20px #000000) !important;
+}
+
+:root .TridactylStatusIndicator {
+    position: fixed !important;
+    bottom: 10px !important;
+    right: 10px !important;
+    font-weight: 200 !important;
+    padding: 5px !important;
+}
