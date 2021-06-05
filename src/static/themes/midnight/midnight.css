@@ -28,6 +28,15 @@
     --tridactyl-cmplt-option-height: 1.9em;
 }
 
+:root.TridactylOwnNamespace a {
+    color: #3b84ef;
+}
+
+:root.TridactylOwnNamespace code {
+    background-color: #2a333c;
+    padding: 3px 7px;
+}
+
 :root #command-line-holder {
     order: 1;
     border-radius: 5px !important;
