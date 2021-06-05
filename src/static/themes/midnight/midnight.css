@@ -26,6 +26,8 @@
 
     --tridactyl-cmdl-font-size: 1.5rem;
     --tridactyl-cmplt-option-height: 1.9em;
+    
+    --tridactyl-border-radius: 4px;
 }
 
 
@@ -44,7 +46,10 @@
 
 :root #command-line-holder {
     order: 1;
-    border-radius: 5px !important;
+}
+
+:root #command-line-holder, :root #tridactyl-input {
+    border-radius: var(--tridactyl-border-radius) !important;
 }
 
 :root #tridactyl-colon::before {
@@ -52,9 +57,8 @@
 }
 
 :root #tridactyl-input {
-    width: 90%;
+    width: 96%;
     padding: 1rem;
-    border-radius: 5px !important;
 }
 
 :root #completions table {
@@ -71,10 +75,10 @@
 
 :root #completions {
     border: none !important;
-    margin-top: 4px;
     font-family: var(--tridactyl-font-family);
     order: 2;
-    border-radius: 5px;
+    margin-top: 10px;
+    border-radius: var(--tridactyl-border-radius);
 }
 
 :root #completions .HistoryCompletionSource table {
@@ -113,6 +117,7 @@
     left: 10% !important;
     z-index: 2147483647 !important;
     width: 80% !important;
+    filter: drop-shadow(0px 0px 20px #000000) !important;
 }
 
 :root .TridactylStatusIndicator {
