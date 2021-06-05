@@ -28,6 +28,11 @@
     --tridactyl-cmplt-option-height: 1.9em;
 }
 
+
+:root.TridactylOwnNamespace {
+    scrollbar-width: thin;
+}
+
 :root.TridactylOwnNamespace a {
     color: #3b84ef;
 }
