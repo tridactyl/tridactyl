@@ -1833,6 +1833,18 @@ export function urlparent(count = 1) {
  *   * `http://e.com/issues/42` -> (`-g -1 foo`) -> `http://e.com/issues/42/foo`
  *   * `http://e.com/issues/42` -> (`-g -2 foo`) -> `http://e.com/issues/foo`
  *
+ *
+ * * URL Input: `urlmodify -*u <arguments> <URL>`
+ *
+ *   Each mode can be augmented to accept a URL as the last argument instead of
+ *   the current url.
+ *
+ *   Examples:
+ *
+ *   * `urlmodify -tu <old> <new> <URL>`
+ *   * `urlmodify -su <query> <value> <URL>`
+ *   * `urlmodify -gu <graft_point> <new_path_tail> <URL>`
+ *
  * @param mode      The replace mode:
  *  * -t text replace
  *  * -r regexp replace
@@ -1840,6 +1852,7 @@ export function urlparent(count = 1) {
  *  * -q replace the value of the given query
  *  * -Q delete the given query
  *  * -g graft a new path onto URL or parent path of it
+ *  * -*u Use last argument as URL input instead of current URL
  * @param replacement the replacement arguments (depends on mode):
  *  * -t <old> <new>
  *  * -r <regexp> <new> [flags]
@@ -1847,9 +1860,10 @@ export function urlparent(count = 1) {
  *  * -q <query> <new_val>
  *  * -Q <query>
  *  * -g <graftPoint> <newPathTail>
+ *  * -*u <arguments> <URL>
  */
 //#content
-export function urlmodify(mode: "-t" | "-r" | "-s" | "-q" | "-Q" | "-g", ...args: string[]) {
+export function urlmodify(mode: "-t" | "-r" | "-s" | "-q" | "-Q" | "-g" | "-tu" | "-ru" | "-su" | "-qu" | "-Qu" | "-gu", ...args: string[]) {
     const newUrl = urlmodify_js(mode, ...args)
     // TODO: once we have an arg parser, have a quiet flag that prevents the page from being added to history
     if (newUrl && newUrl !== window.location.href) {
@@ -1865,11 +1879,19 @@ export function urlmodify(mode: "-t" | "-r" | "-s" | "-q" | "-Q" | "-g", ...args
  * `:composite urlmodify_js -t www. old. | tabopen `
  */
 //#content
-export function urlmodify_js(mode: "-t" | "-r" | "-s" | "-q" | "-Q" | "-g", ...args: string[]) {
-    const oldUrl = new URL(window.location.href)
+export function urlmodify_js(mode: "-t" | "-r" | "-s" | "-q" | "-Q" | "-g" | "-tu" | "-ru" | "-su" | "-qu" | "-Qu" | "-gu", ...args: string[]) {
+    let oldUrl
+    let newmode
+    if (mode.slice(-1) == "u"){
+        oldUrl = new URL (args.pop())
+        newmode = mode.slice(0, -1)
+    }else{
+        oldUrl = new URL(window.location.href)
+        newmode = mode
+    }
     let newUrl
 
-    switch (mode) {
+    switch (newmode) {
         case "-t":
             if (args.length !== 2) {
                 throw new Error("Text replacement needs 2 arguments:" + "<old> <new>")
