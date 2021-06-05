@@ -1693,6 +1693,18 @@ export function urlparent(count = 1) {
  *   * `http://e.com/issues/42` -> (`-g -1 foo`) -> `http://e.com/issues/42/foo`
  *   * `http://e.com/issues/42` -> (`-g -2 foo`) -> `http://e.com/issues/foo`
  *
+ *
+ * * URL Input: `urlmodify -*u <arguments> <URL>`
+ *
+ *   Each mode can be augmented to accept a URL as the last argument instead of
+ *   the current url.
+ *
+ *   Examples:
+ *
+ *   * `urlmodify -tu <old> <new> <URL>`
+ *   * `urlmodify -su <query> <value> <URL>`
+ *   * `urlmodify -gu <graft_point> <new_path_tail> <URL>`
+ *
  * @param mode      The replace mode:
  *  * -t text replace
  *  * -r regexp replace
@@ -1700,6 +1712,7 @@ export function urlparent(count = 1) {
  *  * -q replace the value of the given query
  *  * -Q delete the given query
  *  * -g graft a new path onto URL or parent path of it
+ *  * -*u Use last argument as URL input instead of current URL
  * @param replacement the replacement arguments (depends on mode):
  *  * -t <old> <new>
  *  * -r <regexp> <new> [flags]
@@ -1707,6 +1720,7 @@ export function urlparent(count = 1) {
  *  * -q <query> <new_val>
  *  * -Q <query>
  *  * -g <graftPoint> <newPathTail>
+ *  * -*u <arguments> <URL>
  */
 //#content
 export function urlmodify(mode: "-t" | "-r" | "-s" | "-q" | "-Q" | "-g" | "-tu" | "-ru" | "-su" | "-qu" | "-Qu" | "-gu", ...args: string[]) {
