@@ -21,7 +21,7 @@ export const registerWebRequestAutocmd = (
 ) => {
     // I'm being lazy - strictly the functions map strings to void | blocking responses
     // eslint-disable-next-line @typescript-eslint/ban-types
-    const listener = (0, eval)(func) as Function
+    const listener = eval(func) as Function
     LISTENERS[requestEvent] = { [pattern]: listener }
     return browser.webRequest["on" + requestEvent].addListener(
         listener,
