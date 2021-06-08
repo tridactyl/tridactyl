@@ -406,6 +406,7 @@ export function hintPage(
     reject: (x?) => void = () => {}, // eslint-disable-line @typescript-eslint/no-empty-function
     rapid = false,
 ) {
+    reset() // Tidy up in case any previous hinting wasn't exited cleanly
     const buildHints: HintBuilder = defaultHintBuilder()
     const filterHints: HintFilter = defaultHintFilter()
     contentState.mode = "hint"
