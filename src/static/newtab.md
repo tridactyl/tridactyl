@@ -8,7 +8,7 @@ Tridactyl has to override your new tab page due to WebExtension limitations. You
 
 *   If Tridactyl breaks a website or is broken by a website, trying the steps in the [troubleshooting guide](https://github.com/tridactyl/tridactyl/blob/master/doc/troubleshooting.md) might help.
 
-*   You can contact the developers, other users and contributors for support or whatever on [Matrix][matrix-link], [Gitter][gitter-link], or [IRC][freenode-link].
+*   You can contact the developers, other users and contributors for support or whatever on [Matrix][matrix-link], [Gitter][gitter-link], [Discord][discord-link] or [IRC][libera-link].
 
 *   If you're enjoying Tridactyl (or not), please leave a review on [addons.mozilla.org][amo].
 
@@ -68,11 +68,9 @@ You have more questions? Have a look at our [FAQ][faq-link] or search our [issue
 [help]: /static/docs/modules/_src_excmds_.html
 [tutor]: /static/clippy/1-tutor.html
 [help-hint]: /static/docs/modules/_src_excmds_.html#hint
-[gitter-badge]: /static/badges/gitter-badge.svg
 [gitter-link]: https://gitter.im/tridactyl/Lobby
-[freenode-badge]: /static/badges/freenode-badge.svg
-[freenode-link]: ircs://chat.freenode.net/tridactyl
-[matrix-badge]: /static/badges/matrix-badge.svg
+[discord-link]: https://discord.gg/DWbNGTAvmh
+[libera-link]: ircs://irc.libera.chat:6697/tridactyl
 [matrix-link]: https://matrix.to/#/#tridactyl:matrix.org
 [amo]: https://addons.mozilla.org/en-US/firefox/addon/tridactyl-vim/reviews/
 [nonewtablink]: https://tridactyl.cmcaine.co.uk/betas/nonewtab/tridactyl_no_new_tab_beta-latest.xpi
