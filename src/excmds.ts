@@ -53,7 +53,7 @@
 
     [![Matrix Chat][matrix-badge]][matrix-link]
     [![Gitter Chat][gitter-badge]][gitter-link]
-    [![Freenode Chat][freenode-badge]][freenode-link]
+    [![Libera Chat][libera-badge]][libera-link]
 
     All three channels are mirrored together, so it doesn't matter which one you use.
 
@@ -63,8 +63,8 @@
 
     [gitter-badge]: /static/badges/gitter-badge.svg
     [gitter-link]: https://gitter.im/tridactyl/Lobby
-    [freenode-badge]: /static/badges/freenode-badge.svg
-    [freenode-link]: ircs://chat.freenode.net/tridactyl
+    [libera-badge]: /static/badges/libera-badge.svg
+    [libera-link]: ircs://irc.libera.chat:6697/tridactyl
     [matrix-badge]: /static/badges/matrix-badge.svg
     [matrix-link]: https://matrix.to/#/#tridactyl:matrix.org
 */

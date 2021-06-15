@@ -12,6 +12,7 @@ Tridactyl
 <a href="https://travis-ci.org/tridactyl/tridactyl"><img src="https://travis-ci.org/tridactyl/tridactyl.svg?branch=master" alt="Build Status"></a>
 <a href="https://matrix.to/#/#tridactyl:matrix.org"><img src="https://img.shields.io/badge/matrix-join%20chat-green" alt="Matrix Chat"></a>
 <a href="https://gitter.im/tridactyl/Lobby"><img src="https://badges.gitter.im/Join%20Chat.svg" alt="Join Gitter Chat"></a>
+<a href="https://discord.gg/DWbNGTAvmh"><img src="https://img.shields.io/discord/854326924402622474?color=%235865F2&label=discord" alt="Join Discord Chat"></a>
 <a href="https://addons.mozilla.org/en-US/firefox/addon/tridactyl-vim/"><img src="https://img.shields.io/amo/rating/tridactyl-vim" alt="Mozilla Addon Store"></a>
 </p>
 
@@ -349,7 +350,7 @@ A pre-commit hook is added by `yarn install` that simply runs `yarn test`. If yo
 
 ### Documentation
 
-Ask in `#tridactyl` on [matrix.org][matrix-link], freenode, or [gitter][gitter-link]. We're friendly!
+Ask in `#tridactyl` on [matrix.org][matrix-link], Libera, [gitter][gitter-link], or [Discord](https://discord.gg/DWbNGTAvmh). We're friendly!
 
 Default keybindings are currently best discovered by reading the [default config](./src/lib/config.ts).
 
