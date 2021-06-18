@@ -816,10 +816,10 @@
   dependencies:
     "@types/node" "*"
 
-"@types/selenium-webdriver@^4.0.13":
-  version "4.0.13"
-  resolved "https://registry.yarnpkg.com/@types/selenium-webdriver/-/selenium-webdriver-4.0.13.tgz#293d9543b096ec3523a27704b0f112bdfb38987f"
-  integrity sha512-RiQ863Rt8lVX/YveuYX2GSufaH4/1lWRZ6dITlcXtrJGYZmaNstYahm7qJ8FO+2kyAcrUtQVMxMjGv5FbsQeEQ==
+"@types/selenium-webdriver@^4.0.14":
+  version "4.0.14"
+  resolved "https://registry.yarnpkg.com/@types/selenium-webdriver/-/selenium-webdriver-4.0.14.tgz#9c3353347c71ecf175def0f241560d5d1f32466a"
+  integrity sha512-jDe75y7dXpGH5teJI1cgJOhnC7/MsfqgLWbu2TuzJSv1DDn6FgaghEnRxEAbsqEsTzXMTCrottAHVJsQxL8gUw==
 
 "@types/stack-utils@^1.0.1":
   version "1.0.1"
