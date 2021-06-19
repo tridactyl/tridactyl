@@ -4,7 +4,7 @@
 
 import * as Native from "@src/lib/native"
 import * as config from "@src/lib/config"
-import * as R from "rambda"
+import * as R from "ramda"
 import { getDownloadFilenameForUrl } from "@src/lib/url_util"
 
 /** Construct an object URL string from a given data URL

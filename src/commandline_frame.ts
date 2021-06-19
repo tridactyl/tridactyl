@@ -48,7 +48,7 @@ import "@src/lib/number.clamp"
 import * as genericParser from "@src/parsers/genericmode"
 import * as perf from "@src/perf"
 import state, * as State from "@src/state"
-import * as R from "rambda"
+import * as R from "ramda"
 import { KeyEventLike } from "./lib/keyseq"
 
 /** @hidden **/

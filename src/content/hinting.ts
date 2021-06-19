@@ -36,7 +36,7 @@ import {
 import { contentState } from "@src/content/state_content"
 import * as config from "@src/lib/config"
 import Logger from "@src/lib/logging"
-import * as R from "rambda"
+import * as R from "ramda"
 
 /** @hidden */
 const logger = new Logger("hinting")

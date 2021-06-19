@@ -152,7 +152,7 @@ import { EditorCmds as editor } from "@src/content/editor"
 import * as updates from "@src/lib/updates"
 import * as urlutils from "@src/lib/url_util"
 import * as scrolling from "@src/content/scrolling"
-import * as R from "rambda"
+import * as R from "ramda"
 import * as visual from "@src/lib/visual"
 import * as metadata from "@src/.metadata.generated"
 /* tslint:disable:import-spacing */
