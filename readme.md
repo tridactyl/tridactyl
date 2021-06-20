@@ -202,15 +202,15 @@ You can bind your own shortcuts in normal mode with the `:bind` command. For exa
 -   How can I change the colors or theme used by Tridactyl?
 
     To use one of the built in themes use: `:colors <color>`. The current options are:
-    
-    - default
-    - dark (authored by @furgerf)
-    - shydactyl (authored by @atrnh)
-    - greenmat (authored by @caputchinefrobles)
-    - halloween
-    - quake
-    - quakelight
-    - midnight (authored by @karizma)
+
+    -   default
+    -   dark (authored by @furgerf)
+    -   shydactyl (authored by @atrnh)
+    -   greenmat (authored by @caputchinefrobles)
+    -   halloween
+    -   quake
+    -   quakelight
+    -   midnight (authored by @karizma)
 
     Tridactyl can also load themes from disk or URL, which would let you use one of the themes authored by @bezmi ([bezmi/base16-tridactyl](https://github.com/bezmi/base16-tridactyl)). See `:help colors` for more information.
 
@@ -297,17 +297,17 @@ yarn install
 yarn run build
 ```
 
-Each time package.json or package-lock.json change after you checkout or pull, you should run `yarn install` again.
+Each time package.json or yarn.lock change after you checkout or pull, our git hook will try to run `yarn install` again. If it doesn't you should do it manually.
 
-Addon is built in tridactyl/build. Load it as a temporary addon in firefox with `about:debugging` or see [Development loop](#Development-loop). The addon should work in Firefox 52+, but we're only deliberately supporting >=57.
+Addon is built in tridactyl/build. Load it as a temporary addon in firefox with `about:debugging` or see [Development loop](#Development-loop).
 
-If you want to install a local copy of the add-on into your developer or nightly build of firefox then you can enable installing unsigned add-ons and then build it like so:
+If you want to install a local copy of the add-on into your developer or nightly build of Firefox then you can enable installing unsigned add-ons and then build it like so:
 
 ```
 # Build tridactyl if you haven't done that yet
 yarn run build
 # Package for a browser
-"$(yarn bin)/web-ext" build -s build
+scripts/sign nosignbeta
 ```
 
 If you want to build a signed copy (e.g. for the non-developer release), you can do that with `web-ext sign`. You'll need some keys for AMO and to edit the application id in `src/manifest.json`. There's a helper script in `scripts/sign` that's used by our build bot and for manual releases.
