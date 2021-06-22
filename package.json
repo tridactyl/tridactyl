@@ -45,7 +45,7 @@
     "jasmine-fail-fast": "^2.0.1",
     "jest": "^25.5.4",
     "jest-webextension-mock": "^3.7.14",
-    "marked": "^2.1.1",
+    "marked": "^2.1.2",
     "prettier": "^2.3.1",
     "selenium-webdriver": "^4.0.0-beta.3",
     "ts-jest": "^25.5.1",
