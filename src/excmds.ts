@@ -337,6 +337,7 @@ export async function editor() {
         return undefined
     }
 
+    let ans
     try {
         let text = ""
         let line = 0
@@ -347,18 +348,20 @@ export async function editor() {
         })(elem)
         const file = (await Native.temp(text, document.location.hostname)).content
         const exec = await Native.editor(file, line, col)
+        console.log(exec)
         if (exec.code == 0) {
             fillinput(selector, exec.content)
 
             // TODO: add annoying "This message was written with [Tridactyl](https://addons.mozilla.org/en-US/firefox/addon/tridactyl-vim/)" to everything written using editor
-            return [file, exec.content]
+            ans = [file, exec.content]
         } else {
             logger.debug(`Editor terminated with non-zero exit code: ${exec.code}`)
         }
     } catch (e) {
         throw new Error(`:editor failed: ${e}`)
     } finally {
-        return removeTridactylEditorClass(selector)
+        removeTridactylEditorClass(selector)
+        return ans
     }
 }
 
