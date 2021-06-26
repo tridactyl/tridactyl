@@ -1885,10 +1885,10 @@ export function urlmodify(mode: "-t" | "-r" | "-s" | "-q" | "-Q" | "-g" | "-tu" 
 export function urlmodify_js(mode: "-t" | "-r" | "-s" | "-q" | "-Q" | "-g" | "-tu" | "-ru" | "-su" | "-qu" | "-Qu" | "-gu", ...args: string[]) {
     let oldUrl
     let newmode
-    if (mode.slice(-1) == "u"){
-        oldUrl = new URL (args.pop())
+    if (mode.slice(-1) == "u") {
+        oldUrl = new URL(args.pop())
         newmode = mode.slice(0, -1)
-    }else{
+    } else {
         oldUrl = new URL(window.location.href)
         newmode = mode
     }
@@ -2442,7 +2442,7 @@ export async function tabopen(...addressarr: string[]): Promise<browser.tabs.Tab
 
     const address = query.join(" ")
     if (!ABOUT_WHITELIST.includes(address) && /^(about|file):.*/.exec(address)) {
-        return (nativeopen(address) as unknown) as browser.tabs.Tab // I don't understand why changing the final return below meant I had to change this
+        return nativeopen(address) as unknown as browser.tabs.Tab // I don't understand why changing the final return below meant I had to change this
     }
 
     const aucon = new AutoContain()
@@ -4782,25 +4782,23 @@ export async function ttscontrol(action: string) {
  */
 //#background_helper
 export function buildFilterConfigs(filters: string[]): Perf.StatsFilterConfig[] {
-    return filters.map(
-        (filter: string): Perf.StatsFilterConfig => {
-            if (filter.endsWith("/")) {
-                return { kind: "ownerName", ownerName: filter.slice(0, -1) }
-            } else if (filter === ":start") {
-                return { kind: "eventType", eventType: "start" }
-            } else if (filter === ":end") {
-                return { kind: "eventType", eventType: "end" }
-            } else if (filter === ":measure") {
-                return { kind: "eventType", eventType: "measure" }
-            } else {
-                // This used to say `functionName: name`
-                // which didn't seem to exist anywhere
-                //
-                // So at least we return something now
-                return { kind: "functionName", functionName: filter }
-            }
-        },
-    )
+    return filters.map((filter: string): Perf.StatsFilterConfig => {
+        if (filter.endsWith("/")) {
+            return { kind: "ownerName", ownerName: filter.slice(0, -1) }
+        } else if (filter === ":start") {
+            return { kind: "eventType", eventType: "start" }
+        } else if (filter === ":end") {
+            return { kind: "eventType", eventType: "end" }
+        } else if (filter === ":measure") {
+            return { kind: "eventType", eventType: "measure" }
+        } else {
+            // This used to say `functionName: name`
+            // which didn't seem to exist anywhere
+            //
+            // So at least we return something now
+            return { kind: "functionName", functionName: filter }
+        }
+    })
 }
 
 /**
