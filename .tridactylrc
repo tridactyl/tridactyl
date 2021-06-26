@@ -85,9 +85,6 @@
 " bind gd tabdetach
 " bind gD composite tabduplicate; tabdetach
 " 
-" " Make yy use canonical / short links on the 5 websites that support them
-" bind yy clipboard yankcanon
-" 
 " " Stupid workaround to let hint -; be used with composite which steals semi-colons
 " command hint_focus hint -;
 " 
