@@ -2943,10 +2943,10 @@ fx-runner@1.1.0:
     which "1.2.4"
     winreg "0.0.12"
 
-geckodriver@^2.0.0:
-  version "2.0.0"
-  resolved "https://registry.yarnpkg.com/geckodriver/-/geckodriver-2.0.0.tgz#b30e8dd0ebde8ceaaef8101fc1855311d7d4973a"
-  integrity sha512-qcL58vKCwaUufE9y2viDydvvynxUzeITc0CblefAo0jWdxNMbQmY6wVt6MKJuBHOQ71QRer5iq9CSRZHppuytg==
+geckodriver@^2.0.1:
+  version "2.0.1"
+  resolved "https://registry.yarnpkg.com/geckodriver/-/geckodriver-2.0.1.tgz#2432e9d621c8db9d649c25a1f34799e55208fb55"
+  integrity sha512-xSaRWJuWDArekuaT2Ck/vsIXPy6DGb8NS2e6InRSZeeVBX+0XM8EmLshhMbR9xm6hiwlxXUX4LAT2LnJJSUFwg==
   dependencies:
     adm-zip "0.5.5"
     bluebird "3.7.2"
