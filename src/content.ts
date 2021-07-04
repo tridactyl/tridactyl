@@ -63,6 +63,10 @@ import * as visual from "@src/lib/visual"
 import * as metadata from "@src/.metadata.generated"
 /* tslint:disable:import-spacing */
 
+config.getAsync("disable").then(TRI_DISABLE => {
+
+if (TRI_DISABLE === "true") return
+
 controller.setExCmds({
     "": excmds_content,
     ex: CmdlineCmds,
@@ -415,3 +419,5 @@ document.addEventListener("selectionchange", () => {
 ;(window as any).tri = Object.assign(window.tri, {
     perfObserver: perf.listenForCounters(),
 })
+
+}) // End of maybe-disable-tridactyl-a-bit wrapper
