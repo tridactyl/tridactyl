@@ -33,6 +33,36 @@ import * as excmds_content from "@src/.excmds_content.generated"
 import { CmdlineCmds } from "@src/content/commandline_cmds"
 import { EditorCmds } from "@src/content/editor"
 import * as hinting_content from "@src/content/hinting"
+
+// Hook the keyboard up to the controller
+import * as ContentController from "@src/content/controller_content"
+import { getAllDocumentFrames } from "@src/lib/dom"
+
+// Add various useful modules to the window for debugging
+import * as commandline_content from "@src/content/commandline_content"
+import * as convert from "@src/lib/convert"
+import * as config from "@src/lib/config"
+import * as dom from "@src/lib/dom"
+import * as excmds from "@src/.excmds_content.generated"
+import * as finding_content from "@src/content/finding"
+import * as itertools from "@src/lib/itertools"
+import * as messaging from "@src/lib/messaging"
+import state from "@src/state"
+import * as State from "@src/state"
+import * as webext from "@src/lib/webext"
+import * as perf from "@src/perf"
+import * as keyseq from "@src/lib/keyseq"
+import * as native from "@src/lib/native"
+import * as styling from "@src/content/styling"
+import { EditorCmds as editor } from "@src/content/editor"
+import * as updates from "@src/lib/updates"
+import * as urlutils from "@src/lib/url_util"
+import * as scrolling from "@src/content/scrolling"
+import * as R from "ramda"
+import * as visual from "@src/lib/visual"
+import * as metadata from "@src/.metadata.generated"
+/* tslint:disable:import-spacing */
+
 controller.setExCmds({
     "": excmds_content,
     ex: CmdlineCmds,
@@ -50,10 +80,6 @@ messaging.addListener(
 
 // eslint-disable-next-line @typescript-eslint/require-await
 messaging.addListener("alive", async () => true)
-
-// Hook the keyboard up to the controller
-import * as ContentController from "@src/content/controller_content"
-import { getAllDocumentFrames } from "@src/lib/dom"
 
 const guardedAcceptKey = (keyevent: KeyboardEvent) => {
     if (!keyevent.isTrusted) return
@@ -131,31 +157,6 @@ config.getAsync("preventautofocusjackhammer").then(allowautofocus => {
     }
     tryPreventAutoFocus()
 })
-
-// Add various useful modules to the window for debugging
-import * as commandline_content from "@src/content/commandline_content"
-import * as convert from "@src/lib/convert"
-import * as config from "@src/lib/config"
-import * as dom from "@src/lib/dom"
-import * as excmds from "@src/.excmds_content.generated"
-import * as finding_content from "@src/content/finding"
-import * as itertools from "@src/lib/itertools"
-import * as messaging from "@src/lib/messaging"
-import state from "@src/state"
-import * as State from "@src/state"
-import * as webext from "@src/lib/webext"
-import * as perf from "@src/perf"
-import * as keyseq from "@src/lib/keyseq"
-import * as native from "@src/lib/native"
-import * as styling from "@src/content/styling"
-import { EditorCmds as editor } from "@src/content/editor"
-import * as updates from "@src/lib/updates"
-import * as urlutils from "@src/lib/url_util"
-import * as scrolling from "@src/content/scrolling"
-import * as R from "ramda"
-import * as visual from "@src/lib/visual"
-import * as metadata from "@src/.metadata.generated"
-/* tslint:disable:import-spacing */
 ;(window as any).tri = Object.assign(Object.create(null), {
     browserBg: webext.browserBg,
     commandline_content,
