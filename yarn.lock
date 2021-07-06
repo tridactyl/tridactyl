@@ -828,10 +828,10 @@
   dependencies:
     "@types/node" "*"
 
-"@types/selenium-webdriver@^4.0.14":
-  version "4.0.14"
-  resolved "https://registry.yarnpkg.com/@types/selenium-webdriver/-/selenium-webdriver-4.0.14.tgz#9c3353347c71ecf175def0f241560d5d1f32466a"
-  integrity sha512-jDe75y7dXpGH5teJI1cgJOhnC7/MsfqgLWbu2TuzJSv1DDn6FgaghEnRxEAbsqEsTzXMTCrottAHVJsQxL8gUw==
+"@types/selenium-webdriver@^4.0.15":
+  version "4.0.15"
+  resolved "https://registry.yarnpkg.com/@types/selenium-webdriver/-/selenium-webdriver-4.0.15.tgz#03012b84155cf6bbae2f64aa9dccf2a84c78c7c8"
+  integrity sha512-5760PIZkzhPejy3hsKAdCKe5LJygGdxLKOLxmZL9GEUcFlO5OgzM6G2EbdbvOnaw4xvUSa9Uip6Ipwkih12BPA==
 
 "@types/stack-utils@^1.0.1":
   version "1.0.1"
