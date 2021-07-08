@@ -722,10 +722,10 @@
   resolved "https://registry.yarnpkg.com/@types/color-name/-/color-name-1.1.1.tgz#1c1261bbeaa10a8055bbc5d8ab84b7b2afc846a0"
   integrity sha512-rr+OQyAjxze7GgWrSaJwydHStIhHq2lvY3BOC2Mj7KnzI7XK0Uw1TOOdI9lDoajEbSWLiYgoo4f1R51erQfhPQ==
 
-"@types/css@0.0.31":
-  version "0.0.31"
-  resolved "https://registry.yarnpkg.com/@types/css/-/css-0.0.31.tgz#235cf80e4991a9d769fd640b4b8644b0a4139895"
-  integrity sha512-Xt3xp8o0zueqrdIkAOO5gy5YNs+jYfmIUPeoeKiwrcmCRXuNWkIgR2Ph6vHuVfi1y6c9Tx214EQBWPEkU97djw==
+"@types/css@0.0.32":
+  version "0.0.32"
+  resolved "https://registry.yarnpkg.com/@types/css/-/css-0.0.32.tgz#8d049f30a0080485d91f04506ba953bce3f2031d"
+  integrity sha512-J1Og/tmzkl3Eo8WFDFNH7pUNKqZuqwFvpxa+EKZiTGex1RbU2AxfoIvOlYTlOeiJVzXGfeJ2d3k3ujyRlQI4ig==
 
 "@types/firefox-webext-browser@^82.0.0":
   version "82.0.0"
