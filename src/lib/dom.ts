@@ -517,12 +517,21 @@ export function focus(e: HTMLElement): void {
     }
 }
 
-/** DOM reference to the last used Input field
- */
-let LAST_USED_INPUT: HTMLElement = null
+export async function getLastUsedInputSelector(): Promise<string> {
+    const tabid = await activeTabId()
+    return (await State.getAsync("lastFocusInputSelectors")).get(tabid)
+}
 
-export function getLastUsedInput(): HTMLElement {
-    return LAST_USED_INPUT
+export async function getLastUsedInput(): Promise<HTMLElement> {
+    try {
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
+        return document.querySelector(
+            await getLastUsedInputSelector(),
+        ) as HTMLElement
+    } catch (e) {
+        if (e instanceof DOMException) return undefined
+        throw e
+    }
 }
 
 /** WARNING: This function can potentially recieve malicious input! For the
@@ -533,9 +542,12 @@ export function getLastUsedInput(): HTMLElement {
  *  https://developer.mozilla.org/en-US/docs/Web/Web_Components/Custom_Elements
  *  https://bugzilla.mozilla.org/show_bug.cgi?id=1406825
  * */
-function onPageFocus(elem: HTMLElement): boolean {
+async function onPageFocus(elem: HTMLElement): Promise<boolean> {
     if (isTextEditable(elem)) {
-        LAST_USED_INPUT = elem
+        const t = await activeTabId()
+        state.lastFocusInputSelectors = (
+            await State.getAsync("lastFocusInputSelectors")
+        ).set(t, getSelector(elem))
     }
     return config.get("allowautofocus") === "true"
 }
@@ -567,9 +579,12 @@ function hijackPageFocusFunction(): void {
 
 export function setupFocusHandler(): void {
     // Handles when a user selects an input
-    document.addEventListener("focusin", e => {
+    document.addEventListener("focusin", async e => {
         if (isTextEditable(e.target as HTMLElement)) {
-            LAST_USED_INPUT = e.target as HTMLElement
+            const t = await activeTabId()
+            state.lastFocusInputSelectors = (
+                await State.getAsync("lastFocusInputSelectors")
+            ).set(t, getSelector(e.target as HTMLElement))
             setInput(e.target as HTMLInputElement)
         }
     })
