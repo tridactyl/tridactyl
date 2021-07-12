@@ -1026,6 +1026,7 @@ export class default_config {
              * Whether to automatically select the closest matching completion
              */
             autoselect: "true",
+            excmds: "tab tabclose tabdetach tabduplicate tabmove",
         },
         TabAll: {
             autoselect: "true",

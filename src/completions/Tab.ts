@@ -68,7 +68,7 @@ export class BufferCompletionSource extends Completions.CompletionSourceFuse {
 
     constructor(private _parent) {
         super(
-            ["tab", "tabclose", "tabdetach", "tabduplicate", "tabmove"],
+            config.get("completions","Tab","excmds").split(" "),
             "BufferCompletionSource",
             "Tabs",
         )
