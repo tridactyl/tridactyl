@@ -3524,6 +3524,31 @@ export async function taball(...id: string[]) {
     return tab_helper(true, true, ...id)
 }
 
+/** Rename current tab.
+    @hidden
+
+    @param name
+        Tab name.
+*/
+//#content_helper
+export function tabcurrentrename(...name: string[]) {
+    document.title = name.join(" ")
+}
+
+/** Rename a tab.
+
+    @param index
+        Index of the target tab.
+
+    @param name
+        Tab name.
+*/
+//#background
+export async function tabrename(index: string, ...name: string[]) {
+    const id = await idFromIndex(index)
+    return Messaging.messageTab(id, "excmd_content", "tabcurrentrename", name)
+}
+
 /** Helper to change active tab. Used by [[tab]] and [[taball]].
 
     @param interactive
