@@ -68,7 +68,14 @@ export class BufferCompletionSource extends Completions.CompletionSourceFuse {
 
     constructor(private _parent) {
         super(
-            ["tab", "tabclose", "tabdetach", "tabduplicate", "tabmove"],
+            [
+                "tab",
+                "tabclose",
+                "tabdetach",
+                "tabduplicate",
+                "tabmove",
+                "tabrename",
+            ],
             "BufferCompletionSource",
             "Tabs",
         )
@@ -89,6 +96,8 @@ export class BufferCompletionSource extends Completions.CompletionSourceFuse {
 
     async filter(exstr) {
         this.lastExstr = exstr
+        const prefix = this.splitOnPrefix(exstr).shift()
+        if (prefix === "tabrename ") this.shouldSetStateFromScore = false
         return this.onInput(exstr)
     }
 
