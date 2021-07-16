@@ -96,6 +96,8 @@ export class BufferCompletionSource extends Completions.CompletionSourceFuse {
 
     async filter(exstr) {
         this.lastExstr = exstr
+        const prefix = this.splitOnPrefix(exstr).shift()
+        if (prefix === "tabrename ") this.shouldSetStateFromScore = false
         return this.onInput(exstr)
     }
 
