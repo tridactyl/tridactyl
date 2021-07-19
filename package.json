@@ -31,7 +31,7 @@
     "@types/jest": "^26.0.24",
     "@types/nearley": "^2.11.2",
     "@types/selenium-webdriver": "^4.0.15",
-    "@typescript-eslint/eslint-plugin": "^4.28.3",
+    "@typescript-eslint/eslint-plugin": "^4.28.4",
     "@typescript-eslint/eslint-plugin-tslint": "^4.28.3",
     "@typescript-eslint/parser": "^4.28.3",
     "command-line-args": "^5.1.3",
