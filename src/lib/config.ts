@@ -188,7 +188,7 @@ export class default_config {
      *
      * NB: you should only use this with `seturl`. If you get trapped with Tridactyl disabled everywhere just run `tri reset disable` in the Firefox address bar.
      */
-    disable: "true" | "false" = "false"
+    superignore: "true" | "false" = "false"
 
     /**
      * nmaps contain all of the bindings for "normal mode".

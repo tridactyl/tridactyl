@@ -33,7 +33,7 @@ import state from "@src/state"
 import { EditorCmds as editor } from "@src/content/editor"
 /* tslint:disable:import-spacing */
 
-config.getAsync("disable").then(async TRI_DISABLE => {
+config.getAsync("superignore").then(async TRI_DISABLE => {
 // Set up our controller to execute content-mode excmds. All code
 // running from this entry point, which is to say, everything in the
 // content script, will use the excmds that we give to the module
