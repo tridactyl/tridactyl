@@ -38,6 +38,8 @@ config.getAsync("superignore").then(async TRI_DISABLE => {
 // running from this entry point, which is to say, everything in the
 // content script, will use the excmds that we give to the module
 // here.
+
+if (TRI_DISABLE === "true") return
 const controller = await import("@src/lib/controller")
 const excmds_content = await import("@src/.excmds_content.generated")
 const hinting_content = await import("@src/content/hinting")
@@ -63,8 +65,6 @@ const scrolling = await import("@src/content/scrolling")
 const R = await import("ramda")
 const visual = await import("@src/lib/visual")
 const metadata = await import("@src/.metadata.generated")
-
-if (TRI_DISABLE === "true") return
 
 controller.setExCmds({
     "": excmds_content,
