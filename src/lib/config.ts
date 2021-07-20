@@ -186,7 +186,7 @@ export class default_config {
      *
      * You are usually better off using `blacklistadd` and `seturl [url] noiframe true` as you can then still use some Tridactyl binds, e.g. `shift-insert` for exiting ignore mode.
      *
-     * NB: you should only use this with `seturl`. If you get trapped with Tridactyl disabled everywhere just run `tri reset superignore` in the Firefox address bar. If that still doesn't fix things, you can totally reset Tridactyl by running `tri help superignore` in the Firefox address bar, scrolling to the bottom of that page and then clicking "Reset Tridactyl config".
+     * NB: you should only use this with `seturl`. If you get trapped with Tridactyl disabled everywhere just run `tri unset superignore` in the Firefox address bar. If that still doesn't fix things, you can totally reset Tridactyl by running `tri help superignore` in the Firefox address bar, scrolling to the bottom of that page and then clicking "Reset Tridactyl config".
      */
     superignore: "true" | "false" = "false"
 
