@@ -82,6 +82,7 @@ let lastHighlights
 let selected = 0
 
 export async function jumpToMatch(searchQuery, reverse) {
+    setTimeout(removeHighlighting, 5000)
     // First, search for the query
     const findcase = config.get("findcase")
     const sensitive =
