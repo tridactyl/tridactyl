@@ -261,6 +261,13 @@ export async function rssexec(url: string, type?: string, ...title: string[]) {
 export function fillinput(selector: string, ...content: string[]) {
     let inputToFill = document.querySelector(selector)
     if (!inputToFill) inputToFill = DOM.getLastUsedInput()
+
+    // CodeMirror support (I think only versions prior to CodeMirror 6)
+    if (inputToFill?.parentNode?.parentElement?.className?.match(/CodeMirror/gi)) {
+        ;(inputToFill.parentNode.parentElement as any).wrappedJSObject.CodeMirror.setValue(content.join(" "))
+        return
+    }
+
     if ("value" in inputToFill) {
         ;(inputToFill as HTMLInputElement).value = content.join(" ")
     } else {
@@ -346,6 +353,12 @@ export async function editor() {
             ;[text, line, col] = getLineAndColNumber(t, start)
             return [null, null, null]
         })(elem)
+
+        // CodeMirror support
+        if (elem.parentNode?.parentElement?.className?.match(/CodeMirror/gi)) {
+            text = (elem.parentNode.parentElement as any).wrappedJSObject.CodeMirror.getValue()
+        }
+
         const file = (await Native.temp(text, document.location.hostname)).content
         const exec = await Native.editor(file, line, col)
         console.log(exec)
