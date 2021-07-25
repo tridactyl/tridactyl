@@ -293,8 +293,7 @@ export class default_config {
         ";k": "hint -k",
         ";K": "hint -K",
         ";y": "hint -y",
-        ";Y":
-            "hint -cF img i => tri.excmds.yankimage(tri.urlutils.getAbsoluteURL(i.src))",
+        ";Y": "hint -cF img i => tri.excmds.yankimage(tri.urlutils.getAbsoluteURL(i.src))",
         ";p": "hint -p",
         ";h": "hint -h",
         v: "hint -h", // Easiest way of entering visual mode for now. Expect this bind to change
@@ -314,10 +313,8 @@ export class default_config {
         ";W": "hint -W fillcmdline_notrail winopen ",
         ";T": "hint -W fillcmdline_notrail tabopen ",
         ";z": "hint -z",
-        ";m":
-            "composite hint -Jpipe img src | open images.google.com/searchbyimage?image_url=",
-        ";M":
-            "composite hint -Jpipe img src | tabopen images.google.com/searchbyimage?image_url=",
+        ";m": "composite hint -Jpipe img src | open images.google.com/searchbyimage?image_url=",
+        ";M": "composite hint -Jpipe img src | tabopen images.google.com/searchbyimage?image_url=",
         ";gi": "hint -qi",
         ";gI": "hint -qI",
         ";gk": "hint -qk",
@@ -366,26 +363,19 @@ export class default_config {
         "<C-[>":
             "composite js document.getSelection().empty(); mode normal ; hidecmdline",
         y: "composite js document.getSelection().toString() | clipboard yank",
-        s:
-            "composite js document.getSelection().toString() | fillcmdline open search",
-        S:
-            "composite js document.getSelection().toString() | fillcmdline tabopen search",
+        s: "composite js document.getSelection().toString() | fillcmdline open search",
+        S: "composite js document.getSelection().toString() | fillcmdline tabopen search",
         l: 'js document.getSelection().modify("extend","forward","character")',
         h: 'js document.getSelection().modify("extend","backward","character")',
         e: 'js document.getSelection().modify("extend","forward","word")',
-        w:
-            'js document.getSelection().modify("extend","forward","word"); document.getSelection().modify("extend","forward","word"); document.getSelection().modify("extend","backward","word"); document.getSelection().modify("extend","forward","character")',
-        b:
-            'js document.getSelection().modify("extend","backward","character"); document.getSelection().modify("extend","backward","word"); document.getSelection().modify("extend","forward","character")',
+        w: 'js document.getSelection().modify("extend","forward","word"); document.getSelection().modify("extend","forward","word"); document.getSelection().modify("extend","backward","word"); document.getSelection().modify("extend","forward","character")',
+        b: 'js document.getSelection().modify("extend","backward","character"); document.getSelection().modify("extend","backward","word"); document.getSelection().modify("extend","forward","character")',
         j: 'js document.getSelection().modify("extend","forward","line")',
         // "j": 'js document.getSelection().modify("extend","forward","paragraph")', // not implemented in Firefox
         k: 'js document.getSelection().modify("extend","backward","line")',
-        $:
-            'js document.getSelection().modify("extend","forward","lineboundary")',
-        "0":
-            'js document.getSelection().modify("extend","backward","lineboundary")',
-        "=":
-            "js let n = document.getSelection().anchorNode.parentNode; let s = window.getSelection(); let r = document.createRange(); s.removeAllRanges(); r.selectNodeContents(n); s.addRange(r)",
+        $: 'js document.getSelection().modify("extend","forward","lineboundary")',
+        "0": 'js document.getSelection().modify("extend","backward","lineboundary")',
+        "=": "js let n = document.getSelection().anchorNode.parentNode; let s = window.getSelection(); let r = document.createRange(); s.removeAllRanges(); r.selectNodeContents(n); s.addRange(r)",
         o: "js tri.visual.reverseSelection(document.getSelection())",
         "🕷🕷INHERITS🕷🕷": "nmaps",
     }
@@ -605,8 +595,7 @@ export class default_config {
         colors: "colourscheme",
         man: "help",
         "!js": "fillcmdline_tmp 3000 !js is deprecated. Please use js instead",
-        "!jsb":
-            "fillcmdline_tmp 3000 !jsb is deprecated. Please use jsb instead",
+        "!jsb": "fillcmdline_tmp 3000 !jsb is deprecated. Please use jsb instead",
         get_current_url: "js document.location.href",
         current_url: "composite get_current_url | fillcmdline_notrail ",
         stop: "js window.stop()",
@@ -666,8 +655,7 @@ export class default_config {
         twitter: "https://twitter.com/search?q=",
         wikipedia: "https://en.wikipedia.org/wiki/Special:Search/",
         youtube: "https://www.youtube.com/results?search_query=",
-        amazon:
-            "https://www.amazon.com/s/ref=nb_sb_noss?url=search-alias%3Daps&field-keywords=",
+        amazon: "https://www.amazon.com/s/ref=nb_sb_noss?url=search-alias%3Daps&field-keywords=",
         amazonuk:
             "https://www.amazon.co.uk/s/ref=nb_sb_noss?url=search-alias%3Daps&field-keywords=",
         startpage:
@@ -1178,10 +1166,8 @@ Remove-Item '%TEMP%/tridactyl_installnative.ps1'"`,
     },
     linux: {
         nmaps: {
-            ";x":
-                'hint -F e => { const pos = tri.dom.getAbsoluteCentre(e); tri.excmds.exclaim_quiet("xdotool mousemove --sync " + window.devicePixelRatio * pos.x + " " + window.devicePixelRatio * pos.y + "; xdotool click 1")}',
-            ";X":
-                'hint -F e => { const pos = tri.dom.getAbsoluteCentre(e); tri.excmds.exclaim_quiet("xdotool mousemove --sync " + window.devicePixelRatio * pos.x + " " + window.devicePixelRatio * pos.y + "; xdotool keydown ctrl+shift; xdotool click 1; xdotool keyup ctrl+shift")}',
+            ";x": 'hint -F e => { const pos = tri.dom.getAbsoluteCentre(e); tri.excmds.exclaim_quiet("xdotool mousemove --sync " + window.devicePixelRatio * pos.x + " " + window.devicePixelRatio * pos.y + "; xdotool click 1")}',
+            ";X": 'hint -F e => { const pos = tri.dom.getAbsoluteCentre(e); tri.excmds.exclaim_quiet("xdotool mousemove --sync " + window.devicePixelRatio * pos.x + " " + window.devicePixelRatio * pos.y + "; xdotool keydown ctrl+shift; xdotool click 1; xdotool keyup ctrl+shift")}',
         } as unknown,
     },
 } as Record<browser.runtime.PlatformOs, default_config>
@@ -1619,13 +1605,9 @@ export async function update() {
                 })
                 return mapObj
             }
-            ;[
-                "nmaps",
-                "exmaps",
-                "imaps",
-                "inputmaps",
-                "ignoremaps",
-            ].forEach(settingName => updateAll([settingName], updateSetting))
+            ;["nmaps", "exmaps", "imaps", "inputmaps", "ignoremaps"].forEach(
+                settingName => updateAll([settingName], updateSetting),
+            )
             set("configversion", "1.7")
         }
         case "1.7": {
