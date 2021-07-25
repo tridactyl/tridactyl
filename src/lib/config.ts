@@ -1066,6 +1066,11 @@ export class default_config {
     findcase: "smart" | "sensitive" | "insensitive" = "smart"
 
     /**
+     * How long find highlights should persist in milliseconds. `<= 0` means they persist until cleared
+     */
+    findhighlighttimeout = 0
+
+    /**
      * Whether Tridactyl should jump to the first match when using `:find`
      */
     incsearch: "true" | "false" = "false"

@@ -30,7 +30,9 @@ class FindHighlight extends HTMLSpanElement {
         super()
         ;(this as any).unfocus = () => {
             for (const node of this.children) {
-                ;(node as HTMLElement).style.background = `rgba(127,255,255,0.5)`
+                ;(
+                    node as HTMLElement
+                ).style.background = `rgba(127,255,255,0.5)`
             }
         }
         ;(this as any).focus = () => {
@@ -48,7 +50,9 @@ class FindHighlight extends HTMLSpanElement {
                 parentNode.focus()
             }
             for (const node of this.children) {
-                ;(node as HTMLElement).style.background = `rgba(255,127,255,0.5)`
+                ;(
+                    node as HTMLElement
+                ).style.background = `rgba(255,127,255,0.5)`
             }
         }
 
@@ -82,7 +86,8 @@ let lastHighlights
 let selected = 0
 
 export async function jumpToMatch(searchQuery, reverse) {
-    setTimeout(removeHighlighting, 5000)
+    const timeout = config.get("findhighlighttimeout")
+    timeout > 0 && setTimeout(removeHighlighting, timeout)
     // First, search for the query
     const findcase = config.get("findcase")
     const sensitive =
