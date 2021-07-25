@@ -85,9 +85,14 @@ let lastHighlights
 // Which element of `lastSearch` was last selected
 let selected = 0
 
+let HIGHLIGHT_TIMER
+
 export async function jumpToMatch(searchQuery, reverse) {
     const timeout = config.get("findhighlighttimeout")
-    timeout > 0 && setTimeout(removeHighlighting, timeout)
+    if (timeout > 0) {
+        clearTimeout(HIGHLIGHT_TIMER)
+        HIGHLIGHT_TIMER = setTimeout(removeHighlighting, timeout)
+    }
     // First, search for the query
     const findcase = config.get("findcase")
     const sensitive =
@@ -170,6 +175,11 @@ export async function jumpToNextMatch(n: number) {
         return lastSearchQuery ? jumpToMatch(lastSearchQuery, n < 0) : undefined
     }
     if (!host.firstChild) {
+        const timeout = config.get("findhighlighttimeout")
+        if (timeout > 0) {
+            clearTimeout(HIGHLIGHT_TIMER)
+            HIGHLIGHT_TIMER = setTimeout(removeHighlighting, timeout)
+        }
         drawHighlights(lastHighlights)
     }
     if (lastHighlights[selected] === undefined) {
