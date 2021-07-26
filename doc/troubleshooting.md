@@ -16,7 +16,7 @@ If you're having trouble running your editor on OSX, you might be having \$PATH 
 
 If you're encountering problems on windows, you might want to try some of the workarounds mentioned here: [#797](https://github.com/tridactyl/tridactyl/issues/797).
 
-If you're on Unix, running `printf '%c\0\0\0{"cmd": "run", "command": "echo $PATH"}' 39 | ~/.local/share/tridactyl/native_main.py` in a terminal after you have installed the native messenger will tell you if there are any missing modules.
+If you're on Unix, running `printf '%c\0\0\0{"cmd": "run", "command": "echo $PATH"}' 39 | ~/.local/share/tridactyl/native_main` in a terminal after you have installed the native messenger will check that it is at least partially working.
 
 # Getting logging information
 
