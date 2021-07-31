@@ -111,10 +111,12 @@ You can try `:help key` to know more about `key`. If it is an existing binding, 
 
 Find mode is still incomplete and uses the Firefox feature "Quick Find". This will be improved eventually.
 
--   `/` — open the find search box
+-   `/` — open the Quick Find search box
+-   `/` then `<C-f>` — open the Find in page search box
 -   `<C-g>`/`<C-G>` — find the next/previous instance of the last find operation (note: these are the standard Firefox shortcuts)
 
-Please note that Tridactyl overrides Firefox's `<C-f>` search, replacing it with a binding to go to the next part of the page. If you want to be able to use `<C-f>` again to search for things, use `unbind <C-f>`.
+Please note that Tridactyl overrides Firefox's `<C-f>` search, replacing it with a binding to go to the next part of the page. 
+If you want to be able to use `<C-f>` to search for things, use `<C-f>` after opening the Quick Find box (`/`), or any input field such as the address bar or search bar (use default browser shortcuts to activate these). To allow usage of `<C-f>` at any time, use `unbind <C-f>` to unset the scrollpage binding.
 
 #### Bookmarks and quickmarks
 
