@@ -3,15 +3,16 @@
   "version": "0.1.0",
   "description": "Vimperator/Pentadactyl successor",
   "browser": {
-    "url": false,
     "fs": false,
-    "https": false,
     "http": false,
+    "https": false,
     "path": false,
+    "stream": "stream-browserify",
     "timers": false,
-    "stream": "stream-browserify"
+    "url": false
   },
   "dependencies": {
+    "@yarnpkg/esbuild-plugin-pnp": "^1.0.1-rc.1",
     "cleanslate": "^0.10.1",
     "csp-serdes": "github:cmcaine/csp-serdes",
     "css": "^3.0.0",
