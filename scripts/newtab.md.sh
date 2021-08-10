@@ -11,7 +11,7 @@ newtab="../../generated/static/newtab.html"
 newtabtemp="../../generated/static/newtab.temp.html"
 
 sed "/REPLACETHIS/,$ d" newtab.template.html > "$newtabtemp"
-"$(yarn bin)/marked" newtab.md >> "$newtabtemp"
+marked newtab.md >> "$newtabtemp"
 sed "1,/REPLACETHIS/ d" newtab.template.html >> "$newtabtemp"
 
 # Why think when you can pattern match?
@@ -24,7 +24,7 @@ cat <<EOF
 <label for="spoilerbutton" onclick=""><div id="nagbar-changelog">New features!</div>Changelog</label>
 <div id="changelog" class="spoiler">
 EOF
-"$(yarn bin)/marked" ../../CHANGELOG.md
+marked ../../CHANGELOG.md
 echo """
 </div>
 """

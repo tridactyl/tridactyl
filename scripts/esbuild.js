@@ -1,7 +1,9 @@
+const pnpPlugin = require('@yarnpkg/esbuild-plugin-pnp')
 const esbuild = require('esbuild')
 
 for (let f of ["content", "background", "help", "newtab", "commandline_frame"]) {
-        esbuild.build({
+    esbuild.build({
+        plugins: [pnpPlugin.pnpPlugin()],
         entryPoints: [`src/${f}.ts`],
         bundle: true,
         sourcemap: true,

@@ -16,6 +16,7 @@ do
     esac
 done
 
+# TODO: update me - node_modules doesn't exist any more
 CLEANSLATE="node_modules/cleanslate/docs/files/cleanslate.css"
 
 isWindowsMinGW() {
@@ -30,10 +31,6 @@ isWindowsMinGW() {
 
 if [ "$(isWindowsMinGW)" = "True" ]; then
   WIN_PYTHON="py -3"
-  YARN_BIN_DIR="$(cygpath "$(yarn bin)")"
-  PATH=$YARN_BIN_DIR:$PATH
-else
-  PATH="$(yarn bin):$PATH"
 fi
 
 export PATH
@@ -54,12 +51,12 @@ fi
 if [ "$QUICK_BUILD" != "1" ]; then
 
     # .bracketexpr.generated.ts is needed for metadata generation
-    "$(yarn bin)/nearleyc" src/grammars/bracketexpr.ne > \
+    nearleyc src/grammars/bracketexpr.ne > \
       src/grammars/.bracketexpr.generated.ts
 
     # It's important to generate the metadata before the documentation because
     # missing imports might break documentation generation on clean builds
-    "$(yarn bin)/tsc" compiler/gen_metadata.ts -m commonjs --target es2017 \
+    tsc compiler/gen_metadata.ts -m commonjs --target es2017 \
       && node compiler/gen_metadata.js \
               --out src/.metadata.generated.ts \
               --themeDir src/static/themes \
