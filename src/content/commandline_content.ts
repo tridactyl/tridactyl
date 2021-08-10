@@ -1,8 +1,8 @@
 /** Inject an input element into unsuspecting webpages and provide an API for interaction with tridactyl */
 
-import Logger from "@src/lib/logging"
-import * as config from "@src/lib/config"
-import { theme } from "@src/content/styling"
+import Logger from "../lib/logging"
+import * as config from "../lib/config"
+import { theme } from "../content/styling"
 const logger = new Logger("messaging")
 const cmdline_logger = new Logger("cmdline")
 
@@ -138,6 +138,6 @@ export function executeWithoutCommandLine(fn) {
     return result
 }
 
-import * as Messaging from "@src/lib/messaging"
-import * as SELF from "@src/content/commandline_content"
+import * as Messaging from "../lib/messaging"
+import * as SELF from "../content/commandline_content"
 Messaging.addListener("commandline_content", Messaging.attributeCaller(SELF))

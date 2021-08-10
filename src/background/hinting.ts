@@ -1,5 +1,5 @@
-import { messageActiveTab } from "@src/lib/messaging"
-import * as hinting_content from "@src/content/hinting"
+import { messageActiveTab } from "../lib/messaging"
+import * as hinting_content from "../content/hinting"
 
 const functions = hinting_content.getHintCommands()
 type ft = typeof functions

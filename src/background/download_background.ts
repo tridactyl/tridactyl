@@ -2,10 +2,10 @@
  * Background download-related functions
  */
 
-import * as Native from "@src/lib/native"
-import * as config from "@src/lib/config"
+import * as Native from "../lib/native"
+import * as config from "../lib/config"
 import * as R from "ramda"
-import { getDownloadFilenameForUrl } from "@src/lib/url_util"
+import { getDownloadFilenameForUrl } from "../lib/url_util"
 
 /** Construct an object URL string from a given data URL
  *

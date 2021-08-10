@@ -1,4 +1,4 @@
-import { messageTab } from "@src/lib/messaging"
+import { messageTab } from "../lib/messaging"
 
 export async function getTridactylTabs(
     tabs?: browser.tabs.Tab[],

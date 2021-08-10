@@ -1,6 +1,6 @@
-import { browserBg, activeTabId, ownTabId, getContext } from "@src/lib/webext"
-import * as Messages from "@src/message_protocols"
-import Logger from "@src/lib/logging"
+import { browserBg, activeTabId, ownTabId, getContext } from "../lib/webext"
+import * as Messages from "../message_protocols"
+import Logger from "../lib/logging"
 const logger = new Logger("messaging")
 
 export type TabMessageType =

@@ -1,5 +1,5 @@
-import { contentState } from "@src/content/state_content"
-import { isSimpleKey, KeyEventLike } from "@src/lib/keyseq"
+import { contentState } from "../content/state_content"
+import { isSimpleKey, KeyEventLike } from "../lib/keyseq"
 
 /** Simple container for the gobble state. */
 class GobbleState {

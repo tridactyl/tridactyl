@@ -1,6 +1,6 @@
-import { browserBg } from "@src/lib/webext"
-import * as Completions from "@src/completions"
-import * as config from "@src/lib/config"
+import { browserBg } from "../lib/webext"
+import * as Completions from "../completions"
+import * as config from "../lib/config"
 
 function computeDate(session) {
     let howLong = Math.round(

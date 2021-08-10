@@ -1,6 +1,6 @@
 // We have a single dependency on config: getting the value of the WORDPATTERN setting
 // Perhaps we could find a way to get rid of it?
-import * as config from "@src/lib/config"
+import * as config from "../lib/config"
 
 export type editor_function = (
     text: string,

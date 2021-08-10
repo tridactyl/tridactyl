@@ -2,7 +2,7 @@
  * Helper functions for logging
  */
 
-import * as Config from "@src/lib/config"
+import * as Config from "../lib/config"
 
 const LevelToNum = new Map<Config.LoggingLevel, number>()
 LevelToNum.set("never", 0)

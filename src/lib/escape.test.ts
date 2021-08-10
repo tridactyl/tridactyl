@@ -1,6 +1,6 @@
-import * as escape from "@src/lib/escape"
+import * as escape from "../lib/escape"
 
-import { testAll } from "@src/lib/test_utils"
+import { testAll } from "../lib/test_utils"
 
 testAll(escape.sh, [
     ["foo&rm -rf", "'foo&rm -rf'"],

@@ -1,7 +1,7 @@
-import { activeTabId } from "@src/lib/webext"
-import * as Messaging from "@src/lib/messaging"
+import { activeTabId } from "../lib/webext"
+import * as Messaging from "../lib/messaging"
 import * as Completions from "../completions"
-import * as config from "@src/lib/config"
+import * as config from "../lib/config"
 
 class FindCompletionOption
     extends Completions.CompletionOptionHTML

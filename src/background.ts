@@ -2,33 +2,33 @@
 
 /* tslint:disable:import-spacing */
 
-import * as proxy_background from "@src/lib/browser_proxy_background"
+import * as proxy_background from "./lib/browser_proxy_background"
 
-import * as controller from "@src/lib/controller"
-import * as perf from "@src/perf"
-import { listenForCounters } from "@src/perf"
-import * as messaging from "@src/lib/messaging"
-import * as excmds_background from "@src/.excmds_background.generated"
-import { CmdlineCmds } from "@src/background/commandline_cmds"
-import { EditorCmds } from "@src/background/editor"
-import * as convert from "@src/lib/convert"
-import * as config from "@src/lib/config"
-import * as dom from "@src/lib/dom"
-import * as download_background from "@src/background/download_background"
-import * as itertools from "@src/lib/itertools"
-import * as keyseq from "@src/lib/keyseq"
-import * as request from "@src/lib/requests"
-import * as native from "@src/lib/native"
-import state from "@src/state"
-import * as webext from "@src/lib/webext"
-import { AutoContain } from "@src/lib/autocontainers"
-import * as extension_info from "@src/lib/extension_info"
-import * as omnibox from "@src/background/omnibox"
+import * as controller from "./lib/controller"
+import * as perf from "./perf"
+import { listenForCounters } from "./perf"
+import * as messaging from "./lib/messaging"
+import * as excmds_background from "./.excmds_background.generated"
+import { CmdlineCmds } from "./background/commandline_cmds"
+import { EditorCmds } from "./background/editor"
+import * as convert from "./lib/convert"
+import * as config from "./lib/config"
+import * as dom from "./lib/dom"
+import * as download_background from "./background/download_background"
+import * as itertools from "./lib/itertools"
+import * as keyseq from "./lib/keyseq"
+import * as request from "./lib/requests"
+import * as native from "./lib/native"
+import state from "./state"
+import * as webext from "./lib/webext"
+import { AutoContain } from "./lib/autocontainers"
+import * as extension_info from "./lib/extension_info"
+import * as omnibox from "./background/omnibox"
 import * as R from "ramda"
-import * as webrequests from "@src/background/webrequests"
-import * as commands from "@src/background/commands"
-import * as meta from "@src/background/meta"
-import * as Logging from "@src/lib/logging"
+import * as webrequests from "./background/webrequests"
+import * as commands from "./background/commands"
+import * as meta from "./background/meta"
+import * as Logging from "./lib/logging"
 
 // Add various useful modules to the window for debugging
 ;(window as any).tri = Object.assign(Object.create(null), {
@@ -53,7 +53,7 @@ import * as Logging from "@src/lib/logging"
     meta,
 })
 
-import { HintingCmds } from "@src/background/hinting"
+import { HintingCmds } from "./background/hinting"
 // Set up our controller to execute background-mode excmds. All code
 // running from this entry point, which is to say, everything in the
 // background script, will use the excmds that we give to the module

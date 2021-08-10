@@ -26,7 +26,7 @@ import {
     wordAfterPos,
     rot13_helper,
     jumble_helper
-} from "@src/lib/editor_utils"
+} from "../lib/editor_utils"
 
 /**
  * Behaves like readline's [delete_char](http://web.mit.edu/gnu/doc/html/rlman_1.html#SEC14), i.e. deletes the character to the right of the caret.

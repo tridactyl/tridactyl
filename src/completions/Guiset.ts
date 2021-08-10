@@ -1,5 +1,5 @@
-import * as Completions from "@src/completions"
-import { potentialRules, metaRules } from "@src/lib/css_util"
+import * as Completions from "../completions"
+import { potentialRules, metaRules } from "../lib/css_util"
 
 class GuisetCompletionOption extends Completions.CompletionOptionHTML
     implements Completions.CompletionOptionFuse {

@@ -1,5 +1,5 @@
-import * as config from "@src/lib/config"
-import { browserBg } from "@src/lib/webext"
+import * as config from "../lib/config"
+import { browserBg } from "../lib/webext"
 
 export function newtaburl() {
     // In the nonewtab version, this will return `null` and upset getURL.

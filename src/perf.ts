@@ -17,10 +17,10 @@
  * 6. Use getEntries to retrieve data from the statsLogger.
  */
 
-import * as messaging from "@src/lib/messaging"
-import * as config from "@src/lib/config"
-import * as math from "@src/lib/math"
-import * as logging from "@src/lib/logging"
+import * as messaging from "./lib/messaging"
+import * as config from "./lib/config"
+import * as math from "./lib/math"
+import * as logging from "./lib/logging"
 
 const logger = new logging.Logger("performance")
 

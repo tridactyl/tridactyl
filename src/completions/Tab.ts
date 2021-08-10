@@ -1,10 +1,10 @@
-import * as Perf from "@src/perf"
-import { browserBg } from "@src/lib/webext"
-import { enumerate } from "@src/lib/itertools"
-import * as Containers from "@src/lib/containers"
-import * as Completions from "@src/completions"
-import * as config from "@src/lib/config"
-import * as Messaging from "@src/lib/messaging"
+import * as Perf from "../perf"
+import { browserBg } from "../lib/webext"
+import { enumerate } from "../lib/itertools"
+import * as Containers from "../lib/containers"
+import * as Completions from "../completions"
+import * as config from "../lib/config"
+import * as Messaging from "../lib/messaging"
 
 class BufferCompletionOption
     extends Completions.CompletionOptionHTML

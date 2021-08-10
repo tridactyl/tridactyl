@@ -1,7 +1,7 @@
-import Logger from "@src/lib/logging"
-import { parser as exmode_parser } from "@src/parsers/exmode"
-import * as State from "@src/state"
-import state from "@src/state"
+import Logger from "../lib/logging"
+import { parser as exmode_parser } from "../parsers/exmode"
+import * as State from "../state"
+import state from "../state"
 
 const logger = new Logger("controller")
 

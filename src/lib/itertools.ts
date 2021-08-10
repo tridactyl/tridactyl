@@ -1,4 +1,4 @@
-import "@src/lib/number.mod"
+import "../lib/number.mod"
 
 export function head<T>(iterable: Iterable<T>) {
     const iterator = iterable[Symbol.iterator]()

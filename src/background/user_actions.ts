@@ -4,10 +4,10 @@
  * https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/User_actions
  */
 
-import * as excmds from "@src/.excmds_background.generated"
+import * as excmds from "../.excmds_background.generated"
 import * as R from "ramda"
-import * as config from "@src/lib/config"
-import { getTridactylTabs } from "@src/background/meta"
+import * as config from "../lib/config"
+import { getTridactylTabs } from "../background/meta"
 
 function escapehatch() {
     if (config.get("escapehatchsidebarhack") == "true") {

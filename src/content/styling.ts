@@ -1,7 +1,7 @@
-import { staticThemes } from "@src/.metadata.generated"
-import * as config from "@src/lib/config"
-import * as Logging from "@src/lib/logging"
-import { browserBg, ownTabId } from "@src/lib/webext"
+import { staticThemes } from "../.metadata.generated"
+import * as config from "../lib/config"
+import * as Logging from "../lib/logging"
+import { browserBg, ownTabId } from "../lib/webext"
 
 const logger = new Logging.Logger("styling")
 

@@ -73,27 +73,27 @@
 // {{{ setup
 
 // Shared
-import * as Messaging from "@src/lib/messaging"
-import { ownWinTriIndex, getTriVersion, browserBg, activeTab, activeTabId, activeTabContainerId, openInNewTab, openInNewWindow, openInTab, queryAndURLwrangler } from "@src/lib/webext"
-import * as Container from "@src/lib/containers"
-import state from "@src/state"
-import { contentState, ModeName } from "@src/content/state_content"
-import * as UrlUtil from "@src/lib/url_util"
-import * as config from "@src/lib/config"
-import * as aliases from "@src/lib/aliases"
-import * as Logging from "@src/lib/logging"
-import { AutoContain } from "@src/lib/autocontainers"
+import * as Messaging from "./lib/messaging"
+import { ownWinTriIndex, getTriVersion, browserBg, activeTab, activeTabId, activeTabContainerId, openInNewTab, openInNewWindow, openInTab, queryAndURLwrangler } from "./lib/webext"
+import * as Container from "./lib/containers"
+import state from "./state"
+import { contentState, ModeName } from "./content/state_content"
+import * as UrlUtil from "./lib/url_util"
+import * as config from "./lib/config"
+import * as aliases from "./lib/aliases"
+import * as Logging from "./lib/logging"
+import { AutoContain } from "./lib/autocontainers"
 import * as CSS from "css"
-import * as Perf from "@src/perf"
-import * as Metadata from "@src/.metadata.generated"
+import * as Perf from "./perf"
+import * as Metadata from "./.metadata.generated"
 import { ObjectType } from "../compiler/types/ObjectType"
-import * as Native from "@src/lib/native"
-import * as TTS from "@src/lib/text_to_speech"
-import * as excmd_parser from "@src/parsers/exmode"
-import * as escape from "@src/lib/escape"
+import * as Native from "./lib/native"
+import * as TTS from "./lib/text_to_speech"
+import * as excmd_parser from "./parsers/exmode"
+import * as escape from "./lib/escape"
 import semverCompare from "semver-compare"
-import * as hint_util from "@src/lib/hint_util"
-import { OpenMode } from "@src/lib/hint_util"
+import * as hint_util from "./lib/hint_util"
+import { OpenMode } from "./lib/hint_util"
 
 /**
  * This is used to drive some excmd handling in `composite`.
@@ -104,10 +104,10 @@ let ALL_EXCMDS
 
 // The entry-point script will make sure this has the right set of
 // excmds, so we can use it without futher configuration.
-import * as controller from "@src/lib/controller"
+import * as controller from "./lib/controller"
 
 //#content_helper
-import { generator as KEY_MUNCHER } from "@src/content/controller_content"
+import { generator as KEY_MUNCHER } from "./content/controller_content"
 
 /**
  * Used to store the types of the parameters for each excmd for
@@ -125,20 +125,20 @@ const TRI_VERSION = getTriVersion()
 
 //#content_helper
 // {
-import "@src/lib/number.clamp"
-import * as CTSELF from "@src/.excmds_content.generated"
-import { CmdlineCmds as CtCmdlineCmds } from "@src/background/commandline_cmds"
-import { EditorCmds as CtEditorCmds } from "@src/background/editor"
-import * as DOM from "@src/lib/dom"
-import * as CommandLineContent from "@src/content/commandline_content"
-import * as scrolling from "@src/content/scrolling"
-import { ownTab } from "@src/lib/webext"
-import { wrap_input, getLineAndColNumber, rot13_helper, jumble_helper } from "@src/lib/editor_utils"
-import * as finding from "@src/content/finding"
+import "./lib/number.clamp"
+import * as CTSELF from "./.excmds_content.generated"
+import { CmdlineCmds as CtCmdlineCmds } from "./background/commandline_cmds"
+import { EditorCmds as CtEditorCmds } from "./background/editor"
+import * as DOM from "./lib/dom"
+import * as CommandLineContent from "./content/commandline_content"
+import * as scrolling from "./content/scrolling"
+import { ownTab } from "./lib/webext"
+import { wrap_input, getLineAndColNumber, rot13_helper, jumble_helper } from "./lib/editor_utils"
+import * as finding from "./content/finding"
 import * as toys from "./content/toys"
-import * as hinting from "@src/content/hinting"
-import * as gobbleMode from "@src/parsers/gobblemode"
-import * as nMode from "@src/parsers/nmode"
+import * as hinting from "./content/hinting"
+import * as gobbleMode from "./parsers/gobblemode"
+import * as nMode from "./parsers/nmode"
 
 ALL_EXCMDS = {
     "": CTSELF,
@@ -147,26 +147,26 @@ ALL_EXCMDS = {
 }
 // }
 
-import { mapstrToKeyseq, mozMapToMinimalKey, minimalKeyToMozMap } from "@src/lib/keyseq"
+import { mapstrToKeyseq, mozMapToMinimalKey, minimalKeyToMozMap } from "./lib/keyseq"
 
 //#background_helper
 // {
 
 // tslint:disable-next-line:no-unused-declaration
-import "@src/lib/number.mod"
+import "./lib/number.mod"
 
-import * as BGSELF from "@src/.excmds_background.generated"
-import { CmdlineCmds as BgCmdlineCmds } from "@src/background/commandline_cmds"
-import { EditorCmds as BgEditorCmds } from "@src/background/editor"
-import { EditorCmds } from "@src/background/editor"
-import { firefoxVersionAtLeast } from "@src/lib/webext"
-import { parse_bind_args, modeMaps } from "@src/lib/binding"
-import * as rc from "@src/background/config_rc"
-import * as css_util from "@src/lib/css_util"
-import * as Updates from "@src/lib/updates"
-import * as Extensions from "@src/lib/extension_info"
-import * as webrequests from "@src/background/webrequests"
-import * as commandsHelper from "@src/background/commands"
+import * as BGSELF from "./.excmds_background.generated"
+import { CmdlineCmds as BgCmdlineCmds } from "./background/commandline_cmds"
+import { EditorCmds as BgEditorCmds } from "./background/editor"
+import { EditorCmds } from "./background/editor"
+import { firefoxVersionAtLeast } from "./lib/webext"
+import { parse_bind_args, modeMaps } from "./lib/binding"
+import * as rc from "./background/config_rc"
+import * as css_util from "./lib/css_util"
+import * as Updates from "./lib/updates"
+import * as Extensions from "./lib/extension_info"
+import * as webrequests from "./background/webrequests"
+import * as commandsHelper from "./background/commands"
 
 ALL_EXCMDS = {
     "": BGSELF,
@@ -1276,7 +1276,7 @@ export async function reloadallbut(hard = false) {
 }
 
 //#background_helper
-import { getTridactylTabs } from "@src/background/meta"
+import { getTridactylTabs } from "./background/meta"
 /** Reloads all tabs which Tridactyl isn't loaded in */
 //#background
 export async function reloaddead(hard = false) {
@@ -3245,7 +3245,7 @@ export async function shellescape(...quoteme: string[]) {
 }
 
 //#background_helper
-import { useractions } from "@src/background/user_actions"
+import { useractions } from "./background/user_actions"
 
 /**
  *  Magic escape hatch: if Tridactyl can't run in the current tab, return to a tab in the current window where Tridactyl can run, making such a tab if it doesn't currently exist. If Tridactyl can run in the current tab, return focus to the document body from e.g. the URL bar or a video player.

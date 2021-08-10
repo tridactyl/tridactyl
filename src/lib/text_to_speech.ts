@@ -1,7 +1,7 @@
 /** Functions to deal with text to speech in Tridactyl
  */
 
-import * as Config from "@src/lib/config"
+import * as Config from "../lib/config"
 
 /** Find the voice object for a voice name
  *

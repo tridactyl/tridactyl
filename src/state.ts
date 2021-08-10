@@ -3,16 +3,16 @@
  *
  * __NB__: Here be dragons.
  *
- * In the background script, "state" can be used as a normal object. Just "import state from "@src/state"
+ * In the background script, "state" can be used as a normal object. Just "import state from "./state"
  *
  * In the content scripts, "state" can be set as a normal object and changes will propagate to the background script.
  *
- * In the content scripts, "state" must be read using "import * as State from "@src/state" and "State.getAsync(property)". If you read it directly with `state` you should get an error at runtime. Certain methods like `concat` will not throw an error but their behaviour is not defined and should be avoided.
+ * In the content scripts, "state" must be read using "import * as State from "./state" and "State.getAsync(property)". If you read it directly with `state` you should get an error at runtime. Certain methods like `concat` will not throw an error but their behaviour is not defined and should be avoided.
  */
 
-import Logger from "@src/lib/logging"
-import * as messaging from "@src/lib/messaging"
-import { notBackground } from "@src/lib/webext"
+import Logger from "./lib/logging"
+import * as messaging from "./lib/messaging"
+import { notBackground } from "./lib/webext"
 import * as R from "ramda"
 
 const logger = new Logger("state")

@@ -2,7 +2,7 @@
  *
  */
 
-import { mapstrToKeyseq } from "@src/lib/keyseq"
+import { mapstrToKeyseq } from "../lib/keyseq"
 
 export const mode2maps = new Map([
     ["normal", "nmaps"],

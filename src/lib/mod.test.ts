@@ -1,6 +1,6 @@
 /** Some real tests for mod and also an example of how to unit test. */
 
-import { euclid_mod, knuth_mod, my_mod } from "@src/lib/number.mod"
+import { euclid_mod, knuth_mod, my_mod } from "../lib/number.mod"
 
 expect.extend({
     /** Expect equal to all values in array */

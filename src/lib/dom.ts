@@ -1,13 +1,13 @@
-import * as config from "@src/lib/config"
-import state from "@src/state"
-import * as State from "@src/state"
-import * as Logging from "@src/lib/logging"
+import * as config from "../lib/config"
+import state from "../state"
+import * as State from "../state"
+import * as Logging from "../lib/logging"
 import {
     activeTabId,
     openInNewTab,
     activeTabContainerId,
     inContentScript,
-} from "@src/lib/webext"
+} from "../lib/webext"
 const logger = new Logging.Logger("dom")
 
 // From saka-key lib/dom.js, under Apachev2

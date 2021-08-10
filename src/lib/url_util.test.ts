@@ -1,6 +1,6 @@
 /** Some tests for URL utilities */
 
-import * as UrlUtil from "@src/lib/url_util"
+import * as UrlUtil from "../lib/url_util"
 
 function test_increment() {
     let cases = [

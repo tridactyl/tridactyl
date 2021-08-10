@@ -22,10 +22,10 @@
 
  */
 
-import * as Config from "@src/lib/config"
-import * as Container from "@src/lib/containers"
-import * as Logging from "@src/lib/logging"
-import * as ExtensionInfo from "@src/lib/extension_info"
+import * as Config from "../lib/config"
+import * as Container from "../lib/containers"
+import * as Logging from "../lib/logging"
+import * as ExtensionInfo from "../lib/extension_info"
 
 const logger = new Logging.Logger("containers")
 

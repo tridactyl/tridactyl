@@ -1,5 +1,5 @@
-import * as Extensions from "@src/lib/extension_info"
-import * as Completions from "@src/completions"
+import * as Extensions from "../lib/extension_info"
+import * as Completions from "../completions"
 
 class ExtensionsCompletionOption extends Completions.CompletionOptionHTML
     implements Completions.CompletionOptionFuse {

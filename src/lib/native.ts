@@ -3,10 +3,10 @@
  */
 
 import semverCompare from "semver-compare"
-import * as config from "@src/lib/config"
-import { browserBg, getContext } from "@src/lib/webext"
+import * as config from "../lib/config"
+import { browserBg, getContext } from "../lib/webext"
 
-import Logger from "@src/lib/logging"
+import Logger from "../lib/logging"
 const logger = new Logger("native")
 
 const NATIVE_NAME = "tridactyl"

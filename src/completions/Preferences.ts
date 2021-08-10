@@ -1,5 +1,5 @@
-import * as Completions from "@src/completions"
-import * as Native from "@src/lib/native"
+import * as Completions from "../completions"
+import * as Native from "../lib/native"
 
 class PreferenceCompletionOption extends Completions.CompletionOptionHTML
     implements Completions.CompletionOptionFuse {

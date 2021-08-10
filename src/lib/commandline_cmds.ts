@@ -1,6 +1,6 @@
-import { messageOwnTab } from "@src/lib/messaging"
-import * as State from "@src/state"
-import { contentState } from "@src/content/state_content"
+import { messageOwnTab } from "../lib/messaging"
+import * as State from "../state"
+import { contentState } from "../content/state_content"
 
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms))
 

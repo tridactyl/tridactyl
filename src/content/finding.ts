@@ -1,8 +1,8 @@
-import * as config from "@src/lib/config"
-import * as DOM from "@src/lib/dom"
-import { browserBg, activeTabId } from "@src/lib/webext"
-import state from "@src/state"
-import * as State from "@src/state"
+import * as config from "../lib/config"
+import * as DOM from "../lib/dom"
+import { browserBg, activeTabId } from "../lib/webext"
+import state from "../state"
+import * as State from "../state"
 
 // The host is the shadow root of a span used to contain all highlighting
 // elements. This is the least disruptive way of highlighting text in a page.

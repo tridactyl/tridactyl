@@ -2,7 +2,7 @@
  * Allows users to enter tridactyl commands from the omnibox by using
  * the `:` keyword.
  */
-import * as controller from "@src/lib/controller"
+import * as controller from "../lib/controller"
 
 export function inputEnteredListener(
     input: string,

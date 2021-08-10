@@ -11,11 +11,11 @@ Concrete completion classes have been moved to src/completions/.
 */
 
 import Fuse from "fuse.js"
-import { enumerate } from "@src/lib/itertools"
-import { toNumber } from "@src/lib/convert"
-import * as aliases from "@src/lib/aliases"
-import { backoff } from "@src/lib/patience"
-import * as config from "@src/lib/config"
+import { enumerate } from "./lib/itertools"
+import { toNumber } from "./lib/convert"
+import * as aliases from "./lib/aliases"
+import { backoff } from "./lib/patience"
+import * as config from "./lib/config"
 
 export const DEFAULT_FAVICON = browser.runtime.getURL(
     "static/defaultFavicon.svg",

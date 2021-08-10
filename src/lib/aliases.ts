@@ -1,4 +1,4 @@
-import * as config from "@src/lib/config"
+import * as config from "../lib/config"
 
 /**
  * Expands the alias in the provided exstr recursively. Does nothing if

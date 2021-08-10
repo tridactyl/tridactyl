@@ -1,6 +1,6 @@
-import * as Completions from "@src/completions"
-import * as config from "@src/lib/config"
-import * as Binding from "@src/lib/binding"
+import * as Completions from "../completions"
+import * as config from "../lib/config"
+import * as Binding from "../lib/binding"
 
 class BindingsCompletionOption extends Completions.CompletionOptionHTML
     implements Completions.CompletionOptionFuse {

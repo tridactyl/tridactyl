@@ -1,9 +1,9 @@
 /** Ex Mode (AKA cmd mode) */
 
 import { FunctionType } from "../../compiler/types/AllTypes"
-import { everything as metadata } from "@src/.metadata.generated"
-import * as aliases from "@src/lib/aliases"
-import * as Logging from "@src/lib/logging"
+import { everything as metadata } from "../.metadata.generated"
+import * as aliases from "../lib/aliases"
+import * as Logging from "../lib/logging"
 
 const logger = new Logging.Logger("exmode")
 

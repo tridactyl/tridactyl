@@ -9,12 +9,12 @@ if ((window as any).tridactyl_content_lock !== undefined) {
 // Be careful: typescript elides imports that appear not to be used if they're
 // assigned to a name.  If you want an import just for its side effects, make
 // sure you import it like this:
-import "@src/lib/html-tagged-template"
-/* import "@src/content/commandline_content" */
-/* import "@src/excmds_content" */
-/* import "@src/content/hinting" */
-import * as config from "@src/lib/config"
-import * as Logging from "@src/lib/logging"
+import "./lib/html-tagged-template"
+/* import "./content/commandline_content" */
+/* import "./excmds_content" */
+/* import "./content/hinting" */
+import * as config from "./lib/config"
+import * as Logging from "./lib/logging"
 const logger = new Logging.Logger("content")
 logger.debug("Tridactyl content script loaded, boss!")
 
@@ -22,15 +22,15 @@ logger.debug("Tridactyl content script loaded, boss!")
 import {
     contentState,
     addContentStateChangedListener,
-} from "@src/content/state_content"
+} from "./content/state_content"
 
-import { CmdlineCmds } from "@src/content/commandline_cmds"
-import { EditorCmds } from "@src/content/editor"
+import { CmdlineCmds } from "./content/commandline_cmds"
+import { EditorCmds } from "./content/editor"
 
-import { getAllDocumentFrames } from "@src/lib/dom"
+import { getAllDocumentFrames } from "./lib/dom"
 
-import state from "@src/state"
-import { EditorCmds as editor } from "@src/content/editor"
+import state from "./state"
+import { EditorCmds as editor } from "./content/editor"
 /* tslint:disable:import-spacing */
 
 config.getAsync("superignore").then(async TRI_DISABLE => {
@@ -40,31 +40,31 @@ config.getAsync("superignore").then(async TRI_DISABLE => {
 // here.
 
 if (TRI_DISABLE === "true") return
-const controller = await import("@src/lib/controller")
-const excmds_content = await import("@src/.excmds_content.generated")
-const hinting_content = await import("@src/content/hinting")
+const controller = await import("./lib/controller")
+const excmds_content = await import("./.excmds_content.generated")
+const hinting_content = await import("./content/hinting")
 // Hook the keyboard up to the controller
-const ContentController = await import("@src/content/controller_content")
+const ContentController = await import("./content/controller_content")
 // Add various useful modules to the window for debugging
-const commandline_content = await import("@src/content/commandline_content")
-const convert = await import("@src/lib/convert")
-const dom = await import("@src/lib/dom")
-const excmds = await import("@src/.excmds_content.generated")
-const finding_content = await import("@src/content/finding")
-const itertools = await import("@src/lib/itertools")
-const messaging = await import("@src/lib/messaging")
-const State = await import("@src/state")
-const webext = await import("@src/lib/webext")
-const perf = await import("@src/perf")
-const keyseq = await import("@src/lib/keyseq")
-const native = await import("@src/lib/native")
-const styling = await import("@src/content/styling")
-const updates = await import("@src/lib/updates")
-const urlutils = await import("@src/lib/url_util")
-const scrolling = await import("@src/content/scrolling")
+const commandline_content = await import("./content/commandline_content")
+const convert = await import("./lib/convert")
+const dom = await import("./lib/dom")
+const excmds = await import("./.excmds_content.generated")
+const finding_content = await import("./content/finding")
+const itertools = await import("./lib/itertools")
+const messaging = await import("./lib/messaging")
+const State = await import("./state")
+const webext = await import("./lib/webext")
+const perf = await import("./perf")
+const keyseq = await import("./lib/keyseq")
+const native = await import("./lib/native")
+const styling = await import("./content/styling")
+const updates = await import("./lib/updates")
+const urlutils = await import("./lib/url_util")
+const scrolling = await import("./content/scrolling")
 const R = await import("ramda")
-const visual = await import("@src/lib/visual")
-const metadata = await import("@src/.metadata.generated")
+const visual = await import("./lib/visual")
+const metadata = await import("./.metadata.generated")
 
 controller.setExCmds({
     "": excmds_content,

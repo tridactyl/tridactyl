@@ -1,5 +1,5 @@
 import * as csp from "csp-serdes"
-import Logger from "@src/lib/logging"
+import Logger from "../lib/logging"
 
 const logger = new Logger("requests")
 

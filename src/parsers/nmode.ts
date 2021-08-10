@@ -1,8 +1,8 @@
 /** Accept n [mode] commands then execute the other command */
 
-import { contentState } from "@src/content/state_content"
-import * as keyseq from "@src/lib/keyseq"
-import { mode2maps } from "@src/lib/binding"
+import { contentState } from "../content/state_content"
+import * as keyseq from "../lib/keyseq"
+import { mode2maps } from "../lib/binding"
 
 /** Simple container for the nmode state. */
 class NModeState {

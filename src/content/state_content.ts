@@ -1,4 +1,4 @@
-import Logger from "@src/lib/logging"
+import Logger from "../lib/logging"
 const logger = new Logger("state")
 
 export type ModeName =

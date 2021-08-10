@@ -1,8 +1,8 @@
-import * as Completions from "@src/completions"
-import * as ExcmdCompletions from "@src/completions/Excmd"
-import * as Metadata from "@src/.metadata.generated"
-import * as config from "@src/lib/config"
-import * as aliases from "@src/lib/aliases"
+import * as Completions from "../completions"
+import * as ExcmdCompletions from "../completions/Excmd"
+import * as Metadata from "../.metadata.generated"
+import * as config from "../lib/config"
+import * as aliases from "../lib/aliases"
 
 const PREFIX = "composite"
 const regex = new RegExp("^" + PREFIX + " ")

@@ -2,9 +2,9 @@
  * Helper types for :hint
  */
 
-import Logger from "@src/lib/logging"
-import * as DOM from "@src/lib/dom"
-import * as hinting from "@src/content/hinting"
+import Logger from "../lib/logging"
+import * as DOM from "../lib/dom"
+import * as hinting from "../content/hinting"
 
 /**
  * Open mode: how to act on the selected hintable element

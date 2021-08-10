@@ -1,5 +1,5 @@
-import * as controller from "@src/lib/controller"
-import * as Native from "@src/lib/native"
+import * as controller from "../lib/controller"
+import * as Native from "../lib/native"
 
 export async function source(filename = "auto") {
     let rctext = ""

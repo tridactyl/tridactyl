@@ -1,6 +1,6 @@
 /** Tridactyl helper mode */
 
-import * as keyseq from "@src/lib/keyseq"
+import * as keyseq from "../lib/keyseq"
 
 export function parser(conf, keys): keyseq.ParserResponse {
     const maps = keyseq.keyMap(conf)

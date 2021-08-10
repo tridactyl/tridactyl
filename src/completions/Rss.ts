@@ -1,6 +1,6 @@
-import * as Messaging from "@src/lib/messaging"
-import * as Completions from "@src/completions"
-import * as config from "@src/lib/config"
+import * as Messaging from "../lib/messaging"
+import * as Completions from "../completions"
+import * as config from "../lib/config"
 
 class RssCompletionOption
     extends Completions.CompletionOptionHTML

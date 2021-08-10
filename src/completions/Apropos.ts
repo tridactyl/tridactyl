@@ -1,7 +1,7 @@
-import * as Completions from "@src/completions"
-import * as Metadata from "@src/.metadata.generated"
-import * as aliases from "@src/lib/aliases"
-import * as config from "@src/lib/config"
+import * as Completions from "../completions"
+import * as Metadata from "../.metadata.generated"
+import * as aliases from "../lib/aliases"
+import * as config from "../lib/config"
 
 class AproposCompletionOption extends Completions.CompletionOptionHTML
     implements Completions.CompletionOptionFuse {

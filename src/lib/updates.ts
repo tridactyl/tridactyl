@@ -7,9 +7,9 @@
  */
 
 import SemverCompare from "semver-compare"
-import * as Config from "@src/lib/config"
-import * as Logging from "@src/lib/logging"
-import { getTriVersion } from "@src/lib/webext"
+import * as Config from "../lib/config"
+import * as Logging from "../lib/logging"
+import { getTriVersion } from "../lib/webext"
 
 const logger = new Logging.Logger("updates")
 

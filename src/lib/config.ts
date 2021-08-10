@@ -17,8 +17,8 @@
  *
  */
 import * as R from "ramda"
-import * as binding from "@src/lib/binding"
-import * as platform from "@src/lib/platform"
+import * as binding from "../lib/binding"
+import * as platform from "../lib/platform"
 import { DeepPartial } from "tsdef"
 
 /* Remove all nulls from objects recursively

@@ -1,4 +1,4 @@
-import { message } from "@src/lib/messaging"
+import { message } from "../lib/messaging"
 
 const browserProxy = new Proxy(Object.create(null), {
     get(target, api) {

@@ -1,8 +1,8 @@
 // This file is only included in newtab.html, after content.js has been loaded
 
-import * as Messaging from "@src/lib/messaging"
-import * as config from "@src/lib/config"
-import { getPrettyTriVersion } from "@src/lib/webext"
+import * as Messaging from "./lib/messaging"
+import * as config from "./lib/config"
+import { getPrettyTriVersion } from "./lib/webext"
 
 // These functions work with the elements created by tridactyl/scripts/newtab.md.sh
 function getChangelogDiv() {

@@ -1,6 +1,6 @@
-import { testAll, testAllObject } from "@src/lib/test_utils"
-import * as ks from "@src/lib/keyseq"
-import { mapstrToKeyseq as mks } from "@src/lib/keyseq"
+import { testAll, testAllObject } from "../lib/test_utils"
+import * as ks from "../lib/keyseq"
+import { mapstrToKeyseq as mks } from "../lib/keyseq"
 
 function mk(k, mod?: ks.KeyModifiers) {
     return new ks.MinimalKey(k, mod)

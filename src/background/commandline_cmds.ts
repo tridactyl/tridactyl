@@ -1,5 +1,5 @@
-import { getCommandlineFns } from "@src/lib/commandline_cmds"
-import { messageActiveTab } from "@src/lib/messaging"
+import { getCommandlineFns } from "../lib/commandline_cmds"
+import { messageActiveTab } from "../lib/messaging"
 
 const functions = getCommandlineFns({} as any)
 type ft = typeof functions

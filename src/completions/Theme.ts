@@ -1,6 +1,6 @@
-import * as Completions from "@src/completions"
-import { staticThemes } from "@src/.metadata.generated"
-import * as config from "@src/lib/config"
+import * as Completions from "../completions"
+import { staticThemes } from "../.metadata.generated"
+import * as config from "../lib/config"
 
 export class ThemeCompletionOption
     extends Completions.CompletionOptionHTML

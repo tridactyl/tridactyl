@@ -1,8 +1,8 @@
-import * as convert from "@src/lib/convert"
-import browserProxy from "@src/lib/browser_proxy"
-import * as config from "@src/lib/config"
-import * as UrlUtil from "@src/lib/url_util"
-import { sleep } from "@src/lib/patience"
+import * as convert from "../lib/convert"
+import browserProxy from "../lib/browser_proxy"
+import * as config from "../lib/config"
+import * as UrlUtil from "../lib/url_util"
+import { sleep } from "../lib/patience"
 
 export function inContentScript() {
     return getContext() === "content"

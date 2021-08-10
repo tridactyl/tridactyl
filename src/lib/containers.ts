@@ -1,6 +1,6 @@
-import { browserBg } from "@src/lib/webext"
+import { browserBg } from "../lib/webext"
 import Fuse from "fuse.js"
-import * as Logging from "@src/lib/logging"
+import * as Logging from "../lib/logging"
 const logger = new Logging.Logger("containers")
 
 // As per Mozilla specification: https://developer.mozilla.org/en-US/Add-ons/WebExtensions/API/contextualIdentities/ContextualIdentity

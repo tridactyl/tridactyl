@@ -1,5 +1,5 @@
-import { browserBg } from "@src/lib/webext"
-import * as Completions from "@src/completions"
+import { browserBg } from "../lib/webext"
+import * as Completions from "../completions"
 
 class WindowCompletionOption
     extends Completions.CompletionOptionHTML

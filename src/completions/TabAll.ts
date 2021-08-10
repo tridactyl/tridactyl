@@ -1,9 +1,9 @@
-import * as Perf from "@src/perf"
-import { browserBg } from "@src/lib/webext"
-import * as Containers from "@src/lib/containers"
-import * as Completions from "@src/completions"
-import * as Messaging from "@src/lib/messaging"
-import * as config from "@src/lib/config"
+import * as Perf from "../perf"
+import { browserBg } from "../lib/webext"
+import * as Containers from "../lib/containers"
+import * as Completions from "../completions"
+import * as Messaging from "../lib/messaging"
+import * as config from "../lib/config"
 
 class TabAllCompletionOption
     extends Completions.CompletionOptionHTML

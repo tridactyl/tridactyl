@@ -1,6 +1,6 @@
-import * as Completions from "@src/completions"
-import * as config from "@src/lib/config"
-import * as providers from "@src/completions/providers"
+import * as Completions from "../completions"
+import * as config from "../lib/config"
+import * as providers from "../completions/providers"
 
 class HistoryCompletionOption extends Completions.CompletionOptionHTML
     implements Completions.CompletionOptionFuse {

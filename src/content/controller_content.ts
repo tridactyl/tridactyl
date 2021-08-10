@@ -1,14 +1,14 @@
-import { isTextEditable } from "@src/lib/dom"
-import { contentState, ModeName } from "@src/content/state_content"
-import Logger from "@src/lib/logging"
-import * as controller from "@src/lib/controller"
-import { KeyEventLike, ParserResponse } from "@src/lib/keyseq"
-import { deepestShadowRoot } from "@src/lib/dom"
+import { isTextEditable } from "../lib/dom"
+import { contentState, ModeName } from "../content/state_content"
+import Logger from "../lib/logging"
+import * as controller from "../lib/controller"
+import { KeyEventLike, ParserResponse } from "../lib/keyseq"
+import { deepestShadowRoot } from "../lib/dom"
 
-import * as hinting from "@src/content/hinting"
-import * as gobblemode from "@src/parsers/gobblemode"
-import * as generic from "@src/parsers/genericmode"
-import * as nmode from "@src/parsers/nmode"
+import * as hinting from "../content/hinting"
+import * as gobblemode from "../parsers/gobblemode"
+import * as generic from "../parsers/genericmode"
+import * as nmode from "../parsers/nmode"
 
 const logger = new Logger("controller")
 

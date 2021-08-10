@@ -1,4 +1,4 @@
-import * as config from "@src/lib/config"
+import * as config from "../lib/config"
 
 type scrollingDirection = "scrollLeft" | "scrollTop"
 

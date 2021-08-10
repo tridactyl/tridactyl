@@ -1,7 +1,7 @@
 // This file is only loaded in tridacyl's help pages
 
-import * as config from "@src/lib/config"
-import { modeMaps } from "@src/lib/binding"
+import * as config from "./lib/config"
+import { modeMaps } from "./lib/binding"
 
 /** Create the element that should contain keybinding information */
 function initTridactylSettingElem(

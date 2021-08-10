@@ -1,6 +1,6 @@
 /** Testing the new argument parser for :hint */
 
-import { OpenMode, HintConfig } from "@src/lib/hint_util"
+import { OpenMode, HintConfig } from "../lib/hint_util"
 
 expect.extend({
     toMatchOptions(received: HintConfig, expected: any) {

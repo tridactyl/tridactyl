@@ -1,7 +1,7 @@
-import { useractions } from "@src/background/user_actions"
-import * as config from "@src/lib/config"
-import * as keyseq from "@src/lib/keyseq"
-import * as controller from "@src/lib/controller"
+import { useractions } from "../background/user_actions"
+import * as config from "../lib/config"
+import * as keyseq from "../lib/keyseq"
+import * as controller from "../lib/controller"
 
 function makelistener(commands: Array<browser.commands.Command>) {
     return (command_name: string) => {

@@ -25,22 +25,22 @@
         Redraw on reflow
 */
 
-import * as DOM from "@src/lib/dom"
-import { log } from "@src/lib/math"
+import * as DOM from "../lib/dom"
+import { log } from "../lib/math"
 import {
     permutationsWithReplacement,
     islice,
     izip,
     map,
-} from "@src/lib/itertools"
-import { contentState } from "@src/content/state_content"
-import * as config from "@src/lib/config"
-import Logger from "@src/lib/logging"
+} from "../lib/itertools"
+import { contentState } from "../content/state_content"
+import * as config from "../lib/config"
+import Logger from "../lib/logging"
 import * as R from "ramda"
 
 /** @hidden */
 const logger = new Logger("hinting")
-import * as keyseq from "@src/lib/keyseq"
+import * as keyseq from "../lib/keyseq"
 
 /** Calclate the distance between two segments.
  * @hidden
