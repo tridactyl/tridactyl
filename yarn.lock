@@ -2218,6 +2218,13 @@ ecdsa-sig-formatter@1.0.11:
   dependencies:
     safe-buffer "^5.0.1"
 
+editor-adapter@^0.0.1:
+  version "0.0.1"
+  resolved "https://registry.yarnpkg.com/editor-adapter/-/editor-adapter-0.0.1.tgz#97b26c11543cc323cd6d908f1cb65b122689be5e"
+  integrity sha512-8ROHaAtYdhM4vQJaz2+p3KcjkWF3HKhNaVm/SKJjiYYDhvYpCvIbrRAzTSGv8mBEypAfQZ3uV+J5fXS1H3So4w==
+  dependencies:
+    typescript "^4.3.5"
+
 emoji-regex@^7.0.1:
   version "7.0.3"
   resolved "https://registry.yarnpkg.com/emoji-regex/-/emoji-regex-7.0.3.tgz#933a04052860c85e83c122479c4748a8e4c72156"
@@ -6741,6 +6748,11 @@ typescript@^3.9.10:
   version "3.9.10"
   resolved "https://registry.yarnpkg.com/typescript/-/typescript-3.9.10.tgz#70f3910ac7a51ed6bef79da7800690b19bf778b8"
   integrity sha512-w6fIxVE/H1PkLKcCPsFqKE7Kv7QUwhU8qQY2MueZXWx5cPZdwFupLgKK3vntcK98BtNHZtAF4LA/yl2a7k8R6Q==
+
+typescript@^4.3.5:
+  version "4.3.5"
+  resolved "https://registry.yarnpkg.com/typescript/-/typescript-4.3.5.tgz#4d1c37cc16e893973c45a06886b7113234f119f4"
+  integrity sha512-DqQgihaQ9cUrskJo9kIyW/+g0Vxsk8cDtZ52a3NGh0YNTfpUSArXSohyUGnvbPazEPLu398C0UxmKSOrPumUzA==
 
 typical@^4.0.0:
   version "4.0.0"
