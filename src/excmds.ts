@@ -133,7 +133,7 @@ import * as DOM from "@src/lib/dom"
 import * as CommandLineContent from "@src/content/commandline_content"
 import * as scrolling from "@src/content/scrolling"
 import { ownTab } from "@src/lib/webext"
-import { wrap_input, getLineAndColNumber, rot13_helper, jumble_helper } from "@src/lib/editor_utils"
+import { rot13_helper, jumble_helper } from "@src/lib/editor_utils"
 import * as finding from "@src/content/finding"
 import * as toys from "./content/toys"
 import * as hinting from "@src/content/hinting"
@@ -253,7 +253,7 @@ export async function rssexec(url: string, type?: string, ...title: string[]) {
 }
 
 /**
- * Fills the element matched by `selector` with content and falls back to the last used input if the element can't be found. You probably don't want this; it's used internally for [[editor]].
+ * Fills the element matched by `selector` with content and falls back to the last used input if the element can't be found. You probably don't want this; it used to be used internally for [[editor]].
  *
  * That said, `bind gs fillinput null [Tridactyl](https://addons.mozilla.org/en-US/firefox/addon/tridactyl-vim/) is my favourite add-on` could probably come in handy.
  */
@@ -313,6 +313,9 @@ export function removeTridactylEditorClass(selector: string) {
     elem.className = elem.className.replace(" TridactylEditing ", "")
 }
 
+//#content_helper
+import { getEditor } from "editor-adapter"
+
 /**
  * Opens your favourite editor (which is currently gVim) and fills the last used input with whatever you write into that file.
  * **Requires that the native messenger is installed, see [[native]] and [[nativeinstall]]**.
@@ -346,24 +349,18 @@ export async function editor() {
 
     let ans
     try {
-        let text = ""
-        let line = 0
-        let col = 0
-        wrap_input((t, start) => {
-            ;[text, line, col] = getLineAndColNumber(t, start)
-            return [null, null, null]
-        })(elem)
-
-        // CodeMirror support
-        if (elem.parentNode?.parentElement?.className?.match(/CodeMirror/gi)) {
-            text = (elem.parentNode.parentElement as any).wrappedJSObject.CodeMirror.getValue()
-        }
+        const editor = getEditor(elem, { preferHTML: true })
+        const text = await editor.getContent()
+        const pos = await editor.getCursor()
 
         const file = (await Native.temp(text, document.location.hostname)).content
-        const exec = await Native.editor(file, line, col)
-        console.log(exec)
+        const exec = await Native.editor(file, ...pos)
+
         if (exec.code == 0) {
-            fillinput(selector, exec.content)
+            await editor.setContent(exec.content)
+            // TODO: ask the editor nicely where its cursor was left and use that
+            //          for now just try to put it where it started at
+            await editor.setCursor(...pos)
 
             // TODO: add annoying "This message was written with [Tridactyl](https://addons.mozilla.org/en-US/firefox/addon/tridactyl-vim/)" to everything written using editor
             ans = [file, exec.content]
