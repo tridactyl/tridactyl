@@ -39,6 +39,7 @@ function makeBlock() {
     overlaydiv.style.right = "0px"
     overlaydiv.style.zIndex = "1000"
     overlaydiv.style.opacity = "0.5"
+    overlaydiv.style.cursor = "none"
     document.body.appendChild(overlaydiv)
     return overlaydiv
 }

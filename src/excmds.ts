@@ -1606,7 +1606,7 @@ export async function credits() {
 }
 
 /**
- * Cover the current page in an overlay to prevent clicking on links with the mouse to force yourself to use hint mode. Get rid of it by reloading the page.
+ * Hides the cursor and covers the current page in an overlay to prevent clicking on links with the mouse to force yourself to use hint mode.
  *
  * To bring back mouse control, use [[mouse_mode]] or refresh the page.
  *
