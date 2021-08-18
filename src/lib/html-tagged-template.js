@@ -465,6 +465,7 @@
                                                 "data:image/jpg;base64",
                                                 "data:image/jpeg;base64",
                                                 "data:image/x-icon;base64",
+                                                "data:image/svg+xml;base64",
                                             ]
                                             // If substitutionValue doesn't start with any of the authorized protocols
                                             if (
