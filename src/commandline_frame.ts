@@ -41,7 +41,8 @@ import { contentState } from "@src/content/state_content"
 import { theme } from "@src/content/styling"
 import { getCommandlineFns } from "@src/lib/commandline_cmds"
 import * as tri_editor from "@src/lib/editor"
-import "@src/lib/DANGEROUS-html-tagged-template"
+import { h, render } from "preact"
+import htm from "htm"
 import Logger from "@src/lib/logging"
 import * as Messaging from "@src/lib/messaging"
 import "@src/lib/number.clamp"
@@ -53,6 +54,9 @@ import { KeyEventLike } from "./lib/keyseq"
 
 /** @hidden **/
 const logger = new Logger("cmdline")
+
+/** @hidden **/
+const html = htm.bind(h)
 
 /** @hidden **/
 const commandline_state = {
@@ -137,12 +141,13 @@ export function enableCompletions() {
             })
             .filter(c => c)
 
-        const fragment = document.createDocumentFragment()
-        commandline_state.activeCompletions.forEach(comp =>
-            fragment.appendChild(comp.node),
-        )
-        commandline_state.completionsDiv.appendChild(fragment)
-        logger.debug(commandline_state.activeCompletions)
+        // const fragment = document.createDocumentFragment()
+        // commandline_state.activeCompletions.forEach(comp =>
+        //     fragment.appendChild(comp.node),
+        // )
+        // commandline_state.completionsDiv.appendChild(fragment)
+        render(html`<div>ok</div>`, commandline_state.completionsDiv)
+        // logger.debug(commandline_state.activeCompletions)
     }
 }
 /* document.addEventListener("DOMContentLoaded", enableCompletions) */
