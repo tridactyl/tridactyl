@@ -16,6 +16,10 @@ import { toNumber } from "@src/lib/convert"
 import * as aliases from "@src/lib/aliases"
 import { backoff } from "@src/lib/patience"
 import * as config from "@src/lib/config"
+import htm from "htm"
+import { h } from "preact"
+
+const html = htm.bind(h)
 
 export const DEFAULT_FAVICON = browser.runtime.getURL(
     "static/defaultFavicon.svg",
@@ -34,7 +38,7 @@ export abstract class CompletionOption {
 
 export abstract class CompletionSource {
     readonly options: CompletionOption[]
-    node: HTMLElement
+    node: any
     public completion: string
     public args: string
     protected prefixes: string[] = []
@@ -62,11 +66,11 @@ export abstract class CompletionSource {
     set state(newstate: OptionState) {
         switch (newstate) {
             case "normal":
-                this.node.classList.remove("hidden")
+                // this.node.classList.remove("hidden")
                 this.completion = undefined
                 break
             case "hidden":
-                this.node.classList.add("hidden")
+                // this.node.classList.add("hidden")
                 break
         }
         this._prevState = this._state
@@ -100,7 +104,7 @@ export abstract class CompletionSource {
 // Default classes
 
 export abstract class CompletionOptionHTML extends CompletionOption {
-    public html: HTMLElement
+    public html: any
     public value
 
     private _state: OptionState = "hidden"
@@ -110,8 +114,8 @@ export abstract class CompletionOptionHTML extends CompletionOption {
         // console.log("state from to", this._state, newstate)
         switch (newstate) {
             case "focused":
-                this.html.classList.add("focused")
-                this.html.classList.remove("hidden")
+                // this.html.classList.add("focused")
+                // this.html.classList.remove("hidden")
                 const myRect = this.html.getClientRects()[0]
                 if (myRect) {
                     const container = document.getElementById("completions")
@@ -123,12 +127,12 @@ export abstract class CompletionOptionHTML extends CompletionOption {
                 }
                 break
             case "normal":
-                this.html.classList.remove("focused")
-                this.html.classList.remove("hidden")
+                // this.html.classList.remove("focused")
+                // this.html.classList.remove("hidden")
                 break
             case "hidden":
-                this.html.classList.remove("focused")
-                this.html.classList.add("hidden")
+                // this.html.classList.remove("focused")
+                // this.html.classList.add("hidden")
                 break
         }
         this._state = newstate
@@ -176,10 +180,12 @@ export abstract class CompletionSourceFuse extends CompletionSource {
 
     constructor(prefixes, className: string, title?: string) {
         super(prefixes)
-        this.node = html`<div class="${className} hidden">
+        // this.node = html`<div class="${className} hidden">
+        this.node = html`<div class="${className}">
             <div class="sectionHeader">${title || className}</div>
+            ${this.optionContainer}
+            ${this.options.map(o=>o.html)}
         </div>`
-        this.node.appendChild(this.optionContainer)
         this.state = "hidden"
     }
 
@@ -297,14 +303,14 @@ export abstract class CompletionSourceFuse extends CompletionSource {
 
     /** Call to replace the current display */
     updateDisplay() {
-        const newContainer = this.optionContainer.cloneNode(false) as HTMLElement
+        // const newContainer = this.optionContainer.cloneNode(false) as HTMLElement
+        let newContainer = []
 
         for (const option of this.options) {
             if (option.state !== "hidden")
                 // This is probably slow: `.html` means the HTML parser will be invoked
-                newContainer.appendChild(option.html)
+                newContainer.push(option)
         }
-        this.optionContainer.replaceWith(newContainer)
         this.optionContainer = newContainer
         this.next(0)
     }

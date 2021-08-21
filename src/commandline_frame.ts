@@ -115,29 +115,27 @@ export function enableCompletions() {
     if (!commandline_state.activeCompletions) {
         commandline_state.activeCompletions = [
             // FindCompletionSource,
-            BindingsCompletionSource,
-            BmarkCompletionSource,
-            TabAllCompletionSource,
+            // BindingsCompletionSource,
+            // BmarkCompletionSource,
+            // TabAllCompletionSource,
             BufferCompletionSource,
-            ExcmdCompletionSource,
-            ThemeCompletionSource,
-            CompositeCompletionSource,
-            FileSystemCompletionSource,
-            GuisetCompletionSource,
-            HelpCompletionSource,
-            AproposCompletionSource,
-            HistoryCompletionSource,
-            PreferenceCompletionSource,
-            RssCompletionSource,
-            SessionsCompletionSource,
-            SettingsCompletionSource,
-            WindowCompletionSource,
-            ExtensionsCompletionSource,
+            // ExcmdCompletionSource,
+            // ThemeCompletionSource,
+            // CompositeCompletionSource,
+            // FileSystemCompletionSource,
+            // GuisetCompletionSource,
+            // HelpCompletionSource,
+            // AproposCompletionSource,
+            // HistoryCompletionSource,
+            // PreferenceCompletionSource,
+            // RssCompletionSource,
+            // SessionsCompletionSource,
+            // SettingsCompletionSource,
+            // WindowCompletionSource,
+            // ExtensionsCompletionSource,
         ]
             .map(constructorr => {
-                try {
                     return new constructorr(commandline_state.completionsDiv)
-                } catch (e) {}
             })
             .filter(c => c)
 
@@ -145,8 +143,9 @@ export function enableCompletions() {
         // commandline_state.activeCompletions.forEach(comp =>
         //     fragment.appendChild(comp.node),
         // )
+        console.log(commandline_state.activeCompletions)
         // commandline_state.completionsDiv.appendChild(fragment)
-        render(html`<div>ok</div>`, commandline_state.completionsDiv)
+        render(commandline_state.activeCompletions[0].node, commandline_state.completionsDiv)
         // logger.debug(commandline_state.activeCompletions)
     }
 }
