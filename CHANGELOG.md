@@ -4,11 +4,27 @@
 
 -   New features
 
+    -   A `superignore` setting has been added which nearly totally disables Tridactyl, per page. Use it with `:seturl` only. If you break Tridactyl with it, remember that you can always use the `tri` keyword in the address bar to execute ex-commands (#3497)
+
     -   `:drawing{start,stop,erasertoggle}` added to scribble on pages
 
     -   `:hint -V` hint mode added, bound to `;V`, which adds hints to all matching elements on the page, including ones outside the viewport (#3534)
 
     -   `:set completionfuzziness [0-1]` added to control strictness of completion matches (#3556)
+
+    -   The cursor is no longer shown in no mouse mode (#3891)
+
+    -   For our own `:find` mode, there is now a `findhighlighttimeout` setting (in milliseconds) which allows you to control how long text stays highlighted after a search (#3854)
+
+    -   Tabs may now be renamed with `:tabrename` (#3577)
+
+    -   Hint mode now tidies up any previous hints when it is entered
+
+    -   `:colours midnight` added - a dark theme based on shydactyl (#3750)
+
+    -   `:urlmodify` can now accept a URL as an argument (#3748)
+
+    -   `:tabpush` now pushes to the next most recently used window if no other argument is given
 
 -   Bug fixes
 
@@ -36,6 +52,10 @@
 
     -   `:set auconcreatecontainer fales` is now respected (#3537)
 
+    -   GitHub and other SVG favicons should appear in the tab completions (#3892)
+
+    -   `:editor` now correctly returns a value (#3800)
+
 -   Miscellaneous
 
     -   We've switched from webpack to esbuild which has reduced dev-build times from 40 seconds to about 1 second (#3645)
@@ -51,6 +71,8 @@
     -   Hint mode is a bit faster (#3582)
 
     -   Dev builds of Tridactyl now open a new tab page when Tridactyl code is updated (#3564)
+
+    -   We're now using `firenvim`s web-editor library which means that CodeMirror, Monaco and other in-browser code editors now work with `:editor` (#3851)
 
 # Release 1.21.1 / 2021-03-19
 
