@@ -41,8 +41,7 @@ import { contentState } from "@src/content/state_content"
 import { theme } from "@src/content/styling"
 import { getCommandlineFns } from "@src/lib/commandline_cmds"
 import * as tri_editor from "@src/lib/editor"
-import { h, render } from "preact"
-import htm from "htm"
+import { html, render } from "htm/preact"
 import Logger from "@src/lib/logging"
 import * as Messaging from "@src/lib/messaging"
 import "@src/lib/number.clamp"
@@ -54,9 +53,6 @@ import { KeyEventLike } from "./lib/keyseq"
 
 /** @hidden **/
 const logger = new Logger("cmdline")
-
-/** @hidden **/
-const html = htm.bind(h)
 
 /** @hidden **/
 const commandline_state = {
@@ -118,7 +114,7 @@ export function enableCompletions() {
             // BindingsCompletionSource,
             // BmarkCompletionSource,
             // TabAllCompletionSource,
-            BufferCompletionSource,
+            // BufferCompletionSource,
             // ExcmdCompletionSource,
             // ThemeCompletionSource,
             // CompositeCompletionSource,
@@ -139,14 +135,95 @@ export function enableCompletions() {
             })
             .filter(c => c)
 
-        // const fragment = document.createDocumentFragment()
-        // commandline_state.activeCompletions.forEach(comp =>
-        //     fragment.appendChild(comp.node),
-        // )
-        console.log(commandline_state.activeCompletions)
-        // commandline_state.completionsDiv.appendChild(fragment)
-        render(commandline_state.activeCompletions[0].node, commandline_state.completionsDiv)
-        // logger.debug(commandline_state.activeCompletions)
+        const example_row = {
+            contents: [ // What to display in the row, relative widths and classes for styling
+                {text: "left", width: 1}, {text: "middle", width: 2, classes: ["url"]}, {text: "right"}
+            ],
+            completion: "left_right_middle", // What to insert if selected
+            type: "Tabs", // The name of the heading
+            score: 1, // score for sorting
+        }
+
+        const example_row2 = {
+            contents: [ // What to display in the row, relative widths and classes for styling
+                {text: "leftless", width: 1}, {text: "middle", width: 2, classes: ["url"]}, {text: "right"}
+            ],
+            completion: "left_right_middle", // What to insert if selected
+            type: "Tabs", // The name of the heading
+            score: 0, // score for sorting. higher is better. #decisive
+        }
+        
+        const example_row3 = {
+            contents: [ // What to display in the row, relative widths and classes for styling
+                {text: "leftless", width: 1}, {text: "middle", width: 2, classes: ["url"]}, {text: "right"}
+            ],
+            completion: "left_right_middle", // What to insert if selected
+            type: "Flabs", // The name of the heading
+            score: 0, // score for sorting. higher is better. #decisive
+        }
+
+        const norm_widths = row => {
+            const total = R.pipe(R.map(R.pipe(R.propOr(1, "width"), parseFloat)), R.sum)(row.contents)
+            for (const cell of row.contents) {
+                cell.width = (parseFloat(cell.width ?? 1) / total) * 100 + "%"
+            }
+            return row
+        }
+
+
+        const rows = R.sortBy(R.propOr(0, "score"))([example_row, example_row2, example_row3])
+        const sources = {}
+        for (const row of rows) {
+            if (sources[row.type] === undefined)
+                sources[row.type] = []
+            sources[row.type].push(row)
+        }
+
+
+        const row2tr = row => {
+            row = norm_widths(row)
+            return html`<tr>${row.contents.map(o =>
+                html`<td style="width:${o.width}">${o.text}</td>`
+            )}</tr>`
+        }
+
+        const sources2table = sources => {
+            return html`
+                <table style='width:100%'>
+                    ${
+                        Object.entries(sources).map(([source, rows]) => {
+                            return html`
+                                <th>${source}</th>
+                                ${rows.map(r => row2tr(r))}
+                            `
+                        })
+                    }
+                </table>
+            `
+        }
+
+        render(
+            sources2table(sources),
+            commandline_state.completionsDiv,
+        )
+
+        // What is a completion source?
+        //      function that takes filter text and returns array of objects with score for sorting, completion type, completion value, table rows and widths
+        //
+        //  Completion boss:
+        //      - which row is selected; which completion it belongs to
+        //          -> adding / removing css tags?
+        //              -> completions are not in charge of what is selected
+        //                  it's the job of the completion boss
+        //      - execute commands on completion rows
+        //          -> maybe allow multi-select?
+        //
+        //      - questions: 
+        //          - how can we add a 
+        //          (( this is the problem with stopping in the middle of something, I can't remember what I was writing. I'll just stare at this for a few minutes until I remember. Bear with me ...))
+        //          - ideally themes would be able to override the width
+        //
+        //  i.e. completion sources no longer handle html or styling directly, except for row width weight
     }
 }
 /* document.addEventListener("DOMContentLoaded", enableCompletions) */
