@@ -4058,7 +4058,7 @@ export function autocmddelete(event: string, url: string) {
  */
 //#background
 export function blacklistadd(url: string) {
-    return autocmd("DocStart", url, "mode ignore")
+    return autocmd("DocStart", url, "mode ignore") && autocmd("TabEnter", url, "mode ignore")
 }
 
 /** Unbind a sequence of keys so that they do nothing at all.
