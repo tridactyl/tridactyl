@@ -36,6 +36,7 @@ import { SettingsCompletionSource } from "@src/completions/Settings"
 import { BufferCompletionSource } from "@src/completions/Tab"
 import { TabAllCompletionSource } from "@src/completions/TabAll"
 import { ThemeCompletionSource } from "@src/completions/Theme"
+import { TabHistoryCompletionSource } from "@src/completions/TabHistory"
 import { WindowCompletionSource } from "@src/completions/Window"
 import { contentState } from "@src/content/state_content"
 import { theme } from "@src/content/styling"
@@ -117,6 +118,7 @@ export function enableCompletions() {
             BufferCompletionSource,
             ExcmdCompletionSource,
             ThemeCompletionSource,
+            TabHistoryCompletionSource,
             CompositeCompletionSource,
             FileSystemCompletionSource,
             GuisetCompletionSource,

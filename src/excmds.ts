@@ -988,6 +988,20 @@ export async function saveJumps(jumps) {
     return browserBg.sessions.setTabValue(await activeTabId(), "jumps", jumps)
 }
 
+/** @hidden */
+//#content_helper
+export async function saveTabHistory(history) {
+    return browserBg.sessions.setTabValue(await activeTabId(), "history", history)
+}
+
+/** Returns a promise for an object with history list, index of a current, previous and next pages */
+/** @hidden */
+//#content_helper
+export async function curTabHistory() {
+    const tabid = await activeTabId()
+    return await browserBg.sessions.getTabValue(tabid, "history")
+}
+
 /** Returns a promise for an object containing the jumplist of all pages accessed in the current tab.
     The keys of the object currently are the page's URL, however this might change some day. Use [[getJumpPageId]] to access the jumplist of a specific page.
     @hidden
@@ -1088,6 +1102,41 @@ document.addEventListener("scroll", addJump, { passive: true })
 // Try to restore the previous jump position every time a page is loaded
 //#content_helper
 document.addEventListener("load", () => curJumps().then(() => jumpprev(0)))
+
+// Adds a new entry to history list or updates it if already visited
+/** @hidden */
+//#content_helper
+export async function addTabHistory() {
+    let pages = await curTabHistory()
+    if (!pages)
+        pages = {
+            current: null,
+            prev: null,
+            next: null,
+            list: [],
+        }
+    const link = getJumpPageId()
+    const current = pages["list"].findIndex(item => item.href === link)
+    if (pages["list"][current]) {
+        pages["prev"] = pages["list"][current]["prev"]
+        pages["next"] = pages["list"][current]["next"]
+        pages["current"] = current
+    } else {
+        const tabData = await browserBg.tabs.query({ active: true, currentWindow: true })
+        pages["prev"] = pages["current"]
+        pages["next"] = null
+        pages["list"].push({
+            next: null,
+            prev: pages["current"],
+            title: document.title,
+            href: link,
+            icon: tabData[0].favIconUrl,
+        })
+        pages["current"] = pages["list"].length - 1
+        if (pages["list"][pages["prev"]]) pages["list"][pages["prev"]]["next"] = pages["current"]
+    }
+    saveTabHistory(pages)
+}
 
 /** Blur (unfocus) the active element */
 //#content
@@ -2025,7 +2074,10 @@ export async function reader() {
 loadaucmds("DocStart")
 const autocmd_logger = new Logging.Logger("autocmds")
 window.addEventListener("pagehide", () => loadaucmds("DocEnd"))
-window.addEventListener("DOMContentLoaded", () => loadaucmds("DocLoad"))
+window.addEventListener("DOMContentLoaded", () => {
+    addTabHistory()
+    loadaucmds("DocLoad")
+})
 
 // Unsupported edge-case: a SPA that doesn't have a UriChange autocmd changes URL to one that does.
 config.getAsync("autocmds", "UriChange").then(ausites => {
@@ -3559,6 +3611,15 @@ export async function tabrename(index: string, ...name: string[]) {
     return Messaging.messageTab(id, "excmd_content", "tabcurrentrename", name)
 }
 
+/** Show tab history.
+    @param link
+        URL of a page in history
+*/
+//#content
+export async function tabhistory(...link: string[]) {
+    open(link.join(""))
+}
+
 /** Helper to change active tab. Used by [[tab]] and [[taball]].
 
     @param interactive
@@ -3863,8 +3924,7 @@ export function setmode(mode: string, key: string, ...values: string[]) {
     if (!mode || !key || !values.length) {
         throw new Error("seturl syntax: mode key value")
     }
-    if (key !== "allowautofocus")
-        throw new Error("Setting '" + key + "' not supported with setmode")
+    if (key !== "allowautofocus") throw new Error("Setting '" + key + "' not supported with setmode")
 
     return config.set("modesubconfigs", mode, ...validateSetArgs(key, values))
 }
