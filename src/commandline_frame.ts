@@ -186,11 +186,11 @@ export function refresh_completions(exstr) {
 
     const sources2table = sources => {
         return html`
-            <table style='width:100%'>
+            <table style='width:100%' class="optionContainer">
                 ${
                     Object.entries(sources).map(([source, rows]) => {
                         return html`
-                            <th>${source}</th>
+                            <th class="sectionHeader">${source}</th>
                             ${rows.map(r => row2tr(r))}
                         `
                     })
