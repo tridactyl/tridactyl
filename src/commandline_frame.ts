@@ -45,11 +45,24 @@ import { html, render } from "htm/preact"
 import Logger from "@src/lib/logging"
 import * as Messaging from "@src/lib/messaging"
 import "@src/lib/number.clamp"
+import { euclid_mod } from "@src/lib/number.mod"
 import * as genericParser from "@src/parsers/genericmode"
 import * as perf from "@src/perf"
 import state, * as State from "@src/state"
 import * as R from "ramda"
 import { KeyEventLike } from "./lib/keyseq"
+
+let SELECTED_IND = 0
+
+function next(){
+    SELECTED_IND += 1
+    refresh_completions()
+}
+
+function prev(){
+    SELECTED_IND -= 1
+    refresh_completions()
+}
 
 /** @hidden **/
 const logger = new Logger("cmdline")
@@ -77,6 +90,8 @@ const commandline_state = {
     keyEvents: new Array<KeyEventLike>(),
     refresh_completions,
     state,
+    next,
+    prev,
 }
 
 // first theming of commandline iframe
@@ -106,125 +121,106 @@ function getCompletion(args_only = false) {
 }
 commandline_state.getCompletion = getCompletion
 
-/** @hidden **/
 export function enableCompletions() {
-    if (!commandline_state.activeCompletions) {
-        commandline_state.activeCompletions = [
-            // FindCompletionSource,
-            // BindingsCompletionSource,
-            // BmarkCompletionSource,
-            // TabAllCompletionSource,
-            // BufferCompletionSource,
-            // ExcmdCompletionSource,
-            // ThemeCompletionSource,
-            // CompositeCompletionSource,
-            // FileSystemCompletionSource,
-            // GuisetCompletionSource,
-            // HelpCompletionSource,
-            // AproposCompletionSource,
-            // HistoryCompletionSource,
-            // PreferenceCompletionSource,
-            // RssCompletionSource,
-            // SessionsCompletionSource,
-            // SettingsCompletionSource,
-            // WindowCompletionSource,
-            // ExtensionsCompletionSource,
-        ]
-            .map(constructorr => {
-                    return new constructorr(commandline_state.completionsDiv)
-            })
-            .filter(c => c)
+    commandline_state.activeCompletions = []
+    return refresh_completions()
+}
 
-        const example_row = {
-            contents: [ // What to display in the row, relative widths and classes for styling
-                {text: "left", width: 1}, {text: "middle", width: 2, classes: ["url"]}, {text: "right"}
-            ],
-            completion: "left_right_middle", // What to insert if selected
-            type: "Tabs", // The name of the heading
-            score: 1, // score for sorting
-        }
-
-        const example_row2 = {
-            contents: [ // What to display in the row, relative widths and classes for styling
-                {text: "leftless", width: 1}, {text: "middle", width: 2, classes: ["url"]}, {text: "right"}
-            ],
-            completion: "left_right_middle", // What to insert if selected
-            type: "Tabs", // The name of the heading
-            score: 0, // score for sorting. higher is better. #decisive
-        }
-        
-        const example_row3 = {
-            contents: [ // What to display in the row, relative widths and classes for styling
-                {text: "leftless", width: 1}, {text: "middle", width: 2, classes: ["url"]}, {text: "right"}
-            ],
-            completion: "left_right_middle", // What to insert if selected
-            type: "Flabs", // The name of the heading
-            score: 0, // score for sorting. higher is better. #decisive
-        }
-
-        const norm_widths = row => {
-            const total = R.pipe(R.map(R.pipe(R.propOr(1, "width"), parseFloat)), R.sum)(row.contents)
-            for (const cell of row.contents) {
-                cell.width = (parseFloat(cell.width ?? 1) / total) * 100 + "%"
-            }
-            return row
-        }
-
-
-        const rows = R.sortBy(R.propOr(0, "score"))([example_row, example_row2, example_row3])
-        const sources = {}
-        for (const row of rows) {
-            if (sources[row.type] === undefined)
-                sources[row.type] = []
-            sources[row.type].push(row)
-        }
-
-
-        const row2tr = row => {
-            row = norm_widths(row)
-            return html`<tr>${row.contents.map(o =>
-                html`<td style="width:${o.width}">${o.text}</td>`
-            )}</tr>`
-        }
-
-        const sources2table = sources => {
-            return html`
-                <table style='width:100%'>
-                    ${
-                        Object.entries(sources).map(([source, rows]) => {
-                            return html`
-                                <th>${source}</th>
-                                ${rows.map(r => row2tr(r))}
-                            `
-                        })
-                    }
-                </table>
-            `
-        }
-
-        render(
-            sources2table(sources),
-            commandline_state.completionsDiv,
-        )
-
-        // What is a completion source?
-        //      function that takes filter text and returns array of objects with score for sorting, completion type, completion value, table rows and widths
-        //
-        //  Completion boss:
-        //      - which row is selected; which completion it belongs to
-        //          -> adding / removing css tags?
-        //              -> completions are not in charge of what is selected
-        //                  it's the job of the completion boss
-        //      - execute commands on completion rows
-        //          -> maybe allow multi-select?
-        //
-        //      - questions: 
-        //          - how can we add a 
-        //          (( this is the problem with stopping in the middle of something, I can't remember what I was writing. I'll just stare at this for a few minutes until I remember. Bear with me ...))
-        //          - ideally themes would be able to override the width
-        //
-        //  i.e. completion sources no longer handle html or styling directly, except for row width weight
+export function refresh_completions(exstr) {
+    const example_row = {
+        contents: [ // What to display in the row, relative widths and classes for styling
+            {text: "left", width: 1}, {text: "middle", width: 2, classes: ["url"]}, {text: "right"}
+        ],
+        completion: "left_right_middle", // What to insert if selected
+        type: "Tabs", // The name of the heading
+        score: 1, // score for sorting
+        // focused: true, // shouldn't be set here
     }
+
+    const example_row2 = {
+        contents: [ // What to display in the row, relative widths and classes for styling
+            {text: "leftless", width: 1}, {text: "middle", width: 2, classes: ["url"]}, {text: "right"}
+        ],
+        completion: "left_right_middle", // What to insert if selected
+        type: "Tabs", // The name of the heading
+        score: 0, // score for sorting. higher is better. #decisive
+    }
+    
+    const example_row3 = {
+        contents: [ // What to display in the row, relative widths and classes for styling
+            {text: "leftless", width: 1}, {text: "middle", width: 2, classes: ["url"]}, {text: "right"}
+        ],
+        completion: "left_right_middle", // What to insert if selected
+        type: "Flabs", // The name of the heading
+        score: 0, // score for sorting. higher is better. #decisive
+    }
+
+    const norm_widths = row => {
+        const total = R.pipe(R.map(R.pipe(R.propOr(1, "width"), parseFloat)), R.sum)(row.contents)
+        for (const cell of row.contents) {
+            cell.width = (parseFloat(cell.width ?? 1) / total) * 100 + "%"
+        }
+        return row
+    }
+
+
+    // This needs to sort by type + score
+    // i.e. it should be in the same order that it appears
+    const rows = R.sortBy(R.propOr(0, "score"))([example_row, example_row2, example_row3])
+    const sources = {}
+    for (const row of rows) {
+        if (sources[row.type] === undefined)
+            sources[row.type] = []
+        sources[row.type].push(row)
+    }
+
+    rows[euclid_mod(SELECTED_IND,rows.length)]["focused"] = true
+
+
+    const row2tr = row => {
+        row = norm_widths(row)
+        return html`<tr class="${row.focused ? "focused" : ""}">${row.contents.map(o =>
+            html`<td style="width:${o.width}" class="${o.classes?.join(" ") ?? ""}">${o.text}</td>`
+        )}</tr>`
+    }
+
+    const sources2table = sources => {
+        return html`
+            <table style='width:100%'>
+                ${
+                    Object.entries(sources).map(([source, rows]) => {
+                        return html`
+                            <th>${source}</th>
+                            ${rows.map(r => row2tr(r))}
+                        `
+                    })
+                }
+            </table>
+        `
+    }
+
+    render(
+        sources2table(sources),
+        commandline_state.completionsDiv,
+    )
+
+    // What is a completion source?
+    //      function that takes filter text and returns array of objects with score for sorting, completion type, completion value, table rows and widths
+    //
+    //  Completion boss:
+    //      - which row is selected; which completion it belongs to
+    //          -> adding / removing css tags?
+    //              -> completions are not in charge of what is selected
+    //                  it's the job of the completion boss
+    //      - execute commands on completion rows
+    //          -> maybe allow multi-select?
+    //
+    //      - questions: 
+    //          - how can we add a 
+    //          (( this is the problem with stopping in the middle of something, I can't remember what I was writing. I'll just stare at this for a few minutes until I remember. Bear with me ...))
+    //          - ideally themes would be able to override the width
+    //
+    //  i.e. completion sources no longer handle html or styling directly, except for row width weight
 }
 /* document.addEventListener("DOMContentLoaded", enableCompletions) */
 
@@ -315,21 +311,6 @@ commandline_state.clInput.addEventListener(
     true,
 )
 
-export function refresh_completions(exstr) {
-    if (!commandline_state.activeCompletions) enableCompletions()
-    return Promise.all(
-        commandline_state.activeCompletions.map(comp =>
-            comp.filter(exstr).then(() => {
-                if (comp.shouldRefresh()) {
-                    return resizeArea()
-                }
-            }),
-        ),
-    ).catch(err => {
-        console.error(err)
-        return []
-    }) // We can't use the regular logging mechanism because the user is using the command line.
-}
 
 /** @hidden **/
 let onInputPromise: Promise<any> = Promise.resolve()
