@@ -1180,6 +1180,9 @@ export async function scrolltab(tabId: number, scrollX: number, scrollY: number,
  */
 //#content
 export async function markadd(key: string) {
+    if ((await browser.windows.getCurrent()).incognito) {
+        throw new Error("Marks cannot be set in private mode")
+    }
     // TODO: i18n: this should only ban numbers, not e.g. cyrillic
     if (!/[a-z]/i.exec(key) || key.length !== 1) {
         throw new Error("markadd accepts only a single letter")
