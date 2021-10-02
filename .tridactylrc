@@ -146,6 +146,9 @@
 " 
 " " Make quickmarks for the sane Tridactyl issue view
 " quickmark t https://github.com/tridactyl/tridactyl/issues?utf8=%E2%9C%93&q=sort%3Aupdated-desc+
+
+" " Quickmark for PRs by humans
+" quickmark p https://github.com/tridactyl/tridactyl/pulls?q=is%3Apr+is%3Aopen+-label%3Adependencies+-author%3Abovine3dom+sort%3Aupdated-desc
 " 
 " " Inject Google Translate
 " " This (clearly) is remotely hosted code. Google will be sent the whole
