@@ -29,7 +29,7 @@ export class TabHistoryCompletionSource extends Completions.CompletionSourceFuse
     public options: TabHistoryCompletionOption[]
 
     constructor(private _parent) {
-        super(["tabhistory"], "TabHistoryCompletionSource", "TabHistory")
+        super(["back", "forward"], "TabHistoryCompletionSource", "TabHistory")
 
         this.updateOptions()
         this._parent.appendChild(this.node)

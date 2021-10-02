@@ -1283,14 +1283,18 @@ function history(n: number) {
 
 /** Navigate forward one page in history. */
 //#content
-export function forward(n = 1) {
-    history(n)
+export function forward(...args: string[]) {
+    let url_or_num = args.join(" ")
+    url_or_num = url_or_num == "" ? 1 : url_or_num
+    isNaN(url_or_num) ? open(url_or_num) : history(parseInt(url_or_num))
 }
 
 /** Navigate back one page in history. */
 //#content
-export function back(n = 1) {
-    history(n * -1)
+export function back(...args: string[]) {
+    let url_or_num = args.join(" ")
+    url_or_num = url_or_num == "" ? 1 : url_or_num
+    isNaN(url_or_num) ? open(url_or_num) : history(parseInt(url_or_num) * -1)
 }
 
 /** Reload the next n tabs, starting with activeTab, possibly bypassingCache */
@@ -3609,15 +3613,6 @@ export function tabcurrentrename(...name: string[]) {
 export async function tabrename(index: string, ...name: string[]) {
     const id = await idFromIndex(index)
     return Messaging.messageTab(id, "excmd_content", "tabcurrentrename", name)
-}
-
-/** Show tab history.
-    @param link
-        URL of a page in history
-*/
-//#content
-export async function tabhistory(...link: string[]) {
-    open(link.join(""))
 }
 
 /** Helper to change active tab. Used by [[tab]] and [[taball]].
