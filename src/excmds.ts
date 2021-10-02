@@ -1043,11 +1043,11 @@ export function jumpprev(n = 1) {
         if (current < 0) {
             jumps.cur = 0
             saveJumps(alljumps)
-            return back(-current)
+            return back(-current + "")
         } else if (current >= jumps.list.length) {
             jumps.cur = jumps.list.length - 1
             saveJumps(alljumps)
-            return forward(current - jumps.list.length + 1)
+            return forward(current - jumps.list.length + 1 + "")
         }
         jumps.cur = current
         const p = jumps.list[jumps.cur]
@@ -1277,24 +1277,21 @@ export function clearsearchhighlight() {
 
 /** @hidden */
 //#content_helper
-function history(n: number) {
-    window.history.go(n)
+function history(url_or_num: string, direction: number) {
+    url_or_num = url_or_num == "" ? "1" : url_or_num
+    isNaN(url_or_num as unknown as number) ? open(url_or_num) : window.history.go(parseInt(url_or_num, 10) * direction)
 }
 
 /** Navigate forward one page in history. */
 //#content
 export function forward(...args: string[]) {
-    let url_or_num = args.join(" ")
-    url_or_num = url_or_num == "" ? 1 : url_or_num
-    isNaN(url_or_num) ? open(url_or_num) : history(parseInt(url_or_num))
+    return history(args.join(" "), 1)
 }
 
 /** Navigate back one page in history. */
 //#content
 export function back(...args: string[]) {
-    let url_or_num = args.join(" ")
-    url_or_num = url_or_num == "" ? 1 : url_or_num
-    isNaN(url_or_num) ? open(url_or_num) : history(parseInt(url_or_num) * -1)
+    return history(args.join(" "), -1)
 }
 
 /** Reload the next n tabs, starting with activeTab, possibly bypassingCache */
