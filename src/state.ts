@@ -91,7 +91,9 @@ const state = new Proxy(overlay, {
     },
 })
 
-export async function getAsync(property) {
+export async function getAsync<K extends keyof State>(
+    property: K,
+): Promise<State[K]> {
     if (notBackground())
         return browser.runtime.sendMessage({
             type: "state",

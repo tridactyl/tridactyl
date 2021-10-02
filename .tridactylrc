@@ -1,161 +1,173 @@
-" bovine3dom's dogfood
-
-" WARNING: This file defines and runs a command called fixamo_quiet. If you
-" also have a malicious addon that operates on `<all_urls>` installed this
-" will allow it to steal your firefox account credentials!
+" " bovine3dom's dogfood
 "
-" With those credentials, an attacker can read anything in your sync account,
-" publish addons to the AMO, etc, etc.
-"
-" Without this command a malicious addon can steal credentials from any site
-" that you visit that is not in the restrictedDomains list.
-"
-" You should comment out the fixamo lines unless you are entirely sure that
-" they are what you want.
-"
-" The advantage of running the command is that you can use the tridactyl
-" interface on addons.mozilla.org and other restricted sites.
-
-" Provided only as an example.
-" Do not install/run without reading through as you may be surprised by some
-" of the settings.
-
-" May require the latest beta builds.
-
-" Move this to $XDG_CONFIG_DIR/tridactyl/tridactylrc (that's
-" ~/.config/tridactyl/tridactylrc to mere mortals) or ~/.tridactylrc and
-" install the native messenger (:installnative in Tridactyl). Run :source to
-" get it in the browser, or just restart.
-
-" NB: If you want "vim-like" behaviour where removing a line from
-" here makes the setting disappear, uncomment the line below.
-
-"sanitise tridactyllocal tridactylsync
-
-"
-" Binds
-"
-
-" Comment toggler for Reddit, Hacker News and Lobste.rs
-bind ;c hint -Jc [class*="expand"],[class="togg"],[class="comment_folder"]
-
-" GitHub pull request checkout command to clipboard (only works if you're a collaborator or above)
-bind yp composite js document.getElementById("clone-help-step-1").textContent.replace("git checkout -b", "git checkout -B").replace("git pull ", "git fetch ") + "git reset --hard " + document.getElementById("clone-help-step-1").textContent.split(" ")[3].replace("-","/") | yank
-
-" Git{Hub,Lab} git clone via SSH yank
-bind yg composite js "git clone " + document.location.href.replace(/https?:\/\//,"git@").replace("/",":").replace(/$/,".git") | clipboard yank
-
-" As above but execute it and open terminal in folder
-bind ,g js let uri = document.location.href.replace(/https?:\/\//,"git@").replace("/",":").replace(/$/,".git"); tri.native.run("cd ~/projects; git clone " + uri + "; cd \"$(basename \"" + uri + "\" .git)\"; st")
-
-
-" make d take you to the tab you were just on (I find it much less confusing)
-bind d composite tab #; tabclose #
-bind D tabclose
-
-" I like wikiwand but I don't like the way it changes URLs
-bindurl wikiwand.com yy composite js document.location.href.replace("wikiwand.com/en","wikipedia.org/wiki") | clipboard yank
-
-" Make gu take you back to subreddit from comments
-bindurl reddit.com gu urlparent 4
-
-" Only hint search results on Google and DDG
-bindurl www.google.com f hint -Jc .rc > .r > a
-bindurl www.google.com F hint -Jbc .rc>.r>a
-
-bindurl ^https://duckduckgo.com f hint -Jc [class=result__a]
-bindurl ^https://duckduckgo.com F hint -Jbc [class=result__a]
-
-" Allow Ctrl-a to select all in the commandline
-unbind --mode=ex <C-a>
-
-" Allow Ctrl-c to copy in the commandline
-unbind --mode=ex <C-c>
-
-" Handy multiwindow/multitasking binds
-bind gd tabdetach
-bind gD composite tabduplicate; tabdetach
-
-" Make yy use canonical / short links on the 5 websites that support them
-bind yy clipboard yankcanon
-
-" Stupid workaround to let hint -; be used with composite which steals semi-colons
-command hint_focus hint -;
-
-" Open right click menu on links
-bind ;C composite hint_focus; !s xdotool key Menu
-
-" Julia docs' built in search is bad
-set searchurls.julia https://www.google.com/search?q=site:http://docs.julialang.org/en/v1%20
-
-"
-" Misc settings
-"
-
-" set editorcmd to suckless terminal, or use the defaults on other platforms
-js tri.browserBg.runtime.getPlatformInfo().then(os=>{const editorcmd = os.os=="linux" ? "st vim" : "auto"; tri.config.set("editorcmd", editorcmd)})
-
-" set profile dir on Windows
-jsb browser.runtime.getPlatformInfo().then(os=>{const profiledir = os.os=="win" ? "C:\\Users\\olie\\AppData\\Roaming\\Mozilla\\Firefox\\Profiles\\gwm76nmk.default" : "auto"; tri.config.set("profiledir", profiledir)})
-
-" Sane hinting mode
-set hintfiltermode vimperator-reflow
-set hintnames numeric
-
-" Defaults to 300ms but I'm a 'move fast and close the wrong tabs' kinda chap
-set hintdelay 100
-
-" Add helper commands that Mozillians think make Firefox irredeemably
-" insecure. For details, read the comment at the top of this file.
-command fixamo_quiet jsb tri.excmds.setpref("privacy.resistFingerprinting.block_mozAddonManager", "true").then(tri.excmds.setpref("extensions.webextensions.restrictedDomains", '""'))
-command fixamo js tri.excmds.setpref("privacy.resistFingerprinting.block_mozAddonManager", "true").then(tri.excmds.setpref("extensions.webextensions.restrictedDomains", '""').then(tri.excmds.fillcmdline_tmp(3000, "Permissions added to user.js. Please restart Firefox to make them take affect.")))
-
-" Make Tridactyl work on more sites at the expense of some security. For
-" details, read the comment at the top of this file.
-fixamo_quiet
-
-" Equivalent to `set csp clobber` before it was removed. This weakens your
-" defences against cross-site-scripting attacks and other types of
-" code-injection by reducing the strictness of Content Security Policy on
-" every site in a couple of ways.
-"
-" You may not wish to run this. Mozilla strongly feels that you shouldn't.
-"
-" It allows Tridactyl to function on more pages, e.g. raw GitHub pages.
+" " Every line in this file is commented out because in general they're all bad ideas.
+" " If anything in here was a good idea, it would be default behaviour in Tridactyl.
+" " It's just a collection of interesting ideas that happen to also be bovine3dom's
+" " RC file
 " 
-" We remove the sandbox directive
-" https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy/sandbox
-" which allows our iframe to run (and anyone else's) on any website.
-"
-" We weaken the style-src directive
-" https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy/style-src
-" to allow us to theme our elements. This exposes you to 'cross site styling'
-" attacks.
-"
-" Read https://wiki.mozilla.org/Security/CSP#Goals for more information.
-jsb browser.webRequest.onHeadersReceived.addListener(tri.request.clobberCSP,{urls:["<all_urls>"],types:["main_frame"]},["blocking","responseHeaders"])
+" " WARNING: This file defines and runs a command called fixamo_quiet. If you
+" " also have a malicious addon that operates on `<all_urls>` installed this
+" " will allow it to steal your firefox account credentials!
+" "
+" " With those credentials, an attacker can read anything in your sync account,
+" " publish addons to the AMO, etc, etc.
+" "
+" " Without this command a malicious addon can steal credentials from any site
+" " that you visit that is not in the restrictedDomains list.
+" "
+" " You should comment out the fixamo lines unless you are entirely sure that
+" " they are what you want.
+" "
+" " The advantage of running the command is that you can use the tridactyl
+" " interface on addons.mozilla.org and other restricted sites.
+" 
+" " Provided only as an example.
+" " Do not install/run without reading through as you may be surprised by some
+" " of the settings.
+" 
+" " May require the latest beta builds.
+" 
+" " Uncomment the lines you want to keep then move this file to 
+" " $XDG_CONFIG_DIR/tridactyl/tridactylrc (that's
+" " ~/.config/tridactyl/tridactylrc to mere mortals) or ~/.tridactylrc and
+" " install the native messenger (:installnative in Tridactyl). Run :source to
+" " get it in the browser, or just restart.
+" 
+" " If you're bovine3dom run sed 's|^" ||' .tridactylrc > ~/.config/tridactyl/tridactylrc
+" 
+" 
+" "
+" " Binds
+" "
+" 
+" " Comment toggler for Reddit, Hacker News and Lobste.rs
+" bind ;c hint -Jc [class*="expand"],[class="togg"],[class="comment_folder"]
+" 
+" " GitHub pull request checkout command to clipboard (only works if you're a collaborator or above)
+" bind yp composite js document.getElementById("clone-help-step-1").textContent.replace("git checkout -b", "git checkout -B").replace("git pull ", "git fetch ") + "git reset --hard " + document.getElementById("clone-help-step-1").textContent.split(" ")[3].replace("-","/") | yank
+" 
+" " Git{Hub,Lab} git clone via SSH yank
+" bind yg composite js "git clone " + document.location.href.replace(/https?:\/\//,"git@").replace("/",":").replace(/$/,".git") | clipboard yank
+" 
+" " As above but execute it and open terminal in folder
+" bind ,g js let uri = document.location.href.replace(/https?:\/\//,"git@").replace("/",":").replace(/$/,".git"); tri.native.run("cd ~/projects; git clone " + uri + "; cd \"$(basename \"" + uri + "\" .git)\"; st")
+" 
+" 
+" " make d take you to the left (I find it much less confusing)
+" bind d composite tabprev; tabclose #
+" bind D tabclose
+" 
+" " make t open the selection with tabopen
+" bind --mode=visual t composite js document.getSelection().toString() | fillcmdline tabopen
+" 
+" " I like wikiwand but I don't like the way it changes URLs
+" bindurl wikiwand.com yy composite js document.location.href.replace("wikiwand.com/en","wikipedia.org/wiki") | clipboard yank
+" 
+" " Make gu take you back to subreddit from comments
+" bindurl reddit.com gu urlparent 4
+" 
+" " Only hint search results on Google and DDG
+" bindurl www.google.com f hint -Jc #search div:not(.action-menu) > a
+" bindurl www.google.com F hint -Jbc #search div:not(.action-menu) > a
+" 
+" 
+" " DDG binds are broken as of May 2021
+" " bindurl ^https://duckduckgo.com f hint -Jc [class=result__a]
+" " bindurl ^https://duckduckgo.com F hint -Jbc [class=result__a]
+" 
+" " Allow Ctrl-a to select all in the commandline
+" unbind --mode=ex <C-a>
+" 
+" " Allow Ctrl-c to copy in the commandline
+" unbind --mode=ex <C-c>
+" 
+" " Handy multiwindow/multitasking binds
+" bind gd tabdetach
+" bind gD composite tabduplicate; tabdetach
+" 
+" " Stupid workaround to let hint -; be used with composite which steals semi-colons
+" command hint_focus hint -;
+" 
+" " Open right click menu on links
+" bind ;C composite hint_focus; !s xdotool key Menu
+" 
+" " Suspend / "discard" all tabs - handy for stretching out battery life
+" command discardall jsb browser.tabs.query({}).then(ts => browser.tabs.discard(ts.map(t=>t.id)))
+" 
+" " Julia docs' built in search is bad
+" set searchurls.julia https://www.google.com/search?q=site:http://docs.julialang.org/en/v1%20
+" 
+" "
+" " Misc settings
+" "
+" 
+" " set editorcmd to suckless terminal, or use the defaults on other platforms
+" js tri.browserBg.runtime.getPlatformInfo().then(os=>{const editorcmd = os.os=="linux" ? "st vim" : "auto"; tri.config.set("editorcmd", editorcmd)})
+" 
+" " set profile dir on Windows
+" jsb browser.runtime.getPlatformInfo().then(os=>{const profiledir = os.os=="win" ? "C:\\Users\\olie\\AppData\\Roaming\\Mozilla\\Firefox\\Profiles\\gwm76nmk.default" : "auto"; tri.config.set("profiledir", profiledir)})
+" 
+" " Sane hinting mode
+" set hintfiltermode vimperator-reflow
+" set hintnames numeric
+" 
+" " Defaults to 300ms but I'm a 'move fast and close the wrong tabs' kinda chap
+" set hintdelay 100
+" 
+" " Add helper commands that Mozillians think make Firefox irredeemably
+" " insecure. For details, read the comment at the top of this file.
+" command fixamo_quiet jsb tri.excmds.setpref("privacy.resistFingerprinting.block_mozAddonManager", "true").then(tri.excmds.setpref("extensions.webextensions.restrictedDomains", '""'))
+" command fixamo js tri.excmds.setpref("privacy.resistFingerprinting.block_mozAddonManager", "true").then(tri.excmds.setpref("extensions.webextensions.restrictedDomains", '""').then(tri.excmds.fillcmdline_tmp(3000, "Permissions added to user.js. Please restart Firefox to make them take affect.")))
+" 
+" " Make Tridactyl work on more sites at the expense of some security. For
+" " details, read the comment at the top of this file.
+" fixamo_quiet
+" 
+" " Equivalent to `set csp clobber` before it was removed. This weakens your
+" " defences against cross-site-scripting attacks and other types of
+" " code-injection by reducing the strictness of Content Security Policy on
+" " every site in a couple of ways.
+" "
+" " You may not wish to run this. Mozilla strongly feels that you shouldn't.
+" "
+" " It allows Tridactyl to function on more pages, e.g. raw GitHub pages.
+" " 
+" " We remove the sandbox directive
+" " https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy/sandbox
+" " which allows our iframe to run (and anyone else's) on any website.
+" "
+" " We weaken the style-src directive
+" " https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy/style-src
+" " to allow us to theme our elements. This exposes you to 'cross site styling'
+" " attacks.
+" "
+" " Read https://wiki.mozilla.org/Security/CSP#Goals for more information.
+" jsb browser.webRequest.onHeadersReceived.addListener(tri.request.clobberCSP,{urls:["<all_urls>"],types:["main_frame"]},["blocking","responseHeaders"])
+" 
+" " Make quickmarks for the sane Tridactyl issue view
+" quickmark t https://github.com/tridactyl/tridactyl/issues?utf8=%E2%9C%93&q=sort%3Aupdated-desc+
 
-" Make quickmarks for the sane Tridactyl issue view
-quickmark t https://github.com/tridactyl/tridactyl/issues?utf8=%E2%9C%93&q=sort%3Aupdated-desc+
-
-" Inject Google Translate
-" This (clearly) is remotely hosted code. Google will be sent the whole
-" contents of the page you are on if you run `:translate`
-" From https://github.com/jeremiahlee/page-translator
-command translate js let googleTranslateCallback = document.createElement('script'); googleTranslateCallback.innerHTML = "function googleTranslateElementInit(){ new google.translate.TranslateElement(); }"; document.body.insertBefore(googleTranslateCallback, document.body.firstChild); let googleTranslateScript = document.createElement('script'); googleTranslateScript.charset="UTF-8"; googleTranslateScript.src = "https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit&tl=&sl=&hl="; document.body.insertBefore(googleTranslateScript, document.body.firstChild);
-
-"
-" URL redirects
-"
-
-" New reddit is bad
-autocmd DocStart ^http(s?)://www.reddit.com js tri.excmds.urlmodify("-t", "www", "old")
-" Mosquito nets won't make themselves
-autocmd DocStart ^http(s?)://www.amazon.co.uk js tri.excmds.urlmodify("-t", "www", "smile")
-
-" Isolate Facebook in its own container
-" set auconcreatecontainer true
-" autocontain facebook\.com facebook
-
-" For syntax highlighting see https://github.com/tridactyl/vim-tridactyl
-" vim: set filetype=tridactyl
+" " Quickmark for PRs by humans
+" quickmark p https://github.com/tridactyl/tridactyl/pulls?q=is%3Apr+is%3Aopen+-label%3Adependencies+-author%3Abovine3dom+sort%3Aupdated-desc
+" 
+" " Inject Google Translate
+" " This (clearly) is remotely hosted code. Google will be sent the whole
+" " contents of the page you are on if you run `:translate`
+" " From https://github.com/jeremiahlee/page-translator
+" command translate js let googleTranslateCallback = document.createElement('script'); googleTranslateCallback.innerHTML = "function googleTranslateElementInit(){ new google.translate.TranslateElement(); }"; document.body.insertBefore(googleTranslateCallback, document.body.firstChild); let googleTranslateScript = document.createElement('script'); googleTranslateScript.charset="UTF-8"; googleTranslateScript.src = "https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit&tl=&sl=&hl="; document.body.insertBefore(googleTranslateScript, document.body.firstChild);
+" 
+" "
+" " URL redirects
+" "
+" 
+" " New reddit is bad
+" autocmd DocStart ^http(s?)://www.reddit.com js tri.excmds.urlmodify("-t", "www", "old")
+" " Mosquito nets won't make themselves
+" autocmd DocStart ^http(s?)://www.amazon.co.uk js tri.excmds.urlmodify("-t", "www", "smile")
+" 
+" " Isolate Facebook in its own container
+" " set auconcreatecontainer true
+" " autocontain facebook\.com facebook
+" 
+" " For syntax highlighting see https://github.com/tridactyl/vim-tridactyl
+" " vim: set filetype=tridactyl

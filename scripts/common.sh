@@ -34,8 +34,13 @@ eslintUgly() {
     local IFS=$'\n'
     local tmpdir
 
-    mkdir -p .tmp
-    tmpdir=$(mktemp --tmpdir=".tmp/" -d "tslint.XXXXXXXXX")
+    mkdir -p ".tmp"
+    if [[ "$(uname)" == "Darwin" ]]; then
+        tmpdir=$(gmktemp --tmpdir=".tmp/" -d "tslint.XXXXXXXXX")
+    else
+        tmpdir=$(mktemp --tmpdir=".tmp/" -d "tslint.XXXXXXXXX")
+    fi
+
     for jsfile in "$@"; do
         tmpfile="$tmpdir/$jsfile"
         mkdir -p "$(dirname "$tmpfile")"

@@ -16,11 +16,11 @@ export const KNOWN_EXTENSIONS: { [name: string]: string } = {
 /** List of currently installed extensions.
  */
 const installedExtensions: {
-    [id: string]: browser.management.IExtensionInfo
+    [id: string]: browser.management.ExtensionInfo
 } = {}
 
 function updateExtensionInfo(
-    extension: browser.management.IExtensionInfo,
+    extension: browser.management.ExtensionInfo,
 ): void {
     installedExtensions[extension.id] = extension
 }

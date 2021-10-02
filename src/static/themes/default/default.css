@@ -6,7 +6,8 @@
     --tridactyl-small-font-size: 12px;
     --tridactyl-bg: white;
     --tridactyl-fg: black;
-    --tridactyl-logo: url("data:image/png;base64,REPLACE_ME_WITH_BASE64_TRIDACTYL_LOGO");
+    --tridactyl-logo: url("moz-extension://__MSG_@@extension_id__/static/logo/Tridactyl_64px.png");
+    --tridactyl-scrollbar-color: auto;
 
     /* Mode indicator */
     --tridactyl-status-font-family: var(--tridactyl-font-family);
@@ -82,6 +83,7 @@
      * ????
      */
 
+    --tridactyl-header-font-size: inherit;
     --tridactyl-header-font-weight: bold;
     /* i don't think 0.5px is redered */
     --tridactyl-header-border-bottom: 1px solid bottom;

@@ -6,7 +6,7 @@ It represents the closest reasonable ESLint configuration to this
 project's original TSLint configuration.
 
 We recommend eventually switching this configuration to extend from
-the recommended rulesets in typescript-eslint. 
+the recommended rulesets in typescript-eslint.
 https://github.com/typescript-eslint/tslint-to-eslint-config/blob/master/docs/FAQs.md
 
 Happy linting! 💖
@@ -21,7 +21,6 @@ module.exports = {
         "plugin:@typescript-eslint/recommended",
         "plugin:@typescript-eslint/recommended-requiring-type-checking",
         "prettier",
-        "prettier/@typescript-eslint",
         "plugin:sonarjs/recommended"
     ],
     "parser": "@typescript-eslint/parser",
@@ -39,12 +38,7 @@ module.exports = {
         "sonarjs/no-duplicate-string": "off",
         "sonarjs/no-unused-collection": "off", //"error", // There seems to be a bug with this rule - exported collections are assumed unused
         "@typescript-eslint/adjacent-overload-signatures": "error",
-        "@typescript-eslint/array-type": [
-            "error",
-            {
-                "default": "array-simple"
-            }
-        ],
+        "@typescript-eslint/array-type": "off",
         "@typescript-eslint/await-thenable": "error",
         "@typescript-eslint/ban-ts-comment": "error",
         "@typescript-eslint/ban-types": [
@@ -75,7 +69,7 @@ module.exports = {
         "@typescript-eslint/class-name-casing": "off",
         "@typescript-eslint/consistent-type-assertions": "error",
         "@typescript-eslint/consistent-type-definitions": "error",
-        "@typescript-eslint/dot-notation": "error",
+        "@typescript-eslint/dot-notation": "off", // this should be "error" but the fix silently breaks code almost 100% of the time. not worth the headaches
         "@typescript-eslint/explicit-member-accessibility": [
             "off",
             {
@@ -131,12 +125,13 @@ module.exports = {
                 "allowTernary": true,
             }
         ],
-        "@typescript-eslint/no-unused-vars": [
+        "@typescript-eslint/no-unused-vars-experimental": [
             "error",
             {
-                "args": "none",
-            }
+                "ignoreArgsIfArgsAfterAreUsed": true,
+            },
         ],
+        "@typescript-eslint/no-unused-vars": "off",
         "@typescript-eslint/no-use-before-define": "off",
         "@typescript-eslint/no-var-requires": "error",
         "@typescript-eslint/prefer-as-const": "error",
@@ -223,7 +218,7 @@ module.exports = {
                 "hoist": "all"
             }
         ],
-        "no-throw-literal": "off",
+        "no-throw-literal": "error",
         "no-trailing-spaces": "error",
         "no-undef-init": "error",
         "no-underscore-dangle": "off",

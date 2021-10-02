@@ -402,10 +402,11 @@ interface Hintables {
 export function hintPage(
     hintableElements: Hintables[],
     onSelect: HintSelectedCallback,
-    resolve = () => {}, // eslint-disable-line @typescript-eslint/no-empty-function
-    reject = () => {}, // eslint-disable-line @typescript-eslint/no-empty-function
+    resolve: (x?) => void = () => {}, // eslint-disable-line @typescript-eslint/no-empty-function
+    reject: (x?) => void = () => {}, // eslint-disable-line @typescript-eslint/no-empty-function
     rapid = false,
 ) {
+    reset() // Tidy up in case any previous hinting wasn't exited cleanly
     const buildHints: HintBuilder = defaultHintBuilder()
     const filterHints: HintFilter = defaultHintFilter()
     contentState.mode = "hint"
@@ -467,11 +468,12 @@ export function hintPage(
         )
 
     if (
-        modeState.hints.length == 1 ||
-        (firstTargetIsSelectable() && allTargetsAreEqual())
+        (modeState.hints.length == 1 ||
+            (firstTargetIsSelectable() && allTargetsAreEqual())) &&
+        config.get("hintautoselect") === "true"
     ) {
         // There is just a single link or all the links point to the same
-        // place. Select it.
+        // place. Select it unless `hintautoselect` is set to `false`.
         modeState.cleanUpHints()
         modeState.hints[0].select()
         reset()
@@ -616,7 +618,7 @@ class Hint {
         public name: string,
         public readonly filterData: any,
         private readonly onSelect: HintSelectedCallback,
-        private readonly classes?: string[],
+        classes?: string[],
     ) {
         // We need to compute the offset for elements that are in an iframe
         let offsetTop = 0
@@ -665,6 +667,10 @@ class Hint {
 
         modeState.hintHost.appendChild(this.flag)
         this.hidden = false
+    }
+
+    public static isHintable(target: Element): boolean {
+        return target.getClientRects().length > 0
     }
 
     setName(n: string) {
@@ -748,7 +754,7 @@ function buildHintsSimple(
     hintables: Hintables,
     onSelect: HintSelectedCallback,
 ) {
-    const els = hintables.elements
+    const els = hintables.elements.filter(el => Hint.isHintable(el))
     const names = Array.from(
         hintnames(els.length + modeState.hints.length),
     ).slice(modeState.hints.length)
@@ -799,7 +805,7 @@ function buildHintsVimperator(
     hintables: Hintables,
     onSelect: HintSelectedCallback,
 ) {
-    const els = hintables.elements
+    const els = hintables.elements.filter(el => Hint.isHintable(el))
     const names = Array.from(
         hintnames(els.length + modeState.hints.length),
     ).slice(modeState.hints.length)
@@ -842,10 +848,10 @@ function filterHintsSimple(fstr) {
 
     // Fix bug where sometimes a bigger number would be selected (e.g. 10 rather than 1)
     // such that smaller numbers couldn't be selected
-    let hints = modeState.hints
-    if (config.get("hintnames") == "numeric") {
-        hints = R.sortBy(R.pipe(R.prop("name"), parseInt), modeState.hints)
-    }
+    const hints =
+        config.get("hintnames") == "numeric"
+            ? R.sortBy(R.pipe(R.prop("name"), parseInt), modeState.hints)
+            : modeState.hints
 
     for (const h of hints) {
         if (!h.name.startsWith(fstr)) h.hidden = true
@@ -859,7 +865,7 @@ function filterHintsSimple(fstr) {
             active.push(h)
         }
     }
-    if (active.length === 1) {
+    if (active.length === 1 && config.get("hintautoselect") === "true") {
         selectFocusedHint()
     }
 }
@@ -945,8 +951,8 @@ function filterHintsVimperator(query: string, reflow = false) {
         modeState.focusedHint.focused = true
     }
 
-    // Select focused hint if it's the only match
-    if (active.length === 1) {
+    // Select focused hint if it's the only match unless turned off in config
+    if (active.length === 1 && config.get("hintautoselect") === "true") {
         selectFocusedHint(true)
     }
 }
@@ -1000,29 +1006,29 @@ function pushSpace() {
 
     Elements are hintable if
         1. they can be meaningfully selected, clicked, etc
-        2. they're visible
+        2. they're visible (unless includeInvisible is true)
             1. Within viewport
             2. Not hidden by another element
 
     @hidden
 */
-export function hintables(selectors = DOM.HINTTAGS_selectors, withjs = false) {
-    const elems = R.pipe(
-        DOM.getElemsBySelector,
-        R.filter(DOM.isVisible),
-        changeHintablesToLargestChild,
-    )(selectors, [])
+export function hintables(
+    selectors = DOM.HINTTAGS_selectors,
+    withjs = false,
+    includeInvisible = false,
+) {
+    const visibleFilter = DOM.isVisibleFilter(includeInvisible)
+    const elems = changeHintablesToLargestChild(
+        DOM.getElemsBySelector(selectors, []).filter(visibleFilter),
+    )
     const hintables: Hintables[] = [{ elements: elems }]
     if (withjs) {
         hintables.push({
-            elements: R.pipe(
-                Array.from,
-                // Ramda gives an error here without the "any"
-                // Problem for a rainy day :)
-                R.filter(DOM.isVisible) as any,
-                R.without(elems),
-                changeHintablesToLargestChild,
-            )(DOM.hintworthy_js_elems),
+            elements: changeHintablesToLargestChild(
+                Array.from(DOM.hintworthy_js_elems).filter(
+                    el => visibleFilter(el) && !elems.includes(el),
+                ),
+            ),
             hintclasses: ["TridactylJSHint"],
         })
     }
@@ -1074,15 +1080,19 @@ function isElementLargerThan(e1: Element, e2: Element): boolean {
 /** Returns elements that point to a saveable resource
  * @hidden
  */
-export function saveableElements() {
-    return DOM.getElemsBySelector(DOM.HINTTAGS_saveable, [DOM.isVisible])
+export function saveableElements(includeInvisible = false) {
+    return DOM.getElemsBySelector(DOM.HINTTAGS_saveable, [
+        DOM.isVisibleFilter(includeInvisible),
+    ])
 }
 
-/** Get array of images in the viewport
+/** Get array of images in the viewport, or all images if includeInvisible is true
  * @hidden
  */
-export function hintableImages() {
-    return DOM.getElemsBySelector(DOM.HINTTAGS_img_selectors, [DOM.isVisible])
+export function hintableImages(includeInvisible = false) {
+    return DOM.getElemsBySelector(DOM.HINTTAGS_img_selectors, [
+        DOM.isVisibleFilter(includeInvisible),
+    ])
 }
 
 /** Get array of selectable elements that display a text matching either plain
@@ -1092,68 +1102,51 @@ export function hintableImages() {
 export function hintByText(match: string | RegExp) {
     return DOM.getElemsBySelector(DOM.HINTTAGS_filter_by_text_selectors, [
         DOM.isVisible,
-        hint => {
-            let text
-            if (hint instanceof HTMLInputElement) {
-                // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
-                text = (hint as HTMLInputElement).value
-            } else {
-                text = hint.textContent
-            }
-            if (match instanceof RegExp) {
-                return text.match(match) !== null
-            } else {
-                return text.toUpperCase().includes(match.toUpperCase())
-            }
-        },
+        hintByTextFilter(match),
     ])
+}
+
+/** Return a predicate that checks whether an element matches a given text hinting filter
+ * @hidden
+ */
+export function hintByTextFilter(match: string | RegExp): HintSelectedCallback {
+    return hint => {
+        let text
+        if (hint instanceof HTMLInputElement) {
+            text = hint.value
+        } else {
+            text = hint.textContent
+        }
+        if (match instanceof RegExp) {
+            return text.match(match) !== null
+        } else {
+            return text.toUpperCase().includes(match.toUpperCase())
+        }
+    }
 }
 
 /** Array of items that can be killed with hint kill
 @hidden
  */
-export function killables() {
+export function killables(includeInvisible = false) {
     return DOM.getElemsBySelector(DOM.HINTTAGS_killable_selectors, [
-        DOM.isVisible,
+        DOM.isVisibleFilter(includeInvisible),
     ])
 }
 
-/** HintPage wrapper, accepts CSS selectors to build a list of elements
- * @hidden
- * */
-export function pipe(
-    selectors = DOM.HINTTAGS_selectors,
-    action: HintSelectedCallback = _ => _,
-    rapid = false,
-    jshints = true,
-): Promise<[Element, number]> {
-    return new Promise((resolve, reject) => {
-        hintPage(hintables(selectors, jshints), action, resolve, reject, rapid)
-    })
-}
-
-/** HintPage wrapper, accepts array of elements to hint
- * @hidden
- * */
-export function pipe_elements(
-    elements: Element[] | Hintables[] = DOM.elementsWithText(),
-    action: HintSelectedCallback = _ => _,
-    rapid = false,
-): Promise<[Element, number]> {
-    return new Promise((resolve, reject) => {
-        hintPage(toHintablesArray(elements), action, resolve, reject, rapid)
-    })
-}
-
 // Multiple dispatch? who needs it
-function toHintablesArray(
+/** Returns an array of hintable objects from an array of elements
+ * @hidden
+ * */
+export function toHintablesArray(
     hintablesOrElements: Element[] | Hintables[],
 ): Hintables[] {
-    return "className" in hintablesOrElements[0]
-        ? [{ elements: hintablesOrElements } as Hintables]
-        : "elements" in hintablesOrElements[0]
-        ? (hintablesOrElements as Hintables[])
-        : undefined
+    if (!hintablesOrElements.length) return []
+    if ("className" in hintablesOrElements[0])
+        return [{ elements: hintablesOrElements } as Hintables]
+    if ("elements" in hintablesOrElements[0])
+        return hintablesOrElements as Hintables[]
+    return []
 }
 
 function selectFocusedHint(delay = false) {
@@ -1205,7 +1198,7 @@ export function parser(keys: keyseq.KeyEventLike[]) {
         keyseq.mapstrMapToKeyMap(
             new Map(
                 (Object.entries(config.get("hintmaps")) as any).filter(
-                    ([key, value]) => value != "",
+                    ([_key, value]) => value != "",
                 ),
             ),
         ),

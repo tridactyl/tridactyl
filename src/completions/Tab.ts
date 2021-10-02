@@ -1,13 +1,13 @@
 import * as Perf from "@src/perf"
-import { browserBg } from "@src/lib/webext.ts"
+import { browserBg } from "@src/lib/webext"
 import { enumerate } from "@src/lib/itertools"
 import * as Containers from "@src/lib/containers"
 import * as Completions from "@src/completions"
 import * as config from "@src/lib/config"
 import * as Messaging from "@src/lib/messaging"
-import * as R from "ramda"
 
-class BufferCompletionOption extends Completions.CompletionOptionHTML
+class BufferCompletionOption
+    extends Completions.CompletionOptionHTML
     implements Completions.CompletionOptionFuse {
     public fuseKeys = []
     public tabIndex: number
@@ -42,13 +42,14 @@ class BufferCompletionOption extends Completions.CompletionOptionHTML
         const favIconUrl = tab.favIconUrl
             ? tab.favIconUrl
             : Completions.DEFAULT_FAVICON
+        const indicator = tab.audible ? String.fromCodePoint(0x1f50a) : ""
         this.html = html`<tr
             class="BufferCompletionOption option container_${container.color} container_${container.icon} container_${container.name}"
         >
             <td class="prefix">${pre.padEnd(2)}</td>
             <td class="container"></td>
-            <td class="icon"><img src="${favIconUrl}" /></td>
-            <td class="title">${tab.index + 1}: ${tab.title}</td>
+            <td class="icon"><img loading="lazy" src="${favIconUrl}" /></td>
+            <td class="title">${tab.index + 1}: ${indicator} ${tab.title}</td>
             <td class="content">
                 <a class="url" target="_blank" href=${tab.url}>${tab.url}</a>
             </td>
@@ -67,15 +68,24 @@ export class BufferCompletionSource extends Completions.CompletionSourceFuse {
 
     constructor(private _parent) {
         super(
-            ["tab", "tabclose", "tabdetach", "tabduplicate", "tabmove"],
+            [
+                "tab",
+                "tabclose",
+                "tabdetach",
+                "tabduplicate",
+                "tabmove",
+                "tabrename",
+            ],
             "BufferCompletionSource",
             "Tabs",
         )
         this.sortScoredOptions = true
+        this.shouldSetStateFromScore =
+            config.get("completions", "Tab", "autoselect") === "true"
         this.updateOptions()
         this._parent.appendChild(this.node)
 
-        Messaging.addListener("tab_changes", (message) => this.reactToTabChanges(message.command))
+        Messaging.addListener("tab_changes", () => this.reactToTabChanges())
     }
 
     async onInput(exstr) {
@@ -86,6 +96,8 @@ export class BufferCompletionSource extends Completions.CompletionSourceFuse {
 
     async filter(exstr) {
         this.lastExstr = exstr
+        const prefix = this.splitOnPrefix(exstr).shift()
+        if (prefix === "tabrename ") this.shouldSetStateFromScore = false
         return this.onInput(exstr)
     }
 
@@ -124,25 +136,7 @@ export class BufferCompletionSource extends Completions.CompletionSourceFuse {
         }
 
         // If not yet returned...
-        return super.scoredOptions(query, options)
-    }
-
-    /** Return the scoredOption[] result for the nth tab */
-    private nthTabscoredOptions(
-        n: number,
-        options: BufferCompletionOption[],
-    ): Completions.ScoredOption[] {
-        for (const [index, option] of enumerate(options)) {
-            if (option.tabIndex === n) {
-                return [
-                    {
-                        index,
-                        option,
-                        score: 0,
-                    },
-                ]
-            }
-        }
+        return super.scoredOptions(query)
     }
 
     /** Return the scoredOption[] result for the tab index startswith n */
@@ -236,9 +230,8 @@ export class BufferCompletionSource extends Completions.CompletionSourceFuse {
         }
 
         // When the user is asking for tabmove completions, don't autoselect if the query looks like a relative move https://github.com/tridactyl/tridactyl/issues/825
-        this.shouldSetStateFromScore = !(
-            prefix === "tabmove " && /^[+-][0-9]+$/.exec(query)
-        )
+        if (prefix === "tabmove")
+            this.shouldSetStateFromScore = !/^[+-][0-9]+$/.exec(query)
 
         await this.fillOptions()
         this.completion = undefined
@@ -256,18 +249,30 @@ export class BufferCompletionSource extends Completions.CompletionSourceFuse {
      * Update the list of possible tab options and select (focus on)
      * the appropriate option.
      */
-    private async reactToTabChanges(command: string): Promise<void> {
+    private async reactToTabChanges(): Promise<void> {
         const prevOptions = this.options
         await this.updateOptions(this.lastExstr)
 
-        if (!prevOptions  || !this.options || !this.lastFocused) return
+        if (!prevOptions || !this.options || !this.lastFocused) return
 
         // Determine which option to focus on
-        const diff = R.differenceWith((x, y) => x.tabId === y.tabId, prevOptions, this.options)
-        const lastFocusedTabCompletion = this.lastFocused as BufferCompletionOption
+        const diff: BufferCompletionOption[] = []
+        for (const prevOption of prevOptions) {
+            if (
+                !this.options.find(
+                    newOption => prevOption.tabId === newOption.tabId,
+                )
+            )
+                diff.push(prevOption)
+        }
+        const lastFocusedTabCompletion = this
+            .lastFocused as BufferCompletionOption
 
         // If the focused option was removed then focus on the next option
-        if (diff.length === 1 && diff[0].tabId === lastFocusedTabCompletion.tabId) {
+        if (
+            diff.length === 1 &&
+            diff[0].tabId === lastFocusedTabCompletion.tabId
+        ) {
             this.select(this.getTheNextTabOption(lastFocusedTabCompletion))
         }
     }

@@ -10,7 +10,7 @@ It will not cover advanced topics. For those, [`:help`](../docs/modules/_src_exc
 
 ## Basics
 
-The idea behind Tridactyl is to allow you to navigate the web more efficiently with just the keyboard. Tridactyl turns Firefox into a modal browser, meaning it has several different modes of operation, like Vim. Each tab can only ever be in one mode at a time and each of these modes could have a wildly different operation. You can think of it a bit like a Transformer, if you like. There are four main modes you will want to be familiar with:
+The idea behind Tridactyl is to allow you to navigate the web more efficiently with just the keyboard. Tridactyl turns Firefox into a modal browser, meaning it has several different modes of operation, like Vim. Each tab can only ever be in one mode at a time and each of these modes could have a wildly different operation. You can think of it a bit like a Transformer, if you like. There are five main modes you will want to be familiar with:
 
 -   Normal mode
     -   This mode is used for navigating around single pages and starting other modes.
@@ -20,6 +20,9 @@ The idea behind Tridactyl is to allow you to navigate the web more efficiently w
     -   This is most often used for following links, but it has many other submodes.
     -   You can enter this mode with `f` and exit it with `Escape` or `Enter`.
     -   Hint characters are displayed as uppercase letters, but you should type the lowercase letter.
+-   Visual mode (experimental)
+    -   This mode allows you to select text on the web page and copy it to the clipboard or search for it using `s` and `S`.
+    -   You can enter this mode with `v`, by selecting text with the mouse, `;h` hint mode, `/` searching or by using Firefox's "caret" mode on `F7` and exit it with `Escape` or `Ctrl-[`.
 -   Command mode ("ex-mode")
     -   This mode allows you to execute more complicated commands by typing them out manually.
     -   It is commonly used for binding keys and accessing help.
@@ -28,6 +31,7 @@ The idea behind Tridactyl is to allow you to navigate the web more efficiently w
     -   This mode passes all keypresses through to the web page. It is useful for websites that have their own keybinds, such as games and Gmail.
     -   You can toggle the mode with `Shift-Insert`, `Ctrl-Alt-Escape`, `Ctrl-Alt-Backtick`, or `Shift-Esc`.
     -   While in ignore mode, you can execute a single normal mode binding by pressing `<C-o>` followed by the keys for the binding.
+    -   Tridactyl can be configured to enter ignore mode for specified URLs. Run `:blacklistadd [url]` to put Tridactyl in ignore mode on the provided URL. Use the command `:blacklistremove [url]` to remove the URL from the blacklist.
 
 Almost all of the modes are controlled by series of keypresses. In this tutorial, a sequence of keys such as `zz` should be entered by pressing the key `z`, letting go, and then pressing the key `z`. There is no need to hold both keys at once, if that were even possible. (`zz` resets the zoom level to the default, so it probably didn't seem to do anything). Sometimes `help` refers to a command that must be entered in command mode; it should hopefully always be clear from context which we mean.
 

@@ -1,13 +1,11 @@
-/* From https://css-tricks.com/snippets/css/star-wars-crawl-text/ */
+@import url("../themes/default/default.css");
+
+/* Adapted from https://css-tricks.com/snippets/css/star-wars-crawl-text/ */
 body {
     width: 100%;
     height: 100%;
     background: #000;
     overflow: hidden;
-}
-
-* {
-    text-align: left !important;
 }
 
 .fade {
@@ -29,35 +27,35 @@ body {
     font-size: 500%;
     font-weight: 600;
     letter-spacing: 6px;
-    line-height: 150%;
-    perspective: 400px;
-    text-align: justify;
+    transform: perspective(400px) rotateX(20deg);
+    text-align: left;
+}
+
+h3 {
+    line-height: 130%;
+}
+
+h2 {
+    line-height: 140%;
+}
+
+p {
+    margin-top: 0;
+    line-height: 95%;
+    margin-bottom: 0.5em;
 }
 
 .crawl {
     position: relative;
-    top: 9999px;
-    transform-origin: 50% 100%;
-    animation: crawl 90s linear;
-}
-
-.crawl > .title {
-    font-size: 90%;
-    text-align: center;
-}
-
-.crawl > .title h1 {
-    margin: 0 0 100px;
-    text-transform: uppercase;
+    top: 300px;
+    animation: crawl 180s linear;
 }
 
 @keyframes crawl {
     0% {
-        top: 0;
-        transform: rotateX(20deg) translateZ(0);
+        top: 300px;
     }
     100% {
-        top: -25000px;
-        transform: rotateX(25deg) translateZ(-10000px);
+        top: -50000px;
     }
 }

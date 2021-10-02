@@ -2,6 +2,7 @@ import * as convert from "@src/lib/convert"
 import browserProxy from "@src/lib/browser_proxy"
 import * as config from "@src/lib/config"
 import * as UrlUtil from "@src/lib/url_util"
+import { sleep } from "@src/lib/patience"
 
 export function inContentScript() {
     return getContext() === "content"
@@ -9,7 +10,12 @@ export function inContentScript() {
 
 export function getTriVersion() {
     const manifest = browser.runtime.getManifest()
-    return manifest.version_name
+
+    // version_name only really exists in Chrome
+    // but we're using it anyway for our own purposes
+    return (manifest as browser._manifest.WebExtensionManifest & {
+        version_name: string
+    }).version_name
 }
 
 export function getPrettyTriVersion() {
@@ -89,6 +95,22 @@ export async function ownTabId() {
     return (await ownTab()).id
 }
 
+async function windows() {
+    return (await browserBg.windows.getAll())
+        .map(w => w.id)
+        .sort((a, b) => a - b)
+}
+
+/* Returns Tridactyl's window index. */
+export async function ownWinTriIndex() {
+    return (await windows()).indexOf((await ownTab()).windowId)
+}
+
+/* Returns mozilla's internal window id from Tridactyl's index. */
+export async function getWinIdFromIndex(index: string) {
+    return (await windows())[index]
+}
+
 export async function ownTabContainer() {
     return browserBg.contextualIdentities.get((await ownTab()).cookieStoreId)
 }
@@ -129,6 +151,7 @@ export async function openInNewTab(
         related: false,
         cookieStoreId: undefined,
     },
+    waitForDOM = false,
 ) {
     const thisTab = await activeTab()
     const options: Parameters<typeof browser.tabs.create>[0] = {
@@ -164,14 +187,43 @@ export async function openInNewTab(
             break
     }
 
+    const tabCreateWrapper = async options => {
+        const tab = await browserBg.tabs.create(options)
+        const answer: Promise<browser.tabs.Tab> = new Promise(resolve => {
+            // This can't run in content scripts, obviously
+            // surely we never call this from a content script?
+            if (waitForDOM) {
+                const listener = (message, sender) => {
+                    if (
+                        message === "dom_loaded_background" &&
+                        sender?.tab?.id === tab.id
+                    ) {
+                        browserBg.runtime.onMessage.removeListener(listener)
+                        resolve(tab)
+                    }
+                }
+                browserBg.runtime.onMessage.addListener(listener)
+            } else {
+                resolve(tab)
+            }
+        })
+        // Return on slow- / extremely quick- loading pages anyway
+        return Promise.race([
+            answer,
+            (async () => {
+                await sleep(750)
+                return tab
+            })(),
+        ])
+    }
     if (kwargs.active === false) {
         // load in background
-        return browserBg.tabs.create(options)
+        return tabCreateWrapper(options)
     } else {
         // load in background and then activate, per issue #1993
-        return browserBg.tabs
-            .create(options)
-            .then(newtab => browserBg.tabs.update(newtab.id, { active: true }))
+        return tabCreateWrapper(options).then(newtab =>
+            browserBg.tabs.update(newtab.id, { active: true }),
+        )
     }
 }
 
@@ -237,7 +289,7 @@ export async function queryAndURLwrangler(
     try {
         const url = new URL("http://" + address)
         // Ignore unlikely domains
-        if (url.hostname.includes(".") || url.port || url.password) {
+        if (url.hostname.indexOf(".") > 0 || url.port || url.password) {
             return url.href
         }
     } catch (e) {}

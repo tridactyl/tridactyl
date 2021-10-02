@@ -25,6 +25,7 @@ import {
     getWordBoundaries,
     wordAfterPos,
     rot13_helper,
+    jumble_helper
 } from "@src/lib/editor_utils"
 
 /**
@@ -86,7 +87,7 @@ export const tab_insert = wrap_input((text, selectionStart, selectionEnd) => {
  * Behaves like readline's [transpose_chars](http://web.mit.edu/gnu/doc/html/rlman_1.html#SEC14), i.e. transposes the character to the left of the caret with the character to the right of the caret and then moves the caret one character to the right. If there are no characters to the right or to the left of the caret, uses the two characters the closest to the caret.
  **/
 export const transpose_chars = wrap_input(
-    (text, selectionStart, selectionEnd) => {
+    (text, selectionStart) => {
         if (text.length < 2) return [null, null, null]
         // When at the beginning of the text, transpose the first and second characters
         if (selectionStart === 0) selectionStart = 1
@@ -107,7 +108,7 @@ export const transpose_chars = wrap_input(
  * Applies a function to the word the caret is in, or to the next word if the caret is not in a word, or to the previous word if the current word is empty.
  */
 function applyWord(
-    text,
+    text: string,
     selectionStart,
     selectionEnd,
     fn: (s: string) => string,
@@ -130,7 +131,7 @@ function applyWord(
  * Behaves like readline's [transpose_words](http://web.mit.edu/gnu/doc/html/rlman_1.html#SEC14). Basically equivalent to [[im_transpose_chars]], but using words as defined by the wordpattern setting.
  **/
 export const transpose_words = wrap_input(
-    needs_text((text, selectionStart, selectionEnd) => {
+    needs_text((text, selectionStart) => {
         if (selectionStart >= text.length) {
             selectionStart = text.length - 1
         }
@@ -206,7 +207,7 @@ export const capitalize_word = wrap_input(
  * Behaves like readline's [kill_line](http://web.mit.edu/gnu/doc/html/rlman_1.html#SEC15), i.e. deletes every character to the right of the caret until reaching either the end of the text or the newline character (\n).
  **/
 export const kill_line = wrap_input(
-    needs_text((text, selectionStart, selectionEnd) => {
+    needs_text((text, selectionStart) => {
         let newLine = text.substring(selectionStart).search("\n")
         if (newLine !== -1) {
             // If the caret is right before the newline, kill the newline
@@ -225,7 +226,7 @@ export const kill_line = wrap_input(
  * Behaves like readline's [backward_kill_line](http://web.mit.edu/gnu/doc/html/rlman_1.html#SEC15), i.e. deletes every character to the left of the caret until either the beginning of the text is found or a newline character ("\n") is reached.
  **/
 export const backward_kill_line = wrap_input(
-    needs_text((text, selectionStart, selectionEnd) => {
+    needs_text((text, selectionStart) => {
         // If the caret is at the beginning of a line, join the lines
         if (selectionStart > 0 && text[selectionStart - 1] === "\n") {
             return [
@@ -255,7 +256,7 @@ export const backward_kill_line = wrap_input(
  * Behaves like readline's [kill_whole_line](http://web.mit.edu/gnu/doc/html/rlman_1.html#SEC15). Deletes every character between the two newlines the caret is in. If a newline can't be found on the left of the caret, everything is deleted until the beginning of the text is reached. If a newline can't be found on the right, everything is deleted until the end of the text is found.
  **/
 export const kill_whole_line = wrap_input(
-    needs_text((text, selectionStart, selectionEnd) => {
+    needs_text((text, selectionStart) => {
         let firstNewLine
         let secondNewLine
         // Find the newline before the caret
@@ -283,7 +284,7 @@ export const kill_whole_line = wrap_input(
  * Behaves like readline's [kill_word](http://web.mit.edu/gnu/doc/html/rlman_1.html#SEC15). Deletes every character from the caret to the end of a word, with words being defined by the wordpattern setting.
  **/
 export const kill_word = wrap_input(
-    needs_text((text, selectionStart, selectionEnd) => {
+    needs_text((text, selectionStart) => {
         const boundaries = getWordBoundaries(text, selectionStart, false)
         if (selectionStart < boundaries[1]) {
             boundaries[0] = selectionStart
@@ -304,7 +305,7 @@ export const kill_word = wrap_input(
  * Behaves like readline's [backward_kill_word](http://web.mit.edu/gnu/doc/html/rlman_1.html#SEC15). Deletes every character from the caret to the beginning of a word with word being defined by the wordpattern setting.
  **/
 export const backward_kill_word = wrap_input(
-    needs_text((text, selectionStart, selectionEnd) => {
+    needs_text((text, selectionStart) => {
         const boundaries = getWordBoundaries(text, selectionStart, true)
         if (selectionStart > boundaries[0]) {
             boundaries[1] = selectionStart
@@ -325,7 +326,7 @@ export const backward_kill_word = wrap_input(
  * Behaves like readline's [beginning_of_line](http://web.mit.edu/gnu/doc/html/rlman_1.html#SEC12). Moves the caret to the right of the first newline character found at the left of the caret. If no newline can be found, move the caret to the beginning of the text.
  **/
 export const beginning_of_line = wrap_input(
-    needs_text((text, selectionStart, selectionEnd) => {
+    needs_text((text, selectionStart) => {
         while (
             text[selectionStart - 1] !== undefined &&
             text[selectionStart - 1] !== "\n"
@@ -339,7 +340,7 @@ export const beginning_of_line = wrap_input(
  * Behaves like readline's [end_of_line](http://web.mit.edu/gnu/doc/html/rlman_1.html#SEC12). Moves the caret to the left of the first newline character found at the right of the caret. If no newline can be found, move the caret to the end of the text.
  **/
 export const end_of_line = wrap_input(
-    needs_text((text, selectionStart, selectionEnd) => {
+    needs_text((text, selectionStart) => {
         while (
             text[selectionStart] !== undefined &&
             text[selectionStart] !== "\n"
@@ -352,7 +353,7 @@ export const end_of_line = wrap_input(
 /**
  * Behaves like readline's [forward_char](http://web.mit.edu/gnu/doc/html/rlman_1.html#SEC12). Moves the caret one character to the right.
  **/
-export const forward_char = wrap_input((text, selectionStart, selectionEnd) => [
+export const forward_char = wrap_input((text, selectionStart) => [
     null,
     selectionStart + 1,
     null,
@@ -362,14 +363,14 @@ export const forward_char = wrap_input((text, selectionStart, selectionEnd) => [
  * Behaves like readline's [backward_char](http://web.mit.edu/gnu/doc/html/rlman_1.html#SEC12). Moves the caret one character to the left.
  **/
 export const backward_char = wrap_input(
-    (text, selectionStart, selectionEnd) => [null, selectionStart - 1, null],
+    (text, selectionStart) => [null, selectionStart - 1, null],
 )
 
 /**
  * Behaves like readline's [forward_word](http://web.mit.edu/gnu/doc/html/rlman_1.html#SEC12). Moves the caret one word to the right, with words being defined by the wordpattern setting.
  **/
 export const forward_word = wrap_input(
-    needs_text((text, selectionStart, selectionEnd) => {
+    needs_text((text, selectionStart) => {
         if (selectionStart === text.length) return [null, null, null]
         const boundaries = getWordBoundaries(text, selectionStart, false)
         return [null, boundaries[1], null]
@@ -380,7 +381,7 @@ export const forward_word = wrap_input(
  * Behaves like readline's [backward_word](http://web.mit.edu/gnu/doc/html/rlman_1.html#SEC12). Moves the caret one word to the left, with words being defined by the wordpattern setting.
  **/
 export const backward_word = wrap_input(
-    (text, selectionStart, selectionEnd) => {
+    (text, selectionStart) => {
         if (selectionStart === 0) return [null, null, null]
         const boundaries = getWordBoundaries(text, selectionStart, true)
         return [null, boundaries[0], null]
@@ -400,6 +401,12 @@ export const insert_text = wrap_input(
 
 export const rot13 = wrap_input((text, selectionStart, selectionEnd) => [
     rot13_helper(text.slice(0, selectionStart) + text.slice(selectionEnd)),
+    selectionStart,
+    null,
+])
+
+export const jumble = wrap_input((text, selectionStart, selectionEnd) => [
+    jumble_helper(text.slice(0, selectionStart) + text.slice(selectionEnd)),
     selectionStart,
     null,
 ])

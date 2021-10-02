@@ -5,7 +5,7 @@
     try {
         // spread operator and template strings support
         (function testSpreadOpAndTemplate() {
-            const tag = function tag(strings, ...values) {
+            const tag = function tag() {
                 return
             }
             // We don't need this value - we're just checking if its attempted creation causes any errors

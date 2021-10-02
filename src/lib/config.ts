@@ -19,6 +19,7 @@
 import * as R from "ramda"
 import * as binding from "@src/lib/binding"
 import * as platform from "@src/lib/platform"
+import { DeepPartial } from "tsdef"
 
 /* Remove all nulls from objects recursively
  * NB: also applies to arrays
@@ -37,7 +38,7 @@ const CONFIGNAME = "userconfig"
 /** @hidden */
 const WAITERS = []
 /** @hidden */
-let INITIALISED = false
+export let INITIALISED = false
 
 /** @hidden */
 // make a naked object
@@ -78,13 +79,34 @@ export class default_config {
     /**
      * Internal field to handle site-specific configs. Use :seturl/:unseturl to change these values.
      */
-    subconfigs: { [key: string]: default_config } = {
+    subconfigs: { [key: string]: DeepPartial<default_config> } = {
         "www.google.com": {
             followpagepatterns: {
                 next: "Next",
                 prev: "Previous",
             },
-        } as default_config,
+        },
+        "^https://web.whatsapp.com": {
+            nmaps: {
+                f: "hint -c [tabindex]:not(.two)>div,a",
+                F: "hint -bc [tabindex]:not(.two)>div,a",
+            },
+        },
+    }
+
+    /**
+     * Internal field to handle mode-specific configs. Use :setmode/:unsetmode to change these values.
+     *
+     * Changing this might do weird stuff.
+     */
+    modesubconfigs: { [key: string]: DeepPartial<default_config> } = {
+        "normal": {},
+        "insert": {},
+        "input": {},
+        "ignore": {},
+        "ex": {},
+        "hint": {},
+        "visual": {},
     }
 
     /**
@@ -111,13 +133,11 @@ export class default_config {
 
         "<A-b>": "text.backward_word",
         "<A-f>": "text.forward_word",
-        "<C-a>": "text.beginning_of_line",
         "<C-e>": "text.end_of_line",
         "<A-d>": "text.kill_word",
         "<S-Backspace>": "text.backward_kill_word",
         "<C-u>": "text.backward_kill_line",
         "<C-k>": "text.kill_line",
-        "<C-c>": "text.kill_whole_line",
 
         "<C-f>": "ex.complete",
         "<Tab>": "ex.next_completion",
@@ -177,6 +197,15 @@ export class default_config {
     }
 
     /**
+     * Disable Tridactyl almost completely within a page, e.g. `seturl ^https?://mail.google.com disable true`. Only takes affect on page reload.
+     *
+     * You are usually better off using `blacklistadd` and `seturl [url] noiframe true` as you can then still use some Tridactyl binds, e.g. `shift-insert` for exiting ignore mode.
+     *
+     * NB: you should only use this with `seturl`. If you get trapped with Tridactyl disabled everywhere just run `tri unset superignore` in the Firefox address bar. If that still doesn't fix things, you can totally reset Tridactyl by running `tri help superignore` in the Firefox address bar, scrolling to the bottom of that page and then clicking "Reset Tridactyl config".
+     */
+    superignore: "true" | "false" = "false"
+
+    /**
      * nmaps contain all of the bindings for "normal mode".
      *
      * They consist of key sequences mapped to ex commands.
@@ -201,6 +230,7 @@ export class default_config {
         ys: "clipboard yankshort",
         yc: "clipboard yankcanon",
         ym: "clipboard yankmd",
+        yo: "clipboard yankorg",
         yt: "clipboard yanktitle",
         gh: "home",
         gH: "home true",
@@ -239,6 +269,7 @@ export class default_config {
         x: "stop",
         gi: "focusinput -l",
         "g?": "rot13",
+        "g!": "jumble",
         "g;": "changelistjump -1",
         J: "tabprev",
         K: "tabnext",
@@ -249,6 +280,7 @@ export class default_config {
         "g^": "tabfirst",
         g0: "tabfirst",
         g$: "tablast",
+        ga: "tabaudio",
         gr: "reader",
         gu: "urlparent",
         gU: "urlroot",
@@ -274,7 +306,9 @@ export class default_config {
         ";o": "hint",
         ";I": "hint -I",
         ";k": "hint -k",
+        ";K": "hint -K",
         ";y": "hint -y",
+        ";Y": "hint -cF img i => tri.excmds.yankimage(tri.urlutils.getAbsoluteURL(i.src))",
         ";p": "hint -p",
         ";h": "hint -h",
         v: "hint -h", // Easiest way of entering visual mode for now. Expect this bind to change
@@ -287,16 +321,15 @@ export class default_config {
         ";;": "hint -; *",
         ";#": "hint -#",
         ";v": "hint -W mpvsafe",
+        ";V": "hint -V",
         ";w": "hint -w",
         ";t": "hint -W tabopen",
         ";O": "hint -W fillcmdline_notrail open ",
         ";W": "hint -W fillcmdline_notrail winopen ",
         ";T": "hint -W fillcmdline_notrail tabopen ",
         ";z": "hint -z",
-        ";m":
-            "composite hint -pipe img src | js -p tri.excmds.open('images.google.com/searchbyimage?image_url=' + JS_ARG)",
-        ";M":
-            "composite hint -pipe img src | jsb -p tri.excmds.tabopen('images.google.com/searchbyimage?image_url=' + JS_ARG)",
+        ";m": "composite hint -Jpipe img src | open images.google.com/searchbyimage?image_url=",
+        ";M": "composite hint -Jpipe img src | tabopen images.google.com/searchbyimage?image_url=",
         ";gi": "hint -qi",
         ";gI": "hint -qI",
         ";gk": "hint -qk",
@@ -345,26 +378,19 @@ export class default_config {
         "<C-[>":
             "composite js document.getSelection().empty(); mode normal ; hidecmdline",
         y: "composite js document.getSelection().toString() | clipboard yank",
-        s:
-            "composite js document.getSelection().toString() | fillcmdline open search",
-        S:
-            "composite js document.getSelection().toString() | fillcmdline tabopen search",
+        s: "composite js document.getSelection().toString() | fillcmdline open search",
+        S: "composite js document.getSelection().toString() | fillcmdline tabopen search",
         l: 'js document.getSelection().modify("extend","forward","character")',
         h: 'js document.getSelection().modify("extend","backward","character")',
         e: 'js document.getSelection().modify("extend","forward","word")',
-        w:
-            'js document.getSelection().modify("extend","forward","word"); document.getSelection().modify("extend","forward","character")',
-        b:
-            'js document.getSelection().modify("extend","backward","character"); document.getSelection().modify("extend","backward","word"); document.getSelection().modify("extend","forward","character")',
+        w: 'js document.getSelection().modify("extend","forward","word"); document.getSelection().modify("extend","forward","word"); document.getSelection().modify("extend","backward","word"); document.getSelection().modify("extend","forward","character")',
+        b: 'js document.getSelection().modify("extend","backward","character"); document.getSelection().modify("extend","backward","word"); document.getSelection().modify("extend","forward","character")',
         j: 'js document.getSelection().modify("extend","forward","line")',
         // "j": 'js document.getSelection().modify("extend","forward","paragraph")', // not implemented in Firefox
         k: 'js document.getSelection().modify("extend","backward","line")',
-        $:
-            'js document.getSelection().modify("extend","forward","lineboundary")',
-        "0":
-            'js document.getSelection().modify("extend","backward","lineboundary")',
-        "=":
-            "js let n = document.getSelection().anchorNode.parentNode; let s = window.getSelection(); let r = document.createRange(); s.removeAllRanges(); r.selectNodeContents(n); s.addRange(r)",
+        $: 'js document.getSelection().modify("extend","forward","lineboundary")',
+        "0": 'js document.getSelection().modify("extend","backward","lineboundary")',
+        "=": "js let n = document.getSelection().anchorNode.parentNode; let s = window.getSelection(); let r = document.createRange(); s.removeAllRanges(); r.selectNodeContents(n); s.addRange(r)",
         o: "js tri.visual.reverseSelection(document.getSelection())",
         "🕷🕷INHERITS🕷🕷": "nmaps",
     }
@@ -577,6 +603,7 @@ export class default_config {
         q: "tabclose",
         qa: "qall",
         sanitize: "sanitise",
+        "saveas!": "saveas --cleanup --overwrite",
         tutorial: "tutor",
         h: "help",
         unmute: "mute unmute",
@@ -590,8 +617,7 @@ export class default_config {
         colors: "colourscheme",
         man: "help",
         "!js": "fillcmdline_tmp 3000 !js is deprecated. Please use js instead",
-        "!jsb":
-            "fillcmdline_tmp 3000 !jsb is deprecated. Please use jsb instead",
+        "!jsb": "fillcmdline_tmp 3000 !jsb is deprecated. Please use jsb instead",
         get_current_url: "js document.location.href",
         current_url: "composite get_current_url | fillcmdline_notrail ",
         stop: "js window.stop()",
@@ -602,7 +628,8 @@ export class default_config {
         "mkt!": "mktridactylrc -f",
         "mktridactylrc!": "mktridactylrc -f",
         mpvsafe:
-            "js -p tri.excmds.shellescape(JS_ARG).then(url => tri.excmds.exclaim_quiet('mpv ' + url))",
+            "js -p tri.excmds.shellescape(JS_ARG).then(url => tri.excmds.exclaim_quiet('mpv --no-terminal ' + url))",
+        drawingstop: "no_mouse_mode",
         exto: "extoptions",
         extpreferences: "extoptions",
         extp: "extpreferences",
@@ -610,6 +637,7 @@ export class default_config {
         prefremove: "removepref",
         tabclosealltoright: "tabcloseallto right",
         tabclosealltoleft: "tabcloseallto left",
+        reibadailty: "jumble",
     }
 
     /**
@@ -649,8 +677,7 @@ export class default_config {
         twitter: "https://twitter.com/search?q=",
         wikipedia: "https://en.wikipedia.org/wiki/Special:Search/",
         youtube: "https://www.youtube.com/results?search_query=",
-        amazon:
-            "https://www.amazon.com/s/ref=nb_sb_noss?url=search-alias%3Daps&field-keywords=",
+        amazon: "https://www.amazon.com/s/ref=nb_sb_noss?url=search-alias%3Daps&field-keywords=",
         amazonuk:
             "https://www.amazon.co.uk/s/ref=nb_sb_noss?url=search-alias%3Daps&field-keywords=",
         startpage:
@@ -668,7 +695,7 @@ export class default_config {
     /**
      * URL the newtab will redirect to.
      *
-     * All usual rules about things you can open with `open` apply, with the caveat that you'll get interesting results if you try to use something that needs `nativeopen`: so don't try `about:newtab`.
+     * All usual rules about things you can open with `open` apply, with the caveat that you'll get interesting results if you try to use something that needs `nativeopen`: so don't try `about:newtab` or a `file:///` URI. You should instead use a data URI - https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/Data_URIs - or host a local webserver (e.g. Caddy).
      */
     newtab = ""
 
@@ -726,6 +753,13 @@ export class default_config {
     hintshift: "true" | "false" = "false"
 
     /**
+     * Controls whether hints should be followed automatically.
+     *
+     * If set to `false`, hints will only be followed upon confirmation. This applies to cases when there is only a single match or only one link on the page.
+     */
+    hintautoselect: "true" | "false" = "true"
+
+    /**
      * Controls whether the page can focus elements for you via js
      *
      * NB: will break fancy editors such as CodeMirror on Jupyter. Simply use `seturl` to whitelist pages you need it on.
@@ -752,7 +786,12 @@ export class default_config {
     /**
      * Where to open tabs opened with `tabopen` - to the right of the current tab, or at the end of the tabs.
      */
-    tabopenpos: "next" | "last" = "next"
+    tabopenpos: "next" | "last" | "related" = "next"
+
+    /**
+     * When enabled (the default), running tabclose will close the tabs whether they are pinned or not. When disabled, tabclose will fail with an error if a tab is pinned.
+     */
+    tabclosepinned: "true" | "false" = "true"
 
     /**
      * Controls which tab order to use when opening the tab/buffer list. Either mru = sort by most recent tab or default = by tab index
@@ -781,9 +820,9 @@ export class default_config {
     ttspitch = 1
 
     /**
-     * If nextinput, <Tab> after gi brings selects the next input
+     * When set to "nextinput", pressing `<Tab>` after gi selects the next input.
      *
-     * If firefox, <Tab> selects the next selectable element, e.g. a link
+     * When set to "firefox", `<Tab>` behaves like normal, focusing the next tab-indexed element regardless of type.
      */
     gimode: "nextinput" | "firefox" = "nextinput"
 
@@ -812,6 +851,19 @@ export class default_config {
     modeindicator: "true" | "false" = "true"
 
     /**
+     * Whether to display the mode indicator in various modes. Ignored if modeindicator set to false.
+     */
+    modeindicatormodes: { [key: string]: "true" | "false" } = {
+        normal: "true",
+        insert: "true",
+        input: "true",
+        ignore: "true",
+        ex: "true",
+        hint: "true",
+        visual: "true",
+    }
+
+    /**
      * Milliseconds before registering a scroll in the jumplist
      */
     jumpdelay = 3000
@@ -830,6 +882,7 @@ export class default_config {
         performance: "warning",
         state: "warning",
         styling: "warning",
+        autocmds: "warning",
     }
 
     /**
@@ -915,16 +968,11 @@ export class default_config {
      * Set this to something weird if you want to have fun every time Tridactyl tries to update its native messenger.
      *
      * %TAG will be replaced with your version of Tridactyl for stable builds, or "master" for beta builds
+     *
+     * NB: Windows has its own platform-specific default.
      */
     nativeinstallcmd =
-        "curl -fsSl https://raw.githubusercontent.com/tridactyl/tridactyl/master/native/install.sh -o /tmp/trinativeinstall.sh && bash /tmp/trinativeinstall.sh %TAG"
-
-    /**
-     * Set this to something weird if you want to have fun every time Tridactyl tries to update its native messenger.
-     *
-     * Replaces %WINTAG with "-Tag $TRI_VERSION", similarly to [[nativeinstallcmd]].
-     */
-    win_nativeinstallcmd = `powershell -NoProfile -InputFormat None -Command "Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/cmcaine/tridactyl/master/native/win_install.ps1'))"`
+        "curl -fsSl https://raw.githubusercontent.com/tridactyl/native_messenger/master/installers/install.sh -o /tmp/trinativeinstall.sh && sh /tmp/trinativeinstall.sh %TAG"
 
     /**
      * Used by :updatecheck and related built-in functionality to automatically check for updates and prompt users to upgrade.
@@ -999,6 +1047,30 @@ export class default_config {
     bmarkweight = 100
 
     /**
+     * General completions options - NB: options are set according to our internal completion source name - see - `src/completions/[name].ts` in the Tridactyl source.
+     */
+    completions = {
+        Tab: {
+            /**
+             * Whether to automatically select the closest matching completion
+             */
+            autoselect: "true",
+        },
+        TabAll: {
+            autoselect: "true",
+        },
+        Rss: {
+            autoselect: "true",
+        },
+        Bmark: {
+            autoselect: "true",
+        },
+        Sessions: {
+            autoselect: "true",
+        },
+    }
+
+    /**
      * Number of results that should be shown in completions. -1 for unlimited
      */
     findresults = -1
@@ -1012,6 +1084,11 @@ export class default_config {
      * Whether find should be case-sensitive
      */
     findcase: "smart" | "sensitive" | "insensitive" = "smart"
+
+    /**
+     * How long find highlights should persist in milliseconds. `<= 0` means they persist until cleared
+     */
+    findhighlighttimeout = 0
 
     /**
      * Whether Tridactyl should jump to the first match when using `:find`
@@ -1081,6 +1158,22 @@ export class default_config {
      * Whether to return to visual mode when text is deselected.
      */
     visualexitauto: "true" | "false" = "true"
+
+    /**
+     * Whether to open and close the sidebar quickly to get focus back to the page when <C-,> is pressed.
+     *
+     * Disable if the fact that it closes TreeStyleTabs gets on your nerves too much : )
+     *
+     * NB: when disabled, <C-,> can't get focus back from the address bar, but it can still get it back from lots of other places (e.g. Flash-style video players)
+     */
+    escapehatchsidebarhack: "true" | "false" = "true"
+
+    /**
+     * Threshold for fuzzy matching on completions. Lower => stricter matching. Range between 0 and 1: 0 corresponds to perfect matches only. 1 will match anything.
+     *
+     * https://fusejs.io/api/options.html#threshold
+     */
+    completionfuzziness = 0.3
 }
 
 const platform_defaults = {
@@ -1101,6 +1194,18 @@ const platform_defaults = {
         ignoremaps: {
             "<C-6>": "buffer #",
         } as unknown,
+
+        nativeinstallcmd: `powershell -ExecutionPolicy Bypass -NoProfile -Command "\
+[Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12;\
+(New-Object System.Net.WebClient).DownloadFile('https://raw.githubusercontent.com/tridactyl/native_messenger/master/installers/windows.ps1', '%TEMP%/tridactyl_installnative.ps1');\
+& '%TEMP%/tridactyl_installnative.ps1' -Tag %TAG;\
+Remove-Item '%TEMP%/tridactyl_installnative.ps1'"`,
+    },
+    linux: {
+        nmaps: {
+            ";x": 'hint -F e => { const pos = tri.dom.getAbsoluteCentre(e); tri.excmds.exclaim_quiet("xdotool mousemove --sync " + window.devicePixelRatio * pos.x + " " + window.devicePixelRatio * pos.y + "; xdotool click 1")}',
+            ";X": 'hint -F e => { const pos = tri.dom.getAbsoluteCentre(e); tri.excmds.exclaim_quiet("xdotool mousemove --sync " + window.devicePixelRatio * pos.x + " " + window.devicePixelRatio * pos.y + "; xdotool keydown ctrl+shift; xdotool click 1; xdotool keyup ctrl+shift")}',
+        } as unknown,
     },
 } as Record<browser.runtime.PlatformOs, default_config>
 
@@ -1120,7 +1225,7 @@ export const DEFAULTS = mergeDeepCull(
     @param target path of properties as an array
     @hidden
  */
-function getDeepProperty(obj, target: string[]) {
+export function getDeepProperty(obj, target: string[]) {
     if (obj !== undefined && obj !== null && target.length) {
         if (obj["🕷🕷INHERITS🕷🕷"] === undefined) {
             return getDeepProperty(obj[target[0]], target.slice(1))
@@ -1296,9 +1401,14 @@ export async function getAsync(
 
 /*
  * Replaces the configuration in your sync storage with your current configuration. Does not merge: it overwrites.
+ *
+ * Does not synchronise custom themes due to storage constraints.
  */
 export async function push() {
-    return browser.storage.sync.set(await browser.storage.local.get(CONFIGNAME))
+    const local_conf = await browser.storage.local.get(CONFIGNAME)
+    // eslint-disable-next-line @typescript-eslint/dot-notation
+    delete local_conf[CONFIGNAME]["customthemes"]
+    return browser.storage.sync.set(local_conf)
 }
 
 /*
@@ -1312,7 +1422,14 @@ export async function pull() {
  * Like set(), but for a specific pattern.
  */
 export function setURL(pattern, ...args) {
-    return set("subconfigs", pattern, ...args)
+    try {
+        new RegExp(pattern)
+        return set("subconfigs", pattern, ...args)
+    } catch (err) {
+        if (err instanceof SyntaxError)
+            throw new SyntaxError(`invalid pattern: ${err.message}`)
+        throw err
+    }
 }
 /** Full target specification, then value
 
@@ -1390,7 +1507,7 @@ export async function update() {
         if (subconfigs) {
             Object.keys(subconfigs)
                 .map(pattern => [pattern, getURL(pattern, setting)])
-                .filter(([pattern, value]) => value)
+                .filter(([_pattern, value]) => value)
                 .forEach(([pattern, value]) =>
                     setURL(pattern, ...setting, fn(value)),
                 )
@@ -1448,7 +1565,7 @@ export async function update() {
                     getDeepProperty(USERCONFIG, [mapname]),
                 ])
                 // mapobj is undefined if the user didn't define any bindings
-                .filter(([mapname, mapobj]) => mapobj)
+                .filter(([_mapname, mapobj]) => mapobj)
                 .forEach(([mapname, mapobj]) => {
                     // For each mapping
                     Object.keys(mapobj)
@@ -1525,13 +1642,9 @@ export async function update() {
                 })
                 return mapObj
             }
-            ;[
-                "nmaps",
-                "exmaps",
-                "imaps",
-                "inputmaps",
-                "ignoremaps",
-            ].forEach(settingName => updateAll([settingName], updateSetting))
+            ;["nmaps", "exmaps", "imaps", "inputmaps", "ignoremaps"].forEach(
+                settingName => updateAll([settingName], updateSetting),
+            )
             set("configversion", "1.7")
         }
         case "1.7": {
@@ -1766,6 +1879,9 @@ const parseConfigHelper = (pconf, parseobj, prefix = []) => {
                     if (pconf[i][e] === 3) level = "info"
                     if (pconf[i][e] === 4) level = "debug"
                     parseobj.logging.push(`set logging.${e} ${level}`)
+                } else if (i === "customthemes") {
+                    // Skip custom themes for now because writing their CSS is hard
+                    // parseobj.themes.push(`colourscheme ${e}`) // TODO: check if userconfig.theme == e and write this, otherwise don't.
                 } else {
                     parseConfigHelper(pconf[i], parseobj, [...prefix, i])
                     break

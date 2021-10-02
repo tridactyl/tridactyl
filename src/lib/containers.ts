@@ -168,20 +168,14 @@ export async function getAll(): Promise<any[]> {
  @returns The cookieStoreId of the first match of the query.
  */
 export async function getId(name: string): Promise<string> {
-    try {
-        const containers = await getAll()
-        const res = containers.filter(
-            c => c.name.toLowerCase() === name.toLowerCase(),
-        )
-        if (res.length !== 1) {
-            throw new Error("")
-        } else {
-            return res[0].cookieStoreId
-        }
-    } catch (e) {
-        logger.error(
-            "[Container.getId] could not find a container with that name.",
-        )
+    const containers = await getAll()
+    const res = containers.filter(
+        c => c.name.toLowerCase() === name.toLowerCase(),
+    )
+    if (res.length !== 1) {
+        throw new Error(`Container '${name}' does not exist.`)
+    } else {
+        return res[0].cookieStoreId
     }
 }
 

@@ -1,5 +1,5 @@
-import { messageActiveTab } from "@src/lib/messaging.ts"
-import * as _EditorCmds from "@src/lib/editor.ts"
+import { messageActiveTab } from "@src/lib/messaging"
+import * as _EditorCmds from "@src/lib/editor"
 
 type cmdsType = typeof _EditorCmds
 type ArgumentsType<T> = T extends (elem, ...args: infer U) => any ? U : never

@@ -49,28 +49,28 @@ jobs:
       run: |
         sudo yarn global add get-firefox
         get-firefox --platform linux --branch devedition --extract --target $HOME
-        echo "::add-path::$HOME/firefox"
+        echo "$HOME/firefox" >> $GITHUB_PATH
     - name: Install Firefox ESR (Linux)
       if: matrix.browser == 'firefoxesr' && matrix.os == 'ubuntu'
       run: |
         sudo yarn global add get-firefox
         get-firefox --platform linux --branch esr --extract --target $HOME
-        echo "::add-path::$HOME/firefox"
+        echo "$HOME/firefox" >> $GITHUB_PATH
     - name: Install Firefox Dev Edition (MacOS)
       if: matrix.browser == 'firefox' && matrix.os == 'macos'
       run: |
-        brew cask --verbose --debug install homebrew/cask-versions/firefox-developer-edition
-        echo "::add-path::/Applications/Firefox Developer Edition.app/Contents/MacOS/"
+        brew install --cask homebrew/cask-versions/firefox-developer-edition
+        echo "/Applications/Firefox Developer Edition.app/Contents/MacOS/" >> $GITHUB_PATH
     - name: Install Firefox Dev Edition (Windows)
       if: matrix.browser == 'firefox' && matrix.os == 'windows'
       run: |
         choco install firefox-dev --pre
-        echo "::add-path::C:\Program Files\Firefox Dev Edition"
+        echo "C:\Program Files\Firefox Dev Edition" >> $GITHUB_PATH
     - name: Install Firefox ESR (Windows)
       if: matrix.browser == 'firefoxesr' && matrix.os == 'windows'
       run: |
         choco install firefoxesr
-        echo "::add-path::C:\Program Files\Mozilla Firefox"
+        echo "C:\Program Files\Mozilla Firefox" >> $GITHUB_PATH
 
     - name: Print Firefox version (Unix-like)
       if: matrix.os == 'ubuntu' || matrix.os == 'macos'
@@ -86,7 +86,7 @@ jobs:
         timeout_minutes: 10
         retry_wait_seconds: 10
         command: |
-          yarn run clean && yarn run build && yarn make-zip && yarn jest
+          yarn run clean && yarn run build --old-native && yarn make-zip && yarn jest
     # - name: Test (Chrome, Linux)
     #   if: matrix.browser == 'chrome' && matrix.os == 'ubuntu'
     #   run: xvfb-run --auto-servernum npm run jest -- ${{ matrix.browser }} || xvfb-run --auto-servernum npm run jest -- ${{ matrix.browser }}

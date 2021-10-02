@@ -1,18 +1,19 @@
-import { browserBg } from "@src/lib/webext.ts"
+import { browserBg } from "@src/lib/webext"
 import * as Completions from "@src/completions"
+import * as config from "@src/lib/config"
 
 function computeDate(session) {
     let howLong = Math.round(
         ((new Date() as any) - session.lastModified) / 1000,
     )
     let qualifier = "s"
-    if (howLong > 60) {
+    if (Math.abs(howLong) > 60) {
         qualifier = "m"
         howLong = Math.round(howLong / 60)
-        if (howLong > 60) {
+        if (Math.abs(howLong) > 60) {
             qualifier = "h"
             howLong = Math.round(howLong / 60)
-            if (howLong > 24) {
+            if (Math.abs(howLong) > 24) {
                 qualifier = "d"
                 howLong = Math.round(howLong / 24)
             }
@@ -41,7 +42,8 @@ function getTabInfo(session) {
     return [tab, extraInfo]
 }
 
-class SessionCompletionOption extends Completions.CompletionOptionHTML
+class SessionCompletionOption
+    extends Completions.CompletionOptionHTML
     implements Completions.CompletionOptionFuse {
     public fuseKeys = []
 
@@ -71,11 +73,17 @@ export class SessionsCompletionSource extends Completions.CompletionSourceFuse {
         super(["undo"], "SessionCompletionSource", "sessions")
 
         this.updateOptions()
+        this.shouldSetStateFromScore =
+            config.get("completions", "Sessions", "autoselect") === "true"
         this._parent.appendChild(this.node)
     }
 
     async onInput(exstr) {
         return this.updateOptions(exstr)
+    }
+
+    setStateFromScore(scoredOpts: Completions.ScoredOption[]) {
+        super.setStateFromScore(scoredOpts, this.shouldSetStateFromScore)
     }
 
     private async updateOptions(exstr = "") {

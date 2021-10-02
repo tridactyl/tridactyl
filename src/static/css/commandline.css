@@ -1,3 +1,5 @@
+@import url("../themes/default/default.css");
+
 body {
     overflow: hidden;
     margin: 0;
@@ -30,6 +32,10 @@ input {
     /* margin-left: -0.25ex; */
     /* we currently have a border from the completions */
     /* border-top: solid 1px lightgray; */
+}
+
+input:focus {
+    outline: none;
 }
 
 #tridactyl-colon::before {
@@ -100,6 +106,7 @@ input {
         var(--tridactyl-header-second-bg),
         var(--tridactyl-header-third-bg)
     );
+    font-size: var(--tridactyl-header-font-size);
     font-weight: var(--tridactyl-header-font-weight);
     border-bottom: var(--tridactyl-header-border-bottom);
     padding-left: 0.5ex;

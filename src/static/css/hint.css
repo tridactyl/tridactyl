@@ -1,3 +1,5 @@
+@import url("../themes/default/default.css");
+
 span.TridactylHint {
     position: absolute !important;
     font-family: var(--tridactyl-hintspan-font-family) !important;
@@ -45,4 +47,7 @@ div.TridactylHintHost {
 
 span.TridactylJSHint {
     background-color: var(--tridactyl-hintspan-js-background) !important;
+}
+.TridactylKilledElem {
+    display: none !important;
 }

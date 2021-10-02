@@ -180,7 +180,6 @@ export async function recursiveScroll(
     xDistance: number,
     yDistance: number,
     node?: Element,
-    stopAt?: Element,
 ) {
     let startingFromCached = false
     if (!node) {

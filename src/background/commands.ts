@@ -1,9 +1,9 @@
-import * as useractions from "@src/background/user_actions"
+import { useractions } from "@src/background/user_actions"
 import * as config from "@src/lib/config"
 import * as keyseq from "@src/lib/keyseq"
 import * as controller from "@src/lib/controller"
 
-function makelistener(commands) {
+function makelistener(commands: Array<browser.commands.Command>) {
     return (command_name: string) => {
         const command = commands.filter(c => c.name == command_name)[0]
         const exstring = config.get(

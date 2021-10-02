@@ -15,6 +15,7 @@ import { enumerate } from "@src/lib/itertools"
 import { toNumber } from "@src/lib/convert"
 import * as aliases from "@src/lib/aliases"
 import { backoff } from "@src/lib/patience"
+import * as config from "@src/lib/config"
 
 export const DEFAULT_FAVICON = browser.runtime.getURL(
     "static/defaultFavicon.svg",
@@ -28,7 +29,7 @@ export abstract class CompletionOption {
     /** What to fill into cmdline */
     value: string
     /** Control presentation of the option */
-    state: OptionState
+    abstract state: OptionState
 }
 
 export abstract class CompletionSource {
@@ -93,7 +94,7 @@ export abstract class CompletionSource {
     /** Update [[node]] to display completions relevant to exstr */
     public abstract filter(exstr: string): Promise<void>
 
-    abstract async next(inc?: number): Promise<boolean>
+    abstract next(inc?: number): Promise<boolean>
 }
 
 // Default classes
@@ -157,6 +158,11 @@ export abstract class CompletionSourceFuse extends CompletionSource {
         keys: ["fuseKeys"],
         shouldSort: true,
         includeScore: true,
+        findAllMatches: true,
+        ignoreLocation: true,
+        ignoreFieldNorm: true,
+        threshold: config.get("completionfuzziness"),
+        minMatchCharLength: 1,
     }
 
     // PERF: Could be expensive not to cache Fuse()
@@ -241,7 +247,7 @@ export abstract class CompletionSourceFuse extends CompletionSource {
     }
 
     /** Rtn sorted array of {option, score} */
-    scoredOptions(query: string, options = this.options): ScoredOption[] {
+    scoredOptions(query: string): ScoredOption[] {
         const searchThis = this.options.map((elem, index) => ({
             index,
             fuseKeys: elem.fuseKeys,
@@ -290,28 +296,17 @@ export abstract class CompletionSourceFuse extends CompletionSource {
     }
 
     /** Call to replace the current display */
-    // TODO: optionContainer.replaceWith and optionContainer.remove don't work.
-    // I don't know why, but it means we can't replace the div in one go. Maybe
-    // an iframe thing.
     updateDisplay() {
-        /* const newContainer = html`<div>` */
-
-        while (this.optionContainer.hasChildNodes()) {
-            this.optionContainer.removeChild(this.optionContainer.lastChild)
-        }
+        const newContainer = this.optionContainer.cloneNode(false) as HTMLElement
 
         for (const option of this.options) {
-            /* newContainer.appendChild(option.html) */
             if (option.state !== "hidden")
-                this.optionContainer.appendChild(option.html)
+                // This is probably slow: `.html` means the HTML parser will be invoked
+                newContainer.appendChild(option.html)
         }
+        this.optionContainer.replaceWith(newContainer)
+        this.optionContainer = newContainer
         this.next(0)
-
-        /* console.log('updateDisplay', this.optionContainer, newContainer) */
-
-        /* let result1 = this.optionContainer.remove() */
-        /* let res2 = this.node.appendChild(newContainer) */
-        /* console.log('results', result1, res2) */
     }
 
     async next(inc = 1) {
@@ -335,7 +330,7 @@ export abstract class CompletionSourceFuse extends CompletionSource {
     /* abstract onUpdate(query: string, prefix: string, options: CompletionOptionFuse[]) */
 
     // Lots of methods don't need this but some do
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
+    // eslint-disable-next-line @typescript-eslint/no-empty-function, @typescript-eslint/no-unused-vars-experimental
     async onInput(exstr: string) {}
 }
 

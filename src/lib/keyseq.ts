@@ -174,7 +174,7 @@ export function parse(keyseq: KeyEventLike[], map: KeyMap): ParserResponse {
         try {
             const perfect = find(
                 possibleMappings,
-                ([k, v]) => k.length === keyseq.length,
+                ([k, _v]) => k.length === keyseq.length,
             )
             return {
                 value: perfect[1],
@@ -212,7 +212,7 @@ function prefixes(seq1: KeyEventLike[], seq2: MinimalKey[]) {
 /** returns the fragment of `map` that keyseq is a valid prefix of. */
 export function completions(keyseq: KeyEventLike[], map: KeyMap): KeyMap {
     return new Map(
-        filter(map.entries(), ([ks, maptarget]) => prefixes(keyseq, ks)),
+        filter(map.entries(), ([ks, _maptarget]) => prefixes(keyseq, ks)),
     )
 }
 
@@ -357,6 +357,7 @@ export const commandKey2jsKey = {
     Down: "ArrowDown",
     Left: "ArrowLeft",
     Right: "ArrowRight",
+    Space: " ",
 }
 
 /*
@@ -388,7 +389,9 @@ export function minimalKeyToMozMap(key: MinimalKey): string {
     key.ctrlKey && mozMap.push("MacCtrl")
     key.shiftKey && mozMap.push("Shift")
     key.metaKey && mozMap.push("Command")
-    const jsKey2commandKey = R.invertObj(commandKey2jsKey)
+    const jsKey2commandKey = Object.fromEntries(
+        Object.entries(commandKey2jsKey).map(([key, value]) => [value, key]),
+    )
     mozMap.push(R.propOr(key.key.toUpperCase(), key.key, jsKey2commandKey))
     return mozMap.join("+")
 }
@@ -417,6 +420,9 @@ export function translateKeysInPlace(keys, conf): void {
  */
 export function keyMap(conf): KeyMap {
     if (KEYMAP_CACHE[conf]) return KEYMAP_CACHE[conf]
+
+    // Fail silently and pass keys through to page if Tridactyl hasn't loaded yet
+    if (!config.INITIALISED) return new Map()
 
     const mapobj: { [keyseq: string]: string } = config.get(conf)
     if (mapobj === undefined)
@@ -501,7 +507,7 @@ export function translateKeysUsingKeyTranslateMap(
 
 // }}}
 
-browser.storage.onChanged.addListener((changes, areaname) => {
+browser.storage.onChanged.addListener(changes => {
     if ("userconfig" in changes) {
         KEYMAP_CACHE = {}
     }

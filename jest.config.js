@@ -13,7 +13,7 @@ module.exports = {
     "ts-jest": {
       tsConfig: {
         ...tsConfig.compilerOptions,
-        types: ["jest", "node", "web-ext-types"]
+          types: ["jest", "node", "@types/firefox-webext-browser"]
       },
       diagnostics: {
         ignoreCodes: [151001]

@@ -2,6 +2,7 @@ import * as config from "@src/lib/config"
 import state from "@src/state"
 import * as State from "@src/state"
 import * as Logging from "@src/lib/logging"
+import { contentState } from "@src/content/state_content"
 import {
     activeTabId,
     openInNewTab,
@@ -119,8 +120,11 @@ export function mouseEvent(
     })
 }
 
-export function elementsWithText() {
-    return getElemsBySelector("*", [isVisible, hint => hint.textContent !== ""])
+export function elementsWithText(includeInvisible = false) {
+    return getElemsBySelector("*", [
+        isVisibleFilter(includeInvisible),
+        hint => hint.textContent !== "",
+    ])
 }
 
 /** Iterable of elements that match xpath.
@@ -200,6 +204,12 @@ export function widthMatters(style: CSSStyleDeclaration) {
             return false
     }
     return true
+}
+
+export function isVisibleFilter(
+    includeInvisible: boolean,
+): (_: Element) => boolean {
+    return (elem: Element) => includeInvisible || isVisible(elem)
 }
 
 // Saka-key caches getComputedStyle. Maybe it's a good idea!
@@ -524,11 +534,12 @@ export function getLastUsedInput(): HTMLElement {
  *  https://developer.mozilla.org/en-US/docs/Web/Web_Components/Custom_Elements
  *  https://bugzilla.mozilla.org/show_bug.cgi?id=1406825
  * */
-function onPageFocus(elem: HTMLElement, args: any[]): boolean {
+function onPageFocus(elem: HTMLElement): boolean {
     if (isTextEditable(elem)) {
         LAST_USED_INPUT = elem
     }
-    return config.get("allowautofocus") === "true"
+    const setting = config.get("modesubconfigs", contentState.mode, "allowautofocus") || config.get("allowautofocus")
+    return setting === "true"
 }
 
 async function setInput(el) {
@@ -575,12 +586,13 @@ export const HINTTAGS_selectors = `
 input:not([type=hidden]):not([disabled]),
 a,
 area,
-iframe,
-textarea,
 button,
+details,
+iframe,
+label,
 select,
 summary,
-label,
+textarea,
 [onclick],
 [onmouseover],
 [onmousedown],
@@ -650,8 +662,10 @@ export const HINTTAGS_saveable = `
 /** Get array of "anchors": elements which have id or name and can be addressed
  * with the hash/fragment in the URL
  */
-export function anchors() {
-    return getElemsBySelector(HINTTAGS_anchor_selectors, [isVisible])
+export function anchors(includeInvisible = false) {
+    return getElemsBySelector(HINTTAGS_anchor_selectors, [
+        isVisibleFilter(includeInvisible),
+    ])
 }
 
 /** if `target === _blank` clicking the link is treated as opening a popup and is blocked. Use webext API to avoid that. */
@@ -678,6 +692,9 @@ export function simulateClick(target: HTMLElement) {
                 })
         })
     } else {
+        if (target instanceof HTMLDetailsElement) {
+            target.open = !target.open
+        }
         mouseEvent(target, "click")
         // DOM.focus has additional logic for focusing inputs
         focus(target)
@@ -685,12 +702,24 @@ export function simulateClick(target: HTMLElement) {
 }
 
 /** Recursively resolves an active shadow DOM element. */
-export function deepestShadowRoot(sr: ShadowRoot|null): ShadowRoot|null {
-	if (sr === null) return sr
-	let shadowRoot = sr
-	while (shadowRoot.activeElement.shadowRoot != null) {
-		shadowRoot = shadowRoot.activeElement.shadowRoot
-	}
-	return shadowRoot
+export function deepestShadowRoot(sr: ShadowRoot | null): ShadowRoot | null {
+    if (sr === null) return sr
+    let shadowRoot = sr
+    while (shadowRoot.activeElement.shadowRoot != null) {
+        shadowRoot = shadowRoot.activeElement.shadowRoot
+    }
+    return shadowRoot
 }
 
+export function getElementCentre(el) {
+    const pos = el.getBoundingClientRect()
+    return { x: 0.5 * (pos.left + pos.right), y: 0.5 * (pos.top + pos.bottom) }
+}
+
+export function getAbsoluteCentre(el) {
+    const pos = getElementCentre(el)
+    return {
+        x: pos.x + (window as any).mozInnerScreenX,
+        y: pos.y + (window as any).mozInnerScreenY,
+    }
+}

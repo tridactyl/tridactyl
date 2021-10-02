@@ -13,7 +13,7 @@ import "@src/lib/html-tagged-template"
 /* import "@src/content/commandline_content" */
 /* import "@src/excmds_content" */
 /* import "@src/content/hinting" */
-import * as Config from "@src/lib/config"
+import * as config from "@src/lib/config"
 import * as Logging from "@src/lib/logging"
 const logger = new Logging.Logger("content")
 logger.debug("Tridactyl content script loaded, boss!")
@@ -24,15 +24,49 @@ import {
     addContentStateChangedListener,
 } from "@src/content/state_content"
 
+import { CmdlineCmds } from "@src/content/commandline_cmds"
+import { EditorCmds } from "@src/content/editor"
+
+import { getAllDocumentFrames } from "@src/lib/dom"
+
+import state from "@src/state"
+import { EditorCmds as editor } from "@src/content/editor"
+/* tslint:disable:import-spacing */
+
+config.getAsync("superignore").then(async TRI_DISABLE => {
 // Set up our controller to execute content-mode excmds. All code
 // running from this entry point, which is to say, everything in the
 // content script, will use the excmds that we give to the module
 // here.
-import * as controller from "@src/lib/controller"
-import * as excmds_content from "@src/.excmds_content.generated"
-import { CmdlineCmds } from "@src/content/commandline_cmds"
-import { EditorCmds } from "@src/content/editor"
-import * as hinting_content from "@src/content/hinting"
+
+if (TRI_DISABLE === "true") return
+const controller = await import("@src/lib/controller")
+const excmds_content = await import("@src/.excmds_content.generated")
+const hinting_content = await import("@src/content/hinting")
+// Hook the keyboard up to the controller
+const ContentController = await import("@src/content/controller_content")
+// Add various useful modules to the window for debugging
+const commandline_content = await import("@src/content/commandline_content")
+const convert = await import("@src/lib/convert")
+const dom = await import("@src/lib/dom")
+const excmds = await import("@src/.excmds_content.generated")
+const finding_content = await import("@src/content/finding")
+const itertools = await import("@src/lib/itertools")
+const messaging = await import("@src/lib/messaging")
+const State = await import("@src/state")
+const webext = await import("@src/lib/webext")
+const perf = await import("@src/perf")
+const keyseq = await import("@src/lib/keyseq")
+const native = await import("@src/lib/native")
+const styling = await import("@src/content/styling")
+const updates = await import("@src/lib/updates")
+const urlutils = await import("@src/lib/url_util")
+const scrolling = await import("@src/content/scrolling")
+const R = await import("ramda")
+const visual = await import("@src/lib/visual")
+const metadata = await import("@src/.metadata.generated")
+const { tabTgroup } = await import("@src/lib/tab_groups")
+
 controller.setExCmds({
     "": excmds_content,
     ex: CmdlineCmds,
@@ -50,10 +84,6 @@ messaging.addListener(
 
 // eslint-disable-next-line @typescript-eslint/require-await
 messaging.addListener("alive", async () => true)
-
-// Hook the keyboard up to the controller
-import * as ContentController from "@src/content/controller_content"
-import { getAllDocumentFrames } from "@src/lib/dom"
 
 const guardedAcceptKey = (keyevent: KeyboardEvent) => {
     if (!keyevent.isTrusted) return
@@ -131,32 +161,6 @@ config.getAsync("preventautofocusjackhammer").then(allowautofocus => {
     }
     tryPreventAutoFocus()
 })
-
-// Add various useful modules to the window for debugging
-import * as commandline_content from "@src/content/commandline_content"
-import * as convert from "@src/lib/convert"
-import * as config from "@src/lib/config"
-import * as dom from "@src/lib/dom"
-import * as excmds from "@src/.excmds_content.generated"
-import * as finding_content from "@src/content/finding"
-import * as itertools from "@src/lib/itertools"
-import * as messaging from "@src/lib/messaging"
-import state from "@src/state"
-import * as State from "@src/state"
-import * as webext from "@src/lib/webext"
-import Mark from "mark.js"
-import * as perf from "@src/perf"
-import * as keyseq from "@src/lib/keyseq"
-import * as native from "@src/lib/native"
-import * as styling from "@src/content/styling"
-import { EditorCmds as editor } from "@src/content/editor"
-import * as updates from "@src/lib/updates"
-import * as urlutils from "@src/lib/url_util"
-import * as scrolling from "@src/content/scrolling"
-import * as R from "ramda"
-import * as visual from "@src/lib/visual"
-import { tabTgroup } from "./lib/tab_groups"
-/* tslint:disable:import-spacing */
 ;(window as any).tri = Object.assign(Object.create(null), {
     browserBg: webext.browserBg,
     commandline_content,
@@ -170,7 +174,7 @@ import { tabTgroup } from "./lib/tab_groups"
     hinting_content,
     itertools,
     logger,
-    Mark,
+    metadata,
     keyseq,
     messaging,
     state,
@@ -206,9 +210,8 @@ if (
             if (newtab) {
                 excmds.open_quiet(newtab)
             } else {
-                document.body.style.height = "100%"
-                document.body.style.opacity = "1"
-                document.body.style.overflow = "auto"
+                const content = document.getElementById("trinewtab")
+                content.style.display = "block"
                 document.title = "Tridactyl Top Tips & New Tab Page"
             }
         }
@@ -333,8 +336,7 @@ config.getAsync("modeindicator").then(mode => {
         } else {
             result = mode
         }
-
-        const modeindicatorshowkeys = Config.get("modeindicatorshowkeys")
+        const modeindicatorshowkeys = config.get("modeindicatorshowkeys")
         if (modeindicatorshowkeys === "true" && suffix !== "") {
             result = mode + " " + suffix
         }
@@ -355,7 +357,12 @@ config.getAsync("modeindicator").then(mode => {
         statusIndicator.className +=
             " TridactylMode" + statusIndicator.textContent
 
-        if (config.get("modeindicator") !== "true") statusIndicator.remove()
+        if (
+            config.get("modeindicator") !== "true" ||
+            config.get("modeindicatormodes", mode) === "false"
+        ) {
+            statusIndicator.remove()
+        }
     })
 })
 
@@ -385,6 +392,14 @@ config.getAsync("leavegithubalone").then(v => {
     }
 })
 
+// I still don't get lib/messaging.ts
+const phoneHome = () => browser.runtime.sendMessage("dom_loaded_background")
+
+document.readyState === "complete" && phoneHome()
+window.addEventListener("load", () => {
+    phoneHome()
+})
+
 document.addEventListener("selectionchange", () => {
     const selection = document.getSelection()
     if (
@@ -412,3 +427,5 @@ document.addEventListener("selectionchange", () => {
 ;(window as any).tri = Object.assign(window.tri, {
     perfObserver: perf.listenForCounters(),
 })
+
+}) // End of maybe-disable-tridactyl-a-bit wrapper

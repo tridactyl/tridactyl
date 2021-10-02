@@ -1,19 +1,21 @@
 {
   "compilerOptions": {
     "moduleResolution": "node",
+    "module": "es2020",
+    "esModuleInterop": true,
     "noImplicitAny": false,
     "noEmitOnError": true,
     "outDir": "build/tsc-out",
     "sourceMap": true,
-    "target": "es2017",
-    "lib": ["es2017","es2019.array", "es2018.promise", "dom", "dom.iterable"],
+    "target": "es2019",
+    "lib": ["es2020", "dom", "dom.iterable"],
     "experimentalDecorators": true,
     "alwaysStrict": true,
     "strictBindCallApply": true,
     "noImplicitThis": true,
     "strictFunctionTypes": true,
     "baseUrl": "src/",
-    "types": ["@types/ramda", "@types/firefox-webext-browser", "web-ext-types"],
+    "types": ["@types/firefox-webext-browser"],
     "paths": {
         "@src/*": ["*"]
     }

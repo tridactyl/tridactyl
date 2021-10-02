@@ -27,6 +27,8 @@ import * as omnibox from "@src/background/omnibox"
 import * as R from "ramda"
 import * as webrequests from "@src/background/webrequests"
 import * as commands from "@src/background/commands"
+import * as meta from "@src/background/meta"
+import * as Logging from "@src/lib/logging"
 
 // Add various useful modules to the window for debugging
 ;(window as any).tri = Object.assign(Object.create(null), {
@@ -44,10 +46,11 @@ import * as commands from "@src/background/commands"
     state,
     webext,
     webrequests,
-    l: prom => prom.then(console.log).catch(console.error),
+    l: (prom: Promise<any>) => prom.then(console.log).catch(console.error),
     contentLocation: window.location,
     R,
     perf,
+    meta,
 })
 
 import { HintingCmds } from "@src/background/hinting"
@@ -84,23 +87,23 @@ browser.tabs.onActivated.addListener(ev => {
 /**
  * Declare Tab Event Listeners
  */
-browser.tabs.onRemoved.addListener((tabId) => {
+browser.tabs.onRemoved.addListener(tabId => {
     messaging.messageAllTabs("tab_changes", "tab_close", [tabId])
 })
 // Fired when a tab is attached to a window, for example because it was moved between windows.
-browser.tabs.onAttached.addListener((tabId) => {
+browser.tabs.onAttached.addListener(tabId => {
     messaging.messageAllTabs("tab_changes", "tab_attached", [tabId])
 })
 // Fired when a tab is created. Note that the tab's URL may not be set at the time this event fired.
-browser.tabs.onCreated.addListener((tabId) => {
+browser.tabs.onCreated.addListener(tabId => {
     messaging.messageAllTabs("tab_changes", "tab_created", [tabId])
 })
 // Fired when a tab is detached from a window, for example because it is being moved between windows.
-browser.tabs.onDetached.addListener((tabId) => {
+browser.tabs.onDetached.addListener(tabId => {
     messaging.messageAllTabs("tab_changes", "tab_detached", [tabId])
 })
 // Fired when a tab is moved within a window.
-browser.tabs.onMoved.addListener((tabId) => {
+browser.tabs.onMoved.addListener(tabId => {
     messaging.messageAllTabs("tab_changes", "tab_moved", [tabId])
 })
 
@@ -114,16 +117,23 @@ browser.webNavigation.onDOMContentLoaded.addListener(() => {
 // Prevent Tridactyl from being updated while it is running in the hope of fixing #290
 browser.runtime.onUpdateAvailable.addListener(_ => undefined)
 
+const autocmd_logger = new Logging.Logger("autocmds")
 browser.runtime.onStartup.addListener(() => {
     config.getAsync("autocmds", "TriStart").then(aucmds => {
         const hosts = Object.keys(aucmds)
         // If there's only one rule and it's "all", no need to check the hostname
         if (hosts.length === 1 && hosts[0] === ".*") {
+            autocmd_logger.debug(
+                `TriStart matched ${hosts[0]}: ${aucmds[hosts[0]]}`,
+            )
             controller.acceptExCmd(aucmds[hosts[0]])
         } else {
             native.run("hostname").then(hostname => {
                 for (const host of hosts) {
                     if (new RegExp(host).exec(hostname.content)) {
+                        autocmd_logger.debug(
+                            `TriStart matched ${host}: ${aucmds[host]}`,
+                        )
                         controller.acceptExCmd(aucmds[host])
                     }
                 }
@@ -268,7 +278,6 @@ window.tri = Object.assign(window.tri || Object.create(null), {
 omnibox.init()
 
 // }}}
-
 
 setTimeout(config.update, 5000)
 

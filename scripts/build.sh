@@ -2,8 +2,21 @@
 
 set -e
 
+for arg in "$@"
+do
+    case $arg in
+        --quick)
+            QUICK_BUILD=1
+            shift
+            ;;
+        --old-native)
+            OLD_NATIVE=1
+            shift
+            ;;
+    esac
+done
+
 CLEANSLATE="node_modules/cleanslate/docs/files/cleanslate.css"
-TRIDACTYL_LOGO="src/static/logo/Tridactyl_64px.png"
 
 isWindowsMinGW() {
   is_mingw="False"
@@ -36,23 +49,54 @@ else
   scripts/excmds_macros.py
 fi
 
-# .bracketexpr.generated.ts is needed for metadata generation
-"$(yarn bin)/nearleyc" src/grammars/bracketexpr.ne > \
-  src/grammars/.bracketexpr.generated.ts
+# You can use `--quick` to test out small changes without updating docs / metadata etc.
+# If you get weird behaviour just run a full build
+if [ "$QUICK_BUILD" != "1" ]; then
 
-# It's important to generate the metadata before the documentation because
-# missing imports might break documentation generation on clean builds
-"$(yarn bin)/tsc" compiler/gen_metadata.ts -m commonjs --target es2017 \
-  && node compiler/gen_metadata.js \
-          --out src/.metadata.generated.ts \
-          --themeDir src/static/themes \
-          src/excmds.ts src/lib/config.ts
+    # .bracketexpr.generated.ts is needed for metadata generation
+    "$(yarn bin)/nearleyc" src/grammars/bracketexpr.ne > \
+      src/grammars/.bracketexpr.generated.ts
 
-scripts/newtab.md.sh
-scripts/make_tutorial.sh
-scripts/make_docs.sh
+    # It's important to generate the metadata before the documentation because
+    # missing imports might break documentation generation on clean builds
+    "$(yarn bin)/tsc" compiler/gen_metadata.ts -m commonjs --target es2017 \
+      && node compiler/gen_metadata.js \
+              --out src/.metadata.generated.ts \
+              --themeDir src/static/themes \
+              src/excmds.ts src/lib/config.ts
 
-if [ "$1" != "--no-native" ]; then
+    scripts/newtab.md.sh
+    scripts/make_tutorial.sh
+    scripts/make_docs.sh
+
+    tsc --project tsconfig.json --noEmit
+else
+
+    echo "Warning: dirty rebuild. Skipping docs, metadata and type checking..."
+
+fi
+
+# Actually build the thing
+
+mkdir -p buildtemp
+node scripts/esbuild.js
+mv buildtemp/* build/
+rmdir buildtemp
+
+# Copy extra static files across
+
+cp src/manifest.json build/
+cp -r src/static build
+cp -r generated/static build
+cp issue_template.md build/
+
+# Remove large unused files
+
+rm build/static/logo/Tridactyl.psd
+rm build/static/logo/Tridactyl_1024px.png
+
+# "temporary" fix until we can install new native on CI: install the old native messenger
+if [ "$OLD_NATIVE" = "1" ]; then
     if [ "$(isWindowsMinGW)" = "True" ]; then
       powershell \
         -NoProfile \
@@ -64,24 +108,10 @@ if [ "$1" != "--no-native" ]; then
     fi
 fi
 
-webpack --display errors-only --bail
-
-scripts/bodgecss.sh
 scripts/authors.sh
 
 if [ -e "$CLEANSLATE" ] ; then
 	cp -v "$CLEANSLATE" build/static/css/cleanslate.css
 else
 	echo "Couldn't find cleanslate.css. Try running 'yarn install'"
-fi
-
-if [ -e "$TRIDACTYL_LOGO" ] ; then
-    # sed and base64 take different arguments on Mac
-    case "$(uname)" in
-      Darwin*) sed -i "" "s@REPLACE_ME_WITH_BASE64_TRIDACTYL_LOGO@$(base64 "$TRIDACTYL_LOGO")@" build/static/themes/default/default.css;;
-      *BSD) sed -in "s@REPLACE_ME_WITH_BASE64_TRIDACTYL_LOGO@$(base64 "$TRIDACTYL_LOGO" | tr -d '\r\n')@" build/static/themes/default/default.css;;
-      *) sed "s@REPLACE_ME_WITH_BASE64_TRIDACTYL_LOGO@$(base64 --wrap 0 "$TRIDACTYL_LOGO")@" -i build/static/themes/default/default.css;;
-    esac
-else
-	echo "Couldn't find Tridactyl logo ($TRIDACTYL_LOGO)"
 fi
