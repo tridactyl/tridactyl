@@ -132,8 +132,7 @@ notBackground &&
             const value = message.args.value
             // Ensure we don't accidentally store anything sensitive
             const inIncognitoContext = message.args.inIncognitoContext
-            if (inIncognitoContext && PERSISTENT_KEYS.includes(property)) {
-                overlay[property] = value
+            if (inIncognitoContext) {
                 console.error(
                     "Attempted to write to storage in private window.",
                 )
