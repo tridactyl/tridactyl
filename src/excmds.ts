@@ -5711,15 +5711,15 @@ export async function issue() {
     }
     const platform = await browserBg.runtime.getPlatformInfo()
     // Remove the bit asking the user
-    template = template.replace("*   Operating system:\n", "")
+    template = template.replace("-   Operating system:\n", "")
     // Add this piece of information to the top of the template
     template = `Operating system: ${platform.os}\n` + template
 
     const info = await browserBg.runtime.getBrowserInfo()
-    template = template.replace("*   Firefox version (Top right menu > Help > About Firefox):\n\n", "")
+    template = template.replace("-   Firefox version (Top right menu > Help > About Firefox):\n\n", "")
     template = `Firefox version: ${info.vendor} ${info.name} ${info.version}\n` + template
 
-    template = template.replace("*   Tridactyl version (`:version`):\n\n", "")
+    template = template.replace("-   Tridactyl version (`:version`):\n\n", "")
     template = `Tridactyl version: ${TRI_VERSION}\n` + template
 
     textarea.value = template
