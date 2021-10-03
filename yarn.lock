@@ -2218,10 +2218,10 @@ ecdsa-sig-formatter@1.0.11:
   dependencies:
     safe-buffer "^5.0.1"
 
-editor-adapter@^0.0.1:
-  version "0.0.1"
-  resolved "https://registry.yarnpkg.com/editor-adapter/-/editor-adapter-0.0.1.tgz#97b26c11543cc323cd6d908f1cb65b122689be5e"
-  integrity sha512-8ROHaAtYdhM4vQJaz2+p3KcjkWF3HKhNaVm/SKJjiYYDhvYpCvIbrRAzTSGv8mBEypAfQZ3uV+J5fXS1H3So4w==
+editor-adapter@^0.0.3:
+  version "0.0.3"
+  resolved "https://registry.yarnpkg.com/editor-adapter/-/editor-adapter-0.0.3.tgz#731e005c84dcdb089a9676d2c3fc0bdff72ca9bf"
+  integrity sha512-RxvdgL9Jj9TRwM/LIktwbtnmEHfsP1N0m9rrlfEtkZ0G1M6acYhgAAMiZBu/w+jyvAzC2jox77uryw5uNJQ64Q==
   dependencies:
     typescript "^4.3.5"
 
@@ -4953,9 +4953,9 @@ npm-run-path@^4.0.0:
     path-key "^3.0.0"
 
 nth-check@^2.0.0:
-  version "2.0.0"
-  resolved "https://registry.yarnpkg.com/nth-check/-/nth-check-2.0.0.tgz#1bb4f6dac70072fc313e8c9cd1417b5074c0a125"
-  integrity sha512-i4sc/Kj8htBrAiH1viZ0TgU8Y5XqCaV/FziYK6TBczxmeKm3AEFWqqF3195yKudrarqy7Zu80Ra5dobFjn9X/Q==
+  version "2.0.1"
+  resolved "https://registry.yarnpkg.com/nth-check/-/nth-check-2.0.1.tgz#2efe162f5c3da06a28959fbd3db75dbeea9f0fc2"
+  integrity sha512-it1vE95zF6dTT9lBsYbxvqh0Soy4SPowchj0UBGj/V6cTPnXXtQOPUbhZ6CmGzAD/rW22LQK6E96pcdJXk4A4w==
   dependencies:
     boolbase "^1.0.0"
 
@@ -6470,9 +6470,9 @@ tmp@0.2.1, tmp@^0.2.1:
     rimraf "^3.0.0"
 
 tmpl@1.0.x:
-  version "1.0.4"
-  resolved "https://registry.yarnpkg.com/tmpl/-/tmpl-1.0.4.tgz#23640dd7b42d00433911140820e5cf440e521dd1"
-  integrity sha1-I2QN17QtAEM5ERQIIOXPRA5SHdE=
+  version "1.0.5"
+  resolved "https://registry.yarnpkg.com/tmpl/-/tmpl-1.0.5.tgz#8683e0b902bb9c20c4f726e3c0b69f36518c07cc"
+  integrity sha512-3f0uOEAQwIqGuWW2MVzYg8fV/QNnc/IpuJNG837rLuczAaLVHslWHZQj4IGiEl5Hs3kkbhwL9Ab7Hrsmuj+Smw==
 
 to-fast-properties@^2.0.0:
   version "2.0.0"
