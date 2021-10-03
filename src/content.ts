@@ -65,6 +65,7 @@ const scrolling = await import("@src/content/scrolling")
 const R = await import("ramda")
 const visual = await import("@src/lib/visual")
 const metadata = await import("@src/.metadata.generated")
+const preact = await import("htm/preact")
 
 controller.setExCmds({
     "": excmds_content,
@@ -171,6 +172,8 @@ config.getAsync("preventautofocusjackhammer").then(allowautofocus => {
     excmds,
     finding_content,
     hinting_content,
+    preact,
+    html: preact.html,
     itertools,
     logger,
     metadata,

@@ -5,6 +5,10 @@ import * as Containers from "@src/lib/containers"
 import * as Completions from "@src/completions"
 import * as config from "@src/lib/config"
 import * as Messaging from "@src/lib/messaging"
+import htm from "htm"
+import { h } from "preact"
+
+const html = htm.bind(h)
 
 class BufferCompletionOption
     extends Completions.CompletionOptionHTML
@@ -54,6 +58,7 @@ class BufferCompletionOption
                 <a class="url" target="_blank" href=${tab.url}>${tab.url}</a>
             </td>
         </tr>`
+        console.log(this.html)
     }
 }
 
@@ -83,7 +88,10 @@ export class BufferCompletionSource extends Completions.CompletionSourceFuse {
         this.shouldSetStateFromScore =
             config.get("completions", "Tab", "autoselect") === "true"
         this.updateOptions()
-        this._parent.appendChild(this.node)
+        console.log("lemons")
+        console.log(this._parent) // it's the whole completions div?
+        console.log("lemons")
+        // this._parent = this.node
 
         Messaging.addListener("tab_changes", () => this.reactToTabChanges())
     }

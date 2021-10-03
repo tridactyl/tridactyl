@@ -44,8 +44,7 @@ export function getCommandlineFns(cmdline_state: {
                 "current_cmdline",
                 "cmdline_filter",
             )
-            if (cmdline_state.activeCompletions)
-                cmdline_state.activeCompletions.forEach(comp => comp.next())
+            cmdline_state.next()
         },
 
         /**
@@ -57,8 +56,7 @@ export function getCommandlineFns(cmdline_state: {
                 "current_cmdline",
                 "cmdline_filter",
             )
-            if (cmdline_state.activeCompletions)
-                cmdline_state.activeCompletions.forEach(comp => comp.prev())
+            cmdline_state.prev()
         },
 
         /**
