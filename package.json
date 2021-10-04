@@ -15,7 +15,7 @@
     "cleanslate": "^0.10.1",
     "csp-serdes": "github:cmcaine/csp-serdes",
     "css": "^3.0.0",
-    "editor-adapter": "^0.0.1",
+    "editor-adapter": "^0.0.3",
     "esbuild": "^0.12.8",
     "fuse.js": "^6.4.6",
     "nearley": "^2.20.1",

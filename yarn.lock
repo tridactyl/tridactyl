@@ -2277,10 +2277,10 @@ ecdsa-sig-formatter@1.0.11:
   dependencies:
     safe-buffer "^5.0.1"
 
-editor-adapter@^0.0.1:
-  version "0.0.1"
-  resolved "https://registry.yarnpkg.com/editor-adapter/-/editor-adapter-0.0.1.tgz#97b26c11543cc323cd6d908f1cb65b122689be5e"
-  integrity sha512-8ROHaAtYdhM4vQJaz2+p3KcjkWF3HKhNaVm/SKJjiYYDhvYpCvIbrRAzTSGv8mBEypAfQZ3uV+J5fXS1H3So4w==
+editor-adapter@^0.0.3:
+  version "0.0.3"
+  resolved "https://registry.yarnpkg.com/editor-adapter/-/editor-adapter-0.0.3.tgz#731e005c84dcdb089a9676d2c3fc0bdff72ca9bf"
+  integrity sha512-RxvdgL9Jj9TRwM/LIktwbtnmEHfsP1N0m9rrlfEtkZ0G1M6acYhgAAMiZBu/w+jyvAzC2jox77uryw5uNJQ64Q==
   dependencies:
     typescript "^4.3.5"
 
