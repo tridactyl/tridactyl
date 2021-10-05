@@ -1138,6 +1138,11 @@ export async function addTabHistory() {
     saveTabHistory(pages)
 }
 
+// Calls addTabHistory on page load
+/** @hidden */
+//#content_helper
+addTabHistory()
+
 /** Blur (unfocus) the active element */
 //#content
 export function unfocus() {
@@ -2076,7 +2081,6 @@ loadaucmds("DocStart")
 const autocmd_logger = new Logging.Logger("autocmds")
 window.addEventListener("pagehide", () => loadaucmds("DocEnd"))
 window.addEventListener("DOMContentLoaded", () => {
-    addTabHistory()
     loadaucmds("DocLoad")
 })
 
