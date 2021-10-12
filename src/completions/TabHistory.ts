@@ -69,6 +69,9 @@ export class TabHistoryCompletionSource extends Completions.CompletionSourceFuse
             history["list"][jump["next"]]["index"] = counter
             jump = history["list"][jump["next"]]
         }
+        history["list"] = history["list"].filter(el =>
+            Object.prototype.hasOwnProperty.call(el, "index"),
+        )
 
         this.options = this.scoreOptions(
             history["list"].map(
