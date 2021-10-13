@@ -48,7 +48,7 @@
     "jest-webextension-mock": "^3.7.19",
     "marked": "^3.0.7",
     "prettier": "^2.4.1",
-    "selenium-webdriver": "^4.0.0-rc-2",
+    "selenium-webdriver": "^4.0.0",
     "ts-jest": "^25.5.1",
     "tslint": "^5.20.1",
     "tslint-etc": "^1.13.10",
