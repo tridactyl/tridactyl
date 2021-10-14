@@ -1122,7 +1122,6 @@ export async function addTabHistory() {
         pages["next"] = pages["list"][current]["next"]
         pages["current"] = current
     } else {
-        const tabData = await browserBg.tabs.query({ active: true, currentWindow: true })
         pages["prev"] = pages["current"]
         pages["next"] = null
         pages["list"].push({
@@ -1130,7 +1129,6 @@ export async function addTabHistory() {
             prev: pages["current"],
             title: document.title,
             href: link,
-            icon: tabData[0].favIconUrl,
         })
         pages["current"] = pages["list"].length - 1
         if (pages["list"][pages["prev"]]) pages["list"][pages["prev"]]["next"] = pages["current"]

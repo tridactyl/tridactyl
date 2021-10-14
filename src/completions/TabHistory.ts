@@ -16,11 +16,11 @@ class TabHistoryCompletionOption
 
         this.html = html`<tr class="TabHistoryCompletionOption option">
             <td class="prefix">${index}</td>
-            <td class="icon">
-                <img src="${tab.icon || Completions.DEFAULT_FAVICON}" />
+            <td class="container"></td>
+            <td class="title">${tab.title}</td>
+            <td class="content">
+                <a class="url" href="${tab.href}">${tab.href}</a>
             </td>
-            <td class="element">${tab.title}</td>
-            <td class="link"><a href="${tab.href}">${tab.href}</a></td>
         </tr>`
     }
 }
@@ -77,7 +77,6 @@ export class TabHistoryCompletionSource extends Completions.CompletionSourceFuse
             history["list"].map(
                 item =>
                     new TabHistoryCompletionOption(item.href, {
-                        icon: item.icon,
                         href: item.href,
                         id: item.index,
                         title: item.title,
