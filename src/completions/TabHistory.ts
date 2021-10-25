@@ -44,6 +44,31 @@ export class TabHistoryCompletionSource extends Completions.CompletionSourceFuse
         return this.updateOptions(exstr)
     }
 
+    private traverseChildren(tree, node, startDistance) {
+        for (const child of node["children"]) {
+            const newNode = tree[child]
+            this.traverseChildren(tree, newNode, startDistance)
+            this.addIndex(
+                newNode,
+                this.distanceToStart(tree, newNode) - startDistance,
+            )
+        }
+    }
+
+    private addIndex(node, prefix: number) {
+        node["index"] = `${prefix}`
+    }
+
+    private distanceToStart(tree, end): number {
+        let node = tree[end["parent"]]
+        let counter = 0
+        while (node) {
+            node = tree[node["parent"]]
+            counter += 1
+        }
+        return counter
+    }
+
     private async updateOptions(exstr = "") {
         this.lastExstr = exstr
 
@@ -57,18 +82,19 @@ export class TabHistoryCompletionSource extends Completions.CompletionSourceFuse
         let jump = history["list"][history["current"]]
         let counter = 0
         if (jump) history["list"][history["current"]]["index"] = "%"
-        while (jump && history["list"][jump["prev"]]) {
+        while (jump && history["list"][jump["parent"]]) {
             counter -= 1
-            history["list"][jump["prev"]]["index"] = counter
-            jump = history["list"][jump["prev"]]
+            history["list"][jump["parent"]]["index"] = counter
+            jump = history["list"][jump["parent"]]
         }
         jump = history["list"][history["current"]]
-        counter = 0
-        while (jump && history["list"][jump["next"]]) {
-            counter += 1
-            history["list"][jump["next"]]["index"] = counter
-            jump = history["list"][jump["next"]]
-        }
+
+        this.traverseChildren(
+            history["list"],
+            jump,
+            this.distanceToStart(history["list"], jump),
+        )
+
         history["list"] = history["list"].filter(el =>
             Object.prototype.hasOwnProperty.call(el, "index"),
         )

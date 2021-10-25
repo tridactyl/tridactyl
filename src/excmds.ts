@@ -1103,7 +1103,7 @@ document.addEventListener("scroll", addJump, { passive: true })
 //#content_helper
 document.addEventListener("load", () => curJumps().then(() => jumpprev(0)))
 
-// Adds a new entry to history list or updates it if already visited
+// Adds a new entry to history tree or updates it if already visited
 /** @hidden */
 //#content_helper
 export async function addTabHistory() {
@@ -1111,27 +1111,22 @@ export async function addTabHistory() {
     if (!pages)
         pages = {
             current: null,
-            prev: null,
-            next: null,
             list: [],
         }
     const link = getJumpPageId()
     const current = pages["list"].findIndex(item => item.href === link)
     if (pages["list"][current]) {
-        pages["prev"] = pages["list"][current]["prev"]
-        pages["next"] = pages["list"][current]["next"]
+        if (pages["list"][pages["list"][current]["parent"]]) pages["list"][pages["list"][current]["parent"]]["children"].push(current)
         pages["current"] = current
     } else {
-        pages["prev"] = pages["current"]
-        pages["next"] = null
         pages["list"].push({
-            next: null,
-            prev: pages["current"],
-            title: document.title,
+            children: [],
+            parent: pages["current"],
             href: link,
+            title: document.title,
         })
         pages["current"] = pages["list"].length - 1
-        if (pages["list"][pages["prev"]]) pages["list"][pages["prev"]]["next"] = pages["current"]
+        if (pages["list"][pages["list"][pages["current"]]["parent"]]) pages["list"][pages["list"][pages["current"]]["parent"]]["children"].push(pages["current"])
     }
     saveTabHistory(pages)
 }
