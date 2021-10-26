@@ -44,39 +44,51 @@ export class TabHistoryCompletionSource extends Completions.CompletionSourceFuse
         return this.updateOptions(exstr)
     }
 
-    private traverseChildren(tree, node) {
+    private makeTree(nodes, parentId, level = 0) {
+        return nodes
+            .filter(node => node["parent"] === parentId)
+            .reduce(
+                (tree, node) => [
+                    ...tree,
+                    {
+                        ...node,
+                        children: this.makeTree(nodes, node["id"], level + 1),
+                        level,
+                    },
+                ],
+                [],
+            )
+    }
+
+    private flattenTree(node, flat = []) {
+        flat.push({
+            title: node["title"],
+            href: node["href"],
+            parent: node["parent"],
+            id: node["id"],
+            level: node["level"] === 0 ? node["level"] : node["level"] - 1,
+        })
         for (const child of node["children"]) {
-            const newNode = tree[child]
-            this.traverseChildren(tree, newNode)
-            this.addIndex(tree, newNode)
+            this.flattenTree(child, flat)
         }
+        return flat
     }
 
-    private addIndex(tree, node) {
-        const parentCount = this.countParents(tree, node)
-        node["index"] = parentCount
-        let string = ""
-        for (let i = 0; i <= parentCount; ++i) {
-            if (i === parentCount) {
-                string += "├─"
-            } else if (i === 0) {
-                string += "| "
-            } else {
-                string += "| "
+    private addIndicies(tree) {
+        for (const node of tree) {
+            const parentCount = node["level"]
+            let string = parentCount + "  "
+            for (let i = 0; i <= parentCount; ++i) {
+                if (i === parentCount) {
+                    string += "├─"
+                } else if (i === 0) {
+                    string += "| "
+                } else {
+                    string += "| "
+                }
             }
+            node["prefix"] = string
         }
-        node["prefix"] = string
-    }
-
-    private countParents(tree, node): number {
-        let prev = null
-        if (tree[node["parent"]]) prev = tree[node["parent"]]
-        let counter = 0
-        while (prev) {
-            prev = tree[prev["parent"]]
-            counter += 1
-        }
-        return counter - 1
     }
 
     private async updateOptions(exstr = "") {
@@ -88,26 +100,9 @@ export class TabHistoryCompletionSource extends Completions.CompletionSourceFuse
         })
         let history = await browserBg.sessions.getTabValue(tab[0].id, "history")
         if (!history) history = { list: [] }
-
-        let jump = history["list"][history["current"]]
-        let counter = 0
-        if (jump) {
-            history["list"][history["current"]]["index"] = "%"
-            history["list"][history["current"]]["prefix"] = "|"
-        }
-        while (jump && history["list"][jump["parent"]]) {
-            counter -= 1
-            history["list"][jump["parent"]]["index"] = counter
-            history["list"][jump["parent"]]["prefix"] = "|"
-            jump = history["list"][jump["parent"]]
-        }
-        jump = history["list"][history["current"]]
-
-        this.traverseChildren(history["list"], jump)
-
-        history["list"] = history["list"].filter(el =>
-            Object.prototype.hasOwnProperty.call(el, "index"),
-        )
+        const tree = this.makeTree(history["list"], null)
+        history["list"] = this.flattenTree(tree[0])
+        this.addIndicies(history["list"])
 
         this.options = this.scoreOptions(
             history["list"].map(
@@ -117,7 +112,7 @@ export class TabHistoryCompletionSource extends Completions.CompletionSourceFuse
                         id: item.index,
                         title: item.title,
                         prefix: item.prefix,
-                        index: item.index,
+                        index: item.level,
                     }),
             ),
         )
@@ -125,17 +120,6 @@ export class TabHistoryCompletionSource extends Completions.CompletionSourceFuse
     }
 
     private scoreOptions(options: TabHistoryCompletionOption[]) {
-        options.sort((el1, el2) => {
-            if (el1["index"] && el2["index"] && el1["index"] < el2["index"])
-                return -1
-            if (el1["index"] && el2["index"] && el1["index"] > el2["index"])
-                return 1
-            if (el1["parent"] && el2["parent"] && el1["parent"] < el2["parent"])
-                return -1
-            if (el1["parent"] && el2["parent"] && el1["parent"] > el2["parent"])
-                return 1
-            return 0
-        })
         return options
     }
 }
