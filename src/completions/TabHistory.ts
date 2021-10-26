@@ -17,7 +17,7 @@ class TabHistoryCompletionOption
         this.html = html`<tr class="TabHistoryCompletionOption option">
             <td class="prefix">${index}</td>
             <td class="container"></td>
-            <td class="title">${tab.title}</td>
+            <td class="title">${tab.prefix}${tab.title}</td>
             <td class="content">
                 <a class="url" href="${tab.href}">${tab.href}</a>
             </td>
@@ -44,29 +44,39 @@ export class TabHistoryCompletionSource extends Completions.CompletionSourceFuse
         return this.updateOptions(exstr)
     }
 
-    private traverseChildren(tree, node, startDistance) {
+    private traverseChildren(tree, node) {
         for (const child of node["children"]) {
             const newNode = tree[child]
-            this.traverseChildren(tree, newNode, startDistance)
-            this.addIndex(
-                newNode,
-                this.distanceToStart(tree, newNode) - startDistance,
-            )
+            this.traverseChildren(tree, newNode)
+            this.addIndex(tree, newNode)
         }
     }
 
-    private addIndex(node, prefix: number) {
-        node["index"] = `${prefix}`
+    private addIndex(tree, node) {
+        const parentCount = this.countParents(tree, node)
+        node["index"] = parentCount
+        let string = ""
+        for (let i = 0; i <= parentCount; ++i) {
+            if (i === parentCount) {
+                string += "├─"
+            } else if (i === 0) {
+                string += "| "
+            } else {
+                string += "| "
+            }
+        }
+        node["prefix"] = string
     }
 
-    private distanceToStart(tree, end): number {
-        let node = tree[end["parent"]]
+    private countParents(tree, node): number {
+        let prev = null
+        if (tree[node["parent"]]) prev = tree[node["parent"]]
         let counter = 0
-        while (node) {
-            node = tree[node["parent"]]
+        while (prev) {
+            prev = tree[prev["parent"]]
             counter += 1
         }
-        return counter
+        return counter - 1
     }
 
     private async updateOptions(exstr = "") {
@@ -81,19 +91,19 @@ export class TabHistoryCompletionSource extends Completions.CompletionSourceFuse
 
         let jump = history["list"][history["current"]]
         let counter = 0
-        if (jump) history["list"][history["current"]]["index"] = "%"
+        if (jump) {
+            history["list"][history["current"]]["index"] = "%"
+            history["list"][history["current"]]["prefix"] = "|"
+        }
         while (jump && history["list"][jump["parent"]]) {
             counter -= 1
             history["list"][jump["parent"]]["index"] = counter
+            history["list"][jump["parent"]]["prefix"] = "|"
             jump = history["list"][jump["parent"]]
         }
         jump = history["list"][history["current"]]
 
-        this.traverseChildren(
-            history["list"],
-            jump,
-            this.distanceToStart(history["list"], jump),
-        )
+        this.traverseChildren(history["list"], jump)
 
         history["list"] = history["list"].filter(el =>
             Object.prototype.hasOwnProperty.call(el, "index"),
@@ -106,6 +116,8 @@ export class TabHistoryCompletionSource extends Completions.CompletionSourceFuse
                         href: item.href,
                         id: item.index,
                         title: item.title,
+                        prefix: item.prefix,
+                        index: item.index,
                     }),
             ),
         )
@@ -113,6 +125,17 @@ export class TabHistoryCompletionSource extends Completions.CompletionSourceFuse
     }
 
     private scoreOptions(options: TabHistoryCompletionOption[]) {
+        options.sort((el1, el2) => {
+            if (el1["index"] && el2["index"] && el1["index"] < el2["index"])
+                return -1
+            if (el1["index"] && el2["index"] && el1["index"] > el2["index"])
+                return 1
+            if (el1["parent"] && el2["parent"] && el1["parent"] < el2["parent"])
+                return -1
+            if (el1["parent"] && el2["parent"] && el1["parent"] > el2["parent"])
+                return 1
+            return 0
+        })
         return options
     }
 }
