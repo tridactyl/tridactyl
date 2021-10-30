@@ -44,7 +44,7 @@ export class TabHistoryCompletionSource extends Completions.CompletionSourceFuse
         return this.updateOptions(exstr)
     }
 
-    private makeTree(nodes, parentId, level = 0) {
+    private makeTree(nodes, parentId = null, level = 0) {
         return nodes
             .filter(node => node["parent"] === parentId)
             .reduce(
@@ -81,8 +81,6 @@ export class TabHistoryCompletionSource extends Completions.CompletionSourceFuse
             for (let i = 0; i <= parentCount; ++i) {
                 if (i === parentCount) {
                     string += "├─"
-                } else if (i === 0) {
-                    string += "| "
                 } else {
                     string += "| "
                 }
@@ -100,7 +98,7 @@ export class TabHistoryCompletionSource extends Completions.CompletionSourceFuse
         })
         let history = await browserBg.sessions.getTabValue(tab[0].id, "history")
         if (!history) history = { list: [] }
-        const tree = this.makeTree(history["list"], null)
+        const tree = this.makeTree(history["list"])
         history["list"] = this.flattenTree(tree[0])
         this.addIndicies(history["list"])
 
