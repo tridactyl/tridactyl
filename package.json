@@ -16,7 +16,7 @@
     "csp-serdes": "github:cmcaine/csp-serdes",
     "css": "^3.0.0",
     "editor-adapter": "^0.0.3",
-    "esbuild": "^0.13.14",
+    "esbuild": "^0.14.2",
     "fuse.js": "^6.4.6",
     "nearley": "^2.20.1",
     "ramda": "^0.27.1",
