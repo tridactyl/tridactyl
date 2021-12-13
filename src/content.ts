@@ -205,7 +205,7 @@ if (
     window.location.pathname === "/static/newtab.html"
 ) {
     config.getAsync("newtab").then(newtab => {
-        if (newtab !== "about:blank") {
+        if (!["about:blank", "about:newtab"].includes(newtab)) {
             if (newtab) {
                 excmds.open_quiet(newtab)
             } else {
