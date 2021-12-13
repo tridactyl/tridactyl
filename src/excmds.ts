@@ -302,7 +302,7 @@ export function getInputSelector() {
 //#content
 export function addTridactylEditorClass(selector: string) {
     const elem = document.querySelector(selector)
-    elem.className = elem.className + " TridactylEditing "
+    elem.classList.add("TridactylEditing")
     return elem
 }
 
@@ -310,7 +310,7 @@ export function addTridactylEditorClass(selector: string) {
 //#content
 export function removeTridactylEditorClass(selector: string) {
     const elem = document.querySelector(selector)
-    elem.className = elem.className.replace(" TridactylEditing ", "")
+    elem.classList.remove("TridactylEditing")
 }
 
 //#content_helper
