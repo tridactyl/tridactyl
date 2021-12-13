@@ -347,6 +347,12 @@ export async function editor() {
         return undefined
     }
 
+    const beforeUnloadListener = (event: BeforeUnloadEvent) => {
+        event.preventDefault()
+        event.returnValue = true
+    }
+    window.addEventListener("beforeunload", beforeUnloadListener)
+
     let ans
     try {
         const editor = getEditor(elem, { preferHTML: true })
@@ -371,6 +377,7 @@ export async function editor() {
         throw new Error(`:editor failed: ${e}`)
     } finally {
         removeTridactylEditorClass(selector)
+        window.removeEventListener("beforeunload", beforeUnloadListener)
         return ans
     }
 }
