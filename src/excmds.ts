@@ -301,16 +301,13 @@ export function getInputSelector() {
 /** @hidden */
 //#content
 export function addTridactylEditorClass(selector: string) {
-    const elem = document.querySelector(selector)
-    elem.classList.add("TridactylEditing")
-    return elem
+    document.querySelector(selector)?.classList.add("TridactylEditing")
 }
 
 /** @hidden */
 //#content
 export function removeTridactylEditorClass(selector: string) {
-    const elem = document.querySelector(selector)
-    elem.classList.remove("TridactylEditing")
+    document.querySelector(selector)?.classList.remove("TridactylEditing")
 }
 
 //#content_helper
