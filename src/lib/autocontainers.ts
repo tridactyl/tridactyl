@@ -273,13 +273,8 @@ export class AutoContain implements IAutoContain {
     getAuconForUrl = async (url: string): Promise<string> => {
         const aucons = Config.get("autocontain")
         const ausites = Object.keys(aucons)
-        const aukeyarr = ausites.filter(e => url.search(e) >= 0)
-        if (aukeyarr.length > 1) {
-            logger.error(
-                "Too many autocontain directives match this url. Not containing.",
-            )
-            return "firefox-default"
-        } else if (aukeyarr.length === 0) {
+        const aukeyarr = ausites.filter(e => url.search(e) >= 0).sort((a, b) => b.length - a.length)
+        if (!aukeyarr.length) {
             return "firefox-default"
         } else {
             const containerExists = await Container.exists(aucons[aukeyarr[0]])
