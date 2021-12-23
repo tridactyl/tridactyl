@@ -1182,7 +1182,7 @@ export async function scrolltab(tabId: number, scrollX: number, scrollY: number,
  * If a mark is already assigned, it is overwritten.
  * @param key the key associated with the mark
  */
-//#content
+//#background
 export async function markadd(key: string) {
     if ((await browser.windows.getCurrent()).incognito) {
         throw new Error("Marks cannot be set in private mode")
@@ -4064,8 +4064,7 @@ export function setmode(mode: string, key: string, ...values: string[]) {
     if (!mode || !key || !values.length) {
         throw new Error("seturl syntax: mode key value")
     }
-    if (key !== "allowautofocus")
-        throw new Error("Setting '" + key + "' not supported with setmode")
+    if (key !== "allowautofocus") throw new Error("Setting '" + key + "' not supported with setmode")
 
     return config.set("modesubconfigs", mode, ...validateSetArgs(key, values))
 }
