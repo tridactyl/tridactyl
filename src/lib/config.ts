@@ -1140,7 +1140,7 @@ export class default_config {
     visualenterauto: "true" | "false" = "true"
 
     /**
-     * Whether to return to visual mode when text is deselected.
+     * Whether to return to normal mode when text is deselected.
      */
     visualexitauto: "true" | "false" = "true"
 

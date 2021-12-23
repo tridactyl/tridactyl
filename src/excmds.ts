@@ -303,7 +303,7 @@ export function getInputSelector() {
 //#content
 export function addTridactylEditorClass(selector: string) {
     const elem = document.querySelector(selector)
-    elem.className = elem.className + " TridactylEditing "
+    elem.classList.add("TridactylEditing")
     return elem
 }
 
@@ -311,7 +311,7 @@ export function addTridactylEditorClass(selector: string) {
 //#content
 export function removeTridactylEditorClass(selector: string) {
     const elem = document.querySelector(selector)
-    elem.className = elem.className.replace(" TridactylEditing ", "")
+    elem.classList.remove("TridactylEditing")
 }
 
 //#content_helper
@@ -642,7 +642,11 @@ export async function nativeopen(...args: string[]) {
                     try {
                         const profile = await Native.getProfile()
                         if (profile.Name !== undefined) {
-                            firefoxArgs = [`-p ${profile.Name}`]
+                            if (os === "win") {
+                                firefoxArgs = [`-p "${profile.Name}"`]
+                            } else {
+                                firefoxArgs = [`-p '${profile.Name}'`]
+                            }
                         } else if (profile.absolutePath !== undefined) {
                             if (os === "win") {
                                 firefoxArgs = [`--profile "${profile.absolutePath}"`]
