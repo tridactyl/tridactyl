@@ -97,6 +97,7 @@
         "webNavigation",
         "webRequest",
         "webRequestBlocking",
+        "proxy",
         "<all_urls>"
     ],
     "applications": {

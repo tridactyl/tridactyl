@@ -544,6 +544,17 @@ export class default_config {
     })
 
     /**
+     * Definitions of proxies.
+     *
+     * You can add a new proxy with `proxyadd proxyname proxyurl`
+     */
+    proxies = o({
+        // "socksName": "socks://hostname:port",
+        // "socks4": "socks4://hostname:port",
+        // "https": "https://username:password@hostname:port"
+    })
+
+    /**
      * Strict mode will always ensure a domain is open in the correct container, replacing the current tab if necessary.
      *
      * Relaxed mode is less aggressive and instead treats container domains as a default when opening a new tab.

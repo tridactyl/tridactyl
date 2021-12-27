@@ -94,6 +94,7 @@ import * as escape from "@src/lib/escape"
 import semverCompare from "semver-compare"
 import * as hint_util from "@src/lib/hint_util"
 import { OpenMode } from "@src/lib/hint_util"
+import * as Proxy from "@src/lib/proxy"
 
 /**
  * This is used to drive some excmd handling in `composite`.
@@ -2465,7 +2466,7 @@ export async function tabopen(...addressarr: string[]): Promise<browser.tabs.Tab
 
     const aucon = new AutoContain()
     if (!container && aucon.autocontainConfigured()) {
-        const autoContainer = await aucon.getAuconForUrl(address)
+        const [autoContainer, ] = await aucon.getAuconAndProxiesForUrl(address)
         if (autoContainer && autoContainer !== "firefox-default") {
             container = autoContainer
             logger.debug("tabopen setting container automatically using autocontain directive")
@@ -4028,7 +4029,13 @@ export function autocmd(event: string, url: string, ...excmd: string[]) {
  *
  * This *should* now peacefully coexist with the Temporary Containers and Multi-Account Containers addons. Do not trust this claim. If a fight starts the participants will try to open infinite tabs. It is *strongly* recommended that you use a tridactylrc so that you can abort a sorceror's-apprentice scenario by killing firefox, commenting out all of autocontainer directives in your rc file, and restarting firefox to clean up the mess. There are a number of strange behaviors resulting from limited coordination between extensions. Redirects can be particularly surprising; for example, with `:autocontain -s will-redirect.example.org example` set and `will-redirect.example.org` redirecting to `redirected.example.org`, navigating to `will-redirect.example.org` will result in the new tab being in the `example` container under some conditions and in the `firefox-default` container under others.
  *
- * @param args a regex pattern to match URLs followed by the container to open the URL in.
+ * Pass an optional space-separated list of proxy names to assign proxies to a URL and open in a specified container.
+ * For example: `autocontain [-{u,s}] pattern container proxy1 proxy2`
+ * See also:
+ *  - [[proxyadd]]
+ *  - [[proxyremove]]
+ *
+ * @param args a regex pattern to match URLs followed by the container to open the URL in followed by an optional space-separated list of proxy names.
  */
 //#background
 export function autocontain(...args: string[]) {
@@ -4039,15 +4046,41 @@ export function autocontain(...args: string[]) {
     if (urlMode || saneMode) {
         args.splice(0, 1)
     }
-    if (args.length !== 2) throw new Error("syntax: autocontain [-{u,s}] pattern container")
+    if (args.length < 2) throw new Error("syntax: autocontain [-{u,s}] pattern container proxy1 proxy2")
 
-    let [pattern, container] = args
+    let [pattern, container, ...proxies] = args
 
     if (!urlMode) {
         pattern = saneMode ? `^https?://([^/]*\\.|)${pattern}/` : `^https?://[^/]*${pattern}/`
     }
 
-    return config.set("autocontain", pattern, container)
+    return config.set("autocontain", pattern, proxies.length ? [container, proxies.join(",")].join("+") : container)
+}
+
+/** Add a proxy.
+    Examples:
+    - `proxyadd socksName socks://hostname:port`
+    - `proxyadd socks4 socks4://hostname:port`
+    - `proxyadd https https://username:password@hostname:port`
+*/
+//#background
+export function proxyadd(name: string, url: string) {
+    if (!name || !url) throw new Error(":proxyadd requires two arguments. See `:help proxyadd` for more information.")
+
+    Proxy.proxyFromUrl(url)
+
+    return config.set("proxies", name, url)
+}
+
+/** Remove proxies.
+    @param name The proxy name that should be removed.
+ */
+//#background
+export function proxyremove(name: string) {
+    if (!name) {
+        throw new Error("proxyremove syntax: `proxyremove proxyname`")
+    }
+    config.unset("proxies", name)
 }
 
 /** Remove autocmds

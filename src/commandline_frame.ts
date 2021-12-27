@@ -37,6 +37,7 @@ import { BufferCompletionSource } from "@src/completions/Tab"
 import { TabAllCompletionSource } from "@src/completions/TabAll"
 import { ThemeCompletionSource } from "@src/completions/Theme"
 import { WindowCompletionSource } from "@src/completions/Window"
+import { ProxyCompletionSource } from "@src/completions/Proxy"
 import { contentState } from "@src/content/state_content"
 import { theme } from "@src/content/styling"
 import { getCommandlineFns } from "@src/lib/commandline_cmds"
@@ -129,6 +130,7 @@ export function enableCompletions() {
             SettingsCompletionSource,
             WindowCompletionSource,
             ExtensionsCompletionSource,
+            ProxyCompletionSource,
         ]
             .map(constructorr => {
                 try {
