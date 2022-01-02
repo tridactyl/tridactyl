@@ -108,9 +108,17 @@ const getProxiesForUrl = async (url: string): Promise<ProxyInfo[]> => {
     const aucon = new AutoContain()
     const [, containerProxies] = await aucon.getAuconAndProxiesForUrl(url)
     const proxies = await getProxies()
-    return Object.entries(proxies)
+    const filteredProxies = Object.entries(proxies)
         .filter(([name, ]) => containerProxies.includes(name))
         .map(([, proxy]) => proxy)
+    const defaultProxy = await config.getAsync("proxy")
+    if (
+        defaultProxy in proxies &&
+        !containerProxies.includes(defaultProxy)
+    ) {
+        filteredProxies.push(proxies[defaultProxy])
+    }
+    return filteredProxies
 }
 
 export const onRequestListener = async (

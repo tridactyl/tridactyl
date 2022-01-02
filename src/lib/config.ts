@@ -544,6 +544,11 @@ export class default_config {
     })
 
     /**
+     * Default proxy to use for all URLs. Has to be the name of a proxy. To add a proxy, see `:help proxyadd`.
+     */
+    proxy = ""
+
+    /**
      * Definitions of proxies.
      *
      * You can add a new proxy with `proxyadd proxyname proxyurl`
