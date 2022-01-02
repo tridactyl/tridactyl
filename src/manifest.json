@@ -103,7 +103,7 @@
     "applications": {
         "gecko": {
             "id": "tridactyl.vim.betas@cmcaine.co.uk",
-            "strict_min_version": "68.0"
+            "strict_min_version": "91.1.0"
         }
     },
     "options_ui": {
