@@ -4058,10 +4058,15 @@ export function autocontain(...args: string[]) {
 }
 
 /** Add a proxy.
+
+ @param name The name of the proxy you want to set
+
+ @param url The proxy URL. List of supported protcols are "http", "https/ssl", "socks/socks5", "socks4".
+
     Examples:
-    - `proxyadd socksName socks://hostname:port`
-    - `proxyadd socks4 socks4://hostname:port`
-    - `proxyadd https https://username:password@hostname:port`
+    - `proxyadd work https://admin:hunter2@bigcorp.example:1337`
+    - `proxyadd kyoto socks://10.0.100.10:1080?proxyDNS=false`
+    - `proxyadd alice socks4://10.0.100.10:3128`
 */
 //#background
 export function proxyadd(name: string, url: string) {
