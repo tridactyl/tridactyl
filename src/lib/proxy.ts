@@ -96,8 +96,22 @@ export const proxyFromUrl = (proxyUrl: string): ProxyInfo => {
     }
 }
 
-const getProxies = async (): Promise<{ [key: string]: ProxyInfo }> => {
-    const userProxies = await config.getAsync("proxies")
+export function exists(names: string[]) {
+    const currProxies = Object.keys(config.get("proxies"))
+    const missingProxies = names.filter(name => !currProxies.includes(name))
+    if (missingProxies.length) {
+        throw new Error(
+            `${
+                missingProxies.length === 1 ? "Proxy" : "Proxies"
+            } ${missingProxies.join(
+                ", ",
+            )} does not exist. See :help proxyadd for more info.`,
+        )
+    }
+}
+
+const getProxies = (): { [key: string]: ProxyInfo } => {
+    const userProxies = config.get("proxies")
     return Object.entries(userProxies).reduce((acc, [name, url]) => {
         acc[name] = proxyFromUrl(url as string)
         return acc
@@ -107,11 +121,11 @@ const getProxies = async (): Promise<{ [key: string]: ProxyInfo }> => {
 const getProxiesForUrl = async (url: string): Promise<ProxyInfo[]> => {
     const aucon = new AutoContain()
     const [, containerProxies] = await aucon.getAuconAndProxiesForUrl(url)
-    const proxies = await getProxies()
+    const proxies = getProxies()
     const filteredProxies = Object.entries(proxies)
         .filter(([name, ]) => containerProxies.includes(name))
         .map(([, proxy]) => proxy)
-    const defaultProxy = await config.getAsync("proxy")
+    const defaultProxy = config.get("proxy")
     if (
         defaultProxy in proxies &&
         !containerProxies.includes(defaultProxy)

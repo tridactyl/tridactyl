@@ -3929,7 +3929,11 @@ export function set(key: string, ...values: string[]) {
         throw msg
     }
 
-    return config.set(...validateSetArgs(key, values))
+    const target = validateSetArgs(key, values)
+
+    key === "proxy" && Proxy.exists(target.slice(-1))
+
+    return config.set(...target)
 }
 
 /**
@@ -4053,6 +4057,8 @@ export function autocontain(...args: string[]) {
     if (!urlMode) {
         pattern = saneMode ? `^https?://([^/]*\\.|)${pattern}/` : `^https?://[^/]*${pattern}/`
     }
+
+    proxies.length && Proxy.exists(proxies)
 
     return config.set("autocontain", pattern, proxies.length ? [container, proxies.join(",")].join("+") : container)
 }
