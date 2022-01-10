@@ -301,16 +301,13 @@ export function getInputSelector() {
 /** @hidden */
 //#content
 export function addTridactylEditorClass(selector: string) {
-    const elem = document.querySelector(selector)
-    elem.classList.add("TridactylEditing")
-    return elem
+    document.querySelector(selector)?.classList.add("TridactylEditing")
 }
 
 /** @hidden */
 //#content
 export function removeTridactylEditorClass(selector: string) {
-    const elem = document.querySelector(selector)
-    elem.classList.remove("TridactylEditing")
+    document.querySelector(selector)?.classList.remove("TridactylEditing")
 }
 
 //#content_helper
@@ -347,6 +344,12 @@ export async function editor() {
         return undefined
     }
 
+    const beforeUnloadListener = (event: BeforeUnloadEvent) => {
+        event.preventDefault()
+        event.returnValue = true
+    }
+    window.addEventListener("beforeunload", beforeUnloadListener)
+
     let ans
     try {
         const editor = getEditor(elem, { preferHTML: true })
@@ -371,6 +374,7 @@ export async function editor() {
         throw new Error(`:editor failed: ${e}`)
     } finally {
         removeTridactylEditorClass(selector)
+        window.removeEventListener("beforeunload", beforeUnloadListener)
         return ans
     }
 }
