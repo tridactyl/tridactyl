@@ -2980,6 +2980,19 @@ export async function winclose(...ids: string[]) {
     return Promise.all(ids.map(id => browser.windows.remove(parseInt(id, 10))))
 }
 
+/**
+ * Add/change a prefix to the current window title
+ *
+ * Example: `wintitle [Hovercraft research]`
+ *
+ * Protip: unicode emojis work :)
+ */
+//#background
+export async function wintitle(...title: string[]) {
+    const id = (await browser.windows.getCurrent()).id
+    return browser.windows.update(id, { titlePreface: title.join(" ") + " " })
+}
+
 /** Close all windows */
 // It's unclear if this will leave a session that can be restored.
 // We might have to do it ourselves.
