@@ -4589,6 +4589,7 @@ export async function hint(...args: string[]): Promise<any> {
 
                       case OpenMode.KillTridactyl:
                           elem.classList.add("TridactylKilledElem")
+                          KILL_STACK.push(elem)
                           return elem
 
                       case OpenMode.SaveResource:
