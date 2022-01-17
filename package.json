@@ -19,7 +19,7 @@
     "esbuild": "^0.14.11",
     "fuse.js": "^6.5.3",
     "nearley": "^2.20.1",
-    "ramda": "^0.27.2",
+    "ramda": "^0.28.0",
     "semver-compare": "^1.0.0",
     "stream-browserify": "^3.0.0",
     "tsdef": "^0.0.14",
