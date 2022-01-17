@@ -55,6 +55,8 @@ Tridactyl stable can be installed from the [Mozilla add-ons website (the AMO)][a
 
 If you want to use advanced features such as edit-in-Vim, you'll also need to install the native messenger or executable, instructions for which can be found by typing `:installnative` and hitting enter once you are in Tridactyl. Arch users can install the [AUR package](https://aur.archlinux.org/packages/firefox-tridactyl-native/) `firefox-tridactyl-native` instead.
 
+> **Notice**: `native` seems that does not work on Firefox instances installed with Snap (and probably other sandboxing/containerised package managers). See https://github.com/tridactyl/tridactyl/issues/2406
+
 ### Migrating between beta and stable builds
 
 Our beta and stable versions store their configurations in separate places. To migrate between the two, see [the wiki](https://github.com/tridactyl/tridactyl/wiki/Migration-from-stable-to-beta).
