@@ -140,6 +140,10 @@ export const onRequestListener = async (
 ): Promise<ProxyInfo[] | never[]> => {
     const noProxy = []
 
+    if (config.get("noproxy") === "true") {
+        return noProxy
+    }
+
     try {
         const proxies = await getProxiesForUrl(details.url)
 

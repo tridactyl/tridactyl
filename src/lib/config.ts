@@ -560,6 +560,13 @@ export class default_config {
     })
 
     /**
+     * Whether to use proxy settings.
+     *
+     * If set to `true`, all proxy settings will be ignored.
+     */
+    noproxy: "true" | "false" = "false"
+
+    /**
      * Strict mode will always ensure a domain is open in the correct container, replacing the current tab if necessary.
      *
      * Relaxed mode is less aggressive and instead treats container domains as a default when opening a new tab.
