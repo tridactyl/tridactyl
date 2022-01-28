@@ -282,6 +282,9 @@ export class AutoContain implements IAutoContain {
             const [aucon, proxies] = matches
                 ? [matches[1], matches[2].split(",")]
                 : [val, []]
+            if (aucon.toLowerCase() === "firefox-default" || aucon.toLowerCase() === "none") {
+                return ["firefox-default", proxies]
+            }
             const containerExists = await Container.exists(aucon)
             if (!containerExists) {
                 if (Config.get("auconcreatecontainer") === "true") {

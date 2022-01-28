@@ -4035,6 +4035,8 @@ export function autocmd(event: string, url: string, ...excmd: string[]) {
  *
  * Pass an optional space-separated list of proxy names to assign a proxy (followed by failover proxies) to a URL and open in a specified container.
  * For example: `autocontain [-{u,s}] pattern container proxy1 proxy2`
+ *
+ * To assign a proxy and open in no container, use "firefox-default" or "none" as a container name.
  * See also:
  *  - [[proxyadd]]
  *  - [[proxyremove]]
