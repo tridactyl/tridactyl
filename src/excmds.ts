@@ -4033,7 +4033,7 @@ export function autocmd(event: string, url: string, ...excmd: string[]) {
  *
  * This *should* now peacefully coexist with the Temporary Containers and Multi-Account Containers addons. Do not trust this claim. If a fight starts the participants will try to open infinite tabs. It is *strongly* recommended that you use a tridactylrc so that you can abort a sorceror's-apprentice scenario by killing firefox, commenting out all of autocontainer directives in your rc file, and restarting firefox to clean up the mess. There are a number of strange behaviors resulting from limited coordination between extensions. Redirects can be particularly surprising; for example, with `:autocontain -s will-redirect.example.org example` set and `will-redirect.example.org` redirecting to `redirected.example.org`, navigating to `will-redirect.example.org` will result in the new tab being in the `example` container under some conditions and in the `firefox-default` container under others.
  *
- * Pass an optional space-separated list of proxy names to assign proxies to a URL and open in a specified container.
+ * Pass an optional space-separated list of proxy names to assign a proxy (followed by failover proxies) to a URL and open in a specified container.
  * For example: `autocontain [-{u,s}] pattern container proxy1 proxy2`
  * See also:
  *  - [[proxyadd]]
@@ -4067,12 +4067,14 @@ export function autocontain(...args: string[]) {
 
  @param name The name of the proxy you want to set
 
- @param url The proxy URL. List of supported protcols are "http", "https/ssl", "socks/socks5", "socks4".
+ @param url The proxy URL. List of supported protcols are "http", "https" or equivalently "ssl", "socks5" or equivalently "socks" and "socks4".
 
     Examples:
     - `proxyadd work https://admin:hunter2@bigcorp.example:1337`
     - `proxyadd kyoto socks://10.0.100.10:1080?proxyDNS=false`
     - `proxyadd alice socks4://10.0.100.10:3128`
+
+ Theses proxy settings are used by autocontainers. See [[autocontain]]
 */
 //#background
 export function proxyadd(name: string, url: string) {
