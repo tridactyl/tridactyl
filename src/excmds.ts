@@ -1178,7 +1178,7 @@ export async function scrolltab(tabId: number, scrollX: number, scrollY: number,
 }
 
 /**
- * Adds a global or a local mark. Assigns a global mark to a key or a local mark the current url and a key.
+ * Adds a global or a local mark. In case of a local mark, it will be assigned to the current page url.
  * If a mark is already assigned, it is overwritten.
  * @param key the key associated with the mark
  */
