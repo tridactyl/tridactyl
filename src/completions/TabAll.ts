@@ -147,6 +147,10 @@ export class TabAllCompletionSource extends Completions.CompletionSourceFuse {
             return a.windowId - b.windowId
         })
 
+        // Check to see if this is a command that needs to exclude the current
+        // window
+        const excludeCurrentWindow = ["tabgrab"].includes(prefix.trim())
+        const currentWindow = await browserBg.windows.getCurrent()
         // Window Ids don't make sense so we're using LASTID and WININDEX to compute a window index
         // This relies on the fact that tabs are sorted by window ids
         let lastId = 0
@@ -156,6 +160,9 @@ export class TabAllCompletionSource extends Completions.CompletionSourceFuse {
                 lastId = tab.windowId
                 winindex += 1
             }
+            // if we are excluding the current window and this tab is in the current window
+            // then skip it
+            if (excludeCurrentWindow && tab.windowId === currentWindow.id) continue
             options.push(
                 new TabAllCompletionOption(
                     tab.id.toString(),
