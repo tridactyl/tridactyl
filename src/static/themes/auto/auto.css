@@ -1,2 +1,2 @@
+@import '../default/default.css';
 @import '../dark/dark.css' (prefers-color-scheme: dark);
-@import '../default/default.css' (prefers-color-scheme: light);
