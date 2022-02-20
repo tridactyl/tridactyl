@@ -1030,9 +1030,17 @@ export class default_config {
     bmarkweight = 100
 
     /**
+     * Default selector for :goto command.
+     */
+    gotoselector = "h1, h2, h3, h4, h5, h6"
+
+    /**
      * General completions options - NB: options are set according to our internal completion source name - see - `src/completions/[name].ts` in the Tridactyl source.
      */
     completions = {
+        Goto: {
+            autoselect: "true",
+        },
         Tab: {
             /**
              * Whether to automatically select the closest matching completion
