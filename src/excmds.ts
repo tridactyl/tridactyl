@@ -4782,6 +4782,36 @@ export async function gobble(nChars: number, endCmd: string) {
 
 // }}}
 
+/** @hidden
+ * This function is used by goto completions.
+ */
+//#content
+export async function getGotoSelectors(): Promise<Array<{ level: number; y: number; title: string; selector: string }>> {
+    const result = []
+    let level = 1
+    for (const selector of config.get("gotoselector").split(",")) {
+        result.push(
+            ...(Array.from(document.querySelectorAll(selector)) as HTMLElement[])
+                .filter(e => e.innerText)
+                .map(e => ({ level, y: e.getClientRects()[0]?.y, title: e.innerText, selector: DOM.getSelector(e) }))
+                .filter(e => e.y !== undefined),
+        )
+        level += 1
+    }
+    return result
+}
+
+/**
+ * Jump to selector.
+ */
+//#content
+export async function goto(...selector: string[]) {
+    const element = document.querySelector(selector.join(" "))
+    if (element) {
+        element.scrollIntoView()
+    }
+}
+
 /**
  * Initialize n [mode] mode.
  *

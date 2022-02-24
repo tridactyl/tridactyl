@@ -26,6 +26,7 @@ import { CompositeCompletionSource } from "@src/completions/Composite"
 import { ExcmdCompletionSource } from "@src/completions/Excmd"
 import { ExtensionsCompletionSource } from "@src/completions/Extensions"
 import { FileSystemCompletionSource } from "@src/completions/FileSystem"
+import { GotoCompletionSource } from "@src/completions/Goto"
 import { GuisetCompletionSource } from "@src/completions/Guiset"
 import { HelpCompletionSource } from "@src/completions/Help"
 import { HistoryCompletionSource } from "@src/completions/History"
@@ -119,6 +120,7 @@ export function enableCompletions() {
             ThemeCompletionSource,
             CompositeCompletionSource,
             FileSystemCompletionSource,
+            GotoCompletionSource,
             GuisetCompletionSource,
             HelpCompletionSource,
             AproposCompletionSource,
