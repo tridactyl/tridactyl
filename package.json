@@ -35,7 +35,7 @@
     "@typescript-eslint/eslint-plugin": "^4.33.0",
     "@typescript-eslint/eslint-plugin-tslint": "^5.8.1",
     "@typescript-eslint/parser": "^4.33.0",
-    "command-line-args": "^5.2.0",
+    "command-line-args": "^5.2.1",
     "eslint": "^7.32.0",
     "eslint-config-prettier": "^8.4.0",
     "eslint-plugin-import": "^2.25.4",
