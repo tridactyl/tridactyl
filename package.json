@@ -29,7 +29,7 @@
   "devDependencies": {
     "@types/css": "0.0.33",
     "@types/firefox-webext-browser": "^94.0.1",
-    "@types/jest": "^27.4.0",
+    "@types/jest": "^27.4.1",
     "@types/nearley": "^2.11.2",
     "@types/selenium-webdriver": "^4.0.16",
     "@typescript-eslint/eslint-plugin": "^4.33.0",
