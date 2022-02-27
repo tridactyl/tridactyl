@@ -703,6 +703,26 @@ export class default_config {
     homepages: string[] = []
 
     /**
+     * Default set of characters that are to be considered illegal
+     * as download file-names.
+     */
+    illegalfilenamechars = "#%&{}\\<>*?/$!'\":@+`|="
+    /**
+     * Default value that will be used to replace the illegal
+     * character(s), if found, in the download file-name.
+     */
+    illegalfilenamereplacement = "_"
+
+    /**
+     * Comma-separated list of Windows file-names which, if matches
+     * with the download file-name, will be suffixed with the
+     * "illegalfilenamereplacement" value.
+     */
+    illegalwindowsfilenames = "CON, PRN, AUX, NUL, COM1, COM2,"
+        + "COM3, COM4, COM5, COM6, COM7, COM8, COM9, LPT1,"
+        + "LPT2, LPT3, LPT4, LPT5, LPT6, LPT7, LPT8, LPT9,"
+
+    /**
      * Characters to use in hint mode.
      *
      * They are used preferentially from left to right.

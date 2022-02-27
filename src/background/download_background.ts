@@ -101,7 +101,18 @@ export async function downloadUrlAs(
         urlToDownload = urlToSave.href
     }
 
-    const fileName = getDownloadFilenameForUrl(urlToSave)
+    let fileName = getDownloadFilenameForUrl(urlToSave)
+    const regex_matcher = new RegExp("[" + config.get("illegalfilenamechars") + "]", "g")
+    fileName = fileName.replace(regex_matcher, config.get("illegalfilenamereplacement"))
+
+    const os = (await browser.runtime.getPlatformInfo()).os
+    if (os === "win") {
+        config.get("illegalwindowsfilenames").split(",").forEach((item) => {
+            if (item.trim() === fileName) {
+                fileName = fileName + config.get("illegalfilenamereplacement")
+            }
+        })
+    }
 
     const downloadId = await browser.downloads.download({
         conflictAction: "uniquify",
