@@ -47,7 +47,11 @@
 }
 
 @media print {
-    .TridactylStatusIndicator {
+    span.TridactylStatusIndicator {
+        display: none !important;
+    }
+
+    #cmdline_iframe {
         display: none !important;
     }
 }
