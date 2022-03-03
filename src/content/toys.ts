@@ -126,12 +126,14 @@ function make_drawable(overlaydiv) {
 }
 
 export function removeBlock() {
-    Array.from(document.getElementsByClassName("_tridactyl_no_mouse_")).map((el: Element & { intid?: number | null}) => {
-        if(typeof el.intid === "number") {
-            clearInterval(el.intid)
-        }
-        el.remove()
-    })
+    Array.from(document.getElementsByClassName("_tridactyl_no_mouse_")).forEach(
+        (el: Element & { intid?: number | null }) => {
+            if (typeof el.intid === "number") {
+                clearInterval(el.intid)
+            }
+            el.remove()
+        },
+    )
 }
 
 export const snow = () => rain(makeBlock(), ["❄"], "#FFF", 0.15)

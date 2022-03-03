@@ -148,10 +148,7 @@ export function getCommandlineFns(cmdline_state: {
 
             const func = command.trim().split(/\s+/)[0]
 
-            if (func.length === 0 || func.startsWith("#")) {
-                return false
-            }
-            return true
+            return !(func.length === 0 || func.startsWith("#"))
         },
 
         /**
