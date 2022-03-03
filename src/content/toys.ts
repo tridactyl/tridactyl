@@ -10,7 +10,10 @@
 
 export function jack_in() {
     // chinese characters - taken from the unicode charset
-    const chinese = "田由甲申甴电甶男甸甹町画甼甽甾甿畀畁畂畃畄畅畆畇畈畉畊畋界畍畎畏畐畑".split("")
+    const chinese =
+        "田由甲申甴电甶男甸甹町画甼甽甾甿畀畁畂畃畄畅畆畇畈畉畊畋界畍畎畏畐畑".split(
+            "",
+        )
     const colour = "#0F0" // green text
     rain(makeBlock(), chinese, colour)
 }
@@ -54,7 +57,7 @@ const clickY = []
 const clickDrag = []
 let ink
 
-let eraser = false;
+let eraser = false
 export function eraser_toggle() {
     eraser = !eraser
 }
@@ -66,7 +69,7 @@ function addClick(x, y, dragging) {
 }
 
 function redraw(context) {
-    if(eraser) {
+    if (eraser) {
         context.globalCompositeOperation = "destination-out"
         context.lineWidth = 18
     } else {
@@ -75,26 +78,26 @@ function redraw(context) {
     }
     context.strokeStyle = "#000000"
     context.lineJoin = "miter"
-    for(let i=0; i < clickX.length; i++) {
+    for (let i = 0; i < clickX.length; i++) {
         context.beginPath()
-        if(clickDrag[i] && i){
-            context.moveTo(clickX[i-1], clickY[i-1])
+        if (clickDrag[i] && i) {
+            context.moveTo(clickX[i - 1], clickY[i - 1])
         } else {
-            context.moveTo(clickX[i]-1, clickY[i])
+            context.moveTo(clickX[i] - 1, clickY[i])
         }
         context.lineTo(clickX[i], clickY[i])
         context.closePath()
         context.stroke()
     }
 }
-function handleDown(e, context){
+function handleDown(e, context) {
     ink = true
     addClick(e.pageX, e.pageY, false)
     redraw(context)
     e.preventDefault()
     e.stopPropagation()
 }
-function handleUp(e){
+function handleUp(e) {
     ink = false
     clickX.length = 0
     clickY.length = 0
@@ -103,9 +106,9 @@ function handleUp(e){
     e.preventDefault()
 }
 function handleMove(e, context) {
-    if(ink){
-        addClick(e.pageX, e.pageY, true);
-        redraw(context);
+    if (ink) {
+        addClick(e.pageX, e.pageY, true)
+        redraw(context)
     }
     e.preventDefault()
     e.stopPropagation()
@@ -118,11 +121,11 @@ function make_drawable(overlaydiv) {
     const context = c.getContext("2d")
     // making the canvas full screen
     c.height = document.documentElement.scrollHeight
-    c.width = window.innerWidth*0.98  // workaround to fix canvas overflow
+    c.width = window.innerWidth * 0.98 // workaround to fix canvas overflow
     c.style.touchAction = "none" // for pen tablet to work
-    c.addEventListener("pointerdown", e=>handleDown(e,context))
+    c.addEventListener("pointerdown", e => handleDown(e, context))
     c.addEventListener("pointerup", handleUp)
-    c.addEventListener("pointermove", e=>handleMove(e,context))
+    c.addEventListener("pointermove", e => handleMove(e, context))
 }
 
 export function removeBlock() {
