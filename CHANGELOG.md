@@ -1,5 +1,37 @@
 # Tridactyl changelog
 
+# Release 1.22.1 / 2022-03-23
+
+-   New features
+
+    -   Tridactyl will prompt you if you try to leave a page while `:editor` is running ([#3915](https://github.com/tridactyl/tridactyl/issues/3915))
+    -   Tridactyl pages will not flash white if your system theme is set to dark mode ([#2510](https://github.com/tridactyl/tridactyl/issues/2510))
+    -   `:goto` added to jump to a heading on a page, see `:help gotoselector` for configuration ([#4116](https://github.com/tridactyl/tridactyl/issues/4116))
+    -   `:wintitle` command added to add a prefix to the current window title ([#4049](https://github.com/tridactyl/tridactyl/issues/4049))
+
+-   Bug fixes
+
+    -   The mode indicator should no longer show up on printed pages ([#453](https://github.com/tridactyl/tridactyl/issues/453))
+    -   The changelog is more readable on dark themes ([#4005](https://github.com/tridactyl/tridactyl/issues/4005))
+    -   `:tabpush` will no longer show the current window ([#4114](https://github.com/tridactyl/tridactyl/issues/4114))
+    -   nor will `:tabgrab` ([#3283](https://github.com/tridactyl/tridactyl/issues/3283))
+    -   `:autocontain` will now pick the longest regex that matches a container if multiple filters match ([#3545](https://github.com/tridactyl/tridactyl/issues/3545))
+    -   `:elementunhide` works again ([#4069](https://github.com/tridactyl/tridactyl/issues/4069))
+    -   The mode indicator can reappear after leaving a mode in which it was disabled with `:set modeindicatormodes.[mode] false` ([#2690](https://github.com/tridactyl/tridactyl/issues/2690))
+    -   The `:editor` icon should now be correctly removed when finished ([#3909](https://github.com/tridactyl/tridactyl/issues/3909))
+    -   `:set newtab about:newtab` will no longer cause two tabs to be opened ([#3656](https://github.com/tridactyl/tridactyl/issues/3656))
+
+-   Miscellaneous
+
+    -   The hacker news comment toggler in the exemplar RC file has been fixed ([#4124](https://github.com/tridactyl/tridactyl/issues/4124))
+    -   Warnings added to the new tab page about upcoming permission requests
+
+Thanks to all of our contributors for this release: Oliver Blanthorn, dependabot[bot], pvs, David Scotson, Calvin T. Nesbitt, Colin Caine, Gerard Bosch, Icelk, Liam Hupfer, Mo, Mo Hijazi and glacambre
+
+Extra special thanks go to Calvin T. Nesbitt, David Scotson, Gerard Bosch, Icelk, Liam Hupfer, Mo and Mo Hijazi who all contributed for the first time.
+
+Last, but not least - thank you to everyone who reported issues.
+
 # Release 1.22.0 / 2021-11-29
 
 -   New features
