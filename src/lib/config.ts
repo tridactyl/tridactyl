@@ -100,13 +100,13 @@ export class default_config {
      * Changing this might do weird stuff.
      */
     modesubconfigs: { [key: string]: DeepPartial<default_config> } = {
-        "normal": {},
-        "insert": {},
-        "input": {},
-        "ignore": {},
-        "ex": {},
-        "hint": {},
-        "visual": {},
+        normal: {},
+        insert: {},
+        input: {},
+        ignore: {},
+        ex: {},
+        hint: {},
+        visual: {},
     }
 
     /**
