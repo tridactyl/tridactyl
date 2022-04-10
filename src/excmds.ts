@@ -1326,7 +1326,7 @@ export async function open(...urlarr: string[]) {
         // Open URLs that firefox won't let us by running `firefox <URL>` on the command line
         return nativeopen(url)
     } else if (/^javascript:/.exec(url)) {
-        const escapeUrl = url.replace(/"/g, "\\\"")
+        const escapeUrl = url.replace(/[\\"]/g, "\\$&")
         window.eval(`window.location.href = "${escapeUrl}"`)
     } else {
         const tab = await ownTab()
