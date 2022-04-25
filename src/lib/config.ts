@@ -703,26 +703,6 @@ export class default_config {
     homepages: string[] = []
 
     /**
-     * Default set of characters that are to be considered illegal
-     * as download file-names.
-     */
-    illegalfilenamechars = "#%&{}\\<>*?/$!'\":@+`|="
-    /**
-     * Default value that will be used to replace the illegal
-     * character(s), if found, in the download file-name.
-     */
-    illegalfilenamereplacement = "_"
-
-    /**
-     * Comma-separated list of Windows file-names which, if matches
-     * with the download file-name, will be suffixed with the
-     * "illegalfilenamereplacement" value.
-     */
-    illegalwindowsfilenames = "CON, PRN, AUX, NUL, COM1, COM2,"
-        + "COM3, COM4, COM5, COM6, COM7, COM8, COM9, LPT1,"
-        + "LPT2, LPT3, LPT4, LPT5, LPT6, LPT7, LPT8, LPT9,"
-
-    /**
      * Characters to use in hint mode.
      *
      * They are used preferentially from left to right.
@@ -978,6 +958,23 @@ export class default_config {
     downloadsskiphistory: "true" | "false" = "false"
 
     /**
+     * Set of characters that are to be considered illegal as download filenames.
+     */
+    downloadforbiddenchars = "/\0"
+
+    /**
+     * Value that will be used to replace the illegal character(s), if found, in the download filename.
+     */
+    downloadforbiddenreplacement = "_"
+
+    /**
+     * Comma-separated list of whole filenames which, if match
+     * with the download filename, will be suffixed with the
+     * "downloadforbiddenreplacement" value.
+     */
+    downloadforbiddennames = ""
+
+    /**
      * Set this to something weird if you want to have fun every time Tridactyl tries to update its native messenger.
      *
      * %TAG will be replaced with your version of Tridactyl for stable builds, or "master" for beta builds
@@ -1211,6 +1208,10 @@ const platform_defaults = {
 (New-Object System.Net.WebClient).DownloadFile('https://raw.githubusercontent.com/tridactyl/native_messenger/master/installers/windows.ps1', '%TEMP%/tridactyl_installnative.ps1');\
 & '%TEMP%/tridactyl_installnative.ps1' -Tag %TAG;\
 Remove-Item '%TEMP%/tridactyl_installnative.ps1'"`,
+        downloadforbiddenchars: "#%&{}\\<>*?/$!'\":@+`|=",
+        downloadforbiddennames: "CON, PRN, AUX, NUL, COM1, COM2,"
+            + "COM3, COM4, COM5, COM6, COM7, COM8, COM9, LPT1,"
+            + "LPT2, LPT3, LPT4, LPT5, LPT6, LPT7, LPT8, LPT9,",
     },
     linux: {
         nmaps: {
