@@ -101,7 +101,7 @@ browser.browserAction.onClicked.addListener(() => {
             "150": "static/logo/Tridactyl_150px.png",
         }}
     if (toIgnore == "true") {
-        excmds_background.fillcmdline("Tridactyl disabled, refresh pages to take effect")
+        excmds_background.fillcmdline_notrail("Tridactyl disabled, refresh pages to take effect")
     } else {
         // TODO: work out how to send a notification even while Tridactyl is disabled
     }
