@@ -686,6 +686,13 @@ export class default_config {
     }
 
     /**
+     * Like [[searchurls]] but must be a Javascript function that takes one argument (a single string with the remainder of the command line including spaces) and maps it to a valid href that will be followed, e.g. `set jsurls.googleloud query => "https://google.com/search?q=" + query.toUpperCase()`
+     *
+     * NB: the href must be valid, i.e. it must include the protocol (e.g. "http://") and not just be e.g. "www.".
+     */
+    jsurls = {}
+
+    /**
      * URL the newtab will redirect to.
      *
      * All usual rules about things you can open with `open` apply, with the caveat that you'll get interesting results if you try to use something that needs `nativeopen`: so don't try `about:newtab` or a `file:///` URI. You should instead use a data URI - https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/Data_URIs - or host a local webserver (e.g. Caddy).
