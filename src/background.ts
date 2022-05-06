@@ -29,6 +29,7 @@ import * as webrequests from "@src/background/webrequests"
 import * as commands from "@src/background/commands"
 import * as meta from "@src/background/meta"
 import * as Logging from "@src/lib/logging"
+import * as Proxy from "@src/lib/proxy"
 
 // Add various useful modules to the window for debugging
 ;(window as any).tri = Object.assign(Object.create(null), {
@@ -82,6 +83,10 @@ browser.tabs.onActivated.addListener(ev => {
             ;(window as any).tri.contentLocation = new URL(t.url)
         }
     })
+})
+
+browser.proxy.onRequest.addListener(Proxy.onRequestListener, {
+    urls: ["<all_urls>"],
 })
 
 /**

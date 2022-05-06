@@ -544,6 +544,29 @@ export class default_config {
     })
 
     /**
+     * Default proxy to use for all URLs. Has to be the name of a proxy. To add a proxy, see `:help proxyadd`.
+     */
+    proxy = ""
+
+    /**
+     * Definitions of proxies.
+     *
+     * You can add a new proxy with `proxyadd proxyname proxyurl`
+     */
+    proxies = o({
+        // "socksName": "socks://hostname:port",
+        // "socks4": "socks4://hostname:port",
+        // "https": "https://username:password@hostname:port"
+    })
+
+    /**
+     * Whether to use proxy settings.
+     *
+     * If set to `true`, all proxy settings will be ignored.
+     */
+    noproxy: "true" | "false" = "false"
+
+    /**
      * Strict mode will always ensure a domain is open in the correct container, replacing the current tab if necessary.
      *
      * Relaxed mode is less aggressive and instead treats container domains as a default when opening a new tab.
