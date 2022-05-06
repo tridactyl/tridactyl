@@ -1082,9 +1082,9 @@ export async function markjumplocal(key: string) {
     if (mark) {
         const currentTabId = await activeTabId()
         state.beforeJumpMark = { url: urlWithoutAnchor, scrollX: window.scrollX, scrollY: window.scrollY, tabId: currentTabId }
-        scrolltab(currentTabId, mark.scrollX, mark.scrollY, `# Jumped to mark '${key}'`)
+        scrolltab(currentTabId, mark.scrollX, mark.scrollY, `# marks: jumped to mark '${key}'`)
     }
-    return fillcmdline_tmp(3000, `# Warning: local mark '${key}' is not set in this tab`)
+    return fillcmdline_tmp(3000, `# marks: warning - local mark '${key}' is not set in this tab`)
 }
 
 /**
@@ -1097,7 +1097,7 @@ export async function markjumpglobal(key: string) {
     const globalMarks = await State.getAsync("globalMarks")
     const mark = globalMarks.get(key)
     if (!mark) {
-        return fillcmdline_tmp(3000, `# Warning: global mark '${key}' is not set`)
+        return fillcmdline_tmp(3000, `# marks: warning - global mark '${key}' is not set`)
     }
     const currentTabId = await activeTabId()
     state.beforeJumpMark = {
@@ -1119,7 +1119,7 @@ export async function markjumpglobal(key: string) {
             return onTabNoLongerValid()
         }
         return goToTab(tab.id).then(() => {
-            scrolltab(tab.id, mark.scrollX, mark.scrollY, `# Jumped to mark '${key}'`)
+            scrolltab(tab.id, mark.scrollX, mark.scrollY, `# marks: jumped to mark '${key}'`)
         })
     }
 
@@ -1139,7 +1139,7 @@ export async function markjumpglobal(key: string) {
     function updateMarkAndScroll(tab) {
         mark.tabId = tab.id
         state.globalMarks = globalMarks
-        scrolltab(tab.id, mark.scrollX, mark.scrollY, `# Jumped to mark '${key}'`)
+        scrolltab(tab.id, mark.scrollX, mark.scrollY, `# marks: jumped to mark '${key}'`)
     }
 }
 
@@ -1162,7 +1162,7 @@ export async function markjumpbefore() {
         }
         const currentTabId = await activeTabId()
         state.beforeJumpMark = { url: window.location.href.split("#")[0], scrollX: window.scrollX, scrollY: window.scrollY, tabId: currentTabId }
-        goToTab(tabId).then(() => scrolltab(tabId, scrollX, scrollY, "# Jumped back"))
+        goToTab(tabId).then(() => scrolltab(tabId, scrollX, scrollY, "# marks: jumped back"))
     } catch (e) {
         // the mark's tab is no longer valid
     }
@@ -1211,7 +1211,7 @@ export async function markaddlocal(key: string) {
     localUrlMarks.set(key, newLocalMark)
     localMarks.set(urlWithoutAnchor, localUrlMarks)
     state.localMarks = localMarks
-    fillcmdline_tmp(3000, `# Local mark '${key}' set`)
+    fillcmdline_tmp(3000, `# marks: local mark '${key}' set`)
 }
 
 /**
@@ -1226,7 +1226,7 @@ export async function markaddglobal(key: string) {
     const newGlobalMark = { url: urlWithoutAnchor, scrollX: window.scrollX, scrollY: window.scrollY, tabId }
     globalMarks.set(key, newGlobalMark)
     state.globalMarks = globalMarks
-    fillcmdline_tmp(3000, `# Global mark '${key}' set`)
+    fillcmdline_tmp(3000, `# marks: global mark '${key}' set`)
 }
 
 /** Called on 'scroll' events.
