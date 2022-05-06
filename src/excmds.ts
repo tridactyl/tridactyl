@@ -4059,7 +4059,7 @@ export function autocontain(...args: string[]) {
     return config.set("autocontain", pattern, proxies.length ? [container, proxies.join(",")].join("+") : container)
 }
 
-/** Add a proxy.
+/** Add a proxy for use with [[autocontain]] or `:set proxy`
 
  @param name The name of the proxy you want to set
 
@@ -4070,7 +4070,7 @@ export function autocontain(...args: string[]) {
     - `proxyadd kyoto socks://10.0.100.10:1080?proxyDNS=false`
     - `proxyadd alice socks4://10.0.100.10:3128`
 
- Theses proxy settings are used by autocontainers. See [[autocontain]]
+ These proxy settings are used by autocontainers. See [[autocontain]]
 */
 //#background
 export function proxyadd(name: string, url: string) {
