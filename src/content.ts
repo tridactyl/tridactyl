@@ -51,14 +51,11 @@ const realwindow = (window as any).wrappedJSObject ?? window // wrappedJSObject 
 const triPushState = (hist => (
     (...args) => {
         const ret = hist(...args)
-        // original code was hist.apply(this, arguments) with both of those args being magic but TS was complaining saying we couldn't do that
-        // this code breaks history.pushState so that's a bonus
-        // (test on extension pages as non-extension pages give more mysterious errors)
         realwindow.dispatchEvent(new Event('pushstate'))
         realwindow.dispatchEvent(new Event('locationchange'))
         return ret
     })
-)(realwindow.history.pushState)
+)(realwindow.history.pushState.bind(realwindow.history))
 
 const triReplaceState = (hist => (
     (...args) => {
@@ -67,9 +64,9 @@ const triReplaceState = (hist => (
         realwindow.dispatchEvent(new Event('locationchange'))
         return ret
     })
-)(realwindow.history.replaceState)
+)(realwindow.history.replaceState.bind(realwindow.history))
 
-realwindow.addEventListener('popstate',()=>{
+realwindow.addEventListener('popstate', () => {
     realwindow.dispatchEvent(new Event('locationchange'))
 })
 
