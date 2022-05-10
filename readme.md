@@ -174,7 +174,7 @@ You can bind your own shortcuts in normal mode with the `:bind` command. For exa
 
 -   Navigation to any about:\* pages using `:open` requires the native messenger.
 -   Firefox will not load Tridactyl on about:\*, some file:\* URIs, view-source:\*, or data:\*. On these pages `<C-,>` - that's "Ctrl-Comma" - and the `tri` [omnibox keyword](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/user_interface/Omnibox) are your escape hatches.
-    -   addons.mozilla.org is now supported so long as you run `fixamo` first.
+    -   addons.mozilla.org is not supported.
 -   Tridactyl now supports changing the Firefox GUI if you have the native messenger installed via `guiset`. There's quite a few options available, but `guiset gui none` is probably what you want, perhaps followed up with `guiset tabs always`. See `:help guiset` for a list of all possible options.
 
 ## Frequently asked questions (FAQ)
