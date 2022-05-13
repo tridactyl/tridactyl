@@ -1115,14 +1115,16 @@ export async function addTabHistory() {
         }
     const link = getJumpPageId()
     const current = pages["list"].findIndex(item => item.href === link)
-    if (pages["list"][current]) {
+    if (current !== -1) {
         pages["current"] = current
+        page["list"][current].time = Date.now()
     } else {
         pages["list"].push({
             parent: pages["current"],
             href: link,
             title: document.title,
             id: pages["list"].length,
+            time: Date.now(),
         })
         pages["current"] = pages["list"].length - 1
     }

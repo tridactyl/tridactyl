@@ -11,13 +11,14 @@ class TabHistoryCompletionOption
         this.fuseKeys.push(this.value, tab.title)
 
         const index = tab.id ? tab.id : ""
+        const timeSpan = tab.formatTimeSpan
 
         this.fuseKeys.push(String(index))
 
         this.html = html`<tr class="TabHistoryCompletionOption option">
             <td class="prefix">${index}</td>
             <td class="container"></td>
-            <td class="title">${tab.prefix}${tab.title}</td>
+            <td class="title">${tab.prefix}${tab.title} (${timeSpan})</td>
             <td class="content">
                 <a class="url" href="${tab.href}">${tab.href}</a>
             </td>
@@ -74,6 +75,35 @@ export class TabHistoryCompletionSource extends Completions.CompletionSourceFuse
         return flat
     }
 
+    private addFormatTimeSpan(tree) {
+        const now = Date.now()
+        for (const node of tree) {
+            const past = now - node["time"]
+            node["formatTimeSpan"] = this.formatTimeSpan(past)
+        }
+    }
+    private formatTimeSpan(ms) {
+        const s = Math.floor(ms / 1000)
+        const m = Math.floor(s / 60)
+        const h = Math.floor(m / 60)
+        const day = Math.floor(h / 24)
+
+        function pad(number, length, char) {
+            let s = String(number)
+            while (s.length < length) s = char + s
+            return s
+        }
+        const pads = n => pad(n, 2, ' ')
+
+        if (m < 1) return `${pads(s)} second ago`
+        else if (m < 10) return `${m} min ${pads(s % 60)} s ago`
+        else if (h < 1) return `${m} min ago`
+        else if (h < 10) return `${h} h ${pads(m % 60)} min ago`
+        else if (day < 1) return `${pads(h)} hour ago`
+        else if (day < 10) return `${day} day ${pads(h % 24)} h ago`
+        else return `${day} day ago`
+    }
+
     private addIndicies(tree) {
         for (const node of tree) {
             const parentCount = node["level"]
@@ -101,6 +131,7 @@ export class TabHistoryCompletionSource extends Completions.CompletionSourceFuse
         const tree = this.makeTree(history["list"])
         history["list"] = this.flattenTree(tree[0])
         this.addIndicies(history["list"])
+        this.addFormatTimeSpan(history["list"])
 
         this.options = this.scoreOptions(
             history["list"].map(
@@ -111,6 +142,7 @@ export class TabHistoryCompletionSource extends Completions.CompletionSourceFuse
                         title: item.title,
                         prefix: item.prefix,
                         index: item.level,
+                        formatTimeSpan: item.formatTimeSpan,
                     }),
             ),
         )
