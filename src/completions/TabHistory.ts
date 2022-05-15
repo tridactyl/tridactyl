@@ -103,12 +103,14 @@ export class TabHistoryCompletionSource extends Completions.CompletionSourceFuse
     private addIndicies(tree) {
         for (const node of tree) {
             const parentCount = node["level"]
-            let string = parentCount + "  "
+            let string = "  "
             for (let i = 0; i <= parentCount; ++i) {
-                if (i === parentCount) {
-                    string += "├─"
+                if (i === parentCount - 1) {
+                    string += "┌─"
+                } else if ( i < parentCount ) {
+                    string += "  " // NB: non-breaking space
                 } else {
-                    string += "| "
+                    string += "· "
                 }
             }
             node["prefix"] = string
