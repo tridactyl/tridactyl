@@ -68,6 +68,7 @@ export class TabHistoryCompletionSource extends Completions.CompletionSourceFuse
             parent: node["parent"],
             id: node["id"],
             level: node["level"] === 0 ? node["level"] : node["level"] - 1,
+            time: node["time"],
         })
         for (const child of node["children"]) {
             this.flattenTree(child, flat)

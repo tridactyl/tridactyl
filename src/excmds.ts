@@ -1117,7 +1117,7 @@ export async function addTabHistory() {
     const current = pages["list"].findIndex(item => item.href === link)
     if (current !== -1) {
         pages["current"] = current
-        page["list"][current].time = Date.now()
+        pages["list"][current].time = Date.now()
     } else {
         pages["list"].push({
             parent: pages["current"],
