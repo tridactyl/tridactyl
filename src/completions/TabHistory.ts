@@ -18,10 +18,11 @@ class TabHistoryCompletionOption
         this.html = html`<tr class="TabHistoryCompletionOption option">
             <td class="prefix">${index}</td>
             <td class="container"></td>
-            <td class="title">${tab.prefix}${tab.title} (${timeSpan})</td>
+            <td class="title">${tab.prefix}${tab.title}</td>
             <td class="content">
                 <a class="url" href="${tab.href}">${tab.href}</a>
             </td>
+            <td class="time">${timeSpan}</td>
         </tr>`
     }
 }
