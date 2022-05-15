@@ -70,8 +70,6 @@ realwindow.addEventListener('popstate', () => {
     realwindow.dispatchEvent(new Event('locationchange'))
 })
 
-window.addEventListener('locationchange', ()=>console.log(window.location.href))
-
 history.replaceState = triReplaceState
 history.pushState = triPushState
 
