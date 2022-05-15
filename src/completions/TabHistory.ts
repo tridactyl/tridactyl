@@ -93,15 +93,16 @@ export class TabHistoryCompletionSource extends Completions.CompletionSourceFuse
             while (s.length < length) s = char + s
             return s
         }
-        const pads = n => pad(n, 2, ' ')
+        const pads = n => pad(n, 2, " ")
 
-        if (m < 1) return `${pads(s)} second ago`
-        else if (m < 10) return `${m} min ${pads(s % 60)} s ago`
-        else if (h < 1) return `${m} min ago`
-        else if (h < 10) return `${h} h ${pads(m % 60)} min ago`
-        else if (day < 1) return `${pads(h)} hour ago`
-        else if (day < 10) return `${day} day ${pads(h % 24)} h ago`
-        else return `${day} day ago`
+        if (m < 1) return `${pads(s)} second${s == 1 ? "" : "s"} ago`
+        else if (m < 10) return `${m}m ${pads(s % 60)}s ago`
+        else if (h < 1) return `${m} min${m == 1 ? "" : "s"} ago`
+        else if (h < 10) return `${h}h ${pads(m % 60)}m ago`
+        else if (day < 1) return `${pads(h)} hour${h == 1 ? "" : "s"} ago`
+        else if (day < 10)
+            return `${day} day${day == 1 ? "" : "s"} ${pads(h % 24)}h ago`
+        else return `${day} day${day == 1 ? "" : "s"} ago`
     }
 
     private addIndicies(tree) {
