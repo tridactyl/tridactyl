@@ -4113,7 +4113,7 @@ export function autocmddelete(event: string, url: string) {
  *
  *  Remove sites from the blacklist with `blacklistremove [url]` or `autocmddelete DocStart [url]`.
  *
- *  If you're looking for a way to temporarily disable Tridactyl, this might be what you're looking for.
+ *  If you're looking for a way to temporarily disable Tridactyl, this might be what you're looking for. If you need to disable Tridactyl more thoroughly on a page look at `:help superignore` instead.
  *
  *  <!-- this should probably be moved to an ex alias once configuration has better help --!>
  *

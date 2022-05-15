@@ -256,7 +256,9 @@ You can bind your own shortcuts in normal mode with the `:bind` command. For exa
 
 -   How do I disable Tridactyl on certain sites?
 
-    You can use `blacklistadd`, like this: `blacklistadd mail.google.com/mail`. See `:help blacklistadd`. Also note that if you want something like the passkeys or ignorekeys features vimperator/pentadactyl had, you can use `bindurl`. See `:help bindurl`.
+    To enter ignore mode automatically on a website, use `blacklistadd` like this: `blacklistadd mail.google.com/mail`. See `:help blacklistadd`. Also note that if you want something like the passkeys or ignorekeys features vimperator/pentadactyl had, you can use `bindurl`. See `:help bindurl`.
+
+    If you want to more thoroughly disable Tridactyl on a website, for example to prevent it from injecting its CSS, use `:seturl [url regex] superignore true`. See `:help seturl` and `:help superignore` for more details.
 
 -   How can I list the current bindings?
 
