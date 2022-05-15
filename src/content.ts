@@ -40,6 +40,44 @@ config.getAsync("superignore").then(async TRI_DISABLE => {
 // here.
 
 if (TRI_DISABLE === "true") return
+
+// Add cheap location change event
+// Adapted from: https://stackoverflow.com/questions/6390341/how-to-detect-if-url-has-changed-after-hash-in-javascript
+//
+// Broken atm - on https://github.com/tridactyl/tridactyl/pull/3938 clicking onto issues doesn't do anything and we get "permission denied to access object"
+
+const realwindow = (window as any).wrappedJSObject ?? window // wrappedJSObject not defined on extension pages
+
+const triPushState = (hist => (
+    (...args) => {
+        const ret = hist(...args)
+        realwindow.dispatchEvent(new Event('pushstate'))
+        realwindow.dispatchEvent(new Event('locationchange'))
+        return ret
+    })
+)(realwindow.history.pushState.bind(realwindow.history))
+
+const triReplaceState = (hist => (
+    (...args) => {
+        const ret = hist(...args)
+        realwindow.dispatchEvent(new Event('replacestate'))
+        realwindow.dispatchEvent(new Event('locationchange'))
+        return ret
+    })
+)(realwindow.history.replaceState.bind(realwindow.history))
+
+realwindow.addEventListener('popstate', () => {
+    realwindow.dispatchEvent(new Event('locationchange'))
+})
+
+window.addEventListener('locationchange', ()=>console.log(window.location.href))
+
+history.replaceState = triReplaceState
+history.pushState = triPushState
+
+typeof(exportFunction) == 'function' && exportFunction(triReplaceState, history, {defineAs: 'replaceState'})
+typeof(exportFunction) == 'function' && exportFunction(triPushState, history, {defineAs: 'pushState'})
+
 const controller = await import("@src/lib/controller")
 const excmds_content = await import("@src/.excmds_content.generated")
 const hinting_content = await import("@src/content/hinting")
