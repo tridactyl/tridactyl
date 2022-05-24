@@ -301,7 +301,6 @@ config.getAsync("modeindicator").then(mode => {
 
     addContentStateChangedListener(async (property, oldMode, oldValue, newValue) => {
         let mode = newValue
-        let group = ""
         let suffix = ""
         let result = ""
         if (property !== "mode") {
@@ -310,7 +309,6 @@ config.getAsync("modeindicator").then(mode => {
                 suffix = newValue
             } else if (property === "group") {
                 mode = oldMode
-                group = newValue
             }
         }
 

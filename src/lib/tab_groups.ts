@@ -36,7 +36,7 @@ export async function setTgroups(groups: Set<string>) {
  *
  */
 export function clearTgroups() {
-    removeActiveWindowValue("tridactyl-tgroups")
+    return removeActiveWindowValue("tridactyl-tgroups")
 }
 
 /**

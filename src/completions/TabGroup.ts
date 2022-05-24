@@ -32,8 +32,6 @@ export class TabGroupCompletionSource extends Completions.CompletionSourceFuse {
         this._parent.appendChild(this.node)
     }
 
-    async onInput(_: string) {}
-
     async filter(exstr: string) {
         this.lastExstr = exstr
         const [prefix] = this.splitOnPrefix(exstr)
