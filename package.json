@@ -17,7 +17,7 @@
     "css": "^3.0.0",
     "editor-adapter": "^0.0.3",
     "esbuild": "^0.14.38",
-    "fuse.js": "^6.5.3",
+    "fuse.js": "^6.6.2",
     "nearley": "^2.20.1",
     "ramda": "^0.28.0",
     "semver-compare": "^1.0.0",
