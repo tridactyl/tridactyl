@@ -3125,7 +3125,9 @@ export function setContentStateGroup(name: string) {
 }
 
 /**
- * Create a new tab group in the current window.
+ * Create a new tab group in the current window. NB: use [[tgroupswitch]] instead
+ * in most cases, since it will create non-existent tab groups before switching
+ * to them.
  *
  * Tab groups are a way of organizing different groups of related tabs within a
  * single window. Groups allow you to have different named contexts and show
