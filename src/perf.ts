@@ -340,25 +340,11 @@ export class StatsFilter {
 
     matches(entry: PerformanceEntry): boolean {
         const metricNameInfo = extractMetricName(entry.name)
-        if (
-            this.config.kind === "functionName" &&
-            this.config.functionName !== metricNameInfo.functionName
-        ) {
-            return false
-        }
-        if (
-            this.config.kind === "ownerName" &&
-            this.config.ownerName !== metricNameInfo.ownerName
-        ) {
-            return false
-        }
-        if (
-            this.config.kind === "eventType" &&
-            this.config.eventType !== entry.entryType
-        ) {
-            return false
-        }
-        return true
+        return !(
+            (this.config.kind === "functionName" && this.config.functionName !== metricNameInfo.functionName) ||
+            (this.config.kind === "ownerName" && this.config.ownerName !== metricNameInfo.ownerName) ||
+            (this.config.kind === "eventType" && this.config.eventType !== entry.entryType)
+        )
     }
 }
 

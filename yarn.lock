@@ -2612,10 +2612,10 @@ eslint-plugin-prefer-arrow@^1.2.3:
   resolved "https://registry.yarnpkg.com/eslint-plugin-prefer-arrow/-/eslint-plugin-prefer-arrow-1.2.3.tgz#e7fbb3fa4cd84ff1015b9c51ad86550e55041041"
   integrity sha512-J9I5PKCOJretVuiZRGvPQxCbllxGAV/viI20JO3LYblAodofBxyMnZAJ+WGeClHgANnSJberTNoFWWjrWKBuXQ==
 
-eslint-plugin-sonarjs@^0.7.0:
-  version "0.7.0"
-  resolved "https://registry.yarnpkg.com/eslint-plugin-sonarjs/-/eslint-plugin-sonarjs-0.7.0.tgz#2dbad45e03a6a4de687756b659e88bf3f977383f"
-  integrity sha512-vi6zGkd5Eznc32AQlleWUOMrMeDiUih9wR7nPPfrDCyVRmwYNHIBRPZGv1EgXwELwaPghCSvoAoHoR7uSbBF/Q==
+eslint-plugin-sonarjs@^0.12.0:
+  version "0.12.0"
+  resolved "https://registry.yarnpkg.com/eslint-plugin-sonarjs/-/eslint-plugin-sonarjs-0.12.0.tgz#03a160a58f179fde084135baec08656b59786b8c"
+  integrity sha512-soxjK67hoYxO8hesKqXWN50GSM+oG2r35N5WnAMehetahO6zoVpv3HZbdziP0jYWNopEe6te/BFUZOYAZI+qhg==
 
 eslint-scope@^5.1.1:
   version "5.1.1"
