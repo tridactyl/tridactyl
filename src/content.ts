@@ -241,7 +241,7 @@ if (
     window.location.pathname === "/static/newtab.html"
 ) {
     config.getAsync("newtab").then(newtab => {
-        if (newtab !== "about:blank") {
+        if (!["about:blank", "about:newtab"].includes(newtab)) {
             if (newtab) {
                 excmds.open_quiet(newtab)
             } else {
@@ -388,7 +388,9 @@ config.getAsync("modeindicator").then(mode => {
             config.get("modeindicator") !== "true" ||
             config.get("modeindicatormodes", mode) === "false"
         ) {
-            statusIndicator.remove()
+            statusIndicator.classList.add("TridactylInvisible")
+        } else {
+            statusIndicator.classList.remove("TridactylInvisble")
         }
     })
 })

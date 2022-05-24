@@ -26,6 +26,7 @@ import { CompositeCompletionSource } from "@src/completions/Composite"
 import { ExcmdCompletionSource } from "@src/completions/Excmd"
 import { ExtensionsCompletionSource } from "@src/completions/Extensions"
 import { FileSystemCompletionSource } from "@src/completions/FileSystem"
+import { GotoCompletionSource } from "@src/completions/Goto"
 import { GuisetCompletionSource } from "@src/completions/Guiset"
 import { HelpCompletionSource } from "@src/completions/Help"
 import { HistoryCompletionSource } from "@src/completions/History"
@@ -38,6 +39,7 @@ import { TabAllCompletionSource } from "@src/completions/TabAll"
 import { ThemeCompletionSource } from "@src/completions/Theme"
 import { TabHistoryCompletionSource } from "@src/completions/TabHistory"
 import { WindowCompletionSource } from "@src/completions/Window"
+import { ProxyCompletionSource } from "@src/completions/Proxy"
 import { contentState } from "@src/content/state_content"
 import { theme } from "@src/content/styling"
 import { getCommandlineFns } from "@src/lib/commandline_cmds"
@@ -121,6 +123,7 @@ export function enableCompletions() {
             TabHistoryCompletionSource,
             CompositeCompletionSource,
             FileSystemCompletionSource,
+            GotoCompletionSource,
             GuisetCompletionSource,
             HelpCompletionSource,
             AproposCompletionSource,
@@ -131,6 +134,7 @@ export function enableCompletions() {
             SettingsCompletionSource,
             WindowCompletionSource,
             ExtensionsCompletionSource,
+            ProxyCompletionSource,
         ]
             .map(constructorr => {
                 try {

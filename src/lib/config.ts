@@ -544,6 +544,29 @@ export class default_config {
     })
 
     /**
+     * Default proxy to use for all URLs. Has to be the name of a proxy. To add a proxy, see `:help proxyadd`. NB: usage with `:seturl` is buggy, use `:autocontain -s [regex to match URL] none [proxy]` instead
+     */
+    proxy = ""
+
+    /**
+     * Definitions of proxies.
+     *
+     * You can add a new proxy with `proxyadd proxyname proxyurl`
+     */
+    proxies = o({
+        // "socksName": "socks://hostname:port",
+        // "socks4": "socks4://hostname:port",
+        // "https": "https://username:password@hostname:port"
+    })
+
+    /**
+     * Whether to use proxy settings.
+     *
+     * If set to `true`, all proxy settings will be ignored.
+     */
+    noproxy: "true" | "false" = "false"
+
+    /**
      * Strict mode will always ensure a domain is open in the correct container, replacing the current tab if necessary.
      *
      * Relaxed mode is less aggressive and instead treats container domains as a default when opening a new tab.
@@ -622,7 +645,7 @@ export class default_config {
         "mktridactylrc!": "mktridactylrc -f",
         mpvsafe:
             "js -p tri.excmds.shellescape(JS_ARG).then(url => tri.excmds.exclaim_quiet('mpv --no-terminal ' + url))",
-        drawingstop: "no_mouse_mode",
+        drawingstop: "mouse_mode",
         exto: "extoptions",
         extpreferences: "extoptions",
         extp: "extpreferences",
@@ -651,7 +674,7 @@ export class default_config {
     /**
      * Definitions of search engines for use via `open [keyword]`.
      *
-     * `%s` will be replaced with your whole query and `%s1`, `%s2`, ..., `%sn` will be replaced with the first, second and nth word of your query. If there are none of these patterns in your search urls, your query will simply be appended to the searchurl.
+     * `%s` will be replaced with your whole query and `%s1`, `%s2`, ..., `%sn` will be replaced with the first, second and nth word of your query. Also supports array slicing, e.g. `%s[2:4]`, `%s[5:]`. If there are none of these patterns in your search urls, your query will simply be appended to the searchurl.
      *
      * Examples:
      * - When running `open gi cute puppies`, with a `gi` searchurl defined with `set searchurls.gi https://www.google.com/search?q=%s&tbm=isch`, tridactyl will navigate to `https://www.google.com/search?q=cute puppies&tbm=isch`.
@@ -684,6 +707,13 @@ export class default_config {
             "https://wiki.gentoo.org/index.php?title=Special%3ASearch&profile=default&fulltext=Search&search=",
         qwant: "https://www.qwant.com/?q=",
     }
+
+    /**
+     * Like [[searchurls]] but must be a Javascript function that takes one argument (a single string with the remainder of the command line including spaces) and maps it to a valid href that will be followed, e.g. `set jsurls.googleloud query => "https://google.com/search?q=" + query.toUpperCase()`
+     *
+     * NB: the href must be valid, i.e. it must include the protocol (e.g. "http://") and not just be e.g. "www.".
+     */
+    jsurls = {}
 
     /**
      * URL the newtab will redirect to.
@@ -958,6 +988,23 @@ export class default_config {
     downloadsskiphistory: "true" | "false" = "false"
 
     /**
+     * Set of characters that are to be considered illegal as download filenames.
+     */
+    downloadforbiddenchars = "/\0"
+
+    /**
+     * Value that will be used to replace the illegal character(s), if found, in the download filename.
+     */
+    downloadforbiddenreplacement = "_"
+
+    /**
+     * Comma-separated list of whole filenames which, if match
+     * with the download filename, will be suffixed with the
+     * "downloadforbiddenreplacement" value.
+     */
+    downloadforbiddennames = ""
+
+    /**
      * Set this to something weird if you want to have fun every time Tridactyl tries to update its native messenger.
      *
      * %TAG will be replaced with your version of Tridactyl for stable builds, or "master" for beta builds
@@ -1030,9 +1077,17 @@ export class default_config {
     bmarkweight = 100
 
     /**
+     * Default selector for :goto command.
+     */
+    gotoselector = "h1, h2, h3, h4, h5, h6"
+
+    /**
      * General completions options - NB: options are set according to our internal completion source name - see - `src/completions/[name].ts` in the Tridactyl source.
      */
     completions = {
+        Goto: {
+            autoselect: "true",
+        },
         Tab: {
             /**
              * Whether to automatically select the closest matching completion
@@ -1138,7 +1193,7 @@ export class default_config {
     visualenterauto: "true" | "false" = "true"
 
     /**
-     * Whether to return to visual mode when text is deselected.
+     * Whether to return to normal mode when text is deselected.
      */
     visualexitauto: "true" | "false" = "true"
 
@@ -1183,6 +1238,10 @@ const platform_defaults = {
 (New-Object System.Net.WebClient).DownloadFile('https://raw.githubusercontent.com/tridactyl/native_messenger/master/installers/windows.ps1', '%TEMP%/tridactyl_installnative.ps1');\
 & '%TEMP%/tridactyl_installnative.ps1' -Tag %TAG;\
 Remove-Item '%TEMP%/tridactyl_installnative.ps1'"`,
+        downloadforbiddenchars: "#%&{}\\<>*?/$!'\":@+`|=",
+        downloadforbiddennames: "CON, PRN, AUX, NUL, COM1, COM2,"
+            + "COM3, COM4, COM5, COM6, COM7, COM8, COM9, LPT1,"
+            + "LPT2, LPT3, LPT4, LPT5, LPT6, LPT7, LPT8, LPT9,",
     },
     linux: {
         nmaps: {

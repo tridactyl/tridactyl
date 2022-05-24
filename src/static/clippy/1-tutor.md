@@ -4,7 +4,7 @@ Hello. If you've just installed Tridactyl for the first time, welcome! Tridactyl
 
 Welcome to the Tridactyl tutorial. Here, you will learn how to get started with this extension. If you ever want to get back to this page, just type `:tutor`.
 
-It will not cover advanced topics. For those, [`:help`](../docs/modules/_src_excmds_.html) is always at hand.
+It will not cover advanced topics. For those, [`:help`](../docs/modules/_src_excmds_.html) is always at hand. You might also find the [unofficial Tridactyl Memrise course](https://app.memrise.com/course/5995499/tridactyls-main-shortcuts/) useful for memorising binds.
 
 ---
 

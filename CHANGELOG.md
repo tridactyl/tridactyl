@@ -1,78 +1,90 @@
 # Tridactyl changelog
 
-# Release 1.22.0 / Unreleased
+# Release 1.22.1 / 2022-03-23
 
 -   New features
 
-    -   A `superignore` setting has been added which nearly totally disables Tridactyl, per page. Use it with `:seturl` only. If you break Tridactyl with it, remember that you can always use the `tri` keyword in the address bar to execute ex-commands (#3497)
-
-    -   `:drawing{start,stop,erasertoggle}` added to scribble on pages
-
-    -   `:hint -V` hint mode added, bound to `;V`, which adds hints to all matching elements on the page, including ones outside the viewport (#3534)
-
-    -   `:set completionfuzziness [0-1]` added to control strictness of completion matches (#3556)
-
-    -   The cursor is no longer shown in no mouse mode (#3891)
-
-    -   For our own `:find` mode, there is now a `findhighlighttimeout` setting (in milliseconds) which allows you to control how long text stays highlighted after a search (#3854)
-
-    -   Tabs may now be renamed with `:tabrename` (#3577)
-
-    -   Hint mode now tidies up any previous hints when it is entered
-
-    -   `:colours midnight` added - a dark theme based on shydactyl (#3750)
-
-    -   `:urlmodify` can now accept a URL as an argument (#3748)
-
-    -   `:tabpush` now pushes to the next most recently used window if no other argument is given
+    -   Tridactyl will prompt you if you try to leave a page while `:editor` is running ([#3915](https://github.com/tridactyl/tridactyl/issues/3915))
+    -   Tridactyl pages will not flash white if your system theme is set to dark mode ([#2510](https://github.com/tridactyl/tridactyl/issues/2510))
+    -   `:goto` added to jump to a heading on a page, see `:help gotoselector` for configuration ([#4116](https://github.com/tridactyl/tridactyl/issues/4116))
+    -   `:wintitle` command added to add a prefix to the current window title ([#4049](https://github.com/tridactyl/tridactyl/issues/4049))
 
 -   Bug fixes
 
-    -   The new tab page no longer has invisible links on it when set to `about:blank` (#1743)
-
-    -   `:viewconfig` might now work more reliably but we are not sure (#3653)
-
-        -   it also works from Tridactyl pages now, at least some of the time
-
-    -   `:nmode` is now shown in the mode indicator
-
-    -   `:open` will now always run in its own tab (#3583)
-
-    -   Hint modes now accept a much wider array of arguments (#3534)
-
-    -   `:source --url` now works on data URIs (#3540)
-
-    -   `:guiset` now gives a more useful error on reading a malformed userChrome.css (#3541)
-
-    -   `:mpvsafe` now leaves MPV running after Firefox exits on all platforms (#3538)
-
-    -   `:viewcontainers` uses `:jsonview` internally which should fix how it is displayed from Tridactyl pages (#3539)
-
-    -   `:containerdelete` no longer closes all normal tabs if an invalid container is given (#3536)
-
-    -   `:set auconcreatecontainer fales` is now respected (#3537)
-
-    -   GitHub and other SVG favicons should appear in the tab completions (#3892)
-
-    -   `:editor` now correctly returns a value (#3800)
+    -   The mode indicator should no longer show up on printed pages ([#453](https://github.com/tridactyl/tridactyl/issues/453))
+    -   The changelog is more readable on dark themes ([#4005](https://github.com/tridactyl/tridactyl/issues/4005))
+    -   `:tabpush` will no longer show the current window ([#4114](https://github.com/tridactyl/tridactyl/issues/4114))
+    -   nor will `:tabgrab` ([#3283](https://github.com/tridactyl/tridactyl/issues/3283))
+    -   `:autocontain` will now pick the longest regex that matches a container if multiple filters match ([#3545](https://github.com/tridactyl/tridactyl/issues/3545))
+    -   `:elementunhide` works again ([#4069](https://github.com/tridactyl/tridactyl/issues/4069))
+    -   The mode indicator can reappear after leaving a mode in which it was disabled with `:set modeindicatormodes.[mode] false` ([#2690](https://github.com/tridactyl/tridactyl/issues/2690))
+    -   The `:editor` icon should now be correctly removed when finished ([#3909](https://github.com/tridactyl/tridactyl/issues/3909))
+    -   `:set newtab about:newtab` will no longer cause two tabs to be opened ([#3656](https://github.com/tridactyl/tridactyl/issues/3656))
 
 -   Miscellaneous
 
-    -   We've switched from webpack to esbuild which has reduced dev-build times from 40 seconds to about 1 second (#3645)
+    -   The hacker news comment toggler in the exemplar RC file has been fixed ([#4124](https://github.com/tridactyl/tridactyl/issues/4124))
+    -   Warnings added to the new tab page about upcoming permission requests
 
-    -   Tridactyl can now be built from ~5MB of source, down from ~100MB (#3632)
+Thanks to all of our contributors for this release: Oliver Blanthorn, dependabot[bot], pvs, David Scotson, Calvin T. Nesbitt, Colin Caine, Gerard Bosch, Icelk, Liam Hupfer, Mo, Mo Hijazi and glacambre
 
-    -   We've switched from ramda to rambda which is a bit faster (#3628)
+Extra special thanks go to Calvin T. Nesbitt, David Scotson, Gerard Bosch, Icelk, Liam Hupfer, Mo and Mo Hijazi who all contributed for the first time.
 
+Last, but not least - thank you to everyone who reported issues.
+
+# Release 1.22.0 / 2021-11-29
+
+-   New features
+
+    -   A `superignore` setting has been added which nearly totally disables Tridactyl, per page. Use it with `:seturl` only. If you break Tridactyl with it, remember that you can always use the `tri` keyword in the address bar to execute ex-commands ([#3497](https://github.com/tridactyl/tridactyl/issues/3497))
+    -   `:drawing{start,stop,erasertoggle}` added to scribble on pages
+    -   `:hint -V` hint mode added, bound to `;V`, which adds hints to all matching elements on the page, including ones outside the viewport ([#3534](https://github.com/tridactyl/tridactyl/issues/3534))
+    -   `:set completionfuzziness [0-1]` added to control strictness of completion matches ([#3556](https://github.com/tridactyl/tridactyl/issues/3556))
+    -   The cursor is no longer shown in no mouse mode ([#3891](https://github.com/tridactyl/tridactyl/issues/3891))
+    -   For our own `:find` mode, there is now a `findhighlighttimeout` setting (in milliseconds) which allows you to control how long text stays highlighted after a search ([#3854](https://github.com/tridactyl/tridactyl/issues/3854))
+    -   Tabs may now be renamed with `:tabrename` ([#3577](https://github.com/tridactyl/tridactyl/issues/3577))
+    -   Hint mode now tidies up any previous hints when it is entered
+    -   `:colours midnight` added - a dark theme based on shydactyl ([#3750](https://github.com/tridactyl/tridactyl/issues/3750))
+    -   `:urlmodify` can now accept a URL as an argument ([#3748](https://github.com/tridactyl/tridactyl/issues/3748))
+    -   `:tabpush` now pushes to the next most recently used window if no other argument is given
+    -   `:colourscheme auto` theme added which follows your system's dark/light mode setting ([#3923](https://github.com/tridactyl/tridactyl/issues/3923))
+    -   `:setmode [mode] allowautofocus [true|false]` added, currently only for the `allowautofocus` setting, to control the setting per-mode ([#3740](https://github.com/tridactyl/tridactyl/issues/3740))
+
+-   Bug fixes
+
+    -   The new tab page no longer has invisible links on it when set to `about:blank` ([#1743](https://github.com/tridactyl/tridactyl/issues/1743))
+    -   `:viewconfig` might now work more reliably but we are not sure ([#3653](https://github.com/tridactyl/tridactyl/issues/3653))
+        -   it also works from Tridactyl pages now, at least some of the time
+    -   `:nmode` is now shown in the mode indicator
+    -   `:open` will now always run in its own tab ([#3583](https://github.com/tridactyl/tridactyl/issues/3583))
+    -   Hint modes now accept a much wider array of arguments ([#3534](https://github.com/tridactyl/tridactyl/issues/3534))
+    -   `:source --url` now works on data URIs ([#3540](https://github.com/tridactyl/tridactyl/issues/3540))
+    -   `:guiset` now gives a more useful error on reading a malformed userChrome.css ([#3541](https://github.com/tridactyl/tridactyl/issues/3541))
+    -   `:mpvsafe` now leaves MPV running after Firefox exits on all platforms ([#3538](https://github.com/tridactyl/tridactyl/issues/3538))
+    -   `:viewcontainers` uses `:jsonview` internally which should fix how it is displayed from Tridactyl pages ([#3539](https://github.com/tridactyl/tridactyl/issues/3539))
+
+    -   `:containerdelete` no longer closes all normal tabs if an invalid container is given ([#3536](https://github.com/tridactyl/tridactyl/issues/3536))
+    -   `:set auconcreatecontainer fales` is now respected ([#3537](https://github.com/tridactyl/tridactyl/issues/3537))
+    -   GitHub and other SVG favicons should appear in the tab completions ([#3892](https://github.com/tridactyl/tridactyl/issues/3892))
+    -   `:editor` now correctly returns a value ([#3800](https://github.com/tridactyl/tridactyl/issues/3800))
+
+-   Miscellaneous
+
+    -   We've switched from webpack to esbuild which has reduced dev-build times from 40 seconds to about 1 second ([#3645](https://github.com/tridactyl/tridactyl/issues/3645))
+    -   Tridactyl can now be built from ~5MB of source, down from ~100MB ([#3632](https://github.com/tridactyl/tridactyl/issues/3632))
+    -   We've switched from ramda to rambda which is a bit faster ([#3628](https://github.com/tridactyl/tridactyl/issues/3628))
     -   We've switched from web-ext-types to definitely typed types, which are a bit better maintained
-
     -   We update the DOM in place a bit less, which could speed up `:tab` completions
+    -   Hint mode is a bit faster ([#3582](https://github.com/tridactyl/tridactyl/issues/3582))
+    -   Dev builds of Tridactyl now open a new tab page when Tridactyl code is updated ([#3564](https://github.com/tridactyl/tridactyl/issues/3564))
+    -   We're now using `firenvim`s web-editor library which means that CodeMirror, Monaco and other in-browser code editors now work with `:editor` ([#3851](https://github.com/tridactyl/tridactyl/issues/3851))
+    -   Native messenger bumped to version 0.3.6 from 0.3.4; fixes .tridactylrc search paths on windows and saving files to directories without specifying a filename
 
-    -   Hint mode is a bit faster (#3582)
+Thanks to all of our contributors for this release: dependabot-preview[bot], Oliver Blanthorn, dependabot[bot], Vincent Tavernier, Rummskartoffel, Dhruva Sambrani, karizma, Jay Kamat, Aaron Rancsik, Simon H Moore, glacambre, ivcz, Caleb Maclennan, Eugene, Ivan Oleynikov, Søren Knudsen, meep, mozbug and slmb3.
 
-    -   Dev builds of Tridactyl now open a new tab page when Tridactyl code is updated (#3564)
+Extra special thanks go to Aaron Rancsik, Eugene, Ivan Oleynikov, ivcz, karizma, meep, slmb3, Søren Knudsen and Vincent Tavernier who all contributed for the first time.
 
-    -   We're now using `firenvim`s web-editor library which means that CodeMirror, Monaco and other in-browser code editors now work with `:editor` (#3851)
+Last, but not least - thank you to everyone who reported issues.
 
 # Release 1.21.1 / 2021-03-19
 

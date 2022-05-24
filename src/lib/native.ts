@@ -38,7 +38,7 @@ interface MessageResp {
 /**
  * Posts using the one-time message API; native is killed after message returns
  */
-async function sendNativeMsg(
+export async function sendNativeMsg(
     cmd: MessageCommand,
     opts: Record<string, unknown>,
     quiet = false,

@@ -173,6 +173,8 @@ export class BufferCompletionSource extends Completions.CompletionSourceFuse {
         const useMruTabOrder = config.get("tabsort") === "mru"
         if (!useMruTabOrder) {
             tabs.sort((a, b) => a.index - b.index)
+        } else {
+            tabs.push(tabs.shift()) // If using MRU, move the current tab to the bottom (issue #4168)
         }
 
         const container_all = await browserBg.contextualIdentities.query({})

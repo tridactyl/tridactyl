@@ -101,7 +101,15 @@ export async function downloadUrlAs(
         urlToDownload = urlToSave.href
     }
 
-    const fileName = getDownloadFilenameForUrl(urlToSave)
+    let fileName = getDownloadFilenameForUrl(urlToSave)
+    const regex_matcher = new RegExp("[" + config.get("downloadforbiddenchars") + "]", "g")
+    fileName = fileName.replace(regex_matcher, config.get("downloadforbiddenreplacement"))
+
+    config.get("downloadforbiddennames").split(",").forEach((item) => {
+        if (item.trim() === fileName) {
+            fileName = fileName + config.get("downloadforbiddenreplacement")
+        }
+    })
 
     const downloadId = await browser.downloads.download({
         conflictAction: "uniquify",
