@@ -1312,10 +1312,9 @@ assign-symbols@^1.0.0:
   resolved "https://registry.yarnpkg.com/assign-symbols/-/assign-symbols-1.0.0.tgz#59667f41fadd4f20ccbc2bb96b8d4f7f78ec0367"
   integrity sha1-WWZ/QfrdTyDMvCu5a41Pf3jsA2c=
 
-ast-metadata-inferer@^0.7.0:
+ast-metadata-inferer@bovine3dom/ast-metadata-inferer#webext:
   version "0.7.0"
-  resolved "https://registry.yarnpkg.com/ast-metadata-inferer/-/ast-metadata-inferer-0.7.0.tgz#c45d874cbdecabea26dc5de11fc6fa1919807c66"
-  integrity sha512-OkMLzd8xelb3gmnp6ToFvvsHLtS6CbagTkFQvQ+ZYFe3/AIl9iKikNR9G7pY3GfOR/2Xc222hwBjzI7HLkE76Q==
+  resolved "https://codeload.github.com/bovine3dom/ast-metadata-inferer/tar.gz/08cf0f580e6df3e5baca74b5d190410b60b07ba2"
   dependencies:
     "@mdn/browser-compat-data" "^3.3.14"
 
@@ -2608,13 +2607,12 @@ eslint-module-utils@^2.7.3:
     debug "^3.2.7"
     find-up "^2.1.0"
 
-eslint-plugin-compat@^4.0.2:
+eslint-plugin-compat@tridactyl/eslint-plugin-compat#webext:
   version "4.0.2"
-  resolved "https://registry.yarnpkg.com/eslint-plugin-compat/-/eslint-plugin-compat-4.0.2.tgz#b058627a7d25d352adf0ec16dca8fcf92d9c7af7"
-  integrity sha512-xqvoO54CLTVaEYGMzhu35Wzwk/As7rCvz/2dqwnFiWi0OJccEtGIn+5qq3zqIu9nboXlpdBN579fZcItC73Ycg==
+  resolved "https://codeload.github.com/tridactyl/eslint-plugin-compat/tar.gz/34f70dd898e497cc3d463c152d7b2e58ee2bd46f"
   dependencies:
     "@mdn/browser-compat-data" "^4.1.5"
-    ast-metadata-inferer "^0.7.0"
+    ast-metadata-inferer bovine3dom/ast-metadata-inferer#webext
     browserslist "^4.16.8"
     caniuse-lite "^1.0.30001304"
     core-js "^3.16.2"
