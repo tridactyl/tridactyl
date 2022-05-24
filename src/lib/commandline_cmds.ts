@@ -114,8 +114,8 @@ export function getCommandlineFns(cmdline_state: {
                     cmdline_state.clInput.value.substring(0, selectionStart) +
                     " " +
                     cmdline_state.clInput.value.substring(selectionEnd)
-                cmdline_state.clInput.selectionStart = cmdline_state.clInput.selectionEnd =
-                    selectionStart + 1
+                cmdline_state.clInput.selectionStart =
+                    cmdline_state.clInput.selectionEnd = selectionStart + 1
             }
             return cmdline_state.refresh_completions(
                 cmdline_state.clInput.value,
@@ -148,10 +148,7 @@ export function getCommandlineFns(cmdline_state: {
 
             const func = command.trim().split(/\s+/)[0]
 
-            if (func.length === 0 || func.startsWith("#")) {
-                return false
-            }
-            return true
+            return !(func.length === 0 || func.startsWith("#"))
         },
 
         /**

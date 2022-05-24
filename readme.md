@@ -55,6 +55,8 @@ Tridactyl stable can be installed from the [Mozilla add-ons website (the AMO)][a
 
 If you want to use advanced features such as edit-in-Vim, you'll also need to install the native messenger or executable, instructions for which can be found by typing `:installnative` and hitting enter once you are in Tridactyl. Arch users can install the [AUR package](https://aur.archlinux.org/packages/firefox-tridactyl-native/) `firefox-tridactyl-native` instead.
 
+> **Notice**: `native` seems that does not work on Firefox instances installed with Snap (and probably other sandboxing/containerised package managers). See https://github.com/tridactyl/tridactyl/issues/2406
+
 ### Migrating between beta and stable builds
 
 Our beta and stable versions store their configurations in separate places. To migrate between the two, see [the wiki](https://github.com/tridactyl/tridactyl/wiki/Migration-from-stable-to-beta).
@@ -65,7 +67,7 @@ The changelog for the stable versions can be found [here](https://github.com/tri
 
 ## First look
 
-Type `:help` or press `<F1>` for online help once you're in :)
+Type `:help` or press `<F1>` for online help once you're in, or `:tutor` for a friendly introduction. You might also find the [unofficial Tridactyl Memrise course](https://app.memrise.com/course/5995499/tridactyls-main-shortcuts/) useful for memorising keybinds.
 
 Remember that Tridactyl cannot run on any page on about:\*, data:\*, view-source:\* and file:\*. We're sorry about that and we're working with Firefox to improve this situation by removing restrictions on existing APIs and developing a new API.
 
@@ -172,7 +174,7 @@ You can bind your own shortcuts in normal mode with the `:bind` command. For exa
 
 -   Navigation to any about:\* pages using `:open` requires the native messenger.
 -   Firefox will not load Tridactyl on about:\*, some file:\* URIs, view-source:\*, or data:\*. On these pages `<C-,>` - that's "Ctrl-Comma" - and the `tri` [omnibox keyword](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/user_interface/Omnibox) are your escape hatches.
-    -   addons.mozilla.org is now supported so long as you run `fixamo` first.
+    -   addons.mozilla.org is not supported.
 -   Tridactyl now supports changing the Firefox GUI if you have the native messenger installed via `guiset`. There's quite a few options available, but `guiset gui none` is probably what you want, perhaps followed up with `guiset tabs always`. See `:help guiset` for a list of all possible options.
 
 ## Frequently asked questions (FAQ)
@@ -254,7 +256,9 @@ You can bind your own shortcuts in normal mode with the `:bind` command. For exa
 
 -   How do I disable Tridactyl on certain sites?
 
-    You can use `blacklistadd`, like this: `blacklistadd mail.google.com/mail`. See `:help blacklistadd`. Also note that if you want something like the passkeys or ignorekeys features vimperator/pentadactyl had, you can use `bindurl`. See `:help bindurl`.
+    To enter ignore mode automatically on a website, use `blacklistadd` like this: `blacklistadd mail.google.com/mail`. See `:help blacklistadd`. Also note that if you want something like the passkeys or ignorekeys features vimperator/pentadactyl had, you can use `bindurl`. See `:help bindurl`.
+
+    If you want to more thoroughly disable Tridactyl on a website, for example to prevent it from injecting its CSS, use `:seturl [url regex] superignore true`. See `:help seturl` and `:help superignore` for more details.
 
 -   How can I list the current bindings?
 

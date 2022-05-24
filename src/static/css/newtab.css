@@ -1,4 +1,4 @@
-@import url("../themes/default/default.css");
+@import url("../themes/auto/auto.css");
 
 body {
     font-family: var(--tridactyl-font-family-sans);
@@ -6,7 +6,6 @@ body {
     color: var(--tridactyl-fg);
     background: var(--tridactyl-bg);
     max-width: 40em;
-    line-height: 140%;
     margin: auto;
 }
 
@@ -78,6 +77,7 @@ p,
 li {
     hyphens: auto;
     text-align: justify;
+    line-height: 140%;
 }
 
 div.align-left * {

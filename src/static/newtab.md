@@ -6,6 +6,8 @@ Tridactyl has to override your new tab page due to WebExtension limitations. You
 
 -   Tridactyl funding 👀: [donate via GitHub sponsors here](https://github.com/users/bovine3dom/sponsorship). All GitHub and Patreon donors get a nice little newsletter once every few months; people who donate at least 10USD a month get a "tips & tricks" newsletter roughly once a month ([see an example here](https://github.com/tridactyl/tridactyl/blob/master/doc/newsletters/tips-and-tricks/1-hint-css-selectors.md)). You can also donate via [PayPal](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=7JQHV4N2YZCTY), but they charge fairly high fees and you won't get any newsletters. Donations currently go towards ensuring that bovine3dom can afford to work one day a week on Tridactyl. Previously the donations have funded an in-person developer retreat.
 
+-   __Upcoming new permission requests__: the next version of Tridactyl will require the "hide tabs" and "proxy" permissions in order to provide `:tgroup*` tab group commands and add proxy support to `:autocontain`. You will need to click on a small pale yellow notification in the top right of the browser window to update to this version once it is available.
+
 *   If Tridactyl breaks a website or is broken by a website, trying the steps in the [troubleshooting guide](https://github.com/tridactyl/tridactyl/blob/master/doc/troubleshooting.md) might help.
 
 *   You can contact the developers, other users and contributors for support or whatever on [Matrix][matrix-link], [Gitter][gitter-link], [Discord][discord-link] or [IRC][libera-link].

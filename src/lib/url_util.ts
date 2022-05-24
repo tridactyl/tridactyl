@@ -409,6 +409,14 @@ export function interpolateSearchItem(urlPattern: URL, query: string): URL {
                 }
 
                 return queryWords[index]
+            }).replace(/%s\[(-?\d+)?:(-?\d+)?\]/g, function(match, p1, p2) {
+                const l = (x => x >= 1 ? x - 1 : x)
+                // slices are 1-indexed
+                const start = p1 ? l(parseInt(p1, 10)) : 0;
+                const slice = p2 ?
+                    queryWords.slice(start, l(parseInt(p2, 10))) :
+                    queryWords.slice(start)
+                return slice.join(" ")
             }),
         )
 

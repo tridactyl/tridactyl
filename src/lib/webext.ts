@@ -278,6 +278,11 @@ export async function queryAndURLwrangler(
         return url.href
     }
 
+    const jsurls = config.get("jsurls")
+    if (jsurls[firstWord]) {
+        return eval(jsurls[firstWord])(rest)
+    }
+
     const searchEngines = await browserBg.search.get()
     let engine = searchEngines.find(engine => engine.alias === firstWord)
     // Maybe firstWord is the name of a firefox search engine?
