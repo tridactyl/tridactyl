@@ -997,6 +997,20 @@ export async function saveJumps(jumps) {
     return browserBg.sessions.setTabValue(await activeTabId(), "jumps", jumps)
 }
 
+/** @hidden */
+//#content_helper
+export async function saveTabHistory(history) {
+    return browserBg.sessions.setTabValue(await activeTabId(), "history", history)
+}
+
+/** Returns a promise for an object with history list, index of a current, previous and next pages */
+/** @hidden */
+//#content_helper
+export async function curTabHistory() {
+    const tabid = await activeTabId()
+    return await browserBg.sessions.getTabValue(tabid, "history")
+}
+
 /** Returns a promise for an object containing the jumplist of all pages accessed in the current tab.
     The keys of the object currently are the page's URL, however this might change some day. Use [[getJumpPageId]] to access the jumplist of a specific page.
     @hidden
@@ -1038,11 +1052,11 @@ export function jumpprev(n = 1) {
         if (current < 0) {
             jumps.cur = 0
             saveJumps(alljumps)
-            return back(-current)
+            return back(-current + "")
         } else if (current >= jumps.list.length) {
             jumps.cur = jumps.list.length - 1
             saveJumps(alljumps)
-            return forward(current - jumps.list.length + 1)
+            return forward(current - jumps.list.length + 1 + "")
         }
         jumps.cur = current
         const p = jumps.list[jumps.cur]
@@ -1097,6 +1111,41 @@ document.addEventListener("scroll", addJump, { passive: true })
 // Try to restore the previous jump position every time a page is loaded
 //#content_helper
 document.addEventListener("load", () => curJumps().then(() => jumpprev(0)))
+
+// Adds a new entry to history tree or updates it if already visited
+/** @hidden */
+//#content_helper
+export async function addTabHistory() {
+    let pages = await curTabHistory()
+    if (!pages)
+        pages = {
+            current: null,
+            list: [],
+        }
+    const link = getJumpPageId()
+    const current = pages["list"].findIndex(item => item.href === link)
+    if (current !== -1) {
+        pages["current"] = current
+        pages["list"][current].time = Date.now()
+    } else {
+        pages["list"].push({
+            parent: pages["current"],
+            href: link,
+            title: document.title,
+            id: pages["list"].length,
+            time: Date.now(),
+        })
+        pages["current"] = pages["list"].length - 1
+    }
+    saveTabHistory(pages)
+}
+
+// Calls addTabHistory on page load
+/** @hidden */
+//#content_helper
+addTabHistory()
+//#content_helper
+window.addEventListener("HistoryState", addTabHistory)
 
 /** Blur (unfocus) the active element */
 //#content
@@ -1237,20 +1286,21 @@ export function clearsearchhighlight() {
 
 /** @hidden */
 //#content_helper
-function history(n: number) {
-    window.history.go(n)
+function history(url_or_num: string, direction: number) {
+    url_or_num = url_or_num == "" ? "1" : url_or_num
+    isNaN(url_or_num as unknown as number) ? open(url_or_num) : window.history.go(parseInt(url_or_num, 10) * direction)
 }
 
 /** Navigate forward one page in history. */
 //#content
-export function forward(n = 1) {
-    history(n)
+export function forward(...args: string[]) {
+    return history(args.join(" "), 1)
 }
 
 /** Navigate back one page in history. */
 //#content
-export function back(n = 1) {
-    history(n * -1)
+export function back(...args: string[]) {
+    return history(args.join(" "), -1)
 }
 
 /** Reload the next n tabs, starting with activeTab, possibly bypassingCache */
@@ -2028,7 +2078,10 @@ export async function reader() {
 loadaucmds("DocStart")
 const autocmd_logger = new Logging.Logger("autocmds")
 window.addEventListener("pagehide", () => loadaucmds("DocEnd"))
-window.addEventListener("DOMContentLoaded", () => loadaucmds("DocLoad"))
+window.addEventListener("DOMContentLoaded", () => {
+    loadaucmds("DocLoad")
+})
+window.addEventListener("HistoryState", () => loadaucmds("HistoryState"))
 
 // Unsupported edge-case: a SPA that doesn't have a UriChange autocmd changes URL to one that does.
 config.getAsync("autocmds", "UriChange").then(ausites => {
@@ -2069,7 +2122,7 @@ if (fullscreenApiIsPrefixed) {
 
 /** @hidden */
 //#content
-export async function loadaucmds(cmdType: "DocStart" | "DocLoad" | "DocEnd" | "TabEnter" | "TabLeft" | "FullscreenEnter" | "FullscreenLeft" | "FullscreenChange" | "UriChange") {
+export async function loadaucmds(cmdType: "DocStart" | "DocLoad" | "DocEnd" | "TabEnter" | "TabLeft" | "FullscreenEnter" | "FullscreenLeft" | "FullscreenChange" | "UriChange" | "HistoryState" ) {
     const aucmds = await config.getAsync("autocmds", cmdType)
     const ausites = Object.keys(aucmds)
     const aukeyarr = ausites.filter(e => window.document.location.href.search(e) >= 0)
@@ -3956,10 +4009,12 @@ export function firefoxsyncpush() {
 
 /** @hidden */
 //#background_helper
-const AUCMDS = ["DocStart", "DocLoad", "DocEnd", "TriStart", "TabEnter", "TabLeft", "FullscreenChange", "FullscreenEnter", "FullscreenLeft", "UriChange"].concat(webrequests.requestEvents)
+const AUCMDS = ["DocStart", "DocLoad", "DocEnd", "TriStart", "TabEnter", "TabLeft", "FullscreenChange", "FullscreenEnter", "FullscreenLeft", "UriChange", "HistoryState"].concat(webrequests.requestEvents)
 /** Set autocmds to run when certain events happen.
  *
  * @param event Currently, 'TriStart', 'DocStart', 'DocLoad', 'DocEnd', 'TabEnter', 'TabLeft', 'FullscreenChange', 'FullscreenEnter', 'FullscreenLeft', 'UriChange', 'AuthRequired', 'BeforeRedirect', 'BeforeRequest', 'BeforeSendHeaders', 'Completed', 'ErrorOccured', 'HeadersReceived', 'ResponseStarted', and 'SendHeaders' are supported
+ *
+ * The 'HistoryState' event is triggered when a page uses the web history API to change the page location / URI. It should be used in preference to 'UriChange' below since it will use almost no resources. The 'UriChange' event may work on websites where 'HistoryState' does not.
  *
  * The 'UriChange' event is for "single page applications" which change their URIs without triggering DocStart or DocLoad events. It uses a timer to check whether the URI has changed, which has a small impact on battery life on pages matching the `url` parameter. We suggest using it sparingly.
  *
