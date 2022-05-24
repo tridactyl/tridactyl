@@ -51,8 +51,8 @@ const realwindow = (window as any).wrappedJSObject ?? window // wrappedJSObject 
 const triPushState = (hist => (
     (...args) => {
         const ret = hist(...args)
-        realwindow.dispatchEvent(new Event('pushstate'))
-        realwindow.dispatchEvent(new Event('locationchange'))
+        realwindow.dispatchEvent(new Event("pushstate"))
+        realwindow.dispatchEvent(new Event("locationchange"))
         return ret
     })
 )(realwindow.history.pushState.bind(realwindow.history))
@@ -60,21 +60,21 @@ const triPushState = (hist => (
 const triReplaceState = (hist => (
     (...args) => {
         const ret = hist(...args)
-        realwindow.dispatchEvent(new Event('replacestate'))
-        realwindow.dispatchEvent(new Event('locationchange'))
+        realwindow.dispatchEvent(new Event("replacestate"))
+        realwindow.dispatchEvent(new Event("locationchange"))
         return ret
     })
 )(realwindow.history.replaceState.bind(realwindow.history))
 
-realwindow.addEventListener('popstate', () => {
-    realwindow.dispatchEvent(new Event('locationchange'))
+realwindow.addEventListener("popstate", () => {
+    realwindow.dispatchEvent(new Event("locationchange"))
 })
 
 history.replaceState = triReplaceState
 history.pushState = triPushState
 
-typeof(exportFunction) == 'function' && exportFunction(triReplaceState, history, {defineAs: 'replaceState'})
-typeof(exportFunction) == 'function' && exportFunction(triPushState, history, {defineAs: 'pushState'})
+typeof(exportFunction) == "function" && exportFunction(triReplaceState, history, {defineAs: "replaceState"})
+typeof(exportFunction) == "function" && exportFunction(triPushState, history, {defineAs: "pushState"})
 
 const controller = await import("@src/lib/controller")
 const excmds_content = await import("@src/.excmds_content.generated")

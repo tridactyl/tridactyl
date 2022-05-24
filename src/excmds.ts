@@ -1145,7 +1145,7 @@ export async function addTabHistory() {
 //#content_helper
 addTabHistory()
 //#content_helper
-window.addEventListener('locationchange', addTabHistory)
+window.addEventListener("locationchange", addTabHistory)
 
 /** Blur (unfocus) the active element */
 //#content
