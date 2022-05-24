@@ -844,15 +844,24 @@
   dependencies:
     "@types/node" "*"
 
-"@types/selenium-webdriver@^4.0.18":
-  version "4.0.18"
-  resolved "https://registry.yarnpkg.com/@types/selenium-webdriver/-/selenium-webdriver-4.0.18.tgz#98f6e1ccd2d92f6fddaccfc7c148d2e158da0f92"
-  integrity sha512-gkrUo3QldGr8V9im/DjgKkX4UVd1rtflfEBuPG9hPSA1keu7A0rF8h/MQjpTMm2EPVhBCd2K8tn5nlC9Vsd5Xw==
+"@types/selenium-webdriver@^4.0.20":
+  version "4.0.20"
+  resolved "https://registry.yarnpkg.com/@types/selenium-webdriver/-/selenium-webdriver-4.0.20.tgz#91470fd09b984189df61fcc19f746dc07d91df4b"
+  integrity sha512-p1FaW4lrAqj5/yaFNrkO0FDRnIQlry7FtMV1N9sWoyzx9kUG08vQU9osMIuYhwDMqcLILAlv32BRuGL/6wVZEg==
+  dependencies:
+    "@types/ws" "*"
 
 "@types/stack-utils@^1.0.1":
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/@types/stack-utils/-/stack-utils-1.0.1.tgz#0a851d3bd96498fa25c33ab7278ed3bd65f06c3e"
   integrity sha512-l42BggppR6zLmpfU6fq9HEa2oGPEI8yrSPL3GITjfRInppYFahObbIQOQK3UGxEnyQpltZLaPe75046NOZQikw==
+
+"@types/ws@*":
+  version "8.5.3"
+  resolved "https://registry.yarnpkg.com/@types/ws/-/ws-8.5.3.tgz#7d25a1ffbecd3c4f2d35068d0b283c037003274d"
+  integrity sha512-6YOoWjruKj1uLf3INHH7D3qTXwFfEsg1kf3c0uDdSBJwfa/llkwIjrAGV7j7mVgGNbzTQ3HiHKKDXl6bJPD97w==
+  dependencies:
+    "@types/node" "*"
 
 "@types/yargs-parser@*":
   version "13.0.0"
