@@ -102,6 +102,13 @@ const state = new Proxy(overlay, {
 
         // Persist "sets" to storage in the background for some keys
         if (PERSISTENT_KEYS.includes(property)) {
+            // Ensure we don't accidentally store anything sensitive
+            if (browser.extension.inIncognitoContext) {
+                console.error(
+                    "Attempted to write to storage in private window.",
+                )
+                return false
+            }
             browser.storage.local.set({
                 state: R.pick(PERSISTENT_KEYS, target),
             } as any)
