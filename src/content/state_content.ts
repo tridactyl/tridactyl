@@ -20,7 +20,7 @@ export class PrevInput {
 class ContentState {
     mode: ModeName = "normal"
     suffix = ""
-    group: string = ""
+    group = ""
     current_cmdline = ""
     cmdline_filter = ""
 }

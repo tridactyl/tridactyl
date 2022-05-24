@@ -155,7 +155,7 @@ export async function clearTabTgroup(id?: number | number[]) {
  */
 export async function tgroupTabs(
     name: string,
-    other: boolean = false,
+    other = false,
     id?: number,
 ): Promise<browser.tabs.Tab[]> {
     if (id === undefined) {
@@ -180,7 +180,7 @@ export async function tgroupTabs(
  * @param previous Whether to return the tab selected before the last tab.
  *
  */
-export async function tgroupLastTabId(name: string, previous: boolean = false) {
+export async function tgroupLastTabId(name: string, previous = false) {
     const tabs = await tgroupTabs(name)
     tabs.sort((a, b) => b.lastAccessed - a.lastAccessed)
     if (previous) {
@@ -325,14 +325,10 @@ export async function tgroupHandleTabActivated(activeInfo) {
         await setWindowTgroup(tabGroup, activeInfo.windowId)
 
         promises.push(
-            tgroupTabs(tabGroup, false, activeInfo.windowId).then(tabs => {
-                return browserBg.tabs.show(tabs.map(tab => tab.id))
-            }),
+            tgroupTabs(tabGroup, false, activeInfo.windowId).then(tabs => browserBg.tabs.show(tabs.map(tab => tab.id))),
         )
         promises.push(
-            tgroupTabs(tabGroup, true, activeInfo.windowId).then(tabs => {
-                return browserBg.tabs.hide(tabs.map(tab => tab.id))
-            }),
+            tgroupTabs(tabGroup, true, activeInfo.windowId).then(tabs => browserBg.tabs.hide(tabs.map(tab => tab.id))),
         )
     }
     return Promise.all(promises)
