@@ -52,7 +52,8 @@ import * as genericParser from "@src/parsers/genericmode"
 import * as perf from "@src/perf"
 import state, * as State from "@src/state"
 import * as R from "ramda"
-import { KeyEventLike } from "./lib/keyseq"
+import { KeyEventLike } from "@src/lib/keyseq"
+import { TabGroupCompletionSource } from "@src/completions/TabGroup"
 
 /** @hidden **/
 const logger = new Logger("cmdline")
@@ -132,6 +133,7 @@ export function enableCompletions() {
             RssCompletionSource,
             SessionsCompletionSource,
             SettingsCompletionSource,
+            TabGroupCompletionSource,
             WindowCompletionSource,
             ExtensionsCompletionSource,
             ProxyCompletionSource,

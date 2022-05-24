@@ -101,6 +101,7 @@ const scrolling = await import("@src/content/scrolling")
 const R = await import("ramda")
 const visual = await import("@src/lib/visual")
 const metadata = await import("@src/.metadata.generated")
+const { tabTgroup } = await import("@src/lib/tab_groups")
 
 controller.setExCmds({
     "": excmds_content,
@@ -334,7 +335,7 @@ config.getAsync("modeindicator").then(mode => {
         })
     }
 
-    addContentStateChangedListener((property, oldMode, oldValue, newValue) => {
+    addContentStateChangedListener(async (property, oldMode, oldValue, newValue) => {
         let mode = newValue
         let suffix = ""
         let result = ""
@@ -342,8 +343,8 @@ config.getAsync("modeindicator").then(mode => {
             if (property === "suffix") {
                 mode = oldMode
                 suffix = newValue
-            } else {
-                return
+            } else if (property === "group") {
+                mode = oldMode
             }
         }
 
@@ -373,6 +374,12 @@ config.getAsync("modeindicator").then(mode => {
         if (modeindicatorshowkeys === "true" && suffix !== "") {
             result = mode + " " + suffix
         }
+
+        const tabGroup = await tabTgroup()
+        if (tabGroup) {
+            result = result + " | " + tabGroup
+        }
+
         logger.debug(
             "statusindicator: ",
             result,
