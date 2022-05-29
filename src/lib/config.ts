@@ -100,13 +100,13 @@ export class default_config {
      * Changing this might do weird stuff.
      */
     modesubconfigs: { [key: string]: DeepPartial<default_config> } = {
-        "normal": {},
-        "insert": {},
-        "input": {},
-        "ignore": {},
-        "ex": {},
-        "hint": {},
-        "visual": {},
+        normal: {},
+        insert: {},
+        input: {},
+        ignore: {},
+        ex: {},
+        hint: {},
+        visual: {},
     }
 
     /**
@@ -143,6 +143,7 @@ export class default_config {
         "<Tab>": "ex.next_completion",
         "<S-Tab>": "ex.prev_completion",
         "<Space>": "ex.insert_space_or_completion",
+        "<C-Space>": "ex.insert_space",
 
         "<C-o>yy": "ex.execute_ex_on_completion_args clipboard yank",
     }

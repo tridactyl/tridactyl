@@ -108,18 +108,18 @@ export function getCommandlineFns(cmdline_state: {
             if (command) {
                 cmdline_state.clInput.value = command + " "
             } else {
-                const selectionStart = cmdline_state.clInput.selectionStart
-                const selectionEnd = cmdline_state.clInput.selectionEnd
-                cmdline_state.clInput.value =
-                    cmdline_state.clInput.value.substring(0, selectionStart) +
-                    " " +
-                    cmdline_state.clInput.value.substring(selectionEnd)
-                cmdline_state.clInput.selectionStart =
-                    cmdline_state.clInput.selectionEnd = selectionStart + 1
+                space(cmdline_state)
             }
             return cmdline_state.refresh_completions(
                 cmdline_state.clInput.value,
             )
+        },
+
+        /**
+         * Insert a space
+         */
+        insert_space: () => {
+            space(cmdline_state)
         },
 
         /** Hide the command line and cmdline_state.clear its content without executing it. **/
@@ -232,4 +232,15 @@ function execute_ex_on_x(args_only: boolean, cmdline_state, excmd: string) {
     cmdline_state.fns.store_ex_string(cmdToExec)
 
     return messageOwnTab("controller_content", "acceptExCmd", [cmdToExec])
+}
+
+function space(cmdline_state) {
+    const selectionStart = cmdline_state.clInput.selectionStart
+    const selectionEnd = cmdline_state.clInput.selectionEnd
+    cmdline_state.clInput.value =
+        cmdline_state.clInput.value.substring(0, selectionStart) +
+        " " +
+        cmdline_state.clInput.value.substring(selectionEnd)
+    cmdline_state.clInput.selectionStart = cmdline_state.clInput.selectionEnd =
+        selectionStart + 1
 }
