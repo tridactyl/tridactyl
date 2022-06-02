@@ -102,6 +102,7 @@ const R = await import("ramda")
 const visual = await import("@src/lib/visual")
 const metadata = await import("@src/.metadata.generated")
 const { tabTgroup } = await import("@src/lib/tab_groups")
+const completion_providers = await import("@src/completions/providers")
 
 controller.setExCmds({
     "": excmds_content,
@@ -202,6 +203,7 @@ config.getAsync("preventautofocusjackhammer").then(allowautofocus => {
     commandline_content,
     convert,
     config,
+    completion_providers,
     controller,
     dom,
     editor,
