@@ -85,7 +85,7 @@ browser.tabs.onActivated.addListener(ev => {
     })
 })
 
-browser.proxy.onRequest.addListener(Proxy.onRequestListener, {
+browser.proxy?.onRequest.addListener(Proxy.onRequestListener, {
     urls: ["<all_urls>"],
 })
 

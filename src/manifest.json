@@ -98,8 +98,10 @@
         "webNavigation",
         "webRequest",
         "webRequestBlocking",
-        "proxy",
         "<all_urls>"
+    ],
+    "optional_permission": [
+        "proxy"
     ],
     "applications": {
         "gecko": {
