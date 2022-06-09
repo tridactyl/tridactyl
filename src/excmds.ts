@@ -3379,7 +3379,6 @@ export function setContentStateGroup(name: string) {
 export async function tgroupgate() {
     const canTabHide = await browser.permissions.contains({permissions: ["tabHide"]})
     if (!canTabHide) throw new Error("Missing tab hide permission")
-    return canTabHide
 }
 
 
