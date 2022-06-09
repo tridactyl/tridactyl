@@ -90,7 +90,6 @@
         "search",
         "sessions",
         "storage",
-        "tabHide",
         "tabs",
         "topSites",
         "management",
@@ -101,7 +100,8 @@
         "<all_urls>"
     ],
     "optional_permission": [
-        "proxy"
+        "proxy",
+        "tabHide"
     ],
     "applications": {
         "gecko": {
