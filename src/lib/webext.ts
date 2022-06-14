@@ -146,16 +146,17 @@ export async function firefoxVersionAtLeast(desiredmajor: number) {
 */
 export async function openInNewTab(
     url: string,
-    kwargs: { active?; related?; cookieStoreId? } = {
+    kwargs: { active?; related?; cookieStoreId?, bypassFocusHack? } = {
         active: true,
         related: false,
         cookieStoreId: undefined,
+        bypassFocusHack: false,
     },
     waitForDOM = false,
 ) {
     const thisTab = await activeTab()
     const options: Parameters<typeof browser.tabs.create>[0] = {
-        active: false,
+        active: kwargs.bypassFocusHack,
         url,
         cookieStoreId: kwargs.cookieStoreId,
     }

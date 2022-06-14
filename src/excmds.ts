@@ -2635,6 +2635,8 @@ export async function tabgrab(id: string) {
 
     Use the `-w` flag to wait for the web page to load before "returning". This only makes sense for use with [[composite]], which waits for each command to return before moving on to the next one, e.g. `composite tabopen -b -w news.bbc.co.uk ; tabnext`.
 
+    The special flag "--focus-address-bar" should focus the Firefox address bar after opening if no URL is provided.
+
     These three can be combined in any order, but need to be placed as the first arguments.
 
     Unlike Firefox's Ctrl-t shortcut, this opens tabs immediately after the
@@ -2671,6 +2673,7 @@ export async function tabopenwait(...addressarr: string[]): Promise<browser.tabs
 export async function tabopen_helper({ addressarr = [], waitForDom = false }): Promise<browser.tabs.Tab> {
     let active
     let container
+    let bypassFocusHack = false
 
     const win = await browser.windows.getCurrent()
 
@@ -2682,6 +2685,10 @@ export async function tabopen_helper({ addressarr = [], waitForDom = false }): P
             argParse(args)
         } else if (args[0] === "-w") {
             waitForDom = true
+            args.shift()
+            argParse(args)
+        } else if (args[0] === "--focus-address-bar") {
+            bypassFocusHack = true
             args.shift()
             argParse(args)
         } else if (args[0] === "-c") {
@@ -2728,6 +2735,7 @@ export async function tabopen_helper({ addressarr = [], waitForDom = false }): P
     } else if (containerId && config.get("tabopencontaineraware") === "true") {
         args.cookieStoreId = containerId
     }
+    args.bypassFocusHack = bypassFocusHack
     const maybeURL = await queryAndURLwrangler(query)
     if (typeof maybeURL === "string") {
         return openInNewTab(maybeURL, args, waitForDom)
