@@ -107,7 +107,7 @@ export type KeyEventLike = MinimalKey | KeyboardEvent
 // {{{ parser and completions
 
 type MapTarget = string | ((...args: any[]) => any)
-type KeyMap = Map<MinimalKey[], MapTarget>
+export type KeyMap = Map<MinimalKey[], MapTarget>
 
 export interface ParserResponse {
     keys?: KeyEventLike[]
@@ -115,6 +115,7 @@ export interface ParserResponse {
     exstr?: string
     isMatch?: boolean
     numericPrefix?: number
+    possibleMappings?: KeyMap
 }
 
 function splitNumericPrefix(
@@ -194,7 +195,11 @@ export function parse(keyseq: KeyEventLike[], map: KeyMap): ParserResponse {
     // command, numericPrefix is a numeric prefix of that. We want to
     // preserve that whole thing, so concat them back together before
     // returning.
-    return { keys: numericPrefix.concat(keyseq), isMatch: keyseq.length > 0 }
+    return {
+        keys: numericPrefix.concat(keyseq),
+        isMatch: keyseq.length > 0,
+        possibleMappings,
+    }
 }
 
 /** True if seq1 is a prefix or equal to seq2 */
@@ -295,10 +300,8 @@ function expandAliases(key: string) {
 export function bracketexprToKey(inputStr) {
     if (inputStr.indexOf(">") > 0) {
         try {
-            const [
-                [modifiers, key],
-                remainder,
-            ] = bracketexpr_parser.feedUntilError(inputStr)
+            const [[modifiers, key], remainder] =
+                bracketexpr_parser.feedUntilError(inputStr)
             return [new MinimalKey(expandAliases(key), modifiers), remainder]
         } catch (e) {
             // No valid bracketExpr
@@ -506,6 +509,33 @@ export function translateKeysUsingKeyTranslateMap(
 }
 
 // }}}
+
+export function PrintableKey(k: KeyEventLike) {
+    let result = k.key
+    if (
+        result === "Control" ||
+        result === "Meta" ||
+        result === "Alt" ||
+        result === "Shift" ||
+        result === "OS"
+    ) {
+        return ""
+    }
+
+    if (k.altKey) {
+        result = "A-" + result
+    }
+    if (k.ctrlKey) {
+        result = "C-" + result
+    }
+    if (k.shiftKey) {
+        result = "S-" + result
+    }
+    if (result.length > 1) {
+        result = "<" + result + ">"
+    }
+    return result
+}
 
 browser.storage.onChanged.addListener(changes => {
     if ("userconfig" in changes) {

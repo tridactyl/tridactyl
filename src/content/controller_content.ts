@@ -2,8 +2,9 @@ import { isTextEditable } from "@src/lib/dom"
 import { contentState, ModeName } from "@src/content/state_content"
 import Logger from "@src/lib/logging"
 import * as controller from "@src/lib/controller"
-import { KeyEventLike, ParserResponse } from "@src/lib/keyseq"
+import { KeyEventLike, ParserResponse, PrintableKey } from "@src/lib/keyseq"
 import { deepestShadowRoot } from "@src/lib/dom"
+import { whichKey } from "@src/lib/which_key"
 
 import * as hinting from "@src/content/hinting"
 import * as gobblemode from "@src/parsers/gobblemode"
@@ -11,33 +12,6 @@ import * as generic from "@src/parsers/genericmode"
 import * as nmode from "@src/parsers/nmode"
 
 const logger = new Logger("controller")
-
-function PrintableKey(k) {
-    let result = k.key
-    if (
-        result === "Control" ||
-        result === "Meta" ||
-        result === "Alt" ||
-        result === "Shift" ||
-        result === "OS"
-    ) {
-        return ""
-    }
-
-    if (k.altKey) {
-        result = "A-" + result
-    }
-    if (k.ctrlKey) {
-        result = "C-" + result
-    }
-    if (k.shiftKey) {
-        result = "S-" + result
-    }
-    if (result.length > 1) {
-        result = "<" + result + ">"
-    }
-    return result
-}
 
 /**
  * KeyCanceller: keep track of keys that have been cancelled in the keydown
@@ -119,7 +93,9 @@ function* ParserController() {
 
                 const shadowRoot =
                     keyevent instanceof KeyboardEvent
-                        ? deepestShadowRoot((keyevent.target as Element).shadowRoot)
+                        ? deepestShadowRoot(
+                              (keyevent.target as Element).shadowRoot,
+                          )
                         : null
 
                 // _just to be safe_, cache this to make the following
@@ -185,6 +161,7 @@ function* ParserController() {
                     exstr = response.exstr
                     break
                 } else {
+                    // TODO: check if this is where to register which-key func
                     keyEvents = response.keys
                     // show current keyEvents as a suffix of the contentState
                     const suffix = keyEvents.map(x => PrintableKey(x)).join("")
@@ -193,6 +170,9 @@ function* ParserController() {
                         previousSuffix = suffix
                     }
                     logger.debug("suffix: ", suffix)
+                    if (response.isMatch) {
+                        whichKey(suffix, response.possibleMappings)
+                    }
                 }
             }
             contentState.suffix = ""
