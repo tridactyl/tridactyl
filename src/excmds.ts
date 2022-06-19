@@ -4165,7 +4165,7 @@ export function comclear(name: string) {
 
     `bind --mode=browser [key sequence] [ex command]` binds to a special mode which can be accessed all the time in all browser tabs - even tabs in which Tridactyl cannot run. It comes with a few caveats:
 
-    - you may only have a few browser-mode binds at once. At the time of writing, this is 8, with 3 initially taken by Tridactyl. If you desperately need more, file an [[issue]].
+    - you may only have a few browser-mode binds at once. At the time of writing, this is 20, with 3 initially taken by Tridactyl. If you desperately need more, file an [[issue]].
     - the key sequence must consist of a single, simple key with at least one and no more than two modifiers. An error will be thrown if you try to bind to an invalid key sequence.
     - the `ex command` you bind to may not work fully unless you are on a tab which Tridactyl has access to. Generally, browser-wide actions like making or closing tabs will work but tab-specific actions like scrolling down or entering hint mode will not.
 
