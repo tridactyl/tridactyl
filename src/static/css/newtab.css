@@ -100,3 +100,24 @@ img {
     margin-right: auto;
     padding-top: 0.5em;
 }
+
+@media (forced-colors: active) {
+    code {
+        outline: thin solid transparent;
+    }
+    input[id^="spoiler"] + label {
+        background: ButtonFace;
+        color: ButtonText;
+    }
+    input[id^="spoiler"]:checked + label {
+        color: SelectedItemText;
+        background: SelectedItem;
+    }
+    #nagbar-changelog {
+        font-size: 8pt;
+        color: ActiveText;
+        background: transparent;
+        line-height: 1.4;
+        margin-bottom: 0.25em;
+    }
+}
