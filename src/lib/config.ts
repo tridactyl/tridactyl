@@ -1881,10 +1881,10 @@ const parseConfigHelper = (pconf, parseobj, prefix = []) => {
     for (const i of Object.keys(pconf)) {
         if (typeof pconf[i] !== "object") {
             if (prefix[0] === "subconfigs") {
-                prefix.shift()
-                const pattern = prefix.shift()
+                const pattern = prefix[1]
+                const subconf = [...prefix.slice(2), i].join(".")
                 parseobj.subconfigs.push(
-                    `seturl ${pattern} ${[...prefix, i].join(".")} ${pconf[i]}`,
+                    `seturl ${pattern} ${subconf} ${pconf[i]}`,
                 )
             } else {
                 parseobj.conf.push(
