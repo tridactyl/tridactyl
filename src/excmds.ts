@@ -4471,6 +4471,11 @@ export function autocmd(event: string, url: string, ...excmd: string[]) {
     // rudimentary run time type checking
     // TODO: Decide on autocmd event names
     if (!AUCMDS.includes(event)) throw new Error(event + " is not a supported event.")
+    if (webrequests.requestEvents.includes(event)) {
+        if (config.get("autocmds", event, url)) {
+            throw new Error(`Autocmd ${event} for ${url} already exist`)
+        }
+    }
     return config.set("autocmds", event, url, excmd.join(" "))
 }
 
