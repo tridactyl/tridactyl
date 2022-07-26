@@ -118,14 +118,14 @@
 " command fixamo_quiet jsb tri.excmds.setpref("privacy.resistFingerprinting.block_mozAddonManager", "true").then(tri.excmds.setpref("extensions.webextensions.restrictedDomains", '""'))
 " command fixamo js tri.excmds.setpref("privacy.resistFingerprinting.block_mozAddonManager", "true").then(tri.excmds.setpref("extensions.webextensions.restrictedDomains", '""').then(tri.excmds.fillcmdline_tmp(3000, "Permissions added to user.js. Please restart Firefox to make them take affect.")))
 " 
-" " Make Tridactyl work on more sites at the expense of some security. For
-" " details, read the comment at the top of this file.
+" " Make Tridactyl work on more sites at the expense of some security.
+" " For details, read the comment at the top of this file.
 " fixamo_quiet
 " 
 " " Equivalent to `set csp clobber` before it was removed.
 " " This weakens your defences against cross-site-scripting attacks
 " " and other types of code-injection by reducing the strictness 
-" " of Content Security Policy onevery site in a couple of ways.
+" " of Content Security Policy on all sites in a couple of ways.
 " "
 " " You may not wish to run this. Mozilla strongly feels that you shouldn't.
 " "
