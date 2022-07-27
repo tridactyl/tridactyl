@@ -4421,9 +4421,17 @@ export function firefoxsyncpush() {
 const AUCMDS = ["DocStart", "DocLoad", "DocEnd", "TriStart", "TabEnter", "TabLeft", "FullscreenChange", "FullscreenEnter", "FullscreenLeft", "UriChange", "HistoryState"].concat(webrequests.requestEvents)
 /** Set autocmds to run when certain events happen.
  *
- * @param event Currently, 'TriStart', 'DocStart', 'DocLoad', 'DocEnd', 'TabEnter', 'TabLeft', 'FullscreenChange', 'FullscreenEnter', 'FullscreenLeft', 'UriChange', 'AuthRequired', 'BeforeRedirect', 'BeforeRequest', 'BeforeSendHeaders', 'Completed', 'ErrorOccured', 'HeadersReceived', 'ResponseStarted', and 'SendHeaders' are supported
+ * @param event Currently, 'TriStart', 'DocStart', 'DocLoad', 'DocEnd', 'TabEnter', 'TabLeft', 'FullscreenChange', 'FullscreenEnter', 'FullscreenLeft', 'HistoryState', 'HistoryPushState', 'HistoryReplace', 'UriChange', 'AuthRequired', 'BeforeRedirect', 'BeforeRequest', 'BeforeSendHeaders', 'Completed', 'ErrorOccured', 'HeadersReceived', 'ResponseStarted', and 'SendHeaders' are supported
+ *
+        - DocStart: When a webpage loading. Exactly, when tridactyl is loading in a page.
+        - DocLoad: When the whole html parsed, not including image/css loaded. (Just like jquery $(fn) or the [DOMContentLoaded event](https://developer.mozilla.org/en-US/docs/Web/API/Document/DOMContentLoaded_event).)
+        - DocEnd: When a webpage unloaded/closed or backward/forward in history. Exactly, the [pagehide event](https://developer.mozilla.org/en-US/docs/Web/API/Window/pagehide_event).
+        - TabEnter: When a tab get focus.
+        - TabLeft: When a tab lost focus or closed.
  *
  * The 'HistoryState' event is triggered when a page uses the web history API to change the page location / URI. It should be used in preference to 'UriChange' below since it will use almost no resources. The 'UriChange' event may work on websites where 'HistoryState' does not.
+ *
+ * The 'HistoryPushState' is triggered only when a page call 'history.pushState' to change URI, and 'HistoryReplace' is for 'history.replace'. By the way, the HistoryPopState is not implemented.
  *
  * The 'UriChange' event is for "single page applications" which change their URIs without triggering DocStart or DocLoad events. It uses a timer to check whether the URI has changed, which has a small impact on battery life on pages matching the `url` parameter. We suggest using it sparingly.
  *
