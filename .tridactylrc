@@ -122,14 +122,14 @@
 " " For details, read the comment at the top of this file.
 " fixamo_quiet
 " 
+" " The following modification allows Tridactyl to function on more pages, e.g. raw GitHub pages.
+" " You may not wish to run this. Mozilla strongly feels that you shouldn't.
+" " Read https://wiki.mozilla.org/Security/CSP#Goals for more information.
+" "
 " " Equivalent to `set csp clobber` before it was removed.
 " " This weakens your defences against cross-site-scripting attacks
 " " and other types of code-injection by reducing the strictness 
 " " of Content Security Policy on all sites in a couple of ways.
-" "
-" " You may not wish to run this. Mozilla strongly feels that you shouldn't.
-" "
-" " It allows Tridactyl to function on more pages, e.g. raw GitHub pages.
 " " 
 " " We remove the sandbox directive
 " " https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy/sandbox
@@ -138,9 +138,7 @@
 " " We weaken the style-src directive
 " " https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy/style-src
 " " to allow us to theme our elements.
-" " This exposes you to 'cross site styling' attacks.
-" "
-" " Read https://wiki.mozilla.org/Security/CSP#Goals for more information.
+" " This exposes you to 'cross site styling' attacks
 " jsb browser.webRequest.onHeadersReceived.addListener(tri.request.clobberCSP,{urls:["<all_urls>"],types:["main_frame"]},["blocking","responseHeaders"])
 " 
 " " Make quickmarks for the sane Tridactyl issue view
