@@ -84,10 +84,6 @@
     table-layout: unset;
 }
 
-:root #completions table tr .title {
-    width: 50%;
-}
-
 :root #completions table tr {
     white-space: nowrap;
     overflow: hidden;
