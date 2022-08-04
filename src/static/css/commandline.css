@@ -84,6 +84,14 @@ input:focus {
     width: 50%;
 }
 
+/* Accroding to src/completions/TabHistory.ts formatTimeSpan,
+ * max-width should be 14 characters (14ex), 20ex for more tolorance. */
+#completions table tr td.time {
+    width: 20ex;
+    text-align: right;
+    padding-right: 2ex;
+}
+
 #completions table tr {
     white-space: nowrap;
     overflow: hidden;
