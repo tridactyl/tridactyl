@@ -443,7 +443,7 @@ document.addEventListener("selectionchange", () => {
     if (
         contentState.mode == "visual" &&
         config.get("visualexitauto") == "true" &&
-        selection.anchorOffset == selection.focusOffset
+        selection.isCollapsed
     ) {
         contentState.mode = "normal"
         return
@@ -453,7 +453,7 @@ document.addEventListener("selectionchange", () => {
         config.get("visualenterauto") == "false"
     )
         return
-    if (selection.anchorOffset !== selection.focusOffset) {
+    if (!selection.isCollapsed) {
         contentState.mode = "visual"
     }
 })
