@@ -39,6 +39,24 @@ async function init() {
         hide()
         document.documentElement.appendChild(cmdline_iframe)
         enabled = true
+
+        // Determine the initial page zoom level when the it first loads
+        // So that we can use this value later
+        const zoomLevelOnPageLoad = Math.round(window.devicePixelRatio * 100)
+
+        window.addEventListener("resize", () => {
+            // Get the current zoom level once a resize event has been triggered
+            const currentZoomLevel = Math.round(window.devicePixelRatio * 100)
+
+            const iframe_body = cmdline_iframe.contentWindow.document.body
+
+            iframe_body.style.transform = `scale(${
+                zoomLevelOnPageLoad / currentZoomLevel
+            })`
+            iframe_body.style.transformOrigin = "0px bottom 0px"
+            iframe_body.style.width = `${currentZoomLevel}%`
+        })
+
         // first theming of page root
         await theme(window.document.querySelector(":root"))
     }
