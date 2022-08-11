@@ -52,7 +52,7 @@ class SessionCompletionOption
         this.value = (session.tab || session.window).sessionId
         const [howLong, qualifier] = computeDate(session)
         const [tab, extraInfo] = getTabInfo(session)
-        this.fuseKeys.push(tab.title)
+        this.fuseKeys.push(tab.title, tab.url)
         this.html = html`<tr class="SessionCompletionOption option">
             <td class="type">${session.tab ? "T" : "W"}</td>
             <td class="time">${howLong}${qualifier}</td>
