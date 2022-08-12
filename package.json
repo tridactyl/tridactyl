@@ -54,7 +54,7 @@
     "tslint-etc": "^1.13.10",
     "tslint-sonarts": "^1.9.0",
     "typescript": "^3.9.10",
-    "web-ext": "^7.1.0"
+    "web-ext": "^7.2.0"
   },
   "scripts": {
     "build": "sh scripts/build.sh",
