@@ -133,6 +133,7 @@ import { CmdlineCmds as CtCmdlineCmds } from "@src/background/commandline_cmds"
 import { EditorCmds as CtEditorCmds } from "@src/background/editor"
 import * as DOM from "@src/lib/dom"
 import * as CommandLineContent from "@src/content/commandline_content"
+import * as WhichKeyContent from "@src/content/whichkey_content"
 import * as scrolling from "@src/content/scrolling"
 import { ownTab } from "@src/lib/webext"
 import { rot13_helper, jumble_helper } from "@src/lib/editor_utils"
@@ -2305,7 +2306,7 @@ if (fullscreenApiIsPrefixed) {
 
 /** @hidden */
 //#content
-export async function loadaucmds(cmdType: "DocStart" | "DocLoad" | "DocEnd" | "TabEnter" | "TabLeft" | "FullscreenEnter" | "FullscreenLeft" | "FullscreenChange" | "UriChange" | "HistoryState" ) {
+export async function loadaucmds(cmdType: "DocStart" | "DocLoad" | "DocEnd" | "TabEnter" | "TabLeft" | "FullscreenEnter" | "FullscreenLeft" | "FullscreenChange" | "UriChange" | "HistoryState") {
     const aucmds = await config.getAsync("autocmds", cmdType)
     const ausites = Object.keys(aucmds)
     const aukeyarr = ausites.filter(e => window.document.location.href.search(e) >= 0)
@@ -2718,7 +2719,7 @@ export async function tabopen_helper({ addressarr = [], waitForDom = false }): P
 
     const aucon = new AutoContain()
     if (!container && aucon.autocontainConfigured()) {
-        const [autoContainer, ] = await aucon.getAuconAndProxiesForUrl(address)
+        const [autoContainer] = await aucon.getAuconAndProxiesForUrl(address)
         if (autoContainer && autoContainer !== "firefox-default") {
             container = autoContainer
             logger.debug("tabopen setting container automatically using autocontain directive")
@@ -3414,11 +3415,16 @@ export async function tgroupcreate(name: string) {
         await tabopen(initialUrl)
         promises.push(tgroupTabs(name, true).then(tabs => browserBg.tabs.hide(tabs.map(tab => tab.id))))
     } else {
-        promises.push(browser.tabs.query({currentWindow: true}).then((tabs) => {
-            setTabTgroup(name, tabs.map(({ id }) => id))
-            // trigger status line update
-            setContentStateGroup(name)
-        }))
+        promises.push(
+            browser.tabs.query({ currentWindow: true }).then(tabs => {
+                setTabTgroup(
+                    name,
+                    tabs.map(({ id }) => id),
+                )
+                // trigger status line update
+                setContentStateGroup(name)
+            }),
+        )
         promises.push(setWindowTgroup(name))
     }
 
@@ -3437,7 +3443,7 @@ export async function tgroupcreate(name: string) {
  */
 //#background
 export async function tgroupswitch(name: string) {
-    if (name == await windowTgroup()) {
+    if (name == (await windowTgroup())) {
         throw new Error(`Already on tab group "${name}"`)
     }
 
@@ -3762,6 +3768,20 @@ export function showcmdline(focus = true) {
 //#content
 export function hidecmdline() {
     CommandLineContent.hide_and_blur()
+}
+
+/** @hidden */
+//#content
+export async function showwhichkey() {
+    const hidehover = true
+    WhichKeyContent.show(hidehover)
+    return Promise.resolve()
+}
+
+/** @hidden */
+//#content
+export function hidewhichkey() {
+    WhichKeyContent.hide()
 }
 
 /** Set the current value of the commandline to string *with* a trailing space */
@@ -5850,4 +5870,5 @@ export async function elementunhide() {
     const elem = KILL_STACK.pop()
     elem.className = elem.className.replace("TridactylKilledElem", "")
 }
+
 // vim: tabstop=4 shiftwidth=4 expandtab
