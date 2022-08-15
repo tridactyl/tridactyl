@@ -60,16 +60,16 @@ export function getUrlRoot(url) {
  * * Remove one subdomain from the front if there is one
  *
  * @param url               the URL to get the parent of
- * @param trailingSlash     whether the returned URL has a trailing slash
+ * @param option            search option, boolean dict of trailingSlash, ignoreSearch, ignoreFragment and ignoreIndexHtml
  * @param count             how many "generations" you wish to go back (1 = parent, 2 = grandparent, etc.)
  * @return                  the parent of the URL, or null if there is no parent
  */
-export function getUrlParent(url, trailingSlash, count = 1) {
+export function getUrlParent(url, option, count = 1) {
     // Helper function.
-    function gup(parent, trailingSlash, count) {
+    function gup(parent, option, count) {
         if (count < 1) {
             // remove trailing slash(s) if desired
-            if (!trailingSlash) {
+            if (!option.trailingSlash) {
                 // remove 1 or more trailing slashes
                 parent.pathname = parent.pathname.replace(/\/+$/, "")
             }
@@ -78,18 +78,28 @@ export function getUrlParent(url, trailingSlash, count = 1) {
         // strip, in turn, hash/fragment and query/search
         if (parent.hash) {
             parent.hash = ""
-            return gup(parent, trailingSlash, count - 1)
+            if (!option.ignoreFragment) count--
+            return gup(parent, option, count)
         }
         if (parent.search) {
             parent.search = ""
-            return gup(parent, trailingSlash, count - 1)
+            if (!option.ignoreSearch) count--
+            return gup(parent, option, count)
+        }
+
+        if (option.ignoreIndexHtml) {
+            const indexHtml = /\/index\.(html?|php|aspx?|jsp|cgi|pl|js)$/i
+            if (parent.pathname.match(indexHtml)) {
+                parent.pathname = parent.pathname.replace(indexHtml, "/")
+                return gup(parent, option, count)
+            }
         }
 
         // empty path is '/'
         if (parent.pathname !== "/") {
             // Remove trailing slashes and everything to the next slash:
             parent.pathname = parent.pathname.replace(/\/[^\/]*?\/*$/, "/")
-            return gup(parent, trailingSlash, count - 1)
+            return gup(parent, option, count - 1)
         }
 
         // strip off the first subdomain if there is one
@@ -100,7 +110,7 @@ export function getUrlParent(url, trailingSlash, count = 1) {
             if (domains.length > 2) {
                 // domains.pop()
                 parent.host = domains.slice(1).join(".")
-                return gup(parent, trailingSlash, count - 1)
+                return gup(parent, option, count - 1)
             }
         }
 
@@ -114,7 +124,7 @@ export function getUrlParent(url, trailingSlash, count = 1) {
     }
 
     const parent = new URL(url)
-    return gup(parent, trailingSlash, count)
+    return gup(parent, option, count)
 }
 
 /** Very incomplete lookup of extension for common mime types that might be
