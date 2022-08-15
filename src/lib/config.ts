@@ -1268,6 +1268,24 @@ export class default_config {
      */
     urlparenttrailingslash: "true" | "false" = "true"
 
+     /**
+      * Whether removal of the url fragment (the name after # in the url)
+      * is counted as a parent level.
+      */
+    urlparentignorefragment: "true" | "false" = "false"
+
+     /**
+      * Whether removal the url search parameter (the name after ? in the url)
+      * is counted as a parent level.
+      */
+    urlparentignoresearch: "true" | "false" = "false"
+
+     /**
+      * Whether remove the /\/index\.(html?|php|aspx?|jsp|cgi|pl|js)$/i
+      * before remove any path.
+      */
+    urlparentignoreindexhtml: "true" | "false" = "false"
+
     /**
      * Whether to enter visual mode when text is selected. Visual mode can always be entered with `:mode visual`.
      */

@@ -2067,7 +2067,10 @@ export function urlroot() {
 export function urlparent(count = 1) {
     const option = {}
     for (const key of "trailingSlash ignoreFragment ignoreSearch ignoreIndexHtml".split(" ")) {
-        option[key] = config.get("urlparent" + key.toLowerCase()) === "true"
+        const configKey = ("urlparent" + key.toLowerCase()) as (
+            keyof config.default_config
+        )
+        option[key] = config.get(configKey) === "true"
     }
 
     const parentUrl = UrlUtil.getUrlParent(window.location, option, count)
