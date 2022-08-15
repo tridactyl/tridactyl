@@ -2065,9 +2065,12 @@ export function urlroot() {
  */
 //#content
 export function urlparent(count = 1) {
-    const trailingSlash = config.get("urlparenttrailingslash") === "true"
+    const option = {}
+    for (const key of "trailingSlash ignoreFragment ignoreSearch ignoreIndexHtml".split(" ")) {
+        option[key] = config.get("urlparent" + key.toLowerCase()) === "true"
+    }
 
-    const parentUrl = UrlUtil.getUrlParent(window.location, trailingSlash, count)
+    const parentUrl = UrlUtil.getUrlParent(window.location, option, count)
 
     if (parentUrl !== null) {
         window.location.href = parentUrl.href
