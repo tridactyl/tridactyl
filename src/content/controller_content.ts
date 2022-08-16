@@ -4,7 +4,7 @@ import Logger from "@src/lib/logging"
 import * as controller from "@src/lib/controller"
 import { KeyEventLike, ParserResponse, PrintableKey } from "@src/lib/keyseq"
 import { deepestShadowRoot } from "@src/lib/dom"
-import { whichKey } from "@src/lib/which_key"
+import { whichKey, hideWhichKey } from "@src/lib/which_key"
 
 import * as hinting from "@src/content/hinting"
 import * as gobblemode from "@src/parsers/gobblemode"
@@ -177,6 +177,7 @@ function* ParserController() {
             }
             contentState.suffix = ""
             controller.acceptExCmd(exstr)
+            hideWhichKey()
         } catch (e) {
             // Rumsfeldian errors are caught here
             logger.error("An error occurred in the content controller: ", e)

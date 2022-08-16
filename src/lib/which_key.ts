@@ -25,3 +25,7 @@ export function whichKey(prefix: string, possibleMappings?: KeyMap) {
     Messaging.messageOwnTab("whichkey_content", "show")
     Messaging.messageOwnTab("whichkey_frame", "showMappings", [prefix, maps])
 }
+
+export function hideWhichKey() {
+    Messaging.messageOwnTab("whichkey_content", "hide")
+}
