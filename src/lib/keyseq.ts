@@ -510,33 +510,6 @@ export function translateKeysUsingKeyTranslateMap(
 
 // }}}
 
-export function PrintableKey(k: KeyEventLike) {
-    let result = k.key
-    if (
-        result === "Control" ||
-        result === "Meta" ||
-        result === "Alt" ||
-        result === "Shift" ||
-        result === "OS"
-    ) {
-        return ""
-    }
-
-    if (k.altKey) {
-        result = "A-" + result
-    }
-    if (k.ctrlKey) {
-        result = "C-" + result
-    }
-    if (k.shiftKey) {
-        result = "S-" + result
-    }
-    if (result.length > 1) {
-        result = "<" + result + ">"
-    }
-    return result
-}
-
 browser.storage.onChanged.addListener(changes => {
     if ("userconfig" in changes) {
         KEYMAP_CACHE = {}
