@@ -415,22 +415,24 @@ export function interpolateSearchItem(urlPattern: URL, query: string): URL {
     // replace or append as needed
     if (hasInterpolationPoint) {
         const resultingURL = new URL(
-            urlPattern.href.replace(/%s\d+/g, function (x) {
-                const index = parseInt(x.slice(2), 10) - 1
-                if (index >= queryWords.length) {
-                    return ""
-                }
+            urlPattern.href
+                .replace(/%s\d+/g, function (x) {
+                    const index = parseInt(x.slice(2), 10) - 1
+                    if (index >= queryWords.length) {
+                        return ""
+                    }
 
-                return queryWords[index]
-            }).replace(/%s\[(-?\d+)?:(-?\d+)?\]/g, function(match, p1, p2) {
-                const l = (x => x >= 1 ? x - 1 : x)
-                // slices are 1-indexed
-                const start = p1 ? l(parseInt(p1, 10)) : 0;
-                const slice = p2 ?
-                    queryWords.slice(start, l(parseInt(p2, 10))) :
-                    queryWords.slice(start)
-                return slice.join(" ")
-            }),
+                    return queryWords[index]
+                })
+                .replace(/%s\[(-?\d+)?:(-?\d+)?\]/g, function (match, p1, p2) {
+                    const l = x => (x >= 1 ? x - 1 : x)
+                    // slices are 1-indexed
+                    const start = p1 ? l(parseInt(p1, 10)) : 0
+                    const slice = p2
+                        ? queryWords.slice(start, l(parseInt(p2, 10)))
+                        : queryWords.slice(start)
+                    return slice.join(" ")
+                }),
         )
 
         return new URL(resultingURL.href.replace("%s", query))
@@ -444,7 +446,10 @@ export function interpolateSearchItem(urlPattern: URL, query: string): URL {
  * @param baseURI The URL the absolute URL should be relative to. This is
  * usually the URL of the current page.
  */
-export function getAbsoluteURL(url: string, baseURI: string = document.baseURI) {
+export function getAbsoluteURL(
+    url: string,
+    baseURI: string = document.baseURI,
+) {
     // We can choose between using complicated RegEx and string manipulation,
     // or just letting the browser do it for us. The latter is probably safer,
     // which should make it worth the (small) overhead of constructing an URL
