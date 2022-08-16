@@ -19,3 +19,12 @@
 .name {
     color: #ff4081;
 }
+
+.command {
+    color: #eee;
+}
+
+.more {
+    color: #0cf;
+    font-weight: bold;
+}
