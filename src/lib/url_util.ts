@@ -54,13 +54,14 @@ export function getUrlRoot(url) {
 
 /** Get the parent of the current URL. Parent is determined as:
  *
- * * if there is a hash fragment, strip that, or
- * * If there is a query string, strip that, or
+ * * if there is a hash fragment and option.ignoreFragment is falsy, strip that, or
+ * * If there is a query string and option.ignoreSearch is falsy, strip that, or
+ * * If option.ignorePathRegExp match the path, strip that and
  * * Remove one level from the path if there is one, or
  * * Remove one subdomain from the front if there is one
  *
  * @param url               the URL to get the parent of
- * @param option            search option, boolean dict of trailingSlash, ignoreSearch, ignoreFragment and ignoreIndexHtml
+ * @param option            removal option. Boolean properties: trailingSlash, ignoreFragment and ignoreSearch. Regular Expression properties: ignorePathRegExp. All properties are optional.
  * @param count             how many "generations" you wish to go back (1 = parent, 2 = grandparent, etc.)
  * @return                  the parent of the URL, or null if there is no parent
  */
@@ -87,10 +88,10 @@ export function getUrlParent(url, option, count = 1) {
             return gup(parent, option, count)
         }
 
-        if (option.ignoreIndexHtml) {
-            const indexHtml = /\/index\.(html?|php|aspx?|jsp|cgi|pl|js)$/i
-            if (parent.pathname.match(indexHtml)) {
-                parent.pathname = parent.pathname.replace(indexHtml, "/")
+        if (option.ignorePathRegExp) {
+            const re = option.ignorePathRegExp
+            if (parent.pathname.match(re)) {
+                parent.pathname = parent.pathname.replace(re, "/")
                 return gup(parent, option, count)
             }
         }

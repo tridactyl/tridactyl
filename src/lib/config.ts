@@ -1281,10 +1281,16 @@ export class default_config {
     urlparentignoresearch: "true" | "false" = "false"
 
      /**
-      * Whether remove the /\/index\.(html?|php|aspx?|jsp|cgi|pl|js)$/i
-      * before remove any path.
+      * RegExp to remove from the url pathname before go to any parent path.
+      * To ignore "index.html" in "parent/index.html", set it to
+      * "//index\.html/". The regexp flag is supported, and the escape of
+      * the slashes inside the regexp is not required.
+      *
+      * An empty string will disable this feature.
+      *
+      * Suggested value: //index\.(html?|php|aspx?|jsp|cgi|pl|js)$/i
       */
-    urlparentignoreindexhtml: "true" | "false" = "false"
+    urlparentignorepathregexp = ""
 
     /**
      * Whether to enter visual mode when text is selected. Visual mode can always be entered with `:mode visual`.
