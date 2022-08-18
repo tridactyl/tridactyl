@@ -26,6 +26,12 @@ function getFindHost() {
 class FindHighlight extends HTMLSpanElement {
     public top = Infinity
 
+    isVisible(): boolean {
+        for (const child of this.children) {
+            if (DOM.isVisible(child)) return true
+        }
+        return false
+    }
     constructor(private rects, private node) {
         super()
         ;(this as any).unfocus = () => {
@@ -127,6 +133,7 @@ export async function jumpToMatch(searchQuery, reverse) {
 
     const host = getFindHost()
     let focused = false
+    const viewportTop = window.pageYOffset
     for (let i = 0; i < results.count; ++i) {
         const data = results.rectData[i]
         if (data.rectsAndTexts.rectList.length < 1) {
@@ -140,7 +147,7 @@ export async function jumpToMatch(searchQuery, reverse) {
         )
         host.appendChild(high)
         lastHighlights.push(high)
-        if (!focused && Array.from(high.children).some(e => DOM.isVisible(e))) {
+        if (!focused && high.isVisible()) {
             focused = true
             ;(high as any).focus()
             selected = lastHighlights.length - 1
@@ -169,7 +176,7 @@ export function removeHighlighting() {
     while (host.firstChild) host.removeChild(host.firstChild)
 }
 
-export async function jumpToNextMatch(n: number) {
+export async function jumpToNextMatch(n: number, searchFromView: boolean) {
     const lastSearchQuery = await State.getAsync("lastSearchQuery")
     if (!lastHighlights) {
         return lastSearchQuery ? jumpToMatch(lastSearchQuery, n < 0) : undefined
@@ -188,7 +195,26 @@ export async function jumpToNextMatch(n: number) {
     }
     // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
     ;(lastHighlights[selected] as any).unfocus()
-    selected = (selected + n + lastHighlights.length) % lastHighlights.length
+    const newSelected =
+        (selected + n + lastHighlights.length) % lastHighlights.length
+
+    if (!searchFromView || lastHighlights[selected].isVisible()) {
+        // if the last selected is inside the view,
+        // count nth match from the last selected.
+        selected = newSelected
+    }
+    else {
+        const viewportTop = window.pageYOffset
+        const length = lastHighlights.length
+        selected = (n - 1 + length) % length
+        for (let i=0; i<length; i++) {
+            if (lastHighlights[i].top > viewportTop) {
+                selected = (i + n - 1 + length) % length
+                break
+            }
+        }
+    }
+
     // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
     ;(lastHighlights[selected] as any).focus()
 }
