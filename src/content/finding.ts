@@ -140,7 +140,7 @@ export async function jumpToMatch(searchQuery, reverse) {
         )
         host.appendChild(high)
         lastHighlights.push(high)
-        if (!focused && DOM.isVisible(high)) {
+        if (!focused && Array.from(high.children).some(e => DOM.isVisible(e))) {
             focused = true
             ;(high as any).focus()
             selected = lastHighlights.length - 1
