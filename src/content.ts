@@ -51,8 +51,8 @@ const realwindow = (window as any).wrappedJSObject ?? window // wrappedJSObject 
 const triPushState = (hist => (
     (...args) => {
         const ret = hist(...args)
-        realwindow.dispatchEvent(new Event("HistoryPushState"))
-        realwindow.dispatchEvent(new Event("HistoryState"))
+        realwindow.dispatchEvent(new CustomEvent("HistoryPushState"))
+        realwindow.dispatchEvent(new CustomEvent("HistoryState"))
         return ret
     })
 )(realwindow.history.pushState.bind(realwindow.history))
@@ -60,14 +60,14 @@ const triPushState = (hist => (
 const triReplaceState = (hist => (
     (...args) => {
         const ret = hist(...args)
-        realwindow.dispatchEvent(new Event("HistoryReplaceState"))
-        realwindow.dispatchEvent(new Event("HistoryState"))
+        realwindow.dispatchEvent(new CustomEvent("HistoryReplaceState"))
+        realwindow.dispatchEvent(new CustomEvent("HistoryState"))
         return ret
     })
 )(realwindow.history.replaceState.bind(realwindow.history))
 
 realwindow.addEventListener("popstate", () => {
-    realwindow.dispatchEvent(new Event("HistoryState"))
+    realwindow.dispatchEvent(new CustomEvent("HistoryState"))
 })
 
 history.replaceState = triReplaceState
