@@ -1925,7 +1925,12 @@ const parseConfigHelper = (pconf, parseobj, prefix = []) => {
                     parseobj.nulls.push(`setnull ${i}.${e}`)
                 } else if (i === "exaliases") {
                     // Only really useful if mapping the entire config and not just pconf.
-                    if (e === "alias") {
+                    if (prefix[0] === "subconfigs") {
+                        const url = prefix[1]
+                        const command = `alias --url ${url} ${e} ${pconf[i][e]}`
+                        parseobj.aliases.push(command)
+                    }
+                    else if (e === "alias") {
                         parseobj.aliases.push(`command ${e} ${pconf[i][e]}`)
                     } else {
                         parseobj.aliases.push(`alias ${e} ${pconf[i][e]}`)

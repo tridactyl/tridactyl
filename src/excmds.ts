@@ -4092,10 +4092,15 @@ export async function tab_helper(interactive: boolean, anyWindow: boolean, ...ke
  * added in a future release will be SILENTLY overridden. Aliases are
  * expanded recursively.
  *
+ * If the `--url` option is given, the command will only be defined in the
+ * specified url pattern (just like `bindurl`). It is useful to overwrite
+ * command like urlparent or urlroot in some websites like github repositories.
+ *
  * Examples:
  *  - `command t tabopen`
  *  - `command tn tabnext_gt`
  *  - `command hello t` This will expand recursively into 'hello'->'tabopen'
+ *  - `command --url https://github.com/.+/.+/.+ urlroot urlmodify -g 2 .
  *
  * Commands/aliases are expanded as in a shell, so, given the commands above,
  * entering `:tn 43` will expand to `:tabnext_gt 43`. You can use this to create
@@ -4108,14 +4113,21 @@ export async function tab_helper(interactive: boolean, anyWindow: boolean, ...ke
  *  - [[comclear]]
  */
 //#background
-export function command(name: string, ...definition: string[]) {
+export async function command(...args: string[]) {
     // Test if alias creates an alias loop.
+    let url = null
+    if (args[0] === "--url") {
+        args.shift()
+        url = args.shift()
+    }
+    const name = args[0]
+    const def = args.slice(1).join(" ")
     try {
-        const def = definition.join(" ")
+        if (url) await config.setURL(url, "exaliases", name, def)
+        else await config.set("exaliases", name, def)
         aliases.expandExstr(name)
-        return config.set("exaliases", name, def)
     } catch (e) {
-        config.unset("exaliases", name)
+        await config.unset("exaliases", name)
         throw new Error(`Alias not set. ${e}`)
     }
 }
