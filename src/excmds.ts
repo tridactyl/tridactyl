@@ -1458,8 +1458,17 @@ export function find(...args: string[]) {
  *
  */
 //#content
-export function findnext(n = 1) {
-    return finding.jumpToNextMatch(n)
+export function findnext(...args: string[]) {
+    let n = 1
+    let searchFromView = false
+    if (args.length > 0) {
+        if (args[0] == '-f' || args[0] == '--search-from-view') {
+            searchFromView = true
+            args.shift()
+        }
+        if (args.length > 0) n = Number(args[0])
+    }
+    return finding.jumpToNextMatch(n, searchFromView)
 }
 
 //#content

@@ -176,7 +176,10 @@ export function removeHighlighting() {
     while (host.firstChild) host.removeChild(host.firstChild)
 }
 
-export async function jumpToNextMatch(n: number, searchFromView: boolean) {
+export async function jumpToNextMatch(
+    n: number,
+    searchFromView: boolean = false
+) {
     const lastSearchQuery = await State.getAsync("lastSearchQuery")
     if (!lastHighlights) {
         return lastSearchQuery ? jumpToMatch(lastSearchQuery, n < 0) : undefined
