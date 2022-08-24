@@ -96,6 +96,7 @@ import semverCompare from "semver-compare"
 import * as hint_util from "@src/lib/hint_util"
 import { OpenMode } from "@src/lib/hint_util"
 import * as Proxy from "@src/lib/proxy"
+import minimist from "minimist"
 
 /**
  * This is used to drive some excmd handling in `composite`.
@@ -1460,15 +1461,17 @@ export function find(...args: string[]) {
 //#content
 export function findnext(...args: string[]) {
     let n = 1
-    let searchFromView = false
-    if (args.length > 0) {
-        if (args[0] == '-f' || args[0] == '--search-from-view') {
-            searchFromView = true
-            args.shift()
-        }
-        if (args.length > 0) n = Number(args[0])
-    }
-    return finding.jumpToNextMatch(n, searchFromView)
+    const option = minimist(args, {
+        boolean: Array.from("fr"),
+        alias: {
+            f: ["search-from-view", "searchFromView"],
+            r: "reverse",
+        },
+        default: { f: false, r: false },
+    })
+    if (option._.length > 0) n = Number(option._[0])
+    if (option.reverse) n = -n
+    return finding.jumpToNextMatch(n, option.searchFromView)
 }
 
 //#content
@@ -2314,7 +2317,7 @@ if (fullscreenApiIsPrefixed) {
 
 /** @hidden */
 //#content
-export async function loadaucmds(cmdType: "DocStart" | "DocLoad" | "DocEnd" | "TabEnter" | "TabLeft" | "FullscreenEnter" | "FullscreenLeft" | "FullscreenChange" | "UriChange" | "HistoryState" ) {
+export async function loadaucmds(cmdType: "DocStart" | "DocLoad" | "DocEnd" | "TabEnter" | "TabLeft" | "FullscreenEnter" | "FullscreenLeft" | "FullscreenChange" | "UriChange" | "HistoryState") {
     const aucmds = await config.getAsync("autocmds", cmdType)
     const ausites = Object.keys(aucmds)
     const aukeyarr = ausites.filter(e => window.document.location.href.search(e) >= 0)
@@ -2727,7 +2730,7 @@ export async function tabopen_helper({ addressarr = [], waitForDom = false }): P
 
     const aucon = new AutoContain()
     if (!container && aucon.autocontainConfigured()) {
-        const [autoContainer, ] = await aucon.getAuconAndProxiesForUrl(address)
+        const [autoContainer] = await aucon.getAuconAndProxiesForUrl(address)
         if (autoContainer && autoContainer !== "firefox-default") {
             container = autoContainer
             logger.debug("tabopen setting container automatically using autocontain directive")
@@ -3423,11 +3426,16 @@ export async function tgroupcreate(name: string) {
         await tabopen(initialUrl)
         promises.push(tgroupTabs(name, true).then(tabs => browserBg.tabs.hide(tabs.map(tab => tab.id))))
     } else {
-        promises.push(browser.tabs.query({currentWindow: true}).then((tabs) => {
-            setTabTgroup(name, tabs.map(({ id }) => id))
-            // trigger status line update
-            setContentStateGroup(name)
-        }))
+        promises.push(
+            browser.tabs.query({ currentWindow: true }).then(tabs => {
+                setTabTgroup(
+                    name,
+                    tabs.map(({ id }) => id),
+                )
+                // trigger status line update
+                setContentStateGroup(name)
+            }),
+        )
         promises.push(setWindowTgroup(name))
     }
 
@@ -3446,7 +3454,7 @@ export async function tgroupcreate(name: string) {
  */
 //#background
 export async function tgroupswitch(name: string) {
-    if (name == await windowTgroup()) {
+    if (name == (await windowTgroup())) {
         throw new Error(`Already on tab group "${name}"`)
     }
 
