@@ -1462,12 +1462,12 @@ export function find(...args: string[]) {
 export function findnext(...args: string[]) {
     let n = 1
     const option = minimist(args, {
-        boolean: Array.from("fr"),
+        boolean: Array.from("f?"),
         alias: {
             f: ["search-from-view", "searchFromView"],
-            r: "reverse",
+            "?": "reverse",
         },
-        default: { f: false, r: false },
+        default: { f: false, "?": false },
     })
     if (option._.length > 0) n = Number(option._[0])
     if (option.reverse) n = -n

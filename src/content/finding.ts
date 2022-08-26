@@ -26,12 +26,6 @@ function getFindHost() {
 class FindHighlight extends HTMLSpanElement {
     public top = Infinity
 
-    isVisible(): boolean {
-        for (const child of this.children) {
-            if (DOM.isVisible(child)) return true
-        }
-        return false
-    }
     constructor(private rects, private node) {
         super()
         ;(this as any).unfocus = () => {
@@ -81,6 +75,13 @@ class FindHighlight extends HTMLSpanElement {
             this.appendChild(highlight)
         }
         ;(this as any).unfocus()
+    }
+
+    isVisible(): boolean {
+        for (const child of this.children) {
+            if (DOM.isVisible(child)) return true
+        }
+        return false
     }
 }
 
@@ -132,8 +133,6 @@ export async function jumpToMatch(searchQuery, reverse) {
     const results = await findPromise
 
     const host = getFindHost()
-    let focused = false
-    const viewportTop = window.pageYOffset
     for (let i = 0; i < results.count; ++i) {
         const data = results.rectData[i]
         if (data.rectsAndTexts.rectList.length < 1) {
@@ -147,11 +146,6 @@ export async function jumpToMatch(searchQuery, reverse) {
         )
         host.appendChild(high)
         lastHighlights.push(high)
-        if (!focused && high.isVisible()) {
-            focused = true
-            ;(high as any).focus()
-            selected = lastHighlights.length - 1
-        }
     }
     if (lastHighlights.length < 1) {
         throw new Error("Pattern not found: " + searchQuery)
@@ -159,11 +153,13 @@ export async function jumpToMatch(searchQuery, reverse) {
     lastHighlights.sort(
         reverse ? (a, b) => b.top - a.top : (a, b) => a.top - b.top,
     )
-    if (!focused) {
-        selected = 0
+
+    // Just reuse the code to find the first match in the view
+    selected = 0
+    if (lastHighlights[selected].isVisible()) {
         // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
         ;(lastHighlights[selected] as any).focus()
-    }
+    } else jumpToNextMatch(1, true)
 }
 
 function drawHighlights(highlights) {
@@ -176,10 +172,7 @@ export function removeHighlighting() {
     while (host.firstChild) host.removeChild(host.firstChild)
 }
 
-export async function jumpToNextMatch(
-    n: number,
-    searchFromView: boolean = false
-) {
+export async function jumpToNextMatch(n: number, searchFromView = false) {
     const lastSearchQuery = await State.getAsync("lastSearchQuery")
     if (!lastHighlights) {
         return lastSearchQuery ? jumpToMatch(lastSearchQuery, n < 0) : undefined
@@ -198,21 +191,24 @@ export async function jumpToNextMatch(
     }
     // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
     ;(lastHighlights[selected] as any).unfocus()
-    const newSelected =
-        (selected + n + lastHighlights.length) % lastHighlights.length
 
     if (!searchFromView || lastHighlights[selected].isVisible()) {
         // if the last selected is inside the view,
         // count nth match from the last selected.
-        selected = newSelected
-    }
-    else {
-        const viewportTop = window.pageYOffset
+        selected =
+            (selected + n + lastHighlights.length) % lastHighlights.length
+    } else {
         const length = lastHighlights.length
+        const reverse = lastHighlights[length - 1].top < lastHighlights[0].top
+        const negative = n < 0
+        const downward = (!reverse && !negative) || (reverse && negative)
+        const yOffset = window.pageYOffset + (downward ? 0 : window.innerHeight)
+        const start = negative ? length - 1 : 0
+        const increment = negative ? -1 : 1
         selected = (n - 1 + length) % length
-        for (let i=0; i<length; i++) {
-            if (lastHighlights[i].top > viewportTop) {
-                selected = (i + n - 1 + length) % length
+        for (let i = start; i in lastHighlights; i += increment) {
+            if (lastHighlights[i].top > yOffset == downward) {
+                selected = (i + n - increment + length) % length
                 break
             }
         }
