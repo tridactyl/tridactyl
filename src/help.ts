@@ -122,7 +122,7 @@ function addSettingInputs() {
             ;(window as any).tri.messaging.message(
                 "controller_background",
                 "acceptExCmd",
-                ["set " + input.name + " " + input.value],
+                "set " + input.name + " " + input.value,
             )
         } else {
             if (
@@ -194,7 +194,7 @@ function addResetConfigButton() {
         )
         if (p === sentence) {
             ;(window as any).tri.messaging
-                .message("controller_background", "acceptExCmd", [sentence])
+                .message("controller_background", "acceptExCmd", sentence)
                 .then(_ => alert("Config reset!"))
         } else {
             alert(`Config not reset because '${p}' !== '${sentence}'`)
