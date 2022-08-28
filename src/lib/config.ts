@@ -371,7 +371,7 @@ export class default_config {
         ".": "repeat",
         "<AS-ArrowUp><AS-ArrowUp><AS-ArrowDown><AS-ArrowDown><AS-ArrowLeft><AS-ArrowRight><AS-ArrowLeft><AS-ArrowRight>ba":
             "open https://www.youtube.com/watch?v=M3iOROuTuMA",
-        "m": "gobble 1 markadd",
+        m: "gobble 1 markadd",
         "`": "gobble 1 markjump",
     }
 
@@ -1259,9 +1259,10 @@ const platform_defaults = {
 & '%TEMP%/tridactyl_installnative.ps1' -Tag %TAG;\
 Remove-Item '%TEMP%/tridactyl_installnative.ps1'"`,
         downloadforbiddenchars: "#%&{}\\<>*?/$!'\":@+`|=",
-        downloadforbiddennames: "CON, PRN, AUX, NUL, COM1, COM2,"
-            + "COM3, COM4, COM5, COM6, COM7, COM8, COM9, LPT1,"
-            + "LPT2, LPT3, LPT4, LPT5, LPT6, LPT7, LPT8, LPT9,",
+        downloadforbiddennames:
+            "CON, PRN, AUX, NUL, COM1, COM2," +
+            "COM3, COM4, COM5, COM6, COM7, COM8, COM9, LPT1," +
+            "LPT2, LPT3, LPT4, LPT5, LPT6, LPT7, LPT8, LPT9,",
     },
     linux: {
         nmaps: {
@@ -1334,15 +1335,14 @@ export function mergeDeep(o1, o2) {
     const r = Array.isArray(o1) ? o1.slice() : Object.create(o1)
     Object.assign(r, o1, o2)
     if (o2 === undefined) return r
-    Object.keys(o1)
-        .filter(
-            key => typeof o1[key] === "object" && typeof o2[key] === "object",
-        )
-        .forEach(key =>
-            r[key] == null
-                ? null
-                : Object.assign(r[key], mergeDeep(o1[key], o2[key])),
-        )
+    // eslint-disable-next-line guard-for-in
+    for (const key in o1) {
+        const v1 = o1[key]
+        const v2 = o2[key]
+        if (v1 && v2 && typeof v1 === "object" && typeof v2 === "object") {
+            r[key] = mergeDeep(v1, v2)
+        }
+    }
     return r
 }
 
