@@ -12,13 +12,13 @@
     "stream": "stream-browserify"
   },
   "dependencies": {
+    "arg": "^5.0.2",
     "cleanslate": "^0.10.1",
     "csp-serdes": "github:cmcaine/csp-serdes",
     "css": "^3.0.0",
     "editor-adapter": "^0.0.3",
     "esbuild": "^0.14.47",
     "fuse.js": "^6.6.2",
-    "minimist": "^1.2.6",
     "nearley": "^2.20.1",
     "ramda": "^0.28.0",
     "semver-compare": "^1.0.0",

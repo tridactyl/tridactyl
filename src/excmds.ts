@@ -96,7 +96,7 @@ import semverCompare from "semver-compare"
 import * as hint_util from "@src/lib/hint_util"
 import { OpenMode } from "@src/lib/hint_util"
 import * as Proxy from "@src/lib/proxy"
-import minimist from "minimist"
+import * as arg from "@src/lib/arg_util"
 
 /**
  * This is used to drive some excmd handling in `composite`.
@@ -1461,17 +1461,20 @@ export function find(...args: string[]) {
 //#content
 export function findnext(...args: string[]) {
     let n = 1
-    const option = minimist(args, {
-        boolean: Array.from("f?"),
-        alias: {
-            f: ["search-from-view", "searchFromView"],
-            "?": "reverse",
+    const option = arg.lib(
+        {
+            "--search-from-view": Boolean,
+            "--searchFromView": "--search-from-view",
+            "-f": "--search-from-view",
+
+            "--reverse": Boolean,
+            "-?": "--reverse",
         },
-        default: { f: false, "?": false },
-    })
+        { argv: args },
+    )
     if (option._.length > 0) n = Number(option._[0])
-    if (option.reverse) n = -n
-    return finding.jumpToNextMatch(n, option.searchFromView)
+    if (option["--reverse"]) n = -n
+    return finding.jumpToNextMatch(n, Boolean(option["--search-from-view"]))
 }
 
 //#content
