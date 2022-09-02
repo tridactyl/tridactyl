@@ -269,10 +269,23 @@ export async function queryAndURLwrangler(
 
     // `+ 1` because we want to get rid of the space
     const rest = address.substr(firstWord.length + 1)
+
+    const expandRecursively = (name, dict, prevExpansions = []) => {
+        if (name in dict) {
+            if (prevExpansions.includes(name)) {
+               throw new Error(`Infinite loop detected while expanding ${name}. Stack: ${prevExpansions}.`)
+            }
+            prevExpansions.push(name)
+            return expandRecursively(dict[name], dict, prevExpansions)
+        }
+        return name
+    }
+
     const searchurls = config.get("searchurls")
-    if (searchurls[firstWord]) {
+    const template = expandRecursively(firstWord, searchurls)
+    if (template != firstWord) {
         const url = UrlUtil.interpolateSearchItem(
-            new URL(searchurls[firstWord]),
+            new URL(template),
             rest,
         )
         // firstWord is a searchurl, so let's use that
@@ -280,8 +293,9 @@ export async function queryAndURLwrangler(
     }
 
     const jsurls = config.get("jsurls")
-    if (jsurls[firstWord]) {
-        return eval(jsurls[firstWord])(rest)
+    const js = expandRecursively(firstWord, jsurls)
+    if (js != firstWord) {
+        return eval(js)(rest)
     }
 
     const searchEngines = await browserBg.search.get()
