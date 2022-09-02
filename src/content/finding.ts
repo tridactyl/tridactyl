@@ -94,7 +94,7 @@ let selected = 0
 
 let HIGHLIGHT_TIMER
 
-export async function jumpToMatch(searchQuery, reverse) {
+export async function jumpToMatch(searchQuery, option) {
     const timeout = config.get("findhighlighttimeout")
     if (timeout > 0) {
         clearTimeout(HIGHLIGHT_TIMER)
@@ -151,15 +151,25 @@ export async function jumpToMatch(searchQuery, reverse) {
         throw new Error("Pattern not found: " + searchQuery)
     }
     lastHighlights.sort(
-        reverse ? (a, b) => b.top - a.top : (a, b) => a.top - b.top,
+        option.reverse ? (a, b) => b.top - a.top : (a, b) => a.top - b.top,
     )
+
+    if ("jumpTo" in option) {
+        selected = (option.jumpTo + lastHighlights.length) % lastHighlights.length
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
+        ;(lastHighlights[selected] as any).focus()
+        return
+    }
 
     // Just reuse the code to find the first match in the view
     selected = 0
     if (lastHighlights[selected].isVisible()) {
         // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
         ;(lastHighlights[selected] as any).focus()
-    } else jumpToNextMatch(1, true)
+    } else {
+        const searchFromView = true
+        await jumpToNextMatch(1, searchFromView)
+    }
 }
 
 function drawHighlights(highlights) {
