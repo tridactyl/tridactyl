@@ -151,11 +151,12 @@ export async function jumpToMatch(searchQuery, option) {
         throw new Error("Pattern not found: " + searchQuery)
     }
     lastHighlights.sort(
-        option.reverse ? (a, b) => b.top - a.top : (a, b) => a.top - b.top,
+        option["reverse"] ? (a, b) => b.top - a.top : (a, b) => a.top - b.top,
     )
 
     if ("jumpTo" in option) {
-        selected = (option.jumpTo + lastHighlights.length) % lastHighlights.length
+        selected =
+            (option["jumpTo"] + lastHighlights.length) % lastHighlights.length
         // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
         ;(lastHighlights[selected] as any).focus()
         return
@@ -183,9 +184,14 @@ export function removeHighlighting() {
 }
 
 export async function jumpToNextMatch(n: number, searchFromView = false) {
-    const lastSearchQuery = await State.getAsync("lastSearchQuery")
+    let lastSearchQuery
     if (!lastHighlights) {
-        return lastSearchQuery ? jumpToMatch(lastSearchQuery, n < 0) : undefined
+        lastSearchQuery = await State.getAsync("lastSearchQuery")
+        if (!lastSearchQuery) return
+        await jumpToMatch(lastSearchQuery, { reverse: n < 0 })
+        if (Math.abs(n) === 1) return
+        n = n - n / Math.abs(n)
+        searchFromView = false
     }
     if (!host.firstChild) {
         const timeout = config.get("findhighlighttimeout")
