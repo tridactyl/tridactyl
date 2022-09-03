@@ -26,7 +26,7 @@ function getFindHost() {
 class FindHighlight extends HTMLSpanElement {
     public top = Infinity
 
-    constructor(private rects, private node) {
+    constructor(private rects, public range) {
         super()
         ;(this as any).unfocus = () => {
             for (const node of this.children) {
@@ -42,7 +42,7 @@ class FindHighlight extends HTMLSpanElement {
                     inline: "center",
                 })
             }
-            let parentNode = this.node.parentNode
+            let parentNode = this.range.startContainer.parentNode
             while (parentNode && !(parentNode instanceof HTMLAnchorElement)) {
                 parentNode = parentNode.parentNode
             }
@@ -77,6 +77,15 @@ class FindHighlight extends HTMLSpanElement {
         ;(this as any).unfocus()
     }
 
+    static fromFindApi(rectData, rangeData, allTextNode) {
+        const range = document.createRange()
+        range.setStart(
+            allTextNode[rangeData.startTextNodePos],
+            rangeData.startOffset,
+        )
+        range.setEnd(allTextNode[rangeData.endTextNodePos], rangeData.endOffset)
+        return new this(rectData, range)
+    }
     isVisible(): boolean {
         for (const child of this.children) {
             if (DOM.isVisible(child)) return true
@@ -140,9 +149,10 @@ export async function jumpToMatch(searchQuery, option) {
             continue
         }
         const range = results.rangeData[i]
-        const high = new FindHighlight(
+        const high = FindHighlight.fromFindApi(
             data.rectsAndTexts.rectList,
-            nodes[range.startTextNodePos],
+            range,
+            nodes,
         )
         host.appendChild(high)
         lastHighlights.push(high)
@@ -232,4 +242,8 @@ export async function jumpToNextMatch(n: number, searchFromView = false) {
 
     // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
     ;(lastHighlights[selected] as any).focus()
+}
+
+export function currentMatchRange(): Range {
+    return lastHighlights[selected].range
 }

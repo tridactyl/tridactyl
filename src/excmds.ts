@@ -1496,6 +1496,17 @@ export function clearsearchhighlight() {
     return finding.removeHighlighting()
 }
 
+/**
+ * Highlight the current find-mode match result and enter the visual mode.
+ */
+//#content
+export function findselect() {
+    const range = finding.currentMatchRange()
+    const selection = document.getSelection()
+    selection.removeAllRanges()
+    selection.addRange(range)
+}
+
 /** @hidden */
 //#content_helper
 function history(url_or_num: string, direction: number) {
