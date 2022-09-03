@@ -26,36 +26,8 @@ function getFindHost() {
 class FindHighlight extends HTMLSpanElement {
     public top = Infinity
 
-    constructor(private rects, public range) {
+    constructor(private rects, public range: Range) {
         super()
-        ;(this as any).unfocus = () => {
-            for (const node of this.children) {
-                ;(
-                    node as HTMLElement
-                ).style.background = `rgba(127,255,255,0.5)`
-            }
-        }
-        ;(this as any).focus = () => {
-            if (!DOM.isVisible(this.children[0])) {
-                this.children[0].scrollIntoView({
-                    block: "center",
-                    inline: "center",
-                })
-            }
-            let parentNode = this.range.startContainer.parentNode
-            while (parentNode && !(parentNode instanceof HTMLAnchorElement)) {
-                parentNode = parentNode.parentNode
-            }
-            if (parentNode) {
-                parentNode.focus()
-            }
-            for (const node of this.children) {
-                ;(
-                    node as HTMLElement
-                ).style.background = `rgba(255,127,255,0.5)`
-            }
-        }
-
         this.style.position = "absolute"
         this.style.top = "0px"
         this.style.left = "0px"
@@ -77,7 +49,7 @@ class FindHighlight extends HTMLSpanElement {
         ;(this as any).unfocus()
     }
 
-    static fromFindApi(rectData, rangeData, allTextNode) {
+    static fromFindApi(rectData, rangeData, allTextNode: Text[]) {
         const range = document.createRange()
         range.setStart(
             allTextNode[rangeData.startTextNodePos],
@@ -91,6 +63,28 @@ class FindHighlight extends HTMLSpanElement {
             if (DOM.isVisible(child)) return true
         }
         return false
+    }
+
+    unfocus() {
+        for (const node of this.children) {
+            ;(node as HTMLElement).style.background = `rgba(127,255,255,0.5)`
+        }
+    }
+    focus() {
+        if (!this.isVisible()) {
+            this.children[0].scrollIntoView({
+                block: "center",
+                inline: "center",
+            })
+        }
+        let parentNode = this.range.startContainer.parentNode
+        while (parentNode && !(parentNode instanceof HTMLAnchorElement)) {
+            parentNode = parentNode.parentNode
+        }
+        if (parentNode) parentNode.focus()
+        for (const node of this.children) {
+            ;(node as HTMLElement).style.background = `rgba(255,127,255,0.5)`
+        }
     }
 }
 
