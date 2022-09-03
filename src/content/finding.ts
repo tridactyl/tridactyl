@@ -58,13 +58,10 @@ class FindHighlight extends HTMLSpanElement {
         range.setEnd(allTextNode[rangeData.endTextNodePos], rangeData.endOffset)
         return new this(rectData, range)
     }
-    isVisible(): boolean {
-        for (const child of this.children) {
-            if (DOM.isVisible(child)) return true
-        }
-        return false
-    }
 
+    isVisible(): boolean {
+        return DOM.isVisible(this.range)
+    }
     unfocus() {
         for (const node of this.children) {
             ;(node as HTMLElement).style.background = `rgba(127,255,255,0.5)`
