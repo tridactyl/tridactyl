@@ -222,8 +222,10 @@ export function isVisibleFilter(
 
  */
 export function isVisible(thing: Element | Range) {
-    while (!(thing.getBoundingClientRect instanceof Function)) {
-        thing = thing.parentElement
+    if (thing instanceof Element) {
+        while (typeof thing.getBoundingClientRect !== "function") {
+            thing = thing.parentElement
+        }
     }
     const clientRect = thing.getBoundingClientRect()
     switch (true) {

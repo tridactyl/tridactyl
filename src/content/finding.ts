@@ -74,11 +74,20 @@ class FindHighlight extends HTMLSpanElement {
                 inline: "center",
             })
         }
-        let parentNode = this.range.startContainer.parentNode
-        while (parentNode && !(parentNode instanceof HTMLAnchorElement)) {
-            parentNode = parentNode.parentNode
+
+        let parentElement = this.range.startContainer.parentElement
+        loop: while (parentElement) {
+            switch (parentElement.nodeName.toLowerCase()) {
+                case "a":
+                case "input":
+                case "button":
+                case "details":
+                    parentElement.focus()
+                    break loop
+            }
+            parentElement = parentElement.parentElement
         }
-        if (parentNode) parentNode.focus()
+
         for (const node of this.children) {
             ;(node as HTMLElement).style.background = `rgba(255,127,255,0.5)`
         }
