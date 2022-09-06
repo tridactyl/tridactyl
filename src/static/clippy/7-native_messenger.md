@@ -16,4 +16,4 @@ The native messenger is an external executable that you can install on your comp
 
 If these seem like interesting features to you, you can run `:nativeinstall` and follow the instructions in order to install the native messenger. If everything went smoothly, running `:native` should tell you that the native messenger is correctly installed.
 
-The <a href='./8-marks.html' rel='next'>next page</a> explains how to use marks to move to a previously recorded position. <a href='./6-containers.html' rel="prev"></a>
+The <a href='./8-marks.md' rel='next'>next page</a> explains how to use marks to move to a previously recorded position. <a href='./6-containers.md' rel="prev"></a>

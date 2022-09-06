@@ -12,4 +12,4 @@ You can add a mark with `markadd [key]` or by using the default keybinding `m[ke
 
 Try marking this position using `mA`. Switch to another tab and press `` `A `` to come back here. Press ` `` ` to go back to where you came from. You can also try setting a local mark using `ma` in the middle of a scrollable page, press `gg` to move to the top and then press `` `a `` to jump to the mark.
 
-The [next and final page](./9-help.html) of this tutorial is about getting help. <a href='./7-native_messenger.html' rel="prev"></a>
+The [next and final page](./9-help.md) of this tutorial is about getting help. <a href='./7-native_messenger.md' rel="prev"></a>

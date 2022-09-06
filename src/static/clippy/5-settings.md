@@ -24,4 +24,4 @@ There are many other commands related to settings:
 -   `:unbind` unbinds a key sequence
 -   `:setnull` deletes a setting (overwriting the default with an "empty" setting - useful for deleting searchurls, for example)
 
-The [next page](./6-containers.html) will talk about how to operate firefox containers with tridactyl. <a href='./4-command_mode.html' rel="prev"></a>
+The [next page](./6-containers.md) will talk about how to operate firefox containers with tridactyl. <a href='./4-command_mode.md' rel="prev"></a>
