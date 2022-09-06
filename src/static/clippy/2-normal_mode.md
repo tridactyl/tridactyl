@@ -43,6 +43,6 @@ Unbind the binds with `unbind --mode=browser [key]`.
 
 ---
 
-The [next page](./3-hint_mode.html) will explain how to use some of the various hint modes. This time try `]]` (guess the next page) to follow the link.
+The [next page](./3-hint_mode.md) will explain how to use some of the various hint modes. This time try `]]` (guess the next page) to follow the link.
 
-<a href='./1-tutor.html' rel="prev"></a>
+<a href='./1-tutor.md' rel="prev"></a>

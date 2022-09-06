@@ -20,4 +20,4 @@ We support a handful of keybinds in the console:
 -   `Ctrl-Enter` to execute the highlighted completion and keep the command line open
 -   `<C-o>yy` to copy the highlighted completion to your clipboard
 
-The [next page](./5-settings.html) will talk about the various settings available. <a href='./3-1-visual_mode.html' rel="prev"></a>
+The [next page](./5-settings.md) will talk about the various settings available. <a href='./3-1-visual_mode.md' rel="prev"></a>

@@ -15,4 +15,4 @@ The perceived benefits of this feature are as described by the Firefox Test Pilo
 * `tabopen -c name [url]` Opens a new tab in the container called `name`
 * `winopen -c name [url]` Opens a new window in the container called `name`
 
-The <a href='./7-native_messenger.html' rel='next'>next page</a> is about the native messenger. <a href='./5-settings.html' rel="prev"></a>
+The <a href='./7-native_messenger.md' rel='next'>next page</a> is about the native messenger. <a href='./5-settings.md' rel="prev"></a>

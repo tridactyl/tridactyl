@@ -22,4 +22,4 @@ The visual mode keybinds:
 
 See ":help vmaps" to see all the binds.
 
-The [next page](./4-command_mode.html) will cover the command mode. <a href='./3-hint_mode.html' rel="prev"></a>
+The [next page](./4-command_mode.md) will cover the command mode. <a href='./3-hint_mode.md' rel="prev"></a>
