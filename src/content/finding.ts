@@ -66,8 +66,11 @@ class FindHighlight extends HTMLSpanElement {
         return new this(rectData, range)
     }
 
-    isVisible(): boolean {
-        return DOM.isVisible(this.range)
+    getBoundingClientRect() {
+        return this.range.getBoundingClientRect()
+    }
+    getClientRects() {
+        return this.range.getClientRects()
     }
     unfocus() {
         for (const node of this.children) {
@@ -75,7 +78,7 @@ class FindHighlight extends HTMLSpanElement {
         }
     }
     focus() {
-        if (!this.isVisible()) {
+        if (!DOM.isVisible(this)) {
             this.children[0].scrollIntoView({
                 block: "center",
                 inline: "center",
@@ -181,7 +184,7 @@ export async function jumpToMatch(searchQuery, option) {
 
     // Just reuse the code to find the first match in the view
     selected = 0
-    if (lastHighlights[selected].isVisible()) {
+    if (DOM.isVisible(lastHighlights[selected])) {
         // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
         ;(lastHighlights[selected] as any).focus()
     } else {
@@ -225,7 +228,7 @@ export async function jumpToNextMatch(n: number, searchFromView = false) {
     // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
     ;(lastHighlights[selected] as any).unfocus()
 
-    if (!searchFromView || lastHighlights[selected].isVisible()) {
+    if (!searchFromView || DOM.isVisible(lastHighlights[selected])) {
         // if the last selected is inside the view,
         // count nth match from the last selected.
         selected =
