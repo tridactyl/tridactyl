@@ -28,6 +28,13 @@ class FindHighlight extends HTMLSpanElement {
 
     constructor(private rects, public range: Range) {
         super()
+        {
+            // https://bugzilla.mozilla.org/show_bug.cgi?id=1716685
+            const proto = FindHighlight.prototype
+            for (const key of Object.getOwnPropertyNames(proto)) {
+                this[key] = proto[key]
+            }
+        }
         this.style.position = "absolute"
         this.style.top = "0px"
         this.style.left = "0px"
