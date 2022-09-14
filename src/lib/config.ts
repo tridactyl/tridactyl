@@ -1115,6 +1115,10 @@ export class default_config {
              * Whether to automatically select the closest matching completion
              */
             autoselect: "true",
+            /**
+             * Whether to use unicode symbols to display tab statuses
+             */
+            statusstylepretty: "false",
         },
         TabAll: {
             autoselect: "true",
