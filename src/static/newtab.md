@@ -4,11 +4,13 @@ Tridactyl has to override your new tab page due to WebExtension limitations. You
 
 -   You can view your current configuration with `:viewconfig`.
 
--   Tridactyl funding 👀: **GitHub will double any donations to us via GitHub sponsors until the end of November 2020**; if you think you will ever donate to Tridacytl, now is a great time to do it. [Donate using via GitHub sponsors here](https://github.com/users/glacambre/sponsorship). Donors get a nice little newsletter once every few months. You can also donate via [PayPal](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=7JQHV4N2YZCTY), but they charge fairly high fees and won't double your donation. Donations currently go towards ensuring that bovine3dom can afford to work one day a week on Tridactyl. Previously the donations have funded an in-person developer retreat.
+-   Tridactyl funding 👀: [donate via GitHub sponsors here](https://github.com/users/bovine3dom/sponsorship). All GitHub and Patreon donors get a nice little newsletter once every few months; people who donate at least 10USD a month get a "tips & tricks" newsletter roughly once a month ([see an example here](https://github.com/tridactyl/tridactyl/blob/master/doc/newsletters/tips-and-tricks/1-hint-css-selectors.md)). You can also donate via [PayPal](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=7JQHV4N2YZCTY), but they charge fairly high fees and you won't get any newsletters. Donations currently go towards ensuring that bovine3dom can afford to work one day a week on Tridactyl. Previously the donations have funded an in-person developer retreat.
+
+-   __Upcoming new permission requests__: the next version of Tridactyl will require the "hide tabs" and "proxy" permissions in order to provide `:tgroup*` tab group commands and add proxy support to `:autocontain`. You will need to click on a small pale yellow notification in the top right of the browser window to update to this version once it is available.
 
 *   If Tridactyl breaks a website or is broken by a website, trying the steps in the [troubleshooting guide](https://github.com/tridactyl/tridactyl/blob/master/doc/troubleshooting.md) might help.
 
-*   You can contact the developers, other users and contributors for support or whatever on [Matrix][matrix-link], [Gitter][gitter-link], or [IRC][freenode-link].
+*   You can contact the developers, other users and contributors for support or whatever on [Matrix][matrix-link], [Gitter][gitter-link], [Discord][discord-link] or [IRC][libera-link].
 
 *   If you're enjoying Tridactyl (or not), please leave a review on [addons.mozilla.org][amo].
 
@@ -37,11 +39,12 @@ REPLACE_ME_WITH_THE_CHANGE_LOG_USING_SED
 -   `<C-o>` – run a single normal mode binding when in ignore mode
 -   [`:help hint`][help-hint] to see all the other useful hint modes (this is the `f` magic. :) ).
 -   `:help <keybinding>` to learn more about what a specific key binding does.
+-   `:colours [dark|quake|...]` to change Tridactyl's theme (and the colour of this page)
 
 ## Important limitations due to WebExtensions
 
 -   You can only navigate to most about: and file: pages if you have Tridactyl's native executable installed.
--   Firefox will not load Tridactyl on about:\*, some file:\* URIs, view-source:\*, or data:\*. On these pages `Ctrl-Comma` (that's `<C-,>` in Tridactyl-speal) is your escape hatch.
+-   Firefox will not load Tridactyl on about:\*, some file:\* URIs, view-source:\*, or data:\*. On these pages `Ctrl-Comma` (that's `<C-,>` in Tridactyl-speak) is your escape hatch.
 -   You can change the Firefox GUI with `guiset` (e.g. `guiset gui none` and then `restart`) if you have the native messenger installed, or you can do it yourself by changing your userChrome.
 -   Tridactyl cannot capture key presses until web pages are loaded. You can use `:reloadall` to reload all tabs to make life more bearable, or flip `browser.sessionstore.restore_tabs_lazily` to false in `about:config`.
 
@@ -63,16 +66,14 @@ Alternatively, if you don't need Tridactyl to work on the new tab page, you can 
 You have more questions? Have a look at our [FAQ][faq-link] or search our [issues][issues].
 
 [issues]: https://github.com/tridactyl/tridactyl/issues
-[faq-link]: https://github.com/tridactyl/tridactyl#frequently-asked-questions
+[faq-link]: https://github.com/tridactyl/tridactyl#frequently-asked-questions-faq
 [help]: /static/docs/modules/_src_excmds_.html
 [tutor]: /static/clippy/1-tutor.html
 [help-hint]: /static/docs/modules/_src_excmds_.html#hint
-[gitter-badge]: /static/badges/gitter-badge.svg
 [gitter-link]: https://gitter.im/tridactyl/Lobby
-[freenode-badge]: /static/badges/freenode-badge.svg
-[freenode-link]: ircs://chat.freenode.net/tridactyl
-[matrix-badge]: /static/badges/matrix-badge.svg
-[matrix-link]: https://riot.im/app/#/room/#tridactyl:matrix.org
+[discord-link]: https://discord.gg/DWbNGTAvmh
+[libera-link]: ircs://irc.libera.chat:6697/tridactyl
+[matrix-link]: https://matrix.to/#/#tridactyl:matrix.org
 [amo]: https://addons.mozilla.org/en-US/firefox/addon/tridactyl-vim/reviews/
 [nonewtablink]: https://tridactyl.cmcaine.co.uk/betas/nonewtab/tridactyl_no_new_tab_beta-latest.xpi
 [migratelink]: https://github.com/tridactyl/tridactyl/issues/79#issuecomment-351132451

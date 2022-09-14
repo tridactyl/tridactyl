@@ -1,3 +1,5 @@
+@import url("../themes/auto/auto.css");
+
 body {
     overflow: hidden;
     margin: 0;
@@ -30,6 +32,10 @@ input {
     /* margin-left: -0.25ex; */
     /* we currently have a border from the completions */
     /* border-top: solid 1px lightgray; */
+}
+
+input:focus {
+    outline: none;
 }
 
 #tridactyl-colon::before {
@@ -78,6 +84,14 @@ input {
     width: 50%;
 }
 
+/* Accroding to src/completions/TabHistory.ts formatTimeSpan,
+ * max-width should be 14 characters (14ex), 20ex for more tolorance. */
+#completions table tr td.time {
+    width: 20ex;
+    text-align: right;
+    padding-right: 2ex;
+}
+
 #completions table tr {
     white-space: nowrap;
     overflow: hidden;
@@ -100,6 +114,7 @@ input {
         var(--tridactyl-header-second-bg),
         var(--tridactyl-header-third-bg)
     );
+    font-size: var(--tridactyl-header-font-size);
     font-weight: var(--tridactyl-header-font-weight);
     border-bottom: var(--tridactyl-header-border-bottom);
     padding-left: 0.5ex;

@@ -16,7 +16,7 @@ If you're having trouble running your editor on OSX, you might be having \$PATH 
 
 If you're encountering problems on windows, you might want to try some of the workarounds mentioned here: [#797](https://github.com/tridactyl/tridactyl/issues/797).
 
-If you're on Unix, running `printf '%c\0\0\0{"cmd": "run", "command": "echo $PATH"}' 39 | ~/.local/share/tridactyl/native_main.py` in a terminal after you have installed the native messenger will tell you if there are any missing modules.
+If you're on Unix, running `printf '%c\0\0\0{"cmd": "run", "command": "echo $PATH"}' 39 | ~/.local/share/tridactyl/native_main` in a terminal after you have installed the native messenger will check that it is at least partially working.
 
 # Getting logging information
 
@@ -35,13 +35,13 @@ In order to activate logging for a component, you can use the following command:
 
 This will open a two consoles where Tridactyl's messages are logged. Click on the little bin icons in the consoles in order to remove previous messages and try to re-trigger the bug. Copy the logs as you would any other text, and then paste them in your GitHub issue in a block surrounded by three backticks like so:
 
+````
 ```
-\`\`\`
 logs
 go
 here
-\`\`\`
 ```
+````
 
 Unfortunately, Firefox truncates some objects, so if there are any that look particularly important, please copy them manually by right clicking on them and clicking "Copy object".
 

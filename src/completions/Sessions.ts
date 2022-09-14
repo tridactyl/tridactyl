@@ -1,4 +1,4 @@
-import { browserBg } from "@src/lib/webext.ts"
+import { browserBg } from "@src/lib/webext"
 import * as Completions from "@src/completions"
 import * as config from "@src/lib/config"
 
@@ -7,13 +7,13 @@ function computeDate(session) {
         ((new Date() as any) - session.lastModified) / 1000,
     )
     let qualifier = "s"
-    if (howLong > 60) {
+    if (Math.abs(howLong) > 60) {
         qualifier = "m"
         howLong = Math.round(howLong / 60)
-        if (howLong > 60) {
+        if (Math.abs(howLong) > 60) {
             qualifier = "h"
             howLong = Math.round(howLong / 60)
-            if (howLong > 24) {
+            if (Math.abs(howLong) > 24) {
                 qualifier = "d"
                 howLong = Math.round(howLong / 24)
             }

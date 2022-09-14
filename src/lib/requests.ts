@@ -5,8 +5,7 @@ const logger = new Logger("requests")
 
 class DefaultMap<K, V> extends Map<K, V> {
     constructor(private defaultFactory, ...args) {
-        // super(...args)
-        super()
+        super(...args)
     }
 
     get(key) {

@@ -347,6 +347,16 @@ function test_url_query_interpolation() {
             "a/query",
             "http://example.com/?query=a%2Fquery&q2=v2",
         ],
+        [   // array indexing
+            "http://example.com/?q1=%s1&q2=%s2",
+            "a query",
+            "http://example.com/?q1=a&q2=query"
+        ],
+        [   // array slicing
+            "http://example.com/?q1=%s1&q2=%s[2:]",
+            "a query with several words",
+            "http://example.com/?q1=a&q2=query%20with%20several%20words"
+        ]
     ]
 
     for (let [url, qy, exp_res] of cases) {

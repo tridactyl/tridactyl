@@ -1,8 +1,8 @@
 {
     "manifest_version": 2,
     "name": "Tridactyl",
-    "version": "1.20.2",
-    "version_name": "1.20.2",
+    "version": "1.22.1",
+    "version_name": "1.22.1",
     "icons": {
         "64": "static/logo/Tridactyl_64px.png",
         "100": "static/logo/Tridactyl_100px.png",
@@ -50,6 +50,42 @@
         },
         "command_8": {
             "description": "Internal use. See `:help bind`. Use `:bind --mode=browser` to change - do not change here."
+        },
+        "command_9": {
+            "description": "Internal use. See `:help bind`. Use `:bind --mode=browser` to change - do not change here."
+        },
+        "command_10": {
+            "description": "Internal use. See `:help bind`. Use `:bind --mode=browser` to change - do not change here."
+        },
+        "command_11": {
+            "description": "Internal use. See `:help bind`. Use `:bind --mode=browser` to change - do not change here."
+        },
+        "command_12": {
+            "description": "Internal use. See `:help bind`. Use `:bind --mode=browser` to change - do not change here."
+        },
+        "command_13": {
+            "description": "Internal use. See `:help bind`. Use `:bind --mode=browser` to change - do not change here."
+        },
+        "command_14": {
+            "description": "Internal use. See `:help bind`. Use `:bind --mode=browser` to change - do not change here."
+        },
+        "command_15": {
+            "description": "Internal use. See `:help bind`. Use `:bind --mode=browser` to change - do not change here."
+        },
+        "command_16": {
+            "description": "Internal use. See `:help bind`. Use `:bind --mode=browser` to change - do not change here."
+        },
+        "command_17": {
+            "description": "Internal use. See `:help bind`. Use `:bind --mode=browser` to change - do not change here."
+        },
+        "command_18": {
+            "description": "Internal use. See `:help bind`. Use `:bind --mode=browser` to change - do not change here."
+        },
+        "command_19": {
+            "description": "Internal use. See `:help bind`. Use `:bind --mode=browser` to change - do not change here."
+        },
+        "command_20": {
+            "description": "Internal use. See `:help bind`. Use `:bind --mode=browser` to change - do not change here."
         }
     },
     "content_scripts": [
@@ -90,6 +126,7 @@
         "search",
         "sessions",
         "storage",
+        "tabHide",
         "tabs",
         "topSites",
         "management",
@@ -97,12 +134,13 @@
         "webNavigation",
         "webRequest",
         "webRequestBlocking",
+        "proxy",
         "<all_urls>"
     ],
     "applications": {
         "gecko": {
             "id": "tridactyl.vim.betas@cmcaine.co.uk",
-            "strict_min_version": "68.0"
+            "strict_min_version": "91.1.0"
         }
     },
     "options_ui": {

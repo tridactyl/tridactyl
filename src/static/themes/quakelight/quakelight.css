@@ -1,12 +1,12 @@
-:root.TridactylThemeQuakelight #completions .sectionHeader {
+:root #completions .sectionHeader {
     display: none;
 }
 
-:root.TridactylThemeQuakelight #tridactyl-colon::before {
+:root #tridactyl-colon::before {
     content: "] ";
 }
 
-:root.TridactylThemeQuakelight #cmdline_iframe {
+:root #cmdline_iframe {
     position: fixed !important;
     bottom: unset;
     top: 0% !important;

@@ -1,0 +1,23 @@
+@import "../default/default.css";
+@import "../dark/dark.css" (prefers-color-scheme: dark);
+
+@media (forced-colors: active) {
+    :root {
+        --tridactyl-bg: Canvas;
+        --tridactyl-fg: CanvasText;
+        --tridactyl-search-highlight-color: Highlight; /* currently ignored due to shadow dom issue */
+        --tridactyl-hintspan-fg: SelectedItemText;
+        --tridactyl-hintspan-bg: SelectedItem;
+        --tridactyl-hint-active-fg: inherit;
+        --tridactyl-hint-active-bg: Highlight; /*use Mark when supported https://bugzilla.mozilla.org/show_bug.cgi?id=1638052 */
+        --tridactyl-cmdl-bg: Field;
+        --tridactyl-cmdl-fg: FieldText;
+        --tridactyl-of-fg: SelectedItemText;
+        --tridactyl-of-bg: SelectedItem;
+    }
+
+    .option.focused .url {
+        color: SelectedItemText;
+        background-color: SelectedItem;
+    }
+}

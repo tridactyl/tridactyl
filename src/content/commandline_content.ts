@@ -27,13 +27,15 @@ cmdline_iframe.setAttribute(
     browser.runtime.getURL("static/commandline.html"),
 )
 cmdline_iframe.setAttribute("id", "cmdline_iframe")
+cmdline_iframe.setAttribute("loading", "lazy")
 
 let enabled = false
 
 /** Initialise the cmdline_iframe element unless the window location is included in a value of config/noiframe */
 async function init() {
     const noiframe = await config.getAsync("noiframe")
-    if (noiframe === "false" && !enabled) {
+    const notridactyl = await config.getAsync("superignore")
+    if (noiframe === "false" && notridactyl !== "true" && !enabled) {
         hide()
         document.documentElement.appendChild(cmdline_iframe)
         enabled = true
@@ -44,7 +46,7 @@ async function init() {
 
 // Load the iframe immediately if we can (happens if tridactyl is reloaded or on ImageDocument)
 // Else load lazily to avoid upsetting page JS that hates foreign iframes.
-init().catch(e => {
+init().catch(() => {
     // Surrender event loop with setTimeout() to page JS in case it's still doing stuff.
     document.addEventListener("DOMContentLoaded", () =>
         setTimeout(() => {

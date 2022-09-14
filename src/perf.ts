@@ -154,11 +154,11 @@ export function listenForCounters(
         observer: PerformanceObserver,
     ) => void
     if (statsLogger === undefined) {
-        callback = (list, observer) => {
+        callback = (list) => {
             sendStats(list.getEntries())
         }
     } else {
-        callback = (list, observer) => {
+        callback = (list) => {
             statsLogger.pushList(list.getEntries())
         }
     }
@@ -233,7 +233,7 @@ export class StatsLogger {
         return this.buffer.filter(filterFun)
     }
 
-    private updateBuffersize() {
+    public updateBuffersize() {
         // Changing the buffer length while this is running will
         // probably result in weirdness, but that shouldn't be a major
         // issue - it's not like we need these to be in order or
@@ -340,25 +340,11 @@ export class StatsFilter {
 
     matches(entry: PerformanceEntry): boolean {
         const metricNameInfo = extractMetricName(entry.name)
-        if (
-            this.config.kind === "functionName" &&
-            this.config.functionName !== metricNameInfo.functionName
-        ) {
-            return false
-        }
-        if (
-            this.config.kind === "ownerName" &&
-            this.config.ownerName !== metricNameInfo.ownerName
-        ) {
-            return false
-        }
-        if (
-            this.config.kind === "eventType" &&
-            this.config.eventType !== entry.entryType
-        ) {
-            return false
-        }
-        return true
+        return !(
+            (this.config.kind === "functionName" && this.config.functionName !== metricNameInfo.functionName) ||
+            (this.config.kind === "ownerName" && this.config.ownerName !== metricNameInfo.ownerName) ||
+            (this.config.kind === "eventType" && this.config.eventType !== entry.entryType)
+        )
     }
 }
 

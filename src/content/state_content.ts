@@ -20,6 +20,9 @@ export class PrevInput {
 class ContentState {
     mode: ModeName = "normal"
     suffix = ""
+    group = ""
+    current_cmdline = ""
+    cmdline_filter = ""
 }
 
 export type ContentStateProperty =
@@ -27,6 +30,7 @@ export type ContentStateProperty =
     | "cmdHistory"
     | "prevInputs"
     | "suffix"
+    | "group"
 
 export type ContentStateChangedCallback = (
     property: ContentStateProperty,

@@ -6,10 +6,12 @@ import * as R from "ramda"
 export function getPlatformOs(): browser.runtime.PlatformOs {
     const platform = navigator.platform
     const mapping = {
-        "win":  "Win",
-        "openbsd": "BSD",
-        "mac": "Mac",
-        "linux": "Linux",
+        win: "Win",
+        openbsd: "BSD",
+        mac: "Mac",
+        linux: "Linux",
     }
-    return R.keys(R.filter(x=>platform.includes(x), mapping))[0] as keyof typeof mapping
+    return R.keys(
+        R.filter(x => platform.includes(x), mapping),
+    )[0] as keyof typeof mapping
 }

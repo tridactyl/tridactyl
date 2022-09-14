@@ -409,6 +409,14 @@ export function interpolateSearchItem(urlPattern: URL, query: string): URL {
                 }
 
                 return queryWords[index]
+            }).replace(/%s\[(-?\d+)?:(-?\d+)?\]/g, function(match, p1, p2) {
+                const l = (x => x >= 1 ? x - 1 : x)
+                // slices are 1-indexed
+                const start = p1 ? l(parseInt(p1, 10)) : 0;
+                const slice = p2 ?
+                    queryWords.slice(start, l(parseInt(p2, 10))) :
+                    queryWords.slice(start)
+                return slice.join(" ")
             }),
         )
 
@@ -416,4 +424,17 @@ export function interpolateSearchItem(urlPattern: URL, query: string): URL {
     } else {
         return new URL(urlPattern.href + query)
     }
+}
+
+/**
+ * @param url May be either an absolute or a relative URL.
+ * @param baseURI The URL the absolute URL should be relative to. This is
+ * usually the URL of the current page.
+ */
+export function getAbsoluteURL(url: string, baseURI: string = document.baseURI) {
+    // We can choose between using complicated RegEx and string manipulation,
+    // or just letting the browser do it for us. The latter is probably safer,
+    // which should make it worth the (small) overhead of constructing an URL
+    // just for this.
+    return new URL(url, baseURI).href
 }

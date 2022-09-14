@@ -12,4 +12,4 @@ If Tridactyl doesn't work or breaks pages we have a [troubleshooting guide](http
 
 Lastly, you can contact the developers via Matrix or GitHub, as mentioned on the new tab page.
 
-This concludes the tutorial. If you have any feedback, please leave it on [the relevant GitHub issue](https://github.com/tridactyl/tridactyl/issues/380). <a href='./7-native_messenger.html' rel="prev"></a>
+This concludes the tutorial. If you have any feedback, please leave it on [the relevant GitHub issue](https://github.com/tridactyl/tridactyl/issues/380). <a href='./8-marks.md' rel="prev"></a>

@@ -2,9 +2,9 @@ import {
     messageOwnTab,
     addListener,
     attributeCaller,
-} from "@src/lib/messaging.ts"
+} from "@src/lib/messaging"
 import * as DOM from "@src/lib/dom"
-import * as _EditorCmds from "@src/lib/editor.ts"
+import * as _EditorCmds from "@src/lib/editor"
 
 export const EditorCmds = new Proxy(_EditorCmds, {
     get(target, property) {

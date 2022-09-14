@@ -1,5 +1,17 @@
 import { messageOwnTab } from "@src/lib/messaging"
 import * as State from "@src/state"
+import { contentState } from "@src/content/state_content"
+
+const sleep = ms => new Promise(resolve => setTimeout(resolve, ms))
+
+async function awaitProxyEq(proxy, a: string, b: string) {
+    let counter = 0
+    while (proxy[a] != proxy[b] && counter < 50) {
+        await sleep(10)
+        counter += 1
+    }
+    return proxy[a] == proxy[b]
+}
 
 // One day we'll use typeof commandline_state from commandline_frame.ts
 export function getCommandlineFns(cmdline_state: {
@@ -26,7 +38,12 @@ export function getCommandlineFns(cmdline_state: {
         /**
          * Selects the next completion.
          */
-        next_completion: () => {
+        next_completion: async () => {
+            await awaitProxyEq(
+                contentState,
+                "current_cmdline",
+                "cmdline_filter",
+            )
             if (cmdline_state.activeCompletions)
                 cmdline_state.activeCompletions.forEach(comp => comp.next())
         },
@@ -34,7 +51,12 @@ export function getCommandlineFns(cmdline_state: {
         /**
          * Selects the previous completion.
          */
-        prev_completion: () => {
+        prev_completion: async () => {
+            await awaitProxyEq(
+                contentState,
+                "current_cmdline",
+                "cmdline_filter",
+            )
             if (cmdline_state.activeCompletions)
                 cmdline_state.activeCompletions.forEach(comp => comp.prev())
         },
@@ -50,7 +72,12 @@ export function getCommandlineFns(cmdline_state: {
         /**
          * Inserts the currently selected completion and a space in the command line.
          */
-        insert_completion: () => {
+        insert_completion: async () => {
+            await awaitProxyEq(
+                contentState,
+                "current_cmdline",
+                "cmdline_filter",
+            )
             const command = cmdline_state.getCompletion()
             if (cmdline_state.activeCompletions) {
                 cmdline_state.activeCompletions.forEach(
@@ -81,18 +108,18 @@ export function getCommandlineFns(cmdline_state: {
             if (command) {
                 cmdline_state.clInput.value = command + " "
             } else {
-                const selectionStart = cmdline_state.clInput.selectionStart
-                const selectionEnd = cmdline_state.clInput.selectionEnd
-                cmdline_state.clInput.value =
-                    cmdline_state.clInput.value.substring(0, selectionStart) +
-                    " " +
-                    cmdline_state.clInput.value.substring(selectionEnd)
-                cmdline_state.clInput.selectionStart = cmdline_state.clInput.selectionEnd =
-                    selectionStart + 1
+                space(cmdline_state)
             }
             return cmdline_state.refresh_completions(
                 cmdline_state.clInput.value,
             )
+        },
+
+        /**
+         * Insert a space
+         */
+        insert_space: () => {
+            space(cmdline_state)
         },
 
         /** Hide the command line and cmdline_state.clear its content without executing it. **/
@@ -121,10 +148,7 @@ export function getCommandlineFns(cmdline_state: {
 
             const func = command.trim().split(/\s+/)[0]
 
-            if (func.length === 0 || func.startsWith("#")) {
-                return false
-            }
-            return true
+            return !(func.length === 0 || func.startsWith("#"))
         },
 
         /**
@@ -157,7 +181,12 @@ export function getCommandlineFns(cmdline_state: {
         /**
          * Execute the content of the command line and hide it.
          **/
-        accept_line: () => {
+        accept_line: async () => {
+            await awaitProxyEq(
+                contentState,
+                "current_cmdline",
+                "cmdline_filter",
+            )
             const command =
                 cmdline_state.getCompletion() || cmdline_state.clInput.value
 
@@ -179,9 +208,11 @@ export function getCommandlineFns(cmdline_state: {
             return messageOwnTab("controller_content", "acceptExCmd", [command])
         },
 
-        execute_ex_on_completion_args: (excmd: string) => execute_ex_on_x(true, cmdline_state, excmd),
+        execute_ex_on_completion_args: (excmd: string) =>
+            execute_ex_on_x(true, cmdline_state, excmd),
 
-        execute_ex_on_completion: (excmd: string) => execute_ex_on_x(false, cmdline_state, excmd),
+        execute_ex_on_completion: (excmd: string) =>
+            execute_ex_on_x(false, cmdline_state, excmd),
 
         copy_completion: () => {
             const command = cmdline_state.getCompletion()
@@ -193,13 +224,23 @@ export function getCommandlineFns(cmdline_state: {
     }
 }
 
-function execute_ex_on_x(args_only: boolean, cmdline_state, excmd: string){
-    const args = cmdline_state.getCompletion(args_only) || cmdline_state.clInput.value
+function execute_ex_on_x(args_only: boolean, cmdline_state, excmd: string) {
+    const args =
+        cmdline_state.getCompletion(args_only) || cmdline_state.clInput.value
 
-    const cmdToExec = (excmd ? excmd : "") + " " + args
+    const cmdToExec = (excmd ? excmd + " " : "") + args
     cmdline_state.fns.store_ex_string(cmdToExec)
 
-    return messageOwnTab("controller_content", "acceptExCmd", [
-        cmdToExec,
-    ])
+    return messageOwnTab("controller_content", "acceptExCmd", [cmdToExec])
+}
+
+function space(cmdline_state) {
+    const selectionStart = cmdline_state.clInput.selectionStart
+    const selectionEnd = cmdline_state.clInput.selectionEnd
+    cmdline_state.clInput.value =
+        cmdline_state.clInput.value.substring(0, selectionStart) +
+        " " +
+        cmdline_state.clInput.value.substring(selectionEnd)
+    cmdline_state.clInput.selectionStart = cmdline_state.clInput.selectionEnd =
+        selectionStart + 1
 }

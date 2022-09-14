@@ -1,3 +1,5 @@
+@import url("../themes/auto/auto.css");
+
 #TridactylViewsourceElement {
     position: absolute !important;
     /* This is the z-index of hint.css and content.css -1 */

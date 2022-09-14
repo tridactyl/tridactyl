@@ -30,7 +30,9 @@ class FindHighlight extends HTMLSpanElement {
         super()
         ;(this as any).unfocus = () => {
             for (const node of this.children) {
-                ;(node as HTMLElement).style.background = `rgba(127,255,255,0.5)`
+                ;(
+                    node as HTMLElement
+                ).style.background = `rgba(127,255,255,0.5)`
             }
         }
         ;(this as any).focus = () => {
@@ -48,7 +50,9 @@ class FindHighlight extends HTMLSpanElement {
                 parentNode.focus()
             }
             for (const node of this.children) {
-                ;(node as HTMLElement).style.background = `rgba(255,127,255,0.5)`
+                ;(
+                    node as HTMLElement
+                ).style.background = `rgba(255,127,255,0.5)`
             }
         }
 
@@ -81,7 +85,14 @@ let lastHighlights
 // Which element of `lastSearch` was last selected
 let selected = 0
 
+let HIGHLIGHT_TIMER
+
 export async function jumpToMatch(searchQuery, reverse) {
+    const timeout = config.get("findhighlighttimeout")
+    if (timeout > 0) {
+        clearTimeout(HIGHLIGHT_TIMER)
+        HIGHLIGHT_TIMER = setTimeout(removeHighlighting, timeout)
+    }
     // First, search for the query
     const findcase = config.get("findcase")
     const sensitive =
@@ -164,6 +175,11 @@ export async function jumpToNextMatch(n: number) {
         return lastSearchQuery ? jumpToMatch(lastSearchQuery, n < 0) : undefined
     }
     if (!host.firstChild) {
+        const timeout = config.get("findhighlighttimeout")
+        if (timeout > 0) {
+            clearTimeout(HIGHLIGHT_TIMER)
+            HIGHLIGHT_TIMER = setTimeout(removeHighlighting, timeout)
+        }
         drawHighlights(lastHighlights)
     }
     if (lastHighlights[selected] === undefined) {

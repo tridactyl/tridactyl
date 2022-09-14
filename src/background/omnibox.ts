@@ -6,7 +6,6 @@ import * as controller from "@src/lib/controller"
 
 export function inputEnteredListener(
     input: string,
-    disposition: browser.omnibox.OnInputEnteredDisposition,
 ) {
     controller.acceptExCmd(input)
 }

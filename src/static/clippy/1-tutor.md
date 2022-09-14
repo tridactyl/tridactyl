@@ -4,7 +4,7 @@ Hello. If you've just installed Tridactyl for the first time, welcome! Tridactyl
 
 Welcome to the Tridactyl tutorial. Here, you will learn how to get started with this extension. If you ever want to get back to this page, just type `:tutor`.
 
-It will not cover advanced topics. For those, [`:help`](../docs/modules/_src_excmds_.html) is always at hand.
+It will not cover advanced topics. For those, [`:help`](../docs/modules/_src_excmds_.html) is always at hand. You might also find the [unofficial Tridactyl Memrise course](https://app.memrise.com/course/5995499/tridactyls-main-shortcuts/) useful for memorising binds.
 
 ---
 
@@ -31,6 +31,7 @@ The idea behind Tridactyl is to allow you to navigate the web more efficiently w
     -   This mode passes all keypresses through to the web page. It is useful for websites that have their own keybinds, such as games and Gmail.
     -   You can toggle the mode with `Shift-Insert`, `Ctrl-Alt-Escape`, `Ctrl-Alt-Backtick`, or `Shift-Esc`.
     -   While in ignore mode, you can execute a single normal mode binding by pressing `<C-o>` followed by the keys for the binding.
+    -   Tridactyl can be configured to enter ignore mode for specified URLs. Run `:blacklistadd [url]` to put Tridactyl in ignore mode on the provided URL. Use the command `:blacklistremove [url]` to remove the URL from the blacklist.
 
 Almost all of the modes are controlled by series of keypresses. In this tutorial, a sequence of keys such as `zz` should be entered by pressing the key `z`, letting go, and then pressing the key `z`. There is no need to hold both keys at once, if that were even possible. (`zz` resets the zoom level to the default, so it probably didn't seem to do anything). Sometimes `help` refers to a command that must be entered in command mode; it should hopefully always be clear from context which we mean.
 
@@ -38,4 +39,4 @@ Almost all of the modes are controlled by series of keypresses. In this tutorial
 
 ## Normal mode
 
-The tutorial for normal mode starts on the [next page](./2-normal_mode.html). You could try following the link by using hint mode: press `f` (if there is only a single link on the screen, it will be followed; otherwise type the characters that appear above the desired link, in lower case. They are only displayed in upper case for ease of reading).
+The tutorial for normal mode starts on the [next page](./2-normal_mode.md). You could try following the link by using hint mode: press `f` (if there is only a single link on the screen, it will be followed; otherwise type the characters that appear above the desired link, in lower case. They are only displayed in upper case for ease of reading).

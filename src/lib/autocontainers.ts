@@ -42,7 +42,7 @@ interface IAutoContain {
     getCancelledRequest(tabId: number): ICancelledRequest
     completedRequestListener(details): void
     autocontainConfigured(): boolean
-    getAuconForUrl(url: string): Promise<string>
+    getAuconAndProxiesForUrl(url: string): Promise<[string, string[]]>
     getAuconForDetails(details): Promise<string>
 }
 
@@ -270,33 +270,38 @@ export class AutoContain implements IAutoContain {
         return willContainInDefault
     }
 
-    getAuconForUrl = async (url: string): Promise<string> => {
+    getAuconAndProxiesForUrl = async (url: string): Promise<[string, string[]]> => {
         const aucons = Config.get("autocontain")
         const ausites = Object.keys(aucons)
-        const aukeyarr = ausites.filter(e => url.search(e) >= 0)
-        if (aukeyarr.length > 1) {
-            logger.error(
-                "Too many autocontain directives match this url. Not containing.",
-            )
-            return "firefox-default"
-        } else if (aukeyarr.length === 0) {
-            return "firefox-default"
+        const aukeyarr = ausites.filter(e => url.search(e) >= 0).sort((a, b) => b.length - a.length)
+        if (!aukeyarr.length) {
+            return ["firefox-default", []]
         } else {
-            const containerExists = await Container.exists(aucons[aukeyarr[0]])
+            const val = aucons[aukeyarr[0]]
+            const matches = val.match(/(.*)\+(.*)/)
+            const [aucon, proxies] = matches
+                ? [matches[1], matches[2].split(",")]
+                : [val, []]
+            if (aucon.toLowerCase() === "firefox-default" || aucon.toLowerCase() === "none") {
+                return ["firefox-default", proxies]
+            }
+            const containerExists = await Container.exists(aucon)
             if (!containerExists) {
-                if (Config.get("auconcreatecontainer")) {
-                    await Container.create(aucons[aukeyarr[0]])
+                if (Config.get("auconcreatecontainer") === "true") {
+                    await Container.create(aucon)
                 } else {
                     logger.error(
                         "Specified container doesn't exist. consider setting 'auconcreatecontainer' to true",
                     )
                 }
             }
-            return Container.getId(aucons[aukeyarr[0]])
+            return [await Container.getId(aucon), proxies]
         }
     }
 
     // Parses autocontain directives and returns valid cookieStoreIds or errors.
-    getAuconForDetails = async (details): Promise<string> =>
-        this.getAuconForUrl(details.url)
+    getAuconForDetails = async (details): Promise<string> => {
+        const [aucon, ] = await this.getAuconAndProxiesForUrl(details.url)
+        return aucon
+    }
 }

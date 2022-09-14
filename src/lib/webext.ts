@@ -2,6 +2,7 @@ import * as convert from "@src/lib/convert"
 import browserProxy from "@src/lib/browser_proxy"
 import * as config from "@src/lib/config"
 import * as UrlUtil from "@src/lib/url_util"
+import { sleep } from "@src/lib/patience"
 
 export function inContentScript() {
     return getContext() === "content"
@@ -9,7 +10,12 @@ export function inContentScript() {
 
 export function getTriVersion() {
     const manifest = browser.runtime.getManifest()
-    return manifest.version_name
+
+    // version_name only really exists in Chrome
+    // but we're using it anyway for our own purposes
+    return (manifest as browser._manifest.WebExtensionManifest & {
+        version_name: string
+    }).version_name
 }
 
 export function getPrettyTriVersion() {
@@ -59,6 +65,21 @@ export async function activeTab() {
 
 export async function activeTabId() {
     return (await activeTab()).id
+}
+
+/**
+ * Return the active window's id.
+ *
+ */
+export async function activeWindowId() {
+    return (await browserBg.windows.getCurrent()).id
+}
+
+export async function removeActiveWindowValue(value) {
+    browserBg.sessions.removeWindowValue(
+        await activeWindowId(),
+        value,
+    )
 }
 
 export async function activeTabContainerId() {
@@ -125,15 +146,17 @@ export async function firefoxVersionAtLeast(desiredmajor: number) {
 */
 export async function openInNewTab(
     url: string,
-    kwargs: { active?; related?; cookieStoreId? } = {
+    kwargs: { active?; related?; cookieStoreId?, bypassFocusHack? } = {
         active: true,
         related: false,
         cookieStoreId: undefined,
+        bypassFocusHack: false,
     },
+    waitForDOM = false,
 ) {
     const thisTab = await activeTab()
     const options: Parameters<typeof browser.tabs.create>[0] = {
-        active: false,
+        active: kwargs.bypassFocusHack,
         url,
         cookieStoreId: kwargs.cookieStoreId,
     }
@@ -165,14 +188,43 @@ export async function openInNewTab(
             break
     }
 
+    const tabCreateWrapper = async options => {
+        const tab = await browserBg.tabs.create(options)
+        const answer: Promise<browser.tabs.Tab> = new Promise(resolve => {
+            // This can't run in content scripts, obviously
+            // surely we never call this from a content script?
+            if (waitForDOM) {
+                const listener = (message, sender) => {
+                    if (
+                        message === "dom_loaded_background" &&
+                        sender?.tab?.id === tab.id
+                    ) {
+                        browserBg.runtime.onMessage.removeListener(listener)
+                        resolve(tab)
+                    }
+                }
+                browserBg.runtime.onMessage.addListener(listener)
+            } else {
+                resolve(tab)
+            }
+        })
+        // Return on slow- / extremely quick- loading pages anyway
+        return Promise.race([
+            answer,
+            (async () => {
+                await sleep(750)
+                return tab
+            })(),
+        ])
+    }
     if (kwargs.active === false) {
         // load in background
-        return browserBg.tabs.create(options)
+        return tabCreateWrapper(options)
     } else {
         // load in background and then activate, per issue #1993
-        return browserBg.tabs
-            .create(options)
-            .then(newtab => browserBg.tabs.update(newtab.id, { active: true }))
+        return tabCreateWrapper(options).then(newtab =>
+            browserBg.tabs.update(newtab.id, { active: true }),
+        )
     }
 }
 
@@ -217,14 +269,33 @@ export async function queryAndURLwrangler(
 
     // `+ 1` because we want to get rid of the space
     const rest = address.substr(firstWord.length + 1)
+
+    const expandRecursively = (name, dict, prevExpansions = []) => {
+        if (name in dict) {
+            if (prevExpansions.includes(name)) {
+               throw new Error(`Infinite loop detected while expanding ${name}. Stack: ${prevExpansions}.`)
+            }
+            prevExpansions.push(name)
+            return expandRecursively(dict[name], dict, prevExpansions)
+        }
+        return name
+    }
+
     const searchurls = config.get("searchurls")
-    if (searchurls[firstWord]) {
+    const template = expandRecursively(firstWord, searchurls)
+    if (template != firstWord) {
         const url = UrlUtil.interpolateSearchItem(
-            new URL(searchurls[firstWord]),
+            new URL(template),
             rest,
         )
         // firstWord is a searchurl, so let's use that
         return url.href
+    }
+
+    const jsurls = config.get("jsurls")
+    const js = expandRecursively(firstWord, jsurls)
+    if (js != firstWord) {
+        return eval(js)(rest)
     }
 
     const searchEngines = await browserBg.search.get()
@@ -238,7 +309,7 @@ export async function queryAndURLwrangler(
     try {
         const url = new URL("http://" + address)
         // Ignore unlikely domains
-        if (url.hostname.includes(".") || url.port || url.password) {
+        if (url.hostname.indexOf(".") > 0 || url.port || url.password) {
             return url.href
         }
     } catch (e) {}
@@ -290,4 +361,14 @@ export async function openInTab(tab, opts = {}, strarr: string[]) {
         tab.id,
         Object.assign({ url: "/static/newtab.html" }, opts),
     )
+}
+
+/**
+ * Set active the tab with tabId and focus the window it is located in.
+ * @param tabId tab identifier
+ */
+export async function goToTab(tabId: number) {
+    const tab = await browserBg.tabs.update(tabId, { active: true });
+    await browserBg.windows.update(tab.windowId, { focused: true });
+    return tab;
 }

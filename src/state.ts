@@ -28,10 +28,35 @@ class State {
         },
     ]
     last_ex_str = "echo"
+    globalMarks: Map<
+        string,
+        {
+            url: string
+            scrollX: number
+            scrollY: number
+            tabId: number
+        }
+    > = new Map()
+    localMarks: Map<
+        string,
+        Map<
+            string,
+            {
+                scrollX: number
+                scrollY: number
+            }
+        >
+    > = new Map()
+    beforeJumpMark: {
+        url: string
+        scrollX: number
+        scrollY: number
+        tabId: number
+    } = undefined
 }
 
 // Store these keys in the local browser storage to persist between restarts
-const PERSISTENT_KEYS: Array<keyof State> = ["cmdHistory"]
+const PERSISTENT_KEYS: Array<keyof State> = ["cmdHistory", "globalMarks"]
 
 // Don't change these from const or you risk breaking the Proxy below.
 const defaults = Object.freeze(new State())
@@ -64,10 +89,11 @@ const state = new Proxy(overlay, {
     set(target, property: keyof State, value) {
         logger.debug("State changed!", property, value)
         if (notBackground()) {
+            const inIncognitoContext = browser.extension.inIncognitoContext
             browser.runtime.sendMessage({
                 type: "state",
                 command: "stateUpdate",
-                args: { property, value },
+                args: { property, value, inIncognitoContext },
             })
             return true
         }
@@ -91,7 +117,9 @@ const state = new Proxy(overlay, {
     },
 })
 
-export async function getAsync(property) {
+export async function getAsync<K extends keyof State>(
+    property: K,
+): Promise<State[K]> {
     if (notBackground())
         return browser.runtime.sendMessage({
             type: "state",
@@ -109,6 +137,14 @@ notBackground &&
         if (message.command == "stateUpdate") {
             const property = message.args.property
             const value = message.args.value
+            // Ensure we don't accidentally store anything sensitive
+            const inIncognitoContext = message.args.inIncognitoContext
+            if (inIncognitoContext) {
+                console.error(
+                    "Attempted to write to storage in private window.",
+                )
+                return
+            }
             logger.debug("State changed!", property, value)
             state[property] = value
         } else if (message.command == "stateGet") {

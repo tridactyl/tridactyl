@@ -1,7 +1,8 @@
-import { browserBg } from "@src/lib/webext.ts"
+import { browserBg } from "@src/lib/webext"
 import * as Completions from "@src/completions"
 
-class WindowCompletionOption extends Completions.CompletionOptionHTML
+class WindowCompletionOption
+    extends Completions.CompletionOptionHTML
     implements Completions.CompletionOptionFuse {
     public fuseKeys = []
 
@@ -68,7 +69,10 @@ export class WindowCompletionSource extends Completions.CompletionSourceFuse {
             return
         }
 
-        this.options = (await browserBg.windows.getAll({ populate: true })).map(
+        const excludeCurrentWindow = ["tabpush"].includes(prefix.trim())
+        this.options = (await browserBg.windows.getAll({ populate: true }))
+        .filter( win => !(excludeCurrentWindow && win.focused))
+        .map(
             win => {
                 const o = new WindowCompletionOption(win)
                 o.state = "normal"

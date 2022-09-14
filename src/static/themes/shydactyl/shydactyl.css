@@ -1,24 +1,36 @@
-:root.TridactylThemeShydactyl {
+:root {
     --tridactyl-font-family: "San Francisco", sans-serif;
-    --tridactyl-small-font-size: "1.5rem";
+
+    --tridactyl-cmdl-font-size: 1.5rem;
+    --tridactyl-cmdl-line-height: 1.5;
+
+    --tridactyl-cmplt-option-height: 1.4em;
+    --tridactyl-cmplt-font-size: var(--tridactyl-small-font-size);
+    --tridactyl-cmplt-border-top: unset;
+
+    --tridactyl-status-font-size: 9px;
+    --tridactyl-status-font-family: "Fira Code", monospace;
+    --tridactyl-status-border: 1px var(--tridactyl-fg) solid;
+
+    --tridactyl-header-font-size: var(--tridactyl-small-font-size);
+    --tridactyl-header-font-weight: 200;
+    --tridactyl-header-border-bottom: unset;
+
+    --tridactyl-hintspan-font-size: var(--tridactyl-font-size);
 }
 
-:root.TridactylThemeShydactyl #command-line-holder {
+:root #command-line-holder {
     order: 1;
-    border: 2px solid #000;
-    color: var(--tridactyl-bg);
+    border: 2px solid var(--tridactyl-cmdl-fg);
+    color: var(--tridactyl-cmdl-bg);
 }
 
-:root.TridactylThemeShydactyl #tridactyl-input {
-    color: var(--tridactyl-fg);
+:root #tridactyl-input {
     width: 90%;
-    font-size: 1.5rem;
-    line-height: 1.5;
-    background: white;
     padding: 1rem;
 }
 
-:root.TridactylThemeShydactyl #completions table {
+:root #completions table {
     font-size: 0.8rem;
     font-weight: 200;
     border-spacing: 0;
@@ -27,33 +39,25 @@
     padding-top: 0;
 }
 
-:root.TridactylThemeShydactyl #completions > div {
-    max-height: calc(20 * var(--option-height));
-    min-height: calc(10 * var(--option-height));
+:root #completions > div {
+    max-height: calc(20 * var(--tridactyl-cmplt-option-height));
+    min-height: calc(10 * var(--tridactyl-cmplt-option-height));
 }
 
 /* COMPLETIONS */
 
-:root.TridactylThemeShydactyl #completions {
-    --option-height: 1.4em;
-    color: black;
-    background: white;
-    display: inline-block;
-    font-size: unset;
+:root #completions {
     font-weight: 200;
-    overflow: hidden;
-    width: 100%;
-    border-top: unset;
     order: 2;
 }
 
 /* Olie doesn't know how CSS inheritance works */
-:root.TridactylThemeShydactyl #completions .HistoryCompletionSource {
+:root #completions .HistoryCompletionSource {
     max-height: unset;
     min-height: unset;
 }
 
-:root.TridactylThemeShydactyl #completions .HistoryCompletionSource table {
+:root #completions .HistoryCompletionSource table {
     width: 100%;
     font-size: 9pt;
     border-spacing: 0;
@@ -61,45 +65,39 @@
 }
 
 /* redundancy 2: redundancy 2: more redundancy */
-:root.TridactylThemeShydactyl #completions .BmarkCompletionSource {
+:root #completions .BmarkCompletionSource {
     max-height: unset;
     min-height: unset;
 }
 
-:root.TridactylThemeShydactyl #completions table tr td.prefix,
-:root.TridactylThemeShydactyl #completions table tr td.privatewindow,
-:root.TridactylThemeShydactyl #completions table tr td.container,
-:root.TridactylThemeShydactyl #completions table tr td.icon {
+:root #completions table tr td.prefix,
+:root #completions table tr td.privatewindow,
+:root #completions table tr td.container,
+:root #completions table tr td.icon {
     display: none;
 }
 
-:root.TridactylThemeShydactyl #completions .BufferCompletionSource table {
+:root #completions .BufferCompletionSource table {
     width: unset;
     font-size: unset;
     border-spacing: unset;
     table-layout: unset;
 }
 
-:root.TridactylThemeShydactyl #completions table tr .title {
-    width: 50%;
-}
-
-:root.TridactylThemeShydactyl #completions table tr {
+:root #completions table tr {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
 }
 
-:root.TridactylThemeShydactyl #completions .sectionHeader {
+:root #completions .sectionHeader {
     background: unset;
-    font-weight: 200;
-    border-bottom: unset;
     padding: 1rem !important;
     padding-left: unset;
     padding-bottom: 0.2rem;
 }
 
-:root.TridactylThemeShydactyl #cmdline_iframe {
+:root #cmdline_iframe {
     position: fixed !important;
     bottom: unset;
     top: 25% !important;
@@ -109,14 +107,9 @@
     box-shadow: rgba(0, 0, 0, 0.5) 0px 0px 15px !important;
 }
 
-:root.TridactylThemeShydactyl .TridactylStatusIndicator {
+:root .TridactylStatusIndicator {
     position: fixed !important;
     bottom: 0 !important;
-    font-family: "Fira Code", monospace !important;
-    background: white !important;
-    border: unset !important;
-    border: 1px #000 solid !important;
-    font-size: 9px !important;
     font-weight: 200 !important;
     padding: 0.8ex !important;
 }
