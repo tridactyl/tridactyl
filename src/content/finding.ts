@@ -3,6 +3,7 @@ import * as DOM from "@src/lib/dom"
 import { browserBg, activeTabId } from "@src/lib/webext"
 import state from "@src/state"
 import * as State from "@src/state"
+import scrollCompute from "compute-scroll-into-view"
 
 // The host is the shadow root of a span used to contain all highlighting
 // elements. This is the least disruptive way of highlighting text in a page.
@@ -42,14 +43,21 @@ class FindHighlight extends HTMLSpanElement {
         ;(this as any).unfocus()
     }
 
+    static fromFindApi(found, allTextNode: Text[]) {
+        const range = document.createRange()
+        range.setStart(allTextNode[found.startTextNodePos], found.startOffset)
+        range.setEnd(allTextNode[found.endTextNodePos], found.endOffset)
+        return new this(range)
+    }
+
     updateRectsPosition() {
         const rects = this.getClientRects()
         this.top = Infinity
         const windowTop = window.pageYOffset
         const windowLeft = window.pageXOffset
-        for (let i=0; i<rects.length; i++) {
+        for (let i = 0; i < rects.length; i++) {
             const rect = rects[i]
-            if ((rect.top + windowTop) < this.top) {
+            if (rect.top + windowTop < this.top) {
                 this.top = rect.top + windowTop
             }
             let highlight
@@ -69,16 +77,6 @@ class FindHighlight extends HTMLSpanElement {
         }
     }
 
-    static fromFindApi(found, allTextNode: Text[]) {
-        const range = document.createRange()
-        range.setStart(
-            allTextNode[found.startTextNodePos],
-            found.startOffset,
-        )
-        range.setEnd(allTextNode[found.endTextNodePos], found.endOffset)
-        return new this(range)
-    }
-
     getBoundingClientRect() {
         return this.range.getBoundingClientRect()
     }
@@ -90,16 +88,37 @@ class FindHighlight extends HTMLSpanElement {
             ;(node as HTMLElement).style.background = `rgba(127,255,255,0.5)`
         }
     }
+    scrollIntoView(...options) {
+        let option
+        if (options.length === 0 || options[0] === true) {
+            option = { block: "start", inline: "nearest" }
+        } else if (options[0] === false) {
+            option = { block: "end", inline: "nearest" }
+        } else option = options[0]
+
+        const fakeNode = {
+            nodeType: Node.ELEMENT_NODE,
+            getBoundingClientRect: () => this.getBoundingClientRect(),
+            parentElement: null,
+        }
+        let parent = this.range.commonAncestorContainer
+        if (parent.nodeType !== Node.ELEMENT_NODE) {
+            parent = parent.parentElement
+        }
+        fakeNode.parentElement = parent
+
+        const actions = scrollCompute(fakeNode, option)
+        for (const { el: element, top, left } of actions) {
+            element.scrollTop = top
+            element.scrollLeft = left
+        }
+    }
     focus() {
         if (!DOM.isVisible(this)) {
-            // this may not always work, eg if the parent contains a lot of
-            // child element and text node.
-            this.range.startContainer.parentElement.scrollIntoView({
-                block: "center",
-                inline: "center",
-            })
+            this.scrollIntoView({ block: "center", inline: "center" })
         }
 
+        // TODO: find in all nodes but not just start container
         let parentElement = this.range.startContainer.parentElement
         loop: while (parentElement) {
             switch (parentElement.nodeName.toLowerCase()) {
@@ -220,10 +239,9 @@ export function focusHighlight(index) {
 }
 
 export async function jumpToNextMatch(n: number, searchFromView = false) {
-    let lastSearchQuery
+    const lastSearchQuery = await State.getAsync("lastSearchQuery")
+    if (!lastSearchQuery) return
     if (!lastHighlights) {
-        lastSearchQuery = await State.getAsync("lastSearchQuery")
-        if (!lastSearchQuery) return
         await jumpToMatch(lastSearchQuery, { reverse: n < 0 })
         if (Math.abs(n) === 1) return
         n = n - n / Math.abs(n)
