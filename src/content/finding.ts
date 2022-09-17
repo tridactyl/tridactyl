@@ -233,6 +233,10 @@ export function removeHighlighting() {
 
 export function focusHighlight(index) {
     lastHighlights[index].focus()
+    repositionHighlight()
+}
+
+export function repositionHighlight() {
     for (const node of lastHighlights) {
         node.updateRectsPosition()
     }
@@ -268,6 +272,7 @@ export async function jumpToNextMatch(n: number, searchFromView = false) {
         selected =
             (selected + n + lastHighlights.length) % lastHighlights.length
     } else {
+        repositionHighlight()
         const length = lastHighlights.length
         const reverse = lastHighlights[length - 1].top < lastHighlights[0].top
         const negative = n < 0
