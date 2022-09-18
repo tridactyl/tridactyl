@@ -117,24 +117,47 @@ class FindHighlight extends HTMLSpanElement {
         if (!DOM.isVisible(this)) {
             this.scrollIntoView({ block: "center", inline: "center" })
         }
-
-        // TODO: find in all nodes but not just start container
-        let parentElement = this.range.startContainer.parentElement
-        loop: while (parentElement) {
-            switch (parentElement.nodeName.toLowerCase()) {
-                case "a":
-                case "input":
-                case "button":
-                case "details":
-                    parentElement.focus()
-                    break loop
-            }
-            parentElement = parentElement.parentElement
-        }
+        const focusable = this.queryInRange("a,input,button,details")
+        if (focusable) focusable.focus()
 
         for (const node of this.children) {
             node.style.background = `rgba(255,127,255,0.5)`
         }
+    }
+    queryInRange(selector: string): Element | null {
+        const range = this.range
+        const rangeEndNode = range.endContainer
+
+        // start and end of range is always text node because fromFindApi()
+
+        const walker = document.createTreeWalker(
+            document.documentElement,
+            // eslint-disable-next-line no-bitwise
+            NodeFilter.SHOW_ELEMENT | NodeFilter.SHOW_TEXT,
+            {
+                acceptNode(node) {
+                    // stop when meet the end node; do not wait for no intersect.
+                    // or the first match node
+                    if (node.nodeType === Node.TEXT_NODE) {
+                        if (node.isSameNode(rangeEndNode)) {
+                            return NodeFilter.FILTER_ACCEPT
+                        }
+                        return NodeFilter.FILTER_SKIP
+                    }
+                    if (node.matches(selector)) {
+                        return NodeFilter.FILTER_ACCEPT
+                    } else return NodeFilter.FILTER_SKIP
+                },
+            },
+        )
+
+        walker.currentNode = range.startContainer
+        if (walker.parentNode()) return walker.currentNode
+        if (range.startContainer.isSameNode(rangeEndNode)) return null
+        if (walker.nextNode() && !walker.currentNode.isSameNode(rangeEndNode)) {
+            return walker.currentNode
+        }
+        return null
     }
 }
 
