@@ -76,7 +76,6 @@ class BufferCompletionOption
 
 export class BufferCompletionSource extends Completions.CompletionSourceFuse {
     public options: BufferCompletionOption[]
-    private shouldSetStateFromScore = true
 
     // TODO:
     //     - store the exstr and trigger redraws on user or data input without
@@ -95,10 +94,9 @@ export class BufferCompletionSource extends Completions.CompletionSourceFuse {
             ],
             "BufferCompletionSource",
             "Tabs",
+            "Tab",
         )
         this.sortScoredOptions = true
-        this.shouldSetStateFromScore =
-            config.get("completions", "Tab", "autoselect") === "true"
         this.updateOptions()
         this._parent.appendChild(this.node)
 
@@ -116,10 +114,6 @@ export class BufferCompletionSource extends Completions.CompletionSourceFuse {
         const prefix = this.splitOnPrefix(exstr).shift()
         if (prefix === "tabrename ") this.shouldSetStateFromScore = false
         return this.onInput(exstr)
-    }
-
-    setStateFromScore(scoredOpts: Completions.ScoredOption[]) {
-        super.setStateFromScore(scoredOpts, this.shouldSetStateFromScore)
     }
 
     /** Score with fuse unless query is a single # or looks like a tab index */
