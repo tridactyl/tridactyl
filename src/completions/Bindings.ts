@@ -132,7 +132,7 @@ export class BindingsCompletionSource extends Completions.CompletionSourceFuse {
             .map(
                 keystr =>
                     new BindingsCompletionOption(
-                        options + keystr + " " + bindings[keystr],
+                        options + keystr,
                         {
                             name: keystr,
                             value: JSON.stringify(bindings[keystr]),
