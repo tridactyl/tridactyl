@@ -3,6 +3,7 @@ import browserProxy from "@src/lib/browser_proxy"
 import * as config from "@src/lib/config"
 import * as UrlUtil from "@src/lib/url_util"
 import { sleep } from "@src/lib/patience"
+import * as R from "ramda"
 
 export function inContentScript() {
     return getContext() === "content"
@@ -146,14 +147,25 @@ export async function firefoxVersionAtLeast(desiredmajor: number) {
 */
 export async function openInNewTab(
     url: string,
-    kwargs: { active?; related?; cookieStoreId?, bypassFocusHack? } = {
+
+    // NB: defaults are actually enforced just below
+    kwargs: { active?; related?; cookieStoreId?; bypassFocusHack? } = {
         active: true,
         related: false,
         cookieStoreId: undefined,
         bypassFocusHack: false,
     },
+
     waitForDOM = false,
 ) {
+    // Ensure sensible defaults are used
+    kwargs = R.mergeLeft(kwargs, {
+        active: true,
+        related: false,
+        cookieStoreId: undefined,
+        bypassFocusHack: false,
+    })
+
     const thisTab = await activeTab()
     const options: Parameters<typeof browser.tabs.create>[0] = {
         active: kwargs.bypassFocusHack,
