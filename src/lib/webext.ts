@@ -3,6 +3,7 @@ import browserProxy from "@src/lib/browser_proxy"
 import * as config from "@src/lib/config"
 import * as UrlUtil from "@src/lib/url_util"
 import { sleep } from "@src/lib/patience"
+import * as R from "ramda"
 
 export function inContentScript() {
     return getContext() === "content"
@@ -13,9 +14,11 @@ export function getTriVersion() {
 
     // version_name only really exists in Chrome
     // but we're using it anyway for our own purposes
-    return (manifest as browser._manifest.WebExtensionManifest & {
-        version_name: string
-    }).version_name
+    return (
+        manifest as browser._manifest.WebExtensionManifest & {
+            version_name: string
+        }
+    ).version_name
 }
 
 export function getPrettyTriVersion() {
@@ -76,10 +79,7 @@ export async function activeWindowId() {
 }
 
 export async function removeActiveWindowValue(value) {
-    browserBg.sessions.removeWindowValue(
-        await activeWindowId(),
-        value,
-    )
+    browserBg.sessions.removeWindowValue(await activeWindowId(), value)
 }
 
 export async function activeTabContainerId() {
@@ -146,14 +146,25 @@ export async function firefoxVersionAtLeast(desiredmajor: number) {
 */
 export async function openInNewTab(
     url: string,
-    kwargs: { active?; related?; cookieStoreId?, bypassFocusHack? } = {
+
+    // NB: defaults are actually enforced just below
+    kwargs: { active?; related?; cookieStoreId?; bypassFocusHack? } = {
         active: true,
         related: false,
         cookieStoreId: undefined,
         bypassFocusHack: false,
     },
+
     waitForDOM = false,
 ) {
+    // Ensure sensible defaults are used
+    kwargs = R.mergeLeft(kwargs, {
+        active: true,
+        related: false,
+        cookieStoreId: undefined,
+        bypassFocusHack: false,
+    })
+
     const thisTab = await activeTab()
     const options: Parameters<typeof browser.tabs.create>[0] = {
         active: kwargs.bypassFocusHack,
@@ -273,7 +284,9 @@ export async function queryAndURLwrangler(
     const expandRecursively = (name, dict, prevExpansions = []) => {
         if (name in dict) {
             if (prevExpansions.includes(name)) {
-               throw new Error(`Infinite loop detected while expanding ${name}. Stack: ${prevExpansions}.`)
+                throw new Error(
+                    `Infinite loop detected while expanding ${name}. Stack: ${prevExpansions}.`,
+                )
             }
             prevExpansions.push(name)
             return expandRecursively(dict[name], dict, prevExpansions)
@@ -284,10 +297,7 @@ export async function queryAndURLwrangler(
     const searchurls = config.get("searchurls")
     const template = expandRecursively(firstWord, searchurls)
     if (template != firstWord) {
-        const url = UrlUtil.interpolateSearchItem(
-            new URL(template),
-            rest,
-        )
+        const url = UrlUtil.interpolateSearchItem(new URL(template), rest)
         // firstWord is a searchurl, so let's use that
         return url.href
     }
@@ -368,7 +378,7 @@ export async function openInTab(tab, opts = {}, strarr: string[]) {
  * @param tabId tab identifier
  */
 export async function goToTab(tabId: number) {
-    const tab = await browserBg.tabs.update(tabId, { active: true });
-    await browserBg.windows.update(tab.windowId, { focused: true });
-    return tab;
+    const tab = await browserBg.tabs.update(tabId, { active: true })
+    await browserBg.windows.update(tab.windowId, { focused: true })
+    return tab
 }
