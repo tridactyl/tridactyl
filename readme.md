@@ -189,19 +189,27 @@ You can bind your own shortcuts in normal mode with the `:bind` command. For exa
 
     Please visit our [troubleshooting guide](https://github.com/tridactyl/tridactyl/blob/master/doc/troubleshooting.md).
 
--   How can I change the search engine?
+-   How can I change the default search engine?
 
-    `set searchengine duckduckgo`
+    `:set searchengine [SEARCH_URL]`
+
+    where `[SEARCH_URL]` is a placeholder for the searchurl you want to use as the default search engine.
+
+    For instance, to use DuckDuckGo as the default search engine:
+
+    `:set searchurls.WHATEVER https://duckduckgo.com/?q=%s`
+
+    `:set searchengine WHATEVER`
 
 -   How can I add a search engine?
 
-    `set searchurls.esa http://www.esa.int/esasearch?q=`
+    `:set searchurls.esa http://www.esa.int/esasearch?q=`
 
     You can also add `%s` to specify exactly where the search query should go, which is useful for more inventive uses, such as
 
-    `set searchurls.phrasebook https://translate.google.co.uk/#en/%s/my%20hovercraft%20is%20full%20of%20eels`
+    `:set searchurls.phrasebook https://translate.google.co.uk/#en/%s/my%20hovercraft%20is%20full%20of%20eels`
 
-    after which `open phrasebook [fr|de|la|es|hi|it...]` will work as expected.
+    after which `:open phrasebook [fr|de|la|es|hi|it...]` will work as expected.
 
 -   Can I import/export settings, and does Tridactyl use an external configuration file just like Vimperator?
 
