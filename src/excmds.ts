@@ -4206,7 +4206,7 @@ export async function bind(...args: string[]) {
         p = config.set(args_obj.configName, args_obj.key, args_obj.excmd)
     } else if (args_obj.key.length) {
         // Display the existing bind
-        p = fillcmdline_notrail("#", args_obj.key, "=", config.getDynamic(args_obj.configName, args_obj.key))
+        p = fillcmdline_notrail("bind", args_obj.key, config.getDynamic(args_obj.configName, args_obj.key))
     }
     return p
 }
