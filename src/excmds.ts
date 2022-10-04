@@ -4825,9 +4825,9 @@ export function get(...keys: string[]) {
     console.log(value)
     let done
     if (typeof value === "object") {
-        done = fillcmdline_notrail(`# ${keys.join(".")} = ${JSON.stringify(value)}`)
+        done = fillcmdline_notrail(`# ${keys.join(".")} ${JSON.stringify(value)}`)
     } else {
-        done = fillcmdline_notrail(`# ${keys.join(".")} = ${value}`)
+        done = fillcmdline_notrail(`# ${keys.join(".")} ${value}`)
     }
     return done
 }
