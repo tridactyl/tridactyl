@@ -3382,6 +3382,14 @@ export function setContentStateGroup(name: string) {
     contentState.group = name
 }
 
+/** @hidden */
+//#background_helper
+export async function tgroupgate() {
+    const canTabHide = await browser.permissions.contains({permissions: ["tabHide"]})
+    if (!canTabHide) throw new Error("Missing tab hide permission")
+}
+
+
 /**
  * Create a new tab group in the current window. NB: use [[tgroupswitch]] instead
  * in most cases, since it will create non-existent tab groups before switching
@@ -3403,6 +3411,7 @@ export function setContentStateGroup(name: string) {
 export async function tgroupcreate(name: string) {
     const promises = []
     const groups = await tgroups()
+    await tgroupgate()
 
     if (groups.has(name)) {
         throw new Error(`Tab group "${name}" already exists`)
@@ -3437,6 +3446,7 @@ export async function tgroupcreate(name: string) {
  */
 //#background
 export async function tgroupswitch(name: string) {
+    await tgroupgate()
     if (name == await windowTgroup()) {
         throw new Error(`Already on tab group "${name}"`)
     }
@@ -3458,6 +3468,7 @@ export async function tgroupswitch(name: string) {
  */
 //#background
 export async function tgrouplast() {
+    await tgroupgate()
     if ((await tgroups()).size < 2) {
         throw new Error("No last tab group")
     }
@@ -3493,6 +3504,7 @@ export async function tgrouprename(name: string) {
  */
 //#background
 export async function tgroupclose() {
+    await tgroupgate()
     const groups = await tgroups()
     if (groups.size == 0) {
         throw new Error("No tab groups exist")
@@ -3519,6 +3531,7 @@ export async function tgroupclose() {
  */
 //#background
 export async function tgroupmove(name: string) {
+    await tgroupgate()
     const groups = await tgroups()
     const currentGroup = await windowTgroup()
 

@@ -126,7 +126,6 @@
         "search",
         "sessions",
         "storage",
-        "tabHide",
         "tabs",
         "topSites",
         "management",
@@ -134,8 +133,11 @@
         "webNavigation",
         "webRequest",
         "webRequestBlocking",
-        "proxy",
         "<all_urls>"
+    ],
+    "optional_permission": [
+        "proxy",
+        "tabHide"
     ],
     "applications": {
         "gecko": {
