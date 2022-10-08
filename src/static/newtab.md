@@ -35,7 +35,7 @@ REPLACE_ME_WITH_THE_CHANGE_LOG_USING_SED
 -   `yy` — copy the current page URL to your clipboard.
 -   `[[`/`]]` — navigate forward/backward though paginated pages.
 -   `ZZ` — close all tabs and windows, but it will only "save" them if your about:preferences are set to "show your tabs and windows from last time".
--   `<C-v>` – send a single keystroke to the current website, bypassing bindings
+-   `<C-v>` – send a single keystroke to the current website, bypassing bindings by entering ignore mode temporarily
 -   `<C-o>` – run a single normal mode binding when in ignore mode
 -   [`:help hint`][help-hint] to see all the other useful hint modes (this is the `f` magic. :) ).
 -   `:help <keybinding>` to learn more about what a specific key binding does.
