@@ -119,6 +119,9 @@ browser.webNavigation.onDOMContentLoaded.addListener(() => {
     })
 })
 
+import { registTabHistory } from "@src/background/tab_history"
+registTabHistory()
+
 // Prevent Tridactyl from being updated while it is running in the hope of fixing #290
 browser.runtime.onUpdateAvailable.addListener(_ => undefined)
 
