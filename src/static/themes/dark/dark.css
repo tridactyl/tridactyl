@@ -229,8 +229,12 @@
 
     /* }}} */
 
+    /* 2021 firefox redesign changed the background color of a new tab.
+       this is a quick fix to remove flicker when opening a new about:blank tab with tridactyl installed.
+    */
+    --tridactyl-firefox-2021-redesign-background: #2b2a33;
     --tridactyl-fg: var(--tridactyl-photon-colours-in-content-page-color);
-    --tridactyl-bg: var(--tridactyl-photon-colours-in-content-page-background);
+    --tridactyl-bg: var(--tridactyl-firefox-2021-redesign-background);
 
     --tridactyl-scrollbar-color: var(--tridactyl-photon-colours-tone-8)
         var(--tridactyl-fg);
