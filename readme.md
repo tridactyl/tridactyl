@@ -63,13 +63,12 @@ If you want to use advanced features such as edit-in-Vim, you'll also need to in
 * Enabling webextension permisisons: `flatpack permission-set webextensions tridactyl snap.firefox yes`
 * Rebooting your system (and likely nothing short of it).
 
-See this [call for testing thread](https://discourse.ubuntu.com/t/call-for-testing-native-messaging-support-in-the-firefox-snap/29759)
-for more details. See https://github.com/tridactyl/tridactyl/issues/2406
+See https://github.com/tridactyl/tridactyl/issues/2406 and this [call for testing thread](https://discourse.ubuntu.com/t/call-for-testing-native-messaging-support-in-the-firefox-snap/29759) for more details.
 
 **Firejail** will require explicit path whitelisting, but should be feasible based on https://github.com/netblue30/firejail/issues/2109.
 
 For other containerized installs, see troubleshooting steps in https://github.com/tridactyl/tridactyl/issues/2406 and the links above.
-With packaging that does support Native Messaging, the trick is usually ensuring the containerized app has permission to run the executable and can find the [manifest json file]([https://wiki.mozilla.org/WebExtensions/Native_Messaging](https://wiki.mozilla.org/WebExtensions/Native_Messaging#Host_Manifests).
+With packaging that does support Native Messaging, the trick is usually ensuring the containerized app has permission to run the executable and can find the [manifest json file](https://wiki.mozilla.org/WebExtensions/Native_Messaging#Host_Manifests).
 
 ### Migrating between beta and stable builds
 
