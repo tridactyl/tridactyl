@@ -63,16 +63,12 @@ If you want to use advanced features such as edit-in-Vim, you'll also need to in
 * Enabling webextension permisisons: `flatpack permission-set webextensions tridactyl snap.firefox yes`
 * Rebooting your system (and likely nothing short of it)
 
-See this [call for testing thread](https://discourse.ubuntu.com/t/call-for-testing-native-messaging-support-in-the-firefox-snap/29759) for more details.
+See [this call for testing thread](https://discourse.ubuntu.com/t/call-for-testing-native-messaging-support-in-the-firefox-snap/29759) and [this PR](https://github.com/tridactyl/tridactyl/pull/4406) for more details and troubleshooting tips.
 
 **Firejail** will require explicit path whitelisting, but should be feasible based on https://github.com/netblue30/firejail/issues/2109.
 
 For other containerized installs, see troubleshooting steps in https://github.com/tridactyl/tridactyl/issues/2406 and the links above.
-With packaging that does support Native Messaging, the trick is usually ensuring the containerized app has permission to run the executable and can find the [manifest json file].
-
-**Troubleshooting:** If your extension is still not working, the [manifest json file] may be in the wrong place. To rule this out, copy or link it to both the Global and User manifest locations, closing all firefox processes, and restarting firefox (i.e. `ln -s /usr/lib/mozilla/native-messaging-hosts/ ~/.mozilla/native-messaging-hosts` on linux).
-
-[manifest json file]: https://wiki.mozilla.org/WebExtensions/Native_Messaging#Host_Manifests
+With packaging that does support Native Messaging, the trick is usually ensuring the containerized app has permission to run the executable and can find the [manifest json file](https://wiki.mozilla.org/WebExtensions/Native_Messaging#Host_Manifests).
 
 ### Migrating between beta and stable builds
 
