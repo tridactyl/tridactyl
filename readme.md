@@ -51,11 +51,24 @@ Tridactyl stable can be installed from the [Mozilla add-ons website (the AMO)][a
 
 [Click this in Firefox to install our "beta" builds][riskyclick]. These [betas][betas] are updated with each commit to master on this repo. Your browser will automatically update from there once a day. If you want more frequent updates, you can change `extensions.update.interval` in `about:config` to whatever time you want, say, 15 minutes (900 seconds). There is also another beta build that comes without a new tab page. You can get it from [here][nonewtablink].
 
-### Extra features
+### Extra features through [Native Messaging](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/Native_messaging)
 
 If you want to use advanced features such as edit-in-Vim, you'll also need to install the native messenger or executable, instructions for which can be found by typing `:installnative` and hitting enter once you are in Tridactyl. Arch users can install the [AUR package](https://aur.archlinux.org/packages/firefox-tridactyl-native/) `firefox-tridactyl-native` instead.
 
-> **Notice**: `native` seems that does not work on Firefox instances installed with Snap (and probably other sandboxing/containerised package managers). See https://github.com/tridactyl/tridactyl/issues/2406
+#### Containerized/sandboxed Firefox Installations
+
+**Snap and Flatpak:** Native Messaging support here is fairly recent and may require:
+
+* Upgrading to a beta version of Firefox (`>= 106.0b6`)
+* Enabling webextension permisisons: `flatpack permission-set webextensions tridactyl snap.firefox yes`
+* Rebooting your system (and likely nothing short of it)
+
+See [this call for testing thread](https://discourse.ubuntu.com/t/call-for-testing-native-messaging-support-in-the-firefox-snap/29759) and [this PR](https://github.com/tridactyl/tridactyl/pull/4406) for more details and troubleshooting tips.
+
+**Firejail** will require explicit path whitelisting, but should be feasible based on https://github.com/netblue30/firejail/issues/2109.
+
+For other containerized installs, see troubleshooting steps in https://github.com/tridactyl/tridactyl/issues/2406 and the links above.
+With packaging that does support Native Messaging, the trick is usually ensuring the containerized app has permission to run the executable and can find the [manifest json file](https://wiki.mozilla.org/WebExtensions/Native_Messaging#Host_Manifests).
 
 ### Migrating between beta and stable builds
 
