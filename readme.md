@@ -293,7 +293,7 @@ You can bind your own shortcuts in normal mode with the `:bind` command. For exa
 
 -   How do I prevent websites from stealing focus?
 
-    There are two ways to do that, the first one is `set allowautofocus false` (if you do this you'll probably also want to set `browser.autofocus` to false in `about:config`). This will prevent the page's `focus()` function from working and could break javascript text editors such as Ace or CodeMirror. Another solution is to use `autocmd TabEnter .* unfocus` in the beta, JS text editors should still work but pages won't steal focus when entering their tabs anymore.
+    There are two ways:  the first one is `:seturl [URL regex] allowautofocus false` (if you do this you'll probably also want to set `browser.autofocus` to false in `about:config`). This will prevent the page's `focus()` function from working and could break javascript text editors such as Ace or CodeMirror; you could equally run `:set allowautofocus false` and then use `:seturl [URL regex for sites with text editors you use] allowautofocus true`. The second method is `:seturl [URL regex] preventautofocusjackhammer true` which will repeatedly check that the page has not stolen focus at the cost of some CPU cycles, so use it sparingly. It works on more websites than `allowautofocus false`.
 
 ## Contributing
 
