@@ -5170,10 +5170,10 @@ export async function hint(...args: string[]): Promise<any> {
                               DOM.simulateClick(elem)
                               break
                           case OpenMode.Tab:
-                              hintTabOpen(elem.href, true).catch(() => DOM.simulateClick(elem))
+                              hintTabOpen(elem.href, true).catch(() => DOM.mouseEvent(elem, "click", { ctrlKey: true, shiftKey: true }))
                               break
                           case OpenMode.BackgroundTab:
-                              hintTabOpen(elem.href, false).catch(() => DOM.simulateClick(elem))
+                              hintTabOpen(elem.href, false).catch(() => DOM.mouseEvent(elem, "click", { ctrlKey: true }))
                               break
                           case OpenMode.Window:
                               openInNewWindow({ url: new URL(elem.href, window.location.href).href })
