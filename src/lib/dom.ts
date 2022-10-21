@@ -696,7 +696,7 @@ export function simulateClick(
         (target as HTMLAnchorElement).target === "_blank" ||
         (target as HTMLAnchorElement).target === "_new"
     const href = (target as HTMLAnchorElement).href
-    if (href !== undefined && href.startsWith("file:")) {
+    if (href?.startsWith("file:")) {
         // file URLS cannot be opend with browser.tabs.create
         // see https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/tabs/create#url
         // still create a new tab
