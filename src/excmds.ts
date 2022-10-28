@@ -1431,8 +1431,8 @@ export function scrollpage(n = 1, count = 1) {
  *      bind ? fillcmdline find --reverse
  *      bind n findnext --search-from-view
  *      bind N findnext --search-from-view --reverse
- *      bind gn findnext
- *      bind gN findnext --reverse
+ *      bind gn findselect
+ *      bind gN composite findnext --search-from-view --reverse; findselect
  *      bind ,<Space> nohlsearch
  *
  *  Argument: A string you want to search for.
