@@ -208,8 +208,8 @@ export function widthMatters(style: CSSStyleDeclaration) {
 
 export function isVisibleFilter(
     includeInvisible: boolean,
-): (_: Element) => boolean {
-    return (elem: Element) => includeInvisible || isVisible(elem)
+): (_: Element | Range) => boolean {
+    return (elem: Element | Range) => includeInvisible || isVisible(elem)
 }
 
 // Saka-key caches getComputedStyle. Maybe it's a good idea!
@@ -221,11 +221,13 @@ export function isVisibleFilter(
     Based on https://github.com/guyht/vimari/blob/master/vimari.safariextension/linkHints.js
 
  */
-export function isVisible(element: Element) {
-    while (!(element.getBoundingClientRect instanceof Function)) {
-        element = element.parentElement
+export function isVisible(thing: Element | Range) {
+    if (thing instanceof Element) {
+        while (typeof thing.getBoundingClientRect !== "function") {
+            thing = thing.parentElement
+        }
     }
-    const clientRect = element.getBoundingClientRect()
+    const clientRect = thing.getBoundingClientRect()
     switch (true) {
         case !clientRect:
         case clientRect.bottom < 4:
@@ -235,6 +237,9 @@ export function isVisible(element: Element) {
             return false
     }
 
+    if (thing instanceof Range) return true
+
+    const element = thing
     // remove elements that are barely within the viewport, tiny, or invisible
     // Only call getComputedStyle when necessary
     const computedStyle = getComputedStyle(element)
@@ -289,9 +294,10 @@ export function isVisible(element: Element) {
  */
 export function getAllDocumentFrames(doc = document) {
     if (!(doc instanceof HTMLDocument)) return []
-    const frames = (Array.from(
-        doc.getElementsByTagName("iframe"),
-    ) as HTMLIFrameElement[] & HTMLFrameElement[])
+    const frames = (
+        Array.from(doc.getElementsByTagName("iframe")) as HTMLIFrameElement[] &
+            HTMLFrameElement[]
+    )
         .concat(Array.from(doc.getElementsByTagName("frame")))
         .filter(frame => !frame.src.startsWith("moz-extension://"))
     return frames.concat(
@@ -538,7 +544,9 @@ function onPageFocus(elem: HTMLElement): boolean {
     if (isTextEditable(elem)) {
         LAST_USED_INPUT = elem
     }
-    const setting = config.get("modesubconfigs", contentState.mode, "allowautofocus") || config.get("allowautofocus")
+    const setting =
+        config.get("modesubconfigs", contentState.mode, "allowautofocus") ||
+        config.get("allowautofocus")
     return setting === "true"
 }
 

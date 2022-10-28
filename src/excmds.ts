@@ -96,6 +96,7 @@ import semverCompare from "semver-compare"
 import * as hint_util from "@src/lib/hint_util"
 import { OpenMode } from "@src/lib/hint_util"
 import * as Proxy from "@src/lib/proxy"
+import * as arg from "@src/lib/arg_util"
 
 /**
  * This is used to drive some excmd handling in `composite`.
@@ -1430,14 +1431,16 @@ export function scrollpage(n = 1, count = 1) {
  *  Rudimentary find mode, left unbound by default as we don't currently support `incsearch`. Suggested binds:
  *
  *      bind / fillcmdline find
- *      bind ? fillcmdline find -?
- *      bind n findnext 1
- *      bind N findnext -1
+ *      bind ? fillcmdline find --reverse
+ *      bind n findnext --search-from-view
+ *      bind N findnext --search-from-view --reverse
+ *      bind gn findselect
+ *      bind gN composite findnext --search-from-view --reverse; findselect
  *      bind ,<Space> nohlsearch
  *
  *  Argument: A string you want to search for.
  *
- *  This function accepts two flags: `-?` to search from the bottom rather than the top and `-: n` to jump directly to the nth match.
+ *  This function accepts two flags: `-?` or `--reverse` to search from the bottom rather than the top and `-: n` or `--jump-to n` to jump directly to the nth match.
  *
  *  The behavior of this function is affected by the following setting:
  *
@@ -1447,27 +1450,64 @@ export function scrollpage(n = 1, count = 1) {
  */
 //#content
 export function find(...args: string[]) {
-    const flagpos = args.indexOf("-?")
-    const reverse = flagpos >= 0
-    if (reverse) args.splice(flagpos, 1)
+    const argOpt = arg.lib(
+        {
+            "--jump-to": Number,
+            "-:": "--jump-to",
 
-    const searchQuery = args.join(" ")
-    return finding.jumpToMatch(searchQuery, reverse)
+            "--reverse": Boolean,
+            "-?": "--reverse",
+        },
+        { argv: args, permissive: true },
+    )
+    const option = {}
+    option["reverse"] = Boolean(argOpt["--reverse"])
+    if ("--jump-to" in argOpt) option["jumpTo"] = argOpt["--jump-to"]
+    const searchQuery = argOpt._.join(" ")
+    return finding.jumpToMatch(searchQuery, option)
 }
 
-/** Jump to the next searched pattern.
+/** Jump to the next nth searched pattern.
  *
- * @param number - number of words to advance down the page (use 1 for next word, -1 for previous)
+ * Available flags:
+ * - `-f` or `--search-from-view` to search from the current view instead of the previous match
+ * - `-?` or `--reverse` to reverse the sign of the number
+ *
+ * @param number - number of words to advance down the page (use 1 for next word, -1 for previous), default to 1
  *
  */
 //#content
-export function findnext(n = 1) {
-    return finding.jumpToNextMatch(n)
+export function findnext(...args: string[]) {
+    let n = 1
+    const option = arg.lib(
+        {
+            "--search-from-view": Boolean,
+            "-f": "--search-from-view",
+
+            "--reverse": Boolean,
+            "-?": "--reverse",
+        },
+        { argv: args },
+    )
+    if (option._.length > 0) n = Number(option._[0])
+    if (option["--reverse"]) n = -n
+    return finding.jumpToNextMatch(n, Boolean(option["--search-from-view"]))
 }
 
 //#content
 export function clearsearchhighlight() {
     return finding.removeHighlighting()
+}
+
+/**
+ * Highlight the current find-mode match result and enter the visual mode.
+ */
+//#content
+export function findselect() {
+    const range = finding.currentMatchRange()
+    const selection = document.getSelection()
+    selection.removeAllRanges()
+    selection.addRange(range)
 }
 
 /** @hidden */
@@ -2308,7 +2348,7 @@ if (fullscreenApiIsPrefixed) {
 
 /** @hidden */
 //#content
-export async function loadaucmds(cmdType: "DocStart" | "DocLoad" | "DocEnd" | "TabEnter" | "TabLeft" | "FullscreenEnter" | "FullscreenLeft" | "FullscreenChange" | "UriChange" | "HistoryState" ) {
+export async function loadaucmds(cmdType: "DocStart" | "DocLoad" | "DocEnd" | "TabEnter" | "TabLeft" | "FullscreenEnter" | "FullscreenLeft" | "FullscreenChange" | "UriChange" | "HistoryState") {
     const aucmds = await config.getAsync("autocmds", cmdType)
     const ausites = Object.keys(aucmds)
     const aukeyarr = ausites.filter(e => window.document.location.href.search(e) >= 0)
@@ -2721,7 +2761,7 @@ export async function tabopen_helper({ addressarr = [], waitForDom = false }): P
 
     const aucon = new AutoContain()
     if (!container && aucon.autocontainConfigured()) {
-        const [autoContainer, ] = await aucon.getAuconAndProxiesForUrl(address)
+        const [autoContainer] = await aucon.getAuconAndProxiesForUrl(address)
         if (autoContainer && autoContainer !== "firefox-default") {
             container = autoContainer
             logger.debug("tabopen setting container automatically using autocontain directive")
@@ -3417,11 +3457,16 @@ export async function tgroupcreate(name: string) {
         await tabopen(initialUrl)
         promises.push(tgroupTabs(name, true).then(tabs => browserBg.tabs.hide(tabs.map(tab => tab.id))))
     } else {
-        promises.push(browser.tabs.query({currentWindow: true}).then((tabs) => {
-            setTabTgroup(name, tabs.map(({ id }) => id))
-            // trigger status line update
-            setContentStateGroup(name)
-        }))
+        promises.push(
+            browser.tabs.query({ currentWindow: true }).then(tabs => {
+                setTabTgroup(
+                    name,
+                    tabs.map(({ id }) => id),
+                )
+                // trigger status line update
+                setContentStateGroup(name)
+            }),
+        )
         promises.push(setWindowTgroup(name))
     }
 
@@ -3440,7 +3485,7 @@ export async function tgroupcreate(name: string) {
  */
 //#background
 export async function tgroupswitch(name: string) {
-    if (name == await windowTgroup()) {
+    if (name == (await windowTgroup())) {
         throw new Error(`Already on tab group "${name}"`)
     }
 
