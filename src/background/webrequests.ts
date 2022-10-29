@@ -26,7 +26,7 @@ export const registerWebRequestAutocmd = (
     return browser.webRequest["on" + requestEvent].addListener(
         listener,
         { urls: [pattern] },
-        ["blocking", "requestBody"],
+        ["blocking", "requestHeaders", "requestBody", "responseHeaders"],
     )
 }
 
