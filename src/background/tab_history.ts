@@ -25,7 +25,7 @@ export async function addTabHistory(nav) {
     if (isHistoryNavigation(nav)) {
         let itemId = pages.list.length - 1
         while (true) {
-            const item = pages[itemId]
+            const item = pages["list"][itemId]
             if (nav.url == item.href) {
                 pages.current = itemId
                 item.time = nav.timeStamp

@@ -70,6 +70,7 @@ export class TabHistoryCompletionSource extends Completions.CompletionSourceFuse
             id: node["id"],
             level: node["level"] === 0 ? node["level"] : node["level"] - 1,
             time: node["time"],
+            position: node["position"],
         })
         for (const child of node["children"]) {
             this.flattenTree(child, flat)
@@ -117,6 +118,31 @@ export class TabHistoryCompletionSource extends Completions.CompletionSourceFuse
         }
     }
 
+    private addHistoryPosition(history) {
+        const list = history["list"]
+        let item = list[list.length - 1]
+        const currentId = history["current"]
+        let currentPosition
+        let position = 0
+        for (
+            let item = list[list.length-1];
+            item;
+            item = list[item.parent]
+        ) {
+            item["position"] = position
+            if (item["id"] == currentId) currentPosition = position
+            position += 1
+        }
+        const sign = /^forward/.test(this.lastExstr) ? -1 : 1
+        history["list"].forEach(item => {
+            if ("position" in item) {
+                item.position = String(
+                    (item.position - currentPosition) * sign
+                )
+            }
+        })
+    }
+
     private async updateOptions(exstr = "") {
         this.lastExstr = exstr
 
@@ -126,6 +152,7 @@ export class TabHistoryCompletionSource extends Completions.CompletionSourceFuse
         })
         let history = await browserBg.sessions.getTabValue(tab[0].id, "history")
         if (!history) history = { list: [] }
+        this.addHistoryPosition(history)
         const tree = this.makeTree(history["list"])
         history["list"] = this.flattenTree(tree[0]).reverse()
         this.addIndicies(history["list"])
@@ -134,7 +161,7 @@ export class TabHistoryCompletionSource extends Completions.CompletionSourceFuse
         this.options = this.scoreOptions(
             history["list"].map(
                 item =>
-                    new TabHistoryCompletionOption(item.href, {
+                    new TabHistoryCompletionOption(item.position ?? item.href, {
                         href: item.href,
                         id: item.index,
                         title: item.title,
