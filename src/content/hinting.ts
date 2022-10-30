@@ -1192,7 +1192,7 @@ function focusRightHint() {
 }
 
 /** @hidden */
-export function parser(keys: keyseq.KeyEventLike[]) {
+export function parser(keys: keyseq.MinimalKey[]) {
     const parsed = keyseq.parse(
         keys,
         keyseq.mapstrMapToKeyMap(
