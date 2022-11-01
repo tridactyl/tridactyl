@@ -676,26 +676,53 @@ export function anchors(includeInvisible = false) {
     ])
 }
 
+export const enum TabTarget {
+    CurrentTab,
+    NewTab,
+    NewBackgroundTab,
+    NewWindow,
+}
+
+const tabTargetToModifierKey = {
+    [TabTarget.CurrentTab]: {},
+    [TabTarget.NewTab]: { ctrlKey: true, shiftKey: true },
+    [TabTarget.NewBackgroundTab]: { ctrlKey: true },
+    [TabTarget.NewWindow]: { shiftKey: true },
+}
+
 /** if `target === _blank` clicking the link is treated as opening a popup and is blocked. Use webext API to avoid that. */
-export function simulateClick(target: HTMLElement) {
+export function simulateClick(
+    target: HTMLElement,
+    tabTarget: TabTarget = TabTarget.CurrentTab,
+) {
     // target can be set to other stuff, and we'll fail in annoying ways.
     // There's no easy way around that while this code executes outside of the
     // magic 'short lived event handler' context.
     //
     // OTOH, hardly anyone uses that functionality any more.
-    if (
+    let usePopupBlockerWorkaround =
         (target as HTMLAnchorElement).target === "_blank" ||
         (target as HTMLAnchorElement).target === "_new"
-    ) {
+    const href = (target as HTMLAnchorElement).href
+    if (href?.startsWith("file:")) {
+        // file URLS cannot be opend with browser.tabs.create
+        // see https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/tabs/create#url
+        // still create a new tab
+        if (tabTarget === TabTarget.CurrentTab && usePopupBlockerWorkaround) {
+            tabTarget = TabTarget.NewTab
+        }
+        usePopupBlockerWorkaround = false
+    }
+    if (usePopupBlockerWorkaround) {
         // Try to open the new tab in the same container as the current one.
         activeTabContainerId().then(containerId => {
             if (containerId)
-                openInNewTab((target as HTMLAnchorElement).href, {
+                openInNewTab(href, {
                     related: true,
                     cookieStoreId: containerId,
                 })
             else
-                openInNewTab((target as HTMLAnchorElement).href, {
+                openInNewTab(href, {
                     related: true,
                 })
         })
@@ -703,7 +730,7 @@ export function simulateClick(target: HTMLElement) {
         if (target instanceof HTMLDetailsElement) {
             target.open = !target.open
         }
-        mouseEvent(target, "click")
+        mouseEvent(target, "click", tabTargetToModifierKey[tabTarget])
         // DOM.focus has additional logic for focusing inputs
         focus(target)
     }
