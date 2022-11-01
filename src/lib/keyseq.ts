@@ -351,6 +351,12 @@ export function mapstrToKeyseq(mapstr: string): MinimalKey[] {
     return keyseq
 }
 
+export function canonicaliseMapstr(mapstr: string): string {
+    return mapstrToKeyseq(mapstr)
+        .map(k => k.toMapstr())
+        .join("")
+}
+
 export const commandKey2jsKey = {
     Comma: ",",
     Period: ".",

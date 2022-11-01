@@ -2,7 +2,7 @@
  *
  */
 
-import { mapstrToKeyseq } from "@src/lib/keyseq"
+import { canonicaliseMapstr } from "@src/lib/keyseq"
 
 export const mode2maps = new Map([
     ["normal", "nmaps"],
@@ -46,8 +46,7 @@ export function parse_bind_args(...args: string[]): bind_args {
 
     const key = args.shift()
     // Convert key to internal representation
-    const keyseq = mapstrToKeyseq(key)
-    result.key = keyseq.map(k => k.toMapstr()).join("")
+    result.key = canonicaliseMapstr(key)
 
     result.excmd = args.join(" ")
 
