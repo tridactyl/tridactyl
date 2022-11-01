@@ -486,9 +486,11 @@ export function translateKeysUsingKeyTranslateMap(
         // almost certainly mean oscillations and other super-weird
         // breakage.
         if (!keyEvent.translated && newkey !== undefined) {
-            keyEvents[index] = minimalKeyFromKeyboardEventLike({
-                ...keyEvent,
-                key: newkey,
+            keyEvents[index] = new MinimalKey(newkey, {
+                altKey: keyEvent.altKey,
+                ctrlKey: keyEvent.ctrlKey,
+                metaKey: keyEvent.metaKey,
+                shiftKey: keyEvent.shiftKey,
             })
             keyEvents[index].translated = true
         }
@@ -499,13 +501,9 @@ export function translateKeysUsingKeyTranslateMap(
  * for further use. Key is obtained through layout-independent
  * code if config says so.
  */
-export function minimalKeyFromKeyboardEventLike(keyEvent: {
-    key: string
-    altKey: boolean
-    ctrlKey: boolean
-    metaKey: boolean
-    shiftKey: boolean
-}): MinimalKey {
+export function minimalKeyFromKeyboardEvent(
+    keyEvent: KeyboardEvent,
+): MinimalKey {
     return new MinimalKey(keyEvent.key, {
         altKey: keyEvent.altKey,
         ctrlKey: keyEvent.ctrlKey,
