@@ -1,5 +1,5 @@
 import { contentState } from "@src/content/state_content"
-import { MinimalKey } from "@src/lib/keyseq"
+import { MinimalKey, canonicaliseMapstr } from "@src/lib/keyseq"
 
 /** Simple container for the gobble state. */
 class GobbleState {
@@ -19,7 +19,8 @@ export function init(numKeysOrTerminator: string, endCommand: string) {
     const number = Number(numKeysOrTerminator)
     if (!isNaN(number)) {
         modeState.numKeysOrTerminator = number
-    } else modeState.numKeysOrTerminator = numKeysOrTerminator
+    } else
+        modeState.numKeysOrTerminator = canonicaliseMapstr(numKeysOrTerminator)
     modeState.endCommand = endCommand
 }
 
@@ -43,7 +44,7 @@ export function parser(keys: MinimalKey[]) {
         reset()
     } else if (
         typeof modeState.numKeysOrTerminator === "string" &&
-        modeState.numKeysOrTerminator === key
+        modeState.numKeysOrTerminator === keys[0].toMapstr()
     ) {
         return exec()
     } else if (keys[0].isPrintable()) {

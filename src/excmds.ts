@@ -5336,8 +5336,9 @@ export function run_exstr(...commands: string[]) {
 
     If numKeysOrTerminator is a number, it will read the provided amount of keys,
     append them to `endCmd` and execute that string.
-    If numKeysOrTerminator is a key like 'k' or 'Enter', it will read keys until
-    the provided key is pressed, append them to `endCmd` and execute that string.
+    If numKeysOrTerminator is a key or key combination like 'k', '<CR>' or '<C-j>',
+    it will read keys until the provided key is pressed, append them to `endCmd` and
+    execute that string.
 */
 //#content
 export async function gobble(numKeysOrTerminator: string, endCmd: string) {
