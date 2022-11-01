@@ -52,7 +52,7 @@ import * as genericParser from "@src/parsers/genericmode"
 import * as perf from "@src/perf"
 import state, * as State from "@src/state"
 import * as R from "ramda"
-import { MinimalKey, minimalKeyFromKeyboardEvent } from "@src/lib/keyseq"
+import { MinimalKey, minimalKeyFromKeyboardEventLike } from "@src/lib/keyseq"
 import { TabGroupCompletionSource } from "@src/completions/TabGroup"
 
 /** @hidden **/
@@ -186,7 +186,9 @@ commandline_state.clInput.addEventListener(
     "keydown",
     function (keyevent: KeyboardEvent) {
         if (!keyevent.isTrusted) return
-        commandline_state.keyEvents.push(minimalKeyFromKeyboardEvent(keyevent))
+        commandline_state.keyEvents.push(
+            minimalKeyFromKeyboardEventLike(keyevent),
+        )
         const response = keyParser(commandline_state.keyEvents)
         if (response.isMatch) {
             keyevent.preventDefault()

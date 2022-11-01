@@ -5,7 +5,7 @@ import * as controller from "@src/lib/controller"
 import {
     KeyEventLike,
     ParserResponse,
-    minimalKeyFromKeyboardEvent,
+    minimalKeyFromKeyboardEventLike,
     MinimalKey,
 } from "@src/lib/keyseq"
 import { deepestShadowRoot } from "@src/lib/dom"
@@ -138,7 +138,7 @@ function* ParserController() {
                     // binding, so it can't grow indefinitely unless you
                     // have a combination of maps that permits bindings of
                     // unbounded length.
-                    keyEvents.push(minimalKeyFromKeyboardEvent(keyevent))
+                    keyEvents.push(minimalKeyFromKeyboardEventLike(keyevent))
                 } else {
                     keyEvents.push(keyevent)
                 }
