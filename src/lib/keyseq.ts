@@ -63,6 +63,17 @@ export class MinimalKey {
         return true
     }
 
+    public translate(keytranslatemap: { [inkey: string]: string }): MinimalKey {
+        let newkey = keytranslatemap[this.key]
+        if (newkey === undefined) newkey = this.key
+        return new MinimalKey(newkey, {
+            altKey: this.altKey,
+            ctrlKey: this.ctrlKey,
+            metaKey: this.metaKey,
+            shiftKey: this.shiftKey,
+        })
+    }
+
     public toMapstr() {
         let str = ""
         let needsBrackets = this.key.length > 1
@@ -479,19 +490,11 @@ export function translateKeysUsingKeyTranslateMap(
     keytranslatemap: { [inkey: string]: string },
 ) {
     for (let index = 0; index < keyEvents.length; index++) {
-        const keyEvent = keyEvents[index]
-        const newkey = keytranslatemap[keyEvent.key]
-
         // Translating anything more than once would
         // almost certainly mean oscillations and other super-weird
         // breakage.
-        if (!keyEvent.translated && newkey !== undefined) {
-            keyEvents[index] = new MinimalKey(newkey, {
-                altKey: keyEvent.altKey,
-                ctrlKey: keyEvent.ctrlKey,
-                metaKey: keyEvent.metaKey,
-                shiftKey: keyEvent.shiftKey,
-            })
+        if (!keyEvents[index].translated) {
+            keyEvents[index] = keyEvents[index].translate(keytranslatemap)
             keyEvents[index].translated = true
         }
     }
