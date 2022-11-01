@@ -134,6 +134,7 @@ import { CmdlineCmds as CtCmdlineCmds } from "@src/background/commandline_cmds"
 import { EditorCmds as CtEditorCmds } from "@src/background/editor"
 import * as DOM from "@src/lib/dom"
 import * as CommandLineContent from "@src/content/commandline_content"
+import * as WhichKeyContent from "@src/content/whichkey_content"
 import * as scrolling from "@src/content/scrolling"
 import { ownTab } from "@src/lib/webext"
 import { rot13_helper, jumble_helper } from "@src/lib/editor_utils"
@@ -3812,6 +3813,20 @@ export function hidecmdline() {
     CommandLineContent.hide_and_blur()
 }
 
+/** @hidden */
+//#content
+export async function showwhichkey() {
+    const hidehover = true
+    WhichKeyContent.show(hidehover)
+    return Promise.resolve()
+}
+
+/** @hidden */
+//#content
+export function hidewhichkey() {
+    WhichKeyContent.hide()
+}
+
 /** Set the current value of the commandline to string *with* a trailing space */
 //#content
 export function fillcmdline(...strarr: string[]) {
@@ -5898,4 +5913,5 @@ export async function elementunhide() {
     const elem = KILL_STACK.pop()
     elem.className = elem.className.replace("TridactylKilledElem", "")
 }
+
 // vim: tabstop=4 shiftwidth=4 expandtab

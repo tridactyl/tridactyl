@@ -4,6 +4,7 @@ import Logger from "@src/lib/logging"
 import * as controller from "@src/lib/controller"
 import { KeyEventLike, ParserResponse } from "@src/lib/keyseq"
 import { deepestShadowRoot } from "@src/lib/dom"
+import { whichKey, hideWhichKey } from "@src/lib/which_key"
 
 import * as hinting from "@src/content/hinting"
 import * as gobblemode from "@src/parsers/gobblemode"
@@ -12,7 +13,7 @@ import * as nmode from "@src/parsers/nmode"
 
 const logger = new Logger("controller")
 
-function PrintableKey(k) {
+function PrintableKey(k: KeyEventLike) {
     let result = k.key
     if (
         result === "Control" ||
@@ -119,7 +120,9 @@ function* ParserController() {
 
                 const shadowRoot =
                     keyevent instanceof KeyboardEvent
-                        ? deepestShadowRoot((keyevent.target as Element).shadowRoot)
+                        ? deepestShadowRoot(
+                              (keyevent.target as Element).shadowRoot,
+                          )
                         : null
 
                 // _just to be safe_, cache this to make the following
@@ -185,6 +188,7 @@ function* ParserController() {
                     exstr = response.exstr
                     break
                 } else {
+                    // TODO: check if this is where to register which-key func
                     keyEvents = response.keys
                     // show current keyEvents as a suffix of the contentState
                     const suffix = keyEvents.map(x => PrintableKey(x)).join("")
@@ -193,10 +197,14 @@ function* ParserController() {
                         previousSuffix = suffix
                     }
                     logger.debug("suffix: ", suffix)
+                    if (response.isMatch) {
+                        whichKey(suffix, response.possibleMappings)
+                    }
                 }
             }
             contentState.suffix = ""
             controller.acceptExCmd(exstr)
+            hideWhichKey()
         } catch (e) {
             // Rumsfeldian errors are caught here
             logger.error("An error occurred in the content controller: ", e)

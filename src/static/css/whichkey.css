@@ -1,0 +1,30 @@
+#whichkey-completions {
+    background-color: rgba(0, 0, 0, 0.8);
+    display: flex;
+    flex-flow: column wrap;
+    justify-content: flex-start;
+    height: 13rem;
+    padding: 2% 5%;
+}
+.BindingsCompletionOption {
+    width: 30%;
+    height: 1.4em;
+    font-family: sans-serif;
+}
+
+.arrow {
+    color: #76ff03;
+}
+
+.name {
+    color: #ff4081;
+}
+
+.command {
+    color: #eee;
+}
+
+.more {
+    color: #0cf;
+    font-weight: bold;
+}

@@ -61,3 +61,16 @@
     background-color: var(--tridactyl-search-highlight-color) !important;
     z-index: 2147483647 !important;
 }
+
+#whichkey_iframe {
+    position: fixed !important;
+    bottom: 0 !important;
+    z-index: 2047483641 !important;
+    width: 100% !important;
+    height: 0 !important;
+    border: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    min-height: 0 !important;
+    max-height: none !important;
+}
