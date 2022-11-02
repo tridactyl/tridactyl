@@ -38,6 +38,13 @@ export interface KeyModifiers {
     shiftKey?: boolean
 }
 
+// Format modifiers
+const modifiers = new Map([
+    ["A", "altKey"],
+    ["C", "ctrlKey"],
+    ["M", "metaKey"],
+    ["S", "shiftKey"],
+])
 export class MinimalKey {
     readonly altKey = false
     readonly ctrlKey = false
@@ -47,17 +54,22 @@ export class MinimalKey {
     constructor(readonly key: string, modifiers?: KeyModifiers) {
         if (modifiers !== undefined) {
             for (const mod of Object.keys(modifiers)) {
+                if (
+                    this.key.length === 1 &&
+                    this.key !== " " &&
+                    mod === "shiftKey"
+                )
+                    continue
                 this[mod] = modifiers[mod]
             }
         }
     }
 
     /** Does this key match a given MinimalKey extending object? */
-    public match(keyevent) {
+    public match(keyevent: MinimalKey) {
         // 'in' doesn't include prototypes, so it's safe for this object.
-        for (const attr in this) {
-            // Don't check shiftKey for normal keys.
-            if (attr === "shiftKey" && this.key.length === 1) continue
+        if (this.key !== keyevent.key) return false
+        for (const [_, attr] of modifiers.entries()) {
             if (this[attr] !== keyevent[attr]) return false
         }
         return true
@@ -78,13 +90,6 @@ export class MinimalKey {
         let str = ""
         let needsBrackets = this.key.length > 1
 
-        // Format modifiers
-        const modifiers = new Map([
-            ["A", "altKey"],
-            ["C", "ctrlKey"],
-            ["M", "metaKey"],
-            ["S", "shiftKey"],
-        ])
         for (const [letter, attr] of modifiers.entries()) {
             if (this[attr]) {
                 str += letter
