@@ -4251,7 +4251,7 @@ export async function bind(...args: string[]) {
             await browser.commands.update({ name: command.name, shortcut: minimalKeyToMozMap(mapstrToKeyseq(args_obj.key)[0]) })
             await commandsHelper.updateListener()
         }
-        p = config.set(args_obj.configName, args_obj.key, args_obj.excmd)
+        p = config.set(args_obj.configName, args_obj.key, args_obj.excmd).then(() => fillcmdline_nofocus(`${args_obj.key} is bound to ${args_obj.excmd}` + ` in ${args_obj.configName}`))
     } else if (args_obj.key.length) {
         // Display the existing bind
         p = fillcmdline_notrail("bind", args_obj.key, config.getDynamic(args_obj.configName, args_obj.key))
@@ -4259,6 +4259,25 @@ export async function bind(...args: string[]) {
     return p
 }
 
+/**
+ * Register key combination from keyboard until enter is pressed, and send it to [[bind]]
+ * with provided arguments.
+ * If you have alwaysqwerty enabled, it will bind commands to physical keys
+ *
+ * Used same as bind, but without key provided:
+ *     `bindkey [command]`, then press the keys you want to bind, then hit Enter.
+ *     `bindkey --mode=[mode] [command]` also works.
+ *
+ * You can execute it without arguments to see what is bound to the keys you type.
+ *
+ */
+export async function bindkey(...args: string[]) {
+    let mode = "normal"
+    if (args.length && args[0].startsWith("--mode=")) {
+        mode = args.shift().replace("--mode=", "")
+    }
+    return gobble("<CR>", `bind --mode=${mode}`, ...args)
+}
 /**
  * Like [[bind]] but for a specific url pattern (also see [[seturl]]).
  *
@@ -5334,15 +5353,15 @@ export function run_exstr(...commands: string[]) {
 
 /** Initialize gobble mode.
 
-    If numKeysOrTerminator is a number, it will read the provided amount of keys,
-    append them to `endCmd` and execute that string.
-    If numKeysOrTerminator is a key or key combination like 'k', '<CR>' or '<C-j>',
-    it will read keys until the provided key is pressed, append them to `endCmd` and
-    execute that string.
+    If numKeysOrTerminator is a number, it will read the provided amount of keys;
+    If numKeysOrTerminator is a key or key combination like 'k', '<CR>' or '<C-j>';
+    it will read keys until the provided key is pressed.
+    Then it will append the keypresses to `endCmd` and execute that string,
+    also appending arguments if provided.
 */
 //#content
-export async function gobble(numKeysOrTerminator: string, endCmd: string) {
-    return gobbleMode.init(numKeysOrTerminator, endCmd)
+export async function gobble(numKeysOrTerminator: string, endCmd: string, ...args: string[]) {
+    return gobbleMode.init(numKeysOrTerminator, endCmd, ...args)
 }
 
 // }}}
