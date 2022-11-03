@@ -38,42 +38,57 @@ export interface KeyModifiers {
     shiftKey?: boolean
 }
 
+// Format modifiers
+const modifiers = new Map([
+    ["A", "altKey"],
+    ["C", "ctrlKey"],
+    ["M", "metaKey"],
+    ["S", "shiftKey"],
+])
 export class MinimalKey {
     readonly altKey = false
     readonly ctrlKey = false
     readonly metaKey = false
     readonly shiftKey = false
-
+    translated = false
     constructor(readonly key: string, modifiers?: KeyModifiers) {
         if (modifiers !== undefined) {
             for (const mod of Object.keys(modifiers)) {
+                if (
+                    this.key.length === 1 &&
+                    this.key !== " " &&
+                    mod === "shiftKey"
+                )
+                    continue
                 this[mod] = modifiers[mod]
             }
         }
     }
 
-    /** Does this key match a given MinimalKey extending object? */
-    public match(keyevent) {
-        // 'in' doesn't include prototypes, so it's safe for this object.
-        for (const attr in this) {
-            // Don't check shiftKey for normal keys.
-            if (attr === "shiftKey" && this.key.length === 1) continue
+    /** Does this key match another MinimalKey */
+    public match(keyevent: MinimalKey) {
+        if (this.key !== keyevent.key) return false
+        for (const [_, attr] of modifiers.entries()) {
             if (this[attr] !== keyevent[attr]) return false
         }
         return true
+    }
+
+    public translate(keytranslatemap: { [inkey: string]: string }): MinimalKey {
+        let newkey = keytranslatemap[this.key]
+        if (newkey === undefined) newkey = this.key
+        return new MinimalKey(newkey, {
+            altKey: this.altKey,
+            ctrlKey: this.ctrlKey,
+            metaKey: this.metaKey,
+            shiftKey: this.shiftKey,
+        })
     }
 
     public toMapstr() {
         let str = ""
         let needsBrackets = this.key.length > 1
 
-        // Format modifiers
-        const modifiers = new Map([
-            ["A", "altKey"],
-            ["C", "ctrlKey"],
-            ["M", "metaKey"],
-            ["S", "shiftKey"],
-        ])
         for (const [letter, attr] of modifiers.entries()) {
             if (this[attr]) {
                 str += letter
@@ -98,6 +113,9 @@ export class MinimalKey {
 
         return str
     }
+    public isPrintable() {
+        return this.key.length === 1
+    }
 }
 
 export type KeyEventLike = MinimalKey | KeyboardEvent
@@ -110,7 +128,7 @@ type MapTarget = string | ((...args: any[]) => any)
 type KeyMap = Map<MinimalKey[], MapTarget>
 
 export interface ParserResponse {
-    keys?: KeyEventLike[]
+    keys?: MinimalKey[]
     value?: string
     exstr?: string
     isMatch?: boolean
@@ -118,8 +136,8 @@ export interface ParserResponse {
 }
 
 function splitNumericPrefix(
-    keyseq: KeyEventLike[],
-): [KeyEventLike[], KeyEventLike[]] {
+    keyseq: MinimalKey[],
+): [MinimalKey[], MinimalKey[]] {
     // If the first key is in 1:9, partition all numbers until you reach a non-number.
     if (
         !hasModifiers(keyseq[0]) &&
@@ -148,7 +166,7 @@ export function stripOnlyModifiers(keyseq) {
     )
 }
 
-export function parse(keyseq: KeyEventLike[], map: KeyMap): ParserResponse {
+export function parse(keyseq: MinimalKey[], map: KeyMap): ParserResponse {
     // Remove bare modifiers
     keyseq = stripOnlyModifiers(keyseq)
 
@@ -156,7 +174,7 @@ export function parse(keyseq: KeyEventLike[], map: KeyMap): ParserResponse {
     if (keyseq.length === 0) return { keys: [], isMatch: false }
 
     // Split into numeric prefix and non-numeric suffix
-    let numericPrefix: KeyEventLike[]
+    let numericPrefix: MinimalKey[]
     ;[numericPrefix, keyseq] = splitNumericPrefix(keyseq)
 
     // If keyseq is a prefix of a key in map, proceed, else try dropping keys
@@ -198,7 +216,7 @@ export function parse(keyseq: KeyEventLike[], map: KeyMap): ParserResponse {
 }
 
 /** True if seq1 is a prefix or equal to seq2 */
-function prefixes(seq1: KeyEventLike[], seq2: MinimalKey[]) {
+function prefixes(seq1: MinimalKey[], seq2: MinimalKey[]) {
     if (seq1.length > seq2.length) {
         return false
     } else {
@@ -210,7 +228,7 @@ function prefixes(seq1: KeyEventLike[], seq2: MinimalKey[]) {
 }
 
 /** returns the fragment of `map` that keyseq is a valid prefix of. */
-export function completions(keyseq: KeyEventLike[], map: KeyMap): KeyMap {
+export function completions(keyseq: MinimalKey[], map: KeyMap): KeyMap {
     return new Map(
         filter(map.entries(), ([ks, _maptarget]) => prefixes(keyseq, ks)),
     )
@@ -295,10 +313,8 @@ function expandAliases(key: string) {
 export function bracketexprToKey(inputStr) {
     if (inputStr.indexOf(">") > 0) {
         try {
-            const [
-                [modifiers, key],
-                remainder,
-            ] = bracketexpr_parser.feedUntilError(inputStr)
+            const [[modifiers, key], remainder] =
+                bracketexpr_parser.feedUntilError(inputStr)
             return [new MinimalKey(expandAliases(key), modifiers), remainder]
         } catch (e) {
             // No valid bracketExpr
@@ -348,6 +364,12 @@ export function mapstrToKeyseq(mapstr: string): MinimalKey[] {
         }
     }
     return keyseq
+}
+
+export function canonicaliseMapstr(mapstr: string): string {
+    return mapstrToKeyseq(mapstr)
+        .map(k => k.toMapstr())
+        .join("")
 }
 
 export const commandKey2jsKey = {
@@ -440,7 +462,7 @@ export function keyMap(conf): KeyMap {
 
 // {{{ Utility functions for dealing with KeyboardEvents
 
-export function hasModifiers(keyEvent: KeyEventLike) {
+export function hasModifiers(keyEvent: MinimalKey) {
     return (
         keyEvent.ctrlKey ||
         keyEvent.altKey ||
@@ -450,16 +472,11 @@ export function hasModifiers(keyEvent: KeyEventLike) {
 }
 
 /** shiftKey is true for any capital letter, most numbers, etc. Generally care about other modifiers. */
-export function hasNonShiftModifiers(keyEvent: KeyEventLike) {
+export function hasNonShiftModifiers(keyEvent: MinimalKey) {
     return keyEvent.ctrlKey || keyEvent.altKey || keyEvent.metaKey
 }
 
-/** A simple key event is a non-special key (length 1) that is not modified by ctrl, alt, or shift. */
-export function isSimpleKey(keyEvent: KeyEventLike) {
-    return !(keyEvent.key.length > 1 || hasNonShiftModifiers(keyEvent))
-}
-
-function numericPrefixToExstrSuffix(numericPrefix: KeyEventLike[]) {
+function numericPrefixToExstrSuffix(numericPrefix: MinimalKey[]) {
     if (numericPrefix.length > 0) {
         return " " + numericPrefix.map(k => k.key).join("")
     } else {
@@ -473,36 +490,33 @@ function numericPrefixToExstrSuffix(numericPrefix: KeyEventLike[]) {
  * translation map must be length-1 strings.
  */
 export function translateKeysUsingKeyTranslateMap(
-    keyEvents: KeyEventLike[],
+    keyEvents: MinimalKey[],
     keytranslatemap: { [inkey: string]: string },
 ) {
     for (let index = 0; index < keyEvents.length; index++) {
-        const keyEvent = keyEvents[index]
-        const newkey = keytranslatemap[keyEvent.key]
-
-        // KeyboardEvents can't have been translated, MinimalKeys may
-        // have been. We can't add anything to the MinimalKey without
-        // breaking a ton of other stuff, so instead we'll just assume
-        // that the only way we've gotten a MinimalKey is if the key
-        // has already been translated. We err way on the side of
-        // safety becase translating anything more than once would
+        // Translating anything more than once would
         // almost certainly mean oscillations and other super-weird
         // breakage.
-        const neverTranslated = keyEvent instanceof KeyboardEvent
-        if (neverTranslated && newkey !== undefined) {
-            // We can't update the keyEvent in place. However, the
-            // entire pipeline works with MinimalKeys all the way
-            // through, so we just swap the key event out for a new
-            // MinimalKey with the right key and modifiers copied from
-            // the original.
-            keyEvents[index] = new MinimalKey(newkey, {
-                altKey: keyEvent.altKey,
-                ctrlKey: keyEvent.ctrlKey,
-                metaKey: keyEvent.metaKey,
-                shiftKey: keyEvent.shiftKey,
-            })
+        if (!keyEvents[index].translated) {
+            keyEvents[index] = keyEvents[index].translate(keytranslatemap)
+            keyEvents[index].translated = true
         }
     }
+}
+/**
+ * Convert keyboardEvent to internal type MinimalKey
+ * for further use. Key is obtained through layout-independent
+ * code if config says so.
+ */
+export function minimalKeyFromKeyboardEvent(
+    keyEvent: KeyboardEvent,
+): MinimalKey {
+    return new MinimalKey(keyEvent.key, {
+        altKey: keyEvent.altKey,
+        ctrlKey: keyEvent.ctrlKey,
+        metaKey: keyEvent.metaKey,
+        shiftKey: keyEvent.shiftKey,
+    })
 }
 
 // }}}

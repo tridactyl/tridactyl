@@ -2,7 +2,12 @@ import { isTextEditable } from "@src/lib/dom"
 import { contentState, ModeName } from "@src/content/state_content"
 import Logger from "@src/lib/logging"
 import * as controller from "@src/lib/controller"
-import { KeyEventLike, ParserResponse } from "@src/lib/keyseq"
+import {
+    KeyEventLike,
+    ParserResponse,
+    minimalKeyFromKeyboardEvent,
+    MinimalKey,
+} from "@src/lib/keyseq"
 import { deepestShadowRoot } from "@src/lib/dom"
 
 import * as hinting from "@src/content/hinting"
@@ -97,7 +102,7 @@ export const canceller = new KeyCanceller()
 /** Accepts keyevents, resolves them to maps, maps to exstrs, executes exstrs */
 function* ParserController() {
     const parsers: {
-        [mode_name in ModeName]: (keys: KeyEventLike[]) => ParserResponse
+        [mode_name in ModeName]: (keys: MinimalKey[]) => ParserResponse
     } = {
         normal: keys => generic.parser("nmaps", keys),
         insert: keys => generic.parser("imaps", keys),
@@ -112,25 +117,35 @@ function* ParserController() {
     while (true) {
         let exstr = ""
         let previousSuffix = null
-        let keyEvents: KeyEventLike[] = []
+        let keyEvents: MinimalKey[] = []
         try {
             while (true) {
                 const keyevent: KeyEventLike = yield
+                let shadowRoot = null
+                let textEditable = false
 
-                const shadowRoot =
-                    keyevent instanceof KeyboardEvent
-                        ? deepestShadowRoot((keyevent.target as Element).shadowRoot)
-                        : null
+                if (keyevent instanceof KeyboardEvent) {
+                    shadowRoot = deepestShadowRoot(
+                        (keyevent.target as Element).shadowRoot,
+                    )
+
+                    textEditable =
+                        shadowRoot === null
+                            ? isTextEditable(keyevent.target as Element)
+                            : isTextEditable(shadowRoot.activeElement)
+                    // Accumulate key events. The parser will cut this
+                    // down whenever it's not a valid prefix of a known
+                    // binding, so it can't grow indefinitely unless you
+                    // have a combination of maps that permits bindings of
+                    // unbounded length.
+                    keyEvents.push(minimalKeyFromKeyboardEvent(keyevent))
+                } else {
+                    keyEvents.push(keyevent)
+                }
 
                 // _just to be safe_, cache this to make the following
                 // code more thread-safe.
                 const currentMode = contentState.mode
-                const textEditable =
-                    keyevent instanceof KeyboardEvent
-                        ? shadowRoot === null
-                            ? isTextEditable(keyevent.target as Element)
-                            : isTextEditable(shadowRoot.activeElement)
-                        : false
 
                 // This code was sort of the cause of the most serious bug in Tridactyl
                 // to date (March 2018).
@@ -153,16 +168,9 @@ function* ParserController() {
 
                 const newMode = contentState.mode
                 if (newMode !== currentMode) {
-                    keyEvents = []
+                    keyEvents = keyEvents.slice(-1)
                     previousSuffix = null
                 }
-
-                // Accumulate key events. The parser will cut this
-                // down whenever it's not a valid prefix of a known
-                // binding, so it can't grow indefinitely unless you
-                // have a combination of maps that permits bindings of
-                // unbounded length.
-                keyEvents.push(keyevent)
 
                 const response = (
                     parsers[contentState.mode] ||

@@ -371,7 +371,7 @@ export class default_config {
         ".": "repeat",
         "<AS-ArrowUp><AS-ArrowUp><AS-ArrowDown><AS-ArrowDown><AS-ArrowLeft><AS-ArrowRight><AS-ArrowLeft><AS-ArrowRight>ba":
             "open https://www.youtube.com/watch?v=M3iOROuTuMA",
-        "m": "gobble 1 markadd",
+        m: "gobble 1 markadd",
         "`": "gobble 1 markjump",
     }
 
@@ -1265,9 +1265,10 @@ const platform_defaults = {
 & '%TEMP%/tridactyl_installnative.ps1' -Tag %TAG;\
 Remove-Item '%TEMP%/tridactyl_installnative.ps1'"`,
         downloadforbiddenchars: "#%&{}\\<>*?/$!'\":@+`|=",
-        downloadforbiddennames: "CON, PRN, AUX, NUL, COM1, COM2,"
-            + "COM3, COM4, COM5, COM6, COM7, COM8, COM9, LPT1,"
-            + "LPT2, LPT3, LPT4, LPT5, LPT6, LPT7, LPT8, LPT9,",
+        downloadforbiddennames:
+            "CON, PRN, AUX, NUL, COM1, COM2," +
+            "COM3, COM4, COM5, COM6, COM7, COM8, COM9, LPT1," +
+            "LPT2, LPT3, LPT4, LPT5, LPT6, LPT7, LPT8, LPT9,",
     },
     linux: {
         nmaps: {

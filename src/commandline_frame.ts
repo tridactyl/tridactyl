@@ -52,7 +52,7 @@ import * as genericParser from "@src/parsers/genericmode"
 import * as perf from "@src/perf"
 import state, * as State from "@src/state"
 import * as R from "ramda"
-import { KeyEventLike } from "@src/lib/keyseq"
+import { MinimalKey, minimalKeyFromKeyboardEvent } from "@src/lib/keyseq"
 import { TabGroupCompletionSource } from "@src/completions/TabGroup"
 
 /** @hidden **/
@@ -78,7 +78,7 @@ const commandline_state = {
      * tl;dr TODO: delete this and better resolve race condition
      */
     isVisible: false,
-    keyEvents: new Array<KeyEventLike>(),
+    keyEvents: new Array<MinimalKey>(),
     refresh_completions,
     state,
 }
@@ -186,7 +186,7 @@ commandline_state.clInput.addEventListener(
     "keydown",
     function (keyevent: KeyboardEvent) {
         if (!keyevent.isTrusted) return
-        commandline_state.keyEvents.push(keyevent)
+        commandline_state.keyEvents.push(minimalKeyFromKeyboardEvent(keyevent))
         const response = keyParser(commandline_state.keyEvents)
         if (response.isMatch) {
             keyevent.preventDefault()
