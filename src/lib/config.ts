@@ -514,11 +514,16 @@ export class default_config {
      * Map for translating keys directly into other keys in normal-ish modes.
      * For example, if you have an entry in this config option mapping `п` to `g`,
      * then you could type `пп` instead of `gg` or `пi` instead of `gi` or `;п` instead
-     * of `;g`. This was primarily useful for international users, but now you can set
-     * alwaysqwerty true, which will make everything layout-independent.
+     * of `;g`.
+     *
+     * This was primarily useful for international users, but now you can `set
+     * alwaysqwerty true`, which will make everything layout-independent.
      * However, if you don't want qwerty, you can use it to map keys however you like
-     * and still have layout-independent behavior. For example, you may want to map 'a' to 'q` on azerty
+     * and still have layout-independent behavior.
+     *
+     * For example, you may want to map 'a' to 'q` on azerty
      * or 'r' to 'p' if you use dvorak.
+     *
      * Note that the current implementation does not allow you to "chain" keys, for example, "a"=>"b" and "b"=>"c" for "a"=>"c". You can, however, swap or rotate keys, so "a"=>"b" and "b"=>"a" will work the way you'd expect, as will "a"=>"b" and "b"=>"c" and "c"=>"a".
      */
     keytranslatemap = {
@@ -546,6 +551,7 @@ export class default_config {
      * Instead of fetching actual character which depends on selected layout,
      * use machine code of a key. Makes any keyboard work as if it is qwerty.
      * Recommended for everyone, especially multilingual.
+     *
      * If you don't want qwerty, you can use keytranslatemap to map it to something else,
      * and this setting is still useful because it makes all events tied to the physical
      * keys.

@@ -4260,17 +4260,18 @@ export async function bind(...args: string[]) {
 }
 
 /**
- * Register key combination from keyboard until enter is pressed, and send it to [[bind]]
- * with provided arguments.
- * If you have alwaysqwerty enabled, it will bind commands to physical keys
- *
- * Used same as bind, but without key provided:
- *     `bindkey [command]`, then press the keys you want to bind, then hit Enter.
- *     `bindkey --mode=[mode] [command]` also works.
- *
- * You can execute it without arguments to see what is bound to the keys you type.
- *
- */
+     Register key combination from keyboard until enter is pressed, and send it to [[bind]]
+     with provided arguments.
+
+     If you have alwaysqwerty enabled, it will bind commands to physical keys.
+
+     Used same as bind, but without key provided:
+
+         - `bindkey [command]`, then press the keys you want to bind, then hit Enter.
+         - `bindkey --mode=[mode] [command]` also works.
+
+     You can execute it without arguments to see what is bound to the keys you type.
+*/
 export async function bindkey(...args: string[]) {
     let mode = "normal"
     if (args.length && args[0].startsWith("--mode=")) {
