@@ -65,9 +65,8 @@ export class MinimalKey {
         }
     }
 
-    /** Does this key match a given MinimalKey extending object? */
+    /** Does this key match another MinimalKey */
     public match(keyevent: MinimalKey) {
-        // 'in' doesn't include prototypes, so it's safe for this object.
         if (this.key !== keyevent.key) return false
         for (const [_, attr] of modifiers.entries()) {
             if (this[attr] !== keyevent[attr]) return false
