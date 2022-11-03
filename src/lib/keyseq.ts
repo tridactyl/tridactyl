@@ -503,6 +503,112 @@ export function translateKeysUsingKeyTranslateMap(
         }
     }
 }
+
+const keyWithShiftMap = {
+    a: "A",
+    b: "B",
+    c: "C",
+    d: "D",
+    e: "E",
+    f: "F",
+    g: "G",
+    h: "H",
+    i: "I",
+    j: "J",
+    k: "K",
+    l: "L",
+    m: "M",
+    n: "N",
+    o: "O",
+    p: "P",
+    q: "Q",
+    r: "R",
+    s: "S",
+    t: "T",
+    u: "U",
+    v: "V",
+    w: "W",
+    x: "X",
+    y: "Y",
+    z: "Z",
+    "`": "~",
+    "1": "!",
+    "2": "@",
+    "3": "#",
+    "4": "$",
+    "5": "%",
+    "6": "^",
+    "7": "&",
+    "8": "*",
+    "9": "(",
+    "0": ")",
+    "-": "_",
+    "=": "+",
+    "[": "{",
+    "]": "}",
+    "\\": "|",
+    ";": ":",
+    "'": '"',
+    ",": "<",
+    ".": ">",
+    "/": "?",
+}
+
+const keycodetranslatemap = {
+    KeyA: "a",
+    KeyB: "b",
+    KeyC: "c",
+    KeyD: "d",
+    KeyE: "e",
+    KeyF: "f",
+    KeyG: "g",
+    KeyH: "h",
+    KeyI: "i",
+    KeyJ: "j",
+    KeyK: "k",
+    KeyL: "l",
+    KeyM: "m",
+    KeyN: "n",
+    KeyO: "o",
+    KeyP: "p",
+    KeyQ: "q",
+    KeyR: "r",
+    KeyS: "s",
+    KeyT: "t",
+    KeyU: "u",
+    KeyV: "v",
+    KeyW: "w",
+    KeyX: "x",
+    KeyY: "y",
+    KeyZ: "z",
+    Digit0: "0",
+    Digit1: "1",
+    Digit2: "2",
+    Digit3: "3",
+    Digit4: "4",
+    Digit5: "5",
+    Digit6: "6",
+    Digit7: "7",
+    Digit8: "8",
+    Digit9: "9",
+    Equal: "=",
+    Backquote: "`",
+    Backslash: "\\",
+    Period: ".",
+    Comma: ",",
+    Semicolon: ";",
+    Slash: "/",
+}
+
+/**
+ * Convert key to key as if shift is pressed
+ */
+function withShift(str: string): string {
+    const result = keyWithShiftMap[str]
+    if (result) return result
+    return str
+}
+
 /**
  * Convert keyboardEvent to internal type MinimalKey
  * for further use. Key is obtained through layout-independent
@@ -511,7 +617,18 @@ export function translateKeysUsingKeyTranslateMap(
 export function minimalKeyFromKeyboardEvent(
     keyEvent: KeyboardEvent,
 ): MinimalKey {
-    return new MinimalKey(keyEvent.key, {
+    let newkey = keyEvent.key
+    if (config.get("alwaysqwerty") === "true") {
+        let translated = keycodetranslatemap[keyEvent.code]
+        if (translated !== undefined) {
+            if (keyEvent.shiftKey) {
+                translated = withShift(translated)
+            }
+            newkey = translated
+        }
+    }
+
+    return new MinimalKey(newkey, {
         altKey: keyEvent.altKey,
         ctrlKey: keyEvent.ctrlKey,
         metaKey: keyEvent.metaKey,
