@@ -396,6 +396,13 @@ interface Hintables {
     hintclasses?: string[]
 }
 
+export function hintElements(elements: Elements[], rapid = false) {
+    const hintable = toHintablesArray(elements)
+    return new Promise((resolve, reject) => {
+        hintPage(hintable, x => x, resolve, reject, rapid)
+    })
+}
+
 /** For each hintable element, add a hint
  * @hidden
  * */
