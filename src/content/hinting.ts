@@ -397,7 +397,8 @@ interface Hintables {
 }
 
 /** A convient javascript interface to hint on specified html elements.
- *  The return value is a promise resolve to the selected element.
+ *  The return value is a promise resolve to the selected element,
+ *  or a AsyncIterator resolve to the selected elements in rapid mode.
  */
 export function hintElements(elements: Elements[], rapid = false) {
     const hintable = toHintablesArray(Array.from(elements))
@@ -406,19 +407,18 @@ export function hintElements(elements: Elements[], rapid = false) {
             hintPage(hintable, x => x, resolve, reject, rapid)
         })
     } else {
+        const endDefer = deferCreate()
+        const endPromise = endDefer.promise.catch(error => error)
+        let onSelect = deferCreate()
+        const key = Symbol("select-result")
+        const callback = element => {
+            onSelect.resolve({[key]: element})
+            onSelect = deferCreate()
+        }
+        hintPage(hintable, callback, endDefer.resolve, endDefer.reject, rapid)
         const wrap = async function* () {
-            const endDefer = deferCreate()
-            const endPromise = endDefer.promise.catch(error => error)
-            let onSelect = deferCreate()
-            const key = Symbol('select-result')
-            const callback = element => {
-                onSelect.resolve({[key]: element})
-                onSelect = deferCreate()
-            }
-            hintPage(hintable, callback,
-                endDefer.resolve, endDefer.reject, rapid)
             while (true) {
-                const first = await Promise.race([onSelect, endPromise])
+                const first = await Promise.race([onSelect.promise, endPromise])
                 if (first && typeof first === 'object' && key in first) {
                     yield first[key]
                 }
