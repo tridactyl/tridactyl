@@ -396,11 +396,49 @@ interface Hintables {
     hintclasses?: string[]
 }
 
+/** A convient javascript interface to hint on specified html elements.
+ *  The return value is a promise resolve to the selected element.
+ */
 export function hintElements(elements: Elements[], rapid = false) {
-    const hintable = toHintablesArray(elements)
-    return new Promise((resolve, reject) => {
-        hintPage(hintable, x => x, resolve, reject, rapid)
-    })
+    const hintable = toHintablesArray(Array.from(elements))
+    if (!rapid) {
+        return new Promise((resolve, reject) => {
+            hintPage(hintable, x => x, resolve, reject, rapid)
+        })
+    } else {
+        const wrap = async function* () {
+            const endDefer = deferCreate()
+            const endPromise = endDefer.promise.catch(error => error)
+            let onSelect = deferCreate()
+            const key = Symbol('select-result')
+            const callback = element => {
+                onSelect.resolve({[key]: element})
+                onSelect = deferCreate()
+            }
+            hintPage(hintable, callback,
+                endDefer.resolve, endDefer.reject, rapid)
+            while (true) {
+                const first = await Promise.race([onSelect, endPromise])
+                if (first && typeof first === 'object' && key in first) {
+                    yield first[key]
+                }
+                else return await endPromise
+            }
+        }
+        return wrap()
+    }
+    function deferCreate() {
+        const defer = {
+            resolve: null,
+            reject: null,
+            promise: null,
+        }
+        defer.promise = new Promise((ok, no) => {
+            defer.resolve = ok
+            defer.reject = no
+        })
+        return defer
+    }
 }
 
 /** For each hintable element, add a hint
