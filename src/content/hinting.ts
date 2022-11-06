@@ -397,35 +397,49 @@ interface Hintables {
 }
 
 /** A convient javascript interface to hint on specified html elements.
- *  The return value is a promise resolve to the selected element,
- *  or a AsyncIterator resolve to the selected elements in rapid mode.
+  The return value is a promise resolve to the selected element,
+  or a AsyncIterator resolve to the selected elements in rapid mode.
+
+  @param elements a iterator yield html elements
+  @param option a option object. The `option.rapid` specify whether hint in rapid mode. Default value is false. The `option.callback` is execute when a hint is selected if specified.
+
+  @returns promise resolve to the selected element, or a async iterator in rapid mode.
  */
-export function hintElements(elements: Elements[], rapid = false) {
+export function hintElements(elements: Element[], option = {}) {
     const hintable = toHintablesArray(Array.from(elements))
+    const rapid = option["rapid"] ?? false
+    const callback = typeof option["callback"] === "function" ?
+        option["callback"] : x => x
     if (!rapid) {
         return new Promise((resolve, reject) => {
             hintPage(hintable, x => x, resolve, reject, rapid)
+        }).then(x => {
+            callback(x)
+            return x
         })
     } else {
         const endDefer = deferCreate()
         const endPromise = endDefer.promise.catch(error => error)
         let onSelect = deferCreate()
         const key = Symbol("select-result")
-        const callback = element => {
+        const hintCallback = element => {
+            callback(element)
             onSelect.resolve({[key]: element})
             onSelect = deferCreate()
         }
-        hintPage(hintable, callback, endDefer.resolve, endDefer.reject, rapid)
         const wrap = async function* () {
             while (true) {
                 const first = await Promise.race([onSelect.promise, endPromise])
-                if (first && typeof first === 'object' && key in first) {
+                if (first && typeof first === "object" && key in first) {
                     yield first[key]
                 }
                 else return await endPromise
             }
         }
-        return wrap()
+        const result = wrap()
+        hintPage(hintable, hintCallback,
+            endDefer.resolve, endDefer.reject, rapid)
+        return result
     }
     function deferCreate() {
         const defer = {
