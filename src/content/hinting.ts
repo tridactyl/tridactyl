@@ -432,8 +432,7 @@ export function hintElements(elements: Element[], option = {}) {
                 const first = await Promise.race([onSelect.promise, endPromise])
                 if (first && typeof first === "object" && key in first) {
                     yield first[key]
-                }
-                else return await endPromise
+                } else return await endPromise
             }
         }
         const result = wrap()
