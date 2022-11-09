@@ -1,11 +1,12 @@
-name: e2e
+name: e2e_pr
+
+# This is just a duplicate of e2e.yml with fewer tries & no fail-fast so people can get quicker + better feedback on PRs
+# I'm sure there's a neater way of doing it with ifs but this was quicker
 
 on:
-  push:
+  pull_request:
     branches:
-      - 'master'
-  schedule:
-    - cron: "45 7 * * *"
+      - '**'
 
 jobs:
   test:
@@ -79,11 +80,12 @@ jobs:
       env:
         HEADLESS: 1
       with: 
-        max_attempts: 40
+        max_attempts: 1
         timeout_minutes: 10
         retry_wait_seconds: 10
+        # clearing setupFilesAfterEnv removes the fail-fast script
         command: |
-          yarn run clean && yarn run build --old-native && yarn make-zip && yarn jest
+          yarn run clean && yarn run build --old-native && yarn make-zip && yarn jest --setupFilesAfterEnv=""
     # - name: Test (Chrome, Linux)
     #   if: matrix.browser == 'chrome' && matrix.os == 'ubuntu'
     #   run: xvfb-run --auto-servernum npm run jest -- ${{ matrix.browser }} || xvfb-run --auto-servernum npm run jest -- ${{ matrix.browser }}

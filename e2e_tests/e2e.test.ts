@@ -33,6 +33,7 @@ describe("webdriver", () => {
         const options = (new Options())
                 .setPreference("xpinstall.signatures.required", false)
                 .addExtensions(extensionPath)
+        // options.setBinary("/usr/bin/firefox-developer-edition") // set this if running locally :)
         if (env["HEADLESS"]) {
             options.headless();
         }
