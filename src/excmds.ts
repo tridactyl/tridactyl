@@ -5554,7 +5554,7 @@ export async function perfhistogram(...filters: string[]) {
  */
 //#background
 export async function bmark(url?: string, ...titlearr: string[]) {
-    const auto_url = url == undefined
+    const auto_url = url == undefined || url == (await activeTab()).url
     url =
         url === undefined
             ? (await activeTab()).url
