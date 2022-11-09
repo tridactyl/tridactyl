@@ -80,7 +80,7 @@ jobs:
       env:
         HEADLESS: 1
       with: 
-        max_attempts: 1
+        max_attempts: 5
         timeout_minutes: 10
         retry_wait_seconds: 10
         # clearing setupFilesAfterEnv removes the fail-fast script
