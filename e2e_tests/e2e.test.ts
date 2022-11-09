@@ -8,7 +8,7 @@ import * as path from "path"
 import * as webdriver from "selenium-webdriver"
 import * as Until from "selenium-webdriver/lib/until"
 const {By} = webdriver
-import {Options, Driver} from "selenium-webdriver/firefox"
+import {Options} from "selenium-webdriver/firefox"
 
 import { getNewestFileIn, sendKeys } from "./utils";
 
@@ -32,11 +32,14 @@ describe("webdriver", () => {
 
         const options = (new Options())
                 .setPreference("xpinstall.signatures.required", false)
+                .addExtensions(extensionPath)
         if (env["HEADLESS"]) {
             options.headless();
         }
-        const driver = Driver.createSession(options)
-        await driver.installAddon(extensionPath, /*temporary*/true)
+        const driver = new webdriver.Builder()
+            .forBrowser("firefox")
+            .setFirefoxOptions(options)
+            .build()
         // Wait until addon is loaded and :tutor is displayed
         await iframeLoaded(driver)
         // And wait a bit more otherwise Tridactyl won't be happy
