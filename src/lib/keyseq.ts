@@ -76,13 +76,15 @@ export class MinimalKey {
 
     public translate(keytranslatemap: { [inkey: string]: string }): MinimalKey {
         let newkey = keytranslatemap[this.key]
-        if (newkey === undefined) newkey = this.key
-        return new MinimalKey(newkey, {
+        if (newkey === undefined || this.translated) newkey = this.key
+        const result = new MinimalKey(newkey, {
             altKey: this.altKey,
             ctrlKey: this.ctrlKey,
             metaKey: this.metaKey,
             shiftKey: this.shiftKey,
         })
+        result.translated = true
+        return result
     }
 
     public toMapstr() {
@@ -429,14 +431,6 @@ export function mapstrMapToKeyMap(mapstrMap: Map<string, MapTarget>): KeyMap {
 
 let KEYMAP_CACHE = {}
 
-export function translateKeysInPlace(keys, conf): void {
-    // If so configured, translate keys using the key translation map
-    if (config.get("keytranslatemodes")[conf] === "true") {
-        const translationmap = config.get("keytranslatemap")
-        translateKeysUsingKeyTranslateMap(keys, translationmap)
-    }
-}
-
 /**
  * Return a "*maps" config converted into sequences of minimalkeys (e.g. "nmaps")
  */
@@ -481,26 +475,6 @@ function numericPrefixToExstrSuffix(numericPrefix: MinimalKey[]) {
         return " " + numericPrefix.map(k => k.key).join("")
     } else {
         return ""
-    }
-}
-
-/**
- * Translates the given set of keyEvents (in place) as specified by
- * the given key translation map. All keys *and* values in the key
- * translation map must be length-1 strings.
- */
-export function translateKeysUsingKeyTranslateMap(
-    keyEvents: MinimalKey[],
-    keytranslatemap: { [inkey: string]: string },
-) {
-    for (let index = 0; index < keyEvents.length; index++) {
-        // Translating anything more than once would
-        // almost certainly mean oscillations and other super-weird
-        // breakage.
-        if (!keyEvents[index].translated) {
-            keyEvents[index] = keyEvents[index].translate(keytranslatemap)
-            keyEvents[index].translated = true
-        }
     }
 }
 
@@ -628,12 +602,17 @@ export function minimalKeyFromKeyboardEvent(
         }
     }
 
-    return new MinimalKey(newkey, {
+    const result = new MinimalKey(newkey, {
         altKey: keyEvent.altKey,
         ctrlKey: keyEvent.ctrlKey,
         metaKey: keyEvent.metaKey,
         shiftKey: keyEvent.shiftKey,
     })
+    if (config.get("usekeytranslatemap") === "true") {
+        const translationmap = config.get("keytranslatemap")
+        return result.translate(translationmap)
+    }
+    return result
 }
 
 // }}}

@@ -536,16 +536,9 @@ export class default_config {
     }
 
     /**
-     * Whether to use the keytranslatemap in various maps.
+     * Whether to use the keytranslatemap
      */
-    keytranslatemodes: { [key: string]: "true" | "false" } = {
-        nmaps: "true",
-        imaps: "false",
-        inputmaps: "false",
-        ignoremaps: "false",
-        exmaps: "false",
-        hintmaps: "false",
-    }
+    usekeytranslatemap: "true" | "false" = "false"
 
     /**
      * Instead of fetching actual character which depends on selected layout,
