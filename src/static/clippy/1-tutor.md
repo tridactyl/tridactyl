@@ -18,7 +18,7 @@ The idea behind Tridactyl is to allow you to navigate the web more efficiently w
 -   Hint mode
     -   This mode highlights elements on the web page and performs actions on those elements.
     -   This is most often used for following links, but it has many other submodes.
-    -   You can enter this mode with `f` and exit it with `Escape` or `Enter`.
+    -   You can enter this mode with `f` and exit it with `Escape` or `Ctrl-[`.
     -   Hint characters are displayed as uppercase letters, but you should type the lowercase letter.
 -   Visual mode (experimental)
     -   This mode allows you to select text on the web page and copy it to the clipboard or search for it using `s` and `S`.
