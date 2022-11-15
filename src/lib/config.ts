@@ -542,7 +542,7 @@ export class default_config {
 
     /**
      * Instead of fetching actual character which depends on selected layout,
-     * use machine code of a key. Makes any keyboard work as if it is qwerty.
+     * use machine code of a key. Makes any keyboard work as if it is using a US QWERTY layout for all Tridactyl modes except free text input
      * Recommended for everyone, especially multilingual.
      *
      * If you don't want qwerty, you can use keytranslatemap to map it to something else,

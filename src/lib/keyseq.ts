@@ -575,7 +575,7 @@ const keycodetranslatemap = {
 }
 
 /**
- * Convert key to key as if shift is pressed
+ * Convert key to key as if shift is pressed on a US QWERTY layout
  */
 function withShift(str: string): string {
     const result = keyWithShiftMap[str]
