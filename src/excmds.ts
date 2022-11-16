@@ -3843,7 +3843,7 @@ export async function fillcmdline_tmp(ms: number, ...strarr: string[]) {
     Messaging.messageOwnTab("commandline_frame", "fillcmdline", [strarr.join(" "), false, false])
     return new Promise<void>(resolve =>
         setTimeout(async () => {
-            if ((await Messaging.messageOwnTab("commandline_frame", "getContent", [])) === str) {
+            if (document.activeElement?.id !== "cmdline_iframe") {
                 CommandLineContent.hide_and_blur()
                 resolve(Messaging.messageOwnTab("commandline_frame", "clear", [true]))
             }
