@@ -537,12 +537,12 @@ export class default_config {
 
     /**
      * Whether to use the keytranslatemap. For example, useful for changing the effective base layout when using [[alwaysqwerty]].
-     * 
+     *
      * To make your `alwaysqwerty` layout more like a GB layout, run `:keymap @ "` and then no matter which layout you are using, pressing the `"` key on a physical GB layout will trigger `"` binds rather than `@` binds.
-     * 
+     *
      * As a rule of thumb: `:keymap [equivalent US key] [key you want to press on your physical layout]`
      */
-    usekeytranslatemap: "true" | "false" = "false"
+    usekeytranslatemap: "true" | "false" = "true"
 
     /**
      * Instead of fetching actual character which depends on selected layout,
@@ -553,7 +553,7 @@ export class default_config {
      * and this setting is still useful because it makes all events tied to the physical
      * keys.
      */
-    alwaysqwerty: "true" | "false" = "true"
+    alwaysqwerty: "true" | "false" = "false"
 
     /**
      * Automatically place these sites in the named container.

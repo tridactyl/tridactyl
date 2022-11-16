@@ -528,6 +528,11 @@ const keyWithShiftMap = {
     "/": "?",
 }
 
+/**
+ * Key codes for printable keys for alwaysqwerty setting
+ * See https://developer.mozilla.org/en-US/docs/Web/API/UI_Events/Keyboard_event_code_values
+ * This assumes en-us layout, but keymap can be used to map it to something else
+ */
 const keycodetranslatemap = {
     KeyA: "a",
     KeyB: "b",
@@ -572,6 +577,10 @@ const keycodetranslatemap = {
     Comma: ",",
     Semicolon: ";",
     Slash: "/",
+    BracketLeft: "[",
+    BracketRight: "]",
+    Quote: "'",
+    Minus: "-",
 }
 
 /**
