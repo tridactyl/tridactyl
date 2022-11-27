@@ -478,118 +478,59 @@ function numericPrefixToExstrSuffix(numericPrefix: MinimalKey[]) {
     }
 }
 
-const keyWithShiftMap = {
-    a: "A",
-    b: "B",
-    c: "C",
-    d: "D",
-    e: "E",
-    f: "F",
-    g: "G",
-    h: "H",
-    i: "I",
-    j: "J",
-    k: "K",
-    l: "L",
-    m: "M",
-    n: "N",
-    o: "O",
-    p: "P",
-    q: "Q",
-    r: "R",
-    s: "S",
-    t: "T",
-    u: "U",
-    v: "V",
-    w: "W",
-    x: "X",
-    y: "Y",
-    z: "Z",
-    "`": "~",
-    "1": "!",
-    "2": "@",
-    "3": "#",
-    "4": "$",
-    "5": "%",
-    "6": "^",
-    "7": "&",
-    "8": "*",
-    "9": "(",
-    "0": ")",
-    "-": "_",
-    "=": "+",
-    "[": "{",
-    "]": "}",
-    "\\": "|",
-    ";": ":",
-    "'": '"',
-    ",": "<",
-    ".": ">",
-    "/": "?",
-}
-
 /**
- * Key codes for printable keys for alwaysqwerty setting
+ * Key codes for printable keys for alwaysqwerty setting, lower and upper register.
  * See https://developer.mozilla.org/en-US/docs/Web/API/UI_Events/Keyboard_event_code_values
  * This assumes en-us layout, but keymap can be used to map it to something else
  */
 const keycodetranslatemap = {
-    KeyA: "a",
-    KeyB: "b",
-    KeyC: "c",
-    KeyD: "d",
-    KeyE: "e",
-    KeyF: "f",
-    KeyG: "g",
-    KeyH: "h",
-    KeyI: "i",
-    KeyJ: "j",
-    KeyK: "k",
-    KeyL: "l",
-    KeyM: "m",
-    KeyN: "n",
-    KeyO: "o",
-    KeyP: "p",
-    KeyQ: "q",
-    KeyR: "r",
-    KeyS: "s",
-    KeyT: "t",
-    KeyU: "u",
-    KeyV: "v",
-    KeyW: "w",
-    KeyX: "x",
-    KeyY: "y",
-    KeyZ: "z",
-    Digit0: "0",
-    Digit1: "1",
-    Digit2: "2",
-    Digit3: "3",
-    Digit4: "4",
-    Digit5: "5",
-    Digit6: "6",
-    Digit7: "7",
-    Digit8: "8",
-    Digit9: "9",
-    Equal: "=",
-    Backquote: "`",
-    Backslash: "\\",
-    Period: ".",
-    Comma: ",",
-    Semicolon: ";",
-    Slash: "/",
-    BracketLeft: "[",
-    BracketRight: "]",
-    Quote: "'",
-    Minus: "-",
-}
-
-/**
- * Convert key to key as if shift is pressed on a US QWERTY layout
- */
-function withShift(str: string): string {
-    const result = keyWithShiftMap[str]
-    if (result) return result
-    return str
+    KeyA: ["a", "A"],
+    KeyB: ["b", "B"],
+    KeyC: ["c", "C"],
+    KeyD: ["d", "D"],
+    KeyE: ["e", "E"],
+    KeyF: ["f", "F"],
+    KeyG: ["g", "G"],
+    KeyH: ["h", "H"],
+    KeyI: ["i", "I"],
+    KeyJ: ["j", "J"],
+    KeyK: ["k", "K"],
+    KeyL: ["l", "L"],
+    KeyM: ["m", "M"],
+    KeyN: ["n", "N"],
+    KeyO: ["o", "O"],
+    KeyP: ["p", "P"],
+    KeyQ: ["q", "Q"],
+    KeyR: ["r", "R"],
+    KeyS: ["s", "S"],
+    KeyT: ["t", "T"],
+    KeyU: ["u", "U"],
+    KeyV: ["v", "V"],
+    KeyW: ["w", "W"],
+    KeyX: ["x", "X"],
+    KeyY: ["y", "Y"],
+    KeyZ: ["z", "Z"],
+    Digit0: ["0", ")"],
+    Digit1: ["1", "!"],
+    Digit2: ["2", "@"],
+    Digit3: ["3", "#"],
+    Digit4: ["4", "$"],
+    Digit5: ["5", "%"],
+    Digit6: ["6", "^"],
+    Digit7: ["7", "&"],
+    Digit8: ["8", "*"],
+    Digit9: ["9", "("],
+    Equal: ["=", "+"],
+    Backquote: ["`", "~"],
+    Backslash: ["\\", "|"],
+    Period: [".", ">"],
+    Comma: [",", "<"],
+    Semicolon: [";", ":"],
+    Slash: ["/", "?"],
+    BracketLeft: ["[", "{"],
+    BracketRight: ["]", "}"],
+    Quote: ["'", '"'],
+    Minus: ["-", "_"],
 }
 
 /**
@@ -602,13 +543,8 @@ export function minimalKeyFromKeyboardEvent(
 ): MinimalKey {
     let newkey = keyEvent.key
     if (config.get("alwaysqwerty") === "true") {
-        let translated = keycodetranslatemap[keyEvent.code]
-        if (translated !== undefined) {
-            if (keyEvent.shiftKey) {
-                translated = withShift(translated)
-            }
-            newkey = translated
-        }
+        const translation = keycodetranslatemap[keyEvent.code]
+        if (translation) newkey = translation[+keyEvent.shiftKey]
     }
 
     const result = new MinimalKey(newkey, {
