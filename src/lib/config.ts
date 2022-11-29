@@ -293,7 +293,7 @@ export class default_config {
         // "/": "fillcmdline find",
         // "?": "fillcmdline find -?",
         // n: "findnext 1",
-        // N: "findnext -1",
+        // N: "findnext 1 -?",
         // ",<Space>": "nohlsearch",
         M: "gobble 1 quickmark",
         B: "fillcmdline taball",
