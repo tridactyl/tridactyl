@@ -692,6 +692,8 @@ export async function nativeopen(...args: string[]) {
  *
  * Requires the native messenger, obviously.
  *
+ * If you're using `exclaim` with arguments coming from a pipe, consider using [[shellescape]] to properly escape arguments and to prevent unsafe commands.
+ *
  * If you want to use a different shell, just prepend your command with whatever the invocation is and keep in mind that most shells require quotes around the command to be executed, e.g. `:exclaim xonsh -c "1+2"`.
  *
  * Aliased to `!` but the exclamation mark **must be followed with a space**.
