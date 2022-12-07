@@ -1460,7 +1460,11 @@ export function find(...args: string[]) {
             "--reverse": Boolean,
             "-?": "--reverse",
         },
-        { argv: args, permissive: true },
+        {
+            argv: args,
+            permissive: true,
+            splitUnknownArguments: false,
+        },
     )
     const option = {}
     option["reverse"] = Boolean(argOpt["--reverse"])
@@ -1489,7 +1493,10 @@ export function findnext(...args: string[]) {
             "--reverse": Boolean,
             "-?": "--reverse",
         },
-        { argv: args },
+        {
+            argv: args,
+            allowNegativePositional: true,
+        },
     )
     if (option._.length > 0) n = Number(option._[0])
     if (option["--reverse"]) n = -n
