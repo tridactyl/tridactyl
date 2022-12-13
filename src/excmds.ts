@@ -4251,7 +4251,7 @@ export async function bind(...args: string[]) {
             await browser.commands.update({ name: command.name, shortcut: minimalKeyToMozMap(mapstrToKeyseq(args_obj.key)[0]) })
             await commandsHelper.updateListener()
         }
-        p = config.set(args_obj.configName, args_obj.key, args_obj.excmd).then(() => fillcmdline_nofocus(`${args_obj.key} is bound to ${args_obj.excmd}` + ` in ${args_obj.configName}`))
+        p = config.set(args_obj.configName, args_obj.key, args_obj.excmd)
     } else if (args_obj.key.length) {
         // Display the existing bind
         p = fillcmdline_notrail("bind", args_obj.key, config.getDynamic(args_obj.configName, args_obj.key))
