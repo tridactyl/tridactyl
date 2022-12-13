@@ -479,61 +479,6 @@ function numericPrefixToExstrSuffix(numericPrefix: MinimalKey[]) {
 }
 
 /**
- * Key codes for printable keys for alwaysqwerty setting, lower and upper register.
- * See https://developer.mozilla.org/en-US/docs/Web/API/UI_Events/Keyboard_event_code_values
- * This assumes en-us layout, but keymap can be used to map it to something else
- */
-const keycodetranslatemap = {
-    KeyA: ["a", "A"],
-    KeyB: ["b", "B"],
-    KeyC: ["c", "C"],
-    KeyD: ["d", "D"],
-    KeyE: ["e", "E"],
-    KeyF: ["f", "F"],
-    KeyG: ["g", "G"],
-    KeyH: ["h", "H"],
-    KeyI: ["i", "I"],
-    KeyJ: ["j", "J"],
-    KeyK: ["k", "K"],
-    KeyL: ["l", "L"],
-    KeyM: ["m", "M"],
-    KeyN: ["n", "N"],
-    KeyO: ["o", "O"],
-    KeyP: ["p", "P"],
-    KeyQ: ["q", "Q"],
-    KeyR: ["r", "R"],
-    KeyS: ["s", "S"],
-    KeyT: ["t", "T"],
-    KeyU: ["u", "U"],
-    KeyV: ["v", "V"],
-    KeyW: ["w", "W"],
-    KeyX: ["x", "X"],
-    KeyY: ["y", "Y"],
-    KeyZ: ["z", "Z"],
-    Digit0: ["0", ")"],
-    Digit1: ["1", "!"],
-    Digit2: ["2", "@"],
-    Digit3: ["3", "#"],
-    Digit4: ["4", "$"],
-    Digit5: ["5", "%"],
-    Digit6: ["6", "^"],
-    Digit7: ["7", "&"],
-    Digit8: ["8", "*"],
-    Digit9: ["9", "("],
-    Equal: ["=", "+"],
-    Backquote: ["`", "~"],
-    Backslash: ["\\", "|"],
-    Period: [".", ">"],
-    Comma: [",", "<"],
-    Semicolon: [";", ":"],
-    Slash: ["/", "?"],
-    BracketLeft: ["[", "{"],
-    BracketRight: ["]", "}"],
-    Quote: ["'", '"'],
-    Minus: ["-", "_"],
-}
-
-/**
  * Convert keyboardEvent to internal type MinimalKey
  * for further use. Key is obtained through layout-independent
  * code if config says so.
@@ -541,8 +486,9 @@ const keycodetranslatemap = {
 export function minimalKeyFromKeyboardEvent(
     keyEvent: KeyboardEvent,
 ): MinimalKey {
+    const keycodetranslatemap = config.get("keylayoutforcemapping")
     let newkey = keyEvent.key
-    if (config.get("alwaysqwerty") === "true") {
+    if (config.get("keylayoutforce") === "true") {
         const translation = keycodetranslatemap[keyEvent.code]
         if (translation) newkey = translation[+keyEvent.shiftKey]
     }

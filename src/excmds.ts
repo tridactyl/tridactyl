@@ -4263,7 +4263,7 @@ export async function bind(...args: string[]) {
      Register key combination from keyboard until enter is pressed, and send it to [[bind]]
      with provided arguments.
 
-     If you have alwaysqwerty enabled, it will bind commands to physical keys.
+     If you have keylayoutforce enabled, it will bind commands to physical keys.
 
      Used same as bind, but without key provided:
 

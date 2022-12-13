@@ -549,11 +549,70 @@ export class default_config {
      * use machine code of a key. Makes any keyboard work as if it is using a US QWERTY layout for all Tridactyl modes except free text input
      * Recommended for everyone, especially multilingual.
      *
-     * If you don't want qwerty, you can use keytranslatemap to map it to something else,
+     * If you don't want qwerty, you can use [[keytranslatemap]] or [[keylayoutforcemapping]] to map it to something else,
      * and this setting is still useful because it makes all events tied to the physical
      * keys.
      */
-    alwaysqwerty: "true" | "false" = "false"
+    keylayoutforce: "true" | "false" = "false"
+
+    /**
+     * Key codes for printable keys for [[keylayoutforce]], lower and upper register.
+     * See https://developer.mozilla.org/en-US/docs/Web/API/UI_Events/Keyboard_event_code_values
+     * This assumes en-US layout by default, but you can use this setting to change that.
+     *
+     * NB: due to a Tridactyl bug, you cannot set this using array notation as you can for, e.g. [[homepage]].
+     * You must instead set the lower and upper registers using a string with no spaces in it, for example
+     * `:set keylayoutforcemapping Digit2: 2"` for the British English layout.
+     */
+    keylayoutforcemapping = {
+        KeyA: ["a", "A"],
+        KeyB: ["b", "B"],
+        KeyC: ["c", "C"],
+        KeyD: ["d", "D"],
+        KeyE: ["e", "E"],
+        KeyF: ["f", "F"],
+        KeyG: ["g", "G"],
+        KeyH: ["h", "H"],
+        KeyI: ["i", "I"],
+        KeyJ: ["j", "J"],
+        KeyK: ["k", "K"],
+        KeyL: ["l", "L"],
+        KeyM: ["m", "M"],
+        KeyN: ["n", "N"],
+        KeyO: ["o", "O"],
+        KeyP: ["p", "P"],
+        KeyQ: ["q", "Q"],
+        KeyR: ["r", "R"],
+        KeyS: ["s", "S"],
+        KeyT: ["t", "T"],
+        KeyU: ["u", "U"],
+        KeyV: ["v", "V"],
+        KeyW: ["w", "W"],
+        KeyX: ["x", "X"],
+        KeyY: ["y", "Y"],
+        KeyZ: ["z", "Z"],
+        Digit0: ["0", ")"],
+        Digit1: ["1", "!"],
+        Digit2: ["2", "@"],
+        Digit3: ["3", "#"],
+        Digit4: ["4", "$"],
+        Digit5: ["5", "%"],
+        Digit6: ["6", "^"],
+        Digit7: ["7", "&"],
+        Digit8: ["8", "*"],
+        Digit9: ["9", "("],
+        Equal: ["=", "+"],
+        Backquote: ["`", "~"],
+        Backslash: ["\\", "|"],
+        Period: [".", ">"],
+        Comma: [",", "<"],
+        Semicolon: [";", ":"],
+        Slash: ["/", "?"],
+        BracketLeft: ["[", "{"],
+        BracketRight: ["]", "}"],
+        Quote: ["'", '"'],
+        Minus: ["-", "_"],
+    }
 
     /**
      * Automatically place these sites in the named container.
