@@ -6379,10 +6379,10 @@ saxes@^3.1.9:
   dependencies:
     xmlchars "^2.1.1"
 
-selenium-webdriver@^4.6.0:
-  version "4.6.0"
-  resolved "https://registry.yarnpkg.com/selenium-webdriver/-/selenium-webdriver-4.6.0.tgz#b4e27959e94618b398358b26efe2e64debb22dfd"
-  integrity sha512-HIH/+J+V7l/lbSRSOwyLcpjezg9CV4DLo1pBhP9aphuMlf/PJXEDwC/A/Ht2bFc1AqQppFBGvClYcuMzyO6tRw==
+selenium-webdriver@^4.7.1:
+  version "4.7.1"
+  resolved "https://registry.yarnpkg.com/selenium-webdriver/-/selenium-webdriver-4.7.1.tgz#29be9eaac1bd5aa37728c3e5cca352b1e98ec85d"
+  integrity sha512-IfTM9OE8HtCKjOJwyudbAVtAHQKOJK8mu2qrXXbKyj4lqgXF+2lYW4rSZXCV6SLQRWZ+DVGkomCmFzq5orD/ZA==
   dependencies:
     jszip "^3.10.0"
     tmp "^0.2.1"
