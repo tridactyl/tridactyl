@@ -4278,24 +4278,25 @@ export function bindshow(...args: string[]){
 }
 
 /**
-     Register key combination from keyboard until enter is pressed, and send it to [[bind]]
-     with provided arguments.
+     Generate a key sequence from keypresses. Once Enter is pressed, the command line is filled with a [[bind]] 
+     command with the key sequence and provided arguments, which you can choose to modify and execute.
 
-     If you have keylayoutforce enabled, it will bind commands to physical keys.
+     If you have `:set keylayoutforce true`, it will bind commands to physical keys regardless of layout.
 
-     Used same as bind, but without key provided:
+     Accepts the same arguments as [[bind]] (except for the key sequence which will be generated):
 
-         - `bindkey [command]`, then press the keys you want to bind, then hit Enter.
-         - `bindkey --mode=[mode] [command]` also works.
+         - `bindwizard [command]`, then press the keys you want to bind, then hit Enter.
+         - `bindwizard --mode=[mode] [command]` also works.
 
      You can execute it without arguments to see what is bound to the keys you type.
 */
-export async function bindkey(...args: string[]) {
+export async function bindwizard(...args: string[]) {
+    // TODO: this should use parse_bind_args in case we ever support e.g. --url=
     let mode = "normal"
     if (args.length && args[0].startsWith("--mode=")) {
         mode = args.shift().replace("--mode=", "")
     }
-    return gobble("<CR>", `bind --mode=${mode}`, ...args)
+    return gobble("<CR>", `fillcmdline_notrail bind --mode=${mode}`, ...args)
 }
 /**
  * Like [[bind]] but for a specific url pattern (also see [[seturl]]).
