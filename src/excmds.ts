@@ -4278,7 +4278,7 @@ export function bindshow(...args: string[]){
 }
 
 /**
-     Generate a key sequence from keypresses. Once Enter is pressed, the command line is filled with a [[bind]] 
+     Generate a key sequence from keypresses. Once Enter is pressed, the command line is filled with a [[bind]]
      command with the key sequence and provided arguments, which you can choose to modify and execute.
 
      If you have `:set keylayoutforce true`, it will bind commands to physical keys regardless of layout.
