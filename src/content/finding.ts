@@ -107,7 +107,7 @@ class FindHighlight extends HTMLSpanElement {
         }
         fakeNode.parentElement = parent
 
-        const actions = scrollCompute(fakeNode, option)
+        const actions = scrollCompute(fakeNode as HTMLElement, option)
         for (const { el: element, top, left } of actions) {
             element.scrollTop = top
             element.scrollLeft = left
@@ -121,10 +121,11 @@ class FindHighlight extends HTMLSpanElement {
         if (focusable) focusable.focus()
 
         for (const node of this.children) {
-            node.style.background = `rgba(255,127,255,0.5)`
+            const element = node as HTMLElement
+            element.style.background = `rgba(255,127,255,0.5)`
         }
     }
-    queryInRange(selector: string): Element | null {
+    queryInRange(selector: string): HTMLElement | null {
         const range = this.range
         const rangeEndNode = range.endContainer
 
@@ -144,7 +145,8 @@ class FindHighlight extends HTMLSpanElement {
                         }
                         return NodeFilter.FILTER_SKIP
                     }
-                    if (node.matches(selector)) {
+                    const element = node as Element
+                    if (element.matches(selector)) {
                         return NodeFilter.FILTER_ACCEPT
                     } else return NodeFilter.FILTER_SKIP
                 },
@@ -152,10 +154,10 @@ class FindHighlight extends HTMLSpanElement {
         )
 
         walker.currentNode = range.startContainer
-        if (walker.parentNode()) return walker.currentNode
+        if (walker.parentNode()) return walker.currentNode as HTMLElement
         if (range.startContainer.isSameNode(rangeEndNode)) return null
         if (walker.nextNode() && !walker.currentNode.isSameNode(rangeEndNode)) {
-            return walker.currentNode
+            return walker.currentNode as HTMLElement
         }
         return null
     }
