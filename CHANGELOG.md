@@ -1,5 +1,52 @@
 # Tridactyl changelog
 
+# Release 1.23.0 / 2022-11-28
+
+-   New features
+
+    -   `:back` and `:forward` tab completions with tree style history ([#242](https://github.com/tridactyl/tridactyl/issues/242))
+    -   Local and global marks added. `m[a-zA-Z]` to add a mark, lowercase makes a local mark (unique to that page), uppercase makes a global mark. Global marks are preserved between browser restarts. Press backtick followed by a key to go to a mark. See the eighth page of the `:tutor` for more information ([#604](https://github.com/tridactyl/tridactyl/issues/604))
+    -   `:tgroup*` functionality added for "tab groups" for showing/hiding groups of tabs and switching between them. See `:help tgroupcreate` and `:help tgroupswitch` for usage tips ([#2359](https://github.com/tridactyl/tridactyl/issues/2359))
+    -   Proxy support added with `:proxyadd`, `:set proxy` and `:autocontain` support ([#4036](https://github.com/tridactyl/tridactyl/issues/4036))
+    -   `:tab` completions now shows whether tabs are pinned (P), audible (A), muted (M), or discarded (D) and allows filtering by these characters. `:set statusstylepretty true` to display emojis instead (but always use the same characters for filtering)
+    -   If bookmarking the current URL, `:bmark` will now use the tab's title if one is not provided, even if a folder path is provided ([#4457](https://github.com/tridactyl/tridactyl/issues/4457))
+    -   `:gobble` mode now accepts key combinations as terminators rather than just counts of key presses to accept. This lays the groundwork for making Tridactyl friendlier to more keyboard layouts ([#4440](https://github.com/tridactyl/tridactyl/issues/4440))
+    -   `:set jsurls.[keyword]` added which work like `searchurls` but provide js functions whose return value is called by `{,tab,win}open`. See `:help jsurls` for more information ([#4193](https://github.com/tridactyl/tridactyl/issues/4193))
+    -   `searchurls` now support array slicing with `%s[n:m]` ([#4194](https://github.com/tridactyl/tridactyl/issues/4194))
+    -   `:tabopen --focus-address-bar` added to open a new tab and give focus to the address bar ([#4259](https://github.com/tridactyl/tridactyl/issues/4259))
+    -   `{search,js}url` now support aliases ([#4363](https://github.com/tridactyl/tridactyl/issues/4363))
+    -   `:autocmd` now lets you modify requestHeaders and responseHeaders, for example if you want to change your User-Agent ([#4438](https://github.com/tridactyl/tridactyl/issues/4438))
+    -   `ex.insert_space` command added to insert a space in the command line, bound to `<C-Space>` by default ([#4176](https://github.com/tridactyl/tridactyl/issues/4176))
+
+-   Bug fixes
+
+    -   `visual` mode will now exit erroneously less often ([#4339](https://github.com/tridactyl/tridactyl/issues/4339))
+    -   Hint mode will now open more links in new tabs when requested, rather than falling back to opening things in the current tab ([#4430](https://github.com/tridactyl/tridactyl/issues/4430))
+    -   `:open` should now work with bookmarklets ([#4188](https://github.com/tridactyl/tridactyl/issues/4188))
+    -   `:find` now searches from view and gains some new arguments to control its behaviour ([#4378](https://github.com/tridactyl/tridactyl/issues/4378))
+    -   `:issue` should now prefill its fields correctly ([#3927](https://github.com/tridactyl/tridactyl/issues/3927))
+    -   You can no longer attempt to save files to illegal filenames ([#4126](https://github.com/tridactyl/tridactyl/issues/4126))
+    -   Flickering when opening a new tab with dark mode enabled has been reduced ([#4414](https://github.com/tridactyl/tridactyl/issues/4414))
+    -   `forced-color` CSS support improved ([#4283](https://github.com/tridactyl/tridactyl/issues/4283))
+    -   `:mktridactylrc` doesn't make `:seturl`s into global settings ([#4289](https://github.com/tridactyl/tridactyl/issues/4289))
+    -   `:set tabsort mru` now displays the current tab at the bottom ([#4169](https://github.com/tridactyl/tridactyl/issues/4169))
+
+-   Miscellaneous
+    -   More `:bind --mode=browser` bind slots added ([#4275](https://github.com/tridactyl/tridactyl/issues/4275))
+    -   We've added the `arg` argument parsing library so excmd arguments might become more consistent one day :)
+    -   Documentation of `:allowautofocus` and `:unfocus` improved
+    -   Documentation of `:native` for containerised (Snap, Flatpak, etc) installations of Firefox improved ([#4406](https://github.com/tridactyl/tridactyl/issues/4406))
+    -   Documentation for `:autocmd` improved ([#4320](https://github.com/tridactyl/tridactyl/issues/4320))
+    -   `:bind [key]` now returns a valid `:bind` command that you can edit ([#4409](https://github.com/tridactyl/tridactyl/issues/4409))
+    -   `:get [setting]` no longer returns an equals sign so it can be more easily changed into a `:set` ([#4410](https://github.com/tridactyl/tridactyl/issues/4410))
+    -   `:tutor` is now viewable directly on GitHub ([#4381](https://github.com/tridactyl/tridactyl/issues/4381))
+
+Thanks to all of our contributors for this release: Oliver Blanthorn, dependabot[bot], gholk, ivcz, pvs, Mariusz Kaczmarczyk, Michael Joseph Rosenthal, Denis Revunov, Gold Holk, Janek, Fox Kiester, Nicolas Ganz, Babil G. Sarwar, David Scotson, Eric, Eugene, Igor, Luka Markušić, Nicolas, Robin Ekman, badcold, fluem and mariuszdb.
+
+Extra special thanks go to badcold, Denis Revunov, Eric, Fox Kiester, gholk, Gold Holk, Igor, Janek, Luka Markušić, mariuszdb, Michael Joseph Rosenthal, Nicolas, Nicolas Ganz and Robin Ekman who all contributed for the first time.
+
+Last, but not least - thank you to everyone who reported issues.
+
 # Release 1.22.1 / 2022-03-23
 
 -   New features

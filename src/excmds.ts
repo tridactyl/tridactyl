@@ -692,6 +692,8 @@ export async function nativeopen(...args: string[]) {
  *
  * Requires the native messenger, obviously.
  *
+ * If you're using `exclaim` with arguments coming from a pipe, consider using [[shellescape]] to properly escape arguments and to prevent unsafe commands.
+ *
  * If you want to use a different shell, just prepend your command with whatever the invocation is and keep in mind that most shells require quotes around the command to be executed, e.g. `:exclaim xonsh -c "1+2"`.
  *
  * Aliased to `!` but the exclamation mark **must be followed with a space**.
@@ -1458,7 +1460,11 @@ export function find(...args: string[]) {
             "--reverse": Boolean,
             "-?": "--reverse",
         },
-        { argv: args, permissive: true },
+        {
+            argv: args,
+            permissive: true,
+            splitUnknownArguments: false,
+        },
     )
     const option = {}
     option["reverse"] = Boolean(argOpt["--reverse"])
@@ -1487,7 +1493,10 @@ export function findnext(...args: string[]) {
             "--reverse": Boolean,
             "-?": "--reverse",
         },
-        { argv: args },
+        {
+            argv: args,
+            allowNegativePositional: true,
+        },
     )
     if (option._.length > 0) n = Number(option._[0])
     if (option["--reverse"]) n = -n
@@ -4254,9 +4263,18 @@ export async function bind(...args: string[]) {
         p = config.set(args_obj.configName, args_obj.key, args_obj.excmd)
     } else if (args_obj.key.length) {
         // Display the existing bind
-        p = fillcmdline_notrail("bind", args_obj.key, config.getDynamic(args_obj.configName, args_obj.key))
+        p = bindshow(...args)
     }
     return p
+}
+
+/*
+ * Show what ex-command a key sequence is currently bound to
+ */
+//#background
+export function bindshow(...args: string[]){
+    const args_obj = parse_bind_args(...args)
+    return fillcmdline_notrail("bind", (args_obj.mode ? "--mode=" + args_obj.mode + " " : "") + args_obj.key, config.getDynamic(args_obj.configName, args_obj.key))
 }
 
 /**
