@@ -4263,9 +4263,18 @@ export async function bind(...args: string[]) {
         p = config.set(args_obj.configName, args_obj.key, args_obj.excmd)
     } else if (args_obj.key.length) {
         // Display the existing bind
-        p = fillcmdline_notrail("bind", args_obj.key, config.getDynamic(args_obj.configName, args_obj.key))
+        p = bindshow(...args)
     }
     return p
+}
+
+/*
+ * Show what ex-command a key sequence is currently bound to
+ */
+//#background
+export function bindshow(...args: string[]){
+    const args_obj = parse_bind_args(...args)
+    return fillcmdline_notrail("bind", (args_obj.mode ? "--mode=" + args_obj.mode + " " : "") + args_obj.key, config.getDynamic(args_obj.configName, args_obj.key))
 }
 
 /**
