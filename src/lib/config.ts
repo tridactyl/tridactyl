@@ -511,15 +511,15 @@ export class default_config {
     }
 
     /**
-     * Map for translating keys directly into other keys in normal-ish modes.
+     * @deprecated Map for translating keys directly into other keys in normal-ish modes.
      * For example, if you have an entry in this config option mapping `п` to `g`,
      * then you could type `пп` instead of `gg` or `пi` instead of `gi` or `;п` instead
      * of `;g`.
      *
      * This was primarily useful for international users, but now you can `set
-     * alwaysqwerty true`, which will make everything layout-independent.
-     * However, if you don't want qwerty, you can use it to map keys however you like
-     * and still have layout-independent behavior.
+     * keylayoutforce true`, which will make everything layout-independent(and work like qwerty by default),
+     * and use [[keylayoutforcemapping]] setting to change the desired layout.
+     *
      *
      * For example, you may want to map 'a' to 'q` on azerty
      * or 'r' to 'p' if you use dvorak.
@@ -536,22 +536,20 @@ export class default_config {
     }
 
     /**
-     * Whether to use the keytranslatemap. For example, useful for changing the effective base layout when using [[alwaysqwerty]].
-     *
-     * To make your `alwaysqwerty` layout more like a GB layout, run `:keymap @ "` and then no matter which layout you are using, pressing the `"` key on a physical GB layout will trigger `"` binds rather than `@` binds.
-     *
-     * As a rule of thumb: `:keymap [equivalent US key] [key you want to press on your physical layout]`
+     * @deprecated Whether to use the keytranslatemap.
+     * Legacy option to map one keyboard character to another, was used to emulate
+     * layout-independence. Now deprecated since you can set your layout once with [[keylayoutforce]]
+     * and [[keylayoutforcemapping]].
      */
     usekeytranslatemap: "true" | "false" = "true"
 
     /**
      * Instead of fetching actual character which depends on selected layout,
-     * use machine code of a key. Makes any keyboard work as if it is using a US QWERTY layout for all Tridactyl modes except free text input
-     * Recommended for everyone, especially multilingual.
+     * use machine code of a key and convert to character according to keylayoutforcemapping. The default layout mapping
+     * is QWERTY, but can be changed with `set keylayoutforcemapping <Code> <Values>`. See [[keylayoutforcemapping]].
      *
-     * If you don't want qwerty, you can use [[keytranslatemap]] or [[keylayoutforcemapping]] to map it to something else,
-     * and this setting is still useful because it makes all events tied to the physical
-     * keys.
+     * Recommended for everyone with multiple or/and non-latin keyboard layouts. Make sure usekeytranslatemap is false
+     * if you use it.
      */
     keylayoutforce: "true" | "false" = "false"
 
