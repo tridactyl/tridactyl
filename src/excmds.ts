@@ -4272,7 +4272,7 @@ export async function bind(...args: string[]) {
  * Show what ex-command a key sequence is currently bound to
  */
 //#background
-export function bindshow(...args: string[]){
+export function bindshow(...args: string[]) {
     const args_obj = parse_bind_args(...args)
     return fillcmdline_notrail("bind", (args_obj.mode ? "--mode=" + args_obj.mode + " " : "") + args_obj.key, config.getDynamic(args_obj.configName, args_obj.key))
 }
@@ -4331,6 +4331,10 @@ export function bindurl(pattern: string, mode: string, keys: string, ...excmd: s
  */
 //#background
 export function keymap(source: string, target: string) {
+    if (config.get("keylayoutforce") == "true") {
+        fillcmdline("You can't keymap with keylayoutforce set. Set values in keylayoutforcemapping to change layout for tridactyl shortcuts.")
+        return
+    }
     return set("keytranslatemap." + source, target)
 }
 
