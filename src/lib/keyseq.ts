@@ -486,19 +486,21 @@ function numericPrefixToExstrSuffix(numericPrefix: MinimalKey[]) {
 export function minimalKeyFromKeyboardEvent(
     keyEvent: KeyboardEvent,
 ): MinimalKey {
-    const keycodetranslatemap = config.get("keylayoutforcemapping")
-    let newkey = keyEvent.key
-    if (config.get("keylayoutforce") === "true") {
-        const translation = keycodetranslatemap[keyEvent.code]
-        if (translation) newkey = translation[+keyEvent.shiftKey]
-    }
-
-    const result = new MinimalKey(newkey, {
+    const modifiers = {
         altKey: keyEvent.altKey,
         ctrlKey: keyEvent.ctrlKey,
         metaKey: keyEvent.metaKey,
         shiftKey: keyEvent.shiftKey,
-    })
+    }
+    if (config.get("keylayoutforce") === "true") {
+        let newkey = keyEvent.key
+        const keycodetranslatemap = config.get("keylayoutforcemapping")
+        const translation = keycodetranslatemap[keyEvent.code]
+        if (translation) newkey = translation[+keyEvent.shiftKey]
+        return new MinimalKey(newkey, modifiers)
+    }
+
+    const result = new MinimalKey(keyEvent.key, modifiers)
     if (config.get("usekeytranslatemap") === "true") {
         const translationmap = config.get("keytranslatemap")
         return result.translate(translationmap)
