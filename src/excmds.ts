@@ -4322,12 +4322,13 @@ export function bindurl(pattern: string, mode: string, keys: string, ...excmd: s
 }
 
 /**
+ *  Deprecated: use `:set keylayoutforce true` instead.
+ *
  *  Makes one key equivalent to another for the purposes of most of our parsers. Useful for international keyboard layouts. See user-provided examples for various layouts on our wiki: https://github.com/tridactyl/tridactyl/wiki/Internationalisation
  *
  *  e.g,
  *      keymap ę e
  *
- *  See `:help keytranslatemodes` to enable keymaps in modes other than normal mode.
  */
 //#background
 export function keymap(source: string, target: string) {

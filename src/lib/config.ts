@@ -548,8 +548,10 @@ export class default_config {
      * use machine code of a key and convert to character according to keylayoutforcemapping. The default layout mapping
      * is QWERTY, but can be changed with `set keylayoutforcemapping <Code> <Values>`. See [[keylayoutforcemapping]].
      *
+     * There is a much more detailed help page towards the end of `:tutor` under the title "Non-QWERTY layouts".
+     *
      * Recommended for everyone with multiple or/and non-latin keyboard layouts. Make sure usekeytranslatemap is false
-     * if you use it.
+     * if you have previously used `keymap`.
      */
     keylayoutforce: "true" | "false" = "false"
 
