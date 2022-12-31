@@ -4272,11 +4272,32 @@ export async function bind(...args: string[]) {
  * Show what ex-command a key sequence is currently bound to
  */
 //#background
-export function bindshow(...args: string[]){
+export function bindshow(...args: string[]) {
     const args_obj = parse_bind_args(...args)
     return fillcmdline_notrail("bind", (args_obj.mode ? "--mode=" + args_obj.mode + " " : "") + args_obj.key, config.getDynamic(args_obj.configName, args_obj.key))
 }
 
+/**
+     Generate a key sequence from keypresses. Once Enter is pressed, the command line is filled with a [[bind]]
+     command with the key sequence and provided arguments, which you can choose to modify and execute.
+
+     If you have `:set keylayoutforce true`, it will bind commands to physical keys regardless of layout.
+
+     Accepts the same arguments as [[bind]] (except for the key sequence which will be generated):
+
+         - `bindwizard [command]`, then press the keys you want to bind, then hit Enter.
+         - `bindwizard --mode=[mode] [command]` also works.
+
+     You can execute it without arguments to see what is bound to the keys you type.
+*/
+export async function bindwizard(...args: string[]) {
+    // TODO: this should use parse_bind_args in case we ever support e.g. --url=
+    let mode = "normal"
+    if (args.length && args[0].startsWith("--mode=")) {
+        mode = args.shift().replace("--mode=", "")
+    }
+    return gobble("<CR>", `fillcmdline_notrail bind --mode=${mode}`, ...args)
+}
 /**
  * Like [[bind]] but for a specific url pattern (also see [[seturl]]).
  *
@@ -4301,15 +4322,20 @@ export function bindurl(pattern: string, mode: string, keys: string, ...excmd: s
 }
 
 /**
+ *  Deprecated: use `:set keylayoutforce true` instead.
+ *
  *  Makes one key equivalent to another for the purposes of most of our parsers. Useful for international keyboard layouts. See user-provided examples for various layouts on our wiki: https://github.com/tridactyl/tridactyl/wiki/Internationalisation
  *
  *  e.g,
  *      keymap ę e
  *
- *  See `:help keytranslatemodes` to enable keymaps in modes other than normal mode.
  */
 //#background
 export function keymap(source: string, target: string) {
+    if (config.get("keylayoutforce") == "true") {
+        fillcmdline("You can't keymap with keylayoutforce set. Set values in keylayoutforcemapping to change layout for tridactyl shortcuts.")
+        return
+    }
     return set("keytranslatemap." + source, target)
 }
 
@@ -5352,15 +5378,15 @@ export function run_exstr(...commands: string[]) {
 
 /** Initialize gobble mode.
 
-    If numKeysOrTerminator is a number, it will read the provided amount of keys,
-    append them to `endCmd` and execute that string.
-    If numKeysOrTerminator is a key or key combination like 'k', '<CR>' or '<C-j>',
-    it will read keys until the provided key is pressed, append them to `endCmd` and
-    execute that string.
+    If numKeysOrTerminator is a number, it will read the provided amount of keys;
+    If numKeysOrTerminator is a key or key combination like 'k', '<CR>' or '<C-j>';
+    it will read keys until the provided key is pressed.
+    Then it will append the keypresses to `endCmd` and execute that string,
+    also appending arguments if provided.
 */
 //#content
-export async function gobble(numKeysOrTerminator: string, endCmd: string) {
-    return gobbleMode.init(numKeysOrTerminator, endCmd)
+export async function gobble(numKeysOrTerminator: string, endCmd: string, ...args: string[]) {
+    return gobbleMode.init(numKeysOrTerminator, endCmd, ...args)
 }
 
 // }}}

@@ -6,6 +6,7 @@ class GobbleState {
     public numKeysOrTerminator: number | string = 0
     public keyCombination = ""
     public endCommand = ""
+    public args
 }
 
 let modeState: GobbleState
@@ -13,7 +14,11 @@ let modeState: GobbleState
 /** Init gobble mode. After parsing the defined number of input keys,
  * or until provided terminator key, execute `endCmd` with attached parsed input.
  * `Escape` cancels the mode and returns to normal mode. */
-export function init(numKeysOrTerminator: string, endCommand: string) {
+export function init(
+    numKeysOrTerminator: string,
+    endCommand: string,
+    ...args: string[]
+) {
     contentState.mode = "gobble"
     modeState = new GobbleState()
     const number = Number(numKeysOrTerminator)
@@ -22,6 +27,7 @@ export function init(numKeysOrTerminator: string, endCommand: string) {
     } else
         modeState.numKeysOrTerminator = canonicaliseMapstr(numKeysOrTerminator)
     modeState.endCommand = endCommand
+    modeState.args = args.join(" ")
 }
 
 /** Reset state. */
@@ -33,7 +39,11 @@ function reset() {
 /** Receive keypress. If applicable, execute a command. */
 export function parser(keys: MinimalKey[]) {
     function exec() {
-        const exstr = modeState.endCommand + " " + modeState.keyCombination
+        const exstr = [
+            modeState.endCommand,
+            modeState.keyCombination,
+            modeState.args,
+        ].join(" ")
         reset()
         return { keys: [], exstr }
     }

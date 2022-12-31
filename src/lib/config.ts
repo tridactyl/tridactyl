@@ -511,7 +511,18 @@ export class default_config {
     }
 
     /**
-     * Map for translating keys directly into other keys in normal-ish modes. For example, if you have an entry in this config option mapping `п` to `g`, then you could type `пп` instead of `gg` or `пi` instead of `gi` or `;п` instead of `;g`. This is primarily useful for international users who don't want to deal with rebuilding their bindings every time tridactyl ships a new default keybind. It's not as good as shipping properly internationalized sets of default bindings, but it's probably as close as we're going to get on a small open-source project like this.
+     * @deprecated Map for translating keys directly into other keys in normal-ish modes.
+     * For example, if you have an entry in this config option mapping `п` to `g`,
+     * then you could type `пп` instead of `gg` or `пi` instead of `gi` or `;п` instead
+     * of `;g`.
+     *
+     * This was primarily useful for international users, but now you can `set
+     * keylayoutforce true`, which will make everything layout-independent(and work like qwerty by default),
+     * and use [[keylayoutforcemapping]] setting to change the desired layout.
+     *
+     *
+     * For example, you may want to map 'a' to 'q` on azerty
+     * or 'r' to 'p' if you use dvorak.
      *
      * Note that the current implementation does not allow you to "chain" keys, for example, "a"=>"b" and "b"=>"c" for "a"=>"c". You can, however, swap or rotate keys, so "a"=>"b" and "b"=>"a" will work the way you'd expect, as will "a"=>"b" and "b"=>"c" and "c"=>"a".
      */
@@ -525,15 +536,82 @@ export class default_config {
     }
 
     /**
-     * Whether to use the keytranslatemap in various maps.
+     * @deprecated Whether to use the keytranslatemap.
+     * Legacy option to map one keyboard character to another, was used to emulate
+     * layout-independence. Now deprecated since you can set your layout once with [[keylayoutforce]]
+     * and [[keylayoutforcemapping]].
      */
-    keytranslatemodes: { [key: string]: "true" | "false" } = {
-        nmaps: "true",
-        imaps: "false",
-        inputmaps: "false",
-        ignoremaps: "false",
-        exmaps: "false",
-        hintmaps: "false",
+    usekeytranslatemap: "true" | "false" = "true"
+
+    /**
+     * Instead of fetching actual character which depends on selected layout,
+     * use machine code of a key and convert to character according to keylayoutforcemapping. The default layout mapping
+     * is QWERTY, but can be changed with `set keylayoutforcemapping <Code> <Values>`. See [[keylayoutforcemapping]].
+     *
+     * There is a much more detailed help page towards the end of `:tutor` under the title "Non-QWERTY layouts".
+     *
+     * Recommended for everyone with multiple or/and non-latin keyboard layouts. Make sure usekeytranslatemap is false
+     * if you have previously used `keymap`.
+     */
+    keylayoutforce: "true" | "false" = "false"
+
+    /**
+     * Key codes for printable keys for [[keylayoutforce]], lower and upper register.
+     * See https://developer.mozilla.org/en-US/docs/Web/API/UI_Events/Keyboard_event_code_values
+     * This assumes en-US layout by default, but you can use this setting to change that.
+     *
+     * NB: due to a Tridactyl bug, you cannot set this using array notation as you can for, e.g. [[homepage]].
+     * You must instead set the lower and upper registers using a string with no spaces in it, for example
+     * `:set keylayoutforcemapping Digit2: 2"` for the British English layout.
+     */
+    keylayoutforcemapping = {
+        KeyA: ["a", "A"],
+        KeyB: ["b", "B"],
+        KeyC: ["c", "C"],
+        KeyD: ["d", "D"],
+        KeyE: ["e", "E"],
+        KeyF: ["f", "F"],
+        KeyG: ["g", "G"],
+        KeyH: ["h", "H"],
+        KeyI: ["i", "I"],
+        KeyJ: ["j", "J"],
+        KeyK: ["k", "K"],
+        KeyL: ["l", "L"],
+        KeyM: ["m", "M"],
+        KeyN: ["n", "N"],
+        KeyO: ["o", "O"],
+        KeyP: ["p", "P"],
+        KeyQ: ["q", "Q"],
+        KeyR: ["r", "R"],
+        KeyS: ["s", "S"],
+        KeyT: ["t", "T"],
+        KeyU: ["u", "U"],
+        KeyV: ["v", "V"],
+        KeyW: ["w", "W"],
+        KeyX: ["x", "X"],
+        KeyY: ["y", "Y"],
+        KeyZ: ["z", "Z"],
+        Digit0: ["0", ")"],
+        Digit1: ["1", "!"],
+        Digit2: ["2", "@"],
+        Digit3: ["3", "#"],
+        Digit4: ["4", "$"],
+        Digit5: ["5", "%"],
+        Digit6: ["6", "^"],
+        Digit7: ["7", "&"],
+        Digit8: ["8", "*"],
+        Digit9: ["9", "("],
+        Equal: ["=", "+"],
+        Backquote: ["`", "~"],
+        Backslash: ["\\", "|"],
+        Period: [".", ">"],
+        Comma: [",", "<"],
+        Semicolon: [";", ":"],
+        Slash: ["/", "?"],
+        BracketLeft: ["[", "{"],
+        BracketRight: ["]", "}"],
+        Quote: ["'", '"'],
+        Minus: ["-", "_"],
     }
 
     /**

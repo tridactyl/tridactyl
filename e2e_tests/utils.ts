@@ -80,7 +80,7 @@ export function sendKeys (driver, keys) {
             })
             .then(() => driver.sleep(delay))
     }
-
+    keys = keys.replace(":", "<S-;>")
     let result = Promise.resolve()
     const regexp = /<[^>-]+-?[^>]*>/g
     const specialKeys = keys.match(regexp)
