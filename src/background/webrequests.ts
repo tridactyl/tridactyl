@@ -1,14 +1,15 @@
-export const requestEvents = [
-    "AuthRequired",
-    "BeforeRedirect",
-    "BeforeRequest",
-    "BeforeSendHeaders",
-    "Completed",
-    "ErrorOccured",
-    "HeadersReceived",
-    "ResponseStarted",
-    "SendHeaders",
-]
+export const requestEventExpraInfoSpecMap = {
+    AuthRequired: ["blocking", "responseHeaders"],
+    BeforeRedirect: ["responseHeaders"],
+    BeforeRequest: ["blocking", "requestBody"],
+    BeforeSendHeaders: ["blocking", "requestHeaders"],
+    Completed: ["responseHeaders"],
+    ErrorOccured: [],
+    HeadersReceived: ["blocking", "responseHeaders"],
+    ResponseStarted: ["responseHeaders"],
+    SendHeaders: ["requestHeaders"],
+}
+export const requestEvents = Object.keys(requestEventExpraInfoSpecMap)
 
 // I'm being lazy - strictly the functions map strings to void | blocking responses
 // eslint-disable-next-line @typescript-eslint/ban-types
@@ -27,7 +28,7 @@ export const registerWebRequestAutocmd = (
     return browser.webRequest["on" + requestEvent].addListener(
         listener,
         { urls: [pattern] },
-        ["blocking", "requestHeaders", "requestBody", "responseHeaders"],
+        requestEventExpraInfoSpecMap[requestEvent],
     )
 }
 
