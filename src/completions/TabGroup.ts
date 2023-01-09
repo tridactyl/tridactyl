@@ -6,12 +6,16 @@ class TabGroupCompletionOption
     implements Completions.CompletionOptionFuse {
     public fuseKeys = []
 
-    constructor(group: string, tabCount: number) {
+    constructor(group: string, tabCount: number, current: boolean) {
         super()
         this.value = group
         this.fuseKeys.push(group)
+        let label = group
+        if (current) {
+            label += " (active)"
+        }
         this.html = html`<tr class="TabGroupCompletionOption option">
-            <td class="title">${group}</td>
+            <td class="title">${label}</td>
             <td class="tabcount">
                 ${tabCount} tab${tabCount !== 1 ? "s" : ""}
             </td>
@@ -54,13 +58,17 @@ export class TabGroupCompletionSource extends Completions.CompletionSourceFuse {
     private async updateOptions(exstr = "") {
         const [_prefix, query] = this.splitOnPrefix(exstr)
         const currentGroup = await windowTgroup()
-        const otherGroups = [...(await tgroups())]
-            .filter(group => group !== currentGroup)
-            .filter(group => group.startsWith(query))
+        const groups = [...(await tgroups())].filter(group =>
+            group.startsWith(query),
+        )
         this.options = await Promise.all(
-            otherGroups.map(async group => {
+            groups.map(async group => {
                 const tabCount = (await tgroupTabs(group)).length
-                const o = new TabGroupCompletionOption(group, tabCount)
+                const o = new TabGroupCompletionOption(
+                    group,
+                    tabCount,
+                    group === currentGroup,
+                )
                 o.state = "normal"
                 return o
             }),

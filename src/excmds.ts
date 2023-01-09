@@ -3495,7 +3495,7 @@ export async function tgroupcreate(name: string) {
 //#background
 export async function tgroupswitch(name: string) {
     if (name == (await windowTgroup())) {
-        throw new Error(`Already on tab group "${name}"`)
+        return
     }
 
     const groups = await tgroups()
