@@ -3542,10 +3542,10 @@ export async function tgrouprename(name: string) {
 }
 
 /**
- * Close the current tab group.
+ * Close all tabs in the current tab group and delete the group.
  *
- * First switch to the previously active tab group. Do nothing if there is only
- * one tab group.
+ * Switch to the previously active tab group. Do nothing if there is only one
+ * tab group.
  *
  */
 //#background
