@@ -3566,7 +3566,7 @@ export async function tgroupclose() {
 }
 
 /**
- * Move the current tab to another tab group.
+ * Move the current tab to another tab group, creating it if it does not exist.
  *
  * @param name The name of the tab group to move the tab to.
  *
@@ -3582,16 +3582,19 @@ export async function tgroupmove(name: string) {
     if (groups.size == 0) {
         throw new Error("No tab groups exist")
     }
-    if (!groups.has(name)) {
-        throw new Error(`Tab group "${name}" does not exist`)
-    }
     if (name == currentGroup) {
         throw new Error(`Tab is already on group "${name}"`)
+    }
+    if (!groups.has(name)) {
+        // Create new tab group if there isn't one with this name
+        groups.add(name)
+        await setTgroups(groups)
     }
 
     const tabCount = await tgroupTabs(currentGroup).then(tabs => tabs.length)
 
     await setTabTgroup(name)
+    setContentStateGroup(name)
     const currentTabId = await activeTabId()
 
     // switch to other group if this is the last tab in the current group
