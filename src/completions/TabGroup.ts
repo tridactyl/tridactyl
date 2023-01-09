@@ -1,7 +1,8 @@
 import * as Completions from "@src/completions"
 import { tgroups, windowTgroup, tgroupTabs } from "@src/lib/tab_groups"
 
-class TabGroupCompletionOption extends Completions.CompletionOptionHTML
+class TabGroupCompletionOption
+    extends Completions.CompletionOptionHTML
     implements Completions.CompletionOptionFuse {
     public fuseKeys = []
 
@@ -11,9 +12,9 @@ class TabGroupCompletionOption extends Completions.CompletionOptionHTML
         this.fuseKeys.push(group)
         this.html = html`<tr class="TabGroupCompletionOption option">
             <td class="title">${group}</td>
-            <td class="tabcount">${tabCount} tab${
-            tabCount !== 1 ? "s" : ""
-        }</td>
+            <td class="tabcount">
+                ${tabCount} tab${tabCount !== 1 ? "s" : ""}
+            </td>
         </tr>`
     }
 }
@@ -47,14 +48,15 @@ export class TabGroupCompletionSource extends Completions.CompletionSourceFuse {
             return
         }
 
-        return this.updateDisplay()
+        return this.updateOptions(exstr)
     }
 
-    private async updateOptions() {
+    private async updateOptions(exstr = "") {
+        const [_prefix, query] = this.splitOnPrefix(exstr)
         const currentGroup = await windowTgroup()
-        const otherGroups = [...(await tgroups())].filter(
-            group => group !== currentGroup,
-        )
+        const otherGroups = [...(await tgroups())]
+            .filter(group => group !== currentGroup)
+            .filter(group => group.startsWith(query))
         this.options = await Promise.all(
             otherGroups.map(async group => {
                 const tabCount = (await tgroupTabs(group)).length
