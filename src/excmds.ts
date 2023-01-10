@@ -3542,22 +3542,33 @@ export async function tgrouprename(name: string) {
 }
 
 /**
- * Close all tabs in the current tab group and delete the group.
+ * Close all tabs in a tab group and delete the group.
  *
- * Switch to the previously active tab group. Do nothing if there is only one
- * tab group.
+ * @param name The name of the tab group to close. If not specified, close the
+ * current tab group and switch to the previously active tab group.
+ *
+ * Do nothing if there is only one tab group.
  *
  */
 //#background
-export async function tgroupclose() {
+export async function tgroupclose(name?: string) {
     const groups = await tgroups()
     if (groups.size == 0) {
         throw new Error("No tab groups exist")
     } else if (groups.size == 1) {
         throw new Error("This is the only tab group")
+    } else if (name !== undefined && !groups.has(name)) {
+        throw new Error(`No tab group named "${name}"`)
     } else if (groups.size > 1) {
-        const closeGroup = await windowTgroup()
-        const newTabGroup = await tgroupActivateLast()
+        const currentGroup = await windowTgroup()
+        let closeGroup = currentGroup
+        if (name !== undefined) {
+            closeGroup = name
+        }
+        let newTabGroup = currentGroup
+        if (closeGroup === currentGroup) {
+            newTabGroup = await tgroupActivateLast()
+        }
         await tgroupTabs(closeGroup).then(tabs => {
             browser.tabs.remove(tabs.map(tab => tab.id))
         })
