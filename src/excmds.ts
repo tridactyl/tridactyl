@@ -2359,6 +2359,7 @@ if (fullscreenApiIsPrefixed) {
 //#content
 export async function loadaucmds(cmdType: "DocStart" | "DocLoad" | "DocEnd" | "TabEnter" | "TabLeft" | "FullscreenEnter" | "FullscreenLeft" | "FullscreenChange" | "UriChange" | "HistoryState") {
     const aucmds = await config.getAsync("autocmds", cmdType)
+    if (!aucmds) return
     const ausites = Object.keys(aucmds)
     const aukeyarr = ausites.filter(e => window.document.location.href.search(e) >= 0)
     const owntab = await ownTab()
