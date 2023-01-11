@@ -3467,7 +3467,7 @@ export async function tgroupcreate(name: string) {
         promises.push(tgroupTabs(name, true).then(tabs => browserBg.tabs.hide(tabs.map(tab => tab.id))))
     } else {
         promises.push(
-            browser.tabs.query({ currentWindow: true }).then(tabs => {
+            browser.tabs.query({ currentWindow: true, pinned: false }).then(tabs => {
                 setTabTgroup(
                     name,
                     tabs.map(({ id }) => id),
