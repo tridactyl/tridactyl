@@ -1,21 +1,35 @@
 import * as Completions from "@src/completions"
-import { tgroups, windowTgroup, tgroupTabs } from "@src/lib/tab_groups"
+import {
+    tgroups,
+    windowTgroup,
+    windowLastTgroup,
+    tgroupTabs,
+} from "@src/lib/tab_groups"
 
 class TabGroupCompletionOption
     extends Completions.CompletionOptionHTML
     implements Completions.CompletionOptionFuse {
     public fuseKeys = []
 
-    constructor(group: string, tabCount: number, current: boolean) {
+    constructor(
+        group: string,
+        tabCount: number,
+        current: boolean,
+        alternate: boolean,
+    ) {
         super()
         this.value = group
         this.fuseKeys.push(group)
-        let label = group
+        let pre = ""
         if (current) {
-            label += " (active)"
+            pre += "%"
+        }
+        if (alternate) {
+            pre += "#"
         }
         this.html = html`<tr class="TabGroupCompletionOption option">
-            <td class="title">${label}</td>
+            <td class="prefix">${pre}</td>
+            <td class="title">${group}</td>
             <td class="tabcount">
                 ${tabCount} tab${tabCount !== 1 ? "s" : ""}
             </td>
@@ -58,8 +72,11 @@ export class TabGroupCompletionSource extends Completions.CompletionSourceFuse {
     private async updateOptions(exstr = "") {
         const [_prefix, query] = this.splitOnPrefix(exstr)
         const currentGroup = await windowTgroup()
-        const groups = [...(await tgroups())].filter(group =>
-            group.startsWith(query),
+        const alternateGroup = await windowLastTgroup()
+        const groups = [...(await tgroups())].filter(
+            group =>
+                group.startsWith(query) ||
+                (query === "#" && group === alternateGroup),
         )
         this.options = await Promise.all(
             groups.map(async group => {
@@ -68,6 +85,7 @@ export class TabGroupCompletionSource extends Completions.CompletionSourceFuse {
                     group,
                     tabCount,
                     group === currentGroup,
+                    group === alternateGroup,
                 )
                 o.state = "normal"
                 return o

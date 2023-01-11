@@ -170,7 +170,7 @@ import * as Updates from "@src/lib/updates"
 import * as Extensions from "@src/lib/extension_info"
 import * as webrequests from "@src/background/webrequests"
 import * as commandsHelper from "@src/background/commands"
-import { tgroups, tgroupActivate, setTabTgroup, setWindowTgroup, setTgroups, windowTgroup, tgroupClearOldInfo, tgroupLastTabId, tgroupTabs, clearAllTgroupInfo, tgroupActivateLast, tgroupHandleTabActivated, tgroupHandleTabCreated, tgroupHandleTabAttached, tgroupHandleTabUpdated, tgroupHandleTabRemoved, tgroupHandleTabDetached } from "./lib/tab_groups"
+import { tgroups, tgroupActivate, setTabTgroup, setWindowTgroup, setTgroups, windowTgroup, windowLastTgroup, tgroupClearOldInfo, tgroupLastTabId, tgroupTabs, clearAllTgroupInfo, tgroupActivateLast, tgroupHandleTabActivated, tgroupHandleTabCreated, tgroupHandleTabAttached, tgroupHandleTabUpdated, tgroupHandleTabRemoved, tgroupHandleTabDetached } from "./lib/tab_groups"
 
 ALL_EXCMDS = {
     "": BGSELF,
@@ -3456,7 +3456,7 @@ export async function tgroupcreate(name: string) {
     const promises = []
     const groups = await tgroups()
 
-    if (groups.has(name)) {
+    if (groups.has(name) || name === "#") {
         throw new Error(`Tab group "${name}" already exists`)
     }
 
@@ -3494,6 +3494,9 @@ export async function tgroupcreate(name: string) {
  */
 //#background
 export async function tgroupswitch(name: string) {
+    if (name === "#") {
+        return tgrouplast().then(() => name)
+    }
     if (name == (await windowTgroup())) {
         return
     }
@@ -3557,12 +3560,17 @@ export async function tgroupclose(name?: string) {
         throw new Error("No tab groups exist")
     } else if (groups.size == 1) {
         throw new Error("This is the only tab group")
-    } else if (name !== undefined && !groups.has(name)) {
+    } else if (name !== undefined && name !== "#" && !groups.has(name)) {
         throw new Error(`No tab group named "${name}"`)
     } else if (groups.size > 1) {
         const currentGroup = await windowTgroup()
         let closeGroup = currentGroup
-        if (name !== undefined) {
+        if (name === "#") {
+            closeGroup = await windowLastTgroup()
+            if (name === undefined) {
+                throw new Error("No alternate tab group")
+            }
+        } else if (name !== undefined) {
             closeGroup = name
         }
         let newTabGroup = currentGroup
@@ -3595,6 +3603,12 @@ export async function tgroupmove(name: string) {
     }
     if (name == currentGroup) {
         throw new Error(`Tab is already on group "${name}"`)
+    }
+    if (name === "#") {
+        name = await windowLastTgroup()
+        if (name === undefined) {
+            throw new Error("No alternate tab group")
+        }
     }
     if (!groups.has(name)) {
         // Create new tab group if there isn't one with this name
