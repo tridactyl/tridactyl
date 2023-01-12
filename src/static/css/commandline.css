@@ -168,72 +168,75 @@ a.url:hover {
 }
 
 /* Still completions, but container-related stuff */
-.option .container,
+.option .container {
+    mask-size: 1em;
+    mask-repeat: no-repeat;
+    mask-position: center;
+}
 .option .privatewindow {
     background-size: 1em;
     background-repeat: no-repeat;
     background-position: center;
-    -moz-context-properties: fill;
 }
 .option.container_blue .container {
-    fill: var(--tridactyl-container-color-blue);
+    background-color: var(--tridactyl-container-color-blue);
 }
 .option.container_turquoise .container {
-    fill: var(--tridactyl-container-color-turquoise);
+    background-color: var(--tridactyl-container-color-turquoise);
 }
 .option.container_green .container {
-    fill: var(--tridactyl-container-color-green);
+    background-color: var(--tridactyl-container-color-green);
 }
 .option.container_yellow .container {
-    fill: var(--tridactyl-container-color-yellow);
+    background-color: var(--tridactyl-container-color-yellow);
 }
 .option.container_orange .container {
-    fill: var(--tridactyl-container-color-orange);
+    background-color: var(--tridactyl-container-color-orange);
 }
 .option.container_red .container {
-    fill: var(--tridactyl-container-color-red);
+    background-color: var(--tridactyl-container-color-red);
 }
 .option.container_pink .container {
-    fill: var(--tridactyl-container-color-pink);
+    background-color: var(--tridactyl-container-color-pink);
 }
 .option.container_purple .container {
-    fill: var(--tridactyl-container-color-purple);
+    background-color: var(--tridactyl-container-color-purple);
 }
 .option.container_fingerprint .container {
-    background-image: var(--tridactyl-container-fingerprint-url);
+    mask-image: var(--tridactyl-container-fingerprint-url);
 }
 .option.container_briefcase .container {
-    background-image: var(--tridactyl-container-briefcase-url);
+    mask-image: var(--tridactyl-container-briefcase-url);
 }
 .option.container_dollar .container {
-    background-image: var(--tridactyl-container-dollar-url);
+    mask-image: var(--tridactyl-container-dollar-url);
 }
 .option.container_cart .container {
-    background-image: var(--tridactyl-container-cart-url);
+    mask-image: var(--tridactyl-container-cart-url);
 }
 .option.container_circle .container {
-    background-image: var(--tridactyl-container-circle-url);
+    mask-image: var(--tridactyl-container-circle-url);
 }
 .option.container_gift .container {
-    background-image: var(--tridactyl-container-gift-url);
+    mask-image: var(--tridactyl-container-gift-url);
 }
 .option.container_vacation .container {
-    background-image: var(--tridactyl-container-vacation-url);
+    mask-image: var(--tridactyl-container-vacation-url);
 }
 .option.container_food .container {
-    background-image: var(--tridactyl-container-food-url);
+    mask-image: var(--tridactyl-container-food-url);
 }
 .option.container_fruit .container {
-    background-image: var(--tridactyl-container-fruit-url);
+    mask-image: var(--tridactyl-container-fruit-url);
 }
 .option.container_pet .container {
-    background-image: var(--tridactyl-container-pet-url);
+    mask-image: var(--tridactyl-container-pet-url);
 }
 .option.container_tree .container {
-    background-image: var(--tridactyl-container-tree-url);
+    mask-image: var(--tridactyl-container-tree-url);
 }
 .option.container_chill .container {
-    background-image: var(--tridactyl-container-chill-url);
+    mask-image: var(--tridactyl-container-chill-url);
 }
 
 .ExcmdCompletionOption td.excmd {
