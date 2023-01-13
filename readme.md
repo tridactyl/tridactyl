@@ -235,7 +235,7 @@ You can bind your own shortcuts in normal mode with the `:bind` command. For exa
     -   quakelight
     -   midnight (authored by @karizma)
 
-    Tridactyl can also load themes from disk or URL, which would let you use one of the themes authored by @bezmi ([bezmi/base16-tridactyl](https://github.com/bezmi/base16-tridactyl)). See `:help colors` for more information.
+    Tridactyl can also load themes from disk or URL. You could use this for example to load one of the themes originally authored by @bezmi ([tridactyl/base16-tridactyl](https://github.com/tridactyl/base16-tridactyl)). See `:help colors` for more information.
 
 -   How to remap keybindings? or How can I bind keys using the control/alt key modifiers (eg: `ctrl+^`)?
 
