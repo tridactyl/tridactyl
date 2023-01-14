@@ -6,7 +6,7 @@ Tridactyl
 <br>
 </h1>
 
-<h4 align="center">Replace Firefox's default control mechanism with one modelled on the one true editor, Vim.</h4>    
+<h4 align="center">Replace Firefox's default control mechanism with one modelled on the one true editor, Vim.</h4>
 
 <p align="center">
 <a href="https://travis-ci.org/tridactyl/tridactyl"><img src="https://travis-ci.org/tridactyl/tridactyl.svg?branch=master" alt="Build Status"></a>
