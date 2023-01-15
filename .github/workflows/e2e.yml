@@ -85,6 +85,7 @@ jobs:
         max_attempts: 40
         timeout_minutes: 10
         retry_wait_seconds: 10
+        shell: bash
         command: |
           yarn run clean && yarn run build --old-native && yarn make-zip && yarn jest
     # - name: Test (Chrome, Linux)
