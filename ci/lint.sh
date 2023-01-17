@@ -5,5 +5,6 @@ if [ -x "$(command -v shellcheck)" ]; then
 else
 	echo "Warning: shellcheck is not installed, skipping shell scripts"
 fi
+yarn add --dev https://github.com/tridactyl/eslint-plugin-compat#webext
 yarn run lint
 "$(yarn bin)/eslint" --ext .ts .

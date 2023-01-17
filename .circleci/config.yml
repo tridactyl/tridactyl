@@ -6,7 +6,7 @@ commands:
       - restore_cache:
           keys:
             - dependency-cache-{{ checksum "package.json" }}
-      - run: yarn install
+      - run: yarn install --frozen-lockfile
       - save_cache:
           key: dependency-cache-{{ checksum "package.json" }}
           paths:
