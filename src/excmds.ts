@@ -3487,9 +3487,14 @@ export async function tgroupcreate(name: string) {
 /**
  * Switch to a different tab group, hiding all other tabs.
  *
+ * "%" denotes the current tab group and "#" denotes the tab group that was
+ * last active. "A" indates a tab group that contains an audible tab. Use
+ * `:set completions.Tab.statusstylepretty true` to display a unicode character
+ * instead.
+ *
  * @param name The name of the tab group to switch to.
  *
- * If the tab group does not exist, act like tgroupcreate.
+ * If the tab group does not exist, act like [[tgroupcreate]].
  *
  */
 //#background
@@ -3550,7 +3555,8 @@ export async function tgrouprename(name: string) {
  * @param name The name of the tab group to close. If not specified, close the
  * current tab group and switch to the previously active tab group.
  *
- * Do nothing if there is only one tab group.
+ * Do nothing if there is only one tab group - to discard all tab group
+ * information, use [[tgroupabort]].
  *
  */
 //#background
@@ -4081,7 +4087,7 @@ export async function yankimage(url: string): Promise<void> {
 
         A string following the following format: "[0-9]+.[0-9]+" means the first number being the index of the window that should be selected and the second one being the index of the tab within that window. [[taball]] has completions for this format.
 
-        "%" denotes the current tab and "#" denotes the tab that was last accessed in this window.  "P", "A", "M" and "D" indicate tab status (i.e. a pinned, audible, muted or discarded tab.  Use `:set completions.Tab.statusstylepretty true` to display unicode characters instead.  "P","A","M","D" can be used to filter by tab status in either setting.
+        "%" denotes the current tab and "#" denotes the tab that was last accessed in this window.  "P", "A", "M" and "D" indicate tab status (i.e. a pinned, audible, muted or discarded tab).  Use `:set completions.Tab.statusstylepretty true` to display unicode characters instead.  "P","A","M","D" can be used to filter by tab status in either setting.
 
         A non integer string means to search the URL and title for matches, in this window if called from tab, all windows if called from taball. Title matches can contain '*' as a wildcard.
  */
