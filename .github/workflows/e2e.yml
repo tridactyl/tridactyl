@@ -4,11 +4,19 @@ on:
   push:
     branches:
       - 'master'
+    paths-ignore:
+      - '/readme.md'
   pull_request:
     branches:
       - '*'
+    paths-ignore:
+      - '/readme.md'
   schedule:
-    - cron: "45 7 * * *"
+    - cron: '45 7 * * *'
+
+concurrency:
+  group: e2e-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   test:
