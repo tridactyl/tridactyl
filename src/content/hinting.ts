@@ -396,12 +396,19 @@ interface Hintables {
     hintclasses?: string[]
 }
 
-/** A convient javascript interface to hint on specified html elements.
-  The return value is a promise resolve to the selected element,
-  or a AsyncIterator resolve to the selected elements in rapid mode.
+/**
+  A convenient javascript interface to hint on specified html elements.
+  The return value is a promise resolving to the selected element,
+  or an AsyncIterator resolving to the selected elements in rapid mode.
+
+  Example usage:
+
+  `tri.hinting_content.hintElements(...).then(element => {tri.dom.simulateClick(element))`
+
+  `for (await e of tri.hinting_content.hintElements(..., {rapid: true}){tri.dom.simulateClick(e)})`
 
   @param elements a iterator yield html elements
-  @param option a option object. The `option.rapid` specify whether hint in rapid mode. Default value is false. The `option.callback` is execute when a hint is selected if specified.
+  @param option a option object. The `option.rapid` specify whether hint in rapid mode. Default value is false. The `option.callback` is executed when a hint is selected if specified. The default callback is a no-op.
 
   @returns promise resolve to the selected element, or a async iterator in rapid mode.
  */
