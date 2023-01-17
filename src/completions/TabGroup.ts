@@ -16,22 +16,33 @@ class TabGroupCompletionOption
         tabCount: number,
         current: boolean,
         alternate: boolean,
+        audible: boolean,
+        url: string,
     ) {
         super()
         this.value = group
         this.fuseKeys.push(group)
-        let pre = ""
+        let preplain = ""
         if (current) {
-            pre += "%"
+            preplain += "%"
         }
         if (alternate) {
-            pre += "#"
+            preplain += "#"
+        }
+        let pre = preplain
+        if (audible) {
+            preplain += "A"
+            pre += "\uD83D\uDD0A"
         }
         this.html = html`<tr class="TabGroupCompletionOption option">
             <td class="prefix">${pre}</td>
+            <td class="prefixplain" hidden>${preplain}</td>
             <td class="title">${group}</td>
             <td class="tabcount">
                 ${tabCount} tab${tabCount !== 1 ? "s" : ""}
+            </td>
+            <td class="content">
+                <a class="url" target="_blank" href=${url}>${url}</a>
             </td>
         </tr>`
     }
@@ -80,12 +91,17 @@ export class TabGroupCompletionSource extends Completions.CompletionSourceFuse {
         )
         this.options = await Promise.all(
             groups.map(async group => {
-                const tabCount = (await tgroupTabs(group)).length
+                const tabs = await tgroupTabs(group)
+                const audible = tabs.some(t => t.audible)
+                tabs.sort((a, b) => b.lastAccessed - a.lastAccessed)
+                const activeTab = tabs[0]
                 const o = new TabGroupCompletionOption(
                     group,
-                    tabCount,
+                    tabs.length,
                     group === currentGroup,
                     group === alternateGroup,
+                    audible,
+                    activeTab.url,
                 )
                 o.state = "normal"
                 return o

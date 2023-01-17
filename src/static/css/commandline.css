@@ -79,6 +79,9 @@ input:focus {
 #completions table tr td.privatewindow {
     width: 1.5em;
 }
+#completions table tr td.tabcount {
+    width: 6em;
+}
 /* #completions table tr td:nth-of-type(3) { width: 5em; } */
 #completions table tr td.content {
     width: 50%;
