@@ -27,14 +27,15 @@ jobs:
 
     steps:
     - name: Checkout
-      uses: actions/checkout@master
+      uses: actions/checkout@v3
 
     - name: Get yarn cache directory path
       id: yarn-cache-dir-path
-      run: echo "::set-output name=dir::$(yarn cache dir)"
+      shell: bash
+      run: echo "dir=$(yarn cache dir)" >> $GITHUB_OUTPUT
 
-    - uses: actions/cache@v2
-      id: yarn-cache
+    - name: Setup cache
+      uses: actions/cache@v3
       with:
         path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
         key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
@@ -77,7 +78,7 @@ jobs:
       run: firefox --version
 
     - name: Build and test (Firefox)
-      uses: nick-invision/retry@v1
+      uses: nick-fields/retry@v2
       if: matrix.browser != 'chrome'
       env:
         HEADLESS: 1
@@ -85,6 +86,7 @@ jobs:
         max_attempts: 40
         timeout_minutes: 10
         retry_wait_seconds: 10
+        shell: bash
         command: |
           yarn run clean && yarn run build --old-native && yarn make-zip && yarn jest
     # - name: Test (Chrome, Linux)
