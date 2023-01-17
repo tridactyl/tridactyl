@@ -1,4 +1,5 @@
 import * as Completions from "@src/completions"
+import * as config from "@src/lib/config"
 import {
     tgroups,
     windowTgroup,
@@ -32,7 +33,13 @@ class TabGroupCompletionOption
         let pre = preplain
         if (audible) {
             preplain += "A"
-            pre += "\uD83D\uDD0A"
+        }
+        if (config.get("completions", "Tab", "statusstylepretty") === "true") {
+            if (audible) {
+                pre += "\uD83D\uDD0A"
+            }
+        } else {
+            pre = preplain
         }
         this.html = html`<tr class="TabGroupCompletionOption option">
             <td class="prefix">${pre}</td>
