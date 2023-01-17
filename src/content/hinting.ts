@@ -396,6 +396,71 @@ interface Hintables {
     hintclasses?: string[]
 }
 
+/**
+  A convenient javascript interface to hint on specified html elements.
+  The return value is a promise resolving to the selected element,
+  or an AsyncIterator resolving to the selected elements in rapid mode.
+
+  Example usage:
+
+  `tri.hinting_content.hintElements(...).then(element => {tri.dom.simulateClick(element))`
+
+  `for (await e of tri.hinting_content.hintElements(..., {rapid: true}){tri.dom.simulateClick(e)})`
+
+  @param elements a iterator yield html elements
+  @param option a option object. The `option.rapid` specify whether hint in rapid mode. Default value is false. The `option.callback` is executed when a hint is selected if specified. The default callback is a no-op.
+
+  @returns promise resolve to the selected element, or a async iterator in rapid mode.
+ */
+export function hintElements(elements: Element[], option = {}) {
+    const hintable = toHintablesArray(Array.from(elements))
+    const rapid = option["rapid"] ?? false
+    const callback = typeof option["callback"] === "function" ?
+        option["callback"] : x => x
+    if (!rapid) {
+        return new Promise((resolve, reject) => {
+            hintPage(hintable, x => x, resolve, reject, rapid)
+        }).then(x => {
+            callback(x)
+            return x
+        })
+    } else {
+        const endDefer = deferCreate()
+        const endPromise = endDefer.promise.catch(error => error)
+        let onSelect = deferCreate()
+        const key = Symbol("select-result")
+        const hintCallback = element => {
+            callback(element)
+            onSelect.resolve({[key]: element})
+            onSelect = deferCreate()
+        }
+        const wrap = async function* () {
+            while (true) {
+                const first = await Promise.race([onSelect.promise, endPromise])
+                if (first && typeof first === "object" && key in first) {
+                    yield first[key]
+                } else return await endPromise
+            }
+        }
+        const result = wrap()
+        hintPage(hintable, hintCallback,
+            endDefer.resolve, endDefer.reject, rapid)
+        return result
+    }
+    function deferCreate() {
+        const defer = {
+            resolve: null,
+            reject: null,
+            promise: null,
+        }
+        defer.promise = new Promise((ok, no) => {
+            defer.resolve = ok
+            defer.reject = no
+        })
+        return defer
+    }
+}
+
 /** For each hintable element, add a hint
  * @hidden
  * */

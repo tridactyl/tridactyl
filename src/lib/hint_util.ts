@@ -47,6 +47,7 @@ export interface HintOptions {
     excmd: null | string
     pipeAttribute: null | string
     selectors: string[]
+    selectorsExclude: string[]
     warnings: string[]
 }
 
@@ -64,6 +65,7 @@ export class HintConfig implements HintOptions {
     public excmd = null
     public pipeAttribute = null
     public selectors = []
+    public selectorsExclude = []
     public warnings = []
 
     public static parse(args: string[]): HintConfig {
@@ -78,6 +80,7 @@ export class HintConfig implements HintOptions {
             ExpectPipeSelector,
             ExpectPipeAttribute,
             ExpectSelectorCallback,
+            ExpectSelectorExclude,
         }
 
         const result = new HintConfig()
@@ -149,6 +152,9 @@ export class HintConfig implements HintOptions {
                                     break
                                 case "c":
                                     newState = State.ExpectSelector
+                                    break
+                                case "x":
+                                    newState = State.ExpectSelectorExclude
                                     break
                                 case "pipe":
                                     newState = State.ExpectPipeSelector
@@ -304,6 +310,11 @@ export class HintConfig implements HintOptions {
                     result.selectors.push(arg)
                     state = State.Initial
                     break
+                case State.ExpectSelectorExclude:
+                    // -x, expect a single exclude selector
+                    result.selectorsExclude.push(arg)
+                    state = State.Initial
+                    break
                 case State.ExpectPipeSelector:
                     // -pipe, first expect a selector
                     result.selectors.push(arg)
@@ -401,11 +412,18 @@ export class HintConfig implements HintOptions {
                   )
                 : this.defaultHintables()
 
-        // Do we have text filters to refine this?
-        if (this.textFilter !== null) {
-            for (const elements of hintables) {
+        const textFilter = this.textFilter
+        const exclude = this.selectorsExclude.join(" ")
+        for (const elements of hintables) {
+            // Do we have text filters to refine this?
+            if (textFilter !== null) {
                 elements.elements = elements.elements.filter(
                     hinting.hintByTextFilter(this.textFilter),
+                )
+            }
+            if (exclude) {
+                elements.elements = elements.elements.filter(
+                    element => !element.matches(exclude)
                 )
             }
         }
