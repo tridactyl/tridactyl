@@ -18,7 +18,7 @@ class TabGroupCompletionOption
         current: boolean,
         alternate: boolean,
         audible: boolean,
-        url: string,
+        urls: string[],
     ) {
         super()
         this.value = group
@@ -48,10 +48,12 @@ class TabGroupCompletionOption
             <td class="tabcount">
                 ${tabCount} tab${tabCount !== 1 ? "s" : ""}
             </td>
-            <td class="content">
-                <a class="url" target="_blank" href=${url}>${url}</a>
-            </td>
+            <td class="content"></td>
         </tr>`
+        const urlMarkup = urls.map(
+            u => `<a class="url" target="_blank" href="${u}">${u}</a>`,
+        )
+        this.html.lastElementChild.innerHTML = urlMarkup.join(",")
     }
 }
 
@@ -101,14 +103,14 @@ export class TabGroupCompletionSource extends Completions.CompletionSourceFuse {
                 const tabs = await tgroupTabs(group)
                 const audible = tabs.some(t => t.audible)
                 tabs.sort((a, b) => b.lastAccessed - a.lastAccessed)
-                const activeTab = tabs[0]
+                const urls = tabs.map(t => t.url)
                 const o = new TabGroupCompletionOption(
                     group,
                     tabs.length,
                     group === currentGroup,
                     group === alternateGroup,
                     audible,
-                    activeTab.url,
+                    urls,
                 )
                 o.state = "normal"
                 return o

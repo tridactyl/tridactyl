@@ -259,6 +259,14 @@ a.url:hover {
     text-overflow: ellipsis;
 }
 
+#completions .TabGroupCompletionOption td.title {
+    width: 15%;
+}
+
+#completions .TabGroupCompletionOption td.content {
+    width: auto;
+}
+
 .HelpCompletionOption td.name {
     width: 25%;
 }
