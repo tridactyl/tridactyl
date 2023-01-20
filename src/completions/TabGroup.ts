@@ -22,7 +22,6 @@ class TabGroupCompletionOption
     ) {
         super()
         this.value = group
-        this.fuseKeys.push(group)
         let preplain = ""
         if (current) {
             preplain += "%"
@@ -41,6 +40,12 @@ class TabGroupCompletionOption
         } else {
             pre = preplain
         }
+
+        this.fuseKeys.push(group)
+        this.fuseKeys.push(pre)
+        this.fuseKeys.push(preplain)
+        this.fuseKeys.push(urls)
+
         this.html = html`<tr class="TabGroupCompletionOption option">
             <td class="prefix">${pre}</td>
             <td class="prefixplain" hidden>${preplain}</td>
@@ -71,7 +76,11 @@ export class TabGroupCompletionSource extends Completions.CompletionSourceFuse {
         this._parent.appendChild(this.node)
     }
 
-    async filter(exstr: string) {
+    async onInput(exstr) {
+        return this.updateOptions(exstr)
+    }
+
+    private async updateOptions(exstr = "") {
         this.lastExstr = exstr
         const [prefix] = this.splitOnPrefix(exstr)
 
@@ -86,18 +95,9 @@ export class TabGroupCompletionSource extends Completions.CompletionSourceFuse {
             return
         }
 
-        return this.updateOptions(exstr)
-    }
-
-    private async updateOptions(exstr = "") {
-        const [_prefix, query] = this.splitOnPrefix(exstr)
         const currentGroup = await windowTgroup()
         const alternateGroup = await windowLastTgroup()
-        const groups = [...(await tgroups())].filter(
-            group =>
-                group.startsWith(query) ||
-                (query === "#" && group === alternateGroup),
-        )
+        const groups = [...(await tgroups())]
         this.options = await Promise.all(
             groups.map(async group => {
                 const tabs = await tgroupTabs(group)
@@ -116,6 +116,7 @@ export class TabGroupCompletionSource extends Completions.CompletionSourceFuse {
                 return o
             }),
         )
-        return this.updateDisplay()
+        this.completion = undefined
+        return this.updateChain()
     }
 }
