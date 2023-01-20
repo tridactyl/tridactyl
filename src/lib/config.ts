@@ -546,21 +546,28 @@ export class default_config {
     /**
      * Instead of fetching actual character which depends on selected layout,
      * use machine code of a key and convert to character according to keylayoutforcemapping. The default layout mapping
-     * is QWERTY, but can be changed with `set keylayoutforcemapping <Code> <Values>` or `:setkeyboardlayout <layout name>`. See [[keylayoutforcemapping]].
+     * is US `qwerty`, but can be changed with [[keylayoutforcebase]].
      *
      * There is a much more detailed help page towards the end of `:tutor` under the title "Non-QWERTY layouts".
      *
-     * Recommended for everyone with multiple or/and non-latin keyboard layouts. Make sure usekeytranslatemap is false
+     * Recommended for everyone with multiple or/and non-latin keyboard layouts. Make sure [[usekeytranslatemap]] is false
      * if you have previously used `keymap`.
      */
     keylayoutforce: "true" | "false" = "false"
 
+    /**
+     * Base keyboard layout to use when [[keylayoutforce]] is enabled. At the time of writing, the following layouts are supported: `qwerty, azerty, german, dvorak, uk, ca, bepo`. Run `:js window.alert(Object.keys(tri.keyboardlayouts.keyboardlayouts))` to see the latest list of available layouts.
+     *
+     * If your layout is missing, you can contribute it with the help of https://gistpreview.github.io/?324119c773fac31651f6422087b36804 - please just open an `:issue` with your layout and we'll add it.
+     *
+     * You can manually override individual keys for a layout with [[keylayoutforcemapping]].
+     */
     keylayoutforcebase = "qwerty"
 
     /**
-     * Key code to character mapping to use when keylayoutforce is enabled. You can change it with [[setkeyboardlayout]]
-     * or `:set` individual mappings.
-     * This setting only affects how tridactyl registers shortcuts, and does not interfere with your typing.
+     * Override individual keys for a layout when [[keylayoutforce]] is enabled. 
+     *
+     * Key codes for printable keys for [[keylayoutforce]], lower and upper register. See https://developer.mozilla.org/en-US/docs/Web/API/UI_Events/Keyboard_event_code_values for the names of each key.
      *
      * NB: due to a Tridactyl bug, you cannot set this using array notation as you can for, e.g. [[homepage]].
      * You must instead set the lower and upper registers using a string with no spaces in it, for example

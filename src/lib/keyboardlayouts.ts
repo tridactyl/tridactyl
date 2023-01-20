@@ -1,7 +1,7 @@
 /**
  * Key codes for printable keys for [[keylayoutforce]], lower and upper register.
  * See https://developer.mozilla.org/en-US/docs/Web/API/UI_Events/Keyboard_event_code_values
- * These maps are assigned to [[keylayoutforcemapping]] via `:setkeyboardlayout` command,
+ * These maps are assigned  `:setkeyboardlayout` command,
  * but keylayoutforcemapping can also be changed manually with `:set`.
  *
  * If your layout is missing here, you can contribute it with the help of [this](https://gistpreview.github.io/?324119c773fac31651f6422087b36804)
