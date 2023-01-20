@@ -181,21 +181,25 @@ export class BufferCompletionSource extends Completions.CompletionSourceFuse {
     private async fillOptions() {
         let tabs: browser.tabs.Tab[]
 
+        // Get alternative tab, defined as last accessed tab in any group in
+        // this window.
+        const currentWindowTabs = await browserBg.tabs.query({
+            currentWindow: true,
+        })
+        currentWindowTabs.sort((a, b) => b.lastAccessed - a.lastAccessed)
+        const altTab = currentWindowTabs[1]
+
         if (config.get("tabshowhidden") === "true") {
-            tabs = await browserBg.tabs.query({
-                currentWindow: true
-            })
+            tabs = currentWindowTabs
         } else {
             tabs = await browserBg.tabs.query({
                 currentWindow: true,
-                hidden: false
+                hidden: false,
             })
+            tabs.sort((a, b) => b.lastAccessed - a.lastAccessed)
         }
 
         const options = []
-        // Get alternative tab, defined as last accessed tab.
-        tabs.sort((a, b) => b.lastAccessed - a.lastAccessed)
-        const alt = tabs[1]
 
         const useMruTabOrder = config.get("tabsort") === "mru"
         if (!useMruTabOrder) {
@@ -221,7 +225,7 @@ export class BufferCompletionSource extends Completions.CompletionSourceFuse {
                 new BufferCompletionOption(
                     (tab.index + 1).toString(),
                     tab,
-                    tab === alt,
+                    tab.index === altTab.index,
                     tab_container,
                 ),
             )
