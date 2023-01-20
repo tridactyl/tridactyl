@@ -4,7 +4,10 @@ import * as Containers from "@src/lib/containers"
 import * as Completions from "@src/completions"
 import * as Messaging from "@src/lib/messaging"
 import * as config from "@src/lib/config"
-import { tabTgroup } from "@src/lib/tab_groups"
+import {
+    tgroups,
+    tabTgroup,
+} from "@src/lib/tab_groups"
 
 class TabAllCompletionOption
     extends Completions.CompletionOptionHTML
@@ -19,7 +22,7 @@ class TabAllCompletionOption
         winindex: number,
         container: browser.contextualIdentities.ContextualIdentity,
         incognito: boolean,
-        tgroupname: string,
+        tgroupname: string
     ) {
         super()
         const valueStr = `${winindex}.${tab.index + 1}`
@@ -52,7 +55,7 @@ class TabAllCompletionOption
             pre = preplain
         }
 
-        tgroupname = tgroupname === undefined ? "" : tgroupname
+        tgroupname = (tgroupname === undefined) ? "" : tgroupname
 
         // Push prefix before padding so we don't match on whitespace
         this.fuseKeys.push(pre)
@@ -190,7 +193,7 @@ export class TabAllCompletionSource extends Completions.CompletionSourceFuse {
         })
 
         const currentWindowTabs = await browserBg.tabs.query({
-            currentWindow: true,
+            currentWindow: true
         })
         currentWindowTabs.sort((a, b) => b.lastAccessed - a.lastAccessed)
         const altTab = currentWindowTabs[1]
@@ -210,20 +213,17 @@ export class TabAllCompletionSource extends Completions.CompletionSourceFuse {
             }
             // if we are excluding the current window and this tab is in the current window
             // then skip it
-            if (excludeCurrentWindow && tab.windowId === currentWindow.id)
-                continue
+            if (excludeCurrentWindow && tab.windowId === currentWindow.id) continue
             options.push(
                 new TabAllCompletionOption(
                     tab.id.toString(),
                     tab,
-                    tab.index === altTab.index &&
-                        tab.windowId === altTab.windowId,
-                    tab.active &&
-                        tab.windowId === currentWindowTabs[0].windowId,
+                    tab.index === altTab.index && tab.windowId === altTab.windowId,
+                    tab.active && tab.windowId === currentWindowTabs[0].windowId,
                     winindex,
                     await Containers.getFromId(tab.cookieStoreId),
                     windows[tab.windowId].incognito,
-                    await tabTgroup(tab.id),
+                    await tabTgroup(tab.id)
                 ),
             )
         }
