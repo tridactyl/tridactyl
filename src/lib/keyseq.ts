@@ -24,6 +24,7 @@
 import { filter, find, izip } from "@src/lib/itertools"
 import { Parser } from "@src/lib/nearley_utils"
 import * as config from "@src/lib/config"
+import { keyboardlayouts } from "@src/lib/keyboardlayouts.ts"
 import * as R from "ramda"
 import grammar from "@src/grammars/.bracketexpr.generated"
 const bracketexpr_grammar = grammar
@@ -494,7 +495,7 @@ export function minimalKeyFromKeyboardEvent(
     }
     if (config.get("keylayoutforce") === "true") {
         let newkey = keyEvent.key
-        const keycodetranslatemap = config.get("keylayoutforcemapping")
+        const keycodetranslatemap = R.mergeRight(keyboardlayouts[config.get("keylayoutforcebase")], config.get("keylayoutforcemapping"))
         const translation = keycodetranslatemap[keyEvent.code]
         if (translation) newkey = translation[+keyEvent.shiftKey]
         return new MinimalKey(newkey, modifiers)

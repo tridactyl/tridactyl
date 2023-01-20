@@ -4299,15 +4299,6 @@ export async function bindwizard(...args: string[]) {
     return gobble("<CR>", `fillcmdline_notrail bind --mode=${mode}`, ...args)
 }
 
-/** Change keyboard layout for [[kaylayoutforce]].
- *
- * Executing the command does not affect your physical layout when typing, it is only used for interpreting shortcuts.
- */ // Compiler doesn't like the keyof type, why is that?
-export function setkeyboardlayout(arg /*: keyof config.default_config["keyboardlayouts"]*/): void {
-    const layout = config.get("keyboardlayouts")[arg]
-    if (layout) config.set("keylayoutforcemapping", layout)
-    else fillcmdline_notrail(`${arg} is unknown layout`)
-}
 /**
  * Like [[bind]] but for a specific url pattern (also see [[seturl]]).
  *
