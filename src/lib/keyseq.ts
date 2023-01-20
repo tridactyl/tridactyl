@@ -30,6 +30,8 @@ import grammar from "@src/grammars/.bracketexpr.generated"
 const bracketexpr_grammar = grammar
 const bracketexpr_parser = new Parser(bracketexpr_grammar)
 
+let KEYCODETRANSLATEMAP = {}
+
 // {{{ General types
 
 export interface KeyModifiers {
@@ -494,9 +496,9 @@ export function minimalKeyFromKeyboardEvent(
         shiftKey: keyEvent.shiftKey,
     }
     if (config.get("keylayoutforce") === "true") {
+        Object.keys(KEYCODETRANSLATEMAP).length === 0 && updateBaseLayout()
         let newkey = keyEvent.key
-        const keycodetranslatemap = R.mergeRight(keyboardlayouts[config.get("keylayoutforcebase")], config.get("keylayoutforcemapping"))
-        const translation = keycodetranslatemap[keyEvent.code]
+        const translation = KEYCODETRANSLATEMAP[keyEvent.code]
         if (translation) newkey = translation[+keyEvent.shiftKey]
         return new MinimalKey(newkey, modifiers)
     }
@@ -516,3 +518,7 @@ browser.storage.onChanged.addListener(changes => {
         KEYMAP_CACHE = {}
     }
 })
+
+function updateBaseLayout() {
+    KEYCODETRANSLATEMAP = R.mergeRight(keyboardlayouts[config.get("keylayoutforcebase")], config.get("keylayoutforcemapping"))
+}
