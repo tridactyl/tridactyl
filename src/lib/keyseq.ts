@@ -24,7 +24,6 @@
 import { filter, find, izip } from "@src/lib/itertools"
 import { Parser } from "@src/lib/nearley_utils"
 import * as config from "@src/lib/config"
-import { keyboardlayouts } from "@src/lib/keyboardlayouts.ts"
 import * as R from "ramda"
 import grammar from "@src/grammars/.bracketexpr.generated"
 const bracketexpr_grammar = grammar
@@ -520,5 +519,5 @@ browser.storage.onChanged.addListener(changes => {
 })
 
 function updateBaseLayout() {
-    KEYCODETRANSLATEMAP = R.mergeRight(keyboardlayouts[config.get("keylayoutforcebase")], config.get("keylayoutforcemapping"))
+    KEYCODETRANSLATEMAP = R.mergeRight(config.keyboardlayouts[config.get("keylayoutforcebase")], config.get("keylayoutforcemapping"))
 }

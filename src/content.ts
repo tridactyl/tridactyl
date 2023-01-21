@@ -109,7 +109,6 @@ const visual = await import("@src/lib/visual")
 const metadata = await import("@src/.metadata.generated")
 const { tabTgroup } = await import("@src/lib/tab_groups")
 const completion_providers = await import("@src/completions/providers")
-const keyboardlayouts = await import("@src/lib/keyboardlayouts")
 
 controller.setExCmds({
     "": excmds_content,
@@ -221,7 +220,6 @@ config.getAsync("preventautofocusjackhammer").then(allowautofocus => {
     logger,
     metadata,
     keyseq,
-    keyboardlayouts,
     messaging,
     state,
     State,
