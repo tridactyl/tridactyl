@@ -556,7 +556,7 @@ export class default_config {
     keylayoutforce: "true" | "false" = "false"
 
     /**
-     * Base keyboard layout to use when [[keylayoutforce]] is enabled. At the time of writing, the following layouts are supported: `qwerty, azerty, german, dvorak, uk, ca, bepo`.
+     * Base keyboard layout to use when [[keylayoutforce]] is enabled. At the time of writing, the following layouts are supported: `qwerty, azerty, german, dvorak, uk, ca, bepo`. Requires page reload to take effect.
      *
      * If your layout is missing, you can contribute it with the help of https://gistpreview.github.io/?324119c773fac31651f6422087b36804 - please just open an `:issue` with your layout and we'll add it.
      *
@@ -565,7 +565,7 @@ export class default_config {
     keyboardlayoutbase: keyof typeof keyboardlayouts = "qwerty"
 
     /**
-     * Override individual keys for a layout when [[keylayoutforce]] is enabled. 
+     * Override individual keys for a layout when [[keylayoutforce]] is enabled. Changes take effect only after a page reload.
      *
      * Key codes for printable keys for [[keylayoutforce]], lower and upper register. See https://developer.mozilla.org/en-US/docs/Web/API/UI_Events/Keyboard_event_code_values for the names of each key.
      *
