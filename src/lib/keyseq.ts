@@ -518,6 +518,7 @@ browser.storage.onChanged.addListener(changes => {
     }
 })
 
+// ideally this would get called via a config.addChangeListener but they are not fired for mysterious reasons
 function updateBaseLayout() {
-    KEYCODETRANSLATEMAP = R.mergeRight(config.keyboardlayouts[config.get("keylayoutforcebase")], config.get("keylayoutforcemapping"))
+    KEYCODETRANSLATEMAP = R.mergeRight(config.keyboardlayouts[config.get("keyboardlayoutbase")], config.get("keyboardlayoutoverrides"))
 }

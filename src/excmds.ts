@@ -4334,7 +4334,7 @@ export function bindurl(pattern: string, mode: string, keys: string, ...excmd: s
 //#background
 export function keymap(source: string, target: string) {
     if (config.get("keylayoutforce") == "true") {
-        fillcmdline("You can't keymap with keylayoutforce set. Set values in keylayoutforcemapping to change layout for tridactyl shortcuts.")
+        fillcmdline("You can't keymap with keylayoutforce set. Set values in keyboardlayoutoverrides to change layout for tridactyl shortcuts.")
         return
     }
     return set("keytranslatemap." + source, target)

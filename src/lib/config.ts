@@ -518,7 +518,7 @@ export class default_config {
      *
      * This was primarily useful for international users, but now you can `set
      * keylayoutforce true`, which will make everything layout-independent(and work like qwerty by default),
-     * and use [[keylayoutforcemapping]] setting to change the desired layout.
+     * and use [[keyboardlayoutoverrides]] setting to change the desired layout.
      *
      *
      * For example, you may want to map 'a' to 'q` on azerty
@@ -539,14 +539,14 @@ export class default_config {
      * @deprecated Whether to use the keytranslatemap.
      * Legacy option to map one keyboard character to another, was used to emulate
      * layout-independence. Now deprecated since you can set your layout once with [[keylayoutforce]]
-     * and [[keylayoutforcemapping]].
+     * and [[keyboardlayoutoverrides]].
      */
     usekeytranslatemap: "true" | "false" = "true"
 
     /**
      * Instead of fetching actual character which depends on selected layout,
-     * use machine code of a key and convert to character according to keylayoutforcemapping. The default layout mapping
-     * is US `qwerty`, but can be changed with [[keylayoutforcebase]].
+     * use machine code of a key and convert to character according to keyboardlayoutoverrides. The default layout mapping
+     * is US `qwerty`, but can be changed with [[keyboardlayoutbase]].
      *
      * There is a much more detailed help page towards the end of `:tutor` under the title "Non-QWERTY layouts".
      *
@@ -560,9 +560,9 @@ export class default_config {
      *
      * If your layout is missing, you can contribute it with the help of https://gistpreview.github.io/?324119c773fac31651f6422087b36804 - please just open an `:issue` with your layout and we'll add it.
      *
-     * You can manually override individual keys for a layout with [[keylayoutforcemapping]].
+     * You can manually override individual keys for a layout with [[keyboardlayoutoverrides]].
      */
-    keylayoutforcebase: keyof typeof keyboardlayouts = "qwerty"
+    keyboardlayoutbase: keyof typeof keyboardlayouts = "qwerty"
 
     /**
      * Override individual keys for a layout when [[keylayoutforce]] is enabled. 
@@ -571,9 +571,9 @@ export class default_config {
      *
      * NB: due to a Tridactyl bug, you cannot set this using array notation as you can for, e.g. [[homepage]].
      * You must instead set the lower and upper registers using a string with no spaces in it, for example
-     * `:set keylayoutforcemapping Digit2: 2"` for the British English layout.
+     * `:set keyboardlayoutoverrides Digit2: 2"` for the British English layout.
      */
-    keylayoutforcemapping = {}
+    keyboardlayoutoverrides = {}
 
     /**
      * Automatically place these sites in the named container.
@@ -1321,7 +1321,7 @@ Remove-Item '%TEMP%/tridactyl_installnative.ps1'"`,
  * Key codes for printable keys for [[keylayoutforce]], lower and upper register.
  * See https://developer.mozilla.org/en-US/docs/Web/API/UI_Events/Keyboard_event_code_values
  * These maps are assigned  `:setkeyboardlayout` command,
- * but keylayoutforcemapping can also be changed manually with `:set`.
+ * but keyboardlayoutoverrides can also be changed manually with `:set`.
  *
  * If your layout is missing here, you can contribute it with the help of [this](https://gistpreview.github.io/?324119c773fac31651f6422087b36804)
  * tool.
