@@ -83,7 +83,7 @@ input:focus {
     width: 6em;
 }
 #completions table tr td.tgroup {
-    min-width: fit-content;
+    width: 10em;
     padding-left: 0.5em;
     text-align: right;
 }
