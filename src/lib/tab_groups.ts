@@ -81,6 +81,9 @@ export async function setWindowTgroup(name: string, id?: number) {
  */
 export async function windowLastTgroup(id?: number) {
     const otherGroupsTabs = await tgroupTabs(await windowTgroup(id), true)
+    if (otherGroupsTabs.length === 0) {
+        return undefined
+    }
     otherGroupsTabs.sort((a, b) => b.lastAccessed - a.lastAccessed)
     const lastTabId = otherGroupsTabs[0].id
     return tabTgroup(lastTabId)
