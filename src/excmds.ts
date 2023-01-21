@@ -4281,7 +4281,7 @@ export function bindshow(...args: string[]) {
      Generate a key sequence from keypresses. Once Enter is pressed, the command line is filled with a [[bind]]
      command with the key sequence and provided arguments, which you can choose to modify and execute.
 
-     If you have `:set keylayoutforce true`, it will bind commands to physical keys regardless of layout.
+     If you have `:set keyboardlayoutforce true`, it will bind commands to physical keys regardless of layout.
 
      Accepts the same arguments as [[bind]] (except for the key sequence which will be generated):
 
@@ -4323,7 +4323,7 @@ export function bindurl(pattern: string, mode: string, keys: string, ...excmd: s
 }
 
 /**
- *  Deprecated: use `:set keylayoutforce true` instead.
+ *  Deprecated: use `:set keyboardlayoutforce true` instead.
  *
  *  Makes one key equivalent to another for the purposes of most of our parsers. Useful for international keyboard layouts. See user-provided examples for various layouts on our wiki: https://github.com/tridactyl/tridactyl/wiki/Internationalisation
  *
@@ -4333,8 +4333,8 @@ export function bindurl(pattern: string, mode: string, keys: string, ...excmd: s
  */
 //#background
 export function keymap(source: string, target: string) {
-    if (config.get("keylayoutforce") == "true") {
-        fillcmdline("You can't keymap with keylayoutforce set. Set values in keyboardlayoutoverrides to change layout for tridactyl shortcuts.")
+    if (config.get("keyboardlayoutforce") == "true") {
+        fillcmdline("You can't keymap with keyboardlayoutforce set. Set values in keyboardlayoutoverrides to change layout for tridactyl shortcuts.")
         return
     }
     return set("keytranslatemap." + source, target)

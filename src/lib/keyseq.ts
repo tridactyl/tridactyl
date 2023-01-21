@@ -494,7 +494,7 @@ export function minimalKeyFromKeyboardEvent(
         metaKey: keyEvent.metaKey,
         shiftKey: keyEvent.shiftKey,
     }
-    if (config.get("keylayoutforce") === "true") {
+    if (config.get("keyboardlayoutforce") === "true") {
         Object.keys(KEYCODETRANSLATEMAP).length === 0 && updateBaseLayout()
         let newkey = keyEvent.key
         const translation = KEYCODETRANSLATEMAP[keyEvent.code]
@@ -520,5 +520,8 @@ browser.storage.onChanged.addListener(changes => {
 
 // ideally this would get called via a config.addChangeListener but they are not fired for mysterious reasons
 function updateBaseLayout() {
-    KEYCODETRANSLATEMAP = R.mergeRight(config.keyboardlayouts[config.get("keyboardlayoutbase")], config.get("keyboardlayoutoverrides"))
+    KEYCODETRANSLATEMAP = R.mergeRight(
+        config.keyboardlayouts[config.get("keyboardlayoutbase")],
+        config.get("keyboardlayoutoverrides"),
+    )
 }
