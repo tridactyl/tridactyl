@@ -29,6 +29,8 @@ import grammar from "@src/grammars/.bracketexpr.generated"
 const bracketexpr_grammar = grammar
 const bracketexpr_parser = new Parser(bracketexpr_grammar)
 
+let KEYCODETRANSLATEMAP = {}
+
 // {{{ General types
 
 export interface KeyModifiers {
@@ -492,10 +494,10 @@ export function minimalKeyFromKeyboardEvent(
         metaKey: keyEvent.metaKey,
         shiftKey: keyEvent.shiftKey,
     }
-    if (config.get("keylayoutforce") === "true") {
+    if (config.get("keyboardlayoutforce") === "true") {
+        Object.keys(KEYCODETRANSLATEMAP).length === 0 && updateBaseLayout()
         let newkey = keyEvent.key
-        const keycodetranslatemap = config.get("keylayoutforcemapping")
-        const translation = keycodetranslatemap[keyEvent.code]
+        const translation = KEYCODETRANSLATEMAP[keyEvent.code]
         if (translation) newkey = translation[+keyEvent.shiftKey]
         return new MinimalKey(newkey, modifiers)
     }
@@ -515,3 +517,11 @@ browser.storage.onChanged.addListener(changes => {
         KEYMAP_CACHE = {}
     }
 })
+
+// ideally this would get called via a config.addChangeListener but they are not fired for mysterious reasons
+function updateBaseLayout() {
+    KEYCODETRANSLATEMAP = R.mergeRight(
+        config.keyboardlayouts[config.get("keyboardlayoutbase")],
+        config.get("keyboardlayoutoverrides"),
+    )
+}
