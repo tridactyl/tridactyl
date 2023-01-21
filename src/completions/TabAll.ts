@@ -77,10 +77,10 @@ class TabAllCompletionOption
             <td class="container"></td>
             <td class="icon"><img src="${favIconUrl}" /></td>
             <td class="title">${valueStr}: ${tab.title}</td>
-            <td class="tgroup">${tgroupname}</td>
             <td class="content">
                 <a class="url" target="_blank" href=${tab.url}>${tab.url}</a>
             </td>
+            <td class="tgroup">${tgroupname}</td>
         </tr>`
     }
 }
