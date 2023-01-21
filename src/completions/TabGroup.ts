@@ -1,20 +1,64 @@
 import * as Completions from "@src/completions"
-import { tgroups, windowTgroup, tgroupTabs } from "@src/lib/tab_groups"
+import * as config from "@src/lib/config"
+import {
+    tgroups,
+    windowTgroup,
+    windowLastTgroup,
+    tgroupTabs,
+} from "@src/lib/tab_groups"
 
-class TabGroupCompletionOption extends Completions.CompletionOptionHTML
+class TabGroupCompletionOption
+    extends Completions.CompletionOptionHTML
     implements Completions.CompletionOptionFuse {
     public fuseKeys = []
 
-    constructor(group: string, tabCount: number) {
+    constructor(
+        group: string,
+        tabCount: number,
+        current: boolean,
+        alternate: boolean,
+        audible: boolean,
+        urls: string[],
+    ) {
         super()
         this.value = group
+        let preplain = ""
+        if (current) {
+            preplain += "%"
+        }
+        if (alternate) {
+            preplain += "#"
+        }
+        let pre = preplain
+        if (audible) {
+            preplain += "A"
+        }
+        if (config.get("completions", "Tab", "statusstylepretty") === "true") {
+            if (audible) {
+                pre += "\uD83D\uDD0A"
+            }
+        } else {
+            pre = preplain
+        }
+
         this.fuseKeys.push(group)
+        this.fuseKeys.push(pre)
+        this.fuseKeys.push(preplain)
+        this.fuseKeys.push(urls)
+
         this.html = html`<tr class="TabGroupCompletionOption option">
+            <td class="prefix">${pre}</td>
+            <td class="prefixplain" hidden>${preplain}</td>
             <td class="title">${group}</td>
-            <td class="tabcount">${tabCount} tab${
-            tabCount !== 1 ? "s" : ""
-        }</td>
+            <td class="tabcount">
+                ${tabCount} tab${tabCount !== 1 ? "s" : ""}
+            </td>
+            <td class="content"></td>
         </tr>`
+        const urlMarkup = urls.map(
+            u => `<a class="url" target="_blank" href="${u}">${u}</a>`,
+        )
+        this.html.lastElementChild.innerHTML = urlMarkup.join(",")
     }
 }
 
@@ -23,7 +67,7 @@ export class TabGroupCompletionSource extends Completions.CompletionSourceFuse {
 
     constructor(private _parent: any) {
         super(
-            ["tgroupswitch", "tgroupmove"],
+            ["tgroupswitch", "tgroupmove", "tgroupclose"],
             "TabGroupCompletionSource",
             "Tab Groups",
         )
@@ -32,7 +76,11 @@ export class TabGroupCompletionSource extends Completions.CompletionSourceFuse {
         this._parent.appendChild(this.node)
     }
 
-    async filter(exstr: string) {
+    async onInput(exstr) {
+        return this.updateOptions(exstr)
+    }
+
+    private async updateOptions(exstr = "") {
         this.lastExstr = exstr
         const [prefix] = this.splitOnPrefix(exstr)
 
@@ -47,22 +95,28 @@ export class TabGroupCompletionSource extends Completions.CompletionSourceFuse {
             return
         }
 
-        return this.updateDisplay()
-    }
-
-    private async updateOptions() {
         const currentGroup = await windowTgroup()
-        const otherGroups = [...(await tgroups())].filter(
-            group => group !== currentGroup,
-        )
+        const alternateGroup = await windowLastTgroup()
+        const groups = [...(await tgroups())]
         this.options = await Promise.all(
-            otherGroups.map(async group => {
-                const tabCount = (await tgroupTabs(group)).length
-                const o = new TabGroupCompletionOption(group, tabCount)
+            groups.map(async group => {
+                const tabs = await tgroupTabs(group)
+                const audible = tabs.some(t => t.audible)
+                tabs.sort((a, b) => b.lastAccessed - a.lastAccessed)
+                const urls = tabs.map(t => t.url)
+                const o = new TabGroupCompletionOption(
+                    group,
+                    tabs.length,
+                    group === currentGroup,
+                    group === alternateGroup,
+                    audible,
+                    urls,
+                )
                 o.state = "normal"
                 return o
             }),
         )
-        return this.updateDisplay()
+        this.completion = undefined
+        return this.updateChain()
     }
 }

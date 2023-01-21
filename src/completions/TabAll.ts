@@ -4,6 +4,7 @@ import * as Containers from "@src/lib/containers"
 import * as Completions from "@src/completions"
 import * as Messaging from "@src/lib/messaging"
 import * as config from "@src/lib/config"
+import { tabTgroup } from "@src/lib/tab_groups"
 
 class TabAllCompletionOption
     extends Completions.CompletionOptionHTML
@@ -13,14 +14,53 @@ class TabAllCompletionOption
     constructor(
         public value: string,
         tab: browser.tabs.Tab,
+        isAlternative: boolean,
+        isCurrent: boolean,
         winindex: number,
         container: browser.contextualIdentities.ContextualIdentity,
         incognito: boolean,
+        tgroupname: string,
     ) {
         super()
-        this.value = `${winindex}.${tab.index + 1}`
+        const valueStr = `${winindex}.${tab.index + 1}`
+        this.value = valueStr
         this.fuseKeys.push(this.value, tab.title, tab.url)
         this.tab = tab
+
+        // pre contains max four uppercase characters for tab status.
+        // If statusstylepretty is set to true replace use unicode characters,
+        // but keep plain letters in hidden column for completion.
+        let preplain = ""
+        if (isCurrent) {
+            preplain += "%"
+        } else if (isAlternative) {
+            preplain += "#"
+            this.value = "#"
+        }
+        let pre = preplain
+        if (tab.pinned) preplain += "P"
+        if (tab.audible) preplain += "A"
+        if (tab.mutedInfo.muted) preplain += "M"
+        if (tab.discarded) preplain += "D"
+
+        if (config.get("completions", "Tab", "statusstylepretty") === "true") {
+            if (tab.pinned) pre += "\uD83D\uDCCC"
+            if (tab.audible) pre += "\uD83D\uDD0A"
+            if (tab.mutedInfo.muted) pre += "\uD83D\uDD07"
+            if (tab.discarded) pre += "\u2296"
+        } else {
+            pre = preplain
+        }
+
+        tgroupname = tgroupname === undefined ? "" : tgroupname
+
+        // Push prefix before padding so we don't match on whitespace
+        this.fuseKeys.push(pre)
+        this.fuseKeys.push(preplain)
+        this.fuseKeys.push(tgroupname)
+
+        // Push properties we want to fuzmatch on
+        this.fuseKeys.push(String(tab.index + 1), tab.title, tab.url)
 
         // Create HTMLElement
         const favIconUrl = tab.favIconUrl
@@ -31,14 +71,16 @@ class TabAllCompletionOption
                 ? "incognito"
                 : ""}"
         >
-            <td class="prefix"></td>
+            <td class="prefix">${pre}</td>
+            <td class="prefixplain" hidden>${preplain}</td>
             <td class="privatewindow"></td>
             <td class="container"></td>
             <td class="icon"><img src="${favIconUrl}" /></td>
-            <td class="title">${this.value}: ${tab.title}</td>
+            <td class="title">${valueStr}: ${tab.title}</td>
             <td class="content">
                 <a class="url" target="_blank" href=${tab.url}>${tab.url}</a>
             </td>
+            <td class="tgroup">${tgroupname}</td>
         </tr>`
     }
 }
@@ -147,6 +189,12 @@ export class TabAllCompletionSource extends Completions.CompletionSourceFuse {
             return a.windowId - b.windowId
         })
 
+        const currentWindowTabs = await browserBg.tabs.query({
+            currentWindow: true,
+        })
+        currentWindowTabs.sort((a, b) => b.lastAccessed - a.lastAccessed)
+        const altTab = currentWindowTabs[1]
+
         // Check to see if this is a command that needs to exclude the current
         // window
         const excludeCurrentWindow = ["tabgrab"].includes(prefix.trim())
@@ -162,14 +210,20 @@ export class TabAllCompletionSource extends Completions.CompletionSourceFuse {
             }
             // if we are excluding the current window and this tab is in the current window
             // then skip it
-            if (excludeCurrentWindow && tab.windowId === currentWindow.id) continue
+            if (excludeCurrentWindow && tab.windowId === currentWindow.id)
+                continue
             options.push(
                 new TabAllCompletionOption(
                     tab.id.toString(),
                     tab,
+                    tab.index === altTab.index &&
+                        tab.windowId === altTab.windowId,
+                    tab.active &&
+                        tab.windowId === currentWindowTabs[0].windowId,
                     winindex,
                     await Containers.getFromId(tab.cookieStoreId),
                     windows[tab.windowId].incognito,
+                    await tabTgroup(tab.id),
                 ),
             )
         }

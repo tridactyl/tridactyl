@@ -49,10 +49,10 @@ export async function windowTgroup(id?: number) {
     if (id === undefined) {
         id = await activeWindowId()
     }
-    return (browserBg.sessions.getWindowValue(
+    return browserBg.sessions.getWindowValue(
         id,
         "tridactyl-active-tgroup",
-    ) as unknown) as string
+    ) as unknown as string
 }
 
 /**
@@ -73,6 +73,22 @@ export async function setWindowTgroup(name: string, id?: number) {
     )
 }
 
+/*
+ * Return the last active tab group for a window or undefined.
+ *
+ * @param id The id of the window. Use the current window if not specified.
+ *
+ */
+export async function windowLastTgroup(id?: number) {
+    const otherGroupsTabs = await tgroupTabs(await windowTgroup(id), true)
+    if (otherGroupsTabs.length === 0) {
+        return undefined
+    }
+    otherGroupsTabs.sort((a, b) => b.lastAccessed - a.lastAccessed)
+    const lastTabId = otherGroupsTabs[0].id
+    return tabTgroup(lastTabId)
+}
+
 /**
  * Clear the active tab group for the current window.
  *
@@ -91,10 +107,10 @@ export async function tabTgroup(id?: number) {
     if (id === undefined) {
         id = await activeTabId()
     }
-    return (browserBg.sessions.getTabValue(
+    return browserBg.sessions.getTabValue(
         id,
         "tridactyl-tgroup",
-    ) as unknown) as string
+    ) as unknown as string
 }
 
 /**
@@ -252,12 +268,8 @@ export async function tgroupActivate(name: string) {
  *
  */
 export async function tgroupActivateLast() {
-    const otherGroupsTabs = await tgroupTabs(await windowTgroup(), true)
-    otherGroupsTabs.sort((a, b) => b.lastAccessed - a.lastAccessed)
-    const lastTabId = otherGroupsTabs[0].id
-    return browserBg.tabs
-        .update(lastTabId, { active: true })
-        .then(() => tabTgroup(lastTabId))
+    const lastTabGroup = await windowLastTgroup()
+    return tgroupActivate(lastTabGroup).then(() => lastTabGroup)
 }
 
 /**
@@ -325,10 +337,14 @@ export async function tgroupHandleTabActivated(activeInfo) {
         await setWindowTgroup(tabGroup, activeInfo.windowId)
 
         promises.push(
-            tgroupTabs(tabGroup, false, activeInfo.windowId).then(tabs => browserBg.tabs.show(tabs.map(tab => tab.id))),
+            tgroupTabs(tabGroup, false, activeInfo.windowId).then(tabs =>
+                browserBg.tabs.show(tabs.map(tab => tab.id)),
+            ),
         )
         promises.push(
-            tgroupTabs(tabGroup, true, activeInfo.windowId).then(tabs => browserBg.tabs.hide(tabs.map(tab => tab.id))),
+            tgroupTabs(tabGroup, true, activeInfo.windowId).then(tabs =>
+                browserBg.tabs.hide(tabs.map(tab => tab.id)),
+            ),
         )
     }
     return Promise.all(promises)

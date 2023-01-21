@@ -170,7 +170,7 @@ import * as Updates from "@src/lib/updates"
 import * as Extensions from "@src/lib/extension_info"
 import * as webrequests from "@src/background/webrequests"
 import * as commandsHelper from "@src/background/commands"
-import { tgroups, tgroupActivate, setTabTgroup, setWindowTgroup, setTgroups, windowTgroup, tgroupClearOldInfo, tgroupLastTabId, tgroupTabs, clearAllTgroupInfo, tgroupActivateLast, tgroupHandleTabActivated, tgroupHandleTabCreated, tgroupHandleTabAttached, tgroupHandleTabUpdated, tgroupHandleTabRemoved, tgroupHandleTabDetached } from "./lib/tab_groups"
+import { tgroups, tgroupActivate, setTabTgroup, setWindowTgroup, setTgroups, windowTgroup, windowLastTgroup, tgroupClearOldInfo, tgroupLastTabId, tgroupTabs, clearAllTgroupInfo, tgroupActivateLast, tgroupHandleTabActivated, tgroupHandleTabCreated, tgroupHandleTabAttached, tgroupHandleTabUpdated, tgroupHandleTabRemoved, tgroupHandleTabDetached } from "./lib/tab_groups"
 
 ALL_EXCMDS = {
     "": BGSELF,
@@ -3457,7 +3457,7 @@ export async function tgroupcreate(name: string) {
     const promises = []
     const groups = await tgroups()
 
-    if (groups.has(name)) {
+    if (groups.has(name) || name === "#") {
         throw new Error(`Tab group "${name}" already exists`)
     }
 
@@ -3468,7 +3468,7 @@ export async function tgroupcreate(name: string) {
         promises.push(tgroupTabs(name, true).then(tabs => browserBg.tabs.hide(tabs.map(tab => tab.id))))
     } else {
         promises.push(
-            browser.tabs.query({ currentWindow: true }).then(tabs => {
+            browser.tabs.query({ currentWindow: true, pinned: false }).then(tabs => {
                 setTabTgroup(
                     name,
                     tabs.map(({ id }) => id),
@@ -3488,15 +3488,23 @@ export async function tgroupcreate(name: string) {
 /**
  * Switch to a different tab group, hiding all other tabs.
  *
+ * "%" denotes the current tab group and "#" denotes the tab group that was
+ * last active. "A" indates a tab group that contains an audible tab. Use
+ * `:set completions.Tab.statusstylepretty true` to display a unicode character
+ * instead.
+ *
  * @param name The name of the tab group to switch to.
  *
- * If the tab group does not exist, act like tgroupcreate.
+ * If the tab group does not exist, act like [[tgroupcreate]].
  *
  */
 //#background
 export async function tgroupswitch(name: string) {
+    if (name === "#") {
+        return tgrouplast().then(() => name)
+    }
     if (name == (await windowTgroup())) {
-        throw new Error(`Already on tab group "${name}"`)
+        return
     }
 
     const groups = await tgroups()
@@ -3543,22 +3551,39 @@ export async function tgrouprename(name: string) {
 }
 
 /**
- * Close the current tab group.
+ * Close all tabs in a tab group and delete the group.
  *
- * First switch to the previously active tab group. Do nothing if there is only
- * one tab group.
+ * @param name The name of the tab group to close. If not specified, close the
+ * current tab group and switch to the previously active tab group.
+ *
+ * Do nothing if there is only one tab group - to discard all tab group
+ * information, use [[tgroupabort]].
  *
  */
 //#background
-export async function tgroupclose() {
+export async function tgroupclose(name?: string) {
     const groups = await tgroups()
     if (groups.size == 0) {
         throw new Error("No tab groups exist")
     } else if (groups.size == 1) {
         throw new Error("This is the only tab group")
+    } else if (name !== undefined && name !== "#" && !groups.has(name)) {
+        throw new Error(`No tab group named "${name}"`)
     } else if (groups.size > 1) {
-        const closeGroup = await windowTgroup()
-        const newTabGroup = await tgroupActivateLast()
+        const currentGroup = await windowTgroup()
+        let closeGroup = currentGroup
+        if (name === "#") {
+            closeGroup = await windowLastTgroup()
+            if (name === undefined) {
+                throw new Error("No alternate tab group")
+            }
+        } else if (name !== undefined) {
+            closeGroup = name
+        }
+        let newTabGroup = currentGroup
+        if (closeGroup === currentGroup) {
+            newTabGroup = await tgroupActivateLast()
+        }
         await tgroupTabs(closeGroup).then(tabs => {
             browser.tabs.remove(tabs.map(tab => tab.id))
         })
@@ -3567,7 +3592,7 @@ export async function tgroupclose() {
 }
 
 /**
- * Move the current tab to another tab group.
+ * Move the current tab to another tab group, creating it if it does not exist.
  *
  * @param name The name of the tab group to move the tab to.
  *
@@ -3583,16 +3608,25 @@ export async function tgroupmove(name: string) {
     if (groups.size == 0) {
         throw new Error("No tab groups exist")
     }
-    if (!groups.has(name)) {
-        throw new Error(`Tab group "${name}" does not exist`)
-    }
     if (name == currentGroup) {
         throw new Error(`Tab is already on group "${name}"`)
+    }
+    if (name === "#") {
+        name = await windowLastTgroup()
+        if (name === undefined) {
+            throw new Error("No alternate tab group")
+        }
+    }
+    if (!groups.has(name)) {
+        // Create new tab group if there isn't one with this name
+        groups.add(name)
+        await setTgroups(groups)
     }
 
     const tabCount = await tgroupTabs(currentGroup).then(tabs => tabs.length)
 
     await setTabTgroup(name)
+    setContentStateGroup(name)
     const currentTabId = await activeTabId()
 
     // switch to other group if this is the last tab in the current group
@@ -4054,7 +4088,7 @@ export async function yankimage(url: string): Promise<void> {
 
         A string following the following format: "[0-9]+.[0-9]+" means the first number being the index of the window that should be selected and the second one being the index of the tab within that window. [[taball]] has completions for this format.
 
-        "%" denotes the current tab and "#" denotes the tab that was last accessed in this window.  "P", "A", "M" and "D" indicate tab status (i.e. a pinned, audible, muted or discarded tab.  Use `:set completions.Tab.statusstylepretty true` to display unicode characters instead.  "P","A","M","D" can be used to filter by tab status in either setting.
+        "%" denotes the current tab and "#" denotes the tab that was last accessed in this window.  "P", "A", "M" and "D" indicate tab status (i.e. a pinned, audible, muted or discarded tab).  Use `:set completions.Tab.statusstylepretty true` to display unicode characters instead.  "P","A","M","D" can be used to filter by tab status in either setting.
 
         A non integer string means to search the URL and title for matches, in this window if called from tab, all windows if called from taball. Title matches can contain '*' as a wildcard.
  */

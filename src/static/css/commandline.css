@@ -79,6 +79,17 @@ input:focus {
 #completions table tr td.privatewindow {
     width: 1.5em;
 }
+#completions table tr td.tabcount {
+    width: 6em;
+}
+#completions table tr td.tgroup {
+    width: 10em;
+    padding-left: 0.5em;
+    text-align: right;
+}
+#completions table tr td.tgroup:empty {
+    display: none;
+}
 /* #completions table tr td:nth-of-type(3) { width: 5em; } */
 #completions table tr td.content {
     width: 50%;
@@ -257,6 +268,14 @@ a.url:hover {
 #completions .SettingsCompletionOption td.type {
     width: 15%;
     text-overflow: ellipsis;
+}
+
+#completions .TabGroupCompletionOption td.title {
+    width: 15%;
+}
+
+#completions .TabGroupCompletionOption td.content {
+    width: auto;
 }
 
 .HelpCompletionOption td.name {
