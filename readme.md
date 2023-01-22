@@ -49,7 +49,7 @@ Tridactyl stable can be installed from the [Mozilla add-ons website (the AMO)][a
 
 ### Beta
 
-[Click this in Firefox to install our "beta" builds][riskyclick]. These [betas][betas] are updated with each commit to master on this repo. Your browser will automatically update from there once a day. If you want more frequent updates, you can change `extensions.update.interval` in `about:config` to whatever time you want, say, 15 minutes (900 seconds). There is also another beta build that comes without a new tab page. You can get it from [here][nonewtablink].
+[Click this in Firefox to install our "beta" builds][riskyclick]. These [betas][betas] used to be updated with each commit to master on this repo but are now built manually when bovine3dom remembers - see [issue #3605](https://github.com/tridactyl/tridactyl/issues/3605). Your browser will automatically update from there once a day. If you want more frequent updates, you can change `extensions.update.interval` in `about:config` to whatever time you want, say, 15 minutes (900 seconds). There is also another beta build that comes without a new tab page. You can get it from [here][nonewtablink].
 
 ### Extra features through [Native Messaging](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/Native_messaging)
 
