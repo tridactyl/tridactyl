@@ -2,7 +2,8 @@ import * as Completions from "@src/completions"
 import * as config from "@src/lib/config"
 import * as providers from "@src/completions/providers"
 
-class HistoryCompletionOption extends Completions.CompletionOptionHTML
+class HistoryCompletionOption
+    extends Completions.CompletionOptionHTML
     implements Completions.CompletionOptionFuse {
     public fuseKeys = []
 
@@ -17,7 +18,6 @@ class HistoryCompletionOption extends Completions.CompletionOptionHTML
 
         // Create HTMLElement
         this.html = html`<tr class="HistoryCompletionOption option">
-            <td class="prefix">${"".padEnd(2)}</td>
             <td class="title">${page.title}</td>
             <td class="content">
                 <a class="url" target="_blank" href=${page.url}>${page.url}</a>
@@ -26,8 +26,36 @@ class HistoryCompletionOption extends Completions.CompletionOptionHTML
     }
 }
 
+class SearchUrlCompletionOption
+    extends Completions.CompletionOptionHTML
+    implements Completions.CompletionOptionFuse {
+    public fuseKeys = []
+
+    constructor(su: SearchURL) {
+        super()
+        this.value = su.value
+        this.fuseKeys.push(su.value, su.url)
+
+        // Create HTMLElement
+        this.html = html`<tr class="HistoryCompletionOption option">
+            <td class="title">${su.value}</td>
+            <td class="content">
+                Search
+                <a class="url" target="_blank" href=${su.url}>${su.url}</a>
+            </td>
+        </tr>`
+    }
+}
+
+class SearchURL {
+    constructor(public value: string, public url: string) {
+        this.value = value
+        this.url = url
+    }
+}
+
 export class HistoryCompletionSource extends Completions.CompletionSourceFuse {
-    public options: HistoryCompletionOption[]
+    public options: Completions.CompletionOptionFuse[]
 
     constructor(private _parent) {
         super(
@@ -75,14 +103,44 @@ export class HistoryCompletionSource extends Completions.CompletionSourceFuse {
         }
         options += options ? " " : ""
 
+        const searchURLs = []
+        const su = config.get("searchurls")
+        for (const prop in su) {
+            if (Object.prototype.hasOwnProperty.call(su, prop)) {
+                searchURLs.push(new SearchURL(prop, su[prop]))
+            }
+        }
+
+        this.options = []
+        this.updateSectionHeader("History and bookmarks")
+        const tokens = query.split(" ")
+        if (tokens.length > 1 || query.endsWith(" ")) {
+            // Not on first token
+            searchURLs.forEach(su => {
+                if (su.value === tokens[0]) {
+                    this.updateSectionHeader("Search " + su.value)
+                    query = su.url + " " + tokens.slice(1).join(" ")
+                }
+            })
+        } else {
+            // Still on first token, so display matching search urls
+            searchURLs
+                .filter(su => su.value.startsWith(query))
+                .slice(0, 5)
+                .forEach(su =>
+                    this.options.push(new SearchUrlCompletionOption(su)),
+                )
+        }
+
         // Options are pre-trimmed to the right length.
         // Typescript throws an error here - further investigation is probably warranted
-        this.options = ((await this.scoreOptions(
-            query,
-            config.get("historyresults"),
-        )) as any).map(
-            page => new HistoryCompletionOption(options + page.url, page),
-        )
+        const histOptions = (
+            (await this.scoreOptions(
+                query,
+                config.get("historyresults"),
+            )) as any
+        ).map(page => new HistoryCompletionOption(options + page.url, page))
+        this.options = this.options.concat(histOptions)
 
         // Deselect any selected, but remember what they were.
         const lastFocused = this.lastFocused
@@ -114,6 +172,14 @@ export class HistoryCompletionSource extends Completions.CompletionSourceFuse {
             return (await providers.getTopSites()).slice(0, n)
         } else {
             return (await providers.getCombinedHistoryBmarks(query)).slice(0, n)
+        }
+    }
+
+    private updateSectionHeader(newTitle: string) {
+        const headerNode = this.node.firstElementChild
+        const oldTitle = headerNode.innerHTML
+        if (newTitle !== oldTitle) {
+            headerNode.innerHTML = newTitle
         }
     }
 }

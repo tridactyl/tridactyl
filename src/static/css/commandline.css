@@ -139,7 +139,6 @@ input:focus {
 
 .url {
     text-decoration: var(--tridactyl-url-text-decoration);
-    padding-left: 7px;
 }
 
 .option:not(.focused) .url {

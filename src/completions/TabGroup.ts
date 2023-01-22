@@ -58,7 +58,7 @@ class TabGroupCompletionOption
         const urlMarkup = urls.map(
             u => `<a class="url" target="_blank" href="${u}">${u}</a>`,
         )
-        this.html.lastElementChild.innerHTML = urlMarkup.join(",")
+        this.html.lastElementChild.innerHTML = urlMarkup.join(", ")
     }
 }
 
