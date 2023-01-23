@@ -1,6 +1,7 @@
 import * as Completions from "@src/completions"
 import * as config from "@src/lib/config"
 import * as providers from "@src/completions/providers"
+import * as UrlUtil from "@src/lib/url_util"
 
 class HistoryCompletionOption
     extends Completions.CompletionOptionHTML
@@ -31,26 +32,17 @@ class SearchUrlCompletionOption
     implements Completions.CompletionOptionFuse {
     public fuseKeys = []
 
-    constructor(su: SearchURL) {
+    constructor(public value: string, url: string) {
         super()
-        this.value = su.value
-        this.fuseKeys.push(su.value, su.url)
+        this.fuseKeys.push(value, url)
 
         // Create HTMLElement
         this.html = html`<tr class="HistoryCompletionOption option">
-            <td class="title">${su.value}</td>
+            <td class="title">${value}</td>
             <td class="content">
-                Search
-                <a class="url" target="_blank" href=${su.url}>${su.url}</a>
+                Search <a class="url" target="_blank" href=${url}>${url}</a>
             </td>
         </tr>`
-    }
-}
-
-class SearchURL {
-    constructor(public value: string, public url: string) {
-        this.value = value
-        this.url = url
     }
 }
 
@@ -103,33 +95,43 @@ export class HistoryCompletionSource extends Completions.CompletionSourceFuse {
         }
         options += options ? " " : ""
 
-        const searchURLs = []
-        const su = config.get("searchurls")
-        for (const prop in su) {
-            if (Object.prototype.hasOwnProperty.call(su, prop)) {
-                searchURLs.push(new SearchURL(prop, su[prop]))
-            }
-        }
+        const searchURLs = config.get("searchurls")
 
         this.options = []
         this.updateSectionHeader("History and bookmarks")
         const tokens = query.split(" ")
         if (tokens.length > 1 || query.endsWith(" ")) {
             // Not on first token
-            searchURLs.forEach(su => {
-                if (su.value === tokens[0]) {
-                    this.updateSectionHeader("Search " + su.value)
-                    query = su.url + " " + tokens.slice(1).join(" ")
-                }
-            })
+            const su = tokens[0]
+            if (Object.prototype.hasOwnProperty.call(searchURLs, su)) {
+                query = tokens.slice(1).join(" ")
+                const url = UrlUtil.interpolateSearchItem(
+                    new URL(searchURLs[su]),
+                    query,
+                )
+                this.updateSectionHeader("Search " + su + " (" + url.href + ")")
+
+                // Actual query sent to browser needs to be space separated
+                // list of tokens, otherwise partial matches won't be found
+                query = searchURLs[su].split("%s").join(" ") + " " + query
+            }
         } else {
             // Still on first token, so display matching search urls
-            searchURLs
-                .filter(su => su.value.startsWith(query))
-                .slice(0, 5)
-                .forEach(su =>
-                    this.options.push(new SearchUrlCompletionOption(su)),
-                )
+            for (const prop in searchURLs) {
+                if (Object.prototype.hasOwnProperty.call(searchURLs, prop)) {
+                    if (this.options.length == 5) {
+                        break
+                    }
+                    if (prop.startsWith(query)) {
+                        this.options.push(
+                            new SearchUrlCompletionOption(
+                                prop,
+                                searchURLs[prop],
+                            ),
+                        )
+                    }
+                }
+            }
         }
 
         // Options are pre-trimmed to the right length.
