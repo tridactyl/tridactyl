@@ -1138,6 +1138,11 @@ export class default_config {
     bmarkweight = 100
 
     /**
+     * When displaying searchurls in history completions, how many page views to pretend they have.
+     */
+    searchurlweight = 150
+
+    /**
      * Default selector for :goto command.
      */
     gotoselector = "h1, h2, h3, h4, h5, h6"

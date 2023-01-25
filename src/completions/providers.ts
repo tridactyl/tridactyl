@@ -36,6 +36,21 @@ export async function getBookmarks(query: string) {
     return bookmarks
 }
 
+export async function getSearchUrls(query: string) {
+    const suconf = config.get("searchurls")
+
+    const searchUrls = []
+    for (const prop in suconf) {
+        if (
+            Object.prototype.hasOwnProperty.call(suconf, prop) &&
+            prop.startsWith(query)
+        ) {
+            searchUrls.push({ title: prop, url: suconf[prop] })
+        }
+    }
+    return searchUrls
+}
+
 function frecency(item: browser.history.HistoryItem) {
     // Doesn't actually care about recency yet.
     return item.visitCount * -1
@@ -80,9 +95,10 @@ export async function getTopSites() {
 export async function getCombinedHistoryBmarks(
     query: string,
 ): Promise<Array<{ title: string; url: string }>> {
-    const [history, bookmarks] = await Promise.all([
+    const [history, bookmarks, searchUrls] = await Promise.all([
         getHistory(query),
         getBookmarks(query),
+        getSearchUrls(query),
     ])
 
     // Join records by URL, using the title from bookmarks by preference.
@@ -101,10 +117,18 @@ export async function getCombinedHistoryBmarks(
                 history: page,
             })
     })
+    searchUrls.forEach(su => {
+        combinedMap.set(su.url, {
+            title: su.title,
+            url: su.url,
+            search: true,
+        })
+    })
 
     const score = x =>
         (x.history ? frecency(x.history) : 0) -
-        (x.bmark ? config.get("bmarkweight") : 0)
+        (x.bmark ? config.get("bmarkweight") : 0) -
+        (x.search ? config.get("searchurlweight") : 0)
 
     return Array.from(combinedMap.values()).sort((a, b) => score(a) - score(b))
 }

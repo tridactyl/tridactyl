@@ -1,17 +1,26 @@
 import * as Completions from "@src/completions"
 import * as config from "@src/lib/config"
 import * as providers from "@src/completions/providers"
-import * as UrlUtil from "@src/lib/url_util"
 
 class HistoryCompletionOption
     extends Completions.CompletionOptionHTML
     implements Completions.CompletionOptionFuse {
     public fuseKeys = []
 
-    constructor(public value: string, page: browser.history.HistoryItem) {
+    constructor(
+        public value: string,
+        page: browser.history.HistoryItem,
+        bmark,
+    ) {
         super()
         if (!page.title) {
             page.title = new URL(page.url).host
+        }
+
+        const preplain = bmark ? "B" : ""
+        let pre = preplain
+        if (config.get("completions", "Tab", "statusstylepretty") === "true") {
+            pre = bmark ? "\u2B50" : ""
         }
 
         // Push properties we want to fuzmatch on
@@ -19,6 +28,8 @@ class HistoryCompletionOption
 
         // Create HTMLElement
         this.html = html`<tr class="HistoryCompletionOption option">
+            <td class="prefix">${pre}</td>
+            <td class="prefixplain" hidden>${preplain}</td>
             <td class="title">${page.title}</td>
             <td class="content">
                 <a class="url" target="_blank" href=${page.url}>${page.url}</a>
@@ -36,8 +47,16 @@ class SearchUrlCompletionOption
         super()
         this.fuseKeys.push(value, url)
 
+        const preplain = "S"
+        let pre = preplain
+        if (config.get("completions", "Tab", "statusstylepretty") === "true") {
+            pre = "\u{1F50D}"
+        }
+
         // Create HTMLElement
         this.html = html`<tr class="HistoryCompletionOption option">
+            <td class="prefix">${pre}</td>
+            <td class="prefixplain" hidden>${preplain}</td>
             <td class="title">${value}</td>
             <td class="content">
                 Search <a class="url" target="_blank" href=${url}>${url}</a>
@@ -95,54 +114,37 @@ export class HistoryCompletionSource extends Completions.CompletionSourceFuse {
         }
         options += options ? " " : ""
 
-        const searchURLs = config.get("searchurls")
-
-        this.options = []
         this.updateSectionHeader("History and bookmarks")
         const tokens = query.split(" ")
         if (tokens.length > 1 || query.endsWith(" ")) {
-            // Not on first token
-            const su = tokens[0]
-            if (Object.prototype.hasOwnProperty.call(searchURLs, su)) {
+            const match = (await providers.getSearchUrls(tokens[0])).find(
+                su => su.title === tokens[0],
+            )
+            if (match !== undefined) {
                 query = tokens.slice(1).join(" ")
-                const url = UrlUtil.interpolateSearchItem(
-                    new URL(searchURLs[su]),
-                    query,
-                )
-                this.updateSectionHeader("Search " + su + " (" + url.href + ")")
-
+                this.updateSectionHeader("Search " + match.title)
                 // Actual query sent to browser needs to be space separated
                 // list of tokens, otherwise partial matches won't be found
-                query = searchURLs[su].split("%s").join(" ") + " " + query
-            }
-        } else {
-            // Still on first token, so display matching search urls
-            for (const prop in searchURLs) {
-                if (Object.prototype.hasOwnProperty.call(searchURLs, prop)) {
-                    if (this.options.length == 5) {
-                        break
-                    }
-                    if (prop.startsWith(query)) {
-                        this.options.push(
-                            new SearchUrlCompletionOption(
-                                prop,
-                                searchURLs[prop],
-                            ),
-                        )
-                    }
-                }
+                query = match.url.split("%s").join(" ") + " " + query
             }
         }
 
         // Options are pre-trimmed to the right length.
         // Typescript throws an error here - further investigation is probably warranted
-        const histOptions = (
+        this.options = (
             (await this.scoreOptions(
                 query,
                 config.get("historyresults"),
             )) as any
-        ).map(page => new HistoryCompletionOption(options + page.url, page))
-        this.options = this.options.concat(histOptions)
+        ).map(page =>
+            page.search
+                ? new SearchUrlCompletionOption(page.title, page.url)
+                : new HistoryCompletionOption(
+                      options + page.url,
+                      page,
+                      page.bmark,
+                  ),
+        )
 
         // Deselect any selected, but remember what they were.
         const lastFocused = this.lastFocused
