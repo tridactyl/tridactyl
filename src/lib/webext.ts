@@ -317,7 +317,7 @@ export async function queryAndURLwrangler(
 
     // Maybe it's a domain without protocol
     try {
-        const url = new URL("http://" + address)
+        const url = new URL("https://" + address)
         // Ignore unlikely domains
         if (url.hostname.indexOf(".") > 0 || url.port || url.password) {
             return url.href
