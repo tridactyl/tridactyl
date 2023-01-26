@@ -13,7 +13,7 @@ class HistoryCompletionOption
             page.title = new URL(page.url).host
         }
 
-        this.value = page.search ? page.title : options + page.url
+        this.value = page.search ? options + page.title : options + page.url
 
         let preplain = page.bmark ? "B" : ""
         preplain += page.search ? "S" : ""
@@ -75,18 +75,16 @@ export class HistoryCompletionSource extends Completions.CompletionSourceFuse {
             if (query.startsWith("-c")) {
                 const args = query.split(" ")
                 options = args.slice(0, 2).join(" ")
-                query = args.slice(2).join(" ")
             }
             if (query.startsWith("-b")) {
                 const args = query.split(" ")
                 options = args.slice(0, 1).join(" ")
-                query = args.slice(1).join(" ")
             }
-        } else if (prefix === "winopen " && query.startsWith("-private")) {
+        } else if (prefix === "winopen " && query.startsWith("-private ")) {
             options = "-private"
-            query = query.substring(options.length)
         }
         options += options ? " " : ""
+        query = query.substring(options.length)
 
         this.updateSectionHeader("History and bookmarks")
         const tokens = query.split(" ")
