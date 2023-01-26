@@ -7,24 +7,24 @@ class HistoryCompletionOption
     implements Completions.CompletionOptionFuse {
     public fuseKeys = []
 
-    constructor(
-        public value: string,
-        page: browser.history.HistoryItem,
-        bmark,
-    ) {
+    constructor(page: any, options: string) {
         super()
         if (!page.title) {
             page.title = new URL(page.url).host
         }
 
-        const preplain = bmark ? "B" : ""
+        this.value = page.search ? page.title : options + page.url
+
+        let preplain = page.bmark ? "B" : ""
+        preplain += page.search ? "S" : ""
         let pre = preplain
         if (config.get("completions", "Tab", "statusstylepretty") === "true") {
-            pre = bmark ? "\u2B50" : ""
+            pre = page.bmark ? "\u2B50" : ""
+            pre += page.search ? "\u{1F50D}" : ""
         }
 
         // Push properties we want to fuzmatch on
-        this.fuseKeys.push(page.title, page.url) // weight by page.visitCount
+        this.fuseKeys.push(preplain, page.title, page.url) // weight by page.visitCount
 
         // Create HTMLElement
         this.html = html`<tr class="HistoryCompletionOption option">
@@ -32,34 +32,8 @@ class HistoryCompletionOption
             <td class="prefixplain" hidden>${preplain}</td>
             <td class="title">${page.title}</td>
             <td class="content">
+                ${page.search ? "Search " : ""}
                 <a class="url" target="_blank" href=${page.url}>${page.url}</a>
-            </td>
-        </tr>`
-    }
-}
-
-class SearchUrlCompletionOption
-    extends Completions.CompletionOptionHTML
-    implements Completions.CompletionOptionFuse {
-    public fuseKeys = []
-
-    constructor(public value: string, url: string) {
-        super()
-        this.fuseKeys.push(value, url)
-
-        const preplain = "S"
-        let pre = preplain
-        if (config.get("completions", "Tab", "statusstylepretty") === "true") {
-            pre = "\u{1F50D}"
-        }
-
-        // Create HTMLElement
-        this.html = html`<tr class="HistoryCompletionOption option">
-            <td class="prefix">${pre}</td>
-            <td class="prefixplain" hidden>${preplain}</td>
-            <td class="title">${value}</td>
-            <td class="content">
-                Search <a class="url" target="_blank" href=${url}>${url}</a>
             </td>
         </tr>`
     }
@@ -136,15 +110,7 @@ export class HistoryCompletionSource extends Completions.CompletionSourceFuse {
                 query,
                 config.get("historyresults"),
             )) as any
-        ).map(page =>
-            page.search
-                ? new SearchUrlCompletionOption(page.title, page.url)
-                : new HistoryCompletionOption(
-                      options + page.url,
-                      page,
-                      page.bmark,
-                  ),
-        )
+        ).map(page => new HistoryCompletionOption(page, options))
 
         // Deselect any selected, but remember what they were.
         const lastFocused = this.lastFocused
