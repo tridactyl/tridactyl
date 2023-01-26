@@ -51,9 +51,12 @@ export async function getSearchUrls(query: string) {
     return searchUrls
 }
 
-function frecency(item: browser.history.HistoryItem) {
-    // Doesn't actually care about recency yet.
-    return item.visitCount * -1
+async function frecency(item: browser.history.HistoryItem) {
+    const lambda = -Math.log(2) / (config.get("frecencyhalflife") * 86400000)
+    const visits = await browserBg.history.getVisits({ url: item.url })
+    const now = Date.now()
+    const visitScores = visits.map(v => Math.exp(lambda * (now - v.visitTime)))
+    return 2 * visitScores.reduce((a, b) => a + b, 0)
 }
 
 export async function getHistory(
@@ -81,7 +84,8 @@ export async function getHistory(
     }
     history = [...dedupe.values()]
 
-    history.sort((a, b) => frecency(a) - frecency(b))
+    await Promise.all(history.map(async h => (h.score = await frecency(h))))
+    history.sort((a, b) => b.score - a.score)
 
     return history
 }
@@ -101,34 +105,37 @@ export async function getCombinedHistoryBmarks(
         getSearchUrls(query),
     ])
 
+    const bmarkScore = config.get("bmarkweight")
+    const searchScore = config.get("searchurlweight")
+
     // Join records by URL, using the title from bookmarks by preference.
     const combinedMap = new Map<string, any>(
         bookmarks.map(bmark => [
             bmark.url,
-            { title: bmark.title, url: bmark.url, bmark },
+            { title: bmark.title, url: bmark.url, bmark, score: bmarkScore },
         ]),
     )
     history.forEach(page => {
-        if (combinedMap.has(page.url)) combinedMap.get(page.url).history = page
-        else
+        if (combinedMap.has(page.url)) {
+            combinedMap.get(page.url).history = page
+            combinedMap.get(page.url).score += page.score
+        } else {
             combinedMap.set(page.url, {
                 title: page.title,
                 url: page.url,
                 history: page,
+                score: page.score,
             })
+        }
     })
     searchUrls.forEach(su => {
         combinedMap.set(su.url, {
             title: su.title,
             url: su.url,
             search: true,
+            score: searchScore,
         })
     })
 
-    const score = x =>
-        (x.history ? frecency(x.history) : 0) -
-        (x.bmark ? config.get("bmarkweight") : 0) -
-        (x.search ? config.get("searchurlweight") : 0)
-
-    return Array.from(combinedMap.values()).sort((a, b) => score(a) - score(b))
+    return Array.from(combinedMap.values()).sort((a, b) => b.score - a.score)
 }

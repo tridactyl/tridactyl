@@ -1133,6 +1133,11 @@ export class default_config {
     historyresults = 50
 
     /**
+     * Half life in days of visits used for exponential decay in frecency calculation.
+     */
+    frecencyhalflife = 30
+
+    /**
      * When displaying bookmarks in history completions, how many page views to pretend they have.
      */
     bmarkweight = 100
