@@ -38,6 +38,7 @@ export async function getBookmarks(query: string) {
 
 export async function getSearchUrls(query: string) {
     const suconf = config.get("searchurls")
+    const searchScore = config.get("searchurlweight")
 
     const searchUrls = []
     for (const prop in suconf) {
@@ -45,9 +46,21 @@ export async function getSearchUrls(query: string) {
             Object.prototype.hasOwnProperty.call(suconf, prop) &&
             prop.startsWith(query)
         ) {
-            searchUrls.push({ title: prop, url: suconf[prop] })
+            const url = suconf[prop]
+            const url_parts = url.split("%s").join(" ")
+            const history = await browserBg.history.search({
+                text: url_parts,
+                startTime: 0,
+            })
+            searchUrls.push({
+                title: prop,
+                url: suconf[prop],
+                score: searchScore + history.length,
+            })
         }
     }
+    // Sort urls with equal score alphabetically
+    searchUrls.sort((a, b) => (a.title > b.title ? 1 : -1))
     return searchUrls
 }
 
@@ -117,7 +130,6 @@ export async function getCombinedHistoryBmarks(
     ])
 
     const bmarkScore = config.get("bmarkweight")
-    const searchScore = config.get("searchurlweight")
 
     // Join records by URL, using the title from bookmarks by preference.
     const combinedMap = new Map<string, any>(
@@ -144,7 +156,7 @@ export async function getCombinedHistoryBmarks(
             title: su.title,
             url: su.url,
             search: true,
-            score: searchScore,
+            score: su.score,
         })
     })
 
