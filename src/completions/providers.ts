@@ -52,7 +52,11 @@ export async function getSearchUrls(query: string) {
 }
 
 async function frecency(item: browser.history.HistoryItem) {
-    const lambda = -Math.log(2) / (config.get("frecencyhalflife") * 86400000)
+    const halflife = config.get("frecencyhalflife")
+    if (halflife <= 0) {
+        return item.visitCount
+    }
+    const lambda = -Math.log(2) / (halflife * 86400000)
     const visits = await browserBg.history.getVisits({ url: item.url })
     const now = Date.now()
     const visitScores = visits.map(v => Math.exp(lambda * (now - v.visitTime)))
@@ -61,7 +65,7 @@ async function frecency(item: browser.history.HistoryItem) {
 
 export async function getHistory(
     query: string,
-): Promise<browser.history.HistoryItem[]> {
+): Promise<Array<{ title: string; url: string; score: number }>> {
     // Search history, dedupe and sort by frecency
     let history = await browserBg.history.search({
         text: query,
@@ -84,10 +88,17 @@ export async function getHistory(
     }
     history = [...dedupe.values()]
 
-    await Promise.all(history.map(async h => (h.score = await frecency(h))))
-    history.sort((a, b) => b.score - a.score)
+    const history_entries = await Promise.all(
+        history.map(async h => ({
+            title: h.title,
+            url: h.url,
+            score: await frecency(h),
+        })),
+    )
 
-    return history
+    history_entries.sort((a, b) => b.score - a.score)
+
+    return history_entries
 }
 
 export async function getTopSites() {
