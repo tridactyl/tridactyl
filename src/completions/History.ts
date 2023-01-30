@@ -13,18 +13,20 @@ class HistoryCompletionOption
             page.title = new URL(page.url).host
         }
 
-        this.value = page.search ? options + page.title : options + page.url
+        const search = page.type === providers.HistoryItemType.SearchUrl
+        const bmark = page.type === providers.HistoryItemType.Bmark
+        this.value = search ? options + page.title : options + page.url
 
-        let preplain = page.bmark ? "B" : ""
-        preplain += page.search ? "S" : ""
+        let preplain = bmark ? "B" : ""
+        preplain += search ? "S" : ""
         let pre = preplain
         if (config.get("completions", "Tab", "statusstylepretty") === "true") {
-            pre = page.bmark ? "\u2B50" : ""
-            pre += page.search ? "\u{1F50D}" : ""
+            pre = bmark ? "\u2B50" : ""
+            pre += search ? "\u{1F50D}" : ""
         }
 
         // Push properties we want to fuzmatch on
-        this.fuseKeys.push(preplain, page.title, page.url) // weight by page.visitCount
+        this.fuseKeys.push(preplain, page.title, page.url) // weight by page.score?
 
         // Create HTMLElement
         this.html = html`<tr class="HistoryCompletionOption option">
@@ -32,7 +34,7 @@ class HistoryCompletionOption
             <td class="prefixplain" hidden>${preplain}</td>
             <td class="title">${page.title}</td>
             <td class="content">
-                ${page.search ? "Search " : ""}
+                ${search ? "Search " : ""}
                 <a class="url" target="_blank" href=${page.url}>${page.url}</a>
             </td>
         </tr>`

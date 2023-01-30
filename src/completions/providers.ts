@@ -1,6 +1,22 @@
 import * as config from "@src/lib/config"
 import { browserBg } from "@src/lib/webext"
 
+export enum HistoryItemType {
+    History,
+    Bmark,
+    SearchUrl,
+    TopSite,
+}
+
+export class HistoryItem {
+    constructor(
+        public title: string,
+        public url: string,
+        public type: HistoryItemType,
+        public score = -1,
+    ) {}
+}
+
 export function newtaburl() {
     // In the nonewtab version, this will return `null` and upset getURL.
     // Ternary op below prevents the runtime error.
@@ -8,7 +24,7 @@ export function newtaburl() {
     return newtab !== null ? browser.runtime.getURL(newtab) : null
 }
 
-export async function getBookmarks(query: string) {
+export async function getBookmarks(query: string): Promise<HistoryItem[]> {
     // Search bookmarks, dedupe and sort by most recent.
     let bookmarks = await browserBg.bookmarks.search({ query })
 
@@ -33,10 +49,13 @@ export async function getBookmarks(query: string) {
         }
     })
 
-    return bookmarks
+    const bmarkScore = config.get("bmarkweight")
+    return bookmarks.map(
+        b => new HistoryItem(b.title, b.url, HistoryItemType.Bmark, bmarkScore),
+    )
 }
 
-export async function getSearchUrls(query: string) {
+export async function getSearchUrls(query: string): Promise<HistoryItem[]> {
     const suconf = config.get("searchurls")
     const searchScore = config.get("searchurlweight")
 
@@ -52,11 +71,14 @@ export async function getSearchUrls(query: string) {
                 text: url_parts,
                 startTime: 0,
             })
-            searchUrls.push({
-                title: prop,
-                url: suconf[prop],
-                score: searchScore + history.length,
-            })
+            searchUrls.push(
+                new HistoryItem(
+                    prop,
+                    url,
+                    HistoryItemType.SearchUrl,
+                    searchScore + history.length,
+                ),
+            )
         }
     }
     // Sort urls with equal score alphabetically
@@ -77,9 +99,7 @@ async function frecency(item: browser.history.HistoryItem) {
     return 2 * visitScores.reduce((a, b) => a + b, 0)
 }
 
-export async function getHistory(
-    query: string,
-): Promise<Array<{ title: string; url: string; score: number }>> {
+export async function getHistory(query: string): Promise<HistoryItem[]> {
     // Search history, dedupe and sort by frecency
     let history = await browserBg.history.search({
         text: query,
@@ -103,11 +123,15 @@ export async function getHistory(
     history = [...dedupe.values()]
 
     const history_entries = await Promise.all(
-        history.map(async h => ({
-            title: h.title,
-            url: h.url,
-            score: await frecency(h),
-        })),
+        history.map(
+            async h =>
+                new HistoryItem(
+                    h.title,
+                    h.url,
+                    HistoryItemType.History,
+                    await frecency(h),
+                ),
+        ),
     )
 
     history_entries.sort((a, b) => b.score - a.score)
@@ -115,67 +139,42 @@ export async function getHistory(
     return history_entries
 }
 
-export async function getTopSites(nSearchUrls = 0) {
-    const searchUrls = (await getSearchUrls("")).slice(0, nSearchUrls)
-    const combinedArray = searchUrls.map(su => ({
-        title: su.title,
-        url: su.url,
-        search: true,
-        score: su.score,
-    }))
+export async function getTopSites(nSearchUrls = 0): Promise<HistoryItem[]> {
+    const entries = (await getSearchUrls("")).slice(0, nSearchUrls)
     const topsites = (await browserBg.topSites.get()).filter(
         page => page.url !== newtaburl(),
     )
     topsites.forEach(site => {
-        combinedArray.push({
-            title: site.title,
-            url: site.url,
-            search: false,
-            score: 0,
-        })
+        entries.push(
+            new HistoryItem(site.title, site.url, HistoryItemType.TopSite),
+        )
     })
-    return combinedArray
+    return entries
 }
 
 export async function getCombinedHistoryBmarks(
     query: string,
     nSearchUrls = 0,
-): Promise<Array<{ title: string; url: string }>> {
-    const [history, bookmarks] = await Promise.all([
+): Promise<HistoryItem[]> {
+    const [history, bookmarks, searchUrls] = await Promise.all([
         getHistory(query),
         getBookmarks(query),
+        getSearchUrls(query),
     ])
-    const searchUrls = (await getSearchUrls(query)).slice(0, nSearchUrls)
-
-    const bmarkScore = config.get("bmarkweight")
 
     // Join records by URL, using the title from bookmarks by preference.
     const combinedMap = new Map<string, any>(
-        bookmarks.map(bmark => [
-            bmark.url,
-            { title: bmark.title, url: bmark.url, bmark, score: bmarkScore },
-        ]),
+        bookmarks.map(bmark => [bmark.url, bmark]),
     )
     history.forEach(page => {
         if (combinedMap.has(page.url)) {
-            combinedMap.get(page.url).history = page
             combinedMap.get(page.url).score += page.score
         } else {
-            combinedMap.set(page.url, {
-                title: page.title,
-                url: page.url,
-                history: page,
-                score: page.score,
-            })
+            combinedMap.set(page.url, page)
         }
     })
-    searchUrls.forEach(su => {
-        combinedMap.set(su.url, {
-            title: su.title,
-            url: su.url,
-            search: true,
-            score: su.score,
-        })
+    searchUrls.slice(0, nSearchUrls).forEach(su => {
+        combinedMap.set(su.url, su)
     })
 
     return Array.from(combinedMap.values()).sort((a, b) => b.score - a.score)
