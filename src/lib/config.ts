@@ -1133,6 +1133,11 @@ export class default_config {
     historyresults = 50
 
     /**
+     * Whether to use the Firefox "top sites" API in history completions. This setting is ignored if [[historyresults]] is set to 0.
+     */
+    usetopsites: "true" | "false" = "true"
+
+    /**
      * Half life in days of visits used for exponential decay in frecency calculation. Set to 0 to disable frecency and sort by visited count only.
      */
     frecencyhalflife = 30

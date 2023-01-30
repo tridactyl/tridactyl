@@ -61,6 +61,7 @@ export async function getSearchUrls(query: string) {
     }
     // Sort urls with equal score alphabetically
     searchUrls.sort((a, b) => (a.title > b.title ? 1 : -1))
+    searchUrls.sort((a, b) => b.score - a.score)
     return searchUrls
 }
 
@@ -114,20 +115,37 @@ export async function getHistory(
     return history_entries
 }
 
-export async function getTopSites() {
-    return (await browserBg.topSites.get()).filter(
+export async function getTopSites(nSearchUrls = 0) {
+    const searchUrls = (await getSearchUrls("")).slice(0, nSearchUrls)
+    const combinedArray = searchUrls.map(su => ({
+        title: su.title,
+        url: su.url,
+        search: true,
+        score: su.score,
+    }))
+    const topsites = (await browserBg.topSites.get()).filter(
         page => page.url !== newtaburl(),
     )
+    topsites.forEach(site => {
+        combinedArray.push({
+            title: site.title,
+            url: site.url,
+            search: false,
+            score: 0,
+        })
+    })
+    return combinedArray
 }
 
 export async function getCombinedHistoryBmarks(
     query: string,
+    nSearchUrls = 0,
 ): Promise<Array<{ title: string; url: string }>> {
-    const [history, bookmarks, searchUrls] = await Promise.all([
+    const [history, bookmarks] = await Promise.all([
         getHistory(query),
         getBookmarks(query),
-        getSearchUrls(query),
     ])
+    const searchUrls = (await getSearchUrls(query)).slice(0, nSearchUrls)
 
     const bmarkScore = config.get("bmarkweight")
 
