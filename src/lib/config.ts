@@ -1138,7 +1138,7 @@ export class default_config {
     usetopsites: "true" | "false" = "true"
 
     /**
-     * Half life in days of visits used for exponential decay in frecency calculation. Set to 0 to disable frecency and sort by visited count only.
+     * Half life in days of visits used for exponential decay in frecency calculation. Set to 0 to disable frecency and sort by visited count only. Smaller numbers mean that recency of visits matter more for ranking; bigger numbers mean that the absolute number of visits is more important.
      */
     frecencyhalflife = 30
 
