@@ -1,6 +1,6 @@
 :root {
     --tridactyl-font-family: "San Francisco", sans-serif;
-    --tridactyl-bg: #161a20; 
+    --tridactyl-bg: #161a20;
     --tridactyl-fg: white;
 
     --tridactyl-status-font-size: 12px;
@@ -10,15 +10,15 @@
     --tridactyl-status-border-radius: 4px;
 
     --tridactyl-header-font-size: 16px;
-    
+
     --tridactyl-of-fg: black;
-    --tridactyl-of-bg: #FFD662;
+    --tridactyl-of-bg: #ffd662;
 
     --tridactyl-hintspan-fg: white;
     --tridactyl-hintspan-bg: #204e8a;
 
     --tridactyl-hint-active-fg: #333;
-    --tridactyl-hint-active-bg: #006E51;
+    --tridactyl-hint-active-bg: #006e51;
     --tridactyl-hint-active-outline: 1px solid #000;
 
     --tridactyl-hint-bg: rgba(13, 31, 54, 0.25);
@@ -26,10 +26,9 @@
 
     --tridactyl-cmdl-font-size: 1.5rem;
     --tridactyl-cmplt-option-height: 1.9em;
-    
+
     --tridactyl-border-radius: 4px;
 }
-
 
 :root.TridactylOwnNamespace {
     scrollbar-width: thin;
@@ -48,7 +47,8 @@
     order: 1;
 }
 
-:root #command-line-holder, :root #tridactyl-input {
+:root #command-line-holder,
+:root #tridactyl-input {
     border-radius: var(--tridactyl-border-radius) !important;
 }
 
@@ -87,7 +87,6 @@
     table-layout: fixed;
 }
 
-
 :root #completions .BufferCompletionSource table {
     width: unset;
     font-size: unset;
@@ -118,6 +117,7 @@
     z-index: 2147483647 !important;
     width: 80% !important;
     filter: drop-shadow(0px 0px 20px #000000) !important;
+    color-scheme: only light; /* Prevent Firefox from adding a white background on dark-mode sites */
 }
 
 :root .TridactylStatusIndicator {
