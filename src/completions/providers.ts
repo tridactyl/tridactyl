@@ -66,24 +66,18 @@ export async function getSearchUrls(query: string): Promise<HistoryItem[]> {
             prop.startsWith(query)
         ) {
             const url = suconf[prop]
-            const url_parts = url.split("%s").join(" ")
-            const history = await browserBg.history.search({
-                text: url_parts,
-                startTime: 0,
-            })
             searchUrls.push(
                 new HistoryItem(
                     prop,
                     url,
                     HistoryItemType.SearchUrl,
-                    searchScore + history.length,
+                    searchScore,
                 ),
             )
         }
     }
     // Sort urls with equal score alphabetically
     searchUrls.sort((a, b) => (a.title > b.title ? 1 : -1))
-    searchUrls.sort((a, b) => b.score - a.score)
     return searchUrls
 }
 
