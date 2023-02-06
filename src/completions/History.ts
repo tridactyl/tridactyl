@@ -107,7 +107,10 @@ export class HistoryCompletionSource extends Completions.CompletionSourceFuse {
             this.updateSectionHeader("Search " + match.title)
             // Actual query sent to browser needs to be space separated
             // list of tokens, otherwise partial matches won't be found
-            query = match.url.split("%s").join(" ") + " " + query
+            const urlParts = match.url
+                .split("%s")
+                .map(part => decodeURIComponent(part))
+            query = urlParts.join(" ") + " " + query
         } else {
             this.updateSectionHeader(
                 HistoryCompletionSource.DEFAULT_SECTION_HEADER,
