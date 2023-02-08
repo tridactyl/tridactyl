@@ -1143,6 +1143,11 @@ export class default_config {
     frecencyhalflife = 30
 
     /**
+     * Minimum interval between searchurl score updates, in seconds. (To improve performance, searchurl scores used to rank history completions are cached.)
+     */
+    searchurlscoreupdateinterval = 600
+
+    /**
      * When displaying bookmarks in history completions, how many page views to pretend they have.
      */
     bmarkweight = 100
@@ -1150,7 +1155,7 @@ export class default_config {
     /**
      * When displaying searchurls in history completions, how many page views to pretend they have.
      */
-    searchurlweight = 150
+    searchurlweight = 100
 
     /**
      * Default selector for :goto command.

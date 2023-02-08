@@ -99,18 +99,15 @@ export class HistoryCompletionSource extends Completions.CompletionSourceFuse {
         query = query.substring(options.length)
 
         const tokens = query.split(" ")
-        const match = (await providers.getSearchUrls(tokens[0])).find(
-            su => su.title === tokens[0],
-        )
-        if ((tokens.length > 1 || query.endsWith(" ")) && match !== undefined) {
-            query = tokens.slice(1).join(" ")
-            this.updateSectionHeader("Search " + match.title)
-            // Actual query sent to browser needs to be space separated
-            // list of tokens, otherwise partial matches won't be found
-            const urlParts = match.url
-                .split("%s")
-                .map(part => decodeURIComponent(part))
-            query = urlParts.join(" ") + " " + query
+        const searchUrl = providers.searchUrlMap().get(tokens[0])
+        if (
+            (tokens.length > 1 || query.endsWith(" ")) &&
+            searchUrl !== undefined
+        ) {
+            this.updateSectionHeader("Search " + tokens[0])
+            const queryParts = tokens.slice(1)
+            queryParts.push(providers.searchUrlToQuery(searchUrl))
+            query = queryParts.join(" ")
         } else {
             this.updateSectionHeader(
                 HistoryCompletionSource.DEFAULT_SECTION_HEADER,

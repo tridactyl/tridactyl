@@ -1,4 +1,6 @@
 import * as config from "@src/lib/config"
+import * as State from "@src/state"
+import state from "@src/state"
 import { browserBg } from "@src/lib/webext"
 
 export enum HistoryItemType {
@@ -9,6 +11,7 @@ export enum HistoryItemType {
 }
 
 export class HistoryItem {
+    // Wrapper class to store details of entries for HistoryCompletionSource
     constructor(
         public title: string,
         public url: string,
@@ -55,33 +58,99 @@ export async function getBookmarks(query: string): Promise<HistoryItem[]> {
     )
 }
 
-export async function getSearchUrls(query: string): Promise<HistoryItem[]> {
-    const suconf = config.get("searchurls")
-    const searchScore = config.get("searchurlweight")
+export function searchUrlToQuery(url: string): string {
+    // Query sent to history API needs to be a space-separated
+    // list of tokens, otherwise partial matches won't be found
+    return url
+        .split("%s")
+        .map(part => decodeURIComponent(part))
+        .join(" ")
+}
 
-    const searchUrls = []
+let updateSearchUrlScoresLock = false
+async function updateSearchUrlScores() {
+    // Calculate and cache frecency scores for searchUrls
+    if (updateSearchUrlScoresLock) {
+        // This can take a few seconds - lock prevents multiple concurrent
+        // calls, which could occur while typing if
+        // `searchurlscoreupdateinterval` is set to a small value
+        return
+    }
+    try {
+        updateSearchUrlScoresLock = true
+        const searchUrlScores = await State.getAsync("searchUrlScores")
+        const searchUrls = searchUrlMap()
+        const scores = new Map<string, number>()
+        for (const [name, url] of searchUrls) {
+            const history = await browserBg.history.search({
+                text: searchUrlToQuery(url),
+                startTime: 0,
+            })
+            const pageScores = await Promise.all(
+                history.map(result => frecency(result)),
+            )
+            const score = pageScores.reduce((a, b) => a + b, 0)
+            scores.set(name, score)
+        }
+        searchUrlScores.scores = scores
+        searchUrlScores.lastUpdated = Date.now()
+        state.searchUrlScores = searchUrlScores
+    } finally {
+        updateSearchUrlScoresLock = false
+    }
+}
+
+async function getSearchUrlScores(): Promise<Map<string, number>> {
+    // Load searchUrl scores from state and recalculate them if necessary
+    const searchUrlScores = await State.getAsync("searchUrlScores")
+    const updateInterval =
+        1000 * (await config.get("searchurlscoreupdateinterval"))
+    if (
+        searchUrlScores.lastUpdated < 0 ||
+        Date.now() - searchUrlScores.lastUpdated > updateInterval
+    ) {
+        updateSearchUrlScores() // Update scores in background
+    }
+    return searchUrlScores.scores
+}
+
+export function searchUrlMap(query = ""): Map<string, string> {
+    // Return searchUrls as a Map of name-URL pairs
+    const suconf = config.get("searchurls")
+    const searchUrls = new Map<string, string>()
     for (const prop in suconf) {
         if (
             Object.prototype.hasOwnProperty.call(suconf, prop) &&
             prop.startsWith(query)
         ) {
-            const url = suconf[prop]
-            searchUrls.push(
-                new HistoryItem(
-                    prop,
-                    url,
-                    HistoryItemType.SearchUrl,
-                    searchScore,
-                ),
-            )
+            searchUrls.set(prop, suconf[prop])
         }
     }
-    // Sort urls with equal score alphabetically
-    searchUrls.sort((a, b) => (a.title > b.title ? 1 : -1))
     return searchUrls
 }
 
+export async function getSearchUrls(query: string): Promise<HistoryItem[]> {
+    // Find matching searchUrls and sort by frecency
+    const searchScore = config.get("searchurlweight")
+    const searchUrlScores = await getSearchUrlScores()
+    const searchUrls = searchUrlMap(query)
+    const items = Array.from(
+        searchUrls,
+        ([name, url]) =>
+            new HistoryItem(
+                name,
+                url,
+                HistoryItemType.SearchUrl,
+                searchScore + (searchUrlScores.get(name) ?? 0),
+            ),
+    )
+    items.sort((a, b) => b.score - a.score)
+    return items
+}
+
 async function frecency(item: browser.history.HistoryItem) {
+    // Calculate exponential decay frecency score for page - if frecency is
+    // turned off, just return number of visits
     const halflife = config.get("frecencyhalflife")
     if (halflife <= 0) {
         return item.visitCount
