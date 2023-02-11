@@ -118,11 +118,8 @@ export function searchUrlMap(query = ""): Map<string, string> {
     // Return searchUrls as a Map of name-URL pairs
     const suconf = config.get("searchurls")
     const searchUrls = new Map<string, string>()
-    for (const prop in suconf) {
-        if (
-            Object.prototype.hasOwnProperty.call(suconf, prop) &&
-            prop.startsWith(query)
-        ) {
+    for (const prop of Object.keys(suconf)) {
+        if (prop.startsWith(query)) {
             searchUrls.set(prop, suconf[prop])
         }
     }
