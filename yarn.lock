@@ -6550,14 +6550,14 @@ saxes@^3.1.9:
   dependencies:
     xmlchars "^2.1.1"
 
-selenium-webdriver@^4.7.1:
-  version "4.7.1"
-  resolved "https://registry.yarnpkg.com/selenium-webdriver/-/selenium-webdriver-4.7.1.tgz#29be9eaac1bd5aa37728c3e5cca352b1e98ec85d"
-  integrity sha512-IfTM9OE8HtCKjOJwyudbAVtAHQKOJK8mu2qrXXbKyj4lqgXF+2lYW4rSZXCV6SLQRWZ+DVGkomCmFzq5orD/ZA==
+selenium-webdriver@^4.8.0:
+  version "4.8.0"
+  resolved "https://registry.yarnpkg.com/selenium-webdriver/-/selenium-webdriver-4.8.0.tgz#386d57f23fe8edf5178f5bd06aae9ffaffbcb692"
+  integrity sha512-s/HL8WNwy1ggHR244+tAhjhyKMJnZLt1HKJ6Gn7nQgVjB/ybDF+46Uui0qI2J7AjPNJzlUmTncdC/jg/kKkn0A==
   dependencies:
     jszip "^3.10.0"
     tmp "^0.2.1"
-    ws ">=8.7.0"
+    ws ">=8.11.0"
 
 semver-compare@^1.0.0:
   version "1.0.0"
@@ -7902,7 +7902,7 @@ write-file-atomic@^3.0.3:
     signal-exit "^3.0.2"
     typedarray-to-buffer "^3.1.5"
 
-ws@8.12.0, ws@>=8.7.0:
+ws@8.12.0, ws@>=8.11.0:
   version "8.12.0"
   resolved "https://registry.yarnpkg.com/ws/-/ws-8.12.0.tgz#485074cc392689da78e1828a9ff23585e06cddd8"
   integrity sha512-kU62emKIdKVeEIOIKVegvqpXMSTAMLJozpHZaJNDYqBjzlSYXQGviYwN1osDLJ9av68qHd4a2oSjd7yD4pacig==
