@@ -74,7 +74,7 @@
 
 // Shared
 import * as Messaging from "@src/lib/messaging"
-import { ownWinTriIndex, getTriVersion, browserBg, activeTab, activeTabId, activeTabContainerId, openInNewTab, openInNewWindow, openInTab, queryAndURLwrangler, goToTab } from "@src/lib/webext"
+import { ownWinTriIndex, getTriVersion, browserBg, activeTab, activeTabId, activeTabContainerId, openInNewTab, openInNewWindow, openInTab, queryAndURLwrangler, goToTab, getSortedTabs, prevActiveTab } from "@src/lib/webext"
 import * as Container from "@src/lib/containers"
 import state from "@src/state"
 import * as State from "@src/state"
@@ -2884,26 +2884,13 @@ async function idFromIndex(index?: number | "%" | "#" | string): Promise<number>
 async function tabFromIndex(index?: number | "%" | "#" | string): Promise<browser.tabs.Tab> {
     if (index === "#") {
         // Support magic previous/current tab syntax everywhere
-        const tabs = await getSortedWinTabs()
-        if (tabs.length < 2) {
-            // In vim, '#' is the id of the previous buffer even if said buffer has been wiped
-            // However, firefox doesn't store tab ids for closed tabs
-            // Since vim makes '#' default to the current buffer if only one buffer has ever been opened for the current session, it seems reasonable to return the id of the current tab if only one tab is opened in firefox
-            return activeTab()
-        }
-        return tabs[1]
+        return prevActiveTab()
     } else if (index !== undefined && index !== "%") {
-        // Wrap
+        const tabs = await getSortedTabs()
         index = Number(index)
-        index = (index - 1).mod((await browser.tabs.query({ currentWindow: true })).length) + 1
+        index = (index - 1).mod(tabs.length) + 1
 
-        // Return id of tab with that index.
-        return (
-            await browser.tabs.query({
-                currentWindow: true,
-                index: index - 1,
-            })
-        )[0]
+        return tabs[index - 1]
     } else {
         return activeTab()
     }
@@ -2939,17 +2926,6 @@ export async function tabduplicate(index?: number) {
 //#background
 export async function tabdetach(index?: number) {
     return browser.windows.create({ tabId: await idFromIndex(index) })
-}
-
-/** Get list of tabs sorted by most recent use
-
-    @hidden
-*/
-//#background_helper
-async function getSortedWinTabs(): Promise<browser.tabs.Tab[]> {
-    const tabs = await browser.tabs.query({ currentWindow: true })
-    tabs.sort((a, b) => (a.lastAccessed < b.lastAccessed ? 1 : -1))
-    return tabs
 }
 
 /** Toggle fullscreen state
