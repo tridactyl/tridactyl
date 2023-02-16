@@ -8,7 +8,7 @@ import * as R from "ramda"
 export async function getSortedTabs(): Promise<browser.tabs.Tab[]> {
     const comp =
         config.get("tabsort") === "mru"
-            ? (a, b) => a.active || -b.active || b.lastAccessed - a.lastAccessed
+            ? (a, b) => +a.active || -b.active || b.lastAccessed - a.lastAccessed
             : (a, b) => a.index - b.index
     const hiddenVal = config.get("tabshowhidden") === "true" ? undefined : false
     return browserBg.tabs
