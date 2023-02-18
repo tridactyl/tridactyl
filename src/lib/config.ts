@@ -1929,8 +1929,7 @@ const parseConfigHelper = (pconf, parseobj, prefix = []) => {
                         const url = prefix[1]
                         const command = `alias --url ${url} ${e} ${pconf[i][e]}`
                         parseobj.aliases.push(command)
-                    }
-                    else if (e === "alias") {
+                    } else if (e === "alias") {
                         parseobj.aliases.push(`command ${e} ${pconf[i][e]}`)
                     } else {
                         parseobj.aliases.push(`alias ${e} ${pconf[i][e]}`)
