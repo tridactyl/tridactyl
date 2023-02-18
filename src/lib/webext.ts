@@ -5,6 +5,20 @@ import * as UrlUtil from "@src/lib/url_util"
 import { sleep } from "@src/lib/patience"
 import * as R from "ramda"
 
+export async function getSortedTabs(): Promise<browser.tabs.Tab[]> {
+    const comp =
+        config.get("tabsort") === "mru"
+            ? (a, b) => +a.active || -b.active || b.lastAccessed - a.lastAccessed
+            : (a, b) => a.index - b.index
+    const hiddenVal = config.get("tabshowhidden") === "true" ? undefined : false
+    return browserBg.tabs
+        .query({
+            currentWindow: true,
+            hidden: hiddenVal,
+        })
+        .then(tabs => tabs.sort(comp))
+}
+
 export function inContentScript() {
     return getContext() === "content"
 }
@@ -68,6 +82,17 @@ export async function activeTab() {
 
 export async function activeTabId() {
     return (await activeTab()).id
+}
+
+export async function prevActiveTab() {
+    const tabs = (
+        await browserBg.tabs.query({
+            currentWindow: true,
+        })
+    ).sort((a, b) => b.lastAccessed - a.lastAccessed)
+
+    if (tabs.length > 1) return tabs[1]
+    return tabs[0]
 }
 
 /**

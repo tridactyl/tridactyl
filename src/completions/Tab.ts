@@ -1,5 +1,5 @@
 import * as Perf from "@src/perf"
-import { browserBg } from "@src/lib/webext"
+import { browserBg, getSortedTabs, prevActiveTab } from "@src/lib/webext"
 import { enumerate } from "@src/lib/itertools"
 import * as Containers from "@src/lib/containers"
 import * as Completions from "@src/completions"
@@ -10,7 +10,6 @@ class BufferCompletionOption
     extends Completions.CompletionOptionHTML
     implements Completions.CompletionOptionFuse {
     public fuseKeys = []
-    public tabIndex: number
     public tabId: number
 
     constructor(
@@ -18,9 +17,10 @@ class BufferCompletionOption
         tab: browser.tabs.Tab,
         public isAlternative = false,
         container: browser.contextualIdentities.ContextualIdentity,
+        public tabIndex: number,
     ) {
         super()
-        this.tabIndex = tab.index
+
         this.tabId = tab.id
 
         // pre contains max four uppercase characters for tab status.
@@ -66,7 +66,9 @@ class BufferCompletionOption
             <td class="prefixplain" hidden>${preplain}</td>
             <td class="container"></td>
             <td class="icon"><img loading="lazy" src="${favIconUrl}" /></td>
-            <td class="title">${tab.index + 1}: ${indicator} ${tab.title}</td>
+            <td class="title">
+                ${this.tabIndex + 1}: ${indicator} ${tab.title}
+            </td>
             <td class="content">
                 <a class="url" target="_blank" href=${tab.url}>${tab.url}</a>
             </td>
@@ -179,34 +181,13 @@ export class BufferCompletionSource extends Completions.CompletionSourceFuse {
     }
 
     private async fillOptions() {
-        let tabs: browser.tabs.Tab[]
-
         // Get alternative tab, defined as last accessed tab in any group in
         // this window.
-        const currentWindowTabs = await browserBg.tabs.query({
-            currentWindow: true,
-        })
-        currentWindowTabs.sort((a, b) => b.lastAccessed - a.lastAccessed)
-        const altTab = currentWindowTabs[1]
 
-        if (config.get("tabshowhidden") === "true") {
-            tabs = currentWindowTabs
-        } else {
-            tabs = await browserBg.tabs.query({
-                currentWindow: true,
-                hidden: false,
-            })
-            tabs.sort((a, b) => b.lastAccessed - a.lastAccessed)
-        }
+        const altTab = await prevActiveTab()
 
+        const tabs = await getSortedTabs()
         const options = []
-
-        const useMruTabOrder = config.get("tabsort") === "mru"
-        if (!useMruTabOrder) {
-            tabs.sort((a, b) => a.index - b.index)
-        } else {
-            tabs.push(tabs.shift()) // If using MRU, move the current tab to the bottom (issue #4168)
-        }
 
         const container_all = await browserBg.contextualIdentities.query({})
         const container_map = new Map()
@@ -215,18 +196,18 @@ export class BufferCompletionSource extends Completions.CompletionSourceFuse {
         )
         // firefox-default is not in contextualIdenetities
         container_map.set("firefox-default", Containers.DefaultContainer)
-
-        for (const tab of tabs) {
+        for (const [index, tab] of tabs.entries()) {
             let tab_container = container_map.get(tab.cookieStoreId)
             if (!tab_container) {
                 tab_container = Containers.DefaultContainer
             }
             options.push(
                 new BufferCompletionOption(
-                    (tab.index + 1).toString(),
+                    (index + 1).toString(),
                     tab,
                     tab.index === altTab.index,
                     tab_container,
+                    index,
                 ),
             )
         }
