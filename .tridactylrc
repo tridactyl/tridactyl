@@ -162,8 +162,6 @@
 " 
 " " New reddit is bad
 " autocmd DocStart ^http(s?)://www.reddit.com js tri.excmds.urlmodify("-t", "www", "old")
-" " Mosquito nets won't make themselves
-" autocmd DocStart ^http(s?)://www.amazon.co.uk js tri.excmds.urlmodify("-t", "www", "smile")
 " 
 " " Isolate Facebook in its own container
 " " set auconcreatecontainer true
