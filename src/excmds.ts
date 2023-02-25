@@ -4523,6 +4523,11 @@ export function firefoxsyncpush() {
 /** @hidden */
 //#background_helper
 const AUCMDS = ["DocStart", "DocLoad", "DocEnd", "TriStart", "TabEnter", "TabLeft", "FullscreenChange", "FullscreenEnter", "FullscreenLeft", "UriChange", "HistoryState"].concat(webrequests.requestEvents)
+/** @hidden */
+//#background_helper
+export function getAutocmdEvents() {
+    return AUCMDS
+}
 /** Set autocmds to run when certain events happen.
  *
  * @param event Currently, 'TriStart', 'DocStart', 'DocLoad', 'DocEnd', 'TabEnter', 'TabLeft', 'FullscreenChange', 'FullscreenEnter', 'FullscreenLeft', 'HistoryState', 'HistoryPushState', 'HistoryReplace', 'UriChange', 'AuthRequired', 'BeforeRedirect', 'BeforeRequest', 'BeforeSendHeaders', 'Completed', 'ErrorOccured', 'HeadersReceived', 'ResponseStarted', and 'SendHeaders' are supported
@@ -4582,7 +4587,7 @@ const AUCMDS = ["DocStart", "DocLoad", "DocEnd", "TriStart", "TabEnter", "TabLef
 export function autocmd(event: string, url: string, ...excmd: string[]) {
     // rudimentary run time type checking
     // TODO: Decide on autocmd event names
-    if (!AUCMDS.includes(event)) throw new Error(event + " is not a supported event.")
+    if (!getAutocmdEvents().includes(event)) throw new Error(event + " is not a supported event.")
     return config.set("autocmds", event, url, excmd.join(" "))
 }
 
@@ -4675,7 +4680,7 @@ export function proxyremove(name: string) {
 */
 //#background
 export function autocmddelete(event: string, url: string) {
-    if (!AUCMDS.includes(event)) throw new Error(`${event} is not a supported event.`)
+    if (!getAutocmdEvents().includes(event)) throw new Error(`${event} is not a supported event.`)
     if (webrequests.requestEvents.includes(event)) {
         webrequests.unregisterWebRequestAutocmd(event, url)
     }

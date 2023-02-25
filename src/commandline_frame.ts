@@ -20,6 +20,7 @@
 import * as SELF from "@src/commandline_frame"
 import { CompletionSourceFuse } from "@src/completions"
 import { AproposCompletionSource } from "@src/completions/Apropos"
+import { AutocmdCompletionSource } from "@src/completions/Autocmd"
 import { BindingsCompletionSource } from "@src/completions/Bindings"
 import { BmarkCompletionSource } from "@src/completions/Bmark"
 import { CompositeCompletionSource } from "@src/completions/Composite"
@@ -114,6 +115,7 @@ commandline_state.getCompletion = getCompletion
 export function enableCompletions() {
     if (!commandline_state.activeCompletions) {
         commandline_state.activeCompletions = [
+            AutocmdCompletionSource,
             // FindCompletionSource,
             BindingsCompletionSource,
             BmarkCompletionSource,
