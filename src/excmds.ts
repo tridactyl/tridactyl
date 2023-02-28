@@ -722,7 +722,7 @@ export async function exclaim_quiet(...str: string[]) {
 /**
  * Tells you if the native messenger is installed and its version.
  *
- * For snap, flatpak, and other sandboxed installations, additional setup is required – see https://github.com/tridactyl#extra-features-through-native-messaging.
+ * For snap, flatpak, and other sandboxed installations, additional setup is required – see https://github.com/tridactyl/tridactyl#extra-features-through-native-messaging.
  */
 //#background
 export async function native() {
@@ -743,7 +743,7 @@ export async function native() {
  *
  * If your corporate IT policy disallows execution of binaries which have not been whitelisted but allows Python scripts, you may instead use the old native messenger by running `install.sh` or `win_install.ps1` from https://github.com/tridactyl/tridactyl/tree/master/native - the main downside is that it is significantly slower.
  *
- * For snap, flatpak, and other sandboxed installations, additional setup is required – see https://github.com/tridactyl#extra-features-through-native-messaging.
+ * For snap, flatpak, and other sandboxed installations, additional setup is required – see https://github.com/tridactyl/tridactyl#extra-features-through-native-messaging.
  */
 //#background
 export async function nativeinstall() {
