@@ -53,10 +53,12 @@ export class SettingsCompletionSource extends Completions.CompletionSourceFuse {
         // Ignoring command-specific arguments
         // It's terrible but it's ok because it's just a stopgap until an actual commandline-parsing API is implemented
         // copy pasting code is fun and good
-        if ((prefix === "seturl " || prefix === "unseturl ") || (
-            prefix === "viewconfig " &&
-            (query.startsWith("--user") || query.startsWith("--default"))
-        )) {
+        if (
+            prefix === "seturl" ||
+            prefix === "unseturl" ||
+            (prefix === "viewconfig" &&
+                (query.startsWith("--user") || query.startsWith("--default")))
+        ) {
             const args = query.split(" ")
             options = args.slice(0, 1).join(" ")
             query = args.slice(1).join(" ")
