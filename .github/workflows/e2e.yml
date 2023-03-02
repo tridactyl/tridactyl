@@ -28,7 +28,7 @@ jobs:
         # os: [ubuntu, macos, windows]
         browser: [firefox, firefoxesr]
         exclude:
-          - os: macos
+          - os: [macos, windows]
             browser: firefoxesr
 
     runs-on: ${{ matrix.os }}-latest
