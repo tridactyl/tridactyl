@@ -5,10 +5,14 @@ import * as UrlUtil from "@src/lib/url_util"
 import { sleep } from "@src/lib/patience"
 import * as R from "ramda"
 
-export async function getSortedTabs(): Promise<browser.tabs.Tab[]> {
+export async function getSortedTabs(
+    forceSort?: "mru" | "default",
+): Promise<browser.tabs.Tab[]> {
+    const sortAlg = forceSort ?? config.get("tabsort")
     const comp =
-        config.get("tabsort") === "mru"
-            ? (a, b) => +a.active || -b.active || b.lastAccessed - a.lastAccessed
+        sortAlg === "mru"
+            ? (a, b) =>
+                  +a.active || -b.active || b.lastAccessed - a.lastAccessed
             : (a, b) => a.index - b.index
     const hiddenVal = config.get("tabshowhidden") === "true" ? undefined : false
     return browserBg.tabs

@@ -116,7 +116,7 @@ export class BufferCompletionSource extends Completions.CompletionSourceFuse {
     async filter(exstr) {
         this.lastExstr = exstr
         const prefix = this.splitOnPrefix(exstr).shift()
-        if (prefix === "tabrename ") this.shouldSetStateFromScore = false
+        if (prefix === "tabrename") this.shouldSetStateFromScore = false
         return this.onInput(exstr)
     }
 
@@ -180,13 +180,15 @@ export class BufferCompletionSource extends Completions.CompletionSourceFuse {
         return res
     }
 
-    private async fillOptions() {
+    private async fillOptions(prefix: string) {
         // Get alternative tab, defined as last accessed tab in any group in
         // this window.
 
         const altTab = await prevActiveTab()
-
-        const tabs = await getSortedTabs()
+        // Since tabmove always uses absolute tab indices, we need
+        // to override possible MRU setting to match tabmove behavior
+        const forceSort = prefix === "tabmove" ? "default" : undefined
+        const tabs = await getSortedTabs(forceSort)
         const options = []
 
         const container_all = await browserBg.contextualIdentities.query({})
@@ -237,7 +239,7 @@ export class BufferCompletionSource extends Completions.CompletionSourceFuse {
         if (prefix === "tabmove")
             this.shouldSetStateFromScore = !/^[+-][0-9]+$/.exec(query)
 
-        await this.fillOptions()
+        await this.fillOptions(prefix)
         this.completion = undefined
 
         /* console.log('updateOptions', this.optionContainer) */

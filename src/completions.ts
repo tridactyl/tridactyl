@@ -227,7 +227,7 @@ export abstract class CompletionSourceFuse extends CompletionSource {
     select(option: CompletionOption) {
         if (this.lastExstr !== undefined && option !== undefined) {
             const [prefix] = this.splitOnPrefix(this.lastExstr)
-            this.completion = prefix + option.value
+            this.completion = [prefix, option.value].join(" ")
             this.args = option.value
             option.state = "focused"
             this.lastFocused = option
@@ -240,7 +240,7 @@ export abstract class CompletionSourceFuse extends CompletionSource {
         for (const prefix of this.prefixes) {
             if (exstr.startsWith(prefix)) {
                 const query = exstr.replace(prefix, "")
-                return [prefix, query]
+                return [prefix.trim(), query]
             }
         }
         return [undefined, undefined]
@@ -297,7 +297,9 @@ export abstract class CompletionSourceFuse extends CompletionSource {
 
     /** Call to replace the current display */
     updateDisplay() {
-        const newContainer = this.optionContainer.cloneNode(false) as HTMLElement
+        const newContainer = this.optionContainer.cloneNode(
+            false,
+        ) as HTMLElement
 
         for (const option of this.options) {
             if (option.state !== "hidden")
