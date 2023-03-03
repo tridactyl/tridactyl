@@ -46,7 +46,7 @@
     "geckodriver": "^3.2.0",
     "jasmine-fail-fast": "^2.0.1",
     "jest": "^25.5.4",
-    "jest-webextension-mock": "^3.8.8",
+    "jest-webextension-mock": "^3.8.9",
     "marked": "^4.2.12",
     "prettier": "^2.8.4",
     "selenium-webdriver": "^4.7.1",
