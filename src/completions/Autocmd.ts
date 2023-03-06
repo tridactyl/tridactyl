@@ -30,7 +30,6 @@ export class AutocmdCompletionSource extends Completions.CompletionSourceFuse {
             "Autocommands",
         )
 
-        this.updateOptions()
         this.shouldSetStateFromScore =
             config.get("completions", "Autocmd", "autoselect") === "true"
         this._parent.appendChild(this.node)
@@ -40,26 +39,14 @@ export class AutocmdCompletionSource extends Completions.CompletionSourceFuse {
         super.setStateFromScore(scoredOpts, this.shouldSetStateFromScore)
     }
 
-    onInput(...whatever) {
-        return this.updateOptions(...whatever)
+    onInput(input: string) {
+        return this.handleCommand(input)
     }
 
-    private async updateOptions(exstr = "") {
-        this.lastExstr = exstr
-        const [prefix, rest] = this.splitOnPrefix(exstr)
+    /* override*/ async updateOptions(command, rest) {
         const args = rest ? rest.split(/\s+/) : []
 
-        // Hide self and stop if prefixes don't match
-        if (prefix) {
-            // Show self if prefix and currently hidden
-            if (this.state === "hidden") {
-                this.state = "normal"
-            }
-        } else {
-            this.state = "hidden"
-            return
-        }
-        const is_autocmddelete = /del/.test(prefix)
+        const is_autocmddelete = /del/.test(command)
         const filter_defined_autocmds = is_autocmddelete
         const defined_autocmds = config.get("autocmds")
         // Config may contain empty dictionnaries if user deleted all patterns

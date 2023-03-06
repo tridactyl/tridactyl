@@ -93,7 +93,6 @@ export abstract class CompletionSource {
 
     /** Update [[node]] to display completions relevant to exstr */
     public abstract filter(exstr: string): Promise<void>
-
     abstract next(inc?: number): Promise<boolean>
 }
 
@@ -334,6 +333,32 @@ export abstract class CompletionSourceFuse extends CompletionSource {
     // Lots of methods don't need this but some do
     // eslint-disable-next-line @typescript-eslint/no-empty-function, @typescript-eslint/no-unused-vars-experimental
     async onInput(exstr: string) {}
+    // some children don't need to implement it so we provide a stub
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars-experimental, @typescript-eslint/require-await
+    protected async updateOptions(command, rest) {
+        throw new Error(
+            "updateOptions not implemented for CompletionSourceFuse!",
+        )
+    }
+    protected async handleCommand(exstr: string) {
+        this.lastExstr = exstr
+        const [cmd, args] = this.splitOnPrefix(exstr)
+
+        // Hide self and stop if prefixes don't match
+        if (cmd) {
+            // Show self if prefix and currently hidden
+            if (this.state === "hidden") {
+                this.state = "normal"
+            }
+        } else {
+            this.state = "hidden"
+            return
+        }
+
+        // the return keyword is super important here,
+        // without it a lot of weird stuff happens. Damn async!
+        return this.updateOptions(cmd, args)
+    }
 }
 
 // }}}

@@ -3,7 +3,8 @@ import * as Metadata from "@src/.metadata.generated"
 import * as config from "@src/lib/config"
 import * as aliases from "@src/lib/aliases"
 
-export class ExcmdCompletionOption extends Completions.CompletionOptionHTML
+export class ExcmdCompletionOption
+    extends Completions.CompletionOptionHTML
     implements Completions.CompletionOptionFuse {
     public fuseKeys = []
     constructor(public value: string, public documentation: string = "") {
@@ -24,7 +25,7 @@ export class ExcmdCompletionSource extends Completions.CompletionSourceFuse {
     constructor(private _parent) {
         super([], "ExcmdCompletionSource", "ex commands")
 
-        this.updateOptions()
+        this.handleCommand()
         this._parent.appendChild(this.node)
     }
 
@@ -34,7 +35,7 @@ export class ExcmdCompletionSource extends Completions.CompletionSourceFuse {
     }
 
     async onInput(exstr) {
-        return this.updateOptions(exstr)
+        return this.handleCommand(exstr)
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars-experimental
@@ -55,7 +56,7 @@ export class ExcmdCompletionSource extends Completions.CompletionSourceFuse {
         super.setStateFromScore(scoredOpts, false)
     }
 
-    private async updateOptions(exstr = "") {
+    /* override*/ async handleCommand(exstr = "") {
         this.lastExstr = exstr
 
         const excmds = Metadata.everything.getFile("src/excmds.ts")

@@ -29,21 +29,10 @@ export class FileSystemCompletionSource extends Completions.CompletionSourceFuse
     }
 
     public async onInput(exstr) {
-        return this.filter(exstr)
+        return this.handleCommand(exstr)
     }
 
-    public async filter(exstr: string) {
-        if (!exstr || exstr.indexOf(" ") === -1) {
-            this.state = "hidden"
-            return
-        }
-
-        let [cmd, path] = this.splitOnPrefix(exstr)
-        if (cmd === undefined) {
-            this.state = "hidden"
-            return
-        }
-
+    /* override*/ async updateOptions(cmd, path) {
         if (!path) path = "."
 
         if (!["/", "$", "~", "."].find(s => path.startsWith(s))) {

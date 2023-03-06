@@ -101,7 +101,6 @@ export class BufferCompletionSource extends Completions.CompletionSourceFuse {
         this.sortScoredOptions = true
         this.shouldSetStateFromScore =
             config.get("completions", "Tab", "autoselect") === "true"
-        this.updateOptions()
         this._parent.appendChild(this.node)
 
         Messaging.addListener("tab_changes", () => this.reactToTabChanges())
@@ -110,7 +109,7 @@ export class BufferCompletionSource extends Completions.CompletionSourceFuse {
     async onInput(exstr) {
         // Schedule an update, if you like. Not very useful for tabs, but
         // will be for other things.
-        return this.updateOptions(exstr)
+        return this.handleCommand(exstr)
     }
 
     async filter(exstr) {
@@ -220,31 +219,18 @@ export class BufferCompletionSource extends Completions.CompletionSourceFuse {
     // Eslint doesn't like this decorator but there's nothing we can do about it
     // eslint-disable-next-line @typescript-eslint/member-ordering
     @Perf.measuredAsync
-    private async updateOptions(exstr = "") {
-        this.lastExstr = exstr
-        const [prefix, query] = this.splitOnPrefix(exstr)
-
-        // Hide self and stop if prefixes don't match
-        if (prefix) {
-            // Show self if prefix and currently hidden
-            if (this.state === "hidden") {
-                this.state = "normal"
-            }
-        } else {
-            this.state = "hidden"
-            return
-        }
-
+    /* override*/
+    async updateOptions(command, rest) {
         // When the user is asking for tabmove completions, don't autoselect if the query looks like a relative move https://github.com/tridactyl/tridactyl/issues/825
-        if (prefix === "tabmove")
-            this.shouldSetStateFromScore = !/^[+-][0-9]+$/.exec(query)
+        if (command === "tabmove")
+            this.shouldSetStateFromScore = !/^[+-][0-9]+$/.exec(rest)
 
-        await this.fillOptions(prefix)
+        await this.fillOptions(command)
         this.completion = undefined
 
         /* console.log('updateOptions', this.optionContainer) */
-        if (query && query.trim().length > 0) {
-            this.setStateFromScore(this.scoredOptions(query))
+        if (rest && rest.trim().length > 0) {
+            this.setStateFromScore(this.scoredOptions(rest))
         } else {
             this.options.forEach(option => (option.state = "normal"))
         }
@@ -257,7 +243,7 @@ export class BufferCompletionSource extends Completions.CompletionSourceFuse {
      */
     private async reactToTabChanges(): Promise<void> {
         const prevOptions = this.options
-        await this.updateOptions(this.lastExstr)
+        await this.handleCommand(this.lastExstr)
 
         if (!prevOptions || !this.options || !this.lastFocused) return
 

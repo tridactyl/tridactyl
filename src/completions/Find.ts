@@ -41,7 +41,7 @@ export class FindCompletionSource extends Completions.CompletionSourceFuse {
         // Since we might have awaited for this.prevCompletion, we don't have a guarantee we're the last completion the user asked for anymore
         if (id === this.completionCount - 1) {
             // If we are the last completion
-            this.prevCompletion = this.updateOptions(exstr)
+            this.prevCompletion = this.handleCommand(exstr)
             await this.prevCompletion
         }
     }
@@ -51,7 +51,7 @@ export class FindCompletionSource extends Completions.CompletionSourceFuse {
         this.options.forEach(o => (o.state = "normal"))
     }
 
-    private async updateOptions(exstr?: string) {
+    /* override*/ async handleCommand(exstr?: string) {
         if (!exstr) return
 
         // Flag parsing because -? should reverse completions

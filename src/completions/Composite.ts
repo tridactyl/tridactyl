@@ -13,8 +13,6 @@ export class CompositeCompletionSource extends Completions.CompletionSourceFuse 
 
     constructor(private _parent) {
         super([PREFIX], "CompositeCompletionSource", "ex commands")
-
-        this.updateOptions()
         this._parent.appendChild(this.node)
     }
 
@@ -24,7 +22,7 @@ export class CompositeCompletionSource extends Completions.CompletionSourceFuse 
     }
 
     async onInput(exstr) {
-        return this.updateOptions(exstr)
+        return this.handleCommand(exstr)
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars-experimental
@@ -49,22 +47,9 @@ export class CompositeCompletionSource extends Completions.CompletionSourceFuse 
         super.setStateFromScore(scoredOpts, false)
     }
 
-    private async updateOptions(exstr = "") {
-        const end_exstr = this.getendexstr(exstr)
-        this.lastExstr = exstr
-        const [prefix] = this.splitOnPrefix(exstr)
-
-        // Hide self and stop if prefixes don't match
-        if (prefix) {
-            // Show self if prefix and currently hidden
-            if (this.state === "hidden") {
-                this.state = "normal"
-            }
-        } else {
-            this.state = "hidden"
-            return
-        }
-
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars-experimental
+    /* override*/ async updateOptions(command, rest) {
+        const end_exstr = this.getendexstr(rest)
         const excmds = Metadata.everything.getFile("src/excmds.ts")
         if (!excmds) return
         const fns = excmds.getFunctions()

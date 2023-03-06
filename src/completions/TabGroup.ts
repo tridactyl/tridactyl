@@ -72,29 +72,15 @@ export class TabGroupCompletionSource extends Completions.CompletionSourceFuse {
             "Tab Groups",
         )
 
-        this.updateOptions()
         this._parent.appendChild(this.node)
     }
 
     async onInput(exstr) {
-        return this.updateOptions(exstr)
+        return this.handleCommand(exstr)
     }
 
-    private async updateOptions(exstr = "") {
-        this.lastExstr = exstr
-        const [prefix] = this.splitOnPrefix(exstr)
-
-        // Hide self and stop if prefixes don't match
-        if (prefix) {
-            // Show self if prefix and currently hidden
-            if (this.state === "hidden") {
-                this.state = "normal"
-            }
-        } else {
-            this.state = "hidden"
-            return
-        }
-
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars-experimental
+    /* override*/ async updateOptions(command, rest) {
         const currentGroup = await windowTgroup()
         const alternateGroup = await windowLastTgroup()
         const groups = [...(await tgroups())]

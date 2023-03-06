@@ -92,7 +92,6 @@ export class TabAllCompletionSource extends Completions.CompletionSourceFuse {
     constructor(private _parent) {
         super(["taball", "tabgrab"], "TabAllCompletionSource", "All Tabs")
 
-        this.updateOptions()
         this._parent.appendChild(this.node)
         this.shouldSetStateFromScore =
             config.get("completions", "TabAll", "autoselect") === "true"
@@ -101,7 +100,7 @@ export class TabAllCompletionSource extends Completions.CompletionSourceFuse {
     }
 
     async onInput(exstr) {
-        return this.updateOptions(exstr)
+        return this.handleCommand(exstr)
     }
 
     setStateFromScore(scoredOpts: Completions.ScoredOption[]) {
@@ -124,11 +123,8 @@ export class TabAllCompletionSource extends Completions.CompletionSourceFuse {
      */
     private async reactToTabChanges(): Promise<void> {
         // const prevOptions = this.options
-        await this.updateOptions(this.lastExstr)
-
         // TODO: update this from Tab.ts for TabAll.ts
         // if (!prevOptions || !this.options || !this.lastFocused) return
-
         // // Determine which option to focus on
         // const diff = R.differenceWith(
         //     (x, y) => x.tab.id === y.tab.id,
@@ -137,7 +133,6 @@ export class TabAllCompletionSource extends Completions.CompletionSourceFuse {
         // )
         // const lastFocusedTabCompletion = this
         //     .lastFocused as TabAllCompletionOption
-
         // // If the focused option was removed then focus on the next option
         // if (
         //    diff.length === 1 &&
@@ -163,21 +158,9 @@ export class TabAllCompletionSource extends Completions.CompletionSourceFuse {
     // Eslint doesn't like this decorator but there's nothing we can do about it
     // eslint-disable-next-line @typescript-eslint/member-ordering
     @Perf.measuredAsync
-    private async updateOptions(exstr = "") {
-        this.lastExstr = exstr
-        const [prefix] = this.splitOnPrefix(exstr)
-
-        // Hide self and stop if prefixes don't match
-        if (prefix) {
-            // Show self if prefix and currently hidden
-            if (this.state === "hidden") {
-                this.state = "normal"
-            }
-        } else {
-            this.state = "hidden"
-            return
-        }
-
+    /* override*/
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars-experimental
+    async updateOptions(command, rest) {
         const tabsPromise = browserBg.tabs.query({})
         const windowsPromise = this.getWindows()
         const [tabs, windows] = await Promise.all([tabsPromise, windowsPromise])
@@ -193,7 +176,7 @@ export class TabAllCompletionSource extends Completions.CompletionSourceFuse {
 
         // Check to see if this is a command that needs to exclude the current
         // window
-        const excludeCurrentWindow = ["tabgrab"].includes(prefix.trim())
+        const excludeCurrentWindow = ["tabgrab"].includes(command.trim())
         const currentWindow = await browserBg.windows.getCurrent()
         // Window Ids don't make sense so we're using LASTID and WININDEX to compute a window index
         // This relies on the fact that tabs are sorted by window ids
@@ -214,8 +197,7 @@ export class TabAllCompletionSource extends Completions.CompletionSourceFuse {
                     tab,
                     tab.index === altTab.index &&
                         tab.windowId === altTab.windowId,
-                    tab.active &&
-                        tab.windowId === currentWindow.id,
+                    tab.active && tab.windowId === currentWindow.id,
                     winindex,
                     await Containers.getFromId(tab.cookieStoreId),
                     windows[tab.windowId].incognito,
