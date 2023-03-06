@@ -28,7 +28,7 @@ export function incrementUrl(url, count) {
 
     // Re-pad numbers that were zero-padded to be the same length:
     // 0009 + 1 => 0010
-    if (number.match(/^0/g)) {
+    if (number.match(/^0/)) {
         while (newNumberStr.length < number.length) {
             newNumberStr = "0" + newNumberStr
         }
