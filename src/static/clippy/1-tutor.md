@@ -36,6 +36,10 @@ The idea behind Tridactyl is to allow you to navigate the web more efficiently w
 
 Almost all of the modes are controlled by series of keypresses. In this tutorial, a sequence of keys such as `zz` should be entered by pressing the key `z`, letting go, and then pressing the key `z`. There is no need to hold both keys at once, if that were even possible. (`zz` resets the zoom level to the default, so it probably didn't seem to do anything). Sometimes `help` refers to a command that must be entered in command mode; it should hopefully always be clear from context which we mean.
 
+### Note for users of other Vim-style browser tools
+
+Tridactyl defaults to using `J` to switch to the previous tab and `K` to switch to the next tab, which may be different from what you're used to if you're coming from Vimperator/Pentadactyl, qutebrowser, or similar projects. You can run `:bind J tabnext` and `:bind K tabprev` to switch the two around if you prefer.
+
 ---
 
 ## Normal mode

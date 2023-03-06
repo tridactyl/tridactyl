@@ -79,6 +79,9 @@
 " 
 " " Allow Ctrl-c to copy in the commandline
 " unbind --mode=ex <C-c>
+"
+" " Open various things in new tabs from the commandline
+" bind --mode=ex <C-o>t ex.execute_ex_on_completion_args tabopen -b
 " 
 " " Handy multiwindow/multitasking binds
 " bind gd tabdetach
@@ -159,8 +162,6 @@
 " 
 " " New reddit is bad
 " autocmd DocStart ^http(s?)://www.reddit.com js tri.excmds.urlmodify("-t", "www", "old")
-" " Mosquito nets won't make themselves
-" autocmd DocStart ^http(s?)://www.amazon.co.uk js tri.excmds.urlmodify("-t", "www", "smile")
 " 
 " " Isolate Facebook in its own container
 " " set auconcreatecontainer true

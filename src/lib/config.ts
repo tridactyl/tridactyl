@@ -329,8 +329,8 @@ export class default_config {
         ";W": "hint -W fillcmdline_notrail winopen ",
         ";T": "hint -W fillcmdline_notrail tabopen ",
         ";z": "hint -z",
-        ";m": "composite hint -Jpipe img src | open images.google.com/searchbyimage?image_url=",
-        ";M": "composite hint -Jpipe img src | tabopen images.google.com/searchbyimage?image_url=",
+        ";m": "hint -JFc img i => tri.excmds.open('https://lens.google.com/uploadbyurl?url='+i.src)",
+        ";M": "hint -JFc img i => tri.excmds.tabopen('https://lens.google.com/uploadbyurl?url='+i.src)",
         ";gi": "hint -qi",
         ";gI": "hint -qI",
         ";gk": "hint -qk",
@@ -868,7 +868,9 @@ export class default_config {
     tabclosepinned: "true" | "false" = "true"
 
     /**
-     * Controls which tab order to use when opening the tab/buffer list. Either mru = sort by most recent tab or default = by tab index
+     * Controls which tab order to use when numbering tabs. Either mru = sort by most recent tab or default = by tab index
+     *
+     * Applies to all places where Tridactyl numbers tabs including `:tab`, `:tabnext_gt` etc. (so, for example, with `:set tabsort mru` `2gt` would take you to the second most recently used tab, not the second tab in the tab bar).
      */
     tabsort: "mru" | "default" = "default"
 

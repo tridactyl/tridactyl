@@ -74,7 +74,7 @@
 
 // Shared
 import * as Messaging from "@src/lib/messaging"
-import { ownWinTriIndex, getTriVersion, browserBg, activeTab, activeTabId, activeTabContainerId, openInNewTab, openInNewWindow, openInTab, queryAndURLwrangler, goToTab } from "@src/lib/webext"
+import { ownWinTriIndex, getTriVersion, browserBg, activeTab, activeTabId, activeTabContainerId, openInNewTab, openInNewWindow, openInTab, queryAndURLwrangler, goToTab, getSortedTabs, prevActiveTab } from "@src/lib/webext"
 import * as Container from "@src/lib/containers"
 import state from "@src/state"
 import * as State from "@src/state"
@@ -722,7 +722,7 @@ export async function exclaim_quiet(...str: string[]) {
 /**
  * Tells you if the native messenger is installed and its version.
  *
- * For snap, flatpak, and other sandboxed installations, additional setup is required – see https://github.com/tridactyl#extra-features-through-native-messaging.
+ * For snap, flatpak, and other sandboxed installations, additional setup is required – see https://github.com/tridactyl/tridactyl#extra-features-through-native-messaging.
  */
 //#background
 export async function native() {
@@ -743,7 +743,7 @@ export async function native() {
  *
  * If your corporate IT policy disallows execution of binaries which have not been whitelisted but allows Python scripts, you may instead use the old native messenger by running `install.sh` or `win_install.ps1` from https://github.com/tridactyl/tridactyl/tree/master/native - the main downside is that it is significantly slower.
  *
- * For snap, flatpak, and other sandboxed installations, additional setup is required – see https://github.com/tridactyl#extra-features-through-native-messaging.
+ * For snap, flatpak, and other sandboxed installations, additional setup is required – see https://github.com/tridactyl/tridactyl#extra-features-through-native-messaging.
  */
 //#background
 export async function nativeinstall() {
@@ -2884,26 +2884,13 @@ async function idFromIndex(index?: number | "%" | "#" | string): Promise<number>
 async function tabFromIndex(index?: number | "%" | "#" | string): Promise<browser.tabs.Tab> {
     if (index === "#") {
         // Support magic previous/current tab syntax everywhere
-        const tabs = await getSortedWinTabs()
-        if (tabs.length < 2) {
-            // In vim, '#' is the id of the previous buffer even if said buffer has been wiped
-            // However, firefox doesn't store tab ids for closed tabs
-            // Since vim makes '#' default to the current buffer if only one buffer has ever been opened for the current session, it seems reasonable to return the id of the current tab if only one tab is opened in firefox
-            return activeTab()
-        }
-        return tabs[1]
+        return prevActiveTab()
     } else if (index !== undefined && index !== "%") {
-        // Wrap
+        const tabs = await getSortedTabs()
         index = Number(index)
-        index = (index - 1).mod((await browser.tabs.query({ currentWindow: true })).length) + 1
+        index = (index - 1).mod(tabs.length) + 1
 
-        // Return id of tab with that index.
-        return (
-            await browser.tabs.query({
-                currentWindow: true,
-                index: index - 1,
-            })
-        )[0]
+        return tabs[index - 1]
     } else {
         return activeTab()
     }
@@ -2939,17 +2926,6 @@ export async function tabduplicate(index?: number) {
 //#background
 export async function tabdetach(index?: number) {
     return browser.windows.create({ tabId: await idFromIndex(index) })
-}
-
-/** Get list of tabs sorted by most recent use
-
-    @hidden
-*/
-//#background_helper
-async function getSortedWinTabs(): Promise<browser.tabs.Tab[]> {
-    const tabs = await browser.tabs.query({ currentWindow: true })
-    tabs.sort((a, b) => (a.lastAccessed < b.lastAccessed ? 1 : -1))
-    return tabs
 }
 
 /** Toggle fullscreen state
@@ -4547,6 +4523,11 @@ export function firefoxsyncpush() {
 /** @hidden */
 //#background_helper
 const AUCMDS = ["DocStart", "DocLoad", "DocEnd", "TriStart", "TabEnter", "TabLeft", "FullscreenChange", "FullscreenEnter", "FullscreenLeft", "UriChange", "HistoryState"].concat(webrequests.requestEvents)
+/** @hidden */
+//#background_helper
+export function getAutocmdEvents() {
+    return AUCMDS
+}
 /** Set autocmds to run when certain events happen.
  *
  * @param event Currently, 'TriStart', 'DocStart', 'DocLoad', 'DocEnd', 'TabEnter', 'TabLeft', 'FullscreenChange', 'FullscreenEnter', 'FullscreenLeft', 'HistoryState', 'HistoryPushState', 'HistoryReplace', 'UriChange', 'AuthRequired', 'BeforeRedirect', 'BeforeRequest', 'BeforeSendHeaders', 'Completed', 'ErrorOccured', 'HeadersReceived', 'ResponseStarted', and 'SendHeaders' are supported
@@ -4606,7 +4587,7 @@ const AUCMDS = ["DocStart", "DocLoad", "DocEnd", "TriStart", "TabEnter", "TabLef
 export function autocmd(event: string, url: string, ...excmd: string[]) {
     // rudimentary run time type checking
     // TODO: Decide on autocmd event names
-    if (!AUCMDS.includes(event)) throw new Error(event + " is not a supported event.")
+    if (!getAutocmdEvents().includes(event)) throw new Error(event + " is not a supported event.")
     return config.set("autocmds", event, url, excmd.join(" "))
 }
 
@@ -4699,7 +4680,7 @@ export function proxyremove(name: string) {
 */
 //#background
 export function autocmddelete(event: string, url: string) {
-    if (!AUCMDS.includes(event)) throw new Error(`${event} is not a supported event.`)
+    if (!getAutocmdEvents().includes(event)) throw new Error(`${event} is not a supported event.`)
     if (webrequests.requestEvents.includes(event)) {
         webrequests.unregisterWebRequestAutocmd(event, url)
     }

@@ -1,5 +1,5 @@
 import * as Perf from "@src/perf"
-import { browserBg } from "@src/lib/webext"
+import { browserBg, prevActiveTab } from "@src/lib/webext"
 import * as Containers from "@src/lib/containers"
 import * as Completions from "@src/completions"
 import * as Messaging from "@src/lib/messaging"
@@ -189,11 +189,7 @@ export class TabAllCompletionSource extends Completions.CompletionSourceFuse {
             return a.windowId - b.windowId
         })
 
-        const currentWindowTabs = await browserBg.tabs.query({
-            currentWindow: true,
-        })
-        currentWindowTabs.sort((a, b) => b.lastAccessed - a.lastAccessed)
-        const altTab = currentWindowTabs[1]
+        const altTab = await prevActiveTab()
 
         // Check to see if this is a command that needs to exclude the current
         // window
@@ -219,7 +215,7 @@ export class TabAllCompletionSource extends Completions.CompletionSourceFuse {
                     tab.index === altTab.index &&
                         tab.windowId === altTab.windowId,
                     tab.active &&
-                        tab.windowId === currentWindowTabs[0].windowId,
+                        tab.windowId === currentWindow.id,
                     winindex,
                     await Containers.getFromId(tab.cookieStoreId),
                     windows[tab.windowId].incognito,

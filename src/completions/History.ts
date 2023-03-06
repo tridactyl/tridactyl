@@ -74,7 +74,7 @@ export class HistoryCompletionSource extends Completions.CompletionSourceFuse {
 
         // Ignoring command-specific arguments
         // It's terrible but it's ok because it's just a stopgap until an actual commandline-parsing API is implemented
-        if (prefix === "tabopen ") {
+        if (prefix === "tabopen") {
             if (query.startsWith("-c ")) {
                 const args = query.split(" ")
                 if (args.length > 2) {
@@ -87,7 +87,7 @@ export class HistoryCompletionSource extends Completions.CompletionSourceFuse {
                 options = args.slice(0, 1).join(" ")
                 headerPostfix.push("background tab")
             }
-        } else if (prefix === "winopen " && query.startsWith("-private ")) {
+        } else if (prefix === "winopen" && query.startsWith("-private ")) {
             options = "-private"
             headerPostfix.push("private window")
         }
