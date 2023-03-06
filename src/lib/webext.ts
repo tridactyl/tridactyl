@@ -6,9 +6,8 @@ import { sleep } from "@src/lib/patience"
 import * as R from "ramda"
 
 export async function getSortedTabs(
-    forceSort?: "mru" | "default",
+    sortAlg: "mru" | "default" = config.get("tabsort"),
 ): Promise<browser.tabs.Tab[]> {
-    const sortAlg = forceSort ?? config.get("tabsort")
     const comp =
         sortAlg === "mru"
             ? (a, b) =>
