@@ -11,9 +11,10 @@
  * @return          the incremented URL, or null if cannot be incremented
  */
 export function incrementUrl(url, count) {
+    const url_en=decodeURI(url)
     // Find the final number in a URL
-    const match = url.match(/(.*?)(\d+)(\D*)$/)
-    const matches=decodeURI(match)
+    const matches = url_en.match(/(.*?)(\d+)(\D*)$/)
+    // const matches=decodeURI(match)
 
 
     // no number in URL - nothing to do here
