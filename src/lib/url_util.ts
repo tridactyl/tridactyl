@@ -13,7 +13,7 @@
 export function incrementUrl(url, count) {
     const url_en=decodeURI(url)
     // Find the final number in a URL
-    const matches = url_en.match(/(.*?)(\d+)(\D*)$/)
+    const matches = url_en.match(/(.*?)(\d+)(\D*)$/g)
     // const matches=decodeURI(match)
 
 
@@ -28,7 +28,7 @@ export function incrementUrl(url, count) {
 
     // Re-pad numbers that were zero-padded to be the same length:
     // 0009 + 1 => 0010
-    if (number.match(/^0/)) {
+    if (number.match(/^0/g)) {
         while (newNumberStr.length < number.length) {
             newNumberStr = "0" + newNumberStr
         }
