@@ -35,15 +35,6 @@ export class TabHistoryCompletionSource extends Completions.CompletionSourceFuse
         this._parent.appendChild(this.node)
     }
 
-    async filter(exstr) {
-        this.lastExstr = exstr
-        return this.onInput(exstr)
-    }
-
-    async onInput(exstr) {
-        return this.handleCommand(exstr)
-    }
-
     // eslint-disable-next-line @typescript-eslint/no-unused-vars-experimental
     /* override*/ async updateOptions(command, rest) {
         const tab = await browserBg.tabs.query({
@@ -70,7 +61,6 @@ export class TabHistoryCompletionSource extends Completions.CompletionSourceFuse
                     }),
             ),
         )
-        this.updateChain()
     }
 
     private makeTree(nodes, parentId = null, level = 0) {

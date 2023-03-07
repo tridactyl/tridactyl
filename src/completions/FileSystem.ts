@@ -28,10 +28,6 @@ export class FileSystemCompletionSource extends Completions.CompletionSourceFuse
         this._parent.appendChild(this.node)
     }
 
-    public async onInput(exstr) {
-        return this.handleCommand(exstr)
-    }
-
     /* override*/ async updateOptions(cmd, path) {
         if (!path) path = "."
 
@@ -64,6 +60,5 @@ export class FileSystemCompletionSource extends Completions.CompletionSourceFuse
         )
 
         this.state = "normal"
-        return this.updateChain()
     }
 }

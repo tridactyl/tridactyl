@@ -29,23 +29,6 @@ export class ExcmdCompletionSource extends Completions.CompletionSourceFuse {
         this._parent.appendChild(this.node)
     }
 
-    async filter(exstr) {
-        this.lastExstr = exstr
-        return this.onInput(exstr)
-    }
-
-    async onInput(exstr) {
-        return this.handleCommand(exstr)
-    }
-
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars-experimental
-    updateChain(exstr = this.lastExstr, options = this.options) {
-        if (this.options.length > 0) this.state = "normal"
-        else this.state = "hidden"
-
-        this.updateDisplay()
-    }
-
     select(option: ExcmdCompletionOption) {
         this.completion = option.value
         option.state = "focused"
@@ -109,9 +92,6 @@ export class ExcmdCompletionSource extends Completions.CompletionSourceFuse {
                 .map(([name, fn]) => new ExcmdCompletionOption(name, fn.doc)),
         )
         this.options = this.options.concat(partial_options)
-
-        this.options.forEach(o => (o.state = "normal"))
-        return this.updateChain()
     }
 
     private scoreOptions(options: ExcmdCompletionOption[]) {

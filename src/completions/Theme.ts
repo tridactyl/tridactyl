@@ -25,15 +25,6 @@ export class ThemeCompletionSource extends Completions.CompletionSourceFuse {
         this._parent.appendChild(this.node)
     }
 
-    async filter(exstr) {
-        this.lastExstr = exstr
-        return this.onInput(exstr)
-    }
-
-    async onInput(exstr) {
-        return this.handleCommand(exstr)
-    }
-
     setStateFromScore(scoredOpts: Completions.ScoredOption[]) {
         super.setStateFromScore(scoredOpts, false)
     }
@@ -50,9 +41,6 @@ export class ThemeCompletionSource extends Completions.CompletionSourceFuse {
                 .filter(name => name.startsWith(rest))
                 .map(name => new ThemeCompletionOption(name)),
         )
-
-        this.options.forEach(o => (o.state = "normal"))
-        return this.updateChain()
     }
 
     private scoreOptions(options: ThemeCompletionOption[]) {

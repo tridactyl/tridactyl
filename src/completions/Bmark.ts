@@ -44,40 +44,25 @@ export class BmarkCompletionSource extends Completions.CompletionSourceFuse {
             config.get("completions", "Bmark", "autoselect") === "true"
     }
 
-    public async filter(exstr: string) {
-        this.lastExstr = exstr
-        let [prefix, query] = this.splitOnPrefix(exstr)
+    /* override*/ async updateOptions(command, rest) {
         let option = ""
-
-        // Hide self and stop if prefixes don't match
-        if (prefix) {
-            // Show self if prefix and currently hidden
-            if (this.state === "hidden") {
-                this.state = "normal"
-            }
-        } else {
-            this.state = "hidden"
-            return
-        }
-
-        if (query.startsWith("-t ")) {
+        if (rest.startsWith("-t ")) {
             option = "-t "
-            query = query.slice(3)
+            rest = rest.slice(3)
         }
-        if (query.startsWith("-c")) {
-            const args = query.split(" ")
+        if (rest.startsWith("-c")) {
+            const args = rest.split(" ")
             option += args.slice(0, 2).join(" ")
             option += " "
-            query = args.slice(2).join(" ")
+            rest = args.slice(2).join(" ")
         }
 
         this.completion = undefined
-        this.options = (await providers.getBookmarks(query))
+        this.options = (await providers.getBookmarks(rest))
             .slice(0, 10)
             .map(page => new BmarkCompletionOption(option + page.url, page))
 
-        this.lastExstr = [prefix, query].join(" ")
-        return this.updateChain()
+        this.lastExstr = [command, rest].join(" ")
     }
 
     setStateFromScore(scoredOpts: Completions.ScoredOption[]) {

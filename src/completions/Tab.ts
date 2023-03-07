@@ -106,17 +106,10 @@ export class BufferCompletionSource extends Completions.CompletionSourceFuse {
         Messaging.addListener("tab_changes", () => this.reactToTabChanges())
     }
 
-    async onInput(exstr) {
+    async filter(exstr) {
         // Schedule an update, if you like. Not very useful for tabs, but
         // will be for other things.
         return this.handleCommand(exstr)
-    }
-
-    async filter(exstr) {
-        this.lastExstr = exstr
-        const prefix = this.splitOnPrefix(exstr).shift()
-        if (prefix === "tabrename") this.shouldSetStateFromScore = false
-        return this.onInput(exstr)
     }
 
     setStateFromScore(scoredOpts: Completions.ScoredOption[]) {
@@ -155,6 +148,28 @@ export class BufferCompletionSource extends Completions.CompletionSourceFuse {
 
         // If not yet returned...
         return super.scoredOptions(query)
+    }
+
+    // Eslint doesn't like this decorator but there's nothing we can do about it
+    // eslint-disable-next-line @typescript-eslint/member-ordering
+    @Perf.measuredAsync
+    /* override*/
+    async updateOptions(command, rest) {
+        if (command === "tabrename") this.shouldSetStateFromScore = false
+        // When the user is asking for tabmove completions, don't autoselect if the query looks like a relative move https://github.com/tridactyl/tridactyl/issues/825
+        if (command === "tabmove")
+            this.shouldSetStateFromScore = !/^[+-][0-9]+$/.exec(rest)
+
+        await this.fillOptions(command)
+        this.completion = undefined
+
+        /* console.log('updateOptions', this.optionContainer) */
+        if (rest && rest.trim().length > 0) {
+            this.setStateFromScore(this.scoredOptions(rest))
+        } else {
+            this.options.forEach(option => (option.state = "normal"))
+        }
+        return this.updateDisplay()
     }
 
     /** Return the scoredOption[] result for the tab index startswith n */
@@ -214,27 +229,6 @@ export class BufferCompletionSource extends Completions.CompletionSourceFuse {
         }
 
         this.options = options
-    }
-
-    // Eslint doesn't like this decorator but there's nothing we can do about it
-    // eslint-disable-next-line @typescript-eslint/member-ordering
-    @Perf.measuredAsync
-    /* override*/
-    async updateOptions(command, rest) {
-        // When the user is asking for tabmove completions, don't autoselect if the query looks like a relative move https://github.com/tridactyl/tridactyl/issues/825
-        if (command === "tabmove")
-            this.shouldSetStateFromScore = !/^[+-][0-9]+$/.exec(rest)
-
-        await this.fillOptions(command)
-        this.completion = undefined
-
-        /* console.log('updateOptions', this.optionContainer) */
-        if (rest && rest.trim().length > 0) {
-            this.setStateFromScore(this.scoredOptions(rest))
-        } else {
-            this.options.forEach(option => (option.state = "normal"))
-        }
-        return this.updateDisplay()
     }
 
     /**

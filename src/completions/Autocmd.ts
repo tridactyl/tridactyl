@@ -39,10 +39,6 @@ export class AutocmdCompletionSource extends Completions.CompletionSourceFuse {
         super.setStateFromScore(scoredOpts, this.shouldSetStateFromScore)
     }
 
-    onInput(input: string) {
-        return this.handleCommand(input)
-    }
-
     /* override*/ async updateOptions(command, rest) {
         const args = rest ? rest.split(/\s+/) : []
 
@@ -127,6 +123,5 @@ export class AutocmdCompletionSource extends Completions.CompletionSourceFuse {
         } else {
             this.options = []
         }
-        return this.updateChain()
     }
 }

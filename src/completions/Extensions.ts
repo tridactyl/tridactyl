@@ -1,7 +1,8 @@
 import * as Extensions from "@src/lib/extension_info"
 import * as Completions from "@src/completions"
 
-class ExtensionsCompletionOption extends Completions.CompletionOptionHTML
+class ExtensionsCompletionOption
+    extends Completions.CompletionOptionHTML
     implements Completions.CompletionOptionFuse {
     public fuseKeys = []
 
@@ -24,24 +25,13 @@ export class ExtensionsCompletionSource extends Completions.CompletionSourceFuse
         this._parent.appendChild(this.node)
     }
 
-    public async filter(exstr: string) {
-        this.lastExstr = exstr
-        const [prefix, query] = this.splitOnPrefix(exstr)
-
-        if (prefix) {
-            if (this.state === "hidden") {
-                this.state = "normal"
-            }
-        } else {
-            this.state = "hidden"
-            return
-        }
-
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars-experimental
+    /* override*/ async updateOptions(command, rest) {
         const extensions = await Extensions.listExtensions()
 
         this.options = this.scoreOptions(
             extensions
-                .filter(extension => extension.name.startsWith(query))
+                .filter(extension => extension.name.startsWith(rest))
                 .map(
                     extension =>
                         new ExtensionsCompletionOption(
@@ -50,14 +40,6 @@ export class ExtensionsCompletionSource extends Completions.CompletionSourceFuse
                         ),
                 ),
         )
-
-        return this.updateChain()
-    }
-
-    updateChain() {
-        this.options.forEach(option => (option.state = "normal"))
-
-        return this.updateDisplay()
     }
 
     select(option: ExtensionsCompletionOption) {

@@ -75,10 +75,6 @@ export class TabGroupCompletionSource extends Completions.CompletionSourceFuse {
         this._parent.appendChild(this.node)
     }
 
-    async onInput(exstr) {
-        return this.handleCommand(exstr)
-    }
-
     // eslint-disable-next-line @typescript-eslint/no-unused-vars-experimental
     /* override*/ async updateOptions(command, rest) {
         const currentGroup = await windowTgroup()
@@ -103,6 +99,5 @@ export class TabGroupCompletionSource extends Completions.CompletionSourceFuse {
             }),
         )
         this.completion = undefined
-        return this.updateChain()
     }
 }

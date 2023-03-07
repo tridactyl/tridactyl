@@ -41,17 +41,6 @@ export class WindowCompletionSource extends Completions.CompletionSourceFuse {
         this._parent.appendChild(this.node)
     }
 
-    async onInput(exstr) {
-        // Schedule an update, if you like. Not very useful for windows, but
-        // will be for other things.
-        return this.handleCommand(exstr)
-    }
-
-    async filter(exstr) {
-        this.lastExstr = exstr
-        return this.onInput(exstr)
-    }
-
     // eslint-disable-next-line @typescript-eslint/no-unused-vars-experimental
     /* override*/ async updateOptions(command, rest) {
         const excludeCurrentWindow = ["tabpush"].includes(command.trim())

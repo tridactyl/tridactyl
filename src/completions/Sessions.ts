@@ -77,10 +77,6 @@ export class SessionsCompletionSource extends Completions.CompletionSourceFuse {
         this._parent.appendChild(this.node)
     }
 
-    async onInput(exstr) {
-        return this.handleCommand(exstr)
-    }
-
     setStateFromScore(scoredOpts: Completions.ScoredOption[]) {
         super.setStateFromScore(scoredOpts, this.shouldSetStateFromScore)
     }
