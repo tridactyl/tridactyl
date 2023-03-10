@@ -307,6 +307,9 @@ export abstract class CompletionSourceFuse extends CompletionSource {
     protected updateChain() {
         if (this.options.length > 0) this.state = "normal"
         else this.state = "hidden"
+
+        // we show all options by default. Sources which want to score
+        // and hide some options are expected to override this method.
         this.options.forEach(option => (option.state = "normal"))
         this.updateDisplay()
     }
