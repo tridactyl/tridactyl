@@ -715,6 +715,9 @@ class Hint {
             right: rect.right + offsetLeft,
             width: rect.width,
             height: rect.height,
+            x: undefined,
+            y: undefined,
+            toJSON: () => {},
         }
 
         this.flag.textContent = name
