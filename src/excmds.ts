@@ -3893,7 +3893,7 @@ async function setclip(data: string) {
     // Function to avoid retyping everything everywhere
     const setclip_selection = data => Native.clipboard("set", data)
 
-    let promises: Promise<any>[]
+    let promises: Array<Promise<any>>
     switch (await config.getAsync("yankto")) {
         case "selection":
             promises = [setclip_selection(data)]

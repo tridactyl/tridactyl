@@ -2,7 +2,7 @@
 
     If divisor is positive, return value will be too.
 */
-Number.prototype.mod = function (this: number, n: number): number {
+Number.prototype.mod = function(this: number, n: number): number {
     return knuth_mod(this, n)
 }
 

@@ -4,7 +4,7 @@
  * otherwise if n < lo, return lo
  * else return hi.
  */
-Number.prototype.clamp = function (
+Number.prototype.clamp = function(
     this: number,
     lo: number,
     hi: number,
