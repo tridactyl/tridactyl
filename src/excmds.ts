@@ -155,7 +155,7 @@ import { mapstrToKeyseq, mozMapToMinimalKey, minimalKeyToMozMap } from "@src/lib
 //#background_helper
 // {
 
-// tslint:disable-next-line:no-unused-declaration
+// eslint-disable-next-line
 import "@src/lib/number.mod"
 
 import * as BGSELF from "@src/.excmds_background.generated"
@@ -5800,7 +5800,7 @@ async function js_helper(str: string[]) {
  *      `command loudecho js -d€ window.alert(JS_ARGS.join(" "))€`
  *
  */
-/* tslint:disable:no-identical-functions */
+/* eslint-disable sonarjs/no-identical-functions */
 //#content
 export async function js(...str: string[]) {
     return js_helper(str)
@@ -5809,7 +5809,7 @@ export async function js(...str: string[]) {
 /**
  * Lets you execute JavaScript in the background context. All the help from [[js]] applies. Gives you a different `tri` object which has access to more excmds and web-extension APIs.
  */
-/* tslint:disable:no-identical-functions */
+/* eslint-disable sonarjs/no-identical-functions */
 //#background
 export async function jsb(...str: string[]) {
     return js_helper(str)
