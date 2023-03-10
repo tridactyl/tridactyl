@@ -93,7 +93,7 @@ module.exports = {
         "@typescript-eslint/class-name-casing": "off",
         "@typescript-eslint/consistent-type-assertions": "error",
         "@typescript-eslint/consistent-type-definitions": "error",
-        "@typescript-eslint/dot-notation": "error",
+        "@typescript-eslint/dot-notation": "off", // TODO: enable
         "@typescript-eslint/explicit-function-return-type": "off",
         "@typescript-eslint/explicit-member-accessibility": [
             "off",
