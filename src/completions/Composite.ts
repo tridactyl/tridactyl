@@ -31,7 +31,7 @@ export class CompositeCompletionSource extends Completions.CompletionSourceFuse 
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars-experimental
-    /* override*/ async updateOptions(command, rest) {
+    /* override*/ protected async updateOptions(command, rest) {
         const end_exstr = this.getendexstr(rest)
         const excmds = Metadata.everything.getFile("src/excmds.ts")
         if (!excmds) return

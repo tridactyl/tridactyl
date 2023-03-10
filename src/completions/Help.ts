@@ -27,7 +27,7 @@ export class HelpCompletionSource extends Completions.CompletionSourceFuse {
         this._parent.appendChild(this.node)
     }
     // eslint-disable-next-line @typescript-eslint/no-unused-vars-experimental
-    /* override*/ async updateOptions(command, rest) {
+    /* override*/ protected async updateOptions(command, rest) {
         this.completion = undefined
         const file = Metadata.everything.getFile("src/lib/config.ts")
         const default_config = file.getClass("default_config")

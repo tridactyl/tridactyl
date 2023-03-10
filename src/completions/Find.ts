@@ -52,7 +52,7 @@ export class FindCompletionSource extends Completions.CompletionSourceFuse {
         this.options.forEach(o => (o.state = "normal"))
     }
 
-    /* override*/ async updateOptions(command, rest) {
+    /* override*/ protected async updateOptions(command, rest) {
         // Flag parsing because -? should reverse completions
         const tokens = rest.split(" ")
         const flagpos = tokens.indexOf("-?")

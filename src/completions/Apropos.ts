@@ -28,7 +28,7 @@ export class AproposCompletionSource extends Completions.CompletionSourceFuse {
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars-experimental
-    /* override*/ async updateOptions(command, rest) {
+    /* override*/ protected async updateOptions(command, rest) {
         this.completion = undefined
         const file = Metadata.everything.getFile("src/lib/config.ts")
         const default_config = file.getClass("default_config")

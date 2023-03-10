@@ -34,7 +34,7 @@ export class SettingsCompletionSource extends Completions.CompletionSourceFuse {
         this._parent.appendChild(this.node)
     }
 
-    /* override*/ async updateOptions(command, rest) {
+    /* override*/ protected async updateOptions(command, rest) {
         let options = ""
         // Ignoring command-specific arguments
         // It's terrible but it's ok because it's just a stopgap until an actual commandline-parsing API is implemented

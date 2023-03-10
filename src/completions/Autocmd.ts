@@ -39,7 +39,7 @@ export class AutocmdCompletionSource extends Completions.CompletionSourceFuse {
         super.setStateFromScore(scoredOpts, this.shouldSetStateFromScore)
     }
 
-    /* override*/ async updateOptions(command, rest) {
+    /* override*/ protected async updateOptions(command, rest) {
         const args = rest ? rest.split(/\s+/) : []
 
         const is_autocmddelete = /del/.test(command)

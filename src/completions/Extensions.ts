@@ -25,8 +25,14 @@ export class ExtensionsCompletionSource extends Completions.CompletionSourceFuse
         this._parent.appendChild(this.node)
     }
 
+    select(option: ExtensionsCompletionOption) {
+        this.completion = "extoptions " + option.name
+        option.state = "focused"
+        this.lastFocused = option
+    }
+
     // eslint-disable-next-line @typescript-eslint/no-unused-vars-experimental
-    /* override*/ async updateOptions(command, rest) {
+    /* override*/ protected async updateOptions(command, rest) {
         const extensions = await Extensions.listExtensions()
 
         this.options = this.scoreOptions(
@@ -40,12 +46,6 @@ export class ExtensionsCompletionSource extends Completions.CompletionSourceFuse
                         ),
                 ),
         )
-    }
-
-    select(option: ExtensionsCompletionOption) {
-        this.completion = "extoptions " + option.name
-        option.state = "focused"
-        this.lastFocused = option
     }
 
     private scoreOptions(options: ExtensionsCompletionOption[]) {

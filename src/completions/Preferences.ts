@@ -26,7 +26,7 @@ export class PreferenceCompletionSource extends Completions.CompletionSourceFuse
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars-experimental
-    /* override*/ async updateOptions(command, rest) {
+    /* override*/ protected async updateOptions(command, rest) {
         const preferences = await Native.getPrefs()
         this.options = Object.keys(preferences)
             .filter(key => key.startsWith(command))

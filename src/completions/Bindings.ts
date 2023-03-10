@@ -33,7 +33,7 @@ export class BindingsCompletionSource extends Completions.CompletionSourceFuse {
         this._parent.appendChild(this.node)
     }
     // eslint-disable-next-line @typescript-eslint/no-unused-vars-experimental
-    /* override*/ async updateOptions(command, rest) {
+    /* override*/ protected async updateOptions(command, rest) {
         let options = ""
         const args = rest ? rest.split(/\s+/) : []
         let configName = "nmaps"

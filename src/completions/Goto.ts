@@ -34,7 +34,7 @@ export class GotoCompletionSource extends Completions.CompletionSourceFuse {
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars-experimental
-    /* override*/ async updateOptions(command, rest) {
+    /* override*/ protected async updateOptions(command, rest) {
         if (this.options.length < 1) {
             this.options = (
                 await Messaging.messageOwnTab(

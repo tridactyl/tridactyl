@@ -42,7 +42,7 @@ export class WindowCompletionSource extends Completions.CompletionSourceFuse {
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars-experimental
-    /* override*/ async updateOptions(command, rest) {
+    /* override*/ protected async updateOptions(command, rest) {
         const excludeCurrentWindow = ["tabpush"].includes(command.trim())
         this.options = (await browserBg.windows.getAll({ populate: true }))
             .filter(win => !(excludeCurrentWindow && win.focused))

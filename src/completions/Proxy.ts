@@ -24,7 +24,7 @@ export class ProxyCompletionSource extends Completions.CompletionSourceFuse {
         this._parent.appendChild(this.node)
     }
 
-    /* override*/ async updateOptions(command, rest) {
+    /* override*/ protected async updateOptions(command, rest) {
         const args = rest ? rest.split(/\s+/) : []
 
         const proxies = config.get("proxies")

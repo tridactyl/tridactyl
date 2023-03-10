@@ -44,7 +44,33 @@ export class BmarkCompletionSource extends Completions.CompletionSourceFuse {
             config.get("completions", "Bmark", "autoselect") === "true"
     }
 
-    /* override*/ async updateOptions(command, rest) {
+    setStateFromScore(scoredOpts: Completions.ScoredOption[]) {
+        super.setStateFromScore(scoredOpts, this.shouldSetStateFromScore)
+    }
+
+    select(option: Completions.CompletionOption) {
+        if (this.lastExstr !== undefined && option !== undefined) {
+            this.completion = "bmarks " + option.value
+            option.state = "focused"
+            this.lastFocused = option
+        } else {
+            throw new Error("lastExstr and option must be defined!")
+        }
+    }
+    /* override*/ protected updateChain() {
+        const query = this.splitOnPrefix(this.lastExstr)[1]
+
+        if (query && query.trim().length > 0) {
+            this.setStateFromScore(this.scoredOptions(query))
+        } else {
+            this.options.forEach(option => (option.state = "normal"))
+        }
+
+        // Call concrete class
+        return this.updateDisplay()
+    }
+
+    /* override*/ protected async updateOptions(command, rest) {
         let option = ""
         if (rest.startsWith("-t ")) {
             option = "-t "
@@ -63,32 +89,5 @@ export class BmarkCompletionSource extends Completions.CompletionSourceFuse {
             .map(page => new BmarkCompletionOption(option + page.url, page))
 
         this.lastExstr = [command, rest].join(" ")
-    }
-
-    setStateFromScore(scoredOpts: Completions.ScoredOption[]) {
-        super.setStateFromScore(scoredOpts, this.shouldSetStateFromScore)
-    }
-
-    updateChain() {
-        const query = this.splitOnPrefix(this.lastExstr)[1]
-
-        if (query && query.trim().length > 0) {
-            this.setStateFromScore(this.scoredOptions(query))
-        } else {
-            this.options.forEach(option => (option.state = "normal"))
-        }
-
-        // Call concrete class
-        return this.updateDisplay()
-    }
-
-    select(option: Completions.CompletionOption) {
-        if (this.lastExstr !== undefined && option !== undefined) {
-            this.completion = "bmarks " + option.value
-            option.state = "focused"
-            this.lastFocused = option
-        } else {
-            throw new Error("lastExstr and option must be defined!")
-        }
     }
 }

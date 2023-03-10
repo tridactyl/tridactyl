@@ -30,7 +30,7 @@ export class ThemeCompletionSource extends Completions.CompletionSourceFuse {
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars-experimental
-    /* override*/ async updateOptions(command, rest) {
+    /* override*/ protected async updateOptions(command, rest) {
         const themes = staticThemes.concat(
             Object.keys(await config.get("customthemes")),
         )
