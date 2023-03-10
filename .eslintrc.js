@@ -316,7 +316,7 @@ module.exports = {
         "max-params": [
             "error",
             {
-                "max": 7
+                "max": 8
             }
         ],
         "new-parens": "error",
