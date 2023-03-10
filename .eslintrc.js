@@ -328,7 +328,7 @@ module.exports = {
         "no-empty-function": "off",
         "no-empty-pattern": "error",
         "no-eval": "off",
-        "no-extra-parens": "error",
+        "no-extra-parens": "off",
         "no-fallthrough": "off",
         "no-implied-eval": "off",
         "no-invalid-this": "off",
