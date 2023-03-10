@@ -1466,8 +1466,9 @@ export function find(...args: string[]) {
             splitUnknownArguments: false,
         },
     )
-    const option = {}
-    option["reverse"] = Boolean(argOpt["--reverse"])
+    const option = {
+        reverse: Boolean(argOpt["--reverse"])
+    }
     if ("--jump-to" in argOpt) option["jumpTo"] = argOpt["--jump-to"]
     const searchQuery = argOpt._.join(" ")
     return finding.jumpToMatch(searchQuery, option)
