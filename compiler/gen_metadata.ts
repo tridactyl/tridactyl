@@ -14,6 +14,8 @@ export function toSimpleType(typeNode) {
         // Unknown is just like any, but slightly stricter
         case ts.SyntaxKind.UnknownKeyword:
         case ts.SyntaxKind.AnyKeyword:
+        // TypeOperator is things like `keyof Class`. Let's just treat it as any for now
+        case ts.SyntaxKind.TypeOperator:
             return new AllTypes.AnyType()
         case ts.SyntaxKind.BooleanKeyword:
             return new AllTypes.BooleanType()
