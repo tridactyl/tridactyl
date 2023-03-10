@@ -87,7 +87,7 @@ export function toSimpleType(typeNode) {
             break
         default:
             console.log(typeNode)
-            throw new Error(`Unhandled kind (${typeNode.kind}) for ${typeNode}`)
+            throw new Error(`Unhandled kind (${ts.SyntaxKind[typeNode.kind]}) for ${typeNode}`)
     }
 }
 
