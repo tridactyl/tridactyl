@@ -11,8 +11,10 @@
  * @return          the incremented URL, or null if cannot be incremented
  */
 export function incrementUrl(url, count) {
+    const url_en=decodeURI(url)
+    const regex = /(.*?)(\d+)(\D*)$/
     // Find the final number in a URL
-    const matches = url.match(/(.*?)(\d+)(\D*)$/)
+    const matches = regex.exec(url_en)
 
     // no number in URL - nothing to do here
     if (matches === null) {
@@ -25,13 +27,13 @@ export function incrementUrl(url, count) {
 
     // Re-pad numbers that were zero-padded to be the same length:
     // 0009 + 1 => 0010
-    if (number.match(/^0/)) {
+    if ((/^0/).exec(number)) {
         while (newNumberStr.length < number.length) {
             newNumberStr = "0" + newNumberStr
         }
     }
 
-    return pre + newNumberStr + post
+    return encodeURI(pre + newNumberStr + post)
 }
 
 /** Get the root of a URL
