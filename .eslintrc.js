@@ -186,7 +186,8 @@ module.exports = {
             "error",
             "double",
             {
-                "avoidEscape": true
+                "avoidEscape": true,
+                "allowTemplateLiterals": true
             }
         ],
         "@typescript-eslint/require-array-sort-compare": [
