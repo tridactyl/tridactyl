@@ -39,6 +39,10 @@ export class RssCompletionSource extends Completions.CompletionSourceFuse {
         super.setStateFromScore(scoredOpts, this.shouldSetStateFromScore)
     }
 
+    /* override*/ protected updateChain() {
+        this.updateDisplay()
+    }
+
     // eslint-disable-next-line @typescript-eslint/no-unused-vars-experimental
     /* override*/ protected async updateOptions(command, rest) {
         if (this.options.length < 1) {
@@ -58,5 +62,9 @@ export class RssCompletionSource extends Completions.CompletionSourceFuse {
                 return opt
             })
         }
+        if (rest)
+            this.setStateFromScore(this.scoredOptions(rest))
+        else
+            this.options.forEach(option => (option.state = "normal"))
     }
 }
