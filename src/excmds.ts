@@ -120,6 +120,40 @@ import { generator as KEY_MUNCHER } from "@src/content/controller_content"
  */
 export const cmd_params = new Map<string, Map<string, string>>()
 
+// I went through the whole list https://developer.mozilla.org/en-US/Firefox/The_about_protocol
+// about:blank is even more special
+/** @hidden */
+export const ABOUT_WHITELIST = ["about:license", "about:logo", "about:rights", "about:blank"]
+
+/** The kinds of input elements that we want to be included in the "focusinput"
+ * command (gi)
+ * @hidden
+ */
+export const INPUTTAGS_selectors = `
+input:not([disabled]):not([readonly]):-moz-any(
+ :not([type]),
+ [type='text'],
+ [type='search'],
+ [type='password'],
+ [type='datetime'],
+ [type='datetime-local'],
+ [type='date'],
+ [type='month'],
+ [type='time'],
+ [type='week'],
+ [type='number'],
+ [type='range'],
+ [type='email'],
+ [type='url'],
+ [type='tel'],
+ [type='color']
+),
+textarea:not([disabled]):not([readonly]),
+object,
+[role='application'],
+[contenteditable='true'][role='textbox']
+`
+
 /** @hidden */
 const logger = new Logging.Logger("excmd")
 
@@ -144,7 +178,7 @@ import * as gobbleMode from "@src/parsers/gobblemode"
 import * as nMode from "@src/parsers/nmode"
 
 ALL_EXCMDS = {
-    "": CTSELF,
+    "": CTSELF.excmd_functions,
     ex: CtCmdlineCmds,
     text: CtEditorCmds,
 }
@@ -172,16 +206,29 @@ import * as webrequests from "@src/background/webrequests"
 import * as commandsHelper from "@src/background/commands"
 import { tgroups, tgroupActivate, setTabTgroup, setWindowTgroup, setTgroups, windowTgroup, windowLastTgroup, tgroupClearOldInfo, tgroupLastTabId, tgroupTabs, clearAllTgroupInfo, tgroupActivateLast, tgroupHandleTabActivated, tgroupHandleTabCreated, tgroupHandleTabAttached, tgroupHandleTabUpdated, tgroupHandleTabRemoved, tgroupHandleTabDetached } from "./lib/tab_groups"
 
+
 ALL_EXCMDS = {
-    "": BGSELF,
+    "": BGSELF.excmd_functions,
     ex: BgCmdlineCmds,
     text: BgEditorCmds,
 }
 /** @hidden */
 // }
 
+//#background_helper
+import { useractions } from "@src/background/user_actions"
+
+//#content_helper
+import { getEditor } from "editor-adapter"
+
+//#background_helper
+import { getTridactylTabs } from "@src/background/meta"
+
 // }}}
 
+// We create a namespace so that we can treat it
+// as an object of functions in other parts of tridactyl.
+export namespace excmd_functions {
 // {{{ Native messenger stuff
 
 /** @hidden **/
@@ -313,9 +360,6 @@ export function addTridactylEditorClass(selector: string) {
 export function removeTridactylEditorClass(selector: string) {
     document.querySelector(selector)?.classList.remove("TridactylEditing")
 }
-
-//#content_helper
-import { getEditor } from "editor-adapter"
 
 /**
  * Opens your favourite editor (which is currently gVim) and fills the last used input with whatever you write into that file.
@@ -1567,8 +1611,6 @@ export async function reloadallbut(hard = false) {
     return Promise.all(tabs.map(tab => browser.tabs.reload(tab.id, reloadprops)))
 }
 
-//#background_helper
-import { getTridactylTabs } from "@src/background/meta"
 /** Reloads all tabs which Tridactyl isn't loaded in */
 //#background
 export async function reloaddead(hard = false) {
@@ -1583,11 +1625,6 @@ export async function reloaddead(hard = false) {
 export async function reloadhard(n = 1) {
     return reload(n, true)
 }
-
-// I went through the whole list https://developer.mozilla.org/en-US/Firefox/The_about_protocol
-// about:blank is even more special
-/** @hidden */
-export const ABOUT_WHITELIST = ["about:license", "about:logo", "about:rights", "about:blank"]
 
 /**
  * Open a new page in the current tab.
@@ -2396,35 +2433,6 @@ export async function loadaucmds(cmdType: "DocStart" | "DocLoad" | "DocEnd" | "T
         }
     }
 }
-
-/** The kinds of input elements that we want to be included in the "focusinput"
- * command (gi)
- * @hidden
- */
-export const INPUTTAGS_selectors = `
-input:not([disabled]):not([readonly]):-moz-any(
- :not([type]),
- [type='text'],
- [type='search'],
- [type='password'],
- [type='datetime'],
- [type='datetime-local'],
- [type='date'],
- [type='month'],
- [type='time'],
- [type='week'],
- [type='number'],
- [type='range'],
- [type='email'],
- [type='url'],
- [type='tel'],
- [type='color']
-),
-textarea:not([disabled]):not([readonly]),
-object,
-[role='application'],
-[contenteditable='true'][role='textbox']
-`
 
 /** Password field selectors
  * @hidden
@@ -3787,9 +3795,6 @@ export async function shellescape(...quoteme: string[]) {
         return escape.sh(str)
     }
 }
-
-//#background_helper
-import { useractions } from "@src/background/user_actions"
 
 /**
  *  Magic escape hatch: if Tridactyl can't run in the current tab, return to a tab in the current window where Tridactyl can run, making such a tab if it doesn't currently exist. If Tridactyl can run in the current tab, return focus to the document body from e.g. the URL bar or a video player.
@@ -5964,3 +5969,4 @@ export async function elementunhide() {
     elem.className = elem.className.replace("TridactylKilledElem", "")
 }
 // vim: tabstop=4 shiftwidth=4 expandtab
+}

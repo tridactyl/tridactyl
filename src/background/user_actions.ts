@@ -4,7 +4,7 @@
  * https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/User_actions
  */
 
-import * as excmds from "@src/.excmds_background.generated"
+import { excmd_functions as excmds } from "@src/.excmds_background.generated"
 import * as R from "ramda"
 import * as config from "@src/lib/config"
 import { getTridactylTabs } from "@src/background/meta"

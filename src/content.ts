@@ -83,7 +83,6 @@ try {
 }
 
 const controller = await import("@src/lib/controller")
-const excmds_content = await import("@src/.excmds_content.generated")
 const hinting_content = await import("@src/content/hinting")
 // Hook the keyboard up to the controller
 const ContentController = await import("@src/content/controller_content")
@@ -91,7 +90,7 @@ const ContentController = await import("@src/content/controller_content")
 const commandline_content = await import("@src/content/commandline_content")
 const convert = await import("@src/lib/convert")
 const dom = await import("@src/lib/dom")
-const excmds = await import("@src/.excmds_content.generated")
+const excmds = (await import("@src/.excmds_content.generated")).excmd_functions
 const finding_content = await import("@src/content/finding")
 const itertools = await import("@src/lib/itertools")
 const messaging = await import("@src/lib/messaging")
@@ -111,14 +110,14 @@ const { tabTgroup } = await import("@src/lib/tab_groups")
 const completion_providers = await import("@src/completions/providers")
 
 controller.setExCmds({
-    "": excmds_content,
+    "": excmds,
     ex: CmdlineCmds,
     text: EditorCmds,
     hint: hinting_content.getHintCommands(),
 })
 messaging.addListener(
     "excmd_content",
-    messaging.attributeCaller(excmds_content),
+    messaging.attributeCaller(excmds),
 )
 messaging.addListener(
     "controller_content",
