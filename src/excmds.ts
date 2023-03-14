@@ -118,7 +118,7 @@ import { generator as KEY_MUNCHER } from "@src/content/controller_content"
  *
  * @hidden
  */
-export const cmd_params = new Map<string, Map<string, string>>()
+const cmd_params = new Map<string, Map<string, string>>()
 
 /** @hidden */
 const logger = new Logging.Logger("excmd")
@@ -1587,7 +1587,7 @@ export async function reloadhard(n = 1) {
 // I went through the whole list https://developer.mozilla.org/en-US/Firefox/The_about_protocol
 // about:blank is even more special
 /** @hidden */
-export const ABOUT_WHITELIST = ["about:license", "about:logo", "about:rights", "about:blank"]
+const ABOUT_WHITELIST = ["about:license", "about:logo", "about:rights", "about:blank"]
 
 /**
  * Open a new page in the current tab.
@@ -2401,7 +2401,7 @@ export async function loadaucmds(cmdType: "DocStart" | "DocLoad" | "DocEnd" | "T
  * command (gi)
  * @hidden
  */
-export const INPUTTAGS_selectors = `
+const INPUTTAGS_selectors = `
 input:not([disabled]):not([readonly]):-moz-any(
  :not([type]),
  [type='text'],

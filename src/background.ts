@@ -249,10 +249,16 @@ browser.tabs.onCreated.addListener(aucon.tabCreatedListener)
 
 // An object to collect all of our statistics in one place.
 const statsLogger: perf.StatsLogger = new perf.StatsLogger()
-const messages = {
+const messages: { [key: string]: { [key: string]: (...args: any) => any } } = {
     excmd_background: excmds_background,
     controller_background: controller,
-    performance_background: statsLogger,
+    // We need to present logger object as an [string -> function] map to not be beaten up
+    // by typescript.
+    // There are probably better ways to do it, but for now i did this dirty thing just to
+    // make it build
+    performance_background: statsLogger as any as {
+        [key: string]: (...args: any) => any
+    },
     download_background: {
         downloadUrl: download_background.downloadUrl,
         downloadUrlAs: download_background.downloadUrlAs,
