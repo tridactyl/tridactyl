@@ -67,6 +67,7 @@
     "test": "yarn run build && web-ext build --source-dir ./build --overwrite-dest && jest --silent",
     "update-buildsystem": "rm -rf src/node_modules; yarn run clean",
     "watch": "echo 'watch is broken, use build instead'; exit 0;",
+    "makedocs": "node scripts/make_docs.js",
     "install": "git config core.hookspath hooks/"
   },
   "author": "Colin Caine",
