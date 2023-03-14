@@ -3,6 +3,8 @@
 // For some obscure reason, tsc doesn't like .d.ts files to share a name with
 // .ts files. So don't do that.
 
+/* eslint-disable @typescript-eslint/no-unused-vars */
+
 // Ill-advised monkeypatching
 interface Number {
     mod(n: number): number

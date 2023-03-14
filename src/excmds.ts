@@ -228,6 +228,7 @@ import { getTridactylTabs } from "@src/background/meta"
 
 // We create a namespace so that we can treat it
 // as an object of functions in other parts of tridactyl.
+// eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace excmd_functions {
 // {{{ Native messenger stuff
 
@@ -5693,9 +5694,9 @@ export function echo(...str: string[]) {
  * @hidden
  */
 async function js_helper(str: string[]) {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars-experimental
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     let JS_ARG = null
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars-experimental
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     let JS_ARGS = []
     let jsContent: string = null
 
