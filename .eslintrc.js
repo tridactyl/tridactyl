@@ -157,6 +157,7 @@ module.exports = {
         ],
         "@typescript-eslint/no-this-alias": "error",
         "@typescript-eslint/no-unnecessary-type-assertion": "error",
+        "@typescript-eslint/no-unsafe-argument": "off", // probably a good idea to turn back on, exercise for a rainy day
         "@typescript-eslint/no-unsafe-assignment": "off",
         "@typescript-eslint/no-unsafe-call": "off",
         "@typescript-eslint/no-unsafe-member-access": "off",
@@ -169,10 +170,12 @@ module.exports = {
             }
         ],
         "@typescript-eslint/no-unused-vars": "off",
-        "@typescript-eslint/no-unused-vars-experimental": [
+        "@typescript-eslint/no-unused-vars": [
             "error",
             {
-                "ignoreArgsIfArgsAfterAreUsed": true
+                "args": "after-used",
+                "argsIgnorePattern": "^_",
+                "varsIgnorePattern": "^_"
             }
         ],
         "@typescript-eslint/no-use-before-define": "off",
