@@ -14,7 +14,7 @@ commands:
 jobs:
   lint:
     docker:
-      - image: circleci/node:latest
+      - image: cimg/node:current
     steps:
       - run: sudo apt update
       - run: sudo apt install -qq shellcheck
@@ -22,13 +22,13 @@ jobs:
       - run: bash -c './ci/lint.sh'
   unit:
     docker:
-      - image: circleci/node:latest
+      - image: cimg/node:current
     steps:
       - commoncmd
       - run: bash -c './ci/unit.sh'
   mozilla:
     docker:
-      - image: circleci/node:latest
+      - image: cimg/node:current
     steps:
       - commoncmd
       - run: bash -c 'ci/mozilla.sh'
