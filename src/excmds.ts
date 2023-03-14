@@ -5,11 +5,11 @@
 
     Use `:help <excmd>` or scroll down to show [[help]] for a particular excmd. If you're still stuck, you might consider reading through the [:tutor](/static/clippy/1-tutor.html) again.
 
-    The default keybinds and settings can be found [here](/static/docs/classes/_src_lib_config_.default_config.html) and active binds can be seen with `:viewconfig nmaps` or with [[bind]].
+    The default keybinds and settings can be found [here](/static/docs/classes/lib_config.default_config.html) and active binds can be seen with `:viewconfig nmaps` or with [[bind]].
 
-    Tridactyl also provides a few functions to manipulate text in the command line or text areas that can be found [here](/static/docs/modules/_src_lib_editor_.html). There are also a few commands only available in the command line which can be found [here](/static/docs/modules/_src_commandline_frame_.html).
+    Tridactyl also provides a few functions to manipulate text in the command line or text areas that can be found [here](/static/docs/modules/lib_editor.html). There are also a few commands only available in the command line which can be found [here](/static/docs/modules/commandline_frame.html).
 
-    Ex-commands available exclusively in hint mode are listed [here](/static/docs/modules/_src_content_hinting_.html)
+    Ex-commands available exclusively in hint mode are listed [here](/static/docs/modules/content_hinting.html)
 
     We also have a [wiki](https://github.com/tridactyl/tridactyl/wiki) which may be edited by anyone.
 
@@ -422,7 +422,7 @@ export async function guiset_quiet(rule: string, option: string) {
  *
  * Also flips the preference `toolkit.legacyUserProfileCustomizations.stylesheets` to true so that FF will read your userChrome.
  *
- * View available rules and options [here](/static/docs/modules/_src_lib_css_util_.html#potentialrules) and [here](/static/docs/modules/_src_lib_css_util_.html#metarules).
+ * View available rules and options [here](/static/docs/variables/lib_css_util.potentialRules.html and [here](/static/docs/variables/lib_css_util.metaRules.html).
  *
  * Example usage: `guiset gui none`, `guiset gui full`, `guiset tabs autohide`.
  *
@@ -1785,7 +1785,7 @@ export async function help(...helpItems: string[]) {
                 if (resolved.includes(helpItem)) break
             }
             if (resolved.length > 0) {
-                return browser.runtime.getURL("static/docs/modules/_src_excmds_.html") + "#" + helpItem
+                return browser.runtime.getURL("static/docs/modules/excmds.html") + "#" + helpItem
             }
             return ""
         },
@@ -1800,13 +1800,13 @@ export async function help(...helpItems: string[]) {
                 if (helpItem in bindings) {
                     helpItem = bindings[helpItem].split(" ")
                     helpItem = ["composite", "fillcmdline"].includes(helpItem[0]) ? helpItem[1] : helpItem[0]
-                    return browser.runtime.getURL("static/docs/modules/_src_excmds_.html") + "#" + helpItem
+                    return browser.runtime.getURL("static/docs/modules/excmds.html") + "#" + helpItem
                 }
             }
             return ""
         },
         // -e: look for an excmd
-        "-e": (settings, helpItem) => browser.runtime.getURL("static/docs/modules/_src_excmds_.html") + "#" + helpItem,
+        "-e": (settings, helpItem) => browser.runtime.getURL("static/docs/modules/excmds.html") + "#" + helpItem,
         // -s: look for a setting
         "-s": (settings, helpItem) => {
             let subSettings = settings
@@ -1820,7 +1820,7 @@ export async function help(...helpItems: string[]) {
                 }
             }
             if (settingHelpAnchor !== "") {
-                return browser.runtime.getURL("static/docs/classes/_src_lib_config_.default_config.html") + "#" + settingHelpAnchor.slice(0, -1)
+                return browser.runtime.getURL("static/docs/classes/lib_config_.default_config.html") + "#" + settingHelpAnchor.slice(0, -1)
             }
             return ""
         },
@@ -1837,7 +1837,7 @@ export async function help(...helpItems: string[]) {
     const settings = await config.getAsync()
     let url = ""
     if (subject === "") {
-        url = browser.runtime.getURL("static/docs/modules/_src_excmds_.html")
+        url = browser.runtime.getURL("static/docs/modules/excmds.html")
     } else {
         // If the user did specify what they wanted, specifically look for it
         if (flag !== "") {
@@ -4038,7 +4038,7 @@ export async function clipboard(excmd: "open" | "yank" | "yankshort" | "yankcano
 /** Copy an image to the clipboard.
 
     @param url
-        Absolute URL to the image to be copied. You can obtain an absolute URL from a relative one using [tri.urlutils.getAbsoluteURL](_src_lib_url_util_.html#getabsoluteurl).
+        Absolute URL to the image to be copied. You can obtain an absolute URL from a relative one using [tri.urlutils.getAbsoluteURL](/ static/docs/functions/lib_url_util.getAbsoluteURL.html).
 */
 //#background
 export async function yankimage(url: string): Promise<void> {
@@ -4239,7 +4239,7 @@ export function comclear(name: string) {
     - the `ex command` you bind to may not work fully unless you are on a tab which Tridactyl has access to. Generally, browser-wide actions like making or closing tabs will work but tab-specific actions like scrolling down or entering hint mode will not.
 
     A list of editor functions can be found
-    [here](/static/docs/modules/_src_lib_editor_.html).
+    [here](/static/docs/modules/lib_editor.html).
 
     See also:
 
@@ -4453,7 +4453,7 @@ export function setmode(mode: string, key: string, ...values: string[]) {
 
 /** Set a key value pair in config.
 
-    Use to set any values found [here](/static/docs/classes/_src_lib_config_.default_config.html).
+    Use to set any values found [here](/static/docs/classes/lib_config.default_config.html).
 
     Arrays should be set using JS syntax, e.g. `:set blacklistkeys ["/",","]`.
 
@@ -5102,7 +5102,7 @@ const KILL_STACK: Element[] = []
 
     To open a hint in the background, the default bind is `F`.
 
-    Ex-commands available exclusively in hint mode are listed [here](/static/docs/modules/_src_content_hinting_.html)
+    Ex-commands available exclusively in hint mode are listed [here](/static/docs/modules/background_hinting.HintingCmds.html)
 
     Related settings:
         - "hintchars": "hjklasdfgyuiopqwertnmzxcvb"
