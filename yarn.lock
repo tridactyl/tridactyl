@@ -3994,6 +3994,29 @@ jest-haste-map@^29.5.0:
   optionalDependencies:
     fsevents "^2.3.2"
 
+jest-jasmine2@^29.5.0:
+  version "29.5.0"
+  resolved "https://registry.yarnpkg.com/jest-jasmine2/-/jest-jasmine2-29.5.0.tgz#293e040ffd084201da7877e52100c3ddaa56cdd8"
+  integrity sha512-51mNRQeeDQQXNDGTyiiXY1mfLesZhCPhun8LhusC38XeMeZJBmowvEEYvqpLxFJAbup53r+gFScoXQCVGUXPIQ==
+  dependencies:
+    "@jest/environment" "^29.5.0"
+    "@jest/expect" "^29.5.0"
+    "@jest/source-map" "^29.4.3"
+    "@jest/test-result" "^29.5.0"
+    "@jest/types" "^29.5.0"
+    "@types/node" "*"
+    chalk "^4.0.0"
+    co "^4.6.0"
+    is-generator-fn "^2.0.0"
+    jest-each "^29.5.0"
+    jest-matcher-utils "^29.5.0"
+    jest-message-util "^29.5.0"
+    jest-runtime "^29.5.0"
+    jest-snapshot "^29.5.0"
+    jest-util "^29.5.0"
+    p-limit "^3.1.0"
+    pretty-format "^29.5.0"
+
 jest-leak-detector@^29.5.0:
   version "29.5.0"
   resolved "https://registry.yarnpkg.com/jest-leak-detector/-/jest-leak-detector-29.5.0.tgz#cf4bdea9615c72bac4a3a7ba7e7930f9c0610c8c"

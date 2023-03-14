@@ -7,6 +7,7 @@ module.exports = {
     './e2e_tests/failfast.js',
   ],
   testEnvironment: 'jsdom',
+  testRunner: 'jest-jasmine2',
   transform: {
     '(/__tests__/.*|(\\.|/)(test|spec))\\.(jsx?|tsx?)$': [
       'ts-jest', {
