@@ -68,6 +68,15 @@ export class HintConfig implements HintOptions {
     public selectorsExclude = []
     public warnings = []
 
+    public get isYank() {
+        return (
+            this.openMode === OpenMode.YankAnchor ||
+            this.openMode === OpenMode.YankAlt ||
+            this.openMode === OpenMode.YankLink ||
+            this.openMode === OpenMode.YankText
+        )
+    }
+
     public static parse(args: string[]): HintConfig {
         // Argument parser state
         enum State {
@@ -429,14 +438,5 @@ export class HintConfig implements HintOptions {
         }
 
         return hintables
-    }
-
-    public get isYank() {
-        return (
-            this.openMode === OpenMode.YankAnchor ||
-            this.openMode === OpenMode.YankAlt ||
-            this.openMode === OpenMode.YankLink ||
-            this.openMode === OpenMode.YankText
-        )
     }
 }

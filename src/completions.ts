@@ -58,6 +58,10 @@ export abstract class CompletionSource {
         this.prefixes = this.prefixes.map(p => p + " ")
     }
 
+    get state() {
+        return this._state
+    }
+
     /** Control presentation of Source */
     set state(newstate: OptionState) {
         switch (newstate) {
@@ -71,10 +75,6 @@ export abstract class CompletionSource {
         }
         this._prevState = this._state
         this._state = newstate
-    }
-
-    get state() {
-        return this._state
     }
 
     shouldRefresh() {
@@ -105,6 +105,10 @@ export abstract class CompletionOptionHTML extends CompletionOption {
 
     private _state: OptionState = "hidden"
 
+    get state() {
+        return this._state
+    }
+
     /** Control presentation of element */
     set state(newstate: OptionState) {
         // console.log("state from to", this._state, newstate)
@@ -132,10 +136,6 @@ export abstract class CompletionOptionHTML extends CompletionOption {
                 break
         }
         this._state = newstate
-    }
-
-    get state() {
-        return this._state
     }
 }
 
@@ -332,7 +332,7 @@ export abstract class CompletionSourceFuse extends CompletionSource {
     /* abstract onUpdate(query: string, prefix: string, options: CompletionOptionFuse[]) */
 
     // Lots of methods don't need this but some do
-    // eslint-disable-next-line @typescript-eslint/no-empty-function, @typescript-eslint/no-unused-vars-experimental
+    // eslint-disable-next-line @typescript-eslint/no-empty-function, @typescript-eslint/no-unused-vars
     async onInput(exstr: string) {}
 }
 
