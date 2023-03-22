@@ -293,7 +293,7 @@ a.url:hover {
 }
 
 #completions .WindowCompletionOption td.id {
-    width: 4ch !important;
+    width: 6ch !important;
     text-align: right;
-    padding: 0px 3pt;
+    padding: 0px 8pt;
 }
