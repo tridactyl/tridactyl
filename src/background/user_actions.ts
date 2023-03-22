@@ -36,6 +36,14 @@ function escapehatch() {
     })()
 }
 
+/**
+ * Toggle the sidebar. Bind with e.g. `:bind --mode=browser <C-.> sidebartoggle`
+ */
+function sidebartoggle() {
+    return browser.sidebarAction.toggle()
+}
+
 export const useractions: Record<string, () => void> = {
     escapehatch,
+    sidebartoggle,
 }
