@@ -3287,6 +3287,40 @@ export async function qall() {
 
 // }}}
 
+/**
+ * EXPERIMENTAL: like [[open]] but loads queries in the sidebar. Doesn't actually open the sidebar - see [[sidebartoggle]].
+ *
+ * Not all schemas are supported, such as `about:*` and Firefox's built-in search engines. Tridactyl's searchurls and jsurls work fine - `:set searchengine google` will be sufficient for most users.
+ *
+ * If you try to open the command line in the sidebar things will break.
+ */
+//#background
+export async function sidebaropen(...urllike: string[]) {
+    const url = await queryAndURLwrangler(urllike)
+    if (typeof url === "string") return browser.sidebarAction.setPanel({panel: url})
+    throw new Error("Unsupported URL for sidebar. If it was a search term try `:set searchengine google` first")
+}
+
+/**
+ * Like [[jsb]] but preserves "user action" intent for use with certain web extension APIs. Can only be called with browser mode binds, e.g.
+ *
+ * `:bind --mode=browser <C-.> jsua browser.sidebarAction.open(); tri.excmds.sidebaropen("https://mail.google.com/mail/mu")`
+ */
+//#background
+export async function jsua(){
+    throw new Error(":jsua can only be called through `bind --mode=browser` binds, see `:help jsua`")
+}
+
+/**
+ * Toggle the side bar. Can only be called through browser mode binds, e.g.
+ *
+ * `:bind --mode=browser <C-.> sidebartoggle`
+ */
+//#background
+export async function sidebartoggle(){
+    throw new Error(":sidebartoggle can only be called through `bind --mode=browser` binds, see `:help sidebartoggle`")
+}
+
 // {{{ CONTAINERS
 
 /** Closes all tabs open in the same container across all windows.
