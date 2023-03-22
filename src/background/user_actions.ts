@@ -43,7 +43,12 @@ function sidebartoggle() {
     return browser.sidebarAction.toggle()
 }
 
-export const useractions: Record<string, () => void> = {
+function jsua(...args: string[]) {
+    return eval(args.join(" "))
+}
+
+export const useractions: Record<string, (...args: string[]) => void> = {
     escapehatch,
     sidebartoggle,
+    jsua,
 }
