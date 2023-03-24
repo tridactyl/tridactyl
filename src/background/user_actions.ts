@@ -36,6 +36,19 @@ function escapehatch() {
     })()
 }
 
-export const useractions: Record<string, () => void> = {
+/**
+ * Toggle the sidebar. Bind with e.g. `:bind --mode=browser <C-.> sidebartoggle`
+ */
+function sidebartoggle() {
+    return browser.sidebarAction.toggle()
+}
+
+function jsua(...args: string[]) {
+    return eval(args.join(" "))
+}
+
+export const useractions: Record<string, (...args: string[]) => void> = {
     escapehatch,
+    sidebartoggle,
+    jsua,
 }
