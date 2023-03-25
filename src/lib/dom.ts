@@ -541,6 +541,7 @@ export function getLastUsedInput(): HTMLElement {
  *  https://bugzilla.mozilla.org/show_bug.cgi?id=1406825
  * */
 function onPageFocus(elem: HTMLElement): boolean {
+    elem = elem.shadowRoot ? elem.shadowRoot.activeElement as HTMLElement : elem
     if (isTextEditable(elem)) {
         LAST_USED_INPUT = elem
     }
@@ -578,9 +579,11 @@ function hijackPageFocusFunction(): void {
 export function setupFocusHandler(): void {
     // Handles when a user selects an input
     document.addEventListener("focusin", e => {
-        if (isTextEditable(e.target as HTMLElement)) {
-            LAST_USED_INPUT = e.target as HTMLElement
-            setInput(e.target as HTMLInputElement)
+        let elem = e.target as HTMLElement
+        elem = elem.shadowRoot ? elem.shadowRoot.activeElement as HTMLElement : elem
+        if (isTextEditable(elem)) {
+            LAST_USED_INPUT = elem
+            setInput(elem)
         }
     })
     // Handles when the page tries to select an input
