@@ -31,7 +31,7 @@ import { getAllDocumentFrames } from "@src/lib/dom"
 
 import state from "@src/state"
 import { EditorCmds as editor } from "@src/content/editor"
-/* tslint:disable:import-spacing */
+/* eslint-disable  */
 
 config.getAsync("superignore").then(async TRI_DISABLE => {
 // Set up our controller to execute content-mode excmds. All code

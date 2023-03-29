@@ -6,7 +6,7 @@ It represents the closest reasonable ESLint configuration to this
 project's original TSLint configuration.
 
 We recommend eventually switching this configuration to extend from
-the recommended rulesets in typescript-eslint.
+the recommended rulesets in typescript-eslint. 
 https://github.com/typescript-eslint/tslint-to-eslint-config/blob/master/docs/FAQs.md
 
 Happy linting! 💖
@@ -23,22 +23,43 @@ module.exports = {
         "prettier",
         "plugin:sonarjs/recommended"
     ],
+    "ignorePatterns": [
+        "node_modules",
+        "build",
+        "coverage",
+        "*.test.ts",
+        "test_utils.ts",
+        "e2e_tests",
+        "compiler",
+        "node_modules",
+        "build",
+        "coverage",
+        "*.test.ts",
+        "test_utils.ts",
+        "e2e_tests",
+        "compiler"
+    ],
     "parser": "@typescript-eslint/parser",
     "parserOptions": {
         "project": ["tsconfig.json", "tsconfig.eslint.json"],
         "sourceType": "module"
     },
     "plugins": [
+        "sonarjs",
+        "eslint-plugin-jsdoc",
+        "eslint-plugin-prefer-arrow",
+        "eslint-plugin-import",
         "@typescript-eslint",
-        "@typescript-eslint/tslint",
-        "sonarjs"
     ],
+    "root": true,
     "rules": {
-        "sonarjs/cognitive-complexity": "off", //"error",
-        "sonarjs/no-duplicate-string": "off",
-        "sonarjs/no-unused-collection": "off", //"error", // There seems to be a bug with this rule - exported collections are assumed unused
         "@typescript-eslint/adjacent-overload-signatures": "error",
-        "@typescript-eslint/array-type": "off",
+        "@typescript-eslint/array-type": [
+            "error",
+            {
+                "default": "array-simple"
+            }
+        ],
         "@typescript-eslint/await-thenable": "error",
         "@typescript-eslint/ban-ts-comment": "error",
         "@typescript-eslint/ban-types": [
@@ -52,13 +73,16 @@ module.exports = {
                         "message": "Avoid using the `Function` type. Prefer a specific function type, like `() => void`."
                     },
                     "Boolean": {
-                        "message": "Avoid using the `Boolean` type. Did you mean `boolean`?"
+                        "message": "Use boolean instead",
+                        "fixWith": "boolean"
                     },
                     "Number": {
-                        "message": "Avoid using the `Number` type. Did you mean `number`?"
+                        "message": "Use number instead",
+                        "fixWith": "number"
                     },
                     "String": {
-                        "message": "Avoid using the `String` type. Did you mean `string`?"
+                        "message": "Use string instead",
+                        "fixWith": "string"
                     },
                     "Symbol": {
                         "message": "Avoid using the `Symbol` type. Did you mean `symbol`?"
@@ -69,15 +93,15 @@ module.exports = {
         "@typescript-eslint/class-name-casing": "off",
         "@typescript-eslint/consistent-type-assertions": "error",
         "@typescript-eslint/consistent-type-definitions": "error",
-        "@typescript-eslint/dot-notation": "off", // this should be "error" but the fix silently breaks code almost 100% of the time. not worth the headaches
+        "@typescript-eslint/dot-notation": "off", // TODO: enable
+        "@typescript-eslint/explicit-function-return-type": "off",
         "@typescript-eslint/explicit-member-accessibility": [
             "off",
             {
                 "accessibility": "explicit"
             }
         ],
-        "@typescript-eslint/explicit-module-boundary-types": "off", //"warn", // This is another hard one to enable
-        "@typescript-eslint/indent": "off",
+        "@typescript-eslint/explicit-module-boundary-types": "off",
         "@typescript-eslint/interface-name-prefix": "off",
         "@typescript-eslint/member-delimiter-style": [
             "off",
@@ -93,45 +117,64 @@ module.exports = {
             }
         ],
         "@typescript-eslint/member-ordering": "error",
+        "@typescript-eslint/naming-convention": [
+            "off",
+            {
+                "selector": "variable",
+                "format": [
+                    "camelCase",
+                    "UPPER_CASE"
+                ],
+                "leadingUnderscore": "forbid",
+                "trailingUnderscore": "forbid"
+            }
+        ],
         "@typescript-eslint/no-array-constructor": "error",
         "@typescript-eslint/no-empty-function": "error",
         "@typescript-eslint/no-empty-interface": "error",
         "@typescript-eslint/no-explicit-any": "off",
         "@typescript-eslint/no-extra-non-null-assertion": "error",
-        "@typescript-eslint/no-floating-promises": "off", //"error", // We should turn this on eventually but it will take a while to fix
+        "@typescript-eslint/no-floating-promises": "off",
         "@typescript-eslint/no-for-in-array": "error",
         "@typescript-eslint/no-implied-eval": "error",
         "@typescript-eslint/no-inferrable-types": "error",
         "@typescript-eslint/no-misused-new": "error",
-        "@typescript-eslint/no-misused-promises": ["error",
+        "@typescript-eslint/no-misused-promises": [
+            "error",
             {
-                "checksVoidReturn": false,
-            },
+                "checksVoidReturn": false
+            }
         ],
         "@typescript-eslint/no-namespace": "error",
         "@typescript-eslint/no-non-null-asserted-optional-chain": "error",
         "@typescript-eslint/no-non-null-assertion": "warn",
         "@typescript-eslint/no-parameter-properties": "off",
+        "@typescript-eslint/no-shadow": [
+            "off",
+            {
+                "hoist": "all"
+            }
+        ],
         "@typescript-eslint/no-this-alias": "error",
         "@typescript-eslint/no-unnecessary-type-assertion": "error",
-        "@typescript-eslint/no-unsafe-assignment": "off", //"error",
-        "@typescript-eslint/no-unsafe-call": "off", //"error",
-        "@typescript-eslint/no-unsafe-member-access": "off", //"error", // We've done this a lot, but it would be a good idea to fix it
-        "@typescript-eslint/no-unsafe-return": "off", //"error", // We've done this a lot, but it would be a good idea to fix it
+        "@typescript-eslint/no-unsafe-assignment": "off",
+        "@typescript-eslint/no-unsafe-call": "off",
+        "@typescript-eslint/no-unsafe-member-access": "off",
+        "@typescript-eslint/no-unsafe-return": "off",
         "@typescript-eslint/no-unused-expressions": [
             "error",
             {
                 "allowShortCircuit": true,
-                "allowTernary": true,
+                "allowTernary": true
             }
         ],
+        "@typescript-eslint/no-unused-vars": "off",
         "@typescript-eslint/no-unused-vars-experimental": [
             "error",
             {
-                "ignoreArgsIfArgsAfterAreUsed": true,
-            },
+                "ignoreArgsIfArgsAfterAreUsed": true
+            }
         ],
-        "@typescript-eslint/no-unused-vars": "off",
         "@typescript-eslint/no-use-before-define": "off",
         "@typescript-eslint/no-var-requires": "error",
         "@typescript-eslint/prefer-as-const": "error",
@@ -144,11 +187,17 @@ module.exports = {
             "double",
             {
                 "avoidEscape": true,
-                "allowTemplateLiterals": true,
-            },
+                "allowTemplateLiterals": true
+            }
+        ],
+        "@typescript-eslint/require-array-sort-compare": [
+            "error",
+            {
+                "ignoreStringArrays": true
+            }
         ],
         "@typescript-eslint/require-await": "error",
-        "@typescript-eslint/restrict-plus-operands": "off", //"error", // We use this a lot - fixing it is a problem for a rainy day
+        "@typescript-eslint/restrict-plus-operands": "off",
         "@typescript-eslint/restrict-template-expressions": "off",
         "@typescript-eslint/semi": [
             "off",
@@ -163,6 +212,7 @@ module.exports = {
             }
         ],
         "@typescript-eslint/type-annotation-spacing": "error",
+        "@typescript-eslint/typedef": "off",
         "@typescript-eslint/unbound-method": "error",
         "@typescript-eslint/unified-signatures": "error",
         "arrow-body-style": "error",
@@ -175,10 +225,10 @@ module.exports = {
             "1tbs"
         ],
         "camelcase": "off",
-        "comma-dangle": "off",
         "complexity": "off",
         "constructor-super": "error",
-        "curly": "off",
+        "default-case-last": "error",
+        "dot-notation": "off",
         "eol-last": "error",
         "eqeqeq": [
             "off",
@@ -186,13 +236,89 @@ module.exports = {
         ],
         "guard-for-in": "error",
         "id-blacklist": "off",
+        "id-denylist": "off",
         "id-match": "off",
-        "import/order": "off",
+        "import/order": [
+            "off",
+            {
+                "alphabetize": {
+                    "caseInsensitive": true,
+                    "order": "asc"
+                },
+                "newlines-between": "ignore",
+                "groups": [
+                    [
+                        "builtin",
+                        "external",
+                        "internal",
+                        "unknown",
+                        "object",
+                        "type"
+                    ],
+                    "parent",
+                    [
+                        "sibling",
+                        "index"
+                    ]
+                ],
+                "distinctGroup": false,
+                "pathGroupsExcludedImportTypes": [],
+                "pathGroups": [
+                    {
+                        "pattern": "./",
+                        "patternOptions": {
+                            "nocomment": true,
+                            "dot": true
+                        },
+                        "group": "sibling",
+                        "position": "before"
+                    },
+                    {
+                        "pattern": ".",
+                        "patternOptions": {
+                            "nocomment": true,
+                            "dot": true
+                        },
+                        "group": "sibling",
+                        "position": "before"
+                    },
+                    {
+                        "pattern": "..",
+                        "patternOptions": {
+                            "nocomment": true,
+                            "dot": true
+                        },
+                        "group": "parent",
+                        "position": "before"
+                    },
+                    {
+                        "pattern": "../",
+                        "patternOptions": {
+                            "nocomment": true,
+                            "dot": true
+                        },
+                        "group": "parent",
+                        "position": "before"
+                    }
+                ]
+            }
+        ],
         "jsdoc/check-alignment": "off",
         "jsdoc/check-indentation": "off",
         "jsdoc/newline-after-description": "off",
         "max-classes-per-file": "off",
-        "max-len": "off",
+        "max-lines-per-function": [
+            "off",
+            {
+                "max": 200
+            }
+        ],
+        "max-params": [
+            "error",
+            {
+                "max": 8
+            }
+        ],
         "new-parens": "error",
         "no-array-constructor": "off",
         "no-bitwise": "error",
@@ -207,24 +333,26 @@ module.exports = {
             }
         ],
         "no-empty-function": "off",
+        "no-empty-pattern": "error",
         "no-eval": "off",
+        "no-extra-parens": "off",
         "no-fallthrough": "off",
+        "no-implied-eval": "off",
         "no-invalid-this": "off",
+        "no-multi-str": "error",
         "no-multiple-empty-lines": "error",
         "no-new-wrappers": "error",
-        "no-shadow": [
-            "off",
-            {
-                "hoist": "all"
-            }
-        ],
-        "no-throw-literal": "error",
+        "no-self-assign": "error",
+        "no-shadow": "off",
+        "no-throw-literal": "off",
         "no-trailing-spaces": "error",
         "no-undef-init": "error",
         "no-underscore-dangle": "off",
         "no-unsafe-finally": "off",
+        "no-unused-expressions": "off",
         "no-unused-labels": "error",
         "no-unused-vars": "off",
+        "no-use-before-define": "off",
         "no-var": "error",
         "object-shorthand": "error",
         "one-var": [
@@ -238,9 +366,48 @@ module.exports = {
                 "destructuring": "all"
             }
         ],
-        "quote-props": "off",
         "radix": "error",
         "require-await": "off",
+        "sonarjs/cognitive-complexity": "off",
+        "sonarjs/elseif-without-else": "off",
+        "sonarjs/max-switch-cases": "error",
+        "sonarjs/no-all-duplicated-branches": "error",
+        "sonarjs/no-collapsible-if": "error",
+        "sonarjs/no-collection-size-mischeck": "error",
+        "sonarjs/no-duplicate-string": "off",
+        "sonarjs/no-duplicated-branches": "error",
+        "sonarjs/no-element-overwrite": "error",
+        "sonarjs/no-empty-collection": "error",
+        "sonarjs/no-extra-arguments": "error",
+        "sonarjs/no-gratuitous-expressions": "error",
+        "sonarjs/no-identical-conditions": "error",
+        "sonarjs/no-identical-expressions": "error",
+        "sonarjs/no-identical-functions": "error",
+        "sonarjs/no-ignored-return": "error",
+        "sonarjs/no-inverted-boolean-check": "error",
+        "sonarjs/no-nested-switch": "error",
+        "sonarjs/no-nested-template-literals": "error",
+        "sonarjs/no-one-iteration-loop": "error",
+        "sonarjs/no-redundant-boolean": "error",
+        "sonarjs/no-redundant-jump": "error",
+        "sonarjs/no-same-line-conditional": "error",
+        "sonarjs/no-small-switch": "error",
+        "sonarjs/no-unused-collection": "error",
+        "sonarjs/no-use-of-empty-return-value": "error",
+        "sonarjs/no-useless-catch": "error",
+        "sonarjs/non-existent-operator": "error",
+        "sonarjs/prefer-immediate-return": "error",
+        "sonarjs/prefer-object-literal": "error",
+        "sonarjs/prefer-single-boolean-return": "error",
+        "sonarjs/prefer-while": "error",
+        "space-before-function-paren": [
+            "error",
+            {
+                "anonymous": "never",
+                "asyncArrow": "always",
+                "named": "never"
+            }
+        ],
         "spaced-comment": [
             "error",
             "always",

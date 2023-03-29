@@ -181,12 +181,12 @@ let prev_cmd_called_history = false
 
 // Save programmer time by generating an immediately resolved promise
 // eslint-disable-next-line @typescript-eslint/no-empty-function
-const QUEUE: Promise<any>[] = [(async () => {})()]
+const QUEUE: Array<Promise<any>> = [(async () => {})()]
 
 /** @hidden **/
 commandline_state.clInput.addEventListener(
     "keydown",
-    function (keyevent: KeyboardEvent) {
+    function(keyevent: KeyboardEvent) {
         if (!keyevent.isTrusted) return
         commandline_state.keyEvents.push(minimalKeyFromKeyboardEvent(keyevent))
         const response = keyParser(commandline_state.keyEvents)

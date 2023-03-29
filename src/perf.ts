@@ -48,7 +48,7 @@ export function measured(
     if (!performanceApiAvailable()) return
 
     const originalMethod = descriptor.value
-    descriptor.value = function (this, ...args) {
+    descriptor.value = function(this, ...args) {
         const marker = new Marker(cls.constructor.name, propertyKey).start()
         const result = originalMethod.apply(this, args)
         marker.end()
@@ -70,7 +70,7 @@ export function measuredAsync(
     if (!performanceApiAvailable()) return
 
     const originalMethod = descriptor.value
-    descriptor.value = async function (this, ...args) {
+    descriptor.value = async function(this, ...args) {
         const marker = new Marker(cls.constructor.name, propertyKey).start()
         const result = await originalMethod.apply(this, args)
         marker.end()
