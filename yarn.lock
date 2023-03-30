@@ -925,10 +925,10 @@
   resolved "https://registry.yarnpkg.com/@types/css/-/css-0.0.33.tgz#d0b49c4090c09c8e5dc01364560627e5ebb770f2"
   integrity sha512-qjeDgh86R0LIeEM588q65yatc8Yyo/VvSIYFqq8JOIHDolhGNX0rz7k/OuxqDpnpqlefoHj8X4Ai/6hT9IWtKQ==
 
-"@types/firefox-webext-browser@^109.0.0":
-  version "109.0.0"
-  resolved "https://registry.yarnpkg.com/@types/firefox-webext-browser/-/firefox-webext-browser-109.0.0.tgz#17120057a46985ec7659dfd33589655860419929"
-  integrity sha512-tkEjBP/zZxaS5bv8MH/0kUs3WeUm8KU3Ew1B9BtQQdq5PwtG23SXvAbjxjMSQpoIzbxyWG4Yu4mi1uB2S8W7ng==
+"@types/firefox-webext-browser@^111.0.1":
+  version "111.0.1"
+  resolved "https://registry.yarnpkg.com/@types/firefox-webext-browser/-/firefox-webext-browser-111.0.1.tgz#1ab4eacbe8eab48bb8c450c44519bac08a041a70"
+  integrity sha512-mmHWdQTCT68X0hh0URrsIyWhJeFzZHaiprj6nni/CmsAmqYq27T0eZyu1ePeKJ/zuDD3wqtTzm5TwRFAso+oPw==
 
 "@types/graceful-fs@^4.1.2":
   version "4.1.3"
