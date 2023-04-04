@@ -5998,6 +5998,18 @@ export async function reader2() {
     stylelink.rel = "stylesheet"
     stylelink.href = browser.runtime.getURL("static/css/reader.css")
     document.head.appendChild(stylelink)
+    if (article.title !== undefined) {
+        const header = document.createElement("header")
+        const title = document.createElement("h1")
+        title.textContent = article.title
+        header.appendChild(title)
+        if (article.byline !== undefined) {
+            const author = document.createElement("p")
+            author.textContent = article.byline
+            header.appendChild(author)
+        }
+        document.body.insertBefore(header, document.body.firstChild)
+    }
 }
 
 /**
