@@ -5993,23 +5993,11 @@ import { Readability } from "@mozilla/readability"
 export async function reader2() {
     const article = new Readability(document).parse()
     document.body.innerHTML = article.content
-    const readable_css = `
-    body {
-        margin: 40px auto;
-        max-width: 650px;
-        line-height: 1.6;
-        font-size: 18px;
-        padding: 0 10px;
-    }
-    h1,h2,h3 {
-        line-height:1.2
-    }
-    `
-    const stylesheet = document.createElement("style")
-    stylesheet.type = "text/css"
-    stylesheet.innerText = readable_css
-    document.head.appendChild(stylesheet) // Not ideal because we still have the page's stylesheet
-    //document.location.href = "data:text/html;base64," + btoa(article.content) // doesn't work; should probably make our own "open in tridactyl" thingy
+    const stylelink = document.createElement("link")
+    stylelink.type = "text/css"
+    stylelink.rel = "stylesheet"
+    stylelink.href = browser.runtime.getURL("static/css/reader.css")
+    document.head.appendChild(stylelink)
 }
 
 /**
