@@ -100,6 +100,8 @@ body {
     display: grid;
     grid-template-columns: 1fr min(45rem, 90%) 1fr;
     margin: 0;
+    text-align: justify;
+    hyphens: auto;
 }
 body > * {
     grid-column: 2;
