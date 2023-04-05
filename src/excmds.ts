@@ -5991,6 +5991,10 @@ import { Readability } from "@mozilla/readability"
 
 //#content
 export async function reader2() {
+    // Store old doc for restoration
+    const old_doc = document.documentElement.innerHTML
+    const cmdline = document.getElementById("cmdline_iframe")
+
     document.querySelectorAll(".TridactylStatusIndicator").forEach(ind => ind.parentNode.removeChild(ind))
     const article = new Readability(document).parse()
     document.body.innerHTML = article.content
@@ -6020,6 +6024,15 @@ export async function reader2() {
             header.appendChild(author)
         }
         document.body.insertBefore(header, document.body.firstChild)
+    }
+
+    window.history.pushState(null, null)
+
+    const old_pop = window.onpopstate
+    window.onpopstate = () => {
+        document.documentElement.innerHTML = old_doc
+        document.documentElement.appendChild(cmdline)
+        window.onpopstate = old_pop
     }
 }
 
