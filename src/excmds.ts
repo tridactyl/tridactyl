@@ -2292,11 +2292,15 @@ export async function zoom(level = 0, rel = "false", tabId = "auto") {
     }
 }
 
-/** Opens the current page in Firefox's reader mode.
- * You currently cannot use Tridactyl while in reader mode.
+/** 
+ * @hidden
+ * Old version of the reader command. Opens the current page in Firefox's reader mode.
+ * You cannot use Tridactyl while in this reader mode.
+ *
+ * Use [[reader]] instead
  */
 //#background
-export async function reader() {
+export async function readerold() {
     if (await firefoxVersionAtLeast(58)) {
         const aTab = await activeTab()
         if (aTab.isArticle) {
@@ -5989,14 +5993,30 @@ export async function extoptions(...optionNameArgs: string[]) {
 //#content_helper
 import { Readability } from "@mozilla/readability"
 
-//#content
-export async function reader2() {
+//#content_helper
+export async function readerurl() {
     document.querySelectorAll(".TridactylStatusIndicator").forEach(ind => ind.parentNode.removeChild(ind))
     const article = new Readability(document).parse()
     article["link"] = window.location.href
+    return browser.runtime.getURL("static/reader.html#" + btoa(encodeURIComponent(JSON.stringify(article))))
+}
 
-    // todo: sanitise
-    open(browser.runtime.getURL("static/reader.html#" + btoa(encodeURIComponent(JSON.stringify(article)))))
+//#content
+export async function reader(...args: string[]) {
+    switch(args[0]) {
+        case "--old":
+            readerold()
+            break
+        case "--tab":
+            tabopen(await readerurl())
+            break
+        case "--window":
+            winopen(await readerurl())
+            break
+        default:
+            open(await readerurl())
+            break
+    }
 }
 
 /**
