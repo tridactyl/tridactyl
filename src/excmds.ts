@@ -5996,7 +5996,7 @@ import { Readability } from "@mozilla/readability"
 //#content_helper
 export async function readerurl() {
     document.querySelectorAll(".TridactylStatusIndicator").forEach(ind => ind.parentNode.removeChild(ind))
-    const article = new Readability(document).parse()
+    const article = new Readability(document.cloneNode(true) as any as Document).parse()
     article["link"] = window.location.href
     return browser.runtime.getURL("static/reader.html#" + btoa(encodeURIComponent(JSON.stringify(article))))
 }
