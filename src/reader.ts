@@ -1,7 +1,9 @@
 // import * as config from "@src/lib/config"
+import xss from "xss"
 
 function updatePage(){
     const article = JSON.parse(decodeURIComponent(atob(window.location.hash.substr(1))))
+    article.content = xss(article.content, {stripIgnoreTag: true})
     document.body.innerHTML = article.content
     if (article.title !== undefined) {
         const header = document.createElement("header")

@@ -5991,16 +5991,12 @@ export async function extoptions(...optionNameArgs: string[]) {
 }
 
 //#content_helper
-// {
 import { Readability } from "@mozilla/readability"
-import xss from "xss"
-// }
 
 //#content_helper
 export async function readerurl() {
     document.querySelectorAll(".TridactylStatusIndicator").forEach(ind => ind.parentNode.removeChild(ind))
     const article = new Readability(document.cloneNode(true) as any as Document).parse()
-    article.content = xss(article.content, {stripIgnoreTag: true})
     article["link"] = window.location.href
     return browser.runtime.getURL("static/reader.html#" + btoa(encodeURIComponent(JSON.stringify(article))))
 }
