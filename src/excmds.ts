@@ -2292,7 +2292,7 @@ export async function zoom(level = 0, rel = "false", tabId = "auto") {
     }
 }
 
-/** 
+/**
  * @hidden
  * Old version of the reader command. Opens the current page in Firefox's reader mode.
  * You cannot use Tridactyl while in this reader mode.
@@ -6001,6 +6001,11 @@ export async function readerurl() {
     return browser.runtime.getURL("static/reader.html#" + btoa(encodeURIComponent(JSON.stringify(article))))
 }
 
+/**
+ * Open the current page as an article in reader view for easier reading. Flags `--tab` and `--window` open the article in new tabs and windows respectively.
+ *
+ * Use `:reader --old` to use Firefox's built-in reader mode, which Tridactyl can't run on.
+ */
 //#content
 export async function reader(...args: string[]) {
     switch(args[0]) {
