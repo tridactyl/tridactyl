@@ -5991,49 +5991,12 @@ import { Readability } from "@mozilla/readability"
 
 //#content
 export async function reader2() {
-    // Store old doc for restoration
-    const old_doc = document.documentElement.innerHTML
-    const cmdline = document.getElementById("cmdline_iframe")
-
     document.querySelectorAll(".TridactylStatusIndicator").forEach(ind => ind.parentNode.removeChild(ind))
     const article = new Readability(document).parse()
-    document.body.innerHTML = article.content
+    article["link"] = window.location.href
 
-    // clear old styles
-    document.querySelectorAll("[style]").forEach(style => style.removeAttribute("style"))
-    document.querySelectorAll('link[rel="stylesheet"], style').forEach(style => style.parentNode.removeChild(style))
-
-    // add key Tridactyl CSS
-    const styles = ["content.css", "hint.css", "reader.css"]
-
-    for (const style of styles) {
-        const stylelink = document.createElement("link")
-        stylelink.type = "text/css"
-        stylelink.rel = "stylesheet"
-        stylelink.href = browser.runtime.getURL("static/css/" + style)
-        document.head.appendChild(stylelink)
-    }
-    if (article.title !== undefined) {
-        const header = document.createElement("header")
-        const title = document.createElement("h1")
-        title.textContent = article.title
-        header.appendChild(title)
-        if (article.byline !== undefined) {
-            const author = document.createElement("p")
-            author.textContent = article.byline
-            header.appendChild(author)
-        }
-        document.body.insertBefore(header, document.body.firstChild)
-    }
-
-    window.history.pushState(null, null)
-
-    const old_pop = window.onpopstate
-    window.onpopstate = () => {
-        document.documentElement.innerHTML = old_doc
-        document.documentElement.appendChild(cmdline)
-        window.onpopstate = old_pop
-    }
+    // todo: sanitise
+    open(browser.runtime.getURL("static/reader.html#" + btoa(encodeURIComponent(JSON.stringify(article)))))
 }
 
 /**
