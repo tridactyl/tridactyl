@@ -5991,13 +5991,24 @@ import { Readability } from "@mozilla/readability"
 
 //#content
 export async function reader2() {
+    document.querySelectorAll(".TridactylStatusIndicator").forEach(ind => ind.parentNode.removeChild(ind))
     const article = new Readability(document).parse()
     document.body.innerHTML = article.content
-    const stylelink = document.createElement("link")
-    stylelink.type = "text/css"
-    stylelink.rel = "stylesheet"
-    stylelink.href = browser.runtime.getURL("static/css/reader.css")
-    document.head.appendChild(stylelink)
+
+    // clear old styles
+    document.querySelectorAll("[style]").forEach(style => style.removeAttribute("style"))
+    document.querySelectorAll('link[rel="stylesheet"], style').forEach(style => style.parentNode.removeChild(style))
+
+    // add key Tridactyl CSS
+    const styles = ["content.css", "hint.css", "reader.css"]
+
+    for (const style of styles) {
+        const stylelink = document.createElement("link")
+        stylelink.type = "text/css"
+        stylelink.rel = "stylesheet"
+        stylelink.href = browser.runtime.getURL("static/css/" + style)
+        document.head.appendChild(stylelink)
+    }
     if (article.title !== undefined) {
         const header = document.createElement("header")
         const title = document.createElement("h1")
