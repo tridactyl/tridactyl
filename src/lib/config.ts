@@ -283,6 +283,7 @@ export class default_config {
         g$: "tablast",
         ga: "tabaudio",
         gr: "reader",
+        gR: "reader --tab",
         gu: "urlparent",
         gU: "urlroot",
         gf: "viewsource",
