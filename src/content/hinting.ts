@@ -715,6 +715,9 @@ class Hint {
             right: rect.right + offsetLeft,
             width: rect.width,
             height: rect.height,
+            x: undefined,
+            y: undefined,
+            toJSON: () => {/* just to make typescript happy, never used */},
         }
 
         this.flag.textContent = name
@@ -734,13 +737,25 @@ class Hint {
         this.hidden = false
     }
 
-    public static isHintable(target: Element): boolean {
-        return target.getClientRects().length > 0
+    get x() {
+        return this._x
     }
 
-    setName(n: string) {
-        this.name = n
-        this.flag.textContent = this.name
+    set x(X: number) {
+        this._x = X
+        this.updatePosition()
+    }
+
+    // eslint wants all gets to be before all sets but also wants all overloads to be grouped
+    // which isn't possible afaict
+    // eslint-disable-next-line @typescript-eslint/member-ordering
+    get y() {
+        return this._y
+    }
+
+    set y(Y: number) {
+        this._y = Y
+        this.updatePosition()
     }
 
     // These styles would be better with pseudo selectors. Can we do custom ones?
@@ -765,26 +780,17 @@ class Hint {
         }
     }
 
+    public static isHintable(target: Element): boolean {
+        return target.getClientRects().length > 0
+    }
+
+    setName(n: string) {
+        this.name = n
+        this.flag.textContent = this.name
+    }
+
     select() {
         this.onSelect(this)
-    }
-
-    set x(X: number) {
-        this._x = X
-        this.updatePosition()
-    }
-
-    get x() {
-        return this._x
-    }
-
-    set y(Y: number) {
-        this._y = Y
-        this.updatePosition()
-    }
-
-    get y() {
-        return this._y
     }
 
     public overlapsWith(h: Hint) {

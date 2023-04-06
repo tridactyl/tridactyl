@@ -298,7 +298,7 @@ export function getAllDocumentFrames(doc = document) {
         Array.from(doc.getElementsByTagName("iframe")) as HTMLIFrameElement[] &
             HTMLFrameElement[]
     )
-        .concat(Array.from(doc.getElementsByTagName("frame")))
+        .concat(Array.from(doc.getElementsByTagName("frame")) as HTMLFrameElement[] & HTMLIFrameElement[])
         .filter(frame => !frame.src.startsWith("moz-extension://"))
     return frames.concat(
         frames.reduce((acc, f) => {

@@ -1,6 +1,6 @@
 /** Background script entry point. */
 
-/* tslint:disable:import-spacing */
+/* eslint-disable */
 
 import * as proxy_background from "@src/lib/browser_proxy_background"
 
@@ -8,7 +8,7 @@ import * as controller from "@src/lib/controller"
 import * as perf from "@src/perf"
 import { listenForCounters } from "@src/perf"
 import * as messaging from "@src/lib/messaging"
-import * as excmds_background from "@src/.excmds_background.generated"
+import { excmd_functions } from "@src/.excmds_background.generated"
 import { CmdlineCmds } from "@src/background/commandline_cmds"
 import { EditorCmds } from "@src/background/editor"
 import * as convert from "@src/lib/convert"
@@ -34,7 +34,7 @@ import * as Proxy from "@src/lib/proxy"
 // Add various useful modules to the window for debugging
 ;(window as any).tri = Object.assign(Object.create(null), {
     messaging,
-    excmds: excmds_background,
+    excmds: excmd_functions,
     convert,
     config,
     controller,
@@ -60,7 +60,7 @@ import { HintingCmds } from "@src/background/hinting"
 // background script, will use the excmds that we give to the module
 // here.
 controller.setExCmds({
-    "": excmds_background,
+    "": excmd_functions,
     ex: CmdlineCmds,
     text: EditorCmds,
     hint: HintingCmds,
@@ -150,7 +150,7 @@ browser.runtime.onStartup.addListener(() => {
 // Nag people about updates.
 // Hope that they're on a tab we can access.
 config.getAsync("update", "nag").then(nag => {
-    if (nag === true) excmds_background.updatecheck("auto_polite")
+    if (nag === true) excmd_functions.updatecheck("auto_polite")
 })
 
 // }}}
@@ -249,10 +249,16 @@ browser.tabs.onCreated.addListener(aucon.tabCreatedListener)
 
 // An object to collect all of our statistics in one place.
 const statsLogger: perf.StatsLogger = new perf.StatsLogger()
-const messages = {
-    excmd_background: excmds_background,
+const messages: { [key: string]: { [key: string]: (...args: any) => any } } = {
+    excmd_background: excmd_functions,
     controller_background: controller,
-    performance_background: statsLogger,
+    // We need to present logger object as an [string -> function] map to not be beaten up
+    // by typescript.
+    // There are probably better ways to do it, but for now i did this dirty thing just to
+    // make it build
+    performance_background: statsLogger as any as {
+        [key: string]: (...args: any) => any
+    },
     download_background: {
         downloadUrl: download_background.downloadUrl,
         downloadUrlAs: download_background.downloadUrlAs,

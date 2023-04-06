@@ -1,4 +1,5 @@
 #!/bin/sh
+# nb this is also defined in the makedocs script
 dest=generated/static/docs
-"$(yarn bin)/typedoc" --theme src/static/typedoc/ --exclude "src/**/?(test_utils|*.test).ts"  --out $dest src --ignoreCompilerErrors
+yarn run makedocs
 cp -r $dest build/static/

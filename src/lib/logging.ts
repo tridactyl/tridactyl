@@ -20,6 +20,22 @@ export class Logger {
      */
     constructor(private logModule) {}
 
+    // These are all getters so that logger.debug = console.debug and
+    // logger.debug('blah') translates into console.debug('blah') with the
+    // filename and line correct.
+    public get debug() {
+        return this.log("debug")
+    }
+    public get info() {
+        return this.log("info")
+    }
+    public get warning() {
+        return this.log("warning")
+    }
+    public get error() {
+        return this.log("error")
+    }
+
     /**
      * Config-aware logging function.
      *
@@ -59,23 +75,7 @@ export class Logger {
 
         // do nothing with the message
         // eslint-disable-next-line @typescript-eslint/no-empty-function
-        return function () {}
-    }
-
-    // These are all getters so that logger.debug = console.debug and
-    // logger.debug('blah') translates into console.debug('blah') with the
-    // filename and line correct.
-    public get debug() {
-        return this.log("debug")
-    }
-    public get info() {
-        return this.log("info")
-    }
-    public get warning() {
-        return this.log("warning")
-    }
-    public get error() {
-        return this.log("error")
+        return function() {}
     }
 }
 

@@ -3,7 +3,7 @@ import * as config from "@src/lib/config"
 import * as keyseq from "@src/lib/keyseq"
 import * as controller from "@src/lib/controller"
 
-function makelistener(commands: Array<browser.commands.Command>) {
+function makelistener(commands: browser.commands.Command[]) {
     return (command_name: string) => {
         const command = commands.filter(c => c.name == command_name)[0]
         const [excmd, ...exargs] = config

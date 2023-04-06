@@ -1,4 +1,4 @@
-/* tslint:disable:no-string-literal */
+/* eslint-disable dot-notation, @typescript-eslint/dot-notation */
 import * as CSS from "css"
 
 // Layout (of bits we care about:

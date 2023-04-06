@@ -136,8 +136,6 @@ export async function jumpToMatch(searchQuery, option) {
     const walker = document.createTreeWalker(
         document,
         NodeFilter.SHOW_TEXT,
-        null,
-        false,
     )
     const nodes = []
     let node

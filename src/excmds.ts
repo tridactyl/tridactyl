@@ -5,11 +5,11 @@
 
     Use `:help <excmd>` or scroll down to show [[help]] for a particular excmd. If you're still stuck, you might consider reading through the [:tutor](/static/clippy/1-tutor.html) again.
 
-    The default keybinds and settings can be found [here](/static/docs/classes/_src_lib_config_.default_config.html) and active binds can be seen with `:viewconfig nmaps` or with [[bind]].
+    The default keybinds and settings can be found [here](/static/docs/classes/lib_config.default_config.html) and active binds can be seen with `:viewconfig nmaps` or with [[bind]].
 
-    Tridactyl also provides a few functions to manipulate text in the command line or text areas that can be found [here](/static/docs/modules/_src_lib_editor_.html). There are also a few commands only available in the command line which can be found [here](/static/docs/modules/_src_commandline_frame_.html).
+    Tridactyl also provides a few functions to manipulate text in the command line or text areas that can be found [here](/static/docs/modules/lib_editor.html). There are also a few commands only available in the command line which can be found [here](/static/docs/modules/commandline_frame.html).
 
-    Ex-commands available exclusively in hint mode are listed [here](/static/docs/modules/_src_content_hinting_.html)
+    Ex-commands available exclusively in hint mode are listed [here](/static/docs/modules/content_hinting.html)
 
     We also have a [wiki](https://github.com/tridactyl/tridactyl/wiki) which may be edited by anyone.
 
@@ -120,6 +120,40 @@ import { generator as KEY_MUNCHER } from "@src/content/controller_content"
  */
 export const cmd_params = new Map<string, Map<string, string>>()
 
+// I went through the whole list https://developer.mozilla.org/en-US/Firefox/The_about_protocol
+// about:blank is even more special
+/** @hidden */
+export const ABOUT_WHITELIST = ["about:license", "about:logo", "about:rights", "about:blank"]
+
+/** The kinds of input elements that we want to be included in the "focusinput"
+ * command (gi)
+ * @hidden
+ */
+export const INPUTTAGS_selectors = `
+input:not([disabled]):not([readonly]):-moz-any(
+ :not([type]),
+ [type='text'],
+ [type='search'],
+ [type='password'],
+ [type='datetime'],
+ [type='datetime-local'],
+ [type='date'],
+ [type='month'],
+ [type='time'],
+ [type='week'],
+ [type='number'],
+ [type='range'],
+ [type='email'],
+ [type='url'],
+ [type='tel'],
+ [type='color']
+),
+textarea:not([disabled]):not([readonly]),
+object,
+[role='application'],
+[contenteditable='true'][role='textbox']
+`
+
 /** @hidden */
 const logger = new Logging.Logger("excmd")
 
@@ -144,7 +178,7 @@ import * as gobbleMode from "@src/parsers/gobblemode"
 import * as nMode from "@src/parsers/nmode"
 
 ALL_EXCMDS = {
-    "": CTSELF,
+    "": CTSELF.excmd_functions,
     ex: CtCmdlineCmds,
     text: CtEditorCmds,
 }
@@ -155,7 +189,7 @@ import { mapstrToKeyseq, mozMapToMinimalKey, minimalKeyToMozMap } from "@src/lib
 //#background_helper
 // {
 
-// tslint:disable-next-line:no-unused-declaration
+// eslint-disable-next-line
 import "@src/lib/number.mod"
 
 import * as BGSELF from "@src/.excmds_background.generated"
@@ -172,16 +206,30 @@ import * as webrequests from "@src/background/webrequests"
 import * as commandsHelper from "@src/background/commands"
 import { tgroups, tgroupActivate, setTabTgroup, setWindowTgroup, setTgroups, windowTgroup, windowLastTgroup, tgroupClearOldInfo, tgroupLastTabId, tgroupTabs, clearAllTgroupInfo, tgroupActivateLast, tgroupHandleTabActivated, tgroupHandleTabCreated, tgroupHandleTabAttached, tgroupHandleTabUpdated, tgroupHandleTabRemoved, tgroupHandleTabDetached } from "./lib/tab_groups"
 
+
 ALL_EXCMDS = {
-    "": BGSELF,
+    "": BGSELF.excmd_functions,
     ex: BgCmdlineCmds,
     text: BgEditorCmds,
 }
 /** @hidden */
 // }
 
+//#background_helper
+import { useractions } from "@src/background/user_actions"
+
+//#content_helper
+import { getEditor } from "editor-adapter"
+
+//#background_helper
+import { getTridactylTabs } from "@src/background/meta"
+
 // }}}
 
+// We create a namespace so that we can treat it
+// as an object of functions in other parts of tridactyl.
+// eslint-disable-next-line @typescript-eslint/no-namespace
+export namespace excmd_functions {
 // {{{ Native messenger stuff
 
 /** @hidden **/
@@ -314,9 +362,6 @@ export function removeTridactylEditorClass(selector: string) {
     document.querySelector(selector)?.classList.remove("TridactylEditing")
 }
 
-//#content_helper
-import { getEditor } from "editor-adapter"
-
 /**
  * Opens your favourite editor (which is currently gVim) and fills the last used input with whatever you write into that file.
  * **Requires that the native messenger is installed, see [[native]] and [[nativeinstall]]**.
@@ -422,7 +467,7 @@ export async function guiset_quiet(rule: string, option: string) {
  *
  * Also flips the preference `toolkit.legacyUserProfileCustomizations.stylesheets` to true so that FF will read your userChrome.
  *
- * View available rules and options [here](/static/docs/modules/_src_lib_css_util_.html#potentialrules) and [here](/static/docs/modules/_src_lib_css_util_.html#metarules).
+ * View available rules and options [here](/static/docs/variables/lib_css_util.potentialRules.html and [here](/static/docs/variables/lib_css_util.metaRules.html).
  *
  * Example usage: `guiset gui none`, `guiset gui full`, `guiset tabs autohide`.
  *
@@ -1466,8 +1511,9 @@ export function find(...args: string[]) {
             splitUnknownArguments: false,
         },
     )
-    const option = {}
-    option["reverse"] = Boolean(argOpt["--reverse"])
+    const option = {
+        reverse: Boolean(argOpt["--reverse"])
+    }
     if ("--jump-to" in argOpt) option["jumpTo"] = argOpt["--jump-to"]
     const searchQuery = argOpt._.join(" ")
     return finding.jumpToMatch(searchQuery, option)
@@ -1566,8 +1612,6 @@ export async function reloadallbut(hard = false) {
     return Promise.all(tabs.map(tab => browser.tabs.reload(tab.id, reloadprops)))
 }
 
-//#background_helper
-import { getTridactylTabs } from "@src/background/meta"
 /** Reloads all tabs which Tridactyl isn't loaded in */
 //#background
 export async function reloaddead(hard = false) {
@@ -1582,11 +1626,6 @@ export async function reloaddead(hard = false) {
 export async function reloadhard(n = 1) {
     return reload(n, true)
 }
-
-// I went through the whole list https://developer.mozilla.org/en-US/Firefox/The_about_protocol
-// about:blank is even more special
-/** @hidden */
-export const ABOUT_WHITELIST = ["about:license", "about:logo", "about:rights", "about:blank"]
 
 /**
  * Open a new page in the current tab.
@@ -1784,7 +1823,7 @@ export async function help(...helpItems: string[]) {
                 if (resolved.includes(helpItem)) break
             }
             if (resolved.length > 0) {
-                return browser.runtime.getURL("static/docs/modules/_src_excmds_.html") + "#" + helpItem
+                return browser.runtime.getURL("static/docs/modules/excmds.html") + "#" + helpItem
             }
             return ""
         },
@@ -1799,13 +1838,13 @@ export async function help(...helpItems: string[]) {
                 if (helpItem in bindings) {
                     helpItem = bindings[helpItem].split(" ")
                     helpItem = ["composite", "fillcmdline"].includes(helpItem[0]) ? helpItem[1] : helpItem[0]
-                    return browser.runtime.getURL("static/docs/modules/_src_excmds_.html") + "#" + helpItem
+                    return browser.runtime.getURL("static/docs/modules/excmds.html") + "#" + helpItem
                 }
             }
             return ""
         },
         // -e: look for an excmd
-        "-e": (settings, helpItem) => browser.runtime.getURL("static/docs/modules/_src_excmds_.html") + "#" + helpItem,
+        "-e": (settings, helpItem) => browser.runtime.getURL("static/docs/modules/excmds.html") + "#" + helpItem,
         // -s: look for a setting
         "-s": (settings, helpItem) => {
             let subSettings = settings
@@ -1819,7 +1858,7 @@ export async function help(...helpItems: string[]) {
                 }
             }
             if (settingHelpAnchor !== "") {
-                return browser.runtime.getURL("static/docs/classes/_src_lib_config_.default_config.html") + "#" + settingHelpAnchor.slice(0, -1)
+                return browser.runtime.getURL("static/docs/classes/lib_config_.default_config.html") + "#" + settingHelpAnchor.slice(0, -1)
             }
             return ""
         },
@@ -1836,7 +1875,7 @@ export async function help(...helpItems: string[]) {
     const settings = await config.getAsync()
     let url = ""
     if (subject === "") {
-        url = browser.runtime.getURL("static/docs/modules/_src_excmds_.html")
+        url = browser.runtime.getURL("static/docs/modules/excmds.html")
     } else {
         // If the user did specify what they wanted, specifically look for it
         if (flag !== "") {
@@ -2395,35 +2434,6 @@ export async function loadaucmds(cmdType: "DocStart" | "DocLoad" | "DocEnd" | "T
         }
     }
 }
-
-/** The kinds of input elements that we want to be included in the "focusinput"
- * command (gi)
- * @hidden
- */
-export const INPUTTAGS_selectors = `
-input:not([disabled]):not([readonly]):-moz-any(
- :not([type]),
- [type='text'],
- [type='search'],
- [type='password'],
- [type='datetime'],
- [type='datetime-local'],
- [type='date'],
- [type='month'],
- [type='time'],
- [type='week'],
- [type='number'],
- [type='range'],
- [type='email'],
- [type='url'],
- [type='tel'],
- [type='color']
-),
-textarea:not([disabled]):not([readonly]),
-object,
-[role='application'],
-[contenteditable='true'][role='textbox']
-`
 
 /** Password field selectors
  * @hidden
@@ -3821,9 +3831,6 @@ export async function shellescape(...quoteme: string[]) {
     }
 }
 
-//#background_helper
-import { useractions } from "@src/background/user_actions"
-
 /**
  *  Magic escape hatch: if Tridactyl can't run in the current tab, return to a tab in the current window where Tridactyl can run, making such a tab if it doesn't currently exist. If Tridactyl can run in the current tab, return focus to the document body from e.g. the URL bar or a video player.
  *
@@ -3926,7 +3933,7 @@ async function setclip(data: string) {
     // Function to avoid retyping everything everywhere
     const setclip_selection = data => Native.clipboard("set", data)
 
-    let promises: Promise<any>[]
+    let promises: Array<Promise<any>>
     switch (await config.getAsync("yankto")) {
         case "selection":
             promises = [setclip_selection(data)]
@@ -4071,7 +4078,7 @@ export async function clipboard(excmd: "open" | "yank" | "yankshort" | "yankcano
 /** Copy an image to the clipboard.
 
     @param url
-        Absolute URL to the image to be copied. You can obtain an absolute URL from a relative one using [tri.urlutils.getAbsoluteURL](_src_lib_url_util_.html#getabsoluteurl).
+        Absolute URL to the image to be copied. You can obtain an absolute URL from a relative one using [tri.urlutils.getAbsoluteURL](/ static/docs/functions/lib_url_util.getAbsoluteURL.html).
 */
 //#background
 export async function yankimage(url: string): Promise<void> {
@@ -4272,7 +4279,7 @@ export function comclear(name: string) {
     - the `ex command` you bind to may not work fully unless you are on a tab which Tridactyl has access to. Generally, browser-wide actions like making or closing tabs will work but tab-specific actions like scrolling down or entering hint mode will not.
 
     A list of editor functions can be found
-    [here](/static/docs/modules/_src_lib_editor_.html).
+    [here](/static/docs/modules/lib_editor.html).
 
     See also:
 
@@ -4486,7 +4493,7 @@ export function setmode(mode: string, key: string, ...values: string[]) {
 
 /** Set a key value pair in config.
 
-    Use to set any values found [here](/static/docs/classes/_src_lib_config_.default_config.html).
+    Use to set any values found [here](/static/docs/classes/lib_config.default_config.html).
 
     Arrays should be set using JS syntax, e.g. `:set blacklistkeys ["/",","]`.
 
@@ -5135,7 +5142,7 @@ const KILL_STACK: Element[] = []
 
     To open a hint in the background, the default bind is `F`.
 
-    Ex-commands available exclusively in hint mode are listed [here](/static/docs/modules/_src_content_hinting_.html)
+    Ex-commands available exclusively in hint mode are listed [here](/static/docs/modules/background_hinting.HintingCmds.html)
 
     Related settings:
         - "hintchars": "hjklasdfgyuiopqwertnmzxcvb"
@@ -5721,9 +5728,9 @@ export function echo(...str: string[]) {
  * @hidden
  */
 async function js_helper(str: string[]) {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars-experimental
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     let JS_ARG = null
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars-experimental
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     let JS_ARGS = []
     let jsContent: string = null
 
@@ -5834,7 +5841,7 @@ async function js_helper(str: string[]) {
  *      `command loudecho js -d€ window.alert(JS_ARGS.join(" "))€`
  *
  */
-/* tslint:disable:no-identical-functions */
+/* eslint-disable sonarjs/no-identical-functions */
 //#content
 export async function js(...str: string[]) {
     return js_helper(str)
@@ -5843,7 +5850,7 @@ export async function js(...str: string[]) {
 /**
  * Lets you execute JavaScript in the background context. All the help from [[js]] applies. Gives you a different `tri` object which has access to more excmds and web-extension APIs.
  */
-/* tslint:disable:no-identical-functions */
+/* eslint-disable sonarjs/no-identical-functions */
 //#background
 export async function jsb(...str: string[]) {
     return js_helper(str)
@@ -5997,3 +6004,4 @@ export async function elementunhide() {
     elem.className = elem.className.replace("TridactylKilledElem", "")
 }
 // vim: tabstop=4 shiftwidth=4 expandtab
+}

@@ -72,27 +72,25 @@ export function attributeCaller(obj) {
 }
 
 interface TypedMessage<
-    Root,
-    Type extends keyof Root,
-    Command extends keyof Root[Type]
+    Type extends keyof Messages.Background,
+    Command extends keyof Messages.Background[Type]
 > {
     type: Type
     command: Command
-    args: Parameters<Root[Type][Command]>
+    args: Parameters<Messages.Background[Type][Command]>
 }
 
 function backgroundHandler<
-    Root,
-    Type extends keyof Root,
-    Command extends keyof Root[Type]
+    Type extends keyof Messages.Background,
+    Command extends keyof Messages.Background[Type]
 >(
-    root: Root,
-    message: TypedMessage<Root, Type, Command>,
-): ReturnType<Root[Type][Command]> {
-    return root[message.type][message.command](...message.args)
+    root: Messages.Background,
+    message: TypedMessage<Type, Command>,
+): ReturnType<Messages.Background[Type][Command]> {
+    return root[message.type][message.command](message.args)
 }
 
-export function setupListener<Root>(root: Root) {
+export function setupListener(root: Messages.Background) {
     browser.runtime.onMessage.addListener(
         (message: any) => {
             if (message.type in root) {
@@ -116,9 +114,9 @@ export function setupListener<Root>(root: Root) {
 export async function message<
     Type extends keyof Messages.Background,
     Command extends keyof Messages.Background[Type],
-    F extends ((...args: any[]) => any) & Messages.Background[Type][Command]
+    F extends((...args: any[]) => any) & Messages.Background[Type][Command]
 >(type: Type, command: Command, ...args: Parameters<F>) {
-    const message: TypedMessage<Messages.Background, Type, Command> = {
+    const message: TypedMessage<Type, Command> = {
         type,
         command,
         args,

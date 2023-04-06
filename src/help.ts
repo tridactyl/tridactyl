@@ -106,7 +106,7 @@ async function onExcmdPageLoad() {
     await Promise.all([...modeMaps, "exaliases"].map(addSetting))
     // setCommandSetting() can change the height of nodes in the page so we need to scroll to the right place again
     if (document.location.hash) {
-        /* tslint:disable:no-self-assignment */
+        /* eslint-disable no-self-assign */
         document.location.hash = document.location.hash
     }
 }
@@ -175,7 +175,7 @@ function addSettingInputs() {
         ),
     ).then(_ => {
         if (document.location.hash) {
-            /* tslint:disable:no-self-assignment */
+            /* eslint-disable no-self-assign */
             document.location.hash = document.location.hash
         }
     })
