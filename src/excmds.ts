@@ -6005,6 +6005,8 @@ export async function readerurl() {
  * Open the current page as an article in reader view for easier reading. Flags `--tab` and `--window` open the article in new tabs and windows respectively.
  *
  * Use `:reader --old` to use Firefox's built-in reader mode, which Tridactyl can't run on.
+ *
+ * __NB:__ the reader page is a privileged environment which has access to all Tridactyl functions, notably the native messenger if you have it installed. We are parsing untrusted web-content to run in this environment. Mozilla's readability library will strip out most of these, then we use a sanitation library, `js-xss`, to strip out any remaining unsafe tags, but if there was a serious bug in this library, and a targeted attack against Tridactyl, an attacker could get remote code execution. If you're worried about this, use `:reader --old` instead or only use `:reader` on pages you trust.
  */
 //#content
 export async function reader(...args: string[]) {
