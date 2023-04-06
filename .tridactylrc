@@ -93,6 +93,10 @@
 " " Open right click menu on links
 " bind ;C composite hint_focus; !s xdotool key Menu
 " 
+" " Binds for new reader mode
+" bind gr reader
+" bind gR reader --tab
+"
 " " Suspend / "discard" all tabs - handy for stretching out battery life
 " command discardall jsb browser.tabs.query({}).then(ts => browser.tabs.discard(ts.map(t=>t.id)))
 " 
