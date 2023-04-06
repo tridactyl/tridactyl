@@ -59,18 +59,17 @@ export async function runRc(rc: string) {
 }
 
 export function rcFileToExCmds(rcText: string): string[] {
-
     // Split into individual excmds
     const excmds = rcText.split("\n")
 
     // Remove empty and comment lines
-    const ex= excmds.filter(
+    const ex = excmds.filter(
         x =>
             /\S/.test(x) &&
             !x.trim().startsWith('"') &&
             !x.trim().startsWith("#"),
     )
-    const res= ex.join("\n")
+    const res = ex.join("\n")
 
     // string-join lines that end with /
     const joined = res.replace(/\\\n/g, "")
