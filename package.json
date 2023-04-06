@@ -12,6 +12,7 @@
     "stream": "stream-browserify"
   },
   "dependencies": {
+    "@mozilla/readability": "^0.4.1",
     "cleanslate": "^0.10.1",
     "csp-serdes": "github:cmcaine/csp-serdes",
     "css": "^3.0.0",
@@ -25,7 +26,8 @@
     "tridactyl-arg": "git+https://github.com/GHolk/arg.git#v5.1.0",
     "tsdef": "^0.0.14",
     "typedoc": "^0.19.2",
-    "typedoc-default-themes": "^0.12.10"
+    "typedoc-default-themes": "^0.12.10",
+    "xss": "^1.0.14"
   },
   "devDependencies": {
     "@types/css": "0.0.33",

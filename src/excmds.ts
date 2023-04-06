@@ -2292,11 +2292,15 @@ export async function zoom(level = 0, rel = "false", tabId = "auto") {
     }
 }
 
-/** Opens the current page in Firefox's reader mode.
- * You currently cannot use Tridactyl while in reader mode.
+/**
+ * @hidden
+ * Old version of the reader command. Opens the current page in Firefox's reader mode.
+ * You cannot use Tridactyl while in this reader mode.
+ *
+ * Use [[reader]] instead
  */
 //#background
-export async function reader() {
+export async function readerold() {
     if (await firefoxVersionAtLeast(58)) {
         const aTab = await activeTab()
         if (aTab.isArticle) {
@@ -5984,6 +5988,42 @@ export async function extoptions(...optionNameArgs: string[]) {
     const extensions = await Extensions.listExtensions()
     const selectedExtension = extensions.find(ext => ext.name === optionName)
     return winopen("-popup", selectedExtension.optionsUrl)
+}
+
+//#content_helper
+import { Readability } from "@mozilla/readability"
+
+//#content_helper
+export async function readerurl() {
+    document.querySelectorAll(".TridactylStatusIndicator").forEach(ind => ind.parentNode.removeChild(ind))
+    const article = new Readability(document.cloneNode(true) as any as Document).parse()
+    article["link"] = window.location.href
+    return browser.runtime.getURL("static/reader.html#" + btoa(encodeURIComponent(JSON.stringify(article))))
+}
+
+/**
+ * Open the current page as an article in reader view for easier reading. Flags `--tab` and `--window` open the article in new tabs and windows respectively.
+ *
+ * Use `:reader --old` to use Firefox's built-in reader mode, which Tridactyl can't run on.
+ *
+ * __NB:__ the reader page is a privileged environment which has access to all Tridactyl functions, notably the native messenger if you have it installed. We are parsing untrusted web-content to run in this environment. Mozilla's readability library will strip out most of these, then we use a sanitation library, `js-xss`, to strip out any remaining unsafe tags, but if there was a serious bug in this library, and a targeted attack against Tridactyl, an attacker could get remote code execution. If you're worried about this, use `:reader --old` instead or only use `:reader` on pages you trust.
+ */
+//#content
+export async function reader(...args: string[]) {
+    switch(args[0]) {
+        case "--old":
+            readerold()
+            break
+        case "--tab":
+            tabopen(await readerurl())
+            break
+        case "--window":
+            winopen(await readerurl())
+            break
+        default:
+            open(await readerurl())
+            break
+    }
 }
 
 /**
