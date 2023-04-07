@@ -3,6 +3,7 @@ import * as DOM from "@src/lib/dom"
 import { browserBg, activeTabId } from "@src/lib/webext"
 import state from "@src/state"
 import * as State from "@src/state"
+import { compute as scrollCompute } from "compute-scroll-into-view"
 
 // The host is the shadow root of a span used to contain all highlighting
 // elements. This is the least disruptive way of highlighting text in a page.
@@ -26,7 +27,7 @@ function getFindHost() {
 class FindHighlight extends HTMLSpanElement {
     public top = Infinity
 
-    constructor(private rects, public range: Range) {
+    constructor(public range: Range) {
         super()
         {
             // https://bugzilla.mozilla.org/show_bug.cgi?id=1716685
@@ -38,66 +39,127 @@ class FindHighlight extends HTMLSpanElement {
         this.style.position = "absolute"
         this.style.top = "0px"
         this.style.left = "0px"
-        for (const rect of rects) {
-            if (rect.top < this.top) {
-                this.top = rect.top
+        this.updateRectsPosition()
+        ;(this as any).unfocus()
+    }
+
+    static fromFindApi(found, allTextNode: Text[]) {
+        const range = document.createRange()
+        range.setStart(allTextNode[found.startTextNodePos], found.startOffset)
+        range.setEnd(allTextNode[found.endTextNodePos], found.endOffset)
+        return new this(range)
+    }
+
+    updateRectsPosition() {
+        const rects = this.getClientRects()
+        this.top = Infinity
+        const windowTop = window.pageYOffset
+        const windowLeft = window.pageXOffset
+        for (let i = 0; i < rects.length; i++) {
+            const rect = rects[i]
+            if (rect.top + windowTop < this.top) {
+                this.top = rect.top + windowTop
             }
-            const highlight = document.createElement("span")
+            let highlight
+            if (i in this.children) highlight = this.children[i]
+            else {
+                highlight = document.createElement("span")
+                this.appendChild(highlight)
+            }
             highlight.className = "TridactylFindHighlight"
             highlight.style.position = "absolute"
-            highlight.style.top = `${rect.top}px`
-            highlight.style.left = `${rect.left}px`
+            highlight.style.top = `${rect.top + windowTop}px`
+            highlight.style.left = `${rect.left + windowLeft}px`
             highlight.style.width = `${rect.right - rect.left}px`
             highlight.style.height = `${rect.bottom - rect.top}px`
             highlight.style.zIndex = "2147483645"
             highlight.style.pointerEvents = "none"
-            this.appendChild(highlight)
         }
-        ;(this as any).unfocus()
     }
 
-    static fromFindApi(rectData, rangeData, allTextNode: Text[]) {
-        const range = document.createRange()
-        range.setStart(
-            allTextNode[rangeData.startTextNodePos],
-            rangeData.startOffset,
-        )
-        range.setEnd(allTextNode[rangeData.endTextNodePos], rangeData.endOffset)
-        return new this(rectData, range)
+    getBoundingClientRect() {
+        return this.range.getBoundingClientRect()
     }
-
-    isVisible(): boolean {
-        return DOM.isVisible(this.range)
+    getClientRects() {
+        return this.range.getClientRects()
     }
     unfocus() {
         for (const node of this.children) {
             ;(node as HTMLElement).style.background = `rgba(127,255,255,0.5)`
         }
     }
-    focus() {
-        if (!this.isVisible()) {
-            this.children[0].scrollIntoView({
-                block: "center",
-                inline: "center",
-            })
-        }
+    scrollIntoView(...options) {
+        let option
+        if (options.length === 0 || options[0] === true) {
+            option = { block: "start", inline: "nearest" }
+        } else if (options[0] === false) {
+            option = { block: "end", inline: "nearest" }
+        } else option = options[0]
 
-        let parentElement = this.range.startContainer.parentElement
-        loop: while (parentElement) {
-            switch (parentElement.nodeName.toLowerCase()) {
-                case "a":
-                case "input":
-                case "button":
-                case "details":
-                    parentElement.focus()
-                    break loop
-            }
-            parentElement = parentElement.parentElement
+        const fakeNode = {
+            nodeType: Node.ELEMENT_NODE,
+            getBoundingClientRect: () => this.getBoundingClientRect(),
+            parentElement: null,
         }
+        let parent = this.range.commonAncestorContainer
+        if (parent.nodeType !== Node.ELEMENT_NODE) {
+            parent = parent.parentElement
+        }
+        fakeNode.parentElement = parent
+
+        const actions = scrollCompute(fakeNode as HTMLElement, option)
+        for (const { el: element, top, left } of actions) {
+            element.scrollTop = top
+            element.scrollLeft = left
+        }
+    }
+    focus() {
+        if (!DOM.isVisible(this)) {
+            this.scrollIntoView({ block: "center", inline: "center" })
+        }
+        const focusable = this.queryInRange("a,input,button,details")
+        if (focusable) focusable.focus()
 
         for (const node of this.children) {
-            ;(node as HTMLElement).style.background = `rgba(255,127,255,0.5)`
+            const element = node as HTMLElement
+            element.style.background = `rgba(255,127,255,0.5)`
         }
+    }
+    queryInRange(selector: string): HTMLElement | null {
+        const range = this.range
+        const rangeEndNode = range.endContainer
+
+        // start and end of range is always text node because fromFindApi()
+
+        const walker = document.createTreeWalker(
+            document.documentElement,
+            // eslint-disable-next-line no-bitwise
+            NodeFilter.SHOW_ELEMENT | NodeFilter.SHOW_TEXT,
+            {
+                acceptNode(node) {
+                    // stop when meet the end node; do not wait for no intersect.
+                    // or the first match node
+                    if (node.nodeType === Node.TEXT_NODE) {
+                        if (node.isSameNode(rangeEndNode)) {
+                            return NodeFilter.FILTER_ACCEPT
+                        }
+                        return NodeFilter.FILTER_SKIP
+                    }
+                    const element = node as Element
+                    if (element.matches(selector)) {
+                        return NodeFilter.FILTER_ACCEPT
+                    } else return NodeFilter.FILTER_SKIP
+                },
+            },
+        )
+
+        walker.currentNode = range.startContainer
+        if (walker.parentNode()) return walker.currentNode as HTMLElement
+        if (range.startContainer.isSameNode(rangeEndNode)) return null
+        if (walker.nextNode() && !walker.currentNode.isSameNode(rangeEndNode)) {
+            return walker.currentNode as HTMLElement
+        }
+        return null
     }
 }
 
@@ -156,11 +218,7 @@ export async function jumpToMatch(searchQuery, option) {
             continue
         }
         const range = results.rangeData[i]
-        const high = FindHighlight.fromFindApi(
-            data.rectsAndTexts.rectList,
-            range,
-            nodes,
-        )
+        const high = FindHighlight.fromFindApi(range, nodes)
         host.appendChild(high)
         lastHighlights.push(high)
     }
@@ -174,16 +232,14 @@ export async function jumpToMatch(searchQuery, option) {
     if ("jumpTo" in option) {
         selected =
             (option["jumpTo"] + lastHighlights.length) % lastHighlights.length
-        // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
-        ;(lastHighlights[selected] as any).focus()
+        focusHighlight(selected)
         return
     }
 
     // Just reuse the code to find the first match in the view
     selected = 0
-    if (lastHighlights[selected].isVisible()) {
-        // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
-        ;(lastHighlights[selected] as any).focus()
+    if (DOM.isVisible(lastHighlights[selected])) {
+        focusHighlight(selected)
     } else {
         const searchFromView = true
         await jumpToNextMatch(1, searchFromView)
@@ -200,11 +256,21 @@ export function removeHighlighting() {
     while (host.firstChild) host.removeChild(host.firstChild)
 }
 
+export function focusHighlight(index) {
+    lastHighlights[index].focus()
+    repositionHighlight()
+}
+
+export function repositionHighlight() {
+    for (const node of lastHighlights) {
+        node.updateRectsPosition()
+    }
+}
+
 export async function jumpToNextMatch(n: number, searchFromView = false) {
-    let lastSearchQuery
+    const lastSearchQuery = await State.getAsync("lastSearchQuery")
+    if (!lastSearchQuery) return
     if (!lastHighlights) {
-        lastSearchQuery = await State.getAsync("lastSearchQuery")
-        if (!lastSearchQuery) return
         await jumpToMatch(lastSearchQuery, { reverse: n < 0 })
         if (Math.abs(n) === 1) return
         n = n - n / Math.abs(n)
@@ -225,12 +291,13 @@ export async function jumpToNextMatch(n: number, searchFromView = false) {
     // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
     ;(lastHighlights[selected] as any).unfocus()
 
-    if (!searchFromView || lastHighlights[selected].isVisible()) {
+    if (!searchFromView || DOM.isVisible(lastHighlights[selected])) {
         // if the last selected is inside the view,
         // count nth match from the last selected.
         selected =
             (selected + n + lastHighlights.length) % lastHighlights.length
     } else {
+        repositionHighlight()
         const length = lastHighlights.length
         const reverse = lastHighlights[length - 1].top < lastHighlights[0].top
         const negative = n < 0
@@ -247,8 +314,7 @@ export async function jumpToNextMatch(n: number, searchFromView = false) {
         }
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
-    ;(lastHighlights[selected] as any).focus()
+    focusHighlight(selected)
 }
 
 export function currentMatchRange(): Range {
