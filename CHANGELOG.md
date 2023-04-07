@@ -1,5 +1,36 @@
 # Tridactyl changelog
 
+# Release 1.24.0 / Unreleased
+
+-   New features
+
+    -   A new `:reader` mode has been added which Tridactyl binds can run on. If you prefer the old mode, it is accessible with `:reader --old`. We've left `gr` bound to the old mode for now but you can update it with `:bind gr reader`
+    -   With `:set tabsort mru`, tab IDs within Tridactyl are now determined by recency of use almost everywhere. This means, e.g. that you can use `2gt` to switch to the second most recently used tab (so identical to `<C-^>`), `3gt` to the third most recently used tab, etc. (#4595)
+    -   `:set keyboardlayoutforce true` will now force Tridactyl to use, by default, the US keyboard layout for keybinds, even if you're using a different layout. Useful if you use multiple layouts but don't want Tridactyl binds to move, or if you use a layout such as a Cyrillic one where the default binds are difficult to use. Change the forced layout with `:set keyboatlayoutbase` (#4532)
+    -   Experimental support for opening arbitrary pages in the sidebar has been added. See `:help sidebartoggle` and `:help sidebaropen` for more details
+    -   `:autocmd` and related commands now have completions (#4604)
+    -   `:open` and related commands now have completions for searchurls and previous searches (#4562)
+    -   Quality of life improvements for tab groups (#4539)
+    -   `-x` flag added to `:hint` to exclude CSS selectors from hints (#4453)
+    -   With the command line open, `<C-o>t` opens a new tab in the background for the selected completion - especially useful with `:back` completions
+
+-   Bug fixes
+
+    -   `:find` will now find start from the current viewport (#4486)
+    -   Comments now work in multiline commands in RC files (#4555)
+    -   `:editor` now works on Gradio apps (please spare me when AI takes over the world) (#4643)
+    -   `:winmerge` completions are more readable with many windows (#4639)
+    -   `:urlincrement` now operates on the decoded URI so e.g. `%20` doesn't become `%21` (#4616)
+    -   `;m` and `;M` for Google reverse-image search now work again (#4591)
+    -   The midnight theme no longer has a white background in FF102+ (#4576)
+    -   Container colours fixed for FF108+ (#4546)
+
+-   Miscellaneous
+
+    -   `:jsua` command added to preserve "user action" intent when using browser binds, needed for triggering certain Web Extension APIs such as `browser.sidebarAction.open()`. See `:help jsua` for more information
+    -   `tri.hinting_content.hintElements` function added for advanced usage in `:js` - see [the source](https://github.com/tridactyl/tridactyl/blob/82ac6064cc522b6dc79ed71c63bc3177897e0876/src/content/hinting.ts#L406) for documentation
+
+
 # Release 1.23.0 / 2022-11-28
 
 -   New features
