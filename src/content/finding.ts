@@ -3,7 +3,7 @@ import * as DOM from "@src/lib/dom"
 import { browserBg, activeTabId } from "@src/lib/webext"
 import state from "@src/state"
 import * as State from "@src/state"
-import scrollCompute from "compute-scroll-into-view"
+import { compute as scrollCompute } from "compute-scroll-into-view"
 
 // The host is the shadow root of a span used to contain all highlighting
 // elements. This is the least disruptive way of highlighting text in a page.

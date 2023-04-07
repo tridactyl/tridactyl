@@ -14,7 +14,7 @@
   "dependencies": {
     "arg": "^5.0.2",
     "cleanslate": "^0.10.1",
-    "compute-scroll-into-view": "^1.0.17",
+    "compute-scroll-into-view": "^3.0.0",
     "csp-serdes": "github:cmcaine/csp-serdes",
     "css": "^3.0.0",
     "editor-adapter": "^0.0.3",
