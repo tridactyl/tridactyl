@@ -3030,8 +3030,8 @@ export async function undo(item = "recent"): Promise<number> {
     const session = sessions.find(predicate)
 
     if (session) {
-        browser.sessions.restore((session.tab || session.window).sessionId)
-        return (session.tab || session.window).id
+        const restore = await browser.sessions.restore((session.tab || session.window).sessionId)
+        return (restore.tab || restore.window).id
     }
     return -1
 }
