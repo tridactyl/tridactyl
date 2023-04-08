@@ -2361,7 +2361,7 @@ if (fullscreenApiIsPrefixed) {
 
 /** @hidden */
 //#content
-export async function loadaucmds(cmdType: "DocStart" | "DocLoad" | "DocEnd" | "TabEnter" | "TabLeft" | "FullscreenEnter" | "FullscreenLeft" | "FullscreenChange" | "UriChange" | "HistoryState") {
+export async function loadaucmds(cmdType: "DocStart" | "DocLoad" | "DocEnd" | "TabEnter" | "TabLeft" | "FullscreenEnter" | "FullscreenLeft" | "FullscreenChange" | "UriChange" | "HistoryState" | "DownloadPost") {
     const aucmds = await config.getAsync("autocmds", cmdType)
     if (!aucmds) return
     const ausites = Object.keys(aucmds)
@@ -4560,7 +4560,7 @@ export function firefoxsyncpush() {
 
 /** @hidden */
 //#background_helper
-const AUCMDS = ["DocStart", "DocLoad", "DocEnd", "TriStart", "TabEnter", "TabLeft", "FullscreenChange", "FullscreenEnter", "FullscreenLeft", "UriChange", "HistoryState"].concat(webrequests.requestEvents)
+const AUCMDS = ["DocStart", "DocLoad", "DocEnd", "TriStart", "TabEnter", "TabLeft", "FullscreenChange", "FullscreenEnter", "FullscreenLeft", "UriChange", "HistoryState", "DownloadPost"].concat(webrequests.requestEvents)
 /** @hidden */
 //#background_helper
 export function getAutocmdEvents() {
