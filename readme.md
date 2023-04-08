@@ -191,15 +191,13 @@ You can bind your own shortcuts in normal mode with the `:bind` command. For exa
 
 -   How can I change the default search engine?
 
-    `:set searchengine [SEARCH_URL]`
+    `:set searchengine [searchurl name]`, e.g. `:set searchengine google`
 
-    where `[SEARCH_URL]` is a placeholder for the searchurl you want to use as the default search engine.
+    For instance, to use the European Space Agency as the default search engine (which may not necessarily be a good idea):
 
-    For instance, to use DuckDuckGo as the default search engine:
+    `:set searchurls.esa http://www.esa.int/esasearch?q=`
 
-    `:set searchurls.WHATEVER https://duckduckgo.com/?q=%s`
-
-    `:set searchengine WHATEVER`
+    `:set searchengine esa`
 
 -   How can I add a search engine?
 
