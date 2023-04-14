@@ -194,7 +194,7 @@ function addResetConfigButton() {
         )
         if (p === sentence) {
             ;(window as any).tri.messaging
-                .message("controller_background", "acceptExCmd", [sentence])
+                .message("controller_background", "acceptExCmd", sentence)
                 .then(_ => alert("Config reset!"))
         } else {
             alert(`Config not reset because '${p}' !== '${sentence}'`)
