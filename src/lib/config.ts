@@ -1806,13 +1806,18 @@ export function get(target_typed?: keyof default_config, ...target: string[]) {
         target = [target_typed as string].concat(target)
     }
     // Window.tri might not be defined when called from the untrusted page context
-    let loc = window.location
-    if ((window as any).tri && (window as any).tri.contentLocation)
-        loc = (window as any).tri.contentLocation
+    // let loc = window.location
+    // if ((window as any).tri && (window as any).tri.contentLocation)
+    //     loc = (window as any).tri.contentLocation
+    let mode = undefined
+    if ((window as any).tri && (window as any).tri.contentMode)
+        mode = (window as any).tri.contentMode
     // If there's a site-specifing setting, it overrides global settings
-    const site = getURL(loc.href, target)
+    // const site = getURL(loc.href, target) ?? (mode ? getURL(mode, target) : undefined)
+    const site = (mode ? getURL(mode, target) : undefined)
     const user = getDeepProperty(USERCONFIG, target)
     const defult = getDeepProperty(DEFAULTS, target)
+    console.log(site)
 
     // Merge results if there's a default value and it's not an Array or primitive.
     if (typeof defult === "object") {
