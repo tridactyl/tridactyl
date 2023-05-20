@@ -177,11 +177,12 @@ export async function openInNewTab(
     url: string,
 
     // NB: defaults are actually enforced just below
-    kwargs: { active?; related?; cookieStoreId?; bypassFocusHack? } = {
+    kwargs: { active?; related?; cookieStoreId?; bypassFocusHack?; discarded? } = {
         active: true,
         related: false,
         cookieStoreId: undefined,
         bypassFocusHack: false,
+        discarded: false,
     },
 
     waitForDOM = false,
@@ -192,6 +193,7 @@ export async function openInNewTab(
         related: false,
         cookieStoreId: undefined,
         bypassFocusHack: false,
+        discarded: false,
     })
 
     const thisTab = await activeTab()
@@ -199,6 +201,7 @@ export async function openInNewTab(
         active: kwargs.bypassFocusHack,
         url,
         cookieStoreId: kwargs.cookieStoreId,
+        discarded: kwargs.discarded,
     }
 
     // Be nice to behrmann, #342

@@ -2731,6 +2731,7 @@ export async function tabopen_helper({ addressarr = [], waitForDom = false }): P
     let active
     let container
     let bypassFocusHack = false
+    let discarded = false
 
     const win = await browser.windows.getCurrent()
 
@@ -2746,6 +2747,11 @@ export async function tabopen_helper({ addressarr = [], waitForDom = false }): P
             argParse(args)
         } else if (args[0] === "--focus-address-bar") {
             bypassFocusHack = true
+            args.shift()
+            argParse(args)
+        } else if (args[0] === "--discard") {
+            discarded = true
+            active = false
             args.shift()
             argParse(args)
         } else if (args[0] === "-c") {
@@ -2793,6 +2799,7 @@ export async function tabopen_helper({ addressarr = [], waitForDom = false }): P
         args.cookieStoreId = containerId
     }
     args.bypassFocusHack = bypassFocusHack
+    args.discarded = discarded
     const maybeURL = await queryAndURLwrangler(query)
     if (typeof maybeURL === "string") {
         return openInNewTab(maybeURL, args, waitForDom)
@@ -5170,6 +5177,7 @@ const KILL_STACK: Element[] = []
     - `;gv` - "open link in MPV" - only available if you have [[native]] installed and `mpv` on your PATH
     - `;m` and `;M` - do a reverse image search using Google in the current tab and a new tab
     - `;x` and `;X` - move cursor to element and perform a real click or ctrl-shift-click (to open in a new foreground tab). Only available on Linux, if you have [[native]] installed and `xdotool` on your PATH
+    - `;d` and `;gd` - open links in discarded background tabs (defer loading until tab is switched to)
 
     NB: by default, hinting respects whether links say they should be opened in new tabs (i.e. `target=_blank`). If you wish to override this you can use `:hint -JW open` to force the hints to open in the current tab. JavaScript hints (grey ones) will always open wherever they want, but if you want to include these anyway you can use `:hint -W open`.
 

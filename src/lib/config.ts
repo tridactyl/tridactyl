@@ -328,6 +328,8 @@ export class default_config {
         ";O": "hint -W fillcmdline_notrail open ",
         ";W": "hint -W fillcmdline_notrail winopen ",
         ";T": "hint -W fillcmdline_notrail tabopen ",
+        ";d": "hint -W tabopen --discard",
+        ";gd": "hint -qW tabopen --discard",
         ";z": "hint -z",
         ";m": "hint -JFc img i => tri.excmds.open('https://lens.google.com/uploadbyurl?url='+i.src)",
         ";M": "hint -JFc img i => tri.excmds.tabopen('https://lens.google.com/uploadbyurl?url='+i.src)",
