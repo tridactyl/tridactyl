@@ -129,7 +129,7 @@ export class default_config {
         "<C-[>": "ex.hide_and_clear",
         "<ArrowUp>": "ex.prev_history",
         "<ArrowDown>": "ex.next_history",
-        "<S-Del>": "ex.execute_ex_on_completion_args tabclose",
+        "<S-Delete>": "ex.execute_ex_on_completion_args tabclose",
 
         "<A-b>": "text.backward_word",
         "<A-f>": "text.forward_word",
@@ -423,7 +423,7 @@ export class default_config {
     browsermaps = {
         "<C-,>": "escapehatch",
         "<C-6>": "tab #",
-        "<CS-6>": "tab #",
+        // "<CS-6>": "tab #", // banned by e2e tests
     }
 
     /**
