@@ -2616,7 +2616,7 @@ export async function tabprev(...args: string[]) {
     option["nowrap"] = Boolean(argOpt["--nowrap"])
     option["noisy"] = Boolean(argOpt["--noisy"])
     option["reverse"] = Boolean(argOpt["--reverse"])
-    const increment = (parseInt(argOpt._.join(" ")) || 1) * (option["reverse"] ? -1 : 1)
+    const increment = (parseInt(argOpt._.join(" "), 10) || 1) * (option["reverse"] ? -1 : 1)
     return browser.tabs.query({ currentWindow: true, hidden: false }).then(tabs => {
         tabs.sort((t1, t2) => t1.index - t2.index)
         const curTab = tabs.findIndex(t => t.active)
