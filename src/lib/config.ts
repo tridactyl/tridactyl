@@ -764,7 +764,7 @@ export class default_config {
     }
 
     /**
-     * Like [[searchurls]] but must be a Javascript function that takes one argument (a single string with the remainder of the command line including spaces) and maps it to a valid href that will be followed, e.g. `set jsurls.googleloud query => "https://google.com/search?q=" + query.toUpperCase()`
+     * Like [[searchurls]] but must be a Javascript function that takes one argument (a single string with the remainder of the command line including spaces) and maps it to a valid href (or a promise that resolves to a valid href) that will be followed, e.g. `set jsurls.googleloud query => "https://google.com/search?q=" + query.toUpperCase()`
      *
      * NB: the href must be valid, i.e. it must include the protocol (e.g. "http://") and not just be e.g. "www.".
      */
