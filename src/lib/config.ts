@@ -240,7 +240,7 @@ export class default_config {
         p: "clipboard open",
         P: "clipboard tabopen",
         j: "scrollline 10",
-        "<C-e>": "scrollline 10",
+        "<D-e>": "scrollline 10",
         k: "scrollline -10",
         "<C-y>": "scrollline -10",
         h: "scrollpx -50",
@@ -954,7 +954,7 @@ export class default_config {
     logging: { [key: string]: LoggingLevel } = {
         cmdline: "warning",
         containers: "warning",
-        controller: "warning",
+        controller: "debug",
         excmd: "error",
         hinting: "warning",
         messaging: "warning",
