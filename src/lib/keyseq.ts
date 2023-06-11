@@ -53,7 +53,7 @@ export function minimalKeyFromObj(obj) {
         metaKey: obj.metaKey,
         shiftKey: obj.shiftKey,
         keyup: obj.keyup,
-        keydown: obj.keyup,
+        keydown: obj.keydown,
         optional: obj.optional,
     })
 }
@@ -116,7 +116,7 @@ export class MinimalKey {
             metaKey: this.metaKey,
             shiftKey: this.shiftKey,
             keyup: this.keyup,
-            keydown: this.keyup,
+            keydown: this.keydown,
             optional: this.optional,
         })
         result.translated = true
@@ -552,6 +552,8 @@ export function minimalKeyFromKeyboardEvent(
         ctrlKey: keyEvent.ctrlKey,
         metaKey: keyEvent.metaKey,
         shiftKey: keyEvent.shiftKey,
+        keyup: (keyEvent as any).keyup,
+        // keydown: (keyEvent as any).keydown,
     }
     if (config.get("keyboardlayoutforce") === "true") {
         Object.keys(KEYCODETRANSLATEMAP).length === 0 && updateBaseLayout()
