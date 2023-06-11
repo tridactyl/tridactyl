@@ -5900,6 +5900,42 @@ export async function issue() {
 }
 
 /**
+ * generates qr code for the given text
+ */
+//#content
+export async function text2qr(...args: string[]) {
+    let text: string = null
+    let isParsed = false
+    let openMode = null
+    while (!isParsed) {
+        switch (args[0]) {
+            case "--window":
+                openMode = winopen
+                args.shift()
+                break
+            case "--current":
+                openMode = open
+                args.shift()
+                break
+            default:
+                isParsed = true
+                break
+        }
+    }
+
+    if (!openMode) openMode = tabopen // default to new tab if no option provided
+
+    text = args.join(" ").trim()
+    if (!text || text.length == 0) {
+        text = window.location.href
+    }
+    const urlEncodedText = encodeURIComponent(text)
+    const url = new URL(browser.runtime.getURL("static/qrcode.html"))
+    url.searchParams.append("data", btoa(urlEncodedText))
+    openMode(url.href)
+}
+
+/**
  * Checks if there are any stable updates available for Tridactyl.
  *
  * Related settings:
