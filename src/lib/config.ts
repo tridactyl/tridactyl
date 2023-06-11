@@ -231,6 +231,7 @@ export class default_config {
         T: "current_url tabopen",
         yy: "clipboard yank",
         ys: "clipboard yankshort",
+        yq: "text2qr",
         yc: "clipboard yankcanon",
         ym: "clipboard yankmd",
         yo: "clipboard yankorg",
@@ -393,6 +394,7 @@ export class default_config {
         w: 'js document.getSelection().modify("extend","forward","word"); document.getSelection().modify("extend","forward","word"); document.getSelection().modify("extend","backward","word"); document.getSelection().modify("extend","forward","character")',
         b: 'js document.getSelection().modify("extend","backward","character"); document.getSelection().modify("extend","backward","word"); document.getSelection().modify("extend","forward","character")',
         j: 'js document.getSelection().modify("extend","forward","line")',
+        q: "composite js document.getSelection().toString() | text2qr",
         // "j": 'js document.getSelection().modify("extend","forward","paragraph")', // not implemented in Firefox
         k: 'js document.getSelection().modify("extend","backward","line")',
         $: 'js document.getSelection().modify("extend","forward","lineboundary")',
