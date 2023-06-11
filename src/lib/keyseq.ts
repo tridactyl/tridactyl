@@ -77,7 +77,6 @@ export class MinimalKey {
     readonly keyup = false // keyup == false <=> it is a keydown event
     readonly keydown = false // explicit keydown <=> it is not a repeat event
     readonly optional = false
-    readonly repeat = false
 
     constructor(readonly key: string, modifiers?: KeyModifiers) {
         if (modifiers !== undefined) {
@@ -97,11 +96,7 @@ export class MinimalKey {
     public match(keyevent: MinimalKey): true | false | "skip" {
         if (this.key !== keyevent.key) return false
         for (const [_, attr] of modifiers.entries()) {
-            if (attr === "keydown") {
-                if (this[attr] && keyevent.repeat) return false // if keydown is set to true, match only if repeat is false
-                continue
-            }
-            if (attr === "optional") { // this should probably go around line 20?
+            if (attr === "optional") { // this should probably go around line 85?
                 continue
             }
             if (this[attr] !== keyevent[attr]) {
@@ -120,6 +115,9 @@ export class MinimalKey {
             ctrlKey: this.ctrlKey,
             metaKey: this.metaKey,
             shiftKey: this.shiftKey,
+            keyup: this.keyup,
+            keydown: this.keyup,
+            optional: this.optional,
         })
         result.translated = true
         return result
@@ -451,6 +449,9 @@ export function mozMapToMinimalKey(mozmap: string): MinimalKey {
         ctrlKey: arr.includes("MacCtrl"), // MacCtrl gives us _actual_ ctrl on all platforms rather than splat on Mac and Ctrl everywhere else
         shiftKey: arr.includes("Shift"),
         metaKey: arr.includes("Command"),
+        keydown: false,
+        keyup: false,
+        optional: false,
     }
     let key = arr[arr.length - 1]
     key = R.propOr(key.toLowerCase(), key, commandKey2jsKey)
