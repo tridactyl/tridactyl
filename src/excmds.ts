@@ -5900,7 +5900,19 @@ export async function issue() {
 }
 
 /**
- * generates qr code for the given text
+ * Generates qr code for the given text. By default opens in new tab.
+ * If no text is passed as argument then it checks if any selection is present and creates qr code for that.
+ * If not selection is found then it creates qr code for the current tab's URL
+ *
+ * `text2qr --popup [...]` will open the qr code in a new popup window
+ *
+ * `text2qr --window [...]`  will open the qr code in a new window
+ *
+ * `text2qr --current [...]` will open in current tabopen
+ *
+ * `text2qr --timeout <timeout in seconds> [...]` closes the tab/window/popup after specified number of seconds
+ *
+ * Example: text2qr --timeout 5 --popup hello world
  */
 //#content
 export async function text2qr(...args: string[]) {
