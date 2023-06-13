@@ -5907,6 +5907,7 @@ export async function text2qr(...args: string[]) {
     let text: string = null
     let isParsed = false
     let openMode = null
+    let timeout = "-1"
     while (!isParsed) {
         switch (args[0]) {
             case "--window":
@@ -5919,6 +5920,11 @@ export async function text2qr(...args: string[]) {
                 break
             case "--current":
                 openMode = open
+                args.shift()
+                break
+            case "--timeout":
+                args.shift()
+                timeout = args[0]
                 args.shift()
                 break
             default:
@@ -5937,6 +5943,7 @@ export async function text2qr(...args: string[]) {
     const urlEncodedText = encodeURIComponent(text)
     const url = new URL(browser.runtime.getURL("static/qrcode.html"))
     url.searchParams.append("data", btoa(urlEncodedText))
+    url.searchParams.append("timeout", timeout)
     openMode(url.href)
 }
 

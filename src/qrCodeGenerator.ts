@@ -1,5 +1,6 @@
 import QRCode from "../vendor/qrcode"
 import * as Logging from "@src/lib/logging"
+import {browserBg, activeTab} from "./lib/webext"
 
 const logger = new Logging.Logger("qrcode-display")
 
@@ -16,6 +17,7 @@ function setUpPage() {
 
     const url = new URL(window.location.href)
     let data = url.searchParams.get("data")
+    const timeout = parseInt(url.searchParams.get("timeout"), 10)
     data = decodeURIComponent(atob(data))
     const opts = {
         scale: 10,
@@ -29,6 +31,16 @@ function setUpPage() {
             imgElem.src = url
         }
     })
+
+    if (timeout && timeout > 0) {
+        setTimeout(function() {
+            activeTab().then((tabInfo) => {
+                browserBg.tabs.remove(tabInfo.id)
+            }).catch((error) => {
+                logger.error("Unable to close tab" + error)
+            })
+        }, timeout * 1000)
+    }
 }
 
 window.addEventListener("load", setUpPage)
