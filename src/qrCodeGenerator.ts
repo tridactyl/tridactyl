@@ -13,11 +13,6 @@ function displayError() {
 function setUpPage() {
     const imgElem: HTMLImageElement =
         document.querySelector("div#qr-canvas img")
-    const anchorElem: HTMLAnchorElement =
-        document.querySelector("div#qr-buttons a")
-    const downloadButton: HTMLButtonElement = document.querySelector(
-        "div#qr-buttons button",
-    )
 
     const url = new URL(window.location.href)
     let data = url.searchParams.get("data")
@@ -32,12 +27,7 @@ function setUpPage() {
             displayError()
         } else {
             imgElem.src = url
-            anchorElem.href = url
         }
-    })
-
-    downloadButton.addEventListener("click", function () {
-        anchorElem.click()
     })
 }
 
