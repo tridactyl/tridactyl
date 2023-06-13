@@ -5913,6 +5913,10 @@ export async function text2qr(...args: string[]) {
                 openMode = winopen
                 args.shift()
                 break
+            case "--popup":
+                openMode = (...args) => winopen("-popup", ...args)
+                args.shift()
+                break
             case "--current":
                 openMode = open
                 args.shift()
