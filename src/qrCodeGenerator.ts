@@ -1,4 +1,4 @@
-import QRCode from "../vendor/qrcode"
+import QRCode from "../vendor/qrcode/qrcode"
 import * as Logging from "@src/lib/logging"
 import {browserBg, activeTab} from "./lib/webext"
 
