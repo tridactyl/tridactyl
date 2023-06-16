@@ -5949,8 +5949,7 @@ export async function text2qr(...args: string[]) {
 
     text = args.join(" ").trim()
     if (!text || text.length == 0) {
-        text = document.getSelection().toString().trim()
-        if (!text || text.length == 0) text = window.location.href
+        text = window.location.href
     }
     const urlEncodedText = encodeURIComponent(text)
     const url = new URL(browser.runtime.getURL("static/qrcode.html"))
