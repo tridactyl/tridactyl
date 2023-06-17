@@ -5900,6 +5900,65 @@ export async function issue() {
 }
 
 /**
+ * Generates a QR code for the given text. By default opens in new tab. Default binds close the new tab after 5 seconds.
+ * If no text is passed as an argument then it checks if any text is selected and creates a QR code for that.
+ * If no selection is found then it creates QR code for the current tab's URL
+ *
+ * `text2qr --popup [...]` will open the QR code in a new popup window
+ *
+ * `text2qr --window [...]`  will open the QR code in a new window
+ *
+ * `text2qr --current [...]` will open in the current tab
+ *
+ * `text2qr --timeout <timeout in seconds> [...]` closes the tab/window/popup after specified number of seconds
+ *
+ * Example: text2qr --timeout 5 --popup hello world
+ */
+//#content
+export async function text2qr(...args: string[]) {
+    let text: string = null
+    let isParsed = false
+    let openMode = null
+    let timeout = "-1"
+    while (!isParsed) {
+        switch (args[0]) {
+            case "--window":
+                openMode = winopen
+                args.shift()
+                break
+            case "--popup":
+                openMode = (...args) => winopen("-popup", ...args)
+                args.shift()
+                break
+            case "--current":
+                openMode = open
+                args.shift()
+                break
+            case "--timeout":
+                args.shift()
+                timeout = args[0]
+                args.shift()
+                break
+            default:
+                isParsed = true
+                break
+        }
+    }
+
+    if (!openMode) openMode = tabopen // default to new tab if no option provided
+
+    text = args.join(" ").trim()
+    if (!text || text.length == 0) {
+        text = window.location.href
+    }
+    const urlEncodedText = encodeURIComponent(text)
+    const url = new URL(browser.runtime.getURL("static/qrcode.html"))
+    url.searchParams.append("data", btoa(urlEncodedText))
+    url.searchParams.append("timeout", timeout)
+    openMode(url.href)
+}
+
+/**
  * Checks if there are any stable updates available for Tridactyl.
  *
  * Related settings:
