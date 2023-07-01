@@ -22,6 +22,8 @@ jobs:
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v3
+          repository: 'tridactyl/tridactyl'
+          path: 'tridactyl'
       - uses: actions/checkout@v3
         with:
           repository: 'tridactyl/site'
@@ -29,7 +31,6 @@ jobs:
           path: 'site'
       - name: Build
         run: |
-          cd tridactyl
           yarn install
           yarn run build
           find . -iname "*.html" -exec sed 's@href="/static@href="/tridactyl/public/build/static@' -i '{}' ';' # ideally this url would be less gnarly
