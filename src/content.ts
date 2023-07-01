@@ -97,6 +97,7 @@ const itertools = await import("@src/lib/itertools")
 const messaging = await import("@src/lib/messaging")
 const State = await import("@src/state")
 const webext = await import("@src/lib/webext")
+const {default: compatProxy} = await import("@src/lib/compat_proxy")
 const perf = await import("@src/perf")
 const keyseq = await import("@src/lib/keyseq")
 const native = await import("@src/lib/native")
@@ -206,6 +207,7 @@ config.getAsync("preventautofocusjackhammer").then(allowautofocus => {
 })
 ;(window as any).tri = Object.assign(Object.create(null), {
     browserBg: webext.browserBg,
+    compatProxy,
     commandline_content,
     convert,
     config,
