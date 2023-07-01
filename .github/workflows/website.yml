@@ -4,9 +4,9 @@ name: CI
 on:
   # Triggers the workflow on push or pull request events but only for the "main" branch
   push:
-    branches: [ "main" ]
+    branches: [ "master" ]
   pull_request:
-    branches: [ "main" ]
+    branches: [ "master" ]
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
@@ -22,27 +22,24 @@ jobs:
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v3
-        with:
-          repository: 'tridactyl/site'
-          submodules: 'recursive'
-          path: 'site'
       - uses: actions/checkout@v3
         with:
-          repository: 'tridactyl/tridactyl'
-          path: 'tridactyl'
+          repository: 'tridactyl/site'
+            # submodules: 'recursive' # we shouldn't need this, public should be generated each time
+          path: 'site'
       - name: Build
         run: |
           cd tridactyl
           yarn install
           yarn run build
-          find . -iname "*.html" -exec sed 's@href="/static@href="/tridactyl-docs/public/build/static@' -i '{}' ';'
+          find . -iname "*.html" -exec sed 's@href="/static@href="/tridactyl/public/build/static@' -i '{}' ';' # ideally this url would be less gnarly
           cd ../site
           sudo apt-get install -y hugo
           hugo
           cp -r ../tridactyl/build/ public
       - uses: actions/upload-pages-artifact@v1
         with:
-          path: 'site'
+          path: 'site/public'
           retention-days: 2
 
   deploy:
