@@ -35,12 +35,11 @@ jobs:
           cd tridactyl
           yarn install
           yarn run build
-          find . -iname "*.html" -exec sed 's@href="/static@href="/tridactyl/public/build/static@' -i '{}' ';' # ideally this url would be less gnarly
+          find . -iname "*.html" -exec sed 's@href="/static@href="/tridactyl/build/static@' -i '{}' ';' # ideally this url would be less gnarly
           cd ../site
           sudo apt-get install -y hugo
           hugo
           cp -r ../tridactyl/build/ public
-          find public -name '*.css' # troubleshoot where the missing CSS files are
       - uses: actions/upload-pages-artifact@v1
         with:
           path: 'site/public'
