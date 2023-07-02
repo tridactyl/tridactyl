@@ -27,7 +27,7 @@ jobs:
       - uses: actions/checkout@v3
         with:
           repository: 'tridactyl/site'
-            # submodules: 'recursive' # we shouldn't need this, public should be generated each time
+          submodules: 'recursive' # we shouldn't need this, public should be generated each time
           path: 'site'
       - name: Build
         run: |
