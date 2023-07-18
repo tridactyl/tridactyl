@@ -71,8 +71,9 @@
 " bindurl www.google.com F hint -Jbc #search div:not(.action-menu) > a
 " 
 " 
-" bindurl ^https://duckduckgo.com f hint -Jc [data-testid="result-title-a"]
-" bindurl ^https://duckduckgo.com F hint -Jbc [data-testid="result-title-a"]
+" " Broken as of 2023-07-18
+" " bindurl ^https://duckduckgo.com f hint -Jc [data-testid="result-title-a"]
+" " bindurl ^https://duckduckgo.com F hint -Jbc [data-testid="result-title-a"]
 " 
 " " Allow Ctrl-a to select all in the commandline
 " unbind --mode=ex <C-a>
