@@ -91,20 +91,14 @@ html {
     scroll-behavior: smooth;
 }
 
-/* Make the body a nice central block */
 body {
     color: var(--text);
     background-color: var(--bg);
     font-size: 1.15rem;
     line-height: 1.5;
-    display: grid;
-    grid-template-columns: 1fr min(45rem, 90%) 1fr;
     margin: 0;
     text-align: justify;
     hyphens: auto;
-}
-body > * {
-    grid-column: 2;
 }
 
 /* Make the header bg full width, but the content inline with body */
@@ -112,8 +106,7 @@ body > header {
     background-color: var(--accent-bg);
     border-bottom: 1px solid var(--border);
     text-align: center;
-    padding: 0 0.5rem 2rem 0.5rem;
-    grid-column: 1 / -1;
+    padding: 2rem 0.5rem 2rem 0.5rem;
 }
 
 body > header h1 {
@@ -126,9 +119,10 @@ body > header p {
     margin: 1rem auto;
 }
 
-/* Add a little padding to ensure spacing is correct between content and header > nav */
-main {
+body > main {
     padding-top: 1.5rem;
+    width: min(45rem, 90%);
+    margin: auto;
 }
 
 body > footer {

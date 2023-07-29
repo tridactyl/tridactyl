@@ -1290,6 +1290,11 @@ export class default_config {
      * https://fusejs.io/api/options.html#threshold
      */
     completionfuzziness = 0.3
+
+    /**
+     * Whether to show article url in the document.title of Reader View.
+     */
+    readerurlintitle: "true" | "false" = "false"
 }
 
 const platform_defaults = {

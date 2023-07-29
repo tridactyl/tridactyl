@@ -6074,6 +6074,17 @@ export async function readerurl() {
  * Use `:reader --old` to use Firefox's built-in reader mode, which Tridactyl can't run on.
  *
  * __NB:__ the reader page is a privileged environment which has access to all Tridactyl functions, notably the native messenger if you have it installed. We are parsing untrusted web-content to run in this environment. Mozilla's readability library will strip out most of these, then we use a sanitation library, `js-xss`, to strip out any remaining unsafe tags, but if there was a serious bug in this library, and a targeted attack against Tridactyl, an attacker could get remote code execution. If you're worried about this, use `:reader --old` instead or only use `:reader` on pages you trust.
+ *
+ * You may use [userContent.css](http://kb.mozillazine.org/index.php?title=UserContent.css&printable=yes) to enhance or override default styling of the new reader view. The `body` of the page has id `tridactyl-reader` and the article content follows in a `main` tag. Therefore to alter default styling, you can do something like this in your `userContent.css`:
+ *
+ * ```css
+ * #tridactyl-reader > main {
+ *   width: 80vw !important;
+ *   text-align: left;
+ * }
+ * ```
+ *
+ * Follow [issue #4657](https://github.com/tridactyl/tridactyl/issues/4657) if you would like to find out when we have made a more user-friendly solution.
  */
 //#content
 export async function reader(...args: string[]) {
