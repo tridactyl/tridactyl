@@ -301,7 +301,7 @@ config.getAsync("modeindicator").then(mode => {
                     "style",
                     `border: ${
                         (container as any).colorCode
-                    } solid 1.5px !important`,
+                    } var(--tridactyl-indicator-border-style, solid) var(--tridactyl-indicator-border-width, 1.5px) !important`,
                 )
             })
             .catch(error => {
