@@ -1,14 +1,30 @@
-// import * as config from "@src/lib/config"
+import * as config from "@src/lib/config"
 import xss from "xss"
 
-function updatePage(){
-    const article = JSON.parse(decodeURIComponent(atob(window.location.hash.substr(1))))
-    article.content = xss(article.content, {stripIgnoreTag: true})
-    document.body.innerHTML = article.content
+async function updatePage() {
+    const article = JSON.parse(
+        decodeURIComponent(atob(window.location.hash.substr(1))),
+    )
+    article.content = xss(article.content, { stripIgnoreTag: true })
+    const content = document.createElement("main")
+    content.innerHTML = article.content
+    document.body.appendChild(content)
     if (article.title !== undefined) {
         const header = document.createElement("header")
         const title = document.createElement("h1")
-        document.title = [article.siteName, article.title].filter(Boolean).join(": ") // sensible?
+        if (
+            (await config.getAsync("readerurlintitle")) == "true" &&
+            !(article.title ?? "").includes(article.link)
+        ) {
+            document.title =
+                [article.siteName, article.title].filter(Boolean).join(": ") +
+                " :: " +
+                article.link
+        } else {
+            document.title = [article.siteName, article.title]
+                .filter(Boolean)
+                .join(": ")
+        }
         title.textContent = article.title
         header.appendChild(title)
         if (article.byline !== undefined) {
@@ -19,7 +35,9 @@ function updatePage(){
         document.body.insertBefore(header, document.body.firstChild)
     }
     if (article.link !== undefined) {
-        const link = (document.getElementById("tricanonlink") as HTMLLinkElement) ?? document.createElement("link")
+        const link =
+            (document.getElementById("tricanonlink") as HTMLLinkElement) ??
+            document.createElement("link")
         link.rel = "canonical"
         link.id = "tricanonlink"
         link.href = article.link
