@@ -6060,6 +6060,9 @@ export async function extoptions(...optionNameArgs: string[]) {
 //#content_helper
 import { Readability } from "@mozilla/readability"
 
+/**
+ * @hidden
+ */
 //#content_helper
 export async function readerurl() {
     document.querySelectorAll(".TridactylStatusIndicator").forEach(ind => ind.parentNode.removeChild(ind))
