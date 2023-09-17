@@ -1,0 +1,28 @@
+name: lint
+on:
+  push:
+    branches:
+      - 'master'
+    paths-ignore:
+      - '/readme.md'
+  pull_request:
+    branches:
+      - '*'
+    paths-ignore:
+      - '/readme.md'
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        step: [lint, unit, mozilla]
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+    - name: Setup
+      run: yarn install
+    - name: ${{ matrix.step }}
+      env:
+        STEP: ${{ matrix.step }}
+      run: bash -c ./ci/$STEP.sh
