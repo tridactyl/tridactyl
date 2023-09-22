@@ -85,6 +85,9 @@ export class default_config {
                 next: "Next",
                 prev: "Previous",
             },
+            nmaps: {
+                gi: "composite focusinput -l ; text.end_of_line", // Fix #4706
+            },
         },
         "^https://web.whatsapp.com": {
             nmaps: {
