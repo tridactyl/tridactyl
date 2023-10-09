@@ -80,7 +80,7 @@ The changelog for the stable versions can be found [here](https://github.com/tri
 
 ## First look
 
-Type `:help` or press `<F1>` for online help once you're in, or `:tutor` for a friendly introduction. You might also find the [unofficial Tridactyl Memrise course](https://app.memrise.com/course/5995499/tridactyls-main-shortcuts/) useful for memorizing keybinds.
+Type `:help` or press `<F1>` for online help once you're in, or `:tutor` for a friendly introduction. You might also find the [unofficial Tridactyl Memrise course](https://app.memrise.com/course/5995499/tridactyls-main-shortcuts/) useful for memorising keybinds.
 
 Remember that Tridactyl cannot run on any page on about:\*, data:\*, view-source:\* and file:\*. We're sorry about that and we're working with Firefox to improve this situation by removing restrictions on existing APIs and developing a new API.
 
