@@ -60,7 +60,7 @@ If you want to use advanced features such as edit-in-Vim, you'll also need to in
 **Snap and Flatpak:** Native Messaging support here is fairly recent and may require:
 
 * Upgrading to a beta version of Firefox (`>= 106.0b6`)
-* Enabling webextension permisisons: `flatpak permission-set webextensions tridactyl snap.firefox yes`
+* Enabling webextension permissions: `flatpak permission-set webextensions tridactyl snap.firefox yes`
 * Rebooting your system (and likely nothing short of it)
 
 See [this call for testing thread](https://discourse.ubuntu.com/t/call-for-testing-native-messaging-support-in-the-firefox-snap/29759) and [this PR](https://github.com/tridactyl/tridactyl/pull/4406) for more details and troubleshooting tips.
