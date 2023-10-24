@@ -12,7 +12,7 @@
     "stream": "stream-browserify"
   },
   "dependencies": {
-    "@mozilla/readability": "^0.4.1",
+    "@mozilla/readability": "^0.4.4",
     "cleanslate": "^0.10.1",
     "compute-scroll-into-view": "^3.0.0",
     "csp-serdes": "github:cmcaine/csp-serdes",
