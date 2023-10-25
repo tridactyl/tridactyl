@@ -6,4 +6,4 @@ else
 	echo "Warning: shellcheck is not installed, skipping shell scripts"
 fi
 yarn run lint
-"$(yarn bin)/eslint" --ext .ts .
+"$(yarn bin)/eslint" --rulesdir custom-eslint-rules --ext .ts .
