@@ -2806,6 +2806,10 @@ export async function tabopen_helper({ addressarr = [], waitForDom = false }): P
     }
 
     if (typeof maybeURL === "object") {
+        // browser.search.search(tabId, ...) sometimes does not work when it is executed
+        // right after openInNewTab(). Calling browser.tabs.get() between openInNewTab()
+        // and browser.search.search() seems to fix that problem.
+        // See https://github.com/tridactyl/tridactyl/pull/4791.
         return openInNewTab(null, args, waitForDom)
                    .then(tab => browser.tabs.get(tab.id))
                    .then(tab => browser.search.search({tabId: tab.id, ...maybeURL}))
