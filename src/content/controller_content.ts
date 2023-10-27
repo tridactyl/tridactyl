@@ -14,6 +14,7 @@ import * as hinting from "@src/content/hinting"
 import * as gobblemode from "@src/parsers/gobblemode"
 import * as generic from "@src/parsers/genericmode"
 import * as nmode from "@src/parsers/nmode"
+import * as Messaging from "@src/lib/messaging";
 
 const logger = new Logger("controller")
 
@@ -191,6 +192,10 @@ function* ParserController() {
 
                 if (response.exstr) {
                     exstr = response.exstr
+                    if (exstr.startsWith("fillcmdline ")) {
+                        logger.info("Setting bufferUntilClInputFocused to true")
+                        bufferUntilClInputFocused = true
+                    }
                     break
                 } else {
                     keyEvents = response.keys
@@ -211,11 +216,30 @@ function* ParserController() {
         }
     }
 }
-
+Messaging.addListener("clInputFocused", () => {
+    logger.info("Callback clInputFocused")
+    bufferUntilClInputFocused = false
+})
+let bufferUntilClInputFocused: boolean = false
 export const generator = ParserController() // var rather than let stops weirdness in repl.
 generator.next()
 
 /** Feed keys to the ParserController */
 export function acceptKey(keyevent: KeyboardEvent) {
-    return generator.next(keyevent)
+    logger.info("bufferUntilClInputFocused = " + bufferUntilClInputFocused)
+    if (bufferUntilClInputFocused) {
+        logger.info("Sending keyboardEvent for buffering " + keyevent.key)
+        Messaging.messageOwnTab("commandline_frame", "bufferUntil",
+            [keyevent.code,
+                keyevent.key,
+                keyevent.altKey,
+                keyevent.ctrlKey,
+                keyevent.metaKey,
+                keyevent.shiftKey]
+        );
+        keyevent.preventDefault()
+        keyevent.stopImmediatePropagation()
+        canceller.push(keyevent)
+    } else
+        return generator.next(keyevent)
 }

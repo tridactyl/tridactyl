@@ -63,7 +63,7 @@ export function show(hidehover = false) {
          *
          * Inspired by VVimpulation: https://github.com/amedama41/vvimpulation/commit/53065d015d1e9a892496619b51be83771f57b3d5
          */
-
+        logger.info("Called show()")
         if (hidehover) {
             const a = window.document.createElement("A")
             ;(a as any).href = ""
@@ -98,7 +98,7 @@ export function hide() {
 
 export function focus() {
     try {
-        cmdline_iframe.focus()
+        // cmdline_iframe.focus()
     } catch (e) {
         // Note: We can't use cmdline_logger.error because it will try to log
         // the error in the commandline, which will need to focus() it again,
