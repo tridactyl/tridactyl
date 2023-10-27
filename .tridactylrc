@@ -67,8 +67,8 @@
 " bindurl reddit.com gu urlparent 4
 " 
 " " Only hint search results on Google and DDG
-" bindurl www.google.com f hint -Jc #search div:not(.action-menu) > a
-" bindurl www.google.com F hint -Jbc #search div:not(.action-menu) > a
+" bindurl www.google.com f hint -Jc #search a
+" bindurl www.google.com F hint -Jbc #search a
 " 
 " 
 " " Broken as of 2023-07-18
