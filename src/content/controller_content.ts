@@ -229,14 +229,7 @@ export function acceptKey(keyevent: KeyboardEvent) {
     logger.info("bufferUntilClInputFocused = " + bufferUntilClInputFocused)
     if (bufferUntilClInputFocused) {
         logger.info("Sending keyboardEvent for buffering " + keyevent.key)
-        Messaging.messageOwnTab("commandline_frame", "bufferUntil",
-            [keyevent.code,
-                keyevent.key,
-                keyevent.altKey,
-                keyevent.ctrlKey,
-                keyevent.metaKey,
-                keyevent.shiftKey]
-        );
+        Messaging.messageOwnTab("commandline_frame", "bufferUntil", [keyevent.key]);
         keyevent.preventDefault()
         keyevent.stopImmediatePropagation()
         canceller.push(keyevent)

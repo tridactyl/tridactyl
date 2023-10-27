@@ -170,33 +170,20 @@ export function focus() {
         commandline_state.clInput.addEventListener("blur", noblur)
         if (buffer.length !== 0) {
             logger.info("Dispatching " + JSON.stringify(buffer));
-            buffer.forEach(e => processKeyboardEvent(e))
-            buffer.splice(-1)
+            buffer.forEach(key => commandline_state.clInput.value += key)
+            buffer = []
         }
     }, 2000)
 }
 
-let buffer: KeyboardEvent[] = []
-export function bufferUntil([   code,
-                                key,
-                                altKey,
-                                ctrlKey,
-                                metaKey,
-                                shiftKey]) {
-    const keyevent = new KeyboardEvent('keydown', {
-        code: code,
-        key: key,
-        altKey: altKey,
-        ctrlKey: ctrlKey,
-        metaKey: metaKey,
-        shiftKey: shiftKey,
-    })
-    logger.info("Received keyboardEvent for buffering", keyevent)
+let buffer: string[] = []
+export function bufferUntil([key]) {
+    logger.info("Received keyboardEvent for buffering " + key)
     if (window.document.activeElement === commandline_state.clInput) {
-        processKeyboardEvent(keyevent)
+        commandline_state.clInput.value += key
     }
     else {
-        buffer.push(keyevent);
+        buffer.push(key);
     }
 }
 

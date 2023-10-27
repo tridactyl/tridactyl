@@ -3861,6 +3861,7 @@ export function sleep(time_ms: number) {
 /** @hidden */
 //#content
 export function showcmdline(focus = true) {
+    logger.info("Called showcmdline")
     const hidehover = true
     CommandLineContent.show(hidehover)
     let done = Promise.resolve()
