@@ -195,6 +195,7 @@ function* ParserController() {
                     if (exstr.startsWith("fillcmdline ")) { // Ugh. That's ugly. I needed a way to know if this command is going to open the cmdline.
                         logger.debug("Setting clInputFocused to false")
                         clInputFocused = false
+                        bufferedClInputKeys = []
                     }
                     break
                 } else {
@@ -221,6 +222,7 @@ Messaging.addListener("cl_input_focused", () => {
     clInputFocused = true
 })
 let clInputFocused: boolean = true
+let bufferedClInputKeys: string[] = []
 export const generator = ParserController() // var rather than let stops weirdness in repl.
 generator.next()
 
@@ -231,8 +233,9 @@ export function acceptKey(keyevent: KeyboardEvent) {
         let isCharacterKey = keyevent.key.length == 1
             && !keyevent.metaKey && !keyevent.ctrlKey && !keyevent.altKey && !keyevent.metaKey;
         if (isCharacterKey) {
-            logger.debug("Sending keyboardEvent for buffering ", keyevent)
-            Messaging.messageOwnTab("commandline_frame", "bufferUntilClInputFocused", [keyevent.key]);
+            bufferedClInputKeys.push(keyevent.key);
+            logger.debug("Sending keyboardEvent for buffering ", bufferedClInputKeys)
+            Messaging.messageOwnTab("commandline_frame", "bufferUntilClInputFocused", [ bufferedClInputKeys ]);
         }
         keyevent.preventDefault()
         keyevent.stopImmediatePropagation()

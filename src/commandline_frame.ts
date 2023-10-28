@@ -82,6 +82,8 @@ const commandline_state = {
     keyEvents: new Array<MinimalKey>(),
     refresh_completions,
     state,
+    keysFromContentProcess: [],
+    consumedKeyCount: 0,
     clInputFocused: false,
     clInputNormalEventsReceived: false,
     clInputInitialValue: "",
@@ -172,43 +174,48 @@ export function focus() {
     commandline_state.clInput.addEventListener("blur", noblur)
     commandline_state.clInputFocused = true
     Messaging.messageOwnTab("cl_input_focused", "unused")
+    const keysFromContentProcess = commandline_state.keysFromContentProcess;
     if (keysFromContentProcess.length !== 0) {
-        logger.debug("Consuming " + JSON.stringify(keysFromContentProcess));
-        for (const key of keysFromContentProcess) {
+        logger.debug("Consuming " + JSON.stringify(keysFromContentProcess.slice(commandline_state.consumedKeyCount)));
+        for (let keyIndex = commandline_state.consumedKeyCount; keyIndex < keysFromContentProcess.length; keyIndex++) {
+            const key = keysFromContentProcess[keyIndex];
             commandline_state.clInput.value += key
             clInputValueChanged()
+            commandline_state.consumedKeyCount++;
         }
-        keysFromContentProcess = []
     }
 }
 
-let keysFromContentProcess: string[] = []
-export function bufferUntilClInputFocused([key]) {
-    logger.debug("Command line process received content process keydown event: " + key)
+export function bufferUntilClInputFocused(bufferedClInputKeys) {
+    logger.debug("Command line process received content process keys: " + bufferedClInputKeys)
+    if (bufferedClInputKeys.length < commandline_state.keysFromContentProcess.length)
+        return
+    commandline_state.keysFromContentProcess = bufferedClInputKeys;
+    const keysFromContentProcess = commandline_state.keysFromContentProcess;
     if (commandline_state.clInputFocused) {
-        logger.debug("Dispatching received keydown event " + key + " since clInputFocused is true," +
-            " clInputNormalEventsReceived = " + commandline_state.clInputNormalEventsReceived +
-            " contentProcessKeysReceivedAfterClInputFocused = " + commandline_state.contentProcessKeysReceivedAfterClInputFocused +
-            " clInputInitialValue = " + commandline_state.clInputInitialValue)
-        if (!commandline_state.clInputNormalEventsReceived) {
-            // Insert at the end.
-            commandline_state.clInput.value += key
+        for (let keyIndex = commandline_state.consumedKeyCount; keyIndex < keysFromContentProcess.length; keyIndex++) {
+            const key = keysFromContentProcess[keyIndex];
+            logger.debug("Dispatching received keydown event " + key + " since clInputFocused is true," +
+                " clInputNormalEventsReceived = " + commandline_state.clInputNormalEventsReceived +
+                " contentProcessKeysReceivedAfterClInputFocused = " + commandline_state.contentProcessKeysReceivedAfterClInputFocused +
+                " clInputInitialValue = " + commandline_state.clInputInitialValue)
+            if (!commandline_state.clInputNormalEventsReceived) {
+                // Insert at the end.
+                commandline_state.clInput.value += key
+            } else {
+                // Normal keys are assumed to always be at the end.
+                let normalKeyCount = commandline_state.contentProcessKeysReceivedAfterClInputFocused;
+                let initialCommandLength = commandline_state.clInputInitialValue.length;
+                // Insert received key at the beginning.
+                commandline_state.clInput.value =
+                    commandline_state.clInput.value.substring(0, initialCommandLength + normalKeyCount)
+                    + key
+                    + commandline_state.clInput.value.substring(initialCommandLength + normalKeyCount)
+                commandline_state.contentProcessKeysReceivedAfterClInputFocused++;
+            }
+            commandline_state.consumedKeyCount++;
+            clInputValueChanged()
         }
-        else {
-            // Normal keys are assumed to always be at the end.
-            let normalKeyCount = commandline_state.contentProcessKeysReceivedAfterClInputFocused;
-            let initialCommandLength = commandline_state.clInputInitialValue.length;
-            // Insert received key at the beginning.
-            commandline_state.clInput.value =
-                commandline_state.clInput.value.substring(0, initialCommandLength + normalKeyCount)
-                + key
-                + commandline_state.clInput.value.substring(initialCommandLength + normalKeyCount)
-            commandline_state.contentProcessKeysReceivedAfterClInputFocused++;
-        }
-        clInputValueChanged()
-    }
-    else {
-        keysFromContentProcess.push(key);
     }
 }
 
