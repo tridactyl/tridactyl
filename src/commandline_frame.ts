@@ -162,18 +162,16 @@ const noblur = () => setTimeout(() => commandline_state.clInput.focus(), 0)
 
 /** @hidden **/
 export function focus() {
-    setTimeout(() => {
-        logger.info("Called focus() after 2000ms")
-        Messaging.messageOwnTab("clInputFocused", "unused")
-        commandline_state.clInput.focus()
-        commandline_state.clInput.removeEventListener("blur", noblur)
-        commandline_state.clInput.addEventListener("blur", noblur)
-        if (keysFromContentProcess.length !== 0) {
-            logger.info("Dispatching " + JSON.stringify(keysFromContentProcess));
-            keysFromContentProcess.forEach(key => commandline_state.clInput.value += key)
-            keysFromContentProcess = []
-        }
-    }, 2000)
+    logger.info("Called focus() after 2000ms")
+    Messaging.messageOwnTab("clInputFocused", "unused")
+    commandline_state.clInput.focus()
+    commandline_state.clInput.removeEventListener("blur", noblur)
+    commandline_state.clInput.addEventListener("blur", noblur)
+    if (keysFromContentProcess.length !== 0) {
+        logger.info("Dispatching " + JSON.stringify(keysFromContentProcess));
+        keysFromContentProcess.forEach(key => commandline_state.clInput.value += key)
+        keysFromContentProcess = []
+    }
 }
 
 let keysFromContentProcess: string[] = []
