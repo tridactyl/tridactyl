@@ -162,13 +162,13 @@ const noblur = () => setTimeout(() => commandline_state.clInput.focus(), 0)
 
 /** @hidden **/
 export function focus() {
-    logger.info("Called focus() after 2000ms")
-    Messaging.messageOwnTab("clInputFocused", "unused")
+    logger.debug("Called focus()")
+    Messaging.messageOwnTab("cl_input_focused", "unused")
     commandline_state.clInput.focus()
     commandline_state.clInput.removeEventListener("blur", noblur)
     commandline_state.clInput.addEventListener("blur", noblur)
     if (keysFromContentProcess.length !== 0) {
-        logger.info("Dispatching " + JSON.stringify(keysFromContentProcess));
+        logger.debug("Dispatching " + JSON.stringify(keysFromContentProcess));
         keysFromContentProcess.forEach(key => commandline_state.clInput.value += key)
         keysFromContentProcess = []
     }
@@ -176,7 +176,7 @@ export function focus() {
 
 let keysFromContentProcess: string[] = []
 export function bufferUntilClInputFocused([key]) {
-    logger.info("Received keyboardEvent for buffering " + key)
+    logger.debug("Received keyboardEvent for buffering " + key)
     if (window.document.activeElement === commandline_state.clInput) {
         commandline_state.clInput.value += key
     }
@@ -200,7 +200,6 @@ let prev_cmd_called_history = false
 // Save programmer time by generating an immediately resolved promise
 // eslint-disable-next-line @typescript-eslint/no-empty-function
 const QUEUE: Promise<any>[] = [(async () => {})()]
-logger.info("Setting event listeners of commandline_state.clInput")
 
 /** @hidden **/
 commandline_state.clInput.addEventListener(

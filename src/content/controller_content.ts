@@ -193,7 +193,7 @@ function* ParserController() {
                 if (response.exstr) {
                     exstr = response.exstr
                     if (exstr.startsWith("fillcmdline ")) {
-                        logger.info("Setting bufferUntilClInputFocused to true")
+                        logger.debug("Setting bufferUntilClInputFocused to true")
                         bufferUntilClInputFocused = true
                     }
                     break
@@ -216,8 +216,8 @@ function* ParserController() {
         }
     }
 }
-Messaging.addListener("clInputFocused", () => {
-    logger.info("Callback clInputFocused")
+Messaging.addListener("cl_input_focused", () => {
+    logger.debug("Callback cl_input_focused")
     bufferUntilClInputFocused = false
 })
 let bufferUntilClInputFocused: boolean = false
@@ -226,12 +226,12 @@ generator.next()
 
 /** Feed keys to the ParserController */
 export function acceptKey(keyevent: KeyboardEvent) {
-    logger.info("bufferUntilClInputFocused = " + bufferUntilClInputFocused)
+    logger.debug("bufferUntilClInputFocused = " + bufferUntilClInputFocused)
     if (bufferUntilClInputFocused) {
         let isCharacterKey = keyevent.key.length == 1
             && !keyevent.metaKey && !keyevent.ctrlKey && !keyevent.altKey && !keyevent.metaKey;
         if (isCharacterKey) {
-            logger.info("Sending keyboardEvent for buffering ", keyevent)
+            logger.debug("Sending keyboardEvent for buffering ", keyevent)
             Messaging.messageOwnTab("commandline_frame", "bufferUntilClInputFocused", [keyevent.key]);
         }
         keyevent.preventDefault()
