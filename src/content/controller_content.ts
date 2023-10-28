@@ -192,7 +192,7 @@ function* ParserController() {
 
                 if (response.exstr) {
                     exstr = response.exstr
-                    if (exstr.startsWith("fillcmdline ")) {
+                    if (exstr.startsWith("fillcmdline ")) { // Ugh. That's ugly. I needed a way to know if this command is going to open the cmdline.
                         logger.debug("Setting bufferUntilClInputFocused to true")
                         bufferUntilClInputFocused = true
                     }

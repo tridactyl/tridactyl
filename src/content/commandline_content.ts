@@ -98,6 +98,7 @@ export function hide() {
 
 export function focus() {
     try {
+        // I don't think this is necessary because clInput is going to be focused.
         // cmdline_iframe.focus()
     } catch (e) {
         // Note: We can't use cmdline_logger.error because it will try to log
