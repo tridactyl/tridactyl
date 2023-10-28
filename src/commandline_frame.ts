@@ -82,6 +82,7 @@ const commandline_state = {
     keyEvents: new Array<MinimalKey>(),
     refresh_completions,
     state,
+    clInputFocused: false,
 }
 
 // first theming of commandline iframe
@@ -166,26 +167,25 @@ export function focus() {
     commandline_state.clInput.focus()
     commandline_state.clInput.removeEventListener("blur", noblur)
     commandline_state.clInput.addEventListener("blur", noblur)
+    commandline_state.clInputFocused = true
     Messaging.messageOwnTab("cl_input_focused", "unused")
-    tryConsumingBufferedKeysFromContentProcess();
-}
-
-function isClInputReady() {
-    return window.document.activeElement === commandline_state.clInput;
-}
-
-function tryConsumingBufferedKeysFromContentProcess() {
-    if (keysFromContentProcess.length !== 0 && isClInputReady()) {
+    if (keysFromContentProcess.length !== 0) {
         logger.debug("Consuming " + JSON.stringify(keysFromContentProcess));
         keysFromContentProcess.forEach(key => commandline_state.clInput.value += key)
         keysFromContentProcess = []
     }
 }
 
+/** @hidden **/
+export function hide() {
+    logger.debug("Called hide()")
+    commandline_state.clInputFocused = false
+}
+
 let keysFromContentProcess: string[] = []
 export function bufferUntilClInputFocused([key]) {
     logger.debug("Command line process received content process keydown event: " + key)
-    if (isClInputReady()) {
+    if (commandline_state.clInputFocused) {
         commandline_state.clInput.value += key
     }
     else {
@@ -367,22 +367,20 @@ export function fillcmdline(
     trailspace = true,
     ffocus = true,
 ) {
-    setTimeout(() => {
-        logger.debug("Called commandline_frame fillcmdline after 2000ms")
-        // 1. Initialize clInput value. 
-        // 2. Focus it. 
-        // 3. Stop forwarding key events from content process to command line process. 
-        if (trailspace) commandline_state.clInput.value = newcommand + " "
-        else commandline_state.clInput.value = newcommand
-        commandline_state.isVisible = true
-        let result = Promise.resolve([])
-        // Focus is lost for some reason.
-        if (ffocus) {
-            focus()
-            result = refresh_completions(commandline_state.clInput.value)
-        }
-        // return result
-    }, 2000);
+    logger.debug("Called commandline_frame fillcmdline")
+    // 1. Initialize clInput value.
+    // 2. Focus it.
+    // 3. Stop forwarding key events from content process to command line process.
+    if (trailspace) commandline_state.clInput.value = newcommand + " "
+    else commandline_state.clInput.value = newcommand
+    commandline_state.isVisible = true
+    let result = Promise.resolve([])
+    // Focus is lost for some reason.
+    if (ffocus) {
+        focus()
+        result = refresh_completions(commandline_state.clInput.value)
+    }
+    return result
 }
 
 /** @hidden **/

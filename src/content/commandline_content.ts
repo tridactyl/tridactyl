@@ -88,6 +88,7 @@ export function hide() {
     try {
         cmdline_iframe.classList.add("hidden")
         cmdline_iframe.setAttribute("style", "height: 0px !important;")
+        Messaging.messageOwnTab("commandline_frame", "hide")
     } catch (e) {
         // Using cmdline_logger here is OK because cmdline_logger won't try to
         // call hide(), thus we avoid the recursion that happens for show() and
