@@ -83,6 +83,9 @@ const commandline_state = {
     refresh_completions,
     state,
     clInputFocused: false,
+    clInputNormalEventsReceived: false,
+    clInputInitialValue: "",
+    contentProcessKeysReceivedAfterClInputFocused: 0
 }
 
 // first theming of commandline iframe
@@ -179,18 +182,29 @@ export function focus() {
     }
 }
 
-/** @hidden **/
-export function hide() {
-    logger.debug("Called hide()")
-    commandline_state.clInputFocused = false
-}
-
 let keysFromContentProcess: string[] = []
 export function bufferUntilClInputFocused([key]) {
     logger.debug("Command line process received content process keydown event: " + key)
     if (commandline_state.clInputFocused) {
-        logger.debug("Dispatching received keydown event " + key + " since clInputFocused is true")
-        commandline_state.clInput.value += key
+        logger.debug("Dispatching received keydown event " + key + " since clInputFocused is true," +
+            " clInputNormalEventsReceived = " + commandline_state.clInputNormalEventsReceived +
+            " contentProcessKeysReceivedAfterClInputFocused = " + commandline_state.contentProcessKeysReceivedAfterClInputFocused +
+            " clInputInitialValue = " + commandline_state.clInputInitialValue)
+        if (!commandline_state.clInputNormalEventsReceived) {
+            // Insert at the end.
+            commandline_state.clInput.value += key
+        }
+        else {
+            // Normal keys are assumed to always be at the end.
+            let normalKeyCount = commandline_state.contentProcessKeysReceivedAfterClInputFocused;
+            let initialCommandLength = commandline_state.clInputInitialValue.length;
+            // Insert received key at the beginning.
+            commandline_state.clInput.value =
+                commandline_state.clInput.value.substring(0, initialCommandLength + normalKeyCount)
+                + key
+                + commandline_state.clInput.value.substring(initialCommandLength + normalKeyCount)
+            commandline_state.contentProcessKeysReceivedAfterClInputFocused++;
+        }
         clInputValueChanged()
     }
     else {
@@ -220,6 +234,7 @@ commandline_state.clInput.addEventListener(
     function (keyevent: KeyboardEvent) {
         if (!keyevent.isTrusted) return
         logger.info("Called keydown event listener")
+        commandline_state.clInputNormalEventsReceived = true
         commandline_state.keyEvents.push(minimalKeyFromKeyboardEvent(keyevent))
         const response = keyParser(commandline_state.keyEvents)
         if (response.isMatch) {
@@ -385,6 +400,7 @@ export function fillcmdline(
     // 3. Stop forwarding key events from content process to command line process.
     if (trailspace) commandline_state.clInput.value = newcommand + " "
     else commandline_state.clInput.value = newcommand
+    commandline_state.clInputInitialValue = commandline_state.clInput.value
     commandline_state.isVisible = true
     let result = Promise.resolve([])
     // Focus is lost for some reason.

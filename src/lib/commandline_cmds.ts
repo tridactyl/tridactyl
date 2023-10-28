@@ -138,6 +138,10 @@ export function getCommandlineFns(cmdline_state: {
                 )
             cmdline_state.activeCompletions = undefined
             cmdline_state.isVisible = false
+            console.debug("Called hide_and_clear()")
+            cmdline_state.clInputFocused = false
+            cmdline_state.clInputNormalEventsReceived = false
+            cmdline_state.contentProcessKeysReceivedAfterClInputFocused = 0
         },
 
         /**
