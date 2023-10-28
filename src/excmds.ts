@@ -3882,16 +3882,16 @@ export function hidecmdline() {
 //#content
 export function fillcmdline(...strarr: string[]) {
     const str = strarr.join(" ")
-    showcmdline()
-    return Messaging.messageOwnTab("commandline_frame", "fillcmdline", [str])
+    showcmdline(false)
+    return Messaging.messageOwnTab("commandline_frame", "fillcmdline", [str, true/*trailspace*/, true/*focus*/])
 }
 
 /** Set the current value of the commandline to string *without* a trailing space */
 //#content
 export function fillcmdline_notrail(...strarr: string[]) {
     const str = strarr.join(" ")
-    showcmdline()
-    return Messaging.messageOwnTab("commandline_frame", "fillcmdline", [str, false])
+    showcmdline(false)
+    return Messaging.messageOwnTab("commandline_frame", "fillcmdline", [str, , false/*trailspace*/, true/*focus*/])
 }
 
 /** Show and fill the command line without focusing it */
