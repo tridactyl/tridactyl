@@ -168,22 +168,22 @@ export function focus() {
         commandline_state.clInput.focus()
         commandline_state.clInput.removeEventListener("blur", noblur)
         commandline_state.clInput.addEventListener("blur", noblur)
-        if (buffer.length !== 0) {
-            logger.info("Dispatching " + JSON.stringify(buffer));
-            buffer.forEach(key => commandline_state.clInput.value += key)
-            buffer = []
+        if (keysFromContentProcess.length !== 0) {
+            logger.info("Dispatching " + JSON.stringify(keysFromContentProcess));
+            keysFromContentProcess.forEach(key => commandline_state.clInput.value += key)
+            keysFromContentProcess = []
         }
     }, 2000)
 }
 
-let buffer: string[] = []
-export function bufferUntil([key]) {
+let keysFromContentProcess: string[] = []
+export function bufferUntilClInputFocused([key]) {
     logger.info("Received keyboardEvent for buffering " + key)
     if (window.document.activeElement === commandline_state.clInput) {
         commandline_state.clInput.value += key
     }
     else {
-        buffer.push(key);
+        keysFromContentProcess.push(key);
     }
 }
 
@@ -209,65 +209,61 @@ commandline_state.clInput.addEventListener(
     "keydown",
     function (keyevent: KeyboardEvent) {
         if (!keyevent.isTrusted) return
-        processKeyboardEvent(keyevent);
+        commandline_state.keyEvents.push(minimalKeyFromKeyboardEvent(keyevent))
+        const response = keyParser(commandline_state.keyEvents)
+        if (response.isMatch) {
+            keyevent.preventDefault()
+            keyevent.stopImmediatePropagation()
+        } else {
+            // Ideally, all keys that aren't explicitly bound to an ex command
+            // should be bound to a "self-insert" command that would input the
+            // key itself. Because it's not possible to generate events as if
+            // they originated from the user, we can't do this, but we still
+            // need to simulate it, in order to have history() work.
+            prev_cmd_called_history = false
+        }
+        if (response.value) {
+            commandline_state.keyEvents = []
+            history_called = false
+
+            // If excmds start with 'ex.' they're coming back to us anyway, so skip that.
+            // This is definitely a hack. Should expand aliases with exmode, etc.
+            // but this whole thing should be scrapped soon, so whatever.
+            if (response.value.startsWith("ex.")) {
+                const [funcname, ...args] = response.value.slice(3).split(/\s+/)
+
+                QUEUE[QUEUE.length - 1].then(() => {
+                    QUEUE.push(
+                        // Abuse async to wrap non-promises in a promise
+                        // eslint-disable-next-line @typescript-eslint/require-await
+                        (async () =>
+                            commandline_state.fns[
+                                funcname as keyof typeof commandline_state.fns
+                            ](
+                                args.length === 0 ? undefined : args.join(" "),
+                            ))(),
+                    )
+                    prev_cmd_called_history = history_called
+                })
+            } else {
+                // Send excmds directly to our own tab, which fixes the
+                // old bug where a command would be issued in one tab but
+                // land in another because the active tab had
+                // changed. Background-mode excmds will be received by the
+                // own tab's content script and then bounced through a
+                // shim to the background, but the latency increase should
+                // be acceptable becuase the background-mode excmds tend
+                // to be a touch less latency-sensitive.
+                Messaging.messageOwnTab("controller_content", "acceptExCmd", [
+                    response.value,
+                ]).then(_ => (prev_cmd_called_history = history_called))
+            }
+        } else {
+            commandline_state.keyEvents = response.keys
+        }
     },
     true,
 )
-
-function processKeyboardEvent(keyevent: KeyboardEvent) {
-    commandline_state.keyEvents.push(minimalKeyFromKeyboardEvent(keyevent))
-    const response = keyParser(commandline_state.keyEvents)
-    if (response.isMatch) {
-        keyevent.preventDefault()
-        keyevent.stopImmediatePropagation()
-    } else {
-        // Ideally, all keys that aren't explicitly bound to an ex command
-        // should be bound to a "self-insert" command that would input the
-        // key itself. Because it's not possible to generate events as if
-        // they originated from the user, we can't do this, but we still
-        // need to simulate it, in order to have history() work.
-        prev_cmd_called_history = false
-    }
-    if (response.value) {
-        commandline_state.keyEvents = []
-        history_called = false
-
-        // If excmds start with 'ex.' they're coming back to us anyway, so skip that.
-        // This is definitely a hack. Should expand aliases with exmode, etc.
-        // but this whole thing should be scrapped soon, so whatever.
-        if (response.value.startsWith("ex.")) {
-            const [funcname, ...args] = response.value.slice(3).split(/\s+/)
-
-            QUEUE[QUEUE.length - 1].then(() => {
-                QUEUE.push(
-                    // Abuse async to wrap non-promises in a promise
-                    // eslint-disable-next-line @typescript-eslint/require-await
-                    (async () =>
-                        commandline_state.fns[
-                            funcname as keyof typeof commandline_state.fns
-                            ](
-                            args.length === 0 ? undefined : args.join(" "),
-                        ))(),
-                )
-                prev_cmd_called_history = history_called
-            })
-        } else {
-            // Send excmds directly to our own tab, which fixes the
-            // old bug where a command would be issued in one tab but
-            // land in another because the active tab had
-            // changed. Background-mode excmds will be received by the
-            // own tab's content script and then bounced through a
-            // shim to the background, but the latency increase should
-            // be acceptable becuase the background-mode excmds tend
-            // to be a touch less latency-sensitive.
-            Messaging.messageOwnTab("controller_content", "acceptExCmd", [
-                response.value,
-            ]).then(_ => (prev_cmd_called_history = history_called))
-        }
-    } else {
-        commandline_state.keyEvents = response.keys
-    }
-}
 
 export function refresh_completions(exstr) {
     if (!commandline_state.activeCompletions) enableCompletions()

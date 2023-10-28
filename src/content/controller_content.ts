@@ -228,8 +228,12 @@ generator.next()
 export function acceptKey(keyevent: KeyboardEvent) {
     logger.info("bufferUntilClInputFocused = " + bufferUntilClInputFocused)
     if (bufferUntilClInputFocused) {
-        logger.info("Sending keyboardEvent for buffering " + keyevent.key)
-        Messaging.messageOwnTab("commandline_frame", "bufferUntil", [keyevent.key]);
+        let isCharacterKey = keyevent.key.length == 1
+            && !keyevent.metaKey && !keyevent.ctrlKey && !keyevent.altKey && !keyevent.metaKey;
+        if (isCharacterKey) {
+            logger.info("Sending keyboardEvent for buffering ", keyevent)
+            Messaging.messageOwnTab("commandline_frame", "bufferUntilClInputFocused", [keyevent.key]);
+        }
         keyevent.preventDefault()
         keyevent.stopImmediatePropagation()
         canceller.push(keyevent)
