@@ -171,7 +171,10 @@ export function focus() {
     Messaging.messageOwnTab("cl_input_focused", "unused")
     if (keysFromContentProcess.length !== 0) {
         logger.debug("Consuming " + JSON.stringify(keysFromContentProcess));
-        keysFromContentProcess.forEach(key => commandline_state.clInput.value += key)
+        for (const key of keysFromContentProcess) {
+            commandline_state.clInput.value += key
+            clInputValueChanged()
+        }
         keysFromContentProcess = []
     }
 }
@@ -186,7 +189,9 @@ let keysFromContentProcess: string[] = []
 export function bufferUntilClInputFocused([key]) {
     logger.debug("Command line process received content process keydown event: " + key)
     if (commandline_state.clInputFocused) {
+        logger.debug("Dispatching received keydown event " + key + " since clInputFocused is true")
         commandline_state.clInput.value += key
+        clInputValueChanged()
     }
     else {
         keysFromContentProcess.push(key);
@@ -214,6 +219,7 @@ commandline_state.clInput.addEventListener(
     "keydown",
     function (keyevent: KeyboardEvent) {
         if (!keyevent.isTrusted) return
+        logger.info("Called keydown event listener")
         commandline_state.keyEvents.push(minimalKeyFromKeyboardEvent(keyevent))
         const response = keyParser(commandline_state.keyEvents)
         if (response.isMatch) {
@@ -288,8 +294,8 @@ export function refresh_completions(exstr) {
 
 /** @hidden **/
 let onInputPromise: Promise<any> = Promise.resolve()
-/** @hidden **/
-commandline_state.clInput.addEventListener("input", () => {
+
+function clInputValueChanged() {
     const exstr = commandline_state.clInput.value
     contentState.current_cmdline = exstr
     contentState.cmdline_filter = ""
@@ -308,6 +314,12 @@ commandline_state.clInput.addEventListener("input", () => {
             contentState.cmdline_filter = exstr
         })
     }, 100)
+}
+
+/** @hidden **/
+commandline_state.clInput.addEventListener("input", () => {
+    logger.info("Called input event listener")
+    clInputValueChanged();
 })
 
 /** @hidden **/
