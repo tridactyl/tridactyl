@@ -213,7 +213,7 @@ commandline_state.clInput.addEventListener(
     "keydown",
     function (keyevent: KeyboardEvent) {
         if (!keyevent.isTrusted) return
-        logger.info("Called keydown event listener")
+        logger.debug("Called clInput keydown event listener", keyevent)
         commandline_state.keyEvents.push(minimalKeyFromKeyboardEvent(keyevent))
         const response = keyParser(commandline_state.keyEvents)
         if (response.isMatch) {
@@ -312,7 +312,7 @@ function clInputValueChanged() {
 
 /** @hidden **/
 commandline_state.clInput.addEventListener("input", () => {
-    logger.info("Called input event listener")
+    logger.debug("Called clInput input event listener")
     clInputValueChanged();
 })
 
