@@ -97,7 +97,7 @@ export function hide() {
 }
 
 /**
- * TODO: Discuss removal of this method?
+ * TODO: Discuss removal of this method. We want clInput to be focused, not cmdline_iframe?
  */
 export function focus() {
     try {

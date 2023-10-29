@@ -166,21 +166,21 @@ export function focus() {
     commandline_state.clInput.focus()
     commandline_state.clInput.removeEventListener("blur", noblur)
     commandline_state.clInput.addEventListener("blur", noblur)
-    logger.debug("commandline_frame focus()")
+    logger.debug("commandline_frame clInput focus()")
     Messaging.messageOwnTab("buffered_page_keys", "").then((bufferedPageKeys : string[]) => {
-        let clInputStillFocused = window.document.activeElement === commandline_state.clInput;
+        const clInputStillFocused = window.document.activeElement === commandline_state.clInput;
         logger.debug("buffered_page_keys response received", bufferedPageKeys,
             "clInputStillFocused = " + clInputStillFocused)
         if (!clInputStillFocused)
             return
         if (bufferedPageKeys.length !== 0) {
             const currentClInputValue = commandline_state.clInput.value;
-            let initialClInputValue = commandline_state.initialClInputValue;
+            const initialClInputValue = commandline_state.initialClInputValue;
             logger.debug("Consuming buffered page keys", bufferedPageKeys,
                 "initialClInputValue = " + initialClInputValue,
                 "currentClInputValue = " + currentClInputValue);
-            // Native events are assumed to be characters added at the end of clInput.
-            // If the user edits the command (initial clInput value) before the buffered page keys are received, we are out of luck.
+            // Native events are assumed to be character keydowns events,
+            // i.e. characters appended at the end of clInput.
             // Insert page keys just after the command.
             commandline_state.clInput.value =
                 initialClInputValue
