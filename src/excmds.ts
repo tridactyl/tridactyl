@@ -3891,7 +3891,7 @@ export function fillcmdline(...strarr: string[]) {
 export function fillcmdline_notrail(...strarr: string[]) {
     const str = strarr.join(" ")
     showcmdline(false)
-    return Messaging.messageOwnTab("commandline_frame", "fillcmdline", [str, , false/*trailspace*/, true/*focus*/])
+    return Messaging.messageOwnTab("commandline_frame", "fillcmdline", [str, false/*trailspace*/, true/*focus*/])
 }
 
 /** Show and fill the command line without focusing it */

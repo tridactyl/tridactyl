@@ -373,10 +373,7 @@ export function fillcmdline(
     trailspace = true,
     ffocus = true,
 ) {
-    logger.debug("Called commandline_frame fillcmdline")
-    // 1. Initialize clInput value.
-    // 2. Focus it.
-    // 3. Stop forwarding key events from content process to command line process.
+    logger.debug("Called commandline_frame fillcmdline, trailspace = " + trailspace + " ffocus = " + ffocus)
     if (trailspace) commandline_state.clInput.value = newcommand + " "
     else commandline_state.clInput.value = newcommand
     commandline_state.initialClInputValue = commandline_state.clInput.value
