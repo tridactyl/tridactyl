@@ -5125,6 +5125,7 @@ const KILL_STACK: Element[] = []
         - -c [selector] hint links that match the css selector
           - `bind ;c hint -c [class*="expand"],[class*="togg"]` works particularly well on reddit and HN
           - this works with most other hint modes, with the caveat that if other hint mode takes arguments your selector must contain no spaces, i.e. `hint -c[yourOtherFlag] [selector] [your other flag's arguments, which may contain spaces]`
+        - -C [selector] like `-c [selector]` but also hints all elements that would normally be hinted given the other options selected
         - -x [selector] exclude the matched elements from hinting
         - -f [text] hint links and inputs that display the given text
           - `bind <c-e> hint -f Edit`
