@@ -175,22 +175,17 @@ export function focus() {
             return
         if (bufferedPageKeys.length !== 0) {
             const currentClInputValue = commandline_state.clInput.value;
-            // Native events are assumed to be characters added at the end of clInput.
-            const clInputNativeEventKeysReceived = commandline_state.initialClInputValue.length > currentClInputValue.length
+            let initialClInputValue = commandline_state.initialClInputValue;
             logger.debug("Consuming buffered page keys", bufferedPageKeys,
-                "initialClInputValue = " + commandline_state.initialClInputValue,
+                "initialClInputValue = " + initialClInputValue,
                 "currentClInputValue = " + currentClInputValue);
-            if (clInputNativeEventKeysReceived) {
-                // Insert page keys at the end.
-                commandline_state.clInput.value += bufferedPageKeys.join("")
-            } else {
-                let initialClInputValueLength = commandline_state.initialClInputValue.length;
-                // Insert page keys just after the command.
-                commandline_state.clInput.value =
-                    currentClInputValue.substring(0, initialClInputValueLength)
-                    + bufferedPageKeys.join("")
-                    + currentClInputValue.substring(initialClInputValueLength)
-            }
+            // Native events are assumed to be characters added at the end of clInput.
+            // If the user edits the command (initial clInput value) before the buffered page keys are received, we are out of luck.
+            // Insert page keys just after the command.
+            commandline_state.clInput.value =
+                initialClInputValue
+                + bufferedPageKeys.join("")
+                + currentClInputValue.substring(initialClInputValue.length)
             // Update completion.
             clInputValueChanged()
         }
