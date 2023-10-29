@@ -15,7 +15,7 @@ export type TabMessageType =
     | "lock"
     | "alive"
     | "tab_changes"
-    | "cl_input_focused"
+    | "buffered_page_keys"
 
 export type NonTabMessageType =
     | "owntab_background"
