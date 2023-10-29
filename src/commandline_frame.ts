@@ -82,12 +82,7 @@ const commandline_state = {
     keyEvents: new Array<MinimalKey>(),
     refresh_completions,
     state,
-    keysFromContentProcess: [],
-    consumedKeyCount: 0,
-    clInputFocused: false,
-    clInputNormalEventsReceived: false,
-    clInputInitialValue: "",
-    contentProcessKeysReceivedAfterClInputFocused: 0
+    initialClInputValue: "",
 }
 
 // first theming of commandline iframe
@@ -168,55 +163,38 @@ const noblur = () => setTimeout(() => commandline_state.clInput.focus(), 0)
 
 /** @hidden **/
 export function focus() {
-    logger.debug("Called focus()")
     commandline_state.clInput.focus()
     commandline_state.clInput.removeEventListener("blur", noblur)
     commandline_state.clInput.addEventListener("blur", noblur)
-    commandline_state.clInputFocused = true
-    Messaging.messageOwnTab("cl_input_focused", "unused")
-    const keysFromContentProcess = commandline_state.keysFromContentProcess;
-    if (keysFromContentProcess.length !== 0) {
-        logger.debug("Consuming " + JSON.stringify(keysFromContentProcess.slice(commandline_state.consumedKeyCount)));
-        for (let keyIndex = commandline_state.consumedKeyCount; keyIndex < keysFromContentProcess.length; keyIndex++) {
-            const key = keysFromContentProcess[keyIndex];
-            commandline_state.clInput.value += key
-            clInputValueChanged()
-            commandline_state.consumedKeyCount++;
-        }
-    }
-}
-
-export function bufferUntilClInputFocused(bufferedClInputKeys) {
-    logger.debug("Command line process received content process keys: " + bufferedClInputKeys)
-    if (bufferedClInputKeys.length < commandline_state.keysFromContentProcess.length)
-        return
-    commandline_state.keysFromContentProcess = bufferedClInputKeys;
-    const keysFromContentProcess = commandline_state.keysFromContentProcess;
-    if (commandline_state.clInputFocused) {
-        for (let keyIndex = commandline_state.consumedKeyCount; keyIndex < keysFromContentProcess.length; keyIndex++) {
-            const key = keysFromContentProcess[keyIndex];
-            logger.debug("Dispatching received keydown event " + key + " since clInputFocused is true," +
-                " clInputNormalEventsReceived = " + commandline_state.clInputNormalEventsReceived +
-                " contentProcessKeysReceivedAfterClInputFocused = " + commandline_state.contentProcessKeysReceivedAfterClInputFocused +
-                " clInputInitialValue = " + commandline_state.clInputInitialValue)
-            if (!commandline_state.clInputNormalEventsReceived) {
-                // Insert at the end.
-                commandline_state.clInput.value += key
+    logger.debug("Called focus()")
+    Messaging.messageOwnTab("buffered_page_keys", "").then((bufferedPageKeys : string[]) => {
+        let clInputStillFocused = window.document.activeElement === commandline_state.clInput;
+        logger.debug("buffered_page_keys response received", bufferedPageKeys,
+            "clInputStillFocused = " + clInputStillFocused)
+        if (!clInputStillFocused)
+            return
+        if (bufferedPageKeys.length !== 0) {
+            const currentClInputValue = commandline_state.clInput.value;
+            // Native events are assumed to be characters added at the end of clInput.
+            const clInputNativeEventKeysReceived = commandline_state.initialClInputValue.length > currentClInputValue.length
+            logger.debug("Consuming buffered page keys", bufferedPageKeys,
+                "initialClInputValue = " + commandline_state.initialClInputValue,
+                "currentClInputValue = " + currentClInputValue);
+            if (clInputNativeEventKeysReceived) {
+                // Insert page keys at the end.
+                commandline_state.clInput.value += bufferedPageKeys.join("")
             } else {
-                // Normal keys are assumed to always be at the end.
-                let normalKeyCount = commandline_state.contentProcessKeysReceivedAfterClInputFocused;
-                let initialCommandLength = commandline_state.clInputInitialValue.length;
-                // Insert received key at the beginning.
+                let initialClInputValueLength = commandline_state.initialClInputValue.length;
+                // Insert page keys just after the command.
                 commandline_state.clInput.value =
-                    commandline_state.clInput.value.substring(0, initialCommandLength + normalKeyCount)
-                    + key
-                    + commandline_state.clInput.value.substring(initialCommandLength + normalKeyCount)
-                commandline_state.contentProcessKeysReceivedAfterClInputFocused++;
+                    currentClInputValue.substring(0, initialClInputValueLength)
+                    + bufferedPageKeys.join("")
+                    + currentClInputValue.substring(initialClInputValueLength)
             }
-            commandline_state.consumedKeyCount++;
+            // Update completion.
             clInputValueChanged()
         }
-    }
+    })
 }
 
 /** @hidden **/
@@ -241,7 +219,6 @@ commandline_state.clInput.addEventListener(
     function (keyevent: KeyboardEvent) {
         if (!keyevent.isTrusted) return
         logger.info("Called keydown event listener")
-        commandline_state.clInputNormalEventsReceived = true
         commandline_state.keyEvents.push(minimalKeyFromKeyboardEvent(keyevent))
         const response = keyParser(commandline_state.keyEvents)
         if (response.isMatch) {
@@ -407,7 +384,7 @@ export function fillcmdline(
     // 3. Stop forwarding key events from content process to command line process.
     if (trailspace) commandline_state.clInput.value = newcommand + " "
     else commandline_state.clInput.value = newcommand
-    commandline_state.clInputInitialValue = commandline_state.clInput.value
+    commandline_state.initialClInputValue = commandline_state.clInput.value
     commandline_state.isVisible = true
     let result = Promise.resolve([])
     // Focus is lost for some reason.

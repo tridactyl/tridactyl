@@ -193,9 +193,9 @@ function* ParserController() {
                 if (response.exstr) {
                     exstr = response.exstr
                     if (exstr.startsWith("fillcmdline ")) { // Ugh. That's ugly. I needed a way to know if this command is going to open the cmdline.
-                        logger.debug("Setting clInputFocused to false")
-                        clInputFocused = false
-                        bufferedClInputKeys = []
+                        logger.debug("Setting mustBufferPageKeysForClInput to true")
+                        mustBufferPageKeysForClInput = true
+                        bufferedPageKeys = []
                     }
                     break
                 } else {
@@ -217,25 +217,27 @@ function* ParserController() {
         }
     }
 }
-Messaging.addListener("cl_input_focused", () => {
-    logger.debug("Callback cl_input_focused")
-    clInputFocused = true
+Messaging.addListener("buffered_page_keys", (message, sender, sendResponse) => {
+    logger.debug("buffered_page_keys request received, responding with", bufferedPageKeys)
+    // At this point, clInput is focused and the page will not get any more keyboard events.
+    sendResponse(Promise.resolve(bufferedPageKeys))
+    mustBufferPageKeysForClInput = false
+    bufferedPageKeys = []
 })
-let clInputFocused: boolean = true
-let bufferedClInputKeys: string[] = []
+let mustBufferPageKeysForClInput = false
+let bufferedPageKeys: string[] = []
 export const generator = ParserController() // var rather than let stops weirdness in repl.
 generator.next()
 
 /** Feed keys to the ParserController */
 export function acceptKey(keyevent: KeyboardEvent) {
-    logger.debug("clInputFocused = " + clInputFocused)
-    if (!clInputFocused) {
+    logger.debug("mustBufferPageKeysForClInput = " + mustBufferPageKeysForClInput)
+    if (mustBufferPageKeysForClInput) {
         let isCharacterKey = keyevent.key.length == 1
             && !keyevent.metaKey && !keyevent.ctrlKey && !keyevent.altKey && !keyevent.metaKey;
         if (isCharacterKey) {
-            bufferedClInputKeys.push(keyevent.key);
-            logger.debug("Sending keyboardEvent for buffering ", bufferedClInputKeys)
-            Messaging.messageOwnTab("commandline_frame", "bufferUntilClInputFocused", [ bufferedClInputKeys ]);
+            bufferedPageKeys.push(keyevent.key);
+            logger.debug("Buffering page keys for clInput", bufferedPageKeys)
         }
         keyevent.preventDefault()
         keyevent.stopImmediatePropagation()
