@@ -3861,12 +3861,11 @@ export function sleep(time_ms: number) {
 /** @hidden */
 //#content
 export function showcmdline(focus = true) {
-    logger.debug("Called showcmdline")
+    logger.debug("excmds showcmdline()")
     const hidehover = true
     CommandLineContent.show(hidehover)
     let done = Promise.resolve()
     if (focus) {
-        CommandLineContent.focus()
         done = Messaging.messageOwnTab("commandline_frame", "focus")
     }
     return done

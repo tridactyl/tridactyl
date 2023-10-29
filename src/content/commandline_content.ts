@@ -63,7 +63,7 @@ export function show(hidehover = false) {
          *
          * Inspired by VVimpulation: https://github.com/amedama41/vvimpulation/commit/53065d015d1e9a892496619b51be83771f57b3d5
          */
-        logger.debug("Called show()")
+        logger.debug("commandline_content show()")
         if (hidehover) {
             const a = window.document.createElement("A")
             ;(a as any).href = ""
@@ -96,6 +96,9 @@ export function hide() {
     }
 }
 
+/**
+ * TODO: Discuss removal of this method?
+ */
 export function focus() {
     try {
         // I don't think this is necessary because clInput is going to be focused.

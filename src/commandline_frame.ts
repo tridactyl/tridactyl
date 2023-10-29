@@ -166,7 +166,7 @@ export function focus() {
     commandline_state.clInput.focus()
     commandline_state.clInput.removeEventListener("blur", noblur)
     commandline_state.clInput.addEventListener("blur", noblur)
-    logger.debug("Called focus()")
+    logger.debug("commandline_frame focus()")
     Messaging.messageOwnTab("buffered_page_keys", "").then((bufferedPageKeys : string[]) => {
         let clInputStillFocused = window.document.activeElement === commandline_state.clInput;
         logger.debug("buffered_page_keys response received", bufferedPageKeys,
@@ -213,7 +213,7 @@ commandline_state.clInput.addEventListener(
     "keydown",
     function (keyevent: KeyboardEvent) {
         if (!keyevent.isTrusted) return
-        logger.debug("Called clInput keydown event listener", keyevent)
+        logger.debug("commandline_frame clInput keydown event listener", keyevent)
         commandline_state.keyEvents.push(minimalKeyFromKeyboardEvent(keyevent))
         const response = keyParser(commandline_state.keyEvents)
         if (response.isMatch) {
@@ -288,6 +288,11 @@ export function refresh_completions(exstr) {
 
 /** @hidden **/
 let onInputPromise: Promise<any> = Promise.resolve()
+/** @hidden **/
+commandline_state.clInput.addEventListener("input", () => {
+    logger.debug("commandline_frame clInput input event listener")
+    clInputValueChanged();
+})
 
 function clInputValueChanged() {
     const exstr = commandline_state.clInput.value
@@ -309,12 +314,6 @@ function clInputValueChanged() {
         })
     }, 100)
 }
-
-/** @hidden **/
-commandline_state.clInput.addEventListener("input", () => {
-    logger.debug("Called clInput input event listener")
-    clInputValueChanged();
-})
 
 /** @hidden **/
 let cmdline_history_current = ""
@@ -373,7 +372,7 @@ export function fillcmdline(
     trailspace = true,
     ffocus = true,
 ) {
-    logger.debug("Called commandline_frame fillcmdline, trailspace = " + trailspace + " ffocus = " + ffocus)
+    logger.debug("commandline_frame fillcmdline(newcommand = " + newcommand + " trailspace = " + trailspace + " ffocus = " + ffocus + ")")
     if (trailspace) commandline_state.clInput.value = newcommand + " "
     else commandline_state.clInput.value = newcommand
     commandline_state.initialClInputValue = commandline_state.clInput.value
