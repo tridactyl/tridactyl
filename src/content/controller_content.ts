@@ -203,7 +203,7 @@ function* ParserController() {
 
                 if (response.exstr) {
                     exstr = response.exstr
-                    if (exstr.startsWith("fillcmdline ")) { // Ugh. That's ugly. I needed a way to know if this command is going to open the cmdline.
+                    if (exstr.startsWith("fillcmdline ")) { // TODO That's ugly. I need a way to know if this command is going to open the command line. Is there a better way?
                         logger.debug("Starting buffering of page keys")
                         mustBufferPageKeysForClInput = true
                         bufferedPageKeys = []

@@ -80,9 +80,9 @@ const commandline_state = {
      */
     isVisible: false,
     keyEvents: new Array<MinimalKey>(),
+    initialClInputValue: "",
     refresh_completions,
     state,
-    initialClInputValue: "",
 }
 
 // first theming of commandline iframe
@@ -294,6 +294,7 @@ commandline_state.clInput.addEventListener("input", () => {
     clInputValueChanged();
 })
 
+/** @hidden **/
 function clInputValueChanged() {
     const exstr = commandline_state.clInput.value
     contentState.current_cmdline = exstr
