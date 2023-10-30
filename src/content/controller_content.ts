@@ -65,6 +65,8 @@ class KeyCanceller {
     }
 
     push(ke: KeyboardEvent) {
+        ke.preventDefault()
+        ke.stopImmediatePropagation()
         this.keyPress.push(ke)
         this.keyUp.push(ke)
     }
@@ -196,8 +198,6 @@ function* ParserController() {
                 )
 
                 if (response.isMatch && keyevent instanceof KeyboardEvent) {
-                    keyevent.preventDefault()
-                    keyevent.stopImmediatePropagation()
                     canceller.push(keyevent)
                 }
 
@@ -241,8 +241,6 @@ export function acceptKey(keyevent: KeyboardEvent) {
             bufferedPageKeys.push(keyevent.key);
             logger.debug("Buffering page keys", bufferedPageKeys)
         }
-        keyevent.preventDefault()
-        keyevent.stopImmediatePropagation()
         canceller.push(keyevent)
     }
     logger.debug("controller_content mustBufferPageKeysForClInput = " + mustBufferPageKeysForClInput)
