@@ -55,7 +55,6 @@ import state, * as State from "@src/state"
 import * as R from "ramda"
 import { MinimalKey, minimalKeyFromKeyboardEvent } from "@src/lib/keyseq"
 import { TabGroupCompletionSource } from "@src/completions/TabGroup"
-import {ownTabId} from "@src/lib/webext";
 
 /** @hidden **/
 const logger = new Logger("cmdline")
@@ -190,7 +189,7 @@ export function focus() {
     commandline_state.clInput.focus()
     commandline_state.clInput.removeEventListener("blur", noblur)
     commandline_state.clInput.addEventListener("blur", noblur)
-    Messaging.messageTab(ownTabId(), "buffered_page_keys").then(consumeBufferedPageKeys)
+    Messaging.messageOwnTab("buffered_page_keys").then(consumeBufferedPageKeys)
 }
 
 /** @hidden **/

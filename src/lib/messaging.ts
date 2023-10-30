@@ -133,7 +133,7 @@ export async function message<
 /** Message the active tab of the currentWindow */
 export async function messageActiveTab(
     type: TabMessageType,
-    command: string,
+    command?: string,
     args?: any[],
 ) {
     return messageTab(await activeTabId(), type, command, args)
@@ -154,7 +154,7 @@ export async function messageTab(
 }
 
 let _ownTabId
-export async function messageOwnTab(type: TabMessageType, command, args?) {
+export async function messageOwnTab(type: TabMessageType, command?, args?) {
     if (_ownTabId === undefined) {
         _ownTabId = await ownTabId()
     }
@@ -165,7 +165,7 @@ export async function messageOwnTab(type: TabMessageType, command, args?) {
 
 export async function messageAllTabs(
     type: TabMessageType,
-    command: string,
+    command?: string,
     args?: any[],
 ) {
     const responses = []
