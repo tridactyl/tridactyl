@@ -1083,10 +1083,10 @@
   resolved "https://registry.yarnpkg.com/@types/minimatch/-/minimatch-3.0.5.tgz#1001cc5e6a3704b83c236027e77f2f58ea010f40"
   integrity sha512-Klz949h02Gz2uZCMGwDUSDS1YBlTdDDgbWHi+81l29tQALUtvz4rAYi5uoVhE5Lagoq6DeqAUlbrHvW/mXDgdQ==
 
-"@types/nearley@^2.11.2":
-  version "2.11.2"
-  resolved "https://registry.yarnpkg.com/@types/nearley/-/nearley-2.11.2.tgz#ddd716fa4b9ab15acec51d39b7524709d4dd5cc8"
-  integrity sha512-jeyIDNBxxyWyEk6HemDC+t32b4fxthVsgWDxf88qD2WpX0QpOyY8JvA80AElPTBGRUsO0EKnr6OeVOjK3ZDdnA==
+"@types/nearley@^2.11.4":
+  version "2.11.4"
+  resolved "https://registry.yarnpkg.com/@types/nearley/-/nearley-2.11.4.tgz#c86b9e269425323ffdff28b0df1c0e3d66785016"
+  integrity sha512-w3F6sGIGGnscQkPtsbfiTl6xdy4icOI46M8au0STb3fhIlCs83fTCHJafvv9iHH9MTLVlJCdCN+oEdB35ZZRMg==
 
 "@types/node@*":
   version "15.0.2"
