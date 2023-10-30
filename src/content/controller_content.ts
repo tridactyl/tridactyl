@@ -232,10 +232,9 @@ function* ParserController() {
 export const generator = ParserController() // var rather than let stops weirdness in repl.
 generator.next()
 
-/** Feed keys to the ParserController */
+/** Feed keys to the ParserController, unless they should be buffered to be later fed to clInput */
 export function acceptKey(keyevent: KeyboardEvent) {
-    logger.debug("controller_content mustBufferPageKeysForClInput = " + mustBufferPageKeysForClInput)
-    if (mustBufferPageKeysForClInput) {
+    function bufferPageKeyForClInput(keyevent: KeyboardEvent) {
         let isCharacterKey = keyevent.key.length == 1
             && !keyevent.metaKey && !keyevent.ctrlKey && !keyevent.altKey && !keyevent.metaKey;
         if (isCharacterKey) {
@@ -245,6 +244,10 @@ export function acceptKey(keyevent: KeyboardEvent) {
         keyevent.preventDefault()
         keyevent.stopImmediatePropagation()
         canceller.push(keyevent)
-    } else
+    }
+    logger.debug("controller_content mustBufferPageKeysForClInput = " + mustBufferPageKeysForClInput)
+    if (mustBufferPageKeysForClInput)
+        bufferPageKeyForClInput(keyevent)
+    else
         return generator.next(keyevent)
 }

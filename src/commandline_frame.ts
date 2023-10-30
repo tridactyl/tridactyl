@@ -55,6 +55,7 @@ import state, * as State from "@src/state"
 import * as R from "ramda"
 import { MinimalKey, minimalKeyFromKeyboardEvent } from "@src/lib/keyseq"
 import { TabGroupCompletionSource } from "@src/completions/TabGroup"
+import {ownTabId} from "@src/lib/webext";
 
 /** @hidden **/
 const logger = new Logger("cmdline")
@@ -163,11 +164,7 @@ const noblur = () => setTimeout(() => commandline_state.clInput.focus(), 0)
 
 /** @hidden **/
 export function focus() {
-    commandline_state.clInput.focus()
-    commandline_state.clInput.removeEventListener("blur", noblur)
-    commandline_state.clInput.addEventListener("blur", noblur)
-    logger.debug("commandline_frame clInput focus()")
-    Messaging.messageOwnTab("buffered_page_keys", "").then((bufferedPageKeys : string[]) => {
+    function consumeBufferedPageKeys(bufferedPageKeys: string[]) {
         const clInputStillFocused = window.document.activeElement === commandline_state.clInput;
         logger.debug("buffered_page_keys response received", bufferedPageKeys,
             "clInputStillFocused = " + clInputStillFocused)
@@ -181,7 +178,6 @@ export function focus() {
                 "currentClInputValue = " + currentClInputValue);
             // Native events are assumed to be character keydowns events,
             // i.e. characters appended at the end of clInput.
-            // Insert page keys just after the command.
             commandline_state.clInput.value =
                 initialClInputValue
                 + bufferedPageKeys.join("")
@@ -189,7 +185,12 @@ export function focus() {
             // Update completion.
             clInputValueChanged()
         }
-    })
+    }
+    logger.debug("commandline_frame clInput focus()")
+    commandline_state.clInput.focus()
+    commandline_state.clInput.removeEventListener("blur", noblur)
+    commandline_state.clInput.addEventListener("blur", noblur)
+    Messaging.messageTab(ownTabId(), "buffered_page_keys").then(consumeBufferedPageKeys)
 }
 
 /** @hidden **/
