@@ -167,8 +167,6 @@ export function focus() {
         const clInputStillFocused = window.document.activeElement === commandline_state.clInput;
         logger.debug("buffered_page_keys response received", bufferedPageKeys,
             "clInputStillFocused = " + clInputStillFocused)
-        if (!clInputStillFocused)
-            return
         if (bufferedPageKeys.length !== 0) {
             const currentClInputValue = commandline_state.clInput.value;
             const initialClInputValue = commandline_state.initialClInputValue;
