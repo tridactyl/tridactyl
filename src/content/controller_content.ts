@@ -235,7 +235,7 @@ generator.next()
 /** Feed keys to the ParserController, unless they should be buffered to be later fed to clInput */
 export function acceptKey(keyevent: KeyboardEvent) {
     function bufferPageKeyForClInput(keyevent: KeyboardEvent) {
-        let isCharacterKey = keyevent.key.length == 1
+        const isCharacterKey = keyevent.key.length == 1
             && !keyevent.metaKey && !keyevent.ctrlKey && !keyevent.altKey && !keyevent.metaKey;
         if (isCharacterKey) {
             bufferedPageKeys.push(keyevent.key);
