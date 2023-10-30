@@ -185,10 +185,10 @@ export function focus() {
             clInputValueChanged()
         }
     }
-    logger.debug("commandline_frame clInput focus()")
     commandline_state.clInput.focus()
     commandline_state.clInput.removeEventListener("blur", noblur)
     commandline_state.clInput.addEventListener("blur", noblur)
+    logger.debug("commandline_frame clInput focus(), activeElement is clInput: " + (window.document.activeElement === commandline_state.clInput))
     Messaging.messageOwnTab("buffered_page_keys").then(consumeBufferedPageKeys)
 }
 

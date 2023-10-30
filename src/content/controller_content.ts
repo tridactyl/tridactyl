@@ -104,6 +104,7 @@ export const canceller = new KeyCanceller()
 
 let mustBufferPageKeysForClInput = false
 let bufferedPageKeys: string[] = []
+let stopBufferingPageKeysTimeoutId : number
 Messaging.addListener("buffered_page_keys", (message, sender, sendResponse) => {
     logger.debug("buffered_page_keys request received, responding with", bufferedPageKeys)
     sendResponse(Promise.resolve(bufferedPageKeys))
@@ -111,6 +112,7 @@ Messaging.addListener("buffered_page_keys", (message, sender, sendResponse) => {
     // until it is refocused.
     mustBufferPageKeysForClInput = false
     bufferedPageKeys = []
+    clearTimeout(stopBufferingPageKeysTimeoutId);
 })
 
 /** Accepts keyevents, resolves them to maps, maps to exstrs, executes exstrs */
@@ -207,6 +209,11 @@ function* ParserController() {
                         logger.debug("Starting buffering of page keys")
                         mustBufferPageKeysForClInput = true
                         bufferedPageKeys = []
+                        // Stop buffering keys after 5s if something goes wrong and clInput never gets focused.
+                        stopBufferingPageKeysTimeoutId = setTimeout(() => {
+                            logger.debug("Aborting buffering of page keys since clInput still has not been focused")
+                            mustBufferPageKeysForClInput = false
+                        }, 5000)
                     }
                     break
                 } else {
