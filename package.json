@@ -42,7 +42,7 @@
     "command-line-args": "^5.2.1",
     "eslint": "^7.32.0",
     "eslint-config-prettier": "^9.0.0",
-    "eslint-plugin-import": "^2.27.5",
+    "eslint-plugin-import": "^2.29.0",
     "eslint-plugin-jsdoc": "^44.2.7",
     "eslint-plugin-prefer-arrow": "^1.2.3",
     "eslint-plugin-sonarjs": "^0.21.0",
