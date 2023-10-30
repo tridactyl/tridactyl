@@ -104,15 +104,16 @@ export const canceller = new KeyCanceller()
 
 let mustBufferPageKeysForClInput = false
 let bufferedPageKeys: string[] = []
-let stopBufferingPageKeysTimeoutId : number
+let bufferingPageKeysBeginTime: number
 Messaging.addListener("buffered_page_keys", (message, sender, sendResponse) => {
-    logger.debug("buffered_page_keys request received, responding with", bufferedPageKeys)
+    const bufferingDuration = performance.now() - bufferingPageKeysBeginTime;
+    logger.debug("buffered_page_keys request received, responding with", bufferedPageKeys
+        + " bufferingDuration = " + bufferingDuration + "ms")
     sendResponse(Promise.resolve(bufferedPageKeys))
     // At this point, clInput is focused and the page cannot get any more keyboard events
     // until it is refocused.
     mustBufferPageKeysForClInput = false
     bufferedPageKeys = []
-    clearTimeout(stopBufferingPageKeysTimeoutId);
 })
 
 /** Accepts keyevents, resolves them to maps, maps to exstrs, executes exstrs */
@@ -207,13 +208,9 @@ function* ParserController() {
                     exstr = response.exstr
                     if (exstr.startsWith("fillcmdline ")) { // TODO That's ugly. I need a way to know if this command is going to open the command line. Is there a better way?
                         logger.debug("Starting buffering of page keys")
+                        bufferingPageKeysBeginTime = performance.now()
                         mustBufferPageKeysForClInput = true
                         bufferedPageKeys = []
-                        // Stop buffering keys after 5s if something goes wrong and clInput never gets focused.
-                        stopBufferingPageKeysTimeoutId = setTimeout(() => {
-                            logger.debug("Aborting buffering of page keys since clInput still has not been focused")
-                            mustBufferPageKeysForClInput = false
-                        }, 5000)
                     }
                     break
                 } else {
@@ -241,7 +238,18 @@ generator.next()
 
 /** Feed keys to the ParserController, unless they should be buffered to be later fed to clInput */
 export function acceptKey(keyevent: KeyboardEvent) {
-    function bufferPageKeyForClInput(keyevent: KeyboardEvent) {
+    function tryBufferingPageKeyForClInput(keyevent: KeyboardEvent) {
+        if (!mustBufferPageKeysForClInput)
+            return false;
+        const bufferingDuration = performance.now() - bufferingPageKeysBeginTime;
+        logger.debug("controller_content mustBufferPageKeysForClInput = " + mustBufferPageKeysForClInput
+            + " bufferingDuration = " + bufferingDuration + "ms");
+        // Stop buffering keys after 5s if something goes wrong and clInput never gets focused.
+        if (bufferingDuration > 5000) {
+            logger.debug("Aborting buffering of page keys since clInput still has not been focused")
+            mustBufferPageKeysForClInput = false
+            return false
+        }
         const isCharacterKey = keyevent.key.length == 1
             && !keyevent.metaKey && !keyevent.ctrlKey && !keyevent.altKey && !keyevent.metaKey;
         if (isCharacterKey) {
@@ -249,10 +257,8 @@ export function acceptKey(keyevent: KeyboardEvent) {
             logger.debug("Buffering page keys", bufferedPageKeys)
         }
         canceller.push(keyevent)
+        return true
     }
-    logger.debug("controller_content mustBufferPageKeysForClInput = " + mustBufferPageKeysForClInput)
-    if (mustBufferPageKeysForClInput)
-        bufferPageKeyForClInput(keyevent)
-    else
+    if (!tryBufferingPageKeyForClInput(keyevent))
         return generator.next(keyevent)
 }
