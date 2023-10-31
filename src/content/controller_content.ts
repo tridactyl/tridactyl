@@ -147,6 +147,10 @@ function* ParserController() {
                 // code more thread-safe.
                 const currentMode = contentState.mode
 
+                // Don't break old modes with keyup events
+                // TODO: fix this in these parsers directly
+                if (["hint", "gobble"].includes(currentMode) && (keyevent as any).keyup) continue
+
                 // This code was sort of the cause of the most serious bug in Tridactyl
                 // to date (March 2018).
                 // https://github.com/tridactyl/tridactyl/issues/311
