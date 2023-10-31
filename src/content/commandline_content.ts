@@ -96,22 +96,6 @@ export function hide() {
     }
 }
 
-/**
- * TODO: Discuss removal of this method. We want clInput to be focused, not cmdline_iframe?
- */
-export function focus() {
-    try {
-        // I don't think this is necessary because clInput is going to be focused.
-        // cmdline_iframe.focus()
-    } catch (e) {
-        // Note: We can't use cmdline_logger.error because it will try to log
-        // the error in the commandline, which will need to focus() it again,
-        // which will throw again...
-        // cmdline_logger.error(e)
-        console.error(e)
-    }
-}
-
 export function blur() {
     try {
         cmdline_iframe.blur()

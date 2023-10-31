@@ -92,7 +92,6 @@ theme(document.querySelector(":root"))
 function resizeArea() {
     if (commandline_state.isVisible) {
         Messaging.messageOwnTab("commandline_content", "show")
-        Messaging.messageOwnTab("commandline_content", "focus")
         focus()
     }
 }
