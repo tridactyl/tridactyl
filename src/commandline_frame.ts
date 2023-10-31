@@ -165,7 +165,7 @@ const noblur = () => setTimeout(() => commandline_state.clInput.focus(), 0)
 export function focus() {
     function consumeBufferedPageKeys(bufferedPageKeys: string[]) {
         const clInputStillFocused = window.document.activeElement === commandline_state.clInput;
-        logger.debug("buffered_page_keys response received", bufferedPageKeys,
+        logger.debug("stop_buffering_page_keys response received, bufferedPageKeys = ", bufferedPageKeys,
             "clInputStillFocused = " + clInputStillFocused)
         if (bufferedPageKeys.length !== 0) {
             const currentClInputValue = commandline_state.clInput.value;
@@ -187,7 +187,7 @@ export function focus() {
     commandline_state.clInput.removeEventListener("blur", noblur)
     commandline_state.clInput.addEventListener("blur", noblur)
     logger.debug("commandline_frame clInput focus(), activeElement is clInput: " + (window.document.activeElement === commandline_state.clInput))
-    Messaging.messageOwnTab("buffered_page_keys").then(consumeBufferedPageKeys)
+    Messaging.messageOwnTab("stop_buffering_page_keys").then(consumeBufferedPageKeys)
 }
 
 /** @hidden **/
