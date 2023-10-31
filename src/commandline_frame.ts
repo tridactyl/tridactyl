@@ -405,6 +405,7 @@ export function editor_function(fn_name: keyof typeof tri_editor, ...args) {
 }
 
 Messaging.addListener("commandline_frame", Messaging.attributeCaller(SELF))
+logger.debug("Added commandline_frame message listener")
 
 commandline_state.fns = getCommandlineFns(commandline_state)
 Messaging.addListener(
@@ -420,3 +421,5 @@ Messaging.addListener(
 ;(window as any).tri = Object.assign(window.tri || {}, {
     perfObserver: perf.listenForCounters(),
 })
+
+Messaging.messageOwnTab("commandline_frame_ready_to_receive_messages")

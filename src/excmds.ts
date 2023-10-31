@@ -3882,6 +3882,7 @@ export function hidecmdline() {
 export function fillcmdline(...strarr: string[]) {
     const str = strarr.join(" ")
     showcmdline(false)
+    logger.debug("excmds fillcmdline sending fillcmdline to commandline_frame")
     return Messaging.messageOwnTab("commandline_frame", "fillcmdline", [str, true/*trailspace*/, true/*focus*/])
 }
 

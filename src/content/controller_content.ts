@@ -102,6 +102,12 @@ class KeyCanceller {
 
 export const canceller = new KeyCanceller()
 
+let commandlineFrameReadyToReceiveMessages = false
+Messaging.addListener("commandline_frame_ready_to_receive_messages", () => {
+    logger.debug("Received commandline_frame_ready_to_receive_messages")
+    commandlineFrameReadyToReceiveMessages = true
+})
+
 let mustBufferPageKeysForClInput = false
 let bufferedPageKeys: string[] = []
 let bufferingPageKeysBeginTime: number
@@ -244,12 +250,6 @@ export function acceptKey(keyevent: KeyboardEvent) {
         const bufferingDuration = performance.now() - bufferingPageKeysBeginTime;
         logger.debug("controller_content mustBufferPageKeysForClInput = " + mustBufferPageKeysForClInput
             + " bufferingDuration = " + bufferingDuration + "ms");
-        // Stop buffering keys after 5s if something goes wrong and clInput never gets focused.
-        if (bufferingDuration > 5000) {
-            logger.debug("Aborting buffering of page keys since clInput still has not been focused")
-            mustBufferPageKeysForClInput = false
-            return false
-        }
         const isCharacterKey = keyevent.key.length == 1
             && !keyevent.metaKey && !keyevent.ctrlKey && !keyevent.altKey && !keyevent.metaKey;
         if (isCharacterKey) {
@@ -258,6 +258,14 @@ export function acceptKey(keyevent: KeyboardEvent) {
         }
         canceller.push(keyevent)
         return true
+    }
+    if (!commandlineFrameReadyToReceiveMessages) {
+        // If commandline frame cannot receive message, excmds.fillcmdline() will send a fillcmdline message to the
+        // commandline frame that it will never receive. As a result, clInput will not be focused (commandline_frame.focus() will not be called).
+        // If we (content/page process) start buffering keys for clInput, but clInput is not focused, then commandline_frame.focus() will not run,
+        // and it will not send the buffered_page_keys message back to us, and we will keep buffering (and eating events) forever.
+        logger.debug("controller_content Ignoring key event since commandline frame is not yet ready to receive messages", keyevent)
+        return
     }
     if (!tryBufferingPageKeyForClInput(keyevent))
         return generator.next(keyevent)
