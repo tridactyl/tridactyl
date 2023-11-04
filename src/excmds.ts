@@ -818,15 +818,19 @@ export async function mktridactylrc(...args: string[]) {
 /**
  * Runs an RC file from disk or a URL
  *
- * This function accepts a flag: `--url` to load a RC from a URL.
+ * This function accepts flags: `--url`, `--clipboard` or `--strings`.
  *
  * If no argument given, it will try to open ~/.tridactylrc, ~/.config/tridactyl/tridactylrc or $XDG_CONFIG_HOME/tridactyl/tridactylrc in reverse order. You may use a `_` in place of a leading `.` if you wish, e.g, if you use Windows.
  *
- * If no url is specified with the `--url` flag, the current page's URL is used to locate the RC file. Ensure the URL you pass (or page you are on) is a "raw" RC file, e.g. https://raw.githubusercontent.com/tridactyl/tridactyl/master/.tridactylrc and not https://github.com/tridactyl/tridactyl/blob/master/.tridactylrc.
+ * On Windows, the `~` expands to `%USERPROFILE%`.
+ *
+ * The `--url` flag will load the RC from the URL. If no url is specified with the `--url` flag, the current page's URL is used to locate the RC file. Ensure the URL you pass (or page you are on) is a "raw" RC file, e.g. https://raw.githubusercontent.com/tridactyl/tridactyl/master/.tridactylrc and not https://github.com/tridactyl/tridactyl/blob/master/.tridactylrc.
  *
  * Tridactyl won't run on many raw pages due to a Firefox bug with Content Security Policy, so you may need to use the `source --url [URL]` form.
  *
- * On Windows, the `~` expands to `%USERPROFILE%`.
+ * The `--clipboard` flag will load the RC from the clipboard, which is useful for people does not install native messenger nor store their rc online. You can use this with `mktridactylrc --clipboard`.
+ *
+ * The `--strings` flag will load the RC from rest arguments. It could be useful if you want to execute a batch of commands in js context. Eg: `js tri.excmds.source("--strings", [cmd1, cmd2].join("\n"))`.
  *
  * The RC file is just a bunch of Tridactyl excmds (i.e, the stuff on this help page). Settings persist in local storage. There's an [example file](https://raw.githubusercontent.com/tridactyl/tridactyl/master/.tridactylrc) if you want it.
  *
@@ -841,6 +845,11 @@ export async function source(...args: string[]) {
         if (!url || url === "%") url = window.location.href
         if (!new RegExp("^(https?://)|data:").test(url)) url = "http://" + url
         await rc.sourceFromUrl(url)
+    } else if (args[0] === "--strings") {
+        await rc.runRc(args.slice(1).join(" "))
+    } else if (args[0] === "--clipboard") {
+        const text = await getclip()
+        await rc.runRc(text)
     } else {
         const file = args.join(" ") || undefined
         if ((await Native.nativegate("0.1.3")) && !(await rc.source(file))) {
