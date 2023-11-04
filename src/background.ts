@@ -66,6 +66,16 @@ controller.setExCmds({
     hint: HintingCmds,
 })
 
+// limit the command history size
+setTimeout(async () => {
+    const alert = await config.getAsync('historycmdcountalert')
+    const limit = await config.getAsync('historycmdcountlimit')
+    const cmdHistory = state.cmdHistory
+    if (cmdHistory.length > alert) {
+        state.cmdHistory = cmdHistory.slice(-limit)
+    }
+}, 15 * 1000)
+
 // {{{ tri.contentLocation
 // When loading the background, use the active tab to know what the current content url is
 browser.tabs.query({ currentWindow: true, active: true }).then(t => {
