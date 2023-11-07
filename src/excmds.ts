@@ -828,7 +828,7 @@ export async function mktridactylrc(...args: string[]) {
  *
  * Tridactyl won't run on many raw pages due to a Firefox bug with Content Security Policy, so you may need to use the `source --url [URL]` form.
  *
- * The `--clipboard` flag will load the RC from the clipboard, which is useful for people does not install native messenger nor store their rc online. You can use this with `mktridactylrc --clipboard`.
+ * The `--clipboard` flag will load the RC from the clipboard, which is useful for people cannot install the native messenger or do not wish to store their RC online. You can use this with `mktridactylrc --clipboard`.
  *
  * The `--strings` flag will load the RC from rest arguments. It could be useful if you want to execute a batch of commands in js context. Eg: `js tri.excmds.source("--strings", [cmd1, cmd2].join("\n"))`.
  *
