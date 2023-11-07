@@ -68,11 +68,11 @@ controller.setExCmds({
 
 // limit the command history size
 setTimeout(async () => {
-    const alert = await config.getAsync('historycmdcountalert')
     const limit = await config.getAsync('historycmdcountlimit')
+    if (limit < 0) return
     const cmdHistory = state.cmdHistory
     if (cmdHistory.length > alert) {
-        state.cmdHistory = cmdHistory.slice(-limit)
+        state.cmdHistory = cmdHistory.slice(-Math.floor(limit * 2/3))
     }
 }, 15 * 1000)
 

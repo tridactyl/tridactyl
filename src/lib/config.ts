@@ -1172,14 +1172,9 @@ export class default_config {
     historyresults = 50
 
     /**
-     * Reduce the size (line count) of ex command history if the size is larger than the historycmdcountalert when tridactyl started. The size will be reduce to the historycmdcountlimit.
+     * Reduce the size (line count) of ex command history if the size is larger than the historycmdcountalert when tridactyl started. The size will be reduce to the 2/3 of the limit. Set the limit to -1 to disable history limit.
      */
-    historycmdcountalert = 768
-
-    /**
-     * Reduce the size (line count) of ex command history if the size is larger than the historycmdcountalert when tridactyl started. The size will be reduce to the historycmdcountlimit.
-     */
-    historycmdcountlimit = 512
+    historycmdcountlimit = 1536
 
     /**
      * When displaying bookmarks in history completions, how many page views to pretend they have.
