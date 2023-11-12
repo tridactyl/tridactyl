@@ -5,31 +5,47 @@
 -   New features
 
     -   A new `:reader` mode has been added which Tridactyl binds can run on. If you prefer the old mode, it is accessible with `:reader --old`. We've left `gr` bound to the old mode for now but you can update it with `:bind gr reader`
-    -   With `:set tabsort mru`, tab IDs within Tridactyl are now determined by recency of use almost everywhere. This means, e.g. that you can use `2gt` to switch to the second most recently used tab (so identical to `<C-^>`), `3gt` to the third most recently used tab, etc. (#4595)
-    -   `:set keyboardlayoutforce true` will now force Tridactyl to use, by default, the US keyboard layout for keybinds, even if you're using a different layout. Useful if you use multiple layouts but don't want Tridactyl binds to move, or if you use a layout such as a Cyrillic one where the default binds are difficult to use. Change the forced layout with `:set keyboatlayoutbase` (#4532)
+    -   With `:set tabsort mru`, tab IDs within Tridactyl are now determined by recency of use almost everywhere. This means, e.g. that you can use `2gt` to switch to the second most recently used tab (so identical to `<C-^>`), `3gt` to the third most recently used tab, etc. ([#4595](https://github.com/tridactyl/tridactyl/issues/4595))
+    -   `yq` bind added to display current URL as a QR code, with `q` bind in visual mode. See `:text2qr` for details ([#4728](https://github.com/tridactyl/tridactyl/issues/4728))
+    -   `:set keyboardlayoutforce true` will now force Tridactyl to use, by default, the US keyboard layout for keybinds, even if you're using a different layout. Useful if you use multiple layouts but don't want Tridactyl binds to move, or if you use a layout such as a Cyrillic one where the default binds are difficult to use. Change the forced layout with `:set keyboatlayoutbase` ([#4532](https://github.com/tridactyl/tridactyl/issues/4532))
     -   Experimental support for opening arbitrary pages in the sidebar has been added. See `:help sidebartoggle` and `:help sidebaropen` for more details
-    -   `:autocmd` and related commands now have completions (#4604)
-    -   `:open` and related commands now have completions for searchurls and previous searches (#4562)
-    -   Quality of life improvements for tab groups (#4539)
-    -   `-x` flag added to `:hint` to exclude CSS selectors from hints (#4453)
+    -   `:autocmd` and related commands now have completions ([#4604](https://github.com/tridactyl/tridactyl/issues/4604))
+    -   `:open` and related commands now have completions for searchurls and previous searches ([#4562](https://github.com/tridactyl/tridactyl/issues/4562))
+    -   Quality of life improvements for tab groups ([#4539](https://github.com/tridactyl/tridactyl/issues/4539))
+    -   `-x` flag added to `:hint` to exclude CSS selectors from hints ([#4453](https://github.com/tridactyl/tridactyl/issues/4453))
     -   With the command line open, `<C-o>t` opens a new tab in the background for the selected completion - especially useful with `:back` completions
+    -   `:hint -C [selectors]` added for custom hint modes while including the default selectors ([#4781](https://github.com/tridactyl/tridactyl/issues/4781))
+    -   `;gd` rapid hint mode with discarded tabs added ([#4694](https://github.com/tridactyl/tridactyl/issues/4694))
+    -   `:undo` now has fuzzy matching ([#4344](https://github.com/tridactyl/tridactyl/issues/4344))
 
 -   Bug fixes
 
-    -   `:find` will now find start from the current viewport (#4486)
-    -   Comments now work in multiline commands in RC files (#4555)
-    -   `:editor` now works on Gradio apps (please spare me when AI takes over the world) (#4643)
-    -   `:winmerge` completions are more readable with many windows (#4639)
-    -   `:urlincrement` now operates on the decoded URI so e.g. `%20` doesn't become `%21` (#4616)
-    -   `;m` and `;M` for Google reverse-image search now work again (#4591)
-    -   The midnight theme no longer has a white background in FF102+ (#4576)
-    -   Container colours fixed for FF108+ (#4546)
+    -   `:find` will now find start from the current viewport ([#4486](https://github.com/tridactyl/tridactyl/issues/4486))
+    -   Comments now work in multiline commands in RC files ([#4555](https://github.com/tridactyl/tridactyl/issues/4555))
+    -   `:editor` now works on Gradio apps (please spare me when AI takes over the world) ([#4643](https://github.com/tridactyl/tridactyl/issues/4643))
+    -   `:winmerge` completions are more readable with many windows ([#4639](https://github.com/tridactyl/tridactyl/issues/4639))
+    -   `:urlincrement` now operates on the decoded URI so e.g. `%20` doesn't become `%21` ([#4616](https://github.com/tridactyl/tridactyl/issues/4616))
+    -   `;m` and `;M` for Google reverse-image search now work again ([#4591](https://github.com/tridactyl/tridactyl/issues/4591))
+    -   The midnight theme no longer has a white background in FF102+ ([#4576](https://github.com/tridactyl/tridactyl/issues/4576))
+    -   Container colours fixed for FF108+ ([#4546](https://github.com/tridactyl/tridactyl/issues/4546))
+    -   `gi` no longer goes to the start of the search box on Google ([#4706](https://github.com/tridactyl/tridactyl/issues/4706))
+    -   `modeindicator` border is now configurable ([#4751](https://github.com/tridactyl/tridactyl/issues/4751))
+    -   Unbindable default binds should no longer be possible ([#1922](https://github.com/tridactyl/tridactyl/issues/1922))
+    -   Config should no longer reset when interacting with help page ([#4670](https://github.com/tridactyl/tridactyl/issues/4670))
 
 -   Miscellaneous
 
     -   `:jsua` command added to preserve "user action" intent when using browser binds, needed for triggering certain Web Extension APIs such as `browser.sidebarAction.open()`. See `:help jsua` for more information
     -   `tri.hinting_content.hintElements` function added for advanced usage in `:js` - see [the source](https://github.com/tridactyl/tridactyl/blob/82ac6064cc522b6dc79ed71c63bc3177897e0876/src/content/hinting.ts#L406) for documentation
+    -   Groundwork for multi-browser support added ([#4768](https://github.com/tridactyl/tridactyl/issues/4768))
+    -   All tests now run using GitHub actions ([#4769](https://github.com/tridactyl/tridactyl/issues/4769))
+    -   Docs are now built and hosted [on our website](https://tridactyl.xyz/build/static/docs/modules/_src_excmds_.html) ([#4732](https://github.com/tridactyl/tridactyl/issues/4732))
 
+Thanks to all of our contributors for this release: Oliver Blanthorn, dependabot[bot], R. David Dunphy, Denis Revunov, gholk, satyamk, Pascal Jufer, glacambre, treapster, Gold Holk, Tushar, Aditya Prakash Gupta, Dhruva Sambrani, Imran Khan, Michael Joseph Rosenthal, Raffaele Mancuso, Richard Mathieson, Satyam Kumar, Simon, frikdt, josh, monirzadeh, nfd (aka alex), pataquets, petoncle, themaherdev
+
+Extra special thanks go to Aditya Prakash Gupta, frikdt, monirzadeh, nfd (aka alex), Pascal Jufer, pataquets, petoncle, Raffaele Mancuso, R. David Dunphy, Richard Mathieson, satyamk, Satyam Kumar, Simon, themaherdev, treapster and Tushar who all contributed for the first time.
+
+Last, but not least - thank you to everyone who reported issues.
 
 # Release 1.23.0 / 2022-11-28
 
