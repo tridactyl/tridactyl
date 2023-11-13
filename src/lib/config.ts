@@ -1269,6 +1269,30 @@ export class default_config {
     urlparenttrailingslash: "true" | "false" = "true"
 
     /**
+     * Whether removal of the url fragment (the name after # in the url)
+     * is counted as a parent level.
+     */
+    urlparentignorefragment: "true" | "false" = "false"
+
+    /**
+     * Whether removal the url search parameter (the name after ? in the url)
+     * is counted as a parent level.
+     */
+    urlparentignoresearch: "true" | "false" = "false"
+
+    /**
+     * RegExp to remove from the url pathname before go to any parent path.
+     * To ignore "index.html" in "parent/index.html", set it to
+     * "//index\.html/". The regexp flag is supported, and the escape of
+     * the slashes inside the regexp is not required.
+     *
+     * An empty string will disable this feature.
+     *
+     * Suggested value: //index\.(html?|php|aspx?|jsp|cgi|pl|js)$/i
+     */
+    urlparentignorepathregexp = ""
+
+    /**
      * Whether to enter visual mode when text is selected. Visual mode can always be entered with `:mode visual`.
      */
     visualenterauto: "true" | "false" = "true"

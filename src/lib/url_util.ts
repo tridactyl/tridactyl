@@ -54,22 +54,23 @@ export function getUrlRoot(url) {
 
 /** Get the parent of the current URL. Parent is determined as:
  *
- * * if there is a hash fragment, strip that, or
- * * If there is a query string, strip that, or
+ * * if there is a hash fragment and option.ignoreFragment is falsy, strip that, or
+ * * If there is a query string and option.ignoreSearch is falsy, strip that, or
+ * * If option.ignorePathRegExp match the path, strip that and
  * * Remove one level from the path if there is one, or
  * * Remove one subdomain from the front if there is one
  *
  * @param url               the URL to get the parent of
- * @param trailingSlash     whether the returned URL has a trailing slash
+ * @param option            removal option. Boolean properties: trailingSlash, ignoreFragment and ignoreSearch. Regular Expression properties: ignorePathRegExp. All properties are optional.
  * @param count             how many "generations" you wish to go back (1 = parent, 2 = grandparent, etc.)
  * @return                  the parent of the URL, or null if there is no parent
  */
-export function getUrlParent(url, trailingSlash, count = 1) {
+export function getUrlParent(url, option, count = 1) {
     // Helper function.
-    function gup(parent, trailingSlash, count) {
+    function gup(parent, option, count) {
         if (count < 1) {
             // remove trailing slash(s) if desired
-            if (!trailingSlash) {
+            if (!option.trailingSlash) {
                 // remove 1 or more trailing slashes
                 parent.pathname = parent.pathname.replace(/\/+$/, "")
             }
@@ -78,18 +79,28 @@ export function getUrlParent(url, trailingSlash, count = 1) {
         // strip, in turn, hash/fragment and query/search
         if (parent.hash) {
             parent.hash = ""
-            return gup(parent, trailingSlash, count - 1)
+            if (!option.ignoreFragment) count--
+            return gup(parent, option, count)
         }
         if (parent.search) {
             parent.search = ""
-            return gup(parent, trailingSlash, count - 1)
+            if (!option.ignoreSearch) count--
+            return gup(parent, option, count)
+        }
+
+        if (option.ignorePathRegExp) {
+            const re = option.ignorePathRegExp
+            if (parent.pathname.match(re)) {
+                parent.pathname = parent.pathname.replace(re, "/")
+                return gup(parent, option, count)
+            }
         }
 
         // empty path is '/'
         if (parent.pathname !== "/") {
             // Remove trailing slashes and everything to the next slash:
             parent.pathname = parent.pathname.replace(/\/[^\/]*?\/*$/, "/")
-            return gup(parent, trailingSlash, count - 1)
+            return gup(parent, option, count - 1)
         }
 
         // strip off the first subdomain if there is one
@@ -100,7 +111,7 @@ export function getUrlParent(url, trailingSlash, count = 1) {
             if (domains.length > 2) {
                 // domains.pop()
                 parent.host = domains.slice(1).join(".")
-                return gup(parent, trailingSlash, count - 1)
+                return gup(parent, option, count - 1)
             }
         }
 
@@ -114,7 +125,7 @@ export function getUrlParent(url, trailingSlash, count = 1) {
     }
 
     const parent = new URL(url)
-    return gup(parent, trailingSlash, count)
+    return gup(parent, option, count)
 }
 
 /** Very incomplete lookup of extension for common mime types that might be
@@ -404,22 +415,24 @@ export function interpolateSearchItem(urlPattern: URL, query: string): URL {
     // replace or append as needed
     if (hasInterpolationPoint) {
         const resultingURL = new URL(
-            urlPattern.href.replace(/%s\d+/g, function (x) {
-                const index = parseInt(x.slice(2), 10) - 1
-                if (index >= queryWords.length) {
-                    return ""
-                }
+            urlPattern.href
+                .replace(/%s\d+/g, function (x) {
+                    const index = parseInt(x.slice(2), 10) - 1
+                    if (index >= queryWords.length) {
+                        return ""
+                    }
 
-                return queryWords[index]
-            }).replace(/%s\[(-?\d+)?:(-?\d+)?\]/g, function(match, p1, p2) {
-                const l = (x => x >= 1 ? x - 1 : x)
-                // slices are 1-indexed
-                const start = p1 ? l(parseInt(p1, 10)) : 0;
-                const slice = p2 ?
-                    queryWords.slice(start, l(parseInt(p2, 10))) :
-                    queryWords.slice(start)
-                return slice.join(" ")
-            }),
+                    return queryWords[index]
+                })
+                .replace(/%s\[(-?\d+)?:(-?\d+)?\]/g, function (match, p1, p2) {
+                    const l = x => (x >= 1 ? x - 1 : x)
+                    // slices are 1-indexed
+                    const start = p1 ? l(parseInt(p1, 10)) : 0
+                    const slice = p2
+                        ? queryWords.slice(start, l(parseInt(p2, 10)))
+                        : queryWords.slice(start)
+                    return slice.join(" ")
+                }),
         )
 
         return new URL(resultingURL.href.replace("%s", query))
@@ -433,7 +446,10 @@ export function interpolateSearchItem(urlPattern: URL, query: string): URL {
  * @param baseURI The URL the absolute URL should be relative to. This is
  * usually the URL of the current page.
  */
-export function getAbsoluteURL(url: string, baseURI: string = document.baseURI) {
+export function getAbsoluteURL(
+    url: string,
+    baseURI: string = document.baseURI,
+) {
     // We can choose between using complicated RegEx and string manipulation,
     // or just letting the browser do it for us. The latter is probably safer,
     // which should make it worth the (small) overhead of constructing an URL

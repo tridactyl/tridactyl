@@ -2065,9 +2065,18 @@ export function urlroot() {
  */
 //#content
 export function urlparent(count = 1) {
-    const trailingSlash = config.get("urlparenttrailingslash") === "true"
+    const option = {}
+    for (const key of "trailingSlash ignoreFragment ignoreSearch".split(" ")) {
+        const configKey = ("urlparent" + key.toLowerCase()) as keyof config.default_config
+        option[key] = config.get(configKey) === "true"
+    }
+    const regexpString = config.get("urlparentignorepathregexp")
+    const regexpScan = regexpString.match(/^\/(.+)\/([a-z]*?)$/)
+    if (regexpString && regexpScan) {
+        option["ignorePathRegExp"] = new RegExp(regexpScan[1], regexpScan[2])
+    }
 
-    const parentUrl = UrlUtil.getUrlParent(window.location, trailingSlash, count)
+    const parentUrl = UrlUtil.getUrlParent(window.location, option, count)
 
     if (parentUrl !== null) {
         window.location.href = parentUrl.href

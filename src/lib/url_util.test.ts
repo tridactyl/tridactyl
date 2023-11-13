@@ -74,7 +74,7 @@ function test_parent() {
     ]
 
     for (let [url, exp_parent] of cases) {
-        let parent = UrlUtil.getUrlParent(new URL(url), true)
+        let parent = UrlUtil.getUrlParent(new URL(url), {trailingSlash: true})
 
         test(`parent of ${url} --> ${exp_parent}`, () =>
             expect(parent ? parent.href : parent).toEqual(exp_parent))
@@ -113,7 +113,10 @@ function test_parent_with_slash_strip() {
     ]
 
     for (const [url, exp_parent] of cases) {
-        const parent = UrlUtil.getUrlParent(new URL(url), false)
+        const parent = UrlUtil.getUrlParent(
+            new URL(url),
+            {trailingSlash: false}
+        )
 
         test(`parent of ${url} --> ${exp_parent}`, () =>
             expect(parent ? parent.href : parent).toEqual(exp_parent))
