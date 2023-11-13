@@ -45,7 +45,7 @@
     "eslint-plugin-import": "^2.29.0",
     "eslint-plugin-jsdoc": "^46.9.0",
     "eslint-plugin-prefer-arrow": "^1.2.3",
-    "eslint-plugin-sonarjs": "^0.21.0",
+    "eslint-plugin-sonarjs": "^0.23.0",
     "geckodriver": "^4.2.1",
     "jasmine-fail-fast": "^2.0.1",
     "jest": "^25.5.4",
