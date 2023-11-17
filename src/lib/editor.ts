@@ -366,6 +366,50 @@ export const backward_char = wrap_input(
     (text, selectionStart) => [null, selectionStart - 1, null],
 )
 
+export const previous_line = wrap_input(
+    (text,selectionStart) => {
+        const leftNewLinePos = text.slice(0, selectionStart).lastIndexOf("\n")
+        let width = 0
+        if (~leftNewLinePos) {
+            width = selectionStart - leftNewLinePos
+        } else {
+            return[text, 0, null]
+        }
+        const previousLeftNewLinePos = text.slice(0, leftNewLinePos).lastIndexOf("\n", selectionStart)
+        let position
+        if (previousLeftNewLinePos + width < leftNewLinePos) {
+            position = previousLeftNewLinePos + width
+        } else {
+            position=leftNewLinePos
+        }
+        return [text, position, null]
+    }
+)
+
+export const next_line = wrap_input(
+    (text, selectionStart) => {
+        const leftNewLinePos = text.slice(0, selectionStart).lastIndexOf("\n")
+        let width
+        if (~leftNewLinePos) {
+            width = selectionStart - leftNewLinePos
+        } else {
+            width=selectionStart+1
+        }
+        const rightNewLinePos=text.indexOf("\n",selectionStart)
+        let position
+        if (rightNewLinePos==-1) {
+            position=text.length
+        } else {
+            const nextRightNewLinePos = text.indexOf("\n", rightNewLinePos + 1)
+            if (nextRightNewLinePos == -1 || rightNewLinePos + width < nextRightNewLinePos) {
+                position = rightNewLinePos + width
+            } else {
+                position=nextRightNewLinePos
+            }
+        }
+        return [text, position, null]}
+)
+
 /**
  * Behaves like readline's [forward_word](http://web.mit.edu/gnu/doc/html/rlman_1.html#SEC12). Moves the caret one word to the right, with words being defined by the wordpattern setting.
  **/
