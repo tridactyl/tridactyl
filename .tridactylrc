@@ -74,6 +74,9 @@
 " " Broken as of 2023-07-18
 " " bindurl ^https://duckduckgo.com f hint -Jc [data-testid="result-title-a"]
 " " bindurl ^https://duckduckgo.com F hint -Jbc [data-testid="result-title-a"]
+
+" " Make `gi` on GitHub take you to the search box
+" bindurl ^https://github.com gi hint -Vc .AppHeader-searchButton
 " 
 " " Allow Ctrl-a to select all in the commandline
 " unbind --mode=ex <C-a>
