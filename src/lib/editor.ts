@@ -7,7 +7,7 @@
  * ```
  * bind --mode=ex <C-a> text.beginning_of_line
  * bind --mode=input <C-a> text.beginning_of_line
- * bind --mode=insert <C-a> text.begining_of_line
+ * bind --mode=insert <C-a> text.beginning_of_line
  * ```
  *
  * Also keep in mind that if you want to bind something in insert mode, you'll probably also want to bind it in input mode (insert mode is entered by clicking on text areas while input mode is entered by using `gi`).
