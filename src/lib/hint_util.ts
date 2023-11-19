@@ -86,7 +86,7 @@ export class HintConfig implements HintOptions {
 
         const result = new HintConfig()
         const multiLetterFlags = ["fr", "wp", "br", "pipe"]
-        let cFlagPresent = false
+        let cOrPipeFlagPresent = false
         let CFlagPresent = false
 
         // Parser state
@@ -154,7 +154,7 @@ export class HintConfig implements HintOptions {
                                     newState = State.ExpectExcmd
                                     break
                                 case "c":
-                                    cFlagPresent = true
+                                    cOrPipeFlagPresent = true
                                     result.includeDefaultHintables = false
                                     newState = State.ExpectSelector
                                     break
@@ -167,6 +167,8 @@ export class HintConfig implements HintOptions {
                                     newState = State.ExpectSelectorExclude
                                     break
                                 case "pipe":
+                                    cOrPipeFlagPresent = true
+                                    result.includeDefaultHintables = false
                                     newState = State.ExpectPipeSelector
                                     break
                                 case "t":
@@ -248,9 +250,9 @@ export class HintConfig implements HintOptions {
                                 result.openMode = newOpenMode
                             }
 
-                            if (cFlagPresent && CFlagPresent) {
+                            if (cOrPipeFlagPresent && CFlagPresent) {
                                 result.warnings.push(
-                                    "mutually exclusive -c and -C flags are both specified, last wins, " +
+                                    "mutually exclusive -c (or -pipe) and -C flags are both specified, last wins, " +
                                     "default hints will " +
                                     (result.includeDefaultHintables ? "be" : "not be") + " included",
                                 )
@@ -283,6 +285,7 @@ export class HintConfig implements HintOptions {
                         }
                     } else {
                         // Not something that looks like an argument, add it to positionals for later processing
+                        result.includeDefaultHintables = false
                         result.selectors.push(arg)
                     }
                     break
