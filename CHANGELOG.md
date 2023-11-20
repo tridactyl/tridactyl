@@ -40,6 +40,7 @@
     -   Groundwork for multi-browser support added ([#4768](https://github.com/tridactyl/tridactyl/issues/4768))
     -   All tests now run using GitHub actions ([#4769](https://github.com/tridactyl/tridactyl/issues/4769))
     -   Docs are now built and hosted [on our website](https://tridactyl.xyz/build/static/docs/modules/_src_excmds_.html) ([#4732](https://github.com/tridactyl/tridactyl/issues/4732))
+    -   Native messenger now supports Arm-based Macs with `:native` version at least 0.4.0
 
 Thanks to all of our contributors for this release: Oliver Blanthorn, dependabot[bot], R. David Dunphy, Denis Revunov, gholk, satyamk, Pascal Jufer, glacambre, treapster, Gold Holk, Tushar, Aditya Prakash Gupta, Dhruva Sambrani, Imran Khan, Michael Joseph Rosenthal, Raffaele Mancuso, Richard Mathieson, Satyam Kumar, Simon, frikdt, josh, monirzadeh, nfd (aka alex), pataquets, petoncle, themaherdev
 
