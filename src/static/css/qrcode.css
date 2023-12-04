@@ -3,6 +3,11 @@ div.container {
     flex-direction: column;
 }
 
+#qr-canvas img {
+    max-height: 100vh;
+    max-width: 100vw;
+}
+
 div#qr-canvas {
     text-align: center;
 }
