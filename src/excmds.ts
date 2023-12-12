@@ -74,7 +74,7 @@
 
 // Shared
 import * as Messaging from "@src/lib/messaging"
-import { ownWinTriIndex, getTriVersion, browserBg, activeTab, activeTabId, activeTabContainerId, openInNewTab, openInNewWindow, openInTab, queryAndURLwrangler, goToTab, getSortedTabs, prevActiveTab } from "@src/lib/webext"
+import { ownWinTriIndex, getTriVersion, browserBg, activeTab, activeTabOnWindow, activeTabId, activeTabContainerId, openInNewTab, openInNewWindow, openInTab, queryAndURLwrangler, goToTab, getSortedTabs, prevActiveTab } from "@src/lib/webext"
 import * as Container from "@src/lib/containers"
 import state from "@src/state"
 import * as State from "@src/state"
@@ -2639,7 +2639,15 @@ export async function tabpush(windowId?: number) {
     windows.sort((w1, w2) => w1.id - w2.id)
     const nextWindow = windows[(windows.findIndex(window => window.id === currentWindow.id) + 1) % windows.length]
     const tabId = await activeTabId()
-    return browser.tabs.move(tabId, { index: -1, windowId: windowId ?? nextWindow.id })
+    const winId = windowId ?? nextWindow.id
+    const pos = await config.getAsync("tabopenpos")
+    switch (pos) {
+        case "last":
+            return browser.tabs.move(tabId, { index: -1, windowId: winId })
+        default:
+            let index = (await activeTabOnWindow(winId)).index + 1
+            return browser.tabs.move(tabId, { index: index, windowId: winId })
+    }
 }
 
 /** Switch to the tab currently playing audio, if any. */
@@ -2699,7 +2707,14 @@ export async function tabgrab(id: string) {
     // Figure out where it should be put
     const windowId = (await browser.windows.getLastFocused({ windowTypes: ["normal"] })).id
     // Move window
-    return browser.tabs.move(tabid, { index: -1, windowId })
+    const pos = await config.getAsync("tabopenpos")
+    switch (pos) {
+        case "last":
+            return browser.tabs.move(tabid, { index: -1, windowId })
+        default:
+            let index = (await activeTab()).index + 1
+            return browser.tabs.move(tabid, { index: index, windowId })
+    }
 }
 
 /** Like [[open]], but in a new tab. If no address is given, it will open the newtab page, which can be set with `set newtab [url]`
