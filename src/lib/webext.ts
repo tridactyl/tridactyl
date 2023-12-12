@@ -84,6 +84,15 @@ export async function activeTab() {
     )[0]
 }
 
+export async function activeTabOnWindow(windowId?: number) {
+    return (
+        await browser.tabs.query({
+            windowId: windowId,
+            active: true
+        })
+    )[0]
+}
+
 export async function activeTabId() {
     return (await activeTab()).id
 }
