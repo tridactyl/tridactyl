@@ -2641,12 +2641,11 @@ export async function tabpush(windowId?: number) {
     const tabId = await activeTabId()
     const winId = windowId ?? nextWindow.id
     const pos = await config.getAsync("tabopenpos")
-    switch (pos) {
-        case "last":
-            return browser.tabs.move(tabId, { index: -1, windowId: winId })
-        default:
-            let index = (await activeTabOnWindow(winId)).index + 1
-            return browser.tabs.move(tabId, { index: index, windowId: winId })
+    if (pos == "last") {
+        return browser.tabs.move(tabId, { index: -1, windowId: winId })
+    } else {
+        const index = (await activeTabOnWindow(winId)).index + 1
+        return browser.tabs.move(tabId, { index, windowId: winId })
     }
 }
 
@@ -2708,12 +2707,11 @@ export async function tabgrab(id: string) {
     const windowId = (await browser.windows.getLastFocused({ windowTypes: ["normal"] })).id
     // Move window
     const pos = await config.getAsync("tabopenpos")
-    switch (pos) {
-        case "last":
-            return browser.tabs.move(tabid, { index: -1, windowId })
-        default:
-            let index = (await activeTab()).index + 1
-            return browser.tabs.move(tabid, { index: index, windowId })
+    if (pos == "last") {
+        return browser.tabs.move(tabid, { index: -1, windowId })
+    } else {
+        const index = (await activeTab()).index + 1
+        return browser.tabs.move(tabid, { index, windowId })
     }
 }
 
