@@ -1,6 +1,6 @@
 # Tridactyl changelog
 
-# Release 1.24.0 / Unreleased
+# Release 1.24.0 / 2023-12-12
 
 -   New features
 
@@ -17,6 +17,8 @@
     -   `:hint -C [selectors]` added for custom hint modes while including the default selectors ([#4781](https://github.com/tridactyl/tridactyl/issues/4781))
     -   `;gd` rapid hint mode with discarded tabs added ([#4694](https://github.com/tridactyl/tridactyl/issues/4694))
     -   `:undo` now has fuzzy matching ([#4344](https://github.com/tridactyl/tridactyl/issues/4344))
+    -   `:source` can now read from the command line and the clipboard with `--strings` and `--clipboard` ([#4821](https://github.com/tridactyl/tridactyl/issues/4821))
+    -   `:tab{grab,push}` now respect `tabopenpos` ([#4867](https://github.com/tridactyl/tridactyl/issues/4867))
 
 -   Bug fixes
 
@@ -41,10 +43,13 @@
     -   All tests now run using GitHub actions ([#4769](https://github.com/tridactyl/tridactyl/issues/4769))
     -   Docs are now built and hosted [on our website](https://tridactyl.xyz/build/static/docs/modules/_src_excmds_.html) ([#4732](https://github.com/tridactyl/tridactyl/issues/4732))
     -   Native messenger now supports Arm-based Macs with `:native` version at least 0.4.0
+    -   Native messenger 0.4.1 checks `%XDG_CONFIG_HOME%` on Windows
+    -   `when_feature.sh [feature]` helper script added to repo to find the earliest possible version a feature appeared in Tridactyl
 
-Thanks to all of our contributors for this release: Oliver Blanthorn, dependabot[bot], R. David Dunphy, Denis Revunov, gholk, satyamk, Pascal Jufer, glacambre, treapster, Gold Holk, Tushar, Aditya Prakash Gupta, Dhruva Sambrani, Imran Khan, Michael Joseph Rosenthal, Raffaele Mancuso, Richard Mathieson, Satyam Kumar, Simon, frikdt, josh, monirzadeh, nfd (aka alex), pataquets, petoncle, themaherdev
 
-Extra special thanks go to Aditya Prakash Gupta, frikdt, monirzadeh, nfd (aka alex), Pascal Jufer, pataquets, petoncle, Raffaele Mancuso, R. David Dunphy, Richard Mathieson, satyamk, Satyam Kumar, Simon, themaherdev, treapster and Tushar who all contributed for the first time.
+Thanks to all of our contributors for this release: Oliver Blanthorn, dependabot[bot], R. David Dunphy, Denis Revunov, gholk, satyamk, Pascal Jufer, Gold Holk, glacambre, treapster, Tushar, petoncle, Aditya Prakash Gupta, Amir Hossein, Daniel Caixinha, Dhruva Sambrani, Imran Khan, Michael Joseph Rosenthal, Raffaele Mancuso, Richard Mathieson, Satyam Kumar, Simon, frikdt, josh, monirzadeh, nfd (aka alex), pataquets and themaherdev.
+
+Extra special thanks go to Aditya Prakash Gupta, Amir Hossein, Daniel Caixinha, frikdt, monirzadeh, nfd (aka alex), Pascal Jufer, pataquets, petoncle, Raffaele Mancuso, R. David Dunphy, Richard Mathieson, satyamk, Satyam Kumar, Simon, themaherdev, treapster and Tushar who all contributed for the first time.
 
 Last, but not least - thank you to everyone who reported issues.
 
