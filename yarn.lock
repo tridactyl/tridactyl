@@ -865,10 +865,10 @@
   resolved "https://registry.yarnpkg.com/@mdn/browser-compat-data/-/browser-compat-data-5.4.3.tgz#a6be689ca5ee6435c804da2c496249b4ce476249"
   integrity sha512-+VnaO5zYUwFQVuRqp2qLPGR5GwhhJ/lrp0yEmamJ/nI15P2GKwGBEWRDiITZR8i6AYxeiQSu2rOi/gqxehnPuA==
 
-"@mozilla/readability@^0.4.4":
-  version "0.4.4"
-  resolved "https://registry.yarnpkg.com/@mozilla/readability/-/readability-0.4.4.tgz#5d258b3436eba1d5fe31c4386e50a848d5cb5811"
-  integrity sha512-MCgZyANpJ6msfvVMi6+A0UAsvZj//4OHREYUB9f2087uXHVoU+H+SWhuihvb1beKpM323bReQPRio0WNk2+V6g==
+"@mozilla/readability@^0.5.0":
+  version "0.5.0"
+  resolved "https://registry.yarnpkg.com/@mozilla/readability/-/readability-0.5.0.tgz#a6d5055bbadd0f329cc3e72089d4f176ed96c1d5"
+  integrity sha512-Z+CZ3QaosfFaTqvhQsIktyGrjFjSC0Fa4EMph4mqKnWhmyoGICsV/8QK+8HpXut6zV7zwfWwqDmEjtk1Qf6EgQ==
 
 "@nodelib/fs.scandir@2.1.3":
   version "2.1.3"
