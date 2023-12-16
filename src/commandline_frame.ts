@@ -172,7 +172,7 @@ export function focus() {
             logger.debug("Consuming buffered page keys", bufferedPageKeys,
                 "initialClInputValue = " + initialClInputValue,
                 "currentClInputValue = " + currentClInputValue);
-            // Native events are assumed to be character keydowns events,
+            // Native events are assumed to be character keydown events,
             // i.e. characters appended at the end of clInput.
             commandline_state.clInput.value =
                 initialClInputValue
