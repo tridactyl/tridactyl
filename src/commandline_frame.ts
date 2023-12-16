@@ -80,6 +80,7 @@ const commandline_state = {
      */
     isVisible: false,
     keyEvents: new Array<MinimalKey>(),
+    initialClInputValue: "",
     refresh_completions,
     state,
 }
@@ -91,7 +92,6 @@ theme(document.querySelector(":root"))
 function resizeArea() {
     if (commandline_state.isVisible) {
         Messaging.messageOwnTab("commandline_content", "show")
-        Messaging.messageOwnTab("commandline_content", "focus")
         focus()
     }
 }
@@ -162,9 +162,31 @@ const noblur = () => setTimeout(() => commandline_state.clInput.focus(), 0)
 
 /** @hidden **/
 export function focus() {
+    function consumeBufferedPageKeys(bufferedPageKeys: string[]) {
+        const clInputStillFocused = window.document.activeElement === commandline_state.clInput;
+        logger.debug("stop_buffering_page_keys response received, bufferedPageKeys = ", bufferedPageKeys,
+            "clInputStillFocused = " + clInputStillFocused)
+        if (bufferedPageKeys.length !== 0) {
+            const currentClInputValue = commandline_state.clInput.value;
+            const initialClInputValue = commandline_state.initialClInputValue;
+            logger.debug("Consuming buffered page keys", bufferedPageKeys,
+                "initialClInputValue = " + initialClInputValue,
+                "currentClInputValue = " + currentClInputValue);
+            // Native events are assumed to be character keydown events,
+            // i.e. characters appended at the end of clInput.
+            commandline_state.clInput.value =
+                initialClInputValue
+                + bufferedPageKeys.join("")
+                + currentClInputValue.substring(initialClInputValue.length)
+            // Update completion.
+            clInputValueChanged()
+        }
+    }
     commandline_state.clInput.focus()
     commandline_state.clInput.removeEventListener("blur", noblur)
     commandline_state.clInput.addEventListener("blur", noblur)
+    logger.debug("commandline_frame clInput focus(), activeElement is clInput: " + (window.document.activeElement === commandline_state.clInput))
+    Messaging.messageOwnTab("stop_buffering_page_keys").then(consumeBufferedPageKeys)
 }
 
 /** @hidden **/
@@ -188,6 +210,7 @@ commandline_state.clInput.addEventListener(
     "keydown",
     function (keyevent: KeyboardEvent) {
         if (!keyevent.isTrusted) return
+        logger.debug("commandline_frame clInput keydown event listener", keyevent)
         commandline_state.keyEvents.push(minimalKeyFromKeyboardEvent(keyevent))
         const response = keyParser(commandline_state.keyEvents)
         if (response.isMatch) {
@@ -264,6 +287,12 @@ export function refresh_completions(exstr) {
 let onInputPromise: Promise<any> = Promise.resolve()
 /** @hidden **/
 commandline_state.clInput.addEventListener("input", () => {
+    logger.debug("commandline_frame clInput input event listener")
+    clInputValueChanged();
+})
+
+/** @hidden **/
+function clInputValueChanged() {
     const exstr = commandline_state.clInput.value
     contentState.current_cmdline = exstr
     contentState.cmdline_filter = ""
@@ -282,7 +311,7 @@ commandline_state.clInput.addEventListener("input", () => {
             contentState.cmdline_filter = exstr
         })
     }, 100)
-})
+}
 
 /** @hidden **/
 let cmdline_history_current = ""
@@ -341,8 +370,10 @@ export function fillcmdline(
     trailspace = true,
     ffocus = true,
 ) {
+    logger.debug("commandline_frame fillcmdline(newcommand = " + newcommand + " trailspace = " + trailspace + " ffocus = " + ffocus + ")")
     if (trailspace) commandline_state.clInput.value = newcommand + " "
     else commandline_state.clInput.value = newcommand
+    commandline_state.initialClInputValue = commandline_state.clInput.value
     commandline_state.isVisible = true
     let result = Promise.resolve([])
     // Focus is lost for some reason.
@@ -373,6 +404,7 @@ export function editor_function(fn_name: keyof typeof tri_editor, ...args) {
 }
 
 Messaging.addListener("commandline_frame", Messaging.attributeCaller(SELF))
+logger.debug("Added commandline_frame message listener")
 
 commandline_state.fns = getCommandlineFns(commandline_state)
 Messaging.addListener(
@@ -388,3 +420,5 @@ Messaging.addListener(
 ;(window as any).tri = Object.assign(window.tri || {}, {
     perfObserver: perf.listenForCounters(),
 })
+
+Messaging.messageOwnTab("commandline_frame_ready_to_receive_messages")

@@ -3892,11 +3892,11 @@ export function sleep(time_ms: number) {
 /** @hidden */
 //#content
 export function showcmdline(focus = true) {
+    logger.debug("excmds showcmdline()")
     const hidehover = true
     CommandLineContent.show(hidehover)
     let done = Promise.resolve()
     if (focus) {
-        CommandLineContent.focus()
         done = Messaging.messageOwnTab("commandline_frame", "focus")
     }
     return done
@@ -3912,16 +3912,17 @@ export function hidecmdline() {
 //#content
 export function fillcmdline(...strarr: string[]) {
     const str = strarr.join(" ")
-    showcmdline()
-    return Messaging.messageOwnTab("commandline_frame", "fillcmdline", [str])
+    showcmdline(false)
+    logger.debug("excmds fillcmdline sending fillcmdline to commandline_frame")
+    return Messaging.messageOwnTab("commandline_frame", "fillcmdline", [str, true/*trailspace*/, true/*focus*/])
 }
 
 /** Set the current value of the commandline to string *without* a trailing space */
 //#content
 export function fillcmdline_notrail(...strarr: string[]) {
     const str = strarr.join(" ")
-    showcmdline()
-    return Messaging.messageOwnTab("commandline_frame", "fillcmdline", [str, false])
+    showcmdline(false)
+    return Messaging.messageOwnTab("commandline_frame", "fillcmdline", [str, false/*trailspace*/, true/*focus*/])
 }
 
 /** Show and fill the command line without focusing it */
