@@ -83,6 +83,7 @@ try {
 }
 
 const controller = await import("@src/lib/controller")
+const { omniscient_controller } = await import("@src/lib/omniscient_controller")
 const excmds_content = await import("@src/.excmds_content.generated")
 const hinting_content = await import("@src/content/hinting")
 // Hook the keyboard up to the controller
@@ -124,6 +125,7 @@ messaging.addListener(
     "controller_content",
     messaging.attributeCaller(controller),
 )
+messaging.addListener("omniscient_content", messaging.attributeCaller(omniscient_controller))
 
 // eslint-disable-next-line @typescript-eslint/require-await
 messaging.addListener("alive", async () => true)
