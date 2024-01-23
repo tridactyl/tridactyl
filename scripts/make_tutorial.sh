@@ -16,5 +16,5 @@ do
     sed "/REPLACETHIS/,$ d" tutor.template.html > "$dest$fileroot.html"
     "$(yarn bin)/marked" "$page" >> "$dest$fileroot.html"
     sed "1,/REPLACETHIS/ d" tutor.template.html >> "$dest$fileroot.html"
-    sed -i "s|\.md|.html|g" "$dest$fileroot.html"
+    sed -i.bak "s|\.md|.html|g" "$dest$fileroot.html"
 done
