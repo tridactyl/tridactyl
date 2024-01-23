@@ -370,7 +370,7 @@ export const previous_line = wrap_input(
     (text,selectionStart) => {
         const leftNewLinePos = text.slice(0, selectionStart).lastIndexOf("\n")
         let width = 0
-        if (~leftNewLinePos) {
+        if (leftNewLinePos!==-1) {
             width = selectionStart - leftNewLinePos
         } else {
             return[text, 0, null]
@@ -390,7 +390,7 @@ export const next_line = wrap_input(
     (text, selectionStart) => {
         const leftNewLinePos = text.slice(0, selectionStart).lastIndexOf("\n")
         let width
-        if (~leftNewLinePos) {
+        if (leftNewLinePos!==-1) {
             width = selectionStart - leftNewLinePos
         } else {
             width=selectionStart+1
@@ -407,7 +407,8 @@ export const next_line = wrap_input(
                 position=nextRightNewLinePos
             }
         }
-        return [text, position, null]}
+        return [text, position, null]
+    }
 )
 
 /**
