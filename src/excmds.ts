@@ -5884,6 +5884,19 @@ export async function js(...str: string[]) {
 
 /**
  * Lets you execute JavaScript in the background context. All the help from [[js]] applies. Gives you a different `tri` object which has access to more excmds and web-extension APIs.
+ *
+ * In `:jsb`, the `tri` object has a special `tabs` property that can be used to access the window object of the corresponding tab by indexing it with the tab ID. Here are a few examples:
+ *
+ * - Get the URL of the tab whose id 3:
+ *   `:jsb tri.tabs[3].location.href.then(console.log)`
+ * - Set the title of the tab whose id is 6:
+ *   `:jsb tri.tabs[3].document.title = "New title!"`
+ * - Run `alert()` in all tabs:
+ *   `:jsb browser.tabs.query({}).then(tabs => tabs.forEach(tab => tri.tabs[tab.id].tri.excmds.js('alert()')))`
+ *
+ * When fetching a value or running a function in a tab through the `tabs` property, the returned value is a Promise and must be awaited.
+ * Setting values through the `tab` property is asynchronous too and there is no way to await this operation.
+ * If you need to ensure that the value has been set before performing another action, use tri.tabs[tab.id].tri.excmds.js to set the value instead and await the result.
  */
 /* tslint:disable:no-identical-functions */
 //#background
