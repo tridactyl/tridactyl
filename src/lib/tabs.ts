@@ -2,9 +2,6 @@ import * as Messaging from "@src/lib/messaging"
 
 const allTabs = -1
 
-// Small wrapper meant to enable sending a message either to a single tab or
-// multiple ones. Note that for now, sending messages to all tabs does not
-// work, for reasons unknown.
 const msg = (tabId, ...args) => {
     if (tabId === allTabs) {
         return Messaging.messageAllTabs("omniscient_content", ...args)
@@ -80,11 +77,11 @@ export const tabsProxy = new Proxy(Object.create(null), {
             // for a single tab
             return tabProxy(id, [])
         }
-        throw Error("Foreground tabs proxy needs to be indexed by tab ID.")
-        // Ideally, if p is a string, we should construct a proxy for all
-        // existing tabs. This unfortunately does not seem to work:
-        // Messaging.messageAllTab seems to return an array of undefined when
-        // running e.g. `tabs.document.title`.
-        // return tabProxy(allTabs, []);
+        if (typeof p === "string") {
+            // If `p` is a string, then we return a proxy with a sentinel value
+            // indicating that the request should be sent to all tabs instead.
+            return tabProxy(allTabs, [])[p]
+        }
+        throw new Error(`'tabs' object can only be accessed by a number (e.g. tabs[3]) or a string (e.g. tabs.document or tabs['document']). Type of accessor: "${typeof p}"`)
     },
 })

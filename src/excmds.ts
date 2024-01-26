@@ -5890,9 +5890,19 @@ export async function js(...str: string[]) {
  * - Get the URL of the tab whose id 3:
  *   `:jsb tri.tabs[3].location.href.then(console.log)`
  * - Set the title of the tab whose id is 6:
- *   `:jsb tri.tabs[3].document.title = "New title!"`
- * - Run `alert()` in all tabs:
- *   `:jsb browser.tabs.query({}).then(tabs => tabs.forEach(tab => tri.tabs[tab.id].tri.excmds.js('alert()')))`
+ *   `:jsb tri.tabs[6].document.title = "New title!"`
+ * - Run `alert()` in a tab whose id is 9:
+ *   `:jsb tri.tabs[9].alert()`
+ *
+ * You can also directly access the corresonding property in all tabs by using
+ * the "tabs" object itself, e.g.
+ *
+ * - Build a string containing the id of the active element of each tab:
+ *   `:jsb tri.tabs.document.activeElement.id.then(ids => ids.reduce(s, id => s + " " + id))`
+ * - Scroll all tabs to the tenth pixel:
+ *   `:jsb tri.tabs.document.documentElement.scrollTop = 10`
+ * - Use tridactyl's JS ex command to perform a complex computation:
+ *   `:jsb tri.tabs.tri.excmds.js("let x = 1; let y = 2; x + y").then(console.log)`
  *
  * When fetching a value or running a function in a tab through the `tabs` property, the returned value is a Promise and must be awaited.
  * Setting values through the `tab` property is asynchronous too and there is no way to await this operation.
