@@ -1,10 +1,13 @@
 import * as Messaging from "@src/lib/messaging"
 
 const allTabs = -1
+const background = -2
 
 const msg = (tabId, ...args) => {
     if (tabId === allTabs) {
         return Messaging.messageAllTabs("omniscient_content", ...args)
+    } else if (tabId === background) {
+        return (Messaging.message as any)("omniscient_background", args[0], args[1][0])
     } else {
         return Messaging.messageTab(tabId, "omniscient_content", ...args)
     }
@@ -85,3 +88,5 @@ export const tabsProxy = new Proxy(Object.create(null), {
         throw new Error(`'tabs' object can only be accessed by a number (e.g. tabs[3]) or a string (e.g. tabs.document or tabs['document']). Type of accessor: "${typeof p}"`)
     },
 })
+
+export const backgroundProxy = tabProxy(background, [])

@@ -5853,6 +5853,7 @@ async function js_helper(str: string[]) {
  *     - -r load the js source from a Javascript file relative to your RC file. (NB: will throw an error if no RC file exists)
  *
  * Some of Tridactyl's functions are accessible here via the `tri` object. Just do `console.log(tri)` in the web console on the new tab page to see what's available.
+ * `tri.bg` is an object enabling access to the background script's context. It works similarly to the `tri.tabs` objects documented in the [[jsb]] documentation.
  *
  * If you want to pipe an argument to `js`, you need to use the "-p" flag or "-d" flag with an argument and then use the JS_ARG global variable, e.g:
  *

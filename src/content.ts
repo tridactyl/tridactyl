@@ -96,6 +96,7 @@ const excmds = await import("@src/.excmds_content.generated")
 const finding_content = await import("@src/content/finding")
 const itertools = await import("@src/lib/itertools")
 const messaging = await import("@src/lib/messaging")
+const backgroundProxy = await import("@src/lib/tabs")
 const State = await import("@src/state")
 const webext = await import("@src/lib/webext")
 const perf = await import("@src/perf")
@@ -208,6 +209,7 @@ config.getAsync("preventautofocusjackhammer").then(allowautofocus => {
 })
 ;(window as any).tri = Object.assign(Object.create(null), {
     browserBg: webext.browserBg,
+    bg: backgroundProxy.backgroundProxy,
     commandline_content,
     convert,
     config,

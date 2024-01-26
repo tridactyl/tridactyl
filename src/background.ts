@@ -4,6 +4,7 @@
 
 import * as proxy_background from "@src/lib/browser_proxy_background"
 import * as controller from "@src/lib/controller"
+import { omniscient_controller } from "@src/lib/omniscient_controller"
 import * as perf from "@src/perf"
 import { listenForCounters } from "@src/perf"
 import * as messaging from "@src/lib/messaging"
@@ -259,6 +260,7 @@ const messages = {
         downloadUrlAs: download_background.downloadUrlAs,
     },
     browser_proxy_background: { shim: proxy_background.shim },
+    omniscient_background: omniscient_controller,
 }
 export type Messages = typeof messages
 
