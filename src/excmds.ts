@@ -5853,6 +5853,7 @@ async function js_helper(str: string[]) {
  *     - -r load the js source from a Javascript file relative to your RC file. (NB: will throw an error if no RC file exists)
  *
  * Some of Tridactyl's functions are accessible here via the `tri` object. Just do `console.log(tri)` in the web console on the new tab page to see what's available.
+ * `tri.bg` is an object enabling access to the background script's context. It works similarly to the `tri.tabs` objects documented in the [[jsb]] documentation.
  *
  * If you want to pipe an argument to `js`, you need to use the "-p" flag or "-d" flag with an argument and then use the JS_ARG global variable, e.g:
  *
@@ -5884,6 +5885,29 @@ export async function js(...str: string[]) {
 
 /**
  * Lets you execute JavaScript in the background context. All the help from [[js]] applies. Gives you a different `tri` object which has access to more excmds and web-extension APIs.
+ *
+ * In `:jsb`, the `tri` object has a special `tabs` property that can be used to access the window object of the corresponding tab by indexing it with the tab ID. Here are a few examples:
+ *
+ * - Get the URL of the tab whose id 3:
+ *   `:jsb tri.tabs[3].location.href.then(console.log)`
+ * - Set the title of the tab whose id is 6:
+ *   `:jsb tri.tabs[6].document.title = "New title!"`
+ * - Run `alert()` in a tab whose id is 9:
+ *   `:jsb tri.tabs[9].alert()`
+ *
+ * You can also directly access the corresonding property in all tabs by using
+ * the "tabs" object itself, e.g.
+ *
+ * - Build a string containing the id of the active element of each tab:
+ *   `:jsb tri.tabs.document.activeElement.id.then(ids => ids.reduce(s, id => s + " " + id))`
+ * - Scroll all tabs to the tenth pixel:
+ *   `:jsb tri.tabs.document.documentElement.scrollTop = 10`
+ * - Use tridactyl's JS ex command to perform a complex computation:
+ *   `:jsb tri.tabs.tri.excmds.js("let x = 1; let y = 2; x + y").then(console.log)`
+ *
+ * When fetching a value or running a function in a tab through the `tabs` property, the returned value is a Promise and must be awaited.
+ * Setting values through the `tab` property is asynchronous too and there is no way to await this operation.
+ * If you need to ensure that the value has been set before performing another action, use tri.tabs[tab.id].tri.excmds.js to set the value instead and await the result.
  */
 /* tslint:disable:no-identical-functions */
 //#background

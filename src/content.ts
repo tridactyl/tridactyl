@@ -83,6 +83,7 @@ try {
 }
 
 const controller = await import("@src/lib/controller")
+const { omniscient_controller } = await import("@src/lib/omniscient_controller")
 const excmds_content = await import("@src/.excmds_content.generated")
 const hinting_content = await import("@src/content/hinting")
 // Hook the keyboard up to the controller
@@ -95,6 +96,7 @@ const excmds = await import("@src/.excmds_content.generated")
 const finding_content = await import("@src/content/finding")
 const itertools = await import("@src/lib/itertools")
 const messaging = await import("@src/lib/messaging")
+const backgroundProxy = await import("@src/lib/tabs")
 const State = await import("@src/state")
 const webext = await import("@src/lib/webext")
 const perf = await import("@src/perf")
@@ -124,6 +126,7 @@ messaging.addListener(
     "controller_content",
     messaging.attributeCaller(controller),
 )
+messaging.addListener("omniscient_content", messaging.attributeCaller(omniscient_controller))
 
 // eslint-disable-next-line @typescript-eslint/require-await
 messaging.addListener("alive", async () => true)
@@ -206,6 +209,7 @@ config.getAsync("preventautofocusjackhammer").then(allowautofocus => {
 })
 ;(window as any).tri = Object.assign(Object.create(null), {
     browserBg: webext.browserBg,
+    bg: backgroundProxy.backgroundProxy,
     commandline_content,
     convert,
     config,

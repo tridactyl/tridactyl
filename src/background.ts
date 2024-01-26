@@ -3,8 +3,8 @@
 /* tslint:disable:import-spacing */
 
 import * as proxy_background from "@src/lib/browser_proxy_background"
-
 import * as controller from "@src/lib/controller"
+import { omniscient_controller } from "@src/lib/omniscient_controller"
 import * as perf from "@src/perf"
 import { listenForCounters } from "@src/perf"
 import * as messaging from "@src/lib/messaging"
@@ -30,6 +30,7 @@ import * as commands from "@src/background/commands"
 import * as meta from "@src/background/meta"
 import * as Logging from "@src/lib/logging"
 import * as Proxy from "@src/lib/proxy"
+import { tabsProxy } from "@src/lib/tabs"
 
 // Add various useful modules to the window for debugging
 ;(window as any).tri = Object.assign(Object.create(null), {
@@ -52,6 +53,7 @@ import * as Proxy from "@src/lib/proxy"
     R,
     perf,
     meta,
+    tabs: tabsProxy,
 })
 
 import { HintingCmds } from "@src/background/hinting"
@@ -258,6 +260,7 @@ const messages = {
         downloadUrlAs: download_background.downloadUrlAs,
     },
     browser_proxy_background: { shim: proxy_background.shim },
+    omniscient_background: omniscient_controller,
 }
 export type Messages = typeof messages
 

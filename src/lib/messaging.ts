@@ -9,6 +9,7 @@ export type TabMessageType =
     | "controller_content"
     | "commandline_content"
     | "finding_content"
+    | "omniscient_content"
     | "commandline_cmd"
     | "commandline_frame"
     | "state"
