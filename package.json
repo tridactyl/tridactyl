@@ -41,7 +41,7 @@
     "@typescript-eslint/parser": "^4.33.0",
     "command-line-args": "^5.2.1",
     "eslint": "^7.32.0",
-    "eslint-config-prettier": "^9.0.0",
+    "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-import": "^2.29.0",
     "eslint-plugin-jsdoc": "^46.9.0",
     "eslint-plugin-prefer-arrow": "^1.2.3",
