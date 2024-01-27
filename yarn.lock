@@ -879,10 +879,10 @@
   dependencies:
     "@babel/types" "^7.20.7"
 
-"@types/css@0.0.35":
-  version "0.0.35"
-  resolved "https://registry.yarnpkg.com/@types/css/-/css-0.0.35.tgz#b4b7aa4540ec3e4f1583d112fbf4ecd2f236e095"
-  integrity sha512-2bWLjOveZSQ3brL6qCG0krGn1g/sWPSMiQN4i5OjbZBZkumKFRWXTKpj7YFJttgulaOMsAxFyBQRj3OlWh2abQ==
+"@types/css@0.0.37":
+  version "0.0.37"
+  resolved "https://registry.yarnpkg.com/@types/css/-/css-0.0.37.tgz#955e5261f0f72f4b6852ea485e138c889408bd2a"
+  integrity sha512-IVhWCNH1mw3VRjkOMHsxVAcnANhee9w//TX1fqmALP628Dzf6VMG1LRnOngpptnrilcWCkmcY1tj6QkKGUy0CA==
 
 "@types/firefox-webext-browser@^111.0.1":
   version "111.0.5"
@@ -944,7 +944,7 @@
   resolved "https://registry.yarnpkg.com/@types/minimatch/-/minimatch-3.0.5.tgz#1001cc5e6a3704b83c236027e77f2f58ea010f40"
   integrity sha512-Klz949h02Gz2uZCMGwDUSDS1YBlTdDDgbWHi+81l29tQALUtvz4rAYi5uoVhE5Lagoq6DeqAUlbrHvW/mXDgdQ==
 
-"@types/nearley@^2.11.4":
+"@types/nearley@^2.11.5":
   version "2.11.5"
   resolved "https://registry.yarnpkg.com/@types/nearley/-/nearley-2.11.5.tgz#9087e1634e1c90efb25d661390702381789685cb"
   integrity sha512-dM7TrN0bVxGGXTYGx4YhGear8ysLO5SOuouAWM9oltjQ3m9oYa13qi8Z1DJp5zxVMPukvQdsrnZmgzpeuTSEQA==
@@ -1016,7 +1016,7 @@
   dependencies:
     "@types/node" "*"
 
-"@typescript-eslint/eslint-plugin-tslint@^6.9.1":
+"@typescript-eslint/eslint-plugin-tslint@^6.19.1":
   version "6.19.1"
   resolved "https://registry.yarnpkg.com/@typescript-eslint/eslint-plugin-tslint/-/eslint-plugin-tslint-6.19.1.tgz#eb2a392bab7d6ef7091bdbc8cf856d64716d52ea"
   integrity sha512-tt4IXyq05BM7xFJYcBURpXfy33/QOfyJwmkr0knSb6qCh5gmG5/NvNr6bdnhCHZJ7SeYQ46Rl1DXhX9ercrDAA==
@@ -2739,7 +2739,7 @@ escodegen@^1.11.1:
   optionalDependencies:
     source-map "~0.6.1"
 
-eslint-config-prettier@^9.0.0:
+eslint-config-prettier@^9.1.0:
   version "9.1.0"
   resolved "https://registry.yarnpkg.com/eslint-config-prettier/-/eslint-config-prettier-9.1.0.tgz#31af3d94578645966c082fcb71a5846d3c94867f"
   integrity sha512-NSWl5BFQWEPi1j4TjVNItzYV7dZXZ+wP6I6ZhrBGpChQhZRUaElihE9uRRkcbRnNb76UMKDF3r+WTmNcGPKsqw==
@@ -5157,10 +5157,10 @@ marked@^1.1.1:
   resolved "https://registry.yarnpkg.com/marked/-/marked-1.2.9.tgz#53786f8b05d4c01a2a5a76b7d1ec9943d29d72dc"
   integrity sha512-H8lIX2SvyitGX+TRdtS06m1jHMijKN/XjfH6Ooii9fvxMlh8QdqBfBDkGUpMWH2kQNrtixjzYUa3SH8ROTgRRw==
 
-marked@^10.0.0:
-  version "10.0.0"
-  resolved "https://registry.yarnpkg.com/marked/-/marked-10.0.0.tgz#7fe1805bb908433d760e2de0fcc8841a2b2d745c"
-  integrity sha512-YiGcYcWj50YrwBgNzFoYhQ1hT6GmQbFG8SksnYJX1z4BXTHSOrz1GB5/Jm2yQvMg4nN1FHP4M6r03R10KrVUiA==
+marked@^11.1.1:
+  version "11.2.0"
+  resolved "https://registry.yarnpkg.com/marked/-/marked-11.2.0.tgz#fc908aeca962b721b0392ee4205e6f90ebffb074"
+  integrity sha512-HR0m3bvu0jAPYiIvLUUQtdg1g6D247//lvcekpHO1WMvbwDlwSkZAX9Lw4F4YHE1T0HaaNve0tuAWuV1UJ6vtw==
 
 marky@^1.2.2:
   version "1.2.5"
