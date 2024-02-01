@@ -1,8 +1,9 @@
 import QRCode from "../vendor/qrcode/qrcode"
 import * as Logging from "@src/lib/logging"
-import {browserBg, activeTab} from "./lib/webext"
+import { browserBg, activeTab } from "./lib/webext"
 
 const logger = new Logging.Logger("qrcode-display")
+window["QRCode"] = QRCode
 
 function displayError() {
     const errorDisplay: HTMLDivElement =
@@ -33,12 +34,14 @@ function setUpPage() {
     })
 
     if (timeout && timeout > 0) {
-        setTimeout(function() {
-            activeTab().then((tabInfo) => {
-                browserBg.tabs.remove(tabInfo.id)
-            }).catch((error) => {
-                logger.error("Unable to close tab" + error)
-            })
+        setTimeout(function () {
+            activeTab()
+                .then(tabInfo => {
+                    browserBg.tabs.remove(tabInfo.id)
+                })
+                .catch(error => {
+                    logger.error("Unable to close tab" + error)
+                })
         }, timeout * 1000)
     }
 }
