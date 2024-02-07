@@ -31,3 +31,8 @@
     box-shadow: rgba(0, 0, 0, 0.5) 0px 0px 15px !important;
     opacity: 0.9;
 }
+
+/* Delete to hide element highlighting */
+span.TridactylHint {
+    background-color: var(--tridactyl-hintspan-bg) !important;
+}
