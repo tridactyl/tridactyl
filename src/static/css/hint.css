@@ -6,7 +6,6 @@ span.TridactylHint {
     font-size: var(--tridactyl-hintspan-font-size) !important;
     font-weight: var(--tridactyl-hintspan-font-weight) !important;
     color: var(--tridactyl-hintspan-fg) !important;
-    background-color: var(--tridactyl-hintspan-bg) !important;
     border-color: var(--tridactyl-hintspan-border-color) !important;
     border-width: var(--tridactyl-hintspan-border-width) !important;
     min-width: 0.75em !important;
