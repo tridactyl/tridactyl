@@ -130,3 +130,8 @@
 
     --tridactyl-externaledit-bg: var(--tridactyl-logo) no-repeat center;
 }
+
+/* Delete to hide element highlighting */
+span.TridactylHint {
+    background-color: var(--tridactyl-hintspan-bg) !important;
+}
