@@ -127,3 +127,8 @@
     font-weight: 200 !important;
     padding: 5px !important;
 }
+
+/* Delete to hide element highlighting */
+span.TridactylHint {
+    background-color: var(--tridactyl-hintspan-bg) !important;
+}
