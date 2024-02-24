@@ -3932,7 +3932,6 @@ export function fillcmdline_nofocus(...strarr: string[]) {
 /** Shows str in the command line for ms milliseconds. Recommended duration: 3000ms. */
 //#content
 export async function fillcmdline_tmp(ms: number, ...strarr: string[]) {
-    const str = strarr.join(" ")
     showcmdline(false)
     Messaging.messageOwnTab("commandline_frame", "fillcmdline", [strarr.join(" "), false, false])
     return new Promise<void>(resolve =>
