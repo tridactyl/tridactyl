@@ -6145,7 +6145,7 @@ export async function readerurl() {
  */
 //#content
 export async function reader(...args: string[]) {
-    if (window.location.href.includes("static/reader.html#")) return
+    if (window.location.href.includes("static/reader.html#")) return back()
     switch (args[0]) {
         case "--old":
             readerold()
