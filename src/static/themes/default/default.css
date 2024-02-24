@@ -3,7 +3,7 @@
     --tridactyl-font-family: monospace;
     --tridactyl-font-family-sans: sans-serif;
     --tridactyl-font-size: 12pt;
-    --tridactyl-small-font-size: 12px;
+    --tridactyl-small-font-size: calc(var(--tridactyl-font-size) * 0.75);
     --tridactyl-bg: white;
     --tridactyl-fg: black;
     --tridactyl-logo: url("moz-extension://__MSG_@@extension_id__/static/logo/Tridactyl_64px.png");
@@ -52,14 +52,14 @@
     --tridactyl-cmdl-fg: var(--tridactyl-fg);
     --tridactyl-cmdl-line-height: 1.5;
     --tridactyl-cmdl-font-family: monospace;
-    --tridactyl-cmdl-font-size: 9pt;
+    --tridactyl-cmdl-font-size: calc(var(--tridactyl-font-size) * 0.75);
 
     /*completions*/
 
     --tridactyl-cmplt-option-height: 1.4em;
     --tridactyl-cmplt-fg: var(--tridactyl-fg);
     --tridactyl-cmplt-bg: var(--tridactyl-bg);
-    --tridactyl-cmplt-font-size: 10pt;
+    --tridactyl-cmplt-font-size: calc(var(--tridactyl-font-size) * 10/12);
     --tridactyl-cmplt-font-family: monospace;
     /* i don't think 0.5px is redered */
     --tridactyl-cmplt-border-top: 1px solid grey;
