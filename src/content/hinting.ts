@@ -601,16 +601,24 @@ function* hintnames_simple(
 
 /** Shorter hints
 
-    Hints that are prefixes of other hints are a bit annoying because you have to select them with Enter or Space.
+    Hints that are prefixes of other hints are a bit annoying because you have
+    to select them with Enter or Space. This function returns a stream of hint
+    names without any prefixing while keeping the lengths as short as possible,
+    by skipping a certain number of the shortest hints from a full stream with
+    prefixing.
 
-    This function removes hints that prefix other hints by observing that:
-        let h = hintchars.length
-        if n < h ** 2
-        then n / h = number of single character hintnames that would prefix later hints
+    Let h be hintchars.length and n be the total number of hints. If n <= h,
+    then no hint names need to be skipped. Beyond that, each skipped hint name
+    increases the total number of accessible prefix-free hint names by h - 1:
+    that hint is lost, but h more are opened up (that hint with each individual
+    hint character appended to it in turn).
 
-    So it removes them. This function is not yet clever enough to realise that if n > h ** 2 it should remove
-        h + (n - h**2 - h) / h ** 2
-    and so on, but we hardly ever see that many hints, so whatever.
+    The order in which the hints are generated guarantees that when a hint is
+    skipped, the ones that are opened up are next in line in the sequence.
+
+    Therefore, the necessary number of skips is the ceiling of the number of
+    extra hint names we need, n - h, divided by the number that each skip gives
+    us, h - 1.
 
     @hidden
 */
@@ -619,7 +627,7 @@ function* hintnames_short(
     hintchars = defaultHintChars(),
 ): IterableIterator<string> {
     const source = hintnames_simple(hintchars)
-    const num2skip = Math.floor(n / hintchars.length)
+    const num2skip = Math.max(0, Math.ceil((n - hintchars.length) / (hintchars.length - 1)));
     yield* islice(source, num2skip, n + num2skip)
 }
 
