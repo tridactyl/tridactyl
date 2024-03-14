@@ -1118,8 +1118,9 @@ export async function markjumplocal(key: string) {
         const currentTabId = await activeTabId()
         state.beforeJumpMark = { url: urlWithoutAnchor, scrollX: window.scrollX, scrollY: window.scrollY, tabId: currentTabId }
         scrolltab(currentTabId, mark.scrollX, mark.scrollY, `# marks: jumped to mark '${key}'`)
+    } else {
+        return fillcmdline_tmp(3000, `# marks: warning - local mark '${key}' is not set in this tab`)
     }
-    return fillcmdline_tmp(3000, `# marks: warning - local mark '${key}' is not set in this tab`)
 }
 
 /**
@@ -1209,7 +1210,7 @@ export async function markjumpbefore() {
 //#content
 export async function scrolltab(tabId: number, scrollX: number, scrollY: number, message: string) {
     await Messaging.messageTab(tabId, "controller_content", "acceptExCmd", [`scrollto ${scrollX} ${scrollY}`])
-    Messaging.messageTab(tabId, "controller_content", "acceptExCmd", [`fillcmdline_tmp 3000 ${message}`])
+    config.get("markjumpnoisy") === "true" && Messaging.messageTab(tabId, "controller_content", "acceptExCmd", [`fillcmdline_tmp 3000 ${message}`])
 }
 
 /**

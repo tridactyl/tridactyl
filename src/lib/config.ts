@@ -954,6 +954,11 @@ export class default_config {
     jumpdelay = 3000
 
     /**
+     * Whether `markjump` should pop-up with a notification
+     */
+    markjumpnoisy: "true" | "false" = "true"
+
+    /**
      * Logging levels. Unless you're debugging Tridactyl, it's unlikely you'll ever need to change these.
      */
     logging: { [key: string]: LoggingLevel } = {
