@@ -306,3 +306,8 @@
 /* a:link:visited { */
 /*     --tridactyl-photon-colours-in-content-link-color-visited: #0a8dff; */
 /* } */
+
+/* Delete to hide element highlighting */
+span.TridactylHint {
+    background-color: var(--tridactyl-hintspan-bg) !important;
+}
