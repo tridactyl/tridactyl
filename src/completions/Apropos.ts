@@ -3,7 +3,8 @@ import * as Metadata from "@src/.metadata.generated"
 import * as aliases from "@src/lib/aliases"
 import * as config from "@src/lib/config"
 
-class AproposCompletionOption extends Completions.CompletionOptionHTML
+class AproposCompletionOption
+    extends Completions.CompletionOptionHTML
     implements Completions.CompletionOptionFuse {
     public fuseKeys = []
 
@@ -26,22 +27,9 @@ export class AproposCompletionSource extends Completions.CompletionSourceFuse {
         this._parent.appendChild(this.node)
     }
 
-    public async filter(exstr: string) {
-        this.lastExstr = exstr
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars-experimental
+    /* override*/ protected async updateOptions(command, rest) {
         this.completion = undefined
-        const [prefix, query] = this.splitOnPrefix(exstr)
-
-        // Hide self and stop if prefixes don't match
-        if (prefix) {
-            // Show self if prefix and currently hidden
-            if (this.state === "hidden") {
-                this.state = "normal"
-            }
-        } else {
-            this.state = "hidden"
-            return
-        }
-
         const file = Metadata.everything.getFile("src/lib/config.ts")
         const default_config = file.getClass("default_config")
         const excmds = Metadata.everything.getFile("src/excmds.ts")
@@ -139,13 +127,13 @@ export class AproposCompletionSource extends Completions.CompletionSourceFuse {
                 ),
         }
 
-        const args = query.split(" ")
+        const args = rest.split(" ")
         let opts = []
         if (Object.keys(flags).includes(args[0])) {
             opts = flags[args[0]](opts, args.slice(1).join(" "))
         } else {
             opts = Object.keys(flags).reduce(
-                (acc, curFlag) => flags[curFlag](acc, query),
+                (acc, curFlag) => flags[curFlag](acc, rest),
                 [],
             )
         }
@@ -154,14 +142,5 @@ export class AproposCompletionSource extends Completions.CompletionSourceFuse {
         this.options.sort((compopt1, compopt2) =>
             compopt1.name.localeCompare(compopt2.name),
         )
-        return this.updateChain()
-    }
-
-    updateChain() {
-        // Options are pre-trimmed to the right length.
-        this.options.forEach(option => (option.state = "normal"))
-
-        // Call concrete class
-        return this.updateDisplay()
     }
 }
