@@ -97,6 +97,7 @@ import * as hint_util from "@src/lib/hint_util"
 import { OpenMode } from "@src/lib/hint_util"
 import * as Proxy from "@src/lib/proxy"
 import * as arg from "@src/lib/arg_util"
+import * as R from "ramda"
 
 /**
  * This is used to drive some excmd handling in `composite`.
@@ -2668,12 +2669,19 @@ export async function tabaudio() {
 export async function winmerge(...windowIds: string[]) {
     const target_wins = windowIds.length > 0 ? await Promise.all(windowIds.map(windowId => browser.windows.get(parseInt(windowId, 10), { populate: true }))) : await browser.windows.getAll({ populate: true })
     const active_win = await browser.windows.getCurrent()
-    return target_wins.forEach(target_win =>
-        browser.tabs.move(
-            target_win.tabs.map(t => t.id),
-            { index: -1, windowId: active_win.id },
-        ),
-    )
+    return target_wins.forEach(target_win => {
+        const [pinned_tabs, other_tabs] = R.splitWhen(t => !t.pinned, target_win.tabs)
+        return Promise.all([
+            browser.tabs.move(
+                pinned_tabs.map(t => t.id),
+                { index: 0, windowId: active_win.id },
+            ),
+            browser.tabs.move(
+                other_tabs.map(t => t.id),
+                { index: -1, windowId: active_win.id },
+            ),
+        ])
+    })
 }
 
 /**
