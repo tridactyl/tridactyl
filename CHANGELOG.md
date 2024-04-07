@@ -1,18 +1,20 @@
 # Tridactyl changelog
 
-# Release 1.24.1 / Unreleased
+# Release 1.24.1 / 2024-04-07
 
 -   New features
     - `;c` and `;:` hint modes for context menu and mouse hover added for Linux, both require `:native` to be installed with `xdotool` on the `$PATH`
     - `workman` keyboard layout added for `:set keyboardlayoutbase` ([#4928](https://github.com/tridactyl/tridactyl/issues/4928))
     - `:reader` is now a toggle ([#4930](https://github.com/tridactyl/tridactyl/issues/4930))
     - `text.{next_,previous_}line` added for use with `insert` mode ([#4831](https://github.com/tridactyl/tridactyl/issues/4831))
+    - `:set markjumpnoisy true|false` added to suppress jump notifications ([#4946](https://github.com/tridactyl/tridactyl/issues/4946))
 
 -   Bug fixes
     - The command line now buffers character keypresses while it opens so fast typists on slow machines should lose fewer keys ([#4809](https://github.com/tridactyl/tridactyl/issues/4809))
     - `:set hintnames short` should now skip the right number of hints ([#4924](https://github.com/tridactyl/tridactyl/issues/4924))
     - The command line will no longer close automatically if it has focus ([#4467](https://github.com/tridactyl/tridactyl/issues/4467))
     - `:tabopen [blah]` will now no longer open a tab in the current container ([#4791](https://github.com/tridactyl/tridactyl/issues/4791))
+    - Windows contained pinned tabs can now be merged ([#4956](https://github.com/tridactyl/tridactyl/issues/4956))
 
 -   Miscellaneous
     - `tri.bg` and `tri.tabs` added for easy communication between tab and background contexts in `:jsb` and `:js`, see their help pages for more information ([#4891](https://github.com/tridactyl/tridactyl/issues/4891))
@@ -22,9 +24,9 @@
     - More font sizes in Tridactyl are now based on the variable `--tridactyl-font-size` to make changing all sizes at once easier ([#2127](https://github.com/tridactyl/tridactyl/issues/2127))
 
 
-Thanks to all of our contributors for this release: Oliver Blanthorn, petoncle, dependabot[bot], glacambre, RoeyFuchs, gholk, Chris Holland, Danny Zhu, Dmitrii Pshonko, Joseph and Valentin Boettcher.
+Thanks to all of our contributors for this release: Oliver Blanthorn, petoncle, dependabot[bot], glacambre, RoeyFuchs, gholk, Chris Holland, Danny Zhu, Dmitrii Pshonko, Joseph, Mathieu Ablasou and Valentin Boettcher.
 
-Extra special thanks go to Chris Holland, Danny Zhu, Dmitrii Pshonko, Joseph, RoeyFuchs and Valentin Boettcher who all contributed for the first time.
+Extra special thanks go to Chris Holland, Danny Zhu, Dmitrii Pshonko, Joseph, Mathieu Ablasou, RoeyFuchs and Valentin Boettcher who all contributed for the first time.
 
 Last, but not least - thank you to everyone who reported issues.
 
