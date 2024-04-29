@@ -21,7 +21,7 @@
     "esbuild": "^0.20.2",
     "fuse.js": "^7.0.0",
     "nearley": "^2.20.1",
-    "ramda": "^0.29.1",
+    "ramda": "^0.30.0",
     "semver-compare": "^1.0.0",
     "stream-browserify": "^3.0.0",
     "tridactyl-arg": "git+https://github.com/GHolk/arg.git#v5.1.0",
