@@ -741,31 +741,32 @@ export class default_config {
      * - When running `tabopen translate en ja Tridactyl`, with a `translate` searchurl defined with `set searchurls.translate https://translate.google.com/#view=home&op=translate&sl=%s1&tl=%s2&text=%s3`, tridactyl will navigate to `https://translate.google.com/#view=home&op=translate&sl=en&tl=ja&text=Tridactyl`.
      *
      * [[setnull]] can be used to "delete" the default search engines. E.g. `setnull searchurls.google`.
+     *
+     * NB: lots of searchurls were removed in May 2024. You can restore them with:
+     *
+     * ```
+     *     set searchurls.googleuk https//www.google.co.uk/search?q=
+     *     set searchurls.yahoo https//search.yahoo.com/search?p=
+     *     set searchurls.twitter https//twitter.com/search?q=
+     *     set searchurls.wikipedia https//en.wikipedia.org/wiki/SpecialSearch/
+     *     set searchurls.amazon https//www.amazon.com/s/ref=nb_sb_noss?url=search-alias%3Daps&field-keywords=
+     *     set searchurls.amazonuk https//www.amazon.co.uk/s/ref=nb_sb_noss?url=search-alias%3Daps&field-keywords=
+     *     set searchurls.startpage https//startpage.com/do/search?language=english&cat=web&query=
+     *     set searchurls.github https//github.com/search?utf8=✓&q=
+     *     set searchurls.searx https//searx.me/?category_general=on&q=
+     *     set searchurls.cnrtl http//www.cnrtl.fr/lexicographie/
+     *     set searchurls.osm https//www.openstreetmap.org/search?query=
+     *     set searchurls.mdn https//developer.mozilla.org/en-US/search?q=
+     *     set searchurls.gentoo_wiki https//wiki.gentoo.org/index.php?title=Special%3ASearch&profile=default&fulltext=Search&search=
+     *     set searchurls.qwant https//www.qwant.com/?q=
+     *  ```
      */
     searchurls = {
         google: "https://www.google.com/search?q=",
-        googlelucky: "https://www.google.com/search?btnI=I'm+Feeling+Lucky&q=",
         scholar: "https://scholar.google.com/scholar?q=",
-        googleuk: "https://www.google.co.uk/search?q=",
         bing: "https://www.bing.com/search?q=",
         duckduckgo: "https://duckduckgo.com/?q=",
-        yahoo: "https://search.yahoo.com/search?p=",
-        twitter: "https://twitter.com/search?q=",
-        wikipedia: "https://en.wikipedia.org/wiki/Special:Search/",
         youtube: "https://www.youtube.com/results?search_query=",
-        amazon: "https://www.amazon.com/s/ref=nb_sb_noss?url=search-alias%3Daps&field-keywords=",
-        amazonuk:
-            "https://www.amazon.co.uk/s/ref=nb_sb_noss?url=search-alias%3Daps&field-keywords=",
-        startpage:
-            "https://startpage.com/do/search?language=english&cat=web&query=",
-        github: "https://github.com/search?utf8=✓&q=",
-        searx: "https://searx.me/?category_general=on&q=",
-        cnrtl: "http://www.cnrtl.fr/lexicographie/",
-        osm: "https://www.openstreetmap.org/search?query=",
-        mdn: "https://developer.mozilla.org/en-US/search?q=",
-        gentoo_wiki:
-            "https://wiki.gentoo.org/index.php?title=Special%3ASearch&profile=default&fulltext=Search&search=",
-        qwant: "https://www.qwant.com/?q=",
     }
 
     /**
