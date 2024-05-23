@@ -375,6 +375,7 @@ export class HintConfig implements HintOptions {
         switch (this.openMode) {
             case OpenMode.YankText:
             case OpenMode.Highlight:
+            case OpenMode.TTSRead:
             case OpenMode.Scroll:
                 // For text-based opens, look for elements with text by default
                 return hinting.toHintablesArray(
