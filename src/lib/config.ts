@@ -264,7 +264,7 @@ export class default_config {
         "<C-o>": "jumpprev",
         "<C-i>": "jumpnext",
         d: "tabclose",
-        D: "composite tabprev; tabclose #",
+        D: "js tri.excmds.composite('tabprev;', 'tabclose #')", // use JS to make counts error
         gx0: "tabclosealltoleft",
         gx$: "tabclosealltoright",
         "<<": "tabmove -1",
