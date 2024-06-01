@@ -35,7 +35,7 @@ import { pipeline, env } from "@xenova/transformers"
 import * as metadata from "@src/.metadata.generated"
 
 env.allowLocalModels = false
-//env.backends.onnx.wasm.numThreads = 1 // might need for manifest v3
+// env.backends.onnx.wasm.numThreads = 1 // might need for manifest v3
 
 // Add various useful modules to the window for debugging
 ;(window as any).tri = Object.assign(Object.create(null), {
