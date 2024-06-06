@@ -88,7 +88,7 @@ export async function activeTabOnWindow(windowId?: number) {
     return (
         await browser.tabs.query({
             windowId,
-            active: true
+            active: true,
         })
     )[0]
 }
@@ -186,7 +186,13 @@ export async function openInNewTab(
     url: string,
 
     // NB: defaults are actually enforced just below
-    kwargs: { active?; related?; cookieStoreId?; bypassFocusHack?; discarded? } = {
+    kwargs: {
+        active?
+        related?
+        cookieStoreId?
+        bypassFocusHack?
+        discarded?
+    } = {
         active: true,
         related: false,
         cookieStoreId: undefined,
@@ -360,7 +366,14 @@ export async function queryAndURLwrangler(
     try {
         const url = new URL("http://" + address)
         // Ignore unlikely domains
-        if (url.hostname.indexOf(".") > 0 || url.port || url.password) {
+        if (
+            // the endsWith check must be on address, because URL adds a
+            // trailing slash which would always match
+            address.endsWith("/") ||
+            url.hostname.indexOf(".") > 0 ||
+            url.port ||
+            url.password
+        ) {
             return url.href
         }
     } catch (e) {}
