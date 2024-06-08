@@ -192,12 +192,14 @@ export async function openInNewTab(
         cookieStoreId?
         bypassFocusHack?
         discarded?
+        pinned?
     } = {
         active: true,
         related: false,
         cookieStoreId: undefined,
         bypassFocusHack: false,
         discarded: false,
+        pinned: false,
     },
 
     waitForDOM = false,
@@ -209,6 +211,7 @@ export async function openInNewTab(
         cookieStoreId: undefined,
         bypassFocusHack: false,
         discarded: false,
+        pinned: false,
     })
 
     const thisTab = await activeTab()
@@ -217,6 +220,7 @@ export async function openInNewTab(
         url,
         cookieStoreId: kwargs.cookieStoreId,
         discarded: kwargs.discarded,
+        pinned: kwargs.pinned,
     }
 
     // Be nice to behrmann, #342
