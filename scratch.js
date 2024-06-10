@@ -36,6 +36,14 @@ async function measureTime(fn, ...args) {
   return { result, executionTime }
 }
 
+function reshapeArray(flatArray, n, l) {
+  const result = []
+  for (let i = 0; i < flatArray.length; i += n) {
+    result.push(flatArray.slice(i, i + n))
+  }
+  return result
+}
+
 // extractor = await tri.pipeline('feature-extraction', 'Supabase/gte-small')  
 extractor = await tri.pipeline('feature-extraction', 'Xenova/all-MiniLM-L6-v2')  
 
@@ -43,11 +51,24 @@ funcs = tri.metadata.everything.getFile("src/excmds.ts").getFunctions().filter(f
 
 docEmbeds = await extractor(funcs.map(f => f[0] + ": " + f[1].doc.slice(0, 512)), { pooling: 'mean', normalize: true }) // need to check max length. takes a few seconds
 
+unflat = reshapeArray(docEmbeds.data, docEmbeds.dims[1], docEmbeds.dims[0])
+
+vectors = funcs.map(f=>f[0]).map((f, i) => {return {id: f, vector: unflat[i]}})
+// vectors = funcs.map(f=>f[0]).map((f, i) => {return {id: f, vector: unflat[i]}})
+
+// max neighbours, max nodes to visit during build, vector dimension, metric
+hnsw = new tri.HNSW(10, 200, docEmbeds.dims[1], 'cosine')
+
+await hnsw.buildIndex(vectors)
+
 probe = 'easter egg'
 outputProbe = await extractor([probe], { pooling: 'mean', normalize: true }) // approx 10 ms
 sims = cosineSimilarity(outputProbe, docEmbeds) // approx 60 ms
 Array.from(funcs.map(f=>f[0]).entries()).sort((l, r) => sims[l[0]] < sims[r[0]]).map(x=>x[1])
 
+hnsw.searchKNN(outputProbe.data, 5)
+
 
 await measureTime( async _ => await extractor(["melons"], { pooling: 'mean', normalize: true })) // 10 ms
 await measureTime( async _ => cosineSimilarity(outputProbe, docEmbeds)) // 60 ms
+await measureTime( async _ => hnsw.searchKNN(outputProbe.data, 5)) // 1536 ms lol
