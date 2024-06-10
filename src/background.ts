@@ -32,7 +32,6 @@ import * as Logging from "@src/lib/logging"
 import * as Proxy from "@src/lib/proxy"
 import { tabsProxy } from "@src/lib/tabs"
 import { pipeline, env } from "@xenova/transformers"
-import { HNSW } from "hnsw"
 import * as metadata from "@src/.metadata.generated"
 
 env.allowLocalModels = false
@@ -62,7 +61,6 @@ env.allowLocalModels = false
     metadata,
     tabs: tabsProxy,
     pipeline,
-    HNSW,
 })
 
 import { HintingCmds } from "@src/background/hinting"
