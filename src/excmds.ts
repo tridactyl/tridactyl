@@ -2730,6 +2730,8 @@ export async function tabgrab(id: string) {
 
     Use the `-b` flag to open the tab in the background.
 
+    Use the `-p` flag to open a pinned tab.
+
     Use the `-w` flag to wait for the web page to load before "returning". This only makes sense for use with [[composite]], which waits for each command to return before moving on to the next one, e.g. `composite tabopen -b -w news.bbc.co.uk ; tabnext`.
 
     The special flag "--focus-address-bar" should focus the Firefox address bar after opening if no URL is provided.
@@ -2772,6 +2774,7 @@ export async function tabopen_helper({ addressarr = [], waitForDom = false }): P
     let container
     let bypassFocusHack = false
     let discarded = false
+    let pinned = false
 
     const win = await browser.windows.getCurrent()
 
@@ -2779,6 +2782,10 @@ export async function tabopen_helper({ addressarr = [], waitForDom = false }): P
     async function argParse(args: string[]): Promise<string[]> {
         if (args[0] === "-b") {
             active = false
+            args.shift()
+            argParse(args)
+        } else if (args[0] === "-p") {
+            pinned = true
             args.shift()
             argParse(args)
         } else if (args[0] === "-w") {
@@ -2840,6 +2847,7 @@ export async function tabopen_helper({ addressarr = [], waitForDom = false }): P
     }
     args.bypassFocusHack = bypassFocusHack
     args.discarded = discarded
+    args.pinned = pinned
     const maybeURL = await queryAndURLwrangler(query)
     if (typeof maybeURL === "string") {
         return openInNewTab(maybeURL, args, waitForDom)
