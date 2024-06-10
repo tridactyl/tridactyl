@@ -1,11 +1,3 @@
-const extractor = await tri.pipeline('feature-extraction', 'Supabase/gte-small')  
-// const extractor = await tri.pipeline('feature-extraction', 'Xenova/all-MiniLM-L6-v2')  
-const sentences = ['This is an example sentence', 'Each sentence is converted']
-const output = await extractor(sentences, { pooling: 'mean', normalize: true })
-
-let probe = 'sample'
-let outputProbe = await extractor([probe], { pooling: 'mean', normalize: true })
-
 // adapted from https://github.com/xenova/transformers.js/blob/da2688626d7812ad1ea47fd304c2072cc685051b/examples/semantic-image-search-client/src/app/worker.js#L46
 function cosineSimilarity(query_embeds, database_embeds) {
     const numDB = database_embeds.dims[0]
@@ -36,15 +28,26 @@ function cosineSimilarity(query_embeds, database_embeds) {
     return similarityScores
 }
 
-let sims = cosineSimilarity(outputProbe, output)
+async function measureTime(fn, ...args) {
+  const start = performance.now()
+  const result = await fn(...args)
+  const end = performance.now()
+  const executionTime = end - start
+  return { result, executionTime }
+}
 
-Array.from(sentences.entries()).sort((l, r) => sims[l[0]] < sims[r[0]])
+// extractor = await tri.pipeline('feature-extraction', 'Supabase/gte-small')  
+extractor = await tri.pipeline('feature-extraction', 'Xenova/all-MiniLM-L6-v2')  
 
-const funcs = tri.metadata.everything.getFile("src/excmds.ts").getFunctions().filter(f => !f[1].hidden && f[1].doc.length > 0)
+funcs = tri.metadata.everything.getFile("src/excmds.ts").getFunctions().filter(f => !f[1].hidden && f[1].doc.length > 0)
 
-const docEmbeds = await extractor(funcs.map(f => f[0] + ": " + f[1].doc.slice(0, 512)), { pooling: 'mean', normalize: true }) // need to check max length. takes a few seconds
+docEmbeds = await extractor(funcs.map(f => f[0] + ": " + f[1].doc.slice(0, 512)), { pooling: 'mean', normalize: true }) // need to check max length. takes a few seconds
 
 probe = 'easter egg'
-outputProbe = await extractor([probe], { pooling: 'mean', normalize: true })
-sims = cosineSimilarity(outputProbe, docEmbeds)
+outputProbe = await extractor([probe], { pooling: 'mean', normalize: true }) // approx 10 ms
+sims = cosineSimilarity(outputProbe, docEmbeds) // approx 60 ms
 Array.from(funcs.map(f=>f[0]).entries()).sort((l, r) => sims[l[0]] < sims[r[0]]).map(x=>x[1])
+
+
+await measureTime( async _ => await extractor(["melons"], { pooling: 'mean', normalize: true })) // 10 ms
+await measureTime( async _ => cosineSimilarity(outputProbe, docEmbeds)) // 60 ms
