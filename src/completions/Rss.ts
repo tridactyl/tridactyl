@@ -30,7 +30,6 @@ export class RssCompletionSource extends Completions.CompletionSourceFuse {
     constructor(private _parent) {
         super(["rssexec"], "RssCompletionSource", "Feeds")
 
-        this.updateOptions()
         this.shouldSetStateFromScore =
             config.get("completions", "Rss", "autoselect") === "true"
         this._parent.appendChild(this.node)
@@ -40,25 +39,12 @@ export class RssCompletionSource extends Completions.CompletionSourceFuse {
         super.setStateFromScore(scoredOpts, this.shouldSetStateFromScore)
     }
 
-    onInput(...whatever) {
-        return this.updateOptions(...whatever)
+    /* override*/ protected updateChain() {
+        this.updateDisplay()
     }
 
-    private async updateOptions(exstr = "") {
-        this.lastExstr = exstr
-        const [prefix] = this.splitOnPrefix(exstr)
-
-        // Hide self and stop if prefixes don't match
-        if (prefix) {
-            // Show self if prefix and currently hidden
-            if (this.state === "hidden") {
-                this.state = "normal"
-            }
-        } else {
-            this.state = "hidden"
-            return
-        }
-
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars-experimental
+    /* override*/ protected async updateOptions(command, rest) {
         if (this.options.length < 1) {
             this.options = (
                 await Messaging.messageOwnTab(
@@ -76,6 +62,9 @@ export class RssCompletionSource extends Completions.CompletionSourceFuse {
                 return opt
             })
         }
-        return this.updateChain()
+        if (rest)
+            this.setStateFromScore(this.scoredOptions(rest))
+        else
+            this.options.forEach(option => (option.state = "normal"))
     }
 }

@@ -1,7 +1,8 @@
 import * as Completions from "@src/completions"
 import { potentialRules, metaRules } from "@src/lib/css_util"
 
-class GuisetCompletionOption extends Completions.CompletionOptionHTML
+class GuisetCompletionOption
+    extends Completions.CompletionOptionHTML
     implements Completions.CompletionOptionFuse {
     public fuseKeys = []
 
@@ -24,26 +25,14 @@ export class GuisetCompletionSource extends Completions.CompletionSourceFuse {
         this._parent.appendChild(this.node)
     }
 
-    public async filter(exstr: string) {
-        this.lastExstr = exstr
-        const [prefix, query] = this.splitOnPrefix(exstr)
-
-        // Hide self and stop if prefixes don't match
-        if (prefix) {
-            // Show self if prefix and currently hidden
-            if (this.state === "hidden") {
-                this.state = "normal"
-            }
-        } else {
-            this.state = "hidden"
-            return
-        }
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars-experimental
+    /* override*/ protected async updateOptions(command, rest) {
         this.completion = undefined
 
         let ruleName = ""
         let subRule = ""
-        if (query) {
-            const args = query.trim().split(" ")
+        if (rest) {
+            const args = rest.trim().split(" ")
             ruleName = args[0] || ""
             subRule = args[1] || ""
         }
@@ -72,19 +61,5 @@ export class GuisetCompletionSource extends Completions.CompletionSourceFuse {
                 .filter(s => s.startsWith(ruleName))
                 .map(s => new GuisetCompletionOption(s, s))
         }
-
-        return this.updateChain()
-    }
-
-    updateChain() {
-        // Options are pre-trimmed to the right length.
-        this.options.forEach(option => (option.state = "normal"))
-
-        // Call concrete class
-        return this.updateDisplay()
-    }
-
-    onInput(arg) {
-        return this.filter(arg)
     }
 }
