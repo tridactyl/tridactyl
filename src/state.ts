@@ -53,10 +53,21 @@ class State {
         scrollY: number
         tabId: number
     } = undefined
+    searchUrlScores: {
+        scores: Map<string, number>
+        lastUpdated: number
+    } = {
+        scores: new Map(),
+        lastUpdated: -1,
+    }
 }
 
 // Store these keys in the local browser storage to persist between restarts
-const PERSISTENT_KEYS: Array<keyof State> = ["cmdHistory", "globalMarks"]
+const PERSISTENT_KEYS: Array<keyof State> = [
+    "cmdHistory",
+    "globalMarks",
+    "searchUrlScores",
+]
 
 // Don't change these from const or you risk breaking the Proxy below.
 const defaults = Object.freeze(new State())

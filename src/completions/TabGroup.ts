@@ -77,7 +77,11 @@ export class TabGroupCompletionSource extends Completions.CompletionSourceFuse {
     }
 
     async onInput(exstr) {
-        return this.updateOptions(exstr)
+        if (this.options) {
+            return this.updateChain()
+        } else {
+            return this.updateOptions(exstr)
+        }
     }
 
     private async updateOptions(exstr = "") {
