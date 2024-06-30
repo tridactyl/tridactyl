@@ -98,7 +98,7 @@ export const proxyFromUrl = (proxyUrl: string): ProxyInfo => {
 
 export function exists(names: string[]) {
     const currProxies = Object.keys(config.get("proxies"))
-    const missingProxies = names.filter(name => !currProxies.includes(name))
+    const missingProxies = names.filter(name => !currProxies.includes(name) && name !== "none")
     if (missingProxies.length) {
         throw new Error(
             `${
@@ -121,6 +121,9 @@ const getProxies = (): { [key: string]: ProxyInfo } => {
 const getProxiesForUrl = async (url: string): Promise<ProxyInfo[]> => {
     const aucon = new AutoContain()
     const [, containerProxies] = await aucon.getAuconAndProxiesForUrl(url)
+    if (containerProxies[0] === "none") {
+        return []
+    }
     const proxies = getProxies()
     const filteredProxies = Object.entries(proxies)
         .filter(([name, ]) => containerProxies.includes(name))
