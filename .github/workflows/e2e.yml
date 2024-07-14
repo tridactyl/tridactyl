@@ -53,17 +53,19 @@ jobs:
     - name: Install deps
       run: |
         yarn install
-    - name: Install Firefox Dev Edition (Linux)
+    - name: Install Firefox (Linux)
       if: matrix.browser == 'firefox' && matrix.os == 'ubuntu'
       run: |
-        sudo yarn global add get-firefox
-        get-firefox --platform linux --branch devedition --extract --target $HOME
+        pip install mozdownload
+        "$HOME/.local/bin/mozdownload" --version=latest --destination="$HOME"
+        tar -xjf "$HOME/"firefox*.tar.bz2 --directory="$HOME"
         echo "$HOME/firefox" >> $GITHUB_PATH
     - name: Install Firefox ESR (Linux)
       if: matrix.browser == 'firefoxesr' && matrix.os == 'ubuntu'
       run: |
-        sudo yarn global add get-firefox
-        get-firefox --platform linux --branch esr --extract --target $HOME
+        pip install mozdownload
+        "$HOME/.local/bin/mozdownload" --version=latest-esr --destination="$HOME"
+        tar -xjf "$HOME/"firefox*.tar.bz2 --directory="$HOME"
         echo "$HOME/firefox" >> $GITHUB_PATH
     - name: Install Firefox Dev Edition (MacOS)
       if: matrix.browser == 'firefox' && matrix.os == 'macos'
