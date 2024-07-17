@@ -155,3 +155,8 @@ span.TridactylStatusIndicator {
     display: inline-block;
     overflow: hidden;
 }
+
+/* Delete to hide element highlighting */
+span.TridactylHint {
+    background-color: var(--tridactyl-hintspan-bg) !important;
+}

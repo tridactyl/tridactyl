@@ -95,3 +95,8 @@
     color: var(--tridactyl-fg);
     font-weight: bold;
 }
+
+/* Delete to hide element highlighting */
+span.TridactylHint {
+    background-color: var(--tridactyl-hintspan-bg) !important;
+}
