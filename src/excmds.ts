@@ -1987,7 +1987,7 @@ export function mouse_mode() {
 function findRelLink(pattern: RegExp): HTMLAnchorElement | null {
     // querySelectorAll returns a "non-live NodeList" which is just a shit array without working reverse() or find() calls, so convert it.
     // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
-    const links = Array.from(document.querySelectorAll("a[href]") as NodeListOf<HTMLAnchorElement>)
+    const links = Array.from(document.querySelectorAll("a") as NodeListOf<HTMLAnchorElement>)
 
     // Find the last link that matches the test
     return links.reverse().find(link => pattern.test(link.innerText))
