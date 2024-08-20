@@ -2520,7 +2520,7 @@ export function focusinput(nth: number | string) {
 
     // either a number (not special) or we failed to find a special input when
     // asked and falling back is acceptable
-    if ((!inputToFocus || !document.contains(inputToFocus)) && fallbackToNumeric) {
+    if ((!inputToFocus || !inputToFocus.isConnected) && fallbackToNumeric) {
         const index = isNaN(nth as number) ? 0 : (nth as number)
         inputToFocus = DOM.getNthElement(INPUTTAGS_selectors, index, [DOM.isSubstantial])
     }
