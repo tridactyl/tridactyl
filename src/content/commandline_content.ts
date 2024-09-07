@@ -36,7 +36,7 @@ async function init() {
     const noiframe = await config.getAsync("noiframe")
     const notridactyl = await config.getAsync("superignore")
 
-    if (document.contentType !== "text/html") {
+    if (document.contentType.includes("xml")) {
         logger.info("Content type is not text/html; aborting iframe injection.")
         return
     }
