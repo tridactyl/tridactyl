@@ -435,7 +435,7 @@ export function registerEvListenerAction(
     event: string,
 ) {
     // We're only interested in the subset of EventTargets that are Elements.
-    if (!(elem instanceof Element)) {
+    if (!(elem instanceof window.Element)) {
         return
     }
 
