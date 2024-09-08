@@ -392,7 +392,7 @@ class HintState {
 let modeState: HintState
 
 interface Hintables {
-    elements: MinimalElement[]
+    elements: Element[]
     hintclasses?: string[]
 }
 
@@ -742,7 +742,7 @@ class Hint {
         this.hidden = false
     }
 
-    public static isHintable(target: MinimalElement): boolean {
+    public static isHintable(target: Element): boolean {
         return target.getClientRects().length > 0
     }
 
@@ -1113,7 +1113,7 @@ export function hintables(
  * if it is larger than the element in the array.
  * @hidden
  */
-function changeHintablesToLargestChild(elements: MinimalElement[]): MinimalElement[] {
+function changeHintablesToLargestChild(elements: Element[]): Element[] {
     elements.forEach((element, index) => {
         if (element.childNodes.length === 0) return
         let largestChild: Element
@@ -1139,7 +1139,7 @@ function changeHintablesToLargestChild(elements: MinimalElement[]): MinimalEleme
  * Returns true if e1 is larger than e2, otherwise false.
  * @hidden
  */
-function isElementLargerThan(e1: MinimalElement, e2: MinimalElement): boolean {
+function isElementLargerThan(e1: Element, e2: Element): boolean {
     if (typeof e1.getBoundingClientRect !== "function") {
         return false
     } else if (typeof e2.getBoundingClientRect !== "function") {

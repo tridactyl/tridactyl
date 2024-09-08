@@ -11,14 +11,6 @@ import {
 } from "@src/lib/webext"
 const logger = new Logging.Logger("dom")
 
-export function isMinimalElement(maybeElement: unknown): maybeElement is MinimalElement {
-    let e = maybeElement as MinimalElement
-    if ([e.getBoundingClientRect, e.childNodes, e.getClientRects, e.matches, e.parentElement].filter(x => x == undefined).length > 0) {
-        return false
-    }
-    return true
-}
-
 // From saka-key lib/dom.js, under Apachev2
 
 /**
@@ -216,8 +208,8 @@ export function widthMatters(style: CSSStyleDeclaration) {
 
 export function isVisibleFilter(
     includeInvisible: boolean,
-): (_: MinimalElement | Range) => boolean {
-    return (elem: MinimalElement | Range) => includeInvisible || isVisible(elem)
+): (_: Element | Range) => boolean {
+    return (elem: Element | Range) => includeInvisible || isVisible(elem)
 }
 
 // Saka-key caches getComputedStyle. Maybe it's a good idea!
@@ -229,7 +221,7 @@ export function isVisibleFilter(
     Based on https://github.com/guyht/vimari/blob/master/vimari.safariextension/linkHints.js
 
  */
-export function isVisible(thing: MinimalElement | Range) {
+export function isVisible(thing: Element | Range) {
     if (thing instanceof Element) {
         while (typeof thing.getBoundingClientRect !== "function") {
             thing = thing.parentElement
@@ -250,7 +242,7 @@ export function isVisible(thing: MinimalElement | Range) {
     const element = thing
     // remove elements that are barely within the viewport, tiny, or invisible
     // Only call getComputedStyle when necessary
-    const computedStyle = getComputedStyle(element as Element)
+    const computedStyle = getComputedStyle(element)
     switch (true) {
         case widthMatters(computedStyle) && clientRect.width < 3:
         case heightMatters(computedStyle) && clientRect.height < 3:
@@ -414,7 +406,7 @@ export function compareElementArea(a: HTMLElement, b: HTMLElement): number {
     return aArea - bArea
 }
 
-export const hintworthy_js_elems: Set<MinimalElement> = new Set()
+export const hintworthy_js_elems: Set<Element> = new Set()
 
 /** Adds or removes an element from the hintworthy_js_elems array of the
  *  current tab.
@@ -442,8 +434,8 @@ export function registerEvListenerAction(
     add: boolean,
     event: string,
 ) {
-    // We're only interested in the subset of EventTargets that are Element-like
-    if (!isMinimalElement(elem)) {
+    // We're only interested in the subset of EventTargets that are Elements.
+    if (!(elem instanceof Element)) {
         return
     }
 
@@ -470,13 +462,13 @@ export function registerEvListenerAction(
         case "mouseup":
         case "mouseover":
             if (add) {
-                hintworthy_js_elems.add(elem as Element as MinimalElement)
+                hintworthy_js_elems.add(elem)
             } else {
                 // Possible bug: If a page adds an event listener for "click" and
                 // "mousedown" and removes "mousedown" twice, we lose track of the
                 // elem even though it still has a "click" listener.
                 // Fixing this might not be worth the added complexity.
-                hintworthy_js_elems.delete(elem as Element as MinimalElement)
+                hintworthy_js_elems.delete(elem)
             }
     }
 }
