@@ -51,6 +51,16 @@ interface HTMLElement {
     focus(options?: any): void
 }
 
+
+// NB: update isMinimalElement function in lib/dom if adding properties to this!
+interface MinimalElement {
+    getBoundingClientRect(): DOMRect
+    childNodes: NodeList
+    getClientRects(): DOMRectList
+    matches(selector: string): boolean
+    parentElement: Element
+}
+
 /* eslint-disable @typescript-eslint/ban-types */
 // these functions really can be anything, ditto for the objects
 declare function exportFunction(
