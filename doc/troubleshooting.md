@@ -31,7 +31,7 @@ Tridactyl can selectively display logs for certain components. These components 
 -   styling
 -   excmds
 
-In order to activate logging for a component, you can use the following command: `:set logging.$COMPONENT DEBUG`. Then, to get the logs, click the hamburger menu in the top right of Firefox, click "Web Developer", then click "Browser Console". Open the menu again and click "Web Console" in the same place.
+In order to activate logging for a component, you can use the following command: `:set logging.$COMPONENT debug`. Then, to get the logs, click the hamburger menu in the top right of Firefox, click "Web Developer", then click "Browser Console". Open the menu again and click "Web Console" in the same place.
 
 This will open a two consoles where Tridactyl's messages are logged. Click on the little bin icons in the consoles in order to remove previous messages and try to re-trigger the bug. Copy the logs as you would any other text, and then paste them in your GitHub issue in a block surrounded by three backticks like so:
 
