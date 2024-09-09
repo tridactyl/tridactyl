@@ -37,7 +37,7 @@ async function init() {
     const notridactyl = await config.getAsync("superignore")
 
     if (document.contentType.includes("xml")) {
-        logger.info("Content type is not text/html; aborting iframe injection.")
+        logger.info("Content type is xml; aborting iframe injection.")
         return
     }
 
