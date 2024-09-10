@@ -3172,10 +3172,10 @@ export async function tabsort(...callbackchunks: string[]) {
     })
 }
 
-/** Pin the current tab */
+/** Pin a tab, defaulting to the current one */
 //#background
-export async function pin() {
-    const aTab = await activeTab()
+export async function pin(index: string) {
+    const aTab = await (index == "" ? activeTab() : tabFromIndex(index))
     return browser.tabs.update(aTab.id, { pinned: !aTab.pinned })
 }
 

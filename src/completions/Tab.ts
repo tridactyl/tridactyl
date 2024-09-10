@@ -94,6 +94,7 @@ export class BufferCompletionSource extends Completions.CompletionSourceFuse {
                 "tabduplicate",
                 "tabmove",
                 "tabrename",
+                "pin",
             ],
             "BufferCompletionSource",
             "Tabs",
