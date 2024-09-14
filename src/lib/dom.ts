@@ -743,7 +743,7 @@ export function simulateClick(
 export function deepestShadowRoot(sr: ShadowRoot | null): ShadowRoot | null {
     if (sr === null) return sr
     let shadowRoot = sr
-    while (shadowRoot.activeElement.shadowRoot != null) {
+    while (shadowRoot.activeElement?.shadowRoot != null) {
         shadowRoot = shadowRoot.activeElement.shadowRoot
     }
     return shadowRoot
