@@ -17,17 +17,21 @@ const cmdline_logger = new Logger("cmdline")
 
 // inject the commandline iframe into a content page
 
-const cmdline_iframe = window.document.createElementNS(
-    "http://www.w3.org/1999/xhtml",
-    "iframe",
-) as HTMLIFrameElement
-cmdline_iframe.className = "cleanslate"
-cmdline_iframe.setAttribute(
-    "src",
-    browser.runtime.getURL("static/commandline.html"),
-)
-cmdline_iframe.setAttribute("id", "cmdline_iframe")
-cmdline_iframe.setAttribute("loading", "lazy")
+let cmdline_iframe: HTMLIFrameElement
+function makeIframe() {
+    cmdline_iframe = window.document.createElementNS(
+        "http://www.w3.org/1999/xhtml",
+        "iframe",
+    ) as HTMLIFrameElement
+    cmdline_iframe.className = "cleanslate"
+    cmdline_iframe.setAttribute(
+        "src",
+        browser.runtime.getURL("static/commandline.html"),
+    )
+    cmdline_iframe.setAttribute("id", "cmdline_iframe")
+    cmdline_iframe.setAttribute("loading", "lazy")
+}
+makeIframe()
 
 let enabled = false
 
@@ -41,6 +45,16 @@ async function init() {
         enabled = true
         // first theming of page root
         await theme(window.document.querySelector(":root"))
+        reactIsCrap()
+    }
+}
+async function reactIsCrap(){
+    while(true){
+        if (cmdline_iframe.contentWindow == null) {
+            makeIframe()
+            document.documentElement.appendChild(cmdline_iframe)
+        }
+        await new Promise(resolve => setTimeout(resolve, 500))
     }
 }
 
