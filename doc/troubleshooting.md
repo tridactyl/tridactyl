@@ -6,6 +6,8 @@ If changing one of these settings fixes your bug, please visit the corresponding
 -   `:set allowautofocus true` and then reload the page. This allows website to use the javascript `focus()` function. [#550](https://github.com/tridactyl/tridactyl/issues/550)
 -   `:set modeindicator false` and then reload the page. This disables the mode indicator. [#821](https://github.com/tridactyl/tridactyl/issues/821)
 
+-   `:seturl $URL_OF_THE_WEBSITE superignore true` and then reload the page. This totally disables Tridactyl from loading on the page. No specific issue, please make a new one: https://github.com/tridactyl/tridactyl/issues/821
+
 # Firefox settings that can break Tridactyl
 
 If you have `privacy.resistFingerprinting` set to `true` in `about:config`, Tridactyl will have a lot of trouble understanding your keypresses. See [#760](https://github.com/tridactyl/tridactyl/issues/760#issuecomment-433679201) and [#1699](https://github.com/tridactyl/tridactyl/issues/1699). We strongly recommend setting it to `false`, as it is by default.
