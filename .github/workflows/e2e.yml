@@ -35,7 +35,7 @@ jobs:
 
     steps:
     - name: Checkout
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
 
     - name: Get yarn cache directory path
       id: yarn-cache-dir-path
@@ -43,7 +43,7 @@ jobs:
       run: echo "dir=$(yarn cache dir)" >> $GITHUB_OUTPUT
 
     - name: Setup cache
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
         key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
@@ -51,42 +51,19 @@ jobs:
           ${{ runner.os }}-yarn-
 
     - name: Install deps
-      run: |
-        yarn install
-    - name: Install Firefox Dev Edition (Linux)
-      if: matrix.browser == 'firefox' && matrix.os == 'ubuntu'
-      run: |
-        sudo yarn global add get-firefox
-        get-firefox --platform linux --branch devedition --extract --target $HOME
-        echo "$HOME/firefox" >> $GITHUB_PATH
-    - name: Install Firefox ESR (Linux)
-      if: matrix.browser == 'firefoxesr' && matrix.os == 'ubuntu'
-      run: |
-        sudo yarn global add get-firefox
-        get-firefox --platform linux --branch esr --extract --target $HOME
-        echo "$HOME/firefox" >> $GITHUB_PATH
-    - name: Install Firefox Dev Edition (MacOS)
-      if: matrix.browser == 'firefox' && matrix.os == 'macos'
-      run: |
-        brew install --cask homebrew/cask-versions/firefox-developer-edition
-        echo "/Applications/Firefox Developer Edition.app/Contents/MacOS/" >> $GITHUB_PATH
-    - name: Install Firefox Dev Edition (Windows)
-      if: matrix.browser == 'firefox' && matrix.os == 'windows'
-      run: |
-        choco install firefox-dev --pre
-        echo "C:\Program Files\Firefox Dev Edition" >> $GITHUB_PATH
-    - name: Install Firefox ESR (Windows)
-      if: matrix.browser == 'firefoxesr' && matrix.os == 'windows'
-      run: |
-        choco install firefoxesr
-        echo "C:\Program Files\Mozilla Firefox" >> $GITHUB_PATH
+      run: yarn install
 
+    - name: Setup Firefox
+      uses: browser-actions/setup-firefox@v1
+      with:
+        firefox-version: ${{ matrix.browser == 'firefox' && 'latest' || 'latest-esr' }}
+  
     - name: Print Firefox version (Unix-like)
       if: matrix.os == 'ubuntu' || matrix.os == 'macos'
       run: firefox --version
 
     - name: Build and test (Firefox)
-      uses: nick-fields/retry@v2
+      uses: nick-fields/retry@v3
       if: matrix.browser != 'chrome'
       env:
         HEADLESS: 1
@@ -97,9 +74,3 @@ jobs:
         shell: bash
         command: |
           yarn run clean && yarn run build --old-native && yarn make-zip && yarn jest
-    # - name: Test (Chrome, Linux)
-    #   if: matrix.browser == 'chrome' && matrix.os == 'ubuntu'
-    #   run: xvfb-run --auto-servernum npm run jest -- ${{ matrix.browser }} || xvfb-run --auto-servernum npm run jest -- ${{ matrix.browser }}
-    # - name: Test (Chrome, Windows/MacOs)
-    #   if: matrix.browser == 'chrome' && matrix.os != 'ubuntu'
-    #   run: npm run jest -- ${{ matrix.browser }} || npm run jest -- ${{ matrix.browser }}
