@@ -19,11 +19,11 @@ describe("webdriver", () => {
     }
 
     let driver: Driver
-    beforeAll(async () => {
+    beforeEach(async () => {
         driver = await getDriver()
     })
 
-    afterAll(async () => {
+    afterEach(async () => {
         await driver.quit()
     })
 
@@ -45,7 +45,7 @@ describe("webdriver", () => {
         await driver.installAddon(extensionPath, true)
         // Wait until addon is loaded and :tutor is displayed
         await iframeLoaded(driver)
-        const handles = (await driver.getAllWindowHandles())
+        const handles = await driver.getAllWindowHandles()
         // And wait a bit more otherwise Tridactyl won't be happy
         await driver.sleep(500)
         // Kill the original tab.
