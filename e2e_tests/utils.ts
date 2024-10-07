@@ -1,6 +1,6 @@
 import { promises as fs } from "fs"
 import * as path from "path"
-import { WebDriver, Key, Actions } from "selenium-webdriver"
+import { WebDriver, Key } from "selenium-webdriver"
 
 /** Returns the path of the newest file in directory */
 export async function getNewestFileIn(directory: string): Promise<string> {

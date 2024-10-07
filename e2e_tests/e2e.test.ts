@@ -76,6 +76,12 @@ describe("webdriver", () => {
         return { driver, newProfiles }
     }
 
+    interface Tab {
+        active: boolean
+        id: number
+        url?: string
+    }
+
     async function untilTabUrlMatches(
         driver: Driver,
         tabId: number,
@@ -83,19 +89,10 @@ describe("webdriver", () => {
     ) {
         return driver.wait(
             async function () {
-                const result = await driver.executeScript(
+                const result = await driver.executeScript<Tab | null>(
                     `return tri.browserBg.tabs.get(${tabId})`,
                 )
-                if (
-                    typeof result === "object" &&
-                    result !== null &&
-                    "url" in result
-                ) {
-                    return (
-                        (result as { url: string }).url.match(pattern) !== null
-                    )
-                }
-                return false
+                return result?.url?.match(pattern) !== null
             },
             10000,
             `Timed out waiting for tab ${tabId} URL to match ${pattern}`,
@@ -104,18 +101,18 @@ describe("webdriver", () => {
 
     async function newTabWithoutChangingOldTabs(
         driver: Driver,
-        callback: (tabsBefore: any[]) => Promise<void>,
+        callback: (tabsBefore: Tab[]) => Promise<void>,
     ) {
-        const tabsBefore = await driver.executeScript<any[]>(
+        const tabsBefore = await driver.executeScript<Tab[]>(
             "return tri.browserBg.tabs.query({})",
         )
         await callback(tabsBefore)
 
-        const tabsAfter = await driver.wait(
+        const tabsAfter = await driver.wait<Tab[]>(
             async () => {
                 let tabs: any[]
                 do {
-                    tabs = await driver.executeScript<any[]>(
+                    tabs = await driver.executeScript<Tab[]>(
                         "return tri.browserBg.tabs.query({})",
                     )
                 } while (tabs.length === tabsBefore.length)
@@ -336,15 +333,18 @@ describe("webdriver", () => {
         await untilTabUrlMatches(driver, newTab.id, "https://example.org")
     })
 
-    test("`:tabopen qwant https://example.org<CR>` opens qwant.", async () => {
+    test("`:tabopen duckduckgo https://example.org<CR>` opens duckduckgo.", async () => {
         const newTab = await newTabWithoutChangingOldTabs(driver, async () => {
-            await sendKeys(driver, ":tabopen qwant https://example.org<CR>")
+            await sendKeys(
+                driver,
+                ":tabopen duckduckgo https://example.org<CR>",
+            )
         })
         expect(newTab.active).toEqual(true)
         await untilTabUrlMatches(
             driver,
             newTab.id,
-            new RegExp("^https://www.qwant.com/.*example.org"),
+            new RegExp("https?://duckduckgo.com/?.*/"),
         )
     })
 })

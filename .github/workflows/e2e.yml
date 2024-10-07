@@ -36,19 +36,10 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v4
-
-    - name: Get yarn cache directory path
-      id: yarn-cache-dir-path
-      shell: bash
-      run: echo "dir=$(yarn cache dir)" >> $GITHUB_OUTPUT
-
-    - name: Setup cache
-      uses: actions/cache@v4
+    - uses: actions/setup-node@v4
       with:
-        path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
-        key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
-        restore-keys: |
-          ${{ runner.os }}-yarn-
+        node-version: 22
+        cache: 'yarn'
 
     - name: Install deps
       run: yarn install
@@ -64,11 +55,10 @@ jobs:
 
     - name: Build and test (Firefox)
       uses: nick-fields/retry@v3
-      if: matrix.browser != 'chrome'
       env:
         HEADLESS: 1
       with: 
-        max_attempts: 40
+        max_attempts: 4
         timeout_minutes: 10
         retry_wait_seconds: 10
         shell: bash
