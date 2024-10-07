@@ -50,14 +50,12 @@ const modToSelenium = {
 export async function sendKeys(driver: WebDriver, keys: string) {
     const delay = 500;
 
-    async function chainRegularKeys(regularKeys) {
-        for (const key of regularKeys.split("")) {
-            await driver.actions().sendKeys(key).perform();
-            await driver.sleep(delay);
-        }
+    async function sendSingleKey(key: string) {
+        await driver.actions().sendKeys(key).perform();
+        await driver.sleep(delay);
     }
 
-    async function chainSpecialKey(specialKey) {
+    async function sendSpecialKey(specialKey: string) {
         const noBrackets = specialKey.slice(1, -1);
         if (noBrackets.includes("-")) {
             const [modifiers, key] = noBrackets.split("-");
@@ -72,27 +70,23 @@ export async function sendKeys(driver: WebDriver, keys: string) {
             }
             await actions.perform();
         } else {
-            await driver.actions().sendKeys(vimToSelenium[noBrackets] || noBrackets).perform();
+            await sendSingleKey(vimToSelenium[noBrackets] || noBrackets);
         }
-        await driver.sleep(delay);
     }
 
     keys = keys.replace(":", "<S-;>");
     const regexp = /<[^>-]+-?[^>]*>/g;
-    const specialKeys = keys.match(regexp);
-
-    if (!specialKeys) {
-        await chainRegularKeys(keys);
-        return;
-    }
-
+    const specialKeys = keys.match(regexp) || [];
     const regularKeys = keys.split(regexp);
+
     for (let i = 0; i < Math.max(specialKeys.length, regularKeys.length); i++) {
         if (i < regularKeys.length && regularKeys[i]) {
-            await chainRegularKeys(regularKeys[i]);
+            for (const key of regularKeys[i].split("")) {
+                await sendSingleKey(key);
+            }
         }
         if (i < specialKeys.length) {
-            await chainSpecialKey(specialKeys[i]);
+            await sendSpecialKey(specialKeys[i]);
         }
     }
 }
