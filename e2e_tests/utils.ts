@@ -1,106 +1,98 @@
-import * as fs from "fs"
+import { promises as fs } from 'fs';
 import * as path from "path"
-import * as webdriver from "selenium-webdriver"
+import { WebDriver, Key, Actions } from "selenium-webdriver"
 
-// Returns the path of the newest file in directory
-export async function getNewestFileIn(directory: string) {
+/** Returns the path of the newest file in directory */
+export async function getNewestFileIn(directory: string): Promise<string | undefined> {
+    try {
         // Get list of files
-        const names = ((await new Promise((resolve, reject) => {
-                fs.readdir(directory, (err: Error, filenames: string[]) => {
-                        if (err) {
-                                return reject(err)
-                        }
-                        return resolve(filenames)
-                })
-                // Keep only files matching pattern
-        })) as string[])
-        // Get their stat struct
-        const stats = await Promise.all(names.map(name => new Promise((resolve, reject) => {
-                const fpath = path.join(directory, name)
-                fs.stat(fpath, (err: any, stats) => {
-                        if (err) {
-                                reject(err)
-                        }
-                        (stats as any).path = fpath
-                        return resolve(stats)
-                })
-        })))
-        // Sort by most recent and keep first
-        return ((stats.sort((stat1: any, stat2: any) => stat2.mtime - stat1.mtime)[0] || {}) as any).path
+        const names = await fs.readdir(directory);
+
+        // Get their stat structs
+        const stats = await Promise.all(names.map(async (name) => {
+            const filePath = path.join(directory, name);
+            const stat = await fs.stat(filePath);
+            return { path: filePath, mtime: stat.mtime };
+        }));
+
+        // Sort by most recent and return the path of the newest file
+        return stats.sort((a, b) => b.mtime.getTime() - a.mtime.getTime())[0]?.path;
+    } catch (error) {
+        console.error(`Error reading directory ${directory}:`, error);
+        return undefined;
+    }
 }
 
 const vimToSelenium = {
-    "Down": webdriver.Key.ARROW_DOWN,
-    "Left": webdriver.Key.ARROW_LEFT,
-    "Right": webdriver.Key.ARROW_RIGHT,
-    "Up": webdriver.Key.ARROW_UP,
-    "BS": webdriver.Key.BACK_SPACE,
-    "Del": webdriver.Key.DELETE,
-    "End": webdriver.Key.END,
-    "CR": webdriver.Key.ENTER,
-    "Esc": webdriver.Key.ESCAPE,
-    "Home": webdriver.Key.HOME,
-    "PageDown": webdriver.Key.PAGE_DOWN,
-    "PageUp": webdriver.Key.PAGE_UP,
-    "Tab": webdriver.Key.TAB,
+    "Down": Key.ARROW_DOWN,
+    "Left": Key.ARROW_LEFT,
+    "Right": Key.ARROW_RIGHT,
+    "Up": Key.ARROW_UP,
+    "BS": Key.BACK_SPACE,
+    "Del": Key.DELETE,
+    "End": Key.END,
+    "CR": Key.ENTER,
+    "Esc": Key.ESCAPE,
+    "Home": Key.HOME,
+    "PageDown": Key.PAGE_DOWN,
+    "PageUp": Key.PAGE_UP,
+    "Tab": Key.TAB,
     "lt": "<",
 }
 
 const modToSelenium = {
-    "A": webdriver.Key.ALT,
-    "C": webdriver.Key.CONTROL,
-    "M": webdriver.Key.META,
-    "S": webdriver.Key.SHIFT,
+    "A": Key.ALT,
+    "C": Key.CONTROL,
+    "M": Key.META,
+    "S": Key.SHIFT,
 }
 
-export function sendKeys (driver, keys) {
-    const delay = 500
-    function chainRegularKeys (previousPromise, regularKeys) {
-        return regularKeys
-            .split("")
-            .reduce((p, key) => p
-                .then(() => driver.actions().sendKeys(key).perform())
-                .then(() => driver.sleep(delay))
-                , previousPromise)
+export async function sendKeys(driver: WebDriver, keys: string) {
+    const delay = 500;
+
+    async function chainRegularKeys(regularKeys) {
+        for (const key of regularKeys.split("")) {
+            await driver.actions().sendKeys(key).perform();
+            await driver.sleep(delay);
+        }
     }
-    function chainSpecialKey (previousPromise, specialKey) {
-        return previousPromise
-            .then(() => {
-                const noBrackets = specialKey.slice(1,-1)
-                if (noBrackets.includes("-")) {
-                    const [modifiers, key] = noBrackets.split("-")
-                    const mods = modifiers.split("").map(mod => modToSelenium[mod])
-                    return mods
-                        .reduce((actions, mod) => actions.keyUp(mod),
-                            mods.reduce((actions, mod) => actions.keyDown(mod), driver.actions())
-                            .sendKeys(vimToSelenium[key] || key))
-                        .perform()
-                }
-                return driver.actions().sendKeys(vimToSelenium[noBrackets] || noBrackets).perform()
-            })
-            .then(() => driver.sleep(delay))
+
+    async function chainSpecialKey(specialKey) {
+        const noBrackets = specialKey.slice(1, -1);
+        if (noBrackets.includes("-")) {
+            const [modifiers, key] = noBrackets.split("-");
+            const mods = modifiers.split("").map(mod => modToSelenium[mod]);
+            let actions = driver.actions();
+            for (const mod of mods) {
+                actions = actions.keyDown(mod);
+            }
+            actions = actions.sendKeys(vimToSelenium[key] || key);
+            for (const mod of mods) {
+                actions = actions.keyUp(mod);
+            }
+            await actions.perform();
+        } else {
+            await driver.actions().sendKeys(vimToSelenium[noBrackets] || noBrackets).perform();
+        }
+        await driver.sleep(delay);
     }
-    keys = keys.replace(":", "<S-;>")
-    let result = Promise.resolve()
-    const regexp = /<[^>-]+-?[^>]*>/g
-    const specialKeys = keys.match(regexp)
+
+    keys = keys.replace(":", "<S-;>");
+    const regexp = /<[^>-]+-?[^>]*>/g;
+    const specialKeys = keys.match(regexp);
+
     if (!specialKeys) {
-        return chainRegularKeys(result, keys)
+        await chainRegularKeys(keys);
+        return;
     }
-    const regularKeys = keys.split(regexp)
-    let i
-    for (i = 0; i < Math.min(specialKeys.length, regularKeys.length); ++i) {
-        result = chainSpecialKey(chainRegularKeys(result, regularKeys[i]), specialKeys[i])
+
+    const regularKeys = keys.split(regexp);
+    for (let i = 0; i < Math.max(specialKeys.length, regularKeys.length); i++) {
+        if (i < regularKeys.length && regularKeys[i]) {
+            await chainRegularKeys(regularKeys[i]);
+        }
+        if (i < specialKeys.length) {
+            await chainSpecialKey(specialKeys[i]);
+        }
     }
-    if (i < regularKeys.length) {
-        result = regularKeys
-            .slice(i)
-            .reduce((previousPromise, currentKeys) => chainRegularKeys(previousPromise, currentKeys), result)
-    }
-    if ( i < specialKeys.length) {
-        result = specialKeys
-            .slice(i)
-            .reduce((previousPromise, currentKey) => chainSpecialKey(previousPromise, currentKey), result)
-    }
-    return result
 }
