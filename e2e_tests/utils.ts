@@ -48,7 +48,7 @@ const modToSelenium = {
 }
 
 export async function sendKeys(driver: WebDriver, keys: string) {
-    const delay = 500;
+    const delay = 100;
 
     async function sendSingleKey(key: string) {
         await driver.actions().sendKeys(key).perform();
