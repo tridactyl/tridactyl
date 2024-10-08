@@ -3,7 +3,7 @@ name: e2e
 on:
   push:
     branches:
-      - 'master'
+      - '*'
     paths-ignore:
       - '/readme.md'
   pull_request:
@@ -58,7 +58,7 @@ jobs:
       env:
         HEADLESS: 1
       with: 
-        max_attempts: 4
+        max_attempts: 1
         timeout_minutes: 10
         retry_wait_seconds: 10
         shell: bash
