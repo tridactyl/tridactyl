@@ -22,52 +22,25 @@ export class ThemeCompletionSource extends Completions.CompletionSourceFuse {
 
     constructor(private _parent) {
         super(["set theme", "colourscheme"], "ThemeCompletionSource", "Themes")
-
-        this.updateOptions()
         this._parent.appendChild(this.node)
-    }
-
-    async filter(exstr) {
-        this.lastExstr = exstr
-        return this.onInput(exstr)
-    }
-
-    async onInput(exstr) {
-        return this.updateOptions(exstr)
     }
 
     setStateFromScore(scoredOpts: Completions.ScoredOption[]) {
         super.setStateFromScore(scoredOpts, false)
     }
 
-    private async updateOptions(exstr = "") {
-        this.lastExstr = exstr
-
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars-experimental
+    /* override*/ protected async updateOptions(command, rest) {
         const themes = staticThemes.concat(
             Object.keys(await config.get("customthemes")),
         )
-        const [prefix, query] = this.splitOnPrefix(exstr)
-
-        // Hide self and stop if prefixes don't match
-        if (prefix) {
-            // Show self if prefix and currently hidden
-            if (this.state === "hidden") {
-                this.state = "normal"
-            }
-        } else {
-            this.state = "hidden"
-            return
-        }
 
         // Add all excmds that start with exstr and that tridactyl has metadata about to completions
         this.options = this.scoreOptions(
             themes
-                .filter(name => name.startsWith(query))
+                .filter(name => name.startsWith(rest))
                 .map(name => new ThemeCompletionOption(name)),
         )
-
-        this.options.forEach(o => (o.state = "normal"))
-        return this.updateChain()
     }
 
     private scoreOptions(options: ThemeCompletionOption[]) {
