@@ -301,6 +301,11 @@ You can bind your own shortcuts in normal mode with the `:bind` command. For exa
 
     There are two ways:  the first one is `:seturl [URL regex] allowautofocus false` (if you do this you'll probably also want to set `browser.autofocus` to false in `about:config`). This will prevent the page's `focus()` function from working and could break javascript text editors such as Ace or CodeMirror; you could equally run `:set allowautofocus false` and then use `:seturl [URL regex for sites with text editors you use] allowautofocus true`. The second method is `:seturl [URL regex] preventautofocusjackhammer true` which will repeatedly check that the page has not stolen focus at the cost of some CPU cycles, so use it sparingly. It works on more websites than `allowautofocus false`.
 
+-   I removed some lines from my `.tridactylrc` but the settings are still applied. What's going on?
+
+    Tridactyl has persistent storage of configuration, so if your RC file modifies your configuration, those changes will persist even if you remove or change the RC file. You can use `:reseturl [regex] [keybind]` to reset an individual setting, or `:sanitise tridactyllocal` to completely reset the stored configuration.
+
+
 ## Contributing
 
 ### Donations
