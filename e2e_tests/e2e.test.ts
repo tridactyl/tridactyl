@@ -80,6 +80,7 @@ describe("webdriver", () => {
         active: boolean
         id: number
         url?: string
+        cookieStoreId?: string
     }
 
     async function untilTabUrlMatches(
@@ -345,6 +346,36 @@ describe("webdriver", () => {
             driver,
             newTab.id,
             new RegExp("https?://duckduckgo.com/?.*/"),
+        )
+    })
+
+    test("`:tabopen -b about:blank<CR>` opens a background tab.", async () => {
+        const newTab = await newTabWithoutChangingOldTabs(driver, async () => {
+            await sendKeys(driver, ":tabopen -b about:blank<CR>")
+        })
+        expect(newTab.active).toEqual(false)
+        await untilTabUrlMatches(driver, newTab.id, "about:blank")
+    })
+
+    test("`:tabopen -c work about:blank<CR>` opens about:blank in a container.", async () => {
+        const newTab = await newTabWithoutChangingOldTabs(driver, async () => {
+            await sendKeys(driver, ":tabopen -c work about:blank<CR>")
+        })
+        expect(newTab.active).toEqual(true)
+        expect(newTab.cookieStoreId).toMatch("firefox-container-")
+        await untilTabUrlMatches(driver, newTab.id, "about:blank")
+    })
+
+    test("`:tabopen -b -c work search qwant<CR>` opens about:blank in a container.", async () => {
+        const newTab = await newTabWithoutChangingOldTabs(driver, async () => {
+            await sendKeys(driver, ":tabopen -b -c work search qwant<CR>")
+        })
+        expect(newTab.active).toEqual(false)
+        expect(newTab.cookieStoreId).toMatch("firefox-container-")
+        await untilTabUrlMatches(
+            driver,
+            newTab.id,
+            new RegExp("^https://www.google.com/search.*qwant"),
         )
     })
 })
