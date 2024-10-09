@@ -368,7 +368,7 @@ export async function queryAndURLwrangler(
 
     // Maybe it's a domain without protocol
     try {
-        const url = new URL("http://" + address)
+        const url = new URL("https://" + address)
         // Ignore unlikely domains
         if (
             // the endsWith check must be on address, because URL adds a

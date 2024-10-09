@@ -9,7 +9,7 @@ class BmarkCompletionOption
 
     constructor(
         public value: string,
-        bmark: browser.bookmarks.BookmarkTreeNode,
+        bmark: providers.HistoryItem,
     ) {
         super()
         if (!bmark.title) {

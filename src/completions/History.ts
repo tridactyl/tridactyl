@@ -13,18 +13,20 @@ class HistoryCompletionOption
             page.title = new URL(page.url).host
         }
 
-        this.value = page.search ? options + page.title : options + page.url
+        const search = page.type === providers.HistoryItemType.SearchUrl
+        const bmark = page.type === providers.HistoryItemType.Bmark
+        this.value = search ? options + page.title : options + page.url
 
-        let preplain = page.bmark ? "B" : ""
-        preplain += page.search ? "S" : ""
+        let preplain = bmark ? "B" : ""
+        preplain += search ? "S" : ""
         let pre = preplain
         if (config.get("completions", "Tab", "statusstylepretty") === "true") {
-            pre = page.bmark ? "\u2B50" : ""
-            pre += page.search ? "\u{1F50D}" : ""
+            pre = bmark ? "\u2B50" : ""
+            pre += search ? "\u{1F50D}" : ""
         }
 
         // Push properties we want to fuzmatch on
-        this.fuseKeys.push(preplain, page.title, page.url) // weight by page.visitCount
+        this.fuseKeys.push(preplain, page.title, page.url) // weight by page.score?
 
         // Create HTMLElement
         this.html = html`<tr class="HistoryCompletionOption option">
@@ -32,7 +34,7 @@ class HistoryCompletionOption
             <td class="prefixplain" hidden>${preplain}</td>
             <td class="title">${page.title}</td>
             <td class="content">
-                ${page.search ? "Search " : ""}
+                ${search ? "Search " : ""}
                 <a class="url" target="_blank" href=${page.url}>${page.url}</a>
             </td>
         </tr>`
@@ -42,6 +44,7 @@ class HistoryCompletionOption
 export class HistoryCompletionSource extends Completions.CompletionSourceFuse {
     static readonly DEFAULT_SECTION_HEADER = "History and bookmarks"
     public options: Completions.CompletionOptionFuse[]
+    headerPostfix: string[] = []
 
     constructor(private _parent) {
         super(
@@ -91,34 +94,30 @@ export class HistoryCompletionSource extends Completions.CompletionSourceFuse {
             options = "-private"
             headerPostfix.push("private window")
         }
+        this.headerPostfix = headerPostfix
         options += options ? " " : ""
         query = query.substring(options.length)
 
-        this.updateSectionHeader(
-            HistoryCompletionSource.DEFAULT_SECTION_HEADER,
-            headerPostfix,
-        )
         const tokens = query.split(" ")
-        if (tokens.length > 1 || query.endsWith(" ")) {
-            const match = (await providers.getSearchUrls(tokens[0])).find(
-                su => su.title === tokens[0],
+        const searchUrl = providers.searchUrlMap().get(tokens[0])
+        if (
+            (tokens.length > 1 || query.endsWith(" ")) &&
+            searchUrl !== undefined
+        ) {
+            this.updateSectionHeader("Search " + tokens[0])
+            const queryParts = tokens.slice(1)
+            queryParts.push(providers.searchUrlToQuery(searchUrl))
+            query = queryParts.join(" ")
+        } else {
+            this.updateSectionHeader(
+                HistoryCompletionSource.DEFAULT_SECTION_HEADER,
             )
-            if (match !== undefined) {
-                query = tokens.slice(1).join(" ")
-                this.updateSectionHeader("Search " + match.title, headerPostfix)
-                // Actual query sent to browser needs to be space separated
-                // list of tokens, otherwise partial matches won't be found
-                query = match.url.split("%s").join(" ") + " " + query
-            }
         }
 
         // Options are pre-trimmed to the right length.
         // Typescript throws an error here - further investigation is probably warranted
         this.options = (
-            (await this.scoreOptions(
-                query,
-                config.get("historyresults"),
-            )) as any
+            await this.scoreOptions(query, config.get("historyresults"))
         ).map(page => new HistoryCompletionOption(page, options))
 
         // Deselect any selected, but remember what they were.
@@ -147,16 +146,22 @@ export class HistoryCompletionSource extends Completions.CompletionSourceFuse {
     updateChain() {}
 
     private async scoreOptions(query: string, n: number) {
-        if (!query || config.get("historyresults") === 0) {
-            return (await providers.getTopSites()).slice(0, n)
+        let results
+        if (
+            (!query.trim() && config.get("usetopsites") === "true") ||
+            n === 0
+        ) {
+            this.updateSectionHeader("Top sites")
+            results = (await providers.getTopSites(5)).slice(0, n)
         } else {
-            return (await providers.getCombinedHistoryBmarks(query)).slice(0, n)
+            results = await providers.getCombinedHistoryBmarks(query, 5)
         }
+        return results.slice(0, n)
     }
 
-    private updateSectionHeader(newTitle: string, postfix: string[]) {
-        if (postfix.length > 0) {
-            newTitle += " (" + postfix.join(", ") + ")"
+    private updateSectionHeader(newTitle: string) {
+        if (this.headerPostfix.length > 0) {
+            newTitle += " (" + this.headerPostfix.join(", ") + ")"
         }
         const headerNode = this.node.firstElementChild
         const oldTitle = headerNode.innerHTML
