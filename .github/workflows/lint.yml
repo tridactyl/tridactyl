@@ -19,7 +19,7 @@ jobs:
         step: [lint, unit, mozilla]
     steps:
     - name: Checkout
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
     - name: Setup
       run: yarn install
     - name: ${{ matrix.step }}
