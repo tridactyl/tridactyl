@@ -1,12 +1,15 @@
-import * as process from "process"
-const env = process.env
-import * as fs from "fs"
+import { promises as fs } from "fs"
 import * as os from "os"
 import * as path from "path"
-import { Browser, Builder, By } from "selenium-webdriver"
-import { Options, Driver } from "selenium-webdriver/firefox"
+import { By } from "selenium-webdriver"
+import { Driver } from "selenium-webdriver/firefox"
 import * as Until from "selenium-webdriver/lib/until"
-import { getNewestFileIn, sendKeys } from "./utils"
+import {
+    getDriver,
+    getDriverAndProfileDirs,
+    iframeLoaded,
+    sendKeys,
+} from "./utils"
 
 jest.setTimeout(100000)
 
@@ -14,10 +17,6 @@ jest.setTimeout(100000)
 // https://seleniumhq.github.io/selenium/docs/api/javascript/
 
 describe("webdriver", () => {
-    async function iframeLoaded(driver: Driver) {
-        return driver.wait(Until.elementLocated(By.id("cmdline_iframe")))
-    }
-
     let driver: Driver
     beforeEach(async () => {
         driver = await getDriver()
@@ -27,55 +26,6 @@ describe("webdriver", () => {
         await driver.quit()
     })
 
-    async function getDriver() {
-        const extensionPath = await getNewestFileIn(
-            path.resolve("web-ext-artifacts"),
-        )
-
-        const options = new Options()
-        if (env["HEADLESS"]) {
-            options.addArguments("--headless")
-        }
-        const driver = new Builder()
-            .forBrowser(Browser.FIREFOX)
-            .setFirefoxOptions(options)
-            .build() as unknown as Driver
-
-        // This will be the default tab.
-        await driver.installAddon(extensionPath, true)
-        // Wait until addon is loaded and :tutor is displayed
-        await iframeLoaded(driver)
-        const handles = await driver.getAllWindowHandles()
-        // And wait a bit more otherwise Tridactyl won't be happy
-        await driver.sleep(500)
-        // Kill the original tab.
-        await driver.switchTo().window(handles[0])
-        await driver.close()
-        // Switch back to the good tab.
-        await driver.switchTo().window(handles[1])
-        // Now return the window that we want to use.
-        return driver
-    }
-
-    async function getDriverAndProfileDirs() {
-        const rootDir = os.tmpdir()
-        // First, find out what profile the driver is using
-        const profiles = fs.readdirSync(rootDir).map(p => path.join(rootDir, p))
-        const driver = await getDriver()
-        const newProfiles = fs
-            .readdirSync(rootDir)
-            .map(p => path.join(rootDir, p))
-            .filter(p => p.match("moz") && !profiles.includes(p))
-
-        // Tridactyl's tmp profile detection is broken on windows and OSX
-        if (["win32", "darwin"].includes(os.platform())) {
-            await sendKeys(driver, `:set profiledir ${newProfiles[0]}<CR>`)
-            await driver.sleep(1000)
-        }
-
-        return { driver, newProfiles }
-    }
-
     interface Tab {
         active: boolean
         id: number
@@ -83,6 +33,7 @@ describe("webdriver", () => {
         cookieStoreId?: string
     }
 
+    /** Switch to tab and wait for it to load, or fail. */
     async function untilTabUrlMatches(
         driver: Driver,
         tabId: number,
@@ -100,6 +51,7 @@ describe("webdriver", () => {
         )
     }
 
+    /** Utility to open a new tab and wait for it to load with test assertions. */
     async function newTabWithoutChangingOldTabs(
         driver: Driver,
         callback: (tabsBefore: Tab[]) => Promise<void>,
@@ -262,13 +214,12 @@ describe("webdriver", () => {
             ).toEqual(
                 "userChrome.css written. Please restart Firefox to see the changes.",
             )
-            expect(
-                newProfiles.find(p =>
-                    fs
-                        .readdirSync(path.join(p, "chrome"))
-                        .find(files => files.match("userChrome.css$")),
+            const profile = newProfiles.find(async p =>
+                (await fs.readdir(path.join(p, "chrome"))).find(files =>
+                    files.match("userChrome.css$"),
                 ),
-            ).toBeDefined()
+            )
+            expect(profile).toBeDefined()
         } catch (e) {
             fail(e)
         } finally {
@@ -300,9 +251,12 @@ describe("webdriver", () => {
         try {
             await sendKeys(driver, `:setpref a.b.c "d"<CR>`)
             await driver.sleep(2000)
-            const file = fs.readFileSync(path.join(newProfiles[0], "user.js"), {
-                encoding: "utf-8",
-            })
+            const file = await fs.readFile(
+                path.join(newProfiles[0], "user.js"),
+                {
+                    encoding: "utf-8",
+                },
+            )
             expect(file).toMatch(/user_pref\("a.b.c", "d"\);/)
         } catch (e) {
             fail(e)
@@ -310,73 +264,115 @@ describe("webdriver", () => {
     })
 
     test("`:tabopen<CR>` opens the newtab page.", async () => {
-        const newTab = await newTabWithoutChangingOldTabs(
-            driver,
-            async tabsBefore => {
-                await sendKeys(driver, ":tabopen<CR>")
-            },
-        )
-        // The new tab is active
-        expect(newTab.active).toEqual(true)
-        // Its url is the newtab page's url
-        await untilTabUrlMatches(
-            driver,
-            newTab.id,
-            new RegExp("moz-extension://.*/static/newtab.html"),
-        )
+        try {
+            const newTab = await newTabWithoutChangingOldTabs(
+                driver,
+                async tabsBefore => {
+                    await sendKeys(driver, ":tabopen<CR>")
+                },
+            )
+            // The new tab is active
+            expect(newTab.active).toEqual(true)
+            // Its url is the newtab page's url
+            await untilTabUrlMatches(
+                driver,
+                newTab.id,
+                new RegExp("moz-extension://.*/static/newtab.html"),
+            )
+        } catch (e) {
+            fail(e)
+        }
     })
 
     test("`:tabopen https://example.org<CR>` opens example.org.", async () => {
-        const newTab = await newTabWithoutChangingOldTabs(driver, async () => {
-            await sendKeys(driver, ":tabopen https://example.org<CR>")
-        })
-        expect(newTab.active).toEqual(true)
-        await untilTabUrlMatches(driver, newTab.id, "https://example.org")
+        try {
+            const newTab = await newTabWithoutChangingOldTabs(
+                driver,
+                async () => {
+                    await sendKeys(driver, ":tabopen https://example.org<CR>")
+                },
+            )
+            expect(newTab.active).toEqual(true)
+            await untilTabUrlMatches(driver, newTab.id, "https://example.org")
+        } catch (e) {
+            fail(e)
+        }
     })
 
     test("`:tabopen duckduckgo https://example.org<CR>` opens duckduckgo.", async () => {
-        const newTab = await newTabWithoutChangingOldTabs(driver, async () => {
-            await sendKeys(
+        try {
+            const newTab = await newTabWithoutChangingOldTabs(
                 driver,
-                ":tabopen duckduckgo https://example.org<CR>",
+                async () => {
+                    await sendKeys(
+                        driver,
+                        ":tabopen duckduckgo https://example.org<CR>",
+                    )
+                },
             )
-        })
-        expect(newTab.active).toEqual(true)
-        await untilTabUrlMatches(
-            driver,
-            newTab.id,
-            new RegExp("https?://duckduckgo.com/?.*/"),
-        )
+            expect(newTab.active).toEqual(true)
+            await untilTabUrlMatches(
+                driver,
+                newTab.id,
+                new RegExp("https?://duckduckgo.com/?.*/"),
+            )
+        } catch (e) {
+            fail(e)
+        }
     })
 
     test("`:tabopen -b about:blank<CR>` opens a background tab.", async () => {
-        const newTab = await newTabWithoutChangingOldTabs(driver, async () => {
-            await sendKeys(driver, ":tabopen -b about:blank<CR>")
-        })
-        expect(newTab.active).toEqual(false)
-        await untilTabUrlMatches(driver, newTab.id, "about:blank")
+        try {
+            const newTab = await newTabWithoutChangingOldTabs(
+                driver,
+                async () => {
+                    await sendKeys(driver, ":tabopen -b about:blank<CR>")
+                },
+            )
+            expect(newTab.active).toEqual(false)
+            await untilTabUrlMatches(driver, newTab.id, "about:blank")
+        } catch (e) {
+            fail(e)
+        }
     })
 
     test("`:tabopen -c work about:blank<CR>` opens about:blank in a container.", async () => {
-        const newTab = await newTabWithoutChangingOldTabs(driver, async () => {
-            await sendKeys(driver, ":tabopen -c work about:blank<CR>")
-        })
-        expect(newTab.active).toEqual(true)
-        expect(newTab.cookieStoreId).toMatch("firefox-container-")
-        await untilTabUrlMatches(driver, newTab.id, "about:blank")
+        try {
+            const newTab = await newTabWithoutChangingOldTabs(
+                driver,
+                async () => {
+                    await sendKeys(driver, ":tabopen -c work about:blank<CR>")
+                },
+            )
+            expect(newTab.active).toEqual(true)
+            expect(newTab.cookieStoreId).toMatch("firefox-container-")
+            await untilTabUrlMatches(driver, newTab.id, "about:blank")
+        } catch (e) {
+            fail(e)
+        }
     })
 
     test("`:tabopen -b -c work search qwant<CR>` opens about:blank in a container.", async () => {
-        const newTab = await newTabWithoutChangingOldTabs(driver, async () => {
-            await sendKeys(driver, ":tabopen -b -c work search qwant<CR>")
-        })
-        expect(newTab.active).toEqual(false)
-        expect(newTab.cookieStoreId).toMatch("firefox-container-")
-        await untilTabUrlMatches(
-            driver,
-            newTab.id,
-            new RegExp("^https://www.google.com/search.*qwant"),
-        )
+        try {
+            const newTab = await newTabWithoutChangingOldTabs(
+                driver,
+                async () => {
+                    await sendKeys(
+                        driver,
+                        ":tabopen -b -c work search qwant<CR>",
+                    )
+                },
+            )
+            expect(newTab.active).toEqual(false)
+            expect(newTab.cookieStoreId).toMatch("firefox-container-")
+            await untilTabUrlMatches(
+                driver,
+                newTab.id,
+                new RegExp("^https://www.google.com/search.*qwant"),
+            )
+        } catch (e) {
+            fail(e)
+        }
     })
 })
 

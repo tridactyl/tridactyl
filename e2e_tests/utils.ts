@@ -1,6 +1,11 @@
 import { promises as fs } from "fs"
 import * as path from "path"
-import { WebDriver, Key } from "selenium-webdriver"
+import * as os from "os"
+import * as process from "process"
+import { Browser, Builder, By, Key, WebDriver } from "selenium-webdriver"
+import { Driver, Options } from "selenium-webdriver/firefox"
+import * as Until from "selenium-webdriver/lib/until"
+const env = process.env
 
 /** Returns the path of the newest file in directory */
 export async function getNewestFileIn(directory: string): Promise<string> {
@@ -24,6 +29,58 @@ export async function getNewestFileIn(directory: string): Promise<string> {
         console.error(`Error reading directory ${directory}:`, error)
         throw new Error("Couldn't find extension path")
     }
+}
+
+export async function iframeLoaded(driver: Driver) {
+    return driver.wait(Until.elementLocated(By.id("cmdline_iframe")))
+}
+
+export async function getDriver() {
+    const extensionPath = await getNewestFileIn(
+        path.resolve("web-ext-artifacts"),
+    )
+
+    const options = new Options()
+    if (env["HEADLESS"]) {
+        options.addArguments("--headless")
+    }
+    const driver = new Builder()
+        .forBrowser(Browser.FIREFOX)
+        .setFirefoxOptions(options)
+        .build() as unknown as Driver
+
+    // This will be the default tab.
+    await driver.installAddon(extensionPath, true)
+    // Wait until addon is loaded and :tutor is displayed
+    await iframeLoaded(driver)
+    const handles = await driver.getAllWindowHandles()
+    // And wait a bit more otherwise Tridactyl won't be happy
+    await driver.sleep(500)
+    // Kill the original tab.
+    await driver.switchTo().window(handles[0])
+    await driver.close()
+    // Switch back to the good tab.
+    await driver.switchTo().window(handles[1])
+    // Now return the window that we want to use.
+    return driver
+}
+
+export async function getDriverAndProfileDirs() {
+    const rootDir = os.tmpdir()
+    // First, find out what profile the driver is using
+    const profiles = (await fs.readdir(rootDir)).map(p => path.join(rootDir, p))
+    const driver = await getDriver()
+    const newProfiles = (await fs.readdir(rootDir))
+        .map(p => path.join(rootDir, p))
+        .filter(p => p.match("moz") && !profiles.includes(p))
+
+    // Tridactyl's tmp profile detection is broken on windows and OSX
+    if (["win32", "darwin"].includes(os.platform())) {
+        await sendKeys(driver, `:set profiledir ${newProfiles[0]}<CR>`)
+        await driver.sleep(1000)
+    }
+
+    return { driver, newProfiles }
 }
 
 const vimToSelenium = {
