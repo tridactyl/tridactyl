@@ -12,5 +12,5 @@ file_changed() {
 }
 
 if file_changed package.json; then
-	yarn install
+	bun install
 fi
