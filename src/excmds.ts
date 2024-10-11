@@ -3045,7 +3045,7 @@ export async function tabcloseallto(side: string) {
     return browser.tabs.remove(ids)
 }
 
-/** 
+/**
  * Discard a tab without closing it to free up memory.
  *
  * @param index
