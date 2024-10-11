@@ -95,6 +95,12 @@ export class default_config {
                 F: "hint -bc [tabindex]:not(.two)>div,a",
             },
         },
+        "^https://teams.microsoft.com": { // #5054
+            superignore: "true",
+        },
+        "^https://teams.live.com": { // #5054
+            superignore: "true",
+        },
     }
 
     /**
