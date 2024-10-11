@@ -3045,6 +3045,25 @@ export async function tabcloseallto(side: string) {
     return browser.tabs.remove(ids)
 }
 
+/** 
+ * Discard a tab without closing it to free up memory.
+ *
+ * @param index
+ *        The 1-based index of the tab to target. index < 1 wraps. If omitted, this tab. Magic argument `--all` will discard all tabs
+ */
+//#background
+export async function tabdiscard(index: string) {
+    let id: number
+    if (index === "--all") {
+        return browser.tabs.query({}).then(ts => browser.tabs.discard(ts.map(t=>t.id)))
+    } else if (index === undefined) {
+        id = (await activeTab()).id
+    } else {
+        id = await idFromIndex(index)
+    }
+    return browser.tabs.discard(id)
+}
+
 /** Restore the most recently closed item.
     The default behaviour is to restore the most recently closed tab in the
     current window unless the most recently closed item is a window.
