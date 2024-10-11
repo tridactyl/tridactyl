@@ -18,7 +18,7 @@ const cmdline_logger = new Logger("cmdline")
 // inject the commandline iframe into a content page
 
 let cmdline_iframe: HTMLIFrameElement
-function makeIframe() {
+export function makeIframe() {
     cmdline_iframe = window.document.createElementNS(
         "http://www.w3.org/1999/xhtml",
         "iframe",
@@ -45,10 +45,25 @@ async function init() {
         enabled = true
         // first theming of page root
         await theme(window.document.querySelector(":root"))
-        reactIsCrap()
+
+        // Fix #5050: reinsert iframe after React throws a tantrum
+        new MutationObserver(changes =>
+            changes.find(change => {
+                for (const addedNode of change.addedNodes) {
+                    // detect React server-side render failure by added <link rel='modulepreload'>
+                    if (addedNode instanceof HTMLLinkElement && addedNode.rel === "modulepreload" && document.getElementById("cmdline_iframe") === null) {
+                        reactIsCrap()
+                    }
+                }
+            })
+        ).observe(cmdline_iframe.parentNode, { childList: true, subtree: true })
     }
 }
+
+let hammering_react = false
 async function reactIsCrap(){
+    if (hammering_react) return
+    hammering_react = true
     while(true){
         if (cmdline_iframe.contentWindow == null) {
             makeIframe()
