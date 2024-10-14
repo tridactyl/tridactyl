@@ -29,7 +29,7 @@ fi
 
 if [ -n "$uglyFiles" ]; then
     echo "Prettify your files first:"
-    echo 'yarn run pretty'
+    echo 'bun run pretty'
     echo ''
     echo 'If you see this message repeatedly, skip the check with git commit -n'
     exit 1
