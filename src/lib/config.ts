@@ -1156,6 +1156,21 @@ export class default_config {
     historyresults = 50
 
     /**
+     * Whether to use the Firefox "top sites" API in history completions. This setting is ignored if [[historyresults]] is set to 0.
+     */
+    usetopsites: "true" | "false" = "true"
+
+    /**
+     * Half life in days of visits used for exponential decay in frecency calculation. Set to 0 to disable frecency and sort by visited count only. Smaller numbers mean that recency of visits matter more for ranking; bigger numbers mean that the absolute number of visits is more important.
+     */
+    frecencyhalflife = 30
+
+    /**
+     * Minimum interval between searchurl score updates, in seconds. (To improve performance, searchurl scores used to rank history completions are cached.)
+     */
+    searchurlscoreupdateinterval = 600
+
+    /**
      * When displaying bookmarks in history completions, how many page views to pretend they have.
      */
     bmarkweight = 100
@@ -1163,7 +1178,7 @@ export class default_config {
     /**
      * When displaying searchurls in history completions, how many page views to pretend they have.
      */
-    searchurlweight = 150
+    searchurlweight = 100
 
     /**
      * Default selector for :goto command.
