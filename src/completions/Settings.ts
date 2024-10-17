@@ -34,34 +34,20 @@ export class SettingsCompletionSource extends Completions.CompletionSourceFuse {
         this._parent.appendChild(this.node)
     }
 
-    public async filter(exstr: string) {
-        this.lastExstr = exstr
-        let [prefix, query] = this.splitOnPrefix(exstr)
+    /* override*/ protected async updateOptions(command, rest) {
         let options = ""
-
-        // Hide self and stop if prefixes don't match
-        if (prefix) {
-            // Show self if prefix and currently hidden
-            if (this.state === "hidden") {
-                this.state = "normal"
-            }
-        } else {
-            this.state = "hidden"
-            return
-        }
-
         // Ignoring command-specific arguments
         // It's terrible but it's ok because it's just a stopgap until an actual commandline-parsing API is implemented
         // copy pasting code is fun and good
         if (
-            prefix === "seturl" ||
-            prefix === "unseturl" ||
-            (prefix === "viewconfig" &&
-                (query.startsWith("--user") || query.startsWith("--default")))
+            command === "seturl" ||
+            command === "unseturl" ||
+            (command === "viewconfig" &&
+                (rest.startsWith("--user") || rest.startsWith("--default")))
         ) {
-            const args = query.split(" ")
+            const args = rest.split(" ")
             options = args.slice(0, 1).join(" ")
-            query = args.slice(1).join(" ")
+            rest = args.slice(1).join(" ")
         }
 
         options += options ? " " : ""
@@ -75,7 +61,7 @@ export class SettingsCompletionSource extends Completions.CompletionSourceFuse {
         }
 
         this.options = Object.keys(settings)
-            .filter(x => x.startsWith(query))
+            .filter(x => x.startsWith(rest))
             .sort()
             .map(setting => {
                 const md = default_config.getMember(setting)
@@ -92,15 +78,5 @@ export class SettingsCompletionSource extends Completions.CompletionSourceFuse {
                     type,
                 })
             })
-
-        return this.updateChain()
-    }
-
-    updateChain() {
-        // Options are pre-trimmed to the right length.
-        this.options.forEach(option => (option.state = "normal"))
-
-        // Call concrete class
-        return this.updateDisplay()
     }
 }
