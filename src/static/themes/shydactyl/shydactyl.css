@@ -121,3 +121,8 @@
 /* #Shydactyl-insert { */
 /*  border-color: yellow !important; */
 /* } */
+
+/* Delete to hide element highlighting */
+span.TridactylHint {
+    background-color: var(--tridactyl-hintspan-bg) !important;
+}
