@@ -541,7 +541,9 @@ export function getLastUsedInput(): HTMLElement {
  *  https://bugzilla.mozilla.org/show_bug.cgi?id=1406825
  * */
 function onPageFocus(elem: HTMLElement): boolean {
-    elem = elem.shadowRoot ? elem.shadowRoot.activeElement as HTMLElement : elem
+    elem = elem.shadowRoot
+        ? (elem.shadowRoot.activeElement as HTMLElement)
+        : elem
     if (isTextEditable(elem)) {
         LAST_USED_INPUT = elem
     }
@@ -578,14 +580,36 @@ function hijackPageFocusFunction(): void {
 
 export function setupFocusHandler(): void {
     // Handles when a user selects an input
-    document.addEventListener("focusin", e => {
-        let elem = e.target as HTMLElement
-        elem = elem.shadowRoot ? elem.shadowRoot.activeElement as HTMLElement : elem
+    const setFocus = elem => {
         if (isTextEditable(elem)) {
             LAST_USED_INPUT = elem
             setInput(elem)
         }
-    })
+    }
+    const knownRoot = new WeakSet()
+    const listen = root => {
+        root.addEventListener("focusin", handler)
+        knownRoot.add(root)
+    }
+    const handler = e => {
+        let elem = e.target as HTMLElement
+        const r = elem.shadowRoot
+        if (!r) {
+            setFocus(elem)
+            return
+        }
+        if (knownRoot.has(r)) {
+            // r[handler] will handle it
+            return
+        }
+        while (elem.shadowRoot) {
+            listen(elem.shadowRoot)
+            elem = elem.shadowRoot.activeElement as HTMLElement
+            if (!elem) return
+        }
+        setFocus(elem)
+    }
+    listen(document)
     // Handles when the page tries to select an input
     if (inContentScript()) {
         hijackPageFocusFunction()
