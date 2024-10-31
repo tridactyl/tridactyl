@@ -143,7 +143,9 @@ export function enableCompletions() {
             .map(constructorr => {
                 try {
                     return new constructorr(commandline_state.completionsDiv)
-                } catch (e) {}
+                } catch (e) {
+                    console.error(e)
+                }
             })
             .filter(c => c)
 

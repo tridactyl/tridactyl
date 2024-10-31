@@ -13,26 +13,7 @@ export class CompositeCompletionSource extends Completions.CompletionSourceFuse 
 
     constructor(private _parent) {
         super([PREFIX], "CompositeCompletionSource", "ex commands")
-
-        this.updateOptions()
         this._parent.appendChild(this.node)
-    }
-
-    async filter(exstr) {
-        this.lastExstr = exstr
-        return this.onInput(exstr)
-    }
-
-    async onInput(exstr) {
-        return this.updateOptions(exstr)
-    }
-
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars-experimental
-    updateChain(exstr = this.lastExstr, options = this.options) {
-        if (this.options.length > 0) this.state = "normal"
-        else this.state = "hidden"
-
-        this.updateDisplay()
     }
 
     select(option: ExcmdCompletions.ExcmdCompletionOption) {
@@ -49,22 +30,9 @@ export class CompositeCompletionSource extends Completions.CompletionSourceFuse 
         super.setStateFromScore(scoredOpts, false)
     }
 
-    private async updateOptions(exstr = "") {
-        const end_exstr = this.getendexstr(exstr)
-        this.lastExstr = exstr
-        const [prefix] = this.splitOnPrefix(exstr)
-
-        // Hide self and stop if prefixes don't match
-        if (prefix) {
-            // Show self if prefix and currently hidden
-            if (this.state === "hidden") {
-                this.state = "normal"
-            }
-        } else {
-            this.state = "hidden"
-            return
-        }
-
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars-experimental
+    /* override*/ protected async updateOptions(command, rest) {
+        const end_exstr = this.getendexstr(rest)
         const excmds = Metadata.everything.getFile("src/excmds.ts")
         if (!excmds) return
         const fns = excmds.getFunctions()
@@ -108,9 +76,6 @@ export class CompositeCompletionSource extends Completions.CompletionSourceFuse 
                 )
             }
         }
-
-        this.options.forEach(o => (o.state = "normal"))
-        return this.updateChain()
     }
 
     private scoreOptions(options: ExcmdCompletions.ExcmdCompletionOption[]) {

@@ -38,47 +38,19 @@ export class WindowCompletionSource extends Completions.CompletionSourceFuse {
             "WindowCompletionSource",
             "Windows",
         )
-
-        this.updateOptions()
         this._parent.appendChild(this.node)
     }
 
-    async onInput(exstr) {
-        // Schedule an update, if you like. Not very useful for windows, but
-        // will be for other things.
-        return this.updateOptions(exstr)
-    }
-
-    async filter(exstr) {
-        this.lastExstr = exstr
-        return this.onInput(exstr)
-    }
-
-    private async updateOptions(exstr = "") {
-        this.lastExstr = exstr
-        const [prefix] = this.splitOnPrefix(exstr)
-
-        // Hide self and stop if prefixes don't match
-        if (prefix) {
-            // Show self if prefix and currently hidden
-            if (this.state === "hidden") {
-                this.state = "normal"
-            }
-        } else {
-            this.state = "hidden"
-            return
-        }
-
-        const excludeCurrentWindow = ["tabpush"].includes(prefix.trim())
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars-experimental
+    /* override*/ protected async updateOptions(command, rest) {
+        const excludeCurrentWindow = ["tabpush"].includes(command.trim())
         this.options = (await browserBg.windows.getAll({ populate: true }))
-        .filter( win => !(excludeCurrentWindow && win.focused))
-        .map(
-            win => {
+            .filter(win => !(excludeCurrentWindow && win.focused))
+            .map(win => {
                 const o = new WindowCompletionOption(win)
                 o.state = "normal"
                 return o
-            },
-        )
+            })
         return this.updateDisplay()
     }
 }
