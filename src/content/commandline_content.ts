@@ -51,7 +51,7 @@ async function init() {
             changes.find(change => {
                 for (const addedNode of change.addedNodes) {
                     // detect React server-side render failure by added <link rel='modulepreload'>
-                    if (addedNode instanceof HTMLLinkElement && addedNode.rel === "modulepreload" && document.getElementById("cmdline_iframe") === null) {
+                    if (addedNode instanceof HTMLLinkElement && addedNode.rel === "modulepreload") {
                         reactIsCrap()
                     }
                 }
@@ -61,9 +61,10 @@ async function init() {
 }
 
 let hammering_react = false
-async function reactIsCrap(){
+export async function reactIsCrap(){
     if (hammering_react) return
     hammering_react = true
+    cmdline_logger.warning("Possible react server-side render failure detected, starting iframe protection loop")
     while(true){
         if (cmdline_iframe.contentWindow == null) {
             makeIframe()
