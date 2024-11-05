@@ -330,7 +330,7 @@ yarn run build
 
 Each time package.json or yarn.lock change after you checkout or pull, our git hook will try to run `yarn install` again. If it doesn't you should do it manually.
 
-Addon is built in tridactyl/build. Load it as a temporary addon in firefox with `about:debugging` or see [Development loop](#Development-loop).
+Addon is built in `build/`. Load it as a [temporary addon](https://extensionworkshop.com/documentation/develop/temporary-installation-in-firefox/) in firefox with `about:debugging` or see [Development loop](#Development-loop).
 
 If you want to install a local copy of the add-on into your developer or nightly build of Firefox then you can enable installing unsigned add-ons and then build it like so:
 
