@@ -59,16 +59,15 @@ If you want to use advanced features such as edit-in-Vim, you'll also need to in
 
 **Snap and Flatpak:** Native Messaging support here is fairly recent and may require:
 
-* Upgrading to a beta version of Firefox (`>= 106.0b6`)
-* Enabling webextension permissions: `flatpak permission-set webextensions tridactyl snap.firefox yes`
-* Rebooting your system (and likely nothing short of it)
+-   Upgrading to a beta version of Firefox (`>= 106.0b6`)
+-   Enabling webextension permissions: `flatpak permission-set webextensions tridactyl snap.firefox yes`
+-   Rebooting your system (and likely nothing short of it)
 
 See [this call for testing thread](https://discourse.ubuntu.com/t/call-for-testing-native-messaging-support-in-the-firefox-snap/29759) and [this PR](https://github.com/tridactyl/tridactyl/pull/4406) for more details and troubleshooting tips.
 
 **Firejail** will require explicit path whitelisting, but should be feasible based on https://github.com/netblue30/firejail/issues/2109.
 
-For other containerized installs, see troubleshooting steps in https://github.com/tridactyl/tridactyl/issues/2406 and the links above.
-With packaging that does support Native Messaging, the trick is usually ensuring the containerized app has permission to run the executable and can find the [manifest json file](https://wiki.mozilla.org/WebExtensions/Native_Messaging#Host_Manifests).
+For other containerized installs, see troubleshooting steps in https://github.com/tridactyl/tridactyl/issues/2406 and the links above. With packaging that does support Native Messaging, the trick is usually ensuring the containerized app has permission to run the executable and can find the [manifest json file](https://wiki.mozilla.org/WebExtensions/Native_Messaging#Host_Manifests).
 
 ### Migrating between beta and stable builds
 
@@ -130,8 +129,7 @@ Find mode is still incomplete and uses the Firefox feature "Quick Find". This wi
 -   `/` then `<C-f>` — open the Find in page search box
 -   `<C-g>`/`<C-G>` — find the next/previous instance of the last find operation (note: these are the standard Firefox shortcuts)
 
-Please note that Tridactyl overrides Firefox's `<C-f>` search, replacing it with a binding to go to the next part of the page. 
-If you want to be able to use `<C-f>` to search for things, use `<C-f>` after opening the Quick Find box (`/`), or any input field such as the address bar or search bar (use default browser shortcuts to activate these). To allow usage of `<C-f>` at any time, use `unbind <C-f>` to unset the scrollpage binding.
+Please note that Tridactyl overrides Firefox's `<C-f>` search, replacing it with a binding to go to the next part of the page. If you want to be able to use `<C-f>` to search for things, use `<C-f>` after opening the Quick Find box (`/`), or any input field such as the address bar or search bar (use default browser shortcuts to activate these). To allow usage of `<C-f>` at any time, use `unbind <C-f>` to unset the scrollpage binding.
 
 #### Bookmarks and quickmarks
 
@@ -146,7 +144,7 @@ If you want to use Firefox's default `<C-b>` binding to open the bookmarks sideb
 
 -   `m a-zA-Z` — set a local mark (lowercase letter), or a global mark (uppercase letter)
 -   `` ` a-zA-Z `` — jump to a local mark (lowercase letter), or a global mark (uppercase letter)
--   ``` `` ``` — jump to the location before the last mark jump
+-   ` `` ` — jump to the location before the last mark jump
 
 #### Navigating to new pages:
 
@@ -299,7 +297,7 @@ You can bind your own shortcuts in normal mode with the `:bind` command. For exa
 
 -   How do I prevent websites from stealing focus?
 
-    There are two ways:  the first one is `:seturl [URL regex] allowautofocus false` (if you do this you'll probably also want to set `browser.autofocus` to false in `about:config`). This will prevent the page's `focus()` function from working and could break javascript text editors such as Ace or CodeMirror; you could equally run `:set allowautofocus false` and then use `:seturl [URL regex for sites with text editors you use] allowautofocus true`. The second method is `:seturl [URL regex] preventautofocusjackhammer true` which will repeatedly check that the page has not stolen focus at the cost of some CPU cycles, so use it sparingly. It works on more websites than `allowautofocus false`.
+    There are two ways: the first one is `:seturl [URL regex] allowautofocus false` (if you do this you'll probably also want to set `browser.autofocus` to false in `about:config`). This will prevent the page's `focus()` function from working and could break javascript text editors such as Ace or CodeMirror; you could equally run `:set allowautofocus false` and then use `:seturl [URL regex for sites with text editors you use] allowautofocus true`. The second method is `:seturl [URL regex] preventautofocusjackhammer true` which will repeatedly check that the page has not stolen focus at the cost of some CPU cycles, so use it sparingly. It works on more websites than `allowautofocus false`.
 
 ## Contributing
 
