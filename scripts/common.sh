@@ -45,7 +45,7 @@ eslintUgly() {
         tmpfile="$tmpdir/$jsfile"
         mkdir -p "$(dirname "$tmpfile")"
         staged "$jsfile" > "$tmpfile"
-        "$(yarn bin)/eslint" --no-ignore --quiet -o /dev/null "$tmpfile" || acc="$jsfile"$'\n'"$acc"
+        "$(yarn bin)/eslint" --rulesdir custom-eslint-rules --no-ignore --quiet -o /dev/null "$tmpfile" || acc="$jsfile"$'\n'"$acc"
     done
     rm -rf "$tmpdir"
     echo "$acc"
