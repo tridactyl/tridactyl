@@ -138,7 +138,7 @@ You can run Tridactyl easily in a temporary Firefox profile with `yarn run run`.
 
 # Code of conduct
 
-[Queensberry rules](https://en.oxforddictionaries.com/definition/queensberry_rules).
+[Queensberry rules](https://en.wikipedia.org/wiki/Marquess_of_Queensberry_Rules).
 
 [matrix]: https://matrix.to/#/#tridactyl:matrix.org
 [issues]: https://github.com/tridactyl/tridactyl/issues?utf8=%E2%9C%93&q=is%3Aissue+is%3Aopen+
