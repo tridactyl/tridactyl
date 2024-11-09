@@ -91,6 +91,7 @@ code {
     /* font-size: 85%; */
     font-size: 10pt;
     border-radius: 3px;
+    hyphens: none;
 }
 
 img {
