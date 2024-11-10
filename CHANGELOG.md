@@ -1,5 +1,33 @@
 # Tridactyl changelog
 
+# Release 1.24.2 / Unreleased
+
+-   New features
+    - `colemak` layout added for `:set keyboardlayoutbase` (#4995)
+    - adding `/` to the end of a URL forces `:open` and friends to treat it as a URL (#4998)
+    - `:tabopen -p` opens a pinned tab (#5000)
+    - `none` proxy added as override for autocontain (#5015)
+    - `:pin` now accepts and index and has completions
+    - `:tabdiscard` added to unload a tab from memory (#4798)
+
+-   Bug fixes
+    - Tridactyl reinserts itself when server-side rendered React websites remove it (#5053)
+    - JS hints (grey ones) now work again (#5039)
+    - `;r` for text-to-speech now hints all text correctly
+    - `D` now throws an error if used with a count rather than closing a seemingly random tab
+    - `:zoom` now only tries to zoom to 300% (#5018)
+    - `:followpage` now searches all `<a>` tags (#5031)
+    - `:focusinput` now works in shadow roots (#5025)
+    - switching focus in input mode now works in shadow roots (#5073)
+    - Tridactyl disabled on Microsoft Teams because ... they're bad at computers? Anyway, it fixes their site.
+    - `:open [number]` will now search for the number rather than trying to interpret the 32-bit integer as an IP address (#5084)
+    - `:apropos` will now work even if you have created a custom setting (#5076)
+
+-   Miscellaneous
+    - Most `searchurls` have been removed because people (especially me) found them annoying (#3925)
+    - CI kinda works most of the time again (#5058)
+
+
 # Release 1.24.1 / 2024-04-07
 
 -   New features
