@@ -120,7 +120,7 @@ export class AproposCompletionSource extends Completions.CompletionSourceFuse {
                 options.concat(
                     Object.keys(settings)
                         .filter(x =>
-                            (x + default_config.getMember(x).doc)
+                            (x + default_config.getMember(x)?.doc)
                                 .toLowerCase()
                                 .includes(query),
                         )
