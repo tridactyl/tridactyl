@@ -222,7 +222,7 @@ You can bind your own shortcuts in normal mode with the `:bind` command. For exa
 
 -   Can I import/export settings, and does Tridactyl use an external configuration file just like Vimperator?
 
-    Yes. `:source --url [URL]` accepts a URL (which must contain only an RC file, e.g. `raw.githubusercontent.com/...`). If you have `native` working, `$XDG_CONFIG_DIR/tridactyl/tridactylrc` or `~/.tridactylrc` will be read at startup via an `autocmd` and `source`. There is an [example file available on our repository](https://github.com/tridactyl/tridactyl/blob/master/.tridactylrc).
+    Yes. `:source --url [URL]` accepts a URL (which must contain only an RC file, e.g. `raw.githubusercontent.com/...`). If you have `native` working, `$XDG_CONFIG_HOME/tridactyl/tridactylrc` or `~/.tridactylrc` will be read at startup via an `autocmd` and `source`. There is an [example file available on our repository](https://github.com/tridactyl/tridactyl/blob/master/.tridactylrc).
 
     There's also `mkt` which exports your configuration to a file which may be read with `source`. (NB: this currently requires `native`).
 
