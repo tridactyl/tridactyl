@@ -19,7 +19,6 @@ function prefixTheme(name) {
 // At the moment elements are only ever `:root` and so this array and stuff is all a bit overdesigned.
 const THEMED_ELEMENTS = []
 
-// PARIS: optional hint styles
 let insertedHintElemCSS = false
 const hintElemCss = {
     allFrames: true,

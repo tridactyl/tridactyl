@@ -95,12 +95,10 @@ export class default_config {
                 F: "hint -bc [tabindex]:not(.two)>div,a",
             },
         },
-        "^https://teams.microsoft.com": {
-            // #5054
+        "^https://teams.microsoft.com": { // #5054
             superignore: "true",
         },
-        "^https://teams.live.com": {
-            // #5054
+        "^https://teams.live.com": { // #5054
             superignore: "true",
         },
     }
@@ -1788,7 +1786,7 @@ export const keyboardlayouts = {
         KeyY: ["", "!"],
     },
     workman: {
-        Quote: ["'", '"'],
+        Quote: ["'", "\""],
         Digit8: ["8", "*"],
         Digit1: ["1", "!"],
         Digit2: ["2", "@"],
@@ -1834,7 +1832,7 @@ export const keyboardlayouts = {
         KeyM: ["l", "L"],
         Comma: [",", "<"],
         Period: [".", ">"],
-        Slash: ["/", "?"],
+        Slash: ["/", "?"]
     },
 }
 
@@ -2327,8 +2325,8 @@ export async function update() {
                 local?.storageloc !== undefined
                     ? local.storageloc
                     : sync?.storageloc !== undefined
-                      ? sync.storageloc
-                      : "sync"
+                    ? sync.storageloc
+                    : "sync"
             if (current_storageloc == "sync") {
                 await pull()
             } else if (current_storageloc != "local") {
