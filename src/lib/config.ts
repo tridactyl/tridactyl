@@ -96,10 +96,10 @@ export class default_config {
             },
         },
         "^https://teams.microsoft.com": { // #5054
-            superignore: "true",
+            modeindicator: "false",
         },
         "^https://teams.live.com": { // #5054
-            superignore: "true",
+            modeindicator: "false",
         },
     }
 
