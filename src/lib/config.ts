@@ -95,10 +95,12 @@ export class default_config {
                 F: "hint -bc [tabindex]:not(.two)>div,a",
             },
         },
-        "^https://teams.microsoft.com": { // #5054
+        "^https://teams.microsoft.com": {
+            // #5054
             superignore: "true",
         },
-        "^https://teams.live.com": { // #5054
+        "^https://teams.live.com": {
+            // #5054
             superignore: "true",
         },
     }
@@ -1334,6 +1336,15 @@ export class default_config {
      * Whether to show article url in the document.title of Reader View.
      */
     readerurlintitle: "true" | "false" = "false"
+
+    /**
+     *  Which css styles to add for hint elements.
+     **/
+    hintstyles: { [key: string]: "all" | "active" | "none" } = {
+        fg: "active",
+        bg: "active",
+        outline: "all",
+    }
 }
 
 const platform_defaults = {
@@ -1777,7 +1788,7 @@ export const keyboardlayouts = {
         KeyY: ["", "!"],
     },
     workman: {
-        Quote: ["'", "\""],
+        Quote: ["'", '"'],
         Digit8: ["8", "*"],
         Digit1: ["1", "!"],
         Digit2: ["2", "@"],
@@ -1823,7 +1834,7 @@ export const keyboardlayouts = {
         KeyM: ["l", "L"],
         Comma: [",", "<"],
         Period: [".", ">"],
-        Slash: ["/", "?"]
+        Slash: ["/", "?"],
     },
 }
 
@@ -2316,8 +2327,8 @@ export async function update() {
                 local?.storageloc !== undefined
                     ? local.storageloc
                     : sync?.storageloc !== undefined
-                    ? sync.storageloc
-                    : "sync"
+                      ? sync.storageloc
+                      : "sync"
             if (current_storageloc == "sync") {
                 await pull()
             } else if (current_storageloc != "local") {

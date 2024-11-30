@@ -19,6 +19,14 @@ function prefixTheme(name) {
 // At the moment elements are only ever `:root` and so this array and stuff is all a bit overdesigned.
 const THEMED_ELEMENTS = []
 
+// PARIS: optional hint styles
+let insertedHintElemCSS = false
+const hintElemCss = {
+    allFrames: true,
+    matchAboutBlank: true,
+    code: "",
+}
+
 let insertedCSS = false
 const customCss = {
     allFrames: true,
@@ -40,6 +48,49 @@ export async function theme(element) {
         element.classList.remove(theme)
     }
     // DEPRECATION ENDS
+
+    // Insert hint CSS rules according to config - copying how themes are inserted
+    if (insertedHintElemCSS) {
+        await browserBg.tabs.removeCSS(await ownTabId(), hintElemCss)
+        insertedHintElemCSS = false
+    }
+
+    const hintElemOptions = await config.getAsync("hintstyles")
+
+    const hintElemRules =
+        (hintElemOptions.fg === "all"
+            ? "    color: var(--tridactyl-hint-active-fg) !important;\n"
+            : "") +
+        (hintElemOptions.bg === "all"
+            ? "    background: var(--tridactyl-hint-bg) !important;\n"
+            : "") +
+        (hintElemOptions.outline === "all"
+            ? "    outline: var(--tridactyl-hint-outline) !important;\n"
+            : "")
+
+    const activeElemRules =
+        (hintElemOptions.fg !== "none"
+            ? "    color: var(--tridactyl-hint-active-fg) !important;\n"
+            : "") +
+        (hintElemOptions.bg !== "none"
+            ? "    background: var(--tridactyl-hint-active-bg) !important;\n"
+            : "") +
+        (hintElemOptions.outline !== "none"
+            ? "    outline: var(--tridactyl-hint-active-outline) !important;\n"
+            : "")
+
+    hintElemCss.code =
+        (hintElemRules !== ""
+            ? ".TridactylHintElem {\n" + hintElemRules + "}\n"
+            : "") +
+        (activeElemRules !== ""
+            ? ".TridactylHintActive {\n" + activeElemRules + "}\n"
+            : "")
+
+    if (hintElemCss.code !== "") {
+        await browserBg.tabs.insertCSS(await ownTabId(), hintElemCss)
+        insertedHintElemCSS = true
+    }
 
     if (insertedCSS) {
         // Typescript doesn't seem to be aware than remove/insertCSS's tabid
