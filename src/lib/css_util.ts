@@ -130,6 +130,27 @@ export const potentialRules = {
             show: `max-height: 0; min-height: 0 !important;`,
         },
     },
+    // Hide urlbar after firefox breaking change caused it to show regardless of UI being hidden
+    urlbar: {
+        name: `:root:not([customizing]) #navigator-toolbox:not(:hover):not(:focus-within) #urlbar`,
+        options: {
+            hide: `min-height: 0 !important;
+                    height: 0 !important;
+                    overflow: hidden !important;`,
+            show: ``,
+        },
+    },
+    // Required for urlbar to keep working properly after being hidden by the above
+    // Otherwise, typing into the address field looks "invisible" due to low height
+    // being set directly on the element, and #urlbar having been forced (!important)
+    // to 0 height by us, meaning it can no longer compensate for this
+    urlbarcontainer: {
+        name: `:root:not([customizing]) #navigator-toolbox #urlbar-container`,
+        options: {
+            hide: `--urlbar-container-height: auto !important;`,
+            show: ``,
+        },
+    },
     // This inherits transparency if we aren't careful
     menubar: {
         name: `#navigator-toolbox:not(:hover):not(:focus-within) #toolbar-menubar > *`,
@@ -223,6 +244,8 @@ export const metaRules = {
             navbarafter: "hide",
             navbarnonaddonchildren: "show",
             navbarnoheight: "hide",
+            urlbar: "hide",
+            urlbarcontainer: "hide",
         },
         always: {
             navbarunfocused: "show",
@@ -230,6 +253,8 @@ export const metaRules = {
             navbarafter: "show",
             navbarnonaddonchildren: "show",
             navbarnoheight: "hide",
+            urlbar: "show",
+            urlbarcontainer: "show",
         },
         none: {
             navbarunfocused: "show",
@@ -237,6 +262,8 @@ export const metaRules = {
             navbarafter: "hide",
             navbarnonaddonchildren: "hide",
             navbarnoheight: "show",
+            urlbar: "hide",
+            urlbarcontainer: "hide",
         },
     },
 }
