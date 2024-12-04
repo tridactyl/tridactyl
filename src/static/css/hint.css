@@ -26,7 +26,6 @@ span.TridactylHintUppercase {
 
 .TridactylHintElem,
 .TridactylHintActive {
-    color: var(--tridactyl-hint-active-fg) !important !important;
     animation: none !important;
     transition: unset !important;
 }
