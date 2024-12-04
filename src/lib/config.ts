@@ -1336,11 +1336,17 @@ export class default_config {
     readerurlintitle: "true" | "false" = "false"
 
     /**
-     *  Which css styles to add for hint elements.
-     **/
+     * Which css styles to add for hint elements.
+     *
+     * Use `hintstyles.fg` for text color, `hintstyles.bg` for background color, `hintstyles.outline` for outlines.
+     * Values may be "all" to enable the style for all hints, "active" for styles only the currently selected hint, or "none" to disable the style completely.
+     *
+     * For example, run
+     *`:set hintstyles.bg none` to remove background colors from all hints.
+     */
     hintstyles: { [key: string]: "all" | "active" | "none" } = {
-        fg: "active",
-        bg: "active",
+        fg: "all",
+        bg: "all",
         outline: "all",
     }
 }
