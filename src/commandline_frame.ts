@@ -41,6 +41,7 @@ import { ThemeCompletionSource } from "@src/completions/Theme"
 import { TabHistoryCompletionSource } from "@src/completions/TabHistory"
 import { WindowCompletionSource } from "@src/completions/Window"
 import { ProxyCompletionSource } from "@src/completions/Proxy"
+import { ContainerCompletionSource } from "@src/completions/Container"
 import { contentState } from "@src/content/state_content"
 import { theme } from "@src/content/styling"
 import { getCommandlineFns } from "@src/lib/commandline_cmds"
@@ -139,6 +140,7 @@ export function enableCompletions() {
             WindowCompletionSource,
             ExtensionsCompletionSource,
             ProxyCompletionSource,
+            ContainerCompletionSource,
         ]
             .map(constructorr => {
                 try {

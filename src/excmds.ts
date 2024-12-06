@@ -3482,20 +3482,19 @@ export async function viewcontainers() {
 //#background
 export async function recontain(containerName: string) {
     const thisTab = await activeTab()
+    const containers = await browser.contextualIdentities.query({ name: containerName })
+    let containerId: string
 
-    let container
-    await Container.fuzzyMatch(containerName)
-        .then(match => {
-            container = match
-        })
-        .catch(() => {
-            container = Container.DefaultContainer.cookieStoreId
-        })
+    if (containers.length > 0) {
+        containerId = containers[0].cookieStoreId
+    } else {
+        containerId = "firefox-default"
+    }
 
     await openInNewTab(thisTab.url, {
         active: true,
         related: true,
-        cookieStoreId: container,
+        cookieStoreId: containerId,
     })
     return browser.tabs.remove(thisTab.id)
 }

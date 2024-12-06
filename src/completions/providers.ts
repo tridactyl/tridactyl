@@ -132,3 +132,16 @@ export async function getCombinedHistoryBmarks(
 
     return Array.from(combinedMap.values()).sort((a, b) => score(a) - score(b))
 }
+
+export async function getContainers(
+    query: string,
+): Promise<browser.contextualIdentities.ContextualIdentity[]> {
+    const containers = await browser.contextualIdentities.query({})
+    if (query) {
+        const lowerQuery = query.toLowerCase()
+        return containers.filter(container =>
+            container.name.toLowerCase().includes(lowerQuery),
+        )
+    }
+    return containers
+}
