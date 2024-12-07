@@ -1,6 +1,5 @@
 import * as Completions from "@src/completions"
 import * as providers from "@src/completions/providers"
-import * as config from "@src/lib/config"
 
 export class ContainerCompletionOption
     extends Completions.CompletionOptionHTML
@@ -24,15 +23,10 @@ export class ContainerCompletionOption
 
 export class ContainerCompletionSource extends Completions.CompletionSourceFuse {
     public options: ContainerCompletionOption[] = []
-    private shouldSetStateFromScore: boolean
 
     constructor(private _parent: HTMLElement) {
         super(["recontain"], "ContainerCompletionSource", "Containers")
-
         this._parent.appendChild(this.node)
-        this.sortScoredOptions = true
-        this.shouldSetStateFromScore =
-            config.get("completions", "Containers", "autoselect") === "true"
     }
 
     public async filter(exstr: string) {
@@ -60,10 +54,6 @@ export class ContainerCompletionSource extends Completions.CompletionSourceFuse 
         return this.updateChain()
     }
 
-    setStateFromScore(scoredOpts: Completions.ScoredOption[]) {
-        super.setStateFromScore(scoredOpts, this.shouldSetStateFromScore)
-    }
-
     updateChain() {
         const query = this.splitOnPrefix(this.lastExstr)[1]
 
@@ -74,15 +64,5 @@ export class ContainerCompletionSource extends Completions.CompletionSourceFuse 
         }
 
         return this.updateDisplay()
-    }
-
-    select(option: Completions.CompletionOption) {
-        if (this.lastExstr !== undefined && option !== undefined) {
-            this.completion = ["recontain", option.value].join(" ")
-            option.state = "focused"
-            this.lastFocused = option
-        } else {
-            throw new Error("lastExstr and option must be defined")
-        }
     }
 }
