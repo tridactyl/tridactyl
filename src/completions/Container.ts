@@ -17,8 +17,7 @@ export class ContainerCompletionOption
         this.fuseKeys.push(container.name)
 
         this.html = html`<tr class="ContainerCompletionOption option">
-            <td class="prefix">${"".padEnd(2)}</td>
-            <td class="title">${container.name}</td>
+            <td class="value">${container.name}</td>
         </tr>`
     }
 }
