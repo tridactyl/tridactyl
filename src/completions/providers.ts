@@ -138,9 +138,8 @@ export async function getContainers(
 ): Promise<browser.contextualIdentities.ContextualIdentity[]> {
     const containers = await browser.contextualIdentities.query({})
     if (query) {
-        const lowerQuery = query.toLowerCase()
         return containers.filter(container =>
-            container.name.toLowerCase().includes(lowerQuery),
+            container.name.toLowerCase().includes(query.toLowerCase()),
         )
     }
     return containers
