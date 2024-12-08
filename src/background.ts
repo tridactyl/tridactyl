@@ -31,6 +31,11 @@ import * as meta from "@src/background/meta"
 import * as Logging from "@src/lib/logging"
 import * as Proxy from "@src/lib/proxy"
 import { tabsProxy } from "@src/lib/tabs"
+import { pipeline, env } from "@xenova/transformers"
+import * as metadata from "@src/.metadata.generated"
+
+env.allowLocalModels = false
+// env.backends.onnx.wasm.numThreads = 1 // might need for manifest v3
 
 // Add various useful modules to the window for debugging
 ;(window as any).tri = Object.assign(Object.create(null), {
@@ -53,7 +58,9 @@ import { tabsProxy } from "@src/lib/tabs"
     R,
     perf,
     meta,
+    metadata,
     tabs: tabsProxy,
+    pipeline,
 })
 
 import { HintingCmds } from "@src/background/hinting"
