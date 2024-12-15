@@ -357,7 +357,7 @@ export async function editor() {
 
     let ans
     try {
-        const editor = getEditor(elem, { preferHTML: true })
+        const editor = getEditor(elem, { preferHTML: false })
         const text = await editor.getContent()
         const pos = await editor.getCursor()
 
