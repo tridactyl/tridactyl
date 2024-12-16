@@ -31,7 +31,7 @@
     "xss": "^1.0.15"
   },
   "devDependencies": {
-    "@types/css": "0.0.37",
+    "@types/css": "0.0.38",
     "@types/firefox-webext-browser": "^120.0.4",
     "@types/jest": "^27.5.0",
     "@types/nearley": "^2.11.5",

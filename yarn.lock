@@ -1011,10 +1011,10 @@
   resolved "https://registry.yarnpkg.com/@types/color-name/-/color-name-1.1.1.tgz#1c1261bbeaa10a8055bbc5d8ab84b7b2afc846a0"
   integrity sha512-rr+OQyAjxze7GgWrSaJwydHStIhHq2lvY3BOC2Mj7KnzI7XK0Uw1TOOdI9lDoajEbSWLiYgoo4f1R51erQfhPQ==
 
-"@types/css@0.0.37":
-  version "0.0.37"
-  resolved "https://registry.yarnpkg.com/@types/css/-/css-0.0.37.tgz#955e5261f0f72f4b6852ea485e138c889408bd2a"
-  integrity sha512-IVhWCNH1mw3VRjkOMHsxVAcnANhee9w//TX1fqmALP628Dzf6VMG1LRnOngpptnrilcWCkmcY1tj6QkKGUy0CA==
+"@types/css@0.0.38":
+  version "0.0.38"
+  resolved "https://registry.yarnpkg.com/@types/css/-/css-0.0.38.tgz#fe7291e420488528305e68b1a6fc0486ba5e8a75"
+  integrity sha512-FsAy4pBnrJb8qdKmIyDy582o4Xt8pHwpCwYRmIvXw4dslA7C4436oOM+8XNnMEsV/LSculbFNaZsBZmycDjARw==
 
 "@types/firefox-webext-browser@^120.0.4":
   version "120.0.4"
