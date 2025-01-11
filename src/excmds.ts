@@ -4840,7 +4840,7 @@ export async function unbind(...args: string[]) {
 }
 
 /**
- * Unbind a sequence of keys you have set with [[bindurl]]. Note that this **kills** a bind, which means Tridactyl will pass it to the page on `pattern`. If instead you want to use the default setting again, use [[reseturl]].
+ * Unbind a sequence of keys you have set with [[bind]] or [[bindurl]]. Note that this **kills** a bind, which means Tridactyl will pass it to the page on `pattern`. If instead you want to use the default setting again, use [[reseturl]].
  *
  * @param pattern a regex to match URLs on which the key should be unbound
  * @param mode Optional. The mode in which the key should be unbound. Defaults to normal.
