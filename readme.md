@@ -210,6 +210,10 @@ You can bind your own shortcuts in normal mode with the `:bind` command. For exa
 
     `:set searchengine esa`
 
+    Note that this does not apply to `:open` when run without arguments, as it simply opens the newtab page which can be set like this:
+    
+    `:set newtab [newtab url]`, e.g. `:set newtab https://www.google.com`
+
 -   How can I add a search engine?
 
     `:set searchurls.esa http://www.esa.int/esasearch?q=`
