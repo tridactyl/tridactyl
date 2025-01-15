@@ -15,6 +15,7 @@ import * as gobblemode from "@src/parsers/gobblemode"
 import * as generic from "@src/parsers/genericmode"
 import * as nmode from "@src/parsers/nmode"
 import * as Messaging from "@src/lib/messaging";
+import * as config from "@src/lib/config"
 
 const logger = new Logger("controller")
 
@@ -103,9 +104,15 @@ class KeyCanceller {
 export const canceller = new KeyCanceller()
 
 let commandlineFrameReadyToReceiveMessages = false
-Messaging.addListener("commandline_frame_ready_to_receive_messages", () => {
-    logger.debug("Received commandline_frame_ready_to_receive_messages")
-    commandlineFrameReadyToReceiveMessages = true
+config.getAsync("noiframe").then(noiframe => {
+    if(noiframe === "true") {
+        commandlineFrameReadyToReceiveMessages = true
+    } else {
+        Messaging.addListener("commandline_frame_ready_to_receive_messages", () => {
+            logger.debug("Received commandline_frame_ready_to_receive_messages")
+            commandlineFrameReadyToReceiveMessages = true
+        })
+    }
 })
 
 let mustBufferPageKeysForClInput = false
