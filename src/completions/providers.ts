@@ -8,6 +8,26 @@ export function newtaburl() {
     return newtab !== null ? browser.runtime.getURL(newtab) : null
 }
 
+export async function getAllBookmarks(): Promise<{
+    string?: browser.bookmarks.BookmarkTreeNode
+}> {
+    const bookmarks = await browserBg.bookmarks.getTree()
+    const allBookmarks = bookmarks.flatMap(flattenChildren)
+    return allBookmarks.reduce((dict, bookmark) => {
+        dict[bookmark.id] = bookmark
+        return dict
+    }, {})
+}
+
+function flattenChildren(
+    node: browser.bookmarks.BookmarkTreeNode,
+): browser.bookmarks.BookmarkTreeNode[] {
+    if (!node.children) {
+        return [node]
+    }
+    return [node, ...node.children.flatMap(flattenChildren)]
+}
+
 export async function getBookmarks(query: string) {
     // Search bookmarks, dedupe and sort by most recent.
     let bookmarks = await browserBg.bookmarks.search({ query })
