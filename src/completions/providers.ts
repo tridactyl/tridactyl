@@ -9,26 +9,6 @@ export function newtaburl() {
     return newtab !== null ? browser.runtime.getURL(newtab) : null
 }
 
-export async function getAllBookmarks(): Promise<{
-    string?: browser.bookmarks.BookmarkTreeNode
-}> {
-    const bookmarks = await browserBg.bookmarks.getTree()
-    const allBookmarks = bookmarks.flatMap(flattenChildren)
-    return allBookmarks.reduce((dict, bookmark) => {
-        dict[bookmark.id] = bookmark
-        return dict
-    }, {})
-}
-
-function flattenChildren(
-    node: browser.bookmarks.BookmarkTreeNode,
-): browser.bookmarks.BookmarkTreeNode[] {
-    if (!node.children) {
-        return [node]
-    }
-    return [node, ...node.children.flatMap(flattenChildren)]
-}
-
 export type Bookmark = { path?: string } & browser.bookmarks.BookmarkTreeNode
 
 let allBookmarks: Bookmark[]
@@ -48,6 +28,15 @@ async function collectBookmarks(): Promise<Bookmark[]> {
         }))
         .filter(isValidBookmark)
         .sort((a, b) => b.dateAdded - a.dateAdded)
+}
+
+function flattenChildren(
+    node: browser.bookmarks.BookmarkTreeNode,
+): browser.bookmarks.BookmarkTreeNode[] {
+    if (!node.children) {
+        return [node]
+    }
+    return [node, ...node.children.flatMap(flattenChildren)]
 }
 
 function buildBookmarkPath(
