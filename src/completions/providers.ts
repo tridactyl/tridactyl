@@ -1,5 +1,6 @@
 import * as config from "@src/lib/config"
 import { browserBg } from "@src/lib/webext"
+import Fuse from "fuse.js"
 
 export function newtaburl() {
     // In the nonewtab version, this will return `null` and upset getURL.
@@ -28,20 +29,52 @@ function flattenChildren(
     return [node, ...node.children.flatMap(flattenChildren)]
 }
 
-export async function getBookmarks(query: string) {
+export type Bookmark = { path?: string } & browser.bookmarks.BookmarkTreeNode
+
+let allBookmarks: Bookmark[]
+let bookmarksFuse: Fuse<Bookmark>
+
+async function collectBookmarks(): Promise<Bookmark[]> {
+    const root = await browserBg.bookmarks.getTree()
+    const bookmarks = root.flatMap(flattenChildren)
+    const bookmarksDictionary = bookmarks.reduce((dict, bookmark) => {
+        dict[bookmark.id] = bookmark
+        return dict
+    }, {})
+    return bookmarks
+        .map(bookmark => ({
+            path: buildBookmarkPath("", bookmark, bookmarksDictionary),
+            ...bookmark,
+        }))
+        .filter(isValidBookmark)
+        .sort((a, b) => b.dateAdded - a.dateAdded)
+}
+
+function buildBookmarkPath(
+    path: string,
+    bookmark: browser.bookmarks.BookmarkTreeNode,
+    allBookmarks: { string?: browser.bookmarks.BookmarkTreeNode },
+): string {
+    if (bookmark.id === "root________") {
+        return path
+    }
+    const parent = allBookmarks[bookmark.parentId]
+    return buildBookmarkPath(`${parent.title}/${path}`, parent, allBookmarks)
+}
+
+export async function getBookmarks(query: string): Promise<Bookmark[]> {
+    allBookmarks = allBookmarks || (await collectBookmarks())
+    bookmarksFuse =
+        bookmarksFuse ||
+        new Fuse(allBookmarks, { keys: ["path", "title", "url"] })
     // Search bookmarks, dedupe and sort by most recent.
-    let bookmarks = await browserBg.bookmarks.search({ query })
-
-    // Remove folder nodes and bad URLs
-    bookmarks = bookmarks.filter(b => {
-        try {
-            return new URL(b.url)
-        } catch (e) {
-            return false
-        }
-    })
-
-    bookmarks.sort((a, b) => b.dateAdded - a.dateAdded)
+    // TODO: enable based on configuration property
+    // let bookmarks = await browserBg.bookmarks.search({ query })
+    // bookmarks = bookmarks.filter(isValidBookmark)
+    // bookmarks.sort((a, b) => b.dateAdded - a.dateAdded)
+    let bookmarks = query
+        ? bookmarksFuse.search(query).map(r => r.item)
+        : allBookmarks
 
     // Remove duplicate bookmarks
     const seen = new Map<string, string>()
@@ -54,6 +87,15 @@ export async function getBookmarks(query: string) {
     })
 
     return bookmarks
+}
+
+function isValidBookmark(bookmark: Bookmark): boolean {
+    // Remove folder nodes and bad URLs
+    try {
+        return !!new URL(bookmark.url)
+    } catch (e) {
+        return false
+    }
 }
 
 export async function getSearchUrls(query: string) {

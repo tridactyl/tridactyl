@@ -9,22 +9,19 @@ class BmarkCompletionOption
 
     constructor(
         public value: string,
-        bmark: browser.bookmarks.BookmarkTreeNode,
-        allBookmarks: { string?: browser.bookmarks.BookmarkTreeNode },
+        bmark: providers.Bookmark,
     ) {
         super()
         if (!bmark.title) {
             bmark.title = new URL(bmark.url).host
         }
 
-        const path = this.buildBookmarkPath("", bmark, allBookmarks)
-
         // Push properties we want to fuzmatch on
-        this.fuseKeys.push(bmark.title, bmark.url)
+        this.fuseKeys.push(bmark.path, bmark.title, bmark.url)
 
         this.html = html`<tr class="BmarkCompletionOption option">
             <td class="prefix">${"".padEnd(2)}</td>
-            <td class="title">${path}${bmark.title}</td>
+            <td class="title">${bmark.path}${bmark.title}</td>
             <td class="content">
                 <a class="url" target="_blank" href=${bmark.url}
                     >${bmark.url}</a
@@ -32,28 +29,11 @@ class BmarkCompletionOption
             </td>
         </tr>`
     }
-
-    private buildBookmarkPath(
-        path: string,
-        bookmark: browser.bookmarks.BookmarkTreeNode,
-        allBookmarks: { string?: browser.bookmarks.BookmarkTreeNode },
-    ): string {
-        if (bookmark.parentId === "root________") {
-            return path
-        }
-        const parent = allBookmarks[bookmark.parentId]
-        return this.buildBookmarkPath(
-            `${parent.title}/${path}`,
-            parent,
-            allBookmarks,
-        )
-    }
 }
 
 export class BmarkCompletionSource extends Completions.CompletionSourceFuse {
     public options: BmarkCompletionOption[]
     private shouldSetStateFromScore = true
-    private allBookmarks?: { string?: browser.bookmarks.BookmarkTreeNode }
 
     constructor(private _parent) {
         super(["bmarks"], "BmarkCompletionSource", "Bookmarks")
@@ -92,18 +72,9 @@ export class BmarkCompletionSource extends Completions.CompletionSourceFuse {
         }
 
         this.completion = undefined
-        this.allBookmarks =
-            this.allBookmarks || (await providers.getAllBookmarks())
         this.options = (await providers.getBookmarks(query))
             .slice(0, 10)
-            .map(
-                page =>
-                    new BmarkCompletionOption(
-                        option + page.url,
-                        page,
-                        this.allBookmarks,
-                    ),
-            )
+            .map(page => new BmarkCompletionOption(option + page.url, page))
 
         this.lastExstr = [prefix, query].join(" ")
         return this.updateChain()
