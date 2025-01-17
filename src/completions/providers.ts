@@ -9,10 +9,53 @@ export function newtaburl() {
     return newtab !== null ? browser.runtime.getURL(newtab) : null
 }
 
-export type Bookmark = { path?: string } & browser.bookmarks.BookmarkTreeNode
+export type Bookmark = { path: string } & browser.bookmarks.BookmarkTreeNode
+
+export async function getBookmarks(query: string): Promise<Bookmark[]> {
+    // Search bookmarks, dedupe and sort by most recent.
+    let bookmarks =
+        config.get("bmarkfoldersearch") == "true"
+            ? await fuseBookmarksSearch(query)
+            : await builtInBookmarksSearch(query)
+
+    // Remove duplicate bookmarks
+    const seen = new Map<string, string>()
+    bookmarks = bookmarks.filter(b => {
+        if (seen.get(b.title) === b.url) return false
+        else {
+            seen.set(b.title, b.url)
+            return true
+        }
+    })
+
+    return bookmarks
+}
+
+/**
+ * Uses Browser API to search for bookmark by name and URL.
+ */
+async function builtInBookmarksSearch(query: string): Promise<Bookmark[]> {
+    const bookmarks = await browserBg.bookmarks.search({ query })
+    return bookmarks
+        .map(b => ({ path: "", ...b }))
+        .filter(isValidBookmark)
+        .sort((a, b) => b.dateAdded - a.dateAdded)
+}
 
 let allBookmarks: Bookmark[]
 let bookmarksFuse: Fuse<Bookmark>
+
+/**
+ * Caches all bookmarks to be able to search by any property.
+ * Searches by path, name and URL.
+ */
+async function fuseBookmarksSearch(query: string): Promise<Bookmark[]> {
+    allBookmarks = allBookmarks || (await collectBookmarks())
+    bookmarksFuse =
+        bookmarksFuse ||
+        new Fuse(allBookmarks, { keys: ["path", "title", "url"] })
+    return query ? bookmarksFuse.search(query).map(r => r.item) : allBookmarks
+}
 
 async function collectBookmarks(): Promise<Bookmark[]> {
     const root = await browserBg.bookmarks.getTree()
@@ -49,33 +92,6 @@ function buildBookmarkPath(
     }
     const parent = allBookmarks[bookmark.parentId]
     return buildBookmarkPath(`${parent.title}/${path}`, parent, allBookmarks)
-}
-
-export async function getBookmarks(query: string): Promise<Bookmark[]> {
-    allBookmarks = allBookmarks || (await collectBookmarks())
-    bookmarksFuse =
-        bookmarksFuse ||
-        new Fuse(allBookmarks, { keys: ["path", "title", "url"] })
-    // Search bookmarks, dedupe and sort by most recent.
-    // TODO: enable based on configuration property
-    // let bookmarks = await browserBg.bookmarks.search({ query })
-    // bookmarks = bookmarks.filter(isValidBookmark)
-    // bookmarks.sort((a, b) => b.dateAdded - a.dateAdded)
-    let bookmarks = query
-        ? bookmarksFuse.search(query).map(r => r.item)
-        : allBookmarks
-
-    // Remove duplicate bookmarks
-    const seen = new Map<string, string>()
-    bookmarks = bookmarks.filter(b => {
-        if (seen.get(b.title) === b.url) return false
-        else {
-            seen.set(b.title, b.url)
-            return true
-        }
-    })
-
-    return bookmarks
 }
 
 function isValidBookmark(bookmark: Bookmark): boolean {

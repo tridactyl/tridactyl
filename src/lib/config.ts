@@ -1161,6 +1161,11 @@ export class default_config {
     bmarkweight = 100
 
     /**
+     * Should folders be shown and filtered in bookmarks searches.
+     */
+    bmarkfoldersearch: "true" | "false" = "false"
+
+    /**
      * When displaying searchurls in history completions, how many page views to pretend they have.
      */
     searchurlweight = 150
