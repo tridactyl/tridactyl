@@ -478,28 +478,24 @@ export function hintPage(
     modeState = new HintState(filterHints, resolve, reject, rapid)
 
     if (!rapid) {
-        for (const hints of hintableElements) {
-            buildHints(hints, hint => {
-                modeState.cleanUpHints()
-                hint.result = onSelect(hint.target)
-                modeState.selectedHints.push(hint)
-                reset()
-            })
-        }
+        buildHints(hintableElements, hint => {
+            modeState.cleanUpHints()
+            hint.result = onSelect(hint.target)
+            modeState.selectedHints.push(hint)
+            reset()
+        })
     } else {
-        for (const hints of hintableElements) {
-            buildHints(hints, hint => {
-                hint.result = onSelect(hint.target)
-                modeState.selectedHints.push(hint)
-                if (
-                    modeState.selectedHints.length > 1 &&
-                    config.get("hintshift") === "true"
-                ) {
-                    modeState.shiftHints()
-                }
-                removeFilteredCharClass()
-            })
-        }
+        buildHints(hintableElements, hint => {
+            hint.result = onSelect(hint.target)
+            modeState.selectedHints.push(hint)
+            if (
+                modeState.selectedHints.length > 1 &&
+                config.get("hintshift") === "true"
+            ) {
+                modeState.shiftHints()
+            }
+            removeFilteredCharClass()
+        })
     }
 
     if (!modeState.hints.length) {
@@ -829,25 +825,28 @@ class Hint {
 
 /** @hidden */
 type HintBuilder = (
-    hintables: Hintables,
+    hintables: Hintables[],
     onSelect: HintSelectedCallback,
 ) => void
 
 /** @hidden */
 function buildHintsSimple(
-    hintables: Hintables,
+    hintablesArray: Hintables[],
     onSelect: HintSelectedCallback,
 ) {
-    const els = hintables.elements.filter(el => Hint.isHintable(el))
-    const names = Array.from(
-        hintnames(els.length + modeState.hints.length),
-    ).slice(modeState.hints.length)
-    for (const [el, name] of izip(els, names)) {
-        logger.debug({ el, name })
-        modeState.hintchars += name
-        modeState.hints.push(
-            new Hint(el, name, null, onSelect, hintables.hintclasses),
-        )
+    const hintablesfiltered = hintablesArray.map(h => ({ elements: h.elements.filter(el => Hint.isHintable(el)), hintclasses: h.hintclasses }))
+    const totalhints = hintablesfiltered.reduce((n, h) => n + h.elements.length, 0)
+    for (const hintables of hintablesfiltered) {
+        const names = Array.from(
+            hintnames(totalhints + modeState.hints.length),
+        ).slice(modeState.hints.length)
+        for (const [el, name] of izip(hintables.elements, names)) {
+            logger.debug({ el, name })
+            modeState.hintchars += name
+            modeState.hints.push(
+                new Hint(el, name, null, onSelect, hintables.hintclasses),
+            )
+        }
     }
 }
 
@@ -886,21 +885,24 @@ export const vimpHelper = {
 
 /** @hidden */
 function buildHintsVimperator(
-    hintables: Hintables,
+    hintablesArray: Hintables[],
     onSelect: HintSelectedCallback,
 ) {
-    const els = hintables.elements.filter(el => Hint.isHintable(el))
-    const names = Array.from(
-        hintnames(els.length + modeState.hints.length),
-    ).slice(modeState.hints.length)
-    for (const [el, name] of izip(els, names)) {
-        let ft = elementFilterableText(el)
-        ft = vimpHelper.sanitiseHintText(ft)
-        logger.debug({ el, name, ft })
-        modeState.hintchars += name + ft
-        modeState.hints.push(
-            new Hint(el, name, ft, onSelect, hintables.hintclasses),
-        )
+    const hintablesfiltered = hintablesArray.map(h => ({ elements: h.elements.filter(el => Hint.isHintable(el)), hintclasses: h.hintclasses }))
+    const totalhints = hintablesfiltered.reduce((n, h) => n + h.elements.length, 0)
+    for (const hintables of hintablesfiltered) {
+        const names = Array.from(
+            hintnames(totalhints + modeState.hints.length),
+        ).slice(modeState.hints.length)
+        for (const [el, name] of izip(hintables.elements, names)) {
+            let ft = elementFilterableText(el)
+            ft = vimpHelper.sanitiseHintText(ft)
+            logger.debug({ el, name, ft })
+            modeState.hintchars += name + ft
+            modeState.hints.push(
+                new Hint(el, name, ft, onSelect, hintables.hintclasses),
+            )
+        }
     }
 }
 
