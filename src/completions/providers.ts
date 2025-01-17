@@ -44,7 +44,7 @@ function buildBookmarkPath(
     bookmark: browser.bookmarks.BookmarkTreeNode,
     allBookmarks: { string?: browser.bookmarks.BookmarkTreeNode },
 ): string {
-    if (bookmark.id === "root________") {
+    if (!bookmark.parentId) {
         return path
     }
     const parent = allBookmarks[bookmark.parentId]
