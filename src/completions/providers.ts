@@ -11,8 +11,10 @@ export function newtaburl() {
 
 export type Bookmark = { path: string } & browser.bookmarks.BookmarkTreeNode
 
+/**
+ * Search bookmarks, deduplicate and sort by most recent.
+ */
 export async function getBookmarks(query: string): Promise<Bookmark[]> {
-    // Search bookmarks, dedupe and sort by most recent.
     let bookmarks =
         config.get("bmarkfoldersearch") == "true"
             ? await fuseBookmarksSearch(query)
@@ -85,17 +87,23 @@ function flattenChildren(
 function buildBookmarkPath(
     path: string,
     bookmark: browser.bookmarks.BookmarkTreeNode,
-    allBookmarks: { string?: browser.bookmarks.BookmarkTreeNode },
+    bookmarksDictionary: { string?: browser.bookmarks.BookmarkTreeNode },
 ): string {
     if (!bookmark.parentId) {
         return path
     }
-    const parent = allBookmarks[bookmark.parentId]
-    return buildBookmarkPath(`${parent.title}/${path}`, parent, allBookmarks)
+    const parent = bookmarksDictionary[bookmark.parentId]
+    return buildBookmarkPath(
+        `${parent.title}/${path}`,
+        parent,
+        bookmarksDictionary,
+    )
 }
 
+/**
+ * Remove folder nodes and bad URLs.
+ */
 function isValidBookmark(bookmark: Bookmark): boolean {
-    // Remove folder nodes and bad URLs
     try {
         return !!new URL(bookmark.url)
     } catch (e) {

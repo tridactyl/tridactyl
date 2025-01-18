@@ -1161,7 +1161,7 @@ export class default_config {
     bmarkweight = 100
 
     /**
-     * Should folders be shown and filtered in bookmarks searches.
+     * Should folders be shown and filtered in bookmark searches.
      */
     bmarkfoldersearch: "true" | "false" = "false"
 
