@@ -101,7 +101,7 @@ function buildBookmarkPath(
 }
 
 /**
- * Remove folder nodes and bad URLs.
+ * Bookmark is not a folder and has valid URL.
  */
 function isValidBookmark(bookmark: Bookmark): boolean {
     try {
