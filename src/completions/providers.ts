@@ -172,7 +172,7 @@ export async function getCombinedHistoryBmarks(
     const combinedMap = new Map<string, any>(
         bookmarks.map(bmark => [
             bmark.url,
-            { title: bmark.title, url: bmark.url, bmark },
+            { title: `${bmark.path}${bmark.title}`, url: bmark.url, bmark },
         ]),
     )
     history.forEach(page => {
