@@ -55,7 +55,13 @@ async function fuseBookmarksSearch(query: string): Promise<Bookmark[]> {
     allBookmarks = allBookmarks || (await collectBookmarks())
     bookmarksFuse =
         bookmarksFuse ||
-        new Fuse(allBookmarks, { keys: ["path", "title", "url"] })
+        new Fuse(allBookmarks, {
+            keys: ["path", "title", "url"],
+            findAllMatches: true,
+            ignoreLocation: true,
+            ignoreFieldNorm: true,
+            threshold: config.get("completionfuzziness"),
+        })
     return query ? bookmarksFuse.search(query).map(r => r.item) : allBookmarks
 }
 
