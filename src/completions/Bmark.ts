@@ -107,3 +107,59 @@ export class BmarkCompletionSource extends Completions.CompletionSourceFuse {
         }
     }
 }
+
+export class BookmarkFolderCompletionSource extends Completions.CompletionSourceFuse {
+    constructor(private _parent) {
+        super(["bmark"], "BookmarkFolderCompletionSource", "Bookmark Folders", {
+            trailingSpace: false,
+        })
+    }
+
+    async onInput(exstr: string) {
+        const [_command, _url, path] = this.parseArgs(exstr)
+        if (path == undefined) {
+            this.options = undefined
+            return
+        }
+        this.options = (await providers.getBookmarkFolders(path))
+            .slice(0, 10)
+            .map(path => new BookmarkFolderCompletionOption(path))
+    }
+
+    splitOnPrefix(exstr: string): string[] {
+        const [command, url, path] = this.parseArgs(exstr)
+        return [`${command} ${url}`, path]
+    }
+
+    private parseArgs(exstr: string): string[] {
+        const [command, args] = super.splitOnPrefix(exstr)
+        if (!args) {
+            return [command]
+        }
+        const spaceIndex = args.search(/\s+/)
+        const url = args.slice(0, spaceIndex)
+        if (spaceIndex == -1) {
+            return [command, url]
+        }
+        const path = args.slice(spaceIndex + 1)
+        return [command, url, path]
+    }
+}
+
+class BookmarkFolderCompletionOption
+    extends Completions.CompletionOptionHTML
+    implements Completions.CompletionOptionFuse {
+
+    fuseKeys = []
+
+    constructor(
+        public value: string,
+    ) {
+        super()
+        this.fuseKeys.push(value)
+        this.html = html`<tr class="BookmarkFolderCompletionOption option">
+            <td class="prefix">${"".padEnd(2)}</td>
+            <td class="title">${value}</td>
+        </tr>`
+    }
+}
