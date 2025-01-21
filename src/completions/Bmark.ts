@@ -149,12 +149,9 @@ export class BookmarkFolderCompletionSource extends Completions.CompletionSource
 class BookmarkFolderCompletionOption
     extends Completions.CompletionOptionHTML
     implements Completions.CompletionOptionFuse {
-
     fuseKeys = []
 
-    constructor(
-        public value: string,
-    ) {
+    constructor(public value: string) {
         super()
         this.fuseKeys.push(value)
         this.html = html`<tr class="BookmarkFolderCompletionOption option">
