@@ -2628,6 +2628,20 @@ export async function tabprev(increment = 1) {
 }
 
 /**
+ * Switch to the previously used tab, ignoring any tabs used within the last 10 seconds. Handy for flicking through previous tabs.
+ */
+//#background
+export async function tabnextmru() {
+    return browser.tabs.query({ currentWindow: true, hidden: false }).then(tabs => {
+        tabs.sort((a, b) => b.lastAccessed - a.lastAccessed)
+        console.log(tabs)
+        const mru_ish = tabs.findIndex(t => Date.now() - t.lastAccessed - 10000 > 0)
+        console.log(mru_ish)
+        return browser.tabs.update(tabs[(mru_ish > -1 ? mru_ish : 1)].id, { active: true })
+    })
+}
+
+/**
  * Pushes the current tab to another window. Only works for windows of the same type
  * (can't push a non-private tab to a private window or a private tab to
  * a non-private window).
