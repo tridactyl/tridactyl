@@ -8,6 +8,8 @@ If changing one of these settings fixes your bug, please visit the corresponding
 
 -   `:seturl $URL_OF_THE_WEBSITE superignore true` and then reload the page. This totally disables Tridactyl from loading on the page. No specific issue, please make a new one: https://github.com/tridactyl/tridactyl/issues/821
 
+-   "i can't open the commandline :((" `:seturl [the website you're on] commmandlineterriblewebsitefix true`. No need to file an issue with us, but maybe consider telling the website owner that they should [make their website less bad](https://infrequently.org/2024/11/if-not-react-then-what/). Our relevant issue is [#5050](https://github.com/tridactyl/tridactyl/issues/5050)
+
 # Firefox settings that can break Tridactyl
 
 If you have `privacy.resistFingerprinting` set to `true` in `about:config`, Tridactyl will have a lot of trouble understanding your keypresses. See [#760](https://github.com/tridactyl/tridactyl/issues/760#issuecomment-433679201) and [#1699](https://github.com/tridactyl/tridactyl/issues/1699). We strongly recommend setting it to `false`, as it is by default.

@@ -864,6 +864,13 @@ export class default_config {
     preventautofocusjackhammer: "true" | "false" = "false"
 
     /**
+     * Run a loop forcing the commandline to be reinserted if it is deleted as is typically the case after server-side rendering of bloated web frameworks such as React. Uses some CPU, so enable only on specific websites with `:seturl https://badwebsite\.com commandlineterriblewebsitefix true`.
+     *
+     * A better workaround is to stop visiting websites that have so little respect for their users.
+     */
+    commandlineterriblewebsitefix: "true" | "false" = "false"
+
+    /**
      * Whether to use Tridactyl's (bad) smooth scrolling.
      */
     smoothscroll: "true" | "false" = "false"

@@ -47,16 +47,22 @@ async function init() {
         await theme(window.document.querySelector(":root"))
 
         // Fix #5050: reinsert iframe after React throws a tantrum
-        new MutationObserver(changes =>
-            changes.find(change => {
-                for (const addedNode of change.addedNodes) {
-                    // detect React server-side render failure by added <link rel='modulepreload'>
-                    if (addedNode instanceof HTMLLinkElement && addedNode.rel === "modulepreload") {
-                        reactIsCrap()
-                    }
-                }
-            })
-        ).observe(cmdline_iframe.parentNode, { childList: true, subtree: true })
+        config.getAsync("commandlineterriblewebsitefix").then(enabled => {
+            if (enabled == "true") {
+                reactIsCrap()
+            } else {
+                new MutationObserver(changes =>
+                    changes.find(change => {
+                        for (const addedNode of change.addedNodes) {
+                            // detect React server-side render failure by added <link rel='modulepreload'>
+                            if (addedNode instanceof HTMLLinkElement && addedNode.rel === "modulepreload") {
+                                reactIsCrap()
+                            }
+                        }
+                    })
+                ).observe(cmdline_iframe.parentNode, { childList: true, subtree: true })
+            }
+        })
     }
 }
 
