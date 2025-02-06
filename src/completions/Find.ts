@@ -34,16 +34,17 @@ export class FindCompletionSource extends Completions.CompletionSourceFuse {
         this._parent.appendChild(this.node)
     }
 
-    async onInput(exstr) {
+    async filter(exstr) {
         const id = this.completionCount++
         // If there's already a promise being executed, wait for it to finish
         await this.prevCompletion
         // Since we might have awaited for this.prevCompletion, we don't have a guarantee we're the last completion the user asked for anymore
         if (id === this.completionCount - 1) {
             // If we are the last completion
-            this.prevCompletion = this.updateOptions(exstr)
+            this.prevCompletion = this.handleCommand(exstr)
             await this.prevCompletion
         }
+        return this.updateChain()
     }
 
     //  Overriding this function is important, the default one has a tendency to hide options when you don't expect it
@@ -51,18 +52,16 @@ export class FindCompletionSource extends Completions.CompletionSourceFuse {
         this.options.forEach(o => (o.state = "normal"))
     }
 
-    private async updateOptions(exstr?: string) {
-        if (!exstr) return
-
+    /* override*/ protected async updateOptions(command, rest) {
         // Flag parsing because -? should reverse completions
-        const tokens = exstr.split(" ")
+        const tokens = rest.split(" ")
         const flagpos = tokens.indexOf("-?")
         const reverse = flagpos >= 0
         if (reverse) {
             tokens.splice(flagpos, 1)
         }
 
-        const query = tokens.slice(1).join(" ")
+        const query = tokens.join(" ")
         const minincsearchlen = await config.getAsync("minincsearchlen")
         // No point if continuing if the user hasn't started searching yet
         if (query.length < minincsearchlen) return
@@ -109,7 +108,6 @@ export class FindCompletionSource extends Completions.CompletionSourceFuse {
                 this.options = matches.map(
                     m => new FindCompletionOption(m, reverse),
                 )
-                this.updateChain(exstr, this.options)
             }
         }
     }

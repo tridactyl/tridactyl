@@ -28,23 +28,14 @@ export class FileSystemCompletionSource extends Completions.CompletionSourceFuse
         this._parent.appendChild(this.node)
     }
 
-    public async onInput(exstr) {
-        return this.filter(exstr)
+    // override it cause the default implementation shows all options
+    // which would undo our filtering
+    protected updateChain() {
+        this.updateDisplay()
     }
-
-    public async filter(exstr: string) {
-        if (!exstr || exstr.indexOf(" ") === -1) {
-            this.state = "hidden"
-            return
-        }
-
-        let [cmd, path] = this.splitOnPrefix(exstr)
-        if (cmd === undefined) {
-            this.state = "hidden"
-            return
-        }
-
+    /* override*/ protected async updateOptions(cmd, path) {
         if (!path) path = "."
+        else path = path.trim()
 
         if (!["/", "$", "~", "."].find(s => path.startsWith(s))) {
             // If the path doesn't start with a special character, it is relative to the native messenger, thus use "." as starting point
@@ -63,18 +54,17 @@ export class FileSystemCompletionSource extends Completions.CompletionSourceFuse
             this.state = "hidden"
             return
         }
-
-        if (req.isDir) {
-            if (!path.endsWith(req.sep)) path += req.sep
+        let dir = path
+        if (path.isDir) {
+            if (!path.endsWith(req.sep)) dir = path + req.sep
         } else {
-            path = path.substring(0, path.lastIndexOf("/") + 1)
+            dir = path.substring(0, dir.lastIndexOf(req.sep) + 1)
         }
 
         this.options = req.files.map(
-            p => new FileSystemCompletionOption(path + p),
+            p => new FileSystemCompletionOption(dir + p),
         )
-
         this.state = "normal"
-        return this.updateChain()
+        this.setStateFromScore(this.scoredOptions(path))
     }
 }

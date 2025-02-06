@@ -93,7 +93,6 @@ export abstract class CompletionSource {
 
     /** Update [[node]] to display completions relevant to exstr */
     public abstract filter(exstr: string): Promise<void>
-
     abstract next(inc?: number): Promise<boolean>
 }
 
@@ -152,7 +151,7 @@ export interface ScoredOption {
 
 export abstract class CompletionSourceFuse extends CompletionSource {
     public node
-    public options: CompletionOptionFuse[]
+    public options: CompletionOptionFuse[] = []
 
     fuseOptions = {
         keys: ["fuseKeys"],
@@ -186,42 +185,8 @@ export abstract class CompletionSourceFuse extends CompletionSource {
     // Helpful default implementations
 
     public async filter(exstr: string) {
-        this.lastExstr = exstr
-        await this.onInput(exstr)
+        await this.handleCommand(exstr)
         return this.updateChain()
-    }
-
-    updateChain(exstr = this.lastExstr, options = this.options) {
-        if (options === undefined) {
-            this.state = "hidden"
-            return
-        }
-
-        const [prefix, query] = this.splitOnPrefix(exstr)
-
-        // console.log(prefix, query, options)
-
-        // Hide self and stop if prefixes don't match
-        if (prefix) {
-            // Show self if prefix and currently hidden
-            if (this.state === "hidden") {
-                this.state = "normal"
-            }
-        } else {
-            this.state = "hidden"
-            return
-        }
-
-        // Filter by query if query is not empty
-        if (query) {
-            this.setStateFromScore(this.scoredOptions(query))
-            // Else show all options
-        } else {
-            options.forEach(option => (option.state = "normal"))
-        }
-
-        // Call concrete class
-        this.updateDisplay()
     }
 
     select(option: CompletionOption) {
@@ -331,9 +296,43 @@ export abstract class CompletionSourceFuse extends CompletionSource {
 
     /* abstract onUpdate(query: string, prefix: string, options: CompletionOptionFuse[]) */
 
-    // Lots of methods don't need this but some do
-    // eslint-disable-next-line @typescript-eslint/no-empty-function, @typescript-eslint/no-unused-vars-experimental
-    async onInput(exstr: string) {}
+    // some children don't need to implement it so we provide a stub
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars-experimental, @typescript-eslint/require-await
+    protected async updateOptions(command, rest) {
+        throw new Error(
+            "updateOptions not implemented for CompletionSourceFuse!",
+        )
+    }
+
+    protected updateChain() {
+        if (this.options.length > 0) this.state = "normal"
+        else this.state = "hidden"
+
+        // we show all options by default. Sources which want to score
+        // and hide some options are expected to override this method.
+        this.options.forEach(option => (option.state = "normal"))
+        this.updateDisplay()
+    }
+
+    protected async handleCommand(exstr: string) {
+        this.lastExstr = exstr
+        const [cmd, args] = this.splitOnPrefix(exstr)
+        // Hide self and stop if prefixes don't match
+        if (cmd) {
+            // Show self if prefix and currently hidden
+            if (this.state === "hidden") {
+                this.state = "normal"
+            }
+        } else {
+            this.state = "hidden"
+            this.options = []
+            return
+        }
+
+        // the return keyword is super important here,
+        // without it a lot of weird stuff happens. Damn async!
+        return this.updateOptions(cmd, args)
+    }
 }
 
 // }}}

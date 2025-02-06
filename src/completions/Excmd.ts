@@ -3,7 +3,8 @@ import * as Metadata from "@src/.metadata.generated"
 import * as config from "@src/lib/config"
 import * as aliases from "@src/lib/aliases"
 
-export class ExcmdCompletionOption extends Completions.CompletionOptionHTML
+export class ExcmdCompletionOption
+    extends Completions.CompletionOptionHTML
     implements Completions.CompletionOptionFuse {
     public fuseKeys = []
     constructor(public value: string, public documentation: string = "") {
@@ -24,25 +25,8 @@ export class ExcmdCompletionSource extends Completions.CompletionSourceFuse {
     constructor(private _parent) {
         super([], "ExcmdCompletionSource", "ex commands")
 
-        this.updateOptions()
+        this.handleCommand()
         this._parent.appendChild(this.node)
-    }
-
-    async filter(exstr) {
-        this.lastExstr = exstr
-        return this.onInput(exstr)
-    }
-
-    async onInput(exstr) {
-        return this.updateOptions(exstr)
-    }
-
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars-experimental
-    updateChain(exstr = this.lastExstr, options = this.options) {
-        if (this.options.length > 0) this.state = "normal"
-        else this.state = "hidden"
-
-        this.updateDisplay()
     }
 
     select(option: ExcmdCompletionOption) {
@@ -55,7 +39,7 @@ export class ExcmdCompletionSource extends Completions.CompletionSourceFuse {
         super.setStateFromScore(scoredOpts, false)
     }
 
-    private async updateOptions(exstr = "") {
+    /* override*/ async handleCommand(exstr = "") {
         this.lastExstr = exstr
 
         const excmds = Metadata.everything.getFile("src/excmds.ts")
@@ -108,9 +92,6 @@ export class ExcmdCompletionSource extends Completions.CompletionSourceFuse {
                 .map(([name, fn]) => new ExcmdCompletionOption(name, fn.doc)),
         )
         this.options = this.options.concat(partial_options)
-
-        this.options.forEach(o => (o.state = "normal"))
-        return this.updateChain()
     }
 
     private scoreOptions(options: ExcmdCompletionOption[]) {

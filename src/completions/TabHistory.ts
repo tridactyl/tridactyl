@@ -32,18 +32,35 @@ export class TabHistoryCompletionSource extends Completions.CompletionSourceFuse
 
     constructor(private _parent) {
         super(["back", "forward"], "TabHistoryCompletionSource", "Tab history")
-
-        this.updateOptions()
         this._parent.appendChild(this.node)
     }
 
-    async filter(exstr) {
-        this.lastExstr = exstr
-        return this.onInput(exstr)
-    }
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars-experimental
+    /* override*/ protected async updateOptions(command, rest) {
+        const tab = await browserBg.tabs.query({
+            active: true,
+            currentWindow: true,
+        })
+        let history = await browserBg.sessions.getTabValue(tab[0].id, "history")
+        if (!history) history = { list: [] }
+        const tree = this.makeTree(history["list"])
+        history["list"] = this.flattenTree(tree[0]).reverse()
+        this.addIndicies(history["list"])
+        this.addFormatTimeSpan(history["list"])
 
-    async onInput(exstr) {
-        return this.updateOptions(exstr)
+        this.options = this.scoreOptions(
+            history["list"].map(
+                item =>
+                    new TabHistoryCompletionOption(item.href, {
+                        href: item.href,
+                        id: item.index,
+                        title: item.title,
+                        prefix: item.prefix,
+                        index: item.level,
+                        formatTimeSpan: item.formatTimeSpan,
+                    }),
+            ),
+        )
     }
 
     private makeTree(nodes, parentId = null, level = 0) {
@@ -107,7 +124,7 @@ export class TabHistoryCompletionSource extends Completions.CompletionSourceFuse
             for (let i = 0; i <= parentCount; ++i) {
                 if (i === parentCount - 1) {
                     string += "┌─"
-                } else if ( i < parentCount ) {
+                } else if (i < parentCount) {
                     string += "  " // NB: non-breaking space
                 } else {
                     string += "· "
@@ -115,36 +132,6 @@ export class TabHistoryCompletionSource extends Completions.CompletionSourceFuse
             }
             node["prefix"] = string
         }
-    }
-
-    private async updateOptions(exstr = "") {
-        this.lastExstr = exstr
-
-        const tab = await browserBg.tabs.query({
-            active: true,
-            currentWindow: true,
-        })
-        let history = await browserBg.sessions.getTabValue(tab[0].id, "history")
-        if (!history) history = { list: [] }
-        const tree = this.makeTree(history["list"])
-        history["list"] = this.flattenTree(tree[0]).reverse()
-        this.addIndicies(history["list"])
-        this.addFormatTimeSpan(history["list"])
-
-        this.options = this.scoreOptions(
-            history["list"].map(
-                item =>
-                    new TabHistoryCompletionOption(item.href, {
-                        href: item.href,
-                        id: item.index,
-                        title: item.title,
-                        prefix: item.prefix,
-                        index: item.level,
-                        formatTimeSpan: item.formatTimeSpan,
-                    }),
-            ),
-        )
-        this.updateChain()
     }
 
     private scoreOptions(options: TabHistoryCompletionOption[]) {

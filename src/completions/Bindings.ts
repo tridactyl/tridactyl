@@ -2,7 +2,8 @@ import * as Completions from "@src/completions"
 import * as config from "@src/lib/config"
 import * as Binding from "@src/lib/binding"
 
-class BindingsCompletionOption extends Completions.CompletionOptionHTML
+class BindingsCompletionOption
+    extends Completions.CompletionOptionHTML
     implements Completions.CompletionOptionFuse {
     public fuseKeys = []
 
@@ -31,31 +32,18 @@ export class BindingsCompletionSource extends Completions.CompletionSourceFuse {
 
         this._parent.appendChild(this.node)
     }
-
-    public async filter(exstr: string) {
-        this.lastExstr = exstr
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars-experimental
+    /* override*/ protected async updateOptions(command, rest) {
         let options = ""
-        let [prefix, query] = this.splitOnPrefix(exstr)
-        const args = query ? query.split(/\s+/) : []
+        const args = rest ? rest.split(/\s+/) : []
         let configName = "nmaps"
         let modeName = "normal"
         let urlPattern: string = null
 
-        // Hide self and stop if prefixes don't match
-        if (prefix) {
-            // Show self if prefix and currently hidden
-            if (this.state === "hidden") {
-                this.state = "normal"
-            }
-        } else {
-            this.state = "hidden"
-            return
-        }
-
         this.deselect()
 
         // url pattern is mandatory: bindurl, unbindurl, reseturl
-        if (prefix.trim().endsWith("url")) {
+        if (command.trim().endsWith("url")) {
             urlPattern = args.length > 0 ? args.shift() : ""
             options += urlPattern ? urlPattern + " " : ""
 
@@ -73,7 +61,7 @@ export class BindingsCompletionSource extends Completions.CompletionSourceFuse {
                             }),
                     )
 
-                return this.updateChain()
+                return
             }
         }
 
@@ -95,7 +83,7 @@ export class BindingsCompletionSource extends Completions.CompletionSourceFuse {
                                 },
                             ),
                     )
-                return this.updateChain()
+                return
             }
         }
 
@@ -113,7 +101,7 @@ export class BindingsCompletionSource extends Completions.CompletionSourceFuse {
 
         if (!configName) {
             this.options = []
-            return this.updateChain()
+            return
         }
 
         const bindings = urlPattern
@@ -122,33 +110,20 @@ export class BindingsCompletionSource extends Completions.CompletionSourceFuse {
 
         if (bindings === undefined) {
             this.options = []
-            return this.updateChain()
+            return
         }
 
-        query = args.join(" ").toLowerCase()
+        rest = args.join(" ").toLowerCase()
         this.options = Object.keys(bindings)
-            .filter(x => x.toLowerCase().startsWith(query))
+            .filter(x => x.toLowerCase().startsWith(rest))
             .sort()
             .map(
                 keystr =>
-                    new BindingsCompletionOption(
-                        options + keystr,
-                        {
-                            name: keystr,
-                            value: JSON.stringify(bindings[keystr]),
-                            mode: `${configName} (${modeName})`,
-                        },
-                    ),
+                    new BindingsCompletionOption(options + keystr, {
+                        name: keystr,
+                        value: JSON.stringify(bindings[keystr]),
+                        mode: `${configName} (${modeName})`,
+                    }),
             )
-
-        return this.updateChain()
-    }
-
-    updateChain() {
-        // Options are pre-trimmed to the right length.
-        this.options.forEach(option => (option.state = "normal"))
-
-        // Call concrete class
-        return this.updateDisplay()
     }
 }
