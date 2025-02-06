@@ -234,6 +234,7 @@ config.getAsync("preventautofocusjackhammer").then(allowautofocus => {
     native,
     styling,
     contentLocation: window.location,
+    contentMode: contentState.mode,
     perf,
     R,
     updates,
