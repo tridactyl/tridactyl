@@ -18,6 +18,8 @@ class BufferCompletionOption
         public isAlternative = false,
         container: browser.contextualIdentities.ContextualIdentity,
         public tabIndex: number,
+        searchId: number,
+        titlePrefix: number,
     ) {
         super()
 
@@ -30,7 +32,6 @@ class BufferCompletionOption
         if (tab.active) preplain += "%"
         else if (isAlternative) {
             preplain += "#"
-            this.value = "#"
         }
         let pre = preplain
         if (tab.pinned) preplain += "P"
@@ -52,7 +53,7 @@ class BufferCompletionOption
         this.fuseKeys.push(preplain)
 
         // Push properties we want to fuzmatch on
-        this.fuseKeys.push(String(tab.index + 1), tab.title, tab.url)
+        this.fuseKeys.push(String(searchId), tab.title, tab.url)
 
         // Create HTMLElement
         const favIconUrl = tab.favIconUrl
@@ -66,9 +67,7 @@ class BufferCompletionOption
             <td class="prefixplain" hidden>${preplain}</td>
             <td class="container"></td>
             <td class="icon"><img loading="lazy" src="${favIconUrl}" /></td>
-            <td class="title">
-                ${this.tabIndex + 1}: ${indicator} ${tab.title}
-            </td>
+            <td class="title">${titlePrefix}: ${indicator} ${tab.title}</td>
             <td class="content">
                 <a class="url" target="_blank" href=${tab.url}>${tab.url}</a>
             </td>
@@ -96,6 +95,7 @@ export class BufferCompletionSource extends Completions.CompletionSourceFuse {
                 "tabrename",
                 "tabdiscard",
                 "pin",
+                "tstmovetree",
             ],
             "BufferCompletionSource",
             "Tabs",
@@ -128,30 +128,29 @@ export class BufferCompletionSource extends Completions.CompletionSourceFuse {
 
     /** Score with fuse unless query is a single # or looks like a tab index */
     scoredOptions(
-        query: string,
+        exstr: string,
         options = this.options,
     ): Completions.ScoredOption[] {
+        const [prefix, query] = this.splitOnPrefix(exstr)
         const args = query.trim().split(/\s+/gu)
         if (args.length === 1) {
+            if (args[0] === "#") {
+                return this.optionsLike(option => option.isAlternative, options)
+            }
+
+            const arg = Number(args[0])
+            // In TST case argument is tabId
+            if (Number.isInteger(arg) && this.isTstCommand(prefix)) {
+                return this.optionsLike(option => option.tabId === arg, options)
+            }
+
             // if query is an integer n and |n| < options.length
-            if (Number.isInteger(Number(args[0]))) {
-                let index = Number(args[0]) - 1
+            if (Number.isInteger(arg)) {
+                let index = arg - 1
                 if (Math.abs(index) < options.length) {
                     index = index.mod(options.length)
                     // options order might change by scored sorting
                     return this.TabscoredOptionsStartsWithN(index, options)
-                }
-            } else if (args[0] === "#") {
-                for (const [index, option] of enumerate(options)) {
-                    if (option.isAlternative) {
-                        return [
-                            {
-                                index,
-                                option,
-                                score: 0,
-                            },
-                        ]
-                    }
                 }
             }
         }
@@ -166,20 +165,28 @@ export class BufferCompletionSource extends Completions.CompletionSourceFuse {
         options: BufferCompletionOption[],
     ): Completions.ScoredOption[] {
         const nstr = (n + 1).toString()
-        const res = []
+        options.sort((a, b) => a.tabIndex - b.tabIndex)
+        return this.optionsLike(
+            option => (option.tabIndex + 1).toString().startsWith(nstr),
+            options,
+        )
+    }
+
+    private optionsLike(
+        predicate: (o: BufferCompletionOption) => boolean,
+        options: BufferCompletionOption[],
+    ): Completions.ScoredOption[] {
+        const result = []
         for (const [index, option] of enumerate(options)) {
-            if ((option.tabIndex + 1).toString().startsWith(nstr)) {
-                res.push({
-                    index, // index is not tabIndex, changed by score
+            if (predicate(option)) {
+                result.push({
+                    index,
                     option,
                     score: 0,
                 })
             }
         }
-
-        // old input will change order: 12 => 123 => 12
-        res.sort((a, b) => a.option.tabIndex - b.option.tabIndex)
-        return res
+        return result
     }
 
     private async fillOptions(prefix: string) {
@@ -205,13 +212,19 @@ export class BufferCompletionSource extends Completions.CompletionSourceFuse {
             if (!tab_container) {
                 tab_container = Containers.DefaultContainer
             }
+            const isAlternative = tab.index === altTab.index
+            const searchId = this.isTstCommand(prefix) ? tab.id : tab.index + 1
+            const titlePrefix = this.isTstCommand(prefix) ? tab.id : index + 1
+            const completionValue = isAlternative ? "#" : String(titlePrefix)
             options.push(
                 new BufferCompletionOption(
-                    (index + 1).toString(),
+                    completionValue,
                     tab,
-                    tab.index === altTab.index,
+                    isAlternative,
                     tab_container,
                     index,
+                    searchId,
+                    titlePrefix,
                 ),
             )
         }
@@ -246,7 +259,7 @@ export class BufferCompletionSource extends Completions.CompletionSourceFuse {
 
         /* console.log('updateOptions', this.optionContainer) */
         if (query && query.trim().length > 0) {
-            this.setStateFromScore(this.scoredOptions(query))
+            this.setStateFromScore(this.scoredOptions(exstr))
         } else {
             this.options.forEach(option => (option.state = "normal"))
         }
@@ -294,5 +307,9 @@ export class BufferCompletionSource extends Completions.CompletionSourceFuse {
             return this.options[this.options.length - 1]
         }
         return this.options[option.tabIndex]
+    }
+
+    private isTstCommand(prefix: string): boolean {
+        return prefix.startsWith("tst")
     }
 }
