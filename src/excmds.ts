@@ -6214,6 +6214,22 @@ export async function elementunhide() {
  * Move the current TST tree to be just in front of the tab specified.
  */
 //#background
-export async function tstmovetree(tabId: string) {
+export async function tstmove(tabId: string) {
     treestyletab.moveTreeBefore(Number(tabId))
+}
+
+/**
+ * Move the current TST tree to be right after the tab specified.
+ */
+//#background
+export async function tstmoveafter(tabId: string) {
+    treestyletab.moveTreeAfter(Number(tabId))
+}
+
+/**
+ * Attach current tree as a child to the selected parent.
+ */
+//#background
+export async function tstattach(tabId: string) {
+    treestyletab.attachTree(Number(tabId))
 }

@@ -6,6 +6,9 @@ import * as Completions from "@src/completions"
 import * as config from "@src/lib/config"
 import * as Messaging from "@src/lib/messaging"
 
+// TODO: fix # value for TST
+// TODO: extract TST to a separate class
+
 class BufferCompletionOption
     extends Completions.CompletionOptionHTML
     implements Completions.CompletionOptionFuse {
@@ -95,7 +98,9 @@ export class BufferCompletionSource extends Completions.CompletionSourceFuse {
                 "tabrename",
                 "tabdiscard",
                 "pin",
-                "tstmovetree",
+                "tstmove",
+                "tstmoveafter",
+                "tstattach",
             ],
             "BufferCompletionSource",
             "Tabs",
