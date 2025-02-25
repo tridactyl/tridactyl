@@ -6230,6 +6230,6 @@ export async function tstmoveafter(tabId: string) {
  * Attach current tree as a child to the selected parent.
  */
 //#background
-export async function tstattach(tabId: string) {
-    treestyletab.attachTree(Number(tabId))
+export async function tstattach(parentTabId: string) {
+    treestyletab.attachTree(Number(parentTabId))
 }
