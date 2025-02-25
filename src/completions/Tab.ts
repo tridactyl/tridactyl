@@ -269,15 +269,15 @@ abstract class BufferCompletionSource extends Completions.CompletionSourceFuse {
 
     /**
      * Provide identifier, which will be used before tab title in the completion option.
-     * @param index of a tab calculated by Tridactyl
+     * @param index of the tab calculated by Tridactyl
      * @param tab Tab
      */
     protected abstract titlePrefix(index: number, tab: browser.tabs.Tab): number
 
     /**
      * Provide value, which will be used on tab completion (i.e. when user selects tab option using <Space> or <Enter>).
-     * @param index of a tab calculated by Tridactyl
-     * @param tab Tab
+     * @param titlePrefix identifier user before tab title
+     * @param isAlternative marker if completion value is for previous tab
      */
     protected abstract completionValue(
         titlePrefix: number,
