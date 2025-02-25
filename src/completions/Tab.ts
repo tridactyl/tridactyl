@@ -18,6 +18,7 @@ class BufferCompletionOption
         public isAlternative = false,
         container: browser.contextualIdentities.ContextualIdentity,
         public tabIndex: number,
+        titlePrefix: number,
     ) {
         super()
 
@@ -30,7 +31,6 @@ class BufferCompletionOption
         if (tab.active) preplain += "%"
         else if (isAlternative) {
             preplain += "#"
-            this.value = "#"
         }
         let pre = preplain
         if (tab.pinned) preplain += "P"
@@ -52,7 +52,7 @@ class BufferCompletionOption
         this.fuseKeys.push(preplain)
 
         // Push properties we want to fuzmatch on
-        this.fuseKeys.push(String(tab.index + 1), tab.title, tab.url)
+        this.fuseKeys.push(String(titlePrefix), tab.title, tab.url)
 
         // Create HTMLElement
         const favIconUrl = tab.favIconUrl
@@ -66,9 +66,7 @@ class BufferCompletionOption
             <td class="prefixplain" hidden>${preplain}</td>
             <td class="container"></td>
             <td class="icon"><img loading="lazy" src="${favIconUrl}" /></td>
-            <td class="title">
-                ${this.tabIndex + 1}: ${indicator} ${tab.title}
-            </td>
+            <td class="title">${titlePrefix}: ${indicator} ${tab.title}</td>
             <td class="content">
                 <a class="url" target="_blank" href=${tab.url}>${tab.url}</a>
             </td>
@@ -76,7 +74,7 @@ class BufferCompletionOption
     }
 }
 
-export class BufferCompletionSource extends Completions.CompletionSourceFuse {
+abstract class BufferCompletionSource extends Completions.CompletionSourceFuse {
     public options: BufferCompletionOption[]
     private shouldSetStateFromScore = true
 
@@ -85,26 +83,13 @@ export class BufferCompletionSource extends Completions.CompletionSourceFuse {
     //       callback faffery
     //     - sort out the element redrawing.
 
-    constructor(private _parent) {
-        super(
-            [
-                "tab",
-                "tabclose",
-                "tabdetach",
-                "tabduplicate",
-                "tabmove",
-                "tabrename",
-                "tabdiscard",
-                "pin",
-            ],
-            "BufferCompletionSource",
-            "Tabs",
-        )
+    constructor(_parent, prefixes: string[], className: string) {
+        super(prefixes, className, "Tabs")
         this.sortScoredOptions = true
         this.shouldSetStateFromScore =
             config.get("completions", "Tab", "autoselect") === "true"
         this.updateOptions()
-        this._parent.appendChild(this.node)
+        _parent.appendChild(this.node)
 
         Messaging.addListener("tab_changes", () => this.reactToTabChanges())
     }
@@ -133,26 +118,14 @@ export class BufferCompletionSource extends Completions.CompletionSourceFuse {
     ): Completions.ScoredOption[] {
         const args = query.trim().split(/\s+/gu)
         if (args.length === 1) {
-            // if query is an integer n and |n| < options.length
-            if (Number.isInteger(Number(args[0]))) {
-                let index = Number(args[0]) - 1
-                if (Math.abs(index) < options.length) {
-                    index = index.mod(options.length)
-                    // options order might change by scored sorting
-                    return this.TabscoredOptionsStartsWithN(index, options)
-                }
-            } else if (args[0] === "#") {
-                for (const [index, option] of enumerate(options)) {
-                    if (option.isAlternative) {
-                        return [
-                            {
-                                index,
-                                option,
-                                score: 0,
-                            },
-                        ]
-                    }
-                }
+            const arg = args[0]
+            if (arg === "#") {
+                return this.optionsLike(option => option.isAlternative, options)
+            }
+
+            const searchId = Number(arg)
+            if (Number.isInteger(searchId)) {
+                return this.optionsBySearchId(searchId, options)
             }
         }
 
@@ -160,26 +133,21 @@ export class BufferCompletionSource extends Completions.CompletionSourceFuse {
         return super.scoredOptions(query)
     }
 
-    /** Return the scoredOption[] result for the tab index startswith n */
-    private TabscoredOptionsStartsWithN(
-        n: number,
+    protected optionsLike(
+        predicate: (o: BufferCompletionOption) => boolean,
         options: BufferCompletionOption[],
     ): Completions.ScoredOption[] {
-        const nstr = (n + 1).toString()
-        const res = []
+        const result = []
         for (const [index, option] of enumerate(options)) {
-            if ((option.tabIndex + 1).toString().startsWith(nstr)) {
-                res.push({
-                    index, // index is not tabIndex, changed by score
+            if (predicate(option)) {
+                result.push({
+                    index,
                     option,
                     score: 0,
                 })
             }
         }
-
-        // old input will change order: 12 => 123 => 12
-        res.sort((a, b) => a.option.tabIndex - b.option.tabIndex)
-        return res
+        return result
     }
 
     private async fillOptions(prefix: string) {
@@ -205,13 +173,16 @@ export class BufferCompletionSource extends Completions.CompletionSourceFuse {
             if (!tab_container) {
                 tab_container = Containers.DefaultContainer
             }
+            const isAlternative = tab.index === altTab.index
+            const titlePrefix = this.titlePrefix(index, tab)
             options.push(
                 new BufferCompletionOption(
-                    (index + 1).toString(),
+                    this.completionValue(titlePrefix, isAlternative),
                     tab,
-                    tab.index === altTab.index,
+                    isAlternative,
                     tab_container,
                     index,
+                    titlePrefix,
                 ),
             )
         }
@@ -294,5 +265,120 @@ export class BufferCompletionSource extends Completions.CompletionSourceFuse {
             return this.options[this.options.length - 1]
         }
         return this.options[option.tabIndex]
+    }
+
+    /**
+     * Provide identifier, which will be used before tab title in the completion option.
+     * @param index of a tab calculated by Tridactyl
+     * @param tab Tab
+     */
+    protected abstract titlePrefix(index: number, tab: browser.tabs.Tab): number
+
+    /**
+     * Provide value, which will be used on tab completion (i.e. when user selects tab option using <Space> or <Enter>).
+     * @param index of a tab calculated by Tridactyl
+     * @param tab Tab
+     */
+    protected abstract completionValue(
+        titlePrefix: number,
+        isAlternative: boolean,
+    ): string
+
+    /**
+     * Filter list of options by option identifier.
+     * @param searchId identifier of the option
+     * @param options list of options to search through
+     */
+    protected abstract optionsBySearchId(
+        searchId: number,
+        options: BufferCompletionOption[],
+    ): Completions.ScoredOption[]
+}
+
+export class LinearBufferCompletionSource extends BufferCompletionSource {
+    constructor(_parent) {
+        super(
+            _parent,
+            [
+                "tab",
+                "tabclose",
+                "tabdetach",
+                "tabduplicate",
+                "tabmove",
+                "tabrename",
+                "tabdiscard",
+                "pin",
+            ],
+            "LinearBufferCompletionSource",
+        )
+    }
+
+    protected titlePrefix(index: number, _tab: browser.tabs.Tab): number {
+        return index + 1
+    }
+
+    protected completionValue(
+        titlePrefix: number,
+        isAlternative: boolean,
+    ): string {
+        if (isAlternative) {
+            return "#"
+        }
+        return String(titlePrefix)
+    }
+
+    protected optionsBySearchId(
+        searchId: number,
+        options: BufferCompletionOption[],
+    ): Completions.ScoredOption[] {
+        const index = (searchId - 1).mod(options.length)
+        options.sort((a, b) => a.tabIndex - b.tabIndex)
+        return this.tabScoredOptionsStartsWithN(index, options)
+    }
+
+    /** Return the scoredOption[] result for the tab index startswith n */
+    private tabScoredOptionsStartsWithN(
+        n: number,
+        options: BufferCompletionOption[],
+    ): Completions.ScoredOption[] {
+        const nstr = (n + 1).toString()
+        return this.optionsLike(
+            option => (option.tabIndex + 1).toString().startsWith(nstr),
+            options,
+        )
+    }
+}
+
+/**
+ * TST specifics for tab completion.
+ *
+ * At the moment the only difference to linear tabs is that TST source uses tab
+ * ID in place of tab index for identification.
+ */
+export class BufferTreeCompletionSource extends BufferCompletionSource {
+    constructor(_parent) {
+        super(
+            _parent,
+            ["tstmove", "tstmoveafter", "tstattach"],
+            "BufferTreeCompletionSource",
+        )
+    }
+
+    protected titlePrefix(_index: number, tab: browser.tabs.Tab): number {
+        return tab.id
+    }
+
+    protected completionValue(
+        titlePrefix: number,
+        _isAlternative: boolean,
+    ): string {
+        return String(titlePrefix)
+    }
+
+    protected optionsBySearchId(
+        searchId: number,
+        options: BufferCompletionOption[],
+    ): Completions.ScoredOption[] {
+        return this.optionsLike(option => option.tabId === searchId, options)
     }
 }

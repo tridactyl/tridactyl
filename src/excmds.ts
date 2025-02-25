@@ -98,6 +98,7 @@ import { OpenMode } from "@src/lib/hint_util"
 import * as Proxy from "@src/lib/proxy"
 import * as arg from "@src/lib/arg_util"
 import * as R from "ramda"
+import * as treestyletab from "@src/interop/tst"
 
 /**
  * This is used to drive some excmd handling in `composite`.
@@ -2859,8 +2860,8 @@ export async function tabopen_helper({ addressarr = [], waitForDom = false }): P
         // and browser.search.search() seems to fix that problem.
         // See https://github.com/tridactyl/tridactyl/pull/4791.
         return openInNewTab(null, args, waitForDom)
-                   .then(tab => browser.tabs.get(tab.id))
-                   .then(tab => browser.search.search({tabId: tab.id, ...maybeURL}))
+            .then(tab => browser.tabs.get(tab.id))
+            .then(tab => browser.search.search({ tabId: tab.id, ...maybeURL }))
     }
 
     // Fall back to about:newtab
@@ -3055,7 +3056,7 @@ export async function tabcloseallto(side: string) {
 export async function tabdiscard(index: string) {
     let id: number
     if (index === "--all") {
-        return browser.tabs.query({}).then(ts => browser.tabs.discard(ts.map(t=>t.id)))
+        return browser.tabs.query({}).then(ts => browser.tabs.discard(ts.map(t => t.id)))
     } else if (index === undefined) {
         id = (await activeTab()).id
     } else {
@@ -3088,16 +3089,16 @@ export async function undo(item = "recent"): Promise<number> {
         item === "recent"
             ? s => s.window || (s.tab && s.tab.windowId === current_win_id)
             : item === "tab"
-            ? s => s.tab
-            : item === "tab_strict"
-            ? s => s.tab && s.tab.windowId === current_win_id
-            : item === "window"
-            ? s => s.window
-            : !isNaN(parseInt(item, 10))
-            ? s => (s.tab || s.window).sessionId === item
-            : () => {
-                  throw new Error(`[undo] Invalid argument: ${item}. Must be one of "recent, "tab", "tab_strict", "window" or a sessionId (by selecting a session using the undo completion).`)
-              } // this won't throw an error if there isn't anything in the session list, but I don't think that matters
+              ? s => s.tab
+              : item === "tab_strict"
+                ? s => s.tab && s.tab.windowId === current_win_id
+                : item === "window"
+                  ? s => s.window
+                  : !isNaN(parseInt(item, 10))
+                    ? s => (s.tab || s.window).sessionId === item
+                    : () => {
+                          throw new Error(`[undo] Invalid argument: ${item}. Must be one of "recent, "tab", "tab_strict", "window" or a sessionId (by selecting a session using the undo completion).`)
+                      } // this won't throw an error if there isn't anything in the session list, but I don't think that matters
     const session = sessions.find(predicate)
 
     if (session) {
@@ -3372,7 +3373,7 @@ export async function qall() {
 //#background
 export async function sidebaropen(...urllike: string[]) {
     const url = await queryAndURLwrangler(urllike)
-    if (typeof url === "string") return browser.sidebarAction.setPanel({panel: url})
+    if (typeof url === "string") return browser.sidebarAction.setPanel({ panel: url })
     throw new Error("Unsupported URL for sidebar. If it was a search term try `:set searchengine google` first")
 }
 
@@ -3382,7 +3383,7 @@ export async function sidebaropen(...urllike: string[]) {
  * `:bind --mode=browser <C-.> jsua browser.sidebarAction.open(); tri.excmds.sidebaropen("https://mail.google.com/mail/mu")`
  */
 //#background
-export async function jsua(){
+export async function jsua() {
     throw new Error(":jsua can only be called through `bind --mode=browser` binds, see `:help jsua`")
 }
 
@@ -3392,7 +3393,7 @@ export async function jsua(){
  * `:bind --mode=browser <C-.> sidebartoggle`
  */
 //#background
-export async function sidebartoggle(){
+export async function sidebartoggle() {
     throw new Error(":sidebartoggle can only be called through `bind --mode=browser` binds, see `:help sidebartoggle`")
 }
 
@@ -3947,7 +3948,7 @@ export function fillcmdline(...strarr: string[]) {
     const str = strarr.join(" ")
     showcmdline(false)
     logger.debug("excmds fillcmdline sending fillcmdline to commandline_frame")
-    return Messaging.messageOwnTab("commandline_frame", "fillcmdline", [str, true/*trailspace*/, true/*focus*/])
+    return Messaging.messageOwnTab("commandline_frame", "fillcmdline", [str, true /*trailspace*/, true /*focus*/])
 }
 
 /** Set the current value of the commandline to string *without* a trailing space */
@@ -3955,7 +3956,7 @@ export function fillcmdline(...strarr: string[]) {
 export function fillcmdline_notrail(...strarr: string[]) {
     const str = strarr.join(" ")
     showcmdline(false)
-    return Messaging.messageOwnTab("commandline_frame", "fillcmdline", [str, false/*trailspace*/, true/*focus*/])
+    return Messaging.messageOwnTab("commandline_frame", "fillcmdline", [str, false /*trailspace*/, true /*focus*/])
 }
 
 /** Show and fill the command line without focusing it */
@@ -6208,3 +6209,27 @@ export async function elementunhide() {
     elem.className = elem.className.replace("TridactylKilledElem", "")
 }
 // vim: tabstop=4 shiftwidth=4 expandtab
+
+/**
+ * Move the current TST tree to be just in front of the tab specified.
+ */
+//#background
+export async function tstmove(tabId: string) {
+    treestyletab.moveTreeBefore(Number(tabId))
+}
+
+/**
+ * Move the current TST tree to be right after the tab specified.
+ */
+//#background
+export async function tstmoveafter(tabId: string) {
+    treestyletab.moveTreeAfter(Number(tabId))
+}
+
+/**
+ * Attach current tree as a child to the selected parent.
+ */
+//#background
+export async function tstattach(tabId: string) {
+    treestyletab.attachTree(Number(tabId))
+}
