@@ -35,7 +35,10 @@ import { PreferenceCompletionSource } from "@src/completions/Preferences"
 import { RssCompletionSource } from "@src/completions/Rss"
 import { SessionsCompletionSource } from "@src/completions/Sessions"
 import { SettingsCompletionSource } from "@src/completions/Settings"
-import { BufferCompletionSource } from "@src/completions/Tab"
+import {
+    LinearBufferCompletionSource,
+    BufferTreeCompletionSource,
+} from "@src/completions/Tab"
 import { TabAllCompletionSource } from "@src/completions/TabAll"
 import { ThemeCompletionSource } from "@src/completions/Theme"
 import { TabHistoryCompletionSource } from "@src/completions/TabHistory"
@@ -120,7 +123,8 @@ export function enableCompletions() {
             BindingsCompletionSource,
             BmarkCompletionSource,
             TabAllCompletionSource,
-            BufferCompletionSource,
+            LinearBufferCompletionSource,
+            BufferTreeCompletionSource,
             ExcmdCompletionSource,
             ThemeCompletionSource,
             TabHistoryCompletionSource,
