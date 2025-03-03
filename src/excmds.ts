@@ -3089,16 +3089,16 @@ export async function undo(item = "recent"): Promise<number> {
         item === "recent"
             ? s => s.window || (s.tab && s.tab.windowId === current_win_id)
             : item === "tab"
-            ? s => s.tab
-            : item === "tab_strict"
-            ? s => s.tab && s.tab.windowId === current_win_id
-            : item === "window"
-            ? s => s.window
-            : !isNaN(parseInt(item, 10))
-            ? s => (s.tab || s.window).sessionId === item
-            : () => {
-                  throw new Error(`[undo] Invalid argument: ${item}. Must be one of "recent, "tab", "tab_strict", "window" or a sessionId (by selecting a session using the undo completion).`)
-              } // this won't throw an error if there isn't anything in the session list, but I don't think that matters
+              ? s => s.tab
+              : item === "tab_strict"
+                ? s => s.tab && s.tab.windowId === current_win_id
+                : item === "window"
+                  ? s => s.window
+                  : !isNaN(parseInt(item, 10))
+                    ? s => (s.tab || s.window).sessionId === item
+                    : () => {
+                          throw new Error(`[undo] Invalid argument: ${item}. Must be one of "recent, "tab", "tab_strict", "window" or a sessionId (by selecting a session using the undo completion).`)
+                      } // this won't throw an error if there isn't anything in the session list, but I don't think that matters
     const session = sessions.find(predicate)
 
     if (session) {
@@ -6214,7 +6214,8 @@ export async function elementunhide() {
  * Move the current TST tree to be just in front of the tab specified.
  */
 //#background
-export async function tstmove(tabId: string) {
+export async function tstmove(index: string) {
+    const tabId = await idFromIndex(index)
     treestyletab.moveTreeBefore(Number(tabId))
 }
 
@@ -6222,7 +6223,8 @@ export async function tstmove(tabId: string) {
  * Move the current TST tree to be right after the tab specified.
  */
 //#background
-export async function tstmoveafter(tabId: string) {
+export async function tstmoveafter(index: string) {
+    const tabId = await idFromIndex(index)
     treestyletab.moveTreeAfter(Number(tabId))
 }
 
@@ -6230,6 +6232,7 @@ export async function tstmoveafter(tabId: string) {
  * Attach current tree as a child to the selected parent.
  */
 //#background
-export async function tstattach(parentTabId: string) {
-    treestyletab.attachTree(Number(parentTabId))
+export async function tstattach(index: string) {
+    const tabId = await idFromIndex(index)
+    treestyletab.attachTree(Number(tabId))
 }

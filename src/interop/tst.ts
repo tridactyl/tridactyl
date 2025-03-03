@@ -1,5 +1,5 @@
 import * as ExtensionInfo from "@src/lib/extension_info"
-import { browserBg } from "@src/lib/webext"
+import { activeTab } from "@src/lib/webext"
 
 export async function moveTreeBefore(tabId: number) {
     await ExtensionInfo.messageExtension("tree_style_tab", {
@@ -20,9 +20,7 @@ export async function moveTreeAfter(tabId: number) {
 }
 
 export async function attachTree(parentTabId: number) {
-    const currentTab = (
-        await browserBg.tabs.query({ currentWindow: true, active: true })
-    )[0]
+    const currentTab = await activeTab()
     await ExtensionInfo.messageExtension("tree_style_tab", {
         type: "attach",
         child: currentTab.id,
