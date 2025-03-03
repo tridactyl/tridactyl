@@ -6216,7 +6216,7 @@ export async function elementunhide() {
 //#background
 export async function tstmove(index: string) {
     const tabId = await idFromIndex(index)
-    treestyletab.moveTreeBefore(Number(tabId))
+    treestyletab.moveTreeBefore(tabId)
 }
 
 /**
@@ -6225,7 +6225,7 @@ export async function tstmove(index: string) {
 //#background
 export async function tstmoveafter(index: string) {
     const tabId = await idFromIndex(index)
-    treestyletab.moveTreeAfter(Number(tabId))
+    treestyletab.moveTreeAfter(tabId)
 }
 
 /**
@@ -6234,5 +6234,5 @@ export async function tstmoveafter(index: string) {
 //#background
 export async function tstattach(index: string) {
     const tabId = await idFromIndex(index)
-    treestyletab.attachTree(Number(tabId))
+    treestyletab.attachTree(tabId)
 }
