@@ -6211,7 +6211,7 @@ export async function elementunhide() {
 // vim: tabstop=4 shiftwidth=4 expandtab
 
 /**
- * Move the current TST tree to be just in front of the tab specified.
+ * Move the current [Tree Style Tab](https://github.com/piroor/treestyletab) tree to be just in front of the tab specified. If TST is not installed, no error is raised and no action is taken.
  */
 //#background
 export async function tstmove(index: string) {
@@ -6221,6 +6221,8 @@ export async function tstmove(index: string) {
 
 /**
  * Move the current TST tree to be right after the tab specified.
+ *
+ * See also: [[tstmove]]
  */
 //#background
 export async function tstmoveafter(index: string) {
@@ -6230,6 +6232,8 @@ export async function tstmoveafter(index: string) {
 
 /**
  * Attach current tree as a child to the selected parent.
+ *
+ * See also: [[tstmove]]
  */
 //#background
 export async function tstattach(index: string) {
