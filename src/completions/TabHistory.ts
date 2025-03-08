@@ -127,7 +127,9 @@ export class TabHistoryCompletionSource extends Completions.CompletionSourceFuse
         let history = await browserBg.sessions.getTabValue(tab[0].id, "history")
         if (!history) history = { list: [] }
         const tree = this.makeTree(history["list"])
-        history["list"] = this.flattenTree(tree[0]).reverse()
+        if (tree.length > 0) {
+            history["list"] = this.flattenTree(tree[0]).reverse()
+        }
         this.addIndicies(history["list"])
         this.addFormatTimeSpan(history["list"])
 
