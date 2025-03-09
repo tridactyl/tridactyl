@@ -3368,7 +3368,7 @@ export async function qall() {
  *
  * Not all schemas are supported, such as `about:*` and Firefox's built-in search engines. Tridactyl's searchurls and jsurls work fine - `:set searchengine google` will be sufficient for most users.
  *
- * If you try to open the command line in the sidebar things will break.
+ * If you try to open the command line in the sidebar things will break. `:hint -W sidebaropen` will open hints in the sidebar (potentially in the background if [[sidebartoggle]] has not been run).
  */
 //#background
 export async function sidebaropen(...urllike: string[]) {
