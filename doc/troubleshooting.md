@@ -6,6 +6,10 @@ If changing one of these settings fixes your bug, please visit the corresponding
 -   `:set allowautofocus true` and then reload the page. This allows website to use the javascript `focus()` function. [#550](https://github.com/tridactyl/tridactyl/issues/550)
 -   `:set modeindicator false` and then reload the page. This disables the mode indicator. [#821](https://github.com/tridactyl/tridactyl/issues/821)
 
+-   `:seturl $URL_OF_THE_WEBSITE superignore true` and then reload the page. This totally disables Tridactyl from loading on the page. No specific issue, please make a new one: https://github.com/tridactyl/tridactyl/issues/821
+
+-   "i can't open the commandline :((" `:seturl [the website you're on] commmandlineterriblewebsitefix true`. No need to file an issue with us, but maybe consider telling the website owner that they should [make their website less bad](https://infrequently.org/2024/11/if-not-react-then-what/). Our relevant issue is [#5050](https://github.com/tridactyl/tridactyl/issues/5050)
+
 # Firefox settings that can break Tridactyl
 
 If you have `privacy.resistFingerprinting` set to `true` in `about:config`, Tridactyl will have a lot of trouble understanding your keypresses. See [#760](https://github.com/tridactyl/tridactyl/issues/760#issuecomment-433679201) and [#1699](https://github.com/tridactyl/tridactyl/issues/1699). We strongly recommend setting it to `false`, as it is by default.
@@ -31,7 +35,7 @@ Tridactyl can selectively display logs for certain components. These components 
 -   styling
 -   excmds
 
-In order to activate logging for a component, you can use the following command: `:set logging.$COMPONENT DEBUG`. Then, to get the logs, click the hamburger menu in the top right of Firefox, click "Web Developer", then click "Browser Console". Open the menu again and click "Web Console" in the same place.
+In order to activate logging for a component, you can use the following command: `:set logging.$COMPONENT debug`. Then, to get the logs, click the hamburger menu in the top right of Firefox, click "Web Developer", then click "Browser Console". Open the menu again and click "Web Console" in the same place.
 
 This will open a two consoles where Tridactyl's messages are logged. Click on the little bin icons in the consoles in order to remove previous messages and try to re-trigger the bug. Copy the logs as you would any other text, and then paste them in your GitHub issue in a block surrounded by three backticks like so:
 

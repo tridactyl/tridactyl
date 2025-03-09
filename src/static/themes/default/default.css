@@ -59,7 +59,7 @@
     --tridactyl-cmplt-option-height: 1.4em;
     --tridactyl-cmplt-fg: var(--tridactyl-fg);
     --tridactyl-cmplt-bg: var(--tridactyl-bg);
-    --tridactyl-cmplt-font-size: calc(var(--tridactyl-font-size) * 10/12);
+    --tridactyl-cmplt-font-size: calc(var(--tridactyl-font-size) * 9/12);
     --tridactyl-cmplt-font-family: monospace;
     /* i don't think 0.5px is redered */
     --tridactyl-cmplt-border-top: 1px solid grey;

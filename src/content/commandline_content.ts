@@ -17,17 +17,21 @@ const cmdline_logger = new Logger("cmdline")
 
 // inject the commandline iframe into a content page
 
-const cmdline_iframe = window.document.createElementNS(
-    "http://www.w3.org/1999/xhtml",
-    "iframe",
-) as HTMLIFrameElement
-cmdline_iframe.className = "cleanslate"
-cmdline_iframe.setAttribute(
-    "src",
-    browser.runtime.getURL("static/commandline.html"),
-)
-cmdline_iframe.setAttribute("id", "cmdline_iframe")
-cmdline_iframe.setAttribute("loading", "lazy")
+let cmdline_iframe: HTMLIFrameElement
+export function makeIframe() {
+    cmdline_iframe = window.document.createElementNS(
+        "http://www.w3.org/1999/xhtml",
+        "iframe",
+    ) as HTMLIFrameElement
+    cmdline_iframe.className = "cleanslate"
+    cmdline_iframe.setAttribute(
+        "src",
+        browser.runtime.getURL("static/commandline.html"),
+    )
+    cmdline_iframe.setAttribute("id", "cmdline_iframe")
+    cmdline_iframe.setAttribute("loading", "lazy")
+}
+makeIframe()
 
 let enabled = false
 
@@ -47,6 +51,38 @@ async function init() {
         enabled = true
         // first theming of page root
         await theme(window.document.querySelector(":root"))
+
+        // Fix #5050: reinsert iframe after React throws a tantrum
+        config.getAsync("commandlineterriblewebsitefix").then(enabled => {
+            if (enabled == "true") {
+                reactIsCrap()
+            } else {
+                new MutationObserver(changes =>
+                    changes.find(change => {
+                        for (const addedNode of change.addedNodes) {
+                            // detect React server-side render failure by added <link rel='modulepreload'>
+                            if (addedNode instanceof HTMLLinkElement && addedNode.rel === "modulepreload") {
+                                reactIsCrap()
+                            }
+                        }
+                    })
+                ).observe(cmdline_iframe.parentNode, { childList: true, subtree: true })
+            }
+        })
+    }
+}
+
+let hammering_react = false
+export async function reactIsCrap(){
+    if (hammering_react) return
+    hammering_react = true
+    cmdline_logger.warning("Possible react server-side render failure detected, starting iframe protection loop")
+    while(true){
+        if (cmdline_iframe.contentWindow == null) {
+            makeIframe()
+            document.documentElement.appendChild(cmdline_iframe)
+        }
+        await new Promise(resolve => setTimeout(resolve, 500))
     }
 }
 

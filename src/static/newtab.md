@@ -12,7 +12,7 @@ Tridactyl has to override your new tab page due to WebExtension limitations. You
 
 *   If Tridactyl breaks a website or is broken by a website, trying the steps in the [troubleshooting guide](https://github.com/tridactyl/tridactyl/blob/master/doc/troubleshooting.md) might help.
 
-*   You can contact the developers, other users and contributors for support or whatever on [Matrix][matrix-link], [Gitter][gitter-link], [Discord][discord-link] or [IRC][libera-link].
+*   You can contact the developers, other users and contributors for support or whatever on [Matrix][matrix-link], [Gitter][gitter-link], [Discord][discord-link] or [IRC][libera-link]. Follow bovine3dom on [Mastodon](https://masto.ai/@bovine3dom) or [Bluesky](https://bsky.app/profile/bovine3dom.bsky.social)
 
 *   If you're enjoying Tridactyl (or not), please leave a review on [addons.mozilla.org][amo].
 

@@ -26,19 +26,8 @@ span.TridactylHintUppercase {
 
 .TridactylHintElem,
 .TridactylHintActive {
-    color: var(--tridactyl-hint-active-fg) !important !important;
     animation: none !important;
     transition: unset !important;
-}
-
-.TridactylHintElem {
-    background-color: var(--tridactyl-hint-bg) !important;
-    outline: var(--tridactyl-hint-outline) !important;
-}
-
-.TridactylHintActive {
-    background-color: var(--tridactyl-hint-active-bg) !important;
-    outline: var(--tridactyl-hint-active-outline) !important;
 }
 
 div.TridactylHintHost {

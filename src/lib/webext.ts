@@ -366,21 +366,29 @@ export async function queryAndURLwrangler(
         return { engine: engine.name, query: rest }
     }
 
-    // Maybe it's a domain without protocol
-    try {
-        const url = new URL("http://" + address)
-        // Ignore unlikely domains
-        if (
-            // the endsWith check must be on address, because URL adds a
-            // trailing slash which would always match
-            address.endsWith("/") ||
-            url.hostname.indexOf(".") > 0 ||
-            url.port ||
-            url.password
-        ) {
-            return url.href
-        }
-    } catch (e) {}
+    // Maybe it's a host (ip, domain) without a protocol
+    //
+    // if the address looks like a number (e.g. 538, 3.14), then do *not* consider it as a potential
+    // host (see #5081)
+    // uses +str to first attempt parsing the address into a number, and then check whether the
+    // result is NaN; this is required as Typescript, unlike JavaScript, only allows numbers as
+    // arguments to NaN (see https://stackoverflow.com/q/42120046)
+    if (isNaN(+address)) {
+        try {
+            const url = new URL("http://" + address)
+            // Ignore unlikely domains
+            if (
+                // the endsWith check must be on address, because URL adds a
+                // trailing slash which would always match
+                address.endsWith("/") ||
+                url.hostname.indexOf(".") > 0 ||
+                url.port ||
+                url.password
+            ) {
+                return url.href
+            }
+        } catch (e) {}
+    }
 
     // Let's default to the user's search engine then
 

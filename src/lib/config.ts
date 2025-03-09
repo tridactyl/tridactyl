@@ -95,6 +95,12 @@ export class default_config {
                 F: "hint -bc [tabindex]:not(.two)>div,a",
             },
         },
+        "^https://teams.microsoft.com": { // #5054
+            modeindicator: "false",
+        },
+        "^https://teams.live.com": { // #5054
+            modeindicator: "false",
+        },
     }
 
     /**
@@ -858,6 +864,13 @@ export class default_config {
     preventautofocusjackhammer: "true" | "false" = "false"
 
     /**
+     * Run a loop forcing the commandline to be reinserted if it is deleted as is typically the case after server-side rendering of bloated web frameworks such as React. Uses some CPU, so enable only on specific websites with `:seturl https://badwebsite\.com commandlineterriblewebsitefix true`.
+     *
+     * A better workaround is to stop visiting websites that have so little respect for their users.
+     */
+    commandlineterriblewebsitefix: "true" | "false" = "false"
+
+    /**
      * Whether to use Tridactyl's (bad) smooth scrolling.
      */
     smoothscroll: "true" | "false" = "false"
@@ -1328,6 +1341,21 @@ export class default_config {
      * Whether to show article url in the document.title of Reader View.
      */
     readerurlintitle: "true" | "false" = "false"
+
+    /**
+     * Which css styles to add for hint elements.
+     *
+     * Use `hintstyles.fg` for text color, `hintstyles.bg` for background color, `hintstyles.outline` for outlines.
+     * Values may be set to "all" to enable the style for all hints, "active" to enable the style only for the currently selected hint, or "none" to disable the style completely.
+     *
+     * For example, run
+     *`:set hintstyles.bg none` and reload the page to remove background colors from all hints.
+     */
+    hintstyles: { [key: string]: "all" | "active" | "none" } = {
+        fg: "all",
+        bg: "all",
+        outline: "all",
+    }
 }
 
 const platform_defaults = {

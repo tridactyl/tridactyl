@@ -1,5 +1,41 @@
 # Tridactyl changelog
 
+# Release 1.24.2 / 2024-12-15
+
+-   New features
+    - `:set hintstyles.{bg, fg, outline}` ([#4106](https://github.com/tridactyl/tridactyl/issues/4106))
+    - `:tabdiscard` added to unload a tab from memory ([#4798](https://github.com/tridactyl/tridactyl/issues/4798))
+    - `:tabopen -p` opens a pinned tab ([#5000](https://github.com/tridactyl/tridactyl/issues/5000))
+    - adding `/` to the end of a URL forces `:open` and friends to treat it as a URL ([#4998](https://github.com/tridactyl/tridactyl/issues/4998))
+    - `none` proxy added as override for autocontain ([#5015](https://github.com/tridactyl/tridactyl/issues/5015))
+    - `:pin` now accepts and index and has completions
+    - `colemak` layout added for `:set keyboardlayoutbase` ([#4995](https://github.com/tridactyl/tridactyl/issues/4995))
+
+-   Bug fixes
+    - `:guiset gui none` works again in Firefox 133 ([#5098](https://github.com/tridactyl/tridactyl/issues/5098))
+    - Tridactyl reinserts itself when server-side rendered React websites remove it ([#5053](https://github.com/tridactyl/tridactyl/issues/5053))
+    - JS hints (grey ones) now work again ([#5039](https://github.com/tridactyl/tridactyl/issues/5039))
+    - `:apropos` will now work even if you have created a custom setting ([#5076](https://github.com/tridactyl/tridactyl/issues/5076))
+    - `D` now throws an error if used with a count rather than closing a seemingly random tab
+    - `:followpage` now searches all `<a>` tags ([#5031](https://github.com/tridactyl/tridactyl/issues/5031))
+    - `:focusinput` now works in shadow roots ([#5025](https://github.com/tridactyl/tridactyl/issues/5025))
+    - switching focus in input mode now works in shadow roots ([#5073](https://github.com/tridactyl/tridactyl/issues/5073))
+    - `:open [number]` will now search for the number rather than trying to interpret the 32-bit integer as an IP address ([#5084](https://github.com/tridactyl/tridactyl/issues/5084))
+    - `;r` for text-to-speech now hints all text correctly
+    - `:zoom` now only tries to zoom to 300% ([#5018](https://github.com/tridactyl/tridactyl/issues/5018))
+
+-   Miscellaneous
+    - Most `searchurls` have been removed because people (especially me) found them annoying ([#3925](https://github.com/tridactyl/tridactyl/issues/3925))
+    - CI kinda works most of the time again ([#5058](https://github.com/tridactyl/tridactyl/issues/5058))
+    - Added bovine3dom's [mastodon account](https://masto.ai/@bovine3dom) to the new tab page so people can hear him talk about trains
+
+
+Thanks to all of our contributors for this release: Oliver Blanthorn, Cooper Pellaton, dependabot[bot], Chic-Tweetz, Alexis Daboville, gholk, Alan Pearce, George Gemousakakis, Johannes Löthberg, Maxim Pavlenko, Nils Wireklint, Sakari, bennyyip, glacambre, leaty, pvs and zorzem32.
+
+Extra special thanks go to Alan Pearce, Alexis Daboville, bennyyip, Chic-Tweetz, Cooper Pellaton, George Gemousakakis, Johannes Löthberg, leaty, Maxim Pavlenko, Nils Wireklint, Sakari and zorzem32 who all contributed for the first time.
+
+Last, but not least - thank you to everyone who reported issues.
+
 # Release 1.24.1 / 2024-04-07
 
 -   New features
