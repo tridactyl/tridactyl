@@ -39,6 +39,12 @@ let enabled = false
 async function init() {
     const noiframe = await config.getAsync("noiframe")
     const notridactyl = await config.getAsync("superignore")
+
+    if (document.contentType.includes("xml")) {
+        logger.info("Content type is xml; aborting iframe injection.")
+        return
+    }
+
     if (noiframe === "false" && notridactyl !== "true" && !enabled) {
         hide()
         document.documentElement.appendChild(cmdline_iframe)
