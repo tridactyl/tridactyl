@@ -9,7 +9,7 @@ class BmarkCompletionOption
 
     constructor(
         public value: string,
-        bmark: browser.bookmarks.BookmarkTreeNode,
+        bmark: providers.Bookmark,
     ) {
         super()
         if (!bmark.title) {
@@ -17,11 +17,11 @@ class BmarkCompletionOption
         }
 
         // Push properties we want to fuzmatch on
-        this.fuseKeys.push(bmark.title, bmark.url)
+        this.fuseKeys.push(bmark.path, bmark.title, bmark.url)
 
         this.html = html`<tr class="BmarkCompletionOption option">
             <td class="prefix">${"".padEnd(2)}</td>
-            <td class="title">${bmark.title}</td>
+            <td class="title">${bmark.path}${bmark.title}</td>
             <td class="content">
                 <a class="url" target="_blank" href=${bmark.url}
                     >${bmark.url}</a
