@@ -3124,6 +3124,14 @@ export async function undo(item = "recent"): Promise<number> {
 //#background
 export async function tabmove(index = "$") {
     const aTab = await activeTab()
+    if (index === "#") {
+        const previousTab = await prevActiveTab()
+        if (previousTab.index - aTab.index === 1) {
+            // current tab is already right before the previously active tab
+            return []
+        }
+        return browser.tabs.move(aTab.id, { index: previousTab.index })
+    }
     const windowTabs = await browser.tabs.query({ currentWindow: true })
     const windowPinnedTabs = await browser.tabs.query({ currentWindow: true, pinned: true })
     const maxPinnedIndex = windowPinnedTabs.length - 1
