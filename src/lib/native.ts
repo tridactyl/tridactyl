@@ -310,11 +310,11 @@ export async function editor(
         ? await getBestEditor()
         : config.get("editorcmd")
     )
-        .replace(/%l/, line)
-        .replace(/%c/, col)
+        .replaceAll(/%l/, line)
+        .replaceAll(/%c/, col)
     let exec
     if (editorcmd.indexOf("%f") !== -1) {
-        exec = await run(editorcmd.replace(/%f/, file))
+        exec = await run(editorcmd.replaceAll(/%f/, file))
     } else {
         exec = await run(editorcmd + " " + file)
     }
