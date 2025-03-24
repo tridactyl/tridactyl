@@ -730,7 +730,9 @@ export function simulateClick(
     let usePopupBlockerWorkaround =
         (target as HTMLAnchorElement).target === "_blank" ||
         (target as HTMLAnchorElement).target === "_new"
-    const href = (target as HTMLAnchorElement).href
+    const href = (target instanceof SVGAElement)
+        ? target.href.animVal
+        : (target as HTMLAnchorElement).href;
     if (href?.startsWith("file:")) {
         // file URLS cannot be opend with browser.tabs.create
         // see https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/tabs/create#url
