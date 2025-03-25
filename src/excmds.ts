@@ -5004,8 +5004,8 @@ export async function sanitise(...args: string[]) {
 
 /** Bind a quickmark for the current URL or space-separated list of URLs to a key on the keyboard.
 
-    Afterwards use go[key], gn[key], or gw[key] to [[open]], [[tabopen]], or
-    [[winopen]] the URL respectively.
+    Afterwards use go[key], gn[key], gw[ley], or gp[key] to [[open]], [[tabopen]], [[winopen]],
+    or [[winopen]] privately the URL respectively.
 
     Example:
     - `quickmark m https://mail.google.com/mail/u/0/#inbox`
@@ -5026,14 +5026,19 @@ export async function quickmark(key: string, ...addressarr: string[]) {
         await bind("go" + key, "open", address)
         await sleep(50)
         await bind("gw" + key, "winopen", address)
+        await sleep(50)
+        await bind("gp" + key, "winopen -private", address)
     } else {
         const compstring = addressarr.join("; tabopen ")
         const compstringwin = addressarr.join("; winopen ")
+        const compstringwinp = addressarr.join("; winopen -private ")
         await bind("gn" + key, "composite tabopen", compstring)
         await sleep(50)
         await bind("go" + key, "composite open", compstring)
         await sleep(50)
         await bind("gw" + key, "composite winopen", compstringwin)
+        await sleep(50)
+        await bind("gp" + key, "composite winopen -private", compstringwinp)
     }
 }
 
