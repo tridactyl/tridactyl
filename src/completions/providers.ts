@@ -39,8 +39,8 @@ export async function getBookmarks(query: string): Promise<Bookmark[]> {
 async function builtInBookmarksSearch(query: string): Promise<Bookmark[]> {
     const bookmarks = await browserBg.bookmarks.search({ query })
     return bookmarks
-        .map(b => ({ path: "", ...b }))
         .filter(isValidBookmark)
+        .map(b => ({ path: "", ...b }))
         .sort((a, b) => b.dateAdded - a.dateAdded)
 }
 
@@ -66,8 +66,14 @@ async function fuseBookmarksSearch(query: string): Promise<Bookmark[]> {
 }
 
 async function collectBookmarks(): Promise<Bookmark[]> {
-    return (await collectBookmarksAndFolders())
+    const bookmarks = await collectBookmarksAndFolders()
+    const bookmarksDictionary = groupBookmarksById(bookmarks)
+    return bookmarks
         .filter(isValidBookmark)
+        .map(bookmark => ({
+            path: buildBookmarkPath("", bookmark, bookmarksDictionary),
+            ...bookmark,
+        }))
         .sort((a, b) => b.dateAdded - a.dateAdded)
 }
 
@@ -99,7 +105,9 @@ function buildBookmarkPath(
 /**
  * Bookmark is not a folder and has valid URL.
  */
-function isValidBookmark(bookmark: Bookmark): boolean {
+function isValidBookmark(
+    bookmark: browser.bookmarks.BookmarkTreeNode,
+): boolean {
     try {
         return !!new URL(bookmark.url)
     } catch (e) {
@@ -112,27 +120,45 @@ let bookmarkPaths: string[]
 export async function getBookmarkFolders(query: string) {
     bookmarkPaths = bookmarkPaths || [
         ...new Set(
-            (await collectBookmarksAndFolders())
+            (await collectBookmarkFolders())
                 .filter(bookmark => bookmark.path && bookmark.path != "/")
                 .map(bookmark => bookmark.path),
         ),
     ]
-    return query
-        ? bookmarkPaths.filter(path => path != query && path.includes(query))
-        : bookmarkPaths
+    const prefix = !query || query === "/" ? "/" : `.*${query}`
+    const regex = new RegExp(`^${prefix}[^/]*/$`)
+    return bookmarkPaths.filter(path => regex.test(path))
 }
 
-async function collectBookmarksAndFolders(): Promise<Bookmark[]> {
+async function collectBookmarkFolders(): Promise<Bookmark[]> {
+    const bookmarks = await collectBookmarksAndFolders()
+    const bookmarksDictionary = groupBookmarksById(bookmarks)
+    return bookmarks
+        .filter(bookmark => bookmark.type === "folder")
+        .map(folder => ({
+            path: buildBookmarkPath(
+                `${folder.title}/`,
+                folder,
+                bookmarksDictionary,
+            ),
+            ...folder,
+        }))
+}
+
+async function collectBookmarksAndFolders(): Promise<
+    browser.bookmarks.BookmarkTreeNode[]
+> {
     const root = await browserBg.bookmarks.getTree()
-    const bookmarks = root.flatMap(flattenChildren)
-    const bookmarksDictionary = bookmarks.reduce((dict, bookmark) => {
+    return root.flatMap(flattenChildren)
+}
+
+function groupBookmarksById(bookmarks: browser.bookmarks.BookmarkTreeNode[]): {
+    [id: string]: browser.bookmarks.BookmarkTreeNode
+} {
+    return bookmarks.reduce((dict, bookmark) => {
         dict[bookmark.id] = bookmark
         return dict
     }, {})
-    return bookmarks.map(bookmark => ({
-        path: buildBookmarkPath("", bookmark, bookmarksDictionary),
-        ...bookmark,
-    }))
 }
 
 export async function getSearchUrls(query: string) {
