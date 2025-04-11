@@ -3124,6 +3124,14 @@ export async function undo(item = "recent"): Promise<number> {
 //#background
 export async function tabmove(index = "$") {
     const aTab = await activeTab()
+    if (index === "#") {
+        const previousTab = await prevActiveTab()
+        if (previousTab.index - aTab.index === 1) {
+            // current tab is already right before the previously active tab
+            return []
+        }
+        return browser.tabs.move(aTab.id, { index: previousTab.index })
+    }
     const windowTabs = await browser.tabs.query({ currentWindow: true })
     const windowPinnedTabs = await browser.tabs.query({ currentWindow: true, pinned: true })
     const maxPinnedIndex = windowPinnedTabs.length - 1
@@ -3368,7 +3376,7 @@ export async function qall() {
  *
  * Not all schemas are supported, such as `about:*` and Firefox's built-in search engines. Tridactyl's searchurls and jsurls work fine - `:set searchengine google` will be sufficient for most users.
  *
- * If you try to open the command line in the sidebar things will break.
+ * If you try to open the command line in the sidebar things will break. `:hint -W sidebaropen` will open hints in the sidebar (potentially in the background if [[sidebartoggle]] has not been run).
  */
 //#background
 export async function sidebaropen(...urllike: string[]) {
@@ -3820,7 +3828,7 @@ async function getnexttabs(tabid: number, n?: number) {
 
     This re-executes the last *exstr*, not the last *excmd*. Some excmds operate internally by constructing and evaluating exstrs, others by directly invoking excmds without going through the exstr parser. For example, aucmds and keybindings evaluate exstrs and are repeatable, while commands like `:bmarks` directly invoke `:tabopen` and you'll repeat the `:bmarks` rather than the internal `:tabopen`.
 
-    It's difficult to execute this in the background script (`:jsb`, `:run_excmd`, `:autocmd TriStart`, `:source`), but if you you do, it will re-execute the last exstr that was executed in the background script. What this may have been is unpredictable and not precisely encouraged.
+    It's difficult to execute this in the background script (`:jsb`, `:run_excmd`, `:autocmd TriStart`, `:source`), but if you do, it will re-execute the last exstr that was executed in the background script. What this may have been is unpredictable and not precisely encouraged.
 
 */
 //#background
@@ -4996,8 +5004,8 @@ export async function sanitise(...args: string[]) {
 
 /** Bind a quickmark for the current URL or space-separated list of URLs to a key on the keyboard.
 
-    Afterwards use go[key], gn[key], or gw[key] to [[open]], [[tabopen]], or
-    [[winopen]] the URL respectively.
+    Afterwards use go[key], gn[key], gw[ley], or gp[key] to [[open]], [[tabopen]], [[winopen]],
+    or [[winopen]] privately the URL respectively.
 
     Example:
     - `quickmark m https://mail.google.com/mail/u/0/#inbox`
@@ -5018,14 +5026,19 @@ export async function quickmark(key: string, ...addressarr: string[]) {
         await bind("go" + key, "open", address)
         await sleep(50)
         await bind("gw" + key, "winopen", address)
+        await sleep(50)
+        await bind("gp" + key, "winopen -private", address)
     } else {
         const compstring = addressarr.join("; tabopen ")
         const compstringwin = addressarr.join("; winopen ")
+        const compstringwinp = addressarr.join("; winopen -private ")
         await bind("gn" + key, "composite tabopen", compstring)
         await sleep(50)
         await bind("go" + key, "composite open", compstring)
         await sleep(50)
         await bind("gw" + key, "composite winopen", compstringwin)
+        await sleep(50)
+        await bind("gp" + key, "composite winopen -private", compstringwinp)
     }
 }
 
