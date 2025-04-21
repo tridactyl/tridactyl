@@ -8,7 +8,7 @@ You can get help about any command by typing `help [command]` in command mode. A
 -   We have a [wiki](https://github.com/tridactyl/tridactyl/wiki) which anyone can contribute to.
 -   If you're not sure how to do something, try `apropos [search term]`. The completions for this search through all of our help pages.
 
-If Tridactyl doesn't work or breaks pages we have a [troubleshooting guide](https://github.com/tridactyl/tridactyl/blob/master/doc/troubleshooting.md). If none of the steps described in solve your problems, do not hesitate to open a new issue.
+If Tridactyl doesn't work or breaks pages we have a [troubleshooting guide](https://github.com/tridactyl/tridactyl/blob/master/doc/). If none of the steps described in solve your problems, do not hesitate to open a new issue.
 
 Lastly, you can contact the developers via Matrix or GitHub, as mentioned on the new tab page.
 
