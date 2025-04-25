@@ -330,7 +330,7 @@ import { getEditor } from "editor-adapter"
  * set editorcmd terminator -u -e "vim %f '+normal!%lGzv%c|'"
  * ```
  *
- * Your editor of choice needs a shell to run it. For example, this command opens neovim with kitty and exits after closing the editor:
+ * Your editor of choice needs a terminal to run it. For example, this command opens neovim with kitty and exits after closing the editor:
  * ```vim
  * set editorcmd kitty nvim
  * ```
