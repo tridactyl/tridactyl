@@ -1282,6 +1282,11 @@ export class default_config {
     modeindicatorshowkeys: "true" | "false" = "false"
 
     /**
+     * Show the current URL in the mod indicator.
+     */
+    modeindicatorshowurl: "true" | "false" = "false"
+
+    /**
      * Whether a trailing slash is appended when we get the parent of a url with
      * gu (or other means).
      */
