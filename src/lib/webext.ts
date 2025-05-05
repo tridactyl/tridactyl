@@ -2,6 +2,7 @@ import * as convert from "@src/lib/convert"
 import browserProxy from "@src/lib/browser_proxy"
 import * as config from "@src/lib/config"
 import * as UrlUtil from "@src/lib/url_util"
+import * as compat from "@src/lib/compat"
 import { sleep } from "@src/lib/patience"
 import * as R from "ramda"
 
@@ -293,7 +294,11 @@ export async function openInNewTab(
 // lazily copied from excmds.ts' winopen - forceURI really ought to be moved to lib/webext
 // Should consider changing interface of this to match openInNewTab or vice versa
 export function openInNewWindow(createData = {}) {
-    browserBg.windows.create(createData)
+    compat.isAndroid().then(isAndroid => {
+        if (isAndroid) return compat.notImplemented("no windows on android")
+        // eslint-disable-next-line unsupported-apis
+        browserBg.windows.create(createData) // it'd be nice if this used the compat.windows thingy but we'd end up with a circular dependency
+    })
 }
 
 // Returns object if we should use the search engine instead

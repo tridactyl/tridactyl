@@ -74,6 +74,7 @@
 
 // Shared
 import * as Messaging from "@src/lib/messaging"
+import * as compat from "@src/lib/compat"
 import { ownWinTriIndex, getTriVersion, browserBg, activeTab, activeTabOnWindow, activeTabId, activeTabContainerId, openInNewTab, openInNewWindow, openInTab, queryAndURLwrangler, goToTab, getSortedTabs, prevActiveTab } from "@src/lib/webext"
 import * as Container from "@src/lib/containers"
 import state from "@src/state"
@@ -2982,7 +2983,7 @@ export async function tabduplicate(index?: number) {
 */
 //#background
 export async function tabdetach(index?: number) {
-    return browser.windows.create({ tabId: await idFromIndex(index) })
+    return compat.windows.create({ tabId: await idFromIndex(index) })
 }
 
 /** Toggle fullscreen state
@@ -3283,6 +3284,7 @@ export async function mute(...muteArgs: string[]): Promise<void> {
  */
 //#background
 export async function winopen(...args: string[]) {
+    if (await compat.isAndroid()) return compat.notImplemented("no windows on android")
     const createData = {} as Parameters<typeof browser.windows.create>[0]
     let firefoxArgs = "--new-window"
     let done = false
@@ -3329,6 +3331,7 @@ export async function winopen(...args: string[]) {
 
     createData.url = "https://fix-a-firefox-bug.invalid"
 
+    // eslint-disable-next-line unsupported-apis
     return browser.windows.create(createData).then(win => openInTab(win.tabs[0], { loadReplace: true }, address.split(" ")))
 }
 
