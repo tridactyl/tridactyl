@@ -7,6 +7,9 @@
             "strict_min_version"
         ]
     },
+    "firefox_android": {
+        "minimumVersion": "113.0"
+    },
     "chrome": {
         "minimumVersion": "114"
     }
