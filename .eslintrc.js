@@ -44,6 +44,10 @@ module.exports = {
             "warn",
             { "minimumVersion": browserTargets.firefox.minimumVersion }
         ],
+        "unsupported-apis-firefox-android": [
+            "error",
+            { "minimumVersion": browserTargets.firefox_android.minimumVersion }
+        ],
         "sonarjs/cognitive-complexity": "off", //"error",
         "sonarjs/no-duplicate-string": "off",
         "sonarjs/no-unused-collection": "off", //"error", // There seems to be a bug with this rule - exported collections are assumed unused
