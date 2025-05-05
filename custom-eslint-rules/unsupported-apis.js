@@ -1,6 +1,7 @@
 const bcd = require('@mdn/browser-compat-data');
 const api = bcd.webextensions.api;
-const supported_browsers = ["firefox", "chrome"];
+//const supported_browsers = ["firefox", "chrome", "firefox_android"];
+const supported_browsers = ["firefox", "firefox_android"];
 const minimalSupportedFirefoxVersion = 114;
 
 function propertyNameOrValue(n) {
