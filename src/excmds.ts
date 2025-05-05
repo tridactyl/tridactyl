@@ -74,6 +74,7 @@
 
 // Shared
 import * as Messaging from "@src/lib/messaging"
+import * as compat from "@src/lib/compat"
 import { ownWinTriIndex, getTriVersion, browserBg, activeTab, activeTabOnWindow, activeTabId, activeTabContainerId, openInNewTab, openInNewWindow, openInTab, queryAndURLwrangler, goToTab, getSortedTabs, prevActiveTab } from "@src/lib/webext"
 import * as Container from "@src/lib/containers"
 import state from "@src/state"
@@ -3054,13 +3055,17 @@ export async function tabduplicate(index?: number) {
 */
 //#background
 export async function tabdetach(index?: number) {
+    if (await compat.isAndroid()) return compat.notImplemented("tabdetach is not supported on Android")
     // Workaround for detached tabs not getting focus (issue #5273)
     const tabId = await idFromIndex(index)
     const currentTab = await browser.tabs.get(tabId)
+    // eslint-disable-next-line unsupported-apis-firefox-android
     const tempTab = (await browser.windows.create({ incognito: currentTab.incognito })).tabs[0]
+    // eslint-disable-next-line unsupported-apis-firefox-android
     await browser.tabs.move(tabId, { index: -1, windowId: tempTab.windowId })
     browser.tabs.remove(tempTab.id)
     browser.tabs.update(tabId, { active: true })
+    // eslint-disable-next-line unsupported-apis-firefox-android
     return browser.windows.get(tempTab.windowId)
 }
 
@@ -3362,6 +3367,7 @@ export async function mute(...muteArgs: string[]): Promise<void> {
  */
 //#background
 export async function winopen(...args: string[]) {
+    if (await compat.isAndroid()) return compat.notImplemented("no windows on android")
     const createData = {} as Parameters<typeof browser.windows.create>[0]
     let firefoxArgs = "--new-window"
     let done = false
@@ -3408,6 +3414,7 @@ export async function winopen(...args: string[]) {
 
     createData.url = "https://fix-a-firefox-bug.invalid"
 
+    // eslint-disable-next-line unsupported-apis-firefox-android
     return browser.windows.create(createData).then(win => openInTab(win.tabs[0], { loadReplace: true }, address.split(" ")))
 }
 
