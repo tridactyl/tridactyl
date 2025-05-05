@@ -58,7 +58,7 @@ jobs:
       env:
         HEADLESS: 1
       with: 
-        max_attempts: ${{ github.event_name == 'pull_request' && 5 || 10 }}
+        max_attempts: ${{ github.event_name == 'pull_request' && ( github.event.pull_request.draft && 1 || 5 ) || 10 }}
         timeout_minutes: 10
         retry_wait_seconds: 10
         shell: bash
