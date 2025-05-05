@@ -76,6 +76,7 @@
 
 // Shared
 import * as Messaging from "@src/lib/messaging"
+import * as compat from "@src/lib/compat"
 import { ownWinTriIndex, getTriVersion, getTriVersionName, browserBg, activeTab, activeTabOnWindow, activeTabId, activeTabContainerId, openInNewTab, openInNewWindow, openInTab, queryAndURLwrangler, goToTab, getSortedTabs, prevActiveTab, getLastAudibleTab } from "@src/lib/webext"
 import * as Container from "@src/lib/containers"
 import state from "@src/state"
@@ -3188,22 +3189,27 @@ export async function tabduplicate(index?: number) {
 */
 //#background
 export async function tabdetach(index?: string) {
+    if (await compat.isAndroid()) return compat.notImplemented("tabdetach is not supported on Android")
     // Workaround for detached tabs not getting focus (issue #5273)
     const tabId = await idFromIndex(index)
     const currentTab = await browser.tabs.get(tabId)
     let tempWin
     try {
+        // eslint-disable-next-line unsupported-apis-firefox-android
         tempWin = await browser.windows.create({ incognito: currentTab.incognito, url: "about:blank" })
     } catch (error) {
         if (currentTab.incognito) throw error
         // Some Firefox setups can fail to resolve the default new-window URI.
         // Fall back to the simplest guaranteed-valid create call.
+        // eslint-disable-next-line unsupported-apis-firefox-android
         tempWin = await browser.windows.create({ url: "about:blank" })
     }
     const tempTab = tempWin.tabs[0]
+    // eslint-disable-next-line unsupported-apis-firefox-android
     await browser.tabs.move(tabId, { index: -1, windowId: tempTab.windowId })
     await browser.tabs.remove(tempTab.id)
     await browser.tabs.update(tabId, { active: true })
+    // eslint-disable-next-line unsupported-apis-firefox-android
     return browser.windows.get(tempTab.windowId)
 }
 
@@ -3517,6 +3523,7 @@ export async function mute(...muteArgs: string[]): Promise<void> {
  */
 //#background
 export async function winopen(...args: string[]) {
+    if (await compat.isAndroid()) return compat.notImplemented("no windows on android")
     const createData = {} as Parameters<typeof browser.windows.create>[0]
     let firefoxArgs = "--new-window"
     let done = false
@@ -3562,6 +3569,7 @@ export async function winopen(...args: string[]) {
 
     createData.url = "about:blank"
 
+    // eslint-disable-next-line unsupported-apis-firefox-android
     return browser.windows.create(createData).then(win => openInTab(win.tabs[0], { loadReplace: true }, address.split(" ")))
 }
 
