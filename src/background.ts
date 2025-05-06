@@ -32,6 +32,7 @@ import * as browser_action from "@src/background/browser_action"
 import * as meta from "@src/background/meta"
 import * as Logging from "@src/lib/logging"
 import * as Proxy from "@src/lib/proxy"
+import * as compat from "@src/lib/compat"
 import { tabsProxy } from "@src/lib/tabs"
 
 // Add various useful modules to the window for debugging
@@ -110,7 +111,7 @@ browser.tabs.onCreated.addListener(tabChangeListener("tab_created"))
 // Fired when a tab is detached from a window, for example because it is being moved between windows.
 browser.tabs.onDetached.addListener(tabChangeListener("tab_detached"))
 // Fired when a tab is moved within a window.
-browser.tabs.onMoved.addListener(tabChangeListener("tab_moved"))
+compat.tabs.onMoved.addListener(tabChangeListener("tab_moved"))
 browser.tabs.onUpdated.addListener(
     tabChangeListener("tab_updated"),
     {

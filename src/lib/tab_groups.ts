@@ -5,6 +5,8 @@ import {
     removeActiveWindowValue,
 } from "./webext"
 
+/* eslint-disable unsupported-apis-firefox-android */
+
 /**
  * Return a set of the current window's tab groups (empty if there are none).
  *

@@ -139,10 +139,14 @@ export async function prevActiveTab() {
  *
  */
 export async function activeWindowId() {
+    if (await compat.isAndroid()) return 0 // shrug
+    // eslint-disable-next-line unsupported-apis-firefox-android
     return (await browserBg.windows.getCurrent()).id
 }
 
 export async function removeActiveWindowValue(value) {
+    if (await compat.isAndroid()) return
+    // eslint-disable-next-line unsupported-apis-firefox-android
     browserBg.sessions.removeWindowValue(await activeWindowId(), value)
 }
 
@@ -160,6 +164,8 @@ export async function ownTabId() {
 }
 
 async function windows() {
+    if (await compat.isAndroid()) return [] // shrug
+    // eslint-disable-next-line unsupported-apis-firefox-android
     return (await browserBg.windows.getAll())
         .map(w => w.id)
         .sort((a, b) => a - b)
@@ -405,7 +411,8 @@ export async function queryAndURLwrangler(
         return eval(js)(rest)
     }
 
-    const searchEngines = await browserBg.search.get()
+    // eslint-disable-next-line unsupported-apis-firefox-android
+    const searchEngines = (await compat.isAndroid()) ? [] : await browserBg.search.get()
     let engine = searchEngines.find(engine => engine.alias === firstWord)
     // Maybe firstWord is the name of a firefox search engine?
     if (engine !== undefined) {
@@ -474,7 +481,8 @@ export async function openInTab(tab, opts = {}, strarr: string[]) {
             Object.assign({ url: maybeURL }, opts),
         )
     }
-    if (typeof maybeURL === "object") {
+    if (!(await compat.isAndroid()) && typeof maybeURL === "object") {
+        // eslint-disable-next-line unsupported-apis-firefox-android
         return browserBg.search.search({ tabId: tab.id, ...maybeURL })
     }
 
@@ -491,6 +499,7 @@ export async function openInTab(tab, opts = {}, strarr: string[]) {
  */
 export async function goToTab(tabId: number) {
     const tab = await browserBg.tabs.update(tabId, { active: true })
-    await browserBg.windows.update(tab.windowId, { focused: true })
+    // eslint-disable-next-line unsupported-apis-firefox-android
+    if (!(await compat.isAndroid())) await browserBg.windows.update(tab.windowId, { focused: true })
     return tab
 }

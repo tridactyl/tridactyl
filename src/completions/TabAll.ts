@@ -5,6 +5,7 @@ import * as Completions from "@src/completions"
 import * as config from "@src/lib/config"
 import { tabTgroup } from "@src/lib/tab_groups"
 import { TabCompletionSource } from "@src/completions/TabBase"
+import * as compat from "@src/lib/compat"
 
 class TabAllCompletionOption
     extends Completions.CompletionOptionHTML
@@ -158,13 +159,18 @@ export class TabAllCompletionSource extends TabCompletionSource {
         }
 
         const mru = config.get("tabsort") == "mru"
-        const [tabs, altTab, currentWindow, containerList] =
-            await Promise.all([
-                getSortedTabs(mru ? "mru" : "default", true),
-                prevActiveTab(),
-                browserBg.windows.getCurrent(),
-                browserBg.contextualIdentities.query({}).catch(() => []),
-            ])
+        const [tabs, altTab, containerList] = await Promise.all([
+            getSortedTabs(mru ? "mru" : "default", true),
+            prevActiveTab(),
+            browserBg.contextualIdentities.query({}).catch(() => []),
+        ])
+        let currentWindow: { id?: number }
+        if (await compat.isAndroid()) {
+            currentWindow = { id: tabs.find(tab => tab.active)?.windowId }
+        } else {
+            // eslint-disable-next-line unsupported-apis-firefox-android
+            currentWindow = await browserBg.windows.getCurrent()
+        }
         if (!this.isCurrentUpdate(generation)) return
 
         if (!mru) {
