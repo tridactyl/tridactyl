@@ -1,6 +1,7 @@
 import { browserBg } from "@src/lib/webext"
 import * as Completions from "@src/completions"
 import * as config from "@src/lib/config"
+import * as compat from "@src/lib/compat"
 
 function computeDate(session) {
     let howLong = Math.round(
@@ -101,7 +102,8 @@ export class SessionsCompletionSource extends Completions.CompletionSourceFuse {
             return
         }
 
-        const sessions = await browserBg.sessions.getRecentlyClosed()
+        // eslint-disable-next-line unsupported-apis
+        const sessions = (await compat.isAndroid()) ? [] : await browserBg.sessions.getRecentlyClosed()
         this.options = sessions.map(s => new SessionCompletionOption(s))
     }
 }

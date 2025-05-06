@@ -4,6 +4,7 @@ import { browserBg, activeTabId } from "@src/lib/webext"
 import state from "@src/state"
 import * as State from "@src/state"
 import { compute as scrollCompute } from "compute-scroll-into-view"
+/* eslint-disable unsupported-apis */
 
 // The host is the shadow root of a span used to contain all highlighting
 // elements. This is the least disruptive way of highlighting text in a page.

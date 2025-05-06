@@ -1464,7 +1464,8 @@ export function scrollpage(n = 1, count = 1) {
  *  Known bugs: find will currently happily jump to a non-visible element, and pressing n or N without having searched for anything will cause an error.
  */
 //#content
-export function find(...args: string[]) {
+export async function find(...args: string[]) {
+    if (await compat.isAndroid()) return fillcmdline_tmp(3000, ":find is not supported on android :(")
     const argOpt = arg.lib(
         {
             "--jump-to": Number,
@@ -4380,7 +4381,7 @@ export async function bind(...args: string[]) {
             }
         }
         if (args_obj.mode == "browser") {
-            const commands = await browser.commands.getAll()
+            const commands = await compat.commands.getAll()
 
             // Check for an existing command with this bind
             let command = commands.filter(c => mozMapToMinimalKey(c.shortcut).toMapstr() == args_obj.key)[0]
@@ -4389,7 +4390,7 @@ export async function bind(...args: string[]) {
             command = command === undefined ? (command = commands.filter(c => c.shortcut === "")[0]) : command
             if (command === undefined) throw new Error("You have reached the maximum number of browser binds. `:unbind` one you don't want from `:viewconfig browsermaps`.")
 
-            await browser.commands.update({ name: command.name, shortcut: minimalKeyToMozMap(mapstrToKeyseq(args_obj.key)[0]) })
+            await compat.commands.update({ name: command.name, shortcut: minimalKeyToMozMap(mapstrToKeyseq(args_obj.key)[0]) })
             await commandsHelper.updateListener()
         }
         p = config.set(args_obj.configName, args_obj.key, args_obj.excmd)
@@ -4837,13 +4838,13 @@ export async function unbind(...args: string[]) {
     const args_obj = parse_bind_args(...args)
     if (args_obj.excmd !== "") throw new Error("unbind syntax: `unbind key`")
     if (args_obj.mode == "browser") {
-        const commands = await browser.commands.getAll()
+        const commands = await compat.commands.getAll()
 
         const command = commands.filter(c => mozMapToMinimalKey(c.shortcut).toMapstr() == args_obj.key)[0]
 
         // Fail quietly if bind doesn't exist so people can safely run it in their RC files
         if (command !== undefined) {
-            await browser.commands.update({ name: command.name, shortcut: "" })
+            await compat.commands.update({ name: command.name, shortcut: "" })
             await commandsHelper.updateListener()
         }
     }
@@ -5728,6 +5729,7 @@ export async function perfhistogram(...filters: string[]) {
 // }}}
 
 // unsupported on android
+/* eslint-disable unsupported-apis */
 /**
  * Add or remove a bookmark.
  *
@@ -5794,12 +5796,13 @@ export async function bmark(url?: string, ...titlearr: string[]) {
         }
 
         if (pathobj !== undefined) {
-            return browser.bookmarks.create({ url, title, parentId: pathobj.id })
+            return compat.bookmarks.create({ url, title, parentId: pathobj.id })
         } // otherwise, give the user an error, probably with [v.path for v in validpaths]
     }
 
-    return browser.bookmarks.create({ url, title })
+    return compat.bookmarks.create({ url, title })
 }
+/* eslint-enable unsupported-apis */
 
 //#background
 export function echo(...str: string[]) {
