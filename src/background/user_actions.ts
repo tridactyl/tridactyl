@@ -8,12 +8,13 @@ import * as excmds from "@src/.excmds_background.generated"
 import * as R from "ramda"
 import * as config from "@src/lib/config"
 import { getTridactylTabs } from "@src/background/meta"
+import * as compat from "@src/lib/compat"
 
 function escapehatch() {
     if (config.get("escapehatchsidebarhack") == "true") {
         // Only works if called via commands API command - fail silently if called otherwise
-        browser.sidebarAction.open().catch()
-        browser.sidebarAction.close().catch()
+        compat.sidebarAction.open().catch()
+        compat.sidebarAction.close().catch()
     }
     ;(async () => {
         const tabs = await browser.tabs.query({ currentWindow: true })
@@ -40,7 +41,7 @@ function escapehatch() {
  * Toggle the sidebar. Bind with e.g. `:bind --mode=browser <C-.> sidebartoggle`
  */
 function sidebartoggle() {
-    return browser.sidebarAction.toggle()
+    return compat.sidebarAction.toggle()
 }
 
 function jsua(...args: string[]) {
