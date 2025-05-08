@@ -2,13 +2,18 @@
     "firefox": {
         "minimumVersion": "91.1.0",
         "manifestVersionPath": [
-            "applications",
+            "browser_specific_settings",
             "gecko",
             "strict_min_version"
         ]
     },
     "firefox_android": {
-        "minimumVersion": "113.0"
+        "minimumVersion": "113.0",
+        "manifestVersionPath": [
+            "browser_specific_settings",
+            "gecko_android",
+            "strict_min_version"
+        ]
     },
     "chrome": {
         "minimumVersion": "114"

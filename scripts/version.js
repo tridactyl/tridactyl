@@ -109,7 +109,7 @@ async function main() {
             manifest = require("." + filename)
             manifest.version = await add_beta(manifest.version)
             manifest.version_name = manifest.version + "-" + (await get_hash())
-            manifest.applications.gecko.update_url =
+            manifest.browser_specific_settings.gecko.update_url =
                 "https://tridactyl.cmcaine.co.uk/betas/updates.json"
 
             try {
