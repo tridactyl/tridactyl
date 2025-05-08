@@ -177,7 +177,7 @@ async function main() {
             validate_release_version(manifest)
             if (tagged(manifest.version)) throw new Error(`Version ${manifest.version} is already tagged`)
             set_beta_version(manifest, await beta_number(), await get_hash())
-            manifest.applications.gecko.update_url =
+            manifest.browser_specific_settings.gecko.update_url =
                 "https://tridactyl.cmcaine.co.uk/betas/updates.json"
 
             try {
