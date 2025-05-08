@@ -34,7 +34,7 @@ module.exports = {
         "sonarjs"
     ],
     "rules": {
-        "unsupported-apis": "warn",
+        "unsupported-apis": "error",
         "sonarjs/cognitive-complexity": "off", //"error",
         "sonarjs/no-duplicate-string": "off",
         "sonarjs/no-unused-collection": "off", //"error", // There seems to be a bug with this rule - exported collections are assumed unused

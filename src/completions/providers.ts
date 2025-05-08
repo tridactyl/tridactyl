@@ -1,4 +1,5 @@
 import * as config from "@src/lib/config"
+import * as compat from "@src/lib/compat"
 import { browserBg } from "@src/lib/webext"
 
 export function newtaburl() {
@@ -9,7 +10,9 @@ export function newtaburl() {
 }
 
 export async function getBookmarks(query: string) {
+    if (await compat.isAndroid()) return []
     // Search bookmarks, dedupe and sort by most recent.
+    // eslint-disable-next-line unsupported-apis
     let bookmarks = await browserBg.bookmarks.search({ query })
 
     // Remove folder nodes and bad URLs
@@ -60,11 +63,15 @@ export async function getHistory(
     query: string,
 ): Promise<browser.history.HistoryItem[]> {
     // Search history, dedupe and sort by frecency
-    let history = await browserBg.history.search({
-        text: query,
-        maxResults: config.get("historyresults"),
-        startTime: 0,
-    })
+    let history = []
+    if (!(await compat.isAndroid())) {
+    // eslint-disable-next-line unsupported-apis
+        history = await browserBg.history.search({
+            text: query,
+            maxResults: config.get("historyresults"),
+            startTime: 0,
+        })
+    }
 
     // Remove entries with duplicate URLs
     const dedupe = new Map()

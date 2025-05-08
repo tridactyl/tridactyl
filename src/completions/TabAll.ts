@@ -5,6 +5,7 @@ import * as Completions from "@src/completions"
 import * as Messaging from "@src/lib/messaging"
 import * as config from "@src/lib/config"
 import { tabTgroup } from "@src/lib/tab_groups"
+import * as compat from "@src/lib/compat"
 
 class TabAllCompletionOption
     extends Completions.CompletionOptionHTML
@@ -112,6 +113,8 @@ export class TabAllCompletionSource extends Completions.CompletionSourceFuse {
      * Map all windows into a {[windowId]: window} object
      */
     private async getWindows() {
+        if (await compat.isAndroid()) return {}
+        // eslint-disable-next-line unsupported-apis
         const windows = await browserBg.windows.getAll()
         const response: { [windowId: number]: browser.windows.Window } = {}
         windows.forEach(win => (response[win.id] = win))
@@ -194,7 +197,8 @@ export class TabAllCompletionSource extends Completions.CompletionSourceFuse {
         // Check to see if this is a command that needs to exclude the current
         // window
         const excludeCurrentWindow = ["tabgrab"].includes(prefix.trim())
-        const currentWindow = await browserBg.windows.getCurrent()
+        // eslint-disable-next-line unsupported-apis
+        const currentWindow = (await compat.isAndroid()) ? {id: -1337} : await browserBg.windows.getCurrent()
         // Window Ids don't make sense so we're using LASTID and WININDEX to compute a window index
         // This relies on the fact that tabs are sorted by window ids
         let lastId = 0

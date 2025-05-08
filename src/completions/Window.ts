@@ -1,5 +1,6 @@
 import { browserBg } from "@src/lib/webext"
 import * as Completions from "@src/completions"
+import * as compat from "@src/lib/compat"
 
 class WindowCompletionOption
     extends Completions.CompletionOptionHTML
@@ -70,7 +71,8 @@ export class WindowCompletionSource extends Completions.CompletionSourceFuse {
         }
 
         const excludeCurrentWindow = ["tabpush"].includes(prefix.trim())
-        this.options = (await browserBg.windows.getAll({ populate: true }))
+        // eslint-disable-next-line unsupported-apis
+        this.options = ((await compat.isAndroid()) ? [] : await browserBg.windows.getAll({ populate: true }))
         .filter( win => !(excludeCurrentWindow && win.focused))
         .map(
             win => {

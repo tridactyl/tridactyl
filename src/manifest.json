@@ -137,10 +137,14 @@
         "proxy",
         "<all_urls>"
     ],
-    "applications": {
+    "browser_specific_settings": {
         "gecko": {
             "id": "tridactyl.vim.betas@cmcaine.co.uk",
             "strict_min_version": "91.1.0"
+        },
+        "gecko_android": {
+            "id": "tridactyl.vim.betas@cmcaine.co.uk",
+            "strict_min_version": "113.0"
         }
     },
     "options_ui": {

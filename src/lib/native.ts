@@ -5,6 +5,7 @@
 import semverCompare from "semver-compare"
 import * as config from "@src/lib/config"
 import { browserBg, getContext } from "@src/lib/webext"
+import * as compat from "@src/lib/compat"
 
 import Logger from "@src/lib/logging"
 const logger = new Logger("native")
@@ -48,6 +49,10 @@ export async function sendNativeMsg(
     logger.info(`Sending message: ${JSON.stringify(send)}`)
 
     try {
+        if (await compat.isAndroid()) {
+            throw new Error("no native on android")
+        }
+        // eslint-disable-next-line unsupported-apis
         resp = await browserBg.runtime.sendNativeMessage(NATIVE_NAME, send)
         logger.info(`Received response:`, resp)
         return resp as MessageResp

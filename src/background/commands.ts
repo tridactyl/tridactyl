@@ -2,6 +2,7 @@ import { useractions } from "@src/background/user_actions"
 import * as config from "@src/lib/config"
 import * as keyseq from "@src/lib/keyseq"
 import * as controller from "@src/lib/controller"
+import * as compat from "@src/lib/compat"
 
 function makelistener(commands: Array<browser.commands.Command>) {
     return (command_name: string) => {
@@ -21,8 +22,8 @@ let listener
 
 export async function updateListener() {
     listener !== undefined &&
-        browser.commands.onCommand.removeListener(listener)
-    listener = makelistener(await browser.commands.getAll())
-    browser.commands.onCommand.addListener(listener)
+        compat.commands.onCommand.removeListener(listener)
+    listener = makelistener(await compat.commands.getAll())
+    compat.commands.onCommand.addListener(listener)
     return listener
 }

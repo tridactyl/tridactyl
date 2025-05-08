@@ -2,6 +2,7 @@ import * as convert from "@src/lib/convert"
 import browserProxy from "@src/lib/browser_proxy"
 import * as config from "@src/lib/config"
 import * as UrlUtil from "@src/lib/url_util"
+import * as compat from "@src/lib/compat"
 import { sleep } from "@src/lib/patience"
 import * as R from "ramda"
 
@@ -113,10 +114,14 @@ export async function prevActiveTab() {
  *
  */
 export async function activeWindowId() {
+    if (await compat.isAndroid()) return 0 // shrug
+    // eslint-disable-next-line unsupported-apis
     return (await browserBg.windows.getCurrent()).id
 }
 
 export async function removeActiveWindowValue(value) {
+    if (await compat.isAndroid()) return
+    // eslint-disable-next-line unsupported-apis
     browserBg.sessions.removeWindowValue(await activeWindowId(), value)
 }
 
@@ -134,6 +139,8 @@ export async function ownTabId() {
 }
 
 async function windows() {
+    if (await compat.isAndroid()) return [] // shrug
+    // eslint-disable-next-line unsupported-apis
     return (await browserBg.windows.getAll())
         .map(w => w.id)
         .sort((a, b) => a - b)
@@ -293,7 +300,11 @@ export async function openInNewTab(
 // lazily copied from excmds.ts' winopen - forceURI really ought to be moved to lib/webext
 // Should consider changing interface of this to match openInNewTab or vice versa
 export function openInNewWindow(createData = {}) {
-    browserBg.windows.create(createData)
+    compat.isAndroid().then(isAndroid => {
+        if (isAndroid) return compat.notImplemented("no windows on android")
+        // eslint-disable-next-line unsupported-apis
+        browserBg.windows.create(createData) // it'd be nice if this used the compat.windows thingy but we'd end up with a circular dependency
+    })
 }
 
 // Returns object if we should use the search engine instead
@@ -359,7 +370,8 @@ export async function queryAndURLwrangler(
         return eval(js)(rest)
     }
 
-    const searchEngines = await browserBg.search.get()
+    // eslint-disable-next-line unsupported-apis
+    const searchEngines = (await compat.isAndroid()) ? [] : await browserBg.search.get()
     let engine = searchEngines.find(engine => engine.alias === firstWord)
     // Maybe firstWord is the name of a firefox search engine?
     if (engine !== undefined) {
@@ -428,7 +440,8 @@ export async function openInTab(tab, opts = {}, strarr: string[]) {
             Object.assign({ url: maybeURL }, opts),
         )
     }
-    if (typeof maybeURL === "object") {
+    if (!(await compat.isAndroid()) && typeof maybeURL === "object") {
+        // eslint-disable-next-line unsupported-apis
         return browserBg.search.search({ tabId: tab.id, ...maybeURL })
     }
 
@@ -445,6 +458,7 @@ export async function openInTab(tab, opts = {}, strarr: string[]) {
  */
 export async function goToTab(tabId: number) {
     const tab = await browserBg.tabs.update(tabId, { active: true })
-    await browserBg.windows.update(tab.windowId, { focused: true })
+    // eslint-disable-next-line unsupported-apis
+    if (!(await compat.isAndroid())) await browserBg.windows.update(tab.windowId, { focused: true })
     return tab
 }
