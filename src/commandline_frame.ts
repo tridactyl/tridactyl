@@ -103,16 +103,21 @@ function resizeArea() {
  * This is a bit loosely defined at the moment.
  * Should work so long as there's only one completion source per prefix.
  */
-function getCompletion(args_only = false) {
+function getActiveCompletionSource(): CompletionSourceFuse | undefined {
     if (!commandline_state.activeCompletions) return undefined
 
-    for (const comp of commandline_state.activeCompletions) {
-        if (comp.state === "normal" && comp.completion !== undefined) {
-            return args_only ? comp.args : comp.completion
-        }
-    }
+    return commandline_state.activeCompletions.filter(
+        ({ state, completion }) =>
+            state === "normal" && completion !== undefined,
+    )[0]
 }
-commandline_state.getCompletion = getCompletion
+
+/** @hidden **/
+function getCompletion(args_only = false): string | undefined {
+    const activeSource = getActiveCompletionSource()
+    if (!activeSource) return undefined
+    return args_only ? activeSource.args : activeSource.completion
+}
 
 /** @hidden **/
 export function enableCompletions() {
