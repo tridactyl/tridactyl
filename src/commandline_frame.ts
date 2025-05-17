@@ -73,7 +73,6 @@ const commandline_state = {
     completionsDiv: window.document.getElementById("completions"),
     fns: undefined as ReturnType<typeof getCommandlineFns>,
     getCompletion,
-    getActiveCompletionSource,
     history,
     /** @hidden
      * This is to handle Escape key which, while the cmdline is focused,
@@ -104,21 +103,16 @@ function resizeArea() {
  * This is a bit loosely defined at the moment.
  * Should work so long as there's only one completion source per prefix.
  */
-function getActiveCompletionSource(): CompletionSourceFuse | undefined {
+function getCompletion(args_only = false) {
     if (!commandline_state.activeCompletions) return undefined
 
-    return commandline_state.activeCompletions.filter(
-        ({ state, completion }) =>
-            state === "normal" && completion !== undefined,
-    )[0]
+    for (const comp of commandline_state.activeCompletions) {
+        if (comp.state === "normal" && comp.completion !== undefined) {
+            return args_only ? comp.args : comp.completion
+        }
+    }
 }
-
-/** @hidden **/
-function getCompletion(args_only = false): string | undefined {
-    const activeSource = getActiveCompletionSource()
-    if (!activeSource) return undefined
-    return args_only ? activeSource.args : activeSource.completion
-}
+commandline_state.getCompletion = getCompletion
 
 /** @hidden **/
 export function enableCompletions() {
@@ -173,28 +167,21 @@ const noblur = () => setTimeout(() => commandline_state.clInput.focus(), 0)
 /** @hidden **/
 export function focus() {
     function consumeBufferedPageKeys(bufferedPageKeys: string[]) {
-        const clInputStillFocused =
-            window.document.activeElement === commandline_state.clInput
-        logger.debug(
-            "stop_buffering_page_keys response received, bufferedPageKeys = ",
-            bufferedPageKeys,
-            "clInputStillFocused = " + clInputStillFocused,
-        )
+        const clInputStillFocused = window.document.activeElement === commandline_state.clInput;
+        logger.debug("stop_buffering_page_keys response received, bufferedPageKeys = ", bufferedPageKeys,
+            "clInputStillFocused = " + clInputStillFocused)
         if (bufferedPageKeys.length !== 0) {
-            const currentClInputValue = commandline_state.clInput.value
-            const initialClInputValue = commandline_state.initialClInputValue
-            logger.debug(
-                "Consuming buffered page keys",
-                bufferedPageKeys,
+            const currentClInputValue = commandline_state.clInput.value;
+            const initialClInputValue = commandline_state.initialClInputValue;
+            logger.debug("Consuming buffered page keys", bufferedPageKeys,
                 "initialClInputValue = " + initialClInputValue,
-                "currentClInputValue = " + currentClInputValue,
-            )
+                "currentClInputValue = " + currentClInputValue);
             // Native events are assumed to be character keydown events,
             // i.e. characters appended at the end of clInput.
             commandline_state.clInput.value =
-                initialClInputValue +
-                bufferedPageKeys.join("") +
-                currentClInputValue.substring(initialClInputValue.length)
+                initialClInputValue
+                + bufferedPageKeys.join("")
+                + currentClInputValue.substring(initialClInputValue.length)
             // Update completion.
             clInputValueChanged()
         }
@@ -202,13 +189,8 @@ export function focus() {
     commandline_state.clInput.focus()
     commandline_state.clInput.removeEventListener("blur", noblur)
     commandline_state.clInput.addEventListener("blur", noblur)
-    logger.debug(
-        "commandline_frame clInput focus(), activeElement is clInput: " +
-            (window.document.activeElement === commandline_state.clInput),
-    )
-    Messaging.messageOwnTab("stop_buffering_page_keys").then(
-        consumeBufferedPageKeys,
-    )
+    logger.debug("commandline_frame clInput focus(), activeElement is clInput: " + (window.document.activeElement === commandline_state.clInput))
+    Messaging.messageOwnTab("stop_buffering_page_keys").then(consumeBufferedPageKeys)
 }
 
 /** @hidden **/
@@ -232,10 +214,7 @@ commandline_state.clInput.addEventListener(
     "keydown",
     function (keyevent: KeyboardEvent) {
         if (!keyevent.isTrusted) return
-        logger.debug(
-            "commandline_frame clInput keydown event listener",
-            keyevent,
-        )
+        logger.debug("commandline_frame clInput keydown event listener", keyevent)
         commandline_state.keyEvents.push(minimalKeyFromKeyboardEvent(keyevent))
         const response = keyParser(commandline_state.keyEvents)
         if (response.isMatch) {
@@ -313,7 +292,7 @@ let onInputPromise: Promise<any> = Promise.resolve()
 /** @hidden **/
 commandline_state.clInput.addEventListener("input", () => {
     logger.debug("commandline_frame clInput input event listener")
-    clInputValueChanged()
+    clInputValueChanged();
 })
 
 /** @hidden **/
