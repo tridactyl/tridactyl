@@ -73,6 +73,7 @@ const commandline_state = {
     completionsDiv: window.document.getElementById("completions"),
     fns: undefined as ReturnType<typeof getCommandlineFns>,
     getCompletion,
+    getActiveCompletionSource,
     history,
     /** @hidden
      * This is to handle Escape key which, while the cmdline is focused,
