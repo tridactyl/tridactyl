@@ -109,7 +109,7 @@ export class BmarkCompletionSource extends Completions.CompletionSourceFuse {
 }
 
 export class BookmarkFolderCompletionSource extends Completions.CompletionSourceFuse {
-    constructor(private _parent) {
+    constructor() {
         super(["bmark"], "BookmarkFolderCompletionSource", "Bookmark Folders", {
             trailingSpace: false,
         })
