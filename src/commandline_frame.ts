@@ -374,15 +374,7 @@ export function fillcmdline(
     trailspace = true,
     ffocus = true,
 ) {
-    logger.debug(
-        "commandline_frame fillcmdline(newcommand = " +
-            newcommand +
-            " trailspace = " +
-            trailspace +
-            " ffocus = " +
-            ffocus +
-            ")",
-    )
+    logger.debug("commandline_frame fillcmdline(newcommand = " + newcommand + " trailspace = " + trailspace + " ffocus = " + ffocus + ")")
     if (trailspace) commandline_state.clInput.value = newcommand + " "
     else commandline_state.clInput.value = newcommand
     commandline_state.initialClInputValue = commandline_state.clInput.value
