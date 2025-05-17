@@ -37,12 +37,13 @@ export abstract class CompletionSource {
     node: HTMLElement
     public completion: string
     public args: string
+    public trailingSpace: boolean
     protected prefixes: string[] = []
     protected lastFocused: CompletionOption
     private _state: OptionState
     private _prevState: OptionState
 
-    constructor(prefixes) {
+    constructor(prefixes, options = { trailingSpace: true }) {
         const commands = aliases.getCmdAliasMapping()
 
         // Now, for each prefix given as argument, add it to the completionsource's prefix list and also add any alias it has
@@ -56,6 +57,7 @@ export abstract class CompletionSource {
 
         // Not sure this is necessary but every completion source has it
         this.prefixes = this.prefixes.map(p => p + " ")
+        this.trailingSpace = options.trailingSpace
     }
 
     /** Control presentation of Source */
@@ -174,8 +176,13 @@ export abstract class CompletionSourceFuse extends CompletionSource {
 
     protected optionContainer = html`<table class="optionContainer"></table>`
 
-    constructor(prefixes, className: string, title?: string) {
-        super(prefixes)
+    constructor(
+        prefixes,
+        className: string,
+        title?: string,
+        options = { trailingSpace: true },
+    ) {
+        super(prefixes, options)
         this.node = html`<div class="${className} hidden">
             <div class="sectionHeader">${title || className}</div>
         </div>`
