@@ -5896,22 +5896,34 @@ async function js_helper(str: string[]) {
  *
  * Usage:
  *
- *        `js [-p] javascript code ... [arg]`
+ *     `js javascript code ...`
  *
- *        `js [-s|-r|-p] javascript_filename [arg]`
+ *     `js -p javascript code ... arg`
+ *
+ *     `js [-s|-r] javascript_filename`
+ *
+ *     `js -p [-s|-r] javascript_filename arg`
+ *
+ *     `js -d# [-s|-r] javascript_filename # arg1 arg2 ...`
+ *     (where `#` is any char)
  *
  *   - options
- *     - -p pass an argument to js for use with `composite`. The argument is passed as the last space-separated argument of `js`, i.e. `str[str.length-1]` and stored in the magic variable JS_ARG - see below for example usage.
- *    -d[delimiter character] to take a space-separated array of arguments after the delimiter, stored in the magic variable `JS_ARGS` (which is an array).
- *     - -s load the js source from a Javascript file.
- *     - -r load the js source from a Javascript file relative to your RC file. (NB: will throw an error if no RC file exists)
+ *     - `-p` pass an argument to js for use with `composite`. The argument is passed as the last space-separated argument of `js`, i.e. `str[str.length-1]` and stored in the magic variable `JS_ARG` (string) - see below for example usage.
+ *     - `-d[delimiter character]` to take a space-separated array of arguments after the delimiter, stored in the magic variable `JS_ARGS` (array) - see below for example usage.
+ *     - `-s` load the js source from a Javascript file.
+ *     - `-r` load the js source from a Javascript file relative to your RC file. (NB: will throw an error if no RC file exists)
  *
  * Some of Tridactyl's functions are accessible here via the `tri` object. Just do `console.log(tri)` in the web console on the new tab page to see what's available.
  * `tri.bg` is an object enabling access to the background script's context. It works similarly to the `tri.tabs` objects documented in the [[jsb]] documentation.
  *
- * If you want to pipe an argument to `js`, you need to use the "-p" flag or "-d" flag with an argument and then use the JS_ARG global variable, e.g:
+ * If you want to pipe an argument to `js`, you need to use the `-p` flag or `-d` flag with an argument and then use the JS_ARG global variable, e.g:
  *
  *     `composite get_current_url | js -p alert(JS_ARG)`
+ *
+ * You can also use `-p` to make simple single-argument ex-commands:
+ *
+ *     `command alert_msg js -p window.alert(new Date().toISOFormat() + " " + JS_ARG)
+ *     And use it like: `alert_msg HeyYou`
  *
  * To run JavaScript from a source file:
  *
@@ -5929,6 +5941,9 @@ async function js_helper(str: string[]) {
  *  You can use `-d` to make your own ex-commands:
  *
  *      `command loudecho js -d€ window.alert(JS_ARGS.join(" "))€`
+ *      And use it like: `loudecho this is a message!`
+ *
+ *      Everything after `€` will be available in `JS_ARGS`, starting at index 1 (the first item is usually an empty string).
  *
  */
 /* tslint:disable:no-identical-functions */
@@ -5949,7 +5964,7 @@ export async function js(...str: string[]) {
  * - Run `alert()` in a tab whose id is 9:
  *   `:jsb tri.tabs[9].alert()`
  *
- * You can also directly access the corresonding property in all tabs by using
+ * You can also directly access the corresponding property in all tabs by using
  * the "tabs" object itself, e.g.
  *
  * - Build a string containing the id of the active element of each tab:
@@ -5962,6 +5977,9 @@ export async function js(...str: string[]) {
  * When fetching a value or running a function in a tab through the `tabs` property, the returned value is a Promise and must be awaited.
  * Setting values through the `tab` property is asynchronous too and there is no way to await this operation.
  * If you need to ensure that the value has been set before performing another action, use tri.tabs[tab.id].tri.excmds.js to set the value instead and await the result.
+ *
+ * Note about using plain `console.log` with `jsb`: Since the code is being executed in the background context, logs are sent to the Browser Console instead of the usual Web Console. To open those logs, click the hamburger menu in the top right of Firefox, click "More tools", then click "Browser Console".
+ * The Browser Console can be quite chatty, it can help to clear the existing logs with the little bin button and run your code again.
  */
 /* tslint:disable:no-identical-functions */
 //#background
