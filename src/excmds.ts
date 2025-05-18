@@ -5978,8 +5978,9 @@ export async function js(...str: string[]) {
  * Setting values through the `tab` property is asynchronous too and there is no way to await this operation.
  * If you need to ensure that the value has been set before performing another action, use tri.tabs[tab.id].tri.excmds.js to set the value instead and await the result.
  *
- * Note about using plain `console.log` with `jsb`: Since the code is being executed in the background context, logs are sent to the Browser Console instead of the usual Web Console. To open those logs, click the hamburger menu in the top right of Firefox, click "More tools", then click "Browser Console".
- * The Browser Console can be quite chatty, it can help to clear the existing logs with the little bin button and run your code again.
+ * NOTE: Using plain `console.log` with `jsb`:
+ * Since the code is being executed in the background context, logs are sent to the Browser Console instead of the usual Web Console.
+ * To open the extension-specific console, open `about:debugging`, click `This Firefox`, locate Tridactyl then click `Inspect`.
  */
 /* tslint:disable:no-identical-functions */
 //#background
