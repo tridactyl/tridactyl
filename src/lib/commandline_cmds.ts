@@ -78,15 +78,17 @@ export function getCommandlineFns(cmdline_state: {
                 "current_cmdline",
                 "cmdline_filter",
             )
-            const command = cmdline_state.getCompletion()
+            const completionSource = cmdline_state.getActiveCompletionSource()
+            const completion = completionSource?.completion
             if (cmdline_state.activeCompletions) {
                 cmdline_state.activeCompletions.forEach(
                     comp => (comp.completion = undefined),
                 )
             }
             let result = Promise.resolve([])
-            if (command) {
-                cmdline_state.clInput.value = command + " "
+            if (completion) {
+                cmdline_state.clInput.value =
+                    completion + (completionSource?.trailingSpace ? " " : "")
                 result = cmdline_state.refresh_completions(
                     cmdline_state.clInput.value,
                 )
@@ -99,14 +101,16 @@ export function getCommandlineFns(cmdline_state: {
          * If no completion is selected, inserts a space where the caret is.
          */
         insert_space_or_completion: () => {
-            const command = cmdline_state.getCompletion()
+            const completionSource = cmdline_state.getActiveCompletionSource()
+            const completion = completionSource?.completion
             if (cmdline_state.activeCompletions) {
                 cmdline_state.activeCompletions.forEach(
                     comp => (comp.completion = undefined),
                 )
             }
-            if (command) {
-                cmdline_state.clInput.value = command + " "
+            if (completion) {
+                cmdline_state.clInput.value =
+                    completion + (completionSource?.trailingSpace ? " " : "")
             } else {
                 space(cmdline_state)
             }
