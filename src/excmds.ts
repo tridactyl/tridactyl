@@ -5904,8 +5904,8 @@ async function js_helper(str: string[]) {
  *
  *     `js -p [-s|-r] javascript_filename arg`
  *
- *     `js -d# [-s|-r] javascript_filename # arg1 arg2 ...`
- *     (where `#` is any char)
+ *     `js -d³ [-s|-r] javascript_filename³ arg1 arg2 ...`
+ *     (where `³` is any char  that you can guarantee won't appear in your JS code)
  *
  *   - options
  *     - `-p` pass an argument to js for use with `composite`. The argument is passed as the last space-separated argument of `js`, i.e. `str[str.length-1]` and stored in the magic variable `JS_ARG` (string) - see below for example usage.
