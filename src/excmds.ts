@@ -5873,7 +5873,7 @@ async function js_helper(str: string[]) {
     }
 
     if (doSource) {
-        let sourcePath = jsContent
+        let sourcePath = jsContent.trim()
         if (fromRC) {
             const sep = "/"
             const rcPath = (await Native.getrcpath("unix")).split(sep).slice(0, -1)
