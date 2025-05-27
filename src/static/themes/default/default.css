@@ -27,7 +27,7 @@
     --tridactyl-hintspan-font-size: var(--tridactyl-small-font-size);
     --tridactyl-hintspan-font-weight: bold;
     --tridactyl-hintspan-fg: white;
-    --tridactyl-hintspan-pressed-fg: grey;
+    --tridactyl-hintspan-pressed-fg: var(--tridactyl-hintspan-fg);
     --tridactyl-hintspan-bg: red;
     --tridactyl-hintspan-border-color: ButtonShadow;
     --tridactyl-hintspan-border-width: 0px;
