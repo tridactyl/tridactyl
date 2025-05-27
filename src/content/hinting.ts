@@ -727,7 +727,7 @@ class Hint {
 
         // A span for each char so typed chars can be styled differently
         for (const ch of name) {
-            let charspan = document.createElement("span")
+            const charspan = document.createElement("span")
             charspan.textContent = ch
             this.flag.appendChild(charspan)
         }
@@ -755,7 +755,7 @@ class Hint {
         this.name = n
         this.flag.textContent = ""
         for (const ch of n) {
-            let charspan = document.createElement("span")
+            const charspan = document.createElement("span")
             charspan.textContent = ch
             this.flag.appendChild(charspan)
         }
@@ -1004,7 +1004,7 @@ function filterHintsVimperator(query: string, reflow = false) {
             hint.name = name
             hint.flag.textContent = ""
             for (const ch of hint.name) {
-                let charspan = document.createElement("span")
+                const charspan = document.createElement("span")
                 charspan.textContent = ch
                 hint.flag.appendChild(charspan)
             }
