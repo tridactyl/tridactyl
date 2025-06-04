@@ -22,7 +22,10 @@ import { CompletionSourceFuse } from "@src/completions"
 import { AproposCompletionSource } from "@src/completions/Apropos"
 import { AutocmdCompletionSource } from "@src/completions/Autocmd"
 import { BindingsCompletionSource } from "@src/completions/Bindings"
-import { BmarkCompletionSource } from "@src/completions/Bmark"
+import {
+    BmarkCompletionSource,
+    BookmarkFolderCompletionSource,
+} from "@src/completions/Bmark"
 import { CompositeCompletionSource } from "@src/completions/Composite"
 import { ExcmdCompletionSource } from "@src/completions/Excmd"
 import { ExtensionsCompletionSource } from "@src/completions/Extensions"
@@ -70,6 +73,7 @@ const commandline_state = {
     completionsDiv: window.document.getElementById("completions"),
     fns: undefined as ReturnType<typeof getCommandlineFns>,
     getCompletion,
+    getActiveCompletionSource,
     history,
     /** @hidden
      * This is to handle Escape key which, while the cmdline is focused,
@@ -100,16 +104,21 @@ function resizeArea() {
  * This is a bit loosely defined at the moment.
  * Should work so long as there's only one completion source per prefix.
  */
-function getCompletion(args_only = false) {
+function getActiveCompletionSource(): CompletionSourceFuse | undefined {
     if (!commandline_state.activeCompletions) return undefined
 
-    for (const comp of commandline_state.activeCompletions) {
-        if (comp.state === "normal" && comp.completion !== undefined) {
-            return args_only ? comp.args : comp.completion
-        }
-    }
+    return commandline_state.activeCompletions.filter(
+        ({ state, completion }) =>
+            state === "normal" && completion !== undefined,
+    )[0]
 }
-commandline_state.getCompletion = getCompletion
+
+/** @hidden **/
+function getCompletion(args_only = false): string | undefined {
+    const activeSource = getActiveCompletionSource()
+    if (!activeSource) return undefined
+    return args_only ? activeSource.args : activeSource.completion
+}
 
 /** @hidden **/
 export function enableCompletions() {
@@ -119,6 +128,7 @@ export function enableCompletions() {
             // FindCompletionSource,
             BindingsCompletionSource,
             BmarkCompletionSource,
+            BookmarkFolderCompletionSource,
             TabAllCompletionSource,
             BufferCompletionSource,
             ExcmdCompletionSource,
