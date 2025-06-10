@@ -1015,6 +1015,13 @@ export class default_config {
     editorcmd = "auto"
 
     /**
+     * Try to preserve HTML tags when using an external editor.
+     *
+     * Defaults to false. Some sites work better with it set to true, see https://github.com/tridactyl/tridactyl/issues/3900
+     */
+    editorusehtml = "false"
+
+    /**
      * Command that should be run by the [[rssexec]] ex command. Has the
      * following format:
      * - %u: url

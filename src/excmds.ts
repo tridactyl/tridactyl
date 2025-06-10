@@ -362,8 +362,9 @@ export async function editor() {
     window.addEventListener("beforeunload", beforeUnloadListener)
 
     let ans
+    const useHtml = await config.getAsync("editorusehtml") == "true"
     try {
-        const editor = getEditor(elem, { preferHTML: true })
+        const editor = getEditor(elem, { preferHTML: useHtml })
         const text = await editor.getContent()
         const pos = await editor.getCursor()
 
