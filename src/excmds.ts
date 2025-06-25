@@ -4708,11 +4708,15 @@ export function getAutocmdEvents() {
  *
  */
 //#background
-export function autocmd(event: string, url: string, ...excmd: string[]) {
+export async function autocmd(event: string, url: string, ...excmd: string[]) {
     // rudimentary run time type checking
-    // TODO: Decide on autocmd event names
-    if (!getAutocmdEvents().includes(event)) throw new Error(event + " is not a supported event.")
-    return config.set("autocmds", event, url, excmd.join(" "))
+    if (!getAutocmdEvents().includes(event)) {
+        throw new Error(event + " is not a supported event.");
+    }
+    if (webrequests.requestEvents.includes(event)) {
+        await webrequests.registerWebRequestAutocmd(event, url, excmd);
+    }
+    return config.set("autocmds", event, url, excmd.join(" "));
 }
 
 /**
