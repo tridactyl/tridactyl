@@ -4719,7 +4719,7 @@ export async function autocmd(event: string, url: string, ...excmd: string[]) {
         throw new Error(event + " is not a supported event.");
     }
     if (webrequests.requestEvents.includes(event)) {
-        await webrequests.registerWebRequestAutocmd(event, url, excmd);
+        await webrequests.registerWebRequestAutocmd(event, url, excmd.join(" "));
     }
     return config.set("autocmds", event, url, excmd.join(" "));
 }
