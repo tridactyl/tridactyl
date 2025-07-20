@@ -767,7 +767,7 @@ export async function nativeinstall() {
     return done
 }
 
-/** Writes current config to a file.
+/** Writes current config to a file. By default, the config file is "~/.tridactylrc".
 
     NB: an RC file is not required for your settings to persist: all settings are stored in a local Firefox storage database by default as soon as you set them.
 
