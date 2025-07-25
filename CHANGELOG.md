@@ -1,5 +1,32 @@
 # Tridactyl changelog
 
+# Release 1.24.3 / 2025-07-25
+
+-   New features
+    - `:bmark{s,}` now completes folders ([#5145](https://github.com/tridactyl/tridactyl/issues/5145))
+    - Some commands for interacting with Treestyle Tabs added - `:tst{move, moveafter, attach}` ([#377](https://github.com/tridactyl/tridactyl/issues/377))
+    - `:seturl ... commandlineterriblewebsitefix true` to get the commandline back on nextjs pages that vandalise Tridactyl ([#5050](https://github.com/tridactyl/tridactyl/issues/5050))
+    - `:tabmove #` now works ([#5195](https://github.com/tridactyl/tridactyl/issues/5195))
+    - new quickmarks will make now also make `gp[character]` bind for opening in new private windows ([#5204](https://github.com/tridactyl/tridactyl/issues/5204))
+    - Hint characters can now be themed as they are typed ([#5226](https://github.com/tridactyl/tridactyl/issues/5226))
+
+-   Bug fixes
+     - `:set smoothscroll true` is ignored in FF141+ because it was almost totally broken ([#5240](https://github.com/tridactyl/tridactyl/issues/5240))
+     - Hints now work within SVGs ([#5205](https://github.com/tridactyl/tridactyl/issues/5205))
+     - `:editor` should now work on more sites. Use `:seturl ... editorusehtml true` on sites where it has got worse ([#3900](https://github.com/tridactyl/tridactyl/issues/3900))
+     - Tridactyl no longer tries to inject its iframe into SVGs and XML documents ([#343](https://github.com/tridactyl/tridactyl/issues/343))
+     - `noiframe` should now never stop non-iframe binds from working ([#5143](https://github.com/tridactyl/tridactyl/issues/5143))
+     - Commandline can no longer be focused when off-screen ([#5231](https://github.com/tridactyl/tridactyl/issues/5231))
+     - `:js{,b} -r` now trims filenames ([#5222](https://github.com/tridactyl/tridactyl/issues/5222))
+     - `:back` completions should be more robust against edge cases ([#5187](https://github.com/tridactyl/tridactyl/issues/5187))
+     - `--tridactyl-cmplt-font-size` should now work in themes ([#5152](https://github.com/tridactyl/tridactyl/issues/5152))
+
+Thanks to all of our contributors for this release: Oliver Blanthorn, Vsevolod Chernetskyi, dependabot[bot], Benoit de Chezelles, Chic-Tweetz, Colin Caine, FugueSoft, Julyanna Francesca C. Huang, Mikhail Gaile, Eleanor Clifford, Elijah Yajaman, Thomas Dy, cassepipe, gholk, paris
+
+Extra special thanks go to cassepipe, Eleanor Clifford, Elijah Yajaman, FugueSoft, Julyanna Francesca C. Huang, Mikhail Gaile, paris, Thomas Dy, Vsevolod Chernetskyi who all contributed for the first time.
+
+Last, but not least - thank you to everyone who reported issues.
+
 # Release 1.24.2 / 2024-12-15
 
 -   New features
