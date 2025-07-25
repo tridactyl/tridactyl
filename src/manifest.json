@@ -1,8 +1,8 @@
 {
     "manifest_version": 2,
     "name": "Tridactyl",
-    "version": "1.24.2",
-    "version_name": "1.24.2",
+    "version": "1.24.3",
+    "version_name": "1.24.3",
     "icons": {
         "64": "static/logo/Tridactyl_64px.png",
         "100": "static/logo/Tridactyl_100px.png",
