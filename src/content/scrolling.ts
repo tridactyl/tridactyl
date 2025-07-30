@@ -1,19 +1,9 @@
 import * as config from "@src/lib/config"
-import semverCompare from "semver-compare"
-import { browserBg } from "@src/lib/webext"
 
 type scrollingDirection = "scrollLeft" | "scrollTop"
 
-const opts = { smooth: null, duration: null, ffVersion: null }
+const opts = { smooth: null, duration: null }
 async function getSmooth(): Promise<string> {
-    // urgent patch to disable smooth scroll in FF141+
-    if (opts.ffVersion === null) {
-        opts.ffVersion = (await browserBg.runtime.getBrowserInfo()).version
-    }
-    if (semverCompare(opts.ffVersion, "141") >= 0) return "false"
-    // patch ends
-
-
     if (opts.smooth === null)
         opts.smooth = await config.getAsync("smoothscroll")
     return opts.smooth
