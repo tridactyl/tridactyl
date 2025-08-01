@@ -1,19 +1,9 @@
 import * as config from "@src/lib/config"
-import semverCompare from "semver-compare"
-import { browserBg } from "@src/lib/webext"
 
 type scrollingDirection = "scrollLeft" | "scrollTop"
 
-const opts = { smooth: null, duration: null, ffVersion: null }
+const opts = { smooth: null, duration: null }
 async function getSmooth(): Promise<string> {
-    // urgent patch to disable smooth scroll in FF141+
-    if (opts.ffVersion === null) {
-        opts.ffVersion = (await browserBg.runtime.getBrowserInfo()).version
-    }
-    if (semverCompare(opts.ffVersion, "141") >= 0) return "false"
-    // patch ends
-
-
     if (opts.smooth === null)
         opts.smooth = await config.getAsync("smoothscroll")
     return opts.smooth
@@ -93,11 +83,11 @@ class ScrollingData {
             // We need to ceil() because only highdpi screens have a decimal this.elem[this.pos]
             pixelToScrollTo = Math.ceil(pixelToScrollTo)
             // We *have* to make progress, otherwise we'll think the element can't be scrolled
-            if (pixelToScrollTo == this.elem[this.scrollDirection])
+            if (pixelToScrollTo == Math.ceil(this.elem[this.scrollDirection]))
                 pixelToScrollTo += 1
         } else {
             pixelToScrollTo = Math.floor(pixelToScrollTo)
-            if (pixelToScrollTo == this.elem[this.scrollDirection])
+            if (pixelToScrollTo == Math.floor(this.elem[this.scrollDirection]))
                 pixelToScrollTo -= 1
         }
         return pixelToScrollTo
