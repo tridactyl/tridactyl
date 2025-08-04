@@ -1,5 +1,14 @@
 # Tridactyl changelog
 
+# Release 1.24.4 / 2025-08-04
+
+-   Bug fixes
+     - `:set smoothscroll true` works again ([#5240](https://github.com/tridactyl/tridactyl/issues/5240))
+
+Thanks to all of our contributors for this release: oldshensheep, Oliver Blanthorn
+
+Extra special thanks go to oldshensheep who contributed for the first time and fixed a very annoying bug :)
+
 # Release 1.24.3 / 2025-07-25
 
 -   New features
