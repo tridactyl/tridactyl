@@ -2743,7 +2743,9 @@ export async function tabgrab(id: string) {
 
     The special flag "--focus-address-bar" should focus the Firefox address bar after opening if no URL is provided.
 
-    These three can be combined in any order, but need to be placed as the first arguments.
+    The `--discard` flag opens a tab in the background without attempting to load it.
+
+    These can be combined in any order, but need to be placed as the first arguments.
 
     Unlike Firefox's Ctrl-t shortcut, this opens tabs immediately after the
     currently active tab rather than at the end of the tab list because that is
