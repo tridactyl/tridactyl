@@ -4840,6 +4840,17 @@ export function blacklistadd(url: string) {
 //#background
 export async function unbind(...args: string[]) {
     const args_obj = parse_bind_args(...args)
+
+    if (args_obj.isRecursive) {
+        const prefix = args_obj.key
+        const maps = config.get(args_obj.configName as keyof config.default_config)
+        for (const binding in maps) {
+            if (binding.startsWith(prefix)) {
+                config.set(args_obj.configName, binding, null)
+            }
+        }
+    }
+
     if (args_obj.excmd !== "") throw new Error("unbind syntax: `unbind key`")
     if (args_obj.mode == "browser") {
         const commands = await browser.commands.getAll()
