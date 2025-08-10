@@ -27,6 +27,7 @@ interface bind_args {
     configName: string
     key: string
     excmd: string
+    isRecursive: boolean
 }
 
 export function parse_bind_args(...args: string[]): bind_args {
@@ -35,9 +36,21 @@ export function parse_bind_args(...args: string[]): bind_args {
     const result = {} as bind_args
     result.mode = "normal"
 
-    if (args[0].startsWith("--mode=")) {
-        result.mode = args.shift().replace("--mode=", "")
+    const flags = []; // --mode and --recursive
+    while (args[0].startsWith("--")) {
+        flags.push(args.shift());
     }
+
+    for (const flag of flags) {
+        if (flag.startsWith("--mode")) {
+            result.mode = flag.replace("--mode=", "");
+        } else if (flag == "--recursive") {
+            result.isRecursive = true;
+        } else {
+            throw new Error("Invalid bind/unbind arguments.");
+        }
+    }
+
     if (!mode2maps.has(result.mode)) {
         result.configName = result.mode + "maps"
     } else {
