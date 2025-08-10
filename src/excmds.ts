@@ -4373,6 +4373,10 @@ export function comclear(name: string) {
 */
 //#background
 export async function bind(...args: string[]) {
+    if (args.includes("--recursive")) {
+        throw new Error("`--recursive` can only be called on unbind.")
+    }
+
     const args_obj = parse_bind_args(...args)
     let p = Promise.resolve()
     if (args_obj.excmd !== "") {
