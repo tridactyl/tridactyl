@@ -1,6 +1,9 @@
 import * as Completions from "@src/completions"
 import * as Profiles from "@src/lib/profiles"
 import "@src/lib/DANGEROUS-html-tagged-template"
+import Logger from "@src/lib/logging"
+
+const logger = new Logger("profiles-completion")
 
 class ProfileCompletionOption
     extends Completions.CompletionOptionHTML
@@ -71,8 +74,7 @@ export class ProfileCompletionSource extends Completions.CompletionSourceFuse {
                 return option
             })
         } catch (e) {
-            // If native messenger isn't available or profiles can't be loaded,
-            // show empty completion
+            logger.warning("Failed to load profiles for completion:", e)
             this.options = []
         }
 
