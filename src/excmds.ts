@@ -6280,3 +6280,71 @@ export async function tstattach(index: string) {
     const tabId = await idFromIndex(index)
     treestyletab.attachTree(tabId)
 }
+
+// {{{ Profile management
+
+import * as Profiles from "@src/lib/profiles"
+
+/**
+ * Launch a new Firefox instance with the specified profile.
+ *
+ * If no profile name is specified, shows available profiles.
+ * Requires the native messenger to be installed.
+ *
+ * Example: `profilelaunch myprofile`
+ * Example: `profilelaunch "Work Profile"`
+ */
+//#background
+export async function profilelaunch(profileName?: string) {
+    if (!profileName) {
+        fillcmdline("Usage: profilelaunch <profile-name>")
+        return
+    }
+
+    try {
+        await Profiles.launchProfile(profileName)
+        fillcmdline(`Launched Firefox with profile "${profileName}"`)
+    } catch (e) {
+        throw new Error(`Profile launch failed. Is the native messenger installed? Error: ${e}`)
+    }
+}
+
+/**
+ * Create a new Firefox profile.
+ *
+ * Example: `profilecreate "New Profile"`
+ */
+//#background
+export async function profilecreate(profileName: string) {
+    if (!profileName) {
+        throw new Error("Profile name is required. Usage: profilecreate <profile-name>")
+    }
+
+    try {
+        await Profiles.createProfile(profileName)
+        fillcmdline(`Created profile "${profileName}"`)
+    } catch (e) {
+        throw new Error(`Profile creation failed. Is the native messenger installed? Error: ${e}`)
+    }
+}
+
+/**
+ * Rename a Firefox profile.
+ *
+ * Example: `profilerename "Old Name" "New Name"`
+ */
+//#background
+export async function profilerename(oldName: string, newName: string) {
+    if (!oldName || !newName) {
+        throw new Error("Both old and new profile names are required. Usage: profilerename <old-name> <new-name>")
+    }
+
+    try {
+        await Profiles.renameProfile(oldName, newName)
+        fillcmdline(`Renamed profile "${oldName}" to "${newName}"`)
+    } catch (e) {
+        throw new Error(`Profile rename failed. Is the native messenger installed? Error: ${e}`)
+    }
+}
+
+// }}}
