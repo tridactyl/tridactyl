@@ -3,24 +3,19 @@
  */
 
 import * as Native from "@src/lib/native"
+import Logger from "@src/lib/logging"
 
-/**
- * Represents a Firefox profile with its metadata
- */
+const logger = new Logger("profiles")
+
 export interface ProfileInfo {
-    /** The display name of the profile */
     name: string
-    /** Full filesystem path to the profile directory */
     path: string
-    /** Whether this is the default profile */
     isDefault: boolean
-    /** Whether this profile is currently being used by a Firefox instance */
     inUse: boolean
 }
 
 /**
  * Get the Firefox profiles directory for the current platform
- * @returns Promise resolving to the profiles directory path with trailing slash
  */
 export async function getProfilesDir(): Promise<string> {
     return Native.getFirefoxDir()
@@ -28,11 +23,9 @@ export async function getProfilesDir(): Promise<string> {
 
 /**
  * Get the Firefox executable command for the current platform
- * @returns Promise resolving to the Firefox executable path
  */
 export async function getFirefoxCmd(): Promise<string> {
     const cmdline = await Native.ff_cmdline()
-    // Take just the executable path, not the full command with arguments
     return cmdline[0]
 }
 
@@ -43,7 +36,7 @@ interface ParsedSection {
 }
 
 /**
- * Parse a single line from profiles.ini into key-value pair
+ * Parse profiles.ini line into key-value pair
  */
 function parseIniLine(line: string): [string, string] | null {
     const trimmed = line.trim()
@@ -54,7 +47,7 @@ function parseIniLine(line: string): [string, string] | null {
 }
 
 /**
- * Process a profile section and create ProfileInfo if valid
+ * Process profile section data into ProfileInfo
  */
 function processProfileSection(
     data: Record<string, string>,
@@ -78,7 +71,7 @@ function processProfileSection(
 }
 
 /**
- * Parse profiles.ini file content into sections
+ * Parse profiles.ini into sections
  */
 function parseIniSections(content: string): ParsedSection[] {
     const lines = content.split("\n")
@@ -120,7 +113,7 @@ function parseIniSections(content: string): ParsedSection[] {
 }
 
 /**
- * Parse profiles.ini file content
+ * Parse profiles.ini content
  */
 function parseProfilesIni(
     content: string,
@@ -147,7 +140,7 @@ function parseProfilesIni(
 }
 
 /**
- * Check if a profile is currently in use
+ * Check if profile is in use
  */
 async function isProfileInUse(profilePath: string): Promise<boolean> {
     const lockResult = await Native.run(`test -f "${profilePath}/lock"`)
@@ -159,7 +152,7 @@ async function isProfileInUse(profilePath: string): Promise<boolean> {
 }
 
 /**
- * Check profile usage status for multiple profiles efficiently
+ * Check usage status for all profiles
  */
 async function checkProfilesUsage(profiles: ProfileInfo[]): Promise<void> {
     const usageChecks = profiles.map(async profile => {
@@ -175,7 +168,7 @@ async function checkProfilesUsage(profiles: ProfileInfo[]): Promise<void> {
 }
 
 /**
- * List all available Firefox profiles
+ * List Firefox profiles
  */
 export async function listProfiles(): Promise<ProfileInfo[]> {
     try {
@@ -184,7 +177,7 @@ export async function listProfiles(): Promise<ProfileInfo[]> {
 
         const response = await Native.read(profilesIni)
         if (response.code !== 0) {
-            console.error(
+            logger.error(
                 `Failed to read profiles.ini at ${profilesIni}. Code: ${response.code}, Error: ${response.error}`,
             )
             return []
@@ -195,15 +188,13 @@ export async function listProfiles(): Promise<ProfileInfo[]> {
 
         return profiles
     } catch (error) {
-        console.error("Failed to list profiles:", error)
+        logger.error("Failed to list profiles:", error)
         return []
     }
 }
 
 /**
- * Find a profile by name and return its path
- * @param profileName The name of the profile to find
- * @returns Promise resolving to the profile path, or null if not found
+ * Find profile path by name
  */
 export async function findProfilePath(
     profileName: string,
@@ -214,9 +205,7 @@ export async function findProfilePath(
 }
 
 /**
- * Launch Firefox with the specified profile
- * @param profileName The name of the profile to launch
- * @throws Error if the profile is not found or Firefox fails to launch
+ * Launch Firefox with profile
  */
 export async function launchProfile(profileName: string): Promise<void> {
     const profilePath = await findProfilePath(profileName)
@@ -235,9 +224,7 @@ export async function launchProfile(profileName: string): Promise<void> {
 }
 
 /**
- * Generate a unique profile directory name
- * @param profileName The display name of the profile
- * @returns A filesystem-safe directory name
+ * Generate unique profile directory name
  */
 function generateProfileDir(profileName: string): string {
     const profileId = Math.random().toString(36).substring(2, 10)
@@ -246,9 +233,7 @@ function generateProfileDir(profileName: string): string {
 }
 
 /**
- * Create a new Firefox profile
- * @param profileName The display name for the new profile
- * @throws Error if the profile creation fails
+ * Create Firefox profile
  */
 export async function createProfile(profileName: string): Promise<void> {
     const firefox = await getFirefoxCmd()
@@ -266,7 +251,7 @@ export async function createProfile(profileName: string): Promise<void> {
 }
 
 /**
- * Find the range of lines for a profile section with the given name
+ * Find profile section range in profiles.ini
  */
 function findProfileSectionRange(
     lines: string[],
@@ -305,7 +290,7 @@ function findProfileSectionRange(
 }
 
 /**
- * Update profile name in profiles.ini content
+ * Update profile name in profiles.ini
  */
 function updateProfileNameInIni(
     content: string,
@@ -324,11 +309,7 @@ function updateProfileNameInIni(
 }
 
 /**
- * Validate that a profile rename operation is allowed
- * @param profiles List of existing profiles
- * @param oldName Current profile name
- * @param newName Desired new profile name
- * @throws Error if the operation is not valid
+ * Validate profile rename operation
  */
 function validateProfileRename(
     profiles: ProfileInfo[],
@@ -347,10 +328,7 @@ function validateProfileRename(
 }
 
 /**
- * Rename a Firefox profile
- * @param oldName Current name of the profile
- * @param newName New name for the profile
- * @throws Error if the profile doesn't exist, new name conflicts, or file operations fail
+ * Rename Firefox profile
  */
 export async function renameProfile(
     oldName: string,
