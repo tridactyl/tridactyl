@@ -336,11 +336,19 @@ export function getSelector(e: HTMLElement) {
 /* Get all the elements that match the given selector inside shadow DOM */
 function getShadowElementsBySelector(selector: string) {
     let elems = []
-    document.querySelectorAll("*").forEach(elem => {
-        if (elem.shadowRoot) {
-            elems = elems.concat(...elem.shadowRoot.querySelectorAll(selector))
-        }
-    })
+    const roots: (Document | ShadowRoot)[] = [document]
+
+    while (roots.length) {
+        const root = roots.pop()
+        root.querySelectorAll("*").forEach(elem => {
+            if ((elem as any).openOrClosedShadowRoot) {
+                roots.push((elem as any).openOrClosedShadowRoot)
+                elems = elems.concat(
+                    ...roots[roots.length - 1].querySelectorAll(selector),
+                )
+            }
+        })
+    }
     return elems
 }
 
@@ -730,9 +738,10 @@ export function simulateClick(
     let usePopupBlockerWorkaround =
         (target as HTMLAnchorElement).target === "_blank" ||
         (target as HTMLAnchorElement).target === "_new"
-    const href = (target instanceof SVGAElement)
-        ? target.href.animVal
-        : (target as HTMLAnchorElement).href;
+    const href =
+        target instanceof SVGAElement
+            ? target.href.animVal
+            : (target as HTMLAnchorElement).href
     if (href?.startsWith("file:")) {
         // file URLS cannot be opend with browser.tabs.create
         // see https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/tabs/create#url
