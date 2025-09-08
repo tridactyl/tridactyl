@@ -497,7 +497,6 @@ export function hintPage(
                 ) {
                     modeState.shiftHints()
                 }
-                removeFilteredCharClass()
             })
         }
     }
@@ -930,12 +929,6 @@ function addFilteredCharClass(hint: Hint, fstr: string) {
     for (let i = fstr.length; i < hint.flag.children.length; ++i) {
         hint.flag.children[i].className = ""
     }
-}
-
-/** Remove the filtered char class from all hints - for resetting the style when rapid hinting
-@hidden */
-function removeFilteredCharClass() {
-    document.querySelectorAll(".TridactylHintCharPressed").forEach(el => el.classList.remove("TridactylHintCharPressed"))
 }
 
 /** @hidden */

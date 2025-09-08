@@ -242,6 +242,28 @@ config.getAsync("preventautofocusjackhammer").then(allowautofocus => {
 
 logger.info("Loaded commandline content?", commandline_content)
 
+const addVisualModeListeners = () => {
+    document.addEventListener("selectionchange", () => {
+        const selection = document.getSelection()
+        if (
+            contentState.mode == "visual" &&
+            config.get("visualexitauto") == "true" &&
+            selection.isCollapsed
+        ) {
+            contentState.mode = "normal"
+            return
+        }
+        if (
+            contentState.mode !== "normal" ||
+            config.get("visualenterauto") == "false"
+        )
+            return
+        if (!selection.isCollapsed) {
+            contentState.mode = "visual"
+        }
+    })
+}
+
 try {
     dom.setupFocusHandler()
     dom.hijackPageListenerFunctions()
@@ -253,29 +275,26 @@ try {
     * Listen for the event then wait for the new document to be ready before restoring Tridactyl's listeners / elements
     * There may be other things that I haven't thought to add back in the restore() function
     *
+    * This assumes document.closed is called after open/write
+    * alternatively, you could try to restore Tridactyl per write call
+    *
     * htmlpreview.github.io pages use document.write, eg:
     *   https://htmlpreview.github.io/?https://github.com/FiloSottile/age/blob/main/doc/age.1.html#RECIPIENTS-AND-IDENTITIES
     *
-    * Move this into a function somewhere, it's pretty large now
+    * Move this into a function somewhere (dom.ts ?), it's pretty large now
     * Consider a general "hook" function to override page functions
     * Like LinkHint's HookManager:
     *    https://github.com/search?q=repo%3Alydell%2FLinkHints%20%22document.write%22&type=code
     */
-    // Hook document.open and document.write to dispatch an event before they're called
-    window.eval(`
-      Document.prototype.open = ((real) => {
-          return function (...args) {
-              window.dispatchEvent(new Event("DocumentOpen"));
-              return real.apply(this, args);
-          }
-      })(Document.prototype.open);
-
-      Document.prototype.write = ((real) => {
-          return function (...args) {
-              window.dispatchEvent(new Event("DocumentWrite"));
-              return real.apply(this, args);
-          }
-      })(Document.prototype.write);`);
+    // Hook document.open/write/writeln to dispatch an event before they're called
+    const docfns = ["open","write","writeln"]
+    window.eval(docfns.reduce((acc,cur) => `${acc}
+        Document.prototype.${cur} = ((realFn) => {
+            return function (...args) {
+                window.dispatchEvent(new Event("document.${cur}"));
+                return realFn.apply(this, args)
+            }
+        })(Document.prototype.${cur});`, ""))
 
     const documentDestroyedHandler = () => {
         // Get references to Tridactyl elems so they can be readded after document.close is called
@@ -303,7 +322,8 @@ try {
             dom.hijackPageListenerFunctions()
 
             // All listeners are lost, re-add listeners for this function too
-            ;["Open","Write"].forEach(type => window.addEventListener("Document" + type, documentDestroyedHandler))
+            docfns.forEach(type => window.addEventListener("document." + type, documentDestroyedHandler))
+            addVisualModeListeners()
         }
 
         // Set timeout so original document.write/open is executed before waiting for the new document to be ready
@@ -320,7 +340,7 @@ try {
         }, 10);
     }
 
-    ["Open","Write"].forEach(type => window.addEventListener("Document" + type, documentDestroyedHandler))
+    docfns.forEach(type => window.addEventListener("document." + type, documentDestroyedHandler))
 
 } catch (e) {
     logger.warning("Could not hijack due to CSP:", e)
@@ -526,25 +546,7 @@ window.addEventListener("load", () => {
     phoneHome()
 })
 
-document.addEventListener("selectionchange", () => {
-    const selection = document.getSelection()
-    if (
-        contentState.mode == "visual" &&
-        config.get("visualexitauto") == "true" &&
-        selection.isCollapsed
-    ) {
-        contentState.mode = "normal"
-        return
-    }
-    if (
-        contentState.mode !== "normal" ||
-        config.get("visualenterauto") == "false"
-    )
-        return
-    if (!selection.isCollapsed) {
-        contentState.mode = "visual"
-    }
-})
+addVisualModeListeners()
 
 // Try to catch the iframe/status indicator being removed by a script (React again)
 const checkElemsSurvived = () => {
