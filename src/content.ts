@@ -245,6 +245,83 @@ logger.info("Loaded commandline content?", commandline_content)
 try {
     dom.setupFocusHandler()
     dom.hijackPageListenerFunctions()
+
+    /**
+    * I chucked this in next to the dom hijack functions as they're a similar affair
+    * If document.open/write is called, all listeners and every element is lost
+    * We can hijack document.open and document.write to dispatch an event before they're called
+    * Listen for the event then wait for the new document to be ready before restoring Tridactyl's listeners / elements
+    * There may be other things that I haven't thought to add back in the restore() function
+    *
+    * htmlpreview.github.io pages use document.write, eg:
+    *   https://htmlpreview.github.io/?https://github.com/FiloSottile/age/blob/main/doc/age.1.html#RECIPIENTS-AND-IDENTITIES
+    *
+    * Move this into a function somewhere, it's pretty large now
+    * Consider a general "hook" function to override page functions
+    * Like LinkHint's HookManager:
+    *    https://github.com/search?q=repo%3Alydell%2FLinkHints%20%22document.write%22&type=code
+    */
+    // Hook document.open and document.write to dispatch an event before they're called
+    window.eval(`
+      Document.prototype.open = ((real) => {
+          return function (...args) {
+              window.dispatchEvent(new Event("DocumentOpen"));
+              return real.apply(this, args);
+          }
+      })(Document.prototype.open);
+
+      Document.prototype.write = ((real) => {
+          return function (...args) {
+              window.dispatchEvent(new Event("DocumentWrite"));
+              return real.apply(this, args);
+          }
+      })(Document.prototype.write);`);
+
+    const documentDestroyedHandler = () => {
+        // Get references to Tridactyl elems so they can be readded after document.close is called
+        const cmdln = document.querySelector("#cmdline_iframe")
+        const indicator = document.querySelector(".TridactylStatusIndicator")
+
+        // Re-register listeners and add cmdline & status indicator back
+        const restore = () => {
+            if (cmdln) document.documentElement.appendChild(cmdln)
+            if (indicator) document.body.appendChild(indicator)
+            listen(window)
+
+            // All styles are lost so can be reinserted here
+            webext.ownTabId().then(tabId => {
+                ["cleanslate","content","hint","viewsource"].forEach(file =>
+                    webext.browserBg.tabs.insertCSS(tabId, {
+                        file: browser.runtime.getURL("static/css/" + file + ".css")
+                    }))
+            })
+
+            // Custom themes can be added back in after static/css/ files
+            styling.theme(document.documentElement)
+
+            dom.setupFocusHandler()
+            dom.hijackPageListenerFunctions()
+
+            // All listeners are lost, re-add listeners for this function too
+            ;["Open","Write"].forEach(type => window.addEventListener("Document" + type, documentDestroyedHandler))
+        }
+
+        // Set timeout so original document.write/open is executed before waiting for the new document to be ready
+        setTimeout(() => {
+            if (document.readyState === "complete") {
+                restore()
+            } else {
+                document.addEventListener("readystatechange", ()=> {
+                    if (document.readyState === "complete") {
+                        restore()
+                    }
+                })
+            }
+        }, 10);
+    }
+
+    ["Open","Write"].forEach(type => window.addEventListener("Document" + type, documentDestroyedHandler))
+
 } catch (e) {
     logger.warning("Could not hijack due to CSP:", e)
 }
