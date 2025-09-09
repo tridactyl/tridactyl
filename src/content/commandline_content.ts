@@ -74,10 +74,10 @@ async function init() {
             const completeHandler = () => {
                 if (document.readyState === "complete") {
                     ensureIframeExists()
-                    window.removeEventListener("readystatechange", completeHandler)
+                    document.removeEventListener("readystatechange", completeHandler)
                 }
             }
-            window.addEventListener("readystatechange", completeHandler)
+            document.addEventListener("readystatechange", completeHandler)
         }
     }
 }
@@ -111,7 +111,6 @@ init().catch(() => {
 
 function ensureIframeExists() {
     if (!cmdline_iframe.isConnected) {
-        console.log("iframe was not connected! putting it back...")
         document.documentElement.appendChild(cmdline_iframe)
     }
 }
