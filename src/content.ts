@@ -264,34 +264,19 @@ const addVisualModeListeners = () => {
     })
 }
 
-try {
-    dom.setupFocusHandler()
-    dom.hijackPageListenerFunctions()
-
-    /**
-    * I chucked this in next to the dom hijack functions as they're a similar affair
-    * If document.open/write is called, all listeners and every element is lost
-    * We can hijack document.open and document.write to dispatch an event before they're called
-    * Listen for the event then wait for the new document to be ready before restoring Tridactyl's listeners / elements
-    * There may be other things that I haven't thought to add back in the restore() function
-    *
-    * This assumes document.closed is called after open/write
-    * alternatively, you could try to restore Tridactyl per write call
-    *
-    * htmlpreview.github.io pages use document.write, eg:
-    *   https://htmlpreview.github.io/?https://github.com/FiloSottile/age/blob/main/doc/age.1.html#RECIPIENTS-AND-IDENTITIES
-    *
-    * Move this into a function somewhere (dom.ts ?), it's pretty large now
-    * Consider a general "hook" function to override page functions
-    * Like LinkHint's HookManager:
-    *    https://github.com/search?q=repo%3Alydell%2FLinkHints%20%22document.write%22&type=code
-    */
-    // Hook document.open/write/writeln to dispatch an event before they're called
+/**
+* Hook document.open/write/writeln to dispatch an event before they're called
+* Calls to these functions replace the document object, losing all elements and listeners
+* eg: htmlpreview.github.io sites like https://htmlpreview.github.io/?https://github.com/FiloSottile/age/blob/main/doc/age.1.html
+*/
+const hijackDocumentDestroyingFunctions = () => {
     const docfns = ["open","write","writeln"]
+
+    // Wrap the original functions with a "document_destroyed" event dispatch before they're called
     window.eval(docfns.reduce((acc,cur) => `${acc}
         Document.prototype.${cur} = ((realFn) => {
             return function (...args) {
-                window.dispatchEvent(new Event("document.${cur}"));
+                window.dispatchEvent(new Event("document_destroyed"));
                 return realFn.apply(this, args)
             }
         })(Document.prototype.${cur});`, ""))
@@ -340,8 +325,14 @@ try {
         }, 10);
     }
 
-    docfns.forEach(type => window.addEventListener("document." + type, documentDestroyedHandler))
+    // Listen for calls to those functions, replace everything when document.close is called
+    window.addEventListener("document_destroyed", documentDestroyedHandler)
+}
 
+try {
+    dom.setupFocusHandler()
+    dom.hijackPageListenerFunctions()
+    hijackDocumentDestroyingFunctions()
 } catch (e) {
     logger.warning("Could not hijack due to CSP:", e)
 }
