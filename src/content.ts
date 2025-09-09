@@ -307,7 +307,7 @@ const hijackDocumentDestroyingFunctions = () => {
             dom.hijackPageListenerFunctions()
 
             // All listeners are lost, re-add listeners for this function too
-            docfns.forEach(type => window.addEventListener("document." + type, documentDestroyedHandler))
+            window.addEventListener("document_destroyed", documentDestroyedHandler)
             addVisualModeListeners()
         }
 
