@@ -69,16 +69,6 @@ async function init() {
                 ).observe(cmdline_iframe.parentNode, { childList: true, subtree: true })
             }
         })
-        // React sites can replace the documentElement between readyState "interactive" and "complete"
-        if (document.readyState !== "complete") {
-            const completeHandler = () => {
-                if (document.readyState === "complete") {
-                    ensureIframeExists()
-                    document.removeEventListener("readystatechange", completeHandler)
-                }
-            }
-            document.addEventListener("readystatechange", completeHandler)
-        }
     }
 }
 
@@ -109,8 +99,8 @@ init().catch(() => {
     )
 })
 
-function ensureIframeExists() {
-    if (!cmdline_iframe.isConnected) {
+export function ensureIframeExists() {
+    if (cmdline_iframe && !cmdline_iframe.isConnected) {
         document.documentElement.appendChild(cmdline_iframe)
     }
 }
