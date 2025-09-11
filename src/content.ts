@@ -265,23 +265,12 @@ const addVisualModeListeners = () => {
 }
 
 /**
-* Hook document.open/write/writeln to dispatch an event before they're called
+* Hook document.open/write/writeln to fix Tridactyl when they're called
 * Calls to these functions replace the document object, losing all elements and listeners
 * eg: htmlpreview.github.io sites like https://htmlpreview.github.io/?https://github.com/FiloSottile/age/blob/main/doc/age.1.html
 */
 const hijackDocumentDestroyingFunctions = () => {
-    const docfns = ["open","write","writeln"]
-
-    // Wrap the original functions with a "document_destroyed" event dispatch before they're called
-    window.eval(docfns.reduce((acc,cur) => `${acc}
-        Document.prototype.${cur} = ((realFn) => {
-            return function (...args) {
-                window.dispatchEvent(new Event("document_destroyed"));
-                return realFn.apply(this, args)
-            }
-        })(Document.prototype.${cur});`, ""))
-
-    const documentDestroyedHandler = () => {
+    const documentDestroyed = () => {
         // Get references to Tridactyl elems so they can be readded after document.close is called
         const cmdln = document.querySelector("#cmdline_iframe")
         const indicator = document.querySelector(".TridactylStatusIndicator")
@@ -305,9 +294,6 @@ const hijackDocumentDestroyingFunctions = () => {
 
             dom.setupFocusHandler()
             dom.hijackPageListenerFunctions()
-
-            // All listeners are lost, re-add listeners for this function too
-            window.addEventListener("document_destroyed", documentDestroyedHandler)
             addVisualModeListeners()
         }
 
@@ -322,11 +308,21 @@ const hijackDocumentDestroyingFunctions = () => {
                     }
                 })
             }
-        }, 10);
+        }, 10)
     }
 
-    // Listen for calls to those functions, replace everything when document.close is called
-    window.addEventListener("document_destroyed", documentDestroyedHandler)
+    exportFunction(documentDestroyed, window, { defineAs: "documentDestroyed" })
+    const docfns = ["open","write","writeln"]
+
+    // Call our exported function before the document is lost
+    window.eval(docfns.reduce((acc,cur) => `${acc}
+        Document.prototype.${cur} = ((realFn) => {
+            const dd = documentDestroyed;
+            return function (...args) {
+                dd();
+                return realFn.apply(this, args);
+            }
+        })(Document.prototype.${cur});`, "") + "delete window.documentDestroyed;")
 }
 
 try {
