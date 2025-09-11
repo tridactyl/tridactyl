@@ -266,63 +266,76 @@ const addVisualModeListeners = () => {
 
 /**
 * Hook document.open/write/writeln to fix Tridactyl when they're called
-* Calls to these functions replace the document object, losing all elements and listeners
+* Calls to these functions cause us to lose all elements and listeners
 * eg: htmlpreview.github.io sites like https://htmlpreview.github.io/?https://github.com/FiloSottile/age/blob/main/doc/age.1.html
 */
 const hijackDocumentDestroyingFunctions = () => {
-    const documentDestroyed = () => {
-        // Get references to Tridactyl elems so they can be readded after document.close is called
-        const cmdln = document.querySelector("#cmdline_iframe")
-        const indicator = document.querySelector(".TridactylStatusIndicator")
+    const addListenersAndStyles = () => {
+        listen(window)
 
-        // Re-register listeners and add cmdline & status indicator back
-        const restore = () => {
-            if (cmdln) document.documentElement.appendChild(cmdln)
-            if (indicator) document.body.appendChild(indicator)
-            listen(window)
+        webext.ownTabId().then(tabId => {
+            ["cleanslate","content","hint","viewsource"].forEach(file =>
+                webext.browserBg.tabs.insertCSS(tabId, {
+                    file: browser.runtime.getURL("static/css/" + file + ".css")
+                }))
+        })
 
-            // All styles are lost so can be reinserted here
-            webext.ownTabId().then(tabId => {
-                ["cleanslate","content","hint","viewsource"].forEach(file =>
-                    webext.browserBg.tabs.insertCSS(tabId, {
-                        file: browser.runtime.getURL("static/css/" + file + ".css")
-                    }))
-            })
-
-            // Custom themes can be added back in after static/css/ files
-            styling.theme(document.documentElement)
-
-            dom.setupFocusHandler()
-            dom.hijackPageListenerFunctions()
-            addVisualModeListeners()
-        }
-
-        // Set timeout so original document.write/open is executed before waiting for the new document to be ready
-        setTimeout(() => {
-            if (document.readyState === "complete") {
-                restore()
-            } else {
-                document.addEventListener("readystatechange", ()=> {
-                    if (document.readyState === "complete") {
-                        restore()
-                    }
-                })
-            }
-        }, 10)
+        styling.theme(document.documentElement)
+        dom.setupFocusHandler()
+        dom.hijackPageListenerFunctions()
+        addVisualModeListeners()
     }
 
-    exportFunction(documentDestroyed, window, { defineAs: "documentDestroyed" })
+    // Store element refs before open/write/writeln is called
+    const preCall = () => {
+        const docEl = document.documentElement
+        const cmdln = document.querySelector("#cmdline_iframe")
+        const indicator = document.querySelector(".TridactylStatusIndicator")
+        // Remove these in case they interfere with the next document.write or writeln call
+        if (docEl.id === "TempTridactylDocumentElement") docEl.remove()
+        cmdln?.remove()
+        indicator?.remove()
+        return { docEl, cmdln, indicator }
+    }
+
+    // Restore elements after the call and listeners if the documentElement has changed
+    const postCall = (oldDocElems) => {
+        if (!document.documentElement) {
+            // There's no documentElement at all when document.open is called
+            const tempDocEl = document.createElement("html")
+            tempDocEl.id = "TempTridactylDocumentElement"
+            document.appendChild(tempDocEl)
+        }
+        if (oldDocElems.cmdln) document.documentElement.appendChild(oldDocElems.cmdln)
+        if (oldDocElems.indicator) {
+            // A <body> may not exist now
+            const parent = document.body || document.documentElement
+            parent.appendChild(oldDocElems.indicator)
+        }
+
+        // Add listeners for newly replaced document
+        if (document.documentElement !== oldDocElems.docEl) {
+            addListenersAndStyles()
+        }
+    }
+
+    exportFunction(preCall, window, { defineAs: "_preDocWrite" })
+    exportFunction(postCall, window, { defineAs: "_postDocWrite" })
+
     const docfns = ["open","write","writeln"]
 
-    // Call our exported function before the document is lost
+    // Wrap the real functions with pre/postCall
     window.eval(docfns.reduce((acc,cur) => `${acc}
         Document.prototype.${cur} = ((realFn) => {
-            const dd = documentDestroyed;
+            const pre = window._preDocWrite;
+            const post = window._postDocWrite;
             return function (...args) {
-                dd();
-                return realFn.apply(this, args);
+                const elems = pre();
+                const result = realFn.apply(this, args);
+                post(elems);
+                return result;
             }
-        })(Document.prototype.${cur});`, "") + "delete window.documentDestroyed;")
+        })(Document.prototype.${cur});`, "") + "delete window._preDocWrite;delete window._postDocWrite;")
 }
 
 try {
