@@ -316,7 +316,7 @@ config.getAsync("modeindicator").then(mode => {
 
     // This listener makes the modeindicator disappear when the mouse goes over it
     statusIndicator.addEventListener("mouseenter", ev => {
-        const target = ev.target as any
+        const target = ev.target
         const rect = target.getBoundingClientRect()
         target.classList.add("TridactylInvisible")
         const onMouseOut = ev => {
