@@ -58,6 +58,7 @@ import state, * as State from "@src/state"
 import * as R from "ramda"
 import { MinimalKey, minimalKeyFromKeyboardEvent } from "@src/lib/keyseq"
 import { TabGroupCompletionSource } from "@src/completions/TabGroup"
+import { ProfileCompletionSource } from "@src/completions/Profile"
 
 /** @hidden **/
 const logger = new Logger("cmdline")
@@ -146,6 +147,7 @@ export function enableCompletions() {
             SessionsCompletionSource,
             SettingsCompletionSource,
             TabGroupCompletionSource,
+            ProfileCompletionSource,
             WindowCompletionSource,
             ExtensionsCompletionSource,
             ProxyCompletionSource,
