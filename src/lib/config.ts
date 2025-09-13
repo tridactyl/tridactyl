@@ -1145,7 +1145,7 @@ export class default_config {
     tabopencontaineraware: "true" | "false" = "false"
 
     /**
-     * If moodeindicator is enabled, containerindicator will color the border of the mode indicator with the container color.
+     * If modeindicator is enabled, containerindicator will color the border of the mode indicator with the container color.
      */
     containerindicator: "true" | "false" = "true"
 
