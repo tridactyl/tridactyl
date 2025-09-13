@@ -4834,7 +4834,10 @@ export function blacklistadd(url: string) {
     return autocmd("DocStart", url, "mode ignore")
 }
 
-/** Unbind a sequence of keys so that they do nothing at all.
+/**
+   Unbind a sequence of keys so that they do nothing at all.
+
+   Accepts the flag `--recursive` to unbind all binds that start with the specified key sequence, e.g. `:unbind --recursive ;` unbinds all the binds like `;f` `;F` `;;` etc.
 
     See also:
 
