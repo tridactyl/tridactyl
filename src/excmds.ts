@@ -4373,6 +4373,10 @@ export function comclear(name: string) {
 */
 //#background
 export async function bind(...args: string[]) {
+    if (args.includes("--recursive")) {
+        throw new Error("`--recursive` can only be called on unbind.")
+    }
+
     const args_obj = parse_bind_args(...args)
     let p = Promise.resolve()
     if (args_obj.excmd !== "") {
@@ -4830,7 +4834,10 @@ export function blacklistadd(url: string) {
     return autocmd("DocStart", url, "mode ignore")
 }
 
-/** Unbind a sequence of keys so that they do nothing at all.
+/**
+   Unbind a sequence of keys so that they do nothing at all.
+
+   Accepts the flag `--recursive` to unbind all binds that start with the specified key sequence, e.g. `:unbind --recursive ;` unbinds all the binds like `;f` `;F` `;;` etc.
 
     See also:
 
@@ -4840,6 +4847,17 @@ export function blacklistadd(url: string) {
 //#background
 export async function unbind(...args: string[]) {
     const args_obj = parse_bind_args(...args)
+
+    if (args_obj.isRecursive) {
+        const prefix = args_obj.key
+        const maps = config.get(args_obj.configName as keyof config.default_config)
+        for (const binding in maps) {
+            if (binding.startsWith(prefix)) {
+                config.set(args_obj.configName, binding, null)
+            }
+        }
+    }
+
     if (args_obj.excmd !== "") throw new Error("unbind syntax: `unbind key`")
     if (args_obj.mode == "browser") {
         const commands = await browser.commands.getAll()
