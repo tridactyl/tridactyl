@@ -2453,7 +2453,7 @@ input:not([disabled]):not([readonly]):-moz-any(
 textarea:not([disabled]):not([readonly]),
 object,
 [role='application'],
-[contenteditable='true'][role='textbox']
+[contenteditable][role='textbox']:not([contenteditable='false'])
 `
 
 /** Password field selectors
