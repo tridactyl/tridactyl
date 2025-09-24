@@ -44,7 +44,7 @@ export function isTextEditable(element: Element) {
                 // This happens on e.g. svgs.
                 return false
             }
-            if (element.contentEditable.toUpperCase() === "TRUE") {
+            if (element.isContentEditable) {
                 return true
             }
         }
