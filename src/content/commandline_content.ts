@@ -3,6 +3,7 @@
 import Logger from "@src/lib/logging"
 import * as config from "@src/lib/config"
 import { theme } from "@src/content/styling"
+import * as registry from "@src/content/element_registry"
 const logger = new Logger("messaging")
 const cmdline_logger = new Logger("cmdline")
 
@@ -48,6 +49,7 @@ async function init() {
     if (noiframe === "false" && notridactyl !== "true" && !enabled) {
         hide()
         document.documentElement.appendChild(cmdline_iframe)
+        registry.registerElement(cmdline_iframe)
         enabled = true
         // first theming of page root
         await theme(window.document.querySelector(":root"))
@@ -79,8 +81,10 @@ export async function reactIsCrap(){
     cmdline_logger.warning("Possible react server-side render failure detected, starting iframe protection loop")
     while(true){
         if (cmdline_iframe.contentWindow == null) {
+            registry.unregisterElement(cmdline_iframe)
             makeIframe()
             document.documentElement.appendChild(cmdline_iframe)
+            registry.registerElement(cmdline_iframe)
         }
         await new Promise(resolve => setTimeout(resolve, 500))
     }
