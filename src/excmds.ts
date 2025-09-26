@@ -2990,7 +2990,16 @@ export async function tabduplicate(index?: number) {
 */
 //#background
 export async function tabdetach(index?: number) {
-    return browser.windows.create({ tabId: await idFromIndex(index) })
+    const tabId = await idFromIndex(index)
+    const currentTab = await browser.tabs.get(tabId)
+    const tempTab = (await browser.windows.create({ incognito: currentTab.incognito })).tabs[0]
+    await browser.tabs.move(tabId, { index: -1, windowId: tempTab.windowId })
+    browser.tabs.remove(tempTab.id)
+    browser.tabs.update(tabId, { active: true })
+    return browser.windows.get(tempTab.windowId)
+
+    // Above is a workaround for the original not giving the page focus in the new window
+    // return browser.windows.create({ tabId: await idFromIndex(index) })
 }
 
 /** Toggle fullscreen state
