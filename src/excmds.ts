@@ -2990,6 +2990,7 @@ export async function tabduplicate(index?: number) {
 */
 //#background
 export async function tabdetach(index?: number) {
+    // Workaround for detached tabs not getting focus (issue #5273)
     const tabId = await idFromIndex(index)
     const currentTab = await browser.tabs.get(tabId)
     const tempTab = (await browser.windows.create({ incognito: currentTab.incognito })).tabs[0]
@@ -2997,9 +2998,6 @@ export async function tabdetach(index?: number) {
     browser.tabs.remove(tempTab.id)
     browser.tabs.update(tabId, { active: true })
     return browser.windows.get(tempTab.windowId)
-
-    // Above is a workaround for the original not giving the page focus in the new window
-    // return browser.windows.create({ tabId: await idFromIndex(index) })
 }
 
 /** Toggle fullscreen state
