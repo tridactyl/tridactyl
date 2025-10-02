@@ -576,8 +576,8 @@ export function hintPage(
     modeState.hud.appendChild(modeState.hudTranslate)
     document.documentElement.appendChild(modeState.hud)
     modeState.deOverlap()
-    window.removeEventListener("scroll", onscroll)
-    window.addEventListener("scroll", onscroll)
+    window.removeEventListener("scroll", updateHudOffset)
+    window.addEventListener("scroll", updateHudOffset)
 }
 
 /** @hidden */
@@ -768,8 +768,10 @@ class Hint {
         this.flag.classList.add("TridactylHint" + target.tagName)
         classes?.forEach(f => this.flag.classList.add(f))
 
+        // Optional add overlays
         if (modeState.highlightHost  || modeState.outlineHost) {
             const mainRect = document.createElement("div")
+            // Add all rectangles for highlights / outlines
             for (const recti of clientRects) {
                 if (recti !== rect) {
                     const extraRect = document.createElement("div")
@@ -911,31 +913,10 @@ class Hint {
         top: ${this._y}px !important;
         left: ${this._x}px !important;
         `
-        // Don't like all these conditionals. Use separate functions or something
-        /*
-        if (this.highlight) {
-            this.highlight.style.cssText = `
-            inset: ${this.rect.top}px ${this.rect.left}px !important;
-            width: ${this.rect.width}px !important;
-            height: ${this.rect.height}px !important;
-            `
-            console.log(this.highlight.style.cssText)
-
-            if (this.outline) {
-                this.outline.style.cssText = this.highlight.style.cssText
-            }
-        } else if (this.outline) {
-            this.outline.style.cssText = `
-            inset: ${this.rect.top}px ${this.rect.left}px !important;
-            width: ${this.rect.width}px !important;
-            height: ${this.rect.height}px !important;
-            `
-        }
-        */
     }
 }
 
-function onscroll() {
+function updateHudOffset() {
     modeState.hudTranslate.style.translate = `${-window.scrollX}px ${-window.scrollY}px`
 }
 
@@ -1182,12 +1163,12 @@ function filterHintsVimperator(query: string, reflow = false) {
  **/
 function reset() {
     if (modeState) {
-        window.removeEventListener("scroll", onscroll)
         modeState.cleanUpHints()
         modeState.resolveHinting()
     }
     modeState = undefined
     contentState.mode = "normal"
+    window.removeEventListener("scroll", updateHudOffset)
 }
 
 function popKey() {
