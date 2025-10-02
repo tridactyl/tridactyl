@@ -16,6 +16,12 @@ span.TridactylHint {
     z-index: 2147483646 !important;
 }
 
+span.TridactylHint.TridactylHintSpanActive {
+    color: var(--tridactyl-hintspan-active-fg) !important;
+    background-color: var(--tridactyl-hintspan-active-bg) !important;
+    border-color: var(--tridactyl-hintspan-active-border-color) !important;
+}
+
 span.TridactylHintCharPressed {
     color: var(--tridactyl-hintspan-pressed-fg) !important;
 }
@@ -43,4 +49,59 @@ span.TridactylJSHint {
 }
 .TridactylKilledElem {
     display: none !important;
+}
+
+div.TridactylHud {
+    position: fixed !important;
+    inset: 0 !important;
+    width: 100%;
+    height: 100%;
+    z-index: 2147483647 !important;
+    overflow: clip !important;
+    pointer-events: none;
+}
+
+div.TridactylHud > * {
+    pointer-events: all;
+}
+
+div.TridactylHudTranslation {
+    position: absolute !important;
+}
+
+div.TridactylHintHighlight,
+div.TridactylHintOutline,
+div.TridactylHintHighlightActive,
+div.TridactylHintOutlineActive {
+    position: absolute;
+}
+
+div.TridactylHintHighlight {
+    background: var(--tridactyl-hint-highlight-bg);
+}
+
+div.TridactylHintHighlightActive {
+    background: var(--tridactyl-hint-highlight-active-bg) !important;
+}
+
+div.TridactylHintOutline {
+    outline: var(--tridactyl-hint-highlight-outline);
+}
+
+div.TridactylHintOutlineActive {
+    outline: var(--tridactyl-hint-highlight-active-outline) !important;
+}
+
+div.TridactylHintHighlight *, div.TridactylHintOutline * {
+    position: absolute;
+    background: inherit;
+    outline: inherit;
+}
+
+div.TridactylHintHighlightHost {
+    opacity: var(--tridactyl-hint-highlight-opacity);
+}
+
+div.TridactylHintOutlineHost {
+    opacity: var(--tridactyl-hint-outline-opacity);
 }
