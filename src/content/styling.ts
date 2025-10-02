@@ -58,7 +58,7 @@ export async function theme(element) {
 
     const hintElemRules =
         (hintElemOptions.fg === "all"
-            ? "    color: var(--tridactyl-hint-active-fg) !important;\n"
+            ? "    color: var(--tridactyl-hint-fg) !important;\n"
             : "") +
         (hintElemOptions.bg === "all"
             ? "    background: var(--tridactyl-hint-bg) !important;\n"
@@ -78,13 +78,23 @@ export async function theme(element) {
             ? "    outline: var(--tridactyl-hint-active-outline) !important;\n"
             : "")
 
+    // If these are set to "none" they won't be added to the page at all so only need to handle active
+    const activeOverlayRules =
+        (hintElemOptions.overlay === "active"
+            ? ".TridactylHintHighlight { display:none; } .TridactylHintHighlightActive { display: block !important; }"
+            : "") +
+        (hintElemOptions.overlayoutline === "active"
+            ? ".TridactylHintOutline { display:none; } .TridactylHintOutlineActive { display: block !important; }"
+            : "")
+
     hintElemCss.code =
         (hintElemRules !== ""
             ? ".TridactylHintElem {\n" + hintElemRules + "}\n"
             : "") +
         (activeElemRules !== ""
             ? ".TridactylHintActive {\n" + activeElemRules + "}\n"
-            : "")
+            : "") +
+            activeOverlayRules
 
     if (hintElemCss.code !== "") {
         await browserBg.tabs.insertCSS(await ownTabId(), hintElemCss)
@@ -152,6 +162,7 @@ function retheme() {
 }
 
 config.addChangeListener("theme", retheme)
+config.addChangeListener("hintstyles", retheme)
 
 /**
  * DEPRECATED

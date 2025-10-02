@@ -39,7 +39,8 @@
     --tridactyl-hintspan-active-border-color: var(--tridactyl-hintspan-border-color);
 
     /* Element highlights */
-    --tridactyl-hint-active-fg: var(--tridactyl-fg);
+    --tridactyl-hint-fg: var(--tridactyl-fg);
+    --tridactyl-hint-active-fg: var(--tridactyl-hint-fg);
     --tridactyl-hint-active-bg: #88ff00;
     --tridactyl-hint-active-outline: 1px solid #cc0000;
 
@@ -51,8 +52,7 @@
     --tridactyl-hint-highlight-active-bg: var(--tridactyl-hint-active-bg);
     --tridactyl-hint-highlight-outline: var(--tridactyl-hint-outline);
     --tridactyl-hint-highlight-active-outline: var(--tridactyl-hint-active-outline);
-    --tridactyl-hint-highlight-opacity: 0.5;
-    --tridactyl-hint-outline-opacity: 1;
+    --tridactyl-hint-highlight-opacity: 0.25;
 
     /* :viewsource */
     --tridactyl-vs-bg: var(--tridactyl-bg);

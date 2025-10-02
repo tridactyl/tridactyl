@@ -6,7 +6,7 @@ span.TridactylHint {
     font-size: var(--tridactyl-hintspan-font-size) !important;
     font-weight: var(--tridactyl-hintspan-font-weight) !important;
     color: var(--tridactyl-hintspan-fg) !important;
-    background-color: var(--tridactyl-hintspan-bg) !important;
+    background: var(--tridactyl-hintspan-bg) !important;
     border-color: var(--tridactyl-hintspan-border-color) !important;
     border-width: var(--tridactyl-hintspan-border-width) !important;
     min-width: 0.75em !important;
@@ -18,7 +18,7 @@ span.TridactylHint {
 
 span.TridactylHint.TridactylHintSpanActive {
     color: var(--tridactyl-hintspan-active-fg) !important;
-    background-color: var(--tridactyl-hintspan-active-bg) !important;
+    background: var(--tridactyl-hintspan-active-bg) !important;
     border-color: var(--tridactyl-hintspan-active-border-color) !important;
 }
 
@@ -54,11 +54,11 @@ span.TridactylJSHint {
 div.TridactylHud {
     position: fixed !important;
     inset: 0 !important;
-    width: 100%;
-    height: 100%;
+    width: 100% !important;
+    height: 100% !important;
     z-index: 2147483647 !important;
     overflow: clip !important;
-    pointer-events: none;
+    pointer-events: none !important;
 }
 
 div.TridactylHud > * {
@@ -73,7 +73,7 @@ div.TridactylHintHighlight,
 div.TridactylHintOutline,
 div.TridactylHintHighlightActive,
 div.TridactylHintOutlineActive {
-    position: absolute;
+    position: absolute !important;
 }
 
 div.TridactylHintHighlight {
@@ -85,7 +85,7 @@ div.TridactylHintHighlightActive {
 }
 
 div.TridactylHintOutline {
-    outline: var(--tridactyl-hint-highlight-outline);
+    outline: var(--tridactyl-hint-highlight-outline) !important;
 }
 
 div.TridactylHintOutlineActive {
@@ -93,15 +93,12 @@ div.TridactylHintOutlineActive {
 }
 
 div.TridactylHintHighlight *, div.TridactylHintOutline * {
-    position: absolute;
-    background: inherit;
-    outline: inherit;
+    position: absolute !important;
+    background: inherit !important;
+    outline: inherit !important;
 }
 
 div.TridactylHintHighlightHost {
-    opacity: var(--tridactyl-hint-highlight-opacity);
+    opacity: var(--tridactyl-hint-highlight-opacity) !important;
 }
 
-div.TridactylHintOutlineHost {
-    opacity: var(--tridactyl-hint-outline-opacity);
-}

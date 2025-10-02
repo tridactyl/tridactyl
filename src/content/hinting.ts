@@ -773,34 +773,32 @@ class Hint {
             for (const recti of clientRects) {
                 if (recti !== rect) {
                     const extraRect = document.createElement("div")
-                    extraRect.style.top = `${recti.top - rect.top}px`
-                    extraRect.style.left = `${recti.left - rect.left}px`
                     extraRect.style.cssText = `
-                        inset: ${recti.top - rect.top}px ${recti.left - rect.left}px;
-                        width: ${recti.width}px;
-                        height: ${recti.height}px;
+                        inset: ${recti.top - rect.top}px ${recti.left - rect.left}px !important;
+                        width: ${recti.width}px !important;
+                        height: ${recti.height}px !important;
                     `
                     mainRect.appendChild(extraRect)
                 } else {
                     mainRect.style.top = `${recti.top + window.scrollY}px`
                     mainRect.style.left = `${recti.left + window.scrollX}px`
                     mainRect.style.cssText = `
-                        inset: ${rect.top + window.scrollY}px ${rect.left + window.scrollX}px;
-                        width: ${rect.width}px;
-                        height: ${rect.height}px;
+                        inset: ${rect.top + window.scrollY}px ${rect.left + window.scrollX}px !important;
+                        width: ${rect.width}px !important;
+                        height: ${rect.height}px !important;
                         `
                 }
             }
 
             if (modeState.highlightHost) {
                 this.highlight = mainRect
-                this.highlight.classList.add("TridactylHintHighlight")
                 modeState.highlightHost.appendChild(this.highlight)
                 if (modeState.outlineHost) {
                     this.outline = mainRect.cloneNode(true) as HTMLElement
                     this.outline.classList.add("TridactylHintOutline")
                     modeState.outlineHost.appendChild(this.outline)
                 }
+                this.highlight.classList.add("TridactylHintHighlight")
             } else {
                 this.outline = mainRect
                 this.outline.classList.add("TridactylHintOutline")
