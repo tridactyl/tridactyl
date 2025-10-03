@@ -1,0 +1,298 @@
+/* Tokyo Night Theme */
+
+/* latin-ext */
+@font-face {
+    font-family: "JetBrains Mono";
+    font-style: normal;
+    font-weight: 100 800;
+    font-display: swap;
+    src: url(https://fonts.gstatic.com/s/jetbrainsmono/v18/tDbV2o-flEEny0FZhsfKu5WU4xD1OwGtT0rU3BE.woff2)
+        format("woff2");
+    unicode-range: U+0100-02AF, U+0304, U+0308, U+0329, U+1E00-1E9F,
+        U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F,
+        U+A720-A7FF;
+}
+/* latin */
+@font-face {
+    font-family: "JetBrains Mono";
+    font-style: normal;
+    font-weight: 100 800;
+    font-display: swap;
+    src: url(https://fonts.gstatic.com/s/jetbrainsmono/v18/tDbV2o-flEEny0FZhsfKu5WU4xD7OwGtT0rU.woff2)
+        format("woff2");
+    unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6,
+        U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+2074, U+20AC,
+        U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+:root {
+    /* Colour swatches */
+
+    /* declaring variables like this allows rgba() conversion for opacity */
+    --tritheme-orange-rgb: 255, 158, 100;
+    --tritheme-cyan-rgb: 125, 207, 255;
+    --tritheme-blue0-rgb: 61, 89, 161;
+    --tritheme-swatch4-rgb: 21, 17, 51;
+    --tritheme-swatch5-rgb: 252, 161, 48;
+    --tritheme-red-rgb: 247, 118, 142;
+    --tritheme-bg_dark-rgb: 31, 35, 53;
+    --tritheme-bg-rgb: 34, 36, 54;
+    --tritheme-fg-rgb: 200, 211, 245;
+    --tritheme-comment-rgb: 86, 95, 137;
+    --tritheme-yellow-rgb: 224, 175, 104;
+    --tritheme-bg_highlight-rgb: 41, 46, 66;
+    --tritheme-purple-rgb: 157, 124, 216;
+    --tritheme-dark5: 115, 122, 162;
+    --tritheme-moon-blue-rgb: 130, 170, 255;
+    --tritheme-moon-blue2-rgb: 13, 185, 215;
+    --tritheme-moon-bg_dark-rgb: 30, 32, 48;
+    --tritheme-moon-purple-rgb: 252, 167, 234;
+    --tritheme-moon-fg-rgb: 200, 211, 245;
+    --tritheme-moon-green1-rgb: 79, 214, 190;
+    --tritheme-moon-teal-rgb: 79, 214, 190;
+    --tritheme-moon-magenta-rgb: 192, 153, 255;
+    --tritheme-moon-blue2_bg-rgb: 32, 51, 70;
+    --tritheme-fg_gutter-rgb: 59, 66, 97;
+    --tritheme-moon-hlbg-rgb: 62, 104, 215;
+    --tritheme-moon-orange-bg-rgb: 56, 52, 61;
+
+    --tritheme-docs-rgb: 99, 109, 166;
+
+    /* rgb colours */
+    --tritheme-orange: rgb(var(--tritheme-orange-rgb));
+    --tritheme-cyan: rgb(var(--tritheme-cyan-rgb));
+    --tritheme-blue0: rgb(var(--tritheme-blue0-rgb));
+    --tritheme-swatch4: rgb(var(--tritheme-swatch4-rgb));
+    --tritheme-swatch5: rgb(var(--tritheme-swatch5-rgb));
+    --tritheme-red: rgb(var(--tritheme-red-rgb));
+    --tritheme-yellow: rgb(var(--tritheme-yellow-rgb));
+    --tritheme-bg_dark: rgb(var(--tritheme-bg_dark-rgb));
+    --tritheme-bg: rgb(var(--tritheme-bg-rgb));
+    --tritheme-fg: rgb(var(--tritheme-fg-rgb));
+    --tritheme-comment: rgb(var(--tritheme-comment-rgb));
+    --tritheme-purple: rgb(var(--tritheme-purple-rgb));
+    --tritheme-moon-blue: rgb(var(--tritheme-moon-blue-rgb));
+    --tritheme-moon-blue2: rgb(var(--tritheme-moon-blue2-rgb));
+    --tritheme-docs: rgb(var(--tritheme-docs-rgb));
+    --tritheme-dark5: rgb(var(--tritheme-dark5));
+    --tritheme-moon-bg_dark: rgb(var(--tritheme-moon-bg_dark-rgb));
+    --tritheme-moon-purple: rgb(var(--tritheme-moon-purple-rgb));
+    --tritheme-moon-fg: rgb(var(--tritheme-moon-fg-rgb));
+    --tritheme-moon-green1: rgb(var(--tritheme-moon-green1-rgb));
+    --tritheme-moon-teal: rgb(var(--tritheme-moon-teal-rgb));
+    --tritheme-moon-magenta: rgb(var(--tritheme-moon-magenta-rgb));
+    --tritheme-moon-blue2_bg: rgb(var(--tritheme-moon-blue2_bg-rgb));
+    --tritheme-fg_gutter: rgb(var(--tritheme-fg_gutter-rgb));
+    --tritheme-moon-orange-bg: rgb(var(--tritheme-moon-orange-bg-rgb));
+    --tritheme-moon-yellow: rgb(255, 199, 119);
+    --tritheme-moon-magenta2: rgb(255, 0, 124);
+    --tritheme-moon-blue1: rgb(101, 188, 255);
+    --tritheme-moon-green: rgb(195, 232, 141);
+    --tritheme-moon-hlbg: rgb(var(--tritheme-moon-hlbg-rgb));
+
+    /* rgba colours */
+    --tritheme-cyan-alphalow: rgba(var(--tritheme-cyan-rgb), 0.3);
+    --tritheme-orange-alphalow: rgba(var(--tritheme-orange-rgb), 0.3);
+
+    /* Generic */
+    --tridactyl-font-family: "JetBrains Mono", "SF Mono", monospace;
+    --tridactyl-small-font-size: 8pt;
+    --tridactyl-large-font-size: 1.5rem;
+    --tridactyl-bg: var(--tritheme-bg);
+    --tridactyl-fg: var(--tritheme-fg);
+    --tridactyl-private-window-icon-url: url("chrome://global/skin/icons/indicator-private-browsing.svg");
+
+    /* Mode indicator */
+    --tridactyl-status-fg: white;
+    --tridactyl-status-border: var(--tritheme-swatch4) solid 1.5px;
+    --tridactyl-status-font-size: 8pt;
+    --tridactyl-status-bg: rgba(var(--tritheme-bg-rgb), 0.5);
+
+    --tritheme-status-private-border: var(--tridactyl-status-border);
+    --tritheme-status-private-bg: var(--tridactyl-status-bg);
+
+    /* Search highlight */
+    --tridactyl-search-highlight-color: yellow;
+
+    /* Hinting */
+
+    /* Hint character tags */
+    --tridactyl-hintspan-font-family: var(--tridactyl-font-family);
+    --tridactyl-hintspan-font-size: var(--tridactyl-small-font-size);
+    --tridactyl-hintspan-bg: var(--tritheme-moon-blue2_bg);
+    --tridactyl-hintspan-fg: var(--tritheme-moon-green1);
+    --tridactyl-hintspan-js-background: var(--tritheme-bg);
+    --tridactyl-hintspan-border-width: 1px;
+    --tridactyl-hintspan-border-color: var(--tritheme-moon-magenta);
+
+    --tritheme-hintspan-padding: 0.5px;
+
+    --tridactyl-hintspan-active-fg: var(--tridactyl-hintspan-bg);
+    --tridactyl-hintspan-active-bg: var(--tritheme-moon-yellow);
+
+    --tridactyl-hintspan-pressed-fg: grey;
+
+    /* Element highlights */
+    --tridactyl-hint-highlight-opacity: 0.25;
+    --tridactyl-hint-highlight-bg: var(--tritheme-moon-blue1);
+    --tridactyl-hint-highlight-active-bg: var(--tritheme-orange);
+    --tridactyl-hint-highlight-outline: 1px solid var(--tritheme-purple);
+    --tridactyl-hint-highlight-active-outline: 1px solid var(--tritheme-moon-yellow);
+
+    --tridactyl-hint-fg: var(--tritheme-cyan);
+    --tridactyl-hint-bg: rgba(var(--tritheme-moon-hlbg-rgb), 0.5);
+    --tridactyl-hint-outline: var(--tridactyl-hint-overlay-outline);
+    --tridactyl-hint-active-fg: var(--tritheme-yellow);
+    --tridactyl-hint-active-bg: rgba(var(--tritheme-moon-orange-bg-rgb), 0.75);
+    --tridactyl-hint-active-outline: var(--tridactyl-hint-overlay-outline);
+
+    /* Commandline */
+
+    --tridactyl-cmdl-fg: var(--tritheme-fg);
+    --tridactyl-cmdl-bg: var(--tritheme-bg);
+    --tridactyl-cmdl-font-family: var(--tridactyl-font-family);
+
+    --tritheme-cmdl-border-color: var(--tritheme-moon-blue2);
+    --tridactyl-cmdl-input-border: 0.5px solid var(--tritheme-cmdl-border-color);
+
+    --tritheme-cmdl-before-fg: var(--tritheme-moon-blue2);
+    --tritheme-cmdl-before-content: "> ";
+
+    /* Completions */
+
+    /* Completions - Generic */
+
+    --tridactyl-cmplt-fg: var(--tritheme-moon-magenta);
+    --tridactyl-cmplt-bg: var(--tritheme-moon-bg_dark);
+    --tridactyl-cmplt-font-family: var(--tridactyl-font-family);
+    --tridactyl-cmplt-border-top: 1px solid #0c0c0d;
+
+    /* Completions - Excmds */
+
+    --tritheme-cmpltexcmds-fg: var(--tritheme-moon-magenta);
+
+    /* Completions - Documentation */
+
+    --tritheme-cmddoc-fg: var(--tritheme-docs);
+
+    /* Section header */
+    --tridactyl-header-first-bg: var(--tritheme-bg);
+    --tridactyl-header-second-bg: var(--tritheme-bg);
+    --tridactyl-header-third-bg: var(--tritheme-bg);
+
+    /* URL style */
+
+    --tridactyl-url-fg: var(--tritheme-purple);
+    --tridactyl-url-bg: none;
+
+    /* Option focused */
+
+    --tridactyl-of-fg: var(--tritheme-moon-yellow);
+    --tridactyl-of-bg: var(--tritheme-moon-orange-bg);
+
+    /* New tab - generic */
+
+    --tritheme-link-fg: var(--tritheme-cyan);
+
+    /* New tab - spoiler box */
+
+    --tridactyl-highlight-box-bg: #4a4a4f;
+    --tridactyl-highlight-box-fg: #d7d7db;
+
+    --tritheme-changelog-border-colour: #737373;
+}
+
+#completions .sectionHeader {
+    display: none;
+}
+
+/* cmdline to the top (probably better to set in userContent.css) */
+#cmdline_iframe {
+    position: fixed !important;
+    bottom: unset;
+    top: 0% !important;
+    left: 0% !important;
+}
+
+#completions {
+    order: 2;
+}
+
+#command-line-holder {
+    border: var(--tridactyl-cmdl-input-border);
+}
+
+.TridactylPrivate {
+    border: var(--tritheme-status-private-border) !important;
+    background: var(--tritheme-status-private-bg) !important;
+}
+
+span.TridactylHint {
+    padding: var(--tritheme-hintspan-padding) !important;
+}
+
+span.TridactylHint.TridactylJSHint {
+    color: var(--tritheme-swatch5) !important;
+}
+
+/* silly chars before input (& before excmd completions for alignment) */
+:root #tridactyl-colon::before,
+:root .ExcmdCompletionOption td.excmd::before {
+    color: var(--tritheme-cmdl-before-fg);
+    content: var(--tritheme-cmdl-before-content);
+    font-weight: bold;
+}
+
+/* prevent input from going to two lines with the ::before chars */
+:root #tridactyl-input {
+    width: calc(100% - 3em);
+    padding-left: 0 !important;
+}
+
+:root #command-line-holder {
+    margin-top: -1px !important;
+}
+
+:root #completions .focused,
+:root #completions .focused .url {
+    text-decoration: underline;
+}
+
+/* styles for specific completion types */
+:root #completions td.documentation,
+:root #completions td.doc {
+    color: var(--tritheme-cmddoc-fg);
+    font-style: italic;
+    white-space: nowrap;
+    overflow: auto;
+    text-overflow: ellipsis;
+}
+
+.focused td.documentation,
+.focused td.doc {
+    color: var(--tridactyl-of-fg);
+}
+
+td.excmd,
+td.name {
+    color: var(--tritheme-cmpltexcmds-fg);
+}
+
+td.excmd {
+    /* line up excmds + ::before with input */
+    padding-left: 0.125ex !important;
+}
+
+td.title {
+    color: var(--tritheme-cyan);
+}
+
+/* tridactyl changelog on new tab page */
+:root.TridactylOwnNamespace input[id^="spoiler"] ~ .spoiler {
+    border-color: var(--tritheme-changelog-border-colour);
+}
+
+/* link colours on the tridactyl new tab page */
+:root.TridactylOwnNamespace a {
+    color: var(--tritheme-link-fg);
+}
