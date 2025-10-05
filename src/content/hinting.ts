@@ -768,42 +768,39 @@ class Hint {
         this.flag.classList.add("TridactylHint" + target.tagName)
         classes?.forEach(f => this.flag.classList.add(f))
 
-        // Optional add overlays
+        // Add optional overlays
         if (modeState.highlightHost  || modeState.outlineHost) {
             const mainRect = document.createElement("div")
             // Add all rectangles for highlights / outlines
             for (const recti of clientRects) {
-                if (recti !== rect) {
-                    const extraRect = document.createElement("div")
-                    extraRect.style.cssText = `
-                        inset: ${recti.top - rect.top}px ${recti.left - rect.left}px !important;
-                        width: ${recti.width}px !important;
-                        height: ${recti.height}px !important;
-                    `
-                    mainRect.appendChild(extraRect)
+                let rectElem
+                let inset
+                if (recti === rect) {
+                    rectElem = mainRect
+                    inset = `${rect.top + window.scrollY}px ${rect.left + window.scrollX}px`
                 } else {
-                    mainRect.style.top = `${recti.top + window.scrollY}px`
-                    mainRect.style.left = `${recti.left + window.scrollX}px`
-                    mainRect.style.cssText = `
-                        inset: ${rect.top + window.scrollY}px ${rect.left + window.scrollX}px !important;
-                        width: ${rect.width}px !important;
-                        height: ${rect.height}px !important;
-                        `
+                    // Position extra rects relative to the main rect
+                    rectElem = document.createElement("div")
+                    mainRect.appendChild(rectElem)
+                    inset = `${recti.top - rect.top}px ${recti.left - rect.left}px`
                 }
+
+                rectElem.style.cssText = `
+                    inset: ${inset} !important;
+                    width: ${recti.width}px !important;
+                    height: ${recti.height}px !important;
+                `
             }
 
             if (modeState.highlightHost) {
                 this.highlight = mainRect
+                this.highlight.className = "TridactylHintHighlight"
                 modeState.highlightHost.appendChild(this.highlight)
-                if (modeState.outlineHost) {
-                    this.outline = mainRect.cloneNode(true) as HTMLElement
-                    this.outline.classList.add("TridactylHintOutline")
-                    modeState.outlineHost.appendChild(this.outline)
-                }
-                this.highlight.classList.add("TridactylHintHighlight")
-            } else {
-                this.outline = mainRect
-                this.outline.classList.add("TridactylHintOutline")
+            }
+
+            if (modeState.outlineHost) {
+                this.outline = this.highlight ? (this.highlight as any).cloneNode(true) : mainRect
+                this.outline.className = "TridactylHintOutline"
                 modeState.outlineHost.appendChild(this.outline)
             }
         }

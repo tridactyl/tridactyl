@@ -6384,8 +6384,8 @@ export function hintstylesnohighlights() {
  * Add highlights over the page when hinting and leave original elements unchanged.
  */
 export function hintstylesoverlays() {
-    ["bg","outline"].forEach(type => config.set("hintstyles", type, "none"))
-    ;["fg", "overlay","overlayoutline"].forEach(type => config.set("hintstyles", type, "all"))
+    ["fg", "bg","outline"].forEach(type => config.set("hintstyles", type, "none"))
+    ;["overlay","overlayoutline"].forEach(type => config.set("hintstyles", type, "all"))
 }
 
 /**
