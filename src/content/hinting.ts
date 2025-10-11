@@ -913,7 +913,7 @@ class Hint {
     }
 }
 
-function updateHudOffset(e) {
+function updateHudOffset() {
     window.requestAnimationFrame(() => {
         modeState.hudTranslate.style.translate = `${-window.scrollX}px ${-window.scrollY}px`
     })
