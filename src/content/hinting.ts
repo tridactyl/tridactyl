@@ -913,8 +913,10 @@ class Hint {
     }
 }
 
-function updateHudOffset() {
-    modeState.hudTranslate.style.translate = `${-window.scrollX}px ${-window.scrollY}px`
+function updateHudOffset(e) {
+    window.requestAnimationFrame(() => {
+        modeState.hudTranslate.style.translate = `${-window.scrollX}px ${-window.scrollY}px`
+    })
 }
 
 /** @hidden */
