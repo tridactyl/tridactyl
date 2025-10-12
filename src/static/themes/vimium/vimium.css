@@ -1,34 +1,130 @@
 :root {
-	--tritheme-red: rgb(217,16,70);
+    --tritheme-red: rgb(217,16,70);
 
-	--tridactyl-hintspan-fg: black;
-	--tridactyl-hintspan-bg: linear-gradient(0, rgb(255, 197, 66) 0, rgb(255,247,133) 100%);
+    --tridactyl-hintspan-fg: black;
+    --tridactyl-hintspan-bg: linear-gradient(0, rgb(255, 197, 66) 0, rgb(255,247,133) 100%);
 
-	--tridactyl-hintspan-active-fg: white;
-	--tridactyl-hintspan-active-bg: linear-gradient(0, rgb(180,8,50) 0, var(--tritheme-red) 100%);
-	--tridactyl-hintspan-active-border-color: rgb(190,0,25);
-	--tridactyl-hintspan-active-border-width: 1px;
-  
-  --tridactyl-hintspan-pressed-fg: rgb(212, 172, 58);
+    --tridactyl-hintspan-active-fg: white;
+    --tridactyl-hintspan-active-bg: linear-gradient(0, rgb(180,8,50) 0, var(--tritheme-red) 100%);
+    --tridactyl-hintspan-active-border-color: rgb(190,0,25);
+    --tridactyl-hintspan-active-border-width: 1px;
+    --tridactyl-hintspan-pressed-fg: rgb(212, 172, 58);
 
-	--tridactyl-hint-fg: var(--tritheme-red);
-	--tridactyl-hint-bg: rgba(255, 236, 118, 0.8);
-	--tridactyl-hint-outline: 1px solid #ecc44a;
+    --tridactyl-hint-fg: black;
+    --tridactyl-hint-bg: rgba(251, 255, 118, 0.25);
+    --tridactyl-hint-outline: 1px solid #91804c;
 
-	--tridactyl-hint-active-fg: var(--tritheme-red);
-	--tridactyl-hint-active-bg: rgba(180, 16, 60, 0.8);
-	--tridactyl-hint-active-outline: 1px solid var(--tritheme-red);
+    --tridactyl-hint-active-fg: var(--tritheme-red);
+    --tridactyl-hint-active-bg: rgba(180, 16, 60, 0.25);
+    --tridactyl-hint-active-outline: 1px solid var(--tritheme-red);
 
-	--tridactyl-hint-highlight-bg: rgb(255, 236, 118);
-	--tridactyl-hint-highlight-active-bg: var(--tritheme-red);
+    --tridactyl-hint-highlight-bg: rgb(255, 236, 118);
+    --tridactyl-hint-highlight-active-bg: var(--tritheme-red);
+
+    --tridactyl-cmdl-font-size: 1.5rem;
+    --tridactyl-cmdl-line-height: 1.5;
+
+    --tridactyl-cmplt-option-height: 1.4em;
+    --tridactyl-cmplt-font-size: var(--tridactyl-small-font-size);
+    --tridactyl-cmplt-border-top: unset;
 }
 
 span.TridactylHint {
-	box-shadow: rgba(0,0,0,0.3) 0 3px 7px 0 !important;
-	padding: 1px 3px 0 !important;
-	border-radius: 3px !important;
+    box-shadow: rgba(0,0,0,0.3) 0 3px 7px 0 !important;
+    padding: 1px 3px 0 !important;
+    border-radius: 3px !important;
 }
 
 span.TridactylHintSpanActive > span.TridactylHintCharPressed {
   color: rgb(120, 20, 20) !important;
 }
+
+/* Shydactyl's command line rules follow */
+:root #command-line-holder {
+    order: 1;
+    border: 2px solid var(--tridactyl-cmdl-fg);
+    color: var(--tridactyl-cmdl-bg);
+}
+
+:root #tridactyl-input {
+    width: 90%;
+    padding: 1rem;
+}
+
+:root #completions table {
+    font-size: 0.8rem;
+    font-weight: 200;
+    border-spacing: 0;
+    table-layout: fixed;
+    padding: 1rem;
+    padding-top: 0;
+}
+
+:root #completions > div {
+    max-height: calc(20 * var(--tridactyl-cmplt-option-height));
+    min-height: calc(10 * var(--tridactyl-cmplt-option-height));
+}
+
+/* COMPLETIONS */
+
+:root #completions {
+    font-weight: 200;
+    order: 2;
+}
+
+/* Olie doesn't know how CSS inheritance works */
+:root #completions .HistoryCompletionSource {
+    max-height: unset;
+    min-height: unset;
+}
+
+:root #completions .HistoryCompletionSource table {
+    width: 100%;
+    font-size: 9pt;
+    border-spacing: 0;
+    table-layout: fixed;
+}
+
+/* redundancy 2: redundancy 2: more redundancy */
+:root #completions .BmarkCompletionSource {
+    max-height: unset;
+    min-height: unset;
+}
+
+:root #completions table tr td.prefix,
+:root #completions table tr td.privatewindow,
+:root #completions table tr td.container,
+:root #completions table tr td.icon {
+    display: none;
+}
+
+:root #completions .BufferCompletionSource table {
+    width: unset;
+    font-size: unset;
+    border-spacing: unset;
+    table-layout: unset;
+}
+
+:root #completions table tr {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+:root #completions .sectionHeader {
+    background: unset;
+    padding: 1rem !important;
+    padding-left: unset;
+    padding-bottom: 0.2rem;
+}
+
+:root #cmdline_iframe {
+    position: fixed !important;
+    bottom: unset;
+    top: 25% !important;
+    left: 10% !important;
+    z-index: 2147483647 !important;
+    width: 80% !important;
+    box-shadow: rgba(0, 0, 0, 0.5) 0px 0px 15px !important;
+}
+
