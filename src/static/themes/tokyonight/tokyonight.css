@@ -107,20 +107,21 @@
     --tridactyl-hintspan-pressed-fg: grey;
 
     /* Element highlights */
-    --tridactyl-hint-highlight-opacity: 0.25;
-    --tridactyl-hint-highlight-bg: var(--tritheme-moon-blue2);
-    --tridactyl-hint-highlight-active-bg: var(--tritheme-orange);
-    --tridactyl-hint-highlight-outline: 1px solid var(--tritheme-purple);
-    --tridactyl-hint-highlight-active-outline: 1px solid var(--tritheme-moon-yellow);
-
-    --tridactyl-hint-bg: rgba(0, 4, 66, 0.35);
     --tritactyl-hint-fg: rgb(211, 235, 249);
+    --tridactyl-hint-bg: rgba(0, 4, 66, 0.35);
+    --tridactyl-hint-outline: 1px solid var(--tritheme-purple);
 
-    --tridactyl-hint-outline: var(--tridactyl-hint-highlight-outline);
     --tridactyl-hint-active-fg: rgb(27, 29, 43);
-    --tridactyl-hint-highlight-active-fg: var(--tritheme-moon-yellow);
     --tridactyl-hint-active-bg: var(--tritheme-orange3);
-    --tridactyl-hint-active-outline: var(--tridactyl-hint-highlight-active-outline);
+    --tridactyl-hint-active-outline: 1px solid var(--tritheme-moon-yellow);
+
+    --tridactyl-hint-highlight-opacity: 0.25;
+
+    --tridactyl-hint-highlight-fg: var(--tritheme-cyan);
+    --tridactyl-hint-highlight-bg: var(--tritheme-moon-blue2);
+
+    --tridactyl-hint-highlight-active-fg: var(--tritheme-moon-yellow);
+    --tridactyl-hint-highlight-active-bg: var(--tritheme-orange);
 
     /* Commandline */
 

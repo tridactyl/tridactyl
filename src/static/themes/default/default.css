@@ -48,6 +48,8 @@
     --tridactyl-hint-outline: 1px solid #8f5902;
 
     /* Element highlight overlays */
+    --tridactyl-hint-highlight-fg: var(--tridactyl-hint-fg);
+    --tridactyl-hint-highlight-active-fg: var(--tridactyl-hint-active-fg);
     --tridactyl-hint-highlight-bg: var(--tridactyl-hint-bg);
     --tridactyl-hint-highlight-active-bg: var(--tridactyl-hint-active-bg);
     --tridactyl-hint-highlight-outline: var(--tridactyl-hint-outline);

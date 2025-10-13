@@ -56,9 +56,13 @@ export async function theme(element) {
 
     const hintElemOptions = await config.getAsync("hintstyles")
 
+    // Allow for different hint text colours if using overlays (can help visibility issues)
+    const hintFgVar = hintElemOptions.overlay === "all" ? "--tridactyl-hint-highlight-fg" : "--tridactyl-hint-fg"
+    const activeFgVar = hintElemOptions.overlay === "all" ? "--tridactyl-hint-highlight-active-fg" : "--tridactyl-hint-active-fg"
+
     const hintElemRules =
         (hintElemOptions.fg === "all"
-            ? "    color: var(--tridactyl-hint-fg) !important;\n"
+            ? `    color: var(${hintFgVar}) !important;\n`
             : "") +
         (hintElemOptions.bg === "all"
             ? "    background: var(--tridactyl-hint-bg) !important;\n"
@@ -69,7 +73,7 @@ export async function theme(element) {
 
     const activeElemRules =
         (hintElemOptions.fg !== "none"
-            ? "    color: var(--tridactyl-hint-active-fg) !important;\n"
+            ? `    color: var(${activeFgVar}) !important;\n`
             : "") +
         (hintElemOptions.bg !== "none"
             ? "    background: var(--tridactyl-hint-active-bg) !important;\n"
