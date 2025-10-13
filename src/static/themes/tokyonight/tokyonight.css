@@ -5,6 +5,7 @@
     --tritheme-red-rgb: 247, 118, 142;
     --tritheme-orange-rgb: 255, 158, 100;
     --tritheme-orange2-rgb: 252, 161, 48;
+    --tritheme-orange3-rgb: 255, 150, 108;
     --tritheme-yellow-rgb: 224, 175, 104;
     --tritheme-green-rgb: 115, 122, 162;
     --tritheme-cyan-rgb: 125, 207, 255;
@@ -40,6 +41,7 @@
     --tritheme-red: rgb(var(--tritheme-red-rgb));
     --tritheme-orange: rgb(var(--tritheme-orange-rgb));
     --tritheme-orange2: rgb(var(--tritheme-orange2-rgb));
+    --tritheme-orange3: rgb(var(--tritheme-orange3-rgb));
     --tritheme-yellow: rgb(var(--tritheme-yellow-rgb));
     --tritheme-green: rgb(var(--tritheme-green-rgb));
     --tritheme-cyan: rgb(var(--tritheme-cyan-rgb));
@@ -71,8 +73,6 @@
 
     /* Generic */
     --tridactyl-font-family: "JetBrains Mono", "SF Mono", monospace;
-    --tridactyl-small-font-size: 8pt;
-    --tridactyl-large-font-size: 1.5rem;
     --tridactyl-bg: var(--tritheme-darkblue4);
     --tridactyl-fg: var(--tritheme-lightblue);
     --tridactyl-private-window-icon-url: url("chrome://global/skin/icons/indicator-private-browsing.svg");
@@ -80,7 +80,6 @@
     /* Mode indicator */
     --tridactyl-status-fg: white;
     --tridactyl-status-border: var(--tritheme-darkblue2) solid 1.5px;
-    --tridactyl-status-font-size: 8pt;
     --tridactyl-status-bg: rgba(var(--tritheme-darkblue4-rgb), 0.5);
 
     --tritheme-status-private-border: var(--tridactyl-status-border);
@@ -114,16 +113,13 @@
     --tridactyl-hint-highlight-outline: 1px solid var(--tritheme-purple);
     --tridactyl-hint-highlight-active-outline: 1px solid var(--tritheme-moon-yellow);
 
-    --tridactyl-hint-fg: var(--tritheme-cyan);
-    --tridactyl-hint-bg: rgba(var(--tritheme-blue-rgb), 0.25);
-
-    --tridactyl-large-hint-bg: color-mix(in srgb, var(--tridactyl-bg), var(--tritheme-blue) 25%);
-    --tridactyl-large-hint-active-bg: color-mix(in srgb, var(--tridactyl-bg), var(--tritheme-orange) 60%);
+    --tridactyl-hint-bg: rgba(0, 4, 66, 0.35);
+    --tritactyl-hint-fg: rgb(211, 235, 249);
 
     --tridactyl-hint-outline: var(--tridactyl-hint-highlight-outline);
-    --tridactyl-hint-active-fg: color-mix(in hsl, var(--tritheme-moon-yellow), yellow 75%);
+    --tridactyl-hint-active-fg: rgb(27, 29, 43);
     --tridactyl-hint-highlight-active-fg: var(--tritheme-moon-yellow);
-    --tridactyl-hint-active-bg: rgba(var(--tritheme-orange-rgb), 0.5);
+    --tridactyl-hint-active-bg: var(--tritheme-orange3);
     --tridactyl-hint-active-outline: var(--tridactyl-hint-highlight-active-outline);
 
     /* Commandline */
@@ -198,6 +194,10 @@ span.TridactylHint {
 
 span.TridactylHint.TridactylJSHint {
     color: var(--tritheme-orange2) !important;
+}
+
+span.TridactylHint.TridactylJSHint.TridactylHintSpanActive {
+    color: var(--tridactyl-hintspan-active-fg) !important;
 }
 
 :root #tridactyl-colon::before,
