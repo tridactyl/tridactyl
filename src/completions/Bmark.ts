@@ -70,6 +70,11 @@ export class BmarkCompletionSource extends Completions.CompletionSourceFuse {
             option += " "
             query = args.slice(2).join(" ")
         }
+        if (query.startsWith("-b")) {
+            const args = query.split(" ")
+            option += args.slice(0, 1).join(" ") + " "
+            query = args.slice(1).join(" ")
+        }
 
         this.completion = undefined
         this.options = (await providers.getBookmarks(query))
