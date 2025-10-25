@@ -478,27 +478,24 @@ export function hintPage(
     modeState = new HintState(filterHints, resolve, reject, rapid)
 
     if (!rapid) {
-        for (const hints of hintableElements) {
-            buildHints(hints, hint => {
-                modeState.cleanUpHints()
-                hint.result = onSelect(hint.target)
-                modeState.selectedHints.push(hint)
-                reset()
-            })
-        }
+        buildHints(hintableElements, hint => {
+            modeState.cleanUpHints()
+            hint.result = onSelect(hint.target)
+            modeState.selectedHints.push(hint)
+            reset()
+        })
     } else {
-        for (const hints of hintableElements) {
-            buildHints(hints, hint => {
-                hint.result = onSelect(hint.target)
-                modeState.selectedHints.push(hint)
-                if (
-                    modeState.selectedHints.length > 1 &&
-                    config.get("hintshift") === "true"
-                ) {
-                    modeState.shiftHints()
-                }
-            })
-        }
+        buildHints(hintableElements, hint => {
+            hint.result = onSelect(hint.target)
+            modeState.selectedHints.push(hint)
+            if (
+                modeState.selectedHints.length > 1 &&
+                config.get("hintshift") === "true"
+            ) {
+                modeState.shiftHints()
+            }
+            removeFilteredCharClass()
+        })
     }
 
     if (!modeState.hints.length) {
@@ -725,7 +722,12 @@ class Hint {
             height: rect.height,
         }
 
-        this.flag.textContent = name
+        // A span for each char so typed chars can be styled differently
+        for (const ch of name) {
+            const charspan = document.createElement("span")
+            charspan.textContent = ch
+            this.flag.appendChild(charspan)
+        }
         this.flag.className = "TridactylHint"
         if (config.get("hintuppercase") === "true") {
             this.flag.classList.add("TridactylHintUppercase")
@@ -748,7 +750,12 @@ class Hint {
 
     setName(n: string) {
         this.name = n
-        this.flag.textContent = this.name
+        this.flag.textContent = ""
+        for (const ch of n) {
+            const charspan = document.createElement("span")
+            charspan.textContent = ch
+            this.flag.appendChild(charspan)
+        }
     }
 
     // These styles would be better with pseudo selectors. Can we do custom ones?
@@ -818,25 +825,31 @@ class Hint {
 
 /** @hidden */
 type HintBuilder = (
-    hintables: Hintables,
+    hintables: Hintables[],
     onSelect: HintSelectedCallback,
 ) => void
 
 /** @hidden */
 function buildHintsSimple(
-    hintables: Hintables,
+    hintablesArray: Hintables[],
     onSelect: HintSelectedCallback,
 ) {
-    const els = hintables.elements.filter(el => Hint.isHintable(el))
-    const names = Array.from(
-        hintnames(els.length + modeState.hints.length),
+    const hintablesfiltered = hintablesArray.map(h => ({ elements: h.elements.filter(el => Hint.isHintable(el)), hintclasses: h.hintclasses }))
+    const totalhints = hintablesfiltered.reduce((n, h) => n + h.elements.length, 0)
+
+    const allnames = Array.from(
+        hintnames(totalhints + modeState.hints.length),
     ).slice(modeState.hints.length)
-    for (const [el, name] of izip(els, names)) {
-        logger.debug({ el, name })
-        modeState.hintchars += name
-        modeState.hints.push(
-            new Hint(el, name, null, onSelect, hintables.hintclasses),
-        )
+
+    for (const hintables of hintablesfiltered) {
+        const names = allnames.slice(modeState.hints.length)
+        for (const [el, name] of izip(hintables.elements, names)) {
+            logger.debug({ el, name })
+            modeState.hintchars += name
+            modeState.hints.push(
+                new Hint(el, name, null, onSelect, hintables.hintclasses),
+            )
+        }
     }
 }
 
@@ -875,21 +888,26 @@ export const vimpHelper = {
 
 /** @hidden */
 function buildHintsVimperator(
-    hintables: Hintables,
+    hintablesArray: Hintables[],
     onSelect: HintSelectedCallback,
 ) {
-    const els = hintables.elements.filter(el => Hint.isHintable(el))
-    const names = Array.from(
-        hintnames(els.length + modeState.hints.length),
+    const hintablesfiltered = hintablesArray.map(h => ({ elements: h.elements.filter(el => Hint.isHintable(el)), hintclasses: h.hintclasses }))
+    const totalhints = hintablesfiltered.reduce((n, h) => n + h.elements.length, 0)
+    const allnames = Array.from(
+        hintnames(totalhints + modeState.hints.length),
     ).slice(modeState.hints.length)
-    for (const [el, name] of izip(els, names)) {
-        let ft = elementFilterableText(el)
-        ft = vimpHelper.sanitiseHintText(ft)
-        logger.debug({ el, name, ft })
-        modeState.hintchars += name + ft
-        modeState.hints.push(
-            new Hint(el, name, ft, onSelect, hintables.hintclasses),
-        )
+
+    for (const hintables of hintablesfiltered) {
+        const names = allnames.slice(modeState.hints.length)
+        for (const [el, name] of izip(hintables.elements, names)) {
+            let ft = elementFilterableText(el)
+            ft = vimpHelper.sanitiseHintText(ft)
+            logger.debug({ el, name, ft })
+            modeState.hintchars += name + ft
+            modeState.hints.push(
+                new Hint(el, name, ft, onSelect, hintables.hintclasses),
+            )
+        }
     }
 }
 
@@ -908,6 +926,23 @@ function elementFilterableText(el: Element): string {
     }
     // Truncate very long text values
     return text.slice(0, 2048).toLowerCase() || ""
+}
+
+/** Apply a class to hint tag chars that have been typed so they can be styled.
+@hidden */
+function addFilteredCharClass(hint: Hint, fstr: string) {
+    for (let i = 0; i < fstr.length; ++i) {
+        hint.flag.children[i].className = "TridactylHintCharPressed"
+    }
+    for (let i = fstr.length; i < hint.flag.children.length; ++i) {
+        hint.flag.children[i].className = ""
+    }
+}
+
+/** Remove the filtered char class from all hints - for resetting the style when rapid hinting
+@hidden */
+function removeFilteredCharClass() {
+    document.querySelectorAll(".TridactylHintCharPressed").forEach(el => el.classList.remove("TridactylHintCharPressed"))
 }
 
 /** @hidden */
@@ -935,6 +970,7 @@ function filterHintsSimple(fstr) {
                 foundMatch = true
             }
             h.hidden = false
+            addFilteredCharClass(h, fstr)
             active.push(h)
         }
     }
@@ -980,6 +1016,12 @@ function filterHintsVimperator(query: string, reflow = false) {
         const names = hintnames(hints.length)
         for (const [hint, name] of izip(hints, names)) {
             hint.name = name
+            hint.flag.textContent = ""
+            for (const ch of hint.name) {
+                const charspan = document.createElement("span")
+                charspan.textContent = ch
+                hint.flag.appendChild(charspan)
+            }
         }
     }
 
@@ -991,6 +1033,7 @@ function filterHintsVimperator(query: string, reflow = false) {
         if (run.isHintChar) {
             // Filter by label
             active = active.filter(hint => hint.name.startsWith(run.str))
+            active.forEach(hint => addFilteredCharClass(hint, run.str))
         } else {
             // By text
             active = active.filter(hint =>
@@ -1012,7 +1055,6 @@ function filterHintsVimperator(query: string, reflow = false) {
     for (const hint of modeState.hints) {
         if (active.includes(hint)) {
             hint.hidden = false
-            hint.flag.textContent = hint.name
         } else {
             hint.hidden = true
         }

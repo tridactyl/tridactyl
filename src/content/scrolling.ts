@@ -83,11 +83,11 @@ class ScrollingData {
             // We need to ceil() because only highdpi screens have a decimal this.elem[this.pos]
             pixelToScrollTo = Math.ceil(pixelToScrollTo)
             // We *have* to make progress, otherwise we'll think the element can't be scrolled
-            if (pixelToScrollTo == this.elem[this.scrollDirection])
+            if (pixelToScrollTo == Math.ceil(this.elem[this.scrollDirection]))
                 pixelToScrollTo += 1
         } else {
             pixelToScrollTo = Math.floor(pixelToScrollTo)
-            if (pixelToScrollTo == this.elem[this.scrollDirection])
+            if (pixelToScrollTo == Math.floor(this.elem[this.scrollDirection]))
                 pixelToScrollTo -= 1
         }
         return pixelToScrollTo

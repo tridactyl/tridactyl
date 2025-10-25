@@ -18,7 +18,8 @@ class HistoryCompletionOption
         let preplain = page.bmark ? "B" : ""
         preplain += page.search ? "S" : ""
         let pre = preplain
-        if (config.get("completions", "Tab", "statusstylepretty") === "true") {
+        // Tab settings apply here to grandfather in people who set it before when there was a bug
+        if ((config.get("completions", "Tab", "statusstylepretty") === "true") || (config.get("completions", "History", "statusstylepretty") === "true")) {
             pre = page.bmark ? "\u2B50" : ""
             pre += page.search ? "\u{1F50D}" : ""
         }

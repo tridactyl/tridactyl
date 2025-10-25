@@ -46,6 +46,9 @@ interface findResult {
 }
 
 interface HTMLElement {
+    // https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement/inert
+    inert: boolean;
+
     // Let's be future proof:
     // https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement/focus
     focus(options?: any): void

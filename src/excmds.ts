@@ -270,12 +270,12 @@ export function fillinput(selector: string, ...content: string[]) {
 
     // CodeMirror support (I think only versions prior to CodeMirror 6)
     if (inputToFill?.parentNode?.parentElement?.className?.match(/CodeMirror/gi)) {
-        ;(inputToFill.parentNode.parentElement as any).wrappedJSObject.CodeMirror.setValue(content.join(" "))
+        ; (inputToFill.parentNode.parentElement as any).wrappedJSObject.CodeMirror.setValue(content.join(" "))
         return
     }
 
     if ("value" in inputToFill) {
-        ;(inputToFill as HTMLInputElement).value = content.join(" ")
+        ; (inputToFill as HTMLInputElement).value = content.join(" ")
     } else {
         inputToFill.textContent = content.join(" ")
     }
@@ -330,6 +330,11 @@ import { getEditor } from "editor-adapter"
  * set editorcmd terminator -u -e "vim %f '+normal!%lGzv%c|'"
  * ```
  *
+ * Your editor of choice may need to run in a terminal. For example, this command opens neovim with kitty and exits after closing the editor:
+ * ```vim
+ * set editorcmd kitty nvim
+ * ```
+ *
  * You're probably better off using the default insert mode bind of `<C-i>` (Ctrl-i) to access this.
  *
  * This function returns a tuple containing the path to the file that was opened by the editor and its content. This enables creating commands such as the following one, which deletes the temporary file created by the editor:
@@ -357,8 +362,9 @@ export async function editor() {
     window.addEventListener("beforeunload", beforeUnloadListener)
 
     let ans
+    const useHtml = await config.getAsync("editorusehtml") == "true"
     try {
-        const editor = getEditor(elem, { preferHTML: true })
+        const editor = getEditor(elem, { preferHTML: useHtml })
         const text = await editor.getContent()
         const pos = await editor.getCursor()
 
@@ -761,7 +767,7 @@ export async function nativeinstall() {
     return done
 }
 
-/** Writes current config to a file.
+/** Writes current config to a file. By default, the config file is "~/.tridactylrc".
 
     NB: an RC file is not required for your settings to persist: all settings are stored in a local Firefox storage database by default as soon as you set them.
 
@@ -1351,7 +1357,7 @@ window.addEventListener("HistoryState", addTabHistory)
 /** Blur (unfocus) the active element and enter normal mode */
 //#content
 export function unfocus() {
-    ;((document.activeElement.shadowRoot ? DOM.deepestShadowRoot(document.activeElement.shadowRoot) : document).activeElement as HTMLInputElement).blur()
+    ; ((document.activeElement.shadowRoot ? DOM.deepestShadowRoot(document.activeElement.shadowRoot) : document).activeElement as HTMLInputElement).blur()
     contentState.mode = "normal"
 }
 
@@ -2447,7 +2453,7 @@ input:not([disabled]):not([readonly]):-moz-any(
 textarea:not([disabled]):not([readonly]),
 object,
 [role='application'],
-[contenteditable='true'][role='textbox']
+[contenteditable][role='textbox']:not([contenteditable='false'])
 `
 
 /** Password field selectors
@@ -2737,7 +2743,9 @@ export async function tabgrab(id: string) {
 
     The special flag "--focus-address-bar" should focus the Firefox address bar after opening if no URL is provided.
 
-    These three can be combined in any order, but need to be placed as the first arguments.
+    The `--discard` flag opens a tab in the background without attempting to load it.
+
+    These can be combined in any order, but need to be placed as the first arguments.
 
     Unlike Firefox's Ctrl-t shortcut, this opens tabs immediately after the
     currently active tab rather than at the end of the tab list because that is
@@ -2982,7 +2990,14 @@ export async function tabduplicate(index?: number) {
 */
 //#background
 export async function tabdetach(index?: number) {
-    return browser.windows.create({ tabId: await idFromIndex(index) })
+    // Workaround for detached tabs not getting focus (issue #5273)
+    const tabId = await idFromIndex(index)
+    const currentTab = await browser.tabs.get(tabId)
+    const tempTab = (await browser.windows.create({ incognito: currentTab.incognito })).tabs[0]
+    await browser.tabs.move(tabId, { index: -1, windowId: tempTab.windowId })
+    browser.tabs.remove(tempTab.id)
+    browser.tabs.update(tabId, { active: true })
+    return browser.windows.get(tempTab.windowId)
 }
 
 /** Toggle fullscreen state
@@ -3089,16 +3104,16 @@ export async function undo(item = "recent"): Promise<number> {
         item === "recent"
             ? s => s.window || (s.tab && s.tab.windowId === current_win_id)
             : item === "tab"
-            ? s => s.tab
-            : item === "tab_strict"
-            ? s => s.tab && s.tab.windowId === current_win_id
-            : item === "window"
-            ? s => s.window
-            : !isNaN(parseInt(item, 10))
-            ? s => (s.tab || s.window).sessionId === item
-            : () => {
-                  throw new Error(`[undo] Invalid argument: ${item}. Must be one of "recent, "tab", "tab_strict", "window" or a sessionId (by selecting a session using the undo completion).`)
-              } // this won't throw an error if there isn't anything in the session list, but I don't think that matters
+                ? s => s.tab
+                : item === "tab_strict"
+                    ? s => s.tab && s.tab.windowId === current_win_id
+                    : item === "window"
+                        ? s => s.window
+                        : !isNaN(parseInt(item, 10))
+                            ? s => (s.tab || s.window).sessionId === item
+                            : () => {
+                                throw new Error(`[undo] Invalid argument: ${item}. Must be one of "recent, "tab", "tab_strict", "window" or a sessionId (by selecting a session using the undo completion).`)
+                            } // this won't throw an error if there isn't anything in the session list, but I don't think that matters
     const session = sessions.find(predicate)
 
     if (session) {
@@ -4246,8 +4261,8 @@ export async function tab_helper(interactive: boolean, anyWindow: boolean, ...ke
 
         const results = new Map()
         try {
-            ;(await browser.tabs.query({ ...defaultQuery, ...{ url: id } })).forEach(tab => results.set(tab.id, tab))
-        } catch (e) {}
+            ; (await browser.tabs.query({ ...defaultQuery, ...{ url: id } })).forEach(tab => results.set(tab.id, tab))
+        } catch (e) { }
         if (results.size < 2) (await browser.tabs.query({ ...defaultQuery, ...{ title: id.replace("*", "\\*") } })).forEach(tab => results.set(tab.id, tab))
         if (results.size < 2) (await browser.tabs.query(defaultQuery)).filter(tab => tab.url.includes(id)).forEach(tab => results.set(tab.id, tab))
         if (results.size < 2) (await browser.tabs.query({ ...defaultQuery, ...{ title: "*" + id + "*" } })).forEach(tab => results.set(tab.id, tab))
@@ -4365,6 +4380,10 @@ export function comclear(name: string) {
 */
 //#background
 export async function bind(...args: string[]) {
+    if (args.includes("--recursive")) {
+        throw new Error("`--recursive` can only be called on unbind.")
+    }
+
     const args_obj = parse_bind_args(...args)
     let p = Promise.resolve()
     if (args_obj.excmd !== "") {
@@ -4822,7 +4841,10 @@ export function blacklistadd(url: string) {
     return autocmd("DocStart", url, "mode ignore")
 }
 
-/** Unbind a sequence of keys so that they do nothing at all.
+/**
+   Unbind a sequence of keys so that they do nothing at all.
+
+   Accepts the flag `--recursive` to unbind all binds that start with the specified key sequence, e.g. `:unbind --recursive ;` unbinds all the binds like `;f` `;F` `;;` etc.
 
     See also:
 
@@ -4832,6 +4854,17 @@ export function blacklistadd(url: string) {
 //#background
 export async function unbind(...args: string[]) {
     const args_obj = parse_bind_args(...args)
+
+    if (args_obj.isRecursive) {
+        const prefix = args_obj.key
+        const maps = config.get(args_obj.configName as keyof config.default_config)
+        for (const binding in maps) {
+            if (binding.startsWith(prefix)) {
+                config.set(args_obj.configName, binding, null)
+            }
+        }
+    }
+
     if (args_obj.excmd !== "") throw new Error("unbind syntax: `unbind key`")
     if (args_obj.mode == "browser") {
         const commands = await browser.commands.getAll()
@@ -5291,142 +5324,142 @@ export async function hint(...args: string[]): Promise<any> {
         const action = config.callback
             ? eval(config.callback)
             : (elem: any) => {
-                  if (config.pipeAttribute !== null) {
-                      // We have an attribute to pipe
-                      return elem[config.pipeAttribute]
-                  }
+                if (config.pipeAttribute !== null) {
+                    // We have an attribute to pipe
+                    return elem[config.pipeAttribute]
+                }
 
-                  if (config.excmd) {
-                      // We have an excmd to run. By spec, we append the element's href
-                      if (elem.href) {
-                          // /!\ RACY RACY RACY!
-                          run_exstr(config.excmd + " " + elem.href)
-                          return elem
-                      }
+                if (config.excmd) {
+                    // We have an excmd to run. By spec, we append the element's href
+                    if (elem.href) {
+                        // /!\ RACY RACY RACY!
+                        run_exstr(config.excmd + " " + elem.href)
+                        return elem
+                    }
 
-                      // Otherwise, no href so nothing to do
-                      return
-                  }
+                    // Otherwise, no href so nothing to do
+                    return
+                }
 
-                  switch (config.openMode) {
-                      case OpenMode.Highlight:
-                          const r = document.createRange()
-                          r.setStart(elem, 0)
-                          r.setEnd(elem, 1)
-                          const s = document.getSelection()
-                          s.addRange(r)
-                          return elem
+                switch (config.openMode) {
+                    case OpenMode.Highlight:
+                        const r = document.createRange()
+                        r.setStart(elem, 0)
+                        r.setEnd(elem, 1)
+                        const s = document.getSelection()
+                        s.addRange(r)
+                        return elem
 
-                      case OpenMode.Images:
-                      case OpenMode.ImagesTab:
-                          const src = elem.getAttribute("src")
-                          if (src) {
-                              if (config.openMode === OpenMode.ImagesTab) {
-                                  // TODO: await? Other hintTabOpen calls don't seem to use one
-                                  hintTabOpen(new URL(src, window.location.href).href)
-                              } else {
-                                  open(new URL(src, window.location.href).href)
-                              }
-                              return elem
-                          }
+                    case OpenMode.Images:
+                    case OpenMode.ImagesTab:
+                        const src = elem.getAttribute("src")
+                        if (src) {
+                            if (config.openMode === OpenMode.ImagesTab) {
+                                // TODO: await? Other hintTabOpen calls don't seem to use one
+                                hintTabOpen(new URL(src, window.location.href).href)
+                            } else {
+                                open(new URL(src, window.location.href).href)
+                            }
+                            return elem
+                        }
 
-                          return
+                        return
 
-                      case OpenMode.Kill:
-                          elem.remove()
-                          return elem
+                    case OpenMode.Kill:
+                        elem.remove()
+                        return elem
 
-                      case OpenMode.KillTridactyl:
-                          elem.classList.add("TridactylKilledElem")
-                          KILL_STACK.push(elem)
-                          return elem
+                    case OpenMode.KillTridactyl:
+                        elem.classList.add("TridactylKilledElem")
+                        KILL_STACK.push(elem)
+                        return elem
 
-                      case OpenMode.SaveResource:
-                      case OpenMode.SaveImage:
-                      case OpenMode.SaveAsResource:
-                      case OpenMode.SaveAsImage:
-                          const saveAs = config.openMode === OpenMode.SaveAsResource || config.openMode === OpenMode.SaveAsImage
-                          const attr = config.openMode === OpenMode.SaveImage || config.openMode === OpenMode.SaveAsImage ? "src" : "href"
-                          Messaging.message("download_background", "downloadUrl", new URL(elem[attr], window.location.href).href, saveAs)
-                          return elem
+                    case OpenMode.SaveResource:
+                    case OpenMode.SaveImage:
+                    case OpenMode.SaveAsResource:
+                    case OpenMode.SaveAsImage:
+                        const saveAs = config.openMode === OpenMode.SaveAsResource || config.openMode === OpenMode.SaveAsImage
+                        const attr = config.openMode === OpenMode.SaveImage || config.openMode === OpenMode.SaveAsImage ? "src" : "href"
+                        Messaging.message("download_background", "downloadUrl", new URL(elem[attr], window.location.href).href, saveAs)
+                        return elem
 
-                      case OpenMode.Scroll:
-                          elem.scrollIntoView(true)
-                          return elem
+                    case OpenMode.Scroll:
+                        elem.scrollIntoView(true)
+                        return elem
 
-                      case OpenMode.ScrollFocus:
-                          let tabindexAdded = false
-                          // img can only be focused when they have the tabindex attribute
-                          if (elem instanceof HTMLImageElement && !elem.getAttribute("tabindex")) {
-                              elem.setAttribute("tabindex", "-1")
-                              tabindexAdded = true
-                          }
-                          elem.focus()
-                          scrolling.setCurrentFocus(elem)
-                          // img doesn't get unfocused when its tabindex is removed, so no need to keep it around
-                          if (tabindexAdded) elem.removeAttribute("tabindex")
-                          return elem
+                    case OpenMode.ScrollFocus:
+                        let tabindexAdded = false
+                        // img can only be focused when they have the tabindex attribute
+                        if (elem instanceof HTMLImageElement && !elem.getAttribute("tabindex")) {
+                            elem.setAttribute("tabindex", "-1")
+                            tabindexAdded = true
+                        }
+                        elem.focus()
+                        scrolling.setCurrentFocus(elem)
+                        // img doesn't get unfocused when its tabindex is removed, so no need to keep it around
+                        if (tabindexAdded) elem.removeAttribute("tabindex")
+                        return elem
 
-                      case OpenMode.TTSRead:
-                          TTS.readText(elem.textContent)
-                          return elem
+                    case OpenMode.TTSRead:
+                        TTS.readText(elem.textContent)
+                        return elem
 
-                      case OpenMode.YankAlt:
-                          // Yank link alt text
-                          // ???: Neither anchors nor links posses an "alt" attribute. I'm assuming that the person who wrote this code also wanted to select the alt text of images
-                          return elem.title ? elem.title : elem.alt
+                    case OpenMode.YankAlt:
+                        // Yank link alt text
+                        // ???: Neither anchors nor links posses an "alt" attribute. I'm assuming that the person who wrote this code also wanted to select the alt text of images
+                        return elem.title ? elem.title : elem.alt
 
-                      case OpenMode.YankAnchor:
-                          const anchorUrl = new URL(window.location.href)
-                          // ???: What purpose does selecting elements with a name attribute have? Selecting values that only have meaning in forms doesn't seem very useful.
-                          // https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes
-                          anchorUrl.hash = elem.id || elem.name
-                          return anchorUrl.href
+                    case OpenMode.YankAnchor:
+                        const anchorUrl = new URL(window.location.href)
+                        // ???: What purpose does selecting elements with a name attribute have? Selecting values that only have meaning in forms doesn't seem very useful.
+                        // https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes
+                        anchorUrl.hash = elem.id || elem.name
+                        return anchorUrl.href
 
-                      case OpenMode.YankLink:
-                          if (elem.href) {
-                              return elem.href
-                          }
+                    case OpenMode.YankLink:
+                        if (elem.href) {
+                            return elem.href
+                        }
 
-                          return
+                        return
 
-                      case OpenMode.YankText:
-                          return elem.textContent
-                  }
+                    case OpenMode.YankText:
+                        return elem.textContent
+                }
 
-                  if (elem.href) {
-                      elem.focus()
+                if (elem.href) {
+                    elem.focus()
 
-                      switch (config.openMode) {
-                          case OpenMode.Default:
-                              DOM.simulateClick(elem)
-                              break
-                          case OpenMode.Tab:
-                              hintTabOpen(elem.href, true).catch(() => DOM.simulateClick(elem, DOM.TabTarget.NewTab))
-                              break
-                          case OpenMode.BackgroundTab:
-                              hintTabOpen(elem.href, false).catch(() => DOM.simulateClick(elem, DOM.TabTarget.NewBackgroundTab))
-                              break
-                          case OpenMode.Window:
-                              openInNewWindow({ url: new URL(elem.href, window.location.href).href })
-                              break
-                          case OpenMode.WindowPrivate:
-                              openInNewWindow({ url: elem.href, incognito: true })
-                              break
-                      }
-                  } else {
-                      if (config.openMode === OpenMode.WindowPrivate) {
-                          // We want a private window, but the element doesn't have an href, so
-                          // we avoid opening the target by accident
-                          return
-                      } else {
-                          elem.focus()
-                          DOM.simulateClick(elem)
-                      }
-                  }
+                    switch (config.openMode) {
+                        case OpenMode.Default:
+                            DOM.simulateClick(elem)
+                            break
+                        case OpenMode.Tab:
+                            hintTabOpen(elem.href, true).catch(() => DOM.simulateClick(elem, DOM.TabTarget.NewTab))
+                            break
+                        case OpenMode.BackgroundTab:
+                            hintTabOpen(elem.href, false).catch(() => DOM.simulateClick(elem, DOM.TabTarget.NewBackgroundTab))
+                            break
+                        case OpenMode.Window:
+                            openInNewWindow({ url: new URL(elem.href, window.location.href).href })
+                            break
+                        case OpenMode.WindowPrivate:
+                            openInNewWindow({ url: elem.href, incognito: true })
+                            break
+                    }
+                } else {
+                    if (config.openMode === OpenMode.WindowPrivate) {
+                        // We want a private window, but the element doesn't have an href, so
+                        // we avoid opening the target by accident
+                        return
+                    } else {
+                        elem.focus()
+                        DOM.simulateClick(elem)
+                    }
+                }
 
-                  return elem
-              }
+                return elem
+            }
 
         if (config.immediate) {
             // Immediate mode, perform the target action on all matching nodes
@@ -5746,12 +5779,12 @@ export async function bmark(url?: string, ...titlearr: string[]) {
         url === undefined
             ? (await activeTab()).url
             : (_ => {
-                  try {
-                      return new URL(url).href
-                  } catch (e) {
-                      return new URL("http://" + url).href
-                  }
-              })()
+                try {
+                    return new URL(url).href
+                } catch (e) {
+                    return new URL("http://" + url).href
+                }
+            })()
     let title = titlearr.join(" ")
     // if titlearr is given and we have duplicates, we probably want to give an error here.
     const dupbmarks = await browser.bookmarks.search({ url })
@@ -5868,7 +5901,7 @@ async function js_helper(str: string[]) {
     }
 
     if (doSource) {
-        let sourcePath = jsContent
+        let sourcePath = jsContent.trim()
         if (fromRC) {
             const sep = "/"
             const rcPath = (await Native.getrcpath("unix")).split(sep).slice(0, -1)
@@ -5891,22 +5924,34 @@ async function js_helper(str: string[]) {
  *
  * Usage:
  *
- *        `js [-p] javascript code ... [arg]`
+ *     `js javascript code ...`
  *
- *        `js [-s|-r|-p] javascript_filename [arg]`
+ *     `js -p javascript code ... arg`
+ *
+ *     `js [-s|-r] javascript_filename`
+ *
+ *     `js -p [-s|-r] javascript_filename arg`
+ *
+ *     `js -d³ [-s|-r] javascript_filename³ arg1 arg2 ...`
+ *     (where `³` is any char  that you can guarantee won't appear in your JS code)
  *
  *   - options
- *     - -p pass an argument to js for use with `composite`. The argument is passed as the last space-separated argument of `js`, i.e. `str[str.length-1]` and stored in the magic variable JS_ARG - see below for example usage.
- *    -d[delimiter character] to take a space-separated array of arguments after the delimiter, stored in the magic variable `JS_ARGS` (which is an array).
- *     - -s load the js source from a Javascript file.
- *     - -r load the js source from a Javascript file relative to your RC file. (NB: will throw an error if no RC file exists)
+ *     - `-p` pass an argument to js for use with `composite`. The argument is passed as the last space-separated argument of `js`, i.e. `str[str.length-1]` and stored in the magic variable `JS_ARG` (string) - see below for example usage.
+ *     - `-d[delimiter character]` to take a space-separated array of arguments after the delimiter, stored in the magic variable `JS_ARGS` (array) - see below for example usage.
+ *     - `-s` load the js source from a Javascript file.
+ *     - `-r` load the js source from a Javascript file relative to your RC file. (NB: will throw an error if no RC file exists)
  *
  * Some of Tridactyl's functions are accessible here via the `tri` object. Just do `console.log(tri)` in the web console on the new tab page to see what's available.
  * `tri.bg` is an object enabling access to the background script's context. It works similarly to the `tri.tabs` objects documented in the [[jsb]] documentation.
  *
- * If you want to pipe an argument to `js`, you need to use the "-p" flag or "-d" flag with an argument and then use the JS_ARG global variable, e.g:
+ * If you want to pipe an argument to `js`, you need to use the `-p` flag or `-d` flag with an argument and then use the JS_ARG global variable, e.g:
  *
  *     `composite get_current_url | js -p alert(JS_ARG)`
+ *
+ * You can also use `-p` to make simple single-argument ex-commands:
+ *
+ *     `command alert_msg js -p window.alert(new Date().toISOFormat() + " " + JS_ARG)
+ *     And use it like: `alert_msg HeyYou`
  *
  * To run JavaScript from a source file:
  *
@@ -5924,6 +5969,9 @@ async function js_helper(str: string[]) {
  *  You can use `-d` to make your own ex-commands:
  *
  *      `command loudecho js -d€ window.alert(JS_ARGS.join(" "))€`
+ *      And use it like: `loudecho this is a message!`
+ *
+ *      Everything after `€` will be available in `JS_ARGS`, starting at index 1 (the first item is usually an empty string).
  *
  */
 /* tslint:disable:no-identical-functions */
@@ -5944,7 +5992,7 @@ export async function js(...str: string[]) {
  * - Run `alert()` in a tab whose id is 9:
  *   `:jsb tri.tabs[9].alert()`
  *
- * You can also directly access the corresonding property in all tabs by using
+ * You can also directly access the corresponding property in all tabs by using
  * the "tabs" object itself, e.g.
  *
  * - Build a string containing the id of the active element of each tab:
@@ -5957,6 +6005,10 @@ export async function js(...str: string[]) {
  * When fetching a value or running a function in a tab through the `tabs` property, the returned value is a Promise and must be awaited.
  * Setting values through the `tab` property is asynchronous too and there is no way to await this operation.
  * If you need to ensure that the value has been set before performing another action, use tri.tabs[tab.id].tri.excmds.js to set the value instead and await the result.
+ *
+ * NOTE: Using plain `console.log` with `jsb`:
+ * Since the code is being executed in the background context, logs are sent to the Browser Console instead of the usual Web Console.
+ * To open the extension-specific console, open `about:debugging`, click `This Firefox`, locate Tridactyl then click `Inspect`.
  */
 /* tslint:disable:no-identical-functions */
 //#background
@@ -6253,3 +6305,71 @@ export async function tstattach(index: string) {
     const tabId = await idFromIndex(index)
     treestyletab.attachTree(tabId)
 }
+
+// {{{ Profile management
+
+import * as Profiles from "@src/lib/profiles"
+
+/**
+ * Launch a new Firefox instance with the specified profile.
+ *
+ * If no profile name is specified, shows available profiles.
+ * Requires the native messenger to be installed.
+ *
+ * Example: `profilelaunch myprofile`
+ * Example: `profilelaunch "Work Profile"`
+ */
+//#background
+export async function profilelaunch(profileName?: string) {
+    if (!profileName) {
+        fillcmdline("Usage: profilelaunch <profile-name>")
+        return
+    }
+
+    try {
+        await Profiles.launchProfile(profileName)
+        fillcmdline(`Launched Firefox with profile "${profileName}"`)
+    } catch (e) {
+        throw new Error(`Profile launch failed. Is the native messenger installed? Error: ${e}`)
+    }
+}
+
+/**
+ * Create a new Firefox profile.
+ *
+ * Example: `profilecreate "New Profile"`
+ */
+//#background
+export async function profilecreate(profileName: string) {
+    if (!profileName) {
+        throw new Error("Profile name is required. Usage: profilecreate <profile-name>")
+    }
+
+    try {
+        await Profiles.createProfile(profileName)
+        fillcmdline(`Created profile "${profileName}"`)
+    } catch (e) {
+        throw new Error(`Profile creation failed. Is the native messenger installed? Error: ${e}`)
+    }
+}
+
+/**
+ * Rename a Firefox profile.
+ *
+ * Example: `profilerename "Old Name" "New Name"`
+ */
+//#background
+export async function profilerename(oldName: string, newName: string) {
+    if (!oldName || !newName) {
+        throw new Error("Both old and new profile names are required. Usage: profilerename <old-name> <new-name>")
+    }
+
+    try {
+        await Profiles.renameProfile(oldName, newName)
+        fillcmdline(`Renamed profile "${oldName}" to "${newName}"`)
+    } catch (e) {
+        throw new Error(`Profile rename failed. Is the native messenger installed? Error: ${e}`)
+    }
+}
+
+// }}}

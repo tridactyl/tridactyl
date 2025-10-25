@@ -16,11 +16,15 @@ span.TridactylHint {
     z-index: 2147483646 !important;
 }
 
+span.TridactylHintCharPressed {
+    color: var(--tridactyl-hintspan-pressed-fg) !important;
+}
+
 span.TridactylHintA {
     z-index: 2147483647 !important;
 }
 
-span.TridactylHintUppercase {
+span.TridactylHintUppercase, span.TridactylHintUppercase>span {
     text-transform: uppercase !important;
 }
 

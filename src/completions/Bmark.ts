@@ -9,7 +9,7 @@ class BmarkCompletionOption
 
     constructor(
         public value: string,
-        bmark: browser.bookmarks.BookmarkTreeNode,
+        bmark: providers.Bookmark,
     ) {
         super()
         if (!bmark.title) {
@@ -17,11 +17,11 @@ class BmarkCompletionOption
         }
 
         // Push properties we want to fuzmatch on
-        this.fuseKeys.push(bmark.title, bmark.url)
+        this.fuseKeys.push(bmark.path, bmark.title, bmark.url)
 
         this.html = html`<tr class="BmarkCompletionOption option">
             <td class="prefix">${"".padEnd(2)}</td>
-            <td class="title">${bmark.title}</td>
+            <td class="title">${bmark.path}${bmark.title}</td>
             <td class="content">
                 <a class="url" target="_blank" href=${bmark.url}
                     >${bmark.url}</a
@@ -105,5 +105,58 @@ export class BmarkCompletionSource extends Completions.CompletionSourceFuse {
         } else {
             throw new Error("lastExstr and option must be defined!")
         }
+    }
+}
+
+export class BookmarkFolderCompletionSource extends Completions.CompletionSourceFuse {
+    constructor() {
+        super(["bmark"], "BookmarkFolderCompletionSource", "Bookmark Folders", {
+            trailingSpace: false,
+        })
+    }
+
+    async onInput(exstr: string) {
+        const [_command, _url, path] = this.parseArgs(exstr)
+        if (path == undefined) {
+            this.options = undefined
+            return
+        }
+        this.options = (await providers.getBookmarkFolders(path))
+            .slice(0, 10)
+            .map(path => new BookmarkFolderCompletionOption(path))
+    }
+
+    splitOnPrefix(exstr: string): string[] {
+        const [command, url, path] = this.parseArgs(exstr)
+        return [`${command} ${url}`, path]
+    }
+
+    private parseArgs(exstr: string): string[] {
+        const [command, args] = super.splitOnPrefix(exstr)
+        if (!args) {
+            return [command]
+        }
+        const spaceIndex = args.search(/\s+/)
+        const url = args.slice(0, spaceIndex)
+        if (spaceIndex == -1) {
+            return [command, url]
+        }
+        const path = args.slice(spaceIndex + 1)
+        return [command, url, path]
+    }
+}
+
+class BookmarkFolderCompletionOption
+    extends Completions.CompletionOptionHTML
+    implements Completions.CompletionOptionFuse {
+    fuseKeys = []
+
+    constructor(public value: string) {
+        super()
+        this.fuseKeys.push(value)
+        this.html = html`<tr class="BookmarkFolderCompletionOption option">
+            <td class="prefix">${"".padEnd(2)}</td>
+            <td class="title">${value}</td>
+        </tr>`
     }
 }

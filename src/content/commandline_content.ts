@@ -40,7 +40,7 @@ async function init() {
     const noiframe = await config.getAsync("noiframe")
     const notridactyl = await config.getAsync("superignore")
 
-    if (document.contentType.includes("xml")) {
+    if (document.contentType != "application/xhtml+xml" && document.contentType.includes("xml")) {
         logger.info("Content type is xml; aborting iframe injection.")
         return
     }
@@ -99,6 +99,12 @@ init().catch(() => {
     )
 })
 
+export function ensureIframeExists() {
+    if (cmdline_iframe && !cmdline_iframe.isConnected) {
+        document.documentElement.appendChild(cmdline_iframe)
+    }
+}
+
 export function show(hidehover = false) {
     try {
         /* Hide "hoverlink" pop-up which obscures command line
@@ -114,6 +120,8 @@ export function show(hidehover = false) {
             document.body.removeChild(a)
         }
 
+        ensureIframeExists()
+        cmdline_iframe.inert = false;
         cmdline_iframe.classList.remove("hidden")
         const height =
             cmdline_iframe.contentWindow.document.body.offsetHeight + "px"
@@ -128,6 +136,7 @@ export function show(hidehover = false) {
 
 export function hide() {
     try {
+        cmdline_iframe.inert = true;
         cmdline_iframe.classList.add("hidden")
         cmdline_iframe.setAttribute("style", "height: 0px !important;")
     } catch (e) {
@@ -154,7 +163,7 @@ export function hide_and_blur() {
 
 export function executeWithoutCommandLine(fn) {
     let parent
-    if (cmdline_iframe) {
+    if (cmdline_iframe && cmdline_iframe.isConnected) {
         parent = cmdline_iframe.parentNode
         parent.removeChild(cmdline_iframe)
     }

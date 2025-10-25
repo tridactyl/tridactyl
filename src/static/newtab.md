@@ -4,9 +4,7 @@ Tridactyl has to override your new tab page due to WebExtension limitations. You
 
 -   You can view your current configuration with `:viewconfig`.
 
--   _Breaking change_: lots of searchurls have been removed because it seems that people were using them by accident more often than on purpose. If you miss one, see `:help searchurls` for how to add it back.
-
--   Tridactyl funding 👀: [donate via GitHub sponsors here](https://github.com/users/bovine3dom/sponsorship). Please consider starting a recurring donation to bovine3dom (me) if you find Tridactyl useful :) With inflation and churn, I am getting about 30% less than I was last year, so any help would be greatly appreciated!
+-   Tridactyl funding 👀: [donate via GitHub sponsors here](https://github.com/users/bovine3dom/sponsorship). Please consider starting a recurring donation to bovine3dom (me) if you find Tridactyl useful. In July 2025, I got the lowest amount since 2023, so I guess I need to gently push this again :)
 
 -   All GitHub and Patreon donors get a nice little newsletter every now and then; for people who donate at least 10USD a month I briefly did a "tips & tricks" newsletter roughly once a month ([see an example here](https://github.com/tridactyl/tridactyl/blob/master/doc/newsletters/tips-and-tricks/1-hint-css-selectors.md)) but now I'm open to other ideas for saying thanks. You can also donate via [PayPal](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=7JQHV4N2YZCTY), but they charge fairly high fees and you won't get any newsletters. Donations currently aim to ensure that bovine3dom can work one day a week on Tridactyl at minimum wage. Previously the donations have funded an in-person developer retreat.
 

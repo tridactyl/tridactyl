@@ -44,7 +44,7 @@ export function isTextEditable(element: Element) {
                 // This happens on e.g. svgs.
                 return false
             }
-            if (element.contentEditable.toUpperCase() === "TRUE") {
+            if (element.isContentEditable) {
                 return true
             }
         }
@@ -336,11 +336,19 @@ export function getSelector(e: HTMLElement) {
 /* Get all the elements that match the given selector inside shadow DOM */
 function getShadowElementsBySelector(selector: string) {
     let elems = []
-    document.querySelectorAll("*").forEach(elem => {
-        if (elem.shadowRoot) {
-            elems = elems.concat(...elem.shadowRoot.querySelectorAll(selector))
-        }
-    })
+    const roots: (Document | ShadowRoot)[] = [document]
+
+    while (roots.length) {
+        const root = roots.pop()
+        root.querySelectorAll("*").forEach(elem => {
+            if ((elem as any).openOrClosedShadowRoot) {
+                roots.push((elem as any).openOrClosedShadowRoot)
+                elems = elems.concat(
+                    ...roots[roots.length - 1].querySelectorAll(selector),
+                )
+            }
+        })
+    }
     return elems
 }
 

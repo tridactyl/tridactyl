@@ -785,7 +785,7 @@ export class default_config {
     /**
      * URL the newtab will redirect to.
      *
-     * All usual rules about things you can open with `open` apply, with the caveat that you'll get interesting results if you try to use something that needs `nativeopen`: so don't try `about:newtab` or a `file:///` URI. You should instead use a data URI - https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/Data_URIs - or host a local webserver (e.g. Caddy).
+     * All usual rules about things you can open with `open` apply, with the caveat that you'll get interesting results if you try to use something that needs `nativeopen`: so don't try `about:newtab` or a `file:///` URI. You can instead host a local webserver (e.g. Caddy).
      */
     newtab = ""
 
@@ -1015,6 +1015,13 @@ export class default_config {
     editorcmd = "auto"
 
     /**
+     * Try to preserve HTML tags when using an external editor.
+     *
+     * Defaults to false. Some sites work better with it set to true, see https://github.com/tridactyl/tridactyl/issues/3900
+     */
+    editorusehtml = "false"
+
+    /**
      * Command that should be run by the [[rssexec]] ex command. Has the
      * following format:
      * - %u: url
@@ -1138,7 +1145,7 @@ export class default_config {
     tabopencontaineraware: "true" | "false" = "false"
 
     /**
-     * If moodeindicator is enabled, containerindicator will color the border of the mode indicator with the container color.
+     * If modeindicator is enabled, containerindicator will color the border of the mode indicator with the container color.
      */
     containerindicator: "true" | "false" = "true"
 
@@ -1166,6 +1173,11 @@ export class default_config {
      * When displaying bookmarks in history completions, how many page views to pretend they have.
      */
     bmarkweight = 100
+
+    /**
+     * Should folders be shown and filtered in bookmark searches.
+     */
+    bmarkfoldersearch: "true" | "false" = "false"
 
     /**
      * When displaying searchurls in history completions, how many page views to pretend they have.
