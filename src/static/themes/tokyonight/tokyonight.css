@@ -1,0 +1,260 @@
+:root {
+    /* Colour swatches */
+
+    /* declaring variables like this allows rgba() conversion for opacity */
+    --tritheme-red-rgb: 247, 118, 142;
+    --tritheme-orange-rgb: 255, 158, 100;
+    --tritheme-orange2-rgb: 252, 161, 48;
+    --tritheme-orange3-rgb: 255, 150, 108;
+    --tritheme-yellow-rgb: 224, 175, 104;
+    --tritheme-green-rgb: 115, 122, 162;
+    --tritheme-cyan-rgb: 125, 207, 255;
+    --tritheme-lightblue-rgb: 200, 211, 245;
+    --tritheme-blue-rgb: 61, 89, 161;
+    --tritheme-blue2-rgb: 86, 95, 137;
+    --tritheme-blue3-rgb: 99, 109, 166;
+    --tritheme-darkblue-rgb: 31, 35, 53;
+    --tritheme-darkblue2-rgb: 21, 17, 51;
+    --tritheme-darkblue3-rgb: 59, 66, 97;
+    --tritheme-darkblue4-rgb: 34, 36, 54;
+    --tritheme-darkblue5-rgb: 41, 46, 66;
+    --tritheme-purple-rgb: 157, 124, 216;
+
+    /* Tokyonight moon colours */
+    --tritheme-moon-orange-rgb: 56, 52, 61;
+    --tritheme-moon-yellow-rgb: 255, 199, 119;
+    --tritheme-moon-green-rgb: 195, 232, 141;
+    --tritheme-moon-green2-rgb: 79, 214, 190;
+    --tritheme-moon-green3-rgb: 200, 211, 245;
+    --tritheme-moon-teal-rgb: 79, 214, 190;
+    --tritheme-moon-blue-rgb: 130, 170, 255;
+    --tritheme-moon-blue2-rgb: 101, 188, 255;
+    --tritheme-moon-blue3-rgb: 13, 185, 215;
+    --tritheme-moon-blue4-rgb: 62, 104, 215;
+    --tritheme-moon-darkblue-rgb: 32, 51, 70;
+    --tritheme-moon-darkblue2-rgb: 30, 32, 48;
+    --tritheme-moon-purple-rgb: 252, 167, 234;
+    --tritheme-moon-magenta-rgb: 192, 153, 255;
+    --tritheme-moon-magenta2-rgb: 255, 0, 124;
+
+    /* rgb colours */
+    --tritheme-red: rgb(var(--tritheme-red-rgb));
+    --tritheme-orange: rgb(var(--tritheme-orange-rgb));
+    --tritheme-orange2: rgb(var(--tritheme-orange2-rgb));
+    --tritheme-orange3: rgb(var(--tritheme-orange3-rgb));
+    --tritheme-yellow: rgb(var(--tritheme-yellow-rgb));
+    --tritheme-green: rgb(var(--tritheme-green-rgb));
+    --tritheme-cyan: rgb(var(--tritheme-cyan-rgb));
+    --tritheme-lightblue: rgb(var(--tritheme-lightblue-rgb));
+    --tritheme-blue: rgb(var(--tritheme-blue-rgb));
+    --tritheme-blue2: rgb(var(--tritheme-blue2-rgb));
+    --tritheme-blue3: rgb(var(--tritheme-blue3-rgb));
+    --tritheme-darkblue: rgb(var(--tritheme-darkblue-rgb));
+    --tritheme-darkblue2: rgb(var(--tritheme-darkblue2-rgb));
+    --tritheme-darkblue3: rgb(var(--tritheme-darkblue3-rgb));
+    --tritheme-darkblue4: rgb(var(--tritheme-darkblue4-rgb));
+    --tritheme-purple: rgb(var(--tritheme-purple-rgb));
+
+    --tritheme-moon-orange: rgb(var(--tritheme-moon-orange-rgb));
+    --tritheme-moon-yellow: rgb(var(--tritheme-moon-yellow-rgb));
+    --tritheme-moon-green: rgb(var(--tritheme-moon-green-rgb));
+    --tritheme-moon-green2: rgb(var(--tritheme-moon-green2-rgb));
+    --tritheme-moon-green3: rgb(var(--tritheme-moon-green3-rgb));
+    --tritheme-moon-teal: rgb(var(--tritheme-moon-teal-rgb));
+    --tritheme-moon-blue: rgb(var(--tritheme-moon-blue-rgb));
+    --tritheme-moon-blue2: rgb(var(--tritheme-moon-blue2-rgb));
+    --tritheme-moon-blue3: rgb(var(--tritheme-moon-blue3-rgb));
+    --tritheme-moon-blue4: rgb(var(--tritheme-moon-blue4-rgb));
+    --tritheme-moon-darkblue: rgb(var(--tritheme-moon-darkblue-rgb));
+    --tritheme-moon-darkblue2: rgb(var(--tritheme-moon-darkblue2-rgb));
+    --tritheme-moon-purple: rgb(var(--tritheme-moon-purple-rgb));
+    --tritheme-moon-magenta: rgb(var(--tritheme-moon-magenta-rgb));
+    --tritheme-moon-magenta2: rgb(var(--tritheme-moon-magenta2-rgb));
+
+    /* Generic */
+    --tridactyl-font-family: "JetBrains Mono", "SF Mono", monospace;
+    --tridactyl-bg: var(--tritheme-darkblue4);
+    --tridactyl-fg: var(--tritheme-lightblue);
+    --tridactyl-private-window-icon-url: url("chrome://global/skin/icons/indicator-private-browsing.svg");
+
+    /* Mode indicator */
+    --tridactyl-status-fg: white;
+    --tridactyl-status-border: var(--tritheme-darkblue2) solid 1.5px;
+    --tridactyl-status-bg: rgba(var(--tritheme-darkblue4-rgb), 0.5);
+
+    --tritheme-status-private-border: var(--tridactyl-status-border);
+    --tritheme-status-private-bg: var(--tridactyl-status-bg);
+
+    /* Search highlight */
+    --tridactyl-search-highlight-color: yellow;
+
+    /* Hinting */
+
+    /* Hint character tags */
+    --tridactyl-hintspan-font-family: var(--tridactyl-font-family);
+    --tridactyl-hintspan-font-size: var(--tridactyl-small-font-size);
+    --tridactyl-hintspan-bg: var(--tritheme-moon-darkblue);
+    --tridactyl-hintspan-fg: var(--tritheme-moon-green2);
+    --tridactyl-hintspan-js-background: var(--tritheme-darkblue4);
+    --tridactyl-hintspan-border-width: 1px;
+    --tridactyl-hintspan-border-color: var(--tritheme-moon-magenta);
+
+    --tritheme-hintspan-padding: 0.5px;
+
+    --tridactyl-hintspan-active-fg: var(--tridactyl-hintspan-bg);
+    --tridactyl-hintspan-active-bg: var(--tritheme-moon-yellow);
+
+    --tridactyl-hintspan-pressed-fg: grey;
+
+    /* Element highlights */
+    --tritactyl-hint-fg: rgb(211, 235, 249);
+    --tridactyl-hint-bg: rgba(0, 4, 66, 0.35);
+    --tridactyl-hint-outline: 1px solid var(--tritheme-purple);
+
+    --tridactyl-hint-active-fg: rgb(27, 29, 43);
+    --tridactyl-hint-active-bg: var(--tritheme-orange3);
+    --tridactyl-hint-active-outline: 1px solid var(--tritheme-moon-yellow);
+
+    --tridactyl-hint-highlight-opacity: 0.25;
+
+    --tridactyl-hint-highlight-fg: var(--tritheme-cyan);
+    --tridactyl-hint-highlight-bg: var(--tritheme-moon-blue2);
+
+    --tridactyl-hint-highlight-active-fg: var(--tritheme-moon-yellow);
+    --tridactyl-hint-highlight-active-bg: var(--tritheme-orange);
+
+    /* Commandline */
+
+    --tridactyl-cmdl-fg: var(--tritheme-lightblue);
+    --tridactyl-cmdl-bg: var(--tritheme-darkblue4);
+    --tridactyl-cmdl-font-family: var(--tridactyl-font-family);
+
+    --tritheme-cmdl-border-color: var(--tritheme-moon-blue3);
+    --tridactyl-cmdl-input-border: 0.5px solid var(--tritheme-cmdl-border-color);
+
+    --tritheme-cmdl-before-fg: var(--tritheme-moon-blue3);
+    --tritheme-cmdl-before-content: "> ";
+
+    /* Completions */
+
+    /* Completions - Generic */
+
+    --tridactyl-cmplt-fg: var(--tritheme-moon-magenta);
+    --tridactyl-cmplt-bg: var(--tritheme-moon-darkblue2);
+    --tridactyl-cmplt-font-family: var(--tridactyl-font-family);
+    --tridactyl-cmplt-border-top: 1px solid #0c0c0d;
+
+    /* Completions - Excmds */
+
+    --tritheme-cmpltexcmds-fg: var(--tritheme-moon-magenta);
+
+    /* Completions - Documentation */
+
+    --tritheme-cmddoc-fg: var(--tritheme-blue3);
+
+    /* Section header */
+    --tridactyl-header-first-bg: var(--tritheme-darkblue4);
+    --tridactyl-header-second-bg: var(--tritheme-darkblue4);
+    --tridactyl-header-third-bg: var(--tritheme-darkblue4);
+
+    /* URL style */
+
+    --tridactyl-url-fg: var(--tritheme-purple);
+    --tridactyl-url-bg: none;
+
+    /* Option focused */
+
+    --tridactyl-of-fg: var(--tritheme-moon-yellow);
+    --tridactyl-of-bg: var(--tritheme-moon-orange);
+
+    /* New tab - generic */
+
+    --tritheme-link-fg: var(--tritheme-cyan);
+
+    /* New tab - spoiler box */
+
+    --tridactyl-highlight-box-bg: #4a4a4f;
+    --tridactyl-highlight-box-fg: #d7d7db;
+
+    --tritheme-changelog-border-colour: #737373;
+}
+
+#command-line-holder {
+    border-top: var(--tridactyl-cmdl-input-border);
+    border-bottom: var(--tridactyl-cmdl-input-border);
+}
+
+.TridactylPrivate {
+    border: var(--tritheme-status-private-border) !important;
+    background: var(--tritheme-status-private-bg) !important;
+}
+
+span.TridactylHint {
+    padding: var(--tritheme-hintspan-padding) !important;
+}
+
+span.TridactylHint.TridactylJSHint {
+    color: var(--tritheme-orange2) !important;
+}
+
+span.TridactylHint.TridactylJSHint.TridactylHintSpanActive {
+    color: var(--tridactyl-hintspan-active-fg) !important;
+}
+
+:root #tridactyl-colon::before,
+:root .ExcmdCompletionOption td.excmd::before {
+    color: var(--tritheme-cmdl-before-fg);
+    content: var(--tritheme-cmdl-before-content);
+    font-weight: bold;
+}
+
+/* prevent input from going to two lines with the ::before chars */
+:root #tridactyl-input {
+    width: calc(100% - 3em);
+    padding-left: 0 !important;
+}
+
+:root #completions .focused,
+:root #completions .focused .url {
+    text-decoration: underline;
+}
+
+/* styles for specific completion types */
+:root #completions td.documentation,
+:root #completions td.doc {
+    color: var(--tritheme-cmddoc-fg);
+    font-style: italic;
+    white-space: nowrap;
+    overflow: auto;
+    text-overflow: ellipsis;
+}
+
+.focused td.documentation,
+.focused td.doc {
+    color: var(--tridactyl-of-fg);
+}
+
+td.excmd,
+td.name {
+    color: var(--tritheme-cmpltexcmds-fg);
+}
+
+td.excmd {
+    /* line up excmds + ::before with input */
+    padding-left: 0.125ex !important;
+}
+
+td.title {
+    color: var(--tritheme-cyan);
+}
+
+/* tridactyl changelog on new tab page */
+:root.TridactylOwnNamespace input[id^="spoiler"] ~ .spoiler {
+    border-color: var(--tritheme-changelog-border-colour);
+}
+
+/* link colours on the tridactyl new tab page */
+:root.TridactylOwnNamespace a {
+    color: var(--tritheme-link-fg);
+}
+
