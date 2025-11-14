@@ -2283,7 +2283,7 @@ export function urlmodify_js(mode: "-t" | "-r" | "-s" | "-q" | "-Q" | "-g" | "-t
  */
 //#content
 export async function geturlsforlinks(reltype = "rel", rel: string) {
-    const elems = document.querySelectorAll("link[" + reltype + "='" + rel + "']")
+    const elems = document.querySelectorAll("link[" + reltype + "^='" + rel + "']")
     if (elems) return Array.prototype.map.call(elems, x => x.href)
     return []
 }
