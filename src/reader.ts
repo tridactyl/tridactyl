@@ -45,6 +45,12 @@ async function updatePage() {
     } else {
         document.getElementById("tricanonlink")?.remove()
     }
+    if (article.favicon !== undefined) {
+        const icon = document.createElement("link")
+        icon.rel = "icon"
+        icon.href = article.favicon
+        document.head.appendChild(icon)
+    }
 }
 
 window.addEventListener("load", updatePage)
