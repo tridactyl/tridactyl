@@ -111,12 +111,12 @@ body > header {
 
 body > header h1 {
     max-width: 1200px;
-    margin: 1rem auto;
+    margin: 0.5rem auto;
 }
 
 body > header p {
     max-width: 40rem;
-    margin: 1rem auto;
+    margin: 0.5rem auto;
 }
 
 body > main {
@@ -141,12 +141,12 @@ h1 {
 
 h2 {
     font-size: 2.6rem;
-    margin-top: 3rem;
+    margin-top: 0.5rem;
 }
 
 h3 {
     font-size: 2rem;
-    margin-top: 3rem;
+    margin-top: 0.5rem;
 }
 
 h4 {
@@ -689,4 +689,166 @@ progress:indeterminate::-moz-progress-bar {
     border-radius: 5px;
     padding: 1.5rem;
     margin: 2rem 0;
+}
+
+/* =========================================
+   Newspaper / Side-Scroll Adaptation
+   Add this to the bottom of your CSS file
+   ========================================= */
+
+/* 1. Lock the viewport height to prevent vertical window scrolling */
+html, body {
+    height: 100vh;
+    width: 100vw;
+    overflow: hidden; /* specific scrolling is handled in 'main' */
+}
+
+/* 2. Use Flexbox to stack Header, Main, and Footer vertically 
+      within the fixed viewport */
+body {
+    display: flex;
+    flex-direction: column;
+}
+
+/* 3. Reset the Main container to allow full width and enable columns */
+body > main {
+    /* Take up all remaining vertical space */
+    flex-grow: 1;
+    
+    /* Override the original centered narrow width */
+    width: 100%;
+    max-width: none; 
+    margin: 0;
+    padding: 2rem;
+
+    /* The Newspaper Column Magic */
+    column-width: 24rem;  /* Ideal reading width per column */
+    column-gap: 3rem;     /* Space between columns */
+    /*column-rule: 1px solid var(--border); /* Vertical line between columns */ */
+    column-fill: auto;    /* Fill vertical space fully before making a new column */
+    
+    /* Enable horizontal scrolling for the columns */
+    overflow-x: auto;
+    overflow-y: hidden;
+    
+    /* Make scroll smooth */
+    scroll-behavior: smooth;
+}
+
+/* 4. Styling adjustments for the Header to span full width */
+body > header {
+    flex-shrink: 0; /* Don't let the header shrink */
+    width: 100%;
+    border-bottom: 2px solid var(--accent);
+    padding: 1rem;
+}
+
+body > header h1 {
+    /* Allow header text to use more space */
+    max-width: 100%; 
+}
+
+/* 5. Styling adjustments for the Footer */
+body > footer {
+    flex-shrink: 0;
+    margin-top: 0; /* Remove top margin as flex handles spacing */
+    border-top: 2px solid var(--accent);
+    background-color: var(--accent-bg);
+    z-index: 10;
+}
+
+/* 6. Prevent awkward splits between columns */
+h1, h2, h3, h4, h5, h6, blockquote, figure, li {
+    break-inside: avoid; /* Try not to chop these in half */
+}
+
+/* 
+   The "Firefox Magnet" Fix 
+   Instead of just telling the header to stay with the next item,
+   we tell the NEXT item (the paragraph) it cannot leave the header.
+*/
+h1 + *, h2 + *, h3 + *, h4 + *, h5 + *, h6 + * {
+    break-before: avoid;
+    break-before: avoid-column;
+    
+    /* Legacy support */
+    page-break-before: avoid;
+    -webkit-column-break-before: avoid;
+}
+
+/* Ensure the headers themselves don't get chopped if they are multi-line */
+h1, h2, h3, h4, h5, h6 {
+    break-inside: avoid;
+    break-after: avoid-column;
+}
+
+img, video, pre, table {
+    max-width: 100%;
+    break-inside: avoid;
+    display: block; /* Ensures they behave well in columns */
+}
+
+/* 7. Mobile Fallback: 
+   On very small screens, return to vertical scrolling 
+   because side-scrolling columns are hard to read on phones. */
+@media only screen and (max-width: 600px) {
+    html, body {
+        height: auto;
+        overflow-y: auto;
+        overflow-x: hidden;
+        display: block;
+    }
+    
+    body > main {
+        height: auto;
+        width: 100%;
+        columns: 1 auto; /* Force single column */
+        overflow-y: visible;
+        padding: 1rem;
+    }
+}
+
+/* 
+   Fix for "Tall" content in fixed-height layout 
+   This forces tables, code blocks, and images to shrink 
+   and scroll internally if they are too tall.
+*/
+table, pre, figure, img {
+    /* 1. Limit height to viewport minus header/footer (approx 200px buffer) */
+    max-height: calc(100vh - 12rem); 
+    
+    /* 2. Allow scrolling INSIDE the element */
+    overflow-y: auto; 
+    
+    /* 3. Standardize width */
+    width: 100%;
+    max-width: 100%;
+    
+    /* 4. Crucial for tables: allows them to respect max-height/overflow */
+    display: block; 
+    
+    /* 5. Keep them neat */
+    break-inside: avoid;
+    scrollbar-width: thin; /* Makes the scrollbar less intrusive */
+}
+
+/* Optional: Make the scrollbar look nicer on Webkit (Chrome/Safari) */
+table::-webkit-scrollbar, pre::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+table::-webkit-scrollbar-thumb, pre::-webkit-scrollbar-thumb {
+    background-color: var(--border);
+    border-radius: 3px;
+}
+
+/* Alternate image handling: Don't shrink, just scroll */
+figure {
+    max-height: calc(100vh - 12rem);
+    overflow-y: auto;
+    display: block;
+}
+img {
+    height: auto; /* Allow full height */
+    /* The figure wrapper will handle the scrolling */
 }
