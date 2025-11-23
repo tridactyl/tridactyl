@@ -658,7 +658,7 @@ export class default_config {
         tabgroupswitch: "tgroupswitch",
         tabnew: "tabopen",
         tabm: "tabmove",
-        tabo: "tabonly",
+        tabo: "fillcmdline_tmp 3000 The :tabo alias has been removed. You can add it back with :command tabo tabonly",
         tn: "tabnext_gt",
         bn: "tabnext_gt",
         tnext: "tabnext_gt",
