@@ -99,6 +99,7 @@ import * as Proxy from "@src/lib/proxy"
 import * as arg from "@src/lib/arg_util"
 import * as R from "ramda"
 import * as treestyletab from "@src/interop/tst"
+import { uuidv4 } from "@src/lib/math"
 
 /**
  * This is used to drive some excmd handling in `composite`.
@@ -6229,7 +6230,10 @@ export async function readerurl() {
     const article = new Readability(document.cloneNode(true) as any as Document).parse()
     article["link"] = window.location.href
     article["favicon"] = (await ownTab()).favIconUrl
-    return browser.runtime.getURL("static/reader.html#" + btoa(encodeURIComponent(JSON.stringify(article))))
+    const article_encoded = btoa(encodeURIComponent(JSON.stringify(article)))
+    const article_uuid = uuidv4()
+    await set("reader_articles." + article_uuid, article_encoded)
+    return browser.runtime.getURL("static/reader.html#" + article_uuid)
 }
 
 /**

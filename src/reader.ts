@@ -1,10 +1,11 @@
 import * as config from "@src/lib/config"
 import xss from "xss"
+import { isuuidv4 } from "@src/lib/math"
 
 async function updatePage() {
-    const article = JSON.parse(
-        decodeURIComponent(atob(window.location.hash.substr(1))),
-    )
+    const hash = window.location.hash.substr(1)
+    const isuuid = isuuidv4(hash)
+    const article = JSON.parse(decodeURIComponent(atob(isuuid ? await config.getAsync("reader_articles", hash) : hash)))
     article.content = xss(article.content, { stripIgnoreTag: true })
     const content = document.createElement("main")
     content.innerHTML = article.content
