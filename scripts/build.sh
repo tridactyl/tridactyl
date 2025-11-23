@@ -28,14 +28,32 @@ isWindowsMinGW() {
   printf "%s" "${is_mingw}"
 }
 
-if [ "$(isWindowsMinGW)" = "True" ]; then
-  WIN_PYTHON="py -3"
-  YARN_BIN_DIR="$(cygpath "$(yarn bin)")"
-  PATH=$YARN_BIN_DIR:$PATH
+# Prefer bun, then yarn, then fallback to node_modules/.bin
+PM=""
+PM_BIN_DIR=""
+
+if command -v bun >/dev/null 2>&1; then
+  PM="bun"
+  PM_BIN_DIR="$(bun pm bin)"
+elif command -v yarn >/dev/null 2>&1; then
+  PM="yarn"
+  PM_BIN_DIR="$(yarn bin)"
 else
-  PATH="$(yarn bin):$PATH"
+  PM="npm"
+  PM_BIN_DIR="./node_modules/.bin"
+  echo "Warning: neither bun nor yarn found on PATH — falling back to ${PM_BIN_DIR}"
 fi
 
+if [ "$(isWindowsMinGW)" = "True" ]; then
+  WIN_PYTHON="py -3"
+  PM_BIN_DIR="$(cygpath "$PM_BIN_DIR")"
+  PATH=$PM_BIN_DIR:$PATH
+else
+  PATH="$PM_BIN_DIR:$PATH"
+fi
+
+export PM
+export PM_BIN_DIR
 export PATH
 
 mkdir -p build
@@ -54,12 +72,12 @@ fi
 if [ "$QUICK_BUILD" != "1" ]; then
 
     # .bracketexpr.generated.ts is needed for metadata generation
-    "$(yarn bin)/nearleyc" src/grammars/bracketexpr.ne > \
+    "$PM_BIN_DIR/nearleyc" src/grammars/bracketexpr.ne > \
       src/grammars/.bracketexpr.generated.ts
 
     # It's important to generate the metadata before the documentation because
     # missing imports might break documentation generation on clean builds
-    "$(yarn bin)/tsc" compiler/gen_metadata.ts -m commonjs --target es2017 \
+    "$PM_BIN_DIR/tsc" compiler/gen_metadata.ts -m commonjs --target es2017 \
       && node compiler/gen_metadata.js \
               --out src/.metadata.generated.ts \
               --themeDir src/static/themes \
@@ -92,8 +110,8 @@ cp issue_template.md build/
 
 # Remove large unused files
 
-rm build/static/logo/Tridactyl.psd
-rm build/static/logo/Tridactyl_1024px.png
+rm -f build/static/logo/Tridactyl.psd
+rm -f build/static/logo/Tridactyl_1024px.png
 
 # "temporary" fix until we can install new native on CI: install the old native messenger
 if [ "$OLD_NATIVE" = "1" ]; then
@@ -113,5 +131,5 @@ scripts/authors.sh
 if [ -e "$CLEANSLATE" ] ; then
 	cp -v "$CLEANSLATE" build/static/css/cleanslate.css
 else
-	echo "Couldn't find cleanslate.css. Try running 'yarn install'"
+	echo "Couldn't find cleanslate.css. Try running 'yarn install' or 'bun install'"
 fi
