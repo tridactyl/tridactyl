@@ -137,12 +137,18 @@ export async function downloadUrlAs(
                     })
                 )[0]
                 if (downloadDelta.state.current === "complete") {
-                    const operation = await Native.move(
+                     const placeholder = config.get("downloadfilenamemarker") || "..."
+                     let finalSaveAs = saveAs
+                     if (placeholder.length > 0 && finalSaveAs.includes(placeholder)) {
+                        finalSaveAs = finalSaveAs.split(placeholder).join(fileName)
+                     }
+                     const operation = await Native.move(
                         downloadItem.filename,
-                        saveAs,
+                        finalSaveAs,
                         overwrite,
                         cleanup,
-                    )
+                     )
+
                     const code2human = n =>
                         R.defaultTo(
                             "Unknown error",
