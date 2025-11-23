@@ -167,7 +167,7 @@ export async function downloadUrlAs(
                             ),
                         )
                     } else {
-                        resolve(downloadItem.filename)
+                        resolve({filename: downloadItem.filename, finalSaveAs})
                     }
                 } else {
                     reject(
