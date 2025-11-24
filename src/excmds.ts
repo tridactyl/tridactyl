@@ -6230,10 +6230,16 @@ export async function readerurl() {
     const article = new Readability(document.cloneNode(true) as any as Document).parse()
     article["link"] = window.location.href
     article["favicon"] = (await ownTab()).favIconUrl
+    let hash = ""
     const article_encoded = btoa(encodeURIComponent(JSON.stringify(article)))
-    const article_uuid = uuidv4()
-    await set("reader_articles." + article_uuid, article_encoded)
-    return browser.runtime.getURL("static/reader.html#" + article_uuid)
+    if (!(await browserBg.windows.getCurrent()).incognito) {
+        const article_uuid = uuidv4()
+        await set("reader_articles." + article_uuid, article_encoded)
+        hash = article_uuid
+    } else {
+        hash = article_encoded
+    }
+    return browser.runtime.getURL("static/reader.html#" + hash)
 }
 
 /**
