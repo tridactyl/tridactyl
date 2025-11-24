@@ -693,163 +693,118 @@ progress:indeterminate::-moz-progress-bar {
 }
 
 /* =========================================
-   Newspaper / Side-Scroll Adaptation
-   Add this to the bottom of your CSS file
+   Newspaper / Side-Scroll Adaptation (Header in Flow)
    ========================================= */
 
-/* 1. Lock the viewport height to prevent vertical window scrolling */
-html, body {
+/* 1. Lock the viewport height */
+html {
     height: 100vh;
     width: 100vw;
-    overflow: hidden; /* specific scrolling is handled in 'main' */
+    overflow: hidden; 
 }
 
-/* 2. Use Flexbox to stack Header, Main, and Footer vertically 
-      within the fixed viewport */
+/* 2. The BODY becomes the column container 
+      Instead of Flexbox, we apply columns directly here. */
 body {
-    display: flex;
-    flex-direction: column;
-}
-
-/* 3. Reset the Main container to allow full width and enable columns */
-body > main {
-    /* Take up all remaining vertical space */
-    flex-grow: 1;
-    
-    /* Override the original centered narrow width */
+    display: block;
+    height: 100%;
     width: 100%;
-    max-width: none; 
-    margin: 0;
-    padding: 2rem;
-
-    /* The Newspaper Column Magic */
-    column-width: 24rem;  /* Ideal reading width per column */
-    column-gap: 3rem;     /* Space between columns */
-    /*column-rule: 1px solid var(--border); /* Vertical line between columns */ */
-    column-fill: auto;    /* Fill vertical space fully before making a new column */
     
-    /* Enable horizontal scrolling for the columns */
+    /* Padding around the whole paper */
+    padding: 2rem; 
+    
+    /* The Newspaper Column Magic */
+    column-width: 24rem;
+    column-gap: 3rem;
+    column-fill: auto;
+    
+    /* Enable horizontal scrolling on the body */
     overflow-x: auto;
     overflow-y: hidden;
     
-    /* Make scroll smooth */
-    scroll-behavior: smooth;
+    scroll-behavior: auto;
 }
 
-/* 4. Styling adjustments for the Header to span full width */
+/* 3. The Magic: Unwrap the MAIN container 
+      display: contents makes the browser ignore the <main> tag 
+      for layout purposes, causing the <p> tags inside it to 
+      flow immediately after the <header> in the columns. */
+body > main {
+    display: contents;
+}
+
+/* 4. Style the Header to look like the first block */
 body > header {
-    flex-shrink: 0; /* Don't let the header shrink */
-    width: 100%;
+    display: block;
+    width: 100%; /* Spans width of ONE column, not screen */
     border-bottom: 2px solid var(--accent);
-    padding: 1rem;
+    margin-bottom: 2rem;
+    
+    /* Ensure header doesn't get split between columns */
+    break-inside: avoid;
+    -webkit-column-break-inside: avoid;
 }
 
 body > header h1 {
-    /* Allow header text to use more space */
     max-width: 100%; 
 }
 
-/* 5. Styling adjustments for the Footer */
+/* 5. Style the Footer to appear at the very end of the columns */
 body > footer {
-    flex-shrink: 0;
-    margin-top: 0; /* Remove top margin as flex handles spacing */
+    display: block;
+    margin-top: 4rem;
     border-top: 2px solid var(--accent);
     background-color: var(--accent-bg);
-    z-index: 10;
-}
-
-/* 6. Prevent awkward splits between columns */
-figure {
-    break-inside: avoid; /* Try not to chop these in half */
-}
-
-/* 
-   The "Firefox Magnet" Fix 
-   Instead of just telling the header to stay with the next item,
-   we tell the NEXT item (the paragraph) it cannot leave the header.
-*/
-h1 + *, h2 + *, h3 + *, h4 + *, h5 + *, h6 + * {
-    break-before: avoid;
-    break-before: avoid-column;
-    
-    /* Legacy support */
-    page-break-before: avoid;
-    -webkit-column-break-before: avoid;
-}
-
-/* Ensure the headers themselves don't get chopped if they are multi-line */
-h1, h2, h3, h4, h5, h6 {
     break-inside: avoid;
+}
+
+/* 6. Prevent awkward splits */
+figure, section, article, .notice {
+    break-inside: avoid;
+}
+
+/* "Magnet" headers to their paragraphs */
+h1, h2, h3, h4, h5, h6 {
     break-after: avoid-column;
+    break-inside: avoid;
+}
+h1 + *, h2 + *, h3 + *, h4 + *, h5 + *, h6 + * {
+    break-before: avoid-column;
 }
 
 img, video, table {
     max-width: 100%;
     break-inside: avoid;
-    display: block; /* Ensures they behave well in columns */
+    display: block;
 }
 
-/* 7. Mobile Fallback: 
-   On very small screens, return to vertical scrolling 
-   because side-scrolling columns are hard to read on phones. */
+/* 7. Mobile Fallback: Return to vertical scrolling */
 @media only screen and (max-width: 600px) {
     html, body {
         height: auto;
         overflow-y: auto;
         overflow-x: hidden;
         display: block;
+        columns: 1 auto; /* Reset columns */
+        padding: 0;
     }
     
+    /* Restore block display for main so padding works normally */
     body > main {
-        height: auto;
-        width: 100%;
-        columns: 1 auto; /* Force single column */
-        overflow-y: visible;
+        display: block;
         padding: 1rem;
     }
+    
+    body > header {
+        margin-bottom: 0;
+    }
 }
 
-/* 
-   Fix for "Tall" content in fixed-height layout 
-   This forces tables, code blocks, and images to shrink 
-   and scroll internally if they are too tall.
-*/
+/* Fix for "Tall" content: Scroll internally if too tall for viewport */
 table, pre, figure, img {
-    /* 1. Limit height to viewport minus header/footer (approx 200px buffer) */
-    max-height: calc(100vh - 12rem); 
-    
-    /* 2. Allow scrolling INSIDE the element */
+    max-height: calc(100vh - 6rem); 
     overflow-y: auto; 
-    
-    /* 3. Standardize width */
     width: 100%;
-    max-width: 100%;
-    
-    /* 4. Crucial for tables: allows them to respect max-height/overflow */
     display: block; 
-    
-    /* 5. Keep them neat */
-    break-inside: avoid;
-    scrollbar-width: thin; /* Makes the scrollbar less intrusive */
-}
-
-/* Optional: Make the scrollbar look nicer on Webkit (Chrome/Safari) */
-table::-webkit-scrollbar, pre::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
-}
-table::-webkit-scrollbar-thumb, pre::-webkit-scrollbar-thumb {
-    background-color: var(--border);
-    border-radius: 3px;
-}
-
-/* Alternate image handling: Don't shrink, just scroll */
-figure {
-    max-height: calc(100vh - 12rem);
-    overflow-y: auto;
-    display: block;
-}
-img {
-    height: auto; /* Allow full height */
-    /* The figure wrapper will handle the scrolling */
+    scrollbar-width: thin; 
 }
