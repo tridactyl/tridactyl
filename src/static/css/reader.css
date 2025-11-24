@@ -137,16 +137,16 @@ body > footer {
 
 /* Format headers */
 h1 {
-    font-size: 3rem;
+    font-size: 2rem;
 }
 
 h2 {
-    font-size: 2.6rem;
+    font-size: 2rem;
     margin-top: 0.5rem;
 }
 
 h3 {
-    font-size: 2rem;
+    font-size: 1.7rem;
     margin-top: 0.5rem;
 }
 
