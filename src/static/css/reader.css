@@ -759,7 +759,7 @@ body > footer {
 }
 
 /* 6. Prevent awkward splits between columns */
-h1, h2, h3, h4, h5, h6, blockquote, figure, li {
+figure {
     break-inside: avoid; /* Try not to chop these in half */
 }
 
@@ -783,7 +783,7 @@ h1, h2, h3, h4, h5, h6 {
     break-after: avoid-column;
 }
 
-img, video, pre, table {
+img, video, table {
     max-width: 100%;
     break-inside: avoid;
     display: block; /* Ensures they behave well in columns */
