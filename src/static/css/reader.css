@@ -33,6 +33,7 @@
         "Helvetica Neue", sans-serif;
     --mono-font: Consolas, Menlo, Monaco, "Andale Mono", "Ubuntu Mono",
         monospace;
+    --serif-font: EconomistSerif, Plantin, Garamond, serif;
     --standard-border-radius: 5px;
 
     /* Default (light) theme */
@@ -87,7 +88,7 @@ progress {
 
 html {
     /* Set the font globally */
-    font-family: var(--sans-font);
+    font-family: var(--serif-font);
     scroll-behavior: smooth;
 }
 
