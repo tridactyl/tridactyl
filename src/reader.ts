@@ -5,7 +5,7 @@ import { isuuidv4 } from "@src/lib/math"
 async function updatePage() {
     const hash = window.location.hash.substr(1)
     const isuuid = isuuidv4(hash)
-    let encoded: string
+    let encoded = hash
     if (isuuid) {
         encoded = await config.getAsync("reader_articles", hash)
         if (encoded != undefined) {
