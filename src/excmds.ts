@@ -511,7 +511,7 @@ export async function unloadtheme(themename: string) {
  *
  * Themes can be loaded from URLs with `:colourscheme --url [url] [themename]`. They are stored internally - if you want to update the theme run the whole command again. You can use `%` as a placeholder for the current URL.
  *
- * Themes can be used for specific sites with `:colourscheme --regex [url regex]`. As a shorthand to style our `:reader` mode, you can use `:colourscheme --module=reader`.
+ * Themes can be used for specific sites with `:colourscheme --regex [url regex]`. As a shorthand to style our `:reader` mode, you can use `:colourscheme --module=reader`, for example, `:colourscheme --module=reader --url=https://raw.githubusercontent.com/tridactyl/tridactyl/refs/heads/master/contrib/themes/reader/newspaper.css newspaper`
  *
  * Note that the theme name should NOT contain any dot.
  *
