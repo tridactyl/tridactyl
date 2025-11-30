@@ -33,7 +33,6 @@
         "Helvetica Neue", sans-serif;
     --mono-font: Consolas, Menlo, Monaco, "Andale Mono", "Ubuntu Mono",
         monospace;
-    --serif-font: EconomistSerif, Plantin, Garamond, serif;
     --standard-border-radius: 5px;
 
     /* Default (light) theme */
@@ -88,7 +87,7 @@ progress {
 
 html {
     /* Set the font globally */
-    font-family: var(--serif-font);
+    font-family: var(--sans-font);
     scroll-behavior: smooth;
 }
 
@@ -112,12 +111,12 @@ body > header {
 
 body > header h1 {
     max-width: 1200px;
-    margin: 0.5rem auto;
+    margin: 1rem auto;
 }
 
 body > header p {
     max-width: 40rem;
-    margin: 0.5rem auto;
+    margin: 1rem auto;
 }
 
 body > main {
@@ -137,17 +136,17 @@ body > footer {
 
 /* Format headers */
 h1 {
-    font-size: 2rem;
+    font-size: 3rem;
 }
 
 h2 {
-    font-size: 2rem;
-    margin-top: 0.5rem;
+    font-size: 2.6rem;
+    margin-top: 3rem;
 }
 
 h3 {
-    font-size: 1.7rem;
-    margin-top: 0.5rem;
+    font-size: 2rem;
+    margin-top: 3rem;
 }
 
 h4 {
@@ -693,103 +692,101 @@ progress:indeterminate::-moz-progress-bar {
 }
 
 /* =========================================
-   Newspaper / Side-Scroll Adaptation (Header in Flow)
+   Newspaper / Side-Scroll Adaptation
    ========================================= */
 
-/* 1. Lock the viewport height */
+:root {
+    --serif-font: EconomistSerif, Plantin, Garamond, serif;
+}
+
 html {
     height: 100vh;
     width: 100vw;
-    overflow: hidden; 
+    overflow: hidden;
+    font-family: var(--serif-font);
 }
 
-/* 2. The BODY becomes the column container 
-      Instead of Flexbox, we apply columns directly here. */
 body {
     display: block;
     height: 100%;
     width: 100%;
-    
-    /* Padding around the whole paper */
-    padding: 2rem; 
-    
-    /* The Newspaper Column Magic */
+    padding: 2rem;
     column-width: 24rem;
     column-gap: 3rem;
     column-fill: auto;
-    
-    /* Enable horizontal scrolling on the body */
     overflow-x: auto;
     overflow-y: hidden;
-    
     scroll-behavior: auto;
 }
 
-/* 3. The Magic: Unwrap the MAIN container 
-      display: contents makes the browser ignore the <main> tag 
-      for layout purposes, causing the <p> tags inside it to 
-      flow immediately after the <header> in the columns. */
 body > main {
     display: contents;
 }
 
-/* 4. Style the Header to look like the first block */
-body > header {
-    display: block;
-    width: 100%; /* Spans width of ONE column, not screen */
-    border-bottom: 2px solid var(--accent);
-    margin-bottom: 2rem;
-    
-    /* Ensure header doesn't get split between columns */
+body > header,
+body > footer,
+figure, section, article, .notice,
+h1, h2, h3, h4, h5, h6,
+img, video, table {
     break-inside: avoid;
     -webkit-column-break-inside: avoid;
 }
 
-body > header h1 {
-    max-width: 100%; 
+h1, h2, h3, h4, h5, h6 { break-after: avoid-column; }
+h1 + *, h2 + *, h3 + *, h4 + *, h5 + *, h6 + * { break-before: avoid-column; }
+
+img, video, table, pre, figure {
+    display: block;
+    scrollbar-width: thin;
 }
 
-/* 5. Style the Footer to appear at the very end of the columns */
+img, video, table {
+    max-width: 100%;
+}
+
+table, pre, figure, img {
+    width: 100%;
+    max-height: calc(100vh - 6rem);
+    overflow-y: auto;
+}
+
+body > header {
+    display: block;
+    width: 100%;
+    border-bottom: 2px solid var(--accent);
+    margin-bottom: 2rem;
+}
+
 body > footer {
     display: block;
     margin-top: 4rem;
     border-top: 2px solid var(--accent);
     background-color: var(--accent-bg);
-    break-inside: avoid;
 }
 
-/* 6. Prevent awkward splits */
-figure, section, article, .notice {
-    break-inside: avoid;
+body > header h1, 
+body > header p {
+    margin: 0.5rem auto;
 }
 
-/* "Magnet" headers to their paragraphs */
-h1, h2, h3, h4, h5, h6 {
-    break-after: avoid-column;
-    break-inside: avoid;
-}
-h1 + *, h2 + *, h3 + *, h4 + *, h5 + *, h6 + * {
-    break-before: avoid-column;
-}
+body > header h1 { max-width: 100%; }
 
-img, video, table {
-    max-width: 100%;
-    break-inside: avoid;
-    display: block;
-}
+h1 { font-size: 2rem; }
+h2 { font-size: 2rem; }
+h3 { font-size: 1.7rem; }
 
-/* 7. Mobile Fallback: Return to vertical scrolling */
+h2, h3 { margin-top: 0.5rem; }
+
 @media only screen and (max-width: 600px) {
     html, body {
         height: auto;
-        overflow-y: auto;
-        overflow-x: hidden;
         display: block;
-        columns: 1 auto; /* Reset columns */
+        overflow-x: hidden;
+        overflow-y: auto;
+        columns: 1 auto;
         padding: 0;
     }
     
-    /* Restore block display for main so padding works normally */
     body > main {
         display: block;
         padding: 1rem;
@@ -798,13 +795,4 @@ img, video, table {
     body > header {
         margin-bottom: 0;
     }
-}
-
-/* Fix for "Tall" content: Scroll internally if too tall for viewport */
-table, pre, figure, img {
-    max-height: calc(100vh - 6rem); 
-    overflow-y: auto; 
-    width: 100%;
-    display: block; 
-    scrollbar-width: thin; 
 }
