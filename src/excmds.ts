@@ -2965,7 +2965,7 @@ async function tabFromIndex(index?: number | "%" | "#" | string): Promise<browse
 //#background
 export async function tabonly(...args: string[]) {
     if (args.length > 0) {
-        fillcmdline_tmp(3000, "# tabonly doesn't accept arguments, run without arguments to close all tabs in this window")
+        fillcmdline_tmp(3000, "# tabonly doesn't accept arguments, run without arguments to close all background tabs in this window")
         return
     }
 
