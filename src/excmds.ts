@@ -2969,7 +2969,12 @@ async function tabFromIndex(index?: number | "%" | "#" | string): Promise<browse
 
 /** Close all other tabs in this window */
 //#background
-export async function tabonly() {
+export async function tabonly(...args: string[]) {
+    if (args.length > 0) {
+        fillcmdline_tmp(3000, "# tabonly doesn't accept arguments, run without arguments to close all background tabs in this window")
+        return
+    }
+
     const tabs = await browser.tabs.query({
         pinned: false,
         active: false,
