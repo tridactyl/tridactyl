@@ -543,7 +543,7 @@ export async function colourscheme(...args: string[]) {
             if (themename === undefined) throw new Error(`You must provide a theme name!`)
             if (url === "%") url = window.location.href // this is basically an easter egg
             if (!(url.startsWith("http://") || url.startsWith("https://"))) url = "http://" + url
-            const css = await rc.fetchText(url)
+            const css = await (await fetch(url)).text()
             set("customthemes." + themename, css)
         } else {
             await loadtheme(themename)
