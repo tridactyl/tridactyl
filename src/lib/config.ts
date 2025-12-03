@@ -1093,6 +1093,25 @@ export class default_config {
     downloadforbiddennames = ""
 
     /**
+    * Placeholder string used in ":saveas" targets. If the save-as path
+    * contains this marker, it will be replaced with the filename
+    * derived from the URL.
+    *
+    * For example, using:
+    *
+    *   :saveas ~/Documents/ex-%
+    *
+    * with the URL:
+    *
+    *   https://example.com/log.txt
+    *
+    * will produce the file:
+    *
+    *   ~/Documents/ex-log.txt
+    */
+    downloadfilenamemarker = "%";
+
+    /**
      * Set this to something weird if you want to have fun every time Tridactyl tries to update its native messenger.
      *
      * %TAG will be replaced with your version of Tridactyl for stable builds, or "master" for beta builds
