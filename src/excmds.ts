@@ -1784,12 +1784,19 @@ export function home(all: "false" | "true" = "false") {
     If there's a conflict (e.g. you have a "go" binding that does something, a "go" excmd that does something else and a "go" setting that does a third thing), the binding is chosen first, then the setting, then the excmd. In such situations, if you want to let Tridactyl know you're looking for something specfic, you can specify the following flags:
 
     `-a`: look for an alias
+
     `-b`: look for a binding
+
     `-e`: look for an ex command
+
     `-s`: look for a setting
+
     `-B`: open the help page in a background tab
+
     `-o`: open the help page in the current tab
+
     `-t`: open the help page in a new tab
+
     `-w`: open the help page in a new window
 
     If the keyword you gave to `:help` is actually an alias for a composite command (see [[composite]]) , you will be taken to the help section for the first command of the pipeline. You will be able to see the whole pipeline by hovering your mouse over the alias in the "exaliases" list. Unfortunately there currently is no way to display these HTML tooltips from the keyboard.
