@@ -1787,6 +1787,10 @@ export function home(all: "false" | "true" = "false") {
     `-b`: look for a binding
     `-e`: look for an ex command
     `-s`: look for a setting
+    `-B`: open the help page in a background tab
+    `-o`: open the help page in the current tab
+    `-t`: open the help page in a new tab
+    `-w`: open the help page in a new window
 
     If the keyword you gave to `:help` is actually an alias for a composite command (see [[composite]]) , you will be taken to the help section for the first command of the pipeline. You will be able to see the whole pipeline by hovering your mouse over the alias in the "exaliases" list. Unfortunately there currently is no way to display these HTML tooltips from the keyboard.
 
@@ -1799,8 +1803,13 @@ export async function help(...args: string[]) {
         "-b": Boolean,
         "-e": Boolean,
         "-s": Boolean,
+        "-B": Boolean,
+        "-o": Boolean,
+        "-t": Boolean,
+        "-w": Boolean,
     }, { argv: args, allowNegativePositional: true })
 
+    const openInCurrentWindow = option["-o"] || ((await activeTab()).url.startsWith(browser.runtime.getURL("static/docs/")) && !(option["-B"] || option["-t"] || option["-w"]))
     const subject = option._.join(" ")
     const settings = await config.getAsync()
     let url = ""
@@ -1876,9 +1885,13 @@ export async function help(...args: string[]) {
     }
 
     let done
-    if ((await activeTab()).url.startsWith(browser.runtime.getURL("static/docs/"))) {
+    if (openInCurrentWindow) {
         done = open(url)
-    } else {
+    } else if (option["-B"]) {
+        done = tabopen("-b", url)
+    } else if (option["-w"]) {
+        done = winopen(url)
+    } else { // option["-t"]
         done = tabopen(url)
     }
     return done.then(() => undefined)
