@@ -280,7 +280,7 @@ export class default_config {
         r: "reload",
         R: "reloadhard",
         x: "stop",
-        gi: "focusinput -l",
+        gi: "focusinput",
         "g?": "rot13",
         "g!": "jumble",
         "g;": "changelistjump -1",

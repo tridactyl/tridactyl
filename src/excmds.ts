@@ -2506,7 +2506,7 @@ export function focusinput(nth: number | string) {
     let fallbackToNumeric = true
 
     // nth = "-l" -> use the last used input for this page
-    if (nth === "-l") {
+    if (nth === "-l" || !nth) {
         // try to recover the last used input stored as a
         // DOM node, which should be exactly the one used before (or null)
         if (DOM.getLastUsedInput()) {
