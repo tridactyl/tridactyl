@@ -137,7 +137,7 @@ export async function downloadUrlAs(
                     })
                 )[0]
                 if (downloadDelta.state.current === "complete") {
-                     const placeholder = config.get("downloadfilenamemarker") || "..."
+                     const placeholder = config.get("downloadfilenamemarker")
                      let finalSaveAs = saveAs
                      if (placeholder.length > 0 && finalSaveAs.includes(placeholder)) {
                         finalSaveAs = finalSaveAs.split(placeholder).join(fileName)

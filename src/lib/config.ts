@@ -1099,7 +1099,7 @@ export class default_config {
     *
     * For example, using:
     *
-    *   :saveas ~/Documents/ex-...
+    *   :saveas ~/Documents/ex-%
     *
     * with the URL:
     *
@@ -1109,7 +1109,7 @@ export class default_config {
     *
     *   ~/Documents/ex-log.txt
     */
-    downloadfilenamemarker = "...";
+    downloadfilenamemarker = "%";
 
     /**
      * Set this to something weird if you want to have fun every time Tridactyl tries to update its native messenger.
