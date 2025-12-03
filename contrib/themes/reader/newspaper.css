@@ -11,100 +11,102 @@
     --serif-font: EconomistSerif, Plantin, Garamond, serif;
 }
 
-html {
+html:not(.TridactylCommandline) {
     height: 100vh;
     width: 100vw;
     overflow: hidden;
     font-family: var(--serif-font);
 }
 
-body {
-    display: block;
-    height: 100%;
-    width: 100%;
-    padding: 2rem;
-    column-width: 24rem;
-    column-gap: 3rem;
-    column-fill: auto;
-    overflow-x: auto;
-    overflow-y: hidden;
-    scroll-behavior: auto;
-}
+:not(.TridactylCommandline) {
 
-body > main {
-    display: contents;
-}
-
-body > header,
-body > footer,
-figure, section, article, .notice,
-h1, h2, h3, h4, h5, h6,
-img, video, table {
-    break-inside: avoid;
-    -webkit-column-break-inside: avoid;
-}
-
-h1, h2, h3, h4, h5, h6 { break-after: avoid-column; }
-h1 + *, h2 + *, h3 + *, h4 + *, h5 + *, h6 + * { break-before: avoid-column; }
-
-img, video, table, pre, figure {
-    display: block;
-    scrollbar-width: thin;
-}
-
-img, video, table {
-    max-width: 100%;
-}
-
-table, pre, figure, img {
-    width: 100%;
-    max-height: calc(100vh - 6rem);
-    overflow-y: auto;
-}
-
-body > header {
-    display: block;
-    width: 100%;
-    border-bottom: 2px solid var(--accent);
-    margin-bottom: 2rem;
-}
-
-body > footer {
-    display: block;
-    margin-top: 4rem;
-    border-top: 2px solid var(--accent);
-    background-color: var(--accent-bg);
-}
-
-body > header h1, 
-body > header p {
-    margin: 0.5rem auto;
-}
-
-body > header h1 { max-width: 100%; }
-
-h1 { font-size: 2rem; }
-h2 { font-size: 2rem; }
-h3 { font-size: 1.7rem; }
-
-h2, h3 { margin-top: 0.5rem; }
-
-@media only screen and (max-width: 600px) {
-    html, body {
-        height: auto;
+    body {
         display: block;
-        overflow-x: hidden;
-        overflow-y: auto;
-        columns: 1 auto;
-        padding: 0;
+        height: 100%;
+        width: 100%;
+        padding: 2rem;
+        column-width: 24rem;
+        column-gap: 3rem;
+        column-fill: auto;
+        overflow-x: auto;
+        overflow-y: hidden;
+        scroll-behavior: auto;
     }
-    
+
     body > main {
-        display: block;
-        padding: 1rem;
+        display: contents;
     }
-    
+
+    body > header,
+    body > footer,
+    figure, section, article, .notice,
+    h1, h2, h3, h4, h5, h6,
+    img, video, table {
+        break-inside: avoid;
+    }
+
+    h1, h2, h3, h4, h5, h6 { break-after: avoid-column; }
+    h1 + *, h2 + *, h3 + *, h4 + *, h5 + *, h6 + * { break-before: avoid-column; }
+
+    img, video, table, pre, figure {
+        display: block;
+        scrollbar-width: thin;
+    }
+
+    img, video, table {
+        max-width: 100%;
+    }
+
+    table, pre, figure, img {
+        width: 100%;
+        max-height: calc(100vh - 6rem);
+        overflow-y: auto;
+    }
+
     body > header {
-        margin-bottom: 0;
+        display: block;
+        width: 100%;
+        border-bottom: 2px solid var(--accent);
+        margin-bottom: 2rem;
+    }
+
+    body > footer {
+        display: block;
+        margin-top: 4rem;
+        border-top: 2px solid var(--accent);
+        background-color: var(--accent-bg);
+    }
+
+    body > header h1, 
+    body > header p {
+        margin: 0.5rem auto;
+    }
+
+    body > header h1 { max-width: 100%; }
+
+    h1 { font-size: 2rem; }
+    h2 { font-size: 2rem; }
+    h3 { font-size: 1.7rem; }
+
+    h2, h3 { margin-top: 0.5rem; }
+
+    @media only screen and (max-width: 600px) {
+        html, body {
+            height: auto;
+            display: block;
+            overflow-x: hidden;
+            overflow-y: auto;
+            columns: 1 auto;
+            padding: 0;
+        }
+        
+        body > main {
+            display: block;
+            padding: 1rem;
+        }
+        
+        body > header {
+            margin-bottom: 0;
+        }
     }
 }
