@@ -2626,8 +2626,8 @@ async function tabIndexSetActive(index: number | string) {
     If increment is specified, move that many tabs forwards.
  */
 //#background
-export async function tabnext(increment = 1) {
-    return tabprev(-increment)
+export async function tabnext(...args: string[]) {
+    return tabprev(...args, "--reverse")
 }
 
 /** Switch to the next tab, wrapping round.
@@ -2653,10 +2653,29 @@ export async function tabnext_gt(index?: number) {
     If increment is specified, move that many tabs backwards.
  */
 //#background
-export async function tabprev(increment = 1) {
+export async function tabprev(...args: string[]) {
+    const argOpt = arg.lib(
+        {
+            "--nowrap": Boolean,
+            "--noisy": Boolean,
+            "--reverse": Boolean,
+        },
+        {
+            argv: args,
+            permissive: true,
+            splitUnknownArguments: false,
+        },
+    )
+    const option = {}
+    option["nowrap"] = Boolean(argOpt["--nowrap"])
+    option["noisy"] = Boolean(argOpt["--noisy"])
+    option["reverse"] = Boolean(argOpt["--reverse"])
+    const increment = (parseInt(argOpt._.join(" "), 10) || 1) * (option["reverse"] ? -1 : 1)
     return browser.tabs.query({ currentWindow: true, hidden: false }).then(tabs => {
         tabs.sort((t1, t2) => t1.index - t2.index)
-        const prevTab = (tabs.findIndex(t => t.active) - increment + tabs.length) % tabs.length
+        const curTab = tabs.findIndex(t => t.active)
+        const prevTab = !option["nowrap"] ? (curTab - increment + tabs.length) % tabs.length : Math.min(Math.max(curTab - increment, 0), tabs.length - 1)
+        // TODO: add fillcmdline_tmp with details here for --noisy (expect it to show on the wrong tab unless you await it correctly)
         return browser.tabs.update(tabs[prevTab].id, { active: true })
     })
 }
