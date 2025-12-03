@@ -27,7 +27,7 @@ function initTridactylSettingElem(
 function getCommandElements() {
     return Array.from(
         document.querySelectorAll(
-            ".tsd-panel.tsd-member.tsd-kind-function.tsd-parent-kind-external-module",
+            ".tsd-panel.tsd-member.tsd-kind-function.tsd-parent-kind-module",
         ),
     ).reduce((all, elem) => {
         const fnName = Array.from(elem.children).find(e => e.tagName === "H3")
