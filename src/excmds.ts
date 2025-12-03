@@ -1781,7 +1781,7 @@ export function home(all: "false" | "true" = "false") {
 
     On the ex command page, the "nmaps" list is a list of all the bindings for the command you're seeing and the "exaliases" list lists all its aliases.
 
-    If there's a conflict (e.g. you have a "go" binding that does something, a "go" excmd that does something else and a "go" setting that does a third thing), the binding is chosen first, then the setting, then the excmd. In such situations, if you want to let Tridactyl know you're looking for something specfic, you can specify the following flags as first arguments:
+    If there's a conflict (e.g. you have a "go" binding that does something, a "go" excmd that does something else and a "go" setting that does a third thing), the binding is chosen first, then the setting, then the excmd. In such situations, if you want to let Tridactyl know you're looking for something specfic, you can specify the following flags:
 
     `-a`: look for an alias
     `-b`: look for a binding
@@ -1793,13 +1793,23 @@ export function home(all: "false" | "true" = "false") {
     e.g. `:help bind`
 */
 //#background
-export async function help(...helpItems: string[]) {
-    const flags = {
-        // -a: look for an alias
-        "-a": (settings, helpItem) => {
+export async function help(...args: string[]) {
+    const option = arg.lib({
+        "-a": Boolean,
+        "-b": Boolean,
+        "-e": Boolean,
+        "-s": Boolean,
+    }, { argv: args, allowNegativePositional: true })
+
+    const subject = option._.join(" ")
+    const settings = await config.getAsync()
+    let url = ""
+
+    const strategies = {
+        alias: (helpItem: string) => {
             const aliases = settings.exaliases
             // As long as helpItem is an alias, try to resolve this alias to a real helpItem
-            const resolved = []
+            const resolved: string[] = []
             while (aliases[helpItem]) {
                 resolved.push(helpItem)
                 helpItem = aliases[helpItem].split(" ")
@@ -1812,8 +1822,7 @@ export async function help(...helpItems: string[]) {
             }
             return ""
         },
-        // -b: look for a binding
-        "-b": (settings, helpItem) => {
+        binding: (helpItem: string) => {
             for (const mode of modeMaps) {
                 const bindings = settings[mode]
                 // If 'helpItem' matches a binding, replace 'helpItem' with
@@ -1828,10 +1837,8 @@ export async function help(...helpItems: string[]) {
             }
             return ""
         },
-        // -e: look for an excmd
-        "-e": (settings, helpItem) => browser.runtime.getURL("static/docs/modules/_src_excmds_.html") + "#" + helpItem,
-        // -s: look for a setting
-        "-s": (settings, helpItem) => {
+        excmd: (helpItem: string) => browser.runtime.getURL("static/docs/modules/_src_excmds_.html") + "#" + helpItem,
+        setting: (helpItem: string) => {
             let subSettings = settings
             const settingNames = helpItem.split(".")
             let settingHelpAnchor = ""
@@ -1849,30 +1856,22 @@ export async function help(...helpItems: string[]) {
         },
     }
 
-    let flag = ""
-
-    if (helpItems.length > 0 && Object.keys(flags).includes(helpItems[0])) {
-        flag = helpItems[0]
-        helpItems.splice(0, 1)
-    }
-
-    const subject = helpItems.join(" ")
-    const settings = await config.getAsync()
-    let url = ""
     if (subject === "") {
         url = browser.runtime.getURL("static/docs/modules/_src_excmds_.html")
     } else {
         // If the user did specify what they wanted, specifically look for it
-        if (flag !== "") {
-            url = flags[flag](settings, subject)
-        }
+        if (option["-a"]) url = strategies.alias(subject)
+        else if (option["-b"]) url = strategies.binding(subject)
+        else if (option["-e"]) url = strategies.excmd(subject)
+        else if (option["-s"]) url = strategies.setting(subject)
 
         // Otherwise or if it couldn't be found, try all possible items
         if (url === "") {
-            url = ["-b", "-s", "-a", "-e"].reduce((acc, curFlag) => {
-                if (acc !== "") return acc
-                return flags[curFlag](settings, subject)
-            }, "")
+            const priority = [strategies.binding, strategies.setting, strategies.alias, strategies.excmd]
+            for (const strategy of priority) {
+                url = strategy(subject)
+                if (url !== "") break
+            }
         }
     }
 
