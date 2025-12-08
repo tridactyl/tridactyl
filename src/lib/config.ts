@@ -768,7 +768,7 @@ export class default_config {
      *  ```
      */
     searchurls = {
-        google: "https://www.google.com/search?q=",
+        google: "https://www.google.com/search?udm=14&q=",
         scholar: "https://scholar.google.com/scholar?q=",
         bing: "https://www.bing.com/search?q=",
         duckduckgo: "https://duckduckgo.com/?q=",
