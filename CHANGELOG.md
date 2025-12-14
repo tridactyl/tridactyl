@@ -1,6 +1,6 @@
 # Tridactyl changelog
 
-# Releast 1.24.5 / Unreleased
+# Release 1.24.5 / Unreleased
 
 -   New features
     - `:profile{create,launch,rename}` added for those using the native messnger (#5252)
