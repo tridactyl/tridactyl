@@ -1,5 +1,34 @@
 # Tridactyl changelog
 
+# Releast 1.24.5 / Unreleased
+
+-   New features
+    - `:profile{create,launch,rename}` added for those using the native messnger (#5252)
+    - `:unbind --recursive` will unbind all binds starting with the given prefix (#5249)
+    - `:colourscheme --module=reader` added for theming the reader (#5296)
+    - `:help -{B,o,t,w}` added for opening help in a new tab, the current tab, a background tab or a new window (#1972)
+    - `gi` now supports counts for going to the nth input (#3053)
+    - `:saveas` now supports `%` as a filename placeholder (#5304)
+
+-   Bug fixes
+    - Hints now work in nested shadow DOMs (#5262)
+    - Commandline resilience improved on sites using React (#5260)
+    - Hint styles are now reset properly when using rapid hints (#5253)
+    - Tridactyl now works on XHTML pages (#5269)
+    - `gi` should now work in more places (#5270)
+    - `:tabdetach` gives focus to the new tab once more (#5274)
+    - `ys` should work on YouTube (sometimes) (#5284)
+    - `:reader` now retains favicons (#5281)
+    - `:reader` now works on big web pages (#5291)
+    - binds once again show up in help (#3333)
+    - Commandline should no longer flash up white on dark websites (#5258)
+
+-   Miscellaneous
+    - Ambiguous `:tabo` tabonly alias removed (#5239)
+    - Google searchurl now defaults to "web" search to avoid the really bad AI overviews (#5318)
+
+
+
 # Release 1.24.4 / 2025-08-04
 
 -   Bug fixes
