@@ -95,10 +95,12 @@ export class default_config {
                 F: "hint -bc [tabindex]:not(.two)>div,a",
             },
         },
-        "^https://teams.microsoft.com": { // #5054
+        "^https://teams.microsoft.com": {
+            // #5054
             modeindicator: "false",
         },
-        "^https://teams.live.com": { // #5054
+        "^https://teams.live.com": {
+            // #5054
             modeindicator: "false",
         },
     }
@@ -987,6 +989,7 @@ export class default_config {
         state: "warning",
         styling: "warning",
         autocmds: "warning",
+        profiles: "warning",
     }
 
     /**
@@ -1093,23 +1096,23 @@ export class default_config {
     downloadforbiddennames = ""
 
     /**
-    * Placeholder string used in ":saveas" targets. If the save-as path
-    * contains this marker, it will be replaced with the filename
-    * derived from the URL.
-    *
-    * For example, using:
-    *
-    *   :saveas ~/Documents/ex-%
-    *
-    * with the URL:
-    *
-    *   https://example.com/log.txt
-    *
-    * will produce the file:
-    *
-    *   ~/Documents/ex-log.txt
-    */
-    downloadfilenamemarker = "%";
+     * Placeholder string used in ":saveas" targets. If the save-as path
+     * contains this marker, it will be replaced with the filename
+     * derived from the URL.
+     *
+     * For example, using:
+     *
+     *   :saveas ~/Documents/ex-%
+     *
+     * with the URL:
+     *
+     *   https://example.com/log.txt
+     *
+     * will produce the file:
+     *
+     *   ~/Documents/ex-log.txt
+     */
+    downloadfilenamemarker = "%"
 
     /**
      * Set this to something weird if you want to have fun every time Tridactyl tries to update its native messenger.
@@ -1391,8 +1394,7 @@ export class default_config {
     /**
      * Internal temporary storage for :reader, mapping UUIDs to base64 encoded html strings of articles
      */
-    reader_articles: { [id: string]: string } = {
-    }
+    reader_articles: { [id: string]: string } = {}
 }
 
 const platform_defaults = {
@@ -1836,7 +1838,7 @@ export const keyboardlayouts = {
         KeyY: ["", "!"],
     },
     workman: {
-        Quote: ["'", "\""],
+        Quote: ["'", '"'],
         Digit8: ["8", "*"],
         Digit1: ["1", "!"],
         Digit2: ["2", "@"],
@@ -1882,7 +1884,7 @@ export const keyboardlayouts = {
         KeyM: ["l", "L"],
         Comma: [",", "<"],
         Period: [".", ">"],
-        Slash: ["/", "?"]
+        Slash: ["/", "?"],
     },
 }
 
@@ -2375,8 +2377,8 @@ export async function update() {
                 local?.storageloc !== undefined
                     ? local.storageloc
                     : sync?.storageloc !== undefined
-                    ? sync.storageloc
-                    : "sync"
+                      ? sync.storageloc
+                      : "sync"
             if (current_storageloc == "sync") {
                 await pull()
             } else if (current_storageloc != "local") {
