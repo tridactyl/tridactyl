@@ -122,7 +122,7 @@ function addSettingInputs() {
             ;(window as any).tri.messaging.message(
                 "controller_background",
                 "acceptExCmd",
-                ["set " + input.name + " " + input.value],
+                "set " + input.name + " " + input.value,
             )
         } else {
             if (
