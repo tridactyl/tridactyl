@@ -413,6 +413,14 @@ config.getAsync("modeindicator").then(mode => {
             statusIndicator.classList.remove("TridactylInvisble")
         }
     })
+
+    config.addChangeListener("modeindicator", (_, newVal) => {
+        if (newVal !== "true") {
+            statusIndicator.classList.add("TridactylInvisible")
+        } else {
+            statusIndicator.classList.remove("TridactylInvisble")
+        }
+    })
 })
 
 function protectSlash(e) {
