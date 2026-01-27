@@ -503,6 +503,7 @@ export function hintPage(
         reset()
         return
     }
+    modeState.hints.forEach(hint => hint.hidden = false)
 
     // There are multiple hints. Normally we would just show all of them, but
     // we try to be clever here. Automatically select the first one if all the
@@ -741,7 +742,6 @@ class Hint {
         this.y = window.scrollY + top
 
         modeState.hintHost.appendChild(this.flag)
-        this.hidden = false
     }
 
     public static isHintable(target: Element): boolean {

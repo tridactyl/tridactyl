@@ -227,6 +227,7 @@ export function isVisible(thing: Element | Range) {
             thing = thing.parentElement
         }
     }
+    if (thing.getClientRects().length === 0) return false
     const clientRect = thing.getBoundingClientRect()
     switch (true) {
         case !clientRect:
