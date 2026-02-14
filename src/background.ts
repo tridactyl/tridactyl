@@ -195,31 +195,6 @@ for (const requestEvent of webrequests.requestEvents) {
     })
 }
 
-// This was a bad idea: errors triggered by the addChangeListener don't bubble back to
-// the user. And this code was buggy for ages, too.
-//
-// config.addChangeListener("autocmds", (previous, current) =>
-//     webrequests.requestEvents.forEach(
-//         requestEvent => {
-//             previous = previous[requestEvent] as Record<string, string>;
-//             current = current[requestEvent] as Record<string, string>;
-//
-//             // Removed or changed autocmds should cause the existing listener to be removed.
-//             Object.entries(previous).forEach(([pattern, func]) => {
-//                 if (current[pattern] != func) {
-//                     webrequests.unregisterWebRequestAutocmd(requestEvent, pattern, func)
-//                 }
-//             })
-//
-//             // New or changed autocmds should be registered.
-//             Object.entries(current).forEach(([pattern, func]) => {
-//                 if (previous[pattern] != func) {
-//                     webrequests.registerWebRequestAutocmd(requestEvent, pattern, func)
-//                 }
-//             })
-//         },
-//     ),
-// )
 
 // }}}
 
