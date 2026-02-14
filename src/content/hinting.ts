@@ -58,7 +58,11 @@ function distance(l1: number, r1: number, l2: number, r2: number): number {
  * */
 class HintState {
     public focusedHint: Hint
+    readonly hud = document.createElement("div")
+    readonly hudTranslate = document.createElement("div")
     readonly hintHost = document.createElement("div")
+    readonly highlightHost: Element | null = null
+    readonly outlineHost: Element | null = null
     readonly hints: Hint[] = []
     public selectedHints: Hint[] = []
     public filter = ""
@@ -70,7 +74,21 @@ class HintState {
         public reject: (x) => void,
         public rapid: boolean,
     ) {
-        this.hintHost.classList.add("TridactylHintHost", "cleanslate")
+        this.hud.classList.add("TridactylHud", "cleanslate")
+        this.hudTranslate.classList.add("TridactylHudTranslation")
+        this.hintHost.classList.add("TridactylHintHost")
+
+        const { overlay, overlayoutline } = config.get("hintstyles")
+        if (overlay !== "none") {
+            this.highlightHost = document.createElement("div")
+            this.highlightHost.classList.add("TridactylHintHighlightHost")
+        }
+        if (overlayoutline !== "none") {
+            this.outlineHost = document.createElement("div")
+            this.outlineHost.classList.add("TridactylHintOutlineHost")
+        }
+
+        this.hudTranslate.style.translate = `${-window.scrollX}px ${-window.scrollY}px`
     }
 
     get activeHints() {
@@ -87,7 +105,7 @@ class HintState {
         }
 
         // Remove all hints from the DOM.
-        this.hintHost.remove()
+        this.hud.remove()
     }
 
     resolveHinting() {
@@ -546,8 +564,17 @@ export function hintPage(
     // Just focus first link
     modeState.focusedHint = modeState.hints[0]
     modeState.focusedHint.focused = true
-    document.documentElement.appendChild(modeState.hintHost)
+
+    if (modeState.highlightHost)
+        modeState.hudTranslate.appendChild(modeState.highlightHost)
+    if (modeState.outlineHost)
+        modeState.hudTranslate.appendChild(modeState.outlineHost)
+    modeState.hudTranslate.appendChild(modeState.hintHost)
+    modeState.hud.appendChild(modeState.hudTranslate)
+    document.documentElement.appendChild(modeState.hud)
     modeState.deOverlap()
+    window.removeEventListener("scroll", updateHudOffset)
+    window.addEventListener("scroll", updateHudOffset)
 }
 
 /** @hidden */
@@ -676,6 +703,8 @@ type HintSelectedCallback = (x: any) => any
 @hidden */
 class Hint {
     public readonly flag = document.createElement("span")
+    public readonly highlight: HTMLElement | null = null
+    public readonly outline: HTMLElement | null = null
     public readonly rect: ClientRect = null
     public result: any = null
 
@@ -736,6 +765,43 @@ class Hint {
         this.flag.classList.add("TridactylHint" + target.tagName)
         classes?.forEach(f => this.flag.classList.add(f))
 
+        // Add optional overlays
+        if (modeState.highlightHost  || modeState.outlineHost) {
+            const mainRect = document.createElement("div")
+            // Add all rectangles for highlights / outlines
+            for (const recti of clientRects) {
+                let rectElem
+                let inset
+                if (recti === rect) {
+                    rectElem = mainRect
+                    inset = `${rect.top + window.scrollY}px ${rect.left + window.scrollX}px`
+                } else {
+                    // Position extra rects relative to the main rect
+                    rectElem = document.createElement("div")
+                    mainRect.appendChild(rectElem)
+                    inset = `${recti.top - rect.top}px ${recti.left - rect.left}px`
+                }
+
+                rectElem.style.cssText = `
+                    inset: ${inset} !important;
+                    width: ${recti.width}px !important;
+                    height: ${recti.height}px !important;
+                `
+            }
+
+            if (modeState.highlightHost) {
+                this.highlight = mainRect
+                this.highlight.className = "TridactylHintHighlight"
+                modeState.highlightHost.appendChild(this.highlight)
+            }
+
+            if (modeState.outlineHost) {
+                this.outline = this.highlight ? (this.highlight as any).cloneNode(true) : mainRect
+                this.outline.className = "TridactylHintOutline"
+                modeState.outlineHost.appendChild(this.outline)
+            }
+        }
+
         const top = rect.top > 0 ? this.rect.top : offsetTop + pad
         const left = rect.left > 0 ? this.rect.left : offsetLeft + pad
         this.x = window.scrollX + left
@@ -765,8 +831,12 @@ class Hint {
         if (hide) {
             this.focused = false
             this.target.classList.remove("TridactylHintElem")
+            this.highlight?.setAttribute("hidden", "")
+            this.outline?.setAttribute("hidden", "")
         } else {
             this.target.classList.add("TridactylHintElem")
+            this.highlight?.removeAttribute("hidden")
+            this.outline?.removeAttribute("hidden")
         }
     }
 
@@ -774,9 +844,25 @@ class Hint {
         if (focus) {
             this.target.classList.add("TridactylHintActive")
             this.target.classList.remove("TridactylHintElem")
+
+            if (this.highlight)
+                this.highlight.classList.add("TridactylHintHighlightActive")
+
+            if (this.outline)
+                this.outline.classList.add("TridactylHintOutlineActive")
+
+            this.flag.classList.add("TridactylHintSpanActive")
         } else {
             this.target.classList.add("TridactylHintElem")
             this.target.classList.remove("TridactylHintActive")
+
+            if (this.highlight)
+                this.highlight.classList.remove("TridactylHintHighlightActive")
+
+            if (this.outline)
+                this.outline.classList.remove("TridactylHintOutlineActive")
+
+            this.flag.classList.remove("TridactylHintSpanActive")
         }
     }
 
@@ -821,6 +907,12 @@ class Hint {
         left: ${this._x}px !important;
         `
     }
+}
+
+function updateHudOffset() {
+    window.requestAnimationFrame(() => {
+        modeState.hudTranslate.style.translate = `${-window.scrollX}px ${-window.scrollY}px`
+    })
 }
 
 /** @hidden */
@@ -1082,6 +1174,7 @@ function reset() {
     }
     modeState = undefined
     contentState.mode = "normal"
+    window.removeEventListener("scroll", updateHudOffset)
 }
 
 function popKey() {

@@ -6433,4 +6433,27 @@ export async function profilerename(oldName: string, newName: string) {
     }
 }
 
+/**
+ * Disable all hilighting of hintable elements when hinting.
+ * Only hint flags will remain, Vimium style.
+ */
+export function hintstylesnohighlights() {
+    ["fg","bg","outline","overlay","overlayoutline"].forEach(type => config.set("hintstyles", type, "none"))
+}
+
+/**
+ * Add highlights over the page when hinting and leave original elements unchanged.
+ */
+export function hintstylesoverlays() {
+    ["fg", "bg","outline"].forEach(type => config.set("hintstyles", type, "none"))
+    ;["overlay","overlayoutline"].forEach(type => config.set("hintstyles", type, "all"))
+}
+
+/**
+ * Style hintable elements directly when hinting.
+ */
+export function hintstylesdirect() {
+    ["fg","bg","outline"].forEach(type => config.set("hintstyles", type, "all"))
+    ;["overlay","overlayoutline"].forEach(type => config.set("hintstyles", type, "none"))
+}
 // }}}

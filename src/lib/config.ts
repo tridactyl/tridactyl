@@ -1378,6 +1378,7 @@ export class default_config {
 
     /**
      * Which css styles to add for hint elements.
+     * Optionally add extra elements to the page to highlight hints using overlay and overlay outline.
      *
      * Use `hintstyles.fg` for text color, `hintstyles.bg` for background color, `hintstyles.outline` for outlines.
      * Values may be set to "all" to enable the style for all hints, "active" to enable the style only for the currently selected hint, or "none" to disable the style completely.
@@ -1389,6 +1390,8 @@ export class default_config {
         fg: "all",
         bg: "all",
         outline: "all",
+        overlay: "none",
+        overlayoutline: "none",
     }
 
     /**

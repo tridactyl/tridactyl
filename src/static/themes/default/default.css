@@ -34,13 +34,27 @@
     --tridactyl-hintspan-border-style: solid;
     --tridactyl-hintspan-js-background: hsla(0, 0%, 65%);
 
+    --tridactyl-hintspan-active-fg: var(--tridactyl-hintspan-fg);
+    --tridactyl-hintspan-active-bg: var(--tridactyl-hintspan-bg);
+    --tridactyl-hintspan-active-border-color: var(--tridactyl-hintspan-border-color);
+
     /* Element highlights */
-    --tridactyl-hint-active-fg: var(--tridactyl-fg);
+    --tridactyl-hint-fg: var(--tridactyl-fg);
+    --tridactyl-hint-active-fg: var(--tridactyl-hint-fg);
     --tridactyl-hint-active-bg: #88ff00;
     --tridactyl-hint-active-outline: 1px solid #cc0000;
 
     --tridactyl-hint-bg: rgba(255, 255, 0, 0.25);
     --tridactyl-hint-outline: 1px solid #8f5902;
+
+    /* Element highlight overlays */
+    --tridactyl-hint-highlight-fg: var(--tridactyl-hint-fg);
+    --tridactyl-hint-highlight-active-fg: var(--tridactyl-hint-active-fg);
+    --tridactyl-hint-highlight-bg: var(--tridactyl-hint-bg);
+    --tridactyl-hint-highlight-active-bg: var(--tridactyl-hint-active-bg);
+    --tridactyl-hint-highlight-outline: var(--tridactyl-hint-outline);
+    --tridactyl-hint-highlight-active-outline: var(--tridactyl-hint-active-outline);
+    --tridactyl-hint-highlight-opacity: 0.25;
 
     /* :viewsource */
     --tridactyl-vs-bg: var(--tridactyl-bg);
