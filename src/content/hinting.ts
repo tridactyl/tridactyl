@@ -1239,6 +1239,14 @@ export function hintables(
             ),
             hintclasses: ["TridactylJSHint"],
         })
+        hintables.push({
+            elements: changeHintablesToLargestChild(
+                Array.from(document.getElementsByTagName("*")).filter(e => (e as HTMLElement).onclick != undefined).filter(
+                    el => visibleFilter(el) && !elems.includes(el),
+                ),
+            ),
+            hintclasses: ["TridactylJSHint"],
+        })
     }
     return hintables
 }
