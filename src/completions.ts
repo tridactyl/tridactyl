@@ -304,17 +304,13 @@ export abstract class CompletionSourceFuse extends CompletionSource {
 
     /** Call to replace the current display */
     updateDisplay() {
-        const newContainer = this.optionContainer.cloneNode(
-            false,
-        ) as HTMLElement
-
+        const fragment = document.createDocumentFragment()
         for (const option of this.options) {
-            if (option.state !== "hidden")
-                // This is probably slow: `.html` means the HTML parser will be invoked
-                newContainer.appendChild(option.html)
+            if (option.state !== "hidden") {
+                fragment.appendChild(option.html)
+            }
         }
-        this.optionContainer.replaceWith(newContainer)
-        this.optionContainer = newContainer
+        this.optionContainer.replaceChildren(fragment)
         this.next(0)
     }
 
