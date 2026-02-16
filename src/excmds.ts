@@ -3435,6 +3435,31 @@ export async function qall() {
     return Promise.all(windows.map(window => browser.windows.remove(window.id)))
 }
 
+//#background
+export async function sessionsave(...name: string[]){
+    let namestr = name.join(" ")
+    let tabs = await browser.tabs.query({})
+    let sessions = {}
+    for (let tab of tabs){
+        sessions[tab.windowId] = sessions[tab.windowId] || []
+        sessions[tab.windowId].push(tab.url)
+    }
+    let sessionstr = JSON.stringify(sessions)
+    return config.set("sessions", namestr, sessionstr)
+}
+
+//#background
+export async function sessionload(...name: string[]){
+    let namestr = name.join(" ")
+    let sessionstr = config.get("sessions", namestr)
+    let session = JSON.parse(sessionstr)
+    let tabLists = Object.values(session)
+    for (let list of tabLists) {
+        await winopen()
+        await Promise.all(list.map(url => tabopen(url)))
+    }
+}
+
 // }}}
 
 /**
