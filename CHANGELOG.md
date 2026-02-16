@@ -3,31 +3,43 @@
 # Release 1.24.5 / Unreleased
 
 -   New features
-    - `:profile{create,launch,rename}` added for those using the native messnger (#5252)
-    - `:unbind --recursive` will unbind all binds starting with the given prefix (#5249)
-    - `:colourscheme --module=reader` added for theming the reader (#5296)
-    - `:help -{B,o,t,w}` added for opening help in a new tab, the current tab, a background tab or a new window (#1972)
-    - `gi` now supports counts for going to the nth input (#3053)
-    - `:saveas` now supports `%` as a filename placeholder (#5304)
+    - `:profile{create,launch,rename}` added for those using the native messnger ([#5252](https://github.com/tridactyl/tridactyl/issues/5252))
+    - `:unbind --recursive` will unbind all binds starting with the given prefix ([#5249](https://github.com/tridactyl/tridactyl/issues/5249))
+    - `:colourscheme --module=reader` added for theming the reader ([#5296](https://github.com/tridactyl/tridactyl/issues/5296))
+    - `:help -{B,o,t,w}` added for opening help in a new tab, the current tab, a background tab or a new window ([#1972](https://github.com/tridactyl/tridactyl/issues/1972))
+    - `gi` now supports counts for going to the nth input ([#3053](https://github.com/tridactyl/tridactyl/issues/3053))
+    - `:saveas` now supports `%` as a filename placeholder ([#5304](https://github.com/tridactyl/tridactyl/issues/5304))
+    - hints can now use overlays instead of directly styling elements, use `:hintstyles{overlays,direct,nohighlights}` to toggle between them ([#5276](https://github.com/tridactyl/tridactyl/issues/5276))
+    - `:tab{nex,prev} --nowrap` to prevent wrapping round when hitting the start/end of your tabs ([#4704](https://github.com/tridactyl/tridactyl/issues/4704))
 
 -   Bug fixes
-    - Hints now work in nested shadow DOMs (#5262)
-    - Commandline resilience improved on sites using React (#5260)
-    - Hint styles are now reset properly when using rapid hints (#5253)
-    - Tridactyl now works on XHTML pages (#5269)
-    - `gi` should now work in more places (#5270)
-    - `:tabdetach` gives focus to the new tab once more (#5274)
-    - `ys` should work on YouTube (sometimes) (#5284)
-    - `:reader` now retains favicons (#5281)
-    - `:reader` now works on big web pages (#5291)
-    - binds once again show up in help (#3333)
-    - Commandline should no longer flash up white on dark websites (#5258)
+    - Hints now work in nested shadow DOMs ([#5262](https://github.com/tridactyl/tridactyl/issues/5262))
+    - Commandline resilience improved on sites using React ([#5260](https://github.com/tridactyl/tridactyl/issues/5260))
+    - Hint styles are now reset properly when using rapid hints ([#5253](https://github.com/tridactyl/tridactyl/issues/5253))
+    - Tridactyl now works on XHTML pages ([#5269](https://github.com/tridactyl/tridactyl/issues/5269))
+    - `gi` should now work in more places ([#5270](https://github.com/tridactyl/tridactyl/issues/5270))
+    - `:tabdetach` gives focus to the new tab once more ([#5274](https://github.com/tridactyl/tridactyl/issues/5274))
+    - `ys` should work on YouTube (sometimes) ([#5284](https://github.com/tridactyl/tridactyl/issues/5284))
+    - `:reader` now retains favicons ([#5281](https://github.com/tridactyl/tridactyl/issues/5281))
+    - `:reader` now works on big web pages ([#5291](https://github.com/tridactyl/tridactyl/issues/5291))
+    - binds once again show up in help ([#3333](https://github.com/tridactyl/tridactyl/issues/3333))
+    - Commandline should no longer flash up white on dark websites ([#5258](https://github.com/tridactyl/tridactyl/issues/5258))
+    - `:autocmd` no longer fails silently and will correctly overwrite existing autocmds ([#5235](https://github.com/tridactyl/tridactyl/issues/5235))
+    - obtuse shadow DOM errors when hinting on some pages fixed ([#5334](https://github.com/tridactyl/tridactyl/issues/5334))
+    - Commandline buffer works again so fewer keystrokes should get lost ([#5331](https://github.com/tridactyl/tridactyl/issues/5331))
+    - Firefox profile detection improved on Windows ([#5321](https://github.com/tridactyl/tridactyl/issues/5321))
 
 -   Miscellaneous
-    - Ambiguous `:tabo` tabonly alias removed (#5239)
-    - Google searchurl now defaults to "web" search to avoid the really bad AI overviews (#5318)
+    - Ambiguous `:tabo` tabonly alias removed ([#5239](https://github.com/tridactyl/tridactyl/issues/5239))
+    - Google searchurl now defaults to "web" search to avoid the really bad AI overviews ([#5318](https://github.com/tridactyl/tridactyl/issues/5318))
+    - `:colours midnight` now has a heavier font ([#4879](https://github.com/tridactyl/tridactyl/issues/4879))
+    - `gi` fixed on GitHub in exemplar RC
 
+Thanks to all of our contributors for this release: Oliver Blanthorn, Chic-Tweetz, Julyanna Francesca C. Huang, Zak Stroud, Babil G. Sarwar, Colin Caine, RJM, bennyyip, D. Debnath, Wyatt Jordan, boriselec, glacambre and repparw.
 
+Extra special thanks go to boriselec, D. Debnath, repparw, RJM, Wyatt Jordan and Zak Stroud who all contributed for the first time.
+
+Last, but not least - thank you to everyone who reported issues.
 
 # Release 1.24.4 / 2025-08-04
 
