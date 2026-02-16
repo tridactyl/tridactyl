@@ -111,6 +111,7 @@ const visual = await import("@src/lib/visual")
 const metadata = await import("@src/.metadata.generated")
 const { tabTgroup } = await import("@src/lib/tab_groups")
 const completion_providers = await import("@src/completions/providers")
+const registry = await import("@src/content/element_registry")
 
 controller.setExCmds({
     "": excmds_content,
@@ -159,10 +160,30 @@ function listen(elem) {
         true,
     )
 }
-listen(window)
-document.addEventListener("readystatechange", _ =>
-    getAllDocumentFrames().forEach(f => listen(f)),
-)
+
+function listenInAllFrames() {
+    listen(window)
+    document.addEventListener("readystatechange", _ =>
+        getAllDocumentFrames().forEach(f => listen(f)),
+    )
+}
+
+// Grouped functions which hijack page functions
+function hookPageFunctions() {
+    try {
+        dom.setupFocusHandler()
+        dom.hijackPageListenerFunctions()
+        hijackDocumentDestroyingFunctions()
+    } catch (e) {
+        logger.warning("Could not hijack due to CSP:", e)
+    }
+}
+
+// Register essential functions - generally window listeners required for Tridactyl to function
+;[listenInAllFrames, addVisualModeListeners, hookPageFunctions].forEach(fn => registry.registerSetupFunction(fn))
+
+// Similar to essential functions above, except only needed to run if the original document is lost
+;[reinsertLostCSS].forEach(fn => registry.registerRestoreFunction(fn))
 
 // Prevent pages from automatically focusing elements on load
 config.getAsync("preventautofocusjackhammer").then(allowautofocus => {
@@ -242,11 +263,88 @@ config.getAsync("preventautofocusjackhammer").then(allowautofocus => {
 
 logger.info("Loaded commandline content?", commandline_content)
 
-try {
-    dom.setupFocusHandler()
-    dom.hijackPageListenerFunctions()
-} catch (e) {
-    logger.warning("Could not hijack due to CSP:", e)
+function addVisualModeListeners() {
+    document.addEventListener("selectionchange", () => {
+        const selection = document.getSelection()
+        if (
+            contentState.mode == "visual" &&
+            config.get("visualexitauto") == "true" &&
+            selection.isCollapsed
+        ) {
+            contentState.mode = "normal"
+            return
+        }
+        if (
+            contentState.mode !== "normal" ||
+            config.get("visualenterauto") == "false"
+        )
+            return
+        if (!selection.isCollapsed) {
+            contentState.mode = "visual"
+        }
+    })
+}
+
+function reinsertLostCSS() {
+    webext.ownTabId().then(tabId => {
+        ["cleanslate","content","hint","viewsource"].forEach(file =>
+            webext.browserBg.tabs.insertCSS(tabId, {
+                file: browser.runtime.getURL("static/css/" + file + ".css")
+            }))
+    })
+    styling.theme(document.documentElement)
+}
+
+/**
+* Hook document.open/write/writeln to fix Tridactyl when they're called
+* Calls to these functions cause us to lose all elements and listeners
+* eg: htmlpreview.github.io sites like https://htmlpreview.github.io/?https://github.com/FiloSottile/age/blob/main/doc/age.1.html
+*/
+function hijackDocumentDestroyingFunctions() {
+    const preCall = () => {
+        registry.removeAllElements()
+        document.querySelector("#TempTridactylDocumentElement")?.remove()
+        return document.documentElement
+    }
+
+    // Restore elements after the call and listeners if the documentElement has changed
+    const postCall = (previousDocEl) => {
+        if (!document.documentElement) {
+            // There's no documentElement at all when document.open is called
+            const tempDocEl = document.createElement("html")
+            tempDocEl.id = "TempTridactylDocumentElement"
+            const tempHead = document.createElement("head")
+            const tempBody = document.createElement("body")
+            tempDocEl.appendChild(tempHead)
+            tempDocEl.appendChild(tempBody)
+            document.appendChild(tempDocEl)
+        }
+
+        registry.appendAllElements()
+
+        // Add listeners for newly replaced document
+        if (document.documentElement !== previousDocEl) {
+            registry.callAllSetupFunctions()
+        }
+    }
+
+    exportFunction(preCall, window, { defineAs: "_preDocWrite" })
+    exportFunction(postCall, window, { defineAs: "_postDocWrite" })
+
+    const docfns = ["open","write","writeln"]
+
+    // Wrap the real functions with pre/postCall
+    window.eval(docfns.reduce((acc,cur) => `${acc}
+        Document.prototype.${cur} = ((realFn) => {
+            const pre = window._preDocWrite;
+            const post = window._postDocWrite;
+            return function (...args) {
+                const previousDocEl = pre();
+                const result = realFn.apply(this, args);
+                post(previousDocEl);
+                return result;
+            }
+        })(Document.prototype.${cur});`, "") + "delete window._preDocWrite;delete window._postDocWrite;")
 }
 
 if (
@@ -265,6 +363,8 @@ if (
         }
     })
 }
+
+registry.callAllSetupFunctions()
 
 // Really bad status indicator
 let statusIndicator
@@ -413,6 +513,8 @@ config.getAsync("modeindicator").then(mode => {
             statusIndicator.classList.remove("TridactylInvisble")
         }
     })
+
+    registry.registerElement(statusIndicator)
 })
 
 function protectSlash(e) {
@@ -449,26 +551,6 @@ window.addEventListener("load", () => {
     phoneHome()
 })
 
-document.addEventListener("selectionchange", () => {
-    const selection = document.getSelection()
-    if (
-        contentState.mode == "visual" &&
-        config.get("visualexitauto") == "true" &&
-        selection.isCollapsed
-    ) {
-        contentState.mode = "normal"
-        return
-    }
-    if (
-        contentState.mode !== "normal" ||
-        config.get("visualenterauto") == "false"
-    )
-        return
-    if (!selection.isCollapsed) {
-        contentState.mode = "visual"
-    }
-})
-
 // Try to catch the iframe/status indicator being removed by a script (React again)
 const checkElemsSurvived = () => {
     if (document.readyState === "complete") {
@@ -482,7 +564,6 @@ const checkElemsSurvived = () => {
     }
 }
 document.addEventListener("readystatechange", checkElemsSurvived)
-
 // Listen for statistics from each content script and send them to the
 // background for collection. Attach the observer to the window object
 // since there's apparently a bug that causes performance observers to
