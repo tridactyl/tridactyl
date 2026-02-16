@@ -310,7 +310,8 @@ export abstract class CompletionSourceFuse extends CompletionSource {
                 fragment.appendChild(option.html)
             }
         }
-        this.optionContainer.replaceChildren(fragment)
+        this.optionContainer.innerHTML = ""
+        this.optionContainer.appendChild(fragment)
         this.next(0)
     }
 
