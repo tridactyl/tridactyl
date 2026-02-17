@@ -70,8 +70,10 @@ export async function getDriver() {
     // Kill the original tab.
     await driver.switchTo().window(handles[0])
     await driver.close()
-    // Switch back to the good tab.
+    // Switch to the new tab (extension opens in new tab)
     await driver.switchTo().window(handles[1])
+    // Wait for Tridactyl iframe to appear - ensures extension is fully loaded
+    await driver.wait(Until.elementLocated(By.id("cmdline_iframe")), 10000)
     // Now return the window that we want to use.
     return driver
 }
