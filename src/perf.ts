@@ -340,6 +340,7 @@ export class StatsFilter {
 
     matches(entry: PerformanceEntry): boolean {
         const metricNameInfo = extractMetricName(entry.name)
+        if (!metricNameInfo) return false
         return !(
             (this.config.kind === "functionName" && this.config.functionName !== metricNameInfo.functionName) ||
             (this.config.kind === "ownerName" && this.config.ownerName !== metricNameInfo.ownerName) ||
