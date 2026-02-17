@@ -433,8 +433,8 @@ interface Hintables {
 export function hintElements(elements: Element[], option = {}) {
     const hintable = toHintablesArray(Array.from(elements))
     const rapid = option["rapid"] ?? false
-    const callback = typeof option["callback"] === "function" ?
-        option["callback"] : x => x
+    const callback =
+        typeof option["callback"] === "function" ? option["callback"] : x => x
     if (!rapid) {
         return new Promise((resolve, reject) => {
             hintPage(hintable, x => x, resolve, reject, rapid)
@@ -449,7 +449,7 @@ export function hintElements(elements: Element[], option = {}) {
         const key = Symbol("select-result")
         const hintCallback = element => {
             callback(element)
-            onSelect.resolve({[key]: element})
+            onSelect.resolve({ [key]: element })
             onSelect = deferCreate()
         }
         const wrap = async function* () {
@@ -461,8 +461,13 @@ export function hintElements(elements: Element[], option = {}) {
             }
         }
         const result = wrap()
-        hintPage(hintable, hintCallback,
-            endDefer.resolve, endDefer.reject, rapid)
+        hintPage(
+            hintable,
+            hintCallback,
+            endDefer.resolve,
+            endDefer.reject,
+            rapid,
+        )
         return result
     }
     function deferCreate() {
@@ -521,7 +526,7 @@ export function hintPage(
         reset()
         return
     }
-    modeState.hints.forEach(hint => hint.hidden = false)
+    modeState.hints.forEach(hint => (hint.hidden = false))
 
     // There are multiple hints. Normally we would just show all of them, but
     // we try to be clever here. Automatically select the first one if all the
@@ -652,7 +657,10 @@ function* hintnames_short(
     hintchars = defaultHintChars(),
 ): IterableIterator<string> {
     const source = hintnames_simple(hintchars)
-    const num2skip = Math.max(0, Math.ceil((n - hintchars.length) / (hintchars.length - 1)));
+    const num2skip = Math.max(
+        0,
+        Math.ceil((n - hintchars.length) / (hintchars.length - 1)),
+    )
     yield* islice(source, num2skip, n + num2skip)
 }
 
@@ -766,7 +774,7 @@ class Hint {
         classes?.forEach(f => this.flag.classList.add(f))
 
         // Add optional overlays
-        if (modeState.highlightHost  || modeState.outlineHost) {
+        if (modeState.highlightHost || modeState.outlineHost) {
             const mainRect = document.createElement("div")
             // Add all rectangles for highlights / outlines
             for (const recti of clientRects) {
@@ -796,7 +804,9 @@ class Hint {
             }
 
             if (modeState.outlineHost) {
-                this.outline = this.highlight ? (this.highlight as any).cloneNode(true) : mainRect
+                this.outline = this.highlight
+                    ? (this.highlight as any).cloneNode(true)
+                    : mainRect
                 this.outline.className = "TridactylHintOutline"
                 modeState.outlineHost.appendChild(this.outline)
             }
@@ -926,8 +936,14 @@ function buildHintsSimple(
     hintablesArray: Hintables[],
     onSelect: HintSelectedCallback,
 ) {
-    const hintablesfiltered = hintablesArray.map(h => ({ elements: h.elements.filter(el => Hint.isHintable(el)), hintclasses: h.hintclasses }))
-    const totalhints = hintablesfiltered.reduce((n, h) => n + h.elements.length, 0)
+    const hintablesfiltered = hintablesArray.map(h => ({
+        elements: h.elements.filter(el => Hint.isHintable(el)),
+        hintclasses: h.hintclasses,
+    }))
+    const totalhints = hintablesfiltered.reduce(
+        (n, h) => n + h.elements.length,
+        0,
+    )
 
     const allnames = Array.from(
         hintnames(totalhints + modeState.hints.length),
@@ -983,8 +999,14 @@ function buildHintsVimperator(
     hintablesArray: Hintables[],
     onSelect: HintSelectedCallback,
 ) {
-    const hintablesfiltered = hintablesArray.map(h => ({ elements: h.elements.filter(el => Hint.isHintable(el)), hintclasses: h.hintclasses }))
-    const totalhints = hintablesfiltered.reduce((n, h) => n + h.elements.length, 0)
+    const hintablesfiltered = hintablesArray.map(h => ({
+        elements: h.elements.filter(el => Hint.isHintable(el)),
+        hintclasses: h.hintclasses,
+    }))
+    const totalhints = hintablesfiltered.reduce(
+        (n, h) => n + h.elements.length,
+        0,
+    )
     const allnames = Array.from(
         hintnames(totalhints + modeState.hints.length),
     ).slice(modeState.hints.length)
@@ -1035,7 +1057,9 @@ function addFilteredCharClass(hint: Hint, fstr: string) {
 @hidden */
 function removeFilteredCharClass() {
     for (const hint of modeState.hints) {
-        hint.flag.classList.remove("TridactylHintCharPressed")
+        for (const span of hint.flag.children) {
+            span.classList.remove("TridactylHintCharPressed")
+        }
     }
 }
 
