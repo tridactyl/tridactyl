@@ -67,8 +67,6 @@ export async function getDriver() {
         }, 10000)
         handles = await driver.getAllWindowHandles()
     }
-    // And wait a bit more otherwise Tridactyl won't be happy
-    await driver.sleep(500)
     // Kill the original tab.
     await driver.switchTo().window(handles[0])
     await driver.close()

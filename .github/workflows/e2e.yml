@@ -1,66 +1,77 @@
 name: e2e
 
 on:
-  push:
-    branches:
-      - 'master'
-    paths-ignore:
-      - '/readme.md'
-  pull_request:
-    branches:
-      - '*'
-    paths-ignore:
-      - '/readme.md'
-  schedule:
-    - cron: '45 7 * * *'
+    push:
+        branches:
+            - "master"
+        paths-ignore:
+            - "/readme.md"
+    pull_request:
+        branches:
+            - "*"
+        paths-ignore:
+            - "/readme.md"
+    schedule:
+        - cron: "45 7 * * *"
 
 concurrency:
-  group: e2e-${{ github.ref }}
-  cancel-in-progress: true
+    group: e2e-${{ github.ref }}
+    cancel-in-progress: true
 
 jobs:
-  test:
-    timeout-minutes: 120
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu, windows]
-        # os: [ubuntu, macos, windows]
-        browser: [firefox, firefoxesr]
-        exclude:
-          - os: windows
-            browser: firefoxesr
+    test:
+        timeout-minutes: 120
+        strategy:
+            fail-fast: false
+            matrix:
+                os: [ubuntu, windows]
+                # os: [ubuntu, macos, windows]
+                browser: [firefox, firefoxesr]
+                exclude:
+                    - os: windows
+                      browser: firefoxesr
 
-    runs-on: ${{ matrix.os }}-latest
+        runs-on: ${{ matrix.os }}-latest
 
-    steps:
-    - name: Checkout
-      uses: actions/checkout@v4
-    - uses: actions/setup-node@v4
-      with:
-        node-version: 22
-        cache: 'yarn'
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
+            - uses: actions/setup-node@v4
+              with:
+                  node-version: 22
+                  cache: "yarn"
 
-    - name: Install deps
-      run: yarn install
+            - name: Install deps
+              run: yarn install
 
-    - name: Setup Firefox
-      uses: browser-actions/setup-firefox@v1
-      with:
-        firefox-version: ${{ matrix.browser == 'firefox' && 'latest' || 'latest-esr' }}
-  
-    - name: Print Firefox version (Unix-like)
-      if: matrix.os == 'ubuntu' || matrix.os == 'macos'
-      run: firefox --version
+            - name: Setup Firefox
+              uses: browser-actions/setup-firefox@v1
+              with:
+                  firefox-version: ${{ matrix.browser == 'firefox' && 'latest' || 'latest-esr' }}
 
-    - name: Build and test (Firefox)
-      uses: nick-fields/retry@v3
-      env:
-        HEADLESS: 1
-      with: 
-        max_attempts: ${{ github.event_name == 'pull_request' && ( github.event.pull_request.draft && 1 || 5 ) || 10 }}
-        timeout_minutes: 10
-        retry_wait_seconds: 10
-        shell: bash
-        command: |
-          yarn run clean && yarn run build --old-native && yarn make-zip && yarn jest
+            - name: Cache build outputs
+              uses: actions/cache@v4
+              with:
+                  path: |
+                      build
+                      dist
+                      out
+                  key: build-${{ matrix.os }}-${{ matrix.browser }}-${{ hashFiles('yarn.lock', 'package.json', 'src/**/*') }}
+                  restore-keys: |
+                      build-${{ matrix.os }}-${{ matrix.browser }}-
+
+            - name: Print Firefox version (Unix-like)
+              if: matrix.os == 'ubuntu' || matrix.os == 'macos'
+              run: firefox --version
+
+            - name: Build and test (Firefox)
+              uses: nick-fields/retry@v3
+              env:
+                  HEADLESS: 1
+              with:
+                  max_attempts: ${{ github.event_name == 'pull_request' && ( github.event.pull_request.draft && 1 || 5 ) || 10 }}
+                  timeout_minutes: 10
+                  retry_wait_seconds: 10
+                  shell: bash
+                  command: |
+                      yarn run build --old-native && yarn make-zip && yarn jest
