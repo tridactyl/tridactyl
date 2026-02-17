@@ -58,6 +58,8 @@ export async function getDriver() {
         const handles = await driver.getAllWindowHandles()
         return handles.length >= 2
     }, 10000)
+    // Give the extension a bit more time to initialize
+    await driver.sleep(500)
     let handles = await driver.getAllWindowHandles()
     // Handle edge case where extension loads in same tab (some headless configurations)
     if (handles.length === 1) {
