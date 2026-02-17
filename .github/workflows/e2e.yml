@@ -48,6 +48,17 @@ jobs:
       uses: browser-actions/setup-firefox@v1
       with:
         firefox-version: ${{ matrix.browser == 'firefox' && 'latest' || 'latest-esr' }}
+
+   - name: Cache build outputs
+     uses: actions/cache@v4
+     with:
+       path: |
+         build
+         dist
+         out
+       key: build-${{ matrix.os }}-${{ matrix.browser }}-${{ hashFiles('yarn.lock', 'package.json', 'src/**/*') }}
+       restore-keys: |
+         build-${{ matrix.os }}-${{ matrix.browser }}-
   
     - name: Print Firefox version (Unix-like)
       if: matrix.os == 'ubuntu' || matrix.os == 'macos'
@@ -63,4 +74,4 @@ jobs:
         retry_wait_seconds: 10
         shell: bash
         command: |
-          yarn run clean && yarn run build --old-native && yarn make-zip && yarn jest
+          yarn run build --old-native && yarn make-zip && yarn jest
