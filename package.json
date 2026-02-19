@@ -47,6 +47,7 @@
     "eslint-plugin-prefer-arrow": "^1.2.3",
     "eslint-plugin-sonarjs": "^0.25.1",
     "geckodriver": "^5.0.0",
+    "git-format-staged": "^4.0.1",
     "jasmine-fail-fast": "^2.0.1",
     "jest": "^25.5.4",
     "jest-webextension-mock": "^4.0.0",
