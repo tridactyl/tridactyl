@@ -160,5 +160,13 @@
     },
     "omnibox": {
         "keyword": "tri"
+    },
+    "browser_action": {
+        "browser_style": true,
+        "default_icon": {
+            "64": "static/logo/Tridactyl_64px.png",
+            "100": "static/logo/Tridactyl_100px.png",
+            "150": "static/logo/Tridactyl_150px.png"
+        }
     }
 }
