@@ -28,6 +28,10 @@ jobs:
           repository: 'tridactyl/site'
           submodules: 'recursive' # we shouldn't need this, public should be generated each time
           path: 'site'
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '24'
       - name: Build
         run: |
           cd tridactyl
