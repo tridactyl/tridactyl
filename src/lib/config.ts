@@ -1954,15 +1954,14 @@ export function mergeDeep(o1, o2) {
     const r = Array.isArray(o1) ? o1.slice() : Object.create(o1)
     Object.assign(r, o1, o2)
     if (o2 === undefined) return r
-    Object.keys(o1)
-        .filter(
-            key => typeof o1[key] === "object" && typeof o2[key] === "object",
-        )
-        .forEach(key =>
-            r[key] == null
-                ? null
-                : Object.assign(r[key], mergeDeep(o1[key], o2[key])),
-        )
+    // eslint-disable-next-line guard-for-in
+    for (const key in o1) {
+        const v1 = o1[key]
+        const v2 = o2[key]
+        if (v1 && v2 && typeof v1 === "object" && typeof v2 === "object") {
+            r[key] = mergeDeep(v1, v2)
+        }
+    }
     return r
 }
 
