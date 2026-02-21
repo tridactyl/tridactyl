@@ -436,6 +436,7 @@ export class default_config {
     browsermaps = {
         "<C-,>": "escapehatch",
         "<C-6>": "tab #",
+        "<C-7>": "tabnextmru",
         // "<CS-6>": "tab #", // banned by e2e tests
     }
 
