@@ -334,15 +334,23 @@ config.getAsync("modeindicator").then(mode => {
         window.addEventListener("mousemove", onMouseOut)
     })
 
+    async function setWindowModePrefix(mode) {
+        webext.browserBg.windows.update(await webext.activeWindowId(), {
+            titlePreface: "[ " + mode + " ] ",
+        })
+    }
+
     try {
         // On quick loading pages, the document is already loaded
         statusIndicator.textContent = contentState.mode || "normal"
+        setWindowModePrefix(contentState.mode || "normal")
         document.body.appendChild(statusIndicator)
         document.head.appendChild(style)
     } catch (e) {
         // But on slower pages we wait for the document to load
         window.addEventListener("DOMContentLoaded", () => {
             statusIndicator.textContent = contentState.mode || "normal"
+            setWindowModePrefix(contentState.mode || "normal")
             document.body.appendChild(statusIndicator)
             document.head.appendChild(style)
         })
@@ -360,6 +368,8 @@ config.getAsync("modeindicator").then(mode => {
                 mode = oldMode
             }
         }
+
+        setWindowModePrefix(mode)
 
         const privateMode = browser.extension.inIncognitoContext
             ? "TridactylPrivate"
