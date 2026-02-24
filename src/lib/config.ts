@@ -39,6 +39,8 @@ const CONFIGNAME = "userconfig"
 const WAITERS = []
 /** @hidden */
 export let INITIALISED = false
+/** @hidden */
+let inGetURL = false
 
 /** @hidden */
 // make a naked object
@@ -1970,6 +1972,7 @@ export function mergeDeep(o1, o2) {
  * Gets a site-specific setting.
  */
 export function getURL(url: string, target: string[]) {
+    if (inGetURL) return undefined
     function _getURL(conf, url, target) {
         if (!conf.subconfigs) return undefined
         // For each key
@@ -2000,11 +2003,16 @@ export function getURL(url: string, target: string[]) {
                 }, undefined as any)
         )
     }
-    const user = _getURL(USERCONFIG, url, target)
-    const deflt = _getURL(DEFAULTS, url, target)
-    if (user === undefined || user === null) return deflt
-    if (typeof user !== "object" || typeof deflt !== "object") return user
-    return mergeDeepCull(deflt, user)
+    inGetURL = true
+    try {
+        const user = _getURL(USERCONFIG, url, target)
+        const deflt = _getURL(DEFAULTS, url, target)
+        if (user === undefined || user === null) return deflt
+        if (typeof user !== "object" || typeof deflt !== "object") return user
+        return mergeDeepCull(deflt, user)
+    } finally {
+        inGetURL = false
+    }
 }
 
 /** Get the value of the key target.
