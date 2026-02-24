@@ -59,7 +59,8 @@
     "tslint-etc": "^1.13.10",
     "tslint-sonarts": "^1.9.0",
     "typescript": "^3.9.10",
-    "web-ext": "^7.10.0"
+    "web-ext": "^7.10.0",
+    "yaml-lint": "^1.7.0"
   },
   "scripts": {
     "build": "sh scripts/build.sh",
@@ -74,7 +75,8 @@
     "test": "yarn run build && web-ext build --source-dir ./build --overwrite-dest && jest --silent",
     "update-buildsystem": "rm -rf src/node_modules; yarn run clean",
     "watch": "echo 'watch is broken, use build instead'; exit 0;",
-    "install": "git config core.hookspath hooks/"
+    "install": "git config core.hookspath hooks/",
+    "githublint": "yamllint .github/workflows/**.yml"
   },
   "author": "Colin Caine",
   "repository": {
