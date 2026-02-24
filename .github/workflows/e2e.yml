@@ -49,16 +49,16 @@ jobs:
       with:
         firefox-version: ${{ matrix.browser == 'firefox' && 'latest' || 'latest-esr' }}
 
-   - name: Cache build outputs
-     uses: actions/cache@v4
-     with:
-       path: |
-         build
-         dist
-         out
-       key: build-${{ matrix.os }}-${{ matrix.browser }}-${{ hashFiles('yarn.lock', 'package.json', 'src/**/*') }}
-       restore-keys: |
-         build-${{ matrix.os }}-${{ matrix.browser }}-
+    - name: Cache build outputs
+      uses: actions/cache@v4
+      with:
+        path: |
+          build
+          dist
+          out
+        key: build-${{ matrix.os }}-${{ matrix.browser }}-${{ hashFiles('yarn.lock', 'package.json', 'src/**/*') }}
+        restore-keys: |
+          build-${{ matrix.os }}-${{ matrix.browser }}-
   
     - name: Print Firefox version (Unix-like)
       if: matrix.os == 'ubuntu' || matrix.os == 'macos'
