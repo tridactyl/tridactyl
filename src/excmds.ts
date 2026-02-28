@@ -5790,8 +5790,11 @@ export function buildFilterConfigs(filters: string[]): Perf.StatsFilterConfig[] 
 export async function perfdump(...filters: string[]) {
     const filterconfigs = buildFilterConfigs(filters)
     const entries = window.tri.statsLogger.getEntries(...filterconfigs)
-    console.log(filterconfigs)
-    return open("data:application/json;charset=UTF-8," + JSON.stringify(entries))
+    console.log("Filter configs:", filterconfigs)
+    console.log("Performance entries:", entries)
+    const jsonStr = JSON.stringify(entries, null, 2)
+    await clipboard("yank", jsonStr)
+    return fillcmdline_tmp(3000, `perfdump: ${entries.length} samples copied to clipboard. Check browser console for details.`)
 }
 
 /**
@@ -5811,8 +5814,9 @@ export async function perfhistogram(...filters: string[]) {
         return fillcmdline_tmp(3000, "perfhistogram: No samples found.")
     }
     const histogram = Perf.renderStatsHistogram(entries)
-    console.log(histogram)
-    return open("data:text/plain;charset=UTF-8;base64," + btoa(histogram))
+    console.log("Histogram:\n" + histogram)
+    await clipboard("yank", histogram)
+    return fillcmdline_tmp(3000, `perfhistogram: ${entries.length} samples. Histogram copied to clipboard. Check browser console for details.`)
 }
 
 // }}}
