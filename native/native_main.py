@@ -49,7 +49,7 @@ def getMessage():
     "Each message is serialized using JSON, UTF-8 encoded and is preceded with
     a 32-bit value containing the message length in native byte order."
 
-    https://developer.mozilla.org/en-US/Add-ons/WebExtensions/Native_messaging#App_side
+    https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/Native_messaging#App_side
 
     """
     rawLength = sys.stdin.buffer.read(4)

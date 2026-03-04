@@ -23,7 +23,7 @@ interface Window {
 }
 
 // This isn't an actual firefox type but it's nice to have one for this kind of object
-// https://developer.mozilla.org/en-US/Add-ons/WebExtensions/API/find/find
+// https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/find/find
 interface findResult {
     count: number
     rangeData: Array<{

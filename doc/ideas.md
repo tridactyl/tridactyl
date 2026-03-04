@@ -30,7 +30,7 @@ https://www.codementor.io/gmuresan/building-a-chrome-extension-reactjs-broccoli-
 
 # Useful links
 
-https://developer.chrome.com/extensions/commands https://github.com/lydell/webextension-keyboard https://developer.mozilla.org/en-US/Add-ons/WebExtensions/Anatomy_of_a_WebExtension#Background_scripts https://github.com/shinglyu/QuantumVim - Vimium style stuff in WebExtensions https://github.com/mishoo/UglifyJS2 - Minify JS: check that compiling to Firefox addon doesn't already do this https://developer.mozilla.org/en-US/Add-ons/WebExtensions/API http://arcturo.github.io/library/coffeescript/ - Coffee Script textbook https://developer.mozilla.org/en-US/Add-ons/WebExtensions/Getting_started_with_web-ext - web-ext will automatically reload a changed extension
+https://developer.chrome.com/extensions/commands https://github.com/lydell/webextension-keyboard https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/Anatomy_of_a_WebExtension#Background_scripts https://github.com/shinglyu/QuantumVim - Vimium style stuff in WebExtensions https://github.com/mishoo/UglifyJS2 - Minify JS: check that compiling to Firefox addon doesn't already do this https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API http://arcturo.github.io/library/coffeescript/ - Coffee Script textbook https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/Getting_started_with_web-ext - web-ext will automatically reload a changed extension
 
 # Names
 
@@ -61,6 +61,6 @@ History seems to be window.history.go(), presumably in a content script?
 
 https://news.ycombinator.com/item?id=10120773 -- people complaining, could be handy
 
-https://developer.mozilla.org/en-US/Add-ons/WebExtensions/API/tabs/executeScript -- we aren't allowed to inject JS into, e.g. about: pages. This means no searching, no back/forward, no commandline: a user navigating to such a page would get trapped.
+https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/tabs/executeScript -- we aren't allowed to inject JS into, e.g. about: pages. This means no searching, no back/forward, no commandline: a user navigating to such a page would get trapped.
 
 https://www.w3schools.com/jsref/obj_window.asp -- commands that can be run in content.js

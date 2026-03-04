@@ -3483,7 +3483,7 @@ export async function containerclose(name: string) {
 }
 /** Creates a new container. Note that container names must be unique and that the checks are case-insensitive.
 
-    Further reading https://developer.mozilla.org/en-US/Add-ons/WebExtensions/API/contextualIdentities/ContextualIdentity
+    Further reading https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/contextualIdentities/ContextualIdentity
 
     Example usage:
         - `:containercreate tridactyl green dollar`
@@ -5000,7 +5000,7 @@ export async function reseturl(pattern: string, mode: string, key: string) {
 /** Deletes various bits of Firefox or Tridactyl data
 
     The list of possible arguments can be found here:
-    https://developer.mozilla.org/en-US/Add-ons/WebExtensions/API/browsingData/DataTypeSet
+    https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/browsingData/DataTypeSet
 
     Additional Tridactyl-specific arguments are:
     - `commandline`: Removes the in-memory commandline history.

@@ -3,13 +3,13 @@
 Useful workarounds and methods to get the power we want in the brave new world of webextensions.
 
 *   Function in newtab
-    *   [chrome_url_overrides](https://developer.mozilla.org/en-US/Add-ons/WebExtensions/manifest.json/chrome_url_overrides)
+    *   [chrome_url_overrides](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/manifest.json/chrome_url_overrides)
 *   Function in home page
-    *   [chrome_settings_overrides](https://developer.mozilla.org/en-US/Add-ons/WebExtensions/manifest.json/chrome_settings_overrides)
+    *   [chrome_settings_overrides](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/manifest.json/chrome_settings_overrides)
 *   (Downside for both is that we need to reimplement a useful home and newtab page)
 
 *   Shell and write access to filesystem
-    *   [Native_messaging](https://developer.mozilla.org/en-US/Add-ons/WebExtensions/Native_messaging)
+    *   [Native_messaging](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/Native_messaging)
 *   Hiding firefox chrome
 
     *   API proposal for hiding tabstrip (but not nav bar): [Bug 1332447](https://api-dev.bugzilla.mozilla.org/show_bug.cgi?id=1332447)
@@ -27,7 +27,7 @@ Useful workarounds and methods to get the power we want in the brave new world o
     *   Shadow DOM would probably be simpler than iframe, but not implemented yet [Bug 1205323](https://bugzilla.mozilla.org/show_bug.cgi?id=1205323)
 *   Commandline thru search suggestions on the omnibar (this is a bit mad)
 
-    *   [chrome_settings_overrides](https://developer.mozilla.org/en-US/Add-ons/WebExtensions/manifest.json/chrome_settings_overrides)
+    *   [chrome_settings_overrides](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/manifest.json/chrome_settings_overrides)
 
 *   [Find API](https://bug1332144.bmoattachments.org/attachment.cgi?id=8905651)
 
