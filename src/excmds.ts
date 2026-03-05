@@ -3040,14 +3040,22 @@ export async function tabduplicate(index?: number) {
         The 1-based index of the tab to target. index < 1 wraps. If omitted, this tab.
 */
 //#background
-export async function tabdetach(index?: number) {
+export async function tabdetach(index?: string) {
     // Workaround for detached tabs not getting focus (issue #5273)
     const tabId = await idFromIndex(index)
     const currentTab = await browser.tabs.get(tabId)
-    const tempTab = (await browser.windows.create({ incognito: currentTab.incognito })).tabs[0]
+    let tempWin
+    try {
+        tempWin = await browser.windows.create({ incognito: currentTab.incognito, url: "about:blank" })
+    } catch (_error) {
+        // Some Firefox setups can fail to resolve the default new-window URI.
+        // Fall back to the simplest guaranteed-valid create call.
+        tempWin = await browser.windows.create({ url: "about:blank" })
+    }
+    const tempTab = tempWin.tabs[0]
     await browser.tabs.move(tabId, { index: -1, windowId: tempTab.windowId })
-    browser.tabs.remove(tempTab.id)
-    browser.tabs.update(tabId, { active: true })
+    await browser.tabs.remove(tempTab.id)
+    await browser.tabs.update(tabId, { active: true })
     return browser.windows.get(tempTab.windowId)
 }
 
