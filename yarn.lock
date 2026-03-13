@@ -2155,10 +2155,9 @@ class-utils@^0.3.5:
     isobject "^3.0.0"
     static-extend "^0.1.1"
 
-cleanslate@^0.10.1:
-  version "0.10.1"
-  resolved "https://registry.yarnpkg.com/cleanslate/-/cleanslate-0.10.1.tgz#5af71a7c3b5b00d08586ad2050e5a7bda2850676"
-  integrity sha1-WvcafDtbANCFhq0gUOWnvaKFBnY=
+"cleanslate@git+https://github.com/tridactyl/cleanslate.git#master":
+  version "0.0.0"
+  resolved "git+https://github.com/tridactyl/cleanslate.git#bd1c739c562831d7383fb61d9554a92b44ffc769"
 
 cli-boxes@^3.0.0:
   version "3.0.0"

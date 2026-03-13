@@ -13,7 +13,7 @@
   },
   "dependencies": {
     "@mozilla/readability": "^0.5.0",
-    "cleanslate": "^0.10.1",
+    "cleanslate": "git+https://github.com/tridactyl/cleanslate.git#master",
     "compute-scroll-into-view": "^3.0.0",
     "csp-serdes": "github:cmcaine/csp-serdes",
     "css": "^3.0.0",
