@@ -154,7 +154,6 @@ export interface ScoredOption {
 
 export abstract class CompletionSourceFuse extends CompletionSource {
     public node
-    public options: CompletionOptionFuse[]
 
     fuseOptions = {
         keys: ["fuseKeys"],
@@ -176,6 +175,8 @@ export abstract class CompletionSourceFuse extends CompletionSource {
 
     protected optionContainer = html`<table class="optionContainer"></table>`
 
+    protected _options: CompletionOptionFuse[]
+
     constructor(
         prefixes,
         className: string,
@@ -188,6 +189,15 @@ export abstract class CompletionSourceFuse extends CompletionSource {
         </div>`
         this.node.appendChild(this.optionContainer)
         this.state = "hidden"
+    }
+
+    public get options(): CompletionOptionFuse[] {
+        return this._options
+    }
+
+    public set options(val: CompletionOptionFuse[]) {
+        this._options = val
+        this.fuse = undefined
     }
 
     // Helpful default implementations
@@ -255,11 +265,13 @@ export abstract class CompletionSourceFuse extends CompletionSource {
 
     /** Rtn sorted array of {option, score} */
     scoredOptions(query: string): ScoredOption[] {
-        const searchThis = this.options.map((elem, index) => ({
-            index,
-            fuseKeys: elem.fuseKeys,
-        }))
-        this.fuse = new Fuse(searchThis, this.fuseOptions)
+        if (this.fuse === undefined) {
+            const searchThis = this.options.map((elem, index) => ({
+                index,
+                fuseKeys: elem.fuseKeys,
+            }))
+            this.fuse = new Fuse(searchThis, this.fuseOptions)
+        }
         return this.fuse.search(query).map(result => {
             // console.log(result, result.item, query)
             const index = toNumber(result.item.index)
@@ -298,7 +310,7 @@ export abstract class CompletionSourceFuse extends CompletionSource {
         // sort this.options by score
         if (this.sortScoredOptions) {
             const sorted_options = matches.map(index => this.options[index])
-            this.options = sorted_options.concat(hidden_options)
+            this._options = sorted_options.concat(hidden_options)
         }
     }
 
