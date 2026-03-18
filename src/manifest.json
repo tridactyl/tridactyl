@@ -131,12 +131,14 @@
         "topSites",
         "management",
         "nativeMessaging",
-        "tabGroups",
         "webNavigation",
         "webRequest",
         "webRequestBlocking",
         "proxy",
         "<all_urls>"
+    ],
+    "optional_permissions": [
+        "tabGroups"
     ],
     "applications": {
         "gecko": {
