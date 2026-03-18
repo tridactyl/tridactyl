@@ -354,7 +354,8 @@ export async function setTabTgroup(name: string, id?: number | number[]) {
     const ids = await tabIdsOrCurrent(id)
 
     if (hasNativeTabGroups()) {
-        const windowId = await activeWindowId()
+        const tab = await browserBg.tabs.get(ids[0])
+        const windowId = tab.windowId
         const groupId = await getOrCreateGroupId(name, windowId)
         if (groupId === -1) {
             return Promise.all(
@@ -364,7 +365,7 @@ export async function setTabTgroup(name: string, id?: number | number[]) {
             )
         }
         try {
-            return browserBg.tabs.group({
+            return await browserBg.tabs.group({
                 tabIds: ids,
                 groupId,
             })
@@ -391,7 +392,7 @@ export async function clearTabTgroup(id?: number | number[]) {
 
     if (hasNativeTabGroups()) {
         try {
-            return browserBg.tabs.ungroup(ids)
+            return await browserBg.tabs.ungroup(ids)
         } catch (e) {
             logger.warning(`Failed to ungroup tabs: ${e}`)
         }
@@ -725,37 +726,37 @@ export async function migrateToNativeGroups() {
         "tridactyl-tgroups",
     )
 
-    if (!legacyGroups || (legacyGroups as string[]).length === 0) {
+    if (!Array.isArray(legacyGroups) || legacyGroups.length === 0) {
         logger.info("No legacy tab groups to migrate")
         return
     }
 
-    for (const groupName of legacyGroups as string[]) {
-        try {
-            const tabs = await browserBg.tabs.query({
-                windowId,
-                pinned: false,
-            })
+    const tabs = await browserBg.tabs.query({
+        windowId,
+        pinned: false,
+    })
 
-            const groupTabs = []
-            for (const tab of tabs) {
-                const tabGroup = await browserBg.sessions.getTabValue(
-                    tab.id,
-                    "tridactyl-tgroup",
-                )
-                if (tabGroup === groupName) {
-                    groupTabs.push(tab.id)
-                }
-            }
+    const tabGroupValues = await Promise.all(
+        tabs.map(tab =>
+            browserBg.sessions.getTabValue(tab.id, "tridactyl-tgroup"),
+        ),
+    )
 
-            if (groupTabs.length > 0) {
-                logger.info(
-                    `Migrating group "${groupName}" with ${groupTabs.length} tabs`,
-                )
-                await setTabTgroup(groupName, groupTabs)
+    for (const groupName of legacyGroups) {
+        if (typeof groupName !== "string") continue
+
+        const groupTabs: number[] = []
+        for (let i = 0; i < tabs.length; i++) {
+            if (tabGroupValues[i] === groupName) {
+                groupTabs.push(tabs[i].id)
             }
-        } catch (e) {
-            logger.error(`Failed to migrate group "${groupName}": ${e}`)
+        }
+
+        if (groupTabs.length > 0) {
+            logger.info(
+                `Migrating group "${groupName}" with ${groupTabs.length} tabs`,
+            )
+            await setTabTgroup(groupName, groupTabs)
         }
     }
 
