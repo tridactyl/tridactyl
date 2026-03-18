@@ -358,9 +358,9 @@ export async function setTabTgroup(name: string, id?: number | number[]) {
         const groupId = await getOrCreateGroupId(name, windowId)
         if (groupId === -1) {
             return Promise.all(
-                ids.map(id => {
-                    browserBg.sessions.setTabValue(id, "tridactyl-tgroup", name)
-                }),
+                ids.map(id =>
+                    browserBg.sessions.setTabValue(id, "tridactyl-tgroup", name),
+                ),
             )
         }
         try {
@@ -374,9 +374,9 @@ export async function setTabTgroup(name: string, id?: number | number[]) {
     }
 
     return Promise.all(
-        ids.map(id => {
-            browserBg.sessions.setTabValue(id, "tridactyl-tgroup", name)
-        }),
+        ids.map(id =>
+            browserBg.sessions.setTabValue(id, "tridactyl-tgroup", name),
+        ),
     )
 }
 
