@@ -3633,6 +3633,33 @@ export async function tgroupcreate(name: string, color?: string) {
         const currentTab = await activeTab()
         const existingGroupId = currentTab.groupId
 
+        const ungroupedTabs = await browserBg.tabs.query({
+            windowId,
+            pinned: false,
+            groupId: -1,
+        })
+
+        if (ungroupedTabs.length > 0) {
+            const tabIds = ungroupedTabs.map(t => t.id).filter((id): id is number => id !== undefined)
+            const groupId = await browserBg.tabs.group({
+                tabIds,
+                createProperties: { windowId },
+            })
+            const updateProps: { title: string; color?: TabGroupColor } = {
+                title: name,
+            }
+            const normalizedColor = normalizeColor(color)
+            if (normalizedColor) {
+                updateProps.color = normalizedColor
+            }
+            await browserBg.tabGroups.update(groupId, updateProps)
+            if (existingGroupId !== -1) {
+                await browserBg.tabGroups.update(existingGroupId, { collapsed: true })
+            }
+            setContentStateGroup(name)
+            return name
+        }
+
         const initialUrl = await config.get("tabgroupnewtaburls")[name]
         const newTab = await tabopen(initialUrl)
 
@@ -3850,14 +3877,19 @@ export async function tgroupmove(name: string) {
     if (tabCount == 1) {
         return Promise.all([
             tgroupClearOldInfo(currentGroup, name),
-            tgroupTabs(name).then(tabs => {
-                browserBg.tabs.show(tabs.map(tab => tab.id))
-            }),
+            hasNativeTabGroups()
+                ? Promise.resolve()
+                : tgroupTabs(name).then(tabs => {
+                      browserBg.tabs.show(tabs.map(tab => tab.id))
+                  }),
         ]).then(() => name)
     } else {
         const lastTabId = await tgroupLastTabId(currentGroup)
         await tabSetActive(lastTabId)
-        return browser.tabs.hide(currentTabId).then(() => currentGroup)
+        if (!hasNativeTabGroups()) {
+            return browser.tabs.hide(currentTabId).then(() => currentGroup)
+        }
+        return currentGroup
     }
 }
 
