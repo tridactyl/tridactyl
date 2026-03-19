@@ -5,6 +5,7 @@ import * as Containers from "@src/lib/containers"
 import * as Completions from "@src/completions"
 import * as config from "@src/lib/config"
 import * as Messaging from "@src/lib/messaging"
+import { hasNativeTabGroups, windowTgroup } from "@src/lib/tab_groups"
 
 class BufferCompletionOption
     extends Completions.CompletionOptionHTML
@@ -193,7 +194,22 @@ export class BufferCompletionSource extends Completions.CompletionSourceFuse {
         // Since tabmove always uses absolute tab indices, we need
         // to override possible MRU setting to match tabmove behavior
         const forceSort = prefix === "tabmove" ? "default" : undefined
-        const tabs = await getSortedTabs(forceSort)
+        let tabs = await getSortedTabs(forceSort)
+
+        if (hasNativeTabGroups()) {
+            const currentGroup = await windowTgroup()
+            if (currentGroup !== undefined) {
+                const groups = await browserBg.tabGroups.query({
+                    windowId: tabs[0]?.windowId,
+                    title: currentGroup,
+                })
+                if (groups.length > 0) {
+                    const currentGroupId = groups[0].id
+                    tabs = tabs.filter(tab => tab.groupId === currentGroupId)
+                }
+            }
+        }
+
         const options = []
 
         const container_all = await browserBg.contextualIdentities.query({})
