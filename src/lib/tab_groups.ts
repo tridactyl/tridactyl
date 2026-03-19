@@ -503,14 +503,24 @@ export async function tgroupClearOldInfo(
 
     if (newName) {
         promises.push(setWindowTgroup(newName, id))
-        promises.push(
-            tgroupTabs(oldName, false, id).then(tabs => {
-                setTabTgroup(
-                    newName,
-                    tabs.map(tab => tab.id),
+        if (hasNativeTabGroups()) {
+            const oldGroupId = await getGroupIdFromName(oldName, id)
+            if (oldGroupId !== undefined) {
+                promises.push(
+                    browserBg.tabGroups.update(oldGroupId, { title: newName })
+                        .catch(e => logger.warning(`Failed to rename tab group: ${e}`)),
                 )
-            }),
-        )
+            }
+        } else {
+            promises.push(
+                tgroupTabs(oldName, false, id).then(tabs => {
+                    setTabTgroup(
+                        newName,
+                        tabs.map(tab => tab.id),
+                    )
+                }),
+            )
+        }
     }
     return Promise.all(promises)
 }
