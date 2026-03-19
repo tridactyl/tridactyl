@@ -128,6 +128,7 @@
         "storage",
         "tabHide",
         "tabs",
+        "tabGroups",
         "topSites",
         "management",
         "nativeMessaging",
@@ -137,13 +138,10 @@
         "proxy",
         "<all_urls>"
     ],
-    "optional_permissions": [
-        "tabGroups"
-    ],
     "applications": {
         "gecko": {
             "id": "tridactyl.vim.betas@cmcaine.co.uk",
-            "strict_min_version": "91.1.0"
+            "strict_min_version": "138.0"
         }
     },
     "options_ui": {
