@@ -138,31 +138,66 @@ const guardedAcceptKey = (keyevent: KeyboardEvent) => {
 function listen(elem) {
     elem.removeEventListener("keydown", guardedAcceptKey, true)
     elem.removeEventListener(
-        "keypress",
-        ContentController.canceller.cancelKeyPress,
-        true,
-    )
-    elem.removeEventListener(
         "keyup",
         ContentController.canceller.cancelKeyUp,
         true,
     )
     elem.addEventListener("keydown", guardedAcceptKey, true)
     elem.addEventListener(
-        "keypress",
-        ContentController.canceller.cancelKeyPress,
-        true,
-    )
-    elem.addEventListener(
         "keyup",
         ContentController.canceller.cancelKeyUp,
         true,
     )
 }
+
 listen(window)
-document.addEventListener("readystatechange", _ =>
-    getAllDocumentFrames().forEach(f => listen(f)),
-)
+listenInIframes()
+document.addEventListener("readystatechange", listenInIframes)
+createIframeObserver(document)
+
+// Add listeners to existing iframes
+function listenInIframes() {
+    getAllDocumentFrames().forEach(f => {
+        try {
+            if (f.contentDocument?.readyState === "complete") {
+                listen(f.contentWindow)
+                dom.setupFocusHandler(f.contentDocument, listen)
+                createIframeObserver(f.contentDocument)
+            } else {
+                f.addEventListener("load", () => {
+                    listen(f.contentWindow)
+                    dom.setupFocusHandler(f.contentDocument, listen)
+                    createIframeObserver(f.contentDocument)
+                })
+            }
+        } catch (e) {
+            logger.warning("Could not hijack iframe due to CSP:", e)
+        }
+    })
+}
+
+// Add listeners to iframes added to the DOM
+function createIframeObserver(doc = document) {
+    const iframeObserver = new MutationObserver((mutations, observer) => {
+        for (const mutation of mutations) {
+            if (mutation.type === "childList") {
+                for (const node of mutation.addedNodes) {
+                    if (node instanceof doc.defaultView.HTMLIFrameElement &&
+                        !node.src.startsWith("moz-extension:")
+                    ) {
+                        try {
+                            listen(node.contentWindow)
+                            dom.setupFocusHandler(node.contentDocument, listen)
+                            createIframeObserver(node.contentDocument)
+                        } catch(e) {}
+                    }
+                }
+            }
+        }
+    })
+    iframeObserver.observe(doc, { subtree: true, childList: true })
+    return iframeObserver
+}
 
 // Prevent pages from automatically focusing elements on load
 config.getAsync("preventautofocusjackhammer").then(allowautofocus => {
@@ -243,7 +278,7 @@ config.getAsync("preventautofocusjackhammer").then(allowautofocus => {
 logger.info("Loaded commandline content?", commandline_content)
 
 try {
-    dom.setupFocusHandler()
+    dom.setupFocusHandler(document, listen)
     dom.hijackPageListenerFunctions()
 } catch (e) {
     logger.warning("Could not hijack due to CSP:", e)
@@ -367,7 +402,7 @@ config.getAsync("modeindicator").then(mode => {
         statusIndicator.className =
             "cleanslate TridactylStatusIndicator " + privateMode
         if (
-            dom.isTextEditable(document.activeElement) &&
+            dom.isTextEditable(dom.activeElement()) &&
             !["input", "ignore"].includes(mode)
         ) {
             result = "insert"
@@ -376,7 +411,7 @@ config.getAsync("modeindicator").then(mode => {
             // need to fix loss of focus by click: doesn't do anything here.
         } else if (
             mode === "insert" &&
-            !dom.isTextEditable(document.activeElement)
+            !dom.isTextEditable(dom.activeElement())
         ) {
             result = "normal"
             // statusIndicator.style.borderColor = "lightgray !important"

@@ -46,6 +46,11 @@ function PrintableKey(k) {
     return result
 }
 
+function isKeyboardEvent(ke: any): ke is KeyboardEvent {
+    const win = ke.view
+    return win && ke instanceof win.KeyboardEvent
+}
+
 /**
  * KeyCanceller: keep track of keys that have been cancelled in the keydown
  * handler (which takes care of dispatching ex commands) and also cancel them
@@ -90,10 +95,9 @@ class KeyCanceller {
                 ke.composed === ke2.composed &&
                 ke.ctrlKey === ke2.ctrlKey &&
                 ke.metaKey === ke2.metaKey &&
-                ke.shiftKey === ke2.shiftKey &&
-                ke.target === ke2.target,
+                ke.shiftKey === ke2.shiftKey
         )
-        if (index >= 0 && ke instanceof KeyboardEvent) {
+        if (index >= 0 && isKeyboardEvent(ke)) {
             ke.preventDefault()
             ke.stopImmediatePropagation()
             kes.splice(index, 1)
@@ -154,23 +158,22 @@ function* ParserController() {
                 let shadowRoot = null
                 let textEditable = false
 
-                if (keyevent instanceof KeyboardEvent) {
-                    shadowRoot = deepestShadowRoot(
-                        (keyevent.target as Element).shadowRoot,
-                    )
+                if (isKeyboardEvent(keyevent)) {
+                    const target = (keyevent as KeyboardEvent).target as Element
+                    shadowRoot = deepestShadowRoot(target.shadowRoot)
 
                     textEditable =
                         shadowRoot === null
-                            ? isTextEditable(keyevent.target as Element)
+                            ? isTextEditable(target)
                             : isTextEditable(shadowRoot.activeElement)
                     // Accumulate key events. The parser will cut this
                     // down whenever it's not a valid prefix of a known
                     // binding, so it can't grow indefinitely unless you
                     // have a combination of maps that permits bindings of
                     // unbounded length.
-                    keyEvents.push(minimalKeyFromKeyboardEvent(keyevent))
+                    keyEvents.push(minimalKeyFromKeyboardEvent(keyevent as KeyboardEvent))
                 } else {
-                    keyEvents.push(keyevent)
+                    keyEvents.push(keyevent as MinimalKey)
                 }
 
                 // _just to be safe_, cache this to make the following
@@ -213,8 +216,8 @@ function* ParserController() {
                     response,
                 )
 
-                if (response.isMatch && keyevent instanceof KeyboardEvent) {
-                    canceller.push(keyevent)
+                if (response.isMatch && isKeyboardEvent(keyevent)) {
+                    canceller.push(keyevent as KeyboardEvent)
                 }
 
                 if (response.exstr) {
