@@ -159,21 +159,22 @@ function* ParserController() {
                 let textEditable = false
 
                 if (isKeyboardEvent(keyevent)) {
-                    const target = (keyevent as KeyboardEvent).target as Element
-                    shadowRoot = deepestShadowRoot(target.shadowRoot)
+                    shadowRoot = deepestShadowRoot(
+                        (keyevent.target as Element).shadowRoot,
+                    )
 
                     textEditable =
                         shadowRoot === null
-                            ? isTextEditable(target)
+                            ? isTextEditable(keyevent.target as Element)
                             : isTextEditable(shadowRoot.activeElement)
                     // Accumulate key events. The parser will cut this
                     // down whenever it's not a valid prefix of a known
                     // binding, so it can't grow indefinitely unless you
                     // have a combination of maps that permits bindings of
                     // unbounded length.
-                    keyEvents.push(minimalKeyFromKeyboardEvent(keyevent as KeyboardEvent))
+                    keyEvents.push(minimalKeyFromKeyboardEvent(keyevent))
                 } else {
-                    keyEvents.push(keyevent as MinimalKey)
+                    keyEvents.push(keyevent)
                 }
 
                 // _just to be safe_, cache this to make the following
@@ -217,7 +218,7 @@ function* ParserController() {
                 )
 
                 if (response.isMatch && isKeyboardEvent(keyevent)) {
-                    canceller.push(keyevent as KeyboardEvent)
+                    canceller.push(keyevent)
                 }
 
                 if (response.exstr) {
