@@ -173,10 +173,55 @@ function listen(elem: Window | HTMLElement | HTMLFrameElement) {
         true,
     )
 }
+
 listen(window)
-document.addEventListener("readystatechange", _ =>
-    getAllDocumentFrames().forEach(f => listen(f)),
-)
+listenInIframes()
+document.addEventListener("readystatechange", listenInIframes)
+createIframeObserver(document)
+
+// Add listeners to existing iframes
+function listenInIframes() {
+    getAllDocumentFrames().forEach(f => {
+        try {
+            if (f.contentDocument?.readyState === "complete") {
+                listen(f.contentWindow)
+                dom.setupFocusHandler(f.contentDocument, listen)
+                createIframeObserver(f.contentDocument)
+            } else {
+                f.addEventListener("load", () => {
+                    listen(f.contentWindow)
+                    dom.setupFocusHandler(f.contentDocument, listen)
+                    createIframeObserver(f.contentDocument)
+                })
+            }
+        } catch (e) {
+            logger.warning("Could not hijack iframe due to CSP:", e)
+        }
+    })
+}
+
+// Add listeners to iframes added to the DOM
+function createIframeObserver(doc = document) {
+    const iframeObserver = new MutationObserver((mutations, observer) => {
+        for (const mutation of mutations) {
+            if (mutation.type === "childList") {
+                for (const node of mutation.addedNodes) {
+                    if (node instanceof doc.defaultView.HTMLIFrameElement &&
+                        !node.src.startsWith("moz-extension:")
+                    ) {
+                        try {
+                            listen(node.contentWindow)
+                            dom.setupFocusHandler(node.contentDocument, listen)
+                            createIframeObserver(node.contentDocument)
+                        } catch(e) {}
+                    }
+                }
+            }
+        }
+    })
+    iframeObserver.observe(doc, { subtree: true, childList: true })
+    return iframeObserver
+}
 
 // Prevent pages from automatically focusing elements on load
 config.getAsync("preventautofocusjackhammer").then(allowautofocus => {
@@ -257,7 +302,7 @@ window["tri"] = Object.assign(Object.create(null), {
 logger.info("Loaded commandline content?", commandline_content)
 
 try {
-    dom.setupFocusHandler()
+    dom.setupFocusHandler(document, listen)
     dom.hijackPageListenerFunctions()
 } catch (e) {
     logger.warning("Could not hijack due to CSP:", e)

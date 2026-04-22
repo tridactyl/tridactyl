@@ -39,7 +39,7 @@ export function isTextEditable(element: Element) {
         }
 
         // These properties are only defined on HTMLElements
-        if (element instanceof HTMLElement) {
+        if (element instanceof element.ownerDocument.defaultView.HTMLElement) {
             if (element.contentEditable === undefined) {
                 // This happens on e.g. svgs.
                 return false
@@ -382,7 +382,7 @@ export function isPainted(elem: HTMLElement) {
  * @param doc   The document the frames should be fetched from
  */
 export function getAllDocumentFrames(doc = document) {
-    if (!(doc instanceof HTMLDocument)) return []
+    if (!(doc instanceof ((doc.defaultView as any).HTMLDocument))) return []
     const frames = (
         Array.from(doc.getElementsByTagName("iframe")) as HTMLIFrameElement[] &
             HTMLFrameElement[]
@@ -687,10 +687,13 @@ async function setInput(el) {
     state.prevInputs = arr.slice(Math.max(arr.length - 10, 0))
 }
 
+const hijackedPages = new WeakSet()
+const focusListenerDocs = new WeakSet()
+
 /** Replaces the page's HTMLElement.prototype.focus with our own, onPageFocus */
-function hijackPageFocusFunction(): void {
+function hijackPageFocusFunction(win = window): void {
     const exportedName = "onPageFocus"
-    exportFunction(onPageFocus, window, { defineAs: exportedName })
+    exportFunction(onPageFocus, win, { defineAs: exportedName })
 
     const eval_str = `HTMLElement.prototype.focus = ((realFocus, ${exportedName}) => {
         return function (...args) {
@@ -699,10 +702,10 @@ function hijackPageFocusFunction(): void {
         }
      })(HTMLElement.prototype.focus, ${exportedName})`
 
-    window.eval(eval_str + `;delete ${exportedName}`)
+    win.eval(eval_str + `;delete ${exportedName}`)
 }
 
-export function setupFocusHandler(): void {
+export function setupFocusHandler(doc = document, onNewIframeFound = null): void {
     // Handles when a user selects an input
     const setFocus = elem => {
         if (isTextEditable(elem)) {
@@ -739,10 +742,34 @@ export function setupFocusHandler(): void {
         }
         setFocus(elem)
     }
-    listen(document)
+
+    if (!focusListenerDocs.has(doc)) {
+        listen(doc)
+
+        // Use focusout to check if we've shifted focus to a new iframe we're yet to add listeners to
+        const winBlur = e => {
+            getAllDocumentFrames(doc).forEach(f => {
+                try {
+                    if (f.contentDocument && !focusListenerDocs.has(f.contentDocument)) {
+                        if (onNewIframeFound) {
+                            onNewIframeFound(f.contentWindow)
+                        }
+                        setupFocusHandler(f.contentDocument, onNewIframeFound)
+                    }
+                } catch(_) {}
+            })
+        }
+
+        focusListenerDocs.add(doc)
+        doc.defaultView.addEventListener("focusout", winBlur)
+
+        // Run handler immediately if the newly found frame has focus
+        if (doc.hasFocus()) handler({ target: doc.activeElement })
+    }
+
     // Handles when the page tries to select an input
     if (inContentScript()) {
-        hijackPageFocusFunction()
+        hijackPageFocusFunction(doc.defaultView)
     }
 }
 
