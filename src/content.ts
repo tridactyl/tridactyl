@@ -202,7 +202,7 @@ function listenInIframes() {
 
 // Add listeners to iframes added to the DOM
 function createIframeObserver(doc = document) {
-    const iframeObserver = new MutationObserver((mutations, observer) => {
+    const iframeObserver = new MutationObserver((mutations, _observer) => {
         for (const mutation of mutations) {
             if (mutation.type === "childList") {
                 for (const node of mutation.addedNodes) {

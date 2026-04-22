@@ -687,9 +687,6 @@ async function setInput(el) {
     state.prevInputs = arr.slice(Math.max(arr.length - 10, 0))
 }
 
-const hijackedPages = new WeakSet()
-const focusListenerDocs = new WeakSet()
-
 /** Replaces the page's HTMLElement.prototype.focus with our own, onPageFocus */
 function hijackPageFocusFunction(win = window): void {
     const exportedName = "onPageFocus"
@@ -705,6 +702,7 @@ function hijackPageFocusFunction(win = window): void {
     win.eval(eval_str + `;delete ${exportedName}`)
 }
 
+const focusListenerDocs = new WeakSet()
 export function setupFocusHandler(doc = document, onNewIframeFound = null): void {
     // Handles when a user selects an input
     const setFocus = elem => {
@@ -747,7 +745,7 @@ export function setupFocusHandler(doc = document, onNewIframeFound = null): void
         listen(doc)
 
         // Use focusout to check if we've shifted focus to a new iframe we're yet to add listeners to
-        const winBlur = e => {
+        const winBlur = _ => {
             getAllDocumentFrames(doc).forEach(f => {
                 try {
                     if (f.contentDocument && !focusListenerDocs.has(f.contentDocument)) {
