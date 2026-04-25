@@ -29,6 +29,19 @@ import grammar from "@src/grammars/.bracketexpr.generated"
 const bracketexpr_grammar = grammar
 const bracketexpr_parser = new Parser(bracketexpr_grammar)
 
+// unspoofable keyboard events
+// this should be ~the only place in the code that accepts KeyboardEvent
+// eslint-disable-next-line @typescript-eslint/ban-types
+export type TrustedKeyboardEvent = KeyboardEvent & { readonly isTrusted: true }
+
+export function isTrustedKeyboardEvent(ke: any): ke is TrustedKeyboardEvent {
+    if (!ke || typeof ke !== "object") return false
+    if (ke.isTrusted !== true) return false
+    if (ke instanceof KeyboardEvent) return true
+    const win = ke.view
+    return win ? ke instanceof win.KeyboardEvent : false
+}
+
 let KEYCODETRANSLATEMAP = {}
 
 // {{{ General types
@@ -122,7 +135,7 @@ export class MinimalKey {
     }
 }
 
-export type KeyEventLike = MinimalKey | KeyboardEvent
+export type KeyEventLike = MinimalKey | TrustedKeyboardEvent
 
 // }}}
 
@@ -486,7 +499,7 @@ function numericPrefixToExstrSuffix(numericPrefix: MinimalKey[]) {
  * code if config says so.
  */
 export function minimalKeyFromKeyboardEvent(
-    keyEvent: KeyboardEvent,
+    keyEvent: TrustedKeyboardEvent,
 ): MinimalKey {
     const modifiers = {
         altKey: keyEvent.altKey,

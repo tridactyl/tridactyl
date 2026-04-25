@@ -158,44 +158,13 @@ function listen(elem) {
         ContentController.canceller.cancelKeyUp,
         true,
     )
-}
-listen(window)
-document.addEventListener("readystatechange", _ =>
-    getAllDocumentFrames().forEach(f => listen(f)),
-)
 
-// Prevent pages from automatically focusing elements on load
-config.getAsync("preventautofocusjackhammer").then(allowautofocus => {
-    if (allowautofocus === "false") {
-        return
-    }
-    const preventAutoFocus = () => {
-        // First, blur whatever element is active. This will make sure
-        // activeElement is the "default" active element
-        ;(document.activeElement as any).blur()
-        const elem = document.activeElement as any
-        // ???: We need to set tabIndex, otherwise we won't get focus/blur events!
-        elem.tabIndex = 0
-        const focusElem = () => elem.focus()
-        elem.addEventListener("blur", focusElem)
-        elem.addEventListener("focusout", focusElem)
-        // On top of blur/focusout events, we need to periodically check the
-        // activeElement is the one we want because blur/focusout events aren't
-        // always triggered when document.activeElement changes
-        const interval = setInterval(() => {
-            if (document.activeElement != elem) focusElem()
-        }, 200)
-        // When the user starts interacting with the page, stop resetting focus
-        function stopResettingFocus(event: Event) {
-            if (!event.isTrusted) return
-            elem.removeEventListener("blur", focusElem)
-            elem.removeEventListener("focusout", focusElem)
-            clearInterval(interval)
-            window.removeEventListener("keydown", stopResettingFocus)
-            window.removeEventListener("mousedown", stopResettingFocus)
-        }
-        window.addEventListener("keydown", stopResettingFocus)
-        window.addEventListener("mousedown", stopResettingFocus)
+    // eslint-disable-next-line @typescript-eslint/require-await
+    messaging.addListener("alive", async () => true)
+
+    const guardedAcceptKey = (maybekeyevent: Event) => {
+        if (!keyseq.isTrustedKeyboardEvent(maybekeyevent)) return
+        ContentController.acceptKey(maybekeyevent)
     }
     const tryPreventAutoFocus = () => {
         document.removeEventListener("readystatechange", tryPreventAutoFocus)

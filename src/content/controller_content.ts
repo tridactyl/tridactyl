@@ -7,6 +7,8 @@ import {
     ParserResponse,
     minimalKeyFromKeyboardEvent,
     MinimalKey,
+    isTrustedKeyboardEvent,
+    TrustedKeyboardEvent,
 } from "@src/lib/keyseq"
 import { deepestShadowRoot } from "@src/lib/dom"
 
@@ -57,32 +59,32 @@ function PrintableKey(k) {
  * A, then B, releases B and then A).
  */
 class KeyCanceller {
-    private keyPress: KeyboardEvent[] = []
-    private keyUp: KeyboardEvent[] = []
+    private keyPress: TrustedKeyboardEvent[] = []
+    private keyUp: TrustedKeyboardEvent[] = []
 
     constructor() {
         this.cancelKeyUp = this.cancelKeyUp.bind(this)
         this.cancelKeyPress = this.cancelKeyPress.bind(this)
     }
 
-    push(ke: KeyboardEvent) {
+    push(ke: TrustedKeyboardEvent) {
         ke.preventDefault()
         ke.stopImmediatePropagation()
         this.keyPress.push(ke)
         this.keyUp.push(ke)
     }
 
-    public cancelKeyPress = (ke: KeyboardEvent) => {
-        if (!ke.isTrusted) return
+    public cancelKeyPress = (ke: TrustedKeyboardEvent) => {
+        // if (!ke.isTrusted) return
         this.cancelKey(ke, this.keyPress)
     }
 
-    public cancelKeyUp = (ke: KeyboardEvent) => {
-        if (!ke.isTrusted) return
+    public cancelKeyUp = (ke: TrustedKeyboardEvent) => {
+        // if (!ke.isTrusted) return
         this.cancelKey(ke, this.keyUp)
     }
 
-    private cancelKey(ke: KeyboardEvent, kes: KeyboardEvent[]) {
+    private cancelKey(ke: TrustedKeyboardEvent, kes: TrustedKeyboardEvent[]) {
         const index = kes.findIndex(
             ke2 =>
                 ke.altKey === ke2.altKey &&
@@ -151,6 +153,10 @@ function* ParserController() {
         try {
             while (true) {
                 const keyevent: KeyEventLike = yield
+                if (!isTrustedKeyboardEvent(keyevent)) {
+                    logger.warning("Skipped spoofed key event", keyevent)
+                    continue
+                }
                 let shadowRoot = null
                 let textEditable = false
 
@@ -254,17 +260,25 @@ export const generator = ParserController() // var rather than let stops weirdne
 generator.next()
 
 /** Feed keys to the ParserController, unless they should be buffered to be later fed to clInput */
-export function acceptKey(keyevent: KeyboardEvent) {
-    function tryBufferingPageKeyForClInput(keyevent: KeyboardEvent) {
-        if (!mustBufferPageKeysForClInput)
-            return false;
-        const bufferingDuration = performance.now() - bufferingPageKeysBeginTime;
-        logger.debug("controller_content mustBufferPageKeysForClInput = " + mustBufferPageKeysForClInput
-            + " bufferingDuration = " + bufferingDuration + "ms");
-        const isCharacterKey = keyevent.key.length == 1
-            && !keyevent.metaKey && !keyevent.ctrlKey && !keyevent.altKey && !keyevent.metaKey;
+export function acceptKey(keyevent: TrustedKeyboardEvent) {
+    function tryBufferingPageKeyForClInput(keyevent: TrustedKeyboardEvent) {
+        if (!mustBufferPageKeysForClInput) return false
+        const bufferingDuration = performance.now() - bufferingPageKeysBeginTime
+        logger.debug(
+            "controller_content mustBufferPageKeysForClInput = " +
+                mustBufferPageKeysForClInput +
+                " bufferingDuration = " +
+                bufferingDuration +
+                "ms",
+        )
+        const isCharacterKey =
+            keyevent.key.length == 1 &&
+            !keyevent.metaKey &&
+            !keyevent.ctrlKey &&
+            !keyevent.altKey &&
+            !keyevent.metaKey
         if (isCharacterKey) {
-            bufferedPageKeys.push(keyevent.key);
+            bufferedPageKeys.push(keyevent.key)
             logger.debug("Buffering page keys", bufferedPageKeys)
         }
         canceller.push(keyevent)
