@@ -131,8 +131,9 @@ messaging.addListener("omniscient_content", messaging.attributeCaller(omniscient
 // eslint-disable-next-line @typescript-eslint/require-await
 messaging.addListener("alive", async () => true)
 
-const guardedAcceptKey = (keyevent: KeyboardEvent) => {
-    ContentController.acceptTrustedKey(keyevent)
+const guardedAcceptKey = (keyevent: Event) => {
+    if (!keyseq.isTrustedKeyboardEvent(keyevent)) return
+    ContentController.acceptKey(keyevent)
 }
 function listen(elem) {
     elem.removeEventListener("keydown", guardedAcceptKey, true)

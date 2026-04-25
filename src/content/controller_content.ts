@@ -8,6 +8,8 @@ import {
     minimalKeyFromKeyboardEvent,
     MinimalKey,
     formatKeysForModeIndicator,
+    isTrustedKeyboardEvent,
+    TrustedKeyboardEvent,
 } from "@src/lib/keyseq"
 
 import * as hinting from "@src/content/hinting"
@@ -36,15 +38,15 @@ function mapstrsForMode(mode: string) {
  * A, then B, releases B and then A).
  */
 class KeyCanceller {
-    private keyPress: KeyboardEvent[] = []
-    private keyUp: KeyboardEvent[] = []
+    private keyPress: TrustedKeyboardEvent[] = []
+    private keyUp: TrustedKeyboardEvent[] = []
 
     constructor() {
         this.cancelKeyUp = this.cancelKeyUp.bind(this)
         this.cancelKeyPress = this.cancelKeyPress.bind(this)
     }
 
-    push(ke: KeyboardEvent) {
+    push(ke: TrustedKeyboardEvent) {
         ke.preventDefault()
         ke.stopImmediatePropagation()
 
@@ -57,17 +59,20 @@ class KeyCanceller {
         }
     }
 
-    public cancelKeyPress = (ke: KeyboardEvent) => {
-        if (!ke.isTrusted) return
+    public cancelKeyPress = (ke: Event) => {
+        if (!isTrustedKeyboardEvent(ke)) return
         this.cancelKey(ke, this.keyPress)
     }
 
-    public cancelKeyUp = (ke: KeyboardEvent) => {
-        if (!ke.isTrusted) return
+    public cancelKeyUp = (ke: Event) => {
+        if (!isTrustedKeyboardEvent(ke)) return
         this.cancelKey(ke, this.keyUp)
     }
 
-    private removeKey(ke: KeyboardEvent, kes: KeyboardEvent[]) {
+    private removeKey(
+        ke: TrustedKeyboardEvent,
+        kes: TrustedKeyboardEvent[],
+    ) {
         const index = kes.findIndex(
             ke2 =>
                 ke.altKey === ke2.altKey &&
@@ -83,7 +88,10 @@ class KeyCanceller {
         return true
     }
 
-    private cancelKey(ke: KeyboardEvent, kes: KeyboardEvent[]) {
+    private cancelKey(
+        ke: TrustedKeyboardEvent,
+        kes: TrustedKeyboardEvent[],
+    ) {
         if (this.removeKey(ke, kes) && ke instanceof KeyboardEvent) {
             ke.preventDefault()
             ke.stopImmediatePropagation()
@@ -140,17 +148,28 @@ function* ParserController() {
         try {
             while (true) {
                 generatorIsWaiting = true
-                const keyevent: KeyEventLike = keysToFeed.length ? keysToFeed.shift() : yield
+                const keyevent: KeyEventLike = keysToFeed.length
+                    ? keysToFeed.shift()
+                    : yield
                 generatorIsWaiting = false
+
+                if (
+                    !(keyevent instanceof MinimalKey) &&
+                    !isTrustedKeyboardEvent(keyevent)
+                ) {
+                    logger.warning("Skipped spoofed key event", keyevent)
+                    continue
+                }
 
                 // Don't break old modes with keyup events
                 // TODO: fix this in these parsers directly
                 if (
                     ["hint", "gobble"].includes(contentState.mode) &&
-                    (keyevent instanceof KeyboardEvent ? keyevent.type === "keyup" : keyevent.keyup)
+                    (keyevent instanceof KeyboardEvent
+                        ? keyevent.type === "keyup"
+                        : keyevent.keyup)
                 )
                     continue
-
                 let textEditable = false
 
                 if (keyevent instanceof KeyboardEvent) {
@@ -258,8 +277,8 @@ export function keyMuncher(...keys: KeyEventLike[]) {
 }
 
 /** Feed keys to the ParserController, unless they should be buffered to be later fed to clInput */
-export function acceptKey(keyevent: KeyboardEvent) {
-    function tryBufferingPageKeyForClInput(keyevent: KeyboardEvent) {
+export function acceptKey(keyevent: TrustedKeyboardEvent) {
+    function tryBufferingPageKeyForClInput(keyevent: TrustedKeyboardEvent) {
         if (!mustBufferPageKeysForClInput) return false
         const bufferingDuration = performance.now() - bufferingPageKeysBeginTime
         logger.debug(
@@ -288,9 +307,9 @@ export function acceptKey(keyevent: KeyboardEvent) {
 }
 
 export function acceptTrustedKey(
-    keyevent: KeyboardEvent,
-    accept: (keyevent: KeyboardEvent) => unknown = acceptKey,
+    keyevent: Event,
+    accept: (keyevent: TrustedKeyboardEvent) => unknown = acceptKey,
 ) {
-    if (!keyevent.isTrusted) return
+    if (!isTrustedKeyboardEvent(keyevent)) return
     return accept(keyevent)
 }

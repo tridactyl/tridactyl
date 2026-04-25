@@ -56,7 +56,11 @@ import * as genericParser from "@src/parsers/genericmode"
 import * as perf from "@src/perf"
 import state, * as State from "@src/state"
 import * as R from "ramda"
-import { MinimalKey, minimalKeyFromKeyboardEvent } from "@src/lib/keyseq"
+import {
+    MinimalKey,
+    minimalKeyFromKeyboardEvent,
+    isTrustedKeyboardEvent,
+} from "@src/lib/keyseq"
 import { TabGroupCompletionSource } from "@src/completions/TabGroup"
 import { ProfileCompletionSource } from "@src/completions/Profile"
 
@@ -246,8 +250,8 @@ const QUEUE: Promise<any>[] = [(async () => {})()]
 /** @hidden **/
 commandline_state.clInput.addEventListener(
     "keydown",
-    function (keyevent: KeyboardEvent) {
-        if (!keyevent.isTrusted) return
+    function (keyevent: Event) {
+        if (!isTrustedKeyboardEvent(keyevent)) return
         logger.debug(
             "commandline_frame clInput keydown event listener",
             keyevent,
