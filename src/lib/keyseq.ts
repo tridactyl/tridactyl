@@ -66,7 +66,10 @@ export class MinimalKey {
     readonly metaKey = false
     readonly shiftKey = false
     translated = false
-    constructor(readonly key: string, modifiers?: KeyModifiers) {
+    constructor(
+        readonly key: string,
+        modifiers?: KeyModifiers,
+    ) {
         if (modifiers !== undefined) {
             for (const mod of Object.keys(modifiers)) {
                 if (

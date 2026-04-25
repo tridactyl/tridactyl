@@ -179,21 +179,28 @@ const noblur = () => setTimeout(() => commandline_state.clInput.focus(), 0)
 /** @hidden **/
 export function focus() {
     function consumeBufferedPageKeys(bufferedPageKeys: string[]) {
-        const clInputStillFocused = window.document.activeElement === commandline_state.clInput;
-        logger.debug("stop_buffering_page_keys response received, bufferedPageKeys = ", bufferedPageKeys,
-            "clInputStillFocused = " + clInputStillFocused)
+        const clInputStillFocused =
+            window.document.activeElement === commandline_state.clInput
+        logger.debug(
+            "stop_buffering_page_keys response received, bufferedPageKeys = ",
+            bufferedPageKeys,
+            "clInputStillFocused = " + clInputStillFocused,
+        )
         if (bufferedPageKeys.length !== 0) {
-            const currentClInputValue = commandline_state.clInput.value;
-            const initialClInputValue = commandline_state.initialClInputValue;
-            logger.debug("Consuming buffered page keys", bufferedPageKeys,
+            const currentClInputValue = commandline_state.clInput.value
+            const initialClInputValue = commandline_state.initialClInputValue
+            logger.debug(
+                "Consuming buffered page keys",
+                bufferedPageKeys,
                 "initialClInputValue = " + initialClInputValue,
-                "currentClInputValue = " + currentClInputValue);
+                "currentClInputValue = " + currentClInputValue,
+            )
             // Native events are assumed to be character keydown events,
             // i.e. characters appended at the end of clInput.
             commandline_state.clInput.value =
-                initialClInputValue
-                + bufferedPageKeys.join("")
-                + currentClInputValue.substring(initialClInputValue.length)
+                initialClInputValue +
+                bufferedPageKeys.join("") +
+                currentClInputValue.substring(initialClInputValue.length)
             // Update completion.
             clInputValueChanged()
         }
@@ -201,8 +208,13 @@ export function focus() {
     commandline_state.clInput.focus()
     commandline_state.clInput.removeEventListener("blur", noblur)
     commandline_state.clInput.addEventListener("blur", noblur)
-    logger.debug("commandline_frame clInput focus(), activeElement is clInput: " + (window.document.activeElement === commandline_state.clInput))
-    Messaging.messageOwnTab("stop_buffering_page_keys").then(consumeBufferedPageKeys)
+    logger.debug(
+        "commandline_frame clInput focus(), activeElement is clInput: " +
+            (window.document.activeElement === commandline_state.clInput),
+    )
+    Messaging.messageOwnTab("stop_buffering_page_keys").then(
+        consumeBufferedPageKeys,
+    )
 }
 
 /** @hidden **/
@@ -307,7 +319,7 @@ let onInputPromise: Promise<any> = Promise.resolve()
 /** @hidden **/
 commandline_state.clInput.addEventListener("input", () => {
     logger.debug("commandline_frame clInput input event listener")
-    clInputValueChanged();
+    clInputValueChanged()
 })
 
 /** @hidden **/
@@ -389,7 +401,15 @@ export function fillcmdline(
     trailspace = true,
     ffocus = true,
 ) {
-    logger.debug("commandline_frame fillcmdline(newcommand = " + newcommand + " trailspace = " + trailspace + " ffocus = " + ffocus + ")")
+    logger.debug(
+        "commandline_frame fillcmdline(newcommand = " +
+            newcommand +
+            " trailspace = " +
+            trailspace +
+            " ffocus = " +
+            ffocus +
+            ")",
+    )
     if (trailspace) commandline_state.clInput.value = newcommand + " "
     else commandline_state.clInput.value = newcommand
     commandline_state.initialClInputValue = commandline_state.clInput.value
