@@ -34,453 +34,473 @@ import { EditorCmds as editor } from "@src/content/editor"
 /* tslint:disable:import-spacing */
 
 config.getAsync("superignore").then(async TRI_DISABLE => {
-// Set up our controller to execute content-mode excmds. All code
-// running from this entry point, which is to say, everything in the
-// content script, will use the excmds that we give to the module
-// here.
+    // Set up our controller to execute content-mode excmds. All code
+    // running from this entry point, which is to say, everything in the
+    // content script, will use the excmds that we give to the module
+    // here.
 
-if (TRI_DISABLE === "true") return
+    if (TRI_DISABLE === "true") return
 
-try {
+    try {
+        // Add cheap location change event
+        // Adapted from: https://stackoverflow.com/questions/6390341/how-to-detect-if-url-has-changed-after-hash-in-javascript
+        //
+        // Broken atm - on https://github.com/tridactyl/tridactyl/pull/3938 clicking onto issues doesn't do anything and we get "permission denied to access object"
 
-    // Add cheap location change event
-    // Adapted from: https://stackoverflow.com/questions/6390341/how-to-detect-if-url-has-changed-after-hash-in-javascript
-    //
-    // Broken atm - on https://github.com/tridactyl/tridactyl/pull/3938 clicking onto issues doesn't do anything and we get "permission denied to access object"
+        const realwindow = (window as any).wrappedJSObject ?? window // wrappedJSObject not defined on extension pages
 
-    const realwindow = (window as any).wrappedJSObject ?? window // wrappedJSObject not defined on extension pages
+        const triPushState = (
+            hist =>
+            (...args) => {
+                const ret = hist(...args)
+                realwindow.dispatchEvent(new Event("HistoryPushState"))
+                realwindow.dispatchEvent(new Event("HistoryState"))
+                return ret
+            }
+        )(realwindow.history.pushState.bind(realwindow.history))
 
-    const triPushState = (hist => (
-        (...args) => {
-            const ret = hist(...args)
-            realwindow.dispatchEvent(new Event("HistoryPushState"))
+        const triReplaceState = (
+            hist =>
+            (...args) => {
+                const ret = hist(...args)
+                realwindow.dispatchEvent(new Event("HistoryReplaceState"))
+                realwindow.dispatchEvent(new Event("HistoryState"))
+                return ret
+            }
+        )(realwindow.history.replaceState.bind(realwindow.history))
+
+        realwindow.addEventListener("popstate", () => {
             realwindow.dispatchEvent(new Event("HistoryState"))
-            return ret
         })
-    )(realwindow.history.pushState.bind(realwindow.history))
 
-    const triReplaceState = (hist => (
-        (...args) => {
-            const ret = hist(...args)
-            realwindow.dispatchEvent(new Event("HistoryReplaceState"))
-            realwindow.dispatchEvent(new Event("HistoryState"))
-            return ret
-        })
-    )(realwindow.history.replaceState.bind(realwindow.history))
+        history.replaceState = triReplaceState
+        history.pushState = triPushState
 
-    realwindow.addEventListener("popstate", () => {
-        realwindow.dispatchEvent(new Event("HistoryState"))
+        typeof exportFunction == "function" &&
+            exportFunction(triReplaceState, history, {
+                defineAs: "replaceState",
+            })
+        typeof exportFunction == "function" &&
+            exportFunction(triPushState, history, { defineAs: "pushState" })
+    } catch (e) {
+        console.error(e)
+    }
+
+    const controller = await import("@src/lib/controller")
+    const { omniscient_controller } = await import(
+        "@src/lib/omniscient_controller"
+    )
+    const excmds_content = await import("@src/.excmds_content.generated")
+    const hinting_content = await import("@src/content/hinting")
+    // Hook the keyboard up to the controller
+    const ContentController = await import("@src/content/controller_content")
+    // Add various useful modules to the window for debugging
+    const commandline_content = await import("@src/content/commandline_content")
+    const convert = await import("@src/lib/convert")
+    const dom = await import("@src/lib/dom")
+    const excmds = await import("@src/.excmds_content.generated")
+    const finding_content = await import("@src/content/finding")
+    const itertools = await import("@src/lib/itertools")
+    const messaging = await import("@src/lib/messaging")
+    const backgroundProxy = await import("@src/lib/tabs")
+    const State = await import("@src/state")
+    const webext = await import("@src/lib/webext")
+    const perf = await import("@src/perf")
+    const keyseq = await import("@src/lib/keyseq")
+    const native = await import("@src/lib/native")
+    const styling = await import("@src/content/styling")
+    const updates = await import("@src/lib/updates")
+    const urlutils = await import("@src/lib/url_util")
+    const scrolling = await import("@src/content/scrolling")
+    const R = await import("ramda")
+    const visual = await import("@src/lib/visual")
+    const metadata = await import("@src/.metadata.generated")
+    const { tabTgroup } = await import("@src/lib/tab_groups")
+    const completion_providers = await import("@src/completions/providers")
+
+    controller.setExCmds({
+        "": excmds_content,
+        ex: CmdlineCmds,
+        text: EditorCmds,
+        hint: hinting_content.getHintCommands(),
     })
-
-    history.replaceState = triReplaceState
-    history.pushState = triPushState
-
-    typeof(exportFunction) == "function" && exportFunction(triReplaceState, history, {defineAs: "replaceState"})
-    typeof(exportFunction) == "function" && exportFunction(triPushState, history, {defineAs: "pushState"})
-
-} catch (e) {
-    console.error(e)
-}
-
-const controller = await import("@src/lib/controller")
-const { omniscient_controller } = await import("@src/lib/omniscient_controller")
-const excmds_content = await import("@src/.excmds_content.generated")
-const hinting_content = await import("@src/content/hinting")
-// Hook the keyboard up to the controller
-const ContentController = await import("@src/content/controller_content")
-// Add various useful modules to the window for debugging
-const commandline_content = await import("@src/content/commandline_content")
-const convert = await import("@src/lib/convert")
-const dom = await import("@src/lib/dom")
-const excmds = await import("@src/.excmds_content.generated")
-const finding_content = await import("@src/content/finding")
-const itertools = await import("@src/lib/itertools")
-const messaging = await import("@src/lib/messaging")
-const backgroundProxy = await import("@src/lib/tabs")
-const State = await import("@src/state")
-const webext = await import("@src/lib/webext")
-const perf = await import("@src/perf")
-const keyseq = await import("@src/lib/keyseq")
-const native = await import("@src/lib/native")
-const styling = await import("@src/content/styling")
-const updates = await import("@src/lib/updates")
-const urlutils = await import("@src/lib/url_util")
-const scrolling = await import("@src/content/scrolling")
-const R = await import("ramda")
-const visual = await import("@src/lib/visual")
-const metadata = await import("@src/.metadata.generated")
-const { tabTgroup } = await import("@src/lib/tab_groups")
-const completion_providers = await import("@src/completions/providers")
-
-controller.setExCmds({
-    "": excmds_content,
-    ex: CmdlineCmds,
-    text: EditorCmds,
-    hint: hinting_content.getHintCommands(),
-})
-messaging.addListener(
-    "excmd_content",
-    messaging.attributeCaller(excmds_content),
-)
-messaging.addListener(
-    "controller_content",
-    messaging.attributeCaller(controller),
-)
-messaging.addListener("omniscient_content", messaging.attributeCaller(omniscient_controller))
-
-// eslint-disable-next-line @typescript-eslint/require-await
-messaging.addListener("alive", async () => true)
-
-const guardedAcceptKey = (keyevent: KeyboardEvent) => {
-    if (!keyevent.isTrusted) return
-    ContentController.acceptKey(keyevent)
-}
-function listen(elem) {
-    elem.removeEventListener("keydown", guardedAcceptKey, true)
-    elem.removeEventListener(
-        "keypress",
-        ContentController.canceller.cancelKeyPress,
-        true,
+    messaging.addListener(
+        "excmd_content",
+        messaging.attributeCaller(excmds_content),
     )
-    elem.removeEventListener(
-        "keyup",
-        ContentController.canceller.cancelKeyUp,
-        true,
+    messaging.addListener(
+        "controller_content",
+        messaging.attributeCaller(controller),
     )
-    elem.addEventListener("keydown", guardedAcceptKey, true)
-    elem.addEventListener(
-        "keypress",
-        ContentController.canceller.cancelKeyPress,
-        true,
+    messaging.addListener(
+        "omniscient_content",
+        messaging.attributeCaller(omniscient_controller),
     )
-    elem.addEventListener(
-        "keyup",
-        ContentController.canceller.cancelKeyUp,
-        true,
-    )
-}
-listen(window)
-document.addEventListener("readystatechange", _ =>
-    getAllDocumentFrames().forEach(f => listen(f)),
-)
 
-// Prevent pages from automatically focusing elements on load
-config.getAsync("preventautofocusjackhammer").then(allowautofocus => {
-    if (allowautofocus === "false") {
-        return
+    // eslint-disable-next-line @typescript-eslint/require-await
+    messaging.addListener("alive", async () => true)
+
+    const guardedAcceptKey = (maybekeyevent: Event) => {
+        if (!keyseq.isTrustedKeyboardEvent(maybekeyevent)) return
+        ContentController.acceptKey(maybekeyevent)
     }
-    const preventAutoFocus = () => {
-        // First, blur whatever element is active. This will make sure
-        // activeElement is the "default" active element
-        ;(document.activeElement as any).blur()
-        const elem = document.activeElement as any
-        // ???: We need to set tabIndex, otherwise we won't get focus/blur events!
-        elem.tabIndex = 0
-        const focusElem = () => elem.focus()
-        elem.addEventListener("blur", focusElem)
-        elem.addEventListener("focusout", focusElem)
-        // On top of blur/focusout events, we need to periodically check the
-        // activeElement is the one we want because blur/focusout events aren't
-        // always triggered when document.activeElement changes
-        const interval = setInterval(() => {
-            if (document.activeElement != elem) focusElem()
-        }, 200)
-        // When the user starts interacting with the page, stop resetting focus
-        function stopResettingFocus(event: Event) {
-            if (!event.isTrusted) return
-            elem.removeEventListener("blur", focusElem)
-            elem.removeEventListener("focusout", focusElem)
-            clearInterval(interval)
-            window.removeEventListener("keydown", stopResettingFocus)
-            window.removeEventListener("mousedown", stopResettingFocus)
+    function listen(elem) {
+        elem.removeEventListener("keydown", guardedAcceptKey, true)
+        elem.removeEventListener(
+            "keypress",
+            ContentController.canceller.cancelKeyPress,
+            true,
+        )
+        elem.removeEventListener(
+            "keyup",
+            ContentController.canceller.cancelKeyUp,
+            true,
+        )
+        elem.addEventListener("keydown", guardedAcceptKey, true)
+        elem.addEventListener(
+            "keypress",
+            ContentController.canceller.cancelKeyPress,
+            true,
+        )
+        elem.addEventListener(
+            "keyup",
+            ContentController.canceller.cancelKeyUp,
+            true,
+        )
+    }
+    listen(window)
+    document.addEventListener("readystatechange", _ =>
+        getAllDocumentFrames().forEach(f => listen(f)),
+    )
+
+    // Prevent pages from automatically focusing elements on load
+    config.getAsync("preventautofocusjackhammer").then(allowautofocus => {
+        if (allowautofocus === "false") {
+            return
         }
-        window.addEventListener("keydown", stopResettingFocus)
-        window.addEventListener("mousedown", stopResettingFocus)
-    }
-    const tryPreventAutoFocus = () => {
-        document.removeEventListener("readystatechange", tryPreventAutoFocus)
-        try {
-            preventAutoFocus()
-        } catch (e) {
-            document.addEventListener("readystatechange", tryPreventAutoFocus)
+        const preventAutoFocus = () => {
+            // First, blur whatever element is active. This will make sure
+            // activeElement is the "default" active element
+            ;(document.activeElement as any).blur()
+            const elem = document.activeElement as any
+            // ???: We need to set tabIndex, otherwise we won't get focus/blur events!
+            elem.tabIndex = 0
+            const focusElem = () => elem.focus()
+            elem.addEventListener("blur", focusElem)
+            elem.addEventListener("focusout", focusElem)
+            // On top of blur/focusout events, we need to periodically check the
+            // activeElement is the one we want because blur/focusout events aren't
+            // always triggered when document.activeElement changes
+            const interval = setInterval(() => {
+                if (document.activeElement != elem) focusElem()
+            }, 200)
+            // When the user starts interacting with the page, stop resetting focus
+            function stopResettingFocus(event: Event) {
+                if (!event.isTrusted) return
+                elem.removeEventListener("blur", focusElem)
+                elem.removeEventListener("focusout", focusElem)
+                clearInterval(interval)
+                window.removeEventListener("keydown", stopResettingFocus)
+                window.removeEventListener("mousedown", stopResettingFocus)
+            }
+            window.addEventListener("keydown", stopResettingFocus)
+            window.addEventListener("mousedown", stopResettingFocus)
         }
-    }
-    tryPreventAutoFocus()
-})
-;(window as any).tri = Object.assign(Object.create(null), {
-    browserBg: webext.browserBg,
-    bg: backgroundProxy.backgroundProxy,
-    commandline_content,
-    convert,
-    config,
-    completion_providers,
-    controller,
-    dom,
-    editor,
-    excmds,
-    finding_content,
-    hinting_content,
-    itertools,
-    logger,
-    metadata,
-    keyseq,
-    messaging,
-    state,
-    State,
-    scrolling,
-    visual,
-    webext,
-    l: prom => prom.then(console.log).catch(console.error),
-    native,
-    styling,
-    contentLocation: window.location,
-    perf,
-    R,
-    updates,
-    urlutils,
-})
-
-logger.info("Loaded commandline content?", commandline_content)
-
-try {
-    dom.setupFocusHandler()
-    dom.hijackPageListenerFunctions()
-} catch (e) {
-    logger.warning("Could not hijack due to CSP:", e)
-}
-
-if (
-    window.location.protocol === "moz-extension:" &&
-    window.location.pathname === "/static/newtab.html"
-) {
-    config.getAsync("newtab").then(newtab => {
-        if (!["about:blank", "about:newtab"].includes(newtab)) {
-            if (newtab) {
-                excmds.open_quiet(newtab)
-            } else {
-                const content = document.getElementById("trinewtab")
-                content.style.display = "block"
-                document.title = "Tridactyl Top Tips & New Tab Page"
+        const tryPreventAutoFocus = () => {
+            document.removeEventListener(
+                "readystatechange",
+                tryPreventAutoFocus,
+            )
+            try {
+                preventAutoFocus()
+            } catch (e) {
+                document.addEventListener(
+                    "readystatechange",
+                    tryPreventAutoFocus,
+                )
             }
         }
+        tryPreventAutoFocus()
     })
-}
+    ;(window as any).tri = Object.assign(Object.create(null), {
+        browserBg: webext.browserBg,
+        bg: backgroundProxy.backgroundProxy,
+        commandline_content,
+        convert,
+        config,
+        completion_providers,
+        controller,
+        dom,
+        editor,
+        excmds,
+        finding_content,
+        hinting_content,
+        itertools,
+        logger,
+        metadata,
+        keyseq,
+        messaging,
+        state,
+        State,
+        scrolling,
+        visual,
+        webext,
+        l: prom => prom.then(console.log).catch(console.error),
+        native,
+        styling,
+        contentLocation: window.location,
+        perf,
+        R,
+        updates,
+        urlutils,
+    })
 
-// Really bad status indicator
-let statusIndicator
-config.getAsync("modeindicator").then(mode => {
-    if (mode !== "true") return
+    logger.info("Loaded commandline content?", commandline_content)
 
-    // Do we want container indicators?
-    const containerIndicator = config.get("containerindicator")
+    try {
+        dom.setupFocusHandler()
+        dom.hijackPageListenerFunctions()
+    } catch (e) {
+        logger.warning("Could not hijack due to CSP:", e)
+    }
 
-    // Hide indicator in print mode
-    // CSS not explicitly added to the dom doesn't make it to print mode:
-    // https://bugzilla.mozilla.org/show_bug.cgi?id=1448507
-    const style = document.createElement("style")
-    style.type = "text/css"
-    style.innerHTML = `@media print {
+    if (
+        window.location.protocol === "moz-extension:" &&
+        window.location.pathname === "/static/newtab.html"
+    ) {
+        config.getAsync("newtab").then(newtab => {
+            if (!["about:blank", "about:newtab"].includes(newtab)) {
+                if (newtab) {
+                    excmds.open_quiet(newtab)
+                } else {
+                    const content = document.getElementById("trinewtab")
+                    content.style.display = "block"
+                    document.title = "Tridactyl Top Tips & New Tab Page"
+                }
+            }
+        })
+    }
+
+    // Really bad status indicator
+    let statusIndicator
+    config.getAsync("modeindicator").then(mode => {
+        if (mode !== "true") return
+
+        // Do we want container indicators?
+        const containerIndicator = config.get("containerindicator")
+
+        // Hide indicator in print mode
+        // CSS not explicitly added to the dom doesn't make it to print mode:
+        // https://bugzilla.mozilla.org/show_bug.cgi?id=1448507
+        const style = document.createElement("style")
+        style.type = "text/css"
+        style.innerHTML = `@media print {
         .TridactylStatusIndicator {
             display: none !important;
         }
     }`
 
-    statusIndicator = document.createElement("span")
-    const privateMode = browser.extension.inIncognitoContext
-        ? "TridactylPrivate"
-        : ""
-    statusIndicator.className =
-        "cleanslate TridactylStatusIndicator " +
-        privateMode +
-        " TridactylModenormal "
-
-    // Dynamically sets the border container color.
-    if (containerIndicator === "true") {
-        webext
-            .ownTabContainer()
-            .then(ownTab =>
-                webext.browserBg.contextualIdentities.get(ownTab.cookieStoreId),
-            )
-            .then(container => {
-                statusIndicator.setAttribute(
-                    "style",
-                    `border: ${
-                        (container as any).colorCode
-                    } var(--tridactyl-indicator-border-style, solid) var(--tridactyl-indicator-border-width, 1.5px) !important`,
-                )
-            })
-            .catch(error => {
-                logger.debug(error)
-            })
-    }
-
-    // This listener makes the modeindicator disappear when the mouse goes over it
-    statusIndicator.addEventListener("mouseenter", ev => {
-        const target = ev.target
-        const rect = target.getBoundingClientRect()
-        target.classList.add("TridactylInvisible")
-        const onMouseOut = ev => {
-            // If the mouse event happened out of the mode indicator boundaries
-            if (
-                ev.clientX < rect.x ||
-                ev.clientX > rect.x + rect.with ||
-                ev.clientY < rect.y ||
-                ev.clientY > rect.y + rect.height
-            ) {
-                target.classList.remove("TridactylInvisible")
-                window.removeEventListener("mousemove", onMouseOut)
-            }
-        }
-        window.addEventListener("mousemove", onMouseOut)
-    })
-
-    try {
-        // On quick loading pages, the document is already loaded
-        statusIndicator.textContent = contentState.mode || "normal"
-        document.body.appendChild(statusIndicator)
-        document.head.appendChild(style)
-    } catch (e) {
-        // But on slower pages we wait for the document to load
-        window.addEventListener("DOMContentLoaded", () => {
-            statusIndicator.textContent = contentState.mode || "normal"
-            document.body.appendChild(statusIndicator)
-            document.head.appendChild(style)
-        })
-    }
-
-    addContentStateChangedListener(async (property, oldMode, oldValue, newValue) => {
-        let mode = newValue
-        let suffix = ""
-        let result = ""
-        if (property !== "mode") {
-            if (property === "suffix") {
-                mode = oldMode
-                suffix = newValue
-            } else if (property === "group") {
-                mode = oldMode
-            }
-        }
-
+        statusIndicator = document.createElement("span")
         const privateMode = browser.extension.inIncognitoContext
             ? "TridactylPrivate"
             : ""
         statusIndicator.className =
-            "cleanslate TridactylStatusIndicator " + privateMode
-        if (
-            dom.isTextEditable(document.activeElement) &&
-            !["input", "ignore"].includes(mode)
-        ) {
-            result = "insert"
-            // this doesn't work; statusIndicator.style is full of empty string
-            // statusIndicator.style.borderColor = "green !important"
-            // need to fix loss of focus by click: doesn't do anything here.
-        } else if (
-            mode === "insert" &&
-            !dom.isTextEditable(document.activeElement)
-        ) {
-            result = "normal"
-            // statusIndicator.style.borderColor = "lightgray !important"
-        } else {
-            result = mode
-        }
-        const modeindicatorshowkeys = config.get("modeindicatorshowkeys")
-        if (modeindicatorshowkeys === "true" && suffix !== "") {
-            result = mode + " " + suffix
+            "cleanslate TridactylStatusIndicator " +
+            privateMode +
+            " TridactylModenormal "
+
+        // Dynamically sets the border container color.
+        if (containerIndicator === "true") {
+            webext
+                .ownTabContainer()
+                .then(ownTab =>
+                    webext.browserBg.contextualIdentities.get(
+                        ownTab.cookieStoreId,
+                    ),
+                )
+                .then(container => {
+                    statusIndicator.setAttribute(
+                        "style",
+                        `border: ${
+                            (container as any).colorCode
+                        } var(--tridactyl-indicator-border-style, solid) var(--tridactyl-indicator-border-width, 1.5px) !important`,
+                    )
+                })
+                .catch(error => {
+                    logger.debug(error)
+                })
         }
 
-        const tabGroup = await tabTgroup()
-        if (tabGroup) {
-            result = result + " | " + tabGroup
+        // This listener makes the modeindicator disappear when the mouse goes over it
+        statusIndicator.addEventListener("mouseenter", ev => {
+            const target = ev.target
+            const rect = target.getBoundingClientRect()
+            target.classList.add("TridactylInvisible")
+            const onMouseOut = ev => {
+                // If the mouse event happened out of the mode indicator boundaries
+                if (
+                    ev.clientX < rect.x ||
+                    ev.clientX > rect.x + rect.with ||
+                    ev.clientY < rect.y ||
+                    ev.clientY > rect.y + rect.height
+                ) {
+                    target.classList.remove("TridactylInvisible")
+                    window.removeEventListener("mousemove", onMouseOut)
+                }
+            }
+            window.addEventListener("mousemove", onMouseOut)
+        })
+
+        try {
+            // On quick loading pages, the document is already loaded
+            statusIndicator.textContent = contentState.mode || "normal"
+            document.body.appendChild(statusIndicator)
+            document.head.appendChild(style)
+        } catch (e) {
+            // But on slower pages we wait for the document to load
+            window.addEventListener("DOMContentLoaded", () => {
+                statusIndicator.textContent = contentState.mode || "normal"
+                document.body.appendChild(statusIndicator)
+                document.head.appendChild(style)
+            })
         }
 
-        logger.debug(
-            "statusindicator: ",
-            result,
-            ";",
-            "config",
-            modeindicatorshowkeys,
+        addContentStateChangedListener(
+            async (property, oldMode, oldValue, newValue) => {
+                let mode = newValue
+                let suffix = ""
+                let result = ""
+                if (property !== "mode") {
+                    if (property === "suffix") {
+                        mode = oldMode
+                        suffix = newValue
+                    } else if (property === "group") {
+                        mode = oldMode
+                    }
+                }
+
+                const privateMode = browser.extension.inIncognitoContext
+                    ? "TridactylPrivate"
+                    : ""
+                statusIndicator.className =
+                    "cleanslate TridactylStatusIndicator " + privateMode
+                if (
+                    dom.isTextEditable(document.activeElement) &&
+                    !["input", "ignore"].includes(mode)
+                ) {
+                    result = "insert"
+                    // this doesn't work; statusIndicator.style is full of empty string
+                    // statusIndicator.style.borderColor = "green !important"
+                    // need to fix loss of focus by click: doesn't do anything here.
+                } else if (
+                    mode === "insert" &&
+                    !dom.isTextEditable(document.activeElement)
+                ) {
+                    result = "normal"
+                    // statusIndicator.style.borderColor = "lightgray !important"
+                } else {
+                    result = mode
+                }
+                const modeindicatorshowkeys = config.get(
+                    "modeindicatorshowkeys",
+                )
+                if (modeindicatorshowkeys === "true" && suffix !== "") {
+                    result = mode + " " + suffix
+                }
+
+                const tabGroup = await tabTgroup()
+                if (tabGroup) {
+                    result = result + " | " + tabGroup
+                }
+
+                logger.debug(
+                    "statusindicator: ",
+                    result,
+                    ";",
+                    "config",
+                    modeindicatorshowkeys,
+                )
+                statusIndicator.textContent = result
+                statusIndicator.className +=
+                    " TridactylMode" + statusIndicator.textContent
+
+                if (
+                    config.get("modeindicator") !== "true" ||
+                    config.get("modeindicatormodes", mode) === "false"
+                ) {
+                    statusIndicator.classList.add("TridactylInvisible")
+                } else {
+                    statusIndicator.classList.remove("TridactylInvisble")
+                }
+            },
         )
-        statusIndicator.textContent = result
-        statusIndicator.className +=
-            " TridactylMode" + statusIndicator.textContent
+    })
 
+    let leaveGithubAlone = false // don't wait for the config before adding the listener
+    config.getAsync("leavegithubalone").then(v => {
+        leaveGithubAlone = v === "true"
+    })
+    // attach to window instead of document as it's available earlier
+    // capture: true prevents bubbling before we have had a chance to cancel it
+    window.addEventListener("keydown", protectSlash, { capture: true })
+
+    function protectSlash(e) {
+        if (!e.isTrusted || leaveGithubAlone) return
+        const blacklistKeys = config.get("blacklistkeys") || []
+        if (blacklistKeys.includes(e.key) && contentState.mode === "normal") {
+            e.cancelBubble = true
+            e.stopImmediatePropagation()
+            e.stopPropagation()
+        }
+    }
+
+    // I still don't get lib/messaging.ts
+    const phoneHome = () => browser.runtime.sendMessage("dom_loaded_background")
+
+    document.readyState === "complete" && phoneHome()
+    window.addEventListener("load", () => {
+        phoneHome()
+    })
+
+    document.addEventListener("selectionchange", () => {
+        const selection = document.getSelection()
         if (
-            config.get("modeindicator") !== "true" ||
-            config.get("modeindicatormodes", mode) === "false"
+            contentState.mode == "visual" &&
+            config.get("visualexitauto") == "true" &&
+            selection.isCollapsed
         ) {
-            statusIndicator.classList.add("TridactylInvisible")
-        } else {
-            statusIndicator.classList.remove("TridactylInvisble")
+            contentState.mode = "normal"
+            return
+        }
+        if (
+            contentState.mode !== "normal" ||
+            config.get("visualenterauto") == "false"
+        )
+            return
+        if (!selection.isCollapsed) {
+            contentState.mode = "visual"
         }
     })
-})
 
-let leaveGithubAlone = false // don't wait for the config before adding the listener
-config.getAsync("leavegithubalone").then(v => {
-    leaveGithubAlone = v === "true"
-});
-// attach to window instead of document as it's available earlier
-// capture: true prevents bubbling before we have had a chance to cancel it
-window.addEventListener("keydown", protectSlash, {capture: true})
+    // Try to catch the iframe/status indicator being removed by a script (React again)
+    const checkElemsSurvived = () => {
+        if (document.readyState === "complete") {
+            commandline_content.ensureIframeExists()
 
-function protectSlash(e) {
-    if (!e.isTrusted || leaveGithubAlone ) return
-    const blacklistKeys = config.get("blacklistkeys") || [];
-    if (blacklistKeys.includes(e.key) && contentState.mode === "normal") {
-        e.cancelBubble = true
-        e.stopImmediatePropagation()
-        e.stopPropagation()
+            if (statusIndicator !== undefined)
+                document.body.appendChild(statusIndicator)
+
+            // We only want to check the iframe survived between "interactive" and "complete"
+            document.removeEventListener("readystatechange", checkElemsSurvived)
+        }
     }
-}
+    document.addEventListener("readystatechange", checkElemsSurvived)
 
-// I still don't get lib/messaging.ts
-const phoneHome = () => browser.runtime.sendMessage("dom_loaded_background")
-
-document.readyState === "complete" && phoneHome()
-window.addEventListener("load", () => {
-    phoneHome()
-})
-
-document.addEventListener("selectionchange", () => {
-    const selection = document.getSelection()
-    if (
-        contentState.mode == "visual" &&
-        config.get("visualexitauto") == "true" &&
-        selection.isCollapsed
-    ) {
-        contentState.mode = "normal"
-        return
-    }
-    if (
-        contentState.mode !== "normal" ||
-        config.get("visualenterauto") == "false"
-    )
-        return
-    if (!selection.isCollapsed) {
-        contentState.mode = "visual"
-    }
-})
-
-// Try to catch the iframe/status indicator being removed by a script (React again)
-const checkElemsSurvived = () => {
-    if (document.readyState === "complete") {
-        commandline_content.ensureIframeExists()
-
-        if (statusIndicator !== undefined)
-            document.body.appendChild(statusIndicator)
-
-        // We only want to check the iframe survived between "interactive" and "complete"
-        document.removeEventListener("readystatechange", checkElemsSurvived)
-    }
-}
-document.addEventListener("readystatechange", checkElemsSurvived)
-
-// Listen for statistics from each content script and send them to the
-// background for collection. Attach the observer to the window object
-// since there's apparently a bug that causes performance observers to
-// be GC'd even if they're still the target of a callback.
-;(window as any).tri = Object.assign(window.tri, {
-    perfObserver: perf.listenForCounters(),
-})
-
+    // Listen for statistics from each content script and send them to the
+    // background for collection. Attach the observer to the window object
+    // since there's apparently a bug that causes performance observers to
+    // be GC'd even if they're still the target of a callback.
+    ;(window as any).tri = Object.assign(window.tri, {
+        perfObserver: perf.listenForCounters(),
+    })
 }) // End of maybe-disable-tridactyl-a-bit wrapper
