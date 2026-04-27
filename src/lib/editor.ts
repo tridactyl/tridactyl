@@ -89,10 +89,22 @@ export const tab_insert = wrap_input((text, selectionStart, selectionEnd) => {
 export const transpose_chars = wrap_input(
     (text, selectionStart) => {
         if (text.length < 2) return [null, null, null]
-        // When at the beginning of the text, transpose the first and second characters
+
+        const eolChars = ["\n", "\r"]
+
+        // When at the beginning of the text or line,
+        // transpose the first and second characters
         if (selectionStart === 0) selectionStart = 1
-        // When at the end of the text, transpose the last and second-to-last characters
+        else if (eolChars.includes(text.charAt(selectionStart-1))) {
+            selectionStart += 1
+        }
+
+        // When at the end of the text or line,
+        // transpose the last and second-to-last characters
         if (selectionStart >= text.length) selectionStart = text.length - 1
+        else if (eolChars.includes(text.charAt(selectionStart))) {
+            selectionStart -= 1
+        }
 
         text =
             text.substring(0, selectionStart - 1) +
