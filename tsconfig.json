@@ -3,6 +3,7 @@
     "moduleResolution": "node",
     "module": "es2020",
     "esModuleInterop": true,
+    "resolveJsonModule": true,
     "noImplicitAny": false,
     "noEmitOnError": true,
     "outDir": "build/tsc-out",
