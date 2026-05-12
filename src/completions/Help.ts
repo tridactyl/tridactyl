@@ -1,13 +1,24 @@
 import * as Completions from "@src/completions"
-import * as Metadata from "@src/.metadata.generated"
+import {
+    excmdsFunctions,
+    defaultConfigMembers,
+    getDoc,
+    memberDoc,
+} from "@src/.metadata.generated"
 import * as aliases from "@src/lib/aliases"
 import * as config from "@src/lib/config"
 
-class HelpCompletionOption extends Completions.CompletionOptionHTML
-    implements Completions.CompletionOptionFuse {
+class HelpCompletionOption
+    extends Completions.CompletionOptionHTML
+    implements Completions.CompletionOptionFuse
+{
     public fuseKeys = []
 
-    constructor(public name: string, doc: string, flag: string) {
+    constructor(
+        public name: string,
+        doc: string,
+        flag: string,
+    ) {
         super()
         this.value = `${flag} ${name}`
         this.html = html`<tr class="HelpCompletionOption option">
@@ -42,20 +53,13 @@ export class HelpCompletionSource extends Completions.CompletionSourceFuse {
             return
         }
 
-        const file = Metadata.everything.getFile("src/lib/config.ts")
-        const default_config = file.getClass("default_config")
-        const excmds = Metadata.everything.getFile("src/excmds.ts")
-        const fns = excmds.getFunctions()
         const settings = config.get()
         const exaliases = settings.exaliases
         const bindings = settings.nmaps
-        if (
-            fns === undefined ||
-            exaliases === undefined ||
-            bindings === undefined
-        ) {
+        if (exaliases === undefined || bindings === undefined) {
             return
         }
+        const fns = Object.entries(excmdsFunctions)
 
         const flags = {
             "-a": (options, query) =>
@@ -64,9 +68,7 @@ export class HelpCompletionSource extends Completions.CompletionSourceFuse {
                         .filter(alias => alias.startsWith(query))
                         .map(alias => {
                             const cmd = aliases.expandExstr(alias)
-                            const doc =
-                                (excmds.getFunction(cmd) || ({} as any)).doc ||
-                                ""
+                            const doc = getDoc(excmdsFunctions[cmd])
                             return new HelpCompletionOption(
                                 alias,
                                 `Alias for \`${cmd}\`. ${doc}`,
@@ -90,15 +92,12 @@ export class HelpCompletionSource extends Completions.CompletionSourceFuse {
             "-e": (options, query) =>
                 options.concat(
                     fns
-                        .filter(
-                            ([name, fn]) =>
-                                !fn.hidden && name.startsWith(query),
-                        )
+                        .filter(([name]) => name.startsWith(query))
                         .map(
                             ([name, fn]) =>
                                 new HelpCompletionOption(
                                     name,
-                                    `Excmd. ${fn.doc}`,
+                                    `Excmd. ${getDoc(fn)}`,
                                     "-e",
                                 ),
                         ),
@@ -108,11 +107,7 @@ export class HelpCompletionSource extends Completions.CompletionSourceFuse {
                     Object.keys(settings)
                         .filter(x => x.startsWith(query))
                         .map(setting => {
-                            const member = default_config.getMember(setting)
-                            let doc = ""
-                            if (member !== undefined) {
-                                doc = member.doc
-                            }
+                            const doc = memberDoc(defaultConfigMembers[setting])
                             return new HelpCompletionOption(
                                 setting,
                                 `Setting. ${doc}`,
