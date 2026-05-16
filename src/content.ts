@@ -451,13 +451,26 @@ document.addEventListener("selectionchange", () => {
         contentState.mode = "normal"
         return
     }
-    if (
-        contentState.mode !== "normal" ||
-        config.get("visualenterauto") == "false"
-    )
+    // TODO: make use of submodeconfigs (excmds.setmode)
+    if (["ex", "ignore", "hint", "visual"].includes(contentState.mode)) {
         return
-    if (!selection.isCollapsed) {
-        contentState.mode = "visual"
+    }
+    if (config.get("visualenterauto") == "false") return
+
+    if (!selection.isCollapsed) b: {
+        const text = selection.focusNode // text node or null
+        if (!text) break b
+
+        let element
+        if (text instanceof Element) element = text
+        else element = text.parentElement
+
+        if (
+            !element.isContentEditable ||
+            element.contentEditable === undefined // svg
+        ) {
+            contentState.mode = "visual"
+        }
     }
 })
 

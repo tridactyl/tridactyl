@@ -5955,13 +5955,15 @@ async function js_helper(str: string[]) {
         break
     }
 
+    const strJoin = str.join(" ")
     if (separator !== null) {
+        const pos = strJoin.indexOf(separator)
         // user may or may not use JS_ARGS
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        JS_ARGS = str.join(" ").split(separator)[1].split(" ")
-        jsContent = str.join(" ").split(separator)[0]
+        JS_ARGS = strJoin.slice(pos + 1).split(" ")
+        jsContent = strJoin.slice(0, pos)
     } else {
-        jsContent = str.join(" ")
+        jsContent = strJoin
     }
 
     if (doSource) {
