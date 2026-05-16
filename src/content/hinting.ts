@@ -407,7 +407,7 @@ class HintState {
 }
 
 /** @hidden*/
-let modeState: HintState
+export let modeState: HintState
 
 interface Hintables {
     elements: Element[]
