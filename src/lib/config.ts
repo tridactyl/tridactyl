@@ -1919,14 +1919,14 @@ export function getDeepProperty(obj, target: string[]) {
             return getDeepProperty(obj[target[0]], target.slice(1))
         } else {
             return getDeepProperty(
-                mergeDeepCull(get(obj["🕷🕷INHERITS🕷🕷"]), obj)[target[0]],
+                mergeDeep(get(obj["🕷🕷INHERITS🕷🕷"]), obj)[target[0]],
                 target.slice(1),
             )
         }
     } else {
         if (obj === undefined || obj === null) return obj
         if (obj["🕷🕷INHERITS🕷🕷"] !== undefined) {
-            return mergeDeepCull(get(obj["🕷🕷INHERITS🕷🕷"]), obj)
+            return mergeDeep(get(obj["🕷🕷INHERITS🕷🕷"]), obj)
         } else {
             return obj
         }
@@ -1965,9 +1965,7 @@ export function mergeDeep(o1, o2) {
             key => typeof o1[key] === "object" && typeof o2[key] === "object",
         )
         .forEach(key =>
-            r[key] == null
-                ? null
-                : Object.assign(r[key], mergeDeep(o1[key], o2[key])),
+            r[key] == null ? null : (r[key] = mergeDeep(o1[key], o2[key])),
         )
     return r
 }
@@ -2010,7 +2008,7 @@ export function getURL(url: string, target: string[]) {
     const deflt = _getURL(DEFAULTS, url, target)
     if (user === undefined || user === null) return deflt
     if (typeof user !== "object" || typeof deflt !== "object") return user
-    return mergeDeepCull(deflt, user)
+    return mergeDeep(deflt, user)
 }
 
 /** Get the value of the key target.
@@ -2036,14 +2034,14 @@ export function get(target_typed?: keyof default_config, ...target: string[]) {
 
     // Merge results if there's a default value and it's not an Array or primitive.
     if (typeof defult === "object") {
-        return mergeDeepCull(mergeDeepCull(defult, user), site)
+        return removeNull(mergeDeep(mergeDeep(defult, user), site))
     } else {
         if (site !== undefined) {
-            return site
+            return removeNull(site)
         } else if (user !== undefined) {
-            return user
+            return removeNull(user)
         } else {
-            return defult
+            return removeNull(defult)
         }
     }
 }
