@@ -1,7 +1,11 @@
 import { testAll, testAllObject } from "@src/lib/test_utils"
 import { canonicaliseMapstr } from "@src/lib/keyseq"
 import { default_config } from "@src/lib/config"
+import * as tri_config from "@src/lib/config"
 import { zip } from "ramda"
+
+const tri = { config: tri_config }
+const { getURL, get } = tri.config
 
 const config = new default_config()
 // todo: test subconfigs and platform_defaults
@@ -14,3 +18,63 @@ for (let mode of Object.keys(config).filter(x => x.match(/maps$/))) {
     const mapstrings = Object.keys(config[mode])
     testAll(canonicaliseMapstr, zip(mapstrings, mapstrings))
 }
+
+test("getURL in keymap and config", () => {
+    const nmaps = getURL("https://web.whatsapp.com/", ["nmaps"])
+    expect(nmaps.f).toBe("hint -c [tabindex]:not(.two)>div,a")
+
+    const google = "https://www.google.com/"
+    expect(getURL(google, ["followpagepatterns", "prev"])).toBe("Previous")
+})
+
+test("merge deep should keep null", () => {
+    const a = {}
+    const b = { n: null }
+    const c = tri.config.mergeDeep({}, { n: null })
+    expect(c).toEqual({ n: null })
+})
+
+test("get in default inherit keymap", () => {
+    expect(config["vmaps"]["🕷🕷INHERITS🕷🕷"]).toBe("nmaps")
+    expect("gt" in config["vmaps"]).toBe(false)
+    expect(config["nmaps"].gt).toBeTruthy()
+
+    const vmapsAfterInherit = get("vmaps")
+    const nmaps = get("nmaps")
+    expect(vmapsAfterInherit.gt).toBe(nmaps.gt)
+})
+
+test("keymap unbind default", () => {
+    expect(config["exmaps"]["<Space>"]).toBe(
+        tri.config.DEFAULTS.exmaps["<Space>"],
+    )
+    tri.config.set("exmaps", "<Space>", null)
+    expect(tri.config.USERCONFIG.exmaps["<Space>"]).toBeNull()
+    expect(tri.config.DEFAULTS.exmaps).toBeTruthy()
+
+    const exmaps = get("exmaps")
+    expect(exmaps["<Space>"]).toBeUndefined()
+})
+
+test("get in modified inherit keymap", () => {
+    expect(config["vmaps"]["🕷🕷INHERITS🕷🕷"]).toBe("nmaps")
+    expect("q" in config["vmaps"]).toBe(true)
+    expect("q" in config["nmaps"]).toBe(false)
+
+    tri.config.set("vmaps", "q", null)
+    expect(tri.config.USERCONFIG.vmaps.q).toBeNull()
+
+    const vmapsAfterInherit = get("vmaps")
+    expect(vmapsAfterInherit.q).toBeUndefined()
+})
+
+test("mergeDeep should not pollute arguments", () => {
+    const o1 = { n: { a: 1 } }
+    const o2 = { n: { b: 2 } }
+    const o3 = tri.config.mergeDeep(o1, o2)
+    expect({ o1, o2, o3 }).toEqual({
+        o1: { n: { a: 1 } },
+        o2: { n: { b: 2 } },
+        o3: { n: { a: 1, b: 2 } },
+    })
+})
