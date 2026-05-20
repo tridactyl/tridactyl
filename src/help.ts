@@ -90,7 +90,7 @@ async function addSetting(settingName: string) {
 }
 
 async function onExcmdPageLoad() {
-    browser.storage.onChanged.addListener((changes) => {
+    browser.storage.onChanged.addListener(changes => {
         if ("userconfig" in changes) {
             // JSON.stringify for comparisons like it's 2012
             ;[...modeMaps, "exaliases"].forEach(kind => {
@@ -122,7 +122,7 @@ function addSettingInputs() {
             ;(window as any).tri.messaging.message(
                 "controller_background",
                 "acceptExCmd",
-                ["set " + input.name + " " + input.value],
+                "set " + input.name + " " + input.value,
             )
         } else {
             if (
