@@ -1,10 +1,10 @@
 /** Content script entry point */
 
 // We need to grab a lock because sometimes Firefox will decide to insert the content script in the page multiple times
-if ((window as any).tridactyl_content_lock !== undefined) {
+if (window["tridactyl_content_lock"] !== undefined) {
     throw Error("Trying to load Tridactyl, but it's already loaded.")
 }
-;(window as any).tridactyl_content_lock = "locked"
+window["tridactyl_content_lock"] = "locked"
 
 // Be careful: typescript elides imports that appear not to be used if they're
 // assigned to a name.  If you want an import just for its side effects, make
@@ -48,7 +48,7 @@ try {
     //
     // Broken atm - on https://github.com/tridactyl/tridactyl/pull/3938 clicking onto issues doesn't do anything and we get "permission denied to access object"
 
-    const realwindow = (window as any).wrappedJSObject ?? window // wrappedJSObject not defined on extension pages
+    const realwindow = window["wrappedJSObject"] ?? window // wrappedJSObject not defined on extension pages
 
     const triPushState = (hist => (
         (...args) => {
@@ -131,33 +131,45 @@ messaging.addListener("omniscient_content", messaging.attributeCaller(omniscient
 // eslint-disable-next-line @typescript-eslint/require-await
 messaging.addListener("alive", async () => true)
 
-const guardedAcceptKey = (keyevent: Event) => {
-    if (!keyseq.isTrustedKeyboardEvent(keyevent)) return
-    ContentController.acceptKey(keyevent)
-}
-function listen(elem) {
-    elem.removeEventListener("keydown", guardedAcceptKey, true)
-    elem.removeEventListener("keyup", guardedAcceptKey, true)
+function listen(elem: Window | HTMLElement | HTMLFrameElement) {
     elem.removeEventListener(
-        "keypress",
-        ContentController.canceller.cancelKeyPress,
+        "keydown",
+        keyseq.guarded(ContentController.acceptKey),
         true,
     )
     elem.removeEventListener(
         "keyup",
-        ContentController.canceller.cancelKeyUp,
+        keyseq.guarded(ContentController.acceptKey),
         true,
     )
-    elem.addEventListener("keydown", guardedAcceptKey, true)
-    elem.addEventListener("keyup", guardedAcceptKey, true)
-    elem.addEventListener(
+    elem.removeEventListener(
         "keypress",
-        ContentController.canceller.cancelKeyPress,
+        keyseq.guarded(ContentController.canceller.cancelKeyPress),
+        true,
+    )
+    elem.removeEventListener(
+        "keyup",
+        keyseq.guarded(ContentController.canceller.cancelKeyUp),
+        true,
+    )
+    elem.addEventListener(
+        "keydown",
+        keyseq.guarded(ContentController.acceptKey),
         true,
     )
     elem.addEventListener(
         "keyup",
-        ContentController.canceller.cancelKeyUp,
+        keyseq.guarded(ContentController.acceptKey),
+        true,
+    )
+    elem.addEventListener(
+        "keypress",
+        keyseq.guarded(ContentController.canceller.cancelKeyPress),
+        true,
+    )
+    elem.addEventListener(
+        "keyup",
+        keyseq.guarded(ContentController.canceller.cancelKeyUp),
         true,
     )
 }
@@ -174,8 +186,8 @@ config.getAsync("preventautofocusjackhammer").then(allowautofocus => {
     const preventAutoFocus = () => {
         // First, blur whatever element is active. This will make sure
         // activeElement is the "default" active element
-        ;(document.activeElement as any).blur()
-        const elem = document.activeElement as any
+        ;(document.activeElement as HTMLElement).blur()
+        const elem = document.activeElement as HTMLElement
         // ???: We need to set tabIndex, otherwise we won't get focus/blur events!
         elem.tabIndex = 0
         const focusElem = () => elem.focus()
@@ -209,7 +221,7 @@ config.getAsync("preventautofocusjackhammer").then(allowautofocus => {
     }
     tryPreventAutoFocus()
 })
-;(window as any).tri = Object.assign(Object.create(null), {
+window["tri"] = Object.assign(Object.create(null), {
     browserBg: webext.browserBg,
     bg: backgroundProxy.backgroundProxy,
     commandline_content,
@@ -307,7 +319,7 @@ config.getAsync("modeindicator").then(mode => {
                 statusIndicator.setAttribute(
                     "style",
                     `border: ${
-                        (container as any).colorCode
+                        container.colorCode
                     } var(--tridactyl-indicator-border-style, solid) var(--tridactyl-indicator-border-width, 1.5px) !important`,
                 )
             })
@@ -492,7 +504,7 @@ document.addEventListener("readystatechange", checkElemsSurvived)
 // background for collection. Attach the observer to the window object
 // since there's apparently a bug that causes performance observers to
 // be GC'd even if they're still the target of a callback.
-;(window as any).tri = Object.assign(window.tri, {
+window["tri"] = Object.assign(window.tri, {
     perfObserver: perf.listenForCounters(),
 })
 

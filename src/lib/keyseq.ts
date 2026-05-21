@@ -26,6 +26,7 @@ import { filter, find } from "@src/lib/itertools"
 import { Parser } from "@src/lib/nearley_utils"
 import * as config from "@src/lib/config"
 import grammar from "@src/grammars/.bracketexpr.generated"
+import { memoise } from "@src/lib/memoise"
 const bracketexpr_grammar = grammar
 const bracketexpr_parser = new Parser(bracketexpr_grammar)
 
@@ -34,13 +35,24 @@ const bracketexpr_parser = new Parser(bracketexpr_grammar)
 // eslint-disable-next-line @typescript-eslint/ban-types
 export type TrustedKeyboardEvent = KeyboardEvent & { readonly isTrusted: true }
 
+export const guarded = memoise(
+    (accept: (keyevent: TrustedKeyboardEvent) => unknown) =>
+        (keyevent: Event) => {
+            if (!isTrustedKeyboardEvent(keyevent)) return
+            return accept(keyevent)
+        },
+)
+
 export function isTrustedKeyboardEvent(ke: unknown): ke is TrustedKeyboardEvent {
     if (!ke || typeof ke !== "object") return false
-    const event = ke as Event & { view?: typeof window }
-    if (event.isTrusted !== true) return false
-    if (event instanceof KeyboardEvent) return true
-    const win = event.view
-    return win ? event instanceof win.KeyboardEvent : false
+    try {
+        const event = ke as Event
+        if (event.isTrusted !== true) return false
+        KeyboardEvent.prototype.getModifierState.call(event, "")
+        return true
+    } catch {
+        return false
+    }
 }
 
 let KEYCODETRANSLATEMAP = {}

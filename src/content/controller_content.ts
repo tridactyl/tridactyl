@@ -59,13 +59,11 @@ class KeyCanceller {
         }
     }
 
-    public cancelKeyPress = (ke: Event) => {
-        if (!isTrustedKeyboardEvent(ke)) return
+    public cancelKeyPress = (ke: TrustedKeyboardEvent) => {
         this.cancelKey(ke, this.keyPress)
     }
 
-    public cancelKeyUp = (ke: Event) => {
-        if (!isTrustedKeyboardEvent(ke)) return
+    public cancelKeyUp = (ke: TrustedKeyboardEvent) => {
         this.cancelKey(ke, this.keyUp)
     }
 
@@ -92,7 +90,7 @@ class KeyCanceller {
         ke: TrustedKeyboardEvent,
         kes: TrustedKeyboardEvent[],
     ) {
-        if (this.removeKey(ke, kes) && ke instanceof KeyboardEvent) {
+        if (this.removeKey(ke, kes)) {
             ke.preventDefault()
             ke.stopImmediatePropagation()
         }
@@ -165,14 +163,14 @@ function* ParserController() {
                 // TODO: fix this in these parsers directly
                 if (
                     ["hint", "gobble"].includes(contentState.mode) &&
-                    (keyevent instanceof KeyboardEvent
+                    (!(keyevent instanceof MinimalKey)
                         ? keyevent.type === "keyup"
                         : keyevent.keyup)
                 )
                     continue
                 let textEditable = false
 
-                if (keyevent instanceof KeyboardEvent) {
+                if (!(keyevent instanceof MinimalKey)) {
                     const deepTarget = activeElement(keyevent.target as HTMLElement) || keyevent.target as HTMLElement
                     textEditable = isTextEditable(deepTarget)
 
@@ -226,7 +224,7 @@ function* ParserController() {
                     response,
                 )
 
-                if (response.isMatch && keyevent instanceof KeyboardEvent) {
+                if (response.isMatch && !(keyevent instanceof MinimalKey)) {
                     canceller.push(keyevent)
                 }
 

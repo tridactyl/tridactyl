@@ -285,9 +285,11 @@ module.exports = {
         {
             "files": ["src/content.ts", "src/commandline_frame.ts"],
             "rules": {
+                "@typescript-eslint/no-explicit-any": "error",
                 "@typescript-eslint/ban-types": [
                     "error",
                     {
+                        "extendDefaults": true,
                         "types": {
                             "TrustedKeyboardEvent": {
                                 "message": "Events must be validated with `isTrustedKeyboardEvent` at runtime"
