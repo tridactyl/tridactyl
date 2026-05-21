@@ -43,6 +43,7 @@ const _guarded =
 export const guarded = memoise(_guarded)
 
 export function isTrustedKeyboardEvent(ke: any): ke is TrustedKeyboardEvent {
+    if (ke instanceof MinimalKey) return true
     if (!ke || typeof ke !== "object") return false
     if (ke.isTrusted !== true) return false
     if (ke instanceof KeyboardEvent) return true
