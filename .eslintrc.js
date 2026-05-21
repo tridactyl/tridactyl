@@ -276,6 +276,7 @@ module.exports = {
         {
             "files":["src/content.ts", "src/commandline_frame.ts"],
             "rules": {
+                "@typescript-eslint/no-explicit-any": "error",
                 "@typescript-eslint/ban-types":[
                     "error",
                     {

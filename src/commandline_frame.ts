@@ -231,7 +231,7 @@ let prev_cmd_called_history = false
 
 // Save programmer time by generating an immediately resolved promise
 // eslint-disable-next-line @typescript-eslint/no-empty-function
-const QUEUE: Promise<any>[] = [(async () => {})()]
+const QUEUE: Promise<void>[] = [(async () => {})()]
 
 /** @hidden **/
 commandline_state.clInput.addEventListener(
@@ -315,7 +315,7 @@ export function refresh_completions(exstr) {
 }
 
 /** @hidden **/
-let onInputPromise: Promise<any> = Promise.resolve()
+let onInputPromise: Promise<void | void[]> = Promise.resolve()
 /** @hidden **/
 commandline_state.clInput.addEventListener("input", () => {
     logger.debug("commandline_frame clInput input event listener")
@@ -456,7 +456,7 @@ Messaging.addListener(
 // object since there's apparently a bug that causes performance
 // observers to be GC'd even if they're still the target of a
 // callback.
-;(window as any).tri = Object.assign(window.tri || {}, {
+window["tri"] = Object.assign(window.tri || {}, {
     perfObserver: perf.listenForCounters(),
 })
 

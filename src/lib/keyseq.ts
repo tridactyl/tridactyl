@@ -26,6 +26,7 @@ import { Parser } from "@src/lib/nearley_utils"
 import * as config from "@src/lib/config"
 import * as R from "ramda"
 import grammar from "@src/grammars/.bracketexpr.generated"
+import { memoise } from "@src/lib/memoise"
 const bracketexpr_grammar = grammar
 const bracketexpr_parser = new Parser(bracketexpr_grammar)
 
@@ -33,6 +34,13 @@ const bracketexpr_parser = new Parser(bracketexpr_grammar)
 // this should be ~the only place in the code that accepts KeyboardEvent
 // eslint-disable-next-line @typescript-eslint/ban-types
 export type TrustedKeyboardEvent = KeyboardEvent & { readonly isTrusted: true }
+
+const _guarded =
+    (f: (ke: TrustedKeyboardEvent) => void) => (maybekeyevent: Event) => {
+        if (!isTrustedKeyboardEvent(maybekeyevent)) return
+        return f(maybekeyevent)
+    }
+export const guarded = memoise(_guarded)
 
 export function isTrustedKeyboardEvent(ke: any): ke is TrustedKeyboardEvent {
     if (!ke || typeof ke !== "object") return false
