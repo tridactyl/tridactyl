@@ -361,11 +361,6 @@ config.getAsync("modeindicator").then(mode => {
             }
         }
 
-        const privateMode = browser.extension.inIncognitoContext
-            ? "TridactylPrivate"
-            : ""
-        statusIndicator.className =
-            "cleanslate TridactylStatusIndicator " + privateMode
         if (
             dom.isTextEditable(document.activeElement) &&
             !["input", "ignore"].includes(mode)
@@ -401,17 +396,20 @@ config.getAsync("modeindicator").then(mode => {
             modeindicatorshowkeys,
         )
         statusIndicator.textContent = result
-        statusIndicator.className +=
-            " TridactylMode" + statusIndicator.textContent
 
-        if (
+        const baseCls = "cleanslate TridactylStatusIndicator"
+        const privateCls = browser.extension.inIncognitoContext
+            ? "TridactylPrivate"
+            : ""
+        const modeCls = `TridactylMode${result}`
+        const invisibleCls =
             config.get("modeindicator") !== "true" ||
             config.get("modeindicatormodes", mode) === "false"
-        ) {
-            statusIndicator.classList.add("TridactylInvisible")
-        } else {
-            statusIndicator.classList.remove("TridactylInvisble")
-        }
+                ? "TridactylInvisible"
+                : ""
+
+        statusIndicator.className =
+            `${baseCls} ${privateCls} ${modeCls} ${invisibleCls}`
     })
 })
 
