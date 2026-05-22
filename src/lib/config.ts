@@ -95,10 +95,12 @@ export class default_config {
                 F: "hint -bc [tabindex]:not(.two)>div,a",
             },
         },
-        "^https://teams.microsoft.com": { // #5054
+        "^https://teams.microsoft.com": {
+            // #5054
             modeindicator: "false",
         },
-        "^https://teams.live.com": { // #5054
+        "^https://teams.live.com": {
+            // #5054
             modeindicator: "false",
         },
     }
@@ -280,7 +282,7 @@ export class default_config {
         r: "reload",
         R: "reloadhard",
         x: "stop",
-        gi: "focusinput -l",
+        gi: "focusinput",
         "g?": "rot13",
         "g!": "jumble",
         "g;": "changelistjump -1",
@@ -397,8 +399,14 @@ export class default_config {
         y: "composite js document.getSelection().toString() | clipboard yank",
         s: "composite js document.getSelection().toString() | fillcmdline open search",
         S: "composite js document.getSelection().toString() | fillcmdline tabopen search",
-        l: 'js document.getSelection().modify("extend","forward","character")',
-        h: 'js document.getSelection().modify("extend","backward","character")',
+        l: `js
+            const sel = document.getSelection();
+            tri.visual.extendByCharacter(sel, "forward");
+        `,
+        h: `js
+            const sel = document.getSelection();
+            tri.visual.extendByCharacter(sel, "backward");
+        `,
         e: 'js document.getSelection().modify("extend","forward","word")',
         w: 'js document.getSelection().modify("extend","forward","word"); document.getSelection().modify("extend","forward","word"); document.getSelection().modify("extend","backward","word"); document.getSelection().modify("extend","forward","character")',
         b: 'js document.getSelection().modify("extend","backward","character"); document.getSelection().modify("extend","backward","word"); document.getSelection().modify("extend","forward","character")',
@@ -658,7 +666,7 @@ export class default_config {
         tabgroupswitch: "tgroupswitch",
         tabnew: "tabopen",
         tabm: "tabmove",
-        tabo: "tabonly",
+        tabo: "fillcmdline_tmp 3000 The :tabo alias has been removed. You can add it back with :command tabo tabonly",
         tn: "tabnext_gt",
         bn: "tabnext_gt",
         tnext: "tabnext_gt",
@@ -768,7 +776,7 @@ export class default_config {
      *  ```
      */
     searchurls = {
-        google: "https://www.google.com/search?q=",
+        google: "https://www.google.com/search?udm=14&q=",
         scholar: "https://scholar.google.com/scholar?q=",
         bing: "https://www.bing.com/search?q=",
         duckduckgo: "https://duckduckgo.com/?q=",
@@ -987,6 +995,7 @@ export class default_config {
         state: "warning",
         styling: "warning",
         autocmds: "warning",
+        profiles: "warning",
     }
 
     /**
@@ -1091,6 +1100,25 @@ export class default_config {
      * "downloadforbiddenreplacement" value.
      */
     downloadforbiddennames = ""
+
+    /**
+     * Placeholder string used in ":saveas" targets. If the save-as path
+     * contains this marker, it will be replaced with the filename
+     * derived from the URL.
+     *
+     * For example, using:
+     *
+     *   :saveas ~/Documents/ex-%
+     *
+     * with the URL:
+     *
+     *   https://example.com/log.txt
+     *
+     * will produce the file:
+     *
+     *   ~/Documents/ex-log.txt
+     */
+    downloadfilenamemarker = "%"
 
     /**
      * Set this to something weird if you want to have fun every time Tridactyl tries to update its native messenger.
@@ -1356,6 +1384,7 @@ export class default_config {
 
     /**
      * Which css styles to add for hint elements.
+     * Optionally add extra elements to the page to highlight hints using overlay and overlay outline.
      *
      * Use `hintstyles.fg` for text color, `hintstyles.bg` for background color, `hintstyles.outline` for outlines.
      * Values may be set to "all" to enable the style for all hints, "active" to enable the style only for the currently selected hint, or "none" to disable the style completely.
@@ -1367,7 +1396,14 @@ export class default_config {
         fg: "all",
         bg: "all",
         outline: "all",
+        overlay: "none",
+        overlayoutline: "none",
     }
+
+    /**
+     * Internal temporary storage for :reader, mapping UUIDs to base64 encoded html strings of articles
+     */
+    reader_articles: { [id: string]: string } = {}
 }
 
 const platform_defaults = {
@@ -1811,7 +1847,7 @@ export const keyboardlayouts = {
         KeyY: ["", "!"],
     },
     workman: {
-        Quote: ["'", "\""],
+        Quote: ["'", '"'],
         Digit8: ["8", "*"],
         Digit1: ["1", "!"],
         Digit2: ["2", "@"],
@@ -1857,7 +1893,7 @@ export const keyboardlayouts = {
         KeyM: ["l", "L"],
         Comma: [",", "<"],
         Period: [".", ">"],
-        Slash: ["/", "?"]
+        Slash: ["/", "?"],
     },
 }
 
@@ -2350,8 +2386,8 @@ export async function update() {
                 local?.storageloc !== undefined
                     ? local.storageloc
                     : sync?.storageloc !== undefined
-                    ? sync.storageloc
-                    : "sync"
+                      ? sync.storageloc
+                      : "sync"
             if (current_storageloc == "sync") {
                 await pull()
             } else if (current_storageloc != "local") {

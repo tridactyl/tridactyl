@@ -11,8 +11,6 @@ Concrete completion classes have been moved to src/completions/.
 */
 
 import Fuse from "fuse.js"
-import { enumerate } from "@src/lib/itertools"
-import { toNumber } from "@src/lib/convert"
 import * as aliases from "@src/lib/aliases"
 import { backoff } from "@src/lib/patience"
 import * as config from "@src/lib/config"
@@ -147,14 +145,12 @@ export interface CompletionOptionFuse extends CompletionOptionHTML {
 }
 
 export interface ScoredOption {
-    index: number
     option: CompletionOptionFuse
     score: number
 }
 
 export abstract class CompletionSourceFuse extends CompletionSource {
     public node
-    public options: CompletionOptionFuse[]
 
     fuseOptions = {
         keys: ["fuseKeys"],
@@ -175,6 +171,16 @@ export abstract class CompletionSourceFuse extends CompletionSource {
     protected sortScoredOptions = false
 
     protected optionContainer = html`<table class="optionContainer"></table>`
+
+    // invalidate cache on option change
+    private _options: CompletionOptionFuse[]
+    public get options(): CompletionOptionFuse[] {
+        return this._options
+    }
+    public set options(val: CompletionOptionFuse[]) {
+        this._options = val
+        this.fuse = undefined
+    }
 
     constructor(
         prefixes,
@@ -255,20 +261,14 @@ export abstract class CompletionSourceFuse extends CompletionSource {
 
     /** Rtn sorted array of {option, score} */
     scoredOptions(query: string): ScoredOption[] {
-        const searchThis = this.options.map((elem, index) => ({
-            index,
-            fuseKeys: elem.fuseKeys,
+        if (this.fuse === undefined) {
+            this.fuse = new Fuse(this.options, this.fuseOptions)
+        }
+
+        return this.fuse.search(query).map(result => ({
+            option: result.item,
+            score: result.score,
         }))
-        this.fuse = new Fuse(searchThis, this.fuseOptions)
-        return this.fuse.search(query).map(result => {
-            // console.log(result, result.item, query)
-            const index = toNumber(result.item.index)
-            return {
-                index,
-                option: this.options[index],
-                score: result.score as number,
-            }
-        })
     }
 
     /** Set option state by score
@@ -277,44 +277,34 @@ export abstract class CompletionSourceFuse extends CompletionSource {
         focus the best match.
     */
     setStateFromScore(scoredOpts: ScoredOption[], autoselect = false) {
-        const matches = scoredOpts.map(res => res.index)
+        const matches = new Set(scoredOpts.map(res => res.option))
 
         const hidden_options = []
-        for (const [index, option] of enumerate(this.options)) {
-            if (matches.includes(index)) option.state = "normal"
-            else {
+        for (const option of this.options) {
+            if (matches.has(option)) {
+                option.state = "normal"
+            } else {
                 option.state = "hidden"
                 hidden_options.push(option)
             }
         }
 
-        // ideally, this would not deselect anything unless it fell off the list of matches
-        if (matches.length && autoselect) {
-            this.select(this.options[matches[0]])
+        if (scoredOpts.length && autoselect) {
+            this.select(scoredOpts[0].option)
         } else {
             this.deselect()
         }
 
-        // sort this.options by score
         if (this.sortScoredOptions) {
-            const sorted_options = matches.map(index => this.options[index])
-            this.options = sorted_options.concat(hidden_options)
+            const sorted_options = scoredOpts.map(res => res.option)
+            this._options = sorted_options.concat(hidden_options)
         }
     }
 
     /** Call to replace the current display */
     updateDisplay() {
-        const newContainer = this.optionContainer.cloneNode(
-            false,
-        ) as HTMLElement
-
-        for (const option of this.options) {
-            if (option.state !== "hidden")
-                // This is probably slow: `.html` means the HTML parser will be invoked
-                newContainer.appendChild(option.html)
-        }
-        this.optionContainer.replaceWith(newContainer)
-        this.optionContainer = newContainer
+        const visibleOptions = this.options.filter(o => o.state !== "hidden").map(o => o.html)
+        this.optionContainer.replaceChildren(...visibleOptions)
         this.next(0)
     }
 

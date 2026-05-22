@@ -136,20 +136,19 @@ export class BufferCompletionSource extends Completions.CompletionSourceFuse {
     ): Completions.ScoredOption[] {
         const args = query.trim().split(/\s+/gu)
         if (args.length === 1) {
-            // if query is an integer n and |n| < options.length
-            if (Number.isInteger(Number(args[0]))) {
-                let index = Number(args[0]) - 1
-                if (Math.abs(index) < options.length) {
-                    index = index.mod(options.length)
-                    // options order might change by scored sorting
-                    return this.TabscoredOptionsStartsWithN(index, options)
+            const num = Number(args[0])
+            if (Number.isInteger(num)) {
+                const targetIndex = num - 1
+                const match = options.find(o => o.tabIndex === targetIndex)
+                if (match) {
+                    return [{ option: match, score: 0 }]
                 }
+                return this.TabscoredOptionsStartsWithN(targetIndex, options)
             } else if (args[0] === "#") {
-                for (const [index, option] of enumerate(options)) {
+                for (const [_index, option] of enumerate(options)) {
                     if (option.isAlternative) {
                         return [
                             {
-                                index,
                                 option,
                                 score: 0,
                             },
@@ -170,17 +169,14 @@ export class BufferCompletionSource extends Completions.CompletionSourceFuse {
     ): Completions.ScoredOption[] {
         const nstr = (n + 1).toString()
         const res = []
-        for (const [index, option] of enumerate(options)) {
+        for (const option of options) {
             if ((option.tabIndex + 1).toString().startsWith(nstr)) {
                 res.push({
-                    index, // index is not tabIndex, changed by score
                     option,
                     score: 0,
                 })
             }
         }
-
-        // old input will change order: 12 => 123 => 12
         res.sort((a, b) => a.option.tabIndex - b.option.tabIndex)
         return res
     }
@@ -261,31 +257,16 @@ export class BufferCompletionSource extends Completions.CompletionSourceFuse {
      * the appropriate option.
      */
     private async reactToTabChanges(): Promise<void> {
-        const prevOptions = this.options
+        const lastFocusedTabId = (this.lastFocused as BufferCompletionOption)?.tabId
+        const oldIndex = (this.lastFocused as BufferCompletionOption)?.tabIndex
         await this.updateOptions(this.lastExstr)
-
-        if (!prevOptions || !this.options || !this.lastFocused) return
-
-        // Determine which option to focus on
-        const diff: BufferCompletionOption[] = []
-        for (const prevOption of prevOptions) {
-            if (
-                !this.options.find(
-                    newOption => prevOption.tabId === newOption.tabId,
-                )
-            )
-                diff.push(prevOption)
-        }
-        const lastFocusedTabCompletion = this
-            .lastFocused as BufferCompletionOption
-
-        // If the focused option was removed then focus on the next option
-        if (
-            diff.length === 1 &&
-            diff[0].tabId === lastFocusedTabCompletion.tabId
-        ) {
-            this.select(this.getTheNextTabOption(lastFocusedTabCompletion))
-        }
+        if (!this.options || this.options.length === 0) return
+            const stillExists = this.options.find(o => o.tabId === lastFocusedTabId)
+            if (stillExists) {
+                this.select(stillExists)
+            } else if (lastFocusedTabId !== undefined) {
+                this.select(this.getTheNextTabOption({ tabIndex: oldIndex } as any))
+            }
     }
 
     /**
@@ -293,9 +274,8 @@ export class BufferCompletionSource extends Completions.CompletionSourceFuse {
      * that this BufferCompletionSource length has been reduced by 1
      */
     private getTheNextTabOption(option: BufferCompletionOption) {
-        if (option.tabIndex === this.options.length) {
-            return this.options[this.options.length - 1]
-        }
-        return this.options[option.tabIndex]
+        const physicallySorted = [...this.options].sort((a, b) => a.tabIndex - b.tabIndex)
+        const nextTab = physicallySorted.find(o => o.tabIndex >= option.tabIndex)
+        return nextTab || physicallySorted[physicallySorted.length - 1]
     }
 }

@@ -195,27 +195,6 @@ for (const requestEvent of webrequests.requestEvents) {
     })
 }
 
-config.addChangeListener("autocmds", (previous, current) =>
-    webrequests.requestEvents.forEach(
-        requestEvent =>
-            // If there are autocmd(s) for this requestEvent
-            current[requestEvent] !== undefined &&
-            Object.entries(
-                current[requestEvent] as Record<string, string>,
-            ).forEach(([pattern, func]) => {
-                // R.path returns undefined if any part of the path is missing rather than saying "computer says no"
-                const path = R.path([requestEvent, pattern])
-
-                // If this is a new autocmd, register it
-                path(current) !== path(previous) &&
-                    webrequests.registerWebRequestAutocmd(
-                        requestEvent,
-                        pattern,
-                        func,
-                    )
-            }),
-    ),
-)
 
 // }}}
 

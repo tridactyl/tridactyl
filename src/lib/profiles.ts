@@ -4,6 +4,7 @@
 
 import * as Native from "@src/lib/native"
 import Logger from "@src/lib/logging"
+import { browserBg } from "@src/lib/webext"
 
 const logger = new Logger("profiles")
 
@@ -25,8 +26,20 @@ export async function getProfilesDir(): Promise<string> {
  * Get the Firefox executable command for the current platform
  */
 export async function getFirefoxCmd(): Promise<string> {
-    const cmdline = await Native.ff_cmdline()
-    return cmdline[0]
+    if ((await browserBg.runtime.getPlatformInfo()).os === "win") {
+        const output = await Native.run(
+            `powershell -NoProfile -Command "\
+                Get-CimInstance -Property ExecutablePath Win32_Process -Filter 'ProcessId = ${(await Native.sendNativeMsg("ppid", {})).content}' \
+                    | Select-Object -ExpandProperty ExecutablePath\
+                    "`,
+        )
+        return output.content.trim()
+    } else {
+        // TODO: handle exeutable path with spaces
+        const cmdline = await Native.ff_cmdline()
+        console.debug(cmdline)
+        return cmdline[0]
+    }
 }
 
 interface ParsedSection {
@@ -143,9 +156,11 @@ function parseProfilesIni(
  * Check if profile is in use
  */
 async function isProfileInUse(profilePath: string): Promise<boolean> {
-    const lockResult = await Native.run(`test -f "${profilePath}/lock"`)
-    const parentLockResult = await Native.run(
-        `test -f "${profilePath}/.parentlock"`,
+    const separator =
+        (await browserBg.runtime.getPlatformInfo()).os === "win" ? "\\" : "/"
+    const lockResult = await Native.read(`${profilePath}${separator}lock`)
+    const parentLockResult = await Native.read(
+        `${profilePath}${separator}.parentlock`,
     )
 
     return lockResult.code === 0 || parentLockResult.code === 0
@@ -184,6 +199,9 @@ export async function listProfiles(): Promise<ProfileInfo[]> {
         }
 
         const { profiles } = parseProfilesIni(response.content, profilesDir)
+        if ((await browserBg.runtime.getPlatformInfo()).os === "win") {
+            profiles.forEach(x => (x.path = x.path.replace("/", "\\")))
+        }
         await checkProfilesUsage(profiles)
 
         return profiles
@@ -214,9 +232,14 @@ export async function launchProfile(profileName: string): Promise<void> {
     }
 
     const firefox = await getFirefoxCmd()
-    const result = await Native.run(
-        `"${firefox}" -profile "${profilePath}" -no-remote`,
-    )
+    let cmd: string
+    if ((await browserBg.runtime.getPlatformInfo()).os === "win") {
+        cmd = `call "${firefox}" -profile "${profilePath}" -no-remote`
+    } else {
+        cmd = `"${firefox}" -profile "${profilePath}" -no-remote`
+    }
+
+    const result = await Native.run(cmd)
 
     if (result.code !== 0) {
         throw new Error(`Failed to launch Firefox: ${result.error}`)

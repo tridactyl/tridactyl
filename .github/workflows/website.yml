@@ -28,6 +28,17 @@ jobs:
           repository: 'tridactyl/site'
           submodules: 'recursive' # we shouldn't need this, public should be generated each time
           path: 'site'
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+
+      - name: Setup Hugo
+        uses: peaceiris/actions-hugo@v3
+        with:
+          hugo-version: 'latest'
+          extended: true
+
       - name: Build
         run: |
           cd tridactyl
@@ -35,10 +46,9 @@ jobs:
           yarn run build
           find . -iname "*.html" -exec sed 's@href="/static@href="/build/static@' -i '{}' ';' # ideally this url would be less gnarly
           cd ../site
-          sudo apt-get install -y hugo
           hugo
           cp -r ../tridactyl/build/ public
-      - uses: actions/upload-pages-artifact@v1
+      - uses: actions/upload-pages-artifact@v4
         with:
           path: 'site/public'
           retention-days: 2
@@ -55,4 +65,4 @@ jobs:
     steps:
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v2
+        uses: actions/deploy-pages@v4

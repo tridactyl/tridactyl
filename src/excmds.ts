@@ -99,6 +99,7 @@ import * as Proxy from "@src/lib/proxy"
 import * as arg from "@src/lib/arg_util"
 import * as R from "ramda"
 import * as treestyletab from "@src/interop/tst"
+import { uuidv4 } from "@src/lib/math"
 
 /**
  * This is used to drive some excmd handling in `composite`.
@@ -152,7 +153,7 @@ ALL_EXCMDS = {
 }
 // }
 
-import { mapstrToKeyseq, mozMapToMinimalKey, minimalKeyToMozMap } from "@src/lib/keyseq"
+import { mapstrToKeyseq, mozMapToMinimalKey, minimalKeyToMozMap, MinimalKey } from "@src/lib/keyseq"
 
 //#background_helper
 // {
@@ -270,12 +271,12 @@ export function fillinput(selector: string, ...content: string[]) {
 
     // CodeMirror support (I think only versions prior to CodeMirror 6)
     if (inputToFill?.parentNode?.parentElement?.className?.match(/CodeMirror/gi)) {
-        ; (inputToFill.parentNode.parentElement as any).wrappedJSObject.CodeMirror.setValue(content.join(" "))
+        ;(inputToFill.parentNode.parentElement as any).wrappedJSObject.CodeMirror.setValue(content.join(" "))
         return
     }
 
     if ("value" in inputToFill) {
-        ; (inputToFill as HTMLInputElement).value = content.join(" ")
+        ;(inputToFill as HTMLInputElement).value = content.join(" ")
     } else {
         inputToFill.textContent = content.join(" ")
     }
@@ -362,7 +363,7 @@ export async function editor() {
     window.addEventListener("beforeunload", beforeUnloadListener)
 
     let ans
-    const useHtml = await config.getAsync("editorusehtml") == "true"
+    const useHtml = (await config.getAsync("editorusehtml")) == "true"
     try {
         const editor = getEditor(elem, { preferHTML: useHtml })
         const text = await editor.getContent()
@@ -508,7 +509,9 @@ export async function unloadtheme(themename: string) {
  *
  * If THEMENAME is set to any other value except `--url`, Tridactyl will attempt to use its native binary (see [[native]]) in order to load a CSS file named THEMENAME from disk. The CSS file has to be in a directory named "themes" and this directory has to be in the same directory as your tridactylrc. If this fails, Tridactyl will attempt to load the theme from its internal storage.
  *
- * Lastly, themes can be loaded from URLs with `:colourscheme --url [url] [themename]`. They are stored internally - if you want to update the theme run the whole command again.
+ * Themes can be loaded from URLs with `:colourscheme --url [url] [themename]`. They are stored internally - if you want to update the theme run the whole command again. You can use `%` as a placeholder for the current URL.
+ *
+ * Themes can be used for specific sites with `:colourscheme --regex [url regex]`. As a shorthand to style our `:reader` mode, you can use `:colourscheme --module=reader`, for example, `:colourscheme --module=reader --url=https://raw.githubusercontent.com/tridactyl/tridactyl/refs/heads/master/contrib/themes/reader/newspaper.css newspaper`
  *
  * Note that the theme name should NOT contain any dot.
  *
@@ -528,22 +531,25 @@ export async function unloadtheme(themename: string) {
  */
 //#background
 export async function colourscheme(...args: string[]) {
-    const themename = args[0] == "--url" ? args[2] : args[0]
+    const option = arg.lib({ "--url": String, "--regex": String, "--module": String }, { argv: args, allowNegativePositional: true })
+    let url = option["--url"]
+    const regex = option["--module"] == "reader" ? "moz-extension://.*/static/reader\.html" : option["--regex"]
+    const themename = option._[0]
 
     // If this is a builtin theme, no need to bother with slow stuff
-    if (Metadata.staticThemes.includes(themename)) return set("theme", themename)
-    if (themename.search("\\.") >= 0) throw new Error(`Theme name should not contain any dots! (given name: ${themename}).`)
-    if (args[0] == "--url") {
-        if (themename === undefined) throw new Error(`You must provide a theme name!`)
-        let url = args[1]
-        if (url === "%") url = window.location.href // this is basically an easter egg
-        if (!(url.startsWith("http://") || url.startsWith("https://"))) url = "http://" + url
-        const css = await rc.fetchText(url)
-        set("customthemes." + themename, css)
-    } else {
-        await loadtheme(themename)
+    if (!Metadata.staticThemes.includes(themename)) {
+        if (themename.search("\\.") >= 0) throw new Error(`Theme name should not contain any dots! (given name: ${themename}).`)
+        if (url) {
+            if (themename === undefined) throw new Error(`You must provide a theme name!`)
+            if (url === "%") url = window.location.href // this is basically an easter egg
+            if (!(url.startsWith("http://") || url.startsWith("https://"))) url = "http://" + url
+            const css = await (await fetch(url)).text()
+            set("customthemes." + themename, css)
+        } else {
+            await loadtheme(themename)
+        }
     }
-    return set("theme", themename)
+    return regex ? seturl(regex, "theme", themename) : set("theme", themename)
 }
 
 /**
@@ -946,6 +952,8 @@ export async function restart() {
  * - A relative path, relative to the native messenger executable (e.g. ~/.local/share/tridactyl on linux).
  * If filename is not given, a download dialogue will be opened. If filename is a directory, the file will be saved inside of it, its name being inferred from the URL. If the directories mentioned in the path do not exist or if a file already exists at this path, the file will be kept in your downloads folder and an error message will be given.
  *
+ * All instances of `downloadfilenamemarker`, `%` by default, will be replaced with the original filename.
+ *
  * **NB**: if a non-default save location is chosen, Firefox's download manager will say the file is missing. It is not - it is where you asked it to be saved.
  *
  * Flags:
@@ -979,8 +987,8 @@ export async function saveas(...args: string[]) {
     }
 
     if (args.length > 0) {
-        const filename = await Messaging.message("download_background", "downloadUrlAs", window.location.href, file, overwrite, cleanup)
-        return fillcmdline_tmp(10000, `Download completed: ${filename} stored in ${file}`)
+        const downloadUrlAsResult = await Messaging.message("download_background", "downloadUrlAs", window.location.href, file, overwrite, cleanup)
+        return fillcmdline_tmp(10000, `Download completed: saved at ${downloadUrlAsResult.finalSaveAs}`)
     } else {
         return Messaging.message("download_background", "downloadUrl", window.location.href, true)
     }
@@ -1357,7 +1365,7 @@ window.addEventListener("HistoryState", addTabHistory)
 /** Blur (unfocus) the active element and enter normal mode */
 //#content
 export function unfocus() {
-    ; ((document.activeElement.shadowRoot ? DOM.deepestShadowRoot(document.activeElement.shadowRoot) : document).activeElement as HTMLInputElement).blur()
+    ;((document.activeElement.shadowRoot ? DOM.deepestShadowRoot(document.activeElement.shadowRoot) : document).activeElement as HTMLInputElement).blur()
     contentState.mode = "normal"
 }
 
@@ -1775,25 +1783,54 @@ export function home(all: "false" | "true" = "false") {
 
     On the ex command page, the "nmaps" list is a list of all the bindings for the command you're seeing and the "exaliases" list lists all its aliases.
 
-    If there's a conflict (e.g. you have a "go" binding that does something, a "go" excmd that does something else and a "go" setting that does a third thing), the binding is chosen first, then the setting, then the excmd. In such situations, if you want to let Tridactyl know you're looking for something specfic, you can specify the following flags as first arguments:
+    If there's a conflict (e.g. you have a "go" binding that does something, a "go" excmd that does something else and a "go" setting that does a third thing), the binding is chosen first, then the setting, then the excmd. In such situations, if you want to let Tridactyl know you're looking for something specfic, you can specify the following flags:
 
     `-a`: look for an alias
+
     `-b`: look for a binding
+
     `-e`: look for an ex command
+
     `-s`: look for a setting
+
+    `-B`: open the help page in a background tab
+
+    `-o`: open the help page in the current tab
+
+    `-t`: open the help page in a new tab
+
+    `-w`: open the help page in a new window
 
     If the keyword you gave to `:help` is actually an alias for a composite command (see [[composite]]) , you will be taken to the help section for the first command of the pipeline. You will be able to see the whole pipeline by hovering your mouse over the alias in the "exaliases" list. Unfortunately there currently is no way to display these HTML tooltips from the keyboard.
 
     e.g. `:help bind`
 */
 //#background
-export async function help(...helpItems: string[]) {
-    const flags = {
-        // -a: look for an alias
-        "-a": (settings, helpItem) => {
+export async function help(...args: string[]) {
+    const option = arg.lib(
+        {
+            "-a": Boolean,
+            "-b": Boolean,
+            "-e": Boolean,
+            "-s": Boolean,
+            "-B": Boolean,
+            "-o": Boolean,
+            "-t": Boolean,
+            "-w": Boolean,
+        },
+        { argv: args, allowNegativePositional: true },
+    )
+
+    const openInCurrentWindow = option["-o"] || ((await activeTab()).url.startsWith(browser.runtime.getURL("static/docs/")) && !(option["-B"] || option["-t"] || option["-w"]))
+    const subject = option._.join(" ")
+    const settings = await config.getAsync()
+    let url = ""
+
+    const strategies = {
+        alias: (helpItem: string) => {
             const aliases = settings.exaliases
             // As long as helpItem is an alias, try to resolve this alias to a real helpItem
-            const resolved = []
+            const resolved: string[] = []
             while (aliases[helpItem]) {
                 resolved.push(helpItem)
                 helpItem = aliases[helpItem].split(" ")
@@ -1806,8 +1843,7 @@ export async function help(...helpItems: string[]) {
             }
             return ""
         },
-        // -b: look for a binding
-        "-b": (settings, helpItem) => {
+        binding: (helpItem: string) => {
             for (const mode of modeMaps) {
                 const bindings = settings[mode]
                 // If 'helpItem' matches a binding, replace 'helpItem' with
@@ -1822,10 +1858,8 @@ export async function help(...helpItems: string[]) {
             }
             return ""
         },
-        // -e: look for an excmd
-        "-e": (settings, helpItem) => browser.runtime.getURL("static/docs/modules/_src_excmds_.html") + "#" + helpItem,
-        // -s: look for a setting
-        "-s": (settings, helpItem) => {
+        excmd: (helpItem: string) => browser.runtime.getURL("static/docs/modules/_src_excmds_.html") + "#" + helpItem,
+        setting: (helpItem: string) => {
             let subSettings = settings
             const settingNames = helpItem.split(".")
             let settingHelpAnchor = ""
@@ -1843,37 +1877,34 @@ export async function help(...helpItems: string[]) {
         },
     }
 
-    let flag = ""
-
-    if (helpItems.length > 0 && Object.keys(flags).includes(helpItems[0])) {
-        flag = helpItems[0]
-        helpItems.splice(0, 1)
-    }
-
-    const subject = helpItems.join(" ")
-    const settings = await config.getAsync()
-    let url = ""
     if (subject === "") {
         url = browser.runtime.getURL("static/docs/modules/_src_excmds_.html")
     } else {
         // If the user did specify what they wanted, specifically look for it
-        if (flag !== "") {
-            url = flags[flag](settings, subject)
-        }
+        if (option["-a"]) url = strategies.alias(subject)
+        else if (option["-b"]) url = strategies.binding(subject)
+        else if (option["-e"]) url = strategies.excmd(subject)
+        else if (option["-s"]) url = strategies.setting(subject)
 
         // Otherwise or if it couldn't be found, try all possible items
         if (url === "") {
-            url = ["-b", "-s", "-a", "-e"].reduce((acc, curFlag) => {
-                if (acc !== "") return acc
-                return flags[curFlag](settings, subject)
-            }, "")
+            const priority = [strategies.binding, strategies.setting, strategies.alias, strategies.excmd]
+            for (const strategy of priority) {
+                url = strategy(subject)
+                if (url !== "") break
+            }
         }
     }
 
     let done
-    if ((await activeTab()).url.startsWith(browser.runtime.getURL("static/docs/"))) {
+    if (openInCurrentWindow) {
         done = open(url)
+    } else if (option["-B"]) {
+        done = tabopen("-b", url)
+    } else if (option["-w"]) {
+        done = winopen(url)
     } else {
+        // option["-t"]
         done = tabopen(url)
     }
     return done.then(() => undefined)
@@ -2283,7 +2314,7 @@ export function urlmodify_js(mode: "-t" | "-r" | "-s" | "-q" | "-Q" | "-g" | "-t
  */
 //#content
 export async function geturlsforlinks(reltype = "rel", rel: string) {
-    const elems = document.querySelectorAll("link[" + reltype + "='" + rel + "']")
+    const elems = document.querySelectorAll("link[" + reltype + "^='" + rel + "']")
     if (elems) return Array.prototype.map.call(elems, x => x.href)
     return []
 }
@@ -2453,7 +2484,7 @@ input:not([disabled]):not([readonly]):-moz-any(
 textarea:not([disabled]):not([readonly]),
 object,
 [role='application'],
-[contenteditable='true'][role='textbox']
+[contenteditable][role='textbox']:not([contenteditable='false'])
 `
 
 /** Password field selectors
@@ -2481,7 +2512,7 @@ export function focusinput(nth: number | string) {
     let fallbackToNumeric = true
 
     // nth = "-l" -> use the last used input for this page
-    if (nth === "-l") {
+    if (nth === "-l" || !nth) {
         // try to recover the last used input stored as a
         // DOM node, which should be exactly the one used before (or null)
         if (DOM.getLastUsedInput()) {
@@ -2599,8 +2630,8 @@ async function tabIndexSetActive(index: number | string) {
     If increment is specified, move that many tabs forwards.
  */
 //#background
-export async function tabnext(increment = 1) {
-    return tabprev(-increment)
+export async function tabnext(...args: string[]) {
+    return tabprev(...args, "--reverse")
 }
 
 /** Switch to the next tab, wrapping round.
@@ -2626,10 +2657,29 @@ export async function tabnext_gt(index?: number) {
     If increment is specified, move that many tabs backwards.
  */
 //#background
-export async function tabprev(increment = 1) {
+export async function tabprev(...args: string[]) {
+    const argOpt = arg.lib(
+        {
+            "--nowrap": Boolean,
+            "--noisy": Boolean,
+            "--reverse": Boolean,
+        },
+        {
+            argv: args,
+            permissive: true,
+            splitUnknownArguments: false,
+        },
+    )
+    const option = {}
+    option["nowrap"] = Boolean(argOpt["--nowrap"])
+    option["noisy"] = Boolean(argOpt["--noisy"])
+    option["reverse"] = Boolean(argOpt["--reverse"])
+    const increment = (parseInt(argOpt._.join(" "), 10) || 1) * (option["reverse"] ? -1 : 1)
     return browser.tabs.query({ currentWindow: true, hidden: false }).then(tabs => {
         tabs.sort((t1, t2) => t1.index - t2.index)
-        const prevTab = (tabs.findIndex(t => t.active) - increment + tabs.length) % tabs.length
+        const curTab = tabs.findIndex(t => t.active)
+        const prevTab = !option["nowrap"] ? (curTab - increment + tabs.length) % tabs.length : Math.min(Math.max(curTab - increment, 0), tabs.length - 1)
+        // TODO: add fillcmdline_tmp with details here for --noisy (expect it to show on the wrong tab unless you await it correctly)
         return browser.tabs.update(tabs[prevTab].id, { active: true })
     })
 }
@@ -2963,7 +3013,12 @@ async function tabFromIndex(index?: number | "%" | "#" | string): Promise<browse
 
 /** Close all other tabs in this window */
 //#background
-export async function tabonly() {
+export async function tabonly(...args: string[]) {
+    if (args.length > 0) {
+        fillcmdline_tmp(3000, "# tabonly doesn't accept arguments, run without arguments to close all background tabs in this window")
+        return
+    }
+
     const tabs = await browser.tabs.query({
         pinned: false,
         active: false,
@@ -2990,7 +3045,14 @@ export async function tabduplicate(index?: number) {
 */
 //#background
 export async function tabdetach(index?: number) {
-    return browser.windows.create({ tabId: await idFromIndex(index) })
+    // Workaround for detached tabs not getting focus (issue #5273)
+    const tabId = await idFromIndex(index)
+    const currentTab = await browser.tabs.get(tabId)
+    const tempTab = (await browser.windows.create({ incognito: currentTab.incognito })).tabs[0]
+    await browser.tabs.move(tabId, { index: -1, windowId: tempTab.windowId })
+    browser.tabs.remove(tempTab.id)
+    browser.tabs.update(tabId, { active: true })
+    return browser.windows.get(tempTab.windowId)
 }
 
 /** Toggle fullscreen state
@@ -3097,16 +3159,16 @@ export async function undo(item = "recent"): Promise<number> {
         item === "recent"
             ? s => s.window || (s.tab && s.tab.windowId === current_win_id)
             : item === "tab"
-                ? s => s.tab
-                : item === "tab_strict"
-                    ? s => s.tab && s.tab.windowId === current_win_id
-                    : item === "window"
-                        ? s => s.window
-                        : !isNaN(parseInt(item, 10))
-                            ? s => (s.tab || s.window).sessionId === item
-                            : () => {
-                                throw new Error(`[undo] Invalid argument: ${item}. Must be one of "recent, "tab", "tab_strict", "window" or a sessionId (by selecting a session using the undo completion).`)
-                            } // this won't throw an error if there isn't anything in the session list, but I don't think that matters
+              ? s => s.tab
+              : item === "tab_strict"
+                ? s => s.tab && s.tab.windowId === current_win_id
+                : item === "window"
+                  ? s => s.window
+                  : !isNaN(parseInt(item, 10))
+                    ? s => (s.tab || s.window).sessionId === item
+                    : () => {
+                          throw new Error(`[undo] Invalid argument: ${item}. Must be one of "recent, "tab", "tab_strict", "window" or a sessionId (by selecting a session using the undo completion).`)
+                      } // this won't throw an error if there isn't anything in the session list, but I don't think that matters
     const session = sessions.find(predicate)
 
     if (session) {
@@ -4254,8 +4316,8 @@ export async function tab_helper(interactive: boolean, anyWindow: boolean, ...ke
 
         const results = new Map()
         try {
-            ; (await browser.tabs.query({ ...defaultQuery, ...{ url: id } })).forEach(tab => results.set(tab.id, tab))
-        } catch (e) { }
+            ;(await browser.tabs.query({ ...defaultQuery, ...{ url: id } })).forEach(tab => results.set(tab.id, tab))
+        } catch (e) {}
         if (results.size < 2) (await browser.tabs.query({ ...defaultQuery, ...{ title: id.replace("*", "\\*") } })).forEach(tab => results.set(tab.id, tab))
         if (results.size < 2) (await browser.tabs.query(defaultQuery)).filter(tab => tab.url.includes(id)).forEach(tab => results.set(tab.id, tab))
         if (results.size < 2) (await browser.tabs.query({ ...defaultQuery, ...{ title: "*" + id + "*" } })).forEach(tab => results.set(tab.id, tab))
@@ -4667,29 +4729,36 @@ export function getAutocmdEvents() {
         - DocEnd: When a webpage unloaded/closed or backward/forward in history. Exactly, the [pagehide event](https://developer.mozilla.org/en-US/docs/Web/API/Window/pagehide_event).
         - TabEnter: When a tab get focus.
         - TabLeft: When a tab lost focus or closed.
+
+        - A supported webRequest event (AuthRequired, BeforeRedirect, BeforeRequest, BeforeSendHeaders, Completed, ErrorOccured, HeadersReceived, ResponseStarted and SendHeaders): the corresponding [WebExtension webRequest event](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/webRequest#Events)
+
+        - The 'HistoryState' event is triggered when a page uses the web history API to change the page location / URI. It should be used in preference to 'UriChange' below since it will use almost no resources. The 'UriChange' event may work on websites where 'HistoryState' does not.
+        - The 'HistoryPushState' is triggered only when a page calls 'history.pushState' to change URI, and 'HistoryReplace' is for 'history.replace'. By the way, the HistoryPopState is not implemented.
+        - The 'UriChange' event is for "single page applications" which change their URIs without triggering DocStart or DocLoad events. It uses a timer to check whether the URI has changed, which has a small impact on battery life on pages matching the `url` parameter. We suggest using it sparingly.
  *
- * The 'HistoryState' event is triggered when a page uses the web history API to change the page location / URI. It should be used in preference to 'UriChange' below since it will use almost no resources. The 'UriChange' event may work on websites where 'HistoryState' does not.
+ * @param url type depends on the event
  *
- * The 'HistoryPushState' is triggered only when a page call 'history.pushState' to change URI, and 'HistoryReplace' is for 'history.replace'. By the way, the HistoryPopState is not implemented.
+        - For most events (DocStart, DocEnd, TabEnter, TabLeft, ...): a JavaScript regex (e.g. `www\.amazon\.co.*`)
+            - We just use [URL.search](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/search)
+        - For TriStart: regular expression that matches the hostname of the computer the autocmd should be run on. This requires the native messenger to be installed, except for the ".*" regular expression which will always be triggered, even without the native messenger.
+        - For webRequest events (AuthRequired, BeforeRedirect, BeforeRequest, BeforeSendHeaders, Completed, ErrorOccured, HeadersReceived, ResponseStarted and SendHeaders): a [URL match pattern](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/Match_patterns)
  *
- * The 'UriChange' event is for "single page applications" which change their URIs without triggering DocStart or DocLoad events. It uses a timer to check whether the URI has changed, which has a small impact on battery life on pages matching the `url` parameter. We suggest using it sparingly.
- *
- * @param url For DocStart, DocEnd, TabEnter, and TabLeft: a JavaScript regex (e.g. `www\.amazon\.co.*`)
- *
- * We just use [URL.search](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/search).
- *
- * For TriStart: A regular expression that matches the hostname of the computer
- * the autocmd should be run on. This requires the native messenger to be
- * installed, except for the ".*" regular expression which will always be
- * triggered, even without the native messenger.
- *
- * For AuthRequired, BeforeRedirect, BeforeRequest, BeforeSendHeaders, Completed, ErrorOccured, HeadersReceived, ResponseStarted and SendHeaders, a [URL match pattern](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/Match_patterns)
- *
- * @param excmd The excmd to run (use [[composite]] to run multiple commands), __except__ for AuthRequired, BeforeRedirect, BeforeRequest, BeforeSendHeaders, Completed, ErrorOccured, HeadersReceived, ResponseStarted and SendHeaders, events where it must be an inline JavaScript function which maps [details objects specific to the event](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/webRequest#Events) to [blocking responses](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/webRequest/BlockingResponse). This JavaScript function will run in the background context.
- *
- * For example: `autocmd BeforeRequest https://www.bbc.co.uk/* () => ({redirectUrl: "https://old.reddit.com"})`. Note the brackets which ensure JavaScript returns a blocking response object rather than interpreting it as a block statement.
- *
- * For DocStart, DocLoad, DocEnd, TabEnter, TabLeft, FullscreenEnter, FullscreenLeft, FullscreenChange and UriChange: magic variables are available which are replaced with the relevant string at runtime:
+ * @param command type depends on the event
+
+        - For most events (DocStart, DocEnd, TabEnter, TabLeft, ...): the excmd to run (use [[composite]] to run multiple commands).
+            - Example for zooming in more on a website:
+              ```
+              autocmd DocStart .*example\.com.* zoom 150 false TRI_FIRED_MOZ_TABID
+              ```
+
+        - For webRequest events (AuthRequired, BeforeRedirect, BeforeRequest, BeforeSendHeaders, Completed, ErrorOccured, HeadersReceived, ResponseStarted and SendHeaders): the text of a javascript function that should accept a [details objects specific to the event](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/webRequest#Events) and return a [blocking response](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/webRequest/BlockingResponse). This JavaScript function will run in the background context.
+            - Example for redirecting from new to old reddit:
+              ```
+              autocmd BeforeRequest https://www.reddit.com/r/* (details) => ({redirectUrl: details.url.replace(/^https:\/\/www\./, "https://old.")})
+              ```
+
+ * For non-webRequest events, magic variables are available which are replaced with the relevant string at runtime:
+
         - `TRI_FIRED_MOZ_TABID`: Provides Mozilla's `tabID` associated with the fired event.
         - `TRI_FIRED_TRI_TABINDEX`: Provides tridactyls internal tab index associated with the fired event.
         - `TRI_FIRED_MOZ_WINID`: Provides Mozilla's `windowId` associated with the fired event.
@@ -4707,17 +4776,19 @@ export function getAutocmdEvents() {
         - `TRI_FIRED_PINNED`: Whether the tab is pinned.
         - `TRI_FIRED_TITLE`: The title of the tab.
         - `TRI_FIRED_URL`: The URL of the document that the tab is displaying.
- *
- * For example: `autocmd DocStart .*example\.com.* zoom 150 false TRI_FIRED_MOZ_TABID`.
- *
+
  * For debugging, use `:set logging.autocmds debug` and check the Firefox web console. `WebRequest` events have no logging.
  *
  */
 //#background
-export function autocmd(event: string, url: string, ...excmd: string[]) {
+export async function autocmd(event: string, url: string, ...excmd: string[]) {
     // rudimentary run time type checking
-    // TODO: Decide on autocmd event names
-    if (!getAutocmdEvents().includes(event)) throw new Error(event + " is not a supported event.")
+    if (!getAutocmdEvents().includes(event)) {
+        throw new Error(event + " is not a supported event.")
+    }
+    if (webrequests.requestEvents.includes(event)) {
+        await webrequests.registerWebRequestAutocmd(event, url, excmd.join(" "))
+    }
     return config.set("autocmds", event, url, excmd.join(" "))
 }
 
@@ -5317,142 +5388,142 @@ export async function hint(...args: string[]): Promise<any> {
         const action = config.callback
             ? eval(config.callback)
             : (elem: any) => {
-                if (config.pipeAttribute !== null) {
-                    // We have an attribute to pipe
-                    return elem[config.pipeAttribute]
-                }
+                  if (config.pipeAttribute !== null) {
+                      // We have an attribute to pipe
+                      return elem[config.pipeAttribute]
+                  }
 
-                if (config.excmd) {
-                    // We have an excmd to run. By spec, we append the element's href
-                    if (elem.href) {
-                        // /!\ RACY RACY RACY!
-                        run_exstr(config.excmd + " " + elem.href)
-                        return elem
-                    }
+                  if (config.excmd) {
+                      // We have an excmd to run. By spec, we append the element's href
+                      if (elem.href) {
+                          // /!\ RACY RACY RACY!
+                          run_exstr(config.excmd + " " + elem.href)
+                          return elem
+                      }
 
-                    // Otherwise, no href so nothing to do
-                    return
-                }
+                      // Otherwise, no href so nothing to do
+                      return
+                  }
 
-                switch (config.openMode) {
-                    case OpenMode.Highlight:
-                        const r = document.createRange()
-                        r.setStart(elem, 0)
-                        r.setEnd(elem, 1)
-                        const s = document.getSelection()
-                        s.addRange(r)
-                        return elem
+                  switch (config.openMode) {
+                      case OpenMode.Highlight:
+                          const r = document.createRange()
+                          r.setStart(elem, 0)
+                          r.setEnd(elem, 1)
+                          const s = document.getSelection()
+                          s.addRange(r)
+                          return elem
 
-                    case OpenMode.Images:
-                    case OpenMode.ImagesTab:
-                        const src = elem.getAttribute("src")
-                        if (src) {
-                            if (config.openMode === OpenMode.ImagesTab) {
-                                // TODO: await? Other hintTabOpen calls don't seem to use one
-                                hintTabOpen(new URL(src, window.location.href).href)
-                            } else {
-                                open(new URL(src, window.location.href).href)
-                            }
-                            return elem
-                        }
+                      case OpenMode.Images:
+                      case OpenMode.ImagesTab:
+                          const src = elem.getAttribute("src")
+                          if (src) {
+                              if (config.openMode === OpenMode.ImagesTab) {
+                                  // TODO: await? Other hintTabOpen calls don't seem to use one
+                                  hintTabOpen(new URL(src, window.location.href).href)
+                              } else {
+                                  open(new URL(src, window.location.href).href)
+                              }
+                              return elem
+                          }
 
-                        return
+                          return
 
-                    case OpenMode.Kill:
-                        elem.remove()
-                        return elem
+                      case OpenMode.Kill:
+                          elem.remove()
+                          return elem
 
-                    case OpenMode.KillTridactyl:
-                        elem.classList.add("TridactylKilledElem")
-                        KILL_STACK.push(elem)
-                        return elem
+                      case OpenMode.KillTridactyl:
+                          elem.classList.add("TridactylKilledElem")
+                          KILL_STACK.push(elem)
+                          return elem
 
-                    case OpenMode.SaveResource:
-                    case OpenMode.SaveImage:
-                    case OpenMode.SaveAsResource:
-                    case OpenMode.SaveAsImage:
-                        const saveAs = config.openMode === OpenMode.SaveAsResource || config.openMode === OpenMode.SaveAsImage
-                        const attr = config.openMode === OpenMode.SaveImage || config.openMode === OpenMode.SaveAsImage ? "src" : "href"
-                        Messaging.message("download_background", "downloadUrl", new URL(elem[attr], window.location.href).href, saveAs)
-                        return elem
+                      case OpenMode.SaveResource:
+                      case OpenMode.SaveImage:
+                      case OpenMode.SaveAsResource:
+                      case OpenMode.SaveAsImage:
+                          const saveAs = config.openMode === OpenMode.SaveAsResource || config.openMode === OpenMode.SaveAsImage
+                          const attr = config.openMode === OpenMode.SaveImage || config.openMode === OpenMode.SaveAsImage ? "src" : "href"
+                          Messaging.message("download_background", "downloadUrl", new URL(elem[attr], window.location.href).href, saveAs)
+                          return elem
 
-                    case OpenMode.Scroll:
-                        elem.scrollIntoView(true)
-                        return elem
+                      case OpenMode.Scroll:
+                          elem.scrollIntoView(true)
+                          return elem
 
-                    case OpenMode.ScrollFocus:
-                        let tabindexAdded = false
-                        // img can only be focused when they have the tabindex attribute
-                        if (elem instanceof HTMLImageElement && !elem.getAttribute("tabindex")) {
-                            elem.setAttribute("tabindex", "-1")
-                            tabindexAdded = true
-                        }
-                        elem.focus()
-                        scrolling.setCurrentFocus(elem)
-                        // img doesn't get unfocused when its tabindex is removed, so no need to keep it around
-                        if (tabindexAdded) elem.removeAttribute("tabindex")
-                        return elem
+                      case OpenMode.ScrollFocus:
+                          let tabindexAdded = false
+                          // img can only be focused when they have the tabindex attribute
+                          if (elem instanceof HTMLImageElement && !elem.getAttribute("tabindex")) {
+                              elem.setAttribute("tabindex", "-1")
+                              tabindexAdded = true
+                          }
+                          elem.focus()
+                          scrolling.setCurrentFocus(elem)
+                          // img doesn't get unfocused when its tabindex is removed, so no need to keep it around
+                          if (tabindexAdded) elem.removeAttribute("tabindex")
+                          return elem
 
-                    case OpenMode.TTSRead:
-                        TTS.readText(elem.textContent)
-                        return elem
+                      case OpenMode.TTSRead:
+                          TTS.readText(elem.textContent)
+                          return elem
 
-                    case OpenMode.YankAlt:
-                        // Yank link alt text
-                        // ???: Neither anchors nor links posses an "alt" attribute. I'm assuming that the person who wrote this code also wanted to select the alt text of images
-                        return elem.title ? elem.title : elem.alt
+                      case OpenMode.YankAlt:
+                          // Yank link alt text
+                          // ???: Neither anchors nor links posses an "alt" attribute. I'm assuming that the person who wrote this code also wanted to select the alt text of images
+                          return elem.title ? elem.title : elem.alt
 
-                    case OpenMode.YankAnchor:
-                        const anchorUrl = new URL(window.location.href)
-                        // ???: What purpose does selecting elements with a name attribute have? Selecting values that only have meaning in forms doesn't seem very useful.
-                        // https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes
-                        anchorUrl.hash = elem.id || elem.name
-                        return anchorUrl.href
+                      case OpenMode.YankAnchor:
+                          const anchorUrl = new URL(window.location.href)
+                          // ???: What purpose does selecting elements with a name attribute have? Selecting values that only have meaning in forms doesn't seem very useful.
+                          // https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes
+                          anchorUrl.hash = elem.id || elem.name
+                          return anchorUrl.href
 
-                    case OpenMode.YankLink:
-                        if (elem.href) {
-                            return elem.href
-                        }
+                      case OpenMode.YankLink:
+                          if (elem.href) {
+                              return elem.href
+                          }
 
-                        return
+                          return
 
-                    case OpenMode.YankText:
-                        return elem.textContent
-                }
+                      case OpenMode.YankText:
+                          return elem.textContent
+                  }
 
-                if (elem.href) {
-                    elem.focus()
+                  if (elem.href) {
+                      elem.focus()
 
-                    switch (config.openMode) {
-                        case OpenMode.Default:
-                            DOM.simulateClick(elem)
-                            break
-                        case OpenMode.Tab:
-                            hintTabOpen(elem.href, true).catch(() => DOM.simulateClick(elem, DOM.TabTarget.NewTab))
-                            break
-                        case OpenMode.BackgroundTab:
-                            hintTabOpen(elem.href, false).catch(() => DOM.simulateClick(elem, DOM.TabTarget.NewBackgroundTab))
-                            break
-                        case OpenMode.Window:
-                            openInNewWindow({ url: new URL(elem.href, window.location.href).href })
-                            break
-                        case OpenMode.WindowPrivate:
-                            openInNewWindow({ url: elem.href, incognito: true })
-                            break
-                    }
-                } else {
-                    if (config.openMode === OpenMode.WindowPrivate) {
-                        // We want a private window, but the element doesn't have an href, so
-                        // we avoid opening the target by accident
-                        return
-                    } else {
-                        elem.focus()
-                        DOM.simulateClick(elem)
-                    }
-                }
+                      switch (config.openMode) {
+                          case OpenMode.Default:
+                              DOM.simulateClick(elem)
+                              break
+                          case OpenMode.Tab:
+                              hintTabOpen(elem.href, true).catch(() => DOM.simulateClick(elem, DOM.TabTarget.NewTab))
+                              break
+                          case OpenMode.BackgroundTab:
+                              hintTabOpen(elem.href, false).catch(() => DOM.simulateClick(elem, DOM.TabTarget.NewBackgroundTab))
+                              break
+                          case OpenMode.Window:
+                              openInNewWindow({ url: new URL(elem.href, window.location.href).href })
+                              break
+                          case OpenMode.WindowPrivate:
+                              openInNewWindow({ url: elem.href, incognito: true })
+                              break
+                      }
+                  } else {
+                      if (config.openMode === OpenMode.WindowPrivate) {
+                          // We want a private window, but the element doesn't have an href, so
+                          // we avoid opening the target by accident
+                          return
+                      } else {
+                          elem.focus()
+                          DOM.simulateClick(elem)
+                      }
+                  }
 
-                return elem
-            }
+                  return elem
+              }
 
         if (config.immediate) {
             // Immediate mode, perform the target action on all matching nodes
@@ -5772,12 +5843,12 @@ export async function bmark(url?: string, ...titlearr: string[]) {
         url === undefined
             ? (await activeTab()).url
             : (_ => {
-                try {
-                    return new URL(url).href
-                } catch (e) {
-                    return new URL("http://" + url).href
-                }
-            })()
+                  try {
+                      return new URL(url).href
+                  } catch (e) {
+                      return new URL("http://" + url).href
+                  }
+              })()
     let title = titlearr.join(" ")
     // if titlearr is given and we have duplicates, we probably want to give an error here.
     const dupbmarks = await browser.bookmarks.search({ url })
@@ -5884,13 +5955,15 @@ async function js_helper(str: string[]) {
         break
     }
 
+    const strJoin = str.join(" ")
     if (separator !== null) {
+        const pos = strJoin.indexOf(separator)
         // user may or may not use JS_ARGS
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        JS_ARGS = str.join(" ").split(separator)[1].split(" ")
-        jsContent = str.join(" ").split(separator)[0]
+        JS_ARGS = strJoin.slice(pos + 1).split(" ")
+        jsContent = strJoin.slice(0, pos)
     } else {
-        jsContent = str.join(" ")
+        jsContent = strJoin
     }
 
     if (doSource) {
@@ -6158,19 +6231,47 @@ export async function updatecheck(source: "manual" | "auto_polite" | "auto_impol
 }
 
 /**
- * Feed some keys to Tridactyl's parser. E.g. `keyfeed jkjkjkjkjkjkjkjkjkjkjkjkjkjkjkjkjkjkjkjkjkjjkj`.
+ * Feed some keys to Tridactyl's parser, or the page. E.g. `keyfeed jkjkjkjkjkjkjkjkjkjkjkjkjkjkjkjkjkjkjkjkjkjjkj`.
+ *
+ * Or `keyfeed --page --type=keydown <ArrowDown>`
+ *
+ * People commonly want to use this to navigate dropdown menus with ctrl+n/p. You can do that but the process is slightly involved:
+ *
+ * 1. Go to `about:keyboard` and clear or rebind Ctrl+n from "New Window"
+ * 2. `:bind <C-n> keyfeed --page <ArrowDown>`
+ * 3. `:bind <C-n> --mode=insert keyfeed --page <ArrowDown>`
+ * 4. `:bind <C-p> keyfeed --page <ArrowUp>`
+ * 5. `:bind <C-p> --mode=insert keyfeed --page <ArrowUp>`
  *
  * NB:
  *
  * - Does _not_ function like Vim's noremap - `bind j keyfeed j` will cause an infinite loop.
  * - Doesn't work in exmode - i.e. `keyfeed t<CR>` won't work.
+ * - Some pages may check for spoofed keys like these and block them.
  *
  */
 //#content
-export async function keyfeed(mapstr: string) {
+export async function keyfeed(...args: string[]) {
+    const option = arg.lib({ "--page": Boolean, "--type": String }, { argv: args })
+    const usePage = option["--page"]
+    const eventType = option["--type"] || "keydown"
+    const mapstr = option._.join(" ")
     const keyseq = mapstrToKeyseq(mapstr)
+
+    const spoofKey = (k: MinimalKey) => {
+        const event = new KeyboardEvent(eventType, {
+            ...k,
+            bubbles: true,
+            cancelable: true,
+        })
+        const focus = document.activeElement
+        if (focus) {
+            focus.dispatchEvent(event)
+        }
+    }
+
     for (const k of keyseq) {
-        KEY_MUNCHER.next(k)
+        usePage ? spoofKey(k) : KEY_MUNCHER.next(k)
         await sleep(10)
     }
 }
@@ -6216,7 +6317,17 @@ export async function readerurl() {
     document.querySelectorAll(".TridactylStatusIndicator").forEach(ind => ind.parentNode.removeChild(ind))
     const article = new Readability(document.cloneNode(true) as any as Document).parse()
     article["link"] = window.location.href
-    return browser.runtime.getURL("static/reader.html#" + btoa(encodeURIComponent(JSON.stringify(article))))
+    article["favicon"] = (await ownTab()).favIconUrl
+    let hash = ""
+    const article_encoded = btoa(encodeURIComponent(JSON.stringify(article)))
+    if (!(await browserBg.windows.getCurrent()).incognito) {
+        const article_uuid = uuidv4()
+        await set("reader_articles." + article_uuid, article_encoded)
+        hash = article_uuid
+    } else {
+        hash = article_encoded
+    }
+    return browser.runtime.getURL("static/reader.html#" + hash)
 }
 
 /**
@@ -6365,4 +6476,27 @@ export async function profilerename(oldName: string, newName: string) {
     }
 }
 
+/**
+ * Disable all hilighting of hintable elements when hinting.
+ * Only hint flags will remain, Vimium style.
+ */
+export function hintstylesnohighlights() {
+    ;["fg", "bg", "outline", "overlay", "overlayoutline"].forEach(type => config.set("hintstyles", type, "none"))
+}
+
+/**
+ * Add highlights over the page when hinting and leave original elements unchanged.
+ */
+export function hintstylesoverlays() {
+    ;["fg", "bg", "outline"].forEach(type => config.set("hintstyles", type, "none"))
+    ;["overlay", "overlayoutline"].forEach(type => config.set("hintstyles", type, "all"))
+}
+
+/**
+ * Style hintable elements directly when hinting.
+ */
+export function hintstylesdirect() {
+    ;["fg", "bg", "outline"].forEach(type => config.set("hintstyles", type, "all"))
+    ;["overlay", "overlayoutline"].forEach(type => config.set("hintstyles", type, "none"))
+}
 // }}}

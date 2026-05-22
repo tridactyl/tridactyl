@@ -62,7 +62,6 @@
 }
 
 :root #completions table {
-    font-weight: 200;
     table-layout: fixed;
     padding: 1rem;
     padding-top: 0;
@@ -124,6 +123,5 @@
     position: fixed !important;
     bottom: 10px !important;
     right: 10px !important;
-    font-weight: 200 !important;
     padding: 5px !important;
 }

@@ -53,14 +53,29 @@ export async function getDriver() {
     await driver.installAddon(extensionPath, true)
     // Wait until addon is loaded and :tutor is displayed
     await iframeLoaded(driver)
-    const handles = await driver.getAllWindowHandles()
-    // And wait a bit more otherwise Tridactyl won't be happy
+    // Wait for multiple window handles to be available (extension may open in new tab)
+    await driver.wait(async () => {
+        const handles = await driver.getAllWindowHandles()
+        return handles.length >= 2
+    }, 10000)
+    // Give the extension a bit more time to initialize
     await driver.sleep(500)
+    let handles = await driver.getAllWindowHandles()
+    // Handle edge case where extension loads in same tab (some headless configurations)
+    if (handles.length === 1) {
+        await driver.wait(async () => {
+            const newHandles = await driver.getAllWindowHandles()
+            return newHandles.length >= 2
+        }, 10000)
+        handles = await driver.getAllWindowHandles()
+    }
     // Kill the original tab.
     await driver.switchTo().window(handles[0])
     await driver.close()
-    // Switch back to the good tab.
+    // Switch to the new tab (extension opens in new tab)
     await driver.switchTo().window(handles[1])
+    // Wait for Tridactyl iframe to appear - ensures extension is fully loaded
+    await driver.wait(Until.elementLocated(By.id("cmdline_iframe")), 10000)
     // Now return the window that we want to use.
     return driver
 }

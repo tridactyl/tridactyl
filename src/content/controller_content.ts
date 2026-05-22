@@ -219,7 +219,11 @@ function* ParserController() {
 
                 if (response.exstr) {
                     exstr = response.exstr
-                    if (exstr === "fillcmdline" || exstr === "fillcmdline_notrail") {
+                    if (
+                        exstr.startsWith("fillcmdline") &&
+                        !exstr.startsWith("fillcmdline_tmp") &&
+                        !exstr.startsWith("fillcmdline_nofocus")
+                    ) {
                         logger.debug("Starting buffering of page keys")
                         bufferingPageKeysBeginTime = performance.now()
                         mustBufferPageKeysForClInput = true

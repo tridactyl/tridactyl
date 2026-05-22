@@ -68,3 +68,15 @@ export function bucketize(
     // Return just the counts in each bucket
     return result
 }
+
+// thanks daniel metzner https://stackoverflow.com/questions/59412625/generate-random-uuid-javascript#tab-top
+export function uuidv4(): string {
+    return "10000000-1000-4000-8000-100000000000".replace(/[018]/g, (c: any) =>
+        // eslint-disable-next-line no-bitwise
+        (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16)
+    )
+}
+
+export function isuuidv4(uuid: string) {
+    return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/.test(uuid)
+}

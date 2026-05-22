@@ -35,3 +35,25 @@ function getSelectionDirection(selection: Selection): boolean {
     range.setEnd(focusNode, selection.focusOffset)
     return !range.collapsed
 }
+
+export function extendByCharacter(
+    selection: Selection,
+    direction: "forward" | "backward" | "left" | "right",
+): void {
+    const oldFocusNode = selection.focusNode
+    const oldFocusOffset = selection.focusOffset
+    const oldAnchorNode = selection.anchorNode
+    const oldAnchorOffset = selection.anchorOffset
+    if (!oldFocusNode) return
+
+    selection.modify("extend", direction, "character")
+    if (!selection.isCollapsed) return
+    selection.setBaseAndExtent(
+        oldAnchorNode,
+        oldAnchorOffset,
+        oldFocusNode,
+        oldFocusOffset,
+    )
+    reverseSelection(selection)
+    selection.modify("extend", direction, "character")
+}
