@@ -2035,6 +2035,8 @@ export function get(target_typed?: keyof default_config, ...target: string[]) {
     // Merge results if there's a default value and it's not an Array or primitive.
     if (typeof defult === "object") {
         return removeNull(mergeDeep(mergeDeep(defult, user), site))
+    } else if (defult === undefined && user && typeof user === "object") {
+        return removeNull(mergeDeep(user, site))
     } else {
         if (site !== undefined) {
             return removeNull(site)
