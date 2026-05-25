@@ -46,6 +46,11 @@ function PrintableKey(k) {
     return result
 }
 
+function isKeyboardEvent(ke: any): ke is KeyboardEvent {
+    const win = ke.view
+    return win && ke instanceof win.KeyboardEvent
+}
+
 /**
  * KeyCanceller: keep track of keys that have been cancelled in the keydown
  * handler (which takes care of dispatching ex commands) and also cancel them
@@ -90,10 +95,9 @@ class KeyCanceller {
                 ke.composed === ke2.composed &&
                 ke.ctrlKey === ke2.ctrlKey &&
                 ke.metaKey === ke2.metaKey &&
-                ke.shiftKey === ke2.shiftKey &&
-                ke.target === ke2.target,
+                ke.shiftKey === ke2.shiftKey
         )
-        if (index >= 0 && ke instanceof KeyboardEvent) {
+        if (index >= 0 && isKeyboardEvent(ke)) {
             ke.preventDefault()
             ke.stopImmediatePropagation()
             kes.splice(index, 1)
@@ -154,7 +158,7 @@ function* ParserController() {
                 let shadowRoot = null
                 let textEditable = false
 
-                if (keyevent instanceof KeyboardEvent) {
+                if (isKeyboardEvent(keyevent)) {
                     shadowRoot = deepestShadowRoot(
                         (keyevent.target as Element).shadowRoot,
                     )
@@ -213,7 +217,7 @@ function* ParserController() {
                     response,
                 )
 
-                if (response.isMatch && keyevent instanceof KeyboardEvent) {
+                if (response.isMatch && isKeyboardEvent(keyevent)) {
                     canceller.push(keyevent)
                 }
 
