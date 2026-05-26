@@ -92,6 +92,31 @@ browser.proxy.onRequest.addListener(Proxy.onRequestListener, {
 })
 
 /**
+ * Let users disable Tridactyl by clicking the browserAction button
+ */
+browser.browserAction.onClicked.addListener(() => {
+    const toIgnore = config.get("superignore") == "true" ? "false" : "true"
+    const iconDetails = toIgnore == "true" ?
+        { path : {
+            "64": "static/logo/Tridactyl_red_64px.png",
+            "100": "static/logo/Tridactyl_red_100px.png",
+            "150": "static/logo/Tridactyl_red_150px.png",
+        }} :
+        { path: {
+            "64": "static/logo/Tridactyl_64px.png",
+            "100": "static/logo/Tridactyl_100px.png",
+            "150": "static/logo/Tridactyl_150px.png",
+        }}
+    if (toIgnore == "true") {
+        excmds_background.fillcmdline_notrail("Tridactyl disabled, refresh pages to take effect")
+    } else {
+        // TODO: work out how to send a notification even while Tridactyl is disabled
+    }
+    browser.browserAction.setIcon(iconDetails)
+    config.set("superignore", toIgnore)
+})
+
+/**
  * Declare Tab Event Listeners
  */
 browser.tabs.onRemoved.addListener(tabId => {
