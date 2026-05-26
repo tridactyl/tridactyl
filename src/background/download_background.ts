@@ -102,14 +102,23 @@ export async function downloadUrlAs(
     }
 
     let fileName = getDownloadFilenameForUrl(urlToSave)
-    const regex_matcher = new RegExp("[" + config.get("downloadforbiddenchars") + "]", "g")
-    fileName = fileName.replace(regex_matcher, config.get("downloadforbiddenreplacement"))
+    const regex_matcher = new RegExp(
+        "[" + config.get("downloadforbiddenchars") + "]",
+        "g",
+    )
+    fileName = fileName.replace(
+        regex_matcher,
+        config.get("downloadforbiddenreplacement"),
+    )
 
-    config.get("downloadforbiddennames").split(",").forEach((item) => {
-        if (item.trim() === fileName) {
-            fileName = fileName + config.get("downloadforbiddenreplacement")
-        }
-    })
+    config
+        .get("downloadforbiddennames")
+        .split(",")
+        .forEach(item => {
+            if (item.trim() === fileName) {
+                fileName = fileName + config.get("downloadforbiddenreplacement")
+            }
+        })
 
     const downloadId = await browser.downloads.download({
         conflictAction: "uniquify",
@@ -124,6 +133,13 @@ export async function downloadUrlAs(
             if (downloadDelta.id !== downloadId) {
                 return
             }
+
+            const placeholder = config.get("downloadfilenamemarker")
+            let finalSaveAs = saveAs
+            if (placeholder.length > 0 && finalSaveAs.includes(placeholder)) {
+                finalSaveAs = finalSaveAs.split(placeholder).join(fileName)
+            }
+
             // Note: this might be a little too drastic. For example, files that encounter a problem while being downloaded and the download of which is restarted by a user won't be moved
             // This seems acceptable for now as taking all states into account seems quite difficult
             if (
@@ -137,17 +153,12 @@ export async function downloadUrlAs(
                     })
                 )[0]
                 if (downloadDelta.state.current === "complete") {
-                     const placeholder = config.get("downloadfilenamemarker")
-                     let finalSaveAs = saveAs
-                     if (placeholder.length > 0 && finalSaveAs.includes(placeholder)) {
-                        finalSaveAs = finalSaveAs.split(placeholder).join(fileName)
-                     }
-                     const operation = await Native.move(
+                    const operation = await Native.move(
                         downloadItem.filename,
                         finalSaveAs,
                         overwrite,
                         cleanup,
-                     )
+                    )
 
                     const code2human = n =>
                         R.defaultTo(
@@ -161,18 +172,24 @@ export async function downloadUrlAs(
                             new Error(
                                 `${code2human(operation.code)}. '${
                                     downloadItem.filename
-                                }' could not be moved to '${saveAs}'. Error code: ${
+                                }' could not be moved to '${finalSaveAs}'. Error code: ${
                                     operation.code
                                 }`,
                             ),
                         )
                     } else {
-                        resolve({filename: downloadItem.filename, finalSaveAs})
+                        resolve({
+                            filename: downloadItem.filename,
+                            finalSaveAs,
+                        })
                     }
                 } else {
+                    const reason =
+                        downloadDelta.error?.current ?? "unknown error"
+
                     reject(
                         new Error(
-                            `'${downloadItem.filename}' state not in_progress anymore but not complete either (would have been moved to '${saveAs}')`,
+                            `Downloading '${downloadItem.filename}' failed due to '${reason}' (would have been saved at '${finalSaveAs}')`,
                         ),
                     )
                 }
