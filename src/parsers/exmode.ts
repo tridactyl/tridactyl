@@ -1,26 +1,20 @@
 /** Ex Mode (AKA cmd mode) */
 
-import { FunctionType } from "../../compiler/types/AllTypes"
-import { everything as metadata } from "@src/.metadata.generated"
+import { excmdsFunctions, paramTypes, convert } from "@src/.metadata.generated"
 import * as aliases from "@src/lib/aliases"
 import * as Logging from "@src/lib/logging"
 
 const logger = new Logging.Logger("exmode")
 
-function convertArgs(types, argv) {
+function convertArgs(params, argv) {
     const typedArgs = []
-    for (
-        let itypes = 0, iargv = 0;
-        itypes < types.length && iargv < argv.length;
-        ++itypes && ++iargv
-    ) {
-        const curType = types[itypes]
-        const curArg = argv[iargv]
+    for (let i = 0, j = 0; i < params.length && j < argv.length; ++i && ++j) {
+        const p = params[i]
         // Special casing arrays because that's why the previous arg conversion code did
-        if (curType.isDotDotDot || curType.kind === "array") {
-            return typedArgs.concat(curType.convert(argv.slice(iargv)))
+        if (p.flags?.isRest || p.type?.type === "array") {
+            return typedArgs.concat(convert(p.type, argv.slice(j)))
         }
-        typedArgs.push(curType.convert(curArg))
+        typedArgs.push(convert(p.type, argv[j]))
     }
     return typedArgs
 }
@@ -47,18 +41,13 @@ export function parser(exstr: string, all_excmds: any): any[] {
     // Convert arguments, but only for ex commands
     let converted_args
     if (namespce == "" && args.length > 0) {
-        let types
-        try {
-            types = (metadata.getFile("src/excmds.ts").getFunction(funcName)
-                .type as FunctionType).args
-        } catch (e) {
+        const fn = excmdsFunctions[funcName]
+        if (!fn) {
             // user defined functions?
-            types = null
             converted_args = args
-        }
-        if (types !== null) {
+        } else {
             try {
-                converted_args = convertArgs(types, args)
+                converted_args = convertArgs(paramTypes(fn), args)
             } catch (e) {
                 logger.error("Error executing or parsing:", exstr, e)
                 throw e

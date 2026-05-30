@@ -86,8 +86,7 @@ import * as Logging from "@src/lib/logging"
 import { AutoContain } from "@src/lib/autocontainers"
 import * as CSS from "css"
 import * as Perf from "@src/perf"
-import * as Metadata from "@src/.metadata.generated"
-import { ObjectType } from "../compiler/types/ObjectType"
+import { staticThemes, defaultConfigMembers, memberType, typeKind, convert, convertMember } from "@src/.metadata.generated"
 import * as Native from "@src/lib/native"
 import * as TTS from "@src/lib/text_to_speech"
 import * as excmd_parser from "@src/parsers/exmode"
@@ -537,7 +536,7 @@ export async function colourscheme(...args: string[]) {
     const themename = option._[0]
 
     // If this is a builtin theme, no need to bother with slow stuff
-    if (!Metadata.staticThemes.includes(themename)) {
+    if (!staticThemes.includes(themename)) {
         if (themename.search("\\.") >= 0) throw new Error(`Theme name should not contain any dots! (given name: ${themename}).`)
         if (url) {
             if (themename === undefined) throw new Error(`You must provide a theme name!`)
@@ -1422,6 +1421,7 @@ export function scrollto(a: number | string, b: number | "x" | "y" = "y") {
 /** @hidden */
 //#content_helper
 let lineHeight = null
+
 /** Scrolls the document of its first scrollable child element by n lines.
  *
  *  The height of a line is defined by the site's CSS. If Tridactyl can't get it, it'll default to 22 pixels.
@@ -4559,16 +4559,15 @@ function validateSetArgs(key: string, values: string[]) {
     const target: any[] = key.split(".")
 
     let value
-    const file = Metadata.everything.getFile("src/lib/config.ts")
-    const default_config = file.getClass("default_config")
-    const md = default_config.getMember(target[0])
+    const md = defaultConfigMembers[target[0]]
     if (md !== undefined) {
         const strval = values.join(" ")
+        const t = memberType(md)
         // Note: the conversion will throw if strval can't be converted to the right type
-        if (md.type.kind === "object" && target.length > 1) {
-            value = (md.type as ObjectType).convertMember(target.slice(1), strval)
+        if (typeKind(t) === "object" && target.length > 1) {
+            value = convertMember(t, target.slice(1), strval)
         } else {
-            value = md.type.convert(strval)
+            value = convert(t, strval)
         }
     } else {
         // If we don't have metadata, fall back to the old way
