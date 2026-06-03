@@ -1004,6 +1004,46 @@ export class default_config {
     noiframe: "true" | "false" = "false"
 
     /**
+     * Show a which-key style overlay of available keybindings after a partial key press.
+     *
+     * Example: `:set whichkeyenabled false`
+     */
+    whichkeyenabled: "true" | "false" = "true"
+
+    /**
+     * Delay in milliseconds before the whichkey overlay appears after a partial key press.
+     * Set to 0 for immediate display.
+     *
+     * Example: `:set whichkeydelay 500`
+     */
+    whichkeydelay = "0"
+
+    /**
+     * Position of the whichkey overlay on screen.
+     * - `left`: floats bottom-left, width controlled by [[whichkeywidth]], gap from edge controlled by [[whichkeyoffset]]
+     * - `center`: full-width bar flush to the bottom edge, no offset applied
+     *
+     * Example: `:set whichkeylocation center`
+     */
+    whichkeylocation: "left" | "center" = "left"
+
+    /**
+     * Width of the whichkey overlay when [[whichkeylocation]] is `left`.
+     * Any valid CSS width value.
+     *
+     * Example: `:set whichkeywidth 50vw`
+     */
+    whichkeywidth = "35vw"
+
+    /**
+     * Gap between the whichkey overlay and the edge of the viewport when [[whichkeylocation]] is `left`.
+     * Any valid CSS length value. Set to `0` for flush positioning.
+     *
+     * Example: `:set whichkeyoffset 12px`
+     */
+    whichkeyoffset = "8px"
+
+    /**
      * @deprecated A list of URLs on which to not load the iframe. Use `seturl [URL] noiframe true` instead, as shown in [[noiframe]].
      */
     noiframeon: string[] = []
