@@ -100,13 +100,20 @@ export function show(mode: string, prefix: MinimalKey[]) {
         const map = keyseq.keyMap(conf)
 
         // Use only the non-count part of the prefix for completions.
-        matches = [...keyseq.completions(cmdKeys, map).entries()].map(
-            ([ks, exstr]) =>
-                [
-                    ks.map(k => k.toMapstr()).join(""),
-                    typeof exstr === "string" ? exstr : String(exstr),
-                ] as [string, string],
-        )
+        matches = [...keyseq.completions(cmdKeys, map).entries()]
+            .map(
+                ([ks, exstr]) =>
+                    [
+                        ks.map(k => k.toMapstr()).join(""),
+                        typeof exstr === "string" ? exstr : String(exstr),
+                    ] as [string, string],
+            )
+            .sort(([a], [b]) => {
+                const aSpec = a.startsWith("<")
+                const bSpec = b.startsWith("<")
+                if (aSpec !== bSpec) return aSpec ? 1 : -1
+                return a.localeCompare(b)
+            })
     } catch (e) {
         logger.error("whichkey_content show() failed to get completions:", e)
         return
