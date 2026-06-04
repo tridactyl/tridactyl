@@ -7,7 +7,7 @@ import {
     ParserResponse,
     minimalKeyFromKeyboardEvent,
     MinimalKey,
-    printableKey,
+    hasModifiers,
 } from "@src/lib/keyseq"
 import { deepestShadowRoot } from "@src/lib/dom"
 
@@ -221,14 +221,22 @@ function* ParserController() {
                 } else {
                     keyEvents = response.keys
                     // show current keyEvents as a suffix of the contentState
-                    const suffix = keyEvents.map(x => printableKey(x)).join("")
+                    const suffix = keyEvents.map(x => x.toMapstr()).join("")
                     if (previousSuffix !== suffix) {
                         contentState.suffix = suffix
                         previousSuffix = suffix
                     }
                     logger.debug("suffix: ", suffix)
 
-                    if (response.isMatch && keyEvents.length > 0) {
+                    const isPureCount =
+                        keyEvents.length > 0 &&
+                        keyEvents.every(
+                            k => !hasModifiers(k) && /^\d$/.test(k.key),
+                        )
+                    if (
+                        (response.isMatch || isPureCount) &&
+                        keyEvents.length > 0
+                    ) {
                         WhichKeyContent.show(contentState.mode, keyEvents)
                     } else {
                         WhichKeyContent.hide()

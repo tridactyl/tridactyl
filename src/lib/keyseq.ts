@@ -142,7 +142,7 @@ export interface ParserResponse {
     numericPrefix?: number
 }
 
-function splitNumericPrefix(
+export function splitNumericPrefix(
     keyseq: MinimalKey[],
 ): [MinimalKey[], MinimalKey[]] {
     // If the first key is in 1:9, partition all numbers until you reach a non-number.
@@ -460,30 +460,6 @@ export function keyMap(conf): KeyMap {
 // }}}
 
 // {{{ Utility functions for dealing with KeyboardEvents
-
-const KEY_ALIASES: Record<string, string> = {
-    ArrowUp: "Up",
-    ArrowDown: "Down",
-    ArrowLeft: "Left",
-    ArrowRight: "Right",
-    PageUp: "PgUp",
-    PageDown: "PgDn",
-    Backspace: "BS",
-    Delete: "Del",
-    Insert: "Ins",
-    Escape: "Esc",
-    Enter: "CR",
-}
-
-export function printableKey(k: MinimalKey): string {
-    let result = KEY_ALIASES[k.key] ?? k.key
-    if (["Control", "Meta", "Alt", "Shift", "OS"].includes(result)) return ""
-    if (k.altKey) result = "A-" + result
-    if (k.ctrlKey) result = "C-" + result
-    if (k.shiftKey) result = "S-" + result
-    if (result.length > 1) result = "<" + result + ">"
-    return result
-}
 
 export function hasModifiers(keyEvent: MinimalKey) {
     return (

@@ -2,6 +2,7 @@ import Logger from "@src/lib/logging"
 import * as config from "@src/lib/config"
 import * as keyseq from "@src/lib/keyseq"
 import type { MinimalKey } from "@src/lib/keyseq"
+import { splitNumericPrefix } from "@src/lib/keyseq"
 import * as Messaging from "@src/lib/messaging"
 import { mode2maps } from "@src/lib/binding"
 
@@ -67,6 +68,7 @@ function applyPosition(multiColumn = false): string {
 
 // Approximate row height in px
 const APPROX_ROW_HEIGHT_PX = 20
+const APPROX_HEADER_HEIGHT_PX = 23
 const MAX_HEIGHT_FRACTION = 0.7
 const MIN_COLUMN_WIDTH_PX = 200
 
@@ -87,15 +89,21 @@ export function show(mode: string, prefix: MinimalKey[]) {
     if (config.get("whichkeyenabled") === "false") return
     if (!mode2maps.has(mode)) return
 
+    const [countKeys, cmdKeys] =
+        prefix.length > 0 ? splitNumericPrefix(prefix) : [[], prefix]
+    const countStr = countKeys.map(k => k.key).join("")
+
     let matches: [string, string][]
     try {
         const conf = mode2maps.get(mode)
         if (conf === undefined) return
         const map = keyseq.keyMap(conf)
-        matches = [...keyseq.completions(prefix, map).entries()].map(
+
+        // Use only the non-count part of the prefix for completions.
+        matches = [...keyseq.completions(cmdKeys, map).entries()].map(
             ([ks, exstr]) =>
                 [
-                    ks.map(keyseq.printableKey).join(""),
+                    ks.map(k => k.toMapstr()).join(""),
                     typeof exstr === "string" ? exstr : String(exstr),
                 ] as [string, string],
         )
@@ -109,7 +117,12 @@ export function show(mode: string, prefix: MinimalKey[]) {
         return
     }
 
-    const prefixStr = prefix.map(keyseq.printableKey).join("")
+    // Header prefix: each key token separated by » (e.g. "12 » g").
+    const prefixTokens = [
+        ...(countStr ? [countStr] : []),
+        ...cmdKeys.map(k => k.toMapstr()),
+    ].filter(Boolean)
+    const prefixStr = prefixTokens.join(" » ")
 
     // Modifier keydowns (e.g. Control before Escape) cause redundant show() calls with the same prefix, skip to avoid reset/resize cycle.
     if (
@@ -137,7 +150,8 @@ export function show(mode: string, prefix: MinimalKey[]) {
         wk_iframe.style.setProperty("opacity", "0", "important") // Keep invisible until resize()
         const rowsInTallestCol = Math.ceil(matches.length / columnCount)
         const estimatedHeight = Math.min(
-            rowsInTallestCol * APPROX_ROW_HEIGHT_PX,
+            rowsInTallestCol * APPROX_ROW_HEIGHT_PX +
+                (prefixStr ? APPROX_HEADER_HEIGHT_PX : 0),
             window.innerHeight * MAX_HEIGHT_FRACTION,
         )
         wk_iframe.style.setProperty(
@@ -149,8 +163,10 @@ export function show(mode: string, prefix: MinimalKey[]) {
             matches,
             columnCount,
             gen,
-            prefix.length,
+            cmdKeys.length,
             loc,
+            prefixStr,
+            countKeys.length > 0,
         ])
     }
 
@@ -170,12 +186,23 @@ export function openHelp(exstr: string) {
 }
 
 /** Called by whichkey_frame after it measures its rendered content height */
-export function resize(contentHeight: number, generation: number) {
+export function resize(
+    contentHeight: number,
+    generation: number,
+    headerMinWidthPx = 0,
+) {
     if (!wk_iframe || wk_iframe.classList.contains("hidden")) return
     if (generation !== showGeneration) return
     const maxHeight = window.innerHeight * MAX_HEIGHT_FRACTION
     const finalHeight = Math.min(Math.max(contentHeight, 40), maxHeight)
     wk_iframe.style.setProperty("height", finalHeight + "px", "important")
+    if (headerMinWidthPx > 0) {
+        wk_iframe.style.setProperty(
+            "min-width",
+            headerMinWidthPx + "px",
+            "important",
+        )
+    }
     wk_iframe.style.setProperty("opacity", "1", "important")
     wk_iframe.style.setProperty("pointer-events", "auto", "important")
 }
