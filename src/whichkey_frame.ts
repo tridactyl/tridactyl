@@ -143,20 +143,11 @@ export function update(
                 colPaddingPx +
                 headerHeightPx,
         )
-        // Canvas measureText is layout-independent; unaffected by iframe width constraint.
+        // scrollWidth gives full text width even when clipped by overflow:hidden on parent.
         // 24 = outer-border(2+2) + margin(6+6) + cushion(8)
-        let headerMinWidthPx = 0
-        if (headerEl) {
-            const cs = getComputedStyle(headerEl)
-            const canvas = document.createElement("canvas")
-            const ctx = canvas.getContext("2d")
-            if (ctx) {
-                ctx.font = `${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`
-                headerMinWidthPx = Math.ceil(
-                    24 + ctx.measureText(headerEl.textContent ?? "").width,
-                )
-            }
-        }
+        const headerMinWidthPx = headerEl
+            ? Math.ceil(headerEl.scrollWidth + 24)
+            : 0
         Messaging.messageOwnTab("whichkey_content", "resize", [
             naturalHeight,
             generation,
