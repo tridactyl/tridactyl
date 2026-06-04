@@ -83,17 +83,15 @@ describe("update() column building", () => {
         expect(document.querySelector(".wk-key-next")!.textContent).toBe("gf")
     })
 
-    it("with prefix: pressed part gets wk-key-prefix, rest gets wk-key-next", () => {
+    it("with prefix: only the remainder shown in wk-key-next", () => {
         wkf.update([["gf", "tabfirst"]], 1, 1, 1)
-        expect(document.querySelector(".wk-key-prefix")!.textContent).toBe("g")
+        expect(document.querySelector(".wk-key-prefix")).toBeNull()
         expect(document.querySelector(".wk-key-next")!.textContent).toBe("f")
     })
 
     it("angle-bracket token counted as one prefix token", () => {
         wkf.update([["<C-g>f", "cmd"]], 1, 1, 1)
-        expect(document.querySelector(".wk-key-prefix")!.textContent).toBe(
-            "<C-g>",
-        )
+        expect(document.querySelector(".wk-key-prefix")).toBeNull()
         expect(document.querySelector(".wk-key-next")!.textContent).toBe("f")
     })
 
