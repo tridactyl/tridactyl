@@ -177,14 +177,6 @@ export function show(mode: string, prefix: MinimalKey[]) {
     }
 }
 
-/** @hidden */
-export function openHelp(exstr: string) {
-    const cmd = exstr.trim().split(/\s+/)[0]
-    if (!cmd) return
-    hide()
-    Messaging.message("controller_background", "acceptExCmd", `help ${cmd}`)
-}
-
 /** Called by whichkey_frame after it measures its rendered content height */
 export function resize(
     contentHeight: number,

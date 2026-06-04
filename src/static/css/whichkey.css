@@ -154,8 +154,14 @@ body[data-location="center"] #whichkey-binds {
     padding: 0 0.3ex;
 }
 
+.wk-exstr,
+.wk-exstr:link,
+.wk-exstr:visited {
+    color: var(--tridactyl-wk-exstr-fg, #5faf5f) !important;
+}
+
 .wk-exstr {
-    color: var(--tridactyl-wk-exstr-fg, #5faf5f);
+    text-decoration: none;
     padding: 0 0.4ex;
     overflow: hidden;
     text-overflow: ellipsis;

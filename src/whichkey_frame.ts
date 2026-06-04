@@ -62,19 +62,25 @@ function buildColumn(
         arrowSpan.className = "wk-arrow"
         arrowSpan.textContent = "→"
 
-        const exstrSpan = document.createElement("span")
-        exstrSpan.className = "wk-exstr"
-        exstrSpan.textContent = exstr
+        const exstrEl = document.createElement("a")
+        exstrEl.className = "wk-exstr"
+        exstrEl.textContent = exstr
         const cmdWord = exstr.trim().split(/\s+/)[0]
-        const doc = cmdWord ? excmdsFile?.getFunction(cmdWord)?.doc : undefined
-        if (doc) exstrSpan.title = doc
-        exstrSpan.addEventListener("click", () => {
-            Messaging.messageOwnTab("whichkey_content", "openHelp", [exstr])
-        })
+        if (cmdWord) {
+            const doc = excmdsFile?.getFunction(cmdWord)?.doc
+            if (doc) exstrEl.title = doc
+            exstrEl.href =
+                browser.runtime.getURL(
+                    "static/docs/modules/_src_excmds_.html",
+                ) +
+                "#" +
+                cmdWord
+            exstrEl.target = "_blank"
+        }
 
         row.appendChild(keySpan)
         row.appendChild(arrowSpan)
-        row.appendChild(exstrSpan)
+        row.appendChild(exstrEl)
         col.appendChild(row)
     }
     return col
