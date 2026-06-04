@@ -2,7 +2,7 @@
 
 /* Light-mode fallback defaults */
 :root {
-    --tridactyl-wk-bg: var(--tridactyl-cmdl-bg, white);
+    --tridactyl-wk-bg: var(--tridactyl-bg, white);
     --tridactyl-wk-fg: var(--tridactyl-cmdl-fg, black);
     --tridactyl-wk-font-family: var(--tridactyl-cmdl-font-family, monospace);
     --tridactyl-wk-font-size: var(
@@ -10,10 +10,15 @@
         var(--tridactyl-cmdl-font-size, 9pt)
     );
     --tridactyl-wk-key-fg: var(--tridactyl-cmplt-fg, black);
-    --tridactyl-wk-key-next-fg: var(--tridactyl-of-fg, #ffa500);
+    --tridactyl-wk-key-next-fg: #ffa500;
     --tridactyl-wk-exstr-fg: var(--tridactyl-url-fg, #1f9947);
-    --tridactyl-wk-border: var(--tridactyl-cmplt-border, 1px solid #ccc);
+    --tridactyl-wk-border: var(--tridactyl-cmplt-border-top, 1px solid #ccc);
+    --tridactyl-wk-outer-border: var(
+        --tridactyl-cmplt-border-top,
+        2px solid #ccc
+    );
     --tridactyl-wk-border-radius: 5px;
+    --tridactyl-wk-key-col-max: 22ex;
     --tridactyl-wk-row-height: var(--tridactyl-cmplt-option-height, 1.4em);
     --tridactyl-wk-offset: 8px;
 }
@@ -21,14 +26,18 @@
 /* Dark-mode fallback */
 @media (prefers-color-scheme: dark) {
     :root {
-        --tridactyl-wk-bg: var(--tridactyl-cmdl-bg, #1a1a1a);
+        --tridactyl-wk-bg: var(--tridactyl-bg, #1a1a1a);
         --tridactyl-wk-fg: var(--tridactyl-cmdl-fg, #e0e0e0);
         --tridactyl-wk-key-fg: var(--tridactyl-cmplt-fg, #e0e0e0);
-        --tridactyl-wk-key-next-fg: var(--tridactyl-of-fg, #ffb347);
+        --tridactyl-wk-key-next-fg: #ffb347;
         --tridactyl-wk-exstr-fg: var(--tridactyl-url-fg, #5faf5f);
         --tridactyl-wk-border: var(
             --tridactyl-cmplt-border-top,
-            1px solid #444
+            1px solid #555
+        );
+        --tridactyl-wk-outer-border: var(
+            --tridactyl-cmplt-border-top,
+            2px solid #555
         );
     }
 }
@@ -58,12 +67,33 @@ body {
 #whichkey-binds {
     flex: 1;
     display: flex;
-    flex-direction: row;
+    flex-direction: column;
     overflow: hidden;
     min-height: 0;
+    margin: 0;
+    padding: 0;
     background: var(--tridactyl-wk-bg, #1a1a1a);
-    border: var(--tridactyl-wk-border);
+    border: var(--tridactyl-wk-outer-border);
+    border-width: 2px;
     border-radius: var(--tridactyl-wk-border-radius);
+}
+
+.wk-header {
+    padding: 4px 0;
+    margin: 0 6px;
+    font-weight: bold;
+    color: var(--tridactyl-wk-key-next-fg, #ffa500);
+    white-space: nowrap;
+    flex-shrink: 0;
+    border-bottom: var(--tridactyl-wk-border);
+}
+
+.wk-columns {
+    display: flex;
+    flex-direction: row;
+    flex: 1;
+    overflow: hidden;
+    min-height: 0;
 }
 
 body[data-location="center"] #whichkey-binds {
@@ -75,7 +105,9 @@ body[data-location="center"] #whichkey-binds {
 .wk-column {
     flex: 1;
     display: grid;
-    grid-template-columns: fit-content(15ex) max-content 1fr;
+    grid-template-columns:
+        fit-content(var(--tridactyl-wk-key-col-max, 22ex))
+        max-content 1fr;
     grid-auto-rows: var(--tridactyl-wk-row-height, 1.4em);
     overflow-y: auto;
     overflow-x: hidden;
@@ -103,18 +135,17 @@ body[data-location="center"] #whichkey-binds {
     color: var(--tridactyl-wk-key-fg, #e0e0e0);
     font-weight: bold;
     padding: 0 0.4ex 0 0.6ex;
-    white-space: nowrap;
+    display: flex;
     overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-.wk-key-prefix {
-    opacity: 0.8;
+    min-width: 0;
 }
 
 .wk-key-next {
     color: var(--tridactyl-wk-key-next-fg, #ffa500);
     font-weight: bold;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .wk-arrow {

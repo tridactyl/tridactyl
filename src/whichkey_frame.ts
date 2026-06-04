@@ -39,7 +39,6 @@ function commandAcceptsCount(exstr: string): boolean {
 function buildColumn(
     matches: [string, string][],
     prefixLen: number,
-    forceEllipsis = false,
 ): HTMLDivElement {
     const col = document.createElement("div")
     col.className = "wk-column"
@@ -50,13 +49,8 @@ function buildColumn(
         const keySpan = document.createElement("span")
         keySpan.className = "wk-key"
 
-        const [pressed, remaining] = splitAtPrefix(keyStr, prefixLen)
-        if (pressed) {
-            const pressedSpan = document.createElement("span")
-            pressedSpan.className = "wk-key-prefix"
-            pressedSpan.textContent = forceEllipsis ? "…" : pressed
-            keySpan.appendChild(pressedSpan)
-        }
+        // Only show the part after the pressed prefix; prefix is in the header.
+        const [, remaining] = splitAtPrefix(keyStr, prefixLen)
         if (remaining) {
             const nextSpan = document.createElement("span")
             nextSpan.className = "wk-key-next"
@@ -93,6 +87,8 @@ export function update(
     generation: number,
     prefixLen: number,
     location = "left",
+    prefixStr = "",
+    hasCountPrefix = false,
 ) {
     if (!bindsEl) {
         logger.error("whichkey_frame: DOM elements not found")
@@ -100,16 +96,32 @@ export function update(
     }
     document.body.dataset.location = location
 
+    if (hasCountPrefix)
+        matches = matches.filter(([, exstr]) => commandAcceptsCount(exstr))
+
     while (bindsEl.firstChild) bindsEl.removeChild(bindsEl.firstChild)
+
+    let headerEl: HTMLElement | null = null
+    if (prefixStr) {
+        headerEl = document.createElement("div")
+        headerEl.className = "wk-header"
+        headerEl.textContent = prefixStr
+        bindsEl.appendChild(headerEl)
+    }
+
+    const columnsEl = document.createElement("div")
+    columnsEl.className = "wk-columns"
 
     const cols = Math.max(1, columnCount)
     const rowsPerCol = Math.ceil(matches.length / cols)
     for (let i = 0; i < cols; i++) {
         const slice = matches.slice(i * rowsPerCol, (i + 1) * rowsPerCol)
-        if (slice.length > 0) bindsEl.appendChild(buildColumn(slice, prefixLen))
+        if (slice.length > 0)
+            columnsEl.appendChild(buildColumn(slice, prefixLen))
     }
+    bindsEl.appendChild(columnsEl)
 
-    const measure = () => {
+    requestAnimationFrame(() => {
         const firstRow = bindsEl.querySelector<HTMLElement>(".wk-row")
         const rowHeightPx = firstRow
             ? parseFloat(getComputedStyle(firstRow).height)
@@ -124,38 +136,32 @@ export function update(
             ? (parseFloat(colStyle.paddingTop) || 0) +
               (parseFloat(colStyle.paddingBottom) || 0)
             : 0
+        const headerHeightPx = headerEl ? headerEl.offsetHeight : 0
         const naturalHeight = Math.ceil(
-            rowsPerCol * rowHeightPx + bindsBorderPx + colPaddingPx,
+            rowsPerCol * rowHeightPx +
+                bindsBorderPx +
+                colPaddingPx +
+                headerHeightPx,
         )
+        // Canvas measureText is layout-independent; unaffected by iframe width constraint.
+        // 24 = outer-border(2+2) + margin(6+6) + cushion(8)
+        let headerMinWidthPx = 0
+        if (headerEl) {
+            const cs = getComputedStyle(headerEl)
+            const canvas = document.createElement("canvas")
+            const ctx = canvas.getContext("2d")
+            if (ctx) {
+                ctx.font = `${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`
+                headerMinWidthPx = Math.ceil(
+                    24 + ctx.measureText(headerEl.textContent ?? "").width,
+                )
+            }
+        }
         Messaging.messageOwnTab("whichkey_content", "resize", [
             naturalHeight,
             generation,
+            headerMinWidthPx,
         ])
-    }
-
-    // After layout: if any key cell overflows its track, rebuild with forced … prefix
-    // so the next step is always visible, then measure in a second rAF.
-    requestAnimationFrame(() => {
-        if (prefixLen > 0) {
-            const overflowing = Array.from(
-                bindsEl.querySelectorAll<HTMLElement>(".wk-key"),
-            ).some(k => k.scrollWidth > k.offsetWidth)
-            if (overflowing) {
-                while (bindsEl.firstChild)
-                    bindsEl.removeChild(bindsEl.firstChild)
-                for (let i = 0; i < cols; i++) {
-                    const slice = matches.slice(
-                        i * rowsPerCol,
-                        (i + 1) * rowsPerCol,
-                    )
-                    if (slice.length > 0)
-                        bindsEl.appendChild(buildColumn(slice, prefixLen, true))
-                }
-                requestAnimationFrame(measure)
-                return
-            }
-        }
-        measure()
     })
 }
 
