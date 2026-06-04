@@ -40,6 +40,15 @@ function makeMatches(count: number): Map<keyseq.MinimalKey[], string> {
     return map
 }
 
+/** Set up config mock with which-key enabled and zero delay (synchronous show) */
+function enableWhichkey() {
+    mockConfig.get.mockImplementation((key: string) => {
+        if (key === "whichkeydelay") return "0"
+        if (key === "nmaps") return {}
+        return undefined
+    })
+}
+
 beforeAll(async () => {
     // let init() microtasks settle
     await Promise.resolve()
@@ -48,10 +57,10 @@ beforeAll(async () => {
 
 beforeEach(() => {
     jest.clearAllMocks()
-    // default: enabled, no delay
+    // default: disabled, 200ms delay (matching default_config)
     mockConfig.get.mockImplementation((key: string) => {
-        if (key === "whichkeyenabled") return "true"
-        if (key === "whichkeydelay") return "0"
+        if (key === "whichkeyenabled") return "false"
+        if (key === "whichkeydelay") return "200"
         return undefined
     })
     wkc.hide()
@@ -79,6 +88,7 @@ describe("hide()", () => {
 describe("resize()", () => {
     it("no-ops on stale generation", () => {
         // show to advance generation to 1
+        enableWhichkey()
         mockKeyseq.completions.mockReturnValue(makeMatches(3))
         mockKeyseq.keyMap.mockReturnValue(new Map())
         wkc.show("normal", [])
@@ -93,6 +103,7 @@ describe("resize()", () => {
     })
 
     it("clamps height to 60% of viewport", () => {
+        enableWhichkey()
         mockKeyseq.completions.mockReturnValue(makeMatches(3))
         mockKeyseq.keyMap.mockReturnValue(new Map())
         Object.defineProperty(window, "innerHeight", {
@@ -114,6 +125,7 @@ describe("resize()", () => {
     })
 
     it("reveals opacity after resize", () => {
+        enableWhichkey()
         mockKeyseq.completions.mockReturnValue(makeMatches(3))
         mockKeyseq.keyMap.mockReturnValue(new Map())
         wkc.show("normal", [])
@@ -129,6 +141,7 @@ describe("resize()", () => {
     })
 
     it("enforces minimum height of 40px", () => {
+        enableWhichkey()
         mockKeyseq.completions.mockReturnValue(makeMatches(3))
         mockKeyseq.keyMap.mockReturnValue(new Map())
         wkc.show("normal", [])
@@ -161,6 +174,7 @@ describe("show()", () => {
     })
 
     it("calls hide() when no completions match", () => {
+        enableWhichkey()
         mockKeyseq.keyMap.mockReturnValue(new Map())
         mockKeyseq.completions.mockReturnValue(new Map())
         const iframe = document.getElementById(
@@ -173,6 +187,7 @@ describe("show()", () => {
     })
 
     it("sends update message with matches and columnCount", () => {
+        enableWhichkey()
         mockKeyseq.keyMap.mockReturnValue(new Map())
         mockKeyseq.completions.mockReturnValue(makeMatches(3))
         wkc.show("normal", [])
@@ -189,6 +204,7 @@ describe("show()", () => {
     })
 
     it("dedup guard: identical prefix skips redundant show", () => {
+        enableWhichkey()
         mockKeyseq.keyMap.mockReturnValue(new Map())
         mockKeyseq.completions.mockReturnValue(makeMatches(2))
         const prefix = [makeKey("g")]
@@ -201,6 +217,7 @@ describe("show()", () => {
     })
 
     it("dedup guard: different prefix triggers new show", () => {
+        enableWhichkey()
         mockKeyseq.keyMap.mockReturnValue(new Map())
         mockKeyseq.completions.mockReturnValue(makeMatches(2))
         wkc.show("normal", [makeKey("g")])
@@ -211,6 +228,7 @@ describe("show()", () => {
     })
 
     it("dedup guard resets after hide()", () => {
+        enableWhichkey()
         mockKeyseq.keyMap.mockReturnValue(new Map())
         mockKeyseq.completions.mockReturnValue(makeMatches(2))
         const prefix = [makeKey("g")]
@@ -225,6 +243,7 @@ describe("show()", () => {
 
 describe("hide(keepPrefix)", () => {
     it("hide(true) preserves mode and prefix for re-show", () => {
+        enableWhichkey()
         mockKeyseq.keyMap.mockReturnValue(new Map())
         mockKeyseq.completions.mockReturnValue(makeMatches(2))
         const prefix = [makeKey("g")]
@@ -238,6 +257,7 @@ describe("hide(keepPrefix)", () => {
     })
 
     it("hide() without keepPrefix clears prefix so re-show does not happen", () => {
+        enableWhichkey()
         mockKeyseq.keyMap.mockReturnValue(new Map())
         mockKeyseq.completions.mockReturnValue(makeMatches(2))
         wkc.show("normal", [makeKey("g")])
@@ -258,11 +278,7 @@ describe("calculateColumns (via show)", () => {
             value: innerHeight,
         })
         jest.clearAllMocks()
-        mockConfig.get.mockImplementation((key: string) => {
-            if (key === "whichkeyenabled") return "true"
-            if (key === "whichkeydelay") return "0"
-            return undefined
-        })
+        enableWhichkey()
         wkc.hide()
         mockKeyseq.keyMap.mockReturnValue(new Map())
         mockKeyseq.completions.mockReturnValue(makeMatches(n))

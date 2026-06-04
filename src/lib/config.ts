@@ -1006,17 +1006,17 @@ export class default_config {
     /**
      * Show a which-key style overlay of available keybindings after a partial key press.
      *
-     * Example: `:set whichkeyenabled false`
+     * Example: `:set whichkeyenabled true`
      */
-    whichkeyenabled: "true" | "false" = "true"
+    whichkeyenabled: "true" | "false" = "false"
 
     /**
      * Delay in milliseconds before the whichkey overlay appears after a partial key press.
      * Set to 0 for immediate display.
      *
-     * Example: `:set whichkeydelay 500`
+     * Example: `:set whichkeydelay 1000`
      */
-    whichkeydelay = "0"
+    whichkeydelay = "200"
 
     /**
      * Position of the whichkey overlay on screen.
