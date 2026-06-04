@@ -24,6 +24,13 @@ function splitAtPrefix(keyStr: string, n: number): [string, string] {
 
 const excmdsFile = Metadata.everything.getFile("src/excmds.ts")
 
+function argAcceptsNumber(a: any): boolean {
+    if (a.kind === "number") return true
+    if (a.kind === "union" && Array.isArray(a.types))
+        return a.types.some((t: any) => t.kind === "number")
+    return false
+}
+
 function commandAcceptsCount(exstr: string): boolean {
     const cmdWord = exstr.trim().split(/\s+/)[0]
     if (!cmdWord) return false
@@ -31,9 +38,7 @@ function commandAcceptsCount(exstr: string): boolean {
     if (!sym) return false
     const ft = sym.type as any
     if (ft.kind !== "function" || !Array.isArray(ft.args)) return false
-    return ft.args.some(
-        (a: any) => a.kind === "number" && a.isQuestion === true,
-    )
+    return ft.args.some((a: any) => argAcceptsNumber(a))
 }
 
 function buildColumn(
