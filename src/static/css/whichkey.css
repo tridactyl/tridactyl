@@ -98,8 +98,9 @@ body {
 
 body[data-location="center"] #whichkey-binds {
     border-bottom: none;
-    border-radius: var(--tridactyl-wk-border-radius)
-        var(--tridactyl-wk-border-radius) 0 0;
+    border-left: none;
+    border-right: none;
+    border-radius: 0;
 }
 
 .wk-column {
