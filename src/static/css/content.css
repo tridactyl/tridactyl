@@ -61,12 +61,7 @@
     transition: none !important;
     animation: none !important;
     background: transparent !important;
-    clip-path: inset(0 round 5px) !important;
     filter: drop-shadow(0 4px 16px rgba(0, 0, 0, 0.4)) !important;
-}
-
-#whichkey_iframe.wk-center {
-    clip-path: inset(0 round 5px 5px 0 0) !important;
 }
 
 @media print {
