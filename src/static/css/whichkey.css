@@ -129,4 +129,9 @@ body[data-location="center"] #whichkey-binds {
     text-overflow: ellipsis;
     white-space: nowrap;
     min-width: 0;
+    cursor: pointer;
+}
+
+.wk-exstr:hover {
+    text-decoration: underline;
 }

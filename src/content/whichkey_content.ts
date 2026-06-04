@@ -27,7 +27,6 @@ function makeIframe() {
     )
     wk_iframe.setAttribute("id", "whichkey_iframe")
     wk_iframe.setAttribute("loading", "lazy")
-    wk_iframe.inert = true
 }
 makeIframe()
 
@@ -162,6 +161,14 @@ export function show(mode: string, prefix: MinimalKey[]) {
     }
 }
 
+/** @hidden */
+export function openHelp(exstr: string) {
+    const cmd = exstr.trim().split(/\s+/)[0]
+    if (!cmd) return
+    hide()
+    Messaging.message("controller_background", "acceptExCmd", `help ${cmd}`)
+}
+
 /** Called by whichkey_frame after it measures its rendered content height */
 export function resize(contentHeight: number, generation: number) {
     if (!wk_iframe || wk_iframe.classList.contains("hidden")) return
@@ -170,6 +177,7 @@ export function resize(contentHeight: number, generation: number) {
     const finalHeight = Math.min(Math.max(contentHeight, 40), maxHeight)
     wk_iframe.style.setProperty("height", finalHeight + "px", "important")
     wk_iframe.style.setProperty("opacity", "1", "important")
+    wk_iframe.style.setProperty("pointer-events", "auto", "important")
 }
 
 export function hide(keepPrefix = false) {
@@ -186,6 +194,7 @@ export function hide(keepPrefix = false) {
     wk_iframe.classList.add("hidden")
     wk_iframe.style.setProperty("height", "0px", "important")
     wk_iframe.style.setProperty("opacity", "0", "important")
+    wk_iframe.style.setProperty("pointer-events", "none", "important")
 }
 
 async function init() {

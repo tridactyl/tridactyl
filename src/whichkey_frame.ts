@@ -1,6 +1,7 @@
 import * as SELF from "@src/whichkey_frame"
 import Logger from "@src/lib/logging"
 import * as Messaging from "@src/lib/messaging"
+import * as Metadata from "@src/.metadata.generated"
 
 const logger = new Logger("whichkey_frame")
 
@@ -19,6 +20,20 @@ function splitAtPrefix(keyStr: string, n: number): [string, string] {
         remaining = m[2]
     }
     return [pressed, remaining]
+}
+
+const excmdsFile = Metadata.everything.getFile("src/excmds.ts")
+
+function commandAcceptsCount(exstr: string): boolean {
+    const cmdWord = exstr.trim().split(/\s+/)[0]
+    if (!cmdWord) return false
+    const sym = excmdsFile?.getFunction(cmdWord)
+    if (!sym) return false
+    const ft = sym.type as any
+    if (ft.kind !== "function" || !Array.isArray(ft.args)) return false
+    return ft.args.some(
+        (a: any) => a.kind === "number" && a.isQuestion === true,
+    )
 }
 
 function buildColumn(
@@ -56,6 +71,12 @@ function buildColumn(
         const exstrSpan = document.createElement("span")
         exstrSpan.className = "wk-exstr"
         exstrSpan.textContent = exstr
+        const cmdWord = exstr.trim().split(/\s+/)[0]
+        const doc = cmdWord ? excmdsFile?.getFunction(cmdWord)?.doc : undefined
+        if (doc) exstrSpan.title = doc
+        exstrSpan.addEventListener("click", () => {
+            Messaging.messageOwnTab("whichkey_content", "openHelp", [exstr])
+        })
 
         row.appendChild(keySpan)
         row.appendChild(arrowSpan)
