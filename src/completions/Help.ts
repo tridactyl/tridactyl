@@ -8,10 +8,7 @@ import {
 import * as aliases from "@src/lib/aliases"
 import * as config from "@src/lib/config"
 
-class HelpCompletionOption
-    extends Completions.CompletionOptionHTML
-    implements Completions.CompletionOptionFuse
-{
+class HelpCompletionOption extends Completions.CompletionOptionHTML implements Completions.CompletionOptionFuse {
     public fuseKeys = []
 
     constructor(
