@@ -7,10 +7,7 @@ import {
     typeToString,
 } from "@src/.metadata.generated"
 
-class SettingsCompletionOption
-    extends Completions.CompletionOptionHTML
-    implements Completions.CompletionOptionFuse
-{
+class SettingsCompletionOption extends Completions.CompletionOptionHTML implements Completions.CompletionOptionFuse {
     public fuseKeys = []
 
     constructor(

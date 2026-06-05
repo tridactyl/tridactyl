@@ -3,10 +3,7 @@ import { excmdsFunctions, getDoc } from "@src/.metadata.generated"
 import * as config from "@src/lib/config"
 import * as aliases from "@src/lib/aliases"
 
-export class ExcmdCompletionOption
-    extends Completions.CompletionOptionHTML
-    implements Completions.CompletionOptionFuse
-{
+export class ExcmdCompletionOption extends Completions.CompletionOptionHTML implements Completions.CompletionOptionFuse {
     public fuseKeys = []
     constructor(
         public value: string,
