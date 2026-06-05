@@ -192,7 +192,7 @@ export function typeToString(t: Node | undefined): string {
     }
 }
 
-function convertIntrinsic(t) {
+function convertIntrinsic(t, value) {
     switch (t.name) {
         case "string":
             if (typeof value === "string") return value
@@ -225,7 +225,7 @@ export function convert(t: Node | undefined, value: any): any {
     if (!t) return value
     switch (t.type) {
         case "intrinsic":
-            return convertIntrinsic(t)
+            return convertIntrinsic(t, value)
         case "array": {
             let arr = value
             if (!Array.isArray(arr)) {
