@@ -64,6 +64,7 @@ if [ "$QUICK_BUILD" != "1" ]; then
     "$(yarn bin)/typedoc" --json src/.metadata.generated.json --mode file \
       --exclude 'src/.excmds_*.generated.ts' --ignoreCompilerErrors \
       src/excmds.ts src/lib/config.ts
+    node scripts/minify_json.js src/.metadata.generated.json
     node -e "var fs=require('fs');fs.writeFileSync('src/.themes.generated.json',JSON.stringify(fs.readdirSync('src/static/themes')))"
     printf 'export * from "./lib/metadata"\n' > src/.metadata.generated.ts
 
