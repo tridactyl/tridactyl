@@ -12,3 +12,18 @@ if [ "$incompatible_sed" ]; then
 fi
 yarn run lint
 "$(yarn bin)/eslint" --rulesdir custom-eslint-rules --ext .ts .
+
+if [ "$(git rev-parse --abbrev-ref HEAD)" = "master" ]; then
+	if ! yarn prettier --check '**/*.ts' ; then
+		echo "Warning: the files above have prettier formatting issues. Run 'yarn run prettier -w [files]' to fix them."
+	fi
+else
+	git fetch origin master 2>/dev/null || true
+	changed=$(git diff --name-only origin/master...HEAD -- '*.ts' 2>/dev/null || true)
+	if [ -n "$changed" ]; then
+		if ! yarn prettier --check $changed; then
+			echo "The files above have prettier formatting issues. Run 'yarn run prettier -w [files]' to fix them."
+			exit 1
+		fi
+	fi
+fi

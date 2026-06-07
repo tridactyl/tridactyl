@@ -1,10 +1,11 @@
 import { testAll, testAllObject } from "@src/lib/test_utils"
 import { canonicaliseMapstr } from "@src/lib/keyseq"
-import { default_config, getURL, get } from "@src/lib/config"
+import { default_config } from "@src/lib/config"
 import * as tri_config from "@src/lib/config"
 import { zip } from "ramda"
 
 const tri = { config: tri_config }
+const { getURL, get } = tri.config
 
 const config = new default_config()
 // todo: test subconfigs and platform_defaults
@@ -24,6 +25,16 @@ test("getURL in keymap and config", () => {
 
     const google = "https://www.google.com/"
     expect(getURL(google, ["followpagepatterns", "prev"])).toBe("Previous")
+})
+
+test("getURL in keymap and config in mock mode", () => {
+    mockUrl("https://web.whatsapp.com/", () => {
+        const nmaps = get("nmaps")
+        expect(nmaps.f).toBe("hint -c [tabindex]:not(.two)>div,a")
+    })
+    mockUrl("https://www.google.com/", () => {
+        expect(get("followpagepatterns", "prev")).toBe("Previous")
+    })
 })
 
 test("merge deep should keep null", () => {
@@ -60,17 +71,12 @@ test("get in modified inherit keymap", () => {
     expect("q" in config["vmaps"]).toBe(true)
     expect("q" in config["nmaps"]).toBe(false)
 
-    // null in keymap: do nothing and shadow binding from keymap
-    // undefined in keymap: do nothing but allow binding from parent keymap
     tri.config.set("vmaps", "q", null)
     expect(tri.config.USERCONFIG.vmaps.q).toBeNull()
 
     const vmapsAfterInherit = get("vmaps")
     expect(vmapsAfterInherit.q).toBeUndefined()
 })
-
-// should null cause problem in keymap? yes
-// remove null in keymap?
 
 test("mergeDeep should not pollute arguments", () => {
     const o1 = { n: { a: 1 } }
@@ -82,4 +88,58 @@ test("mergeDeep should not pollute arguments", () => {
         o3: { n: { a: 1, b: 2 } },
     })
 })
-// Object.create in mergeDeep
+
+function mockUrl(u, fn) {
+    const tri0 = window.tri
+    window.tri = { contentLocation: { href: u } }
+    fn()
+    window.tri = tri0
+}
+
+test("merge object when default undefined", () => {
+    const u = "youtube"
+    const m = "mycustommaps"
+    const cmd = "js alert(`j`)"
+    const cmdk = "js alert(`k`)"
+    expect(tri.config.DEFAULTS[m]).toBeUndefined()
+
+    tri.config.set(m, "J", cmd)
+    expect(tri.config.USERCONFIG[m]).toEqual({ J: cmd })
+    expect(tri.config.DEFAULTS[m]).toBeUndefined()
+
+    expect(tri.config.getDynamic(m)).toEqual({ J: cmd })
+    expect(tri.config.getDynamic(m, "J")).toBe(cmd)
+
+    tri.config.setURL(u, m, "K", cmdk)
+
+    // what we fix is how the get() function merges user and site config
+    // so we have to mock url for the get() instead of calling getURL
+    mockUrl(u, () => {
+        expect(tri.config.getDynamic(m)).toEqual({ J: cmd, K: cmdk })
+        expect(tri.config.getDynamic(m, "J")).toBe(cmd)
+        expect(tri.config.getDynamic(m, "K")).toBe(cmdk)
+    })
+})
+
+test("merge object when user config undefined", () => {
+    const u = "youtube"
+    const obj = "followpagepatterns"
+    const val = "go-next"
+    const prev = tri.config.get(obj, "prev")
+    expect(typeof tri.config.get(obj, "next")).toBe("string")
+    const orig = tri.config.get(obj, "next")
+    expect(tri.config.DEFAULTS[obj]["next"]).toBe(orig)
+    expect(tri.config.USERCONFIG[obj]).toBeUndefined()
+
+    tri.config.setURL(u, obj, "next", val)
+    expect(tri.config.get(obj, "next")).toBe(orig)
+    expect(tri.config.DEFAULTS[obj].next).toBe(orig)
+    expect(tri.config.USERCONFIG[obj]).toBeUndefined()
+
+    mockUrl(u, () => {
+        expect(tri.config.get(obj, "next")).toBe(val)
+        expect(tri.config.get(obj)).toEqual({ next: val, prev: prev })
+    })
+
+    expect(tri.config.USERCONFIG.subconfigs[u][obj]).toEqual({ next: val })
+})
