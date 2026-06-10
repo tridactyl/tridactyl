@@ -41,6 +41,7 @@ export interface KeyModifiers {
     keyup?: boolean
     keydown?: boolean
     optional?: boolean
+    repeat?: boolean
 }
 
 /**
@@ -122,6 +123,9 @@ export class MinimalKey {
             ctrlKey: this.ctrlKey,
             metaKey: this.metaKey,
             shiftKey: this.shiftKey,
+            keyup: this.keyup,
+            keydown: this.keydown,
+            repeat: this.repeat,
         })
         result.translated = true
         return result
@@ -137,7 +141,6 @@ export class MinimalKey {
             ["M", "metaKey"],
             ["S", "shiftKey"],
             ["U", "keyup"],
-            ["D", "keydown"],
             ["?", "optional"],
         ])
         for (const [letter, attr] of modifiers.entries()) {
@@ -227,6 +230,24 @@ export function stripOnlyModifiers(keyseq) {
     )
 }
 
+function isPerfectMatch(input: MinimalKey[], mapEntry: MinimalKey[]): boolean {
+    let i = 0
+    const remaining = [...mapEntry]
+    while (input[i] !== undefined && remaining.length > 0) {
+        const mapKey = remaining.shift()
+        switch (mapKey.match(input[i])) {
+            case false:
+                return false
+            case "skip":
+                continue
+            case true:
+                i++
+                break
+        }
+    }
+    return remaining.every(k => k.optional)
+}
+
 export function parse(keyseq: MinimalKey[], map: KeyMap): ParserResponse {
     // Remove bare modifiers
     keyseq = stripOnlyModifiers(keyseq)
@@ -251,9 +272,8 @@ export function parse(keyseq: MinimalKey[], map: KeyMap): ParserResponse {
         // Check if any of the mappings is a perfect match (this will only
         // happen if some sequences in the KeyMap are prefixes of other seqs).
         try {
-            const perfect = find(
-                possibleMappings,
-                ([k, _v]) => k.length === keyseq.length,
+            const perfect = find(possibleMappings, ([k, _v]) =>
+                isPerfectMatch(keyseq, k),
             )
             return {
                 value: perfect[1],
@@ -427,23 +447,27 @@ const hasExplicitDirection = (key: MinimalKey) => key.keyup || key.keydown
 export function mapstrToKeyseq(mapstr: string): MinimalKey[] {
     const keyseq: MinimalKey[] = []
     let key: MinimalKey
-    // Reduce mapstr by one character or one bracket expression per iteration
     while (mapstr.length) {
         if (mapstr[0] === "<") {
             ;[key, mapstr] = bracketexprToKey(mapstr)
-            keyseq.push(key)
-            if (mapstr.length > 1 && !hasExplicitDirection(key))
+            const explicitDirection = hasExplicitDirection(key)
+            keyseq.push(
+                explicitDirection
+                    ? key
+                    : minimalKeyFromObj(R.mergeRight(key, { keydown: true })),
+            )
+            if (mapstr.length > 1 && !explicitDirection)
                 keyseq.push(
                     minimalKeyFromObj(
                         R.mergeRight(key, { keyup: true, optional: true }),
                     ),
                 )
         } else {
-            keyseq.push(new MinimalKey(mapstr[0]))
+            keyseq.push(new MinimalKey(mapstr[0], { keydown: true }))
             if (mapstr.length > 1)
                 keyseq.push(
                     new MinimalKey(mapstr[0], { keyup: true, optional: true }),
-                ) // Only add optional ups to keys that aren't the final ones
+                )
             mapstr = mapstr.slice(1)
         }
     }
@@ -574,6 +598,8 @@ export function minimalKeyFromKeyboardEvent(
         ctrlKey: keyEvent.ctrlKey,
         metaKey: keyEvent.metaKey,
         shiftKey: keyEvent.shiftKey,
+        keyup: keyEvent.type === "keyup",
+        repeat: keyEvent.repeat,
     }
     if (config.get("keyboardlayoutforce") === "true") {
         Object.keys(KEYCODETRANSLATEMAP).length === 0 && updateBaseLayout()

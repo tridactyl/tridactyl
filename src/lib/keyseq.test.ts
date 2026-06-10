@@ -10,8 +10,8 @@ function mk(k, mod?: ks.KeyModifiers) {
     // {{{ parse and completions
 
     const keymap = new Map([
-        [[mk("u", { ctrlKey: true }), mk("j")], "scrollline 10"],
-        [[mk("g"), mk("g")], "scrolltop"],
+        [mks("<C-u>j"), "scrollline 10"],
+        [mks("gg"), "scrolltop"],
         [mks("<SA-Escape>"), "rarelyusedcommand"],
         // Test shiftKey ignoring
         [mks(":"), "fillcmdline"],
@@ -130,12 +130,16 @@ function mk(k, mod?: ks.KeyModifiers) {
         [[mks("gor"), keymap2], { keys: [], isMatch: false }],
         // If you somehow go beyond a valid keymap (keymap is changed in
         // between keypresses or something) then clear the key list.
+        // keyup events must not match single-key bindings
+        [[[mk("o", { keyup: true })], keymap2], { keys: [], isMatch: false }],
+        // But keydown (plain) events should match
+        [[[mk("o")], keymap2], { value: "bar", isMatch: true }],
         [[mks("goff"), keymap2], { keys: [], isMatch: false }],
         [[mks("xxxxx"), keymap2], { keys: [], isMatch: false }],
     ])
 
     testAllObject(ks.completions, [
-        [[[mk("g")], keymap], new Map([[[mk("g"), mk("g")], "scrolltop"]])],
+        [[[mk("g")], keymap], new Map([[mks("gg"), "scrolltop"]])],
         [[mks("<C-u>j"), keymap], new Map([[mks("<C-u>j"), "scrollline 10"]])],
         // -ve tests
         [[mks("x"), keymap], new Map()],
@@ -163,9 +167,13 @@ testAllObject(ks.mapstrMapToKeyMap, [
             ["gg", "scrolltop"],
         ]),
         new Map([
-            [[mk("j")], "scrollline 10"],
+            [[mk("j", { keydown: true })], "scrollline 10"],
             [
-                [mk("g"), mk("g", { keyup: true, optional: true }), mk("g")],
+                [
+                    mk("g", { keydown: true }),
+                    mk("g", { keyup: true, optional: true }),
+                    mk("g", { keydown: true }),
+                ],
                 "scrolltop",
             ],
         ]),
@@ -176,9 +184,19 @@ testAllObject(ks.mapstrMapToKeyMap, [
             ["gg", "scrolltop"],
         ]),
         new Map([
-            [[mk("u", { ctrlKey: true }), mk("j")], "scrollline 10"],
             [
-                [mk("g"), mk("g", { keyup: true, optional: true }), mk("g")],
+                [
+                    mk("u", { ctrlKey: true, keydown: true }),
+                    mk("j", { keydown: true }),
+                ],
+                "scrollline 10",
+            ],
+            [
+                [
+                    mk("g", { keydown: true }),
+                    mk("g", { keyup: true, optional: true }),
+                    mk("g", { keydown: true }),
+                ],
                 "scrolltop",
             ],
         ]),
@@ -196,7 +214,7 @@ testAllObject(ks.mapstrToKeyseq, [
                 metaKey: false,
                 shiftKey: false,
                 keyup: false,
-                keydown: false,
+                keydown: true,
                 optional: false,
             },
             {
@@ -216,7 +234,7 @@ testAllObject(ks.mapstrToKeyseq, [
                 metaKey: false,
                 shiftKey: false,
                 keyup: false,
-                keydown: false,
+                keydown: true,
                 optional: false,
             },
             {
@@ -236,7 +254,7 @@ testAllObject(ks.mapstrToKeyseq, [
                 metaKey: false,
                 shiftKey: false,
                 keyup: false,
-                keydown: false,
+                keydown: true,
                 optional: false,
             },
             {
@@ -256,7 +274,7 @@ testAllObject(ks.mapstrToKeyseq, [
                 metaKey: false,
                 shiftKey: false,
                 keyup: false,
-                keydown: false,
+                keydown: true,
                 optional: false,
             },
             {
@@ -276,7 +294,7 @@ testAllObject(ks.mapstrToKeyseq, [
                 metaKey: false,
                 shiftKey: false,
                 keyup: false,
-                keydown: false,
+                keydown: true,
                 optional: false,
             },
             {
@@ -296,7 +314,7 @@ testAllObject(ks.mapstrToKeyseq, [
                 metaKey: false,
                 shiftKey: false,
                 keyup: false,
-                keydown: false,
+                keydown: true,
                 optional: false,
             },
             {
@@ -316,7 +334,7 @@ testAllObject(ks.mapstrToKeyseq, [
                 metaKey: false,
                 shiftKey: false,
                 keyup: false,
-                keydown: false,
+                keydown: true,
                 optional: false,
             },
             {
@@ -336,7 +354,7 @@ testAllObject(ks.mapstrToKeyseq, [
                 metaKey: false,
                 shiftKey: false,
                 keyup: false,
-                keydown: false,
+                keydown: true,
                 optional: false,
             },
             {
@@ -356,7 +374,7 @@ testAllObject(ks.mapstrToKeyseq, [
                 metaKey: false,
                 shiftKey: false,
                 keyup: false,
-                keydown: false,
+                keydown: true,
                 optional: false,
             },
             {
@@ -376,7 +394,7 @@ testAllObject(ks.mapstrToKeyseq, [
                 metaKey: false,
                 shiftKey: false,
                 keyup: false,
-                keydown: false,
+                keydown: true,
                 optional: false,
             },
             {
@@ -396,7 +414,7 @@ testAllObject(ks.mapstrToKeyseq, [
                 metaKey: false,
                 shiftKey: false,
                 keyup: false,
-                keydown: false,
+                keydown: true,
                 optional: false,
             },
         ],
@@ -411,7 +429,7 @@ testAllObject(ks.mapstrToKeyseq, [
                 metaKey: false,
                 shiftKey: false,
                 keyup: false,
-                keydown: false,
+                keydown: true,
                 optional: false,
             },
             {
@@ -431,7 +449,7 @@ testAllObject(ks.mapstrToKeyseq, [
                 metaKey: false,
                 shiftKey: false,
                 keyup: false,
-                keydown: false,
+                keydown: true,
                 optional: false,
             },
             {
@@ -451,7 +469,7 @@ testAllObject(ks.mapstrToKeyseq, [
                 metaKey: false,
                 shiftKey: false,
                 keyup: false,
-                keydown: false,
+                keydown: true,
                 optional: false,
             },
             {
@@ -471,7 +489,7 @@ testAllObject(ks.mapstrToKeyseq, [
                 metaKey: false,
                 shiftKey: false,
                 keyup: false,
-                keydown: false,
+                keydown: true,
                 optional: false,
             },
             {
@@ -491,7 +509,7 @@ testAllObject(ks.mapstrToKeyseq, [
                 metaKey: false,
                 shiftKey: false,
                 keyup: false,
-                keydown: false,
+                keydown: true,
                 optional: false,
             },
             {
@@ -511,7 +529,7 @@ testAllObject(ks.mapstrToKeyseq, [
                 metaKey: false,
                 shiftKey: false,
                 keyup: false,
-                keydown: false,
+                keydown: true,
                 optional: false,
             },
             {
@@ -531,7 +549,7 @@ testAllObject(ks.mapstrToKeyseq, [
                 metaKey: false,
                 shiftKey: false,
                 keyup: false,
-                keydown: false,
+                keydown: true,
                 optional: false,
             },
             {
@@ -551,7 +569,7 @@ testAllObject(ks.mapstrToKeyseq, [
                 metaKey: false,
                 shiftKey: false,
                 keyup: false,
-                keydown: false,
+                keydown: true,
                 optional: false,
             },
             {
@@ -571,7 +589,7 @@ testAllObject(ks.mapstrToKeyseq, [
                 metaKey: false,
                 shiftKey: false,
                 keyup: false,
-                keydown: false,
+                keydown: true,
                 optional: false,
             },
         ],
@@ -586,7 +604,7 @@ testAllObject(ks.mapstrToKeyseq, [
                 metaKey: false,
                 shiftKey: false,
                 keyup: false,
-                keydown: false,
+                keydown: true,
                 optional: false,
             },
             {
@@ -606,7 +624,7 @@ testAllObject(ks.mapstrToKeyseq, [
                 metaKey: false,
                 shiftKey: false,
                 keyup: false,
-                keydown: false,
+                keydown: true,
                 optional: false,
             },
             {
@@ -626,7 +644,7 @@ testAllObject(ks.mapstrToKeyseq, [
                 metaKey: false,
                 shiftKey: false,
                 keyup: false,
-                keydown: false,
+                keydown: true,
                 optional: false,
             },
             {
@@ -646,7 +664,7 @@ testAllObject(ks.mapstrToKeyseq, [
                 metaKey: false,
                 shiftKey: false,
                 keyup: false,
-                keydown: false,
+                keydown: true,
                 optional: false,
             },
             {
@@ -666,7 +684,7 @@ testAllObject(ks.mapstrToKeyseq, [
                 metaKey: false,
                 shiftKey: false,
                 keyup: false,
-                keydown: false,
+                keydown: true,
                 optional: false,
             },
             {
@@ -686,7 +704,7 @@ testAllObject(ks.mapstrToKeyseq, [
                 metaKey: false,
                 shiftKey: false,
                 keyup: false,
-                keydown: false,
+                keydown: true,
                 optional: false,
             },
             {
@@ -706,7 +724,7 @@ testAllObject(ks.mapstrToKeyseq, [
                 metaKey: false,
                 shiftKey: false,
                 keyup: false,
-                keydown: false,
+                keydown: true,
                 optional: false,
             },
             {
@@ -726,7 +744,7 @@ testAllObject(ks.mapstrToKeyseq, [
                 metaKey: false,
                 shiftKey: false,
                 keyup: false,
-                keydown: false,
+                keydown: true,
                 optional: false,
             },
             {
@@ -746,7 +764,7 @@ testAllObject(ks.mapstrToKeyseq, [
                 metaKey: false,
                 shiftKey: false,
                 keyup: false,
-                keydown: false,
+                keydown: true,
                 optional: false,
             },
             {
@@ -766,7 +784,7 @@ testAllObject(ks.mapstrToKeyseq, [
                 metaKey: false,
                 shiftKey: true,
                 keyup: false,
-                keydown: false,
+                keydown: true,
                 optional: false,
             },
         ],
