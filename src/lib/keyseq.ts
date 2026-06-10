@@ -450,11 +450,7 @@ export function mapstrToKeyseq(mapstr: string): MinimalKey[] {
         if (mapstr[0] === "<") {
             ;[key, mapstr] = bracketexprToKey(mapstr)
             const explicitDirection = hasExplicitDirection(key)
-            keyseq.push(
-                explicitDirection
-                    ? key
-                    : minimalKeyFromObj(R.mergeRight(key, { keydown: true })),
-            )
+            keyseq.push(explicitDirection ? key : minimalKeyFromObj(key))
             if (mapstr.length > 1 && !explicitDirection)
                 keyseq.push(
                     minimalKeyFromObj(
@@ -462,7 +458,7 @@ export function mapstrToKeyseq(mapstr: string): MinimalKey[] {
                     ),
                 )
         } else {
-            keyseq.push(new MinimalKey(mapstr[0], { keydown: true }))
+            keyseq.push(new MinimalKey(mapstr[0]))
             if (mapstr.length > 1)
                 keyseq.push(
                     new MinimalKey(mapstr[0], { keyup: true, optional: true }),
